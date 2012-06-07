@@ -18,6 +18,7 @@
  */
 package net.pms.newgui;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.awt.Font;
@@ -28,6 +29,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -39,13 +41,21 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
+import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.Popup;
+import javax.swing.PopupFactory;
 import javax.swing.SwingUtilities;
+import javax.swing.table.TableCellRenderer;
 
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.Build;
+import net.pms.configuration.DownloadPlugins;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.external.ExternalFactory;
@@ -216,6 +226,75 @@ public class GeneralTab {
 			checkForUpdates.setEnabled(false);
 			autoUpdateCheckBox.setEnabled(false);
 		}
+		
+		// Add find plugin support here
+		JButton checkForPlugins=new JButton(/*Messages.getString("NetworkTab.999")*/"Plugins");
+		checkForPlugins.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(!ExternalFactory.localPluginsInstalled()) {
+					JOptionPane.showMessageDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+												  "Plugins are not loaded yet. Please wait.");
+					return;
+				}
+				final ArrayList<DownloadPlugins> plugins=DownloadPlugins.downloadList();
+				if(plugins.isEmpty())
+					return;
+				JTable tab=new JTable(plugins.size()+1,3) {
+					 public String getToolTipText(MouseEvent e) {
+						 java.awt.Point p = e.getPoint();
+						 int rowIndex = rowAtPoint(p);
+						 if(rowIndex==0)
+							 return "";
+						 DownloadPlugins plugin=plugins.get(rowIndex-1);
+						 return plugin.htmlString();
+					 }
+				};
+				tab.setValueAt("Name", 0, 0);
+				tab.setValueAt("Rating",0,1);
+				tab.setValueAt("Author",0,2);
+				for(int i=0;i<plugins.size();i++) {
+					DownloadPlugins p=plugins.get(i);
+					tab.setValueAt(p.getName(), i+1, 0);
+					tab.setValueAt(p.getRating(),i+1,1);
+					tab.setValueAt(p.getAuthor(),i+1,2);
+				}
+				String[] opts={"Install","Cancel"};
+				int id=JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())), 
+							tab, "Plugins", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, opts, null);
+				if(id!=0) // cancel, do nothing
+					return;
+				// Install the stuff
+				final int[] rows=tab.getSelectedRows();
+				JPanel panel=new JPanel();
+				final JFrame frame=new JFrame("Install Plugins");	
+				JProgressBar progressBar=new JProgressBar();
+				progressBar.setIndeterminate(true);
+				panel.add(progressBar);
+				frame.add(panel);
+				frame.pack();
+				frame.setVisible(true);
+				Runnable r=new Runnable() {
+					public void run() {
+						for(int i=0;i<rows.length;i++) {
+							if(rows[i]==0)
+								continue;
+							DownloadPlugins plugin=plugins.get(rows[i]-1);
+							try {
+								plugin.install();
+							} catch (Exception e) {
+								LOGGER.debug("download of plugin "+plugin.getName()+
+										" failed "+e);
+							}
+						}
+						frame.setVisible(false);
+					}
+				};
+				new Thread(r).start();
+			}
+		});
+		builder.add(checkForPlugins, FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
+		
 
 		host = new JTextField(configuration.getServerHostname());
 		host.addKeyListener(new KeyListener() {

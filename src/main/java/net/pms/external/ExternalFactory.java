@@ -22,6 +22,9 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -33,6 +36,7 @@ import net.pms.PMS;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 /**
  * This class takes care of registering plugins. Plugin jars are loaded,
@@ -54,6 +58,14 @@ public class ExternalFactory {
 	 */
 	private static List<Class<?>> externalListenerClasses = new ArrayList<Class<?>>();
 
+	/**
+	 * List of external listener classes (not yet started).
+	 */
+	private static List<Class<?>> downloadedListenerClasses = new ArrayList<Class<?>>();
+	
+	private static boolean allDone=false;
+
+	
 	/**
 	 * Returns the list of external listener class instances.
 	 *
@@ -84,6 +96,54 @@ public class ExternalFactory {
 	private static void registerListenerClass(Class<?> clazz) {
 		if (!externalListenerClasses.contains(clazz)) {
 			externalListenerClasses.add(clazz);
+		}
+	}
+	
+	/**
+	 * This method loads the jar files found in the plugin dir
+	 * or if installed from the web.
+	 */
+	
+	public static void loadJARs(URL[] jarURLs,boolean download) {
+		// Create a classloader to take care of loading the plugin classes from
+		// their URL.
+		URLClassLoader classLoader = new URLClassLoader(jarURLs);
+		Enumeration<URL> resources;
+
+		try {
+			// Each plugin .jar file has to contain a resource named "plugin"
+			// which should contain the name of the main plugin class.
+			resources = classLoader.getResources("plugin");
+		} catch (IOException e) {
+			LOGGER.error("Can't load plugin resources", e);
+			return;
+		}
+
+		while (resources.hasMoreElements()) {
+			URL url = resources.nextElement();
+
+			try {
+				// Determine the plugin main class name from the contents of
+				// the plugin file.
+				InputStreamReader in = new InputStreamReader(url.openStream());
+				char[] name = new char[512];
+				in.read(name);
+				in.close();
+				String pluginMainClassName = new String(name).trim();
+
+				LOGGER.info("Found plugin: " + pluginMainClassName);
+
+				// Try to load the class based on the main class name
+				Class<?> clazz = classLoader.loadClass(pluginMainClassName);
+				registerListenerClass(clazz);
+				if(download)
+					downloadedListenerClasses.add(clazz);
+					
+			} catch (Exception e) {
+				LOGGER.error("Error loading plugin", e);
+			} catch (NoClassDefFoundError e) {
+				LOGGER.error("Error loading plugin", e);
+			}
 		}
 	}
 
@@ -137,44 +197,10 @@ public class ExternalFactory {
 
 		URL[] jarURLs = new URL[jarURLList.size()];
 		jarURLList.toArray(jarURLs);
-
-		// Create a classloader to take care of loading the plugin classes from
-		// their URL.
-		URLClassLoader classLoader = new URLClassLoader(jarURLs);
-		Enumeration<URL> resources;
-
-		try {
-			// Each plugin .jar file has to contain a resource named "plugin"
-			// which should contain the name of the main plugin class.
-			resources = classLoader.getResources("plugin");
-		} catch (IOException e) {
-			LOGGER.error("Can't load plugin resources", e);
-			return;
-		}
-
-		while (resources.hasMoreElements()) {
-			URL url = resources.nextElement();
-
-			try {
-				// Determine the plugin main class name from the contents of
-				// the plugin file.
-				InputStreamReader in = new InputStreamReader(url.openStream());
-				char[] name = new char[512];
-				in.read(name);
-				in.close();
-				String pluginMainClassName = new String(name).trim();
-
-				LOGGER.info("Found plugin: " + pluginMainClassName);
-
-				// Try to load the class based on the main class name
-				Class<?> clazz = classLoader.loadClass(pluginMainClassName);
-				registerListenerClass(clazz);
-			} catch (Exception e) {
-				LOGGER.error("Error loading plugin", e);
-			} catch (NoClassDefFoundError e) {
-				LOGGER.error("Error loading plugin", e);
-			}
-		}
+		
+		// Load the jars
+		
+		loadJARs(jarURLs,false);
 
 		// Instantiate the early external listeners immediately.
 		instantiateEarlyListeners();
@@ -232,5 +258,42 @@ public class ExternalFactory {
 				}
 			}
 		}
+		allDone=true;
+	}
+	
+	private static void postInstall(Class<?> clazz) {
+		Method postInstall;
+		try {
+			postInstall = clazz.getDeclaredMethod("postInstall", null);
+			if(Modifier.isStatic(postInstall.getModifiers()))
+				postInstall.invoke(null, null);
+		}
+		// Ignore all errors
+		catch (SecurityException e) {
+		} catch (NoSuchMethodException e) { 
+		} catch (IllegalArgumentException e) {
+		} catch (IllegalAccessException e) {
+		} catch (InvocationTargetException e) {
+		}
+	}
+	
+	public static void instantiateDownloaded() {
+		// These are found in the uninstancedListenerClasses list
+		for (Class<?> clazz: downloadedListenerClasses) {
+			ExternalListener instance;
+			try {
+				postInstall(clazz);
+				instance = (ExternalListener) clazz.newInstance();
+				registerListener(instance);
+			} catch (InstantiationException e) {
+				LOGGER.error("Error instantiating plugin", e);
+			} catch (IllegalAccessException e) {
+				LOGGER.error("Error instantiating plugin", e);
+			} 
+		}
+	}
+	
+	public static boolean localPluginsInstalled() {
+		return allDone;
 	}
 }
