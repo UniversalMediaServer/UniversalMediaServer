@@ -1,0 +1,93 @@
+<assembly
+	xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+	
+	<!--
+		For Mac OSX the actual assembly of the App Bundle and DMG disk image 
+		is handled by the osxappbundle-maven-plugin. This assembly descriptor merely 
+		copies all the files in the right place so the other plugin can pick them 
+		up easily.
+	-->
+
+	<id>distribution</id>
+	<formats>
+		<format>dir</format>
+	</formats>
+	<includeBaseDirectory>false</includeBaseDirectory>
+
+	<fileSets>
+		<!-- Include the unzipped binaries -->
+		<fileSet>
+			<directory>${project.binaries}/osx</directory>
+			<outputDirectory>${project.name}.app/Contents/Resources/Java/osx</outputDirectory>
+			<useDefaultExcludes>true</useDefaultExcludes>
+			<fileMode>0755</fileMode>
+			<includes>
+				<include>*</include>
+			</includes>
+			<excludes>
+				<exclude>pms.icns</exclude>
+			</excludes>
+		</fileSet>
+
+		<!-- Include unzipped libmediainfo.dylib -->
+		<fileSet>
+			<directory>${project.basedir}</directory>
+			<outputDirectory>${project.name}.app/Contents/Resources/Java</outputDirectory>
+			<fileMode>0644</fileMode>
+			<includes>
+				<include>libmediainfo.dylib</include>
+			</includes>
+		</fileSet>
+
+		<!-- Include documentation -->
+		<fileSet>
+			<directory>${project.basedir}</directory>
+			<outputDirectory>${project.name}.app/Contents/Resources/Java</outputDirectory>
+			<fileMode>0644</fileMode>
+			<includes>
+				<include>README.txt</include>
+				<include>CHANGELOG.txt</include>
+				<include>LICENSE.txt</include>
+			</includes>
+		</fileSet>
+
+		<!-- Include JavaApplicationStub.setenv -->
+		<fileSet>
+			<directory>${project.external-resources}/osx</directory>
+			<outputDirectory>${project.name}.app/Contents/MacOS</outputDirectory>
+			<fileMode>0755</fileMode>
+			<includes>
+				<include>JavaApplicationStub.setenv</include>
+			</includes>
+		</fileSet>
+
+		<!-- Include fontconfig files -->
+		<fileSet>
+			<directory>${project.external-resources}/osx/fonts</directory>
+			<outputDirectory>${project.name}.app/Contents/Resources/Java/fonts</outputDirectory>
+			<fileMode>0644</fileMode>
+			<includes>
+				<include>*</include>
+			</includes>
+		</fileSet>
+
+		<!-- Include configuration files -->
+		<fileSet>
+			<directory>${project.external-resources}</directory>
+			<outputDirectory>${project.name}.app/Contents/Resources/Java</outputDirectory>
+			<fileMode>0644</fileMode>
+			<includes>
+				<include>UMS.conf</include>
+				<include>WEB.conf</include>
+				<include>logback.headless.xml</include>
+				<include>logback.xml</include>
+				<include>documentation/**</include>
+				<include>plugins/**</include>
+				<include>renderers/*</include>
+			</includes>
+		</fileSet>
+
+	</fileSets>
+</assembly>

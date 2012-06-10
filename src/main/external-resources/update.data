@@ -1,0 +1,6 @@
+# Don't update this: see https://code.google.com/p/ps3mediaserver/source/detail?r=723
+# Note: new update files go in update/
+# TODO: this can almost certainly be removed (Google Code is often slow/down,
+# so the auto updater must be able to handle failure gracefully)
+LatestVersion="1.04"
+DownloadUrl.windows="http://ps3mediaserver.googlecode.com/files/pms-setup-windows-1.04.exe"

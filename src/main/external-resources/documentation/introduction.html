@@ -1,0 +1,181 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- 
+   PS3 Media Server, for streaming any medias to your PS3.
+   Copyright (C) 2008  A.Brochard
+ 
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License
+   as published by the Free Software Foundation; version 2
+   of the License only.
+ 
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+ 
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+-->
+<html>
+<head>
+<title>Introduction</title>
+<link href="css/style.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+	<h1>Introduction</h1>
+
+	<!--
+		 Based on http://otmanix.de/english/2009/05/13/java-ps3-media-server-for-dummies-chapter-1-introduction/
+		 Thanks, Otmanix!
+	-->
+
+	<h2>What does it do?</h2>
+
+	<p>Universal Media Server (or UMS for short) is a program that
+		streams media like video, audio or images from your computer or the
+		web to a device like a console or a TV.</p>
+
+	<p>This might sound simple, but it is in fact a complex matter.
+		There are dozens of media formats in the world, and your console or TV
+		only understands a couple of them. UMS allows you to browse media on
+		your favorite viewing device without having to worry about the details
+		of what you are viewing. UMS takes care of retrieving the media (from
+		file, network or web) and translating it to the best format that your
+		device understands.</p>
+
+
+	<h2>Media renderers</h2>
+
+	<p>
+		UMS is a <a
+			href="http://en.wikipedia.org/wiki/Digital_Living_Network_Alliance">DLNA</a>
+		compliant <a href="http://en.wikipedia.org/wiki/UPnP">UPnP</a> Media
+		Server. It was originally written to support the PlayStation 3.
+		However, other viewing devices support the same standards as the
+		PlayStation 3 and UMS has been expanded to support a range of them,
+		including Xbox 360 and various Samsung and Sony televisions.
+	</p>
+
+
+	<h2>Alternatives</h2>
+
+	<p>There are several streaming servers available which can be used
+		to communicate with a your viewing device. Here is a small selection:</p>
+	<ul>
+		<li><a
+			href="http://www.microsoft.com/windows/windowsmedia/player/11/default.aspx">Windows
+				Media Player</a>
+		</li>
+		<li><a href="http://www.twonkyvision.com/">Twonky Media</a></li>
+		<li><a href="http://tversity.com/">TVersity</a></li>
+		<li><a href="http://mediatomb.cc/">MediaTomb</a></li>
+	</ul>
+
+	<p>Windows Media Player works well out of the box but isn't able to
+		transcode or remux and has poor performance with a huge media database.
+		Twonky media is not for free. Twonky media has its advantages in
+		supporting a lot of different streaming clients, even NAS systems.
+		TVersity is an average media server and has some advantages in
+		streaming Internet content. But this advanced feature is not included
+		in the free version. Mediatomb is often used on open source operating
+		and embedded systems. It can be customized very well by experienced
+		shellscript gurus. It is not a good choice for beginners.</p>
+
+	<h2>Why UMS?</h2>
+
+	<p>
+		UMS is available for Windows, Linux and Mac OSX. A prerequisite is the
+		installation of <a href="http://java.com/en/download/">Java
+			Runtime Environment</a> (JRE) because UMS is programmed in Java.
+	</p>
+
+	<p>UMS is shipped with all required software to make it work out of
+		the box. However, additional features may require the installation of
+		additional software.</p>
+
+	<p>There are a lot of technical details involved in the process of
+		translating media. UMS tries to minimalize this for the user by
+		shipping with working defaults for most situations. You simply start
+		UMS and it will find your device and start communicating with it
+		without any extra configuration.</p>
+
+	<p>UMS is optimized for use with the Playstation 3. But you can
+		also use an Xbox 360, Popcorn Hour and various Samsung or Sony TVs as
+		streaming clients.</p>
+
+	<p>In the old days, people would use a conversion program like
+		"mkv2vob" and connect USB hard drives with converted files to the PS3.
+		With UMS there is no need for converting files any more. If converting
+		is necessary, UMS will do it for you on the fly.</p>
+
+	<p>UMS also makes it possible to stream web content like Youtube,
+		GameTrailers, web radio or Picasa to your device.</p>
+
+	<p>
+		UMS is free Open Source software and has been designed to allow third
+		party plugins to extend its functionality. You are welcome to help
+		improve UMS or write a plugin for others to use. See the <a
+			href="http://code.google.com/p/ps3mediaserver/">project homepage</a>
+		for more information.
+	</p>
+
+	<p>The most stunning features of UMS are transcoding and muxing.</p>
+
+
+	<h2>What are transcoding and muxing?</h2>
+
+	<p>
+		If the video codec is not supported UMS can convert the video stream
+		to a device compatible codec. For example the PS3 is compatible with
+		MPEG2. This procedure is called <a
+			href="http://en.wikipedia.org/wiki/Transcoding">transcoding</a> and
+		it costs a lot of CPU power.
+	</p>
+
+	<p>
+		When you try to play a media file on your viewing device and the
+		format is not supported you get a "data corrupted" message. UMS is
+		able to help in this case. UMS is able to change the container format
+		on the fly if it is not supported by your device. UMS extracts the
+		audio and video stream and puts it into a supported M2TS-container.
+		This is called <a href="http://en.wikipedia.org/wiki/Muxing">muxing</a>.
+	</p>
+
+	<p>Together, transcoding and muxing make it possible for UMS to
+		stream almost every multimedia format to your viewing device. UMS
+		enables you to view media on TV that you could formerly only view on
+		your computer.</p>
+
+	<h2>Hardware requirements</h2>
+
+	<p>You can stream media files with quite old computers. If the
+		device does not recognize the video container format and UMS has to
+		remux you will need some additional CPU power. A 2 GHz CPU should be
+		sufficient. When transcoding a video on full HD resolution an up to
+		date dual core processor from Intel or AMD with at least 2,6 GHz is
+		necessary.</p>
+
+	<p>It is also necessary to have enough network bandwidth available
+		when streaming HD videos. It is nearly impossible to stream a full HD
+		video via WLAN, even when restricting network bandwidth and setting
+		video quality very low.</p>
+
+	<p>You should also have enough free RAM, which means about 512 MB.
+		There is also some space needed on your systems hard drive for
+		buffering videos. 500 MB free disk space is enough. If you want to
+		stream media files from an external hard drive please consider that an
+		USB 1.1 connection is too slow for videos.</p>
+
+
+	<!--  Navigation -->
+	<hr />
+	<ul>
+		<li>Next: <a href="networking.html">Networking and technical
+				basics</a></li>
+		<li>Previous: <a href="index.html">Help</a></li>
+		<li>Top: <a href="index.html">Help</a></li>
+	</ul>
+
+</body>
+</html>

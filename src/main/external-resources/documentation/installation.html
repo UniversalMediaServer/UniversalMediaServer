@@ -1,0 +1,404 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- 
+   PS3 Media Server, for streaming any medias to your PS3.
+   Copyright (C) 2008  A.Brochard
+ 
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License
+   as published by the Free Software Foundation; version 2
+   of the License only.
+ 
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+ 
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+-->
+<html>
+<head>
+<title>Installation and basic configuration</title>
+<link href="css/style.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+	<h1>Installation and basic configuration</h1>
+
+	<!--
+		 Based on http://otmanix.de/english/2009/05/17/java-ps3-media-server-for-dummies-chapter-3-installation-and-basic-configuration/
+		 Thanks, Otmanix!
+	-->
+
+	<h2>Java</h2>
+	<p>
+		Java programming language is a requirement for UMS. Therefore you need
+		to install Java second edition runtime environment (JRE), at least
+		version 6. You can <a href="http://java.com/en/download/">get the
+			latest JRE here</a>.
+	</p>
+
+
+	<h2>Installation and start of UMS on Windows</h2>
+
+	<p>
+		After installing Java Runtime you can install Universal Media Server.
+		Double-click the setup file and follow the instructions.
+	</p>
+
+	<p>
+		<img src="images/setupwin1.jpg" />
+	</p>
+
+	<p>
+		<img src="images/setupwin2.jpg" />
+	</p>
+
+	<p>
+		<img src="images/setupwin3.jpg" />
+	</p>
+
+	<p>
+		<img src="images/setupwin4.jpg" />
+	</p>
+
+
+	<h2>Installation and start of UMS on Linux</h2>
+
+	<p>You also need to have Java installed on Linux. You should set
+		environment variable JAVA_HOME to JRE installation path. After that
+		you have to decompress the setup archive for Linux with:</p>
+
+	<blockquote>
+		<pre>tar xzf filename.tgz</pre>
+	</blockquote>
+
+	<p>You have to install MPlayer, MEncoder, FFmpeg and tsMuxeR. If
+		you like to stream web content also install VLC. Make sure that all
+		binaries of these tools can be found via PATH variable. Start a shell,
+		cd to your installation directory and start UMS with:</p>
+
+	<blockquote>
+		<pre>./UMS.sh</pre>
+	</blockquote>
+
+	<p>Check permissions and set them if necessary with:</p>
+	<blockquote>
+		<pre>chmod ug+x UMS.sh</pre>
+	</blockquote>
+
+	<p>You can either use packages from your Linux distrubution or
+		compile the tools by yourself. Sometimes distributors do not set
+		important compiler options, e.g. scaling support for FFmpeg. So I
+		recommend you to compile it from source.</p>
+
+
+	<h2>Starting UMS</h2>
+
+	<p>First start up and login to your PS3 or other viewing device.
+		This will allow UMS to detect it on the network.</p>
+
+	<p>After your device has started up, start UMS. UMS tries to detect
+		available media renderers:</p>
+
+	<p>
+		<img src="images/pms-searching.jpg" />
+	</p>
+
+	<p>UMS should automatically detect your device. After about 10
+		seconds, you should see this message:</p>
+
+	<p>
+		<img src="images/pms-eng-status2.jpg" />
+	</p>
+
+	<p>UMS has sucessfully detected your PS3 and connected with it. As
+		a result, UMS should now appear on the cross media bar (XMB) of your
+		PS3:</p>
+
+	<p>
+		<img src="images/ps3-server.jpg" />
+	</p>
+
+	<p>You are now able to browse your computer and play media files.</p>
+
+	<p>
+		<img src="images/ps3-browsing.jpg" />
+	</p>
+
+
+	<h2>Attention!</h2>
+
+	<p>The PlayStation 3 separates "Photo", "Music" and "Video" in
+		different XMB entry points. Even though you see all folders on your
+		media server, you can only see the files that correspond to your XMB
+		entry point.</p>
+
+	<p>For example: if you choose "Photo" and open your media server
+		you will see a folder "Web video", but it will be empty because it
+		does not contain any photo files. If you want to view the contents of
+		"Web video", you have to navigate to the XMB option "Video" and browse
+		your computer from there. You will now find it filled with video
+		files.</p>
+
+
+	<a name="troubleshooting"> </a>
+	<h1>Troubleshooting</h1>
+
+	<p>UMS should automatically detect your device and display it. In
+		some cases UMS does not detect your PS3:</p>
+
+	<p>
+		<img src="images/pms-eng-status1.jpg" />
+	</p>
+
+	<h2>Basic analysis</h2>
+	<p>Often it suffices to change to the "General Configuration" tab and verify the
+		network settings:</p>
+
+	<p>
+		<img src="images/pms-eng-general1.jpg" />
+	</p>
+
+	<p>
+		<img src="images/pms-eng-general.jpg" />
+	</p>
+
+	<p>In the majority of reported cases there are two problem causes:</p>
+	<ul>
+		<li>Port 5001 is already in use by another software, for example
+			Azureus Vuze</li>
+		<li>UMS uses the wrong network interface as default</li>
+	</ul>
+
+	<p>You can solve the problem by choosing the correct network
+		interface and type in an unused port, e.g. 6001. After that save and
+		quit, then start UMS again.</p>
+
+	<h2>In depth analysis</h2>
+
+	<p>
+		UMS not showing on your DLNA client can be caused by a variety of
+		factors, but the potential causes can be broken up into two groups -
+		&quot;Before UDP Broadcast&quot; and &quot;After UDP Broadcast&quot;<br />The
+		line in the debug.log/trace that separates these two groups (this
+		signifies the UDP broadcast) is
+	</p>
+
+	<blockquote>
+		<pre>It's ready! You should see the server appears on XMB</pre>
+	</blockquote>
+	<p>
+		<strong>Note 1:</strong> for the suggestions below, Windows, Apple and
+		several OEM manufacturers install and enable default protection
+		programs (e.g. Windows Defender or Peer Guardian). Make sure that the
+		settings for <strong>all</strong> antivirus, firewall, malware and
+		protection programs are checked.
+	</p>
+	<p>
+		<strong>Note 2:</strong> direct connections are a special case, so
+		check the additional details at the bottom.
+	</p>
+
+	<h3>Before UDP Broadcast</h3>
+	<p>These can usually be spotted through errors in the debug.log /
+		trace before the line above.</p>
+	<dl>
+		<dt>UMS cannot bind to the port/IP on the NIC.</dt>
+		<dd>
+			Some other program is already using that port.
+			<ul>
+				<li>Check with &quot;netstat -a&quot; through the command line,
+					and change the port in the UMS settings if needed.</li>
+			</ul>
+		</dd>
+		<dt>A software firewall is blocking javaw.exe (and wrapper.exe if
+			running as a Windows service) from binding to the port.</dt>
+		<dd>
+			<ul>
+				<li>Open the firewall settings and make sure the .exe's are
+					allowed or the specific port is open.</li>
+			</ul>
+		</dd>
+		<dt>You forced the wrong IP address in the UMS settings.</dt>
+		<dd>
+			<ul>
+				<li>Force the correct IP address (the IP address of the server)
+					or clear the setting. Note: you should only have to the force IP if
+					you have assigned multiple IPs to a single NIC.</li>
+			</ul>
+		</dd>
+		<dt>You opened multiple instances of UMS or a javaw.exe process
+			got hung up.</dt>
+		<dd>
+			<ul>
+				<li>Close all open instances of UMS and then kill any remaining
+					javaw.exe processes. You may have other programs using javaw.exe,
+					so exercise caution in killing the tasks.</li>
+			</ul>
+		</dd>
+		<dt>UMS is bound to the wrong NIC (e.g. TCP Loopback).</dt>
+		<dd>
+			<ul>
+				<li>You forced the wrong NIC in the UMS settings, so force the
+					right NIC or clear the setting. Note: There is no error in the
+					debug.log/trace</li>
+			</ul>
+		</dd>
+		<dt>The host file on your Linux box needs to be corrected.</dt>
+		<dd>
+			<ul>
+				<li><a
+					href="http://ps3mediaserver.org/forum/viewtopic.php?f=6&amp;t=3507&amp;p=16041#p16041">http://ps3mediaserver.org/forum/viewtopic.php?f=6&amp;t=3507&amp;p=16041#p16041</a>.
+					Note: There is no error in the debug.log/trace</li>
+			</ul>
+		</dd>
+		<dt>You do not have proper access or permissions for the UMS
+			install folder.</dt>
+		<dd>
+			<ul>
+				<li>You need to make sure there are full read and write
+					permissions on the UMS install folder.
+					<ul>
+						<li>Check the base file system permissions.</li>
+						<li>On Windows Vista or Windows 7, reinstall with &quot;Run
+							as Administrator&quot; on the installer.</li>
+						<li>Check if any filesystem protection programs are blocking
+							access (some antivirus or malware programs have this feature).</li>
+					</ul>
+				</li>
+			</ul>
+		</dd>
+		<dt>UMS is taking its time to register a component or setting.</dt>
+		<dd>
+			Large collections of
+			files (e.g. a large iTunes database) can take quite some time for UMS to go
+			through. You need to either:
+			<ul>
+				<li>Wait for UMS to do its thing, after which it should
+					properly broadcast and show up on your device, or</li>
+				<li>Disable the engine or library setting.</li>
+			</ul>
+		</dd>
+	</dl>
+
+	<h3>After UDP Broadcast</h3>
+	<p>At this point everything should be fine within UMS, so you need
+		to look externally.</p>
+
+	<dl>
+		<dt>You have a Windows 7 box and it's using the
+			&quot;Public&quot; settings instead of &quot;Private&quot;</dt>
+		<dd>
+			PUBLIC settings is used in non trusted network and PRIVATE is used in
+			home (trusted) network so change your cable (ethernet or LAN) network
+			to PRIVATE. In PUBLIC mode most of features as SSDP etc. are
+			disabled. <a
+				href="http://windows.microsoft.com/en-US/windows7/Choosing-a-network-location">http://windows.microsoft.com/en-US/windows7/Choosing-a-network-location</a>
+		</dd>
+		<dt>Your software firewall is blocking incoming traffic from your
+			DLNA device</dt>
+		<dd>
+			<ul>
+				<li>Add the device's IP to your firewall's &quot;Trusted
+					List&quot; or allow all local traffic</li>
+			</ul>
+		</dd>
+		<dt>Your router is blocking the traffic</dt>
+		<dd>
+			<ul>
+				<li>Check the router's firewall to see if the traffic is being
+					blocked</li>
+				<li>Check your router's settings to see if there are any
+					settings to allow UDP traffic or multicast traffic</li>
+			</ul>
+
+			<p>Note 1: Most UPnP settings on routers are to allow the devices
+				on the LAN to dynamically configure the port forwarding and other
+				router settings with minimal user interaction. This should not need
+				to be enabled for the actual UPnP/DLNA traffic in the LAN, and in
+				some cases it actually causes issues when enabled on bad routers.</p>
+
+			<p>Note 2: Port forwarding is not required for standard use of
+				UMS. It is only needed if you're trying to stream web-content.</p>
+
+			<p>Note 3: Some routers are crap and either a) do not have the
+				proper settings or b) just mishandle traffic regardless of the
+				settings. This can even vary within the same router for wired vs
+				wireless traffic.</p>
+
+			<p>You may use a switch or a hub which is really cheap as a
+				workaround. Connect your DLNA device, PC and router to the
+				switch/hub and internet connectivity is still there, but you will
+				not have trouble with your routers firewall anymore... This will of
+				course only work with wired connections.</p>
+
+			<p>There are firmware bugs on some DLAN or powerline adapters
+				which prevent certain broadcasts from being transmitted (like using
+				a firewall). This will also cause connection problems.</p>
+
+			<p>
+				If you have checked everything else, give the <a
+					href="http://www.ps3mediaserver.org/forum/">forum</a> or Google a
+				search and see if other people are having UPnP or DLNA issues with
+				the same router. You could also see if a different DLNA program
+				(WMP, TVersity, Wild, etc) works using the same router or settings.
+			</p>
+		</dd>
+
+		<dt>Your server and device are on different subnets</dt>
+		<dd>
+			<ul>
+				<li>Per the DLNA protocol (which uses UDP broadcast packets),
+					the server and device must be on the same subnet. The easiest way
+					to check is if you can ping the device from the server (successful
+					ping = on same subnet). This issue should only really happen if you
+					have multiple routers or managed switches in your network. If you
+					only have a single router/switch, then you incorrectly set a manual
+					IP address on at least one of your devices leading to a subnet
+					mismatch</li>
+			</ul>
+		</dd>
+		<dt>Your device is not set up to access any DLNA servers</dt>
+		<dd>
+			<ul>
+				<li>See your device's manual. Note: this only covers UMS
+					showing up on your device, nothing regarding playback or file
+					browsing - <a
+					href="http://ps3mediaserver.org/forum/viewtopic.php?f=6&amp;t=3507&amp;p=16952#p16952">viewtopic.php?f=6&amp;t=3507&amp;p=16952#p16952</a>
+				</li>
+			</ul>
+		</dd>
+	</dl>
+
+
+	<h3>Other issues</h3>
+	<p>In addition, you can run into issues (both Before and After UDP
+		Broadcast) when trying to use a direct connection (no router or
+		switch, just the computer with UMS and the device)</p>
+
+	<p>Examples:</p>
+	<ul>
+		<li>UMS cannot bind to the IP/Port because both devices need to be
+			turned on for the connection to exist (before UMS is started)</li>
+		<li>You did not use a crossover cable (only needed if BOTH devices
+			are NOT gigabit)</li>
+		<li>You have a mismatch in the IP settings</li>
+		<li>The device has two (or more) NICs and is using the wrong one
+			(eg PS3 still using the wifi NIC)</li>
+	</ul>
+
+
+
+
+	<!--  Navigation -->
+	<hr />
+	<ul>
+		<li>Next: <a href="general_configuration.html">General
+				Configuration</a></li>
+		<li>Previous: <a href="networking.html">Networking and
+				technical basics</a></li>
+		<li>Top: <a href="index.html">Help</a></li>
+	</ul>
+</body>
+</html>

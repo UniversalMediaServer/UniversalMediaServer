@@ -1,0 +1,119 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- 
+   PS3 Media Server, for streaming any medias to your PS3.
+   Copyright (C) 2008  A.Brochard
+ 
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License
+   as published by the Free Software Foundation; version 2
+   of the License only.
+ 
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+ 
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+-->
+<html>
+<head>
+<title>General Configuration</title>
+<link href="css/style.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+	<h1>General Configuration</h1>
+
+	<p>The "General Configuration" tab of UMS allows you to set general
+		options that determine how UMS will run. Below is an overview of the
+		options on this tab.</p>
+
+
+	<h2>General settings</h2>
+
+	<dl>
+		<dt>Language</dt>
+		<dd>Select the language of UMS. To see the selection in effect
+			you have to restart UMS.</dd>
+
+		<dt>Start minimized</dt>
+		<dd>Apply if you want UMS start in the system tray (window
+			minimized)</dd>
+
+		<dt>Install as a windows service</dt>
+		<dd>Click if you want to install UMS as a service. Further
+			configuration may be needed to run successfully as a service.</dd>
+	</dl>
+
+
+	<h2>Network settings (advanced)</h2>
+
+	<dl>
+		<dt>Force networking on interface</dt>
+		<dd>UMS determines the default network to send broadcasts. When
+			UMS does not detect your PS3 and your computer has multiple networks,
+			it may have chosen the wrong default network. Select the correct
+			network from the pulldown.</dd>
+
+		<dt>Force IP of the server</dt>
+		<dd>By default UMS will use the default IP address of the
+			computer it runs on. If your computer has multiple IP addresses, you
+			enter the preferred IP address for UMS to use here.</dd>
+
+		<dt>Force port of server</dt>
+		<dd>By default UMS uses TCP/IP port 5001. If this port is already
+			in use, set a free alernate port number like 6001</dd>
+
+		<dt>Use IP-filter</dt>
+		<dd>Set IP-address of allowed streaming client (PS3), all other
+			will fail to connect (not working when HTTP Engine v2 is enabled!)</dd>
+	</dl>
+
+
+	<h2>Advanced HTTP and system settings</h2>
+
+	<dl>
+		<dt>HTTP Engine V2</dt>
+		<dd>New engine to improve network performance and provide better
+			support for alternate streaming clients. The code is still considered
+			to be unstable, so use with caution.</dd>
+
+		<dt>Prevent OS from sleeping when streaming</dt>
+		<dd>Checking this checkbox will make sure that the computer will
+			not go to standby mode while streaming.</dd>
+
+		<dt>Default renderer when automatic detection fails</dt>
+		<dd>UMS can recognize many renderers automatically. Sometimes a renderer will
+			connect the UMS does not recognize. This option defines which renderer UMS
+			should assume.</dd>
+
+		<dt>Force default renderer (disable automatic detection)</dt>
+		<dd>By default UMS tries to automatically detect what renderers try to connect
+			to it. By settings this option to true, UMS will assume any renderer that
+			connects is the default renderer.</dd>
+
+	</dl>
+
+
+	<h2>Plugins</h2>
+
+	<p>
+		Here you will find buttons for the plugins that are installed. See the
+		section <a href="plugins.html">Plugins</a> for more information on
+		plugins for UMS.
+	</p>
+
+
+	<!--  Navigation -->
+	<hr />
+	<ul>
+		<li>Next: <a href="navigation_share.html">Navigation / Share
+				Settings</a></li>
+		<li>Previous: <a href="installation.html">Installation and
+				basic configuration</a></li>
+		<li>Top: <a href="index.html">Help</a></li>
+	</ul>
+
+</body>
+</html>

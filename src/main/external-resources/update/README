@@ -1,0 +1,12 @@
+This directory contains versioned update files. An update should only be made available if it doesn't break too many things.
+Given a MAJOR.MINOR.PATCH version (e.g. 1.30.1):
+
+    changes in MAJOR always require a new update_<version>.properties
+    changes in MINOR may require a new update_<version>.properties if they break plugins or alter profile paths
+    changes in PATCH never require a new update_<version>.properties
+
+Note: in all cases, the old update file should be kept so that old releases can update to the latest version of PMS
+that doesn't cause upgrade issues.
+
+The <version> ID is arbitrary. As long as it's distinct for each compatible set of PMS releases, it can
+be anything. Currently it's an integer that's incremented for each "generation".

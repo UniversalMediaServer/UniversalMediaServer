@@ -1,0 +1,143 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- 
+   PS3 Media Server, for streaming any medias to your PS3.
+   Copyright (C) 2008  A.Brochard
+ 
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License
+   as published by the Free Software Foundation; version 2
+   of the License only.
+ 
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+ 
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+-->
+<html>
+<head>
+<title>Navigation / Share Settings</title>
+<link href="css/style.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+	<h1>Navigation / Share Settings</h1>
+
+	<p>The "Navigation / share settings" tab of UMS allow you to
+		determine the details of how UMS shares the content to your device.
+		Below are the options that are available on this tab.</p>
+
+	<h2>Thumbnails</h2>
+	<dl>
+		<dt>Generate thumbnails</dt>
+		<dd>Select the checkbox for automatic creation of thumbnail pictures of your
+			media files</dd>
+
+		<dt>Thumbnail seeking position (in seconds)</dt>
+		<dd>Most video files begin with some seconds of a black
+			background before the movie starts. You can set the time in seconds
+			for the video thumbnail position.</dd>
+
+		<dt>Use MPlayer for video thumbnails</dt>
+		<dd>The external program MPlayer sometimes yields better results for thumbnail
+			creation than the default thumbnailer, so just try it.</dd>
+
+		<dt>DVD ISO thumbnails</dt>
+		<dd>Create thumbnails for DVD ISO-images</dd>
+
+		<dt>Audio thumbnails display</dt>
+		<dd>You can choose the behavior for audio thumbnails; search for alphabetical thumbnail
+			pictures on the filesystem, or let UMS download
+			album art from amazon.com or discogs.com</dd>
+
+		<dt>Alternate video cover art folder</dt>
+		<dd>Select the folder on your filesystem which contains cover art for videos</dd>
+	</dl>
+	
+	<h2>Navigation / Parsing settings</h2>
+	<dl>
+		<dt>Browse compressed archives (.rar/.zip/.cbr)</dt>
+		<dd>If activated UMS is able to show the content of archives. If a
+			media file in archive is chosen for playback it will be decompressed
+			before streaming starts</dd>
+
+		<dt>Hide # Video Settings # Folder</dt>
+		<dd>There is a virtual folder available called "# video settings
+			#". You can navigate to this folder on your device and change some
+			values for UMS online. With this option you can choose to not display
+			this virtual folder.</dd>
+
+		<dt>Hide # Transcode # Folder</dt>
+		<dd>You can choose to not show this virtual folder on your device.</dd>
+
+		<dt>Hide file extensions</dt>
+		<dd>Some people might get confused if they see file extensions
+			like jpg or avi, so you can hide them</dd>
+
+		<dt>Hide transcoding engine names</dt>
+		<dd>UMS can stream your media file with different technologies.
+			You can chose the technology (transcoding engine) in virtual folder #
+			transcoded #. The default transcoding engine for playback is
+			displayed after the name of each media file. With this checkbox you can hide that.</dd>
+
+		<dt>Hide empty/non-media folders</dt>
+		<dd>Only display folders which contain media files</dd>
+
+		<dt>Show iTunes library</dt>
+		<dd>Only available when iTunes is installed. Displays the iTunes library as a folder on your device so you can browse it.</dd>
+
+		<dt>Show iPhoto library</dt>
+		<dd>Only available when iPhoto is installed. Displays the iPhoto library as a folder on your device so you can browse it.</dd>
+		
+		<dt>Show Aperture library</dt>
+		<dd>Only available on Mac when aperture is installed. Displays each Aperture library as a folder on your device so you can browse it.</dd>
+
+		<dt>Enable the cache</dt>
+		<dd>When you browse folders on your PS3, UMS scans each folder in
+			real time and displays the results on your PS3. Additionaly there is
+			a builtin cache which can be activated. If you scan your
+			hard drive for media files, additional info for each file will be
+			collected e.g. MP3 tags (title, album name, etc.) for MP3 audio files.
+			You can browse the cache in a virtual folder on your PS3
+			after scanning.</dd>
+
+		<dt>Reset cache</dt>
+		<dd>If the cache is corrupt you can use this feature to
+			reset the contents of the database.</dd>
+
+		<dt>Hide cache folder</dt>
+		<dd>Do not show this virtual folder on your device.</dd>
+
+		<dt>Sort files method</dt>
+		<dd>Select how file lists are sorted and displayed on your device: by name or by date.</dd>
+</dl>
+		<h2>Shared folders</h2>
+	<dl>	
+		<dt>shared folders</dt>
+		<dd>All local drives are made available to PS3 by UMS. In a more
+			secure environment you might want to chose the folders which are
+			presented to your PS3. Press green + icon to add folders for access
+			by UMS/PS3. Select folder and press red X icon to remove access to a
+			folder. Press up and down arrows to change order of these folders.</dd>
+
+		<dt>magnifying glass</dt>
+		<dd>Start first scan on your hard drive for media files to
+			collect info about them in the cache.</dd>
+	</dl>
+
+
+	<!--  Navigation -->
+	<hr />
+	<ul>
+		<li>Next: <a href="transcoding.html">Transcoding Settings</a>
+		</li>
+		<li>Previous: <a href="general_configuration.html">General Configuration</a>
+		</li>
+		<li>Top: <a href="index.html">Help</a>
+		</li>
+	</ul>
+	
+</body>
+</html>

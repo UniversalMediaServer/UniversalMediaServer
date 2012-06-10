@@ -1,0 +1,278 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- 
+   PS3 Media Server, for streaming any medias to your PS3.
+   Copyright (C) 2008  A.Brochard
+ 
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License
+   as published by the Free Software Foundation; version 2
+   of the License only.
+ 
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+ 
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+-->
+<html>
+<head>
+<title>Transcoding settings</title>
+<link href="css/style.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+	<h1>Transcoding settings</h1>
+
+	<p>The "Transcoding settings" tab allows you to specify how content
+		will be transcoded. UMS uses external programs to transcode and stream
+		content to your device. Some of these programs overlap in what kind of
+		media they can transcode. On this tab you can specify which order of
+		preference the programs have when UMS determines how to transcode
+		media. For each media type there is a list of programs, sorted by
+		preference. The topmost program is most likely to be used. If it
+		cannot transcode the media, the next program on the list is used, and
+		so on.</p>
+
+	<p>This tab also allows to set the details of transcoding for each
+		program. Below is a list of the settings on this tab.</p>
+
+	<h2>Common transcode settings</h2>
+
+	<h3>General settings</h3>
+	<dl>
+		<dt>Transcode buffer maximum size</dt>
+		<dd>This value is about how much temporary space should be used
+			for buffering a video before sending it to PS3. Default value is 400.</dd>
+
+		<dt>Number of cores used for transcoding</dt>
+		<dd>This value is bout how many CPU cores should be used for
+			transcoding. The maximum value depends on the physical available
+			count of "real processor cores". That means hyperthreading virtual
+			CPU cores do not count! If you are not sure, analyze your CPU with
+			the free tool CPU-z on Windows systems. On Linux have a look at the virtual
+			proc-filesystem. In the file /proc/cpuinfo you will find more details
+			about your CPU. You also get much information about CPUs from AMD and
+			Intel from their Wikipedia-articles. Regardless, UMS should be able to
+			detect and set the correct amount of cores.</dd>
+
+		<dt>Chapters # Transcode # folder support / interval in minutes</dt>
+		<dd>enable automatically creation of chapters every x minutes in
+			virtual folder</dd>
+	</dl>
+	
+	<h3>Audio settings</h3>
+	<dl>
+		<dt>Number of audio channels</dt>
+		<dd>If you have a surround AV-receiver or amplifier connected to
+			your PS3 select 5.1, otherwise 2 channels stereo.</dd>
+
+		<dt>AC3 Audio bitrate (in Kbits/s)</dt>
+		<dd>Here you set the quality of digital audio sound. Your
+			AV-receiver or amplifier has to be capable of playing this quality.
+			Default value is 384.</dd>
+
+		<dt>Keep DTS audio in stream</dt>
+		<dd>This enables playback of DTS digital surround sound via
+			optical digital audio output (toslink) of your PS3. Keep in mind that
+			this increases network traffic. Your AV-receiver or amplifier needs
+			an integrated DTS-decoder for playback.</dd>
+
+		<dt>DTS/FLAC - LPCM-remux</dt>
+		<dd>This enables playback of DTS digital surround sound via HDMI
+			output of your PS3. Keep in mind that this increases network traffic.
+			Your HDMI connected device (TV or AV-receiver or amplifier) needs an
+			integrated DTS-decoder for playback.</dd>
+
+		<dt>Remux when audio track is AC3</dt>
+		<dd>Transcoding of audio will be avoided when it is AC3 (Dolby
+			Digital). The AC3 digital audio track will muxed into a PS3 compatible
+			container if necessary. This should be activated if your PS3 is
+			connected to a TV or AV-receiver or amplifier which has an integrated
+			Dolby Digital Decoder. This feature is not supported when using
+			AviSynth based transcoding engines.</dd>
+		</dl>
+		
+		<h3>Video quality settings</h3>
+		<dl>
+		<dt>Maximum bandwidth in Mbits/s</dt>
+		<dd>This is some kind of network throttle. One may think it is a
+			brilliant idea to reduce network bandwidth in order to get HD videos
+			streaming via WLAN. Experience shows that it does not work as
+			expected. You need lots of CPU power for transcoding. If that is not
+			a problem you will get really poor video quality when stream HD
+			videos on low network bandwidth. So better leave the default value 0.
+			You should also note that this setting won't affect muxed videos. You
+			may have to enforce transcoding by choosing another transcoding
+			engine.</dd>
+
+		<dt>Mpeg2 Video quality settings (dropdown)</dt>
+		<dd>If UMS is not able to stream directly or mux the audio/video
+			to a PS3 compatible container it will transcode to MPEG2, which is PS3
+			compatible. This costs lots of CPU power. This also will increase the
+			network traffic because MPEG2 compression is not very good for HD
+			videos. You will need a 100MBit/s LAN or DLAN for playback of
+			transcoded HD videos - WLAN won't work (maybe some 720p videos will
+			do). You are able to control the quality settings of MPEG2 encoding
+			which corresponds to needed network bandwidth. So there are some
+			parameters available to control MPEG2 quality. Keyint means keyframes,
+			keyint=3 means that every third frame is a keyframe which is a
+			complete picture. In between there are two pictures which only
+			contain differences to the predecessing picture. A high value for
+			keyint will result in a lower network bandwidth but will also cause
+			bad quality in fast action scenes in movies. There are also so called
+			quantizer values (vqmqx, vqmin, vqscale). High values result in low
+			quality. Try out some of the values available in the dropdown.</dd>
+		</dl>
+		
+		<h3>Misc options</h3>
+		<dl>
+		<dt>Definitely disable subtitles</dt>
+		<dd>Displaying subtitles will automatically enforce transcoding.
+			If you want to avoid transcoding and definitely do not need subtitles
+			enable this feature.</dd>
+
+		<dt>Skip transcode for following extensions</dt>
+		<dd>Enforce direct playback for certain filetypes.</dd>
+
+		<dt>Force transcode for following extensions</dt>
+		<dd>Enforce transcoding for certain file types.</dd>
+	</dl>
+
+	<h2>Video Files Engines: MEncoder</h2>
+
+	<h3>Video/Audio decoder settings for MEncoder engine only</h3>
+	<dl>
+		<dt>Use multiple CPU cores</dt>
+		<dd>Enable usage of special multicore version of MEncoder tool.
+			This will improve performance on multicore systems.</dd>
+
+		<dt>Skip loop filter deblocking for h.264</dt>
+		<dd>Disable deblocking filter for h.264 HD videos.</dd>
+
+		<dt>A/V sync alternative method</dt>
+		<dd>If video and audio get out of sync disabling this might help.</dd>
+
+		<dt>Use video scaler / Width / Height</dt>
+		<dd>Usually the TV or PS3 is used to upscale the video to optimal
+			video resolution. MEncoder is also able to do that for you which will
+			cost additional CPU power.</dd>
+
+		<dt>Force framerate parsed from FFmpeg</dt>
+		<dd>If framerate isn't recognized correctly (video is running too
+			fast/slow) change this setting.</dd>
+
+		<dt>Deinterlace-filter</dt>
+		<dd>Enable deinterlace filter which will usually is done by your
+			PS3 or TV.</dd>
+
+		<dt>Switch to tsMuxeR when video when H264 video is PS3
+			compatible</dt>
+		<dd>Enable this! When MEncoder transcoding engine is used and UMS
+			recognizes a PS3 compatible video it will switch to transcoding
+			engine tsMuxeR. The video will then be streamed directly or muxed but
+			not transcoded! This setting will dramatically reduce the need of
+			transcoding. Matroska video (mkv) for example aren't supported on
+			PS3. Mostly the contained audio and video stream is PS3 compatible.
+			So tsMuxeR creates a PS3 compatible m2ts container which contains the
+			original audio and video stream and the PS3 is able to playback. This
+			feature reduces both network traffic (because of better compression
+			as MPEG2) and CPU power needed for playback.</dd>
+
+		<dt>Expert settings: Codec-specific parameters</dt>
+		<dd>Press the button to change MEncoder parameters for certain codecs</dd>
+
+		<dt>Custom options</dt>
+		<dd>Add specific commandline options for the external program MEncoder</dd>
+
+		<dt>Audio language prority</dt>
+		<dd>Fill in the abbreviation of your native language so that UMS
+			will automatically select the right audio track.</dd>
+
+		</dl>
+		
+		<h3>Subtitle settings</h3>
+		<dl>
+		<dt>Subtitles language priority</dt>
+		<dd>Fill in the abbreviation of your native language so that UMS
+			will automatically select the right subtitle.</dd>
+
+		<dt>Audio/subtitles language priority</dt>
+		<dd>Language selection specific for DVD playback.</dd>
+
+		<dt>Subtitles codepage</dt>
+		<dd>The codepage should match the codepage setting on your PS3.
+			cp1252 should be default.</dd>
+
+		<dt>FriBiDi mode</dt>
+		<dd>Enable FriBiDi GNU implementation of Unicode algorhithm</dd>
+
+		<dt>Specify TrueType Font (for Asian languages)</dt>
+		<dd>Select a specific font for Asian languages</dd>
+
+		<dt>Alternate Subtitles Folder</dt>
+		<dd>Select the folder on the filesystem that contains alternate subtitles</dd>
+
+		<dt>ASS/SSA Subtitles</dt>
+		<dd>Check the checkbox to enable support for the ASS/SSA subtitle format.</dd>
+
+		<dt>Fontconfig/Embedded fonts</dt>
+		<dd>Check to make use of the embedded fonts.</dd>
+
+		<dt>Use ASS default style</dt>
+		<dd>Check to use the ASS default style for subtitles.</dd>
+
+		<dt>Subs color</dt>
+		<dd>Click the button to select the color for subtitles.</dd>
+		
+		<dt>ASS font settings / Font scale / Font outline / Font shadow / Font sub margin</dt>
+		<dd>Properties for ASS subtitles.</dd>
+		
+		<dt>Default font settings / Font scale / Font outline / Font blur / Font sub margin</dt>
+		<dd>Default subtitle font settings.</dd>
+
+		<dt>Autoload *.srt/*.sub subtitles with the same file name</dt>
+		<dd>Support for SRT subtitle format</dd>
+		
+		<dt>DVD/VOBsub subtitle quality</dt>
+		<dd>Quality of the subtitles, from 0 to 4. Higher means better quality. Default value is 3.</dd>
+	</dl>
+
+
+	<h2>Video Files Engines: TsMuxer</h2>
+
+	<h3>Video decoder settings for TsMuxer engine only</h3>
+	<dl>
+		<dt>Force FPS parsed from FFmpeg in the meta file</dt>
+		<dd>If framerate isn't recognized correctly (video is running too
+			fast/slow) change this setting.</dd>
+
+		<dt>Mux all audio tracks</dt>
+		<dd>Enable it in order to get all audio tracks muxed.</dd>
+	</dl>
+
+
+	<h2>FFmpeg DVR-MS remux</h2>
+
+	<dl>
+		<dt>Alternative FFmpeg path</dt>
+		<dd>This feature is for users of Microsoft Windows Mediacenter
+			Edition. If you have recorded some TV shows and want to watch the
+			DVR-MS files with UMS/PS3 you need a special version of FFmpeg.
+			Download and unzip this file in your UMS installation directory and
+			restart UMS.</dd>
+	</dl>
+
+
+	<!--  Navigation -->
+	<hr />
+	<ul>
+		<li>Next: <a href="applications.html">External applications</a></li>
+		<li>Previous: <a href="navigation_share.html">Navigation /
+				Share Settings</a></li>
+		<li>Top: <a href="index.html">Help</a></li>
+	</ul>
+
+</body>
+</html>

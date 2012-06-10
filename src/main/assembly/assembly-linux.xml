@@ -1,0 +1,80 @@
+<assembly
+	xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+	
+	<!--
+		This file takes care of assembling the Linux distribution file.
+	-->
+
+	<id>distribution</id>
+	<formats>
+		<format>tar.gz</format>
+	</formats>
+	<includeBaseDirectory>true</includeBaseDirectory>
+
+	<fileSets>
+		<!-- Include PMS -->
+		<fileSet>
+			<directory>${project.basedir}/target</directory>
+			<outputDirectory>.</outputDirectory>
+			<fileMode>0644</fileMode>
+			<includes>
+				<include>ums.jar</include>
+			</includes>
+		</fileSet>
+
+		<!-- Include the tsMuxeR binary -->
+		<fileSet>
+			<directory>${project.external-resources}</directory>
+			<outputDirectory>.</outputDirectory>
+			<fileMode>0755</fileMode>
+			<includes>
+				<include>linux/tsMuxeR</include>
+			</includes>
+		</fileSet>
+
+		<!-- Include executable script -->
+		<fileSet>
+			<directory>${project.external-resources}</directory>
+			<outputDirectory>.</outputDirectory>
+			<fileMode>0755</fileMode>
+			<lineEnding>unix</lineEnding>
+			<includes>
+				<include>UMS.sh</include>
+			</includes>
+		</fileSet>
+
+		<!-- Include documentation -->
+		<fileSet>
+			<directory>${project.basedir}</directory>
+			<outputDirectory>.</outputDirectory>
+			<fileMode>0644</fileMode>
+			<lineEnding>unix</lineEnding>
+			<includes>
+				<include>README.txt</include>
+				<include>CHANGELOG.txt</include>
+				<include>LICENSE.txt</include>
+			</includes>
+		</fileSet>
+
+		<!-- Include configuration files -->
+		<fileSet>
+			<directory>${project.external-resources}</directory>
+			<outputDirectory>.</outputDirectory>
+			<fileMode>0644</fileMode>
+			<lineEnding>unix</lineEnding>
+			<includes>
+				<include>UMS.conf</include>
+				<include>WEB.conf</include>
+				<include>logback.headless.xml</include>
+				<include>logback.xml</include>
+				<include>documentation/**</include>
+				<include>linux/*.txt</include>
+				<include>plugins/**</include>
+				<include>renderers/*</include>
+			</includes>
+		</fileSet>
+
+	</fileSets>
+</assembly>

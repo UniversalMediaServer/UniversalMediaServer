@@ -1,0 +1,86 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- 
+   PS3 Media Server, for streaming any medias to your PS3.
+   Copyright (C) 2008  A.Brochard
+ 
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License
+   as published by the Free Software Foundation; version 2
+   of the License only.
+ 
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+ 
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+-->
+<html>
+<head>
+<title>VideoLAN</title>
+<link href="css/style.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+	<h1>VideoLAN</h1>
+
+	<p>
+		VLC (Videolan Codec) is a good choice for playing web streaming
+		content. VLC is available for almost every platform including Windows,
+		Linux and MacOsX. <a title="vlc 0.9.8a"
+			href="http://download.videolan.org/pub/videolan/vlc/0.9.8a/">VLC
+			version 0.9.8a</a> works well, later versions may have <a
+			title="VLC / UMS problems"
+			href="http://forum.videolan.org/viewtopic.php?f=4&amp;t=63050">issues</a>.
+	</p>
+
+	<p>After installing VLC you have to restart UMS and enable the VLC
+		engine. In UMS go to menu "transcoding settings". Select "videolan
+		video streaming" in the menu on the left side and press the
+		plug-button to enable the engine. After that do the same with
+		"videolan audio streaming". You can use the blue arrow-buttons to
+		change the priority of engines. If you prefer VLC as default streaming
+		engine, move VLC to the top position. Press the save button and
+		restart UMS.</p>
+	<p>
+		<img src="images/pms-engines1.jpg" />
+	</p>
+
+
+	<h2>Windows7</h2>
+
+	<p>
+		Use <a
+			href="http://www.codecguide.com/windows7_preferred_filter_tweaker.htm">preferred
+			filter tweaker for Windows 7</a> to change from preferred Microsoft
+		DTV/DVD Decoder to another
+	</p>
+
+
+	<h2>VLC and streaming web videos</h2>
+
+	<p>
+		Using VLC for streaming web videos like YouTube does not work well. It
+		is better to use <a title="pmsencoder"
+			href="http://github.com/chocolateboy/pmsencoder">pmsencoder</a>, a
+		UMS <a href="plugins.html">plugin</a> which works as a wrapper for the
+		external applications MEncoder and ffmpeg. Read the UMSEncoder README for
+		instructions.
+	</p>
+
+
+	<!--  Navigation -->
+	<hr />
+	<ul>
+		<li>Next: <a href="avisynth.html">AviSynth</a>
+		</li>
+		<li>Previous: <a href="applications.html">External
+				applications</a>
+		</li>
+		<li>Top: <a href="index.html">Help</a>
+		</li>
+	</ul>
+
+</body>
+</html>

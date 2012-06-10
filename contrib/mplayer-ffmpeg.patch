@@ -1,0 +1,16 @@
+ libavcodec/aac_ac3_parser.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/libavcodec/aac_ac3_parser.c b/libavcodec/aac_ac3_parser.c
+index 7545c85..6f6ed89 100644
+--- a/libavcodec/aac_ac3_parser.c
++++ b/libavcodec/aac_ac3_parser.c
+@@ -93,7 +93,7 @@ get_next:
+             avctx->channels = s->channels;
+             avctx->channel_layout = s->channel_layout;
+         }
+-        s1->duration = s->samples;
++        avctx->frame_size = s->samples;
+         avctx->audio_service_type = s->service_type;
+     }
+ 

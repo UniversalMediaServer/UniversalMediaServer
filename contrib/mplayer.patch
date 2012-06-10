@@ -1,0 +1,967 @@
+Index: configure
+===================================================================
+--- configure	(revision 34883)
++++ configure	(working copy)
+@@ -565,6 +565,7 @@
+   --with-install=PATH    path to a custom install program
+ 
+ Advanced options:
++  --flavor=system           build a specified target system
+   --enable-mmx              enable MMX [autodetect]
+   --enable-mmxext           enable MMX2 (Pentium III, Athlon) [autodetect]
+   --enable-3dnow            enable 3DNow! [autodetect]
+@@ -617,6 +618,7 @@
+ # GOTCHA: the variables below defines the default behavior for autodetection
+ # and have - unless stated otherwise - at least 2 states : yes no
+ # If autodetection is available then the third state is: auto
++_flavor=none
+ _mmx=auto
+ _3dnow=auto
+ _3dnowext=auto
+@@ -1006,6 +1008,9 @@
+   --disable-debug)
+     _debug=
+     ;;
++  --flavor=*)
++    _flavor=`echo $ac_option | cut -d '=' -f 2`
++    ;;
+   --enable-runtime-cpudetection)    _runtime_cpudetection=yes   ;;
+   --disable-runtime-cpudetection)   _runtime_cpudetection=no    ;;
+   --enable-cross-compile)           _cross_compile=yes          ;;
+@@ -2573,6 +2578,72 @@
+   test -n "$cflags_stackrealign" && echores "yes" || echores "no"
+ fi # if darwin && test "$cc_vendor" = "gnu" ; then
+ 
++# user selected target system
++if test "$_runtime_cpudetection" = no ; then
++    case "$host_arch-$cc_vendor-$_flavor" in
++        *-none) ;; # No flavor, standard build
++        i386-gnu-pentium4|i386-gnu-p4)
++         _mmx=yes
++         _mmxext=yes
++         _3dnow=auto
++         _3dnowext=auto
++         test $_sse = "auto" && _sse=yes
++         test $_sse2 = "auto" && _sse2=yes
++         _mcpu=$cpuopt=pentium4
++         _march=-march=pentium4
++         ;;
++        i386-gnu-pentium3|i386-gnu-p3)
++         ## Not tested
++         _mmx=yes
++         _mmxext=yes
++         _3dnow=auto
++         _3dnowext=auto
++         test $_sse = "auto" && _sse=yes
++         _sse2=auto
++         _mcpu=$cpuopt=pentium3
++         _march=-march=pentium3
++         ;;
++        i386-gnu-athlon)
++         _mmx=yes
++         _mmxext=yes
++         _3dnow=yes
++         _3dnowext=yes
++         _sse=auto
++         _sse2=auto
++         _mcpu=$cpuopt=athlon
++         _march=-march=athlon
++         ;;
++        i386-gnu-athlon-xp)
++         _mmx=yes
++         _mmxext=yes
++         _3dnow=yes
++         _3dnowext=yes
++         test $_sse = "auto" && _sse=yes
++         _sse2=auto
++         _mcpu=$cpuopt=athlon-xp
++         _march=-march=athlon-xp
++         ;;
++        i386-gnu-k8)
++         _mmx=yes
++         _mmxext=yes
++         _3dnow=yes
++         _3dnowext=yes
++         test $_sse = "auto" && _sse=yes
++         test $_sse2 = "auto" && _sse2=yes
++         _mcpu=$cpuopt=k8
++         _march=-march=k8
++         ;;
++        *)
++         echo "Invalid/unsupported target system $host_arch-$cc_vendor-$_flavor"
++         exit 1
++         ;;
++    esac
++    if test "$_flavor" != none ; then
++        # move this to case if adding different cpu
++        iproc=686
++        _optimizing="Custom Target $_flavor"
++    fi
++fi
+ 
+ # Checking for CFLAGS
+ _install_strip="-s"
+@@ -3476,10 +3547,17 @@
+ if test "$_memalign" = yes ; then
+   def_memalign='#define HAVE_MEMALIGN 1'
+ else
++  if mingw32 ; then
++    _memalign=yes
++    def_memalign='#define HAVE_MEMALIGN 1'
++    def_map_memalign='extern void *memalign(unsigned int boundary, unsigned int size);'
++    res_comment="emulated"
++  else
+   def_memalign='#define HAVE_MEMALIGN 0'
+   def_map_memalign='#define memalign(a, b) malloc(b)'
+   darwin || def_memalign_hack='#define CONFIG_MEMALIGN_HACK 1'
+ fi
++fi
+ echores "$_memalign"
+ 
+ 
+@@ -7701,6 +7779,10 @@
+ done
+ libs_mplayer=$ld_tmp
+ 
++if mingw32 ; then
++ libs_mplayer="$libs_mplayer osdep/alloc-win.c"
++ libs_mencoder="$libs_mencoder osdep/alloc-win.c"
++fi
+ 
+ #############################################################################
+ 
+Index: etc/codecs.conf
+===================================================================
+--- etc/codecs.conf	(revision 34883)
++++ etc/codecs.conf	(working copy)
+@@ -4081,7 +4081,98 @@
+   out UYVY
+   out YVU9
+   out BGR32,BGR24,BGR16,BGR15
++ 
++;=============================================================================
++;                   DSNATIVE VIDEO CODECS
++;=============================================================================
+ 
++videocodec dsncoreavc
++  info "CoreAVC Video Decoder"
++  status working
++  fourcc H264,h264
++  fourcc X264,x264
++  fourcc avc1 AVC1,AVC1
++  fourcc davc,DAVC
++  fourcc VSSH
++  format 0x10000005
++  driver dsnative
++  dll "CoreAVCDecoder.ax"
++  guid 0x09571a4b, 0xf1fe, 0x4c60, 0x97, 0x60, 0xde, 0x6d, 0x31, 0x0c, 0x7c, 0x31
++  out YV12,IYUV,I420,YUY2
++
++videocodec dsndivxh264
++  info "DivX H.264 Decoder"
++  status working
++  fourcc H264,h264
++  fourcc X264,x264
++  fourcc avc1 AVC1,AVC1
++  fourcc davc,DAVC
++  fourcc VSSH
++  format 0x10000005
++  driver dsnative
++  dll "DivXDecH264.ax"
++  guid 0x6f513d27, 0x97c3, 0x453c, 0x87, 0xfe, 0xb2, 0x4a, 0xe5, 0x0b, 0x16, 0x01
++  out YV12,IYUV,I420,YUY2
++
++videocodec dsnffdshow
++  info "ffdshow Video Decoder"
++  status working
++  fourcc H264,h264
++  fourcc X264,x264
++  fourcc avc1 AVC1,AVC1
++  fourcc davc,DAVC
++  fourcc VSSH
++  format 0x10000005
++  fourcc DIVX,divx
++  fourcc DIV1,div1 divx
++  fourcc MP4S,mp4s ; ISO MPEG-4 Video V1
++  fourcc M4S2,m4s2
++  fourcc xvid,XVID,XviD,XVIX
++  fourcc DX50,dx50,BLZ0 DX50
++  fourcc mp4v,MP4V
++  fourcc FVFW,fvfw
++  driver dsnative
++  dll "ffdshow.ax"
++  guid 0x04fe9017, 0xf873, 0x410e, 0x87, 0x1e, 0xab, 0x91, 0x66, 0x1a, 0x4e, 0xf7
++  out YV12,IYUV,I420,YUY2
++
++videocodec dsnffdshowdxva
++  info "ffdshow DXVA Video Decoder"
++  status buggy
++  fourcc H264,h264
++  fourcc X264,x264
++  fourcc avc1 AVC1,AVC1
++  fourcc davc,DAVC
++  fourcc VSSH
++  format 0x10000005
++  driver dsnative
++  dll "ffdshow.ax"
++  guid 0x0b0eff97, 0xc750, 0x462c, 0x94, 0x88, 0xb1, 0x0e, 0x7d, 0x87, 0xf1, 0xa6
++  out YV12,IYUV,I420,YUY2
++
++videocodec dsndiavc
++  info "DiAVC H.264 Decoder (DiAVC)"
++  status working
++  fourcc H264,h264
++  fourcc X264,x264
++  fourcc avc1 AVC1,AVC1
++  fourcc davc,DAVC
++  fourcc VSSH
++  format 0x10000005
++  driver dsnative
++  dll "diavc.ax"
++  guid 0x5dfa20a4, 0xc343, 0x45df, 0xa4, 0x6e, 0xec, 0x17, 0x11, 0xe4, 0xee, 0x32
++  out YV12,IYUV,I420,YUY2,RGB32,UYVY
++
++videocodec dsncineformhd
++  info "CineForm HD"
++  status working
++  fourcc CFHD
++  driver dsnative
++  dll "CFDecode2.ax"
++  guid 0xad83011e, 0x01d1, 0x4623, 0x91, 0xfd, 0x6b, 0x75, 0xf1, 0x83, 0xc5, 0xa9
++  out YUY2
++
+ ;=============================================================================
+ ;                   AUDIO CODECS
+ ;=============================================================================
+Index: libao2/ao_sdl.c
+===================================================================
+--- libao2/ao_sdl.c	(revision 34883)
++++ libao2/ao_sdl.c	(working copy)
+@@ -143,7 +143,7 @@
+ 	mp_msg(MSGT_AO,MSGL_INFO,MSGTR_AO_SDL_INFO, rate, (channels > 1) ? "Stereo" : "Mono", af_fmt2str_short(format));
+ 
+ 	if(ao_subdevice) {
+-		setenv("SDL_AUDIODRIVER", ao_subdevice, 1);
++		putenv("SDL_AUDIODRIVER=1");
+ 		mp_msg(MSGT_AO,MSGL_INFO,MSGTR_AO_SDL_DriverInfo, ao_subdevice);
+ 	}
+ 
+Index: libmpcodecs/vd.c
+===================================================================
+--- libmpcodecs/vd.c	(revision 34883)
++++ libmpcodecs/vd.c	(working copy)
+@@ -40,6 +40,7 @@
+ extern const vd_functions_t mpcodecs_vd_ffmpeg;
+ extern const vd_functions_t mpcodecs_vd_theora;
+ extern const vd_functions_t mpcodecs_vd_dshow;
++extern const vd_functions_t mpcodecs_vd_dsnative;
+ extern const vd_functions_t mpcodecs_vd_dmo;
+ extern const vd_functions_t mpcodecs_vd_vfw;
+ extern const vd_functions_t mpcodecs_vd_vfwex;
+@@ -73,6 +74,7 @@
+ #endif
+ #ifdef CONFIG_WIN32DLL
+     &mpcodecs_vd_dshow,
++    &mpcodecs_vd_dsnative,
+     &mpcodecs_vd_dmo,
+     &mpcodecs_vd_vfw,
+     &mpcodecs_vd_vfwex,
+Index: libmpcodecs/vd_dsnative.c
+===================================================================
+--- libmpcodecs/vd_dsnative.c	(revision 0)
++++ libmpcodecs/vd_dsnative.c	(working copy)
+@@ -0,0 +1,160 @@
++#include <stdio.h>
++#include <stdlib.h>
++#include <stdarg.h>
++
++#include "config.h"
++#include "mp_msg.h"
++#include "help_mp.h"
++#include "vd_internal.h"
++
++#include "loader/wine/winbase.h"
++
++#ifdef WIN32_LOADER
++#include "loader/ldt_keeper.h"
++#endif
++
++#define DSN_OK 0
++#define DSN_API_VERSION 4
++
++typedef struct _DSVideoCodec DSVideoCodec;
++typedef DSVideoCodec * (WINAPI *funcDSOpenVideoCodec)(const char *dll, const GUID guid, BITMAPINFOHEADER* bih,
++                                                        unsigned int outfmt, float fps, const char *filename, int *err);
++typedef void (WINAPI *funcDSCloseVideoCodec)(DSVideoCodec *codec);
++typedef int (WINAPI *funcDSVideoDecode)(DSVideoCodec *vcodec, const BYTE *src, int size, double pts,
++                                          double *newpts, BYTE *pImage, int keyframe);
++typedef int (WINAPI *funcDSVideoResync)(DSVideoCodec *codec, double pts);
++typedef const char * (WINAPI *funcDSStrError)(int error);
++typedef unsigned int (WINAPI *funcDSGetApiVersion)(void);
++
++static const vd_info_t info = {
++    "DirectShow video codecs (native win32)",
++    "dsnative",
++    "Gianluigi Tiesi",
++    "using dsnative external dll wrapper",
++    "win32 codecs"
++};
++
++static struct
++{
++    HMODULE hLib;
++    funcDSOpenVideoCodec DSOpenVideoCodec;
++    funcDSCloseVideoCodec DSCloseVideoCodec;
++    funcDSVideoDecode DSVideoDecode;
++    funcDSVideoResync DSVideoResync;
++    funcDSStrError DSStrError;
++    funcDSGetApiVersion DSGetApiVersion;
++    DSVideoCodec *codec;
++#ifdef WIN32_LOADER
++    ldt_fs_t* ldt_fs;
++#endif
++} dsn;
++
++LIBVD_EXTERN(dsnative)
++
++static int control(sh_video_t *sh, int cmd, void *arg, ...)
++{
++    switch (cmd)
++    {
++        case VDCTRL_RESYNC_STREAM:
++            dsn.DSVideoResync(dsn.codec, sh->pts);
++            return CONTROL_TRUE;
++        default:
++            return CONTROL_UNKNOWN;
++    }
++}
++
++static int init(sh_video_t *sh)
++{
++    int err;
++    char fname[MAX_PATH + 1] = "";
++#ifdef WIN32_LOADER
++    dsn.ldt_fs = Setup_LDT_Keeper();
++#endif
++
++    memset(&dsn, 0, sizeof(dsn));
++    dsn.hLib = LoadLibraryA("dsnative.dll");
++    //dsn.hLib = LoadLibraryA("C:\\Work\\mplayer\\wip\\core\\dsnative\\Debug\\dsnative.dll");
++
++    if (!dsn.hLib)
++    {
++        mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[dsnative] Cannot find dsnative dll: %ld\n", GetLastError());
++        return 0;
++    }
++
++    dsn.DSOpenVideoCodec = (funcDSOpenVideoCodec) GetProcAddress(dsn.hLib, "DSOpenVideoCodec");
++    dsn.DSCloseVideoCodec = (funcDSCloseVideoCodec) GetProcAddress(dsn.hLib, "DSCloseVideoCodec");
++    dsn.DSVideoDecode = (funcDSVideoDecode) GetProcAddress(dsn.hLib, "DSVideoDecode");
++    dsn.DSVideoResync = (funcDSVideoResync) GetProcAddress(dsn.hLib, "DSVideoResync");
++    dsn.DSStrError = (funcDSStrError) GetProcAddress(dsn.hLib, "DSStrError");
++    dsn.DSGetApiVersion = (funcDSGetApiVersion) GetProcAddress(dsn.hLib, "DSGetApiVersion");
++
++    if (!(dsn.DSOpenVideoCodec && dsn.DSCloseVideoCodec && dsn.DSVideoDecode && dsn.DSVideoResync && dsn.DSStrError && dsn.DSGetApiVersion))
++    {
++        mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[dsnative] dsnative dll symbol mismatch\n");
++        return 0;
++    }
++
++    if (dsn.DSGetApiVersion() != DSN_API_VERSION)
++    {
++        mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[dsnative] Incompatible API version\n");
++        return 0;
++    }
++
++    if (sh->ds->demuxer->filename)
++        GetFullPathNameA(sh->ds->demuxer->filename, MAX_PATH, fname, NULL);
++
++    if (!(dsn.codec = dsn.DSOpenVideoCodec(sh->codec->dll, sh->codec->guid, sh->bih,
++                                           sh->codec->outfmt[sh->outfmtidx], sh->fps, fname, &err)))
++    {
++        mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[dsnative] Codec init failed: %s\n", dsn.DSStrError(err));
++        return 0;
++    }
++
++    if (!mpcodecs_config_vo(sh, sh->disp_w, sh->disp_h, IMGFMT_YUY2))
++    {
++        mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[dsnative] mpcodecs_config_vo() failed\n");
++        return 0;
++    }
++
++    mp_msg(MSGT_DECVIDEO, MSGL_V, "[dsnative]: Win32/DShow video codec init OK.\n");
++    return 1;
++}
++
++static void uninit(sh_video_t *sh)
++{
++    if (dsn.codec) dsn.DSCloseVideoCodec(dsn.codec);
++    if (dsn.hLib) FreeLibrary(dsn.hLib);
++#ifdef WIN32_LOADER
++    Restore_LDT_Keeper(dsn.ldt_fs);
++#endif
++}
++
++// decode a frame
++static mp_image_t* decode(sh_video_t *sh, void* data,int len, int flags)
++{
++    mp_image_t* mpi;
++    unsigned char *planes;
++    int err;
++    double newpts;
++    int keyframe;
++
++    if (len <= 0)
++        return NULL; // skipped frame
++
++    mpi = mpcodecs_get_image(sh, MP_IMGTYPE_TEMP, MP_IMGFLAG_COMMON_PLANE, sh->disp_w, sh->disp_h);
++    if (!mpi) return NULL;
++
++    keyframe = sh->ds->flags & 1;
++
++    if (!keyframe && (flags & 3))
++        planes = NULL;
++    else
++        planes = mpi->planes[0];
++
++    err = dsn.DSVideoDecode(dsn.codec, data, len, sh->pts, &newpts, planes, keyframe);
++    if (err == DSN_OK)
++        sh->pts = newpts;
++    else
++        mp_msg(MSGT_DECVIDEO, MSGL_ERR, "[dsnative] Decoding failed: %s\n", dsn.DSStrError(err)); 
++    return mpi;
++}
+\ No newline at end of file
+Index: libmpcodecs/ve_lavc.c
+===================================================================
+--- libmpcodecs/ve_lavc.c	(revision 34883)
++++ libmpcodecs/ve_lavc.c	(working copy)
+@@ -291,7 +291,7 @@
+ 	{"top", &lavc_param_top, CONF_TYPE_INT, CONF_RANGE, -1, 1, NULL},
+         {"qns", &lavc_param_qns, CONF_TYPE_INT, CONF_RANGE, 0, 1000000, NULL},
+         {"nssew", &lavc_param_nssew, CONF_TYPE_INT, CONF_RANGE, 0, 1000000, NULL},
+-	{"threads", &lavc_param_threads, CONF_TYPE_INT, CONF_RANGE, 1, 8, NULL},
++	{"threads", &lavc_param_threads, CONF_TYPE_INT, CONF_RANGE, 1, 16, NULL},
+ 	{"turbo", &lavc_param_turbo, CONF_TYPE_FLAG, 0, 0, 1, NULL},
+         {"skip_threshold", &lavc_param_skip_threshold, CONF_TYPE_INT, CONF_RANGE, 0, 1000000, NULL},
+         {"skip_factor", &lavc_param_skip_factor, CONF_TYPE_INT, CONF_RANGE, 0, 1000000, NULL},
+Index: libvo/sdl_common.c
+===================================================================
+--- libvo/sdl_common.c	(revision 34883)
++++ libvo/sdl_common.c	(working copy)
+@@ -64,7 +64,7 @@
+         if (WinID > 0) {
+             char envstr[20];
+             snprintf(envstr, sizeof(envstr), "0x%"PRIx64, WinID);
+-            setenv("SDL_WINDOWID", envstr, 1);
++            putenv("SDL_WINDOWID=1");
+         }
+         if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_NOPARACHUTE) < 0)
+             return 0;
+@@ -126,7 +126,7 @@
+     if (geometry_xy_changed) {
+         char envstr[20];
+         snprintf(envstr, sizeof(envstr), "%i,%i", vo_dx, vo_dy);
+-        setenv("SDL_VIDEO_WINDOW_POS", envstr, 1);
++        putenv("SDL_VIDEO_WINDOW_POS=1");
+     }
+     s = SDL_SetVideoMode(vo_dwidth, vo_dheight, bpp, flags);
+     if (!s) {
+Index: libvo/vo_sdl.c
+===================================================================
+--- libvo/vo_sdl.c	(revision 34883)
++++ libvo/vo_sdl.c	(working copy)
+@@ -1334,17 +1334,17 @@
+     mp_msg(MSGT_VO,MSGL_DBG3, "SDL: Opening Plugin\n");
+ 
+     if(sdl_driver) {
+-        setenv("SDL_VIDEODRIVER", sdl_driver, 1);
++        putenv("SDL_VIDEODRIVER=1");
+     free(sdl_driver);
+     }
+ 
+     /* does the user want SDL to try and force Xv */
+-    if(sdl_forcexv)	setenv("SDL_VIDEO_X11_NODIRECTCOLOR", "1", 1);
+-    else setenv("SDL_VIDEO_X11_NODIRECTCOLOR", "0", 1);
++    if(sdl_forcexv)	putenv("SDL_VIDEO_X11_NODIRECTCOLOR=1");
++    else putenv("SDL_VIDEO_X11_NODIRECTCOLOR=0");
+ 
+     /* does the user want to disable Xv and use software scaling instead */
+-    if(sdl_hwaccel) setenv("SDL_VIDEO_YUV_HWACCEL", "1", 1);
+-    else setenv("SDL_VIDEO_YUV_HWACCEL", "0", 1);
++    if(sdl_hwaccel) putenv("SDL_VIDEO_YUV_HWACCEL=1");
++    else putenv("SDL_VIDEO_YUV_HWACCEL=0");
+ 
+     /* default to no fullscreen mode, we'll set this as soon we have the avail. modes */
+     priv->fullmode = -2;
+Index: Makefile
+===================================================================
+--- Makefile	(revision 34883)
++++ Makefile	(working copy)
+@@ -270,6 +270,7 @@
+                                         libmpcodecs/ad_twin.c \
+                                         libmpcodecs/vd_dmo.c \
+                                         libmpcodecs/vd_dshow.c \
++                                        libmpcodecs/vd_dsnative.c \
+                                         libmpcodecs/vd_vfw.c \
+                                         libmpcodecs/vd_vfwex.c \
+                                         libmpdemux/demux_avs.c \
+Index: mencoder.c
+===================================================================
+--- mencoder.c	(revision 34883)
++++ mencoder.c	(working copy)
+@@ -139,6 +139,7 @@
+ int benchmark=0;
+ 
+ // A-V sync:
++int delay_corrected=1;
+ static float default_max_pts_correction=-1;//0.01f;
+ static float max_pts_correction=0;//default_max_pts_correction;
+ static float c_total=0;
+@@ -1554,11 +1555,18 @@
+           ((ds_tell(d_audio)-sh_audio->a_in_buffer_len)/sh_audio->audio.dwSampleSize) :
+           (d_audio->block_no); // <- used for VBR audio
+         a_pts=samples*(float)sh_audio->audio.dwScale/(float)sh_audio->audio.dwRate;
++	delay_corrected=1;
+     } else
+ #endif
+     {
+-      // PTS = (last timestamp) + (bytes after last timestamp)/(bytes per sec)
+-      a_pts=calc_a_pts(sh_audio, d_audio);
++        // PTS = (last timestamp) + (bytes after last timestamp)/(bytes per sec)
++        #ifdef CONFIG_DVDREAD
++            a_pts=d_audio->pts;
++            if(!delay_corrected) if(a_pts) delay_corrected=1;
++            a_pts+=(ds_tell_pts(d_audio)-sh_audio->a_in_buffer_len)/(float)sh_audio->i_bps;
++        #else
++            a_pts=calc_a_pts(sh_audio, d_audio);
++        #endif
+     }
+     v_pts=sh_video ? sh_video->pts : d_video->pts;
+     // av = compensated (with out buffering delay) A-V diff
+Index: mp_msg.c
+===================================================================
+--- mp_msg.c	(revision 34883)
++++ mp_msg.c	(working copy)
+@@ -34,6 +34,26 @@
+ /* maximum message length of mp_msg */
+ #define MSGSIZE_MAX 3072
+ 
++#ifdef _WIN32
++#define WIN32_LEAN_AND_MEAN
++#include <windows.h>
++#include <io.h>
++#define hSTDOUT GetStdHandle(STD_OUTPUT_HANDLE)
++static short stdoutAttrs = 0;
++static const unsigned char ansi2win32[10] = {
++    0,
++    FOREGROUND_RED,
++    FOREGROUND_GREEN,
++    FOREGROUND_GREEN | FOREGROUND_RED,
++    FOREGROUND_BLUE,
++    FOREGROUND_BLUE  | FOREGROUND_RED,
++    FOREGROUND_BLUE  | FOREGROUND_GREEN,
++    FOREGROUND_BLUE  | FOREGROUND_GREEN | FOREGROUND_RED,
++    FOREGROUND_BLUE  | FOREGROUND_GREEN | FOREGROUND_RED,
++    FOREGROUND_BLUE  | FOREGROUND_GREEN | FOREGROUND_RED
++};
++#endif
++
+ int mp_msg_levels[MSGT_MAX]; // verbose level of this module. initialized to -2
+ int mp_msg_level_all = MSGL_STATUS;
+ int verbose = 0;
+@@ -77,6 +97,15 @@
+ }
+ 
+ void mp_msg_init(void){
++#ifdef _WIN32
++    CONSOLE_SCREEN_BUFFER_INFO cinfo;
++    long cmode = 0;
++    GetConsoleMode(hSTDOUT, &cmode);
++    cmode |= (ENABLE_PROCESSED_OUTPUT | ENABLE_WRAP_AT_EOL_OUTPUT);
++    SetConsoleMode(hSTDOUT, cmode);
++    GetConsoleScreenBufferInfo(hSTDOUT, &cinfo);
++    stdoutAttrs = cinfo.wAttributes;
++#endif
+     int i;
+     char *env = getenv("MPLAYER_VERBOSE");
+     if (env)
+@@ -111,7 +140,11 @@
+     }
+ #endif
+     if (mp_msg_color)
++#ifdef _WIN32
++        SetConsoleTextAttribute(hSTDOUT, ansi2win32[c] | FOREGROUND_INTENSITY);
++#else
+         fprintf(stream, "\033[%d;3%dm", c >> 3, c & 7);
++#endif
+ }
+ 
+ static void print_msg_module(FILE* stream, int mod)
+@@ -168,11 +201,19 @@
+ 
+     if (!mp_msg_module)
+         return;
++#ifdef _WIN32
+     if (mp_msg_color)
++        SetConsoleTextAttribute(hSTDOUT, ansi2win32[c2&7] | FOREGROUND_INTENSITY);
++    fprintf(stream, "%9s", module_text[mod]);
++    if (mp_msg_color)
++        SetConsoleTextAttribute(hSTDOUT, stdoutAttrs);
++#else
++    if (mp_msg_color)
+         fprintf(stream, "\033[%d;3%dm", c2 >> 3, c2 & 7);
+     fprintf(stream, "%9s", module_text[mod]);
+     if (mp_msg_color)
+         fprintf(stream, "\033[0;37m");
++#endif
+     fprintf(stream, ": ");
+ }
+ 
+@@ -240,6 +281,10 @@
+ 
+     fprintf(stream, "%s", tmp);
+     if (mp_msg_color)
++#ifdef _WIN32
++        SetConsoleTextAttribute(hSTDOUT, stdoutAttrs);
++#else
+         fprintf(stream, "\033[0m");
++#endif
+     fflush(stream);
+ }
+Index: mpcommon.c
+===================================================================
+--- mpcommon.c	(revision 34883)
++++ mpcommon.c	(working copy)
+@@ -544,40 +544,46 @@
+ /// Returns a_pts
+ double calc_a_pts(sh_audio_t *sh_audio, demux_stream_t *d_audio)
+ {
+-    double a_pts;
+-    if(!sh_audio || !d_audio)
+-        return MP_NOPTS_VALUE;
+-    // first calculate the end pts of audio that has been output by decoder
+-    a_pts = sh_audio->pts;
+-    // If we cannot get any useful information at all from the demuxer layer
+-    // just count the decoded bytes. This is still better than constantly
+-    // resetting to 0.
+-    if (sh_audio->pts_bytes && a_pts == MP_NOPTS_VALUE &&
+-        !d_audio->pts && !sh_audio->i_bps)
+-        a_pts = 0;
+-    if (a_pts != MP_NOPTS_VALUE)
+-        // Good, decoder supports new way of calculating audio pts.
+-        // sh_audio->pts is the timestamp of the latest input packet with
+-        // known pts that the decoder has decoded. sh_audio->pts_bytes is
+-        // the amount of bytes the decoder has written after that timestamp.
+-        a_pts += sh_audio->pts_bytes / (double) sh_audio->o_bps;
+-    else {
+-        // Decoder doesn't support new way of calculating pts (or we're
+-        // being called before it has decoded anything with known timestamp).
+-        // Use the old method of audio pts calculation: take the timestamp
+-        // of last packet with known pts the decoder has read data from,
+-        // and add amount of bytes read after the beginning of that packet
+-        // divided by input bps. This will be inaccurate if the input/output
+-        // ratio is not constant for every audio packet or if it is constant
+-        // but not accurately known in sh_audio->i_bps.
++    #ifdef CONFIG_DVDREAD
++        float a_pts = 0.;
++        if (sh_audio)
++            a_pts = d_audio->pts + (ds_tell_pts(d_audio) - sh_audio->a_in_buffer_len)/(float)sh_audio->i_bps;
++    #else
++        double a_pts;
++        if(!sh_audio || !d_audio)
++            return MP_NOPTS_VALUE;
++        // first calculate the end pts of audio that has been output by decoder
++        a_pts = sh_audio->pts;
++        // If we cannot get any useful information at all from the demuxer layer
++        // just count the decoded bytes. This is still better than constantly
++        // resetting to 0.
++        if (sh_audio->pts_bytes && a_pts == MP_NOPTS_VALUE &&
++            !d_audio->pts && !sh_audio->i_bps)
++            a_pts = 0;
++        if (a_pts != MP_NOPTS_VALUE)
++            // Good, decoder supports new way of calculating audio pts.
++            // sh_audio->pts is the timestamp of the latest input packet with
++            // known pts that the decoder has decoded. sh_audio->pts_bytes is
++            // the amount of bytes the decoder has written after that timestamp.
++            a_pts += sh_audio->pts_bytes / (double) sh_audio->o_bps;
++        else {
++            // Decoder doesn't support new way of calculating pts (or we're
++            // being called before it has decoded anything with known timestamp).
++            // Use the old method of audio pts calculation: take the timestamp
++            // of last packet with known pts the decoder has read data from,
++            // and add amount of bytes read after the beginning of that packet
++            // divided by input bps. This will be inaccurate if the input/output
++            // ratio is not constant for every audio packet or if it is constant
++            // but not accurately known in sh_audio->i_bps.
+ 
+-        a_pts = d_audio->pts;
+-        // ds_tell_pts returns bytes read after last timestamp from
+-        // demuxing layer, decoder might use sh_audio->a_in_buffer for bytes
+-        // it has read but not decoded
+-        if (sh_audio->i_bps)
+-            a_pts += (ds_tell_pts(d_audio) - sh_audio->a_in_buffer_len) /
+-                     (double)sh_audio->i_bps;
+-    }
++            a_pts = d_audio->pts;
++            // ds_tell_pts returns bytes read after last timestamp from
++            // demuxing layer, decoder might use sh_audio->a_in_buffer for bytes
++            // it has read but not decoded
++            if (sh_audio->i_bps)
++                a_pts += (ds_tell_pts(d_audio) - sh_audio->a_in_buffer_len) /
++                         (double)sh_audio->i_bps;
++        }
++    #endif
+     return a_pts;
+ }
+Index: mplayer.c
+===================================================================
+--- mplayer.c	(revision 34883)
++++ mplayer.c	(working copy)
+@@ -145,6 +145,12 @@
+ float start_volume = -1;
+ double start_pts   = MP_NOPTS_VALUE;
+ char *heartbeat_cmd;
++
++#ifdef CONFIG_FONTCONFIG
++#include <fontconfig/fontconfig.h>
++extern int FcDebugVal;
++#endif
++
+ static int max_framesize;
+ 
+ int noconsolecontrols;
+@@ -525,10 +531,6 @@
+             (mpctx->sh_video && video_start_pts < start_pts))
+             start_pts = video_start_pts;
+     }
+-    if (start_pts != MP_NOPTS_VALUE)
+-        mp_msg(MSGT_IDENTIFY, MSGL_INFO, "ID_START_TIME=%.2f\n", start_pts);
+-    else
+-        mp_msg(MSGT_IDENTIFY, MSGL_INFO, "ID_START_TIME=unknown\n");
+     mp_msg(MSGT_IDENTIFY, MSGL_INFO, "ID_LENGTH=%.2f\n", demuxer_get_time_length(mpctx->demuxer));
+     mp_msg(MSGT_IDENTIFY, MSGL_INFO, "ID_SEEKABLE=%d\n",
+            mpctx->stream->seek && (!mpctx->demuxer || mpctx->demuxer->seekable));
+@@ -3050,7 +3052,15 @@
+         gui(GUI_SET_CONTEXT, mpctx);
+         gui(GUI_SET_STATE, (void *)(filename ? GUI_PLAY : GUI_STOP));
+     }
++#else
++    /* force cache creation here and display fontconfig scan activity */     
++    FcDebugVal = 128;
++#ifdef _WIN32
++    FcConfigEnableHome(FcFalse);
+ #endif
++    FcInit();
++    FcDebugVal = 0;
++#endif
+ 
+ // ******************* Now, let's see the per-file stuff ********************
+ 
+Index: osdep/alloc-win.c
+===================================================================
+--- osdep/alloc-win.c	(revision 0)
++++ osdep/alloc-win.c	(working copy)
+@@ -0,0 +1,185 @@
++#define DEFAULT_ALIGNMENT   16
++//#define DEBUG_ALLOC
++
++/*
++  __mingw_aligned_malloc and friends, implemented using Microsoft's public
++  interfaces and with the help of the algorithm description provided
++  by Wu Yongwei: http://sourceforge.net/mailarchive/message.php?msg_id=3847075
++
++  I hereby place this implementation in the public domain.
++               -- Steven G. Johnson (stevenj@alum.mit.edu)
++*/
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <errno.h>
++#include <stddef.h>             /* ptrdiff_t */
++#include <string.h>             /* memmove */
++
++#include <windows.h>
++
++#ifdef DEBUG_ALLOC
++#undef fprintf
++extern int fprintf (FILE *__stream, const char *__format, ...);
++#define TRACE(...) fprintf(stderr, __VA_ARGS__)
++#else
++#define TRACE(...)
++#endif
++
++#define WILL_WRAP(size, alignment) (size > (0xffffffff - (alignment + sizeof (void *))))
++
++#ifdef HAVE_STDINT_H
++#  include <stdint.h>           /* uintptr_t */
++#else
++#  define uintptr_t size_t
++#endif
++
++#define NOT_POWER_OF_TWO(n) (((n) & ((n) - 1)))
++#define UI(p) ((uintptr_t) (p))
++#define CP(p) ((char *) p)
++
++#define PTR_ALIGN(p0, alignment, offset)                                \
++            ((void *) (((UI(p0) + (alignment + sizeof(void*)) + offset) \
++                        & (~UI(alignment - 1)))                         \
++                       - offset))
++
++/* Pointer must sometimes be aligned; assume sizeof(void*) is a power of two. */
++#define ORIG_PTR(p) (*(((void **) (UI(p) & (~UI(sizeof(void*) - 1)))) - 1))
++
++static void *
++__mingw_aligned_offset_malloc (size_t size, size_t alignment, size_t offset)
++{
++  void *p0, *p;
++
++  if (NOT_POWER_OF_TWO (alignment))
++    {
++      errno = EINVAL;
++      return ((void *) 0);
++    }
++  if ((size == 0) || WILL_WRAP(size, alignment))
++    return ((void *) 0);
++  if (alignment < sizeof (void *))
++    alignment = sizeof (void *);
++
++  /* Including the extra sizeof(void*) is overkill on a 32-bit
++     machine, since malloc is already 8-byte aligned, as long
++     as we enforce alignment >= 8 ...but oh well.  */
++
++  p0 = HeapAlloc (GetProcessHeap(), 0, size + (alignment + sizeof (void *)));
++  if (!p0)
++    return ((void *) 0);
++  p = PTR_ALIGN (p0, alignment, offset);
++  ORIG_PTR (p) = p0;
++  return p;
++}
++
++static void *
++__mingw_aligned_malloc (size_t size, size_t alignment)
++{
++  return __mingw_aligned_offset_malloc (size, alignment, 0);
++}
++
++static void
++__mingw_aligned_free (void *memblock)
++{
++  if (memblock)
++    HeapFree(GetProcessHeap(), 0, ORIG_PTR (memblock));
++}
++
++static void *
++__mingw_aligned_offset_realloc (void *memblock, size_t size,
++                                size_t alignment, size_t offset)
++{
++  void *p0, *p;
++  ptrdiff_t shift;
++
++  if (!memblock)
++    return __mingw_aligned_offset_malloc (size, alignment, offset);
++  if (NOT_POWER_OF_TWO (alignment))
++    goto bad;
++  if ((size == 0) || WILL_WRAP(size, alignment))
++    {
++      __mingw_aligned_free (memblock);
++      return ((void *) 0);
++    }
++  if (alignment < sizeof (void *))
++    alignment = sizeof (void *);
++
++  p0 = ORIG_PTR (memblock);
++  /* It is an error for the alignment to change. */
++  if (memblock != PTR_ALIGN (p0, alignment, offset))
++    goto bad;
++  shift = CP (memblock) - CP (p0);
++
++  p0 = HeapReAlloc(GetProcessHeap(), 0, p0, size + (alignment + sizeof (void *)));
++  if (!p0)
++    return ((void *) 0);
++  p = PTR_ALIGN (p0, alignment, offset);
++
++  /* Relative shift of actual data may be different from before, ugh.  */
++  if (shift != CP (p) - CP (p0))
++    /* ugh, moves more than necessary if size is increased.  */
++    memmove (CP (p), CP (p0) + shift, size);
++
++  ORIG_PTR (p) = p0;
++  return p;
++
++bad:
++  errno = EINVAL;
++  return ((void *) 0);
++}
++
++static void *
++__mingw_aligned_realloc (void *memblock, size_t size, size_t alignment)
++{
++  return __mingw_aligned_offset_realloc (memblock, size, alignment, 0);
++}
++
++/* WRAPPERS */
++
++void *malloc(size_t size)
++{
++    void *p = __mingw_aligned_malloc(size, DEFAULT_ALIGNMENT);
++    TRACE("MALLOC(%d) = %p\n", size, p);
++    return p;
++}
++
++void *memalign(size_t boundary, size_t size)
++{
++    void *p = __mingw_aligned_malloc(size, boundary);
++    TRACE("MEMALIGN(%d, %d) = %p\n", boundary, size, p);
++    return p;
++}
++
++void *calloc(size_t nmemb, size_t size)
++{
++    size_t sz = nmemb * size;
++    char *d = __mingw_aligned_malloc(sz, DEFAULT_ALIGNMENT);
++    memset(d, 0, sz);
++    TRACE("CALLOC(%d, %d) = %p\n", nmemb, size, d);
++    return d;
++}
++
++void *realloc(void *ptr, size_t size)
++{
++    void *p = __mingw_aligned_realloc(ptr, size, DEFAULT_ALIGNMENT);
++    TRACE("REALLOC(%p, %d) = %p\n", ptr, size, p);
++    return p;
++}
++
++void free(void *ptr)
++{
++    TRACE("FREE(%p)\n", ptr);
++    __mingw_aligned_free(ptr);
++}
++
++char *strdup(const char *s)
++{
++    char *d;
++    size_t size = strlen(s) + 1;
++    d = __mingw_aligned_malloc(size, DEFAULT_ALIGNMENT);
++    memcpy(d, s, size - 1);
++    d[size - 1] = 0;
++    TRACE("STRDUP(%p) = %p\n", s, d);
++    return d;
++}
+\ No newline at end of file
+Index: version.sh
+===================================================================
+--- version.sh	(revision 34883)
++++ version.sh	(working copy)
+@@ -17,9 +17,9 @@
+ version=$svn_revision
+ fi
+ 
+-NEW_REVISION="#define VERSION \"${version}${extra}\""
++NEW_REVISION="#define VERSION \"SB32\""
+ OLD_REVISION=$(head -n 1 version.h 2> /dev/null)
+-TITLE='#define MP_TITLE "%s "VERSION" (C) 2000-2012 MPlayer Team\n"'
++TITLE='#define MP_TITLE "%s "VERSION" (C) 2000-2012 MPlayer Team\nCustom build by SubJunk, http://www.spirton.com\n\n"'
+ 
+ # Update version.h only on revision changes to avoid spurious rebuilds
+ if test "$NEW_REVISION" != "$OLD_REVISION"; then

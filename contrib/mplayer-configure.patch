@@ -1,0 +1,282 @@
+--- configure	2012-01-20 05:30:48.586097400 +0400
++++ configure	2012-01-20 05:31:49.346098442 +0400
+@@ -1534,7 +1534,7 @@
+ fi
+ 
+ extra_cflags="-I. -Iffmpeg $extra_cflags"
+-extra_ldflags="-lm $extra_ldflags"
++_ld_lm="-lm"
+ _timer=timer-linux.c
+ _getch=getch2.c
+ 
+@@ -3110,7 +3110,7 @@
+ for func in cbrtf exp2 exp2f llrint llrintf log2 log2f lrint lrintf round roundf trunc truncf; do
+ echocheck $func
+ eval _$func=no
+-statement_check math.h "${func}(2.0)" -D_ISOC99_SOURCE && eval _$func=yes
++statement_check math.h "${func}(2.0)" -D_ISOC99_SOURCE $_ld_lm && eval _$func=yes
+ if eval test "x\$_$func" = "xyes"; then
+   eval def_$func="\"#define HAVE_$(echo $func | tr '[a-z]' '[A-Z]') 1\""
+   echores yes
+@@ -3659,7 +3659,7 @@
+ }
+ EOF
+   _iconv=no
+-  for ld_tmp in "" "-liconv" "-liconv $ld_dl" ; do
++  for ld_tmp in "" "-liconv" "-liconv $ld_dl" "-liconv $ld_dl -lm" ; do
+     cc_check $ld_tmp && extra_ldflags="$extra_ldflags $ld_tmp" &&
+       _iconv=yes && break
+   done
+@@ -4653,7 +4653,7 @@
+ echocheck "SVGAlib"
+ if test "$_svga" = auto ; then
+   _svga=no
+-  header_check vga.h -lvga && _svga=yes
++  header_check vga.h -lvga $_ld_lm && _svga=yes
+ fi
+ if test "$_svga" = yes ; then
+   def_svga='#define CONFIG_SVGALIB 1'
+@@ -4794,7 +4794,7 @@
+   return strcmp(PNG_LIBPNG_VER_STRING, png_libpng_ver);
+ }
+ EOF
+-    cc_check -lpng -lz && _png=yes
++    cc_check -lpng -lz $_ld_lm && _png=yes
+   fi
+ fi
+ echores "$_png"
+@@ -4808,7 +4808,7 @@
+ echocheck "MNG support"
+ if test "$_mng" = auto ; then
+   _mng=no
+-  return_statement_check libmng.h 'const char * p_ver = mng_version_text()' '!p_ver || p_ver[0] == 0' -lmng -lz && _mng=yes
++  return_statement_check libmng.h 'const char * p_ver = mng_version_text()' '!p_ver || p_ver[0] == 0' -lmng -lz $_ld_lm && _mng=yes
+ fi
+ echores "$_mng"
+ if test "$_mng" = yes ; then
+@@ -4823,7 +4823,7 @@
+ echocheck "JPEG support"
+ if test "$_jpeg" = auto ; then
+   _jpeg=no
+-  header_check_broken stdio.h jpeglib.h -ljpeg && _jpeg=yes
++  header_check_broken stdio.h jpeglib.h -ljpeg $_ld_lm && _jpeg=yes
+ fi
+ echores "$_jpeg"
+ 
+@@ -4840,7 +4840,7 @@
+ echocheck "OpenJPEG (JPEG 2000) support"
+ if test "$libopenjpeg" = auto ; then
+   libopenjpeg=no
+-  define_statement_check OPJ_STATIC openjpeg.h 'opj_dparameters_t dec_params; opj_set_default_decoder_parameters(&dec_params);opj_decode_with_info(0,0,0)' -lopenjpeg && libopenjpeg=yes
++  define_statement_check OPJ_STATIC openjpeg.h 'opj_dparameters_t dec_params; opj_set_default_decoder_parameters(&dec_params);opj_decode_with_info(0,0,0)' -lopenjpeg $_ld_lm && libopenjpeg=yes
+ fi
+ echores "$libopenjpeg"
+ if test "$libopenjpeg" = yes ; then
+@@ -5092,7 +5092,7 @@
+ }
+ EOF
+   _gl=no
+-  for ld_tmp in "" -lGL "-lGL -lXdamage" "-lGL $ld_pthread" ; do
++  for ld_tmp in "" -lGL "-lGL -lXdamage" "-lGL $ld_pthread" "-lGL $ld_pthread -lm" ; do
+     if cc_check $ld_tmp ; then
+       _gl=yes
+       _gl_x11=yes
+@@ -5422,7 +5422,7 @@
+ echocheck "NAS"
+ if test "$_nas" = auto ; then
+   _nas=no
+-  header_check audio/audiolib.h -laudio -lXt && _nas=yes
++  header_check audio/audiolib.h $_ld_lm -laudio -lXt && _nas=yes
+ fi
+ if test "$_nas" = yes ; then
+   def_nas='#define CONFIG_NAS 1'
+@@ -5684,7 +5684,7 @@
+ echocheck "Blu-ray support"
+ if test "$_bluray" = auto ; then
+   _bluray=no
+-  statement_check libbluray/bluray.h 'bd_get_title_info(0, 0, 0)' -lbluray && _bluray=yes
++  statement_check libbluray/bluray.h 'bd_get_title_info(0, 0, 0)' -lbluray $ld_pthread $ld_dl && _bluray=yes
+ fi
+ if test "$_bluray" = yes ; then
+   def_bluray='#define CONFIG_LIBBLURAY 1'
+@@ -5781,7 +5781,7 @@
+ }
+ EOF
+         _libcdio=no
+-    for ld_tmp in "" "-lwinmm" ; do
++    for ld_tmp in "" "-lwinmm" "-lwinmm -lm"; do
+         ld_tmp="-lcdio_cdda -lcdio -lcdio_paranoia $ld_tmp"
+         cc_check $ld_tmp && _libcdio=yes &&
+             extra_ldflags="$extra_ldflags $ld_tmp" && break
+@@ -5808,7 +5808,7 @@
+ echocheck "cdparanoia"
+ if test "$_cdparanoia" = auto ; then
+     _cdparanoia=no
+-    for inc_tmp in "" "-I/usr/include/cdda" "-I/usr/local/include/cdda" ; do
++    for inc_tmp in "-lm" "-lm -I/usr/include/cdda" "-lm -I/usr/local/include/cdda" ; do
+       statement_check_broken cdda_interface.h cdda_paranoia.h 'paranoia_cachemodel_size(NULL, 0)' $inc_tmp -lcdda_interface -lcdda_paranoia &&
+         _cdparanoia=yes && extra_cflags="$extra_cflags $inc_tmp" && break
+     done
+@@ -6020,7 +6020,7 @@
+ echocheck "ENCA"
+ if test "$_enca" = auto ; then
+     _enca=no
+-    statement_check enca.h 'enca_get_languages(NULL)' -lenca && _enca=yes
++    statement_check enca.h 'enca_get_languages(NULL)' -lenca $_ld_lm && _enca=yes
+ fi
+     if test "$_enca" = yes ; then
+         def_enca='#define CONFIG_ENCA 1'
+@@ -6116,7 +6116,7 @@
+ echocheck "Twolame"
+ if test "$_twolame" = auto ; then
+   _twolame=no
+-  statement_check twolame.h 'twolame_init()' -ltwolame && _twolame=yes
++  statement_check twolame.h 'twolame_init()' -ltwolame $_ld_lm && _twolame=yes
+ fi
+ if test "$_twolame" = yes ; then
+   def_twolame='#define CONFIG_TWOLAME 1'
+@@ -6134,7 +6134,7 @@
+ if test "$_twolame" = yes ; then
+   res_comment="disabled by twolame"
+ else
+-  statement_check toolame.h 'toolame_init()' -ltoolame && _toolame=yes
++  statement_check toolame.h 'toolame_init()' -ltoolame $_ld_lm && _toolame=yes
+ fi
+ fi
+ if test "$_toolame" = yes ; then
+@@ -6155,12 +6155,12 @@
+   _libvorbis=no
+ elif test "$_tremor" = auto; then
+   _tremor=no
+-  statement_check tremor/ivorbiscodec.h 'vorbis_packet_blocksize(0, 0)' -logg -lvorbisidec && _tremor=yes && _libvorbis=no
++  statement_check tremor/ivorbiscodec.h 'vorbis_packet_blocksize(0, 0)' -logg -lvorbisidec $_ld_lm && _tremor=yes && _libvorbis=no
+ fi
+ if test "$_libvorbis" = auto; then
+   _libvorbis=no
+   for vorbislibs in '-lvorbis -logg' '-lvorbis -lvorbisenc -logg' ; do
+-    statement_check vorbis/vorbisenc.h 'vorbis_encode_ctl(0, 0, 0)' $vorbislibs && _libvorbis=yes && break
++    statement_check vorbis/vorbisenc.h 'vorbis_encode_ctl(0, 0, 0)' $vorbislibs $_ld_lm && _libvorbis=yes && break
+   done
+ fi
+ if test "$_tremor_internal" = yes ; then
+@@ -6201,7 +6201,7 @@
+ #include <speex/speex.h>
+ int main(void) { SpeexBits bits; void *dec = NULL; speex_decode_int(dec, &bits, dec); return 0; }
+ EOF
+-  cc_check -lspeex && _speex=yes
++  cc_check -lspeex $_ld_lm && _speex=yes
+ fi
+ if test "$_speex" = yes ; then
+   def_speex='#define CONFIG_SPEEX 1'
+@@ -6344,7 +6344,7 @@
+ if test "$_libdca" = auto ; then
+   _libdca=no
+   for ld_dca in -ldca -ldts ; do
+-    statement_check_broken stdint.h dts.h 'dts_init(0)' $ld_dca &&
++    statement_check_broken stdint.h dts.h 'dts_init(0)' $ld_dca -lm &&
+       extra_ldflags="$extra_ldflags $ld_dca" && _libdca=yes && break
+   done
+ fi
+@@ -6371,7 +6371,7 @@
+   return 0;
+ }
+ EOF
+-  cc_check -lmpcdec && _musepack=yes
++  cc_check -lmpcdec $_ld_lm && _musepack=yes
+ fi
+ if test "$_musepack" = yes ; then
+   def_musepack='#define CONFIG_MUSEPACK 1'
+@@ -6392,7 +6392,7 @@
+ int main(void) { unsigned long x, y; faacEncOpen(48000, 2, &x, &y); return 0; }
+ EOF
+   _faac=no
+-  for ld_faac in "-lfaac" "-lfaac -lmp4v2 -lstdc++" ; do
++  for ld_faac in "-lm -lfaac" "-lm -lfaac -lmp4v2 -lstdc++" ; do
+     cc_check $ld_faac && libs_mencoder="$libs_mencoder $ld_faac" && _faac=yes && break
+   done
+ fi
+@@ -6426,7 +6426,7 @@
+ int main(void) { faacDecHandle testhand; faacDecFrameInfo testinfo;
+     testhand = faacDecOpen(); faacDecInit(0, 0, 0, 0, 0); return 0; }
+ EOF
+-  cc_check -lfaad && _faad=yes
++  cc_check -lfaad $_ld_lm && _faad=yes
+ fi
+ 
+ def_faad='#undef CONFIG_FAAD'
+@@ -6474,8 +6474,8 @@
+     cc_check $inc_tmp $ld_tmp && extra_ldflags="$extra_ldflags $ld_tmp" &&
+       extra_cflags="$extra_cflags $inc_tmp" && _libbs2b=yes
+   else
+-    for inc_tmp in "" -I/usr/include/bs2b -I/usr/local/include \
+-        -I/usr/local/include/bs2b ; do
++    for inc_tmp in "-lm" "-lm -I/usr/include/bs2b" "-lm -I/usr/local/include" \
++        "-lm -I/usr/local/include/bs2b" ; do
+       if cc_check $inc_tmp -lbs2b ; then
+         extra_ldflags="$extra_ldflags -lbs2b"
+         extra_cflags="$extra_cflags $inc_tmp"
+@@ -6775,11 +6775,11 @@
+ echocheck "libdv-0.9.5+"
+ if test "$_libdv" = auto ; then
+   _libdv=no
+-  statement_check libdv/dv.h 'dv_encoder_new(1, 1, 1)' -ldv $ld_pthread && _libdv=yes
++  statement_check libdv/dv.h 'dv_encoder_new(1, 1, 1)' -ldv $ld_pthread -lm && _libdv=yes
+ fi
+ if test "$_libdv" = yes ; then
+   def_libdv='#define CONFIG_LIBDV095 1'
+-  extra_ldflags="$extra_ldflags -ldv"
++  extra_ldflags="$extra_ldflags -ldv -lm"
+   codecmodules="libdv $codecmodules"
+ else
+   def_libdv='#undef CONFIG_LIBDV095'
+@@ -6790,7 +6790,7 @@
+ echocheck "CrystalHD"
+ if test "$crystalhd" = auto ; then
+    crystalhd=no
+-   statement_check_broken libcrystalhd/bc_dts_types.h libcrystalhd/libcrystalhd_if.h 'DtsCrystalHDVersion(0, 0)' -lcrystalhd && crystalhd=yes
++   statement_check_broken libcrystalhd/bc_dts_types.h libcrystalhd/libcrystalhd_if.h 'DtsCrystalHDVersion(0, 0)' -lcrystalhd $_ld_lm && crystalhd=yes
+ fi
+ 
+ if test "$crystalhd" = yes ; then
+@@ -6807,7 +6807,7 @@
+ echocheck "Xvid"
+ if test "$_xvid" = auto ; then
+   _xvid=no
+-  for ld_tmp in "-lxvidcore" "-lxvidcore $ld_pthread" ; do
++  for ld_tmp in "-lxvidcore -lm" "-lxvidcore -lm $ld_pthread" ; do
+     statement_check xvid.h 'xvid_global(0, 0, 0, 0)' $ld_tmp &&
+       extra_ldflags="$extra_ldflags $ld_tmp" && _xvid=yes && break
+   done
+@@ -6847,7 +6847,7 @@
+ int main(void) { x264_encoder_open((void*)0); return 0; }
+ EOF
+   _x264=no
+-  for ld_x264 in "-lx264 $ld_pthread" "-lx264 $ld_pthread" ; do
++  for ld_x264 in "-lx264 $ld_pthread" "-lx264 -lm $ld_pthread" ; do
+     cc_check $ld_x264 && libs_mencoder="$libs_mencoder $ld_x264" && _x264=yes && break
+   done
+ fi
+@@ -7019,12 +7019,12 @@
+ def_mp3lame_preset_medium='#undef CONFIG_MP3LAME_PRESET_MEDIUM'
+ if test "$_mp3lame" = auto && test "$_mencoder" = yes; then
+   _mp3lame=no
+-  statement_check lame/lame.h 'lame_set_VBR_quality(NULL, 0)' -lmp3lame &&
++  statement_check lame/lame.h 'lame_set_VBR_quality(NULL, 0)' -lmp3lame -lm &&
+     _mp3lame=yes && _mp3lame_lavc=yes
+ fi
+ if test "$_mp3lame" = yes ; then
+   def_mp3lame="#define CONFIG_MP3LAME 1"
+-  ld_mp3lame=-lmp3lame
++  ld_mp3lame="-lmp3lame -lm"
+   libs_mencoder="$libs_mencoder $ld_mp3lame"
+   statement_check lame/lame.h 'lame_set_preset(NULL, STANDARD_FAST)' $ld_mp3lame && def_mp3lame_preset="#define CONFIG_MP3LAME_PRESET 1"
+   statement_check lame/lame.h 'lame_set_preset(NULL,   MEDIUM_FAST)' $ld_mp3lame && def_mp3lame_preset_medium="#define CONFIG_MP3LAME_PRESET_MEDIUM 1"
+@@ -7938,7 +7938,7 @@
+ CFLAGS_SVGALIB_HELPER    = $cflags_svgalib_helper
+ CFLAGS_TREMOR_LOW        = $cflags_tremor_low
+ 
+-EXTRALIBS          = $extra_ldflags $ld_static $extra_libs
++EXTRALIBS          = $extra_ldflags $ld_static -lm $extra_libs
+ EXTRALIBS_MPLAYER  = $libs_mplayer
+ EXTRALIBS_MENCODER = $libs_mencoder
+ 

@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# set environment variables here
+export LANG=en_US.UTF-8
+
+# execute the real JavaApplicationStub
+here="${0%/*}"
+cmd="JavaApplicationStub"
+exec "$here/$cmd" "$@"

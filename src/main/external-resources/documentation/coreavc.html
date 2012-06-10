@@ -1,0 +1,81 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- 
+   PS3 Media Server, for streaming any medias to your PS3.
+   Copyright (C) 2008  A.Brochard
+ 
+   This program is free software; you can redistribute it and/or
+   modify it under the terms of the GNU General Public License
+   as published by the Free Software Foundation; version 2
+   of the License only.
+ 
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+ 
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+-->
+<html>
+<head>
+<title>CoreAVC</title>
+<link href="css/style.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+	<h1>CoreAVC</h1>
+
+	<p>
+		<a title="CoreAVC" href="http://www.coreavc.com/">CoreAVC</a> is a
+		very fast decoder for h.264 HD-videos, however it is not for free. You
+		can get a trial version which is valid 14 days to see if the
+		transcoding of h.264 HD-videos benefits from performance tuning.
+	</p>
+
+	<p>First of all you have to disable decoding for h.264 in ffdshow.
+		If you have installed k-lite codec pack, go to Windows start menu
+		"programs &gt; K-Lite Codec Pack &gt; Configuration &gt; ffdshow video
+		decoder". Select menu "Codecs" on the left side and change format
+		H.264/AVC from "libavcodec" to "disabled" and press OK.</p>
+
+	<p>Now you can install CoreAVC:</p>
+	<p>
+		<img src="images/coreavc1.jpg" />
+	</p>
+
+	<p>
+		<img src="images/coreavc2.jpg" />
+	</p>
+
+	<p>Haali Media Splitter is already included in codec packs and
+		therefore doesn't have to be installed once again.</p>
+	<p>
+		You should enable <a title="CUDA"
+			href="http://en.wikipedia.org/wiki/CUDA">CUDA</a> if possible. Go to
+		the Windows start menu "programs &gt; CoreCodec &gt; CoreAVC &gt;
+		Configure CoreAVC". Check "Prefer CUDA Acceleration" and press OK.
+		Please consider that CUDA is only available for NVidia based graphics
+		cards. You also have to install an <a title="nvidia driver"
+			href="http://www.nvidia.com/Download/index.aspx?lang=en-us">up to
+			date driver</a> (at least version 181.64!).
+	</p>
+
+	<p>There is no GPU-support planned in ffdshow. So CoreAVC is the
+		best choice for transcoding performance at the moment.</p>
+	<p>
+		<img src="images/coreavc3.jpg" />
+	</p>
+
+	<!--  Navigation -->
+	<hr />
+	<ul>
+		<li>Next: <a href="plugins.html">Plugins</a>
+		</li>
+		<li>Previous: <a href="avisynth.html">Avisynth</a>
+		</li>
+		<li>Top: <a href="index.html">Help</a>
+		</li>
+	</ul>
+
+</body>
+</html>
