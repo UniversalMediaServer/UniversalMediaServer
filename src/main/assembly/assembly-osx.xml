@@ -33,7 +33,7 @@
 
 		<!-- Include unzipped libmediainfo.dylib -->
 		<fileSet>
-			<directory>${project.basedir}</directory>
+			<directory>${project.binaries}</directory>
 			<outputDirectory>${project.name}.app/Contents/Resources/Java</outputDirectory>
 			<fileMode>0644</fileMode>
 			<includes>
