@@ -100,7 +100,7 @@ public class CodecUtil {
 
 	public static int getRealChannelCount(PmsConfiguration configuration, DLNAMediaAudio audio) {
 		int channelCount = configuration.getAudioChannelCount();
-		if (audio.getNrAudioChannels() > 0 && audio.getNrAudioChannels() < channelCount) {
+		if (audio.getNrAudioChannels() > 0 && audio.getNrAudioChannels() != channelCount) {
 			channelCount = audio.getNrAudioChannels();
 		}
 		return channelCount;
@@ -167,19 +167,54 @@ public class CodecUtil {
 		return null;
 	}
 
-	public static String getMixerOutput(boolean pcmonly, int nbchannels) {
-		String mixer = "volume=0";
-		if (pcmonly) { // we are using real PCM output
-			// thanks to JR Cash and his 5.1 sample
-			// et merci Yann :p
-			if (nbchannels == 5) /* Were missing an LFE channel so create one from the fronts */ {
-				mixer = "channels=6:6:0:0:1:1:3:2:5:3:4:4:2:5,sub=80:5";
-// New MEncoder builds don't need to remap audio channels anymore (for 5.1 audio) 
-//			} else {
-//				mixer = "channels=6:6:0:0:1:1:3:2:5:3:4:4:2:5";
-			}
-			if (nbchannels <= 2) { // downmixing to 2 channels
-				mixer = "pan=2:1:0:0:1:1:0:0:1:0.707:0.707:1:1";
+	public static String getMixerOutput(boolean pcmonly, int nbInputChannels, int nbOutputChannels) {
+		// for reference
+		// Channel Arrangement for Multi Channel Audio Formats
+		// http://avisynth.org/mediawiki/GetChannel
+		// http://flac.sourceforge.net/format.html#frame_header
+		// http://msdn.microsoft.com/en-us/windows/hardware/gg463006.aspx#E6C
+		// http://labs.divx.com/node/44
+		// http://lists.mplayerhq.hu/pipermail/mplayer-users/2006-October/063511.html
+		//
+		// Format				Chan 0	Chan 1	Chan 2	Chan 3	Chan 4	Chan 5
+		// 1.0 WAV/FLAC/MP3/WMA	FC
+		// 2.0 WAV/FLAC/MP3/WMA	FL		FR
+		// 4.0 WAV/FLAC/MP3/WMA	FL		FR		SL		SR
+		// 5.0 WAV/FLAC/MP3/WMA	FL		FR		FC		SL		SR
+		// 5.1 WAV/FLAC/MP3/WMA	FL		FR		FC		LFE		SL		SR
+		// 5.1 PCM (mencoder)	FL		FR		SR		FC		SL		LFE
+		// 7.1 PCM (mencoder)	FL		SL		RR		SR		FR		LFE		RL		FC
+		// 5.1 AC3				FL		FC		FR		SL		SR		LFE
+		// 5.1 DTS/AAC			FC		FL		FR		SL		SR		LFE
+		// 5.1 AIFF				FL		SL		FC		FR		SR		LFE
+		//
+		//  FL : Front Left
+		//  FC : Front Center
+		//  FR : Front Right
+		//  SL : Surround Left
+		//  SR : Surround Right
+		//  LFE : Low Frequency Effects (Sub)
+		String mixer = null;
+		if (pcmonly) { 
+			if (nbInputChannels == 6) { // 5.1
+				// we are using PCM output and have to manually remap channels because of incorrect mencoder's PCM mappings 
+				// (as of r34814 / SB28) 
+				if (nbOutputChannels <= 2) {
+					// remap and downmix to 2 channels
+					// as of mencoder r34814 '-af pan' do nothing (LFE is missing from right channel)
+					// same thing for AC3 transcoding. Thats why we should always use 5.1 output on PS3MS configuration
+					// and leave stereo downmixing to PS3!
+					mixer = "pan=2:1:0:0:1:0:1:0.707:0.707:1:0:1:1";
+				} else {
+					// remap and leave 5.1
+					mixer = "channels=6:6:0:0:1:1:2:5:3:2:4:4:5:3";
+				}
+			} else if (nbInputChannels == 8) { // 7.1
+				// remap and leave 7.1
+				// inputs to PCM encoder are FL:0 FR:1 RL:2 RR:3 FC:4 LFE:5 SL:6 SR:7
+				mixer = "channels=8:8:0:0:1:4:2:7:3:5:4:1:5:3:6:6:7:2";
+			} else if (nbInputChannels == 2) { // 2.0
+				// do nothing for stereo tracks
 			}
 		}
 		return mixer;

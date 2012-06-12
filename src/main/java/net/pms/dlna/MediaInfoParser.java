@@ -397,6 +397,10 @@ public class MediaInfoParser {
 			value = "8";
 		}
 
+		if (value.contains("8 / 6") || value.contains("6 / 8")) {
+			value = "8";
+		}
+
 		try {
 			int channels = Integer.parseInt(value);
 			return channels;
@@ -416,6 +420,11 @@ public class MediaInfoParser {
 	}
 
 	public static String getSampleFrequency(String value) {
+		// some tracks show several values like "48000 / 48000 / 24000" for HE-AAC
+		// store only first value
+		if (value.indexOf("/") > -1) {
+			value = value.substring(0, value.indexOf("/"));
+		}
 		if (value.indexOf("khz") > -1) {
 			value = value.substring(0, value.indexOf("khz"));
 		}
