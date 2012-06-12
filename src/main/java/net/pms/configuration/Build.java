@@ -10,13 +10,13 @@ public class Build {
 	 * Repository where to locate the file. Note: using "raw.github.com"
 	 * to access the raw file. 
 	 */
-	private static final String REPO = "http://universal-media-server.googlecode.com/git/";
+	private static final String REPO = "https://raw.github.com/UniversalMediaServer/UniversalMediaServer";
 
 	/**
 	 * The URL of the properties file used by the {@link AutoUpdater} to announce PMS updates.
 	 * Can be null/empty if not used. Not used if IS_UPDATABLE is set to false.
 	 */
-	private static final String UPDATE_SERVER_URL = REPO + "src/main/external-resources/update/update_3.properties";
+	private static final String UPDATE_SERVER_URL = REPO + "/master/src/main/external-resources/update/update_1.properties";
 
 	// if false, manual and automatic update checks are unconditionally disabled
 	private static final boolean IS_UPDATABLE = true;
