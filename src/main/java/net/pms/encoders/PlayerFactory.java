@@ -88,6 +88,7 @@ public final class PlayerFactory {
 	 *
 	 * @return The system utilities.
 	 */
+	// FIXME this is duplicated in PMS.java
 	private static SystemUtils createSystemUtils() {
 		if (Platform.isWindows()) {
 			return new WinUtils();
