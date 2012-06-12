@@ -397,6 +397,10 @@ public class MediaInfoParser {
 			value = "8";
 		}
 
+		if (value.contains("8 / 6") || value.contains("6 / 8")) {
+			value = "8";
+		}
+
 		try {
 			int channels = Integer.parseInt(value);
 			return channels;

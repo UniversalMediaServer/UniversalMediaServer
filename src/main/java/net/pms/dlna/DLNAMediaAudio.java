@@ -158,9 +158,9 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
-	 * Returns true if this media uses the TrueHD audio codec, false otherwise.
+	 * Returns true if this media uses the DTS audio codec, false otherwise.
 	 * 
-	 * @return True if the TrueHD audio codec is used.
+	 * @return True if the DTS audio codec is used.
 	 */
 	public boolean isDTS() {
 		return getCodecA() != null && (getCodecA().startsWith("dts") || getCodecA().equalsIgnoreCase("dca") || getCodecA().equalsIgnoreCase("dca (dts)"));
@@ -182,6 +182,42 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 */
 	public boolean isMP3() {
 		return getCodecA() != null && getCodecA().equalsIgnoreCase("mp3");
+	}
+
+	/**
+	 * Returns true if this media uses the AAC audio codec, false otherwise.
+	 *
+	 * @return True if the AAC audio codec is used.
+	 */
+	public boolean isAAC() {
+		return getCodecA() != null && getCodecA().equalsIgnoreCase("aac");
+	}
+
+	/**
+	 * Returns true if this media uses the Ogg Vorbis audio codec, false otherwise.
+	 *
+	 * @return True if the Ogg Vorbis audio codec is used.
+	 */
+	public boolean isVorbis() {
+		return getCodecA() != null && getCodecA().equalsIgnoreCase("vorbis");
+	}
+
+	/**
+	 * Returns true if this media uses the WMA audio codec, false otherwise.
+	 *
+	 * @return True if the WMA audio codec is used.
+	 */
+	public boolean isWMA() {
+		return getCodecA() != null && getCodecA().startsWith("wm");
+	}
+
+	/**
+	 * Returns true if this media uses the Mpeg Audio audio codec, false otherwise.
+	 *
+	 * @return True if the Mpeg Audio audio codec is used.
+	 */
+	public boolean isMpegAudio() {
+		return getCodecA() != null && getCodecA().equalsIgnoreCase("mp2");
 	}
 
 	/**

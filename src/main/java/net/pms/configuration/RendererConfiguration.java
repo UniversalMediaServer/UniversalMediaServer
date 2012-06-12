@@ -676,6 +676,10 @@ public class RendererConfiguration {
 		return getBoolean(WRAP_DTS_INTO_PCM, true);
 	}
 
+	public boolean isLPCMPlayable() {
+		return isMuxLPCMToMpeg();
+	}
+
 	public boolean isMuxLPCMToMpeg() {
 		if (isMediaParserV2()) {
 			return getFormatConfiguration().isLPCMSupported();
