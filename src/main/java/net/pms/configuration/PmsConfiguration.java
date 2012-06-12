@@ -931,11 +931,11 @@ public class PmsConfiguration {
 
 	/**
 	 * Returns whether or not the Pulse Code Modulation audio format should be
-	 * forced when using MEncoder as transcoding engine. The default is false.
-	 * @return True if PCM should be forced, false otherwise.
+	 * used only for HQ audio codecs. The default is false.
+	 * @return True if PCM should be used only for HQ audio codecs, false otherwise.
 	 */
-	public boolean isMencoderUsePcm() {
-		return getBoolean(KEY_MENCODER_USE_PCM, false);
+	public boolean isMencoderUsePcmForHQAudioOnly() {
+		return getBoolean(KEY_MENCODER_USE_PCM_FOR_HQ_AUDIO_ONLY, false);
 	}
 
 	/**
