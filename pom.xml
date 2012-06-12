@@ -1137,6 +1137,7 @@
 
 										<!-- Download binaries -->
 										<get src="${project.binaries-base}/linux/tsMuxeR" dest="${project.binaries}/tsMuxeR" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/tsMuxeR_licence.txt" dest="${project.binaries}/tsMuxeR_license.txt" usetimestamp="true" />
 									</target>
 								</configuration>
 							</execution>
@@ -1221,7 +1222,7 @@
 										<!-- Make sure the binaries folder exists -->
 										<mkdir dir="${project.binaries}" />
 										<mkdir dir="${project.binaries}/osx" />
- 
+
 										<!-- Download binaries -->
 										<get src="${project.binaries-base}/osx/dcraw" dest="${project.binaries}/osx/dcraw" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/ffmpeg" dest="${project.binaries}/osx/ffmpeg" usetimestamp="true" />
@@ -1232,7 +1233,7 @@
 										<get src="${project.binaries-base}/osx/tsMuxeR" dest="${project.binaries}/osx/tsMuxeR" usetimestamp="true" />
 
 										<!-- MediaInfo library needs to be in the standard library path to be found -->
-										<copy file="${project.binaries}/osx/libmediainfo.dylib" todir="${project.basedir}" />
+										<copy file="${project.binaries}/libmediainfo.dylib" todir="${project.basedir}" />
 
 										<!-- Make all downloaded binaries executable -->
 										<chmod dir="${project.binaries}/osx" perm="a+x" includes="*" />

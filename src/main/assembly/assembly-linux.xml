@@ -26,11 +26,12 @@
 
 		<!-- Include the tsMuxeR binary -->
 		<fileSet>
-			<directory>${project.external-resources}</directory>
-			<outputDirectory>.</outputDirectory>
+			<directory>${project.binaries}</directory>
+			<outputDirectory>linux</outputDirectory>
 			<fileMode>0755</fileMode>
 			<includes>
-				<include>linux/tsMuxeR</include>
+				<include>tsMuxeR</include>
+				<include>tsMuxeR_license.txt</include>
 			</includes>
 		</fileSet>
 
