@@ -1,4 +1,19 @@
-﻿1.1.0 - 2012-06-09
+﻿1.1.1 - 2012-06-??
+
+	General:
+		Fixed memory buffer handling
+		Improved audio logic with new option to use LPCM for all audio
+		Added support for more rare audio formats
+		Updated documentation in UMS.conf
+	Languages:
+		Improved English settings labels
+		Fixed spacing across all languages on the "Common transcode settings" page
+		Improved Russian translations
+		Removed outdated translations
+		Fixed display of maximum transcode buffer size in 5 languages (ca, es, is, it, sv)
+		Improved support for RTL languages
+
+1.1.0 - 2012-06-09
 
 	General:
 		Made program restarts more reliable
