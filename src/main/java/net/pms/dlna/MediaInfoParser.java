@@ -420,6 +420,11 @@ public class MediaInfoParser {
 	}
 
 	public static String getSampleFrequency(String value) {
+		// some tracks show several values like "48000 / 48000 / 24000" for HE-AAC
+		// store only first value
+		if (value.indexOf("/") > -1) {
+			value = value.substring(0, value.indexOf("/"));
+		}
 		if (value.indexOf("khz") > -1) {
 			value = value.substring(0, value.indexOf("khz"));
 		}
