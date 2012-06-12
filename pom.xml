@@ -1026,7 +1026,7 @@
 										<get src="${project.binaries-base}/win32/fonts/conf.d/80-delicious.conf" dest="${project.binaries}/win32/fonts/conf.d/80-delicious.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/fonts/conf.d/90-synthetic.conf" dest="${project.binaries}/win32/fonts/conf.d/90-synthetic.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/fonts/conf.d/README" dest="${project.binaries}/win32/fonts/conf.d/README" usetimestamp="true" />
-										<get src="https://ps3mediaserver.googlecode.com/svn/trunk/ps3mediaserver/win32/interframe/InterFrame2.avsi" dest="${project.binaries}/win32/interframe/InterFrame2.avsi" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/interframe/InterFrame2.avsi" dest="${project.binaries}/win32/interframe/InterFrame2.avsi" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/interframe/svpflow_cpu.dll" dest="${project.binaries}/win32/interframe/svpflow_cpu.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/interframe/svpflow_gpu.dll" dest="${project.binaries}/win32/interframe/svpflow_gpu.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/interframe/svpflow1.dll" dest="${project.binaries}/win32/interframe/svpflow1.dll" usetimestamp="true" />
