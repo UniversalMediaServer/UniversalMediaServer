@@ -5,3 +5,5 @@
 database
 debug.log
 target
+.idea/
+pms.iml
