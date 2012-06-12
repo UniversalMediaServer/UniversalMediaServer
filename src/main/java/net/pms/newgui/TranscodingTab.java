@@ -501,7 +501,7 @@ public class TranscodingTab {
 			}
 		});
 
-		builder.add(forcePCM, cc.xyw(1, 15, 3));
+		builder.add(forcePCM, FormLayoutUtil.flip(cc.xyw(1, 15, 3), colSpec, orientation));
 
 		ac3remux = new JCheckBox(Messages.getString("TrTab2.26") + " " + (Platform.isWindows() ? Messages.getString("TrTab2.21") : ""));
 		ac3remux.setContentAreaFilled(false);
@@ -514,7 +514,7 @@ public class TranscodingTab {
 			}
 		});
 
-		builder.add(ac3remux, cc.xyw(1, 17, 3));
+		builder.add(ac3remux, FormLayoutUtil.flip(cc.xyw(1, 17, 3), colSpec, orientation));
 
 		forceDTSinPCM = new JCheckBox(Messages.getString("TrTab2.28") + " " + (Platform.isWindows() ? Messages.getString("TrTab2.21") : ""));
 		forceDTSinPCM.setContentAreaFilled(false);
@@ -542,21 +542,24 @@ public class TranscodingTab {
 			@Override
 			public void keyPressed(KeyEvent e) {
 			}
+
 			@Override
 			public void keyTyped(KeyEvent e) {
 			}
+
 			@Override
 			public void keyReleased(KeyEvent e) {
 				try {
 					int ab = Integer.parseInt(abitrate.getText());
 					configuration.setAudioBitrate(ab);
 				} catch (NumberFormatException nfe) {
+					LOGGER.debug("Could not parse audio bitrate from \"" + abitrate.getText() + "\"");
 				}
 			}
 		});
 
-		builder.addLabel(Messages.getString("TrTab2.29"), cc.xy(1, 21));
-		builder.add(abitrate, cc.xy(3, 21));
+		builder.addLabel(Messages.getString("TrTab2.29"), FormLayoutUtil.flip(cc.xy(1, 21), colSpec, orientation));
+		builder.add(abitrate, FormLayoutUtil.flip(cc.xy(3, 21), colSpec, orientation));
 
 		mpeg2remux = new JCheckBox(Messages.getString("MEncoderVideo.39") + (Platform.isWindows() ? Messages.getString("TrTab2.21") : ""));
 		mpeg2remux.setContentAreaFilled(false);
