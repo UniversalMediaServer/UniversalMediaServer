@@ -34,6 +34,7 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.newgui.LooksFrame;
@@ -143,7 +144,7 @@ public class BasicSystemUtils implements SystemUtils {
 		if (SystemTray.isSupported()) {
 			SystemTray tray = SystemTray.getSystemTray();
 
-			Image trayIconImage = resolveTrayIcon(frame);
+			Image trayIconImage = resolveTrayIcon();
 
 			PopupMenu popup = new PopupMenu();
 			MenuItem defaultItem = new MenuItem(Messages.getString("LooksFrame.5"));
@@ -206,16 +207,21 @@ public class BasicSystemUtils implements SystemUtils {
 	 */
 	@Override
 	public String[] getPingCommand(String hostAddress, int count, int packetSize) {
-		return new String[] { "ping", /* count */ "-c" , Integer.toString(count), /* size */ "-s", Integer.toString(packetSize), hostAddress };
+		return new String[] { "ping", /* count */"-c", Integer.toString(count), /* size */
+				"-s", Integer.toString(packetSize), hostAddress };
 	}
 
-	private Image resolveTrayIcon(final LooksFrame frame) {
+	/**
+	 * Return the proper tray icon for the operating system.
+	 * 
+	 * @return The tray icon.
+	 */
+	private Image resolveTrayIcon() {
 		String icon = "icon-16.png";
 
 		if (Platform.isMac()) {
 			icon = "icon-22.png";
 		}
-
-		return Toolkit.getDefaultToolkit().getImage(frame.getClass().getResource("/resources/images/" + icon));
+		return Toolkit.getDefaultToolkit().getImage(this.getClass().getResource("/resources/images/" + icon));
 	}
 }
