@@ -503,7 +503,7 @@ public class TranscodingTab {
 
 		builder.add(forcePCM, cc.xyw(1, 15, 3));
 
-		ac3remux = new JCheckBox(Messages.getString("MEncoderVideo.32") + (Platform.isWindows() ? Messages.getString("TrTab2.21") : ""));
+		ac3remux = new JCheckBox(Messages.getString("TrTab2.26") + " " + (Platform.isWindows() ? Messages.getString("TrTab2.21") : ""));
 		ac3remux.setContentAreaFilled(false);
 		if (configuration.isRemuxAC3()) {
 			ac3remux.setSelected(true);
@@ -516,7 +516,7 @@ public class TranscodingTab {
 
 		builder.add(ac3remux, cc.xyw(1, 17, 3));
 
-		forceDTSinPCM = new JCheckBox(Messages.getString("TrTab2.28") + (Platform.isWindows() ? Messages.getString("TrTab2.21") : ""));
+		forceDTSinPCM = new JCheckBox(Messages.getString("TrTab2.28") + " " + (Platform.isWindows() ? Messages.getString("TrTab2.21") : ""));
 		forceDTSinPCM.setContentAreaFilled(false);
 		if (configuration.isDTSEmbedInPCM()) {
 			forceDTSinPCM.setSelected(true);
