@@ -122,6 +122,10 @@ public class MediaInfoParser {
 								if (step == MediaInfo.StreamKind.Audio) {
 									currentAudioTrack.setNrAudioChannels(getNbChannels(value));
 								}
+							} else if (key.equals("BitRate")) {
+								if (step == MediaInfo.StreamKind.Audio) {
+									currentAudioTrack.setBitRate(getBitrate(value));
+								}
 							} else if (key.equals("SamplingRate")) {
 								if (step == MediaInfo.StreamKind.Audio) {
 									currentAudioTrack.setSampleFrequency(getSampleFrequency(value));
