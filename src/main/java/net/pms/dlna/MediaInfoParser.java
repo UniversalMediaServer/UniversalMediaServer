@@ -387,7 +387,12 @@ public class MediaInfoParser {
 		if (value.contains("/")) {
 			value = value.substring(0, value.indexOf("/")).trim();
 		}
-		return Integer.parseInt(value);
+		try {
+			return Integer.parseInt(value);
+		} catch (NumberFormatException ex) {
+			LOGGER.info("Unknown bitrate detected. Returning 0.");
+			return 0;
+		}
 	}
 
 	public static int getNbChannels(String value) {
