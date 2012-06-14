@@ -353,7 +353,7 @@ download_giflib() {
     cd $SRC
 
     if [ ! -f giflib-${VERSION_GIFLIB}.tar.bz2 ]; then
-        download http://downloads.sourceforge.net/project/giflib/giflib%204.x/giflib-${VERSION_GIFLIB}/giflib-${VERSION_GIFLIB}.tar.bz2
+        download http://downloads.sourceforge.net/project/giflib/giflib-4.x/giflib-${VERSION_GIFLIB}/giflib-${VERSION_GIFLIB}.tar.bz2
         exit_on_error
     fi
 }
