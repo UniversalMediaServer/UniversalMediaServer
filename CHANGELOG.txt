@@ -2,7 +2,9 @@
 
 	General:
 		Fixed memory buffer handling
-		Improved audio logic with new option to use LPCM for all audio
+		Added LPCM transcoding option for all audio tracks
+		Added DTS HD-MA support up to 7.1 channels: DTS core remux, LPCM and AC3 transcoding
+		Added Dolby TrueHD support up to 7.1 channels: LPCM (recommended) and AC3 (buggy for 7.1) transcoding
 		Added support for more rare audio formats
 		Updated documentation in UMS.conf
 	Languages:
