@@ -140,6 +140,7 @@ public class PmsConfiguration {
 	private static final String KEY_MENCODER_SUB_FRIBIDI = "mencoder_subfribidi";
 	private static final String KEY_MENCODER_SUB_LANGS = "mencoder_sublangs";
 	private static final String KEY_MENCODER_USE_PCM = "mencoder_usepcm";
+	private static final String KEY_MENCODER_USE_PCM_FOR_HQ_AUDIO_ONLY = "mencoder_usepcm_for_hq_audio_only";
 	private static final String KEY_MENCODER_VOBSUB_SUBTITLE_QUALITY = "mencoder_vobsub_subtitle_quality";
 	private static final String KEY_MENCODER_YADIF = "mencoder_yadif";
 	private static final String KEY_MINIMIZED = "minimized";
@@ -194,9 +195,8 @@ public class PmsConfiguration {
 
 	private static String DEFAULT_AVI_SYNTH_SCRIPT;
 	private static final String BUFFER_TYPE_FILE = "file";
-	//private static final int MAX_MAX_MEMORY_BUFFER_SIZE = 700;
-	private static final int MAX_MAX_MEMORY_DEFAULT_SIZE= 400;
-	private static final int BUFFER_MEMORY_FACTOR= 368;
+	private static final int MAX_MAX_MEMORY_DEFAULT_SIZE = 400;
+	private static final int BUFFER_MEMORY_FACTOR = 368;
 	private static int MAX_MAX_MEMORY_BUFFER_SIZE = MAX_MAX_MEMORY_DEFAULT_SIZE;
 	private static final char LIST_SEPARATOR = ',';
 	private static final String KEY_FOLDERS = "folders";
@@ -411,9 +411,9 @@ public class PmsConfiguration {
 			Messages.getString("MEncoderAviSynth.8") +
 			Messages.getString("MEncoderAviSynth.10") +
 			Messages.getString("MEncoderAviSynth.11");
-		long usebleMemory = (Runtime.getRuntime().maxMemory() / 1048576)-BUFFER_MEMORY_FACTOR;
-		if(usebleMemory > MAX_MAX_MEMORY_DEFAULT_SIZE)
-			MAX_MAX_MEMORY_BUFFER_SIZE=(int)usebleMemory;
+		long usableMemory = (Runtime.getRuntime().maxMemory() / 1048576) - BUFFER_MEMORY_FACTOR;
+		if(usableMemory > MAX_MAX_MEMORY_DEFAULT_SIZE)
+			MAX_MAX_MEMORY_BUFFER_SIZE= (int) usableMemory;
 	}
 
 	/**
@@ -930,6 +930,15 @@ public class PmsConfiguration {
 	public boolean isMencoderUsePcm() {
 		return getBoolean(KEY_MENCODER_USE_PCM, false);
 	}
+	
+	/**
+	 * Returns whether or not the Pulse Code Modulation audio format should be
+	 * used only for HQ audio codecs. The default is false.
+	 * @return True if PCM should be used only for HQ audio codecs, false otherwise.
+	 */
+	public boolean isMencoderUsePcmForHQAudioOnly() {
+		return getBoolean(KEY_MENCODER_USE_PCM_FOR_HQ_AUDIO_ONLY, false);
+	}
 
 	/**
 	 * Returns the name of a TrueType font to use for MEncoder subtitles.
@@ -1204,6 +1213,15 @@ public class PmsConfiguration {
 	 */
 	public void setMencoderUsePcm(boolean value) {
 		configuration.setProperty(KEY_MENCODER_USE_PCM, value);
+	}
+
+	/**
+	 * Sets whether or not the Pulse Code Modulation audio format should be
+	 * used only for HQ audio codecs.
+	 * @param value Set to true if PCM should be used only for HQ audio.
+	 */
+	public void setMencoderUsePcmForHQAudioOnly(boolean value) {
+		configuration.setProperty(KEY_MENCODER_USE_PCM_FOR_HQ_AUDIO_ONLY, value);
 	}
 
 	/**
@@ -2272,18 +2290,18 @@ public class PmsConfiguration {
 	}
 	
 	public boolean getFolderLimit() {
-		return getBoolean(KEY_FOLDER_LIMIT,false);
+		return getBoolean(KEY_FOLDER_LIMIT, false);
 	}
 	
 	public boolean initBufferMax() {
-		return getBoolean(KEY_BUFFER_MAX,false);
+		return getBoolean(KEY_BUFFER_MAX, false);
 	}
 	
 	public boolean autoImdb() {
-		return getBoolean(KEY_AUTO_IMDB,false);
+		return getBoolean(KEY_AUTO_IMDB, false);
 	}
 	
 	public boolean openSubs() {
-		return getBoolean(KEY_OPEN_SUBS,false);
+		return getBoolean(KEY_OPEN_SUBS, false);
 	}
 }
