@@ -43,12 +43,15 @@ Page custom SetMem SetMemLeave ;Custom page
 
 ShowUninstDetails show
 
-; Offer to install AviSynth 2.6 MT
+; Offer to install AviSynth 2.6 MT unless installer is in silent mode
 Section -Prerequisites
-  SetOutPath $INSTDIR\win32\avisynth
-  MessageBox MB_YESNO "AviSynth 2.6 MT is recommended. Install it now?" /SD IDYES IDNO endAviSynthInstall
+  IfSilent jump_if_silent jump_if_not_silent
+  jump_if_not_silent:
+    SetOutPath $INSTDIR\win32\avisynth
+    MessageBox MB_YESNO "AviSynth 2.6 MT is recommended. Install it now?" /SD IDYES IDNO endAviSynthInstall
     File "..\..\..\..\target\bin\win32\avisynth\avisynth.exe"
     ExecWait "$INSTDIR\win32\avisynth\avisynth.exe"
+  jump_if_silent:
   endAviSynthInstall:
 SectionEnd
 
