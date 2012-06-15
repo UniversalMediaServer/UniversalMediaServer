@@ -40,7 +40,7 @@ class Version {
 
 	@Override
 	public String toString() {
-		StringBuffer buf = new StringBuffer();
+		StringBuilder buf = new StringBuilder();
 		for (int i = 0; i < elements.length; i++) {
 			buf.append(elements[i]);
 			if (i != elements.length - 1) {
