@@ -1,4 +1,9 @@
-﻿1.1.1 - 2012-06-14
+﻿1.1.2 - 2012-06-??
+
+	Renderers:
+		Added workaround for 2.0 384 kbits AC3 PS3 audio bug
+
+1.1.1 - 2012-06-14
 
 	General:
 		Fixed memory buffer handling
