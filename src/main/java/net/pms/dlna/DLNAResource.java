@@ -549,7 +549,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						if (!PMS.getConfiguration().isMencoderDisableSubs()) {
 							hasSubsToTranscode = (PMS.getConfiguration().getUseSubtitles() && child.isSrtFile()) || hasEmbeddedSubs;
 						}
-					
+
 						boolean isIncompatible = false;
 
 						if (!child.getExt().isCompatible(child.getMedia(),getDefaultRenderer())) {
@@ -586,7 +586,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 						if (child.getExt().isVideo() && child.isSubSelectable()) {
 							vf = getSubSelector(true);
-							if(vf != null) {
+							if (vf != null) {
 								DLNAResource newChild = child.clone();
 								newChild.setPlayer(pl);
 								newChild.setMedia(child.getMedia());
@@ -596,7 +596,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								vf.addChild(new SubSelFile(newChild));
 							}
 						}
-						
 
 						for (ExternalListener listener : ExternalFactory.getExternalListeners()) {
 							if (listener instanceof AdditionalResourceFolderListener) {
@@ -659,7 +658,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 		return null;
 	}
-	
+
 	private SubSelect getSubSelector(boolean create) {
 		if (!isSubSelectable()) {
 			return null;
@@ -682,7 +681,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 		return null;
 	}
-	
+
 	public boolean isSubSelectable() {
 		return false;
 	}
@@ -1037,8 +1036,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	private static String encode(String s) {
 		try {
-			if(s == null)
+			if(s == null) {
 				return "";
+			}
 			return URLEncoder.encode(s, "UTF-8");
 		} catch (UnsupportedEncodingException e) {
 			LOGGER.debug("Caught exception", e);
@@ -2140,7 +2140,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	long getLastRefreshTime() {
 		return lastRefreshTime;
 	}
-	
+
 	public String getImdbId() {
 		return "";
 	}

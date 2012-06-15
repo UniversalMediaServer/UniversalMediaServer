@@ -1,7 +1,10 @@
 package net.pms.util;
 
 public class StringUtil {
-	/**Appends "&lt;<u>tag</u> " to the StringBuilder. This is a typical HTML/DIDL/XML tag opening.
+	/**
+	 * Appends "&lt;<u>tag</u> " to the StringBuilder. This is a typical
+	 * HTML/DIDL/XML tag opening.
+	 *
 	 * @param sb String to append the tag beginning to.
 	 * @param tag String that represents the tag
 	 */
@@ -10,14 +13,20 @@ public class StringUtil {
 		sb.append(tag);
 	}
 
-	/**Appends the closing symbol &gt; to the StringBuilder. This is a typical HTML/DIDL/XML tag closing.
+	/**
+	 * Appends the closing symbol &gt; to the StringBuilder. This is a
+	 * typical HTML/DIDL/XML tag closing.
+	 *
 	 * @param sb String to append the ending character of a tag.
 	 */
 	public static void endTag(StringBuilder sb) {
 		sb.append("&gt;");
 	}
 
-	/**Appends "&lt;/<u>tag</u>&gt;" to the StringBuilder. This is a typical closing HTML/DIDL/XML tag.
+	/**
+	 * Appends "&lt;/<u>tag</u>&gt;" to the StringBuilder. This is a typical
+	 * closing HTML/DIDL/XML tag.
+	 *
 	 * @param sb
 	 * @param tag
 	 */
@@ -45,13 +54,17 @@ public class StringUtil {
 		sb.append("&gt;");
 	}
 
-	/**Does basic transformations between characters and their HTML representation with ampersands.
+	/**
+	 * Does basic transformations between characters and their HTML
+	 * representation with ampersands.
+	 *
 	 * @param s String to be encoded
 	 * @return Encoded String
 	 */
-	public static String encodeXML(String s) {		
-		if(s == null)
+	public static String encodeXML(String s) {
+		if (s == null) {
 			return "";
+		}
 
 		s = s.replace("&", "&amp;");
 		s = s.replace("<", "&lt;");
@@ -63,7 +76,9 @@ public class StringUtil {
 		return s;
 	}
 
-	/**Converts an URL string to it more canonical form
+	/**
+	 * Converts an URL string to its more canonical form
+	 *
 	 * @param url String to be converted
 	 * @return Converted String.
 	 */
@@ -78,5 +93,4 @@ public class StringUtil {
 		url = url.replace('>', '\u00b5');
 		return url;
 	}
-
 }

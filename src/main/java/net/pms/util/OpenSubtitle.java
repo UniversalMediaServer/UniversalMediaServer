@@ -36,12 +36,12 @@ public class OpenSubtitle {
 	 */
 	private static final int HASH_CHUNK_SIZE = 64 * 1024;
 	private static final String OPENSUBS_URL = "http://api.opensubtitles.org/xml-rpc";
-	private static String token=null;
+	private static String token = null;
 
 	public static String computeHash(File file) throws IOException {
 		long size = file.length();
 		FileInputStream fis = new FileInputStream(file);
-		return computeHash(fis,size);
+		return computeHash(fis, size);
 	}
 
 	public static String computeHash(InputStream stream, long length) throws IOException {
@@ -83,23 +83,24 @@ public class OpenSubtitle {
 
 		return hash;
 	}
-	public static String postPage(URLConnection connection,String query) throws IOException {   
-		connection.setDoOutput(true);   
-		connection.setDoInput(true);   
-		connection.setUseCaches(false);   
-		connection.setDefaultUseCaches(false);      
-		connection.setRequestProperty ("Content-Type", "text/xml");
+
+	public static String postPage(URLConnection connection, String query) throws IOException {
+		connection.setDoOutput(true);
+		connection.setDoInput(true);
+		connection.setUseCaches(false);
+		connection.setDefaultUseCaches(false);
+		connection.setRequestProperty("Content-Type", "text/xml");
 		connection.setRequestProperty("Content-Length", "" + query.length());
 		// open up the output stream of the connection
-		if(!StringUtils.isEmpty(query)) {
+		if (!StringUtils.isEmpty(query)) {
 			DataOutputStream output = new DataOutputStream(connection.getOutputStream());
-			output.writeBytes(query);   
-			output.flush ();   
+			output.writeBytes(query);
+			output.flush();
 			output.close();
 		}
 
 		BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-		StringBuilder page=new StringBuilder();
+		StringBuilder page = new StringBuilder();
 		String str;
 		while ((str = in.readLine()) != null) {
 			page.append(str.trim());
@@ -109,185 +110,192 @@ public class OpenSubtitle {
 		//LOGGER.debug("opensubs result page "+page.toString());
 		return page.toString();
 	}
-	
+
 	private static void login() throws IOException {
-		if(token!=null)
+		if (token != null) {
 			return;
-		URL url=new URL(OPENSUBS_URL);
-		 String req="<methodCall>\n<methodName>LogIn</methodName>\n<params>\n<param>\n<value><string/></value>\n</param>\n"+
-			"<param>\n"+
-			"<value><string/></value>\n</param>\n<param>\n<value><string/></value>\n"+
-			"</param>\n<param>\n<value><string>OS Test User Agent</string></value>\n</param>\n"+
-			 "</params>\n"+
+		}
+		URL url = new URL(OPENSUBS_URL);
+		String req = "<methodCall>\n<methodName>LogIn</methodName>\n<params>\n<param>\n<value><string/></value>\n</param>\n" +
+			"<param>\n" +
+			"<value><string/></value>\n</param>\n<param>\n<value><string/></value>\n" +
+			"</param>\n<param>\n<value><string>OS Test User Agent</string></value>\n</param>\n" +
+			"</params>\n" +
 			"</methodCall>\n";
-		 Pattern re=Pattern.compile("token.*?<string>([^<]+)</string>",Pattern.DOTALL);
-		 Matcher m=re.matcher(postPage(url.openConnection(),req));
-		 if(m.find())
-			 token=m.group(1);
+		Pattern re = Pattern.compile("token.*?<string>([^<]+)</string>", Pattern.DOTALL);
+		Matcher m = re.matcher(postPage(url.openConnection(), req));
+		if (m.find()) {
+			token = m.group(1);
+		}
 	}
-	
+
 	public static String fetchImdbId(File f) throws IOException {
 		return fetchImdbId(getHash(f));
 	}
-	
+
 	public static String fetchImdbId(String hash) throws IOException {
-		LOGGER.info("fetch imdbid for hash "+hash);
+		LOGGER.info("fetch imdbid for hash " + hash);
 		login();
-		if(token==null)
+		if (token == null) {
 			return "";
-		URL url=new URL(OPENSUBS_URL);
-		String req="<methodCall>\n<methodName>CheckMovieHash2</methodName>\n"+
-		"<params>\n<param>\n<value><string>"+token+"</string></value>\n</param>\n"+
-		"<param>\n<value>\n<array>\n<data>\n<value><string>"+hash+"</string></value>\n"+
-		"</data>\n</array>\n</value>\n</param>"+
-		"</params>\n</methodCall>\n";
-		Pattern re=Pattern.compile("MovieImdbID.*?<string>([^<]+)</string>",Pattern.DOTALL);
-		Matcher m=re.matcher(postPage(url.openConnection(),req));
-		if(m.find())
+		}
+		URL url = new URL(OPENSUBS_URL);
+		String req = "<methodCall>\n<methodName>CheckMovieHash2</methodName>\n" +
+			"<params>\n<param>\n<value><string>" + token + "</string></value>\n</param>\n" +
+			"<param>\n<value>\n<array>\n<data>\n<value><string>" + hash + "</string></value>\n" +
+			"</data>\n</array>\n</value>\n</param>" +
+			"</params>\n</methodCall>\n";
+		Pattern re = Pattern.compile("MovieImdbID.*?<string>([^<]+)</string>", Pattern.DOTALL);
+		Matcher m = re.matcher(postPage(url.openConnection(), req));
+		if (m.find()) {
 			return m.group(1);
+		}
 		return "";
 	}
-	
+
 	public static String getHash(File f) throws IOException {
-		LOGGER.debug("get hash of "+f);
-		String hash=ImdbUtil.extractOSHash(f);
-		if(!StringUtils.isEmpty(hash))
+		LOGGER.debug("get hash of " + f);
+		String hash = ImdbUtil.extractOSHash(f);
+		if (!StringUtils.isEmpty(hash)) {
 			return hash;
+		}
 		return computeHash(f);
 	}
 
-	
 	public static Map<String, Object> findSubs(File f) throws IOException {
-		Map<String, Object> res=findSubs(getHash(f),f.length());
-		if(res.isEmpty()) { // no good on hash! try imdb
-			String imdb=ImdbUtil.extractImdb(f);
-			if(StringUtils.isEmpty(imdb))
-				imdb=fetchImdbId(f);
-			res=findSubs(imdb);
+		Map<String, Object> res = findSubs(getHash(f), f.length());
+		if (res.isEmpty()) { // no good on hash! try imdb
+			String imdb = ImdbUtil.extractImdb(f);
+			if (StringUtils.isEmpty(imdb)) {
+				imdb = fetchImdbId(f);
+			}
+			res = findSubs(imdb);
 		}
-		if(res.isEmpty()) { // final try, use the name
-			res=querySubs(f.getName());
+		if (res.isEmpty()) { // final try, use the name
+			res = querySubs(f.getName());
 		}
 		return res;
-		
+
 	}
-	
-	public static Map<String, Object> findSubs(String hash,long size) throws IOException {
-		return findSubs(hash,size,null,null);
+
+	public static Map<String, Object> findSubs(String hash, long size) throws IOException {
+		return findSubs(hash, size, null, null);
 	}
-	
+
 	public static Map<String, Object> findSubs(String imdb) throws IOException {
-		return findSubs(null,0,imdb,null);
+		return findSubs(null, 0, imdb, null);
 	}
-	
+
 	public static Map<String, Object> querySubs(String query) throws IOException {
-		return findSubs(null,0,null,query);
+		return findSubs(null, 0, null, query);
 	}
-	
-	public static Map<String, Object> findSubs(String hash,long size,String imdb,String query) throws IOException {
+
+	public static Map<String, Object> findSubs(String hash, long size, String imdb, String query) throws IOException {
 		login();
-		HashMap<String,Object> res=new HashMap<String,Object>();
-		if(token==null)
+		HashMap<String, Object> res = new HashMap<String, Object>();
+		if (token == null) {
 			return res;
-		String lang=PMS.getConfiguration().getMencoderSubLanguages();
-		URL url=new URL(OPENSUBS_URL);
-		String hashStr="";
-		String imdbStr="";
-		String qStr="";
-		if(!StringUtils.isEmpty(hash)) {
-			hashStr="<member><name>moviehash</name><value><string>"+hash+"</string></value></member>\n"+
-			"<member><name>moviebytesize</name><value><double>"+size+"</double></value></member>\n";
 		}
-		else if(!StringUtils.isEmpty(imdb)) {
-			imdbStr="<member><name>imdbid</name><value><string>"+imdb+"</string></value></member>\n";
-		}
-		else if(!StringUtils.isEmpty(query)) {
-			qStr="<member><name>query</name><value><string>"+query+"</string></value></member>\n";
-		}
-		else
+		String lang = PMS.getConfiguration().getMencoderSubLanguages();
+		URL url = new URL(OPENSUBS_URL);
+		String hashStr = "";
+		String imdbStr = "";
+		String qStr = "";
+		if (!StringUtils.isEmpty(hash)) {
+			hashStr = "<member><name>moviehash</name><value><string>" + hash + "</string></value></member>\n" +
+				"<member><name>moviebytesize</name><value><double>" + size + "</double></value></member>\n";
+		} else if (!StringUtils.isEmpty(imdb)) {
+			imdbStr = "<member><name>imdbid</name><value><string>" + imdb + "</string></value></member>\n";
+		} else if (!StringUtils.isEmpty(query)) {
+			qStr = "<member><name>query</name><value><string>" + query + "</string></value></member>\n";
+		} else {
 			return res;
-		String req="<methodCall>\n<methodName>SearchSubtitles</methodName>\n"+
-		"<params>\n<param>\n<value><string>"+token+"</string></value>\n</param>\n"+
-		"<param>\n<value>\n<array>\n<data>\n<value><struct><member><name>sublanguageid"+
-		"</name><value><string>"+lang+"</string></value></member>"+
-		hashStr+imdbStr+qStr+"\n"+
-		"</struct></value></data>\n</array>\n</value>\n</param>"+
-		"</params>\n</methodCall>\n";
-		Pattern re=Pattern.compile("SubLanguageID</name>.*?<string>([^<]+)</string>.*?MovieReleaseName</name>.*?<string>([^<]+)</string>.*?SubDownloadLink</name>.*?<string>([^<]+)</string>",
-				Pattern.DOTALL);
-		String page=postPage(url.openConnection(),req);
-		Matcher m=re.matcher(page);
-		while(m.find()) {
-			LOGGER.debug("found subtitle name "+m.group(2)+" zip "+m.group(3));
-			res.put(m.group(1)+":"+m.group(2), m.group(3));
+		}
+		String req = "<methodCall>\n<methodName>SearchSubtitles</methodName>\n" +
+			"<params>\n<param>\n<value><string>" + token + "</string></value>\n</param>\n" +
+			"<param>\n<value>\n<array>\n<data>\n<value><struct><member><name>sublanguageid" +
+			"</name><value><string>" + lang + "</string></value></member>" +
+			hashStr + imdbStr + qStr + "\n" +
+			"</struct></value></data>\n</array>\n</value>\n</param>" +
+			"</params>\n</methodCall>\n";
+		Pattern re = Pattern.compile("SubLanguageID</name>.*?<string>([^<]+)</string>.*?MovieReleaseName</name>.*?<string>([^<]+)</string>.*?SubDownloadLink</name>.*?<string>([^<]+)</string>",
+			Pattern.DOTALL);
+		String page = postPage(url.openConnection(), req);
+		Matcher m = re.matcher(page);
+		while (m.find()) {
+			LOGGER.debug("found subtitle name " + m.group(2) + " zip " + m.group(3));
+			res.put(m.group(1) + ":" + m.group(2), m.group(3));
 		}
 		return res;
 	}
-	
-	private static boolean downloadBin(String url,File f) {
+
+	private static boolean downloadBin(String url, File f) {
 		try {
-			URL u=new URL(url);
-			URLConnection connection=u.openConnection();
+			URL u = new URL(url);
+			URLConnection connection = u.openConnection();
 			connection.setDoInput(true);
 			connection.setDoOutput(true);
-			InputStream in=connection.getInputStream();
-			FileOutputStream out=new FileOutputStream(f);
+			InputStream in = connection.getInputStream();
+			FileOutputStream out = new FileOutputStream(f);
 			byte[] buf = new byte[4096];
 			int len;
-			while((len=in.read(buf))!=-1)
+			while ((len = in.read(buf)) != -1) {
 				out.write(buf, 0, len);
+			}
 			out.flush();
 			out.close();
 			in.close();
 			return true;
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 		}
 		return false;
 	}
 
 	public static String subFile(String name) {
-		String root=new File("").getAbsolutePath();
-		File path=new File(root+File.separator+SUB_DIR);
-		if(!path.exists())
+		String root = new File("").getAbsolutePath();
+		File path = new File(root + File.separator + SUB_DIR);
+		if (!path.exists()) {
 			path.mkdirs();
-		return path+File.separator+name+".srt";
+		}
+		return path + File.separator + name + ".srt";
 	}
-	
+
 	public static String fetchSubs(String url) throws FileNotFoundException, IOException {
-		return fetchSubs(url,subFile(String.valueOf(System.currentTimeMillis())));
+		return fetchSubs(url, subFile(String.valueOf(System.currentTimeMillis())));
 	}
-	
-	public static String fetchSubs(String url,String outName) throws FileNotFoundException, IOException {
-		File f=new File(System.currentTimeMillis()+".gz");
-		File f1=new File(outName);
-		if(!downloadBin(url,f))
+
+	public static String fetchSubs(String url, String outName) throws FileNotFoundException, IOException {
+		File f = new File(System.currentTimeMillis() + ".gz");
+		File f1 = new File(outName);
+		if (!downloadBin(url, f)) {
 			return "";
+		}
 		GZIPInputStream gzipInputStream = new GZIPInputStream(new FileInputStream(f));
 		OutputStream out = new FileOutputStream(f1);
-	    byte[] buf = new byte[1024];
-	    int len;
-	    while ((len = gzipInputStream.read(buf)) > 0)
-	        out.write(buf, 0, len);
-	    gzipInputStream.close();
-	    out.close();
-	    f.delete(); 
-	    return f1.getAbsolutePath();
+		byte[] buf = new byte[1024];
+		int len;
+		while ((len = gzipInputStream.read(buf)) > 0) {
+			out.write(buf, 0, len);
+		}
+		gzipInputStream.close();
+		out.close();
+		f.delete();
+		return f1.getAbsolutePath();
 	}
-	
+
 	public static String getLang(String str) {
-		String[] tmp=str.split(":",2);
-		if(tmp.length>1)
+		String[] tmp = str.split(":", 2);
+		if (tmp.length > 1) {
 			return tmp[0];
+		}
 		return "";
 	}
-	
+
 	public static String getName(String str) {
-		String[] tmp=str.split(":",2);
-		if(tmp.length>1)
+		String[] tmp = str.split(":", 2);
+		if (tmp.length > 1) {
 			return tmp[1];
+		}
 		return str;
 	}
-	
-	
 }

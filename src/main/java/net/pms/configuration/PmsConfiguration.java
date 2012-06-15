@@ -184,8 +184,6 @@ public class PmsConfiguration {
 	private static final String KEY_AUTO_IMDB = "auto_imdb";
 	private static final String KEY_OPEN_SUBS = "open_subs";
 
-	
-
 	// the name of the subdirectory under which PMS config files are stored for this build (default: PMS).
 	// see Build for more details
 	private static final String PROFILE_DIRECTORY_NAME = Build.getProfileDirectoryName();
@@ -411,9 +409,11 @@ public class PmsConfiguration {
 			Messages.getString("MEncoderAviSynth.8") +
 			Messages.getString("MEncoderAviSynth.10") +
 			Messages.getString("MEncoderAviSynth.11");
+
 		long usableMemory = (Runtime.getRuntime().maxMemory() / 1048576) - BUFFER_MEMORY_FACTOR;
-		if(usableMemory > MAX_MAX_MEMORY_DEFAULT_SIZE)
-			MAX_MAX_MEMORY_BUFFER_SIZE= (int) usableMemory;
+		if (usableMemory > MAX_MAX_MEMORY_DEFAULT_SIZE) {
+			MAX_MAX_MEMORY_BUFFER_SIZE = (int) usableMemory;
+		}
 	}
 
 	/**
@@ -930,7 +930,7 @@ public class PmsConfiguration {
 	public boolean isMencoderUsePcm() {
 		return getBoolean(KEY_MENCODER_USE_PCM, false);
 	}
-	
+
 	/**
 	 * Returns whether or not the Pulse Code Modulation audio format should be
 	 * used only for HQ audio codecs. The default is false.
@@ -2288,19 +2288,19 @@ public class PmsConfiguration {
 	public void removeConfigurationListener(ConfigurationListener l) {
 		configuration.removeConfigurationListener(l);
 	}
-	
+
 	public boolean getFolderLimit() {
 		return getBoolean(KEY_FOLDER_LIMIT, false);
 	}
-	
+
 	public boolean initBufferMax() {
 		return getBoolean(KEY_BUFFER_MAX, false);
 	}
-	
+
 	public boolean autoImdb() {
 		return getBoolean(KEY_AUTO_IMDB, false);
 	}
-	
+
 	public boolean openSubs() {
 		return getBoolean(KEY_OPEN_SUBS, false);
 	}

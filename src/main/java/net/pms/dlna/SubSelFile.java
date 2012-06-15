@@ -12,16 +12,16 @@ import net.pms.util.OpenSubtitle;
 public class SubSelFile extends VirtualFolder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SubSelFile.class);
 	private RealFile rf;
-	
+
 	public SubSelFile(DLNAResource r) {
-		this((RealFile)r);
+		this((RealFile) r);
 	}
-	
+
 	public SubSelFile(RealFile file) {
-		super(file.getDisplayName(),file.getThumbnailURL());
-		rf=file;
+		super(file.getDisplayName(), file.getThumbnailURL());
+		rf = file;
 	}
-	
+
 	public void discoverChildren() {
 		Map<String, Object> data;
 		try {
@@ -29,14 +29,14 @@ public class SubSelFile extends VirtualFolder {
 		} catch (IOException e) {
 			return;
 		}
-		if(data==null||data.isEmpty())
+		if (data == null || data.isEmpty()) {
 			return;
-		for(String key : data.keySet()) {
-			LOGGER.debug("add play sub child "+key+" rf "+rf);
+		}
+		for (String key : data.keySet()) {
+			LOGGER.debug("add play sub child " + key + " rf " + rf);
 			addChild(new PlaySub(OpenSubtitle.getName(key),
-								 OpenSubtitle.getLang(key),
-								 rf,(String)data.get(key)));
+				OpenSubtitle.getLang(key),
+				rf, (String) data.get(key)));
 		}
 	}
-
 }
