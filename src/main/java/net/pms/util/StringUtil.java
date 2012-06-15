@@ -49,7 +49,9 @@ public class StringUtil {
 	 * @param s String to be encoded
 	 * @return Encoded String
 	 */
-	public static String encodeXML(String s) {
+	public static String encodeXML(String s) {		
+		if(s == null)
+			return "";
 
 		s = s.replace("&", "&amp;");
 		s = s.replace("<", "&lt;");
