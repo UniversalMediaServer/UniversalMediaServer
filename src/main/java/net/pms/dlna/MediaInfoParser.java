@@ -122,6 +122,10 @@ public class MediaInfoParser {
 								if (step == MediaInfo.StreamKind.Audio) {
 									currentAudioTrack.setNrAudioChannels(getNbChannels(value));
 								}
+							} else if (key.equals("BitRate")) {
+								if (step == MediaInfo.StreamKind.Audio) {
+									currentAudioTrack.setBitRate(getBitrate(value));
+								}
 							} else if (key.equals("SamplingRate")) {
 								if (step == MediaInfo.StreamKind.Audio) {
 									currentAudioTrack.setSampleFrequency(getSampleFrequency(value));
@@ -383,7 +387,12 @@ public class MediaInfoParser {
 		if (value.contains("/")) {
 			value = value.substring(0, value.indexOf("/")).trim();
 		}
-		return Integer.parseInt(value);
+		try {
+			return Integer.parseInt(value);
+		} catch (NumberFormatException ex) {
+			LOGGER.info("Unknown bitrate detected. Returning 0.");
+			return 0;
+		}
 	}
 
 	public static int getNbChannels(String value) {
