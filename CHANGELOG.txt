@@ -6,7 +6,7 @@
 		Fixed silent installation
 		Updated MPlayer and MEncoder for OSX to SB32
 	Renderers:
-		Added workaround for 2.0 384 kbits AC3 PS3 audio bug
+		Added workaround for 2.0 384 kbits AC3 PS3 audio bug (PMS issue #230 & #1414)
 
 1.1.1 - 2012-06-14
 
