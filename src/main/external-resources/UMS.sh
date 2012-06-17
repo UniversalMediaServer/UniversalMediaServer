@@ -1,7 +1,7 @@
 #!/bin/sh
 
 CMD=`readlink -f $0`
-DIRNAME=`dirname $CMD`
+DIRNAME=`dirname "$CMD"`
 
 # OS specific support (must be 'true' or 'false').
 cygwin=false;
@@ -21,12 +21,12 @@ fi
 
 # Setup PMS_HOME
 if [ "x$PMS_HOME" = "x" ]; then
-    PMS_HOME=$DIRNAME
+    PMS_HOME="$DIRNAME"
 fi
 
 export PMS_HOME
 # XXX: always cd to the working dir: https://code.google.com/p/ps3mediaserver/issues/detail?id=730
-cd $PMS_HOME
+cd "$PMS_HOME"
 
 # Setup the JVM
 if [ "x$JAVA" = "x" ]; then
