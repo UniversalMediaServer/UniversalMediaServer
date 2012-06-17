@@ -410,7 +410,7 @@ YASM=`check_binary yasm`
 UNZIP=`check_binary unzip`
 
 if is_osx; then
-    GCC2=$GCC
+    GCC2=`check_binary gcc`
     HDID=`check_binary hdid`
     HDIUTIL=`check_binary hdiutil`
 else
@@ -1330,8 +1330,8 @@ build_mplayer() {
         # OSX
 
         # Flags for compiling mplayer
-        export CFLAGS="-O4 -fomit-frame-pointer -pipe -mmacosx-version-min=${OSX_VERSION} -arch $ARCHITECTURE -I$TARGET/include"
-        export CXXFLAGS="-O4 -fomit-frame-pointer -pipe mmacosx-version-min=${OSX_VERSION} -arch $ARCHITECTURE -I$TARGET/include"
+        export CFLAGS="-O1 -fomit-frame-pointer -pipe -mmacosx-version-min=${OSX_VERSION} -arch $ARCHITECTURE -I$TARGET/include"
+        export CXXFLAGS="-O1 -fomit-frame-pointer -pipe mmacosx-version-min=${OSX_VERSION} -arch $ARCHITECTURE -I$TARGET/include"
         export LDFLAGS="-mmacosx-version-min=${OSX_VERSION} -arch $ARCHITECTURE -L$TARGET/lib"
 
         # /usr/bin/gcc gives compile errors for MPlayer on OSX Lion.

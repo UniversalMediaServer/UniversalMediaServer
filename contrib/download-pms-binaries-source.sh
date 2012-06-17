@@ -156,7 +156,7 @@ download() {
     FILENAME=`echo $URL | $SED "s/.*\///g"`
 
     if is_osx; then
-        $CURL -L $URL > $FILENAME
+        $CURL -L -O $URL
     else
         $WGET $URL
     fi

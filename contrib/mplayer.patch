@@ -373,8 +373,8 @@ Index: libmpcodecs/vd_dsnative.c
 +        return 0;
 +    }
 +
-+    if (sh->ds->demuxer->filename)
-+        GetFullPathNameA(sh->ds->demuxer->filename, MAX_PATH, fname, NULL);
++//    if (sh->ds->demuxer->filename)
++//        GetFullPathNameA(sh->ds->demuxer->filename, MAX_PATH, fname, NULL);
 +
 +    if (!(dsn.codec = dsn.DSOpenVideoCodec(sh->codec->dll, sh->codec->guid, sh->bih,
 +                                           sh->codec->outfmt[sh->outfmtidx], sh->fps, fname, &err)))
