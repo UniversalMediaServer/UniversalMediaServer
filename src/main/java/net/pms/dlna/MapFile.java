@@ -108,16 +108,24 @@ public class MapFile extends DLNAResource {
 
 		return !excludeNonRelevantFolder;
 	}
+	
+	private boolean isArchive(String name) {
+		return (name.endsWith(".zip") || name.endsWith(".cbz") ||
+				name.endsWith(".rar") || name.endsWith(".cbr") ||
+				name.endsWith(".7z"));
+	}
 
 	private void manageFile(File f) {
 		if (f.isFile() || f.isDirectory()) {
 			String lcFilename = f.getName().toLowerCase();
 
 			if (!f.isHidden()) {
-				if (PMS.getConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".zip") || lcFilename.endsWith(".cbz"))) {
+				if (PMS.getConfiguration().isArchiveBrowsing() && isArchive(lcFilename)) {
+					addChild(new SevenZipFile(f));
+				/*if (PMS.getConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".zip") || lcFilename.endsWith(".cbz"))) {
 					addChild(new ZippedFile(f));
 				} else if (PMS.getConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".rar") || lcFilename.endsWith(".cbr"))) {
-					addChild(new RarredFile(f));
+					addChild(new RarredFile(f));*/
 				} else if ((lcFilename.endsWith(".iso") || lcFilename.endsWith(".img")) || (f.isDirectory() && f.getName().toUpperCase().equals("VIDEO_TS"))) {
 					addChild(new DVDISOFile(f));
 				} else if (lcFilename.endsWith(".m3u") || lcFilename.endsWith(".m3u8") || lcFilename.endsWith(".pls")) {
