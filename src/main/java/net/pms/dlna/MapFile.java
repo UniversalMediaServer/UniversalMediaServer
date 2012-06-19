@@ -35,6 +35,7 @@ import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.formats.FormatFactory;
 import net.pms.network.HTTPResource;
 import net.pms.util.NaturalComparator;
+import net.sf.sevenzipjbinding.ArchiveFormat;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,9 +111,14 @@ public class MapFile extends DLNAResource {
 	}
 	
 	private boolean isArchive(String name) {
-		return (name.endsWith(".zip") || name.endsWith(".cbz") ||
-				name.endsWith(".rar") || name.endsWith(".cbr") ||
-				name.endsWith(".7z"));
+		ArchiveFormat[] vals=ArchiveFormat.values();
+		for(int i=0;i<vals.length;i++) {
+			String ext="."+vals[i].getMethodName().toLowerCase();
+			if(name.endsWith(ext)) {
+				return true;
+			}
+		}
+		return (name.endsWith(".cbz") || name.endsWith(".cbr")); 
 	}
 
 	private void manageFile(File f) {
