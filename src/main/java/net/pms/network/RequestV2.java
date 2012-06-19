@@ -520,7 +520,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.GETSYSTEMUPDATEID_HEADER);
 				response.append(CRLF);
-				response.append("<Id>" + DLNAResource.getSystemUpdateId() + "</Id>");
+				response.append("<Id>").append(DLNAResource.getSystemUpdateId()).append("</Id>");
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.GETSYSTEMUPDATEID_FOOTER);
 				response.append(CRLF);
