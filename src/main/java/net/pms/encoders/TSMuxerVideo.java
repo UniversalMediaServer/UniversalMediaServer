@@ -442,10 +442,10 @@ public class TSMuxerVideo extends Player {
 		File f = new File(configuration.getTempFolder(), "pms-tsmuxer.meta");
 		params.log = false;
 		PrintWriter pw = new PrintWriter(f);
-		pw.print("MUXOPT --no-pcr-on-video-pid ");
-		pw.print("--new-audio-pes ");
+		pw.print("MUXOPT --no-pcr-on-video-pid");
+		pw.print(" --new-audio-pes");
 		if (ffVideo != null) {
-			pw.print("--no-asyncio ");
+			pw.print(" --no-asyncio");
 		}
 		pw.print(" --vbr");
 		pw.println(" --vbv-len=500");
