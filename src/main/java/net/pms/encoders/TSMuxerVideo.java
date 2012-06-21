@@ -228,9 +228,9 @@ public class TSMuxerVideo extends Player {
 			boolean singleMediaAudio = media != null && media.getAudioCodes().size() <= 1;
 
 			if (params.aid != null) {
-				boolean ac3Remux = false;
-				boolean dtsRemux = false;
-				boolean pcm = false;
+				boolean ac3Remux;
+				boolean dtsRemux;
+				boolean pcm;
 
 				// disable LPCM transcoding for MP4 container with non-H264 video as workaround for mencoder's A/V sync bug
 				boolean mp4_with_non_h264 = (media.getContainer().equals("mp4") && !media.getCodecV().equals("h264"));
