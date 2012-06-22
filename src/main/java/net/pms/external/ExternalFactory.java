@@ -32,7 +32,11 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
+import javax.swing.JLabel;
+
+import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.newgui.LooksFrame;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,7 +107,6 @@ public class ExternalFactory {
 	 * This method loads the jar files found in the plugin dir
 	 * or if installed from the web.
 	 */
-	
 	public static void loadJARs(URL[] jarURLs,boolean download) {
 		// Create a classloader to take care of loading the plugin classes from
 		// their URL.
@@ -277,14 +280,20 @@ public class ExternalFactory {
 		}
 	}
 	
-	public static void instantiateDownloaded() {
+	public static void instantiateDownloaded(JLabel update) {
 		// These are found in the uninstancedListenerClasses list
 		for (Class<?> clazz: downloadedListenerClasses) {
 			ExternalListener instance;
 			try {
+				update.setText(Messages.getString("NetworkTab.48")+" "+clazz.getSimpleName());
 				postInstall(clazz);
 				instance = (ExternalListener) clazz.newInstance();
+				update.setText(instance.name()+" "+Messages.getString("NetworkTab.49"));
 				registerListener(instance);
+				LooksFrame frame = (LooksFrame) PMS.get().getFrame();
+				if(!frame.getGt().appendPlugin(instance)) {
+					LOGGER.warn("Plugin limit of 30 has been reached");
+				}
 			} catch (InstantiationException e) {
 				LOGGER.error("Error instantiating plugin", e);
 			} catch (IllegalAccessException e) {

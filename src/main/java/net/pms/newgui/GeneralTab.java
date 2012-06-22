@@ -39,6 +39,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
@@ -50,6 +51,7 @@ import javax.swing.JTextField;
 import javax.swing.Popup;
 import javax.swing.PopupFactory;
 import javax.swing.SwingUtilities;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableCellRenderer;
 
 import net.pms.Messages;
@@ -228,19 +230,21 @@ public class GeneralTab {
 		}
 		
 		// Add find plugin support here
-		JButton checkForPlugins=new JButton(/*Messages.getString("NetworkTab.999")*/"Plugins");
+		JButton checkForPlugins=new JButton(Messages.getString("NetworkTab.39"));
 		checkForPlugins.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if(!ExternalFactory.localPluginsInstalled()) {
 					JOptionPane.showMessageDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-												  "Plugins are not loaded yet. Please wait.");
+															Messages.getString("NetworkTab.40"));
 					return;
 				}
 				final ArrayList<DownloadPlugins> plugins=DownloadPlugins.downloadList();
 				if(plugins.isEmpty())
 					return;
-				JTable tab=new JTable(plugins.size()+1,3) {
+				String[] cols = {Messages.getString("NetworkTab.41"), Messages.getString("NetworkTab.42"),
+								Messages.getString("NetworkTab.43")};
+				JTable tab=new JTable(plugins.size()+1,cols.length) {
 					 public String getToolTipText(MouseEvent e) {
 						 java.awt.Point p = e.getPoint();
 						 int rowIndex = rowAtPoint(p);
@@ -250,16 +254,17 @@ public class GeneralTab {
 						 return plugin.htmlString();
 					 }
 				};
-				tab.setValueAt("Name", 0, 0);
-				tab.setValueAt("Rating",0,1);
-				tab.setValueAt("Author",0,2);
+				for(int i=0;i<cols.length;i++) {
+					tab.setValueAt(cols[i], 0, i);
+				}
+				tab.setCellEditor(null);
 				for(int i=0;i<plugins.size();i++) {
 					DownloadPlugins p=plugins.get(i);
 					tab.setValueAt(p.getName(), i+1, 0);
 					tab.setValueAt(p.getRating(),i+1,1);
 					tab.setValueAt(p.getAuthor(),i+1,2);
 				}
-				String[] opts={"Install","Cancel"};
+				String[] opts={Messages.getString("NetworkTab.44"),Messages.getString("NetworkTab.45")};
 				int id=JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())), 
 							tab, "Plugins", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, opts, null);
 				if(id!=0) // cancel, do nothing
@@ -267,12 +272,18 @@ public class GeneralTab {
 				// Install the stuff
 				final int[] rows=tab.getSelectedRows();
 				JPanel panel=new JPanel();
-				final JFrame frame=new JFrame("Install Plugins");	
+				GridLayout layout = new GridLayout(3,1);
+				panel.setLayout(layout);
+				final JFrame frame=new JFrame(Messages.getString("NetworkTab.46"));
+				frame.setSize(250, 110);
 				JProgressBar progressBar=new JProgressBar();
 				progressBar.setIndeterminate(true);
 				panel.add(progressBar);
+				final JLabel label = new JLabel("");
+				final JLabel inst = new JLabel("");
+				panel.add(inst);
+				panel.add(label);
 				frame.add(panel);
-				frame.pack();
 				frame.setVisible(true);
 				Runnable r=new Runnable() {
 					public void run() {
@@ -280,8 +291,9 @@ public class GeneralTab {
 							if(rows[i]==0)
 								continue;
 							DownloadPlugins plugin=plugins.get(rows[i]-1);
+							inst.setText(Messages.getString("NetworkTab.50")+": "+plugin.getName());
 							try {
-								plugin.install();
+								plugin.install(label);
 							} catch (Exception e) {
 								LOGGER.debug("download of plugin "+plugin.getName()+
 										" failed "+e);
@@ -537,27 +549,36 @@ public class GeneralTab {
 	public void addPlugins() {
 		FormLayout layout = new FormLayout(
 				"fill:10:grow",
-				"p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p");
-		PanelBuilder builder = new PanelBuilder(layout);
-
-		CellConstraints cc = new CellConstraints();
-		int i = 1;
+		"p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p");
+		pPlugins.setLayout(layout);
 		for (final ExternalListener listener : ExternalFactory.getExternalListeners()) {
-			if (i > 30) {
+			if(!appendPlugin(listener)) {
 				LOGGER.warn("Plugin limit of 30 has been reached");
 				break;
 			}
-			JButton bPlugin = new JButton(listener.name());
-			// listener to show option screen
-			bPlugin.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())), 
-							listener.config(), "Options", JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);
-				}
-			});
-			builder.add(bPlugin, cc.xy(1, i++));
 		}
-		pPlugins.add(builder.getPanel());
+	}
+	
+	public boolean appendPlugin(final ExternalListener listener) {
+		final JComponent comp = listener.config();
+		if(comp == null) {
+			return true;
+		}
+		CellConstraints cc = new CellConstraints();
+		JButton bPlugin = new JButton(listener.name());
+		// listener to show option screen
+		bPlugin.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())), 
+						comp, "Options", JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);
+			}	
+		});	
+		int y = pPlugins.getComponentCount() + 1;
+		if(y > 30) {
+			return false;
+		}
+		pPlugins.add(bPlugin, cc.xy(1, y));
+		return true;
 	}
 }

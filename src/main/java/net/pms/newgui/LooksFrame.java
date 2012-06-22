@@ -101,6 +101,10 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	public TranscodingTab getTr() {
 		return tr;
 	}
+	
+	public GeneralTab getGt() {
+		return nt;
+	}
 
 	public AbstractButton getReload() {
 		return reload;

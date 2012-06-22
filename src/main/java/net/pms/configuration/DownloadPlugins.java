@@ -11,6 +11,9 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.JLabel;
+
+import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
@@ -22,7 +25,7 @@ import org.slf4j.LoggerFactory;
 
 public class DownloadPlugins {
 	
-	private final static String PLUGIN_LIST_URL="file:///tst.txt";
+	private final static String PLUGIN_LIST_URL="http://sharkhunter-shb.googlecode.com/files/tst.txt";
 	private static final Logger LOGGER = LoggerFactory.getLogger(DownloadPlugins.class);
 	
 	private static final int TYPE_JAR=0;
@@ -36,6 +39,7 @@ public class DownloadPlugins {
 	private String author;
 	private int type;
 	private ArrayList<URL> jars;
+	private JLabel updateLabel;
 	
 	public static ArrayList<DownloadPlugins> downloadList() {
 		ArrayList<DownloadPlugins> res=new ArrayList<DownloadPlugins>();
@@ -149,7 +153,9 @@ public class DownloadPlugins {
 		return res;
 	}
 	
-	private String extractFileName(String str) {
+	private String extractFileName(String str,String name) {
+		if(!StringUtils.isEmpty(name))
+			return name;
 		int pos=str.lastIndexOf("/");
 		if(pos==-1)
 			return name;
@@ -161,10 +167,12 @@ public class DownloadPlugins {
 		f.mkdirs();
 	}
 	
-	private boolean downloadFile(String url,String dir) throws Exception {
+	private boolean downloadFile(String url,String dir,String name) throws Exception {
 		URL u=new URL(url);
 		ensureCreated(dir);
-		File f=new File(dir+File.separator+extractFileName(url));
+		String fName=extractFileName(url,name);
+		updateLabel.setText(Messages.getString("NetworkTab.47")+": "+fName);
+		File f=new File(dir+File.separator+fName);
 		URLConnection connection=u.openConnection();
 		connection.setDoInput(true);
 		connection.setDoOutput(true);
@@ -193,31 +201,35 @@ public class DownloadPlugins {
 	    	str=str.trim();
 	    	if(StringUtils.isEmpty(str))
 	    		continue;
-	    	String[] tmp=str.split(",",2);
+	    	String[] tmp=str.split(",",3);
 	    	String dir=PMS.getConfiguration().getPluginDirectory();
+	    	String name="";
 	    	if(tmp.length>1) {
 	    		String rootDir=new File("").getAbsolutePath();
 	    		if(tmp[1].equalsIgnoreCase("root"))
 	    			dir=rootDir;
 	    		else {
 	    			dir=rootDir+File.separator+tmp[1];
-	    		}	    		
+	    		}
+	    		if(tmp.length>2)
+	    			name=tmp[2];
 	    	}
-	    	res&=downloadFile(tmp[0],dir);
+	    	res&=downloadFile(tmp[0],dir,name);
 	    }
 	    return res;
 	}
 	
 	private boolean download() throws Exception {
 		if(type==DownloadPlugins.TYPE_JAR)
-			return downloadFile(url,PMS.getConfiguration().getPluginDirectory());
+			return downloadFile(url,PMS.getConfiguration().getPluginDirectory(),"");
 		if(type==DownloadPlugins.TYPE_LIST)
 			return downloadList(url);
 		return false;
 	}
 	
-	public boolean install() throws Exception {
+	public boolean install(JLabel update) throws Exception {
 		LOGGER.debug("install plugin "+name+" type "+type);
+		updateLabel=update;
 		// init the jar file list
 		jars=new ArrayList<URL>();
 		// 1st download the
@@ -228,9 +240,11 @@ public class DownloadPlugins {
 			return true;
 		URL[] jarURLs = new URL[jars.size()];
 		jars.toArray(jarURLs);
+		updateLabel.setText("Loading JARs");
 		ExternalFactory.loadJARs(jarURLs,true);
 		// Finally create the instaces of the plugins
-		ExternalFactory.instantiateDownloaded();
+		ExternalFactory.instantiateDownloaded(update);
+		updateLabel=null;
 		return true;
 	}
 }
