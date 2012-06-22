@@ -19,6 +19,7 @@
 package net.pms.newgui;
 
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -33,13 +34,17 @@ import java.util.Locale;
 
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JFrame;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
 
 import net.pms.Messages;
+import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.logging.LoggingConfigFileLoader;
 import net.pms.util.FormLayoutUtil;
@@ -150,6 +155,17 @@ public class TracesTab {
 			pLogFileButtons.add(b);
 		}
 		builder.add(pLogFileButtons, cc.xy(2, 2));
+		
+		JButton packDbg = new JButton(Messages.getString("TracesTab.4"));
+		packDbg.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				JComponent comp = PMS.get().dbgPack().config();
+				String[] cancelStr = {"Cancel"};
+				JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())), 
+						comp, "Options", JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, cancelStr, null);
+			}
+		});
+		builder.add(packDbg, cc.xy(1, 2));
 
 		return builder.getPanel();
 	}
