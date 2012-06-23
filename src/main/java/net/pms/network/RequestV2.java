@@ -276,7 +276,7 @@ public class RequestV2 extends HTTPResource {
 			}
 
 			if (files.size() == 1) {
-				// DNLAresource was found.
+				// DLNAresource was found.
 				dlna = files.get(0);
 				String fileName = argument.substring(argument.lastIndexOf("/") + 1);
 
@@ -520,7 +520,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.GETSYSTEMUPDATEID_HEADER);
 				response.append(CRLF);
-				response.append("<Id>" + DLNAResource.getSystemUpdateId() + "</Id>");
+				response.append("<Id>").append(DLNAResource.getSystemUpdateId()).append("</Id>");
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.GETSYSTEMUPDATEID_FOOTER);
 				response.append(CRLF);
