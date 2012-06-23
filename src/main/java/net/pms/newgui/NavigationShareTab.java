@@ -329,7 +329,7 @@ public class NavigationShareTab {
 		});
 
 		// HideVideoSettings
-		hidevideosettings = new JCheckBox(Messages.getString("FoldTab.6"));
+		hidevideosettings = new JCheckBox(Messages.getString("FoldTab.66"));
 		hidevideosettings.setContentAreaFilled(false);
 		if (configuration.getHideVideoSettings()) {
 			hidevideosettings.setSelected(true);

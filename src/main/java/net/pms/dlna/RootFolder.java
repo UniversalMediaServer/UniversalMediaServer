@@ -38,6 +38,7 @@ import java.util.StringTokenizer;
 
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.configuration.DownloadPlugins;
 import net.pms.configuration.MapFileConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -141,10 +142,7 @@ public class RootFolder extends DLNAResource {
 			addChild(r);
 		}
 		if (!configuration.getHideVideoSettings()) {
-			DLNAResource videoSettingsRes = getVideoSettingssFolder();
-			if (videoSettingsRes != null) {
-				addChild(videoSettingsRes);
-			}
+			addAdminFolder();
 		}
 		setDiscovered(true);
 	}
@@ -679,6 +677,62 @@ public class RootFolder extends DLNAResource {
 			}
 		}
 		return res;
+	}
+	
+	private void addAdminFolder() {
+		DLNAResource res = new VirtualFolder(Messages.getString("PMS.200"), null);
+		DLNAResource vsf = getVideoSettingssFolder();
+		if(vsf != null) {
+			res.addChild(vsf);
+		}
+		res.addChild(new VirtualFolder(Messages.getString("NetworkTab.39"), null) {
+			public void discoverChildren() {
+				final ArrayList<DownloadPlugins> plugins=DownloadPlugins.downloadList();
+				for(final DownloadPlugins plugin : plugins) {
+					addChild(new VirtualVideoAction(plugin.getName(), true) {
+						public boolean enable() {
+							try {
+								plugin.install(null);
+							} catch (Exception e) {
+							}
+							return true;
+						}
+					});
+				}
+			}
+		});
+		final File scriptDir = new File(PMS.getConfiguration().getScriptDir());
+		if(scriptDir != null && scriptDir.exists()) {			
+			res.addChild(new VirtualFolder(Messages.getString("PMS.201"), null) {
+				public void discoverChildren() {
+					File[] files = scriptDir.listFiles();
+					for(int i=0;i<files.length;i++) {
+						String name = files[i].getName().replaceAll("_", " ");
+						int pos = name.lastIndexOf(".");
+						if(pos != -1)
+							name = name.substring(0,pos);
+						final File f=files[i];
+						addChild(new VirtualVideoAction(name, true) {
+							public boolean enable() {
+								try {
+									ProcessBuilder pb = new ProcessBuilder(f.getAbsolutePath());
+									Process pid = pb.start();
+									InputStream is = pid.getInputStream();
+									InputStreamReader isr = new InputStreamReader(is);
+									BufferedReader br = new BufferedReader(isr);
+									while (br.readLine() != null) { 
+									}
+									pid.waitFor();
+								} catch (Exception e) {
+								}
+								return true;
+							}
+						});
+					}
+				}
+			});
+		}
+		addChild(res);
 	}
 
 	/**
