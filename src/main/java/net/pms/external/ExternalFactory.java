@@ -280,19 +280,28 @@ public class ExternalFactory {
 		}
 	}
 	
+	private static void doUpdate(JLabel update,String text) {
+		if(update == null) {
+			return;
+		}
+		update.setText(text);
+	}
+	
 	public static void instantiateDownloaded(JLabel update) {
 		// These are found in the uninstancedListenerClasses list
 		for (Class<?> clazz: downloadedListenerClasses) {
 			ExternalListener instance;
 			try {
-				update.setText(Messages.getString("NetworkTab.48")+" "+clazz.getSimpleName());
+				doUpdate(update,Messages.getString("NetworkTab.48")+" "+clazz.getSimpleName());
 				postInstall(clazz);
 				instance = (ExternalListener) clazz.newInstance();
-				update.setText(instance.name()+" "+Messages.getString("NetworkTab.49"));
+				doUpdate(update,instance.name()+" "+Messages.getString("NetworkTab.49"));
 				registerListener(instance);
-				LooksFrame frame = (LooksFrame) PMS.get().getFrame();
-				if(!frame.getGt().appendPlugin(instance)) {
-					LOGGER.warn("Plugin limit of 30 has been reached");
+				if(PMS.get().getFrame() instanceof LooksFrame) {
+					LooksFrame frame = (LooksFrame) PMS.get().getFrame();
+					if(!frame.getGt().appendPlugin(instance)) {
+						LOGGER.warn("Plugin limit of 30 has been reached");
+					}
 				}
 			} catch (InstantiationException e) {
 				LOGGER.error("Error instantiating plugin", e);

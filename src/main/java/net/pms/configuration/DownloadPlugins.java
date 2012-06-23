@@ -2,7 +2,9 @@ package net.pms.configuration;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
@@ -23,14 +25,17 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sun.jna.Platform;
+
 public class DownloadPlugins {
 	
 	private final static String PLUGIN_LIST_URL="http://sharkhunter-shb.googlecode.com/files/tst.txt";
+	private final static String PLUGIN_TEST_FILE="plugin_inst.tst";
 	private static final Logger LOGGER = LoggerFactory.getLogger(DownloadPlugins.class);
 	
 	private static final int TYPE_JAR=0;
 	private static final int TYPE_LIST=1;
-	private static final int TYPE_BUNDLE=2;
+	private static final int TYPE_PLATFORM_LIST=2;
 	
 	private String name;
 	private String rating;
@@ -47,45 +52,60 @@ public class DownloadPlugins {
 			URL u=new URL(PLUGIN_LIST_URL);
 			URLConnection connection=u.openConnection();
 			BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-		    String str;
-			DownloadPlugins plugin=new DownloadPlugins();
-		    while ((str = in.readLine()) != null) {
-		    	str=str.trim();
-				if(StringUtils.isEmpty(str)) {
-					if(plugin.isOk())
-						res.add(plugin);
-					plugin=new DownloadPlugins();
-				}
-				String[] keyval=str.split("=",2);
-				if(keyval.length<2)
-					continue;
-				if(keyval[0].equalsIgnoreCase("name"))
-					plugin.name=keyval[1];
-				if(keyval[0].equalsIgnoreCase("rating"))
-					plugin.rating=keyval[1];
-				if(keyval[0].equalsIgnoreCase("desc"))
-					plugin.desc=keyval[1];
-				if(keyval[0].equalsIgnoreCase("url"))
-					plugin.url=keyval[1];	
-				if(keyval[0].equalsIgnoreCase("author"))
-					plugin.author=keyval[1];	
-				if(keyval[0].equalsIgnoreCase("type")) {
-					if(keyval[1].equalsIgnoreCase("jar"))
-						plugin.type=DownloadPlugins.TYPE_JAR;
-					if(keyval[1].equalsIgnoreCase("list"))
-						plugin.type=DownloadPlugins.TYPE_LIST;
-					if(keyval[1].equalsIgnoreCase("bundle"))
-						plugin.type=DownloadPlugins.TYPE_BUNDLE;
-				}
+			parse_list(res,in,false);
+			File test=new File(PMS.getConfiguration().getPluginDirectory() + File.separator + PLUGIN_TEST_FILE);
+			if(test.exists()) {
+				in = new BufferedReader(new InputStreamReader(new FileInputStream(test)));
+				parse_list(res,in,true);
 			}
-		    if(plugin.isOk()) // add the last one
-				res.add(plugin);
-		    in.close();
 		} catch (Exception e) {
-			LOGGER.debug("bad plugin list "+e);
 		}
 		return res;
 	}
+		
+	private static void parse_list(ArrayList<DownloadPlugins> res,BufferedReader in,
+								   boolean test) throws IOException {
+		String str;
+		DownloadPlugins plugin=new DownloadPlugins();
+		while ((str = in.readLine()) != null) {
+			str=str.trim();
+			if(StringUtils.isEmpty(str)) {
+				if(plugin.isOk())
+					res.add(plugin);
+				plugin=new DownloadPlugins();
+			}
+			String[] keyval=str.split("=",2);
+			if(keyval.length<2)
+				continue;
+			if(keyval[0].equalsIgnoreCase("name"))
+				plugin.name=keyval[1];
+			if(keyval[0].equalsIgnoreCase("rating"))
+				plugin.rating=keyval[1];
+			if(keyval[0].equalsIgnoreCase("desc"))
+				plugin.desc=keyval[1];
+			if(keyval[0].equalsIgnoreCase("url"))
+				plugin.url=keyval[1];	
+			if(keyval[0].equalsIgnoreCase("author"))
+				plugin.author=keyval[1];	
+			if(keyval[0].equalsIgnoreCase("type")) {
+				if(keyval[1].equalsIgnoreCase("jar"))
+					plugin.type=DownloadPlugins.TYPE_JAR;
+				if(keyval[1].equalsIgnoreCase("list"))
+					plugin.type=DownloadPlugins.TYPE_LIST;
+				if(keyval[1].equalsIgnoreCase("platform_list"))
+					plugin.type=DownloadPlugins.TYPE_PLATFORM_LIST;
+				
+			}
+		}
+		if(plugin.isOk()) { // add the last one
+			if(test) {
+				plugin.setRating("TEST");
+			}
+			res.add(plugin);
+		}
+		in.close();
+	}
+
 	public DownloadPlugins() {
 		type=DownloadPlugins.TYPE_JAR;
 		rating="--";
@@ -106,6 +126,10 @@ public class DownloadPlugins {
 	
 	public String getDescription() {
 		return desc;
+	}
+	
+	public void setRating(String str) {
+		rating = str;
 	}
 	
 	public boolean isOk() {
@@ -171,7 +195,9 @@ public class DownloadPlugins {
 		URL u=new URL(url);
 		ensureCreated(dir);
 		String fName=extractFileName(url,name);
-		updateLabel.setText(Messages.getString("NetworkTab.47")+": "+fName);
+		if(updateLabel != null) {
+			updateLabel.setText(Messages.getString("NetworkTab.47")+": "+fName);
+		}
 		File f=new File(dir+File.separator+fName);
 		URLConnection connection=u.openConnection();
 		connection.setDoInput(true);
@@ -220,10 +246,25 @@ public class DownloadPlugins {
 	}
 	
 	private boolean download() throws Exception {
-		if(type==DownloadPlugins.TYPE_JAR)
+		if(type == DownloadPlugins.TYPE_JAR) {
 			return downloadFile(url,PMS.getConfiguration().getPluginDirectory(),"");
-		if(type==DownloadPlugins.TYPE_LIST)
+		}
+		if(type == DownloadPlugins.TYPE_LIST) {
 			return downloadList(url);
+		}
+		if(type == DownloadPlugins.TYPE_PLATFORM_LIST) {
+			String ext = "";
+			if(Platform.isWindows()) {
+				ext = ".win";
+			}
+			else if(Platform.isLinux()) {
+				ext = ".lin";
+			}
+			else if(Platform.isMac()) {
+				ext = ".osx";
+			}
+			return downloadList(url + ext);
+		}
 		return false;
 	}
 	
@@ -240,7 +281,9 @@ public class DownloadPlugins {
 			return true;
 		URL[] jarURLs = new URL[jars.size()];
 		jars.toArray(jarURLs);
-		updateLabel.setText("Loading JARs");
+		if(updateLabel != null) {
+			updateLabel.setText("Loading JARs");
+		}
 		ExternalFactory.loadJARs(jarURLs,true);
 		// Finally create the instaces of the plugins
 		ExternalFactory.instantiateDownloaded(update);
