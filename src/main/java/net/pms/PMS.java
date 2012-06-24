@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.BindException;
 import java.net.NetworkInterface;
@@ -1076,13 +1077,35 @@ public class PMS {
 		}
 	}
 	
+	private static boolean verifyPidName(String pid) throws IOException {
+		ProcessBuilder pb = new ProcessBuilder("tasklist","/FI","\"PID eq " + pid 
+				+ "\"", "/NH", "/FO", "CSV");
+		pb.redirectErrorStream(true);
+		Process p = pb.start();
+		BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+		try {
+			p.waitFor();
+		} catch (InterruptedException e) {
+			in.close();
+			return false;
+		}
+		String line=in.readLine();
+		in.close();
+		if(line == null) {
+			return false;
+		}
+		return line.split(",")[0].replaceAll("\"", "").equals("javaw.exe");		
+	}
+	
 	private static void killProc() throws IOException {
 		ProcessBuilder pb=null;
 		BufferedReader in = new BufferedReader(new FileReader("pms.pid"));
 		String pid=in.readLine();
 		in.close();
 		if(Platform.isWindows()) {
-			pb=new ProcessBuilder("taskkill","/F","/PID",pid,"/T");
+			if(verifyPidName(pid)) {
+				pb=new ProcessBuilder("taskkill","/F","/PID",pid,"/T");
+			}
 		}
 		else if(Platform.isFreeBSD()||Platform.isLinux()||Platform.isOpenBSD()||Platform.isSolaris())
 			pb=new ProcessBuilder("kill","-9",pid);
