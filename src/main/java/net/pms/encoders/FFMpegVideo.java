@@ -337,8 +337,9 @@ public class FFMpegVideo extends Player {
 			}
 		} else {
 			// No framerate was given so we should try the most common one
-			numerator = "23.976";
+			numerator = "24000";
 			denominator = "1001";
+			frameRateNumber = "23.976";
 		}
 
 		String assumeFPS = ".AssumeFPS(" + numerator + "," + denominator + ")";
