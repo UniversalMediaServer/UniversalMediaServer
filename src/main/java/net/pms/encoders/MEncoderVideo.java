@@ -1732,8 +1732,16 @@ public class MEncoderVideo extends Player {
 			cmdArray[3] = "-quiet";
 		}
 
+		String frameRateRatio = null;
+		String frameRateNumber = null;
+
+		if (media != null) {
+			frameRateRatio = media.getValidFps(true);
+			frameRateNumber = media.getValidFps(false);
+		}
+
 		if (avisynth && !fileName.toLowerCase().endsWith(".iso")) {
-			File avsFile = FFMpegVideo.getAVSScript(fileName, params.sid, params.fromFrame, params.toFrame);
+			File avsFile = FFMpegVideo.getAVSScript(fileName, params.sid, params.fromFrame, params.toFrame, frameRateRatio, frameRateNumber);
 			cmdArray[4] = ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath());
 		} else {
 			cmdArray[4] = fileName;
@@ -1794,14 +1802,8 @@ public class MEncoderVideo extends Player {
 		cmdArray[cmdArray.length - 6] = "-ofps";
 		cmdArray[cmdArray.length - 5] = "24000/1001";
 
-		String frameRate = null;
-
-		if (media != null) {
-			frameRate = media.getValidFps(true);
-		}
-
-		if (frameRate != null) {
-			cmdArray[cmdArray.length - 5] = frameRate;
+		if (frameRateRatio != null) {
+			cmdArray[cmdArray.length - 5] = frameRateRatio;
 
 			if (configuration.isMencoderForceFps()) {
 				if (configuration.isFix25FPSAvMismatch()) {
@@ -1815,10 +1817,10 @@ public class MEncoderVideo extends Player {
 		}
 
 		// Make MEncoder output framerate correspond to InterFrame
-		if (avisynth() && configuration.getAvisynthInterFrame() && !"60000/1001".equals(frameRate) && !"50".equals(frameRate) && !"60".equals(frameRate)) {
-			if ("25".equals(frameRate)) {
+		if (avisynth() && configuration.getAvisynthInterFrame() && !"60000/1001".equals(frameRateRatio) && !"50".equals(frameRateRatio) && !"60".equals(frameRateRatio)) {
+			if ("25".equals(frameRateRatio)) {
 				cmdArray[cmdArray.length - 5] = "50";
-			} else if ("30".equals(frameRate)) {
+			} else if ("30".equals(frameRateRatio)) {
 				cmdArray[cmdArray.length - 5] = "60";
 			} else {
 				cmdArray[cmdArray.length - 5] = "60000/1001";
@@ -2514,14 +2516,17 @@ public class MEncoderVideo extends Player {
 				interpreter.set("samplerate", params.aid.getSampleRate());
 			}
 
-			String framerate = media.getValidFps(false);
+			String frameRateNumber = null;
+			if (media != null) {
+				frameRateNumber = media.getValidFps(false);
+			}
 
 			try {
-				if (framerate != null) {
-					interpreter.set("framerate", Double.parseDouble(framerate));
+				if (frameRateNumber != null) {
+					interpreter.set("framerate", Double.parseDouble(frameRateNumber));
 				}
 			} catch (NumberFormatException e) {
-				LOGGER.debug("Could not parse framerate from \"" + framerate + "\"");
+				LOGGER.debug("Could not parse framerate from \"" + frameRateNumber + "\"");
 			}
 
 			interpreter.set("duration", media.getDurationInSeconds());
