@@ -1733,13 +1733,15 @@ public class MEncoderVideo extends Player {
 		}
 
 		String frameRateRatio = null;
+		String frameRateNumber = null;
 
 		if (media != null) {
 			frameRateRatio = media.getValidFps(true);
+			frameRateNumber = media.getValidFps(false);
 		}
 
 		if (avisynth && !fileName.toLowerCase().endsWith(".iso")) {
-			File avsFile = FFMpegVideo.getAVSScript(fileName, params.sid, params.fromFrame, params.toFrame);
+			File avsFile = FFMpegVideo.getAVSScript(fileName, params.sid, params.fromFrame, params.toFrame, frameRateRatio, frameRateNumber);
 			cmdArray[4] = ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath());
 		} else {
 			cmdArray[4] = fileName;

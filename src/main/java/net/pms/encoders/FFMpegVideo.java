@@ -187,7 +187,7 @@ public class FFMpegVideo extends Player {
 				//cmdArray[6] = pipeprefix + videoPipe + (PMS.get().isWindows()?".2":"");
 				cmdArray[6] = videoP.getOutputPipe();
 			} else if (avisynth()) {
-				File avsFile = getAVSScript(fileName, params.sid, params.fromFrame, params.toFrame);
+				File avsFile = getAVSScript(fileName, params.sid, params.fromFrame, params.toFrame, "", "");
 				cmdArray[6] = ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath());
 			}
 		}
@@ -311,24 +311,54 @@ public class FFMpegVideo extends Player {
 	}
 
 	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack) throws IOException {
-		return getAVSScript(fileName, subTrack, -1, -1);
+		return getAVSScript(fileName, subTrack, -1, -1, null, null);
 	}
 
-	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack, int fromFrame, int toFrame) throws IOException {
+	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack, int fromFrame, int toFrame, String frameRateRatio, String frameRateNumber) throws IOException {
 		String onlyFileName = fileName.substring(1 + fileName.lastIndexOf("\\"));
 		File file = new File(PMS.getConfiguration().getTempFolder(), "pms-avs-" + onlyFileName + ".avs");
 		PrintWriter pw = new PrintWriter(new FileOutputStream(file));
+
+		/*
+		 * Prepare the framerate variables
+		 */
+		String numerator;
+		String denominator;
+
+		if (frameRateRatio != null && frameRateNumber != null) {
+			if (frameRateRatio.equals(frameRateNumber)) {
+				// No ratio was available
+				numerator = frameRateRatio;
+				denominator = "1";
+			} else {
+				String[] frameRateNumDen = frameRateRatio.split("/");
+				numerator = frameRateNumDen[0];
+				denominator = "1001";
+			}
+		} else {
+			// No framerate was given so we should try the most common one
+			numerator = "23.976";
+			denominator = "1001";
+		}
+
+		String assumeFPS = ".AssumeFPS(" + numerator + "," + denominator + ")";
+
+		String directShowFPS = "";
+		if (!"0".equals(frameRateNumber)) {
+			directShowFPS = ", fps=" + frameRateNumber;
+		}
 
 		String convertfps = "";
 		if (PMS.getConfiguration().getAvisynthConvertFps()) {
 			convertfps = ", convertfps=true";
 		}
+
 		File f = new File(fileName);
 		if (f.exists()) {
 			fileName = ProcessUtil.getShortFileNameIfWideChars(fileName);
 		}
 
-		String movieLine       = "DirectShowSource(\"" + fileName + "\"" + convertfps + ")";
+		String movieLine       = "DirectShowSource(\"" + fileName + "\"" + directShowFPS + convertfps + ")" + assumeFPS;
 		String mtLine1         = "";
 		String mtLine2         = "";
 		String mtLine3         = "";
