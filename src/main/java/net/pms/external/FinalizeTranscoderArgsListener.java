@@ -1,7 +1,6 @@
 package net.pms.external;
 
 import java.util.List;
-
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.encoders.Player;

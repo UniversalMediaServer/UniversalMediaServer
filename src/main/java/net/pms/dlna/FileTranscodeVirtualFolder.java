@@ -25,7 +25,6 @@ import net.pms.encoders.MEncoderVideo;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
 import net.pms.encoders.TSMuxerVideo;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

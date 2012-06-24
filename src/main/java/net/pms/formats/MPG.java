@@ -19,13 +19,8 @@
 package net.pms.formats;
 
 import java.util.ArrayList;
-
 import net.pms.PMS;
-import net.pms.encoders.FFMpegVideo;
-import net.pms.encoders.MEncoderAviSynth;
-import net.pms.encoders.MEncoderVideo;
-import net.pms.encoders.Player;
-import net.pms.encoders.TSMuxerVideo;
+import net.pms.encoders.*;
 
 public class MPG extends Format {
 	@Override

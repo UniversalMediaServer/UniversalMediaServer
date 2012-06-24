@@ -21,7 +21,6 @@ package net.pms.dlna.virtual;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;

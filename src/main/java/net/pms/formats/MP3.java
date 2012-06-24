@@ -19,7 +19,6 @@
 package net.pms.formats;
 
 import java.util.ArrayList;
-
 import net.pms.encoders.Player;
 
 public class MP3 extends Format {

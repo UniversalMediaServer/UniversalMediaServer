@@ -1,9 +1,7 @@
 package net.pms.newgui;
 
 import java.io.File;
-
 import javax.swing.filechooser.FileFilter;
-
 import net.pms.Messages;
 
 public class FontFileFilter extends FileFilter {

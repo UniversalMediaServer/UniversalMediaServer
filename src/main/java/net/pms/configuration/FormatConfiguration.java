@@ -1,20 +1,13 @@
 package net.pms.configuration;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.InputFile;
 import net.pms.dlna.MediaInfoParser;
 import net.pms.formats.Format;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -18,20 +18,17 @@
  */
 package net.pms.io;
 
-import java.io.File;
-import java.lang.reflect.Method;
-import java.nio.CharBuffer;
-import java.util.prefs.Preferences;
-
-import net.pms.PMS;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.sun.jna.Library;
 import com.sun.jna.Native;
 import com.sun.jna.WString;
 import com.sun.jna.ptr.LongByReference;
+import java.io.File;
+import java.lang.reflect.Method;
+import java.nio.CharBuffer;
+import java.util.prefs.Preferences;
+import net.pms.PMS;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Contains the Windows specific native functionality. Do not try to instantiate on Linux/MacOSX !

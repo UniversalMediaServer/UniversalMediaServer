@@ -1,8 +1,7 @@
 package net.pms.configuration;
 
-import net.pms.util.PropertiesUtil;
-
 import java.io.File;
+import net.pms.util.PropertiesUtil;
 
 class LinuxDefaultPaths implements ProgramPaths {
 	private final String BINARIES_SEARCH_PATH = getBinariesSearchPath();

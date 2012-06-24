@@ -26,10 +26,8 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
-
 import net.pms.Messages;
 import net.pms.PMS;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

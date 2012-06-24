@@ -28,9 +28,7 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
-
 import net.pms.PMS;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

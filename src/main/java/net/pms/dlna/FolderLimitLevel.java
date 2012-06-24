@@ -1,9 +1,8 @@
 package net.pms.dlna;
 
+import net.pms.dlna.virtual.VirtualFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import net.pms.dlna.virtual.VirtualFolder;
 
 public class FolderLimitLevel extends VirtualFolder {
 	

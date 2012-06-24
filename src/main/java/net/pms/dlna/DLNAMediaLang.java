@@ -18,9 +18,8 @@
  */
 package net.pms.dlna;
 
-import org.apache.commons.lang.StringUtils;
-
 import net.pms.util.Iso639;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * This class keeps track of the language information for subtitles or audio.

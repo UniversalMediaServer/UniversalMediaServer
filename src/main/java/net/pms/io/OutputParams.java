@@ -20,7 +20,6 @@ package net.pms.io;
 
 import java.io.File;
 import java.util.Arrays;
-
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaAudio;

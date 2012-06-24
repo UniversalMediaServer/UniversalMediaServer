@@ -26,11 +26,9 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.StringTokenizer;
-
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.external.StartStopListenerDelegate;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

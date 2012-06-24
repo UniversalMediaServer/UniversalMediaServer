@@ -19,7 +19,6 @@
 package net.pms.formats;
 
 import java.util.ArrayList;
-
 import net.pms.PMS;
 import net.pms.encoders.FFMpegAudio;
 import net.pms.encoders.MPlayerAudio;
