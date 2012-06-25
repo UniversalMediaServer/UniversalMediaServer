@@ -708,7 +708,7 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Some versions of mencoder produce garbled audio because the "ac3" codec is used
+	 * Some versions of MEncoder produce garbled audio because the "ac3" codec is used
 	 * instead of the "ac3_fixed" codec. Returns true if "ac3_fixed" should be used.
 	 * Default is false.
 	 * See https://code.google.com/p/ps3mediaserver/issues/detail?id=1092#c1
@@ -787,7 +787,7 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Some versions of mencoder produce garbled audio because the "ac3" codec is used
+	 * Some versions of MEncoder produce garbled audio because the "ac3" codec is used
 	 * instead of the "ac3_fixed" codec.
 	 * See https://code.google.com/p/ps3mediaserver/issues/detail?id=1092#c1
 	 * @param value Set to true if "ac3_fixed" should be used.
@@ -853,7 +853,7 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Set the maximum number of concurrent mencoder threads.
+	 * Set the maximum number of concurrent MEncoder threads.
 	 * XXX Currently unused.
 	 * @param value The maximum number of concurrent threads.
 	 */
@@ -891,11 +891,11 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Older versions of mencoder do not support ASS/SSA subtitles on all
-	 * platforms. Returns true if mencoder supports them. Default is true
+	 * Older versions of MEncoder do not support ASS/SSA subtitles on all
+	 * platforms. Returns true if MEncoder supports them. Default is true
 	 * on Windows and OS X, false otherwise.
 	 * See https://code.google.com/p/ps3mediaserver/issues/detail?id=1097
-	 * @return True if mencoder supports ASS/SSA subtitles.
+	 * @return True if MEncoder supports ASS/SSA subtitles.
 	 */
 	public boolean isMencoderAss() {
 		return getBoolean(KEY_MENCODER_ASS, Platform.isWindows() || Platform.isMac());
@@ -1167,11 +1167,11 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Older versions of mencoder do not support ASS/SSA subtitles on all
-	 * platforms. Set to true if mencoder supports them. Default should be
+	 * Older versions of MEncoder do not support ASS/SSA subtitles on all
+	 * platforms. Set to true if MEncoder supports them. Default should be
 	 * true on Windows and OS X, false otherwise.
 	 * See https://code.google.com/p/ps3mediaserver/issues/detail?id=1097
-	 * @param value Set to true if mencoder supports ASS/SSA subtitles.
+	 * @param value Set to true if MEncoder supports ASS/SSA subtitles.
 	 */
 	public void setMencoderAss(boolean value) {
 		configuration.setProperty(KEY_MENCODER_ASS, value);
