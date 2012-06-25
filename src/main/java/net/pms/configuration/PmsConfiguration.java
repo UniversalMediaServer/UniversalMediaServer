@@ -873,11 +873,11 @@ public class PmsConfiguration {
 	/**
 	 * Returns the number of seconds from the start of a video file (the seek
 	 * position) where the thumbnail image for the movie should be extracted
-	 * from. Default is 1 second.
+	 * from. Default is 2 seconds.
 	 * @return The seek position in seconds.
 	 */
 	public int getThumbnailSeekPos() {
-		return getInt(KEY_THUMBNAIL_SEEK_POS, 1);
+		return getInt(KEY_THUMBNAIL_SEEK_POS, 2);
 	}
 
 	/**
