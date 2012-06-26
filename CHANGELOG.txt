@@ -18,8 +18,9 @@
 	Renderers:
 		Added support for DirecTV HR series (thanks, DeFlanko!)
 		Added workaround for 2.0 384 kbits AC3 PS3 audio bug (PMS issue #230 & #1414)
+		Improved support for Panasonic TVs
 	Installer:
-		Only run AviSynth installer if it isn't already installed
+		Only offer to run AviSynth installer if it isn't already installed
 	Languages:
 		Updated Czech
 
