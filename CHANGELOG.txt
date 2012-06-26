@@ -1,7 +1,6 @@
-﻿1.2.0 - 2012-06-??
+﻿1.2.0 - 2012-06-26
 
 	General:
-		Disabled bandwidth limit by default because it can cause stuttering for some users with slower CPUs
 		Create thumbnails from 2 seconds into the video by default
 		Fixed silent installation
 		Updated MPlayer and MEncoder for Windows to SB35, which:
@@ -10,6 +9,7 @@
 			Starts faster
 			Improves fonts
 			Improves caching
+			Improves multithreading stability
 		Updated MPlayer and MEncoder for OSX to SB32
 		Lots of code optimisations
 		Made program restarts more reliable
