@@ -51,7 +51,7 @@ public class RequestV2 extends HTTPResource {
 	private final static String CRLF = "\r\n";
 	private static SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
 	private static int BUFFER_SIZE = 8 * 1024;
-	private static final int[] MULTIPLIER = new int[] { 1, 60, 3600, 24*3600}; 
+	private static final int[] MULTIPLIER = new int[] { 1, 60, 3600, 24*3600};
 	private final String method;
 
 	/**
@@ -69,7 +69,7 @@ public class RequestV2 extends HTTPResource {
 	private String browseFlag;
 
 	/**
-	 * When sending an input stream, the lowRange indicates which byte to start from.  
+	 * When sending an input stream, the lowRange indicates which byte to start from.
 	 */
 	private long lowRange;
 	private InputStream inputStream;
@@ -79,7 +79,7 @@ public class RequestV2 extends HTTPResource {
 	private final Range.Time range = new Range.Time();
 
 	/**
-	 * When sending an input stream, the highRange indicates which byte to stop at.  
+	 * When sending an input stream, the highRange indicates which byte to stop at.
 	 */
 	private long highRange;
 	private boolean http10;
@@ -97,7 +97,7 @@ public class RequestV2 extends HTTPResource {
 	}
 
 	/**
-	 * When sending an input stream, the lowRange indicates which byte to start from.  
+	 * When sending an input stream, the lowRange indicates which byte to start from.
 	 * @return The byte to start from
 	 */
 	public long getLowRange() {
@@ -147,7 +147,7 @@ public class RequestV2 extends HTTPResource {
 
 	/**
 	 * When sending an input stream, the highRange indicates which byte to stop at.
-	 * @return The byte to stop at.  
+	 * @return The byte to stop at.
 	 */
 	public long getHighRange() {
 		return highRange;
@@ -172,7 +172,7 @@ public class RequestV2 extends HTTPResource {
 
 	/**
 	 * This class will construct and transmit a proper HTTP response to a given HTTP request.
-	 * Rewritten version of the {@link Request} class.  
+	 * Rewritten version of the {@link Request} class.
 	 * @param method The {@link String} that defines the HTTP method to be used.
 	 * @param argument The {@link String} containing instructions for PMS. It contains a command,
 	 * 		a unique resource id and a resource name, all separated by slashes.
@@ -220,7 +220,7 @@ public class RequestV2 extends HTTPResource {
 	 * Construct a proper HTTP response to a received request. After the response has been
 	 * created, it is sent and the resulting {@link ChannelFuture} object is returned.
 	 * See <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html">RFC-2616</a>
-	 * for HTTP header field definitions. 
+	 * for HTTP header field definitions.
 	 * @param output The {@link HttpResponse} object that will be used to construct the response.
 	 * @param e The {@link MessageEvent} object used to communicate with the client that sent
 	 * 			the request.
@@ -235,7 +235,8 @@ public class RequestV2 extends HTTPResource {
 		HttpResponse output,
 		MessageEvent e,
 		final boolean close,
-		final StartStopListenerDelegate startStopListenerDelegate) throws IOException {
+		final StartStopListenerDelegate startStopListenerDelegate
+	) throws IOException {
 		ChannelFuture future = null;
 		long CLoverride = -2; // 0 and above are valid Content-Length values, -1 means omit
 		StringBuilder response = new StringBuilder();
@@ -316,7 +317,7 @@ public class RequestV2 extends HTTPResource {
 
 					// Some renderers (like Samsung devices) allow a custom header for a subtitle URL
 					String subtitleHttpHeader = mediaRenderer.getSubtitleHttpHeader();
-					
+
 					if (subtitleHttpHeader != null && !"".equals(subtitleHttpHeader)) {
 						// Device allows a custom subtitle HTTP header; construct it
 						List<DLNAMediaSubtitle> subs = dlna.getMedia().getSubtitlesCodes();
@@ -328,9 +329,9 @@ public class RequestV2 extends HTTPResource {
 
 							if (type < DLNAMediaSubtitle.subExtensions.length) {
 								String strType = DLNAMediaSubtitle.subExtensions[type - 1];
-								String subtitleUrl = "http://" + PMS.get().getServer().getHost()
-										+ ':' + PMS.get().getServer().getPort() + "/get/" 
-										+ id + "/subtitle0000." + strType;
+								String subtitleUrl = "http://" + PMS.get().getServer().getHost() +
+										':' + PMS.get().getServer().getPort() + "/get/" +
+										id + "/subtitle0000." + strType;
 								output.setHeader(subtitleHttpHeader, subtitleUrl);
 							}
 						}
@@ -366,7 +367,7 @@ public class RequestV2 extends HTTPResource {
 						PMS.get().getFrame().setStatusLine("Serving " + name);
 
 						// Response generation:
-						// We use -1 for arithmetic convenience but don't send it as a value. 
+						// We use -1 for arithmetic convenience but don't send it as a value.
 						// If Content-Length < 0 we omit it, for Content-Range we use '*' to signify unspecified.
 
 						boolean chunked = mediaRenderer.isChunkedTransfer();
@@ -397,8 +398,7 @@ public class RequestV2 extends HTTPResource {
 
 							LOGGER.trace((chunked ? "Using chunked response. " : "")  + "Sending " + bytes + " bytes.");
 
-							output.setHeader(HttpHeaders.Names.CONTENT_RANGE, "bytes " + lowRange + "-" 
-								+ (highRange > -1 ? highRange : "*") + "/" + (totalsize > -1 ? totalsize : "*"));
+							output.setHeader(HttpHeaders.Names.CONTENT_RANGE, "bytes " + lowRange + "-" + (highRange > -1 ? highRange : "*") + "/" + (totalsize > -1 ? totalsize : "*"));
 
 							// Content-Length refers to the current chunk size here, though in chunked
 							// mode if the request is open-ended and totalsize is unknown we omit it.
@@ -455,12 +455,12 @@ public class RequestV2 extends HTTPResource {
 					LOGGER.debug("DLNA changes for Xbox 360");
 					s = s.replace("Universal Media Server", "Universal Media Server [" + profileName + "] : Windows Media Connect");
 					s = s.replace("<modelName>UMS</modelName>", "<modelName>Windows Media Connect</modelName>");
-					s = s.replace("<serviceList>", "<serviceList>" + CRLF + "<service>" + CRLF
-						+ "<serviceType>urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1</serviceType>" + CRLF
-						+ "<serviceId>urn:microsoft.com:serviceId:X_MS_MediaReceiverRegistrar</serviceId>" + CRLF
-						+ "<SCPDURL>/upnp/mrr/scpd</SCPDURL>" + CRLF
-						+ "<controlURL>/upnp/mrr/control</controlURL>" + CRLF
-						+ "</service>" + CRLF);
+					s = s.replace("<serviceList>", "<serviceList>" + CRLF + "<service>" + CRLF +
+						"<serviceType>urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1</serviceType>" + CRLF +
+						"<serviceId>urn:microsoft.com:serviceId:X_MS_MediaReceiverRegistrar</serviceId>" + CRLF +
+						"<SCPDURL>/upnp/mrr/scpd</SCPDURL>" + CRLF +
+						"<controlURL>/upnp/mrr/control</controlURL>" + CRLF +
+						"</service>" + CRLF);
 				} else {
 					s = s.replace("Universal Media Server", "Universal Media Server [" + profileName + "]");
 				}
@@ -858,7 +858,7 @@ public class RequestV2 extends HTTPResource {
 		return future;
 	}
 
-    /**
+	/**
 	 * Returns a date somewhere in the far future.
 	 * @return The {@link String} containing the date
 	 */
@@ -886,7 +886,7 @@ public class RequestV2 extends HTTPResource {
 		}
 		return result;
 	}
-	
+
 	/**
 	 * Parse as double, or if it's not just one number, handles {hour}:{minute}:{seconds}
 	 * @param time

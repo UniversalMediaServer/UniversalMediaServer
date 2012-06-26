@@ -163,7 +163,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				if (request != null && temp.toUpperCase().equals("SOAPACTION:")) {
 					request.setSoapaction(s.nextToken());
 				} else if (request != null && temp.toUpperCase().equals("CALLBACK:")) {
-						request.setSoapaction(s.nextToken());
+					request.setSoapaction(s.nextToken());
 				} else if (headerLine.toUpperCase().indexOf("RANGE: BYTES=") > -1) {
 					String nums = headerLine.substring(
 						headerLine.toUpperCase().indexOf(
@@ -250,8 +250,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		}
 
 		if (request != null) {
-			LOGGER.trace("HTTP: " + request.getArgument() + " / " +
-			request.getLowRange() + "-" + request.getHighRange());
+			LOGGER.trace("HTTP: " + request.getArgument() + " / " + request.getLowRange() + "-" + request.getHighRange());
 		}
 
 		writeResponse(e, request, ia);
@@ -283,7 +282,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				HttpResponseStatus.PARTIAL_CONTENT);
 		} else {
 			String soapAction = nettyRequest.getHeader("SOAPACTION");
-			if ((soapAction != null) && soapAction.contains("X_GetFeatureList")) {
+			if (soapAction != null && soapAction.contains("X_GetFeatureList")) {
 				LOGGER.debug("Invalid action in SOAPACTION: " + soapAction);	
 				response = new DefaultHttpResponse(
 					HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR);

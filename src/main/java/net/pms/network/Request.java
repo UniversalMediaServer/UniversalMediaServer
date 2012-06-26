@@ -184,7 +184,7 @@ public class Request extends HTTPResource {
 			LOGGER.trace("Stripping preceding slash from: " + argument);
 			argument = argument.substring(1);
 		}
-		
+
 		if ((method.equals("GET") || method.equals("HEAD")) && argument.startsWith("console/")) {
 			output(output, "Content-Type: text/html");
 			response.append(HTMLConsole.servePage(argument.substring(8)));
@@ -246,9 +246,9 @@ public class Request extends HTTPResource {
 
 								if (type < DLNAMediaSubtitle.subExtensions.length) {
 									String strType = DLNAMediaSubtitle.subExtensions[type - 1];
-									String subtitleUrl = "http://" + PMS.get().getServer().getHost()
-									+ ':' + PMS.get().getServer().getPort() + "/get/" 
-									+ id + "/subtitle0000." + strType;
+									String subtitleUrl = "http://" + PMS.get().getServer().getHost() +
+											':' + PMS.get().getServer().getPort() + "/get/" +
+											id + "/subtitle0000." + strType;
 									output(output, subtitleHttpHeader + ": " + subtitleUrl);
 								}
 							}
@@ -288,7 +288,7 @@ public class Request extends HTTPResource {
 						if (requested != 0) {
 							// Determine the range (i.e. smaller of known or requested bytes)
 							long bytes = remaining > -1 ? remaining : inputStream.available();
-							
+
 							if (requested > 0 && bytes > requested) {
 								bytes = requested + 1;
 							}
@@ -353,15 +353,15 @@ public class Request extends HTTPResource {
 				s = s.replace("[host]", PMS.get().getServer().getHost());
 				s = s.replace("[port]", "" + PMS.get().getServer().getPort());
 				if (xbox) {
-					LOGGER.debug("DLNA changes for Xbox360");
+					LOGGER.debug("DLNA changes for Xbox 360");
 					s = s.replace("Universal Media Server", "Universal Media Server [" + profileName + "] : Windows Media Connect");
 					s = s.replace("<modelName>UMS</modelName>", "<modelName>Windows Media Connect</modelName>");
-					s = s.replace("<serviceList>", "<serviceList>" + CRLF + "<service>" + CRLF
-						+ "<serviceType>urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1</serviceType>" + CRLF
-						+ "<serviceId>urn:microsoft.com:serviceId:X_MS_MediaReceiverRegistrar</serviceId>" + CRLF
-						+ "<SCPDURL>/upnp/mrr/scpd</SCPDURL>" + CRLF
-						+ "<controlURL>/upnp/mrr/control</controlURL>" + CRLF
-						+ "</service>" + CRLF);
+					s = s.replace("<serviceList>", "<serviceList>" + CRLF + "<service>" + CRLF +
+						"<serviceType>urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1</serviceType>" + CRLF +
+						"<serviceId>urn:microsoft.com:serviceId:X_MS_MediaReceiverRegistrar</serviceId>" + CRLF +
+						"<SCPDURL>/upnp/mrr/scpd</SCPDURL>" + CRLF +
+						"<controlURL>/upnp/mrr/control</controlURL>" + CRLF +
+						"</service>" + CRLF);
 
 
 				} else {
@@ -397,9 +397,10 @@ public class Request extends HTTPResource {
 				response.append(CRLF);
 			}
 		} else if (method.equals("SUBSCRIBE")) {
-			if(soapaction==null) //ignore this
+			if (soapaction == null) { //ignore this
 				return;
-			String uuid="uuid:"+UUID.randomUUID().toString();
+			}
+			String uuid="uuid:" + UUID.randomUUID().toString();
 			output(output, CONTENT_TYPE_UTF8);
 			output(output,"Content-Length: 0");
 			output(output,"Connection: close");
@@ -409,20 +410,20 @@ public class Request extends HTTPResource {
 			output(output,"");
 			output.flush();
 			//output.close();
-			String cb=soapaction.replace("<", "").replace(">", "");
-			String faddr=cb.replace("http://", "").replace("/", "");
-			String addr=faddr.split(":")[0];
-			int port=Integer.parseInt(faddr.split(":")[1]);
-			Socket sock=new Socket(addr,port);
-			OutputStream out=sock.getOutputStream();
-			output(out,"NOTIFY /"+argument+" HTTP/1.1");
-			output(out,"SID: "+uuid);
-			output(out,"SEQ: "+0);
-			output(out,"NT: upnp:event");
-			output(out,"NTS: upnp:propchange");
-			output(out,"HOST: "+faddr);
+			String cb = soapaction.replace("<", "").replace(">", "");
+			String faddr = cb.replace("http://", "").replace("/", "");
+			String addr = faddr.split(":")[0];
+			int port = Integer.parseInt(faddr.split(":")[1]);
+			Socket sock = new Socket(addr,port);
+			OutputStream out = sock.getOutputStream();
+			output(out, "NOTIFY /" + argument + " HTTP/1.1");
+			output(out, "SID: " + uuid);
+			output(out, "SEQ: " + 0);
+			output(out, "NT: upnp:event");
+			output(out, "NTS: upnp:propchange");
+			output(out, "HOST: " + faddr);
 			output(out, CONTENT_TYPE_UTF8);
-			if(argument.contains("connection_manager")) {
+			if (argument.contains("connection_manager")) {
 				response.append(HTTPXMLHelper.eventHeader("urn:schemas-upnp-org:service:ConnectionManager:1"));
 				response.append(HTTPXMLHelper.eventProp("SinkProtocolInfo"));
 				response.append(HTTPXMLHelper.eventProp("SourceProtocolInfo"));
@@ -593,7 +594,7 @@ public class Request extends HTTPResource {
 						totalCount = startingIndex;
 					}
 					response.append("<TotalMatches>").append(totalCount).append("</TotalMatches>");
-				} 
+				}
 				else if(browseFlag!=null && browseFlag.equals("BrowseDirectChildren"))
 					response.append("<TotalMatches>").append(((parentFolder != null) ? parentFolder.childrenNumber() : filessize) - minus).append("</TotalMatches>");
 				else
