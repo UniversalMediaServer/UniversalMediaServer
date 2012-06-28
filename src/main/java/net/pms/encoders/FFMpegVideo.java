@@ -183,7 +183,7 @@ public class FFMpegVideo extends Player {
 				//cmdArray[6] = pipeprefix + videoPipe + (PMS.get().isWindows()?".2":"");
 				cmdArray[6] = videoP.getOutputPipe();
 			} else if (avisynth()) {
-				File avsFile = getAVSScript(fileName, params.sid, params.fromFrame, params.toFrame, null, null);
+				File avsFile = getAVSScript(fileName, params.sid, params.fromFrame, params.toFrame, null, null, true);
 				cmdArray[6] = ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath());
 			}
 		}
@@ -307,10 +307,10 @@ public class FFMpegVideo extends Player {
 	}
 
 	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack) throws IOException {
-		return getAVSScript(fileName, subTrack, -1, -1, null, null);
+		return getAVSScript(fileName, subTrack, -1, -1, null, null, true);
 	}
 
-	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack, int fromFrame, int toFrame, String frameRateRatio, String frameRateNumber) throws IOException {
+	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack, int fromFrame, int toFrame, String frameRateRatio, String frameRateNumber, boolean isFFmpeg) throws IOException {
 		String onlyFileName = fileName.substring(1 + fileName.lastIndexOf("\\"));
 		File file = new File(PMS.getConfiguration().getTempFolder(), "pms-avs-" + onlyFileName + ".avs");
 		PrintWriter pw = new PrintWriter(new FileOutputStream(file));
@@ -363,7 +363,7 @@ public class FFMpegVideo extends Player {
 		String interframePath  = PMS.getConfiguration().getInterFramePath();
 
 		int Cores = 1;
-		if (PMS.getConfiguration().getAvisynthMultiThreading()) {
+		if (PMS.getConfiguration().getAvisynthMultiThreading() && !isFFmpeg) {
 			Cores = PMS.getConfiguration().getNumberOfCpuCores();
 
 			// Goes at the start of the file to initiate multithreading
@@ -377,7 +377,7 @@ public class FFMpegVideo extends Player {
 		}
 
 		// True Motion
-		if (PMS.getConfiguration().getAvisynthInterFrame()) {
+		if (PMS.getConfiguration().getAvisynthInterFrame() && !isFFmpeg) {
 			String GPU = "";
 			movieLine = movieLine + ".ConvertToYV12()";
 
@@ -396,7 +396,7 @@ public class FFMpegVideo extends Player {
 
 		String subLine = null;
 		if (subTrack != null && PMS.getConfiguration().getUseSubtitles() && !PMS.getConfiguration().isMencoderDisableSubs()) {
-			LOGGER.trace("Avisynth script: Using sub track: " + subTrack);
+			LOGGER.trace("AviSynth script: Using sub track: " + subTrack);
 			if (subTrack.getFile() != null) {
 				String function = "TextSub";
 				if (subTrack.getType() == DLNAMediaSubtitle.VOBSUB) {
@@ -423,7 +423,7 @@ public class FFMpegVideo extends Player {
 
 		lines.add(mtLine2);
 
-		if (PMS.getConfiguration().getAvisynthInterFrame()) {
+		if (PMS.getConfiguration().getAvisynthInterFrame() && !isFFmpeg) {
 			lines.add(interframeLines);
 		}
 
