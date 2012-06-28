@@ -183,7 +183,7 @@ public class FFMpegVideo extends Player {
 				//cmdArray[6] = pipeprefix + videoPipe + (PMS.get().isWindows()?".2":"");
 				cmdArray[6] = videoP.getOutputPipe();
 			} else if (avisynth()) {
-				File avsFile = getAVSScript(fileName, params.sid, params.fromFrame, params.toFrame, "", "");
+				File avsFile = getAVSScript(fileName, params.sid, params.fromFrame, params.toFrame, null, null);
 				cmdArray[6] = ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath());
 			}
 		}
