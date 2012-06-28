@@ -1668,7 +1668,7 @@ public class PmsConfiguration {
 	}
 
 	public String getFfmpegSettings() {
-		return getString(KEY_FFMPEG_SETTINGS, "-threads 2 -g 1 -qscale 1 -qmin 2");
+		return getString(KEY_FFMPEG_SETTINGS, "-g 1 -qscale 1 -qmin 2");
 	}
 
 	public boolean isMencoderNoOutOfSync() {
