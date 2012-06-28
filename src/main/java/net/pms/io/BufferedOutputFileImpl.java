@@ -115,6 +115,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 				LOGGER.trace("Cannot initialize buffer to " + formatter.format(newSize) + " bytes.");
 			} else {
 				LOGGER.debug("Cannot grow buffer size from " + formatter.format(buffer.length) + " bytes to " + formatter.format(newSize) + " bytes.");
+				LOGGER.debug("Error given: " + e);
 
 			}
 
@@ -139,6 +140,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 					LOGGER.trace("freeMemory: " + formatter.format(Runtime.getRuntime().freeMemory()));
 					LOGGER.trace("totalMemory: " + formatter.format(Runtime.getRuntime().totalMemory()));
 					LOGGER.trace("maxMemory: " + formatter.format(Runtime.getRuntime().maxMemory()));
+					LOGGER.debug("Error given: " + e2);
 
 					// Cannot allocate memory, no other option than to return the original.
 					return buffer;
