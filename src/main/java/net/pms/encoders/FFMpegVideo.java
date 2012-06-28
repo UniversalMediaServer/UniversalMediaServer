@@ -431,7 +431,10 @@ public class FFMpegVideo extends Player {
 
 		if (fullyManaged) {
 			for (String s : lines) {
-				s = s.replace("<moviefilename>", fileName);
+				if (s.contains("<moviefilename>")) {
+					s = s.replace("<moviefilename>", fileName);
+				}
+
 				if (movieLine != null) {
 					s = s.replace("<movie>", movieLine);
 				}
