@@ -1572,7 +1572,7 @@ public class PmsConfiguration {
 	 * @return True if PMS should pass the flag.
 	 */
 	public boolean getAvisynthConvertFps() {
-		return getBoolean(KEY_AVISYNTH_CONVERT_FPS, false);
+		return getBoolean(KEY_AVISYNTH_CONVERT_FPS, true);
 	}
 
 	public void setAvisynthInterFrame(boolean value) {
