@@ -390,14 +390,7 @@ public class PmsConfiguration {
 		Locale.setDefault(new Locale(getLanguage()));
 
 		// Set DEFAULT_AVI_SYNTH_SCRIPT according to language
-		DEFAULT_AVI_SYNTH_SCRIPT = 
-			Messages.getString("MEncoderAviSynth.4") +
-			Messages.getString("MEncoderAviSynth.5") +
-			Messages.getString("MEncoderAviSynth.6") +
-			Messages.getString("MEncoderAviSynth.7") +
-			Messages.getString("MEncoderAviSynth.8") +
-			Messages.getString("MEncoderAviSynth.10") +
-			Messages.getString("MEncoderAviSynth.11");
+		DEFAULT_AVI_SYNTH_SCRIPT = "<movie>\n<sub>\n";
 
 		long usableMemory = (Runtime.getRuntime().maxMemory() / 1048576) - BUFFER_MEMORY_FACTOR;
 		if (usableMemory > MAX_MAX_MEMORY_DEFAULT_SIZE) {
