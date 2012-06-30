@@ -48,8 +48,9 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 
 	/**
 	 * Initial size for the buffer in bytes.
+	 * The current value is 100MB.
 	 */
-	private static final int INITIAL_BUFFER_SIZE = 50000000;
+	private static final int INITIAL_BUFFER_SIZE = 104857600;
 
 	/**
 	 * Amount of extra bytes to increase the initial buffer with when memory
@@ -121,7 +122,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 
 			// Could not allocate the requested new size, use 30% of free memory instead.
 			// Rationale behind using 30%: multiple threads are running at the same time,
-			// we do not want one threads memory usage to suffocate the others.
+			// we do not want one thread's memory usage to suffocate the others.
 			// Using maxMemory() to ignore the initial Java heap space size that freeMemory()
 			// takes into account.
 			// See http://javarevisited.blogspot.com/2011/05/java-heap-space-memory-size-jvm.html
