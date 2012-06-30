@@ -1,4 +1,17 @@
-﻿1.2.0 - 2012-06-26
+﻿1.2.1 - 2012-06-??
+
+	General:
+		Fixed 3-year-old bug that caused some videos to skip forward by minutes
+		The default versions of UMS.conf and WEB.conf are now put in ProgramData on Windows (thanks to vulcan for reporting this bug)
+		Updated UMS.conf
+		Updated renderer.conf creation instructions
+		Fixed AviSynth/FFmpeg crash
+		Improved AviSynth/FFmpeg engine code
+		Assorted bugfixes
+	Languages:
+		Updated Catalan
+
+1.2.0 - 2012-06-26
 
 	General:
 		Create thumbnails from 2 seconds into the video by default
