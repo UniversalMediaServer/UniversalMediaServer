@@ -7,9 +7,13 @@
 		Updated renderer.conf creation instructions
 		Fixed AviSynth/FFmpeg crash
 		Improved AviSynth/FFmpeg engine code
+		Enabled convertfps by default
+		Made the AviSynth script instructions separate to the input box
+		Minor design improvements to the Transcoding tab
 		Assorted bugfixes
 	Languages:
 		Updated Catalan
+		Updated English
 
 1.2.0 - 2012-06-26
 
