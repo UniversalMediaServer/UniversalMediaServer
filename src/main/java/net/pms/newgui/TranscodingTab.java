@@ -605,6 +605,7 @@ public class TranscodingTab {
 		decodeTips.setEditable(false);
 		decodeTips.setBorder(BorderFactory.createEtchedBorder());
 		decodeTips.setBackground(new Color(255, 255, 192));
+		decodeTips.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(new Color(171, 173, 179)), BorderFactory.createEmptyBorder(3, 5, 3, 5)));
 		builder.add(decodeTips, FormLayoutUtil.flip(cc.xyw(1, 41, 3), colSpec, orientation));
 
 		disableSubs = new JCheckBox(Messages.getString("TrTab2.51"));
