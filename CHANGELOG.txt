@@ -10,6 +10,7 @@
 		Enabled convertfps by default
 		Made the AviSynth script instructions separate to the input box
 		Minor design improvements to the Transcoding tab
+		Made True Motion smoother
 		Assorted bugfixes
 	Languages:
 		Updated Catalan
