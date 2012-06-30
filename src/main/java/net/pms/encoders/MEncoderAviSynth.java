@@ -55,7 +55,6 @@ public class MEncoderAviSynth extends MEncoderVideo {
 
 		CellConstraints cc = new CellConstraints();
 
-
 		JComponent cmp = builder.addSeparator(Messages.getString("MEncoderAviSynth.2"), cc.xyw(2, 1, 1));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
@@ -86,7 +85,8 @@ public class MEncoderAviSynth extends MEncoderVideo {
 						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 						Messages.getString("MEncoderAviSynth.16"),
 						"Information",
-						JOptionPane.INFORMATION_MESSAGE);
+						JOptionPane.INFORMATION_MESSAGE
+					);
 				}
 			}
 		});
@@ -168,6 +168,7 @@ public class MEncoderAviSynth extends MEncoderVideo {
 	public int purpose() {
 		return VIDEO_SIMPLEFILE_PLAYER;
 	}
+
 	public static final String ID = "avsmencoder";
 
 	@Override
