@@ -121,6 +121,7 @@ Section "Program Files"
   ;the user may have set the installation dir
   ;as the profile dir, so we can't clobber this
   SetOverwrite off
+  File "${PROJECT_BASEDIR}\src\main\external-resources\UMS.conf"
   File "${PROJECT_BASEDIR}\src\main\external-resources\WEB.conf"
 
   ;Store install folder
@@ -145,6 +146,8 @@ Section "Program Files"
   ReadENVStr $R0 ALLUSERSPROFILE
   SetOutPath "$R0\UMS"
   AccessControl::GrantOnFile "$R0\UMS" "(S-1-5-32-545)" "FullAccess"
+  File "${PROJECT_BASEDIR}\src\main\external-resources\UMS.conf"
+  File "${PROJECT_BASEDIR}\src\main\external-resources\WEB.conf"
 SectionEnd
 
 Section "Start Menu Shortcuts"
