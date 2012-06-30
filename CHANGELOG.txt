@@ -1,7 +1,7 @@
 ﻿1.2.1 - 2012-06-??
 
 	General:
-		Fixed 3-year-old bug that caused some videos to skip forward by minutes
+		Improved video buffer stability
 		The default versions of UMS.conf and WEB.conf are now put in ProgramData on Windows (thanks to vulcan for reporting this bug)
 		Updated UMS.conf
 		Updated renderer.conf creation instructions
