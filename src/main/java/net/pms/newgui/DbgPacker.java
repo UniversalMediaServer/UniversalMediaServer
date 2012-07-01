@@ -109,7 +109,6 @@ public class DbgPacker implements ActionListener {
 		}
 		// add core items with debug.log last (LinkedHashMap preserves insertion order)
 		String profileDirectory = configuration.getProfileDirectory();
-		add(new File(debug_log.replace("debug.log", "pmsencoder.log")));
 		add(new File(profileDirectory, "WEB.conf"));
 		add(new File(configuration.getProfilePath()));
 		add(new File(debug_log));
