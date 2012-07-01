@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import static net.pms.configuration.RendererConfiguration.RENDERER_ID_PLAYSTATION3;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.encoders.*;
@@ -1076,21 +1077,25 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 			for (int c = 0; c < indexCount; c++) {
 				openTag(sb, "res");
-				// DLNA.ORG_OP : 1er 10 = exemple: TimeSeekRange.dlna.org :npt=187.000-
-				//                   01 = Range par octets
-				//                   00 = pas de range, meme pas de pause possible
+
+				/*
+				 * DLNA.ORG_OP : 1er 10 = exemple: TimeSeekRange.dlna.org :npt=187.000-
+				 *                   01 = Range par octets
+				 *                   00 = pas de range, meme pas de pause possible
+				 */ 
 				flags = "DLNA.ORG_OP=01";
 				if (getPlayer() != null) {
 					if (getPlayer().isTimeSeekable() && mediaRenderer.isSeekByTime()) {
-						if (mediaRenderer.getRendererName().equalsIgnoreCase("Playstation 3")) // PS3 doesn't like OP=11
-						{
+
+						// PS3 doesn't like OP=11
+						if (mediaRenderer.getRendererUniqueID().equalsIgnoreCase(RENDERER_ID_PLAYSTATION3)) {
 							flags = "DLNA.ORG_OP=10";
 						} else {
 							flags = "DLNA.ORG_OP=11";
 						}
 					}
 				} else {
-					if (mediaRenderer.isSeekByTime() && !mediaRenderer.getRendererName().equalsIgnoreCase("Playstation 3")) {
+					if (mediaRenderer.isSeekByTime() && !mediaRenderer.getRendererUniqueID().equalsIgnoreCase(RENDERER_ID_PLAYSTATION3)) {
 						flags = "DLNA.ORG_OP=11";
 					}
 				}
@@ -1100,7 +1105,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				if (mime == null) {
 					mime = "video/mpeg";
 				}
-				if (mediaRenderer.getRendererName().equalsIgnoreCase("Playstation 3")) { // TODO: REMOVE, OR AT LEAST MAKE THIS GENERIC // whole extensions/mime-types mess to rethink anyway
+
+				// TODO: Remove, or at least make this generic
+				// Whole extensions/mime-types mess to rethink anyway
+				if (mediaRenderer.getRendererUniqueID().equalsIgnoreCase(RENDERER_ID_PLAYSTATION3)) {
 					if (mime.equals("video/x-divx")) {
 						dlnaspec = "DLNA.ORG_PN=AVI";
 					} else if (mime.equals("video/x-ms-wmv") && getMedia() != null && getMedia().getHeight() > 700) {
@@ -1109,9 +1117,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				} else {
 					if (mime.equals("video/mpeg")) {
 						if (getPlayer() != null) {
-							// do we have some mpegts to offer ?
+							// Do we have some mpegts to offer?
 							boolean mpegTsMux = TSMuxerVideo.ID.equals(getPlayer().id()) || VideoLanVideoStreaming.ID.equals(getPlayer().id());
-							if (!mpegTsMux) { // maybe, like the ps3, mencoder can launch tsmuxer if this a compatible H264 video
+							if (!mpegTsMux) { // Maybe, like the PS3, MEncoder can launch tsMuxeR if this a compatible H264 video
 								mpegTsMux = MEncoderVideo.ID.equals(getPlayer().id()) && ((getMediaSubtitle() == null && getMedia() != null && getMedia().getDvdtrack() == 0 && getMedia().isMuxable(mediaRenderer)
 									&& PMS.getConfiguration().isMencoderMuxWhenCompatible() && mediaRenderer.isMuxH264MpegTS())
 									|| mediaRenderer.isTranscodeToMPEGTSAC3());
