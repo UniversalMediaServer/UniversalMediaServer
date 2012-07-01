@@ -52,6 +52,7 @@ import net.pms.network.HTTPServer;
 import net.pms.network.NetworkConfiguration;
 import net.pms.network.ProxyServer;
 import net.pms.network.UPNPHelper;
+import net.pms.newgui.DbgPacker;
 import net.pms.newgui.GeneralTab;
 import net.pms.newgui.LooksFrame;
 import net.pms.newgui.ProfileChooser;
@@ -378,6 +379,8 @@ public class PMS {
 
 		LOGGER.info("Profile name: " + configuration.getProfileName());
 		LOGGER.info("");
+
+		dbgPack = new DbgPacker();
 
 		RendererConfiguration.loadRendererConfigurations(configuration);
 
@@ -1109,5 +1112,11 @@ public class PMS {
 		out.write(data.getBytes());
 		out.flush();
 		out.close();
+	}
+
+	private DbgPacker dbgPack;
+
+	public DbgPacker dbgPack() {
+		return dbgPack;
 	}
 }
