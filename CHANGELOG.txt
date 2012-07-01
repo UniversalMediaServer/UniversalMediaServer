@@ -1,4 +1,9 @@
-﻿1.2.1 - 2012-06-30
+﻿1.2.2 - 2012-07-??
+
+	General:
+		
+
+1.2.1 - 2012-06-30
 
 	General:
 		Improved video buffer stability
