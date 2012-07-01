@@ -1037,27 +1037,26 @@ public class PMS {
 			}
 		}
 	}
-	
-	///////////////////////////////////////////////////////////////
-	// Restart handling
-	///////////////////////////////////////////////////////////////
-	
+
+	/*
+	 * Restart handling
+	 */
+
 	private static void killOld() {
 		try {
 			killProc();
 		} catch (IOException e) {
-			LOGGER.debug("error killing old proc "+e);
+			LOGGER.debug("error killing old proc " + e);
 		}
 		try {
 			dumpPid();
 		} catch (IOException e) {
-			LOGGER.debug("error dumping pid "+e);
+			LOGGER.debug("error dumping pid " + e);
 		}
 	}
-	
+
 	private static boolean verifyPidName(String pid) throws IOException {
-		ProcessBuilder pb = new ProcessBuilder("tasklist","/FI","\"PID eq " + pid 
-				+ "\"", "/NH", "/FO", "CSV");
+		ProcessBuilder pb = new ProcessBuilder("tasklist","/FI","\"PID eq " + pid + "\"", "/NH", "/FO", "CSV");
 		pb.redirectErrorStream(true);
 		Process p = pb.start();
 		BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -1069,43 +1068,43 @@ public class PMS {
 		}
 		String line=in.readLine();
 		in.close();
-		if(line == null) {
+		if (line == null) {
 			return false;
 		}
 		return line.split(",")[0].replaceAll("\"", "").equals("javaw.exe");		
 	}
-	
+
 	private static void killProc() throws IOException {
-		ProcessBuilder pb=null;
+		ProcessBuilder pb = null;
 		BufferedReader in = new BufferedReader(new FileReader("pms.pid"));
-		String pid=in.readLine();
+		String pid = in.readLine();
 		in.close();
-		if(Platform.isWindows()) {
-			if(verifyPidName(pid)) {
-				pb=new ProcessBuilder("taskkill","/F","/PID",pid,"/T");
+		if (Platform.isWindows()) {
+			if (verifyPidName(pid)) {
+				pb = new ProcessBuilder("taskkill","/F","/PID",pid,"/T");
 			}
-		}
-		else if(Platform.isFreeBSD()||Platform.isLinux()||Platform.isOpenBSD()||Platform.isSolaris())
+		} else if (Platform.isFreeBSD() || Platform.isLinux() || Platform.isOpenBSD() || Platform.isSolaris()) {
 			pb=new ProcessBuilder("kill","-9",pid);
-		if(pb==null) 
+		}
+		if (pb == null) {
 			return;
+		}
 		try {			
-			Process p=pb.start();
+			Process p = pb.start();
 			p.waitFor();
 		} catch (Exception e) {
-			LOGGER.debug("error kill pid "+e);
+			LOGGER.debug("error kill pid " + e);
 		}
 	}
-	
+
 	public static long getPID() {
-	    String processName =
-	      java.lang.management.ManagementFactory.getRuntimeMXBean().getName();
-	    return Long.parseLong(processName.split("@")[0]);
-	  }
-	
+		String processName = java.lang.management.ManagementFactory.getRuntimeMXBean().getName();
+		return Long.parseLong(processName.split("@")[0]);
+	}
+
 	private static void dumpPid() throws IOException {
-		FileOutputStream out=new FileOutputStream("pms.pid");
-		String data=String.valueOf(getPID())+"\r\n";
+		FileOutputStream out = new FileOutputStream("pms.pid");
+		String data = String.valueOf(getPID()) + "\r\n";
 		out.write(data.getBytes());
 		out.flush();
 		out.close();
