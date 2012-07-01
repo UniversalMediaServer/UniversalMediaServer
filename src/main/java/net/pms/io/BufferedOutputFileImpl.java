@@ -48,9 +48,9 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 
 	/**
 	 * Initial size for the buffer in bytes.
-	 * The current value is 100MB.
+	 * The current value is 50MB.
 	 */
-	private static final int INITIAL_BUFFER_SIZE = 104857600;
+	private static final int INITIAL_BUFFER_SIZE = 52428800;
 
 	/**
 	 * Amount of extra bytes to increase the initial buffer with when memory
