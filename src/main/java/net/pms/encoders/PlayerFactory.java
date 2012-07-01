@@ -84,7 +84,7 @@ public final class PlayerFactory {
 	 */
 	private static void registerPlayers(final PmsConfiguration configuration) {
 		if (Platform.isWindows()) {
-			registerPlayer(new FFMpegVideo());
+			registerPlayer(new FFMpegAviSynthVideo());
 		}
 
 		registerPlayer(new FFMpegAudio(configuration));
@@ -94,6 +94,7 @@ public final class PlayerFactory {
 			registerPlayer(new MEncoderAviSynth(configuration));
 		}
 
+		registerPlayer(new FFMpegVideo());
 		registerPlayer(new MPlayerAudio(configuration));
 		registerPlayer(new MEncoderWebVideo(configuration));
 		registerPlayer(new MPlayerWebVideoDump(configuration));
