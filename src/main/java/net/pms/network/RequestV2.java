@@ -445,7 +445,7 @@ public class RequestV2 extends HTTPResource {
 				byte b[] = new byte[inputStream.available()];
 				inputStream.read(b);
 				String s = new String(b);
-				s = s.replace("[uuid]", PMS.get().usn());//.substring(0, PMS.get().usn().length()-2));
+				s = s.replace("[uuid]", PMS.get().usn()); //.substring(0, PMS.get().usn().length()-2));
 				String profileName = PMS.getConfiguration().getProfileName();
 				if (PMS.get().getServer().getHost() != null) {
 					s = s.replace("[host]", PMS.get().getServer().getHost());
@@ -465,7 +465,7 @@ public class RequestV2 extends HTTPResource {
 					s = s.replace("Universal Media Server", "Universal Media Server [" + profileName + "]");
 				}
 
-				if (!mediaRenderer.isPS3()) {
+				if (!mediaRenderer.getRendererName().equalsIgnoreCase("Playstation 3")) {
 					// hacky stuff. replace the png icon by a jpeg one. Like mpeg2 remux,
 					// really need a proper format compatibility list by renderer
 					s = s.replace("<mimetype>image/png</mimetype>", "<mimetype>image/jpeg</mimetype>");

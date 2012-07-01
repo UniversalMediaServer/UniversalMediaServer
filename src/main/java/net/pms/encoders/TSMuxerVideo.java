@@ -190,7 +190,7 @@ public class TSMuxerVideo extends Player {
 
 			if (media != null) {
 				boolean compat = (media.isVideoPS3Compatible(newInput) || !params.mediaRenderer.isH264Level41Limited());
-				if (!compat && params.mediaRenderer.isPS3()) {
+				if (!compat && params.mediaRenderer.getRendererName().equalsIgnoreCase("Playstation 3")) {
 					LOGGER.info("The video will not play or show a black screen on the ps3...");
 				}
 				if (media.getH264AnnexB() != null && media.getH264AnnexB().length > 0) {
