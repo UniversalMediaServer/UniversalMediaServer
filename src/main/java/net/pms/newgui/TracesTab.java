@@ -147,7 +147,7 @@ public class TracesTab {
 		packDbg.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
 				JComponent comp = PMS.get().dbgPack().config();
-				String[] cancelStr = {"Cancel"};
+				String[] cancelStr = {"Close"};
 				JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 					comp, "Options", JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, cancelStr, null);
 			}

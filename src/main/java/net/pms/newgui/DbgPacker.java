@@ -102,8 +102,8 @@ public class DbgPacker implements ActionListener {
 			}
 		}
 		PmsConfiguration configuration = PMS.getConfiguration();
-		// check dbgpack property in PMS.conf
-		PMS.debug("checking dbgpack property in PMS.conf");
+		// check dbgpack property in UMS.conf
+		PMS.debug("checking dbgpack property in UMS.conf");
 		String f = (String)configuration.getCustomProperty("dbgpack");
 		if(f != null) {
 			add(f.split(","));
@@ -197,10 +197,6 @@ public class DbgPacker implements ActionListener {
 		}
 	}
 
-	//		@Override
-	//		public void itemStateChanged(ItemEvent e) {
-	//		}
-
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		String str = e.getActionCommand();
@@ -230,7 +226,7 @@ public class DbgPacker implements ActionListener {
 		init = true;
 		((Window)c.getTopLevelAncestor()).dispose();
 		JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-				config(), "Options", JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);
+			config(), "Options", JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);
 	}
 }
 
