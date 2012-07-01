@@ -248,19 +248,18 @@ public class RendererConfiguration {
 		return rank;
 	}
 
-	// Those 'is' methods should disappear
+	// These 'is' methods should disappear. Use getRendererUniqueID() instead.
+	@Deprecated
 	public boolean isXBOX() {
 		return getRendererName().toUpperCase().contains("XBOX");
 	}
 
-	public boolean isXBMC() {
-		return getRendererName().toUpperCase().contains("XBMC");
-	}
-
+	@Deprecated
 	public boolean isBRAVIA() {
 		return getRendererName().toUpperCase().contains("BRAVIA");
 	}
 
+	@Deprecated
 	public boolean isFDSSDP() {
 		return getRendererName().toUpperCase().contains("FDSSDP");
 	}
