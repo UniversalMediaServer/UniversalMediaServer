@@ -55,6 +55,7 @@ public class DLNAMediaDatabase implements Runnable {
 	private final int SIZE_CONTAINER = 32;
 	private final int SIZE_MODEL = 128;
 	private final int SIZE_MUXINGMODE = 32;
+	private final int SIZE_FRAMERATE_MODE = 16;
 	private final int SIZE_LANG = 3;
 	private final int SIZE_FLAVOR = 128;
 	private final int SIZE_SAMPLEFREQ = 16;
@@ -180,6 +181,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", ORIENTATION       INT");
 				sb.append(", ISO               INT");
 				sb.append(", MUXINGMODE        VARCHAR2(").append(SIZE_MUXINGMODE).append(")");
+				sb.append(", FRAMERATEMODE     VARCHAR2(").append(SIZE_FRAMERATE_MODE).append(")");
 				sb.append(", constraint PK1 primary key (FILENAME, MODIFIED, ID))");
 				executeUpdate(conn, sb.toString());
 				sb = new StringBuilder();
@@ -310,6 +312,7 @@ public class DLNAMediaDatabase implements Runnable {
 				media.setOrientation(rs.getInt("ORIENTATION"));
 				media.setIso(rs.getInt("ISO"));
 				media.setMuxingMode(rs.getString("MUXINGMODE"));
+				media.setFrameRateMode(rs.getString("FRAMERATEMODE"));
 				media.setMediaparsed(true);
 				PreparedStatement audios = conn.prepareStatement("SELECT * FROM AUDIOTRACKS WHERE FILEID = ?");
 				audios.setInt(1, id);
@@ -377,7 +380,7 @@ public class DLNAMediaDatabase implements Runnable {
 		PreparedStatement ps = null;
 		try {
 			conn = getConnection();
-			ps = conn.prepareStatement("INSERT INTO FILES(FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, FRAMERATE, ASPECT, BITSPERPIXEL, THUMB, CONTAINER, MODEL, EXPOSURE, ORIENTATION, ISO, MUXINGMODE) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+			ps = conn.prepareStatement("INSERT INTO FILES(FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, FRAMERATE, ASPECT, BITSPERPIXEL, THUMB, CONTAINER, MODEL, EXPOSURE, ORIENTATION, ISO, MUXINGMODE, FRAMERATEMODE) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 			ps.setString(1, name);
 			ps.setTimestamp(2, new Timestamp(modified));
 			ps.setInt(3, type);
@@ -406,7 +409,7 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setInt(17, media.getOrientation());
 				ps.setInt(18, media.getIso());
 				ps.setString(19, truncate(media.getMuxingModeAudio(), SIZE_MUXINGMODE));
-
+				ps.setString(20, truncate(media.getFrameRateMode(), SIZE_FRAMERATE_MODE));
 			} else {
 				ps.setString(4, null);
 				ps.setInt(5, 0);
@@ -424,6 +427,7 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setInt(17, 0);
 				ps.setInt(18, 0);
 				ps.setString(19, null);
+				ps.setString(20, null);
 			}
 			ps.executeUpdate();
 			ResultSet rs = ps.getGeneratedKeys();

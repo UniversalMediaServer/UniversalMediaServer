@@ -103,6 +103,8 @@ public class DLNAMediaInfo implements Cloneable {
 	@Deprecated
 	public String frameRate;
 
+	private String frameRateMode;
+
 	/**
 	 * @deprecated Use standard getter and setter to access this variable.
 	 */
@@ -1380,6 +1382,22 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public void setFrameRate(String frameRate) {
 		this.frameRate = frameRate;
+	}
+
+	/**
+	 * @return the frameRateMode
+	 * @since 1.55
+	 */
+	public String getFrameRateMode() {
+		return frameRateMode;
+	}
+
+	/**
+	 * @param frameRateMode the frameRateMode to set
+	 * @since 1.55
+	 */
+	public void setFrameRateMode(String frameRateMode) {
+		this.frameRateMode = frameRateMode;
 	}
 
 	/**
