@@ -1,6 +1,7 @@
 package net.pms.configuration;
 
 import java.io.File;
+import net.pms.PMS;
 import net.pms.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +16,9 @@ class WindowsDefaultPaths implements ProgramPaths {
 
 	@Override
 	public String getFfmpegPath() {
+		if (PMS.getOSBitness() == 64) {
+			return getBinariesPath() + "win32/ffmpeg64.exe";
+		}
 		return getBinariesPath() + "win32/ffmpeg.exe";
 	}
 
