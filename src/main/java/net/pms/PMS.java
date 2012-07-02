@@ -52,6 +52,7 @@ import net.pms.network.HTTPServer;
 import net.pms.network.NetworkConfiguration;
 import net.pms.network.ProxyServer;
 import net.pms.network.UPNPHelper;
+import net.pms.newgui.DbgPacker;
 import net.pms.newgui.GeneralTab;
 import net.pms.newgui.LooksFrame;
 import net.pms.newgui.ProfileChooser;
@@ -378,6 +379,8 @@ public class PMS {
 
 		LOGGER.info("Profile name: " + configuration.getProfileName());
 		LOGGER.info("");
+
+		dbgPack = new DbgPacker();
 
 		RendererConfiguration.loadRendererConfigurations(configuration);
 
@@ -1082,7 +1085,7 @@ public class PMS {
 	}
 
 	private static boolean verifyPidName(String pid) throws IOException {
-		ProcessBuilder pb = new ProcessBuilder("tasklist","/FI","\"PID eq " + pid + "\"", "/NH", "/FO", "CSV");
+		ProcessBuilder pb = new ProcessBuilder("tasklist","/FI","\"PID eq " + pid + "\"", "/V", "/NH", "/FO", "CSV");
 		pb.redirectErrorStream(true);
 		Process p = pb.start();
 		BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -1097,7 +1100,13 @@ public class PMS {
 		if (line == null) {
 			return false;
 		}
-		return line.split(",")[0].replaceAll("\"", "").equals("javaw.exe");		
+		// remove all " and convert to common case before splitting result on ,
+		String[] tmp = line.toLowerCase().replaceAll("\"", "").split(",");
+		// if the line is too short we don't kill the process
+		if(tmp.length < 9) {
+			return false;
+		}
+		return tmp[0].equals("javaw.exe") && tmp[8].contains("universal media server");		
 	}
 
 	private static void killProc() throws IOException {
@@ -1129,10 +1138,18 @@ public class PMS {
 	}
 
 	private static void dumpPid() throws IOException {
-		FileOutputStream out = new FileOutputStream("pms.pid");
-		String data = String.valueOf(getPID()) + "\r\n";
+		FileOutputStream out=new FileOutputStream("pms.pid");
+		long pid = getPID();
+		LOGGER.debug("My PID is "+pid);
+		String data=String.valueOf(pid)+"\r\n";
 		out.write(data.getBytes());
 		out.flush();
 		out.close();
+	}
+
+	private DbgPacker dbgPack;
+
+	public DbgPacker dbgPack() {
+		return dbgPack;
 	}
 }
