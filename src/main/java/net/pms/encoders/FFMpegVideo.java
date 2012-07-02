@@ -106,7 +106,7 @@ public class FFMpegVideo extends Player {
 				args[i] = defaultArgs[i];
 			}
 			for (int i = 0; i < overriddenArgs.length; i++) {
-				if (overriddenArgs[i].equals("-f") || overriddenArgs[i].equals("-acodec") || overriddenArgs[i].equals("-vcodec")) {
+				if (overriddenArgs[i].equals("-f") || overriddenArgs[i].equals("-c:a") || overriddenArgs[i].equals("-c:v")) {
 					LOGGER.info("FFmpeg encoder settings: You cannot change Muxer, Video Codec or Audio Codec");
 					overriddenArgs[i] = "-title";
 					if (i + 1 < overriddenArgs.length) {
