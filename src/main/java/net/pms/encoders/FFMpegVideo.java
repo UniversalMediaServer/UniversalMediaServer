@@ -93,7 +93,7 @@ public class FFMpegVideo extends Player {
 	}
 
 	protected String[] getDefaultArgs() {
-		return new String[]{"-vcodec", "mpeg2video", "-f", "vob", "-acodec", "ac3"};
+		return new String[]{"-vcodec", "mpeg2video", "-f", "vob", "-acodec", "ac3", "-loglevel", "fatal"};
 	}
 
 	@Override
