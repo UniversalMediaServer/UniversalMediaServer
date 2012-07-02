@@ -1095,7 +1095,7 @@ public class PMS {
 			in.close();
 			return false;
 		}
-		String line=in.readLine();
+		String line = in.readLine();
 		in.close();
 		if (line == null) {
 			return false;
@@ -1103,10 +1103,10 @@ public class PMS {
 		// remove all " and convert to common case before splitting result on ,
 		String[] tmp = line.toLowerCase().replaceAll("\"", "").split(",");
 		// if the line is too short we don't kill the process
-		if(tmp.length < 9) {
+		if (tmp.length < 9) {
 			return false;
 		}
-		return tmp[0].equals("javaw.exe") && tmp[8].contains("universal media server");		
+		return tmp[0].equals("javaw.exe") && tmp[8].contains("universal media server");
 	}
 
 	private static void killProc() throws IOException {
@@ -1138,10 +1138,10 @@ public class PMS {
 	}
 
 	private static void dumpPid() throws IOException {
-		FileOutputStream out=new FileOutputStream("pms.pid");
+		FileOutputStream out = new FileOutputStream("pms.pid");
 		long pid = getPID();
-		LOGGER.debug("My PID is "+pid);
-		String data=String.valueOf(pid)+"\r\n";
+		LOGGER.debug("My PID is " + pid);
+		String data = String.valueOf(pid) + "\r\n";
 		out.write(data.getBytes());
 		out.flush();
 		out.close();
