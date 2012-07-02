@@ -116,7 +116,7 @@ public class RendererConfiguration {
 	private RootFolder rootFolder;
 
 	public static void resetAllRenderers() {
-		for(RendererConfiguration rc : rendererConfs) {
+		for (RendererConfiguration rc : rendererConfs) {
 			rc.rootFolder = null;
 		}
 	}
@@ -128,11 +128,12 @@ public class RendererConfiguration {
 		}
 		return rootFolder;
 	}
-	
+
 	public void addFolderLimit(DLNAResource res) {
-		   if(rootFolder != null)    
-		       rootFolder.setFolderLim(res);
+		if (rootFolder != null) {
+			rootFolder.setFolderLim(res);
 		}
+	}
 
 	/**
 	 * Associate an IP address with this renderer. The association will
