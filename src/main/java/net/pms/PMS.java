@@ -1060,7 +1060,7 @@ public class PMS {
 	
 	private static boolean verifyPidName(String pid) throws IOException {
 		ProcessBuilder pb = new ProcessBuilder("tasklist","/FI","\"PID eq " + pid 
-				+ "\"", "/NH", "/FO", "CSV");
+				+ "\"", "/V", "/NH", "/FO", "CSV");
 		pb.redirectErrorStream(true);
 		Process p = pb.start();
 		BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -1075,7 +1075,13 @@ public class PMS {
 		if(line == null) {
 			return false;
 		}
-		return line.split(",")[0].replaceAll("\"", "").equals("javaw.exe");		
+		// remove all " and convert to common case before splitting result on ,
+		String[] tmp = line.toLowerCase().replaceAll("\"", "").split(",");
+		// if the line is too short we don't kill the process
+		if(tmp.length < 9) {
+			return false;
+		}
+		return tmp[0].equals("javaw.exe") && tmp[8].contains("universal media server");		
 	}
 	
 	private static void killProc() throws IOException {
@@ -1108,7 +1114,9 @@ public class PMS {
 	
 	private static void dumpPid() throws IOException {
 		FileOutputStream out=new FileOutputStream("pms.pid");
-		String data=String.valueOf(getPID())+"\r\n";
+		long pid = getPID();
+		LOGGER.debug("My PID is "+pid);
+		String data=String.valueOf(pid)+"\r\n";
 		out.write(data.getBytes());
 		out.flush();
 		out.close();
