@@ -1000,6 +1000,28 @@ public class PMS {
 	}
 
 	/**
+	 * Returns whether the operating system is 64-bit or 32-bit.
+	 *
+	 * This will work with Windows and OS X but not necessarily with Linux
+	 * because when the OS is not Windows we are using Java's os.arch which
+	 * only detects the bitness of Java, not of the operating system.
+	 *
+	 * @return The bitness of the operating system.
+	 */
+	public static int getOSBitness() {
+		int bitness = 32;
+
+		if (
+			(System.getProperty("os.name").contains("Windows") && System.getenv("ProgramFiles(x86)") != null) ||
+			System.getProperty("os.arch").indexOf("64") != -1
+		) {
+			bitness = 64;
+		}
+
+		return bitness;
+	}
+
+	/**
 	 * Log system properties identifying Java, the OS and encoding and log
 	 * warnings where appropriate.
 	 */
@@ -1007,7 +1029,7 @@ public class PMS {
 		long memoryInMB = Runtime.getRuntime().maxMemory() / 1048576;
 
 		LOGGER.info("Java: " + System.getProperty("java.version") + "-" + System.getProperty("java.vendor"));
-		LOGGER.info("OS: " + System.getProperty("os.name") + " " + System.getProperty("os.arch") + " " + System.getProperty("os.version"));
+		LOGGER.info("OS: " + System.getProperty("os.name") + " " + getOSBitness() + "-bit " + System.getProperty("os.version"));
 		LOGGER.info("Encoding: " + System.getProperty("file.encoding"));
 		LOGGER.info("Memory: " + memoryInMB + " " + Messages.getString("StatusTab.12"));
 		LOGGER.info("");
