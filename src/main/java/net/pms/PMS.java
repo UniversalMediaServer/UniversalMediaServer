@@ -700,26 +700,28 @@ public class PMS {
 		LOGGER.error(msg, t);
 	}
 
-	/**Universally Unique Identifier used in the UPnP server.
+	/*
+	 * Universally Unique Identifier used in the UPnP server.
 	 * 
 	 */
 	private String uuid;
 
-	/**Creates a new {@link #uuid} for the UPnP server to use. Tries to follow the RFCs for creating the UUID based on the link MAC address.
+	/*
+	 * Creates a new {@link #uuid} for the UPnP server to use. Tries to follow the RFCs for creating the UUID based on the link MAC address.
 	 * Defaults to a random one if that method is not available.
 	 * @return {@link String} with an Universally Unique Identifier.
 	 */
 	public String usn() {
 		if (uuid == null) {
-			//retrieve UUID from configuration
+			// Retrieve UUID from configuration
 			uuid = getConfiguration().getUuid();
 
 			if (uuid == null) {
-				//create a new UUID based on the MAC address of the used network adapter
+				// Create a new UUID based on the MAC address of the used network adapter
 				NetworkInterface ni = null;
 				try {
 					ni = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
-					// if no ni comes from the server host name, we should get the default.
+					// If no ni comes from the server host name, we should get the default.
 					if (ni != null) {
 						ni = get().getServer().getNi();
 					}
@@ -737,13 +739,13 @@ public class PMS {
 					LOGGER.debug("Caught exception", e);
 				}
 
-				//create random UUID if the generation by MAC address failed
+				// Create random UUID if the generation by MAC address failed
 				if (uuid == null) {
 					uuid = UUID.randomUUID().toString();
 					LOGGER.info("Generated new random UUID");
 				}
 
-				//save the newly generated UUID
+				// Save the newly generated UUID
 				getConfiguration().setUuid(uuid);
 				try {
 					getConfiguration().save();
@@ -757,7 +759,8 @@ public class PMS {
 		return "uuid:" + uuid;
 	}
 
-	/**Returns the user friendly name of the UPnP server. 
+	/*
+	 * Returns the user friendly name of the UPnP server. 
 	 * @return {@link String} with the user friendly name.
 	 */
 	public String getServerName() {
@@ -768,13 +771,14 @@ public class PMS {
 			sb.append(System.getProperty("os.arch").replace(" ", "_"));
 			sb.append("-");
 			sb.append(System.getProperty("os.version").replace(" ", "_"));
-			sb.append(", UPnP/1.0, UMS/" + getVersion());
+			sb.append(", UPnP/1.0, UMS/").append(getVersion());
 			serverName = sb.toString();
 		}
 		return serverName;
 	}
 
-	/**Returns the PMS instance.
+	/*
+	 * Returns the PMS instance.
 	 * @return {@link PMS}
 	 */
 	public static PMS get() {
