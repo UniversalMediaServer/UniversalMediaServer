@@ -67,7 +67,7 @@ public class ExternalFactory {
 	 */
 	private static List<Class<?>> downloadedListenerClasses = new ArrayList<Class<?>>();
 	
-	private static boolean allDone=false;
+	private static boolean allDone = false;
 
 	
 	/**
@@ -139,8 +139,9 @@ public class ExternalFactory {
 				// Try to load the class based on the main class name
 				Class<?> clazz = classLoader.loadClass(pluginMainClassName);
 				registerListenerClass(clazz);
-				if(download)
+				if(download) {
 					downloadedListenerClasses.add(clazz);
+				}
 					
 			} catch (Exception e) {
 				LOGGER.error("Error loading plugin", e);
@@ -268,8 +269,9 @@ public class ExternalFactory {
 		Method postInstall;
 		try {
 			postInstall = clazz.getDeclaredMethod("postInstall", null);
-			if(Modifier.isStatic(postInstall.getModifiers()))
+			if(Modifier.isStatic(postInstall.getModifiers())) {
 				postInstall.invoke(null, null);
+			}
 		}
 		// Ignore all errors
 		catch (SecurityException e) {
@@ -292,10 +294,10 @@ public class ExternalFactory {
 		for (Class<?> clazz: downloadedListenerClasses) {
 			ExternalListener instance;
 			try {
-				doUpdate(update,Messages.getString("NetworkTab.48")+" "+clazz.getSimpleName());
+				doUpdate(update,Messages.getString("NetworkTab.48") + " " + clazz.getSimpleName());
 				postInstall(clazz);
 				instance = (ExternalListener) clazz.newInstance();
-				doUpdate(update,instance.name()+" "+Messages.getString("NetworkTab.49"));
+				doUpdate(update,instance.name() + " " + Messages.getString("NetworkTab.49"));
 				registerListener(instance);
 				if(PMS.get().getFrame() instanceof LooksFrame) {
 					LooksFrame frame = (LooksFrame) PMS.get().getFrame();
