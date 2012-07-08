@@ -89,7 +89,7 @@ public class LibMediaInfoParser {
 								media.setMuxingMode(ovalue);
 							} else if (key.equals("CodecID")) {
 								if (step == MediaInfo.StreamKind.Text) {
-									getSubCodec(currentSubTrack, value);
+									currentSubTrack.setType(SubtitleType.getSubtitleTypeByLibMediaInfoCodec(value));
 								} else {
 									getFormat(step, media, currentAudioTrack, value);
 								}
@@ -353,10 +353,6 @@ public class LibMediaInfoParser {
 				audio.setCodecA(format);
 			}
 		}
-	}
-
-	public static void getSubCodec(DLNAMediaSubtitle subt, String value) {
-		subt.setType(SubtitleType.getSubtitleTypeByLibMediaInfoCodec(value));
 	}
 
 	public static int getPixelValue(String value) {
