@@ -22,9 +22,14 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.MalformedURLException;
 import java.net.Socket;
+import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -405,29 +410,34 @@ public class Request extends HTTPResource {
 			if (soapaction == null) { //ignore this
 				return;
 			}
-			String uuid="uuid:" + UUID.randomUUID().toString();
 			output(output, CONTENT_TYPE_UTF8);
-			output(output,"Content-Length: 0");
-			output(output,"Connection: close");
-			output(output,"SID: "+uuid);
-			output(output,"Server: "+PMS.get().getServerName());
-			output(output,"Timeout: Second-1800");
-			output(output,"");
+			output(output, "Content-Length: 0");
+			output(output, "Connection: close");
+			output(output, "SID: " + PMS.get().usn());
+			output(output, "Server: " + PMS.get().getServerName());
+			output(output, "Timeout: Second-1800");
+			output(output, "");
 			output.flush();
-			//output.close();
+
 			String cb = soapaction.replace("<", "").replace(">", "");
-			String faddr = cb.replace("http://", "").replace("/", "");
-			String addr = faddr.split(":")[0];
-			int port = Integer.parseInt(faddr.split(":")[1]);
-			Socket sock = new Socket(addr,port);
-			OutputStream out = sock.getOutputStream();
-			output(out, "NOTIFY /" + argument + " HTTP/1.1");
-			output(out, "SID: " + uuid);
-			output(out, "SEQ: " + 0);
-			output(out, "NT: upnp:event");
-			output(out, "NTS: upnp:propchange");
-			output(out, "HOST: " + faddr);
-			output(out, CONTENT_TYPE_UTF8);
+
+			try {
+				URL soapActionUrl = new URL(cb);
+				String addr = soapActionUrl.getHost();
+				int port = soapActionUrl.getPort();
+				Socket sock = new Socket(addr,port);
+				OutputStream out = sock.getOutputStream();
+
+				output(out, "NOTIFY /" + argument + " HTTP/1.1");
+				output(out, "SID: " + PMS.get().usn());
+				output(out, "SEQ: " + 0);
+				output(out, "NT: upnp:event");
+				output(out, "NTS: upnp:propchange");
+				output(out, "HOST: " + addr + ":" + port);
+				output(out, CONTENT_TYPE_UTF8);
+			} catch (MalformedURLException ex) {
+				LOGGER.debug("Cannot parse address and port from soap action \"" + soapaction + "\"", ex);
+			}
 			if (argument.contains("connection_manager")) {
 				response.append(HTTPXMLHelper.eventHeader("urn:schemas-upnp-org:service:ConnectionManager:1"));
 				response.append(HTTPXMLHelper.eventProp("SinkProtocolInfo"));
