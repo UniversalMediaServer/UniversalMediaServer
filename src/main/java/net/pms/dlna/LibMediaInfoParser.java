@@ -147,7 +147,7 @@ public class LibMediaInfoParser {
 									}
 								} else {
 									if (step == MediaInfo.StreamKind.Audio) {
-										currentAudioTrack.setId(media.getAudioCodes().size());
+										currentAudioTrack.setId(media.getAudioTracksList().size());
 										if (media.getContainer() != null && (media.getContainer().equals(FormatConfiguration.AVI) || media.getContainer().equals(FormatConfiguration.FLV) || media.getContainer().equals(FormatConfiguration.MOV) || media.getContainer().equals(FormatConfiguration.MP4))) {
 											currentAudioTrack.setId(currentAudioTrack.getId() + 1);
 										}
@@ -225,7 +225,7 @@ public class LibMediaInfoParser {
 		if (currentAudioTrack.getNrAudioChannels() == 0) {
 			currentAudioTrack.setNrAudioChannels(2); //stereo by default
 		}
-		media.getAudioCodes().add(currentAudioTrack);
+		media.getAudioTracksList().add(currentAudioTrack);
 	}
 
 	public static void addSub(DLNAMediaSubtitle currentSubTrack, DLNAMediaInfo media) {

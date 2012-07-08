@@ -19,43 +19,24 @@
 
 package net.pms.test.formats;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assume.assumeTrue;
-
+import ch.qos.logback.classic.LoggerContext;
 import java.io.IOException;
 import java.util.ArrayList;
-
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.LibMediaInfoParser;
-import net.pms.formats.DVRMS;
-import net.pms.formats.Format;
-import net.pms.formats.GIF;
-import net.pms.formats.ISO;
-import net.pms.formats.JPG;
-import net.pms.formats.M4A;
-import net.pms.formats.MKV;
-import net.pms.formats.MP3;
-import net.pms.formats.MPG;
-import net.pms.formats.OGG;
-import net.pms.formats.PNG;
-import net.pms.formats.RAW;
-import net.pms.formats.TIF;
-import net.pms.formats.WAV;
-import net.pms.formats.WEB;
+import net.pms.formats.*;
 import net.pms.network.HTTPResource;
-
 import org.apache.commons.configuration.ConfigurationException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assume.assumeTrue;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
-
-import ch.qos.logback.classic.LoggerContext;
-
 
 /**
  * Test the recognition of formats.
@@ -177,7 +158,7 @@ public class FormatRecognitionTest {
 		audio.setNrAudioChannels(2);
 		ArrayList<DLNAMediaAudio> audioCodes = new ArrayList<DLNAMediaAudio>();
 		audioCodes.add(audio);
-		info.setAudioCodes(audioCodes);
+		info.setAudioTracksList(audioCodes);
 		Format format = new MP3();
 		format.match("test.mp3");
 		assertEquals("PS3 is compatible with MP3", true,
@@ -208,7 +189,7 @@ public class FormatRecognitionTest {
 		audio.setNrAudioChannels(5);
 		ArrayList<DLNAMediaAudio> audioCodes = new ArrayList<DLNAMediaAudio>();
 		audioCodes.add(audio);
-		info.setAudioCodes(audioCodes);
+		info.setAudioTracksList(audioCodes);
 		info.setCodecV("mp4");
 		Format format = new MPG();
 		format.match("test.avi");
@@ -240,7 +221,7 @@ public class FormatRecognitionTest {
 		audio.setNrAudioChannels(5);
 		ArrayList<DLNAMediaAudio> audioCodes = new ArrayList<DLNAMediaAudio>();
 		audioCodes.add(audio);
-		info.setAudioCodes(audioCodes);
+		info.setAudioTracksList(audioCodes);
 		info.setCodecV("mp4");
 		Format format = new MPG();
 		format.match("test.mkv");
@@ -399,7 +380,7 @@ public class FormatRecognitionTest {
 		DLNAMediaInfo info = new DLNAMediaInfo();
 		info.setContainer("mpegps");
 		ArrayList<DLNAMediaAudio> audioCodes = new ArrayList<DLNAMediaAudio>();
-		info.setAudioCodes(audioCodes);
+		info.setAudioTracksList(audioCodes);
 		info.setMimeType("video/mpeg");
 		info.setCodecV("mpeg2");
 		info.setMediaparsed(true);

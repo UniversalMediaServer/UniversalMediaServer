@@ -19,12 +19,10 @@
 package net.pms.dlna;
 
 import net.pms.formats.SubtitleType;
+import static org.fest.assertions.Assertions.assertThat;
 import org.junit.Test;
 
-import static org.fest.assertions.Assertions.assertThat;
-
 public class DLNAMediaSubtitleTest {
-
 	@Test
 	public void testDefaultSubtitleType() {
 		DLNAMediaSubtitle dlnaMediaSubtitle = new DLNAMediaSubtitle();

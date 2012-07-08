@@ -62,12 +62,12 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 						addChapterFile(avisnewChild);
 					}
 				}
-				for (int i = 0; i < child.getMedia().getAudioCodes().size(); i++) {
+				for (int i = 0; i < child.getMedia().getAudioTracksList().size(); i++) {
 					DLNAResource newChildNoSub = ref.clone();
 					newChildNoSub.setPlayer(ref.getPlayer());
 					newChildNoSub.setMedia(ref.getMedia());
 					newChildNoSub.setNoName(true);
-					newChildNoSub.setMediaAudio(ref.getMedia().getAudioCodes().get(i));
+					newChildNoSub.setMediaAudio(ref.getMedia().getAudioTracksList().get(i));
 					newChildNoSub.setMediaSubtitle(new DLNAMediaSubtitle());
 					newChildNoSub.getMediaSubtitle().setId(-1);
 					addChildInternal(newChildNoSub);
@@ -79,7 +79,7 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 						newChild.setPlayer(ref.getPlayer());
 						newChild.setMedia(ref.getMedia());
 						newChild.setNoName(true);
-						newChild.setMediaAudio(ref.getMedia().getAudioCodes().get(i));
+						newChild.setMediaAudio(ref.getMedia().getAudioTracksList().get(i));
 						newChild.setMediaSubtitle(ref.getMedia().getSubtitleTracksList().get(j));
 						addChildInternal(newChild);
 						addChapterFile(newChild);
@@ -89,12 +89,12 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 				}
 
 				if (tsMuxer != null) {
-					for (int i = 0; i < child.getMedia().getAudioCodes().size(); i++) {
+					for (int i = 0; i < child.getMedia().getAudioTracksList().size(); i++) {
 						DLNAResource newChildNoSub = ref.clone();
 						newChildNoSub.setPlayer(tsMuxer);
 						newChildNoSub.setMedia(ref.getMedia());
 						newChildNoSub.setNoName(true);
-						newChildNoSub.setMediaAudio(ref.getMedia().getAudioCodes().get(i));
+						newChildNoSub.setMediaAudio(ref.getMedia().getAudioTracksList().get(i));
 						addChildInternal(newChildNoSub);
 						addChapterFile(newChildNoSub);
 					}

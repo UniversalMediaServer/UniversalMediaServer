@@ -293,7 +293,7 @@ public class MEncoderVideo extends Player {
 					fakemedia.setHeight(720);
 					audio.setSampleFrequency("48000");
 					fakemedia.setFrameRate("23.976");
-					fakemedia.getAudioCodes().add(audio);
+					fakemedia.getAudioTracksList().add(audio);
 					String result[] = getSpecificCodecOptions(newCodecparam, fakemedia, new OutputParams(configuration), "dummy.mpg", "dummy.srt", false, true);
 
 					if (result.length > 0 && result[0].startsWith("@@")) {
@@ -1720,7 +1720,7 @@ public class MEncoderVideo extends Player {
 		cmdArray[cmdArray.length - 10] = "-quiet";
 		cmdArray[cmdArray.length - 9] = "-quiet";
 
-		if (!dts && !pcm && !avisynth() && params.aid != null && media.getAudioCodes().size() > 1) {
+		if (!dts && !pcm && !avisynth() && params.aid != null && media.getAudioTracksList().size() > 1) {
 			cmdArray[cmdArray.length - 12] = "-aid";
 			boolean lavf = false; // Need to add support for LAVF demuxing
 			cmdArray[cmdArray.length - 11] = "" + (lavf ? params.aid.getId() + 1 : params.aid.getId());
@@ -2238,7 +2238,7 @@ public class MEncoderVideo extends Player {
 				ffVideo.runInNewThread();
 
 				String aid = null;
-				if (media != null && media.getAudioCodes().size() > 1 && params.aid != null) {
+				if (media != null && media.getAudioTracksList().size() > 1 && params.aid != null) {
 					aid = params.aid.getId() + "";
 				}
 

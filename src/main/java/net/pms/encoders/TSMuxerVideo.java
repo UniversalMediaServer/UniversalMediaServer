@@ -213,11 +213,11 @@ public class TSMuxerVideo extends Player {
 
 			int numAudioTracks = 1;
 
-			if (media != null && media.getAudioCodes() != null && media.getAudioCodes().size() > 1 && configuration.isMuxAllAudioTracks()) {
-				numAudioTracks = media.getAudioCodes().size();
+			if (media != null && media.getAudioTracksList() != null && media.getAudioTracksList().size() > 1 && configuration.isMuxAllAudioTracks()) {
+				numAudioTracks = media.getAudioTracksList().size();
 			}
 
-			boolean singleMediaAudio = media != null && media.getAudioCodes().size() <= 1;
+			boolean singleMediaAudio = media != null && media.getAudioTracksList().size() <= 1;
 
 			if (params.aid != null) {
 				boolean ac3Remux;
@@ -332,8 +332,8 @@ public class TSMuxerVideo extends Player {
 				} else {
 					ffAudioPipe = new PipeIPCProcess[numAudioTracks];
 					ffAudio = new ProcessWrapperImpl[numAudioTracks];
-					for (int i = 0; i < media.getAudioCodes().size(); i++) {
-						DLNAMediaAudio audio = media.getAudioCodes().get(i);
+					for (int i = 0; i < media.getAudioTracksList().size(); i++) {
+						DLNAMediaAudio audio = media.getAudioTracksList().get(i);
 						ffAudioPipe[i] = new PipeIPCProcess(System.currentTimeMillis() + "ffmpeg" + i, System.currentTimeMillis() + "audioout" + i, false, true);
 
 						// disable AC3 remux for stereo tracks with 384 kbits bitrate and PS3 renderer (PS3 FW bug?)
@@ -504,8 +504,8 @@ public class TSMuxerVideo extends Player {
 			}
 			pw.println(type + ", \"" + ffAudioPipe[0].getOutputPipe() + "\", " + timeshift + "track=2");
 		} else if (ffAudioPipe != null) {
-			for (int i = 0; i < media.getAudioCodes().size(); i++) {
-				DLNAMediaAudio lang = media.getAudioCodes().get(i);
+			for (int i = 0; i < media.getAudioTracksList().size(); i++) {
+				DLNAMediaAudio lang = media.getAudioTracksList().get(i);
 				String timeshift = "";
 				boolean ac3Remux;
 				boolean dtsRemux;

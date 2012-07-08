@@ -336,7 +336,7 @@ public class DLNAMediaDatabase implements Runnable {
 					audio.setDelay(subrs.getInt("DELAY"));
 					audio.setMuxingModeAudio(subrs.getString("MUXINGMODE"));
 					audio.setBitRate(subrs.getInt("BITRATE"));
-					media.getAudioCodes().add(audio);
+					media.getAudioTracksList().add(audio);
 				}
 				subrs.close();
 				audios.close();
@@ -439,10 +439,10 @@ public class DLNAMediaDatabase implements Runnable {
 			rs.close();
 			if (media != null && id > -1) {
 				PreparedStatement insert = null;
-				if (media.getAudioCodes().size() > 0) {
+				if (media.getAudioTracksList().size() > 0) {
 					insert = conn.prepareStatement("INSERT INTO AUDIOTRACKS VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 				}
-				for (DLNAMediaAudio audio : media.getAudioCodes()) {
+				for (DLNAMediaAudio audio : media.getAudioTracksList()) {
 					insert.clearParameters();
 					insert.setInt(1, id);
 					insert.setInt(2, audio.getId());

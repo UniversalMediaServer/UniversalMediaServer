@@ -316,7 +316,7 @@ public class FormatConfiguration {
 			return match(media.getContainer(), media.getCodecV(), null, 0, 0, media.getBitrate(), media.getWidth(), media.getHeight(), media.getExtras());
 		} else {
 			String finalMimeType = null;
-			for (DLNAMediaAudio audio : media.getAudioCodes()) {
+			for (DLNAMediaAudio audio : media.getAudioTracksList()) {
 				String mimeType = match(media.getContainer(), media.getCodecV(), audio.getCodecA(), audio.getNrAudioChannels(), audio.getSampleRate(), media.getBitrate(), media.getWidth(), media.getHeight(), media.getExtras());
 				finalMimeType = mimeType;
 				if (mimeType == null) // if at least one audio track is not compatible, the file must be transcoded.
