@@ -120,13 +120,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	protected long lastmodified;
 
 	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 *
 	 * Represents the transformation to be used to the file. If null, then
 	 * @see Player
 	 */
-	@Deprecated
-	protected Player player;
+	private Player player;
 
 	/**
 	 * @deprecated Use standard getter and setter to access this variable.
@@ -519,7 +516,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						boolean hasEmbeddedSubs = false;
 
 						if (child.getMedia() != null) {
-							for (DLNAMediaSubtitle s : child.getMedia().getSubtitlesCodes()) {
+							for (DLNAMediaSubtitle s : child.getMedia().getSubtitleTracksList()) {
 								hasEmbeddedSubs = (hasEmbeddedSubs || s.isEmbedded());
 							}
 						}
@@ -913,7 +910,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		if (getMediaSubtitle() != null && getMediaSubtitle().getId() != -1) {
-			name += " {Sub: " + getMediaSubtitle().getSubType() + "/" + getMediaSubtitle().getLangFullName() + ((getMediaSubtitle().getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowSubMetadata()) ? (" (" + getMediaSubtitle().getFlavor() + ")") : "") + "}";
+			name += " {Sub: " + getMediaSubtitle().getType().getDescription() + "/" + getMediaSubtitle().getLangFullName() + ((getMediaSubtitle().getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowSubMetadata()) ? (" (" + getMediaSubtitle().getFlavor() + ")") : "") + "}";
 		}
 
 		if (isAvisynth()) {
