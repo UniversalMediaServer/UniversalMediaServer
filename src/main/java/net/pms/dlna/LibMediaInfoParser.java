@@ -148,9 +148,6 @@ public class LibMediaInfoParser {
 								} else {
 									if (step == MediaInfo.StreamKind.Audio) {
 										currentAudioTrack.setId(media.getAudioTracksList().size());
-										if (media.getContainer() != null && (media.getContainer().equals(FormatConfiguration.AVI) || media.getContainer().equals(FormatConfiguration.FLV) || media.getContainer().equals(FormatConfiguration.MOV) || media.getContainer().equals(FormatConfiguration.MP4))) {
-											currentAudioTrack.setId(currentAudioTrack.getId() + 1);
-										}
 									} else if (step == MediaInfo.StreamKind.Text) {
 										currentSubTrack.setId(media.getSubtitleTracksList().size());
 									}
