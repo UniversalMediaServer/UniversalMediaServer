@@ -89,7 +89,7 @@ public class PMS {
 	private static PmsConfiguration configuration;
 
 	/**Returns a pointer to the main PMS GUI.
-	 * @return {@link IFrame} Main PMS window.
+	 * @return {@link net.pms.gui.IFrame} Main PMS window.
 	 */
 	public IFrame getFrame() {
 		return frame;
@@ -97,9 +97,9 @@ public class PMS {
 
 	/**getRootFolder returns the Root Folder for a given renderer. There could be the case
 	 * where a given media renderer needs a different root structure.
-	 * @param renderer {@link RendererConfiguration} is the renderer for which to get the RootFolder structure. If <b>null</b>, then
+	 * @param renderer {@link net.pms.configuration.RendererConfiguration} is the renderer for which to get the RootFolder structure. If <b>null</b>, then
 	 * the default renderer is used.
-	 * @return {@link RootFolder} The root folder structure for a given renderer
+	 * @return {@link net.pms.dlna.RootFolder} The root folder structure for a given renderer
 	 */
 	public RootFolder getRootFolder(RendererConfiguration renderer) {
 		// something to do here for multiple directories views for each renderer
@@ -127,13 +127,13 @@ public class PMS {
 	public final static SimpleDateFormat sdfHour = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
 
 	/**
-	 * Array of {@link RendererConfiguration} that have been found by PMS.
+	 * Array of {@link net.pms.configuration.RendererConfiguration} that have been found by PMS.
 	 */
 	private final ArrayList<RendererConfiguration> foundRenderers = new ArrayList<RendererConfiguration>();
 
-	/**Adds a {@link RendererConfiguration} to the list of media renderers found. The list is being used, for
+	/**Adds a {@link net.pms.configuration.RendererConfiguration} to the list of media renderers found. The list is being used, for
 	 * example, to give the user a graphical representation of the found media renderers.
-	 * @param mediarenderer {@link RendererConfiguration}
+	 * @param mediarenderer {@link net.pms.configuration.RendererConfiguration}
 	 */
 	public void setRendererfound(RendererConfiguration mediarenderer) {
 		if (!foundRenderers.contains(mediarenderer) && !mediarenderer.isFDSSDP()) {
@@ -165,12 +165,12 @@ public class PMS {
 	}
 
 	/**
-	 * {@link IFrame} object that represents PMS GUI.
+	 * {@link net.pms.gui.IFrame} object that represents PMS GUI.
 	 */
 	IFrame frame;
 
 	/**
-	 * @see Platform#isWindows()
+	 * @see com.sun.jna.Platform#isWindows()
 	 */
 	public boolean isWindows() {
 		return Platform.isWindows();
@@ -179,12 +179,12 @@ public class PMS {
 	private int proxy;
 
 	/**Interface to Windows specific functions, like Windows Registry. registry is set by {@link #init()}.
-	 * @see WinUtils
+	 * @see net.pms.io.WinUtils
 	 */
 	private SystemUtils registry;
 
 	/**
-	 * @see WinUtils
+	 * @see net.pms.io.WinUtils
 	 */
 	public SystemUtils getRegistry() {
 		return registry;
@@ -260,7 +260,7 @@ public class PMS {
 	private final PrintStream stderr = System.err;
 
 	/**Main resource database that supports search capabilities. Also known as media cache.
-	 * @see DLNAMediaDatabase
+	 * @see net.pms.dlna.DLNAMediaDatabase
 	 */
 	private DLNAMediaDatabase database;
 
@@ -563,7 +563,7 @@ public class PMS {
 	/**Executes the needed commands in order to make PMS a Windows service that starts whenever the machine is started.
 	 * This function is called from the Network tab.
 	 * @return true if PMS could be installed as a Windows service.
-	 * @see GeneralTab#build()
+	 * @see net.pms.newgui.GeneralTab#build()
 	 */
 	public boolean installWin32Service() {
 		LOGGER.info(Messages.getString("PMS.41"));
@@ -581,8 +581,8 @@ public class PMS {
 	/**Transforms a comma separated list of directory entries into an array of {@link String}.
 	 * Checks that the directory exists and is a valid directory.
 	 * @param log whether to output log information
-	 * @return {@link File}[] Array of directories.
-	 * @throws IOException
+	 * @return {@link java.io.File}[] Array of directories.
+	 * @throws java.io.IOException
 	 */
 
 	// this is called *way* too often (e.g. a dozen times with 1 renderer and 1 shared folder),
@@ -627,7 +627,7 @@ public class PMS {
 
 	/**Restarts the server. The trigger is either a button on the main PMS window or via
 	 * an action item.
-	 * @throws IOException
+	 * @throws java.io.IOException
 	 */
 	// XXX: don't try to optimize this by reusing the same server instance.
 	// see the comment above HTTPServer.stop()
@@ -782,7 +782,7 @@ public class PMS {
 
 	/*
 	 * Returns the PMS instance.
-	 * @return {@link PMS}
+	 * @return {@link net.pms.PMS}
 	 */
 	public static PMS get() {
 		// XXX when PMS is run as an application, the instance is initialized via the createInstance call in main().
@@ -812,7 +812,7 @@ public class PMS {
 	}
 
 	/**
-	 * @deprecated Use {@link FormatFactory#getAssociatedExtension(String)}
+	 * @deprecated Use {@link net.pms.formats.FormatFactory#getAssociatedExtension(String)}
 	 * instead.
 	 *
 	 * @param filename
@@ -886,7 +886,7 @@ public class PMS {
 	}
 
 	/**
-	 * @deprecated Use {@link FormatFactory#getExtensions()} instead.
+	 * @deprecated Use {@link net.pms.formats.FormatFactory#getExtensions()} instead.
 	 *
 	 * @return The list of formats. 
 	 */
