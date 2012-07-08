@@ -1085,7 +1085,7 @@ public class DLNAMediaInfo implements Cloneable {
 			}
 		}
 		for (DLNAMediaSubtitle sub : getSubtitleTracksList()) {
-			s += "\n\tsub: id=" + sub.getId() + " / lang: " + sub.getLang() + " / flavor: " + sub.getFlavor() + " / type: " + sub.getType().toString();
+			s += "\n\tsub: id=" + sub.getId() + " / lang: " + sub.getLang() + " / flavor: " + sub.getFlavor() + " / type: " + (sub.getType() != null ? sub.getType().toString() : "null");
 		}
 		return s;
 	}
