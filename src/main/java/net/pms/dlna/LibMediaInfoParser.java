@@ -359,13 +359,11 @@ public class LibMediaInfoParser {
 	}
 
 	public static void getSubCodec(DLNAMediaSubtitle subt, String value) {
-		if (value.equals("s_text/ass") || value.equals("s_text/ssa")) {
-			subt.setType(SubtitleType.ASS);
-		} else if (value.equals("pgs")) {
-			subt.setType(SubtitleType.UNSUPPORTED); // PGS not yet supported
-		} else if (value.equals("s_text/utf8")) {
-			subt.setType(SubtitleType.SUBRIP);
+		SubtitleType subType = SubtitleType.getSubtitleTypeByLibMediaInfoCodec(value);
+		if (subType == SubtitleType.PGS) {
+			subType = SubtitleType.UNSUPPORTED; // PGS not yet supported
 		}
+		subt.setType(subType);
 	}
 
 	public static int getPixelValue(String value) {
