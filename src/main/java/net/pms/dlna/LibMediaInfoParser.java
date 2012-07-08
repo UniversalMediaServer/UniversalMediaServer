@@ -145,7 +145,7 @@ public class LibMediaInfoParser {
 											currentAudioTrack.setId(currentAudioTrack.getId() + 1);
 										}
 									} else if (step == MediaInfo.StreamKind.Text) {
-										currentSubTrack.setId(media.getSubtitlesCodes().size());
+										currentSubTrack.setId(media.getSubtitleTracksList().size());
 									}
 								}
 							} else if (key.equals("Cover_Data") && step == MediaInfo.StreamKind.General) {
@@ -231,7 +231,7 @@ public class LibMediaInfoParser {
 		if (currentSubTrack.getType() == SubtitleType.UNKNOWN) {
 			currentSubTrack.setType(SubtitleType.EMBEDDED);
 		}
-		media.getSubtitlesCodes().add(currentSubTrack);
+		media.getSubtitleTracksList().add(currentSubTrack);
 	}
 
 	public static void getFormat(MediaInfo.StreamKind current, DLNAMediaInfo media, DLNAMediaAudio audio, String value) {

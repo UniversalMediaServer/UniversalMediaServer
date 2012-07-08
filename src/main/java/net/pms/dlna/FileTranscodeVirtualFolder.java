@@ -74,13 +74,13 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 
 					addChapterFile(newChildNoSub);
 
-					for (int j = 0; j < child.getMedia().getSubtitlesCodes().size(); j++) {
+					for (int j = 0; j < child.getMedia().getSubtitleTracksList().size(); j++) {
 						DLNAResource newChild = ref.clone();
 						newChild.setPlayer(ref.getPlayer());
 						newChild.setMedia(ref.getMedia());
 						newChild.setNoName(true);
 						newChild.setMediaAudio(ref.getMedia().getAudioCodes().get(i));
-						newChild.setMediaSubtitle(ref.getMedia().getSubtitlesCodes().get(j));
+						newChild.setMediaSubtitle(ref.getMedia().getSubtitleTracksList().get(j));
 						addChildInternal(newChild);
 						addChapterFile(newChild);
 

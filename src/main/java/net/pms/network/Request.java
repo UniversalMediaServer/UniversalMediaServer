@@ -216,7 +216,7 @@ public class Request extends HTTPResource {
 					// This is a request for a subtitle file
 					output(output, "Content-Type: text/plain");
 					output(output, "Expires: " + getFUTUREDATE() + " GMT");
-					List<DLNAMediaSubtitle> subs = dlna.getMedia().getSubtitlesCodes();
+					List<DLNAMediaSubtitle> subs = dlna.getMedia().getSubtitleTracksList();
 
 					if (subs != null && !subs.isEmpty()) {
 						// TODO: maybe loop subs to get the requested subtitle type instead of using the first one
@@ -239,7 +239,7 @@ public class Request extends HTTPResource {
 
 						if (subtitleHttpHeader != null && !"".equals(subtitleHttpHeader)) {
 							// Device allows a custom subtitle HTTP header; construct it
-							List<DLNAMediaSubtitle> subs = dlna.getMedia().getSubtitlesCodes();
+							List<DLNAMediaSubtitle> subs = dlna.getMedia().getSubtitleTracksList();
 
 							if (subs != null && !subs.isEmpty()) {
 								DLNAMediaSubtitle sub = subs.get(0);

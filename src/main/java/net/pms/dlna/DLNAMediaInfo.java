@@ -834,7 +834,7 @@ public class DLNAMediaInfo implements Cloneable {
 										}
 									}
 								}
-								getSubtitlesCodes().add(lang);
+								getSubtitleTracksList().add(lang);
 							}
 						}
 					}
@@ -1083,7 +1083,7 @@ public class DLNAMediaInfo implements Cloneable {
 				s += " / " + audio.getArtist() + "|" + audio.getAlbum() + "|" + audio.getSongname() + "|" + audio.getYear() + "|" + audio.getTrack();
 			}
 		}
-		for (DLNAMediaSubtitle sub : getSubtitlesCodes()) {
+		for (DLNAMediaSubtitle sub : getSubtitleTracksList()) {
 			s += "\n\tsub: id=" + sub.getId() + " / lang: " + sub.getLang() + " / flavor: " + sub.getFlavor() + " / type: " + sub.getType().toString();
 		}
 		return s;
@@ -1280,8 +1280,8 @@ public class DLNAMediaInfo implements Cloneable {
 				mediaCloned.getAudioCodes().add((DLNAMediaAudio) audio.clone());
 			}
 			mediaCloned.setSubtitlesCodes(new ArrayList<DLNAMediaSubtitle>());
-			for (DLNAMediaSubtitle sub : getSubtitlesCodes()) {
-				mediaCloned.getSubtitlesCodes().add((DLNAMediaSubtitle) sub.clone());
+			for (DLNAMediaSubtitle sub : getSubtitleTracksList()) {
+				mediaCloned.getSubtitleTracksList().add((DLNAMediaSubtitle) sub.clone());
 			}
 		}
 
@@ -1484,7 +1484,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @return the subtitlesCodes
 	 * @since 1.50
 	 */
-	public ArrayList<DLNAMediaSubtitle> getSubtitlesCodes() {
+	public ArrayList<DLNAMediaSubtitle> getSubtitleTracksList() {
 		return subtitlesCodes;
 	}
 
