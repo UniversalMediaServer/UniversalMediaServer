@@ -21,6 +21,7 @@ package net.pms.formats;
 import java.util.*;
 
 import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.apache.commons.lang.StringUtils.trim;
 
 public enum SubtitleType {
 	UNKNOWN ("Unknown", list(), list()),
@@ -45,17 +46,24 @@ public enum SubtitleType {
 	private List<String> libMediaInfoCodecs;
 
 	private static Map<String, SubtitleType> fileExtensionToSubtitleTypeMap;
+	private static Map<String, SubtitleType> libmediainfoCodecToSubtitleTypeMap;
 	private static List<String> list(String... args) {
 		return new ArrayList<String>(Arrays.asList(args));
 	}
+
 	static {
 		fileExtensionToSubtitleTypeMap = new HashMap<String, SubtitleType>();
+		libmediainfoCodecToSubtitleTypeMap = new HashMap<String, SubtitleType>();
 		for (SubtitleType subtitleType : values()) {
 			for (String fileExtension : subtitleType.fileExtensions) {
-				fileExtensionToSubtitleTypeMap.put(fileExtension, subtitleType);
+				fileExtensionToSubtitleTypeMap.put(fileExtension.toLowerCase(), subtitleType);
+			}
+			for (String codec : subtitleType.libMediaInfoCodecs) {
+				libmediainfoCodecToSubtitleTypeMap.put(codec.toLowerCase(), subtitleType);
 			}
 		}
 	}
+
 	public static SubtitleType getSubtitleTypeByFileExtension(String fileExtension) {
 		if (isBlank(fileExtension)) {
 			return UNKNOWN;
@@ -66,6 +74,18 @@ public enum SubtitleType {
 		}
 		return subtitleType;
 	}
+
+	public static SubtitleType getSubtitleTypeByLibMediaInfoCodec(String codec) {
+		if (isBlank(codec)) {
+			return UNKNOWN;
+		}
+		SubtitleType subtitleType = libmediainfoCodecToSubtitleTypeMap.get(trim(codec).toLowerCase());
+		if (subtitleType == null) {
+			subtitleType = UNKNOWN;
+		}
+		return subtitleType;
+	}
+
 	public static Set<String> getSupportedFileExtensions() {
 		return fileExtensionToSubtitleTypeMap.keySet();
 	}
