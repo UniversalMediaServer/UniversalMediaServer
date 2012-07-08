@@ -28,7 +28,7 @@ public enum SubtitleType {
 	TEXT ("Text file", "txt"),
 	MICRODVD ("MicroDVD", "sub"),
 	SAMI ("SAMI", "smi"),
-	ASS ("SubStation Alpha / Advanced SubStation Alpha", "ass", "ssa"),
+	ASS ("(Advanced) SubStation Alpha", "ass", "ssa"),
 	VOBSUB ("VobSub", "idx"),
 	EMBEDDED ("Embedded"),
 	UNSUPPORTED ("Unsupported");

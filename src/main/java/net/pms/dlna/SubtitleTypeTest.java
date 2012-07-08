@@ -44,8 +44,8 @@ public class SubtitleTypeTest {
 		assertThat(SubtitleType.getSubtitleTypeByFileExtension("txt").getDescription()).isEqualTo("Text file");
 		assertThat(SubtitleType.getSubtitleTypeByFileExtension("sub").getDescription()).isEqualTo("MicroDVD");
 		assertThat(SubtitleType.getSubtitleTypeByFileExtension("smi").getDescription()).isEqualTo("SAMI");
-		assertThat(SubtitleType.getSubtitleTypeByFileExtension("ssa").getDescription()).isEqualTo("SubStation Alpha / Advanced SubStation Alpha");
-		assertThat(SubtitleType.getSubtitleTypeByFileExtension("ass").getDescription()).isEqualTo("SubStation Alpha / Advanced SubStation Alpha");
+		assertThat(SubtitleType.getSubtitleTypeByFileExtension("ssa").getDescription()).isEqualTo("(Advanced) SubStation Alpha");
+		assertThat(SubtitleType.getSubtitleTypeByFileExtension("ass").getDescription()).isEqualTo("(Advanced) SubStation Alpha");
 		assertThat(SubtitleType.getSubtitleTypeByFileExtension("idx").getDescription()).isEqualTo("VobSub");
 	}
 

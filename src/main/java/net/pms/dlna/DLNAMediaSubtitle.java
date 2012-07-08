@@ -47,26 +47,6 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 		return externalFile;
 	}
 
-	public String getSubType() {
-		switch (type) {
-			case SUBRIP:
-				return "SubRip";
-			case TEXT:
-				return "Text File";
-			case MICRODVD:
-				return "MicroDVD";
-			case SAMI:
-				return "Sami";
-			case ASS:
-				return "ASS/SSA";
-			case VOBSUB:
-				return "VobSub";
-			case EMBEDDED:
-				return "Embedded";
-		}
-		return "-";
-	}
-
 	/**
 	 * Returns whether or not the subtitles are embedded.
 	 *
@@ -85,7 +65,7 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	}
 
 	public String toString() {
-		return "Sub: " + getSubType() + " / lang: " + getLang() + " / flavor: " + flavor + " / ID: " + getId() + " / FILE: " + (externalFile != null ? externalFile.getAbsolutePath() : "-");
+		return "Sub: " + type.getDescription() + " / lang: " + getLang() + " / flavor: " + flavor + " / ID: " + getId() + " / FILE: " + (externalFile != null ? externalFile.getAbsolutePath() : "-");
 	}
 
 	public void checkUnicode() {
