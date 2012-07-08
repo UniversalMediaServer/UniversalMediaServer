@@ -8,8 +8,8 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MediaInfoParser {
-	private static final Logger LOGGER = LoggerFactory.getLogger(MediaInfoParser.class);
+public class LibMediaInfoParser {
+	private static final Logger LOGGER = LoggerFactory.getLogger(LibMediaInfoParser.class);
 	private static MediaInfo MI;
 	private static Base64 base64;
 

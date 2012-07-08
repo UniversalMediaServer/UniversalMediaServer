@@ -6,7 +6,7 @@ import java.util.regex.PatternSyntaxException;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.InputFile;
-import net.pms.dlna.MediaInfoParser;
+import net.pms.dlna.LibMediaInfoParser;
 import net.pms.formats.Format;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,7 +77,7 @@ public class FormatConfiguration {
 			if (force_v1) {
 				media.parse(file, ext, type, false);
 			} else {
-				MediaInfoParser.parse(media, file, type);
+				LibMediaInfoParser.parse(media, file, type);
 			}
 		} else {
 			media.parse(file, ext, type, false);
