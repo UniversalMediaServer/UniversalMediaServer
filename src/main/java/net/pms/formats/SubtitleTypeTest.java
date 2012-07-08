@@ -40,20 +40,20 @@ public class SubtitleTypeTest {
 
 	@Test
 	public void testGetDescription() throws Exception {
-		assertThat(SubtitleType.getSubtitleTypeByFileExtension("srt").getDescription()).isEqualTo("SubRip");
-		assertThat(SubtitleType.getSubtitleTypeByFileExtension("txt").getDescription()).isEqualTo("Text file");
-		assertThat(SubtitleType.getSubtitleTypeByFileExtension("sub").getDescription()).isEqualTo("MicroDVD");
-		assertThat(SubtitleType.getSubtitleTypeByFileExtension("smi").getDescription()).isEqualTo("SAMI");
-		assertThat(SubtitleType.getSubtitleTypeByFileExtension("ssa").getDescription()).isEqualTo("(Advanced) SubStation Alpha");
-		assertThat(SubtitleType.getSubtitleTypeByFileExtension("ass").getDescription()).isEqualTo("(Advanced) SubStation Alpha");
-		assertThat(SubtitleType.getSubtitleTypeByFileExtension("idx").getDescription()).isEqualTo("VobSub");
-	}
-
-	@Test
-	public void testGetDescriptionForUnknownEmbeddedAndUnsupported() throws Exception {
 		assertThat(SubtitleType.UNKNOWN.getDescription()).isEqualTo("Unknown");
 		assertThat(SubtitleType.EMBEDDED.getDescription()).isEqualTo("Embedded");
 		assertThat(SubtitleType.UNSUPPORTED.getDescription()).isEqualTo("Unsupported");
+		assertThat(SubtitleType.SUBRIP.getDescription()).isEqualTo("SubRip");
+		assertThat(SubtitleType.TEXT.getDescription()).isEqualTo("Text file");
+		assertThat(SubtitleType.MICRODVD.getDescription()).isEqualTo("MicroDVD");
+		assertThat(SubtitleType.SAMI.getDescription()).isEqualTo("SAMI");
+		assertThat(SubtitleType.ASS.getDescription()).isEqualTo("(Advanced) SubStation Alpha");
+		assertThat(SubtitleType.VOBSUB.getDescription()).isEqualTo("VobSub");
+		assertThat(SubtitleType.USF.getDescription()).isEqualTo("Universal Subtitle Format");
+		assertThat(SubtitleType.BMP.getDescription()).isEqualTo("BMP");
+		assertThat(SubtitleType.DIVX.getDescription()).isEqualTo("DIVX subtitles");
+		assertThat(SubtitleType.TX3G.getDescription()).isEqualTo("Timed text (TX3G)");
+		assertThat(SubtitleType.PGS.getDescription()).isEqualTo("Blu-ray subtitles");
 	}
 
 	@Test

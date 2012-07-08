@@ -23,18 +23,26 @@ import java.util.*;
 import static org.apache.commons.lang.StringUtils.isBlank;
 
 public enum SubtitleType {
-	UNKNOWN ("Unknown", list()),
-	SUBRIP ("SubRip", list("srt")),
-	TEXT ("Text file", list("txt")),
-	MICRODVD ("MicroDVD", list("sub")),
-	SAMI ("SAMI", list("smi")),
-	ASS ("(Advanced) SubStation Alpha", list("ass", "ssa")),
-	VOBSUB ("VobSub", list("idx")),
-	EMBEDDED ("Embedded", list()),
-	UNSUPPORTED ("Unsupported", list());
+	UNKNOWN ("Unknown", list(), list()),
+	SUBRIP ("SubRip", list("srt"), list("S_TEXT/UTF8", "S_UTF8")),
+	TEXT ("Text file", list("txt"), list()),
+	MICRODVD ("MicroDVD", list("sub"), list()),
+	SAMI ("SAMI", list("smi"), list()),
+	ASS ("(Advanced) SubStation Alpha",
+			list("ass", "ssa"),
+			list("S_TEXT/SSA", "S_TEXT/ASS", "S_SSA", "S_ASS")),
+	VOBSUB ("VobSub", list("idx"), list("S_VOBSUB", "subp")),
+	EMBEDDED ("Embedded", list(), list()),
+	UNSUPPORTED ("Unsupported", list(), list()),
+	USF ("Universal Subtitle Format", list(), list("S_TEXT/USF", "S_USF")),
+	BMP ("BMP", list(), list("S_IMAGE/BMP")),
+	DIVX ("DIVX subtitles", list(), list("DXSB")),
+	TX3G ("Timed text (TX3G)", list(), list("tx3g")),
+	PGS ("Blu-ray subtitles", list(), list("S_HDMV/PGS", "PGS"));
 
 	private String description;
 	private List<String> fileExtensions;
+	private List<String> libMediaInfoCodecs;
 
 	private static Map<String, SubtitleType> fileExtensionToSubtitleTypeMap;
 	private static List<String> list(String... args) {
@@ -62,9 +70,10 @@ public enum SubtitleType {
 		return fileExtensionToSubtitleTypeMap.keySet();
 	}
 
-	private SubtitleType(String description, List<String> fileExtensions) {
+	private SubtitleType(String description, List<String> fileExtensions, List<String> libMediaInfoCodecs) {
 		this.description = description;
 		this.fileExtensions = fileExtensions;
+		this.libMediaInfoCodecs = libMediaInfoCodecs;
 	}
 
 	public String getDescription() {
