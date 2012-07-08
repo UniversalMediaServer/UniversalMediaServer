@@ -1199,8 +1199,8 @@ public class MEncoderVideo extends Player {
 		setAudioAndSubs(fileName, media, params, configuration);
 		String subString = null;
 
-		if (params.sid != null && params.sid.getPlayableFile() != null) {
-			subString = ProcessUtil.getShortFileNameIfWideChars(params.sid.getPlayableFile().getAbsolutePath());
+		if (params.sid != null && params.sid.getPlayableExternalFile() != null) {
+			subString = ProcessUtil.getShortFileNameIfWideChars(params.sid.getPlayableExternalFile().getAbsolutePath());
 		}
 
 		InputFile newInput = new InputFile();
@@ -1517,7 +1517,7 @@ public class MEncoderVideo extends Player {
 			int subtitleMargin = 0;
 			int userMargin     = 0;
 
-			// Use ASS flag (and therefore ASS font styles) for all subtitled files except vobsub, embedded, dvd and mp4 container with srt
+			// Use ASS flag (and therefore ASS font styles) for all subtitled files except vobsub, dvd and mp4 container with srt
 			// Note: The MP4 container with SRT rule is a workaround for MEncoder r30369. If there is ever a later version of MEncoder that supports external srt subs we should use that. As of r32848 that isn't the case
 			if (
 				params.sid.getType() != DLNAMediaSubtitle.VOBSUB &&
@@ -1638,7 +1638,7 @@ public class MEncoderVideo extends Player {
 				sb.append("-spuaa ").append(subtitleQuality).append(" ");
 			}
 
-			if (!params.sid.isFileUtf8() && !configuration.isMencoderDisableSubs() && configuration.getMencoderSubCp() != null && configuration.getMencoderSubCp().length() > 0) {
+			if (!configuration.isMencoderDisableSubs() && configuration.getMencoderSubCp() != null && configuration.getMencoderSubCp().length() > 0) {
 				sb.append("-subcp ").append(configuration.getMencoderSubCp()).append(" ");
 				if (configuration.isMencoderSubFribidi()) {
 					sb.append("-fribidi-charset ").append(configuration.getMencoderSubCp()).append(" ");
@@ -1795,7 +1795,7 @@ public class MEncoderVideo extends Player {
 			} else {
 				cmdArray[cmdArray.length - 4] = "-sub";
 				cmdArray[cmdArray.length - 3] = subString.replace(",", "\\,"); // Commas in MEncoder separate multiple subtitle files
-				if (params.sid.isFileUtf8() && params.sid.getPlayableFile() != null) {
+				if (params.sid.getPlayableExternalFile() != null && params.sid.isExternalFileUtf8()) {
 					cmdArray = Arrays.copyOf(cmdArray, cmdArray.length + 1);
 					cmdArray[cmdArray.length - 3] = "-utf8";
 				}

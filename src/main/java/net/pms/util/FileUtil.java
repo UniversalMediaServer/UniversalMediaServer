@@ -129,13 +129,13 @@ public class FileUtil {
 							boolean exists = false;
 							if (media != null) {
 								for (DLNAMediaSubtitle sub : media.getSubtitlesCodes()) {
-									if (f.equals(sub.getFile())) {
+									if (f.equals(sub.getExternalFile())) {
 										exists = true;
 									} else if (ext.equals("idx") && sub.getType() == DLNAMediaSubtitle.MICRODVD) { // VOBSUB
 										sub.setType(DLNAMediaSubtitle.VOBSUB);
 										exists = true;
 									} else if (ext.equals("sub") && sub.getType() == DLNAMediaSubtitle.VOBSUB) { // VOBSUB
-										sub.setFile(f);
+										sub.setExternalFile(f);
 										exists = true;
 									}
 								}
@@ -143,7 +143,7 @@ public class FileUtil {
 							if (!exists) {
 								DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
 								sub.setId(100 + (media == null ? 0 : media.getSubtitlesCodes().size())); // fake id, not used
-								sub.setFile(f);
+								sub.setExternalFile(f);
 								sub.checkUnicode();
 								if (code.length() == 0 || !Iso639.getCodeList().contains(code)) {
 									sub.setLang(DLNAMediaSubtitle.UND);
