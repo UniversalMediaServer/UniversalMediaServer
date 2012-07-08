@@ -25,7 +25,7 @@ import static org.apache.commons.lang.StringUtils.trim;
 
 public enum SubtitleType {
 	UNKNOWN ("Generic", list(), list()),
-	SUBRIP ("SubRip", list("srt"), list("S_TEXT/UTF8", "S_UTF8")),
+	SUBRIP ("SubRip", list("srt"), list("S_TEXT/UTF8", "S_UTF8", "Subrip")),
 	TEXT ("Text file", list("txt"), list()),
 	MICRODVD ("MicroDVD", list("sub"), list()),
 	SAMI ("SAMI", list("smi"), list()),
