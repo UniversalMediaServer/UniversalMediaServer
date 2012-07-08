@@ -23,20 +23,23 @@ import java.util.*;
 import static org.apache.commons.lang.StringUtils.isBlank;
 
 public enum SubtitleType {
-	UNKNOWN ("Unknown"),
-	SUBRIP ("SubRip", "srt"),
-	TEXT ("Text file", "txt"),
-	MICRODVD ("MicroDVD", "sub"),
-	SAMI ("SAMI", "smi"),
-	ASS ("(Advanced) SubStation Alpha", "ass", "ssa"),
-	VOBSUB ("VobSub", "idx"),
-	EMBEDDED ("Embedded"),
-	UNSUPPORTED ("Unsupported");
+	UNKNOWN ("Unknown", list()),
+	SUBRIP ("SubRip", list("srt")),
+	TEXT ("Text file", list("txt")),
+	MICRODVD ("MicroDVD", list("sub")),
+	SAMI ("SAMI", list("smi")),
+	ASS ("(Advanced) SubStation Alpha", list("ass", "ssa")),
+	VOBSUB ("VobSub", list("idx")),
+	EMBEDDED ("Embedded", list()),
+	UNSUPPORTED ("Unsupported", list());
 
 	private String description;
 	private List<String> fileExtensions;
 
 	private static Map<String, SubtitleType> fileExtensionToSubtitleTypeMap;
+	private static List<String> list(String... args) {
+		return new ArrayList<String>(Arrays.asList(args));
+	}
 	static {
 		fileExtensionToSubtitleTypeMap = new HashMap<String, SubtitleType>();
 		for (SubtitleType subtitleType : values()) {
@@ -59,9 +62,9 @@ public enum SubtitleType {
 		return fileExtensionToSubtitleTypeMap.keySet();
 	}
 
-	private SubtitleType(String description, String... fileExtensions) {
+	private SubtitleType(String description, List<String> fileExtensions) {
 		this.description = description;
-		this.fileExtensions = new ArrayList<String>(Arrays.asList(fileExtensions));
+		this.fileExtensions = fileExtensions;
 	}
 
 	public String getDescription() {
