@@ -78,10 +78,12 @@ public class LibMediaInfoParser {
 							String ovalue = line.substring(point + 1).trim();
 							String value = ovalue.toLowerCase();
 							if (key.equals("Format") || key.startsWith("Format_Version") || key.startsWith("Format_Profile")) {
-								getFormat(step, media, currentAudioTrack, value);
-							} else if (key.equals("Format") && (step == MediaInfo.StreamKind.Text)) {
-								// First attempt to detect subtitle track format
-								currentSubTrack.setType(SubtitleType.getSubtitleTypeByLibMediaInfoCodec(value));
+								if (step == MediaInfo.StreamKind.Text) {
+									// First attempt to detect subtitle track format
+									currentSubTrack.setType(SubtitleType.getSubtitleTypeByLibMediaInfoCodec(value));
+								} else {
+									getFormat(step, media, currentAudioTrack, value);
+								}
 							} else if (key.equals("Duration/String1") && step == MediaInfo.StreamKind.General) {
 								media.setDuration(getDuration(value));
 							} else if (key.equals("Codec_Settings_QPel") && step == MediaInfo.StreamKind.Video) {
