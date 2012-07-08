@@ -1517,13 +1517,8 @@ public class MEncoderVideo extends Player {
 			int subtitleMargin = 0;
 			int userMargin     = 0;
 
-			// Use ASS flag (and therefore ASS font styles) for all subtitled files except vobsub, dvd and mp4 container with srt
-			// Note: The MP4 container with SRT rule is a workaround for MEncoder r30369. If there is ever a later version of MEncoder that supports external srt subs we should use that. As of r32848 that isn't the case
+			// Use ASS flag (and therefore ASS font styles) for all subtitled files except vobsub and dvd
 			boolean apply_ass_styling = params.sid.getType() != SubtitleType.VOBSUB &&
-				!(
-					params.sid.getType() == SubtitleType.SUBRIP &&
-					media.getContainer().equals("mp4")
-				) &&
 				configuration.isMencoderAss() &&   // GUI: enable subtitles formating
 				!foundNoassParam &&                // GUI: codec specific options
 				!dvd;
@@ -1533,8 +1528,7 @@ public class MEncoderVideo extends Player {
 
 				// GUI: Override ASS subtitles style if requested (always for SRT subtitles)
 				boolean override_ass_style = !configuration.isMencoderAssDefaultStyle() ||
-					params.sid.getType() == SubtitleType.SUBRIP ||
-					params.sid.getType() == SubtitleType.EMBEDDED;
+					params.sid.getType() == SubtitleType.SUBRIP;
 
 				if (override_ass_style) {
 					String assSubColor = "ffffff00";
@@ -1591,7 +1585,7 @@ public class MEncoderVideo extends Player {
 				}
 
 				// Workaround for MPlayer #2041, remove when that bug is fixed
-				if (params.sid.getType() != SubtitleType.EMBEDDED) {
+				if (!params.sid.isEmbedded()) {
 					sb.append("-noflip-hebrew ");
 				}
 			// use PLAINTEXT formating
