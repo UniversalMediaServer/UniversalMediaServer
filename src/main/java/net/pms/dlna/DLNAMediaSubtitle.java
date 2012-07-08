@@ -20,6 +20,7 @@ package net.pms.dlna;
 
 import java.io.*;
 import net.pms.PMS;
+import net.pms.formats.SubtitleType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

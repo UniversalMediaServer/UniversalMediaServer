@@ -30,6 +30,7 @@ import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.formats.AudioAsVideo;
 import net.pms.formats.Format;
+import net.pms.formats.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;

@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
+import net.pms.formats.SubtitleType;
 import org.apache.commons.lang.StringUtils;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.jdbcx.JdbcDataSource;

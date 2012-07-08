@@ -40,6 +40,7 @@ import net.pms.configuration.RendererConfiguration;
 import static net.pms.configuration.RendererConfiguration.RENDERER_ID_PLAYSTATION3;
 import net.pms.dlna.*;
 import net.pms.formats.Format;
+import net.pms.formats.SubtitleType;
 import net.pms.io.*;
 import net.pms.network.HTTPResource;
 import net.pms.newgui.FontFileFilter;
