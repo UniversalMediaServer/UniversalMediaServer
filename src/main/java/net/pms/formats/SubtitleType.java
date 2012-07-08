@@ -31,7 +31,7 @@ public enum SubtitleType {
 	SAMI ("SAMI", list("smi"), list()),
 	ASS ("(Advanced) SubStation Alpha",
 			list("ass", "ssa"),
-			list("S_TEXT/SSA", "S_TEXT/ASS", "S_SSA", "S_ASS")),
+			list("S_TEXT/SSA", "S_TEXT/ASS", "S_SSA", "S_ASS", "SSA", "ASS")),
 	VOBSUB ("VobSub", list("idx"), list("S_VOBSUB", "subp")),
 	UNSUPPORTED ("Unsupported", list(), list()),
 	USF ("Universal Subtitle Format", list(), list("S_TEXT/USF", "S_USF")),
