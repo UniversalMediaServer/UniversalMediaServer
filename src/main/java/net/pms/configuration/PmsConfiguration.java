@@ -348,8 +348,8 @@ public class PmsConfiguration {
 	 * Default constructor that will attempt to load the PMS configuration file
 	 * from the profile path.
 	 *
-	 * @throws ConfigurationException
-	 * @throws IOException
+	 * @throws org.apache.commons.configuration.ConfigurationException
+	 * @throws java.io.IOException
 	 */
 	public PmsConfiguration() throws ConfigurationException, IOException {
 		this(true);
@@ -361,8 +361,8 @@ public class PmsConfiguration {
 	 * @param loadFile Set to true to attempt to load the PMS configuration
 	 * 					file from the profile path. Set to false to skip
 	 * 					loading.
-	 * @throws ConfigurationException
-	 * @throws IOException
+	 * @throws org.apache.commons.configuration.ConfigurationException
+	 * @throws java.io.IOException
 	 */
 	public PmsConfiguration(boolean loadFile) throws ConfigurationException, IOException {
 		configuration = new PropertiesConfiguration();
