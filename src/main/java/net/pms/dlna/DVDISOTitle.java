@@ -114,7 +114,7 @@ public class DVDISOTitle extends DLNAResource {
 					if (lang.getLang().equals("unknown")) {
 						lang.setLang(DLNAMediaLang.UND);
 					}
-					lang.setType(DLNAMediaSubtitle.EMBEDDED);
+					lang.setType(SubtitleType.EMBEDDED);
 					subs.add(lang);
 				}
 				if (line.startsWith("ID_VIDEO_WIDTH=")) {

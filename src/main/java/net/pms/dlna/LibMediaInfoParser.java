@@ -222,14 +222,14 @@ public class LibMediaInfoParser {
 	}
 
 	public static void addSub(DLNAMediaSubtitle currentSubTrack, DLNAMediaInfo media) {
-		if (currentSubTrack.getType() == -1) {
+		if (currentSubTrack.getType() == SubtitleType.UNSUPPORTED) {
 			return;
 		}
 		if (currentSubTrack.getLang() == null) {
 			currentSubTrack.setLang(DLNAMediaLang.UND);
 		}
-		if (currentSubTrack.getType() == 0) {
-			currentSubTrack.setType(DLNAMediaSubtitle.EMBEDDED);
+		if (currentSubTrack.getType() == SubtitleType.UNKNOWN) {
+			currentSubTrack.setType(SubtitleType.EMBEDDED);
 		}
 		media.getSubtitlesCodes().add(currentSubTrack);
 	}
@@ -359,11 +359,11 @@ public class LibMediaInfoParser {
 
 	public static void getSubCodec(DLNAMediaSubtitle subt, String value) {
 		if (value.equals("s_text/ass") || value.equals("s_text/ssa")) {
-			subt.setType(DLNAMediaSubtitle.EMBEDDED_ASS);
+			subt.setType(SubtitleType.ASS);
 		} else if (value.equals("pgs")) {
-			subt.setType(-1); // PGS not yet supported
+			subt.setType(SubtitleType.UNSUPPORTED); // PGS not yet supported
 		} else if (value.equals("s_text/utf8")) {
-			subt.setType(DLNAMediaSubtitle.EMBEDDED);
+			subt.setType(SubtitleType.EMBEDDED);
 		}
 	}
 

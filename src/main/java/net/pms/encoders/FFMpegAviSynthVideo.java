@@ -27,6 +27,7 @@ import java.util.StringTokenizer;
 import javax.swing.JComponent;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaSubtitle;
+import net.pms.dlna.SubtitleType;
 import net.pms.util.ProcessUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -151,7 +152,7 @@ public class FFMpegAviSynthVideo extends FFMpegVideo {
 			LOGGER.trace("AviSynth script: Using sub track: " + subTrack);
 			if (subTrack.getExternalFile() != null) {
 				String function = "TextSub";
-				if (subTrack.getType() == DLNAMediaSubtitle.VOBSUB) {
+				if (subTrack.getType() == SubtitleType.VOBSUB) {
 					function = "VobSub";
 				}
 				subLine = "clip=" + function + "(clip, \"" + ProcessUtil.getShortFileNameIfWideChars(subTrack.getExternalFile().getAbsolutePath()) + "\")";

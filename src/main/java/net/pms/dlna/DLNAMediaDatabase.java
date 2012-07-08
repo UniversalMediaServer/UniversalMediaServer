@@ -348,7 +348,7 @@ public class DLNAMediaDatabase implements Runnable {
 					sub.setId(subrs.getInt("ID"));
 					sub.setLang(subrs.getString("LANG"));
 					sub.setFlavor(subrs.getString("FLAVOR"));
-					sub.setType(subrs.getInt("TYPE"));
+					sub.setType(SubtitleType.values()[subrs.getInt("TYPE")]);
 					media.getSubtitlesCodes().add(sub);
 				}
 				subrs.close();
@@ -473,7 +473,7 @@ public class DLNAMediaDatabase implements Runnable {
 						insert.setInt(2, sub.getId());
 						insert.setString(3, truncate(sub.getLang(), SIZE_LANG));
 						insert.setString(4, truncate(sub.getFlavor(), SIZE_FLAVOR));
-						insert.setInt(5, sub.getType());
+						insert.setInt(5, sub.getType().ordinal());
 						insert.executeUpdate();
 					}
 				}

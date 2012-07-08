@@ -806,7 +806,7 @@ public class DLNAMediaInfo implements Cloneable {
 								}
 							} else if (line.indexOf("Subtitle:") > -1 && !line.contains("tx3g")) {
 								DLNAMediaSubtitle lang = new DLNAMediaSubtitle();
-								lang.setType((line.contains("dvdsub") && Platform.isWindows() ? DLNAMediaSubtitle.VOBSUB : DLNAMediaSubtitle.EMBEDDED));
+								lang.setType((line.contains("dvdsub") && Platform.isWindows() ? SubtitleType.VOBSUB : SubtitleType.EMBEDDED));
 								int a = line.indexOf("(");
 								int b = line.indexOf("):", a);
 								if (a > -1 && b > a) {
@@ -1084,7 +1084,7 @@ public class DLNAMediaInfo implements Cloneable {
 			}
 		}
 		for (DLNAMediaSubtitle sub : getSubtitlesCodes()) {
-			s += "\n\tsub: id=" + sub.getId() + " / lang: " + sub.getLang() + " / flavor: " + sub.getFlavor() + " / type: " + sub.getType();
+			s += "\n\tsub: id=" + sub.getId() + " / lang: " + sub.getLang() + " / flavor: " + sub.getFlavor() + " / type: " + sub.getType().toString();
 		}
 		return s;
 	}

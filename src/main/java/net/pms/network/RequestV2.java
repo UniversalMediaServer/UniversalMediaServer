@@ -32,7 +32,7 @@ import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
 import net.pms.external.StartStopListenerDelegate;
-import org.apache.commons.lang.StringUtils;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelFuture;
@@ -326,15 +326,18 @@ public class RequestV2 extends HTTPResource {
 						if (subs != null && !subs.isEmpty()) {
 							DLNAMediaSubtitle sub = subs.get(0);
 
-							int type = sub.getType();
-
-							if (type < DLNAMediaSubtitle.subExtensions.length) {
-								String strType = DLNAMediaSubtitle.subExtensions[type - 1];
-								String subtitleUrl = "http://" + PMS.get().getServer().getHost() +
-										':' + PMS.get().getServer().getPort() + "/get/" +
-										id + "/subtitle0000." + strType;
-								output.setHeader(subtitleHttpHeader, subtitleUrl);
+							String subtitleUrl;
+							String subExtension = sub.getType().getExtension();
+							if (isNotBlank(subExtension)) {
+								subtitleUrl = "http://" + PMS.get().getServer().getHost() +
+									':' + PMS.get().getServer().getPort() + "/get/" +
+									id + "/subtitle0000." + subExtension;
+							} else {
+								subtitleUrl = "http://" + PMS.get().getServer().getHost() +
+									':' + PMS.get().getServer().getPort() + "/get/" +
+									id + "/subtitle0000";
 							}
+							output.setHeader(subtitleHttpHeader, subtitleUrl);
 						}
 					}
 
@@ -356,11 +359,11 @@ public class RequestV2 extends HTTPResource {
 
 						final DLNAMediaInfo media = dlna.getMedia();
 						if (media != null) {
-							if (StringUtils.isNotBlank(media.getContainer())) {
+							if (isNotBlank(media.getContainer())) {
 								name += " [container: " + media.getContainer() + "]";
 							}
 
-							if (StringUtils.isNotBlank(media.getCodecV())) {
+							if (isNotBlank(media.getCodecV())) {
 								name += " [video: " + media.getCodecV() + "]";
 							}
 						}
