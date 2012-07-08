@@ -24,15 +24,22 @@ import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.trim;
 
 public enum SubtitleType {
+	// MediaInfo database of codec signatures (not comprehensive)
+	// http://mediainfo.svn.sourceforge.net/viewvc/mediainfo/MediaInfoLib/trunk/Source/Resource/Text/DataBase/
+
 	UNKNOWN ("Generic", list(), list()),
-	SUBRIP ("SubRip", list("srt"), list("S_TEXT/UTF8", "S_UTF8", "Subrip")),
+	SUBRIP ("SubRip",
+			list("srt"),
+			list("S_TEXT/UTF8", "S_UTF8", "Subrip")),
 	TEXT ("Text file", list("txt"), list()),
 	MICRODVD ("MicroDVD", list("sub"), list()),
 	SAMI ("SAMI", list("smi"), list()),
 	ASS ("(Advanced) SubStation Alpha",
 			list("ass", "ssa"),
 			list("S_TEXT/SSA", "S_TEXT/ASS", "S_SSA", "S_ASS", "SSA", "ASS")),
-	VOBSUB ("VobSub", list("idx"), list("S_VOBSUB", "subp")),
+	VOBSUB ("VobSub",
+			list("idx"),
+			list("S_VOBSUB", "subp", "mp4s", "E0")),
 	UNSUPPORTED ("Unsupported", list(), list()),
 	USF ("Universal Subtitle Format", list(), list("S_TEXT/USF", "S_USF")),
 	BMP ("BMP", list(), list("S_IMAGE/BMP")),

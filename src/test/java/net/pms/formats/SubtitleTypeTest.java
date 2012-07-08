@@ -51,6 +51,8 @@ public class SubtitleTypeTest {
 		assertThat(SubtitleType.getSubtitleTypeByLibMediaInfoCodec("ASS")).isEqualTo(SubtitleType.ASS);
 		assertThat(SubtitleType.getSubtitleTypeByLibMediaInfoCodec("subp")).isEqualTo(SubtitleType.VOBSUB);
 		assertThat(SubtitleType.getSubtitleTypeByLibMediaInfoCodec("S_VOBSUB")).isEqualTo(SubtitleType.VOBSUB);
+		assertThat(SubtitleType.getSubtitleTypeByLibMediaInfoCodec("mp4s")).isEqualTo(SubtitleType.VOBSUB);
+		assertThat(SubtitleType.getSubtitleTypeByLibMediaInfoCodec("E0")).isEqualTo(SubtitleType.VOBSUB);
 		assertThat(SubtitleType.getSubtitleTypeByLibMediaInfoCodec("s_usf")).isEqualTo(SubtitleType.USF);
 		assertThat(SubtitleType.getSubtitleTypeByLibMediaInfoCodec("S_TEXT/USF")).isEqualTo(SubtitleType.USF);
 		assertThat(SubtitleType.getSubtitleTypeByLibMediaInfoCodec("S_IMAGE/BMP")).isEqualTo(SubtitleType.BMP);
