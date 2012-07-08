@@ -24,7 +24,7 @@ import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.trim;
 
 public enum SubtitleType {
-	UNKNOWN ("Unknown", list(), list()),
+	UNKNOWN ("Generic", list(), list()),
 	SUBRIP ("SubRip", list("srt"), list("S_TEXT/UTF8", "S_UTF8")),
 	TEXT ("Text file", list("txt"), list()),
 	MICRODVD ("MicroDVD", list("sub"), list()),
@@ -33,7 +33,6 @@ public enum SubtitleType {
 			list("ass", "ssa"),
 			list("S_TEXT/SSA", "S_TEXT/ASS", "S_SSA", "S_ASS")),
 	VOBSUB ("VobSub", list("idx"), list("S_VOBSUB", "subp")),
-	EMBEDDED ("Embedded", list(), list()),
 	UNSUPPORTED ("Unsupported", list(), list()),
 	USF ("Universal Subtitle Format", list(), list("S_TEXT/USF", "S_USF")),
 	BMP ("BMP", list(), list("S_IMAGE/BMP")),

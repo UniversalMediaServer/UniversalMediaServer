@@ -229,9 +229,6 @@ public class LibMediaInfoParser {
 		if (currentSubTrack.getLang() == null) {
 			currentSubTrack.setLang(DLNAMediaLang.UND);
 		}
-		if (currentSubTrack.getType() == SubtitleType.UNKNOWN) {
-			currentSubTrack.setType(SubtitleType.EMBEDDED);
-		}
 		media.getSubtitleTracksList().add(currentSubTrack);
 	}
 

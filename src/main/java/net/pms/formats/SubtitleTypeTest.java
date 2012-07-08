@@ -59,8 +59,7 @@ public class SubtitleTypeTest {
 
 	@Test
 	public void testGetDescription() throws Exception {
-		assertThat(SubtitleType.UNKNOWN.getDescription()).isEqualTo("Unknown");
-		assertThat(SubtitleType.EMBEDDED.getDescription()).isEqualTo("Embedded");
+		assertThat(SubtitleType.UNKNOWN.getDescription()).isEqualTo("Generic");
 		assertThat(SubtitleType.UNSUPPORTED.getDescription()).isEqualTo("Unsupported");
 		assertThat(SubtitleType.SUBRIP.getDescription()).isEqualTo("SubRip");
 		assertThat(SubtitleType.TEXT.getDescription()).isEqualTo("Text file");
@@ -84,7 +83,6 @@ public class SubtitleTypeTest {
 		assertThat(SubtitleType.SAMI.getExtension()).isEqualTo("smi");
 		assertThat(SubtitleType.ASS.getExtension()).isEqualTo("ass");
 		assertThat(SubtitleType.VOBSUB.getExtension()).isEqualTo("idx");
-		assertThat(SubtitleType.EMBEDDED.getExtension()).isEqualTo("");
 		assertThat(SubtitleType.UNSUPPORTED.getExtension()).isEqualTo("");
 	}
 
