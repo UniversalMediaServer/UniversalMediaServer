@@ -1785,7 +1785,7 @@ public class MEncoderVideo extends Player {
 		 * TODO: Move the following block up with the rest of the
 		 * subtitle stuff
 		 */
-		if (subString != null && !configuration.isMencoderDisableSubs() && !avisynth()) {
+		if (subString != null && !configuration.isMencoderDisableSubs() && !avisynth() && params.sid != null) {
 			if (params.sid.getType() == DLNAMediaSubtitle.VOBSUB) {
 				cmdArray[cmdArray.length - 4] = "-vobsub";
 				cmdArray[cmdArray.length - 3] = subString.substring(0, subString.length() - 4);
