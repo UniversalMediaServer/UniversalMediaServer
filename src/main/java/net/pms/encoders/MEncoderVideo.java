@@ -1520,13 +1520,6 @@ public class MEncoderVideo extends Player {
 			// Use ASS flag (and therefore ASS font styles) for all subtitled files except vobsub, embedded, dvd and mp4 container with srt
 			// Note: The MP4 container with SRT rule is a workaround for MEncoder r30369. If there is ever a later version of MEncoder that supports external srt subs we should use that. As of r32848 that isn't the case
 			if (
-				(
-					(
-						params.sid.isFileUtf8() &&
-						params.sid.getType() == DLNAMediaSubtitle.EMBEDDED
-					) ||
-					params.sid.getType() != DLNAMediaSubtitle.EMBEDDED
-				) &&
 				params.sid.getType() != DLNAMediaSubtitle.VOBSUB &&
 				!(
 					params.sid.getType() == DLNAMediaSubtitle.SUBRIP &&
