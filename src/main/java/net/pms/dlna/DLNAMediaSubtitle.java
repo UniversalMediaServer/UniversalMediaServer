@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAMediaSubtitle.class);
 
-	private SubtitleType type;
+	private SubtitleType type = SubtitleType.UNKNOWN;
 
 	/*
 	 * This tells us whether the track is forced or not
