@@ -42,10 +42,13 @@ public class SubtitleTypeTest {
 	public void getSubtitleTypeByLibMediaInfoCodec_matchingCodecs() throws Exception {
 		assertThat(SubtitleType.getSubtitleTypeByLibMediaInfoCodec("s_utf8")).isEqualTo(SubtitleType.SUBRIP);
 		assertThat(SubtitleType.getSubtitleTypeByLibMediaInfoCodec("S_TEXT/UTF8")).isEqualTo(SubtitleType.SUBRIP);
+		assertThat(SubtitleType.getSubtitleTypeByLibMediaInfoCodec("Subrip")).isEqualTo(SubtitleType.SUBRIP);
 		assertThat(SubtitleType.getSubtitleTypeByLibMediaInfoCodec("s_ssa")).isEqualTo(SubtitleType.ASS);
 		assertThat(SubtitleType.getSubtitleTypeByLibMediaInfoCodec("s_ass")).isEqualTo(SubtitleType.ASS);
 		assertThat(SubtitleType.getSubtitleTypeByLibMediaInfoCodec("S_TEXT/SSA")).isEqualTo(SubtitleType.ASS);
 		assertThat(SubtitleType.getSubtitleTypeByLibMediaInfoCodec("S_TEXT/ASS")).isEqualTo(SubtitleType.ASS);
+		assertThat(SubtitleType.getSubtitleTypeByLibMediaInfoCodec("SSA")).isEqualTo(SubtitleType.ASS);
+		assertThat(SubtitleType.getSubtitleTypeByLibMediaInfoCodec("ASS")).isEqualTo(SubtitleType.ASS);
 		assertThat(SubtitleType.getSubtitleTypeByLibMediaInfoCodec("subp")).isEqualTo(SubtitleType.VOBSUB);
 		assertThat(SubtitleType.getSubtitleTypeByLibMediaInfoCodec("S_VOBSUB")).isEqualTo(SubtitleType.VOBSUB);
 		assertThat(SubtitleType.getSubtitleTypeByLibMediaInfoCodec("s_usf")).isEqualTo(SubtitleType.USF);
@@ -55,6 +58,7 @@ public class SubtitleTypeTest {
 		assertThat(SubtitleType.getSubtitleTypeByLibMediaInfoCodec("tx3g")).isEqualTo(SubtitleType.TX3G);
 		assertThat(SubtitleType.getSubtitleTypeByLibMediaInfoCodec("pgs")).isEqualTo(SubtitleType.PGS);
 		assertThat(SubtitleType.getSubtitleTypeByLibMediaInfoCodec("S_HDMV/PGS")).isEqualTo(SubtitleType.PGS);
+		assertThat(SubtitleType.getSubtitleTypeByLibMediaInfoCodec("144")).isEqualTo(SubtitleType.PGS);
 	}
 
 	@Test

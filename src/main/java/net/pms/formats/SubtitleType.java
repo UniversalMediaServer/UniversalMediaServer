@@ -38,7 +38,7 @@ public enum SubtitleType {
 	BMP ("BMP", list(), list("S_IMAGE/BMP")),
 	DIVX ("DIVX subtitles", list(), list("DXSB")),
 	TX3G ("Timed text (TX3G)", list(), list("tx3g")),
-	PGS ("Blu-ray subtitles", list(), list("S_HDMV/PGS", "PGS"));
+	PGS ("Blu-ray subtitles", list(), list("S_HDMV/PGS", "PGS", "144"));
 
 	private String description;
 	private List<String> fileExtensions;
