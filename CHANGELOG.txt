@@ -1,4 +1,4 @@
-1.3.0 - 2012-07-??
+1.3.0 - 2012-07-09
 
 	General:
 		Enabled FFmpeg video player for all platforms
