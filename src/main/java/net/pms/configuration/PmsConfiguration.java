@@ -622,6 +622,9 @@ public class PmsConfiguration {
 		if (value != null) {
 			value = value.trim();
 		}
+		if ("".equals(value)) {
+			return def;
+		}
 		return value;
 	}
 	
