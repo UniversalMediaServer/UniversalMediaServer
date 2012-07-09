@@ -12,10 +12,11 @@
 		Localized audio and subtitle priority defaults
 		Added option on Traces tab to pack useful debug information into a zip file
 		Fixed 64-bit OS detection for Windows and OS X
-		Make program-closing more reliable
+		Made program-closing more reliable
+		Fixed default settings
 	Languages:
-		- Catalan translation update (thanks, aseques)
-		- Improved English
+		Updated Catalan (thanks, aseques)
+		Improved English
 
 1.2.1 - 2012-06-30
 
