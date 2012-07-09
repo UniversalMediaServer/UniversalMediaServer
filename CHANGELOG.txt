@@ -1,9 +1,9 @@
-﻿1.3.0 - 2012-07-??
+1.3.0 - 2012-07-??
 
 	General:
 		Enabled FFmpeg video player for all platforms
-		Added 64-bit FFmpeg for Windows
 		Updated FFmpeg for Windows to e01f478 (20120319)
+		Updated 32-bit MediaInfo to the 20120611 development snapshot which fixes a bug with detecting the duration of some avi files
 		Improved FFmpeg commands
 		Added support for PGS (Blu-ray) subtitles
 		Added support for VobSub (DVD) subtitles in MP4 container
@@ -12,7 +12,7 @@
 		Localized audio and subtitle priority defaults
 		Added option on Traces tab to pack useful debug information into a zip file
 		Fixed 64-bit OS detection for Windows and OS X
-		Make program closing more reliable
+		Make program-closing more reliable
 	Languages:
 		- Catalan translation update (thanks, aseques)
 		- Improved English
