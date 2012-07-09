@@ -437,11 +437,6 @@ public class PMS {
 			LOGGER.error("Error loading plugins", e);
 		}
 
-		// a static block in Player doesn't work (i.e. is called too late).
-		// this must always be called *after* the plugins have loaded.
-		// here's as good a place as any
-		Player.initializeFinalizeTranscoderArgsListeners();
-
 		// Initialize a player factory to register all players
 		PlayerFactory.initialize(configuration);
 
@@ -450,6 +445,11 @@ public class PMS {
 
 		// Instantiate listeners that require registered players.
 		ExternalFactory.instantiateLateListeners();
+		
+		// a static block in Player doesn't work (i.e. is called too late).
+		// this must always be called *after* the plugins have loaded.
+		// here's as good a place as any
+		Player.initializeFinalizeTranscoderArgsListeners();
 
 		boolean binding = false;
 
