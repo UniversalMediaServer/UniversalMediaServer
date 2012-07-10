@@ -18,58 +18,31 @@
  */
 package net.pms.encoders;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.ComponentOrientation;
-import java.awt.Font;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+import bsh.EvalError;
+import bsh.Interpreter;
+import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.factories.Borders;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
+import com.sun.jna.Platform;
+import java.awt.*;
+import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
-import java.util.StringTokenizer;
-
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JColorChooser;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
-
+import java.util.*;
+import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.DLNAMediaAudio;
-import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAMediaSubtitle;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.FileTranscodeVirtualFolder;
-import net.pms.dlna.InputFile;
+import static net.pms.configuration.RendererConfiguration.RENDERER_ID_PLAYSTATION3;
+import net.pms.dlna.*;
 import net.pms.formats.Format;
-import net.pms.io.OutputParams;
-import net.pms.io.PipeIPCProcess;
-import net.pms.io.PipeProcess;
-import net.pms.io.ProcessWrapper;
-import net.pms.io.ProcessWrapperImpl;
-import net.pms.io.StreamModifier;
+import net.pms.formats.SubtitleType;
+import net.pms.io.*;
 import net.pms.network.HTTPResource;
 import net.pms.newgui.FontFileFilter;
 import net.pms.newgui.LooksFrame;
@@ -78,19 +51,9 @@ import net.pms.newgui.RestrictedFileSystemView;
 import net.pms.util.CodecUtil;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.ProcessUtil;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import bsh.EvalError;
-import bsh.Interpreter;
-
-import com.jgoodies.forms.builder.PanelBuilder;
-import com.jgoodies.forms.factories.Borders;
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
-import com.sun.jna.Platform;
 
 public class MEncoderVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MEncoderVideo.class);
@@ -331,7 +294,7 @@ public class MEncoderVideo extends Player {
 					fakemedia.setHeight(720);
 					audio.setSampleFrequency("48000");
 					fakemedia.setFrameRate("23.976");
-					fakemedia.getAudioCodes().add(audio);
+					fakemedia.getAudioTracksList().add(audio);
 					String result[] = getSpecificCodecOptions(newCodecparam, fakemedia, new OutputParams(configuration), "dummy.mpg", "dummy.srt", false, true);
 
 					if (result.length > 0 && result[0].startsWith("@@")) {
@@ -1238,8 +1201,8 @@ public class MEncoderVideo extends Player {
 		setAudioAndSubs(fileName, media, params, configuration);
 		String subString = null;
 
-		if (params.sid != null && params.sid.getPlayableFile() != null) {
-			subString = ProcessUtil.getShortFileNameIfWideChars(params.sid.getPlayableFile().getAbsolutePath());
+		if (params.sid != null && params.sid.getPlayableExternalFile() != null) {
+			subString = ProcessUtil.getShortFileNameIfWideChars(params.sid.getPlayableExternalFile().getAbsolutePath());
 		}
 
 		InputFile newInput = new InputFile();
@@ -1364,7 +1327,7 @@ public class MEncoderVideo extends Player {
 		oaccopy = false;
 
 		// Disable AC3 remux for stereo tracks with 384 kbits bitrate and PS3 renderer (PS3 FW bug?)
-		boolean ps3_and_stereo_and_384_kbits = params.aid != null && (params.mediaRenderer.getRendererName().equalsIgnoreCase("Playstation 3") && params.aid.getNrAudioChannels() == 2) && (params.aid.getBitRate() > 370000 && params.aid.getBitRate() < 400000);
+		boolean ps3_and_stereo_and_384_kbits = params.aid != null && (params.mediaRenderer.getRendererUniqueID().equalsIgnoreCase(RENDERER_ID_PLAYSTATION3) && params.aid.getNrAudioChannels() == 2) && (params.aid.getBitRate() > 370000 && params.aid.getBitRate() < 400000);
 
 		if (configuration.isRemuxAC3() && params.aid != null && params.aid.isAC3() && !ps3_and_stereo_and_384_kbits && !avisynth() && params.mediaRenderer.isTranscodeToAC3()) {
 			// AC3 remux takes priority
@@ -1556,33 +1519,21 @@ public class MEncoderVideo extends Player {
 			int subtitleMargin = 0;
 			int userMargin     = 0;
 
-			// Use ASS flag (and therefore ASS font styles) for all subtitled files except vobsub, embedded, dvd and mp4 container with srt
-			// Note: The MP4 container with SRT rule is a workaround for MEncoder r30369. If there is ever a later version of MEncoder that supports external srt subs we should use that. As of r32848 that isn't the case
-			if (
-				(
-					(
-						params.sid.isFileUtf8() &&
-						params.sid.getType() == DLNAMediaSubtitle.EMBEDDED
-					) ||
-					params.sid.getType() != DLNAMediaSubtitle.EMBEDDED
-				) &&
-				params.sid.getType() != DLNAMediaSubtitle.VOBSUB &&
-				!(
-					params.sid.getType() == DLNAMediaSubtitle.SUBRIP &&
-					media.getContainer().equals("mp4")
-				) &&
+			// Use ASS flag (and therefore ASS font styles) for all subtitled files except vobsub, PGS (blu-ray) and DVD
+			boolean apply_ass_styling = params.sid.getType() != SubtitleType.VOBSUB &&
+				params.sid.getType() != SubtitleType.PGS &&
 				configuration.isMencoderAss() &&   // GUI: enable subtitles formating
 				!foundNoassParam &&                // GUI: codec specific options
-				!dvd
-			) {
+				!dvd;
+
+			if (apply_ass_styling) {
 				sb.append("-ass ");
 
 				// GUI: Override ASS subtitles style if requested (always for SRT subtitles)
-				if (
-					!configuration.isMencoderAssDefaultStyle() ||
-					params.sid.getType() == DLNAMediaSubtitle.SUBRIP ||
-					params.sid.getType() == DLNAMediaSubtitle.EMBEDDED
-				) {
+				boolean override_ass_style = !configuration.isMencoderAssDefaultStyle() ||
+					params.sid.getType() == SubtitleType.SUBRIP;
+
+				if (override_ass_style) {
 					String assSubColor = "ffffff00";
 					if (configuration.getSubsColor() != 0) {
 						assSubColor = Integer.toHexString(configuration.getSubsColor());
@@ -1636,8 +1587,8 @@ public class MEncoderVideo extends Player {
 					sb.append("-ass-force-style MarginV=").append(subtitleMargin).append(" ");
 				}
 
-				if (params.sid.getType() != DLNAMediaSubtitle.EMBEDDED) {
-					// Workaround for MPlayer #2041, remove when that bug is fixed
+				// Workaround for MPlayer #2041, remove when that bug is fixed
+				if (!params.sid.isEmbedded()) {
 					sb.append("-noflip-hebrew ");
 				}
 			// use PLAINTEXT formating
@@ -1678,13 +1629,13 @@ public class MEncoderVideo extends Player {
 			sb.append("-").append(configuration.isMencoderFontConfig() ? "" : "no").append("fontconfig ");
 
 			// Apply DVD/VOBsub subtitle quality
-			if (params.sid.getType() == DLNAMediaSubtitle.VOBSUB && configuration.getMencoderVobsubSubtitleQuality() != null) {
+			if (params.sid.getType() == SubtitleType.VOBSUB && configuration.getMencoderVobsubSubtitleQuality() != null) {
 				String subtitleQuality = configuration.getMencoderVobsubSubtitleQuality();
 
 				sb.append("-spuaa ").append(subtitleQuality).append(" ");
 			}
 
-			if (!params.sid.isFileUtf8() && !configuration.isMencoderDisableSubs() && configuration.getMencoderSubCp() != null && configuration.getMencoderSubCp().length() > 0) {
+			if (!configuration.isMencoderDisableSubs() && configuration.getMencoderSubCp() != null && configuration.getMencoderSubCp().length() > 0) {
 				sb.append("-subcp ").append(configuration.getMencoderSubCp()).append(" ");
 				if (configuration.isMencoderSubFribidi()) {
 					sb.append("-fribidi-charset ").append(configuration.getMencoderSubCp()).append(" ");
@@ -1732,8 +1683,16 @@ public class MEncoderVideo extends Player {
 			cmdArray[3] = "-quiet";
 		}
 
+		String frameRateRatio = null;
+		String frameRateNumber = null;
+
+		if (media != null) {
+			frameRateRatio = media.getValidFps(true);
+			frameRateNumber = media.getValidFps(false);
+		}
+
 		if (avisynth && !fileName.toLowerCase().endsWith(".iso")) {
-			File avsFile = FFMpegVideo.getAVSScript(fileName, params.sid, params.fromFrame, params.toFrame);
+			File avsFile = FFMpegAviSynthVideo.getAVSScript(fileName, params.sid, params.fromFrame, params.toFrame, frameRateRatio, frameRateNumber, false);
 			cmdArray[4] = ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath());
 		} else {
 			cmdArray[4] = fileName;
@@ -1762,7 +1721,7 @@ public class MEncoderVideo extends Player {
 		cmdArray[cmdArray.length - 10] = "-quiet";
 		cmdArray[cmdArray.length - 9] = "-quiet";
 
-		if (!dts && !pcm && !avisynth() && params.aid != null && media.getAudioCodes().size() > 1) {
+		if (!dts && !pcm && !avisynth() && params.aid != null && media.getAudioTracksList().size() > 1) {
 			cmdArray[cmdArray.length - 12] = "-aid";
 			boolean lavf = false; // Need to add support for LAVF demuxing
 			cmdArray[cmdArray.length - 11] = "" + (lavf ? params.aid.getId() + 1 : params.aid.getId());
@@ -1794,14 +1753,8 @@ public class MEncoderVideo extends Player {
 		cmdArray[cmdArray.length - 6] = "-ofps";
 		cmdArray[cmdArray.length - 5] = "24000/1001";
 
-		String frameRate = null;
-
-		if (media != null) {
-			frameRate = media.getValidFps(true);
-		}
-
-		if (frameRate != null) {
-			cmdArray[cmdArray.length - 5] = frameRate;
+		if (frameRateRatio != null) {
+			cmdArray[cmdArray.length - 5] = frameRateRatio;
 
 			if (configuration.isMencoderForceFps()) {
 				if (configuration.isFix25FPSAvMismatch()) {
@@ -1815,10 +1768,10 @@ public class MEncoderVideo extends Player {
 		}
 
 		// Make MEncoder output framerate correspond to InterFrame
-		if (avisynth() && configuration.getAvisynthInterFrame() && !"60000/1001".equals(frameRate) && !"50".equals(frameRate) && !"60".equals(frameRate)) {
-			if ("25".equals(frameRate)) {
+		if (avisynth() && configuration.getAvisynthInterFrame() && !"60000/1001".equals(frameRateRatio) && !"50".equals(frameRateRatio) && !"60".equals(frameRateRatio)) {
+			if ("25".equals(frameRateRatio)) {
 				cmdArray[cmdArray.length - 5] = "50";
-			} else if ("30".equals(frameRate)) {
+			} else if ("30".equals(frameRateRatio)) {
 				cmdArray[cmdArray.length - 5] = "60";
 			} else {
 				cmdArray[cmdArray.length - 5] = "60000/1001";
@@ -1829,8 +1782,8 @@ public class MEncoderVideo extends Player {
 		 * TODO: Move the following block up with the rest of the
 		 * subtitle stuff
 		 */
-		if (subString != null && !configuration.isMencoderDisableSubs() && !avisynth()) {
-			if (params.sid.getType() == DLNAMediaSubtitle.VOBSUB) {
+		if (subString != null && !configuration.isMencoderDisableSubs() && !avisynth() && params.sid != null) {
+			if (params.sid.getType() == SubtitleType.VOBSUB) {
 				cmdArray[cmdArray.length - 4] = "-vobsub";
 				cmdArray[cmdArray.length - 3] = subString.substring(0, subString.length() - 4);
 				cmdArray = Arrays.copyOf(cmdArray, cmdArray.length + 2);
@@ -1839,7 +1792,7 @@ public class MEncoderVideo extends Player {
 			} else {
 				cmdArray[cmdArray.length - 4] = "-sub";
 				cmdArray[cmdArray.length - 3] = subString.replace(",", "\\,"); // Commas in MEncoder separate multiple subtitle files
-				if (params.sid.isFileUtf8() && params.sid.getPlayableFile() != null) {
+				if (params.sid.getPlayableExternalFile() != null && params.sid.isExternalFileUtf8()) {
 					cmdArray = Arrays.copyOf(cmdArray, cmdArray.length + 1);
 					cmdArray[cmdArray.length - 3] = "-utf8";
 				}
@@ -2286,8 +2239,15 @@ public class MEncoderVideo extends Player {
 				ffVideo.runInNewThread();
 
 				String aid = null;
-				if (media != null && media.getAudioCodes().size() > 1 && params.aid != null) {
-					aid = params.aid.getId() + "";
+				if (media != null && media.getAudioTracksList().size() > 1 && params.aid != null) {
+					if (media.getContainer() != null && (media.getContainer().equals(FormatConfiguration.AVI) || media.getContainer().equals(FormatConfiguration.FLV))) {
+						// TODO confirm (MP4s, OGMs and MOVs already tested: first aid is 0; AVIs: first aid is 1)
+						// For AVIs, FLVs and MOVs MEncoder starts audio tracks numbering from 1
+						aid = "" + (params.aid.getId() + 1);
+					} else {
+						// Everything else from 0
+						aid = "" + params.aid.getId();
+					}
 				}
 
 				PipeIPCProcess ffAudioPipe = new PipeIPCProcess(System.currentTimeMillis() + "ffmpegaudio01", System.currentTimeMillis() + "audioout", false, true);
@@ -2514,14 +2474,17 @@ public class MEncoderVideo extends Player {
 				interpreter.set("samplerate", params.aid.getSampleRate());
 			}
 
-			String framerate = media.getValidFps(false);
+			String frameRateNumber = null;
+			if (media != null) {
+				frameRateNumber = media.getValidFps(false);
+			}
 
 			try {
-				if (framerate != null) {
-					interpreter.set("framerate", Double.parseDouble(framerate));
+				if (frameRateNumber != null) {
+					interpreter.set("framerate", Double.parseDouble(frameRateNumber));
 				}
 			} catch (NumberFormatException e) {
-				LOGGER.debug("Could not parse framerate from \"" + framerate + "\"");
+				LOGGER.debug("Could not parse framerate from \"" + frameRateNumber + "\"");
 			}
 
 			interpreter.set("duration", media.getDurationInSeconds());

@@ -18,23 +18,21 @@
  */
 package net.pms.encoders;
 
+import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.factories.Borders;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Font;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.StringTokenizer;
-
 import javax.swing.JComponent;
 import javax.swing.JTextField;
-
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
@@ -42,19 +40,15 @@ import net.pms.io.PipeIPCProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
-import net.pms.util.ProcessUtil;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.jgoodies.forms.builder.PanelBuilder;
-import com.jgoodies.forms.factories.Borders;
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
-
+/*
+ * Pure FFmpeg video player. 
+ */
 public class FFMpegVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
-	public  static final String ID     = "avsffmpeg";
+	public  static final String ID     = "ffmpegvideo";
 
 	@Override
 	public int purpose() {
@@ -73,7 +67,7 @@ public class FFMpegVideo extends Player {
 
 	@Override
 	public boolean avisynth() {
-		return true;
+		return false;
 	}
 	private String overriddenArgs[];
 
@@ -90,7 +84,7 @@ public class FFMpegVideo extends Player {
 
 	@Override
 	public String name() {
-		return "AviSynth/FFmpeg";
+		return "FFmpeg";
 	}
 
 	@Override
@@ -99,7 +93,7 @@ public class FFMpegVideo extends Player {
 	}
 
 	protected String[] getDefaultArgs() {
-		return new String[]{"-vcodec", "mpeg2video", "-f", "vob", "-acodec", "ac3"};
+		return new String[]{"-c:v", "mpeg2video", "-f", "vob", "-c:a", "ac3", "-loglevel", "fatal"};
 	}
 
 	@Override
@@ -112,7 +106,7 @@ public class FFMpegVideo extends Player {
 				args[i] = defaultArgs[i];
 			}
 			for (int i = 0; i < overriddenArgs.length; i++) {
-				if (overriddenArgs[i].equals("-f") || overriddenArgs[i].equals("-acodec") || overriddenArgs[i].equals("-vcodec")) {
+				if (overriddenArgs[i].equals("-f") || overriddenArgs[i].equals("-c:a") || overriddenArgs[i].equals("-c:v")) {
 					LOGGER.info("FFmpeg encoder settings: You cannot change Muxer, Video Codec or Audio Codec");
 					overriddenArgs[i] = "-title";
 					if (i + 1 < overriddenArgs.length) {
@@ -186,9 +180,6 @@ public class FFMpegVideo extends Player {
 				cmdArray[4] = "yuv4mpegpipe";
 				//cmdArray[6] = pipeprefix + videoPipe + (PMS.get().isWindows()?".2":"");
 				cmdArray[6] = videoP.getOutputPipe();
-			} else if (avisynth()) {
-				File avsFile = getAVSScript(fileName, params.sid, params.fromFrame, params.toFrame);
-				cmdArray[6] = ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath());
 			}
 		}
 		cmdArray[7] = "-sn";
@@ -310,124 +301,14 @@ public class FFMpegVideo extends Player {
 		return pw;
 	}
 
-	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack) throws IOException {
-		return getAVSScript(fileName, subTrack, -1, -1);
-	}
-
-	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack, int fromFrame, int toFrame) throws IOException {
-		String onlyFileName = fileName.substring(1 + fileName.lastIndexOf("\\"));
-		File file = new File(PMS.getConfiguration().getTempFolder(), "pms-avs-" + onlyFileName + ".avs");
-		PrintWriter pw = new PrintWriter(new FileOutputStream(file));
-
-		String convertfps = "";
-		if (PMS.getConfiguration().getAvisynthConvertFps()) {
-			convertfps = ", convertfps=true";
-		}
-		File f = new File(fileName);
-		if (f.exists()) {
-			fileName = ProcessUtil.getShortFileNameIfWideChars(fileName);
-		}
-
-		String movieLine       = "DirectShowSource(\"" + fileName + "\"" + convertfps + ")";
-		String mtLine1         = "";
-		String mtLine2         = "";
-		String mtLine3         = "";
-		String interframeLines = null;
-		String interframePath  = PMS.getConfiguration().getInterFramePath();
-
-		int Cores = 1;
-		if (PMS.getConfiguration().getAvisynthMultiThreading()) {
-			Cores = PMS.getConfiguration().getNumberOfCpuCores();
-
-			// Goes at the start of the file to initiate multithreading
-			mtLine1 = "SetMemoryMax(512)\nSetMTMode(3," + Cores + ")\n";
-
-			// Goes after the input line to make multithreading more efficient
-			mtLine2 = "SetMTMode(2)";
-
-			// Goes at the end of the file to allow the multithreading to work with MEncoder
-			mtLine3 = "SetMTMode(1)\nGetMTMode(false) > 0 ? distributor() : last";
-		}
-
-		// True Motion
-		if (PMS.getConfiguration().getAvisynthInterFrame()) {
-			String GPU = "";
-			movieLine = movieLine + ".ConvertToYV12()";
-
-			// Enable GPU to assist with CPU
-			if (PMS.getConfiguration().getAvisynthInterFrameGPU()){
-				GPU = ", GPU=true";
-			}
-
-			interframeLines = "\n" +
-				"PluginPath = \"" + interframePath + "\"\n" +
-				"LoadPlugin(PluginPath+\"svpflow1.dll\")\n" +
-				"LoadPlugin(PluginPath+\"svpflow2.dll\")\n" +
-				"Import(PluginPath+\"InterFrame2.avsi\")\n" +
-				"InterFrame(Cores=" + Cores + GPU + ")\n";
-		}
-
-		String subLine = null;
-		if (subTrack != null && PMS.getConfiguration().getUseSubtitles() && !PMS.getConfiguration().isMencoderDisableSubs()) {
-			LOGGER.trace("Avisynth script: Using sub track: " + subTrack);
-			if (subTrack.getFile() != null) {
-				String function = "TextSub";
-				if (subTrack.getType() == DLNAMediaSubtitle.VOBSUB) {
-					function = "VobSub";
-				}
-				subLine = function + "(\"" + ProcessUtil.getShortFileNameIfWideChars(subTrack.getFile().getAbsolutePath()) + "\")";
-			}
-		}
-
-		ArrayList<String> lines = new ArrayList<String>();
-
-		lines.add(mtLine1);
-
-		boolean fullyManaged = false;
-		String script = PMS.getConfiguration().getAvisynthScript();
-		StringTokenizer st = new StringTokenizer(script, PMS.AVS_SEPARATOR);
-		while (st.hasMoreTokens()) {
-			String line = st.nextToken();
-			if (line.contains("<movie") || line.contains("<sub")) {
-				fullyManaged = true;
-			}
-			lines.add(line);
-		}
-
-		lines.add(mtLine2);
-
-		if (PMS.getConfiguration().getAvisynthInterFrame()) {
-			lines.add(interframeLines);
-		}
-
-		lines.add(mtLine3);
-
-		if (fullyManaged) {
-			for (String s : lines) {
-				s = s.replace("<moviefilename>", fileName);
-				if (movieLine != null) {
-					s = s.replace("<movie>", movieLine);
-				}
-				s = s.replace("<sub>", subLine != null ? subLine : "#");
-				pw.println(s);
-			}
-		} else {
-			pw.println(movieLine);
-			if (subLine != null) {
-				pw.println(subLine);
-			}
-			pw.println("clip");
-
-		}
-
-		pw.close();
-		file.deleteOnExit();
-		return file;
-	}
 	private JTextField ffmpeg;
 
 	@Override
 	public JComponent config() {
+		return config("FFMpegVideo.1");
+	}
+
+	protected JComponent config(String languageLabel) {
 		FormLayout layout = new FormLayout(
 			"left:pref, 0:grow",
 			"p, 3dlu, p, 3dlu");
@@ -437,7 +318,7 @@ public class FFMpegVideo extends Player {
 
 		CellConstraints cc = new CellConstraints();
 
-		JComponent cmp = builder.addSeparator(Messages.getString("FFMpegVideo.0"), cc.xyw(2, 1, 1));
+		JComponent cmp = builder.addSeparator(Messages.getString(languageLabel), cc.xyw(2, 1, 1));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 

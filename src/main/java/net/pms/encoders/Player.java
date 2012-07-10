@@ -24,9 +24,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
-
 import javax.swing.JComponent;
-
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
@@ -41,7 +39,6 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.util.FileUtil;
 import net.pms.util.Iso639;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -151,7 +148,7 @@ public abstract class Player {
 				String lang = st.nextToken();
 				lang = lang.trim();
 				LOGGER.trace("Looking for an audio track with lang: " + lang);
-				for (DLNAMediaAudio audio : media.getAudioCodes()) {
+				for (DLNAMediaAudio audio : media.getAudioTracksList()) {
 					if (audio.matchCode(lang)) {
 						params.aid = audio;
 						LOGGER.trace("Matched audio track: " + audio);
@@ -162,9 +159,9 @@ public abstract class Player {
 			}
 		}
 
-		if (params.aid == null && media.getAudioCodes().size() > 0) {
-			// take a default audio track, dts first if possible
-			for (DLNAMediaAudio audio : media.getAudioCodes()) {
+		if (params.aid == null && media.getAudioTracksList().size() > 0) {
+			// Take a default audio track, dts first if possible
+			for (DLNAMediaAudio audio : media.getAudioTracksList()) {
 				if (audio.isDTS()) {
 					params.aid = audio;
 					LOGGER.trace("Found priority audio track with DTS: " + audio);
@@ -173,8 +170,8 @@ public abstract class Player {
 			}
 
 			if (params.aid == null) {
-				params.aid = media.getAudioCodes().get(0);
-				LOGGER.trace("Choosed a default audio track: " + params.aid);
+				params.aid = media.getAudioTracksList().get(0);
+				LOGGER.trace("Chose a default audio track: " + params.aid);
 			}
 		}
 
@@ -207,7 +204,7 @@ public abstract class Player {
 						matchedSub = new DLNAMediaSubtitle();
 						matchedSub.setLang("off");
 					} else {
-						for (DLNAMediaSubtitle present_sub : media.getSubtitlesCodes()) {
+						for (DLNAMediaSubtitle present_sub : media.getSubtitleTracksList()) {
 							if (present_sub.matchCode(sub) || sub.equals("*")) {
 								matchedSub = present_sub;
 								LOGGER.trace(" Found a match: " + matchedSub);
@@ -239,7 +236,7 @@ public abstract class Player {
 			if (configuration.getUseSubtitles()) {
 				boolean forcedSubsFound = false;
 				// Priority to external subtitles
-				for (DLNAMediaSubtitle sub : media.getSubtitlesCodes()) {
+				for (DLNAMediaSubtitle sub : media.getSubtitleTracksList()) {
 					if (matchedSub !=null && matchedSub.getLang() !=null && matchedSub.getLang().equals("off")) {
 						StringTokenizer st = new StringTokenizer(configuration.getMencoderForcedSubTags(), ",");
 
@@ -253,8 +250,8 @@ public abstract class Player {
 								LOGGER.trace("Forcing preferred subtitles : " + sub.getLang() + "/" + sub.getFlavor());
 								LOGGER.trace("Forced subtitles track : " + sub);
 
-								if (sub.getFile() != null) {
-									LOGGER.trace("Found external forced file : " + sub.getFile().getAbsolutePath());
+								if (sub.getExternalFile() != null) {
+									LOGGER.trace("Found external forced file : " + sub.getExternalFile().getAbsolutePath());
 								}
 								params.sid = sub;
 								forcedSubsFound = true;
@@ -266,8 +263,8 @@ public abstract class Player {
 						}
 					} else {
 							LOGGER.trace("Found subtitles track: " + sub);
-							if (sub.getFile() != null) {
-								LOGGER.trace("Found external file: " + sub.getFile().getAbsolutePath());
+							if (sub.getExternalFile() != null) {
+								LOGGER.trace("Found external file: " + sub.getExternalFile().getAbsolutePath());
 								params.sid = sub;
 								break;
 							}
@@ -288,7 +285,7 @@ public abstract class Player {
 					String lang = st.nextToken();
 					lang = lang.trim();
 					LOGGER.trace("Looking for a subtitle track with lang: " + lang);
-					for (DLNAMediaSubtitle sub : media.getSubtitlesCodes()) {
+					for (DLNAMediaSubtitle sub : media.getSubtitleTracksList()) {
 						if (sub.matchCode(lang)) {
 							params.sid = sub;
 							LOGGER.trace("Matched sub track: " + params.sid);

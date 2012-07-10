@@ -45,14 +45,24 @@ ShowUninstDetails show
 
 ; Offer to install AviSynth 2.6 MT unless installer is in silent mode
 Section -Prerequisites
+
   IfSilent jump_if_silent jump_if_not_silent
+
   jump_if_not_silent:
-    SetOutPath $INSTDIR\win32\avisynth
-    MessageBox MB_YESNO "AviSynth 2.6 MT is recommended. Install it now?" /SD IDYES IDNO endAviSynthInstall
-    File "..\..\..\..\target\bin\win32\avisynth\avisynth.exe"
-    ExecWait "$INSTDIR\win32\avisynth\avisynth.exe"
+    SetRegView 32
+    ReadRegStr $0 HKLM Software\Microsoft\Windows\CurrentVersion\Uninstall\AviSynth DisplayVersion
+
+    ${If} $0 != "2.6.0 MT"
+      SetOutPath $INSTDIR\win32\avisynth
+      MessageBox MB_YESNO "AviSynth 2.6 MT is recommended. Install it now?" /SD IDYES IDNO endAviSynthInstall
+      File "..\..\..\..\target\bin\win32\avisynth\avisynth.exe"
+      ExecWait "$INSTDIR\win32\avisynth\avisynth.exe"
+    ${EndIf}
+
   jump_if_silent:
+
   endAviSynthInstall:
+
 SectionEnd
 
 Var Dialog
@@ -102,6 +112,7 @@ Section "Program Files"
   File "${PROJECT_BUILD_DIR}\ums.jar"
   File "${PROJECT_BASEDIR}\MediaInfo.dll"
   File "${PROJECT_BASEDIR}\MediaInfo64.dll"
+  File "${PROJECT_BASEDIR}\MediaInfo-License.html"
   File "${PROJECT_BASEDIR}\CHANGELOG.txt"
   File "${PROJECT_BASEDIR}\README.txt"
   File "${PROJECT_BASEDIR}\LICENSE.txt"
@@ -111,6 +122,7 @@ Section "Program Files"
   ;the user may have set the installation dir
   ;as the profile dir, so we can't clobber this
   SetOverwrite off
+  File "${PROJECT_BASEDIR}\src\main\external-resources\UMS.conf"
   File "${PROJECT_BASEDIR}\src\main\external-resources\WEB.conf"
 
   ;Store install folder
@@ -135,6 +147,8 @@ Section "Program Files"
   ReadENVStr $R0 ALLUSERSPROFILE
   SetOutPath "$R0\UMS"
   AccessControl::GrantOnFile "$R0\UMS" "(S-1-5-32-545)" "FullAccess"
+  File "${PROJECT_BASEDIR}\src\main\external-resources\UMS.conf"
+  File "${PROJECT_BASEDIR}\src\main\external-resources\WEB.conf"
 SectionEnd
 
 Section "Start Menu Shortcuts"
@@ -158,6 +172,7 @@ Section "Uninstall"
   Delete /REBOOTOK "$INSTDIR\ums.jar"
   Delete /REBOOTOK "$INSTDIR\MediaInfo.dll"
   Delete /REBOOTOK "$INSTDIR\MediaInfo64.dll"
+  Delete /REBOOTOK "$INSTDIR\MediaInfo-License.html"
   Delete /REBOOTOK "$INSTDIR\CHANGELOG.txt"
   Delete /REBOOTOK "$INSTDIR\WEB.conf"
   Delete /REBOOTOK "$INSTDIR\README.txt"

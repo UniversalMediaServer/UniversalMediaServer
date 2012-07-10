@@ -20,7 +20,6 @@ package net.pms.dlna.virtual;
 
 import java.io.IOException;
 import java.io.InputStream;
-
 import net.pms.dlna.DLNAResource;
 import net.pms.network.HTTPResource;
 

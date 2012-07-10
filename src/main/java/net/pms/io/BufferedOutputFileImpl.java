@@ -26,40 +26,39 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
-
 import net.pms.Messages;
 import net.pms.PMS;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Circular memory buffer that can be used as {@link java.io.OutputStream OutputStream} and
- * provides methods that can read data from the memory buffer using an
- * {@link java.io.InputStream InputStream}. The name of this class is a bit misleading, as
- * there is typically no file involved in the process at all. Instead, the buffer is
- * typically used to hold data piped by a transcoding process in one thread until a request
- * for data comes in from another thread.
- * 
+ * Circular memory buffer that can be used as {@link java.io.OutputStream OutputStream}
+ * and provides methods that can read data from the memory buffer using an
+ * {@link java.io.InputStream InputStream}. The name of this class is a bit
+ * misleading, as there is typically no file involved in the process at all.
+ * Instead, the buffer is typically used to hold data piped by a transcoding
+ * process in one thread until a request for data comes in from another thread.
+ *
  * @see ProcessWrapperImpl
  * @see net.pms.network.Request Request
  * @see net.pms.network.RequestV2 RequestV2
  */
 public class BufferedOutputFileImpl extends OutputStream implements BufferedOutputFile {
 	private static final Logger LOGGER = LoggerFactory.getLogger(BufferedOutputFileImpl.class);
-	
+
 	/**
 	 * Initial size for the buffer in bytes.
+	 * The current value is 50MB.
 	 */
-	private static final int INITIAL_BUFFER_SIZE = 50000000;
-	
+	private static final int INITIAL_BUFFER_SIZE = 52428800;
+
 	/**
-	 * Amount of extra bytes to increase the initial buffer with when memory allocation fails.
+	 * Amount of extra bytes to increase the initial buffer with when memory
+	 * allocation fails.
 	 */
 	private static final int MARGIN_LARGE = 20000000;
 	private static final int MARGIN_MEDIUM = 2000000;
 	private static final int MARGIN_SMALL = 600000;
-	
 	private static final int CHECK_INTERVAL = 500;
 	private static final int CHECK_END_OF_PROCESS = 2500; // must be superior to CHECK_INTERVAL
 	private int minMemorySize;
@@ -82,32 +81,33 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 	private long packetpos = 0;
 
 	/**
-	 * Try to increase the size of a memory buffer, while retaining its contents. The
-	 * provided new size is considered to be a request, it is scaled down when an
-	 * OutOfMemory error occurs. There is no guarantee about the exact length of the
-	 * returned byte array, only that it is greater than or equal to the original buffer
-	 * size. When null is passed as an argument, a fresh buffer will be allocated.
-	 * Copying one byte array to another is a costly operation, both in memory usage
-	 * and performance. It is best to avoid using this method.
-	 * 
+	 * Try to increase the size of a memory buffer, while retaining its
+	 * contents. The provided new size is considered to be a request, it is
+	 * scaled down when an OutOfMemory error occurs. There is no guarantee
+	 * about the exact length of the returned byte array, only that it is
+	 * greater than or equal to the original buffer size. When null is
+	 * passed as an argument, a fresh buffer will be allocated. Copying one
+	 * byte array to another is a costly operation, both in memory usage and
+	 * performance. It is best to avoid using this method.
+	 *
 	 * @param buffer The byte array to resize, null is allowed.
-	 * @param newSize The requested final size. Should be greater than the original size
-	 * or the original buffer will be returned. 
+	 * @param newSize The requested final size. Should be greater than the
+	 * original size or the original buffer will be returned.
 	 * @return The resized byte array.
 	 */
 	private byte[] growBuffer(byte[] buffer, int newSize) {
 		byte[] copy;
-		
+
 		if (buffer == null) {
 			// Temporary empty array to avoid null tests in the code below
 			buffer = new byte[0];
 		}
-		
+
 		if (newSize <= buffer.length) {
 			// Cannot shrink the original
 			return buffer;
 		}
-		
+
 		try {
 			// Try to allocate the requested new size
 			copy = new byte[newSize];
@@ -116,17 +116,18 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 				LOGGER.trace("Cannot initialize buffer to " + formatter.format(newSize) + " bytes.");
 			} else {
 				LOGGER.debug("Cannot grow buffer size from " + formatter.format(buffer.length) + " bytes to " + formatter.format(newSize) + " bytes.");
-				
+				LOGGER.debug("Error given: " + e);
+
 			}
 
 			// Could not allocate the requested new size, use 30% of free memory instead.
 			// Rationale behind using 30%: multiple threads are running at the same time,
-			// we do not want one threads memory usage to suffocate the others.
+			// we do not want one thread's memory usage to suffocate the others.
 			// Using maxMemory() to ignore the initial Java heap space size that freeMemory()
 			// takes into account.
 			// See http://javarevisited.blogspot.com/2011/05/java-heap-space-memory-size-jvm.html
 			long realisticSize = Runtime.getRuntime().maxMemory() * 3 / 10;
-			
+
 			if (realisticSize < buffer.length) {
 				// A copy would be smaller in size, shrinking instead of growing the buffer.
 				// Better to return the original and retain its size.
@@ -136,11 +137,11 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 					// Try to allocate the realistic alternative size
 					copy = new byte[(int) realisticSize];
 				} catch (OutOfMemoryError e2) {
-					LOGGER.debug("Cannot grow buffer size from " + formatter.format(buffer.length) + " bytes to "
-							+ formatter.format(realisticSize) + " bytes either.");
+					LOGGER.debug("Cannot grow buffer size from " + formatter.format(buffer.length) + " bytes to " + formatter.format(realisticSize) + " bytes either.");
 					LOGGER.trace("freeMemory: " + formatter.format(Runtime.getRuntime().freeMemory()));
 					LOGGER.trace("totalMemory: " + formatter.format(Runtime.getRuntime().totalMemory()));
 					LOGGER.trace("maxMemory: " + formatter.format(Runtime.getRuntime().maxMemory()));
+					LOGGER.debug("Error given: " + e2);
 
 					// Cannot allocate memory, no other option than to return the original.
 					return buffer;
@@ -153,8 +154,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 		} else {
 			try {
 				System.arraycopy(buffer, 0, copy, 0, buffer.length);
-				LOGGER.trace("Successfully grown buffer from " + formatter.format(buffer.length) + " bytes to "
-						+ formatter.format(copy.length) + " bytes."); 
+				LOGGER.trace("Successfully grown buffer from " + formatter.format(buffer.length) + " bytes to " + formatter.format(copy.length) + " bytes.");
 			} catch (NullPointerException npe) {
 				LOGGER.trace("Cannot grow buffer size, error copying buffer contents.");
 			}
@@ -162,13 +162,14 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 
 		return copy;
 	}
-	
+
 	/**
-	 * Constructor to create a memory buffer based on settings that are passed on. Will also
-	 * start up a timer task to display buffer size and usage in the PMS main screen.
-	 * 
-	 * @param params {@link OutputParams} object that contains preferences for the buffers
-	 * 				dimensions and behavior.
+	 * Constructor to create a memory buffer based on settings that are
+	 * passed on. Will also start up a timer task to display buffer size and
+	 * usage in the PMS main screen.
+	 *
+	 * @param params {@link OutputParams} object that contains preferences
+	 * for the buffers dimensions and behavior.
 	 */
 	public BufferedOutputFileImpl(OutputParams params) {
 		this.minMemorySize = (int) (1048576 * params.minBufferSize);
@@ -190,8 +191,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 		this.timeend = params.timeend;
 		this.shiftScr = params.shift_scr;
 
-		if ((maxMemorySize > INITIAL_BUFFER_SIZE) && 
-			!PMS.getConfiguration().initBufferMax()) {
+		if ((maxMemorySize > INITIAL_BUFFER_SIZE) && !PMS.getConfiguration().initBufferMax()) {
 			// Try to limit memory usage a bit.
 			// Start with a modest allocation initially, grow to max when needed later.
 			buffer = growBuffer(null, INITIAL_BUFFER_SIZE);
@@ -205,9 +205,9 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			LOGGER.trace("freeMemory: " + Runtime.getRuntime().freeMemory());
 			LOGGER.trace("totalMemory: " + Runtime.getRuntime().totalMemory());
 			LOGGER.trace("maxMemory: " + Runtime.getRuntime().maxMemory());
-			System.exit(1);			
+			System.exit(1);
 		}
-		
+
 		inputStreams = new ArrayList<WaitBufferedInputStream>();
 		timer = new Timer();
 		if (params.maxBufferSize > 15 && !params.hidebuffer) {
@@ -220,7 +220,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 					}
 					long space = (writeCount - rc);
 					LOGGER.trace("buffered: " + formatter.format(space) + " bytes / inputs: " + inputStreams.size());
-					
+
 					// There are 1048576 bytes in a megabyte
 					long bufferInMBs = space / 1048576;
 
@@ -252,7 +252,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 
 		return wai;
 	}
-	
+
 	@Override
 	public InputStream getInputStream(long newReadPosition) {
 		if (attachedThread != null) {
@@ -300,7 +300,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			debugOutput.write(b, off, len);
 			debugOutput.flush();
 		}
-		
+
 		WaitBufferedInputStream input = getCurrentInputStream();
 
 		//LOGGER.trace("write(" + b.length + ", " + off + ", " + len + "), writeCount = " + writeCount + ", readCount = " + (input != null ? input.getReadCount() : "null"));
@@ -312,8 +312,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			}
 			input = getCurrentInputStream();
 		}
-		
-		
+
 		if (buffer != null) {
 			int mb = (int) (writeCount % maxMemorySize);
 
@@ -382,11 +381,11 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 		}
 	}
 
-	
 	/**
-	 * Determine a modulo value that is guaranteed to be zero or positive, as opposed to
-	 * the standard Java % operator which can return a negative value. 
-	 * 
+	 * Determine a modulo value that is guaranteed to be zero or positive,
+	 * as opposed to the standard Java % operator which can return a
+	 * negative value.
+	 *
 	 * @param number Number to divide
 	 * @param divisor Number that is used to divide
 	 * @return The rest value of the division.
@@ -398,7 +397,6 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 		return ((number % divisor) + divisor) % divisor;
 	}
 
-	
 	@Override
 	public void write(int b) throws IOException {
 		boolean bb = b % 100000 == 0;
@@ -542,8 +540,27 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 	}
 
 	private boolean shiftAudio(int mb, boolean mod) {
-		boolean bb = (!mod && (buffer[mb - 10] == -67 || buffer[mb - 10] == -64) && buffer[mb - 11] == 1 && buffer[mb - 12] == 0 && buffer[mb - 13] == 0 && /*(buffer[mb-7]&128)==128 &&*/ (buffer[mb - 6] & 128) == 128/*buffer[mb-6] == -128*/)
-			|| (mod && (buffer[modulo(mb - 10, buffer.length)] == -67 || buffer[modulo(mb - 10, buffer.length)] == -64) && buffer[modulo(mb - 11, buffer.length)] == 1 && buffer[modulo(mb - 12, buffer.length)] == 0 && buffer[modulo(mb - 13, buffer.length)] == 0 && /*(buffer[modulo(mb-7)]&128)==128 && */ (buffer[modulo(mb - 6, buffer.length)] & 128) == 128/*buffer[modulo(mb-6, buffer.length)] == -128*/);
+		boolean bb = (
+				!mod &&
+				(
+					buffer[mb - 10] == -67 || buffer[mb - 10] == -64
+				) &&
+				buffer[mb - 11] == 1 &&
+				buffer[mb - 12] == 0 &&
+				buffer[mb - 13] == 0 &&
+				(buffer[mb - 6] & 128) == 128
+			) ||
+			(
+				mod &&
+				(
+					buffer[modulo(mb - 10, buffer.length)] == -67 ||
+					buffer[modulo(mb - 10, buffer.length)] == -64
+				) &&
+				buffer[modulo(mb - 11, buffer.length)] == 1 &&
+				buffer[modulo(mb - 12, buffer.length)] == 0 &&
+				buffer[modulo(mb - 13, buffer.length)] == 0 &&
+				(buffer[modulo(mb - 6, buffer.length)] & 128) == 128
+			);
 		if (bb) {
 			int pts = (((((buffer[modulo(mb - 3, buffer.length)] & 0xff) << 8) + (buffer[modulo(mb - 2, buffer.length)] & 0xff)) >> 1) << 15) + ((((buffer[modulo(mb - 1, buffer.length)] & 0xff) << 8) + (buffer[modulo(mb, buffer.length)] & 0xff)) >> 1);
 			pts += (int) (timeseek * 90000);
@@ -569,7 +586,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			&& (buffer[modulo(mb - 11, buffer.length)] & 128) == 128
 			&& (buffer[modulo(mb - 9, buffer.length)] & 32) == 32);
 
-		if (bb) { // check EO or FD (tsmuxer)
+		if (bb) { // check EO or FD (tsMuxeR)
 			int pts = getTS(mb - 5, mod);
 			int dts = 0;
 			boolean dts_present = (buffer[modulo(mb - 11, buffer.length)] & 64) == 64;
@@ -740,7 +757,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 	public void removeInputStream(WaitBufferedInputStream inputStream) {
 		inputStreams.remove(inputStream);
 	}
-	
+
 	@Override
 	public void detachInputStream() {
 		PMS.get().getFrame().setReadValue(0, "");

@@ -20,7 +20,6 @@ package net.pms.dlna;
 
 import java.io.File;
 import java.util.List;
-
 import net.pms.PMS;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.formats.Format;

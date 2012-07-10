@@ -19,30 +19,19 @@
 
 package net.pms;
 
+import com.sun.jna.Platform;
 import java.awt.GraphicsEnvironment;
 import java.awt.Toolkit;
-import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.PrintStream;
+import java.io.*;
 import java.net.BindException;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Locale;
 import java.util.Map.Entry;
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.LogManager;
-
 import javax.swing.JOptionPane;
-
 import net.pms.configuration.Build;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -57,14 +46,7 @@ import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.gui.DummyFrame;
 import net.pms.gui.IFrame;
-import net.pms.io.BasicSystemUtils;
-import net.pms.io.MacSystemUtils;
-import net.pms.io.OutputParams;
-import net.pms.io.OutputTextConsumer;
-import net.pms.io.ProcessWrapperImpl;
-import net.pms.io.SolarisUtils;
-import net.pms.io.SystemUtils;
-import net.pms.io.WinUtils;
+import net.pms.io.*;
 import net.pms.logging.LoggingConfigFileLoader;
 import net.pms.network.HTTPServer;
 import net.pms.network.NetworkConfiguration;
@@ -79,14 +61,11 @@ import net.pms.util.ProcessUtil;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.SystemErrWrapper;
 import net.pms.util.TaskRunner;
-
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.sun.jna.Platform;
 
 public class PMS {
 	private static final String SCROLLBARS = "scrollbars";
@@ -110,7 +89,7 @@ public class PMS {
 	private static PmsConfiguration configuration;
 
 	/**Returns a pointer to the main PMS GUI.
-	 * @return {@link IFrame} Main PMS window.
+	 * @return {@link net.pms.gui.IFrame} Main PMS window.
 	 */
 	public IFrame getFrame() {
 		return frame;
@@ -118,9 +97,9 @@ public class PMS {
 
 	/**getRootFolder returns the Root Folder for a given renderer. There could be the case
 	 * where a given media renderer needs a different root structure.
-	 * @param renderer {@link RendererConfiguration} is the renderer for which to get the RootFolder structure. If <b>null</b>, then
+	 * @param renderer {@link net.pms.configuration.RendererConfiguration} is the renderer for which to get the RootFolder structure. If <b>null</b>, then
 	 * the default renderer is used.
-	 * @return {@link RootFolder} The root folder structure for a given renderer
+	 * @return {@link net.pms.dlna.RootFolder} The root folder structure for a given renderer
 	 */
 	public RootFolder getRootFolder(RendererConfiguration renderer) {
 		// something to do here for multiple directories views for each renderer
@@ -148,13 +127,13 @@ public class PMS {
 	public final static SimpleDateFormat sdfHour = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
 
 	/**
-	 * Array of {@link RendererConfiguration} that have been found by PMS.
+	 * Array of {@link net.pms.configuration.RendererConfiguration} that have been found by PMS.
 	 */
 	private final ArrayList<RendererConfiguration> foundRenderers = new ArrayList<RendererConfiguration>();
 
-	/**Adds a {@link RendererConfiguration} to the list of media renderers found. The list is being used, for
+	/**Adds a {@link net.pms.configuration.RendererConfiguration} to the list of media renderers found. The list is being used, for
 	 * example, to give the user a graphical representation of the found media renderers.
-	 * @param mediarenderer {@link RendererConfiguration}
+	 * @param mediarenderer {@link net.pms.configuration.RendererConfiguration}
 	 */
 	public void setRendererfound(RendererConfiguration mediarenderer) {
 		if (!foundRenderers.contains(mediarenderer) && !mediarenderer.isFDSSDP()) {
@@ -186,12 +165,12 @@ public class PMS {
 	}
 
 	/**
-	 * {@link IFrame} object that represents PMS GUI.
+	 * {@link net.pms.gui.IFrame} object that represents PMS GUI.
 	 */
 	IFrame frame;
 
 	/**
-	 * @see Platform#isWindows()
+	 * @see com.sun.jna.Platform#isWindows()
 	 */
 	public boolean isWindows() {
 		return Platform.isWindows();
@@ -200,12 +179,12 @@ public class PMS {
 	private int proxy;
 
 	/**Interface to Windows specific functions, like Windows Registry. registry is set by {@link #init()}.
-	 * @see WinUtils
+	 * @see net.pms.io.WinUtils
 	 */
 	private SystemUtils registry;
 
 	/**
-	 * @see WinUtils
+	 * @see net.pms.io.WinUtils
 	 */
 	public SystemUtils getRegistry() {
 		return registry;
@@ -281,7 +260,7 @@ public class PMS {
 	private final PrintStream stderr = System.err;
 
 	/**Main resource database that supports search capabilities. Also known as media cache.
-	 * @see DLNAMediaDatabase
+	 * @see net.pms.dlna.DLNAMediaDatabase
 	 */
 	private DLNAMediaDatabase database;
 
@@ -400,7 +379,7 @@ public class PMS {
 
 		LOGGER.info("Profile name: " + configuration.getProfileName());
 		LOGGER.info("");
-		
+
 		dbgPack = new DbgPacker();
 
 		RendererConfiguration.loadRendererConfigurations(configuration);
@@ -458,11 +437,6 @@ public class PMS {
 			LOGGER.error("Error loading plugins", e);
 		}
 
-		// a static block in Player doesn't work (i.e. is called too late).
-		// this must always be called *after* the plugins have loaded.
-		// here's as good a place as any
-		Player.initializeFinalizeTranscoderArgsListeners();
-
 		// Initialize a player factory to register all players
 		PlayerFactory.initialize(configuration);
 
@@ -471,6 +445,11 @@ public class PMS {
 
 		// Instantiate listeners that require registered players.
 		ExternalFactory.instantiateLateListeners();
+		
+		// a static block in Player doesn't work (i.e. is called too late).
+		// this must always be called *after* the plugins have loaded.
+		// here's as good a place as any
+		Player.initializeFinalizeTranscoderArgsListeners();
 
 		boolean binding = false;
 
@@ -584,7 +563,7 @@ public class PMS {
 	/**Executes the needed commands in order to make PMS a Windows service that starts whenever the machine is started.
 	 * This function is called from the Network tab.
 	 * @return true if PMS could be installed as a Windows service.
-	 * @see GeneralTab#build()
+	 * @see net.pms.newgui.GeneralTab#build()
 	 */
 	public boolean installWin32Service() {
 		LOGGER.info(Messages.getString("PMS.41"));
@@ -602,8 +581,8 @@ public class PMS {
 	/**Transforms a comma separated list of directory entries into an array of {@link String}.
 	 * Checks that the directory exists and is a valid directory.
 	 * @param log whether to output log information
-	 * @return {@link File}[] Array of directories.
-	 * @throws IOException
+	 * @return {@link java.io.File}[] Array of directories.
+	 * @throws java.io.IOException
 	 */
 
 	// this is called *way* too often (e.g. a dozen times with 1 renderer and 1 shared folder),
@@ -648,7 +627,7 @@ public class PMS {
 
 	/**Restarts the server. The trigger is either a button on the main PMS window or via
 	 * an action item.
-	 * @throws IOException
+	 * @throws java.io.IOException
 	 */
 	// XXX: don't try to optimize this by reusing the same server instance.
 	// see the comment above HTTPServer.stop()
@@ -724,26 +703,28 @@ public class PMS {
 		LOGGER.error(msg, t);
 	}
 
-	/**Universally Unique Identifier used in the UPnP server.
+	/*
+	 * Universally Unique Identifier used in the UPnP server.
 	 * 
 	 */
 	private String uuid;
 
-	/**Creates a new {@link #uuid} for the UPnP server to use. Tries to follow the RFCs for creating the UUID based on the link MAC address.
+	/*
+	 * Creates a new {@link #uuid} for the UPnP server to use. Tries to follow the RFCs for creating the UUID based on the link MAC address.
 	 * Defaults to a random one if that method is not available.
 	 * @return {@link String} with an Universally Unique Identifier.
 	 */
 	public String usn() {
 		if (uuid == null) {
-			//retrieve UUID from configuration
+			// Retrieve UUID from configuration
 			uuid = getConfiguration().getUuid();
 
 			if (uuid == null) {
-				//create a new UUID based on the MAC address of the used network adapter
+				// Create a new UUID based on the MAC address of the used network adapter
 				NetworkInterface ni = null;
 				try {
 					ni = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
-					// if no ni comes from the server host name, we should get the default.
+					// If no ni comes from the server host name, we should get the default.
 					if (ni != null) {
 						ni = get().getServer().getNi();
 					}
@@ -761,13 +742,13 @@ public class PMS {
 					LOGGER.debug("Caught exception", e);
 				}
 
-				//create random UUID if the generation by MAC address failed
+				// Create random UUID if the generation by MAC address failed
 				if (uuid == null) {
 					uuid = UUID.randomUUID().toString();
 					LOGGER.info("Generated new random UUID");
 				}
 
-				//save the newly generated UUID
+				// Save the newly generated UUID
 				getConfiguration().setUuid(uuid);
 				try {
 					getConfiguration().save();
@@ -781,7 +762,8 @@ public class PMS {
 		return "uuid:" + uuid;
 	}
 
-	/**Returns the user friendly name of the UPnP server. 
+	/*
+	 * Returns the user friendly name of the UPnP server. 
 	 * @return {@link String} with the user friendly name.
 	 */
 	public String getServerName() {
@@ -792,14 +774,15 @@ public class PMS {
 			sb.append(System.getProperty("os.arch").replace(" ", "_"));
 			sb.append("-");
 			sb.append(System.getProperty("os.version").replace(" ", "_"));
-			sb.append(", UPnP/1.0, UMS/" + getVersion());
+			sb.append(", UPnP/1.0, UMS/").append(getVersion());
 			serverName = sb.toString();
 		}
 		return serverName;
 	}
 
-	/**Returns the PMS instance.
-	 * @return {@link PMS}
+	/*
+	 * Returns the PMS instance.
+	 * @return {@link net.pms.PMS}
 	 */
 	public static PMS get() {
 		// XXX when PMS is run as an application, the instance is initialized via the createInstance call in main().
@@ -829,7 +812,7 @@ public class PMS {
 	}
 
 	/**
-	 * @deprecated Use {@link FormatFactory#getAssociatedExtension(String)}
+	 * @deprecated Use {@link net.pms.formats.FormatFactory#getAssociatedExtension(String)}
 	 * instead.
 	 *
 	 * @param filename
@@ -903,73 +886,12 @@ public class PMS {
 	}
 
 	/**
-	 * @deprecated Use {@link FormatFactory#getExtensions()} instead.
+	 * @deprecated Use {@link net.pms.formats.FormatFactory#getExtensions()} instead.
 	 *
 	 * @return The list of formats. 
 	 */
 	public ArrayList<Format> getExtensions() {
 		return FormatFactory.getExtensions();
-	}
-
-	/**
-	 * @deprecated Use {@link PlayerFactory#registerPlayer(Player)} instead.
-	 *
-	 * Adds a single {@link Player} to the list of Players.
-	 *
-	 * @param player Player to be added to the list.
-	 * @see Player
-	 */
-	@Deprecated
-	public void registerPlayer(Player player) {
-		PlayerFactory.registerPlayer(player);
-	}
-
-	/**
-	 * @deprecated Use {@link PlayerFactory#getPlayers()} instead.
-	 *
-	 * Returns the list of players that have been verified as okay.
-	 * 
-	 * @return The list of players.
-	 */
-	@Deprecated
-	public ArrayList<Player> getPlayers() {
-		return PlayerFactory.getPlayers();
-	}
-
-	/**
-	 * @deprecated Use {@link PlayerFactory#getAllPlayers()} instead.
-	 *
-	 * Returns the list of all players. This includes the ones not verified as
-	 * being okay.
-	 * 
-	 * @return The list of players.
-	 */
-	public ArrayList<Player> getAllPlayers() {
-		return PlayerFactory.getAllPlayers();
-	}
-
-	/**
-	 * @deprecated Use {@link PlayerFactory#getPlayer(Class, Format)} instead.
-	 * 
-	 * @param profileClass
-	 * @param ext
-	 * @return The player if a match could be found
-	 */
-	@Deprecated
-	public Player getPlayer(Class<? extends Player> profileClass, Format ext) {
-		return PlayerFactory.getPlayer(profileClass, ext);
-	}
-
-	/**
-	 * @deprecated Use {@link PlayerFactory#getPlayers(ArrayList, int)} instead.
-	 * 
-	 * @param profileClasses
-	 * @param type
-	 * @return The list of players that match
-	 */
-	@Deprecated
-	public ArrayList<Player> getPlayers(ArrayList<Class<? extends Player>> profileClasses, int type) {
-		return PlayerFactory.getPlayers(profileClasses, type);
 	}
 
 	public void save() {
@@ -1020,6 +942,28 @@ public class PMS {
 	}
 
 	/**
+	 * Returns whether the operating system is 64-bit or 32-bit.
+	 *
+	 * This will work with Windows and OS X but not necessarily with Linux
+	 * because when the OS is not Windows we are using Java's os.arch which
+	 * only detects the bitness of Java, not of the operating system.
+	 *
+	 * @return The bitness of the operating system.
+	 */
+	public static int getOSBitness() {
+		int bitness = 32;
+
+		if (
+			(System.getProperty("os.name").contains("Windows") && System.getenv("ProgramFiles(x86)") != null) ||
+			System.getProperty("os.arch").indexOf("64") != -1
+		) {
+			bitness = 64;
+		}
+
+		return bitness;
+	}
+
+	/**
 	 * Log system properties identifying Java, the OS and encoding and log
 	 * warnings where appropriate.
 	 */
@@ -1027,7 +971,7 @@ public class PMS {
 		long memoryInMB = Runtime.getRuntime().maxMemory() / 1048576;
 
 		LOGGER.info("Java: " + System.getProperty("java.version") + "-" + System.getProperty("java.vendor"));
-		LOGGER.info("OS: " + System.getProperty("os.name") + " " + System.getProperty("os.arch") + " " + System.getProperty("os.version"));
+		LOGGER.info("OS: " + System.getProperty("os.name") + " " + getOSBitness() + "-bit " + System.getProperty("os.version"));
 		LOGGER.info("Encoding: " + System.getProperty("file.encoding"));
 		LOGGER.info("Memory: " + memoryInMB + " " + Messages.getString("StatusTab.12"));
 		LOGGER.info("");
@@ -1061,63 +1005,90 @@ public class PMS {
 			}
 		}
 	}
-	
-	///////////////////////////////////////////////////////////////
-	// Restart handling
-	///////////////////////////////////////////////////////////////
-	
+
+	/*
+	 * Restart handling
+	 */
+
 	private static void killOld() {
 		try {
 			killProc();
 		} catch (IOException e) {
-			LOGGER.debug("error killing old proc "+e);
+			LOGGER.debug("error killing old proc " + e);
 		}
 		try {
 			dumpPid();
 		} catch (IOException e) {
-			LOGGER.debug("error dumping pid "+e);
+			LOGGER.debug("error dumping pid " + e);
 		}
 	}
-	
-	private static void killProc() throws IOException {
-		ProcessBuilder pb=null;
-		BufferedReader in = new BufferedReader(new FileReader("pms.pid"));
-		String pid=in.readLine();
-		in.close();
-		if(Platform.isWindows()) {
-			pb=new ProcessBuilder("taskkill","/F","/PID",pid,"/T");
+
+	private static boolean verifyPidName(String pid) throws IOException {
+		ProcessBuilder pb = new ProcessBuilder("tasklist","/FI","\"PID eq " + pid + "\"", "/V", "/NH", "/FO", "CSV");
+		pb.redirectErrorStream(true);
+		Process p = pb.start();
+		BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+		try {
+			p.waitFor();
+		} catch (InterruptedException e) {
+			in.close();
+			return false;
 		}
-		else if(Platform.isFreeBSD()||Platform.isLinux()||Platform.isOpenBSD()||Platform.isSolaris())
+		String line = in.readLine();
+		in.close();
+		if (line == null) {
+			return false;
+		}
+		// remove all " and convert to common case before splitting result on ,
+		String[] tmp = line.toLowerCase().replaceAll("\"", "").split(",");
+		// if the line is too short we don't kill the process
+		if (tmp.length < 9) {
+			return false;
+		}
+		return tmp[0].equals("javaw.exe") && tmp[8].contains("universal media server");
+	}
+
+	private static void killProc() throws IOException {
+		ProcessBuilder pb = null;
+		BufferedReader in = new BufferedReader(new FileReader("pms.pid"));
+		String pid = in.readLine();
+		in.close();
+		if (Platform.isWindows()) {
+			if (verifyPidName(pid)) {
+				pb = new ProcessBuilder("taskkill","/F","/PID",pid,"/T");
+			}
+		} else if (Platform.isFreeBSD() || Platform.isLinux() || Platform.isOpenBSD() || Platform.isSolaris()) {
 			pb=new ProcessBuilder("kill","-9",pid);
-		if(pb==null) 
+		}
+		if (pb == null) {
 			return;
+		}
 		try {			
-			Process p=pb.start();
+			Process p = pb.start();
 			p.waitFor();
 		} catch (Exception e) {
-			LOGGER.debug("error kill pid "+e);
+			LOGGER.debug("error kill pid " + e);
 		}
 	}
-	
+
 	public static long getPID() {
-	    String processName =
-	      java.lang.management.ManagementFactory.getRuntimeMXBean().getName();
-	    return Long.parseLong(processName.split("@")[0]);
-	  }
-	
+		String processName = java.lang.management.ManagementFactory.getRuntimeMXBean().getName();
+		return Long.parseLong(processName.split("@")[0]);
+	}
+
 	private static void dumpPid() throws IOException {
-		FileOutputStream out=new FileOutputStream("pms.pid");
-		String data=String.valueOf(getPID())+"\r\n";
+		FileOutputStream out = new FileOutputStream("pms.pid");
+		long pid = getPID();
+		LOGGER.debug("My PID is " + pid);
+		String data = String.valueOf(pid) + "\r\n";
 		out.write(data.getBytes());
 		out.flush();
 		out.close();
 	}
-	
+
 	private DbgPacker dbgPack;
-	
+
 	public DbgPacker dbgPack() {
 		return dbgPack;
 	}
-	
-	
 }

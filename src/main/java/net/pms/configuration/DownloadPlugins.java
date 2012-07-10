@@ -7,12 +7,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.net.ssl.HttpsURLConnection;
 import javax.swing.JLabel;
 
 import net.pms.Messages;
@@ -28,8 +30,8 @@ import org.slf4j.LoggerFactory;
 import com.sun.jna.Platform;
 
 public class DownloadPlugins {
-	
-	private final static String PLUGIN_LIST_URL="http://sharkhunter-shb.googlecode.com/files/tst.txt";
+
+	private final static String PLUGIN_LIST_URL="https://raw.github.com/SharkHunter/Channel/master/ext.txt";
 	private final static String PLUGIN_TEST_FILE="plugin_inst.tst";
 	private static final Logger LOGGER = LoggerFactory.getLogger(DownloadPlugins.class);
 	
@@ -292,6 +294,7 @@ public class DownloadPlugins {
 		jars = new ArrayList<URL>();
 		// 1st download the list
 		if(!download())  { // download failed, bail out
+			LOGGER.debug("download failed");
 			return false;
 		}
 		// 2nd load the jars (if any)
@@ -303,6 +306,7 @@ public class DownloadPlugins {
 		if(updateLabel != null) {
 			updateLabel.setText("Loading JARs");
 		}
+		LOGGER.debug("load jars");
 		ExternalFactory.loadJARs(jarURLs,true);
 		// Finally create the instaces of the plugins
 		ExternalFactory.instantiateDownloaded(update);

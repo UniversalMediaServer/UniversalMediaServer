@@ -20,10 +20,8 @@ package net.pms.newgui;
 
 import java.awt.Component;
 import java.awt.Font;
-
 import javax.swing.JTree;
 import javax.swing.tree.DefaultTreeCellRenderer;
-
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
 

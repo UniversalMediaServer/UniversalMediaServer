@@ -19,13 +19,10 @@
 package net.pms.encoders;
 
 import com.sun.jna.Platform;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.swing.JComponent;
-
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;

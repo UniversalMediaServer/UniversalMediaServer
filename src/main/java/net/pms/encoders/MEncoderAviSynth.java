@@ -22,6 +22,7 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -55,7 +56,6 @@ public class MEncoderAviSynth extends MEncoderVideo {
 
 		CellConstraints cc = new CellConstraints();
 
-
 		JComponent cmp = builder.addSeparator(Messages.getString("MEncoderAviSynth.2"), cc.xyw(2, 1, 1));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
@@ -86,7 +86,8 @@ public class MEncoderAviSynth extends MEncoderVideo {
 						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 						Messages.getString("MEncoderAviSynth.16"),
 						"Information",
-						JOptionPane.INFORMATION_MESSAGE);
+						JOptionPane.INFORMATION_MESSAGE
+					);
 				}
 			}
 		});
@@ -115,6 +116,18 @@ public class MEncoderAviSynth extends MEncoderVideo {
 			}
 		});
 		builder.add(convertfps, cc.xy(2, 9));
+
+		String aviSynthScriptInstructions = Messages.getString("MEncoderAviSynth.4") +
+			Messages.getString("MEncoderAviSynth.5") +
+			Messages.getString("MEncoderAviSynth.6") +
+			Messages.getString("MEncoderAviSynth.7") +
+			Messages.getString("MEncoderAviSynth.8");
+		JTextArea aviSynthScriptInstructionsContainer = new JTextArea(aviSynthScriptInstructions);
+		aviSynthScriptInstructionsContainer.setEditable(false);
+		aviSynthScriptInstructionsContainer.setBorder(BorderFactory.createEtchedBorder());
+		aviSynthScriptInstructionsContainer.setBackground(new Color(255, 255, 192));
+		aviSynthScriptInstructionsContainer.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(new Color(130, 135, 144)), BorderFactory.createEmptyBorder(3, 5, 3, 5)));
+		builder.add(aviSynthScriptInstructionsContainer, cc.xy(2, 11));
 
 		String clip = PMS.getConfiguration().getAvisynthScript();
 		if (clip == null) {
@@ -158,7 +171,7 @@ public class MEncoderAviSynth extends MEncoderVideo {
 
 		JScrollPane pane = new JScrollPane(textArea, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		pane.setPreferredSize(new Dimension(500, 350));
-		builder.add(pane, cc.xy(2, 11));
+		builder.add(pane, cc.xy(2, 13));
 
 
 		return builder.getPanel();
@@ -168,6 +181,7 @@ public class MEncoderAviSynth extends MEncoderVideo {
 	public int purpose() {
 		return VIDEO_SIMPLEFILE_PLAYER;
 	}
+
 	public static final String ID = "avsmencoder";
 
 	@Override

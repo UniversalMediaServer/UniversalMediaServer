@@ -21,24 +21,20 @@ package net.pms.network;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.MalformedURLException;
 import java.net.Socket;
+import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
-import java.util.UUID;
-
+import java.util.*;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
+import static net.pms.configuration.RendererConfiguration.RENDERER_ID_PLAYSTATION3;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
 import net.pms.external.StartStopListenerDelegate;
-
-import org.apache.commons.lang.StringUtils;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelFuture;
@@ -58,7 +54,7 @@ public class RequestV2 extends HTTPResource {
 	private final static String CRLF = "\r\n";
 	private static SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
 	private static int BUFFER_SIZE = 8 * 1024;
-	private static final int[] MULTIPLIER = new int[] { 1, 60, 3600, 24*3600}; 
+	private static final int[] MULTIPLIER = new int[] { 1, 60, 3600, 24*3600};
 	private final String method;
 
 	/**
@@ -76,7 +72,7 @@ public class RequestV2 extends HTTPResource {
 	private String browseFlag;
 
 	/**
-	 * When sending an input stream, the lowRange indicates which byte to start from.  
+	 * When sending an input stream, the lowRange indicates which byte to start from.
 	 */
 	private long lowRange;
 	private InputStream inputStream;
@@ -86,7 +82,7 @@ public class RequestV2 extends HTTPResource {
 	private final Range.Time range = new Range.Time();
 
 	/**
-	 * When sending an input stream, the highRange indicates which byte to stop at.  
+	 * When sending an input stream, the highRange indicates which byte to stop at.
 	 */
 	private long highRange;
 	private boolean http10;
@@ -104,7 +100,7 @@ public class RequestV2 extends HTTPResource {
 	}
 
 	/**
-	 * When sending an input stream, the lowRange indicates which byte to start from.  
+	 * When sending an input stream, the lowRange indicates which byte to start from.
 	 * @return The byte to start from
 	 */
 	public long getLowRange() {
@@ -154,7 +150,7 @@ public class RequestV2 extends HTTPResource {
 
 	/**
 	 * When sending an input stream, the highRange indicates which byte to stop at.
-	 * @return The byte to stop at.  
+	 * @return The byte to stop at.
 	 */
 	public long getHighRange() {
 		return highRange;
@@ -179,7 +175,7 @@ public class RequestV2 extends HTTPResource {
 
 	/**
 	 * This class will construct and transmit a proper HTTP response to a given HTTP request.
-	 * Rewritten version of the {@link Request} class.  
+	 * Rewritten version of the {@link Request} class.
 	 * @param method The {@link String} that defines the HTTP method to be used.
 	 * @param argument The {@link String} containing instructions for PMS. It contains a command,
 	 * 		a unique resource id and a resource name, all separated by slashes.
@@ -227,7 +223,7 @@ public class RequestV2 extends HTTPResource {
 	 * Construct a proper HTTP response to a received request. After the response has been
 	 * created, it is sent and the resulting {@link ChannelFuture} object is returned.
 	 * See <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html">RFC-2616</a>
-	 * for HTTP header field definitions. 
+	 * for HTTP header field definitions.
 	 * @param output The {@link HttpResponse} object that will be used to construct the response.
 	 * @param e The {@link MessageEvent} object used to communicate with the client that sent
 	 * 			the request.
@@ -242,7 +238,8 @@ public class RequestV2 extends HTTPResource {
 		HttpResponse output,
 		MessageEvent e,
 		final boolean close,
-		final StartStopListenerDelegate startStopListenerDelegate) throws IOException {
+		final StartStopListenerDelegate startStopListenerDelegate
+	) throws IOException {
 		ChannelFuture future = null;
 		long CLoverride = -2; // 0 and above are valid Content-Length values, -1 means omit
 		StringBuilder response = new StringBuilder();
@@ -276,7 +273,7 @@ public class RequestV2 extends HTTPResource {
 			}
 
 			if (files.size() == 1) {
-				// DNLAresource was found.
+				// DLNAresource was found.
 				dlna = files.get(0);
 				String fileName = argument.substring(argument.lastIndexOf("/") + 1);
 
@@ -296,12 +293,12 @@ public class RequestV2 extends HTTPResource {
 					// This is a request for a subtitle file
 					output.setHeader(HttpHeaders.Names.CONTENT_TYPE, "text/plain");
 					output.setHeader(HttpHeaders.Names.EXPIRES, getFUTUREDATE() + " GMT");
-					List<DLNAMediaSubtitle> subs = dlna.getMedia().getSubtitlesCodes();
+					List<DLNAMediaSubtitle> subs = dlna.getMedia().getSubtitleTracksList();
 
 					if (subs != null && !subs.isEmpty()) {
 						// TODO: maybe loop subs to get the requested subtitle type instead of using the first one
 						DLNAMediaSubtitle sub = subs.get(0);
-						inputStream = new java.io.FileInputStream(sub.getFile());
+						inputStream = new java.io.FileInputStream(sub.getExternalFile());
 					}
 				} else {
 					// This is a request for a regular file.
@@ -323,23 +320,26 @@ public class RequestV2 extends HTTPResource {
 
 					// Some renderers (like Samsung devices) allow a custom header for a subtitle URL
 					String subtitleHttpHeader = mediaRenderer.getSubtitleHttpHeader();
-					
+
 					if (subtitleHttpHeader != null && !"".equals(subtitleHttpHeader)) {
 						// Device allows a custom subtitle HTTP header; construct it
-						List<DLNAMediaSubtitle> subs = dlna.getMedia().getSubtitlesCodes();
+						List<DLNAMediaSubtitle> subs = dlna.getMedia().getSubtitleTracksList();
 
 						if (subs != null && !subs.isEmpty()) {
 							DLNAMediaSubtitle sub = subs.get(0);
 
-							int type = sub.getType();
-
-							if (type < DLNAMediaSubtitle.subExtensions.length) {
-								String strType = DLNAMediaSubtitle.subExtensions[type - 1];
-								String subtitleUrl = "http://" + PMS.get().getServer().getHost()
-										+ ':' + PMS.get().getServer().getPort() + "/get/" 
-										+ id + "/subtitle0000." + strType;
-								output.setHeader(subtitleHttpHeader, subtitleUrl);
+							String subtitleUrl;
+							String subExtension = sub.getType().getExtension();
+							if (isNotBlank(subExtension)) {
+								subtitleUrl = "http://" + PMS.get().getServer().getHost() +
+									':' + PMS.get().getServer().getPort() + "/get/" +
+									id + "/subtitle0000." + subExtension;
+							} else {
+								subtitleUrl = "http://" + PMS.get().getServer().getHost() +
+									':' + PMS.get().getServer().getPort() + "/get/" +
+									id + "/subtitle0000";
 							}
+							output.setHeader(subtitleHttpHeader, subtitleUrl);
 						}
 					}
 
@@ -361,11 +361,11 @@ public class RequestV2 extends HTTPResource {
 
 						final DLNAMediaInfo media = dlna.getMedia();
 						if (media != null) {
-							if (StringUtils.isNotBlank(media.getContainer())) {
+							if (isNotBlank(media.getContainer())) {
 								name += " [container: " + media.getContainer() + "]";
 							}
 
-							if (StringUtils.isNotBlank(media.getCodecV())) {
+							if (isNotBlank(media.getCodecV())) {
 								name += " [video: " + media.getCodecV() + "]";
 							}
 						}
@@ -373,7 +373,7 @@ public class RequestV2 extends HTTPResource {
 						PMS.get().getFrame().setStatusLine("Serving " + name);
 
 						// Response generation:
-						// We use -1 for arithmetic convenience but don't send it as a value. 
+						// We use -1 for arithmetic convenience but don't send it as a value.
 						// If Content-Length < 0 we omit it, for Content-Range we use '*' to signify unspecified.
 
 						boolean chunked = mediaRenderer.isChunkedTransfer();
@@ -404,8 +404,7 @@ public class RequestV2 extends HTTPResource {
 
 							LOGGER.trace((chunked ? "Using chunked response. " : "")  + "Sending " + bytes + " bytes.");
 
-							output.setHeader(HttpHeaders.Names.CONTENT_RANGE, "bytes " + lowRange + "-" 
-								+ (highRange > -1 ? highRange : "*") + "/" + (totalsize > -1 ? totalsize : "*"));
+							output.setHeader(HttpHeaders.Names.CONTENT_RANGE, "bytes " + lowRange + "-" + (highRange > -1 ? highRange : "*") + "/" + (totalsize > -1 ? totalsize : "*"));
 
 							// Content-Length refers to the current chunk size here, though in chunked
 							// mode if the request is open-ended and totalsize is unknown we omit it.
@@ -452,7 +451,7 @@ public class RequestV2 extends HTTPResource {
 				byte b[] = new byte[inputStream.available()];
 				inputStream.read(b);
 				String s = new String(b);
-				s = s.replace("[uuid]", PMS.get().usn());//.substring(0, PMS.get().usn().length()-2));
+				s = s.replace("[uuid]", PMS.get().usn()); //.substring(0, PMS.get().usn().length()-2));
 				String profileName = PMS.getConfiguration().getProfileName();
 				if (PMS.get().getServer().getHost() != null) {
 					s = s.replace("[host]", PMS.get().getServer().getHost());
@@ -462,17 +461,17 @@ public class RequestV2 extends HTTPResource {
 					LOGGER.debug("DLNA changes for Xbox 360");
 					s = s.replace("Universal Media Server", "Universal Media Server [" + profileName + "] : Windows Media Connect");
 					s = s.replace("<modelName>UMS</modelName>", "<modelName>Windows Media Connect</modelName>");
-					s = s.replace("<serviceList>", "<serviceList>" + CRLF + "<service>" + CRLF
-						+ "<serviceType>urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1</serviceType>" + CRLF
-						+ "<serviceId>urn:microsoft.com:serviceId:X_MS_MediaReceiverRegistrar</serviceId>" + CRLF
-						+ "<SCPDURL>/upnp/mrr/scpd</SCPDURL>" + CRLF
-						+ "<controlURL>/upnp/mrr/control</controlURL>" + CRLF
-						+ "</service>" + CRLF);
+					s = s.replace("<serviceList>", "<serviceList>" + CRLF + "<service>" + CRLF +
+						"<serviceType>urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1</serviceType>" + CRLF +
+						"<serviceId>urn:microsoft.com:serviceId:X_MS_MediaReceiverRegistrar</serviceId>" + CRLF +
+						"<SCPDURL>/upnp/mrr/scpd</SCPDURL>" + CRLF +
+						"<controlURL>/upnp/mrr/control</controlURL>" + CRLF +
+						"</service>" + CRLF);
 				} else {
 					s = s.replace("Universal Media Server", "Universal Media Server [" + profileName + "]");
 				}
 
-				if (!mediaRenderer.isPS3()) {
+				if (!mediaRenderer.getRendererUniqueID().equalsIgnoreCase(RENDERER_ID_PLAYSTATION3)) {
 					// hacky stuff. replace the png icon by a jpeg one. Like mpeg2 remux,
 					// really need a proper format compatibility list by renderer
 					s = s.replace("<mimetype>image/png</mimetype>", "<mimetype>image/jpeg</mimetype>");
@@ -520,7 +519,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.GETSYSTEMUPDATEID_HEADER);
 				response.append(CRLF);
-				response.append("<Id>" + DLNAResource.getSystemUpdateId() + "</Id>");
+				response.append("<Id>").append(DLNAResource.getSystemUpdateId()).append("</Id>");
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.GETSYSTEMUPDATEID_FOOTER);
 				response.append(CRLF);
@@ -698,25 +697,32 @@ public class RequestV2 extends HTTPResource {
 			output.setHeader("SID", PMS.get().usn());
 			output.setHeader("TIMEOUT", "Second-1800");
 			String cb = soapaction.replace("<", "").replace(">", "");
-			String faddr = cb.replace("http://", "").replace("/", "");
-			String addr = faddr.split(":")[0];
-			int port = Integer.parseInt(faddr.split(":")[1]);
-			Socket sock = new Socket(addr,port);
-			OutputStream out = sock.getOutputStream();
-			out.write(("NOTIFY /" + argument + " HTTP/1.1").getBytes());
-			out.write(CRLF.getBytes());
-			out.write(("SID: " + PMS.get().usn()).getBytes());
-			out.write(CRLF.getBytes());
-			out.write(("SEQ: " + 0).getBytes());
-			out.write(CRLF.getBytes());
-			out.write(("NT: upnp:event").getBytes());
-			out.write(CRLF.getBytes());
-			out.write(("NTS: upnp:propchange").getBytes());
-			out.write(CRLF.getBytes());
-			out.write(("HOST: " + faddr).getBytes());
-			out.write(CRLF.getBytes());
-			out.flush();
-			out.close();
+
+			try {
+				URL soapActionUrl = new URL(cb);
+				String addr = soapActionUrl.getHost();
+				int port = soapActionUrl.getPort();
+				Socket sock = new Socket(addr,port);
+				OutputStream out = sock.getOutputStream();
+
+				out.write(("NOTIFY /" + argument + " HTTP/1.1").getBytes());
+				out.write(CRLF.getBytes());
+				out.write(("SID: " + PMS.get().usn()).getBytes());
+				out.write(CRLF.getBytes());
+				out.write(("SEQ: " + 0).getBytes());
+				out.write(CRLF.getBytes());
+				out.write(("NT: upnp:event").getBytes());
+				out.write(CRLF.getBytes());
+				out.write(("NTS: upnp:propchange").getBytes());
+				out.write(CRLF.getBytes());
+				out.write(("HOST: " + addr + ":" + port).getBytes());
+				out.write(CRLF.getBytes());
+				out.flush();
+				out.close();
+			} catch (MalformedURLException ex) {
+				LOGGER.debug("Cannot parse address and port from soap action \"" + soapaction + "\"", ex);
+			}
+
 			if (argument.contains("connection_manager")) {
 				response.append(HTTPXMLHelper.eventHeader("urn:schemas-upnp-org:service:ConnectionManager:1"));
 				response.append(HTTPXMLHelper.eventProp("SinkProtocolInfo"));
@@ -865,7 +871,7 @@ public class RequestV2 extends HTTPResource {
 		return future;
 	}
 
-    /**
+	/**
 	 * Returns a date somewhere in the far future.
 	 * @return The {@link String} containing the date
 	 */
@@ -893,7 +899,7 @@ public class RequestV2 extends HTTPResource {
 		}
 		return result;
 	}
-	
+
 	/**
 	 * Parse as double, or if it's not just one number, handles {hour}:{minute}:{seconds}
 	 * @param time

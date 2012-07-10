@@ -18,17 +18,10 @@
  */
 package net.pms.newgui;
 
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Insets;
-import java.awt.Point;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.RenderedImage;
-
 import javax.swing.JPanel;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

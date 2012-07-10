@@ -19,30 +19,12 @@
 
 package net.pms.test.formats;
 
+import ch.qos.logback.classic.LoggerContext;
+import net.pms.formats.*;
 import static org.junit.Assert.assertEquals;
-import net.pms.formats.DVRMS;
-import net.pms.formats.FLAC;
-import net.pms.formats.Format;
-import net.pms.formats.GIF;
-import net.pms.formats.ISO;
-import net.pms.formats.JPG;
-import net.pms.formats.M4A;
-import net.pms.formats.MKV;
-import net.pms.formats.MP3;
-import net.pms.formats.MPG;
-import net.pms.formats.OGG;
-import net.pms.formats.PNG;
-import net.pms.formats.RAW;
-import net.pms.formats.TIF;
-import net.pms.formats.WAV;
-import net.pms.formats.WEB;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
-
-import ch.qos.logback.classic.LoggerContext;
-
 
 /**
  * Test basic functionality of {@link Format}.

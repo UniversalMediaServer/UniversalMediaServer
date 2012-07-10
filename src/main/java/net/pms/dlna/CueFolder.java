@@ -5,18 +5,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-
-import jwbroek.cuelib.CueParser;
-import jwbroek.cuelib.CueSheet;
-import jwbroek.cuelib.FileData;
-import jwbroek.cuelib.Position;
-import jwbroek.cuelib.TrackData;
+import jwbroek.cuelib.*;
 import net.pms.PMS;
 import net.pms.encoders.MEncoderVideo;
 import net.pms.encoders.MPlayerAudio;
 import net.pms.encoders.Player;
 import net.pms.formats.Format;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

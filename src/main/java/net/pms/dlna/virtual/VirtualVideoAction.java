@@ -21,7 +21,6 @@ package net.pms.dlna.virtual;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
@@ -65,7 +64,7 @@ public abstract class VirtualVideoAction extends DLNAResource {
 		DLNAMediaInfo mediaInfo = new DLNAMediaInfo();
 		mediaInfo.setContainer("mpegps");
 		ArrayList<DLNAMediaAudio> audioCodes = new ArrayList<DLNAMediaAudio>();
-		mediaInfo.setAudioCodes(audioCodes);
+		mediaInfo.setAudioTracksList(audioCodes);
 		mediaInfo.setMimeType("video/mpeg");
 		mediaInfo.setCodecV("mpeg2");
 		mediaInfo.setMediaparsed(true);

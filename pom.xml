@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<!--
 		UMS consists of two major parts: UMS itself and the third party software needed to
@@ -31,15 +31,13 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>1.1.1</version>
+	<version>1.3.0</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
-
 	<organization>
 		<name>Universal Media Server</name>
 		<url>http://www.universalmediaserver.com/</url>
 	</organization>
-
 	<licenses>
 		<license>
 			<name>GNU General Public License version 2</name>
@@ -47,29 +45,25 @@
 			<distribution>manual</distribution>
 		</license>
 	</licenses>
-
 	<description>
 		Universal Media Server is a cross-platform DLNA-compliant UPnP Media Server.
 		Originally written to support the PlayStation 3, Universal Media Server has been
 		expanded to support a range of other media renderers, including smartphones,
 		televisions, music players and more.
 	</description>
-
 	<scm>
 		<connection>scm:git:git://github.com/UniversalMediaServer/UniversalMediaServer.git</connection>
 		<developerConnection>scm:git:git@github.com:UniversalMediaServer/UniversalMediaServer.git</developerConnection>
 		<tag>master</tag>
 		<url>https://github.com/UniversalMediaServer/UniversalMediaServer</url>
 	</scm>
-
 	<issueManagement>
 		<system>Google Code</system>
 		<url>http://code.google.com/p/universal-media-server/issues/list</url>
 	</issueManagement>
-
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>1.1.1</project.version.short>
+		<project.version.short>1.3.0</project.version.short>
 
 		<!--
 			JNA 3.4.0 solves issue #1152, but causes a bug in Windows.
@@ -87,16 +81,15 @@
 		<mediautil-version>1.0</mediautil-version>
 		<slf4j-version>1.6.4</slf4j-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-			<project.external-resources>${project.basedir}/src/main/external-resources</project.external-resources>
-			<project.binaries>${project.basedir}/target/bin</project.binaries>
+		<project.external-resources>${project.basedir}/src/main/external-resources</project.external-resources>
+		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
-			<!-- Snapshots should get their binaries from the trunk, releases from a tag -->
-			<project.binaries-base>http://universal-media-server-binaries.googlecode.com/svn/trunk</project.binaries-base>
-			<!-- <project.binaries-base>http://ps3mediaserver.googlecode.com/svn/tags/1.40.0</project.binaries-base> -->
+		<!-- Snapshots should get their binaries from the trunk, releases from a tag -->
+		<project.binaries-base>http://universal-media-server-binaries.googlecode.com/svn/trunk</project.binaries-base>
+		<!-- <project.binaries-base>http://ps3mediaserver.googlecode.com/svn/tags/1.40.0</project.binaries-base> -->
 
 		<maven.nsis.project.template>${project.basedir}/src/main/external-resources/nsis/project.jelly</maven.nsis.project.template>
 	</properties>
-
 	<pluginRepositories>
 		<pluginRepository>
 			<id>ossrh</id>
@@ -105,7 +98,6 @@
 			<layout>default</layout>
 		</pluginRepository>
 	</pluginRepositories>
-
 	<repositories>
 		<!-- Java.net -->
 		<repository>
@@ -151,28 +143,23 @@
 				<enabled>false</enabled>
 			</snapshots>
 		</repository>
-
 	</repositories>
-
 	<dependencies>
 		<dependency>
 			<groupId>org.beanshell</groupId>
 			<artifactId>bsh-core</artifactId>
 			<version>2.0b4</version>
 		</dependency>
-
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
 			<version>1.6</version>
 		</dependency>
-
 		<dependency>
 			<groupId>commons-collections</groupId>
 			<artifactId>commons-collections</artifactId>
 			<version>3.2.1</version>
 		</dependency>
-
 		<dependency>
 			<groupId>commons-configuration</groupId>
 			<artifactId>commons-configuration</artifactId>
@@ -185,7 +172,6 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-
 		<dependency>
 			<groupId>commons-httpclient</groupId>
 			<artifactId>commons-httpclient</artifactId>
@@ -198,55 +184,46 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
 			<version>1.4</version>
 		</dependency>
-
 		<dependency>
 			<groupId>commons-lang</groupId>
 			<artifactId>commons-lang</artifactId>
 			<version>2.6</version>
 		</dependency>
-
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 			<version>1.1.105</version>
 		</dependency>
-
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 			<version>1.0.0</version>
 		</dependency>
-
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-core</artifactId>
 			<version>1.0.0</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.apache.sanselan</groupId>
 			<artifactId>sanselan</artifactId>
 			<version>0.97-incubator</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 			<version>${slf4j-version}</version>
 		</dependency>
-		
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>jcl-over-slf4j</artifactId>
 			<version>${slf4j-version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
@@ -260,7 +237,6 @@
 			<artifactId>hamcrest-integration</artifactId>
 			<version>1.2</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org.jboss.netty</groupId>
 			<artifactId>netty</artifactId>
@@ -273,19 +249,16 @@
 			<artifactId>maven-nsis-plugin</artifactId>
 			<version>2.1</version>
 		</dependency>
-
 		<dependency>
 			<groupId>net.java.dev.rome</groupId>
 			<artifactId>rome</artifactId>
 			<version>1.0.0</version>
 		</dependency>
-
 		<dependency>
 			<groupId>org</groupId>
 			<artifactId>jaudiotagger</artifactId>
 			<version>2.0.3</version>
 		</dependency>
-
 		<dependency>
 			<groupId>net.java.dev.jna</groupId>
 			<artifactId>jna</artifactId>
@@ -333,31 +306,33 @@
 			<artifactId>mediautil</artifactId>
 			<version>${mediautil-version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.8.1</version>
 			<scope>test</scope>
 		</dependency>
-
 		<dependency>
 			<groupId>org.easymock</groupId>
 			<artifactId>easymock</artifactId>
 			<version>3.0</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.easytesting</groupId>
+			<artifactId>fest-assert</artifactId>
+			<version>1.4</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
-
 	<build>
 		<defaultGoal>assembly:assembly</defaultGoal>
-
 		<resources>
+
 			<!--
-				squashed bug: this needs to be defined explicitly if a <resources>...</resources> 
+				This needs to be defined explicitly if a <resources>...</resources> 
 				section is used
 			-->
-
 			<resource>
 				<directory>src/main/resources</directory>
 				<!--
@@ -374,7 +349,6 @@
 				<!-- Avoid inadvertently filtering binaries -->
 				<filtering>false</filtering>
 			</resource>
-
 			<resource>
 				<directory>src/main/resources</directory>
 				<targetPath>resources</targetPath>
@@ -408,7 +382,6 @@
 				<targetPath>..</targetPath>
 			</resource>
 		</resources>
-
 		<testResources>
 			<testResource>
 				<directory>src/test/resources</directory>
@@ -421,27 +394,31 @@
 				<filtering>true</filtering>
 			</testResource>
 		</testResources>
-
 		<pluginManagement>
 			<plugins>
 				<plugin>
 					<groupId>org.apache.maven.plugins</groupId>
 					<artifactId>maven-surefire-plugin</artifactId>
 					<configuration>
+
 						<!--
-						    1) Force language because JUnit tests depend on English language strings
+							1) Force language because JUnit tests depend on English language strings
 
 							2) Use our JNA dependency rather than the system's - fixes
 							the following error on Linux (Ubuntu 12.04 with system
 							jna-3.2.7.jar via libjna-java):
 
-								There is an incompatible JNA native library installed on this system.
+							There is an incompatible JNA native library installed on this system.
 						-->
 						<argLine>-Duser.language=en -Djna.nosys=true</argLine> <!-- only one argLine element is processed -->
 					</configuration>
 					<version>2.11</version>
 				</plugin>
-				<!-- This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself. -->
+
+				<!--
+					This plugin's configuration is used to store Eclipse m2e settings only.
+					It has no influence on the Maven build itself.
+				-->
 				<plugin>
 					<groupId>org.eclipse.m2e</groupId>
 					<artifactId>lifecycle-mapping</artifactId>
@@ -492,8 +469,7 @@
 					</configuration>
 				</plugin>
 			</plugins>
-		</pluginManagement>		
-
+		</pluginManagement>
 		<plugins>
 			<!--
 				Plugin to add git commit information properties.
@@ -579,7 +555,7 @@
 					</execution>
 				</executions>
 			</plugin>
-			
+
 			<!--
 				This plugin will take care of installing the external dependencies that do not
 				exist in a public Maven repository. That is why we store some jar files in the
@@ -607,7 +583,6 @@
 					<skipChecksumVerification>false</skipChecksumVerification>
 					<force>false</force>
 					<artifactItems>
-
 						<artifactItem>
 							<groupId>com.jgoodies</groupId>
 							<artifactId>common</artifactId>
@@ -620,7 +595,6 @@
 							<extractFile>jgoodies-{artifactId}-{version}/jgoodies-{artifactId}-{version}.{packaging}</extractFile>
 							<extractFileChecksum>f3955d59f2263fb889b02febec74377647a2eaba</extractFileChecksum>
 						</artifactItem>
-		
 						<artifactItem>
 							<groupId>com.jgoodies</groupId>
 							<artifactId>forms</artifactId>
@@ -633,7 +607,6 @@
 							<extractFile>jgoodies-{artifactId}-{version}/jgoodies-{artifactId}-{version}.{packaging}</extractFile>
 							<extractFileChecksum>de8a67990cbeae62910cc2022f06c466476f2f2b</extractFileChecksum>
 						</artifactItem>
-		
 						<artifactItem>
 							<groupId>com.jgoodies</groupId>
 							<artifactId>looks</artifactId>
@@ -646,7 +619,6 @@
 							<extractFile>jgoodies-{artifactId}-{version}/jgoodies-{artifactId}-{version}.{packaging}</extractFile>
 							<extractFileChecksum>535745c08e342f7ea78556baad44a4a52ffb7863</extractFileChecksum>
 						</artifactItem>
-		
 						<artifactItem>
 							<groupId>jwbroek.cuelib</groupId>
 							<artifactId>cuelib</artifactId>
@@ -655,7 +627,6 @@
 							<downloadUrl>http://cuelib.googlecode.com/files/cuelib-${cuelib-version}.jar</downloadUrl>
 							<checksum>d03b6b960b3b83a2a419e8b5f07b6ba4bd18387b</checksum>
 						</artifactItem>
-
 						<artifactItem>
 							<groupId>de.innosystec</groupId>
 							<artifactId>java-unrar</artifactId>
@@ -668,7 +639,6 @@
 							<extractFile>java-unrar-${junrar-version}/java-unrar-${junrar-version}.jar</extractFile>
 							<extractFileChecksum>111074096b6bdce79fa09842143c336a5cf64fcb</extractFileChecksum>
 						</artifactItem>
-
 						<artifactItem>
 							<groupId>mediautil</groupId>
 							<artifactId>mediautil</artifactId>
@@ -681,13 +651,9 @@
 							<extractFile>mediautil-${mediautil-version}/mediautil-${mediautil-version}.jar</extractFile>
 							<extractFileChecksum>e843cd55def75dce57123c79b7f36caca4841466</extractFileChecksum>
 						</artifactItem>
-
 					</artifactItems>
-
 				</configuration>
-
 				<executions>
-
 					<execution>
 						<id>clean-external-dependencies</id>
 						<phase>clean</phase>
@@ -696,7 +662,6 @@
 							<goal>clean-external</goal>
 						</goals>
 					</execution>
-
 					<execution>
 						<id>resolve-install-external-dependencies</id>
 						<!-- Not bound to a phase, you need to execute these manually. See above -->
@@ -710,9 +675,7 @@
 						</goals>
 					</execution>
 				</executions>
-
 			</plugin>
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
@@ -724,10 +687,8 @@
 						<version>1.2</version>
 					</dependency>
 				</dependencies>
-				
 				<configuration>
 					<reportPlugins>
-			
 						<plugin>
 							<groupId>org.apache.maven.plugins</groupId>
 							<artifactId>maven-project-info-reports-plugin</artifactId>
@@ -774,6 +735,7 @@
 								<links>
 									<link>http://download.oracle.com/javase/6/docs/api/</link>
 								</links>
+
 								<!--
 									Doclet to generate class diagrams inside Javadoc.
 									Requires the installation of Graphviz (http://www.graphviz.org/)
@@ -880,7 +842,6 @@
 			</plugin>
 		</plugins>
 	</build>
-
 	<profiles>
 
 		<!--
@@ -918,7 +879,7 @@
 			
 			<build>
 				<plugins>
-				
+
 					<!--
 						Plugin to move the pms-x.x.x-jar-with-dependencies.jar to pms.jar
 					-->
@@ -952,6 +913,7 @@
 										<!-- Download all necessary Windows binaries. Keep the same structure because NSIS expects it that way. -->
 										<get src="${project.binaries-base}/MediaInfo.dll" dest="${project.binaries}/MediaInfo.dll"  usetimestamp="true" />
 										<get src="${project.binaries-base}/MediaInfo64.dll" dest="${project.binaries}/MediaInfo64.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/MediaInfo-License.html" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/Convert_License.txt" dest="${project.binaries}/win32/Convert_License.txt"  usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/LICENSE-dsnative.txt" dest="${project.binaries}/win32/LICENSE-dsnative.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/LICENSE-mplayer.txt" dest="${project.binaries}/win32/LICENSE-mplayer.txt" usetimestamp="true" />
@@ -985,7 +947,9 @@
 										<get src="${project.binaries-base}/win32/fonts/conf.avail/10-sub-pixel-vbgr.conf" dest="${project.binaries}/win32/fonts/conf.avail/10-sub-pixel-vbgr.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/fonts/conf.avail/10-sub-pixel-vrgb.conf" dest="${project.binaries}/win32/fonts/conf.avail/10-sub-pixel-vrgb.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/fonts/conf.avail/10-unhinted.conf" dest="${project.binaries}/win32/fonts/conf.avail/10-unhinted.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.avail/20-fix-globaladvance.conf" dest="${project.binaries}/win32/fonts/conf.avail/20-fix-globaladvance.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.avail/11-lcdfilter-default.conf" dest="${project.binaries}/win32/fonts/conf.avail/11-lcdfilter-default.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.avail/11-lcdfilter-legacy.conf" dest="${project.binaries}/win32/fonts/conf.avail/11-lcdfilter-legacy.conf" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/fonts/conf.avail/11-lcdfilter-light.conf" dest="${project.binaries}/win32/fonts/conf.avail/11-lcdfilter-light.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/fonts/conf.avail/20-unhint-small-vera.conf" dest="${project.binaries}/win32/fonts/conf.avail/20-unhint-small-vera.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/fonts/conf.avail/25-unhint-nonlatin.conf" dest="${project.binaries}/win32/fonts/conf.avail/25-unhint-nonlatin.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/fonts/conf.avail/30-metric-aliases.conf" dest="${project.binaries}/win32/fonts/conf.avail/30-metric-aliases.conf" usetimestamp="true" />
@@ -1004,7 +968,6 @@
 										<get src="${project.binaries-base}/win32/fonts/conf.avail/70-yes-bitmaps.conf" dest="${project.binaries}/win32/fonts/conf.avail/70-yes-bitmaps.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/fonts/conf.avail/80-delicious.conf" dest="${project.binaries}/win32/fonts/conf.avail/80-delicious.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/fonts/conf.avail/90-synthetic.conf" dest="${project.binaries}/win32/fonts/conf.avail/90-synthetic.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.d/20-fix-globaladvance.conf" dest="${project.binaries}/win32/fonts/conf.d/20-fix-globaladvance.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/fonts/conf.d/20-unhint-small-vera.conf" dest="${project.binaries}/win32/fonts/conf.d/20-unhint-small-vera.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/fonts/conf.d/30-metric-aliases.conf" dest="${project.binaries}/win32/fonts/conf.d/30-metric-aliases.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/fonts/conf.d/30-urw-aliases.conf" dest="${project.binaries}/win32/fonts/conf.d/30-urw-aliases.conf" usetimestamp="true" />
@@ -1046,17 +1009,18 @@
 									<target>
 										<!-- Copy the pms-x.x.x-jar-with-dependencies.jar to pms.jar -->
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
-											tofile="${project.basedir}/target/ums.jar" overwrite="true" />
+										      tofile="${project.basedir}/target/ums.jar" overwrite="true" />
 
 										<!-- MediaInfo library needs to be in the standard library path to be found -->
 										<copy file="${project.binaries}/MediaInfo.dll" todir="${project.basedir}" />
 										<copy file="${project.binaries}/MediaInfo64.dll" todir="${project.basedir}" />
+										<copy file="${project.binaries}/MediaInfo-License.html" todir="${project.basedir}" />
 									</target>
 								</configuration>
 							</execution>
 						</executions>
 					</plugin>
-					
+
 					<!--
 						Plugin to build a Windows installer using the nullsoft scriptable install system (NSIS)
 						The "generate-project" goal generates a file "target/project.nsh", which contains the
@@ -1101,7 +1065,6 @@
 			</build>
 		</profile>
 
-
 		<!--
 			Linux profile: takes care of building the final package for Linux
 		-->
@@ -1113,7 +1076,7 @@
 					<family>unix</family>
 				</os>
 			</activation>
-			
+
 			<build>
 				<plugins>
 					<!--
@@ -1141,7 +1104,6 @@
 									</target>
 								</configuration>
 							</execution>
-									
 							<execution>
 								<id>copy-jar-with-dependencies-linux</id>
 								<phase>package</phase>
@@ -1187,7 +1149,6 @@
 			</build>			
 		</profile>
 
-
 		<!--
 			Mac OSX profile: takes care of building the final package for Mac OSX
 		-->
@@ -1201,7 +1162,7 @@
 			</activation>
 			<build>
 				<plugins>
-			
+
 					<!--
 						Plugin to download binaries before assembly
 					-->
@@ -1228,19 +1189,20 @@
 										<get src="${project.binaries-base}/osx/ffmpeg" dest="${project.binaries}/osx/ffmpeg" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/flac" dest="${project.binaries}/osx/flac" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/libmediainfo.dylib" dest="${project.binaries}/libmediainfo.dylib" usetimestamp="true" />
+										<get src="${project.binaries-base}/MediaInfo-License.html" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/mencoder" dest="${project.binaries}/osx/mencoder" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/mplayer" dest="${project.binaries}/osx/mplayer" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/tsMuxeR" dest="${project.binaries}/osx/tsMuxeR" usetimestamp="true" />
 
 										<!-- MediaInfo library needs to be in the standard library path to be found -->
 										<copy file="${project.binaries}/libmediainfo.dylib" todir="${project.basedir}" />
+										<copy file="${project.binaries}/MediaInfo-License.html" todir="${project.basedir}" />
 
 										<!-- Make all downloaded binaries executable -->
 										<chmod dir="${project.binaries}/osx" perm="a+x" includes="*" />
 									</target>
 								</configuration>
 							</execution>
-
 							<execution>
 								<id>prepare-package-osx</id>
 								<phase>prepare-package</phase>
@@ -1297,7 +1259,7 @@
 							</execution>
 						</executions>
 					</plugin>
-					
+
 					<!--
 						Plugin to create the OSX Application Bundle and DMG disk image. This will
 						automatically copy all dependencies to a local repository, so the
@@ -1366,6 +1328,4 @@
 			</build>
 		</profile> 		
 	</profiles>
-
 </project>
-

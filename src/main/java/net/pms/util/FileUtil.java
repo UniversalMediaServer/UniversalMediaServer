@@ -4,11 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
-
+import net.pms.formats.SubtitleType;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,8 +113,7 @@ public class FileUtil {
 			for (File f : allSubs) {
 				if (f.isFile() && !f.isHidden()) {
 					String fName = f.getName().toLowerCase();
-					for (int i = 0; i < DLNAMediaSubtitle.subExtensions.length; i++) {
-						String ext = DLNAMediaSubtitle.subExtensions[i];
+					for (String ext : SubtitleType.getSupportedFileExtensions()) {
 						if (fName.length() > ext.length() && fName.startsWith(fileName) && fName.endsWith("." + ext)) {
 							int a = fileName.length();
 							int b = fName.length() - ext.length() - 1;
@@ -130,26 +128,26 @@ public class FileUtil {
 
 							boolean exists = false;
 							if (media != null) {
-								for (DLNAMediaSubtitle sub : media.getSubtitlesCodes()) {
-									if (f.equals(sub.getFile())) {
+								for (DLNAMediaSubtitle sub : media.getSubtitleTracksList()) {
+									if (f.equals(sub.getExternalFile())) {
 										exists = true;
-									} else if (ext.equals("idx") && sub.getType() == DLNAMediaSubtitle.MICRODVD) { // VOBSUB
-										sub.setType(DLNAMediaSubtitle.VOBSUB);
+									} else if (ext.equals("idx") && sub.getType() == SubtitleType.MICRODVD) { // sub+idx => VOBSUB
+										sub.setType(SubtitleType.VOBSUB);
 										exists = true;
-									} else if (ext.equals("sub") && sub.getType() == DLNAMediaSubtitle.VOBSUB) { // VOBSUB
-										sub.setFile(f);
+									} else if (ext.equals("sub") && sub.getType() == SubtitleType.VOBSUB) { // VOBSUB
+										sub.setExternalFile(f);
 										exists = true;
 									}
 								}
 							}
 							if (!exists) {
 								DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
-								sub.setId(100 + (media == null ? 0 : media.getSubtitlesCodes().size())); // fake id, not used
-								sub.setFile(f);
+								sub.setId(100 + (media == null ? 0 : media.getSubtitleTracksList().size())); // fake id, not used
+								sub.setExternalFile(f);
 								sub.checkUnicode();
 								if (code.length() == 0 || !Iso639.getCodeList().contains(code)) {
 									sub.setLang(DLNAMediaSubtitle.UND);
-									sub.setType(i + 1);
+									sub.setType(SubtitleType.getSubtitleTypeByFileExtension(ext));
 									if (code.length() > 0) {
 										sub.setFlavor(code);
 										if (sub.getFlavor().contains("-")) {
@@ -163,11 +161,11 @@ public class FileUtil {
 									}
 								} else {
 									sub.setLang(code);
-									sub.setType(i + 1);
+									sub.setType(SubtitleType.getSubtitleTypeByFileExtension(ext));
 								}
 								found = true;
 								if (media != null) {
-									media.getSubtitlesCodes().add(sub);
+									media.getSubtitleTracksList().add(sub);
 								}
 							}
 						}

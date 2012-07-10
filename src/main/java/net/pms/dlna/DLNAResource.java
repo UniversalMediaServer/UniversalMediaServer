@@ -18,40 +18,20 @@
  */
 package net.pms.dlna;
 
-import static net.pms.util.StringUtil.addAttribute;
-import static net.pms.util.StringUtil.addXMLTagAndAttribute;
-import static net.pms.util.StringUtil.closeTag;
-import static net.pms.util.StringUtil.encodeXML;
-import static net.pms.util.StringUtil.endTag;
-import static net.pms.util.StringUtil.openTag;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import static net.pms.configuration.RendererConfiguration.RENDERER_ID_PLAYSTATION3;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
 import net.pms.dlna.virtual.VirtualFolder;
-import net.pms.encoders.MEncoderVideo;
-import net.pms.encoders.Player;
-import net.pms.encoders.PlayerFactory;
-import net.pms.encoders.TSMuxerVideo;
-import net.pms.encoders.VideoLanVideoStreaming;
+import net.pms.encoders.*;
 import net.pms.external.AdditionalResourceFolderListener;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
@@ -66,7 +46,7 @@ import net.pms.util.FileUtil;
 import net.pms.util.ImagesUtil;
 import net.pms.util.Iso639;
 import net.pms.util.MpegUtil;
-
+import static net.pms.util.StringUtil.*;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -140,13 +120,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	protected long lastmodified;
 
 	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 *
 	 * Represents the transformation to be used to the file. If null, then
 	 * @see Player
 	 */
-	@Deprecated
-	protected Player player;
+	private Player player;
 
 	/**
 	 * @deprecated Use standard getter and setter to access this variable.
@@ -539,7 +516,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						boolean hasEmbeddedSubs = false;
 
 						if (child.getMedia() != null) {
-							for (DLNAMediaSubtitle s : child.getMedia().getSubtitlesCodes()) {
+							for (DLNAMediaSubtitle s : child.getMedia().getSubtitleTracksList()) {
 								hasEmbeddedSubs = (hasEmbeddedSubs || s.isEmbedded());
 							}
 						}
@@ -741,6 +718,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	final protected void discoverWithRenderer(RendererConfiguration renderer, int count, boolean forced) {
 		// Discovering if not already done.
 		if (!isDiscovered()) {
+			if (PMS.getConfiguration().getFolderLimit() && depthLimit()) {
+				if (renderer.getRendererName().equalsIgnoreCase("Playstation 3") || renderer.isXBOX()) {
+					LOGGER.info("Depth limit potentionally hit for " + getDisplayName());
+				}
+				if (defaultRenderer != null) {
+					defaultRenderer.addFolderLimit(this);
+				}
+			}
 			discoverChildren();
 			boolean ready = true;
 			if (renderer.isMediaParserV2() && renderer.isDLNATreeHack()) {
@@ -925,7 +910,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		if (getMediaSubtitle() != null && getMediaSubtitle().getId() != -1) {
-			name += " {Sub: " + getMediaSubtitle().getSubType() + "/" + getMediaSubtitle().getLangFullName() + ((getMediaSubtitle().getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowSubMetadata()) ? (" (" + getMediaSubtitle().getFlavor() + ")") : "") + "}";
+			name += " {Sub: " + getMediaSubtitle().getType().getDescription() + "/" + getMediaSubtitle().getLangFullName() + ((getMediaSubtitle().getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowSubMetadata()) ? (" (" + getMediaSubtitle().getFlavor() + ")") : "") + "}";
 		}
 
 		if (isAvisynth()) {
@@ -1097,21 +1082,25 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 			for (int c = 0; c < indexCount; c++) {
 				openTag(sb, "res");
-				// DLNA.ORG_OP : 1er 10 = exemple: TimeSeekRange.dlna.org :npt=187.000-
-				//                   01 = Range par octets
-				//                   00 = pas de range, meme pas de pause possible
+
+				/*
+				 * DLNA.ORG_OP : 1er 10 = exemple: TimeSeekRange.dlna.org :npt=187.000-
+				 *                   01 = Range par octets
+				 *                   00 = pas de range, meme pas de pause possible
+				 */ 
 				flags = "DLNA.ORG_OP=01";
 				if (getPlayer() != null) {
 					if (getPlayer().isTimeSeekable() && mediaRenderer.isSeekByTime()) {
-						if (mediaRenderer.isPS3()) // ps3 doesn't like OP=11
-						{
+
+						// PS3 doesn't like OP=11
+						if (mediaRenderer.getRendererUniqueID().equalsIgnoreCase(RENDERER_ID_PLAYSTATION3)) {
 							flags = "DLNA.ORG_OP=10";
 						} else {
 							flags = "DLNA.ORG_OP=11";
 						}
 					}
 				} else {
-					if (mediaRenderer.isSeekByTime() && !mediaRenderer.isPS3()) {
+					if (mediaRenderer.isSeekByTime() && !mediaRenderer.getRendererUniqueID().equalsIgnoreCase(RENDERER_ID_PLAYSTATION3)) {
 						flags = "DLNA.ORG_OP=11";
 					}
 				}
@@ -1121,7 +1110,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				if (mime == null) {
 					mime = "video/mpeg";
 				}
-				if (mediaRenderer.isPS3()) { // XXX TO REMOVE, OR AT LEAST MAKE THIS GENERIC // whole extensions/mime-types mess to rethink anyway
+
+				// TODO: Remove, or at least make this generic
+				// Whole extensions/mime-types mess to rethink anyway
+				if (mediaRenderer.getRendererUniqueID().equalsIgnoreCase(RENDERER_ID_PLAYSTATION3)) {
 					if (mime.equals("video/x-divx")) {
 						dlnaspec = "DLNA.ORG_PN=AVI";
 					} else if (mime.equals("video/x-ms-wmv") && getMedia() != null && getMedia().getHeight() > 700) {
@@ -1130,9 +1122,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				} else {
 					if (mime.equals("video/mpeg")) {
 						if (getPlayer() != null) {
-							// do we have some mpegts to offer ?
+							// Do we have some mpegts to offer?
 							boolean mpegTsMux = TSMuxerVideo.ID.equals(getPlayer().id()) || VideoLanVideoStreaming.ID.equals(getPlayer().id());
-							if (!mpegTsMux) { // maybe, like the ps3, mencoder can launch tsmuxer if this a compatible H264 video
+							if (!mpegTsMux) { // Maybe, like the PS3, MEncoder can launch tsMuxeR if this a compatible H264 video
 								mpegTsMux = MEncoderVideo.ID.equals(getPlayer().id()) && ((getMediaSubtitle() == null && getMedia() != null && getMedia().getDvdtrack() == 0 && getMedia().isMuxable(mediaRenderer)
 									&& PMS.getConfiguration().isMencoderMuxWhenCompatible() && mediaRenderer.isMuxH264MpegTS())
 									|| mediaRenderer.isTranscodeToMPEGTSAC3());
@@ -2106,6 +2098,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	protected void setLastRefreshTime(long lastRefreshTime) {
 		this.lastRefreshTime = lastRefreshTime;
+	}
+
+	private static final int DEPTH_WARNING_LIMIT=7;
+
+	private boolean depthLimit() {
+		DLNAResource tmp = this;
+		int depth = 0;
+		while (tmp != null) {
+			tmp = tmp.getParent();
+			depth++;
+		}
+		return (depth > DEPTH_WARNING_LIMIT);
 	}
 }
 

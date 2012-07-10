@@ -18,7 +18,8 @@ package net.pms.io;
  * See COPYING.TXT for details.
  */
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * An input stream wrapper that will read only a set number of bytes from the

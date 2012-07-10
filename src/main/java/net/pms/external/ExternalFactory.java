@@ -31,7 +31,6 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
-
 import javax.swing.JLabel;
 
 import net.pms.Messages;
@@ -296,6 +295,7 @@ public class ExternalFactory {
 			try {
 				doUpdate(update,Messages.getString("NetworkTab.48") + " " + clazz.getSimpleName());
 				postInstall(clazz);
+				LOGGER.debug("do inst of "+clazz.getSimpleName());
 				instance = (ExternalListener) clazz.newInstance();
 				doUpdate(update,instance.name() + " " + Messages.getString("NetworkTab.49"));
 				registerListener(instance);

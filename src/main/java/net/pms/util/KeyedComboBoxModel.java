@@ -42,7 +42,6 @@
 package net.pms.util;
 
 import java.util.ArrayList;
-
 import javax.swing.ComboBoxModel;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;

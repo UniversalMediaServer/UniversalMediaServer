@@ -23,14 +23,23 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
-
 import net.pms.dlna.DLNAMediaLang;
+import net.pms.PMS;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class provides a list of languages mapped to ISO 639 language codes
  * and some methods to verify which language matches which ISO code.
  */
 public class Iso639 {
+	private static final Logger LOGGER = LoggerFactory.getLogger(Iso639.class);
+
+	/**
+	 * ISO code alias for the language set in the preferences
+	 */
+	private static final String LOCAL_ALIAS = "loc";
+
 	/**
 	 * Hashmap that contains full language names and their ISO codes.
 	 */
@@ -108,11 +117,29 @@ public class Iso639 {
 	}
 
 	/**
+	 * Returns the ISO code, except when the alias "loc" is used. In that case
+	 * the ISO code of the preferred language in the PMS settings is returned.
+	 *
+	 * @param isoCode An ISO code, or <code>"loc"</code>.
+	 * @return The code.
+	 */
+	private static String normalize(String isoCode) {
+		if (LOCAL_ALIAS.equals(isoCode)) {
+			return PMS.getConfiguration().getLanguage();
+		} else {
+			return isoCode;
+		}
+	}
+
+	/**
 	 * Verifies that a full language name is matching an ISO code. Returns true
 	 * if a match can be made, false otherwise.
 	 * 
-	 * @param language The full language name.
-	 * @param code The ISO code.
+	 * @param language
+	 *            The full language name.
+	 * @param code
+	 *            The ISO code. If "loc" is given, the ISO code of the preferred
+	 *            language is used instead.
 	 * @return True if both match, false otherwise.
 	 */
 	public static boolean isCodeMatching(String language, String code) {
@@ -120,10 +147,11 @@ public class Iso639 {
 			return false;
 		}
 
+		String isoCode = normalize(code);
 		String codes[] = links.get(language);
 
 		for (String c : codes) {
-			if (c.equalsIgnoreCase(code)) {
+			if (c.equalsIgnoreCase(isoCode)) {
 				return true;
 			}
 		}
@@ -132,7 +160,9 @@ public class Iso639 {
 
 	/**
 	 * Verifies that two ISO codes match the same language. Returns true if a
-	 * match can be made, false otherwise.
+	 * match can be made, false otherwise. The alias "loc" can be used as code,
+	 * it will be replaced by the ISO code of the preferred language from the
+	 * PMS settings.
 	 *
 	 * @param code1 The first ISO code.
 	 * @param code2 The second ISO code.
@@ -143,15 +173,18 @@ public class Iso639 {
 			return false;
 		}
 
+		String isoCode1 = normalize(code1);
+		String isoCode2 = normalize(code2);
+
 		Iterator<Entry<String, String[]>> iterator = links.entrySet().iterator();
 
 		while (iterator.hasNext()) {
 			Entry<String, String[]> entry = iterator.next();
 
 			for (String c : entry.getValue()) {
-				if (code1.equalsIgnoreCase(c)) {
+				if (isoCode1.equalsIgnoreCase(c)) {
 					for (String c2 : entry.getValue()) {
-						if (code2.equalsIgnoreCase(c2)) {
+						if (isoCode2.equalsIgnoreCase(c2)) {
 							return true;
 						}
 					}

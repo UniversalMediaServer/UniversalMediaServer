@@ -18,28 +18,25 @@
  */
 package net.pms.encoders;
 
-import java.awt.Font;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.io.IOException;
-
-import javax.swing.JCheckBox;
-import javax.swing.JComponent;
-
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-
+import java.awt.Font;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.io.IOException;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import net.pms.Messages;
+import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
-import net.pms.Messages;
 import net.pms.network.HTTPResource;
-import net.pms.PMS;
 
 public class FFMpegAudio extends FFMpegVideo {
 	public static final String ID = "ffmpegaudio";

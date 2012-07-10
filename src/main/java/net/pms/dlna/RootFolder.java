@@ -18,24 +18,13 @@
  */
 package net.pms.dlna;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.LineNumberReader;
-import java.io.UnsupportedEncodingException;
+import com.sun.jna.Platform;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.StringTokenizer;
-
+import java.util.*;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.MapFileConfiguration;
@@ -50,18 +39,16 @@ import net.pms.external.ExternalListener;
 import net.pms.gui.IFrame;
 import net.pms.xmlwise.Plist;
 import net.pms.xmlwise.XmlParseException;
-
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sun.jna.Platform;
-
 public class RootFolder extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RootFolder.class);
 	private final PmsConfiguration configuration = PMS.getConfiguration();
 	private boolean running;
+	private FolderLimit lim;
 
 	public RootFolder() {
 		setIndexId(0);
@@ -99,8 +86,13 @@ public class RootFolder extends DLNAResource {
 
 	@Override
 	public void discoverChildren() {
-		if(isDiscovered()) {
+		if (isDiscovered()) {
 			return;
+		}
+		
+		if (configuration.getFolderLimit()) {
+			lim = new FolderLimit();
+			addChild(lim);
 		}
 
 		for (DLNAResource r : getConfiguredFolders()) {
@@ -149,6 +141,12 @@ public class RootFolder extends DLNAResource {
 		setDiscovered(true);
 	}
 
+	public void setFolderLim(DLNAResource r) {
+		if (lim != null) {
+			lim.setStart(r);
+		}
+	}
+
 	/**
 	 * Returns whether or not a scan is running.
 	 *
@@ -172,7 +170,7 @@ public class RootFolder extends DLNAResource {
 	public void scan() {
 		setRunning(true);
 
-		if(!isDiscovered()) {
+		if (!isDiscovered()) {
 			discoverChildren();
 		}
 		setDefaultRenderer(RendererConfiguration.getDefaultConf());
@@ -237,10 +235,11 @@ public class RootFolder extends DLNAResource {
 	private List<DLNAResource> getVirtualFolders() {
 		List<DLNAResource> res = new ArrayList<DLNAResource>();
 		List<MapFileConfiguration> mapFileConfs = MapFileConfiguration.parse(configuration.getVirtualFolders());
-		if (mapFileConfs != null)
+		if (mapFileConfs != null) {
 			for (MapFileConfiguration f : mapFileConfs) {
 				res.add(new MapFile(f));
 			}
+		}
 		return res;
 	}
 

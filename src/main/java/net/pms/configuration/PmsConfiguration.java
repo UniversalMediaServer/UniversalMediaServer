@@ -18,21 +18,14 @@
  */
 package net.pms.configuration;
 
+import com.sun.jna.Platform;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-
-import net.pms.io.SystemUtils;
+import java.util.*;
 import net.pms.Messages;
-
+import net.pms.io.SystemUtils;
 import net.pms.util.PropertiesUtil;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
@@ -43,8 +36,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.sun.jna.Platform;
 
 /**
  * Container for all configurable PMS settings. Settings are typically defined by three things:
@@ -357,8 +348,8 @@ public class PmsConfiguration {
 	 * Default constructor that will attempt to load the PMS configuration file
 	 * from the profile path.
 	 *
-	 * @throws ConfigurationException
-	 * @throws IOException
+	 * @throws org.apache.commons.configuration.ConfigurationException
+	 * @throws java.io.IOException
 	 */
 	public PmsConfiguration() throws ConfigurationException, IOException {
 		this(true);
@@ -370,8 +361,8 @@ public class PmsConfiguration {
 	 * @param loadFile Set to true to attempt to load the PMS configuration
 	 * 					file from the profile path. Set to false to skip
 	 * 					loading.
-	 * @throws ConfigurationException
-	 * @throws IOException
+	 * @throws org.apache.commons.configuration.ConfigurationException
+	 * @throws java.io.IOException
 	 */
 	public PmsConfiguration(boolean loadFile) throws ConfigurationException, IOException {
 		configuration = new PropertiesConfiguration();
@@ -399,14 +390,7 @@ public class PmsConfiguration {
 		Locale.setDefault(new Locale(getLanguage()));
 
 		// Set DEFAULT_AVI_SYNTH_SCRIPT according to language
-		DEFAULT_AVI_SYNTH_SCRIPT = 
-			Messages.getString("MEncoderAviSynth.4") +
-			Messages.getString("MEncoderAviSynth.5") +
-			Messages.getString("MEncoderAviSynth.6") +
-			Messages.getString("MEncoderAviSynth.7") +
-			Messages.getString("MEncoderAviSynth.8") +
-			Messages.getString("MEncoderAviSynth.10") +
-			Messages.getString("MEncoderAviSynth.11");
+		DEFAULT_AVI_SYNTH_SCRIPT = "<movie>\n<sub>\n";
 
 		long usableMemory = (Runtime.getRuntime().maxMemory() / 1048576) - BUFFER_MEMORY_FACTOR;
 		if (usableMemory > MAX_MAX_MEMORY_DEFAULT_SIZE) {
@@ -638,6 +622,9 @@ public class PmsConfiguration {
 		if (value != null) {
 			value = value.trim();
 		}
+		if ("".equals(value)) {
+			return def;
+		}
 		return value;
 	}
 	
@@ -717,7 +704,7 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Some versions of mencoder produce garbled audio because the "ac3" codec is used
+	 * Some versions of MEncoder produce garbled audio because the "ac3" codec is used
 	 * instead of the "ac3_fixed" codec. Returns true if "ac3_fixed" should be used.
 	 * Default is false.
 	 * See https://code.google.com/p/ps3mediaserver/issues/detail?id=1092#c1
@@ -796,7 +783,7 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Some versions of mencoder produce garbled audio because the "ac3" codec is used
+	 * Some versions of MEncoder produce garbled audio because the "ac3" codec is used
 	 * instead of the "ac3_fixed" codec.
 	 * See https://code.google.com/p/ps3mediaserver/issues/detail?id=1092#c1
 	 * @param value Set to true if "ac3_fixed" should be used.
@@ -862,7 +849,7 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Set the maximum number of concurrent mencoder threads.
+	 * Set the maximum number of concurrent MEncoder threads.
 	 * XXX Currently unused.
 	 * @param value The maximum number of concurrent threads.
 	 */
@@ -882,11 +869,11 @@ public class PmsConfiguration {
 	/**
 	 * Returns the number of seconds from the start of a video file (the seek
 	 * position) where the thumbnail image for the movie should be extracted
-	 * from. Default is 1 second.
+	 * from. Default is 2 seconds.
 	 * @return The seek position in seconds.
 	 */
 	public int getThumbnailSeekPos() {
-		return getInt(KEY_THUMBNAIL_SEEK_POS, 1);
+		return getInt(KEY_THUMBNAIL_SEEK_POS, 2);
 	}
 
 	/**
@@ -900,11 +887,11 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Older versions of mencoder do not support ASS/SSA subtitles on all
-	 * platforms. Returns true if mencoder supports them. Default is true
+	 * Older versions of MEncoder do not support ASS/SSA subtitles on all
+	 * platforms. Returns true if MEncoder supports them. Default is true
 	 * on Windows and OS X, false otherwise.
 	 * See https://code.google.com/p/ps3mediaserver/issues/detail?id=1097
-	 * @return True if mencoder supports ASS/SSA subtitles.
+	 * @return True if MEncoder supports ASS/SSA subtitles.
 	 */
 	public boolean isMencoderAss() {
 		return getBoolean(KEY_MENCODER_ASS, Platform.isWindows() || Platform.isMac());
@@ -950,34 +937,24 @@ public class PmsConfiguration {
 	/**
 	 * Returns the audio language priority for MEncoder as a comma separated
 	 * string. For example: <code>"eng,fre,jpn,ger,und"</code>, where "und"
-	 * stands for "undefined".
+	 * stands for "undefined". Default value is "loc,eng,fre,jpn,ger,und".
+	 *
 	 * @return The audio language priority string.
 	 */
 	public String getMencoderAudioLanguages() {
-		return getString(KEY_MENCODER_AUDIO_LANGS, getDefaultLanguages());
+		return getString(KEY_MENCODER_AUDIO_LANGS, Messages.getString("MEncoderVideo.126"));
 	}
 
 	/**
-	 * Returns a string of comma separated audio or subtitle languages,
-	 * ordered by priority. 
-	 * @return The string of languages.
-	 */
-	private String getDefaultLanguages() {
-		if ("fr".equals(getLanguage())) {
-			return "fre,jpn,ger,eng,und";
-		} else {
-			return "eng,fre,jpn,ger,und";
-		}
-	}
-
-	/**
-	 * Returns the subtitle language priority for MEncoder as a comma
-	 * separated string. For example: <code>"eng,fre,jpn,ger,und"</code>,
-	 * where "und" stands for "undefined".
+	 * Returns the subtitle language priority for MEncoder as a comma separated
+	 * string. For example: <code>"loc,eng,fre,jpn,ger,und"</code>, where "loc"
+	 * stands for the preferred local language and "und" stands for "undefined".
+	 * Default value is "loc,eng,fre,jpn,ger,und".
+	 *
 	 * @return The subtitle language priority string.
 	 */
 	public String getMencoderSubLanguages() {
-		return getString(KEY_MENCODER_SUB_LANGS, getDefaultLanguages());
+		return getString(KEY_MENCODER_SUB_LANGS, Messages.getString("MEncoderVideo.127"));
 	}
 
 	/**
@@ -1003,13 +980,14 @@ public class PmsConfiguration {
 	 * ordered by priority for MEncoder to try to match. Audio language
 	 * and subtitle language should be comma separated as a pair,
 	 * individual pairs should be semicolon separated. "*" can be used to
-	 * match any language. Subtitle language can be defined as "off". For
-	 * example: <code>"en,off;jpn,eng;*,eng;*;*"</code>.
-	 * Default value is <code>""</code>.
+	 * match any language, "loc" to match the local language. Subtitle
+	 * language can be defined as "off".
+	 * Default value is <code>"loc,off;jpn,loc;*,loc;*,*"</code>.
+	 *
 	 * @return The audio and subtitle languages priority string.
 	 */
 	public String getMencoderAudioSubLanguages() {
-		return getString(KEY_MENCODER_AUDIO_SUB_LANGS, "");
+		return getString(KEY_MENCODER_AUDIO_SUB_LANGS, Messages.getString("MEncoderVideo.128"));
 	}
 
 	/**
@@ -1176,11 +1154,11 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Older versions of mencoder do not support ASS/SSA subtitles on all
-	 * platforms. Set to true if mencoder supports them. Default should be
+	 * Older versions of MEncoder do not support ASS/SSA subtitles on all
+	 * platforms. Set to true if MEncoder supports them. Default should be
 	 * true on Windows and OS X, false otherwise.
 	 * See https://code.google.com/p/ps3mediaserver/issues/detail?id=1097
-	 * @param value Set to true if mencoder supports ASS/SSA subtitles.
+	 * @param value Set to true if MEncoder supports ASS/SSA subtitles.
 	 */
 	public void setMencoderAss(boolean value) {
 		configuration.setProperty(KEY_MENCODER_ASS, value);
@@ -1581,7 +1559,7 @@ public class PmsConfiguration {
 	 * @return True if PMS should pass the flag.
 	 */
 	public boolean getAvisynthConvertFps() {
-		return getBoolean(KEY_AVISYNTH_CONVERT_FPS, false);
+		return getBoolean(KEY_AVISYNTH_CONVERT_FPS, true);
 	}
 
 	public void setAvisynthInterFrame(boolean value) {
@@ -1677,7 +1655,7 @@ public class PmsConfiguration {
 	}
 
 	public String getFfmpegSettings() {
-		return getString(KEY_FFMPEG_SETTINGS, "-threads 2 -g 1 -qscale 1 -qmin 2");
+		return getString(KEY_FFMPEG_SETTINGS, "-g 1 -q:v 1 -qmin 2");
 	}
 
 	public boolean isMencoderNoOutOfSync() {
@@ -1792,7 +1770,7 @@ public class PmsConfiguration {
 	}
 
 	public List<String> getEnginesAsList(SystemUtils registry) {
-		List<String> engines = stringToList(getString(KEY_ENGINES, "mencoder,avsmencoder,tsmuxer,ffmpegaudio,mplayeraudio,tsmuxeraudio,vlcvideo,mencoderwebvideo,mplayervideodump,mplayerwebaudio,vlcaudio,ffmpegdvrmsremux,rawthumbs"));
+		List<String> engines = stringToList(getString(KEY_ENGINES, "mencoder,avsmencoder,tsmuxer,ffmpegvideo,ffmpegaudio,mplayeraudio,tsmuxeraudio,vlcvideo,mencoderwebvideo,mplayervideodump,mplayerwebaudio,vlcaudio,ffmpegdvrmsremux,rawthumbs"));
 		engines = hackAvs(registry, engines);
 		return engines;
 	}

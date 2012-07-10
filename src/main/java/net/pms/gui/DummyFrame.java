@@ -18,7 +18,15 @@
  */
 package net.pms.gui;
 
-public class DummyFrame implements IFrame {
+import javax.swing.JFrame;
+import net.pms.util.PropertiesUtil;
+
+public class DummyFrame extends JFrame implements IFrame {	
+	public DummyFrame() {
+		setTitle(PropertiesUtil.getProjectProperties().get("project.name"));
+		pack();
+	}
+
 	@Override
 	public void append(String msg) {
 	}

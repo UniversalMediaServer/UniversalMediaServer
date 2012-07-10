@@ -19,17 +19,13 @@
 
 package net.pms.test;
 
-import static org.junit.Assert.*;
-
+import ch.qos.logback.classic.LoggerContext;
 import java.util.concurrent.TimeUnit;
-
 import net.pms.util.TaskRunner;
-
+import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
-
-import ch.qos.logback.classic.LoggerContext;
 
 public class TaskRunnerTest {
 	@Before

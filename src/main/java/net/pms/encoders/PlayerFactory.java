@@ -19,19 +19,16 @@
  */
 package net.pms.encoders;
 
+import com.sun.jna.Platform;
 import java.io.File;
 import java.util.ArrayList;
-
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.io.SystemUtils;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.sun.jna.Platform;
 
 /**
  * This class handles players. Creating an instance will initialize the list of
@@ -87,7 +84,7 @@ public final class PlayerFactory {
 	 */
 	private static void registerPlayers(final PmsConfiguration configuration) {
 		if (Platform.isWindows()) {
-			registerPlayer(new FFMpegVideo());
+			registerPlayer(new FFMpegAviSynthVideo());
 		}
 
 		registerPlayer(new FFMpegAudio(configuration));
@@ -97,6 +94,7 @@ public final class PlayerFactory {
 			registerPlayer(new MEncoderAviSynth(configuration));
 		}
 
+		registerPlayer(new FFMpegVideo());
 		registerPlayer(new MPlayerAudio(configuration));
 		registerPlayer(new MEncoderWebVideo(configuration));
 		registerPlayer(new MPlayerWebVideoDump(configuration));

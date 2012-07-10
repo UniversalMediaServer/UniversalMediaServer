@@ -22,12 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.Collator;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
+import java.util.*;
 import net.pms.PMS;
 import net.pms.configuration.MapFileConfiguration;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
@@ -35,7 +30,6 @@ import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.formats.FormatFactory;
 import net.pms.network.HTTPResource;
 import net.pms.util.NaturalComparator;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

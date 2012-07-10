@@ -6,13 +6,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Observable;
 import java.util.Observer;
-
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JProgressBar;
-import javax.swing.SwingUtilities;
-
+import javax.swing.*;
 import net.pms.update.AutoUpdater;
 import net.pms.update.AutoUpdater.State;
 
