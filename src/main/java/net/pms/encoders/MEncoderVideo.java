@@ -123,7 +123,7 @@ public class MEncoderVideo extends Player {
 
 	protected boolean dtsRemux;
 	protected boolean pcm;
-	protected boolean mux;
+	protected boolean ac3Remux;
 	protected boolean ovccopy;
 	protected boolean oaccopy;
 	protected boolean mpegts;
@@ -1034,11 +1034,11 @@ public class MEncoderVideo extends Player {
 		return new String[]{
 			"-quiet",
 			"-oac", oaccopy ? "copy" : (pcm ? "pcm" : "lavc"),
-			"-of", (wmv || mpegts) ? "lavf" : (pcm && avisynth()) ? "avi" : (((pcm || dtsRemux || mux) ? "rawvideo" : "mpeg")),
+			"-of", (wmv || mpegts) ? "lavf" : (pcm && avisynth()) ? "avi" : (((pcm || dtsRemux || ac3Remux) ? "rawvideo" : "mpeg")),
 			(wmv || mpegts) ? "-lavfopts" : "-quiet",
 			wmv ? "format=asf" : (mpegts ? "format=mpegts" : "-quiet"),
 			"-mpegopts", "format=mpeg2:muxrate=500000:vbuf_size=1194:abuf_size=64",
-			"-ovc", (mux || ovccopy) ? "copy" : "lavc"
+			"-ovc", (ac3Remux || ovccopy) ? "copy" : "lavc"
 		};
 	}
 
@@ -1381,7 +1381,7 @@ public class MEncoderVideo extends Player {
 		}
 
 		// mpeg2 remux still buggy with mencoder :\
-		if (!pcm && !dtsRemux && !mux && ovccopy) {
+		if (!pcm && !dtsRemux && !ac3Remux && ovccopy) {
 			ovccopy = false;
 		}
 
@@ -2106,7 +2106,7 @@ public class MEncoderVideo extends Player {
 			}
 		}
 
-		if ((pcm || dtsRemux || mux) || (configuration.isMencoderNoOutOfSync() && !noMC0NoSkip)) {
+		if ((pcm || dtsRemux || ac3Remux) || (configuration.isMencoderNoOutOfSync() && !noMC0NoSkip)) {
 			cmdArray = Arrays.copyOf(cmdArray, cmdArray.length + 3);
 			cmdArray[cmdArray.length - 5] = "-mc";
 			cmdArray[cmdArray.length - 4] = "0";
@@ -2129,7 +2129,7 @@ public class MEncoderVideo extends Player {
 		}
 
 		// force srate -> cause ac3's mencoder doesn't like anything other than 48khz
-		if (media != null && !pcm && !dtsRemux && !mux) {
+		if (media != null && !pcm && !dtsRemux && !ac3Remux) {
 			cmdArray = Arrays.copyOf(cmdArray, cmdArray.length + 4);
 			cmdArray[cmdArray.length - 6] = "-af";
 			cmdArray[cmdArray.length - 5] = "lavcresample=" + rate;
@@ -2151,7 +2151,7 @@ public class MEncoderVideo extends Player {
 
 		ProcessWrapperImpl pw = null;
 
-		if (pcm || dtsRemux || mux) {
+		if (pcm || dtsRemux || ac3Remux) {
 			boolean channels_filter_present = false;
 
 			for (String s : cmdArray) {
@@ -2162,7 +2162,7 @@ public class MEncoderVideo extends Player {
 			}
 
 			if (params.avidemux) {
-				pipe = new PipeProcess("mencoder" + System.currentTimeMillis(), (pcm || dtsRemux || mux) ? null : params);
+				pipe = new PipeProcess("mencoder" + System.currentTimeMillis(), (pcm || dtsRemux || ac3Remux) ? null : params);
 				params.input_pipes[0] = pipe;
 				cmdArray[cmdArray.length - 1] = pipe.getInputPipe();
 
@@ -2372,7 +2372,7 @@ public class MEncoderVideo extends Player {
 				cmdArray[cmdArray.length - 4] = "-";
 				params.input_pipes = new PipeProcess[2];
 			} else {
-				pipe = new PipeProcess("mencoder" + System.currentTimeMillis(), (pcm || dtsRemux || mux) ? null : params);
+				pipe = new PipeProcess("mencoder" + System.currentTimeMillis(), (pcm || dtsRemux || ac3Remux) ? null : params);
 				params.input_pipes[0] = pipe;
 				cmdArray[cmdArray.length - 1] = pipe.getInputPipe();
 			}
