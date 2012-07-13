@@ -2255,7 +2255,7 @@ public class MEncoderVideo extends Player {
 				if (pcm && !dtsRemux) {
 					channels = params.aid.getAudioProperties().getNumberOfChannels();
 					mixer = getLPCMChannelMappingForMencoder(params.aid); // LPCM always outputs 5.1/7.1 for multichannel tracks. Downmix with player if needed!
-				} else if ((pcm && dtsRemux) || wmv) {
+				} else if (dtsRemux || wmv) {
 					channels = 2;
 				} else {
 					channels = configuration.getAudioChannelCount(); // 5.1 max for ac3 encoding
@@ -2372,7 +2372,7 @@ public class MEncoderVideo extends Player {
 				cmdArray[cmdArray.length - 4] = "-";
 				params.input_pipes = new PipeProcess[2];
 			} else {
-				pipe = new PipeProcess("mencoder" + System.currentTimeMillis(), (pcm || dtsRemux || ac3Remux) ? null : params);
+				pipe = new PipeProcess("mencoder" + System.currentTimeMillis(), (pcm || dtsRemux || mux) ? null : params);
 				params.input_pipes[0] = pipe;
 				cmdArray[cmdArray.length - 1] = pipe.getInputPipe();
 			}
