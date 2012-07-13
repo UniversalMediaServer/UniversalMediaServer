@@ -1389,6 +1389,18 @@ public class MEncoderVideo extends Player {
 			params.avidemux = true;
 		}
 
+		int channels;
+		if (ac3Remux) {
+			channels = params.aid.getAudioProperties().getNumberOfChannels(); // ac3 remux
+		} else if (dtsRemux || wmv) {
+			channels = 2;
+		} else if (pcm) {
+			channels = params.aid.getAudioProperties().getNumberOfChannels();
+		} else {
+			channels = configuration.getAudioChannelCount(); // 5.1 max for ac3 encoding
+		}
+		LOGGER.trace("channels=" + channels);
+
 		String add = "";
 		String rendererMencoderOptions = params.mediaRenderer.getCustomMencoderOptions(); // default: empty string
 		String mencoderCustomOptions = configuration.getMencoderCustomOptions(); // default: empty string
@@ -1416,7 +1428,7 @@ public class MEncoderVideo extends Player {
 		}
 
 		StringTokenizer st = new StringTokenizer(
-			"-channels " + (wmv ? 2 : CodecUtil.getRealChannelCount(configuration, params.aid))
+			"-channels " + channels
 			+ (isNotBlank(mencoderCustomOptions) ? " " + mencoderCustomOptions : "")
 			+ (isNotBlank(rendererMencoderOptions) ? " " + rendererMencoderOptions : "")
 			+ add,
@@ -2251,16 +2263,10 @@ public class MEncoderVideo extends Player {
 				sm.setBitspersample(16);
 
 				String mixer = null;
-				int channels;
 				if (pcm && !dtsRemux) {
-					channels = params.aid.getAudioProperties().getNumberOfChannels();
 					mixer = getLPCMChannelMappingForMencoder(params.aid); // LPCM always outputs 5.1/7.1 for multichannel tracks. Downmix with player if needed!
-				} else if (dtsRemux || wmv) {
-					channels = 2;
-				} else {
-					channels = configuration.getAudioChannelCount(); // 5.1 max for ac3 encoding
 				}
-				LOGGER.trace("channels=" + channels);
+
 				sm.setNbchannels(channels);
 
 				// it seems the -really-quiet prevents mencoder to stop the pipe output after some time...

@@ -302,9 +302,9 @@ public class TSMuxerVideo extends Player {
 						// AC3 remux or encoding
 						int channels;
 						if (ac3Remux) {
-							channels = params.aid.getAudioProperties().getNumberOfChannels(); // remux
+							channels = params.aid.getAudioProperties().getNumberOfChannels(); // AC3 remux
 						} else {
-							channels = configuration.getAudioChannelCount(); // ac3 encoding
+							channels = configuration.getAudioChannelCount(); // AC3 encoding
 						}
 						ffmpegLPCMextract = new String[]{
 							mencoderPath,
@@ -421,9 +421,9 @@ public class TSMuxerVideo extends Player {
 							// AC3 remux or encoding
 							int channels;
 							if (ac3Remux) {
-								channels = params.aid.getAudioProperties().getNumberOfChannels(); // remux
+								channels = params.aid.getAudioProperties().getNumberOfChannels(); // AC3 remux
 							} else {
-								channels = configuration.getAudioChannelCount(); // ac3 encoding
+								channels = configuration.getAudioChannelCount(); // AC3 encoding
 							}
 							ffmpegLPCMextract = new String[]{
 								mencoderPath,

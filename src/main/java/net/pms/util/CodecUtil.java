@@ -83,15 +83,6 @@ public class CodecUtil {
 		return defaultBitrate;
 	}
 
-	@Deprecated
-	public static int getRealChannelCount(PmsConfiguration configuration, DLNAMediaAudio audio) {
-		int channelCount = configuration.getAudioChannelCount();
-		if (audio.getAudioProperties().getNumberOfChannels() > 0 && audio.getAudioProperties().getNumberOfChannels() != channelCount) {
-			channelCount = audio.getAudioProperties().getNumberOfChannels();
-		}
-		return channelCount;
-	}
-
 	public static String getDefaultFontPath() {
 		String font = null;
 		if (Platform.isWindows()) {
