@@ -255,16 +255,24 @@ public class TSMuxerVideo extends Player {
 								)
 							)
 						) && params.mediaRenderer.isLPCMPlayable();
+
+					int channels;
+					if (ac3Remux) {
+						channels = params.aid.getAudioProperties().getNumberOfChannels(); // ac3 remux
+					} else if (dtsRemux) {
+						channels = 2;
+					} else if (pcm) {
+						channels = params.aid.getAudioProperties().getNumberOfChannels();
+					} else {
+						channels = configuration.getAudioChannelCount(); // 5.1 max for ac3 encoding
+					}
+
 					if (!ac3Remux && (dtsRemux || pcm)) {
 						// DTS remux or LPCM
 						StreamModifier sm = new StreamModifier();
 						sm.setPcm(pcm);
 						sm.setDtsembed(dtsRemux);
-						if (dtsRemux) {
-							sm.setNbchannels(2);
-						} else if (pcm) {
-							sm.setNbchannels(params.aid.getAudioProperties().getNumberOfChannels());
-						}
+						sm.setNbchannels(channels);
 						sm.setSampleFrequency(params.aid.getSampleRate() < 48000 ? 48000 : params.aid.getSampleRate());
 						sm.setBitspersample(16);
 
@@ -299,13 +307,6 @@ public class TSMuxerVideo extends Player {
 							ffAudioPipe[0].setModifier(sm);
 						}
 					} else {
-						// AC3 remux or encoding
-						int channels;
-						if (ac3Remux) {
-							channels = params.aid.getAudioProperties().getNumberOfChannels(); // AC3 remux
-						} else {
-							channels = configuration.getAudioChannelCount(); // AC3 encoding
-						}
 						ffmpegLPCMextract = new String[]{
 							mencoderPath,
 							"-ss", "0",
@@ -377,16 +378,24 @@ public class TSMuxerVideo extends Player {
 									)
 								)
 							) && params.mediaRenderer.isLPCMPlayable();
+
+						int channels;
+						if (ac3Remux) {
+							channels = audio.getAudioProperties().getNumberOfChannels(); // ac3 remux
+						} else if (dtsRemux) {
+							channels = 2;
+						} else if (pcm) {
+							channels = audio.getAudioProperties().getNumberOfChannels();
+						} else {
+							channels = configuration.getAudioChannelCount(); // 5.1 max for ac3 encoding
+						}
+
 						if (!ac3Remux && (dtsRemux || pcm)) {
 							// DTS remux or LPCM
 							StreamModifier sm = new StreamModifier();
 							sm.setPcm(pcm);
 							sm.setDtsembed(dtsRemux);
-							if (dtsRemux) {
-								sm.setNbchannels(2);
-							} else if (pcm) {
-								sm.setNbchannels(params.aid.getAudioProperties().getNumberOfChannels());
-							}
+							sm.setNbchannels(channels);
 							sm.setSampleFrequency(audio.getSampleRate() < 48000 ? 48000 : audio.getSampleRate());
 							sm.setBitspersample(16);
 							if (!params.mediaRenderer.isMuxDTSToMpeg()) {
@@ -418,13 +427,6 @@ public class TSMuxerVideo extends Player {
 								"-o", ffAudioPipe[i].getInputPipe()
 							};
 						} else {
-							// AC3 remux or encoding
-							int channels;
-							if (ac3Remux) {
-								channels = params.aid.getAudioProperties().getNumberOfChannels(); // AC3 remux
-							} else {
-								channels = configuration.getAudioChannelCount(); // AC3 encoding
-							}
 							ffmpegLPCMextract = new String[]{
 								mencoderPath,
 								"-ss", "0",
