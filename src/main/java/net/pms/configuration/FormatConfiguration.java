@@ -21,6 +21,7 @@ public class FormatConfiguration {
 	public static final String MP4 = "mp4";
 	public static final String MOV = "mov";
 	public static final String FLV = "flv";
+	public static final String WEBM = "WebM";
 	public static final String RM = "rm";
 	public static final String MATROSKA = "mkv";
 	public static final String WAV = "wav";

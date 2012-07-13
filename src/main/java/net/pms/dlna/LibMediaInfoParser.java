@@ -240,6 +240,8 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.AVI;
 		} else if (value.startsWith("flash")) {
 			format = FormatConfiguration.FLV;
+		} else if (value.toLowerCase().equals("webm")) {
+			format = FormatConfiguration.WEBM;
 		} else if (value.equals("qt") || value.equals("quicktime")) {
 			format = FormatConfiguration.MOV;
 		} else if (value.equals("isom") || value.startsWith("mp4") || value.equals("20") || value.equals("m4v") || value.startsWith("mpeg-4")) {

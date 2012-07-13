@@ -41,7 +41,7 @@ public class MKV extends MPG {
 		return new String[] {
 			"mkv", "dv", "ty", "mov", "ogm", "ogv", "hdmov",
 			"hdm", "rmv", "rmvb", "rm", "asf", "evo", "asx", "flv", "m2v",
-			"3gp", "3g2"
+			"3gp", "3g2", "webm"
 		};
 	}
 }
