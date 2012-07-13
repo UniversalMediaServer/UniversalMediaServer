@@ -126,6 +126,9 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	 * @param type the type to set
 	 */
 	public void setType(SubtitleType type) {
+		if (type == null) {
+			throw new IllegalArgumentException("Can't set null SubtitleType.");
+		}
 		this.type = type;
 	}
 

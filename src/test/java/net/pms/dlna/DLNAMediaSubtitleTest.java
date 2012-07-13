@@ -28,4 +28,10 @@ public class DLNAMediaSubtitleTest {
 		DLNAMediaSubtitle dlnaMediaSubtitle = new DLNAMediaSubtitle();
 		assertThat(dlnaMediaSubtitle.getType()).isEqualTo(SubtitleType.UNKNOWN);
 	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testSetType_withNullSubtitleType() {
+		DLNAMediaSubtitle dlnaMediaSubtitle = new DLNAMediaSubtitle();
+		dlnaMediaSubtitle.setType(null);
+	}
 }
