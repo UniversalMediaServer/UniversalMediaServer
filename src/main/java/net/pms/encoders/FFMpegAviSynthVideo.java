@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.StringTokenizer;
 import javax.swing.JComponent;
 import net.pms.PMS;
-import net.pms.dlna.DLNAMediaSubtitle;
+import net.pms.dlna.v2.DLNAMediaSubtitle;
 import net.pms.formats.SubtitleType;
 import net.pms.util.ProcessUtil;
 import org.slf4j.Logger;

@@ -27,7 +27,7 @@ import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.formats.FormatFactory;
-import net.pms.formats.SubtitleType;
+import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.util.FileUtil;
