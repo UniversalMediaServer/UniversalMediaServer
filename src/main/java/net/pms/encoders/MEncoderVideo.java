@@ -41,6 +41,7 @@ import net.pms.configuration.RendererConfiguration;
 import static net.pms.configuration.RendererConfiguration.RENDERER_ID_PLAYSTATION3;
 import net.pms.dlna.*;
 import net.pms.formats.Format;
+import static net.pms.formats.v2.AudioUtils.getLPCMChannelMappingForMencoder;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.*;
 import net.pms.network.HTTPResource;
@@ -51,7 +52,7 @@ import net.pms.newgui.RestrictedFileSystemView;
 import net.pms.util.CodecUtil;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.ProcessUtil;
-import org.apache.commons.lang.StringUtils;
+import static org.apache.commons.lang.StringUtils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1115,7 +1116,7 @@ public class MEncoderVideo extends Player {
 			bitrate = bitrate.substring(0, bitrate.indexOf("(")).trim();
 		}
 
-		if (StringUtils.isBlank(bitrate)) {
+		if (isBlank(bitrate)) {
 			bitrate = "0";
 		}
 
@@ -1392,9 +1393,9 @@ public class MEncoderVideo extends Player {
 		String rendererMencoderOptions = params.mediaRenderer.getCustomMencoderOptions(); // default: empty string
 		String mencoderCustomOptions = configuration.getMencoderCustomOptions(); // default: empty string
 
-		String combinedCustomOptions = StringUtils.defaultString(mencoderCustomOptions)
+		String combinedCustomOptions = defaultString(mencoderCustomOptions)
 			+ " "
-			+ StringUtils.defaultString(rendererMencoderOptions);
+			+ defaultString(rendererMencoderOptions);
 
 		if (!combinedCustomOptions.contains("-lavdopts")) {
 			add = " -lavdopts debug=0";
@@ -1408,7 +1409,7 @@ public class MEncoderVideo extends Player {
 
 		LOGGER.trace("channels=" + channels);
 
-		if (StringUtils.isNotBlank(rendererMencoderOptions)) {
+		if (isNotBlank(rendererMencoderOptions)) {
 			/*
 			 * ignore the renderer's custom MEncoder options if a) we're streaming a DVD (i.e. via dvd://)
 			 * or b) the renderer's MEncoder options contain overscan settings (those are handled
@@ -1424,8 +1425,8 @@ public class MEncoderVideo extends Player {
 
 		StringTokenizer st = new StringTokenizer(
 			"-channels " + channels
-			+ (StringUtils.isNotBlank(mencoderCustomOptions) ? " " + mencoderCustomOptions : "")
-			+ (StringUtils.isNotBlank(rendererMencoderOptions) ? " " + rendererMencoderOptions : "")
+			+ (isNotBlank(mencoderCustomOptions) ? " " + mencoderCustomOptions : "")
+			+ (isNotBlank(rendererMencoderOptions) ? " " + rendererMencoderOptions : "")
 			+ add,
 			" "
 		);
@@ -1465,7 +1466,7 @@ public class MEncoderVideo extends Player {
 			String customSettings = params.mediaRenderer.getCustomMencoderQualitySettings();
 
 			// Custom settings in PMS may override the settings of the saved configuration
-			if (StringUtils.isNotBlank(customSettings)) {
+			if (isNotBlank(customSettings)) {
 				mainConfig = customSettings;
 			}
 
@@ -1552,7 +1553,7 @@ public class MEncoderVideo extends Player {
 						sb.append(" -ass-force-style FontName=").append(configuration.getMencoderFont()).append(",");
 					} else {
 						String font = CodecUtil.getDefaultFontPath();
-						if (StringUtils.isNotBlank(font)) {
+						if (isNotBlank(font)) {
 							// Variable "font" contains a font path instead of a font name.
 							// Does "-ass-force-style" support font paths? In tests on OSX
 							// the font path is ignored (Outline, Shadow and MarginV are
@@ -1598,7 +1599,7 @@ public class MEncoderVideo extends Player {
 					sb.append(" -font ").append(configuration.getMencoderFont()).append(" ");
 				} else {
 					String font = CodecUtil.getDefaultFontPath();
-					if (StringUtils.isNotBlank(font)) {
+					if (isNotBlank(font)) {
 						sb.append(" -font ").append(font).append(" ");
 					}
 				}
@@ -2162,7 +2163,7 @@ public class MEncoderVideo extends Player {
 			boolean channels_filter_present = false;
 
 			for (String s : cmdArray) {
-				if (StringUtils.isNotBlank(s) && s.startsWith("channels")) {
+				if (isNotBlank(s) && s.startsWith("channels")) {
 					channels_filter_present = true;
 					break;
 				}
@@ -2173,9 +2174,9 @@ public class MEncoderVideo extends Player {
 				params.input_pipes[0] = pipe;
 				cmdArray[cmdArray.length - 1] = pipe.getInputPipe();
 
-				if (pcm && !channels_filter_present) {
-					String mixer = CodecUtil.getMixerOutput(true, configuration.getAudioChannelCount(), configuration.getAudioChannelCount());
-					if (StringUtils.isNotBlank(mixer)) {
+				if (pcm && !channels_filter_present && params.aid != null) {
+					String mixer = getLPCMChannelMappingForMencoder(params.aid, configuration.getAudioChannelCount());
+					if (isNotBlank(mixer)) {
 						cmdArray = Arrays.copyOf(cmdArray, cmdArray.length + 2);
 						cmdArray[cmdArray.length - 2] = "-af";
 						cmdArray[cmdArray.length - 1] = mixer;
@@ -2257,7 +2258,11 @@ public class MEncoderVideo extends Player {
 				sm.setNbchannels(sm.isDtsembed() ? 2 : CodecUtil.getRealChannelCount(configuration, params.aid));
 				sm.setSampleFrequency(48000);
 				sm.setBitspersample(16);
-				String mixer = CodecUtil.getMixerOutput(!sm.isDtsembed(), sm.getNbchannels(), configuration.getAudioChannelCount());
+
+				String mixer = null;
+				if (pcm && !dts) {
+					mixer = getLPCMChannelMappingForMencoder(params.aid, configuration.getAudioChannelCount());
+				}
 
 				// it seems the -really-quiet prevents mencoder to stop the pipe output after some time...
 				// -mc 0.1 make the DTS-HD extraction works better with latest mencoder builds, and makes no impact on the regular DTS one
@@ -2274,7 +2279,7 @@ public class MEncoderVideo extends Player {
 					"-noskip",
 					(aid == null) ? "-quiet" : "-aid", (aid == null) ? "-quiet" : aid,
 					"-oac", sm.isDtsembed() ? "copy" : "pcm",
-					(StringUtils.isNotBlank(mixer) && !channels_filter_present) ? "-af" : "-quiet", (StringUtils.isNotBlank(mixer) && !channels_filter_present) ? mixer : "-quiet",
+					(isNotBlank(mixer) && !channels_filter_present) ? "-af" : "-quiet", (isNotBlank(mixer) && !channels_filter_present) ? mixer : "-quiet",
 					"-srate", "48000",
 					"-o", ffAudioPipe.getInputPipe()
 				};

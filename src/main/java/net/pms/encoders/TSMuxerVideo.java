@@ -43,10 +43,11 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.InputFile;
 import net.pms.formats.Format;
+import static net.pms.formats.v2.AudioUtils.getLPCMChannelMappingForMencoder;
 import net.pms.io.*;
 import net.pms.util.CodecUtil;
 import net.pms.util.FormLayoutUtil;
-import org.apache.commons.lang.StringUtils;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -261,7 +262,12 @@ public class TSMuxerVideo extends Player {
 						sm.setNbchannels(sm.isDtsembed() ? 2 : CodecUtil.getRealChannelCount(configuration, params.aid));
 						sm.setSampleFrequency(params.aid.getSampleRate() < 48000 ? 48000 : params.aid.getSampleRate());
 						sm.setBitspersample(16);
-						String mixer = CodecUtil.getMixerOutput(!sm.isDtsembed(), sm.getNbchannels(), configuration.getAudioChannelCount());
+
+						String mixer = null;
+						if (pcm && !dtsRemux) {
+							mixer = getLPCMChannelMappingForMencoder(params.aid, configuration.getAudioChannelCount());
+						}
+
 						ffmpegLPCMextract = new String[]{
 							mencoderPath,
 							"-ss", "0",
@@ -276,7 +282,7 @@ public class TSMuxerVideo extends Player {
 							"-mc", sm.isDtsembed() ? "0.1" : "0",
 							"-noskip",
 							"-oac", sm.isDtsembed() ? "copy" : "pcm",
-							StringUtils.isNotBlank(mixer) ? "-af" : "-quiet", StringUtils.isNotBlank(mixer) ? mixer : "-quiet",
+							isNotBlank(mixer) ? "-af" : "-quiet", isNotBlank(mixer) ? mixer : "-quiet",
 							singleMediaAudio ? "-quiet" : "-aid", singleMediaAudio ? "-quiet" : ("" + params.aid.getId()),
 							"-srate", "48000",
 							"-o", ffAudioPipe[0].getInputPipe()
@@ -369,7 +375,12 @@ public class TSMuxerVideo extends Player {
 							if (!params.mediaRenderer.isMuxDTSToMpeg()) {
 								ffAudioPipe[i].setModifier(sm);
 							}
-							String mixer = CodecUtil.getMixerOutput(!sm.isDtsembed(), sm.getNbchannels(), configuration.getAudioChannelCount());
+
+							String mixer = null;
+							if (pcm && !dtsRemux) {
+								mixer = getLPCMChannelMappingForMencoder(audio, configuration.getAudioChannelCount());
+							}
+
 							ffmpegLPCMextract = new String[]{
 								mencoderPath,
 								"-ss", "0",
@@ -384,7 +395,7 @@ public class TSMuxerVideo extends Player {
 								"-mc", sm.isDtsembed() ? "0.1" : "0",
 								"-noskip",
 								"-oac", sm.isDtsembed() ? "copy" : "pcm",
-								StringUtils.isNotBlank(mixer) ? "-af" : "-quiet", StringUtils.isNotBlank(mixer) ? mixer : "-quiet",
+								isNotBlank(mixer) ? "-af" : "-quiet", isNotBlank(mixer) ? mixer : "-quiet",
 								singleMediaAudio ? "-quiet" : "-aid", singleMediaAudio ? "-quiet" : ("" + audio.getId()),
 								"-srate", "48000",
 								"-o", ffAudioPipe[i].getInputPipe()
