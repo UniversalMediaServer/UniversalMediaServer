@@ -1534,9 +1534,10 @@ public class MEncoderVideo extends Player {
 			if (apply_ass_styling) {
 				sb.append("-ass ");
 
-				// GUI: Override ASS subtitles style if requested (always for SRT subtitles)
+				// GUI: Override ASS subtitles style if requested (always for SRT and TX3G subtitles)
 				boolean override_ass_style = !configuration.isMencoderAssDefaultStyle() ||
-					params.sid.getType() == SubtitleType.SUBRIP;
+					params.sid.getType() == SubtitleType.SUBRIP ||
+					params.sid.getType() == SubtitleType.TX3G;
 
 				if (override_ass_style) {
 					String assSubColor = "ffffff00";
