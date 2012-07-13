@@ -28,7 +28,7 @@ import static org.apache.commons.lang.StringUtils.isEmpty;
 
 
 /**
- * Class for storing and parsing from libmediainfo audio track's properties
+ * Class for storing and parsing from libmediainfo output audio track's properties
  * (bitrate, channels number, etc) and meta information (title, album, etc)
  *
  * This class is not thread-safe

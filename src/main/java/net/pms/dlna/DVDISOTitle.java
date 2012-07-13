@@ -102,9 +102,9 @@ public class DVDISOTitle extends DLNAResource {
 					}
 					lang.setCodecA(line.substring(line.indexOf("format: ") + 8, end).trim());
 					if (line.contains("(stereo)")) {
-						lang.setNrAudioChannels(2);
+						lang.getAudioProperties().setNumberOfChannels(2);
 					} else {
-						lang.setNrAudioChannels(6);
+						lang.getAudioProperties().setNumberOfChannels(6);
 					}
 					audio.add(lang);
 				}

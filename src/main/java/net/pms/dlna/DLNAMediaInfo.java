@@ -498,13 +498,13 @@ public class DLNAMediaInfo implements Cloneable {
 							audio.setSampleFrequency("" + rate);
 							setDuration((double) length);
 							setBitrate((int) ah.getBitRateAsNumber());
-							audio.setNrAudioChannels(2);
+							audio.getAudioProperties().setNumberOfChannels(2);
 							if (ah.getChannels() != null && ah.getChannels().toLowerCase().contains("mono")) {
-								audio.setNrAudioChannels(1);
+								audio.getAudioProperties().setNumberOfChannels(1);
 							} else if (ah.getChannels() != null && ah.getChannels().toLowerCase().contains("stereo")) {
-								audio.setNrAudioChannels(2);
+								audio.getAudioProperties().setNumberOfChannels(2);
 							} else if (ah.getChannels() != null) {
-								audio.setNrAudioChannels(Integer.parseInt(ah.getChannels()));
+								audio.getAudioProperties().setNumberOfChannels(Integer.parseInt(ah.getChannels()));
 							}
 							audio.setCodecA(ah.getEncodingType().toLowerCase());
 							if (audio.getCodecA().contains("(windows media")) {
@@ -716,17 +716,17 @@ public class DLNAMediaInfo implements Cloneable {
 									} else if (token.endsWith("Hz")) {
 										audio.setSampleFrequency(token.substring(0, token.indexOf("Hz")).trim());
 									} else if (token.equals("mono")) {
-										audio.setNrAudioChannels(1);
+										audio.getAudioProperties().setNumberOfChannels(1);
 									} else if (token.equals("stereo")) {
-										audio.setNrAudioChannels(2);
+										audio.getAudioProperties().setNumberOfChannels(2);
 									} else if (token.equals("5:1") || token.equals("5.1") || token.equals("6 channels")) {
-										audio.setNrAudioChannels(6);
+										audio.getAudioProperties().setNumberOfChannels(6);
 									} else if (token.equals("5 channels")) {
-										audio.setNrAudioChannels(5);
+										audio.getAudioProperties().setNumberOfChannels(5);
 									} else if (token.equals("4 channels")) {
-										audio.setNrAudioChannels(4);
+										audio.getAudioProperties().setNumberOfChannels(4);
 									} else if (token.equals("2 channels")) {
-										audio.setNrAudioChannels(2);
+										audio.getAudioProperties().setNumberOfChannels(2);
 									} else if (token.equals("s32")) {
 										audio.setBitsperSample(32);
 									} else if (token.equals("s24")) {
@@ -1070,7 +1070,7 @@ public class DLNAMediaInfo implements Cloneable {
 	public String toString() {
 		String s = "container: " + getContainer() + " / bitrate: " + getBitrate() + " / size: " + getSize() + " / codecV: " + getCodecV() + " / duration: " + getDurationString() + " / width: " + getWidth() + " / height: " + getHeight() + " / frameRate: " + getFrameRate() + " / thumb size : " + (getThumb() != null ? getThumb().length : 0) + " / muxingMode: " + getMuxingMode();
 		for (DLNAMediaAudio audio : getAudioTracksList()) {
-			s += "\n\taudio: id=" + audio.getId() + " / lang: " + audio.getLang() + " / flavor: " + audio.getFlavor() + " / codec: " + audio.getCodecA() + " / sf:" + audio.getSampleFrequency() + " / na: " + audio.getNrAudioChannels() + " / bs: " + audio.getBitsperSample();
+			s += "\n\taudio: id=" + audio.getId() + " / lang: " + audio.getLang() + " / flavor: " + audio.getFlavor() + " / codec: " + audio.getCodecA() + " / sf:" + audio.getSampleFrequency() + " / na: " + (audio.getAudioProperties() != null ? audio.getAudioProperties().getNumberOfChannels() : "-") + " / bs: " + audio.getBitsperSample();
 			if (audio.getArtist() != null) {
 				s += " / " + audio.getArtist() + "|" + audio.getAlbum() + "|" + audio.getSongname() + "|" + audio.getYear() + "|" + audio.getTrack();
 			}

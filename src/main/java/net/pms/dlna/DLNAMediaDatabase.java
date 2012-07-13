@@ -323,7 +323,7 @@ public class DLNAMediaDatabase implements Runnable {
 					audio.setId(subrs.getInt("ID"));
 					audio.setLang(subrs.getString("LANG"));
 					audio.setFlavor(subrs.getString("FLAVOR"));
-					audio.setNrAudioChannels(subrs.getInt("NRAUDIOCHANNELS"));
+					audio.getAudioProperties().setNumberOfChannels(subrs.getInt("NRAUDIOCHANNELS"));
 					audio.setSampleFrequency(subrs.getString("SAMPLEFREQ"));
 					audio.setCodecA(subrs.getString("CODECA"));
 					audio.setBitsperSample(subrs.getInt("BITSPERSAMPLE"));
@@ -448,7 +448,7 @@ public class DLNAMediaDatabase implements Runnable {
 					insert.setInt(2, audio.getId());
 					insert.setString(3, truncate(audio.getLang(), SIZE_LANG));
 					insert.setString(4, truncate(audio.getFlavor(), SIZE_FLAVOR));
-					insert.setInt(5, audio.getNrAudioChannels());
+					insert.setInt(5, audio.getAudioProperties().getNumberOfChannels());
 					insert.setString(6, truncate(audio.getSampleFrequency(), SIZE_SAMPLEFREQ));
 					insert.setString(7, truncate(audio.getCodecA(), SIZE_CODECA));
 					insert.setInt(8, audio.getBitsperSample());

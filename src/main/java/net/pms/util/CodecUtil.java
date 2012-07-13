@@ -74,9 +74,9 @@ public class CodecUtil {
 	public static int getAC3Bitrate(PmsConfiguration configuration, DLNAMediaAudio media) {
 		int defaultBitrate = configuration.getAudioBitrate();
 		if (media != null && defaultBitrate >= 384) {
-			if (media.getNrAudioChannels() == 2 || configuration.getAudioChannelCount() == 2) {
+			if (media.getAudioProperties().getNumberOfChannels() == 2 || configuration.getAudioChannelCount() == 2) {
 				defaultBitrate = 448;
-			} else if (media.getNrAudioChannels() == 1) {
+			} else if (media.getAudioProperties().getNumberOfChannels() == 1) {
 				defaultBitrate = 192;
 			}
 		}
@@ -85,16 +85,16 @@ public class CodecUtil {
 
 	public static int getAC3ChannelCount(PmsConfiguration configuration, DLNAMediaAudio audio) {
 		int channelCount = configuration.getAudioChannelCount();
-		if (audio.isAC3() && configuration.isRemuxAC3() && audio.getNrAudioChannels() > 0 && audio.getNrAudioChannels() != channelCount) {
-			channelCount = audio.getNrAudioChannels();
+		if (audio.isAC3() && configuration.isRemuxAC3() && audio.getAudioProperties().getNumberOfChannels() > 0 && audio.getAudioProperties().getNumberOfChannels() != channelCount) {
+			channelCount = audio.getAudioProperties().getNumberOfChannels();
 		}
 		return channelCount;
 	}
 
 	public static int getRealChannelCount(PmsConfiguration configuration, DLNAMediaAudio audio) {
 		int channelCount = configuration.getAudioChannelCount();
-		if (audio.getNrAudioChannels() > 0 && audio.getNrAudioChannels() != channelCount) {
-			channelCount = audio.getNrAudioChannels();
+		if (audio.getAudioProperties().getNumberOfChannels() > 0 && audio.getAudioProperties().getNumberOfChannels() != channelCount) {
+			channelCount = audio.getAudioProperties().getNumberOfChannels();
 		}
 		return channelCount;
 	}

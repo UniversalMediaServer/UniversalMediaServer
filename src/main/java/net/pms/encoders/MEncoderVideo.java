@@ -289,7 +289,7 @@ public class MEncoderVideo extends Player {
 					fakemedia.setCodecV("mpeg4");
 					fakemedia.setContainer("matroska");
 					fakemedia.setDuration(45d*60);
-					audio.setNrAudioChannels(2);
+					audio.getAudioProperties().setNumberOfChannels(2);
 					fakemedia.setWidth(1280);
 					fakemedia.setHeight(720);
 					audio.setSampleFrequency("48000");
@@ -1327,7 +1327,7 @@ public class MEncoderVideo extends Player {
 		oaccopy = false;
 
 		// Disable AC3 remux for stereo tracks with 384 kbits bitrate and PS3 renderer (PS3 FW bug?)
-		boolean ps3_and_stereo_and_384_kbits = params.aid != null && (params.mediaRenderer.getRendererUniqueID().equalsIgnoreCase(RENDERER_ID_PLAYSTATION3) && params.aid.getNrAudioChannels() == 2) && (params.aid.getBitRate() > 370000 && params.aid.getBitRate() < 400000);
+		boolean ps3_and_stereo_and_384_kbits = params.aid != null && (params.mediaRenderer.getRendererUniqueID().equalsIgnoreCase(RENDERER_ID_PLAYSTATION3) && params.aid.getAudioProperties().getNumberOfChannels() == 2) && (params.aid.getBitRate() > 370000 && params.aid.getBitRate() < 400000);
 
 		if (configuration.isRemuxAC3() && params.aid != null && params.aid.isAC3() && !ps3_and_stereo_and_384_kbits && !avisynth() && params.mediaRenderer.isTranscodeToAC3()) {
 			// AC3 remux takes priority
@@ -1351,7 +1351,7 @@ public class MEncoderVideo extends Player {
 				&& !(media.getContainer().equals("mp4") && !media.getCodecV().equals("h264"))
 				&& params.aid != null &&
 				(
-					(params.aid.isDTS() && params.aid.getNrAudioChannels() <= 6) || // disable 7.1 DTS-HD => LPCM because of channels mapping bug
+					(params.aid.isDTS() && params.aid.getAudioProperties().getNumberOfChannels() <= 6) || // disable 7.1 DTS-HD => LPCM because of channels mapping bug
 					params.aid.isLossless() ||
 					params.aid.isTrueHD() ||
 					(
@@ -2490,7 +2490,7 @@ public class MEncoderVideo extends Player {
 			interpreter.set("duration", media.getDurationInSeconds());
 
 			if (params.aid != null) {
-				interpreter.set("channels", params.aid.getNrAudioChannels());
+				interpreter.set("channels", params.aid.getAudioProperties().getNumberOfChannels());
 			}
 
 			interpreter.set("height", media.getHeight());

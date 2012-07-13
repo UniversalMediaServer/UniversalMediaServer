@@ -49,10 +49,12 @@ public class AudioPropertiesTest {
 		assertThat(AudioProperties.getChannelsNumberFromLibMediaInfo("")).isEqualTo(2);
 		assertThat(AudioProperties.getChannelsNumberFromLibMediaInfo("-2chan")).isEqualTo(2);
 		assertThat(AudioProperties.getChannelsNumberFromLibMediaInfo("0")).isEqualTo(2);
+		assertThat(AudioProperties.getChannelsNumberFromLibMediaInfo("zero number")).isEqualTo(2);
 	}
 
 	@Test
 	public void testGetChannelsNumberFromLibMediaInfo() {
+		assertThat(AudioProperties.getChannelsNumberFromLibMediaInfo("1 channel")).isEqualTo(1);
 		assertThat(AudioProperties.getChannelsNumberFromLibMediaInfo("3 channels")).isEqualTo(3);
 		assertThat(AudioProperties.getChannelsNumberFromLibMediaInfo("   3 ch ls 21")).isEqualTo(21);
 		assertThat(AudioProperties.getChannelsNumberFromLibMediaInfo("6 channels")).isEqualTo(6);
