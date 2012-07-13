@@ -83,14 +83,7 @@ public class CodecUtil {
 		return defaultBitrate;
 	}
 
-	public static int getAC3ChannelCount(PmsConfiguration configuration, DLNAMediaAudio audio) {
-		int channelCount = configuration.getAudioChannelCount();
-		if (audio.isAC3() && configuration.isRemuxAC3() && audio.getAudioProperties().getNumberOfChannels() > 0 && audio.getAudioProperties().getNumberOfChannels() != channelCount) {
-			channelCount = audio.getAudioProperties().getNumberOfChannels();
-		}
-		return channelCount;
-	}
-
+	@Deprecated
 	public static int getRealChannelCount(PmsConfiguration configuration, DLNAMediaAudio audio) {
 		int channelCount = configuration.getAudioChannelCount();
 		if (audio.getAudioProperties().getNumberOfChannels() > 0 && audio.getAudioProperties().getNumberOfChannels() != channelCount) {

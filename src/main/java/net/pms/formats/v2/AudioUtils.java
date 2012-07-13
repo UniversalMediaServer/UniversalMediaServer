@@ -24,13 +24,12 @@ public class AudioUtils {
 
 	/**
 	 * Due to mencoder/ffmpeg bug we need to manually remap audio channels for LPCM
-	 * output. This function generates such configuration for channels/pan audio filters
+	 * output. This function generates argument for channels/pan audio filters
 	 *
 	 * @param audioTrack DLNAMediaAudio resource
-	 * @param numberOfOutputChannels desired number of channels after mix
 	 * @return argument for -af option or null if we can't remap to desired numberOfOutputChannels
 	 */
-	public static String getLPCMChannelMappingForMencoder(DLNAMediaAudio audioTrack, int numberOfOutputChannels) {
+	public static String getLPCMChannelMappingForMencoder(DLNAMediaAudio audioTrack) {
 		// for reference
 		// Channel Arrangement for Multi Channel Audio Formats
 		// http://avisynth.org/mediawiki/GetChannel
@@ -63,16 +62,13 @@ public class AudioUtils {
 		if (numberOfInputChannels == 6) { // 5.1
 			// we are using PCM output and have to manually remap channels because of incorrect mencoder's PCM mappings
 			// (as of r34814 / SB28)
-			if (numberOfOutputChannels <= 2) {
-				// remap and downmix to 2 channels
-				// as of mencoder r34814 '-af pan' do nothing (LFE is missing from right channel)
-				// same thing for AC3 transcoding. Thats why we should always use 5.1 output on PS3MS configuration
-				// and leave stereo downmixing to PS3!
-				mixer = "pan=2:1:0:0:1:0:1:0.707:0.707:1:0:1:1";
-			} else {
-				// remap and leave 5.1
-				mixer = "channels=6:6:0:0:1:1:2:5:3:2:4:4:5:3";
-			}
+
+			// as of mencoder r34814 '-af pan' do nothing (LFE is missing from right channel)
+			// same thing for AC3 transcoding. Thats why we should always use 5.1 output on PS3MS configuration
+			// and leave stereo downmixing to PS3!
+			// mixer for 5.1 => 2.0 mixer = "pan=2:1:0:0:1:0:1:0.707:0.707:1:0:1:1";
+
+			mixer = "channels=6:6:0:0:1:1:2:5:3:2:4:4:5:3";
 		} else if (numberOfInputChannels == 8) { // 7.1
 			// remap and leave 7.1
 			// inputs to PCM encoder are FL:0 FR:1 RL:2 RR:3 FC:4 LFE:5 SL:6 SR:7
