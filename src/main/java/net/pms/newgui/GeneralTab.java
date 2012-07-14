@@ -574,4 +574,21 @@ public class GeneralTab {
 		pPlugins.add(bPlugin, cc.xy(1, y));
 		return true;
 	}
+	
+	public void removePlugin(ExternalListener listener) {
+		JButton del = null;
+		for(Component c : pPlugins.getComponents()) {
+			if(c instanceof JButton) {
+				JButton button = (JButton)c;
+				if(button.getText().equals(listener.name())) {
+					del = button;
+					break;
+				}
+			}
+		}
+		if(del != null) {
+			pPlugins.remove(del);
+			pPlugins.repaint();
+		}
+	}
 }

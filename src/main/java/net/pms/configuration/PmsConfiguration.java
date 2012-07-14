@@ -172,6 +172,7 @@ public class PmsConfiguration {
 	private static final String KEY_VIDEOTRANSCODE_START_DELAY = "key_videotranscode_start_delay";
 	private static final String KEY_VIRTUAL_FOLDERS = "vfolders";
 	private static final String KEY_BUFFER_MAX = "buffer_max";
+	private static final String KEY_PLUGIN_PURGE_ACTION = "plugin_purge";
 
 	// the name of the subdirectory under which PMS config files are stored for this build (default: PMS).
 	// see Build for more details
@@ -2271,5 +2272,9 @@ public class PmsConfiguration {
 	
 	public boolean initBufferMax() {
 		return getBoolean(KEY_BUFFER_MAX, false);
+	}
+	
+	public String getPluginPurgeAction() {
+		return getString(KEY_PLUGIN_PURGE_ACTION, "delete");
 	}
 }
