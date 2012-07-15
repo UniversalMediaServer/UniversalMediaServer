@@ -1091,4 +1091,9 @@ public class PMS {
 	public DbgPacker dbgPack() {
 		return dbgPack;
 	}
+	
+	@Deprecated
+	public void registerPlayer(Player player) {
+		PlayerFactory.registerPlayer(player);
+	} 
 }

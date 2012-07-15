@@ -18,19 +18,35 @@
  */
 package net.pms.external;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+import javax.swing.JLabel;
+
+import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.RootFolder;
+import net.pms.newgui.LooksFrame;
+
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 /**
  * This class takes care of registering plugins. Plugin jars are loaded,
@@ -52,6 +68,14 @@ public class ExternalFactory {
 	 */
 	private static List<Class<?>> externalListenerClasses = new ArrayList<Class<?>>();
 
+	/**
+	 * List of external listener classes (not yet started).
+	 */
+	private static List<Class<?>> downloadedListenerClasses = new ArrayList<Class<?>>();
+	
+	private static boolean allDone = false;
+
+	
 	/**
 	 * Returns the list of external listener class instances.
 	 *
@@ -84,6 +108,180 @@ public class ExternalFactory {
 			externalListenerClasses.add(clazz);
 		}
 	}
+	
+	private static boolean isLib(URL jar) {
+		URL[] jarURLs1={jar};
+		URLClassLoader classLoader = new URLClassLoader(jarURLs1);
+		Enumeration<URL> resources;
+
+		try {
+			// Each plugin .jar file has to contain a resource named "plugin"
+			// which should contain the name of the main plugin class.
+			resources = classLoader.getResources("plugin");
+			return !resources.hasMoreElements();
+		} catch (IOException e) {
+			LOGGER.error("Can't load plugin resources", e);
+		}
+		return false;
+	}
+	
+	public static void loadJARs(URL[] jarURLs,boolean download) {
+		// find lib jars first
+		ArrayList<URL> libs=new ArrayList<URL>();
+		for(int i=0;i<jarURLs.length;i++) {
+			if(isLib(jarURLs[i])) {
+				libs.add(jarURLs[i]);
+			}
+		}
+		URL[] jarURLs1 = new URL[libs.size()+1];
+		libs.toArray(jarURLs1);
+		int pos = libs.size();
+		for(int i=0;i<jarURLs.length;i++) {
+			jarURLs1[pos] = jarURLs[i];
+			loadJAR(jarURLs1,download);
+		}	
+	}
+	
+	/**
+	 * This method loads the jar files found in the plugin dir
+	 * or if installed from the web.
+	 */
+	public static void loadJAR(URL[] jarURL,boolean download) {
+		// Create a classloader to take care of loading the plugin classes from
+		// their URL.
+		URLClassLoader classLoader = new URLClassLoader(jarURL);
+		Enumeration<URL> resources;
+
+		try {
+			// Each plugin .jar file has to contain a resource named "plugin"
+			// which should contain the name of the main plugin class.
+			resources = classLoader.getResources("plugin");
+		} catch (IOException e) {
+			LOGGER.error("Can't load plugin resources", e);
+			return;
+		}
+		
+		while (resources.hasMoreElements()) {
+			URL url = resources.nextElement();
+
+			try {
+				// Determine the plugin main class name from the contents of
+				// the plugin file.
+				InputStreamReader in = new InputStreamReader(url.openStream());
+				char[] name = new char[512];
+				in.read(name);
+				in.close();
+				String pluginMainClassName = new String(name).trim();
+
+				LOGGER.info("Found plugin: " + pluginMainClassName);
+				
+				if(download) {
+					// Only purge code when downloading!
+					purgeCode(pluginMainClassName);
+				}
+
+				// Try to load the class based on the main class name
+				Class<?> clazz = classLoader.loadClass(pluginMainClassName);
+				registerListenerClass(clazz);
+				if(download) {
+					downloadedListenerClasses.add(clazz);
+				}
+					
+			} catch (Exception e) {
+				LOGGER.error("Error loading plugin", e);
+			} catch (NoClassDefFoundError e) {
+				LOGGER.error("Error loading plugin", e);
+			}
+		}
+	}
+	
+	private static void purgeCode(String mainClass) {
+		Class<?> clazz1 = null;
+		for(Class<?> clazz : externalListenerClasses) {
+			if(mainClass.equals(clazz.getCanonicalName())) {
+				clazz1=clazz;
+				break;
+			}
+		}
+		if(clazz1 == null) {
+			return;
+		}
+		externalListenerClasses.remove(clazz1);
+		ExternalListener remove = null;
+		for (ExternalListener list : externalListeners ) {
+			if(list.getClass().equals(clazz1)) {
+				remove = list;
+				break;
+			}
+		}
+		ArrayList<RendererConfiguration> renders = RendererConfiguration.getAllRendererConfigurations();
+		for(RendererConfiguration r : renders) {
+			RootFolder rf = r.getRootFolder();
+			rf.reset();
+		}
+		if(remove != null) {
+			externalListeners.remove(remove);
+			remove.shutdown();
+			LooksFrame frame = (LooksFrame) PMS.get().getFrame();
+			frame.getGt().removePlugin(remove);
+		}
+		for(int i=0;i<3;i++) {
+			System.gc();
+		}
+		
+		URLClassLoader cl = (URLClassLoader) clazz1.getClassLoader();
+		URL[] urls=cl.getURLs();
+		for(int i=0;i<urls.length;i++) {
+			URL url = urls[i];
+			if(isLib(url)) {
+				continue;
+			}
+			File f;
+			try {
+				f = new File(url.toURI());
+			} catch(URISyntaxException e) {
+				f = new File(url.getPath());
+			}
+			addToPurgeFile(f);
+		}
+	}
+	
+	private static void addToPurgeFile(File f) {
+		File purge=new File("purge");
+		try {
+			FileOutputStream fos=new FileOutputStream(purge);
+			fos.write(f.getAbsolutePath().getBytes(),0,f.getAbsolutePath().length());
+			fos.flush();
+			fos.close();
+		} catch (Exception e) {
+		}
+	}
+	
+	private static void purgeFiles() {
+		File purge=new File("purge");
+		String action = PMS.getConfiguration().getPluginPurgeAction();
+		if (action.equalsIgnoreCase("none")) {
+			purge.delete();
+			return;
+		}
+		try {
+			FileInputStream fis = new FileInputStream(purge);
+			BufferedReader in = new BufferedReader(new InputStreamReader(fis)); 
+			String line;
+			while ((line = in.readLine()) != null) {
+				File f = new File(line);
+				if(action.equalsIgnoreCase("delete")) {
+					f.delete();
+				}
+				else if(action.equalsIgnoreCase("backup")) {
+					FileUtils.moveFileToDirectory(f, new File("backup"), true);
+				}
+			}
+			fis.close();
+		} catch (Exception e) {
+		}
+		purge.delete();
+	}
 
 	/**
 	 * This method scans the plugins directory for ".jar" files and processes
@@ -93,6 +291,8 @@ public class ExternalFactory {
 	 * and registered for later use.
 	 */
 	public static void lookup() {
+		// Start by purging files
+		purgeFiles();
 		File pluginDirectory = new File(PMS.getConfiguration().getPluginDirectory());
 		LOGGER.info("Searching for plugins in " + pluginDirectory.getAbsolutePath());
 
@@ -135,44 +335,10 @@ public class ExternalFactory {
 
 		URL[] jarURLs = new URL[jarURLList.size()];
 		jarURLList.toArray(jarURLs);
-
-		// Create a classloader to take care of loading the plugin classes from
-		// their URL.
-		URLClassLoader classLoader = new URLClassLoader(jarURLs);
-		Enumeration<URL> resources;
-
-		try {
-			// Each plugin .jar file has to contain a resource named "plugin"
-			// which should contain the name of the main plugin class.
-			resources = classLoader.getResources("plugin");
-		} catch (IOException e) {
-			LOGGER.error("Can't load plugin resources", e);
-			return;
-		}
-
-		while (resources.hasMoreElements()) {
-			URL url = resources.nextElement();
-
-			try {
-				// Determine the plugin main class name from the contents of
-				// the plugin file.
-				InputStreamReader in = new InputStreamReader(url.openStream());
-				char[] name = new char[512];
-				in.read(name);
-				in.close();
-				String pluginMainClassName = new String(name).trim();
-
-				LOGGER.info("Found plugin: " + pluginMainClassName);
-
-				// Try to load the class based on the main class name
-				Class<?> clazz = classLoader.loadClass(pluginMainClassName);
-				registerListenerClass(clazz);
-			} catch (Exception e) {
-				LOGGER.error("Error loading plugin", e);
-			} catch (NoClassDefFoundError e) {
-				LOGGER.error("Error loading plugin", e);
-			}
-		}
+		
+		// Load the jars
+		
+		loadJARs(jarURLs,false);
 
 		// Instantiate the early external listeners immediately.
 		instantiateEarlyListeners();
@@ -230,5 +396,60 @@ public class ExternalFactory {
 				}
 			}
 		}
+		allDone=true;
+	}
+	
+	private static void postInstall(Class<?> clazz) {
+		Method postInstall;
+		try {
+			postInstall = clazz.getDeclaredMethod("postInstall", null);
+			if(Modifier.isStatic(postInstall.getModifiers())) {
+				postInstall.invoke(null, null);
+			}
+		}
+		// Ignore all errors
+		catch (SecurityException e) {
+		} catch (NoSuchMethodException e) { 
+		} catch (IllegalArgumentException e) {
+		} catch (IllegalAccessException e) {
+		} catch (InvocationTargetException e) {
+		}
+	}
+	
+	private static void doUpdate(JLabel update,String text) {
+		if(update == null) {
+			return;
+		}
+		update.setText(text);
+	}
+	
+	public static void instantiateDownloaded(JLabel update) {
+		// These are found in the downloadedListenerClasses list
+		for (Class<?> clazz: downloadedListenerClasses) {
+			ExternalListener instance;
+			try {
+				doUpdate(update,Messages.getString("NetworkTab.48") + " " + clazz.getSimpleName());
+				postInstall(clazz);
+				LOGGER.debug("do inst of "+clazz.getSimpleName());
+				instance = (ExternalListener) clazz.newInstance();
+				doUpdate(update,instance.name() + " " + Messages.getString("NetworkTab.49"));
+				registerListener(instance);
+				if(PMS.get().getFrame() instanceof LooksFrame) {
+					LooksFrame frame = (LooksFrame) PMS.get().getFrame();
+					if(!frame.getGt().appendPlugin(instance)) {
+						LOGGER.warn("Plugin limit of 30 has been reached");
+					}
+				}
+			} catch (InstantiationException e) {
+				LOGGER.error("Error instantiating plugin", e);
+			} catch (IllegalAccessException e) {
+				LOGGER.error("Error instantiating plugin", e);
+			} 
+		}
+		downloadedListenerClasses.clear();
+	}
+	
+	public static boolean localPluginsInstalled() {
+		return allDone;
 	}
 }

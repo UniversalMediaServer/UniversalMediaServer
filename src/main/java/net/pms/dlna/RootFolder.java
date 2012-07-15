@@ -830,4 +830,8 @@ public class RootFolder extends DLNAResource {
 	public String toString() {
 		return "RootFolder[" + getChildren() + "]";
 	}
+	
+	public void reset() {
+		setDiscovered(false);
+	}
 } 
