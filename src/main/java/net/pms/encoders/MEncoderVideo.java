@@ -1220,7 +1220,11 @@ public class MEncoderVideo extends Player {
 			&& dlna.isNoName() // XXX remove this? http://www.ps3mediaserver.org/forum/viewtopic.php?f=11&t=12149
 			&& (dlna.getParent() instanceof FileTranscodeVirtualFolder);
 
-		ovccopy = false;
+		ovccopy  = false;
+		pcm      = false;
+		ac3Remux = false;
+		dtsRemux = false;
+		wmv      = false;
 
 		int intOCW = 0;
 		int intOCH = 0;
@@ -1310,7 +1314,6 @@ public class MEncoderVideo extends Player {
 		}
 
 		String vcodec = "mpeg2video";
-		wmv = false;
 
 		if (params.mediaRenderer.isTranscodeToWMV()) {
 			wmv = true;
