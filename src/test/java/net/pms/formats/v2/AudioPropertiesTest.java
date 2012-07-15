@@ -63,7 +63,7 @@ public class AudioPropertiesTest {
 	public void testSetAudioDelay() {
 		properties.setAudioDelay(5);
 		assertThat(properties.getAudioDelay()).isEqualTo(5);
-		properties.setAudioDelay("2 sec");
+		properties.setAudioDelay("2 ms");
 		assertThat(properties.getAudioDelay()).isEqualTo(2);
 		properties.setAudioDelay("-3");
 		assertThat(properties.getAudioDelay()).isEqualTo(-3);
@@ -98,10 +98,10 @@ public class AudioPropertiesTest {
 	@Test
 	public void testGetAudioDelayFromLibMediaInfo() {
 		assertThat(AudioProperties.getAudioDelayFromLibMediaInfo("1")).isEqualTo(1);
-		assertThat(AudioProperties.getAudioDelayFromLibMediaInfo("5 sec")).isEqualTo(5);
-		assertThat(AudioProperties.getAudioDelayFromLibMediaInfo("5.4 sec")).isEqualTo(5);
+		assertThat(AudioProperties.getAudioDelayFromLibMediaInfo("5 msec")).isEqualTo(5);
+		assertThat(AudioProperties.getAudioDelayFromLibMediaInfo("5.4 milli")).isEqualTo(5);
 		assertThat(AudioProperties.getAudioDelayFromLibMediaInfo("0")).isEqualTo(0);
 		assertThat(AudioProperties.getAudioDelayFromLibMediaInfo("-7")).isEqualTo(-7);
-		assertThat(AudioProperties.getAudioDelayFromLibMediaInfo("delay -15 seconds")).isEqualTo(-15);
+		assertThat(AudioProperties.getAudioDelayFromLibMediaInfo("delay -15 ms")).isEqualTo(-15);
 	}
 }
