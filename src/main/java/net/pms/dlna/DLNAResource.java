@@ -652,9 +652,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return List of DLNAResource items.
 	 * @throws IOException
 	 */
-	public synchronized List<DLNAResource> getDLNAResources(String objectId, boolean returnChildren, int start, int count, RendererConfiguration renderer) throws IOException {
+	public synchronized List<DLNAResource> getDLNAResources(String objectId, boolean children, int start, int count, RendererConfiguration renderer) throws IOException {
+		return getDLNAResources(objectId,children,start,count,renderer,null);
+	}
+	
+	public synchronized List<DLNAResource> getDLNAResources(String objectId, boolean returnChildren, int start, int count, RendererConfiguration renderer
+			,String searchStr) throws IOException {
 		ArrayList<DLNAResource> resources = new ArrayList<DLNAResource>();
-		DLNAResource resource = search(objectId, count, renderer);
+		DLNAResource resource = search(objectId, count, renderer, searchStr);
 
 		if (resource != null) {
 			resource.setDefaultRenderer(renderer);
@@ -663,7 +668,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				resources.add(resource);
 				resource.refreshChildrenIfNeeded();
 			} else {
-				resource.discoverWithRenderer(renderer, count, true);
+				resource.discoverWithRenderer(renderer, count, true,searchStr);
 
 				if (count == 0) {
 					count = resource.getChildren().size();
@@ -715,7 +720,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		setSystemUpdateId(getSystemUpdateId() + 1);
 	}
 
-	final protected void discoverWithRenderer(RendererConfiguration renderer, int count, boolean forced) {
+	final protected void discoverWithRenderer(RendererConfiguration renderer, int count, boolean forced,
+			String searchStr) {
 		// Discovering if not already done.
 		if (!isDiscovered()) {
 			if (PMS.getConfiguration().getFolderLimit() && depthLimit()) {
@@ -726,7 +732,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					defaultRenderer.addFolderLimit(this);
 				}
 			}
-			discoverChildren();
+			discoverChildren(searchStr);
 			boolean ready = true;
 			if (renderer.isMediaParserV2() && renderer.isDLNATreeHack()) {
 				ready = analyzeChildren(count);
@@ -741,13 +747,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// if forced, then call the old 'refreshChildren' method
 			LOGGER.trace("discover {} refresh forced: {}", getResourceId(), forced);
 			if (forced) {
-				if (refreshChildren()) {
+				if (refreshChildren(searchStr)) {
 					notifyRefresh();
 				}
 			} else {
 				// if not, then the regular isRefreshNeeded/doRefreshChildren pair.
 				if (isRefreshNeeded()) {
-					doRefreshChildren();
+					doRefreshChildren(searchStr);
 					notifyRefresh();
 				}
 			}
@@ -772,16 +778,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @see #getId()
 	 *
 	 */
-	public DLNAResource search(String searchId, int count, RendererConfiguration renderer) {
+	public DLNAResource search(String searchId, int count, 
+							   RendererConfiguration renderer,String searchStr) {
 		if (getId() != null && searchId != null) {
 			String[] indexPath = searchId.split("\\$", 2);
 			if (getId().equals(indexPath[0])) {
 				if (indexPath.length == 1 || indexPath[1].length() == 0) {
 					return this;
 				} else {
-					discoverWithRenderer(renderer, count, false);
+					discoverWithRenderer(renderer, count, false, searchStr);
 					for (DLNAResource file : getChildren()) {
-						DLNAResource found = file.search(indexPath[1], count, renderer);
+						DLNAResource found = file.search(indexPath[1], count, renderer, searchStr);
 						if (found != null) {
 							return found;
 						}
@@ -799,6 +806,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	public void discoverChildren() {
 	}
+	
+	public void discoverChildren(String str) {
+		discoverChildren();
+	}
 
 	/**
 	 * TODO: (botijo) What is the intention of this function? Looks like a prototype to be overloaded.
@@ -813,6 +824,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * Reload the list of children.
 	 */
 	public void doRefreshChildren() {
+	}
+	
+	public void doRefreshChildren(String search) {
+		doRefreshChildren();
 	}
 
 	/**
@@ -834,6 +849,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public boolean refreshChildren() {
 		if (isRefreshNeeded()) {
 			doRefreshChildren();
+			return true;
+		}
+		return false;
+	}
+	
+	public boolean refreshChildren(String search) {
+		if (isRefreshNeeded()) {
+			doRefreshChildren(search);
 			return true;
 		}
 		return false;
@@ -2110,6 +2133,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			depth++;
 		}
 		return (depth > DEPTH_WARNING_LIMIT);
+	}
+	
+	public boolean isSearched() {
+		return false;
 	}
 }
 
