@@ -18,16 +18,22 @@
  */
 package net.pms.formats.v2;
 
+import static org.fest.assertions.Assertions.assertThat;
+import org.junit.Before;
 import org.junit.Test;
 
-import static org.fest.assertions.Assertions.assertThat;
-
 public class AudioPropertiesTest {
-	private AudioProperties properties = new AudioProperties();
+	private AudioProperties properties;
+
+	@Before
+	public void setUp() {
+		properties = new AudioProperties();
+	}
 
 	@Test
 	public void testDefaultValues() {
 		assertThat(properties.getNumberOfChannels()).isEqualTo(2);
+		assertThat(properties.getAudioDelay()).isEqualTo(0);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -41,6 +47,26 @@ public class AudioPropertiesTest {
 		for (AudioAttribute attribute : AudioAttribute.values()) {
 			properties.getAttribute(attribute);
 		}
+	}
+
+	@Test
+	public void testSetNumberOfChannels() {
+		properties.setNumberOfChannels(5);
+		assertThat(properties.getNumberOfChannels()).isEqualTo(5);
+		properties.setNumberOfChannels("2 channels / 4 channel / 3 channel");
+		assertThat(properties.getNumberOfChannels()).isEqualTo(4);
+		properties.setNumberOfChannels("-3 channel");
+		assertThat(properties.getNumberOfChannels()).isEqualTo(2);
+	}
+
+	@Test
+	public void testSetAudioDelay() {
+		properties.setAudioDelay(5);
+		assertThat(properties.getAudioDelay()).isEqualTo(5);
+		properties.setAudioDelay("2 sec");
+		assertThat(properties.getAudioDelay()).isEqualTo(2);
+		properties.setAudioDelay("-3");
+		assertThat(properties.getAudioDelay()).isEqualTo(-3);
 	}
 
 	@Test
@@ -60,5 +86,22 @@ public class AudioPropertiesTest {
 		assertThat(AudioProperties.getChannelsNumberFromLibMediaInfo("6 channels")).isEqualTo(6);
 		assertThat(AudioProperties.getChannelsNumberFromLibMediaInfo("2 channels / 1 channel / 1 channel")).isEqualTo(2);
 		assertThat(AudioProperties.getChannelsNumberFromLibMediaInfo("2 channels / 4 channel / 3 channel")).isEqualTo(4);
+	}
+
+	@Test
+	public void testGetAudioDelayFromLibMediaInfo_withNullEmpty() {
+		assertThat(AudioProperties.getAudioDelayFromLibMediaInfo(null)).isEqualTo(0);
+		assertThat(AudioProperties.getAudioDelayFromLibMediaInfo("")).isEqualTo(0);
+		assertThat(AudioProperties.getAudioDelayFromLibMediaInfo("zero number")).isEqualTo(0);
+	}
+
+	@Test
+	public void testGetAudioDelayFromLibMediaInfo() {
+		assertThat(AudioProperties.getAudioDelayFromLibMediaInfo("1")).isEqualTo(1);
+		assertThat(AudioProperties.getAudioDelayFromLibMediaInfo("5 sec")).isEqualTo(5);
+		assertThat(AudioProperties.getAudioDelayFromLibMediaInfo("5.4 sec")).isEqualTo(5);
+		assertThat(AudioProperties.getAudioDelayFromLibMediaInfo("0")).isEqualTo(0);
+		assertThat(AudioProperties.getAudioDelayFromLibMediaInfo("-7")).isEqualTo(-7);
+		assertThat(AudioProperties.getAudioDelayFromLibMediaInfo("delay -15 seconds")).isEqualTo(-15);
 	}
 }

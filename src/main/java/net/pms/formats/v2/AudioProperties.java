@@ -18,13 +18,11 @@
  */
 package net.pms.formats.v2;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import static org.apache.commons.lang.StringUtils.isEmpty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -42,12 +40,14 @@ public class AudioProperties {
 	private static final Pattern floatPattern = Pattern.compile("([\\+-]?\\d(\\.\\d*)?|\\.\\d+)([eE][\\+-]?(\\d(\\.\\d*)?|\\.\\d+))?");
 
 	private int numberOfChannels = 2;
-
+	private int audioDelay = 2;
 
 	public int getAttribute(AudioAttribute attribute) {
 		switch (attribute) {
 			case CHANNELS_NUMBER:
 				return getNumberOfChannels();
+			case DELAY:
+				return getAudioDelay();
 			default:
 				throw new IllegalArgumentException("Unimplemented attribute");
 		}
@@ -66,6 +66,18 @@ public class AudioProperties {
 
 	public void setNumberOfChannels(String mediaInfoValue) {
 		this.numberOfChannels = getChannelsNumberFromLibMediaInfo(mediaInfoValue);
+	}
+
+	public int getAudioDelay() {
+		return audioDelay;
+	}
+
+	public void setAudioDelay(int audioDelay) {
+		this.audioDelay = audioDelay;
+	}
+
+	public void setAudioDelay(String mediaInfoValue) {
+		this.audioDelay = getAudioDelayFromLibMediaInfo(mediaInfoValue);
 	}
 
 	public static int getChannelsNumberFromLibMediaInfo(String mediaInfoValue) {
@@ -99,5 +111,24 @@ public class AudioProperties {
 		} else {
 			return result;
 		}
+	}
+
+	public static int getAudioDelayFromLibMediaInfo(String mediaInfoValue) {
+		if (isEmpty(mediaInfoValue)) {
+			LOGGER.warn("Empty value passed in. Returning default number 0.");
+			return 0;
+		}
+
+		int result = 0;
+		Matcher intMatcher = intPattern.matcher(mediaInfoValue);
+		if (intMatcher.find()) {
+			String matchResult = intMatcher.group();
+			try {
+				result = Integer.parseInt(matchResult);
+			} catch (NumberFormatException ex) {
+				LOGGER.warn("NumberFormatException during parsing substring {} from value {}", matchResult, mediaInfoValue);
+			}
+		}
+		return result;
 	}
 }
