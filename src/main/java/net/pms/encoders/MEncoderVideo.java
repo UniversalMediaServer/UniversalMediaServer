@@ -123,9 +123,8 @@ public class MEncoderVideo extends Player {
 
 	protected boolean dtsRemux;
 	protected boolean pcm;
-	protected boolean ac3Remux;
 	protected boolean ovccopy;
-	protected boolean oaccopy;
+	protected boolean ac3Remux;
 	protected boolean mpegts;
 	protected boolean wmv;
 
@@ -1032,7 +1031,7 @@ public class MEncoderVideo extends Player {
 	protected String[] getDefaultArgs() {
 		return new String[]{
 			"-quiet",
-			"-oac", oaccopy ? "copy" : (pcm ? "pcm" : "lavc"),
+			"-oac", (ac3Remux || dtsRemux) ? "copy" : (pcm ? "pcm" : "lavc"),
 			"-of", (wmv || mpegts) ? "lavf" : (pcm && avisynth()) ? "avi" : (((pcm || dtsRemux || ac3Remux) ? "rawvideo" : "mpeg")),
 			(wmv || mpegts) ? "-lavfopts" : "-quiet",
 			wmv ? "format=asf" : (mpegts ? "format=mpegts" : "-quiet"),
@@ -1320,14 +1319,12 @@ public class MEncoderVideo extends Player {
 
 		mpegts = params.mediaRenderer.isTranscodeToMPEGTSAC3();
 
-		oaccopy = false;
-
 		// Disable AC3 remux for stereo tracks with 384 kbits bitrate and PS3 renderer (PS3 FW bug?)
 		boolean ps3_and_stereo_and_384_kbits = params.aid != null && (params.mediaRenderer.getRendererUniqueID().equalsIgnoreCase(RENDERER_ID_PLAYSTATION3) && params.aid.getAudioProperties().getNumberOfChannels() == 2) && (params.aid.getBitRate() > 370000 && params.aid.getBitRate() < 400000);
 
 		if (configuration.isRemuxAC3() && params.aid != null && params.aid.isAC3() && !ps3_and_stereo_and_384_kbits && !avisynth() && params.mediaRenderer.isTranscodeToAC3()) {
 			// AC3 remux takes priority
-			oaccopy = true;
+			ac3Remux = true;
 		} else {
 			// now check for DTS remux and LPCM streaming
 			dtsRemux = configuration.isDTSEmbedInPCM() &&
@@ -1367,10 +1364,6 @@ public class MEncoderVideo extends Player {
 		}
 
 		if (dtsRemux || pcm) {
-			if (dtsRemux) {
-				oaccopy = true;
-			}
-
 			params.losslessaudio = true;
 			params.forceFps = media.getValidFps(false);
 		}
