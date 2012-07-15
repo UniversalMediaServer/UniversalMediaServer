@@ -125,15 +125,23 @@ public class AudioProperties {
 		this.sampleFrequency = sampleFrequency;
 	}
 
+	/**
+	 * Set sample frequency for this audio track with libmediainfo value
+	 * @param mediaInfoValue libmediainfo "Sampling rate" value to parse
+	 */
+	public void setSampleFrequency(String mediaInfoValue) {
+		this.sampleFrequency = getSampleFrequencyFromLibMediaInfo(mediaInfoValue);
+	}
+
 	public static int getChannelsNumberFromLibMediaInfo(String mediaInfoValue) {
 		if (isEmpty(mediaInfoValue)) {
 			LOGGER.warn("Empty value passed in. Returning default number 2.");
 			return 2;
 		}
 
-		// examples of libmediainfo output:
-		// Channel(s) : 2 channels
-		// Channel(s) : 6 channels
+		// examples of libmediainfo  (mediainfo --Full --Language=raw file):
+		// Channel(s) : 2
+		// Channel(s) : 6
 		// Channel(s) : 2 channels / 1 channel / 1 channel
 
 		int result = -1;
@@ -158,11 +166,15 @@ public class AudioProperties {
 		}
 	}
 
+
 	public static int getAudioDelayFromLibMediaInfo(String mediaInfoValue) {
 		if (isEmpty(mediaInfoValue)) {
 			LOGGER.warn("Empty value passed in. Returning default number 0.");
 			return 0;
 		}
+
+		// examples of libmediainfo output (mediainfo --Full --Language=raw file):
+		// Video_Delay : 0
 
 		int result = 0;
 		Matcher intMatcher = intPattern.matcher(mediaInfoValue);
@@ -175,5 +187,37 @@ public class AudioProperties {
 			}
 		}
 		return result;
+	}
+
+	public static int getSampleFrequencyFromLibMediaInfo(String mediaInfoValue) {
+		if (isEmpty(mediaInfoValue)) {
+			LOGGER.warn("Empty value passed in. Returning default number 48000 Hz.");
+			return 48000;
+		}
+
+		// examples of libmediainfo output (mediainfo --Full --Language=raw file):
+		// Sampling rate : 48000
+		// Sampling rate : 44100 / 22050
+
+		int result = -1;
+		Matcher intMatcher = intPattern.matcher(mediaInfoValue);
+		while (intMatcher.find()) {
+			String matchResult = intMatcher.group();
+			try {
+				int currentResult = Integer.parseInt(matchResult);
+				if (currentResult > result) {
+					result = currentResult;
+				}
+			} catch (NumberFormatException ex) {
+				LOGGER.warn("NumberFormatException during parsing substring {} from value {}", matchResult, mediaInfoValue);
+			}
+		}
+
+		if (result < 1) {
+			LOGGER.warn("Can't parse value {}. Returning default number 48000 Hz.", mediaInfoValue);
+			return 48000;
+		} else {
+			return result;
+		}
 	}
 }

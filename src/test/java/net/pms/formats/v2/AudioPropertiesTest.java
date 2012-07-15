@@ -75,6 +75,16 @@ public class AudioPropertiesTest {
 	}
 
 	@Test
+	public void testSetSampleFrequency() {
+		properties.setSampleFrequency(22050);
+		assertThat(properties.getSampleFrequency()).isEqualTo(22050);
+		properties.setSampleFrequency("22050 / 44100");
+		assertThat(properties.getSampleFrequency()).isEqualTo(44100);
+		properties.setSampleFrequency("-3");
+		assertThat(properties.getSampleFrequency()).isEqualTo(48000);
+	}
+
+	@Test
 	public void testGetChannelsNumberFromLibMediaInfo_withNullEmptyOrNegativeValue() {
 		assertThat(AudioProperties.getChannelsNumberFromLibMediaInfo(null)).isEqualTo(2);
 		assertThat(AudioProperties.getChannelsNumberFromLibMediaInfo("")).isEqualTo(2);
@@ -108,5 +118,23 @@ public class AudioPropertiesTest {
 		assertThat(AudioProperties.getAudioDelayFromLibMediaInfo("0")).isEqualTo(0);
 		assertThat(AudioProperties.getAudioDelayFromLibMediaInfo("-7")).isEqualTo(-7);
 		assertThat(AudioProperties.getAudioDelayFromLibMediaInfo("delay -15 ms")).isEqualTo(-15);
+	}
+
+	@Test
+	public void testGetSampleFrequencyFromLibMediaInfo_withNullEmpty() {
+		assertThat(AudioProperties.getSampleFrequencyFromLibMediaInfo(null)).isEqualTo(48000);
+		assertThat(AudioProperties.getSampleFrequencyFromLibMediaInfo("")).isEqualTo(48000);
+		assertThat(AudioProperties.getSampleFrequencyFromLibMediaInfo("freq unknown")).isEqualTo(48000);
+	}
+
+	@Test
+	public void testGetSampleFrequencyFromLibMediaInfo() {
+		assertThat(AudioProperties.getSampleFrequencyFromLibMediaInfo("1")).isEqualTo(1);
+		assertThat(AudioProperties.getSampleFrequencyFromLibMediaInfo("5 Hz")).isEqualTo(5);
+		assertThat(AudioProperties.getSampleFrequencyFromLibMediaInfo("48000")).isEqualTo(48000);
+		assertThat(AudioProperties.getSampleFrequencyFromLibMediaInfo("44100 Hz")).isEqualTo(44100);
+		assertThat(AudioProperties.getSampleFrequencyFromLibMediaInfo("44100 / 22050")).isEqualTo(44100);
+		assertThat(AudioProperties.getSampleFrequencyFromLibMediaInfo("22050 / 44100 Hz")).isEqualTo(44100);
+		assertThat(AudioProperties.getSampleFrequencyFromLibMediaInfo("-7 kHz")).isEqualTo(48000);
 	}
 }
