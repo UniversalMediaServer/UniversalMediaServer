@@ -2271,7 +2271,7 @@ public class MEncoderVideo extends Player {
 					"-mc", dtsRemux ? "0.1" : "0",
 					"-noskip",
 					(aid == null) ? "-quiet" : "-aid", (aid == null) ? "-quiet" : aid,
-					"-oac", sm.isDtsembed() ? "copy" : "pcm",
+					"-oac", (ac3Remux || dtsRemux) ? "copy" : "pcm",
 					(isNotBlank(mixer) && !channels_filter_present) ? "-af" : "-quiet", (isNotBlank(mixer) && !channels_filter_present) ? mixer : "-quiet",
 					"-srate", "48000",
 					"-o", ffAudioPipe.getInputPipe()
@@ -2318,9 +2318,20 @@ public class MEncoderVideo extends Player {
 					fps = "fps=" + params.forceFps + ", ";
 				}
 
-				String audioType = "A_LPCM";
-				if (params.mediaRenderer.isMuxDTSToMpeg()) {
-					audioType = "A_DTS";
+				String audioType;
+				if (ac3Remux) {
+					audioType = "A_AC3";
+				} else if (dtsRemux) {
+					if (params.mediaRenderer.isMuxDTSToMpeg()) {
+						// Renderer can play proper DTS track
+						audioType = "A_DTS";
+					} else {
+						// DTS padded in LPCM trick
+						audioType = "A_LPCM";
+					}
+				} else {
+					// PCM
+					audioType = "A_LPCM";
 				}
 
 				if (params.lossyaudio) {
