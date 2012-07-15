@@ -2388,7 +2388,7 @@ public class MEncoderVideo extends Player {
 				cmdArray[cmdArray.length - 4] = "-";
 				params.input_pipes = new PipeProcess[2];
 			} else {
-				pipe = new PipeProcess("mencoder" + System.currentTimeMillis(), (pcm || dtsRemux || mux) ? null : params);
+				pipe = new PipeProcess("mencoder" + System.currentTimeMillis(), (pcm || dtsRemux || ac3Remux) ? null : params);
 				params.input_pipes[0] = pipe;
 				cmdArray[cmdArray.length - 1] = pipe.getInputPipe();
 			}
