@@ -60,7 +60,7 @@ public class MEncoderAviSynth extends MEncoderVideo {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		multithreading = new JCheckBox(Messages.getString("MEncoderAviSynth.14"));
+		multithreading = new JCheckBox(Messages.getString("MEncoderVideo.35"));
 		multithreading.setContentAreaFilled(false);
 		if (PMS.getConfiguration().getAvisynthMultiThreading()) {
 			multithreading.setSelected(true);
