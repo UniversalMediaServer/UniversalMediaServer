@@ -152,4 +152,34 @@ public class MEncoderWebVideo extends Player {
 	public int type() {
 		return Format.VIDEO;
 	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean isCompatible(DLNAMediaInfo mediaInfo) {
+		if (mediaInfo != null) {
+			// TODO: Determine compatibility based on mediaInfo
+			return false;
+		} else {
+			// No information available
+			return false;
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean isCompatible(Format format) {
+		if (format != null) {
+			// TODO: Determine compatibility based on format
+			// Note: this is the opposite of Format.getProfiles(), which can
+			// be deprecated if this code is actively being used.
+			return true;
+		} else {
+			// No information available
+			return false;
+		}
+	}
 }

@@ -22,6 +22,17 @@ import java.util.ArrayList;
 import net.pms.encoders.Player;
 
 public class JPG extends Format {
+	/** The unique identifier string for this format */
+	private static final String IDENTIFIER_STRING = "JPG";
+
+	/**
+	 * {@inheritDoc} 
+	 */
+	@Override
+	public String getIdentifier() {
+		return IDENTIFIER_STRING;
+	}
+
 	public JPG() {
 		type = IMAGE;
 	}

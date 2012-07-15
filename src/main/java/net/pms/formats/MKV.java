@@ -19,6 +19,16 @@
 package net.pms.formats;
 
 public class MKV extends MPG {
+	/** The unique identifier string for this format */
+	private static final String IDENTIFIER_STRING = "MKV";
+
+	/**
+	 * {@inheritDoc} 
+	 */
+	@Override
+	public String getIdentifier() {
+		return IDENTIFIER_STRING;
+	}
 
 	/**
 	 * @deprecated Use {@link #isCompatible(DLNAMediaInfo, RendererConfiguration)} instead.

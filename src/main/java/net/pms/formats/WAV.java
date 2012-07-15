@@ -25,6 +25,17 @@ import net.pms.encoders.MPlayerAudio;
 import net.pms.encoders.Player;
 
 public class WAV extends Format {
+	/** The unique identifier string for this format */
+	private static final String IDENTIFIER_STRING = "WAV";
+
+	/**
+	 * {@inheritDoc} 
+	 */
+	@Override
+	public String getIdentifier() {
+		return IDENTIFIER_STRING;
+	}
+
 	public WAV() {
 		type = AUDIO;
 	}

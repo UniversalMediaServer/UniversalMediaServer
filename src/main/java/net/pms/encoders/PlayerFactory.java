@@ -24,6 +24,7 @@ import java.io.File;
 import java.util.ArrayList;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.dlna.DLNAMediaInfo;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.io.SystemUtils;
@@ -199,6 +200,29 @@ public final class PlayerFactory {
 			if (player.getClass().equals(profileClass)
 					&& player.type() == ext.getType()
 					&& !player.excludeFormat(ext)) {
+				return player;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the first {@link Player} that matches the given mediaInfo or
+	 * format. Each of the available players is passed the provided information
+	 * and the first that reports it is compatible will be returned.
+	 * 
+	 * @param mediaInfo
+	 *            The {@link DLNAMediaInfo} to match
+	 * @param format
+	 *            The {@link Format} to match.
+	 * @return The player if a match could be found, <code>null</code>
+	 *         otherwise.
+	 * @since 1.60.0
+	 */
+	public static Player getPlayer(final DLNAMediaInfo mediaInfo, final Format format) {
+		for (Player player : players) {
+			if (player.isCompatible(mediaInfo) || player.isCompatible(format)) {
 				return player;
 			}
 		}

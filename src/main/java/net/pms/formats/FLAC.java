@@ -18,6 +18,17 @@
  */package net.pms.formats;
 
 public class FLAC extends OGG {
+	/** The unique identifier string for this format */
+	private static final String IDENTIFIER_STRING = "FLAC";
+
+	/**
+	 * {@inheritDoc} 
+	 */
+	@Override
+	public String getIdentifier() {
+		return IDENTIFIER_STRING;
+	}
+
 	public FLAC() {
 		type = AUDIO;
 		secondaryFormat = new AudioAsVideo();

@@ -24,6 +24,17 @@ import net.pms.encoders.Player;
 import net.pms.encoders.TsMuxerAudio;
 
 public class AudioAsVideo extends MKV {
+	/** The unique identifier string for this format */
+	private static final String IDENTIFIER_STRING = "AudioAsVideo";
+
+	/**
+	 * {@inheritDoc} 
+	 */
+	@Override
+	public String getIdentifier() {
+		return IDENTIFIER_STRING;
+	}
+
 	@Override
 	public ArrayList<Class<? extends Player>> getProfiles() {
 		ArrayList<Class<? extends Player>> a = new ArrayList<Class<? extends Player>>();

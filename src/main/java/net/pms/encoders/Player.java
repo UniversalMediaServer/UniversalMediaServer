@@ -297,4 +297,51 @@ public abstract class Player {
 			}
 		}
 	}
+
+	/**
+	 * Returns whether or not the player can handle a file with the given media
+	 * info. If mediaInfo is <code>null</code> compatibility cannot be
+	 * determined and <code>false</code> will be returned.
+	 * 
+	 * @param mediaInfo
+	 *            The {@link DLNAMediaInfo} of the file.
+	 * @return True when the file can be handled, false otherwise.
+	 * @since 1.60.0
+	 */
+	public abstract boolean isCompatible(DLNAMediaInfo mediaInfo);
+/*
+	{
+		if (mediaInfo != null) {
+			// TODO: Determine compatibility based on mediaInfo
+			return true;
+		} else {
+			// No information available
+			return false;
+		}
+	}
+*/
+	/**
+	 * Returns whether or not the player can handle a file with the given
+	 * format. If format is <code>null</code> compatiblity cannot be determined
+	 * and <code>false</code> will be returned.
+	 * 
+	 * @param format
+	 *            The {@link Format} of the file.
+	 * @return True when the file can be handled, false otherwise.
+	 * @since 1.60.0
+	 */
+	public abstract boolean isCompatible(Format format);
+/*
+	{
+		if (format != null) {
+			// TODO: Determine compatibility based on format
+			// Note: this is the opposite of Format.getProfiles(), which can
+			// be deprecated if this code is actively being used.
+			return true;
+		} else {
+			// No information available
+			return false;
+		}
+	}
+*/
 }

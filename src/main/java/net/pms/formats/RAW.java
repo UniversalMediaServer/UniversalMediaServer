@@ -16,6 +16,17 @@ import org.slf4j.LoggerFactory;
 public class RAW extends JPG {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RAW.class);
 
+	/** The unique identifier string for this format */
+	private static final String IDENTIFIER_STRING = "RAW";
+
+	/**
+	 * {@inheritDoc} 
+	 */
+	@Override
+	public String getIdentifier() {
+		return IDENTIFIER_STRING;
+	}
+
 	/**
 	 * {@inheritDoc}
 	 */

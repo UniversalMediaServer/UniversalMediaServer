@@ -19,6 +19,16 @@
 package net.pms.formats;
 
 public class GIF extends JPG {
+	/** The unique identifier string for this format */
+	private static final String IDENTIFIER_STRING = "GIF";
+
+	/**
+	 * {@inheritDoc} 
+	 */
+	@Override
+	public String getIdentifier() {
+		return IDENTIFIER_STRING;
+	}
 
 	/**
 	 * {@inheritDoc}

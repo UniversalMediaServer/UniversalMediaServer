@@ -24,6 +24,17 @@ import net.pms.encoders.FFMpegDVRMSRemux;
 import net.pms.encoders.Player;
 
 public class DVRMS extends Format {
+	/** The unique identifier string for this format */
+	private static final String IDENTIFIER_STRING = "DVRMS";
+
+	/**
+	 * {@inheritDoc} 
+	 */
+	@Override
+	public String getIdentifier() {
+		return IDENTIFIER_STRING;
+	}
+
 	@Override
 	public ArrayList<Class<? extends Player>> getProfiles() {
 		ArrayList<Class<? extends Player>> a = new ArrayList<Class<? extends Player>>();
