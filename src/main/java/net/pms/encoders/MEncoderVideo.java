@@ -281,7 +281,7 @@ public class MEncoderVideo extends Player {
 				codecPanel.add(scrollPaneDefault, BorderLayout.CENTER);
 				codecPanel.add(customPanel, BorderLayout.SOUTH);
 
-				while (JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+				while (JOptionPane.showOptionDialog(SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
 					codecPanel, Messages.getString("MEncoderVideo.34"), JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null) == JOptionPane.OK_OPTION) {
 					String newCodecparam = textArea.getText();
 					DLNAMediaInfo fakemedia = new DLNAMediaInfo();
@@ -300,8 +300,7 @@ public class MEncoderVideo extends Player {
 
 					if (result.length > 0 && result[0].startsWith("@@")) {
 						String errorMessage = result[0].substring(2);
-						JOptionPane.showMessageDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())), errorMessage);
-
+						JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()), errorMessage);
 					} else {
 						configuration.setCodecSpecificConfig(newCodecparam);
 						break;
@@ -956,7 +955,7 @@ public class MEncoderVideo extends Player {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Color newColor = JColorChooser.showDialog(
-					(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+					SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
 					Messages.getString("MEncoderVideo.125"),
 					subColor.getBackground()
 				);
@@ -1319,11 +1318,7 @@ public class MEncoderVideo extends Player {
 			vcodec = "wmv2"; // http://wiki.megaframe.org/wiki/Ubuntu_XBOX_360#MEncoder not usable in streaming
 		}
 
-		mpegts = false;
-
-		if (params.mediaRenderer.isTranscodeToMPEGTSAC3()) {
-			mpegts = true;
-		}
+		mpegts = params.mediaRenderer.isTranscodeToMPEGTSAC3();
 
 		oaccopy = false;
 
@@ -2527,7 +2522,7 @@ public class MEncoderVideo extends Player {
 
 								Object result = interpreter.eval(key);
 
-								if (result != null && result instanceof Boolean && ((Boolean) result).booleanValue()) {
+								if (result != null && result instanceof Boolean && (Boolean) result) {
 									sb.append(" ");
 									sb.append(value);
 								}
