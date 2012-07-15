@@ -268,7 +268,7 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.MJPEG;
 		} else if (value.contains("div") || value.contains("dx")) {
 			format = FormatConfiguration.DIVX;
-		} else if (value.contains("dv") && !value.equals("dvr")) {
+		} else if (value.toLowerCase().matches("(dv)|(cdv.?)|(dc25)|(dcap)|(dvc.?)|(dvs.?)|(dvrs)|(dv25)|(dv50)|(dvan)|(dvh.?)|(dvis)|(dvl.?)|(dvnm)|(dvp.?)|(mdvf)|(pdvc)|(r411)|(r420)|(SDCC)|(sl25)|(sl50)|(sldv)")) {
 			format = FormatConfiguration.DV;
 		} else if (value.contains("mpeg video")) {
 			format = FormatConfiguration.MPEG2;
