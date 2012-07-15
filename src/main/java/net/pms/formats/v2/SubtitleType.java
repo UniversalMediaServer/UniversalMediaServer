@@ -52,12 +52,12 @@ public enum SubtitleType {
 	TX3G ("Timed text (TX3G)", list(), list("tx3g")),
 	PGS ("Blu-ray subtitles", list(), list("S_HDMV/PGS", "PGS", "144"));
 
-	private String description;
-	private List<String> fileExtensions;
-	private List<String> libMediaInfoCodecs;
+	private final String description;
+	private final List<String> fileExtensions;
+	private final List<String> libMediaInfoCodecs;
 
-	private static Map<String, SubtitleType> fileExtensionToSubtitleTypeMap;
-	private static Map<String, SubtitleType> libmediainfoCodecToSubtitleTypeMap;
+	private final static Map<String, SubtitleType> fileExtensionToSubtitleTypeMap;
+	private final static Map<String, SubtitleType> libmediainfoCodecToSubtitleTypeMap;
 	private static List<String> list(String... args) {
 		return new ArrayList<String>(Arrays.asList(args));
 	}
