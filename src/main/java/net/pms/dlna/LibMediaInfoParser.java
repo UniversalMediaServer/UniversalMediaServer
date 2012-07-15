@@ -182,7 +182,7 @@ public class LibMediaInfoParser {
 								}
 							} else if (key.equals("Video_Delay") && step == MediaInfo.StreamKind.Audio) {
 								try {
-									currentAudioTrack.setDelay(Integer.parseInt(value));
+									currentAudioTrack.getAudioProperties().setAudioDelay(value);
 								} catch (NumberFormatException nfe) {
 									LOGGER.debug("Could not parse delay \"" + value + "\"");
 								}

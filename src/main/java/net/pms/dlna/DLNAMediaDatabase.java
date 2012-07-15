@@ -333,7 +333,7 @@ public class DLNAMediaDatabase implements Runnable {
 					audio.setGenre(subrs.getString("GENRE"));
 					audio.setYear(subrs.getInt("YEAR"));
 					audio.setTrack(subrs.getInt("TRACK"));
-					audio.setDelay(subrs.getInt("DELAY"));
+					audio.getAudioProperties().setAudioDelay(subrs.getInt("DELAY"));
 					audio.setMuxingModeAudio(subrs.getString("MUXINGMODE"));
 					audio.setBitRate(subrs.getInt("BITRATE"));
 					media.getAudioTracksList().add(audio);
@@ -458,7 +458,7 @@ public class DLNAMediaDatabase implements Runnable {
 					insert.setString(12, truncate(StringUtils.trimToEmpty(audio.getGenre()), SIZE_GENRE));
 					insert.setInt(13, audio.getYear());
 					insert.setInt(14, audio.getTrack());
-					insert.setInt(15, audio.getDelay());
+					insert.setInt(15, audio.getAudioProperties().getAudioDelay());
 					insert.setString(16, truncate(StringUtils.trimToEmpty(audio.getMuxingModeAudio()), SIZE_MUXINGMODE));
 					insert.setInt(17, audio.getBitRate());
 					insert.executeUpdate();

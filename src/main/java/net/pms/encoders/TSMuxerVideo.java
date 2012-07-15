@@ -536,8 +536,8 @@ public class TSMuxerVideo extends Player {
 					}
 				}
 			}
-			if (params.aid != null && params.aid.getDelay() != 0 && params.timeseek == 0) {
-				timeshift = "timeshift=" + params.aid.getDelay() + "ms, ";
+			if (params.aid != null && params.aid.getAudioProperties().getAudioDelay() != 0 && params.timeseek == 0) {
+				timeshift = "timeshift=" + params.aid.getAudioProperties().getAudioDelay() + "ms, ";
 			}
 			pw.println(type + ", \"" + ffAudioPipe[0].getOutputPipe() + "\", " + timeshift + "track=2");
 		} else if (ffAudioPipe != null) {
@@ -584,8 +584,8 @@ public class TSMuxerVideo extends Player {
 						}
 					}
 				}
-				if (lang.getDelay() != 0 && params.timeseek == 0) {
-					timeshift = "timeshift=" + lang.getDelay() + "ms, ";
+				if (lang.getAudioProperties().getAudioDelay() != 0 && params.timeseek == 0) {
+					timeshift = "timeshift=" + lang.getAudioProperties().getAudioDelay() + "ms, ";
 				}
 				pw.println(type + ", \"" + ffAudioPipe[i].getOutputPipe() + "\", " + timeshift + "track=" + (2 + i));
 			}

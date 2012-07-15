@@ -345,6 +345,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @since 1.50
 	 * @deprecated Use getAudioProperties().getNumberOfChannels() instead
 	 */
+	@Deprecated
 	public int getNrAudioChannels() {
 		return audioProperties.getNumberOfChannels();
 	}
@@ -356,6 +357,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @since 1.50
 	 * @deprecated Use getAudioProperties().setNumberOfChannels(int numberOfChannels) instead
 	 */
+	@Deprecated
 	public void setNrAudioChannels(int numberOfChannels) {
 		this.nrAudioChannels = numberOfChannels;
 		audioProperties.setNumberOfChannels(numberOfChannels);
@@ -506,19 +508,24 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * 
 	 * @return The delay.
 	 * @since 1.50
+	 * @deprecated Use getAudioProperties().getAudioDelay() instead
 	 */
+	@Deprecated
 	public int getDelay() {
-		return delay;
+		return audioProperties.getAudioDelay();
 	}
 
 	/**
 	 * Sets the delay for the audio.
 	 * 
-	 * @param delay The delay to set.
+	 * @param audioDelay The delay to set.
 	 * @since 1.50
+	 * @deprecated  Use getAudioProperties().setAudioDelay(int audioDelay) instead
 	 */
-	public void setDelay(int delay) {
-		this.delay = delay;
+	@Deprecated
+	public void setDelay(int audioDelay) {
+		this.delay = audioDelay;
+		audioProperties.setAudioDelay(audioDelay);
 	}
 
 	/**
