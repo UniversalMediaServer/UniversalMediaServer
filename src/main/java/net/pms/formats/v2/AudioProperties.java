@@ -39,7 +39,8 @@ public class AudioProperties {
 	private static final Pattern floatPattern = Pattern.compile("([\\+-]?\\d(\\.\\d*)?|\\.\\d+)([eE][\\+-]?(\\d(\\.\\d*)?|\\.\\d+))?");
 
 	private int numberOfChannels = 2;
-	private int audioDelay = 2;
+	private int audioDelay = 0;
+	private int sampleFrequency = 48000;
 
 	public int getAttribute(AudioAttribute attribute) {
 		switch (attribute) {
@@ -47,6 +48,8 @@ public class AudioProperties {
 				return getNumberOfChannels();
 			case DELAY:
 				return getAudioDelay();
+			case SAMPLE_FREQUENCY:
+				return getSampleFrequency();
 			default:
 				throw new IllegalArgumentException("Unimplemented attribute");
 		}
@@ -101,6 +104,25 @@ public class AudioProperties {
 	 */
 	public void setAudioDelay(String mediaInfoValue) {
 		this.audioDelay = getAudioDelayFromLibMediaInfo(mediaInfoValue);
+	}
+
+	/**
+	 * Get sample frequency for this audio track.
+	 * @return sample frequency in Hz
+	 */
+	public int getSampleFrequency() {
+		return sampleFrequency;
+	}
+
+	/**
+	 * Set sample frequency for this audio track.
+	 * @param sampleFrequency sample frequency in Hz
+	 */
+	public void setSampleFrequency(int sampleFrequency) {
+		if (sampleFrequency < 1) {
+			throw new IllegalArgumentException("Sample frequency can't be less than 1 Hz.");
+		}
+		this.sampleFrequency = sampleFrequency;
 	}
 
 	public static int getChannelsNumberFromLibMediaInfo(String mediaInfoValue) {

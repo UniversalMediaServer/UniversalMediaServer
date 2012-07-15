@@ -20,5 +20,6 @@ package net.pms.formats.v2;
 
 public enum AudioAttribute {
 	CHANNELS_NUMBER,
-	DELAY;
+	DELAY,
+	SAMPLE_FREQUENCY;
 }

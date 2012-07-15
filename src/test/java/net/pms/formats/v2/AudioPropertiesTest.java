@@ -34,12 +34,17 @@ public class AudioPropertiesTest {
 	public void testDefaultValues() {
 		assertThat(properties.getNumberOfChannels()).isEqualTo(2);
 		assertThat(properties.getAudioDelay()).isEqualTo(0);
+		assertThat(properties.getSampleFrequency()).isEqualTo(48000);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testSetNumberOfChannels_withIllegalArgument() {
-		AudioProperties attributes = new AudioProperties();
-		attributes.setNumberOfChannels(0);
+		properties.setNumberOfChannels(0);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testSampleFrequency_withIllegalArgument() {
+		properties.setSampleFrequency(0);
 	}
 
 	@Test
