@@ -2277,4 +2277,11 @@ public class PmsConfiguration {
 	public String getPluginPurgeAction() {
 		return getString(KEY_PLUGIN_PURGE_ACTION, "delete");
 	}
+	
+	public void reload() {
+		try {
+			configuration.refresh();
+		} catch (ConfigurationException e) {
+		}
+	}
 }

@@ -29,7 +29,11 @@ import java.awt.ComponentOrientation;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.*;
-import java.awt.event.MouseEvent;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -299,7 +303,56 @@ public class GeneralTab {
 			}
 		});
 		builder.add(checkForPlugins, FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
-		
+		// Conf edit
+		JButton confEdit=new JButton(Messages.getString("NetworkTab.51"));
+		confEdit.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JPanel tPanel = new JPanel(new BorderLayout());
+				JPanel bPanel = new JPanel(new BorderLayout());
+				final File conf = new File(PMS.getConfiguration().getProfilePath());
+				final JTextArea textArea = new JTextArea();
+				textArea.setFont(new Font("Courier", Font.PLAIN, 12));
+				JScrollPane scrollPane = new JScrollPane(textArea);
+				scrollPane.setPreferredSize(new java.awt.Dimension(900, 450));
+				try {
+					FileInputStream fis = new FileInputStream(conf);
+					BufferedReader in = new BufferedReader(new InputStreamReader(fis)); 
+					String line;
+					StringBuffer sb = new StringBuffer();
+					while ((line = in.readLine()) != null) {
+						sb.append(line);
+						sb.append("\n");
+					}
+					textArea.setText(sb.toString());
+					fis.close();
+				}
+				catch (Exception e1) {
+					return;
+				}
+				tPanel.add(scrollPane,BorderLayout.NORTH);
+				Object[] options = { Messages.getString("LooksFrame.9"),  Messages.getString("NetworkTab.45")};
+				if (JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+						tPanel, Messages.getString("NetworkTab.51"), 
+						JOptionPane.OK_CANCEL_OPTION, 
+						JOptionPane.PLAIN_MESSAGE, null, options, null) == JOptionPane.OK_OPTION) {
+					String text=textArea.getText();
+					try {
+						FileOutputStream fos = new FileOutputStream(conf);
+						fos.write(text.getBytes());
+						fos.flush();
+						fos.close();
+						PMS.getConfiguration().reload();
+					} catch (Exception e1) {
+						JOptionPane.showMessageDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+								Messages.getString("NetworkTab.52") + e1.toString());
+						return;
+								
+					}
+				}
+			}
+		});
+		builder.add(confEdit, FormLayoutUtil.flip(cc.xy(7, 14), colSpec, orientation));
 
 		host = new JTextField(configuration.getServerHostname());
 		host.addKeyListener(new KeyListener() {
