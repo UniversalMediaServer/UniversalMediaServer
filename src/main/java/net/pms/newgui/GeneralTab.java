@@ -296,7 +296,7 @@ public class GeneralTab {
 					FileInputStream fis = new FileInputStream(conf);
 					BufferedReader in = new BufferedReader(new InputStreamReader(fis));
 					String line;
-					StringBuffer sb = new StringBuffer();
+					StringBuilder sb = new StringBuilder();
 					while ((line = in.readLine()) != null) {
 						sb.append(line);
 						sb.append("\n");
