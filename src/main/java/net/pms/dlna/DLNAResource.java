@@ -492,10 +492,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						if (name.endsWith(end)) {
 							nametruncate = name.lastIndexOf(end);
 							player = p;
+							LOGGER.trace("Selecting player based on name end");
 							break;
 						} else if (getParent() != null && getParent().getName().endsWith(end)) {
 							getParent().nametruncate = getParent().getName().lastIndexOf(end);
 							player = p;
+							LOGGER.trace("Selecting player based on parent name end");
 							break;
 						}
 					}
@@ -1961,7 +1963,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Sets whether or not this is a nameless resource.
+	 * Sets whether or not this is a nameless resource. This is particularly
+	 * useful in the virtual TRANSCODE folder for a file, where the same file
+	 * is copied many times with different audio and subtitle settings. In that
+	 * case the name of the file becomes irrelevant and only the settings
+	 * need to be shown.
 	 *
 	 * @param noName Set to true if the resource is nameless.
 	 * @since 1.50
