@@ -321,7 +321,6 @@ public class GeneralTab {
 					} catch (Exception e1) {
 						JOptionPane.showMessageDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 							Messages.getString("NetworkTab.52") + e1.toString());
-						return;
 					}
 				}
 			}
