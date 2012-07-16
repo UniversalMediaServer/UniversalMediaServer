@@ -26,9 +26,11 @@ import java.net.Socket;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import static net.pms.configuration.RendererConfiguration.RENDERER_ID_PLAYSTATION3;
+import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
@@ -555,7 +557,7 @@ public class RequestV2 extends HTTPResource {
 			} else if (soapaction.contains("ContentDirectory:1#Browse") || soapaction.contains("ContentDirectory:1#Search")) {
 				objectID = getEnclosingValue(content, "<ObjectID>", "</ObjectID>");
 				String containerID = null;
-				if ((objectID == null || objectID.length() == 0) && xbox) {
+				if ((objectID == null || objectID.length() == 0) /*&& xbox*/) {
 					containerID = getEnclosingValue(content, "<ContainerID>", "</ContainerID>");
 					if (!containerID.contains("$")) {
 						objectID = "0";
@@ -616,16 +618,36 @@ public class RequestV2 extends HTTPResource {
 						}
 					}
 				}
+				else if (soapaction.contains("ContentDirectory:1#Search")) 
+					searchCriteria=getEnclosingValue(content,"<SearchCriteria>","</SearchCriteria>");
 
-				List<DLNAResource> files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(objectID, browseFlag != null && browseFlag.equals("BrowseDirectChildren"), startingIndex, requestCount, mediaRenderer);
+				List<DLNAResource> files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(objectID, browseFlag != null && browseFlag.equals("BrowseDirectChildren"), startingIndex, requestCount, mediaRenderer,
+						searchCriteria);
 				if (searchCriteria != null && files != null) {
-					for (int i = files.size() - 1; i >= 0; i--) {
-						if (!files.get(i).getName().equals(searchCriteria)) {
+					searchCriteria = searchCriteria.toLowerCase();
+					for(int i = files.size() - 1; i >= 0; i--) {
+						DLNAResource res = files.get(i);
+						if(res.isSearched()) {
+							continue;
+						}
+						boolean keep = res.getName().toLowerCase().indexOf(searchCriteria) != -1;
+						final DLNAMediaInfo media = res.getMedia();
+						if(media!=null) {
+							for(int j = 0;j < media.getAudioTracksList().size(); j++) {
+								DLNAMediaAudio audio = media.getAudioTracksList().get(j);
+								keep |= audio.getAlbum().toLowerCase().indexOf(searchCriteria) != -1;
+								keep |= audio.getArtist().toLowerCase().indexOf(searchCriteria) != -1;
+								keep |= audio.getSongname().toLowerCase().indexOf(searchCriteria) != -1;
+							}
+						}
+						if(!keep) { // dump it
 							files.remove(i);
 						}
 					}
-					if (files.size() > 0) {
-						files = files.get(0).getChildren();
+					if(xbox) {
+						if (files.size() > 0) {
+							files = files.get(0).getChildren();
+						}
 					}
 				}
 

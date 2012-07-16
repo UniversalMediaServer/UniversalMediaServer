@@ -101,6 +101,12 @@ public class RootFolder extends DLNAResource {
 		for (DLNAResource r : getVirtualFolders()) {
 			addChild(r);
 		}
+		
+		if (configuration.getSearchFolder()) {
+			SearchFolder sf = new SearchFolder("Search disc folders", new FileSearch(getConfiguredFolders()));
+			addChild(sf);
+		}
+		
 		File webConf = new File(configuration.getProfileDirectory(), "WEB.conf");
 		if (webConf.exists()) {
 			addWebFolder(webConf);
