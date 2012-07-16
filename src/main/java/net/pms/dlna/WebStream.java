@@ -35,7 +35,7 @@ public class WebStream extends DLNAResource {
 	@Override
 	public boolean isValid() {
 		checktype();
-		return getExt() != null;
+		return getFormat() != null;
 	}
 
 	/**

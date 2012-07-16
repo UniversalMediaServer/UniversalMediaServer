@@ -42,11 +42,11 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 		if (!resolved && getChildren().size() == 1) { //OK
 			DLNAResource child = getChildren().get(0);
 			child.resolve();
-			if (child.getExt().getProfiles() != null) {
+			if (child.getFormat().getProfiles() != null) {
 				DLNAResource ref = child;
 				Player tsMuxer = null;
-				for (int i = 0; i < child.getExt().getProfiles().size(); i++) {
-					Player pl = PlayerFactory.getPlayer(child.getExt().getProfiles().get(i), child.getExt());
+				for (int i = 0; i < child.getFormat().getProfiles().size(); i++) {
+					Player pl = PlayerFactory.getPlayer(child.getFormat().getProfiles().get(i), child.getFormat());
 					if (pl != null && !child.getPlayer().equals(pl)) {
 						DLNAResource avisnewChild = child.clone();
 						avisnewChild.setPlayer(pl);
@@ -109,7 +109,13 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 					renderer = this.getParent().getDefaultRenderer();
 				}
 
-				if (justStreamed.getExt() != null && (justStreamed.getExt().isCompatible(ref.getMedia(), renderer) || justStreamed.isSkipTranscode())) {
+				if (
+					justStreamed.getFormat() != null &&
+					(
+						justStreamed.getFormat().isCompatible(ref.getMedia(), renderer) ||
+						justStreamed.isSkipTranscode()
+					)
+				) {
 					justStreamed.setPlayer(null);
 					justStreamed.setMedia(ref.getMedia());
 					justStreamed.setNoName(true);
