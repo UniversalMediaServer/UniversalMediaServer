@@ -19,6 +19,7 @@
 package net.pms.encoders;
 
 import net.pms.configuration.PmsConfiguration;
+import net.pms.dlna.DLNAMediaInfo;
 import net.pms.formats.Format;
 
 public class VideoLanAudioStreaming extends VideoLanVideoStreaming {
@@ -61,5 +62,35 @@ public class VideoLanAudioStreaming extends VideoLanVideoStreaming {
 	@Override
 	protected String getMux() {
 		return "wav";
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean isCompatible(DLNAMediaInfo mediaInfo) {
+		if (mediaInfo != null) {
+			// TODO: Determine compatibility based on mediaInfo
+			return false;
+		} else {
+			// No information available
+			return false;
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean isCompatible(Format format) {
+		if (format != null && format.getType() == Format.AUDIO) {
+			Format.Identifier id = format.getIdentifier();
+
+			if (id.equals(Format.Identifier.WEB)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }

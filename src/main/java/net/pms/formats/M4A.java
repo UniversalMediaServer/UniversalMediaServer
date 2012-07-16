@@ -14,15 +14,12 @@
 package net.pms.formats;
 
 public class M4A extends OGG {
-	/** The unique identifier string for this format */
-	private static final String IDENTIFIER_STRING = "M4A";
-
 	/**
 	 * {@inheritDoc} 
 	 */
 	@Override
-	public String getIdentifier() {
-		return IDENTIFIER_STRING;
+	public Identifier getIdentifier() {
+		return Identifier.M4A;
 	}
 
 	@Override

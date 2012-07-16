@@ -25,15 +25,12 @@ import net.pms.encoders.Player;
 public class ISO extends MPG {
 	public static final String[] ISO_EXTENSIONS = new String[] { "iso", "img", /*"bin", "mdf", "nrg", "bwt", "cif","ccd", "vcd", "fcd"*/ };
 
-	/** The unique identifier string for this format */
-	private static final String IDENTIFIER_STRING = "ISO";
-
 	/**
 	 * {@inheritDoc} 
 	 */
 	@Override
-	public String getIdentifier() {
-		return IDENTIFIER_STRING;
+	public Identifier getIdentifier() {
+		return Identifier.ISO;
 	}
 
 	@Override

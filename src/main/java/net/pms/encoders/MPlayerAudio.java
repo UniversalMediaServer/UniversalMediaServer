@@ -207,13 +207,16 @@ public class MPlayerAudio extends Player {
 	@Override
 	public boolean isCompatible(Format format) {
 		if (format != null) {
-			// TODO: Determine compatibility based on format
-			// Note: this is the opposite of Format.getProfiles(), which can
-			// be deprecated if this code is actively being used.
-			return true;
-		} else {
-			// No information available
-			return false;
+			Format.Identifier id = format.getIdentifier();
+
+			if (id.equals(Format.Identifier.FLAC)
+					|| id.equals(Format.Identifier.M4A)
+					|| id.equals(Format.Identifier.OGG)
+					|| id.equals(Format.Identifier.WAV)) {
+				return true;
+			}
 		}
+
+		return false;
 	}
 }

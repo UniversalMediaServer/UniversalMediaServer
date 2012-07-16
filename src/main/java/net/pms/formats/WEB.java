@@ -25,15 +25,12 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.encoders.*;
 
 public class WEB extends Format {
-	/** The unique identifier string for this format */
-	private static final String IDENTIFIER_STRING = "WEB";
-
 	/**
 	 * {@inheritDoc} 
 	 */
 	@Override
-	public String getIdentifier() {
-		return IDENTIFIER_STRING;
+	public Identifier getIdentifier() {
+		return Identifier.WEB;
 	}
 
 	/**

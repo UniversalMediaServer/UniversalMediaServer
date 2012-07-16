@@ -34,6 +34,25 @@ import org.slf4j.LoggerFactory;
 public abstract class Format implements Cloneable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Format.class);
 
+	public enum Identifier {
+		AUDIO_AS_VIDEO,
+		DVRMS,
+		FLAC,
+		GIF,
+		ISO,
+		JPG,
+		M4A,
+		MKV,
+		MP3,
+		MPG,
+		OGG,
+		PNG,
+		RAW,
+		TIF,
+		WAV,
+		WEB
+	}
+
 	public int getType() {
 		return type;
 	}
@@ -253,5 +272,5 @@ public abstract class Format implements Cloneable {
 	 *
 	 * @return The identifier string.
 	 */
-	public abstract String getIdentifier();
+	public abstract Identifier getIdentifier();
 }

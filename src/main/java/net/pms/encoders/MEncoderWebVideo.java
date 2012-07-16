@@ -172,14 +172,14 @@ public class MEncoderWebVideo extends Player {
 	 */
 	@Override
 	public boolean isCompatible(Format format) {
-		if (format != null) {
-			// TODO: Determine compatibility based on format
-			// Note: this is the opposite of Format.getProfiles(), which can
-			// be deprecated if this code is actively being used.
-			return true;
-		} else {
-			// No information available
-			return false;
+		if (format != null && format.getType() == Format.VIDEO) {
+			Format.Identifier id = format.getIdentifier();
+
+			if (id.equals(Format.Identifier.WEB)) {
+				return true;
+			}
 		}
+
+		return false;
 	}
 }

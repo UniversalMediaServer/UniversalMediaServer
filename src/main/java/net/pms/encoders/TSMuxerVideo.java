@@ -762,13 +762,15 @@ public class TSMuxerVideo extends Player {
 	@Override
 	public boolean isCompatible(Format format) {
 		if (format != null) {
-			// TODO: Determine compatibility based on format
-			// Note: this is the opposite of Format.getProfiles(), which can
-			// be deprecated if this code is actively being used.
-			return true;
-		} else {
-			// No information available
-			return false;
+			Format.Identifier id = format.getIdentifier();
+
+			if (id.equals(Format.Identifier.MKV)
+					|| id.equals(Format.Identifier.MPG)
+					) {
+				return true;
+			}
 		}
+
+		return false;
 	}
 }
