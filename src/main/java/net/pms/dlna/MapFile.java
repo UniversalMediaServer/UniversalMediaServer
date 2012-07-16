@@ -270,9 +270,18 @@ public class MapFile extends DLNAResource {
 
 		for (DLNAResource d : getChildren()) {
 			boolean isNeedMatching = !(d.getClass() == MapFile.class || (d instanceof VirtualFolder && !(d instanceof DVDISOFile)));
-			if (isNeedMatching && !foundInList(files, d)) {
+			boolean found = foundInList(files, d);
+			if (isNeedMatching && !found) {
 				removedFiles.add(d);
 			}
+			else if (str != null && found) {
+				String s = d.getName().toLowerCase();
+				if (!s.contains(str)) {
+					// new search, this doesn't match
+					removedFiles.add(d);
+				}
+			}
+			
 		}
 
 		for (File f : files) {

@@ -677,7 +677,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 			if (!returnChildren) {
 				resources.add(resource);
-				resource.refreshChildrenIfNeeded();
+				resource.refreshChildrenIfNeeded(searchStr);
 			} else {
 				resource.discoverWithRenderer(renderer, count, true,searchStr);
 
@@ -716,9 +716,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return resources;
 	}
 
-	protected void refreshChildrenIfNeeded() {
-		if (isDiscovered() && isRefreshNeeded()) {
-			refreshChildren();
+	protected void refreshChildrenIfNeeded(String search) {
+		if (isDiscovered() && shouldRefresh(search)) {
+			refreshChildren(search);
 			notifyRefresh();
 		}
 	}
@@ -773,7 +773,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 	
 	private boolean shouldRefresh(String searchStr) {
-		return (searchStr == null && lastSearch ==null) || 
+		return (searchStr == null && lastSearch != null) || 
 		(searchStr !=null && !searchStr.equals(lastSearch)) 
 		|| isRefreshNeeded();
 	}
