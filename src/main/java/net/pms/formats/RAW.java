@@ -17,6 +17,14 @@ public class RAW extends JPG {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RAW.class);
 
 	/**
+	 * {@inheritDoc} 
+	 */
+	@Override
+	public Identifier getIdentifier() {
+		return Identifier.RAW;
+	}
+
+	/**
 	 * {@inheritDoc}
 	 */
 	@Override

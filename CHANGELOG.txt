@@ -1,7 +1,13 @@
 1.3.1 - 2012-07-??
 
 	General:
+		Improved audio/video sync when using MEncoder
 		Fixed support for some plugins
+		Added support for TX3G (MPEG-4 Timed Text) subtitles
+		Added support for WebM videos downloaded from YouTube
+		Fixed DV video detection
+	Languages:
+		Updated Simplified Chinese (thanks, lovenemesis!)
 
 1.3.0 - 2012-07-09
 
@@ -12,7 +18,7 @@
 		Improved FFmpeg commands
 		Added support for PGS (Blu-ray) subtitles
 		Added support for VobSub (DVD) subtitles in MP4 container
-		Better handling of embedded SSA/SSA subtitle styling
+		Better handling of embedded ASS/SSA subtitle styling
 		Fixed audio track selection for MP4 and MOV containers
 		Localized audio and subtitle priority defaults
 		Added option on Traces tab to pack useful debug information into a zip file

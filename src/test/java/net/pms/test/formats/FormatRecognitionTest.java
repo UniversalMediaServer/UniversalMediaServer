@@ -155,7 +155,7 @@ public class FormatRecognitionTest {
 		info.setContainer("mp3");
 		info.setMimeType(HTTPResource.AUDIO_MP3_TYPEMIME);
 		DLNAMediaAudio audio = new DLNAMediaAudio();
-		audio.setNrAudioChannels(2);
+		audio.getAudioProperties().setNumberOfChannels(2);
 		ArrayList<DLNAMediaAudio> audioCodes = new ArrayList<DLNAMediaAudio>();
 		audioCodes.add(audio);
 		info.setAudioTracksList(audioCodes);
@@ -165,7 +165,7 @@ public class FormatRecognitionTest {
 				conf.isCompatible(info, format));
 
 		// Construct five channel MP3 that the PS3 does not support natively
-		audio.setNrAudioChannels(5);
+		audio.getAudioProperties().setNumberOfChannels(5);
 		assertEquals("PS3 is incompatible with five channel MP3", false,
 				conf.isCompatible(info, format));
 	}
@@ -186,7 +186,7 @@ public class FormatRecognitionTest {
 		info.setContainer("avi");
 		DLNAMediaAudio audio = new DLNAMediaAudio();
 		audio.setCodecA("ac3");
-		audio.setNrAudioChannels(5);
+		audio.getAudioProperties().setNumberOfChannels(5);
 		ArrayList<DLNAMediaAudio> audioCodes = new ArrayList<DLNAMediaAudio>();
 		audioCodes.add(audio);
 		info.setAudioTracksList(audioCodes);
@@ -218,7 +218,7 @@ public class FormatRecognitionTest {
 		info.setContainer("mkv");
 		DLNAMediaAudio audio = new DLNAMediaAudio();
 		audio.setCodecA("ac3");
-		audio.setNrAudioChannels(5);
+		audio.getAudioProperties().setNumberOfChannels(5);
 		ArrayList<DLNAMediaAudio> audioCodes = new ArrayList<DLNAMediaAudio>();
 		audioCodes.add(audio);
 		info.setAudioTracksList(audioCodes);

@@ -14,6 +14,14 @@
 package net.pms.formats;
 
 public class M4A extends OGG {
+	/**
+	 * {@inheritDoc} 
+	 */
+	@Override
+	public Identifier getIdentifier() {
+		return Identifier.M4A;
+	}
+
 	@Override
 	public boolean transcodable() {
 		return true;

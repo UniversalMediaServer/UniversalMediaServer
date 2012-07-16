@@ -16,13 +16,18 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.formats;
+package net.pms.formats.v2;
 
 import java.util.*;
-
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.trim;
 
+/**
+ * Enum with possible types of subtitle tracks and methods for determining
+ * them by file extension or libmediainfo output
+ *
+ * @since 1.60.0
+ */
 public enum SubtitleType {
 	// MediaInfo database of codec signatures (not comprehensive)
 	// http://mediainfo.svn.sourceforge.net/viewvc/mediainfo/MediaInfoLib/trunk/Source/Resource/Text/DataBase/
@@ -47,12 +52,12 @@ public enum SubtitleType {
 	TX3G ("Timed text (TX3G)", list(), list("tx3g")),
 	PGS ("Blu-ray subtitles", list(), list("S_HDMV/PGS", "PGS", "144"));
 
-	private String description;
-	private List<String> fileExtensions;
-	private List<String> libMediaInfoCodecs;
+	private final String description;
+	private final List<String> fileExtensions;
+	private final List<String> libMediaInfoCodecs;
 
-	private static Map<String, SubtitleType> fileExtensionToSubtitleTypeMap;
-	private static Map<String, SubtitleType> libmediainfoCodecToSubtitleTypeMap;
+	private final static Map<String, SubtitleType> fileExtensionToSubtitleTypeMap;
+	private final static Map<String, SubtitleType> libmediainfoCodecToSubtitleTypeMap;
 	private static List<String> list(String... args) {
 		return new ArrayList<String>(Arrays.asList(args));
 	}

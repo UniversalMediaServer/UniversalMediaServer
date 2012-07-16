@@ -21,7 +21,7 @@ package net.pms.dlna;
 
 import java.io.*;
 import net.pms.PMS;
-import net.pms.formats.SubtitleType;
+import net.pms.formats.v2.SubtitleType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -126,6 +126,9 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	 * @param type the type to set
 	 */
 	public void setType(SubtitleType type) {
+		if (type == null) {
+			throw new IllegalArgumentException("Can't set null SubtitleType.");
+		}
 		this.type = type;
 	}
 

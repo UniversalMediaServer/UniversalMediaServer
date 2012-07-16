@@ -18,6 +18,14 @@
  */package net.pms.formats;
 
 public class FLAC extends OGG {
+	/**
+	 * {@inheritDoc} 
+	 */
+	@Override
+	public Identifier getIdentifier() {
+		return Identifier.FLAC;
+	}
+
 	public FLAC() {
 		type = AUDIO;
 		secondaryFormat = new AudioAsVideo();

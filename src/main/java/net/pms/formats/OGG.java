@@ -25,6 +25,14 @@ import net.pms.encoders.MPlayerAudio;
 import net.pms.encoders.Player;
 
 public class OGG extends MP3 {
+	/**
+	 * {@inheritDoc} 
+	 */
+	@Override
+	public Identifier getIdentifier() {
+		return Identifier.OGG;
+	}
+
 	@Override
 	public boolean transcodable() {
 		return true;

@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
-import net.pms.formats.SubtitleType;
+import net.pms.formats.v2.SubtitleType;
 import org.apache.commons.lang.StringUtils;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.jdbcx.JdbcDataSource;
@@ -323,7 +323,7 @@ public class DLNAMediaDatabase implements Runnable {
 					audio.setId(subrs.getInt("ID"));
 					audio.setLang(subrs.getString("LANG"));
 					audio.setFlavor(subrs.getString("FLAVOR"));
-					audio.setNrAudioChannels(subrs.getInt("NRAUDIOCHANNELS"));
+					audio.getAudioProperties().setNumberOfChannels(subrs.getInt("NRAUDIOCHANNELS"));
 					audio.setSampleFrequency(subrs.getString("SAMPLEFREQ"));
 					audio.setCodecA(subrs.getString("CODECA"));
 					audio.setBitsperSample(subrs.getInt("BITSPERSAMPLE"));
@@ -333,7 +333,7 @@ public class DLNAMediaDatabase implements Runnable {
 					audio.setGenre(subrs.getString("GENRE"));
 					audio.setYear(subrs.getInt("YEAR"));
 					audio.setTrack(subrs.getInt("TRACK"));
-					audio.setDelay(subrs.getInt("DELAY"));
+					audio.getAudioProperties().setAudioDelay(subrs.getInt("DELAY"));
 					audio.setMuxingModeAudio(subrs.getString("MUXINGMODE"));
 					audio.setBitRate(subrs.getInt("BITRATE"));
 					media.getAudioTracksList().add(audio);
@@ -448,7 +448,7 @@ public class DLNAMediaDatabase implements Runnable {
 					insert.setInt(2, audio.getId());
 					insert.setString(3, truncate(audio.getLang(), SIZE_LANG));
 					insert.setString(4, truncate(audio.getFlavor(), SIZE_FLAVOR));
-					insert.setInt(5, audio.getNrAudioChannels());
+					insert.setInt(5, audio.getAudioProperties().getNumberOfChannels());
 					insert.setString(6, truncate(audio.getSampleFrequency(), SIZE_SAMPLEFREQ));
 					insert.setString(7, truncate(audio.getCodecA(), SIZE_CODECA));
 					insert.setInt(8, audio.getBitsperSample());
@@ -458,7 +458,7 @@ public class DLNAMediaDatabase implements Runnable {
 					insert.setString(12, truncate(StringUtils.trimToEmpty(audio.getGenre()), SIZE_GENRE));
 					insert.setInt(13, audio.getYear());
 					insert.setInt(14, audio.getTrack());
-					insert.setInt(15, audio.getDelay());
+					insert.setInt(15, audio.getAudioProperties().getAudioDelay());
 					insert.setString(16, truncate(StringUtils.trimToEmpty(audio.getMuxingModeAudio()), SIZE_MUXINGMODE));
 					insert.setInt(17, audio.getBitRate());
 					insert.executeUpdate();

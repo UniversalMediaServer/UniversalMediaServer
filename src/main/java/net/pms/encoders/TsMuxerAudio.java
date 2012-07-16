@@ -74,4 +74,34 @@ public class TsMuxerAudio extends TSMuxerVideo {
 	public int type() {
 		return Format.VIDEO;
 	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean isCompatible(DLNAMediaInfo mediaInfo) {
+		if (mediaInfo != null) {
+			// TODO: Determine compatibility based on mediaInfo
+			return false;
+		} else {
+			// No information available
+			return false;
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean isCompatible(Format format) {
+		if (format != null) {
+			Format.Identifier id = format.getIdentifier();
+
+			if (id.equals(Format.Identifier.AUDIO_AS_VIDEO)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
 }
