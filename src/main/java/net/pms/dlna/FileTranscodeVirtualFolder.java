@@ -98,6 +98,32 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 			DLNAResource child = getChildren().get(0);
 			child.resolve();
 
+			// First, add the option to simply stream the resource
+			DLNAResource justStreamed = child.clone();
+
+			RendererConfiguration renderer = null;
+
+			if (this.getParent() != null) {
+				renderer = this.getParent().getDefaultRenderer();
+			}
+
+			// Only add the option if the renderer is compatible with the format
+			if (justStreamed.getFormat() != null
+					&& (justStreamed.getFormat().isCompatible(child.getMedia(),
+							renderer) || justStreamed.isSkipTranscode())) {
+				justStreamed.setPlayer(null);
+				justStreamed.setMedia(child.getMedia());
+				justStreamed.setNoName(true);
+				addChildInternal(justStreamed);
+				addChapterFile(justStreamed);
+
+				if (renderer != null) {
+					LOGGER.debug("Duplicate " + child.getName()
+							+ " for direct streaming to renderer: "
+							+ renderer.getRendererName());
+				}
+			}
+
 			// List holding all combinations
 			ArrayList<DLNAResource> combos = new ArrayList<DLNAResource>();
 
@@ -135,31 +161,6 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 
 				addChildInternal(combo);
 				addChapterFile(combo);
-			}
-
-			// Finally, add the option to simply stream the resource
-			DLNAResource justStreamed = child.clone();
-
-			RendererConfiguration renderer = null;
-
-			if (this.getParent() != null) {
-				renderer = this.getParent().getDefaultRenderer();
-			}
-
-			if (justStreamed.getFormat() != null
-					&& (justStreamed.getFormat().isCompatible(child.getMedia(),
-							renderer) || justStreamed.isSkipTranscode())) {
-				justStreamed.setPlayer(null);
-				justStreamed.setMedia(child.getMedia());
-				justStreamed.setNoName(true);
-				addChildInternal(justStreamed);
-				addChapterFile(justStreamed);
-
-				if (renderer != null) {
-					LOGGER.debug("Duplicate " + child.getName()
-							+ " for direct streaming to renderer: "
-							+ renderer.getRendererName());
-				}
 			}
 		}
 
