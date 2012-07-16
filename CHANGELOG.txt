@@ -11,6 +11,7 @@
 		Fixed DV video detection
 		Fixed "Definitely disable subtitles" option with ASS/SSA subtitles
 		Improved default audio/subtitle priority
+		Fixed running on headless servers
 	Languages:
 		Updated Simplified Chinese (thanks, lovenemesis!)
 		Updated Czech (thanks, valib!)
