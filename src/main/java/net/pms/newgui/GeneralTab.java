@@ -286,7 +286,6 @@ public class GeneralTab {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JPanel tPanel = new JPanel(new BorderLayout());
-				JPanel bPanel = new JPanel(new BorderLayout());
 				final File conf = new File(PMS.getConfiguration().getProfilePath());
 				final JTextArea textArea = new JTextArea();
 				textArea.setFont(new Font("Courier", Font.PLAIN, 12));
