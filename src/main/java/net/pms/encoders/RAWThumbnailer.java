@@ -115,4 +115,34 @@ public class RAWThumbnailer extends Player {
 		baos.close();
 		return b;
 	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean isCompatible(DLNAMediaInfo mediaInfo) {
+		if (mediaInfo != null) {
+			// TODO: Determine compatibility based on mediaInfo
+			return false;
+		} else {
+			// No information available
+			return false;
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean isCompatible(Format format) {
+		if (format != null && format.getType() == Format.AUDIO) {
+			Format.Identifier id = format.getIdentifier();
+
+			if (id.equals(Format.Identifier.RAW)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
 }

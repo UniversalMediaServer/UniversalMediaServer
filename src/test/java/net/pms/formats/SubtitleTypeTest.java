@@ -18,11 +18,12 @@
  */
 package net.pms.formats;
 
-import static org.fest.assertions.Assertions.assertThat;
-import org.junit.Test;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import net.pms.formats.v2.SubtitleType;
+import static org.fest.assertions.Assertions.*;
+import org.junit.Test;
 
 public class SubtitleTypeTest {
 	@Test

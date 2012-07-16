@@ -114,14 +114,14 @@ public class CueFolder extends DLNAResource {
 
 						if (r.getPlayer() == null) { // assign a splitter engine if file is natively supported by renderer
 							if (defaultPlayer == null) {
-								if (r.getExt() == null) {
+								if (r.getFormat() == null) {
 									LOGGER.error("No file format known for file \"{}\", assuming it is a video for now.", r.getName());
 									// XXX aren't players supposed to be singletons?
 									// NOTE: needs new signature for getPlayer():
 									// PlayerFactory.getPlayer(MEncoderVideo.class)
 									defaultPlayer = new MEncoderVideo(PMS.getConfiguration());
 								} else {
-									if (r.getExt().isAudio()) {
+									if (r.getFormat().isAudio()) {
 										// XXX PlayerFactory.getPlayer(MPlayerAudio.class)
 										defaultPlayer = new MPlayerAudio(PMS.getConfiguration());
 									} else {
@@ -141,7 +141,7 @@ public class CueFolder extends DLNAResource {
 								LOGGER.info("Error in cloning media info: " + e.getMessage());
 							}
 							if (r.getMedia() != null && r.getMedia().getFirstAudioTrack() != null) {
-								if (r.getExt().isAudio()) {
+								if (r.getFormat().isAudio()) {
 									r.getMedia().getFirstAudioTrack().setSongname(track.getTitle());
 								} else {
 									r.getMedia().getFirstAudioTrack().setSongname("Chapter #" + (i + 1));

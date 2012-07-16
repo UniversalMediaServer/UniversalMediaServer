@@ -18,20 +18,21 @@
  */
 package net.pms.dlna;
 
-import net.pms.formats.v2.SubtitleType;
-import static org.fest.assertions.Assertions.assertThat;
 import org.junit.Test;
 
-public class DLNAMediaSubtitleTest {
+import static org.fest.assertions.Assertions.assertThat;
+
+public class DLNAMediaAudioTest {
+
 	@Test
-	public void testDefaultSubtitleType() {
-		DLNAMediaSubtitle dlnaMediaSubtitle = new DLNAMediaSubtitle();
-		assertThat(dlnaMediaSubtitle.getType()).isEqualTo(SubtitleType.UNKNOWN);
+	public void testDefaultAudioProperties() {
+		DLNAMediaAudio dlnaMediaAudio = new DLNAMediaAudio();
+		assertThat(dlnaMediaAudio.getAudioProperties()).isNotNull();
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testSetType_withNullSubtitleType() {
-		DLNAMediaSubtitle dlnaMediaSubtitle = new DLNAMediaSubtitle();
-		dlnaMediaSubtitle.setType(null);
+	public void testSetAudioProperties_withNullAudioProperties() {
+		DLNAMediaAudio dlnaMediaAudio = new DLNAMediaAudio();
+		dlnaMediaAudio.setAudioProperties(null);
 	}
 }

@@ -26,6 +26,14 @@ import net.pms.encoders.*;
 
 public class WEB extends Format {
 	/**
+	 * {@inheritDoc} 
+	 */
+	@Override
+	public Identifier getIdentifier() {
+		return Identifier.WEB;
+	}
+
+	/**
 	 * @deprecated Use {@link #isCompatible(DLNAMediaInfo, RendererConfiguration)} instead.
 	 * <p>
 	 * Returns whether or not a format can be handled by the PS3 natively.
