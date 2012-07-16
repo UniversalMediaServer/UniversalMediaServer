@@ -1727,7 +1727,7 @@ public class MEncoderVideo extends Player {
 		 * TODO: Move the following block up with the rest of the
 		 * subtitle stuff
 		 */
-		if (subString == null && params.sid != null) {
+		if (subString == null && params.sid != null && !configuration.isMencoderDisableSubs()) {
 			cmdArray[cmdArray.length - 10] = "-sid";
 			cmdArray[cmdArray.length - 9] = "" + params.sid.getId();
 		} else if (subString != null && !avisynth()) { // Trick necessary for MEncoder to skip the internal embedded track ?
