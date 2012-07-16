@@ -289,13 +289,16 @@ public final class PlayerFactory {
 		ArrayList<Player> compatiblePlayers = new ArrayList<Player>();
 
 		for (Player player : players) {
-			if (player.isCompatible(mediaInfo)) {
-				compatiblePlayers.add(player);
-			}
-
-			if (player.isCompatible(format)) {
-				compatiblePlayers.add(player);
-			}
+			if (mediaInfo != null) {
+				if (player.isCompatible(mediaInfo)) {
+					compatiblePlayers.add(player);
+				}
+			} //else {
+				// FIXME: This should only happen when no mediaInfo is available.
+				if (player.isCompatible(format)) {
+					compatiblePlayers.add(player);
+				}
+			//}
 		}
 
 		return compatiblePlayers;
