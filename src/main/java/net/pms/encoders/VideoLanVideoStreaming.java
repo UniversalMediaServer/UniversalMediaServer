@@ -193,11 +193,6 @@ public class VideoLanVideoStreaming extends Player {
 		return null;
 	}
 
-	@Override
-	public JComponent config() {
-		return null;
-	}
-
 	/**
 	 * {@inheritDoc}
 	 */
