@@ -222,7 +222,13 @@ public final class PlayerFactory {
 	 */
 	public static Player getPlayer(final DLNAMediaInfo mediaInfo, final Format format) {
 		for (Player player : players) {
-			if (player.isCompatible(mediaInfo) || player.isCompatible(format)) {
+			if (player.isCompatible(mediaInfo)) {
+				LOGGER.trace("Selecting player " + player.name() + " based on media information.");
+				return player;
+			}
+
+			if (player.isCompatible(format)) {
+				LOGGER.trace("Selecting player " + player.name() + " based on format.");
 				return player;
 			}
 		}

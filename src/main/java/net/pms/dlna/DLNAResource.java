@@ -473,41 +473,34 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 
 					// Try to determine a player to use for transcoding.
-					Player pl = null;
+					Player player = null;
 
-					if (child.getExt().getProfiles() != null && child.getExt().getProfiles().size() > 0) {
-						// First try to match a player based on the format profiles.
-						int i = 0;
+					// First, try to match a player based on the name of the DLNAResource
+					// or its parent. If the name ends in "[unique player id]", that player
+					// is preferred.
+					String name = getName();
 
-						while (pl == null && i < child.getExt().getProfiles().size()) {
-							pl = PlayerFactory.getPlayer(child.getExt().getProfiles().get(i), child.getExt());
-							i++;
-						}
+					for (Player p : PlayerFactory.getPlayers()) {
+						String end = "[" + p.id() + "]";
 
-						// Next, try to match a player based on the name of the DLNAResource.
-						// When a match is found it overrules the result of the first try.
-						String name = getName();
-
-						for (Class<? extends Player> clazz : child.getExt().getProfiles()) {
-							for (Player p : PlayerFactory.getPlayers()) {
-								if (p.getClass().equals(clazz)) {
-									String end = "[" + p.id() + "]";
-
-									if (name.endsWith(end)) {
-										nametruncate = name.lastIndexOf(end);
-										pl = p;
-										break;
-									} else if (getParent() != null && getParent().getName().endsWith(end)) {
-										getParent().nametruncate = getParent().getName().lastIndexOf(end);
-										pl = p;
-										break;
-									}
-								}
-							}
+						if (name.endsWith(end)) {
+							nametruncate = name.lastIndexOf(end);
+							player = p;
+							break;
+						} else if (getParent() != null && getParent().getName().endsWith(end)) {
+							getParent().nametruncate = getParent().getName().lastIndexOf(end);
+							player = p;
+							break;
 						}
 					}
 
-					if (pl != null && !allChildrenAreFolders) {
+					// If no preferred player could be determined from the name, try to
+					// match a player based on media information and format.
+					if (player == null) {
+						player = PlayerFactory.getPlayer(child.getMedia(), child.getExt());
+					}
+
+					if (player != null && !allChildrenAreFolders) {
 						boolean forceTranscode = false;
 						if (child.getExt() != null) {
 							forceTranscode = child.getExt().skip(PMS.getConfiguration().getForceTranscode(), getDefaultRenderer() != null ? getDefaultRenderer().getTranscodedExtensions() : null);
@@ -539,8 +532,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						// or 3- FFmpeg support and the file is not ps3 compatible (need to remove this ?) and no SkipTranscode extension forced by user
 						// or 4- There's some sub files or embedded subs to deal with and no SkipTranscode extension forced by user
 						if (forceTranscode || !isSkipTranscode() && (forceTranscodeV2 || isIncompatible || hasSubsToTranscode)) {
-							child.setPlayer(pl);
-							LOGGER.trace("Switching " + child.getName() + " to player " + pl.toString() + " for transcoding");
+							child.setPlayer(player);
+							LOGGER.trace("Switching " + child.getName() + " to player " + player.toString() + " for transcoding");
 						}
 
 						// Should the child be added to the transcode folder?
@@ -551,11 +544,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								VirtualFolder fileFolder = new FileTranscodeVirtualFolder(child.getName(), null);
 
 								DLNAResource newChild = child.clone();
-								newChild.setPlayer(pl);
+								newChild.setPlayer(player);
 								newChild.setMedia(child.getMedia());
 								// newChild.original = child;
 								fileFolder.addChildInternal(newChild);
-								LOGGER.trace("Duplicate " + child.getName() + " with player: " + pl.toString());
+								LOGGER.trace("Duplicate " + child.getName() + " with player: " + player.toString());
 
 								vf.addChild(fileFolder);
 							}
@@ -581,8 +574,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					newChild.first = child;
 					child.second = newChild;
 
-					if (!newChild.getExt().isCompatible(newChild.getMedia(),getDefaultRenderer()) && newChild.getExt().getProfiles().size() > 0) {
-						newChild.setPlayer(PlayerFactory.getPlayer(newChild.getExt().getProfiles().get(0), newChild.getExt()));
+					if (!newChild.getExt().isCompatible(newChild.getMedia(), getDefaultRenderer())) {
+						Player player = PlayerFactory.getPlayer(newChild.getMedia(), newChild.getExt());
+						newChild.setPlayer(player);
 					}
 					if (child.getMedia() != null && child.getMedia().isSecondaryFormatValid()) {
 						addChild(newChild);
