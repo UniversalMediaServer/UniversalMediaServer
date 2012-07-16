@@ -84,6 +84,7 @@ public final class PlayerFactory {
 	 *            PMS configuration settings.
 	 */
 	private static void registerPlayers(final PmsConfiguration configuration) {
+
 		if (Platform.isWindows()) {
 			registerPlayer(new FFMpegAviSynthVideo());
 		}
@@ -184,6 +185,8 @@ public final class PlayerFactory {
 	}
 
 	/**
+	 * @deprecated Use {@link #getPlayer(DLNAMediaInfo, Format)} instead.
+	 *
 	 * Returns the player that matches the given class and format.
 	 * 
 	 * @param profileClass
@@ -193,6 +196,7 @@ public final class PlayerFactory {
 	 * @return The player if a match could be found, <code>null</code>
 	 *         otherwise.
 	 */
+	@Deprecated
 	public static Player getPlayer(final Class<? extends Player> profileClass,
 			final Format ext) {
 
@@ -222,21 +226,26 @@ public final class PlayerFactory {
 	 */
 	public static Player getPlayer(final DLNAMediaInfo mediaInfo, final Format format) {
 		for (Player player : players) {
-			if (player.isCompatible(mediaInfo)) {
-				LOGGER.trace("Selecting player " + player.name() + " based on media information.");
-				return player;
-			}
-
-			if (player.isCompatible(format)) {
-				LOGGER.trace("Selecting player " + player.name() + " based on format.");
-				return player;
-			}
+			if (mediaInfo != null) {
+				if (player.isCompatible(mediaInfo)) {
+					LOGGER.trace("Selecting player " + player.name() + " based on media information.");
+					return player;
+				} 
+			} //else {
+				// FIXME: This should only happen when no mediaInfo is available.
+				if (player.isCompatible(format)) {
+					LOGGER.trace("Selecting player " + player.name() + " based on format.");
+					return player;
+				}
+			//}
 		}
 
 		return null;
 	}
 
 	/**
+	 * @deprecated Use {@link #getPlayer(DLNAMediaInfo, Format)} instead. 
+	 *
 	 * Returns the players matching the given classes and type.
 	 * 
 	 * @param profileClasses
@@ -246,6 +255,7 @@ public final class PlayerFactory {
 	 * @return The list of players that match. If no players match, an empty
 	 *         list is returned.
 	 */
+	@Deprecated
 	public static ArrayList<Player> getPlayers(
 			final ArrayList<Class<? extends Player>> profileClasses,
 			final int type) {
@@ -255,6 +265,35 @@ public final class PlayerFactory {
 		for (Player player : players) {
 			if (profileClasses.contains(player.getClass())
 					&& player.type() == type) {
+				compatiblePlayers.add(player);
+			}
+		}
+
+		return compatiblePlayers;
+	}
+
+	/**
+	 * Returns all {@link Player}s that match the given mediaInfo or format
+	 * Each of the available players is passed the provided information and
+	 * each player that reports it is compatible will be returned.
+	 * 
+	 * @param mediaInfo
+	 *            The {@link DLNAMediaInfo} to match
+	 * @param format
+	 *            The {@link Format} to match.
+	 * @return The player if a match could be found, <code>null</code>
+	 *         otherwise.
+	 * @since 1.60.0
+	 */
+	public static ArrayList<Player> getPlayers(final DLNAMediaInfo mediaInfo, final Format format) {
+		ArrayList<Player> compatiblePlayers = new ArrayList<Player>();
+
+		for (Player player : players) {
+			if (player.isCompatible(mediaInfo)) {
+				compatiblePlayers.add(player);
+			}
+
+			if (player.isCompatible(format)) {
 				compatiblePlayers.add(player);
 			}
 		}
