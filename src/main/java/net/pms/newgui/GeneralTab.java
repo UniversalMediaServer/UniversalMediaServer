@@ -18,46 +18,18 @@
  */
 package net.pms.newgui;
 
-import java.awt.BorderLayout;
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import com.sun.jna.Platform;
-import java.awt.Component;
-import java.awt.ComponentOrientation;
-import java.awt.Font;
-import java.awt.GridLayout;
+import java.awt.*;
 import java.awt.event.*;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JProgressBar;
-import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
-import javax.swing.JTable;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.Popup;
-import javax.swing.PopupFactory;
-import javax.swing.SwingUtilities;
-import javax.swing.table.JTableHeader;
-import javax.swing.table.TableCellRenderer;
-
+import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.Build;
@@ -123,21 +95,21 @@ public class GeneralTab {
 		}
 
 		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"),
-				FormLayoutUtil.flip(cc.xyw(1, 1, 9), colSpec, orientation));
+			FormLayoutUtil.flip(cc.xyw(1, 1, 9), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
-		builder.addLabel(Messages.getString("NetworkTab.0"), 
-				FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
+		builder.addLabel(Messages.getString("NetworkTab.0"),
+			FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
 		final KeyedComboBoxModel kcbm = new KeyedComboBoxModel(new Object[] {
 				"ar", "bg", "ca", "zhs", "zht", "cz", "da", "nl", "en", "fi", "fr",
 				"de", "el", "iw", "is", "it", "ja", "ko", "no", "pl", "pt", "br",
-				"ro", "ru", "sl", "es", "sv", "tr" }, new Object[] {
+				"ro", "ru", "sl", "es", "sv", "tr"}, new Object[] {
 				"Arabic", "Bulgarian", "Catalan", "Chinese (Simplified)",
 				"Chinese (Traditional)", "Czech", "Danish", "Dutch", "English",
 				"Finnish", "French", "German", "Greek", "Hebrew", "Icelandic", "Italian",
 				"Japanese", "Korean", "Norwegian", "Polish", "Portuguese",
 				"Portuguese (Brazilian)", "Romanian", "Russian", "Slovenian",
-				"Spanish", "Swedish", "Turkish" });
+				"Spanish", "Swedish", "Turkish"});
 		langs = new JComboBox(kcbm);
 		langs.setEditable(false);
 		String defaultLang = null;
@@ -225,55 +197,58 @@ public class GeneralTab {
 			checkForUpdates.setEnabled(false);
 			autoUpdateCheckBox.setEnabled(false);
 		}
-		
+
 		// Add find plugin support here
-		JButton checkForPlugins=new JButton(Messages.getString("NetworkTab.39"));
+		JButton checkForPlugins = new JButton(Messages.getString("NetworkTab.39"));
 		checkForPlugins.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if(!ExternalFactory.localPluginsInstalled()) {
-					JOptionPane.showMessageDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-															Messages.getString("NetworkTab.40"));
+				if (!ExternalFactory.localPluginsInstalled()) {
+					JOptionPane.showMessageDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())), Messages.getString("NetworkTab.40"));
 					return;
 				}
-				final ArrayList<DownloadPlugins> plugins=DownloadPlugins.downloadList();
-				if(plugins.isEmpty())
+				final ArrayList<DownloadPlugins> plugins = DownloadPlugins.downloadList();
+				if (plugins.isEmpty()) {
 					return;
+				}
 				String[] cols = {Messages.getString("NetworkTab.41"), Messages.getString("NetworkTab.42"),
-								Messages.getString("NetworkTab.43")};
-				JTable tab=new JTable(plugins.size()+1,cols.length) {
-					 public String getToolTipText(MouseEvent e) {
-						 java.awt.Point p = e.getPoint();
-						 int rowIndex = rowAtPoint(p);
-						 if(rowIndex==0)
-							 return "";
-						 DownloadPlugins plugin=plugins.get(rowIndex-1);
-						 return plugin.htmlString();
-					 }
+					Messages.getString("NetworkTab.43")};
+				JTable tab = new JTable(plugins.size() + 1, cols.length) {
+					public String getToolTipText(MouseEvent e) {
+						java.awt.Point p = e.getPoint();
+						int rowIndex = rowAtPoint(p);
+						if (rowIndex == 0) {
+							return "";
+						}
+						DownloadPlugins plugin = plugins.get(rowIndex - 1);
+						return plugin.htmlString();
+					}
 				};
-				for(int i=0;i<cols.length;i++) {
+				for (int i = 0; i < cols.length; i++) {
 					tab.setValueAt(cols[i], 0, i);
 				}
 				tab.setCellEditor(null);
-				for(int i=0;i<plugins.size();i++) {
-					DownloadPlugins p=plugins.get(i);
-					tab.setValueAt(p.getName(), i+1, 0);
-					tab.setValueAt(p.getRating(),i+1,1);
-					tab.setValueAt(p.getAuthor(),i+1,2);
+				for (int i = 0; i < plugins.size(); i++) {
+					DownloadPlugins p = plugins.get(i);
+					tab.setValueAt(p.getName(), i + 1, 0);
+					tab.setValueAt(p.getRating(), i + 1, 1);
+					tab.setValueAt(p.getAuthor(), i + 1, 2);
 				}
-				String[] opts={Messages.getString("NetworkTab.44"),Messages.getString("NetworkTab.45")};
-				int id=JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())), 
-							tab, "Plugins", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, opts, null);
-				if(id!=0) // cancel, do nothing
+				String[] opts = {Messages.getString("NetworkTab.44"), Messages.getString("NetworkTab.45")};
+				int id = JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+					tab, "Plugins", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, opts, null);
+				if (id != 0) // cancel, do nothing
+				{
 					return;
+				}
 				// Install the stuff
-				final int[] rows=tab.getSelectedRows();
-				JPanel panel=new JPanel();
-				GridLayout layout = new GridLayout(3,1);
+				final int[] rows = tab.getSelectedRows();
+				JPanel panel = new JPanel();
+				GridLayout layout = new GridLayout(3, 1);
 				panel.setLayout(layout);
-				final JFrame frame=new JFrame(Messages.getString("NetworkTab.46"));
+				final JFrame frame = new JFrame(Messages.getString("NetworkTab.46"));
 				frame.setSize(250, 110);
-				JProgressBar progressBar=new JProgressBar();
+				JProgressBar progressBar = new JProgressBar();
 				progressBar.setIndeterminate(true);
 				panel.add(progressBar);
 				final JLabel label = new JLabel("");
@@ -282,18 +257,19 @@ public class GeneralTab {
 				panel.add(label);
 				frame.add(panel);
 				frame.setVisible(true);
-				Runnable r=new Runnable() {
+				Runnable r = new Runnable() {
 					public void run() {
-						for(int i=0;i<rows.length;i++) {
-							if(rows[i]==0)
+						for (int i = 0; i < rows.length; i++) {
+							if (rows[i] == 0) {
 								continue;
-							DownloadPlugins plugin=plugins.get(rows[i]-1);
-							inst.setText(Messages.getString("NetworkTab.50")+": "+plugin.getName());
+							}
+							DownloadPlugins plugin = plugins.get(rows[i] - 1);
+							inst.setText(Messages.getString("NetworkTab.50") + ": " + plugin.getName());
 							try {
 								plugin.install(label);
 							} catch (Exception e) {
-								LOGGER.debug("download of plugin "+plugin.getName()+
-										" failed "+e);
+								LOGGER.debug("download of plugin " + plugin.getName()
+									+ " failed " + e);
 							}
 						}
 						frame.setVisible(false);
@@ -303,8 +279,9 @@ public class GeneralTab {
 			}
 		});
 		builder.add(checkForPlugins, FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
+
 		// Conf edit
-		JButton confEdit=new JButton(Messages.getString("NetworkTab.51"));
+		JButton confEdit = new JButton(Messages.getString("NetworkTab.51"));
 		confEdit.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -317,7 +294,7 @@ public class GeneralTab {
 				scrollPane.setPreferredSize(new java.awt.Dimension(900, 450));
 				try {
 					FileInputStream fis = new FileInputStream(conf);
-					BufferedReader in = new BufferedReader(new InputStreamReader(fis)); 
+					BufferedReader in = new BufferedReader(new InputStreamReader(fis));
 					String line;
 					StringBuffer sb = new StringBuffer();
 					while ((line = in.readLine()) != null) {
@@ -326,17 +303,16 @@ public class GeneralTab {
 					}
 					textArea.setText(sb.toString());
 					fis.close();
-				}
-				catch (Exception e1) {
+				} catch (Exception e1) {
 					return;
 				}
-				tPanel.add(scrollPane,BorderLayout.NORTH);
-				Object[] options = { Messages.getString("LooksFrame.9"),  Messages.getString("NetworkTab.45")};
+				tPanel.add(scrollPane, BorderLayout.NORTH);
+				Object[] options = {Messages.getString("LooksFrame.9"), Messages.getString("NetworkTab.45")};
 				if (JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-						tPanel, Messages.getString("NetworkTab.51"), 
-						JOptionPane.OK_CANCEL_OPTION, 
-						JOptionPane.PLAIN_MESSAGE, null, options, null) == JOptionPane.OK_OPTION) {
-					String text=textArea.getText();
+					tPanel, Messages.getString("NetworkTab.51"),
+					JOptionPane.OK_CANCEL_OPTION,
+					JOptionPane.PLAIN_MESSAGE, null, options, null) == JOptionPane.OK_OPTION) {
+					String text = textArea.getText();
 					try {
 						FileOutputStream fos = new FileOutputStream(conf);
 						fos.write(text.getBytes());
@@ -345,9 +321,8 @@ public class GeneralTab {
 						PMS.getConfiguration().reload();
 					} catch (Exception e1) {
 						JOptionPane.showMessageDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-								Messages.getString("NetworkTab.52") + e1.toString());
+							Messages.getString("NetworkTab.52") + e1.toString());
 						return;
-								
 					}
 				}
 			}
@@ -484,13 +459,13 @@ public class GeneralTab {
 				configuration.setRendererForceDefault((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
-		
+
 		if (configuration.isRendererForceDefault()) {
 			fdCheckBox.setSelected(true);
 		}
 
 		builder.addLabel(Messages.getString("NetworkTab.36"), FormLayoutUtil.flip(cc.xy(1, 39), colSpec, orientation));
-		
+
 		ArrayList<RendererConfiguration> allConfs = RendererConfiguration.getAllRendererConfigurations();
 		ArrayList<Object> keyValues = new ArrayList<Object>();
 		ArrayList<Object> nameValues = new ArrayList<Object>();
@@ -507,8 +482,8 @@ public class GeneralTab {
 		}
 
 		final KeyedComboBoxModel renderersKcbm = new KeyedComboBoxModel(
-				(Object[]) keyValues.toArray(new Object[keyValues.size()]),
-				(Object[]) nameValues.toArray(new Object[nameValues.size()]));
+			(Object[]) keyValues.toArray(new Object[keyValues.size()]),
+			(Object[]) nameValues.toArray(new Object[nameValues.size()]));
 		renderers = new JComboBox(renderersKcbm);
 		renderers.setEditable(false);
 		String defaultRenderer = configuration.getRendererDefault();
@@ -533,7 +508,7 @@ public class GeneralTab {
 
 		// Apply the orientation to the panel and all components in it
 		panel.applyComponentOrientation(orientation);
-		
+
 		JScrollPane scrollPane = new JScrollPane(
 			panel,
 			JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
@@ -552,7 +527,8 @@ public class GeneralTab {
 	}
 
 	/**
-	 * Add the renderer configuration selection after they have been intialized.
+	 * Add the renderer configuration selection after they have been
+	 * initialized.
 	 */
 	public void addRenderers() {
 		ArrayList<RendererConfiguration> allConfs = RendererConfiguration.getAllRendererConfigurations();
@@ -560,7 +536,7 @@ public class GeneralTab {
 		ArrayList<Object> nameValues = new ArrayList<Object>();
 		keyValues.add("");
 		nameValues.add(Messages.getString("NetworkTab.37"));
-		
+
 		if (allConfs != null) {
 			for (RendererConfiguration renderer : allConfs) {
 				if (renderer != null) {
@@ -569,15 +545,15 @@ public class GeneralTab {
 				}
 			}
 		}
-		
+
 		final KeyedComboBoxModel renderersKcbm = new KeyedComboBoxModel(
-				(Object[]) keyValues.toArray(new Object[keyValues.size()]),
-				(Object[]) nameValues.toArray(new Object[nameValues.size()]));
+			(Object[]) keyValues.toArray(new Object[keyValues.size()]),
+			(Object[]) nameValues.toArray(new Object[nameValues.size()]));
 		renderers.setModel(renderersKcbm);
 		renderers.setEditable(false);
 		String defaultRenderer = configuration.getRendererDefault();
 		renderersKcbm.setSelectedKey(defaultRenderer);
-		
+
 		if (renderers.getSelectedIndex() == -1) {
 			renderers.setSelectedIndex(0);
 		}
@@ -594,20 +570,20 @@ public class GeneralTab {
 
 	public void addPlugins() {
 		FormLayout layout = new FormLayout(
-				"fill:10:grow",
-		"p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p");
+			"fill:10:grow",
+			"p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p");
 		pPlugins.setLayout(layout);
 		for (final ExternalListener listener : ExternalFactory.getExternalListeners()) {
-			if(!appendPlugin(listener)) {
+			if (!appendPlugin(listener)) {
 				LOGGER.warn("Plugin limit of 30 has been reached");
 				break;
 			}
 		}
 	}
-	
+
 	public boolean appendPlugin(final ExternalListener listener) {
 		final JComponent comp = listener.config();
-		if(comp == null) {
+		if (comp == null) {
 			return true;
 		}
 		CellConstraints cc = new CellConstraints();
@@ -616,30 +592,30 @@ public class GeneralTab {
 		bPlugin.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())), 
-						comp, "Options", JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);
-			}	
-		});	
+				JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+					comp, "Options", JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);
+			}
+		});
 		int y = pPlugins.getComponentCount() + 1;
-		if(y > 30) {
+		if (y > 30) {
 			return false;
 		}
 		pPlugins.add(bPlugin, cc.xy(1, y));
 		return true;
 	}
-	
+
 	public void removePlugin(ExternalListener listener) {
 		JButton del = null;
-		for(Component c : pPlugins.getComponents()) {
-			if(c instanceof JButton) {
-				JButton button = (JButton)c;
-				if(button.getText().equals(listener.name())) {
+		for (Component c : pPlugins.getComponents()) {
+			if (c instanceof JButton) {
+				JButton button = (JButton) c;
+				if (button.getText().equals(listener.name())) {
 					del = button;
 					break;
 				}
 			}
 		}
-		if(del != null) {
+		if (del != null) {
 			pPlugins.remove(del);
 			pPlugins.repaint();
 		}
