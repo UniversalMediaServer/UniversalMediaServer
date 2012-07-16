@@ -177,7 +177,7 @@ public class ExternalFactory {
 				
 				if(download) {
 					// Only purge code when downloading!
-					purgeCode(pluginMainClassName);
+					purgeCode(pluginMainClassName, url);
 				}
 
 				// Try to load the class based on the main class name
@@ -195,7 +195,7 @@ public class ExternalFactory {
 		}
 	}
 	
-	private static void purgeCode(String mainClass) {
+	private static void purgeCode(String mainClass,URL newUrl) {
 		Class<?> clazz1 = null;
 		for(Class<?> clazz : externalListenerClasses) {
 			if(mainClass.equals(clazz.getCanonicalName())) {
@@ -230,20 +230,31 @@ public class ExternalFactory {
 		}
 		
 		URLClassLoader cl = (URLClassLoader) clazz1.getClassLoader();
-		URL[] urls=cl.getURLs();
+		URL[] urls = cl.getURLs();
 		for(int i=0;i<urls.length;i++) {
 			URL url = urls[i];
 			if(isLib(url)) {
 				continue;
 			}
-			File f;
-			try {
-				f = new File(url.toURI());
-			} catch(URISyntaxException e) {
-				f = new File(url.getPath());
+			File f = url2file(url);
+			File f1 = url2file(newUrl);
+			if(f1 == null || f ==null) {
+				continue;
 			}
-			addToPurgeFile(f);
+			if(!f1.getName().equals(f.getName())) {
+				addToPurgeFile(f);
+			}
 		}
+	}
+	
+	private static File url2file(URL url) {
+		File f = null;
+		try {
+			f = new File(url.toURI());
+		} catch(URISyntaxException e) {
+			f = new File(url.getPath());
+		}
+		return f;
 	}
 	
 	private static void addToPurgeFile(File f) {
