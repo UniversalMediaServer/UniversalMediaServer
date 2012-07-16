@@ -173,6 +173,8 @@ public class PmsConfiguration {
 	private static final String KEY_VIRTUAL_FOLDERS = "vfolders";
 	private static final String KEY_BUFFER_MAX = "buffer_max";
 	private static final String KEY_PLUGIN_PURGE_ACTION = "plugin_purge";
+	private static final String KEY_SEARCH_FOLDER = "search_folder";
+	private static final String KEY_SEARCH_RECURSE = "search_recurse";
 
 	// the name of the subdirectory under which PMS config files are stored for this build (default: PMS).
 	// see Build for more details
@@ -2276,6 +2278,19 @@ public class PmsConfiguration {
 	
 	public String getPluginPurgeAction() {
 		return getString(KEY_PLUGIN_PURGE_ACTION, "delete");
+	}
+	
+	public boolean getSearchFolder() {
+		return getBoolean(KEY_SEARCH_FOLDER, false);
+	}
+	
+	public int getSearchRecurse() {
+		if (getBoolean(KEY_SEARCH_RECURSE, true)) {
+			return 100;
+		}
+		else {
+			return 0;
+		}
 	}
 	
 	public void reload() {

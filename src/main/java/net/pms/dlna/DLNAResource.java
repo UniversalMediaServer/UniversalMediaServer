@@ -228,6 +228,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	@Deprecated
 	protected long lastRefreshTime;
+	
+	private String lastSearch;
 
 	/**
 	 * Returns parent object, usually a folder type of resource. In the DLDI
@@ -381,6 +383,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		setSpecificType(Format.UNKNOWN);
 		setChildren(new ArrayList<DLNAResource>());
 		setUpdateId(1);
+		lastSearch = null;
 	}
 
 	public DLNAResource(int specificType) {
@@ -701,6 +704,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 			}
 		}
+		lastSearch = searchStr;
 		return resources;
 	}
 
@@ -752,12 +756,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 			} else {
 				// if not, then the regular isRefreshNeeded/doRefreshChildren pair.
-				if (isRefreshNeeded()) {
+				if (shouldRefresh(searchStr)) {
 					doRefreshChildren(searchStr);
 					notifyRefresh();
 				}
 			}
 		}
+	}
+	
+	private boolean shouldRefresh(String searchStr) {
+		return (searchStr == null && lastSearch ==null) || 
+		(searchStr !=null && !searchStr.equals(lastSearch)) 
+		|| isRefreshNeeded();
 	}
 
 	@Override
@@ -855,7 +865,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 	
 	public boolean refreshChildren(String search) {
-		if (isRefreshNeeded()) {
+		if (shouldRefresh(search)) {
 			doRefreshChildren(search);
 			return true;
 		}

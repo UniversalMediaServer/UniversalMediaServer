@@ -103,9 +103,13 @@ public class MapFile extends DLNAResource {
 		return !excludeNonRelevantFolder;
 	}
 
-	private void manageFile(File f) {
+	private void manageFile(File f,String str) {
 		if (f.isFile() || f.isDirectory()) {
 			String lcFilename = f.getName().toLowerCase();
+			if (str != null && !lcFilename.contains(str)) {
+				// this is not searched for
+				return;
+			}
 
 			if (!f.isHidden()) {
 				if (PMS.getConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".zip") || lcFilename.endsWith(".cbz"))) {
@@ -164,16 +168,22 @@ public class MapFile extends DLNAResource {
 				if (discoverable.isEmpty()) {
 					break;
 				}
-				manageFile(discoverable.remove(0));
+				manageFile(discoverable.remove(0), null);
 			}
 		}
 		return discoverable.isEmpty();
 	}
 
-	@Override
 	public void discoverChildren() {
-		super.discoverChildren();
-
+		discoverChildren(null);
+	}
+	
+	
+	public void discoverChildren(String str) {
+		//super.discoverChildren(str);
+		if (str != null) {
+			str = str.toLowerCase();
+		}
 		if (discoverable == null) {
 			discoverable = new ArrayList<File>();
 		} else {
@@ -226,13 +236,17 @@ public class MapFile extends DLNAResource {
 
 		for (File f : files) {
 			if (f.isDirectory()) {
-				discoverable.add(f); // manageFile(f);
+				if (str == null || f.getName().toLowerCase().contains(str)) {
+					discoverable.add(f); // manageFile(f);
+				}
 			}
 		}
 
 		for (File f : files) {
-			if (f.isFile()) {
-				discoverable.add(f); // manageFile(f);
+			if (f.isFile()) { 
+				if (str == null || f.getName().toLowerCase().contains(str)) {				
+					discoverable.add(f); // manageFile(f);
+				}
 			}
 		}
 	}
@@ -249,7 +263,7 @@ public class MapFile extends DLNAResource {
 	}
 
 	@Override
-	public void doRefreshChildren() {
+	public void doRefreshChildren(String str) {
 		List<File> files = getFileList();
 		List<File> addedFiles = new ArrayList<File>();
 		List<DLNAResource> removedFiles = new ArrayList<DLNAResource>();
@@ -289,7 +303,7 @@ public class MapFile extends DLNAResource {
 		}
 
 		for (File f : addedFiles) {
-			manageFile(f);
+			manageFile(f, str);
 		}
 
 		for (MapFileConfiguration f : this.getConf().getChildren()) {
@@ -409,5 +423,9 @@ public class MapFile extends DLNAResource {
 	 */
 	public void setPotentialCover(File potentialCover) {
 		this.potentialCover = potentialCover;
+	}
+	
+	public boolean isSearched() {
+		return true;
 	}
 }
