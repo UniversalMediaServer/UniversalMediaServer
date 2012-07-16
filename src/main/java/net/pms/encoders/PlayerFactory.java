@@ -22,6 +22,9 @@ package net.pms.encoders;
 import com.sun.jna.Platform;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -59,6 +62,35 @@ public final class PlayerFactory {
 	 * registry is set by the constructor.
 	 */
 	private static SystemUtils utils;
+
+	/**
+	 * This takes care of sorting the players by the given PMS configuration.
+	 */
+	private static class PlayerSort implements Comparator<Player> {
+		private PmsConfiguration configuration;
+
+		PlayerSort(PmsConfiguration configuration) {
+			this.configuration = configuration;
+		}
+
+		@Override
+		public int compare(Player player1, Player player2) {
+			List<String> prefs = configuration.getEnginesAsList(PMS.get().getRegistry());
+			Integer index1 = prefs.indexOf(player1.id());
+			Integer index2 = prefs.indexOf(player2.id());
+
+			// Not being in the configuration settings will sort the player as last.
+			if (index1 == -1) {
+				index1 = 999;
+			}
+
+			if (index2 == -1) {
+				index2 = 999;
+			}
+
+			return index1.compareTo(index2);
+		}
+	}
 
 	/**
 	 * This class is not meant to be instantiated.
@@ -111,6 +143,10 @@ public final class PlayerFactory {
 		}
 
 		registerPlayer(new RAWThumbnailer());
+
+		// Sort the players according to the configuration settings
+		Collections.sort(allPlayers, new PlayerSort(configuration));
+		Collections.sort(players, new PlayerSort(configuration));
 	}
 
 	/**
