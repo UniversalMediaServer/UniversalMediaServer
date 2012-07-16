@@ -164,7 +164,14 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 			case POLLING_SERVER:
 				return "Connecting to server";
 			case UPDATE_AVAILABLE:
-				return "An update is available";
+				String permissionsReminder = "";
+				if (
+					"Windows 7".equals(System.getProperty("os.name")) ||
+					"Windows Vista".equals(System.getProperty("os.name"))
+				) {
+					permissionsReminder = ". Make sure UMS is running as administrator before proceeding";
+				}
+				return "An update is available" + permissionsReminder;
 			default:
 				return "Unknown state";
 		}
