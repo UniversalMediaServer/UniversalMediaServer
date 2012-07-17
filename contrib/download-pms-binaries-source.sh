@@ -498,7 +498,9 @@ download_libpng() {
     cd $SRC
 
     if [ ! -f libpng-${VERSION_LIBPNG}.tar.gz ]; then
-        download http://downloads.sourceforge.net/project/libpng/libpng15/older-releases/${VERSION_LIBPNG}/libpng-${VERSION_LIBPNG}.tar.gz
+        # One of these two, depending on whether we use the latest release
+        #download http://downloads.sourceforge.net/project/libpng/libpng15/older-releases/${VERSION_LIBPNG}/libpng-${VERSION_LIBPNG}.tar.gz
+        download http://downloads.sourceforge.net/project/libpng/libpng15/${VERSION_LIBPNG}/libpng-${VERSION_LIBPNG}.tar.gz
         exit_on_error
     fi
 }
@@ -640,6 +642,24 @@ download_x264() {
 
 
 ##########################################
+# libass
+# http://code.google.com/p/libass/
+#
+download_libass() {
+    start_download libass
+    cd $SRC
+
+    if [ -d libass ]; then
+        rm -rf libass
+    fi
+    $GIT clone https://code.google.com/p/libass/
+    exit_on_error
+    cd libass
+    rm -rf ./.git
+}
+
+
+##########################################
 # XVID
 # http://www.xvid.org/
 #
@@ -679,6 +699,21 @@ download_enca() {
 
     if [ ! -f enca-${VERSION_ENCA}.tar.gz ]; then
         download http://dl.cihar.com/enca/enca-${VERSION_ENCA}.tar.gz
+        exit_on_error
+    fi
+}
+
+
+##########################################
+# HarfBuzz is an OpenType text shaping engine
+# http://www.freedesktop.org/wiki/Software/HarfBuzz
+#
+download_harfbuzz() {
+    start_download harfbuzz
+    cd $SRC
+
+    if [ ! -f harfbuzz-${VERSION_HARFBUZZ}.tar.bz2 ]; then
+        download http://www.freedesktop.org/software/harfbuzz/release/harfbuzz-${VERSION_HARFBUZZ}.tar.bz2
         exit_on_error
     fi
 }
@@ -763,6 +798,7 @@ download_bzip2
 download_expat
 download_faad2
 download_freetype
+download_harfbuzz
 download_iconv
 # Note: fontconfig requires freetype and iconv to build
 download_fontconfig
@@ -790,7 +826,8 @@ download_xvid
 download_flac
 download_dcraw
 download_enca
+download_libass
 download_ffmpeg
 download_mplayer
 download_tsmuxer
-download_ps3mediaserver
+#download_ps3mediaserver
