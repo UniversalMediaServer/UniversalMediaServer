@@ -2,6 +2,7 @@
 
 	General:
 		Many improvements to FFmpeg engine, from audio sync to file-support to stability
+		Updated FFmpeg for OS X to 57d5a224
 		Added a GUI config editor for those who like to edit manually
 		Improved audio/video sync when using MEncoder
 		Improved audio channel detection
@@ -10,7 +11,7 @@
 		Added support for WebM videos downloaded from YouTube
 		Fixed DV video detection
 		Fixed "Definitely disable subtitles" option with ASS/SSA subtitles
-		Improved default audio/subtitle priority
+		Fixed default audio/subtitle priority options
 		Fixed running on headless servers
 	Languages:
 		Updated Simplified Chinese (thanks, lovenemesis!)
