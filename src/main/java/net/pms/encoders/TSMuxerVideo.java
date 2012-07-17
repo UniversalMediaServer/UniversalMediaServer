@@ -37,10 +37,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.DLNAMediaAudio;
-import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.InputFile;
+import net.pms.dlna.*;
 import net.pms.formats.Format;
 import static net.pms.formats.v2.AudioUtils.getLPCMChannelMappingForMencoder;
 import net.pms.io.*;
@@ -750,27 +747,43 @@ public class TSMuxerVideo extends Player {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean isCompatible(DLNAMediaInfo mediaInfo) {
-		if (mediaInfo != null) {
-			// TODO: Determine compatibility based on mediaInfo
-			return false;
-		} else {
-			// No information available
+	public boolean isCompatible(DLNAResource resource) {
+		if (resource == null || resource.getFormat().getType() != Format.VIDEO) {
 			return false;
 		}
-	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public boolean isCompatible(Format format) {
+		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
+
+		// Check whether the subtitle actually has a language defined,
+		// uninitialized DLNAMediaSubtitle objects have a null language.
+		if (subtitle != null && subtitle.getLang() != null) {
+			// The resource needs a subtitle, but PMS does not support subtitles for tsMuxeR.
+			return false;
+		}
+
+		try {
+			String audioTrackName = resource.getMediaAudio().toString();
+			String defaultAudioTrackName = resource.getMedia().getAudioTracksList().get(0).toString();
+	
+			if (!audioTrackName.equals(defaultAudioTrackName)) {
+				// PMS only supports playback of the default audio track for tsMuxeR
+				return false;
+			}
+		} catch (NullPointerException e) {
+			LOGGER.trace("FFmpeg cannot determine compatibility based on audio track for "
+					+ resource.getSystemName());
+		} catch (IndexOutOfBoundsException e) {
+			LOGGER.trace("FFmpeg cannot determine compatibility based on default audio track for "
+					+ resource.getSystemName());
+		}
+
+		Format format = resource.getFormat();
+
 		if (format != null) {
 			Format.Identifier id = format.getIdentifier();
 
 			if (id.equals(Format.Identifier.MKV)
-					|| id.equals(Format.Identifier.MPG)
-					) {
+					|| id.equals(Format.Identifier.MPG)) {
 				return true;
 			}
 		}

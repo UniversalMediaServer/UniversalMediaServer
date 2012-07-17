@@ -2580,28 +2580,19 @@ public class MEncoderVideo extends Player {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean isCompatible(DLNAMediaInfo mediaInfo) {
-		if (mediaInfo != null) {
-			// TODO: Determine compatibility based on mediaInfo
-			return false;
-		} else {
-			// No information available
+	public boolean isCompatible(DLNAResource resource) {
+		if (resource == null || resource.getFormat().getType() != Format.VIDEO) {
 			return false;
 		}
-	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public boolean isCompatible(Format format) {
+		Format format = resource.getFormat();
+
 		if (format != null) {
 			Format.Identifier id = format.getIdentifier();
 
 			if (id.equals(Format.Identifier.ISO)
 					|| id.equals(Format.Identifier.MKV)
-					|| id.equals(Format.Identifier.MPG)
-					) {
+					|| id.equals(Format.Identifier.MPG)) {
 				return true;
 			}
 		}
