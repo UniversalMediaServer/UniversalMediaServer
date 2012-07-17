@@ -28,7 +28,6 @@ import java.util.concurrent.TimeUnit;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import static net.pms.configuration.RendererConfiguration.RENDERER_ID_PLAYSTATION3;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.encoders.*;

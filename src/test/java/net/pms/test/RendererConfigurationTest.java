@@ -25,7 +25,6 @@ import java.util.Map.Entry;
 import java.util.*;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import static net.pms.configuration.RendererConfiguration.*;
 import org.apache.commons.configuration.ConfigurationException;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -119,7 +118,7 @@ public class RendererConfigurationTest {
 		}
 
 		// Initialize the RendererConfiguration
-		loadRendererConfigurations(pmsConf);
+		RendererConfiguration.loadRendererConfigurations(pmsConf);
 
 		// Test all header test cases
 		Set<Entry<String, String>> set = testCases.entrySet();
@@ -151,7 +150,7 @@ public class RendererConfigurationTest {
 		pmsConf.setRendererForceDefault(true);
 
 		// Initialize the RendererConfiguration
-		loadRendererConfigurations(pmsConf);
+		RendererConfiguration.loadRendererConfigurations(pmsConf);
 
 		// Known and unknown renderers should always return default
 		testHeader("User-Agent: AirPlayer/1.0.09 CFNetwork/485.13.9 Darwin/11.0.0", "Playstation 3");
@@ -179,35 +178,12 @@ public class RendererConfigurationTest {
 		pmsConf.setRendererForceDefault(true);
 
 		// Initialize the RendererConfiguration
-		loadRendererConfigurations(pmsConf);
+		RendererConfiguration.loadRendererConfigurations(pmsConf);
 
 		// Known and unknown renderers should return "Unknown renderer"
 		testHeader("User-Agent: AirPlayer/1.0.09 CFNetwork/485.13.9 Darwin/11.0.0", "Unknown renderer");
 		testHeader("User-Agent: Unknown Renderer", "Unknown renderer");
 		testHeader("X-Unknown-Header: Unknown Content", "Unknown renderer");
-	}
-
-	@Test
-	public void testRendererUniqueID() {
-		PmsConfiguration pmsConf = null;
-
-		try {
-			pmsConf = new PmsConfiguration(false);
-		} catch (IOException e) {
-			// This should be impossible since no configuration file will be loaded.
-		} catch (ConfigurationException e) {
-			// This should be impossible since no configuration file will be loaded.
-		}
-
-		pmsConf.setRendererForceDefault(false);
-
-		// Initialize the RendererConfiguration
-		loadRendererConfigurations(pmsConf);
-
-		RendererConfiguration rc = getRendererConfigurationByUA("\"User-Agent: PLAYSTATION 3\", \"Playstation 3\"");
-		assertEquals("RendererUniqueID for PlayStation 3", RENDERER_ID_PLAYSTATION3, rc.getRendererUniqueID());
-		rc = getRendererConfigurationByUA("User-Agent: Windows2000/0.0 UPnP/1.0 PhilipsIntelSDK/1.4 DLNADOC/1.50");
-		assertEquals("RendererUniqueID for PhilipsPFL is not set and defaults to RendererName", "Philips TV", rc.getRendererUniqueID());
 	}
 
 	/**
@@ -225,14 +201,14 @@ public class RendererConfigurationTest {
 			// Header is supposed to match a particular renderer
 			if (headerLine != null && headerLine.toLowerCase().startsWith("user-agent")) {
 				// Match by User-Agent
-					RendererConfiguration rc = getRendererConfigurationByUA(headerLine);
+					RendererConfiguration rc = RendererConfiguration.getRendererConfigurationByUA(headerLine);
 					assertNotNull("Recognized renderer for header \"" + headerLine + "\"", rc);
 					assertEquals("Expected renderer \"" + correctRendererName + "\", "
 							+ "instead renderer \"" + rc.getRendererName() + "\" was returned for header \""
 							+ headerLine + "\"", correctRendererName, rc.getRendererName());
 			} else {
 				// Match by additional header
-					RendererConfiguration rc = getRendererConfigurationByUAAHH(headerLine);
+					RendererConfiguration rc = RendererConfiguration.getRendererConfigurationByUAAHH(headerLine);
 					assertNotNull("Recognized renderer for header \"" + headerLine + "\"", rc);
 					assertEquals("Expected renderer \"" + correctRendererName + "\" to be recognized, "
 							+ "instead renderer \"" + rc.getRendererName() + "\" was returned for header \""
@@ -242,14 +218,14 @@ public class RendererConfigurationTest {
 			// Header is supposed to match no renderer at all
 			if (headerLine != null && headerLine.toLowerCase().startsWith("user-agent")) {
 				// Match by User-Agent
-					RendererConfiguration rc = getRendererConfigurationByUA(headerLine);
+					RendererConfiguration rc = RendererConfiguration.getRendererConfigurationByUA(headerLine);
 					assertEquals("Expected no matching renderer to be found for header \"" + headerLine
 							+ "\", instead renderer \"" + (rc != null ? rc.getRendererName() : "")
 							+ "\" was recognized.", null,
 							rc);
 			} else {
 				// Match by additional header
-					RendererConfiguration rc = getRendererConfigurationByUAAHH(headerLine);
+					RendererConfiguration rc = RendererConfiguration.getRendererConfigurationByUAAHH(headerLine);
 					assertEquals("Expected no matching renderer to be found for header \"" + headerLine
 							+ "\", instead renderer \"" + (rc != null ? rc.getRendererName() : "")
 							+ "\" was recognized.", null, rc);

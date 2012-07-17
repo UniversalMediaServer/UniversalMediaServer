@@ -26,15 +26,9 @@ import java.net.Socket;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
-import static net.pms.configuration.RendererConfiguration.RENDERER_ID_PLAYSTATION3;
-import net.pms.dlna.DLNAMediaAudio;
-import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAMediaSubtitle;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.Range;
+import net.pms.dlna.*;
 import net.pms.external.StartStopListenerDelegate;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import org.jboss.netty.buffer.ChannelBuffer;
