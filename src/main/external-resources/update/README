@@ -9,4 +9,6 @@ Note: in all cases, the old update file should be kept so that old releases can 
 that doesn't cause upgrade issues.
 
 The <version> ID is arbitrary. As long as it's distinct for each compatible set of PMS releases, it can
-be anything. Currently it's an integer that's incremented for each "generation".
+be anything. Currently it's an integer which is incremented for each "generation".
+
+If a new update file is created, UPDATE_SERVER_URL in src/main/java/net/pms/configuration/Build.java should be updated to point to it.
