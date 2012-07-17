@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
-import net.pms.Messages;
 import net.pms.io.SystemUtils;
 import net.pms.util.PropertiesUtil;
 import org.apache.commons.configuration.Configuration;
@@ -50,7 +49,7 @@ public class PmsConfiguration {
 	private static final int DEFAULT_SERVER_PORT = 5001;
 
 	// MEncoder has a hardwired maximum of 16 threads for -lavcopts and -lavdopts
-	private static final int MENCODER_MAX_THREADS = 16;
+	private static final int MENCODER_MAX_THREADS = 8;
 
 	private static final String KEY_ALTERNATE_SUBS_FOLDER = "alternate_subs_folder";
 	private static final String KEY_ALTERNATE_THUMB_FOLDER = "alternate_thumb_folder";
