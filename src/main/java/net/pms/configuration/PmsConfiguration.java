@@ -75,6 +75,7 @@ public class PmsConfiguration {
 	private static final String KEY_ENGINES = "engines";
 	private static final String KEY_FFMPEG_ALTERNATIVE_PATH = "alternativeffmpegpath";
 	private static final String KEY_FFMPEG_SETTINGS = "ffmpeg";
+	private static final String KEY_FFMPEG_MULTITHREADING = "ffmpeg_multithreading";
 	private static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
 	private static final String KEY_FORCETRANSCODE = "forcetranscode";
 	private static final String KEY_FOLDER_LIMIT="folder_limit";
@@ -1671,6 +1672,14 @@ public class PmsConfiguration {
 
 	public String getFfmpegSettings() {
 		return getString(KEY_FFMPEG_SETTINGS, "-g 1 -q:v 1 -qmin 2");
+	}
+
+	public void setFfmpegMultithreading(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_MULTITHREADING, value);
+	}
+
+	public boolean isFfmpegMultithreading() {
+		return getBoolean(KEY_FFMPEG_MULTITHREADING, true);
 	}
 
 	public boolean isMencoderNoOutOfSync() {

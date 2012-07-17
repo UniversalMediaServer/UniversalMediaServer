@@ -23,11 +23,14 @@ import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Font;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.StringTokenizer;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
 import net.pms.Messages;
@@ -73,7 +76,11 @@ public class FFMpegVideo extends Player {
 
 	public FFMpegVideo() {
 		if (PMS.getConfiguration().getFfmpegSettings() != null) {
-			StringTokenizer st = new StringTokenizer(PMS.getConfiguration().getFfmpegSettings() + " -ab " + PMS.getConfiguration().getAudioBitrate() + "k -threads " + PMS.getConfiguration().getNumberOfCpuCores(), " ");
+			String threads = "";
+			if (PMS.getConfiguration().isFfmpegMultithreading()) {
+				threads = " -threads " + PMS.getConfiguration().getNumberOfCpuCores();
+			}
+			StringTokenizer st = new StringTokenizer(PMS.getConfiguration().getFfmpegSettings() + " -ab " + PMS.getConfiguration().getAudioBitrate() + "k" + threads, " ");
 			overriddenArgs = new String[st.countTokens()];
 			int i = 0;
 			while (st.hasMoreTokens()) {
@@ -302,6 +309,7 @@ public class FFMpegVideo extends Player {
 	}
 
 	private JTextField ffmpeg;
+	private JCheckBox multithreading;
 
 	@Override
 	public JComponent config() {
@@ -311,7 +319,7 @@ public class FFMpegVideo extends Player {
 	protected JComponent config(String languageLabel) {
 		FormLayout layout = new FormLayout(
 			"left:pref, 0:grow",
-			"p, 3dlu, p, 3dlu");
+			"p, 3dlu, p, 3dlu, p, 3dlu");
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.setBorder(Borders.EMPTY_BORDER);
 		builder.setOpaque(false);
@@ -321,6 +329,18 @@ public class FFMpegVideo extends Player {
 		JComponent cmp = builder.addSeparator(Messages.getString(languageLabel), cc.xyw(2, 1, 1));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
+
+		multithreading = new JCheckBox(Messages.getString("MEncoderVideo.35"));
+		multithreading.setContentAreaFilled(false);
+		if (PMS.getConfiguration().isFfmpegMultithreading()) {
+			multithreading.setSelected(true);
+		}
+		multithreading.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				PMS.getConfiguration().setFfmpegMultithreading(e.getStateChange() == ItemEvent.SELECTED);
+			}
+		});
+		builder.add(multithreading, cc.xy(2, 3));
 
 		ffmpeg = new JTextField(PMS.getConfiguration().getFfmpegSettings());
 		ffmpeg.addKeyListener(new KeyListener() {
@@ -337,7 +357,7 @@ public class FFMpegVideo extends Player {
 				PMS.getConfiguration().setFfmpegSettings(ffmpeg.getText());
 			}
 		});
-		builder.add(ffmpeg, cc.xy(2, 3));
+		builder.add(ffmpeg, cc.xy(2, 5));
 
 		return builder.getPanel();
 	}
