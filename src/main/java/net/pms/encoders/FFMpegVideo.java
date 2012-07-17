@@ -74,13 +74,17 @@ public class FFMpegVideo extends Player {
 	}
 	private String overriddenArgs[];
 
+	public String initialString() {
+		String threads = "";
+		if (PMS.getConfiguration().isFfmpegMultithreading()) {
+			threads = " -threads " + PMS.getConfiguration().getNumberOfCpuCores();
+		}
+		return PMS.getConfiguration().getFfmpegSettings() + " -ab " + PMS.getConfiguration().getAudioBitrate() + "k" + threads;
+	}
+
 	public FFMpegVideo() {
 		if (PMS.getConfiguration().getFfmpegSettings() != null) {
-			String threads = "";
-			if (PMS.getConfiguration().isFfmpegMultithreading()) {
-				threads = " -threads " + PMS.getConfiguration().getNumberOfCpuCores();
-			}
-			StringTokenizer st = new StringTokenizer(PMS.getConfiguration().getFfmpegSettings() + " -ab " + PMS.getConfiguration().getAudioBitrate() + "k" + threads, " ");
+			StringTokenizer st = new StringTokenizer(initialString(), " ");
 			overriddenArgs = new String[st.countTokens()];
 			int i = 0;
 			while (st.hasMoreTokens()) {

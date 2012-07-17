@@ -18,13 +18,25 @@
  */
 package net.pms.encoders;
 
+import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.factories.Borders;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
+import java.awt.Font;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import javax.swing.JTextField;
+import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
@@ -54,6 +66,15 @@ public class FFMpegAviSynthVideo extends FFMpegVideo {
 	@Override
 	public boolean avisynth() {
 		return true;
+	}
+
+	@Override
+	public String initialString() {
+		String threads = "";
+		if (PMS.getConfiguration().isFfmpegAviSynthMultithreading()) {
+			threads = " -threads " + PMS.getConfiguration().getNumberOfCpuCores();
+		}
+		return PMS.getConfiguration().getFfmpegSettings() + " -ab " + PMS.getConfiguration().getAudioBitrate() + "k" + threads;
 	}
 
 	@Override
@@ -208,6 +229,56 @@ public class FFMpegAviSynthVideo extends FFMpegVideo {
 		pw.close();
 		file.deleteOnExit();
 		return file;
+	}
+
+	private JTextField ffmpeg;
+	private JCheckBox multithreading;
+
+	@Override
+	protected JComponent config(String languageLabel) {
+		FormLayout layout = new FormLayout(
+			"left:pref, 0:grow",
+			"p, 3dlu, p, 3dlu, p, 3dlu");
+		PanelBuilder builder = new PanelBuilder(layout);
+		builder.setBorder(Borders.EMPTY_BORDER);
+		builder.setOpaque(false);
+
+		CellConstraints cc = new CellConstraints();
+
+		JComponent cmp = builder.addSeparator(Messages.getString(languageLabel), cc.xyw(2, 1, 1));
+		cmp = (JComponent) cmp.getComponent(0);
+		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
+
+		multithreading = new JCheckBox(Messages.getString("MEncoderVideo.35"));
+		multithreading.setContentAreaFilled(false);
+		if (PMS.getConfiguration().isFfmpegAviSynthMultithreading()) {
+			multithreading.setSelected(true);
+		}
+		multithreading.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				PMS.getConfiguration().setFfmpegAviSynthMultithreading(e.getStateChange() == ItemEvent.SELECTED);
+			}
+		});
+		builder.add(multithreading, cc.xy(2, 3));
+
+		ffmpeg = new JTextField(PMS.getConfiguration().getFfmpegAviSynthSettings());
+		ffmpeg.addKeyListener(new KeyListener() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+			}
+
+			@Override
+			public void keyTyped(KeyEvent e) {
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+				PMS.getConfiguration().setFfmpegAviSynthSettings(ffmpeg.getText());
+			}
+		});
+		builder.add(ffmpeg, cc.xy(2, 5));
+
+		return builder.getPanel();
 	}
 
 	/**

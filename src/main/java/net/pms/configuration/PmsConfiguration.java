@@ -76,6 +76,8 @@ public class PmsConfiguration {
 	private static final String KEY_FFMPEG_ALTERNATIVE_PATH = "alternativeffmpegpath";
 	private static final String KEY_FFMPEG_SETTINGS = "ffmpeg";
 	private static final String KEY_FFMPEG_MULTITHREADING = "ffmpeg_multithreading";
+	private static final String KEY_FFMPEG_AVISYNTH_SETTINGS = "ffmpeg_avisynth";
+	private static final String KEY_FFMPEG_AVISYNTH_MULTITHREADING = "ffmpeg_avisynth_multithreading";
 	private static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
 	private static final String KEY_FORCETRANSCODE = "forcetranscode";
 	private static final String KEY_FOLDER_LIMIT="folder_limit";
@@ -1680,6 +1682,22 @@ public class PmsConfiguration {
 
 	public boolean isFfmpegMultithreading() {
 		return getBoolean(KEY_FFMPEG_MULTITHREADING, true);
+	}
+
+	public void setFfmpegAviSynthSettings(String value) {
+		configuration.setProperty(KEY_FFMPEG_AVISYNTH_SETTINGS, value);
+	}
+
+	public String getFfmpegAviSynthSettings() {
+		return getString(KEY_FFMPEG_AVISYNTH_SETTINGS, "-g 1 -q:v 1 -qmin 2");
+	}
+
+	public void setFfmpegAviSynthMultithreading(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_AVISYNTH_MULTITHREADING, value);
+	}
+
+	public boolean isFfmpegAviSynthMultithreading() {
+		return getBoolean(KEY_FFMPEG_AVISYNTH_MULTITHREADING, true);
 	}
 
 	public boolean isMencoderNoOutOfSync() {
