@@ -6,9 +6,7 @@
 #
 # Revisions for the source code patches:
 #
-#    mplayer-configure.patch             MPlayer r34587
-#    mplayer-ffmpeg.patch                MPlayer r34866-SB31, FFmpeg-58c25724
-#    mplayer.patch                       MPlayer r34883-SB32
+#    mplayer-configure.patch             MPlayer r35003
 #
 VERSION_BZIP2=1.0.6
 VERSION_DCRAW=9.07
