@@ -255,7 +255,7 @@ public class RendererConfiguration {
 		return rank;
 	}
 
-	// These 'is' methods should disappear. Use getRendererUniqueID() instead.
+	// FIXME These 'is' methods should disappear. Use feature detection instead.
 	@Deprecated
 	public boolean isXBOX() {
 		return getRendererName().toUpperCase().contains("XBOX");

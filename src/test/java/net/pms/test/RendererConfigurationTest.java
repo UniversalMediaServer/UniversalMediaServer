@@ -25,6 +25,7 @@ import java.util.Map.Entry;
 import java.util.*;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import static net.pms.configuration.RendererConfiguration.*;
 import org.apache.commons.configuration.ConfigurationException;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -118,7 +119,7 @@ public class RendererConfigurationTest {
 		}
 
 		// Initialize the RendererConfiguration
-		RendererConfiguration.loadRendererConfigurations(pmsConf);
+		loadRendererConfigurations(pmsConf);
 
 		// Test all header test cases
 		Set<Entry<String, String>> set = testCases.entrySet();
@@ -150,7 +151,7 @@ public class RendererConfigurationTest {
 		pmsConf.setRendererForceDefault(true);
 
 		// Initialize the RendererConfiguration
-		RendererConfiguration.loadRendererConfigurations(pmsConf);
+		loadRendererConfigurations(pmsConf);
 
 		// Known and unknown renderers should always return default
 		testHeader("User-Agent: AirPlayer/1.0.09 CFNetwork/485.13.9 Darwin/11.0.0", "Playstation 3");
@@ -178,7 +179,7 @@ public class RendererConfigurationTest {
 		pmsConf.setRendererForceDefault(true);
 
 		// Initialize the RendererConfiguration
-		RendererConfiguration.loadRendererConfigurations(pmsConf);
+		loadRendererConfigurations(pmsConf);
 
 		// Known and unknown renderers should return "Unknown renderer"
 		testHeader("User-Agent: AirPlayer/1.0.09 CFNetwork/485.13.9 Darwin/11.0.0", "Unknown renderer");
@@ -201,14 +202,14 @@ public class RendererConfigurationTest {
 			// Header is supposed to match a particular renderer
 			if (headerLine != null && headerLine.toLowerCase().startsWith("user-agent")) {
 				// Match by User-Agent
-					RendererConfiguration rc = RendererConfiguration.getRendererConfigurationByUA(headerLine);
+					RendererConfiguration rc = getRendererConfigurationByUA(headerLine);
 					assertNotNull("Recognized renderer for header \"" + headerLine + "\"", rc);
 					assertEquals("Expected renderer \"" + correctRendererName + "\", "
 							+ "instead renderer \"" + rc.getRendererName() + "\" was returned for header \""
 							+ headerLine + "\"", correctRendererName, rc.getRendererName());
 			} else {
 				// Match by additional header
-					RendererConfiguration rc = RendererConfiguration.getRendererConfigurationByUAAHH(headerLine);
+					RendererConfiguration rc = getRendererConfigurationByUAAHH(headerLine);
 					assertNotNull("Recognized renderer for header \"" + headerLine + "\"", rc);
 					assertEquals("Expected renderer \"" + correctRendererName + "\" to be recognized, "
 							+ "instead renderer \"" + rc.getRendererName() + "\" was returned for header \""
@@ -218,14 +219,14 @@ public class RendererConfigurationTest {
 			// Header is supposed to match no renderer at all
 			if (headerLine != null && headerLine.toLowerCase().startsWith("user-agent")) {
 				// Match by User-Agent
-					RendererConfiguration rc = RendererConfiguration.getRendererConfigurationByUA(headerLine);
+					RendererConfiguration rc = getRendererConfigurationByUA(headerLine);
 					assertEquals("Expected no matching renderer to be found for header \"" + headerLine
 							+ "\", instead renderer \"" + (rc != null ? rc.getRendererName() : "")
 							+ "\" was recognized.", null,
 							rc);
 			} else {
 				// Match by additional header
-					RendererConfiguration rc = RendererConfiguration.getRendererConfigurationByUAAHH(headerLine);
+					RendererConfiguration rc = getRendererConfigurationByUAAHH(headerLine);
 					assertEquals("Expected no matching renderer to be found for header \"" + headerLine
 							+ "\", instead renderer \"" + (rc != null ? rc.getRendererName() : "")
 							+ "\" was recognized.", null, rc);
