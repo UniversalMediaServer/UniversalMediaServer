@@ -1134,14 +1134,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					if (getPlayer().isTimeSeekable() && mediaRenderer.isSeekByTime()) {
 
 						// PS3 doesn't like OP=11
-						if (mediaRenderer.getRendererUniqueID().equalsIgnoreCase(RENDERER_ID_PLAYSTATION3)) {
+						if (mediaRenderer.isPS3()) {
 							flags = "DLNA.ORG_OP=10";
 						} else {
 							flags = "DLNA.ORG_OP=11";
 						}
 					}
 				} else {
-					if (mediaRenderer.isSeekByTime() && !mediaRenderer.getRendererUniqueID().equalsIgnoreCase(RENDERER_ID_PLAYSTATION3)) {
+					if (mediaRenderer.isSeekByTime() && !mediaRenderer.isPS3()) {
 						flags = "DLNA.ORG_OP=11";
 					}
 				}
@@ -1154,7 +1154,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 				// TODO: Remove, or at least make this generic
 				// Whole extensions/mime-types mess to rethink anyway
-				if (mediaRenderer.getRendererUniqueID().equalsIgnoreCase(RENDERER_ID_PLAYSTATION3)) {
+				if (mediaRenderer.isPS3()) {
 					if (mime.equals("video/x-divx")) {
 						dlnaspec = "DLNA.ORG_PN=AVI";
 					} else if (mime.equals("video/x-ms-wmv") && getMedia() != null && getMedia().getHeight() > 700) {
