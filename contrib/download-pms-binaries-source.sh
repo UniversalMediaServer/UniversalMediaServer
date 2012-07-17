@@ -705,21 +705,6 @@ download_enca() {
 
 
 ##########################################
-# HarfBuzz is an OpenType text shaping engine
-# http://www.freedesktop.org/wiki/Software/HarfBuzz
-#
-download_harfbuzz() {
-    start_download harfbuzz
-    cd $SRC
-
-    if [ ! -f harfbuzz-${VERSION_HARFBUZZ}.tar.bz2 ]; then
-        download http://www.freedesktop.org/software/harfbuzz/release/harfbuzz-${VERSION_HARFBUZZ}.tar.bz2
-        exit_on_error
-    fi
-}
-
-
-##########################################
 # YASM
 # http://yasm.tortall.net/
 #
@@ -798,7 +783,6 @@ download_bzip2
 download_expat
 download_faad2
 download_freetype
-download_harfbuzz
 download_iconv
 # Note: fontconfig requires freetype and iconv to build
 download_fontconfig
