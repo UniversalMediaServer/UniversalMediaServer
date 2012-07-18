@@ -1,3 +1,8 @@
+1.4.1 - 2012-07-??
+
+	General:
+		Made videos adhere more exactly to the maximum bandwidth limit
+
 1.4.0 - 2012-07-18
 
 	General:

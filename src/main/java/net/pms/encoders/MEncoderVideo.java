@@ -1171,9 +1171,9 @@ public class MEncoderVideo extends Player {
 			else if ("dts".equals(audioType)) {
 				defaultMaxBitrates[0] = defaultMaxBitrates[0] - 1510;
 			}
-			// If audio is AC3, subtract 640kb/s to be safe
+			// If audio is AC3, subtract the configured amount (usually 640)
 			else if ("ac3".equals(audioType)) {
-				defaultMaxBitrates[0] = defaultMaxBitrates[0] - 640;
+				defaultMaxBitrates[0] = defaultMaxBitrates[0] - configuration.getAudioBitrate();
 			}
 
 			// Round down to the nearest Mb
