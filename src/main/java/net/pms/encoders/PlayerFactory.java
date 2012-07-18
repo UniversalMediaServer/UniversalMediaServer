@@ -27,7 +27,7 @@ import java.util.Comparator;
 import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.io.SystemUtils;
@@ -221,7 +221,7 @@ public final class PlayerFactory {
 	}
 
 	/**
-	 * @deprecated Use {@link #getPlayer(DLNAMediaInfo, Format)} instead.
+	 * @deprecated Use {@link #getPlayer(DLNAResource)} instead.
 	 *
 	 * Returns the player that matches the given class and format.
 	 * 
@@ -252,35 +252,28 @@ public final class PlayerFactory {
 	 * format. Each of the available players is passed the provided information
 	 * and the first that reports it is compatible will be returned.
 	 * 
-	 * @param mediaInfo
-	 *            The {@link DLNAMediaInfo} to match
-	 * @param format
-	 *            The {@link Format} to match.
+	 * @param resource
+	 *            The {@link DLNAMediaResource} to match
 	 * @return The player if a match could be found, <code>null</code>
 	 *         otherwise.
 	 * @since 1.60.0
 	 */
-	public static Player getPlayer(final DLNAMediaInfo mediaInfo, final Format format) {
+	public static Player getPlayer(final DLNAResource resource) {
+		if (resource == null) {
+			return null;
+		}
 		for (Player player : players) {
-			if (mediaInfo != null) {
-				if (player.isCompatible(mediaInfo)) {
-					LOGGER.trace("Selecting player " + player.name() + " based on media information.");
-					return player;
-				} 
-			} //else {
-				// FIXME: This should only happen when no mediaInfo is available.
-				if (player.isCompatible(format)) {
-					LOGGER.trace("Selecting player " + player.name() + " based on format.");
-					return player;
-				}
-			//}
+			if (player.isCompatible(resource)) {
+				LOGGER.trace("Selecting player " + player.name() + " based on media information.");
+				return player;
+			}
 		}
 
 		return null;
 	}
 
 	/**
-	 * @deprecated Use {@link #getPlayer(DLNAMediaInfo, Format)} instead. 
+	 * @deprecated Use {@link #getPlayer(DLNAResource)} instead. 
 	 *
 	 * Returns the players matching the given classes and type.
 	 * 
@@ -309,32 +302,27 @@ public final class PlayerFactory {
 	}
 
 	/**
-	 * Returns all {@link Player}s that match the given mediaInfo or format
-	 * Each of the available players is passed the provided information and
-	 * each player that reports it is compatible will be returned.
+	 * Returns all {@link Player}s that match the given resource. Each of the
+	 * available players is passed the provided information and each player that
+	 * reports it is compatible will be returned.
 	 * 
-	 * @param mediaInfo
-	 *            The {@link DLNAMediaInfo} to match
-	 * @param format
-	 *            The {@link Format} to match.
+	 * @param resource
+	 *            The {@link DLNAResource} to match
 	 * @return The player if a match could be found, <code>null</code>
 	 *         otherwise.
 	 * @since 1.60.0
 	 */
-	public static ArrayList<Player> getPlayers(final DLNAMediaInfo mediaInfo, final Format format) {
+	public static ArrayList<Player> getPlayers(final DLNAResource resource) {
+		if (resource == null) {
+			return null;
+		}
+
 		ArrayList<Player> compatiblePlayers = new ArrayList<Player>();
 
 		for (Player player : players) {
-			if (mediaInfo != null) {
-				if (player.isCompatible(mediaInfo)) {
-					compatiblePlayers.add(player);
-				}
-			} //else {
-				// FIXME: This should only happen when no mediaInfo is available.
-				if (player.isCompatible(format)) {
-					compatiblePlayers.add(player);
-				}
-			//}
+			if (player.isCompatible(resource)) {
+				compatiblePlayers.add(player);
+			}
 		}
 
 		return compatiblePlayers;

@@ -28,7 +28,6 @@ import java.util.concurrent.TimeUnit;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import static net.pms.configuration.RendererConfiguration.RENDERER_ID_PLAYSTATION3;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.encoders.*;
@@ -508,7 +507,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					// If no preferred player could be determined from the name, try to
 					// match a player based on media information and format.
 					if (player == null) {
-						player = PlayerFactory.getPlayer(child.getMedia(), child.getFormat());
+						player = PlayerFactory.getPlayer(child);
 					}
 
 					if (player != null && !allChildrenAreFolders) {
@@ -592,7 +591,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					child.second = newChild;
 
 					if (!newChild.getFormat().isCompatible(newChild.getMedia(), getDefaultRenderer())) {
-						Player player = PlayerFactory.getPlayer(newChild.getMedia(), newChild.getFormat());
+						Player player = PlayerFactory.getPlayer(newChild);
 						newChild.setPlayer(player);
 					}
 					if (child.getMedia() != null && child.getMedia().isSecondaryFormatValid()) {
@@ -1134,14 +1133,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					if (getPlayer().isTimeSeekable() && mediaRenderer.isSeekByTime()) {
 
 						// PS3 doesn't like OP=11
-						if (mediaRenderer.getRendererUniqueID().equalsIgnoreCase(RENDERER_ID_PLAYSTATION3)) {
+						if (mediaRenderer.isPS3()) {
 							flags = "DLNA.ORG_OP=10";
 						} else {
 							flags = "DLNA.ORG_OP=11";
 						}
 					}
 				} else {
-					if (mediaRenderer.isSeekByTime() && !mediaRenderer.getRendererUniqueID().equalsIgnoreCase(RENDERER_ID_PLAYSTATION3)) {
+					if (mediaRenderer.isSeekByTime() && !mediaRenderer.isPS3()) {
 						flags = "DLNA.ORG_OP=11";
 					}
 				}
@@ -1154,7 +1153,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 				// TODO: Remove, or at least make this generic
 				// Whole extensions/mime-types mess to rethink anyway
-				if (mediaRenderer.getRendererUniqueID().equalsIgnoreCase(RENDERER_ID_PLAYSTATION3)) {
+				if (mediaRenderer.isPS3()) {
 					if (mime.equals("video/x-divx")) {
 						dlnaspec = "DLNA.ORG_PN=AVI";
 					} else if (mime.equals("video/x-ms-wmv") && getMedia() != null && getMedia().getHeight() > 700) {
@@ -1818,18 +1817,20 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	/**
 	 * Returns the {@link DLNAMediaAudio} object for this resource that contains
-	 * the audio specifics.
+	 * the audio specifics. A resource can have many audio tracks, this method
+	 * returns the one that should be played.
 	 *
 	 * @return The audio object containing detailed information.
 	 * @since 1.50
 	 */
-	protected DLNAMediaAudio getMediaAudio() {
+	public DLNAMediaAudio getMediaAudio() {
 		return media_audio;
 	}
 
 	/**
 	 * Sets the {@link DLNAMediaAudio} object for this resource that contains
-	 * the audio specifics.
+	 * the audio specifics. A resource can have many audio tracks, this method
+	 * determines the one that should be played.
 	 *
 	 * @param mediaAudio The audio object containing detailed information.
 	 * @since 1.50
@@ -1840,18 +1841,20 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	/**
 	 * Returns the {@link DLNAMediaSubtitle} object for this resource that
-	 * contains the specifics for the subtitles.
+	 * contains the specifics for the subtitles. A resource can have many
+	 * subtitles, this method returns the one that should be displayed.
 	 *
 	 * @return The subtitle object containing detailed information.
 	 * @since 1.50
 	 */
-	protected DLNAMediaSubtitle getMediaSubtitle() {
+	public DLNAMediaSubtitle getMediaSubtitle() {
 		return media_subtitle;
 	}
 
 	/**
 	 * Sets the {@link DLNAMediaSubtitle} object for this resource that
-	 * contains the specifics for the subtitles.
+	 * contains the specifics for the subtitles. A resource can have many
+	 * subtitles, this method determines the one that should be used.
 	 *
 	 * @param mediaSubtitle The subtitle object containing detailed information.
 	 * @since 1.50

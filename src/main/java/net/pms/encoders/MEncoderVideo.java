@@ -38,7 +38,6 @@ import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import static net.pms.configuration.RendererConfiguration.RENDERER_ID_PLAYSTATION3;
 import net.pms.dlna.*;
 import net.pms.formats.Format;
 import static net.pms.formats.v2.AudioUtils.getLPCMChannelMappingForMencoder;
@@ -1323,7 +1322,9 @@ public class MEncoderVideo extends Player {
 		mpegts = params.mediaRenderer.isTranscodeToMPEGTSAC3();
 
 		// Disable AC3 remux for stereo tracks with 384 kbits bitrate and PS3 renderer (PS3 FW bug?)
-		boolean ps3_and_stereo_and_384_kbits = params.aid != null && (params.mediaRenderer.getRendererUniqueID().equalsIgnoreCase(RENDERER_ID_PLAYSTATION3) && params.aid.getAudioProperties().getNumberOfChannels() == 2) && (params.aid.getBitRate() > 370000 && params.aid.getBitRate() < 400000);
+		boolean ps3_and_stereo_and_384_kbits = params.aid != null &&
+			(params.mediaRenderer.isPS3() && params.aid.getAudioProperties().getNumberOfChannels() == 2) &&
+			(params.aid.getBitRate() > 370000 && params.aid.getBitRate() < 400000);
 
 		if (configuration.isRemuxAC3() && params.aid != null && params.aid.isAC3() && !ps3_and_stereo_and_384_kbits && !avisynth() && params.mediaRenderer.isTranscodeToAC3()) {
 			// AC3 remux takes priority
@@ -2579,28 +2580,19 @@ public class MEncoderVideo extends Player {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean isCompatible(DLNAMediaInfo mediaInfo) {
-		if (mediaInfo != null) {
-			// TODO: Determine compatibility based on mediaInfo
-			return false;
-		} else {
-			// No information available
+	public boolean isCompatible(DLNAResource resource) {
+		if (resource == null || resource.getFormat().getType() != Format.VIDEO) {
 			return false;
 		}
-	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public boolean isCompatible(Format format) {
+		Format format = resource.getFormat();
+
 		if (format != null) {
 			Format.Identifier id = format.getIdentifier();
 
 			if (id.equals(Format.Identifier.ISO)
 					|| id.equals(Format.Identifier.MKV)
-					|| id.equals(Format.Identifier.MPG)
-					) {
+					|| id.equals(Format.Identifier.MPG)) {
 				return true;
 			}
 		}

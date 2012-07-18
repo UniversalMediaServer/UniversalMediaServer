@@ -138,8 +138,12 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 			// Create combinations of all audio tracks, subtitles and players.
 			for (DLNAMediaAudio audio : audioTracks) {
 				for (DLNAMediaSubtitle subtitle : subtitles) {
+					// Create a temporary copy of the child with the audio and
+					// subtitle modified in order to be able to match players to it.
+					DLNAResource tempModifiedCopy = createModifiedResource(child, audio, subtitle);
+			
 					// Determine which players match this audio track and subtitle
-					ArrayList<Player> players = PlayerFactory.getPlayers(child.getMedia(), child.getFormat());
+					ArrayList<Player> players = PlayerFactory.getPlayers(tempModifiedCopy);
 
 					for (Player player : players) {
 						// Create a copy based on this combination
@@ -189,6 +193,28 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 		copy.setMediaSubtitle(subtitle);
 		copy.setPlayer(player);
 
+		return copy;
+	}
+
+	/**
+	 * Create a copy of the provided original resource and modifies it with
+	 * the given audio track and subtitles.
+	 *
+	 * @param original The original {@link DLNAResource} to create a copy of.
+	 * @param audio The audio track to use.
+	 * @param subtitle The subtitle track to use.
+	 * @return The copy.
+	 */
+	private DLNAResource createModifiedResource(DLNAResource original,
+			DLNAMediaAudio audio, DLNAMediaSubtitle subtitle) {
+
+		// FIXME: Use new DLNAResource() instead of clone(). Clone is bad, mmmkay?
+		DLNAResource copy = original.clone();
+
+		copy.setMedia(original.getMedia());
+		copy.setNoName(true);
+		copy.setMediaAudio(audio);
+		copy.setMediaSubtitle(subtitle);
 		return copy;
 	}
 
