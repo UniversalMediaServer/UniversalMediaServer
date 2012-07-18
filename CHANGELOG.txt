@@ -1,4 +1,4 @@
-1.4.0 - 2012-07-??
+1.4.0 - 2012-07-18
 
 	General:
 		Many improvements to FFmpeg, from audio sync to file-support to stability
