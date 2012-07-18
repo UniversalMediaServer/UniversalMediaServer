@@ -2,6 +2,7 @@
 
 	General:
 		Many improvements to FFmpeg engine, from audio sync to file-support to stability
+		Added FFmpeg multithreading option
 		Updated FFmpeg for OS X to 57d5a224
 		Added a GUI config editor for those who like to edit manually
 		Improved audio/video sync when using MEncoder
@@ -13,14 +14,16 @@
 		Fixed "Definitely disable subtitles" option with ASS/SSA subtitles
 		Fixed default audio/subtitle priority options
 		Fixed running on headless servers
+		Windows 7 and Vista users are reminded to run as administrator before attempting to automatically update
+		Fixed multithreading bug with MEncoder on Linux
+		Made layout more consistent
 	Languages:
 		Updated Simplified Chinese (thanks, lovenemesis!)
 		Updated Czech (thanks, valib!)
 		Updated English
 		Added image for Hebrew subtitle choosing
 	Plugin Installer:
-		Added Plugin Installer which lets you automatically browse plugins and install them
-		This feature will soon link with an upcoming website feature which will allow plugin authors to add their plugins to the official database where users can download, rate, comment, etc.
+		Added Plugin Installer which lets you automatically browse plugins and install them, see this page for details: http://www.universalmediaserver.com/forum/viewtopic.php?f=8&t=152
 
 1.3.0 - 2012-07-09
 
