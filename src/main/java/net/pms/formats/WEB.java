@@ -63,7 +63,9 @@ public class WEB extends Format {
 		} else {
 			PMS r = PMS.get();
 			for (String engine : PMS.getConfiguration().getEnginesAsList(r.getRegistry())) {
-				if (engine.equals(MEncoderWebVideo.ID)) {
+				if (engine.equals(FFMpegWebVideo.ID)) {
+					a.add(FFMpegWebVideo.class);
+				} else if (engine.equals(MEncoderWebVideo.ID)) {
 					a.add(MEncoderWebVideo.class);
 				} else if (engine.equals(VideoLanVideoStreaming.ID)) {
 					a.add(VideoLanVideoStreaming.class);
@@ -72,6 +74,7 @@ public class WEB extends Format {
 				}
 			}
 		}
+
 		return a;
 	}
 
@@ -79,8 +82,9 @@ public class WEB extends Format {
 	 * {@inheritDoc}
 	 */
 	@Override
+	// TODO remove screen - it's been tried numerous times (see forum) and it doesn't work
 	public String[] getId() {
-		return new String[] { "http", "mms", "rtsp", "rtp", "udp", "screen" };
+		return new String[] { "http", "mms", "mmsh", "mmst", "rtsp", "rtp", "udp", "screen" };
 	}
 
 	@Override

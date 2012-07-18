@@ -57,7 +57,13 @@ public abstract class Player {
 	public abstract String id();
 	public abstract String name();
 	public abstract int type();
+
+	// FIXME this is an implementation detail (and not a very good one).
+	// it's entirely up to engines how they construct their command lines.
+	// need to get rid of this
+	@Deprecated
 	public abstract String[] args();
+
 	public abstract String mimeType();
 	public abstract String executable();
 	private static List<FinalizeTranscoderArgsListener> finalizeTranscodeArgsListeners =
@@ -123,18 +129,19 @@ public abstract class Player {
 			for (FinalizeTranscoderArgsListener listener : finalizeTranscodeArgsListeners) {
 				try {
 					cmdList = listener.finalizeTranscoderArgs(
-							player,
-							filename,
-							dlna,
-							media,
-							params,
-							cmdList);
+						player,
+						filename,
+						dlna,
+						media,
+						params,
+						cmdList
+					);
 				} catch (Throwable t) {
 					LOGGER.error(String.format("Failed to call finalizeTranscoderArgs on listener of type=%s", listener.getClass()), t);
 				}
 			}
 
-			String[] cmdArray = new String[cmdList.size()];
+			String[] cmdArray = new String[ cmdList.size() ];
 			cmdList.toArray(cmdArray);
 			return cmdArray;
 		}
