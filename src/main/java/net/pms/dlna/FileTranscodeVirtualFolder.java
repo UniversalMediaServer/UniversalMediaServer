@@ -137,11 +137,11 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 
 			// Create combinations of all audio tracks, subtitles and players.
 			for (DLNAMediaAudio audio : audioTracks) {
-				// Create a temporary copy of the child with the audio and
-				// subtitle modified in order to be able to match players to it.
-				DLNAResource tempModifiedCopy = createModifiedResource(child, audio, subtitle);
-
 				for (DLNAMediaSubtitle subtitle : subtitles) {
+					// Create a temporary copy of the child with the audio and
+					// subtitle modified in order to be able to match players to it.
+					DLNAResource tempModifiedCopy = createModifiedResource(child, audio, subtitle);
+			
 					// Determine which players match this audio track and subtitle
 					ArrayList<Player> players = PlayerFactory.getPlayers(tempModifiedCopy);
 
