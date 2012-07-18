@@ -1,7 +1,10 @@
 1.4.0 - 2012-07-??
 
 	General:
-		Many improvements to FFmpeg engine, from audio sync to file-support to stability
+		Many improvements to FFmpeg, from audio sync to file-support to stability
+		Updated MPlayer and MEncoder for Windows to SB36, which:
+			Supports a lot more file formats and colour-spaces
+			Improves audio/video sync, especially with PAL (25FPS) videos
 		Added FFmpeg multithreading option
 		Updated FFmpeg for OS X to 57d5a224
 		Added a GUI config editor for those who like to edit manually
@@ -17,6 +20,7 @@
 		Windows 7 and Vista users are reminded to run as administrator before attempting to automatically update
 		Fixed multithreading bug with MEncoder on Linux
 		Made layout more consistent
+		Updated WEB.conf with working default video streams
 	Languages:
 		Updated Simplified Chinese (thanks, lovenemesis!)
 		Updated Czech (thanks, valib!)
