@@ -255,10 +255,19 @@ public class RendererConfiguration {
 		return rank;
 	}
 
-	// These 'is' methods should disappear. Use getRendererUniqueID() instead.
+	// FIXME These 'is' methods should disappear. Use feature detection instead.
 	@Deprecated
 	public boolean isXBOX() {
 		return getRendererName().toUpperCase().contains("XBOX");
+	}
+
+	@Deprecated
+	public boolean isXBMC() {
+		return getRendererName().toUpperCase().contains("XBMC");
+	}
+
+	public boolean isPS3() {
+		return getRendererName().toUpperCase().contains("PLAYSTATION") || getRendererName().toUpperCase().contains("PS3");
 	}
 
 	@Deprecated
@@ -272,7 +281,6 @@ public class RendererConfiguration {
 	}
 
 	private static final String RENDERER_NAME = "RendererName";
-	private static final String RENDERER_UNIQUE_ID = "RendererUniqueID";
 	private static final String RENDERER_ICON = "RendererIcon";
 	private static final String USER_AGENT = "UserAgentSearch";
 	private static final String USER_AGENT_ADDITIONAL_HEADER = "UserAgentAdditionalHeader";
@@ -329,9 +337,6 @@ public class RendererConfiguration {
 	private static final String SHOW_DVD_TITLE_DURATION = "ShowDVDTitleDuration";
 	private static final String CBR_VIDEO_BITRATE = "CBRVideoBitrate";
 	private static final String BYTE_TO_TIMESEEK_REWIND_SECONDS = "ByteToTimeseekRewindSeconds";
-
-	// Known renderers with special code workarounds
-	public final static String RENDERER_ID_PLAYSTATION3 = "ps3";
 
 	// Ditlew
 	public int getByteToTimeseekRewindSeconds() {
@@ -608,17 +613,6 @@ public class RendererConfiguration {
 	}
 
 	/**
-	 * RendererUniqueID: Determines renderer's unique ID. PS3 Media Server may apply
-	 * workarounds specific to this client type based on RendererUniqueID. Defaults
-	 * to RendererName if not set.
-	 *
-	 * @return The renderer unique ID.
-	 */
-	public String getRendererUniqueID() {
-		return getString(RENDERER_UNIQUE_ID, getRendererName());
-	}
-
-	/**
 	 * Returns the icon to use for displaying this renderer in PMS as defined
 	 * in the renderer configurations. Default value is "unknown.png".
 	 *
@@ -705,7 +699,7 @@ public class RendererConfiguration {
 		if (isMediaParserV2()) {
 			return getFormatConfiguration().isMpeg2Supported();
 		}
-		return getRendererUniqueID().equalsIgnoreCase(RENDERER_ID_PLAYSTATION3);
+		return isPS3();
 	}
 
 	/**

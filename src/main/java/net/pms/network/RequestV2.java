@@ -26,15 +26,9 @@ import java.net.Socket;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
-import static net.pms.configuration.RendererConfiguration.RENDERER_ID_PLAYSTATION3;
-import net.pms.dlna.DLNAMediaAudio;
-import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAMediaSubtitle;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.Range;
+import net.pms.dlna.*;
 import net.pms.external.StartStopListenerDelegate;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -473,7 +467,7 @@ public class RequestV2 extends HTTPResource {
 					s = s.replace("Universal Media Server", "Universal Media Server [" + profileName + "]");
 				}
 
-				if (!mediaRenderer.getRendererUniqueID().equalsIgnoreCase(RENDERER_ID_PLAYSTATION3)) {
+				if (!mediaRenderer.isPS3()) {
 					// hacky stuff. replace the png icon by a jpeg one. Like mpeg2 remux,
 					// really need a proper format compatibility list by renderer
 					s = s.replace("<mimetype>image/png</mimetype>", "<mimetype>image/jpeg</mimetype>");
