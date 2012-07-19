@@ -34,7 +34,7 @@ import javax.swing.*;
 import java.io.IOException;
 
 public class FFMpegWebVideo extends Player {
-	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegWebVideo.class);
 	public static final String ID = "ffmpegwebvideo";
 	private final PmsConfiguration configuration;
 
