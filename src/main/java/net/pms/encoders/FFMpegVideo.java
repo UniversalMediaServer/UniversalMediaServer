@@ -347,7 +347,7 @@ public class FFMpegVideo extends Player {
 				seek_value = "" + params.timeseek;
 			}
 
-			String overiddenMPlayerArgs[] = null;
+			String overiddenMPlayerArgs[];
 
 			overiddenMPlayerArgs = new String[0];
 
