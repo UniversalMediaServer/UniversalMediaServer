@@ -81,7 +81,7 @@ public class FFMpegVideo extends Player {
 		if (PMS.getConfiguration().isFfmpegMultithreading()) {
 			threads = " -threads " + PMS.getConfiguration().getNumberOfCpuCores();
 		}
-		return PMS.getConfiguration().getFfmpegSettings() + " -ab " + PMS.getConfiguration().getAudioBitrate() + "k" + threads;
+		return PMS.getConfiguration().getFfmpegSettings() + threads;
 	}
 
 	public FFMpegVideo() {
@@ -106,7 +106,7 @@ public class FFMpegVideo extends Player {
 	}
 
 	protected String[] getDefaultArgs() {
-		return new String[]{"-c:v", "mpeg2video", "-f", "vob", "-c:a", "ac3", "-loglevel", "fatal", "-max_delay", "0"};
+		return new String[]{"-c:v", "mpeg2video", "-f", "vob", "-loglevel", "fatal", "-max_delay", "0"};
 	}
 
 	private int[] getVideoBitrateConfig(String bitrate) {
@@ -193,7 +193,7 @@ public class FFMpegVideo extends Player {
 			audioP = new PipeIPCProcess("mplayer_aud1" + System.currentTimeMillis(), "mplayer_aud2" + System.currentTimeMillis(), false, false);
 		}
 
-		String cmdArray[] = new String[14 + args.length];
+		String cmdArray[] = new String[22 + args.length];
 		cmdArray[0] = executable();
 		cmdArray[1] = "-sn";
 		cmdArray[2] = "-sn";
@@ -235,9 +235,11 @@ public class FFMpegVideo extends Player {
 			cmdArray[9] = "-t";
 			cmdArray[10] = "" + params.timeend;
 		}
-		for (int i = 0; i < args.length; i++) {
-			cmdArray[11 + i] = args[i];
-		}
+
+		cmdArray[11] = "-sn";
+		cmdArray[12] = "-sn";
+		cmdArray[13] = "-sn";
+		cmdArray[14] = "-sn";
 
 		cmdArray[cmdArray.length - 3] = "-muxpreload";
 		cmdArray[cmdArray.length - 2] = "0";
@@ -277,7 +279,7 @@ public class FFMpegVideo extends Player {
 				bufSize = 1835;
 			}
 
-			// If audio is AC3, subtract the configured amount (usually 640)
+			// Audio is always AC3 right now, so subtract the configured amount (usually 640)
 			defaultMaxBitrates[0] = defaultMaxBitrates[0] - PMS.getConfiguration().getAudioBitrate();
 
 			// Round down to the nearest Mb
@@ -287,11 +289,20 @@ public class FFMpegVideo extends Player {
 			bufSize = bufSize * 1000;
 			defaultMaxBitrates[0] = defaultMaxBitrates[0] * 1000;
 
-			cmdArray[cmdArray.length - 5] = "-bufsize";
-			cmdArray[cmdArray.length - 4] = "" + bufSize;
+			cmdArray[11] = "-bufsize";
+			cmdArray[12] = "" + bufSize;
 
-			cmdArray[cmdArray.length - 7] = "-maxrate";
-			cmdArray[cmdArray.length - 6] = "" + defaultMaxBitrates[0];
+			cmdArray[13] = "-maxrate";
+			cmdArray[14] = "" + defaultMaxBitrates[0];
+		}
+
+		cmdArray[15] = "-c:a";
+		cmdArray[16] = (params.aid.isAC3()) ? "copy" : "ac3";
+		cmdArray[17] = (params.aid.isAC3()) ? "-sn" : "-ab";
+		cmdArray[18] = (params.aid.isAC3()) ? "-sn" : PMS.getConfiguration().getAudioBitrate() + "k";
+
+		for (int i = 0; i < args.length; i++) {
+			cmdArray[19 + i] = args[i];
 		}
 
 		if (PMS.getConfiguration().isFileBuffer()) {
