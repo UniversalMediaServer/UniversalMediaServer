@@ -2205,7 +2205,7 @@ public class MEncoderVideo extends Player {
 				for (int s = 0; s < cmdArray.length; s++) {
 					if (cmdArray[s].equals("-oac")) {
 						cmdArray[s] = "-nosound";
-						cmdArray[s + 1] = "-nosound";
+						cmdArray[s + 1] = "";
 						break;
 					}
 				}
