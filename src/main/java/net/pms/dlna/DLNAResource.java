@@ -25,6 +25,7 @@ import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -60,13 +61,14 @@ import org.slf4j.LoggerFactory;
  * removed.
  */
 public abstract class DLNAResource extends HTTPResource implements Cloneable, Runnable {
-	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAResource.class);
-	protected static final int MAX_ARCHIVE_ENTRY_SIZE = 10000000;
-	protected static final int MAX_ARCHIVE_SIZE_SEEK = 800000000;
-	protected static final String TRANSCODE_FOLDER = "#--TRANSCODE--#";
 	private final Map<String, Integer> requestIdToRefcount = new HashMap<String, Integer>();
 	private static final int STOP_PLAYING_DELAY = 4000;
+	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAResource.class);
 	private static final SimpleDateFormat SDF_DATE = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
+
+	protected static final int MAX_ARCHIVE_ENTRY_SIZE = 10000000;
+	protected static final int MAX_ARCHIVE_SIZE_SEEK = 800000000;
+	protected static final String TRANSCODE_FOLDER = Messages.getString("DLNAResource.0"); // localized #--TRANSCODE--#
 
 	/**
 	 * @deprecated Use standard getter and setter to access this variable.
