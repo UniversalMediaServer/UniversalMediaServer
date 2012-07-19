@@ -44,6 +44,7 @@ import net.pms.io.PipeIPCProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
+import static org.apache.commons.lang.StringUtils.isBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -106,6 +107,26 @@ public class FFMpegVideo extends Player {
 
 	protected String[] getDefaultArgs() {
 		return new String[]{"-c:v", "mpeg2video", "-f", "vob", "-c:a", "ac3", "-loglevel", "fatal", "-max_delay", "0"};
+	}
+
+	private int[] getVideoBitrateConfig(String bitrate) {
+		int bitrates[] = new int[2];
+
+		if (bitrate.contains("(") && bitrate.contains(")")) {
+			bitrates[1] = Integer.parseInt(bitrate.substring(bitrate.indexOf("(") + 1, bitrate.indexOf(")")));
+		}
+
+		if (bitrate.contains("(")) {
+			bitrate = bitrate.substring(0, bitrate.indexOf("(")).trim();
+		}
+
+		if (isBlank(bitrate)) {
+			bitrate = "0";
+		}
+
+		bitrates[0] = (int) Double.parseDouble(bitrate);
+
+		return bitrates;
 	}
 
 	@Override
@@ -220,6 +241,58 @@ public class FFMpegVideo extends Player {
 
 		cmdArray[cmdArray.length - 3] = "-muxpreload";
 		cmdArray[cmdArray.length - 2] = "0";
+
+		int defaultMaxBitrates[] = getVideoBitrateConfig(PMS.getConfiguration().getMaximumBitrate());
+		int rendererMaxBitrates[] = new int[2];
+
+		if (params.mediaRenderer.getMaxVideoBitrate() != null) {
+			rendererMaxBitrates = getVideoBitrateConfig(params.mediaRenderer.getMaxVideoBitrate());
+		}
+
+		if ((defaultMaxBitrates[0] == 0 && rendererMaxBitrates[0] > 0) || rendererMaxBitrates[0] < defaultMaxBitrates[0] && rendererMaxBitrates[0] > 0) {
+			defaultMaxBitrates = rendererMaxBitrates;
+		}
+
+		if (params.mediaRenderer.getCBRVideoBitrate() == 0 && defaultMaxBitrates[0] > 0) {
+			// Convert value from Mb to Kb
+			defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
+
+			// Halve it since it seems to send up to 1 second of video in advance
+			defaultMaxBitrates[0] = defaultMaxBitrates[0] / 2;
+
+			int bufSize = 1835;
+			if (media.isHDVideo()) {
+				bufSize = defaultMaxBitrates[0] / 3;
+			}
+
+			if (bufSize > 7000) {
+				bufSize = 7000;
+			}
+
+			if (defaultMaxBitrates[1] > 0) {
+				bufSize = defaultMaxBitrates[1];
+			}
+
+			if (params.mediaRenderer.isDefaultVBVSize() && rendererMaxBitrates[1] == 0) {
+				bufSize = 1835;
+			}
+
+			// If audio is AC3, subtract the configured amount (usually 640)
+			defaultMaxBitrates[0] = defaultMaxBitrates[0] - PMS.getConfiguration().getAudioBitrate();
+
+			// Round down to the nearest Mb
+			defaultMaxBitrates[0] = defaultMaxBitrates[0] / 1000 * 1000;
+
+			// FFmpeg uses bytes for inputs instead of kbytes like MEncoder
+			bufSize = bufSize * 1000;
+			defaultMaxBitrates[0] = defaultMaxBitrates[0] * 1000;
+
+			cmdArray[cmdArray.length - 5] = "-bufsize";
+			cmdArray[cmdArray.length - 4] = "" + bufSize;
+
+			cmdArray[cmdArray.length - 7] = "-maxrate";
+			cmdArray[cmdArray.length - 6] = "" + defaultMaxBitrates[0];
+		}
 
 		if (PMS.getConfiguration().isFileBuffer()) {
 			File m = new File(PMS.getConfiguration().getTempFolder(), "pms-transcode.tmp");
