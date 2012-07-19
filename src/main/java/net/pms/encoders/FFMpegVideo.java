@@ -340,10 +340,9 @@ public class FFMpegVideo extends Player {
 			ProcessWrapper mkfifo_vid_process = videoP.getPipeProcess();
 			ProcessWrapper mkfifo_aud_process = audioP.getPipeProcess();
 
-			String seek_param = "-quiet";
-			String seek_value = "-quiet";
+			String seek_param = "-ss";
+			String seek_value = "0";
 			if (params.timeseek > 0) {
-				seek_param = "-ss";
 				seek_value = "" + params.timeseek;
 			}
 
@@ -351,8 +350,7 @@ public class FFMpegVideo extends Player {
 
 			overiddenMPlayerArgs = new String[0];
 
-
-			String mPlayerdefaultVideoArgs[] = new String[]{fileName, seek_param, seek_value, "-vo", "yuv4mpeg:file=" + videoP.getInputPipe(), "-ao", "pcm:waveheader:file=" + audioP.getInputPipe(), "-benchmark", "-noframedrop", "-speed", "100"/*, "-quiet"*/};
+			String mPlayerdefaultVideoArgs[] = new String[]{fileName, seek_param, seek_value, "-vo", "yuv4mpeg:file=" + videoP.getInputPipe(), "-ao", "pcm:waveheader:file=" + audioP.getInputPipe(), "-benchmark", "-noframedrop", "-speed", "100"};
 			OutputParams mplayer_vid_params = new OutputParams(PMS.getConfiguration());
 			mplayer_vid_params.maxBufferSize = 1;
 
