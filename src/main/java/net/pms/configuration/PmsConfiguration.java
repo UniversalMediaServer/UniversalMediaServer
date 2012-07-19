@@ -1967,11 +1967,11 @@ public class PmsConfiguration {
 	 * <li>3: Case-insensitive ASCIIbetical sort</li>
 	 * <li>4: Locale-sensitive natural sort</li>
 	 * </ul>
-	 * Default value is 3.
+	 * Default value is 4.
 	 * @return The sort method
 	 */
 	public int getSortMethod() {
-		return getInt(KEY_SORT_METHOD, 3);
+		return getInt(KEY_SORT_METHOD, 4);
 	}
 
 	/**
