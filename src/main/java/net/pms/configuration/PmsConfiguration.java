@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
+import net.pms.Messages;
 import net.pms.io.SystemUtils;
 import net.pms.util.PropertiesUtil;
 import org.apache.commons.configuration.Configuration;
@@ -48,7 +49,12 @@ public class PmsConfiguration {
 	private static final int DEFAULT_PROXY_SERVER_PORT = -1;
 	private static final int DEFAULT_SERVER_PORT = 5001;
 
-	// MEncoder has a hardwired maximum of 16 threads for -lavcopts and -lavdopts
+	/*
+	 * MEncoder has a hardwired maximum of 8 threads for -lavcopts and 16
+	 * for -lavdopts.
+	 * The Windows SubJunk Builds can take 16 for both, but we keep it at 8
+	 * for compatibility with other operating systems.
+	 */
 	private static final int MENCODER_MAX_THREADS = 8;
 
 	private static final String KEY_ALTERNATE_SUBS_FOLDER = "alternate_subs_folder";
@@ -156,12 +162,13 @@ public class PmsConfiguration {
 	private static final String KEY_SHARES = "shares";
 	private static final String KEY_SKIP_LOOP_FILTER_ENABLED = "skiploopfilter";
 	private static final String KEY_SKIP_NETWORK_INTERFACES = "skip_network_interfaces";
-	private static final String KEY_SORT_METHOD = "key_sort_method";
+	private static final String KEY_SORT_METHOD = "key_sort_method"; // TODO (breaking change): should be renamed to e.g. sort_method
 	private static final String KEY_SUBS_COLOR = "subs_color";
 	private static final String KEY_TEMP_FOLDER_PATH = "temp";
 	private static final String KEY_THUMBNAIL_GENERATION_ENABLED = "thumbnails"; // TODO (breaking change): should be renamed to e.g. generate_thumbnails
 	private static final String KEY_THUMBNAIL_SEEK_POS = "thumbnail_seek_pos";
 	private static final String KEY_TRANSCODE_BLOCKS_MULTIPLE_CONNECTIONS = "transcode_block_multiple_connections";
+	private static final String KEY_TRANSCODE_FOLDER_NAME = "transcode_folder_name";
 	private static final String KEY_TRANSCODE_KEEP_FIRST_CONNECTION = "transcode_keep_first_connection";
 	private static final String KEY_TSMUXER_FORCEFPS = "tsmuxer_forcefps";
 	private static final String KEY_TSMUXER_PREREMIX_AC3 = "tsmuxer_preremix_ac3";
@@ -171,7 +178,7 @@ public class PmsConfiguration {
 	private static final String KEY_USE_MPLAYER_FOR_THUMBS = "use_mplayer_for_video_thumbs";
 	private static final String KEY_USE_SUBTITLES = "autoloadsrt";
 	private static final String KEY_UUID = "uuid";
-	private static final String KEY_VIDEOTRANSCODE_START_DELAY = "key_videotranscode_start_delay";
+	private static final String KEY_VIDEOTRANSCODE_START_DELAY = "key_videotranscode_start_delay"; // TODO (breaking change): should be renamed to e.g. videotranscode_start_delay
 	private static final String KEY_VIRTUAL_FOLDERS = "vfolders";
 	private static final String KEY_BUFFER_MAX = "buffer_max";
 	private static final String KEY_PLUGIN_PURGE_ACTION = "plugin_purge";
@@ -572,11 +579,12 @@ public class PmsConfiguration {
 	 */
 	public String getLanguage() {
 		String def = Locale.getDefault().getLanguage();
+
 		if (def == null) {
 			def = "en";
 		}
-		String value = getString(KEY_LANGUAGE, def);
-		return StringUtils.isNotBlank(value) ? value.trim() : def;
+
+		return getNonBlankString(KEY_LANGUAGE, def);
 	}
 
 	/**
@@ -632,7 +640,28 @@ public class PmsConfiguration {
 		}
 		return value;
 	}
-	
+
+	/**
+	 * Return the <code>String</code> value for a given configuration key if the
+	 * value is non-blank (i.e. not null, not an empty string, not all whitespace).
+	 * Otherwise return the supplied default value.
+	 * The value is returned with leading and trailing whitespace removed in both cases.
+	 * @param key The key to look up.
+	 * @param def The default value to return when no valid key value can be found.
+	 * @return The value configured for the key.
+	 */
+	private String getNonBlankString(String key, String def) {
+		String value = configuration.getString(key);
+
+		if (StringUtils.isNotBlank(value)) {
+			return value.trim();
+		} else if (def != null) {
+			return def.trim();
+		} else {
+			return def;
+		}
+	}
+
 	/**
 	 * Return a <code>List</code> of <code>String</code> values for a given configuration
 	 * key. First, the key is looked up in the current configuration settings. If it
@@ -2337,5 +2366,22 @@ public class PmsConfiguration {
 			configuration.refresh();
 		} catch (ConfigurationException e) {
 		}
+	}
+
+	/**
+	 * Retrieve the name of the folder used to select subtitles, audio channels, chapters, engines &amp;c.
+	 * Defaults to the localized version of <pre>#--TRANSCODE--#</pre>.
+	 * @return The folder name.
+	 */
+	public String getTranscodeFolderName() {
+		return getNonBlankString(KEY_TRANSCODE_FOLDER_NAME, Messages.getString("TranscodeVirtualFolder.0"));
+	}
+
+	/**
+	 * Set a custom name for the <pre>#--TRANSCODE--#</pre> folder.
+	 * @param name The folder name.
+	 */
+	public void setTranscodeFolderName(String name) {
+		configuration.setProperty(KEY_TRANSCODE_FOLDER_NAME, name);
 	}
 }

@@ -68,28 +68,33 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	protected static final int MAX_ARCHIVE_ENTRY_SIZE = 10000000;
 	protected static final int MAX_ARCHIVE_SIZE_SEEK = 800000000;
-	protected static final String TRANSCODE_FOLDER = Messages.getString("DLNAResource.0"); // localized #--TRANSCODE--#
 
 	/**
-	 * @deprecated Use standard getter and setter to access this variable.
+	 * @deprecated This field will be removed. Use {@link net.pms.configuration.PmsConfiguration#getTranscodeFolderName()} instead.
+	 */
+	@Deprecated
+	protected static final String TRANSCODE_FOLDER = Messages.getString("TranscodeVirtualFolder.0"); // localized #--TRANSCODE--#
+
+	/**
+	 * @deprecated Use standard getter and setter to access this field.
 	 */
 	@Deprecated
 	protected int specificType;
 
 	/**
-	 * @deprecated Use standard getter and setter to access this variable.
+	 * @deprecated Use standard getter and setter to access this field.
 	 */
 	@Deprecated
 	protected String id;
 
 	/**
-	 * @deprecated Use standard getter and setter to access this variable.
+	 * @deprecated Use standard getter and setter to access this field.
 	 */
 	@Deprecated
 	protected DLNAResource parent;
 
 	/**
-	 * @deprecated This variable will be removed. Use {@link #getFormat()} and
+	 * @deprecated This field will be removed. Use {@link #getFormat()} and
 	 * {@link #setFormat(Format)} instead.
 	 */
 	@Deprecated
@@ -101,27 +106,27 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private Format format;
 
 	/**
-	 * @deprecated Use standard getter and setter to access this variable.
+	 * @deprecated Use standard getter and setter to access this field.
 	 */
 	@Deprecated
 	protected DLNAMediaInfo media;
 
 	/**
 	 * @deprecated Use {@link #getMediaAudio()} and {@link
-	 * #setMediaAudio(DLNAMediaAudio)} to access this variable.
+	 * #setMediaAudio(DLNAMediaAudio)} to access this field.
 	 */
 	@Deprecated
 	protected DLNAMediaAudio media_audio;
 
 	/**
 	 * @deprecated Use {@link #getMediaSubtitle()} and {@link
-	 * #setMediaSubtitle(DLNAMediaSubtitle)} to access this variable.
+	 * #setMediaSubtitle(DLNAMediaSubtitle)} to access this field.
 	 */
 	@Deprecated
 	protected DLNAMediaSubtitle media_subtitle;
 
 	/**
-	 * @deprecated Use standard getter and setter to access this variable.
+	 * @deprecated Use standard getter and setter to access this field.
 	 */
 	@Deprecated
 	protected long lastmodified;
@@ -133,7 +138,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private Player player;
 
 	/**
-	 * @deprecated Use standard getter and setter to access this variable.
+	 * @deprecated Use standard getter and setter to access this field.
 	 */
 	@Deprecated
 	protected boolean discovered = false;
@@ -141,25 +146,25 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private ProcessWrapper externalProcess;
 
 	/**
-	 * @deprecated Use standard getter and setter to access this variable.
+	 * @deprecated Use standard getter and setter to access this field.
 	 */
 	@Deprecated
 	protected boolean srtFile;
 
 	/**
-	 * @deprecated Use standard getter and setter to access this variable.
+	 * @deprecated Use standard getter and setter to access this field.
 	 */
 	@Deprecated
 	protected int updateId = 1;
 
 	/**
-	 * @deprecated Use standard getter and setter to access this variable.
+	 * @deprecated Use standard getter and setter to access this field.
 	 */
 	@Deprecated
 	public static int systemUpdateId = 1;
 
 	/**
-	 * @deprecated Use standard getter and setter to access this variable.
+	 * @deprecated Use standard getter and setter to access this field.
 	 */
 	@Deprecated
 	protected boolean noName;
@@ -169,7 +174,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private DLNAResource second;
 
 	/**
-	 * @deprecated Use standard getter and setter to access this variable.
+	 * @deprecated Use standard getter and setter to access this field.
 	 *
 	 * The time range for the file containing the start and end time in seconds.
 	 */
@@ -177,19 +182,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	protected Range.Time splitRange = new Range.Time();
 
 	/**
-	 * @deprecated Use standard getter and setter to access this variable.
+	 * @deprecated Use standard getter and setter to access this field.
 	 */
 	@Deprecated
 	protected int splitTrack;
 
 	/**
-	 * @deprecated Use standard getter and setter to access this variable.
+	 * @deprecated Use standard getter and setter to access this field.
 	 */
 	@Deprecated
 	protected String fakeParentId;
 
 	/**
-	 * @deprecated Use standard getter and setter to access this variable.
+	 * @deprecated Use standard getter and setter to access this field.
 	 */
 	// Ditlew - needs this in one of the derived classes
 	@Deprecated
@@ -198,13 +203,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private String dlnaspec;
 
 	/**
-	 * @deprecated Use standard getter and setter to access this variable.
+	 * @deprecated Use standard getter and setter to access this field.
 	 */
 	@Deprecated
 	protected boolean avisynth;
 
 	/**
-	 * @deprecated Use standard getter and setter to access this variable.
+	 * @deprecated Use standard getter and setter to access this field.
 	 */
 	@Deprecated
 	protected boolean skipTranscode = false;
@@ -213,7 +218,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private String flags;
 
 	/**
-	 * @deprecated Use standard getter and setter to access this variable.
+	 * @deprecated Use standard getter and setter to access this field.
 	 *
 	 * List of children objects associated with this DLNAResource. This is only valid when the DLNAResource is of the container type.
 	 */
@@ -221,7 +226,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	protected List<DLNAResource> children;
 
 	/**
-	 * @deprecated Use standard getter and setter to access this variable.
+	 * @deprecated Use standard getter and setter to access this field.
 	 *
 	 * the id which the last child got, so the next child can get unique id with incrementing this value.
 	 */
@@ -229,7 +234,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	protected int lastChildrenId;
 
 	/**
-	 * @deprecated Use standard getter and setter to access this variable.
+	 * @deprecated Use standard getter and setter to access this field.
 	 *
 	 * The last time when refresh is called.
 	 */
