@@ -68,7 +68,7 @@ public class AboutTab {
 		String commitId = PropertiesUtil.getProjectProperties().get("git.commit.id");
 		String commitTime = PropertiesUtil.getProjectProperties().get("git.commit.time");
 		String shortCommitId = commitId.substring(0,  9);
-		String commitUrl = "http://code.google.com/p/universal-media-server/source/detail?r=" + commitId;
+		String commitUrl = "https://github.com/UniversalMediaServer/UniversalMediaServer/commit/" + commitId;
 		String buildLabel = Messages.getString("LinksTab.6") + " " + commitTime;
 
 		final LinkMouseListener commitLink = new LinkMouseListener(buildLabel, commitUrl);
