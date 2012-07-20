@@ -1681,7 +1681,8 @@ public class PmsConfiguration {
 	}
 
 	public boolean isFfmpegMultithreading() {
-		return getBoolean(KEY_FFMPEG_MULTITHREADING, true);
+		boolean isMultiCore = getNumberOfCpuCores() > 1;
+		return getBoolean(KEY_FFMPEG_MULTITHREADING, isMultiCore);
 	}
 
 	public void setFfmpegAviSynthSettings(String value) {
@@ -1697,7 +1698,8 @@ public class PmsConfiguration {
 	}
 
 	public boolean isFfmpegAviSynthMultithreading() {
-		return getBoolean(KEY_FFMPEG_AVISYNTH_MULTITHREADING, true);
+		boolean isMultiCore = getNumberOfCpuCores() > 1;
+		return getBoolean(KEY_FFMPEG_AVISYNTH_MULTITHREADING, isMultiCore);
 	}
 
 	public boolean isMencoderNoOutOfSync() {
