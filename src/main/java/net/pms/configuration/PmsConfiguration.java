@@ -1673,7 +1673,7 @@ public class PmsConfiguration {
 	}
 
 	public String getFfmpegSettings() {
-		return getString(KEY_FFMPEG_SETTINGS, "-g 1 -q:v 1 -qmin 2");
+		return getString(KEY_FFMPEG_SETTINGS, "-g 5 -q:v 1 -qmin 2");
 	}
 
 	public void setFfmpegMultithreading(boolean value) {
@@ -1689,7 +1689,7 @@ public class PmsConfiguration {
 	}
 
 	public String getFfmpegAviSynthSettings() {
-		return getString(KEY_FFMPEG_AVISYNTH_SETTINGS, "-g 1 -q:v 1 -qmin 2");
+		return getString(KEY_FFMPEG_AVISYNTH_SETTINGS, "-g 5 -q:v 1 -qmin 2");
 	}
 
 	public void setFfmpegAviSynthMultithreading(boolean value) {
