@@ -27,6 +27,7 @@ import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.formats.v2.SubtitleType;
 import org.apache.commons.lang.StringUtils;
+import static org.apache.commons.lang.StringUtils.*;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.jdbcx.JdbcDataSource;
 import org.h2.tools.DeleteDbFiles;
@@ -395,22 +396,22 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setInt(6, media.getWidth());
 				ps.setInt(7, media.getHeight());
 				ps.setLong(8, media.getSize());
-				ps.setString(9, truncate(media.getCodecV(), SIZE_CODECV));
-				ps.setString(10, truncate(media.getFrameRate(), SIZE_FRAMERATE));
-				ps.setString(11, truncate(media.getAspect(), SIZE_ASPECT));
+				ps.setString(9, left(media.getCodecV(), SIZE_CODECV));
+				ps.setString(10, left(media.getFrameRate(), SIZE_FRAMERATE));
+				ps.setString(11, left(media.getAspect(), SIZE_ASPECT));
 				ps.setInt(12, media.getBitsPerPixel());
 				ps.setBytes(13, media.getThumb());
-				ps.setString(14, truncate(media.getContainer(), SIZE_CONTAINER));
+				ps.setString(14, left(media.getContainer(), SIZE_CONTAINER));
 				if (media.getExtras() != null) {
-					ps.setString(15, truncate(media.getExtrasAsString(), SIZE_MODEL));
+					ps.setString(15, left(media.getExtrasAsString(), SIZE_MODEL));
 				} else {
-					ps.setString(15, truncate(media.getModel(), SIZE_MODEL));
+					ps.setString(15, left(media.getModel(), SIZE_MODEL));
 				}
 				ps.setInt(16, media.getExposure());
 				ps.setInt(17, media.getOrientation());
 				ps.setInt(18, media.getIso());
-				ps.setString(19, truncate(media.getMuxingModeAudio(), SIZE_MUXINGMODE));
-				ps.setString(20, truncate(media.getFrameRateMode(), SIZE_FRAMERATE_MODE));
+				ps.setString(19, left(media.getMuxingModeAudio(), SIZE_MUXINGMODE));
+				ps.setString(20, left(media.getFrameRateMode(), SIZE_FRAMERATE_MODE));
 			} else {
 				ps.setString(4, null);
 				ps.setInt(5, 0);
@@ -446,20 +447,20 @@ public class DLNAMediaDatabase implements Runnable {
 					insert.clearParameters();
 					insert.setInt(1, id);
 					insert.setInt(2, audio.getId());
-					insert.setString(3, truncate(audio.getLang(), SIZE_LANG));
-					insert.setString(4, truncate(audio.getFlavor(), SIZE_FLAVOR));
+					insert.setString(3, left(audio.getLang(), SIZE_LANG));
+					insert.setString(4, left(audio.getFlavor(), SIZE_FLAVOR));
 					insert.setInt(5, audio.getAudioProperties().getNumberOfChannels());
-					insert.setString(6, truncate(audio.getSampleFrequency(), SIZE_SAMPLEFREQ));
-					insert.setString(7, truncate(audio.getCodecA(), SIZE_CODECA));
+					insert.setString(6, left(audio.getSampleFrequency(), SIZE_SAMPLEFREQ));
+					insert.setString(7, left(audio.getCodecA(), SIZE_CODECA));
 					insert.setInt(8, audio.getBitsperSample());
-					insert.setString(9, truncate(StringUtils.trimToEmpty(audio.getAlbum()), SIZE_ALBUM));
-					insert.setString(10, truncate(StringUtils.trimToEmpty(audio.getArtist()), SIZE_ARTIST));
-					insert.setString(11, truncate(StringUtils.trimToEmpty(audio.getSongname()), SIZE_SONGNAME));
-					insert.setString(12, truncate(StringUtils.trimToEmpty(audio.getGenre()), SIZE_GENRE));
+					insert.setString(9, left(trimToEmpty(audio.getAlbum()), SIZE_ALBUM));
+					insert.setString(10, left(trimToEmpty(audio.getArtist()), SIZE_ARTIST));
+					insert.setString(11, left(trimToEmpty(audio.getSongname()), SIZE_SONGNAME));
+					insert.setString(12, left(trimToEmpty(audio.getGenre()), SIZE_GENRE));
 					insert.setInt(13, audio.getYear());
 					insert.setInt(14, audio.getTrack());
 					insert.setInt(15, audio.getAudioProperties().getAudioDelay());
-					insert.setString(16, truncate(StringUtils.trimToEmpty(audio.getMuxingModeAudio()), SIZE_MUXINGMODE));
+					insert.setString(16, left(trimToEmpty(audio.getMuxingModeAudio()), SIZE_MUXINGMODE));
 					insert.setInt(17, audio.getBitRate());
 					insert.executeUpdate();
 				}
@@ -472,8 +473,8 @@ public class DLNAMediaDatabase implements Runnable {
 						insert.clearParameters();
 						insert.setInt(1, id);
 						insert.setInt(2, sub.getId());
-						insert.setString(3, truncate(sub.getLang(), SIZE_LANG));
-						insert.setString(4, truncate(sub.getFlavor(), SIZE_FLAVOR));
+						insert.setString(3, left(sub.getLang(), SIZE_LANG));
+						insert.setString(4, left(sub.getFlavor(), SIZE_FLAVOR));
 						insert.setInt(5, sub.getType().ordinal());
 						insert.executeUpdate();
 					}
@@ -529,7 +530,7 @@ public class DLNAMediaDatabase implements Runnable {
 			rs = ps.executeQuery();
 			while (rs.next()) {
 				String str = rs.getString(1);
-				if (StringUtils.isBlank(str)) {
+				if (isBlank(str)) {
 					if (!list.contains(NONAME)) {
 						list.add(NONAME);
 					}
@@ -697,35 +698,5 @@ public class DLNAMediaDatabase implements Runnable {
 			}
 		}
 		PMS.get().getFrame().setStatusLine(null);
-	}
-
-	/**
-	 * Truncate the string to a given length. If the given string is
-	 * <code>null</code> or has a size smaller than the given limit, it is 
-	 * returned as is. Otherwise it is truncated at the character limit and
-	 * returned. If limit <= 0, the empty string "" is returned.
-	 * <p>
-	 * For example <code>truncate("abcde", 3)</code> returns <code>"abc"</code>
-	 * 
-	 * @param str The string to truncate. 
-	 * @param limit The number of characters allowed.
-	 * @return The truncated string.
-	 */
-	private String truncate(String str, int limit) {
-		if (str == null) {
-			return null;
-		}
-
-		if (limit <= 0) {
-			return "";
-		}
-
-		if (str.length() < limit) {
-			// No need to truncate the string
-			return str;
-		} else {
-			// Truncate the string to the given limit
-			return str.substring(0, limit - 1);
-		}
 	}
 }
