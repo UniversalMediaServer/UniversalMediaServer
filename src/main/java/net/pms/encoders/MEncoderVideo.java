@@ -1632,10 +1632,14 @@ public class MEncoderVideo extends Player {
 				sb.append("-spuaa ").append(subtitleQuality).append(" ");
 			}
 
-			if (!configuration.isMencoderDisableSubs() && configuration.getMencoderSubCp() != null && configuration.getMencoderSubCp().length() > 0) {
-				sb.append("-subcp ").append(configuration.getMencoderSubCp()).append(" ");
-				if (configuration.isMencoderSubFribidi()) {
-					sb.append("-fribidi-charset ").append(configuration.getMencoderSubCp()).append(" ");
+			// Append -subcp option only for non UTF-8 external subtitles
+			boolean external_non_utf8_subtitle_file_present = (params.sid.getPlayableExternalFile() != null && !params.sid.isExternalFileUtf8());
+			if (external_non_utf8_subtitle_file_present) {
+				if (configuration.getMencoderSubCp() != null && configuration.getMencoderSubCp().length() > 0) {
+					sb.append("-subcp ").append(configuration.getMencoderSubCp()).append(" ");
+					if (configuration.isMencoderSubFribidi()) {
+						sb.append("-fribidi-charset ").append(configuration.getMencoderSubCp()).append(" ");
+					}
 				}
 			}
 		}
