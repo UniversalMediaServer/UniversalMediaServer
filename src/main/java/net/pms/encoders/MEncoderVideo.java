@@ -1632,14 +1632,29 @@ public class MEncoderVideo extends Player {
 				sb.append("-spuaa ").append(subtitleQuality).append(" ");
 			}
 
-			// Append -subcp option only for non UTF-8 external subtitles
-			boolean external_non_utf8_subtitle_file_present = (params.sid.getPlayableExternalFile() != null && !params.sid.isExternalFileUtf8());
-			if (external_non_utf8_subtitle_file_present) {
-				if (configuration.getMencoderSubCp() != null && configuration.getMencoderSubCp().length() > 0) {
-					sb.append("-subcp ").append(configuration.getMencoderSubCp()).append(" ");
-					if (configuration.isMencoderSubFribidi()) {
-						sb.append("-fribidi-charset ").append(configuration.getMencoderSubCp()).append(" ");
+			// External subtitles file
+			if (params.sid.getPlayableExternalFile() != null) {
+				if (!params.sid.isExternalFileUtf8()) {
+					// Append -subcp option for non UTF-8 external subtitles
+					if (configuration.getMencoderSubCp() != null && configuration.getMencoderSubCp().length() > 0) {
+						sb.append("-subcp ").append(configuration.getMencoderSubCp()).append(" ");
+						if (configuration.isMencoderSubFribidi()) {
+							sb.append("-fribidi-charset ").append(configuration.getMencoderSubCp()).append(" ");
+						}
 					}
+				} else {
+					// Append -utf8 option for UTF-8 external subtitles
+					sb.append("-utf8 ");
+				}
+
+				if (params.sid.getType() == SubtitleType.VOBSUB) {
+					sb.append("-vobsub ");
+					sb.append("\"").append(externalSubtitlesFileName.substring(0, externalSubtitlesFileName.length() - 4)).append("\" ");
+					sb.append("-slang ");
+					sb.append("\"").append(params.sid.getLang()).append("\" ");
+				} else {
+					sb.append("-sub ");
+					sb.append("\" ").append(externalSubtitlesFileName.replace(",", "\\,")).append("\" "); // Commas in MEncoder separate multiple subtitle files
 				}
 			}
 		}
