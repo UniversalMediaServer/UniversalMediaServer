@@ -2351,11 +2351,17 @@ public class MEncoderVideo extends Player {
 					audioType = "A_AC3";
 				}
 
-				// MEncoder bug (confirmed with MEncoder r35003 + FFmpeg 0.11.1)
-				// Audio delay is ignored when playing from file start (-ss 0)
-				// Override with tsmuxer.meta setting
+				/*
+				 * MEncoder bug (confirmed with MEncoder r35003 + FFmpeg 0.11.1)
+				 * Audio delay is ignored when playing from file start (-ss 0)
+				 * Override with tsmuxer.meta setting
+				 */
 				String timeshift = "";
-				if (params.aid.getAudioProperties().getAudioDelay() != 0 && params.timeseek == 0) {
+				if (
+					params.aid.getAudioProperties().getAudioDelay() != 0 &&
+					params.timeseek == 0 &&
+					configuration.isMencoderNoOutOfSync()
+				) {
 					timeshift = "timeshift=" + params.aid.getAudioProperties().getAudioDelay() + "ms, ";
 				}
 
