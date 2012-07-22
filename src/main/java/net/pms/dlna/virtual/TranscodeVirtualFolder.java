@@ -18,8 +18,10 @@
  */
 package net.pms.dlna.virtual;
 
+import net.pms.PMS;
+
 public class TranscodeVirtualFolder extends VirtualFolder {
 	public TranscodeVirtualFolder(String thumbnailIcon) {
-		super(TRANSCODE_FOLDER, thumbnailIcon);
+		super(PMS.getConfiguration().getTranscodeFolderName(), thumbnailIcon);
 	}
 }
