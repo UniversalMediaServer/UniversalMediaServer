@@ -1681,7 +1681,8 @@ public class MEncoderVideo extends Player {
 			overriddenMainArgs[i++] = s;
 		}
 
-		String cmdArray[] = new String[18 + args().length];
+		// TODO where this number (22) comes from?
+		String cmdArray[] = new String[22 + args().length];
 
 		cmdArray[0] = executable();
 
@@ -1818,7 +1819,6 @@ public class MEncoderVideo extends Player {
 		}
 
 		if (fileName.toLowerCase().endsWith(".evo")) {
-			cmdArray = Arrays.copyOf(cmdArray, cmdArray.length + 2);
 			cmdArray[cmdArray.length - 4] = "-psprobe";
 			cmdArray[cmdArray.length - 3] = "10000";
 		}
