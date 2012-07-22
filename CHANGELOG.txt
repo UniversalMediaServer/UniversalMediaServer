@@ -1,12 +1,106 @@
-﻿1.1.2 - 2012-06-??
+1.4.1 - 2012-07-??
 
 	General:
-		Disabled bandwidth limit by default because it can cause stuttering for some users with slower CPUs
-		Avoid blank thumbnails by seeking 60 s from start
+		Made videos adhere more exactly to the maximum bandwidth limit
+
+1.4.0 - 2012-07-18
+
+	General:
+		Many improvements to FFmpeg, from audio sync to file-support to stability
+		Updated MPlayer and MEncoder for Windows to SB36, which:
+			Supports a lot more file formats and colour-spaces
+			Improves audio/video sync, especially with PAL (25FPS) videos
+		Added FFmpeg multithreading option
+		Updated FFmpeg for OS X to 57d5a224
+		Added a GUI config editor for those who like to edit manually
+		Improved audio/video sync when using MEncoder
+		Improved audio channel detection
+		Fixed support for some plugins
+		Added support for TX3G (MPEG-4 Timed Text) subtitles
+		Added support for WebM videos downloaded from YouTube
+		Fixed DV video detection
+		Fixed "Definitely disable subtitles" option with ASS/SSA subtitles
+		Fixed default audio/subtitle priority options
+		Fixed running on headless servers
+		Windows 7 and Vista users are reminded to run as administrator before attempting to automatically update
+		Fixed multithreading bug with MEncoder on Linux
+		Made layout more consistent
+	Plugin Installer:
+		Added Plugin Installer which lets you automatically browse plugins and install them, see this page for details: http://www.universalmediaserver.com/forum/viewtopic.php?f=8&t=152
+	Web:
+		Added new default web video engine: FFMpeg Web Video
+		Updated WEB.conf with working default video streams
+		Added support for new web protocols: mmsh:// and mmst://
+		Added The Onion to the default video feeds
+	Languages:
+		Updated Simplified Chinese (thanks, lovenemesis!)
+		Updated Czech (thanks, valib!)
+		Updated English
+		Added image for Hebrew subtitle choosing
+
+1.3.0 - 2012-07-09
+
+	General:
+		Enabled FFmpeg video player for all platforms
+		Updated FFmpeg for Windows to e01f478 (20120319)
+		Updated 32-bit MediaInfo to the 20120611 development snapshot which fixes a bug with detecting the duration of some avi files
+		Improved FFmpeg commands
+		Added support for PGS (Blu-ray) subtitles
+		Added support for VobSub (DVD) subtitles in MP4 container
+		Better handling of embedded ASS/SSA subtitle styling
+		Fixed audio track selection for MP4 and MOV containers
+		Localized audio and subtitle priority defaults
+		Added option on Traces tab to pack useful debug information into a zip file
+		Fixed 64-bit OS detection for Windows and OS X
+		Made program-closing more reliable
+		Fixed default settings
+	Languages:
+		Updated Catalan (thanks, aseques)
+		Improved English
+
+1.2.1 - 2012-06-30
+
+	General:
+		Improved video buffer stability
+		The default versions of UMS.conf and WEB.conf are now put in ProgramData on Windows (thanks to vulcan for reporting this bug)
+		Updated UMS.conf
+		Updated renderer.conf creation instructions
+		Fixed AviSynth/FFmpeg crash
+		Improved AviSynth/FFmpeg engine code
+		Enabled convertfps by default
+		Made the AviSynth script instructions separate to the input box
+		Minor design improvements to the Transcoding tab
+		Made True Motion smoother
+		Assorted bugfixes
+	Languages:
+		Updated Catalan
+		Updated English
+
+1.2.0 - 2012-06-26
+
+	General:
+		Create thumbnails from 2 seconds into the video by default
 		Fixed silent installation
+		Updated MPlayer and MEncoder for Windows to SB35, which:
+			Supports more colours in ASS/SSA subtitles
+			Fixes memory leaks
+			Starts faster
+			Improves fonts
+			Improves caching
+			Improves multithreading stability
 		Updated MPlayer and MEncoder for OSX to SB32
+		Lots of code optimisations
+		Made program restarts more reliable
+		Fixed AviSynth ConvertFPS option
+		Improved AviSynth frame-serving stability
 	Renderers:
+		Added support for DirecTV HR series (thanks, DeFlanko!)
 		Added workaround for 2.0 384 kbits AC3 PS3 audio bug (PMS issue #230 & #1414)
+		Improved support for Panasonic TVs
+	Installer:
+		Only offer to run AviSynth installer if it isn't already installed
+	Languages:
+		Updated Czech
 
 1.1.1 - 2012-06-14
 

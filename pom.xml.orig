@@ -31,7 +31,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>1.4.1</version>
+	<version>1.3.0</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 	<organization>
@@ -63,7 +63,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>1.4.1</project.version.short>
+		<project.version.short>1.3.0</project.version.short>
 
 		<!--
 			JNA 3.4.0 solves issue #1152, but causes a bug in Windows.
@@ -80,6 +80,7 @@
 		<junrar-version>0.5</junrar-version>
 		<mediautil-version>1.0</mediautil-version>
 		<slf4j-version>1.6.4</slf4j-version>
+		<sevenzip-version>4.65.1</sevenzip-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.external-resources>${project.basedir}/src/main/external-resources</project.external-resources>
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
@@ -307,6 +308,24 @@
 			<version>${mediautil-version}</version>
 		</dependency>
 		<dependency>
+			<groupId>sevenzip</groupId>
+			<artifactId>jbinding</artifactId>
+			<version>${sevenzip-version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>sevenzip-windows</groupId>
+			<artifactId>jbinding-windows</artifactId>
+			<version>${sevenzip-version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>sevenzip-linux</groupId>
+			<artifactId>jbinding-linux</artifactId>
+			<version>${sevenzip-version}</version>
+		</dependency>
+
+		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.8.1</version>
@@ -318,12 +337,16 @@
 			<version>3.0</version>
 			<scope>test</scope>
 		</dependency>
+<<<<<<< HEAD
 		<dependency>
 			<groupId>org.easytesting</groupId>
 			<artifactId>fest-assert</artifactId>
 			<version>1.4</version>
 			<scope>test</scope>
 		</dependency>
+=======
+
+>>>>>>> 7z
 	</dependencies>
 	<build>
 		<defaultGoal>assembly:assembly</defaultGoal>
@@ -382,6 +405,11 @@
 				<targetPath>..</targetPath>
 			</resource>
 		</resources>
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 7z
 		<testResources>
 			<testResource>
 				<directory>src/test/resources</directory>
@@ -595,6 +623,37 @@
 							<extractFile>jgoodies-{artifactId}-{version}/jgoodies-{artifactId}-{version}.{packaging}</extractFile>
 							<extractFileChecksum>f3955d59f2263fb889b02febec74377647a2eaba</extractFileChecksum>
 						</artifactItem>
+<<<<<<< HEAD
+=======
+
+						<artifactItem>
+							<groupId>sevenzip</groupId>
+							<artifactId>jbinding</artifactId>
+							<version>${sevenzip-version}</version>
+							<packaging>jar</packaging>
+							<install>true</install>
+							<downloadUrl>http://ikube.dyndns.org:8080/artifactory/libs-release-local/sevenzip/jbinding/{version}/jbinding-{version}.{packaging}</downloadUrl>
+						</artifactItem>
+						
+						<artifactItem>
+							<groupId>sevenzip-windows</groupId>
+							<artifactId>jbinding-windows</artifactId>
+							<version>${sevenzip-version}</version>
+							<packaging>jar</packaging>
+							<install>true</install>
+							<downloadUrl>http://ikube.dyndns.org:8080/artifactory/libs-release-local/sevenzip/jbinding-windows/{version}/jbinding-windows-{version}.{packaging}</downloadUrl>
+						</artifactItem>
+
+						<artifactItem>
+							<groupId>sevenzip-linux</groupId>
+							<artifactId>jbinding-linux</artifactId>
+							<version>${sevenzip-version}</version>
+							<packaging>jar</packaging>
+							<install>true</install>
+							<downloadUrl>http://ikube.dyndns.org:8080/artifactory/libs-release-local/sevenzip/jbinding-linux/{version}/jbinding-linux-{version}.{packaging}</downloadUrl>
+						</artifactItem>
+		
+>>>>>>> 7z
 						<artifactItem>
 							<groupId>com.jgoodies</groupId>
 							<artifactId>forms</artifactId>
@@ -700,6 +759,7 @@
 								<report>dependency-management</report>
 								<report>plugins</report>
 							</reports>
+						
 						</plugin>
 
 						<!-- PMS tests report -->
@@ -720,7 +780,7 @@
 							<configuration>
 								<quiet>true</quiet>
 								<tags>
-									<tag>
+								<tag>
 										<name>todo</name>
 										<placement>a</placement>
 										<head>To Do:</head>

@@ -498,7 +498,9 @@ download_libpng() {
     cd $SRC
 
     if [ ! -f libpng-${VERSION_LIBPNG}.tar.gz ]; then
-        download http://downloads.sourceforge.net/project/libpng/libpng15/older-releases/${VERSION_LIBPNG}/libpng-${VERSION_LIBPNG}.tar.gz
+        # One of these two, depending on whether we use the latest release
+        #download http://downloads.sourceforge.net/project/libpng/libpng15/older-releases/${VERSION_LIBPNG}/libpng-${VERSION_LIBPNG}.tar.gz
+        download http://downloads.sourceforge.net/project/libpng/libpng15/${VERSION_LIBPNG}/libpng-${VERSION_LIBPNG}.tar.gz
         exit_on_error
     fi
 }
@@ -635,6 +637,24 @@ download_x264() {
     #    $GIT checkout ${VERSION_X264}
     #    exit_on_error
     #fi
+    rm -rf ./.git
+}
+
+
+##########################################
+# libass
+# http://code.google.com/p/libass/
+#
+download_libass() {
+    start_download libass
+    cd $SRC
+
+    if [ -d libass ]; then
+        rm -rf libass
+    fi
+    $GIT clone https://code.google.com/p/libass/
+    exit_on_error
+    cd libass
     rm -rf ./.git
 }
 
@@ -790,7 +810,8 @@ download_xvid
 download_flac
 download_dcraw
 download_enca
+download_libass
 download_ffmpeg
 download_mplayer
 download_tsmuxer
-download_ps3mediaserver
+#download_ps3mediaserver
