@@ -1636,7 +1636,7 @@ public class MEncoderVideo extends Player {
 			if (params.sid.getPlayableExternalFile() != null) {
 				if (!params.sid.isExternalFileUtf8()) {
 					// Append -subcp option for non UTF-8 external subtitles
-					if (configuration.getMencoderSubCp() != null && configuration.getMencoderSubCp().length() > 0) {
+					if (isNotBlank(configuration.getMencoderSubCp())) {
 						sb.append("-subcp ").append(configuration.getMencoderSubCp()).append(" ");
 						if (configuration.isMencoderSubFribidi()) {
 							sb.append("-fribidi-charset ").append(configuration.getMencoderSubCp()).append(" ");
