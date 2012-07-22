@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-
 import net.pms.network.HTTPResourceAuthenticator;
 
 /**
@@ -36,7 +35,7 @@ public class WebStream extends DLNAResource {
 	@Override
 	public boolean isValid() {
 		checktype();
-		return getExt() != null;
+		return getFormat() != null;
 	}
 
 	/**

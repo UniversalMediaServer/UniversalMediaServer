@@ -22,12 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.Collator;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
+import java.util.*;
 import net.pms.PMS;
 import net.pms.configuration.MapFileConfiguration;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
@@ -35,7 +30,6 @@ import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.formats.FormatFactory;
 import net.pms.network.HTTPResource;
 import net.pms.util.NaturalComparator;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,9 +103,13 @@ public class MapFile extends DLNAResource {
 		return !excludeNonRelevantFolder;
 	}
 
-	private void manageFile(File f) {
+	private void manageFile(File f,String str) {
 		if (f.isFile() || f.isDirectory()) {
 			String lcFilename = f.getName().toLowerCase();
+			if (str != null && !lcFilename.contains(str)) {
+				// this is not searched for
+				return;
+			}
 
 			if (!f.isHidden()) {
 				if (PMS.getConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".zip") || lcFilename.endsWith(".cbz"))) {
@@ -170,16 +168,22 @@ public class MapFile extends DLNAResource {
 				if (discoverable.isEmpty()) {
 					break;
 				}
-				manageFile(discoverable.remove(0));
+				manageFile(discoverable.remove(0), null);
 			}
 		}
 		return discoverable.isEmpty();
 	}
 
-	@Override
 	public void discoverChildren() {
-		super.discoverChildren();
-
+		discoverChildren(null);
+	}
+	
+	
+	public void discoverChildren(String str) {
+		//super.discoverChildren(str);
+		if (str != null) {
+			str = str.toLowerCase();
+		}
 		if (discoverable == null) {
 			discoverable = new ArrayList<File>();
 		} else {
@@ -232,13 +236,17 @@ public class MapFile extends DLNAResource {
 
 		for (File f : files) {
 			if (f.isDirectory()) {
-				discoverable.add(f); // manageFile(f);
+				if (str == null || f.getName().toLowerCase().contains(str)) {
+					discoverable.add(f); // manageFile(f);
+				}
 			}
 		}
 
 		for (File f : files) {
-			if (f.isFile()) {
-				discoverable.add(f); // manageFile(f);
+			if (f.isFile()) { 
+				if (str == null || f.getName().toLowerCase().contains(str)) {				
+					discoverable.add(f); // manageFile(f);
+				}
 			}
 		}
 	}
@@ -255,16 +263,25 @@ public class MapFile extends DLNAResource {
 	}
 
 	@Override
-	public void doRefreshChildren() {
+	public void doRefreshChildren(String str) {
 		List<File> files = getFileList();
 		List<File> addedFiles = new ArrayList<File>();
 		List<DLNAResource> removedFiles = new ArrayList<DLNAResource>();
 
 		for (DLNAResource d : getChildren()) {
 			boolean isNeedMatching = !(d.getClass() == MapFile.class || (d instanceof VirtualFolder && !(d instanceof DVDISOFile)));
-			if (isNeedMatching && !foundInList(files, d)) {
+			boolean found = foundInList(files, d);
+			if (isNeedMatching && !found) {
 				removedFiles.add(d);
 			}
+			else if (str != null && found) {
+				String s = d.getName().toLowerCase();
+				if (!s.contains(str)) {
+					// new search, this doesn't match
+					removedFiles.add(d);
+				}
+			}
+			
 		}
 
 		for (File f : files) {
@@ -295,7 +312,7 @@ public class MapFile extends DLNAResource {
 		}
 
 		for (File f : addedFiles) {
-			manageFile(f);
+			manageFile(f, str);
 		}
 
 		for (MapFileConfiguration f : this.getConf().getChildren()) {
@@ -382,7 +399,7 @@ public class MapFile extends DLNAResource {
 	 */
 	@Override
 	public String toString() {
-		return "MapFile [name=" + getName() + ", id=" + getResourceId() + ", ext=" + getExt() + ", children=" + getChildren() + "]";
+		return "MapFile [name=" + getName() + ", id=" + getResourceId() + ", format=" + getFormat() + ", children=" + getChildren() + "]";
 	}
 
 	/**
@@ -415,5 +432,9 @@ public class MapFile extends DLNAResource {
 	 */
 	public void setPotentialCover(File potentialCover) {
 		this.potentialCover = potentialCover;
+	}
+	
+	public boolean isSearched() {
+		return true;
 	}
 }

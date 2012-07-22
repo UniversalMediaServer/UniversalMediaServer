@@ -1,7 +1,6 @@
 package net.pms.configuration;
 
 import com.sun.jna.Platform;
-
 import org.apache.commons.lang.StringUtils;
 
 // a one-stop class for values and methods specific to custom PMS builds
@@ -18,7 +17,9 @@ public class Build {
 	 */
 	private static final String UPDATE_SERVER_URL = REPO + "/master/src/main/external-resources/update/update_1.properties";
 
-	// if false, manual and automatic update checks are unconditionally disabled
+	/**
+	 * If false, manual and automatic update checks are unconditionally disabled.
+	 */
 	private static final boolean IS_UPDATABLE = true;
 
 	/**

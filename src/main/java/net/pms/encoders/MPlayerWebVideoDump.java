@@ -19,9 +19,8 @@
 package net.pms.encoders;
 
 import java.io.IOException;
-
 import javax.swing.JComponent;
-
+import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
@@ -31,7 +30,6 @@ import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
-import net.pms.PMS;
 
 public class MPlayerWebVideoDump extends MPlayerAudio {
 	public MPlayerWebVideoDump(PmsConfiguration configuration) {
@@ -111,6 +109,28 @@ public class MPlayerWebVideoDump extends MPlayerAudio {
 
 	@Override
 	public boolean isTimeSeekable() {
+		return false;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean isCompatible(DLNAResource resource) {
+		if (resource == null || resource.getFormat().getType() != Format.VIDEO) {
+			return false;
+		}
+
+		Format format = resource.getFormat();
+
+		if (format != null) {
+			Format.Identifier id = format.getIdentifier();
+
+			if (id.equals(Format.Identifier.WEB)) {
+				return true;
+			}
+		}
+
 		return false;
 	}
 }

@@ -18,16 +18,14 @@
  */
 package net.pms.dlna;
 
+import de.innosystec.unrar.Archive;
+import de.innosystec.unrar.rarfile.FileHeader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
 import net.pms.formats.Format;
 import net.pms.util.FileUtil;
-import de.innosystec.unrar.Archive;
-import de.innosystec.unrar.rarfile.FileHeader;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,7 +84,7 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 	public boolean isValid() {
 		checktype();
 		setSrtFile(FileUtil.doesSubtitlesExists(pere, null));
-		return getExt() != null;
+		return getFormat() != null;
 	}
 
 	@Override
@@ -130,7 +128,7 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 
 	@Override
 	public void resolve() {
-		if (getExt() == null || !getExt().isVideo()) {
+		if (getFormat() == null || !getFormat().isVideo()) {
 			return;
 		}
 		boolean found = false;
@@ -139,11 +137,11 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 				setMedia(new DLNAMediaInfo());
 			}
 			found = !getMedia().isMediaparsed() && !getMedia().isParsing();
-			if (getExt() != null) {
+			if (getFormat() != null) {
 				InputFile input = new InputFile();
 				input.setPush(this);
 				input.setSize(length());
-				getExt().parse(getMedia(), input, getType());
+				getFormat().parse(getMedia(), input, getType());
 			}
 		}
 		super.resolve();

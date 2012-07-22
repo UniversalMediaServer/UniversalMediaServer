@@ -19,10 +19,17 @@
 package net.pms.formats;
 
 import java.util.ArrayList;
-
 import net.pms.encoders.Player;
 
 public class JPG extends Format {
+	/**
+	 * {@inheritDoc} 
+	 */
+	@Override
+	public Identifier getIdentifier() {
+		return Identifier.JPG;
+	}
+
 	public JPG() {
 		type = IMAGE;
 	}

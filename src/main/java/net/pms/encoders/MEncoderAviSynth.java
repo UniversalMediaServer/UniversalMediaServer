@@ -22,6 +22,7 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -31,6 +32,8 @@ import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.dlna.DLNAResource;
+import net.pms.formats.Format;
 
 public class MEncoderAviSynth extends MEncoderVideo {
 	public MEncoderAviSynth(PmsConfiguration configuration) {
@@ -55,12 +58,11 @@ public class MEncoderAviSynth extends MEncoderVideo {
 
 		CellConstraints cc = new CellConstraints();
 
-
 		JComponent cmp = builder.addSeparator(Messages.getString("MEncoderAviSynth.2"), cc.xyw(2, 1, 1));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		multithreading = new JCheckBox(Messages.getString("MEncoderAviSynth.14"));
+		multithreading = new JCheckBox(Messages.getString("MEncoderVideo.35"));
 		multithreading.setContentAreaFilled(false);
 		if (PMS.getConfiguration().getAvisynthMultiThreading()) {
 			multithreading.setSelected(true);
@@ -86,7 +88,8 @@ public class MEncoderAviSynth extends MEncoderVideo {
 						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 						Messages.getString("MEncoderAviSynth.16"),
 						"Information",
-						JOptionPane.INFORMATION_MESSAGE);
+						JOptionPane.INFORMATION_MESSAGE
+					);
 				}
 			}
 		});
@@ -115,6 +118,18 @@ public class MEncoderAviSynth extends MEncoderVideo {
 			}
 		});
 		builder.add(convertfps, cc.xy(2, 9));
+
+		String aviSynthScriptInstructions = Messages.getString("MEncoderAviSynth.4") +
+			Messages.getString("MEncoderAviSynth.5") +
+			Messages.getString("MEncoderAviSynth.6") +
+			Messages.getString("MEncoderAviSynth.7") +
+			Messages.getString("MEncoderAviSynth.8");
+		JTextArea aviSynthScriptInstructionsContainer = new JTextArea(aviSynthScriptInstructions);
+		aviSynthScriptInstructionsContainer.setEditable(false);
+		aviSynthScriptInstructionsContainer.setBorder(BorderFactory.createEtchedBorder());
+		aviSynthScriptInstructionsContainer.setBackground(new Color(255, 255, 192));
+		aviSynthScriptInstructionsContainer.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(new Color(130, 135, 144)), BorderFactory.createEmptyBorder(3, 5, 3, 5)));
+		builder.add(aviSynthScriptInstructionsContainer, cc.xy(2, 11));
 
 		String clip = PMS.getConfiguration().getAvisynthScript();
 		if (clip == null) {
@@ -158,7 +173,7 @@ public class MEncoderAviSynth extends MEncoderVideo {
 
 		JScrollPane pane = new JScrollPane(textArea, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		pane.setPreferredSize(new Dimension(500, 350));
-		builder.add(pane, cc.xy(2, 11));
+		builder.add(pane, cc.xy(2, 13));
 
 
 		return builder.getPanel();
@@ -168,6 +183,7 @@ public class MEncoderAviSynth extends MEncoderVideo {
 	public int purpose() {
 		return VIDEO_SIMPLEFILE_PLAYER;
 	}
+
 	public static final String ID = "avsmencoder";
 
 	@Override
@@ -183,5 +199,28 @@ public class MEncoderAviSynth extends MEncoderVideo {
 	@Override
 	public String name() {
 		return "AviSynth/MEncoder";
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean isCompatible(DLNAResource resource) {
+		if (resource == null || resource.getFormat().getType() != Format.VIDEO) {
+			return false;
+		}
+
+		Format format = resource.getFormat();
+
+		if (format != null) {
+			Format.Identifier id = format.getIdentifier();
+
+			if (id.equals(Format.Identifier.MKV)
+					|| id.equals(Format.Identifier.MPG)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }

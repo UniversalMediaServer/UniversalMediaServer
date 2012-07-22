@@ -18,39 +18,23 @@
  */
 package net.pms.dlna;
 
+import com.sun.jna.Platform;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.ListIterator;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.StringTokenizer;
-
+import java.io.*;
+import java.util.*;
 import javax.imageio.ImageIO;
-
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.formats.AudioAsVideo;
 import net.pms.formats.Format;
+import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
-import net.pms.util.AVCHeader;
-import net.pms.util.CoverUtil;
-import net.pms.util.FileUtil;
-import net.pms.util.MpegUtil;
-import net.pms.util.ProcessUtil;
-
+import net.pms.util.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.sanselan.ImageInfo;
 import org.apache.sanselan.Sanselan;
@@ -65,8 +49,6 @@ import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.sun.jna.Platform;
 
 /**
  * This class keeps track of scanned MediaInfo library information.
@@ -122,6 +104,8 @@ public class DLNAMediaInfo implements Cloneable {
 	@Deprecated
 	public String frameRate;
 
+	private String frameRateMode;
+
 	/**
 	 * @deprecated Use standard getter and setter to access this variable.
 	 */
@@ -146,17 +130,8 @@ public class DLNAMediaInfo implements Cloneable {
 	@Deprecated
 	public int bitsPerPixel;
 
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public ArrayList<DLNAMediaAudio> audioCodes = new ArrayList<DLNAMediaAudio>();
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public ArrayList<DLNAMediaSubtitle> subtitlesCodes = new ArrayList<DLNAMediaSubtitle>();
+	private ArrayList<DLNAMediaAudio> audioTracks = new ArrayList<DLNAMediaAudio>();
+	private ArrayList<DLNAMediaSubtitle> subtitleTracks = new ArrayList<DLNAMediaSubtitle>();
 
 	/**
 	 * @deprecated Use standard getter and setter to access this variable.
@@ -523,13 +498,13 @@ public class DLNAMediaInfo implements Cloneable {
 							audio.setSampleFrequency("" + rate);
 							setDuration((double) length);
 							setBitrate((int) ah.getBitRateAsNumber());
-							audio.setNrAudioChannels(2);
+							audio.getAudioProperties().setNumberOfChannels(2);
 							if (ah.getChannels() != null && ah.getChannels().toLowerCase().contains("mono")) {
-								audio.setNrAudioChannels(1);
+								audio.getAudioProperties().setNumberOfChannels(1);
 							} else if (ah.getChannels() != null && ah.getChannels().toLowerCase().contains("stereo")) {
-								audio.setNrAudioChannels(2);
+								audio.getAudioProperties().setNumberOfChannels(2);
 							} else if (ah.getChannels() != null) {
-								audio.setNrAudioChannels(Integer.parseInt(ah.getChannels()));
+								audio.getAudioProperties().setNumberOfChannels(Integer.parseInt(ah.getChannels()));
 							}
 							audio.setCodecA(ah.getEncodingType().toLowerCase());
 							if (audio.getCodecA().contains("(windows media")) {
@@ -571,7 +546,7 @@ public class DLNAMediaInfo implements Cloneable {
 						audio.setSongname(f.getFile().getName());
 					}
 					if (!ffmpeg_parsing) {
-						getAudioCodes().add(audio);
+						getAudioTracksList().add(audio);
 					}
 				}
 			}
@@ -712,9 +687,6 @@ public class DLNAMediaInfo implements Cloneable {
 								int a = line.indexOf("(");
 								int b = line.indexOf("):", a);
 								DLNAMediaAudio audio = new DLNAMediaAudio();
-								if (langId == 0 && (getContainer().equals("avi") || getContainer().equals("ogm") || getContainer().equals("mov") || getContainer().equals("flv") || getContainer().equals("mp4"))) {
-									langId++;
-								}
 								audio.setId(langId++);
 								if (a > -1 && b > a) {
 									audio.setLang(line.substring(a + 1, b));
@@ -741,17 +713,17 @@ public class DLNAMediaInfo implements Cloneable {
 									} else if (token.endsWith("Hz")) {
 										audio.setSampleFrequency(token.substring(0, token.indexOf("Hz")).trim());
 									} else if (token.equals("mono")) {
-										audio.setNrAudioChannels(1);
+										audio.getAudioProperties().setNumberOfChannels(1);
 									} else if (token.equals("stereo")) {
-										audio.setNrAudioChannels(2);
+										audio.getAudioProperties().setNumberOfChannels(2);
 									} else if (token.equals("5:1") || token.equals("5.1") || token.equals("6 channels")) {
-										audio.setNrAudioChannels(6);
+										audio.getAudioProperties().setNumberOfChannels(6);
 									} else if (token.equals("5 channels")) {
-										audio.setNrAudioChannels(5);
+										audio.getAudioProperties().setNumberOfChannels(5);
 									} else if (token.equals("4 channels")) {
-										audio.setNrAudioChannels(4);
+										audio.getAudioProperties().setNumberOfChannels(4);
 									} else if (token.equals("2 channels")) {
-										audio.setNrAudioChannels(2);
+										audio.getAudioProperties().setNumberOfChannels(2);
 									} else if (token.equals("s32")) {
 										audio.setBitsperSample(32);
 									} else if (token.equals("s24")) {
@@ -779,7 +751,7 @@ public class DLNAMediaInfo implements Cloneable {
 										}
 									}
 								}
-								getAudioCodes().add(audio);
+								getAudioTracksList().add(audio);
 							} else if (line.indexOf("Video:") > -1) {
 								StringTokenizer st = new StringTokenizer(line, ",");
 								while (st.hasMoreTokens()) {
@@ -823,7 +795,7 @@ public class DLNAMediaInfo implements Cloneable {
 								}
 							} else if (line.indexOf("Subtitle:") > -1 && !line.contains("tx3g")) {
 								DLNAMediaSubtitle lang = new DLNAMediaSubtitle();
-								lang.setType((line.contains("dvdsub") && Platform.isWindows() ? DLNAMediaSubtitle.VOBSUB : DLNAMediaSubtitle.EMBEDDED));
+								lang.setType((line.contains("dvdsub") && Platform.isWindows() ? SubtitleType.VOBSUB : SubtitleType.UNKNOWN));
 								int a = line.indexOf("(");
 								int b = line.indexOf("):", a);
 								if (a > -1 && b > a) {
@@ -851,7 +823,7 @@ public class DLNAMediaInfo implements Cloneable {
 										}
 									}
 								}
-								getSubtitlesCodes().add(lang);
+								getSubtitleTracksList().add(lang);
 							}
 						}
 					}
@@ -1094,14 +1066,14 @@ public class DLNAMediaInfo implements Cloneable {
 
 	public String toString() {
 		String s = "container: " + getContainer() + " / bitrate: " + getBitrate() + " / size: " + getSize() + " / codecV: " + getCodecV() + " / duration: " + getDurationString() + " / width: " + getWidth() + " / height: " + getHeight() + " / frameRate: " + getFrameRate() + " / thumb size : " + (getThumb() != null ? getThumb().length : 0) + " / muxingMode: " + getMuxingMode();
-		for (DLNAMediaAudio audio : getAudioCodes()) {
-			s += "\n\taudio: id=" + audio.getId() + " / lang: " + audio.getLang() + " / flavor: " + audio.getFlavor() + " / codec: " + audio.getCodecA() + " / sf:" + audio.getSampleFrequency() + " / na: " + audio.getNrAudioChannels() + " / bs: " + audio.getBitsperSample();
+		for (DLNAMediaAudio audio : getAudioTracksList()) {
+			s += "\n\taudio: id=" + audio.getId() + " / lang: " + audio.getLang() + " / flavor: " + audio.getFlavor() + " / codec: " + audio.getCodecA() + " / sf:" + audio.getSampleFrequency() + " / na: " + (audio.getAudioProperties() != null ? audio.getAudioProperties().getNumberOfChannels() : "-") + " / bs: " + audio.getBitsperSample();
 			if (audio.getArtist() != null) {
 				s += " / " + audio.getArtist() + "|" + audio.getAlbum() + "|" + audio.getSongname() + "|" + audio.getYear() + "|" + audio.getTrack();
 			}
 		}
-		for (DLNAMediaSubtitle sub : getSubtitlesCodes()) {
-			s += "\n\tsub: id=" + sub.getId() + " / lang: " + sub.getLang() + " / flavor: " + sub.getFlavor() + " / type: " + sub.getType();
+		for (DLNAMediaSubtitle sub : getSubtitleTracksList()) {
+			s += "\n\tsub: id=" + sub.getId() + " / lang: " + sub.getLang() + " / flavor: " + sub.getFlavor() + " / type: " + (sub.getType() != null ? sub.getType().toString() : "null");
 		}
 		return s;
 	}
@@ -1145,8 +1117,8 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	public DLNAMediaAudio getFirstAudioTrack() {
-		if (getAudioCodes().size() > 0) {
-			return getAudioCodes().get(0);
+		if (getAudioTracksList().size() > 0) {
+			return getAudioTracksList().get(0);
 		}
 		return null;
 	}
@@ -1292,13 +1264,13 @@ public class DLNAMediaInfo implements Cloneable {
 		Object cloned = super.clone();
 		if (cloned instanceof DLNAMediaInfo) {
 			DLNAMediaInfo mediaCloned = ((DLNAMediaInfo) cloned);
-			mediaCloned.setAudioCodes(new ArrayList<DLNAMediaAudio>());
-			for (DLNAMediaAudio audio : getAudioCodes()) {
-				mediaCloned.getAudioCodes().add((DLNAMediaAudio) audio.clone());
+			mediaCloned.setAudioTracksList(new ArrayList<DLNAMediaAudio>());
+			for (DLNAMediaAudio audio : getAudioTracksList()) {
+				mediaCloned.getAudioTracksList().add((DLNAMediaAudio) audio.clone());
 			}
-			mediaCloned.setSubtitlesCodes(new ArrayList<DLNAMediaSubtitle>());
-			for (DLNAMediaSubtitle sub : getSubtitlesCodes()) {
-				mediaCloned.getSubtitlesCodes().add((DLNAMediaSubtitle) sub.clone());
+			mediaCloned.setSubtitleTracksList(new ArrayList<DLNAMediaSubtitle>());
+			for (DLNAMediaSubtitle sub : getSubtitleTracksList()) {
+				mediaCloned.getSubtitleTracksList().add((DLNAMediaSubtitle) sub.clone());
 			}
 		}
 
@@ -1402,6 +1374,22 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
+	 * @return the frameRateMode
+	 * @since 1.55
+	 */
+	public String getFrameRateMode() {
+		return frameRateMode;
+	}
+
+	/**
+	 * @param frameRateMode the frameRateMode to set
+	 * @since 1.55
+	 */
+	public void setFrameRateMode(String frameRateMode) {
+		this.frameRateMode = frameRateMode;
+	}
+
+	/**
 	 * @return the aspect
 	 * @since 1.50
 	 */
@@ -1466,35 +1454,71 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
-	 * @return the audioCodes
-	 * @since 1.50
+	 * @return the audioTracks
+	 * @since 1.60
 	 */
+	public ArrayList<DLNAMediaAudio> getAudioTracksList() {
+		return audioTracks;
+	}
+
+	/**
+	 * @return the audioTracks
+	 * @deprecated use getAudioTracksList() instead
+	 */
+	@Deprecated
 	public ArrayList<DLNAMediaAudio> getAudioCodes() {
-		return audioCodes;
+		return getAudioTracksList();
 	}
 
 	/**
-	 * @param audioCodes the audioCodes to set
-	 * @since 1.50
+	 * @param audioTracks the audioTracks to set
+	 * @since 1.60
 	 */
-	public void setAudioCodes(ArrayList<DLNAMediaAudio> audioCodes) {
-		this.audioCodes = audioCodes;
+	public void setAudioTracksList(ArrayList<DLNAMediaAudio> audioTracks) {
+		this.audioTracks = audioTracks;
 	}
 
 	/**
-	 * @return the subtitlesCodes
-	 * @since 1.50
+	 * @param audioTracks the audioTracks to set
+	 * @deprecated use setAudioTracksList(ArrayList<DLNAMediaAudio> audioTracks) instead
 	 */
+	@Deprecated
+	public void setAudioCodes(ArrayList<DLNAMediaAudio> audioTracks) {
+		setAudioTracksList(audioTracks);
+	}
+
+	/**
+	 * @return the subtitleTracks
+	 * @since 1.60
+	 */
+	public ArrayList<DLNAMediaSubtitle> getSubtitleTracksList() {
+		return subtitleTracks;
+	}
+
+	/**
+	 * @return the subtitleTracks
+	 * @deprecated use getSubtitleTracksList() instead
+	 */
+	@Deprecated
 	public ArrayList<DLNAMediaSubtitle> getSubtitlesCodes() {
-		return subtitlesCodes;
+		return getSubtitleTracksList();
 	}
 
 	/**
-	 * @param subtitlesCodes the subtitlesCodes to set
-	 * @since 1.50
+	 * @param subtitleTracks the subtitleTracks to set
+	 * @since 1.60
 	 */
-	public void setSubtitlesCodes(ArrayList<DLNAMediaSubtitle> subtitlesCodes) {
-		this.subtitlesCodes = subtitlesCodes;
+	public void setSubtitleTracksList(ArrayList<DLNAMediaSubtitle> subtitleTracks) {
+		this.subtitleTracks = subtitleTracks;
+	}
+
+	/**
+	 * @param subtitleTracks the subtitleTracks to set
+	 * @deprecated use setSubtitleTracksList(ArrayList<DLNAMediaSubtitle> subtitleTracks) instead
+	 */
+	@Deprecated
+	public void setSubtitlesCodes(ArrayList<DLNAMediaSubtitle> subtitleTracks) {
+		setSubtitleTracksList(subtitleTracks);
 	}
 
 	/**

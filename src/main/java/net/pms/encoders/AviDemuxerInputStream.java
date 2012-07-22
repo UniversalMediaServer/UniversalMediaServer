@@ -18,25 +18,13 @@
  */
 package net.pms.encoders;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.ArrayList;
-
 import net.pms.PMS;
-import net.pms.io.Gob;
-import net.pms.io.OutputParams;
-import net.pms.io.PipeProcess;
-import net.pms.io.ProcessWrapper;
-import net.pms.io.ProcessWrapperLiteImpl;
+import net.pms.io.*;
 import net.pms.util.H264AnnexBInputStream;
 import net.pms.util.PCMAudioOutputStream;
 import net.pms.util.ProcessUtil;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

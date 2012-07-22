@@ -18,27 +18,15 @@
  */
 package net.pms.dlna;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.LineNumberReader;
-import java.io.UnsupportedEncodingException;
+import com.sun.jna.Platform;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.StringTokenizer;
-
+import java.util.*;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.DownloadPlugins;
 import net.pms.configuration.MapFileConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -51,18 +39,16 @@ import net.pms.external.ExternalListener;
 import net.pms.gui.IFrame;
 import net.pms.xmlwise.Plist;
 import net.pms.xmlwise.XmlParseException;
-
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sun.jna.Platform;
-
 public class RootFolder extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RootFolder.class);
 	private final PmsConfiguration configuration = PMS.getConfiguration();
 	private boolean running;
+	private FolderLimit lim;
 
 	public RootFolder() {
 		setIndexId(0);
@@ -100,8 +86,13 @@ public class RootFolder extends DLNAResource {
 
 	@Override
 	public void discoverChildren() {
-		if(isDiscovered()) {
+		if (isDiscovered()) {
 			return;
+		}
+		
+		if (configuration.getFolderLimit()) {
+			lim = new FolderLimit();
+			addChild(lim);
 		}
 
 		for (DLNAResource r : getConfiguredFolders()) {
@@ -110,6 +101,12 @@ public class RootFolder extends DLNAResource {
 		for (DLNAResource r : getVirtualFolders()) {
 			addChild(r);
 		}
+		
+		if (configuration.getSearchFolder()) {
+			SearchFolder sf = new SearchFolder("Search disc folders", new FileSearch(getConfiguredFolders()));
+			addChild(sf);
+		}
+		
 		File webConf = new File(configuration.getProfileDirectory(), "WEB.conf");
 		if (webConf.exists()) {
 			addWebFolder(webConf);
@@ -142,9 +139,18 @@ public class RootFolder extends DLNAResource {
 			addChild(r);
 		}
 		if (!configuration.getHideVideoSettings()) {
-			addAdminFolder();
+			DLNAResource videoSettingsRes = getVideoSettingssFolder();
+			if (videoSettingsRes != null) {
+				addChild(videoSettingsRes);
+			}
 		}
 		setDiscovered(true);
+	}
+
+	public void setFolderLim(DLNAResource r) {
+		if (lim != null) {
+			lim.setStart(r);
+		}
 	}
 
 	/**
@@ -170,7 +176,7 @@ public class RootFolder extends DLNAResource {
 	public void scan() {
 		setRunning(true);
 
-		if(!isDiscovered()) {
+		if (!isDiscovered()) {
 			discoverChildren();
 		}
 		setDefaultRenderer(RendererConfiguration.getDefaultConf());
@@ -235,10 +241,11 @@ public class RootFolder extends DLNAResource {
 	private List<DLNAResource> getVirtualFolders() {
 		List<DLNAResource> res = new ArrayList<DLNAResource>();
 		List<MapFileConfiguration> mapFileConfs = MapFileConfiguration.parse(configuration.getVirtualFolders());
-		if (mapFileConfs != null)
+		if (mapFileConfs != null) {
 			for (MapFileConfiguration f : mapFileConfs) {
 				res.add(new MapFile(f));
 			}
+		}
 		return res;
 	}
 
@@ -678,62 +685,6 @@ public class RootFolder extends DLNAResource {
 		}
 		return res;
 	}
-	
-	private void addAdminFolder() {
-		DLNAResource res = new VirtualFolder(Messages.getString("PMS.200"), null);
-		DLNAResource vsf = getVideoSettingssFolder();
-		if(vsf != null) {
-			res.addChild(vsf);
-		}
-		res.addChild(new VirtualFolder(Messages.getString("NetworkTab.39"), null) {
-			public void discoverChildren() {
-				final ArrayList<DownloadPlugins> plugins=DownloadPlugins.downloadList();
-				for(final DownloadPlugins plugin : plugins) {
-					addChild(new VirtualVideoAction(plugin.getName(), true) {
-						public boolean enable() {
-							try {
-								plugin.install(null);
-							} catch (Exception e) {
-							}
-							return true;
-						}
-					});
-				}
-			}
-		});
-		final File scriptDir = new File(PMS.getConfiguration().getScriptDir());
-		if(scriptDir != null && scriptDir.exists()) {			
-			res.addChild(new VirtualFolder(Messages.getString("PMS.201"), null) {
-				public void discoverChildren() {
-					File[] files = scriptDir.listFiles();
-					for(int i=0;i<files.length;i++) {
-						String name = files[i].getName().replaceAll("_", " ");
-						int pos = name.lastIndexOf(".");
-						if(pos != -1)
-							name = name.substring(0,pos);
-						final File f=files[i];
-						addChild(new VirtualVideoAction(name, true) {
-							public boolean enable() {
-								try {
-									ProcessBuilder pb = new ProcessBuilder(f.getAbsolutePath());
-									Process pid = pb.start();
-									InputStream is = pid.getInputStream();
-									InputStreamReader isr = new InputStreamReader(is);
-									BufferedReader br = new BufferedReader(isr);
-									while (br.readLine() != null) { 
-									}
-									pid.waitFor();
-								} catch (Exception e) {
-								}
-								return true;
-							}
-						});
-					}
-				}
-			});
-		}
-		addChild(res);
-	}
 
 	/**
 	 * Returns Video Settings folder. Used by manageRoot, so it is usually used
@@ -884,5 +835,9 @@ public class RootFolder extends DLNAResource {
 	@Override
 	public String toString() {
 		return "RootFolder[" + getChildren() + "]";
+	}
+	
+	public void reset() {
+		setDiscovered(false);
 	}
 } 

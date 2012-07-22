@@ -19,9 +19,7 @@
 package net.pms.encoders;
 
 import java.io.IOException;
-
 import javax.swing.JComponent;
-
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
@@ -75,5 +73,27 @@ public class TsMuxerAudio extends TSMuxerVideo {
 	@Override
 	public int type() {
 		return Format.VIDEO;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean isCompatible(DLNAResource resource) {
+		if (resource == null || resource.getFormat().getType() != Format.AUDIO) {
+			return false;
+		}
+
+		Format format = resource.getFormat();
+
+		if (format != null) {
+			Format.Identifier id = format.getIdentifier();
+
+			if (id.equals(Format.Identifier.AUDIO_AS_VIDEO)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
