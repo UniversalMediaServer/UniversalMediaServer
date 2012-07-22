@@ -19,12 +19,15 @@
 package net.pms.external;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -109,7 +112,7 @@ public class ExternalFactory {
 		}
 	}
 	
-	private static boolean isLib(URL jar) {
+	private static String getMainClass(URL jar) {
 		URL[] jarURLs1={jar};
 		URLClassLoader classLoader = new URLClassLoader(jarURLs1);
 		Enumeration<URL> resources;
@@ -118,11 +121,24 @@ public class ExternalFactory {
 			// Each plugin .jar file has to contain a resource named "plugin"
 			// which should contain the name of the main plugin class.
 			resources = classLoader.getResources("plugin");
-			return !resources.hasMoreElements();
+			if(resources.hasMoreElements()) {
+				URL url = resources.nextElement();
+				// Determine the plugin main class name from the contents of
+				// the plugin file.
+				InputStreamReader in = new InputStreamReader(url.openStream());
+				char[] name = new char[512];
+				in.read(name);
+				in.close();
+				return new String(name).trim();
+			}
 		} catch (IOException e) {
 			LOGGER.error("Can't load plugin resources", e);
 		}
-		return false;
+		return null;
+	}
+			
+	private static boolean isLib(URL jar) {
+		return (getMainClass(jar) == null);
 	}
 	
 	public static void loadJARs(URL[] jarURLs,boolean download) {
@@ -138,7 +154,7 @@ public class ExternalFactory {
 		int pos = libs.size();
 		for(int i=0;i<jarURLs.length;i++) {
 			jarURLs1[pos] = jarURLs[i];
-			loadJAR(jarURLs1,download);
+			loadJAR(jarURLs1,download,jarURLs[i]);
 		}	
 	}
 	
@@ -146,7 +162,7 @@ public class ExternalFactory {
 	 * This method loads the jar files found in the plugin dir
 	 * or if installed from the web.
 	 */
-	public static void loadJAR(URL[] jarURL,boolean download) {
+	public static void loadJAR(URL[] jarURL,boolean download,URL newURL) {
 		// Create a classloader to take care of loading the plugin classes from
 		// their URL.
 		URLClassLoader classLoader = new URLClassLoader(jarURL);
@@ -177,7 +193,7 @@ public class ExternalFactory {
 				
 				if(download) {
 					// Only purge code when downloading!
-					purgeCode(pluginMainClassName, url);
+					purgeCode(pluginMainClassName, newURL);
 				}
 
 				// Try to load the class based on the main class name
@@ -233,7 +249,8 @@ public class ExternalFactory {
 		URL[] urls = cl.getURLs();
 		for(int i=0;i<urls.length;i++) {
 			URL url = urls[i];
-			if(isLib(url)) {
+			String mainClass1 = getMainClass(url);
+			if(mainClass1 == null || !mainClass.equals(mainClass1)) {
 				continue;
 			}
 			File f = url2file(url);
@@ -258,13 +275,13 @@ public class ExternalFactory {
 	}
 	
 	private static void addToPurgeFile(File f) {
-		File purge=new File("purge");
 		try {
-			FileOutputStream fos=new FileOutputStream(purge);
-			fos.write(f.getAbsolutePath().getBytes(),0,f.getAbsolutePath().length());
-			fos.flush();
-			fos.close();
+			FileWriter out = new FileWriter("purge", true); 
+			out.write(f.getAbsolutePath() + "\r\n");
+			out.flush();
+			out.close();
 		} catch (Exception e) {
+			LOGGER.debug("purge file error "+e);
 		}
 	}
 	
@@ -286,6 +303,7 @@ public class ExternalFactory {
 				}
 				else if(action.equalsIgnoreCase("backup")) {
 					FileUtils.moveFileToDirectory(f, new File("backup"), true);
+					f.delete();
 				}
 			}
 			fis.close();
