@@ -22,10 +22,10 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.StringUtils;
 
 /*
- * Utility methods common to classes that wrap config (property) files e.g. PmsConfiguration and RendererConfiguration.
+ * Helper methods for classes that wrap config (property) files e.g. PmsConfiguration and RendererConfiguration.
  */
 
-class ConfigurationUtil { /* package-private */
+class ConfigurationUtil { // package-private
 	/**
 	 * Return the <code>String</code> value for a given configuration key if the
 	 * value is non-blank (i.e. not null, not an empty string, not all whitespace).
@@ -47,6 +47,27 @@ class ConfigurationUtil { /* package-private */
 			return def.trim();
 		} else {
 			return def;
+		}
+	}
+
+	/**
+	 * Return the <code>String</code> value for a given configuration key.
+	 * If the value is not defined, the supplied default value is returned.
+	 * The value is returned with leading and trailing whitespace removed in both cases.
+	 * @param configuration The configuration to look up the key in.
+	 * @param key The key to look up.
+	 * @param def The default value to return when no valid key value can be found.
+	 * @return The value configured for the key.
+	 */
+
+	// package-private
+	static String getBlankConfigurationString(Configuration configuration, String key, String def) {
+		String value = configuration.getString(key, def);
+
+		if (value != null) {
+			return value.trim();
+		} else {
+			return value;
 		}
 	}
 }

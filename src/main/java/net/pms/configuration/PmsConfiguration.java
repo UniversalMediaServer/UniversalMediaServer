@@ -274,7 +274,7 @@ public class PmsConfiguration {
 			UMS_PROFILE=. ./UMS.sh
 
 		3) if a relative or absolute *file path* is supplied (the file doesn't have to exist),
-		it is taken to be the profile, and its parent dir is taken to be the profile (i.e. config file) dir: 
+		it is taken to be the profile, and its parent dir is taken to be the profile (i.e. config file) dir:
 
 			UMS_PROFILE = UMS.conf            # profile dir = .
 			UMS_PROFILE = folder/dev.conf     # profile dir = folder
@@ -714,7 +714,7 @@ public class PmsConfiguration {
 	 * instead of the "ac3_fixed" codec. Returns true if "ac3_fixed" should be used.
 	 * Default is false.
 	 * See https://code.google.com/p/ps3mediaserver/issues/detail?id=1092#c1
-	 * @return True if "ac3_fixed" should be used. 
+	 * @return True if "ac3_fixed" should be used.
 	 */
 	public boolean isMencoderAc3Fixed() {
 		return configuration.getBoolean(KEY_MENCODER_AC3_FIXED, false);
@@ -943,12 +943,13 @@ public class PmsConfiguration {
 	/**
 	 * Returns the audio language priority for MEncoder as a comma separated
 	 * string. For example: <code>"eng,fre,jpn,ger,und"</code>, where "und"
-	 * stands for "undefined". Default value is "loc,eng,fre,jpn,ger,und".
+	 * stands for "undefined".
+	 * Default value is "loc,eng,fre,jpn,ger,und".
 	 *
 	 * @return The audio language priority string.
 	 */
 	public String getMencoderAudioLanguages() {
-		return getString(KEY_MENCODER_AUDIO_LANGS, getDefaultLanguages());
+		return ConfigurationUtil.getBlankConfigurationString(configuration, KEY_MENCODER_AUDIO_LANGS, Messages.getString("MEncoderVideo.126"));
 	}
 
 	/**
@@ -973,16 +974,16 @@ public class PmsConfiguration {
 	 * @return The subtitle language priority string.
 	 */
 	public String getMencoderSubLanguages() {
-		return getString(KEY_MENCODER_SUB_LANGS, getDefaultLanguages());
+		return ConfigurationUtil.getBlankConfigurationString(configuration, KEY_MENCODER_SUB_LANGS, getDefaultLanguages());
 	}
 
 	/**
 	 * Returns the ISO 639 language code for the subtitle language that should
-	 * be forced upon MEncoder. 
+	 * be forced upon MEncoder.
 	 * @return The subtitle language code.
 	 */
 	public String getMencoderForcedSubLanguage() {
-		return getString(KEY_MENCODER_FORCED_SUB_LANG, getLanguage());
+		return ConfigurationUtil.getBlankConfigurationString(configuration, KEY_MENCODER_FORCED_SUB_LANG, getLanguage());
 	}
 
 	/**
@@ -1006,7 +1007,7 @@ public class PmsConfiguration {
 	 * @return The audio and subtitle languages priority string.
 	 */
 	public String getMencoderAudioSubLanguages() {
-		return getString(KEY_MENCODER_AUDIO_SUB_LANGS, "");
+		return ConfigurationUtil.getBlankConfigurationString(configuration, KEY_MENCODER_AUDIO_SUB_LANGS, "");
 	}
 
 	/**
@@ -1078,7 +1079,7 @@ public class PmsConfiguration {
 
 	/**
 	 * Sets the ISO 639 language code for the subtitle language that should
-	 * be forced upon MEncoder. 
+	 * be forced upon MEncoder.
 	 * @param value The subtitle language code.
 	 */
 	public void setMencoderForcedSubLanguage(String value) {
@@ -1260,7 +1261,7 @@ public class PmsConfiguration {
 	 * optimal resolution. Default value is false, meaning the renderer will
 	 * upscale the video itself.
 	 *
-	 * @return True if MEncoder should be used, false otherwise. 
+	 * @return True if MEncoder should be used, false otherwise.
 	 * @see {@link #getMencoderScaleX(int)}, {@link #getMencoderScaleY(int)}
 	 */
 	public boolean isMencoderScaler() {
@@ -1342,7 +1343,7 @@ public class PmsConfiguration {
 	 * Sets the AC3 audio bitrate, which determines the quality of digital
 	 * audio sound. An AV-receiver or amplifier has to be capable of playing
 	 * this quality.
-	 * 
+	 *
 	 * @param value The AC3 audio bitrate.
 	 */
 	public void setAudioBitrate(int value) {
@@ -1435,7 +1436,7 @@ public class PmsConfiguration {
 
 	/**
 	 * Returns the number of CPU cores that should be used for transcoding.
-	 * 
+	 *
 	 * @return The number of CPU cores.
 	 */
 	public int getNumberOfCpuCores() {
