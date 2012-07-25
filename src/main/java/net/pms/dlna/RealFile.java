@@ -24,7 +24,10 @@ import net.pms.PMS;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.util.FileUtil;
+import net.pms.util.ImdbUtil;
+import net.pms.util.OpenSubtitle;
 import net.pms.util.ProcessUtil;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,6 +75,9 @@ public class RealFile extends MapFile {
 			if (getParent().getDefaultRenderer().isMediaParserV2ThumbnailGeneration()) {
 				checkThumbnail();
 			}
+		}
+		if (valid) {
+			resolveImdb();
 		}
 		return valid;
 	}
@@ -123,7 +129,7 @@ public class RealFile extends MapFile {
 			}
 			this.getConf().setName(name);
 		}
-		return this.getConf().getName().replaceAll("_imdb([^_]+)_", "");
+		return ImdbUtil.cleanName(this.getConf().getName());
 	}
 
 	@Override
@@ -151,7 +157,7 @@ public class RealFile extends MapFile {
 			if (getSplitTrack() > 0) {
 				fileName += "#SplitTrack" + getSplitTrack();
 			}
-			
+
 			if (PMS.getConfiguration().getUseCache()) {
 				DLNAMediaDatabase database = PMS.get().getDatabase();
 
@@ -255,8 +261,7 @@ public class RealFile extends MapFile {
 
 	@Override
 	protected String getThumbnailURL() {
-		if (getType() == Format.IMAGE && !PMS.getConfiguration().getImageThumbnailsEnabled())
-		{
+		if (getType() == Format.IMAGE && !PMS.getConfiguration().getImageThumbnailsEnabled()) {
 			return null;
 		}
 		StringBuilder sb = new StringBuilder();
@@ -271,5 +276,71 @@ public class RealFile extends MapFile {
 			return null;
 		}
 		return super.getThumbnailURL();
+	}
+
+	public boolean isSubSelectable() {
+		return true;
+	}
+
+	public String getImdbId() {
+		return ImdbUtil.extractImdb(getFile());
+	}
+
+	private File fixPath(String path, String name) {
+		if (path == null || StringUtils.isEmpty(path)) {
+			return new File(name);
+		}
+		return new File(path + File.separator + name);
+	}
+
+	private void resolveImdb() {
+		if (!PMS.getConfiguration().autoImdb()) {
+			return;
+		}
+		if (!StringUtils.isEmpty(getImdbId())) {
+			// Already got an ImdbId or we shouldn't do this
+			return;
+		}
+		final File f = getFile();
+		if (f.isDirectory()) {
+			return;
+		}
+		Runnable r = new Runnable() {
+			public void run() {
+				String imdb;
+				String hash;
+
+				try {
+					hash = OpenSubtitle.getHash(f);
+					imdb = OpenSubtitle.fetchImdbId(hash);
+				} catch (IOException e) {
+					LOGGER.debug("error during opensubs communication " + e);
+					return;
+				}
+
+				if (StringUtils.isEmpty(imdb) || StringUtils.isEmpty(hash)) {
+					// No ID found, give up
+					return;
+				}
+
+				// find the . (if any)
+				String name = f.getName();
+				int pos = name.lastIndexOf(".");
+				String rear;
+				if (pos == -1) {
+					pos = name.length();
+					rear = "";
+				} else {
+					rear = name.substring(pos);
+				}
+				// Some string trix
+				String front = name.substring(0, pos);
+				name = front + "_imdb" + imdb + "_" + "_os" + hash + "_" + rear;
+				File dst = fixPath(f.getParent(), name);
+				LOGGER.debug((f.renameTo(dst) ? "Succeded " : "Failed ")
+					+ "to add imdb " + imdb + " to file " + name);
+			}
+		};
+		new Thread(r).start();
 	}
 }

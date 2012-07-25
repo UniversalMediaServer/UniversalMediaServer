@@ -182,6 +182,8 @@ public class PmsConfiguration {
 	private static final String KEY_VIRTUAL_FOLDERS = "vfolders";
 	private static final String KEY_BUFFER_MAX = "buffer_max";
 	private static final String KEY_PLUGIN_PURGE_ACTION = "plugin_purge";
+	private static final String KEY_AUTO_IMDB = "auto_imdb";
+	private static final String KEY_OPEN_SUBS = "open_subs";
 	private static final String KEY_SEARCH_FOLDER = "search_folder";
 	private static final String KEY_SEARCH_RECURSE = "search_recurse";
 
@@ -2310,11 +2312,11 @@ public class PmsConfiguration {
 	public void removeConfigurationListener(ConfigurationListener l) {
 		configuration.removeConfigurationListener(l);
 	}
-	
+
 	public boolean getFolderLimit() {
 		return getBoolean(KEY_FOLDER_LIMIT, false);
 	}
-	
+
 	public boolean initBufferMax() {
 		return getBoolean(KEY_BUFFER_MAX, false);
 	}
@@ -2358,5 +2360,13 @@ public class PmsConfiguration {
 	 */
 	public void setTranscodeFolderName(String name) {
 		configuration.setProperty(KEY_TRANSCODE_FOLDER_NAME, name);
+	}
+
+	public boolean autoImdb() {
+		return getBoolean(KEY_AUTO_IMDB, false);
+	}
+
+	public boolean openSubs() {
+		return getBoolean(KEY_OPEN_SUBS, false);
 	}
 }
