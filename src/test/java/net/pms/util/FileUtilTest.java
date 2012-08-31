@@ -55,6 +55,30 @@ public class FileUtilTest {
 	}
 
 	@Test
+	public void testGetFileCharset_UTF16_LE() throws Exception {
+		File file = new File(this.getClass().getResource("russian-utf16-le.srt").getFile());
+		assertThat(FileUtil.getFileCharset(file)).isEqualTo(Constants.CHARSET_UTF_16LE);
+	}
+
+	@Test
+	public void testGetFileCharset_UTF16_BE() throws Exception {
+		File file = new File(this.getClass().getResource("russian-utf16-be.srt").getFile());
+		assertThat(FileUtil.getFileCharset(file)).isEqualTo(Constants.CHARSET_UTF_16BE);
+	}
+
+	@Test
+	public void testGetFileCharset_UTF32_LE() throws Exception {
+		File file = new File(this.getClass().getResource("russian-utf32-le.srt").getFile());
+		assertThat(FileUtil.getFileCharset(file)).isEqualTo(Constants.CHARSET_UTF_32LE);
+	}
+
+	@Test
+	public void testGetFileCharset_UTF32_BE() throws Exception {
+		File file = new File(this.getClass().getResource("russian-utf32-be.srt").getFile());
+		assertThat(FileUtil.getFileCharset(file)).isEqualTo(Constants.CHARSET_UTF_32BE);
+	}
+
+	@Test
 	public void testGetFileCharset_BIG5() throws Exception {
 		File file = new File(this.getClass().getResource("chinese-gb18030.srt").getFile());
 		assertThat(FileUtil.getFileCharset(file)).isEqualTo(Constants.CHARSET_GB18030);
