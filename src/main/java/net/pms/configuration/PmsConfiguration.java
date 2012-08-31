@@ -1022,7 +1022,8 @@ public class PmsConfiguration {
 
 	/**
 	 * Returns the character encoding (or code page) that MEncoder should use
-	 * for displaying subtitles. Default is empty string (do not force encoding with -subcp key).
+	 * for displaying non Unicode external subtitles. Default is empty string
+	 * (do not force encoding with -subcp key).
 	 * @return The character encoding.
 	 */
 	public String getMencoderSubCp() {
@@ -1148,7 +1149,7 @@ public class PmsConfiguration {
 
 	/**
 	 * Sets the character encoding (or code page) that MEncoder should use
-	 * for displaying subtitles. Default is "cp1252".
+	 * for displaying non Unicode external subtitles. Default is empty (autodetect).
 	 * @param value The character encoding.
 	 */
 	public void setMencoderSubCp(String value) {
