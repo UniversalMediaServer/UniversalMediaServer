@@ -1,7 +1,24 @@
-1.4.1 - 2012-07-??
+1.5.0 - 2012-08-??
 
 	General:
 		Made videos adhere more exactly to the maximum bandwidth limit
+		Updated MPlayer/MEncoder to SB37, changelog: http://www.spirton.com/mplayer-mencoder-sb37-released/
+		Updated MediaInfo to 0.7.59, changelog: http://mediainfo.sourceforge.net/Log
+		Files are now sorted alphanuerically by default
+		#--TRANSCODE--# folder name is localized
+		Cleaned up FFmpeg and MEncoder commands
+		Use automatic enabling of multithreading with FFmpeg and FFmpeg/AviSynth engines
+		Many improvements to UMS.conf and how it responds to updates, it is recommended to delete your old one
+		Only use tsMuxeR to compensate for MEncoder ignoring audio delay when A/V sync alternative method is enabled (which it is by default)
+		Fixed bugs in plugin installer
+	FFmpeg:
+		Updated FFmpeg to a366bea (20120827)
+		Follow the maximum bandwidth setting
+		Mux AC3 instead of transcoding it
+		Use better commands
+	Languages:
+		Updated Russian
+		Updated English settings labels
 
 1.4.0 - 2012-07-18
 
