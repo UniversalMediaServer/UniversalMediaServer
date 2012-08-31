@@ -1,6 +1,7 @@
 package net.pms.util;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,6 +10,7 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.formats.v2.SubtitleType;
 import org.apache.commons.lang.StringUtils;
+import org.mozilla.universalchardet.UniversalDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -174,5 +176,35 @@ public class FileUtil {
 			}
 		}
 		return found;
+	}
+
+	/**
+	 * Detects charset/encoding for given file. Not 100% accurate for
+	 * non-Unicode files.
+	 * @param file File to detect charset/encoding
+	 * @return file's charset {@link org.mozilla.universalchardet.Constants} or null
+	 * if not detected
+	 * @throws IOException
+	 */
+	public static String getFileCharset(File file) throws IOException {
+		byte[] buf = new byte[4096];
+		FileInputStream fileInputStream = new FileInputStream(file);
+		final UniversalDetector universalDetector = new UniversalDetector(null);
+
+		int numberOfBytesRead;
+		while ((numberOfBytesRead = fileInputStream.read(buf)) > 0 && !universalDetector.isDone()) {
+			universalDetector.handleData(buf, 0, numberOfBytesRead);
+		}
+		universalDetector.dataEnd();
+		String encoding = universalDetector.getDetectedCharset();
+
+		if (encoding != null) {
+			LOGGER.debug("Detected encoding for {} is {}.", file.getAbsolutePath(), encoding);
+		} else {
+			LOGGER.debug("No encoding detected for {}.", file.getAbsolutePath());
+		}
+		universalDetector.reset();
+
+		return encoding;
 	}
 }
