@@ -10,6 +10,7 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.formats.v2.SubtitleType;
 import org.apache.commons.lang.StringUtils;
+import org.mozilla.universalchardet.Constants;
 import org.mozilla.universalchardet.UniversalDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -206,5 +207,25 @@ public class FileUtil {
 		universalDetector.reset();
 
 		return encoding;
+	}
+
+	/**
+	 * Tests if file is UTF-8 encoded with or without BOM.
+	 * @param file File to test
+	 * @return true if file is UTF-8 encoded with or without BOM, false otherwise.
+	 * @throws IOException
+	 */
+	public static boolean isFileUTF8(File file) throws IOException {
+		return getFileCharset(file).equals(Constants.CHARSET_UTF_8);
+	}
+
+	/**
+	 * Tests if file is UTF-16 encoded LE or BE.
+	 * @param file File to test
+	 * @return true if file is UTF-16 encoded LE or BE, false otherwise.
+	 * @throws IOException
+	 */
+	public static boolean isFileUTF16(File file) throws IOException {
+		return (getFileCharset(file).equals(Constants.CHARSET_UTF_16LE) || getFileCharset(file).equals(Constants.CHARSET_UTF_16BE));
 	}
 }

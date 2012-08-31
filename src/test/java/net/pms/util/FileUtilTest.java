@@ -89,4 +89,40 @@ public class FileUtilTest {
 		File file = new File(this.getClass().getResource("chinese-big5.srt").getFile());
 		assertThat(FileUtil.getFileCharset(file)).isEqualTo(Constants.CHARSET_BIG5);
 	}
+
+	@Test
+	public void testIsFileUTF8() throws Exception {
+		File file_utf8 = new File(this.getClass().getResource("russian-utf8-without-bom.srt").getFile());
+		assertThat(FileUtil.isFileUTF8(file_utf8)).isTrue();
+		File file_utf8_2 = new File(this.getClass().getResource("russian-utf8-with-bom.srt").getFile());
+		assertThat(FileUtil.isFileUTF8(file_utf8_2)).isTrue();
+		File file_utf_16 = new File(this.getClass().getResource("russian-utf16-le.srt").getFile());
+		assertThat(FileUtil.isFileUTF8(file_utf_16)).isFalse();
+		File file_utf_16_2 = new File(this.getClass().getResource("russian-utf16-be.srt").getFile());
+		assertThat(FileUtil.isFileUTF8(file_utf_16_2)).isFalse();
+		File file_cp1251 = new File(this.getClass().getResource("russian-cp1251.srt").getFile());
+		assertThat(FileUtil.isFileUTF8(file_cp1251)).isFalse();
+		File file_ch = new File(this.getClass().getResource("chinese-gb18030.srt").getFile());
+		assertThat(FileUtil.isFileUTF8(file_ch)).isFalse();
+		File file_ch_2 = new File(this.getClass().getResource("chinese-big5.srt").getFile());
+		assertThat(FileUtil.isFileUTF8(file_ch_2)).isFalse();
+	}
+
+	@Test
+	public void testIsFileUTF16() throws Exception {
+		File file_utf8 = new File(this.getClass().getResource("russian-utf8-without-bom.srt").getFile());
+		assertThat(FileUtil.isFileUTF16(file_utf8)).isFalse();
+		File file_utf8_2 = new File(this.getClass().getResource("russian-utf8-with-bom.srt").getFile());
+		assertThat(FileUtil.isFileUTF16(file_utf8_2)).isFalse();
+		File file_utf_16 = new File(this.getClass().getResource("russian-utf16-le.srt").getFile());
+		assertThat(FileUtil.isFileUTF16(file_utf_16)).isTrue();
+		File file_utf_16_2 = new File(this.getClass().getResource("russian-utf16-be.srt").getFile());
+		assertThat(FileUtil.isFileUTF16(file_utf_16_2)).isTrue();
+		File file_cp1251 = new File(this.getClass().getResource("russian-cp1251.srt").getFile());
+		assertThat(FileUtil.isFileUTF16(file_cp1251)).isFalse();
+		File file_ch = new File(this.getClass().getResource("chinese-gb18030.srt").getFile());
+		assertThat(FileUtil.isFileUTF16(file_ch)).isFalse();
+		File file_ch_2 = new File(this.getClass().getResource("chinese-big5.srt").getFile());
+		assertThat(FileUtil.isFileUTF16(file_ch_2)).isFalse();
+	}
 }
