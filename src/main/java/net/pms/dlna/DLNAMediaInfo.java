@@ -130,8 +130,8 @@ public class DLNAMediaInfo implements Cloneable {
 	@Deprecated
 	public int bitsPerPixel;
 
-	private ArrayList<DLNAMediaAudio> audioTracks = new ArrayList<DLNAMediaAudio>();
-	private ArrayList<DLNAMediaSubtitle> subtitleTracks = new ArrayList<DLNAMediaSubtitle>();
+	private List<DLNAMediaAudio> audioTracks = new ArrayList<DLNAMediaAudio>();
+	private List<DLNAMediaSubtitle> subtitleTracks = new ArrayList<DLNAMediaSubtitle>();
 
 	/**
 	 * @deprecated Use standard getter and setter to access this variable.
@@ -1457,7 +1457,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @return the audioTracks
 	 * @since 1.60
 	 */
-	public ArrayList<DLNAMediaAudio> getAudioTracksList() {
+	public List<DLNAMediaAudio> getAudioTracksList() {
 		return audioTracks;
 	}
 
@@ -1467,14 +1467,18 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	@Deprecated
 	public ArrayList<DLNAMediaAudio> getAudioCodes() {
-		return getAudioTracksList();
+		if(audioTracks instanceof ArrayList) {
+			return (ArrayList<DLNAMediaAudio>) audioTracks;
+		} else {
+			return new ArrayList<DLNAMediaAudio>();
+		}
 	}
 
 	/**
 	 * @param audioTracks the audioTracks to set
 	 * @since 1.60
 	 */
-	public void setAudioTracksList(ArrayList<DLNAMediaAudio> audioTracks) {
+	public void setAudioTracksList(List<DLNAMediaAudio> audioTracks) {
 		this.audioTracks = audioTracks;
 	}
 
@@ -1483,7 +1487,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @deprecated use setAudioTracksList(ArrayList<DLNAMediaAudio> audioTracks) instead
 	 */
 	@Deprecated
-	public void setAudioCodes(ArrayList<DLNAMediaAudio> audioTracks) {
+	public void setAudioCodes(List<DLNAMediaAudio> audioTracks) {
 		setAudioTracksList(audioTracks);
 	}
 
@@ -1491,7 +1495,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @return the subtitleTracks
 	 * @since 1.60
 	 */
-	public ArrayList<DLNAMediaSubtitle> getSubtitleTracksList() {
+	public List<DLNAMediaSubtitle> getSubtitleTracksList() {
 		return subtitleTracks;
 	}
 
@@ -1501,14 +1505,18 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	@Deprecated
 	public ArrayList<DLNAMediaSubtitle> getSubtitlesCodes() {
-		return getSubtitleTracksList();
+		if(subtitleTracks instanceof ArrayList) {
+			return (ArrayList<DLNAMediaSubtitle>) subtitleTracks;
+		} else {
+			return new ArrayList<DLNAMediaSubtitle>();
+		}
 	}
 
 	/**
 	 * @param subtitleTracks the subtitleTracks to set
 	 * @since 1.60
 	 */
-	public void setSubtitleTracksList(ArrayList<DLNAMediaSubtitle> subtitleTracks) {
+	public void setSubtitleTracksList(List<DLNAMediaSubtitle> subtitleTracks) {
 		this.subtitleTracks = subtitleTracks;
 	}
 
@@ -1517,7 +1525,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @deprecated use setSubtitleTracksList(ArrayList<DLNAMediaSubtitle> subtitleTracks) instead
 	 */
 	@Deprecated
-	public void setSubtitlesCodes(ArrayList<DLNAMediaSubtitle> subtitleTracks) {
+	public void setSubtitlesCodes(List<DLNAMediaSubtitle> subtitleTracks) {
 		setSubtitleTracksList(subtitleTracks);
 	}
 

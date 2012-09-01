@@ -1,7 +1,6 @@
 package net.pms.util;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import net.pms.PMS;
@@ -9,6 +8,8 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.formats.v2.SubtitleType;
 import org.apache.commons.lang.StringUtils;
+import static org.mozilla.universalchardet.Constants.*;
+import org.mozilla.universalchardet.UniversalDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -144,7 +145,6 @@ public class FileUtil {
 								DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
 								sub.setId(100 + (media == null ? 0 : media.getSubtitleTracksList().size())); // fake id, not used
 								sub.setExternalFile(f);
-								sub.checkUnicode();
 								if (code.length() == 0 || !Iso639.getCodeList().contains(code)) {
 									sub.setLang(DLNAMediaSubtitle.UND);
 									sub.setType(SubtitleType.getSubtitleTypeByFileExtension(ext));
@@ -174,5 +174,99 @@ public class FileUtil {
 			}
 		}
 		return found;
+	}
+
+	/**
+	 * Detects charset/encoding for given file. Not 100% accurate for
+	 * non-Unicode files.
+	 * @param file File to detect charset/encoding
+	 * @return file's charset {@link org.mozilla.universalchardet.Constants} or null
+	 * if not detected
+	 * @throws IOException
+	 */
+	public static String getFileCharset(File file) throws IOException {
+		byte[] buf = new byte[4096];
+		FileInputStream fileInputStream = new FileInputStream(file);
+		final UniversalDetector universalDetector = new UniversalDetector(null);
+
+		int numberOfBytesRead;
+		while ((numberOfBytesRead = fileInputStream.read(buf)) > 0 && !universalDetector.isDone()) {
+			universalDetector.handleData(buf, 0, numberOfBytesRead);
+		}
+		universalDetector.dataEnd();
+		String encoding = universalDetector.getDetectedCharset();
+
+		if (encoding != null) {
+			LOGGER.debug("Detected encoding for {} is {}.", file.getAbsolutePath(), encoding);
+		} else {
+			LOGGER.debug("No encoding detected for {}.", file.getAbsolutePath());
+		}
+		universalDetector.reset();
+
+		return encoding;
+	}
+
+	/**
+	 * Tests if file is UTF-8 encoded with or without BOM.
+	 * @param file File to test
+	 * @return true if file is UTF-8 encoded with or without BOM, false otherwise.
+	 * @throws IOException
+	 */
+	public static boolean isFileUTF8(File file) throws IOException {
+		return getFileCharset(file) == CHARSET_UTF_8;
+	}
+
+	/**
+	 * Tests if file is UTF-16 encoded LE or BE.
+	 * @param file File to test
+	 * @return true if file is UTF-16 encoded LE or BE, false otherwise.
+	 * @throws IOException
+	 */
+	public static boolean isFileUTF16(File file) throws IOException {
+		return (getFileCharset(file).equals(CHARSET_UTF_16LE) || getFileCharset(file).equals(CHARSET_UTF_16BE));
+	}
+
+	/**
+	 * Converts UTF-16 inputFile to UTF-8 outputFile. Does not overwrite existing outputFile file.
+	 * @param inputFile UTF-16 file
+	 * @param outputFile UTF-8 file after conversion
+	 * @throws IOException
+	 */
+	public static void convertFileFromUtf16ToUtf8(File inputFile, File outputFile) throws IOException {
+		String charset;
+		if (inputFile == null || !inputFile.canRead()) {
+			throw new FileNotFoundException("Can't read inputFile.");
+		}
+		try {
+			charset = getFileCharset(inputFile);
+		} catch (IOException ex) {
+			LOGGER.debug("Exception during charset detection.", ex);
+			throw new IllegalArgumentException("Can't confirm inputFile is UTF-16.");
+		}
+
+		if (StringUtils.equals(charset, CHARSET_UTF_16LE) || StringUtils.equals(charset, CHARSET_UTF_16BE)) {
+			if (!outputFile.exists()) {
+				BufferedReader reader = null;
+				try {
+					if (charset.equals(CHARSET_UTF_16LE)) {
+						reader = new BufferedReader(new InputStreamReader(new FileInputStream(inputFile), "UTF-16"));
+					} else {
+						reader = new BufferedReader(new InputStreamReader(new FileInputStream(inputFile), "UTF-16BE"));
+					}
+				} catch (UnsupportedEncodingException ex) {
+					LOGGER.warn("Unsupported exception.", ex);
+					throw ex;
+				}
+				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), "UTF-8"));
+				int c;
+				while ((c = reader.read()) != -1) {
+					writer.write(c);
+				}
+				writer.close();
+				reader.close();
+			}
+		} else {
+			throw new IllegalArgumentException("File is not UTF-16");
+		}
 	}
 }

@@ -328,4 +328,32 @@ public final class PlayerFactory {
 
 		return compatiblePlayers;
 	}
+
+	/**
+	 * Returns all {@link Player}s that match the given resource and are enabled. Each of the
+	 * available players is passed the provided information and each player that
+	 * reports it is compatible will be returned.
+	 * 
+	 * @param resource
+	 *            The {@link DLNAResource} to match
+	 * @return The player if a match could be found, <code>null</code>
+	 *         otherwise.
+	 * @since 1.70.0
+	 */
+	public static ArrayList<Player> getEnabledPlayers(final DLNAResource resource) {
+		if (resource == null) {
+			return null;
+		}
+
+		List<String> enabledEngines = PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry());
+		ArrayList<Player> enabledPlayers = new ArrayList<Player>();
+		
+		for (Player player : getPlayers(resource)) {
+			if (enabledEngines.contains(player.id())) {
+				enabledPlayers.add(player);
+			}
+		}
+
+		return enabledPlayers;
+	}
 }
