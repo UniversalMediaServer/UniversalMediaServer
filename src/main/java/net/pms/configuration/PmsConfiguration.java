@@ -180,6 +180,7 @@ public class PmsConfiguration {
 	private static final String KEY_UUID = "uuid";
 	private static final String KEY_VIDEOTRANSCODE_START_DELAY = "key_videotranscode_start_delay"; // TODO (breaking change): should be renamed to e.g. videotranscode_start_delay
 	private static final String KEY_VIRTUAL_FOLDERS = "vfolders";
+	// FIXME what is this? if it should be kept, it needs to be a) documented and b) renamed (breaking change)
 	private static final String KEY_BUFFER_MAX = "buffer_max";
 	private static final String KEY_PLUGIN_PURGE_ACTION = "plugin_purge";
 	private static final String KEY_SEARCH_FOLDER = "search_folder";
@@ -2311,23 +2312,25 @@ public class PmsConfiguration {
 	public void removeConfigurationListener(ConfigurationListener l) {
 		configuration.removeConfigurationListener(l);
 	}
-	
+
 	public boolean getFolderLimit() {
 		return getBoolean(KEY_FOLDER_LIMIT, false);
 	}
-	
+
+	// FIXME this is undocumented and misnamed
+	@Deprecated
 	public boolean initBufferMax() {
 		return getBoolean(KEY_BUFFER_MAX, false);
 	}
-	
+
 	public String getPluginPurgeAction() {
 		return getString(KEY_PLUGIN_PURGE_ACTION, "delete");
 	}
-	
+
 	public boolean getSearchFolder() {
 		return getBoolean(KEY_SEARCH_FOLDER, false);
 	}
-	
+
 	public int getSearchRecurse() {
 		if (getBoolean(KEY_SEARCH_RECURSE, true)) {
 			return 100;
@@ -2336,7 +2339,7 @@ public class PmsConfiguration {
 			return 0;
 		}
 	}
-	
+
 	public void reload() {
 		try {
 			configuration.refresh();
