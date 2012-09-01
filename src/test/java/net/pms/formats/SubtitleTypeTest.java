@@ -18,12 +18,14 @@
  */
 package net.pms.formats;
 
+import net.pms.formats.v2.SubtitleType;
+import org.junit.Test;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import net.pms.formats.v2.SubtitleType;
-import static org.fest.assertions.Assertions.*;
-import org.junit.Test;
+
+import static org.fest.assertions.Assertions.assertThat;
 
 public class SubtitleTypeTest {
 	@Test
@@ -142,5 +144,31 @@ public class SubtitleTypeTest {
 	public void getSupportedFileExtensions() {
 		Set<String> expectedExtensionsSet = new HashSet<String>(Arrays.asList("srt", "txt", "sub", "smi", "ssa", "ass", "idx"));
 		assertThat(SubtitleType.getSupportedFileExtensions()).isEqualTo(expectedExtensionsSet);
+	}
+
+	@Test
+	public void testGetStableIndex() {
+		assertThat(SubtitleType.UNKNOWN.getStableIndex()).isEqualTo(0);
+		assertThat(SubtitleType.SUBRIP.getStableIndex()).isEqualTo(1);
+		assertThat(SubtitleType.TEXT.getStableIndex()).isEqualTo(2);
+		assertThat(SubtitleType.MICRODVD.getStableIndex()).isEqualTo(3);
+		assertThat(SubtitleType.SAMI.getStableIndex()).isEqualTo(4);
+		assertThat(SubtitleType.ASS.getStableIndex()).isEqualTo(5);
+		assertThat(SubtitleType.VOBSUB.getStableIndex()).isEqualTo(6);
+		assertThat(SubtitleType.UNSUPPORTED.getStableIndex()).isEqualTo(7);
+		assertThat(SubtitleType.USF.getStableIndex()).isEqualTo(8);
+		assertThat(SubtitleType.BMP.getStableIndex()).isEqualTo(9);
+		assertThat(SubtitleType.DIVX.getStableIndex()).isEqualTo(10);
+		assertThat(SubtitleType.TX3G.getStableIndex()).isEqualTo(11);
+		assertThat(SubtitleType.PGS.getStableIndex()).isEqualTo(12);
+	}
+
+	@Test
+	public void testGetStableIndex_uniqueness() {
+		Set<Integer> stableIndexes = new HashSet<Integer>();
+		for (SubtitleType subtitleType : SubtitleType.values()) {
+			assertThat(stableIndexes.contains(subtitleType.getStableIndex())).isFalse();
+			stableIndexes.add(subtitleType.getStableIndex());
+		}
 	}
 }
