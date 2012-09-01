@@ -19,6 +19,8 @@
 package net.pms.util;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import org.apache.commons.io.FileUtils;
 import static org.fest.assertions.Assertions.assertThat;
 import org.junit.Test;
 import org.mozilla.universalchardet.Constants;
@@ -128,5 +130,38 @@ public class FileUtilTest {
 		assertThat(FileUtil.isFileUTF16(file_ch)).isFalse();
 		File file_ch_2 = new File(this.getClass().getResource("chinese-big5.srt").getFile());
 		assertThat(FileUtil.isFileUTF16(file_ch_2)).isFalse();
+	}
+
+	@Test
+	public void testConvertFileFromUtf16ToUtf8_inputFileIsUTF16LE() throws Exception {
+		File file_utf8le = new File(this.getClass().getResource("russian-utf16-le.srt").getFile());
+		File outputFile = new File(file_utf8le.getParentFile(),"output-utf8-from-utf16-le.srt");
+		outputFile.delete();
+		FileUtil.convertFileFromUtf16ToUtf8(file_utf8le, outputFile);
+		File file_utf8 = new File(this.getClass().getResource("russian-utf8-without-bom.srt").getFile());
+		assertThat(FileUtils.contentEquals(outputFile, file_utf8)).isTrue();
+		outputFile.delete();
+	}
+
+	@Test
+	public void testConvertFileFromUtf16ToUtf8_inputFileIsUTF16BE() throws Exception {
+		File file_utf8be = new File(this.getClass().getResource("russian-utf16-be.srt").getFile());
+		File outputFile = new File(file_utf8be.getParentFile(),"output-utf8-from-utf16-be.srt");
+		outputFile.delete();
+		FileUtil.convertFileFromUtf16ToUtf8(file_utf8be, outputFile);
+		File file_utf8 = new File(this.getClass().getResource("russian-utf8-with-bom.srt").getFile());
+		assertThat(FileUtils.contentEquals(outputFile, file_utf8)).isTrue();
+		outputFile.delete();
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testConvertFileFromUtf16ToUtf8_notUtf16InputFile() throws Exception {
+		File file_cp1251 = new File(this.getClass().getResource("russian-cp1251.srt").getFile());
+		FileUtil.convertFileFromUtf16ToUtf8(file_cp1251, new File("output.srt"));
+	}
+
+	@Test(expected = FileNotFoundException.class)
+	public void testConvertFileFromUtf16ToUtf8_inputFileNotFound() throws Exception {
+		FileUtil.convertFileFromUtf16ToUtf8(new File("no-such-file.xyz"), new File("output.srt"));
 	}
 }

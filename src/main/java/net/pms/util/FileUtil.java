@@ -1,8 +1,6 @@
 package net.pms.util;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 import net.pms.PMS;
@@ -10,7 +8,7 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.formats.v2.SubtitleType;
 import org.apache.commons.lang.StringUtils;
-import org.mozilla.universalchardet.Constants;
+import static org.mozilla.universalchardet.Constants.*;
 import org.mozilla.universalchardet.UniversalDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -138,16 +136,23 @@ public class FileUtil {
 										sub.setType(SubtitleType.VOBSUB);
 										exists = true;
 									} else if (ext.equals("sub") && sub.getType() == SubtitleType.VOBSUB) { // VOBSUB
-										sub.setExternalFile(f);
-										exists = true;
+										try {
+											sub.setExternalFile(f);
+											exists = true;
+										} catch (FileNotFoundException ex) {
+											LOGGER.warn("Exception during external subtitles set", ex);
+										}
 									}
 								}
 							}
 							if (!exists) {
 								DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
 								sub.setId(100 + (media == null ? 0 : media.getSubtitleTracksList().size())); // fake id, not used
-								sub.setExternalFile(f);
-								sub.checkUnicode();
+								try {
+									sub.setExternalFile(f);
+								} catch (FileNotFoundException ex) {
+									LOGGER.warn("Exception during external subtitles set", ex);
+								}
 								if (code.length() == 0 || !Iso639.getCodeList().contains(code)) {
 									sub.setLang(DLNAMediaSubtitle.UND);
 									sub.setType(SubtitleType.getSubtitleTypeByFileExtension(ext));
@@ -216,7 +221,7 @@ public class FileUtil {
 	 * @throws IOException
 	 */
 	public static boolean isFileUTF8(File file) throws IOException {
-		return getFileCharset(file).equals(Constants.CHARSET_UTF_8);
+		return getFileCharset(file) == CHARSET_UTF_8;
 	}
 
 	/**
@@ -226,6 +231,50 @@ public class FileUtil {
 	 * @throws IOException
 	 */
 	public static boolean isFileUTF16(File file) throws IOException {
-		return (getFileCharset(file).equals(Constants.CHARSET_UTF_16LE) || getFileCharset(file).equals(Constants.CHARSET_UTF_16BE));
+		return (getFileCharset(file).equals(CHARSET_UTF_16LE) || getFileCharset(file).equals(CHARSET_UTF_16BE));
+	}
+
+	/**
+	 * Converts UTF-16 inputFile to UTF-8 outputFile. Does not overwrite existing outputFile file.
+	 * @param inputFile UTF-16 file
+	 * @param outputFile UTF-8 file after conversion
+	 * @throws IOException
+	 */
+	public static void convertFileFromUtf16ToUtf8(File inputFile, File outputFile) throws IOException {
+		String charset;
+		if (inputFile == null || !inputFile.canRead()) {
+			throw new FileNotFoundException("Can't read inputFile.");
+		}
+		try {
+			charset = getFileCharset(inputFile);
+		} catch (IOException ex) {
+			LOGGER.debug("Exception during charset detection.", ex);
+			throw new IllegalArgumentException("Can't confirm inputFile is UTF-16.");
+		}
+
+		if (StringUtils.equals(charset, CHARSET_UTF_16LE) || StringUtils.equals(charset, CHARSET_UTF_16BE)) {
+			if (!outputFile.exists()) {
+				BufferedReader reader = null;
+				try {
+					if (charset.equals(CHARSET_UTF_16LE)) {
+						reader = new BufferedReader(new InputStreamReader(new FileInputStream(inputFile), "UTF-16"));
+					} else {
+						reader = new BufferedReader(new InputStreamReader(new FileInputStream(inputFile), "UTF-16BE"));
+					}
+				} catch (UnsupportedEncodingException ex) {
+					LOGGER.warn("Unsupported exception.", ex);
+					throw ex;
+				}
+				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), "UTF-8"));
+				int c;
+				while ((c = reader.read()) != -1) {
+					writer.write(c);
+				}
+				writer.close();
+				reader.close();
+			}
+		} else {
+			throw new IllegalArgumentException("File is not UTF-16");
+		}
 	}
 }
