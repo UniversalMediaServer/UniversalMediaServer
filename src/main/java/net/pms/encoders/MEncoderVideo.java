@@ -2060,13 +2060,15 @@ public class MEncoderVideo extends Player {
 				// remove this option (key) from the cmdList in pass 2.
 				// if the boolean value is true, also remove the option's corresponding value
 				Map<String, Boolean> removeCmdListOption = new HashMap<String, Boolean>();
+
 				// if this option (key) is defined in cmdList, merge this string value into the
 				// option's value in pass 2. the value is a string format template into which the
 				// cmdList option value is injected
 				Map<String, String> mergeCmdListOption = new HashMap<String, String>();
+
 				// merges that are performed in pass 2 are logged in this map; the key (string) is
 				// the option name and the value is a boolean indicating whether the option was merged
-				// merged or not. the map is populated after pass 1 with the options from mergeCmdListOption
+				// or not. the map is populated after pass 1 with the options from mergeCmdListOption
 				// and all values initialised to false. if an option was merged, it is not appended
 				// to cmdList
 				Map<String, Boolean> mergedCmdListOption = new HashMap<String, Boolean>();
@@ -2076,7 +2078,7 @@ public class MEncoderVideo extends Player {
 					if (expertOptions[i].equals("-noass")) {
 						// remove -ass from cmdList in pass 2.
 						// -ass won't have been added in this method (getSpecificCodecOptions
-						// has been called multiple times above to check for -ass and -nomux)
+						// has been called multiple times above to check for -noass and -nomux)
 						// but it may have been added via the renderer or global MEncoder options.
 						// XXX: there are currently 10 other -ass options (-ass-color, -ass-border-color &c.).
 						// technically, they should all be removed...
@@ -2127,7 +2129,7 @@ public class MEncoderVideo extends Player {
 						);
 
 						// a string format with no placeholders, so the cmdList option value is ignored.
-						// note we protect "%" from being interpreted as a format by converting it to "%%",
+						// note: we protect "%" from being interpreted as a format by converting it to "%%",
 						// which is then turned back into "%" when the format is processed
 						mergeCmdListOption.put("-lavcopts", lavcopts.replace("%", "%%"));
 						// remove -quality <value>
