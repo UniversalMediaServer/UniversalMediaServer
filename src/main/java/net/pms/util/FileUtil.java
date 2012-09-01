@@ -136,23 +136,15 @@ public class FileUtil {
 										sub.setType(SubtitleType.VOBSUB);
 										exists = true;
 									} else if (ext.equals("sub") && sub.getType() == SubtitleType.VOBSUB) { // VOBSUB
-										try {
-											sub.setExternalFile(f);
-											exists = true;
-										} catch (FileNotFoundException ex) {
-											LOGGER.warn("Exception during external subtitles set", ex);
-										}
+										sub.setExternalFile(f);
+										exists = true;
 									}
 								}
 							}
 							if (!exists) {
 								DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
 								sub.setId(100 + (media == null ? 0 : media.getSubtitleTracksList().size())); // fake id, not used
-								try {
-									sub.setExternalFile(f);
-								} catch (FileNotFoundException ex) {
-									LOGGER.warn("Exception during external subtitles set", ex);
-								}
+								sub.setExternalFile(f);
 								if (code.length() == 0 || !Iso639.getCodeList().contains(code)) {
 									sub.setLang(DLNAMediaSubtitle.UND);
 									sub.setType(SubtitleType.getSubtitleTypeByFileExtension(ext));
