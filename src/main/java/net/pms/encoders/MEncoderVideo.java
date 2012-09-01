@@ -1029,11 +1029,11 @@ public class MEncoderVideo extends Player {
 
 	protected String[] getDefaultArgs() {
 		return new String[]{
-			"",
+			"-quiet",
 			"-oac", (ac3Remux || dtsRemux) ? "copy" : (pcm ? "pcm" : "lavc"),
 			"-of", (wmv || mpegts) ? "lavf" : (pcm && avisynth()) ? "avi" : (((pcm || dtsRemux || ac3Remux) ? "rawvideo" : "mpeg")),
-			(wmv || mpegts) ? "-lavfopts" : "",
-			wmv ? "format=asf" : (mpegts ? "format=mpegts" : ""),
+			(wmv || mpegts) ? "-lavfopts" : "-quiet",
+			wmv ? "format=asf" : (mpegts ? "format=mpegts" : "-quiet"),
 			"-mpegopts", "format=mpeg2:muxrate=500000:vbuf_size=1194:abuf_size=64",
 			"-ovc", (ac3Remux && ovccopy) ? "copy" : "lavc"
 		};
@@ -1656,12 +1656,12 @@ public class MEncoderVideo extends Player {
 			String s = st.nextToken();
 
 			if (handleToken) {
-				s = "";
+				s = "-quiet";
 				handleToken = false;
 			}
 
 			if ((!configuration.isMencoderAss() || dvd) && s.contains("-ass")) {
-				s = "";
+				s = "-quiet";
 				handleToken = true;
 			}
 
@@ -1675,13 +1675,14 @@ public class MEncoderVideo extends Player {
 
 		// Choose which time to seek to
 		cmdArray[1] = "-ss";
-		cmdArray[2] = "0";
 		if (params.timeseek > 0) {
 			cmdArray[2] = "" + params.timeseek;
+		} else {
+			cmdArray[2] = "0";
 		}
 
 		if (dvd) {
-			cmdArray[3] = "-dvd-device -quiet";
+			cmdArray[3] = "-dvd-device";
 		} else {
 			cmdArray[3] = "-quiet";
 		}
@@ -1707,7 +1708,7 @@ public class MEncoderVideo extends Player {
 		if (dvd) {
 			cmdArray[5] = "dvd://" + media.getDvdtrack();
 		} else {
-			cmdArray[5] = "";
+			cmdArray[5] = "-quiet";
 		}
 
 		String arguments[] = args();
@@ -1719,10 +1720,10 @@ public class MEncoderVideo extends Player {
 			}
 		}
 
-		cmdArray[cmdArray.length - 12] = "";
-		cmdArray[cmdArray.length - 11] = "";
-		cmdArray[cmdArray.length - 10] = "";
-		cmdArray[cmdArray.length - 9] = "";
+		cmdArray[cmdArray.length - 12] = "-quiet";
+		cmdArray[cmdArray.length - 11] = "-quiet";
+		cmdArray[cmdArray.length - 10] = "-quiet";
+		cmdArray[cmdArray.length - 9] = "-quiet";
 
 		if (!dtsRemux && !pcm && !ac3Remux && !avisynth() && params.aid != null && media.getAudioTracksList().size() > 1) {
 			cmdArray[cmdArray.length - 12] = "-aid";
@@ -1745,8 +1746,8 @@ public class MEncoderVideo extends Player {
 			cmdArray[cmdArray.length - 9] = "20000";
 		}
 
-		cmdArray[cmdArray.length - 8] = "";
-		cmdArray[cmdArray.length - 7] = "";
+		cmdArray[cmdArray.length - 8] = "-quiet";
+		cmdArray[cmdArray.length - 7] = "-quiet";
 
 		if (configuration.isMencoderForceFps() && !configuration.isFix25FPSAvMismatch()) {
 			cmdArray[cmdArray.length - 8] = "-fps";
@@ -2021,46 +2022,46 @@ public class MEncoderVideo extends Player {
 					if (sArgs[s].equals("-noass")) {
 						for (int c = 0; c < cmdArray.length; c++) {
 							if (cmdArray[c] != null && cmdArray[c].equals("-ass")) {
-								cmdArray[c] = "";
+								cmdArray[c] = "-quiet";
 							}
 						}
 					} else if (sArgs[s].equals("-ofps")) {
 						for (int c = 0; c < cmdArray.length; c++) {
 							if (cmdArray[c] != null && cmdArray[c].equals("-ofps")) {
-								cmdArray[c] = "";
-								cmdArray[c + 1] = "";
+								cmdArray[c] = "-quiet";
+								cmdArray[c + 1] = "-quiet";
 								s++;
 							}
 						}
 					} else if (sArgs[s].equals("-fps")) {
 						for (int c = 0; c < cmdArray.length; c++) {
 							if (cmdArray[c] != null && cmdArray[c].equals("-fps")) {
-								cmdArray[c] = "";
-								cmdArray[c + 1] = "";
+								cmdArray[c] = "-quiet";
+								cmdArray[c + 1] = "-quiet";
 								s++;
 							}
 						}
 					} else if (sArgs[s].equals("-ovc")) {
 						for (int c = 0; c < cmdArray.length; c++) {
 							if (cmdArray[c] != null && cmdArray[c].equals("-ovc")) {
-								cmdArray[c] = "";
-								cmdArray[c + 1] = "";
+								cmdArray[c] = "-quiet";
+								cmdArray[c + 1] = "-quiet";
 								s++;
 							}
 						}
 					} else if (sArgs[s].equals("-channels")) {
 						for (int c = 0; c < cmdArray.length; c++) {
 							if (cmdArray[c] != null && cmdArray[c].equals("-channels")) {
-								cmdArray[c] = "";
-								cmdArray[c + 1] = "";
+								cmdArray[c] = "-quiet";
+								cmdArray[c + 1] = "-quiet";
 								s++;
 							}
 						}
 					} else if (sArgs[s].equals("-oac")) {
 						for (int c = 0; c < cmdArray.length; c++) {
 							if (cmdArray[c] != null && cmdArray[c].equals("-oac")) {
-								cmdArray[c] = "";
-								cmdArray[c + 1] = "";
+								cmdArray[c] = "-quiet";
+								cmdArray[c + 1] = "-quiet";
 								s++;
 							}
 						}
@@ -2111,7 +2112,7 @@ public class MEncoderVideo extends Player {
 				cmdArray = Arrays.copyOf(cmdArray, cmdArray.length + sArgs.length);
 				for (int s = 0; s < sArgs.length; s++) {
 					if (sArgs[s].equals("-noass") || sArgs[s].equals("-nomux") || sArgs[s].equals("-mpegopts") || (sArgs[s].equals("-vf") & vfConsumed) || (sArgs[s].equals("-af") && afConsumed) || sArgs[s].equals("-quality") || sArgs[s].equals("-nosync") || sArgs[s].equals("-mt")) {
-						cmdArray[cmdArray.length - sArgs.length - 2 + s] = "";
+						cmdArray[cmdArray.length - sArgs.length - 2 + s] = "-quiet";
 					} else {
 						cmdArray[cmdArray.length - sArgs.length - 2 + s] = sArgs[s];
 					}
@@ -2126,7 +2127,7 @@ public class MEncoderVideo extends Player {
 			cmdArray[cmdArray.length - 3] = "-noskip";
 			if (configuration.isFix25FPSAvMismatch()) {
 				cmdArray[cmdArray.length - 4] = "0.005";
-				cmdArray[cmdArray.length - 3] = "";
+				cmdArray[cmdArray.length - 3] = "-quiet";
 			}
 		}
 
@@ -2283,9 +2284,9 @@ public class MEncoderVideo extends Player {
 					"-of", "rawaudio",
 					"-mc", (dtsRemux || pcm) ? "0.1" : "0",
 					"-noskip",
-					(aid == null) ? "" : "-aid", (aid == null) ? "" : aid,
+					(aid == null) ? "-quiet" : "-aid", (aid == null) ? "-quiet" : aid,
 					"-oac", (ac3Remux || dtsRemux) ? "copy" : "pcm",
-					(isNotBlank(mixer) && !channels_filter_present) ? "-af" : "", (isNotBlank(mixer) && !channels_filter_present) ? mixer : "",
+					(isNotBlank(mixer) && !channels_filter_present) ? "-af" : "-quiet", (isNotBlank(mixer) && !channels_filter_present) ? mixer : "-quiet",
 					"-srate", "48000",
 					"-o", ffAudioPipe.getInputPipe()
 				};

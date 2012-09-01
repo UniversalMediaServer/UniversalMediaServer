@@ -195,16 +195,16 @@ public class FFMpegVideo extends Player {
 
 		String cmdArray[] = new String[22 + args.length];
 		cmdArray[0] = executable();
-		cmdArray[1] = "";
-		cmdArray[2] = "";
+		cmdArray[1] = "-sn";
+		cmdArray[2] = "-sn";
 		if (params.timeseek > 0 && !mplayer()) {
 			cmdArray[1] = "-ss";
 			cmdArray[2] = "" + params.timeseek;
 		}
-		cmdArray[3] = "";
-		cmdArray[4] = "";
-		cmdArray[5] = "";
-		cmdArray[6] = "";
+		cmdArray[3] = "-sn";
+		cmdArray[4] = "-sn";
+		cmdArray[5] = "-sn";
+		cmdArray[6] = "-sn";
 		if (type() == Format.VIDEO) {
 			cmdArray[5] = "-i";
 			cmdArray[6] = fileName;
@@ -215,10 +215,10 @@ public class FFMpegVideo extends Player {
 				cmdArray[6] = videoP.getOutputPipe();
 			}
 		}
-		cmdArray[7] = "";
-		cmdArray[8] = "";
-		cmdArray[9] = "";
-		cmdArray[10] = "";
+		cmdArray[7] = "-sn";
+		cmdArray[8] = "-sn";
+		cmdArray[9] = "-sn";
+		cmdArray[10] = "-sn";
 		if (type() == Format.VIDEO || type() == Format.AUDIO) {
 			if (type() == Format.VIDEO && (mplayer())) {
 				cmdArray[7] = "-f";
@@ -236,10 +236,10 @@ public class FFMpegVideo extends Player {
 			cmdArray[10] = "" + params.timeend;
 		}
 
-		cmdArray[11] = "";
-		cmdArray[12] = "";
-		cmdArray[13] = "";
-		cmdArray[14] = "";
+		cmdArray[11] = "-sn";
+		cmdArray[12] = "-sn";
+		cmdArray[13] = "-sn";
+		cmdArray[14] = "-sn";
 
 		cmdArray[cmdArray.length - 3] = "-muxpreload";
 		cmdArray[cmdArray.length - 2] = "0";
@@ -298,8 +298,8 @@ public class FFMpegVideo extends Player {
 
 		cmdArray[15] = "-c:a";
 		cmdArray[16] = (params.aid.isAC3()) ? "copy" : "ac3";
-		cmdArray[17] = (params.aid.isAC3()) ? "" : "-ab";
-		cmdArray[18] = (params.aid.isAC3()) ? "" : PMS.getConfiguration().getAudioBitrate() + "k";
+		cmdArray[17] = (params.aid.isAC3()) ? "-sn" : "-ab";
+		cmdArray[18] = (params.aid.isAC3()) ? "-sn" : PMS.getConfiguration().getAudioBitrate() + "k";
 
 		for (int i = 0; i < args.length; i++) {
 			cmdArray[19 + i] = args[i];
