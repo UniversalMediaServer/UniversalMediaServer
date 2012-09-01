@@ -163,7 +163,7 @@
 		<dependency>
 			<groupId>commons-configuration</groupId>
 			<artifactId>commons-configuration</artifactId>
-			<version>1.7</version>
+			<version>1.8</version>
 			<exclusions>
 				<!--  no need for commons-logging, as jcl-over-slf4j provides the impl -->
 				<exclusion>
@@ -187,7 +187,7 @@
 		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
-			<version>1.4</version>
+			<version>2.4</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-lang</groupId>
@@ -307,6 +307,11 @@
 			<version>${mediautil-version}</version>
 		</dependency>
 		<dependency>
+			<groupId>com.googlecode.juniversalchardet</groupId>
+			<artifactId>juniversalchardet</artifactId>
+			<version>1.0.3</version>
+		</dependency>
+		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.8.1</version>
@@ -392,6 +397,14 @@
 
 				<!-- Enable the use of Maven properties -->
 				<filtering>true</filtering>
+			</testResource>
+			<!--*.srt files to test charset detection-->
+			<testResource>
+				<directory>src/test/resources/net/pms/util</directory>
+				<includes>
+					<include>*.srt</include>
+				</includes>
+				<targetPath>net/pms/util</targetPath>
 			</testResource>
 		</testResources>
 		<pluginManagement>
