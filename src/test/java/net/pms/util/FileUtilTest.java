@@ -96,6 +96,8 @@ public class FileUtilTest {
 		assertThat(FileUtil.isFileUTF8(file_utf8)).isTrue();
 		File file_utf8_2 = new File(this.getClass().getResource("russian-utf8-with-bom.srt").getFile());
 		assertThat(FileUtil.isFileUTF8(file_utf8_2)).isTrue();
+		File file_utf8_3 = new File(this.getClass().getResource("english-utf8-with-bom.srt").getFile());
+		assertThat(FileUtil.isFileUTF8(file_utf8_3)).isTrue();
 		File file_utf_16 = new File(this.getClass().getResource("russian-utf16-le.srt").getFile());
 		assertThat(FileUtil.isFileUTF8(file_utf_16)).isFalse();
 		File file_utf_16_2 = new File(this.getClass().getResource("russian-utf16-be.srt").getFile());
@@ -114,6 +116,8 @@ public class FileUtilTest {
 		assertThat(FileUtil.isFileUTF16(file_utf8)).isFalse();
 		File file_utf8_2 = new File(this.getClass().getResource("russian-utf8-with-bom.srt").getFile());
 		assertThat(FileUtil.isFileUTF16(file_utf8_2)).isFalse();
+		File file_utf8_3 = new File(this.getClass().getResource("english-utf8-with-bom.srt").getFile());
+		assertThat(FileUtil.isFileUTF16(file_utf8_3)).isFalse();
 		File file_utf_16 = new File(this.getClass().getResource("russian-utf16-le.srt").getFile());
 		assertThat(FileUtil.isFileUTF16(file_utf_16)).isTrue();
 		File file_utf_16_2 = new File(this.getClass().getResource("russian-utf16-be.srt").getFile());
