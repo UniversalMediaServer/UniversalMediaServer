@@ -60,8 +60,10 @@ public class RealFile extends MapFile {
 			{
 				getMedia().setThumbready(false);
 			}
-			if (getMedia() != null && (getMedia().isEncrypted() || getMedia().getContainer() == null || getMedia().getContainer().equals(DLNAMediaLang.UND))) {
-				// fine tuning: bad parsing = no file !
+			// Given that here getFormat() has already matched some (possibly plugin-defined) format:
+			//    Format.UNKNOWN + bad parse = inconclusive
+			//    known types    + bad parse = bad/encrypted file
+			if (getType() != Format.UNKNOWN && getMedia() != null && (getMedia().isEncrypted() || getMedia().getContainer() == null || getMedia().getContainer().equals(DLNAMediaLang.UND))) {
 				valid = false;
 				if (getMedia().isEncrypted()) {
 					LOGGER.info("The file " + file.getAbsolutePath() + " is encrypted. It will be hidden");
