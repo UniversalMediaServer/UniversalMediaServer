@@ -19,15 +19,12 @@
 package net.pms.external;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -39,17 +36,14 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import javax.swing.JLabel;
-
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.RootFolder;
 import net.pms.newgui.LooksFrame;
-
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 /**
  * This class takes care of registering plugins. Plugin jars are loaded,
@@ -335,6 +329,11 @@ public class ExternalFactory {
 			return;
 		}
 
+		if (!pluginDirectory.canRead()) {
+			LOGGER.warn("Plugin directory is not readable: " + pluginDirectory);
+			return;
+		}
+
 		// Filter all .jar files from the plugin directory
 		File[] jarFiles = pluginDirectory.listFiles(
 			new FileFilter() {
@@ -344,7 +343,7 @@ public class ExternalFactory {
 			}
 		);
 
-		int nJars = jarFiles.length;
+		int nJars = (jarFiles == null) ? 0 : jarFiles.length;
 
 		if (nJars == 0) {
 			LOGGER.info("No plugins found");
