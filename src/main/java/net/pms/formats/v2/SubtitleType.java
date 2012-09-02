@@ -58,6 +58,7 @@ public enum SubtitleType {
 	private final List<String> fileExtensions;
 	private final List<String> libMediaInfoCodecs;
 
+	private final static Map<Integer, SubtitleType> stableIndexToSubtitleTypeMap;
 	private final static Map<String, SubtitleType> fileExtensionToSubtitleTypeMap;
 	private final static Map<String, SubtitleType> libmediainfoCodecToSubtitleTypeMap;
 	private static List<String> list(String... args) {
@@ -65,9 +66,11 @@ public enum SubtitleType {
 	}
 
 	static {
+		stableIndexToSubtitleTypeMap = new HashMap<Integer, SubtitleType>();
 		fileExtensionToSubtitleTypeMap = new HashMap<String, SubtitleType>();
 		libmediainfoCodecToSubtitleTypeMap = new HashMap<String, SubtitleType>();
 		for (SubtitleType subtitleType : values()) {
+			stableIndexToSubtitleTypeMap.put(subtitleType.getStableIndex(), subtitleType);
 			for (String fileExtension : subtitleType.fileExtensions) {
 				fileExtensionToSubtitleTypeMap.put(fileExtension.toLowerCase(), subtitleType);
 			}
@@ -75,6 +78,14 @@ public enum SubtitleType {
 				libmediainfoCodecToSubtitleTypeMap.put(codec.toLowerCase(), subtitleType);
 			}
 		}
+	}
+
+	public static SubtitleType valueOfStableIndex(int stableIndex) {
+		SubtitleType subtitleType = stableIndexToSubtitleTypeMap.get(stableIndex);
+		if (subtitleType == null) {
+			subtitleType = UNKNOWN;
+		}
+		return subtitleType;
 	}
 
 	public static SubtitleType valueOfFileExtension(String fileExtension) {
