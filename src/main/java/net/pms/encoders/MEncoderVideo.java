@@ -42,6 +42,7 @@ import net.pms.dlna.*;
 import net.pms.formats.Format;
 import static net.pms.formats.v2.AudioUtils.getLPCMChannelMappingForMencoder;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.formats.v2.SubtitleUtils;
 import net.pms.io.*;
 import net.pms.network.HTTPResource;
 import net.pms.newgui.FontFileFilter;
@@ -1692,11 +1693,19 @@ public class MEncoderVideo extends Player {
 			// External subtitles file
 			if (params.sid.isExternal()) {
 				if (!params.sid.isExternalFileUtf()) {
+					String subcp = null;
 					// Append -subcp option for non UTF external subtitles
 					if (isNotBlank(configuration.getMencoderSubCp())) {
-						sb.append("-subcp ").append(configuration.getMencoderSubCp()).append(" ");
+						// Manual setting
+						subcp = configuration.getMencoderSubCp();
+					} else if (isNotBlank(SubtitleUtils.getSubCpOptionForMencoder(params.sid))) {
+						// Autodetect charset (blank mencoder_subcp config option)
+						subcp = SubtitleUtils.getSubCpOptionForMencoder(params.sid);
+					}
+					if (isNotBlank(subcp)) {
+						sb.append("-subcp ").append(subcp).append(" ");
 						if (configuration.isMencoderSubFribidi()) {
-							sb.append("-fribidi-charset ").append(configuration.getMencoderSubCp()).append(" ");
+							sb.append("-fribidi-charset ").append(subcp).append(" ");
 						}
 					}
 				}
