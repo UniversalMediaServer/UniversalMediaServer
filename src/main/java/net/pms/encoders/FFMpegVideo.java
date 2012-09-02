@@ -106,7 +106,7 @@ public class FFMpegVideo extends Player {
 	}
 
 	protected String[] getDefaultArgs() {
-		return new String[]{"-c:v", "mpeg2video", "-f", "vob", "-loglevel", "fatal", "-max_delay", "0"};
+		return new String[]{ "-c:v", "mpeg2video", "-f", "vob", "-loglevel", "fatal", "-max_delay", "0" };
 	}
 
 	private int[] getVideoBitrateConfig(String bitrate) {
@@ -133,26 +133,38 @@ public class FFMpegVideo extends Player {
 	public String[] args() {
 		String args[] = null;
 		String defaultArgs[] = getDefaultArgs();
+
 		if (overriddenArgs != null) {
 			args = new String[defaultArgs.length + overriddenArgs.length];
+
 			for (int i = 0; i < defaultArgs.length; i++) {
 				args[i] = defaultArgs[i];
 			}
+
+			boolean loggedDisallowedFfmpegOptions = false;
+
 			for (int i = 0; i < overriddenArgs.length; i++) {
 				if (overriddenArgs[i].equals("-f") || overriddenArgs[i].equals("-c:a") || overriddenArgs[i].equals("-c:v")) {
-					LOGGER.info("FFmpeg encoder settings: You cannot change Muxer, Video Codec or Audio Codec");
-					overriddenArgs[i] = "-title";
+					// No need to log this for each disallowed option
+					if (!loggedDisallowedFfmpegOptions) {
+						LOGGER.warn("The following ffmpeg options cannot be changed and will be ignored: -f, -acodec, -vcodec");
+						loggedDisallowedFfmpegOptions = true;
+					}
+
+					overriddenArgs[i] = "-y";
+
 					if (i + 1 < overriddenArgs.length) {
-						overriddenArgs[i + 1] = "NewTitle";
+						overriddenArgs[i + 1] = "-y";
 					}
 				}
+
 				args[i + defaultArgs.length] = overriddenArgs[i];
 			}
 		} else {
 			args = defaultArgs;
 		}
-		return args;
 
+		return args;
 	}
 
 	public boolean mplayer() {
@@ -350,7 +362,16 @@ public class FFMpegVideo extends Player {
 
 			overiddenMPlayerArgs = new String[0];
 
-			String mPlayerdefaultVideoArgs[] = new String[]{fileName, seek_param, seek_value, "-vo", "yuv4mpeg:file=" + videoP.getInputPipe(), "-ao", "pcm:waveheader:file=" + audioP.getInputPipe(), "-benchmark", "-noframedrop", "-speed", "100"};
+			String mPlayerdefaultVideoArgs[] = new String[]{
+				fileName,
+				seek_param,
+				seek_value,
+				"-vo", "yuv4mpeg:file=" + videoP.getInputPipe(),
+				"-ao", "pcm:waveheader:file=" + audioP.getInputPipe(),
+				"-benchmark",
+				"-noframedrop",
+				"-speed", "100"
+			};
 			OutputParams mplayer_vid_params = new OutputParams(PMS.getConfiguration());
 			mplayer_vid_params.maxBufferSize = 1;
 

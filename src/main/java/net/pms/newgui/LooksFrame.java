@@ -394,8 +394,8 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	@Override
-	public void append(String msg) {
-		tt.getList().append(msg);
+	public void append(final String msg) {
+		tt.append(msg);
 	}
 
 	@Override

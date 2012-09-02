@@ -18,15 +18,28 @@
  */
 package net.pms.util;
 
+import ch.qos.logback.classic.LoggerContext;
 import java.io.File;
 import java.io.FileNotFoundException;
 import org.apache.commons.io.FileUtils;
 import static org.fest.assertions.Assertions.assertThat;
+import org.junit.Before;
 import org.junit.Test;
 import org.mozilla.universalchardet.Constants;
+import org.slf4j.LoggerFactory;
 
 public class FileUtilTest {
 	private final Class<?> CLASS = FileUtilTest.class;
+
+	/**
+	 * Set up testing conditions before running the tests.
+	 */
+	@Before
+	public final void setUp() {
+		// Silence all log messages from the PMS code that is being tested
+		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+		context.reset();
+	}
 
 	@Test
 	public void testGetFileCharset_WINDOWS_1251() throws Exception {
@@ -115,6 +128,19 @@ public class FileUtilTest {
 	}
 
 	@Test
+	public void testIsCharsetUTF8() throws Exception {
+		assertThat(FileUtil.isCharsetUTF8("UTF-8")).isTrue();
+		assertThat(FileUtil.isCharsetUTF8("uTf-8")).isTrue();
+		assertThat(FileUtil.isCharsetUTF8("uTf-88")).isFalse();
+	}
+
+	@Test
+	public void testIsCharsetUTF18_withNullOrEmptyCharset() throws Exception {
+		assertThat(FileUtil.isCharsetUTF8(null)).isFalse();
+		assertThat(FileUtil.isCharsetUTF8("")).isFalse();
+	}
+
+	@Test
 	public void testIsFileUTF16() throws Exception {
 		File file_utf8 = FileUtils.toFile(CLASS.getResource("russian-utf8-without-bom.srt"));
 		assertThat(FileUtil.isFileUTF16(file_utf8)).isFalse();
@@ -132,6 +158,37 @@ public class FileUtilTest {
 		assertThat(FileUtil.isFileUTF16(file_ch)).isFalse();
 		File file_ch_2 = FileUtils.toFile(CLASS.getResource("chinese-big5.srt"));
 		assertThat(FileUtil.isFileUTF16(file_ch_2)).isFalse();
+	}
+
+	@Test
+	public void testIsCharsetUTF16() throws Exception {
+		assertThat(FileUtil.isCharsetUTF16("UTF-8")).isFalse();
+		assertThat(FileUtil.isCharsetUTF16("UTF-16BE")).isTrue();
+		assertThat(FileUtil.isCharsetUTF16("UTF-16LE")).isTrue();
+		assertThat(FileUtil.isCharsetUTF16("utF-16le")).isTrue();
+		assertThat(FileUtil.isCharsetUTF16(" utF-16le")).isFalse();
+	}
+
+	@Test
+	public void testIsCharsetUTF16_withNullOrEmptyCharset() throws Exception {
+		assertThat(FileUtil.isCharsetUTF16(null)).isFalse();
+		assertThat(FileUtil.isCharsetUTF16("")).isFalse();
+	}
+
+	@Test
+	public void testIsCharsetUTF32() throws Exception {
+		assertThat(FileUtil.isCharsetUTF32("UTF-8")).isFalse();
+		assertThat(FileUtil.isCharsetUTF32("UTF-16BE")).isFalse();
+		assertThat(FileUtil.isCharsetUTF32("UTF-32BE")).isTrue();
+		assertThat(FileUtil.isCharsetUTF32("UTF-32BE")).isTrue();
+		assertThat(FileUtil.isCharsetUTF32("utF-32Be")).isTrue();
+		assertThat(FileUtil.isCharsetUTF32("utF-332Be")).isFalse();
+	}
+
+	@Test
+	public void testIsCharsetUTF32_withNullOrEmptyCharset() throws Exception {
+		assertThat(FileUtil.isCharsetUTF32(null)).isFalse();
+		assertThat(FileUtil.isCharsetUTF32("")).isFalse();
 	}
 
 	@Test

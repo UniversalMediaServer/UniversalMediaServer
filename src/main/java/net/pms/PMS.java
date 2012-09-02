@@ -440,9 +440,6 @@ public class PMS {
 		// Initialize a player factory to register all players
 		PlayerFactory.initialize(configuration);
 
-		// Add registered player engines
-		frame.addEngines();
-
 		// Instantiate listeners that require registered players.
 		ExternalFactory.instantiateLateListeners();
 		
@@ -450,6 +447,9 @@ public class PMS {
 		// this must always be called *after* the plugins have loaded.
 		// here's as good a place as any
 		Player.initializeFinalizeTranscoderArgsListeners();
+
+		// Any plugin-defined players are now registered, create the gui view.
+		frame.addEngines();
 
 		boolean binding = false;
 

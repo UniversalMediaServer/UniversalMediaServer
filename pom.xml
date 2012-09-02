@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<!--
 		UMS consists of two major parts: UMS itself and the third party software needed to
@@ -77,7 +77,7 @@
 		<jgoodies-common-version>1.2.1</jgoodies-common-version>
 		<jgoodies-forms-version>1.4.2</jgoodies-forms-version>
 		<jgoodies-looks-version>2.4.2</jgoodies-looks-version>
-		<junrar-version>0.5</junrar-version>
+		<junrar-version>0.6.1</junrar-version>
 		<mediautil-version>1.0</mediautil-version>
 		<slf4j-version>1.6.4</slf4j-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -142,6 +142,13 @@
 			<snapshots>
 				<enabled>false</enabled>
 			</snapshots>
+		</repository>
+
+		<!-- JUnRar by Edmund Wagner -->
+		<repository>
+			<id>JUnRar mirror repository</id>
+			<name>JUnRar mirror repository</name>
+			<url>https://junrar-repository.googlecode.com/svn/deploy/</url>
 		</repository>
 	</repositories>
 	<dependencies>
@@ -255,6 +262,11 @@
 			<version>1.0.0</version>
 		</dependency>
 		<dependency>
+			<groupId>net.coobird</groupId>
+			<artifactId>thumbnailator</artifactId>
+			<version>0.4.2</version>
+		</dependency>
+		<dependency>
 			<groupId>org</groupId>
 			<artifactId>jaudiotagger</artifactId>
 			<version>2.0.3</version>
@@ -286,10 +298,9 @@
 			<version>${jgoodies-looks-version}</version>
 		</dependency>
 
-		<!-- XXX: not Mavenized: http://github.com/edmund-wagner/junrar -->
 		<dependency>
-			<groupId>de.innosystec</groupId>
-			<artifactId>java-unrar</artifactId>
+			<groupId>com.github.junrar</groupId>
+			<artifactId>junrar</artifactId>
 			<version>${junrar-version}</version>
 		</dependency>
 
@@ -544,31 +555,6 @@
 				</configuration>
 			</plugin>
 
-			<!-- Plugin to assemble a jar with dependencies -->
-			<plugin>
-				<artifactId>maven-assembly-plugin</artifactId>
-				<version>2.2.1</version>
-				<executions>
-					<execution>
-						<id>make-jar-with-dependencies</id>
-						<phase>prepare-package</phase>
-						<goals>
-							<goal>single</goal>
-						</goals>
-						<configuration>
-							<descriptors>
-								<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
-							</descriptors>
-							<archive>
-								<manifest>
-									<mainClass>net.pms.PMS</mainClass>
-								</manifest>
-							</archive>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-
 			<!--
 				This plugin will take care of installing the external dependencies that do not
 				exist in a public Maven repository. That is why we store some jar files in the
@@ -639,18 +625,6 @@
 							<packaging>jar</packaging>
 							<downloadUrl>http://cuelib.googlecode.com/files/cuelib-${cuelib-version}.jar</downloadUrl>
 							<checksum>d03b6b960b3b83a2a419e8b5f07b6ba4bd18387b</checksum>
-						</artifactItem>
-						<artifactItem>
-							<groupId>de.innosystec</groupId>
-							<artifactId>java-unrar</artifactId>
-							<version>${junrar-version}</version>
-							<packaging>jar</packaging>
-							<install>true</install>
-							<force>false</force>
-							<downloadUrl>http://cloud.github.com/downloads/edmund-wagner/junrar/java-unrar-${junrar-version}.zip</downloadUrl>
-							<checksum>1e621c27dba2feeac400a96042f55775dc47f990</checksum>
-							<extractFile>java-unrar-${junrar-version}/java-unrar-${junrar-version}.jar</extractFile>
-							<extractFileChecksum>111074096b6bdce79fa09842143c336a5cf64fcb</extractFileChecksum>
 						</artifactItem>
 						<artifactItem>
 							<groupId>mediautil</groupId>
@@ -893,6 +867,31 @@
 			<build>
 				<plugins>
 
+					<!-- Plugin to assemble a jar with dependencies -->
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>2.2.1</version>
+						<executions>
+							<execution>
+								<id>make-jar-with-dependencies-win</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>net.pms.PMS</mainClass>
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+
 					<!--
 						Plugin to move the pms-x.x.x-jar-with-dependencies.jar to pms.jar
 					-->
@@ -1092,8 +1091,54 @@
 
 			<build>
 				<plugins>
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>2.2.1</version>
+						<executions>
+							<!-- Assemble a jar with dependencies -->
+							<execution>
+								<id>make-jar-with-dependencies-linux</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>net.pms.PMS</mainClass>
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+
+							<!-- Assemble the PMS distribution file. -->
+							<execution>
+								<id>build-pms-linux</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/assembly-linux.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>net.pms.PMS</mainClass>
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
 					<!--
-						Plugin to copy the pms-x.x.x-jar-with-dependencies.jar to pms.jar
+						Use the antrun plugin to:
+
+						Download the tsMuxeR binary to ${project.binaries}/tsMuxeR
+						Copy the pms-x.x.x-jar-with-dependencies.jar to ums.jar
 					-->
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
@@ -1128,32 +1173,6 @@
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
 											tofile="${project.basedir}/target/ums.jar" overwrite="true" />
 									</target>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-
-					<!--
-						Plugin to assemble the PMS distribution file.
-					-->
-					<plugin>
-						<artifactId>maven-assembly-plugin</artifactId>
-						<executions>
-							<execution>
-								<id>build-pms-linux</id>
-								<phase>package</phase>
-								<goals>
-									<goal>single</goal>
-								</goals>
-								<configuration>
-									<descriptors>
-										<descriptor>${project.basedir}/src/main/assembly/assembly-linux.xml</descriptor>
-									</descriptors>
-									<archive>
-										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
-										</manifest>
-									</archive>
 								</configuration>
 							</execution>
 						</executions>
@@ -1245,14 +1264,32 @@
 							</execution>
 						</executions>
 					</plugin>
-
-					<!--
-						Plugin to assemble the PMS files in the right place before creating 
-						the App Bundle and DMG disk image.
-					-->
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
+						<version>2.2.1</version>
 						<executions>
+							<!-- Assemble a jar with dependencies -->
+							<execution>
+								<id>make-jar-with-dependencies-osx</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>net.pms.PMS</mainClass>
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+							<!--
+								Assemble the PMS files in the right place before creating
+								the App Bundle and DMG disk image.
+							-->
 							<execution>
 								<id>make-assembly-osx</id>
 								<phase>package</phase>

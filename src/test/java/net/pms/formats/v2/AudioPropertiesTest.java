@@ -18,15 +18,21 @@
  */
 package net.pms.formats.v2;
 
+import ch.qos.logback.classic.LoggerContext;
 import static org.fest.assertions.Assertions.assertThat;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.LoggerFactory;
 
 public class AudioPropertiesTest {
 	private AudioProperties properties;
 
 	@Before
 	public void setUp() {
+		// Silence all log messages from the PMS code that is being tested
+		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+		context.reset();
+
 		properties = new AudioProperties();
 	}
 

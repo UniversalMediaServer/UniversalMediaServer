@@ -32,6 +32,7 @@ public enum SubtitleType {
 	// MediaInfo database of codec signatures (not comprehensive)
 	// http://mediainfo.svn.sourceforge.net/viewvc/mediainfo/MediaInfoLib/trunk/Source/Resource/Text/DataBase/
 
+	// SubtitleType(int index, String description, List<String> fileExtensions, List<String> libMediaInfoCodecs)
 	UNKNOWN (0, "Generic", list(), list()),
 	SUBRIP (1, "SubRip",
 			list("srt"),
@@ -57,6 +58,7 @@ public enum SubtitleType {
 	private final List<String> fileExtensions;
 	private final List<String> libMediaInfoCodecs;
 
+	private final static Map<Integer, SubtitleType> stableIndexToSubtitleTypeMap;
 	private final static Map<String, SubtitleType> fileExtensionToSubtitleTypeMap;
 	private final static Map<String, SubtitleType> libmediainfoCodecToSubtitleTypeMap;
 	private static List<String> list(String... args) {
@@ -64,9 +66,11 @@ public enum SubtitleType {
 	}
 
 	static {
+		stableIndexToSubtitleTypeMap = new HashMap<Integer, SubtitleType>();
 		fileExtensionToSubtitleTypeMap = new HashMap<String, SubtitleType>();
 		libmediainfoCodecToSubtitleTypeMap = new HashMap<String, SubtitleType>();
 		for (SubtitleType subtitleType : values()) {
+			stableIndexToSubtitleTypeMap.put(subtitleType.getStableIndex(), subtitleType);
 			for (String fileExtension : subtitleType.fileExtensions) {
 				fileExtensionToSubtitleTypeMap.put(fileExtension.toLowerCase(), subtitleType);
 			}
@@ -76,7 +80,23 @@ public enum SubtitleType {
 		}
 	}
 
+	public static SubtitleType valueOfStableIndex(int stableIndex) {
+		SubtitleType subtitleType = stableIndexToSubtitleTypeMap.get(stableIndex);
+		if (subtitleType == null) {
+			subtitleType = UNKNOWN;
+		}
+		return subtitleType;
+	}
+
+	/**
+	 * @deprecated use getSubtitleTypeByFileExtension(String fileExtension) instead
+	 */
+	@Deprecated
 	public static SubtitleType getSubtitleTypeByFileExtension(String fileExtension) {
+		return valueOfFileExtension(fileExtension);
+	}
+
+	public static SubtitleType valueOfFileExtension(String fileExtension) {
 		if (isBlank(fileExtension)) {
 			return UNKNOWN;
 		}
@@ -87,7 +107,15 @@ public enum SubtitleType {
 		return subtitleType;
 	}
 
+	/**
+	 * @deprecated use SubtitleType valueOfLibMediaInfoCodec(String codec) instead
+	 */
+	@Deprecated
 	public static SubtitleType getSubtitleTypeByLibMediaInfoCodec(String codec) {
+		return valueOfLibMediaInfoCodec(codec);
+	}
+
+	public static SubtitleType valueOfLibMediaInfoCodec(String codec) {
 		if (isBlank(codec)) {
 			return UNKNOWN;
 		}

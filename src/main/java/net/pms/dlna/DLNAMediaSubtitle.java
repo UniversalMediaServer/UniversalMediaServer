@@ -19,9 +19,12 @@
  */
 package net.pms.dlna;
 
-import java.io.*;
-import net.pms.PMS;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import net.pms.formats.v2.SubtitleType;
+import static net.pms.formats.v2.SubtitleType.*;
+import net.pms.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,8 +33,7 @@ import org.slf4j.LoggerFactory;
  */
 public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAMediaSubtitle.class);
-
-	private SubtitleType type = SubtitleType.UNKNOWN;
+	private SubtitleType type = UNKNOWN;
 
 	/*
 	 * This tells us whether the track is forced or not
@@ -39,18 +41,7 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	private String flavor;
 
 	private File externalFile;
-	private boolean isExternalFileUtf8;
-	private File externalFileConvertedToUtf8;
-
-	/**
-	 * @return external subtitles File already converted to UTF-8 if needed
-	 */
-	public File getPlayableExternalFile() {
-		if (externalFileConvertedToUtf8 != null) {
-			return externalFileConvertedToUtf8;
-		}
-		return externalFile;
-	}
+	private String externalFileCharacterSet;
 
 	/**
 	 * Returns whether or not the subtitles are embedded.
@@ -62,55 +53,33 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 		return (externalFile == null);
 	}
 
-	public String toString() {
-		return "Sub: " + (type != null ? type.getDescription() : "null") + " / lang: " + getLang() + " / flavor: " + flavor + " / ID: " + getId() + " / FILE: " + (externalFile != null ? externalFile.getAbsolutePath() : "-");
+	/**
+	 * Returns whether or not the subtitles are external.
+	 *
+	 * @return True if the subtitles are external file, false otherwise.
+	 * @since 1.70.0
+	 */
+	public boolean isExternal() {
+		return !isEmbedded();
 	}
 
+	@Override
+	public String toString() {
+		return "DLNAMediaSubtitle{" +
+				"id=" + getId() +
+				", type=" + type +
+				", flavor='" + flavor + '\'' +
+				", lang='" + getLang() + '\'' +
+				", externalFile=" + externalFile +
+				", externalFileCharacterSet='" + externalFileCharacterSet + '\'' +
+				'}';
+	}
+
+	/**
+	 * @deprecated charset is autodetected for text subtitles after setExternalFile()
+	 */
+	@Deprecated
 	public void checkUnicode() {
-		if (externalFile != null && externalFile.canRead() && externalFile.length() > 3) {
-			FileInputStream fis = null;
-			try {
-				int is_file_unicode = 0;
-
-				fis = new FileInputStream(externalFile);
-				int b1 = fis.read();
-				int b2 = fis.read();
-				int b3 = fis.read();
-				if (b1 == 255 && b2 == 254) {
-					is_file_unicode = 1;
-				} else if (b1 == 254 && b2 == 255) {
-					is_file_unicode = 2;
-				} else if (b1 == 239 && b2 == 187 && b3 == 191) {
-					isExternalFileUtf8 = true;
-				}
-
-				// MPlayer doesn't handle UTF-16 encoded subs
-				if (is_file_unicode > 0) {
-					isExternalFileUtf8 = true;
-					externalFileConvertedToUtf8 = new File(PMS.getConfiguration().getTempFolder(), "utf8_" + externalFile.getName());
-					if (!externalFileConvertedToUtf8.exists()) {
-						InputStreamReader r = new InputStreamReader(new FileInputStream(externalFile), is_file_unicode == 1 ? "UTF-16" : "UTF-16BE");
-						OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(externalFileConvertedToUtf8), "UTF-8");
-						int c;
-						while ((c = r.read()) != -1) {
-							osw.write(c);
-						}
-						osw.close();
-						r.close();
-					}
-				}
-			} catch (IOException e) {
-				LOGGER.error(null, e);
-			} finally {
-				if (fis != null) {
-					try {
-						fis.close();
-					} catch (IOException e) {
-						LOGGER.debug("Caught exception", e);
-					}
-				}
-			}
-		}
 	}
 
 	@Override
@@ -150,6 +119,14 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
+	 * @deprecated use FileUtil.convertFileFromUtf16ToUtf8() for UTF-16 -> UTF-8 conversion.
+	 */
+	@Deprecated
+	public File getPlayableExternalFile() {
+		return getExternalFile();
+	}
+
+	/**
 	 * @return the externalFile
 	 */
 	public File getExternalFile() {
@@ -159,14 +136,56 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	/**
 	 * @param externalFile the externalFile to set
 	 */
-	public void setExternalFile(File externalFile) {
+	public void setExternalFile(File externalFile) throws FileNotFoundException {
+		if (externalFile == null || !externalFile.canRead()) {
+			throw new FileNotFoundException("Can't read file.");
+		}
 		this.externalFile = externalFile;
+		setExternalFileCharacterSet();
+	}
+
+	private void setExternalFileCharacterSet() {
+		if (type == VOBSUB || type == BMP || type == DIVX || type == PGS) {
+			externalFileCharacterSet = null;
+		} else {
+			try {
+				externalFileCharacterSet = FileUtil.getFileCharset(externalFile);
+			} catch (IOException ex) {
+				externalFileCharacterSet = null;
+				LOGGER.warn("Exception during external file charset detection.", ex);
+			}
+		}
+	}
+
+	public String getExternalFileCharacterSet() {
+		return externalFileCharacterSet;
 	}
 
 	/**
-	 * @return the isExternalFileUtf8
+	 * @return true if external subtitles file is UTF-8 encoded, false otherwise.
 	 */
 	public boolean isExternalFileUtf8() {
-		return isExternalFileUtf8;
+		return FileUtil.isCharsetUTF8(externalFileCharacterSet);
+	}
+
+	/**
+	 * @return true if external subtitles file is UTF-16 encoded, false otherwise.
+	 */
+	public boolean isExternalFileUtf16() {
+		return FileUtil.isCharsetUTF16(externalFileCharacterSet);
+	}
+
+	/**
+	 * @return true if external subtitles file is UTF-32 encoded, false otherwise.
+	 */
+	public boolean isExternalFileUtf32() {
+		return FileUtil.isCharsetUTF32(externalFileCharacterSet);
+	}
+
+	/**
+	 * @return true if external subtitles file is UTF-8 or UTF-16 encoded, false otherwise.
+	 */
+	public boolean isExternalFileUtf() {
+		return (isExternalFileUtf8() || isExternalFileUtf16() || isExternalFileUtf32());
 	}
 }
