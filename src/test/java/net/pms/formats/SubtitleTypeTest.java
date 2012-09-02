@@ -18,25 +18,23 @@
  */
 package net.pms.formats;
 
-import net.pms.formats.v2.SubtitleType;
-import org.junit.Test;
-
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-
+import net.pms.formats.v2.SubtitleType;
 import static org.fest.assertions.Assertions.assertThat;
+import org.junit.Test;
 
 public class SubtitleTypeTest {
 	@Test
-	public void testGetSubtitleTypeByFileExtension_matchingExtensions() throws Exception {
-		assertThat(SubtitleType.getSubtitleTypeByFileExtension("srt")).isEqualTo(SubtitleType.SUBRIP);
-		assertThat(SubtitleType.getSubtitleTypeByFileExtension("txt")).isEqualTo(SubtitleType.TEXT);
-		assertThat(SubtitleType.getSubtitleTypeByFileExtension("sub")).isEqualTo(SubtitleType.MICRODVD);
-		assertThat(SubtitleType.getSubtitleTypeByFileExtension("smi")).isEqualTo(SubtitleType.SAMI);
-		assertThat(SubtitleType.getSubtitleTypeByFileExtension("ssa")).isEqualTo(SubtitleType.ASS);
-		assertThat(SubtitleType.getSubtitleTypeByFileExtension("ass")).isEqualTo(SubtitleType.ASS);
-		assertThat(SubtitleType.getSubtitleTypeByFileExtension("idx")).isEqualTo(SubtitleType.VOBSUB);
+	public void testValueOfFileExtension_matchingExtensions() throws Exception {
+		assertThat(SubtitleType.valueOfFileExtension("srt")).isEqualTo(SubtitleType.SUBRIP);
+		assertThat(SubtitleType.valueOfFileExtension("txt")).isEqualTo(SubtitleType.TEXT);
+		assertThat(SubtitleType.valueOfFileExtension("sub")).isEqualTo(SubtitleType.MICRODVD);
+		assertThat(SubtitleType.valueOfFileExtension("smi")).isEqualTo(SubtitleType.SAMI);
+		assertThat(SubtitleType.valueOfFileExtension("ssa")).isEqualTo(SubtitleType.ASS);
+		assertThat(SubtitleType.valueOfFileExtension("ass")).isEqualTo(SubtitleType.ASS);
+		assertThat(SubtitleType.valueOfFileExtension("idx")).isEqualTo(SubtitleType.VOBSUB);
 	}
 
 	@Test
@@ -94,9 +92,9 @@ public class SubtitleTypeTest {
 	}
 
 	@Test
-	public void testGetSubtitleTypeByFileExtension_nullOrBlankExtension() throws Exception {
-		assertThat(SubtitleType.getSubtitleTypeByFileExtension(null)).isEqualTo(SubtitleType.UNKNOWN);
-		assertThat(SubtitleType.getSubtitleTypeByFileExtension("")).isEqualTo(SubtitleType.UNKNOWN);
+	public void testValueOfFileExtension_nullOrBlankExtension() throws Exception {
+		assertThat(SubtitleType.valueOfFileExtension(null)).isEqualTo(SubtitleType.UNKNOWN);
+		assertThat(SubtitleType.valueOfFileExtension("")).isEqualTo(SubtitleType.UNKNOWN);
 	}
 
 	@Test
@@ -106,8 +104,8 @@ public class SubtitleTypeTest {
 	}
 
 	@Test
-	public void testGetSubtitleTypeByFileExtension_unknownExtension() throws Exception {
-		assertThat(SubtitleType.getSubtitleTypeByFileExtension("xyz")).isEqualTo(SubtitleType.UNKNOWN);
+	public void testValueOfFileExtension_unknownExtension() throws Exception {
+		assertThat(SubtitleType.valueOfFileExtension("xyz")).isEqualTo(SubtitleType.UNKNOWN);
 	}
 
 	@Test
@@ -116,10 +114,10 @@ public class SubtitleTypeTest {
 	}
 
 	@Test
-	public void testGetSubtitleTypeByFileExtension_extensionCaseInsensitivity() throws Exception {
-		assertThat(SubtitleType.getSubtitleTypeByFileExtension("ssA")).isEqualTo(SubtitleType.ASS);
-		assertThat(SubtitleType.getSubtitleTypeByFileExtension("SSA")).isEqualTo(SubtitleType.ASS);
-		assertThat(SubtitleType.getSubtitleTypeByFileExtension("sSa")).isEqualTo(SubtitleType.ASS);
+	public void testValueOfFileExtension_extensionCaseInsensitivity() throws Exception {
+		assertThat(SubtitleType.valueOfFileExtension("ssA")).isEqualTo(SubtitleType.ASS);
+		assertThat(SubtitleType.valueOfFileExtension("SSA")).isEqualTo(SubtitleType.ASS);
+		assertThat(SubtitleType.valueOfFileExtension("sSa")).isEqualTo(SubtitleType.ASS);
 	}
 
 	@Test

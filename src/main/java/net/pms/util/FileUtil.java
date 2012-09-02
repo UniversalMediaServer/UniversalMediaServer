@@ -8,6 +8,7 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.formats.v2.SubtitleType;
 import org.apache.commons.lang.StringUtils;
+import static org.apache.commons.lang.StringUtils.*;
 import static org.mozilla.universalchardet.Constants.*;
 import org.mozilla.universalchardet.UniversalDetector;
 import org.slf4j.Logger;
@@ -76,7 +77,7 @@ public class FileUtil {
 	public static boolean doesSubtitlesExists(File file, DLNAMediaInfo media, boolean usecache) {
 		boolean found = browseFolderForSubtitles(file.getParentFile(), file, media, usecache);
 		String alternate = PMS.getConfiguration().getAlternateSubsFolder();
-		if (StringUtils.isNotBlank(alternate)) { // https://code.google.com/p/ps3mediaserver/issues/detail?id=737#c5
+		if (isNotBlank(alternate)) { // https://code.google.com/p/ps3mediaserver/issues/detail?id=737#c5
 			File subFolder = new File(alternate);
 			if (!subFolder.isAbsolute()) {
 				subFolder = new File(file.getParent() + "/" + alternate);
@@ -115,7 +116,7 @@ public class FileUtil {
 				if (f.isFile() && !f.isHidden()) {
 					String fName = f.getName().toLowerCase();
 					for (String ext : SubtitleType.getSupportedFileExtensions()) {
-						if (fName.length() > ext.length() && fName.startsWith(fileName) && fName.endsWith("." + ext)) {
+						if (fName.length() > ext.length() && fName.startsWith(fileName) && endsWithIgnoreCase(fName, "." + ext)) {
 							int a = fileName.length();
 							int b = fName.length() - ext.length() - 1;
 							String code = "";
@@ -132,10 +133,10 @@ public class FileUtil {
 								for (DLNAMediaSubtitle sub : media.getSubtitleTracksList()) {
 									if (f.equals(sub.getExternalFile())) {
 										exists = true;
-									} else if (ext.equals("idx") && sub.getType() == SubtitleType.MICRODVD) { // sub+idx => VOBSUB
+									} else if (equalsIgnoreCase(ext, "idx") && sub.getType() == SubtitleType.MICRODVD) { // sub+idx => VOBSUB
 										sub.setType(SubtitleType.VOBSUB);
 										exists = true;
-									} else if (ext.equals("sub") && sub.getType() == SubtitleType.VOBSUB) { // VOBSUB
+									} else if (equalsIgnoreCase(ext, "sub") && sub.getType() == SubtitleType.VOBSUB) { // VOBSUB
 										sub.setExternalFile(f);
 										exists = true;
 									}
@@ -147,7 +148,7 @@ public class FileUtil {
 								sub.setExternalFile(f);
 								if (code.length() == 0 || !Iso639.getCodeList().contains(code)) {
 									sub.setLang(DLNAMediaSubtitle.UND);
-									sub.setType(SubtitleType.getSubtitleTypeByFileExtension(ext));
+									sub.setType(SubtitleType.valueOfFileExtension(ext));
 									if (code.length() > 0) {
 										sub.setFlavor(code);
 										if (sub.getFlavor().contains("-")) {
@@ -161,7 +162,7 @@ public class FileUtil {
 									}
 								} else {
 									sub.setLang(code);
-									sub.setType(SubtitleType.getSubtitleTypeByFileExtension(ext));
+									sub.setType(SubtitleType.valueOfFileExtension(ext));
 								}
 								found = true;
 								if (media != null) {
