@@ -1092,7 +1092,10 @@
 			<build>
 				<plugins>
 					<!--
-						Plugin to copy the pms-x.x.x-jar-with-dependencies.jar to pms.jar
+						Use the antrun plugin to:
+
+						Download the tsMuxeR binary to ${project.binaries}/tsMuxeR
+						Copy the pms-x.x.x-jar-with-dependencies.jar to ums.jar
 					-->
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
