@@ -18,7 +18,7 @@
 		<dependencySet>
 			<outputDirectory>/</outputDirectory>
 			<useProjectArtifact>true</useProjectArtifact>
-			<unpack>false</unpack>
+			<unpack>true</unpack>
 			<scope>runtime</scope>
 		</dependencySet>
 	</dependencySets>

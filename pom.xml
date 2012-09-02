@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<!--
 		UMS consists of two major parts: UMS itself and the third party software needed to
@@ -873,8 +873,8 @@
 						<version>2.2.1</version>
 						<executions>
 							<execution>
-								<id>make-jar-with-dependencies</id>
-								<phase>package</phase>
+								<id>make-jar-with-dependencies-win</id>
+								<phase>prepare-package</phase>
 								<goals>
 									<goal>single</goal>
 								</goals>
@@ -1091,14 +1091,13 @@
 
 			<build>
 				<plugins>
-
-					<!-- Plugin to assemble a jar with dependencies -->
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
 						<version>2.2.1</version>
 						<executions>
+							<!-- Assemble a jar with dependencies -->
 							<execution>
-								<id>make-jar-with-dependencies</id>
+								<id>make-jar-with-dependencies-linux</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -1114,9 +1113,27 @@
 									</archive>
 								</configuration>
 							</execution>
+
+							<!-- Assemble the PMS distribution file. -->
+							<execution>
+								<id>build-pms-linux</id>
+								<phase>package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/assembly-linux.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>net.pms.PMS</mainClass>
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
 						</executions>
 					</plugin>
-
 					<!--
 						Use the antrun plugin to:
 
@@ -1156,32 +1173,6 @@
 										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
 											tofile="${project.basedir}/target/ums.jar" overwrite="true" />
 									</target>
-								</configuration>
-							</execution>
-						</executions>
-					</plugin>
-
-					<!--
-						Plugin to assemble the PMS distribution file.
-					-->
-					<plugin>
-						<artifactId>maven-assembly-plugin</artifactId>
-						<executions>
-							<execution>
-								<id>build-pms-linux</id>
-								<phase>package</phase>
-								<goals>
-									<goal>single</goal>
-								</goals>
-								<configuration>
-									<descriptors>
-										<descriptor>${project.basedir}/src/main/assembly/assembly-linux.xml</descriptor>
-									</descriptors>
-									<archive>
-										<manifest>
-											<mainClass>net.pms.PMS</mainClass>
-										</manifest>
-									</archive>
 								</configuration>
 							</execution>
 						</executions>
@@ -1273,14 +1264,13 @@
 							</execution>
 						</executions>
 					</plugin>
-
-					<!-- Plugin to assemble a jar with dependencies -->
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
 						<version>2.2.1</version>
 						<executions>
+							<!-- Assemble a jar with dependencies -->
 							<execution>
-								<id>make-jar-with-dependencies</id>
+								<id>make-jar-with-dependencies-osx</id>
 								<phase>package</phase>
 								<goals>
 									<goal>single</goal>
@@ -1296,16 +1286,10 @@
 									</archive>
 								</configuration>
 							</execution>
-						</executions>
-					</plugin>
-
-					<!--
-						Plugin to assemble the PMS files in the right place before creating 
-						the App Bundle and DMG disk image.
-					-->
-					<plugin>
-						<artifactId>maven-assembly-plugin</artifactId>
-						<executions>
+							<!--
+								Assemble the PMS files in the right place before creating
+								the App Bundle and DMG disk image.
+							-->
 							<execution>
 								<id>make-assembly-osx</id>
 								<phase>package</phase>
