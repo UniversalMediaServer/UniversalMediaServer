@@ -136,7 +136,11 @@ public class FileUtil {
 										sub.setType(SubtitleType.VOBSUB);
 										exists = true;
 									} else if (equalsIgnoreCase(ext, "sub") && sub.getType() == SubtitleType.VOBSUB) { // VOBSUB
-										sub.setExternalFile(f);
+										try {
+											sub.setExternalFile(f);
+										} catch (FileNotFoundException ex) {
+											LOGGER.warn("Exception during external subtitles scan.", ex);
+										}
 										exists = true;
 									}
 								}
@@ -162,7 +166,11 @@ public class FileUtil {
 									sub.setLang(code);
 									sub.setType(SubtitleType.valueOfFileExtension(ext));
 								}
-								sub.setExternalFile(f);
+								try {
+									sub.setExternalFile(f);
+								} catch (FileNotFoundException ex) {
+									LOGGER.warn("Exception during external subtitles scan.", ex);
+								}
 								found = true;
 								if (media != null) {
 									media.getSubtitleTracksList().add(sub);
