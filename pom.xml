@@ -77,7 +77,7 @@
 		<jgoodies-common-version>1.2.1</jgoodies-common-version>
 		<jgoodies-forms-version>1.4.2</jgoodies-forms-version>
 		<jgoodies-looks-version>2.4.2</jgoodies-looks-version>
-		<junrar-version>0.5</junrar-version>
+		<junrar-version>0.6.1</junrar-version>
 		<mediautil-version>1.0</mediautil-version>
 		<slf4j-version>1.6.4</slf4j-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -142,6 +142,13 @@
 			<snapshots>
 				<enabled>false</enabled>
 			</snapshots>
+		</repository>
+
+		<!-- JUnRar by Edmund Wagner -->
+		<repository>
+			<id>JUnRar mirror repository</id>
+			<name>JUnRar mirror repository</name>
+			<url>https://junrar-repository.googlecode.com/svn/deploy/</url>
 		</repository>
 	</repositories>
 	<dependencies>
@@ -286,10 +293,9 @@
 			<version>${jgoodies-looks-version}</version>
 		</dependency>
 
-		<!-- XXX: not Mavenized: http://github.com/edmund-wagner/junrar -->
 		<dependency>
-			<groupId>de.innosystec</groupId>
-			<artifactId>java-unrar</artifactId>
+			<groupId>com.github.junrar</groupId>
+			<artifactId>junrar</artifactId>
 			<version>${junrar-version}</version>
 		</dependency>
 
@@ -639,18 +645,6 @@
 							<packaging>jar</packaging>
 							<downloadUrl>http://cuelib.googlecode.com/files/cuelib-${cuelib-version}.jar</downloadUrl>
 							<checksum>d03b6b960b3b83a2a419e8b5f07b6ba4bd18387b</checksum>
-						</artifactItem>
-						<artifactItem>
-							<groupId>de.innosystec</groupId>
-							<artifactId>java-unrar</artifactId>
-							<version>${junrar-version}</version>
-							<packaging>jar</packaging>
-							<install>true</install>
-							<force>false</force>
-							<downloadUrl>http://cloud.github.com/downloads/edmund-wagner/junrar/java-unrar-${junrar-version}.zip</downloadUrl>
-							<checksum>1e621c27dba2feeac400a96042f55775dc47f990</checksum>
-							<extractFile>java-unrar-${junrar-version}/java-unrar-${junrar-version}.jar</extractFile>
-							<extractFileChecksum>111074096b6bdce79fa09842143c336a5cf64fcb</extractFileChecksum>
 						</artifactItem>
 						<artifactItem>
 							<groupId>mediautil</groupId>
