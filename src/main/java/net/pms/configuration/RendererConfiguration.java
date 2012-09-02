@@ -290,7 +290,8 @@ public class RendererConfiguration {
 	private static final String IMAGE = "Image";
 	private static final String SEEK_BY_TIME = "SeekByTime";
 
-	private static final String MPEGPSAC3 = "MPEGAC3";
+	private static final String DEPRECATED_MPEGPSAC3 = "MPEGAC3"; // XXX deprecated: old name with missing container
+	private static final String MPEGPSAC3 = "MPEGPSAC3";
 	private static final String MPEGTSAC3 = "MPEGTSAC3";
 	private static final String WMV = "WMV";
 	private static final String LPCM = "LPCM";
@@ -449,7 +450,7 @@ public class RendererConfiguration {
 	}
 
 	public boolean isTranscodeToWMV() {
-		return getVideoTranscode().startsWith(WMV);
+		return getVideoTranscode().equals(WMV);
 	}
 
 	public boolean isTranscodeToAC3() {
@@ -457,11 +458,12 @@ public class RendererConfiguration {
 	}
 
 	public boolean isTranscodeToMPEGPSAC3() {
-		return getVideoTranscode().startsWith(MPEGPSAC3);
+		String videoTranscode = getVideoTranscode();
+		return videoTranscode.equals(MPEGPSAC3) || videoTranscode.equals(DEPRECATED_MPEGPSAC3);
 	}
 
 	public boolean isTranscodeToMPEGTSAC3() {
-		return getVideoTranscode().startsWith(MPEGTSAC3);
+		return getVideoTranscode().equals(MPEGTSAC3);
 	}
 
 	public boolean isAutoRotateBasedOnExif() {
@@ -469,15 +471,15 @@ public class RendererConfiguration {
 	}
 
 	public boolean isTranscodeToMP3() {
-		return getAudioTranscode().startsWith(MP3);
+		return getAudioTranscode().equals(MP3);
 	}
 
 	public boolean isTranscodeToLPCM() {
-		return getAudioTranscode().startsWith(LPCM);
+		return getAudioTranscode().equals(LPCM);
 	}
 
 	public boolean isTranscodeToWAV() {
-		return getAudioTranscode().startsWith(WAV);
+		return getAudioTranscode().equals(WAV);
 	}
 
 	public boolean isTranscodeAudioTo441() {
@@ -704,7 +706,7 @@ public class RendererConfiguration {
 
 	/**
 	 * Returns the codec to use for video transcoding for this renderer as
-	 * defined in the renderer configuration. Default value is "MPEGAC3".
+	 * defined in the renderer configuration. Default value is "MPEGPSAC3".
 	 *
 	 * @return The codec name.
 	 */
