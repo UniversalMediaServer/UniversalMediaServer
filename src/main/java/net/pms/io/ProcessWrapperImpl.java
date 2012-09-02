@@ -131,9 +131,19 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			}
 			if (params.env != null && !params.env.isEmpty()) {
 				Map<String,String> environment = pb.environment();
-				String PATH = params.env.get("PATH") + File.pathSeparator + environment.get("PATH");
+				// Actual name of system path var is case-sensitive
+				String sysPathKey = PMS.get().isWindows() ? "Path" : "PATH";
+				// As is Map
+				String PATH = params.env.containsKey("PATH") ? params.env.get("PATH") :
+					params.env.containsKey("path") ? params.env.get("path") :
+					params.env.containsKey("Path") ? params.env.get("Path") : null;
+				if (PATH != null) {
+					PATH += (File.pathSeparator + environment.get(sysPathKey));
+				}
 				environment.putAll(params.env);
-				environment.put("PATH", PATH);
+				if (PATH != null) {
+					environment.put(sysPathKey, PATH);
+				}
 			}
 			process = pb.start();
 			PMS.get().currentProcesses.add(process);
