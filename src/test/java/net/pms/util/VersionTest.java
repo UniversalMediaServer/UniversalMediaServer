@@ -16,20 +16,14 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.test;
-
-import org.junit.Test;
+package net.pms.util;
 
 import static org.hamcrest.CoreMatchers.*;
-
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
-
-import net.pms.util.Version;
-
-import org.junit.Before;
+import org.junit.Test;
 
 public class VersionTest {
 	private final Version v(String version) {
