@@ -76,8 +76,8 @@ public class RendererConfigurationTest {
 		testCases.put("User-Agent: Windows2000/0.0 UPnP/1.0 PhilipsIntelSDK/1.4 DLNADOC/1.50", "Philips TV");
 
 		// PS3:
-		testCases.put("User-Agent: PLAYSTATION 3", "Playstation 3");
-		testCases.put("X-AV-Client-Info: av=5.0; cn=\"Sony Computer Entertainment Inc.\"; mn=\"PLAYSTATION 3\"; mv=\"1.0\"", "Playstation 3");
+		testCases.put("User-Agent: PLAYSTATION 3", "PlayStation 3");
+		testCases.put("X-AV-Client-Info: av=5.0; cn=\"Sony Computer Entertainment Inc.\"; mn=\"PLAYSTATION 3\"; mv=\"1.0\"", "PlayStation 3");
 
 		// Realtek:
 		// FIXME: Actual conflict here! Popcorn Hour is returned...
@@ -146,17 +146,17 @@ public class RendererConfigurationTest {
 			// This should be impossible since no configuration file will be loaded.
 		}
 
-		// Set default to Playstation 3
-		pmsConf.setRendererDefault("Playstation 3");
+		// Set default to PlayStation 3
+		pmsConf.setRendererDefault("PlayStation 3");
 		pmsConf.setRendererForceDefault(true);
 
 		// Initialize the RendererConfiguration
 		loadRendererConfigurations(pmsConf);
 
 		// Known and unknown renderers should always return default
-		testHeader("User-Agent: AirPlayer/1.0.09 CFNetwork/485.13.9 Darwin/11.0.0", "Playstation 3");
-		testHeader("User-Agent: Unknown Renderer", "Playstation 3");
-		testHeader("X-Unknown-Header: Unknown Content", "Playstation 3");
+		testHeader("User-Agent: AirPlayer/1.0.09 CFNetwork/485.13.9 Darwin/11.0.0", "PlayStation 3");
+		testHeader("User-Agent: Unknown Renderer", "PlayStation 3");
+		testHeader("X-Unknown-Header: Unknown Content", "PlayStation 3");
 	}
 
 	/**
