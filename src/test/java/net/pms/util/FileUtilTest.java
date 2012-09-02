@@ -165,6 +165,22 @@ public class FileUtilTest {
 	}
 
 	@Test
+	public void testIsCharsetUTF32() throws Exception {
+		assertThat(FileUtil.isCharsetUTF32("UTF-8")).isFalse();
+		assertThat(FileUtil.isCharsetUTF32("UTF-16BE")).isFalse();
+		assertThat(FileUtil.isCharsetUTF32("UTF-32BE")).isTrue();
+		assertThat(FileUtil.isCharsetUTF32("UTF-32BE")).isTrue();
+		assertThat(FileUtil.isCharsetUTF32("utF-32Be")).isTrue();
+		assertThat(FileUtil.isCharsetUTF32("utF-332Be")).isFalse();
+	}
+
+	@Test
+	public void testIsCharsetUTF32_withNullOrEmptyCharset() throws Exception {
+		assertThat(FileUtil.isCharsetUTF32(null)).isFalse();
+		assertThat(FileUtil.isCharsetUTF32("")).isFalse();
+	}
+
+	@Test
 	public void testConvertFileFromUtf16ToUtf8_inputFileIsUTF16LE() throws Exception {
 		File file_utf8le = FileUtils.toFile(CLASS.getResource("russian-utf16-le.srt"));
 		File outputFile = new File(file_utf8le.getParentFile(), "output-utf8-from-utf16-le.srt");

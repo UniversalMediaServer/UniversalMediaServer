@@ -245,6 +245,15 @@ public class FileUtil {
 	}
 
 	/**
+	 * Tests if charset is UTF-32 encoded LE or BE.
+	 * @param charset Charset to test
+	 * @return true if charset is UTF-32 encoded LE or BE, false otherwise.
+	 */
+	public static boolean isCharsetUTF32(String charset) {
+		return (equalsIgnoreCase(charset, CHARSET_UTF_32LE) || equalsIgnoreCase(charset, CHARSET_UTF_32BE));
+	}
+
+	/**
 	 * Converts UTF-16 inputFile to UTF-8 outputFile. Does not overwrite existing outputFile file.
 	 * @param inputFile UTF-16 file
 	 * @param outputFile UTF-8 file after conversion
