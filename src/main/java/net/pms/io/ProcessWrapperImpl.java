@@ -131,8 +131,9 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			}
 			if (params.env != null && !params.env.isEmpty()) {
 				Map<String,String> environment = pb.environment();
-				params.env.put("PATH", params.env.get("PATH") + File.pathSeparator + environment.get("PATH"));
+				String PATH = params.env.get("PATH") + File.pathSeparator + environment.get("PATH");
 				environment.putAll(params.env);
+				environment.put("PATH", PATH);
 			}
 			process = pb.start();
 			PMS.get().currentProcesses.add(process);
