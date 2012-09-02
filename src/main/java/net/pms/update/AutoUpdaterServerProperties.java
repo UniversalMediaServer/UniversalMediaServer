@@ -2,6 +2,7 @@ package net.pms.update;
 
 import java.io.IOException;
 import net.pms.util.PmsProperties;
+import net.pms.util.Version;
 
 /**
  * Data provided by the server for us to update with.  Must be synchronized externally.
