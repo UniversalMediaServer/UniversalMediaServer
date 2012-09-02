@@ -88,7 +88,7 @@ public enum SubtitleType {
 		return subtitleType;
 	}
 
-	public static SubtitleType getSubtitleTypeByLibMediaInfoCodec(String codec) {
+	public static SubtitleType valueOfLibMediaInfoCodec(String codec) {
 		if (isBlank(codec)) {
 			return UNKNOWN;
 		}
