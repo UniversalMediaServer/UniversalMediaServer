@@ -145,7 +145,6 @@ public class FileUtil {
 							if (!exists) {
 								DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
 								sub.setId(100 + (media == null ? 0 : media.getSubtitleTracksList().size())); // fake id, not used
-								sub.setExternalFile(f);
 								if (code.length() == 0 || !Iso639.getCodeList().contains(code)) {
 									sub.setLang(DLNAMediaSubtitle.UND);
 									sub.setType(SubtitleType.valueOfFileExtension(ext));
@@ -164,6 +163,7 @@ public class FileUtil {
 									sub.setLang(code);
 									sub.setType(SubtitleType.valueOfFileExtension(ext));
 								}
+								sub.setExternalFile(f);
 								found = true;
 								if (media != null) {
 									media.getSubtitleTracksList().add(sub);
@@ -187,11 +187,11 @@ public class FileUtil {
 	 */
 	public static String getFileCharset(File file) throws IOException {
 		byte[] buf = new byte[4096];
-		FileInputStream fileInputStream = new FileInputStream(file);
+		BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file));
 		final UniversalDetector universalDetector = new UniversalDetector(null);
 
 		int numberOfBytesRead;
-		while ((numberOfBytesRead = fileInputStream.read(buf)) > 0 && !universalDetector.isDone()) {
+		while ((numberOfBytesRead = bufferedInputStream.read(buf)) > 0 && !universalDetector.isDone()) {
 			universalDetector.handleData(buf, 0, numberOfBytesRead);
 		}
 		universalDetector.dataEnd();
@@ -214,7 +214,7 @@ public class FileUtil {
 	 * @throws IOException
 	 */
 	public static boolean isFileUTF8(File file) throws IOException {
-		return getFileCharset(file) == CHARSET_UTF_8;
+		return getFileCharset(file).equals(CHARSET_UTF_8);
 	}
 
 	/**
