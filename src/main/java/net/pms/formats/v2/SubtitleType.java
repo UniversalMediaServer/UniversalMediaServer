@@ -99,6 +99,14 @@ public enum SubtitleType {
 		return subtitleType;
 	}
 
+	/**
+	 * @deprecated use SubtitleType valueOfLibMediaInfoCodec(String codec) instead
+	 */
+	@Deprecated
+	public static SubtitleType getSubtitleTypeByLibMediaInfoCodec(String codec) {
+		return valueOfLibMediaInfoCodec(codec);
+	}
+
 	public static SubtitleType valueOfLibMediaInfoCodec(String codec) {
 		if (isBlank(codec)) {
 			return UNKNOWN;
