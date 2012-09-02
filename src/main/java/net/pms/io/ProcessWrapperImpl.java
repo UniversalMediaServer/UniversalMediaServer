@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import net.pms.PMS;
 import net.pms.encoders.AviDemuxerInputStream;
 import net.pms.util.ProcessUtil;
@@ -127,6 +128,22 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			}
 			if (params.workDir != null && params.workDir.isDirectory()) {
 				pb.directory(params.workDir);
+			}
+			if (params.env != null && !params.env.isEmpty()) {
+				Map<String,String> environment = pb.environment();
+				// Actual name of system path var is case-sensitive
+				String sysPathKey = PMS.get().isWindows() ? "Path" : "PATH";
+				// As is Map
+				String PATH = params.env.containsKey("PATH") ? params.env.get("PATH") :
+					params.env.containsKey("path") ? params.env.get("path") :
+					params.env.containsKey("Path") ? params.env.get("Path") : null;
+				if (PATH != null) {
+					PATH += (File.pathSeparator + environment.get(sysPathKey));
+				}
+				environment.putAll(params.env);
+				if (PATH != null) {
+					environment.put(sysPathKey, PATH);
+				}
 			}
 			process = pb.start();
 			PMS.get().currentProcesses.add(process);

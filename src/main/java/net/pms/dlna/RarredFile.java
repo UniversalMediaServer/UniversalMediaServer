@@ -18,9 +18,9 @@
  */
 package net.pms.dlna;
 
-import de.innosystec.unrar.Archive;
-import de.innosystec.unrar.exception.RarException;
-import de.innosystec.unrar.rarfile.FileHeader;
+import com.github.junrar.Archive;
+import com.github.junrar.exception.RarException;
+import com.github.junrar.rarfile.FileHeader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;

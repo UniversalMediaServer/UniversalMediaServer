@@ -1,6 +1,7 @@
 package net.pms.configuration;
 
 import net.pms.util.PropertiesUtil;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 class MacDefaultPaths implements ProgramPaths {
 	@Override
@@ -63,7 +64,7 @@ class MacDefaultPaths implements ProgramPaths {
 	private String getBinariesPath() {
 		String path = PropertiesUtil.getProjectProperties().get("project.binaries.dir");
 
-		if (path != null && !"".equals(path)) {
+		if (isNotBlank(path)) {
 			if (path.endsWith("/")) {
 				return path;
 			} else {

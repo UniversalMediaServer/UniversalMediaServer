@@ -349,7 +349,7 @@ public class DLNAMediaDatabase implements Runnable {
 					sub.setId(subrs.getInt("ID"));
 					sub.setLang(subrs.getString("LANG"));
 					sub.setFlavor(subrs.getString("FLAVOR"));
-					sub.setType(SubtitleType.values()[subrs.getInt("TYPE")]);
+					sub.setType(SubtitleType.valueOfStableIndex(subrs.getInt("TYPE")));
 					media.getSubtitleTracksList().add(sub);
 				}
 				subrs.close();

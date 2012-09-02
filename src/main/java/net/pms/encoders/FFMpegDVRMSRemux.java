@@ -104,7 +104,8 @@ public class FFMpegDVRMSRemux extends Player {
 		String fileName,
 		DLNAResource dlna,
 		DLNAMediaInfo media,
-		OutputParams params) throws IOException {
+		OutputParams params
+	) throws IOException {
 		return getFFMpegTranscode(fileName, dlna, media, params);
 	}
 
@@ -112,7 +113,8 @@ public class FFMpegDVRMSRemux extends Player {
 		String fileName,
 		DLNAResource dlna,
 		DLNAMediaInfo media,
-		OutputParams params) throws IOException {
+		OutputParams params
+	) throws IOException {
 		PmsConfiguration configuration = PMS.getConfiguration();
 		String ffmpegAlternativePath = configuration.getFfmpegAlternativePath();
 		List<String> cmdList = new ArrayList<String>();
@@ -130,10 +132,6 @@ public class FFMpegDVRMSRemux extends Player {
 
 		cmdList.add("-i");
 		cmdList.add(fileName);
-
-		// change this to -metadata title=dummy if this can be made to work with an official ffmpeg build
-		cmdList.add("-title");
-		cmdList.add("dummy");
 
 		for (String arg : args()) {
 			cmdList.add(arg);

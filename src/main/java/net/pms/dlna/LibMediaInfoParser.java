@@ -80,7 +80,7 @@ public class LibMediaInfoParser {
 							if (key.equals("Format") || key.startsWith("Format_Version") || key.startsWith("Format_Profile")) {
 								if (step == MediaInfo.StreamKind.Text) {
 									// First attempt to detect subtitle track format
-									currentSubTrack.setType(SubtitleType.getSubtitleTypeByLibMediaInfoCodec(value));
+									currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(value));
 								} else {
 									getFormat(step, media, currentAudioTrack, value);
 								}
@@ -95,7 +95,7 @@ public class LibMediaInfoParser {
 							} else if (key.equals("CodecID")) {
 								if (step == MediaInfo.StreamKind.Text) {
 									// Second attempt to detect subtitle track format (CodecID usually is more accurate)
-									currentSubTrack.setType(SubtitleType.getSubtitleTypeByLibMediaInfoCodec(value));
+									currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(value));
 								} else {
 									getFormat(step, media, currentAudioTrack, value);
 								}
