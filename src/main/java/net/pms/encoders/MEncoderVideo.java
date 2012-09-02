@@ -30,8 +30,8 @@ import java.awt.event.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.List;
 import java.util.*;
+import java.util.List;
 import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -49,9 +49,10 @@ import net.pms.newgui.LooksFrame;
 import net.pms.newgui.MyComboBoxModel;
 import net.pms.newgui.RestrictedFileSystemView;
 import net.pms.util.CodecUtil;
+import net.pms.util.FileUtil;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.ProcessUtil;
-import static org.apache.commons.lang.BooleanUtils.*;
+import static org.apache.commons.lang.BooleanUtils.isTrue;
 import static org.apache.commons.lang.StringUtils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1236,8 +1237,15 @@ public class MEncoderVideo extends Player {
 		setAudioAndSubs(fileName, media, params, configuration);
 		String externalSubtitlesFileName = null;
 
-		if (params.sid != null && params.sid.getPlayableExternalFile() != null) {
-			externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getPlayableExternalFile().getAbsolutePath());
+		if (params.sid != null && params.sid.isExternal()) {
+			if (params.sid.isExternalFileUtf16()) {
+				// convert UTF-16 -> UTF-8
+				File convertedSubtitles = new File(PMS.getConfiguration().getTempFolder(), "utf8_" + params.sid.getExternalFile().getName());
+				FileUtil.convertFileFromUtf16ToUtf8(params.sid.getExternalFile(), convertedSubtitles);
+				externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(convertedSubtitles.getAbsolutePath());
+			} else {
+				externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getAbsolutePath());
+			}
 		}
 
 		InputFile newInput = new InputFile();
@@ -1682,9 +1690,9 @@ public class MEncoderVideo extends Player {
 			}
 
 			// External subtitles file
-			if (params.sid.getPlayableExternalFile() != null) {
-				if (!params.sid.isExternalFileUtf8()) {
-					// Append -subcp option for non UTF-8 external subtitles
+			if (params.sid.isExternal()) {
+				if (!params.sid.isExternalFileUtf()) {
+					// Append -subcp option for non UTF external subtitles
 					if (isNotBlank(configuration.getMencoderSubCp())) {
 						sb.append("-subcp ").append(configuration.getMencoderSubCp()).append(" ");
 						if (configuration.isMencoderSubFribidi()) {
@@ -1772,13 +1780,13 @@ public class MEncoderVideo extends Player {
 		 * TODO: Move the following block up with the rest of the
 		 * subtitle stuff
 		 */
-		if (externalSubtitlesFileName == null && params.sid != null && !configuration.isMencoderDisableSubs()) {
+		if (isBlank(externalSubtitlesFileName) && params.sid != null) {
 			cmdList.add("-sid");
 			cmdList.add("" + params.sid.getId());
-		} else if (externalSubtitlesFileName != null && !avisynth()) { // Trick necessary for MEncoder to skip the internal embedded track ?
+		} else if (isNotBlank(externalSubtitlesFileName) && !avisynth()) { // Trick necessary for MEncoder to skip the internal embedded track ?
 			cmdList.add("-sid");
 			cmdList.add("100");
-		} else if (externalSubtitlesFileName == null) { // Trick necessary for MEncoder to not display the internal embedded track
+		} else if (isBlank(externalSubtitlesFileName)) { // Trick necessary for MEncoder to not display the internal embedded track
 			cmdList.add("-subdelay");
 			cmdList.add("20000");
 		}
@@ -1818,7 +1826,7 @@ public class MEncoderVideo extends Player {
 		 * subtitle stuff
 		 */
 		// external subtitles file
-		if (!configuration.isMencoderDisableSubs() && !avisynth() && params.sid != null && params.sid.getPlayableExternalFile() != null) {
+		if (!configuration.isMencoderDisableSubs() && !avisynth() && params.sid != null && params.sid.isExternal()) {
 			if (params.sid.getType() == SubtitleType.VOBSUB) {
 				cmdList.add("-vobsub");
 				cmdList.add(externalSubtitlesFileName.substring(0, externalSubtitlesFileName.length() - 4));
@@ -1828,7 +1836,7 @@ public class MEncoderVideo extends Player {
 				cmdList.add("-sub");
 				cmdList.add(externalSubtitlesFileName.replace(",", "\\,")); // Commas in MEncoder separate multiple subtitle files
 
-				if (params.sid.isExternalFileUtf8()) {
+				if (params.sid.isExternalFileUtf()) {
 					// append -utf8 option for UTF-8 external subtitles
 					cmdList.add("-utf8");
 				}

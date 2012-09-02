@@ -188,7 +188,6 @@ public class SubtitleTypeTest {
 		assertThat(valueOfStableIndex(12)).isEqualTo(PGS);
 	}
 
-
 	@Test
 	public void testValueOfStableIndex_unknownIndex() {
 		assertThat(valueOfStableIndex(-1)).isEqualTo(UNKNOWN);
