@@ -80,6 +80,14 @@ public enum SubtitleType {
 		}
 	}
 
+	public static SubtitleType valueOfStableIndex(int stableIndex) {
+		SubtitleType subtitleType = stableIndexToSubtitleTypeMap.get(stableIndex);
+		if (subtitleType == null) {
+			subtitleType = UNKNOWN;
+		}
+		return subtitleType;
+	}
+
 	/**
 	 * @deprecated use getSubtitleTypeByFileExtension(String fileExtension) instead
 	 */
