@@ -2387,7 +2387,7 @@ public class MEncoderVideo extends Player {
 					"-channels", "" + channels,
 					"-ovc", "copy",
 					"-of", "rawaudio",
-					"-mc", (dtsRemux || pcm) ? "0.1" : "0",
+					"-mc", dtsRemux ? "0.1" : "0",
 					"-noskip",
 					(aid == null) ? "" : "-aid", (aid == null) ? "" : aid,
 					"-oac", (ac3Remux || dtsRemux) ? "copy" : "pcm",
