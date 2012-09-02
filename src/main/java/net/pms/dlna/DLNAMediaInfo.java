@@ -18,6 +18,7 @@
  */
 package net.pms.dlna;
 
+import com.sun.jna.Platform;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -36,9 +37,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
-
 import javax.imageio.ImageIO;
-
 import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.Thumbnails.Builder;
 import net.pms.PMS;
@@ -54,7 +53,6 @@ import net.pms.util.CoverUtil;
 import net.pms.util.FileUtil;
 import net.pms.util.MpegUtil;
 import net.pms.util.ProcessUtil;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.sanselan.ImageInfo;
 import org.apache.sanselan.Sanselan;
@@ -69,9 +67,6 @@ import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.sun.jna.Platform;
-
 
 /**
  * This class keeps track of scanned MediaInfo library information.
