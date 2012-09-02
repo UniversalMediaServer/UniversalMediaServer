@@ -1373,7 +1373,7 @@ public class MEncoderVideo extends Player {
 			(params.aid.getBitRate() > 370000 && params.aid.getBitRate() < 400000);
 
 		final boolean isTSMuxerVideoEngineEnabled = PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry()).contains(TSMuxerVideo.ID);
-		final boolean mencoderAC3RemuxAudioDelayBug = (params.aid.getAudioProperties().getAudioDelay() != 0 && params.timeseek == 0);
+		final boolean mencoderAC3RemuxAudioDelayBug = (params.aid != null) && (params.aid.getAudioProperties().getAudioDelay() != 0) && (params.timeseek == 0);
 		if (!mencoderAC3RemuxAudioDelayBug && configuration.isRemuxAC3() && params.aid != null && params.aid.isAC3() && !ps3_and_stereo_and_384_kbits && !avisynth() && params.mediaRenderer.isTranscodeToAC3()) {
 			// AC3 remux takes priority
 			ac3Remux = true;
