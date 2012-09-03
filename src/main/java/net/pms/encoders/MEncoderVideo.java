@@ -1717,6 +1717,7 @@ public class MEncoderVideo extends Player {
 		}
 
 		st = new StringTokenizer(sb.toString(), " ");
+
 		{
 			int i = overriddenMainArgs.length; // old length
 			overriddenMainArgs = Arrays.copyOf(overriddenMainArgs, overriddenMainArgs.length + st.countTokens());
@@ -2393,9 +2394,9 @@ public class MEncoderVideo extends Player {
 					"-of", "rawaudio",
 					"-mc", dtsRemux ? "0.1" : "0",
 					"-noskip",
-					(aid == null) ? "" : "-aid", (aid == null) ? "" : aid,
+					(aid == null) ? "-quiet" : "-aid", (aid == null) ? "-quiet" : aid,
 					"-oac", (ac3Remux || dtsRemux) ? "copy" : "pcm",
-					(isNotBlank(mixer) && !channels_filter_present) ? "-af" : "", (isNotBlank(mixer) && !channels_filter_present) ? mixer : "",
+					(isNotBlank(mixer) && !channels_filter_present) ? "-af" : "-quiet", (isNotBlank(mixer) && !channels_filter_present) ? mixer : "-quiet",
 					"-srate", "48000",
 					"-o", ffAudioPipe.getInputPipe()
 				};
@@ -2457,9 +2458,6 @@ public class MEncoderVideo extends Player {
 					audioType = "A_LPCM";
 				}
 
-				if (params.lossyaudio) {
-					audioType = "A_AC3";
-				}
 
 				/*
 				 * MEncoder bug (confirmed with MEncoder r35003 + FFmpeg 0.11.1)
