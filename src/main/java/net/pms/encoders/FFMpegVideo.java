@@ -131,7 +131,7 @@ public class FFMpegVideo extends Player {
 
 	@Override
 	public String[] args() {
-		String args[] = null;
+		String args[];
 		String defaultArgs[] = getDefaultArgs();
 
 		if (overriddenArgs != null) {
@@ -313,9 +313,7 @@ public class FFMpegVideo extends Player {
 		cmdArray[17] = (params.aid.isAC3()) ? "" : "-ab";
 		cmdArray[18] = (params.aid.isAC3()) ? "" : PMS.getConfiguration().getAudioBitrate() + "k";
 
-		for (int i = 0; i < args.length; i++) {
-			cmdArray[19 + i] = args[i];
-		}
+		System.arraycopy(args, 0, cmdArray, 19, args.length);
 
 		if (PMS.getConfiguration().isFileBuffer()) {
 			File m = new File(PMS.getConfiguration().getTempFolder(), "pms-transcode.tmp");
@@ -497,11 +495,11 @@ public class FFMpegVideo extends Player {
 				return false;
 			}
 		} catch (NullPointerException e) {
-			LOGGER.trace("FFmpeg cannot determine compatibility based on audio track for "
-					+ resource.getSystemName());
+			LOGGER.trace("FFmpeg cannot determine compatibility based on audio track for " +
+					resource.getSystemName());
 		} catch (IndexOutOfBoundsException e) {
-			LOGGER.trace("FFmpeg cannot determine compatibility based on default audio track for "
-					+ resource.getSystemName());
+			LOGGER.trace("FFmpeg cannot determine compatibility based on default audio track for " +
+					resource.getSystemName());
 		}
 
 		Format format = resource.getFormat();
