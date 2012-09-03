@@ -1,22 +1,43 @@
-1.5.0 - 2012-08-31
+1.5.0 - 2012-08-??
 
 	General:
 		Made videos adhere more exactly to the maximum bandwidth limit
 		Updated MPlayer/MEncoder to SB37, changelog: http://www.spirton.com/mplayer-mencoder-sb37-released/
-		Updated MediaInfo to 0.7.59, changelog: http://mediainfo.sourceforge.net/Log
-		Files are now sorted alphanuerically by default
+		Updated MediaInfo to 0.7.60, changelog: http://mediainfo.sourceforge.net/Log
+		Files are now sorted alphanuerically by default, e.g. Episode 2 before Episode 10
 		#--TRANSCODE--# folder name is localized
 		Cleaned up FFmpeg and MEncoder commands
 		Use automatic enabling of multithreading with FFmpeg and FFmpeg/AviSynth engines
 		Many improvements to UMS.conf and how it responds to updates, it is recommended to delete your old one
 		Only use tsMuxeR to compensate for MEncoder ignoring audio delay when A/V sync alternative method is enabled (which it is by default)
 		Fixed bugs in plugin installer
+		Automatic encoding detection of non UTF-8 external subtitles for Russian, Greek, Hebrew, Chinese, Korean and Japanese languages (leave "Subtitles codepage" option blank)
+		Improved handling of UTF-8 external subtitles
+		Prevented image distortion on some DLNA clients with "Keep AC-3 track" option enabled
+		Don't show entries for disabled engines in #--TRANSCODE--# folder
+		Allow Traces tab panel to auto-scroll (thanks, LordQuackstar!)
+		Replaced ImageMagick with Thumbnailator for thumbnail generation
+		Fix FFmpeg engine's handling of unsupported custom options (thanks, ajamess)
+		Fixed FFmpeg command line arguments used by tsMuxeR video
+		Fixed DNLA 2114 errors when scanning non-readable subfolders with "hide empty folders" enabled
+		Linux tarball: fix "cannot find tsMuxeR" error
+		Fixed numerous small bugs
+	Renderers:
+		Added Sony SMP-N100 
+		Added Yamaha RX-A1010 (thanks, merelin)
+		Deprecated misnamed TranscodeVideo profile MPEGAC3: use MPEGPSAC3 instead
+		Documented and cleaned up TranscodeVideo and TranscodeAudio profiles
 	FFmpeg:
 		Updated FFmpeg to a366bea (20120827)
 		Follow the maximum bandwidth setting
 		Mux AC3 instead of transcoding it
 		Use better commands
+	MEncoder:
+		Disabled AC-3 remux if audio track has delay, which improves audio sync
+		Disabled DTS and LPCM remuxing if tsMuxeR engine is unavailable
 	Languages:
+		Updated Bulgarian translation (thanks, JORDITO)
+		Updated Dutch translation (thanks, leroy)
 		Updated Russian
 		Updated English settings labels
 
