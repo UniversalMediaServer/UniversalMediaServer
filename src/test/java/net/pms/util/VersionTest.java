@@ -32,18 +32,45 @@ public class VersionTest {
 
 	private void assertVersionIsGreaterThan(Version v1, Version v2) {
 		assertTrue(v1.isGreaterThan(v2));
+		assertTrue(v1.isGreaterThanOrEqualTo(v2));
+		assertTrue(v2.isLessThan(v1));
+		assertTrue(v2.isLessThanOrEqualTo(v1));
+
+		assertFalse(v1.isLessThan(v2));
+		assertFalse(v1.isLessThanOrEqualTo(v2));
+		assertFalse(v2.isGreaterThan(v1));
+		assertFalse(v2.isGreaterThanOrEqualTo(v1));
+
+		assertFalse(v1.equals(v2));
+		assertFalse(v2.equals(v1));
 	}
 
-	private void assertVersionIsNotGreaterThan(Version v1, Version v2) {
+	private void assertVersionEquals(Version v1, Version v2) {
+		assertTrue(v1.equals(v2));
+		assertTrue(v2.equals(v1));
+
+		assertTrue(v1.isGreaterThanOrEqualTo(v2));
+		assertTrue(v2.isGreaterThanOrEqualTo(v1));
+
+		assertTrue(v1.isLessThanOrEqualTo(v2));
+		assertTrue(v2.isLessThanOrEqualTo(v1));
+
 		assertFalse(v1.isGreaterThan(v2));
+		assertFalse(v2.isGreaterThan(v1));
+
+		assertFalse(v1.isLessThan(v2));
+		assertFalse(v2.isLessThan(v1));
 	}
 
-	private void assertIsPmsCompatible(Version v1, Version v2) {
-		assertTrue(v1.isPmsCompatible(v2)); 
+	private void assertIsPmsUpdatable(Version v1, Version v2) {
+		assertVersionIsGreaterThan(v2, v1);
+		assertTrue(Version.isPmsUpdatable(v1, v2));
+		assertFalse(Version.isPmsUpdatable(v2, v1));
 	}
 
-	private void assertIsNotPmsCompatible(Version v1, Version v2) {
-		assertFalse(v1.isPmsCompatible(v2)); 
+	private void assertIsNotPmsUpdatable(Version v1, Version v2) {
+		assertFalse(Version.isPmsUpdatable(v1, v2));
+		assertFalse(Version.isPmsUpdatable(v2, v1));
 	}
 
 	private void assertVersionToStringEquals(Version v, String s) {
@@ -69,62 +96,100 @@ public class VersionTest {
 	}
 
 	@Test
-	public void testIsGreaterThan() {
-		assertVersionIsGreaterThan(v("2.3.4"), v("1.3.4")); // major
-		assertVersionIsGreaterThan(v("2.3.4"), v("2.2.4")); // minor
-		assertVersionIsGreaterThan(v("2.3.4"), v("2.3.3")); // patch
+	public void testEquals() {
+		assertVersionEquals(v(""), v(""));
+		assertVersionEquals(v(""), v("0"));
+		assertVersionEquals(v(""), v("00"));
+		assertVersionEquals(v(""), v("00.00"));
+		assertVersionEquals(v(""), v("0.0.0"));
+		assertVersionEquals(v(""), v("00.00.00"));
+		assertVersionEquals(v(""), v("0.0.0.0"));
+		assertVersionEquals(v(""), v("00.00.00.00"));
 
-		assertVersionIsGreaterThan(v("2.3.4"), v("01.3.4")); // padded major
-		assertVersionIsGreaterThan(v("2.3.4"), v("2.02.4")); // padded minor
-		assertVersionIsGreaterThan(v("2.3.4"), v("2.3.03")); // padded patch
+		assertVersionEquals(v("foo"), v("0"));
+		assertVersionEquals(v("foo"), v("00"));
+		assertVersionEquals(v("foo"), v("0.0"));
+		assertVersionEquals(v("foo"), v("00.00"));
+		assertVersionEquals(v("foo"), v("0.0.0"));
+		assertVersionEquals(v("foo"), v("00.00.00"));
+		assertVersionEquals(v("foo"), v("0.0.0.0"));
+		assertVersionEquals(v("foo"), v("00.00.00.00"));
 
-		assertVersionIsGreaterThan(v("2.3.4"), v("1.3.4.99")); // major with extra component
-		assertVersionIsGreaterThan(v("2.3.4"), v("2.2.4.99")); // minor with extra component
-		assertVersionIsGreaterThan(v("2.3.4"), v("2.3.3.99")); // patch with extra component
+		assertVersionEquals(v("1foo2"), v("0"));
+		assertVersionEquals(v("1foo2"), v("00"));
+		assertVersionEquals(v("1foo2"), v("0.0"));
+		assertVersionEquals(v("1foo2"), v("00.00"));
+		assertVersionEquals(v("1foo2"), v("0.0.0"));
+		assertVersionEquals(v("1foo2"), v("00.00.00"));
+		assertVersionEquals(v("1foo2"), v("0.0.0.0"));
+		assertVersionEquals(v("1foo2"), v("00.00.00.00"));
 
-		assertVersionIsGreaterThan(v("2.3.4"), v("1")); // 1 component
-		assertVersionIsGreaterThan(v("2.3.4"), v("2.2")); // 2 components
+		assertVersionEquals(v("2"), v("2"));
+		assertVersionEquals(v("2"), v("02"));
+		assertVersionEquals(v("2"), v("2.0"));
+		assertVersionEquals(v("2"), v("02.00"));
+		assertVersionEquals(v("2"), v("2.0.0"));
+		assertVersionEquals(v("2"), v("02.00.00"));
+		assertVersionEquals(v("2"), v("2.0.0.0"));
+		assertVersionEquals(v("2"), v("02.00.00.00"));
 
-		assertVersionIsGreaterThan(v("2.3.4"), v("0")); // sanity check zero: 1 component
-		assertVersionIsGreaterThan(v("2.3.4"), v("0.0")); // sanity check zero: 2 components
-		assertVersionIsGreaterThan(v("2.3.4"), v("0.0.0")); // sanity check zero: 3 components
-		assertVersionIsGreaterThan(v("2.3.4"), v("0.0.0.0")); // sanity check zero: 4 components
+		assertVersionEquals(v("2.2"), v("2.2"));
+		assertVersionEquals(v("2.2"), v("02.02"));
+		assertVersionEquals(v("2.2"), v("2.2.0"));
+		assertVersionEquals(v("2.2"), v("02.02.00"));
+		assertVersionEquals(v("2.2"), v("2.2.0.0"));
+		assertVersionEquals(v("2.2"), v("02.02.00.00"));
+
+		assertVersionEquals(v("2.2.2"), v("2.2.2"));
+		assertVersionEquals(v("2.2.2"), v("02.02.02"));
+		assertVersionEquals(v("2.2.2"), v("2.2.2.0"));
+		assertVersionEquals(v("2.2.2"), v("02.02.02.00"));
+
+		assertVersionEquals(v("2.2.2.2"), v("2.2.2.2"));
+		assertVersionEquals(v("2.2.2.2"), v("02.02.02.02"));
 	}
 
 	@Test
-	public void testIsNotGreaterThan() {
-		assertVersionIsNotGreaterThan(v("2.3.4"), v("2.3.4")); // self
-		assertVersionIsNotGreaterThan(v("2.3.4"), v("2.3.4.0")); // self with extra component
-		assertVersionIsNotGreaterThan(v("2.3.4"), v("02.3.4.0")); // self with padded major
-		assertVersionIsNotGreaterThan(v("2.3.4"), v("2.03.4.0")); // self with padded minor
-		assertVersionIsNotGreaterThan(v("2.3.4"), v("2.3.04")); // self with padded patch
+	public void testIsGreaterThan() {
+		assertVersionIsGreaterThan(v("2"), v("1"));
+		assertVersionIsGreaterThan(v("2"), v("01"));
+		assertVersionIsGreaterThan(v("2"), v("1.0"));
+		assertVersionIsGreaterThan(v("2"), v("01.00"));
+		assertVersionIsGreaterThan(v("2"), v("1.0.0"));
+		assertVersionIsGreaterThan(v("2"), v("01.00.00"));
+		assertVersionIsGreaterThan(v("2"), v("1.0.0.0"));
+		assertVersionIsGreaterThan(v("2"), v("01.00.00.00"));
 
-		assertVersionIsNotGreaterThan(v("1.3.4"), v("2.3.4")); // major
-		assertVersionIsNotGreaterThan(v("2.2.4"), v("2.3.4")); // minor
-		assertVersionIsNotGreaterThan(v("2.3.3"), v("2.3.4")); // patch
+		assertVersionIsGreaterThan(v("2.2"), v("2"));
+		assertVersionIsGreaterThan(v("2.2"), v("02"));
+		assertVersionIsGreaterThan(v("2.2"), v("2.0"));
+		assertVersionIsGreaterThan(v("2.2"), v("02.00"));
+		assertVersionIsGreaterThan(v("2.2"), v("2.0.0"));
+		assertVersionIsGreaterThan(v("2.2"), v("02.00.00"));
+		assertVersionIsGreaterThan(v("2.2"), v("2.0.0.0"));
+		assertVersionIsGreaterThan(v("2.2"), v("02.00.00.00"));
 
-		assertVersionIsNotGreaterThan(v("01.3.4"), v("2.3.4")); // padded major
-		assertVersionIsNotGreaterThan(v("2.02.4"), v("2.3.4")); // padded minor
-		assertVersionIsNotGreaterThan(v("2.3.03"), v("2.3.4")); // padded patch
+		assertVersionIsGreaterThan(v("2.2.2"), v("2"));
+		assertVersionIsGreaterThan(v("2.2.2"), v("02"));
+		assertVersionIsGreaterThan(v("2.2.2"), v("2.0"));
+		assertVersionIsGreaterThan(v("2.2.2"), v("02.00"));
+		assertVersionIsGreaterThan(v("2.2.2"), v("2.0.0"));
+		assertVersionIsGreaterThan(v("2.2.2"), v("02.00.00"));
+		assertVersionIsGreaterThan(v("2.2.2"), v("2.0.0.0"));
+		assertVersionIsGreaterThan(v("2.2.2"), v("02.00.00.00"));
 
-		assertVersionIsNotGreaterThan(v("1.3.4.99"), v("2.3.4")); // major with extra component
-		assertVersionIsNotGreaterThan(v("2.2.4.99"), v("2.3.4")); // minor with extra component
-		assertVersionIsNotGreaterThan(v("2.3.3.99"), v("2.3.4")); // patch with extra component
-
-		assertVersionIsNotGreaterThan(v("1"), v("2.3.4")); // 1 component
-		assertVersionIsNotGreaterThan(v("2.2"), v("2.3.4")); // 2 components
-
-		assertVersionIsNotGreaterThan(v("0"), v("2.3.4")); // sanity check zero: 1 component
-		assertVersionIsNotGreaterThan(v("0.0"), v("2.3.4")); // sanity check zero: 2 components
-		assertVersionIsNotGreaterThan(v("0.0.0"), v("2.3.4")); // sanity check zero: 3 components
-		assertVersionIsNotGreaterThan(v("0.0.0.0"), v("2.3.4")); // sanity check zero: 4 components
+		assertVersionIsGreaterThan(v("2.2.2.2"), v("2"));
+		assertVersionIsGreaterThan(v("2.2.2.2"), v("02"));
+		assertVersionIsGreaterThan(v("2.2.2.2"), v("2.0"));
+		assertVersionIsGreaterThan(v("2.2.2.2"), v("02.00"));
+		assertVersionIsGreaterThan(v("2.2.2.2"), v("2.0.0"));
+		assertVersionIsGreaterThan(v("2.2.2.2"), v("02.00.00"));
+		assertVersionIsGreaterThan(v("2.2.2.2"), v("2.0.0.0"));
+		assertVersionIsGreaterThan(v("2.2.2.2"), v("02.00.00.00"));
 	}
 
 	@Test
 	public void testMajor() {
-		assertThat(v("").getMajor(), is(0)); // default when no major is defined
-		assertThat(v("foo").getMajor(), is(0)); // ditto
-
 		assertThat(v("0").getMajor(), is(0));
 		assertThat(v("0.1").getMajor(), is(0));
 		assertThat(v("0.1.2").getMajor(), is(0));
@@ -138,15 +203,12 @@ public class VersionTest {
 
 	@Test
 	public void testMinor() {
-		assertThat(v("").getMinor(), is(0)); // default when no minor is defined
-		assertThat(v("foo").getMinor(), is(0)); // ditto
-
-		assertThat(v("0").getMinor(), is(0)); // default when no minor is defined
+		assertThat(v("0").getMinor(), is(0));
 		assertThat(v("0.1").getMinor(), is(1));
 		assertThat(v("0.1.2").getMinor(), is(1));
 		assertThat(v("0.1.2.3").getMinor(), is(1));
 
-		assertThat(v("1").getMinor(), is(0)); // default when no minor is defined
+		assertThat(v("1").getMinor(), is(0));
 		assertThat(v("1.2").getMinor(), is(2));
 		assertThat(v("1.2.3").getMinor(), is(2));
 		assertThat(v("1.2.3.4").getMinor(), is(2));
@@ -154,206 +216,183 @@ public class VersionTest {
 
 	@Test
 	public void testPatch() {
-		assertThat(v("").getPatch(), is(0)); // default when no patch is defined
-		assertThat(v("foo").getPatch(), is(0)); // ditto
-
-		assertThat(v("0").getPatch(), is(0)); // default when no patch is defined
-		assertThat(v("0.1").getPatch(), is(0)); // ditto
+		assertThat(v("0").getPatch(), is(0));
+		assertThat(v("0.1").getPatch(), is(0));
 		assertThat(v("0.1.2").getPatch(), is(2));
 		assertThat(v("0.1.2.3").getPatch(), is(2));
 
-		assertThat(v("1").getPatch(), is(0)); // default when no patch is defined
-		assertThat(v("1.2").getPatch(), is(0)); // ditto
-		assertThat(v("1.2.3").getPatch(), is(3)); 
+		assertThat(v("1").getPatch(), is(0));
+		assertThat(v("1.2").getPatch(), is(0));
+		assertThat(v("1.2.3").getPatch(), is(3));
 		assertThat(v("1.2.3.4").getPatch(), is(3));
 	}
 
 	@Test
-	public void testIsPmsCompatible() {
-		// current -> latest
-		assertIsPmsCompatible(v(""), v("")); // defaults to 0
-		assertIsPmsCompatible(v(""), v("0"));
-		assertIsPmsCompatible(v(""), v("0.0"));
-		assertIsPmsCompatible(v(""), v("0.0.0"));
-		assertIsPmsCompatible(v(""), v("0.0.0.0"));
-		assertIsPmsCompatible(v(""), v("0.0.1.0"));
-		assertIsPmsCompatible(v(""), v("0.0.0.1"));
-		assertIsPmsCompatible(v(""), v("0.0.1.1"));
+	public void testIsPmsUpdatable() {
+		assertIsPmsUpdatable(v("2"), v("2.0.1"));
+		assertIsPmsUpdatable(v("2"), v("02.00.01"));
+		assertIsPmsUpdatable(v("2"), v("2.0.1.0"));
+		assertIsPmsUpdatable(v("2"), v("02.00.01.00"));
 
-		assertIsPmsCompatible(v("0"), v("0"));
-		assertIsPmsCompatible(v("0"), v(""));
-		assertIsPmsCompatible(v("0"), v("foo"));
-		assertIsPmsCompatible(v("0"), v("0.0"));
-		assertIsPmsCompatible(v("0"), v("0.0.0"));
-		assertIsPmsCompatible(v("0"), v("0.0.0.0"));
-		assertIsPmsCompatible(v("0"), v("0.0.0.1"));
-		assertIsPmsCompatible(v("0"), v("0.0.1.0"));
-		assertIsPmsCompatible(v("0"), v("0.0.1.1"));
-		assertIsPmsCompatible(v("0"), v("0.0.99.99"));
+		assertIsPmsUpdatable(v("2.2"), v("2.2.1"));
+		assertIsPmsUpdatable(v("2.2"), v("02.02.01"));
+		assertIsPmsUpdatable(v("2.2"), v("2.2.0.1"));
+		assertIsPmsUpdatable(v("2.2"), v("02.02.00.01"));
 
-		assertIsPmsCompatible(v("foo"), v("foo")); // defaults to 0
-		assertIsPmsCompatible(v("foo"), v(""));
-		assertIsPmsCompatible(v("foo"), v("0"));
-		assertIsPmsCompatible(v("foo"), v("0.0"));
-		assertIsPmsCompatible(v("foo"), v("0.0.0"));
-		assertIsPmsCompatible(v("foo"), v("0.0.0.0"));
-		assertIsPmsCompatible(v("foo"), v("0.0.0.1"));
-		assertIsPmsCompatible(v("foo"), v("0.0.1.0"));
-		assertIsPmsCompatible(v("foo"), v("0.0.1.1"));
-		assertIsPmsCompatible(v("foo"), v("0.0.99.99"));
+		assertIsPmsUpdatable(v("2.2.2"), v("2.2.3"));
+		assertIsPmsUpdatable(v("2.2.2"), v("02.02.03"));
+		assertIsPmsUpdatable(v("2.2.2"), v("2.2.2.1"));
+		assertIsPmsUpdatable(v("2.2.2"), v("02.02.02.01"));
 
-		assertIsPmsCompatible(v("1"), v("1"));
-		assertIsPmsCompatible(v("1"), v("1.0"));
-		assertIsPmsCompatible(v("1"), v("1.0.0"));
-		assertIsPmsCompatible(v("1"), v("1.0.0.0"));
-		assertIsPmsCompatible(v("1"), v("1.0.0.1"));
-		assertIsPmsCompatible(v("1"), v("1.0.1.0"));
-		assertIsPmsCompatible(v("1"), v("1.0.1.1"));
-		assertIsPmsCompatible(v("1"), v("1.0.99.99"));
-
-		assertIsPmsCompatible(v("1.2"), v("1.2"));
-		assertIsPmsCompatible(v("1.2"), v("1.2.0"));
-		assertIsPmsCompatible(v("1.2"), v("1.2.0.0"));
-		assertIsPmsCompatible(v("1.2"), v("1.2.0.1"));
-		assertIsPmsCompatible(v("1.2"), v("1.2.1.0"));
-		assertIsPmsCompatible(v("1.2"), v("1.2.1.1"));
-		assertIsPmsCompatible(v("1.2"), v("1.2.99.99"));
-
-		assertIsPmsCompatible(v("1.2.3"), v("1.2.3"));
-		assertIsPmsCompatible(v("1.2.3"), v("1.2"));
-		assertIsPmsCompatible(v("1.2.3"), v("1.2.0"));
-		assertIsPmsCompatible(v("1.2.3"), v("1.2.0.0"));
-		assertIsPmsCompatible(v("1.2.3"), v("1.2.0.1"));
-		assertIsPmsCompatible(v("1.2.3"), v("1.2.1.0"));
-		assertIsPmsCompatible(v("1.2.3"), v("1.2.1.1"));
-		assertIsPmsCompatible(v("1.2.3"), v("1.2.99.99"));
-
-		assertIsPmsCompatible(v("1.2.3.4"), v("1.2.3.4"));
-		assertIsPmsCompatible(v("1.2.3.4"), v("1.2"));
-		assertIsPmsCompatible(v("1.2.3.4"), v("1.2.0"));
-		assertIsPmsCompatible(v("1.2.3.4"), v("1.2.0.0"));
-		assertIsPmsCompatible(v("1.2.3.4"), v("1.2.0.1"));
-		assertIsPmsCompatible(v("1.2.3.4"), v("1.2.1.0"));
-		assertIsPmsCompatible(v("1.2.3.4"), v("1.2.1.1"));
-		assertIsPmsCompatible(v("1.2.3.4"), v("1.2.99.99"));
+		assertIsPmsUpdatable(v("2.2.2.2"), v("2.2.2.3"));
+		assertIsPmsUpdatable(v("2.2.2.2"), v("02.02.02.03"));
+		assertIsPmsUpdatable(v("2.2.2.2"), v("2.2.3.0"));
+		assertIsPmsUpdatable(v("2.2.2.2"), v("02.02.03.00"));
 	}
 
 	@Test
-	public void testIsNotPmsCompatible() {
-		// current -> latest
-		assertIsNotPmsCompatible(v(""), v("1"));
-		assertIsNotPmsCompatible(v(""), v("1.0"));
-		assertIsNotPmsCompatible(v(""), v("1.0.0"));
-		assertIsNotPmsCompatible(v(""), v("1.0.0.0"));
-		assertIsNotPmsCompatible(v(""), v("1.0.0.1"));
-		assertIsNotPmsCompatible(v(""), v("1.0.1.0"));
-		assertIsNotPmsCompatible(v(""), v("1.0.1.1"));
-		assertIsNotPmsCompatible(v(""), v("1.0.99.99"));
-		assertIsNotPmsCompatible(v(""), v("0.2"));
-		assertIsNotPmsCompatible(v(""), v("0.2.0"));
-		assertIsNotPmsCompatible(v(""), v("0.2.0.0"));
-		assertIsNotPmsCompatible(v(""), v("0.2.0.1"));
-		assertIsNotPmsCompatible(v(""), v("0.2.1.0"));
-		assertIsNotPmsCompatible(v(""), v("0.2.1.1"));
-		assertIsNotPmsCompatible(v(""), v("0.2.99.99"));
+	public void testIsNotPmsUpdatable() {
+		assertIsNotPmsUpdatable(v("2"), v("2"));
+		assertIsNotPmsUpdatable(v("2"), v("02"));
+		assertIsNotPmsUpdatable(v("2"), v("20"));
+		assertIsNotPmsUpdatable(v("2"), v("020"));
+		assertIsNotPmsUpdatable(v("2"), v("2.0"));
+		assertIsNotPmsUpdatable(v("2"), v("02.00"));
+		assertIsNotPmsUpdatable(v("2"), v("2.0.0"));
+		assertIsNotPmsUpdatable(v("2"), v("02.00.00"));
+		assertIsNotPmsUpdatable(v("2"), v("2.0.0.0"));
+		assertIsNotPmsUpdatable(v("2"), v("02.00.00.00"));
 
-		assertIsNotPmsCompatible(v("0"), v("1"));
-		assertIsNotPmsCompatible(v("0"), v("1.0"));
-		assertIsNotPmsCompatible(v("0"), v("1.0.0"));
-		assertIsNotPmsCompatible(v("0"), v("1.0.0.0"));
-		assertIsNotPmsCompatible(v("0"), v("1.0.0.1"));
-		assertIsNotPmsCompatible(v("0"), v("1.0.1.0"));
-		assertIsNotPmsCompatible(v("0"), v("1.0.1.1"));
-		assertIsNotPmsCompatible(v("0"), v("1.0.99.99"));
-		assertIsNotPmsCompatible(v("0"), v("0.2"));
-		assertIsNotPmsCompatible(v("0"), v("0.2.0"));
-		assertIsNotPmsCompatible(v("0"), v("0.2.0.0"));
-		assertIsNotPmsCompatible(v("0"), v("0.2.0.1"));
-		assertIsNotPmsCompatible(v("0"), v("0.2.1.0"));
-		assertIsNotPmsCompatible(v("0"), v("0.2.1.1"));
-		assertIsNotPmsCompatible(v("0"), v("0.2.99.99"));
+		assertIsNotPmsUpdatable(v("2"), v("2.1"));
+		assertIsNotPmsUpdatable(v("2"), v("02.01"));
+		assertIsNotPmsUpdatable(v("2"), v("2.1.0"));
+		assertIsNotPmsUpdatable(v("2"), v("02.01.00"));
+		assertIsNotPmsUpdatable(v("2"), v("2.1.0.0"));
+		assertIsNotPmsUpdatable(v("2"), v("02.01.00.00"));
 
-		assertIsNotPmsCompatible(v("foo"), v("1"));
-		assertIsNotPmsCompatible(v("foo"), v("1.0"));
-		assertIsNotPmsCompatible(v("foo"), v("1.0.0"));
-		assertIsNotPmsCompatible(v("foo"), v("1.0.0.0"));
-		assertIsNotPmsCompatible(v("foo"), v("1.0.0.1"));
-		assertIsNotPmsCompatible(v("foo"), v("1.0.1.0"));
-		assertIsNotPmsCompatible(v("foo"), v("1.0.1.1"));
-		assertIsNotPmsCompatible(v("foo"), v("1.0.99.99"));
-		assertIsNotPmsCompatible(v("foo"), v("0.2"));
-		assertIsNotPmsCompatible(v("foo"), v("0.2.0"));
-		assertIsNotPmsCompatible(v("foo"), v("0.2.0.0"));
-		assertIsNotPmsCompatible(v("foo"), v("0.2.0.1"));
-		assertIsNotPmsCompatible(v("foo"), v("0.2.1.0"));
-		assertIsNotPmsCompatible(v("foo"), v("0.2.1.1"));
-		assertIsNotPmsCompatible(v("foo"), v("0.2.99.99"));
+		assertIsNotPmsUpdatable(v("2"), v("1"));
+		assertIsNotPmsUpdatable(v("2"), v("01"));
+		assertIsNotPmsUpdatable(v("2"), v("1.0"));
+		assertIsNotPmsUpdatable(v("2"), v("01.00"));
+		assertIsNotPmsUpdatable(v("2"), v("1.0.0"));
+		assertIsNotPmsUpdatable(v("2"), v("01.00.00"));
+		assertIsNotPmsUpdatable(v("2"), v("1.0.0.0"));
+		assertIsNotPmsUpdatable(v("2"), v("01.00.00.00"));
 
-		assertIsNotPmsCompatible(v("1"), v("0"));
-		assertIsNotPmsCompatible(v("1"), v("2"));
-		assertIsNotPmsCompatible(v("1"), v("0.0"));
-		assertIsNotPmsCompatible(v("1"), v("0.0.0"));
-		assertIsNotPmsCompatible(v("1"), v("0.0.0.0"));
-		assertIsNotPmsCompatible(v("1"), v("0.0.0.1"));
-		assertIsNotPmsCompatible(v("1"), v("0.0.1.0"));
-		assertIsNotPmsCompatible(v("1"), v("0.0.1.1"));
-		assertIsNotPmsCompatible(v("1"), v("0.0.99.99"));
-		assertIsNotPmsCompatible(v("1"), v("1.1"));
-		assertIsNotPmsCompatible(v("1"), v("1.1.0"));
-		assertIsNotPmsCompatible(v("1"), v("1.1.0.0"));
-		assertIsNotPmsCompatible(v("1"), v("1.1.0.1"));
-		assertIsNotPmsCompatible(v("1"), v("1.1.1.0"));
-		assertIsNotPmsCompatible(v("1"), v("1.1.1.1"));
-		assertIsNotPmsCompatible(v("1"), v("1.1.99.99"));
+		assertIsNotPmsUpdatable(v("2"), v("3"));
+		assertIsNotPmsUpdatable(v("2"), v("03"));
+		assertIsNotPmsUpdatable(v("2"), v("3.0"));
+		assertIsNotPmsUpdatable(v("2"), v("03.00"));
+		assertIsNotPmsUpdatable(v("2"), v("3.0.0"));
+		assertIsNotPmsUpdatable(v("2"), v("03.00.00"));
+		assertIsNotPmsUpdatable(v("2"), v("3.0.0.0"));
+		assertIsNotPmsUpdatable(v("2"), v("03.00.00.00"));
 
-		assertIsNotPmsCompatible(v("1.2"), v("0"));
-		assertIsNotPmsCompatible(v("1.2"), v("1"));
-		assertIsNotPmsCompatible(v("1.2"), v("2"));
-		assertIsNotPmsCompatible(v("1.2"), v("0.2"));
-		assertIsNotPmsCompatible(v("1.2"), v("0.2.0"));
-		assertIsNotPmsCompatible(v("1.2"), v("0.2.0.0"));
-		assertIsNotPmsCompatible(v("1.2"), v("0.2.0.1"));
-		assertIsNotPmsCompatible(v("1.2"), v("0.2.1.0"));
-		assertIsNotPmsCompatible(v("1.2"), v("0.2.1.1"));
-		assertIsNotPmsCompatible(v("1.2"), v("0.2.99.99"));
-		assertIsNotPmsCompatible(v("1.2"), v("1.1"));
-		assertIsNotPmsCompatible(v("1.2"), v("1.1.0"));
-		assertIsNotPmsCompatible(v("1.2"), v("1.1.0.0"));
-		assertIsNotPmsCompatible(v("1.2"), v("1.1.0.1"));
-		assertIsNotPmsCompatible(v("1.2"), v("1.1.1.0"));
-		assertIsNotPmsCompatible(v("1.2"), v("1.1.1.1"));
-		assertIsNotPmsCompatible(v("1.2"), v("1.1.99.99"));
-		assertIsNotPmsCompatible(v("1.2"), v("1.3"));
-		assertIsNotPmsCompatible(v("1.2"), v("1.3.0"));
-		assertIsNotPmsCompatible(v("1.2"), v("1.3.0.0"));
-		assertIsNotPmsCompatible(v("1.2"), v("1.3.0.1"));
-		assertIsNotPmsCompatible(v("1.2"), v("1.3.1.0"));
-		assertIsNotPmsCompatible(v("1.2"), v("1.3.1.1"));
-		assertIsNotPmsCompatible(v("1.2"), v("1.3.99.99"));
+		assertIsNotPmsUpdatable(v("2.2"), v("2.2"));
+		assertIsNotPmsUpdatable(v("2.2"), v("02.02"));
+		assertIsNotPmsUpdatable(v("2.2"), v("2.2.0"));
+		assertIsNotPmsUpdatable(v("2.2"), v("02.02.00"));
+		assertIsNotPmsUpdatable(v("2.2"), v("2.2.0.0"));
+		assertIsNotPmsUpdatable(v("2.2"), v("02.02.00.00"));
 
-		assertIsNotPmsCompatible(v("1.2.3"), v("0"));
-		assertIsNotPmsCompatible(v("1.2.3"), v("1"));
-		assertIsNotPmsCompatible(v("1.2.3"), v("2"));
-		assertIsNotPmsCompatible(v("1.2.3"), v("0.2"));
-		assertIsNotPmsCompatible(v("1.2.3"), v("0.2.0"));
-		assertIsNotPmsCompatible(v("1.2.3"), v("0.2.0.0"));
-		assertIsNotPmsCompatible(v("1.2.3"), v("0.2.0.1"));
-		assertIsNotPmsCompatible(v("1.2.3"), v("0.2.1.0"));
-		assertIsNotPmsCompatible(v("1.2.3"), v("0.2.1.1"));
-		assertIsNotPmsCompatible(v("1.2.3"), v("0.2.99.99"));
-		assertIsNotPmsCompatible(v("1.2.3"), v("1.1"));
-		assertIsNotPmsCompatible(v("1.2.3"), v("1.1.0"));
-		assertIsNotPmsCompatible(v("1.2.3"), v("1.1.0.0"));
-		assertIsNotPmsCompatible(v("1.2.3"), v("1.1.0.1"));
-		assertIsNotPmsCompatible(v("1.2.3"), v("1.1.1.0"));
-		assertIsNotPmsCompatible(v("1.2.3"), v("1.1.1.1"));
-		assertIsNotPmsCompatible(v("1.2.3"), v("1.1.99.99"));
-		assertIsNotPmsCompatible(v("1.2.3"), v("1.3"));
-		assertIsNotPmsCompatible(v("1.2.3"), v("1.3.0"));
-		assertIsNotPmsCompatible(v("1.2.3"), v("1.3.0.0"));
-		assertIsNotPmsCompatible(v("1.2.3"), v("1.3.0.1"));
-		assertIsNotPmsCompatible(v("1.2.3"), v("1.3.1.0"));
-		assertIsNotPmsCompatible(v("1.2.3"), v("1.3.1.1"));
-		assertIsNotPmsCompatible(v("1.2.3"), v("1.3.99.99"));
+		assertIsNotPmsUpdatable(v("2.2"), v("1"));
+		assertIsNotPmsUpdatable(v("2.2"), v("01"));
+		assertIsNotPmsUpdatable(v("2.2"), v("1.0"));
+		assertIsNotPmsUpdatable(v("2.2"), v("01.00"));
+		assertIsNotPmsUpdatable(v("2.2"), v("1.0.0"));
+		assertIsNotPmsUpdatable(v("2.2"), v("01.00.00"));
+		assertIsNotPmsUpdatable(v("2.2"), v("1.0.0.0"));
+		assertIsNotPmsUpdatable(v("2.2"), v("01.00.00.00"));
+
+		assertIsNotPmsUpdatable(v("2.2"), v("3"));
+		assertIsNotPmsUpdatable(v("2.2"), v("03"));
+		assertIsNotPmsUpdatable(v("2.2"), v("3.0"));
+		assertIsNotPmsUpdatable(v("2.2"), v("03.00"));
+		assertIsNotPmsUpdatable(v("2.2"), v("3.2.0"));
+		assertIsNotPmsUpdatable(v("2.2"), v("03.00.00"));
+		assertIsNotPmsUpdatable(v("2.2"), v("3.0.0.0"));
+		assertIsNotPmsUpdatable(v("2.2"), v("03.00.00.00"));
+
+		assertIsNotPmsUpdatable(v("2.2"), v("2.1"));
+		assertIsNotPmsUpdatable(v("2.2"), v("02.01"));
+		assertIsNotPmsUpdatable(v("2.2"), v("2.1.0"));
+		assertIsNotPmsUpdatable(v("2.2"), v("02.01.00"));
+		assertIsNotPmsUpdatable(v("2.2"), v("2.1.0.0"));
+		assertIsNotPmsUpdatable(v("2.2"), v("02.01.00.00"));
+
+		assertIsNotPmsUpdatable(v("2.2"), v("2.3"));
+		assertIsNotPmsUpdatable(v("2.2"), v("02.03"));
+		assertIsNotPmsUpdatable(v("2.2"), v("2.3.0"));
+		assertIsNotPmsUpdatable(v("2.2"), v("02.03.00"));
+		assertIsNotPmsUpdatable(v("2.2"), v("2.3.0.0"));
+		assertIsNotPmsUpdatable(v("2.2"), v("02.03.00.00"));
+
+		assertIsNotPmsUpdatable(v("2.2.2"), v("2.2.2"));
+		assertIsNotPmsUpdatable(v("2.2.2"), v("02.02.02"));
+		assertIsNotPmsUpdatable(v("2.2.2"), v("2.2.2.0"));
+		assertIsNotPmsUpdatable(v("2.2.2"), v("02.02.02.00"));
+
+		assertIsNotPmsUpdatable(v("2.2.2"), v("1"));
+		assertIsNotPmsUpdatable(v("2.2.2"), v("01"));
+		assertIsNotPmsUpdatable(v("2.2.2"), v("1.0"));
+		assertIsNotPmsUpdatable(v("2.2.2"), v("01.00"));
+		assertIsNotPmsUpdatable(v("2.2.2"), v("1.0.0"));
+		assertIsNotPmsUpdatable(v("2.2.2"), v("01.00.00"));
+		assertIsNotPmsUpdatable(v("2.2.2"), v("1.0.0.0"));
+		assertIsNotPmsUpdatable(v("2.2.2"), v("01.00.00.00"));
+
+		assertIsNotPmsUpdatable(v("2.2.2"), v("3"));
+		assertIsNotPmsUpdatable(v("2.2.2"), v("03"));
+		assertIsNotPmsUpdatable(v("2.2.2"), v("3.0"));
+		assertIsNotPmsUpdatable(v("2.2.2"), v("03.00"));
+		assertIsNotPmsUpdatable(v("2.2.2"), v("3.0.0"));
+		assertIsNotPmsUpdatable(v("2.2.2"), v("03.00.00"));
+		assertIsNotPmsUpdatable(v("2.2.2"), v("3.0.0.0"));
+		assertIsNotPmsUpdatable(v("2.2.2"), v("03.00.00.00"));
+
+		assertIsNotPmsUpdatable(v("2.2.2"), v("2.1.0"));
+		assertIsNotPmsUpdatable(v("2.2.2"), v("02.01.00"));
+		assertIsNotPmsUpdatable(v("2.2.2"), v("2.1.0.0"));
+		assertIsNotPmsUpdatable(v("2.2.2"), v("02.01.00.00"));
+
+		assertIsNotPmsUpdatable(v("2.2.2"), v("2.3.0"));
+		assertIsNotPmsUpdatable(v("2.2.2"), v("02.03.00"));
+		assertIsNotPmsUpdatable(v("2.2.2"), v("2.3.0.0"));
+		assertIsNotPmsUpdatable(v("2.2.2"), v("02.03.00.00"));
+
+		assertIsNotPmsUpdatable(v("2.2.2.2"), v("2.2.2.2"));
+		assertIsNotPmsUpdatable(v("2.2.2.2"), v("02.02.02.02"));
+
+		assertIsNotPmsUpdatable(v("2.2.2.2"), v("1"));
+		assertIsNotPmsUpdatable(v("2.2.2.2"), v("01"));
+		assertIsNotPmsUpdatable(v("2.2.2.2"), v("1.0"));
+		assertIsNotPmsUpdatable(v("2.2.2.2"), v("01.00"));
+		assertIsNotPmsUpdatable(v("2.2.2.2"), v("1.0.0"));
+		assertIsNotPmsUpdatable(v("2.2.2.2"), v("01.00.00"));
+		assertIsNotPmsUpdatable(v("2.2.2.2"), v("1.0.0.0"));
+		assertIsNotPmsUpdatable(v("2.2.2.2"), v("01.00.00.00"));
+
+		assertIsNotPmsUpdatable(v("2.2.2.2"), v("3"));
+		assertIsNotPmsUpdatable(v("2.2.2.2"), v("03"));
+		assertIsNotPmsUpdatable(v("2.2.2.2"), v("3.0"));
+		assertIsNotPmsUpdatable(v("2.2.2.2"), v("03.00"));
+		assertIsNotPmsUpdatable(v("2.2.2.2"), v("3.0.0"));
+		assertIsNotPmsUpdatable(v("2.2.2.2"), v("03.00.00"));
+		assertIsNotPmsUpdatable(v("2.2.2.2"), v("3.0.0.0"));
+		assertIsNotPmsUpdatable(v("2.2.2.2"), v("03.00.00.00"));
+
+		assertIsNotPmsUpdatable(v("2.2.2.2"), v("2.1"));
+		assertIsNotPmsUpdatable(v("2.2.2.2"), v("02.01"));
+		assertIsNotPmsUpdatable(v("2.2.2.2"), v("2.1.0"));
+		assertIsNotPmsUpdatable(v("2.2.2.2"), v("02.01.00"));
+		assertIsNotPmsUpdatable(v("2.2.2.2"), v("2.1.0.0"));
+		assertIsNotPmsUpdatable(v("2.2.2.2"), v("02.01.00.00"));
+
+		assertIsNotPmsUpdatable(v("2.2.2.2"), v("2.3"));
+		assertIsNotPmsUpdatable(v("2.2.2.2"), v("02.03"));
+		assertIsNotPmsUpdatable(v("2.2.2.2"), v("2.3.0"));
+		assertIsNotPmsUpdatable(v("2.2.2.2"), v("02.03.00"));
+		assertIsNotPmsUpdatable(v("2.2.2.2"), v("2.3.0.0"));
+		assertIsNotPmsUpdatable(v("2.2.2.2"), v("02.03.00.00"));
 	}
 }
