@@ -195,11 +195,13 @@ public class FFMpegVideo extends Player {
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params,
-		String args[]) throws IOException {
+		String args[]
+	) throws IOException {
 		setAudioAndSubs(fileName, media, params, PMS.getConfiguration());
 
 		PipeIPCProcess videoP = null;
 		PipeIPCProcess audioP = null;
+
 		if (mplayer()) {
 			videoP = new PipeIPCProcess("mplayer_vid1" + System.currentTimeMillis(), "mplayer_vid2" + System.currentTimeMillis(), false, false);
 			audioP = new PipeIPCProcess("mplayer_aud1" + System.currentTimeMillis(), "mplayer_aud2" + System.currentTimeMillis(), false, false);
@@ -223,7 +225,7 @@ public class FFMpegVideo extends Player {
 			if (mplayer()) {
 				cmdArray[3] = "-f";
 				cmdArray[4] = "yuv4mpegpipe";
-				//cmdArray[6] = pipeprefix + videoPipe + (PMS.get().isWindows()?".2":"");
+				// cmdArray[6] = pipeprefix + videoPipe + (PMS.get().isWindows()?".2":"");
 				cmdArray[6] = videoP.getOutputPipe();
 			}
 		}
@@ -236,13 +238,14 @@ public class FFMpegVideo extends Player {
 				cmdArray[7] = "-f";
 				cmdArray[8] = "wav";
 				cmdArray[9] = "-i";
-				//cmdArray[10] = pipeprefix + audioPipe + (PMS.get().isWindows()?".2":"");
+				// cmdArray[10] = pipeprefix + audioPipe + (PMS.get().isWindows()?".2":"");
 				cmdArray[10] = audioP.getOutputPipe();
 			} else if (type() == Format.AUDIO) {
 				cmdArray[7] = "-i";
 				cmdArray[8] = fileName;
 			}
 		}
+
 		if (params.timeend > 0) {
 			cmdArray[9] = "-t";
 			cmdArray[10] = "" + params.timeend;
@@ -308,8 +311,11 @@ public class FFMpegVideo extends Player {
 			cmdArray[14] = "" + defaultMaxBitrates[0];
 		}
 
+		// Audio codec
 		cmdArray[15] = "-c:a";
 		cmdArray[16] = (params.aid.isAC3()) ? "copy" : "ac3";
+
+		// Audio bitrate
 		cmdArray[17] = (params.aid.isAC3()) ? "" : "-ab";
 		cmdArray[18] = (params.aid.isAC3()) ? "" : PMS.getConfiguration().getAudioBitrate() + "k";
 
@@ -319,14 +325,16 @@ public class FFMpegVideo extends Player {
 			File m = new File(PMS.getConfiguration().getTempFolder(), "pms-transcode.tmp");
 			if (m.exists() && !m.delete()) {
 				LOGGER.info("Temp file currently used.. Waiting 3 seconds");
+
 				try {
 					Thread.sleep(3000);
-				} catch (InterruptedException e) {
-				}
+				} catch (InterruptedException e) { }
+
 				if (m.exists() && !m.delete()) {
 					LOGGER.info("Temp file cannot be deleted... Serious ERROR");
 				}
 			}
+
 			params.outputFile = m;
 			params.minFileSize = params.minBufferSize;
 			m.deleteOnExit();
@@ -360,7 +368,7 @@ public class FFMpegVideo extends Player {
 
 			overiddenMPlayerArgs = new String[0];
 
-			String mPlayerdefaultVideoArgs[] = new String[]{
+			String[] mPlayerdefaultVideoArgs = new String[] {
 				fileName,
 				seek_param,
 				seek_value,
@@ -370,6 +378,7 @@ public class FFMpegVideo extends Player {
 				"-noframedrop",
 				"-speed", "100"
 			};
+
 			OutputParams mplayer_vid_params = new OutputParams(PMS.getConfiguration());
 			mplayer_vid_params.maxBufferSize = 1;
 
@@ -382,9 +391,11 @@ public class FFMpegVideo extends Player {
 			if (type() == Format.VIDEO) {
 				pw.attachProcess(mkfifo_vid_process);
 			}
+
 			if (type() == Format.VIDEO || type() == Format.AUDIO) {
 				pw.attachProcess(mkfifo_aud_process);
 			}
+
 			if (type() == Format.VIDEO) {
 				pw.attachProcess(mplayer_vid_process);
 			}
@@ -392,13 +403,15 @@ public class FFMpegVideo extends Player {
 			if (type() == Format.VIDEO) {
 				mkfifo_vid_process.runInNewThread();
 			}
+
 			if (type() == Format.VIDEO || type() == Format.AUDIO) {
 				mkfifo_aud_process.runInNewThread();
 			}
+
 			try {
 				Thread.sleep(250);
-			} catch (InterruptedException e) {
-			}
+			} catch (InterruptedException e) { }
+
 			if (type() == Format.VIDEO) {
 				videoP.deleteLater();
 				mplayer_vid_process.runInNewThread();
@@ -406,8 +419,7 @@ public class FFMpegVideo extends Player {
 
 			try {
 				Thread.sleep(250);
-			} catch (InterruptedException e) {
-			}
+			} catch (InterruptedException e) { }
 		}
 
 		pw.runInNewThread();
@@ -425,7 +437,8 @@ public class FFMpegVideo extends Player {
 	protected JComponent config(String languageLabel) {
 		FormLayout layout = new FormLayout(
 			"left:pref, 0:grow",
-			"p, 3dlu, p, 3dlu, p, 3dlu");
+			"p, 3dlu, p, 3dlu"
+		);
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.setBorder(Borders.EMPTY_BORDER);
 		builder.setOpaque(false);
