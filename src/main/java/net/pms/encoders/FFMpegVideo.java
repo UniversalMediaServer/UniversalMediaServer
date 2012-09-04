@@ -442,7 +442,7 @@ public class FFMpegVideo extends Player {
 	protected JComponent config(String languageLabel) {
 		FormLayout layout = new FormLayout(
 			"left:pref, 0:grow",
-			"p, 3dlu, p, 3dlu"
+			"p, 3dlu, p, 3dlu, p, 3dlu"
 		);
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.setBorder(Borders.EMPTY_BORDER);
