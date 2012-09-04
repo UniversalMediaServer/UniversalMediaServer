@@ -72,17 +72,6 @@ public class Version implements Comparable<Version> {
 		return compareTo(other) >= 0;
 	}
 
-	static private int getMostSignificantDigit(int i) {
-		int msd = 0;
-		String msdString = Integer.toString(i).substring(0, 1);
-
-		try {
-			msd = Integer.parseInt(msdString);
-		} catch (NumberFormatException e) { }
-
-		return msd;
-	}
-
 	/**
 	 * Compares an initial (current) version and a target version of PMS and
 	 * returns true if the initial version can be updated
@@ -94,9 +83,7 @@ public class Version implements Comparable<Version> {
 	 */
 	// this should really be a private method in AutoUpdater but it's vital that it's tested, and it's easy to test here
 	static public boolean isPmsUpdatable(Version vFrom, Version vTo) {
-		return vTo.isGreaterThan(vFrom)
-			&& (vFrom.getMajor() == vTo.getMajor())
-			&& (getMostSignificantDigit(vFrom.getMinor()) == getMostSignificantDigit(vTo.getMinor()));
+		return vTo.isGreaterThan(vFrom);
 	}
 
 	public int getMajor() {
