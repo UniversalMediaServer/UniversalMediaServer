@@ -119,7 +119,7 @@ public class Version implements Comparable<Version> {
 	// XXX guava (1.8 MB): Ints.join(".", components)
 	@Override
 	public String toString() {
-		StringBuffer buf = new StringBuffer();
+		StringBuilder buf = new StringBuilder();
 
 		if (components.length > 0) {
 			buf.append(components[0]);
