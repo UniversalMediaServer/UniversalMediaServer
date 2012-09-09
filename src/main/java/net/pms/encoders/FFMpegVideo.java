@@ -436,7 +436,7 @@ public class FFMpegVideo extends Player {
 
 	@Override
 	public JComponent config() {
-		return config("FFMpegVideo.1");
+		return config("NetworkTab.5");
 	}
 
 	protected JComponent config(String languageLabel) {

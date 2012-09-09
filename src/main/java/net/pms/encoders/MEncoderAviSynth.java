@@ -58,7 +58,7 @@ public class MEncoderAviSynth extends MEncoderVideo {
 
 		CellConstraints cc = new CellConstraints();
 
-		JComponent cmp = builder.addSeparator(Messages.getString("MEncoderAviSynth.2"), cc.xyw(2, 1, 1));
+		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), cc.xyw(2, 1, 1));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 

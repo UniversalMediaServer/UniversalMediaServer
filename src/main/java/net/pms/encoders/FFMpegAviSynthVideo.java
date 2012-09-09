@@ -79,7 +79,7 @@ public class FFMpegAviSynthVideo extends FFMpegVideo {
 
 	@Override
 	public JComponent config() {
-		return config("FFMpegAviSynthVideo.0");
+		return config("NetworkTab.5");
 	}
 
 	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack) throws IOException {

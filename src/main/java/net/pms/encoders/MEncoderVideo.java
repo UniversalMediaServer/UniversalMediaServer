@@ -201,7 +201,7 @@ public class MEncoderVideo extends Player {
 			}
 		});
 
-		JComponent cmp = builder.addSeparator(Messages.getString("MEncoderVideo.1"), FormLayoutUtil.flip(cc.xyw(1, 1, 15), colSpec, orientation));
+		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), FormLayoutUtil.flip(cc.xyw(1, 1, 15), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
