@@ -231,14 +231,13 @@ public class FFMpegAviSynthVideo extends FFMpegVideo {
 		return file;
 	}
 
-	private JTextField ffmpeg;
 	private JCheckBox multithreading;
 
 	@Override
 	protected JComponent config(String languageLabel) {
 		FormLayout layout = new FormLayout(
 			"left:pref, 0:grow",
-			"p, 3dlu, p, 3dlu, p, 3dlu");
+			"p, 3dlu, p, 3dlu");
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.setBorder(Borders.EMPTY_BORDER);
 		builder.setOpaque(false);
@@ -260,23 +259,6 @@ public class FFMpegAviSynthVideo extends FFMpegVideo {
 			}
 		});
 		builder.add(multithreading, cc.xy(2, 3));
-
-		ffmpeg = new JTextField(PMS.getConfiguration().getFfmpegAviSynthSettings());
-		ffmpeg.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
-			@Override
-			public void keyReleased(KeyEvent e) {
-				PMS.getConfiguration().setFfmpegAviSynthSettings(ffmpeg.getText());
-			}
-		});
-		builder.add(ffmpeg, cc.xy(2, 5));
 
 		return builder.getPanel();
 	}

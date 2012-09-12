@@ -80,9 +80,7 @@ public class PmsConfiguration {
 	private static final String KEY_EMBED_DTS_IN_PCM = "embed_dts_in_pcm";
 	private static final String KEY_ENGINES = "engines";
 	private static final String KEY_FFMPEG_ALTERNATIVE_PATH = "alternativeffmpegpath";
-	private static final String KEY_FFMPEG_SETTINGS = "ffmpeg";
 	private static final String KEY_FFMPEG_MULTITHREADING = "ffmpeg_multithreading";
-	private static final String KEY_FFMPEG_AVISYNTH_SETTINGS = "ffmpeg_avisynth";
 	private static final String KEY_FFMPEG_AVISYNTH_MULTITHREADING = "ffmpeg_avisynth_multithreading";
 	private static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
 	private static final String KEY_FORCETRANSCODE = "forcetranscode";
@@ -1672,12 +1670,19 @@ public class PmsConfiguration {
 		return bufferType.equals(BUFFER_TYPE_FILE);
 	}
 
-	public void setFfmpegSettings(String value) {
-		configuration.setProperty(KEY_FFMPEG_SETTINGS, value);
-	}
-
+	/*
+	 * Converts the getMencoderMainSettings() result, which should
+	 * probably be renamed to something like getMPEG2MainSettings(),
+	 * from MEncoder's format to FFmpeg's.
+	 *
+	 * @return MPEG-2 settings formatted for FFmpeg.
+	 */
 	public String getFfmpegSettings() {
-		return getString(KEY_FFMPEG_SETTINGS, "-g 5 -q:v 1 -qmin 2");
+		String mpegSettings = getMencoderMainSettings();
+		mpegSettings = mpegSettings.replaceAll("[^\\d=]", "");
+		String mpegSettingsArray[] = mpegSettings.split("=");
+		String ffmpegMPEG2Settings = "-g " + mpegSettingsArray[1] + " -q:v " + mpegSettingsArray[2] + " -qmin " + mpegSettingsArray[3];
+		return getString(ffmpegMPEG2Settings, "-g 5 -qscale 1 -qmin 2");
 	}
 
 	public void setFfmpegMultithreading(boolean value) {
@@ -1687,14 +1692,6 @@ public class PmsConfiguration {
 	public boolean isFfmpegMultithreading() {
 		boolean isMultiCore = getNumberOfCpuCores() > 1;
 		return getBoolean(KEY_FFMPEG_MULTITHREADING, isMultiCore);
-	}
-
-	public void setFfmpegAviSynthSettings(String value) {
-		configuration.setProperty(KEY_FFMPEG_AVISYNTH_SETTINGS, value);
-	}
-
-	public String getFfmpegAviSynthSettings() {
-		return getString(KEY_FFMPEG_AVISYNTH_SETTINGS, "-g 5 -q:v 1 -qmin 2");
 	}
 
 	public void setFfmpegAviSynthMultithreading(boolean value) {
