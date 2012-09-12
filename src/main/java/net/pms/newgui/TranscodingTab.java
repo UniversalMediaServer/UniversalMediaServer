@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
 public class TranscodingTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TranscodingTab.class);
 	private static final String COMMON_COL_SPEC = "left:pref, 2dlu, pref:grow";
-	private static final String COMMON_ROW_SPEC = "p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 9dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 9dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 9dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p";
+	private static final String COMMON_ROW_SPEC = "p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 9dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 9dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 9dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p";
 	private static final String EMPTY_COL_SPEC = "left:pref, 2dlu, pref:grow";
 	private static final String EMPTY_ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p , 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 20dlu, p, 3dlu, p, 3dlu, p";
 	private static final String LEFT_COL_SPEC = "left:pref, pref, pref, pref, 0:grow";
@@ -534,24 +534,11 @@ public class TranscodingTab {
 		builder.addLabel(Messages.getString("TrTab2.29"), FormLayoutUtil.flip(cc.xy(1, 21), colSpec, orientation));
 		builder.add(abitrate, FormLayoutUtil.flip(cc.xy(3, 21), colSpec, orientation));
 
-		mpeg2remux = new JCheckBox(Messages.getString("MEncoderVideo.39") + (Platform.isWindows() ? Messages.getString("TrTab2.66") : ""));
-		mpeg2remux.setContentAreaFilled(false);
-		if (configuration.isMencoderRemuxMPEG2()) {
-			mpeg2remux.setSelected(true);
-		}
-		mpeg2remux.addItemListener(new ItemListener() {
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setMencoderRemuxMPEG2((e.getStateChange() == ItemEvent.SELECTED));
-			}
-		});
-
-		builder.add(mpeg2remux, FormLayoutUtil.flip(cc.xyw(1, 23, 3), colSpec, orientation));
-
-		cmp = builder.addSeparator(Messages.getString("TrTab2.4"), FormLayoutUtil.flip(cc.xyw(1, 25, 3), colSpec, orientation));
+		cmp = builder.addSeparator(Messages.getString("TrTab2.4"), FormLayoutUtil.flip(cc.xyw(1, 23, 3), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		builder.addLabel(Messages.getString("TrTab2.32"), FormLayoutUtil.flip(cc.xyw(1, 29, 3), colSpec, orientation));
+		builder.addLabel(Messages.getString("TrTab2.32"), FormLayoutUtil.flip(cc.xyw(1, 27, 3), colSpec, orientation));
 
 		Object data[] = new Object[] {
 			configuration.getMencoderMainSettings(),                                                /* default */
@@ -592,7 +579,20 @@ public class TranscodingTab {
 			}
 		});
 		vq.setEditable(true);
-		builder.add(vq, FormLayoutUtil.flip(cc.xyw(1, 31, 3), colSpec, orientation));
+		builder.add(vq, FormLayoutUtil.flip(cc.xyw(1, 29, 3), colSpec, orientation));
+
+		mpeg2remux = new JCheckBox(Messages.getString("MEncoderVideo.39") + (Platform.isWindows() ? Messages.getString("TrTab2.66") : ""));
+		mpeg2remux.setContentAreaFilled(false);
+		if (configuration.isMencoderRemuxMPEG2()) {
+			mpeg2remux.setSelected(true);
+		}
+		mpeg2remux.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setMencoderRemuxMPEG2((e.getStateChange() == ItemEvent.SELECTED));
+			}
+		});
+
+		builder.add(mpeg2remux, FormLayoutUtil.flip(cc.xyw(1, 31, 3), colSpec, orientation));
 
 		String help1 = Messages.getString("TrTab2.39");
 		help1 += Messages.getString("TrTab2.40");
