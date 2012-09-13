@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
 public class TranscodingTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TranscodingTab.class);
 	private static final String COMMON_COL_SPEC = "left:pref, 2dlu, pref:grow";
-	private static final String COMMON_ROW_SPEC = "p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 9dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 9dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 9dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p";
+	private static final String COMMON_ROW_SPEC = "p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 9dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 9dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 9dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 9dlu, p, 2dlu, p";
 	private static final String EMPTY_COL_SPEC = "left:pref, 2dlu, pref:grow";
 	private static final String EMPTY_ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p , 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 20dlu, p, 3dlu, p, 3dlu, p";
 	private static final String LEFT_COL_SPEC = "left:pref, pref, pref, pref, 0:grow";
@@ -653,7 +653,7 @@ public class TranscodingTab {
 		decodeTips.setBorder(BorderFactory.createEtchedBorder());
 		decodeTips.setBackground(new Color(255, 255, 192));
 		decodeTips.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(new Color(171, 173, 179)), BorderFactory.createEmptyBorder(3, 5, 3, 5)));
-		builder.add(decodeTips, FormLayoutUtil.flip(cc.xyw(1, 41, 3), colSpec, orientation));
+		builder.add(decodeTips, FormLayoutUtil.flip(cc.xyw(1, 43, 3), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 
