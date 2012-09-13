@@ -579,7 +579,7 @@ public class TranscodingTab {
 			}
 		});
 		vq.setEditable(true);
-		builder.add(vq, FormLayoutUtil.flip(cc.xyw(1, 29, 3), colSpec, orientation));
+		builder.add(vq, FormLayoutUtil.flip(cc.xy(3, 27), colSpec, orientation));
 
 		mpeg2remux = new JCheckBox(Messages.getString("MEncoderVideo.39") + (Platform.isWindows() ? Messages.getString("TrTab2.66") : ""));
 		mpeg2remux.setContentAreaFilled(false);
@@ -592,7 +592,7 @@ public class TranscodingTab {
 			}
 		});
 
-		builder.add(mpeg2remux, FormLayoutUtil.flip(cc.xyw(1, 31, 3), colSpec, orientation));
+		builder.add(mpeg2remux, FormLayoutUtil.flip(cc.xyw(1, 29, 3), colSpec, orientation));
 
 		String help1 = Messages.getString("TrTab2.39");
 		help1 += Messages.getString("TrTab2.40");
