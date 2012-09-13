@@ -594,20 +594,6 @@ public class TranscodingTab {
 
 		builder.add(mpeg2remux, FormLayoutUtil.flip(cc.xyw(1, 29, 3), colSpec, orientation));
 
-		String help1 = Messages.getString("TrTab2.39");
-		help1 += Messages.getString("TrTab2.40");
-		help1 += Messages.getString("TrTab2.41");
-		help1 += Messages.getString("TrTab2.42");
-		help1 += Messages.getString("TrTab2.43");
-		help1 += Messages.getString("TrTab2.44");
-
-		JTextArea decodeTips = new JTextArea(help1);
-		decodeTips.setEditable(false);
-		decodeTips.setBorder(BorderFactory.createEtchedBorder());
-		decodeTips.setBackground(new Color(255, 255, 192));
-		decodeTips.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(new Color(171, 173, 179)), BorderFactory.createEmptyBorder(3, 5, 3, 5)));
-		builder.add(decodeTips, FormLayoutUtil.flip(cc.xyw(1, 41, 3), colSpec, orientation));
-
 		disableSubs = new JCheckBox(Messages.getString("TrTab2.51"));
 		disableSubs.setContentAreaFilled(false);
 
@@ -654,6 +640,20 @@ public class TranscodingTab {
 			}
 		});
 		builder.add(forcetranscode, FormLayoutUtil.flip(cc.xy(3, 39), colSpec, orientation));
+
+		String help1 = Messages.getString("TrTab2.39");
+		help1 += Messages.getString("TrTab2.40");
+		help1 += Messages.getString("TrTab2.41");
+		help1 += Messages.getString("TrTab2.42");
+		help1 += Messages.getString("TrTab2.43");
+		help1 += Messages.getString("TrTab2.44");
+
+		JTextArea decodeTips = new JTextArea(help1);
+		decodeTips.setEditable(false);
+		decodeTips.setBorder(BorderFactory.createEtchedBorder());
+		decodeTips.setBackground(new Color(255, 255, 192));
+		decodeTips.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(new Color(171, 173, 179)), BorderFactory.createEmptyBorder(3, 5, 3, 5)));
+		builder.add(decodeTips, FormLayoutUtil.flip(cc.xyw(1, 41, 3), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 
