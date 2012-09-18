@@ -185,7 +185,7 @@ public class GeneralTab {
 		if (configuration.isAutoUpdate()) {
 			autoUpdateCheckBox.setSelected(true);
 		}
-		builder.add(autoUpdateCheckBox, FormLayoutUtil.flip(cc.xyw(7, 13, 3), colSpec, orientation));
+		builder.add(autoUpdateCheckBox, FormLayoutUtil.flip(cc.xyw(3, 13, 3), colSpec, orientation));
 		if (!Build.isUpdatable()) {
 			checkForUpdates.setEnabled(false);
 			autoUpdateCheckBox.setEnabled(false);
@@ -318,7 +318,7 @@ public class GeneralTab {
 				}
 			}
 		});
-		builder.add(confEdit, FormLayoutUtil.flip(cc.xy(7, 15), colSpec, orientation));
+		builder.add(confEdit, FormLayoutUtil.flip(cc.xy(3, 15), colSpec, orientation));
 
 		host = new JTextField(configuration.getServerHostname());
 		host.addKeyListener(new KeyListener() {
