@@ -310,8 +310,7 @@ public class MEncoderVideo extends Player {
 				}
 			}
 		});
-
-		builder.add(button, FormLayoutUtil.flip(cc.xyw(1, 11, 2), colSpec, orientation));
+		builder.add(button, FormLayoutUtil.flip(cc.xy(1, 11), colSpec, orientation));
 
 		forcefps = new JCheckBox(Messages.getString("MEncoderVideo.4"));
 		forcefps.setContentAreaFilled(false);
@@ -352,10 +351,9 @@ public class MEncoderVideo extends Player {
 				scaleY.setEnabled(configuration.isMencoderScaler());
 			}
 		});
+		builder.add(scaler, FormLayoutUtil.flip(cc.xyw(3, 5, 4), colSpec, orientation));
 
-		builder.add(scaler, FormLayoutUtil.flip(cc.xyw(3, 5, 7), colSpec, orientation));
-
-		builder.addLabel(Messages.getString("MEncoderVideo.28") + " ", FormLayoutUtil.flip(cc.xyw(10, 5, 3, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.28"), FormLayoutUtil.flip(cc.xy(9, 5, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 		scaleX = new JTextField("" + configuration.getMencoderScaleX());
 		scaleX.addKeyListener(new KeyListener() {
 			@Override
@@ -375,9 +373,9 @@ public class MEncoderVideo extends Player {
 				}
 			}
 		});
-		builder.add(scaleX, FormLayoutUtil.flip(cc.xyw(13, 5, 3), colSpec, orientation));
+		builder.add(scaleX, FormLayoutUtil.flip(cc.xy(11, 5), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.30") + " ", FormLayoutUtil.flip(cc.xyw(10, 7, 3, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.30"), FormLayoutUtil.flip(cc.xy(13, 5, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 		scaleY = new JTextField("" + configuration.getMencoderScaleY());
 		scaleY.addKeyListener(new KeyListener() {
 			@Override
@@ -397,7 +395,7 @@ public class MEncoderVideo extends Player {
 				}
 			}
 		});
-		builder.add(scaleY, FormLayoutUtil.flip(cc.xyw(13, 7, 3), colSpec, orientation));
+		builder.add(scaleY, FormLayoutUtil.flip(cc.xy(15, 5), colSpec, orientation));
 
 		if (configuration.isMencoderScaler()) {
 			scaler.setSelected(true);
@@ -459,7 +457,7 @@ public class MEncoderVideo extends Player {
 		builder.add(langs, FormLayoutUtil.flip(cc.xyw(3, 19, 8), colSpec, orientation));
 
 		builder.addLabel(Messages.getString("MEncoderVideo.93"), FormLayoutUtil.flip(cc.xy(1, 21), colSpec, orientation));
-		builder.addLabel(Messages.getString("MEncoderVideo.28") + " (%) ", FormLayoutUtil.flip(cc.xy(1, 21, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.28") + " (%)", FormLayoutUtil.flip(cc.xy(1, 21, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 
 		ocw = new JTextField(configuration.getMencoderOverscanCompensationWidth());
 		ocw.addKeyListener(new KeyListener() {
@@ -478,7 +476,7 @@ public class MEncoderVideo extends Player {
 		});
 		builder.add(ocw, FormLayoutUtil.flip(cc.xyw(3, 21, 2), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.30") + " (%) ", FormLayoutUtil.flip(cc.xy(5, 21), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.30") + " (%)", FormLayoutUtil.flip(cc.xy(5, 21), colSpec, orientation));
 		och = new JTextField(configuration.getMencoderOverscanCompensationHeight());
 		och.addKeyListener(new KeyListener() {
 			@Override
