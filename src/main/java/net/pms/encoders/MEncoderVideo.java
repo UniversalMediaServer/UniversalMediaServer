@@ -520,8 +520,8 @@ public class MEncoderVideo extends Player {
 		builder.add(defaultsubs, FormLayoutUtil.flip(cc.xyw(3, 23, 2), colSpec, orientation));
 		builder.add(forcedsub, FormLayoutUtil.flip(cc.xy(7, 23), colSpec, orientation));
 		builder.add(forcedtags, FormLayoutUtil.flip(cc.xyw(11, 23, 5), colSpec, orientation));
-		builder.addLabel(Messages.getString("MEncoderVideo.10"), FormLayoutUtil.flip(cc.xy(1, 25), colSpec, orientation));
 
+		builder.addLabel(Messages.getString("MEncoderVideo.10"), FormLayoutUtil.flip(cc.xy(1, 25), colSpec, orientation));
 		defaultaudiosubs = new JTextField(configuration.getMencoderAudioSubLanguages());
 		defaultaudiosubs.addKeyListener(new KeyListener() {
 			@Override
@@ -537,10 +537,9 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderAudioSubLanguages(defaultaudiosubs.getText());
 			}
 		});
-
 		builder.add(defaultaudiosubs, FormLayoutUtil.flip(cc.xyw(3, 25, 8), colSpec, orientation));
-		builder.addLabel(Messages.getString("MEncoderVideo.11"), FormLayoutUtil.flip(cc.xy(1, 27), colSpec, orientation));
 
+		builder.addLabel(Messages.getString("MEncoderVideo.11"), FormLayoutUtil.flip(cc.xy(1, 27), colSpec, orientation));
 		Object data[] = new Object[]{
 			configuration.getMencoderSubCp(),
 			Messages.getString("MEncoderVideo.96"),
@@ -576,7 +575,6 @@ public class MEncoderVideo extends Player {
 
 		MyComboBoxModel cbm = new MyComboBoxModel(data);
 		subcp = new JComboBox(cbm);
-
 		subcp.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
@@ -1003,6 +1001,11 @@ public class MEncoderVideo extends Player {
 				mencoder_noass_outline.setEnabled(!configuration.isMencoderDisableSubs());
 				mencoder_noass_blur.setEnabled(!configuration.isMencoderDisableSubs());
 				mencoder_noass_subpos.setEnabled(!configuration.isMencoderDisableSubs());
+				forcedsub.setEnabled(!configuration.isMencoderDisableSubs());
+				forcedtags.setEnabled(!configuration.isMencoderDisableSubs());
+				defaultaudiosubs.setEnabled(!configuration.isMencoderDisableSubs());
+				defaultfont.setEnabled(!configuration.isMencoderDisableSubs());
+				alternateSubFolder.setEnabled(!configuration.isMencoderDisableSubs());
 
 				if (!configuration.isMencoderDisableSubs()) {
 					ass.getItemListeners()[0].itemStateChanged(null);
