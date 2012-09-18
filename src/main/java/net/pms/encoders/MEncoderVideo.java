@@ -886,6 +886,26 @@ public class MEncoderVideo extends Player {
 		builder.add(assdefaultstyle, FormLayoutUtil.flip(cc.xyw(8, 33, 4), colSpec, orientation));
 		assdefaultstyle.setSelected(configuration.isMencoderAssDefaultStyle());
 
+		subColor = new JButton();
+		subColor.setText(Messages.getString("MEncoderVideo.31"));
+		subColor.setBackground(new Color(configuration.getSubsColor()));
+		subColor.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Color newColor = JColorChooser.showDialog(
+					SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
+					Messages.getString("MEncoderVideo.125"),
+					subColor.getBackground()
+				);
+
+				if (newColor != null) {
+					subColor.setBackground(newColor);
+					configuration.setSubsColor(newColor.getRGB());
+				}
+			}
+		});
+		builder.add(subColor, FormLayoutUtil.flip(cc.xyw(12, 33, 4), colSpec, orientation));
+
 		subs = new JCheckBox(Messages.getString("MEncoderVideo.22"));
 		subs.setContentAreaFilled(false);
 
@@ -937,10 +957,9 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderOverscanCompensationWidth(ocw.getText());
 			}
 		});
-
 		builder.add(ocw, FormLayoutUtil.flip(cc.xyw(3, 45, 1), colSpec, orientation));
-		builder.addLabel(Messages.getString("MEncoderVideo.30") + "% ", FormLayoutUtil.flip(cc.xy(5, 45), colSpec, orientation));
 
+		builder.addLabel(Messages.getString("MEncoderVideo.30") + "% ", FormLayoutUtil.flip(cc.xy(5, 45), colSpec, orientation));
 		och = new JTextField(configuration.getMencoderOverscanCompensationHeight());
 		och.addKeyListener(new KeyListener() {
 			@Override
@@ -956,29 +975,7 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderOverscanCompensationHeight(och.getText());
 			}
 		});
-
 		builder.add(och, FormLayoutUtil.flip(cc.xyw(7, 45, 1), colSpec, orientation));
-
-		subColor = new JButton();
-		subColor.setText(Messages.getString("MEncoderVideo.31"));
-		subColor.setBackground(new Color(configuration.getSubsColor()));
-		subColor.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Color newColor = JColorChooser.showDialog(
-					SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
-					Messages.getString("MEncoderVideo.125"),
-					subColor.getBackground()
-				);
-
-				if (newColor != null) {
-					subColor.setBackground(newColor);
-					configuration.setSubsColor(newColor.getRGB());
-				}
-			}
-		});
-
-		builder.add(subColor, FormLayoutUtil.flip(cc.xyw(12, 33, 4), colSpec, orientation));
 
 		JCheckBox disableSubs = ((LooksFrame) PMS.get().getFrame()).getTr().getDisableSubs();
 		disableSubs.addItemListener(new ItemListener() {
