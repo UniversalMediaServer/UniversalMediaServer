@@ -1,7 +1,15 @@
-1.5.1 - 2012-09-??
+1.5.1 - 2012-09-19
 
 	General:
-		
+		FFmpeg and FFmpeg/AviSynth engines now use the "Video quality settings" from the "Common transcode settings" page
+		Many improvements to the layout of settings
+		Updated FFmpeg to 8bdba0b (20120914)
+		Updated MPlayer and MEncoder for Windows to SB38, which:
+			Enables more CPU optimisations (runs faster)
+			Improves audio sync
+			Tries to fix very occasional freezing issue
+	Languages:
+		Updated all languages
 
 1.5.0 - 2012-09-04
 
