@@ -1,5 +1,6 @@
 package net.pms.configuration;
 
+import com.sun.jna.Platform;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -7,38 +8,25 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
-import java.util.List;
-
-import javax.net.ssl.HttpsURLConnection;
 import javax.swing.JLabel;
-
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.external.ExternalFactory;
-import net.pms.external.ExternalListener;
-import net.pms.newgui.GeneralTab;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sun.jna.Platform;
-
 public class DownloadPlugins {
 
-	private final static String PLUGIN_LIST_URL="https://raw.github.com/SharkHunter/Channel/master/ext.txt";
-	private final static String PLUGIN_TEST_FILE="plugin_inst.tst";
+	private final static String PLUGIN_LIST_URL = "https://raw.github.com/SharkHunter/Channel/master/ext.txt";
+	private final static String PLUGIN_TEST_FILE = "plugin_inst.tst";
 	private static final Logger LOGGER = LoggerFactory.getLogger(DownloadPlugins.class);
-	
-	private static final int TYPE_JAR=0;
-	private static final int TYPE_LIST=1;
-	private static final int TYPE_PLATFORM_LIST=2;
-	
+	private static final int TYPE_JAR = 0;
+	private static final int TYPE_LIST = 1;
+	private static final int TYPE_PLATFORM_LIST = 2;
 	private String name;
 	private String rating;
 	private String desc;
@@ -47,37 +35,37 @@ public class DownloadPlugins {
 	private int type;
 	private ArrayList<URL> jars;
 	private JLabel updateLabel;
-	
+
 	public static ArrayList<DownloadPlugins> downloadList() {
 		ArrayList<DownloadPlugins> res = new ArrayList<DownloadPlugins>();
 		try {
 			URL u = new URL(PLUGIN_LIST_URL);
 			URLConnection connection = u.openConnection();
 			BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-			parse_list(res,in,false);
-			File test=new File(PMS.getConfiguration().getPluginDirectory() + File.separator + PLUGIN_TEST_FILE);
+			parse_list(res, in, false);
+			File test = new File(PMS.getConfiguration().getPluginDirectory() + File.separator + PLUGIN_TEST_FILE);
 			if (test.exists()) {
 				in = new BufferedReader(new InputStreamReader(new FileInputStream(test)));
-				parse_list(res,in,true);
+				parse_list(res, in, true);
 			}
 		} catch (Exception e) {
 		}
 		return res;
 	}
-		
-	private static void parse_list(ArrayList<DownloadPlugins> res,BufferedReader in,
-								   boolean test) throws IOException {
+
+	private static void parse_list(ArrayList<DownloadPlugins> res, BufferedReader in, boolean test) throws IOException {
 		String str;
 		DownloadPlugins plugin = new DownloadPlugins();
 		while ((str = in.readLine()) != null) {
 			str = str.trim();
 			if (StringUtils.isEmpty(str)) {
-				if (plugin.isOk())
+				if (plugin.isOk()) {
 					res.add(plugin);
+				}
 				plugin = new DownloadPlugins();
 			}
-			String[] keyval = str.split("=",2);
-			if (keyval.length<2) {
+			String[] keyval = str.split("=", 2);
+			if (keyval.length < 2) {
 				continue;
 			}
 			if (keyval[0].equalsIgnoreCase("name")) {
@@ -91,10 +79,10 @@ public class DownloadPlugins {
 				plugin.desc = keyval[1];
 			}
 			if (keyval[0].equalsIgnoreCase("url")) {
-				plugin.url = keyval[1];	
+				plugin.url = keyval[1];
 			}
 			if (keyval[0].equalsIgnoreCase("author")) {
-				plugin.author = keyval[1];	
+				plugin.author = keyval[1];
 			}
 			if (keyval[0].equalsIgnoreCase("type")) {
 				if (keyval[1].equalsIgnoreCase("jar")) {
@@ -108,8 +96,8 @@ public class DownloadPlugins {
 				}
 			}
 		}
-		if(plugin.isOk()) { // add the last one
-			if(test) {
+		if (plugin.isOk()) { // add the last one
+			if (test) {
 				plugin.setRating("TEST");
 			}
 			res.add(plugin);
@@ -122,60 +110,59 @@ public class DownloadPlugins {
 		rating = "--";
 		jars = null;
 	}
-	
+
 	public String getName() {
 		return name;
 	}
-	
+
 	public String getRating() {
 		return rating;
 	}
-	
+
 	public String getAuthor() {
 		return author;
 	}
-	
+
 	public String getDescription() {
 		return desc;
 	}
-	
+
 	public void setRating(String str) {
 		rating = str;
 	}
-	
+
 	public boolean isOk() {
 		// we must have a name and an url
 		return (!StringUtils.isEmpty(name)) && (!StringUtils.isEmpty(url));
 	}
-	
-	private	String splitString(String string) {
+
+	private String splitString(String string) {
 		StringBuffer buf = new StringBuffer();
-		String tempString = string;	
+		String tempString = string;
 
 		if (string != null) {
-			while (tempString.length() > 60) {  
-				String block = tempString.substring(0, 60);                                           
-				int index = block.lastIndexOf(' ');                                             
+			while (tempString.length() > 60) {
+				String block = tempString.substring(0, 60);
+				int index = block.lastIndexOf(' ');
 				if (index < 0) {
 					index = tempString.indexOf(' ');
 				}
-				if (index >= 0){
-					buf.append(tempString.substring(0, index) + "<BR>");                                        
-				} 
-				tempString = tempString.substring(index+1);
+				if (index >= 0) {
+					buf.append(tempString.substring(0, index) + "<BR>");
+				}
+				tempString = tempString.substring(index + 1);
 			}
-		}
-		else {
+		} else {
 			tempString = " ";
 		}
 		buf.append(tempString);
 		return buf.toString();
 	}
-	
+
 	private String header(String hdr) {
 		return "<br><b>" + hdr + ":  </b>";
 	}
-	
+
 	public String htmlString() {
 		String res = "<html>";
 		res += "<b>Name:  </b>" + getName();
@@ -190,28 +177,28 @@ public class DownloadPlugins {
 		}
 		return res;
 	}
-	
-	private String extractFileName(String str,String name) {
-		if(!StringUtils.isEmpty(name)) {
+
+	private String extractFileName(String str, String name) {
+		if (!StringUtils.isEmpty(name)) {
 			return name;
 		}
 		int pos = str.lastIndexOf("/");
-		if(pos == -1) {
+		if (pos == -1) {
 			return name;
 		}
-		return str.substring(pos+1);
+		return str.substring(pos + 1);
 	}
-	
+
 	private void ensureCreated(String p) {
 		File f = new File(p);
 		f.mkdirs();
 	}
-	
-	private boolean downloadFile(String url,String dir,String name) throws Exception {
+
+	private boolean downloadFile(String url, String dir, String name) throws Exception {
 		URL u = new URL(url);
 		ensureCreated(dir);
-		String fName = extractFileName(url,name);
-		if(updateLabel != null) {
+		String fName = extractFileName(url, name);
+		if (updateLabel != null) {
 			updateLabel.setText(Messages.getString("NetworkTab.47") + ": " + fName);
 		}
 		File f = new File(dir + File.separator + fName);
@@ -222,51 +209,52 @@ public class DownloadPlugins {
 		FileOutputStream out = new FileOutputStream(f);
 		byte[] buf = new byte[4096];
 		int len;
-		while((len = in.read(buf)) != -1)
+		while ((len = in.read(buf)) != -1) {
 			out.write(buf, 0, len);
+		}
 		out.flush();
 		out.close();
 		in.close();
 		// if we got down here add the jar to the list (if it is a jar)
-		if(f.getAbsolutePath().endsWith(".jar"))	
+		if (f.getAbsolutePath().endsWith(".jar")) {
 			jars.add(f.toURI().toURL());
+		}
 		return true;
 	}
-	
+
 	private boolean downloadList(String url) throws Exception {
 		URL u = new URL(url);
 		URLConnection connection = u.openConnection();
 		BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-	    String str;
-	    boolean res = true;
-	    while ((str = in.readLine()) != null) {
-	    	str = str.trim();
-	    	if (StringUtils.isEmpty(str)) {
-	    		continue;
-	    	}
-	    	String[] tmp = str.split(",",3);
-	    	String dir = PMS.getConfiguration().getPluginDirectory();
-	    	String name = "";
-	    	if (tmp.length > 1) {
-	    		String rootDir = new File("").getAbsolutePath();
-	    		if (tmp[1].equalsIgnoreCase("root")) {
-	    			dir = rootDir;
-	    		}
-	    		else {
-	    			dir = rootDir + File.separator + tmp[1];
-	    		}
-	    		if (tmp.length > 2) {
-	    			name = tmp[2];
-	    		}
-	    	}
-	    	res &= downloadFile(tmp[0], dir, name);
-	    }
-	    return res;
+		String str;
+		boolean res = true;
+		while ((str = in.readLine()) != null) {
+			str = str.trim();
+			if (StringUtils.isEmpty(str)) {
+				continue;
+			}
+			String[] tmp = str.split(",", 3);
+			String dir = PMS.getConfiguration().getPluginDirectory();
+			String name = "";
+			if (tmp.length > 1) {
+				String rootDir = new File("").getAbsolutePath();
+				if (tmp[1].equalsIgnoreCase("root")) {
+					dir = rootDir;
+				} else {
+					dir = rootDir + File.separator + tmp[1];
+				}
+				if (tmp.length > 2) {
+					name = tmp[2];
+				}
+			}
+			res &= downloadFile(tmp[0], dir, name);
+		}
+		return res;
 	}
-	
+
 	private boolean download() throws Exception {
-		if(type == DownloadPlugins.TYPE_JAR) {
-			return downloadFile(url,PMS.getConfiguration().getPluginDirectory(),"");
+		if (type == DownloadPlugins.TYPE_JAR) {
+			return downloadFile(url, PMS.getConfiguration().getPluginDirectory(), "");
 		}
 		if (type == DownloadPlugins.TYPE_LIST) {
 			return downloadList(url);
@@ -275,39 +263,37 @@ public class DownloadPlugins {
 			String ext = "";
 			if (Platform.isWindows()) {
 				ext = ".win";
-			}
-			else if (Platform.isLinux()) {
+			} else if (Platform.isLinux()) {
 				ext = ".lin";
-			}
-			else if (Platform.isMac()) {
+			} else if (Platform.isMac()) {
 				ext = ".osx";
 			}
 			return downloadList(url + ext);
 		}
 		return false;
 	}
-	
+
 	public boolean install(JLabel update) throws Exception {
-		LOGGER.debug("install plugin " + name +" type " + type);
+		LOGGER.debug("install plugin " + name + " type " + type);
 		updateLabel = update;
 		// init the jar file list
 		jars = new ArrayList<URL>();
 		// 1st download the list
-		if(!download())  { // download failed, bail out
+		if (!download()) { // download failed, bail out
 			LOGGER.debug("download failed");
 			return false;
 		}
 		// 2nd load the jars (if any)
-		if(jars.isEmpty()) {
+		if (jars.isEmpty()) {
 			return true;
 		}
 		URL[] jarURLs = new URL[jars.size()];
 		jars.toArray(jarURLs);
-		if(updateLabel != null) {
+		if (updateLabel != null) {
 			updateLabel.setText("Loading JARs");
 		}
 		LOGGER.debug("load jars");
-		ExternalFactory.loadJARs(jarURLs,true);
+		ExternalFactory.loadJARs(jarURLs, true);
 		// Finally create the instaces of the plugins
 		ExternalFactory.instantiateDownloaded(update);
 		updateLabel = null;
