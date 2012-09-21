@@ -200,40 +200,65 @@ public class GeneralTab {
 					JOptionPane.showMessageDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())), Messages.getString("NetworkTab.40"));
 					return;
 				}
+
 				final ArrayList<DownloadPlugins> plugins = DownloadPlugins.downloadList();
+
 				if (plugins.isEmpty()) {
 					return;
 				}
-				String[] cols = {Messages.getString("NetworkTab.41"), Messages.getString("NetworkTab.42"),
-					Messages.getString("NetworkTab.43")};
+
+				String[] cols = {
+					Messages.getString("NetworkTab.41"),
+					Messages.getString("NetworkTab.42"),
+					Messages.getString("NetworkTab.43"),
+					Messages.getString("NetworkTab.53")
+				};
+
 				JTable tab = new JTable(plugins.size() + 1, cols.length) {
 					public String getToolTipText(MouseEvent e) {
 						java.awt.Point p = e.getPoint();
 						int rowIndex = rowAtPoint(p);
+
 						if (rowIndex == 0) {
 							return "";
 						}
+
 						DownloadPlugins plugin = plugins.get(rowIndex - 1);
 						return plugin.htmlString();
 					}
 				};
+
 				for (int i = 0; i < cols.length; i++) {
 					tab.setValueAt(cols[i], 0, i);
 				}
+
 				tab.setCellEditor(null);
+
 				for (int i = 0; i < plugins.size(); i++) {
 					DownloadPlugins p = plugins.get(i);
 					tab.setValueAt(p.getName(), i + 1, 0);
 					tab.setValueAt(p.getRating(), i + 1, 1);
 					tab.setValueAt(p.getAuthor(), i + 1, 2);
+					tab.setValueAt(p.getDescription(), i + 1, 3);
 				}
+
 				String[] opts = {Messages.getString("NetworkTab.44"), Messages.getString("NetworkTab.45")};
+
+				String permissionsReminder = "";
+				if (
+					"Windows 7".equals(System.getProperty("os.name")) ||
+					"Windows Vista".equals(System.getProperty("os.name"))
+				) {
+					permissionsReminder = ". Make sure UMS is running as administrator before proceeding";
+				}
+
 				int id = JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-					tab, "Plugins", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, opts, null);
-				if (id != 0) // cancel, do nothing
-				{
+					tab, "Plugins" + permissionsReminder, JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, opts, null);
+
+				if (id != 0) { // Cancel, do nothing
 					return;
 				}
+
 				// Install the stuff
 				final int[] rows = tab.getSelectedRows();
 				JPanel panel = new JPanel();
@@ -261,8 +286,7 @@ public class GeneralTab {
 							try {
 								plugin.install(label);
 							} catch (Exception e) {
-								LOGGER.debug("download of plugin " + plugin.getName()
-									+ " failed " + e);
+								LOGGER.debug("Download of plugin " + plugin.getName() + " failed: " + e);
 							}
 						}
 						frame.setVisible(false);
@@ -562,7 +586,8 @@ public class GeneralTab {
 	public void addPlugins() {
 		FormLayout layout = new FormLayout(
 			"fill:10:grow",
-			"p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p");
+			"p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p"
+		);
 		pPlugins.setLayout(layout);
 		for (final ExternalListener listener : ExternalFactory.getExternalListeners()) {
 			if (!appendPlugin(listener)) {

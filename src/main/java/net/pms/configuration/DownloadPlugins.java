@@ -98,7 +98,7 @@ public class DownloadPlugins {
 				}
 			}
 		}
-		if (plugin.isOk()) { // add the last one
+		if (plugin.isOk()) { // Add the last one
 			if (test) {
 				plugin.setRating("TEST");
 			}
@@ -276,15 +276,15 @@ public class DownloadPlugins {
 	}
 
 	public boolean install(JLabel update) throws Exception {
-		LOGGER.debug("install plugin " + name + " type " + type);
+		LOGGER.debug("Installing plugin " + name + " type " + type);
 		updateLabel = update;
 
 		// Init the jar file list
 		jars = new ArrayList<URL>();
 
 		// Download the list
-		if (!download()) { // download failed, bail out
-			LOGGER.debug("download failed");
+		if (!download()) { // Download failed, bail out
+			LOGGER.debug("Download failed");
 			return false;
 		}
 
@@ -297,7 +297,7 @@ public class DownloadPlugins {
 		if (updateLabel != null) {
 			updateLabel.setText("Loading JARs");
 		}
-		LOGGER.debug("load jars");
+		LOGGER.debug("Loading jars");
 		ExternalFactory.loadJARs(jarURLs, true);
 
 		// Create the instances of the plugins
