@@ -214,7 +214,7 @@ public class GeneralTab {
 					Messages.getString("NetworkTab.53")
 				};
 
-				JTable tab = new JTable(plugins.size() + 1, cols.length) {
+				JTable table = new JTable(plugins.size() + 1, cols.length) {
 					public String getToolTipText(MouseEvent e) {
 						java.awt.Point p = e.getPoint();
 						int rowIndex = rowAtPoint(p);
@@ -229,17 +229,18 @@ public class GeneralTab {
 				};
 
 				for (int i = 0; i < cols.length; i++) {
-					tab.setValueAt(cols[i], 0, i);
+					table.setValueAt(cols[i], 0, i);
 				}
 
-				tab.setCellEditor(null);
+				table.setAutoCreateRowSorter(true);
+				table.setAutoResizeMode(5);
 
 				for (int i = 0; i < plugins.size(); i++) {
 					DownloadPlugins p = plugins.get(i);
-					tab.setValueAt(p.getName(), i + 1, 0);
-					tab.setValueAt(p.getRating(), i + 1, 1);
-					tab.setValueAt(p.getAuthor(), i + 1, 2);
-					tab.setValueAt(p.getDescription(), i + 1, 3);
+					table.setValueAt(p.getName(), i + 1, 0);
+					table.setValueAt(p.getRating(), i + 1, 1);
+					table.setValueAt(p.getAuthor(), i + 1, 2);
+					table.setValueAt(p.getDescription(), i + 1, 3);
 				}
 
 				String[] opts = {Messages.getString("NetworkTab.44"), Messages.getString("NetworkTab.45")};
@@ -253,14 +254,14 @@ public class GeneralTab {
 				}
 
 				int id = JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-					tab, "Plugins" + permissionsReminder, JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, opts, null);
+					table, "Plugins" + permissionsReminder, JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, opts, null);
 
 				if (id != 0) { // Cancel, do nothing
 					return;
 				}
 
 				// Install the stuff
-				final int[] rows = tab.getSelectedRows();
+				final int[] rows = table.getSelectedRows();
 				JPanel panel = new JPanel();
 				GridLayout layout = new GridLayout(3, 1);
 				panel.setLayout(layout);
