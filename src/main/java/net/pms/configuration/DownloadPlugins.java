@@ -20,13 +20,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DownloadPlugins {
-
 	private final static String PLUGIN_LIST_URL = "https://raw.github.com/SharkHunter/Channel/master/ext.txt";
 	private final static String PLUGIN_TEST_FILE = "plugin_inst.tst";
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(DownloadPlugins.class);
+
 	private static final int TYPE_JAR = 0;
 	private static final int TYPE_LIST = 1;
 	private static final int TYPE_PLATFORM_LIST = 2;
+
 	private String name;
 	private String rating;
 	private String desc;
@@ -72,8 +74,8 @@ public class DownloadPlugins {
 				plugin.name = keyval[1];
 			}
 			if (keyval[0].equalsIgnoreCase("rating")) {
-				// Rating is temporary switched off
-				//plugin.rating = keyval[1];
+				// Rating is temporarily switched off
+				// plugin.rating = keyval[1];
 			}
 			if (keyval[0].equalsIgnoreCase("desc")) {
 				plugin.desc = keyval[1];
@@ -132,12 +134,12 @@ public class DownloadPlugins {
 	}
 
 	public boolean isOk() {
-		// we must have a name and an url
+		// We must have a name and an url
 		return (!StringUtils.isEmpty(name)) && (!StringUtils.isEmpty(url));
 	}
 
 	private String splitString(String string) {
-		StringBuffer buf = new StringBuffer();
+		StringBuilder buf = new StringBuilder();
 		String tempString = string;
 
 		if (string != null) {
@@ -148,7 +150,7 @@ public class DownloadPlugins {
 					index = tempString.indexOf(' ');
 				}
 				if (index >= 0) {
-					buf.append(tempString.substring(0, index) + "<BR>");
+					buf.append(tempString.substring(0, index)).append("<BR>");
 				}
 				tempString = tempString.substring(index + 1);
 			}
@@ -215,7 +217,7 @@ public class DownloadPlugins {
 		out.flush();
 		out.close();
 		in.close();
-		// if we got down here add the jar to the list (if it is a jar)
+		// If we got down here add the jar to the list (if it is a jar)
 		if (f.getAbsolutePath().endsWith(".jar")) {
 			jars.add(f.toURI().toURL());
 		}
@@ -276,14 +278,17 @@ public class DownloadPlugins {
 	public boolean install(JLabel update) throws Exception {
 		LOGGER.debug("install plugin " + name + " type " + type);
 		updateLabel = update;
-		// init the jar file list
+
+		// Init the jar file list
 		jars = new ArrayList<URL>();
-		// 1st download the list
+
+		// Download the list
 		if (!download()) { // download failed, bail out
 			LOGGER.debug("download failed");
 			return false;
 		}
-		// 2nd load the jars (if any)
+
+		// Load the jars (if any)
 		if (jars.isEmpty()) {
 			return true;
 		}
@@ -294,7 +299,8 @@ public class DownloadPlugins {
 		}
 		LOGGER.debug("load jars");
 		ExternalFactory.loadJARs(jarURLs, true);
-		// Finally create the instaces of the plugins
+
+		// Create the instances of the plugins
 		ExternalFactory.instantiateDownloaded(update);
 		updateLabel = null;
 		return true;
