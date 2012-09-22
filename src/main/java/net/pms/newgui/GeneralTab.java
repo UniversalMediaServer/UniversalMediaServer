@@ -232,9 +232,6 @@ public class GeneralTab {
 					table.setValueAt(cols[i], 0, i);
 				}
 
-				table.setAutoCreateRowSorter(true);
-				table.setAutoResizeMode(5);
-
 				for (int i = 0; i < plugins.size(); i++) {
 					DownloadPlugins p = plugins.get(i);
 					table.setValueAt(p.getName(), i + 1, 0);
@@ -253,8 +250,16 @@ public class GeneralTab {
 					permissionsReminder = ". Make sure UMS is running as administrator before proceeding";
 				}
 
-				int id = JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-					table, "Plugins" + permissionsReminder, JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, opts, null);
+				int id = JOptionPane.showOptionDialog(
+					(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+					table,
+					"Plugins" + permissionsReminder,
+					JOptionPane.YES_NO_OPTION,
+					JOptionPane.PLAIN_MESSAGE,
+					null,
+					opts,
+					null
+				);
 
 				if (id != 0) { // Cancel, do nothing
 					return;
@@ -275,6 +280,7 @@ public class GeneralTab {
 				panel.add(inst);
 				panel.add(label);
 				frame.add(panel);
+				frame.setLocationRelativeTo(null);
 				frame.setVisible(true);
 				Runnable r = new Runnable() {
 					public void run() {
