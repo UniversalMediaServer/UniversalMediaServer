@@ -215,6 +215,12 @@ public class GeneralTab {
 				};
 
 				JTable table = new JTable(plugins.size() + 1, cols.length) {
+					@Override
+					public boolean isCellEditable(int rowIndex, int vColIndex) {
+						return false;
+					}
+
+					@Override
 					public String getToolTipText(MouseEvent e) {
 						java.awt.Point p = e.getPoint();
 						int rowIndex = rowAtPoint(p);
