@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import javax.swing.*;
+import javax.swing.table.TableColumn;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.Build;
@@ -246,6 +247,17 @@ public class GeneralTab {
 					table.setValueAt(p.getDescription(), i + 1, 3);
 				}
 
+				// Define column widths
+				TableColumn nameColumn = table.getColumnModel().getColumn(0);
+				nameColumn.setMinWidth(70);
+				TableColumn ratingColumn = table.getColumnModel().getColumn(1);
+				ratingColumn.setPreferredWidth(45);
+				TableColumn authorColumn = table.getColumnModel().getColumn(2);
+				authorColumn.setMinWidth(100);
+				TableColumn descriptionColumn = table.getColumnModel().getColumn(3);
+				descriptionColumn.setMinWidth(300);
+				descriptionColumn.setMaxWidth(600);
+
 				String[] opts = {Messages.getString("NetworkTab.44"), Messages.getString("NetworkTab.45")};
 
 				String permissionsReminder = "";
@@ -286,8 +298,11 @@ public class GeneralTab {
 				panel.add(inst);
 				panel.add(label);
 				frame.add(panel);
+
+				// Center the installation progress window
 				frame.setLocationRelativeTo(null);
 				frame.setVisible(true);
+
 				Runnable r = new Runnable() {
 					public void run() {
 						for (int i = 0; i < rows.length; i++) {
