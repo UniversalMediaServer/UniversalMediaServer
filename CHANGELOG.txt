@@ -1,7 +1,15 @@
-1.5.2 - 2012-??-??
+1.5.2 - 2012-09-??
 
 	General:
-		
+		Updated MPlayer and MEncoder for Windows to SB39, which runs faster
+	Plugin Installer:
+		Added Description column
+		Added "run as administrator" reminder for Windows 7 and Vista users
+		Installation progress window is centered
+		Disabled manual row-editing
+		Customised the column widths so all text is visible
+	Languages:
+		Removed deprecated part of Russian translation
 
 1.5.1 - 2012-09-19
 
