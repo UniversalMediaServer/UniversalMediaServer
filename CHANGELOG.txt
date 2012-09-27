@@ -1,7 +1,8 @@
-1.5.2 - 2012-09-26
+1.5.2 - 2012-09-??
 
 	General:
-		Updated MPlayer and MEncoder for Windows to SB39, which runs faster
+		Temporarily rolled back MPlayer/MEncoder to SB37, which fixes DVD support
+		Updated FFmpeg to SB1, which makes seeking (Go To) much more stable
 	Plugin Installer:
 		Added Description column
 		Added "run as administrator" reminder for Windows 7 and Vista users
