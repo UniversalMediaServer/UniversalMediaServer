@@ -103,7 +103,7 @@ public class FFMpegVideo extends Player {
 	}
 
 	protected String[] getDefaultArgs() {
-		return new String[]{ "-c:v", "mpeg2video", "-f", "vob", "-loglevel", "fatal", "-max_delay", "0" };
+		return new String[]{ "-f", "vob", "-copypriorss", "0" };
 	}
 
 	private int[] getVideoBitrateConfig(String bitrate) {
