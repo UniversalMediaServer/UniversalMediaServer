@@ -1,4 +1,4 @@
-1.5.2 - 2012-09-??
+1.5.2 - 2012-09-27
 
 	General:
 		Temporarily rolled back MPlayer/MEncoder to SB37, which fixes DVD support
