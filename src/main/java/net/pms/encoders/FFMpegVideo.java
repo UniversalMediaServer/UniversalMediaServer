@@ -103,7 +103,7 @@ public class FFMpegVideo extends Player {
 	}
 
 	protected String[] getDefaultArgs() {
-		return new String[]{ "-f", "vob", "-copypriorss", "0" };
+		return new String[]{ "-f", "vob", "-loglevel", "fatal" };
 	}
 
 	private int[] getVideoBitrateConfig(String bitrate) {
@@ -258,8 +258,8 @@ public class FFMpegVideo extends Player {
 		cmdArray[13] = "-sn";
 		cmdArray[14] = "-sn";
 
-		cmdArray[cmdArray.length - 3] = "-muxpreload";
-		cmdArray[cmdArray.length - 2] = "0";
+		cmdArray[cmdArray.length - 3] = "-sn";
+		cmdArray[cmdArray.length - 2] = "-sn";
 
 		int defaultMaxBitrates[] = getVideoBitrateConfig(PMS.getConfiguration().getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
