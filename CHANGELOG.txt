@@ -1,8 +1,13 @@
+1.5.3 - 2012-??-??
+
+	General:
+		
+
 1.5.2 - 2012-09-27
 
 	General:
 		Temporarily rolled back MPlayer/MEncoder to SB37, which fixes DVD support
-		Updated FFmpeg to SB1, which makes seeking (Go To) much more stable
+		Updated FFmpeg to SB2, which fixes seeking bugs
 	Plugin Installer:
 		Added Description column
 		Added "run as administrator" reminder for Windows 7 and Vista users
