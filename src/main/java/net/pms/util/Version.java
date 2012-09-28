@@ -66,7 +66,7 @@ public final class Version implements Comparable<Version> {
 	 * Returns true if this version equals the supplied object,
 	 * false otherwise
 	 * @param other object to be compared with this version
-	 * @return true if this version is greater than the supplied version, false otherwise
+	 * @return true if this version is equal to the supplied object, false otherwise
 	 */
 	@Override
 	public boolean equals(Object other) {
