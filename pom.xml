@@ -152,6 +152,7 @@
 		</repository>
 	</repositories>
 	<dependencies>
+		<!-- TODO this can be removed when MEncoder is removed -->
 		<dependency>
 			<groupId>org.beanshell</groupId>
 			<artifactId>bsh-core</artifactId>
@@ -326,12 +327,6 @@
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.8.1</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.easymock</groupId>
-			<artifactId>easymock</artifactId>
-			<version>3.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
