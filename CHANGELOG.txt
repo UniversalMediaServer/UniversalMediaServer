@@ -1,7 +1,7 @@
 1.5.3 - 2012-??-??
 
 	General:
-		
+		 Don't attempt to display dialog on headless servers if initialization error occurs (thanks, nphase)
 
 1.5.2 - 2012-09-27
 
