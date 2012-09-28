@@ -640,7 +640,7 @@ public class PmsConfiguration {
 	 * returned.
 	 * @param key The key to look up.
 	 * @param def The default values to return when no valid key value can be found.
-	 *            These values should be entered as a comma separated string, whitespace
+	 *            These values should be entered as a comma-separated string, whitespace
 	 *            will be trimmed. For example: <code>"gnu,    gnat  ,moo "</code> will be
 	 *            returned as <code>{ "gnu", "gnat", "moo" }</code>.
 	 * @return The list of value strings configured for the key.
@@ -939,10 +939,10 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Returns the audio language priority for MEncoder as a comma separated
+	 * Returns the audio language priority for MEncoder as a comma-separated
 	 * string. For example: <code>"eng,fre,jpn,ger,und"</code>, where "und"
 	 * stands for "undefined".
-	 * Default value is "loc,eng,fre,jpn,ger,und".
+	 * Default value is a localized list (e.g. "eng,fre,jpn,ger,und").
 	 *
 	 * @return The audio language priority string.
 	 */
@@ -968,10 +968,11 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Returns the subtitle language priority for MEncoder as a comma separated
-	 * string. For example: <code>"loc,eng,fre,jpn,ger,und"</code>, where "loc"
-	 * stands for the preferred local language and "und" stands for "undefined".
-	 * Default value is "loc,eng,fre,jpn,ger,und".
+	 * Returns the subtitle language priority for MEncoder as a comma-separated
+	 * string. For example: <code>"eng,fre,jpn,ger,und"</code>, where "und"
+	 * stands for "undefined".
+	 * Can be a blank string.
+	 * Default value is a localized list (e.g. "eng,fre,jpn,ger,und").
 	 *
 	 * @return The subtitle language priority string.
 	 */
@@ -1010,9 +1011,8 @@ public class PmsConfiguration {
 	 * ordered by priority for MEncoder to try to match. Audio language
 	 * and subtitle language should be comma separated as a pair,
 	 * individual pairs should be semicolon separated. "*" can be used to
-	 * match any language, "loc" to match the local language. Subtitle
-	 * language can be defined as "off".
-	 * Default value is <code>"loc,off;jpn,loc;*,loc;*,*"</code>.
+	 * match any language. Subtitle language can be defined as "off".
+	 * Default value is <code>"*,*"</code>.
 	 *
 	 * @return The audio and subtitle languages priority string.
 	 */
@@ -1073,7 +1073,7 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Sets the audio language priority for MEncoder as a comma separated
+	 * Sets the audio language priority for MEncoder as a comma-separated
 	 * string. For example: <code>"eng,fre,jpn,ger,und"</code>, where "und"
 	 * stands for "undefined".
 	 * @param value The audio language priority string.
