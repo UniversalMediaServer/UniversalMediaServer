@@ -947,7 +947,11 @@ public class PmsConfiguration {
 	 * @return The audio language priority string.
 	 */
 	public String getMencoderAudioLanguages() {
-		return ConfigurationUtil.getBlankConfigurationString(configuration, KEY_MENCODER_AUDIO_LANGS, Messages.getString("MEncoderVideo.126"));
+		return ConfigurationUtil.getPossiblyBlankConfigurationString(
+			configuration,
+			KEY_MENCODER_AUDIO_LANGS,
+			Messages.getString("MEncoderVideo.126")
+		);
 	}
 
 	/**
@@ -972,7 +976,11 @@ public class PmsConfiguration {
 	 * @return The subtitle language priority string.
 	 */
 	public String getMencoderSubLanguages() {
-		return ConfigurationUtil.getBlankConfigurationString(configuration, KEY_MENCODER_SUB_LANGS, getDefaultLanguages());
+		return ConfigurationUtil.getPossiblyBlankConfigurationString(
+			configuration,
+			KEY_MENCODER_SUB_LANGS,
+			Messages.getString("MEncoderVideo.127")
+		);
 	}
 
 	/**
@@ -981,7 +989,11 @@ public class PmsConfiguration {
 	 * @return The subtitle language code.
 	 */
 	public String getMencoderForcedSubLanguage() {
-		return ConfigurationUtil.getBlankConfigurationString(configuration, KEY_MENCODER_FORCED_SUB_LANG, getLanguage());
+		return ConfigurationUtil.getPossiblyBlankConfigurationString(
+			configuration,
+			KEY_MENCODER_FORCED_SUB_LANG,
+			getLanguage()
+		);
 	}
 
 	/**
@@ -1005,7 +1017,11 @@ public class PmsConfiguration {
 	 * @return The audio and subtitle languages priority string.
 	 */
 	public String getMencoderAudioSubLanguages() {
-		return ConfigurationUtil.getBlankConfigurationString(configuration, KEY_MENCODER_AUDIO_SUB_LANGS, "");
+		return ConfigurationUtil.getPossiblyBlankConfigurationString(
+			configuration,
+			KEY_MENCODER_AUDIO_SUB_LANGS,
+			Messages.getString("MEncoderVideo.128")
+		);
 	}
 
 	/**
