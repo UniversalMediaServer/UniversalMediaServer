@@ -65,11 +65,13 @@ public class PmsConfiguration {
 	private static final String KEY_AUDIO_RESAMPLE = "audio_resample";
 	private static final String KEY_AUDIO_THUMBNAILS_METHOD = "audio_thumbnails_method";
 	private static final String KEY_AUTO_UPDATE = "auto_update";
+	private static final String KEY_AUTOLOAD_SUBTITLES = "autoloadsrt"; // TODO (breaking change): rename to e.g. autoload_subtitles or autoload_external_subtitles
 	private static final String KEY_AVISYNTH_CONVERT_FPS = "avisynth_convertfps";
 	private static final String KEY_AVISYNTH_INTERFRAME = "avisynth_interframe";
 	private static final String KEY_AVISYNTH_INTERFRAME_GPU = "avisynth_interframegpu";
 	private static final String KEY_AVISYNTH_MULTITHREADING = "avisynth_multithreading";
 	private static final String KEY_AVISYNTH_SCRIPT = "avisynth_script";
+	private static final String KEY_BUFFER_MAX = "buffer_max";
 	private static final String KEY_BUFFER_TYPE = "buffertype";
 	private static final String KEY_CHAPTER_INTERVAL = "chapter_interval";
 	private static final String KEY_CHAPTER_SUPPORT = "chapter_support";
@@ -100,10 +102,10 @@ public class PmsConfiguration {
 	private static final String KEY_MAX_AUDIO_BUFFER = "maxaudiobuffer";
 	private static final String KEY_MAX_BITRATE = "maximumbitrate";
 	private static final String KEY_MAX_MEMORY_BUFFER_SIZE = "maxvideobuffer";
+	private static final String KEY_MENCODER_ASS = "mencoder_ass";
 	private static final String KEY_MENCODER_AC3_FIXED = "mencoder_ac3_fixed";
 	private static final String KEY_MENCODER_ASS_DEFAULTSTYLE = "mencoder_ass_defaultstyle";
 	private static final String KEY_MENCODER_ASS_MARGIN = "mencoder_ass_margin";
-	private static final String KEY_MENCODER_ASS = "mencoder_ass";
 	private static final String KEY_MENCODER_ASS_OUTLINE = "mencoder_ass_outline";
 	private static final String KEY_MENCODER_ASS_SCALE = "mencoder_ass_scale";
 	private static final String KEY_MENCODER_ASS_SHADOW = "mencoder_ass_shadow";
@@ -111,8 +113,8 @@ public class PmsConfiguration {
 	private static final String KEY_MENCODER_AUDIO_SUB_LANGS = "mencoder_audiosublangs";
 	private static final String KEY_MENCODER_CUSTOM_OPTIONS = "mencoder_decode"; // TODO (breaking change): should be renamed to e.g. mencoder_custom_options
 	private static final String KEY_MENCODER_DISABLE_SUBS = "mencoder_disablesubs";
-	private static final String KEY_MENCODER_FONT_CONFIG = "mencoder_fontconfig";
 	private static final String KEY_MENCODER_FONT = "mencoder_font";
+	private static final String KEY_MENCODER_FONT_CONFIG = "mencoder_fontconfig";
 	private static final String KEY_MENCODER_FORCED_SUB_LANG = "forced_sub_lang";
 	private static final String KEY_MENCODER_FORCED_SUB_TAGS = "forced_sub_tags";
 	private static final String KEY_MENCODER_FORCE_FPS = "mencoder_forcefps";
@@ -150,11 +152,14 @@ public class PmsConfiguration {
 	private static final String KEY_OPEN_ARCHIVES = "enable_archive_browsing";
 	private static final String KEY_OVERSCAN = "mencoder_overscan";
 	private static final String KEY_PLUGIN_DIRECTORY = "plugins";
+	private static final String KEY_PLUGIN_PURGE_ACTION = "plugin_purge";
 	private static final String KEY_PREVENTS_SLEEP = "prevents_sleep_mode";
 	private static final String KEY_PROFILE_NAME = "name";
 	private static final String KEY_PROXY_SERVER_PORT = "proxy";
 	private static final String KEY_RENDERER_DEFAULT = "renderer_default";
 	private static final String KEY_RENDERER_FORCE_DEFAULT = "renderer_force_default";
+	private static final String KEY_SEARCH_FOLDER = "search_folder";
+	private static final String KEY_SEARCH_RECURSE = "search_recurse";
 	private static final String KEY_SERVER_HOSTNAME = "hostname";
 	private static final String KEY_SERVER_PORT = "port";
 	private static final String KEY_SHARES = "shares";
@@ -174,15 +179,9 @@ public class PmsConfiguration {
 	private static final String KEY_UPNP_PORT = "upnp_port";
 	private static final String KEY_USE_CACHE = "usecache";
 	private static final String KEY_USE_MPLAYER_FOR_THUMBS = "use_mplayer_for_video_thumbs";
-	private static final String KEY_AUTOLOAD_SUBTITLES = "autoloadsrt"; // TODO (breaking change): rename to e.g. autoload_subtitles or autoload_external_subtitles
 	private static final String KEY_UUID = "uuid";
 	private static final String KEY_VIDEOTRANSCODE_START_DELAY = "key_videotranscode_start_delay"; // TODO (breaking change): should be renamed to e.g. videotranscode_start_delay
 	private static final String KEY_VIRTUAL_FOLDERS = "vfolders";
-	// FIXME what is this? if it should be kept, it needs to be a) documented and b) renamed (breaking change)
-	private static final String KEY_BUFFER_MAX = "buffer_max";
-	private static final String KEY_PLUGIN_PURGE_ACTION = "plugin_purge";
-	private static final String KEY_SEARCH_FOLDER = "search_folder";
-	private static final String KEY_SEARCH_RECURSE = "search_recurse";
 
 	// the name of the subdirectory under which PMS config files are stored for this build (default: PMS).
 	// see Build for more details
