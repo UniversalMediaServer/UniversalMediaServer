@@ -265,7 +265,7 @@ public class PMS {
 	private DLNAMediaDatabase database;
 
 	private void initializeDatabase() {
-		database = new DLNAMediaDatabase("medias");
+		database = new DLNAMediaDatabase("medias"); // TODO: rename "medias" -> "cache"
 		database.init(false);
 	}
 
