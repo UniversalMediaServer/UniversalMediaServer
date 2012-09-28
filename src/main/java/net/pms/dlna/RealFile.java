@@ -34,13 +34,13 @@ public class RealFile extends MapFile {
 
 	public RealFile(File file) {
 		getConf().getFiles().add(file);
-		setLastmodified(file.lastModified());
+		setLastModified(file.lastModified());
 	}
 
 	public RealFile(File file, String name) {
 		getConf().getFiles().add(file);
 		getConf().setName(name);
-		setLastmodified(file.lastModified());
+		setLastModified(file.lastModified());
 	}
 
 	@Override

@@ -222,7 +222,7 @@ public class DVDISOTitle extends DLNAResource {
 	public DVDISOTitle(File f, int title) {
 		this.f = f;
 		this.title = title;
-		setLastmodified(f.lastModified());
+		setLastModified(f.lastModified());
 	}
 
 	@Override

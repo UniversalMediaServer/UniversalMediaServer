@@ -575,8 +575,8 @@ public class DLNAMediaDatabase implements Runnable {
 				while (rs.next()) {
 					String filename = rs.getString("FILENAME");
 					long modified = rs.getTimestamp("MODIFIED").getTime();
-					File entry = new File(filename);
-					if (!entry.exists() || entry.lastModified() != modified) {
+					File file = new File(filename);
+					if (!file.exists() || file.lastModified() != modified) {
 						rs.deleteRow();
 					}
 					i++;
@@ -608,9 +608,9 @@ public class DLNAMediaDatabase implements Runnable {
 			while (rs.next()) {
 				String filename = rs.getString("FILENAME");
 				long modified = rs.getTimestamp("MODIFIED").getTime();
-				File entry = new File(filename);
-				if (entry.exists() && entry.lastModified() == modified) {
-					list.add(entry);
+				File file = new File(filename);
+				if (file.exists() && file.lastModified() == modified) {
+					list.add(file);
 				}
 			}
 		} catch (SQLException se) {
@@ -683,15 +683,15 @@ public class DLNAMediaDatabase implements Runnable {
 	public void compact() {
 		LOGGER.info("Compacting database...");
 		PMS.get().getFrame().setStatusLine(Messages.getString("DLNAMediaDatabase.3"));
-		String file = "database/backup.sql";
+		String filename = "database/backup.sql";
 		try {
-			Script.execute(url, "sa", "", file);
+			Script.execute(url, "sa", "", filename);
 			DeleteDbFiles.execute(dir, "medias", true); // TODO: rename "medias" -> "cache"
-			RunScript.execute(url, "sa", "", file, null, false);
+			RunScript.execute(url, "sa", "", filename, null, false);
 		} catch (Exception s) {
 			LOGGER.error("Error in compacting database: ", s);
 		} finally {
-			File testsql = new File(file);
+			File testsql = new File(filename);
 			if (testsql.exists() && !testsql.delete()) {
 				testsql.deleteOnExit();
 			}

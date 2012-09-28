@@ -85,7 +85,7 @@ public class DVDISOFile extends VirtualFolder {
 	public DVDISOFile(File f) {
 		super(PREFIX + (f.isFile() ? f.getName() : "VIDEO_TS"), null);
 		this.f = f;
-		setLastmodified(f.lastModified());
+		setLastModified(f.lastModified());
 	}
 
 	@Override
