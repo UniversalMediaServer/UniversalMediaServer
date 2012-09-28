@@ -93,6 +93,9 @@ public class RendererConfigurationTest {
 		testCases.put("User-Agent: DLNADOC/1.50 SEC_HHP_[TV]UN55D6050/1.0", "Samsung AllShare");
 		testCases.put("User-Agent: DLNADOC/1.50 SEC_HHP_ Family TV/1.0", "Samsung AllShare");
 
+		// Samsung-SMT-G7400:
+		testCases.put("User-Agent: Linux/2.6.35 UPnP/1.0 NDS_MHF DLNADOC/1.50", "Samsung SMT-G7400");
+
 		// WDTVLive:
 		testCases.put("User-Agent: INTEL_NMPR/2.1 DLNADOC/1.50 Intel MicroStack/1.0.1423", "WD TV Live");
 
