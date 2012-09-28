@@ -174,7 +174,7 @@ public class PmsConfiguration {
 	private static final String KEY_UPNP_PORT = "upnp_port";
 	private static final String KEY_USE_CACHE = "usecache";
 	private static final String KEY_USE_MPLAYER_FOR_THUMBS = "use_mplayer_for_video_thumbs";
-	private static final String KEY_USE_SUBTITLES = "autoloadsrt";
+	private static final String KEY_AUTOLOAD_SUBTITLES = "autoloadsrt"; // TODO (breaking change): rename to e.g. autoload_subtitles or autoload_external_subtitles
 	private static final String KEY_UUID = "uuid";
 	private static final String KEY_VIDEOTRANSCODE_START_DELAY = "key_videotranscode_start_delay"; // TODO (breaking change): should be renamed to e.g. videotranscode_start_delay
 	private static final String KEY_VIRTUAL_FOLDERS = "vfolders";
@@ -381,7 +381,7 @@ public class PmsConfiguration {
 
 		if (loadFile) {
 			File pmsConfFile = new File(PROFILE_PATH);
-	
+
 			if (pmsConfFile.isFile() && pmsConfFile.canRead()) {
 				configuration.load(PROFILE_PATH);
 			} else if (SKEL_PROFILE_PATH != null) {
@@ -1502,6 +1502,14 @@ public class PmsConfiguration {
 	}
 
 	/**
+	 * @deprecated use {@link #isAutoloadSubtitles()} instead.
+	 */
+	@Deprecated
+	public boolean getUseSubtitles() {
+		return isAutoloadSubtitles();
+	}
+
+	/**
 	 * Returns true when PMS should check for external subtitle files with the
 	 * same name as the media (*.srt, *.sub, *.ass, etc.). The default value is
 	 * true.
@@ -1509,8 +1517,16 @@ public class PmsConfiguration {
 	 * @return True if PMS should check for external subtitle files, false if
 	 * 		they should be ignored.
 	 */
-	public boolean getUseSubtitles() {
-		return getBoolean(KEY_USE_SUBTITLES, true);
+	public boolean isAutoloadSubtitles() {
+		return getBoolean(KEY_AUTOLOAD_SUBTITLES, true);
+	}
+
+	/**
+	 * @deprecated use {@link #setAutoloadSubtitles(boolean)} instead.
+	 */
+	@Deprecated
+	public void setUseSubtitles(boolean value) {
+		setAutoloadSubtitles(value);
 	}
 
 	/**
@@ -1519,8 +1535,8 @@ public class PmsConfiguration {
 	 *
 	 * @param value True if PMS should check for external subtitle files.
 	 */
-	public void setUseSubtitles(boolean value) {
-		configuration.setProperty(KEY_USE_SUBTITLES, value);
+	public void setAutoloadSubtitles(boolean value) {
+		configuration.setProperty(KEY_AUTOLOAD_SUBTITLES, value);
 	}
 
 	/**
@@ -1753,7 +1769,7 @@ public class PmsConfiguration {
 	public boolean getSkipLoopFilterEnabled() {
 		return getBoolean(KEY_SKIP_LOOP_FILTER_ENABLED, false);
 	}
-	
+
 	/**
 	 * The list of network interfaces that should be skipped when checking
 	 * for an available network interface. Entries should be comma separated
@@ -1766,7 +1782,7 @@ public class PmsConfiguration {
 	public List<String> getSkipNetworkInterfaces() {
 		return getStringList(KEY_SKIP_NETWORK_INTERFACES, "tap,vmnet,vnic");
 	}
-	
+
 	public void setSkipLoopFilterEnabled(boolean value) {
 		configuration.setProperty(KEY_SKIP_LOOP_FILTER_ENABLED, value);
 	}
@@ -1828,6 +1844,7 @@ public class PmsConfiguration {
 		Collections.addAll(output, StringUtils.split(input, LIST_SEPARATOR));
 		return output;
 	}
+
 	// TODO: Get this out of here
 	private static boolean avsHackLogged = false;
 
@@ -2051,7 +2068,7 @@ public class PmsConfiguration {
 	public String getIpFilter() {
 		return getString(KEY_IP_FILTER, "");
 	}
-	
+
 	public synchronized IpFilter getIpFiltering() {
 	    filter.setRawFilter(getIpFilter());
 	    return filter;
@@ -2084,7 +2101,7 @@ public class PmsConfiguration {
 	public void setIphotoEnabled(boolean value) {
 		configuration.setProperty(KEY_IPHOTO_ENABLED, value);
 	}
-	
+
 	public boolean getApertureEnabled() {
 		return getBoolean(KEY_APERTURE_ENABLED, false);
 	}
