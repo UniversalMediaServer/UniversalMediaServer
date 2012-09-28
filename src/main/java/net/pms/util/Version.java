@@ -187,44 +187,39 @@ public final class Version implements Comparable<Version> {
 	 * removed - used to ensure e.g. 2.2 and 2.2.0.0
 	 * (normalized to [ 2, 2 ]) have the same hash code.
 	 *
-	 * If there are trailing zeros a new element
+	 * If there are trailing zeros, a new element
 	 * array with the trailing zeros removed is returned,
 	 * otherwise the original element array is returned.
 	 *
 	 * @return the element array with trailing zeros removed
 	 */
 	private int[] getCanonicalElements() {
-		int nElements = elements.length;
+		int[] canonicalElements;
+		// this default length is used if a) the loop isn't entered
+		// (elements.length == 1) or b) if all trailing digits are 0
+		int canonicalElementsLength = 1;
 
-		if ((nElements == 1) || (elements[nElements - 1] != 0)) {
-			return elements;
-		} else {
-			int newLength = 1;
-
-			// we've already confirmed that the last element
-			// (nElements - 1) is zero, so start to its left
-			// (nElements - 2)
-			//
-			// note: if nElements == 2, the initial loop condition
-			// (0 > 0) is not met and the default newLength (1)
-			// is used
-
-			for (int i = nElements - 2; i > 0; --i) {
-				if (elements[i] != 0) { // found the last (rightmost) non-zero element
-					newLength = i + 1;
-					break;
-				}
+		// find the last (rightmost) non-zero element.
+		for (int i = elements.length - 1; i > 0; --i) {
+			if (elements[i] != 0) {
+				canonicalElementsLength = i + 1;
+				break;
 			}
-
-			int[] canonicalElements = new int[newLength];
-			System.arraycopy(elements, 0, canonicalElements, 0, newLength);
-
-			return canonicalElements;
 		}
+
+		if (canonicalElementsLength == elements.length) {
+			canonicalElements = elements;
+		} else {
+			canonicalElements = new int[canonicalElementsLength];
+			System.arraycopy(elements, 0, canonicalElements, 0, canonicalElementsLength);
+		}
+
+		return canonicalElements;
 	}
 
 	/**
 	 * Returns this version's hash code
+	 *
 	 * @return the hash code
 	 */
 	@Override
