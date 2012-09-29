@@ -934,13 +934,13 @@ public class MEncoderVideo extends Player {
 		subs = new JCheckBox(Messages.getString("MEncoderVideo.22"));
 		subs.setContentAreaFilled(false);
 
-		if (configuration.getUseSubtitles()) {
+		if (configuration.isAutoloadSubtitles()) {
 			subs.setSelected(true);
 		}
 
 		subs.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
-				configuration.setUseSubtitles((e.getStateChange() == ItemEvent.SELECTED));
+				configuration.setAutoloadSubtitles((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
 		builder.add(subs, FormLayoutUtil.flip(cc.xyw(1, 41, 15), colSpec, orientation));

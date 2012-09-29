@@ -18,8 +18,9 @@
  */
 package net.pms.util;
 
-import static org.junit.Assert.assertEquals;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
@@ -28,36 +29,68 @@ public class VersionTest {
 		return new Version(version);
 	}
 
-	private void assertVersionIsGreaterThan(Version v1, Version v2) {
-		assertTrue(v1.isGreaterThan(v2));
-		assertTrue(v1.isGreaterThanOrEqualTo(v2));
-		assertTrue(v2.isLessThan(v1));
-		assertTrue(v2.isLessThanOrEqualTo(v1));
-
-		assertFalse(v1.isLessThan(v2));
-		assertFalse(v1.isLessThanOrEqualTo(v2));
-		assertFalse(v2.isGreaterThan(v1));
-		assertFalse(v2.isGreaterThanOrEqualTo(v1));
-
-		assertFalse(v1.equals(v2));
-		assertFalse(v2.equals(v1));
-	}
-
 	private void assertVersionEquals(Version v1, Version v2) {
+		// symmetry (and equality)
 		assertTrue(v1.equals(v2));
 		assertTrue(v2.equals(v1));
 
-		assertTrue(v1.isGreaterThanOrEqualTo(v2));
-		assertTrue(v2.isGreaterThanOrEqualTo(v1));
+		// reflexivity
+		assertTrue(v1.equals(v1));
+		assertTrue(v2.equals(v2));
 
-		assertTrue(v1.isLessThanOrEqualTo(v2));
-		assertTrue(v2.isLessThanOrEqualTo(v1));
+		// consistency
+		assertTrue(v1.equals(v2));
+		assertTrue(v2.equals(v1));
 
+
+		// non-nullity
+		assertFalse(v1.equals(null));
+		assertFalse(v2.equals(null));
+
+		assertThat(v1.hashCode(), is(v1.hashCode()));
+		assertThat(v2.hashCode(), is(v2.hashCode()));
+		assertThat(v1.hashCode(), is(v2.hashCode()));
+		assertThat(v2.hashCode(), is(v1.hashCode()));
+
+		assertFalse(v1.isGreaterThan(v1));
+		assertFalse(v2.isGreaterThan(v2));
 		assertFalse(v1.isGreaterThan(v2));
 		assertFalse(v2.isGreaterThan(v1));
 
+		assertFalse(v1.isLessThan(v1));
+		assertFalse(v2.isLessThan(v2));
 		assertFalse(v1.isLessThan(v2));
 		assertFalse(v2.isLessThan(v1));
+
+		assertTrue(v1.isGreaterThanOrEqualTo(v1));
+		assertTrue(v2.isGreaterThanOrEqualTo(v2));
+		assertTrue(v1.isGreaterThanOrEqualTo(v2));
+		assertTrue(v2.isGreaterThanOrEqualTo(v1));
+
+		assertTrue(v1.isLessThanOrEqualTo(v1));
+		assertTrue(v2.isLessThanOrEqualTo(v2));
+		assertTrue(v1.isLessThanOrEqualTo(v2));
+		assertTrue(v2.isLessThanOrEqualTo(v1));
+	}
+
+	private void assertVersionIsGreaterThan(Version v1, Version v2) {
+		assertTrue(v1.isGreaterThan(v2));
+		assertFalse(v2.isGreaterThan(v1));
+
+		assertTrue(v2.isLessThan(v1));
+		assertFalse(v1.isLessThan(v2));
+
+		assertTrue(v1.isGreaterThanOrEqualTo(v2));
+		assertFalse(v2.isGreaterThanOrEqualTo(v1));
+
+		assertTrue(v2.isLessThanOrEqualTo(v1));
+		assertFalse(v1.isLessThanOrEqualTo(v2));
+
+		assertFalse(v1.equals(v2));
+		assertFalse(v2.equals(v1));
+
+		assertThat(v1.hashCode(), not(v2.hashCode()));
+		assertThat(v2.hashCode(), not(v1.hashCode()));
 	}
 
 	private void assertIsPmsUpdatable(Version v1, Version v2) {
@@ -72,7 +105,12 @@ public class VersionTest {
 	}
 
 	private void assertVersionToStringEquals(Version v, String s) {
-		assertEquals(v.toString(), s);
+		assertThat(v.toString(), is(s));
+	}
+
+	@Test
+	public void testTransitivity() {
+
 	}
 
 	@Test

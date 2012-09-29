@@ -87,6 +87,8 @@ public class VirtualFolder extends DLNAResource {
 	 * TODO: (botijo) When is this used then? Is this a prototype?
 	 * @return Zero
 	 */
+	// XXX unused
+	@Deprecated
 	public long lastModified() {
 		return 0;
 	}

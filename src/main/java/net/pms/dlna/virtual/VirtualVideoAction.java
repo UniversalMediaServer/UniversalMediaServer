@@ -145,6 +145,8 @@ public abstract class VirtualVideoAction extends DLNAResource {
 		return -1; //DLNAMediaInfo.TRANS_SIZE;
 	}
 
+	// XXX unused
+	@Deprecated
 	public long lastModified() {
 		return 0;
 	}

@@ -65,12 +65,12 @@ public class MapFile extends DLNAResource {
 
 	public MapFile() {
 		setConf(new MapFileConfiguration());
-		setLastmodified(0);
+		setLastModified(0);
 	}
 
 	public MapFile(MapFileConfiguration conf) {
 		setConf(conf);
-		setLastmodified(0);
+		setLastModified(0);
 	}
 
 	private boolean isFileRelevant(File f) {
@@ -262,13 +262,13 @@ public class MapFile extends DLNAResource {
 
 	@Override
 	public boolean isRefreshNeeded() {
-		long lastModif = 0;
+		long modified = 0;
 		for (File f : this.getConf().getFiles()) {
 			if (f != null) {
-				lastModif = Math.max(lastModif, f.lastModified());
+				modified = Math.max(modified, f.lastModified());
 			}
 		}
-		return getLastRefreshTime() < lastModif;
+		return getLastRefreshTime() < modified;
 	}
 
 	@Override
@@ -340,7 +340,7 @@ public class MapFile extends DLNAResource {
 	}
 
 	private boolean isSameLastModified(File f, DLNAResource d) {
-		return d.getLastmodified() == f.lastModified();
+		return d.getLastModified() == f.lastModified();
 	}
 
 	private boolean isRealFolder(DLNAResource d) {
