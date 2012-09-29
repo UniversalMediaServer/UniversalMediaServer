@@ -1349,18 +1349,23 @@ public class MEncoderVideo extends Player {
 
 		mpegts = params.mediaRenderer.isTranscodeToMPEGTSAC3();
 
-		// Disable AC3 remux for stereo tracks with 384 kbits bitrate and PS3 renderer (PS3 FW bug?)
+		/**
+		 * Disable AC3 remux for stereo tracks with 384 kbits bitrate and PS3 renderer (PS3 FW bug?)
+		 *
+		 * Commented out until we can find a way to detect when a video has an audio track that switches from 2 to 6 channels
+		 * because MEncoder can't handle those files, which are very common these days.
 		boolean ps3_and_stereo_and_384_kbits = params.aid != null &&
 			(params.mediaRenderer.isPS3() && params.aid.getAudioProperties().getNumberOfChannels() == 2) &&
 			(params.aid.getBitRate() > 370000 && params.aid.getBitRate() < 400000);
+		 */
 
 		final boolean isTSMuxerVideoEngineEnabled = PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry()).contains(TSMuxerVideo.ID);
 		final boolean mencoderAC3RemuxAudioDelayBug = (params.aid != null) && (params.aid.getAudioProperties().getAudioDelay() != 0) && (params.timeseek == 0);
-		if (!mencoderAC3RemuxAudioDelayBug && configuration.isRemuxAC3() && params.aid != null && params.aid.isAC3() && !ps3_and_stereo_and_384_kbits && !avisynth() && params.mediaRenderer.isTranscodeToAC3()) {
-			// AC3 remux takes priority
+		if (configuration.isRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && params.mediaRenderer.isTranscodeToAC3()) {
+			// AC-3 remux takes priority
 			ac3Remux = true;
 		} else {
-			// now check for DTS remux and LPCM streaming
+			// Now check for DTS remux and LPCM streaming
 			dtsRemux = isTSMuxerVideoEngineEnabled &&
 				configuration.isDTSEmbedInPCM() &&
 				(
@@ -1376,7 +1381,7 @@ public class MEncoderVideo extends Player {
 					!dvd ||
 					configuration.isMencoderRemuxMPEG2()
 				)
-				// disable LPCM transcoding for MP4 container with non-H264 video as workaround for mencoder's A/V sync bug
+				// Disable LPCM transcoding for MP4 container with non-H.264 video as workaround for MEncoder's A/V sync bug
 				&& !(media.getContainer().equals("mp4") && !media.getCodecV().equals("h264"))
 				&& params.aid != null &&
 				(
@@ -1390,7 +1395,7 @@ public class MEncoderVideo extends Player {
 							params.aid.isMP3() ||
 							params.aid.isAAC() ||
 							params.aid.isVorbis() ||
-							// disable WMA to LPCM transcoding because of mencoder's channel mapping bug
+							// Disable WMA to LPCM transcoding because of mencoder's channel mapping bug
 							// (see CodecUtil.getMixerOutput)
 							// params.aid.isWMA() ||
 							params.aid.isMpegAudio()
@@ -1438,7 +1443,7 @@ public class MEncoderVideo extends Player {
 
 		if (isNotBlank(rendererMencoderOptions)) {
 			/*
-			 * ignore the renderer's custom MEncoder options if a) we're streaming a DVD (i.e. via dvd://)
+			 * Ignore the renderer's custom MEncoder options if a) we're streaming a DVD (i.e. via dvd://)
 			 * or b) the renderer's MEncoder options contain overscan settings (those are handled
 			 * separately)
 			 */
@@ -1524,7 +1529,7 @@ public class MEncoderVideo extends Player {
 			st = new StringTokenizer(encodeSettings, " ");
 
 			{
-				int i = overriddenMainArgs.length; // old length
+				int i = overriddenMainArgs.length; // Old length
 				overriddenMainArgs = Arrays.copyOf(overriddenMainArgs, overriddenMainArgs.length + st.countTokens());
 
 				while (st.hasMoreTokens()) {
@@ -1632,9 +1637,9 @@ public class MEncoderVideo extends Player {
 				if (!params.sid.isEmbedded()) {
 					sb.append("-noflip-hebrew ");
 				}
-			// use PLAINTEXT formating
+			// Use PLAINTEXT formatting
 			} else {
-				// set subtitles font
+				// Set subtitles font
 				if (configuration.getMencoderFont() != null && configuration.getMencoderFont().length() > 0) {
 					sb.append(" -font ").append(configuration.getMencoderFont()).append(" ");
 				} else {
@@ -1701,7 +1706,7 @@ public class MEncoderVideo extends Player {
 		st = new StringTokenizer(sb.toString(), " ");
 
 		{
-			int i = overriddenMainArgs.length; // old length
+			int i = overriddenMainArgs.length; // Old length
 			overriddenMainArgs = Arrays.copyOf(overriddenMainArgs, overriddenMainArgs.length + st.countTokens());
 			boolean handleToken = false;
 
@@ -2363,8 +2368,9 @@ public class MEncoderVideo extends Player {
 
 				sm.setNbchannels(channels);
 
-				// it seems the -really-quiet prevents mencoder to stop the pipe output after some time...
-				// -mc 0.1 make the DTS-HD extraction works better with latest mencoder builds, and makes no impact on the regular DTS one
+				// It seems that -really-quiet prevents MEncoder from stopping the pipe output after some time
+				// -mc 0.1 makes the DTS-HD extraction work better with latest MEncoder builds, and has no impact on the regular DTS one
+				// TODO: See if these notes are still true, and if so leave specific revisions/release names of the latest version tested.
 				String ffmpegLPCMextract[] = new String[]{
 					executable(), 
 					"-ss", "0",
@@ -2383,7 +2389,7 @@ public class MEncoderVideo extends Player {
 					"-o", ffAudioPipe.getInputPipe()
 				};
 
-				if (!params.mediaRenderer.isMuxDTSToMpeg()) { // no need to use the PCM trick when media renderer supports DTS
+				if (!params.mediaRenderer.isMuxDTSToMpeg()) { // No need to use the PCM trick when media renderer supports DTS
 					ffAudioPipe.setModifier(sm);
 				}
 
@@ -2439,7 +2445,6 @@ public class MEncoderVideo extends Player {
 					// PCM
 					audioType = "A_LPCM";
 				}
-
 
 				/*
 				 * MEncoder bug (confirmed with MEncoder r35003 + FFmpeg 0.11.1)
