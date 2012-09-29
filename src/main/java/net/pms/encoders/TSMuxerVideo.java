@@ -18,9 +18,10 @@
  */
 package net.pms.encoders;
 
-import static net.pms.formats.v2.AudioUtils.getLPCMChannelMappingForMencoder;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
-
+import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.factories.Borders;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
 import java.awt.ComponentOrientation;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
@@ -33,11 +34,9 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.URL;
 import java.util.Locale;
-
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -48,6 +47,7 @@ import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.InputFile;
 import net.pms.formats.Format;
+import static net.pms.formats.v2.AudioUtils.getLPCMChannelMappingForMencoder;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeIPCProcess;
 import net.pms.io.PipeProcess;
@@ -56,14 +56,9 @@ import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.StreamModifier;
 import net.pms.util.CodecUtil;
 import net.pms.util.FormLayoutUtil;
-
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.jgoodies.forms.builder.PanelBuilder;
-import com.jgoodies.forms.factories.Borders;
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
 
 public class TSMuxerVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TSMuxerVideo.class);
