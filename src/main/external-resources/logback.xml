@@ -76,7 +76,11 @@
 	<logger name="net.pms.util" level="ALL" />
 	-->
 
-	<!-- Root logger defines the maximum log level for all loggers -->
+	<!-- silence noise from external libraries -->
+	<logger name="org.apache" level="WARN" />
+	<logger name="httpclient.wire" level="WARN" />
+
+	<!-- Root logger defines the minimum log level for all loggers -->
 	<root level="DEBUG">
 		<appender-ref ref="traces" />
 		<appender-ref ref="console" />

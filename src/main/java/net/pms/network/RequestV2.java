@@ -249,16 +249,18 @@ public class RequestV2 extends HTTPResource {
 		}
 
 		if ((method.equals("GET") || method.equals("HEAD")) && argument.startsWith("console/")) {
-			// Request to output a page to the HTLM console.
+			// Request to output a page to the HTML console.
 			output.setHeader(HttpHeaders.Names.CONTENT_TYPE, "text/html");
 			response.append(HTMLConsole.servePage(argument.substring(8)));
 		} else if ((method.equals("GET") || method.equals("HEAD")) && argument.startsWith("get/")) {
 			// Request to retrieve a file
 
-			// Extract the resource id from the argument string.
-			String id = argument.substring(argument.indexOf("get/") + 4, argument.lastIndexOf("/"));
+			// skip the leading "get/" and extract the
+			// resource ID from the first path element
+			// e.g. "get/0$1$5$3$4/Foo.mp4" -> "0$1$5$3$4"
+			String id = argument.substring(4, argument.lastIndexOf("/"));
 
-			// Some clients escape the separators in their request, unescape them.
+			// Some clients escape the separators in their request: unescape them.
 			id = id.replace("%24", "$");
 
 			// Retrieve the DLNAresource itself.

@@ -16,6 +16,10 @@ import org.slf4j.LoggerFactory;
 public class FileUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileUtil.class);
 
+	// FIXME why isn't this private?
+	@Deprecated
+	static Map<File, File[]> cache;
+
 	public static File isFileExists(String f, String ext) {
 		return isFileExists(new File(f), ext);
 	}
@@ -69,13 +73,18 @@ public class FileUtil {
 		return null;
 	}
 
+	// FIXME needs to be renamed e.g. doSubtitlesExist or doesSubtitleExist
+	@Deprecated
 	public static boolean doesSubtitlesExists(File file, DLNAMediaInfo media) {
 		return doesSubtitlesExists(file, media, true);
 	}
 
+	// FIXME needs to be renamed e.g. doSubtitlesExist or doesSubtitleExist
+	@Deprecated
 	public static boolean doesSubtitlesExists(File file, DLNAMediaInfo media, boolean usecache) {
 		boolean found = browseFolderForSubtitles(file.getParentFile(), file, media, usecache);
 		String alternate = PMS.getConfiguration().getAlternateSubsFolder();
+
 		if (isNotBlank(alternate)) { // https://code.google.com/p/ps3mediaserver/issues/detail?id=737#c5
 			File subFolder = new File(alternate);
 			if (!subFolder.isAbsolute()) {
@@ -86,22 +95,25 @@ public class FileUtil {
 					LOGGER.debug("Caught exception", e);
 				}
 			}
+
 			if (subFolder.exists()) {
 				found = found || browseFolderForSubtitles(subFolder, file, media, usecache);
 			}
 		}
+
 		return found;
 	}
-	static Map<File, File[]> cache;
 
 	private synchronized static boolean browseFolderForSubtitles(File subFolder, File file, DLNAMediaInfo media, boolean usecache) {
 		boolean found = false;
 		if (!usecache) {
 			cache = null;
 		}
+
 		if (cache == null) {
 			cache = new HashMap<File, File[]>();
 		}
+
 		File allSubs[] = cache.get(subFolder);
 		if (allSubs == null) {
 			allSubs = subFolder.listFiles();
@@ -109,6 +121,7 @@ public class FileUtil {
 				cache.put(subFolder, allSubs);
 			}
 		}
+
 		String fileName = getFileNameWithoutExtension(file.getName()).toLowerCase();
 		if (allSubs != null) {
 			for (File f : allSubs) {
@@ -119,10 +132,10 @@ public class FileUtil {
 							int a = fileName.length();
 							int b = fName.length() - ext.length() - 1;
 							String code = "";
-							if (a <= b) // handling case with several dots: <video>..<extension>
-							{
+							if (a <= b) { // handling case with several dots: <video>..<extension>
 								code = fName.substring(a, b);
 							}
+
 							if (code.startsWith(".")) {
 								code = code.substring(1);
 							}
@@ -145,6 +158,7 @@ public class FileUtil {
 									}
 								}
 							}
+
 							if (!exists) {
 								DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
 								sub.setId(100 + (media == null ? 0 : media.getSubtitleTracksList().size())); // fake id, not used
@@ -166,11 +180,13 @@ public class FileUtil {
 									sub.setLang(code);
 									sub.setType(SubtitleType.valueOfFileExtension(ext));
 								}
+
 								try {
 									sub.setExternalFile(f);
 								} catch (FileNotFoundException ex) {
 									LOGGER.warn("Exception during external subtitles scan.", ex);
 								}
+
 								found = true;
 								if (media != null) {
 									media.getSubtitleTracksList().add(sub);
@@ -181,6 +197,7 @@ public class FileUtil {
 				}
 			}
 		}
+
 		return found;
 	}
 
@@ -201,6 +218,7 @@ public class FileUtil {
 		while ((numberOfBytesRead = bufferedInputStream.read(buf)) > 0 && !universalDetector.isDone()) {
 			universalDetector.handleData(buf, 0, numberOfBytesRead);
 		}
+
 		universalDetector.dataEnd();
 		String encoding = universalDetector.getDetectedCharset();
 
@@ -209,6 +227,7 @@ public class FileUtil {
 		} else {
 			LOGGER.debug("No encoding detected for {}.", file.getAbsolutePath());
 		}
+
 		universalDetector.reset();
 
 		return encoding;
@@ -272,6 +291,7 @@ public class FileUtil {
 		if (inputFile == null || !inputFile.canRead()) {
 			throw new FileNotFoundException("Can't read inputFile.");
 		}
+
 		try {
 			charset = getFileCharset(inputFile);
 		} catch (IOException ex) {
@@ -292,11 +312,13 @@ public class FileUtil {
 					LOGGER.warn("Unsupported exception.", ex);
 					throw ex;
 				}
+
 				BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputFile), "UTF-8"));
 				int c;
 				while ((c = reader.read()) != -1) {
 					writer.write(c);
 				}
+
 				writer.close();
 				reader.close();
 			}

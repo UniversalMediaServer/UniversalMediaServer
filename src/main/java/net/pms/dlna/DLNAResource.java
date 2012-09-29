@@ -129,7 +129,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @deprecated Use standard getter and setter to access this field.
 	 */
 	@Deprecated
-	protected long lastmodified;
+	protected long lastmodified; // TODO make private and rename lastmodified -> lastModified
 
 	/**
 	 * Represents the transformation to be used to the file. If null, then
@@ -534,7 +534,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						boolean hasSubsToTranscode = false;
 
 						if (!PMS.getConfiguration().isMencoderDisableSubs()) {
-							hasSubsToTranscode = (PMS.getConfiguration().getUseSubtitles() && child.isSrtFile()) || hasEmbeddedSubs;
+							hasSubsToTranscode = (PMS.getConfiguration().isAutoloadSubtitles() && child.isSrtFile()) || hasEmbeddedSubs;
 						}
 
 						boolean isIncompatible = false;
@@ -1328,8 +1328,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			closeTag(sb, "res");
 		}
 
-		if (getLastmodified() > 0) {
-			addXMLTagAndAttribute(sb, "dc:date", SDF_DATE.format(new Date(getLastmodified())));
+		if (getLastModified() > 0) {
+			addXMLTagAndAttribute(sb, "dc:date", SDF_DATE.format(new Date(getLastModified())));
 		}
 
 		String uclass = null;
@@ -1511,7 +1511,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				int rewind_secs = mediarenderer.getByteToTimeseekRewindSeconds();
 				timeRange.rewindStart(rewind_secs);
 
-				//shagrath:
+				// shagrath:
 				timeseek_auto = true;
 			}
 		}
@@ -1536,13 +1536,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (getFormat() != null && getFormat().isImage() && getMedia() != null && getMedia().getOrientation() > 1 && mediarenderer.isAutoRotateBasedOnExif()) {
 				// seems it's a jpeg file with an orientation setting to take care of
 				fis = ImagesUtil.getAutoRotateInputStreamImage(getInputStream(), getMedia().getOrientation());
-				if (fis == null) // error, let's return the original one
-				{
+				if (fis == null) { // error, let's return the original one
 					fis = getInputStream();
 				}
 			} else {
 				fis = getInputStream();
 			}
+
 			if (fis != null) {
 				if (low > 0) {
 					fis.skip(low);
@@ -1871,22 +1871,48 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
+	 * @deprecated Use {@link #getLastModified()} instead.
+	 *
 	 * Returns the timestamp at which this resource was last modified.
 	 *
 	 * @return The timestamp.
 	 */
+	@Deprecated
 	public long getLastmodified() {
-		return lastmodified;
+		return getLastModified();
+	}
+
+	/**
+	 * Returns the timestamp at which this resource was last modified.
+	 *
+	 * @return The timestamp.
+	 * @since 1.71.0
+	 */
+	public long getLastModified() {
+		return lastmodified; // TODO rename lastmodified -> lastModified
+	}
+
+	/**
+	 * @deprecated Use {@link #setLastModified()} instead.
+	 *
+	 * Sets the timestamp at which this resource was last modified.
+	 *
+	 * @param lastModified The timestamp to set.
+	 * @since 1.50
+	 */
+	@Deprecated
+	protected void setLastmodified(long lastModified) {
+		setLastModified(lastModified);
 	}
 
 	/**
 	 * Sets the timestamp at which this resource was last modified.
 	 *
-	 * @param lastmodified The timestamp to set.
-	 * @since 1.50
+	 * @param lastModified The timestamp to set.
+	 * @since 1.71.0
 	 */
-	protected void setLastmodified(long lastmodified) {
-		this.lastmodified = lastmodified;
+	protected void setLastModified(long lastModified) {
+		this.lastmodified = lastModified; // TODO rename lastmodified -> lastModified
 	}
 
 	/**

@@ -251,7 +251,7 @@ public class RequestHandler implements Runnable {
 			}
 
 		} catch (IOException e) {
-			LOGGER.trace("Unexpected IO error: " + e.getClass() + ": " + e.getMessage());
+			LOGGER.trace("Unexpected IO error: " + e.getClass().getName() + ": " + e.getMessage());
 			if (request != null && request.getInputStream() != null) {
 				try {
 					LOGGER.trace("Closing input stream: " + request.getInputStream());

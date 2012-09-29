@@ -34,13 +34,13 @@ public class RealFile extends MapFile {
 
 	public RealFile(File file) {
 		getConf().getFiles().add(file);
-		setLastmodified(file.lastModified());
+		setLastModified(file.lastModified());
 	}
 
 	public RealFile(File file, String name) {
 		getConf().getFiles().add(file);
 		getConf().setName(name);
-		setLastmodified(file.lastModified());
+		setLastModified(file.lastModified());
 	}
 
 	@Override
@@ -48,7 +48,7 @@ public class RealFile extends MapFile {
 	public boolean isValid() {
 		File file = this.getFile();
 		checktype();
-		if (getType() == Format.VIDEO && file.exists() && PMS.getConfiguration().getUseSubtitles() && file.getName().length() > 4) {
+		if (getType() == Format.VIDEO && file.exists() && PMS.getConfiguration().isAutoloadSubtitles() && file.getName().length() > 4) {
 			setSrtFile(FileUtil.doesSubtitlesExists(file, null));
 		}
 		boolean valid = file.exists() && (getFormat() != null || file.isDirectory());

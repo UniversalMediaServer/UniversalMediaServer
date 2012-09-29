@@ -744,12 +744,12 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			vfSub.addChild(new VirtualVideoAction(Messages.getString("PMS.6"), configuration.getUseSubtitles()) {
+			vfSub.addChild(new VirtualVideoAction(Messages.getString("PMS.6"), configuration.isAutoloadSubtitles()) {
 				@Override
 				public boolean enable() {
-					boolean oldValue = configuration.getUseSubtitles();
+					boolean oldValue = configuration.isAutoloadSubtitles();
 					boolean newValue = !oldValue;
-					configuration.setUseSubtitles(newValue);
+					configuration.setAutoloadSubtitles(newValue);
 					return newValue;
 				}
 			});
