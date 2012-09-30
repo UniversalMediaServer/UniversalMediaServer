@@ -912,12 +912,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return getDisplayName(null);
 	}
 
-	// Ditlew - org
-	//public String getDisplayName() {
-	// Ditlew
-	/**Returns the DisplayName that is shown to the Renderer. Depending on the settings,
-	 * extra info might be appended, like item duration.<p>
+	/**
+	 * Returns the DisplayName that is shown to the Renderer.
+	 * Extra info might be appended depending on the settings, like item duration.
 	 * This is based on {@link #getName()}.
+	 *
 	 * @param mediaRenderer Media Renderer for which to show information.
 	 * @return String representing the item.
 	 */
@@ -926,6 +925,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (this instanceof RealFile && PMS.getConfiguration().isHideExtensions() && !isFolder()) {
 			name = FileUtil.getFileNameWithoutExtension(name);
 		}
+
 		if (getPlayer() != null) {
 			if (isNoName()) {
 				name = "[" + getPlayer().name() + "]";

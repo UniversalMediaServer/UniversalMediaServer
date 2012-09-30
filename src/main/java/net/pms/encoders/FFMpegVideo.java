@@ -133,10 +133,7 @@ public class FFMpegVideo extends Player {
 
 		if (overriddenArgs != null) {
 			args = new String[defaultArgs.length + overriddenArgs.length];
-
-			for (int i = 0; i < defaultArgs.length; i++) {
-				args[i] = defaultArgs[i];
-			}
+			System.arraycopy(defaultArgs, 0, args, 0, defaultArgs.length);
 
 			boolean loggedDisallowedFfmpegOptions = false;
 
@@ -456,6 +453,7 @@ public class FFMpegVideo extends Player {
 			multithreading.setSelected(true);
 		}
 		multithreading.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				PMS.getConfiguration().setFfmpegMultithreading(e.getStateChange() == ItemEvent.SELECTED);
 			}
@@ -492,11 +490,9 @@ public class FFMpegVideo extends Player {
 				return false;
 			}
 		} catch (NullPointerException e) {
-			LOGGER.trace("FFmpeg cannot determine compatibility based on audio track for " +
-					resource.getSystemName());
+			LOGGER.trace("FFmpeg cannot determine compatibility based on audio track for " + resource.getSystemName());
 		} catch (IndexOutOfBoundsException e) {
-			LOGGER.trace("FFmpeg cannot determine compatibility based on default audio track for " +
-					resource.getSystemName());
+			LOGGER.trace("FFmpeg cannot determine compatibility based on default audio track for " + resource.getSystemName());
 		}
 
 		Format format = resource.getFormat();
@@ -504,8 +500,7 @@ public class FFMpegVideo extends Player {
 		if (format != null) {
 			Format.Identifier id = format.getIdentifier();
 
-			if (id.equals(Format.Identifier.MKV)
-					|| id.equals(Format.Identifier.MPG)) {
+			if (id.equals(Format.Identifier.MKV) || id.equals(Format.Identifier.MPG)) {
 				return true;
 			}
 		}
