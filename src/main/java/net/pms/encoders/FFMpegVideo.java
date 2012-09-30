@@ -477,7 +477,7 @@ public class FFMpegVideo extends Player {
 		// Check whether the subtitle actually has a language defined,
 		// uninitialized DLNAMediaSubtitle objects have a null language.
 		if (subtitle != null && subtitle.getLang() != null) {
-			// The resource needs a subtitle, but PMS does not support subtitles for FFmpeg.
+			// The resource needs a subtitle, but this engine implementation does not support subtitles yet
 			return false;
 		}
 
@@ -486,7 +486,7 @@ public class FFMpegVideo extends Player {
 			String defaultAudioTrackName = resource.getMedia().getAudioTracksList().get(0).toString();
 	
 			if (!audioTrackName.equals(defaultAudioTrackName)) {
-				// PMS only supports playback of the default audio track for FFmpeg
+				// This engine implementation only supports playback of the default audio track at this time
 				return false;
 			}
 		} catch (NullPointerException e) {
