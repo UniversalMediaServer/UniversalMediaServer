@@ -27,6 +27,11 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.StringTokenizer;
 import javax.swing.*;
 import net.pms.Messages;
@@ -35,6 +40,8 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
+import net.pms.formats.v2.SubtitleType;
+import net.pms.util.ProcessUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -206,6 +213,154 @@ public class MEncoderAviSynth extends MEncoderVideo {
 	@Override
 	public String name() {
 		return "AviSynth/MEncoder";
+	}
+
+	/*
+	 * Generate the AviSynth script based on the user's settings
+	 */
+	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack, int fromFrame, int toFrame, String frameRateRatio, String frameRateNumber) throws IOException {
+		String onlyFileName = fileName.substring(1 + fileName.lastIndexOf("\\"));
+		File file = new File(PMS.getConfiguration().getTempFolder(), "pms-avs-" + onlyFileName + ".avs");
+		PrintWriter pw = new PrintWriter(new FileOutputStream(file));
+
+		/*
+		 * Prepare the framerate variables
+		 */
+		String numerator;
+		String denominator;
+
+		if (frameRateRatio != null && frameRateNumber != null) {
+			if (frameRateRatio.equals(frameRateNumber)) {
+				// No ratio was available
+				numerator = frameRateRatio;
+				denominator = "1";
+			} else {
+				String[] frameRateNumDen = frameRateRatio.split("/");
+				numerator = frameRateNumDen[0];
+				denominator = "1001";
+			}
+		} else {
+			// No framerate was given so we should try the most common one
+			numerator = "24000";
+			denominator = "1001";
+			frameRateNumber = "23.976";
+		}
+
+		String assumeFPS = ".AssumeFPS(" + numerator + "," + denominator + ")";
+
+		String directShowFPS = "";
+		if (!"0".equals(frameRateNumber)) {
+			directShowFPS = ", fps=" + frameRateNumber;
+		}
+
+		String convertfps = "";
+		if (PMS.getConfiguration().getAvisynthConvertFps()) {
+			convertfps = ", convertfps=true";
+		}
+
+		File f = new File(fileName);
+		if (f.exists()) {
+			fileName = ProcessUtil.getShortFileNameIfWideChars(fileName);
+		}
+
+		String movieLine       = "DirectShowSource(\"" + fileName + "\"" + directShowFPS + convertfps + ")" + assumeFPS;
+		String mtLine1         = "";
+		String mtLine2         = "";
+		String mtLine3         = "";
+		String interframeLines = null;
+		String interframePath  = PMS.getConfiguration().getInterFramePath();
+
+		int Cores = 1;
+		if (PMS.getConfiguration().getAvisynthMultiThreading()) {
+			Cores = PMS.getConfiguration().getNumberOfCpuCores();
+
+			// Goes at the start of the file to initiate multithreading
+			mtLine1 = "SetMemoryMax(512)\nSetMTMode(3," + Cores + ")\n";
+
+			// Goes after the input line to make multithreading more efficient
+			mtLine2 = "SetMTMode(2)";
+
+			// Goes at the end of the file to allow the multithreading to work with MEncoder
+			mtLine3 = "SetMTMode(1)\nGetMTMode(false) > 0 ? distributor() : last";
+		}
+
+		// True Motion
+		if (PMS.getConfiguration().getAvisynthInterFrame()) {
+			String GPU = "";
+			movieLine = movieLine + ".ConvertToYV12()";
+
+			// Enable GPU to assist with CPU
+			if (PMS.getConfiguration().getAvisynthInterFrameGPU()){
+				GPU = ", GPU=true";
+			}
+
+			interframeLines = "\n" +
+				"PluginPath = \"" + interframePath + "\"\n" +
+				"LoadPlugin(PluginPath+\"svpflow1.dll\")\n" +
+				"LoadPlugin(PluginPath+\"svpflow2.dll\")\n" +
+				"Import(PluginPath+\"InterFrame2.avsi\")\n" +
+				"InterFrame(Cores=" + Cores + GPU + ")\n";
+		}
+
+		String subLine = null;
+		if (subTrack != null && PMS.getConfiguration().isAutoloadSubtitles() && !PMS.getConfiguration().isMencoderDisableSubs()) {
+			LOGGER.trace("AviSynth script: Using sub track: " + subTrack);
+			if (subTrack.getExternalFile() != null) {
+				String function = "TextSub";
+				if (subTrack.getType() == SubtitleType.VOBSUB) {
+					function = "VobSub";
+				}
+				subLine = "clip=" + function + "(clip, \"" + ProcessUtil.getShortFileNameIfWideChars(subTrack.getExternalFile().getAbsolutePath()) + "\")";
+			}
+		}
+
+		ArrayList<String> lines = new ArrayList<String>();
+
+		lines.add(mtLine1);
+
+		boolean fullyManaged = false;
+		String script = PMS.getConfiguration().getAvisynthScript();
+		StringTokenizer st = new StringTokenizer(script, PMS.AVS_SEPARATOR);
+		while (st.hasMoreTokens()) {
+			String line = st.nextToken();
+			if (line.contains("<movie") || line.contains("<sub")) {
+				fullyManaged = true;
+			}
+			lines.add(line);
+		}
+
+		lines.add(mtLine2);
+
+		if (PMS.getConfiguration().getAvisynthInterFrame()) {
+			lines.add(interframeLines);
+		}
+
+		lines.add(mtLine3);
+
+		if (fullyManaged) {
+			for (String s : lines) {
+				if (s.contains("<moviefilename>")) {
+					s = s.replace("<moviefilename>", fileName);
+				}
+
+				if (movieLine != null) {
+					s = s.replace("<movie>", movieLine);
+				}
+				s = s.replace("<sub>", subLine != null ? subLine : "#");
+				pw.println(s);
+			}
+		} else {
+			pw.println(movieLine);
+			if (subLine != null) {
+				pw.println(subLine);
+			}
+			pw.println("clip");
+
+		}
+
+		pw.close();
+		file.deleteOnExit();
+		return file;
 	}
 
 	/**

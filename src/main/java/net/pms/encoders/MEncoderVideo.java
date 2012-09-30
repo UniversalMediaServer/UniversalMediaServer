@@ -1763,7 +1763,7 @@ public class MEncoderVideo extends Player {
 
 		// Input filename
 		if (avisynth && !fileName.toLowerCase().endsWith(".iso")) {
-			File avsFile = FFMpegAviSynthVideo.getAVSScript(fileName, params.sid, params.fromFrame, params.toFrame, frameRateRatio, frameRateNumber, false);
+			File avsFile = MEncoderAviSynth.getAVSScript(fileName, params.sid, params.fromFrame, params.toFrame, frameRateRatio, frameRateNumber);
 			cmdList.add(ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath()));
 		} else {
 			if (params.stdin != null) {
