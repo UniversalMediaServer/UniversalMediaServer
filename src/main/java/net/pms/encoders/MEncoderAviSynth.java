@@ -44,6 +44,8 @@ public class MEncoderAviSynth extends MEncoderVideo {
 		super(configuration);
 	}
 
+	public static final String ID = "avsmencoder";
+
 	private JTextArea textArea;
 	private JCheckBox convertfps;
 	private JCheckBox interframe;
@@ -72,6 +74,7 @@ public class MEncoderAviSynth extends MEncoderVideo {
 			multithreading.setSelected(true);
 		}
 		multithreading.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				PMS.getConfiguration().setAvisynthMultiThreading((e.getStateChange() == ItemEvent.SELECTED));
 			}
@@ -105,6 +108,7 @@ public class MEncoderAviSynth extends MEncoderVideo {
 			interframegpu.setSelected(true);
 		}
 		interframegpu.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				PMS.getConfiguration().setAvisynthInterFrameGPU((e.getStateChange() == ItemEvent.SELECTED));
 			}
@@ -117,6 +121,7 @@ public class MEncoderAviSynth extends MEncoderVideo {
 			convertfps.setSelected(true);
 		}
 		convertfps.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				PMS.getConfiguration().setAvisynthConvertFps((e.getStateChange() == ItemEvent.SELECTED));
 			}
@@ -187,8 +192,6 @@ public class MEncoderAviSynth extends MEncoderVideo {
 	public int purpose() {
 		return VIDEO_SIMPLEFILE_PLAYER;
 	}
-
-	public static final String ID = "avsmencoder";
 
 	@Override
 	public String id() {
