@@ -160,6 +160,7 @@ public class TranscodingTab {
 		JButton but = new JButton(LooksFrame.readImageIcon("kdevelop_down-32.png"));
 		but.setToolTipText(Messages.getString("TrTab2.6"));
 		but.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				TreePath path = tree.getSelectionModel().getSelectionPath();
 				if (path != null && path.getLastPathComponent() instanceof TreeNodeSettings) {
@@ -187,6 +188,7 @@ public class TranscodingTab {
 		JButton but2 = new JButton(LooksFrame.readImageIcon("up-32.png"));
 		but2.setToolTipText(Messages.getString("TrTab2.6"));
 		but2.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				TreePath path = tree.getSelectionModel().getSelectionPath();
 				if (path != null && path.getLastPathComponent() instanceof TreeNodeSettings) {
@@ -214,6 +216,7 @@ public class TranscodingTab {
 		JButton but3 = new JButton(LooksFrame.readImageIcon("connect_no-32.png"));
 		but3.setToolTipText(Messages.getString("TrTab2.0"));
 		but3.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				TreePath path = tree.getSelectionModel().getSelectionPath();
 				if (path != null && path.getLastPathComponent() instanceof TreeNodeSettings && ((TreeNodeSettings) path.getLastPathComponent()).getPlayer() != null) {
@@ -400,6 +403,7 @@ public class TranscodingTab {
 		}
 
 		nbcores.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 			        configuration.setNumberOfCpuCores(Integer.parseInt(e.getItem().toString()));
 			}
@@ -433,6 +437,7 @@ public class TranscodingTab {
 		chapter_support.setSelected(configuration.isChapterSupport());
 
 		chapter_support.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setChapterSupport((e.getStateChange() == ItemEvent.SELECTED));
 				chapter_interval.setEnabled(configuration.isChapterSupport());
@@ -455,6 +460,7 @@ public class TranscodingTab {
 			channels.setSelectedIndex(1);
 		}
 		channels.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setAudioChannelCount(Integer.parseInt(e.getItem().toString().substring(0, 1)));
 			}
@@ -463,12 +469,13 @@ public class TranscodingTab {
 		builder.addLabel(Messages.getString("TrTab2.50"), FormLayoutUtil.flip(cc.xy(1, 13), colSpec, orientation));
 		builder.add(channels, FormLayoutUtil.flip(cc.xy(3, 13), colSpec, orientation));
 
-		forcePCM = new JCheckBox(Messages.getString("TrTab2.27"));
+		forcePCM = new JCheckBox(Messages.getString("TrTab2.27") + " " + (Platform.isWindows() ? Messages.getString("TrTab2.66") : ""));
 		forcePCM.setContentAreaFilled(false);
 		if (configuration.isMencoderUsePcm()) {
 			forcePCM.setSelected(true);
 		}
 		forcePCM.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setMencoderUsePcm(e.getStateChange() == ItemEvent.SELECTED);
 			}
@@ -482,6 +489,7 @@ public class TranscodingTab {
 			ac3remux.setSelected(true);
 		}
 		ac3remux.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setRemuxAC3((e.getStateChange() == ItemEvent.SELECTED));
 			}
@@ -554,6 +562,7 @@ public class TranscodingTab {
 
 		vq = new JComboBox(cbm);
 		vq.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
 					String s = (String) e.getItem();
@@ -587,6 +596,7 @@ public class TranscodingTab {
 			mpeg2remux.setSelected(true);
 		}
 		mpeg2remux.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setMencoderRemuxMPEG2((e.getStateChange() == ItemEvent.SELECTED));
 			}
