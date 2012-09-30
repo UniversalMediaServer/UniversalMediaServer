@@ -32,10 +32,14 @@ import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MEncoderAviSynth extends MEncoderVideo {
+	private static final Logger LOGGER = LoggerFactory.getLogger(MEncoderAviSynth.class);
 	public MEncoderAviSynth(PmsConfiguration configuration) {
 		super(configuration);
 	}
@@ -208,6 +212,29 @@ public class MEncoderAviSynth extends MEncoderVideo {
 	public boolean isCompatible(DLNAResource resource) {
 		if (resource == null || resource.getFormat().getType() != Format.VIDEO) {
 			return false;
+		}
+
+		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
+
+		// Check whether the subtitle actually has a language defined,
+		// Uninitialized DLNAMediaSubtitle objects have a null language.
+		if (subtitle != null && subtitle.getLang() != null) {
+			// The resource needs a subtitle, but this engine does not support subtitles
+			return false;
+		}
+
+		try {
+			String audioTrackName = resource.getMediaAudio().toString();
+			String defaultAudioTrackName = resource.getMedia().getAudioTracksList().get(0).toString();
+	
+			if (!audioTrackName.equals(defaultAudioTrackName)) {
+				// This engine only supports playback of the default audio track
+				return false;
+			}
+		} catch (NullPointerException e) {
+			LOGGER.trace("MEncoder/AviSynth cannot determine compatibility based on audio track for " + resource.getSystemName());
+		} catch (IndexOutOfBoundsException e) {
+			LOGGER.trace("MEncoder/AviSynth cannot determine compatibility based on default audio track for " + resource.getSystemName());
 		}
 
 		Format format = resource.getFormat();
