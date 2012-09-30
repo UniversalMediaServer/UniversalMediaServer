@@ -318,8 +318,8 @@ public class FFMpegVideo extends Player {
 		cmdArray[16] = (params.aid.isAC3() && PMS.getConfiguration().isRemuxAC3()) ? "copy" : "ac3";
 
 		// Audio bitrate
-		cmdArray[17] = (params.aid.isAC3()) ? "-sn" : "-ab";
-		cmdArray[18] = (params.aid.isAC3()) ? "-sn" : PMS.getConfiguration().getAudioBitrate() + "k";
+		cmdArray[17] = (params.aid.isAC3() && !PMS.getConfiguration().isRemuxAC3()) ? "-sn" : "-ab";
+		cmdArray[18] = (params.aid.isAC3() && !PMS.getConfiguration().isRemuxAC3()) ? "-sn" : PMS.getConfiguration().getAudioBitrate() + "k";
 
 		System.arraycopy(args, 0, cmdArray, 19, args.length);
 
