@@ -384,7 +384,7 @@ public class MEncoderAviSynth extends MEncoderVideo {
 		try {
 			String audioTrackName = resource.getMediaAudio().toString();
 			String defaultAudioTrackName = resource.getMedia().getAudioTracksList().get(0).toString();
-	
+
 			if (!audioTrackName.equals(defaultAudioTrackName)) {
 				// This engine only supports playback of the default audio track
 				return false;

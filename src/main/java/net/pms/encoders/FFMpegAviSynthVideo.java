@@ -254,6 +254,7 @@ public class FFMpegAviSynthVideo extends FFMpegVideo {
 			multithreading.setSelected(true);
 		}
 		multithreading.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				PMS.getConfiguration().setFfmpegAviSynthMultithreading(e.getStateChange() == ItemEvent.SELECTED);
 			}
@@ -272,13 +273,35 @@ public class FFMpegAviSynthVideo extends FFMpegVideo {
 			return false;
 		}
 
+		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
+
+		// Check whether the subtitle actually has a language defined,
+		// uninitialized DLNAMediaSubtitle objects have a null language.
+		if (subtitle != null && subtitle.getLang() != null) {
+			// The resource needs a subtitle, but this engine implementation does not support subtitles yet
+			return false;
+		}
+
+		try {
+			String audioTrackName = resource.getMediaAudio().toString();
+			String defaultAudioTrackName = resource.getMedia().getAudioTracksList().get(0).toString();
+
+			if (!audioTrackName.equals(defaultAudioTrackName)) {
+				// This engine implementation only supports playback of the default audio track at this time
+				return false;
+			}
+		} catch (NullPointerException e) {
+			LOGGER.trace("FFmpeg/AviSynth cannot determine compatibility based on audio track for " + resource.getSystemName());
+		} catch (IndexOutOfBoundsException e) {
+			LOGGER.trace("FFmpeg/AviSynth cannot determine compatibility based on default audio track for " + resource.getSystemName());
+		}
+
 		Format format = resource.getFormat();
 
 		if (format != null) {
 			Format.Identifier id = format.getIdentifier();
 
-			if (id.equals(Format.Identifier.MKV)
-					|| id.equals(Format.Identifier.MPG)) {
+			if (id.equals(Format.Identifier.MKV) || id.equals(Format.Identifier.MPG)) {
 				return true;
 			}
 		}

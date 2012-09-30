@@ -488,7 +488,7 @@ public class FFMpegVideo extends Player {
 		try {
 			String audioTrackName = resource.getMediaAudio().toString();
 			String defaultAudioTrackName = resource.getMedia().getAudioTracksList().get(0).toString();
-	
+
 			if (!audioTrackName.equals(defaultAudioTrackName)) {
 				// This engine implementation only supports playback of the default audio track at this time
 				return false;
