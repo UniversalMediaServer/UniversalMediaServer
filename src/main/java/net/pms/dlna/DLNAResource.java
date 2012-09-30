@@ -457,7 +457,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		try {
 			if (child.isValid()) {
 				LOGGER.trace("Adding " + child.getName() + " / class: " + child.getClass().getName());
-				VirtualFolder vf = null;
+				VirtualFolder vf;
 
 				if (allChildrenAreFolders && !child.isFolder()) {
 					allChildrenAreFolders = false;
@@ -751,7 +751,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 			}
 			discoverChildren(searchStr);
-			boolean ready = true;
+			boolean ready;
 			if (renderer.isMediaParserV2() && renderer.isDLNATreeHack()) {
 				ready = analyzeChildren(count);
 			} else {
@@ -1332,7 +1332,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			addXMLTagAndAttribute(sb, "dc:date", SDF_DATE.format(new Date(getLastModified())));
 		}
 
-		String uclass = null;
+		String uclass;
 		if (first != null && getMedia() != null && !getMedia().isSecondaryFormatValid()) {
 			uclass = "dummy";
 		} else {
@@ -1532,7 +1532,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				return fis;
 			}
 
-			InputStream fis = null;
+			InputStream fis;
 			if (getFormat() != null && getFormat().isImage() && getMedia() != null && getMedia().getOrientation() > 1 && mediarenderer.isAutoRotateBasedOnExif()) {
 				// seems it's a jpeg file with an orientation setting to take care of
 				fis = ImagesUtil.getAutoRotateInputStreamImage(getInputStream(), getMedia().getOrientation());
