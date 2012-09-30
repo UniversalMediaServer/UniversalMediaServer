@@ -315,7 +315,7 @@ public class FFMpegVideo extends Player {
 
 		// Audio codec
 		cmdArray[15] = "-c:a";
-		cmdArray[16] = (params.aid.isAC3()) ? "copy" : "ac3";
+		cmdArray[16] = (params.aid.isAC3() && PMS.getConfiguration().isRemuxAC3()) ? "copy" : "ac3";
 
 		// Audio bitrate
 		cmdArray[17] = (params.aid.isAC3()) ? "-sn" : "-ab";
