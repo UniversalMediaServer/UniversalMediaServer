@@ -41,6 +41,7 @@ import net.pms.io.PipeIPCProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
+import net.pms.util.ProcessUtil;
 import static org.apache.commons.lang.StringUtils.isBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -224,6 +225,9 @@ public class FFMpegVideo extends Player {
 				cmdArray[4] = "yuv4mpegpipe";
 				// cmdArray[6] = pipeprefix + videoPipe + (PMS.get().isWindows()?".2":"");
 				cmdArray[6] = videoP.getOutputPipe();
+			} else if (avisynth()) {
+				File avsFile = FFMpegAviSynthVideo.getAVSScript(fileName, params.sid, params.fromFrame, params.toFrame, null, null);
+				cmdArray[6] = ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath());
 			}
 		}
 
@@ -312,7 +316,7 @@ public class FFMpegVideo extends Player {
 
 		// Audio codec
 		cmdArray[15] = "-c:a";
-		cmdArray[16] = (params.aid.isAC3() && PMS.getConfiguration().isRemuxAC3()) ? "copy" : "ac3";
+		cmdArray[16] = (params.aid.isAC3() && PMS.getConfiguration().isRemuxAC3() && !avisynth()) ? "copy" : "ac3";
 
 		// Audio bitrate
 		cmdArray[17] = (params.aid.isAC3() && !PMS.getConfiguration().isRemuxAC3()) ? "-sn" : "-ab";

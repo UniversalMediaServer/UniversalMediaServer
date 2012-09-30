@@ -80,13 +80,16 @@ public class FFMpegAviSynthVideo extends FFMpegVideo {
 	}
 
 	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack) throws IOException {
-		return getAVSScript(fileName, subTrack, -1, -1, null, null, true);
+		return getAVSScript(fileName, subTrack, -1, -1, null, null);
 	}
 
-	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack, int fromFrame, int toFrame, String frameRateRatio, String frameRateNumber, boolean isFFmpeg) throws IOException {
+	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack, int fromFrame, int toFrame, String frameRateRatio, String frameRateNumber) throws IOException {
 		String onlyFileName = fileName.substring(1 + fileName.lastIndexOf("\\"));
 		File file = new File(PMS.getConfiguration().getTempFolder(), "pms-avs-" + onlyFileName + ".avs");
 		PrintWriter pw = new PrintWriter(new FileOutputStream(file));
+
+		// Temporary
+		boolean isFFmpeg = true;
 
 		/*
 		 * Prepare the framerate variables
