@@ -1,4 +1,4 @@
-1.6.0 - 2012-??-??
+1.6.0 - 2012-10-01
 
 	General:
 		MEncoder and tsMuxeR no longer produce stretched audio with some videos
