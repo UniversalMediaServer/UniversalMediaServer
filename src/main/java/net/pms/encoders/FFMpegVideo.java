@@ -27,6 +27,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.StringTokenizer;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -38,8 +39,10 @@ import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeIPCProcess;
+import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.io.StreamModifier;
 import net.pms.network.HTTPResource;
 import net.pms.util.ProcessUtil;
 import static org.apache.commons.lang.StringUtils.isBlank;
@@ -52,6 +55,9 @@ import org.slf4j.LoggerFactory;
 public class FFMpegVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
 	public  static final String ID     = "ffmpegvideo";
+
+	protected boolean dtsRemux;
+	protected boolean ac3Remux;
 
 	@Override
 	public int purpose() {
@@ -104,7 +110,7 @@ public class FFMpegVideo extends Player {
 	}
 
 	protected String[] getDefaultArgs() {
-		return new String[]{ "-f", "vob", "-loglevel", "fatal" };
+		return new String[]{ "-loglevel", "fatal" };
 	}
 
 	private int[] getVideoBitrateConfig(String bitrate) {
@@ -231,14 +237,14 @@ public class FFMpegVideo extends Player {
 			}
 		}
 
-		cmdArray[7] = "-sn";
-		cmdArray[8] = "-sn";
+		// Set the output format
+		cmdArray[7] = "-f";
+		cmdArray[8] = "vob";
 		cmdArray[9] = "-sn";
 		cmdArray[10] = "-sn";
 
 		if (type() == Format.VIDEO || type() == Format.AUDIO) {
 			if (type() == Format.VIDEO && (mplayer())) {
-				cmdArray[7] = "-f";
 				cmdArray[8] = "wav";
 				cmdArray[9] = "-i";
 				// cmdArray[10] = pipeprefix + audioPipe + (PMS.get().isWindows()?".2":"");
@@ -314,9 +320,51 @@ public class FFMpegVideo extends Player {
 			cmdArray[14] = "" + defaultMaxBitrates[0];
 		}
 
+		final boolean isTSMuxerVideoEngineEnabled = PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry()).contains(TSMuxerVideo.ID);
+
+		ac3Remux = false;
+		dtsRemux = false;
+
+		String audioCodecInput1 = "-c:a";
+		String audioCodecInput2 = "ac3";
+		if (PMS.getConfiguration().isRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && params.mediaRenderer.isTranscodeToAC3()) {
+			// AC-3 remux takes priority
+			ac3Remux = true;
+			audioCodecInput2 = "copy";
+		} else {
+			// Now check for DTS remux and LPCM streaming
+			dtsRemux = isTSMuxerVideoEngineEnabled &&
+				PMS.getConfiguration().isDTSEmbedInPCM() &&
+				params.aid != null &&
+				params.aid.isDTS() &&
+				!avisynth() &&
+				params.mediaRenderer.isDTSPlayable();
+
+			if (dtsRemux) {
+				audioCodecInput1 = "-an";
+				audioCodecInput2 = "-an";
+			}
+		}
+
 		// Audio codec
-		cmdArray[15] = "-c:a";
-		cmdArray[16] = (params.aid.isAC3() && PMS.getConfiguration().isRemuxAC3() && !avisynth()) ? "copy" : "ac3";
+		cmdArray[15] = audioCodecInput1;
+		cmdArray[16] = audioCodecInput2;
+
+		if (dtsRemux) {
+			params.losslessaudio = true;
+			params.forceFps = media.getValidFps(false);
+			cmdArray[8] = "mpeg2video";
+		}
+
+		int channels;
+		if (ac3Remux) {
+			channels = params.aid.getAudioProperties().getNumberOfChannels(); // AC-3 remux
+		} else if (dtsRemux) {
+			channels = 2;
+		} else {
+			channels = PMS.getConfiguration().getAudioChannelCount(); // 5.1 max for AC-3 encoding
+		}
+		LOGGER.trace("channels=" + channels);
 
 		// Audio bitrate
 		cmdArray[17] = (params.aid.isAC3() && !PMS.getConfiguration().isRemuxAC3()) ? "-sn" : "-ab";
@@ -423,6 +471,122 @@ public class FFMpegVideo extends Player {
 			try {
 				Thread.sleep(250);
 			} catch (InterruptedException e) { }
+		} else if (dtsRemux) {
+			PipeProcess pipe;
+			pipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
+
+			TSMuxerVideo ts = new TSMuxerVideo(PMS.getConfiguration());
+			File f = new File(PMS.getConfiguration().getTempFolder(), "pms-tsmuxer.meta");
+			String cmd[] = new String[]{ ts.executable(), f.getAbsolutePath(), pipe.getInputPipe() };
+			pw = new ProcessWrapperImpl(cmd, params);
+
+			PipeIPCProcess ffVideoPipe = new PipeIPCProcess(System.currentTimeMillis() + "ffmpegvideo", System.currentTimeMillis() + "videoout", false, true);
+
+			cmdArray[cmdArray.length - 1] = ffVideoPipe.getInputPipe();
+
+			OutputParams ffparams = new OutputParams(PMS.getConfiguration());
+			ffparams.maxBufferSize = 1;
+			ffparams.stdin = params.stdin;
+
+			ProcessWrapperImpl ffVideo = new ProcessWrapperImpl(cmdArray, ffparams);
+
+			ProcessWrapper ff_video_pipe_process = ffVideoPipe.getPipeProcess();
+			pw.attachProcess(ff_video_pipe_process);
+			ff_video_pipe_process.runInNewThread();
+			ffVideoPipe.deleteLater();
+
+			pw.attachProcess(ffVideo);
+			ffVideo.runInNewThread();
+
+			PipeIPCProcess ffAudioPipe = new PipeIPCProcess(System.currentTimeMillis() + "ffmpegaudio01", System.currentTimeMillis() + "audioout", false, true);
+			StreamModifier sm = new StreamModifier();
+			sm.setPcm(false);
+			sm.setDtsembed(dtsRemux);
+			sm.setSampleFrequency(48000);
+			sm.setBitspersample(16);
+			sm.setNbchannels(channels);
+
+			String ffmpegLPCMextract[] = new String[]{
+				executable(), 
+				"-ss", "0",
+				"-i", fileName,
+				"-ac", "" + channels,
+				"-f", "dts",
+				"-c:a", "copy",
+				ffAudioPipe.getInputPipe()
+			};
+
+			if (!params.mediaRenderer.isMuxDTSToMpeg()) { // No need to use the PCM trick when media renderer supports DTS
+				ffAudioPipe.setModifier(sm);
+			}
+
+			if (params.stdin != null) {
+				ffmpegLPCMextract[3] = "-";
+			}
+
+			if (params.timeseek > 0) {
+				ffmpegLPCMextract[2] = "" + params.timeseek;
+			}
+
+			OutputParams ffaudioparams = new OutputParams(PMS.getConfiguration());
+			ffaudioparams.maxBufferSize = 1;
+			ffaudioparams.stdin = params.stdin;
+			ProcessWrapperImpl ffAudio = new ProcessWrapperImpl(ffmpegLPCMextract, ffaudioparams);
+
+			params.stdin = null;
+
+			PrintWriter pwMux = new PrintWriter(f);
+			pwMux.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
+			String videoType = "V_MPEG-2";
+
+			if (params.no_videoencode && params.forceType != null) {
+				videoType = params.forceType;
+			}
+
+			String fps = "";
+			if (params.forceFps != null) {
+				fps = "fps=" + params.forceFps + ", ";
+			}
+
+			String audioType = "A_AC3";
+			if (dtsRemux) {
+				if (params.mediaRenderer.isMuxDTSToMpeg()) {
+					// Renderer can play proper DTS track
+					audioType = "A_DTS";
+				} else {
+					// DTS padded in LPCM trick
+					audioType = "A_LPCM";
+				}
+			}
+
+			pwMux.println(videoType + ", \"" + ffVideoPipe.getOutputPipe() + "\", " + fps + "level=4.1, insertSEI, contSPS, track=1");
+			pwMux.println(audioType + ", \"" + ffAudioPipe.getOutputPipe() + "\", track=2");
+			pwMux.close();
+
+			ProcessWrapper pipe_process = pipe.getPipeProcess();
+			pw.attachProcess(pipe_process);
+			pipe_process.runInNewThread();
+
+			try {
+				Thread.sleep(50);
+			} catch (InterruptedException e) {
+			}
+
+			pipe.deleteLater();
+			params.input_pipes[0] = pipe;
+
+			ProcessWrapper ff_pipe_process = ffAudioPipe.getPipeProcess();
+			pw.attachProcess(ff_pipe_process);
+			ff_pipe_process.runInNewThread();
+
+			try {
+				Thread.sleep(50);
+			} catch (InterruptedException e) {
+			}
+
+			ffAudioPipe.deleteLater();
+			pw.attachProcess(ffAudio);
+			ffAudio.runInNewThread();
 		}
 
 		pw.runInNewThread();

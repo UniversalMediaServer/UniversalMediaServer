@@ -1433,13 +1433,13 @@ public class MEncoderVideo extends Player {
 
 		int channels;
 		if (ac3Remux) {
-			channels = params.aid.getAudioProperties().getNumberOfChannels(); // ac3 remux
+			channels = params.aid.getAudioProperties().getNumberOfChannels(); // AC-3 remux
 		} else if (dtsRemux || wmv) {
 			channels = 2;
 		} else if (pcm) {
 			channels = params.aid.getAudioProperties().getNumberOfChannels();
 		} else {
-			channels = configuration.getAudioChannelCount(); // 5.1 max for ac3 encoding
+			channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
 		}
 		LOGGER.trace("channels=" + channels);
 
@@ -2244,7 +2244,7 @@ public class MEncoderVideo extends Player {
 			rate = "44100";
 		}
 
-		// force srate -> cause ac3's mencoder doesn't like anything other than 48khz
+		// Force srate because MEncoder doesn't like anything other than 48khz for AC-3
 		if (media != null && !pcm && !dtsRemux && !ac3Remux) {
 			cmdList.add("-af");
 			cmdList.add("lavcresample=" + rate);
@@ -2252,7 +2252,7 @@ public class MEncoderVideo extends Player {
 			cmdList.add(rate);
 		}
 
-		// add a -cache option for piped media (e.g. rar/zip file entries):
+		// Add a -cache option for piped media (e.g. rar/zip file entries):
 		// https://code.google.com/p/ps3mediaserver/issues/detail?id=911
 		if (params.stdin != null) {
 			cmdList.add("-cache");

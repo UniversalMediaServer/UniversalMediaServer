@@ -497,7 +497,7 @@ public class TranscodingTab {
 
 		builder.add(ac3remux, FormLayoutUtil.flip(cc.xyw(1, 17, 3), colSpec, orientation));
 
-		forceDTSinPCM = new JCheckBox(Messages.getString("TrTab2.28") + " " + (Platform.isWindows() ? Messages.getString("TrTab2.66") : ""));
+		forceDTSinPCM = new JCheckBox(Messages.getString("TrTab2.28") + " " + (Platform.isWindows() ? Messages.getString("TrTab2.21") : ""));
 		forceDTSinPCM.setContentAreaFilled(false);
 		if (configuration.isDTSEmbedInPCM()) {
 			forceDTSinPCM.setSelected(true);
