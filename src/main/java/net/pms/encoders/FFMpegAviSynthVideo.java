@@ -44,7 +44,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /*
- * This class handles the Windows-specific FFmpeg/AviSynth player combination. 
+ * This class handles the Windows-specific AviSynth/FFmpeg player combination. 
  */
 public class FFMpegAviSynthVideo extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegAviSynthVideo.class);
@@ -57,7 +57,7 @@ public class FFMpegAviSynthVideo extends FFMpegVideo {
 
 	@Override
 	public String name() {
-		return "FFmpeg/AviSynth";
+		return "AviSynth/FFmpeg";
 	}
 
 	@Override
@@ -291,9 +291,9 @@ public class FFMpegAviSynthVideo extends FFMpegVideo {
 				return false;
 			}
 		} catch (NullPointerException e) {
-			LOGGER.trace("FFmpeg/AviSynth cannot determine compatibility based on audio track for " + resource.getSystemName());
+			LOGGER.trace("AviSynth/FFmpeg cannot determine compatibility based on audio track for " + resource.getSystemName());
 		} catch (IndexOutOfBoundsException e) {
-			LOGGER.trace("FFmpeg/AviSynth cannot determine compatibility based on default audio track for " + resource.getSystemName());
+			LOGGER.trace("AviSynth/FFmpeg cannot determine compatibility based on default audio track for " + resource.getSystemName());
 		}
 
 		Format format = resource.getFormat();

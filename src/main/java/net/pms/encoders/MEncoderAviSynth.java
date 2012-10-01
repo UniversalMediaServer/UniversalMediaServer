@@ -390,9 +390,9 @@ public class MEncoderAviSynth extends MEncoderVideo {
 				return false;
 			}
 		} catch (NullPointerException e) {
-			LOGGER.trace("MEncoder/AviSynth cannot determine compatibility based on audio track for " + resource.getSystemName());
+			LOGGER.trace("AviSynth/MEncoder cannot determine compatibility based on audio track for " + resource.getSystemName());
 		} catch (IndexOutOfBoundsException e) {
-			LOGGER.trace("MEncoder/AviSynth cannot determine compatibility based on default audio track for " + resource.getSystemName());
+			LOGGER.trace("AviSynth/MEncoder cannot determine compatibility based on default audio track for " + resource.getSystemName());
 		}
 
 		Format format = resource.getFormat();
