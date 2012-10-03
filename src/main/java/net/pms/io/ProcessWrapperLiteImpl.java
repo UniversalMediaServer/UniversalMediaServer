@@ -21,7 +21,6 @@ package net.pms.io;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-
 import net.pms.util.ProcessUtil;
 
 public class ProcessWrapperLiteImpl implements ProcessWrapper {

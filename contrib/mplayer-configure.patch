@@ -78,7 +78,7 @@
    _gl=no
 -  for ld_tmp in "" -lGL "-lGL -lXdamage" "-lGL $ld_pthread" ; do
 +  for ld_tmp in "" -lGL "-lGL -lXdamage" "-lGL $ld_pthread" "-lGL $ld_pthread -lm" ; do
-     if cc_check $ld_tmp ; then
+     if test "$_x11" = yes && cc_check $ld_tmp ; then
        _gl=yes
        _gl_x11=yes
 @@ -5422,7 +5422,7 @@

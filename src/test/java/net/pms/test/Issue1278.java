@@ -18,16 +18,12 @@
  */
 package net.pms.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import ch.qos.logback.classic.LoggerContext;
 import net.pms.dlna.DLNAMediaInfo;
-
+import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
-
-import ch.qos.logback.classic.LoggerContext;
 
 public class Issue1278 {
 	@Before

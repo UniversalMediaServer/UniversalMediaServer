@@ -18,21 +18,14 @@
  */
 package net.pms.configuration;
 
+import com.sun.jna.Platform;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-
-import net.pms.io.SystemUtils;
+import java.util.*;
 import net.pms.Messages;
-
+import net.pms.io.SystemUtils;
 import net.pms.util.PropertiesUtil;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
@@ -43,8 +36,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.sun.jna.Platform;
 
 /**
  * Container for all configurable PMS settings. Settings are typically defined by three things:
@@ -58,8 +49,13 @@ public class PmsConfiguration {
 	private static final int DEFAULT_PROXY_SERVER_PORT = -1;
 	private static final int DEFAULT_SERVER_PORT = 5001;
 
-	// MEncoder has a hardwired maximum of 16 threads for -lavcopts and -lavdopts
-	private static final int MENCODER_MAX_THREADS = 16;
+	/*
+	 * MEncoder has a hardwired maximum of 8 threads for -lavcopts and 16
+	 * for -lavdopts.
+	 * The Windows SubJunk Builds can take 16 for both, but we keep it at 8
+	 * for compatibility with other operating systems.
+	 */
+	private static final int MENCODER_MAX_THREADS = 8;
 
 	private static final String KEY_ALTERNATE_SUBS_FOLDER = "alternate_subs_folder";
 	private static final String KEY_ALTERNATE_THUMB_FOLDER = "alternate_thumb_folder";
@@ -69,11 +65,13 @@ public class PmsConfiguration {
 	private static final String KEY_AUDIO_RESAMPLE = "audio_resample";
 	private static final String KEY_AUDIO_THUMBNAILS_METHOD = "audio_thumbnails_method";
 	private static final String KEY_AUTO_UPDATE = "auto_update";
+	private static final String KEY_AUTOLOAD_SUBTITLES = "autoloadsrt"; // TODO (breaking change): rename to e.g. autoload_subtitles or autoload_external_subtitles
 	private static final String KEY_AVISYNTH_CONVERT_FPS = "avisynth_convertfps";
 	private static final String KEY_AVISYNTH_INTERFRAME = "avisynth_interframe";
 	private static final String KEY_AVISYNTH_INTERFRAME_GPU = "avisynth_interframegpu";
 	private static final String KEY_AVISYNTH_MULTITHREADING = "avisynth_multithreading";
 	private static final String KEY_AVISYNTH_SCRIPT = "avisynth_script";
+	private static final String KEY_BUFFER_MAX = "buffer_max";
 	private static final String KEY_BUFFER_TYPE = "buffertype";
 	private static final String KEY_CHAPTER_INTERVAL = "chapter_interval";
 	private static final String KEY_CHAPTER_SUPPORT = "chapter_support";
@@ -84,7 +82,8 @@ public class PmsConfiguration {
 	private static final String KEY_EMBED_DTS_IN_PCM = "embed_dts_in_pcm";
 	private static final String KEY_ENGINES = "engines";
 	private static final String KEY_FFMPEG_ALTERNATIVE_PATH = "alternativeffmpegpath";
-	private static final String KEY_FFMPEG_SETTINGS = "ffmpeg";
+	private static final String KEY_FFMPEG_MULTITHREADING = "ffmpeg_multithreading";
+	private static final String KEY_FFMPEG_AVISYNTH_MULTITHREADING = "ffmpeg_avisynth_multithreading";
 	private static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
 	private static final String KEY_FORCETRANSCODE = "forcetranscode";
 	private static final String KEY_FOLDER_LIMIT="folder_limit";
@@ -103,10 +102,10 @@ public class PmsConfiguration {
 	private static final String KEY_MAX_AUDIO_BUFFER = "maxaudiobuffer";
 	private static final String KEY_MAX_BITRATE = "maximumbitrate";
 	private static final String KEY_MAX_MEMORY_BUFFER_SIZE = "maxvideobuffer";
+	private static final String KEY_MENCODER_ASS = "mencoder_ass";
 	private static final String KEY_MENCODER_AC3_FIXED = "mencoder_ac3_fixed";
 	private static final String KEY_MENCODER_ASS_DEFAULTSTYLE = "mencoder_ass_defaultstyle";
 	private static final String KEY_MENCODER_ASS_MARGIN = "mencoder_ass_margin";
-	private static final String KEY_MENCODER_ASS = "mencoder_ass";
 	private static final String KEY_MENCODER_ASS_OUTLINE = "mencoder_ass_outline";
 	private static final String KEY_MENCODER_ASS_SCALE = "mencoder_ass_scale";
 	private static final String KEY_MENCODER_ASS_SHADOW = "mencoder_ass_shadow";
@@ -114,8 +113,8 @@ public class PmsConfiguration {
 	private static final String KEY_MENCODER_AUDIO_SUB_LANGS = "mencoder_audiosublangs";
 	private static final String KEY_MENCODER_CUSTOM_OPTIONS = "mencoder_decode"; // TODO (breaking change): should be renamed to e.g. mencoder_custom_options
 	private static final String KEY_MENCODER_DISABLE_SUBS = "mencoder_disablesubs";
-	private static final String KEY_MENCODER_FONT_CONFIG = "mencoder_fontconfig";
 	private static final String KEY_MENCODER_FONT = "mencoder_font";
+	private static final String KEY_MENCODER_FONT_CONFIG = "mencoder_fontconfig";
 	private static final String KEY_MENCODER_FORCED_SUB_LANG = "forced_sub_lang";
 	private static final String KEY_MENCODER_FORCED_SUB_TAGS = "forced_sub_tags";
 	private static final String KEY_MENCODER_FORCE_FPS = "mencoder_forcefps";
@@ -153,22 +152,26 @@ public class PmsConfiguration {
 	private static final String KEY_OPEN_ARCHIVES = "enable_archive_browsing";
 	private static final String KEY_OVERSCAN = "mencoder_overscan";
 	private static final String KEY_PLUGIN_DIRECTORY = "plugins";
+	private static final String KEY_PLUGIN_PURGE_ACTION = "plugin_purge";
 	private static final String KEY_PREVENTS_SLEEP = "prevents_sleep_mode";
 	private static final String KEY_PROFILE_NAME = "name";
 	private static final String KEY_PROXY_SERVER_PORT = "proxy";
 	private static final String KEY_RENDERER_DEFAULT = "renderer_default";
 	private static final String KEY_RENDERER_FORCE_DEFAULT = "renderer_force_default";
+	private static final String KEY_SEARCH_FOLDER = "search_folder";
+	private static final String KEY_SEARCH_RECURSE = "search_recurse";
 	private static final String KEY_SERVER_HOSTNAME = "hostname";
 	private static final String KEY_SERVER_PORT = "port";
 	private static final String KEY_SHARES = "shares";
 	private static final String KEY_SKIP_LOOP_FILTER_ENABLED = "skiploopfilter";
 	private static final String KEY_SKIP_NETWORK_INTERFACES = "skip_network_interfaces";
-	private static final String KEY_SORT_METHOD = "key_sort_method";
+	private static final String KEY_SORT_METHOD = "key_sort_method"; // TODO (breaking change): should be renamed to e.g. sort_method
 	private static final String KEY_SUBS_COLOR = "subs_color";
 	private static final String KEY_TEMP_FOLDER_PATH = "temp";
 	private static final String KEY_THUMBNAIL_GENERATION_ENABLED = "thumbnails"; // TODO (breaking change): should be renamed to e.g. generate_thumbnails
 	private static final String KEY_THUMBNAIL_SEEK_POS = "thumbnail_seek_pos";
 	private static final String KEY_TRANSCODE_BLOCKS_MULTIPLE_CONNECTIONS = "transcode_block_multiple_connections";
+	private static final String KEY_TRANSCODE_FOLDER_NAME = "transcode_folder_name";
 	private static final String KEY_TRANSCODE_KEEP_FIRST_CONNECTION = "transcode_keep_first_connection";
 	private static final String KEY_TSMUXER_FORCEFPS = "tsmuxer_forcefps";
 	private static final String KEY_TSMUXER_PREREMIX_AC3 = "tsmuxer_preremix_ac3";
@@ -176,11 +179,9 @@ public class PmsConfiguration {
 	private static final String KEY_UPNP_PORT = "upnp_port";
 	private static final String KEY_USE_CACHE = "usecache";
 	private static final String KEY_USE_MPLAYER_FOR_THUMBS = "use_mplayer_for_video_thumbs";
-	private static final String KEY_USE_SUBTITLES = "autoloadsrt";
 	private static final String KEY_UUID = "uuid";
-	private static final String KEY_VIDEOTRANSCODE_START_DELAY = "key_videotranscode_start_delay";
+	private static final String KEY_VIDEOTRANSCODE_START_DELAY = "key_videotranscode_start_delay"; // TODO (breaking change): should be renamed to e.g. videotranscode_start_delay
 	private static final String KEY_VIRTUAL_FOLDERS = "vfolders";
-	private static final String KEY_BUFFER_MAX = "buffer_max";
 
 	// the name of the subdirectory under which PMS config files are stored for this build (default: PMS).
 	// see Build for more details
@@ -271,7 +272,7 @@ public class PmsConfiguration {
 			UMS_PROFILE=. ./UMS.sh
 
 		3) if a relative or absolute *file path* is supplied (the file doesn't have to exist),
-		it is taken to be the profile, and its parent dir is taken to be the profile (i.e. config file) dir: 
+		it is taken to be the profile, and its parent dir is taken to be the profile (i.e. config file) dir:
 
 			UMS_PROFILE = UMS.conf            # profile dir = .
 			UMS_PROFILE = folder/dev.conf     # profile dir = folder
@@ -357,8 +358,8 @@ public class PmsConfiguration {
 	 * Default constructor that will attempt to load the PMS configuration file
 	 * from the profile path.
 	 *
-	 * @throws ConfigurationException
-	 * @throws IOException
+	 * @throws org.apache.commons.configuration.ConfigurationException
+	 * @throws java.io.IOException
 	 */
 	public PmsConfiguration() throws ConfigurationException, IOException {
 		this(true);
@@ -370,8 +371,8 @@ public class PmsConfiguration {
 	 * @param loadFile Set to true to attempt to load the PMS configuration
 	 * 					file from the profile path. Set to false to skip
 	 * 					loading.
-	 * @throws ConfigurationException
-	 * @throws IOException
+	 * @throws org.apache.commons.configuration.ConfigurationException
+	 * @throws java.io.IOException
 	 */
 	public PmsConfiguration(boolean loadFile) throws ConfigurationException, IOException {
 		configuration = new PropertiesConfiguration();
@@ -379,7 +380,7 @@ public class PmsConfiguration {
 
 		if (loadFile) {
 			File pmsConfFile = new File(PROFILE_PATH);
-	
+
 			if (pmsConfFile.isFile() && pmsConfFile.canRead()) {
 				configuration.load(PROFILE_PATH);
 			} else if (SKEL_PROFILE_PATH != null) {
@@ -399,14 +400,7 @@ public class PmsConfiguration {
 		Locale.setDefault(new Locale(getLanguage()));
 
 		// Set DEFAULT_AVI_SYNTH_SCRIPT according to language
-		DEFAULT_AVI_SYNTH_SCRIPT = 
-			Messages.getString("MEncoderAviSynth.4") +
-			Messages.getString("MEncoderAviSynth.5") +
-			Messages.getString("MEncoderAviSynth.6") +
-			Messages.getString("MEncoderAviSynth.7") +
-			Messages.getString("MEncoderAviSynth.8") +
-			Messages.getString("MEncoderAviSynth.10") +
-			Messages.getString("MEncoderAviSynth.11");
+		DEFAULT_AVI_SYNTH_SCRIPT = "<movie>\n<sub>\n";
 
 		long usableMemory = (Runtime.getRuntime().maxMemory() / 1048576) - BUFFER_MEMORY_FACTOR;
 		if (usableMemory > MAX_MAX_MEMORY_DEFAULT_SIZE) {
@@ -492,7 +486,7 @@ public class PmsConfiguration {
 	 * @return True if tsMuxeR should parse fps from FFmpeg.
 	 */
 	public boolean isTsmuxerForceFps() {
-		return configuration.getBoolean(KEY_TSMUXER_FORCEFPS, true);
+		return getBoolean(KEY_TSMUXER_FORCEFPS, true);
 	}
 
 	/**
@@ -583,11 +577,12 @@ public class PmsConfiguration {
 	 */
 	public String getLanguage() {
 		String def = Locale.getDefault().getLanguage();
+
 		if (def == null) {
 			def = "en";
 		}
-		String value = getString(KEY_LANGUAGE, def);
-		return StringUtils.isNotBlank(value) ? value.trim() : def;
+
+		return getString(KEY_LANGUAGE, def);
 	}
 
 	/**
@@ -625,22 +620,18 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Return the <code>String</code> value for a given configuration key. First, the
-	 * key is looked up in the current configuration settings. If it exists and contains
-	 * a valid value, that value is returned. If the key contains an invalid value or
-	 * cannot be found, the specified default value is returned.
+	 * Return the <code>String</code> value for a given configuration key if the
+	 * value is non-blank (i.e. not null, not an empty string, not all whitespace).
+	 * Otherwise return the supplied default value.
+	 * The value is returned with leading and trailing whitespace removed in both cases.
 	 * @param key The key to look up.
 	 * @param def The default value to return when no valid key value can be found.
 	 * @return The value configured for the key.
 	 */
 	private String getString(String key, String def) {
-		String value = configuration.getString(key, def);
-		if (value != null) {
-			value = value.trim();
-		}
-		return value;
+		return ConfigurationUtil.getNonBlankConfigurationString(configuration, key, def);
 	}
-	
+
 	/**
 	 * Return a <code>List</code> of <code>String</code> values for a given configuration
 	 * key. First, the key is looked up in the current configuration settings. If it
@@ -649,7 +640,7 @@ public class PmsConfiguration {
 	 * returned.
 	 * @param key The key to look up.
 	 * @param def The default values to return when no valid key value can be found.
-	 *            These values should be entered as a comma separated string, whitespace
+	 *            These values should be entered as a comma-separated string, whitespace
 	 *            will be trimmed. For example: <code>"gnu,    gnat  ,moo "</code> will be
 	 *            returned as <code>{ "gnu", "gnat", "moo" }</code>.
 	 * @return The list of value strings configured for the key.
@@ -717,14 +708,14 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Some versions of mencoder produce garbled audio because the "ac3" codec is used
+	 * Some versions of MEncoder produce garbled audio because the "ac3" codec is used
 	 * instead of the "ac3_fixed" codec. Returns true if "ac3_fixed" should be used.
 	 * Default is false.
 	 * See https://code.google.com/p/ps3mediaserver/issues/detail?id=1092#c1
-	 * @return True if "ac3_fixed" should be used. 
+	 * @return True if "ac3_fixed" should be used.
 	 */
 	public boolean isMencoderAc3Fixed() {
-		return configuration.getBoolean(KEY_MENCODER_AC3_FIXED, false);
+		return getBoolean(KEY_MENCODER_AC3_FIXED, false);
 	}
 
 	/**
@@ -796,7 +787,7 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Some versions of mencoder produce garbled audio because the "ac3" codec is used
+	 * Some versions of MEncoder produce garbled audio because the "ac3" codec is used
 	 * instead of the "ac3_fixed" codec.
 	 * See https://code.google.com/p/ps3mediaserver/issues/detail?id=1092#c1
 	 * @param value Set to true if "ac3_fixed" should be used.
@@ -862,7 +853,7 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Set the maximum number of concurrent mencoder threads.
+	 * Set the maximum number of concurrent MEncoder threads.
 	 * XXX Currently unused.
 	 * @param value The maximum number of concurrent threads.
 	 */
@@ -882,11 +873,11 @@ public class PmsConfiguration {
 	/**
 	 * Returns the number of seconds from the start of a video file (the seek
 	 * position) where the thumbnail image for the movie should be extracted
-	 * from. Default is 1 second.
+	 * from. Default is 2 seconds.
 	 * @return The seek position in seconds.
 	 */
 	public int getThumbnailSeekPos() {
-		return getInt(KEY_THUMBNAIL_SEEK_POS, 1);
+		return getInt(KEY_THUMBNAIL_SEEK_POS, 2);
 	}
 
 	/**
@@ -900,11 +891,11 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Older versions of mencoder do not support ASS/SSA subtitles on all
-	 * platforms. Returns true if mencoder supports them. Default is true
+	 * Older versions of MEncoder do not support ASS/SSA subtitles on all
+	 * platforms. Returns true if MEncoder supports them. Default is true
 	 * on Windows and OS X, false otherwise.
 	 * See https://code.google.com/p/ps3mediaserver/issues/detail?id=1097
-	 * @return True if mencoder supports ASS/SSA subtitles.
+	 * @return True if MEncoder supports ASS/SSA subtitles.
 	 */
 	public boolean isMencoderAss() {
 		return getBoolean(KEY_MENCODER_ASS, Platform.isWindows() || Platform.isMac());
@@ -948,18 +939,24 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Returns the audio language priority for MEncoder as a comma separated
+	 * Returns the audio language priority for MEncoder as a comma-separated
 	 * string. For example: <code>"eng,fre,jpn,ger,und"</code>, where "und"
 	 * stands for "undefined".
+	 * Default value is a localized list (e.g. "eng,fre,jpn,ger,und").
+	 *
 	 * @return The audio language priority string.
 	 */
 	public String getMencoderAudioLanguages() {
-		return getString(KEY_MENCODER_AUDIO_LANGS, getDefaultLanguages());
+		return ConfigurationUtil.getPossiblyBlankConfigurationString(
+			configuration,
+			KEY_MENCODER_AUDIO_LANGS,
+			Messages.getString("MEncoderVideo.126")
+		);
 	}
 
 	/**
 	 * Returns a string of comma separated audio or subtitle languages,
-	 * ordered by priority. 
+	 * ordered by priority.
 	 * @return The string of languages.
 	 */
 	private String getDefaultLanguages() {
@@ -971,22 +968,33 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Returns the subtitle language priority for MEncoder as a comma
-	 * separated string. For example: <code>"eng,fre,jpn,ger,und"</code>,
-	 * where "und" stands for "undefined".
+	 * Returns the subtitle language priority for MEncoder as a comma-separated
+	 * string. For example: <code>"eng,fre,jpn,ger,und"</code>, where "und"
+	 * stands for "undefined".
+	 * Can be a blank string.
+	 * Default value is a localized list (e.g. "eng,fre,jpn,ger,und").
+	 *
 	 * @return The subtitle language priority string.
 	 */
 	public String getMencoderSubLanguages() {
-		return getString(KEY_MENCODER_SUB_LANGS, getDefaultLanguages());
+		return ConfigurationUtil.getPossiblyBlankConfigurationString(
+			configuration,
+			KEY_MENCODER_SUB_LANGS,
+			Messages.getString("MEncoderVideo.127")
+		);
 	}
 
 	/**
 	 * Returns the ISO 639 language code for the subtitle language that should
-	 * be forced upon MEncoder. 
+	 * be forced upon MEncoder.
 	 * @return The subtitle language code.
 	 */
 	public String getMencoderForcedSubLanguage() {
-		return getString(KEY_MENCODER_FORCED_SUB_LANG, getLanguage());
+		return ConfigurationUtil.getPossiblyBlankConfigurationString(
+			configuration,
+			KEY_MENCODER_FORCED_SUB_LANG,
+			getLanguage()
+		);
 	}
 
 	/**
@@ -1003,13 +1011,17 @@ public class PmsConfiguration {
 	 * ordered by priority for MEncoder to try to match. Audio language
 	 * and subtitle language should be comma separated as a pair,
 	 * individual pairs should be semicolon separated. "*" can be used to
-	 * match any language. Subtitle language can be defined as "off". For
-	 * example: <code>"en,off;jpn,eng;*,eng;*;*"</code>.
-	 * Default value is <code>""</code>.
+	 * match any language. Subtitle language can be defined as "off".
+	 * Default value is <code>"*,*"</code>.
+	 *
 	 * @return The audio and subtitle languages priority string.
 	 */
 	public String getMencoderAudioSubLanguages() {
-		return getString(KEY_MENCODER_AUDIO_SUB_LANGS, "");
+		return ConfigurationUtil.getPossiblyBlankConfigurationString(
+			configuration,
+			KEY_MENCODER_AUDIO_SUB_LANGS,
+			Messages.getString("MEncoderVideo.128")
+		);
 	}
 
 	/**
@@ -1024,11 +1036,12 @@ public class PmsConfiguration {
 
 	/**
 	 * Returns the character encoding (or code page) that MEncoder should use
-	 * for displaying subtitles. Default is "cp1252".
+	 * for displaying non-Unicode external subtitles. Default is empty string
+	 * (do not force encoding with -subcp key).
 	 * @return The character encoding.
 	 */
 	public String getMencoderSubCp() {
-		return getString(KEY_MENCODER_SUB_CP, "cp1252");
+		return getString(KEY_MENCODER_SUB_CP, StringUtils.EMPTY);
 	}
 
 	/**
@@ -1060,7 +1073,7 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Sets the audio language priority for MEncoder as a comma separated
+	 * Sets the audio language priority for MEncoder as a comma-separated
 	 * string. For example: <code>"eng,fre,jpn,ger,und"</code>, where "und"
 	 * stands for "undefined".
 	 * @param value The audio language priority string.
@@ -1081,7 +1094,7 @@ public class PmsConfiguration {
 
 	/**
 	 * Sets the ISO 639 language code for the subtitle language that should
-	 * be forced upon MEncoder. 
+	 * be forced upon MEncoder.
 	 * @param value The subtitle language code.
 	 */
 	public void setMencoderForcedSubLanguage(String value) {
@@ -1150,7 +1163,7 @@ public class PmsConfiguration {
 
 	/**
 	 * Sets the character encoding (or code page) that MEncoder should use
-	 * for displaying subtitles. Default is "cp1252".
+	 * for displaying non-Unicode external subtitles. Default is empty (autodetect).
 	 * @param value The character encoding.
 	 */
 	public void setMencoderSubCp(String value) {
@@ -1176,11 +1189,11 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Older versions of mencoder do not support ASS/SSA subtitles on all
-	 * platforms. Set to true if mencoder supports them. Default should be
+	 * Older versions of MEncoder do not support ASS/SSA subtitles on all
+	 * platforms. Set to true if MEncoder supports them. Default should be
 	 * true on Windows and OS X, false otherwise.
 	 * See https://code.google.com/p/ps3mediaserver/issues/detail?id=1097
-	 * @param value Set to true if mencoder supports ASS/SSA subtitles.
+	 * @param value Set to true if MEncoder supports ASS/SSA subtitles.
 	 */
 	public void setMencoderAss(boolean value) {
 		configuration.setProperty(KEY_MENCODER_ASS, value);
@@ -1263,7 +1276,7 @@ public class PmsConfiguration {
 	 * optimal resolution. Default value is false, meaning the renderer will
 	 * upscale the video itself.
 	 *
-	 * @return True if MEncoder should be used, false otherwise. 
+	 * @return True if MEncoder should be used, false otherwise.
 	 * @see {@link #getMencoderScaleX(int)}, {@link #getMencoderScaleY(int)}
 	 */
 	public boolean isMencoderScaler() {
@@ -1345,7 +1358,7 @@ public class PmsConfiguration {
 	 * Sets the AC3 audio bitrate, which determines the quality of digital
 	 * audio sound. An AV-receiver or amplifier has to be capable of playing
 	 * this quality.
-	 * 
+	 *
 	 * @param value The AC3 audio bitrate.
 	 */
 	public void setAudioBitrate(int value) {
@@ -1438,7 +1451,7 @@ public class PmsConfiguration {
 
 	/**
 	 * Returns the number of CPU cores that should be used for transcoding.
-	 * 
+	 *
 	 * @return The number of CPU cores.
 	 */
 	public int getNumberOfCpuCores() {
@@ -1504,6 +1517,14 @@ public class PmsConfiguration {
 	}
 
 	/**
+	 * @deprecated use {@link #isAutoloadSubtitles()} instead.
+	 */
+	@Deprecated
+	public boolean getUseSubtitles() {
+		return isAutoloadSubtitles();
+	}
+
+	/**
 	 * Returns true when PMS should check for external subtitle files with the
 	 * same name as the media (*.srt, *.sub, *.ass, etc.). The default value is
 	 * true.
@@ -1511,8 +1532,16 @@ public class PmsConfiguration {
 	 * @return True if PMS should check for external subtitle files, false if
 	 * 		they should be ignored.
 	 */
-	public boolean getUseSubtitles() {
-		return getBoolean(KEY_USE_SUBTITLES, true);
+	public boolean isAutoloadSubtitles() {
+		return getBoolean(KEY_AUTOLOAD_SUBTITLES, true);
+	}
+
+	/**
+	 * @deprecated use {@link #setAutoloadSubtitles(boolean)} instead.
+	 */
+	@Deprecated
+	public void setUseSubtitles(boolean value) {
+		setAutoloadSubtitles(value);
 	}
 
 	/**
@@ -1521,8 +1550,8 @@ public class PmsConfiguration {
 	 *
 	 * @param value True if PMS should check for external subtitle files.
 	 */
-	public void setUseSubtitles(boolean value) {
-		configuration.setProperty(KEY_USE_SUBTITLES, value);
+	public void setAutoloadSubtitles(boolean value) {
+		configuration.setProperty(KEY_AUTOLOAD_SUBTITLES, value);
 	}
 
 	/**
@@ -1581,7 +1610,7 @@ public class PmsConfiguration {
 	 * @return True if PMS should pass the flag.
 	 */
 	public boolean getAvisynthConvertFps() {
-		return getBoolean(KEY_AVISYNTH_CONVERT_FPS, false);
+		return getBoolean(KEY_AVISYNTH_CONVERT_FPS, true);
 	}
 
 	public void setAvisynthInterFrame(boolean value) {
@@ -1672,12 +1701,36 @@ public class PmsConfiguration {
 		return bufferType.equals(BUFFER_TYPE_FILE);
 	}
 
-	public void setFfmpegSettings(String value) {
-		configuration.setProperty(KEY_FFMPEG_SETTINGS, value);
+	/*
+	 * Converts the getMencoderMainSettings() result, which should
+	 * probably be renamed to something like getMPEG2MainSettings(),
+	 * from MEncoder's format to FFmpeg's.
+	 *
+	 * @return MPEG-2 settings formatted for FFmpeg.
+	 */
+	public String getFfmpegSettings() {
+		String mpegSettings = getMencoderMainSettings();
+		mpegSettings = mpegSettings.replaceAll("[^\\d=]", "");
+		String mpegSettingsArray[] = mpegSettings.split("=");
+		return "-g " + mpegSettingsArray[1] + " -q:v " + mpegSettingsArray[2] + " -qmin " + mpegSettingsArray[3];
 	}
 
-	public String getFfmpegSettings() {
-		return getString(KEY_FFMPEG_SETTINGS, "-threads 2 -g 1 -qscale 1 -qmin 2");
+	public void setFfmpegMultithreading(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_MULTITHREADING, value);
+	}
+
+	public boolean isFfmpegMultithreading() {
+		boolean isMultiCore = getNumberOfCpuCores() > 1;
+		return getBoolean(KEY_FFMPEG_MULTITHREADING, isMultiCore);
+	}
+
+	public void setFfmpegAviSynthMultithreading(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_AVISYNTH_MULTITHREADING, value);
+	}
+
+	public boolean isFfmpegAviSynthMultithreading() {
+		boolean isMultiCore = getNumberOfCpuCores() > 1;
+		return getBoolean(KEY_FFMPEG_AVISYNTH_MULTITHREADING, isMultiCore);
 	}
 
 	public boolean isMencoderNoOutOfSync() {
@@ -1689,7 +1742,7 @@ public class PmsConfiguration {
 	}
 
 	public boolean getTrancodeBlocksMultipleConnections() {
-		return configuration.getBoolean(KEY_TRANSCODE_BLOCKS_MULTIPLE_CONNECTIONS, false);
+		return getBoolean(KEY_TRANSCODE_BLOCKS_MULTIPLE_CONNECTIONS, false);
 	}
 
 	public void setTranscodeBlocksMultipleConnections(boolean value) {
@@ -1697,7 +1750,7 @@ public class PmsConfiguration {
 	}
 
 	public boolean getTrancodeKeepFirstConnections() {
-		return configuration.getBoolean(KEY_TRANSCODE_KEEP_FIRST_CONNECTION, true);
+		return getBoolean(KEY_TRANSCODE_KEEP_FIRST_CONNECTION, true);
 	}
 
 	public void setTrancodeKeepFirstConnections(boolean value) {
@@ -1731,7 +1784,7 @@ public class PmsConfiguration {
 	public boolean getSkipLoopFilterEnabled() {
 		return getBoolean(KEY_SKIP_LOOP_FILTER_ENABLED, false);
 	}
-	
+
 	/**
 	 * The list of network interfaces that should be skipped when checking
 	 * for an available network interface. Entries should be comma separated
@@ -1744,7 +1797,7 @@ public class PmsConfiguration {
 	public List<String> getSkipNetworkInterfaces() {
 		return getStringList(KEY_SKIP_NETWORK_INTERFACES, "tap,vmnet,vnic");
 	}
-	
+
 	public void setSkipLoopFilterEnabled(boolean value) {
 		configuration.setProperty(KEY_SKIP_LOOP_FILTER_ENABLED, value);
 	}
@@ -1792,7 +1845,7 @@ public class PmsConfiguration {
 	}
 
 	public List<String> getEnginesAsList(SystemUtils registry) {
-		List<String> engines = stringToList(getString(KEY_ENGINES, "mencoder,avsmencoder,tsmuxer,ffmpegaudio,mplayeraudio,tsmuxeraudio,vlcvideo,mencoderwebvideo,mplayervideodump,mplayerwebaudio,vlcaudio,ffmpegdvrmsremux,rawthumbs"));
+		List<String> engines = stringToList(getString(KEY_ENGINES, "mencoder,avsmencoder,tsmuxer,ffmpegvideo,ffmpegaudio,mplayeraudio,tsmuxeraudio,ffmpegwebvideo,vlcvideo,mencoderwebvideo,mplayervideodump,mplayerwebaudio,vlcaudio,ffmpegdvrmsremux,rawthumbs"));
 		engines = hackAvs(registry, engines);
 		return engines;
 	}
@@ -1806,6 +1859,7 @@ public class PmsConfiguration {
 		Collections.addAll(output, StringUtils.split(input, LIST_SEPARATOR));
 		return output;
 	}
+
 	// TODO: Get this out of here
 	private static boolean avsHackLogged = false;
 
@@ -1947,11 +2001,11 @@ public class PmsConfiguration {
 	 * <li>3: Case-insensitive ASCIIbetical sort</li>
 	 * <li>4: Locale-sensitive natural sort</li>
 	 * </ul>
-	 * Default value is 3.
+	 * Default value is 4.
 	 * @return The sort method
 	 */
 	public int getSortMethod() {
-		return getInt(KEY_SORT_METHOD, 3);
+		return getInt(KEY_SORT_METHOD, 4);
 	}
 
 	/**
@@ -2029,7 +2083,7 @@ public class PmsConfiguration {
 	public String getIpFilter() {
 		return getString(KEY_IP_FILTER, "");
 	}
-	
+
 	public synchronized IpFilter getIpFiltering() {
 	    filter.setRawFilter(getIpFilter());
 	    return filter;
@@ -2062,7 +2116,7 @@ public class PmsConfiguration {
 	public void setIphotoEnabled(boolean value) {
 		configuration.setProperty(KEY_IPHOTO_ENABLED, value);
 	}
-	
+
 	public boolean getApertureEnabled() {
 		return getBoolean(KEY_APERTURE_ENABLED, false);
 	}
@@ -2256,7 +2310,7 @@ public class PmsConfiguration {
 	}
 
 	public boolean isAutoUpdate() {
-		return Build.isUpdatable() && configuration.getBoolean(KEY_AUTO_UPDATE, false);
+		return Build.isUpdatable() && getBoolean(KEY_AUTO_UPDATE, false);
 	}
 
 	public void setAutoUpdate(boolean value) {
@@ -2286,12 +2340,55 @@ public class PmsConfiguration {
 	public void removeConfigurationListener(ConfigurationListener l) {
 		configuration.removeConfigurationListener(l);
 	}
-	
+
 	public boolean getFolderLimit() {
 		return getBoolean(KEY_FOLDER_LIMIT, false);
 	}
-	
+
+	// FIXME this is undocumented and misnamed
+	@Deprecated
 	public boolean initBufferMax() {
 		return getBoolean(KEY_BUFFER_MAX, false);
+	}
+
+	public String getPluginPurgeAction() {
+		return getString(KEY_PLUGIN_PURGE_ACTION, "delete");
+	}
+
+	public boolean getSearchFolder() {
+		return getBoolean(KEY_SEARCH_FOLDER, false);
+	}
+
+	public int getSearchRecurse() {
+		if (getBoolean(KEY_SEARCH_RECURSE, true)) {
+			return 100;
+		}
+		else {
+			return 0;
+		}
+	}
+
+	public void reload() {
+		try {
+			configuration.refresh();
+		} catch (ConfigurationException e) {
+		}
+	}
+
+	/**
+	 * Retrieve the name of the folder used to select subtitles, audio channels, chapters, engines &amp;c.
+	 * Defaults to the localized version of <pre>#--TRANSCODE--#</pre>.
+	 * @return The folder name.
+	 */
+	public String getTranscodeFolderName() {
+		return getString(KEY_TRANSCODE_FOLDER_NAME, Messages.getString("TranscodeVirtualFolder.0"));
+	}
+
+	/**
+	 * Set a custom name for the <pre>#--TRANSCODE--#</pre> folder.
+	 * @param name The folder name.
+	 */
+	public void setTranscodeFolderName(String name) {
+		configuration.setProperty(KEY_TRANSCODE_FOLDER_NAME, name);
 	}
 }

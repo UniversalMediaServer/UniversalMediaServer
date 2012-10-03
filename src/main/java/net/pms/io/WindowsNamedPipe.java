@@ -18,25 +18,17 @@
  */
 package net.pms.io;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.util.ArrayList;
-
-import net.pms.PMS;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.sun.jna.Memory;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
 import com.sun.jna.ptr.IntByReference;
 import com.sun.jna.win32.StdCallLibrary;
+import java.io.*;
+import java.util.ArrayList;
+import net.pms.PMS;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WindowsNamedPipe.class);

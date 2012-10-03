@@ -26,7 +26,7 @@ import net.pms.util.PropertiesUtil;
 public class HTMLConsole {
 	public static String servePage(String resource) {
 		StringBuilder sb = new StringBuilder();
-		sb.append("<html><head><title>" + PropertiesUtil.getProjectProperties().get("project.name") + " HTML Console</title></head><body>");
+		sb.append("<html><head><title>").append(PropertiesUtil.getProjectProperties().get("project.name")).append(" HTML Console</title></head><body>");
 
 		DLNAMediaDatabase database = PMS.get().getDatabase();
 		PmsConfiguration configuration = PMS.getConfiguration();
@@ -49,7 +49,7 @@ public class HTMLConsole {
 			sb.append("<p align=center><b>Scan stopped!</b></p><br>");
 		}
 
-		sb.append("<p align=center><img src='/images/thumbnail-256.png'><br>" + PropertiesUtil.getProjectProperties().get("project.name") + " HTML console<br><br>Menu:<br>");
+		sb.append("<p align=center><img src='/images/thumbnail-256.png'><br>").append(PropertiesUtil.getProjectProperties().get("project.name")).append(" HTML console<br><br>Menu:<br>");
 		sb.append("<a href=\"home\">Home</a><br>");
 		sb.append("<a href=\"scan\">Scan folders</a><br>");
 		sb.append("<a href=\"compact\">Shrink cache database (not recommended)</a>");

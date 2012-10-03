@@ -22,12 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.Collator;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
+import java.util.*;
 import net.pms.PMS;
 import net.pms.configuration.MapFileConfiguration;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
@@ -72,12 +67,12 @@ public class MapFile extends DLNAResource {
 
 	public MapFile() {
 		setConf(new MapFileConfiguration());
-		setLastmodified(0);
+		setLastModified(0);
 	}
 
 	public MapFile(MapFileConfiguration conf) {
 		setConf(conf);
-		setLastmodified(0);
+		setLastModified(0);
 	}
 
 	private boolean isFileRelevant(File f) {
@@ -89,25 +84,34 @@ public class MapFile extends DLNAResource {
 	}
 
 	private boolean isFolderRelevant(File f) {
-		boolean excludeNonRelevantFolder = true;
+		boolean isRelevant = false;
 		if (f.isDirectory() && PMS.getConfiguration().isHideEmptyFolders()) {
-			File children[] = f.listFiles();
-			for (File child : children) {
-				if (child.isFile()) {
-					if (FormatFactory.getAssociatedExtension(child.getName()) != null || isFileRelevant(child)) {
-						excludeNonRelevantFolder = false;
-						break;
-					}
-				} else {
-					if (isFolderRelevant(child)) {
-						excludeNonRelevantFolder = false;
-						break;
+			File[] children = f.listFiles();
+
+			// listFiles() returns null if "this abstract pathname does not denote a directory, or if an I/O error occurs".
+			// in this case (since we've already confirmed that it's a directory), this seems to mean the directory is non-readable
+			// http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=15135
+			// http://stackoverflow.com/questions/3228147/retrieving-the-underlying-error-when-file-listfiles-return-null
+			if (children == null) {
+				LOGGER.warn("Can't list files in non-readable directory: {}", f.getAbsolutePath());
+			} else {
+				for (File child : children) {
+					if (child.isFile()) {
+						if (FormatFactory.getAssociatedExtension(child.getName()) != null || isFileRelevant(child)) {
+							isRelevant = true;
+							break;
+						}
+					} else {
+						if (isFolderRelevant(child)) {
+							isRelevant = true;
+							break;
+						}
 					}
 				}
 			}
 		}
 
-		return !excludeNonRelevantFolder;
+		return isRelevant;
 	}
 	
 	private boolean isArchive(String name) {
@@ -121,9 +125,13 @@ public class MapFile extends DLNAResource {
 		return (name.endsWith(".cbz") || name.endsWith(".cbr")); 
 	}
 
-	private void manageFile(File f) {
+	private void manageFile(File f,String str) {
 		if (f.isFile() || f.isDirectory()) {
 			String lcFilename = f.getName().toLowerCase();
+			if (str != null && !lcFilename.contains(str)) {
+				// this is not searched for
+				return;
+			}
 
 			if (!f.isHidden()) {
 				if (PMS.getConfiguration().isArchiveBrowsing() && isArchive(lcFilename)) {
@@ -184,16 +192,22 @@ public class MapFile extends DLNAResource {
 				if (discoverable.isEmpty()) {
 					break;
 				}
-				manageFile(discoverable.remove(0));
+				manageFile(discoverable.remove(0), null);
 			}
 		}
 		return discoverable.isEmpty();
 	}
 
-	@Override
 	public void discoverChildren() {
-		super.discoverChildren();
-
+		discoverChildren(null);
+	}
+	
+	
+	public void discoverChildren(String str) {
+		//super.discoverChildren(str);
+		if (str != null) {
+			str = str.toLowerCase();
+		}
 		if (discoverable == null) {
 			discoverable = new ArrayList<File>();
 		} else {
@@ -246,39 +260,52 @@ public class MapFile extends DLNAResource {
 
 		for (File f : files) {
 			if (f.isDirectory()) {
-				discoverable.add(f); // manageFile(f);
+				if (str == null || f.getName().toLowerCase().contains(str)) {
+					discoverable.add(f); // manageFile(f);
+				}
 			}
 		}
 
 		for (File f : files) {
-			if (f.isFile()) {
-				discoverable.add(f); // manageFile(f);
+			if (f.isFile()) { 
+				if (str == null || f.getName().toLowerCase().contains(str)) {				
+					discoverable.add(f); // manageFile(f);
+				}
 			}
 		}
 	}
 
 	@Override
 	public boolean isRefreshNeeded() {
-		long lastModif = 0;
+		long modified = 0;
 		for (File f : this.getConf().getFiles()) {
 			if (f != null) {
-				lastModif = Math.max(lastModif, f.lastModified());
+				modified = Math.max(modified, f.lastModified());
 			}
 		}
-		return getLastRefreshTime() < lastModif;
+		return getLastRefreshTime() < modified;
 	}
 
 	@Override
-	public void doRefreshChildren() {
+	public void doRefreshChildren(String str) {
 		List<File> files = getFileList();
 		List<File> addedFiles = new ArrayList<File>();
 		List<DLNAResource> removedFiles = new ArrayList<DLNAResource>();
 
 		for (DLNAResource d : getChildren()) {
 			boolean isNeedMatching = !(d.getClass() == MapFile.class || (d instanceof VirtualFolder && !(d instanceof DVDISOFile)));
-			if (isNeedMatching && !foundInList(files, d)) {
+			boolean found = foundInList(files, d);
+			if (isNeedMatching && !found) {
 				removedFiles.add(d);
 			}
+			else if (str != null && found) {
+				String s = d.getName().toLowerCase();
+				if (!s.contains(str)) {
+					// new search, this doesn't match
+					removedFiles.add(d);
+				}
+			}
+			
 		}
 
 		for (File f : files) {
@@ -309,7 +336,7 @@ public class MapFile extends DLNAResource {
 		}
 
 		for (File f : addedFiles) {
-			manageFile(f);
+			manageFile(f, str);
 		}
 
 		for (MapFileConfiguration f : this.getConf().getChildren()) {
@@ -328,7 +355,7 @@ public class MapFile extends DLNAResource {
 	}
 
 	private boolean isSameLastModified(File f, DLNAResource d) {
-		return d.getLastmodified() == f.lastModified();
+		return d.getLastModified() == f.lastModified();
 	}
 
 	private boolean isRealFolder(DLNAResource d) {
@@ -396,7 +423,7 @@ public class MapFile extends DLNAResource {
 	 */
 	@Override
 	public String toString() {
-		return "MapFile [name=" + getName() + ", id=" + getResourceId() + ", ext=" + getExt() + ", children=" + getChildren() + "]";
+		return "MapFile [name=" + getName() + ", id=" + getResourceId() + ", format=" + getFormat() + ", children=" + getChildren() + "]";
 	}
 
 	/**
@@ -429,5 +456,9 @@ public class MapFile extends DLNAResource {
 	 */
 	public void setPotentialCover(File potentialCover) {
 		this.potentialCover = potentialCover;
+	}
+	
+	public boolean isSearched() {
+		return true;
 	}
 }

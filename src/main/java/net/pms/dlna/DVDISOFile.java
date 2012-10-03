@@ -20,7 +20,6 @@ package net.pms.dlna;
 
 import java.io.File;
 import java.util.List;
-
 import net.pms.PMS;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.formats.Format;
@@ -86,7 +85,7 @@ public class DVDISOFile extends VirtualFolder {
 	public DVDISOFile(File f) {
 		super(PREFIX + (f.isFile() ? f.getName() : "VIDEO_TS"), null);
 		this.f = f;
-		setLastmodified(f.lastModified());
+		setLastModified(f.lastModified());
 	}
 
 	@Override

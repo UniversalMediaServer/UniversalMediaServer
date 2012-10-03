@@ -20,7 +20,6 @@ package net.pms.dlna.virtual;
 
 import java.io.IOException;
 import java.io.InputStream;
-
 import net.pms.dlna.DLNAResource;
 import net.pms.network.HTTPResource;
 
@@ -88,6 +87,8 @@ public class VirtualFolder extends DLNAResource {
 	 * TODO: (botijo) When is this used then? Is this a prototype?
 	 * @return Zero
 	 */
+	// XXX unused
+	@Deprecated
 	public long lastModified() {
 		return 0;
 	}

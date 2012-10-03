@@ -19,19 +19,20 @@
  */
 package net.pms.encoders;
 
+import com.sun.jna.Platform;
 import java.io.File;
 import java.util.ArrayList;
-
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.io.SystemUtils;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.sun.jna.Platform;
 
 /**
  * This class handles players. Creating an instance will initialize the list of
@@ -63,6 +64,35 @@ public final class PlayerFactory {
 	private static SystemUtils utils;
 
 	/**
+	 * This takes care of sorting the players by the given PMS configuration.
+	 */
+	private static class PlayerSort implements Comparator<Player> {
+		private PmsConfiguration configuration;
+
+		PlayerSort(PmsConfiguration configuration) {
+			this.configuration = configuration;
+		}
+
+		@Override
+		public int compare(Player player1, Player player2) {
+			List<String> prefs = configuration.getEnginesAsList(PMS.get().getRegistry());
+			Integer index1 = prefs.indexOf(player1.id());
+			Integer index2 = prefs.indexOf(player2.id());
+
+			// Not being in the configuration settings will sort the player as last.
+			if (index1 == -1) {
+				index1 = 999;
+			}
+
+			if (index2 == -1) {
+				index2 = 999;
+			}
+
+			return index1.compareTo(index2);
+		}
+	}
+
+	/**
 	 * This class is not meant to be instantiated.
 	 */
 	private PlayerFactory() {
@@ -86,8 +116,9 @@ public final class PlayerFactory {
 	 *            PMS configuration settings.
 	 */
 	private static void registerPlayers(final PmsConfiguration configuration) {
+
 		if (Platform.isWindows()) {
-			registerPlayer(new FFMpegVideo());
+			registerPlayer(new FFMpegAviSynthVideo());
 		}
 
 		registerPlayer(new FFMpegAudio(configuration));
@@ -97,7 +128,9 @@ public final class PlayerFactory {
 			registerPlayer(new MEncoderAviSynth(configuration));
 		}
 
+		registerPlayer(new FFMpegVideo());
 		registerPlayer(new MPlayerAudio(configuration));
+		registerPlayer(new FFMpegWebVideo(configuration));
 		registerPlayer(new MEncoderWebVideo(configuration));
 		registerPlayer(new MPlayerWebVideoDump(configuration));
 		registerPlayer(new MPlayerWebAudio(configuration));
@@ -111,6 +144,10 @@ public final class PlayerFactory {
 		}
 
 		registerPlayer(new RAWThumbnailer());
+
+		// Sort the players according to the configuration settings
+		Collections.sort(allPlayers, new PlayerSort(configuration));
+		Collections.sort(players, new PlayerSort(configuration));
 	}
 
 	/**
@@ -185,6 +222,8 @@ public final class PlayerFactory {
 	}
 
 	/**
+	 * @deprecated Use {@link #getPlayer(DLNAResource)} instead.
+	 *
 	 * Returns the player that matches the given class and format.
 	 * 
 	 * @param profileClass
@@ -194,6 +233,7 @@ public final class PlayerFactory {
 	 * @return The player if a match could be found, <code>null</code>
 	 *         otherwise.
 	 */
+	@Deprecated
 	public static Player getPlayer(final Class<? extends Player> profileClass,
 			final Format ext) {
 
@@ -209,6 +249,33 @@ public final class PlayerFactory {
 	}
 
 	/**
+	 * Returns the first {@link Player} that matches the given mediaInfo or
+	 * format. Each of the available players is passed the provided information
+	 * and the first that reports it is compatible will be returned.
+	 * 
+	 * @param resource
+	 *            The {@link DLNAMediaResource} to match
+	 * @return The player if a match could be found, <code>null</code>
+	 *         otherwise.
+	 * @since 1.60.0
+	 */
+	public static Player getPlayer(final DLNAResource resource) {
+		if (resource == null) {
+			return null;
+		}
+		for (Player player : players) {
+			if (player.isCompatible(resource)) {
+				LOGGER.trace("Selecting player " + player.name() + " based on media information.");
+				return player;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * @deprecated Use {@link #getPlayer(DLNAResource)} instead. 
+	 *
 	 * Returns the players matching the given classes and type.
 	 * 
 	 * @param profileClasses
@@ -218,6 +285,7 @@ public final class PlayerFactory {
 	 * @return The list of players that match. If no players match, an empty
 	 *         list is returned.
 	 */
+	@Deprecated
 	public static ArrayList<Player> getPlayers(
 			final ArrayList<Class<? extends Player>> profileClasses,
 			final int type) {
@@ -232,5 +300,60 @@ public final class PlayerFactory {
 		}
 
 		return compatiblePlayers;
+	}
+
+	/**
+	 * Returns all {@link Player}s that match the given resource. Each of the
+	 * available players is passed the provided information and each player that
+	 * reports it is compatible will be returned.
+	 * 
+	 * @param resource
+	 *            The {@link DLNAResource} to match
+	 * @return The player if a match could be found, <code>null</code>
+	 *         otherwise.
+	 * @since 1.60.0
+	 */
+	public static ArrayList<Player> getPlayers(final DLNAResource resource) {
+		if (resource == null) {
+			return null;
+		}
+
+		ArrayList<Player> compatiblePlayers = new ArrayList<Player>();
+
+		for (Player player : players) {
+			if (player.isCompatible(resource)) {
+				compatiblePlayers.add(player);
+			}
+		}
+
+		return compatiblePlayers;
+	}
+
+	/**
+	 * Returns all {@link Player}s that match the given resource and are enabled. Each of the
+	 * available players is passed the provided information and each player that
+	 * reports it is compatible will be returned.
+	 * 
+	 * @param resource
+	 *            The {@link DLNAResource} to match
+	 * @return The player if a match could be found, <code>null</code>
+	 *         otherwise.
+	 * @since 1.70.0
+	 */
+	public static ArrayList<Player> getEnabledPlayers(final DLNAResource resource) {
+		if (resource == null) {
+			return null;
+		}
+
+		List<String> enabledEngines = PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry());
+		ArrayList<Player> enabledPlayers = new ArrayList<Player>();
+		
+		for (Player player : getPlayers(resource)) {
+			if (enabledEngines.contains(player.id())) {
+				enabledPlayers.add(player);
+			}
+		}
+
+		return enabledPlayers;
 	}
 }

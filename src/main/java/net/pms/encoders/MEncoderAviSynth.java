@@ -22,20 +22,36 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.StringTokenizer;
 import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.dlna.DLNAMediaSubtitle;
+import net.pms.dlna.DLNAResource;
+import net.pms.formats.Format;
+import net.pms.formats.v2.SubtitleType;
+import net.pms.util.ProcessUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class MEncoderAviSynth extends MEncoderVideo {
+	private static final Logger LOGGER = LoggerFactory.getLogger(MEncoderAviSynth.class);
 	public MEncoderAviSynth(PmsConfiguration configuration) {
 		super(configuration);
 	}
+
+	public static final String ID = "avsmencoder";
 
 	private JTextArea textArea;
 	private JCheckBox convertfps;
@@ -55,17 +71,17 @@ public class MEncoderAviSynth extends MEncoderVideo {
 
 		CellConstraints cc = new CellConstraints();
 
-
-		JComponent cmp = builder.addSeparator(Messages.getString("MEncoderAviSynth.2"), cc.xyw(2, 1, 1));
+		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), cc.xyw(2, 1, 1));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		multithreading = new JCheckBox(Messages.getString("MEncoderAviSynth.14"));
+		multithreading = new JCheckBox(Messages.getString("MEncoderVideo.35"));
 		multithreading.setContentAreaFilled(false);
 		if (PMS.getConfiguration().getAvisynthMultiThreading()) {
 			multithreading.setSelected(true);
 		}
 		multithreading.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				PMS.getConfiguration().setAvisynthMultiThreading((e.getStateChange() == ItemEvent.SELECTED));
 			}
@@ -86,7 +102,8 @@ public class MEncoderAviSynth extends MEncoderVideo {
 						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 						Messages.getString("MEncoderAviSynth.16"),
 						"Information",
-						JOptionPane.INFORMATION_MESSAGE);
+						JOptionPane.INFORMATION_MESSAGE
+					);
 				}
 			}
 		});
@@ -98,6 +115,7 @@ public class MEncoderAviSynth extends MEncoderVideo {
 			interframegpu.setSelected(true);
 		}
 		interframegpu.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				PMS.getConfiguration().setAvisynthInterFrameGPU((e.getStateChange() == ItemEvent.SELECTED));
 			}
@@ -110,11 +128,24 @@ public class MEncoderAviSynth extends MEncoderVideo {
 			convertfps.setSelected(true);
 		}
 		convertfps.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				PMS.getConfiguration().setAvisynthConvertFps((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
 		builder.add(convertfps, cc.xy(2, 9));
+
+		String aviSynthScriptInstructions = Messages.getString("MEncoderAviSynth.4") +
+			Messages.getString("MEncoderAviSynth.5") +
+			Messages.getString("MEncoderAviSynth.6") +
+			Messages.getString("MEncoderAviSynth.7") +
+			Messages.getString("MEncoderAviSynth.8");
+		JTextArea aviSynthScriptInstructionsContainer = new JTextArea(aviSynthScriptInstructions);
+		aviSynthScriptInstructionsContainer.setEditable(false);
+		aviSynthScriptInstructionsContainer.setBorder(BorderFactory.createEtchedBorder());
+		aviSynthScriptInstructionsContainer.setBackground(new Color(255, 255, 192));
+		aviSynthScriptInstructionsContainer.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(new Color(130, 135, 144)), BorderFactory.createEmptyBorder(3, 5, 3, 5)));
+		builder.add(aviSynthScriptInstructionsContainer, cc.xy(2, 11));
 
 		String clip = PMS.getConfiguration().getAvisynthScript();
 		if (clip == null) {
@@ -158,7 +189,7 @@ public class MEncoderAviSynth extends MEncoderVideo {
 
 		JScrollPane pane = new JScrollPane(textArea, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		pane.setPreferredSize(new Dimension(500, 350));
-		builder.add(pane, cc.xy(2, 11));
+		builder.add(pane, cc.xy(2, 13));
 
 
 		return builder.getPanel();
@@ -168,7 +199,6 @@ public class MEncoderAviSynth extends MEncoderVideo {
 	public int purpose() {
 		return VIDEO_SIMPLEFILE_PLAYER;
 	}
-	public static final String ID = "avsmencoder";
 
 	@Override
 	public String id() {
@@ -183,5 +213,199 @@ public class MEncoderAviSynth extends MEncoderVideo {
 	@Override
 	public String name() {
 		return "AviSynth/MEncoder";
+	}
+
+	/*
+	 * Generate the AviSynth script based on the user's settings
+	 */
+	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack, int fromFrame, int toFrame, String frameRateRatio, String frameRateNumber) throws IOException {
+		String onlyFileName = fileName.substring(1 + fileName.lastIndexOf("\\"));
+		File file = new File(PMS.getConfiguration().getTempFolder(), "pms-avs-" + onlyFileName + ".avs");
+		PrintWriter pw = new PrintWriter(new FileOutputStream(file));
+
+		/*
+		 * Prepare the framerate variables
+		 */
+		String numerator;
+		String denominator;
+
+		if (frameRateRatio != null && frameRateNumber != null) {
+			if (frameRateRatio.equals(frameRateNumber)) {
+				// No ratio was available
+				numerator = frameRateRatio;
+				denominator = "1";
+			} else {
+				String[] frameRateNumDen = frameRateRatio.split("/");
+				numerator = frameRateNumDen[0];
+				denominator = "1001";
+			}
+		} else {
+			// No framerate was given so we should try the most common one
+			numerator = "24000";
+			denominator = "1001";
+			frameRateNumber = "23.976";
+		}
+
+		String assumeFPS = ".AssumeFPS(" + numerator + "," + denominator + ")";
+
+		String directShowFPS = "";
+		if (!"0".equals(frameRateNumber)) {
+			directShowFPS = ", fps=" + frameRateNumber;
+		}
+
+		String convertfps = "";
+		if (PMS.getConfiguration().getAvisynthConvertFps()) {
+			convertfps = ", convertfps=true";
+		}
+
+		File f = new File(fileName);
+		if (f.exists()) {
+			fileName = ProcessUtil.getShortFileNameIfWideChars(fileName);
+		}
+
+		String movieLine       = "DirectShowSource(\"" + fileName + "\"" + directShowFPS + convertfps + ")" + assumeFPS;
+		String mtLine1         = "";
+		String mtLine2         = "";
+		String mtLine3         = "";
+		String interframeLines = null;
+		String interframePath  = PMS.getConfiguration().getInterFramePath();
+
+		int Cores = 1;
+		if (PMS.getConfiguration().getAvisynthMultiThreading()) {
+			Cores = PMS.getConfiguration().getNumberOfCpuCores();
+
+			// Goes at the start of the file to initiate multithreading
+			mtLine1 = "SetMemoryMax(512)\nSetMTMode(3," + Cores + ")\n";
+
+			// Goes after the input line to make multithreading more efficient
+			mtLine2 = "SetMTMode(2)";
+
+			// Goes at the end of the file to allow the multithreading to work with MEncoder
+			mtLine3 = "SetMTMode(1)\nGetMTMode(false) > 0 ? distributor() : last";
+		}
+
+		// True Motion
+		if (PMS.getConfiguration().getAvisynthInterFrame()) {
+			String GPU = "";
+			movieLine = movieLine + ".ConvertToYV12()";
+
+			// Enable GPU to assist with CPU
+			if (PMS.getConfiguration().getAvisynthInterFrameGPU()){
+				GPU = ", GPU=true";
+			}
+
+			interframeLines = "\n" +
+				"PluginPath = \"" + interframePath + "\"\n" +
+				"LoadPlugin(PluginPath+\"svpflow1.dll\")\n" +
+				"LoadPlugin(PluginPath+\"svpflow2.dll\")\n" +
+				"Import(PluginPath+\"InterFrame2.avsi\")\n" +
+				"InterFrame(Cores=" + Cores + GPU + ")\n";
+		}
+
+		String subLine = null;
+		if (subTrack != null && PMS.getConfiguration().isAutoloadSubtitles() && !PMS.getConfiguration().isMencoderDisableSubs()) {
+			LOGGER.trace("AviSynth script: Using sub track: " + subTrack);
+			if (subTrack.getExternalFile() != null) {
+				String function = "TextSub";
+				if (subTrack.getType() == SubtitleType.VOBSUB) {
+					function = "VobSub";
+				}
+				subLine = "clip=" + function + "(clip, \"" + ProcessUtil.getShortFileNameIfWideChars(subTrack.getExternalFile().getAbsolutePath()) + "\")";
+			}
+		}
+
+		ArrayList<String> lines = new ArrayList<String>();
+
+		lines.add(mtLine1);
+
+		boolean fullyManaged = false;
+		String script = PMS.getConfiguration().getAvisynthScript();
+		StringTokenizer st = new StringTokenizer(script, PMS.AVS_SEPARATOR);
+		while (st.hasMoreTokens()) {
+			String line = st.nextToken();
+			if (line.contains("<movie") || line.contains("<sub")) {
+				fullyManaged = true;
+			}
+			lines.add(line);
+		}
+
+		lines.add(mtLine2);
+
+		if (PMS.getConfiguration().getAvisynthInterFrame()) {
+			lines.add(interframeLines);
+		}
+
+		lines.add(mtLine3);
+
+		if (fullyManaged) {
+			for (String s : lines) {
+				if (s.contains("<moviefilename>")) {
+					s = s.replace("<moviefilename>", fileName);
+				}
+
+				if (movieLine != null) {
+					s = s.replace("<movie>", movieLine);
+				}
+				s = s.replace("<sub>", subLine != null ? subLine : "#");
+				pw.println(s);
+			}
+		} else {
+			pw.println(movieLine);
+			if (subLine != null) {
+				pw.println(subLine);
+			}
+			pw.println("clip");
+
+		}
+
+		pw.close();
+		file.deleteOnExit();
+		return file;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean isCompatible(DLNAResource resource) {
+		if (resource == null || resource.getFormat().getType() != Format.VIDEO) {
+			return false;
+		}
+
+		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
+
+		// Check whether the subtitle actually has a language defined,
+		// Uninitialized DLNAMediaSubtitle objects have a null language.
+		if (subtitle != null && subtitle.getLang() != null) {
+			// The resource needs a subtitle, but this engine does not support subtitles
+			return false;
+		}
+
+		try {
+			String audioTrackName = resource.getMediaAudio().toString();
+			String defaultAudioTrackName = resource.getMedia().getAudioTracksList().get(0).toString();
+
+			if (!audioTrackName.equals(defaultAudioTrackName)) {
+				// This engine only supports playback of the default audio track
+				return false;
+			}
+		} catch (NullPointerException e) {
+			LOGGER.trace("AviSynth/MEncoder cannot determine compatibility based on audio track for " + resource.getSystemName());
+		} catch (IndexOutOfBoundsException e) {
+			LOGGER.trace("AviSynth/MEncoder cannot determine compatibility based on default audio track for " + resource.getSystemName());
+		}
+
+		Format format = resource.getFormat();
+
+		if (format != null) {
+			Format.Identifier id = format.getIdentifier();
+
+			if (id.equals(Format.Identifier.MKV)
+					|| id.equals(Format.Identifier.MPG)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }

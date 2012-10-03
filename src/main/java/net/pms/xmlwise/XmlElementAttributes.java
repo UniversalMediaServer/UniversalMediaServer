@@ -1,11 +1,9 @@
 package net.pms.xmlwise;
 
-import org.w3c.dom.Element;
-
-import org.w3c.dom.NamedNodeMap;
-
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 
 /**
  * This is a hash map containing all attributes of a single

@@ -76,6 +76,8 @@ public class FeedItem extends DLNAResource {
 		return length;
 	}
 
+	// XXX unused
+	@Deprecated
 	public long lastModified() {
 		return 0;
 	}
@@ -95,6 +97,6 @@ public class FeedItem extends DLNAResource {
 	@Override
 	public boolean isValid() {
 		checktype();
-		return getExt() != null;
+		return getFormat() != null;
 	}
 }

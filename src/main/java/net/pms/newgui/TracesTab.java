@@ -18,8 +18,13 @@
  */
 package net.pms.newgui;
 
+import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.ComponentOrientation;
+import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -30,26 +35,14 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Locale;
-
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-
+import javax.swing.*;
 import net.pms.Messages;
+import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.logging.LoggingConfigFileLoader;
 import net.pms.util.FormLayoutUtil;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.jgoodies.forms.builder.PanelBuilder;
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
 
 public class TracesTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TracesTab.class);
@@ -82,7 +75,9 @@ public class TracesTab {
 			showMenuIfPopupTrigger(e);
 		}
 	}
+
 	private JTextArea jList;
+	protected JScrollPane jListPane;
 
 	TracesTab(PmsConfiguration configuration) {
 		this.configuration = configuration;
@@ -90,6 +85,20 @@ public class TracesTab {
 
 	public JTextArea getList() {
 		return jList;
+	}
+	
+	public void append(String msg) {
+		getList().append(msg);
+		final JScrollBar vbar = jListPane.getVerticalScrollBar();
+		// if scroll bar already was at the bottom we schedule
+		// a new scroll event to again scroll to the bottom
+		if (vbar.getMaximum() == vbar.getValue() + vbar.getVisibleAmount()) {
+			EventQueue.invokeLater (new Runnable() {
+				public void run () {
+					vbar.setValue (vbar.getMaximum ());
+				}
+			});
+		}
 	}
 
 	public JComponent build() {
@@ -127,8 +136,8 @@ public class TracesTab {
 			popup,
 			jList));
 
-		JScrollPane pane = new JScrollPane(jList, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		builder.add(pane, cc.xyw(1, 1, 2));
+		jListPane = new JScrollPane(jList, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		builder.add(jListPane, cc.xyw(1, 1, 2));
 
 		// Add buttons opening log files
 		JPanel pLogFileButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -150,6 +159,17 @@ public class TracesTab {
 			pLogFileButtons.add(b);
 		}
 		builder.add(pLogFileButtons, cc.xy(2, 2));
+
+		JButton packDbg = new JButton(Messages.getString("TracesTab.4"));
+		packDbg.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				JComponent comp = PMS.get().dbgPack().config();
+				String[] cancelStr = {"Close"};
+				JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+					comp, "Options", JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, cancelStr, null);
+			}
+		});
+		builder.add(packDbg, cc.xy(1, 2));
 
 		return builder.getPanel();
 	}

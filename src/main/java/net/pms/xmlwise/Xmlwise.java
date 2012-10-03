@@ -1,13 +1,12 @@
 package net.pms.xmlwise;
 
-import org.w3c.dom.Document;
-import org.xml.sax.InputSource;
-
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.DocumentBuilder;
+import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
-import java.io.File;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
 
 /**
  * Xmlwise convenience methods for loading xml documents and render them into

@@ -4,9 +4,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-
 import javax.swing.JComponent;
-
+import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
@@ -14,7 +13,6 @@ import net.pms.io.InternalJavaProcessImpl;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
-import net.pms.PMS;
 
 public class RAWThumbnailer extends Player {
 	public final static String ID = "rawthumbs";
@@ -116,5 +114,32 @@ public class RAWThumbnailer extends Player {
 		byte b[] = baos.toByteArray();
 		baos.close();
 		return b;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean isCompatible(DLNAResource resource) {
+		if (resource == null || resource.getFormat().getType() != Format.AUDIO) {
+			return false;
+		}
+
+		if (resource.getMediaSubtitle() != null) {
+			// PMS does not support FFmpeg subtitles at the moment.
+			return false;
+		}
+
+		Format format = resource.getFormat();
+
+		if (format != null) {
+			Format.Identifier id = format.getIdentifier();
+
+			if (id.equals(Format.Identifier.RAW)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }

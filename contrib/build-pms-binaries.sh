@@ -2,8 +2,8 @@
 #
 # build-pms-osx.sh
 #
-# Version: 2.1.3
-# Last updated: 2012-05-04
+# Version: 2.2.0
+# Last updated: 2012-07-08
 # Authors: Patrick Atoon, Happy-Neko
 #
 #
@@ -751,9 +751,9 @@ build_ffmpeg() {
     cd ffmpeg
     exit_on_error
 
-    if is_osx; then
-        set_flags
+    set_flags
 
+    if is_osx; then
         # VDA disabled for mplayer, also disabled here to avoid build errors
         ./configure --enable-gpl --enable-version3 --enable-nonfree --disable-doc --disable-debug \
               --enable-libmp3lame --enable-libx264 --enable-libxvid --enable-libfreetype \
@@ -761,22 +761,18 @@ build_ffmpeg() {
               --disable-devices --disable-ffplay --disable-ffserver --disable-ffprobe \
               --disable-shared --enable-static --prefix=$TARGET
     else
-        set_flags
-
         # libvorbis disabled for mplayer, also disabled here to avoid build errors
+        # disable libass for now due to build errors with fontconfig
         ./configure --enable-gpl --enable-version3 --enable-nonfree --disable-doc --disable-debug \
               --enable-libmp3lame --enable-libx264 --enable-libxvid --enable-libfreetype \
+              --disable-libass --disable-fontconfig \
               --enable-runtime-cpudetect \
               --extra-libs=-static \
               --disable-devices --disable-ffplay --disable-ffserver --disable-ffprobe \
-              --disable-vdpau --disable-dxva2 --disable-avisynth \
+              --disable-vda --disable-vaapi --disable-vdpau --disable-dxva2 --disable-avisynth \
               --disable-libtheora --disable-libvorbis \
               --disable-shared --enable-static --prefix=$TARGET
     fi
-
-    # Apply SB patch that was used for the Windows version
-    $PATCH -p1 < $WORKDIR/mplayer-ffmpeg.patch
-    exit_on_error
 
     $MAKE -j$THREADS
     exit_on_error
@@ -855,9 +851,9 @@ build_fontconfig() {
     if is_linux; then
         $MAKE install-exec && $MAKE install-pkgconfigDATA
         exit_on_error
-        # copy freetype headers
-        mkdir $TARGET/include/fontconfig
-        cp ./fontconfig/*.h $TARGET/include/fontconfig/
+        # copy fontconfig headers
+        mkdir -p $TARGET/include/fontconfig
+        cp -f ./fontconfig/*.h $TARGET/include/fontconfig/
         # freetype depends on bzip2
         $SED -i -e "s/^Libs\.private.*$/Libs.private: -lexpat -lfreetype -lz -liconv -lbz2/" $TARGET/lib/pkgconfig/fontconfig.pc
     else
@@ -910,6 +906,28 @@ build_fribidi() {
     cd fribidi-$VERSION_FRIBIDI
     set_flags
     ./configure --disable-shared --disable-dependency-tracking --prefix=$TARGET
+    $MAKE -j$THREADS
+    exit_on_error
+    $MAKE install
+    cd $WORKDIR
+}
+
+
+##########################################
+# libass
+# http://code.google.com/p/libass/
+#
+build_libass() {
+    start_build libass
+    cd $BUILD
+    cp -af $SRC/libass ./
+    exit_on_error
+    cd libass
+    exit_on_error
+
+    set_flags
+
+    ./autogen.sh --disable-shared --enable-static --disable-dependency-tracking --disable-harfbuzz --prefix=$TARGET
     $MAKE -j$THREADS
     exit_on_error
     $MAKE install
@@ -1337,10 +1355,6 @@ build_mplayer() {
         # /usr/bin/gcc gives compile errors for MPlayer on OSX Lion.
         # See https://svn.macports.org/ticket/30279
 
-        # Apply SB patch that was used for the Windows version
-        $PATCH -p0 < $WORKDIR/mplayer.patch
-        exit_on_error
-
         # Theora and vorbis support seems broken in this revision, disable it for now
         ./configure --cc=$GCC2 --disable-x11 --disable-gl --disable-qtx \
               --with-freetype-config=$TARGET/bin/freetype-config --prefix=$TARGET
@@ -1355,10 +1369,6 @@ build_mplayer() {
         set_flags
         export CFLAGS="$CFLAGS -O4 -fomit-frame-pointer -pipe"
         export LDFLAGS="$LDFLAGS -O4 -fomit-frame-pointer -pipe"
-
-        # Apply SB patch that was used for the Windows version
-        $PATCH -p0 < $WORKDIR/mplayer.patch
-        exit_on_error
 
         # mplayer configure patch
         $PATCH -p0 < $WORKDIR/mplayer-configure.patch
@@ -1667,8 +1677,11 @@ build_iconv
 # Note: fontconfig requires freetype and iconv to build
 build_fontconfig
 build_fribidi
+build_enca
 build_giflib
 build_jpeg
+build_libpng
+build_libass
 build_ncurses
 build_lame
 build_libbluray
@@ -1678,7 +1691,6 @@ build_libmad
 build_libzen
 # Note: libmediainfo requires libzen to build
 build_libmediainfo
-build_libpng
 build_libogg
 build_libvorbis
 build_libtheora
@@ -1692,7 +1704,6 @@ if is_osx; then
 fi
 build_dcraw
 build_tsmuxer
-build_enca
 build_ffmpeg
 build_mplayer
 

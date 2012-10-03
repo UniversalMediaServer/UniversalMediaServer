@@ -1,11 +1,9 @@
 package net.pms.dlna;
 
 import java.util.ArrayList;
-
+import net.pms.dlna.virtual.VirtualFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import net.pms.dlna.virtual.VirtualFolder;
 
 public class FolderLimit extends VirtualFolder {
 	private static final Logger logger = LoggerFactory.getLogger(FolderLimit.class);

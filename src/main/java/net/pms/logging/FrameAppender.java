@@ -18,15 +18,13 @@
  */
 package net.pms.logging;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-
-import net.pms.PMS;
-import net.pms.gui.IFrame;
-
 import ch.qos.logback.core.UnsynchronizedAppenderBase;
 import ch.qos.logback.core.encoder.Encoder;
 import ch.qos.logback.core.status.ErrorStatus;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import net.pms.PMS;
+import net.pms.gui.IFrame;
 
 /**
  * Special Logback appender to 'print' log messages on the PMS GUI.

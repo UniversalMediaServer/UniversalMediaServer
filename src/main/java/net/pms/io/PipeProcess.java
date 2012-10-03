@@ -18,20 +18,11 @@
  */
 package net.pms.io;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.RandomAccessFile;
-
+import com.sun.jna.Platform;
+import java.io.*;
 import net.pms.PMS;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.sun.jna.Platform;
 
 public class PipeProcess {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PipeProcess.class);

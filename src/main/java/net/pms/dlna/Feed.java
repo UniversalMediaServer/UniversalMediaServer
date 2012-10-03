@@ -18,23 +18,20 @@
  */
 package net.pms.dlna;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-import org.jdom.Content;
-import org.jdom.Element;
-
 import com.sun.syndication.feed.synd.SyndCategory;
 import com.sun.syndication.feed.synd.SyndEnclosure;
 import com.sun.syndication.feed.synd.SyndEntry;
 import com.sun.syndication.feed.synd.SyndFeed;
 import com.sun.syndication.io.SyndFeedInput;
 import com.sun.syndication.io.XmlReader;
-
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import org.apache.commons.lang.StringUtils;
+import org.jdom.Content;
+import org.jdom.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -145,7 +142,7 @@ public class Feed extends DLNAResource {
 				manageItem();
 			}
 		}
-		setLastmodified(System.currentTimeMillis());
+		setLastModified(System.currentTimeMillis());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -187,6 +184,8 @@ public class Feed extends DLNAResource {
 		return 0;
 	}
 
+	// XXX unused
+	@Deprecated
 	public long lastModified() {
 		return 0;
 	}
@@ -208,7 +207,7 @@ public class Feed extends DLNAResource {
 
 	@Override
 	public boolean isRefreshNeeded() {
-	    return (System.currentTimeMillis() - getLastmodified() > 3600000);
+	    return (System.currentTimeMillis() - getLastModified() > 3600000);
 	}
 
 	@Override

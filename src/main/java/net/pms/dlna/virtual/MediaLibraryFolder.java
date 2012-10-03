@@ -2,13 +2,8 @@ package net.pms.dlna.virtual;
 
 import java.io.File;
 import java.util.ArrayList;
-
 import net.pms.PMS;
-import net.pms.dlna.DLNAMediaDatabase;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.DVDISOFile;
-import net.pms.dlna.PlaylistFolder;
-import net.pms.dlna.RealFile;
+import net.pms.dlna.*;
 
 public class MediaLibraryFolder extends VirtualFolder {
 	public static final int FILES = 0;
@@ -143,7 +138,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 						removedFiles.add(d);
 					}
 					String name = d.getName();
-					long lm = d.getLastmodified();
+					long lm = d.getLastModified();
 					boolean video_ts_hack = (d instanceof DVDISOFile) && d.getName().startsWith(DVDISOFile.PREFIX) && d.getName().substring(DVDISOFile.PREFIX.length()).equals(f.getName());
 					if ((f.getName().equals(name) || video_ts_hack) && f.lastModified() == lm) {
 						removedFiles.remove(d);

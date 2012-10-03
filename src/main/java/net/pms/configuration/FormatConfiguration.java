@@ -1,20 +1,13 @@
 package net.pms.configuration;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.InputFile;
-import net.pms.dlna.MediaInfoParser;
+import net.pms.dlna.LibMediaInfoParser;
 import net.pms.formats.Format;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +21,7 @@ public class FormatConfiguration {
 	public static final String MP4 = "mp4";
 	public static final String MOV = "mov";
 	public static final String FLV = "flv";
+	public static final String WEBM = "WebM";
 	public static final String RM = "rm";
 	public static final String MATROSKA = "mkv";
 	public static final String WAV = "wav";
@@ -75,16 +69,18 @@ public class FormatConfiguration {
 		boolean force_v1 = false;
 		if (file.getFile() != null) {
 			String fName = file.getFile().getName().toLowerCase();
+
 			for (String e : PARSER_V1_EXTENSIONS) {
 				if (fName.endsWith(e)) {
 					force_v1 = true;
 					break;
 				}
 			}
+
 			if (force_v1) {
 				media.parse(file, ext, type, false);
 			} else {
-				MediaInfoParser.parse(media, file, type);
+				LibMediaInfoParser.parse(media, file, type);
 			}
 		} else {
 			media.parse(file, ext, type, false);
@@ -192,7 +188,6 @@ public class FormatConfiguration {
 		}
 
 		public boolean match(String format, String videocodec, String audiocodec, int nbAudioChannels, int frequency, int bitrate, int videowidth, int videoheight, Map<String, String> extras) {
-
 			boolean matched = false;
 
 			if (format != null && !(matched = pformat.matcher(format).matches())) {
@@ -319,15 +314,16 @@ public class FormatConfiguration {
 	 */
 	public String match(DLNAMediaInfo media) {
 		if (media.getFirstAudioTrack() == null) {
-			// no sound
+			// No sound
 			return match(media.getContainer(), media.getCodecV(), null, 0, 0, media.getBitrate(), media.getWidth(), media.getHeight(), media.getExtras());
 		} else {
 			String finalMimeType = null;
-			for (DLNAMediaAudio audio : media.getAudioCodes()) {
-				String mimeType = match(media.getContainer(), media.getCodecV(), audio.getCodecA(), audio.getNrAudioChannels(), audio.getSampleRate(), media.getBitrate(), media.getWidth(), media.getHeight(), media.getExtras());
+			for (DLNAMediaAudio audio : media.getAudioTracksList()) {
+				String mimeType = match(media.getContainer(), media.getCodecV(), audio.getCodecA(), audio.getAudioProperties().getNumberOfChannels(), audio.getSampleRate(), media.getBitrate(), media.getWidth(), media.getHeight(), media.getExtras());
 				finalMimeType = mimeType;
-				if (mimeType == null) // if at least one audio track is not compatible, the file must be transcoded.
-				{
+
+				// If at least one audio track is not compatible, the file must be transcoded.
+				if (mimeType == null) {
 					return null;
 				}
 			}
@@ -376,7 +372,7 @@ public class FormatConfiguration {
 			} else if (token.startsWith("b:")) {
 				conf.maxbitrate = token.substring(2).trim();
 			} else if (token.contains(":")) {
-				// extra mediainfo stuff
+				// Extra MediaInfo stuff
 				if (conf.miExtras == null) {
 					conf.miExtras = new HashMap<String, Pattern>();
 				}

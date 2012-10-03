@@ -5,18 +5,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-
-import jwbroek.cuelib.CueParser;
-import jwbroek.cuelib.CueSheet;
-import jwbroek.cuelib.FileData;
-import jwbroek.cuelib.Position;
-import jwbroek.cuelib.TrackData;
+import jwbroek.cuelib.*;
 import net.pms.PMS;
 import net.pms.encoders.MEncoderVideo;
 import net.pms.encoders.MPlayerAudio;
 import net.pms.encoders.Player;
 import net.pms.formats.Format;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +26,7 @@ public class CueFolder extends DLNAResource {
 
 	public CueFolder(File f) {
 		playlistfile = f;
-		setLastmodified(playlistfile.lastModified());
+		setLastModified(playlistfile.lastModified());
 	}
 
 	@Override
@@ -120,14 +114,14 @@ public class CueFolder extends DLNAResource {
 
 						if (r.getPlayer() == null) { // assign a splitter engine if file is natively supported by renderer
 							if (defaultPlayer == null) {
-								if (r.getExt() == null) {
+								if (r.getFormat() == null) {
 									LOGGER.error("No file format known for file \"{}\", assuming it is a video for now.", r.getName());
 									// XXX aren't players supposed to be singletons?
 									// NOTE: needs new signature for getPlayer():
 									// PlayerFactory.getPlayer(MEncoderVideo.class)
 									defaultPlayer = new MEncoderVideo(PMS.getConfiguration());
 								} else {
-									if (r.getExt().isAudio()) {
+									if (r.getFormat().isAudio()) {
 										// XXX PlayerFactory.getPlayer(MPlayerAudio.class)
 										defaultPlayer = new MPlayerAudio(PMS.getConfiguration());
 									} else {
@@ -147,7 +141,7 @@ public class CueFolder extends DLNAResource {
 								LOGGER.info("Error in cloning media info: " + e.getMessage());
 							}
 							if (r.getMedia() != null && r.getMedia().getFirstAudioTrack() != null) {
-								if (r.getExt().isAudio()) {
+								if (r.getFormat().isAudio()) {
 									r.getMedia().getFirstAudioTrack().setSongname(track.getTitle());
 								} else {
 									r.getMedia().getFirstAudioTrack().setSongname("Chapter #" + (i + 1));

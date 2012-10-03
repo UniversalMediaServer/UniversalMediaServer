@@ -1,6 +1,7 @@
 /*
  * PS3 Media Server, for streaming any medias to your PS3.
  * Copyright (C) 2008  A.Brochard
+ * Copyright (C) 2012  I. Sokolov
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,89 +20,28 @@
 package net.pms.dlna;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-
-import net.pms.PMS;
-
+import net.pms.formats.v2.SubtitleType;
+import static net.pms.formats.v2.SubtitleType.*;
+import net.pms.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * This class keeps track of the subtitle information for media.
- * 
- * TODO: Change all instance variables to private. For backwards compatibility
- * with external plugin code the variables have all been marked as deprecated
- * instead of changed to private, but this will surely change in the future.
- * When everything has been changed to private, the deprecated note can be
- * removed.
  */
 public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAMediaSubtitle.class);
+	private SubtitleType type = UNKNOWN;
 
-	public static final int SUBRIP = 1;
-	public static final int TEXT = 2;
-	public static final int MICRODVD = 3;
-	public static final int SAMI = 4;
-	public static final int ASS = 5;
-	public static final int VOBSUB = 6;
-	public static final int EMBEDDED = 7;
-	public static String subExtensions[] = new String[]{"srt", "txt", "sub", "smi", "ass", "idx"};
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
+	/*
+	 * This tells us whether the track is forced or not
 	 */
-	@Deprecated
-	public int type;
+	private String flavor;
 
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String flavor;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public File file;
-	private File utf8_file;
-
-	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public boolean is_file_utf8;
-
-	public File getPlayableFile() {
-		if (utf8_file != null) {
-			return utf8_file;
-		}
-		return file;
-	}
-
-	public String getSubType() {
-		switch (type) {
-			case SUBRIP:
-				return "SubRip";
-			case TEXT:
-				return "Text File";
-			case MICRODVD:
-				return "MicroDVD";
-			case SAMI:
-				return "Sami";
-			case ASS:
-				return "ASS/SSA";
-			case VOBSUB:
-				return "VobSub";
-			case EMBEDDED:
-				return "Embedded";
-		}
-		return "-";
-	}
+	private File externalFile;
+	private String externalFileCharacterSet;
 
 	/**
 	 * Returns whether or not the subtitles are embedded.
@@ -110,65 +50,36 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	 * @since 1.51.0
 	 */
 	public boolean isEmbedded() {
-		switch (type) {
-			case ASS:
-				// No file available means the subtitles are embedded
-				return (file == null);
-			case EMBEDDED:
-				return true;
-		}
-		return false;
+		return (externalFile == null);
 	}
 
+	/**
+	 * Returns whether or not the subtitles are external.
+	 *
+	 * @return True if the subtitles are external file, false otherwise.
+	 * @since 1.70.0
+	 */
+	public boolean isExternal() {
+		return !isEmbedded();
+	}
+
+	@Override
 	public String toString() {
-		return "Sub: " + getSubType() + " / lang: " + getLang() + " / flavor: " + flavor + " / ID: " + getId() + " / FILE: " + (file != null ? file.getAbsolutePath() : "-");
+		return "DLNAMediaSubtitle{" +
+				"id=" + getId() +
+				", type=" + type +
+				", flavor='" + flavor + '\'' +
+				", lang='" + getLang() + '\'' +
+				", externalFile=" + externalFile +
+				", externalFileCharacterSet='" + externalFileCharacterSet + '\'' +
+				'}';
 	}
 
+	/**
+	 * @deprecated charset is autodetected for text subtitles after setExternalFile()
+	 */
+	@Deprecated
 	public void checkUnicode() {
-		if (file != null && file.exists() && file.length() > 3) {
-			FileInputStream fis = null;
-			try {
-				int is_file_unicode = 0;
-
-				fis = new FileInputStream(file);
-				int b1 = fis.read();
-				int b2 = fis.read();
-				int b3 = fis.read();
-				if (b1 == 255 && b2 == 254) {
-					is_file_unicode = 1;
-				} else if (b1 == 254 && b2 == 255) {
-					is_file_unicode = 2;
-				} else if (b1 == 239 && b2 == 187 && b3 == 191) {
-					is_file_utf8 = true;
-				}
-
-				// MPlayer doesn't handle UTF-16 encoded subs
-				if (is_file_unicode > 0) {
-					is_file_utf8 = true;
-					utf8_file = new File(PMS.getConfiguration().getTempFolder(), "utf8_" + file.getName());
-					if (!utf8_file.exists()) {
-						InputStreamReader r = new InputStreamReader(new FileInputStream(file), is_file_unicode == 1 ? "UTF-16" : "UTF-16BE");
-						OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(utf8_file), "UTF-8");
-						int c;
-						while ((c = r.read()) != -1) {
-							osw.write(c);
-						}
-						osw.close();
-						r.close();
-					}
-				}
-			} catch (IOException e) {
-				LOGGER.error(null, e);
-			} finally {
-				if (fis != null) {
-					try {
-						fis.close();
-					} catch (IOException e) {
-						LOGGER.debug("Caught exception", e);
-					}
-				}
-			}
-		}
 	}
 
 	@Override
@@ -179,14 +90,17 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	/**
 	 * @return the type
 	 */
-	public int getType() {
+	public SubtitleType getType() {
 		return type;
 	}
 
 	/**
 	 * @param type the type to set
 	 */
-	public void setType(int type) {
+	public void setType(SubtitleType type) {
+		if (type == null) {
+			throw new IllegalArgumentException("Can't set null SubtitleType.");
+		}
 		this.type = type;
 	}
 
@@ -205,30 +119,73 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
-	 * @return the file
+	 * @deprecated use FileUtil.convertFileFromUtf16ToUtf8() for UTF-16 -> UTF-8 conversion.
 	 */
-	public File getFile() {
-		return file;
+	@Deprecated
+	public File getPlayableExternalFile() {
+		return getExternalFile();
 	}
 
 	/**
-	 * @param file the file to set
+	 * @return the externalFile
 	 */
-	public void setFile(File file) {
-		this.file = file;
+	public File getExternalFile() {
+		return externalFile;
 	}
 
 	/**
-	 * @return the is_file_utf8
+	 * @param externalFile the externalFile to set
 	 */
-	public boolean isFileUtf8() {
-		return is_file_utf8;
+	public void setExternalFile(File externalFile) throws FileNotFoundException {
+		if (externalFile == null || !externalFile.canRead()) {
+			throw new FileNotFoundException("Can't read file.");
+		}
+		this.externalFile = externalFile;
+		setExternalFileCharacterSet();
+	}
+
+	private void setExternalFileCharacterSet() {
+		if (type == VOBSUB || type == BMP || type == DIVX || type == PGS) {
+			externalFileCharacterSet = null;
+		} else {
+			try {
+				externalFileCharacterSet = FileUtil.getFileCharset(externalFile);
+			} catch (IOException ex) {
+				externalFileCharacterSet = null;
+				LOGGER.warn("Exception during external file charset detection.", ex);
+			}
+		}
+	}
+
+	public String getExternalFileCharacterSet() {
+		return externalFileCharacterSet;
 	}
 
 	/**
-	 * @param isFileUtf8 the is_file_utf8 to set
+	 * @return true if external subtitles file is UTF-8 encoded, false otherwise.
 	 */
-	public void setFileUtf8(boolean isFileUtf8) {
-		is_file_utf8 = isFileUtf8;
+	public boolean isExternalFileUtf8() {
+		return FileUtil.isCharsetUTF8(externalFileCharacterSet);
+	}
+
+	/**
+	 * @return true if external subtitles file is UTF-16 encoded, false otherwise.
+	 */
+	public boolean isExternalFileUtf16() {
+		return FileUtil.isCharsetUTF16(externalFileCharacterSet);
+	}
+
+	/**
+	 * @return true if external subtitles file is UTF-32 encoded, false otherwise.
+	 */
+	public boolean isExternalFileUtf32() {
+		return FileUtil.isCharsetUTF32(externalFileCharacterSet);
+	}
+
+	/**
+	 * @return true if external subtitles file is UTF-8 or UTF-16 encoded, false otherwise.
+	 */
+	public boolean isExternalFileUtf() {
+		return (isExternalFileUtf8() || isExternalFileUtf16() || isExternalFileUtf32());
 	}
 }
