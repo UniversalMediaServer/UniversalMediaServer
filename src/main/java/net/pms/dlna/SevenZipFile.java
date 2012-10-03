@@ -37,11 +37,11 @@ public class SevenZipFile extends DLNAResource {
 	private File file;
 	private ISevenZipInArchive arc;
 
-	public SevenZipFile(File file) {
-		file = file;
+	public SevenZipFile(File f) {
+		file = f;
 		setLastModified(file.lastModified());
 		try {
-			RandomAccessFile rf = new RandomAccessFile(file, "r");
+			RandomAccessFile rf = new RandomAccessFile(f, "r");
 			arc = SevenZip.openInArchive(null, (IInStream) new RandomAccessFileInStream(rf));
 			ISimpleInArchive simpleInArchive = arc.getSimpleInterface();
 
@@ -52,7 +52,7 @@ public class SevenZipFile extends DLNAResource {
 				if (item.isFolder()) {
 					continue;
 				}
-				addChild(new SevenZipEntry(file, item.getPath(), item.getSize()));
+				addChild(new SevenZipEntry(f, item.getPath(), item.getSize()));
 			}
 		} catch (IOException e) {
 			LOGGER.error("Error reading archive file", e);
