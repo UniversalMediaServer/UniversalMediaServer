@@ -16,18 +16,18 @@ import org.slf4j.LoggerFactory;
 
 public class SevenZipFile extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SevenZipFile.class);
-	private File z;
+	private File file;
 	private ISevenZipInArchive arc;
 
 	public SevenZipFile(File f) {
-		z = f;
-		setLastmodified(z.lastModified());
+		file = f;
+		setLastmodified(file.lastModified());
 		try {
 			RandomAccessFile rf = new RandomAccessFile(f, "r");
 			arc = SevenZip.openInArchive(null, (IInStream) new RandomAccessFileInStream(rf));
 			ISimpleInArchive simpleInArchive = arc.getSimpleInterface();
 			for (ISimpleInArchiveItem item : simpleInArchive.getArchiveItems()) {
-				LOGGER.debug("found " + item.getPath() + " in arc " + z.getAbsolutePath());
+				LOGGER.debug("found " + item.getPath() + " in arc " + file.getAbsolutePath());
 
 				// Skip folders for now
 				if (item.isFolder()) {
@@ -49,12 +49,12 @@ public class SevenZipFile extends DLNAResource {
 
 	@Override
 	public String getName() {
-		return z.getName();
+		return file.getName();
 	}
 
 	@Override
 	public String getSystemName() {
-		return z.getAbsolutePath();
+		return file.getAbsolutePath();
 	}
 
 	@Override
@@ -64,7 +64,7 @@ public class SevenZipFile extends DLNAResource {
 
 	@Override
 	public boolean isValid() {
-		return z.exists();
+		return file.exists();
 	}
 
 	@Override
