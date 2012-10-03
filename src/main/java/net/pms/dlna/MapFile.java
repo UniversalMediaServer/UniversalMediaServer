@@ -31,7 +31,6 @@ import net.pms.formats.FormatFactory;
 import net.pms.network.HTTPResource;
 import net.pms.util.NaturalComparator;
 import net.sf.sevenzipjbinding.ArchiveFormat;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,7 +112,7 @@ public class MapFile extends DLNAResource {
 
 		return isRelevant;
 	}
-	
+
 	private boolean isArchive(String name) {
 		ArchiveFormat[] vals=ArchiveFormat.values();
 		for(int i=0;i<vals.length;i++) {

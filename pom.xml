@@ -320,22 +320,20 @@
 			<version>${mediautil-version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.googlecode.juniversalchardet</groupId>			<artifactId>juniversalchardet</artifactId>
+			<groupId>com.googlecode.juniversalchardet</groupId>
+			<artifactId>juniversalchardet</artifactId>
 			<version>1.0.3</version>
 		</dependency>
-
 		<dependency>
 			<groupId>sevenzip</groupId>
 			<artifactId>jbinding</artifactId>
 			<version>${sevenzip-version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>sevenzip-windows</groupId>
 			<artifactId>jbinding-windows</artifactId>
 			<version>${sevenzip-version}</version>
 		</dependency>
-
 		<dependency>
 			<groupId>sevenzip-linux</groupId>
 			<artifactId>jbinding-linux</artifactId>
@@ -343,7 +341,8 @@
 		</dependency>
 
 		<dependency>
-			<groupId>junit</groupId>			<artifactId>junit</artifactId>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
 			<version>4.8.1</version>
 			<scope>test</scope>
 		</dependency>
@@ -353,7 +352,6 @@
 			<version>1.4</version>
 			<scope>test</scope>
 		</dependency>
-
 	</dependencies>
 	<build>
 		<defaultGoal>assembly:assembly</defaultGoal>
@@ -412,7 +410,6 @@
 				<targetPath>..</targetPath>
 			</resource>
 		</resources>
-
 		<testResources>
 			<testResource>
 				<directory>src/test/resources</directory>
@@ -609,7 +606,6 @@
 							<extractFile>jgoodies-{artifactId}-{version}/jgoodies-{artifactId}-{version}.{packaging}</extractFile>
 							<extractFileChecksum>f3955d59f2263fb889b02febec74377647a2eaba</extractFileChecksum>
 						</artifactItem>
-
 						<artifactItem>
 							<groupId>sevenzip</groupId>
 							<artifactId>jbinding</artifactId>
@@ -618,7 +614,6 @@
 							<install>true</install>
 							<downloadUrl>http://ikube.dyndns.org:8080/artifactory/libs-release-local/sevenzip/jbinding/{version}/jbinding-{version}.{packaging}</downloadUrl>
 						</artifactItem>
-
 						<artifactItem>
 							<groupId>sevenzip-windows</groupId>
 							<artifactId>jbinding-windows</artifactId>
@@ -627,7 +622,6 @@
 							<install>true</install>
 							<downloadUrl>http://ikube.dyndns.org:8080/artifactory/libs-release-local/sevenzip/jbinding-windows/{version}/jbinding-windows-{version}.{packaging}</downloadUrl>
 						</artifactItem>
-
 						<artifactItem>
 							<groupId>sevenzip-linux</groupId>
 							<artifactId>jbinding-linux</artifactId>
@@ -636,7 +630,6 @@
 							<install>true</install>
 							<downloadUrl>http://ikube.dyndns.org:8080/artifactory/libs-release-local/sevenzip/jbinding-linux/{version}/jbinding-linux-{version}.{packaging}</downloadUrl>
 						</artifactItem>
-
 						<artifactItem>
 							<groupId>com.jgoodies</groupId>
 							<artifactId>forms</artifactId>
@@ -730,7 +723,6 @@
 								<report>dependency-management</report>
 								<report>plugins</report>
 							</reports>
-						
 						</plugin>
 
 						<!-- PMS tests report -->
@@ -751,7 +743,7 @@
 							<configuration>
 								<quiet>true</quiet>
 								<tags>
-								<tag>
+									<tag>
 										<name>todo</name>
 										<placement>a</placement>
 										<head>To Do:</head>
