@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
-
 import net.pms.formats.Format;
 import net.pms.util.FileUtil;
 import net.sf.sevenzipjbinding.ExtractOperationResult;
@@ -17,25 +16,22 @@ import net.sf.sevenzipjbinding.SevenZipException;
 import net.sf.sevenzipjbinding.impl.RandomAccessFileInStream;
 import net.sf.sevenzipjbinding.simple.ISimpleInArchive;
 import net.sf.sevenzipjbinding.simple.ISimpleInArchiveItem;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SevenZipEntry extends DLNAResource implements IPushOutput {
-	
-	
 	private static final Logger LOGGER = LoggerFactory.getLogger(SevenZipEntry.class);
 	private File z;
 	private String zeName;
 	private long length;
 	private ISevenZipInArchive arc;
-	
+
 	public SevenZipEntry(File z, String zeName, long length) {
 		this.zeName = zeName;
 		this.z = z;
 		this.length = length;
 	}
-	
+
 	@Override
 	public InputStream getInputStream() throws IOException {
 		return null;
@@ -73,40 +69,42 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 
 	@Override
 	public boolean isUnderlyingSeekSupported() {
-			return length() < MAX_ARCHIVE_SIZE_SEEK;
+		return length() < MAX_ARCHIVE_SIZE_SEEK;
 	}
 
 	@Override
 	public void push(final OutputStream out) throws IOException {
 		Runnable r = new Runnable() {
+			@Override
 			public void run() {
 				try {
 					RandomAccessFile rf = new RandomAccessFile(z, "r");
-					arc = SevenZip.openInArchive(null,(IInStream) new RandomAccessFileInStream(rf));
+					arc = SevenZip.openInArchive(null, (IInStream) new RandomAccessFileInStream(rf));
 					ISimpleInArchive simpleInArchive = arc.getSimpleInterface();
 					ISimpleInArchiveItem realItem = null;
 					for (ISimpleInArchiveItem item : simpleInArchive.getArchiveItems()) {
-						if(item.getPath().equals(zeName)) {
+						if (item.getPath().equals(zeName)) {
 							realItem = item;
 							break;
 						}
 					}
-					if(realItem == null) {
-						LOGGER.trace("No such item "+zeName+" found in archive");
+					if (realItem == null) {
+						LOGGER.trace("No such item " + zeName + " found in archive");
 						return;
 					}
 					int n = -1;
 					//byte data[] = new byte[65536];
-					 ExtractOperationResult result = realItem.extractSlow(new ISequentialOutStream() {
-                        public int write(byte[] data) throws SevenZipException {
-                        	try {
+					ExtractOperationResult result = realItem.extractSlow(new ISequentialOutStream() {
+						@Override
+						public int write(byte[] data) throws SevenZipException {
+							try {
 								out.write(data);
 							} catch (IOException e) {
 								LOGGER.debug("Caught exception", e);
 								throw new SevenZipException();
 							}
-                        	return data.length;
-                        }
+							return data.length;
+						}
 					});
 				} catch (Exception e) {
 					LOGGER.debug("Unpack error, maybe it's normal, as backend can be terminated: " + e.getMessage());
@@ -124,7 +122,8 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 		};
 		new Thread(r, "7Zip Extractor").start();
 	}
-	
+
+	@Override
 	public void resolve() {
 		if (getExt() == null || !getExt().isVideo()) {
 			return;
@@ -144,6 +143,4 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 		}
 		super.resolve();
 	}
-	
-
 }
