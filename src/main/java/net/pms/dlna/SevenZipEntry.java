@@ -1,3 +1,21 @@
+/*
+ * Universal Media Server
+ * Copyright (C) 2012  SharkHunter
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; version 2
+ * of the License only.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ */
 package net.pms.dlna;
 
 import java.io.File;
@@ -43,8 +61,12 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 	}
 
 	@Override
-	public String getSystemName() {
-		return FileUtil.getFileNameWithoutExtension(file.getAbsolutePath()) + "." + FileUtil.getExtension(zeName);
+	public long length() {
+		if (getPlayer() != null && getPlayer().type() != Format.IMAGE) {
+			return DLNAMediaInfo.TRANS_SIZE;
+		}
+
+		return length;
 	}
 
 	@Override
@@ -53,18 +75,15 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 	}
 
 	@Override
-	public boolean isValid() {
-		checktype();
-		setSrtFile(FileUtil.doesSubtitlesExists(file, null));
-		return getExt() != null;
+	public String getSystemName() {
+		return FileUtil.getFileNameWithoutExtension(file.getAbsolutePath()) + "." + FileUtil.getExtension(zeName);
 	}
 
 	@Override
-	public long length() {
-		if (getPlayer() != null && getPlayer().type() != Format.IMAGE) {
-			return DLNAMediaInfo.TRANS_SIZE;
-		}
-		return length;
+	public boolean isValid() {
+		checktype();
+		setSrtFile(FileUtil.doesSubtitlesExists(file, null));
+		return getFormat() != null;
 	}
 
 	@Override
@@ -75,25 +94,31 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 	@Override
 	public void push(final OutputStream out) throws IOException {
 		Runnable r = new Runnable() {
+			InputStream in = null;
+
 			@Override
 			public void run() {
 				try {
+					int n = -1;
+					//byte data[] = new byte[65536];
 					RandomAccessFile rf = new RandomAccessFile(file, "r");
+
 					arc = SevenZip.openInArchive(null, (IInStream) new RandomAccessFileInStream(rf));
 					ISimpleInArchive simpleInArchive = arc.getSimpleInterface();
 					ISimpleInArchiveItem realItem = null;
+
 					for (ISimpleInArchiveItem item : simpleInArchive.getArchiveItems()) {
 						if (item.getPath().equals(zeName)) {
 							realItem = item;
 							break;
 						}
 					}
+
 					if (realItem == null) {
 						LOGGER.trace("No such item " + zeName + " found in archive");
 						return;
 					}
-					int n = -1;
-					//byte data[] = new byte[65536];
+
 					ExtractOperationResult result = realItem.extractSlow(new ISequentialOutStream() {
 						@Override
 						public int write(byte[] data) throws SevenZipException {
@@ -107,40 +132,49 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 						}
 					});
 				} catch (Exception e) {
-					LOGGER.debug("Unpack error, maybe it's normal, as backend can be terminated: " + e.getMessage());
+					LOGGER.error("Unpack error. Possibly harmless.", e);
 				} finally {
 					try {
+						if (in != null) {
+							in.close();
+						}
 						arc.close();
 						out.close();
 					} catch (IOException e) {
 						LOGGER.debug("Caught exception", e);
 					} catch (SevenZipException e) {
-						LOGGER.debug("Caught exception", e);
+						LOGGER.debug("Caught 7-Zip exception", e);
 					}
 				}
 			}
 		};
+
 		new Thread(r, "7Zip Extractor").start();
 	}
 
 	@Override
 	public void resolve() {
-		if (getExt() == null || !getExt().isVideo()) {
+		if (getFormat() == null || !getFormat().isVideo()) {
 			return;
 		}
+
 		boolean found = false;
+
 		if (!found) {
 			if (getMedia() == null) {
 				setMedia(new DLNAMediaInfo());
 			}
+
 			found = !getMedia().isMediaparsed() && !getMedia().isParsing();
-			if (getExt() != null) {
+
+			if (getFormat() != null) {
 				InputFile input = new InputFile();
 				input.setPush(this);
 				input.setSize(length());
-				getExt().parse(getMedia(), input, getType());
+				getFormat().parse(getMedia(), input, getType());
 			}
 		}
+
 		super.resolve();
 	}
 }

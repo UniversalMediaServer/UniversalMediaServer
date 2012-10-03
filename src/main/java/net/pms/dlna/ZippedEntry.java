@@ -52,14 +52,17 @@ public class ZippedEntry extends DLNAResource implements IPushOutput {
 		this.length = length;
 	}
 
+	@Override
 	public InputStream getInputStream() {
 		return null;
 	}
 
+	@Override
 	public String getName() {
 		return zeName;
 	}
 
+	@Override
 	public long length() {
 		if (getPlayer() != null && getPlayer().type() != Format.IMAGE) {
 			return DLNAMediaInfo.TRANS_SIZE;
@@ -68,6 +71,7 @@ public class ZippedEntry extends DLNAResource implements IPushOutput {
 		return length;
 	}
 
+	@Override
 	public boolean isFolder() {
 		return false;
 	}
@@ -100,6 +104,7 @@ public class ZippedEntry extends DLNAResource implements IPushOutput {
 		Runnable r = new Runnable() {
 			InputStream in = null;
 
+			@Override
 			public void run() {
 				try {
 					int n = -1;
