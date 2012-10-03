@@ -41,9 +41,10 @@ import org.slf4j.LoggerFactory;
 public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RequestHandlerV2.class);
 
-	private static final Pattern TIMERANGE_PATTERN =
-		Pattern.compile("timeseekrange\\.dlna\\.org\\W*npt\\W*=\\W*([\\d\\.:]+)?\\-?([\\d\\.:]+)?",
-		Pattern.CASE_INSENSITIVE);
+	private static final Pattern TIMERANGE_PATTERN = Pattern.compile(
+		"timeseekrange\\.dlna\\.org\\W*npt\\W*=\\W*([\\d\\.:]+)?\\-?([\\d\\.:]+)?",
+		Pattern.CASE_INSENSITIVE
+	);
 
 	private volatile HttpRequest nettyRequest;
 	private final ChannelGroup group;

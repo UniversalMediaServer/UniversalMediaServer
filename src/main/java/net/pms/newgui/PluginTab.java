@@ -24,6 +24,9 @@ import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
+import javax.swing.table.TableColumn;
+
+import org.apache.commons.lang.StringUtils;
 
 import net.pms.Messages;
 import net.pms.PMS;
@@ -65,31 +68,55 @@ public class PluginTab {
 			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 		
 		final ArrayList<DownloadPlugins> plugins = DownloadPlugins.downloadList();
-		String[] cols = {Messages.getString("NetworkTab.41"), Messages.getString("NetworkTab.42"),
-			Messages.getString("NetworkTab.43")};
-		final JTable tab = new JTable(plugins.size() + 1, cols.length) {
+		String[] cols = {
+				Messages.getString("NetworkTab.41"),
+				Messages.getString("NetworkTab.42"),
+				Messages.getString("NetworkTab.43"),
+				Messages.getString("NetworkTab.53")
+			};
+		final JTable table = new JTable(plugins.size() + 1, cols.length) {
+			@Override
+			public boolean isCellEditable(int rowIndex, int vColIndex) {
+				return false;
+			}
+			
 			public String getToolTipText(MouseEvent e) {
 				java.awt.Point p = e.getPoint();
 				int rowIndex = rowAtPoint(p);
+				
 				if (rowIndex == 0) {
 					return "";
 				}
+				
 				DownloadPlugins plugin = plugins.get(rowIndex - 1);
 				return plugin.htmlString();
 			}
 		};
+		
 		for (int i = 0; i < cols.length; i++) {
-			tab.setValueAt(cols[i], 0, i);
-		}
-		tab.setCellEditor(null);
-		for (int i = 0; i < plugins.size(); i++) {
-			DownloadPlugins p = plugins.get(i);
-			tab.setValueAt(p.getName(), i + 1, 0);
-			tab.setValueAt(p.getRating(), i + 1, 1);
-			tab.setValueAt(p.getAuthor(), i + 1, 2);
+			table.setValueAt(cols[i], 0, i);
 		}
 		
-		builder.add(tab, FormLayoutUtil.flip(cc.xyw(1, 7, 9), colSpec, orientation));
+		for (int i = 0; i < plugins.size(); i++) {
+			DownloadPlugins p = plugins.get(i);
+			table.setValueAt(p.getName(), i + 1, 0);
+			table.setValueAt(p.getRating(), i + 1, 1);
+			table.setValueAt(p.getAuthor(), i + 1, 2);
+			table.setValueAt(p.getDescription(), i + 1, 3);
+		}
+		
+		// Define column widths
+		TableColumn nameColumn = table.getColumnModel().getColumn(0);
+		nameColumn.setMinWidth(70);
+		TableColumn ratingColumn = table.getColumnModel().getColumn(1);
+		ratingColumn.setPreferredWidth(45);
+		TableColumn authorColumn = table.getColumnModel().getColumn(2);
+		authorColumn.setMinWidth(100);
+		TableColumn descriptionColumn = table.getColumnModel().getColumn(3);
+		descriptionColumn.setMinWidth(300);
+		descriptionColumn.setMaxWidth(600);
+		
+		builder.add(table, FormLayoutUtil.flip(cc.xyw(1, 7, 9), colSpec, orientation));
 		
 		JButton install = new JButton(Messages.getString("NetworkTab.39"));
 		builder.add(install, FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
@@ -99,7 +126,25 @@ public class PluginTab {
 					JOptionPane.showMessageDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())), Messages.getString("NetworkTab.40"));
 					return;
 				}
-				final int[] rows = tab.getSelectedRows();
+
+				String permissionsReminder = "";
+				if (
+					"Windows 7".equals(System.getProperty("os.name")) ||
+					"Windows Vista".equals(System.getProperty("os.name"))
+				) {
+					permissionsReminder = "Make sure UMS is running as administrator before proceeding";
+				}
+				if(!StringUtils.isEmpty(permissionsReminder)) {
+					int id=JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+							permissionsReminder, null,
+							JOptionPane.OK_CANCEL_OPTION,
+							JOptionPane.PLAIN_MESSAGE, null, null, null);
+
+					if (id != 0) { // Cancel, do nothing
+						return;
+					}
+				}
+				final int[] rows = table.getSelectedRows();
 				JPanel panel = new JPanel();
 				GridLayout layout = new GridLayout(3, 1);
 				panel.setLayout(layout);
@@ -113,6 +158,9 @@ public class PluginTab {
 				panel.add(inst);
 				panel.add(label);
 				frame.add(panel);
+				
+				// Center the installation progress window
+				frame.setLocationRelativeTo(null);
 				frame.setVisible(true);
 				Runnable r = new Runnable() {
 					public void run() {

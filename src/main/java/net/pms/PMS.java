@@ -20,18 +20,17 @@
 package net.pms;
 
 import com.sun.jna.Platform;
-import java.awt.GraphicsEnvironment;
-import java.awt.Toolkit;
+import java.awt.*;
 import java.io.*;
 import java.net.BindException;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
-import java.util.Map.Entry;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.logging.LogManager;
-import javax.swing.JOptionPane;
+import javax.swing.*;
 import net.pms.configuration.Build;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -265,7 +264,7 @@ public class PMS {
 	private DLNAMediaDatabase database;
 
 	private void initializeDatabase() {
-		database = new DLNAMediaDatabase("medias");
+		database = new DLNAMediaDatabase("medias"); // TODO: rename "medias" -> "cache"
 		database.init(false);
 	}
 
@@ -845,6 +844,7 @@ public class PMS {
 
 		try {
 			Toolkit.getDefaultToolkit();
+
 			if (GraphicsEnvironment.isHeadless()) {
 				if (System.getProperty(NOCONSOLE) == null) {
 					System.setProperty(CONSOLE, Boolean.toString(true));
@@ -853,7 +853,8 @@ public class PMS {
 				headless = false;
 			}
 		} catch (Throwable t) {
-			System.err.println("Toolkit error: " + t.getMessage());
+			System.err.println("Toolkit error: " + t.getClass().getName() + ": " + t.getMessage());
+
 			if (System.getProperty(NOCONSOLE) == null) {
 				System.setProperty(CONSOLE, Boolean.toString(true));
 			}
@@ -876,8 +877,22 @@ public class PMS {
 			// create the PMS instance returned by get()
 			createInstance(); 
 		} catch (Throwable t) {
-			System.err.println("Configuration error: " + t.getMessage());
-			JOptionPane.showMessageDialog(null, "Configuration error:"+t.getMessage(), "Error initalizing PMS!", JOptionPane.ERROR_MESSAGE);
+			String errorMessage = String.format(
+				"Configuration error: %s: %s",
+				t.getClass().getName(),
+				t.getMessage()
+			);
+
+			System.err.println(errorMessage);
+
+			if (!headless && instance != null) {
+				JOptionPane.showMessageDialog(
+					((JFrame) (SwingUtilities.getWindowAncestor((Component) instance.getFrame()))),
+					errorMessage,
+					"Error initalizing UMS!",
+					JOptionPane.ERROR_MESSAGE
+				);
+			}
 		}
 	}
 

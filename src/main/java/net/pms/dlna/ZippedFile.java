@@ -30,67 +30,73 @@ import org.slf4j.LoggerFactory;
 
 public class ZippedFile extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ZippedFile.class);
-	private File z;
+	private File file;
 	private ZipFile zip;
 
-	public ZippedFile(File z) {
-		this.z = z;
-		setLastmodified(z.lastModified());
+	public ZippedFile(File file) {
+		this.file = file;
+		setLastModified(file.lastModified());
+
 		try {
-			zip = new ZipFile(z);
+			zip = new ZipFile(file);
 			Enumeration<? extends ZipEntry> enm = zip.entries();
+
 			while (enm.hasMoreElements()) {
 				ZipEntry ze = enm.nextElement();
-				addChild(new ZippedEntry(z, ze.getName(), ze.getSize()));
+				addChild(new ZippedEntry(file, ze.getName(), ze.getSize()));
 			}
+
 			zip.close();
 		} catch (ZipException e) {
-			LOGGER.error(null, e);
+			LOGGER.error("Error reading zip file", e);
 		} catch (IOException e) {
-			LOGGER.error(null, e);
+			LOGGER.error("Error reading zip file", e);
 		}
 	}
 
 	@Override
 	protected String getThumbnailURL() {
 		if (getType() == Format.IMAGE) {
-			// no thumbnail support for now for real based disk images
+			// no thumbnail support for now for zip files
 			return null;
 		}
+
 		return super.getThumbnailURL();
 	}
 
 	public InputStream getInputStream() {
 		try {
-			return new ZipInputStream(new FileInputStream(z));
+			return new ZipInputStream(new FileInputStream(file));
 		} catch (FileNotFoundException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
 	public String getName() {
-		return z.getName();
+		return file.getName();
 	}
 
 	public long length() {
-		return z.length();
+		return file.length();
 	}
 
 	public boolean isFolder() {
 		return true;
 	}
 
+	// XXX unused
+	@Deprecated
 	public long lastModified() {
 		return 0;
 	}
 
 	@Override
 	public String getSystemName() {
-		return z.getAbsolutePath();
+		return file.getAbsolutePath();
 	}
 
 	@Override
 	public boolean isValid() {
-		return z.exists();
+		return file.exists();
 	}
 }

@@ -7,6 +7,7 @@ DLNAMediaDatabase.1=A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z
 DLNAMediaDatabase.2=Cleanup database...
 DLNAMediaDatabase.3=Compacting database...
 DLNAMediaDatabase.4=Scanning Folder:
+DLNAMediaDatabase.5=Damaged cache has to be deleted but the program couldn't do it.\nStop the program and delete the folder %s manually.
 FFMpegAviSynthVideo.0=Encoder settings for AviSynth/FFmpeg engine only (Prefer AviSynth/MEncoder)
 FFMpegDVRMSRemux.0=Alternative FFmpeg Path:
 FFMpegDVRMSRemux.1=Settings for DVR-MS remuxing
@@ -215,9 +216,12 @@ NetworkTab.49=is up and running
 NetworkTab.50=Installing
 NetworkTab.51=Edit UMS configuration file manually
 NetworkTab.52=Error saving config file
+<<<<<<< HEAD
+NetworkTab.53=Edit UMS credential file
+NetworkTab.54=Error saving credential file
+=======
 NetworkTab.53=Description
-NetworkTab.54=Edit UMS credential file
-NetworkTab.55=Error saving credential file
+>>>>>>> origin
 PMS.0=No renderers were found
 PMS.1=Audio
 PMS.2=\#- Cache -\#
