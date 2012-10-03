@@ -114,10 +114,10 @@ public class MapFile extends DLNAResource {
 	}
 
 	private boolean isArchive(String name) {
-		ArchiveFormat[] vals=ArchiveFormat.values();
-		for(int i=0;i<vals.length;i++) {
-			String ext="."+vals[i].getMethodName().toLowerCase();
-			if(name.endsWith(ext)) {
+		ArchiveFormat[] vals = ArchiveFormat.values();
+		for (int i=0; i < vals.length; i++) {
+			String fileExtension = "." + vals[i].getMethodName().toLowerCase();
+			if (name.endsWith(fileExtension)) {
 				return true;
 			}
 		}
