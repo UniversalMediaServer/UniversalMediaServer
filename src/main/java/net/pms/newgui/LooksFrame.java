@@ -62,6 +62,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	private TracesTab tt;
 	private TranscodingTab tr;
 	private GeneralTab nt;
+	private PluginTab pt;
 	private AbstractButton reload;
 	private JLabel status;
 	protected static final Dimension PREFERRED_SIZE = new Dimension(1000, 750);
@@ -84,6 +85,11 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	public GeneralTab getGt() {
 		return nt;
 	}
+	
+	public PluginTab getPt() {
+		return pt;
+	}
+	
 
 	public AbstractButton getReload() {
 		return reload;
@@ -355,10 +361,12 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		tr = new TranscodingTab(configuration);
 		nt = new GeneralTab(configuration);
 		ft = new NavigationShareTab(configuration);
+		pt = new PluginTab(configuration);
 
 		tabbedPane.addTab(Messages.getString("LooksFrame.18"),/* readImageIcon("server-16.png"),*/ st.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.19"),/* readImageIcon("mail_new-16.png"),*/ tt.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.20"),/* readImageIcon("advanced-16.png"),*/ nt.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.27"),pt.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.22"), /*readImageIcon("bookmark-16.png"),*/ ft.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.21"),/* readImageIcon("player_play-16.png"),*/ tr.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.24"), /* readImageIcon("mail_new-16.png"), */ new HelpTab().build());
@@ -477,7 +485,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	@Override
 	public void serverReady() {
 		nt.addRenderers();
-		nt.addPlugins();
+		pt.addPlugins();
 	}
 
 	@Override

@@ -198,88 +198,6 @@ public class GeneralTab {
 			autoUpdateCheckBox.setEnabled(false);
 		}
 
-		// Add find plugin support here
-		JButton checkForPlugins = new JButton(Messages.getString("NetworkTab.39"));
-		checkForPlugins.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (!ExternalFactory.localPluginsInstalled()) {
-					JOptionPane.showMessageDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())), Messages.getString("NetworkTab.40"));
-					return;
-				}
-				final ArrayList<DownloadPlugins> plugins = DownloadPlugins.downloadList();
-				if (plugins.isEmpty()) {
-					return;
-				}
-				String[] cols = {Messages.getString("NetworkTab.41"), Messages.getString("NetworkTab.42"),
-					Messages.getString("NetworkTab.43")};
-				JTable tab = new JTable(plugins.size() + 1, cols.length) {
-					public String getToolTipText(MouseEvent e) {
-						java.awt.Point p = e.getPoint();
-						int rowIndex = rowAtPoint(p);
-						if (rowIndex == 0) {
-							return "";
-						}
-						DownloadPlugins plugin = plugins.get(rowIndex - 1);
-						return plugin.htmlString();
-					}
-				};
-				for (int i = 0; i < cols.length; i++) {
-					tab.setValueAt(cols[i], 0, i);
-				}
-				tab.setCellEditor(null);
-				for (int i = 0; i < plugins.size(); i++) {
-					DownloadPlugins p = plugins.get(i);
-					tab.setValueAt(p.getName(), i + 1, 0);
-					tab.setValueAt(p.getRating(), i + 1, 1);
-					tab.setValueAt(p.getAuthor(), i + 1, 2);
-				}
-				String[] opts = {Messages.getString("NetworkTab.44"), Messages.getString("NetworkTab.45")};
-				int id = JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-					tab, "Plugins", JOptionPane.YES_NO_OPTION, JOptionPane.PLAIN_MESSAGE, null, opts, null);
-				if (id != 0) // cancel, do nothing
-				{
-					return;
-				}
-				// Install the stuff
-				final int[] rows = tab.getSelectedRows();
-				JPanel panel = new JPanel();
-				GridLayout layout = new GridLayout(3, 1);
-				panel.setLayout(layout);
-				final JFrame frame = new JFrame(Messages.getString("NetworkTab.46"));
-				frame.setSize(250, 110);
-				JProgressBar progressBar = new JProgressBar();
-				progressBar.setIndeterminate(true);
-				panel.add(progressBar);
-				final JLabel label = new JLabel("");
-				final JLabel inst = new JLabel("");
-				panel.add(inst);
-				panel.add(label);
-				frame.add(panel);
-				frame.setVisible(true);
-				Runnable r = new Runnable() {
-					public void run() {
-						for (int i = 0; i < rows.length; i++) {
-							if (rows[i] == 0) {
-								continue;
-							}
-							DownloadPlugins plugin = plugins.get(rows[i] - 1);
-							inst.setText(Messages.getString("NetworkTab.50") + ": " + plugin.getName());
-							try {
-								plugin.install(label);
-							} catch (Exception e) {
-								LOGGER.debug("download of plugin " + plugin.getName()
-									+ " failed " + e);
-							}
-						}
-						frame.setVisible(false);
-					}
-				};
-				new Thread(r).start();
-			}
-		});
-		builder.add(checkForPlugins, FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
-
 		// Conf edit
 		JButton confEdit = new JButton(Messages.getString("NetworkTab.51"));
 		confEdit.addActionListener(new ActionListener() {
@@ -325,7 +243,74 @@ public class GeneralTab {
 				}
 			}
 		});
-		builder.add(confEdit, FormLayoutUtil.flip(cc.xy(7, 14), colSpec, orientation));
+		builder.add(confEdit, FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
+		
+		// Cred edit
+		JButton credEdit = new JButton(Messages.getString("NetworkTab.53"));
+		credEdit.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JPanel tPanel = new JPanel(new BorderLayout());
+				String cPath=(String) PMS.getConfiguration().getCustomProperty("cred.path");
+				if(StringUtils.isEmpty(cPath)) {
+					cPath=(String) PMS.getConfiguration().getProfileDirectory()+File.separator+"UMS.cred";
+					PMS.getConfiguration().setCustomProperty("cred.path", cPath);
+				}
+				final File cred = new File(cPath);
+				final boolean newFile=!cred.exists();
+				final JTextArea textArea = new JTextArea();
+				textArea.setFont(new Font("Courier", Font.PLAIN, 12));
+				JScrollPane scrollPane = new JScrollPane(textArea);
+				scrollPane.setPreferredSize(new java.awt.Dimension(900, 450));
+				if(!newFile) {
+					try {
+						FileInputStream fis = new FileInputStream(cred);
+						BufferedReader in = new BufferedReader(new InputStreamReader(fis));
+						String line;
+						StringBuilder sb = new StringBuilder();
+						while ((line = in.readLine()) != null) {
+							sb.append(line);
+							sb.append("\n");
+						}
+						textArea.setText(sb.toString());
+						fis.close();
+					} catch (Exception e1) {
+						return;
+					}
+				}
+				else {
+					StringBuilder sb = new StringBuilder();
+					sb.append("# Add credentials to the file");
+					sb.append("\n");
+					sb.append("# on the format tag=user,pwd");
+					sb.append("\n");
+					sb.append("# For example:");
+					sb.append("\n");
+					sb.append("# channels.xxx=name,secret");
+					sb.append("\n");
+					textArea.setText(sb.toString());
+				}
+				tPanel.add(scrollPane, BorderLayout.NORTH);
+				Object[] options = {Messages.getString("LooksFrame.9"), Messages.getString("NetworkTab.45")};
+				if (JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+					tPanel, Messages.getString("NetworkTab.53"),
+					JOptionPane.OK_CANCEL_OPTION,
+					JOptionPane.PLAIN_MESSAGE, null, options, null) == JOptionPane.OK_OPTION) {
+					String text = textArea.getText();
+					try {
+						FileOutputStream fos = new FileOutputStream(cred);
+						fos.write(text.getBytes());
+						fos.flush();
+						fos.close();
+						PMS.getConfiguration().reload();
+					} catch (Exception e1) {
+						JOptionPane.showMessageDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+							Messages.getString("NetworkTab.54") + e1.toString());
+					}
+				}
+			}
+		});
+		builder.add(credEdit, FormLayoutUtil.flip(cc.xy(7, 14), colSpec, orientation));
 
 		host = new JTextField(configuration.getServerHostname());
 		host.addKeyListener(new KeyListener() {
@@ -495,12 +480,12 @@ public class GeneralTab {
 
 		builder.add(fdCheckBox, FormLayoutUtil.flip(cc.xyw(1, 41, 9), colSpec, orientation));
 
-		cmp = builder.addSeparator(Messages.getString("NetworkTab.34"), FormLayoutUtil.flip(cc.xyw(1, 43, 9), colSpec, orientation));
+		/*cmp = builder.addSeparator(Messages.getString("NetworkTab.34"), FormLayoutUtil.flip(cc.xyw(1, 43, 9), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
 		pPlugins = new JPanel(new GridLayout());
-		builder.add(pPlugins, FormLayoutUtil.flip(cc.xyw(1, 45, 9), colSpec, orientation));
+		builder.add(pPlugins, FormLayoutUtil.flip(cc.xyw(1, 45, 9), colSpec, orientation));*/
 
 		JPanel panel = builder.getPanel();
 
@@ -564,58 +549,5 @@ public class GeneralTab {
 				}
 			}
 		});
-	}
-
-	public void addPlugins() {
-		FormLayout layout = new FormLayout(
-			"fill:10:grow",
-			"p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p");
-		pPlugins.setLayout(layout);
-		for (final ExternalListener listener : ExternalFactory.getExternalListeners()) {
-			if (!appendPlugin(listener)) {
-				LOGGER.warn("Plugin limit of 30 has been reached");
-				break;
-			}
-		}
-	}
-
-	public boolean appendPlugin(final ExternalListener listener) {
-		final JComponent comp = listener.config();
-		if (comp == null) {
-			return true;
-		}
-		CellConstraints cc = new CellConstraints();
-		JButton bPlugin = new JButton(listener.name());
-		// listener to show option screen
-		bPlugin.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-					comp, "Options", JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);
-			}
-		});
-		int y = pPlugins.getComponentCount() + 1;
-		if (y > 30) {
-			return false;
-		}
-		pPlugins.add(bPlugin, cc.xy(1, y));
-		return true;
-	}
-
-	public void removePlugin(ExternalListener listener) {
-		JButton del = null;
-		for (Component c : pPlugins.getComponents()) {
-			if (c instanceof JButton) {
-				JButton button = (JButton) c;
-				if (button.getText().equals(listener.name())) {
-					del = button;
-					break;
-				}
-			}
-		}
-		if (del != null) {
-			pPlugins.remove(del);
-			pPlugins.repaint();
-		}
 	}
 }
