@@ -21,14 +21,14 @@ import org.slf4j.LoggerFactory;
 
 public class SevenZipEntry extends DLNAResource implements IPushOutput {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SevenZipEntry.class);
-	private File z;
+	private File file;
 	private String zeName;
 	private long length;
 	private ISevenZipInArchive arc;
 
-	public SevenZipEntry(File z, String zeName, long length) {
+	public SevenZipEntry(File file, String zeName, long length) {
 		this.zeName = zeName;
-		this.z = z;
+		this.file = file;
 		this.length = length;
 	}
 
@@ -44,7 +44,7 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 
 	@Override
 	public String getSystemName() {
-		return FileUtil.getFileNameWithoutExtension(z.getAbsolutePath()) + "." + FileUtil.getExtension(zeName);
+		return FileUtil.getFileNameWithoutExtension(file.getAbsolutePath()) + "." + FileUtil.getExtension(zeName);
 	}
 
 	@Override
@@ -55,7 +55,7 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 	@Override
 	public boolean isValid() {
 		checktype();
-		setSrtFile(FileUtil.doesSubtitlesExists(z, null));
+		setSrtFile(FileUtil.doesSubtitlesExists(file, null));
 		return getExt() != null;
 	}
 
@@ -78,7 +78,7 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 			@Override
 			public void run() {
 				try {
-					RandomAccessFile rf = new RandomAccessFile(z, "r");
+					RandomAccessFile rf = new RandomAccessFile(file, "r");
 					arc = SevenZip.openInArchive(null, (IInStream) new RandomAccessFileInStream(rf));
 					ISimpleInArchive simpleInArchive = arc.getSimpleInterface();
 					ISimpleInArchiveItem realItem = null;
