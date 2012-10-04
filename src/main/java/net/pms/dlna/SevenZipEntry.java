@@ -44,6 +44,16 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 	private long length;
 	private ISevenZipInArchive arc;
 
+	@Override
+	protected String getThumbnailURL() {
+		if (getType() == Format.IMAGE || getType() == Format.AUDIO) {
+			// no thumbnail support for now for zipped videos
+			return null;
+		}
+
+		return super.getThumbnailURL();
+	}
+
 	public SevenZipEntry(File file, String zeName, long length) {
 		this.zeName = zeName;
 		this.file = file;
@@ -132,7 +142,7 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 						}
 					});
 				} catch (Exception e) {
-					LOGGER.error("Unpack error. Possibly harmless.", e);
+					LOGGER.error("Unpack error. Possibly harmless.", e.getMessage());
 				} finally {
 					try {
 						if (in != null) {
@@ -176,5 +186,14 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 		}
 
 		super.resolve();
+	}
+
+	@Override
+	public InputStream getThumbnailInputStream() throws IOException {
+		if (getMedia() != null && getMedia().getThumb() != null) {
+			return getMedia().getThumbnailInputStream();
+		} else {
+			return super.getThumbnailInputStream();
+		}
 	}
 }
