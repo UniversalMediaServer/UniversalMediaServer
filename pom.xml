@@ -80,7 +80,9 @@
 		<junrar-version>0.6.1</junrar-version>
 		<mediautil-version>1.0</mediautil-version>
 		<slf4j-version>1.6.4</slf4j-version>
-		<sevenzip-version>4.65.1</sevenzip-version>
+
+		<!-- Skip 4.65-1.05-RC because it doesn't work, author is working on fixing it -->
+		<sevenzip-version>4.65-1.04-RC</sevenzip-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.external-resources>${project.basedir}/src/main/external-resources</project.external-resources>
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
@@ -330,16 +332,10 @@
 			<version>${sevenzip-version}</version>
 		</dependency>
 		<dependency>
-			<groupId>sevenzip-windows</groupId>
-			<artifactId>jbinding-windows</artifactId>
+			<groupId>sevenzip-allplatforms</groupId>
+			<artifactId>jbinding-allplatforms</artifactId>
 			<version>${sevenzip-version}</version>
 		</dependency>
-		<dependency>
-			<groupId>sevenzip-linux</groupId>
-			<artifactId>jbinding-linux</artifactId>
-			<version>${sevenzip-version}</version>
-		</dependency>
-
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -612,23 +608,15 @@
 							<version>${sevenzip-version}</version>
 							<packaging>jar</packaging>
 							<install>true</install>
-							<downloadUrl>http://ikube.dyndns.org:8080/artifactory/libs-release-local/sevenzip/jbinding/{version}/jbinding-{version}.{packaging}</downloadUrl>
+							<downloadUrl>http://www.spirton.com/uploads/7-Zip-JBinding/7-Zip-JBinding-{version}.{packaging}</downloadUrl>
 						</artifactItem>
 						<artifactItem>
-							<groupId>sevenzip-windows</groupId>
-							<artifactId>jbinding-windows</artifactId>
+							<groupId>sevenzip-allplatforms</groupId>
+							<artifactId>jbinding-allplatforms</artifactId>
 							<version>${sevenzip-version}</version>
 							<packaging>jar</packaging>
 							<install>true</install>
-							<downloadUrl>http://ikube.dyndns.org:8080/artifactory/libs-release-local/sevenzip/jbinding-windows/{version}/jbinding-windows-{version}.{packaging}</downloadUrl>
-						</artifactItem>
-						<artifactItem>
-							<groupId>sevenzip-linux</groupId>
-							<artifactId>jbinding-linux</artifactId>
-							<version>${sevenzip-version}</version>
-							<packaging>jar</packaging>
-							<install>true</install>
-							<downloadUrl>http://ikube.dyndns.org:8080/artifactory/libs-release-local/sevenzip/jbinding-linux/{version}/jbinding-linux-{version}.{packaging}</downloadUrl>
+							<downloadUrl>http://www.spirton.com/uploads/7-Zip-JBinding/7-Zip-JBinding-AllPlatforms-{version}.{packaging}</downloadUrl>
 						</artifactItem>
 						<artifactItem>
 							<groupId>com.jgoodies</groupId>
