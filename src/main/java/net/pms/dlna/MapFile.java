@@ -121,7 +121,7 @@ public class MapFile extends DLNAResource {
 				return true;
 			}
 		}
-		return (name.endsWith(".cbz") || name.endsWith(".cbr")); 
+		return false;
 	}
 
 	private void manageFile(File f,String str) {
@@ -133,12 +133,12 @@ public class MapFile extends DLNAResource {
 			}
 
 			if (!f.isHidden()) {
-				if (PMS.getConfiguration().isArchiveBrowsing() && isArchive(lcFilename)) {
-					addChild(new SevenZipFile(f));
-				/*if (PMS.getConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".zip") || lcFilename.endsWith(".cbz"))) {
+				if (PMS.getConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".zip") || lcFilename.endsWith(".cbz"))) {
 					addChild(new ZippedFile(f));
 				} else if (PMS.getConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".rar") || lcFilename.endsWith(".cbr"))) {
-					addChild(new RarredFile(f));*/
+					addChild(new RarredFile(f));
+				} else if (PMS.getConfiguration().isArchiveBrowsing() && isArchive(lcFilename)) {
+					addChild(new SevenZipFile(f));
 				} else if ((lcFilename.endsWith(".iso") || lcFilename.endsWith(".img")) || (f.isDirectory() && f.getName().toUpperCase().equals("VIDEO_TS"))) {
 					addChild(new DVDISOFile(f));
 				} else if (lcFilename.endsWith(".m3u") || lcFilename.endsWith(".m3u8") || lcFilename.endsWith(".pls")) {
