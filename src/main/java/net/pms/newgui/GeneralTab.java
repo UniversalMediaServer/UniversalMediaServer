@@ -182,7 +182,7 @@ public class GeneralTab {
 		if (configuration.isAutoUpdate()) {
 			autoUpdateCheckBox.setSelected(true);
 		}
-		builder.add(autoUpdateCheckBox, FormLayoutUtil.flip(cc.xyw(3, 13, 3), colSpec, orientation));
+		builder.add(autoUpdateCheckBox, FormLayoutUtil.flip(cc.xyw(3, 13, 7), colSpec, orientation));
 		if (!Build.isUpdatable()) {
 			checkForUpdates.setEnabled(false);
 			autoUpdateCheckBox.setEnabled(false);
@@ -233,74 +233,7 @@ public class GeneralTab {
 				}
 			}
 		});
-		builder.add(confEdit, FormLayoutUtil.flip(cc.xy(3, 15), colSpec, orientation));
-		
-		// Cred edit
-		JButton credEdit = new JButton(Messages.getString("NetworkTab.54"));
-		credEdit.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JPanel tPanel = new JPanel(new BorderLayout());
-				String cPath=(String) PMS.getConfiguration().getCustomProperty("cred.path");
-				if(StringUtils.isEmpty(cPath)) {
-					cPath=(String) PMS.getConfiguration().getProfileDirectory()+File.separator+"UMS.cred";
-					PMS.getConfiguration().setCustomProperty("cred.path", cPath);
-				}
-				final File cred = new File(cPath);
-				final boolean newFile=!cred.exists();
-				final JTextArea textArea = new JTextArea();
-				textArea.setFont(new Font("Courier", Font.PLAIN, 12));
-				JScrollPane scrollPane = new JScrollPane(textArea);
-				scrollPane.setPreferredSize(new java.awt.Dimension(900, 450));
-				if(!newFile) {
-					try {
-						FileInputStream fis = new FileInputStream(cred);
-						BufferedReader in = new BufferedReader(new InputStreamReader(fis));
-						String line;
-						StringBuilder sb = new StringBuilder();
-						while ((line = in.readLine()) != null) {
-							sb.append(line);
-							sb.append("\n");
-						}
-						textArea.setText(sb.toString());
-						fis.close();
-					} catch (Exception e1) {
-						return;
-					}
-				}
-				else {
-					StringBuilder sb = new StringBuilder();
-					sb.append("# Add credentials to the file");
-					sb.append("\n");
-					sb.append("# on the format tag=user,pwd");
-					sb.append("\n");
-					sb.append("# For example:");
-					sb.append("\n");
-					sb.append("# channels.xxx=name,secret");
-					sb.append("\n");
-					textArea.setText(sb.toString());
-				}
-				tPanel.add(scrollPane, BorderLayout.NORTH);
-				Object[] options = {Messages.getString("LooksFrame.9"), Messages.getString("NetworkTab.45")};
-				if (JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-					tPanel, Messages.getString("NetworkTab.54"),
-					JOptionPane.OK_CANCEL_OPTION,
-					JOptionPane.PLAIN_MESSAGE, null, options, null) == JOptionPane.OK_OPTION) {
-					String text = textArea.getText();
-					try {
-						FileOutputStream fos = new FileOutputStream(cred);
-						fos.write(text.getBytes());
-						fos.flush();
-						fos.close();
-						PMS.getConfiguration().reload();
-					} catch (Exception e1) {
-						JOptionPane.showMessageDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-							Messages.getString("NetworkTab.55") + e1.toString());
-					}
-				}
-			}
-		});
-		builder.add(credEdit, FormLayoutUtil.flip(cc.xy(7, 15), colSpec, orientation));
+		builder.add(confEdit, FormLayoutUtil.flip(cc.xy(1, 15), colSpec, orientation));
 
 		host = new JTextField(configuration.getServerHostname());
 		host.addKeyListener(new KeyListener() {
@@ -469,13 +402,6 @@ public class GeneralTab {
 		builder.add(renderers, FormLayoutUtil.flip(cc.xyw(3, 35, 7), colSpec, orientation));
 
 		builder.add(fdCheckBox, FormLayoutUtil.flip(cc.xyw(1, 37, 9), colSpec, orientation));
-
-		/*cmp = builder.addSeparator(Messages.getString("NetworkTab.34"), FormLayoutUtil.flip(cc.xyw(1, 43, 9), colSpec, orientation));
-		cmp = (JComponent) cmp.getComponent(0);
-		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
-
-		pPlugins = new JPanel(new GridLayout());
-		builder.add(pPlugins, FormLayoutUtil.flip(cc.xyw(1, 45, 9), colSpec, orientation));*/
 
 		JPanel panel = builder.getPanel();
 
