@@ -49,6 +49,7 @@ public class RootFolder extends DLNAResource {
 	private final PmsConfiguration configuration = PMS.getConfiguration();
 	private boolean running;
 	private FolderLimit lim;
+	private MediaMonitor mon;
 
 	public RootFolder() {
 		setIndexId(0);
@@ -88,6 +89,16 @@ public class RootFolder extends DLNAResource {
 	public void discoverChildren() {
 		if (isDiscovered()) {
 			return;
+		}
+		
+		String m=(String) PMS.getConfiguration().getCustomProperty("monitor");
+		if(!StringUtils.isEmpty(m)) {
+			String[] tmp = m.split(",");
+			File[] dirs = new File[tmp.length];
+			for(int i=0;i<tmp.length;i++)
+				dirs[i]=new File(tmp[i]);
+			mon = new MediaMonitor(dirs);
+			addChild(mon);
 		}
 		
 		if (configuration.getFolderLimit()) {
@@ -839,5 +850,9 @@ public class RootFolder extends DLNAResource {
 	
 	public void reset() {
 		setDiscovered(false);
+	}
+	
+	public void stopPlaying(DLNAResource res) {
+		mon.stopped(res);
 	}
 } 

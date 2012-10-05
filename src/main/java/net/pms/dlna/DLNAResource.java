@@ -1434,6 +1434,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				} catch (InterruptedException e) {
 					LOGGER.error("stopPlaying sleep interrupted", e);
 				}
+				if(defaultRenderer != null) {
+					defaultRenderer.getRootFolder().stopPlaying(self);
+				}
 
 				synchronized (requestIdToRefcount) {
 					final Integer refCount = requestIdToRefcount.get(requestId);
