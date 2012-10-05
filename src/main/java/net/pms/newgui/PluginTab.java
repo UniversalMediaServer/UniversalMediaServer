@@ -1,5 +1,9 @@
 package net.pms.newgui;
 
+import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.factories.Borders;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.awt.Font;
@@ -9,11 +13,6 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Locale;
-import com.jgoodies.forms.builder.PanelBuilder;
-import com.jgoodies.forms.factories.Borders;
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
-
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -25,9 +24,6 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.table.TableColumn;
-
-import org.apache.commons.lang.StringUtils;
-
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.DownloadPlugins;
@@ -35,6 +31,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.util.FormLayoutUtil;
+import org.apache.commons.lang.StringUtils;
 
 public class PluginTab {
 	private final PmsConfiguration configuration;
