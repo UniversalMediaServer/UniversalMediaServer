@@ -233,7 +233,7 @@ public class ExternalFactory {
 			externalListeners.remove(remove);
 			remove.shutdown();
 			LooksFrame frame = (LooksFrame) PMS.get().getFrame();
-			frame.getGt().removePlugin(remove);
+			frame.getPt().removePlugin(remove);
 		}
 		for(int i=0;i<3;i++) {
 			System.gc();
@@ -464,7 +464,7 @@ public class ExternalFactory {
 				registerListener(instance);
 				if(PMS.get().getFrame() instanceof LooksFrame) {
 					LooksFrame frame = (LooksFrame) PMS.get().getFrame();
-					if(!frame.getGt().appendPlugin(instance)) {
+					if(!frame.getPt().appendPlugin(instance)) {
 						LOGGER.warn("Plugin limit of 30 has been reached");
 					}
 				}
