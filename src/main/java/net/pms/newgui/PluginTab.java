@@ -36,7 +36,7 @@ import org.apache.commons.lang.StringUtils;
 public class PluginTab {
 	private final PmsConfiguration configuration;
 	private static final String COL_SPEC = "left:pref, 2dlu, p, 2dlu , p, 2dlu, p, 2dlu, pref:grow";
-	private static final String ROW_SPEC = "p, 0dlu, p, 0dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p";
+	private static final String ROW_SPEC = "p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p";
 	private JPanel pPlugins;
 
 	PluginTab(PmsConfiguration configuration) {
@@ -56,11 +56,16 @@ public class PluginTab {
 
 		CellConstraints cc = new CellConstraints();
 
-		JComponent cmp = builder.addSeparator(Messages.getString("PluginTab.1"), FormLayoutUtil.flip(cc.xyw(1, 1, 9), colSpec, orientation));
+		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), FormLayoutUtil.flip(cc.xyw(1, 1, 9), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
+		JComponent availablePluginsHeading = builder.addSeparator(Messages.getString("PluginTab.1"), FormLayoutUtil.flip(cc.xyw(1, 5, 9), colSpec, orientation));
+		availablePluginsHeading = (JComponent) availablePluginsHeading.getComponent(0);
+		availablePluginsHeading.setFont(availablePluginsHeading.getFont().deriveFont(Font.BOLD));
+
 		final ArrayList<DownloadPlugins> plugins = DownloadPlugins.downloadList();
+
 		String[] cols = {
 			Messages.getString("NetworkTab.41"),
 			Messages.getString("NetworkTab.42"),
@@ -114,7 +119,7 @@ public class PluginTab {
 		builder.add(table, FormLayoutUtil.flip(cc.xyw(1, 7, 9), colSpec, orientation));
 
 		JButton install = new JButton(Messages.getString("NetworkTab.39"));
-		builder.add(install, FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
+		builder.add(install, FormLayoutUtil.flip(cc.xy(1, 9), colSpec, orientation));
 		install.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -181,12 +186,12 @@ public class PluginTab {
 			}
 		});
 
-		cmp = builder.addSeparator(Messages.getString("NetworkTab.34"), FormLayoutUtil.flip(cc.xyw(1, 43, 9), colSpec, orientation));
+		cmp = builder.addSeparator(Messages.getString("PluginTab.0"), FormLayoutUtil.flip(cc.xyw(1, 11, 9), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
 		pPlugins = new JPanel(new GridLayout());
-		builder.add(pPlugins, FormLayoutUtil.flip(cc.xyw(1, 45, 9), colSpec, orientation));
+		builder.add(pPlugins, FormLayoutUtil.flip(cc.xyw(1, 13, 9), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 		JScrollPane scrollPane = new JScrollPane(
