@@ -35,18 +35,16 @@ import org.apache.commons.lang.StringUtils;
 
 public class PluginTab {
 	private final PmsConfiguration configuration;
-	
 	private static final String COL_SPEC = "left:pref, 2dlu, p, 2dlu , p, 2dlu, p, 2dlu, pref:grow";
 	private static final String ROW_SPEC = "p, 0dlu, p, 0dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p";
 	private JPanel pPlugins;
-	
+
 	PluginTab(PmsConfiguration configuration) {
 		this.configuration = configuration;
 		pPlugins = null;
 	}
-	
+
 	public JComponent build() {
-		
 		Locale locale = new Locale(configuration.getLanguage());
 		ComponentOrientation orientation = ComponentOrientation.getOrientation(locale);
 		String colSpec = FormLayoutUtil.getColSpec(COL_SPEC, orientation);
@@ -57,43 +55,43 @@ public class PluginTab {
 		builder.setOpaque(true);
 
 		CellConstraints cc = new CellConstraints();
-		
-		
-		JComponent cmp = builder.addSeparator(Messages.getString("PluginTab.1"),
-				FormLayoutUtil.flip(cc.xyw(1, 1, 9), colSpec, orientation));
-			cmp = (JComponent) cmp.getComponent(0);
-			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
-		
+
+		JComponent cmp = builder.addSeparator(Messages.getString("PluginTab.1"), FormLayoutUtil.flip(cc.xyw(1, 1, 9), colSpec, orientation));
+		cmp = (JComponent) cmp.getComponent(0);
+		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
+
 		final ArrayList<DownloadPlugins> plugins = DownloadPlugins.downloadList();
 		String[] cols = {
-				Messages.getString("NetworkTab.41"),
-				Messages.getString("NetworkTab.42"),
-				Messages.getString("NetworkTab.43"),
-				Messages.getString("NetworkTab.53")
-			};
+			Messages.getString("NetworkTab.41"),
+			Messages.getString("NetworkTab.42"),
+			Messages.getString("NetworkTab.43"),
+			Messages.getString("NetworkTab.53")
+		};
+
 		final JTable table = new JTable(plugins.size() + 1, cols.length) {
 			@Override
 			public boolean isCellEditable(int rowIndex, int vColIndex) {
 				return false;
 			}
-			
+
+			@Override
 			public String getToolTipText(MouseEvent e) {
 				java.awt.Point p = e.getPoint();
 				int rowIndex = rowAtPoint(p);
-				
+
 				if (rowIndex == 0) {
 					return "";
 				}
-				
+
 				DownloadPlugins plugin = plugins.get(rowIndex - 1);
 				return plugin.htmlString();
 			}
 		};
-		
+
 		for (int i = 0; i < cols.length; i++) {
 			table.setValueAt(cols[i], 0, i);
 		}
-		
+
 		for (int i = 0; i < plugins.size(); i++) {
 			DownloadPlugins p = plugins.get(i);
 			table.setValueAt(p.getName(), i + 1, 0);
@@ -101,7 +99,7 @@ public class PluginTab {
 			table.setValueAt(p.getAuthor(), i + 1, 2);
 			table.setValueAt(p.getDescription(), i + 1, 3);
 		}
-		
+
 		// Define column widths
 		TableColumn nameColumn = table.getColumnModel().getColumn(0);
 		nameColumn.setMinWidth(70);
@@ -112,12 +110,13 @@ public class PluginTab {
 		TableColumn descriptionColumn = table.getColumnModel().getColumn(3);
 		descriptionColumn.setMinWidth(300);
 		descriptionColumn.setMaxWidth(600);
-		
+
 		builder.add(table, FormLayoutUtil.flip(cc.xyw(1, 7, 9), colSpec, orientation));
-		
+
 		JButton install = new JButton(Messages.getString("NetworkTab.39"));
 		builder.add(install, FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
 		install.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (!ExternalFactory.localPluginsInstalled()) {
 					JOptionPane.showMessageDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())), Messages.getString("NetworkTab.40"));
@@ -131,16 +130,18 @@ public class PluginTab {
 				) {
 					permissionsReminder = "Make sure UMS is running as administrator before proceeding";
 				}
-				if(!StringUtils.isEmpty(permissionsReminder)) {
-					int id=JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-							permissionsReminder, null,
-							JOptionPane.OK_CANCEL_OPTION,
-							JOptionPane.PLAIN_MESSAGE, null, null, null);
+
+				if (!StringUtils.isEmpty(permissionsReminder)) {
+					int id = JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+						permissionsReminder, null,
+						JOptionPane.OK_CANCEL_OPTION,
+						JOptionPane.PLAIN_MESSAGE, null, null, null);
 
 					if (id != 0) { // Cancel, do nothing
 						return;
 					}
 				}
+
 				final int[] rows = table.getSelectedRows();
 				JPanel panel = new JPanel();
 				GridLayout layout = new GridLayout(3, 1);
@@ -155,11 +156,12 @@ public class PluginTab {
 				panel.add(inst);
 				panel.add(label);
 				frame.add(panel);
-				
+
 				// Center the installation progress window
 				frame.setLocationRelativeTo(null);
 				frame.setVisible(true);
 				Runnable r = new Runnable() {
+					@Override
 					public void run() {
 						for (int i = 0; i < rows.length; i++) {
 							if (rows[i] == 0) {
@@ -178,23 +180,23 @@ public class PluginTab {
 				new Thread(r).start();
 			}
 		});
-		
+
 		cmp = builder.addSeparator(Messages.getString("NetworkTab.34"), FormLayoutUtil.flip(cc.xyw(1, 43, 9), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
 		pPlugins = new JPanel(new GridLayout());
 		builder.add(pPlugins, FormLayoutUtil.flip(cc.xyw(1, 45, 9), colSpec, orientation));
-		
+
 		JPanel panel = builder.getPanel();
 		JScrollPane scrollPane = new JScrollPane(
-				panel,
-				JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-				JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+			panel,
+			JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
 		return scrollPane;
 	}
-	
+
 	public void addPlugins() {
 		FormLayout layout = new FormLayout(
 			"fill:10:grow",
@@ -214,7 +216,7 @@ public class PluginTab {
 		}
 		CellConstraints cc = new CellConstraints();
 		JButton bPlugin = new JButton(listener.name());
-		// listener to show option screen
+		// Listener to show option screen
 		bPlugin.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
