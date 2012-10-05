@@ -30,15 +30,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import javax.swing.*;
-import javax.swing.table.TableColumn;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.Build;
-import net.pms.configuration.DownloadPlugins;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.external.ExternalFactory;
-import net.pms.external.ExternalListener;
 import net.pms.network.NetworkConfiguration;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.KeyedComboBoxModel;
@@ -186,144 +182,11 @@ public class GeneralTab {
 		if (configuration.isAutoUpdate()) {
 			autoUpdateCheckBox.setSelected(true);
 		}
-		builder.add(autoUpdateCheckBox, FormLayoutUtil.flip(cc.xyw(3, 13, 3), colSpec, orientation));
+		builder.add(autoUpdateCheckBox, FormLayoutUtil.flip(cc.xyw(3, 13, 7), colSpec, orientation));
 		if (!Build.isUpdatable()) {
 			checkForUpdates.setEnabled(false);
 			autoUpdateCheckBox.setEnabled(false);
 		}
-
-		// Add find plugin support here
-		JButton checkForPlugins = new JButton(Messages.getString("NetworkTab.39"));
-		checkForPlugins.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (!ExternalFactory.localPluginsInstalled()) {
-					JOptionPane.showMessageDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())), Messages.getString("NetworkTab.40"));
-					return;
-				}
-
-				final ArrayList<DownloadPlugins> plugins = DownloadPlugins.downloadList();
-
-				if (plugins.isEmpty()) {
-					return;
-				}
-
-				String[] cols = {
-					Messages.getString("NetworkTab.41"),
-					Messages.getString("NetworkTab.42"),
-					Messages.getString("NetworkTab.43"),
-					Messages.getString("NetworkTab.53")
-				};
-
-				JTable table = new JTable(plugins.size() + 1, cols.length) {
-					@Override
-					public boolean isCellEditable(int rowIndex, int vColIndex) {
-						return false;
-					}
-
-					@Override
-					public String getToolTipText(MouseEvent e) {
-						java.awt.Point p = e.getPoint();
-						int rowIndex = rowAtPoint(p);
-
-						if (rowIndex == 0) {
-							return "";
-						}
-
-						DownloadPlugins plugin = plugins.get(rowIndex - 1);
-						return plugin.htmlString();
-					}
-				};
-
-				for (int i = 0; i < cols.length; i++) {
-					table.setValueAt(cols[i], 0, i);
-				}
-
-				for (int i = 0; i < plugins.size(); i++) {
-					DownloadPlugins p = plugins.get(i);
-					table.setValueAt(p.getName(), i + 1, 0);
-					table.setValueAt(p.getRating(), i + 1, 1);
-					table.setValueAt(p.getAuthor(), i + 1, 2);
-					table.setValueAt(p.getDescription(), i + 1, 3);
-				}
-
-				// Define column widths
-				TableColumn nameColumn = table.getColumnModel().getColumn(0);
-				nameColumn.setMinWidth(70);
-				TableColumn ratingColumn = table.getColumnModel().getColumn(1);
-				ratingColumn.setPreferredWidth(45);
-				TableColumn authorColumn = table.getColumnModel().getColumn(2);
-				authorColumn.setMinWidth(100);
-				TableColumn descriptionColumn = table.getColumnModel().getColumn(3);
-				descriptionColumn.setMinWidth(300);
-				descriptionColumn.setMaxWidth(600);
-
-				String[] opts = {Messages.getString("NetworkTab.44"), Messages.getString("NetworkTab.45")};
-
-				String permissionsReminder = "";
-				if (
-					"Windows 7".equals(System.getProperty("os.name")) ||
-					"Windows Vista".equals(System.getProperty("os.name"))
-				) {
-					permissionsReminder = ". Make sure UMS is running as administrator before proceeding";
-				}
-
-				int id = JOptionPane.showOptionDialog(
-					(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-					table,
-					"Plugins" + permissionsReminder,
-					JOptionPane.YES_NO_OPTION,
-					JOptionPane.PLAIN_MESSAGE,
-					null,
-					opts,
-					null
-				);
-
-				if (id != 0) { // Cancel, do nothing
-					return;
-				}
-
-				// Install the stuff
-				final int[] rows = table.getSelectedRows();
-				JPanel panel = new JPanel();
-				GridLayout layout = new GridLayout(3, 1);
-				panel.setLayout(layout);
-				final JFrame frame = new JFrame(Messages.getString("NetworkTab.46"));
-				frame.setSize(250, 110);
-				JProgressBar progressBar = new JProgressBar();
-				progressBar.setIndeterminate(true);
-				panel.add(progressBar);
-				final JLabel label = new JLabel("");
-				final JLabel inst = new JLabel("");
-				panel.add(inst);
-				panel.add(label);
-				frame.add(panel);
-
-				// Center the installation progress window
-				frame.setLocationRelativeTo(null);
-				frame.setVisible(true);
-
-				Runnable r = new Runnable() {
-					public void run() {
-						for (int i = 0; i < rows.length; i++) {
-							if (rows[i] == 0) {
-								continue;
-							}
-							DownloadPlugins plugin = plugins.get(rows[i] - 1);
-							inst.setText(Messages.getString("NetworkTab.50") + ": " + plugin.getName());
-							try {
-								plugin.install(label);
-							} catch (Exception e) {
-								LOGGER.debug("Download of plugin " + plugin.getName() + " failed: " + e);
-							}
-						}
-						frame.setVisible(false);
-					}
-				};
-				new Thread(r).start();
-			}
-		});
-		builder.add(checkForPlugins, FormLayoutUtil.flip(cc.xy(1, 15), colSpec, orientation));
 
 		// Conf edit
 		JButton confEdit = new JButton(Messages.getString("NetworkTab.51"));
@@ -370,7 +233,7 @@ public class GeneralTab {
 				}
 			}
 		});
-		builder.add(confEdit, FormLayoutUtil.flip(cc.xy(3, 15), colSpec, orientation));
+		builder.add(confEdit, FormLayoutUtil.flip(cc.xy(1, 15), colSpec, orientation));
 
 		host = new JTextField(configuration.getServerHostname());
 		host.addKeyListener(new KeyListener() {
@@ -540,13 +403,6 @@ public class GeneralTab {
 
 		builder.add(fdCheckBox, FormLayoutUtil.flip(cc.xyw(1, 37, 9), colSpec, orientation));
 
-		cmp = builder.addSeparator(Messages.getString("NetworkTab.34"), FormLayoutUtil.flip(cc.xyw(1, 39, 9), colSpec, orientation));
-		cmp = (JComponent) cmp.getComponent(0);
-		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
-
-		pPlugins = new JPanel(new GridLayout());
-		builder.add(pPlugins, FormLayoutUtil.flip(cc.xyw(1, 41, 9), colSpec, orientation));
-
 		JPanel panel = builder.getPanel();
 
 		// Apply the orientation to the panel and all components in it
@@ -609,59 +465,5 @@ public class GeneralTab {
 				}
 			}
 		});
-	}
-
-	public void addPlugins() {
-		FormLayout layout = new FormLayout(
-			"fill:10:grow",
-			"p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p, p"
-		);
-		pPlugins.setLayout(layout);
-		for (final ExternalListener listener : ExternalFactory.getExternalListeners()) {
-			if (!appendPlugin(listener)) {
-				LOGGER.warn("Plugin limit of 30 has been reached");
-				break;
-			}
-		}
-	}
-
-	public boolean appendPlugin(final ExternalListener listener) {
-		final JComponent comp = listener.config();
-		if (comp == null) {
-			return true;
-		}
-		CellConstraints cc = new CellConstraints();
-		JButton bPlugin = new JButton(listener.name());
-		// listener to show option screen
-		bPlugin.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-					comp, "Options", JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);
-			}
-		});
-		int y = pPlugins.getComponentCount() + 1;
-		if (y > 30) {
-			return false;
-		}
-		pPlugins.add(bPlugin, cc.xy(1, y));
-		return true;
-	}
-
-	public void removePlugin(ExternalListener listener) {
-		JButton del = null;
-		for (Component c : pPlugins.getComponents()) {
-			if (c instanceof JButton) {
-				JButton button = (JButton) c;
-				if (button.getText().equals(listener.name())) {
-					del = button;
-					break;
-				}
-			}
-		}
-		if (del != null) {
-			pPlugins.remove(del);
-			pPlugins.repaint();
-		}
 	}
 }
