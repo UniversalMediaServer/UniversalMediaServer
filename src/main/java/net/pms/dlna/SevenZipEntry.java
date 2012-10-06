@@ -1,6 +1,6 @@
 /*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
+ * Universal Media Server
+ * Copyright (C) 2012  SharkHunter
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,19 +22,27 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
+import java.io.RandomAccessFile;
 import net.pms.formats.Format;
 import net.pms.util.FileUtil;
+import net.sf.sevenzipjbinding.ExtractOperationResult;
+import net.sf.sevenzipjbinding.IInStream;
+import net.sf.sevenzipjbinding.ISequentialOutStream;
+import net.sf.sevenzipjbinding.ISevenZipInArchive;
+import net.sf.sevenzipjbinding.SevenZip;
+import net.sf.sevenzipjbinding.SevenZipException;
+import net.sf.sevenzipjbinding.impl.RandomAccessFileInStream;
+import net.sf.sevenzipjbinding.simple.ISimpleInArchive;
+import net.sf.sevenzipjbinding.simple.ISimpleInArchiveItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ZippedEntry extends DLNAResource implements IPushOutput {
-	private static final Logger LOGGER = LoggerFactory.getLogger(ZippedEntry.class);
+public class SevenZipEntry extends DLNAResource implements IPushOutput {
+	private static final Logger LOGGER = LoggerFactory.getLogger(SevenZipEntry.class);
 	private File file;
 	private String zeName;
 	private long length;
-	private ZipFile zipFile;
+	private ISevenZipInArchive arc;
 
 	@Override
 	protected String getThumbnailURL() {
@@ -46,14 +54,14 @@ public class ZippedEntry extends DLNAResource implements IPushOutput {
 		return super.getThumbnailURL();
 	}
 
-	public ZippedEntry(File file, String zeName, long length) {
+	public SevenZipEntry(File file, String zeName, long length) {
 		this.zeName = zeName;
 		this.file = file;
 		this.length = length;
 	}
 
 	@Override
-	public InputStream getInputStream() {
+	public InputStream getInputStream() throws IOException {
 		return null;
 	}
 
@@ -74,12 +82,6 @@ public class ZippedEntry extends DLNAResource implements IPushOutput {
 	@Override
 	public boolean isFolder() {
 		return false;
-	}
-
-	// XXX unused
-	@Deprecated
-	public long lastModified() {
-		return 0;
 	}
 
 	@Override
@@ -108,34 +110,56 @@ public class ZippedEntry extends DLNAResource implements IPushOutput {
 			public void run() {
 				try {
 					int n = -1;
-					byte[] data = new byte[65536];
-					zipFile = new ZipFile(file);
-					ZipEntry ze = zipFile.getEntry(zeName);
-					in = zipFile.getInputStream(ze);
+					//byte data[] = new byte[65536];
+					RandomAccessFile rf = new RandomAccessFile(file, "r");
 
-					while ((n = in.read(data)) > -1) {
-						out.write(data, 0, n);
+					arc = SevenZip.openInArchive(null, (IInStream) new RandomAccessFileInStream(rf));
+					ISimpleInArchive simpleInArchive = arc.getSimpleInterface();
+					ISimpleInArchiveItem realItem = null;
+
+					for (ISimpleInArchiveItem item : simpleInArchive.getArchiveItems()) {
+						if (item.getPath().equals(zeName)) {
+							realItem = item;
+							break;
+						}
 					}
 
-					in.close();
-					in = null;
+					if (realItem == null) {
+						LOGGER.trace("No such item " + zeName + " found in archive");
+						return;
+					}
+
+					ExtractOperationResult result = realItem.extractSlow(new ISequentialOutStream() {
+						@Override
+						public int write(byte[] data) throws SevenZipException {
+							try {
+								out.write(data);
+							} catch (IOException e) {
+								LOGGER.debug("Caught exception", e);
+								throw new SevenZipException();
+							}
+							return data.length;
+						}
+					});
 				} catch (Exception e) {
-					LOGGER.error("Unpack error. Possibly harmless.", e);
+					LOGGER.error("Unpack error. Possibly harmless.", e.getMessage());
 				} finally {
 					try {
 						if (in != null) {
 							in.close();
 						}
-						zipFile.close();
+						arc.close();
 						out.close();
 					} catch (IOException e) {
 						LOGGER.debug("Caught exception", e);
+					} catch (SevenZipException e) {
+						LOGGER.debug("Caught 7-Zip exception", e);
 					}
 				}
 			}
 		};
 
-		new Thread(r, "Zip Extractor").start();
+		new Thread(r, "7Zip Extractor").start();
 	}
 
 	@Override

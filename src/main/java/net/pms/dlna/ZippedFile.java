@@ -64,6 +64,7 @@ public class ZippedFile extends DLNAResource {
 		return super.getThumbnailURL();
 	}
 
+	@Override
 	public InputStream getInputStream() {
 		try {
 			return new ZipInputStream(new FileInputStream(file));
@@ -72,14 +73,17 @@ public class ZippedFile extends DLNAResource {
 		}
 	}
 
+	@Override
 	public String getName() {
 		return file.getName();
 	}
 
+	@Override
 	public long length() {
 		return file.length();
 	}
 
+	@Override
 	public boolean isFolder() {
 		return true;
 	}

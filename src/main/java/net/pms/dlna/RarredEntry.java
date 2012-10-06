@@ -52,14 +52,17 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 		this.length = length;
 	}
 
+	@Override
 	public InputStream getInputStream() throws IOException {
 		return null;
 	}
 
+	@Override
 	public String getName() {
 		return name;
 	}
 
+	@Override
 	public long length() {
 		if (getPlayer() != null && getPlayer().type() != Format.IMAGE) {
 			return DLNAMediaInfo.TRANS_SIZE;
@@ -68,6 +71,7 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 		return length;
 	}
 
+	@Override
 	public boolean isFolder() {
 		return false;
 	}
@@ -98,7 +102,7 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 	@Override
 	public void push(final OutputStream out) throws IOException {
 		Runnable r = new Runnable() {
-
+			@Override
 			public void run() {
 				Archive rarFile = null;
 				try {

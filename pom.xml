@@ -80,6 +80,9 @@
 		<junrar-version>0.6.1</junrar-version>
 		<mediautil-version>1.0</mediautil-version>
 		<slf4j-version>1.6.4</slf4j-version>
+
+		<!-- Skip 4.65-1.05-RC because it doesn't work, author is working on fixing it -->
+		<sevenzip-version>4.65-1.04-RC</sevenzip-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.external-resources>${project.basedir}/src/main/external-resources</project.external-resources>
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
@@ -322,6 +325,16 @@
 			<groupId>com.googlecode.juniversalchardet</groupId>
 			<artifactId>juniversalchardet</artifactId>
 			<version>1.0.3</version>
+		</dependency>
+		<dependency>
+			<groupId>sevenzip</groupId>
+			<artifactId>jbinding</artifactId>
+			<version>${sevenzip-version}</version>
+		</dependency>
+		<dependency>
+			<groupId>sevenzip-allplatforms</groupId>
+			<artifactId>jbinding-allplatforms</artifactId>
+			<version>${sevenzip-version}</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
@@ -588,6 +601,22 @@
 							<checksum>5a4cf9866a7339e64e52f46101b5b13fe50b9c80</checksum>
 							<extractFile>jgoodies-{artifactId}-{version}/jgoodies-{artifactId}-{version}.{packaging}</extractFile>
 							<extractFileChecksum>f3955d59f2263fb889b02febec74377647a2eaba</extractFileChecksum>
+						</artifactItem>
+						<artifactItem>
+							<groupId>sevenzip</groupId>
+							<artifactId>jbinding</artifactId>
+							<version>${sevenzip-version}</version>
+							<packaging>jar</packaging>
+							<install>true</install>
+							<downloadUrl>http://www.spirton.com/uploads/7-Zip-JBinding/7-Zip-JBinding-{version}.{packaging}</downloadUrl>
+						</artifactItem>
+						<artifactItem>
+							<groupId>sevenzip-allplatforms</groupId>
+							<artifactId>jbinding-allplatforms</artifactId>
+							<version>${sevenzip-version}</version>
+							<packaging>jar</packaging>
+							<install>true</install>
+							<downloadUrl>http://www.spirton.com/uploads/7-Zip-JBinding/7-Zip-JBinding-AllPlatforms-{version}.{packaging}</downloadUrl>
 						</artifactItem>
 						<artifactItem>
 							<groupId>com.jgoodies</groupId>
