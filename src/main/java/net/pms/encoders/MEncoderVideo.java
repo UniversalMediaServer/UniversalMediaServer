@@ -1769,7 +1769,12 @@ public class MEncoderVideo extends Player {
 			if (params.stdin != null) {
 				cmdList.add("-");
 			} else {
-				cmdList.add(fileName);
+				if (dvd) {
+					String dvdFileName = fileName.replace("\\VIDEO_TS", "");
+					cmdList.add(dvdFileName);
+				} else {
+					cmdList.add(fileName);
+				}
 			}
 		}
 

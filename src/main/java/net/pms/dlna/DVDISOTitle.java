@@ -65,7 +65,7 @@ public class DVDISOTitle extends DLNAResource {
 		params.log = true;
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(cmd, params, true, false);
 		Runnable r = new Runnable() {
-
+			@Override
 			public void run() {
 				try {
 					Thread.sleep(10000);
@@ -259,6 +259,7 @@ public class DVDISOTitle extends DLNAResource {
 	}
 
 	// Ditlew
+	@Override
 	public long length(RendererConfiguration mediaRenderer) {
 		// WDTV Live at least, needs a realistic size for stop/resume to works proberly. 2030879 = ((15000 + 256) * 1024 / 8 * 1.04) : 1.04 = overhead
 		int cbr_video_bitrate = getDefaultRenderer().getCBRVideoBitrate();
