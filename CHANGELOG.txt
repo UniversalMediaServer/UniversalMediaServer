@@ -1,3 +1,10 @@
+1.7.0 - 2012-10-??
+
+	General:
+		Added support for more file archive formats (7-Zip, gzip and tar)
+		Created new "Plugin Management" tab
+		Improved DVD and ISO support
+
 1.6.0 - 2012-10-01
 
 	General:
