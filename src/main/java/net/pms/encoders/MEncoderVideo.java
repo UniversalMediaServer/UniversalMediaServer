@@ -79,7 +79,7 @@ public class MEncoderVideo extends Player {
 	private JTextField forcedtags;
 	private JTextField defaultaudiosubs;
 	private JTextField defaultfont;
-	private JComboBox subcp;
+	private JComboBox subtitleCodePage;
 	private JTextField subq;
 	private JCheckBox forcefps;
 	private JCheckBox yadif;
@@ -612,8 +612,8 @@ public class MEncoderVideo extends Player {
 		};
 
 		MyComboBoxModel cbm = new MyComboBoxModel(data);
-		subcp = new JComboBox(cbm);
-		subcp.addItemListener(new ItemListener() {
+		subtitleCodePage = new JComboBox(cbm);
+		subtitleCodePage.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
@@ -629,7 +629,7 @@ public class MEncoderVideo extends Player {
 			}
 		});
 
-		subcp.getEditor().getEditorComponent().addKeyListener(new KeyListener() {
+		subtitleCodePage.getEditor().getEditorComponent().addKeyListener(new KeyListener() {
 			@Override
 			public void keyTyped(KeyEvent e) {
 			}
@@ -640,12 +640,12 @@ public class MEncoderVideo extends Player {
 
 			@Override
 			public void keyReleased(KeyEvent e) {
-				subcp.getItemListeners()[0].itemStateChanged(new ItemEvent(subcp, 0, subcp.getEditor().getItem(), ItemEvent.SELECTED));
+				subtitleCodePage.getItemListeners()[0].itemStateChanged(new ItemEvent(subtitleCodePage, 0, subtitleCodePage.getEditor().getItem(), ItemEvent.SELECTED));
 			}
 		});
 
-		subcp.setEditable(true);
-		builder.add(subcp, FormLayoutUtil.flip(cc.xyw(3, 29, 7), colSpec, orientation));
+		subtitleCodePage.setEditable(true);
+		builder.add(subtitleCodePage, FormLayoutUtil.flip(cc.xyw(3, 29, 7), colSpec, orientation));
 
 		fribidi = new JCheckBox(Messages.getString("MEncoderVideo.23"));
 		fribidi.setContentAreaFilled(false);
@@ -985,7 +985,7 @@ public class MEncoderVideo extends Player {
 				subs.setEnabled(!configuration.isMencoderDisableSubs());
 				subq.setEnabled(!configuration.isMencoderDisableSubs());
 				defaultsubs.setEnabled(!configuration.isMencoderDisableSubs());
-				subcp.setEnabled(!configuration.isMencoderDisableSubs());
+				subtitleCodePage.setEnabled(!configuration.isMencoderDisableSubs());
 				ass.setEnabled(!configuration.isMencoderDisableSubs());
 				assdefaultstyle.setEnabled(!configuration.isMencoderDisableSubs());
 				fribidi.setEnabled(!configuration.isMencoderDisableSubs());
