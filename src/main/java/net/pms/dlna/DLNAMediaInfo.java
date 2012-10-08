@@ -1122,7 +1122,7 @@ public class DLNAMediaInfo implements Cloneable {
 					validFrameRate = ratios ? "48000/1001" : "47.952";
 				} else if (fr > 49.9 && fr < 50.1) {
 					validFrameRate = "50";
-				} else if (fr > 59.9 && fr < 59.99) {
+				} else if (fr > 59.8 && fr < 59.99) {
 					validFrameRate = ratios ? "60000/1001" : "59.94";
 				} else if (fr >= 59.99 && fr < 60.1) {
 					validFrameRate = "60";
