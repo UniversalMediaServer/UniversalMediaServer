@@ -209,27 +209,22 @@ public class PluginTab {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (!ExternalFactory.localPluginsInstalled()) {
-					JOptionPane.showMessageDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())), Messages.getString("NetworkTab.40"));
+					JOptionPane.showMessageDialog(
+						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+						Messages.getString("NetworkTab.40")
+					);
 					return;
 				}
 
-				String permissionsReminder = "";
-				if (
-					"Windows 7".equals(System.getProperty("os.name")) ||
-					"Windows Vista".equals(System.getProperty("os.name"))
-				) {
-					permissionsReminder = "Make sure UMS is running as administrator before proceeding";
-				}
+				if (!configuration.isAdmin()) {
+					JOptionPane.showMessageDialog(
+						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+						"UMS must be run as administrator in order to install plugins.",
+						"Permissions Error",
+						JOptionPane.ERROR_MESSAGE
+					);
 
-				if (!StringUtils.isEmpty(permissionsReminder)) {
-					int id = JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-						permissionsReminder, null,
-						JOptionPane.OK_CANCEL_OPTION,
-						JOptionPane.PLAIN_MESSAGE, null, null, null);
-
-					if (id != 0) { // Cancel, do nothing
-						return;
-					}
+					return;
 				}
 
 				final int[] rows = table.getSelectedRows();
