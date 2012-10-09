@@ -35,6 +35,7 @@ import net.pms.encoders.*;
 import net.pms.external.AdditionalResourceFolderListener;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
+import net.pms.external.LastPlayedParent;
 import net.pms.external.StartStopListener;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
@@ -396,6 +397,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		setChildren(new ArrayList<DLNAResource>());
 		setUpdateId(1);
 		lastSearch = null;
+		masterParent = null;
 	}
 
 	public DLNAResource(int specificType) {
@@ -449,6 +451,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		child.setParent(this);
+		child.setMasterParent(getMasterParent());
 
 		if (getParent() != null) {
 			setDefaultRenderer(getParent().getDefaultRenderer());
@@ -1426,6 +1429,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public void stopPlaying(final String rendererId) {
 		final DLNAResource self = this;
 		final String requestId = getRequestId(rendererId);
+		final RootFolder root = ((defaultRenderer != null)?defaultRenderer.getRootFolder():null);
 		Runnable defer = new Runnable() {
 			@Override
 			public void run() {
@@ -1433,9 +1437,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					Thread.sleep(STOP_PLAYING_DELAY);
 				} catch (InterruptedException e) {
 					LOGGER.error("stopPlaying sleep interrupted", e);
-				}
-				if(defaultRenderer != null) {
-					defaultRenderer.getRootFolder().stopPlaying(self);
 				}
 
 				synchronized (requestIdToRefcount) {
@@ -1450,7 +1451,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							if (refCount == 1) {
 								LOGGER.info(String.format("renderer: %s, file: %s", rendererId, getSystemName()));
 								PMS.get().getFrame().setStatusLine("");
-
+								if(root != null) {
+									root.stopPlaying(self.clone());
+								}
 								for (final ExternalListener listener : ExternalFactory.getExternalListeners()) {
 									if (listener instanceof StartStopListener) {
 										// run these asynchronously for slow handlers (e.g. logging, scrobbling)
@@ -2221,5 +2224,33 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public boolean isSearched() {
 		return false;
 	}
+	
+	///////////////////////////////////////////////////////////
+	// Handle last played stuff
+	///////////////////////////////////////////////////////////
+	
+	/* This method should be overridden by all media types
+	 * that should be added to the last played list. Default
+	 * it just returns null which means the resource is ignored in the
+	 * last played file 
+	 */
+	
+	public String write() {
+		return null;
+	}
+	
+	private LastPlayedParent masterParent;
+	
+	public void setMasterParent(LastPlayedParent r) {
+		if(masterParent == null) {
+			// if master is already set ignore this...
+			masterParent=r;
+		}
+	}
+	
+	public LastPlayedParent getMasterParent() {
+		return masterParent;
+	}
+	
 }
 

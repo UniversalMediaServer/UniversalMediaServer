@@ -36,6 +36,7 @@ import net.pms.external.AdditionalFolderAtRoot;
 import net.pms.external.AdditionalFoldersAtRoot;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
+import net.pms.external.LastPlayedParent;
 import net.pms.gui.IFrame;
 import net.pms.xmlwise.Plist;
 import net.pms.xmlwise.XmlParseException;
@@ -50,6 +51,7 @@ public class RootFolder extends DLNAResource {
 	private boolean running;
 	private FolderLimit lim;
 	private MediaMonitor mon;
+	private LastPlayed last;
 
 	public RootFolder() {
 		setIndexId(0);
@@ -89,6 +91,11 @@ public class RootFolder extends DLNAResource {
 	public void discoverChildren() {
 		if (isDiscovered()) {
 			return;
+		}
+		
+		if(PMS.getConfiguration().getLastPlayed()) {
+			last = new LastPlayed();
+			addChild(last);
 		}
 		
 		String m=(String) PMS.getConfiguration().getCustomProperty("monitor");
@@ -824,7 +831,15 @@ public class RootFolder extends DLNAResource {
 			if (listener instanceof AdditionalFolderAtRoot) {
 				AdditionalFolderAtRoot afar = (AdditionalFolderAtRoot) listener;
 				try {
-					res.add(afar.getChild());
+					DLNAResource resource = afar.getChild();
+					LOGGER.debug("add ext list "+listener+" lpp? "+(listener instanceof LastPlayedParent));
+					if(listener instanceof LastPlayedParent) {
+						resource.setMasterParent((LastPlayedParent)listener);
+						for(DLNAResource r : resource.getChildren()) {
+							r.setMasterParent((LastPlayedParent)listener);
+						}
+					}
+					res.add(resource);
 				} catch (Throwable t) {
 					LOGGER.error(String.format("Failed to append AdditionalFolderAtRoot with name=%s, class=%s", afar.name(), afar.getClass()), t);
 				}
@@ -832,6 +847,12 @@ public class RootFolder extends DLNAResource {
 				java.util.Iterator<DLNAResource> folders = ((AdditionalFoldersAtRoot) listener).getChildren();
 				while (folders.hasNext()) {
 					DLNAResource resource = folders.next();
+					if(listener instanceof LastPlayedParent) {
+						resource.setMasterParent((LastPlayedParent)listener);
+						for(DLNAResource r : resource.getChildren()) {
+							r.setMasterParent((LastPlayedParent)listener);
+						}
+					}
 					try {
 						res.add(resource);
 					} catch (Throwable t) {
@@ -853,6 +874,11 @@ public class RootFolder extends DLNAResource {
 	}
 	
 	public void stopPlaying(DLNAResource res) {
-		mon.stopped(res);
+		if(mon != null) {
+			mon.stopped(res);
+		}
+		if(last != null) {
+			last.add(res);
+		}
 	}
 } 

@@ -16,41 +16,13 @@ import net.pms.dlna.virtual.VirtualFolder;
 public class MediaMonitor extends VirtualFolder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaMonitor.class);
 	private File[] dirs;
-	private ArrayList<String> oldEntries=new ArrayList<String>();
-	private ArrayList<String> newEntries=new ArrayList<String>();
+	private ArrayList<String> oldEntries;
 	
 	public MediaMonitor(File[] dirs) {
 		super("New Media",null);
 		this.dirs=dirs;
-		ArrayList<String> oldEntries=new ArrayList<String>();
-		ArrayList<String> newEntries=new ArrayList<String>();
+		oldEntries=new ArrayList<String>();
 		parseMonitorFile();
-		scan();
-	}
-	
-	
-	public void scan() {
-		for(int i=0;i<dirs.length;i++) {
-			File f=dirs[i];
-			LOGGER.debug("scan dir "+f.getAbsolutePath());
-			scanDir(f.listFiles());
-		}
-	}
-	
-	private void scanDir(File[] files) {
-		for(int i=0;i<files.length;i++) {
-			File f=files[i];
-			if(f.isFile()) {
-				// regular file
-				LOGGER.debug("file "+f+" is old? "+oldEntries.contains(f.getAbsoluteFile()));
-				if(!oldEntries.contains(f.getAbsolutePath()))
-					newEntries.add(f.getAbsolutePath());
-				continue;
-			}
-			if(f.isDirectory()) {
-			
-			}
-		}
 	}
 	
 	private File monitorFile() {
@@ -83,33 +55,62 @@ public class MediaMonitor extends VirtualFolder {
 			dumpFile();
 		} catch (Exception e) {
 		}
-		
+	}
+	
+	public void scanDir(File[] files,DLNAResource res) {
+		for(int i=0;i<files.length;i++) {
+			File f=files[i];
+			if(f.isFile()) {
+				// regular file
+				LOGGER.debug("file "+f+" is old? "+old(f.getAbsolutePath()));
+				if(old(f.getAbsolutePath()))
+					continue;
+				res.addChild(new RealFile(f));
+			}
+			if(f.isDirectory()) {
+				res.addChild(new MonitorEntry(f,this));
+			}
+		}
 	}
 	
 	public void discoverChildren() {
-		for(String s : newEntries)
-			addChild(new RealFile(new File(s)));
+		for(File f : dirs) {
+			scanDir(f.listFiles(),this);
+		}
 	}
 	
 	public boolean isRefreshNeeded() {
 		return true;
 	}
 	
+	private boolean monitorClass(DLNAResource res) {
+		return (res instanceof MonitorEntry) || (res instanceof MediaMonitor);
+	}
+	
 	public void stopped(DLNAResource res) {
 		if(!(res instanceof RealFile)) 
 			return;
 		RealFile rf=(RealFile)res;
-		String file=rf.getFile().getAbsolutePath();
-		if(!newEntries.contains(file))
-			return;
-		newEntries.remove(file);
-		oldEntries.add(file);
-		setDiscovered(false);
-		getChildren().clear();
-		try {
-			dumpFile();
-		} catch (IOException e) {
+		DLNAResource tmp=res.getParent();
+		while(tmp != null) {
+			if(monitorClass(tmp)) {
+				if(old(rf.getFile().getAbsolutePath())) // no duplicates!
+					return;
+				oldEntries.add(rf.getFile().getAbsolutePath());
+				setDiscovered(false);
+				getChildren().clear();
+				try {
+					dumpFile();
+				} catch (IOException e) {
+				}
+				return;
+			}
+			tmp = tmp.getParent();
 		}
+	}
+	
+	private boolean old(String str) {
+		return oldEntries.contains(str);
 	}
 	
 	private void dumpFile() throws IOException {
@@ -120,14 +121,14 @@ public class MediaMonitor extends VirtualFolder {
 		sb.append("## NOTE!!!!!\n");
 		sb.append("## This file is auto generated\n");
 		sb.append("## Edit with EXTREME care\n");
-		for(String s : oldEntries) { 
+		for(String str : oldEntries) { 
 			sb.append("entry=");
-			sb.append(s);
+			sb.append(str);
 			sb.append("\n");
 		}
 		out.write(sb.toString());
 		out.flush();
 		out.close();
-	}
+	} 
 
 }

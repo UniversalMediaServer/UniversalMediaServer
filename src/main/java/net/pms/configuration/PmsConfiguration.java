@@ -182,7 +182,8 @@ public class PmsConfiguration {
 	private static final String KEY_UUID = "uuid";
 	private static final String KEY_VIDEOTRANSCODE_START_DELAY = "key_videotranscode_start_delay"; // TODO (breaking change): should be renamed to e.g. videotranscode_start_delay
 	private static final String KEY_VIRTUAL_FOLDERS = "vfolders";
-
+	private static final String KEY_LAST_PLAYED = "last_played";
+	
 	// the name of the subdirectory under which PMS config files are stored for this build (default: PMS).
 	// see Build for more details
 	private static final String PROFILE_DIRECTORY_NAME = Build.getProfileDirectoryName();
@@ -2390,5 +2391,9 @@ public class PmsConfiguration {
 	 */
 	public void setTranscodeFolderName(String name) {
 		configuration.setProperty(KEY_TRANSCODE_FOLDER_NAME, name);
+	}
+	
+	public boolean getLastPlayed() {
+		return getBoolean(KEY_LAST_PLAYED, false);
 	}
 }
