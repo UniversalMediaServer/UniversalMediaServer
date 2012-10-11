@@ -46,7 +46,7 @@ public class PluginTab {
 	private static final String COL_SPEC = "left:pref, 2dlu, p, 2dlu , p, 2dlu, p, 2dlu, pref:grow";
 	private static final String ROW_SPEC = "p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p";
 	private JPanel pPlugins;
-	private ArrayList<DownloadPlugins> plugins; 
+	private ArrayList<DownloadPlugins> plugins;
 
 	PluginTab(PmsConfiguration configuration) {
 		this.configuration = configuration;
@@ -178,8 +178,8 @@ public class PluginTab {
 				return plugin.htmlString();
 			}
 		};
-		
-		refresh(table,cols);
+
+		refresh(table, cols);
 
 		// Define column widths
 		TableColumn nameColumn = table.getColumnModel().getColumn(0);
@@ -256,12 +256,12 @@ public class PluginTab {
 				new Thread(r).start();
 			}
 		});
-		
+
 		JButton refresh = new JButton(Messages.getString("PluginTab.2") + " " + Messages.getString("PluginTab.1"));
 		builder.add(refresh, FormLayoutUtil.flip(cc.xy(3, 9), colSpec, orientation));
 		refresh.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				refresh(table,cols);				
+				refresh(table, cols);
 			}
 		});
 
@@ -280,18 +280,18 @@ public class PluginTab {
 
 		return scrollPane;
 	}
-	
-	private void refresh(JTable table,String[] cols) {
+
+	private void refresh(JTable table, String[] cols) {
 		plugins = DownloadPlugins.downloadList();
 		for (int i = 0; i < cols.length; i++) {
 			table.setValueAt(cols[i], 0, i);
 		}
-		
+
 		DefaultTableModel tableModel = (DefaultTableModel) table.getModel();
 		tableModel.setRowCount(1);
 
 		for (int i = 0; i < plugins.size(); i++) {
-			tableModel.insertRow(i + 1, (Object []) null);
+			tableModel.insertRow(i + 1, (Object[]) null);
 			DownloadPlugins p = plugins.get(i);
 			table.setValueAt(p.getName(), i + 1, 0);
 			table.setValueAt(p.getRating(), i + 1, 1);
