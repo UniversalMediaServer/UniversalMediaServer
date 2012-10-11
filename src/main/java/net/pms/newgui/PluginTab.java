@@ -30,6 +30,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -45,10 +46,12 @@ public class PluginTab {
 	private static final String COL_SPEC = "left:pref, 2dlu, p, 2dlu , p, 2dlu, p, 2dlu, pref:grow";
 	private static final String ROW_SPEC = "p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p";
 	private JPanel pPlugins;
+	private ArrayList<DownloadPlugins> plugins; 
 
 	PluginTab(PmsConfiguration configuration) {
 		this.configuration = configuration;
 		pPlugins = null;
+		plugins = null;
 	}
 
 	public JComponent build() {
@@ -149,16 +152,14 @@ public class PluginTab {
 		availablePluginsHeading = (JComponent) availablePluginsHeading.getComponent(0);
 		availablePluginsHeading.setFont(availablePluginsHeading.getFont().deriveFont(Font.BOLD));
 
-		final ArrayList<DownloadPlugins> plugins = DownloadPlugins.downloadList();
-
-		String[] cols = {
+		final String[] cols = {
 			Messages.getString("NetworkTab.41"),
 			Messages.getString("NetworkTab.42"),
 			Messages.getString("NetworkTab.43"),
 			Messages.getString("NetworkTab.53")
 		};
 
-		final JTable table = new JTable(plugins.size() + 1, cols.length) {
+		final JTable table = new JTable(1, cols.length) {
 			@Override
 			public boolean isCellEditable(int rowIndex, int vColIndex) {
 				return false;
@@ -177,18 +178,8 @@ public class PluginTab {
 				return plugin.htmlString();
 			}
 		};
-
-		for (int i = 0; i < cols.length; i++) {
-			table.setValueAt(cols[i], 0, i);
-		}
-
-		for (int i = 0; i < plugins.size(); i++) {
-			DownloadPlugins p = plugins.get(i);
-			table.setValueAt(p.getName(), i + 1, 0);
-			table.setValueAt(p.getRating(), i + 1, 1);
-			table.setValueAt(p.getAuthor(), i + 1, 2);
-			table.setValueAt(p.getDescription(), i + 1, 3);
-		}
+		
+		refresh(table,cols);
 
 		// Define column widths
 		TableColumn nameColumn = table.getColumnModel().getColumn(0);
@@ -265,6 +256,14 @@ public class PluginTab {
 				new Thread(r).start();
 			}
 		});
+		
+		JButton refresh = new JButton(Messages.getString("PluginTab.2") + " " + Messages.getString("PluginTab.1"));
+		builder.add(refresh, FormLayoutUtil.flip(cc.xy(3, 9), colSpec, orientation));
+		refresh.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				refresh(table,cols);				
+			}
+		});
 
 		cmp = builder.addSeparator(Messages.getString("PluginTab.0"), FormLayoutUtil.flip(cc.xyw(1, 11, 9), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
@@ -280,6 +279,26 @@ public class PluginTab {
 			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
 		return scrollPane;
+	}
+	
+	private void refresh(JTable table,String[] cols) {
+		plugins = DownloadPlugins.downloadList();
+		for (int i = 0; i < cols.length; i++) {
+			table.setValueAt(cols[i], 0, i);
+		}
+		
+		DefaultTableModel tableModel = (DefaultTableModel) table.getModel();
+		tableModel.setRowCount(1);
+
+		for (int i = 0; i < plugins.size(); i++) {
+			tableModel.insertRow(i + 1, (Object []) null);
+			DownloadPlugins p = plugins.get(i);
+			table.setValueAt(p.getName(), i + 1, 0);
+			table.setValueAt(p.getRating(), i + 1, 1);
+			table.setValueAt(p.getAuthor(), i + 1, 2);
+			table.setValueAt(p.getDescription(), i + 1, 3);
+		}
+		tableModel.fireTableDataChanged();
 	}
 
 	public void addPlugins() {
