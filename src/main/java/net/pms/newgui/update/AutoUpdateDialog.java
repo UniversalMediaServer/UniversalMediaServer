@@ -166,6 +166,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 			case UPDATE_AVAILABLE:
 				String permissionsReminder = "";
 				if (
+					"Windows 8".equals(System.getProperty("os.name")) ||
 					"Windows 7".equals(System.getProperty("os.name")) ||
 					"Windows Vista".equals(System.getProperty("os.name"))
 				) {
