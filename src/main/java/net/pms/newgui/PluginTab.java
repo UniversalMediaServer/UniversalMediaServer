@@ -43,7 +43,7 @@ import org.apache.commons.lang.StringUtils;
 
 public class PluginTab {
 	private final PmsConfiguration configuration;
-	private static final String COL_SPEC = "left:pref, 2dlu, p, 2dlu , p, 2dlu, p, 2dlu, pref:grow";
+	private static final String COL_SPEC = "left:pref, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, pref:grow";
 	private static final String ROW_SPEC = "p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p";
 	private JPanel pPlugins;
 	private ArrayList<DownloadPlugins> plugins;
