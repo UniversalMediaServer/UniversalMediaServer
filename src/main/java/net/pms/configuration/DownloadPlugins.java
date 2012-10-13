@@ -64,6 +64,9 @@ public class DownloadPlugins {
 			str = str.trim();
 			if (StringUtils.isEmpty(str)) {
 				if (plugin.isOk()) {
+					if (test) {
+						plugin.setRating("TEST");
+					}
 					res.add(plugin);
 				} else {
 					LOGGER.info("An invalid plugin was ignored");
