@@ -343,7 +343,7 @@ public class FFMpegVideo extends Player {
 			if (dtsRemux) {
 				audioCodecInput1 = "-an";
 				audioCodecInput2 = "-an";
-			} else if (purpose() == 1) {
+			} else if (type() == Format.AUDIO) {
 				audioCodecInput1 = "-sn";
 				audioCodecInput2 = "-sn";
 			}
@@ -370,8 +370,8 @@ public class FFMpegVideo extends Player {
 		LOGGER.trace("channels=" + channels);
 
 		// Audio bitrate
-		cmdArray[17] = ((params.aid.isAC3() && !ac3Remux) || purpose() == 1) ? "-sn" : "-ab";
-		cmdArray[18] = ((params.aid.isAC3() && !ac3Remux) || purpose() == 1) ? "-sn" : PMS.getConfiguration().getAudioBitrate() + "k";
+		cmdArray[17] = ((params.aid.isAC3() && !ac3Remux) || type() == Format.AUDIO) ? "-sn" : "-ab";
+		cmdArray[18] = ((params.aid.isAC3() && !ac3Remux) || type() == Format.AUDIO) ? "-sn" : PMS.getConfiguration().getAudioBitrate() + "k";
 
 		System.arraycopy(args, 0, cmdArray, 19, args.length);
 
