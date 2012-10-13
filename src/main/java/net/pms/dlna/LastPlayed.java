@@ -5,6 +5,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -18,6 +21,8 @@ import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.external.LastPlayedParent;
+import net.pms.formats.Format;
+import net.pms.configuration.PmsConfiguration;
 
 public class LastPlayed extends VirtualFolder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LastPlayed.class);
@@ -35,11 +40,10 @@ public class LastPlayed extends VirtualFolder {
 		return new File("UMS.last");
 	}
 	
-	private LastPlayedParent findLastPlayedParent(String className) {
+	private ExternalListener findLastPlayedParent(String className) {
 		for(ExternalListener l : ExternalFactory.getExternalListeners()) {
-			if((className.equals(l.getClass().getName())) &&
-			   (l instanceof LastPlayedParent)) {
-				return (LastPlayedParent)l;
+			if(className.equals(l.getClass().getName())) {
+			   return l;
 			}
 		}
 		return null;
@@ -85,7 +89,7 @@ public class LastPlayed extends VirtualFolder {
 			String data = res.write();
 			if(!StringUtils.isEmpty(data) &&
 					res.getMasterParent() != null) {
-				res1 = res.getMasterParent().create(data);
+				res1 = resolveCreateMethod(res.getMasterParent(),data);
 				res1.setMasterParent(res.getMasterParent());
 			}
 			else {
@@ -137,14 +141,14 @@ public class LastPlayed extends VirtualFolder {
 				str=str.substring(pos+1);
 				LOGGER.debug("master is "+master+" str "+str);
 				DLNAResource res = null;
-				LastPlayedParent lpp = null;
+				ExternalListener lpp = null;
 				if(master.startsWith("internal:")) {
 					 res = parseInternal(master.substring(9),str);
 				}
 				else {
 					lpp = findLastPlayedParent(master);
 					if(lpp != null)
-						res = lpp.create(str);
+						res = resolveCreateMethod(lpp,str);
 				}
 				if(res != null) {
 					LOGGER.debug("set masterparent for "+res +" to "+lpp);
@@ -169,7 +173,7 @@ public class LastPlayed extends VirtualFolder {
 		for(DLNAResource r : list) {
 			String data = r.write();
 			if(!StringUtils.isEmpty(data)) {
-				LastPlayedParent parent = r.getMasterParent();
+				ExternalListener parent = r.getMasterParent();
 				String id;
 				if(parent != null) {
 					id = parent.getClass().getName();
@@ -191,6 +195,43 @@ public class LastPlayed extends VirtualFolder {
 		if(clazz.contains("RealFile")) {
 			String[] tmp=data.split(">");
 			return new RealFile(new File(tmp[1]),tmp[0]);
+		}
+		if(clazz.contains("SevenZipEntry")) {
+			String[] tmp=data.split(">");
+			long len=Long.parseLong(tmp[2]);
+			return new SevenZipEntry(new File(tmp[1]),tmp[0],len);
+		}
+		if(clazz.contains("ZippedEntry")) {
+			String[] tmp=data.split(">");
+			long len=Long.parseLong(tmp[2]);
+			return new ZippedEntry(new File(tmp[1]),tmp[0],len);
+		}
+		if(clazz.contains("WebStream")) {
+			String[] tmp=data.split(">");
+			int type;
+			try {
+				type=Integer.parseInt(tmp[3]);
+			} catch (NumberFormatException e) {
+				type=Format.UNKNOWN;
+			}
+			return new WebStream(tmp[0],tmp[1],tmp[2],type);
+		}
+		return null;
+	}
+	
+	private DLNAResource resolveCreateMethod(ExternalListener l,String arg) {
+		Method create;
+		try {
+			Class<?> clazz=l.getClass();
+			create = clazz.getDeclaredMethod("create", String.class);
+			return (DLNAResource) create.invoke(l, arg);
+		}
+		// Ignore all errors
+		catch (SecurityException e) {
+		} catch (NoSuchMethodException e) { 
+		} catch (IllegalArgumentException e) {
+		} catch (IllegalAccessException e) {
+		} catch (InvocationTargetException e) {
 		}
 		return null;
 	}

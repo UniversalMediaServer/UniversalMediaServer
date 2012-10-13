@@ -2239,16 +2239,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return null;
 	}
 	
-	private LastPlayedParent masterParent;
+	private ExternalListener masterParent;
 	
-	public void setMasterParent(LastPlayedParent r) {
+	public void setMasterParent(ExternalListener r) {
 		if(masterParent == null) {
 			// if master is already set ignore this...
 			masterParent=r;
 		}
 	}
 	
-	public LastPlayedParent getMasterParent() {
+	public ExternalListener getMasterParent() {
 		return masterParent;
 	}
 	

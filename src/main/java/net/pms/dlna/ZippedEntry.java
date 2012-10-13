@@ -172,4 +172,8 @@ public class ZippedEntry extends DLNAResource implements IPushOutput {
 			return super.getThumbnailInputStream();
 		}
 	}
+	
+	public String write() {
+		return getName()+">"+file.getAbsolutePath()+">"+length;
+	}
 }
