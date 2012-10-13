@@ -154,6 +154,7 @@ public class PluginTab {
 
 		final String[] cols = {
 			Messages.getString("NetworkTab.41"),
+			Messages.getString("PluginTab.3"),
 			Messages.getString("NetworkTab.42"),
 			Messages.getString("NetworkTab.43"),
 			Messages.getString("NetworkTab.53")
@@ -184,13 +185,14 @@ public class PluginTab {
 		// Define column widths
 		TableColumn nameColumn = table.getColumnModel().getColumn(0);
 		nameColumn.setMinWidth(70);
-		TableColumn ratingColumn = table.getColumnModel().getColumn(1);
+		TableColumn versionColumn = table.getColumnModel().getColumn(2);
+		versionColumn.setPreferredWidth(45);
+		TableColumn ratingColumn = table.getColumnModel().getColumn(2);
 		ratingColumn.setPreferredWidth(45);
-		TableColumn authorColumn = table.getColumnModel().getColumn(2);
-		authorColumn.setMinWidth(100);
-		TableColumn descriptionColumn = table.getColumnModel().getColumn(3);
+		TableColumn authorColumn = table.getColumnModel().getColumn(3);
+		authorColumn.setMinWidth(150);
+		TableColumn descriptionColumn = table.getColumnModel().getColumn(4);
 		descriptionColumn.setMinWidth(300);
-		descriptionColumn.setMaxWidth(600);
 
 		builder.add(table, FormLayoutUtil.flip(cc.xyw(1, 7, 9), colSpec, orientation));
 
@@ -260,6 +262,7 @@ public class PluginTab {
 		JButton refresh = new JButton(Messages.getString("PluginTab.2") + " " + Messages.getString("PluginTab.1"));
 		builder.add(refresh, FormLayoutUtil.flip(cc.xy(3, 9), colSpec, orientation));
 		refresh.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				refresh(table, cols);
 			}
@@ -294,9 +297,10 @@ public class PluginTab {
 			tableModel.insertRow(i + 1, (Object[]) null);
 			DownloadPlugins p = plugins.get(i);
 			table.setValueAt(p.getName(), i + 1, 0);
-			table.setValueAt(p.getRating(), i + 1, 1);
-			table.setValueAt(p.getAuthor(), i + 1, 2);
-			table.setValueAt(p.getDescription(), i + 1, 3);
+			table.setValueAt(p.getVersion(), i + 1, 1);
+			table.setValueAt(p.getRating(), i + 1, 2);
+			table.setValueAt(p.getAuthor(), i + 1, 3);
+			table.setValueAt(p.getDescription(), i + 1, 4);
 		}
 		tableModel.fireTableDataChanged();
 	}
