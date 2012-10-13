@@ -4,6 +4,13 @@
 		Added support for more file archive formats (7-Zip, gzip and tar)
 		Created new "Plugin Management" tab
 		Improved DVD and ISO support
+		Added button to edit the plugin credential file
+		Fixed SSA subtitle position when using overscan compensation
+		Improved plugin installation process
+		Fixed a rare bug where videos played at half-speed
+		Added button to reload available plugin list
+		Updated JRE auto-download to 7u7 (latest)
+		Admin permissions notifications work on Windows 8 (before they only worked on 7 and Vista)
 
 1.6.0 - 2012-10-01
 
