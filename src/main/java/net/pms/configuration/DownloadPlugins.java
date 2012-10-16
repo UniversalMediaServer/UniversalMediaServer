@@ -1,7 +1,6 @@
 package net.pms.configuration;
 
 import com.sun.jna.Platform;
-
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -15,12 +14,10 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
 import javax.swing.JLabel;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.external.ExternalFactory;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -35,7 +32,6 @@ public class DownloadPlugins {
 	private static final int TYPE_JAR = 0;
 	private static final int TYPE_LIST = 1;
 	private static final int TYPE_PLATFORM_LIST = 2;
-	
 
 	private String id;
 	private String name;
@@ -124,13 +120,12 @@ public class DownloadPlugins {
 				plugin.props = keyval[1].split(",");
 			}
 		}
-		if (plugin.isOk()|| plugin.isTest()) { // Add the last one
+		if (plugin.isOk() || plugin.isTest()) { // Add the last one
 			if (test) {
 				plugin.setRating("TEST");
 			}
 			res.add(plugin);
-		}
-		else {
+		} else {
 			LOGGER.info("An invalid plugin was ignored");
 		}
 		in.close();
@@ -139,7 +134,7 @@ public class DownloadPlugins {
 	public DownloadPlugins() {
 		this(false);
 	}
-	
+
 	public DownloadPlugins(boolean test) {
 		type = DownloadPlugins.TYPE_JAR;
 		rating = "--";
@@ -175,7 +170,7 @@ public class DownloadPlugins {
 		// We must have a name and ID
 		return (!StringUtils.isEmpty(name)) && (!StringUtils.isEmpty(id));
 	}
-	
+
 	public boolean isTest() {
 		return test;
 	}
@@ -237,17 +232,17 @@ public class DownloadPlugins {
 		File f = new File(p);
 		f.mkdirs();
 	}
-	
+
 	private void unzip(File f,String dir) {
-		// zip file with loads of goodies
-		// unzip it
+		// Zip file with loads of goodies
+		// Unzip it
 		ZipInputStream zis;
 		try {
 			zis = new ZipInputStream(new FileInputStream(f));
 			ZipEntry entry;
-			while((entry = zis.getNextEntry()) != null) {
-				File dst=new File(dir + File.separator + entry.getName());
-				if(entry.isDirectory()) {
+			while ((entry = zis.getNextEntry()) != null) {
+				File dst = new File(dir + File.separator + entry.getName());
+				if (entry.isDirectory()) {
 					dst.mkdirs();
 					continue;
 				}
@@ -260,13 +255,13 @@ public class DownloadPlugins {
 				}
 				dest.flush();
 				dest.close();
-				if(dst.getAbsolutePath().endsWith(".jar")) {
+				if (dst.getAbsolutePath().endsWith(".jar")) {
 					jars.add(dst.toURI().toURL());
 				}
 			}
 			zis.close();
 		} catch (Exception e) {
-			PMS.info("unzip error "+e);
+			LOGGER.info("unzip error " + e);
 		}
 		f.delete();
 	}
