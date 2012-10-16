@@ -233,7 +233,7 @@ public class DownloadPlugins {
 		f.mkdirs();
 	}
 
-	private void unzip(File f,String dir) {
+	private void unzip(File f, String dir) {
 		// Zip file with loads of goodies
 		// Unzip it
 		ZipInputStream zis;
@@ -271,13 +271,13 @@ public class DownloadPlugins {
 		ensureCreated(dir);
 		String fName = extractFileName(url, name);
 
-		LOGGER.debug("fetch file "+url);
+		LOGGER.debug("fetch file " + url);
 		if (updateLabel != null) {
 			updateLabel.setText(Messages.getString("NetworkTab.47") + ": " + fName);
 		}
 
 		File f = new File(dir + File.separator + fName);
-		if(f.exists()) {
+		if (f.exists()) {
 			// no need to download it twice
 			return true;
 		}
@@ -296,15 +296,15 @@ public class DownloadPlugins {
 		out.flush();
 		out.close();
 		in.close();
-		
-		if(fName.endsWith(".zip")) {
-			for(int i=0;i<props.length;i++) {
-				if(props[i].equalsIgnoreCase("unzip")) {
-					unzip(f,dir);
+
+		if (fName.endsWith(".zip")) {
+			for (int i = 0; i < props.length; i++) {
+				if (props[i].equalsIgnoreCase("unzip")) {
+					unzip(f, dir);
 					continue;
 				}
 			}
-		}			
+		}
 
 		// If we got down here add the jar to the list (if it is a jar)
 		if (f.getAbsolutePath().endsWith(".jar")) {
@@ -312,9 +312,9 @@ public class DownloadPlugins {
 		}
 		return true;
 	}
-	
-	private boolean command(String cmd,String[] args) {
-		if(cmd.equalsIgnoreCase("move")) {
+
+	private boolean command(String cmd, String[] args) {
+		if (cmd.equalsIgnoreCase("move")) {
 			// arg1 is src and arg2 is dst
 			try {
 				FileUtils.moveFile(new File(args[1]), new File(args[2]));
@@ -324,7 +324,7 @@ public class DownloadPlugins {
 			}
 			return true;
 		}
-		if(cmd.equalsIgnoreCase("touch")) {
+		if (cmd.equalsIgnoreCase("touch")) {
 			// arg1 is file to touch
 			try {
 				FileUtils.touch(new File(args[1]));
@@ -349,7 +349,7 @@ public class DownloadPlugins {
 
 		while ((str = in.readLine()) != null) {
 			str = str.trim();
-			
+
 			if (StringUtils.isEmpty(str)) {
 				continue;
 			}
@@ -357,8 +357,8 @@ public class DownloadPlugins {
 			String[] tmp = str.split(",", 3);
 			String dir = PMS.getConfiguration().getPluginDirectory();
 			String filename = "";
-			
-			if(command(tmp[0], tmp)) {
+
+			if (command(tmp[0], tmp)) {
 				// a command take the next line
 				continue;
 			}
@@ -381,7 +381,7 @@ public class DownloadPlugins {
 
 	private boolean download() throws Exception {
 		if (type == DownloadPlugins.TYPE_LIST) {
-			if(isTest()) {
+			if (isTest()) {
 				// we can't use the id based stuff
 				// when testing
 				return downloadList(url);
@@ -399,10 +399,10 @@ public class DownloadPlugins {
 			}
 			return downloadList(url + ext);
 		}
-		 if (isTest()) {
-			 return downloadFile(url, PMS.getConfiguration().getPluginDirectory(), "");
-		 }
-		 return false;
+		if (isTest()) {
+			return downloadFile(url, PMS.getConfiguration().getPluginDirectory(), "");
+		}
+		return false;
 	}
 
 	public boolean install(JLabel update) throws Exception {
