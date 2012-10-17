@@ -2245,7 +2245,7 @@ public class MEncoderVideo extends Player {
 			if (configuration.isFix25FPSAvMismatch()) {
 				cmdList.add("-mc");
 				cmdList.add("0.005");
-			} else {
+			} else if (configuration.isMencoderNoOutOfSync() && !disableMc0AndNoskip) {
 				cmdList.add("-mc");
 				cmdList.add("0");
 				cmdList.add("-noskip");
