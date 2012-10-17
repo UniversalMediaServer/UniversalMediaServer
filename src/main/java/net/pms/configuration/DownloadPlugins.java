@@ -314,14 +314,14 @@ public class DownloadPlugins {
 		}
 		return true;
 	}
-	
+
 	private void doExec(String args) throws IOException, InterruptedException, ConfigurationException {
 		int pos = args.indexOf(",");
-		if(pos == -1) { // weird stuff
+		if (pos == -1) { // weird stuff
 			return;
 		}
-		// everythig after the "," is what we're supposed
-		// to run
+
+		// Everything after the "," is what we're supposed to run
 		// Before we start external installers better save the config
 		PMS.getConfiguration().save();
 		ProcessBuilder pb = new ProcessBuilder(args.substring(pos + 1));
@@ -330,26 +330,29 @@ public class DownloadPlugins {
 		env.put("PROFILE_PATH", PMS.getConfiguration().getProfileDirectory());
 		Process pid = pb.start();
 		InputStream is = pid.getInputStream();
-        InputStreamReader isr = new InputStreamReader(is);
-        BufferedReader br = new BufferedReader(isr);
-        String line;
-        StringBuilder sb = new StringBuilder();
-        while ((line = br.readLine()) != null) { 
-        	sb.append(line);
-        }
-        pid.waitFor();
-		String[] tmp  = sb.toString().split(",");
-		for(int i = 0;i < tmp.length; i++) {
+		InputStreamReader isr = new InputStreamReader(is);
+		BufferedReader br = new BufferedReader(isr);
+		String line;
+		StringBuilder sb = new StringBuilder();
+
+		while ((line = br.readLine()) != null) {
+			sb.append(line);
+		}
+
+		pid.waitFor();
+		String[] tmp = sb.toString().split(",");
+
+		for (int i = 0; i < tmp.length; i++) {
 			String t = tmp[i].trim();
-			if(t.contains(".jar")) {
+			if (t.contains(".jar")) {
 				File f = new File(t);
 				jars.add(f.toURI().toURL());
 			}
 		}
 	}
-	
+
 	private boolean command(String cmd, String args) {
-		if(cmd.equalsIgnoreCase("move")) {
+		if (cmd.equalsIgnoreCase("move")) {
 			// arg1 is src and arg2 is dst
 			String[] tmp = args.split(",");
 			try {
@@ -371,13 +374,13 @@ public class DownloadPlugins {
 			}
 			return true;
 		}
-		if(cmd.equalsIgnoreCase("conf")) {
+		if (cmd.equalsIgnoreCase("conf")) {
 			String[] tmp = args.split(",", 2);
 			tmp = tmp[1].split("=");
 			PMS.getConfiguration().setCustomProperty(tmp[1], tmp[2]);
 			return true;
 		}
-		if(cmd.equalsIgnoreCase("exec")) {
+		if (cmd.equalsIgnoreCase("exec")) {
 			try {
 				doExec(args);
 			} catch (ConfigurationException e) {
@@ -409,8 +412,8 @@ public class DownloadPlugins {
 			String[] tmp = str.split(",", 3);
 			String dir = PMS.getConfiguration().getPluginDirectory();
 			String filename = "";
-			
-			if(command(tmp[0], str)) {
+
+			if (command(tmp[0], str)) {
 				// a command take the next line
 				continue;
 			}
