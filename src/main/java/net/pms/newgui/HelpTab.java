@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JEditorPane;
 import javax.swing.JScrollPane;
@@ -59,8 +60,10 @@ public class HelpTab {
 	 * @return The component containing the help tab and its contents
 	 */
 	public JComponent build() {
-		FormLayout layout = new FormLayout("left:pref, 0:grow",
-			"pref, fill:default:grow");
+		FormLayout layout = new FormLayout(
+			"left:pref, 0:grow",
+			"pref, fill:default:grow"
+		);
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.setOpaque(true);
 		CellConstraints cc = new CellConstraints();
@@ -84,6 +87,7 @@ public class HelpTab {
 
 		// Enable internal anchor links
 		editorPane.addHyperlinkListener(new HyperlinkListener() {
+			@Override
 			public void hyperlinkUpdate(HyperlinkEvent event) {
 				try {
 					if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
@@ -111,6 +115,7 @@ public class HelpTab {
 			JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
 			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		pane.setPreferredSize(new Dimension(500, 400));
+		pane.setBorder(BorderFactory.createEmptyBorder());
 		builder.add(pane, cc.xy(2, 2));
 
 		return builder.getPanel();
