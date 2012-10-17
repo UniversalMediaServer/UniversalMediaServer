@@ -49,7 +49,8 @@ public class AboutTab {
 	public JComponent build() {
 		FormLayout layout = new FormLayout(
 			"0:grow, pref, 0:grow",
-			"pref, 3dlu, pref, 3dlu, pref, 12dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, p, 3dlu, p");
+			"pref, 3dlu, pref, 3dlu, pref, 12dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, p, 3dlu, p"
+		);
 
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.setDefaultDialogBorder();

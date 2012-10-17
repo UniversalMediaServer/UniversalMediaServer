@@ -307,6 +307,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		toolBar.add(new JPanel());
 		AbstractButton save = createToolBarButton(Messages.getString("LooksFrame.9"), "filesave-48.png", Messages.getString("LooksFrame.9"));
 		save.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				PMS.get().save();
 			}
@@ -315,6 +316,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		toolBar.addSeparator();
 		reload = createToolBarButton(Messages.getString("LooksFrame.12"), "reload_page-48.png", Messages.getString("LooksFrame.12"));
 		reload.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				PMS.get().reset();
 			}
@@ -323,6 +325,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		toolBar.addSeparator();
 		AbstractButton quit = createToolBarButton(Messages.getString("LooksFrame.5"), "exit-48.png", Messages.getString("LooksFrame.5"));
 		quit.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				quit();
 			}
@@ -349,12 +352,13 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		//panel.applyComponentOrientation(orientation);
 		panel.add(status, BorderLayout.SOUTH);
 
-
 		return panel;
 	}
 
 	public JComponent buildMain() {
 		JTabbedPane tabbedPane = new JTabbedPane(SwingConstants.TOP);
+
+		tabbedPane.setUI(new CustomTabbedPaneUI());
 
 		st = new StatusTab(configuration);
 		tt = new TracesTab(configuration);
@@ -363,20 +367,22 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		ft = new NavigationShareTab(configuration);
 		pt = new PluginTab(configuration);
 
-		tabbedPane.addTab(Messages.getString("LooksFrame.18"), /* readImageIcon("server-16.png"),*/      st.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.19"), /* readImageIcon("mail_new-16.png"),*/    tt.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.20"), /* readImageIcon("advanced-16.png"),*/    nt.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.27"),                                           pt.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.22"), /*readImageIcon("bookmark-16.png"),*/     ft.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.21"), /* readImageIcon("player_play-16.png"),*/ tr.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.24"), /* readImageIcon("mail_new-16.png"), */   new HelpTab().build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.25"), /*readImageIcon("documentinfo-16.png"),*/ new AboutTab().build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.18"), /* readImageIcon("server-16.png"), */       st.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.19"), /* readImageIcon("mail_new-16.png"), */     tt.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.20"), /* readImageIcon("advanced-16.png"), */     nt.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.27"),                                             pt.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.22"), /* readImageIcon("bookmark-16.png"), */     ft.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.21"), /* readImageIcon("player_play-16.png"), */  tr.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.24"), /* readImageIcon("mail_new-16.png"), */     new HelpTab().build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.25"), /* readImageIcon("documentinfo-16.png"), */ new AboutTab().build());
 
 		tabbedPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 
-		// Set the orientation of the tabbedPane. Note: not using
-		// applyComponentOrientation() here on purpose as it will horribly
-		// mutilate the layout of several tabs.
+		/*
+		 * Set the orientation of the tabbedPane.
+		 * Note: Do not use applyComponentOrientation() here because it
+		 * messes with the layout of several tabs.
+		 */
 		Locale locale = new Locale(configuration.getLanguage());
 		ComponentOrientation orientation = ComponentOrientation.getOrientation(locale);
 		tabbedPane.setComponentOrientation(orientation);
@@ -453,7 +459,8 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		tr.addEngines();
 	}
 
-	// fired on AutoUpdater state changes
+	// Fired on AutoUpdater state changes
+	@Override
 	public void update(Observable o, Object arg) {
 		if (configuration.isAutoUpdate()) {
 			checkForUpdates();
@@ -470,6 +477,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		}
 	}
 
+	@Override
 	public void setStatusLine(String line) {
 		if (line == null) {
 			line = " ";
