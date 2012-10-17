@@ -13,6 +13,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -21,6 +22,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.external.ExternalFactory;
 
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -318,24 +320,74 @@ public class DownloadPlugins {
 		return true;
 	}
 	
-	private boolean command(String cmd,String[] args) {
+	private void doExec(String args) throws IOException, InterruptedException, ConfigurationException {
+		int pos = args.indexOf(",");
+		if(pos == -1) { // weird stuff
+			return;
+		}
+		// everythig after the "," is what we're supposed
+		// to run
+		// Before we start external installers better save the config
+		PMS.getConfiguration().save();
+		ProcessBuilder pb = new ProcessBuilder(args.substring(pos + 1));
+		pb.redirectErrorStream(true);
+		Map<String, String> env = pb.environment();
+		env.put("PROFILE_PATH", PMS.getConfiguration().getProfileDirectory());
+		Process pid = pb.start();
+		InputStream is = pid.getInputStream();
+        InputStreamReader isr = new InputStreamReader(is);
+        BufferedReader br = new BufferedReader(isr);
+        String line;
+        StringBuilder sb = new StringBuilder();
+        while ((line = br.readLine()) != null) { 
+        	sb.append(line);
+        }
+        pid.waitFor();
+		String[] tmp  = sb.toString().split(",");
+		for(int i = 0;i < tmp.length; i++) {
+			String t = tmp[i].trim();
+			if(t.contains(".jar")) {
+				File f = new File(t);
+				jars.add(f.toURI().toURL());
+			}
+		}
+	}
+	
+	private boolean command(String cmd, String args) {
 		if(cmd.equalsIgnoreCase("move")) {
 			// arg1 is src and arg2 is dst
+			String[] tmp = args.split(",");
 			try {
-				FileUtils.moveFile(new File(args[1]), new File(args[2]));
+				FileUtils.moveFile(new File(tmp[1]), new File(tmp[2]));
 			} catch (IOException e) {
 				// Ignore errors, just log it
-				LOGGER.debug("couldn't move file " + args[1] + " to " + args[2]);
+				LOGGER.debug("couldn't move file " + tmp[1] + " to " + tmp[2]);
 			}
 			return true;
 		}
 		if(cmd.equalsIgnoreCase("touch")) {
 			// arg1 is file to touch
+			String[] tmp = args.split(",");
 			try {
-				FileUtils.touch(new File(args[1]));
+				FileUtils.touch(new File(tmp[1]));
 			} catch (IOException e) {
 				// Ignore errors, just log it
-				LOGGER.debug("couldn't touch file " + args[1]);
+				LOGGER.debug("couldn't touch file " + tmp[1]);
+			}
+			return true;
+		}
+		if(cmd.equalsIgnoreCase("conf")) {
+			String[] tmp = args.split(",", 2);
+			tmp = tmp[1].split("=");
+			PMS.getConfiguration().setCustomProperty(tmp[1], tmp[2]);
+			return true;
+		}
+		if(cmd.equalsIgnoreCase("exec")) {
+			try {
+				doExec(args);
+			} catch (ConfigurationException e) {
+			} catch (IOException e) {
+			} catch (InterruptedException e) {
 			}
 			return true;
 		}
@@ -363,7 +415,7 @@ public class DownloadPlugins {
 			String dir = PMS.getConfiguration().getPluginDirectory();
 			String filename = "";
 			
-			if(command(tmp[0], tmp)) {
+			if(command(tmp[0], str)) {
 				// a command take the next line
 				continue;
 			}
@@ -438,6 +490,8 @@ public class DownloadPlugins {
 		// Create the instances of the plugins
 		ExternalFactory.instantiateDownloaded(update);
 		updateLabel = null;
+		PMS.getConfiguration().save();
+		PMS.getConfiguration().reload();
 		return true;
 	}
 }
