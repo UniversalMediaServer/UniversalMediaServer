@@ -343,8 +343,8 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		panel.add(toolBar, BorderLayout.NORTH);
 		panel.add(buildMain(), BorderLayout.CENTER);
-		status = new JLabel(" ");
-		status.setBorder(new CompoundBorder(new EtchedBorder(), new EmptyBorder(0, 5, 0, 5)));
+		status = new JLabel("");
+		status.setBorder(BorderFactory.createEmptyBorder());
 		status.setComponentOrientation(orientation);
 
 		// Calling applyComponentOrientation() here would be ideal.
@@ -479,8 +479,11 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 	@Override
 	public void setStatusLine(String line) {
-		if (line == null) {
-			line = " ";
+		if (line == null || "".equals(line)) {
+			line = "";
+			status.setBorder(BorderFactory.createEmptyBorder());
+		} else {
+			status.setBorder(BorderFactory.createEmptyBorder(0, 9, 8, 0));
 		}
 		status.setText(line);
 	}
