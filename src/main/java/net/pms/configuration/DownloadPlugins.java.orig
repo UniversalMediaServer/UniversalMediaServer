@@ -19,7 +19,11 @@ import javax.swing.JLabel;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.external.ExternalFactory;
+<<<<<<< HEAD
+
 import org.apache.commons.configuration.ConfigurationException;
+=======
+>>>>>>> 596ab8eb228bce311338f9b6b98b8eca31fb445f
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -314,6 +318,7 @@ public class DownloadPlugins {
 		}
 		return true;
 	}
+<<<<<<< HEAD
 	
 	private void doExec(String args) throws IOException, InterruptedException, ConfigurationException {
 		int pos = args.indexOf(",");
@@ -350,6 +355,11 @@ public class DownloadPlugins {
 	
 	private boolean command(String cmd, String args) {
 		if(cmd.equalsIgnoreCase("move")) {
+=======
+
+	private boolean command(String cmd, String[] args) {
+		if (cmd.equalsIgnoreCase("move")) {
+>>>>>>> 596ab8eb228bce311338f9b6b98b8eca31fb445f
 			// arg1 is src and arg2 is dst
 			String[] tmp = args.split(",");
 			try {
@@ -409,8 +419,13 @@ public class DownloadPlugins {
 			String[] tmp = str.split(",", 3);
 			String dir = PMS.getConfiguration().getPluginDirectory();
 			String filename = "";
+<<<<<<< HEAD
 			
 			if(command(tmp[0], str)) {
+=======
+
+			if (command(tmp[0], tmp)) {
+>>>>>>> 596ab8eb228bce311338f9b6b98b8eca31fb445f
 				// a command take the next line
 				continue;
 			}
