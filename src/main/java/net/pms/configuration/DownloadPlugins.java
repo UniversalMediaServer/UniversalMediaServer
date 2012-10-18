@@ -322,6 +322,8 @@ public class DownloadPlugins {
 		}
 
 		// Everything after the "," is what we're supposed to run
+		// Determine the jar list 1st
+		File[] oldJar = new File(PMS.getConfiguration().getPluginDirectory()).listFiles();
 		// Before we start external installers better save the config
 		PMS.getConfiguration().save();
 		ProcessBuilder pb = new ProcessBuilder(args.substring(pos + 1));
@@ -340,12 +342,23 @@ public class DownloadPlugins {
 		}
 
 		pid.waitFor();
-		String[] tmp = sb.toString().split(",");
-
-		for (int i = 0; i < tmp.length; i++) {
-			String t = tmp[i].trim();
-			if (t.contains(".jar")) {
-				File f = new File(t);
+		
+		File[] newJar = new File(PMS.getConfiguration().getPluginDirectory()).listFiles();
+		for (int i=0; i < newJar.length; i++) {
+			File f = newJar[i];
+			if (!f.getAbsolutePath().endsWith(".jar")) {
+				// skip non jar files
+				continue;
+			}
+			for (int j=0; j < oldJar.length; j++) {
+				if (f.getAbsolutePath().equals(oldJar[j].getAbsolutePath())) {
+					// old jar file break out, and set f to null to skip adding it
+					f = null;
+					break;
+				}
+			}
+			// if f is null this is an jar that is old
+			if (f != null) {
 				jars.add(f.toURI().toURL());
 			}
 		}
