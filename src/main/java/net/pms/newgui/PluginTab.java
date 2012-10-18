@@ -71,7 +71,7 @@ public class PluginTab {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		// Cred edit
+		// Edit Plugin Credential File button
 		JButton credEdit = new JButton(Messages.getString("NetworkTab.54"));
 		credEdit.addActionListener(new ActionListener() {
 			@Override
@@ -173,7 +173,7 @@ public class PluginTab {
 				int rowIndex = rowAtPoint(p);
 
 				if (rowIndex == 0) {
-					return "";
+					return null;
 				}
 
 				DownloadPlugins plugin = plugins.get(rowIndex - 1);
