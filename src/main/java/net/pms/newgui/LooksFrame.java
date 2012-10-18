@@ -34,9 +34,7 @@ import java.util.Observable;
 import java.util.Observer;
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.EtchedBorder;
 import javax.swing.plaf.metal.DefaultMetalTheme;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import net.pms.Messages;
@@ -305,7 +303,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		toolBar.setRollover(true);
 
 		toolBar.add(new JPanel());
-		AbstractButton save = createToolBarButton(Messages.getString("LooksFrame.9"), "filesave-48.png", Messages.getString("LooksFrame.9"));
+		AbstractButton save = createToolBarButton(Messages.getString("LooksFrame.9"), "button-save.png", Messages.getString("LooksFrame.9"));
 		save.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -314,7 +312,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		});
 		toolBar.add(save);
 		toolBar.addSeparator();
-		reload = createToolBarButton(Messages.getString("LooksFrame.12"), "reload_page-48.png", Messages.getString("LooksFrame.12"));
+		reload = createToolBarButton(Messages.getString("LooksFrame.12"), "button-restart.png", Messages.getString("LooksFrame.12"));
 		reload.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -323,7 +321,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		});
 		toolBar.add(reload);
 		toolBar.addSeparator();
-		AbstractButton quit = createToolBarButton(Messages.getString("LooksFrame.5"), "exit-48.png", Messages.getString("LooksFrame.5"));
+		AbstractButton quit = createToolBarButton(Messages.getString("LooksFrame.5"), "button-quit.png", Messages.getString("LooksFrame.5"));
 		quit.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -445,11 +443,11 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	 */
 	@Override
 	public void setReloadable(boolean b) {
-		if(b) {
-			reload.setIcon(readImageIcon("reload_page_required-48.png"));
+		if (b) {
+			reload.setIcon(readImageIcon("button-restart-required.png"));
 			reload.setToolTipText(Messages.getString("LooksFrame.13"));
 		} else {
-			reload.setIcon(readImageIcon("reload_page-48.png"));
+			reload.setIcon(readImageIcon("button-restart.png"));
 			reload.setToolTipText(Messages.getString("LooksFrame.12"));
 		}
 	}
