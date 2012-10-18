@@ -2269,8 +2269,7 @@ public class PmsConfiguration {
 	 * and instead force picking the defined fallback renderer. Set to false
 	 * to make PMS attempt to recognize connecting renderers by their headers.
 	 *
-	 * @param value Set to true when the fallback renderer should always be
-	 *				picked.
+	 * @param value True when the fallback renderer should always be picked.
 	 * @see #setRendererDefault(String)
 	 */
 	public void setRendererForceDefault(boolean value) {
@@ -2392,8 +2391,42 @@ public class PmsConfiguration {
 	public void setTranscodeFolderName(String name) {
 		configuration.setProperty(KEY_TRANSCODE_FOLDER_NAME, name);
 	}
-	
+
 	public boolean getLastPlayed() {
 		return getBoolean(KEY_LAST_PLAYED, false);
+	}
+
+	/**
+	 * Finds out whether the program has admin rights.
+	 *
+	 * Note: We could (and should) make it check for rights on other operating
+	 * systems, but for now it only checks on Windows and always returns true
+	 * if on a non-Windows OS.
+	 *
+	 * Note 2: Detection of Windows 8 depends on the user having a version of
+	 * JRE newer than 1.6.0_31 installed.
+	 */
+	public boolean isAdmin() {
+		if (
+			"Windows 8".equals(System.getProperty("os.name")) ||
+			"Windows 7".equals(System.getProperty("os.name")) ||
+			"Windows Vista".equals(System.getProperty("os.name"))
+		) {
+			try {
+				String command = "reg query \"HKU\\S-1-5-19\"";
+				Process p = Runtime.getRuntime().exec(command);
+				p.waitFor();
+				int exitValue = p.exitValue();
+
+				if (0 == exitValue) {
+					return true;
+				}
+
+				return false;
+			} catch (Exception e) {
+				LOGGER.error("Something prevented UMS from checking Windows permissions", e);
+			}
+		}
+		return true;
 	}
 }

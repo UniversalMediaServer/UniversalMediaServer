@@ -67,6 +67,7 @@ public class FFMpegAudio extends FFMpegVideo {
 		noresample.setContentAreaFilled(false);
 		noresample.setSelected(configuration.isAudioResample());
 		noresample.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setAudioResample(e.getStateChange() == ItemEvent.SELECTED);
 			}
@@ -91,6 +92,7 @@ public class FFMpegAudio extends FFMpegVideo {
 		return false;
 	}
 
+	@Override
 	public boolean avisynth() {
 		return false;
 	}

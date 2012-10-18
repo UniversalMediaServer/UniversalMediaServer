@@ -67,10 +67,12 @@ public class TracesTab {
 		// According to the javadocs on isPopupTrigger, checking for popup trigger on mousePressed and mouseReleased 
 		// Should be all that is required
 
+		@Override
 		public void mousePressed(MouseEvent e) {
 			showMenuIfPopupTrigger(e);
 		}
 
+		@Override
 		public void mouseReleased(MouseEvent e) {
 			showMenuIfPopupTrigger(e);
 		}
@@ -94,6 +96,7 @@ public class TracesTab {
 		// a new scroll event to again scroll to the bottom
 		if (vbar.getMaximum() == vbar.getValue() + vbar.getVisibleAmount()) {
 			EventQueue.invokeLater (new Runnable() {
+				@Override
 				public void run () {
 					vbar.setValue (vbar.getMaximum ());
 				}
@@ -125,6 +128,7 @@ public class TracesTab {
 		JMenuItem defaultItem = new JMenuItem(Messages.getString("TracesTab.3"));
 
 		defaultItem.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				jList.setText("");
 			}
@@ -137,6 +141,7 @@ public class TracesTab {
 			jList));
 
 		jListPane = new JScrollPane(jList, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		jListPane.setBorder(BorderFactory.createEmptyBorder());
 		builder.add(jListPane, cc.xyw(1, 1, 2));
 
 		// Add buttons opening log files
@@ -162,6 +167,7 @@ public class TracesTab {
 
 		JButton packDbg = new JButton(Messages.getString("TracesTab.4"));
 		packDbg.addMouseListener(new MouseAdapter() {
+			@Override
 			public void mouseClicked(MouseEvent e) {
 				JComponent comp = PMS.get().dbgPack().config();
 				String[] cancelStr = {"Close"};

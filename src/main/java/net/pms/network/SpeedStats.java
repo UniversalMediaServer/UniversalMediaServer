@@ -123,9 +123,9 @@ public class SpeedStats {
 			op.log = true;
 			op.maxBufferSize = 1;
 			SystemUtils sysUtil = PMS.get().getRegistry();
-			final ProcessWrapperImpl pw = new ProcessWrapperImpl(sysUtil.getPingCommand(addr.getHostAddress(), 3, 64000), op,
-					true, false);
+			final ProcessWrapperImpl pw = new ProcessWrapperImpl(sysUtil.getPingCommand(addr.getHostAddress(), 3, 64000), op, true, false);
 			Runnable r = new Runnable() {
+				@Override
 				public void run() {
 					try {
 						Thread.sleep(2000);
@@ -152,10 +152,11 @@ public class SpeedStats {
 						c++;
 					} catch (NumberFormatException e) {
 						// no big deal
-						LOGGER.debug("Could not parse time from \"" + timeString + "\"");
+						LOGGER.debug("Could not estimate network speed from time: \"" + timeString + "\"");
 					}
 				}
 			}
+
 			if (c > 0) {
 				time = time / c;
 			}

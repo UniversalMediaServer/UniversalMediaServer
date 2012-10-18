@@ -142,7 +142,7 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 						}
 					});
 				} catch (Exception e) {
-					LOGGER.error("Unpack error. Possibly harmless.", e.getMessage());
+					LOGGER.debug("Unpack error. Possibly harmless.", e.getMessage());
 				} finally {
 					try {
 						if (in != null) {

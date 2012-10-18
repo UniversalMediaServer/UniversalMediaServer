@@ -79,7 +79,7 @@ public class MEncoderVideo extends Player {
 	private JTextField forcedtags;
 	private JTextField defaultaudiosubs;
 	private JTextField defaultfont;
-	private JComboBox subcp;
+	private JComboBox subtitleCodePage;
 	private JTextField subq;
 	private JCheckBox forcefps;
 	private JCheckBox yadif;
@@ -612,8 +612,8 @@ public class MEncoderVideo extends Player {
 		};
 
 		MyComboBoxModel cbm = new MyComboBoxModel(data);
-		subcp = new JComboBox(cbm);
-		subcp.addItemListener(new ItemListener() {
+		subtitleCodePage = new JComboBox(cbm);
+		subtitleCodePage.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
@@ -629,7 +629,7 @@ public class MEncoderVideo extends Player {
 			}
 		});
 
-		subcp.getEditor().getEditorComponent().addKeyListener(new KeyListener() {
+		subtitleCodePage.getEditor().getEditorComponent().addKeyListener(new KeyListener() {
 			@Override
 			public void keyTyped(KeyEvent e) {
 			}
@@ -640,12 +640,12 @@ public class MEncoderVideo extends Player {
 
 			@Override
 			public void keyReleased(KeyEvent e) {
-				subcp.getItemListeners()[0].itemStateChanged(new ItemEvent(subcp, 0, subcp.getEditor().getItem(), ItemEvent.SELECTED));
+				subtitleCodePage.getItemListeners()[0].itemStateChanged(new ItemEvent(subtitleCodePage, 0, subtitleCodePage.getEditor().getItem(), ItemEvent.SELECTED));
 			}
 		});
 
-		subcp.setEditable(true);
-		builder.add(subcp, FormLayoutUtil.flip(cc.xyw(3, 29, 7), colSpec, orientation));
+		subtitleCodePage.setEditable(true);
+		builder.add(subtitleCodePage, FormLayoutUtil.flip(cc.xyw(3, 29, 7), colSpec, orientation));
 
 		fribidi = new JCheckBox(Messages.getString("MEncoderVideo.23"));
 		fribidi.setContentAreaFilled(false);
@@ -985,7 +985,7 @@ public class MEncoderVideo extends Player {
 				subs.setEnabled(!configuration.isMencoderDisableSubs());
 				subq.setEnabled(!configuration.isMencoderDisableSubs());
 				defaultsubs.setEnabled(!configuration.isMencoderDisableSubs());
-				subcp.setEnabled(!configuration.isMencoderDisableSubs());
+				subtitleCodePage.setEnabled(!configuration.isMencoderDisableSubs());
 				ass.setEnabled(!configuration.isMencoderDisableSubs());
 				assdefaultstyle.setEnabled(!configuration.isMencoderDisableSubs());
 				fribidi.setEnabled(!configuration.isMencoderDisableSubs());
@@ -1604,20 +1604,23 @@ public class MEncoderVideo extends Player {
 
 					sb.append("-ass-color ").append(assSubColor).append(" -ass-border-color 00000000 -ass-font-scale ").append(configuration.getMencoderAssScale());
 
-					// set subtitles font
+					// Set subtitles font
 					if (configuration.getMencoderFont() != null && configuration.getMencoderFont().length() > 0) {
-						// set font with -font option, workaround for
-						// https://github.com/Happy-Neko/ps3mediaserver/commit/52e62203ea12c40628de1869882994ce1065446a#commitcomment-990156 bug
+						/* Set font with -font option, workaround for the bug:
+						 * https://github.com/Happy-Neko/ps3mediaserver/commit/52e62203ea12c40628de1869882994ce1065446a#commitcomment-990156
+						 */
 						sb.append(" -font ").append(configuration.getMencoderFont()).append(" ");
 						sb.append(" -ass-force-style FontName=").append(configuration.getMencoderFont()).append(",");
 					} else {
 						String font = CodecUtil.getDefaultFontPath();
 						if (isNotBlank(font)) {
-							// Variable "font" contains a font path instead of a font name.
-							// Does "-ass-force-style" support font paths? In tests on OSX
-							// the font path is ignored (Outline, Shadow and MarginV are
-							// used, though) and the "-font" definition is used instead.
-							// See: https://github.com/ps3mediaserver/ps3mediaserver/pull/14
+							/*
+							 * Variable "font" contains a font path instead of a font name.
+							 * Does "-ass-force-style" support font paths? In tests on OSX
+							 * the font path is ignored (Outline, Shadow and MarginV are
+							 * used, though) and the "-font" definition is used instead.
+							 * See: https://github.com/ps3mediaserver/ps3mediaserver/pull/14
+							 */
 							sb.append(" -font ").append(font).append(" ");
 							sb.append(" -ass-force-style FontName=").append(font).append(",");
 						} else {
@@ -1626,10 +1629,13 @@ public class MEncoderVideo extends Player {
 						}
 					}
 
-					// Add to the subtitle margin if overscan compensation is being used
-					// This keeps the subtitle text inside the frame instead of in the border
+					/*
+					 * Add to the subtitle margin if overscan compensation is being used
+					 * This keeps the subtitle text inside the frame instead of in the border
+					 */
 					if (intOCH > 0) {
 						subtitleMargin = (media.getHeight() / 100) * intOCH;
+						subtitleMargin = subtitleMargin / 2;
 					}
 
 					sb.append("Outline=").append(configuration.getMencoderAssOutline()).append(",Shadow=").append(configuration.getMencoderAssShadow());
@@ -1644,6 +1650,13 @@ public class MEncoderVideo extends Player {
 
 					sb.append(",MarginV=").append(subtitleMargin).append(" ");
 				} else if (intOCH > 0) {
+					/*
+					 * Add to the subtitle margin
+					 * This keeps the subtitle text inside the frame instead of in the border
+					 */
+					subtitleMargin = (media.getHeight() / 100) * intOCH;
+					subtitleMargin = subtitleMargin / 2;
+
 					sb.append("-ass-force-style MarginV=").append(subtitleMargin).append(" ");
 				}
 
@@ -1769,7 +1782,12 @@ public class MEncoderVideo extends Player {
 			if (params.stdin != null) {
 				cmdList.add("-");
 			} else {
-				cmdList.add(fileName);
+				if (dvd) {
+					String dvdFileName = fileName.replace("\\VIDEO_TS", "");
+					cmdList.add(dvdFileName);
+				} else {
+					cmdList.add(fileName);
+				}
 			}
 		}
 
@@ -2227,7 +2245,7 @@ public class MEncoderVideo extends Player {
 			if (configuration.isFix25FPSAvMismatch()) {
 				cmdList.add("-mc");
 				cmdList.add("0.005");
-			} else {
+			} else if (configuration.isMencoderNoOutOfSync() && !disableMc0AndNoskip) {
 				cmdList.add("-mc");
 				cmdList.add("0");
 				cmdList.add("-noskip");

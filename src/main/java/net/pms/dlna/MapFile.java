@@ -113,17 +113,6 @@ public class MapFile extends DLNAResource {
 		return isRelevant;
 	}
 
-	private boolean isArchive(String name) {
-		ArchiveFormat[] vals = ArchiveFormat.values();
-		for (int i=0; i < vals.length; i++) {
-			String fileExtension = "." + vals[i].getMethodName().toLowerCase();
-			if (name.endsWith(fileExtension)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
 	private void manageFile(File f,String str) {
 		if (f.isFile() || f.isDirectory()) {
 			String lcFilename = f.getName().toLowerCase();
@@ -137,7 +126,7 @@ public class MapFile extends DLNAResource {
 					addChild(new ZippedFile(f));
 				} else if (PMS.getConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".rar") || lcFilename.endsWith(".cbr"))) {
 					addChild(new RarredFile(f));
-				} else if (PMS.getConfiguration().isArchiveBrowsing() && isArchive(lcFilename)) {
+				} else if (PMS.getConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".tar") || lcFilename.endsWith(".gzip") || lcFilename.endsWith(".gz") || lcFilename.endsWith(".7z"))) {
 					addChild(new SevenZipFile(f));
 				} else if ((lcFilename.endsWith(".iso") || lcFilename.endsWith(".img")) || (f.isDirectory() && f.getName().toUpperCase().equals("VIDEO_TS"))) {
 					addChild(new DVDISOFile(f));

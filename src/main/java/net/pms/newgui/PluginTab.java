@@ -7,6 +7,7 @@ import com.jgoodies.forms.layout.FormLayout;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -19,6 +20,7 @@ import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Locale;
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
@@ -30,6 +32,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -42,13 +45,15 @@ import org.apache.commons.lang.StringUtils;
 
 public class PluginTab {
 	private final PmsConfiguration configuration;
-	private static final String COL_SPEC = "left:pref, 2dlu, p, 2dlu , p, 2dlu, p, 2dlu, pref:grow";
+	private static final String COL_SPEC = "left:pref, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, pref:grow";
 	private static final String ROW_SPEC = "p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p";
 	private JPanel pPlugins;
+	private ArrayList<DownloadPlugins> plugins;
 
 	PluginTab(PmsConfiguration configuration) {
 		this.configuration = configuration;
 		pPlugins = null;
+		plugins = null;
 	}
 
 	public JComponent build() {
@@ -67,7 +72,7 @@ public class PluginTab {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		// Cred edit
+		// Edit Plugin Credential File button
 		JButton credEdit = new JButton(Messages.getString("NetworkTab.54"));
 		credEdit.addActionListener(new ActionListener() {
 			@Override
@@ -149,16 +154,15 @@ public class PluginTab {
 		availablePluginsHeading = (JComponent) availablePluginsHeading.getComponent(0);
 		availablePluginsHeading.setFont(availablePluginsHeading.getFont().deriveFont(Font.BOLD));
 
-		final ArrayList<DownloadPlugins> plugins = DownloadPlugins.downloadList();
-
-		String[] cols = {
+		final String[] cols = {
 			Messages.getString("NetworkTab.41"),
+			Messages.getString("PluginTab.3"),
 			Messages.getString("NetworkTab.42"),
 			Messages.getString("NetworkTab.43"),
 			Messages.getString("NetworkTab.53")
 		};
 
-		final JTable table = new JTable(plugins.size() + 1, cols.length) {
+		final JTable table = new JTable(1, cols.length) {
 			@Override
 			public boolean isCellEditable(int rowIndex, int vColIndex) {
 				return false;
@@ -170,7 +174,7 @@ public class PluginTab {
 				int rowIndex = rowAtPoint(p);
 
 				if (rowIndex == 0) {
-					return "";
+					return null;
 				}
 
 				DownloadPlugins plugin = plugins.get(rowIndex - 1);
@@ -178,28 +182,22 @@ public class PluginTab {
 			}
 		};
 
-		for (int i = 0; i < cols.length; i++) {
-			table.setValueAt(cols[i], 0, i);
-		}
+		refresh(table, cols);
 
-		for (int i = 0; i < plugins.size(); i++) {
-			DownloadPlugins p = plugins.get(i);
-			table.setValueAt(p.getName(), i + 1, 0);
-			table.setValueAt(p.getRating(), i + 1, 1);
-			table.setValueAt(p.getAuthor(), i + 1, 2);
-			table.setValueAt(p.getDescription(), i + 1, 3);
-		}
+		table.setRowHeight(22);
+		table.setIntercellSpacing(new Dimension(8, 0));
 
 		// Define column widths
 		TableColumn nameColumn = table.getColumnModel().getColumn(0);
 		nameColumn.setMinWidth(70);
-		TableColumn ratingColumn = table.getColumnModel().getColumn(1);
+		TableColumn versionColumn = table.getColumnModel().getColumn(2);
+		versionColumn.setPreferredWidth(45);
+		TableColumn ratingColumn = table.getColumnModel().getColumn(2);
 		ratingColumn.setPreferredWidth(45);
-		TableColumn authorColumn = table.getColumnModel().getColumn(2);
-		authorColumn.setMinWidth(100);
-		TableColumn descriptionColumn = table.getColumnModel().getColumn(3);
+		TableColumn authorColumn = table.getColumnModel().getColumn(3);
+		authorColumn.setMinWidth(150);
+		TableColumn descriptionColumn = table.getColumnModel().getColumn(4);
 		descriptionColumn.setMinWidth(300);
-		descriptionColumn.setMaxWidth(600);
 
 		builder.add(table, FormLayoutUtil.flip(cc.xyw(1, 7, 9), colSpec, orientation));
 
@@ -209,27 +207,22 @@ public class PluginTab {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (!ExternalFactory.localPluginsInstalled()) {
-					JOptionPane.showMessageDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())), Messages.getString("NetworkTab.40"));
+					JOptionPane.showMessageDialog(
+						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+						Messages.getString("NetworkTab.40")
+					);
 					return;
 				}
 
-				String permissionsReminder = "";
-				if (
-					"Windows 7".equals(System.getProperty("os.name")) ||
-					"Windows Vista".equals(System.getProperty("os.name"))
-				) {
-					permissionsReminder = "Make sure UMS is running as administrator before proceeding";
-				}
+				if (!configuration.isAdmin()) {
+					JOptionPane.showMessageDialog(
+						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+						"UMS must be run as administrator in order to install plugins.",
+						"Permissions Error",
+						JOptionPane.ERROR_MESSAGE
+					);
 
-				if (!StringUtils.isEmpty(permissionsReminder)) {
-					int id = JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-						permissionsReminder, null,
-						JOptionPane.OK_CANCEL_OPTION,
-						JOptionPane.PLAIN_MESSAGE, null, null, null);
-
-					if (id != 0) { // Cancel, do nothing
-						return;
-					}
+					return;
 				}
 
 				final int[] rows = table.getSelectedRows();
@@ -271,6 +264,15 @@ public class PluginTab {
 			}
 		});
 
+		JButton refresh = new JButton(Messages.getString("PluginTab.2") + " " + Messages.getString("PluginTab.1"));
+		builder.add(refresh, FormLayoutUtil.flip(cc.xy(3, 9), colSpec, orientation));
+		refresh.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				refresh(table, cols);
+			}
+		});
+
 		cmp = builder.addSeparator(Messages.getString("PluginTab.0"), FormLayoutUtil.flip(cc.xyw(1, 11, 9), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
@@ -283,8 +285,29 @@ public class PluginTab {
 			panel,
 			JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
 			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-
+		scrollPane.setBorder(BorderFactory.createEmptyBorder());
 		return scrollPane;
+	}
+
+	private void refresh(JTable table, String[] cols) {
+		plugins = DownloadPlugins.downloadList();
+		for (int i = 0; i < cols.length; i++) {
+			table.setValueAt(cols[i], 0, i);
+		}
+
+		DefaultTableModel tableModel = (DefaultTableModel) table.getModel();
+		tableModel.setRowCount(1);
+
+		for (int i = 0; i < plugins.size(); i++) {
+			tableModel.insertRow(i + 1, (Object[]) null);
+			DownloadPlugins p = plugins.get(i);
+			table.setValueAt(p.getName(), i + 1, 0);
+			table.setValueAt(p.getVersion(), i + 1, 1);
+			table.setValueAt(p.getRating(), i + 1, 2);
+			table.setValueAt(p.getAuthor(), i + 1, 3);
+			table.setValueAt(p.getDescription(), i + 1, 4);
+		}
+		tableModel.fireTableDataChanged();
 	}
 
 	public void addPlugins() {

@@ -58,6 +58,8 @@ public class SevenZipFile extends DLNAResource {
 			LOGGER.error("Error reading archive file", e);
 		} catch (SevenZipException e) {
 			LOGGER.error("Caught 7-Zip exception", e);
+		} catch (NullPointerException e) {
+			LOGGER.error("Caught 7-Zip Null-Pointer Exception", e);
 		}
 	}
 
