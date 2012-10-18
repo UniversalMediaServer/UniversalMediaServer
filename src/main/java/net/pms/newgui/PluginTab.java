@@ -7,6 +7,7 @@ import com.jgoodies.forms.layout.FormLayout;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -71,7 +72,7 @@ public class PluginTab {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		// Cred edit
+		// Edit Plugin Credential File button
 		JButton credEdit = new JButton(Messages.getString("NetworkTab.54"));
 		credEdit.addActionListener(new ActionListener() {
 			@Override
@@ -173,7 +174,7 @@ public class PluginTab {
 				int rowIndex = rowAtPoint(p);
 
 				if (rowIndex == 0) {
-					return "";
+					return null;
 				}
 
 				DownloadPlugins plugin = plugins.get(rowIndex - 1);
@@ -182,6 +183,9 @@ public class PluginTab {
 		};
 
 		refresh(table, cols);
+
+		table.setRowHeight(22);
+		table.setIntercellSpacing(new Dimension(8, 0));
 
 		// Define column widths
 		TableColumn nameColumn = table.getColumnModel().getColumn(0);
