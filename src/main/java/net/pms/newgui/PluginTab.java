@@ -7,6 +7,7 @@ import com.jgoodies.forms.layout.FormLayout;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -182,6 +183,9 @@ public class PluginTab {
 		};
 
 		refresh(table, cols);
+
+		table.setRowHeight(22);
+		table.setIntercellSpacing(new Dimension(8, 0));
 
 		// Define column widths
 		TableColumn nameColumn = table.getColumnModel().getColumn(0);
