@@ -323,7 +323,8 @@ public class DownloadPlugins {
 
 		// Everything after the "," is what we're supposed to run
 		// First make note of jars we got
-		 File[] oldJar = new File(PMS.getConfiguration().getPluginDirectory()).listFiles();
+		File[] oldJar = new File(PMS.getConfiguration().getPluginDirectory()).listFiles();
+
 		// Before we start external installers better save the config
 		PMS.getConfiguration().save();
 		ProcessBuilder pb = new ProcessBuilder(args.substring(pos + 1));
@@ -332,23 +333,23 @@ public class DownloadPlugins {
 		env.put("PROFILE_PATH", PMS.getConfiguration().getProfileDirectory());
 		Process pid = pb.start();
 		InputStream is = pid.getInputStream();
-        InputStreamReader isr = new InputStreamReader(is);
-        BufferedReader br = new BufferedReader(isr);
-        String line;
-        StringBuilder sb = new StringBuilder();
-        while ((line = br.readLine()) != null) { 
-        	sb.append(line);
-        }
-        pid.waitFor();
-        
-        File[] newJar = new File(PMS.getConfiguration().getPluginDirectory()).listFiles();
-		for (int i=0; i < newJar.length; i++) {
+		InputStreamReader isr = new InputStreamReader(is);
+		BufferedReader br = new BufferedReader(isr);
+		String line;
+		StringBuilder sb = new StringBuilder();
+		while ((line = br.readLine()) != null) {
+			sb.append(line);
+		}
+		pid.waitFor();
+
+		File[] newJar = new File(PMS.getConfiguration().getPluginDirectory()).listFiles();
+		for (int i = 0; i < newJar.length; i++) {
 			File f = newJar[i];
 			if (!f.getAbsolutePath().endsWith(".jar")) {
 				// skip non jar files
 				continue;
 			}
-			for (int j=0; j < oldJar.length; j++) {
+			for (int j = 0; j < oldJar.length; j++) {
 				if (f.getAbsolutePath().equals(oldJar[j].getAbsolutePath())) {
 					// old jar file break out, and set f to null to skip adding it
 					f = null;
