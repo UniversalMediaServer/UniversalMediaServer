@@ -266,7 +266,7 @@ public class TranscodingTab {
 			}
 		});
 
-		tree.setFocusable(false);
+		tree.setRequestFocusEnabled(false);
 		tree.setCellRenderer(new TreeRenderer());
 		JScrollPane pane = new JScrollPane(tree, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 
