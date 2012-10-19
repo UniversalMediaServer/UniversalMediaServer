@@ -21,7 +21,9 @@ package net.pms.newgui;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
+import javax.swing.BorderFactory;
 import javax.swing.JTree;
+import javax.swing.border.Border;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
@@ -39,6 +41,8 @@ public class TreeRenderer extends DefaultTreeCellRenderer {
 	public void setBackgroundSelectionColor(Color newColor) {
 		backgroundSelectionColor = new Color(57, 114, 147);
 	}
+
+	private Border border = BorderFactory.createEmptyBorder(0, 3, 0, 3);
 
 	@Override
 	public Component getTreeCellRendererComponent(
@@ -75,6 +79,9 @@ public class TreeRenderer extends DefaultTreeCellRenderer {
 		} else {
 			setIcon(LooksFrame.readImageIcon("icon_tree_parent.png"));
 		}
+
+		setBorder(border);
+
 		return this;
 	}
 }
