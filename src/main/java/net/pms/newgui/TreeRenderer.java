@@ -31,6 +31,7 @@ public class TreeRenderer extends DefaultTreeCellRenderer {
 	public TreeRenderer() {
 	}
 
+	@Override
 	public Component getTreeCellRendererComponent(
 		JTree tree,
 		Object value,
@@ -40,19 +41,15 @@ public class TreeRenderer extends DefaultTreeCellRenderer {
 		int row,
 		boolean hasFocus
 	) {
-
-		super.getTreeCellRendererComponent(
-			tree, value, sel,
-			expanded, leaf, row,
-			hasFocus);
+		super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
 		if (leaf && value instanceof TreeNodeSettings) {
 			if (((TreeNodeSettings) value).getPlayer() == null) {
-				setIcon(LooksFrame.readImageIcon("icon_tree_parent-16.png"));
+				setIcon(LooksFrame.readImageIcon("icon_tree_parent.png"));
 			} else {
 				if (((TreeNodeSettings) value).isEnable()) {
 					Player p = ((TreeNodeSettings) value).getPlayer();
 					if (PlayerFactory.getPlayers().contains(p)) {
-						setIcon(LooksFrame.readImageIcon("icon_tree_node-16.png"));
+						setIcon(LooksFrame.readImageIcon("icon_tree_node.png"));
 					} else {
 						setIcon(LooksFrame.readImageIcon("messagebox_warning-16.png"));
 					}
@@ -67,7 +64,7 @@ public class TreeRenderer extends DefaultTreeCellRenderer {
 				setFont(getFont().deriveFont(Font.PLAIN));
 			}
 		} else {
-			setIcon(LooksFrame.readImageIcon("icon_tree_parent-16.png"));
+			setIcon(LooksFrame.readImageIcon("icon_tree_parent.png"));
 		}
 		return this;
 	}
