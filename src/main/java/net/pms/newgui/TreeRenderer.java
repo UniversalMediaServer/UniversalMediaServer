@@ -18,6 +18,7 @@
  */
 package net.pms.newgui;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import javax.swing.JTree;
@@ -29,6 +30,14 @@ public class TreeRenderer extends DefaultTreeCellRenderer {
 	private static final long serialVersionUID = 8830634234336247114L;
 
 	public TreeRenderer() {
+	}
+
+	/**
+	 * Sets the color to use for the background if node is selected.
+	 */
+	@Override
+	public void setBackgroundSelectionColor(Color newColor) {
+		backgroundSelectionColor = new Color(57, 114, 147);
 	}
 
 	@Override
