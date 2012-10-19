@@ -21,8 +21,12 @@ import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.external.dbgpack;
 import net.pms.logging.LoggingConfigFileLoader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DbgPacker implements ActionListener {
+	private static final Logger LOGGER = LoggerFactory.getLogger(TracesTab.class);
+
 	private boolean init;
 	private LinkedHashMap<File, JCheckBox> items;
 	private String debug_log, dbg_zip;
@@ -91,7 +95,7 @@ public class DbgPacker implements ActionListener {
 		// call the client callbacks
 		for (ExternalListener listener : ExternalFactory.getExternalListeners()) {
 			if (listener instanceof dbgpack) {
-				PMS.debug("found client " + listener.name());
+				LOGGER.debug("found client " + listener.name());
 				Object obj = ((dbgpack) listener).dbgpack_cb();
 				if (obj instanceof String) {
 					add(((String) obj).split(","));
@@ -102,7 +106,7 @@ public class DbgPacker implements ActionListener {
 		}
 		PmsConfiguration configuration = PMS.getConfiguration();
 		// check dbgpack property in UMS.conf
-		PMS.debug("checking dbgpack property in UMS.conf");
+		LOGGER.debug("checking dbgpack property in UMS.conf");
 		String f = (String) configuration.getCustomProperty("dbgpack");
 		if (f != null) {
 			add(f.split(","));
@@ -116,7 +120,7 @@ public class DbgPacker implements ActionListener {
 
 	private void add(String[] files) {
 		for (String file : files) {
-			PMS.debug("adding " + file);
+			LOGGER.debug("adding " + file);
 			try {
 				items.put(new File(file).getCanonicalFile(), null);
 			} catch (IOException e) {
@@ -125,7 +129,7 @@ public class DbgPacker implements ActionListener {
 	}
 
 	private void add(File file) {
-		PMS.debug("adding " + file.getAbsolutePath());
+		LOGGER.debug("adding " + file.getAbsolutePath());
 		try {
 			items.put(file.getCanonicalFile(), null);
 		} catch (IOException e) {
@@ -136,7 +140,7 @@ public class DbgPacker implements ActionListener {
 		byte[] buf = new byte[1024];
 		int len;
 		if (!f.exists()) {
-			PMS.debug("DbgPack file " + f.getAbsolutePath() + " does not exist - ignoring");
+			LOGGER.debug("DbgPack file " + f.getAbsolutePath() + " does not exist - ignoring");
 			return;
 		}
 		FileInputStream in = new FileInputStream(f);
@@ -150,6 +154,7 @@ public class DbgPacker implements ActionListener {
 
 	private boolean saveDialog() {
 		JFileChooser fc = new JFileChooser() {
+			@Override
 			public void approveSelection() {
 				File f = getSelectedFile();
 				if (!f.isDirectory()) {
@@ -162,11 +167,13 @@ public class DbgPacker implements ActionListener {
 		};
 		fc.setFileFilter(
 			new FileFilter() {
+				@Override
 				public boolean accept(File f) {
 					String s = f.getName();
 					return f.isDirectory() || (s.endsWith(".zip") || s.endsWith(".ZIP"));
 				}
 
+				@Override
 				public String getDescription() {
 					return "*.zip";
 				}
@@ -188,13 +195,13 @@ public class DbgPacker implements ActionListener {
 			for (Map.Entry<File, JCheckBox> item : items.entrySet()) {
 				if (item.getValue().isSelected()) {
 					File file = item.getKey();
-					PMS.debug("packing " + file.getAbsolutePath());
+					LOGGER.debug("packing " + file.getAbsolutePath());
 					writeToZip(zos, file);
 				}
 			}
 			zos.close();
 		} catch (Exception e) {
-			PMS.debug("error packing zip file " + e);
+			LOGGER.debug("error packing zip file " + e);
 		}
 	}
 
@@ -216,14 +223,14 @@ public class DbgPacker implements ActionListener {
 					reload((JComponent) e.getSource());
 				}
 			} catch (IOException e1) {
-				PMS.debug(String.format("Failed to open '%s' in default desktop application %s", str, e1));
+				LOGGER.debug(String.format("Failed to open '%s' in default desktop application %s", str, e1));
 			}
 		}
 	}
 
 	private void reload(JComponent c) {
 		// rebuild and restart
-		PMS.debug("reloading.");
+		LOGGER.debug("reloading.");
 		init = true;
 		((Window) c.getTopLevelAncestor()).dispose();
 		JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
