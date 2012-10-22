@@ -582,7 +582,7 @@
 			<plugin>
 				<groupId>com.savage7.maven.plugins</groupId>
 				<artifactId>maven-external-dependency-plugin</artifactId>
-				<version>0.4</version>
+				<version>0.5</version>
 				<inherited>false</inherited>
 				<configuration>
 					<stagingDirectory>${project.build.directory}/dependencies/</stagingDirectory>
@@ -675,8 +675,8 @@
 					</execution>
 					<execution>
 						<id>resolve-install-external-dependencies</id>
-						<!-- Not bound to a phase, you need to execute these manually. See above -->
-						<!-- phase>process-resources</phase -->
+						<!-- Note: this phase works in Maven 2. In Maven 3, it needs to be triggered manually. See above -->
+						<phase>validate</phase>
 						<goals>
 							<!-- mvn com.savage7.maven.plugins:maven-external-dependency-plugin:resolve-external -->
 							<goal>resolve-external</goal>
