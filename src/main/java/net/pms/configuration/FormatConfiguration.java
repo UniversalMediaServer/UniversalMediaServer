@@ -88,9 +88,9 @@ public class FormatConfiguration {
 	}
 
 	public static final String MIMETYPE_AUTO = "MIMETYPE_AUTO";
-	ArrayList<Supports> list;
+	private ArrayList<Supports> list;
 
-	class Supports {
+	private class Supports {
 		String format;
 		String videocodec;
 		String audiocodec;
