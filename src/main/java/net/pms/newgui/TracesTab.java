@@ -148,12 +148,12 @@ public class TracesTab {
 		JPanel pLogFileButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		HashMap<String, String> logFiles = LoggingConfigFileLoader.getLogFilePaths();
 		for (String loggerName : logFiles.keySet()) {
-			JButton b = new JButton(loggerName);
+			CustomJButton b = new CustomJButton(loggerName);
 			b.setToolTipText(logFiles.get(loggerName));
 			b.addMouseListener(new MouseAdapter() {
 				@Override
 				public void mouseClicked(MouseEvent e) {
-					File logFile = new File(((JButton) e.getSource()).getToolTipText());
+					File logFile = new File(((CustomJButton) e.getSource()).getToolTipText());
 					try {
 						java.awt.Desktop.getDesktop().open(logFile);
 					} catch (IOException e1) {
@@ -165,7 +165,7 @@ public class TracesTab {
 		}
 		builder.add(pLogFileButtons, cc.xy(2, 2));
 
-		JButton packDbg = new JButton(Messages.getString("TracesTab.4"));
+		CustomJButton packDbg = new CustomJButton(Messages.getString("TracesTab.4"));
 		packDbg.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {

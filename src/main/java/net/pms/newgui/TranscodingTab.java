@@ -157,7 +157,7 @@ public class TranscodingTab {
 
 		CellConstraints cc = new CellConstraints();
 
-		JButton but = new JButton(LooksFrame.readImageIcon("button-arrow-down.png"));
+		CustomJButton but = new CustomJButton(LooksFrame.readImageIcon("button-arrow-down.png"));
 		but.setToolTipText(Messages.getString("TrTab2.6"));
 		but.addActionListener(new ActionListener() {
 			@Override
@@ -185,7 +185,7 @@ public class TranscodingTab {
 		});
 		builder.add(but, FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
 
-		JButton but2 = new JButton(LooksFrame.readImageIcon("button-arrow-up.png"));
+		CustomJButton but2 = new CustomJButton(LooksFrame.readImageIcon("button-arrow-up.png"));
 		but2.setToolTipText(Messages.getString("TrTab2.6"));
 		but2.addActionListener(new ActionListener() {
 			@Override
@@ -213,7 +213,7 @@ public class TranscodingTab {
 		});
 		builder.add(but2, FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
 
-		JButton but3 = new JButton(LooksFrame.readImageIcon("button-toggleengine.png"));
+		CustomJButton but3 = new CustomJButton(LooksFrame.readImageIcon("button-toggleengine.png"));
 		but3.setToolTipText(Messages.getString("TrTab2.0"));
 		but3.addActionListener(new ActionListener() {
 			@Override

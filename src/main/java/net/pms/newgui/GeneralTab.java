@@ -136,7 +136,7 @@ public class GeneralTab {
 
 		builder.add(smcheckBox, FormLayoutUtil.flip(cc.xyw(1, 9, 9), colSpec, orientation));
 
-		JButton service = new JButton(Messages.getString("NetworkTab.4"));
+		CustomJButton service = new CustomJButton(Messages.getString("NetworkTab.4"));
 		service.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -162,7 +162,7 @@ public class GeneralTab {
 			service.setEnabled(false);
 		}
 
-		JButton checkForUpdates = new JButton(Messages.getString("NetworkTab.8"));
+		CustomJButton checkForUpdates = new CustomJButton(Messages.getString("NetworkTab.8"));
 		checkForUpdates.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -189,7 +189,7 @@ public class GeneralTab {
 		}
 
 		// Conf edit
-		JButton confEdit = new JButton(Messages.getString("NetworkTab.51"));
+		CustomJButton confEdit = new CustomJButton(Messages.getString("NetworkTab.51"));
 		confEdit.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {

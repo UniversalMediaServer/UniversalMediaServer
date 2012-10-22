@@ -45,6 +45,7 @@ import net.pms.formats.v2.SubtitleType;
 import net.pms.formats.v2.SubtitleUtils;
 import net.pms.io.*;
 import net.pms.network.HTTPResource;
+import net.pms.newgui.CustomJButton;
 import net.pms.newgui.FontFileFilter;
 import net.pms.newgui.LooksFrame;
 import net.pms.newgui.MyComboBoxModel;
@@ -95,7 +96,7 @@ public class MEncoderVideo extends Player {
 	private JCheckBox noskip;
 	private JCheckBox intelligentsync;
 	private JTextField alternateSubFolder;
-	private JButton subColor;
+	private CustomJButton subColor;
 	private JTextField ocw;
 	private JTextField och;
 	private JCheckBox subs;
@@ -241,7 +242,7 @@ public class MEncoderVideo extends Player {
 
 		builder.add(noskip, FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
 
-		JButton button = new JButton(Messages.getString("MEncoderVideo.29"));
+		CustomJButton button = new CustomJButton(Messages.getString("MEncoderVideo.29"));
 		button.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -681,7 +682,7 @@ public class MEncoderVideo extends Player {
 		});
 		builder.add(defaultfont, FormLayoutUtil.flip(cc.xyw(3, 31, 8), colSpec, orientation));
 
-		JButton fontselect = new JButton("...");
+		CustomJButton fontselect = new CustomJButton("...");
 		fontselect.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -714,7 +715,7 @@ public class MEncoderVideo extends Player {
 		});
 		builder.add(alternateSubFolder, FormLayoutUtil.flip(cc.xyw(3, 33, 8), colSpec, orientation));
 
-		JButton select = new JButton("...");
+		CustomJButton select = new CustomJButton("...");
 		select.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -923,8 +924,7 @@ public class MEncoderVideo extends Player {
 		builder.add(assdefaultstyle, FormLayoutUtil.flip(cc.xyw(8, 35, 4), colSpec, orientation));
 		assdefaultstyle.setSelected(configuration.isMencoderAssDefaultStyle());
 
-		subColor = new JButton();
-		subColor.setText(Messages.getString("MEncoderVideo.31"));
+		subColor = new CustomJButton(Messages.getString("MEncoderVideo.31"));
 		subColor.setBackground(new Color(configuration.getSubsColor()));
 		subColor.addActionListener(new ActionListener() {
 			@Override
