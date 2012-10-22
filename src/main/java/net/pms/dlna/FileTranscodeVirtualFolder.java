@@ -144,7 +144,7 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 					DLNAResource tempModifiedCopy = createModifiedResource(child, audio, subtitle);
 			
 					// Determine which players match this audio track and subtitle
-					ArrayList<Player> players = PlayerFactory.getEnabledPlayers(tempModifiedCopy);
+					ArrayList<Player> players = PlayerFactory.getPlayers(tempModifiedCopy);
 
 					for (Player player : players) {
 						// Create a copy based on this combination
