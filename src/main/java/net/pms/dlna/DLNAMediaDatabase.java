@@ -719,7 +719,7 @@ public class DLNAMediaDatabase implements Runnable {
 		String filename = "database/backup.sql";
 		try {
 			Script.execute(url, "sa", "", filename);
-			DeleteDbFiles.execute(dbDir, "medias", true); // TODO: rename "medias" -> "cache"
+			DeleteDbFiles.execute(dbDir, dbName, true);
 			RunScript.execute(url, "sa", "", filename, null, false);
 		} catch (SQLException se) {
 			LOGGER.error("Error in compacting database: ", se);
