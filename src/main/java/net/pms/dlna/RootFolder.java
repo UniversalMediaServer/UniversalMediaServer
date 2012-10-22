@@ -361,38 +361,66 @@ public class RootFolder extends DLNAResource {
 		if (Platform.isMac()) {
 
 			Map<String, Object> iPhotoLib;
-			ArrayList<?> ListofRolls;
-			HashMap<?, ?> Roll;
-			HashMap<?, ?> PhotoList;
-			HashMap<?, ?> Photo;
-			ArrayList<?> RollPhotos;
+			ArrayList<HashMap<?, ?>> listOfRolls;
+			HashMap<?, ?> photoList;
+			HashMap<?, ?> photoProperties;
+			ArrayList<?> rollPhotos;
 
 			try {
+				// This command will show the XML files for recently opened iPhoto databases
 				Process prc = Runtime.getRuntime().exec("defaults read com.apple.iApps iPhotoRecentDatabases");
 				BufferedReader in = new BufferedReader(new InputStreamReader(prc.getInputStream()));
+
 				String line = null;
 				line = in.readLine();
-				if ((line = in.readLine()) != null) {  // we want the 2nd line
-					line = line.trim(); // remove extra spaces
-					line = line.substring(1, line.length() - 1); // remove quotes and spaces
+
+				// We want the 2nd line
+				if ((line = in.readLine()) != null) {
+					// Remove extra spaces
+					line = line.trim();
+
+					// Remove quotes and spaces
+					line = line.substring(1, line.length() - 1);
 				}
+
 				in.close();
+
 				if (line != null) {
-					URI tURI = new URI(line);
-					iPhotoLib = Plist.load(URLDecoder.decode(tURI.toURL().getFile(), System.getProperty("file.encoding"))); // loads the (nested) properties.
-					PhotoList = (HashMap<?, ?>) iPhotoLib.get("Master Image List"); // the list of photos
-					ListofRolls = (ArrayList<?>) iPhotoLib.get("List of Rolls"); // the list of events (rolls)
+					URI fileUri = new URI(line);
+
+					// Load the properties XML file.
+					iPhotoLib = Plist.load(URLDecoder.decode(fileUri.toURL().getFile(), System.getProperty("file.encoding")));
+
+					// The list of all photos
+					photoList = (HashMap<?, ?>) iPhotoLib.get("Master Image List");
+
+					// The list of events (rolls)
+					listOfRolls = (ArrayList<HashMap<?, ?>>) iPhotoLib.get("List of Rolls");
 					res = new VirtualFolder("iPhoto Library", null);
-					for (Object item : ListofRolls) {
-						Roll = (HashMap<?, ?>) item;
-						VirtualFolder rf = new VirtualFolder(Roll.get("RollName").toString(), null);
-						RollPhotos = (ArrayList<?>) Roll.get("KeyList"); // list of photos in an event (roll)
-						for (Object p : RollPhotos) {
-							Photo = (HashMap<?, ?>) PhotoList.get(p);
-							RealFile file = new RealFile(new File(Photo.get("ImagePath").toString()));
-							rf.addChild(file);
+					for (HashMap<?, ?> roll : listOfRolls) {
+						Object rollName = roll.get("RollName");
+
+						if (rollName != null) {
+							VirtualFolder rf = new VirtualFolder(rollName.toString(), null);
+
+							// List of photos in an event (roll)
+							rollPhotos = (ArrayList<?>) roll.get("KeyList");
+
+							for (Object photo : rollPhotos) {
+								photoProperties = (HashMap<?, ?>) photoList.get(photo);
+
+								if (photoProperties != null) {
+									Object imagePath = photoProperties.get("ImagePath");
+
+									if (imagePath != null) {
+										RealFile file = new RealFile(new File(imagePath.toString()));
+										rf.addChild(file);
+									}
+								}
+							}
+
+							res.addChild(rf);
 						}
-						res.addChild(rf);
 					}
 				} else {
 					LOGGER.info("iPhoto folder not found");
@@ -405,6 +433,7 @@ public class RootFolder extends DLNAResource {
 				LOGGER.error("Something went wrong with the iPhoto Library scan: ", e);
 			}
 		}
+
 		return res;
 	}
 	
