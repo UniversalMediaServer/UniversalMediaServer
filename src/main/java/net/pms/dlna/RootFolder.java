@@ -23,6 +23,7 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.util.*;
 import net.pms.Messages;
@@ -38,6 +39,8 @@ import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.gui.IFrame;
 import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -285,15 +288,17 @@ public class RootFolder extends DLNAResource {
 					if (line.length() > 0 && !line.startsWith("#") && line.indexOf("=") > -1) {
 						String key = line.substring(0, line.indexOf("="));
 						String value = line.substring(line.indexOf("=") + 1);
-						String keys[] = parseFeedKey(key);
+						String[] keys = parseFeedKey(key);
 
 						try {
-							if (keys[0].equals("imagefeed")
-								|| keys[0].equals("audiofeed")
-								|| keys[0].equals("videofeed")
-								|| keys[0].equals("audiostream")
-								|| keys[0].equals("videostream")) {
-								String values[] = parseFeedValue(value);
+							if (
+								keys[0].equals("imagefeed") ||
+								keys[0].equals("audiofeed") ||
+								keys[0].equals("videofeed") ||
+								keys[0].equals("audiostream") ||
+								keys[0].equals("videostream")
+							) {
+								String[] values = parseFeedValue(value);
 								DLNAResource parent = null;
 
 								if (keys[1] != null) {
@@ -375,7 +380,7 @@ public class RootFolder extends DLNAResource {
 	 */
 	private String[] parseFeedValue(String spec) {
 		StringTokenizer st = new StringTokenizer(spec, ",");
-		String triple[] = new String[3];
+		String[] triple = new String[3];
 		int i = 0;
 
 		while (st.hasMoreTokens()) {
@@ -386,73 +391,75 @@ public class RootFolder extends DLNAResource {
 	}
 
 	/**
-	 * Returns iPhoto folder. Used by manageRoot, so it is usually used as a
-	 * folder at the root folder. Only works when PMS is run on MacOsX.
-	 * TODO: Requirements for iPhoto.
+	 * Creates, populates and returns a virtual folder mirroring the
+	 * contents of the system's iPhoto folder.
+	 * Mac OS X only.
+	 *
+	 * @return iPhotoVirtualFolder the populated <code>VirtualFolder</code>, or null if one couldn't be created.
 	 */
 	private DLNAResource getiPhotoFolder() {
-		VirtualFolder res = null;
+		VirtualFolder iPhotoVirtualFolder = null;
+
 		if (Platform.isMac()) {
-			Map<String, Object> iPhotoLib;
-			ArrayList<HashMap<?, ?>> listOfRolls;
-			HashMap<?, ?> photoList;
-			HashMap<?, ?> photoProperties;
-			ArrayList<?> rollPhotos;
+			LOGGER.debug("Adding iPhoto folder");
+			InputStream inputStream = null;
 
 			try {
 				// This command will show the XML files for recently opened iPhoto databases
 				Process process = Runtime.getRuntime().exec("defaults read com.apple.iApps iPhotoRecentDatabases");
-				BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
+				inputStream = process.getInputStream();
+				List<String> lines = IOUtils.readLines(inputStream);
+				LOGGER.debug("iPhotoRecentDatabases: {}", lines);
 
-				String line = null;
-				line = in.readLine();
+				if (lines.size() >= 2) {
+					// we want the 2nd line
+					String line = lines.get(1);
 
-				// We want the 2nd line
-				if ((line = in.readLine()) != null) {
 					// Remove extra spaces
 					line = line.trim();
 
 					// Remove quotes
 					line = line.substring(1, line.length() - 1);
-				}
 
-				in.close();
-
-				if (line != null) {
-					URI fileUri = new URI(line);
+					URI uri = new URI(line);
+					URL url = uri.toURL();
+					File file = FileUtils.toFile(url);
+					LOGGER.debug("Resolved URL to file: {} -> {}", url, file.getAbsolutePath());
 
 					// Load the properties XML file.
-					iPhotoLib = Plist.load(URLDecoder.decode(fileUri.toURL().getFile(), System.getProperty("file.encoding")));
+					Map<String, Object> iPhotoLib = Plist.load(file);
 
 					// The list of all photos
-					photoList = (HashMap<?, ?>) iPhotoLib.get("Master Image List");
+					Map<?, ?> photoList = (Map<?, ?>) iPhotoLib.get("Master Image List");
 
 					// The list of events (rolls)
-					listOfRolls = (ArrayList<HashMap<?, ?>>) iPhotoLib.get("List of Rolls");
-					res = new VirtualFolder("iPhoto Library", null);
-					for (HashMap<?, ?> roll : listOfRolls) {
+					List<Map<?, ?>> listOfRolls = (List<Map<?, ?>>) iPhotoLib.get("List of Rolls");
+
+					iPhotoVirtualFolder = new VirtualFolder("iPhoto Library", null);
+
+					for (Map<?, ?> roll : listOfRolls) {
 						Object rollName = roll.get("RollName");
 
 						if (rollName != null) {
-							VirtualFolder rf = new VirtualFolder(rollName.toString(), null);
+							VirtualFolder virtualFolder = new VirtualFolder(rollName.toString(), null);
 
 							// List of photos in an event (roll)
-							rollPhotos = (ArrayList<?>) roll.get("KeyList");
+							List<?> rollPhotos = (List<?>) roll.get("KeyList");
 
 							for (Object photo : rollPhotos) {
-								photoProperties = (HashMap<?, ?>) photoList.get(photo);
+								Map<?, ?> photoProperties = (Map<?, ?>) photoList.get(photo);
 
 								if (photoProperties != null) {
 									Object imagePath = photoProperties.get("ImagePath");
 
 									if (imagePath != null) {
-										RealFile file = new RealFile(new File(imagePath.toString()));
-										rf.addChild(file);
+										RealFile realFile = new RealFile(new File(imagePath.toString()));
+										virtualFolder.addChild(realFile);
 									}
 								}
 							}
 
-							res.addChild(rf);
+							iPhotoVirtualFolder.addChild(virtualFolder);
 						}
 					}
 				} else {
@@ -464,15 +471,17 @@ public class RootFolder extends DLNAResource {
 				LOGGER.error("Something went wrong with the iPhoto Library scan: ", e);
 			} catch (IOException e) {
 				LOGGER.error("Something went wrong with the iPhoto Library scan: ", e);
+			} finally {
+				IOUtils.closeQuietly(inputStream);
 			}
 		}
 
-		return res;
+		return iPhotoVirtualFolder;
 	}
 
 	/**
 	 * Returns Aperture folder. Used by manageRoot, so it is usually used as
-	 * a folder at the root folder. Only works when PMS is run on Mac OSX.
+	 * a folder at the root folder. Only works when PMS is run on Mac OS X.
 	 * TODO: Requirements for Aperture.
 	 */
 	private DLNAResource getApertureFolder() {
@@ -547,13 +556,13 @@ public class RootFolder extends DLNAResource {
 		if (url != null) {
 			Map<String, Object> iPhotoLib;
 			// every project is a album, too
-			ArrayList<?> listOfAlbums;
-			HashMap<?, ?> album;
-			HashMap<?, ?> photoList;
+			List<?> listOfAlbums;
+			Map<?, ?> album;
+			Map<?, ?> photoList;
 
 			URI tURI = new URI(url);
 			iPhotoLib = Plist.load(URLDecoder.decode(tURI.toURL().getFile(), System.getProperty("file.encoding"))); // loads the (nested) properties.
-			photoList = (HashMap<?, ?>) iPhotoLib.get("Master Image List"); // the list of photos
+			photoList = (Map<?, ?>) iPhotoLib.get("Master Image List"); // the list of photos
 			final Object mediaPath = iPhotoLib.get("Archive Path");
 			String mediaName;
 
@@ -571,10 +580,10 @@ public class RootFolder extends DLNAResource {
 
 			LOGGER.info("Going to parse aperture library: " + mediaName);
 			res = new VirtualFolder(mediaName, null);
-			listOfAlbums = (ArrayList<?>) iPhotoLib.get("List of Albums"); // the list of events (rolls)
+			listOfAlbums = (List<?>) iPhotoLib.get("List of Albums"); // the list of events (rolls)
 
 			for (Object item : listOfAlbums) {
-				album = (HashMap<?, ?>) item;
+				album = (Map<?, ?>) item;
 
 				if (album.get("Parent") == null) {
 					VirtualFolder vAlbum = createApertureAlbum(photoList, album, listOfAlbums);
@@ -588,15 +597,16 @@ public class RootFolder extends DLNAResource {
 	}
 
 	private VirtualFolder createApertureAlbum(
-		HashMap<?, ?> photoList,
-		HashMap<?, ?> album, ArrayList<?> listOfAlbums) {
+		Map<?, ?> photoList,
+		Map<?, ?> album, List<?> listOfAlbums
+	) {
 
-		ArrayList<?> albumPhotos;
+		List<?> albumPhotos;
 		int albumId = (Integer) album.get("AlbumId");
 		VirtualFolder vAlbum = new VirtualFolder(album.get("AlbumName").toString(), null);
 
 		for (Object item : listOfAlbums) {
-			HashMap<?, ?> sub = (HashMap<?, ?>) item;
+			Map<?, ?> sub = (Map<?, ?>) item;
 
 			if (sub.get("Parent") != null) {
 				// recursive album creation
@@ -609,7 +619,7 @@ public class RootFolder extends DLNAResource {
 			}
 		}
 
-		albumPhotos = (ArrayList<?>) album.get("KeyList");
+		albumPhotos = (List<?>) album.get("KeyList");
 
 		if (albumPhotos == null) {
 			return vAlbum;
@@ -618,7 +628,7 @@ public class RootFolder extends DLNAResource {
 		boolean firstPhoto = true;
 
 		for (Object photoKey : albumPhotos) {
-			HashMap<?, ?> photo = (HashMap<?, ?>) photoList.get(photoKey);
+			Map<?, ? > photo = (Map<?, ?>) photoList.get(photoKey);
 
 			if (firstPhoto) {
 				Object x = photoList.get("ThumbPath");
@@ -712,30 +722,30 @@ public class RootFolder extends DLNAResource {
 
 		if (Platform.isMac() || Platform.isWindows()) {
 			Map<String, Object> iTunesLib;
-			ArrayList<?> Playlists;
-			HashMap<?, ?> Playlist;
-			HashMap<?, ?> Tracks;
-			HashMap<?, ?> track;
-			ArrayList<?> PlaylistTracks;
+			List<?> Playlists;
+			Map<?, ?> Playlist;
+			Map<?, ?> Tracks;
+			Map<?, ?> track;
+			List<?> PlaylistTracks;
 
 			try {
 				String iTunesFile = getiTunesFile();
 
 				if (iTunesFile != null && (new File(iTunesFile)).exists()) {
 					iTunesLib = Plist.load(URLDecoder.decode(iTunesFile, System.getProperty("file.encoding"))); // loads the (nested) properties.
-					Tracks = (HashMap<?, ?>) iTunesLib.get("Tracks"); // the list of tracks
-					Playlists = (ArrayList<?>) iTunesLib.get("Playlists"); // the list of Playlists
+					Tracks = (Map<?, ?>) iTunesLib.get("Tracks"); // the list of tracks
+					Playlists = (List<?>) iTunesLib.get("Playlists"); // the list of Playlists
 					res = new VirtualFolder("iTunes Library", null);
 
 					for (Object item : Playlists) {
-						Playlist = (HashMap<?, ?>) item;
+						Playlist = (Map<?, ?>) item;
 						VirtualFolder pf = new VirtualFolder(Playlist.get("Name").toString(), null);
-						PlaylistTracks = (ArrayList<?>) Playlist.get("Playlist Items"); // list of tracks in a playlist
+						PlaylistTracks = (List<?>) Playlist.get("Playlist Items"); // list of tracks in a playlist
 
 						if (PlaylistTracks != null) {
 							for (Object t : PlaylistTracks) {
-								HashMap<?, ?> td = (HashMap<?, ?>) t;
-								track = (HashMap<?, ?>) Tracks.get(td.get("Track ID").toString());
+								Map<?, ?> td = (Map<?, ?>) t;
+								track = (Map<?, ?>) Tracks.get(td.get("Track ID").toString());
 
 								if (
 									track != null
