@@ -37,12 +37,12 @@ import net.pms.external.AdditionalFoldersAtRoot;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.gui.IFrame;
-import net.pms.xmlwise.Plist;
-import net.pms.xmlwise.XmlParseException;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import xmlwise.Plist;
+import xmlwise.XmlParseException;
 
 public class RootFolder extends DLNAResource {
 
