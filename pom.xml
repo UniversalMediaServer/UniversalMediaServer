@@ -83,7 +83,7 @@
 		<jgoodies-common-version>1.2.1</jgoodies-common-version>
 		<jgoodies-forms-version>1.4.2</jgoodies-forms-version>
 		<jgoodies-looks-version>2.4.2</jgoodies-looks-version>
-		<junrar-version>0.6.1</junrar-version>
+		<junrar-version>0.7</junrar-version>
 		<mediautil-version>1.0</mediautil-version>
 		<xmlwise-version>1.2</xmlwise-version>
 		<!--
@@ -92,7 +92,7 @@
 			to work with Maven 2.2.1...
 		-->
 		<xmlwise-filename-version>1_2</xmlwise-filename-version>
-		<slf4j-version>1.6.4</slf4j-version>
+		<slf4j-version>1.7.1</slf4j-version>
 
 		<!-- Skip 4.65-1.05-RC because it doesn't work, author is working on fixing it -->
 		<sevenzip-version>4.65-1.04-RC</sevenzip-version>
@@ -179,7 +179,7 @@
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
-			<version>1.6</version>
+			<version>1.7</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-collections</groupId>
@@ -189,7 +189,7 @@
 		<dependency>
 			<groupId>commons-configuration</groupId>
 			<artifactId>commons-configuration</artifactId>
-			<version>1.8</version>
+			<version>1.9</version>
 			<exclusions>
 				<!--  no need for commons-logging, as jcl-over-slf4j provides the impl -->
 				<exclusion>
@@ -228,12 +228,12 @@
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
-			<version>1.0.0</version>
+			<version>1.0.7</version>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-core</artifactId>
-			<version>1.0.0</version>
+			<version>1.0.7</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.sanselan</groupId>
@@ -253,7 +253,7 @@
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
-			<version>1.7.1</version>
+			<version>2.2.2</version>
 		</dependency>
 
 		<!-- originally, hamcrest-all 1.2RC2 for the artifact change, see: https://code.google.com/p/hamcrest/issues/detail?id=12#c54 
@@ -261,12 +261,12 @@
 		<dependency>
 			<groupId>org.hamcrest</groupId>
 			<artifactId>hamcrest-integration</artifactId>
-			<version>1.2</version>
+			<version>1.2.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jboss.netty</groupId>
 			<artifactId>netty</artifactId>
-			<version>3.2.4.Final</version>
+			<version>3.2.7.Final</version>
 		</dependency>
 
 		<!-- maven replacement for nsisant-1.2.jar -->
@@ -361,7 +361,7 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.8.1</version>
+			<version>4.10</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
