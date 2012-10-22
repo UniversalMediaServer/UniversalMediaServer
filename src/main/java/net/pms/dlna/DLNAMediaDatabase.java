@@ -705,7 +705,7 @@ public class DLNAMediaDatabase implements Runnable {
 
 	public synchronized void stopScanLibrary() {
 		if (scanner != null && scanner.isAlive()) {
-			PMS.get().getRootFolder(null).stopscan();
+			PMS.get().getRootFolder(null).stopScan();
 		}
 	}
 
