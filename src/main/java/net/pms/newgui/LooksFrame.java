@@ -395,7 +395,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	protected AbstractButton createToolBarButton(String text, String iconName, String toolTipText) {
-		JButton button = new JButton(text, readImageIcon(iconName));
+		CustomJButton button = new CustomJButton(text, readImageIcon(iconName));
 		button.setToolTipText(toolTipText);
 		button.setFocusable(false);
 		return button;

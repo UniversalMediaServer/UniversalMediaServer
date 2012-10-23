@@ -56,7 +56,7 @@ public class NavigationShareTab {
 	private JCheckBox hideextensions;
 	private JCheckBox hideemptyfolders;
 	private JCheckBox hideengines;
-	private JButton but5;
+	private CustomJButton but5;
 	private JTextField seekpos;
 	private JCheckBox thumbgenCheckBox;
 	private JCheckBox mplayer_thumb;
@@ -70,8 +70,8 @@ public class NavigationShareTab {
 	private JCheckBox iphoto;
 	private JCheckBox aperture;
 	private JCheckBox itunes;
-	private JButton select;
-	private JButton cachereset;
+	private CustomJButton select;
+	private CustomJButton cachereset;
 
 	public DefaultListModel getDf() {
 		return df;
@@ -297,7 +297,7 @@ public class NavigationShareTab {
 
 
 		// AlternateThumbFolder: select
-		select = new JButton("...");
+		select = new CustomJButton("...");
 		select.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -365,7 +365,7 @@ public class NavigationShareTab {
 			archive.setSelected(true);
 		}
 
-		cachereset = new JButton(Messages.getString("NetworkTab.18"));
+		cachereset = new CustomJButton(Messages.getString("NetworkTab.18"));
 
 		cacheenable = new JCheckBox(Messages.getString("NetworkTab.17"));
 		cacheenable.setContentAreaFilled(false);
@@ -535,7 +535,7 @@ public class NavigationShareTab {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		JButton but = new JButton(LooksFrame.readImageIcon("button-adddirectory.png"));
+		CustomJButton but = new CustomJButton(LooksFrame.readImageIcon("button-adddirectory.png"));
 		but.setToolTipText(Messages.getString("FoldTab.9"));
 		but.addActionListener(new java.awt.event.ActionListener() {
 			@Override
@@ -559,7 +559,7 @@ public class NavigationShareTab {
 		});
 		builderFolder.add(but, FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 
-		JButton but2 = new JButton(LooksFrame.readImageIcon("button-remove.png"));
+		CustomJButton but2 = new CustomJButton(LooksFrame.readImageIcon("button-remove.png"));
 		but2.setToolTipText(Messages.getString("FoldTab.36"));
 		//but2.setBorder(BorderFactory.createEtchedBorder());
 		but2.addActionListener(new java.awt.event.ActionListener() {
@@ -576,7 +576,7 @@ public class NavigationShareTab {
 		});
 		builderFolder.add(but2, FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
 
-		JButton but3 = new JButton(LooksFrame.readImageIcon("button-arrow-down.png"));
+		CustomJButton but3 = new CustomJButton(LooksFrame.readImageIcon("button-arrow-down.png"));
 		but3.setToolTipText(Messages.getString("FoldTab.12"));
 		// but3.setBorder(BorderFactory.createEmptyBorder());
 		but3.addActionListener(new ActionListener() {
@@ -597,7 +597,7 @@ public class NavigationShareTab {
 		});
 
 		builderFolder.add(but3, FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
-		JButton but4 = new JButton(LooksFrame.readImageIcon("button-arrow-up.png"));
+		CustomJButton but4 = new CustomJButton(LooksFrame.readImageIcon("button-arrow-up.png"));
 		but4.setToolTipText(Messages.getString("FoldTab.12"));
 		//  but4.setBorder(BorderFactory.createEmptyBorder());
 		but4.addActionListener(new ActionListener() {
@@ -620,7 +620,7 @@ public class NavigationShareTab {
 		});
 		builderFolder.add(but4, FormLayoutUtil.flip(cc.xy(4, 3), colSpec, orientation));
 
-		but5 = new JButton(LooksFrame.readImageIcon("button-scan.png"));
+		but5 = new CustomJButton(LooksFrame.readImageIcon("button-scan.png"));
 		but5.setToolTipText(Messages.getString("FoldTab.2"));
 		//but5.setBorder(BorderFactory.createEmptyBorder());
 		but5.addActionListener(new ActionListener() {

@@ -1019,8 +1019,8 @@ public class PMS {
 					if (osVersionMinor < 6) {
 						LOGGER.warn("-----------------------------------------------------------------");
 						LOGGER.warn("WARNING!");
-						LOGGER.warn("PMS ships with binaries compiled for Mac OS X 10.6 or higher.");
-						LOGGER.warn("You are running an older version of Mac OS X so PMS may not work!");
+						LOGGER.warn("UMS ships with binaries compiled for Mac OS X 10.6 or higher.");
+						LOGGER.warn("You are running an older version of Mac OS X so UMS may not work!");
 						LOGGER.warn("More information in the FAQ:");
 						LOGGER.warn("http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=66371#p66371");
 						LOGGER.warn("-----------------------------------------------------------------");

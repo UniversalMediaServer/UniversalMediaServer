@@ -46,6 +46,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 		DownloadButton() {
 			super("Download");
 			setEnabled(false);
+			this.setRequestFocusEnabled(false);
 			addActionListener(this);
 		}
 
@@ -65,6 +66,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 		CancelButton() {
 			super("Not Now");
 			setEnabled(true);
+			this.setRequestFocusEnabled(false);
 			addActionListener(this);
 		}
 

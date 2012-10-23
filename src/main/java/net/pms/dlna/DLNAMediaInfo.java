@@ -251,8 +251,8 @@ public class DLNAMediaInfo implements Cloneable {
 		if (mediaRenderer.isBRAVIA() && getCodecV() != null && getCodecV().startsWith("mpeg2")) {
 			muxable = true;
 		}
-		if (mediaRenderer.isBRAVIA() && getHeight() < 288) // not supported for these small heights
-		{
+
+		if (mediaRenderer.isBRAVIA() && getHeight() < 288) { // not supported for these small heights
 			muxable = false;
 		}
 
@@ -267,6 +267,7 @@ public class DLNAMediaInfo implements Cloneable {
 		if (extras == null) {
 			extras = new HashMap<String, String>();
 		}
+
 		extras.put(key, value);
 	}
 
@@ -274,19 +275,23 @@ public class DLNAMediaInfo implements Cloneable {
 		if (extras == null) {
 			return null;
 		}
+
 		StringBuilder sb = new StringBuilder();
+
 		for (Map.Entry<String, String> entry : extras.entrySet()) {
 			sb.append(entry.getKey());
 			sb.append("|");
 			sb.append(entry.getValue());
 			sb.append("|");
 		}
+
 		return sb.toString();
 	}
 
 	public void setExtrasAsString(String value) {
 		if (value != null) {
 			StringTokenizer st = new StringTokenizer(value, "|");
+
 			while (st.hasMoreTokens()) {
 				try {
 					putExtra(st.nextToken(), st.nextToken());
@@ -348,6 +353,7 @@ public class DLNAMediaInfo implements Cloneable {
 		// FAILSAFE
 		setParsing(true);
 		Runnable r = new Runnable() {
+			@Override
 			public void run() {
 				try {
 					Thread.sleep(10000);
@@ -399,6 +405,7 @@ public class DLNAMediaInfo implements Cloneable {
 		// FAILSAFE
 		setParsing(true);
 		Runnable r = new Runnable() {
+			@Override
 			public void run() {
 				try {
 					Thread.sleep(3000);
@@ -1083,17 +1090,21 @@ public class DLNAMediaInfo implements Cloneable {
 		return codecA != null && (codecA.contains("pcm") || codecA.startsWith("dts") || codecA.equals("dca") || codecA.contains("flac")) && !codecA.contains("pcm_u8") && !codecA.contains("pcm_s8");
 	}
 
+	@Override
 	public String toString() {
 		String s = "container: " + getContainer() + " / bitrate: " + getBitrate() + " / size: " + getSize() + " / codecV: " + getCodecV() + " / duration: " + getDurationString() + " / width: " + getWidth() + " / height: " + getHeight() + " / frameRate: " + getFrameRate() + " / thumb size : " + (getThumb() != null ? getThumb().length : 0) + " / muxingMode: " + getMuxingMode();
+
 		for (DLNAMediaAudio audio : getAudioTracksList()) {
 			s += "\n\taudio: id=" + audio.getId() + " / lang: " + audio.getLang() + " / flavor: " + audio.getFlavor() + " / codec: " + audio.getCodecA() + " / sf:" + audio.getSampleFrequency() + " / na: " + (audio.getAudioProperties() != null ? audio.getAudioProperties().getNumberOfChannels() : "-") + " / bs: " + audio.getBitsperSample();
 			if (audio.getArtist() != null) {
 				s += " / " + audio.getArtist() + "|" + audio.getAlbum() + "|" + audio.getSongname() + "|" + audio.getYear() + "|" + audio.getTrack();
 			}
 		}
+
 		for (DLNAMediaSubtitle sub : getSubtitleTracksList()) {
 			s += "\n\tsub: id=" + sub.getId() + " / lang: " + sub.getLang() + " / flavor: " + sub.getFlavor() + " / type: " + (sub.getType() != null ? sub.getType().toString() : "null");
 		}
+
 		return s;
 	}
 
@@ -1130,7 +1141,6 @@ public class DLNAMediaInfo implements Cloneable {
 			} catch (NumberFormatException nfe) {
 				LOGGER.error(null, nfe);
 			}
-
 		}
 		return validFrameRate;
 	}
@@ -1214,6 +1224,7 @@ public class DLNAMediaInfo implements Cloneable {
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 
 		Runnable r = new Runnable() {
+			@Override
 			public void run() {
 				try {
 					Thread.sleep(3000);

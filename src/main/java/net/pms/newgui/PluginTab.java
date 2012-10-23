@@ -21,7 +21,6 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Locale;
 import javax.swing.BorderFactory;
-import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -73,7 +72,7 @@ public class PluginTab {
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
 		// Edit Plugin Credential File button
-		JButton credEdit = new JButton(Messages.getString("NetworkTab.54"));
+		CustomJButton credEdit = new CustomJButton(Messages.getString("NetworkTab.54"));
 		credEdit.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -201,7 +200,7 @@ public class PluginTab {
 
 		builder.add(table, FormLayoutUtil.flip(cc.xyw(1, 7, 9), colSpec, orientation));
 
-		JButton install = new JButton(Messages.getString("NetworkTab.39"));
+		CustomJButton install = new CustomJButton(Messages.getString("NetworkTab.39"));
 		builder.add(install, FormLayoutUtil.flip(cc.xy(1, 9), colSpec, orientation));
 		install.addActionListener(new ActionListener() {
 			@Override
@@ -264,7 +263,7 @@ public class PluginTab {
 			}
 		});
 
-		JButton refresh = new JButton(Messages.getString("PluginTab.2") + " " + Messages.getString("PluginTab.1"));
+		CustomJButton refresh = new CustomJButton(Messages.getString("PluginTab.2") + " " + Messages.getString("PluginTab.1"));
 		builder.add(refresh, FormLayoutUtil.flip(cc.xy(3, 9), colSpec, orientation));
 		refresh.addActionListener(new ActionListener() {
 			@Override
@@ -328,7 +327,7 @@ public class PluginTab {
 			return true;
 		}
 		CellConstraints cc = new CellConstraints();
-		JButton bPlugin = new JButton(listener.name());
+		CustomJButton bPlugin = new CustomJButton(listener.name());
 		// Listener to show option screen
 		bPlugin.addActionListener(new ActionListener() {
 			@Override
@@ -346,10 +345,10 @@ public class PluginTab {
 	}
 
 	public void removePlugin(ExternalListener listener) {
-		JButton del = null;
+		CustomJButton del = null;
 		for (Component c : pPlugins.getComponents()) {
-			if (c instanceof JButton) {
-				JButton button = (JButton) c;
+			if (c instanceof CustomJButton) {
+				CustomJButton button = (CustomJButton) c;
 				if (button.getText().equals(listener.name())) {
 					del = button;
 					break;

@@ -64,8 +64,7 @@ public class DbgPacker implements ActionListener {
 			}
 			c.weightx = 1.0;
 			top.add(box, c);
-			JButton open = exists
-				? new JButton(MetalIconFactory.getTreeLeafIcon()) : new JButton("+");
+			CustomJButton open = exists ? new CustomJButton(MetalIconFactory.getTreeLeafIcon()) : new CustomJButton("+");
 			open.setActionCommand(file.getAbsolutePath());
 			open.setToolTipText((exists ? ""
 				: Messages.getString("DbgPacker.1") + " ") + file.getAbsolutePath());
@@ -77,11 +76,11 @@ public class DbgPacker implements ActionListener {
 			c.gridy++;
 		}
 		c.weightx = 2.0;
-		JButton debugPack = new JButton(Messages.getString("DbgPacker.2"));
+		CustomJButton debugPack = new CustomJButton(Messages.getString("DbgPacker.2"));
 		debugPack.setActionCommand("pack");
 		debugPack.addActionListener(this);
 		top.add(debugPack, c);
-		JButton open = new JButton(MetalIconFactory.getTreeFolderIcon());
+		CustomJButton open = new CustomJButton(MetalIconFactory.getTreeFolderIcon());
 		open.setActionCommand("showzip");
 		open.setToolTipText(Messages.getString("DbgPacker.3"));
 		open.addActionListener(this);
