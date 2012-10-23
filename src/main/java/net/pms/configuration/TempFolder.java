@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
  */
 class TempFolder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TempFolder.class);
-	private static final String DEFAULT_TEMP_FOLDER_NAME = "ps3mediaserver";
+	private static final String DEFAULT_TEMP_FOLDER_NAME = "universalmediaserver";
 	private final String userSpecifiedFolder;
 	private File tempFolder;
 
