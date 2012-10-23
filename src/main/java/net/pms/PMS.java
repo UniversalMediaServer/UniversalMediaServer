@@ -704,7 +704,6 @@ public class PMS {
 
 	/*
 	 * Universally Unique Identifier used in the UPnP server.
-	 * 
 	 */
 	private String uuid;
 
@@ -713,7 +712,7 @@ public class PMS {
 	 * Defaults to a random one if that method is not available.
 	 * @return {@link String} with an Universally Unique Identifier.
 	 */
-	public String usn() {
+	public synchronized String usn() {
 		if (uuid == null) {
 			// Retrieve UUID from configuration
 			uuid = getConfiguration().getUuid();
@@ -721,11 +720,20 @@ public class PMS {
 			if (uuid == null) {
 				// Create a new UUID based on the MAC address of the used network adapter
 				NetworkInterface ni = null;
+
 				try {
-					ni = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
-					// If no ni comes from the server host name, we should get the default.
-					if (ni != null) {
-						ni = get().getServer().getNi();
+					// this retrieves the network interface via:
+					//
+					// 1) NetworkConfiguration.getAddressForNetworkInterfaceName(pmsConfInterfaceName)
+					// 2) NetworkConfiguration.getDefaultNetworkInterfaceAddress()
+
+					ni = get().getServer().getNetworkInterface();
+
+					// failing that, default to:
+					//
+					// 3) NetworkConfiguration.getNetworkInterfaceByServerName()
+					if (ni == null) {
+						ni = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
 					}
 
 					if (ni != null) {
@@ -749,6 +757,7 @@ public class PMS {
 
 				// Save the newly generated UUID
 				getConfiguration().setUuid(uuid);
+
 				try {
 					getConfiguration().save();
 				} catch (ConfigurationException e) {
@@ -758,6 +767,7 @@ public class PMS {
 
 			LOGGER.info("Using the following UUID configured in UMS.conf: " + uuid);
 		}
+
 		return "uuid:" + uuid;
 	}
 
