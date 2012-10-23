@@ -12,6 +12,16 @@
 		Updated English settings/descriptions
 		Made some log messages more descriptive
 		MEncoder's "A/V sync alternative method" option is applied correctly again
+		Fixed error while loading iPhoto library
+		Updated many program dependencies to benefit from many bugfixes
+		Fixed bug where disabled engines would be picked
+		Updated Android.conf to enable streaming more file formats
+		Turkish flag added for the transcode folder
+		Branding updates
+		Updated links on the Help page
+		Made renderer config layouts more synchronised
+	Mac OS X:
+		Removed fontconfig from MEncoder for Mac OSX for improved subs compatibility
 	Plugin Management:
 		Created new "Plugin Management" tab
 		Added button to edit the plugin credential file
