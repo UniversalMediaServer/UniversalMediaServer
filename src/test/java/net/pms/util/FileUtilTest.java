@@ -39,7 +39,7 @@ public class FileUtilTest {
 	public final void setUp() {
 		// Silence all log messages from the PMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-		// context.reset();
+		context.reset();
 	}
 
 	@Test
@@ -259,8 +259,8 @@ public class FileUtilTest {
 			tempFile = new File(file.getParentFile(), filename);
 			tempFile.createNewFile();
 			assertThat(file.isFile()).isTrue();
-			assertThat(FileUtil.isFileReadable(tempFile));
-			assertThat(FileUtil.isFileWritable(tempFile));
+			assertThat(FileUtil.isFileReadable(tempFile)).isTrue();
+			assertThat(FileUtil.isFileWritable(tempFile)).isTrue();
 		} finally {
 			if (tempFile != null) {
 				tempFile.delete();
