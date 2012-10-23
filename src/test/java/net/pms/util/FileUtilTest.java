@@ -269,6 +269,21 @@ public class FileUtilTest {
 	}
 
 	@Test
+	public void testIsDirectoryReadable() {
+		assertThat(FileUtil.isDirectoryReadable(null)).isFalse();
+		assertThat(FileUtil.isDirectoryReadable(new File("no such directory"))).isFalse();
+		assertThat(FileUtil.isDirectoryReadable(FileUtils.toFile(CLASS.getResource("english-utf8-with-bom.srt")))).isFalse();
+
+		File file = FileUtils.toFile(CLASS.getResource("english-utf8-with-bom.srt"));
+		assertThat(FileUtil.isFileReadable(file)).isTrue();
+
+		File dir = file.getParentFile();
+		assertThat(dir).isNotNull();
+		assertThat(dir.isDirectory()).isTrue();
+		assertThat(FileUtil.isDirectoryReadable(dir)).isTrue();
+	}
+
+	@Test
 	public void testIsDirectoryWritable() {
 		assertThat(FileUtil.isDirectoryWritable(null)).isFalse();
 		assertThat(FileUtil.isDirectoryWritable(new File("no such directory"))).isFalse();

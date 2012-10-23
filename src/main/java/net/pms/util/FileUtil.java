@@ -373,16 +373,16 @@ public class FileUtil {
 	// http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4993360
 	// XXX why isn't this in Apache Commons?
 	public static boolean isFileReadable(File file) {
-		boolean canRead = false;
+		boolean isReadable = false;
 
-		if (file != null) {
+		if ((file != null) && file.isFile()) {
 			try {
 				new FileInputStream(file).close();
-				canRead = true;
+				isReadable = true;
 			} catch (IOException ioe) { }
 		}
 
-		return canRead;
+		return isReadable;
 	}
 
 	/**
@@ -394,37 +394,73 @@ public class FileUtil {
 	 *
 	 * @since 1.71.0
 	 * @param file the File whose permissions are to be determined
-	 * @return <code>true</code> if the file is not null, exists, is a file and can be written to, <code>false</code> otherwise
+	 * @return <code>true</code> if the file is not null and either a) exists, is a file and can be written to or b) doesn't
+	 * exist and can be created; otherwise returns <code>false</code>
 	 */
-	// Based on the workaround posted here:
+	// Loosely based on the workaround posted here:
 	// http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4993360
 	// XXX why isn't this in Apache Commons?
 	public static boolean isFileWritable(File file) {
-		boolean canWrite = false;
+		boolean isWritable = false;
 
 		if (file != null) {
-			boolean alreadyExists = file.isFile();
+			boolean fileAlreadyExists = file.isFile(); // i.e. exists and is a File
 
-			try {
-				// true: open for append: make sure the open
-				// doesn't clobber the file
-				new FileOutputStream(file, true).close();
-				canWrite = true;
+			if (fileAlreadyExists || !file.exists()) {
+				try {
+					// true: open for append: make sure the open
+					// doesn't clobber the file
+					new FileOutputStream(file, true).close();
+					isWritable = true;
 
-				if (!alreadyExists) {
-					try {
-						if (!file.delete()) {;
-							LOGGER.warn("Can't delete temporary test file: {}", file.getAbsolutePath());
+					if (!fileAlreadyExists) { // a new file has been "touch"ed; try to remove it
+						try {
+							if (!file.delete()) {
+								LOGGER.warn("Can't delete temporary test file: {}", file.getAbsolutePath());
+							}
+						} catch (SecurityException se) {
+							LOGGER.error("Error deleting temporary test file: " + file.getAbsolutePath(), se);
 						}
-					} catch (SecurityException se) {
-						LOGGER.error("Error deleting temporary test file: " + file.getAbsolutePath(), se);
 					}
-				}
-			} catch (IOException ioe) {
-			} catch (SecurityException se) { }
+				} catch (IOException ioe) {
+				} catch (SecurityException se) { }
+			}
 		}
 
-		return canWrite;
+		return isWritable;
+	}
+
+	/**
+	 * Determines whether the supplied directory is readable by trying to read its contents.
+	 * This works around JDK bugs which return the wrong results for {@link java.io.File.canRead()}
+	 * on Windows and possibly on Unix.
+	 * <p>
+	 * Note: since this method accesses the filesystem, it should not be used in contexts in which performance is critical.
+	 * Note: this method changes the file access time.
+	 *
+	 * @since 1.71.0
+	 * @param dir the File whose permissions are to be determined
+	 * @return <code>true</code> if the directory is not null, exists, is a directory and can be read, <code>false</code> otherwise
+	 */
+	// XXX dir.canRead() has issues on Windows, so verify it directly:
+	// http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6203387
+	public static boolean isDirectoryReadable(File dir) {
+		boolean isReadable = false;
+
+		if (dir != null) {
+			// new File("").isDirectory() is false, even though getAbsolutePath() returns the right path.
+			// this resolves it
+			dir = dir.getAbsoluteFile();
+
+			if (dir.isDirectory()) {
+				try {
+					File[] files = dir.listFiles(); // null if an I/O error occurs
+					isReadable = files != null;
+				} catch (SecurityException se) { }
+			}
+		}
+
+		return isReadable;
 	}
 
 	/**
@@ -450,7 +486,14 @@ public class FileUtil {
 			dir = dir.getAbsoluteFile();
 
 			if (dir.isDirectory()) {
-				File file = new File(dir, String.format("pms_directory_write_test_%d.tmp", System.currentTimeMillis()));
+				File file = new File(
+					dir,
+					String.format(
+						"pms_directory_write_test_%d_%d.tmp",
+						System.currentTimeMillis(),
+						Thread.currentThread().getId()
+					)
+				);
 
 				try {
 					if (file.createNewFile()) {

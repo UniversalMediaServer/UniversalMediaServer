@@ -72,7 +72,7 @@ public class MapFileConfiguration {
 					return null;
 				}
 			} else {
-				LOGGER.warn("Can't read {}", file.getAbsolutePath());
+				LOGGER.warn("Can't read file: {}", file.getAbsolutePath());
 			}
 		}
 
@@ -99,8 +99,8 @@ class FileSerializer implements JsonSerializer<File>, JsonDeserializer<File> {
 	public File deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 		File file = new File(json.getAsJsonPrimitive().getAsString());
 
-		if (!FileUtil.isFileReadable(file)) {
-			LOGGER.warn("Can't read {}", file.getAbsolutePath());
+		if (!FileUtil.isDirectoryReadable(file)) {
+			LOGGER.warn("Can't read directory: {}", file.getAbsolutePath());
 			return null;
 		} else {
 			return file;
