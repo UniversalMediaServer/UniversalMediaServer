@@ -70,6 +70,14 @@ public class FileUtil {
 		return null;
 	}
 
+	/**
+	 * @deprecated Use {@link #getFileNameWithAddedExtension(File, File, String)}.
+	 */
+	@Deprecated
+	public static File getFileNameWitAddedExtension(File parent, File file, String ext) {
+		return getFileNameWithAddedExtension(parent, file, ext);
+	}
+
 	public static File isFileExists(File f, String ext) {
 		int point = f.getName().lastIndexOf(".");
 
