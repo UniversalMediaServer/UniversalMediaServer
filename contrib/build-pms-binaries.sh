@@ -2,8 +2,8 @@
 #
 # build-pms-osx.sh
 #
-# Version: 2.2.0
-# Last updated: 2012-07-08
+# Version: 2.2.1
+# Last updated: 2012-09-30
 # Authors: Patrick Atoon, Happy-Neko
 #
 #
@@ -527,7 +527,7 @@ set_flags() {
 
     if is_osx; then
         # Minimum OSX version as target
-        OSX_VERSION=10.6
+        OSX_VERSION=10.7
 
         if [ -d /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs ]; then
             # Xcode 4.3+
@@ -758,6 +758,7 @@ build_ffmpeg() {
         ./configure --enable-gpl --enable-version3 --enable-nonfree --disable-doc --disable-debug \
               --enable-libmp3lame --enable-libx264 --enable-libxvid --enable-libfreetype \
               --cc=$GCC2 --disable-vda \
+              --disable-libass --disable-fontconfig \
               --disable-devices --disable-ffplay --disable-ffserver --disable-ffprobe \
               --disable-shared --enable-static --prefix=$TARGET
     else
@@ -786,42 +787,45 @@ build_ffmpeg() {
 # http://flac.sourceforge.net/
 #
 build_flac() {
-    start_build flac
-    cd $BUILD
-
-    if [ ! -d flac-$VERSION_FLAC ]; then
-        $TAR zxf $SRC/flac-$VERSION_FLAC.tar.gz
-        exit_on_error
-    fi
-
-    cd flac-$VERSION_FLAC
-    set_flags
-    
+    # Skipping flac build on Linux
     if is_osx; then
-        if [ "$ARCHITECTURE" == "x86_64" ]; then
-            ./configure --disable-shared --disable-dependency-tracking --host=x86-apple-darwin10 --prefix=$TARGET
-        else
-            ./configure --disable-shared --disable-dependency-tracking --disable-asm-optimizations --prefix=$TARGET
+        start_build flac
+        cd $BUILD
+
+        if [ ! -d flac-$VERSION_FLAC ]; then
+            $TAR zxf $SRC/flac-$VERSION_FLAC.tar.gz
+            exit_on_error
         fi
-    else
-        $SED --in-place 's/#include <stdlib.h>/#include <stdlib.h>\n#include <cstring>/g' ./examples/cpp/encode/file/main.cpp
-        $SED --in-place 's/#include <stdlib.h>/#include <stdlib.h>\n#include <cstring>/g' ./examples/cpp/decode/file/main.cpp
 
-        ./configure --disable-shared --enable-static --disable-dependency-tracking --prefix=$TARGET
+        cd flac-$VERSION_FLAC
+        set_flags
+    
+        if is_osx; then
+            if [ "$ARCHITECTURE" == "x86_64" ]; then
+                ./configure --disable-shared --disable-dependency-tracking --host=x86-apple-darwin10 --prefix=$TARGET
+            else
+                ./configure --disable-shared --disable-dependency-tracking --disable-asm-optimizations --prefix=$TARGET
+            fi
+        else
+            $SED --in-place 's/#include <stdlib.h>/#include <stdlib.h>\n#include <cstring>/g' ./examples/cpp/encode/file/main.cpp
+            $SED --in-place 's/#include <stdlib.h>/#include <stdlib.h>\n#include <cstring>/g' ./examples/cpp/decode/file/main.cpp
+
+            ./configure --disable-shared --enable-static --disable-dependency-tracking --prefix=$TARGET
+        fi
+
+        $MAKE -j$THREADS
+        exit_on_error
+
+        if is_linux; then
+          # compile statically linked flac binary
+          cd src/flac
+          $GCC -static -Wl,--strip-all -I$TARGET/include -O3 -funroll-loops -finline-functions -Wall -W -Winline $CFLAGS $LDFLAGS  -o flac analyze.o decode.o encode.o foreign_metadata.o main.o local_string_utils.o utils.o vorbiscomment.o  -L$TARGET/lib ../../src/share/grabbag/.libs/libgrabbag.a ../../src/share/getopt/libgetopt.a ../../src/share/replaygain_analysis/.libs/libreplaygain_analysis.a ../../src/share/replaygain_synthesis/.libs/libreplaygain_synthesis.a ../../src/shar$SRClibs/libutf8.a ../../src/libFLAC/.libs/libFLAC.a -L$TARGET/lib $TARGET/lib/libogg.a $TARGET/lib/libiconv.a -lm
+          exit_on_error
+          cd ../..
+        fi
+        $MAKE install
+        cd $WORKDIR
     fi
-
-    $MAKE -j$THREADS
-    exit_on_error
-
-    if is_linux; then
-      # compile statically linked flac binary
-      cd src/flac
-      $GCC -static -Wl,--strip-all -I$TARGET/include -O3 -funroll-loops -finline-functions -Wall -W -Winline $CFLAGS $LDFLAGS  -o flac analyze.o decode.o encode.o foreign_metadata.o main.o local_string_utils.o utils.o vorbiscomment.o  -L$TARGET/lib ../../src/share/grabbag/.libs/libgrabbag.a ../../src/share/getopt/libgetopt.a ../../src/share/replaygain_analysis/.libs/libreplaygain_analysis.a ../../src/share/replaygain_synthesis/.libs/libreplaygain_synthesis.a ../../src/shar$SRClibs/libutf8.a ../../src/libFLAC/.libs/libFLAC.a -L$TARGET/lib $TARGET/lib/libogg.a $TARGET/lib/libiconv.a -lm
-      exit_on_error
-      cd ../..
-    fi
-    $MAKE install
-    cd $WORKDIR
 }
 
 
@@ -830,38 +834,43 @@ build_flac() {
 # http://fontconfig.org/wiki/
 #
 build_fontconfig() {
-    start_build fontconfig
-    cd $BUILD
-
-    if [ ! -d fontconfig-$VERSION_FONTCONFIG ]; then
-        $TAR zxf $SRC/fontconfig-$VERSION_FONTCONFIG.tar.gz
-        exit_on_error
-    fi
-
-    cd fontconfig-$VERSION_FONTCONFIG
-    set_flags
+    # Fontconfig builds fine on Mac OSX, but it fails to actually find any fonts.
+    # Disabling it gives better results for now
     if is_linux; then
-        ./configure --sysconfdir=/etc --localstatedir=/var --enable-static --disable-shared --disable-dependency-tracking --prefix=$TARGET
-    else
-        ./configure --with-confdir=./fonts --enable-static --disable-shared --disable-dependency-tracking --prefix=$TARGET
-    fi
-    $MAKE -j$THREADS
-    exit_on_error
+        start_build fontconfig
 
-    if is_linux; then
-        $MAKE install-exec && $MAKE install-pkgconfigDATA
+        cd $BUILD
+
+        if [ ! -d fontconfig-$VERSION_FONTCONFIG ]; then
+            $TAR zxf $SRC/fontconfig-$VERSION_FONTCONFIG.tar.gz
+            exit_on_error
+        fi
+
+        cd fontconfig-$VERSION_FONTCONFIG
+        set_flags
+        if is_linux; then
+            ./configure --sysconfdir=/etc --localstatedir=/var --enable-static --disable-shared --disable-dependency-tracking --prefix=$TARGET
+        else
+            ./configure --with-configdir=./fonts --enable-static --disable-shared --disable-dependency-tracking --prefix=$TARGET
+        fi
+        $MAKE -j$THREADS
         exit_on_error
-        # copy fontconfig headers
-        mkdir -p $TARGET/include/fontconfig
-        cp -f ./fontconfig/*.h $TARGET/include/fontconfig/
-        # freetype depends on bzip2
-        $SED -i -e "s/^Libs\.private.*$/Libs.private: -lexpat -lfreetype -lz -liconv -lbz2/" $TARGET/lib/pkgconfig/fontconfig.pc
-    else
-        $MAKE install
-    fi
-    exit_on_error
+
+        if is_linux; then
+            $MAKE install-exec && $MAKE install-pkgconfigDATA
+            exit_on_error
+            # copy fontconfig headers
+            mkdir -p $TARGET/include/fontconfig
+            cp -f ./fontconfig/*.h $TARGET/include/fontconfig/
+            # freetype depends on bzip2
+            $SED -i -e "s/^Libs\.private.*$/Libs.private: -lexpat -lfreetype -lz -liconv -lbz2/" $TARGET/lib/pkgconfig/fontconfig.pc
+        else
+            $MAKE install
+        fi
+        exit_on_error
     
-    cd $WORKDIR
+        cd $WORKDIR
+    fi
 }
 
 
@@ -914,24 +923,55 @@ build_fribidi() {
 
 
 ##########################################
-# libass
+# HARFBUZZ
+# http://www.freedesktop.org/wiki/Software/HarfBuzz
+#
+build_harfbuzz() {
+    # harfbuzz fails to build on OSX, skipping it
+    if is_linux; then
+        start_build harfbuzz
+
+        cd $BUILD
+        cp -af $SRC/harfbuzz ./
+        exit_on_error
+        cd harfbuzz
+        exit_on_error
+
+        set_flags
+
+        ./autogen.sh --disable-shared --enable-static --disable-dependency-tracking --prefix=$TARGET
+        $MAKE -j$THREADS
+        exit_on_error
+        $MAKE install
+        cd $WORKDIR
+    fi
+}
+
+
+##########################################
+# LIBASS
 # http://code.google.com/p/libass/
 #
 build_libass() {
-    start_build libass
-    cd $BUILD
-    cp -af $SRC/libass ./
-    exit_on_error
-    cd libass
-    exit_on_error
+    # libass fails to build on OSX, skipping it
+    if is_linux; then
+        start_build libass
 
-    set_flags
+        cd $BUILD
+        cp -af $SRC/libass ./
+        exit_on_error
+        cd libass
+        exit_on_error
 
-    ./autogen.sh --disable-shared --enable-static --disable-dependency-tracking --disable-harfbuzz --prefix=$TARGET
-    $MAKE -j$THREADS
-    exit_on_error
-    $MAKE install
-    cd $WORKDIR
+        set_flags
+
+        # see: http://code.google.com/p/libass/issues/detail?id=69
+        ./autogen.sh --disable-shared --enable-static --disable-dependency-tracking --prefix=$TARGET
+        $MAKE -j$THREADS
+        exit_on_error
+        $MAKE install
+        cd $WORKDIR
+    fi
 }
 
 
@@ -1357,6 +1397,7 @@ build_mplayer() {
 
         # Theora and vorbis support seems broken in this revision, disable it for now
         ./configure --cc=$GCC2 --disable-x11 --disable-gl --disable-qtx \
+              --disable-fontconfig \
               --with-freetype-config=$TARGET/bin/freetype-config --prefix=$TARGET
 
         # Somehow -I/usr/X11/include still made it into the config.mak, regardless of the --disable-x11
@@ -1679,6 +1720,7 @@ build_fontconfig
 build_fribidi
 build_enca
 build_giflib
+build_harfbuzz
 build_jpeg
 build_libpng
 build_libass
@@ -1699,9 +1741,7 @@ build_x264
 build_xvid
 
 # Build tools for including with PS3 Media Server
-if is_osx; then
-    build_flac
-fi
+build_flac
 build_dcraw
 build_tsmuxer
 build_ffmpeg

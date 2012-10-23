@@ -137,9 +137,12 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	 * @param externalFile the externalFile to set
 	 */
 	public void setExternalFile(File externalFile) throws FileNotFoundException {
-		if (externalFile == null || !externalFile.canRead()) {
-			throw new FileNotFoundException("Can't read file.");
+		if (externalFile == null) {
+			throw new FileNotFoundException("Can't read file: no file supplied");
+		} else if (!FileUtil.isFileReadable(externalFile)) {
+			throw new FileNotFoundException("Can't read file: " + externalFile.getAbsolutePath());
 		}
+
 		this.externalFile = externalFile;
 		setExternalFileCharacterSet();
 	}

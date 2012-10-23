@@ -1660,6 +1660,16 @@ public class MEncoderVideo extends Player {
 					sb.append("-ass-force-style MarginV=").append(subtitleMargin).append(" ");
 				}
 
+				// MEncoder is not compiled with fontconfig on Mac OSX, therefore
+				// use of the "-ass" option also requires the "-font" option.
+				if (Platform.isMac() && sb.toString().indexOf(" -font ") < 0) {
+					String font = CodecUtil.getDefaultFontPath();
+
+					if (isNotBlank(font)) {
+						sb.append("-font ").append(font).append(" ");
+					}
+				}
+
 				// Workaround for MPlayer #2041, remove when that bug is fixed
 				if (!params.sid.isEmbedded()) {
 					sb.append("-noflip-hebrew ");
@@ -1698,8 +1708,12 @@ public class MEncoderVideo extends Player {
 			}
 
 			// Common subtitle options
-			// Use fontconfig if enabled
-			sb.append("-").append(configuration.isMencoderFontConfig() ? "" : "no").append("fontconfig ");
+			// MEncoder on Mac OSX is compiled without fontconfig support.
+			// Appending the flag will break execution, so skip it on Mac OSX.
+			if (!Platform.isMac()) {
+				// Use fontconfig if enabled
+				sb.append("-").append(configuration.isMencoderFontConfig() ? "" : "no").append("fontconfig ");
+			}
 
 			// Apply DVD/VOBsub subtitle quality
 			if (params.sid.getType() == SubtitleType.VOBSUB && configuration.getMencoderVobsubSubtitleQuality() != null) {
@@ -2389,16 +2403,16 @@ public class MEncoderVideo extends Player {
 				PipeIPCProcess ffAudioPipe = new PipeIPCProcess(System.currentTimeMillis() + "ffmpegaudio01", System.currentTimeMillis() + "audioout", false, true);
 				StreamModifier sm = new StreamModifier();
 				sm.setPcm(pcm);
-				sm.setDtsembed(dtsRemux);
+				sm.setDtsEmbed(dtsRemux);
 				sm.setSampleFrequency(48000);
-				sm.setBitspersample(16);
+				sm.setBitsPerSample(16);
 
 				String mixer = null;
 				if (pcm && !dtsRemux) {
 					mixer = getLPCMChannelMappingForMencoder(params.aid); // LPCM always outputs 5.1/7.1 for multichannel tracks. Downmix with player if needed!
 				}
 
-				sm.setNbchannels(channels);
+				sm.setNbChannels(channels);
 
 				// It seems that -really-quiet prevents MEncoder from stopping the pipe output after some time
 				// -mc 0.1 makes the DTS-HD extraction work better with latest MEncoder builds, and has no impact on the regular DTS one

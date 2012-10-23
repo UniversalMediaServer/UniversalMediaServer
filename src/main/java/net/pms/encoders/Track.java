@@ -23,8 +23,9 @@ public class Track {
 	private int scale;
 	private int rate;
 	private int sampleSize;
-	private int bitspersample;
-	private int nbaudio;
+	private int bitsPerSample;
+	private int nbAudio;
+	private byte[] bih;
 
 	public Track(String compressor, int scale, int rate, int sampleSize) {
 		this.compressor = compressor;
@@ -32,8 +33,6 @@ public class Track {
 		this.rate = rate;
 		this.sampleSize = sampleSize;
 	}
-
-	private byte bih[];
 
 	public byte[] getBih() {
 		return bih;
@@ -59,19 +58,51 @@ public class Track {
 		return sampleSize;
 	}
 
+	/**
+	 * @deprecated Use {@link #getBitsPerSample()}
+	 */
+	@Deprecated
 	public int getBitspersample() {
-		return bitspersample;
+		return getBitsPerSample();
 	}
 
-	public void setBitspersample(int bitspersample) {
-		this.bitspersample = bitspersample;
+	public int getBitsPerSample() {
+		return bitsPerSample;
 	}
 
+	/**
+	 * @deprecated Use {@link #setBitsPerSample(int)}
+	 */
+	@Deprecated
+	public void setBitspersample(int bitsPerSample) {
+		setBitsPerSample(bitsPerSample);
+	}
+
+	public void setBitsPerSample(int bitsPerSample) {
+		this.bitsPerSample = bitsPerSample;
+	}
+
+	/**
+	 * @deprecated Use {@link #getNbAudio()}
+	 */
+	@Deprecated
 	public int getNbaudio() {
-		return nbaudio;
+		return getNbAudio();
 	}
 
-	public void setNbaudio(int nbaudio) {
-		this.nbaudio = nbaudio;
+	public int getNbAudio() {
+		return nbAudio;
+	}
+
+	/**
+	 * @deprecated Use {@link #setNbAudio(int)}
+	 */
+	@Deprecated
+	public void setNbaudio(int nbAudio) {
+		setNbAudio(nbAudio);
+	}
+
+	public void setNbAudio(int nbAudio) {
+		this.nbAudio = nbAudio;
 	}
 }

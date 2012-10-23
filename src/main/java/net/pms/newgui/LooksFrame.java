@@ -102,7 +102,6 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		if (Platform.isWindows()) {
 			try {
 				selectedLaf = (LookAndFeel) Class.forName("com.jgoodies.looks.windows.WindowsLookAndFeel").newInstance();
-				//selectedLaf = (LookAndFeel) Class.forName("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel").newInstance();
 			} catch (Exception e) {
 				selectedLaf = new PlasticLookAndFeel();
 			}
@@ -111,18 +110,19 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		} else {
 			try {
 				String systemClassName = UIManager.getSystemLookAndFeelClassName();
-				// workaround for gnome
+				// Workaround for Gnome
 				try {
 					String gtkLAF = "com.sun.java.swing.plaf.gtk.GTKLookAndFeel";
 					Class.forName(gtkLAF);
+
 					if (systemClassName.equals("javax.swing.plaf.metal.MetalLookAndFeel")) {
 						systemClassName = gtkLAF;
 					}
 				} catch (ClassNotFoundException ce) {
-					LOGGER.debug("Caught exception", ce);
+					LOGGER.error("Error loading GTK look and feel: ", ce);
 				}
 
-				LOGGER.debug("Choosing java look and feel: " + systemClassName);
+				LOGGER.trace("Choosing Java look and feel: " + systemClassName);
 				UIManager.setLookAndFeel(systemClassName);
 			} catch (Exception e1) {
 				selectedLaf = new PlasticLookAndFeel();
@@ -148,7 +148,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			try {
 				UIManager.setLookAndFeel(selectedLaf);
 			} catch (UnsupportedLookAndFeelException e) {
-				LOGGER.debug("Cannot change look and feel", e);
+				LOGGER.warn("Can't change look and feel", e);
 			}
 		}
 
@@ -184,9 +184,11 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		// Set an unicode font for testing exotics languages (japanese)
 		final String language = configuration.getLanguage();
+
 		if (language != null && (language.equals("ja") || language.startsWith("zh"))) {
 			sf = new Font("Serif", Font.PLAIN, 12);
 		}
+
 		if (sf != null) {
 			UIManager.put("Button.font", sf);
 			UIManager.put("ToggleButton.font", sf);
@@ -241,15 +243,19 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		if (showScrollbars.equals("true")) {
 			setContentPane(
 				new JScrollPane(
-				jp,
-				ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
-				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS));
+					jp,
+					ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
+					ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS
+				)
+			);
 		} else if (showScrollbars.equals("optional")) {
 			setContentPane(
 				new JScrollPane(
-				jp,
-				ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED));
+					jp,
+					ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+					ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
+				)
+			);
 		} else {
 			setContentPane(jp);
 		}
@@ -397,11 +403,13 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 	public void quit() {
 		WindowsNamedPipe.setLoop(false);
+
 		try {
 			Thread.sleep(100);
 		} catch (InterruptedException e) {
 			LOGGER.error(null, e);
 		}
+
 		System.exit(0);
 	}
 
@@ -418,6 +426,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	@Override
 	public void setStatusCode(int code, String msg, String icon) {
 		st.getJl().setText(msg);
+
 		try {
 			st.getImagePanel().set(ImageIO.read(LooksFrame.class.getResourceAsStream("/resources/images/" + icon)));
 		} catch (IOException e) {
@@ -439,11 +448,11 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	 * changed.<br>
 	 * The actions requiring a server restart are defined by {@link PmsConfiguration#NEED_RELOAD_FLAGS}
 	 * 
-	 * @param b true if the server has to be restarted, false otherwise
+	 * @param bool true if the server has to be restarted, false otherwise
 	 */
 	@Override
-	public void setReloadable(boolean b) {
-		if (b) {
+	public void setReloadable(boolean bool) {
+		if (bool) {
 			reload.setIcon(readImageIcon("button-restart-required.png"));
 			reload.setToolTipText(Messages.getString("LooksFrame.13"));
 		} else {
@@ -469,8 +478,8 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		if (autoUpdater != null) {
 			try {
 				AutoUpdateDialog.showIfNecessary(this, autoUpdater);
-			} catch (NoClassDefFoundError ncdf) {
-				LOGGER.info("Class not found: " + ncdf.getMessage());
+			} catch (NoClassDefFoundError ncdfe) {
+				LOGGER.error("Error displaying AutoUpdateDialog", ncdfe);
 			}
 		}
 	}
@@ -483,6 +492,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		} else {
 			status.setBorder(BorderFactory.createEmptyBorder(0, 9, 8, 0));
 		}
+
 		status.setText(line);
 	}
 

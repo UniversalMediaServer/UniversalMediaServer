@@ -495,7 +495,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					// is preferred.
 					String name = getName();
 
-					for (Player p : PlayerFactory.getPlayers()) {
+					for (Player p : PlayerFactory.getAllPlayers()) {
 						String end = "[" + p.id() + "]";
 
 						if (name.endsWith(end)) {

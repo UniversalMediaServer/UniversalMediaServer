@@ -34,6 +34,12 @@
 	<version>1.7.0</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
+
+	<!-- this is not required, but is recommended for plugin version checks -->
+	<prerequisites>
+		<maven>2.2.1</maven>
+	</prerequisites>
+
 	<organization>
 		<name>Universal Media Server</name>
 		<url>http://www.universalmediaserver.com/</url>
@@ -77,9 +83,16 @@
 		<jgoodies-common-version>1.2.1</jgoodies-common-version>
 		<jgoodies-forms-version>1.4.2</jgoodies-forms-version>
 		<jgoodies-looks-version>2.4.2</jgoodies-looks-version>
-		<junrar-version>0.6.1</junrar-version>
+		<junrar-version>0.7</junrar-version>
 		<mediautil-version>1.0</mediautil-version>
-		<slf4j-version>1.6.4</slf4j-version>
+		<xmlwise-version>1.2</xmlwise-version>
+		<!--
+			the xmlwise jar's filename uses underscores for the version rather than dots e.g. xmlwise-1_2.jar.
+			dynamic properties are a DRYer/saner solution, but I couldn't get properties-maven-plugin
+			to work with Maven 2.2.1...
+		-->
+		<xmlwise-filename-version>1_2</xmlwise-filename-version>
+		<slf4j-version>1.7.1</slf4j-version>
 
 		<!-- Skip 4.65-1.05-RC because it doesn't work, author is working on fixing it -->
 		<sevenzip-version>4.65-1.04-RC</sevenzip-version>
@@ -92,6 +105,8 @@
 		<!-- <project.binaries-base>http://ps3mediaserver.googlecode.com/svn/tags/1.40.0</project.binaries-base> -->
 
 		<maven.nsis.project.template>${project.basedir}/src/main/external-resources/nsis/project.jelly</maven.nsis.project.template>
+		<maven-javadoc-plugin-version>2.9</maven-javadoc-plugin-version>
+		<git-commit-id-plugin-version>2.1.0</git-commit-id-plugin-version>
 	</properties>
 	<pluginRepositories>
 		<pluginRepository>
@@ -164,7 +179,7 @@
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
-			<version>1.6</version>
+			<version>1.7</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-collections</groupId>
@@ -174,7 +189,7 @@
 		<dependency>
 			<groupId>commons-configuration</groupId>
 			<artifactId>commons-configuration</artifactId>
-			<version>1.8</version>
+			<version>1.9</version>
 			<exclusions>
 				<!--  no need for commons-logging, as jcl-over-slf4j provides the impl -->
 				<exclusion>
@@ -213,12 +228,12 @@
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
-			<version>1.0.0</version>
+			<version>1.0.7</version>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-core</artifactId>
-			<version>1.0.0</version>
+			<version>1.0.7</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.sanselan</groupId>
@@ -238,7 +253,7 @@
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
-			<version>1.7.1</version>
+			<version>2.2.2</version>
 		</dependency>
 
 		<!-- originally, hamcrest-all 1.2RC2 for the artifact change, see: https://code.google.com/p/hamcrest/issues/detail?id=12#c54 
@@ -246,12 +261,12 @@
 		<dependency>
 			<groupId>org.hamcrest</groupId>
 			<artifactId>hamcrest-integration</artifactId>
-			<version>1.2</version>
+			<version>1.2.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jboss.netty</groupId>
 			<artifactId>netty</artifactId>
-			<version>3.2.4.Final</version>
+			<version>3.2.7.Final</version>
 		</dependency>
 
 		<!-- maven replacement for nsisant-1.2.jar -->
@@ -321,6 +336,13 @@
 			<artifactId>mediautil</artifactId>
 			<version>${mediautil-version}</version>
 		</dependency>
+
+		<!-- XXX: not Mavenized: https://code.google.com/p/xmlwise/ -->
+		<dependency>
+			<groupId>com.googlecode</groupId>
+			<artifactId>xmlwise</artifactId>
+			<version>${xmlwise-version}</version>
+		</dependency>
 		<dependency>
 			<groupId>com.googlecode.juniversalchardet</groupId>
 			<artifactId>juniversalchardet</artifactId>
@@ -339,7 +361,7 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.8.1</version>
+			<version>4.10</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -444,7 +466,7 @@
 						-->
 						<argLine>-Duser.language=en -Djna.nosys=true</argLine> <!-- only one argLine element is processed -->
 					</configuration>
-					<version>2.11</version>
+					<version>2.12.3</version>
 				</plugin>
 
 				<!--
@@ -486,7 +508,7 @@
 											git-commit-id-plugin
 										</artifactId>
 										<versionRange>
-											[1.9,)
+											[${git-commit-id-plugin-version},)
 										</versionRange>
 										<goals>
 											<goal>revision</goal>
@@ -511,7 +533,7 @@
 			<plugin>
 				<groupId>pl.project13.maven</groupId>
 				<artifactId>git-commit-id-plugin</artifactId>
-				<version>1.9</version>
+				<version>${git-commit-id-plugin-version}</version>
 				<executions>
 					<execution>
 						<phase>initialize</phase>
@@ -529,7 +551,7 @@
 
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.3.2</version>
+				<version>2.5.1</version>
 				<configuration>
 					<source>1.6</source>
 					<target>1.6</target>
@@ -538,7 +560,7 @@
 
 			<plugin>
 				<artifactId>maven-eclipse-plugin</artifactId>
-				<version>2.5.1</version>
+				<version>2.9</version>
 				<configuration>
 					<additionalProjectnatures>
 						<projectnature>org.springframework.ide.eclipse.core.springnature</projectnature>
@@ -554,7 +576,7 @@
 
 			<plugin>
 				<artifactId>maven-idea-plugin</artifactId>
-				<version>2.1</version>
+				<version>2.2</version>
 				<configuration>
 					<downloadSources>true</downloadSources>
 					<downloadJavadocs>true</downloadJavadocs>
@@ -582,7 +604,7 @@
 			<plugin>
 				<groupId>com.savage7.maven.plugins</groupId>
 				<artifactId>maven-external-dependency-plugin</artifactId>
-				<version>0.4</version>
+				<version>0.5</version>
 				<inherited>false</inherited>
 				<configuration>
 					<stagingDirectory>${project.build.directory}/dependencies/</stagingDirectory>
@@ -662,6 +684,16 @@
 							<extractFile>mediautil-${mediautil-version}/mediautil-${mediautil-version}.jar</extractFile>
 							<extractFileChecksum>e843cd55def75dce57123c79b7f36caca4841466</extractFileChecksum>
 						</artifactItem>
+						<artifactItem>
+							<groupId>com.googlecode</groupId>
+							<artifactId>xmlwise</artifactId>
+							<version>${xmlwise-version}</version>
+							<packaging>jar</packaging>
+							<install>true</install>
+							<force>false</force>
+							<downloadUrl>https://xmlwise.googlecode.com/files/xmlwise-${xmlwise-filename-version}.jar</downloadUrl>
+							<checksum>82ed648273281ccd08da6f91df30573edf15185d</checksum>
+						</artifactItem>
 					</artifactItems>
 				</configuration>
 				<executions>
@@ -675,8 +707,8 @@
 					</execution>
 					<execution>
 						<id>resolve-install-external-dependencies</id>
-						<!-- Not bound to a phase, you need to execute these manually. See above -->
-						<!-- phase>process-resources</phase -->
+						<!-- Note: this phase works in Maven 2. In Maven 3, it needs to be triggered manually. See above -->
+						<phase>validate</phase>
 						<goals>
 							<!-- mvn com.savage7.maven.plugins:maven-external-dependency-plugin:resolve-external -->
 							<goal>resolve-external</goal>
@@ -690,7 +722,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
-				<version>3.0</version>
+				<version>3.1</version>
 				<dependencies>
 					<dependency>
 						<groupId>org.apache.maven.doxia</groupId>
@@ -727,7 +759,7 @@
 						<plugin>
 							<groupId>org.apache.maven.plugins</groupId>
 							<artifactId>maven-javadoc-plugin</artifactId>
-							<version>2.8</version>
+							<version>${maven-javadoc-plugin-version}</version>
 							<configuration>
 								<quiet>true</quiet>
 								<tags>
@@ -844,12 +876,12 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
-				<version>2.1.2</version>
+				<version>2.2</version>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>2.8.1</version>
+				<version>${maven-javadoc-plugin-version}</version>
 			</plugin>
 		</plugins>
 	</build>
@@ -894,7 +926,7 @@
 					<!-- Plugin to assemble a jar with dependencies -->
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
-						<version>2.2.1</version>
+						<version>2.3</version>
 						<executions>
 							<execution>
 								<id>make-jar-with-dependencies-win</id>
@@ -1384,7 +1416,7 @@
 					<plugin>
 						<groupId>org.codehaus.mojo</groupId>
 						<artifactId>exec-maven-plugin</artifactId>
-						<version>1.1.1</version>
+						<version>1.2.1</version>
 						<executions>
 							<execution>
 								<phase>test</phase>
