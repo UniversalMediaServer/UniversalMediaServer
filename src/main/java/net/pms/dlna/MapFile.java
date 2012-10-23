@@ -155,11 +155,23 @@ public class MapFile extends DLNAResource {
 
 	private List<File> getFileList() {
 		List<File> out = new ArrayList<File>();
+
 		for (File file : this.conf.getFiles()) {
-			if (file != null && file.isDirectory() && file.canRead()) {
-				out.addAll(Arrays.asList(file.listFiles()));
+			if (file != null && file.isDirectory()) {
+				if (file.canRead()) {
+					File[] files = file.listFiles();
+
+					if (files == null) {
+						LOGGER.warn("Can't read files from directory: {}", file.getAbsolutePath());
+					} else {
+						out.addAll(Arrays.asList(files));
+					}
+				} else {
+					LOGGER.warn("Can't read directory: {}", file.getAbsolutePath());
+				}
 			}
 		}
+
 		return out;
 	}
 

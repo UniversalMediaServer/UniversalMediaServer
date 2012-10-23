@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Fallback implementation of a FileSystemView.
  * <p>
- * Intendend usage:<br>
+ * Intended usage:<br>
  * If the standard JFileChooser cannot open due to an exception, as described in <a
  * href="http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6544857">http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6544857</a>
  * <p>
