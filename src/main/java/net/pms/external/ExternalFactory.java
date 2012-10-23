@@ -334,7 +334,7 @@ public class ExternalFactory {
 			return;
 		}
 
-		// Filter all .jar files from the plugin directory
+		// Find all .jar files in the plugin directory
 		File[] jarFiles = pluginDirectory.listFiles(
 			new FileFilter() {
 				public boolean accept(File file) {
@@ -363,9 +363,8 @@ public class ExternalFactory {
 
 		URL[] jarURLs = new URL[jarURLList.size()];
 		jarURLList.toArray(jarURLs);
-		
+
 		// Load the jars
-		
 		loadJARs(jarURLs,false);
 
 		// Instantiate the early external listeners immediately.
@@ -386,9 +385,7 @@ public class ExternalFactory {
 		for (Class<?> clazz: externalListenerClasses) {
 			// Skip the classes that should not be instantiated at this
 			// time but rather at a later time.
-			if (!AdditionalFolderAtRoot.class.isAssignableFrom(clazz) &&
-				!AdditionalFoldersAtRoot.class.isAssignableFrom(clazz)) {
-
+			if (!AdditionalFolderAtRoot.class.isAssignableFrom(clazz) && !AdditionalFoldersAtRoot.class.isAssignableFrom(clazz)) {
 				try {
 					// Create a new instance of the plugin class and store it
 					ExternalListener instance = (ExternalListener) clazz.newInstance();
@@ -410,9 +407,7 @@ public class ExternalFactory {
 		for (Class<?> clazz: externalListenerClasses) {
 			// Only AdditionalFolderAtRoot and AdditionalFoldersAtRoot
 			// classes have been skipped by lookup().
-			if (AdditionalFolderAtRoot.class.isAssignableFrom(clazz) ||
-				AdditionalFoldersAtRoot.class.isAssignableFrom(clazz)) {
-
+			if (AdditionalFolderAtRoot.class.isAssignableFrom(clazz) || AdditionalFoldersAtRoot.class.isAssignableFrom(clazz)) {
 				try {
 					// Create a new instance of the plugin class and store it
 					ExternalListener instance = (ExternalListener) clazz.newInstance();
@@ -424,6 +419,7 @@ public class ExternalFactory {
 				}
 			}
 		}
+
 		allDone=true;
 	}
 	
@@ -431,10 +427,12 @@ public class ExternalFactory {
 		Method postInstall;
 		try {
 			postInstall = clazz.getDeclaredMethod("postInstall", null);
+
 			if(Modifier.isStatic(postInstall.getModifiers())) {
 				postInstall.invoke(null, null);
 			}
 		}
+
 		// Ignore all errors
 		catch (SecurityException e) {
 		} catch (NoSuchMethodException e) { 
@@ -445,9 +443,10 @@ public class ExternalFactory {
 	}
 	
 	private static void doUpdate(JLabel update,String text) {
-		if(update == null) {
+		if (update == null) {
 			return;
 		}
+
 		update.setText(text);
 	}
 	
@@ -458,13 +457,14 @@ public class ExternalFactory {
 			try {
 				doUpdate(update,Messages.getString("NetworkTab.48") + " " + clazz.getSimpleName());
 				postInstall(clazz);
-				LOGGER.debug("do inst of "+clazz.getSimpleName());
+				LOGGER.debug("do inst of " + clazz.getSimpleName());
 				instance = (ExternalListener) clazz.newInstance();
 				doUpdate(update,instance.name() + " " + Messages.getString("NetworkTab.49"));
 				registerListener(instance);
-				if(PMS.get().getFrame() instanceof LooksFrame) {
+				if (PMS.get().getFrame() instanceof LooksFrame) {
 					LooksFrame frame = (LooksFrame) PMS.get().getFrame();
-					if(!frame.getPt().appendPlugin(instance)) {
+	
+					if (!frame.getPt().appendPlugin(instance)) {
 						LOGGER.warn("Plugin limit of 30 has been reached");
 					}
 				}
@@ -474,6 +474,7 @@ public class ExternalFactory {
 				LOGGER.error("Error instantiating plugin", e);
 			} 
 		}
+
 		downloadedListenerClasses.clear();
 	}
 	

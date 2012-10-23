@@ -85,7 +85,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 
 		File exec = new File(cmdArray[0]);
 
-		if (exec.exists() && exec.isFile()) {
+		if (exec.isFile()) {
 			cmdArray[0] = exec.getAbsolutePath();
 		}
 

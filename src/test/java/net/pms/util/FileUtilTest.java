@@ -21,6 +21,7 @@ package net.pms.util;
 import ch.qos.logback.classic.LoggerContext;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 import static org.fest.assertions.Assertions.assertThat;
 import org.junit.Before;
@@ -38,7 +39,7 @@ public class FileUtilTest {
 	public final void setUp() {
 		// Silence all log messages from the PMS code that is being tested
 		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-		context.reset();
+		// context.reset();
 	}
 
 	@Test
@@ -222,5 +223,63 @@ public class FileUtilTest {
 	@Test(expected = FileNotFoundException.class)
 	public void testConvertFileFromUtf16ToUtf8_inputFileNotFound() throws Exception {
 		FileUtil.convertFileFromUtf16ToUtf8(new File("no-such-file.xyz"), new File("output.srt"));
+	}
+
+	@Test
+	public void testIsFileReadable() {
+		assertThat(FileUtil.isFileReadable(null)).isFalse();
+		assertThat(FileUtil.isFileReadable(new File(""))).isFalse();
+		assertThat(FileUtil.isFileReadable(new File(System.getProperty("user.dir")))).isFalse();
+		assertThat(FileUtil.isFileReadable(new File("no such file"))).isFalse();
+
+		File file = FileUtils.toFile(CLASS.getResource("english-utf8-with-bom.srt"));
+		assertThat(FileUtil.isFileReadable(file)).isTrue();
+
+		assertThat(file.getParentFile()).isNotNull();
+		assertThat(FileUtil.isFileReadable(new File(file.getParentFile(), "no such file"))).isFalse();
+	}
+
+	@Test
+	public void testIsFileWritable() throws IOException {
+		assertThat(FileUtil.isFileWritable(null)).isFalse();
+		assertThat(FileUtil.isFileWritable(new File(""))).isFalse();
+		assertThat(FileUtil.isFileWritable(new File(System.getProperty("user.dir")))).isFalse();
+		String filename = String.format("pms_temp_writable_file_%d_1.tmp", System.currentTimeMillis());
+		assertThat(FileUtil.isFileWritable(new File(filename))).isTrue();
+
+		File file = FileUtils.toFile(CLASS.getResource("english-utf8-with-bom.srt"));
+		assertThat(FileUtil.isFileReadable(file)).isTrue();
+
+		assertThat(file.getParentFile()).isNotNull();
+
+		filename = String.format("pms_temp_writable_file_%d_2.tmp", System.currentTimeMillis());
+		File tempFile = null;
+
+		try {
+			tempFile = new File(file.getParentFile(), filename);
+			tempFile.createNewFile();
+			assertThat(file.isFile()).isTrue();
+			assertThat(FileUtil.isFileReadable(tempFile));
+			assertThat(FileUtil.isFileWritable(tempFile));
+		} finally {
+			if (tempFile != null) {
+				tempFile.delete();
+			}
+		}
+	}
+
+	@Test
+	public void testIsDirectoryWritable() {
+		assertThat(FileUtil.isDirectoryWritable(null)).isFalse();
+		assertThat(FileUtil.isDirectoryWritable(new File("no such directory"))).isFalse();
+		assertThat(FileUtil.isDirectoryWritable(FileUtils.toFile(CLASS.getResource("english-utf8-with-bom.srt")))).isFalse();
+
+		File file = FileUtils.toFile(CLASS.getResource("english-utf8-with-bom.srt"));
+		assertThat(FileUtil.isFileReadable(file)).isTrue();
+
+		File dir = file.getParentFile();
+		assertThat(dir).isNotNull();
+		assertThat(dir.isDirectory()).isTrue();
+		assertThat(FileUtil.isDirectoryWritable(dir)).isTrue();
 	}
 }

@@ -26,6 +26,7 @@ import java.net.UnknownHostException;
 import java.util.*;
 import net.pms.Messages;
 import net.pms.io.SystemUtils;
+import net.pms.util.FileUtil;
 import net.pms.util.PropertiesUtil;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
@@ -303,8 +304,7 @@ public class PmsConfiguration {
 
 			// if it exists, we know whether it's a file or directory
 			// otherwise, it must be a file since we don't autovivify directories
-
-			if (f.exists() && f.isDirectory()) {
+			if (f.isDirectory()) {
 				PROFILE_DIRECTORY = FilenameUtils.normalize(f.getAbsolutePath());
 				PROFILE_PATH = FilenameUtils.normalize(new File(f, DEFAULT_PROFILE_FILENAME).getAbsolutePath());
 			} else { // doesn't exist or is a file (i.e. not a directory)
@@ -384,16 +384,25 @@ public class PmsConfiguration {
 		if (loadFile) {
 			File pmsConfFile = new File(PROFILE_PATH);
 
-			if (pmsConfFile.isFile() && pmsConfFile.canRead()) {
-				configuration.load(PROFILE_PATH);
+			if (pmsConfFile.isFile()) {
+				if (FileUtil.isFileReadable(pmsConfFile)) {
+					configuration.load(PROFILE_PATH);
+				} else {
+					LOGGER.warn("Can't load {}", PROFILE_PATH);
+				}
 			} else if (SKEL_PROFILE_PATH != null) {
-                File pmsSkelConfFile = new File(SKEL_PROFILE_PATH);
-                if (pmsSkelConfFile.isFile() && pmsSkelConfFile.canRead()) {
-                    // load defaults from skel file, save them later to PROFILE_PATH
-                    configuration.load(pmsSkelConfFile);
-                    LOGGER.info("Default configuration loaded from " + SKEL_PROFILE_PATH);
-                }
-            }
+				File pmsSkelConfFile = new File(SKEL_PROFILE_PATH);
+
+				if (pmsSkelConfFile.isFile()) {
+					if (FileUtil.isFileReadable(pmsSkelConfFile)) {
+						// Load defaults from skel file, save them later to PROFILE_PATH
+						configuration.load(pmsSkelConfFile);
+						LOGGER.info("Default configuration loaded from " + SKEL_PROFILE_PATH);
+					} else {
+						LOGGER.warn("Can't load {}", SKEL_PROFILE_PATH);
+					}
+				}
+			}
 		}
 
         configuration.setPath(PROFILE_PATH);

@@ -56,6 +56,7 @@ import net.pms.newgui.GeneralTab;
 import net.pms.newgui.LooksFrame;
 import net.pms.newgui.ProfileChooser;
 import net.pms.update.AutoUpdater;
+import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.SystemErrWrapper;
@@ -338,11 +339,12 @@ public class PMS {
 		String cwd = new File("").getAbsolutePath();
 		LOGGER.info("Working directory: " + cwd);
 
-		LOGGER.info("Temp folder: " + configuration.getTempFolder());
+		LOGGER.info("Temp directory: " + configuration.getTempFolder());
 		LOGGER.info("Logging config file: " + LoggingConfigFileLoader.getConfigFilePath());
 
 		HashMap<String, String> lfps = LoggingConfigFileLoader.getLogFilePaths();
 
+		// debug.log filename(s) and path(s)
 		if (lfps != null && lfps.size() > 0) {
 			if (lfps.size() == 1) {
 				Entry<String, String> entry = lfps.entrySet().iterator().next();
@@ -367,13 +369,13 @@ public class PMS {
 		File profileFile = new File(profilePath);
 
 		if (profileFile.exists()) {
-			String status = String.format("%s%s",
-				profileFile.canRead()  ? "r" : "-",
-				profileFile.canWrite() ? "w" : "-"
+			String permissions = String.format("%s%s",
+				FileUtil.isFileReadable(profileFile) ? "r" : "-",
+				FileUtil.isFileWritable(profileFile) ? "w" : "-"
 			);
-			LOGGER.info("Profile status: " + status);
+			LOGGER.info("Profile permissions: " + permissions);
 		} else {
-			LOGGER.info("Profile status: no such file");
+			LOGGER.info("Profile permissions: no such file");
 		}
 
 		LOGGER.info("Profile name: " + configuration.getProfileName());

@@ -142,6 +142,7 @@ public class DVDISOTitle extends DLNAResource {
 				frameName = PMS.getConfiguration().getTempFolder() + "/mplayer_thumbs/" + frameName + "00000001/0000000";
 				frameName = frameName.replace(',', '_');
 				File jpg = new File(frameName + "2.jpg");
+
 				if (jpg.exists()) {
 					InputStream is = new FileInputStream(jpg);
 
@@ -165,11 +166,14 @@ public class DVDISOTitle extends DLNAResource {
 						LOGGER.debug("Failed to delete \"" + jpg.getParentFile().getAbsolutePath() + "\"");
 					}
 				}
+
 				jpg = new File(frameName + "1.jpg");
+
 				if (jpg.exists()) {
 					if (!jpg.delete()) {
 						jpg.deleteOnExit();
 					}
+
 					if (!jpg.getParentFile().delete()) {
 						jpg.getParentFile().delete();
 					}
@@ -275,28 +279,37 @@ public class DVDISOTitle extends DLNAResource {
 			if (thumbFolder == null) {
 				thumbFolder = f.getParentFile();
 			}
-			cachedThumbnail = FileUtil.getFileNameWitNewExtension(thumbFolder, f, "jpg");
+
+			cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, f, "jpg");
+			
 			if (cachedThumbnail == null) {
-				cachedThumbnail = FileUtil.getFileNameWitNewExtension(thumbFolder, f, "png");
+				cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, f, "png");
 			}
+
 			if (cachedThumbnail == null) {
-				cachedThumbnail = FileUtil.getFileNameWitAddedExtension(thumbFolder, f, ".cover.jpg");
+				cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, f, "png");
 			}
+
 			if (cachedThumbnail == null) {
-				cachedThumbnail = FileUtil.getFileNameWitAddedExtension(thumbFolder, f, ".cover.png");
+				cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, f, ".cover.png");
 			}
+
 			if (alternativeCheck) {
 				break;
 			}
+
 			if (StringUtils.isNotBlank(PMS.getConfiguration().getAlternateThumbFolder())) {
 				thumbFolder = new File(PMS.getConfiguration().getAlternateThumbFolder());
-				if (!thumbFolder.exists() || !thumbFolder.isDirectory()) {
+
+				if (!thumbFolder.isDirectory()) {
 					thumbFolder = null;
 					break;
 				}
 			}
+
 			alternativeCheck = true;
 		}
+
 		if (cachedThumbnail != null) {
 			return new FileInputStream(cachedThumbnail);
 		} else if (getMedia() != null && getMedia().getThumb() != null) {
