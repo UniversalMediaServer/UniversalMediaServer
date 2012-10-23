@@ -13,7 +13,7 @@
  #endif
  }
  
-+#define FFMPEG_CONFIGURATION "http://git.io/7viCiA"
++#define FFMPEG_CONFIGURATION "http://git.io/ZHdseg"
  static void print_program_info(int flags, int level)
  {
      const char *indent = flags & INDENT? "  " : "";

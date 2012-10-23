@@ -30,7 +30,7 @@ Once done, you should get a static system-independent FFmpeg binary in the `buil
     $ ./build/bin/ffmpeg
     ffmpeg version 1.0 for PS3 Media Server Copyright (c) 2000-2012 the FFmpeg developers
       built on Oct 10 2012 09:20:17 with gcc 4.6 (Ubuntu/Linaro 4.6.3-1ubuntu5)
-      configuration: http://git.io/7viCiA
+      configuration: http://git.io/ZHdseg
     Hyper fast Audio and Video encoder
     usage: ffmpeg [options] [[infile options] -i infile]... {[outfile options] outfile}...
 
@@ -54,4 +54,4 @@ All binaries and support files will be installed by the package in the `/usr/loc
 
 ## Credits <a name="Credits"></a>
 
-The helper and this documentation are based on [sffmpeg](https://github.com/pyke369/sffmpeg) by [pyke369].
+The helper and this documentation are based on [sffmpeg](https://github.com/pyke369/sffmpeg) by [pyke369](https://github.com/pyke369).
