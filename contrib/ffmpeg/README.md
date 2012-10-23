@@ -1,0 +1,57 @@
+# Build FFmpeg for PMS
+
+This directory contains a simple CMake-based FFmpeg static build helper for PS3 Media Server.
+
+It currently works on Linux, OpenBSD, FreeBSD, and Mac OS X. It has been tested most extensively on Linux/x86 (Ubuntu 12.04).
+The helper will automatically grab the latest versions of the relevant FFmpeg dependencies. All build files are stored in a
+subdirectory of this directory and no system files are read or written to.
+
+## Requirements <a name="Requirements"></a>
+
+This helper requires:
+
+- a POSIX-compliant system.
+- recent versions of [gcc](http://gcc.gnu.org/) and [yasm](http://yasm.tortall.net/) (1.1+).
+- a recent version of [CMake](http://www.cmake.org/) (2.8.1+).
+- the [autoconf](http://www.gnu.org/software/autoconf/) and [libtool](http://www.gnu.org/software/libtool/) utilities.
+- the [pkg-config](http://www.freedesktop.org/wiki/Software/pkg-config) utility.
+
+## Usage <a name="Usage"></a>
+
+After [checking out PMS](https://github.com/ps3mediaserver/ps3mediaserver/blob/master/BUILD.md#short-instructions),
+just type the following commands at the shell prompt:
+
+    $ cd contrib/ffmpeg
+    $ make
+
+Then go grab a coffee (or maybe two). The helper will download and compile all FFmpeg dependencies for you.
+Once done, you should get a static system-independent FFmpeg binary in the `build/bin` directory.
+
+    $ ./build/bin/ffmpeg
+    ffmpeg version 1.0 for PS3 Media Server Copyright (c) 2000-2012 the FFmpeg developers
+      built on Oct 10 2012 09:20:17 with gcc 4.6 (Ubuntu/Linaro 4.6.3-1ubuntu5)
+      configuration: http://git.io/7viCiA
+    Hyper fast Audio and Video encoder
+    usage: ffmpeg [options] [[infile options] -i infile]... {[outfile options] outfile}...
+
+    $ ldd ./build/bin/ffmpeg
+    not a dynamic executable
+
+From there, you may use the binary immediately or build a Debian package for later deployment (see below).
+
+## Packaging <a name="Packaging"></a>
+
+You can optionally build a Debian package by typing the following command at the shell prompt:
+
+    $ make deb
+
+All binaries and support files will be installed by the package in the `/usr/local` directory.
+
+    $ sudo dpkg -i ffmpeg-pms_1.0.0_amd64.deb
+    Selecting previously deselected package ffmpeg-pms.
+    Unpacking ffmpeg-pms (from ffmpeg-pms_1.0.0_amd64.deb) ...
+    Setting up ffmpeg-pms (1.0.0) ...
+
+## Credits <a name="Credits"></a>
+
+The helper and this documentation are based on [sffmpeg](https://github.com/pyke369/sffmpeg) by [pyke369].
