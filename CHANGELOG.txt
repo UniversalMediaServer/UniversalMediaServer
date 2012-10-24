@@ -4,7 +4,7 @@
 		Design facelift
 		Added support for more file archive formats (7-Zip, gzip and tar)
 		Improved DVD and ISO support
-		Fixed SSA subtitle position when using overscan compensation
+		Fixed ASS/SSA subtitle position when using overscan compensation
 		Fixed a rare bug where videos played at half-speed
 		Updated JRE auto-download to 7u9 (latest)
 		Admin permissions notifications work on Windows 8 (before they only worked on 7 and Vista)
@@ -16,10 +16,19 @@
 		Updated many program dependencies to benefit from many bugfixes
 		Fixed bug where disabled engines would be picked
 		Updated Android.conf to enable streaming more file formats
-		Turkish flag added for the transcode folder
 		Branding updates
 		Updated links on the Help page
 		Made renderer config layouts more synchronised
+	External components:
+		Updated MPlayer/MEncoder to SB41, which:
+			Runs faster
+			Improves audio/video sync
+			Faster handling of ASS/SSA subtitles
+			Improves DVD support
+		Updated MediaInfo to 0.7.61, which:
+			Fixes MKV framerate detection bug
+			Fixes E-AC-3 duration detection bug
+			More reliable DTS bitrate detection
 	Mac OS X:
 		Removed fontconfig from MEncoder for Mac OSX for improved subs compatibility
 	Plugin Management:
@@ -29,6 +38,9 @@
 		Added button to reload available plugin list
 		Updated author column of plugin installer to include maintainers
 		Added "version" column to plugin installer
+	Languages:
+		Turkish flag added for the transcode folder
+		Updated English settings labels
 
 1.6.0 - 2012-10-01
 
