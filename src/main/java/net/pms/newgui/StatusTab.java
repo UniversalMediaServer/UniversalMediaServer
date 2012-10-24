@@ -103,7 +103,7 @@ public class StatusTab {
 		builder.addLabel(Messages.getString("StatusTab.6"), FormLayoutUtil.flip(cc.xy(2, 7), colSpec, orientation));
 		builder.add(jpb, FormLayoutUtil.flip(cc.xy(2, 9), colSpec, orientation));
 
-		jio = new JLabel(Messages.getString("StatusTab.8"));
+		jio = new JLabel(Messages.getString("StatusTab.8") + " 0 " + Messages.getString("StatusTab.11") + "    |    " + Messages.getString("StatusTab.10") + " 0 " + Messages.getString("StatusTab.11"));
 		builder.add(jio, FormLayoutUtil.flip(cc.xy(2, 13), colSpec, orientation));
 
 		cmp = builder.addSeparator(Messages.getString("StatusTab.9"), FormLayoutUtil.flip(cc.xy(2, 15), colSpec, orientation));
