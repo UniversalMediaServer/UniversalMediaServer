@@ -502,7 +502,7 @@ public class Request extends HTTPResource {
 				//LOGGER.trace(content);
 				objectID = getEnclosingValue(content, "<ObjectID>", "</ObjectID>");
 				String containerID = null;
-				if ((objectID == null || objectID.length() == 0) /*&& xbox*/) {
+				if ((objectID == null || objectID.length() == 0)) {
 					containerID = getEnclosingValue(content, "<ContainerID>", "</ContainerID>");
 					if (!containerID.contains("$")) {
 						objectID = "0";

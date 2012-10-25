@@ -552,7 +552,7 @@ public class RequestV2 extends HTTPResource {
 			} else if (soapaction.contains("ContentDirectory:1#Browse") || soapaction.contains("ContentDirectory:1#Search")) {
 				objectID = getEnclosingValue(content, "<ObjectID>", "</ObjectID>");
 				String containerID = null;
-				if ((objectID == null || objectID.length() == 0) /*&& xbox*/) {
+				if ((objectID == null || objectID.length() == 0)) {
 					containerID = getEnclosingValue(content, "<ContainerID>", "</ContainerID>");
 					if (!containerID.contains("$")) {
 						objectID = "0";
