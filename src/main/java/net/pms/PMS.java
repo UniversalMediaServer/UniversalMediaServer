@@ -323,7 +323,7 @@ public class PMS {
 		proxy = -1;
 
 		LOGGER.info("Starting " + PropertiesUtil.getProjectProperties().get("project.name") + " " + getVersion());
-		LOGGER.info("Based on PS3 Media Server (ps3mediaserver.org) by shagrath, copyright 2008-2012");
+		LOGGER.info("Based on PS3 Media Server by shagrath, copyright 2008-2012");
 		LOGGER.info("http://www.universalmediaserver.com");
 		LOGGER.info("");
 
@@ -443,7 +443,7 @@ public class PMS {
 
 		// Instantiate listeners that require registered players.
 		ExternalFactory.instantiateLateListeners();
-		
+
 		// a static block in Player doesn't work (i.e. is called too late).
 		// this must always be called *after* the plugins have loaded.
 		// here's as good a place as any
@@ -704,12 +704,12 @@ public class PMS {
 		LOGGER.error(msg, t);
 	}
 
-	/*
+	/**
 	 * Universally Unique Identifier used in the UPnP server.
 	 */
 	private String uuid;
 
-	/*
+	/**
 	 * Creates a new {@link #uuid} for the UPnP server to use. Tries to follow the RFCs for creating the UUID based on the link MAC address.
 	 * Defaults to a random one if that method is not available.
 	 * @return {@link String} with an Universally Unique Identifier.
@@ -773,7 +773,7 @@ public class PMS {
 		return "uuid:" + uuid;
 	}
 
-	/*
+	/**
 	 * Returns the user friendly name of the UPnP server. 
 	 * @return {@link String} with the user friendly name.
 	 */
@@ -791,7 +791,7 @@ public class PMS {
 		return serverName;
 	}
 
-	/*
+	/**
 	 * Returns the PMS instance.
 	 * @return {@link net.pms.PMS}
 	 */
@@ -901,7 +901,7 @@ public class PMS {
 				JOptionPane.showMessageDialog(
 					((JFrame) (SwingUtilities.getWindowAncestor((Component) instance.getFrame()))),
 					errorMessage,
-					"Error initalizing UMS!",
+					"Error initalizing UMS",
 					JOptionPane.ERROR_MESSAGE
 				);
 			}
@@ -1043,6 +1043,7 @@ public class PMS {
 		} catch (IOException e) {
 			LOGGER.debug("error killing old proc " + e);
 		}
+
 		try {
 			dumpPid();
 		} catch (IOException e) {
@@ -1055,23 +1056,29 @@ public class PMS {
 		pb.redirectErrorStream(true);
 		Process p = pb.start();
 		BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
 		try {
 			p.waitFor();
 		} catch (InterruptedException e) {
 			in.close();
 			return false;
 		}
+
 		String line = in.readLine();
 		in.close();
+
 		if (line == null) {
 			return false;
 		}
+
 		// remove all " and convert to common case before splitting result on ,
 		String[] tmp = line.toLowerCase().replaceAll("\"", "").split(",");
 		// if the line is too short we don't kill the process
+
 		if (tmp.length < 9) {
 			return false;
 		}
+
 		return tmp[0].equals("javaw.exe") && tmp[8].contains("universal media server");
 	}
 
@@ -1080,6 +1087,7 @@ public class PMS {
 		BufferedReader in = new BufferedReader(new FileReader("pms.pid"));
 		String pid = in.readLine();
 		in.close();
+
 		if (Platform.isWindows()) {
 			if (verifyPidName(pid)) {
 				pb = new ProcessBuilder("taskkill","/F","/PID",pid,"/T");
@@ -1087,10 +1095,12 @@ public class PMS {
 		} else if (Platform.isFreeBSD() || Platform.isLinux() || Platform.isOpenBSD() || Platform.isSolaris()) {
 			pb=new ProcessBuilder("kill","-9",pid);
 		}
+
 		if (pb == null) {
 			return;
 		}
-		try {			
+
+		try {
 			Process p = pb.start();
 			p.waitFor();
 		} catch (Exception e) {
@@ -1118,9 +1128,9 @@ public class PMS {
 	public DbgPacker dbgPack() {
 		return dbgPack;
 	}
-	
+
 	@Deprecated
 	public void registerPlayer(Player player) {
 		PlayerFactory.registerPlayer(player);
-	} 
+	}
 }
