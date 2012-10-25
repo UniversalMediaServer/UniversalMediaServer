@@ -281,13 +281,13 @@ public class DVDISOTitle extends DLNAResource {
 			}
 
 			cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, f, "jpg");
-			
+
 			if (cachedThumbnail == null) {
 				cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, f, "png");
 			}
 
 			if (cachedThumbnail == null) {
-				cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, f, "png");
+				cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, f, ".cover.jpg");
 			}
 
 			if (cachedThumbnail == null) {
