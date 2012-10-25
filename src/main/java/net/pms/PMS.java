@@ -52,7 +52,6 @@ import net.pms.network.NetworkConfiguration;
 import net.pms.network.ProxyServer;
 import net.pms.network.UPNPHelper;
 import net.pms.newgui.DbgPacker;
-import net.pms.newgui.GeneralTab;
 import net.pms.newgui.LooksFrame;
 import net.pms.newgui.ProfileChooser;
 import net.pms.update.AutoUpdater;
@@ -216,6 +215,7 @@ public class PMS {
 			outConsumer.start();
 
 			Runnable r = new Runnable() {
+				@Override
 				public void run() {
 					ProcessUtil.waitFor(process);
 				}
@@ -634,6 +634,7 @@ public class PMS {
 	// see the comment above HTTPServer.stop()
 	public void reset() {
 		TaskRunner.getInstance().submitNamed("restart", true, new Runnable() {
+			@Override
 			public void run() {
 				try {
 					LOGGER.trace("Waiting 1 second...");
@@ -721,7 +722,7 @@ public class PMS {
 
 			if (uuid == null) {
 				// Create a new UUID based on the MAC address of the used network adapter
-				NetworkInterface ni = null;
+				NetworkInterface ni;
 
 				try {
 					// this retrieves the network interface via:
