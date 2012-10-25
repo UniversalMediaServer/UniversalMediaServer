@@ -325,7 +325,6 @@ public class RequestV2 extends HTTPResource {
 
 						if (subs != null && !subs.isEmpty()) {
 							DLNAMediaSubtitle sub = subs.get(0);
-
 							String subtitleUrl;
 							String subExtension = sub.getType().getExtension();
 							if (isNotBlank(subExtension)) {
@@ -613,34 +612,40 @@ public class RequestV2 extends HTTPResource {
 							searchCriteria = artist;
 						}
 					}
+				} else if (soapaction.contains("ContentDirectory:1#Search")) {
+					searchCriteria = getEnclosingValue(content,"<SearchCriteria>","</SearchCriteria>");
 				}
-				else if (soapaction.contains("ContentDirectory:1#Search")) 
-					searchCriteria=getEnclosingValue(content,"<SearchCriteria>","</SearchCriteria>");
 
-				List<DLNAResource> files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(objectID, browseFlag != null && browseFlag.equals("BrowseDirectChildren"), startingIndex, requestCount, mediaRenderer,
-						searchCriteria);
+				List<DLNAResource> files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(objectID, browseFlag != null && browseFlag.equals("BrowseDirectChildren"), startingIndex, requestCount, mediaRenderer, searchCriteria);
+
 				if (searchCriteria != null && files != null) {
 					searchCriteria = searchCriteria.toLowerCase();
+
 					for(int i = files.size() - 1; i >= 0; i--) {
 						DLNAResource res = files.get(i);
-						if(res.isSearched()) {
+
+						if (res.isSearched()) {
 							continue;
 						}
+
 						boolean keep = res.getName().toLowerCase().indexOf(searchCriteria) != -1;
 						final DLNAMediaInfo media = res.getMedia();
-						if(media!=null) {
-							for(int j = 0;j < media.getAudioTracksList().size(); j++) {
+
+						if (media!=null) {
+							for (int j = 0;j < media.getAudioTracksList().size(); j++) {
 								DLNAMediaAudio audio = media.getAudioTracksList().get(j);
 								keep |= audio.getAlbum().toLowerCase().indexOf(searchCriteria) != -1;
 								keep |= audio.getArtist().toLowerCase().indexOf(searchCriteria) != -1;
 								keep |= audio.getSongname().toLowerCase().indexOf(searchCriteria) != -1;
 							}
 						}
-						if(!keep) { // dump it
+
+						if (!keep) { // dump it
 							files.remove(i);
 						}
 					}
-					if(xbox) {
+
+					if (xbox) {
 						if (files.size() > 0) {
 							files = files.get(0).getChildren();
 						}

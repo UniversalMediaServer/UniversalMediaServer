@@ -84,6 +84,7 @@ public class MapFile extends DLNAResource {
 
 	private boolean isFolderRelevant(File f) {
 		boolean isRelevant = false;
+
 		if (f.isDirectory() && PMS.getConfiguration().isHideEmptyFolders()) {
 			File[] children = f.listFiles();
 
@@ -113,7 +114,7 @@ public class MapFile extends DLNAResource {
 		return isRelevant;
 	}
 
-	private void manageFile(File f,String str) {
+	private void manageFile(File f, String str) {
 		if (f.isFile() || f.isDirectory()) {
 			String lcFilename = f.getName().toLowerCase();
 			if (str != null && !lcFilename.contains(str)) {
@@ -198,6 +199,7 @@ public class MapFile extends DLNAResource {
 		return discoverable.isEmpty();
 	}
 
+	@Override
 	public void discoverChildren() {
 		discoverChildren(null);
 	}
@@ -208,6 +210,7 @@ public class MapFile extends DLNAResource {
 		if (str != null) {
 			str = str.toLowerCase();
 		}
+
 		if (discoverable == null) {
 			discoverable = new ArrayList<File>();
 		} else {
@@ -219,6 +222,7 @@ public class MapFile extends DLNAResource {
 		switch (PMS.getConfiguration().getSortMethod()) {
 			case 4: // Locale-sensitive natural sort
 				Collections.sort(files, new Comparator<File>() {
+					@Override
 					public int compare(File f1, File f2) {
 						return NaturalComparator.compareNatural(collator, f1.getName(), f2.getName());
 					}
@@ -226,7 +230,7 @@ public class MapFile extends DLNAResource {
 				break;
 			case 3: // Case-insensitive ASCIIbetical sort
 				Collections.sort(files, new Comparator<File>() {
-
+					@Override
 					public int compare(File f1, File f2) {
 						return f1.getName().compareToIgnoreCase(f2.getName());
 					}
@@ -234,7 +238,7 @@ public class MapFile extends DLNAResource {
 				break;
 			case 2: // Sort by modified date, oldest first
 				Collections.sort(files, new Comparator<File>() {
-
+					@Override
 					public int compare(File f1, File f2) {
 						return Long.valueOf(f1.lastModified()).compareTo(Long.valueOf(f2.lastModified()));
 					}
@@ -242,7 +246,7 @@ public class MapFile extends DLNAResource {
 				break;
 			case 1: // Sort by modified date, newest first
 				Collections.sort(files, new Comparator<File>() {
-
+					@Override
 					public int compare(File f1, File f2) {
 						return Long.valueOf(f2.lastModified()).compareTo(Long.valueOf(f1.lastModified()));
 					}
@@ -250,7 +254,7 @@ public class MapFile extends DLNAResource {
 				break;
 			default: // Locale-sensitive A-Z
 				Collections.sort(files, new Comparator<File>() {
-
+					@Override
 					public int compare(File f1, File f2) {
 						return collator.compare(f1.getName(), f2.getName());
 					}
@@ -267,8 +271,8 @@ public class MapFile extends DLNAResource {
 		}
 
 		for (File f : files) {
-			if (f.isFile()) { 
-				if (str == null || f.getName().toLowerCase().contains(str)) {				
+			if (f.isFile()) {
+				if (str == null || f.getName().toLowerCase().contains(str)) {
 					discoverable.add(f); // manageFile(f);
 				}
 			}
@@ -278,11 +282,13 @@ public class MapFile extends DLNAResource {
 	@Override
 	public boolean isRefreshNeeded() {
 		long modified = 0;
+
 		for (File f : this.getConf().getFiles()) {
 			if (f != null) {
 				modified = Math.max(modified, f.lastModified());
 			}
 		}
+
 		return getLastRefreshTime() < modified;
 	}
 
@@ -295,17 +301,16 @@ public class MapFile extends DLNAResource {
 		for (DLNAResource d : getChildren()) {
 			boolean isNeedMatching = !(d.getClass() == MapFile.class || (d instanceof VirtualFolder && !(d instanceof DVDISOFile)));
 			boolean found = foundInList(files, d);
+
 			if (isNeedMatching && !found) {
 				removedFiles.add(d);
-			}
-			else if (str != null && found) {
+			} else if (str != null && found) {
 				String s = d.getName().toLowerCase();
 				if (!s.contains(str)) {
 					// new search, this doesn't match
 					removedFiles.add(d);
 				}
 			}
-			
 		}
 
 		for (File f : files) {
@@ -457,7 +462,7 @@ public class MapFile extends DLNAResource {
 	public void setPotentialCover(File potentialCover) {
 		this.potentialCover = potentialCover;
 	}
-	
+
 	public boolean isSearched() {
 		return true;
 	}

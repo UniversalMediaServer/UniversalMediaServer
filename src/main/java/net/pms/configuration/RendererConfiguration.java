@@ -335,7 +335,6 @@ public class RendererConfiguration {
 		return getRendererName().toUpperCase().contains("PLAYSTATION") || getRendererName().toUpperCase().contains("PS3");
 	}
 
-	@Deprecated
 	public boolean isBRAVIA() {
 		return getRendererName().toUpperCase().contains("BRAVIA");
 	}
@@ -373,7 +372,7 @@ public class RendererConfiguration {
 		}
 
 		mimes = new HashMap<String, String>();
-		String mimeTypes = configuration.getString(MIME_TYPES_CHANGES, null);
+		String mimeTypes = getString(MIME_TYPES_CHANGES, null);
 
 		if (StringUtils.isNotBlank(mimeTypes)) {
 			StringTokenizer st = new StringTokenizer(mimeTypes, "|");
@@ -391,7 +390,7 @@ public class RendererConfiguration {
 		}
 
 		DLNAPN = new HashMap<String, String>();
-		String DLNAPNchanges = configuration.getString(DLNA_PN_CHANGES, null);
+		String DLNAPNchanges = getString(DLNA_PN_CHANGES, null);
 
 		if (DLNAPNchanges != null) {
 			LOGGER.trace("Config DLNAPNchanges: " + DLNAPNchanges);
@@ -567,7 +566,7 @@ public class RendererConfiguration {
 	 */
 	public boolean matchUserAgent(String header) {
 		String userAgent = getUserAgent();
-		Pattern userAgentPattern = null;
+		Pattern userAgentPattern;
 
 		if (StringUtils.isNotBlank(userAgent)) {
 			userAgentPattern = Pattern.compile(userAgent, Pattern.CASE_INSENSITIVE);
@@ -588,7 +587,7 @@ public class RendererConfiguration {
 	 */
 	public boolean matchAdditionalUserAgent(String header) {
 		String userAgentAdditionalHeader = getUserAgentAdditionalHttpHeaderSearch();
-		Pattern userAgentAddtionalPattern = null;
+		Pattern userAgentAddtionalPattern;
 
 		if (StringUtils.isNotBlank(userAgentAdditionalHeader)) {
 			userAgentAddtionalPattern = Pattern.compile(userAgentAdditionalHeader, Pattern.CASE_INSENSITIVE);
@@ -707,6 +706,7 @@ public class RendererConfiguration {
 		if (isMediaParserV2()) {
 			return getFormatConfiguration().isMpeg2Supported();
 		}
+
 		return isPS3();
 	}
 
@@ -758,7 +758,7 @@ public class RendererConfiguration {
 	 */
 	public String getCustomMencoderQualitySettings() {
 		return getString(CUSTOM_MENCODER_QUALITY_SETTINGS, "");
-	} 
+	}
 
 	/**
 	 * Returns the override settings for MEncoder custom options in PMS as
@@ -878,6 +878,7 @@ public class RendererConfiguration {
 		return ConfigurationUtil.getNonBlankConfigurationString(configuration, key, def);
 	}
 
+	@Override
 	public String toString() {
 		return getRendererName();
 	}

@@ -195,9 +195,11 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 				}
 
 				start();
+
 				if (forceReconnect) {
 					forced = new Thread(
 						new Runnable() {
+							@Override
 							public void run() {
 								b2 = Kernel32.INSTANCE.ConnectNamedPipe(handle2, null);
 							}
@@ -213,6 +215,7 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 		}
 	}
 
+	@Override
 	public void run() {
 		LOGGER.debug("Waiting for pipe connection " + this.path);
 		boolean b1 = Kernel32.INSTANCE.ConnectNamedPipe(handle1, null);
@@ -223,6 +226,7 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 					Thread.sleep(200);
 				} catch (InterruptedException e) { }
 			}
+
 			LOGGER.debug("Forced reconnection of " + path + " with result : " + b2);
 			handle1 = handle2;
 		}
@@ -234,6 +238,7 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 				if (in) {
 					IntByReference intRef = new IntByReference();
 					Memory buffer = new Memory(BUFSIZE);
+
 					while (loop) {
 						boolean fSuccess = Kernel32.INSTANCE.ReadFile(
 							handle1,

@@ -105,7 +105,7 @@ public class ExternalFactory {
 			externalListenerClasses.add(clazz);
 		}
 	}
-	
+
 	private static String getMainClass(URL jar) {
 		URL[] jarURLs1={jar};
 		URLClassLoader classLoader = new URLClassLoader(jarURLs1);
@@ -115,8 +115,10 @@ public class ExternalFactory {
 			// Each plugin .jar file has to contain a resource named "plugin"
 			// which should contain the name of the main plugin class.
 			resources = classLoader.getResources("plugin");
+
 			if(resources.hasMoreElements()) {
 				URL url = resources.nextElement();
+
 				// Determine the plugin main class name from the contents of
 				// the plugin file.
 				InputStreamReader in = new InputStreamReader(url.openStream());
@@ -128,35 +130,39 @@ public class ExternalFactory {
 		} catch (IOException e) {
 			LOGGER.error("Can't load plugin resources", e);
 		}
+
 		return null;
 	}
-			
+
 	private static boolean isLib(URL jar) {
 		return (getMainClass(jar) == null);
 	}
-	
-	public static void loadJARs(URL[] jarURLs,boolean download) {
+
+	public static void loadJARs(URL[] jarURLs, boolean download) {
 		// find lib jars first
-		ArrayList<URL> libs=new ArrayList<URL>();
-		for(int i=0;i<jarURLs.length;i++) {
-			if(isLib(jarURLs[i])) {
+		ArrayList<URL> libs = new ArrayList<URL>();
+
+		for (int i = 0; i < jarURLs.length; i++) {
+			if (isLib(jarURLs[i])) {
 				libs.add(jarURLs[i]);
 			}
 		}
-		URL[] jarURLs1 = new URL[libs.size()+1];
+
+		URL[] jarURLs1 = new URL[libs.size() + 1];
 		libs.toArray(jarURLs1);
 		int pos = libs.size();
-		for(int i=0;i<jarURLs.length;i++) {
+
+		for (int i = 0; i < jarURLs.length; i++) {
 			jarURLs1[pos] = jarURLs[i];
-			loadJAR(jarURLs1,download,jarURLs[i]);
-		}	
+			loadJAR(jarURLs1, download, jarURLs[i]);
+		}
 	}
-	
+
 	/**
 	 * This method loads the jar files found in the plugin dir
 	 * or if installed from the web.
 	 */
-	public static void loadJAR(URL[] jarURL,boolean download,URL newURL) {
+	public static void loadJAR(URL[] jarURL, boolean download, URL newURL) {
 		// Create a classloader to take care of loading the plugin classes from
 		// their URL.
 		URLClassLoader classLoader = new URLClassLoader(jarURL);
@@ -170,7 +176,7 @@ public class ExternalFactory {
 			LOGGER.error("Can't load plugin resources", e);
 			return;
 		}
-		
+
 		while (resources.hasMoreElements()) {
 			URL url = resources.nextElement();
 
@@ -184,8 +190,8 @@ public class ExternalFactory {
 				String pluginMainClassName = new String(name).trim();
 
 				LOGGER.info("Found plugin: " + pluginMainClassName);
-				
-				if(download) {
+
+				if (download) {
 					// Only purge code when downloading!
 					purgeCode(pluginMainClassName, newURL);
 				}
@@ -193,10 +199,10 @@ public class ExternalFactory {
 				// Try to load the class based on the main class name
 				Class<?> clazz = classLoader.loadClass(pluginMainClassName);
 				registerListenerClass(clazz);
-				if(download) {
+
+				if (download) {
 					downloadedListenerClasses.add(clazz);
 				}
-					
 			} catch (Exception e) {
 				LOGGER.error("Error loading plugin", e);
 			} catch (NoClassDefFoundError e) {
@@ -204,70 +210,83 @@ public class ExternalFactory {
 			}
 		}
 	}
-	
-	private static void purgeCode(String mainClass,URL newUrl) {
+
+	private static void purgeCode(String mainClass, URL newUrl) {
 		Class<?> clazz1 = null;
-		for(Class<?> clazz : externalListenerClasses) {
-			if(mainClass.equals(clazz.getCanonicalName())) {
-				clazz1=clazz;
+
+		for (Class<?> clazz : externalListenerClasses) {
+			if (mainClass.equals(clazz.getCanonicalName())) {
+				clazz1 = clazz;
 				break;
 			}
 		}
-		if(clazz1 == null) {
+
+		if (clazz1 == null) {
 			return;
 		}
+
 		externalListenerClasses.remove(clazz1);
 		ExternalListener remove = null;
 		for (ExternalListener list : externalListeners ) {
-			if(list.getClass().equals(clazz1)) {
+			if (list.getClass().equals(clazz1)) {
 				remove = list;
 				break;
 			}
 		}
+
 		ArrayList<RendererConfiguration> renders = RendererConfiguration.getAllRendererConfigurations();
-		for(RendererConfiguration r : renders) {
+
+		for (RendererConfiguration r : renders) {
 			RootFolder rf = r.getRootFolder();
 			rf.reset();
 		}
-		if(remove != null) {
+
+		if (remove != null) {
 			externalListeners.remove(remove);
 			remove.shutdown();
 			LooksFrame frame = (LooksFrame) PMS.get().getFrame();
 			frame.getPt().removePlugin(remove);
 		}
-		for(int i=0;i<3;i++) {
+
+		for (int i = 0; i < 3; i++) {
 			System.gc();
 		}
-		
+
 		URLClassLoader cl = (URLClassLoader) clazz1.getClassLoader();
 		URL[] urls = cl.getURLs();
-		for(int i=0;i<urls.length;i++) {
+		for (int i = 0; i < urls.length; i++) {
 			URL url = urls[i];
 			String mainClass1 = getMainClass(url);
-			if(mainClass1 == null || !mainClass.equals(mainClass1)) {
+
+			if (mainClass1 == null || !mainClass.equals(mainClass1)) {
 				continue;
 			}
+
 			File f = url2file(url);
 			File f1 = url2file(newUrl);
-			if(f1 == null || f ==null) {
+
+			if (f1 == null || f ==null) {
 				continue;
 			}
-			if(!f1.getName().equals(f.getName())) {
+
+			if (!f1.getName().equals(f.getName())) {
 				addToPurgeFile(f);
 			}
 		}
 	}
-	
+
 	private static File url2file(URL url) {
-		File f = null;
+		File f;
+
 		try {
 			f = new File(url.toURI());
 		} catch(URISyntaxException e) {
 			f = new File(url.getPath());
 		}
+
 		return f;
 	}
-	
+
 	private static void addToPurgeFile(File f) {
 		try {
 			FileWriter out = new FileWriter("purge", true); 
@@ -275,34 +294,37 @@ public class ExternalFactory {
 			out.flush();
 			out.close();
 		} catch (Exception e) {
-			LOGGER.debug("purge file error "+e);
+			LOGGER.debug("purge file error " + e);
 		}
 	}
-	
+
 	private static void purgeFiles() {
-		File purge=new File("purge");
+		File purge = new File("purge");
 		String action = PMS.getConfiguration().getPluginPurgeAction();
+
 		if (action.equalsIgnoreCase("none")) {
 			purge.delete();
 			return;
 		}
+
 		try {
 			FileInputStream fis = new FileInputStream(purge);
 			BufferedReader in = new BufferedReader(new InputStreamReader(fis)); 
 			String line;
+
 			while ((line = in.readLine()) != null) {
 				File f = new File(line);
-				if(action.equalsIgnoreCase("delete")) {
+
+				if (action.equalsIgnoreCase("delete")) {
 					f.delete();
-				}
-				else if(action.equalsIgnoreCase("backup")) {
+				} else if(action.equalsIgnoreCase("backup")) {
 					FileUtils.moveFileToDirectory(f, new File("backup"), true);
 					f.delete();
 				}
 			}
+
 			fis.close();
-		} catch (Exception e) {
-		}
+		} catch (Exception e) { }
 		purge.delete();
 	}
 
@@ -337,6 +359,7 @@ public class ExternalFactory {
 		// Find all .jar files in the plugin directory
 		File[] jarFiles = pluginDirectory.listFiles(
 			new FileFilter() {
+				@Override
 				public boolean accept(File file) {
 					return file.isFile() && file.getName().toLowerCase().endsWith(".jar");
 				}
@@ -365,7 +388,7 @@ public class ExternalFactory {
 		jarURLList.toArray(jarURLs);
 
 		// Load the jars
-		loadJARs(jarURLs,false);
+		loadJARs(jarURLs, false);
 
 		// Instantiate the early external listeners immediately.
 		instantiateEarlyListeners();
@@ -420,15 +443,15 @@ public class ExternalFactory {
 			}
 		}
 
-		allDone=true;
+		allDone = true;
 	}
-	
+
 	private static void postInstall(Class<?> clazz) {
 		Method postInstall;
 		try {
 			postInstall = clazz.getDeclaredMethod("postInstall", null);
 
-			if(Modifier.isStatic(postInstall.getModifiers())) {
+			if (Modifier.isStatic(postInstall.getModifiers())) {
 				postInstall.invoke(null, null);
 			}
 		}
@@ -441,29 +464,31 @@ public class ExternalFactory {
 		} catch (InvocationTargetException e) {
 		}
 	}
-	
-	private static void doUpdate(JLabel update,String text) {
+
+	private static void doUpdate(JLabel update, String text) {
 		if (update == null) {
 			return;
 		}
 
 		update.setText(text);
 	}
-	
+
 	public static void instantiateDownloaded(JLabel update) {
 		// These are found in the downloadedListenerClasses list
 		for (Class<?> clazz: downloadedListenerClasses) {
 			ExternalListener instance;
+
 			try {
-				doUpdate(update,Messages.getString("NetworkTab.48") + " " + clazz.getSimpleName());
+				doUpdate(update, Messages.getString("NetworkTab.48") + " " + clazz.getSimpleName());
 				postInstall(clazz);
 				LOGGER.debug("do inst of " + clazz.getSimpleName());
 				instance = (ExternalListener) clazz.newInstance();
 				doUpdate(update,instance.name() + " " + Messages.getString("NetworkTab.49"));
 				registerListener(instance);
+
 				if (PMS.get().getFrame() instanceof LooksFrame) {
 					LooksFrame frame = (LooksFrame) PMS.get().getFrame();
-	
+
 					if (!frame.getPt().appendPlugin(instance)) {
 						LOGGER.warn("Plugin limit of 30 has been reached");
 					}
@@ -472,12 +497,12 @@ public class ExternalFactory {
 				LOGGER.error("Error instantiating plugin", e);
 			} catch (IllegalAccessException e) {
 				LOGGER.error("Error instantiating plugin", e);
-			} 
+			}
 		}
 
 		downloadedListenerClasses.clear();
 	}
-	
+
 	public static boolean localPluginsInstalled() {
 		return allDone;
 	}

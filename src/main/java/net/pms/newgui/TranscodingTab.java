@@ -473,9 +473,11 @@ public class TranscodingTab {
 
 		forcePCM = new JCheckBox(Messages.getString("TrTab2.27") + " " + (Platform.isWindows() ? Messages.getString("TrTab2.66") : ""));
 		forcePCM.setContentAreaFilled(false);
+
 		if (configuration.isMencoderUsePcm()) {
 			forcePCM.setSelected(true);
 		}
+
 		forcePCM.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -487,9 +489,11 @@ public class TranscodingTab {
 
 		ac3remux = new JCheckBox(Messages.getString("TrTab2.26") + " " + (Platform.isWindows() ? Messages.getString("TrTab2.21") : ""));
 		ac3remux.setContentAreaFilled(false);
+
 		if (configuration.isRemuxAC3()) {
 			ac3remux.setSelected(true);
 		}
+
 		ac3remux.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -501,13 +505,16 @@ public class TranscodingTab {
 
 		forceDTSinPCM = new JCheckBox(Messages.getString("TrTab2.28") + " " + (Platform.isWindows() ? Messages.getString("TrTab2.21") : ""));
 		forceDTSinPCM.setContentAreaFilled(false);
+
 		if (configuration.isDTSEmbedInPCM()) {
 			forceDTSinPCM.setSelected(true);
 		}
+
 		forceDTSinPCM.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				configuration.setDTSEmbedInPCM(forceDTSinPCM.isSelected());
+
 				if (configuration.isDTSEmbedInPCM()) {
 					JOptionPane.showMessageDialog(
 						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
@@ -594,9 +601,11 @@ public class TranscodingTab {
 
 		mpeg2remux = new JCheckBox(Messages.getString("MEncoderVideo.39") + (Platform.isWindows() ? Messages.getString("TrTab2.66") : ""));
 		mpeg2remux.setContentAreaFilled(false);
+
 		if (configuration.isMencoderRemuxMPEG2()) {
 			mpeg2remux.setSelected(true);
 		}
+
 		mpeg2remux.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {

@@ -15,7 +15,6 @@ import org.slf4j.LoggerFactory;
 
 public class FileUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileUtil.class);
-
 	private static Map<File, File[]> cache;
 
 	public static File isFileExists(String f, String ext) {
@@ -183,6 +182,7 @@ public class FileUtil {
 										} catch (FileNotFoundException ex) {
 											LOGGER.warn("Exception during external subtitles scan.", ex);
 										}
+
 										exists = true;
 									}
 								}

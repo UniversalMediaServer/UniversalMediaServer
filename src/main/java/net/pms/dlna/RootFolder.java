@@ -48,7 +48,6 @@ import xmlwise.Plist;
 import xmlwise.XmlParseException;
 
 public class RootFolder extends DLNAResource {
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(RootFolder.class);
 	private final PmsConfiguration configuration = PMS.getConfiguration();
 	private boolean running;
@@ -269,11 +268,13 @@ public class RootFolder extends DLNAResource {
 	private List<DLNAResource> getVirtualFolders() {
 		List<DLNAResource> res = new ArrayList<DLNAResource>();
 		List<MapFileConfiguration> mapFileConfs = MapFileConfiguration.parse(configuration.getVirtualFolders());
+
 		if (mapFileConfs != null) {
 			for (MapFileConfiguration f : mapFileConfs) {
 				res.add(new MapFile(f));
 			}
 		}
+
 		return res;
 	}
 
@@ -281,7 +282,7 @@ public class RootFolder extends DLNAResource {
 		if (webConf.exists()) {
 			try {
 				LineNumberReader br = new LineNumberReader(new InputStreamReader(new FileInputStream(webConf), "UTF-8"));
-				String line = null;
+				String line;
 				while ((line = br.readLine()) != null) {
 					line = line.trim();
 
@@ -494,7 +495,7 @@ public class RootFolder extends DLNAResource {
 				process = Runtime.getRuntime().exec("defaults read com.apple.iApps ApertureLibraries");
 				BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
 				// Every line entry is one aperture library. We want all of them as a dlna folder.
-				String line = null;
+				String line;
 				res = new VirtualFolder("Aperture libraries", null);
 
 				while ((line = in.readLine()) != null) {
@@ -643,6 +644,7 @@ public class RootFolder extends DLNAResource {
 			RealFile file = new RealFile(new File(photo.get("ImagePath").toString()));
 			vAlbum.addChild(file);
 		}
+
 		return vAlbum;
 	}
 
@@ -655,7 +657,7 @@ public class RootFolder extends DLNAResource {
 	 * @throws Exception
 	 */
 	private String getiTunesFile() throws Exception {
-		String line = null;
+		String line;
 		String iTunesFile = null;
 
 		if (Platform.isMac()) {
@@ -779,6 +781,7 @@ public class RootFolder extends DLNAResource {
 	 */
 	private DLNAResource getVideoSettingssFolder() {
 		DLNAResource res = null;
+
 		if (!configuration.getHideVideoSettings()) {
 			res = new VirtualFolder(Messages.getString("PMS.37"), null);
 			VirtualFolder vfSub = new VirtualFolder(Messages.getString("PMS.8"), null);
@@ -787,8 +790,7 @@ public class RootFolder extends DLNAResource {
 			res.addChild(new VirtualVideoAction(Messages.getString("PMS.3"), configuration.isMencoderNoOutOfSync()) {
 				@Override
 				public boolean enable() {
-					configuration.setMencoderNoOutOfSync(!configuration
-						.isMencoderNoOutOfSync());
+					configuration.setMencoderNoOutOfSync(!configuration.isMencoderNoOutOfSync());
 					return configuration.isMencoderNoOutOfSync();
 				}
 			});
@@ -886,6 +888,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 		}
+
 		return res;
 	}
 

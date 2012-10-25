@@ -68,10 +68,11 @@ public class AviDemuxerInputStream extends InputStream {
 			final InputStream pin = new H264AnnexBInputStream(new PipedInputStream(pout), params.header);
 			final OutputStream out = params.output_pipes[0].getOutputStream();
 			Runnable r = new Runnable() {
+				@Override
 				public void run() {
 					try {
 						byte[] b = new byte[512 * 1024];
-						int n = -1;
+						int n;
 						while ((n = pin.read(b)) > -1) {
 							out.write(b, 0, n);
 						}
@@ -88,6 +89,7 @@ public class AviDemuxerInputStream extends InputStream {
 		}
 
 		Runnable r = new Runnable() {
+			@Override
 			public void run() {
 				try {
 					// TODO(tcox): Is this used anymore?
@@ -144,6 +146,7 @@ public class AviDemuxerInputStream extends InputStream {
 		};
 
 		Runnable r2 = new Runnable() {
+			@Override
 			public void run() {
 				try {
 					//Thread.sleep(500);
@@ -165,6 +168,7 @@ public class AviDemuxerInputStream extends InputStream {
 		String id = getString(stream, 4);
 		getBytes(stream, 4);
 		String type = getString(stream, 4);
+
 		if (!"RIFF".equalsIgnoreCase(id) || !"AVI ".equalsIgnoreCase(type)) {
 			throw new IOException("Not AVI file");
 		}
@@ -214,8 +218,10 @@ public class AviDemuxerInputStream extends InputStream {
 			}
 
 			String command2 = new String(hdrl, i + 8, 4);
+
 			if ("strh".equalsIgnoreCase(command)) {
 				lastTagID = 0;
+
 				if ("vids".equalsIgnoreCase(command2)) {
 					String compressor = new String(hdrl, i + 12, 4);
 					int scale = str2ulong(hdrl, i + 28);
@@ -227,6 +233,7 @@ public class AviDemuxerInputStream extends InputStream {
 					streamNumber++;
 					lastTagID = 1;
 				}
+
 				if ("auds".equalsIgnoreCase(command2)) {
 					int scale = str2ulong(hdrl, i + 28);
 					int rate = str2ulong(hdrl, i + 32);
@@ -275,11 +282,10 @@ public class AviDemuxerInputStream extends InputStream {
 		}
 
 		LOGGER.trace("Found " + streamNumber + " stream(s)");
-
 		boolean init = false;
 
 		while (true) {
-			String command = null;
+			String command;
 
 			try {
 				command = getString(stream, 4);
@@ -297,9 +303,9 @@ public class AviDemuxerInputStream extends InputStream {
 			boolean framed = false;
 
 			while (
-				"LIST".equals(command)
-				|| "RIFF".equals(command)
-				|| "JUNK".equals(command)
+				"LIST".equals(command) ||
+				"RIFF".equals(command) ||
+				"JUNK".equals(command)
 			) {
 				if (size < 0) {
 					size = 4;
@@ -308,14 +314,17 @@ public class AviDemuxerInputStream extends InputStream {
 				getBytes(stream, "RIFF".equals(command) ? 4 : size);
 				command = getString(stream, 4).toUpperCase();
 				size = readBytes(stream, 4);
+
 				if (("LIST".equals(command) || "RIFF".equals(command) || "JUNK".equals(command)) && (size % 2 != 0)) {
 					readByte(stream);
 				}
 			}
 
 			String videoTag = streamVideoTag.substring(0, 3);
+
 			if (command.substring(0, 3).equalsIgnoreCase(videoTag) && (command.charAt(3) == 'B' || command.charAt(3) == 'C')) {
 				byte[] buffer = getBytes(stream, size);
+
 				if (!command.equalsIgnoreCase("IDX1")) {
 					vOut.write(buffer);
 					videosize += size;
@@ -326,7 +335,7 @@ public class AviDemuxerInputStream extends InputStream {
 
 			if (!framed) {
 				for (int i = 0; i < numberOfAudioChannels; i++) {
-					byte buffer[] = getBytes(stream, size);
+					byte[] buffer = getBytes(stream, size);
 
 					if (!command.equalsIgnoreCase("IDX1")) {
 						aOut.write(buffer, init ? 4 : 0, init ? (size - 4) : size);
@@ -374,7 +383,7 @@ public class AviDemuxerInputStream extends InputStream {
 		return bb;
 	}
 
-	private final int readBytes(InputStream input, int number) throws IOException {
+	private int readBytes(InputStream input, int number) throws IOException {
 		byte[] buffer = new byte[number];
 		int read = input.read(buffer);
 
@@ -407,20 +416,20 @@ public class AviDemuxerInputStream extends InputStream {
 		}
 	}
 
-	private final int readByte(InputStream input) throws IOException {
+	private int readByte(InputStream input) throws IOException {
 		return input.read();
 	}
 
-	public static final int str2ulong(byte[] data, int i) {
+	public static int str2ulong(byte[] data, int i) {
 		return (data[i] & 0xff) | ((data[i + 1] & 0xff) << 8)
 			| ((data[i + 2] & 0xff) << 16) | ((data[i + 3] & 0xff) << 24);
 	}
 
-	public static final int str2ushort(byte[] data, int i) {
+	public static int str2ushort(byte[] data, int i) {
 		return (data[i] & 0xff) | ((data[i + 1] & 0xff) << 8);
 	}
 
-	public static final byte[] getLe32(long value) {
+	public static byte[] getLe32(long value) {
 		byte[] buffer = new byte[4];
 		buffer[0] = (byte) (value & 0xff);
 		buffer[1] = (byte) ((value >> 8) & 0xff);
@@ -430,7 +439,7 @@ public class AviDemuxerInputStream extends InputStream {
 		return buffer;
 	}
 
-	public static final byte[] getLe16(int value) {
+	public static byte[] getLe16(int value) {
 		byte[] buffer = new byte[2];
 		buffer[0] = (byte) (value & 0xff);
 		buffer[1] = (byte) ((value >> 8) & 0xff);
@@ -493,5 +502,5 @@ public class AviDemuxerInputStream extends InputStream {
 		}
 	}
 
-	public static void writePCMHeader(OutputStream aOut, long filelength, int nbaudio, int rate, int samplesize, int bitspersample) throws IOException { }
+	public static void writePCMHeader(OutputStream aOut, long fileLength, int nbAudio, int rate, int sampleSize, int bitsPerSample) throws IOException { }
 }

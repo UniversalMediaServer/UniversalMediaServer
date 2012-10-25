@@ -2356,6 +2356,7 @@ public class MEncoderVideo extends Player {
 							it.next();
 							it.remove();
 						}
+
 						break;
 					}
 				}

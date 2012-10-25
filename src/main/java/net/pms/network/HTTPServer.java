@@ -83,9 +83,8 @@ public class HTTPServer implements Runnable {
 
 	public boolean start() throws IOException {
 		final PmsConfiguration configuration = PMS.getConfiguration();
-
 		hostname = configuration.getServerHostname();
-		InetSocketAddress address = null;
+		InetSocketAddress address;
 
 		if (StringUtils.isNotBlank(hostname)) {
 			LOGGER.info("Using forced address " + hostname);
@@ -103,6 +102,7 @@ public class HTTPServer implements Runnable {
 			LOGGER.info("Using localhost address");
 			address = new InetSocketAddress(port);
 		}
+
 		LOGGER.info("Created socket: " + address);
 
 		if (configuration.isHTTPEngineV2()) { // HTTP Engine V2
@@ -123,7 +123,8 @@ public class HTTPServer implements Runnable {
 			bootstrap.setOption("child.receiveBufferSize", 65536);
 			channel = bootstrap.bind(address);
 			group.add(channel);
-			if (configuration.isHTTPEngineV2()) { // HTTP Engine V2
+
+			if (hostname == null && iafinal != null) {
 				hostname = iafinal.getHostAddress();
 			} else if (hostname == null) {
 				hostname = InetAddress.getLocalHost().getHostAddress();
@@ -154,6 +155,7 @@ public class HTTPServer implements Runnable {
 		NetworkConfiguration.InterfaceAssociation ia = StringUtils.isNotEmpty(networkInterfaceName) ?
 			NetworkConfiguration.getInstance().getAddressForNetworkInterfaceName(networkInterfaceName) :
 			null;
+
 		if (ia == null) {
 			ia = NetworkConfiguration.getInstance().getDefaultNetworkInterfaceAddress();
 		}
@@ -204,6 +206,7 @@ public class HTTPServer implements Runnable {
 	}
 
 	// XXX only used by HTTP Engine V1
+	@Override
 	public void run() {
 		LOGGER.info("Starting DLNA Server on host {} and port {}...", hostname, port);
 

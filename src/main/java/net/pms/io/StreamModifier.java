@@ -17,7 +17,7 @@ public class StreamModifier {
 		this.header = header;
 	}
 
-	/*
+	/**
 	 * @deprecated Use {@link #isH264AnnexB()}.
 	 */
 	@Deprecated
