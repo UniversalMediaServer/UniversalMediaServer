@@ -330,7 +330,7 @@ public class DownloadPlugins {
 		ProcessBuilder pb = new ProcessBuilder(args.substring(pos + 1));
 		pb.redirectErrorStream(true);
 		Map<String, String> env = pb.environment();
-		env.put("PROFILE_PATH", PMS.getConfiguration().getProfileDirectory());
+		env.put("PROFILE_PATH", PMS.getConfiguration().getProfilePath());
 		Process pid = pb.start();
 		InputStream is = pid.getInputStream();
 		InputStreamReader isr = new InputStreamReader(is);
