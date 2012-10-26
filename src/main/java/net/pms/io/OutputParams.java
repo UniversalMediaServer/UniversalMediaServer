@@ -92,15 +92,34 @@ public class OutputParams {
 
 	@Override
 	public String toString() {
-		return "OutputParams [aid=" + aid + ", avidemux=" + avidemux + ", forceFps=" + forceFps + ", forceType=" +
-			forceType + ", fromFrame=" + fromFrame + ", header=" + Arrays.toString(header) + ", hidebuffer=" +
-			hidebuffer + ", input_pipes=" + Arrays.toString(input_pipes) + ", log=" + log + ", losslessaudio=" +
-			losslessaudio + ", lossyaudio=" + lossyaudio + ", maxBufferSize=" + maxBufferSize +
-			", mediaRenderer=" + mediaRenderer + ", minBufferSize=" + minBufferSize + ", minFileSize=" +
-			minFileSize + ", no_videoencode=" + no_videoencode + ", noexitcheck=" + noexitcheck +
-			", outputFile=" + outputFile + ", output_pipes=" + Arrays.toString(output_pipes) +
-			", secondread_minsize=" + secondread_minsize + ", shift_scr=" + shift_scr + ", sid=" + sid +
-			", stdin=" + stdin + ", timeend=" + timeend + ", timeseek=" + timeseek + ", toFrame=" + toFrame +
-			", waitbeforestart=" + waitbeforestart + ", workDir=" + workDir + ", env=" + env + "]";
+		return "OutputParams [aid=" + aid +
+			", avidemux=" + avidemux +
+			", forceFps=" + forceFps +
+			", forceType=" + forceType +
+			", fromFrame=" + fromFrame +
+			", header=" + Arrays.toString(header) +
+			", hidebuffer=" + hidebuffer +
+			", input_pipes=" + Arrays.toString(input_pipes) +
+			", log=" + log +
+			", losslessaudio=" + losslessaudio +
+			", lossyaudio=" + lossyaudio +
+			", maxBufferSize=" + maxBufferSize +
+			", mediaRenderer=" + mediaRenderer +
+			", minBufferSize=" + minBufferSize +
+			", minFileSize=" + minFileSize +
+			", no_videoencode=" + no_videoencode +
+			", noexitcheck=" + noexitcheck +
+			", outputFile=" + outputFile +
+			", output_pipes=" + Arrays.toString(output_pipes) +
+			", secondread_minsize=" + secondread_minsize +
+			", shift_scr=" + shift_scr +
+			", sid=" + sid +
+			", stdin=" + stdin +
+			", timeend=" + timeend +
+			", timeseek=" + timeseek +
+			", toFrame=" + toFrame +
+			", waitbeforestart=" + waitbeforestart +
+			", workDir=" + workDir +
+			", env=" + env + "]";
 	}
 }

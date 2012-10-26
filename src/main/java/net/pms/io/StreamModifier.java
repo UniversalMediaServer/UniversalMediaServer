@@ -2,7 +2,12 @@ package net.pms.io;
 
 public class StreamModifier {
 	private byte header[];
-	private boolean h264_annexb;
+	private boolean h264AnnexB;
+	private boolean pcm;
+	private int nbChannels;
+	private int sampleFrequency;
+	private int bitsPerSample;
+	private boolean dtsEmbed;
 
 	public byte[] getHeader() {
 		return header;
@@ -12,28 +17,53 @@ public class StreamModifier {
 		this.header = header;
 	}
 
+	/**
+	 * @deprecated Use {@link #isH264AnnexB()}.
+	 */
+	@Deprecated
 	public boolean isH264_annexb() {
-		return h264_annexb;
+		return isH264AnnexB();
 	}
 
-	public void setH264_annexb(boolean h264_annexb) {
-		this.h264_annexb = h264_annexb;
+	public boolean isH264AnnexB() {
+		return h264AnnexB;
 	}
 
-	private boolean dtsembed;
+	/**
+	 * @deprecated Use {@link #setH264AnnexB(boolean)}.
+	 */
+	@Deprecated
+	public void setH264_annexb(boolean h264AnnexB) {
+		setH264AnnexB(h264AnnexB);
+	}
 
+	public void setH264AnnexB(boolean h264AnnexB) {
+		this.h264AnnexB = h264AnnexB;
+	}
+
+	/**
+	 * @deprecated Use {@link #isDtsEmbed()}.
+	 */
+	@Deprecated
 	public boolean isDtsembed() {
-		return dtsembed;
+		return isDtsEmbed();
 	}
 
-	public void setDtsembed(boolean dtsembed) {
-		this.dtsembed = dtsembed;
+	public boolean isDtsEmbed() {
+		return dtsEmbed;
 	}
 
-	private boolean pcm;
-	private int nbchannels;
-	private int sampleFrequency;
-	private int bitspersample;
+	/**
+	 * @deprecated Use {@link #setDtsEmbed(boolean)}.
+	 */
+	@Deprecated
+	public void setDtsembed(boolean dtsEmbed) {
+		setDtsEmbed(dtsEmbed);
+	}
+
+	public void setDtsEmbed(boolean dtsEmbed) {
+		this.dtsEmbed = dtsEmbed;
+	}
 
 	public boolean isPcm() {
 		return pcm;
@@ -43,12 +73,28 @@ public class StreamModifier {
 		this.pcm = pcm;
 	}
 
+	/**
+	 * @deprecated Use {@link #getNbChannels()}.
+	 */
+	@Deprecated
 	public int getNbchannels() {
-		return nbchannels;
+		return getNbChannels();
 	}
 
-	public void setNbchannels(int nbchannels) {
-		this.nbchannels = nbchannels;
+	public int getNbChannels() {
+		return nbChannels;
+	}
+
+	/**
+	 * @deprecated Use {@link #setNbChannels(int)}.
+	 */
+	@Deprecated
+	public void setNbchannels(int nbChannels) {
+		setNbChannels(nbChannels);
+	}
+
+	public void setNbChannels(int nbChannels) {
+		this.nbChannels = nbChannels;
 	}
 
 	public int getSampleFrequency() {
@@ -59,11 +105,27 @@ public class StreamModifier {
 		this.sampleFrequency = sampleFrequency;
 	}
 
+	/**
+	 * @deprecated Use {@link #getBitsPerSample()}.
+	 */
+	@Deprecated
 	public int getBitspersample() {
-		return bitspersample;
+		return getBitsPerSample();
 	}
 
-	public void setBitspersample(int bitspersample) {
-		this.bitspersample = bitspersample;
+	public int getBitsPerSample() {
+		return bitsPerSample;
+	}
+
+	/**
+	 * @deprecated Use {@link #setBitsPerSample(int)}.
+	 */
+	@Deprecated
+	public void setBitspersample(int bitsPerSample) {
+		setBitsPerSample(bitsPerSample);
+	}
+
+	public void setBitsPerSample(int bitsPerSample) {
+		this.bitsPerSample = bitsPerSample;
 	}
 }

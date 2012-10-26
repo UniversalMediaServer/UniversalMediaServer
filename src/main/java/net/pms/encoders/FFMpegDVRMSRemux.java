@@ -27,6 +27,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
@@ -104,8 +105,7 @@ public class FFMpegDVRMSRemux extends Player {
 		String fileName,
 		DLNAResource dlna,
 		DLNAMediaInfo media,
-		OutputParams params
-	) throws IOException {
+		OutputParams params) throws IOException {
 		return getFFMpegTranscode(fileName, dlna, media, params);
 	}
 
@@ -132,17 +132,12 @@ public class FFMpegDVRMSRemux extends Player {
 
 		cmdList.add("-i");
 		cmdList.add(fileName);
-
-		for (String arg : args()) {
-			cmdList.add(arg);
-		}
+		cmdList.addAll(Arrays.asList(args()));
 
 		String[] ffmpegSettings = StringUtils.split(configuration.getFfmpegSettings());
 
 		if (ffmpegSettings != null) {
-			for (String option : ffmpegSettings) {
-				cmdList.add(option);
-			}
+			cmdList.addAll(Arrays.asList(ffmpegSettings));
 		}
 
 		cmdList.add("pipe:");

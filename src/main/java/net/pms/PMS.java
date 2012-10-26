@@ -52,10 +52,10 @@ import net.pms.network.NetworkConfiguration;
 import net.pms.network.ProxyServer;
 import net.pms.network.UPNPHelper;
 import net.pms.newgui.DbgPacker;
-import net.pms.newgui.GeneralTab;
 import net.pms.newgui.LooksFrame;
 import net.pms.newgui.ProfileChooser;
 import net.pms.update.AutoUpdater;
+import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.SystemErrWrapper;
@@ -215,6 +215,7 @@ public class PMS {
 			outConsumer.start();
 
 			Runnable r = new Runnable() {
+				@Override
 				public void run() {
 					ProcessUtil.waitFor(process);
 				}
@@ -322,7 +323,7 @@ public class PMS {
 		proxy = -1;
 
 		LOGGER.info("Starting " + PropertiesUtil.getProjectProperties().get("project.name") + " " + getVersion());
-		LOGGER.info("Based on PS3 Media Server (ps3mediaserver.org) by shagrath, copyright 2008-2012");
+		LOGGER.info("Based on PS3 Media Server by shagrath, copyright 2008-2012");
 		LOGGER.info("http://www.universalmediaserver.com");
 		LOGGER.info("");
 
@@ -338,11 +339,12 @@ public class PMS {
 		String cwd = new File("").getAbsolutePath();
 		LOGGER.info("Working directory: " + cwd);
 
-		LOGGER.info("Temp folder: " + configuration.getTempFolder());
+		LOGGER.info("Temp directory: " + configuration.getTempFolder());
 		LOGGER.info("Logging config file: " + LoggingConfigFileLoader.getConfigFilePath());
 
 		HashMap<String, String> lfps = LoggingConfigFileLoader.getLogFilePaths();
 
+		// debug.log filename(s) and path(s)
 		if (lfps != null && lfps.size() > 0) {
 			if (lfps.size() == 1) {
 				Entry<String, String> entry = lfps.entrySet().iterator().next();
@@ -367,13 +369,13 @@ public class PMS {
 		File profileFile = new File(profilePath);
 
 		if (profileFile.exists()) {
-			String status = String.format("%s%s",
-				profileFile.canRead()  ? "r" : "-",
-				profileFile.canWrite() ? "w" : "-"
+			String permissions = String.format("%s%s",
+				FileUtil.isFileReadable(profileFile) ? "r" : "-",
+				FileUtil.isFileWritable(profileFile) ? "w" : "-"
 			);
-			LOGGER.info("Profile status: " + status);
+			LOGGER.info("Profile permissions: " + permissions);
 		} else {
-			LOGGER.info("Profile status: no such file");
+			LOGGER.info("Profile permissions: no such file");
 		}
 
 		LOGGER.info("Profile name: " + configuration.getProfileName());
@@ -441,7 +443,7 @@ public class PMS {
 
 		// Instantiate listeners that require registered players.
 		ExternalFactory.instantiateLateListeners();
-		
+
 		// a static block in Player doesn't work (i.e. is called too late).
 		// this must always be called *after* the plugins have loaded.
 		// here's as good a place as any
@@ -632,6 +634,7 @@ public class PMS {
 	// see the comment above HTTPServer.stop()
 	public void reset() {
 		TaskRunner.getInstance().submitNamed("restart", true, new Runnable() {
+			@Override
 			public void run() {
 				try {
 					LOGGER.trace("Waiting 1 second...");
@@ -702,30 +705,38 @@ public class PMS {
 		LOGGER.error(msg, t);
 	}
 
-	/*
+	/**
 	 * Universally Unique Identifier used in the UPnP server.
-	 * 
 	 */
 	private String uuid;
 
-	/*
+	/**
 	 * Creates a new {@link #uuid} for the UPnP server to use. Tries to follow the RFCs for creating the UUID based on the link MAC address.
 	 * Defaults to a random one if that method is not available.
 	 * @return {@link String} with an Universally Unique Identifier.
 	 */
-	public String usn() {
+	public synchronized String usn() {
 		if (uuid == null) {
 			// Retrieve UUID from configuration
 			uuid = getConfiguration().getUuid();
 
 			if (uuid == null) {
 				// Create a new UUID based on the MAC address of the used network adapter
-				NetworkInterface ni = null;
+				NetworkInterface ni;
+
 				try {
-					ni = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
-					// If no ni comes from the server host name, we should get the default.
-					if (ni != null) {
-						ni = get().getServer().getNi();
+					// this retrieves the network interface via:
+					//
+					// 1) NetworkConfiguration.getAddressForNetworkInterfaceName(pmsConfInterfaceName)
+					// 2) NetworkConfiguration.getDefaultNetworkInterfaceAddress()
+
+					ni = get().getServer().getNetworkInterface();
+
+					// failing that, default to:
+					//
+					// 3) NetworkConfiguration.getNetworkInterfaceByServerName()
+					if (ni == null) {
+						ni = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
 					}
 
 					if (ni != null) {
@@ -749,6 +760,7 @@ public class PMS {
 
 				// Save the newly generated UUID
 				getConfiguration().setUuid(uuid);
+
 				try {
 					getConfiguration().save();
 				} catch (ConfigurationException e) {
@@ -758,10 +770,11 @@ public class PMS {
 
 			LOGGER.info("Using the following UUID configured in UMS.conf: " + uuid);
 		}
+
 		return "uuid:" + uuid;
 	}
 
-	/*
+	/**
 	 * Returns the user friendly name of the UPnP server. 
 	 * @return {@link String} with the user friendly name.
 	 */
@@ -779,7 +792,7 @@ public class PMS {
 		return serverName;
 	}
 
-	/*
+	/**
 	 * Returns the PMS instance.
 	 * @return {@link net.pms.PMS}
 	 */
@@ -889,7 +902,7 @@ public class PMS {
 				JOptionPane.showMessageDialog(
 					((JFrame) (SwingUtilities.getWindowAncestor((Component) instance.getFrame()))),
 					errorMessage,
-					"Error initalizing UMS!",
+					"Error initalizing UMS",
 					JOptionPane.ERROR_MESSAGE
 				);
 			}
@@ -1031,6 +1044,7 @@ public class PMS {
 		} catch (IOException e) {
 			LOGGER.debug("error killing old proc " + e);
 		}
+
 		try {
 			dumpPid();
 		} catch (IOException e) {
@@ -1043,23 +1057,29 @@ public class PMS {
 		pb.redirectErrorStream(true);
 		Process p = pb.start();
 		BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
 		try {
 			p.waitFor();
 		} catch (InterruptedException e) {
 			in.close();
 			return false;
 		}
+
 		String line = in.readLine();
 		in.close();
+
 		if (line == null) {
 			return false;
 		}
+
 		// remove all " and convert to common case before splitting result on ,
 		String[] tmp = line.toLowerCase().replaceAll("\"", "").split(",");
 		// if the line is too short we don't kill the process
+
 		if (tmp.length < 9) {
 			return false;
 		}
+
 		return tmp[0].equals("javaw.exe") && tmp[8].contains("universal media server");
 	}
 
@@ -1068,6 +1088,7 @@ public class PMS {
 		BufferedReader in = new BufferedReader(new FileReader("pms.pid"));
 		String pid = in.readLine();
 		in.close();
+
 		if (Platform.isWindows()) {
 			if (verifyPidName(pid)) {
 				pb = new ProcessBuilder("taskkill","/F","/PID",pid,"/T");
@@ -1075,10 +1096,12 @@ public class PMS {
 		} else if (Platform.isFreeBSD() || Platform.isLinux() || Platform.isOpenBSD() || Platform.isSolaris()) {
 			pb=new ProcessBuilder("kill","-9",pid);
 		}
+
 		if (pb == null) {
 			return;
 		}
-		try {			
+
+		try {
 			Process p = pb.start();
 			p.waitFor();
 		} catch (Exception e) {
@@ -1106,9 +1129,9 @@ public class PMS {
 	public DbgPacker dbgPack() {
 		return dbgPack;
 	}
-	
+
 	@Deprecated
 	public void registerPlayer(Player player) {
 		PlayerFactory.registerPlayer(player);
-	} 
+	}
 }

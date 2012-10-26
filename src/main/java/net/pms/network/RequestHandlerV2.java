@@ -209,7 +209,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 						if (!isKnown) {
 							// Truly unknown header, therefore interesting. Save for later use.
-							unknownHeaders.append(separator + headerLine);
+							unknownHeaders.append(separator).append(headerLine);
 							separator = ", ";
 						}
 					}
@@ -276,17 +276,17 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			&& !HttpHeaders.Values.KEEP_ALIVE.equalsIgnoreCase(nettyRequest.getHeader(HttpHeaders.Names.CONNECTION));
 
 		// Build the response object.
-		HttpResponse response = null;
+		HttpResponse response;
 		if (request.getLowRange() != 0 || request.getHighRange() != 0) {
 			response = new DefaultHttpResponse(
 				HttpVersion.HTTP_1_1,
 				HttpResponseStatus.PARTIAL_CONTENT);
 		} else {
 			String soapAction = nettyRequest.getHeader("SOAPACTION");
+
 			if (soapAction != null && soapAction.contains("X_GetFeatureList")) {
-				LOGGER.debug("Invalid action in SOAPACTION: " + soapAction);	
-				response = new DefaultHttpResponse(
-					HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR);
+				LOGGER.debug("Invalid action in SOAPACTION: " + soapAction);
+				response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR);
 			} else {
 				response = new DefaultHttpResponse(
 				HttpVersion.HTTP_1_1, HttpResponseStatus.OK);

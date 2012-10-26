@@ -103,7 +103,7 @@ public class StatusTab {
 		builder.addLabel(Messages.getString("StatusTab.6"), FormLayoutUtil.flip(cc.xy(2, 7), colSpec, orientation));
 		builder.add(jpb, FormLayoutUtil.flip(cc.xy(2, 9), colSpec, orientation));
 
-		jio = new JLabel(Messages.getString("StatusTab.8"));
+		jio = new JLabel(Messages.getString("StatusTab.8") + " 0 " + Messages.getString("StatusTab.11") + "    |    " + Messages.getString("StatusTab.10") + " 0 " + Messages.getString("StatusTab.11"));
 		builder.add(jio, FormLayoutUtil.flip(cc.xy(2, 13), colSpec, orientation));
 
 		cmp = builder.addSeparator(Messages.getString("StatusTab.9"), FormLayoutUtil.flip(cc.xy(2, 15), colSpec, orientation));
@@ -169,29 +169,28 @@ public class StatusTab {
 			try {
 				InputStream is = null;
 
-				/*
-				check for a custom icon file first
-				
-				the file can be a) the name of a file in the renderers directory b) a path relative
-				to the PMS working directory or c) an absolute path. If no file is found,
-				the built-in resource (if any) is used instead.
-				
-				The File constructor does the right thing for the relative and absolute path cases,
-				so we only need to detect the bare filename case.
-				
-				RendererIcon = foo.png // e.g. $PMS/renderers/foo.png
-				RendererIcon = images/foo.png // e.g. $PMS/images/foo.png
-				RendererIcon = /path/to/foo.png
+				/**
+				 * Check for a custom icon file first
+				 *
+				 * The file can be a) the name of a file in the renderers directory b) a path relative
+				 * to the PMS working directory or c) an absolute path. If no file is found,
+				 * the built-in resource (if any) is used instead.
+				 *
+				 * The File constructor does the right thing for the relative and absolute path cases,
+				 * so we only need to detect the bare filename case.
+				 *
+				 * RendererIcon = foo.png // e.g. $PMS/renderers/foo.png
+				 * RendererIcon = images/foo.png // e.g. $PMS/images/foo.png
+				 * RendererIcon = /path/to/foo.png
 				 */
 
 				File f = new File(icon);
 
-				if (!f.isAbsolute() && f.getParent() == null) // filename
-				{
+				if (!f.isAbsolute() && f.getParent() == null) { // filename
 					f = new File("renderers", icon);
 				}
 
-				if (f.exists() && f.isFile()) {
+				if (f.isFile()) {
 					is = new FileInputStream(f);
 				}
 

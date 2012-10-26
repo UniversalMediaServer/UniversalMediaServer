@@ -240,7 +240,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	@Deprecated
 	protected long lastRefreshTime;
-	
+
 	private String lastSearch;
 
 	/**
@@ -495,7 +495,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					// is preferred.
 					String name = getName();
 
-					for (Player p : PlayerFactory.getPlayers()) {
+					for (Player p : PlayerFactory.getAllPlayers()) {
 						String end = "[" + p.id() + "]";
 
 						if (name.endsWith(end)) {
@@ -672,9 +672,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public synchronized List<DLNAResource> getDLNAResources(String objectId, boolean children, int start, int count, RendererConfiguration renderer) throws IOException {
 		return getDLNAResources(objectId,children,start,count,renderer,null);
 	}
-	
-	public synchronized List<DLNAResource> getDLNAResources(String objectId, boolean returnChildren, int start, int count, RendererConfiguration renderer
-			,String searchStr) throws IOException {
+
+	public synchronized List<DLNAResource> getDLNAResources(String objectId, boolean returnChildren, int start, int count, RendererConfiguration renderer, String searchStr) throws IOException {
 		ArrayList<DLNAResource> resources = new ArrayList<DLNAResource>();
 		DLNAResource resource = search(objectId, count, renderer, searchStr);
 
@@ -685,7 +684,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				resources.add(resource);
 				resource.refreshChildrenIfNeeded(searchStr);
 			} else {
-				resource.discoverWithRenderer(renderer, count, true,searchStr);
+				resource.discoverWithRenderer(renderer, count, true, searchStr);
 
 				if (count == 0) {
 					count = resource.getChildren().size();
@@ -738,8 +737,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		setSystemUpdateId(getSystemUpdateId() + 1);
 	}
 
-	final protected void discoverWithRenderer(RendererConfiguration renderer, int count, boolean forced,
-			String searchStr) {
+	final protected void discoverWithRenderer(RendererConfiguration renderer, int count, boolean forced, String searchStr) {
 		// Discovering if not already done.
 		if (!isDiscovered()) {
 			if (PMS.getConfiguration().getFolderLimit() && depthLimit()) {
@@ -750,6 +748,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					defaultRenderer.addFolderLimit(this);
 				}
 			}
+
 			discoverChildren(searchStr);
 			boolean ready;
 			if (renderer.isMediaParserV2() && renderer.isDLNATreeHack()) {
@@ -777,11 +776,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 	}
-	
+
 	private boolean shouldRefresh(String searchStr) {
 		return (searchStr == null && lastSearch != null) || 
-		(searchStr !=null && !searchStr.equals(lastSearch)) 
-		|| isRefreshNeeded();
+		(searchStr !=null && !searchStr.equals(lastSearch)) ||
+		isRefreshNeeded();
 	}
 
 	@Override
@@ -802,8 +801,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @see #getId()
 	 *
 	 */
-	public DLNAResource search(String searchId, int count, 
-							   RendererConfiguration renderer,String searchStr) {
+	public DLNAResource search(String searchId, int count, RendererConfiguration renderer, String searchStr) {
 		if (getId() != null && searchId != null) {
 			String[] indexPath = searchId.split("\\$", 2);
 			if (getId().equals(indexPath[0])) {
@@ -830,7 +828,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	public void discoverChildren() {
 	}
-	
+
 	public void discoverChildren(String str) {
 		discoverChildren();
 	}
@@ -849,7 +847,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	public void doRefreshChildren() {
 	}
-	
+
 	public void doRefreshChildren(String search) {
 		doRefreshChildren();
 	}
@@ -877,12 +875,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 		return false;
 	}
-	
+
 	public boolean refreshChildren(String search) {
 		if (shouldRefresh(search)) {
 			doRefreshChildren(search);
 			return true;
 		}
+
 		return false;
 	}
 

@@ -1,0 +1,47 @@
+--- gsm/Makefile	2012-10-10 08:31:18.538292136
++++ gsm/Makefile	2012-10-10 08:32:49.707810023
+@@ -366,37 +366,37 @@
+ $(TOAST_INSTALL_MAN)/toast.1:	$(MAN)/toast.1
+ 		-rm $@
+ 		cp $? $@
+-		chmod 444 $@
++		# chmod 444 $@
+ 
+ $(GSM_INSTALL_MAN)/gsm.3:	$(MAN)/gsm.3
+ 		-rm $@
+ 		cp $? $@
+-		chmod 444 $@
++		# chmod 444 $@
+ 
+ $(GSM_INSTALL_MAN)/gsm_option.3:	$(MAN)/gsm_option.3
+ 		-rm $@
+ 		cp $? $@
+-		chmod 444 $@
++		# chmod 444 $@
+ 
+ $(GSM_INSTALL_MAN)/gsm_explode.3:	$(MAN)/gsm_explode.3
+ 		-rm $@
+ 		cp $? $@
+-		chmod 444 $@
++		# chmod 444 $@
+ 
+ $(GSM_INSTALL_MAN)/gsm_print.3:	$(MAN)/gsm_print.3
+ 		-rm $@
+ 		cp $? $@
+-		chmod 444 $@
++		# chmod 444 $@
+ 
+ $(GSM_INSTALL_INC)/gsm.h:	$(INC)/gsm.h
+ 		-rm $@
+ 		cp $? $@
+-		chmod 444 $@
++		# chmod 444 $@
+ 
+ $(GSM_INSTALL_LIB)/libgsm.a:	$(LIBGSM)
+ 		-rm $@
+ 		cp $? $@
+-		chmod 444 $@
++		# chmod 444 $@
+ 
+ 
+ # Distribution

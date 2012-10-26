@@ -139,9 +139,9 @@ public class UPNPHelper {
 					break;
 				}
 			}
-		} else if (PMS.get().getServer().getNi() != null) {
-			LOGGER.trace("Setting multicast network interface: " + PMS.get().getServer().getNi());
-			ssdpSocket.setNetworkInterface(PMS.get().getServer().getNi());
+		} else if (PMS.get().getServer().getNetworkInterface() != null) {
+			LOGGER.trace("Setting multicast network interface: " + PMS.get().getServer().getNetworkInterface());
+			ssdpSocket.setNetworkInterface(PMS.get().getServer().getNetworkInterface());
 		}
 		LOGGER.trace("Sending message from multicast socket on network interface: " + ssdpSocket.getNetworkInterface());
 		LOGGER.trace("Multicast socket is on interface: " + ssdpSocket.getInterface());
@@ -224,9 +224,9 @@ public class UPNPHelper {
 						NetworkInterface ni = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
 						if (ni != null) {
 							socket.setNetworkInterface(ni);
-						} else if (PMS.get().getServer().getNi() != null) {
-							LOGGER.trace("Setting multicast network interface: " + PMS.get().getServer().getNi());
-							socket.setNetworkInterface(PMS.get().getServer().getNi());
+						} else if (PMS.get().getServer().getNetworkInterface() != null) {
+							LOGGER.trace("Setting multicast network interface: " + PMS.get().getServer().getNetworkInterface());
+							socket.setNetworkInterface(PMS.get().getServer().getNetworkInterface());
 						}
 						socket.setTimeToLive(4);
 						socket.setReuseAddress(true);

@@ -44,7 +44,7 @@ public class NavigationShareTab {
 	public static final String ALL_DRIVES = Messages.getString("FoldTab.0");
 
 	private static final String PANEL_COL_SPEC = "left:pref, 50dlu, pref, 150dlu, pref, 25dlu, pref, 25dlu, pref, default:grow";
-	private static final String PANEL_ROW_SPEC = "p, 3dlu,  p, 3dlu, p, 3dlu,  p, 3dlu, p, 3dlu, p, 10dlu, p, 3dlu,  p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 10dlu, fill:default:grow";
+	private static final String PANEL_ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 10dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 10dlu, fill:default:grow";
 	private static final String SHARED_FOLDER_COL_SPEC = "left:pref, left:pref, pref, pref, pref, 0:grow";
 	private static final String SHARED_FOLDER_ROW_SPEC = "p, 3dlu, p, 3dlu, fill:default:grow";
 	
@@ -76,6 +76,7 @@ public class NavigationShareTab {
 	public DefaultListModel getDf() {
 		return df;
 	}
+
 	private final PmsConfiguration configuration;
 
 	NavigationShareTab(PmsConfiguration configuration) {
@@ -87,16 +88,20 @@ public class NavigationShareTab {
 			configuration.setFolders("");
 		} else {
 			StringBuilder sb = new StringBuilder();
+
 			for (int i = 0; i < df.size(); i++) {
 				if (i > 0) {
 					sb.append(",");
 				}
+
 				String entry = (String) df.getElementAt(i);
+
 				// escape embedded commas. note: backslashing isn't safe as it conflicts with
 				// Windows path separators:
 				// http://ps3mediaserver.org/forum/viewtopic.php?f=14&t=8883&start=250#p43520
 				sb.append(entry.replace(",", "&comma;"));
 			}
+
 			configuration.setFolders(sb.toString());
 		}
 	}
@@ -120,8 +125,7 @@ public class NavigationShareTab {
 		PanelBuilder builderSharedFolder = initSharedFoldersGuiComponents(cc);
 
 		// Build gui with initialized components
-		JComponent cmp = builder.addSeparator(Messages.getString("FoldTab.13"),
-				FormLayoutUtil.flip(cc.xyw(1, 1, 10), colSpec, orientation));
+		JComponent cmp = builder.addSeparator(Messages.getString("FoldTab.13"), FormLayoutUtil.flip(cc.xyw(1, 1, 10), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
@@ -174,8 +178,9 @@ public class NavigationShareTab {
 		JScrollPane scrollPane = new JScrollPane(
 			panel,
 			JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		
+			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
+		);
+
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
 		return scrollPane;
 	}
@@ -294,7 +299,6 @@ public class NavigationShareTab {
 				configuration.setAlternateThumbFolder(defaultThumbFolder.getText());
 			}
 		});
-
 
 		// AlternateThumbFolder: select
 		select = new CustomJButton("...");
