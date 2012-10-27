@@ -59,7 +59,6 @@ public class GeneralTab {
 	private JTextField ip_filter;
 	private JTextField maxbitrate;
 	private JComboBox renderers;
-	private JPanel pPlugins;
 	private final PmsConfiguration configuration;
 
 	GeneralTab(PmsConfiguration configuration) {
@@ -152,7 +151,6 @@ public class GeneralTab {
 						Messages.getString("NetworkTab.12"),
 						"Information",
 						JOptionPane.INFORMATION_MESSAGE);
-
 				} else {
 					JOptionPane.showMessageDialog(
 						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),

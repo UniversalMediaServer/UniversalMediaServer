@@ -87,14 +87,16 @@ public class PMS {
 	// TODO(tcox):  This shouldn't be static
 	private static PmsConfiguration configuration;
 
-	/**Returns a pointer to the main PMS GUI.
+	/**
+	 * Returns a pointer to the main PMS GUI.
 	 * @return {@link net.pms.gui.IFrame} Main PMS window.
 	 */
 	public IFrame getFrame() {
 		return frame;
 	}
 
-	/**getRootFolder returns the Root Folder for a given renderer. There could be the case
+	/**
+	 * getRootFolder returns the Root Folder for a given renderer. There could be the case
 	 * where a given media renderer needs a different root structure.
 	 * @param renderer {@link net.pms.configuration.RendererConfiguration} is the renderer for which to get the RootFolder structure. If <b>null</b>, then
 	 * the default renderer is used.
@@ -130,7 +132,8 @@ public class PMS {
 	 */
 	private final ArrayList<RendererConfiguration> foundRenderers = new ArrayList<RendererConfiguration>();
 
-	/**Adds a {@link net.pms.configuration.RendererConfiguration} to the list of media renderers found. The list is being used, for
+	/**
+	 * Adds a {@link net.pms.configuration.RendererConfiguration} to the list of media renderers found. The list is being used, for
 	 * example, to give the user a graphical representation of the found media renderers.
 	 * @param mediarenderer {@link net.pms.configuration.RendererConfiguration}
 	 */
@@ -177,7 +180,8 @@ public class PMS {
 
 	private int proxy;
 
-	/**Interface to Windows specific functions, like Windows Registry. registry is set by {@link #init()}.
+	/**
+	 * Interface to Windows specific functions, like Windows Registry. registry is set by {@link #init()}.
 	 * @see net.pms.io.WinUtils
 	 */
 	private SystemUtils registry;
@@ -189,7 +193,8 @@ public class PMS {
 		return registry;
 	}
 
-	/**Executes a new Process and creates a fork that waits for its results. 
+	/**
+	 * Executes a new Process and creates a fork that waits for its results. 
 	 * TODO:Extend explanation on where this is being used.
 	 * @param name Symbolic name for the process to be launched, only used in the trace log
 	 * @param error (boolean) Set to true if you want PMS to add error messages to the trace pane
@@ -203,9 +208,11 @@ public class PMS {
 
 		try {
 			ProcessBuilder pb = new ProcessBuilder(params);
+
 			if (workDir != null) {
 				pb.directory(workDir);
 			}
+
 			final Process process = pb.start();
 
 			OutputTextConsumer stderrConsumer = new OutputTextConsumer(process.getErrorStream(), false);
@@ -259,7 +266,8 @@ public class PMS {
 	@SuppressWarnings("unused")
 	private final PrintStream stderr = System.err;
 
-	/**Main resource database that supports search capabilities. Also known as media cache.
+	/**
+	 * Main resource database that supports search capabilities. Also known as media cache.
 	 * @see net.pms.dlna.DLNAMediaDatabase
 	 */
 	private DLNAMediaDatabase database;
@@ -269,7 +277,8 @@ public class PMS {
 		database.init(false);
 	}
 
-	/**Used to get the database. Needed in the case of the Xbox 360, that requires a database.
+	/**
+	 * Used to get the database. Needed in the case of the Xbox 360, that requires a database.
 	 * for its queries.
 	 * @return (DLNAMediaDatabase) a reference to the database instance or <b>null</b> if one isn't defined
 	 * (e.g. if the cache is disabled).
@@ -279,12 +288,15 @@ public class PMS {
 			if (database == null) {
 				initializeDatabase();
 			}
+
 			return database;
 		}
+
 		return null;
 	}
 
-	/**Initialisation procedure for PMS.
+	/**
+	 * Initialisation procedure for PMS.
 	 * @return true if the server has been initialized correctly. false if the server could
 	 * not be set to listen on the UPnP port.
 	 * @throws Exception
@@ -312,8 +324,7 @@ public class PMS {
 		configuration.addConfigurationListener(new ConfigurationListener() {
 			@Override
 			public void configurationChanged(ConfigurationEvent event) {
-				if ((!event.isBeforeUpdate())
-						&& PmsConfiguration.NEED_RELOAD_FLAGS.contains(event.getPropertyName())) {
+				if ((!event.isBeforeUpdate()) && PmsConfiguration.NEED_RELOAD_FLAGS.contains(event.getPropertyName())) {
 					frame.setReloadable(true);
 				}
 			}
@@ -538,7 +549,8 @@ public class PMS {
 	
 	private MediaLibrary mediaLibrary;
 
-	/**Returns the MediaLibrary used by PMS.
+	/**
+	 * Returns the MediaLibrary used by PMS.
 	 * @return (MediaLibrary) Used mediaLibrary, if any. null if none is in use.
 	 */
 	public MediaLibrary getLibrary() {
@@ -561,7 +573,8 @@ public class PMS {
 		}
 	}
 
-	/**Executes the needed commands in order to make PMS a Windows service that starts whenever the machine is started.
+	/**
+	 * Executes the needed commands in order to make PMS a Windows service that starts whenever the machine is started.
 	 * This function is called from the Network tab.
 	 * @return true if PMS could be installed as a Windows service.
 	 * @see net.pms.newgui.GeneralTab#build()
@@ -579,7 +592,8 @@ public class PMS {
 		return pwinstall.isSuccess();
 	}
 
-	/**Transforms a comma separated list of directory entries into an array of {@link String}.
+	/**
+	 * Transforms a comma separated list of directory entries into an array of {@link String}.
 	 * Checks that the directory exists and is a valid directory.
 	 * @param log whether to output log information
 	 * @return {@link java.io.File}[] Array of directories.
@@ -626,7 +640,8 @@ public class PMS {
 		return getFoldersConf(true);
 	}
 
-	/**Restarts the server. The trigger is either a button on the main PMS window or via
+	/**
+	 * Restarts the server. The trigger is either a button on the main PMS window or via
 	 * an action item.
 	 * @throws java.io.IOException
 	 */
@@ -1034,10 +1049,9 @@ public class PMS {
 		}
 	}
 
-	/*
+	/**
 	 * Restart handling
 	 */
-
 	private static void killOld() {
 		try {
 			killProc();
