@@ -29,6 +29,7 @@
 			Fixes MKV framerate detection bug
 			Fixes E-AC-3 duration detection bug
 			More reliable DTS bitrate detection
+		Updated Java Service Wrapper to 3.5.15
 	Mac OS X:
 		Removed fontconfig from MEncoder for Mac OSX for improved subs compatibility
 	Plugin Management:
