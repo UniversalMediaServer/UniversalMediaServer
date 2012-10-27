@@ -574,22 +574,36 @@ public class PMS {
 	}
 
 	/**
-	 * Executes the needed commands in order to make PMS a Windows service that starts whenever the machine is started.
-	 * This function is called from the Network tab.
-	 * @return true if PMS could be installed as a Windows service.
+	 * Executes the needed commands in order to install the Windows service
+	 * that starts whenever the machine is started.
+	 * This function is called from the General tab.
+	 * @return true if UMS could be installed as a Windows service.
 	 * @see net.pms.newgui.GeneralTab#build()
 	 */
 	public boolean installWin32Service() {
-		LOGGER.info(Messages.getString("PMS.41"));
+		PMS.get().uninstallWin32Service();
+		String cmdArray[] = new String[]{"win32/service/wrapper.exe", "-i", "wrapper.conf"};
+		ProcessWrapperImpl pwinstall = new ProcessWrapperImpl(cmdArray, new OutputParams(configuration));
+		pwinstall.runInSameThread();
+		return pwinstall.isSuccess();
+	}
+
+	/**
+	 * Executes the needed commands in order to remove the Windows service.
+	 * This function is called from the General tab.
+	 *
+	 * TODO: Make it detect if the uninstallation was successful
+	 *
+	 * @return true
+	 * @see net.pms.newgui.GeneralTab#build()
+	 */
+	public boolean uninstallWin32Service() {
 		String cmdArray[] = new String[]{"win32/service/wrapper.exe", "-r", "wrapper.conf"};
 		OutputParams output = new OutputParams(configuration);
 		output.noexitcheck = true;
 		ProcessWrapperImpl pwuninstall = new ProcessWrapperImpl(cmdArray, output);
 		pwuninstall.runInSameThread();
-		cmdArray = new String[]{"win32/service/wrapper.exe", "-i", "wrapper.conf"};
-		ProcessWrapperImpl pwinstall = new ProcessWrapperImpl(cmdArray, new OutputParams(configuration));
-		pwinstall.runInSameThread();
-		return pwinstall.isSuccess();
+		return true;
 	}
 
 	/**

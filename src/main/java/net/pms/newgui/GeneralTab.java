@@ -145,24 +145,46 @@ public class GeneralTab {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (PMS.get().installWin32Service()) {
+					LOGGER.info(Messages.getString("PMS.41"));
 					JOptionPane.showMessageDialog(
 						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 						Messages.getString("NetworkTab.11") +
 						Messages.getString("NetworkTab.12"),
 						"Information",
-						JOptionPane.INFORMATION_MESSAGE);
+						JOptionPane.INFORMATION_MESSAGE
+					);
 				} else {
 					JOptionPane.showMessageDialog(
 						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 						Messages.getString("NetworkTab.14"),
 						"Error",
-						JOptionPane.ERROR_MESSAGE);
+						JOptionPane.ERROR_MESSAGE
+					);
 				}
 			}
 		});
 		builder.add(service, FormLayoutUtil.flip(cc.xy(1, 11), colSpec, orientation));
 		if (System.getProperty(LooksFrame.START_SERVICE) != null || !Platform.isWindows()) {
 			service.setEnabled(false);
+		}
+
+		CustomJButton serviceUninstall = new CustomJButton(Messages.getString("GeneralTab.2"));
+		serviceUninstall.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				PMS.get().uninstallWin32Service();
+				LOGGER.info(Messages.getString("GeneralTab.3"));
+				JOptionPane.showMessageDialog(
+					(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+					Messages.getString("GeneralTab.3"),
+					"Information",
+					JOptionPane.INFORMATION_MESSAGE
+				);
+			}
+		});
+		builder.add(serviceUninstall, FormLayoutUtil.flip(cc.xy(3, 11), colSpec, orientation));
+		if (System.getProperty(LooksFrame.START_SERVICE) != null || !Platform.isWindows()) {
+			serviceUninstall.setEnabled(false);
 		}
 
 		CustomJButton checkForUpdates = new CustomJButton(Messages.getString("NetworkTab.8"));
