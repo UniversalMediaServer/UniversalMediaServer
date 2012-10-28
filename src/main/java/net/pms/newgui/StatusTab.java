@@ -93,7 +93,7 @@ public class StatusTab {
 		jl = new JLabel(Messages.getString("StatusTab.3"));
 
 		builder.add(jl, FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
-		imagePanel = buildImagePanel("/resources/images/connect_no-220.png");
+		imagePanel = buildImagePanel("/resources/images/icon-status-connecting.png");
 		builder.add(imagePanel, FormLayoutUtil.flip(cc.xy(2, 5, "center, fill"), colSpec, orientation));
 
 		jpb = new JProgressBar(0, 100);

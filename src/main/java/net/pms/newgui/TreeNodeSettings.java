@@ -90,16 +90,19 @@ public class TreeNodeSettings extends DefaultMutableTreeNode {
 	public JPanel getWarningPanel() {
 		if (warningPanel == null) {
 			BufferedImage bi = null;
+
 			try {
-				bi = ImageIO.read(LooksFrame.class.getResourceAsStream("/resources/images/messagebox_warning-220.png"));
+				bi = ImageIO.read(LooksFrame.class.getResourceAsStream("/resources/images/icon-status-warning.png"));
 			} catch (IOException e) {
 				LOGGER.debug("Caught exception", e);
 			}
+
 			ImagePanel ip = new ImagePanel(bi);
 
 			FormLayout layout = new FormLayout(
 				"0:grow, pref, 0:grow",
-				"pref, 3dlu, pref, 12dlu, pref, 3dlu, pref, 3dlu, p, 3dlu, p, 3dlu, p");
+				"pref, 3dlu, pref, 12dlu, pref, 3dlu, pref, 3dlu, p, 3dlu, p, 3dlu, p"
+			);
 
 			PanelBuilder builder = new PanelBuilder(layout);
 			builder.setDefaultDialogBorder();
@@ -114,6 +117,7 @@ public class TreeNodeSettings extends DefaultMutableTreeNode {
 
 			warningPanel = builder.getPanel();
 		}
+
 		return warningPanel;
 	}
 }

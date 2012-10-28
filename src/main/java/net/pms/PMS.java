@@ -141,7 +141,7 @@ public class PMS {
 		if (!foundRenderers.contains(mediarenderer) && !mediarenderer.isFDSSDP()) {
 			foundRenderers.add(mediarenderer);
 			frame.addRendererIcon(mediarenderer.getRank(), mediarenderer.getRendererName(), mediarenderer.getRendererIcon());
-			frame.setStatusCode(0, Messages.getString("PMS.18"), "apply-220.png");
+			frame.setStatusCode(0, Messages.getString("PMS.18"), "icon-status-connected.png");
 		}
 	}
 
@@ -330,7 +330,7 @@ public class PMS {
 			}
 		});
 
-		frame.setStatusCode(0, Messages.getString("PMS.130"), "connect_no-220.png");
+		frame.setStatusCode(0, Messages.getString("PMS.130"), "icon-status-connecting.png");
 		proxy = -1;
 
 		LOGGER.info("Starting " + PropertiesUtil.getProjectProperties().get("project.name") + " " + getVersion());
@@ -479,10 +479,11 @@ public class PMS {
 					Thread.sleep(7000);
 				} catch (InterruptedException e) {
 				}
+
 				if (foundRenderers.isEmpty()) {
-					frame.setStatusCode(0, Messages.getString("PMS.0"), "messagebox_critical-220.png");
+					frame.setStatusCode(0, Messages.getString("PMS.0"), "icon-status-notconnected.png");
 				} else {
-					frame.setStatusCode(0, Messages.getString("PMS.18"), "apply-220.png");
+					frame.setStatusCode(0, Messages.getString("PMS.18"), "icon-status-connected.png");
 				}
 			}
 		}.start();
@@ -518,9 +519,11 @@ public class PMS {
 					for (ExternalListener l : ExternalFactory.getExternalListeners()) {
 						l.shutdown();
 					}
+
 					UPNPHelper.shutDownListener();
 					UPNPHelper.sendByeBye();
 					LOGGER.debug("Forcing shutdown of all active processes");
+
 					for (Process p : currentProcesses) {
 						try {
 							p.exitValue();
@@ -529,6 +532,7 @@ public class PMS {
 							ProcessUtil.destroy(p);
 						}
 					}
+
 					get().getServer().stop();
 					Thread.sleep(500);
 				} catch (IOException e) {
@@ -614,26 +618,32 @@ public class PMS {
 	 * @throws java.io.IOException
 	 */
 
-	// this is called *way* too often (e.g. a dozen times with 1 renderer and 1 shared folder),
-	// so log it by default so we can fix it.
+	// TODO: This is called *way* too often (e.g. a dozen times with 1 renderer
+	// and 1 shared folder), so log it by default so we can fix it.
 	// BUT it's also called when the GUI is initialized (to populate the list of shared folders),
 	// and we don't want this message to appear *before* the PMS banner, so allow that call to suppress logging	
 	public File[] getFoldersConf(boolean log) {
 		String folders = getConfiguration().getFolders();
+
 		if (folders == null || folders.length() == 0) {
 			return null;
 		}
+
 		ArrayList<File> directories = new ArrayList<File>();
 		String[] foldersArray = folders.split(",");
+
 		for (String folder : foldersArray) {
 			// unescape embedded commas. note: backslashing isn't safe as it conflicts with
 			// Windows path separators:
 			// http://ps3mediaserver.org/forum/viewtopic.php?f=14&t=8883&start=250#p43520
 			folder = folder.replaceAll("&comma;", ",");
+
 			if (log) {
 				LOGGER.info("Checking shared folder: " + folder);
 			}
+
 			File file = new File(folder);
+
 			if (file.exists()) {
 				if (!file.isDirectory()) {
 					LOGGER.warn("The file " + folder + " is not a directory! Please remove it from your Shared folders list on the " + Messages.getString("LooksFrame.22") + " tab");
@@ -645,6 +655,7 @@ public class PMS {
 			// add the file even if there are problems so that the user can update the shared folders as required.
 			directories.add(file);
 		}
+
 		File f[] = new File[directories.size()];
 		directories.toArray(f);
 		return f;
@@ -671,11 +682,13 @@ public class PMS {
 					server.stop();
 					server = null;
 					RendererConfiguration.resetAllRenderers();
+
 					try {
 						Thread.sleep(1000);
 					} catch (InterruptedException e) {
 						LOGGER.trace("Caught exception", e);
 					}
+
 					server = new HTTPServer(configuration.getServerPort());
 					server.start();
 					UPNPHelper.sendAlive();

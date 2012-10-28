@@ -970,7 +970,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return name;
 	}
 
-	/**Prototype for returning URLs.
+	/**
+	 * Prototype for returning URLs.
+	 *
 	 * @return An empty URL
 	 */
 	protected String getFileURL() {
@@ -985,24 +987,30 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		sb.append(PMS.get().getServer().getURL());
 		sb.append("/images/");
 		String id = null;
+
 		if (getMediaAudio() != null) {
 			id = getMediaAudio().getLang();
 		}
+
 		if (getMediaSubtitle() != null && getMediaSubtitle().getId() != -1) {
 			id = getMediaSubtitle().getLang();
 		}
+
 		if ((getMediaSubtitle() != null || getMediaAudio() != null) && StringUtils.isBlank(id)) {
 			id = DLNAMediaLang.UND;
 		}
+
 		if (id != null) {
 			String code = Iso639.getISO639_2Code(id.toLowerCase());
 			sb.append("codes/").append(code).append(".png");
 			return sb.toString();
 		}
+
 		if (isAvisynth()) {
-			sb.append("avisynth-logo-gears-mod.png");
+			sb.append("logo-avisynth.png");
 			return sb.toString();
 		}
+
 		return getURL("thumbnail0000");
 	}
 
@@ -1021,7 +1029,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return sb.toString();
 	}
 
-	/**Transforms a String to UTF-8.
+	/**
+	 * Transforms a String to UTF-8.
+	 *
 	 * @param s
 	 * @return Transformed string s in UTF-8 encoding.
 	 */
@@ -1689,7 +1699,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// need to override if some thumbnail work is to be done when mediaparserv2 enabled
 	}
 
-	/**Checks if a thumbnail exists, and if possible, generates one.
+	/**
+	 * Checks if a thumbnail exists, and if possible, generates one.
 	 * @param input InputFile to check or generate the thumbnail that is being asked for.
 	 */
 	protected void checkThumbnail(InputFile input) {
@@ -1702,14 +1713,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 	}
 
-	/** Returns the input stream for this resource's thumbnail
+	/**
+	 * Returns the input stream for this resource's thumbnail
 	 * (or a default image if a thumbnail can't be found).
 	 * Typically overridden by a subclass.
+	 *
 	 * @return The InputStream
 	 * @throws IOException
 	 */
 	public InputStream getThumbnailInputStream() throws IOException {
-		return getResourceInputStream("images/thumbnail-256.png");
+		return getResourceInputStream("images/thumbnail-video-256.png");
 	}
 
 	public String getThumbnailContentType() {
@@ -1724,7 +1737,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 	}
 
-	/**Prototype function.
+	/**
+	 * Prototype function.
+	 *
 	 * @return true if child can be added to other folder.
 	 * @see #addChild(DLNAResource)
 	 */
@@ -1734,7 +1749,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return false;
 	}
 
-	/* (non-Javadoc)
+	/**
+	 * (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override

@@ -433,6 +433,7 @@ public class RequestV2 extends HTTPResource {
 			} else {
 				output.setHeader(HttpHeaders.Names.CONTENT_TYPE, "image/jpeg");
 			}
+
 			output.setHeader(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
 			output.setHeader(HttpHeaders.Names.CONNECTION, "keep-alive");
 			output.setHeader(HttpHeaders.Names.EXPIRES, getFUTUREDATE() + " GMT");
@@ -444,16 +445,19 @@ public class RequestV2 extends HTTPResource {
 			output.setHeader(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
 			output.setHeader(HttpHeaders.Names.CONNECTION, "keep-alive");
 			inputStream = getResourceInputStream((argument.equals("description/fetch") ? "PMS.xml" : argument));
+
 			if (argument.equals("description/fetch")) {
 				byte b[] = new byte[inputStream.available()];
 				inputStream.read(b);
 				String s = new String(b);
 				s = s.replace("[uuid]", PMS.get().usn()); //.substring(0, PMS.get().usn().length()-2));
 				String profileName = PMS.getConfiguration().getProfileName();
+
 				if (PMS.get().getServer().getHost() != null) {
 					s = s.replace("[host]", PMS.get().getServer().getHost());
 					s = s.replace("[port]", "" + PMS.get().getServer().getPort());
 				}
+
 				if (xbox) {
 					LOGGER.debug("DLNA changes for Xbox 360");
 					s = s.replace("Universal Media Server", "Universal Media Server [" + profileName + "] : Windows Media Connect");
@@ -472,9 +476,10 @@ public class RequestV2 extends HTTPResource {
 					// hacky stuff. replace the png icon by a jpeg one. Like mpeg2 remux,
 					// really need a proper format compatibility list by renderer
 					s = s.replace("<mimetype>image/png</mimetype>", "<mimetype>image/jpeg</mimetype>");
-					s = s.replace("/images/thumbnail-256.png", "/images/thumbnail-120.jpg");
+					s = s.replace("/images/thumbnail-video-256.png", "/images/thumbnail-video-120.jpg");
 					s = s.replace(">256<", ">120<");
 				}
+
 				response.append(s);
 				inputStream = null;
 			}
@@ -484,6 +489,7 @@ public class RequestV2 extends HTTPResource {
 			response.append(CRLF);
 			response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
 			response.append(CRLF);
+
 			if (soapaction != null && soapaction.contains("IsAuthorized")) {
 				response.append(HTTPXMLHelper.XBOX_2);
 				response.append(CRLF);
@@ -491,12 +497,14 @@ public class RequestV2 extends HTTPResource {
 				response.append(HTTPXMLHelper.XBOX_1);
 				response.append(CRLF);
 			}
+
 			response.append(HTTPXMLHelper.BROWSERESPONSE_FOOTER);
 			response.append(CRLF);
 			response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 			response.append(CRLF);
 		} else if (method.equals("POST") && argument.endsWith("upnp/control/connection_manager")) {
 			output.setHeader(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
+
 			if (soapaction.indexOf("ConnectionManager:1#GetProtocolInfo") > -1) {
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
@@ -509,6 +517,7 @@ public class RequestV2 extends HTTPResource {
 			}
 		} else if (method.equals("POST") && argument.endsWith("upnp/control/content_directory")) {
 			output.setHeader(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
+
 			if (soapaction.indexOf("ContentDirectory:1#GetSystemUpdateID") > -1) {
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);

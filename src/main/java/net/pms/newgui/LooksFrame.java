@@ -370,14 +370,14 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		ft = new NavigationShareTab(configuration);
 		pt = new PluginTab(configuration);
 
-		tabbedPane.addTab(Messages.getString("LooksFrame.18"), /* readImageIcon("server-16.png"), */       st.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.19"), /* readImageIcon("mail_new-16.png"), */     tt.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.20"), /* readImageIcon("advanced-16.png"), */     nt.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.27"),                                             pt.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.22"), /* readImageIcon("bookmark-16.png"), */     ft.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.21"), /* readImageIcon("player_play-16.png"), */  tr.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.24"), /* readImageIcon("mail_new-16.png"), */     new HelpTab().build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.25"), /* readImageIcon("documentinfo-16.png"), */ new AboutTab().build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.18"), st.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.19"), tt.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.20"), nt.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.27"), pt.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.22"), ft.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.21"), tr.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.24"), new HelpTab().build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.25"), new AboutTab().build());
 
 		tabbedPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 

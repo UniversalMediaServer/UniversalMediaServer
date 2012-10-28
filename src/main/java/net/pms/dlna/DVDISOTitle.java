@@ -315,7 +315,7 @@ public class DVDISOTitle extends DLNAResource {
 		} else if (getMedia() != null && getMedia().getThumb() != null) {
 			return getMedia().getThumbnailInputStream();
 		} else {
-			return getResourceInputStream("images/cdrwblank-256.png");
+			return getResourceInputStream("images/thumbnail-music.png");
 		}
 	}
 }
