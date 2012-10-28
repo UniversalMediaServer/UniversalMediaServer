@@ -52,8 +52,14 @@ public class RootFolder extends DLNAResource {
 	private final PmsConfiguration configuration = PMS.getConfiguration();
 	private boolean running;
 	private FolderLimit lim;
-
+	private String tag;
+	
 	public RootFolder() {
+		this(null);
+	}
+
+	public RootFolder(String tag) {
+		this.tag = tag;
 		setIndexId(0);
 	}
 
@@ -97,13 +103,15 @@ public class RootFolder extends DLNAResource {
 			lim = new FolderLimit();
 			addChild(lim);
 		}
+		
+		if(!configuration.getNoFolders(tag)) {
+			for (DLNAResource r : getConfiguredFolders()) {
+				addChild(r);
+			}
 
-		for (DLNAResource r : getConfiguredFolders()) {
-			addChild(r);
-		}
-
-		for (DLNAResource r : getVirtualFolders()) {
-			addChild(r);
+			for (DLNAResource r : getVirtualFolders()) {
+				addChild(r);
+			}
 		}
 
 		if (configuration.getSearchFolder()) {
@@ -252,7 +260,7 @@ public class RootFolder extends DLNAResource {
 
 	private List<RealFile> getConfiguredFolders() {
 		List<RealFile> res = new ArrayList<RealFile>();
-		File[] files = PMS.get().getFoldersConf();
+		File[] files = PMS.get().getFoldersConf(tag);
 
 		if (files == null || files.length == 0) {
 			files = File.listRoots();
@@ -267,7 +275,7 @@ public class RootFolder extends DLNAResource {
 
 	private List<DLNAResource> getVirtualFolders() {
 		List<DLNAResource> res = new ArrayList<DLNAResource>();
-		List<MapFileConfiguration> mapFileConfs = MapFileConfiguration.parse(configuration.getVirtualFolders());
+		List<MapFileConfiguration> mapFileConfs = MapFileConfiguration.parse(configuration.getVirtualFolders(tag));
 
 		if (mapFileConfs != null) {
 			for (MapFileConfiguration f : mapFileConfs) {
@@ -899,7 +907,13 @@ public class RootFolder extends DLNAResource {
 	private List<DLNAResource> getAdditionalFoldersAtRoot() {
 		List<DLNAResource> res = new ArrayList<DLNAResource>();
 
+		String[] validPlugins=configuration.getPlugins(tag);
 		for (ExternalListener listener : ExternalFactory.getExternalListeners()) {
+			if(validPlugins != null) {
+				if(Arrays.binarySearch(validPlugins, listener.name())<0) {
+					continue;
+				}
+			}
 			if (listener instanceof AdditionalFolderAtRoot) {
 				AdditionalFolderAtRoot afar = (AdditionalFolderAtRoot) listener;
 

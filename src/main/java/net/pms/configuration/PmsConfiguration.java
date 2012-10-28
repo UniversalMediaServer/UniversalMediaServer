@@ -2430,4 +2430,54 @@ public class PmsConfiguration {
 		}
 		return true;
 	}
+	
+	///////////////////////////////////////////////////////////
+	// Web stuff
+	///////////////////////////////////////////////////////////
+	
+	private static final String KEY_NO_FOLDERS="no_shared";
+    
+    public String getFolders(String tag) {
+    	if(tag == null) {
+    		return getFolders();
+    	}
+    	String x=(tag.toLowerCase()+".folders").replaceAll(" ", "_");
+    	String res=getString(x, "");
+    	if(StringUtils.isEmpty(res)) {
+    		return getFolders();
+    	}
+    	return res;
+    }
+    
+    public String getVirtualFolders(String tag) {
+    	if(tag == null) {
+    		return getVirtualFolders();
+    	}
+    	String x=(tag.toLowerCase()+".vfolders").replaceAll(" ", "_");
+    	String res=getString(x, "");
+    	if(StringUtils.isEmpty(res)) {
+    		return getVirtualFolders();
+    	}
+    	return res;
+    }
+    
+    public boolean getNoFolders(String tag) {
+    	if(tag == null) {
+    		return getBoolean(KEY_NO_FOLDERS,false);
+    	}
+    	String x=(tag.toLowerCase()+".no_shared").replaceAll(" ", "_");
+    	return getBoolean(x,false);
+    }
+    
+    public String[] getPlugins(String tag) {
+    	if(tag == null) {
+    		return null;
+    	}
+    	String x=(tag.toLowerCase()+".plugins").replaceAll(" ", "_");
+    	String str=getString(x,"");
+    	if(StringUtils.isEmpty(str)) {
+    		return null;
+    	}
+    	return str.split(",");
+    }
 }

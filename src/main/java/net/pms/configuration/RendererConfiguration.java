@@ -194,7 +194,7 @@ public class RendererConfiguration {
 
 	public RootFolder getRootFolder() {
 		if (rootFolder == null) {
-			rootFolder = new RootFolder();
+			rootFolder = new RootFolder(getRendererName());
 			rootFolder.discoverChildren();
 		}
 		return rootFolder;

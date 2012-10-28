@@ -54,6 +54,7 @@ import net.pms.network.UPNPHelper;
 import net.pms.newgui.DbgPacker;
 import net.pms.newgui.LooksFrame;
 import net.pms.newgui.ProfileChooser;
+import net.pms.remote.RemoteWeb;
 import net.pms.update.AutoUpdater;
 import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
@@ -299,9 +300,8 @@ public class PMS {
 			String serverURL = Build.getUpdateServerURL();
 			autoUpdater = new AutoUpdater(serverURL, getVersion());
 		}
-
 		registry = createSystemUtils();
-
+		
 		if (System.getProperty(CONSOLE) == null) {
 			frame = new LooksFrame(autoUpdater, configuration);
 		} else {
@@ -318,7 +318,7 @@ public class PMS {
 				}
 			}
 		});
-
+		
 		frame.setStatusCode(0, Messages.getString("PMS.130"), "connect_no-220.png");
 		proxy = -1;
 
@@ -479,6 +479,9 @@ public class PMS {
 		if (!binding) {
 			return false;
 		}
+		
+		/// Web stuff
+		web = new RemoteWeb();
 
 		if (proxy > 0) {
 			LOGGER.info("Starting HTTP Proxy Server on port: " + proxy);
@@ -590,8 +593,8 @@ public class PMS {
 	// so log it by default so we can fix it.
 	// BUT it's also called when the GUI is initialized (to populate the list of shared folders),
 	// and we don't want this message to appear *before* the PMS banner, so allow that call to suppress logging	
-	public File[] getFoldersConf(boolean log) {
-		String folders = getConfiguration().getFolders();
+	public File[] getFoldersConf(String tag, boolean log) {
+		String folders = getConfiguration().getFolders(tag);
 		if (folders == null || folders.length() == 0) {
 			return null;
 		}
@@ -622,8 +625,12 @@ public class PMS {
 		return f;
 	}
 
-	public File[] getFoldersConf() {
-		return getFoldersConf(true);
+	public File[] getFoldersConf(String tag) {
+		return getFoldersConf(tag, true);
+	}
+	
+	public File[] getFoldersConf(boolean log) {
+		return getFoldersConf(null, log);
 	}
 
 	/**Restarts the server. The trigger is either a button on the main PMS window or via
@@ -1134,4 +1141,6 @@ public class PMS {
 	public void registerPlayer(Player player) {
 		PlayerFactory.registerPlayer(player);
 	}
+	
+	private RemoteWeb web;
 }

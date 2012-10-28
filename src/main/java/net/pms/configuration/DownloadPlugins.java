@@ -61,6 +61,7 @@ public class DownloadPlugins {
 				parse_list(res, in, true);
 			}
 		} catch (Exception e) {
+			LOGGER.debug("download plugin list error "+e);
 		}
 		return res;
 	}
@@ -80,6 +81,7 @@ public class DownloadPlugins {
 					LOGGER.info("An invalid plugin was ignored");
 				}
 				plugin = new DownloadPlugins(test);
+				continue;
 			}
 			String[] keyval = str.split("=", 2);
 			if (keyval.length < 2) {

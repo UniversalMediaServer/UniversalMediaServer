@@ -2089,7 +2089,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return The default renderer configuration.
 	 * @since 1.50
 	 */
-	protected RendererConfiguration getDefaultRenderer() {
+	public RendererConfiguration getDefaultRenderer() {
 		return defaultRenderer;
 	}
 
@@ -2099,7 +2099,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param defaultRenderer The default renderer configuration to set.
 	 * @since 1.50
 	 */
-	protected void setDefaultRenderer(RendererConfiguration defaultRenderer) {
+	public void setDefaultRenderer(RendererConfiguration defaultRenderer) {
 		this.defaultRenderer = defaultRenderer;
 	}
 
