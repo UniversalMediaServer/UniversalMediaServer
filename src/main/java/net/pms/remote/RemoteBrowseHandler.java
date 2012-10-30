@@ -58,7 +58,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 			String path = "/browse/";
 			if (!r.isFolder()) {
 				path = "/play/";
-				newId = newId + "." + r.getFormat().getMatchedId();
+				//newId = newId + "." + r.getFormat().getMatchedId();
 			}
 			sb.append("<li>");
 			sb.append("<a href=\"" + path + newId + "\"");
@@ -70,7 +70,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 			sb.append("</a></li>");
 			sb.append(CRLF);
 		}
-		sb.append("</ul></div></body>");
+		sb.append("</ul></div></body></html>");
 		sb.append(CRLF);
 		return sb.toString();
 	}

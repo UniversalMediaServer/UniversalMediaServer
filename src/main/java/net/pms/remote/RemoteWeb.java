@@ -14,6 +14,7 @@ import java.security.KeyStore;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.imageio.ImageIO;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
@@ -25,6 +26,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
 import net.pms.dlna.RootFolder;
+import net.pms.newgui.LooksFrame;
 import net.pms.util.PropertiesUtil;
 
 import org.apache.commons.lang.StringUtils;
@@ -103,7 +105,8 @@ public class RemoteWeb {
             addCtx("/play", new RemotePlayHandler(this));
             addCtx("/media", new RemoteMediaHandler(this));
             addCtx("/thumb", new RemoteThumbHandler(this));
-            addCtx("/files", new RemoteFileHandler());
+            addCtx("/raw", new RemoteMediaHandler(this, "raw/", RendererConfiguration.getDefaultConf()));
+            //addCtx("/jwplayer", new RemoteFileHandler());
             server.setExecutor(null);
             server.setHttpsConfigurator ( new HttpsConfigurator( sslContext )
             {
@@ -152,6 +155,7 @@ public class RemoteWeb {
 		}
 		root = new RootFolder(getTag(name));
 		root.setDefaultRenderer(RendererConfiguration.getDefaultConf());
+		//root.setDefaultRenderer(RendererConfiguration.getRendererConfigurationByName("web"));
 		root.discoverChildren();
 		roots.put(name, root);
 		return root;
@@ -212,11 +216,19 @@ public class RemoteWeb {
 		}
 		
 		public void handle(HttpExchange t) throws IOException {
+			String id = RemoteUtil.getId("thumb/", t);
+			if(id.contains("logo")) {
+				InputStream in = LooksFrame.class.getResourceAsStream("/resources/images/logo.png");
+				t.sendResponseHeaders(200, 0);
+				OutputStream os = t.getResponseBody();
+				RemoteUtil.dump(in, os);
+				return;
+			}
 			RootFolder root = parent.getRoot(t.getPrincipal().getUsername());
 			if(root == null) {
+				LOGGER.debug("weird root in thumb req");
 				throw new IOException("Unknown root");
 			}
-			String id = RemoteUtil.getId("thumb/", t);
 			List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, root.getDefaultRenderer());
 			if (res.size() != 1) {
 				// another error
@@ -256,6 +268,8 @@ public class RemoteWeb {
 			if(t.getRequestURI().getPath().contains("player.swf")) {
 				LOGGER .debug("fetch player.swf");
 				Headers hdr = t.getResponseHeaders();
+				hdr.add("Accept-Ranges", "bytes");
+				hdr.add("Server", PMS.get().getServerName());
 				//hdr.add("Content-Type", "application/javascript; charset=utf-8");
 				RemoteUtil.dumpFile("player.swf",t);
 				return;
@@ -279,17 +293,6 @@ public class RemoteWeb {
 		@Override
 		public void handle(HttpExchange t) throws IOException {
 			LOGGER.debug("root req "+t.getRequestURI());
-			if(t.getRequestURI().getPath().contains("crossdomain.xml")) {
-				String data="<?xml version=\"1.0\"?>" +
-				"<cross-domain-policy>" +
-				"<allow-access-from domain=\"*\" />"+
-				"</cross-domain-policy>";
-				t.sendResponseHeaders(200, data.length());
-				OutputStream os = t.getResponseBody();
-				os.write(data.getBytes());
-				os.close();
-				return;
-			}
 			StringBuilder sb = new StringBuilder();
 			sb.append("<html xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:og=\"http://opengraphprotocol.org/schema/\">");
 			sb.append(CRLF);

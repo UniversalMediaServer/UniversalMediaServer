@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import java.util.List;
 
 import net.pms.PMS;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
 import net.pms.dlna.RootFolder;
@@ -24,9 +25,17 @@ public class RemoteMediaHandler implements HttpHandler {
 	private final static String CRLF = "\r\n";
 	
 	private RemoteWeb parent;
+	private String path;
+	private RendererConfiguration render;
 	
 	public RemoteMediaHandler(RemoteWeb parent) {
+		this(parent, "media/", null);
+	}
+	
+	public RemoteMediaHandler(RemoteWeb parent,String path,RendererConfiguration render) {
 		this.parent = parent;
+		this.path = path;
+		this.render = render;
 	}
 	
 	private Range nullRange() {
@@ -38,17 +47,14 @@ public class RemoteMediaHandler implements HttpHandler {
 			return nullRange();
 		}
 		List<String> r = hdr.get("Range");
-		LOGGER.debug("get range "+r);
 		if (r == null) { // no range
 			return nullRange();
 		}
 		// assume only one
 		String range = r.get(0);
-		LOGGER.debug("range str "+range);
 		String[] tmp = range.split("=")[1].split("-");
         long start = Long.parseLong(tmp[0]);
         long end = tmp.length == 1 ?  len : Long.parseLong(tmp[1]);
-        LOGGER.debug("start "+start+" end "+end);
         return Range.create(start, end, 0.0, 0.0);
 	}
 	
@@ -58,8 +64,13 @@ public class RemoteMediaHandler implements HttpHandler {
 		if(root == null) {
 			throw new IOException("Unknown root");
 		}
-		String id = RemoteUtil.getId("media/", t);
-		List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, root.getDefaultRenderer());
+		String id = RemoteUtil.getId(path, t);
+		id = RemoteUtil.strip(id);
+		RendererConfiguration r = render;
+		if(render == null) {
+			r = root.getDefaultRenderer();
+		}
+		List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, r);
 		if (res.size() != 1) {
 			// another error
 			LOGGER.debug("media unkonwn");
@@ -76,15 +87,15 @@ public class RemoteMediaHandler implements HttpHandler {
 		hdr.add("Accept-Ranges", "bytes");
 		hdr.add("Server", PMS.get().getServerName());
 		hdr.add("Connection", "keep-alive");
+		hdr.add("Transfer-Encoding", "chunked");
 		if(in.available() != len) {
 			hdr.add("Content-Range", "bytes " + rb.getStart() + "-"  + in.available() + "/" + len);
 			t.sendResponseHeaders(206, in.available());
 		}
 		else {
-			t.sendResponseHeaders(200, len);
+			t.sendResponseHeaders(200, 0);
 		}
 		OutputStream os = new BufferedOutputStream(t.getResponseBody(),512*1024);
-		LOGGER.debug("input is "+in+" out "+os);
 		RemoteUtil.dump(in,os);	
 	}		
 }

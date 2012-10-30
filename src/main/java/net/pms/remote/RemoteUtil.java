@@ -25,23 +25,36 @@ public class RemoteUtil {
 		LOGGER.debug("dump of "+file+" done");
 	}
 	
-	public static void dump(InputStream in,OutputStream os) throws IOException {
-		byte[] buffer = new byte[32 * 1024];
-		int bytes;
-		int sendBytes = 0;
+	public static void dump(final InputStream in,final OutputStream os) throws IOException {
+		Runnable r = new Runnable() {
+			
+			public void run() {
+				byte[] buffer = new byte[32 * 1024];
+				int bytes;
+				int sendBytes = 0;
 
-		try {
-			while ((bytes = in.read(buffer)) != -1) {
-				sendBytes += bytes;
-				os.write(buffer, 0, bytes);
+				try {
+					while ((bytes = in.read(buffer)) != -1) {
+						sendBytes += bytes;
+						os.write(buffer, 0, bytes);
+						os.flush();
+					}
+				} catch (IOException e) {
+					LOGGER.trace("Sending stream with premature end: " + sendBytes + " bytes. Reason: " + e.getMessage());
+				}
+				finally {
+					try {
+						in.close();
+					} catch (IOException e) {
+					}
+				}
+				try {
+					os.close();
+				} catch (IOException e) {
+				}
 			}
-		} catch (IOException e) {
-			LOGGER.trace("Sending stream with premature end: " + sendBytes + " bytes. Reason: " + e.getMessage());
-		}
-		finally {
-			in.close();
-		}
-		os.close();
+		};
+		new Thread(r).start();
 	}
 	
 	public static String getId(String path, HttpExchange t) {
@@ -51,6 +64,13 @@ public class RemoteUtil {
     		id = t.getRequestURI().getPath().substring(pos + path.length());
     	}
     	return id;
+	}
+	
+	public static String strip(String id) {
+		int pos = id.lastIndexOf(".");
+		if(pos != -1)
+			return id.substring(0, pos);
+		return id;
 	}
 
 }
