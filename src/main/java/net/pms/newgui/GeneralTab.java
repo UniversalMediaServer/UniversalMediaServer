@@ -91,12 +91,10 @@ public class GeneralTab {
 			smcheckBox.setSelected(true);
 		}
 
-		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"),
-			FormLayoutUtil.flip(cc.xyw(1, 1, 9), colSpec, orientation));
+		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), FormLayoutUtil.flip(cc.xyw(1, 1, 9), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
-		builder.addLabel(Messages.getString("NetworkTab.0"),
-			FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
+		builder.addLabel(Messages.getString("NetworkTab.0"), FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
 		final KeyedComboBoxModel kcbm = new KeyedComboBoxModel(new Object[] {
 				"ar", "bg", "ca", "zhs", "zht", "cz", "da", "nl", "en", "fi", "fr",
 				"de", "el", "iw", "is", "it", "ja", "ko", "no", "pl", "pt", "br",
