@@ -940,6 +940,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	public String getDisplayName(RendererConfiguration mediaRenderer) {
 		String name = getName();
+		String subtitleFormat;
+		String subtitleLanguage;
 		if (this instanceof RealFile && PMS.getConfiguration().isHideExtensions() && !isFolder()) {
 			name = FileUtil.getFileNameWithoutExtension(name);
 		}
@@ -971,11 +973,26 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		if (getMediaAudio() != null) {
-			name = (getPlayer() != null ? ("[" + getPlayer().name() + "]") : "") + " {Audio: " + getMediaAudio().getAudioCodec() + "/" + getMediaAudio().getLangFullName() + ((getMediaAudio().getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowAudioMetadata()) ? (" (" + getMediaAudio().getFlavor() + ")") : "") + "}";
+			String audioLanguage = "/" + getMediaAudio().getLangFullName();
+			if ("/Undetermined".equals(audioLanguage)) {
+				audioLanguage = "";
+			}
+
+			name = (getPlayer() != null ? ("[" + getPlayer().name() + "]") : "") + " {Audio: " + getMediaAudio().getAudioCodec() + audioLanguage + ((getMediaAudio().getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowAudioMetadata()) ? (" (" + getMediaAudio().getFlavor() + ")") : "") + "}";
 		}
 
 		if (getMediaSubtitle() != null && getMediaSubtitle().getId() != -1) {
-			name += " {Sub: " + getMediaSubtitle().getType().getDescription() + "/" + getMediaSubtitle().getLangFullName() + ((getMediaSubtitle().getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowSubMetadata()) ? (" (" + getMediaSubtitle().getFlavor() + ")") : "") + "}";
+			subtitleFormat = getMediaSubtitle().getType().getDescription();
+			if ("(Advanced) SubStation Alpha".equals(subtitleFormat)) {
+				subtitleFormat = "SSA";
+			}
+
+			subtitleLanguage = "/" + getMediaSubtitle().getLangFullName();
+			if ("/Undetermined".equals(subtitleLanguage)) {
+				subtitleLanguage = "";
+			}
+
+			name += " {Sub: " + subtitleFormat + subtitleLanguage + ((getMediaSubtitle().getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowSubMetadata()) ? (" (" + getMediaSubtitle().getFlavor() + ")") : "") + "}";
 		}
 
 		if (isAvisynth()) {
