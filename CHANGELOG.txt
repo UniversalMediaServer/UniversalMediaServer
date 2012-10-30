@@ -15,25 +15,28 @@
 		Fixed error while loading iPhoto library
 		Updated many program dependencies to benefit from many bugfixes
 		Fixed bug where disabled engines would be picked
-		Updated Android.conf to enable streaming more file formats
-		Branding updates
 		Updated links on the Help page
 		Made renderer config layouts more synchronised
 		Added a button to uninstall the Windows service
+		Removed fontconfig from MEncoder for Mac OSX for improved subs compatibility
 	External components:
-		Updated MPlayer/MEncoder to SB41, which:
+		Updated MPlayer/MEncoder to SB42, which:
 			Runs faster
 			Improves audio/video sync
 			Faster handling of ASS/SSA subtitles
 			Improves DVD support
+		Updated FFmpeg to SB3, which:
+			Fixes memory leaks
+			Fixes other bugs
 		Updated MediaInfo to 0.7.61, which:
 			Fixes MKV framerate detection bug
 			Fixes E-AC-3 duration detection bug
 			More reliable DTS bitrate detection
 		Updated Java Service Wrapper to 3.5.15, which:
 			Improves Windows permissions handling
-	Mac OS X:
-		Removed fontconfig from MEncoder for Mac OSX for improved subs compatibility
+	Renderers:
+		Enabled streaming more file formats to Android devices
+		Improved DivX support on Panasonic devices
 	Plugin Management:
 		Created new "Plugin Management" tab
 		Added button to edit the plugin credential file
