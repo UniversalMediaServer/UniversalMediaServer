@@ -403,7 +403,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		setSpecificType(specificType);
 	}
 
-	/** Recursive function that searchs through all of the children until it finds
+	/**
+	 * Recursive function that searchs through all of the children until it finds
 	 * a {@link DLNAResource} that matches the name.<p> Only used by
 	 * {@link net.pms.dlna.RootFolder#addWebFolder(File webConf)
 	 * addWebFolder(File webConf)} while parsing the web.conf file.
@@ -417,6 +418,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				return child;
 			}
 		}
+
 		return null;
 	}
 
@@ -434,7 +436,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			|| (getFormat().isImage() && renderer.isImageSupported());
 	}
 
-	/**Adds a new DLNAResource to the child list. Only useful if this object is of the container type.<P>
+	/**
+	 * Adds a new DLNAResource to the child list. Only useful if this object is of the container type.<P>
 	 * TODO: (botijo) check what happens with the child object. This function can and will transform the child
 	 * object. If the transcode option is set, the child item is converted to a container with the real
 	 * item and the transcode option folder. There is also a parser in order to get the right name and type,
@@ -601,12 +604,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						Player player = PlayerFactory.getPlayer(newChild);
 						newChild.setPlayer(player);
 					}
+
 					if (child.getMedia() != null && child.getMedia().isSecondaryFormatValid()) {
 						addChild(newChild);
 					}
 				}
 			}
-		}catch (Throwable t) {
+		} catch (Throwable t) {
 			LOGGER.error(String.format("Failed to add child '%s'", child.getName()), t);
 
 			child.setParent(null);
@@ -623,20 +627,24 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (!isTranscodeFolderAvailable()) {
 			return null;
 		}
+
 		if (PMS.getConfiguration().getHideTranscodeEnabled()) {
 			return null;
 		}
+
 		// search for transcode folder
 		for (DLNAResource r : getChildren()) {
 			if (r instanceof TranscodeVirtualFolder) {
 				return (TranscodeVirtualFolder) r;
 			}
 		}
+
 		if (create) {
 			TranscodeVirtualFolder vf = new TranscodeVirtualFolder(null);
 			addChildInternal(vf);
 			return vf;
 		}
+
 		return null;
 	}
 
@@ -650,6 +658,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (res.getInternalId() != null) {
 			LOGGER.info("Node({}) already has an ID={}, which is overriden now. The previous parent node was:{}", new Object[] { res.getClass().getName(), res.getResourceId(), res.getParent()});
 		}
+
 		getChildren().add(res);
 		res.setParent(this);
 
@@ -713,10 +722,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						tpe.awaitTermination(20, TimeUnit.SECONDS);
 					} catch (InterruptedException e) {
 					}
+
 					LOGGER.trace("End of analysis");
 				}
 			}
 		}
+
 		lastSearch = searchStr;
 		return resources;
 	}
@@ -729,7 +740,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * update the last refresh time.
+	 * Update the last refresh time.
 	 */
 	protected void notifyRefresh() {
 		setLastRefreshTime(System.currentTimeMillis());
@@ -744,6 +755,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				if (renderer.getRendererName().equalsIgnoreCase("Playstation 3") || renderer.isXBOX()) {
 					LOGGER.info("Depth limit potentionally hit for " + getDisplayName());
 				}
+
 				if (defaultRenderer != null) {
 					defaultRenderer.addFolderLimit(this);
 				}
@@ -751,14 +763,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 			discoverChildren(searchStr);
 			boolean ready;
+
 			if (renderer.isMediaParserV2() && renderer.isDLNATreeHack()) {
 				ready = analyzeChildren(count);
 			} else {
 				ready = analyzeChildren(-1);
 			}
+
 			if (!renderer.isMediaParserV2() || ready) {
 				setDiscovered(true);
 			}
+
 			notifyRefresh();
 		} else {
 			// if forced, then call the old 'refreshChildren' method
@@ -793,13 +808,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 	}
 
-	/**Recursive function that searches for a given ID.
+	/**
+	 * Recursive function that searches for a given ID.
+	 *
 	 * @param searchId ID to search for.
 	 * @param renderer
 	 * @param count
 	 * @return Item found, or null otherwise.
 	 * @see #getId()
-	 *
 	 */
 	public DLNAResource search(String searchId, int count, RendererConfiguration renderer, String searchStr) {
 		if (getId() != null && searchId != null) {
@@ -809,6 +825,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					return this;
 				} else {
 					discoverWithRenderer(renderer, count, false, searchStr);
+
 					for (DLNAResource file : getChildren()) {
 						DLNAResource found = file.search(indexPath[1], count, renderer, searchStr);
 						if (found != null) {
@@ -873,6 +890,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			doRefreshChildren();
 			return true;
 		}
+
 		return false;
 	}
 
@@ -889,6 +907,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (getFormat() == null) {
 			setFormat(FormatFactory.getAssociatedExtension(getSystemName()));
 		}
+
 		if (getFormat() != null && getFormat().isUnknown()) {
 			getFormat().setType(getSpecificType());
 		}
@@ -980,7 +999,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * @return Returns a URL pointing to an image representing the item. If none is available, "thumbnail0000.png" is used.
+	 * @return Returns a URL pointing to an image representing the item. If
+	 * none is available, "thumbnail0000.png" is used.
 	 */
 	protected String getThumbnailURL() {
 		StringBuilder sb = new StringBuilder();
@@ -1045,8 +1065,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * @return Number of children objects. This might be used in the DLDI response, as some renderers might
-	 * not have enough memory to hold the list for all children.
+	 * @return Number of children objects. This might be used in the DLDI
+	 * response, as some renderers might not have enough memory to hold the
+	 * list for all children.
 	 */
 	public int childrenNumber() {
 		if (getChildren() == null) {
@@ -1054,7 +1075,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 		return getChildren().size();
 	}
-	/* (non-Javadoc)
+	/**
+	 * (non-Javadoc)
 	 * @see java.lang.Object#clone()
 	 */
 
@@ -1067,6 +1089,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		} catch (CloneNotSupportedException e) {
 			LOGGER.error(null, e);
 		}
+
 		return o;
 	}
 
@@ -1074,13 +1097,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return flags;
 	}
 
-	/**Returns a representation using DIDL response lines. It gives a complete representation of the item, with as many tags as available.
+	/**
+	 * Returns a representation using DIDL response lines. It gives a complete representation of the item, with as many tags as available.
 	 * Recommendations as per UPNP specification are followed where possible.
 	 * @param mediaRenderer Media Renderer for which to represent this information. Useful for some hacks.
 	 * @return String representing the item. An example would start like this: {@code <container id="0$1" childCount=1 parentID="0" restricted="true">}
 	 */
 	public final String toString(RendererConfiguration mediaRenderer) {
 		StringBuilder sb = new StringBuilder();
+
 		if (isFolder()) {
 			openTag(sb, "container");
 		} else {
@@ -1108,10 +1133,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		final DLNAMediaAudio firstAudioTrack = getMedia() != null ? getMedia().getFirstAudioTrack() : null;
 		if (firstAudioTrack != null && StringUtils.isNotBlank(firstAudioTrack.getSongname())) {
 			addXMLTagAndAttribute(sb, "dc:title", encodeXML(firstAudioTrack.getSongname() + (getPlayer() != null && !PMS.getConfiguration().isHideEngineNames() ? (" [" + getPlayer().name() + "]") : "")));
-		} else // Ditlew - org
-		//addXMLTagAndAttribute(sb, "dc:title", encodeXML((isFolder()||player==null)?getDisplayName():mediaRenderer.getUseSameExtension(getDisplayName())));
-		// Ditlew
-		{
+		} else {
 			addXMLTagAndAttribute(sb, "dc:title", encodeXML((isFolder() || getPlayer() == null) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer))));
 		}
 
