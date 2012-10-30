@@ -21,7 +21,9 @@ package net.pms.newgui;
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+import java.awt.Color;
 import java.awt.ComponentOrientation;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -49,7 +51,10 @@ public class StatusTab {
 	private int numRenderers;
 	private JLabel jl;
 	private JProgressBar jpb;
-	private JLabel jio;
+	private JLabel currentBitrate;
+	private JLabel currentBitrateLabel;
+	private JLabel peakBitrate;
+	private JLabel peakBitrateLabel;
 	private long rc = 0;
 	private long peak;
 	private DecimalFormat formatter = new DecimalFormat("#,###");
@@ -74,11 +79,11 @@ public class StatusTab {
 		// Apply the orientation for the locale
 		Locale locale = new Locale(configuration.getLanguage());
 		ComponentOrientation orientation = ComponentOrientation.getOrientation(locale);
-		String colSpec = FormLayoutUtil.getColSpec("0:grow, pref, 0:grow", orientation);
+		String colSpec = FormLayoutUtil.getColSpec("0:grow, 320dlu, 30dlu, pref, 0:grow", orientation);
 
 		FormLayout layout = new FormLayout(
 			colSpec,
-			"pref, 9dlu, pref, 3dlu, pref, 15dlu, pref, 3dlu, p, 3dlu, p, 3dlu, p, 9dlu, p, 5dlu, p"
+			"pref, 9dlu, p, 9dlu, p, 3dlu, p, 15dlu, p, 3dlu, 63dlu, 3dlu, p, 3dlu, p, 15dlu, p, 9dlu, p"
 		);
 
 		PanelBuilder builder = new PanelBuilder(layout);
@@ -86,33 +91,53 @@ public class StatusTab {
 		builder.setOpaque(true);
 		CellConstraints cc = new CellConstraints();
 
-		JComponent cmp = builder.addSeparator(Messages.getString("StatusTab.2"), FormLayoutUtil.flip(cc.xy(2, 1), colSpec, orientation));
+		JComponent cmp = builder.addSeparator(Messages.getString("StatusTab.2"), FormLayoutUtil.flip(cc.xyw(1, 1, 5), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
 		jl = new JLabel(Messages.getString("StatusTab.3"));
+		builder.add(jl, FormLayoutUtil.flip(cc.xyw(1, 3, 2, "center, top"), colSpec, orientation));
+		jl.setFont(new Font("Dialog", 1, 18));
+		jl.setForeground(new Color(68, 68, 68));
 
-		builder.add(jl, FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
 		imagePanel = buildImagePanel("/resources/images/icon-status-connecting.png");
-		builder.add(imagePanel, FormLayoutUtil.flip(cc.xy(2, 5, "center, fill"), colSpec, orientation));
+		builder.add(imagePanel, FormLayoutUtil.flip(cc.xywh(1, 5, 2, 8, "center, fill"), colSpec, orientation));
+
+		JSeparator x = new JSeparator(SwingConstants.VERTICAL);
+		x.setPreferredSize(new Dimension(3, 215));
+		builder.add(x, FormLayoutUtil.flip(cc.xywh(3, 4, 1, 12, "center, top"), colSpec, orientation));
+
+		currentBitrateLabel = new JLabel(Messages.getString("StatusTab.8") + " (" + Messages.getString("StatusTab.11") + ")");
+		builder.add(currentBitrateLabel, FormLayoutUtil.flip(cc.xyw(4, 5, 2, "left, top"), colSpec, orientation));
+
+		currentBitrate = new JLabel("0");
+		currentBitrate.setFont(new Font("Dialog", 1, 50));
+		currentBitrate.setForeground(new Color(68, 68, 68));
+		builder.add(currentBitrate, FormLayoutUtil.flip(cc.xyw(4, 7, 2, "left, top"), colSpec, orientation));
+
+		peakBitrateLabel = new JLabel(Messages.getString("StatusTab.10") + " (" + Messages.getString("StatusTab.11") + ")");
+		builder.add(peakBitrateLabel, FormLayoutUtil.flip(cc.xyw(4, 9, 2, "left, top"), colSpec, orientation));
+
+		peakBitrate = new JLabel("0");
+		peakBitrate.setFont(new Font("Dialog", 1, 50));
+		peakBitrate.setForeground(new Color(68, 68, 68));
+		builder.add(peakBitrate, FormLayoutUtil.flip(cc.xyw(4, 11, 2, "left, top"), colSpec, orientation));
 
 		jpb = new JProgressBar(0, 100);
 		jpb.setStringPainted(true);
 		jpb.setString(Messages.getString("StatusTab.5"));
 
-		builder.addLabel(Messages.getString("StatusTab.6"), FormLayoutUtil.flip(cc.xy(2, 7), colSpec, orientation));
-		builder.add(jpb, FormLayoutUtil.flip(cc.xy(2, 9), colSpec, orientation));
+		builder.addLabel(Messages.getString("StatusTab.6"), FormLayoutUtil.flip(cc.xy(1, 13), colSpec, orientation));
+		builder.add(jpb, FormLayoutUtil.flip(cc.xyw(1, 15, 2), colSpec, orientation));
 
-		jio = new JLabel(Messages.getString("StatusTab.8") + " 0 " + Messages.getString("StatusTab.11") + "    |    " + Messages.getString("StatusTab.10") + " 0 " + Messages.getString("StatusTab.11"));
-		builder.add(jio, FormLayoutUtil.flip(cc.xy(2, 13), colSpec, orientation));
-
-		cmp = builder.addSeparator(Messages.getString("StatusTab.9"), FormLayoutUtil.flip(cc.xy(2, 15), colSpec, orientation));
+		cmp = builder.addSeparator(Messages.getString("StatusTab.9"), FormLayoutUtil.flip(cc.xyw(1, 17, 5), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
 		FormLayout layoutRenderer = new FormLayout(
 			"0:grow, pref, pref, pref, pref, pref, pref, pref, pref, pref, pref, 0:grow",
-			"pref, 3dlu, pref");
+			"pref, 3dlu, pref"
+		);
 		PanelBuilder rendererBuilder = new PanelBuilder(layoutRenderer);
 		rendererBuilder.setOpaque(true);
 		for (int i = 0; i < MAX_RENDERERS; i++) {
@@ -122,7 +147,7 @@ public class StatusTab {
 			rendererBuilder.add(rendererLabels[i], cc.xy(2 + i, 3, CellConstraints.CENTER, CellConstraints.DEFAULT));
 		}
 
-		builder.add(rendererBuilder.getPanel(), cc.xy(2, 17));
+		builder.add(rendererBuilder.getPanel(), cc.xyw(1, 19, 5));
 
 		JPanel panel = builder.getPanel();
 
@@ -142,16 +167,20 @@ public class StatusTab {
 			rc = v;
 		} else {
 			int sizeinMb = (int) ((v - rc) / 125) / 1024;
+
 			if (sizeinMb > peak) {
 				peak = sizeinMb;
 			}
-			jio.setText(Messages.getString("StatusTab.8") + " " + formatter.format(sizeinMb) + " " + Messages.getString("StatusTab.11") + "    |    " + Messages.getString("StatusTab.10") + " " + formatter.format(peak) + " " + Messages.getString("StatusTab.11"));
+
+			currentBitrate.setText(formatter.format(sizeinMb));
+			peakBitrate.setText(formatter.format(peak));
 			rc = v;
 		}
 	}
 
 	public ImagePanel buildImagePanel(String url) {
 		BufferedImage bi = null;
+
 		if (url != null) {
 			try {
 				bi = ImageIO.read(LooksFrame.class.getResourceAsStream(url));
@@ -159,6 +188,7 @@ public class StatusTab {
 				LOGGER.debug("Caught exception", e);
 			}
 		}
+
 		return new ImagePanel(bi);
 	}
 
