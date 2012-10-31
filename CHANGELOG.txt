@@ -1,4 +1,4 @@
-1.7.0 - 2012-10-??
+2.0.0 - 2012-10-31
 
 	General:
 		Design facelift
@@ -19,6 +19,8 @@
 		Made renderer config layouts more synchronised
 		Added a button to uninstall the Windows service
 		Removed fontconfig from MEncoder for Mac OSX for improved subs compatibility
+		Made names in the transcode folder shorter by removing redundant information
+		The user preference to hide file extensions is applied to the transcode folder subfolder names
 	External components:
 		Updated MPlayer/MEncoder to SB42, which:
 			Runs faster
@@ -35,8 +37,9 @@
 		Updated Java Service Wrapper to 3.5.15, which:
 			Improves Windows permissions handling
 	Renderers:
+		Added support for Sony Bravia HX800 TVs (thanks, lelin!)
 		Enabled streaming more file formats to Android devices
-		Improved DivX support on Panasonic devices
+		Improved DivX support on Panasonic devices (thanks, ExSport!)
 	Plugin Management:
 		Created new "Plugin Management" tab
 		Added button to edit the plugin credential file
@@ -46,7 +49,7 @@
 		Added "version" column to plugin installer
 	Languages:
 		Turkish flag added for the transcode folder
-		Updated English settings labels
+		Updated settings labels for all languages
 
 1.6.0 - 2012-10-01
 
