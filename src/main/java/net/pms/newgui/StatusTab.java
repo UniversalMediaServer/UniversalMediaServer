@@ -79,11 +79,11 @@ public class StatusTab {
 		// Apply the orientation for the locale
 		Locale locale = new Locale(configuration.getLanguage());
 		ComponentOrientation orientation = ComponentOrientation.getOrientation(locale);
-		String colSpec = FormLayoutUtil.getColSpec("0:grow, 320dlu, 30dlu, pref, 0:grow", orientation);
+		String colSpec = FormLayoutUtil.getColSpec("left:pref, 320dlu, 30dlu, pref, 0:grow", orientation);
 
 		FormLayout layout = new FormLayout(
 			colSpec,
-			"pref, 9dlu, p, 9dlu, p, 3dlu, p, 15dlu, p, 3dlu, 63dlu, 3dlu, p, 3dlu, p, 15dlu, p, 9dlu, p"
+			"p, 9dlu, p, 9dlu, p, 3dlu, p, 15dlu, p, 3dlu, 63dlu, 3dlu, p, 3dlu, p, 15dlu, p, 9dlu, p"
 		);
 
 		PanelBuilder builder = new PanelBuilder(layout);
