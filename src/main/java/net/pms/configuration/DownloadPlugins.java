@@ -342,6 +342,9 @@ public class DownloadPlugins {
 		}
 		pid.waitFor();
 
+		// Reload the config in case we have new settings
+		PMS.getConfiguration().reload();
+
 		File[] newJar = new File(PMS.getConfiguration().getPluginDirectory()).listFiles();
 		for (int i = 0; i < newJar.length; i++) {
 			File f = newJar[i];
