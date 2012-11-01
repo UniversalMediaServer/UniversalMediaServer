@@ -573,7 +573,9 @@ public class DLNAMediaInfo implements Cloneable {
 
 							tf = jpegmeta.findEXIFValue(TiffConstants.EXIF_TAG_ISO);
 							if (tf != null) {
-								setIso(tf.getIntValue());
+								// Galaxy Nexus jpg pictures may contain multiple values, take the first
+								int[] isoValues = tf.getIntArrayValue();
+								setIso(isoValues[0]);
 							}
 						}
 					} else if (formatName.startsWith("PNG")) {
