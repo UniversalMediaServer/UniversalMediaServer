@@ -210,14 +210,18 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 
 		inputStreams = new ArrayList<WaitBufferedInputStream>();
 		timer = new Timer();
+
 		if (params.maxBufferSize > 15 && !params.hidebuffer) {
 			timer.schedule(new TimerTask() {
+				@Override
 				public void run() {
 					long rc = 0;
+
 					if (getCurrentInputStream() != null) {
 						rc = getCurrentInputStream().getReadCount();
 						PMS.get().getFrame().setReadValue(rc, "");
 					}
+
 					long space = (writeCount - rc);
 					LOGGER.trace("buffered: " + formatter.format(space) + " bytes / inputs: " + inputStreams.size());
 
@@ -258,7 +262,9 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 		if (attachedThread != null) {
 			attachedThread.setReadyToStop(false);
 		}
-		WaitBufferedInputStream atominputStream = null;
+
+		WaitBufferedInputStream atominputStream;
+
 		if (!PMS.getConfiguration().getTrancodeBlocksMultipleConnections() || getCurrentInputStream() == null) {
 			atominputStream = new WaitBufferedInputStream(this);
 			inputStreams.add(atominputStream);
@@ -280,12 +286,15 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 				inputStreams.add(atominputStream);
 				LOGGER.debug("Reassign inputstream: " + getCurrentInputStream());
 			}
+
 			return null;
 		}
+
 		if (newReadPosition > 0) {
 			LOGGER.debug("Setting InputStream new position to: " + formatter.format(newReadPosition));
 			atominputStream.setReadCount(newReadPosition);
 		}
+
 		return atominputStream;
 	}
 
@@ -662,26 +671,33 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			if (bufferOverflowWarning != newMargin) {
 				LOGGER.debug("Setting margin to 2Mb");
 			}
+
 			this.bufferOverflowWarning = newMargin;
 		}
+
 		if (eof && readCount >= writeCount) {
 			return -1;
 		}
+
 		int c = 0;
 		int minBufferS = firstRead ? minMemorySize : secondread_minsize;
 		while (writeCount - readCount <= minBufferS && !eof && c < 15) {
 			if (c == 0) {
 				LOGGER.trace("Suspend Read: readCount=" + readCount + " / writeCount=" + writeCount);
 			}
+
 			c++;
+
 			try {
 				Thread.sleep(CHECK_INTERVAL);
 			} catch (InterruptedException e) {
 			}
 		}
+
 		if (attachedThread != null) {
 			attachedThread.setReadyToStop(false);
 		}
+
 		if (c > 0) {
 			LOGGER.trace("Resume Read: readCount=" + readCount + " / writeCount=" + writeCount);
 		}
@@ -693,6 +709,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 		int mb = (int) (readCount % maxMemorySize);
 		int endOF = buffer.length;
 		int cut = 0;
+
 		if (eof && (writeCount - readCount) < len) {
 			cut = (int) (len - (writeCount - readCount));
 		}
@@ -710,26 +727,34 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 	public int read(boolean firstRead, long readCount) {
 		if (readCount > INITIAL_BUFFER_SIZE && readCount < maxMemorySize) {
 			int newMargin = maxMemorySize - MARGIN_MEDIUM;
+
 			if (bufferOverflowWarning != newMargin) {
 				LOGGER.debug("Setting margin to 2Mb");
 			}
+
 			this.bufferOverflowWarning = newMargin;
 		}
+
 		if (eof && readCount >= writeCount) {
 			return -1;
 		}
+
 		int c = 0;
 		int minBufferS = firstRead ? minMemorySize : secondread_minsize;
+
 		while (writeCount - readCount <= minBufferS && !eof && c < 15) {
 			if (c == 0) {
 				LOGGER.trace("Suspend Read: readCount=" + readCount + " / writeCount=" + writeCount);
 			}
+
 			c++;
+
 			try {
 				Thread.sleep(CHECK_INTERVAL);
 			} catch (InterruptedException e) {
 			}
 		}
+
 		if (attachedThread != null) {
 			attachedThread.setReadyToStop(false);
 		}
@@ -741,6 +766,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 		if (buffer == null || !buffered) {
 			return -1;
 		}
+
 		return 0xff & buffer[(int) (readCount % maxMemorySize)];
 	}
 
@@ -749,6 +775,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 		if (attachedThread != null) {
 			throw new RuntimeException("BufferedOutputFile is already attached to a Thread: " + attachedThread);
 		}
+
 		LOGGER.debug("Attaching thread: " + thread);
 		attachedThread = thread;
 	}
@@ -761,20 +788,25 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 	@Override
 	public void detachInputStream() {
 		PMS.get().getFrame().setReadValue(0, "");
+
 		if (attachedThread != null) {
 			attachedThread.setReadyToStop(true);
 		}
+
 		Runnable checkEnd = new Runnable() {
+			@Override
 			public void run() {
 				try {
 					Thread.sleep(CHECK_END_OF_PROCESS);
 				} catch (InterruptedException e) {
 					LOGGER.error(null, e);
 				}
+
 				if (attachedThread != null && attachedThread.isReadyToStop()) {
 					if (!attachedThread.isDestroyed()) {
 						attachedThread.stopProcess();
 					}
+
 					reset();
 				}
 			}
@@ -791,12 +823,16 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 				LOGGER.debug("Caught exception", e);
 			}
 		}
+
 		timer.cancel();
+
 		if (buffer != null) {
 			LOGGER.trace("Destroying buffer");
 			buffer = null;
 		}
+
 		buffered = false;
+
 		if (maxMemorySize != 1048576) {
 			PMS.get().getFrame().setValue(0, "Empty");
 		}
