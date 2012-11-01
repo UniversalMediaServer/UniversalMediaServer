@@ -233,9 +233,10 @@ public class FileUtil {
 	/**
 	 * Detects charset/encoding for given file. Not 100% accurate for
 	 * non-Unicode files.
+	 *
 	 * @param file File to detect charset/encoding
-	 * @return file's charset {@link org.mozilla.universalchardet.Constants} or null
-	 * if not detected
+	 * @return file's charset {@link org.mozilla.universalchardet.Constants}
+	 *         or null if not detected
 	 * @throws IOException
 	 */
 	public static String getFileCharset(File file) throws IOException {
@@ -264,6 +265,7 @@ public class FileUtil {
 
 	/**
 	 * Tests if file is UTF-8 encoded with or without BOM.
+	 *
 	 * @param file File to test
 	 * @return true if file is UTF-8 encoded with or without BOM, false otherwise.
 	 * @throws IOException
@@ -274,6 +276,7 @@ public class FileUtil {
 
 	/**
 	 * Tests if charset is UTF-8 encoded with or without BOM.
+	 *
 	 * @param charset Charset to test
 	 * @return true if charset is UTF-8 encoded with or without BOM, false otherwise.
 	 */
@@ -431,16 +434,19 @@ public class FileUtil {
 	}
 
 	/**
-	 * Determines whether the supplied directory is readable by trying to read its contents.
-	 * This works around JDK bugs which return the wrong results for {@link java.io.File.canRead()}
-	 * on Windows and possibly on Unix.
-	 * <p>
-	 * Note: since this method accesses the filesystem, it should not be used in contexts in which performance is critical.
+	 * Determines whether the supplied directory is readable by trying to
+	 * read its contents.
+	 * This works around JDK bugs which return the wrong results for
+	 * {@link java.io.File.canRead()} on Windows and possibly on Unix.
+	 *
+	 * Note: since this method accesses the filesystem, it should not be
+	 * used in contexts in which performance is critical.
 	 * Note: this method changes the file access time.
 	 *
 	 * @since 1.71.0
 	 * @param dir the File whose permissions are to be determined
-	 * @return <code>true</code> if the directory is not null, exists, is a directory and can be read, <code>false</code> otherwise
+	 * @return <code>true</code> if the File is not null, exists, is a
+	 *         directory and can be read, <code>false</code> otherwise
 	 */
 	// XXX dir.canRead() has issues on Windows, so verify it directly:
 	// http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6203387
@@ -464,16 +470,20 @@ public class FileUtil {
 	}
 
 	/**
-	 * Determines whether the supplied directory is writable by trying to write a file to it.
-	 * This works around JDK bugs which return the wrong results for {@link java.io.File.canWrite()}
-	 * on Windows and possibly on Unix.
-	 * <p>
-	 * Note: since this method accesses the filesystem, it should not be used in contexts in which performance is critical.
-	 * Note: this method changes the file access time and may change the file modification time.
+	 * Determines whether the supplied directory is writable by trying to
+	 * write a file to it.
+	 * This works around JDK bugs which return the wrong results for
+	 * {@link java.io.File.canWrite()} on Windows and possibly on Unix.
+	 *
+	 * Note: since this method accesses the filesystem, it should not be
+	 * used in contexts in which performance is critical.
+	 * Note: this method changes the file access time and may change the
+	 * file modification time.
 	 *
 	 * @since 1.71.0
 	 * @param dir the File whose permissions are to be determined
-	 * @return <code>true</code> if the directory is not null, exists, is a directory and can be written to, <code>false</code> otherwise
+	 * @return <code>true</code> if the File is not null, exists, is a
+	 *         directory and can be written to, <code>false</code> otherwise
 	 */
 	// XXX dir.canWrite() has issues on Windows, so verify it directly:
 	// http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6203387
