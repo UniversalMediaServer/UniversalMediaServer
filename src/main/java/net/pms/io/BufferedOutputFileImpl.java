@@ -767,7 +767,14 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			return -1;
 		}
 
-		return 0xff & buffer[(int) (readCount % maxMemorySize)];
+		try {
+			return 0xff & buffer[(int) (readCount % maxMemorySize)];
+		} catch (ArrayIndexOutOfBoundsException e) {
+			LOGGER.info("Buffer read ArrayIndexOutOfBoundsException error:");
+			LOGGER.info("readCount: \"" + readCount + "\"");
+			LOGGER.info("maxMemorySize: \"" + maxMemorySize + "\"");
+			return -1;
+		}
 	}
 
 	@Override
