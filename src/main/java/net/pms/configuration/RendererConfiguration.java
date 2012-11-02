@@ -823,7 +823,7 @@ public class RendererConfiguration {
 	/**
 	 * Returns the size to report back to the renderer when transcoding media
 	 * as defined in the renderer configuration. Default value is 0.
-	 * 
+	 *
 	 * @return The size to report.
 	 */
 	public long getTranscodedSize() {

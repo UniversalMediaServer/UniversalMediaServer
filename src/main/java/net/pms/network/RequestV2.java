@@ -296,7 +296,12 @@ public class RequestV2 extends HTTPResource {
 					if (subs != null && !subs.isEmpty()) {
 						// TODO: maybe loop subs to get the requested subtitle type instead of using the first one
 						DLNAMediaSubtitle sub = subs.get(0);
-						inputStream = new java.io.FileInputStream(sub.getExternalFile());
+
+						try {
+							inputStream = new java.io.FileInputStream(sub.getExternalFile());
+						} catch (NullPointerException npe) {
+							LOGGER.trace("Could not find external subtitles: " + sub);
+						}
 					}
 				} else {
 					// This is a request for a regular file.
