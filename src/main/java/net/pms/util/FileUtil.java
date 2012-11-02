@@ -260,7 +260,11 @@ public class FileUtil {
 
 		universalDetector.reset();
 
-		return encoding;
+		try {
+			return encoding;
+		} finally {
+			bufferedInputStream.close();
+		}
 	}
 
 	/**
