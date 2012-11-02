@@ -261,6 +261,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 	 * Applies the IP filter to the specified internet address. Returns true
 	 * if the address is not allowed and therefore should be filtered out,
 	 * false otherwise.
+	 *
 	 * @param inetAddress The internet address to verify.
 	 * @return True when not allowed, false otherwise.
 	 */
@@ -270,17 +271,17 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 	private void writeResponse(MessageEvent e, RequestV2 request, InetAddress ia) {
 		// Decide whether to close the connection or not.
-		boolean close = HttpHeaders.Values.CLOSE.equalsIgnoreCase(nettyRequest.getHeader(HttpHeaders.Names.CONNECTION))
-			|| nettyRequest.getProtocolVersion().equals(
-			HttpVersion.HTTP_1_0)
-			&& !HttpHeaders.Values.KEEP_ALIVE.equalsIgnoreCase(nettyRequest.getHeader(HttpHeaders.Names.CONNECTION));
+		boolean close = HttpHeaders.Values.CLOSE.equalsIgnoreCase(nettyRequest.getHeader(HttpHeaders.Names.CONNECTION)) ||
+			nettyRequest.getProtocolVersion().equals(HttpVersion.HTTP_1_0) &&
+			!HttpHeaders.Values.KEEP_ALIVE.equalsIgnoreCase(nettyRequest.getHeader(HttpHeaders.Names.CONNECTION));
 
 		// Build the response object.
 		HttpResponse response;
 		if (request.getLowRange() != 0 || request.getHighRange() != 0) {
 			response = new DefaultHttpResponse(
 				HttpVersion.HTTP_1_1,
-				HttpResponseStatus.PARTIAL_CONTENT);
+				HttpResponseStatus.PARTIAL_CONTENT
+			);
 		} else {
 			String soapAction = nettyRequest.getHeader("SOAPACTION");
 
@@ -288,8 +289,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				LOGGER.debug("Invalid action in SOAPACTION: " + soapAction);
 				response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR);
 			} else {
-				response = new DefaultHttpResponse(
-				HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+				response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
 			}
 		}
 		
