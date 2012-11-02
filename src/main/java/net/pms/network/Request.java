@@ -175,7 +175,7 @@ public class Request extends HTTPResource {
 		if (lowRange != 0 || highRange != 0) {
 			output(output, http10 ? HTTP_206_OK_10 : HTTP_206_OK);
 		} else {
-			if (soapaction != null && soapaction.indexOf("ContentDirectory:1#X_GetFeatureList") > -1) {
+			if (soapaction != null && soapaction.contains("X_GetFeatureList")) {
 				//  If we don't return a 500 error, Samsung 2012 TVs time out.
 				output(output, HTTP_500);
 			} else {
