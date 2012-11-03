@@ -82,15 +82,15 @@ public class UPNPHelper {
 		}
 
 		String discovery =
-			"HTTP/1.1 200 OK" + CRLF
-			+ "CACHE-CONTROL: max-age=1200" + CRLF
-			+ "DATE: " + sdf.format(new Date(System.currentTimeMillis())) + " GMT" + CRLF
-			+ "LOCATION: http://" + PMS.get().getServer().getHost() + ":" + PMS.get().getServer().getPort() + "/description/fetch" + CRLF
-			+ "SERVER: " + PMS.get().getServerName() + CRLF
-			+ "ST: " + st + CRLF
-			+ "EXT: " + CRLF
-			+ "USN: " + usn + st + CRLF
-			+ "Content-Length: 0" + CRLF + CRLF;
+			"HTTP/1.1 200 OK" + CRLF +
+			"CACHE-CONTROL: max-age=1200" + CRLF +
+			"DATE: " + sdf.format(new Date(System.currentTimeMillis())) + " GMT" + CRLF +
+			"LOCATION: http://" + PMS.get().getServer().getHost() + ":" + PMS.get().getServer().getPort() + "/description/fetch" + CRLF +
+			"SERVER: " + PMS.get().getServerName() + CRLF +
+			"ST: " + st + CRLF +
+			"EXT: " + CRLF +
+			"USN: " + usn + st + CRLF +
+			"Content-Length: 0" + CRLF + CRLF;
 		sendReply(host, port, discovery);
 	}
 
@@ -103,7 +103,6 @@ public class UPNPHelper {
 			DatagramPacket dgmPacket = new DatagramPacket(msg.getBytes(), msg.length(), inetAddr, port);
 			ssdpUniSock.send(dgmPacket);
 			ssdpUniSock.close();
-
 		} catch (Exception ex) {
 			LOGGER.info(ex.getMessage());
 		}
@@ -143,6 +142,7 @@ public class UPNPHelper {
 			LOGGER.trace("Setting multicast network interface: " + PMS.get().getServer().getNetworkInterface());
 			ssdpSocket.setNetworkInterface(PMS.get().getServer().getNetworkInterface());
 		}
+
 		LOGGER.trace("Sending message from multicast socket on network interface: " + ssdpSocket.getNetworkInterface());
 		LOGGER.trace("Multicast socket is on interface: " + ssdpSocket.getInterface());
 		ssdpSocket.setTimeToLive(32);
@@ -170,8 +170,7 @@ public class UPNPHelper {
 	private static void sleep(int delay) {
 		try {
 			Thread.sleep(delay);
-		} catch (InterruptedException e) {
-		}
+		} catch (InterruptedException e) { }
 	}
 
 	private static void sendMessage(DatagramSocket socket, String nt, String message) throws IOException {
@@ -189,17 +188,17 @@ public class UPNPHelper {
 
 	public static void listen() throws IOException {
 		Runnable rAlive = new Runnable() {
+			@Override
 			public void run() {
 				while (true) {
 					try {
 						Thread.sleep(delay);
 						sendAlive();
-						if (delay == 20000) // every 180s
-						{
+						if (delay == 20000) { // every 180s
 							delay = 180000;
 						}
-						if (delay == 10000) // after 10, and 30s
-						{
+
+						if (delay == 10000) { // after 10, and 30s
 							delay = 20000;
 						}
 					} catch (Exception e) {
@@ -208,10 +207,12 @@ public class UPNPHelper {
 				}
 			}
 		};
+
 		aliveThread = new Thread(rAlive, "UPNP-AliveMessageSender");
 		aliveThread.start();
 
 		Runnable r = new Runnable() {
+			@Override
 			public void run() {
 				boolean bindErrorReported = false;
 				while (true) {
@@ -286,6 +287,7 @@ public class UPNPHelper {
 				}
 			}
 		};
+
 		listener = new Thread(r, "UPNPHelper");
 		listener.start();
 	}
