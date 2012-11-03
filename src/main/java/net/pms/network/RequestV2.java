@@ -568,7 +568,7 @@ public class RequestV2 extends HTTPResource {
 				String containerID = null;
 				if ((objectID == null || objectID.length() == 0)) {
 					containerID = getEnclosingValue(content, "<ContainerID>", "</ContainerID>");
-					if (!containerID.contains("$")) {
+					if (containerID != null && !containerID.contains("$")) {
 						objectID = "0";
 					} else {
 						objectID = containerID;
