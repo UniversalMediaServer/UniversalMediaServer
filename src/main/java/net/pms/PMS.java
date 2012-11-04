@@ -856,7 +856,7 @@ public class PMS {
 
 		try {
 			if (instance.init()) {
-				LOGGER.info("The server should now appear on your renderer");
+				LOGGER.info("The server is now available for renderers to find");
 			} else {
 				LOGGER.error("A serious error occurred during PMS init");
 			}
