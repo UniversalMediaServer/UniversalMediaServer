@@ -1080,21 +1080,25 @@ public class PMS {
 	 * Restart handling
 	 */
 	private static void killOld() {
-		try {
-			killProc();
-		} catch (IOException e) {
-			LOGGER.debug("error killing old proc " + e);
-		}
+		if (configuration.isAdmin()) {
+			try {
+				killProc();
+			} catch (IOException e) {
+				LOGGER.debug("Error killing old process " + e);
+			}
 
-		try {
-			dumpPid();
-		} catch (IOException e) {
-			LOGGER.debug("error dumping pid " + e);
+			try {
+				dumpPid();
+			} catch (IOException e) {
+				LOGGER.debug("Error dumping PID " + e);
+			}
+		} else {
+			LOGGER.debug("UMS must be run as administrator in order to access the PID file");
 		}
 	}
 
 	private static boolean verifyPidName(String pid) throws IOException {
-		ProcessBuilder pb = new ProcessBuilder("tasklist","/FI","\"PID eq " + pid + "\"", "/V", "/NH", "/FO", "CSV");
+		ProcessBuilder pb = new ProcessBuilder("tasklist", "/FI", "\"PID eq " + pid + "\"", "/V", "/NH", "/FO", "CSV");
 		pb.redirectErrorStream(true);
 		Process p = pb.start();
 		BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
