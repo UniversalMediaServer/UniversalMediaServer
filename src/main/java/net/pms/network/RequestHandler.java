@@ -256,7 +256,7 @@ public class RequestHandler implements Runnable {
 					LOGGER.trace("Closing input stream: " + request.getInputStream());
 					request.getInputStream().close();
 				} catch (IOException e1) {
-					LOGGER.error("Error closing input stream", e);
+					LOGGER.error("Error closing input stream", e1);
 				}
 			}
 		} finally {
