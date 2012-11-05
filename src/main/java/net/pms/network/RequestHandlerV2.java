@@ -125,7 +125,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				request.setMediaRenderer(renderer);
 				LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on address " + ia);
 			} else {
-				LOGGER.info("Detected and blocked Windows Media Player");
+				LOGGER.trace("Detected and blocked Windows Media Player");
 				isWindowsMediaPlayer = true;
 			}
 		}
@@ -151,7 +151,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 						PMS.get().setRendererfound(renderer);
 						LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLine + "\"");
 					} else if (!isWindowsMediaPlayer) {
-						LOGGER.info("Detected and blocked Windows Media Player");
+						LOGGER.trace("Detected and blocked Windows Media Player");
 						isWindowsMediaPlayer = true;
 					}
 				}
