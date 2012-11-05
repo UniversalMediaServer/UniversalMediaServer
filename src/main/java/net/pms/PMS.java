@@ -1093,7 +1093,7 @@ public class PMS {
 				LOGGER.debug("Error dumping PID " + e);
 			}
 		} else {
-			LOGGER.debug("UMS must be run as administrator in order to access the PID file");
+			LOGGER.trace("UMS must be run as administrator in order to access the PID file");
 		}
 	}
 
@@ -1136,10 +1136,10 @@ public class PMS {
 
 		if (Platform.isWindows()) {
 			if (verifyPidName(pid)) {
-				pb = new ProcessBuilder("taskkill","/F","/PID",pid,"/T");
+				pb = new ProcessBuilder("taskkill", "/F", "/PID", pid, "/T");
 			}
 		} else if (Platform.isFreeBSD() || Platform.isLinux() || Platform.isOpenBSD() || Platform.isSolaris()) {
-			pb=new ProcessBuilder("kill","-9",pid);
+			pb = new ProcessBuilder("kill", "-9", pid);
 		}
 
 		if (pb == null) {
@@ -1150,7 +1150,7 @@ public class PMS {
 			Process p = pb.start();
 			p.waitFor();
 		} catch (Exception e) {
-			LOGGER.debug("error kill pid " + e);
+			LOGGER.trace("Error killing process by PID " + e);
 		}
 	}
 
@@ -1162,7 +1162,7 @@ public class PMS {
 	private static void dumpPid() throws IOException {
 		FileOutputStream out = new FileOutputStream("pms.pid");
 		long pid = getPID();
-		LOGGER.debug("My PID is " + pid);
+		LOGGER.trace("PID: " + pid);
 		String data = String.valueOf(pid) + "\r\n";
 		out.write(data.getBytes());
 		out.flush();
