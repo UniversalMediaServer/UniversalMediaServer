@@ -2017,7 +2017,7 @@ public class MEncoderVideo extends Player {
 				 * ugly (unused) bottom 8 pixels would be displayed, or we would limit all
 				 * videos to 1088 causing the bottom 8 meaningful pixels to be cut off.
 				 */
-				if (media.getWidth() == 3840 && media.getHeight() == 1080) {
+				if (media.getWidth() == 3840 && (media.getHeight() == 1080 || media.getHeight() == 1078)) {
 					// Full-SBS
 					scaleWidth  = 1920;
 					scaleHeight = 1080;
