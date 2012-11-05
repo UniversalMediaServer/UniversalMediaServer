@@ -121,11 +121,7 @@ public class PipeProcess {
 			LOGGER.trace("Opening file " + linuxPipeName + " for reading...");
 			RandomAccessFile raf = new RandomAccessFile(linuxPipeName, "r");
 
-			try {
-				return new FileInputStream(raf.getFD());
-			} finally {
-				raf.close();
-			}
+			return new FileInputStream(raf.getFD());
 		}
 
 		return mk.getReadable();
@@ -136,11 +132,7 @@ public class PipeProcess {
 			LOGGER.trace("Opening file " + linuxPipeName + " for writing...");
 			RandomAccessFile raf = new RandomAccessFile(linuxPipeName, "rw");
 
-			try {
-				return new FileOutputStream(raf.getFD());
-			} finally {
-				raf.close();
-			}
+			return new FileOutputStream(raf.getFD());
 		}
 
 		return mk.getWritable();
