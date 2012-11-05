@@ -1,7 +1,12 @@
 2.0.1 - 2012-11-??
 
 	General:
-		
+		Enabled HiDPI for retina displays
+		Fixed a bug that prevented showing Galaxy Nexus pictures
+		Allow plugins more freedom on install
+		Log improvements
+		Stop Windows Media Player from being detected
+		Language clarifications
 
 2.0.0 - 2012-10-31
 
