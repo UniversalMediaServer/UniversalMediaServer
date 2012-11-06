@@ -175,13 +175,27 @@ public class UPNPHelper {
 
 	private static void sendMessage(DatagramSocket socket, String nt, String message) throws IOException {
 		String msg = buildMsg(nt, message);
+		boolean alreadyLoggedError = false;
 		Random rand = new Random();
-		//LOGGER.trace( "Sending this SSDP packet: " + CRLF + msg);// StringUtils.replace(msg, CRLF, "<CRLF>"));
 		DatagramPacket ssdpPacket = new DatagramPacket(msg.getBytes(), msg.length(), getUPNPAddress(), UPNP_PORT);
-		socket.send(ssdpPacket);
+
+		try {
+			socket.send(ssdpPacket);
+		} catch (IOException e) {
+			LOGGER.debug("An error occurred while sending this SSDP packet: " + CRLF + msg);
+			LOGGER.debug("The full error was: " + e);
+			alreadyLoggedError = true;
+		}
 		sleep(rand.nextInt(1800 / 2));
 
-		socket.send(ssdpPacket);
+		try {
+			socket.send(ssdpPacket);
+		} catch (IOException e) {
+			if (!alreadyLoggedError) {
+				LOGGER.debug("An error occurred while sending this SSDP packet: " + CRLF + msg);
+				LOGGER.debug("The full error was: " + e);
+			}
+		}
 		sleep(rand.nextInt(1800 / 2));
 	}
 	private static int delay = 10000;
