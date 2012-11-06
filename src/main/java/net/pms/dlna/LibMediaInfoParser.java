@@ -51,6 +51,7 @@ public class LibMediaInfoParser {
 					while (st.hasMoreTokens()) {
 						String line = st.nextToken().trim();
 
+						// Define the type of media
 						if (line.equals("Video") || line.startsWith("Video #")) {
 							step = MediaInfo.StreamKind.Video;
 						} else if (line.equals("Audio") || line.startsWith("Audio #")) {
@@ -72,6 +73,7 @@ public class LibMediaInfoParser {
 						} else if (line.equals("Chapters")) {
 							step = MediaInfo.StreamKind.Chapters;
 						}
+
 						int point = line.indexOf(":");
 						if (point > -1) {
 							String key = line.substring(0, point).trim();
@@ -378,8 +380,10 @@ public class LibMediaInfoParser {
 		}
 		try {
 			return Integer.parseInt(value);
-		} catch (NumberFormatException ex) {
-			LOGGER.info("Unknown bitrate detected. Returning 0.");
+		} catch (NumberFormatException e) {
+			LOGGER.trace("Could not parse bitrate from: " + value);
+			LOGGER.trace("The full error was: " + e);
+
 			return 0;
 		}
 	}
