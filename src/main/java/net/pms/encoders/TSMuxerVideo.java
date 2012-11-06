@@ -119,7 +119,7 @@ public class TSMuxerVideo extends Player {
 
 		String fps = media.getValidFps(false);
 		String videoType = "V_MPEG4/ISO/AVC";
-		if (media != null && media.getCodecV() != null && media.getCodecV().equals("mpeg2video")) {
+		if (media != null && media.getCodecV() != null && media.getCodecV().startsWith("mpeg2")) {
 			videoType = "V_MPEG-2";
 		}
 

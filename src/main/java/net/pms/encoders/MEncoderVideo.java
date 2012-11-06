@@ -2086,7 +2086,7 @@ public class MEncoderVideo extends Player {
 			cmdList.add("softskip,expand=-" + expandBorderWidth + ":-" + expandBorderHeight);
 		}
 
-		if (configuration.getMencoderMT() && !avisynth && !dvd && !(media.getCodecV() != null && (media.getCodecV().equals("mpeg2video")))) {
+		if (configuration.getMencoderMT() && !avisynth && !dvd && !(media.getCodecV() != null && (media.getCodecV().startsWith("mpeg2")))) {
 			cmdList.add("-lavdopts");
 			cmdList.add("fast");
 		}
@@ -2631,7 +2631,7 @@ public class MEncoderVideo extends Player {
 					} else if ("rm".equals(type)) {
 						secondaryType = "rmvb";
 						interpreter.set(secondaryType, r);
-					} else if ("mpeg2video".equals(type)) {
+					} else if ("mpeg2".startsWith(type)) {
 						secondaryType = "mpeg2";
 						interpreter.set(secondaryType, r);
 					} else if ("mpeg1video".equals(type)) {
