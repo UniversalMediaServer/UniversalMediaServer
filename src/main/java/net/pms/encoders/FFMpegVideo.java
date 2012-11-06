@@ -225,9 +225,6 @@ public class FFMpegVideo extends Player {
 		if (params.timeseek > 0 && !mplayer()) {
 			cmdList.add("-ss");
 			cmdList.add("" + params.timeseek);
-		} else {
-			cmdList.add("-sn");
-			cmdList.add("-sn");
 		}
 
 		String cmd3 = "-sn";
@@ -294,15 +291,13 @@ public class FFMpegVideo extends Player {
 			cmd8 = "mpeg2video";
 		}
 
-		if (type() == Format.VIDEO || type() == Format.AUDIO) {
-			if (type() == Format.VIDEO && (mplayer())) {
-				cmd8 = "wav";
-				cmd9 = "-i";
-				cmd10 = audioP.getOutputPipe();
-			} else if (type() == Format.AUDIO) {
-				cmd7 = "-i";
-				cmd8 = fileName;
-			}
+		if (type() == Format.VIDEO && (mplayer())) {
+			cmd8 = "wav";
+			cmd9 = "-i";
+			cmd10 = audioP.getOutputPipe();
+		} else if (type() == Format.AUDIO) {
+			cmd7 = "-i";
+			cmd8 = fileName;
 		}
 
 		if (params.timeend > 0) {
@@ -314,11 +309,6 @@ public class FFMpegVideo extends Player {
 		cmdList.add(cmd8);
 		cmdList.add(cmd9);
 		cmdList.add(cmd10);
-
-		String cmd11 = "-sn";
-		String cmd12 = "-sn";
-		String cmd13 = "-sn";
-		String cmd14 = "-sn";
 
 		int defaultMaxBitrates[] = getVideoBitrateConfig(PMS.getConfiguration().getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
@@ -365,17 +355,12 @@ public class FFMpegVideo extends Player {
 			bufSize = bufSize * 1000;
 			defaultMaxBitrates[0] = defaultMaxBitrates[0] * 1000;
 
-			cmd11 = "-bufsize";
-			cmd12 = "" + bufSize;
+			cmdList.add("-bufsize");
+			cmdList.add("" + bufSize);
 
-			cmd13 = "-maxrate";
-			cmd14 = "" + defaultMaxBitrates[0];
+			cmdList.add("-maxrate");
+			cmdList.add("" + defaultMaxBitrates[0]);
 		}
-
-		cmdList.add(cmd11);
-		cmdList.add(cmd12);
-		cmdList.add(cmd13);
-		cmdList.add(cmd14);
 
 		// Audio codec
 		cmdList.add(audioCodecInput1);
@@ -392,11 +377,10 @@ public class FFMpegVideo extends Player {
 		LOGGER.trace("channels=" + channels);
 
 		// Audio bitrate
-		String cmd17 = ((params.aid.isAC3() && !ac3Remux) || type() == Format.AUDIO) ? "-sn" : "-ab";
-		String cmd18 = ((params.aid.isAC3() && !ac3Remux) || type() == Format.AUDIO) ? "-sn" : PMS.getConfiguration().getAudioBitrate() + "k";
-
-		cmdList.add(cmd17);
-		cmdList.add(cmd18);
+		if (!(params.aid.isAC3() && !ac3Remux) && !(type() == Format.AUDIO)) {
+			cmdList.add("-ab");
+			cmdList.add(PMS.getConfiguration().getAudioBitrate() + "k");
+		}
 
 		// Add the arguments being passed from other engines
 		cmdList.addAll(Arrays.asList(args));
