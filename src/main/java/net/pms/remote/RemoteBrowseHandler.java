@@ -85,6 +85,9 @@ public class RemoteBrowseHandler implements HttpHandler {
 	
     public void handle(HttpExchange t) throws IOException {
     	LOGGER.debug("got a browse request "+t.getRequestURI());
+    	if(RemoteUtil.deny(t)) {
+    		throw new IOException("Access denied");
+    	}
     	String id = RemoteUtil.getId("browse/", t);
     	LOGGER.debug("found id "+id);
     	String response = mkBrowsePage(id,t);

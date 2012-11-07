@@ -1931,7 +1931,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param player The player object to set.
 	 * @since 1.50
 	 */
-	protected void setPlayer(Player player) {
+	public void setPlayer(Player player) {
 		this.player = player;
 	}
 

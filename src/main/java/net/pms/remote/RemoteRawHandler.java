@@ -7,11 +7,9 @@ import java.io.OutputStream;
 import java.util.List;
 
 import net.pms.PMS;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
 import net.pms.dlna.RootFolder;
-import net.pms.encoders.WebPlayer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,27 +18,19 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
-public class RemoteMediaHandler implements HttpHandler {
+public class RemoteRawHandler implements HttpHandler {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(RemoteMediaHandler.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(RemoteRawHandler.class);
 	private final static String CRLF = "\r\n";
 	
 	private RemoteWeb parent;
-	private String path;
-	private RendererConfiguration render;
 	
-	public RemoteMediaHandler(RemoteWeb parent) {
-		this(parent, "media/", null);
-	}
-	
-	public RemoteMediaHandler(RemoteWeb parent,String path,RendererConfiguration render) {
+	public RemoteRawHandler(RemoteWeb parent) {
 		this.parent = parent;
-		this.path = path;
-		this.render = render;
 	}
 	
-	@Override
 	public void handle(HttpExchange t) throws IOException {
+		LOGGER.debug("got a raw request "+t.getRequestURI());
 		if(RemoteUtil.deny(t)) {
     		throw new IOException("Access denied");
     	}
@@ -48,35 +38,39 @@ public class RemoteMediaHandler implements HttpHandler {
 		if(root == null) {
 			throw new IOException("Unknown root");
 		}
-		String id = RemoteUtil.getId(path, t);
-		id = RemoteUtil.strip(id);
-		RendererConfiguration r = render;
-		if(render == null) {
-			r = root.getDefaultRenderer();
-		}
-		List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, r);
+		String id = "0";
+		id = RemoteUtil.strip(RemoteUtil.getId("raw/", t));
+		LOGGER.debug("raw id "+id);
+		List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, root.getDefaultRenderer());
 		if (res.size() != 1) {
 			// another error
 			LOGGER.debug("media unkonwn");
 			throw new IOException("Bad id");
 		}
-		long len = res.get(0).length();
+		DLNAResource dlna = res.get(0);
+		long len = dlna.length();
+		dlna.setPlayer(null);
 		Range range = RemoteUtil.parseRange(t.getRequestHeaders(), len);
 		Range.Byte rb = range.asByteRange();
-		String mime = root.getDefaultRenderer().getMimeType(res.get(0).mimeType());
-		if(res.get(0).getFormat().isVideo()&&!mime.equals("video/mp4")) {
-			mime = "/video/mp4";
-			res.get(0).setPlayer(new WebPlayer());
-		}
-		LOGGER.debug("dumping media "+mime+" "+res);
-		InputStream in = res.get(0).getInputStream(range, root.getDefaultRenderer());
+		InputStream in = dlna.getInputStream(range, root.getDefaultRenderer());
+		String mime = root.getDefaultRenderer().getMimeType(dlna.mimeType());
 		Headers hdr = t.getResponseHeaders();
+		LOGGER.debug("dumping media "+mime+" "+dlna);
 		hdr.add("Content-Type" , mime);
 		hdr.add("Accept-Ranges", "bytes");
 		hdr.add("Server", PMS.get().getServerName());
 		hdr.add("Connection", "keep-alive");
-		t.sendResponseHeaders(200, 0);
-		OutputStream os = t.getResponseBody();
+		hdr.add("Transfer-Encoding", "chunked");
+		if(in.available() != len) {
+			hdr.add("Content-Range", "bytes " + rb.getStart() + "-"  + in.available() + "/" + len);
+			t.sendResponseHeaders(206, in.available());
+		}
+		else {
+			t.sendResponseHeaders(200, 0);
+		}
+		OutputStream os = new BufferedOutputStream(t.getResponseBody(),512*1024);
+		LOGGER.debug("start raw dump");
 		RemoteUtil.dump(in,os);	
-	}		
+	}
+
 }

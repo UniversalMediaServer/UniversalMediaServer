@@ -83,20 +83,33 @@ public class RemotePlayHandler implements HttpHandler {
 		if(res.get(0).getFormat().isVideo()) {
 			mediaType="video";
 		}
-		sb.append("<" + mediaType + " width=\"320\" height=\"240\" autoplay=\"autoplay\" controls=\"controls\"");
+		sb.append("<" + mediaType + " width=\"320\" height=\"240\" controls=\"controls\" autoplay=\"autoplay\"");
 		sb.append(" src=\"/media/" + id1 + "\" type=\"" + mime + "\">");
 		sb.append("Your browser doesn't appear to support the HTML5 video tag");
-		sb.append("</" + mediaType +"><br>");
+		sb.append("</" + mediaType +"><br><br>");
 		List<DLNAResource> res1 = root.getDLNAResources(id, false, 0, 0, RendererConfiguration.getDefaultConf());
 		String rawId = id + "." + res1.get(0).getFormat().getMatchedId();
 		sb.append("<a href=\"/raw/" + rawId + "\" target=\"_blank\">Download</a>");
 		sb.append(CRLF);
+		/*String emb = "<OBJECT ID=\"MediaPlayer1\" CLASSID=\"CLSID:22d6f312-b0f6-11d0-94ab-0080c74c7e95\" CODEBASE=\"http://activex.microsoft.com/activex/controls/mplayer/en/nsmp2inf.cab# Version=5,1,52,701\" STANDBY=\"Loading Microsoft Windows Media Player components...\" TYPE=\"application/x-oleobject\" width=\"320\" height=\"280\">"+
+		"<param name=\"fileName\" value=\"/raw/" + rawId + "\">"+
+		"<param name=\"animationatStart\" value=\"true\">"+
+		"<param name=\"transparentatStart\" value=\"true\">"+
+		"<param name=\"autoStart\" value=\"false\">"+
+		"<param name=\"showControls\" value=\"true\">"+
+		"<param name=\"Volume\" value=\"-300\">"+
+		"<embed type=\"application/x-mplayer2\" pluginspage=\"http://www.microsoft.com/Windows/MediaPlayer/\" src=\"/raw/" + rawId + "\" name=\"MediaPlayer1\" width=320 height=280 autostart=0 showcontrols=0 volume=-300>"+
+		"</OBJECT>"; 
+		sb.append(emb);*/
 		sb.append("</body></html>");
 		return sb.toString();
 	}
 
 	public void handle(HttpExchange t) throws IOException {
 		LOGGER.debug("got a play equest "+t.getRequestURI());
+		if(RemoteUtil.deny(t)) {
+    		throw new IOException("Access denied");
+    	}
 		String id = "0";
 		id = RemoteUtil.getId("play/", t);
 		String response = mkPage(id,t);

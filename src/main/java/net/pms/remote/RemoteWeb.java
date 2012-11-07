@@ -105,7 +105,7 @@ public class RemoteWeb {
             addCtx("/play", new RemotePlayHandler(this));
             addCtx("/media", new RemoteMediaHandler(this));
             addCtx("/thumb", new RemoteThumbHandler(this));
-            addCtx("/raw", new RemoteMediaHandler(this, "raw/", RendererConfiguration.getDefaultConf()));
+            addCtx("/raw", new RemoteRawHandler(this));
             //addCtx("/jwplayer", new RemoteFileHandler());
             server.setExecutor(null);
             server.setHttpsConfigurator ( new HttpsConfigurator( sslContext )
@@ -216,12 +216,12 @@ public class RemoteWeb {
 		}
 		
 		public void handle(HttpExchange t) throws IOException {
+			if(RemoteUtil.deny(t)) {
+	    		throw new IOException("Access denied");
+	    	}
 			String id = RemoteUtil.getId("thumb/", t);
 			if(id.contains("logo")) {
-				InputStream in = LooksFrame.class.getResourceAsStream("/resources/images/logo.png");
-				t.sendResponseHeaders(200, 0);
-				OutputStream os = t.getResponseBody();
-				RemoteUtil.dump(in, os);
+				RemoteUtil.sendLogo(t);
 				return;
 			}
 			RootFolder root = parent.getRoot(t.getPrincipal().getUsername());
@@ -293,6 +293,13 @@ public class RemoteWeb {
 		@Override
 		public void handle(HttpExchange t) throws IOException {
 			LOGGER.debug("root req "+t.getRequestURI());
+			if(RemoteUtil.deny(t)) {
+	    		throw new IOException("Access denied");
+	    	}
+			if(t.getRequestURI().getPath().contains("favicon")) {
+				RemoteUtil.sendLogo(t);
+				return;
+			}
 			StringBuilder sb = new StringBuilder();
 			sb.append("<html xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:og=\"http://opengraphprotocol.org/schema/\">");
 			sb.append(CRLF);

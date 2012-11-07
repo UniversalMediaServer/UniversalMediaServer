@@ -5,10 +5,16 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
+
+import net.pms.PMS;
+import net.pms.dlna.Range;
+import net.pms.newgui.LooksFrame;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 
 public class RemoteUtil {
@@ -71,6 +77,37 @@ public class RemoteUtil {
 		if(pos != -1)
 			return id.substring(0, pos);
 		return id;
+	}
+	
+	public static boolean deny(HttpExchange t) {
+		 return !PMS.getConfiguration().getIpFiltering().allowed(t.getRemoteAddress().getAddress());
+	}
+	
+	private static Range nullRange(long len) {
+		return Range.create(0, len, 0.0, 0.0);
+	}
+	
+	public static Range parseRange(Headers hdr, long len) {
+		if (hdr == null) {
+			return nullRange(len);
+		}
+		List<String> r = hdr.get("Range");
+		if (r == null) { // no range
+			return nullRange(len);
+		}
+		// assume only one
+		String range = r.get(0);
+		String[] tmp = range.split("=")[1].split("-");
+        long start = Long.parseLong(tmp[0]);
+        long end = tmp.length == 1 ?  len : Long.parseLong(tmp[1]);
+        return Range.create(start, end, 0.0, 0.0);
+	}
+	
+	public static void sendLogo(HttpExchange t) throws IOException {
+		InputStream in = LooksFrame.class.getResourceAsStream("/resources/images/logo.png");
+		t.sendResponseHeaders(200, 0);
+		OutputStream os = t.getResponseBody();
+		dump(in, os);
 	}
 
 }
