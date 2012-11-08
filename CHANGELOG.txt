@@ -7,6 +7,7 @@
 		Log improvements
 		Stop Windows Media Player from being detected
 		Language clarifications
+		Updated Dutch Traditional translation (thanks, leroy!)
 
 2.0.0 - 2012-10-31
 

@@ -340,10 +340,11 @@ public class DownloadPlugins {
 		while ((line = br.readLine()) != null) {
 			sb.append(line);
 		}
-		pid.waitFor();
-
+		
 		// Reload the config in case we have new settings
 		PMS.getConfiguration().reload();
+		pid.waitFor();
+
 
 		File[] newJar = new File(PMS.getConfiguration().getPluginDirectory()).listFiles();
 		for (int i = 0; i < newJar.length; i++) {
@@ -366,7 +367,7 @@ public class DownloadPlugins {
 		}
 	}
 
-	private boolean command(String cmd, String args) {
+	private boolean command(String cmd, String args) throws ConfigurationException {
 		if (cmd.equalsIgnoreCase("move")) {
 			// arg1 is src and arg2 is dst
 			String[] tmp = args.split(",");
@@ -393,6 +394,7 @@ public class DownloadPlugins {
 			String[] tmp = args.split(",", 2);
 			tmp = tmp[1].split("=");
 			PMS.getConfiguration().setCustomProperty(tmp[1], tmp[2]);
+			PMS.getConfiguration().save();
 			return true;
 		}
 		if (cmd.equalsIgnoreCase("exec")) {
@@ -503,8 +505,8 @@ public class DownloadPlugins {
 		// Create the instances of the plugins
 		ExternalFactory.instantiateDownloaded(update);
 		updateLabel = null;
-		PMS.getConfiguration().save();
-		PMS.getConfiguration().reload();
+		//PMS.getConfiguration().save();
+		//PMS.getConfiguration().reload();
 		return true;
 	}
 }
