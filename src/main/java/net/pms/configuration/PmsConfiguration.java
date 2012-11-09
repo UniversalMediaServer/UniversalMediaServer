@@ -2442,4 +2442,13 @@ public class PmsConfiguration {
 	public void setExternalNetwork(boolean b) {
 		configuration.setProperty(KEY_EXTERNAL_NETWORK, b);
 	}
+	
+	// ATZ limit
+	private static final String KEY_ATZ_LIMIT = "atz_limit";
+	private static final int DEFAULT_ATZ_LIMIT = 10000;
+	
+	public int getATZLimit() {
+		return getInt(KEY_ATZ_LIMIT, DEFAULT_ATZ_LIMIT);
+	}
+	
 }

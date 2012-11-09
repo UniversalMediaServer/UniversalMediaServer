@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.Collator;
 import java.util.*;
+
 import net.pms.PMS;
 import net.pms.configuration.MapFileConfiguration;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
@@ -261,6 +262,24 @@ public class MapFile extends DLNAResource {
 				});
 				break;
 		}
+		
+		// ATZ handling
+		if (files.size() > PMS.getConfiguration().getATZLimit()) {
+			// to many files to display in oneshot, add A-Z folders
+			// instead and let the filters begin
+			for(char i='A';i<='Z';i++) {
+				String ch=String.valueOf(i);
+				List<File> newFiles = findFiles(ch, files);
+				if (!newFiles.isEmpty()) {
+					addChild(new ATZFolder(ch, newFiles));
+				}
+			}
+			List<File> newFiles = findOtherFiles(files);
+			if (!newFiles.isEmpty()) {
+				addChild(new ATZFolder("#", newFiles));
+			}
+			return;
+		}
 
 		for (File f : files) {
 			if (f.isDirectory()) {
@@ -277,6 +296,28 @@ public class MapFile extends DLNAResource {
 				}
 			}
 		}
+	}
+	
+	private List<File> findOtherFiles(List<File> files) {
+		ArrayList<File> res = new ArrayList<File>();
+		for(File f : files) {
+			char c = f.getName().toUpperCase().charAt(0);
+			if (!(c >= 'A' && c <= 'Z')) {
+				// "other char", add it
+				res.add(f);
+			}
+		}
+		return res;
+	}
+	
+	private List<File> findFiles(String start, List<File> files) {
+		ArrayList<File> res = new ArrayList<File>();
+		for(File f : files) {
+			if(f.getName().toUpperCase().startsWith(start)) {
+				res.add(f);
+			}
+		}
+		return res;
 	}
 
 	@Override
