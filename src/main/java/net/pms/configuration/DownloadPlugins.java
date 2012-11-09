@@ -50,6 +50,11 @@ public class DownloadPlugins {
 
 	public static ArrayList<DownloadPlugins> downloadList() {
 		ArrayList<DownloadPlugins> res = new ArrayList<DownloadPlugins>();
+		if (!PMS.getConfiguration().getExternalNetwork()) {
+			// No external network -> no idea to try and fetch
+			// plugin list, give up
+			return res;
+		}
 		try {
 			URL u = new URL(PLUGIN_LIST_URL);
 			URLConnection connection = u.openConnection();

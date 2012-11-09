@@ -112,7 +112,7 @@ public class RootFolder extends DLNAResource {
 		}
 
 		File webConf = new File(configuration.getProfileDirectory(), "WEB.conf");
-		if (webConf.exists()) {
+		if (webConf.exists() && PMS.getConfiguration().getExternalNetwork()) {
 			addWebFolder(webConf);
 		}
 

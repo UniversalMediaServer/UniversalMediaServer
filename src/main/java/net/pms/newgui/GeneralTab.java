@@ -60,6 +60,7 @@ public class GeneralTab {
 	private JTextField maxbitrate;
 	private JComboBox renderers;
 	private final PmsConfiguration configuration;
+	private JCheckBox extNetBox;
 
 	GeneralTab(PmsConfiguration configuration) {
 		this.configuration = configuration;
@@ -310,6 +311,7 @@ public class GeneralTab {
 		cmp = builder.addSeparator(Messages.getString("NetworkTab.22"), FormLayoutUtil.flip(cc.xyw(1, 17, 9), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
+		
 
 		final KeyedComboBoxModel networkInterfaces = createNetworkInterfacesModel();
 		networkinterfacesCBX = new JComboBox(networkInterfaces);
@@ -436,6 +438,18 @@ public class GeneralTab {
 		builder.add(renderers, FormLayoutUtil.flip(cc.xyw(3, 35, 7), colSpec, orientation));
 
 		builder.add(fdCheckBox, FormLayoutUtil.flip(cc.xyw(1, 37, 9), colSpec, orientation));
+		
+		// External network box
+		extNetBox = new JCheckBox(Messages.getString("NetworkTab.56"));
+		extNetBox.setContentAreaFilled(false);
+		extNetBox.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setExternalNetwork((e.getStateChange() == ItemEvent.SELECTED));
+			}
+		});
+		extNetBox.setSelected(configuration.getExternalNetwork());
+		builder.add(extNetBox, FormLayoutUtil.flip(cc.xy(1, 38), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 

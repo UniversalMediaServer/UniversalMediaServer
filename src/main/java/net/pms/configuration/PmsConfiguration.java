@@ -2430,4 +2430,16 @@ public class PmsConfiguration {
 		}
 		return true;
 	}
+	
+	/* Start without external netowrk (increase startup speed) */
+	
+	public static final String KEY_EXTERNAL_NETWORK = "external_network";
+	
+	public boolean getExternalNetwork() {
+		return getBoolean(KEY_EXTERNAL_NETWORK, true);
+	}
+	
+	public void setExternalNetwork(boolean b) {
+		configuration.setProperty(KEY_EXTERNAL_NETWORK, b);
+	}
 }
