@@ -144,7 +144,7 @@ public class OpenSubtitle {
 	}
 
 	public static String fetchImdbId(String hash) throws IOException {
-		LOGGER.info("fetch imdbid for hash " + hash);
+		LOGGER.debug("fetch imdbid for hash " + hash);
 		login();
 		if (token == null) {
 			return "";
