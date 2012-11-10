@@ -32,6 +32,8 @@ import net.pms.formats.FormatFactory;
 import net.pms.network.HTTPResource;
 import net.pms.util.NaturalComparator;
 import net.sf.sevenzipjbinding.ArchiveFormat;
+
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +47,7 @@ import org.slf4j.LoggerFactory;
 public class MapFile extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MapFile.class);
 	private List<File> discoverable;
+	private String forcedName;
 
 	/**
 	 * @deprecated Use standard getter and setter to access this variable.
@@ -68,11 +71,20 @@ public class MapFile extends DLNAResource {
 	public MapFile() {
 		setConf(new MapFileConfiguration());
 		setLastModified(0);
+		forcedName = null;
 	}
 
 	public MapFile(MapFileConfiguration conf) {
 		setConf(conf);
 		setLastModified(0);
+		forcedName = null;
+	}
+	
+	public MapFile(MapFileConfiguration conf, List<File> list) {
+		setConf(conf);
+		setLastModified(0);
+		this.discoverable = list;
+		forcedName = null;
 	}
 
 	private boolean isFileRelevant(File f) {
@@ -111,7 +123,6 @@ public class MapFile extends DLNAResource {
 				}
 			}
 		}
-
 		return isRelevant;
 	}
 
@@ -219,6 +230,41 @@ public class MapFile extends DLNAResource {
 		}
 
 		List<File> files = getFileList();
+		
+		// ATZ handling
+		if (files.size() > PMS.getConfiguration().getATZLimit() &&
+			!(getParent() instanceof ATZFolder)) {
+			// to many files to display in oneshot, add A-Z folders
+			// instead and let the filters begin
+			TreeMap<String, ArrayList<File>> map = new TreeMap<String, ArrayList<File>>();
+			for (File f : files) {
+				if((!f.isFile() && !f.isDirectory()) || f.isHidden()) {
+					// skip these
+					continue;					
+				}
+				if (f.isDirectory() && PMS.getConfiguration().isHideEmptyFolders() && !isFolderRelevant(f)) {
+					LOGGER.debug("Ignoring empty/non-relevant directory: " + f.getName());
+					continue;
+				}
+				char c = f.getName().toUpperCase().charAt(0);
+				if (!(c >= 'A' && c <= 'Z')) {
+					// "other char"
+					c = '#';
+				}
+				ArrayList<File> l = map.get(String.valueOf(c));
+				if (l == null) {
+					l = new ArrayList<File>();
+				}
+				l.add(f);
+				map.put(String.valueOf(c), l);
+			}
+			for (String letter : map.keySet()) {
+				MapFile mf = new MapFile(getConf(), map.get(letter));
+				mf.forcedName = letter;
+				addChild(mf);
+			}
+			return;
+		}
 
 		switch (PMS.getConfiguration().getSortMethod()) {
 			case 4: // Locale-sensitive natural sort
@@ -262,24 +308,6 @@ public class MapFile extends DLNAResource {
 				});
 				break;
 		}
-		
-		// ATZ handling
-		if (files.size() > PMS.getConfiguration().getATZLimit()) {
-			// to many files to display in oneshot, add A-Z folders
-			// instead and let the filters begin
-			for(char i='A';i<='Z';i++) {
-				String ch=String.valueOf(i);
-				List<File> newFiles = findFiles(ch, files);
-				if (!newFiles.isEmpty()) {
-					addChild(new ATZFolder(ch, newFiles));
-				}
-			}
-			List<File> newFiles = findOtherFiles(files);
-			if (!newFiles.isEmpty()) {
-				addChild(new ATZFolder("#", newFiles));
-			}
-			return;
-		}
 
 		for (File f : files) {
 			if (f.isDirectory()) {
@@ -296,28 +324,6 @@ public class MapFile extends DLNAResource {
 				}
 			}
 		}
-	}
-	
-	private List<File> findOtherFiles(List<File> files) {
-		ArrayList<File> res = new ArrayList<File>();
-		for(File f : files) {
-			char c = f.getName().toUpperCase().charAt(0);
-			if (!(c >= 'A' && c <= 'Z')) {
-				// "other char", add it
-				res.add(f);
-			}
-		}
-		return res;
-	}
-	
-	private List<File> findFiles(String start, List<File> files) {
-		ArrayList<File> res = new ArrayList<File>();
-		for(File f : files) {
-			if(f.getName().toUpperCase().startsWith(start)) {
-				res.add(f);
-			}
-		}
-		return res;
 	}
 
 	@Override
@@ -446,7 +452,9 @@ public class MapFile extends DLNAResource {
 
 	@Override
 	public String getName() {
-		return this.getConf().getName();
+		if (StringUtils.isEmpty(forcedName))
+			return this.getConf().getName();
+		return forcedName;
 	}
 
 	@Override
