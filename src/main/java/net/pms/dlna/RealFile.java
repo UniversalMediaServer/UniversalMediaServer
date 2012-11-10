@@ -34,6 +34,8 @@ import org.slf4j.LoggerFactory;
 
 public class RealFile extends MapFile {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RealFile.class);
+	
+	private String imdb;
 
 	public RealFile(File file) {
 		getConf().getFiles().add(file);
@@ -298,6 +300,9 @@ public class RealFile extends MapFile {
 	}
 
 	public String getImdbId() {
+		if (!StringUtils.isEmpty(imdb)) {
+			return imdb;
+		}
 		return ImdbUtil.extractImdb(getFile());
 	}
 
@@ -309,9 +314,9 @@ public class RealFile extends MapFile {
 	}
 
 	private void resolveImdb() {
-		if (!PMS.getConfiguration().autoImdb()) {
+		/*if (!PMS.getConfiguration().autoImdb()) {
 			return;
-		}
+		}*/
 		if (!StringUtils.isEmpty(getImdbId())) {
 			// Already got an ImdbId or we shouldn't do this
 			return;
@@ -322,7 +327,6 @@ public class RealFile extends MapFile {
 		}
 		Runnable r = new Runnable() {
 			public void run() {
-				String imdb;
 				String hash;
 
 				try {
@@ -335,6 +339,10 @@ public class RealFile extends MapFile {
 
 				if (StringUtils.isEmpty(imdb) || StringUtils.isEmpty(hash)) {
 					// No ID found, give up
+					return;
+				}
+				
+				if (!PMS.getConfiguration().autoImdb()) {
 					return;
 				}
 

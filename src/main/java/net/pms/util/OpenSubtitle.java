@@ -31,12 +31,15 @@ import org.slf4j.LoggerFactory;
 public class OpenSubtitle {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OpenSubtitle.class);
 	private static final String SUB_DIR = "subs";
+	private static final long TOKEN_AGE_TIME = 10*60*1000; // 10 mins
+	private static final long SUB_FILE_AGE = 14*24*60*60*1000; // two weeks
 	/**
 	 * Size of the chunks that will be hashed in bytes (64 KB)
 	 */
 	private static final int HASH_CHUNK_SIZE = 64 * 1024;
 	private static final String OPENSUBS_URL = "http://api.opensubtitles.org/xml-rpc";
 	private static String token = null;
+	private static long tokenAge;
 
 	public static String computeHash(File file) throws IOException {
 		long size = file.length();
@@ -110,9 +113,14 @@ public class OpenSubtitle {
 		//LOGGER.debug("opensubs result page "+page.toString());
 		return page.toString();
 	}
+	
+	private static boolean tokenIsYoung() {
+		long now = System.currentTimeMillis();
+		return ((now - tokenAge) < TOKEN_AGE_TIME);
+	}
 
 	private static void login() throws IOException {
-		if (token != null) {
+		if ((token != null) && tokenIsYoung()) {
 			return;
 		}
 		URL url = new URL(OPENSUBS_URL);
@@ -126,7 +134,9 @@ public class OpenSubtitle {
 		Matcher m = re.matcher(postPage(url.openConnection(), req));
 		if (m.find()) {
 			token = m.group(1);
+			tokenAge = System.currentTimeMillis();
 		}
+		bgCleanSubs();
 	}
 
 	public static String fetchImdbId(File f) throws IOException {
@@ -265,6 +275,10 @@ public class OpenSubtitle {
 	}
 
 	public static String fetchSubs(String url, String outName) throws FileNotFoundException, IOException {
+		login();
+		if (token == null) {
+			return "";
+		}
 		File f = new File(System.currentTimeMillis() + ".gz");
 		File f1 = new File(outName);
 		if (!downloadBin(url, f)) {
@@ -297,5 +311,28 @@ public class OpenSubtitle {
 			return tmp[1];
 		}
 		return str;
+	}
+	
+	private static void bgCleanSubs() {	
+		Runnable r = new Runnable() {
+			@Override
+			public void run() {
+				String root = new File("").getAbsolutePath();
+				File path = new File(root + File.separator + SUB_DIR);
+				if (!path.exists()) {
+					// no path nothing to do
+					return;
+				}
+				File[] files = path.listFiles();
+				long now = System.currentTimeMillis();
+				for (int i=0;i<files.length;i++) {
+					long lastTime = files[i].lastModified();
+					if ((now - lastTime) > SUB_FILE_AGE) {
+						files[i].delete();
+					}
+				}
+			}
+		};
+		new Thread(r).start();
 	}
 }

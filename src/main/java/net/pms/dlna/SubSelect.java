@@ -1,18 +1,15 @@
 package net.pms.dlna;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Map;
 
-import javax.swing.JComponent;
+import java.io.InputStream;
 
 import net.pms.dlna.virtual.VirtualFolder;
-import net.pms.external.AdditionalResourceFolderListener;
-import net.pms.util.OpenSubtitle;
+import net.pms.Messages;
 
 public class SubSelect extends VirtualFolder {
+	
 	public SubSelect() {
-		super("Select Subtitle", null);
+		super(Messages.getString("PMS.200"), null);
 	}
 
 	public InputStream getThumbnailInputStream() {

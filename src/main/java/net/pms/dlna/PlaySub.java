@@ -37,8 +37,12 @@ public class PlaySub extends DLNAResource {
 	}
 
 	public void setSub() {
+		DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
 		try {
 			getSubFile();
+			// update the last modified to keep the file
+			subFile.setLastModified(System.currentTimeMillis());
+			sub.setExternalFile(subFile);
 		} catch (FileNotFoundException e) {
 			LOGGER.info("Failed to get subs for " + real.getDisplayName());
 			return;
@@ -46,8 +50,6 @@ public class PlaySub extends DLNAResource {
 			LOGGER.info("Failed to get subs for " + real.getDisplayName());
 			return;
 		}
-		DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
-		sub.setExternalFile(subFile);
 		sub.setType(SubtitleType.SUBRIP);
 		sub.setId(1);
 		sub.setLang(lang);
@@ -79,7 +81,7 @@ public class PlaySub extends DLNAResource {
 	}
 
 	public String getDisplayName() {
-		return name;
+		return getName();
 	}
 
 	@Override
@@ -102,7 +104,7 @@ public class PlaySub extends DLNAResource {
 		return real.length();
 	}
 
-	public boolean isStrFile() {
+	public boolean isSrtFile() {
 		return true;
 	}
 }
