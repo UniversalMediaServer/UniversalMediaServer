@@ -1,7 +1,6 @@
 package net.pms.configuration;
 
 import org.apache.commons.configuration.Configuration;
-import org.apache.commons.lang.StringUtils;
 
 class ConfigurationProgramPaths implements ProgramPaths {
 	private static final String KEY_VLC_PATH        = "vlc_path";
@@ -25,56 +24,64 @@ class ConfigurationProgramPaths implements ProgramPaths {
 
 	@Override
 	public String getEac3toPath() {
-		return stringFromConfigFile(KEY_EAC3TO_PATH, defaults.getEac3toPath());
+		return getString(KEY_EAC3TO_PATH, defaults.getEac3toPath());
 	}
 
 	@Override
 	public String getFfmpegPath() {
-		return stringFromConfigFile(KEY_FFMPEG_PATH, defaults.getFfmpegPath());
+		return getString(KEY_FFMPEG_PATH, defaults.getFfmpegPath());
 	}
 
 	@Override
 	public String getFlacPath() {
-		return stringFromConfigFile(KEY_FLAC_PATH, defaults.getFlacPath());
+		return getString(KEY_FLAC_PATH, defaults.getFlacPath());
 	}
 
 	@Override
 	public String getMencoderPath() {
-		return stringFromConfigFile(KEY_MENCODER_PATH, defaults.getMencoderPath());
+		return getString(KEY_MENCODER_PATH, defaults.getMencoderPath());
 	}
 
 	@Override
 	public String getMplayerPath() {
-		return stringFromConfigFile(KEY_MPLAYER_PATH, defaults.getMplayerPath());
+		return getString(KEY_MPLAYER_PATH, defaults.getMplayerPath());
 	}
 
 	@Override
 	public String getTsmuxerPath() {
-		return stringFromConfigFile(KEY_TSMUXER_PATH, defaults.getTsmuxerPath());
+		return getString(KEY_TSMUXER_PATH, defaults.getTsmuxerPath());
 	}
 
 	@Override
 	public String getVlcPath() {
-		return stringFromConfigFile(KEY_VLC_PATH, defaults.getVlcPath());
+		return getString(KEY_VLC_PATH, defaults.getVlcPath());
 	}
 
-	private String stringFromConfigFile(String key, String def) {
-		String value = configuration.getString(key);
-		return StringUtils.isNotBlank(value) ? value : def;
+	/**
+	 * Return the <code>String</code> value for a given configuration key if the
+	 * value is non-blank (i.e. not null, not an empty string, not all whitespace).
+	 * Otherwise return the supplied default value.
+	 * The value is returned with leading and trailing whitespace removed in both cases.
+	 * @param key The key to look up.
+	 * @param def The default value to return when no valid key value can be found.
+	 * @return The value configured for the key.
+	 */
+	private String getString(String key, String def) {
+		return ConfigurationUtil.getNonBlankConfigurationString(configuration, key, def);
 	}
 
 	@Override
 	public String getDCRaw() {
-		return stringFromConfigFile(KEY_DCRAW, defaults.getDCRaw());
+		return getString(KEY_DCRAW, defaults.getDCRaw());
 	}
 
 	@Override
 	public String getIMConvertPath() {
-		return stringFromConfigFile(KEY_IMCONVERT_PATH, defaults.getIMConvertPath());
+		return getString(KEY_IMCONVERT_PATH, defaults.getIMConvertPath());
 	}
 
 	@Override
 	public String getInterFramePath() {
-		return stringFromConfigFile(KEY_INTERFRAME_PATH, defaults.getInterFramePath());
+		return getString(KEY_INTERFRAME_PATH, defaults.getInterFramePath());
 	}
 }

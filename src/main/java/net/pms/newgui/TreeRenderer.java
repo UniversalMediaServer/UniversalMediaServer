@@ -18,9 +18,12 @@
  */
 package net.pms.newgui;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
+import javax.swing.BorderFactory;
 import javax.swing.JTree;
+import javax.swing.border.Border;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
@@ -31,6 +34,17 @@ public class TreeRenderer extends DefaultTreeCellRenderer {
 	public TreeRenderer() {
 	}
 
+	/**
+	 * Sets the color to use for the background if node is selected.
+	 */
+	@Override
+	public void setBackgroundSelectionColor(Color newColor) {
+		backgroundSelectionColor = new Color(57, 114, 147);
+	}
+
+	private Border border = BorderFactory.createEmptyBorder(0, 3, 0, 3);
+
+	@Override
 	public Component getTreeCellRendererComponent(
 		JTree tree,
 		Object value,
@@ -40,24 +54,22 @@ public class TreeRenderer extends DefaultTreeCellRenderer {
 		int row,
 		boolean hasFocus
 	) {
+		super.getTreeCellRendererComponent(tree, value, sel, expanded, leaf, row, hasFocus);
 
-		super.getTreeCellRendererComponent(
-			tree, value, sel,
-			expanded, leaf, row,
-			hasFocus);
 		if (leaf && value instanceof TreeNodeSettings) {
 			if (((TreeNodeSettings) value).getPlayer() == null) {
-				setIcon(LooksFrame.readImageIcon("icon_tree_parent-16.png"));
+				setIcon(LooksFrame.readImageIcon("icon-treemenu-category.png"));
 			} else {
 				if (((TreeNodeSettings) value).isEnable()) {
 					Player p = ((TreeNodeSettings) value).getPlayer();
+
 					if (PlayerFactory.getPlayers().contains(p)) {
-						setIcon(LooksFrame.readImageIcon("icon_tree_node-16.png"));
+						setIcon(LooksFrame.readImageIcon("icon-treemenu-engineenabled.png"));
 					} else {
-						setIcon(LooksFrame.readImageIcon("messagebox_warning-16.png"));
+						setIcon(LooksFrame.readImageIcon("icon-treemenu-enginewarning.png"));
 					}
 				} else {
-					setIcon(LooksFrame.readImageIcon("icon_tree_node_fail-16.png"));
+					setIcon(LooksFrame.readImageIcon("icon-treemenu-enginedisabled.png"));
 				}
 			}
 
@@ -67,8 +79,11 @@ public class TreeRenderer extends DefaultTreeCellRenderer {
 				setFont(getFont().deriveFont(Font.PLAIN));
 			}
 		} else {
-			setIcon(LooksFrame.readImageIcon("icon_tree_parent-16.png"));
+			setIcon(LooksFrame.readImageIcon("icon-treemenu-category.png"));
 		}
+
+		setBorder(border);
+
 		return this;
 	}
 }

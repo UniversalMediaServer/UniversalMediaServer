@@ -42,6 +42,7 @@ public class Proxy extends Thread {
 		start();
 	}
 
+	@Override
 	public void run() {
 
 		// mms://202.167.254.196/FOX
@@ -57,11 +58,13 @@ public class Proxy extends Thread {
 				if (str.startsWith("GET") || str.startsWith("DESCRIBE") || str.startsWith("POST") || str.startsWith("HEAD")) {
 					getter = str;
 				}
+
 				if (str.startsWith("Accept-Encoding: gzip")) {
 					str = "Accept-Encoding: identity";
 				}
 
 				httpHeader += str + "\r\n";
+
 				if (str.startsWith("Host: ")) {
 					targetHost = str.substring(6);
 				} else if (str.startsWith("DESCRIBE")) {
@@ -69,6 +72,7 @@ public class Proxy extends Thread {
 					targetHost = str.substring(str.indexOf("//") + 2);
 					targetHost = targetHost.substring(0, targetHost.indexOf("/"));
 				}
+
 				if (str.length() == 0) {
 					break;
 				}
@@ -118,6 +122,7 @@ public class Proxy extends Thread {
 			if (resourceExists) {
 				LOGGER.trace("[PROXY] File is cached: " + cachedResource.getAbsolutePath());
 				sockWebInputStream.close();
+
 				if (cachedResource.exists()) {
 					sockWebInputStream = new FileInputStream(cachedResource);
 				} else {
@@ -128,7 +133,7 @@ public class Proxy extends Thread {
 				fOUT = new FileOutputStream(cachedResource, false);
 			}
 
-			OutputStream baos = null;
+			OutputStream baos;
 			if (inMemory) {
 				baos = new ByteArrayOutputStream();
 			} else {
@@ -145,11 +150,13 @@ public class Proxy extends Thread {
 					if (10000000000L == CL) {
 						String s = new String(buffer, 0, bytes_read);
 						int clPos = s.indexOf("Content-Length: ");
+
 						if (clPos > -1) {
 							CL = Integer.parseInt(s.substring(clPos + 16, s.indexOf("\n", clPos)).trim());
 							LOGGER.trace("Found Content Length: " + CL);
 						}
 					}
+
 					if (bytes_read >= 7) {
 						byte end[] = new byte[7];
 						System.arraycopy(buffer, bytes_read - 7, end, 0, 7);
@@ -158,6 +165,7 @@ public class Proxy extends Thread {
 							CL = -1;
 						}
 					}
+
 					if (writeCache) {
 						fOUT.write(buffer, 0, bytes_read);
 					}
@@ -190,6 +198,7 @@ public class Proxy extends Thread {
 				if (toWeb != null) {
 					toWeb.close();
 				}
+
 				if (toBrowser != null) {
 					toBrowser.close();
 				}

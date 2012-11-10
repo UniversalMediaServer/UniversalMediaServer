@@ -38,73 +38,80 @@ import org.slf4j.LoggerFactory;
 public class HTTPServer implements Runnable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(HTTPServer.class);
 	private final int port;
-	private String hostName;
+	private String hostname;
 	private ServerSocketChannel serverSocketChannel;
 	private ServerSocket serverSocket;
 	private boolean stop;
 	private Thread runnable;
-	private InetAddress iafinal = null;
+	private InetAddress iafinal;
 	private ChannelFactory factory;
 	private Channel channel;
-	private NetworkInterface ni = null;
+	private NetworkInterface networkInterface;
 	private ChannelGroup group;
 
+	// XXX not used
+	@Deprecated
 	public InetAddress getIafinal() {
 		return iafinal;
 	}
 
+	public NetworkInterface getNetworkInterface() {
+		return networkInterface;
+	}
+
+	// use getNetworkInterface()
+	@Deprecated
 	public NetworkInterface getNi() {
-		return ni;
+		return getNetworkInterface();
 	}
 
 	public HTTPServer(int port) {
 		this.port = port;
 	}
 
+	public String getURL() {
+		return "http://" + hostname + ":" + port;
+	}
+
+	public String getHost() {
+		return hostname;
+	}
+
+	public int getPort() {
+		return port;
+	}
+
 	public boolean start() throws IOException {
 		final PmsConfiguration configuration = PMS.getConfiguration();
+		hostname = configuration.getServerHostname();
+		InetSocketAddress address;
 
-		hostName = configuration.getServerHostname();
-		InetSocketAddress address = null;
-		if (hostName != null && hostName.length() > 0) {
-			LOGGER.info("Using forced address " + hostName);
-			InetAddress tempIA = InetAddress.getByName(hostName);
-			if (tempIA != null && ni != null && ni.equals(NetworkInterface.getByInetAddress(tempIA))) {
+		if (StringUtils.isNotBlank(hostname)) {
+			LOGGER.info("Using forced address " + hostname);
+			InetAddress tempIA = InetAddress.getByName(hostname);
+
+			if (tempIA != null && networkInterface != null && networkInterface.equals(NetworkInterface.getByInetAddress(tempIA))) {
 				address = new InetSocketAddress(tempIA, port);
 			} else {
-				address = new InetSocketAddress(hostName, port);
+				address = new InetSocketAddress(hostname, port);
 			}
-		} else if (isAddressFromInterfaceFound(configuration.getNetworkInterface())) {
-			LOGGER.info("Using address " + iafinal + " found on network interface: " + ni.toString().trim().replace('\n', ' '));
+		} else if (isAddressFromInterfaceFound(configuration.getNetworkInterface())) { // XXX sets iafinal and networkInterface
+			LOGGER.info("Using address {} found on network interface: {}", iafinal, networkInterface.toString().trim().replace('\n', ' '));
 			address = new InetSocketAddress(iafinal, port);
 		} else {
 			LOGGER.info("Using localhost address");
 			address = new InetSocketAddress(port);
 		}
+
 		LOGGER.info("Created socket: " + address);
 
-		if (!configuration.isHTTPEngineV2()) {
-			serverSocketChannel = ServerSocketChannel.open();
-
-			serverSocket = serverSocketChannel.socket();
-			serverSocket.setReuseAddress(true);
-			serverSocket.bind(address);
-
-			if (hostName == null && iafinal != null) {
-				hostName = iafinal.getHostAddress();
-			} else if (hostName == null) {
-				hostName = InetAddress.getLocalHost().getHostAddress();
-			}
-
-			runnable = new Thread(this, "HTTP Server");
-			runnable.setDaemon(false);
-			runnable.start();
-		} else {
+		if (configuration.isHTTPEngineV2()) { // HTTP Engine V2
 			group = new DefaultChannelGroup("myServer");
 			factory = new NioServerSocketChannelFactory(
 				Executors.newCachedThreadPool(),
 				Executors.newCachedThreadPool()
 			);
+
 			ServerBootstrap bootstrap = new ServerBootstrap(factory);
 			HttpServerPipelineFactory pipeline = new HttpServerPipelineFactory(group);
 			bootstrap.setPipelineFactory(pipeline);
@@ -116,26 +123,48 @@ public class HTTPServer implements Runnable {
 			bootstrap.setOption("child.receiveBufferSize", 65536);
 			channel = bootstrap.bind(address);
 			group.add(channel);
-			if (hostName == null && iafinal != null) {
-				hostName = iafinal.getHostAddress();
-			} else if (hostName == null) {
-				hostName = InetAddress.getLocalHost().getHostAddress();
+
+			if (hostname == null && iafinal != null) {
+				hostname = iafinal.getHostAddress();
+			} else if (hostname == null) {
+				hostname = InetAddress.getLocalHost().getHostAddress();
 			}
+		} else { // HTTP Engine V1
+			serverSocketChannel = ServerSocketChannel.open();
+
+			serverSocket = serverSocketChannel.socket();
+			serverSocket.setReuseAddress(true);
+			serverSocket.bind(address);
+
+			if (hostname == null && iafinal != null) {
+				hostname = iafinal.getHostAddress();
+			} else if (hostname == null) {
+				hostname = InetAddress.getLocalHost().getHostAddress();
+			}
+
+			runnable = new Thread(this, "HTTP Server");
+			runnable.setDaemon(false);
+			runnable.start();
 		}
+
 		return true;
 	}
 
+	// XXX this sets iafinal and networkInterface
 	private boolean isAddressFromInterfaceFound(String networkInterfaceName) {
-		NetworkConfiguration.InterfaceAssociation ia = !StringUtils.isEmpty(networkInterfaceName) ? NetworkConfiguration.getInstance()
-				.getAddressForNetworkInterfaceName(networkInterfaceName)
-				: null;
+		NetworkConfiguration.InterfaceAssociation ia = StringUtils.isNotEmpty(networkInterfaceName) ?
+			NetworkConfiguration.getInstance().getAddressForNetworkInterfaceName(networkInterfaceName) :
+			null;
+
 		if (ia == null) {
 			ia = NetworkConfiguration.getInstance().getDefaultNetworkInterfaceAddress();
 		}
+
 		if (ia != null) {
 			iafinal = ia.getAddr();
-			ni = ia.getIface();
+			networkInterface = ia.getIface();
 		}
+
 		return ia != null;
 	}
 
@@ -148,7 +177,7 @@ public class HTTPServer implements Runnable {
 	// NOTE: there's little in the way of cleanup to do here as PMS.reset() discards the old
 	// server and creates a new one
 	public void stop() {
-		LOGGER.info("Stopping server on host " + hostName + " and port " + port + "...");
+		LOGGER.info("Stopping server on host {} and port {}...", hostname, port);
 
 		if (runnable != null) { // HTTP Engine V1
 			runnable.interrupt();
@@ -161,7 +190,9 @@ public class HTTPServer implements Runnable {
 			} catch (IOException e) {
 				LOGGER.debug("Caught exception", e);
 			}
-		} else if (channel != null) { // HTTP Engine V2
+		}
+
+		if (channel != null) { // HTTP Engine V2
 			if (group != null) {
 				group.close().awaitUninterruptibly();
 			}
@@ -174,23 +205,27 @@ public class HTTPServer implements Runnable {
 		NetworkConfiguration.forgetConfiguration();
 	}
 
+	// XXX only used by HTTP Engine V1
+	@Override
 	public void run() {
-		LOGGER.info("Starting DLNA Server on host " + hostName + " and port " + port + "...");
+		LOGGER.info("Starting DLNA Server on host {} and port {}...", hostname, port);
 
 		while (!stop) {
 			try {
 				Socket socket = serverSocket.accept();
 				InetAddress inetAddress = socket.getInetAddress();
 				String ip = inetAddress.getHostAddress();
-				// basic ipfilter: solntcev at gmail dot com
+				// basic IP filter: solntcev at gmail dot com
 				boolean ignore = false;
-				if (!PMS.getConfiguration().getIpFiltering().allowed(inetAddress)) {
+
+				if (PMS.getConfiguration().getIpFiltering().allowed(inetAddress)) {
+					LOGGER.trace("Receiving a request from: " + ip);
+				} else {
 					ignore = true;
 					socket.close();
 					LOGGER.trace("Ignoring request from: " + ip);
-				} else {
-					LOGGER.trace("Receiving a request from: " + ip);
 				}
+
 				if (!ignore) {
 					RequestHandler request = new RequestHandler(socket);
 					Thread thread = new Thread(request, "Request Handler");
@@ -205,6 +240,7 @@ public class HTTPServer implements Runnable {
 					if (stop && serverSocket != null) {
 						serverSocket.close();
 					}
+
 					if (stop && serverSocketChannel != null) {
 						serverSocketChannel.close();
 					}
@@ -213,17 +249,5 @@ public class HTTPServer implements Runnable {
 				}
 			}
 		}
-	}
-
-	public String getURL() {
-		return "http://" + hostName + ":" + port;
-	}
-
-	public String getHost() {
-		return hostName;
-	}
-
-	public int getPort() {
-		return port;
 	}
 }

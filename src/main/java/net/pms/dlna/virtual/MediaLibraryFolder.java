@@ -138,7 +138,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 						removedFiles.add(d);
 					}
 					String name = d.getName();
-					long lm = d.getLastmodified();
+					long lm = d.getLastModified();
 					boolean video_ts_hack = (d instanceof DVDISOFile) && d.getName().startsWith(DVDISOFile.PREFIX) && d.getName().substring(DVDISOFile.PREFIX.length()).equals(f.getName());
 					if ((f.getName().equals(name) || video_ts_hack) && f.lastModified() == lm) {
 						removedFiles.remove(d);

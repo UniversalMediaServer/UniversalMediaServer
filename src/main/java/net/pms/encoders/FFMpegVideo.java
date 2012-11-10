@@ -25,14 +25,15 @@ import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.StringTokenizer;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
-import javax.swing.JTextField;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
@@ -41,9 +42,12 @@ import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeIPCProcess;
+import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.io.StreamModifier;
 import net.pms.network.HTTPResource;
+import net.pms.util.ProcessUtil;
 import static org.apache.commons.lang.StringUtils.isBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,6 +58,9 @@ import org.slf4j.LoggerFactory;
 public class FFMpegVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
 	public  static final String ID     = "ffmpegvideo";
+
+	protected boolean dtsRemux;
+	protected boolean ac3Remux;
 
 	@Override
 	public int purpose() {
@@ -106,7 +113,15 @@ public class FFMpegVideo extends Player {
 	}
 
 	protected String[] getDefaultArgs() {
-		return new String[]{"-c:v", "mpeg2video", "-f", "vob", "-loglevel", "fatal", "-max_delay", "0"};
+		List<String> defaultArgsList = new ArrayList<String>();
+
+		defaultArgsList.add("-loglevel");
+		defaultArgsList.add("fatal");
+
+		String[] defaultArgsArray = new String[defaultArgsList.size()];
+		defaultArgsList.toArray(defaultArgsArray);
+
+		return defaultArgsArray;
 	}
 
 	private int[] getVideoBitrateConfig(String bitrate) {
@@ -131,28 +146,37 @@ public class FFMpegVideo extends Player {
 
 	@Override
 	public String[] args() {
-		String args[] = null;
+		String args[];
 		String defaultArgs[] = getDefaultArgs();
+
 		if (overriddenArgs != null) {
 			args = new String[defaultArgs.length + overriddenArgs.length];
-			for (int i = 0; i < defaultArgs.length; i++) {
-				args[i] = defaultArgs[i];
-			}
+			System.arraycopy(defaultArgs, 0, args, 0, defaultArgs.length);
+
+			boolean loggedDisallowedFfmpegOptions = false;
+
 			for (int i = 0; i < overriddenArgs.length; i++) {
 				if (overriddenArgs[i].equals("-f") || overriddenArgs[i].equals("-c:a") || overriddenArgs[i].equals("-c:v")) {
-					LOGGER.info("FFmpeg encoder settings: You cannot change Muxer, Video Codec or Audio Codec");
-					overriddenArgs[i] = "-title";
+					// No need to log this for each disallowed option
+					if (!loggedDisallowedFfmpegOptions) {
+						LOGGER.warn("The following ffmpeg options cannot be changed and will be ignored: -f, -acodec, -vcodec");
+						loggedDisallowedFfmpegOptions = true;
+					}
+
+					overriddenArgs[i] = "-y";
+
 					if (i + 1 < overriddenArgs.length) {
-						overriddenArgs[i + 1] = "NewTitle";
+						overriddenArgs[i + 1] = "-y";
 					}
 				}
+
 				args[i + defaultArgs.length] = overriddenArgs[i];
 			}
 		} else {
 			args = defaultArgs;
 		}
-		return args;
 
+		return args;
 	}
 
 	public boolean mplayer() {
@@ -183,66 +207,108 @@ public class FFMpegVideo extends Player {
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params,
-		String args[]) throws IOException {
+		String args[]
+	) throws IOException {
 		setAudioAndSubs(fileName, media, params, PMS.getConfiguration());
 
 		PipeIPCProcess videoP = null;
 		PipeIPCProcess audioP = null;
+
 		if (mplayer()) {
 			videoP = new PipeIPCProcess("mplayer_vid1" + System.currentTimeMillis(), "mplayer_vid2" + System.currentTimeMillis(), false, false);
 			audioP = new PipeIPCProcess("mplayer_aud1" + System.currentTimeMillis(), "mplayer_aud2" + System.currentTimeMillis(), false, false);
 		}
 
-		String cmdArray[] = new String[22 + args.length];
-		cmdArray[0] = executable();
-		cmdArray[1] = "";
-		cmdArray[2] = "";
+		List<String> cmdList = new ArrayList<String>();
+		cmdList.add(executable());
+
 		if (params.timeseek > 0 && !mplayer()) {
-			cmdArray[1] = "-ss";
-			cmdArray[2] = "" + params.timeseek;
+			cmdList.add("-ss");
+			cmdList.add("" + params.timeseek);
 		}
-		cmdArray[3] = "";
-		cmdArray[4] = "";
-		cmdArray[5] = "";
-		cmdArray[6] = "";
+
+		String cmd3 = "-sn";
+		String cmd4 = "-sn";
+		String cmd5 = "-sn";
+		String cmd6 = "-sn";
+
 		if (type() == Format.VIDEO) {
-			cmdArray[5] = "-i";
-			cmdArray[6] = fileName;
+			cmd5 = "-i";
+			cmd6 = fileName;
 			if (mplayer()) {
-				cmdArray[3] = "-f";
-				cmdArray[4] = "yuv4mpegpipe";
-				//cmdArray[6] = pipeprefix + videoPipe + (PMS.get().isWindows()?".2":"");
-				cmdArray[6] = videoP.getOutputPipe();
+				cmd3 = "-f";
+				cmd4 = "yuv4mpegpipe";
+				cmd6 = videoP.getOutputPipe();
+			} else if (avisynth()) {
+				File avsFile = FFMpegAviSynthVideo.getAVSScript(fileName, params.sid, params.fromFrame, params.toFrame, null, null);
+				cmd6 = ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath());
 			}
 		}
-		cmdArray[7] = "";
-		cmdArray[8] = "";
-		cmdArray[9] = "";
-		cmdArray[10] = "";
-		if (type() == Format.VIDEO || type() == Format.AUDIO) {
-			if (type() == Format.VIDEO && (mplayer())) {
-				cmdArray[7] = "-f";
-				cmdArray[8] = "wav";
-				cmdArray[9] = "-i";
-				//cmdArray[10] = pipeprefix + audioPipe + (PMS.get().isWindows()?".2":"");
-				cmdArray[10] = audioP.getOutputPipe();
+
+		cmdList.add(cmd3);
+		cmdList.add(cmd4);
+		cmdList.add(cmd5);
+		cmdList.add(cmd6);
+
+		final boolean isTSMuxerVideoEngineEnabled = PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry()).contains(TSMuxerVideo.ID);
+
+		ac3Remux = false;
+		dtsRemux = false;
+
+		String audioCodecInput1 = "-c:a";
+		String audioCodecInput2 = "ac3";
+		if (PMS.getConfiguration().isRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && params.mediaRenderer.isTranscodeToAC3()) {
+			// AC-3 remux takes priority
+			ac3Remux = true;
+			audioCodecInput2 = "copy";
+		} else {
+			// Now check for DTS remux and LPCM streaming
+			dtsRemux = isTSMuxerVideoEngineEnabled &&
+				PMS.getConfiguration().isDTSEmbedInPCM() &&
+				params.aid != null &&
+				params.aid.isDTS() &&
+				!avisynth() &&
+				params.mediaRenderer.isDTSPlayable();
+
+			if (dtsRemux) {
+				audioCodecInput1 = "-an";
+				audioCodecInput2 = "-an";
 			} else if (type() == Format.AUDIO) {
-				cmdArray[7] = "-i";
-				cmdArray[8] = fileName;
+				audioCodecInput1 = "-sn";
+				audioCodecInput2 = "-sn";
 			}
 		}
-		if (params.timeend > 0) {
-			cmdArray[9] = "-t";
-			cmdArray[10] = "" + params.timeend;
+
+		// Set the output format
+		String cmd7 = "-f";
+		String cmd8 = "vob";
+		String cmd9 = "-sn";
+		String cmd10 = "-sn";
+
+		if (dtsRemux) {
+			params.losslessaudio = true;
+			params.forceFps = media.getValidFps(false);
+			cmd8 = "mpeg2video";
 		}
 
-		cmdArray[11] = "";
-		cmdArray[12] = "";
-		cmdArray[13] = "";
-		cmdArray[14] = "";
+		if (type() == Format.VIDEO && (mplayer())) {
+			cmd8 = "wav";
+			cmd9 = "-i";
+			cmd10 = audioP.getOutputPipe();
+		} else if (type() == Format.AUDIO) {
+			cmd7 = "-i";
+			cmd8 = fileName;
+		}
 
-		cmdArray[cmdArray.length - 3] = "-muxpreload";
-		cmdArray[cmdArray.length - 2] = "0";
+		if (params.timeend > 0) {
+			cmd9 = "-t";
+			cmd10 = "" + params.timeend;
+		}
+
+		cmdList.add(cmd7);
+		cmdList.add(cmd8);
+		cmdList.add(cmd9);
+		cmdList.add(cmd10);
 
 		int defaultMaxBitrates[] = getVideoBitrateConfig(PMS.getConfiguration().getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
@@ -289,41 +355,62 @@ public class FFMpegVideo extends Player {
 			bufSize = bufSize * 1000;
 			defaultMaxBitrates[0] = defaultMaxBitrates[0] * 1000;
 
-			cmdArray[11] = "-bufsize";
-			cmdArray[12] = "" + bufSize;
+			cmdList.add("-bufsize");
+			cmdList.add("" + bufSize);
 
-			cmdArray[13] = "-maxrate";
-			cmdArray[14] = "" + defaultMaxBitrates[0];
+			cmdList.add("-maxrate");
+			cmdList.add("" + defaultMaxBitrates[0]);
 		}
 
-		cmdArray[15] = "-c:a";
-		cmdArray[16] = (params.aid.isAC3()) ? "copy" : "ac3";
-		cmdArray[17] = (params.aid.isAC3()) ? "" : "-ab";
-		cmdArray[18] = (params.aid.isAC3()) ? "" : PMS.getConfiguration().getAudioBitrate() + "k";
+		// Audio codec
+		cmdList.add(audioCodecInput1);
+		cmdList.add(audioCodecInput2);
 
-		for (int i = 0; i < args.length; i++) {
-			cmdArray[19 + i] = args[i];
-		}
-
-		if (PMS.getConfiguration().isFileBuffer()) {
-			File m = new File(PMS.getConfiguration().getTempFolder(), "pms-transcode.tmp");
-			if (m.exists() && !m.delete()) {
-				LOGGER.info("Temp file currently used.. Waiting 3 seconds");
-				try {
-					Thread.sleep(3000);
-				} catch (InterruptedException e) {
-				}
-				if (m.exists() && !m.delete()) {
-					LOGGER.info("Temp file cannot be deleted... Serious ERROR");
-				}
-			}
-			params.outputFile = m;
-			params.minFileSize = params.minBufferSize;
-			m.deleteOnExit();
-			cmdArray[cmdArray.length - 1] = m.getAbsolutePath();
+		int channels;
+		if (ac3Remux) {
+			channels = params.aid.getAudioProperties().getNumberOfChannels(); // AC-3 remux
+		} else if (dtsRemux) {
+			channels = 2;
 		} else {
-			cmdArray[cmdArray.length - 1] = "pipe:";
+			channels = PMS.getConfiguration().getAudioChannelCount(); // 5.1 max for AC-3 encoding
 		}
+		LOGGER.trace("channels=" + channels);
+
+		// Audio bitrate
+		if (!(params.aid.isAC3() && !ac3Remux) && !(type() == Format.AUDIO)) {
+			cmdList.add("-ab");
+			cmdList.add(PMS.getConfiguration().getAudioBitrate() + "k");
+		}
+
+		// Add the arguments being passed from other engines
+		cmdList.addAll(Arrays.asList(args));
+
+		if (!dtsRemux) {
+			if (PMS.getConfiguration().isFileBuffer()) {
+				File m = new File(PMS.getConfiguration().getTempFolder(), "pms-transcode.tmp");
+				if (m.exists() && !m.delete()) {
+					LOGGER.info("Temp file currently used.. Waiting 3 seconds");
+
+					try {
+						Thread.sleep(3000);
+					} catch (InterruptedException e) { }
+
+					if (m.exists() && !m.delete()) {
+						LOGGER.info("Temp file cannot be deleted... Serious ERROR");
+					}
+				}
+
+				params.outputFile = m;
+				params.minFileSize = params.minBufferSize;
+				m.deleteOnExit();
+				cmdList.add(m.getAbsolutePath());
+			} else {
+				cmdList.add("pipe:");
+			}
+		}
+
+		String[] cmdArray = new String[cmdList.size()];
+		cmdList.toArray(cmdArray);
 
 		cmdArray = finalizeTranscoderArgs(
 			this,
@@ -350,7 +437,17 @@ public class FFMpegVideo extends Player {
 
 			overiddenMPlayerArgs = new String[0];
 
-			String mPlayerdefaultVideoArgs[] = new String[]{fileName, seek_param, seek_value, "-vo", "yuv4mpeg:file=" + videoP.getInputPipe(), "-ao", "pcm:waveheader:file=" + audioP.getInputPipe(), "-benchmark", "-noframedrop", "-speed", "100"};
+			String[] mPlayerdefaultVideoArgs = new String[] {
+				fileName,
+				seek_param,
+				seek_value,
+				"-vo", "yuv4mpeg:file=" + videoP.getInputPipe(),
+				"-ao", "pcm:waveheader:file=" + audioP.getInputPipe(),
+				"-benchmark",
+				"-noframedrop",
+				"-speed", "100"
+			};
+
 			OutputParams mplayer_vid_params = new OutputParams(PMS.getConfiguration());
 			mplayer_vid_params.maxBufferSize = 1;
 
@@ -363,9 +460,11 @@ public class FFMpegVideo extends Player {
 			if (type() == Format.VIDEO) {
 				pw.attachProcess(mkfifo_vid_process);
 			}
+
 			if (type() == Format.VIDEO || type() == Format.AUDIO) {
 				pw.attachProcess(mkfifo_aud_process);
 			}
+
 			if (type() == Format.VIDEO) {
 				pw.attachProcess(mplayer_vid_process);
 			}
@@ -373,13 +472,15 @@ public class FFMpegVideo extends Player {
 			if (type() == Format.VIDEO) {
 				mkfifo_vid_process.runInNewThread();
 			}
+
 			if (type() == Format.VIDEO || type() == Format.AUDIO) {
 				mkfifo_aud_process.runInNewThread();
 			}
+
 			try {
 				Thread.sleep(250);
-			} catch (InterruptedException e) {
-			}
+			} catch (InterruptedException e) { }
+
 			if (type() == Format.VIDEO) {
 				videoP.deleteLater();
 				mplayer_vid_process.runInNewThread();
@@ -387,26 +488,153 @@ public class FFMpegVideo extends Player {
 
 			try {
 				Thread.sleep(250);
+			} catch (InterruptedException e) { }
+		} else if (dtsRemux) {
+			PipeProcess pipe;
+			pipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
+
+			TSMuxerVideo ts = new TSMuxerVideo(PMS.getConfiguration());
+			File f = new File(PMS.getConfiguration().getTempFolder(), "pms-tsmuxer.meta");
+			String cmd[] = new String[]{ ts.executable(), f.getAbsolutePath(), pipe.getInputPipe() };
+			pw = new ProcessWrapperImpl(cmd, params);
+
+			PipeIPCProcess ffVideoPipe = new PipeIPCProcess(System.currentTimeMillis() + "ffmpegvideo", System.currentTimeMillis() + "videoout", false, true);
+
+			cmdList.add(ffVideoPipe.getInputPipe());
+
+			OutputParams ffparams = new OutputParams(PMS.getConfiguration());
+			ffparams.maxBufferSize = 1;
+			ffparams.stdin = params.stdin;
+
+			String[] cmdArrayDts = new String[cmdList.size()];
+			cmdList.toArray(cmdArrayDts);
+
+			cmdArrayDts = finalizeTranscoderArgs(
+				this,
+				fileName,
+				dlna,
+				media,
+				params,
+				cmdArrayDts
+			);
+
+			ProcessWrapperImpl ffVideo = new ProcessWrapperImpl(cmdArrayDts, ffparams);
+
+			ProcessWrapper ff_video_pipe_process = ffVideoPipe.getPipeProcess();
+			pw.attachProcess(ff_video_pipe_process);
+			ff_video_pipe_process.runInNewThread();
+			ffVideoPipe.deleteLater();
+
+			pw.attachProcess(ffVideo);
+			ffVideo.runInNewThread();
+
+			PipeIPCProcess ffAudioPipe = new PipeIPCProcess(System.currentTimeMillis() + "ffmpegaudio01", System.currentTimeMillis() + "audioout", false, true);
+			StreamModifier sm = new StreamModifier();
+			sm.setPcm(false);
+			sm.setDtsembed(dtsRemux);
+			sm.setSampleFrequency(48000);
+			sm.setBitspersample(16);
+			sm.setNbchannels(channels);
+
+			String ffmpegLPCMextract[] = new String[]{
+				executable(), 
+				"-ss", "0",
+				"-i", fileName,
+				"-ac", "" + channels,
+				"-f", "dts",
+				"-c:a", "copy",
+				ffAudioPipe.getInputPipe()
+			};
+
+			if (!params.mediaRenderer.isMuxDTSToMpeg()) { // No need to use the PCM trick when media renderer supports DTS
+				ffAudioPipe.setModifier(sm);
+			}
+
+			if (params.stdin != null) {
+				ffmpegLPCMextract[3] = "-";
+			}
+
+			if (params.timeseek > 0) {
+				ffmpegLPCMextract[2] = "" + params.timeseek;
+			}
+
+			OutputParams ffaudioparams = new OutputParams(PMS.getConfiguration());
+			ffaudioparams.maxBufferSize = 1;
+			ffaudioparams.stdin = params.stdin;
+			ProcessWrapperImpl ffAudio = new ProcessWrapperImpl(ffmpegLPCMextract, ffaudioparams);
+
+			params.stdin = null;
+
+			PrintWriter pwMux = new PrintWriter(f);
+			pwMux.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
+			String videoType = "V_MPEG-2";
+
+			if (params.no_videoencode && params.forceType != null) {
+				videoType = params.forceType;
+			}
+
+			String fps = "";
+			if (params.forceFps != null) {
+				fps = "fps=" + params.forceFps + ", ";
+			}
+
+			String audioType = "A_AC3";
+			if (dtsRemux) {
+				if (params.mediaRenderer.isMuxDTSToMpeg()) {
+					// Renderer can play proper DTS track
+					audioType = "A_DTS";
+				} else {
+					// DTS padded in LPCM trick
+					audioType = "A_LPCM";
+				}
+			}
+
+			pwMux.println(videoType + ", \"" + ffVideoPipe.getOutputPipe() + "\", " + fps + "level=4.1, insertSEI, contSPS, track=1");
+			pwMux.println(audioType + ", \"" + ffAudioPipe.getOutputPipe() + "\", track=2");
+			pwMux.close();
+
+			ProcessWrapper pipe_process = pipe.getPipeProcess();
+			pw.attachProcess(pipe_process);
+			pipe_process.runInNewThread();
+
+			try {
+				Thread.sleep(50);
 			} catch (InterruptedException e) {
 			}
+
+			pipe.deleteLater();
+			params.input_pipes[0] = pipe;
+
+			ProcessWrapper ff_pipe_process = ffAudioPipe.getPipeProcess();
+			pw.attachProcess(ff_pipe_process);
+			ff_pipe_process.runInNewThread();
+
+			try {
+				Thread.sleep(50);
+			} catch (InterruptedException e) {
+			}
+
+			ffAudioPipe.deleteLater();
+			pw.attachProcess(ffAudio);
+			ffAudio.runInNewThread();
 		}
 
 		pw.runInNewThread();
 		return pw;
 	}
 
-	private JTextField ffmpeg;
 	private JCheckBox multithreading;
 
 	@Override
 	public JComponent config() {
-		return config("FFMpegVideo.1");
+		return config("NetworkTab.5");
 	}
 
 	protected JComponent config(String languageLabel) {
 		FormLayout layout = new FormLayout(
 			"left:pref, 0:grow",
-			"p, 3dlu, p, 3dlu, p, 3dlu");
+			"p, 3dlu, p, 3dlu"
+		);
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.setBorder(Borders.EMPTY_BORDER);
 		builder.setOpaque(false);
@@ -423,28 +651,12 @@ public class FFMpegVideo extends Player {
 			multithreading.setSelected(true);
 		}
 		multithreading.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				PMS.getConfiguration().setFfmpegMultithreading(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
 		builder.add(multithreading, cc.xy(2, 3));
-
-		ffmpeg = new JTextField(PMS.getConfiguration().getFfmpegSettings());
-		ffmpeg.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
-			@Override
-			public void keyReleased(KeyEvent e) {
-				PMS.getConfiguration().setFfmpegSettings(ffmpeg.getText());
-			}
-		});
-		builder.add(ffmpeg, cc.xy(2, 5));
 
 		return builder.getPanel();
 	}
@@ -463,24 +675,22 @@ public class FFMpegVideo extends Player {
 		// Check whether the subtitle actually has a language defined,
 		// uninitialized DLNAMediaSubtitle objects have a null language.
 		if (subtitle != null && subtitle.getLang() != null) {
-			// The resource needs a subtitle, but PMS does not support subtitles for FFmpeg.
+			// The resource needs a subtitle, but this engine implementation does not support subtitles yet
 			return false;
 		}
 
 		try {
 			String audioTrackName = resource.getMediaAudio().toString();
 			String defaultAudioTrackName = resource.getMedia().getAudioTracksList().get(0).toString();
-	
+
 			if (!audioTrackName.equals(defaultAudioTrackName)) {
-				// PMS only supports playback of the default audio track for FFmpeg
+				// This engine implementation only supports playback of the default audio track at this time
 				return false;
 			}
 		} catch (NullPointerException e) {
-			LOGGER.trace("FFmpeg cannot determine compatibility based on audio track for "
-					+ resource.getSystemName());
+			LOGGER.trace("FFmpeg cannot determine compatibility based on audio track for " + resource.getSystemName());
 		} catch (IndexOutOfBoundsException e) {
-			LOGGER.trace("FFmpeg cannot determine compatibility based on default audio track for "
-					+ resource.getSystemName());
+			LOGGER.trace("FFmpeg cannot determine compatibility based on default audio track for " + resource.getSystemName());
 		}
 
 		Format format = resource.getFormat();
@@ -488,8 +698,7 @@ public class FFMpegVideo extends Player {
 		if (format != null) {
 			Format.Identifier id = format.getIdentifier();
 
-			if (id.equals(Format.Identifier.MKV)
-					|| id.equals(Format.Identifier.MPG)) {
+			if (id.equals(Format.Identifier.MKV) || id.equals(Format.Identifier.MPG)) {
 				return true;
 			}
 		}

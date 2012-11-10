@@ -30,6 +30,7 @@ import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.formats.FormatFactory;
 import net.pms.network.HTTPResource;
 import net.pms.util.NaturalComparator;
+import net.sf.sevenzipjbinding.ArchiveFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,12 +66,12 @@ public class MapFile extends DLNAResource {
 
 	public MapFile() {
 		setConf(new MapFileConfiguration());
-		setLastmodified(0);
+		setLastModified(0);
 	}
 
 	public MapFile(MapFileConfiguration conf) {
 		setConf(conf);
-		setLastmodified(0);
+		setLastModified(0);
 	}
 
 	private boolean isFileRelevant(File f) {
@@ -82,28 +83,38 @@ public class MapFile extends DLNAResource {
 	}
 
 	private boolean isFolderRelevant(File f) {
-		boolean excludeNonRelevantFolder = true;
+		boolean isRelevant = false;
+
 		if (f.isDirectory() && PMS.getConfiguration().isHideEmptyFolders()) {
-			File children[] = f.listFiles();
-			for (File child : children) {
-				if (child.isFile()) {
-					if (FormatFactory.getAssociatedExtension(child.getName()) != null || isFileRelevant(child)) {
-						excludeNonRelevantFolder = false;
-						break;
-					}
-				} else {
-					if (isFolderRelevant(child)) {
-						excludeNonRelevantFolder = false;
-						break;
+			File[] children = f.listFiles();
+
+			// listFiles() returns null if "this abstract pathname does not denote a directory, or if an I/O error occurs".
+			// in this case (since we've already confirmed that it's a directory), this seems to mean the directory is non-readable
+			// http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=15135
+			// http://stackoverflow.com/questions/3228147/retrieving-the-underlying-error-when-file-listfiles-return-null
+			if (children == null) {
+				LOGGER.warn("Can't list files in non-readable directory: {}", f.getAbsolutePath());
+			} else {
+				for (File child : children) {
+					if (child.isFile()) {
+						if (FormatFactory.getAssociatedExtension(child.getName()) != null || isFileRelevant(child)) {
+							isRelevant = true;
+							break;
+						}
+					} else {
+						if (isFolderRelevant(child)) {
+							isRelevant = true;
+							break;
+						}
 					}
 				}
 			}
 		}
 
-		return !excludeNonRelevantFolder;
+		return isRelevant;
 	}
 
-	private void manageFile(File f,String str) {
+	private void manageFile(File f, String str) {
 		if (f.isFile() || f.isDirectory()) {
 			String lcFilename = f.getName().toLowerCase();
 			if (str != null && !lcFilename.contains(str)) {
@@ -116,6 +127,8 @@ public class MapFile extends DLNAResource {
 					addChild(new ZippedFile(f));
 				} else if (PMS.getConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".rar") || lcFilename.endsWith(".cbr"))) {
 					addChild(new RarredFile(f));
+				} else if (PMS.getConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".tar") || lcFilename.endsWith(".gzip") || lcFilename.endsWith(".gz") || lcFilename.endsWith(".7z"))) {
+					addChild(new SevenZipFile(f));
 				} else if ((lcFilename.endsWith(".iso") || lcFilename.endsWith(".img")) || (f.isDirectory() && f.getName().toUpperCase().equals("VIDEO_TS"))) {
 					addChild(new DVDISOFile(f));
 				} else if (lcFilename.endsWith(".m3u") || lcFilename.endsWith(".m3u8") || lcFilename.endsWith(".pls")) {
@@ -143,11 +156,23 @@ public class MapFile extends DLNAResource {
 
 	private List<File> getFileList() {
 		List<File> out = new ArrayList<File>();
+
 		for (File file : this.conf.getFiles()) {
-			if (file != null && file.isDirectory() && file.canRead()) {
-				out.addAll(Arrays.asList(file.listFiles()));
+			if (file != null && file.isDirectory()) {
+				if (file.canRead()) {
+					File[] files = file.listFiles();
+
+					if (files == null) {
+						LOGGER.warn("Can't read files from directory: {}", file.getAbsolutePath());
+					} else {
+						out.addAll(Arrays.asList(files));
+					}
+				} else {
+					LOGGER.warn("Can't read directory: {}", file.getAbsolutePath());
+				}
 			}
 		}
+
 		return out;
 	}
 
@@ -174,6 +199,7 @@ public class MapFile extends DLNAResource {
 		return discoverable.isEmpty();
 	}
 
+	@Override
 	public void discoverChildren() {
 		discoverChildren(null);
 	}
@@ -184,6 +210,7 @@ public class MapFile extends DLNAResource {
 		if (str != null) {
 			str = str.toLowerCase();
 		}
+
 		if (discoverable == null) {
 			discoverable = new ArrayList<File>();
 		} else {
@@ -195,6 +222,7 @@ public class MapFile extends DLNAResource {
 		switch (PMS.getConfiguration().getSortMethod()) {
 			case 4: // Locale-sensitive natural sort
 				Collections.sort(files, new Comparator<File>() {
+					@Override
 					public int compare(File f1, File f2) {
 						return NaturalComparator.compareNatural(collator, f1.getName(), f2.getName());
 					}
@@ -202,7 +230,7 @@ public class MapFile extends DLNAResource {
 				break;
 			case 3: // Case-insensitive ASCIIbetical sort
 				Collections.sort(files, new Comparator<File>() {
-
+					@Override
 					public int compare(File f1, File f2) {
 						return f1.getName().compareToIgnoreCase(f2.getName());
 					}
@@ -210,7 +238,7 @@ public class MapFile extends DLNAResource {
 				break;
 			case 2: // Sort by modified date, oldest first
 				Collections.sort(files, new Comparator<File>() {
-
+					@Override
 					public int compare(File f1, File f2) {
 						return Long.valueOf(f1.lastModified()).compareTo(Long.valueOf(f2.lastModified()));
 					}
@@ -218,7 +246,7 @@ public class MapFile extends DLNAResource {
 				break;
 			case 1: // Sort by modified date, newest first
 				Collections.sort(files, new Comparator<File>() {
-
+					@Override
 					public int compare(File f1, File f2) {
 						return Long.valueOf(f2.lastModified()).compareTo(Long.valueOf(f1.lastModified()));
 					}
@@ -226,7 +254,7 @@ public class MapFile extends DLNAResource {
 				break;
 			default: // Locale-sensitive A-Z
 				Collections.sort(files, new Comparator<File>() {
-
+					@Override
 					public int compare(File f1, File f2) {
 						return collator.compare(f1.getName(), f2.getName());
 					}
@@ -243,8 +271,8 @@ public class MapFile extends DLNAResource {
 		}
 
 		for (File f : files) {
-			if (f.isFile()) { 
-				if (str == null || f.getName().toLowerCase().contains(str)) {				
+			if (f.isFile()) {
+				if (str == null || f.getName().toLowerCase().contains(str)) {
 					discoverable.add(f); // manageFile(f);
 				}
 			}
@@ -253,13 +281,15 @@ public class MapFile extends DLNAResource {
 
 	@Override
 	public boolean isRefreshNeeded() {
-		long lastModif = 0;
+		long modified = 0;
+
 		for (File f : this.getConf().getFiles()) {
 			if (f != null) {
-				lastModif = Math.max(lastModif, f.lastModified());
+				modified = Math.max(modified, f.lastModified());
 			}
 		}
-		return getLastRefreshTime() < lastModif;
+
+		return getLastRefreshTime() < modified;
 	}
 
 	@Override
@@ -271,17 +301,16 @@ public class MapFile extends DLNAResource {
 		for (DLNAResource d : getChildren()) {
 			boolean isNeedMatching = !(d.getClass() == MapFile.class || (d instanceof VirtualFolder && !(d instanceof DVDISOFile)));
 			boolean found = foundInList(files, d);
+
 			if (isNeedMatching && !found) {
 				removedFiles.add(d);
-			}
-			else if (str != null && found) {
+			} else if (str != null && found) {
 				String s = d.getName().toLowerCase();
 				if (!s.contains(str)) {
 					// new search, this doesn't match
 					removedFiles.add(d);
 				}
 			}
-			
 		}
 
 		for (File f : files) {
@@ -331,7 +360,7 @@ public class MapFile extends DLNAResource {
 	}
 
 	private boolean isSameLastModified(File f, DLNAResource d) {
-		return d.getLastmodified() == f.lastModified();
+		return d.getLastModified() == f.lastModified();
 	}
 
 	private boolean isRealFolder(DLNAResource d) {
@@ -433,7 +462,7 @@ public class MapFile extends DLNAResource {
 	public void setPotentialCover(File potentialCover) {
 		this.potentialCover = potentialCover;
 	}
-	
+
 	public boolean isSearched() {
 		return true;
 	}

@@ -27,6 +27,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
@@ -112,7 +113,8 @@ public class FFMpegDVRMSRemux extends Player {
 		String fileName,
 		DLNAResource dlna,
 		DLNAMediaInfo media,
-		OutputParams params) throws IOException {
+		OutputParams params
+	) throws IOException {
 		PmsConfiguration configuration = PMS.getConfiguration();
 		String ffmpegAlternativePath = configuration.getFfmpegAlternativePath();
 		List<String> cmdList = new ArrayList<String>();
@@ -130,21 +132,12 @@ public class FFMpegDVRMSRemux extends Player {
 
 		cmdList.add("-i");
 		cmdList.add(fileName);
-
-		// change this to -metadata title=dummy if this can be made to work with an official ffmpeg build
-		cmdList.add("-title");
-		cmdList.add("dummy");
-
-		for (String arg : args()) {
-			cmdList.add(arg);
-		}
+		cmdList.addAll(Arrays.asList(args()));
 
 		String[] ffmpegSettings = StringUtils.split(configuration.getFfmpegSettings());
 
 		if (ffmpegSettings != null) {
-			for (String option : ffmpegSettings) {
-				cmdList.add(option);
-			}
+			cmdList.addAll(Arrays.asList(ffmpegSettings));
 		}
 
 		cmdList.add("pipe:");
@@ -177,7 +170,7 @@ public class FFMpegDVRMSRemux extends Player {
 
 		CellConstraints cc = new CellConstraints();
 
-		JComponent cmp = builder.addSeparator(Messages.getString("FFMpegDVRMSRemux.1"), cc.xyw(1, 1, 5));
+		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), cc.xyw(1, 1, 5));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 

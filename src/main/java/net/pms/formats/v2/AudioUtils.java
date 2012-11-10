@@ -60,10 +60,10 @@ public class AudioUtils {
 		int numberOfInputChannels = audioTrack.getAudioProperties().getNumberOfChannels();
 
 		if (numberOfInputChannels == 6) { // 5.1
-			// we are using PCM output and have to manually remap channels because of incorrect mencoder's PCM mappings
+			// we are using PCM output and have to manually remap channels because of MEncoder's incorrect PCM mappings
 			// (as of r34814 / SB28)
 
-			// as of mencoder r34814 '-af pan' do nothing (LFE is missing from right channel)
+			// as of MEncoder r34814 '-af pan' do nothing (LFE is missing from right channel)
 			// same thing for AC3 transcoding. Thats why we should always use 5.1 output on PS3MS configuration
 			// and leave stereo downmixing to PS3!
 			// mixer for 5.1 => 2.0 mixer = "pan=2:1:0:0:1:0:1:0.707:0.707:1:0:1:1";

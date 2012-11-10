@@ -27,8 +27,12 @@ import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.net.URL;
 import java.util.Locale;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -37,10 +41,19 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.*;
+import net.pms.dlna.DLNAMediaAudio;
+import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaSubtitle;
+import net.pms.dlna.DLNAResource;
+import net.pms.dlna.InputFile;
 import net.pms.formats.Format;
 import static net.pms.formats.v2.AudioUtils.getLPCMChannelMappingForMencoder;
-import net.pms.io.*;
+import net.pms.io.OutputParams;
+import net.pms.io.PipeIPCProcess;
+import net.pms.io.PipeProcess;
+import net.pms.io.ProcessWrapper;
+import net.pms.io.ProcessWrapperImpl;
+import net.pms.io.StreamModifier;
 import net.pms.util.CodecUtil;
 import net.pms.util.FormLayoutUtil;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
@@ -106,18 +119,35 @@ public class TSMuxerVideo extends Player {
 
 		String fps = media.getValidFps(false);
 		String videoType = "V_MPEG4/ISO/AVC";
-		if (media != null && media.getCodecV() != null && media.getCodecV().equals("mpeg2video")) {
+		if (media != null && media.getCodecV() != null && media.getCodecV().startsWith("mpeg2")) {
 			videoType = "V_MPEG-2";
 		}
 
 		if (this instanceof TsMuxerAudio && media.getFirstAudioTrack() != null) {
+			String fakeFileName = writeResourceToFile("/resources/images/fake.jpg");
 			ffVideoPipe = new PipeIPCProcess(System.currentTimeMillis() + "fakevideo", System.currentTimeMillis() + "videoout", false, true);
-			String ffmpegLPCMextract[] = new String[]{configuration.getFfmpegPath(), "-t", "" + params.timeend, "-loop_input", "-i", "resources/images/fake.jpg", "-qcomp", "0.6", "-qmin", "10", "-qmax", "51", "-qdiff", "4", "-me_range", "4", "-f", "h264", "-vcodec", "libx264", "-an", "-y", ffVideoPipe.getInputPipe()};
-			//videoType = "V_MPEG-2";
+			String[] ffmpegLPCMextract = new String[] {
+				configuration.getFfmpegPath(),
+				"-t", "" + params.timeend,
+				"-loop", "1",
+				"-i", fakeFileName,
+				"-qcomp", "0.6",
+				"-qmin", "10",
+				"-qmax", "51",
+				"-qdiff", "4",
+				"-me_range", "4",
+				"-f", "h264",
+				"-vcodec", "libx264",
+				"-an",
+				"-y",
+				ffVideoPipe.getInputPipe()
+			};
+
+			// videoType = "V_MPEG-2";
 			videoType = "V_MPEG4/ISO/AVC";
 			if (params.timeend < 1) {
-				ffmpegLPCMextract[1] = "-title";
-				ffmpegLPCMextract[2] = "dummy";
+				ffmpegLPCMextract[1] = "-y";
+				ffmpegLPCMextract[2] = "-y";
 			}
 
 			OutputParams ffparams = new OutputParams(PMS.getConfiguration());
@@ -127,7 +157,15 @@ public class TSMuxerVideo extends Player {
 			if (fileName.toLowerCase().endsWith(".flac") && media != null && media.getFirstAudioTrack().getBitsperSample() >= 24 && media.getFirstAudioTrack().getSampleRate() % 48000 == 0) {
 				ffAudioPipe = new PipeIPCProcess[1];
 				ffAudioPipe[0] = new PipeIPCProcess(System.currentTimeMillis() + "flacaudio", System.currentTimeMillis() + "audioout", false, true);
-				String flacCmd[] = new String[]{configuration.getFlacPath(), "--output-name=" + ffAudioPipe[0].getInputPipe(), "-d", "-f", "-F", fileName};
+
+				String[] flacCmd = new String[] {
+					configuration.getFlacPath(),
+					"--output-name=" + ffAudioPipe[0].getInputPipe(),
+					"-d",
+					"-f",
+					"-F",
+					fileName
+				};
 
 				ffparams = new OutputParams(PMS.getConfiguration());
 				ffparams.maxBufferSize = 1;
@@ -138,13 +176,24 @@ public class TSMuxerVideo extends Player {
 				ffAudioPipe[0] = new PipeIPCProcess(System.currentTimeMillis() + "mlpaudio", System.currentTimeMillis() + "audioout", false, true);
 				String depth = "pcm_s16le";
 				String rate = "48000";
+
 				if (media != null && media.getFirstAudioTrack().getBitsperSample() >= 24) {
 					depth = "pcm_s24le";
 				}
+
 				if (media != null && media.getFirstAudioTrack().getSampleRate() > 48000) {
 					rate = "" + media.getFirstAudioTrack().getSampleRate();
 				}
-				String flacCmd[] = new String[]{configuration.getFfmpegPath(), "-ar", rate, "-i", fileName, "-f", "wav", "-acodec", depth, "-y", ffAudioPipe[0].getInputPipe()};
+
+				String[] flacCmd = new String[] {
+					configuration.getFfmpegPath(),
+					"-ar", rate,
+					"-i", fileName,
+					"-f", "wav",
+					"-acodec", depth,
+					"-y",
+					ffAudioPipe[0].getInputPipe()
+				};
 
 				ffparams = new OutputParams(PMS.getConfiguration());
 				ffparams.maxBufferSize = 1;
@@ -158,12 +207,13 @@ public class TSMuxerVideo extends Player {
 			String mencoderPath = configuration.getMencoderPath();
 
 			ffVideoPipe = new PipeIPCProcess(System.currentTimeMillis() + "ffmpegvideo", System.currentTimeMillis() + "videoout", false, true);
-			String ffmpegLPCMextract[] = new String[]{
+
+			String[] ffmpegLPCMextract = new String[] {
 				mencoderPath,
 				"-ss", "0",
 				fileName,
-				"",
-				"",
+				"-quiet",
+				"-quiet",
 				"-really-quiet",
 				"-msglevel", "statusline=2",
 				"-ovc", "copy",
@@ -182,6 +232,7 @@ public class TSMuxerVideo extends Player {
 			if (params.stdin != null) {
 				ffmpegLPCMextract[3] = "-";
 			}
+
 			InputFile newInput = new InputFile();
 			newInput.setFilename(fileName);
 			newInput.setPush(params.stdin);
@@ -192,10 +243,11 @@ public class TSMuxerVideo extends Player {
 				if (!compat && params.mediaRenderer.isPS3()) {
 					LOGGER.info("The video will not play or will show a black screen on the PS3");
 				}
+
 				if (media.getH264AnnexB() != null && media.getH264AnnexB().length > 0) {
 					StreamModifier sm = new StreamModifier();
 					sm.setHeader(media.getH264AnnexB());
-					sm.setH264_annexb(true);
+					sm.setH264AnnexB(true);
 					ffVideoPipe.setModifier(sm);
 				}
 			}
@@ -229,10 +281,17 @@ public class TSMuxerVideo extends Player {
 					ffAudioPipe = new PipeIPCProcess[numAudioTracks];
 					ffAudioPipe[0] = new PipeIPCProcess(System.currentTimeMillis() + "ffmpegaudio01", System.currentTimeMillis() + "audioout", false, true);
 
-					// Disable AC3 remux for stereo tracks with 384 kbits bitrate and PS3 renderer (PS3 FW bug?)
-					boolean ps3_and_stereo_and_384_kbits = (params.mediaRenderer.isPS3() && params.aid.getAudioProperties().getNumberOfChannels() == 2) &&
+					/**
+					 * Disable AC3 remux for stereo tracks with 384 kbits bitrate and PS3 renderer (PS3 FW bug?)
+					 *
+					 * Commented out until we can find a way to detect when a video has an audio track that switches from 2 to 6 channels
+					 * because MEncoder can't handle those files, which are very common these days.
+					boolean ps3_and_stereo_and_384_kbits = params.aid != null &&
+						(params.mediaRenderer.isPS3() && params.aid.getAudioProperties().getNumberOfChannels() == 2) &&
 						(params.aid.getBitRate() > 370000 && params.aid.getBitRate() < 400000);
-					ac3Remux = (params.aid.isAC3() && !ps3_and_stereo_and_384_kbits && configuration.isRemuxAC3());
+					 */
+
+					ac3Remux = (params.aid.isAC3() && configuration.isRemuxAC3());
 					dtsRemux = configuration.isDTSEmbedInPCM() && params.aid.isDTS() && params.mediaRenderer.isDTSPlayable();
 
 					pcm = configuration.isMencoderUsePcm() &&
@@ -256,61 +315,62 @@ public class TSMuxerVideo extends Player {
 
 					int channels;
 					if (ac3Remux) {
-						channels = params.aid.getAudioProperties().getNumberOfChannels(); // ac3 remux
+						channels = params.aid.getAudioProperties().getNumberOfChannels(); // AC-3 remux
 					} else if (dtsRemux) {
 						channels = 2;
 					} else if (pcm) {
 						channels = params.aid.getAudioProperties().getNumberOfChannels();
 					} else {
-						channels = configuration.getAudioChannelCount(); // 5.1 max for ac3 encoding
+						channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
 					}
 
 					if (!ac3Remux && (dtsRemux || pcm)) {
 						// DTS remux or LPCM
 						StreamModifier sm = new StreamModifier();
 						sm.setPcm(pcm);
-						sm.setDtsembed(dtsRemux);
-						sm.setNbchannels(channels);
+						sm.setDtsEmbed(dtsRemux);
+						sm.setNbChannels(channels);
 						sm.setSampleFrequency(params.aid.getSampleRate() < 48000 ? 48000 : params.aid.getSampleRate());
-						sm.setBitspersample(16);
+						sm.setBitsPerSample(16);
 
 						String mixer = null;
+
 						if (pcm && !dtsRemux) {
 							mixer = getLPCMChannelMappingForMencoder(params.aid);
 						}
 
-						ffmpegLPCMextract = new String[]{
+						ffmpegLPCMextract = new String[] {
 							mencoderPath,
 							"-ss", "0",
 							fileName,
-							"",
-							"",
+							"-quiet",
+							"-quiet",
 							"-really-quiet",
 							"-msglevel", "statusline=2",
-							"-channels", "" + sm.getNbchannels(),
+							"-channels", "" + sm.getNbChannels(),
 							"-ovc", "copy",
 							"-of", "rawaudio",
-							"-mc", sm.isDtsembed() ? "0.1" : "0",
+							"-mc", sm.isDtsEmbed() ? "0.1" : "0",
 							"-noskip",
-							"-oac", sm.isDtsembed() ? "copy" : "pcm",
-							isNotBlank(mixer) ? "-af" : "", isNotBlank(mixer) ? mixer : "",
-							singleMediaAudio ? "" : "-aid", singleMediaAudio ? "" : ("" + params.aid.getId()),
+							"-oac", sm.isDtsEmbed() ? "copy" : "pcm",
+							isNotBlank(mixer) ? "-af" : "-quiet", isNotBlank(mixer) ? mixer : "-quiet",
+							singleMediaAudio ? "-quiet" : "-aid", singleMediaAudio ? "-quiet" : ("" + params.aid.getId()),
 							"-srate", "48000",
 							"-o", ffAudioPipe[0].getInputPipe()
 						};
 
 						// Use PCM trick when media renderer does not support DTS in MPEG
 						if (!params.mediaRenderer.isMuxDTSToMpeg()) {
-							
 							ffAudioPipe[0].setModifier(sm);
 						}
 					} else {
-						ffmpegLPCMextract = new String[]{
+						// AC-3 remux or encoding
+						ffmpegLPCMextract = new String[] {
 							mencoderPath,
 							"-ss", "0",
 							fileName,
-							"",
-							"",
+							"-quiet",
+							"-quiet",
 							"-really-quiet",
 							"-msglevel", "statusline=2",
 							"-channels", "" + channels,
@@ -319,11 +379,11 @@ public class TSMuxerVideo extends Player {
 							"-mc", "0",
 							"-noskip",
 							"-oac", (ac3Remux) ? "copy" : "lavc",
-							params.aid.isAC3() ? "-fafmttag" : "", params.aid.isAC3() ? "0x2000" : "",
+							params.aid.isAC3() ? "-fafmttag" : "-quiet", params.aid.isAC3() ? "0x2000" : "-quiet",
 							"-lavcopts", "acodec=" + (configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3") + ":abitrate=" + CodecUtil.getAC3Bitrate(configuration, params.aid),
 							"-af", "lavcresample=48000",
 							"-srate", "48000",
-							singleMediaAudio ? "" : "-aid", singleMediaAudio ? "" : ("" + params.aid.getId()),
+							singleMediaAudio ? "-quiet" : "-aid", singleMediaAudio ? "-quiet" : ("" + params.aid.getId()),
 							"-o", ffAudioPipe[0].getInputPipe()
 						};
 					}
@@ -353,10 +413,17 @@ public class TSMuxerVideo extends Player {
 						DLNAMediaAudio audio = media.getAudioTracksList().get(i);
 						ffAudioPipe[i] = new PipeIPCProcess(System.currentTimeMillis() + "ffmpeg" + i, System.currentTimeMillis() + "audioout" + i, false, true);
 
-						// disable AC3 remux for stereo tracks with 384 kbits bitrate and PS3 renderer (PS3 FW bug?)
-						boolean ps3_and_stereo_and_384_kbits = (params.mediaRenderer.isPS3() && audio.getAudioProperties().getNumberOfChannels() == 2) &&
-							(audio.getBitRate() > 370000 && audio.getBitRate() < 400000);
-						ac3Remux = audio.isAC3() && !ps3_and_stereo_and_384_kbits && configuration.isRemuxAC3();
+						/**
+						 * Disable AC3 remux for stereo tracks with 384 kbits bitrate and PS3 renderer (PS3 FW bug?)
+						 *
+						 * Commented out until we can find a way to detect when a video has an audio track that switches from 2 to 6 channels
+						 * because MEncoder can't handle those files, which are very common these days.
+						boolean ps3_and_stereo_and_384_kbits = params.aid != null &&
+							(params.mediaRenderer.isPS3() && params.aid.getAudioProperties().getNumberOfChannels() == 2) &&
+							(params.aid.getBitRate() > 370000 && params.aid.getBitRate() < 400000);
+						 */
+
+						ac3Remux = audio.isAC3() && configuration.isRemuxAC3();
 						dtsRemux = configuration.isDTSEmbedInPCM() && audio.isDTS() && params.mediaRenderer.isDTSPlayable();
 
 						pcm = configuration.isMencoderUsePcm() &&
@@ -380,23 +447,23 @@ public class TSMuxerVideo extends Player {
 
 						int channels;
 						if (ac3Remux) {
-							channels = audio.getAudioProperties().getNumberOfChannels(); // ac3 remux
+							channels = audio.getAudioProperties().getNumberOfChannels(); // AC-3 remux
 						} else if (dtsRemux) {
 							channels = 2;
 						} else if (pcm) {
 							channels = audio.getAudioProperties().getNumberOfChannels();
 						} else {
-							channels = configuration.getAudioChannelCount(); // 5.1 max for ac3 encoding
+							channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
 						}
 
 						if (!ac3Remux && (dtsRemux || pcm)) {
 							// DTS remux or LPCM
 							StreamModifier sm = new StreamModifier();
 							sm.setPcm(pcm);
-							sm.setDtsembed(dtsRemux);
-							sm.setNbchannels(channels);
+							sm.setDtsEmbed(dtsRemux);
+							sm.setNbChannels(channels);
 							sm.setSampleFrequency(audio.getSampleRate() < 48000 ? 48000 : audio.getSampleRate());
-							sm.setBitspersample(16);
+							sm.setBitsPerSample(16);
 							if (!params.mediaRenderer.isMuxDTSToMpeg()) {
 								ffAudioPipe[i].setModifier(sm);
 							}
@@ -410,28 +477,29 @@ public class TSMuxerVideo extends Player {
 								mencoderPath,
 								"-ss", "0",
 								fileName,
-								"",
-								"",
+								"-quiet",
+								"-quiet",
 								"-really-quiet",
 								"-msglevel", "statusline=2",
-								"-channels", "" + sm.getNbchannels(),
+								"-channels", "" + sm.getNbChannels(),
 								"-ovc", "copy",
 								"-of", "rawaudio",
-								"-mc", sm.isDtsembed() ? "0.1" : "0",
+								"-mc", sm.isDtsEmbed() ? "0.1" : "0",
 								"-noskip",
-								"-oac", sm.isDtsembed() ? "copy" : "pcm",
-								isNotBlank(mixer) ? "-af" : "", isNotBlank(mixer) ? mixer : "",
-								singleMediaAudio ? "" : "-aid", singleMediaAudio ? "" : ("" + audio.getId()),
+								"-oac", sm.isDtsEmbed() ? "copy" : "pcm",
+								isNotBlank(mixer) ? "-af" : "-quiet", isNotBlank(mixer) ? mixer : "-quiet",
+								singleMediaAudio ? "-quiet" : "-aid", singleMediaAudio ? "-quiet" : ("" + audio.getId()),
 								"-srate", "48000",
 								"-o", ffAudioPipe[i].getInputPipe()
 							};
 						} else {
+							// AC-3 remux or encoding
 							ffmpegLPCMextract = new String[]{
 								mencoderPath,
 								"-ss", "0",
 								fileName,
-								"",
-								"",
+								"-quiet",
+								"-quiet",
 								"-really-quiet",
 								"-msglevel", "statusline=2",
 								"-channels", "" + channels,
@@ -440,11 +508,11 @@ public class TSMuxerVideo extends Player {
 								"-mc", "0",
 								"-noskip",
 								"-oac", (ac3Remux) ? "copy" : "lavc",
-								audio.isAC3() ? "-fafmttag" : "", audio.isAC3() ? "0x2000" : "",
+								audio.isAC3() ? "-fafmttag" : "-quiet", audio.isAC3() ? "0x2000" : "-quiet",
 								"-lavcopts", "acodec=" + (configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3") + ":abitrate=" + CodecUtil.getAC3Bitrate(configuration, audio),
 								"-af", "lavcresample=48000",
 								"-srate", "48000",
-								singleMediaAudio ? "" : "-aid", singleMediaAudio ? "" : ("" + audio.getId()),
+								singleMediaAudio ? "-quiet" : "-aid", singleMediaAudio ? "-quiet" : ("" + audio.getId()),
 								"-o", ffAudioPipe[i].getInputPipe()
 							};
 						}
@@ -498,9 +566,18 @@ public class TSMuxerVideo extends Player {
 			boolean ac3Remux;
 			boolean dtsRemux;
 			boolean pcm;
-			boolean ps3_and_stereo_and_384_kbits = (params.mediaRenderer.isPS3() && params.aid.getAudioProperties().getNumberOfChannels() == 2) &&
+
+			/**
+			 * Disable AC3 remux for stereo tracks with 384 kbits bitrate and PS3 renderer (PS3 FW bug?)
+			 *
+			 * Commented out until we can find a way to detect when a video has an audio track that switches from 2 to 6 channels
+			 * because MEncoder can't handle those files, which are very common these days.
+			boolean ps3_and_stereo_and_384_kbits = params.aid != null &&
+				(params.mediaRenderer.isPS3() && params.aid.getAudioProperties().getNumberOfChannels() == 2) &&
 				(params.aid.getBitRate() > 370000 && params.aid.getBitRate() < 400000);
-			ac3Remux = params.aid.isAC3() && !ps3_and_stereo_and_384_kbits && configuration.isRemuxAC3();
+			 */
+
+			ac3Remux = params.aid.isAC3() && configuration.isRemuxAC3();
 			dtsRemux = configuration.isDTSEmbedInPCM() && params.aid.isDTS() && params.mediaRenderer.isDTSPlayable();
 
 			pcm = configuration.isMencoderUsePcm() &&
@@ -523,7 +600,7 @@ public class TSMuxerVideo extends Player {
 				) && params.mediaRenderer.isLPCMPlayable();
 			String type = "A_AC3";
 			if (ac3Remux) {
-				// AC3 remux takes priority
+				// AC-3 remux takes priority
 				type = "A_AC3";
 			} else {
 				if (pcm || this instanceof TsMuxerAudio) {
@@ -547,9 +624,18 @@ public class TSMuxerVideo extends Player {
 				boolean ac3Remux;
 				boolean dtsRemux;
 				boolean pcm;
-				boolean ps3_and_stereo_and_384_kbits = (params.mediaRenderer.isPS3() && lang.getAudioProperties().getNumberOfChannels() == 2) &&
-					(lang.getBitRate() > 370000 && lang.getBitRate() < 400000);
-				ac3Remux = lang.isAC3() && !ps3_and_stereo_and_384_kbits && configuration.isRemuxAC3();
+
+				/**
+				 * Disable AC3 remux for stereo tracks with 384 kbits bitrate and PS3 renderer (PS3 FW bug?)
+				 *
+				 * Commented out until we can find a way to detect when a video has an audio track that switches from 2 to 6 channels
+				 * because MEncoder can't handle those files, which are very common these days.
+				boolean ps3_and_stereo_and_384_kbits = params.aid != null &&
+					(params.mediaRenderer.isPS3() && params.aid.getAudioProperties().getNumberOfChannels() == 2) &&
+					(params.aid.getBitRate() > 370000 && params.aid.getBitRate() < 400000);
+				 */
+
+				ac3Remux = lang.isAC3() && configuration.isRemuxAC3();
 				dtsRemux = configuration.isDTSEmbedInPCM() && lang.isDTS() && params.mediaRenderer.isDTSPlayable();
 
 				pcm = configuration.isMencoderUsePcm() &&
@@ -572,7 +658,7 @@ public class TSMuxerVideo extends Player {
 					) && params.mediaRenderer.isLPCMPlayable();
 				String type = "A_AC3";
 				if (ac3Remux) {
-					// AC3 remux takes priority
+					// AC-3 remux takes priority
 					type = "A_AC3";
 				} else {
 					if (pcm) {
@@ -661,6 +747,66 @@ public class TSMuxerVideo extends Player {
 		return p;
 	}
 
+	/**
+	 * Write the resource "/resources/images/fake.jpg" to a physical file on disk.
+	 *
+	 * @return The filename of the file on disk.
+	 */
+	private String writeResourceToFile(String resourceName) {
+		String outputFileName = resourceName.substring(resourceName.lastIndexOf("/") + 1);
+
+		try {
+			outputFileName = PMS.getConfiguration().getTempFolder() + "/" + outputFileName;
+		} catch (IOException e) {
+			LOGGER.warn("Failure to determine temporary folder.", e);
+		}
+
+		File outputFile = new File(outputFileName);
+
+		// Copy the resource file only once
+		if (!outputFile.exists()) {
+			final URL resourceUrl = getClass().getClassLoader().getResource(resourceName);
+			byte[] buffer = new byte[1024];
+			int byteCount = 0;
+
+			InputStream inputStream = null;
+			OutputStream outputStream = null;
+
+			try {
+				inputStream = resourceUrl.openStream();
+				outputStream = new FileOutputStream(outputFileName);
+
+				while ((byteCount = inputStream.read(buffer)) >= 0) {
+					outputStream.write(buffer, 0, byteCount);
+				}
+			} catch (final IOException e) {
+				LOGGER.error("Failure on saving the embedded resource " + resourceName +
+						" to the file " + outputFile.getAbsolutePath(), e);
+			} finally {
+				if (inputStream != null) {
+					try {
+						inputStream.close();
+					} catch (final IOException e) {
+						LOGGER.warn("Problem closing an input stream while reading data from the embedded resource " +
+								resourceName, e);
+					}
+				}
+
+				if (outputStream != null) {
+					try {
+						outputStream.flush();
+						outputStream.close();
+					} catch (final IOException e) {
+						LOGGER.warn("Problem closing the output stream while writing the file "
+								+ outputFile.getAbsolutePath(), e);
+					}
+				}
+			}
+		}
+
+		return outputFileName;
+	}
+
 	@Override
 	public String mimeType() {
 		return "video/mpeg";
@@ -693,7 +839,7 @@ public class TSMuxerVideo extends Player {
 		CellConstraints cc = new CellConstraints();
 
 
-		JComponent cmp = builder.addSeparator(Messages.getString("TSMuxerVideo.3"), FormLayoutUtil.flip(cc.xyw(2, 1, 1), colSpec, orientation));
+		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), FormLayoutUtil.flip(cc.xyw(2, 1, 1), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 

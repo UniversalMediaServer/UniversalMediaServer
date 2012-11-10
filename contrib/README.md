@@ -1,21 +1,25 @@
-# Build PMS binaries
+# Build UMS binaries
 
-These scripts are only meant for enthusiasts that want to bundle their PMS with
+These scripts are only meant for enthusiasts who want to bundle their UMS with
 custom built versions of libraries and tools, replacing the standard versions
-shipped with the regular PMS distribution.
+shipped with the regular UMS distribution.
 
-There are two scripts available: the first for downloading the sources and the
-second for building the sources into binaries.
+There are three scripts available: the first for downloading the sources, the
+second for building the sources into binaries, and the third for downloading
+and building a static ffmpeg build (see
+[ffmpeg/README.md](https://github.com/UniversalMediaServer/UniversalMediaServer/tree/master/contrib/ffmpeg)
+for more details).
 
-After running both scripts the following directory structure is created:
+After running the first two scripts the following directory structure is created:
 
-    ps3mediaserver/
+    UniversalMediaServer/
       |
       +-- contrib/
       |     |
       |     +-- binaries-deps-versions
       |     +-- build-pms-binaries.sh
       |     +-- download-pms-binaries-source.sh 
+      |     +-- ffmpeg/
       |
       +-- target/
             |
@@ -49,9 +53,8 @@ other script:
 
 
 ## Cleaning up
-To clean up built binaries, remove the following directories:
+To clean binaries built by the three scripts, remove the following directories:
 
     rm -rf ../target/bin-tools/build/
     rm -rf ../target/bin-tools/target/
-
-
+    rm -rf ./ffmpeg/build

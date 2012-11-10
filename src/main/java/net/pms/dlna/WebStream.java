@@ -103,6 +103,8 @@ public class WebStream extends DLNAResource {
 		return false;
 	}
 
+	// XXX unused
+	@Deprecated
 	public long lastModified() {
 		return 0;
 	}

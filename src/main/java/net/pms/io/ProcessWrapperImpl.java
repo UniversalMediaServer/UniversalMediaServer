@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import net.pms.PMS;
 import net.pms.encoders.AviDemuxerInputStream;
 import net.pms.util.ProcessUtil;
@@ -84,7 +85,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 
 		File exec = new File(cmdArray[0]);
 
-		if (exec.exists() && exec.isFile()) {
+		if (exec.isFile()) {
 			cmdArray[0] = exec.getAbsolutePath();
 		}
 
@@ -97,7 +98,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			}
 
 			if (cmdArray[i] != null && cmdArray[i].indexOf(" ") >= 0) {
-				sb.append("\"" + cmdArray[i] + "\"");
+				sb.append("\"").append(cmdArray[i]).append("\"");
 			} else {
 				sb.append(cmdArray[i]);
 			}
@@ -118,6 +119,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 		attachedProcesses.add(process);
 	}
 
+	@Override
 	public void run() {
 		ProcessBuilder pb = new ProcessBuilder(cmdArray);
 		try {
@@ -127,6 +129,23 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			}
 			if (params.workDir != null && params.workDir.isDirectory()) {
 				pb.directory(params.workDir);
+			}
+			if (params.env != null && !params.env.isEmpty()) {
+				Map<String,String> environment = pb.environment();
+				// Actual name of system path var is case-sensitive
+
+				String sysPathKey = PMS.get().isWindows() ? "Path" : "PATH";
+				// As is Map
+				String PATH = params.env.containsKey("PATH") ? params.env.get("PATH") :
+					params.env.containsKey("path") ? params.env.get("path") :
+					params.env.containsKey("Path") ? params.env.get("Path") : null;
+				if (PATH != null) {
+					PATH += (File.pathSeparator + environment.get(sysPathKey));
+				}
+				environment.putAll(params.env);
+				if (PATH != null) {
+					environment.put(sysPathKey, PATH);
+				}
 			}
 			process = pb.start();
 			PMS.get().currentProcesses.add(process);
@@ -214,6 +233,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 	 * method name.
 	 * @see #runInSameThread()
 	 */
+	@Override
 	public void runInNewThread() {
 		this.start();
 	}
@@ -227,6 +247,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 		this.run();
 	}
 
+	@Override
 	public InputStream getInputStream(long seek) throws IOException {
 		if (bo != null) {
 			return bo.getInputStream(seek);
@@ -251,6 +272,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 		return outConsumer.getResults();
 	}
 
+	@Override
 	public List<String> getResults() {
 		try {
 			stderrConsumer.join(1000);
@@ -259,6 +281,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 		return stderrConsumer.getResults();
 	}
 
+	@Override
 	public synchronized void stopProcess() {
 		if (!destroyed) {
 			destroyed = true;
@@ -285,14 +308,17 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 		}
 	}
 
+	@Override
 	public boolean isDestroyed() {
 		return destroyed;
 	}
 
+	@Override
 	public boolean isReadyToStop() {
 		return nullable;
 	}
 
+	@Override
 	public void setReadyToStop(boolean nullable) {
 		if (nullable != this.nullable) {
 			LOGGER.trace("Ready to Stop: " + nullable);

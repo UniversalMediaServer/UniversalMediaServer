@@ -44,16 +44,20 @@ public abstract class VirtualVideoAction extends DLNAResource {
 	private String videoKo;
 	private long timer1;
 
-	/**Constructor for this class. Recommended instantation includes overriding the {@link #enable()} function (example shown in the link).
-	 * @param name Name that is shown via the UPNP ContentBrowser service. This field cannot be changed after the instantiation.
-	 * @param enabled If true, a green tick mark is shown as thumbnail. If false, a red cross is shown. This initial value
-	 * is usually changed via the {@link #enable()} function.
+	/**
+	 * Constructor for this class. Recommended instantiation includes overriding
+	 * the {@link #enable()} function (example shown in the link).
+	 * @param name Name that is shown via the UPNP ContentBrowser service. 
+	 *             This field cannot be changed after the instantiation.
+	 * @param enabled If true, a green tick mark is shown as thumbnail.
+	 *                If false, a red cross is shown. This initial value
+	 *                is usually changed via the {@link #enable()} function.
 	 */
 	public VirtualVideoAction(String name, boolean enabled) {
 		this.name = name;
 		thumbnailContentType = HTTPResource.PNG_TYPEMIME;
-		thumbnailIconOK = "images/apply-256.png";
-		thumbnailIconKO = "images/button_cancel-256.png";
+		thumbnailIconOK = "images/icon-videothumbnail-ok.png";
+		thumbnailIconKO = "images/icon-videothumbnail-cancel.png";
 		this.videoOk = "videos/action_success-512.mpg";
 		this.videoKo = "videos/button_cancel-512.mpg";
 		timer1 = -1;
@@ -68,7 +72,7 @@ public abstract class VirtualVideoAction extends DLNAResource {
 		mediaInfo.setMimeType("video/mpeg");
 		mediaInfo.setCodecV("mpeg2");
 		mediaInfo.setMediaparsed(true);
-		
+
 		setMedia(mediaInfo);
 	}
 
@@ -83,11 +87,13 @@ public abstract class VirtualVideoAction extends DLNAResource {
 		return false;
 	}
 
-	/**This function is called as an action from the UPNP client when
+	/**
+	 * This function is called as an action from the UPNP client when
 	 * the user tries to play this item. This function calls instead the enable()
 	 * function in order to execute an action.
-	 * As the client expects to play an item, a really short video (less than 1s) is shown with 
-	 * the results of the action. 
+	 * As the client expects to play an item, a really short video (less than
+	 * 1s) is shown with  the results of the action. 
+	 *
 	 * @see #enable()
 	 * @see net.pms.dlna.DLNAResource#getInputStream()
 	 */
@@ -98,13 +104,16 @@ public abstract class VirtualVideoAction extends DLNAResource {
 		} else if (System.currentTimeMillis() - timer1 < 2000) {
 			timer1 = -1;
 		}
+
 		if (timer1 != -1) {
 			enabled = enable();
 		}
+
 		return getResourceInputStream(enabled ? videoOk : videoKo);
 	}
 
-	/**Prototype. This function is called by {@link #getInputStream()} and is the core of this class.
+	/**
+	 * Prototype. This function is called by {@link #getInputStream()} and is the core of this class.
 	 * The main purpose of this function is toggle a boolean variable somewhere. 
 	 * The value of that boolean variable is shown then as either a green tick mark or a red cross.
 	 * However, this is just a cosmetic thing. Any Java code can be executed in this function, not only toggling a boolean variable.
@@ -126,7 +135,9 @@ public abstract class VirtualVideoAction extends DLNAResource {
 		return name;
 	}
 
-	/**As this item is not a container, returns false.
+	/**
+	 * As this item is not a container, returns false.
+	 *
 	 * @return false
 	 * @see net.pms.dlna.DLNAResource#isFolder()
 	 */
@@ -135,7 +146,8 @@ public abstract class VirtualVideoAction extends DLNAResource {
 		return false;
 	}
 
-	/**Returns an invalid length as this item is not 
+	/**
+	 * Returns an invalid length as this item is not 
 	 * TODO: (botijo) VirtualFolder returns 0 instead of -1.
 	 * @return -1, an invalid length for an item.
 	 * @see net.pms.dlna.DLNAResource#length()
@@ -145,6 +157,8 @@ public abstract class VirtualVideoAction extends DLNAResource {
 		return -1; //DLNAMediaInfo.TRANS_SIZE;
 	}
 
+	// XXX unused
+	@Deprecated
 	public long lastModified() {
 		return 0;
 	}
@@ -154,8 +168,10 @@ public abstract class VirtualVideoAction extends DLNAResource {
 		return getName();
 	}
 
-	/**Returns either a green tick mark or a red cross that represents the actual
-	 * value of this item
+	/**
+	 * Returns either a green tick mark or a red cross that represents the
+	 * actual value of this item
+	 *
 	 * @see net.pms.dlna.DLNAResource#getThumbnailInputStream()
 	 */
 	@Override
@@ -163,7 +179,10 @@ public abstract class VirtualVideoAction extends DLNAResource {
 		return getResourceInputStream(enabled ? thumbnailIconOK : thumbnailIconKO);
 	}
 
-	/**@return PNG type, as the thumbnail can only be either a green tick mark or a red cross.
+	/**
+	 * @return PNG type, as the thumbnail can only be either a green tick
+	 * mark or a red cross.
+	 *
 	 * @see #getThumbnailInputStream()
 	 * @see net.pms.dlna.DLNAResource#getThumbnailContentType()
 	 */
@@ -172,7 +191,8 @@ public abstract class VirtualVideoAction extends DLNAResource {
 		return thumbnailContentType;
 	}
 
-	/**TODO: (botijo) Why is ext being set here?
+	/**
+	 * TODO: (botijo) Why is ext being set here?
 	 * @return True, as this kind of item is always valid.
 	 * @see net.pms.dlna.DLNAResource#isValid()
 	 */

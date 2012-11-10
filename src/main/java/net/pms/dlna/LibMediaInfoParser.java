@@ -51,6 +51,7 @@ public class LibMediaInfoParser {
 					while (st.hasMoreTokens()) {
 						String line = st.nextToken().trim();
 
+						// Define the type of media
 						if (line.equals("Video") || line.startsWith("Video #")) {
 							step = MediaInfo.StreamKind.Video;
 						} else if (line.equals("Audio") || line.startsWith("Audio #")) {
@@ -72,6 +73,7 @@ public class LibMediaInfoParser {
 						} else if (line.equals("Chapters")) {
 							step = MediaInfo.StreamKind.Chapters;
 						}
+
 						int point = line.indexOf(":");
 						if (point > -1) {
 							String key = line.substring(0, point).trim();
@@ -80,7 +82,7 @@ public class LibMediaInfoParser {
 							if (key.equals("Format") || key.startsWith("Format_Version") || key.startsWith("Format_Profile")) {
 								if (step == MediaInfo.StreamKind.Text) {
 									// First attempt to detect subtitle track format
-									currentSubTrack.setType(SubtitleType.getSubtitleTypeByLibMediaInfoCodec(value));
+									currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(value));
 								} else {
 									getFormat(step, media, currentAudioTrack, value);
 								}
@@ -95,7 +97,7 @@ public class LibMediaInfoParser {
 							} else if (key.equals("CodecID")) {
 								if (step == MediaInfo.StreamKind.Text) {
 									// Second attempt to detect subtitle track format (CodecID usually is more accurate)
-									currentSubTrack.setType(SubtitleType.getSubtitleTypeByLibMediaInfoCodec(value));
+									currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(value));
 								} else {
 									getFormat(step, media, currentAudioTrack, value);
 								}
@@ -378,8 +380,10 @@ public class LibMediaInfoParser {
 		}
 		try {
 			return Integer.parseInt(value);
-		} catch (NumberFormatException ex) {
-			LOGGER.info("Unknown bitrate detected. Returning 0.");
+		} catch (NumberFormatException e) {
+			LOGGER.trace("Could not parse bitrate from: " + value);
+			LOGGER.trace("The full error was: " + e);
+
 			return 0;
 		}
 	}

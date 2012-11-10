@@ -59,7 +59,7 @@ public class FFMpegAudio extends FFMpegVideo {
 		CellConstraints cc = new CellConstraints();
 
 
-		JComponent cmp = builder.addSeparator("Audio settings", cc.xyw(2, 1, 1));
+		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), cc.xyw(2, 1, 1));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
@@ -67,6 +67,7 @@ public class FFMpegAudio extends FFMpegVideo {
 		noresample.setContentAreaFilled(false);
 		noresample.setSelected(configuration.isAudioResample());
 		noresample.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setAudioResample(e.getStateChange() == ItemEvent.SELECTED);
 			}
@@ -91,6 +92,7 @@ public class FFMpegAudio extends FFMpegVideo {
 		return false;
 	}
 
+	@Override
 	public boolean avisynth() {
 		return false;
 	}
@@ -120,7 +122,8 @@ public class FFMpegAudio extends FFMpegVideo {
 		String fileName,
 		DLNAResource dlna,
 		DLNAMediaInfo media,
-		OutputParams params) throws IOException {
+		OutputParams params
+	) throws IOException {
 		params.maxBufferSize = PMS.getConfiguration().getMaxAudioBuffer();
 		params.waitbeforestart = 2000;
 		params.manageFastStart();

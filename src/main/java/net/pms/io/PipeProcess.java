@@ -97,6 +97,7 @@ public class PipeProcess {
 			ProcessWrapperImpl mkfifo_vid_process = new ProcessWrapperImpl(cmdArray, mkfifo_vid_params);
 			return mkfifo_vid_process;
 		}
+
 		return mk;
 	}
 
@@ -111,6 +112,7 @@ public class PipeProcess {
 		if (!PMS.get().isWindows()) {
 			return null;
 		}
+
 		return mk.getDirectBuffer();
 	}
 
@@ -118,8 +120,10 @@ public class PipeProcess {
 		if (!PMS.get().isWindows()) {
 			LOGGER.trace("Opening file " + linuxPipeName + " for reading...");
 			RandomAccessFile raf = new RandomAccessFile(linuxPipeName, "r");
+
 			return new FileInputStream(raf.getFD());
 		}
+
 		return mk.getReadable();
 	}
 
@@ -127,9 +131,10 @@ public class PipeProcess {
 		if (!PMS.get().isWindows()) {
 			LOGGER.trace("Opening file " + linuxPipeName + " for writing...");
 			RandomAccessFile raf = new RandomAccessFile(linuxPipeName, "rw");
-			FileOutputStream fout = new FileOutputStream(raf.getFD());
-			return fout;
+
+			return new FileOutputStream(raf.getFD());
 		}
+
 		return mk.getWritable();
 	}
 }
