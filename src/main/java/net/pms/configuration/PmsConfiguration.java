@@ -2399,13 +2399,12 @@ public class PmsConfiguration {
 
 	/**
 	 * Finds out whether the program has admin rights.
+	 * It only checks on Windows and returns true if on a non-Windows OS.
 	 *
-	 * Note: We could (and should) make it check for rights on other operating
-	 * systems, but for now it only checks on Windows and always returns true
-	 * if on a non-Windows OS.
-	 *
-	 * Note 2: Detection of Windows 8 depends on the user having a version of
+	 * Note: Detection of Windows 8 depends on the user having a version of
 	 * JRE newer than 1.6.0_31 installed.
+	 *
+	 * TODO: We should make it check for rights on other operating systems.
 	 */
 	public boolean isAdmin() {
 		if (
@@ -2428,17 +2427,17 @@ public class PmsConfiguration {
 				LOGGER.error("Something prevented UMS from checking Windows permissions", e);
 			}
 		}
+
 		return true;
 	}
-	
+
 	/* Start without external netowrk (increase startup speed) */
-	
 	public static final String KEY_EXTERNAL_NETWORK = "external_network";
-	
+
 	public boolean getExternalNetwork() {
 		return getBoolean(KEY_EXTERNAL_NETWORK, true);
 	}
-	
+
 	public void setExternalNetwork(boolean b) {
 		configuration.setProperty(KEY_EXTERNAL_NETWORK, b);
 	}

@@ -50,11 +50,13 @@ public class DownloadPlugins {
 
 	public static ArrayList<DownloadPlugins> downloadList() {
 		ArrayList<DownloadPlugins> res = new ArrayList<DownloadPlugins>();
+
 		if (!PMS.getConfiguration().getExternalNetwork()) {
-			// No external network -> no idea to try and fetch
-			// plugin list, give up
+			// Do not try to get the plugin list if there is no
+			// external network.
 			return res;
 		}
+
 		try {
 			URL u = new URL(PLUGIN_LIST_URL);
 			URLConnection connection = u.openConnection();
@@ -345,11 +347,10 @@ public class DownloadPlugins {
 		while ((line = br.readLine()) != null) {
 			sb.append(line);
 		}
-		
+
 		// Reload the config in case we have new settings
 		PMS.getConfiguration().reload();
 		pid.waitFor();
-
 
 		File[] newJar = new File(PMS.getConfiguration().getPluginDirectory()).listFiles();
 		for (int i = 0; i < newJar.length; i++) {
@@ -384,6 +385,7 @@ public class DownloadPlugins {
 			}
 			return true;
 		}
+
 		if (cmd.equalsIgnoreCase("touch")) {
 			// arg1 is file to touch
 			String[] tmp = args.split(",");
@@ -393,8 +395,10 @@ public class DownloadPlugins {
 				// Ignore errors, just log it
 				LOGGER.debug("couldn't touch file " + tmp[1]);
 			}
+
 			return true;
 		}
+
 		if (cmd.equalsIgnoreCase("conf")) {
 			String[] tmp = args.split(",", 2);
 			tmp = tmp[1].split("=");
@@ -402,6 +406,7 @@ public class DownloadPlugins {
 			PMS.getConfiguration().save();
 			return true;
 		}
+
 		if (cmd.equalsIgnoreCase("exec")) {
 			try {
 				doExec(args);
@@ -409,8 +414,10 @@ public class DownloadPlugins {
 			} catch (IOException e) {
 			} catch (InterruptedException e) {
 			}
+
 			return true;
 		}
+
 		return false;
 	}
 
@@ -451,8 +458,10 @@ public class DownloadPlugins {
 					filename = tmp[2];
 				}
 			}
+
 			res &= downloadFile(tmp[0], dir, filename);
 		}
+
 		return res;
 	}
 
@@ -476,9 +485,11 @@ public class DownloadPlugins {
 			}
 			return downloadList(url + ext);
 		}
+
 		if (isTest()) {
 			return downloadFile(url, PMS.getConfiguration().getPluginDirectory(), "");
 		}
+
 		return false;
 	}
 
@@ -510,8 +521,7 @@ public class DownloadPlugins {
 		// Create the instances of the plugins
 		ExternalFactory.instantiateDownloaded(update);
 		updateLabel = null;
-		//PMS.getConfiguration().save();
-		//PMS.getConfiguration().reload();
+
 		return true;
 	}
 }
