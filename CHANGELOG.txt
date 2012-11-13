@@ -8,6 +8,11 @@
 		Stop Windows Media Player from being detected
 		Language clarifications
 		Updated Dutch Traditional translation (thanks, leroy!)
+		Added support for all 3D SBS videos
+		Fixed blocky video with some files
+	External components:
+		Updated H2 Database Engine to 1.3.169, which:
+			Makes library scanning faster
 
 2.0.0 - 2012-10-31
 
