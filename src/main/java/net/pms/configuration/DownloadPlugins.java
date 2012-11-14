@@ -72,7 +72,7 @@ public class DownloadPlugins {
 		}
 		return res;
 	}
-	
+
 	private static int getInt(String val) {
 		try {
 			return Integer.parseInt(val);
@@ -139,12 +139,12 @@ public class DownloadPlugins {
 				String[] minVer = keyval[1].split("\\.");
 				String[] myVer = PMS.getVersion().split("\\.");
 				int max = Math.max(myVer.length, minVer.length);
-				for(int i=0; i < max; i++) {
+				for (int i = 0; i < max; i++) {
 					int my,min;
 					// If the versions are of different length
 					// say that the part of "worng" length is 0
-					my = getInt(((i > myVer.length)?"0":myVer[i]));
-					min = getInt(((i > minVer.length)?"0":minVer[i]));
+					my = getInt(((i > myVer.length) ? "0" : myVer[i]));
+					min = getInt(((i > minVer.length) ? "0" : minVer[i]));
 					if (min == my) {
 						// This is equal take the next part of the
 						// version string
@@ -156,7 +156,7 @@ public class DownloadPlugins {
 					}
 					// anyway stop here
 					break;
-				}				
+				}
 			}
 			if (keyval[0].equalsIgnoreCase("prop")) {
 				plugin.props = keyval[1].split(",");
@@ -217,7 +217,7 @@ public class DownloadPlugins {
 	public boolean isTest() {
 		return test;
 	}
-	
+
 	public boolean isOld() {
 		return old;
 	}

@@ -254,11 +254,11 @@ public class PluginTab {
 								// display error and skip it.
 								JOptionPane.showMessageDialog(
 										(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-										"Plugin " + plugin.getName() + " requires a never version of UMS. Please upgrade.",
+										"Plugin " + plugin.getName() + " requires a newer version of UMS. Please upgrade.",
 										"Version Error",
 										JOptionPane.ERROR_MESSAGE
 									);
-									frame.setVisible(false);	
+									frame.setVisible(false);
 									continue;
 							}
 							frame.setVisible(true);
