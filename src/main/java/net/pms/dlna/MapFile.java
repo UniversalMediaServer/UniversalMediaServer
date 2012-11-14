@@ -232,10 +232,11 @@ public class MapFile extends DLNAResource {
 		List<File> files = getFileList();
 		
 		// ATZ handling
-		if (files.size() > PMS.getConfiguration().getATZLimit() &&
-			!(getParent() instanceof ATZFolder)) {
+		if (files.size() > PMS.getConfiguration().getATZLimit() && StringUtils.isEmpty(forcedName)) {
 			// to many files to display in oneshot, add A-Z folders
 			// instead and let the filters begin
+			// NOTE! If we done this at the level directly above we don't do it again
+			// since all files start with the same letter then
 			TreeMap<String, ArrayList<File>> map = new TreeMap<String, ArrayList<File>>();
 			for (File f : files) {
 				if((!f.isFile() && !f.isDirectory()) || f.isHidden()) {
@@ -246,6 +247,8 @@ public class MapFile extends DLNAResource {
 					LOGGER.debug("Ignoring empty/non-relevant directory: " + f.getName());
 					continue;
 				}
+				// Logic her gater all files in a list per letter
+				// non letters end up in "#"
 				char c = f.getName().toUpperCase().charAt(0);
 				if (!(c >= 'A' && c <= 'Z')) {
 					// "other char"
@@ -253,12 +256,15 @@ public class MapFile extends DLNAResource {
 				}
 				ArrayList<File> l = map.get(String.valueOf(c));
 				if (l == null) {
+					// new letter
 					l = new ArrayList<File>();
 				}
 				l.add(f);
 				map.put(String.valueOf(c), l);
 			}
 			for (String letter : map.keySet()) {
+				// loop over all letters, this avoids adding
+				// empty letters
 				MapFile mf = new MapFile(getConf(), map.get(letter));
 				mf.forcedName = letter;
 				addChild(mf);
