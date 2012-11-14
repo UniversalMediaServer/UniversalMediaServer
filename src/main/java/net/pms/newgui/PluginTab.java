@@ -241,7 +241,6 @@ public class PluginTab {
 
 				// Center the installation progress window
 				frame.setLocationRelativeTo(null);
-				frame.setVisible(true);
 				Runnable r = new Runnable() {
 					@Override
 					public void run() {
@@ -250,6 +249,19 @@ public class PluginTab {
 								continue;
 							}
 							DownloadPlugins plugin = plugins.get(rows[i] - 1);
+							if (plugin.isOld()) {
+								// This plugin requires newer UMS
+								// display error and skip it.
+								JOptionPane.showMessageDialog(
+										(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+										"Plugin " + plugin.getName() + " requires a never version of UMS. Please upgrade.",
+										"Version Error",
+										JOptionPane.ERROR_MESSAGE
+									);
+									frame.setVisible(false);	
+									continue;
+							}
+							frame.setVisible(true);
 							inst.setText(Messages.getString("NetworkTab.50") + ": " + plugin.getName());
 							try {
 								plugin.install(label);

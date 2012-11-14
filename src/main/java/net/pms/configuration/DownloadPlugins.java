@@ -47,6 +47,7 @@ public class DownloadPlugins {
 	private JLabel updateLabel;
 	private String[] props;
 	private boolean test;
+	private boolean old;
 
 	public static ArrayList<DownloadPlugins> downloadList() {
 		ArrayList<DownloadPlugins> res = new ArrayList<DownloadPlugins>();
@@ -70,6 +71,14 @@ public class DownloadPlugins {
 		} catch (Exception e) {
 		}
 		return res;
+	}
+	
+	private static int getInt(String val) {
+		try {
+			return Integer.parseInt(val);
+		} catch (Exception e) {
+			return 0;
+		}
 	}
 
 	private static void parse_list(ArrayList<DownloadPlugins> res, BufferedReader in, boolean test) throws IOException {
@@ -125,6 +134,30 @@ public class DownloadPlugins {
 					plugin.type = DownloadPlugins.TYPE_PLATFORM_LIST;
 				}
 			}
+			if (keyval[0].equalsIgnoreCase("require")) {
+				plugin.old = false;
+				String[] minVer = keyval[1].split("\\.");
+				String[] myVer = PMS.getVersion().split("\\.");
+				int max = Math.max(myVer.length, minVer.length);
+				for(int i=0; i < max; i++) {
+					int my,min;
+					// If the versions are of different length
+					// say that the part of "worng" length is 0
+					my = getInt(((i > myVer.length)?"0":myVer[i]));
+					min = getInt(((i > minVer.length)?"0":minVer[i]));
+					if (min == my) {
+						// This is equal take the next part of the
+						// version string
+						continue;
+					}
+					if (min > my) {
+						// Old otherwise it is new
+						plugin.old = true;
+					}
+					// anyway stop here
+					break;
+				}				
+			}
 			if (keyval[0].equalsIgnoreCase("prop")) {
 				plugin.props = keyval[1].split(",");
 			}
@@ -148,6 +181,7 @@ public class DownloadPlugins {
 		type = DownloadPlugins.TYPE_JAR;
 		rating = "--";
 		jars = null;
+		old = false;
 		this.test = test;
 	}
 
@@ -182,6 +216,10 @@ public class DownloadPlugins {
 
 	public boolean isTest() {
 		return test;
+	}
+	
+	public boolean isOld() {
+		return old;
 	}
 
 	private String splitString(String string) {
@@ -338,6 +376,7 @@ public class DownloadPlugins {
 		pb.redirectErrorStream(true);
 		Map<String, String> env = pb.environment();
 		env.put("PROFILE_PATH", PMS.getConfiguration().getProfilePath());
+		env.put("UMS_VERSION", PMS.getVersion());
 		Process pid = pb.start();
 		InputStream is = pid.getInputStream();
 		InputStreamReader isr = new InputStreamReader(is);
