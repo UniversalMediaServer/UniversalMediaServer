@@ -2448,7 +2448,12 @@ public class PmsConfiguration {
 	private static final int DEFAULT_ATZ_LIMIT = 10000;
 	
 	public int getATZLimit() {
-		return getInt(KEY_ATZ_LIMIT, DEFAULT_ATZ_LIMIT);
+		int tmp = getInt(KEY_ATZ_LIMIT, DEFAULT_ATZ_LIMIT);
+		if (tmp <= 2) {
+			// this is silly,ignore
+			tmp = DEFAULT_ATZ_LIMIT;
+		}
+		return tmp;
 	}
 	
 }
