@@ -13,7 +13,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 
 import javax.swing.BorderFactory;
@@ -191,7 +193,7 @@ public class CredTab {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		refresh(table, cols);
+		//refresh(table, cols);
 
 		table.setRowHeight(22);
 		table.setIntercellSpacing(new Dimension(8, 0));
@@ -349,6 +351,8 @@ public class CredTab {
 		for (int i = 0; i < cols.length; i++) {
 			table.setValueAt(cols[i], 0, i);
 		}
+		
+		cred.reload();
 
 		DefaultTableModel tableModel = (DefaultTableModel) table.getModel();
 		tableModel.setRowCount(1);
@@ -360,19 +364,33 @@ public class CredTab {
 		int i=1;
 		while(itr.hasNext()) {
 			String key = (String) itr.next();
-			String val = (String) cred.getProperty(key);
+			//String val = (String) cred.getProperty(key);
+			Object val = cred.getProperty(key); 
 			String[] ownerTag = key.split("\\.", 2);
-			String[] usrPwd = val.split(",", 2);
-			tableModel.insertRow(i , (Object[]) null);
-			table.setValueAt(ownerTag[0], i , 0);
-			if (ownerTag.length > 1) {
-				table.setValueAt(ownerTag[1], i , 1);
+			ArrayList<String> usrPwd = null;
+			if (val instanceof String) {
+				usrPwd = new ArrayList<String>();
+				usrPwd.add((String) val);
 			}
-			if (usrPwd.length > 0) { 	
-				table.setValueAt(usrPwd[0], i , 2);
+			else if (val instanceof List<?>) {
+				usrPwd = (ArrayList<String>) val;
 			}
-			if (usrPwd.length > 1) {
-				table.setValueAt(usrPwd[1], i , 3);
+			if (usrPwd == null) {
+				continue;
+			}
+			for (String val1 : usrPwd) {
+				tableModel.insertRow(i , (Object[]) null);
+				table.setValueAt(ownerTag[0], i , 0);
+				if (ownerTag.length > 1) {
+					table.setValueAt(ownerTag[1], i , 1);
+				}
+				String[] tmp = val1.split(",", 2);
+				if (tmp.length > 0) { 	
+					table.setValueAt(tmp[0], i , 2);
+				}
+				if (tmp.length > 1) {
+					table.setValueAt(tmp[1], i , 3);
+				}
 			}
 			i++;
 		}
