@@ -469,13 +469,6 @@ public class PMS {
 
 		// Any plugin-defined players are now registered, create the gui view.
 		frame.addEngines();
-		
-		// To make the cred stuff work cross plugins
-		// read cred file AFTER plugins are started
-		if (System.getProperty(CONSOLE) == null) {
-			// but only if we got a GUI of course
-			((LooksFrame)frame).getCt().init();
-		}
 
 		boolean binding = false;
 
@@ -935,7 +928,6 @@ public class PMS {
 
 		try {
 			setConfiguration(new PmsConfiguration());
-			getConfiguration().initCred();
 
 			assert getConfiguration() != null;
 

@@ -61,7 +61,6 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	private TranscodingTab tr;
 	private GeneralTab nt;
 	private PluginTab pt;
-	private CredTab ct;
 	private AbstractButton reload;
 	private JLabel status;
 	protected static final Dimension PREFERRED_SIZE = new Dimension(1000, 750);
@@ -87,10 +86,6 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 	public PluginTab getPt() {
 		return pt;
-	}
-	
-	public CredTab getCt() {
-		return ct;
 	}
 
 	public AbstractButton getReload() {
@@ -374,13 +369,11 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		nt = new GeneralTab(configuration);
 		ft = new NavigationShareTab(configuration);
 		pt = new PluginTab(configuration);
-		ct = new CredTab(configuration);
 
 		tabbedPane.addTab(Messages.getString("LooksFrame.18"), st.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.19"), tt.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.20"), nt.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.27"), pt.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.28"), ct.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.22"), ft.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.21"), tr.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.24"), new HelpTab().build());
