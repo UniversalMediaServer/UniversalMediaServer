@@ -62,6 +62,11 @@ public class BasicSystemUtils implements SystemUtils {
 	}
 
 	@Override
+	public File getKLiteFiltersDir() {
+		return null;
+	}
+
+	@Override
 	public String getShortPathNameW(String longPathName) {
 		return longPathName;
 	}

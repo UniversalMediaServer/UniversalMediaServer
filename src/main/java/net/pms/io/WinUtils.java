@@ -66,6 +66,7 @@ public class WinUtils extends BasicSystemUtils implements SystemUtils {
 	private static final int KEY_READ = 0x20019;
 	private boolean kerio;
 	private String avsPluginsDir;
+	private String kLiteFiltersDir;
 	public long lastDontSleepCall = 0;
 	public long lastGoToSleepCall = 0;
 
@@ -108,6 +109,21 @@ public class WinUtils extends BasicSystemUtils implements SystemUtils {
 			pluginsDir = null;
 		}
 		return pluginsDir;
+	}
+
+	/**
+	 * The Filters directory for K-Lite Codec Pack, which contains vsfilter.dll
+	 */
+	@Override
+	public File getKLiteFiltersDir() {
+		if (kLiteFiltersDir == null) {
+			return null;
+		}
+		File filtersDir = new File(kLiteFiltersDir + "\\Filters");
+		if (!filtersDir.exists()) {
+			filtersDir = null;
+		}
+		return filtersDir;
 	}
 
 	/* (non-Javadoc)
@@ -258,6 +274,19 @@ public class WinUtils extends BasicSystemUtils implements SystemUtils {
 					avis = true;
 					valb = (byte[]) winRegQueryValue.invoke(systemRoot, handles[0], toCstr("plugindir2_5"));
 					avsPluginsDir = (valb != null ? new String(valb).trim() : null);
+					closeKey.invoke(systemRoot, handles[0]);
+				}
+
+				// Check if K-Lite Codec Pack is installed
+				key = "SOFTWARE\\Wow6432Node\\KLCodecPack";
+				handles = (int[]) openKey.invoke(systemRoot, -2147483646, toCstr(key), KEY_READ);
+				if (!(handles.length == 2 && handles[0] != 0 && handles[1] == 0)) {
+					key = "SOFTWARE\\KLCodecPack";
+					handles = (int[]) openKey.invoke(systemRoot, -2147483646, toCstr(key), KEY_READ);
+				}
+				if (handles.length == 2 && handles[0] != 0 && handles[1] == 0) {
+					valb = (byte[]) winRegQueryValue.invoke(systemRoot, handles[0], toCstr("installdir"));
+					kLiteFiltersDir = (valb != null ? new String(valb).trim() : null);
 					closeKey.invoke(systemRoot, handles[0]);
 				}
 
