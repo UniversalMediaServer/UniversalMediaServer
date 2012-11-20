@@ -1440,7 +1440,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				Runnable r = new Runnable() {
 					@Override
 					public void run() {
-						LOGGER.info(String.format("renderer: %s, file: %s", rendererId, getSystemName()));
+						LOGGER.info("Started playing: " + getName() + " on: " + rendererId);
+						LOGGER.debug("The full filename of which is: " + getSystemName());
 
 						for (final ExternalListener listener : ExternalFactory.getExternalListeners()) {
 							if (listener instanceof StartStopListener) {
@@ -1493,7 +1494,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						@Override
 						public void run() {
 							if (refCount == 1) {
-								LOGGER.info(String.format("renderer: %s, file: %s", rendererId, getSystemName()));
+								LOGGER.info("Stopped playing: " + getName() + " on: " + rendererId);
+								LOGGER.debug("The full filename of which is: " + getSystemName());
 								PMS.get().getFrame().setStatusLine("");
 
 								for (final ExternalListener listener : ExternalFactory.getExternalListeners()) {
