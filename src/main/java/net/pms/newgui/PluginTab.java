@@ -45,7 +45,6 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
-
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.DownloadPlugins;
@@ -54,7 +53,6 @@ import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.util.FileUtil;
 import net.pms.util.FormLayoutUtil;
-
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang.StringUtils;
@@ -91,9 +89,8 @@ public class PluginTab {
 		JComponent cmp = builder.addSeparator(Messages.getString("PluginTab.8"), FormLayoutUtil.flip(cc.xyw(1, 1, 9), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
-	
-		// Cred table
-		
+
+		// Credentials table
 		credTable.setRowHeight(22);
 		credTable.setIntercellSpacing(new Dimension(8, 0));
 
@@ -110,7 +107,7 @@ public class PluginTab {
 		JScrollPane pane = new JScrollPane(credTable);
 		pane.setPreferredSize(new Dimension(200,200));
 		builder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 3, 9), colSpec, orientation));
-		
+
 		// Add an "Add..." button
 		CustomJButton add = new CustomJButton(Messages.getString("PluginTab.9"));
 		builder.add(add, FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
@@ -120,7 +117,7 @@ public class PluginTab {
 				addEditDialog(credTable,-1);
 			}				
 		});
-		
+
 		// Edit button
 		CustomJButton edit = new CustomJButton(Messages.getString("PluginTab.11"));
 		builder.add(edit, FormLayoutUtil.flip(cc.xy(3, 5), colSpec, orientation));
@@ -130,7 +127,7 @@ public class PluginTab {
 				addEditDialog(credTable,credTable.getSelectedRow());
 			}
 		});
-		
+
 		// Delete button
 		CustomJButton del = new CustomJButton(Messages.getString("PluginTab.12"));
 		builder.add(del, FormLayoutUtil.flip(cc.xy(5, 5), colSpec, orientation));
@@ -140,10 +137,12 @@ public class PluginTab {
 				int[] rows = credTable.getSelectedRows();
 				if (rows.length > 0) {
 					int n = JOptionPane.showConfirmDialog(
-							(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-							Messages.getString("PluginTab.13"),
-						    "",
-						    JOptionPane.YES_NO_OPTION);
+						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+						Messages.getString("PluginTab.13"),
+						"",
+						JOptionPane.YES_NO_OPTION
+					);
+
 					if (n == JOptionPane.YES_OPTION) {
 						for (int i=0; i < rows.length; i++) {
 							String key = (String) credTable.getValueAt(rows[i], 0);
@@ -153,33 +152,37 @@ public class PluginTab {
 							cred.clearProperty(key);
 						}
 					}
+
 					try {
 						cred.save();
 					} catch (ConfigurationException e1) {
-						LOGGER.warn("Couldn't save cred file "+e1);
+						LOGGER.warn("Couldn't save cred file " + e1);
 					}
+
 					refreshCred(credTable);
 				}
 			}
 		});
-		
+
 		// Edit Plugin Credential File button
 		CustomJButton credEdit = new CustomJButton(Messages.getString("NetworkTab.54"));
 		credEdit.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JPanel tPanel = new JPanel(new BorderLayout());
-				
+
 				final JTextArea textArea = new JTextArea();
 				textArea.setFont(new Font("Courier", Font.PLAIN, 12));
 				JScrollPane scrollPane = new JScrollPane(textArea);
 				scrollPane.setPreferredSize(new java.awt.Dimension(900, 450));
+
 				try {
 					configuration.initCred();
 				} catch (IOException e2) {
 					LOGGER.debug("error creating cred file");
 					return;
 				}
+
 				File f = configuration.getCredFile();
 
 				try {
@@ -226,10 +229,9 @@ public class PluginTab {
 			}
 		});
 		builder.add(credEdit, FormLayoutUtil.flip(cc.xy(7, 5), colSpec, orientation));
-		
-		
-		// Plugin table
-		
+
+		// Plugins table
+
 		JComponent availablePluginsHeading = builder.addSeparator(Messages.getString("PluginTab.1"), FormLayoutUtil.flip(cc.xyw(1, 7, 9), colSpec, orientation));
 		availablePluginsHeading = (JComponent) availablePluginsHeading.getComponent(0);
 		availablePluginsHeading.setFont(availablePluginsHeading.getFont().deriveFont(Font.BOLD));
@@ -448,37 +450,40 @@ public class PluginTab {
 				}
 			}
 		}
+
 		if (del != null) {
 			pPlugins.remove(del);
 			pPlugins.repaint();
 		}
 	}
-	
+
 	private void prepareTable(JTable table,String[] cols) {
 		JTableHeader hdr = table.getTableHeader();
 		TableColumnModel tcm = hdr.getColumnModel();
-		for(int i = 0; i < cols.length; i++) {
+
+		for (int i = 0; i < cols.length; i++) {
 			TableColumn tc = tcm.getColumn(i);
 			tc.setHeaderValue( cols[i] );
 		}
+
 		hdr.repaint();
 	}
-	
-	///////////////////////////////////////////////////////////////////////////
-	// Credetials part
-	//////////////////////////////////////////////////////////////////////////
-	
+
+	/**
+	 * Credentials section
+	 */
+
 	private PropertiesConfiguration cred;
 	private JTable credTable;
-	
+
 	private void setupCred() {
 		cred = new PropertiesConfiguration();
 		cred.setListDelimiter((char) 0);
 		String[] cols = {
-				Messages.getString("PluginTab.4"),
-				Messages.getString("PluginTab.5"),
-				Messages.getString("PluginTab.6"),
-				Messages.getString("PluginTab.7")
+			Messages.getString("PluginTab.4"),
+			Messages.getString("PluginTab.5"),
+			Messages.getString("PluginTab.6"),
+			Messages.getString("PluginTab.7")
 		};
 		credTable = new JTable(0, cols.length) {
 			@Override
@@ -488,8 +493,7 @@ public class PluginTab {
 		};
 		prepareTable(credTable, cols);
 	}
-	
-	
+
 	public void init() {
 		File cFile = configuration.getCredFile();
 		if (cFile.isFile() && FileUtil.isFileReadable(cFile)) {
@@ -499,25 +503,26 @@ public class PluginTab {
 			} catch (ConfigurationException e) {
 				LOGGER.warn("Could not load cred file "+cFile);
 			}
-		}
-		else {
+		} else {
 			LOGGER.warn("Cred file unreadable "+cFile);
 		}
+
 		refreshCred(credTable);
 	}
-	
+
 	private void refreshCred(JTable table) {
 		cred.reload();
 
 		DefaultTableModel tableModel = (DefaultTableModel) table.getModel();
 		tableModel.setRowCount(0);
-		
+
 		TableColumn tcol = credTable.getColumnModel().getColumn(3);
 		tcol.setCellRenderer(new PasswordCellRenderer());
 
 		Iterator itr = cred.getKeys();
-		int i=0;
-		while(itr.hasNext()) {
+
+		int i = 0;
+		while (itr.hasNext()) {
 			String key = (String) itr.next();
 			if (StringUtils.isEmpty(key)) {
 				continue;
@@ -525,16 +530,18 @@ public class PluginTab {
 			Object val = cred.getProperty(key); 
 			String[] ownerTag = key.split("\\.", 2);
 			ArrayList<String> usrPwd = null;
+
 			if (val instanceof String) {
 				usrPwd = new ArrayList<String>();
 				usrPwd.add((String) val);
-			}
-			else if (val instanceof List<?>) {
+			} else if (val instanceof List<?>) {
 				usrPwd = (ArrayList<String>) val;
 			}
+
 			if (usrPwd == null) {
 				continue;
 			}
+
 			for (String val1 : usrPwd) {
 				tableModel.insertRow(i , (Object[]) null);
 				table.setValueAt(ownerTag[0], i , 0);
@@ -548,12 +555,13 @@ public class PluginTab {
 				if (tmp.length > 1) {
 					table.setValueAt(tmp[1], i , 3);
 				}
+
 				i++;
 			}
 		}
 		tableModel.fireTableDataChanged();
 	}
-	
+
 	private void addEditDialog(final JTable table,int row) {
 		JPanel panel = new JPanel();
 		GridLayout layout = new GridLayout(0, 2);
@@ -582,7 +590,7 @@ public class PluginTab {
 		final JTextField uText = new JTextField(u);
 		final JPasswordField pText = new JPasswordField(p);
 		final char defEchoChar = pText.getEchoChar();
-		
+
 		JButton ok = new JButton("OK");
 		ok.addActionListener(new ActionListener() {
 			@Override
@@ -590,12 +598,15 @@ public class PluginTab {
 				frame.setVisible(false);
 				String key = oText.getText();
 				String pwd = new String(pText.getPassword());
-				if (StringUtils.isEmpty(key) || 
-						StringUtils.isEmpty(uText.getText()) ||
-						StringUtils.isEmpty(pwd)) {
+				if (
+					StringUtils.isEmpty(key) || 
+					StringUtils.isEmpty(uText.getText()) ||
+					StringUtils.isEmpty(pwd)
+				) {
 					// ignore this
 					return;
 				}
+
 				if (StringUtils.isNotEmpty(tText.getText())) {
 					key = key + "." + tText.getText();
 				}
@@ -609,6 +620,7 @@ public class PluginTab {
 				refreshCred(table);
 			}
 		});
+
 		JButton cancel = new JButton("Cancel");
 		cancel.addActionListener(new ActionListener() {
 			@Override
@@ -616,17 +628,18 @@ public class PluginTab {
 				frame.setVisible(false);
 			}
 		});
-		
+
 		hidden.addItemListener(new ItemListener() {
-		    public void itemStateChanged(ItemEvent e) {
-		        if (e.getStateChange() == ItemEvent.SELECTED) {
-		            pText.setEchoChar((char) 0);
-		        } else {
-		        	pText.setEchoChar(defEchoChar);
-		        }
-		    }
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					pText.setEchoChar((char) 0);
+				} else {
+					pText.setEchoChar(defEchoChar);
+				}
+			}
 		});
-		
+
 		panel.add(owner);
 		panel.add(oText);
 		panel.add(tag);
@@ -645,25 +658,28 @@ public class PluginTab {
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);
 	}
-	
+
 	private class PasswordCellRenderer extends DefaultTableCellRenderer {
 		public PasswordCellRenderer() {
 		}
 
+		@Override
 		public Component getTableCellRendererComponent(
-				JTable  tab,
-				Object obj,
-				boolean isSelected,
-				boolean hasFocus,
-				int row,
-				int col) {
-			
+			JTable  tab,
+			Object obj,
+			boolean isSelected,
+			boolean hasFocus,
+			int row,
+			int col
+		) {
 			Component c = super.getTableCellRendererComponent(tab, obj, isSelected, hasFocus, row, col);
 			JLabel l = (JLabel)c;
-			if(StringUtils.isNotEmpty(l.getText())) {
+
+			if (StringUtils.isNotEmpty(l.getText())) {
 				l.setText("**************");
 			}
+
 			return l;
 		}
-}
+	}
 }
