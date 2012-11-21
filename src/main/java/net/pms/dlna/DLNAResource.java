@@ -447,7 +447,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public void addChild(DLNAResource child) {
 		// child may be null (spotted - via rootFolder.addChild() - in a misbehaving plugin
 		if (child == null) {
-			LOGGER.error("Attempt to add a null child to " + getName(), new NullPointerException("Invalid DLNA resource"));
+			LOGGER.error("A plugin has attempted to add a null child to " + getName());
+			LOGGER.debug("Error info:", new NullPointerException("Invalid DLNA resource"));
 			return;
 		}
 
@@ -656,7 +657,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	protected synchronized void addChildInternal(DLNAResource res) {
 		if (res.getInternalId() != null) {
-			LOGGER.info("Node({}) already has an ID={}, which is overriden now. The previous parent node was:{}", new Object[] { res.getClass().getName(), res.getResourceId(), res.getParent()});
+			LOGGER.debug("Node({}) already has an ID={}, which is overridden now. The previous parent node was:{}", new Object[] { res.getClass().getName(), res.getResourceId(), res.getParent()});
 		}
 
 		getChildren().add(res);
