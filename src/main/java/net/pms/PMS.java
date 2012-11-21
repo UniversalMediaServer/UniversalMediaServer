@@ -467,7 +467,7 @@ public class PMS {
 		// read cred file AFTER plugins are started
 		if (System.getProperty(CONSOLE) == null) {
 			// but only if we got a GUI of course
-			((LooksFrame)frame).getCt().init();
+			((LooksFrame)frame).getPt().init();
 		}
 
 		boolean binding = false;
