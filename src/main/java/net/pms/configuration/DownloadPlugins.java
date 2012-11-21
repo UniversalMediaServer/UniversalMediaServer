@@ -62,6 +62,7 @@ public class DownloadPlugins {
 			URL u = new URL(PLUGIN_LIST_URL);
 			URLConnection connection = u.openConnection();
 			connection.setConnectTimeout(5000);
+			connection.setReadTimeout(5000);
 			BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 			parse_list(res, in, false);
 			File test = new File(PMS.getConfiguration().getPluginDirectory() + File.separator + PLUGIN_TEST_FILE);
