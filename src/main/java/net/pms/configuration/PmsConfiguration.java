@@ -20,6 +20,7 @@ package net.pms.configuration;
 
 import com.sun.jna.Platform;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -2440,5 +2441,49 @@ public class PmsConfiguration {
 
 	public void setExternalNetwork(boolean b) {
 		configuration.setProperty(KEY_EXTERNAL_NETWORK, b);
+	}
+
+	/* Credential path handling */
+	public static final String KEY_CRED_PATH = "cred.path";
+
+	public void initCred() throws IOException {
+		String cp = getCredPath();
+		if (StringUtils.isEmpty(cp)) {
+			// need to make sure we got a cred path here
+			cp = new File(getProfileDirectory() + File.separator + "UMS.cred").getAbsolutePath();
+			configuration.setProperty(KEY_CRED_PATH, cp);
+			try {
+				configuration.save();
+			} catch (ConfigurationException e) {
+			}
+		}
+
+		// Now we know cred path is set
+		File f = new File(cp);
+		if (!f.exists()) {
+			// cred path is set but file isn't there
+			// create empty file with some comments
+			FileOutputStream fos = new FileOutputStream(f);
+			StringBuilder sb = new StringBuilder();
+			sb.append("# Add credentials to the file");
+			sb.append("\n");
+			sb.append("# on the format tag=user,pwd");
+			sb.append("\n");
+			sb.append("# For example:");
+			sb.append("\n");
+			sb.append("# channels.xxx=name,secret");
+			sb.append("\n");
+			fos.write(sb.toString().getBytes());
+			fos.flush();
+			fos.close();
+		}
+	}
+
+	public String getCredPath() {
+		return getString(KEY_CRED_PATH, "");
+	}
+
+	public File getCredFile() {
+		return new File(getCredPath());
 	}
 }

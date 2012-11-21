@@ -935,6 +935,7 @@ public class PMS {
 
 		try {
 			setConfiguration(new PmsConfiguration());
+			getConfiguration().initCred();
 
 			assert getConfiguration() != null;
 
