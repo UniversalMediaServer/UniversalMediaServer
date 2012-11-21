@@ -13,6 +13,8 @@ public interface SystemUtils {
 
 	public abstract File getAvsPluginsDir();
 
+	public abstract File getKLiteFiltersDir();
+
 	public abstract String getShortPathNameW(String longPathName);
 
 	public abstract String getWindowsDirectory();

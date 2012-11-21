@@ -507,7 +507,11 @@ public class DLNAMediaDatabase implements Runnable {
 					try {
 						insert.executeUpdate();
 					} catch (JdbcSQLException e) {
-						LOGGER.debug("An error occurred while trying to store the following file's information in the database: " + name);
+						if (e.getErrorCode() == 23505) {
+							LOGGER.debug("A duplicate key error occurred while trying to store the following file's audio information in the database: " + name);
+						} else {
+							LOGGER.debug("An error occurred while trying to store the following file's audio information in the database: " + name);
+						}
 						LOGGER.debug("The error given by jdbc was: " + e);
 					}
 				}
@@ -523,7 +527,16 @@ public class DLNAMediaDatabase implements Runnable {
 						insert.setString(3, left(sub.getLang(), SIZE_LANG));
 						insert.setString(4, left(sub.getFlavor(), SIZE_FLAVOR));
 						insert.setInt(5, sub.getType().getStableIndex());
-						insert.executeUpdate();
+						try {
+							insert.executeUpdate();
+						} catch (JdbcSQLException e) {
+							if (e.getErrorCode() == 23505) {
+								LOGGER.debug("A duplicate key error occurred while trying to store the following file's subtitle information in the database: " + name);
+							} else {
+								LOGGER.debug("An error occurred while trying to store the following file's subtitle information in the database: " + name);
+							}
+							LOGGER.debug("The error given by jdbc was: " + e);
+						}
 					}
 				}
 				close(insert);
