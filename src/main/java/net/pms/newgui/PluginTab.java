@@ -63,7 +63,7 @@ public class PluginTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PluginTab.class);
 	private final PmsConfiguration configuration;
 	private static final String COL_SPEC = "left:pref, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, pref:grow";
-	private static final String ROW_SPEC = "p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
+	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
 	private JPanel pPlugins;
 	private ArrayList<DownloadPlugins> plugins;
 
@@ -86,12 +86,158 @@ public class PluginTab {
 
 		CellConstraints cc = new CellConstraints();
 
-		JComponent cmp = builder.addSeparator(Messages.getString("PluginTab.8"), FormLayoutUtil.flip(cc.xyw(1, 1, 9), colSpec, orientation));
+		// Available Plugins section
+		JComponent availablePluginsHeading = builder.addSeparator(Messages.getString("PluginTab.1"), FormLayoutUtil.flip(cc.xyw(1, 1, 9), colSpec, orientation));
+		availablePluginsHeading = (JComponent) availablePluginsHeading.getComponent(0);
+		availablePluginsHeading.setFont(availablePluginsHeading.getFont().deriveFont(Font.BOLD));
+
+		final String[] cols = {
+			Messages.getString("NetworkTab.41"),
+			Messages.getString("PluginTab.3"),
+			Messages.getString("NetworkTab.42"),
+			Messages.getString("NetworkTab.43"),
+			Messages.getString("NetworkTab.53")
+		};
+
+		final JTable table = new JTable(1, cols.length) {
+			@Override
+			public boolean isCellEditable(int rowIndex, int vColIndex) {
+				return false;
+			}
+
+			@Override
+			public String getToolTipText(MouseEvent e) {
+				java.awt.Point p = e.getPoint();
+				int rowIndex = rowAtPoint(p);
+
+				if (rowIndex == 0) {
+					return null;
+				}
+
+				DownloadPlugins plugin = plugins.get(rowIndex);
+				return plugin.htmlString();
+			}
+		};
+
+		refresh(table, cols);
+
+		table.setRowHeight(22);
+		table.setIntercellSpacing(new Dimension(8, 0));
+
+		// Define column widths
+		TableColumn nameColumn = table.getColumnModel().getColumn(0);
+		nameColumn.setMinWidth(70);
+		TableColumn versionColumn = table.getColumnModel().getColumn(2);
+		versionColumn.setPreferredWidth(45);
+		TableColumn ratingColumn = table.getColumnModel().getColumn(2);
+		ratingColumn.setPreferredWidth(45);
+		TableColumn authorColumn = table.getColumnModel().getColumn(3);
+		authorColumn.setMinWidth(150);
+		TableColumn descriptionColumn = table.getColumnModel().getColumn(4);
+		descriptionColumn.setMinWidth(300);
+
+		JScrollPane pane = new JScrollPane(table);
+		pane.setPreferredSize(new Dimension(200,200));
+		builder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 3, 9), colSpec, orientation));
+
+		CustomJButton install = new CustomJButton(Messages.getString("NetworkTab.39"));
+		builder.add(install, FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
+		install.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (!ExternalFactory.localPluginsInstalled()) {
+					JOptionPane.showMessageDialog(
+						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+						Messages.getString("NetworkTab.40")
+					);
+					return;
+				}
+
+				if (!configuration.isAdmin()) {
+					JOptionPane.showMessageDialog(
+						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+						"UMS must be run as administrator in order to install plugins.",
+						"Permissions Error",
+						JOptionPane.ERROR_MESSAGE
+					);
+
+					return;
+				}
+
+				final int[] rows = table.getSelectedRows();
+				JPanel panel = new JPanel();
+				GridLayout layout = new GridLayout(3, 1);
+				panel.setLayout(layout);
+				final JFrame frame = new JFrame(Messages.getString("NetworkTab.46"));
+				frame.setSize(250, 110);
+				JProgressBar progressBar = new JProgressBar();
+				progressBar.setIndeterminate(true);
+				panel.add(progressBar);
+				final JLabel label = new JLabel("");
+				final JLabel inst = new JLabel("");
+				panel.add(inst);
+				panel.add(label);
+				frame.add(panel);
+
+				// Center the installation progress window
+				frame.setLocationRelativeTo(null);
+				Runnable r = new Runnable() {
+					@Override
+					public void run() {
+						for (int i = 0; i < rows.length; i++) {
+							if (rows[i] == 0) {
+								continue;
+							}
+							DownloadPlugins plugin = plugins.get(rows[i] - 1);
+							if (plugin.isOld()) {
+								// This plugin requires newer UMS
+								// display error and skip it.
+								JOptionPane.showMessageDialog(
+										(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+										"Plugin " + plugin.getName() + " requires a newer version of UMS. Please upgrade.",
+										"Version Error",
+										JOptionPane.ERROR_MESSAGE
+									);
+									frame.setVisible(false);
+									continue;
+							}
+							frame.setVisible(true);
+							inst.setText(Messages.getString("NetworkTab.50") + ": " + plugin.getName());
+							try {
+								plugin.install(label);
+							} catch (Exception e) {
+							}
+						}
+						frame.setVisible(false);
+					}
+				};
+				new Thread(r).start();
+			}
+		});
+
+		CustomJButton refresh = new CustomJButton(Messages.getString("PluginTab.2") + " " + Messages.getString("PluginTab.1"));
+		builder.add(refresh, FormLayoutUtil.flip(cc.xy(3, 5), colSpec, orientation));
+		refresh.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				refresh(table, cols);
+			}
+		});
+
+		// Installed Plugins section
+		JComponent cmp = builder.addSeparator(Messages.getString("PluginTab.0"), FormLayoutUtil.flip(cc.xyw(1, 7, 9), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		// Credentials table
-		credTable.setRowHeight(22);
+		pPlugins = new JPanel(new GridLayout());
+		builder.add(pPlugins, FormLayoutUtil.flip(cc.xyw(1, 9, 9), colSpec, orientation));
+
+		// Credentials section
+		cmp = builder.addSeparator(Messages.getString("PluginTab.8"), FormLayoutUtil.flip(cc.xyw(1, 11, 9), colSpec, orientation));
+		cmp = (JComponent) cmp.getComponent(0);
+		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
+
+		credTable.setRowHeight(10);
 		credTable.setIntercellSpacing(new Dimension(8, 0));
 
 		// Define column widths
@@ -104,33 +250,33 @@ public class PluginTab {
 		TableColumn pwdColumn = credTable.getColumnModel().getColumn(3);
 		pwdColumn.setPreferredWidth(45);
 
-		JScrollPane pane = new JScrollPane(credTable);
-		pane.setPreferredSize(new Dimension(200,200));
-		builder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 3, 9), colSpec, orientation));
+		pane = new JScrollPane(credTable);
+		pane.setPreferredSize(new Dimension(200, 200));
+		builder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 13, 9), colSpec, orientation));
 
-		// Add an "Add..." button
+		// Add button
 		CustomJButton add = new CustomJButton(Messages.getString("PluginTab.9"));
-		builder.add(add, FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
+		builder.add(add, FormLayoutUtil.flip(cc.xy(1, 15), colSpec, orientation));
 		add.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				addEditDialog(credTable,-1);
+				addEditDialog(credTable, -1);
 			}				
 		});
 
 		// Edit button
 		CustomJButton edit = new CustomJButton(Messages.getString("PluginTab.11"));
-		builder.add(edit, FormLayoutUtil.flip(cc.xy(3, 5), colSpec, orientation));
+		builder.add(edit, FormLayoutUtil.flip(cc.xy(3, 15), colSpec, orientation));
 		edit.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				addEditDialog(credTable,credTable.getSelectedRow());
+				addEditDialog(credTable, credTable.getSelectedRow());
 			}
 		});
 
 		// Delete button
 		CustomJButton del = new CustomJButton(Messages.getString("PluginTab.12"));
-		builder.add(del, FormLayoutUtil.flip(cc.xy(5, 5), colSpec, orientation));
+		builder.add(del, FormLayoutUtil.flip(cc.xy(5, 15), colSpec, orientation));
 		del.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -228,153 +374,7 @@ public class PluginTab {
 				}
 			}
 		});
-		builder.add(credEdit, FormLayoutUtil.flip(cc.xy(7, 5), colSpec, orientation));
-
-		// Plugins table
-
-		JComponent availablePluginsHeading = builder.addSeparator(Messages.getString("PluginTab.1"), FormLayoutUtil.flip(cc.xyw(1, 7, 9), colSpec, orientation));
-		availablePluginsHeading = (JComponent) availablePluginsHeading.getComponent(0);
-		availablePluginsHeading.setFont(availablePluginsHeading.getFont().deriveFont(Font.BOLD));
-
-		final String[] cols = {
-			Messages.getString("NetworkTab.41"),
-			Messages.getString("PluginTab.3"),
-			Messages.getString("NetworkTab.42"),
-			Messages.getString("NetworkTab.43"),
-			Messages.getString("NetworkTab.53")
-		};
-
-		final JTable table = new JTable(1, cols.length) {
-			@Override
-			public boolean isCellEditable(int rowIndex, int vColIndex) {
-				return false;
-			}
-
-			@Override
-			public String getToolTipText(MouseEvent e) {
-				java.awt.Point p = e.getPoint();
-				int rowIndex = rowAtPoint(p);
-
-				if (rowIndex == 0) {
-					return null;
-				}
-
-				DownloadPlugins plugin = plugins.get(rowIndex - 1);
-				return plugin.htmlString();
-			}
-		};
-
-		refresh(table, cols);
-
-		table.setRowHeight(22);
-		table.setIntercellSpacing(new Dimension(8, 0));
-
-		// Define column widths
-		TableColumn nameColumn = table.getColumnModel().getColumn(0);
-		nameColumn.setMinWidth(70);
-		TableColumn versionColumn = table.getColumnModel().getColumn(2);
-		versionColumn.setPreferredWidth(45);
-		TableColumn ratingColumn = table.getColumnModel().getColumn(2);
-		ratingColumn.setPreferredWidth(45);
-		TableColumn authorColumn = table.getColumnModel().getColumn(3);
-		authorColumn.setMinWidth(150);
-		TableColumn descriptionColumn = table.getColumnModel().getColumn(4);
-		descriptionColumn.setMinWidth(300);
-
-		pane = new JScrollPane(table);
-		pane.setPreferredSize(new Dimension(200,200));
-		builder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 9, 9), colSpec, orientation));
-
-		CustomJButton install = new CustomJButton(Messages.getString("NetworkTab.39"));
-		builder.add(install, FormLayoutUtil.flip(cc.xy(1, 11), colSpec, orientation));
-		install.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (!ExternalFactory.localPluginsInstalled()) {
-					JOptionPane.showMessageDialog(
-						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-						Messages.getString("NetworkTab.40")
-					);
-					return;
-				}
-
-				if (!configuration.isAdmin()) {
-					JOptionPane.showMessageDialog(
-						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-						"UMS must be run as administrator in order to install plugins.",
-						"Permissions Error",
-						JOptionPane.ERROR_MESSAGE
-					);
-
-					return;
-				}
-
-				final int[] rows = table.getSelectedRows();
-				JPanel panel = new JPanel();
-				GridLayout layout = new GridLayout(3, 1);
-				panel.setLayout(layout);
-				final JFrame frame = new JFrame(Messages.getString("NetworkTab.46"));
-				frame.setSize(250, 110);
-				JProgressBar progressBar = new JProgressBar();
-				progressBar.setIndeterminate(true);
-				panel.add(progressBar);
-				final JLabel label = new JLabel("");
-				final JLabel inst = new JLabel("");
-				panel.add(inst);
-				panel.add(label);
-				frame.add(panel);
-
-				// Center the installation progress window
-				frame.setLocationRelativeTo(null);
-				Runnable r = new Runnable() {
-					@Override
-					public void run() {
-						for (int i = 0; i < rows.length; i++) {
-							if (rows[i] == 0) {
-								continue;
-							}
-							DownloadPlugins plugin = plugins.get(rows[i] - 1);
-							if (plugin.isOld()) {
-								// This plugin requires newer UMS
-								// display error and skip it.
-								JOptionPane.showMessageDialog(
-										(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-										"Plugin " + plugin.getName() + " requires a newer version of UMS. Please upgrade.",
-										"Version Error",
-										JOptionPane.ERROR_MESSAGE
-									);
-									frame.setVisible(false);
-									continue;
-							}
-							frame.setVisible(true);
-							inst.setText(Messages.getString("NetworkTab.50") + ": " + plugin.getName());
-							try {
-								plugin.install(label);
-							} catch (Exception e) {
-							}
-						}
-						frame.setVisible(false);
-					}
-				};
-				new Thread(r).start();
-			}
-		});
-
-		CustomJButton refresh = new CustomJButton(Messages.getString("PluginTab.2") + " " + Messages.getString("PluginTab.1"));
-		builder.add(refresh, FormLayoutUtil.flip(cc.xy(3, 11), colSpec, orientation));
-		refresh.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				refresh(table, cols);
-			}
-		});
-
-		cmp = builder.addSeparator(Messages.getString("PluginTab.0"), FormLayoutUtil.flip(cc.xyw(1, 13, 9), colSpec, orientation));
-		cmp = (JComponent) cmp.getComponent(0);
-		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
-
-		pPlugins = new JPanel(new GridLayout());
-		builder.add(pPlugins, FormLayoutUtil.flip(cc.xyw(1, 15, 9), colSpec, orientation));
+		builder.add(credEdit, FormLayoutUtil.flip(cc.xy(7, 15), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 		JScrollPane scrollPane = new JScrollPane(
