@@ -33,6 +33,9 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import javax.swing.*;
@@ -90,7 +93,11 @@ public class TracesTab {
 	}
 	
 	public void append(String msg) {
-		getList().append(msg);
+		DateFormat dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss");
+		Date date = new Date();
+
+		String[] messageDisplay = msg.replaceFirst("]", "string that should never match").split("string that should never match");
+		getList().append(dateFormat.format(date) + " " + messageDisplay[1]);
 		final JScrollBar vbar = jListPane.getVerticalScrollBar();
 
 		// If scrollbar was already at the bottom we schedule a new
