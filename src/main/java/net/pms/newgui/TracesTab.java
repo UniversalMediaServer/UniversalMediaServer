@@ -136,10 +136,7 @@ public class TracesTab {
 		});
 
 		popup.add(defaultItem);
-		jList.addMouseListener(
-			new PopupTriggerMouseListener(
-			popup,
-			jList));
+		jList.addMouseListener(new PopupTriggerMouseListener(popup, jList));
 
 		jListPane = new JScrollPane(jList, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		jListPane.setBorder(BorderFactory.createEmptyBorder());
@@ -149,7 +146,11 @@ public class TracesTab {
 		JPanel pLogFileButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		HashMap<String, String> logFiles = LoggingConfigFileLoader.getLogFilePaths();
 		for (String loggerName : logFiles.keySet()) {
-			CustomJButton b = new CustomJButton(loggerName);
+			String loggerNameDisplay = loggerName;
+			if ("debug.log".equals(loggerName)) {
+				loggerNameDisplay = Messages.getString("TracesTab.5");
+			}
+			CustomJButton b = new CustomJButton(loggerNameDisplay);
 			b.setToolTipText(logFiles.get(loggerName));
 			b.addMouseListener(new MouseAdapter() {
 				@Override
