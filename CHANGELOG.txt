@@ -10,9 +10,24 @@
 		Updated Dutch Traditional translation (thanks, leroy!)
 		Added support for all 3D SBS videos
 		Fixed blocky video with some files
+		Fixed bug where the program would not start without an internet connection
+		Checks for VSFilter (AviSynth subtitles plugin) in K-Lite Codec Pack
+		Fixed crash when scanning some MP3 files with large cover images on Linux (#22)
+		Added support for external subtitles with the AviSynth/MEncoder engine
+		Made it less likely for virtual folder names to be cut off after periods
+	Plugin Management:
+		Fixed and improved credentials management
+		Improved Plugin Management tab design
+		Buggy plugins no longer logspam
+	Renderers:
+		Added support for Sony Bravia EX620 TVs (thanks, morisato!)
 	External components:
 		Updated H2 Database Engine to 1.3.169, which:
 			Makes library scanning faster
+		Updated InterFrame to 2.2.0, which:
+			Has less artifacts in the interpolated frames
+		Rolled back MediaInfo on OS X to 0.7.58, which:
+			Fixes a bug that caused all videos to be transcoded instead of streamed
 
 2.0.0 - 2012-10-31
 
