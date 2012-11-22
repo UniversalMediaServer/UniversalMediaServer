@@ -28,6 +28,12 @@
 			Has less artifacts in the interpolated frames
 		Rolled back MediaInfo on OS X to 0.7.58, which:
 			Fixes a bug that caused all videos to be transcoded instead of streamed
+		Updated MPlayer/MEncoder to SB43, which:
+			Runs faster
+			Crashes less
+			Leaks memory less
+			Detects framerates more accurately
+			Improves audio sync
 
 2.0.0 - 2012-10-31
 
