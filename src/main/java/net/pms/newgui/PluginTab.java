@@ -114,7 +114,7 @@ public class PluginTab {
 					return null;
 				}
 
-				DownloadPlugins plugin = plugins.get(rowIndex);
+				DownloadPlugins plugin = plugins.get(rowIndex - 1);
 				return plugin.htmlString();
 			}
 		};
@@ -387,19 +387,19 @@ public class PluginTab {
 
 	private void refresh(JTable table, String[] cols) {
 		plugins = DownloadPlugins.downloadList();
-		prepareTable(table,cols);
+		prepareTable(table, cols);
 		
 		DefaultTableModel tableModel = (DefaultTableModel) table.getModel();
-		tableModel.setRowCount(0);
+		tableModel.setRowCount(1);
 
 		for (int i = 0; i < plugins.size(); i++) {
-			tableModel.insertRow(i, (Object[]) null);
+			tableModel.insertRow(i + 1, (Object[]) null);
 			DownloadPlugins p = plugins.get(i);
-			table.setValueAt(p.getName(), i , 0);
-			table.setValueAt(p.getVersion(), i, 1);
-			table.setValueAt(p.getRating(), i, 2);
-			table.setValueAt(p.getAuthor(), i, 3);
-			table.setValueAt(p.getDescription(), i, 4);
+			table.setValueAt(p.getName(), i + 1, 0);
+			table.setValueAt(p.getVersion(), i + 1, 1);
+			table.setValueAt(p.getRating(), i + 1, 2);
+			table.setValueAt(p.getAuthor(), i + 1, 3);
+			table.setValueAt(p.getDescription(), i + 1, 4);
 		}
 		tableModel.fireTableDataChanged();
 	}
