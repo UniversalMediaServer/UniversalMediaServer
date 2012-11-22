@@ -37,6 +37,11 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileTranscodeVirtualFolder.class);
 	private boolean resolved;
 
+	@Override
+	public boolean isInsideTranscodeFolder() {
+		return true;
+	}
+
 	/**
 	 * Class to take care of sorting the resources properly. Resources
 	 * are sorted by player, then by audio track, then by subtitle.

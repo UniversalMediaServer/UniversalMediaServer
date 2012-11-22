@@ -33,9 +33,8 @@ public class FileUtil {
 
 	public static String getFileNameWithoutExtension(String f) {
 		int point = f.lastIndexOf(".");
-		int position = f.length() - point;
 
-		if (point == -1 || !(position == 4 || position == 5)) {
+		if (point == -1) {
 			point = f.length();
 		}
 

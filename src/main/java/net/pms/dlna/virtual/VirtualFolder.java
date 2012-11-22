@@ -33,6 +33,10 @@ public class VirtualFolder extends DLNAResource {
 	protected String thumbnailIcon;
 	protected String thumbnailContentType;
 
+	public boolean isInsideTranscodeFolder() {
+		return false;
+	}
+
 	/**
 	 * Constructor for this class. The constructor does not add any child to
 	 * the container. This is the only chance to set the name of this container.
@@ -45,7 +49,7 @@ public class VirtualFolder extends DLNAResource {
 	 */
 	public VirtualFolder(String name, String thumbnailIcon) {
 		this.name = name;
-		if (PMS.getConfiguration().isHideExtensions()) {
+		if (isInsideTranscodeFolder() && PMS.getConfiguration().isHideExtensions()) {
 			this.name = FileUtil.getFileNameWithoutExtension(name);
 		}
 
