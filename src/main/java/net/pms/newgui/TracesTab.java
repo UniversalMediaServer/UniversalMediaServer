@@ -92,13 +92,14 @@ public class TracesTab {
 	public void append(String msg) {
 		getList().append(msg);
 		final JScrollBar vbar = jListPane.getVerticalScrollBar();
-		// if scroll bar already was at the bottom we schedule
-		// a new scroll event to again scroll to the bottom
+
+		// If scrollbar was already at the bottom we schedule a new
+		// scroll event to scroll to the bottom again
 		if (vbar.getMaximum() == vbar.getValue() + vbar.getVisibleAmount()) {
 			EventQueue.invokeLater (new Runnable() {
 				@Override
-				public void run () {
-					vbar.setValue (vbar.getMaximum ());
+				public void run() {
+					vbar.setValue(vbar.getMaximum());
 				}
 			});
 		}
@@ -112,14 +113,14 @@ public class TracesTab {
 
 		FormLayout layout = new FormLayout(
 			colSpec,
-			"fill:10:grow, p");
+			"fill:10:grow, p"
+		);
 		PanelBuilder builder = new PanelBuilder(layout);
-		//  builder.setBorder(Borders.DLU14_BORDER);
 		builder.setOpaque(true);
 
 		CellConstraints cc = new CellConstraints();
 
-		//create trace text box
+		// Create traces text box
 		jList = new JTextArea();
 		jList.setEditable(false);
 		jList.setBackground(Color.WHITE);
