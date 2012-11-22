@@ -110,11 +110,7 @@ public class PluginTab {
 				java.awt.Point p = e.getPoint();
 				int rowIndex = rowAtPoint(p);
 
-				if (rowIndex == 0) {
-					return null;
-				}
-
-				DownloadPlugins plugin = plugins.get(rowIndex - 1);
+				DownloadPlugins plugin = plugins.get(rowIndex);
 				return plugin.htmlString();
 			}
 		};
@@ -185,10 +181,7 @@ public class PluginTab {
 					@Override
 					public void run() {
 						for (int i = 0; i < rows.length; i++) {
-							if (rows[i] == 0) {
-								continue;
-							}
-							DownloadPlugins plugin = plugins.get(rows[i] - 1);
+							DownloadPlugins plugin = plugins.get(rows[i]);
 							if (plugin.isOld()) {
 								// This plugin requires newer UMS
 								// display error and skip it.
@@ -206,6 +199,8 @@ public class PluginTab {
 							try {
 								plugin.install(label);
 							} catch (Exception e) {
+								LOGGER.debug("An error occurred when trying to install the plugin: " + plugin.getName());
+								LOGGER.debug("Full error: " + e);
 							}
 						}
 						frame.setVisible(false);
@@ -390,16 +385,16 @@ public class PluginTab {
 		prepareTable(table, cols);
 		
 		DefaultTableModel tableModel = (DefaultTableModel) table.getModel();
-		tableModel.setRowCount(1);
+		tableModel.setRowCount(0);
 
 		for (int i = 0; i < plugins.size(); i++) {
-			tableModel.insertRow(i + 1, (Object[]) null);
+			tableModel.insertRow(i, (Object[]) null);
 			DownloadPlugins p = plugins.get(i);
-			table.setValueAt(p.getName(), i + 1, 0);
-			table.setValueAt(p.getVersion(), i + 1, 1);
-			table.setValueAt(p.getRating(), i + 1, 2);
-			table.setValueAt(p.getAuthor(), i + 1, 3);
-			table.setValueAt(p.getDescription(), i + 1, 4);
+			table.setValueAt(p.getName(), i, 0);
+			table.setValueAt(p.getVersion(), i, 1);
+			table.setValueAt(p.getRating(), i, 2);
+			table.setValueAt(p.getAuthor(), i, 3);
+			table.setValueAt(p.getDescription(), i, 4);
 		}
 		tableModel.fireTableDataChanged();
 	}
