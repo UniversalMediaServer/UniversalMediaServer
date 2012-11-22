@@ -19,7 +19,9 @@
 package net.pms.dlna;
 
 import java.io.*;
+import java.net.InetAddress;
 import java.net.URLEncoder;
+import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -1441,8 +1443,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				Runnable r = new Runnable() {
 					@Override
 					public void run() {
-						LOGGER.info("Started playing: " + getName() + " on: " + rendererId);
-						LOGGER.debug("The full filename of which is: " + getSystemName());
+						InetAddress rendererIp;
+						try {
+							rendererIp = InetAddress.getByName(rendererId);
+							RendererConfiguration renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(rendererIp);
+							String rendererName = renderer.getRendererName();
+							LOGGER.info("Started playing " + getName() + " on your " + rendererName);
+							LOGGER.debug("The full filename of which is: " + getSystemName());
+						} catch (UnknownHostException ex) {
+							LOGGER.debug("" + ex);
+						}
 
 						for (final ExternalListener listener : ExternalFactory.getExternalListeners()) {
 							if (listener instanceof StartStopListener) {
@@ -1495,8 +1505,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						@Override
 						public void run() {
 							if (refCount == 1) {
-								LOGGER.info("Stopped playing: " + getName() + " on: " + rendererId);
-								LOGGER.debug("The full filename of which is: " + getSystemName());
+								InetAddress rendererIp;
+								try {
+									rendererIp = InetAddress.getByName(rendererId);
+									RendererConfiguration renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(rendererIp);
+									String rendererName = renderer.getRendererName();
+									LOGGER.info("Stopped playing " + getName() + " on your " + rendererName);
+									LOGGER.debug("The full filename of which is: " + getSystemName());
+								} catch (UnknownHostException ex) {
+									LOGGER.debug("" + ex);
+								}
+
 								PMS.get().getFrame().setStatusLine("");
 
 								for (final ExternalListener listener : ExternalFactory.getExternalListeners()) {
