@@ -4,8 +4,8 @@
 		Enabled HiDPI for retina displays
 		Fixed a bug that prevented showing Galaxy Nexus pictures
 		Allow plugins more freedom on install
-		Log improvements
-		Stop Windows Media Player from being detected
+		Logging improvements
+		Stop Windows Media Player from being detected because it has never been supported
 		Language clarifications
 		Updated Dutch Traditional translation (thanks, leroy!)
 		Added support for all 3D SBS videos
@@ -14,7 +14,10 @@
 		Checks for VSFilter (AviSynth subtitles plugin) in K-Lite Codec Pack
 		Fixed crash when scanning some MP3 files with large cover images on Linux (#22)
 		Added support for external subtitles with the AviSynth/MEncoder engine
-		Made it less likely for virtual folder names to be cut off after periods
+		Stopped virtual folder names being cut off after periods
+		Fixed several rare crashes
+		Renamed the Traces tab to Logs
+		Made text and buttons on the Logs page more readable
 	Plugin Management:
 		Fixed and improved credentials management
 		Improved Plugin Management tab design
