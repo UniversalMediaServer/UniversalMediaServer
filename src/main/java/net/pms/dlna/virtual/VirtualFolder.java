@@ -20,10 +20,8 @@ package net.pms.dlna.virtual;
 
 import java.io.IOException;
 import java.io.InputStream;
-import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 import net.pms.network.HTTPResource;
-import net.pms.util.FileUtil;
 
 /**
  * Represents a container (folder). This is widely used by the UPNP ContentBrowser service. Child objects are expected in this folder.
@@ -32,10 +30,6 @@ public class VirtualFolder extends DLNAResource {
 	protected String name;
 	protected String thumbnailIcon;
 	protected String thumbnailContentType;
-
-	public boolean isInsideTranscodeFolder() {
-		return false;
-	}
 
 	/**
 	 * Constructor for this class. The constructor does not add any child to
@@ -49,10 +43,6 @@ public class VirtualFolder extends DLNAResource {
 	 */
 	public VirtualFolder(String name, String thumbnailIcon) {
 		this.name = name;
-		if (isInsideTranscodeFolder() && PMS.getConfiguration().isHideExtensions()) {
-			this.name = FileUtil.getFileNameWithoutExtension(name);
-		}
-
 		this.thumbnailIcon = thumbnailIcon;
 
 		if (thumbnailIcon != null && thumbnailIcon.toLowerCase().endsWith(".png")) {
