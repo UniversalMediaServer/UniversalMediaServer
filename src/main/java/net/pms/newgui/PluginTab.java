@@ -133,7 +133,7 @@ public class PluginTab {
 		descriptionColumn.setMinWidth(300);
 
 		JScrollPane pane = new JScrollPane(table);
-		pane.setPreferredSize(new Dimension(200,200));
+		pane.setPreferredSize(new Dimension(200, 139));
 		builder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 3, 9), colSpec, orientation));
 
 		CustomJButton install = new CustomJButton(Messages.getString("NetworkTab.39"));
@@ -232,7 +232,7 @@ public class PluginTab {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		credTable.setRowHeight(10);
+		credTable.setRowHeight(22);
 		credTable.setIntercellSpacing(new Dimension(8, 0));
 
 		// Define column widths
@@ -246,7 +246,7 @@ public class PluginTab {
 		pwdColumn.setPreferredWidth(45);
 
 		pane = new JScrollPane(credTable);
-		pane.setPreferredSize(new Dimension(200, 200));
+		pane.setPreferredSize(new Dimension(200, 95));
 		builder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 13, 9), colSpec, orientation));
 
 		// Add button
