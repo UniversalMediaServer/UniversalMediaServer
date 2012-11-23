@@ -132,7 +132,8 @@ public class PluginTab {
 		TableColumn descriptionColumn = table.getColumnModel().getColumn(4);
 		descriptionColumn.setMinWidth(300);
 
-		JScrollPane pane = new JScrollPane(table);
+		JScrollPane pane = new JScrollPane(table, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		pane.setBorder(BorderFactory.createEmptyBorder());
 		pane.setPreferredSize(new Dimension(200, 139));
 		builder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 3, 9), colSpec, orientation));
 
@@ -245,7 +246,8 @@ public class PluginTab {
 		TableColumn pwdColumn = credTable.getColumnModel().getColumn(3);
 		pwdColumn.setPreferredWidth(45);
 
-		pane = new JScrollPane(credTable);
+		pane = new JScrollPane(credTable, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		pane.setBorder(BorderFactory.createEmptyBorder());
 		pane.setPreferredSize(new Dimension(200, 95));
 		builder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 13, 9), colSpec, orientation));
 
