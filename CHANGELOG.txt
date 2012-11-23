@@ -1,4 +1,4 @@
-2.1.0 - 2012-11-??
+2.1.0 - 2012-11-23
 
 	General:
 		Enabled HiDPI for retina displays
