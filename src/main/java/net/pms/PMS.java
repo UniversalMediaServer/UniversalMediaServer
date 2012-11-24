@@ -935,13 +935,18 @@ public class PMS {
 
 		try {
 			setConfiguration(new PmsConfiguration());
-			getConfiguration().initCred();
 
 			assert getConfiguration() != null;
 
 			// Load the (optional) logback config file. This has to be called after 'new PmsConfiguration'
 			// as the logging starts immediately and some filters need the PmsConfiguration.
 			LoggingConfigFileLoader.load();
+			
+			try {
+				getConfiguration().initCred();
+			} catch (IOException e) {
+				LOGGER.debug("error with cred file during startup");
+			}
 
 			killOld();
 			// create the PMS instance returned by get()
