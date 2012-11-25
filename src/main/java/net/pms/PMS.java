@@ -941,11 +941,11 @@ public class PMS {
 			// Load the (optional) logback config file. This has to be called after 'new PmsConfiguration'
 			// as the logging starts immediately and some filters need the PmsConfiguration.
 			LoggingConfigFileLoader.load();
-			
+
 			try {
 				getConfiguration().initCred();
 			} catch (IOException e) {
-				LOGGER.debug("error with cred file during startup");
+				LOGGER.debug("Error initializing plugin credentials: " + e);
 			}
 
 			killOld();
