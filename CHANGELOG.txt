@@ -1,4 +1,4 @@
-2.1.1 - 2012-11-??
+2.1.1 - 2012-11-25
 
 	General:
 		Fixed a bug preventing UMS from starting
