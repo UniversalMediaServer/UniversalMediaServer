@@ -304,13 +304,13 @@ public class MEncoderAviSynth extends MEncoderVideo {
 
 		String subLine = null;
 		if (subTrack != null && PMS.getConfiguration().isAutoloadSubtitles() && !PMS.getConfiguration().isMencoderDisableSubs()) {
-			LOGGER.trace("AviSynth script: Using sub track: " + subTrack);
 			if (subTrack.getExternalFile() != null) {
+				LOGGER.info("AviSynth script: Using subtitle track: " + subTrack);
 				String function = "TextSub";
 				if (subTrack.getType() == SubtitleType.VOBSUB) {
 					function = "VobSub";
 				}
-				subLine = "clip=" + function + "(clip, \"" + ProcessUtil.getShortFileNameIfWideChars(subTrack.getExternalFile().getAbsolutePath()) + "\")";
+				subLine = function + "(\"" + ProcessUtil.getShortFileNameIfWideChars(subTrack.getExternalFile().getAbsolutePath()) + "\")";
 			}
 		}
 
@@ -377,7 +377,11 @@ public class MEncoderAviSynth extends MEncoderVideo {
 		// Check whether the subtitle actually has a language defined,
 		// Uninitialized DLNAMediaSubtitle objects have a null language.
 		if (subtitle != null && subtitle.getLang() != null) {
-			// The resource needs a subtitle, but this engine does not support subtitles
+			// This engine only supports external subtitles
+			if (subtitle.getExternalFile() != null) {
+				return true;
+			}
+
 			return false;
 		}
 
@@ -400,8 +404,7 @@ public class MEncoderAviSynth extends MEncoderVideo {
 		if (format != null) {
 			Format.Identifier id = format.getIdentifier();
 
-			if (id.equals(Format.Identifier.MKV)
-					|| id.equals(Format.Identifier.MPG)) {
+			if (id.equals(Format.Identifier.MKV) || id.equals(Format.Identifier.MPG)) {
 				return true;
 			}
 		}

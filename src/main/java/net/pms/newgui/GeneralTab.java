@@ -311,7 +311,6 @@ public class GeneralTab {
 		cmp = builder.addSeparator(Messages.getString("NetworkTab.22"), FormLayoutUtil.flip(cc.xyw(1, 17, 9), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
-		
 
 		final KeyedComboBoxModel networkInterfaces = createNetworkInterfacesModel();
 		networkinterfacesCBX = new JComboBox(networkInterfaces);
@@ -438,7 +437,7 @@ public class GeneralTab {
 		builder.add(renderers, FormLayoutUtil.flip(cc.xyw(3, 35, 7), colSpec, orientation));
 
 		builder.add(fdCheckBox, FormLayoutUtil.flip(cc.xyw(1, 37, 9), colSpec, orientation));
-		
+
 		// External network box
 		extNetBox = new JCheckBox(Messages.getString("NetworkTab.56"));
 		extNetBox.setContentAreaFilled(false);
@@ -459,7 +458,8 @@ public class GeneralTab {
 		JScrollPane scrollPane = new JScrollPane(
 			panel,
 			JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
+		);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
 		return scrollPane;
 	}

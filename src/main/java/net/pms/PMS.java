@@ -396,19 +396,26 @@ public class PMS {
 
 		RendererConfiguration.loadRendererConfigurations(configuration);
 
-		LOGGER.info("Checking MPlayer font cache. It can take a minute or so.");
+		LOGGER.info("Please wait while we check the MPlayer font cache, this can take a minute or so.");
 		checkProcessExistence("MPlayer", true, null, configuration.getMplayerPath(), "dummy");
 		if (isWindows()) {
 			checkProcessExistence("MPlayer", true, configuration.getTempFolder(), configuration.getMplayerPath(), "dummy");
 		}
-		LOGGER.info("Done!");
+		LOGGER.info("Finished checking the MPlayer font cache.");
 
-		// check the existence of Vsfilter.dll
+		// Check the existence of VSFilter / DirectVobSub
 		if (registry.isAvis() && registry.getAvsPluginsDir() != null) {
-			LOGGER.info("Found AviSynth plugins dir: " + registry.getAvsPluginsDir().getAbsolutePath());
-			File vsFilterdll = new File(registry.getAvsPluginsDir(), "VSFilter.dll");
-			if (!vsFilterdll.exists()) {
-				LOGGER.info("VSFilter.dll is not in the AviSynth plugins directory. This can cause problems when trying to play subtitled videos with AviSynth");
+			LOGGER.debug("AviSynth plugins directory: " + registry.getAvsPluginsDir().getAbsolutePath());
+			File vsFilterDLL = new File(registry.getAvsPluginsDir(), "VSFilter.dll");
+			if (vsFilterDLL.exists()) {
+				LOGGER.debug("VSFilter / DirectVobSub was found in the AviSynth plugins directory.");
+			} else {
+				File vsFilterDLL2 = new File(registry.getKLiteFiltersDir(), "vsfilter.dll");
+				if (vsFilterDLL2.exists()) {
+					LOGGER.debug("VSFilter / DirectVobSub was found in the K-Lite Codec Pack filters directory.");
+				} else {
+					LOGGER.info("VSFilter / DirectVobSub was not found. This can cause problems when trying to play subtitled videos with AviSynth.");
+				}
 			}
 		}
 
@@ -416,21 +423,21 @@ public class PMS {
 			LOGGER.info("Found VideoLAN version " + registry.getVlcv() + " at: " + registry.getVlcp());
 		}
 
-		//check if Kerio is installed
+		// Check if Kerio is installed
 		if (registry.isKerioFirewall()) {
 			LOGGER.info("Detected Kerio firewall");
 		}
 
-		// force use of specific dvr ms muxer when it's installed in the right place
+		// Force use of specific DVR-MS muxer when it's installed in the right place
 		File dvrsMsffmpegmuxer = new File("win32/dvrms/ffmpeg_MPGMUX.exe");
 		if (dvrsMsffmpegmuxer.exists()) {
 			configuration.setFfmpegAlternativePath(dvrsMsffmpegmuxer.getAbsolutePath());
 		}
 
-		// disable jaudiotagger logging
+		// Disable jaudiotagger logging
 		LogManager.getLogManager().readConfiguration(new ByteArrayInputStream("org.jaudiotagger.level=OFF".getBytes()));
 
-		// wrap System.err
+		// Wrap System.err
 		System.setErr(new PrintStream(new SystemErrWrapper(), true));
 
 		server = new HTTPServer(configuration.getServerPort());
@@ -462,6 +469,13 @@ public class PMS {
 
 		// Any plugin-defined players are now registered, create the gui view.
 		frame.addEngines();
+		
+		// To make the cred stuff work cross plugins
+		// read cred file AFTER plugins are started
+		if (System.getProperty(CONSOLE) == null) {
+			// but only if we got a GUI of course
+			((LooksFrame)frame).getPt().init();
+		}
 
 		boolean binding = false;
 
@@ -550,7 +564,7 @@ public class PMS {
 
 		return true;
 	}
-	
+
 	private MediaLibrary mediaLibrary;
 
 	/**
@@ -927,6 +941,12 @@ public class PMS {
 			// Load the (optional) logback config file. This has to be called after 'new PmsConfiguration'
 			// as the logging starts immediately and some filters need the PmsConfiguration.
 			LoggingConfigFileLoader.load();
+
+			try {
+				getConfiguration().initCred();
+			} catch (IOException e) {
+				LOGGER.debug("Error initializing plugin credentials: " + e);
+			}
 
 			killOld();
 			// create the PMS instance returned by get()

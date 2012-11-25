@@ -37,6 +37,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
+import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
 import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.Thumbnails.Builder;
@@ -606,7 +607,13 @@ public class DLNAMediaInfo implements Cloneable {
 							thumbnail.size(320, 180);
 							thumbnail.outputFormat("jpg");
 							thumbnail.outputQuality(1.0f);
-							thumbnail.toFile(thumbFilename);
+
+							try {
+								thumbnail.toFile(thumbFilename);
+							} catch (IIOException e) {
+								LOGGER.debug("Error generating thumbnail for: " + f.getFile().getName());
+								LOGGER.debug("The full error was: " + e);
+							}
 
 							File jpg = new File(thumbFilename);
 

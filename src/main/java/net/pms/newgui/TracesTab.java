@@ -33,6 +33,9 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import javax.swing.*;
@@ -90,15 +93,20 @@ public class TracesTab {
 	}
 	
 	public void append(String msg) {
-		getList().append(msg);
+		DateFormat dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss");
+		Date date = new Date();
+
+		String[] messageDisplay = msg.replaceFirst("]", "string that should never match").split("string that should never match");
+		getList().append(dateFormat.format(date) + " " + messageDisplay[1]);
 		final JScrollBar vbar = jListPane.getVerticalScrollBar();
-		// if scroll bar already was at the bottom we schedule
-		// a new scroll event to again scroll to the bottom
+
+		// If scrollbar was already at the bottom we schedule a new
+		// scroll event to scroll to the bottom again
 		if (vbar.getMaximum() == vbar.getValue() + vbar.getVisibleAmount()) {
 			EventQueue.invokeLater (new Runnable() {
 				@Override
-				public void run () {
-					vbar.setValue (vbar.getMaximum ());
+				public void run() {
+					vbar.setValue(vbar.getMaximum());
 				}
 			});
 		}
@@ -112,14 +120,14 @@ public class TracesTab {
 
 		FormLayout layout = new FormLayout(
 			colSpec,
-			"fill:10:grow, p");
+			"fill:10:grow, p"
+		);
 		PanelBuilder builder = new PanelBuilder(layout);
-		//  builder.setBorder(Borders.DLU14_BORDER);
 		builder.setOpaque(true);
 
 		CellConstraints cc = new CellConstraints();
 
-		//create trace text box
+		// Create traces text box
 		jList = new JTextArea();
 		jList.setEditable(false);
 		jList.setBackground(Color.WHITE);
@@ -135,10 +143,7 @@ public class TracesTab {
 		});
 
 		popup.add(defaultItem);
-		jList.addMouseListener(
-			new PopupTriggerMouseListener(
-			popup,
-			jList));
+		jList.addMouseListener(new PopupTriggerMouseListener(popup, jList));
 
 		jListPane = new JScrollPane(jList, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		jListPane.setBorder(BorderFactory.createEmptyBorder());
@@ -148,7 +153,11 @@ public class TracesTab {
 		JPanel pLogFileButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		HashMap<String, String> logFiles = LoggingConfigFileLoader.getLogFilePaths();
 		for (String loggerName : logFiles.keySet()) {
-			CustomJButton b = new CustomJButton(loggerName);
+			String loggerNameDisplay = loggerName;
+			if ("debug.log".equals(loggerName)) {
+				loggerNameDisplay = Messages.getString("TracesTab.5");
+			}
+			CustomJButton b = new CustomJButton(loggerNameDisplay);
 			b.setToolTipText(logFiles.get(loggerName));
 			b.addMouseListener(new MouseAdapter() {
 				@Override
