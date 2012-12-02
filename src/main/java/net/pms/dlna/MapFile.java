@@ -212,8 +212,8 @@ public class MapFile extends DLNAResource {
 	public void discoverChildren() {
 		discoverChildren(null);
 	}
-	
-	
+
+	@Override
 	public void discoverChildren(String str) {
 		//super.discoverChildren(str);
 		if (str != null) {
@@ -227,7 +227,7 @@ public class MapFile extends DLNAResource {
 		}
 
 		List<File> files = getFileList();
-		
+
 		// ATZ handling
 		if (files.size() > PMS.getConfiguration().getATZLimit() && StringUtils.isEmpty(forcedName)) {
 			/*
@@ -239,9 +239,9 @@ public class MapFile extends DLNAResource {
 			 */
 			TreeMap<String, ArrayList<File>> map = new TreeMap<String, ArrayList<File>>();
 			for (File f : files) {
-				if((!f.isFile() && !f.isDirectory()) || f.isHidden()) {
+				if ((!f.isFile() && !f.isDirectory()) || f.isHidden()) {
 					// skip these
-					continue;					
+					continue;
 				}
 				if (f.isDirectory() && PMS.getConfiguration().isHideEmptyFolders() && !isFolderRelevant(f)) {
 					LOGGER.debug("Ignoring empty/non-relevant directory: " + f.getName());
@@ -404,7 +404,7 @@ public class MapFile extends DLNAResource {
 	}
 
 	private boolean foundInList(List<File> files, DLNAResource d) {
-		for (File f: files) {
+		for (File f : files) {
 			if (!f.isHidden() && isNameMatch(f, d) && (isRealFolder(d) || isSameLastModified(f, d))) {
 				files.remove(f);
 				return true;
