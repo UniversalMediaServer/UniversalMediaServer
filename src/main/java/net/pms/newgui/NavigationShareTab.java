@@ -566,9 +566,9 @@ public class NavigationShareTab {
 					int ab = Integer.parseInt(atzLimit.getText());
 					configuration.setATZLimit(ab);
 				} catch (NumberFormatException nfe) {
-					LOGGER.debug("Could not parse thumbnail seek position from \"" + seekpos.getText() + "\"");
+					LOGGER.debug("Could not parse ATZ limit from \"" + atzLimit.getText() + "\"");
+					LOGGER.debug("The full error was: " + nfe);
 				}
-
 			}
 		});
 	}
