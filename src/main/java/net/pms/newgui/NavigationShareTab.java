@@ -72,7 +72,7 @@ public class NavigationShareTab {
 	private JCheckBox itunes;
 	private CustomJButton select;
 	private CustomJButton cachereset;
-	private JTextField atzLim;
+	private JTextField atzLimit;
 	private JCheckBox atz;
 
 	public DefaultListModel getDf() {
@@ -169,9 +169,9 @@ public class NavigationShareTab {
 
 		builder.addLabel(Messages.getString("FoldTab.18"), FormLayoutUtil.flip(cc.xyw(1, 23, 3), colSpec, orientation));
 		builder.add(sortmethod, FormLayoutUtil.flip(cc.xyw(4, 23, 3), colSpec, orientation));
-		
-		builder.add(atz,FormLayoutUtil.flip(cc.xyw(1, 25, 3), colSpec, orientation));
-		builder.add(atzLim,FormLayoutUtil.flip(cc.xyw(4, 25, 3), colSpec, orientation));
+
+		builder.add(atz, FormLayoutUtil.flip(cc.xyw(1, 25, 3), colSpec, orientation));
+		builder.add(atzLimit, FormLayoutUtil.flip(cc.xyw(4, 25, 3), colSpec, orientation));
 
 		builder.add(builderSharedFolder.getPanel(), FormLayoutUtil.flip(cc.xyw(1, 27, 10), colSpec, orientation));
 
@@ -528,31 +528,30 @@ public class NavigationShareTab {
 				}
 			}
 		});
-		
+
 		boolean initATZ = configuration.getATZLimit() != configuration.DEFAULT_ATZ_LIMIT;
-		
-		atz = new JCheckBox(Messages.getString("FoldTab.37"),initATZ);
+
+		atz = new JCheckBox(Messages.getString("FoldTab.37"), initATZ);
 		atz.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
-					atzLim.setEditable(true);
-					atzLim.setText("" + configuration.getATZLimit());
-				}
-				else {
-					atzLim.setEditable(false);
-					atzLim.setText("");
+					atzLimit.setEditable(true);
+					atzLimit.setText("" + configuration.getATZLimit());
+				} else {
+					atzLimit.setEditable(false);
+					atzLimit.setText("");
 					configuration.setATZLimit(0);
 				}
 			}
 		});
 
-		atzLim = new JTextField("");
-		atzLim.setEditable(initATZ);
+		atzLimit = new JTextField("");
+		atzLimit.setEditable(initATZ);
 		if (initATZ) {
-			atzLim.setText("" + configuration.getATZLimit());
+			atzLimit.setText("" + configuration.getATZLimit());
 		}
-		atzLim.addKeyListener(new KeyListener() {
+		atzLimit.addKeyListener(new KeyListener() {
 			@Override
 			public void keyPressed(KeyEvent e) {
 			}
@@ -564,7 +563,7 @@ public class NavigationShareTab {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				try {
-					int ab = Integer.parseInt(atzLim.getText());
+					int ab = Integer.parseInt(atzLimit.getText());
 					configuration.setATZLimit(ab);
 				} catch (NumberFormatException nfe) {
 					LOGGER.debug("Could not parse thumbnail seek position from \"" + seekpos.getText() + "\"");

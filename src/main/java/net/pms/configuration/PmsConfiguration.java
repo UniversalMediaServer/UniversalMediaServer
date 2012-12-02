@@ -2486,20 +2486,20 @@ public class PmsConfiguration {
 	public File getCredFile() {
 		return new File(getCredPath());
 	}
-	
+
 	// ATZ limit
 	private static final String KEY_ATZ_LIMIT = "atz_limit";
 	public static final int DEFAULT_ATZ_LIMIT = 10000;
-	
+
 	public int getATZLimit() {
 		int tmp = getInt(KEY_ATZ_LIMIT, DEFAULT_ATZ_LIMIT);
 		if (tmp <= 2) {
-			// this is silly,ignore
+			// this is silly, ignore
 			tmp = DEFAULT_ATZ_LIMIT;
 		}
 		return tmp;
 	}
-	
+
 	public void setATZLimit(int val) {
 		if (val <= 2) {
 			// clear prop
@@ -2508,7 +2508,7 @@ public class PmsConfiguration {
 		}
 		configuration.setProperty(KEY_ATZ_LIMIT, val);
 	}
-	
+
 	public void setATZLimit(String str) {
 		try {
 			setATZLimit(Integer.parseInt(str));

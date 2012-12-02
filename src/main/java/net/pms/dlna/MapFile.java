@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.Collator;
 import java.util.*;
-
 import net.pms.PMS;
 import net.pms.configuration.MapFileConfiguration;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
@@ -31,8 +30,6 @@ import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.formats.FormatFactory;
 import net.pms.network.HTTPResource;
 import net.pms.util.NaturalComparator;
-import net.sf.sevenzipjbinding.ArchiveFormat;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,7 +76,7 @@ public class MapFile extends DLNAResource {
 		setLastModified(0);
 		forcedName = null;
 	}
-	
+
 	public MapFile(MapFileConfiguration conf, List<File> list) {
 		setConf(conf);
 		setLastModified(0);
@@ -233,10 +230,13 @@ public class MapFile extends DLNAResource {
 		
 		// ATZ handling
 		if (files.size() > PMS.getConfiguration().getATZLimit() && StringUtils.isEmpty(forcedName)) {
-			// to many files to display in oneshot, add A-Z folders
-			// instead and let the filters begin
-			// NOTE! If we done this at the level directly above we don't do it again
-			// since all files start with the same letter then
+			/*
+			 * Too many files to display at once, add A-Z folders
+			 * instead and let the filters begin
+			 *
+			 * Note: If we done this at the level directly above we don't do it again
+			 * since all files start with the same letter then
+			 */
 			TreeMap<String, ArrayList<File>> map = new TreeMap<String, ArrayList<File>>();
 			for (File f : files) {
 				if((!f.isFile() && !f.isDirectory()) || f.isHidden()) {
@@ -262,6 +262,7 @@ public class MapFile extends DLNAResource {
 				l.add(f);
 				map.put(String.valueOf(c), l);
 			}
+
 			for (String letter : map.keySet()) {
 				// loop over all letters, this avoids adding
 				// empty letters
@@ -458,8 +459,9 @@ public class MapFile extends DLNAResource {
 
 	@Override
 	public String getName() {
-		if (StringUtils.isEmpty(forcedName))
+		if (StringUtils.isEmpty(forcedName)) {
 			return this.getConf().getName();
+		}
 		return forcedName;
 	}
 
