@@ -230,10 +230,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	/**
 	 * @deprecated Use standard getter and setter to access this field.
 	 *
-	 * the id which the last child got, so the next child can get unique id with incrementing this value.
+	 * The numerical ID (1-based index) assigned to the last child of this folder. The next child is assigned this ID + 1.
 	 */
 	@Deprecated
-	protected int lastChildrenId;
+	protected int lastChildrenId = 0; // XXX make private and rename lastChildrenId -> lastChildId
 
 	/**
 	 * @deprecated Use standard getter and setter to access this field.
@@ -279,7 +279,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Set the id of this resource based on the index in its parent container.
+	 * Set the ID of this resource based on the index in its parent container.
 	 * Its main purpose is to be unique in the parent container. The method is
 	 * automatically called by addChildInternal, so most of the time it is not
 	 * necessary to call it explicitly.
@@ -463,11 +463,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		try {
 			if (child.isValid()) {
 				LOGGER.trace("Adding " + child.getName() + " / class: " + child.getClass().getName());
-				VirtualFolder vf;
 
 				if (allChildrenAreFolders && !child.isFolder()) {
 					allChildrenAreFolders = false;
 				}
+
 				addChildInternal(child);
 
 				boolean forceTranscodeV2 = false;
@@ -549,11 +549,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							isIncompatible = true;
 						}
 
-						// Force transcoding if
-						// 1- MediaInfo support detected the file was not matched with supported codec configs and no SkipTranscode extension forced by user
-						// or 2- ForceTranscode extension forced by user
-						// or 3- FFmpeg support and the file is not ps3 compatible (need to remove this ?) and no SkipTranscode extension forced by user
-						// or 4- There's some sub files or embedded subs to deal with and no SkipTranscode extension forced by user
+						// Force transcoding if any of the following are true:
+						// 1) The file is not supported by the renderer and SkipTranscode is not enabled for this extension
+						// 2) ForceTranscode enabled for this extension
+						// 3) FFmpeg support and the file is not PS3 compatible (XXX need to remove this?) and SkipTranscode is not enabled for this extension
+						// 4) The file has embedded or external subs and SkipTranscode is not enabled for this extension
 						if (forceTranscode || !isSkipTranscode() && (forceTranscodeV2 || isIncompatible || hasSubsToTranscode)) {
 							child.setPlayer(player);
 							LOGGER.trace("Switching " + child.getName() + " to player " + player.toString() + " for transcoding");
@@ -561,19 +561,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 						// Should the child be added to the transcode folder?
 						if (child.getFormat().isVideo() && child.isTranscodeFolderAvailable()) {
-							vf = getTranscodeFolder(true);
+							// true: create (and append) the #--TRANSCODE--# folder to this folder if it doesn't already exist
+							VirtualFolder transcodeFolder = getTranscodeFolder(true);
 
-							if (vf != null) {
-								VirtualFolder fileFolder = new FileTranscodeVirtualFolder(child.getDisplayName(), null);
+							if (transcodeFolder != null) {
+								VirtualFolder fileTranscodeFolder = new FileTranscodeVirtualFolder(child.getName(), null);
 
 								DLNAResource newChild = child.clone();
 								newChild.setPlayer(player);
 								newChild.setMedia(child.getMedia());
-								// newChild.original = child;
-								fileFolder.addChildInternal(newChild);
+								fileTranscodeFolder.addChildInternal(newChild);
 								LOGGER.trace("Duplicate " + child.getName() + " with player: " + player.toString());
 
-								vf.addChild(fileFolder);
+								transcodeFolder.addChild(fileTranscodeFolder);
 							}
 						}
 
@@ -622,9 +622,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Return the transcode virtual folder if it's supported and allowed. If create set to true, it tries to create if not yet created.
+	 * Return the transcode folder for this resource.
+	 * If UMS is configured to hide transcode folders, null is returned.
+	 * If no folder exists and the create argument is false, null is returned.
+	 * If no folder exists and the create argument is true, a new transcode folder is created.
+	 * This method is called on the parent frolder each time a child is added to that parent
+	 * (via {@link addChild(DLNAResource)}.
+	 *
 	 * @param create
-	 * @return
+	 * @return the transcode virtual folder
 	 */
 	TranscodeVirtualFolder getTranscodeFolder(boolean create) {
 		if (!isTranscodeFolderAvailable()) {
@@ -636,37 +642,45 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		// search for transcode folder
-		for (DLNAResource r : getChildren()) {
-			if (r instanceof TranscodeVirtualFolder) {
-				return (TranscodeVirtualFolder) r;
+		for (DLNAResource child : getChildren()) {
+			if (child instanceof TranscodeVirtualFolder) {
+				return (TranscodeVirtualFolder) child;
 			}
 		}
 
 		if (create) {
-			TranscodeVirtualFolder vf = new TranscodeVirtualFolder(null);
-			addChildInternal(vf);
-			return vf;
+			TranscodeVirtualFolder transcodeFolder = new TranscodeVirtualFolder(null);
+			addChildInternal(transcodeFolder);
+			return transcodeFolder;
 		}
 
 		return null;
 	}
 
 	/**
-	 * Add to the internal list of child nodes, and sets the parent to the
-	 * current node.
+	 * Adds the supplied DNLA resource to the internal list of child nodes,
+	 * and sets the parent to the current node. Avoids the side-effects
+	 * associated with the {@link addChild(DLNAResource)} method.
 	 *
-	 * @param res
+	 * @param child
 	 */
-	protected synchronized void addChildInternal(DLNAResource res) {
-		if (res.getInternalId() != null) {
-			LOGGER.debug("Node({}) already has an ID={}, which is overridden now. The previous parent node was:{}", new Object[] { res.getClass().getName(), res.getResourceId(), res.getParent()});
+	protected synchronized void addChildInternal(DLNAResource child) {
+		if (child.getInternalId() != null) {
+			LOGGER.info(
+				"Node ({}) already has an ID ({}), which is overriden now. The previous parent node was: {}",
+				new Object[] {
+					child.getClass().getName(),
+					child.getResourceId(),
+					child.getParent()
+				}
+			);
 		}
 
-		getChildren().add(res);
-		res.setParent(this);
+		getChildren().add(child);
+		child.setParent(this);
 
-		setLastChildrenId(getLastChildrenId() + 1);
-		res.setIndexId(getLastChildrenId());
+		setLastChildId(getLastChildId() + 1);
+		child.setIndexId(getLastChildId());
 	}
 
 	/**
@@ -723,8 +737,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					try {
 						tpe.shutdown();
 						tpe.awaitTermination(20, TimeUnit.SECONDS);
-					} catch (InterruptedException e) {
-					}
+					} catch (InterruptedException e) { }
 
 					LOGGER.trace("End of analysis");
 				}
@@ -925,7 +938,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	// Ditlew
-	/**Returns the DisplayName for the default renderer.
+	/**
+	 * Returns the DisplayName for the default renderer.
+	 *
 	 * @return The display name.
 	 * @see #getDisplayName(RendererConfiguration)
 	 */
@@ -2241,23 +2256,39 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Returns the id of the last child added.
-	 *
-	 * @return The id.
-	 * @since 1.50
+	 * @deprecated use {@link #getLastChildId()} instead.
 	 */
+	@Deprecated
 	protected int getLastChildrenId() {
+		return getLastChildId();
+	}
+
+	/**
+	 * Returns the numerical ID of the last child added.
+	 *
+	 * @return The ID.
+	 * @since 1.80.0
+	 */
+	protected int getLastChildId() {
 		return lastChildrenId;
 	}
 
 	/**
-	 * Sets the id of the last child added.
-	 *
-	 * @param lastChildrenId The id to set.
-	 * @since 1.50
+	 * @deprecated use {@link #setLastChildId(int)} instead.
 	 */
-	protected void setLastChildrenId(int lastChildrenId) {
-		this.lastChildrenId = lastChildrenId;
+	@Deprecated
+	protected void setLastChildrenId(int lastChildId) {
+		setLastChildId(lastChildId);
+	}
+
+	/**
+	 * Sets the numerical ID of the last child added.
+	 *
+	 * @param lastChildId The ID to set.
+	 * @since 1.80.0
+	 */
+	protected void setLastChildId(int lastChildId) {
+		this.lastChildrenId = lastChildId;
 	}
 
 	/**
