@@ -14,12 +14,13 @@
  }
  
 +#define FFMPEG_CONFIGURATION "http://git.io/ZHdseg"
++#define PMS_FFMPEG_VERSION 1
  static void print_program_info(int flags, int level)
  {
      const char *indent = flags & INDENT? "  " : "";
  
 -    av_log(NULL, level, "%s version " FFMPEG_VERSION, program_name);
-+    av_log(NULL, level, "%s version %s for PS3 Media Server", program_name, FFMPEG_VERSION);
++    av_log(NULL, level, "%s version %s (PMS%d) for PS3 Media Server", program_name, FFMPEG_VERSION, PMS_FFMPEG_VERSION);
      if (flags & SHOW_COPYRIGHT)
          av_log(NULL, level, " Copyright (c) %d-%d the FFmpeg developers",
                 program_birth_year, this_year);

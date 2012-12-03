@@ -1,6 +1,17 @@
 # author: chocolateboy
 # original: https://github.com/pyke369/sffmpeg
 # license: GPL
+#
+# updates:
+#
+#     if this build's options or dependencies are changed, the version number should be
+#     incremented in the following places prior to each PMS release:
+#
+#         * PMS_FFMPEG_VERSION in contrib/ffmpeg/vendor/ffmpeg-banner.patch
+#         * the corresponding version at the bottom of contrib/ffmpeg/README.md
+#
+#     Note: the version should be incremented no more than *once* per PMS release.
+#
 # links:
 #
 #     build scripts:
@@ -13,6 +24,7 @@
 #         http://betterlogic.com/roger/2011/09/ffmpeg-compileconfigure-windows/
 #         http://betterlogic.com/roger/2012/09/libflite-cross-compile-woe/
 #         http://ffmpeg.org/trac/ffmpeg/wiki/MacOSXCompilationGuide
+#
 
 PROJECT(ffmpeg)
 
@@ -84,7 +96,7 @@ EXTERNALPROJECT_ADD(
     PATCH_COMMAND patch -p1 < ${CMAKE_SOURCE_DIR}/vendor/gsm-permissions.patch
 
     CONFIGURE_COMMAND ""
-    INSTALL_COMMAND make install INSTALL_ROOT=${CMAKE_BINARY_DIR} GSM_INSTALL_INC=${CMAKE_BINARY_DIR}/include chmod=echo
+    INSTALL_COMMAND make install INSTALL_ROOT=${CMAKE_BINARY_DIR} GSM_INSTALL_INC=${CMAKE_BINARY_DIR}/include
     BUILD_IN_SOURCE 1
 )
 
@@ -252,7 +264,7 @@ EXTERNALPROJECT_ADD(
 
 EXTERNALPROJECT_ADD(
     x264
-    URL ftp://ftp.videolan.org/pub/x264/snapshots/last_x264.tar.bz2
+    URL ftp://ftp.videolan.org/pub/x264/snapshots/x264-snapshot-20121030-2245.tar.bz2
     PATCH_COMMAND patch -p1 < ${CMAKE_SOURCE_DIR}/vendor/x264-anonymize.patch
     CONFIGURE_COMMAND ./configure --prefix=${CMAKE_BINARY_DIR} --enable-static
     BUILD_IN_SOURCE 1
