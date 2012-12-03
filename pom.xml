@@ -408,21 +408,6 @@
 				<filtering>true</filtering>
 			</resource>
 
-			<!--
-				There are (or were) reportedly issues with Eclipse's "Externalize Strings" 
-				wizard if these aren't in the source tree, so keep them here for now, even 
-				though it's Mavenly-incorrect.
-
-				FIXME: we no longer use Externalize Strings, so these can safely go in
-				src/main/resources where they belong.
-			-->
-			<resource>
-				<directory>src/main/java</directory>
-				<includes>
-					<include>**/*.properties</include>
-				</includes>
-			</resource>
-
 			<!-- Copy and filter the NSIS header file to replace Maven properties -->
 			<resource>
 				<directory>src/main/external-resources/nsis</directory>
