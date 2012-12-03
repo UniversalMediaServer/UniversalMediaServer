@@ -462,7 +462,7 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderAudioLanguages(langs.getText());
 			}
 		});
-		builder.add(langs, FormLayoutUtil.flip(cc.xyw(3, 19, 8), colSpec, orientation));
+		builder.add(langs, FormLayoutUtil.flip(cc.xyw(3, 19, 13), colSpec, orientation));
 
 		builder.addLabel(Messages.getString("MEncoderVideo.93"), FormLayoutUtil.flip(cc.xy(1, 21), colSpec, orientation));
 		builder.addLabel(Messages.getString("MEncoderVideo.28") + " (%)", FormLayoutUtil.flip(cc.xy(1, 21, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
@@ -522,9 +522,9 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderSubLanguages(defaultsubs.getText());
 			}
 		});
-		builder.add(defaultsubs, FormLayoutUtil.flip(cc.xyw(3, 25, 2), colSpec, orientation));
+		builder.add(defaultsubs, FormLayoutUtil.flip(cc.xyw(3, 25, 5), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.94"), FormLayoutUtil.flip(cc.xy(5, 25), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.94"), FormLayoutUtil.flip(cc.xyw(8, 25, 2, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 		forcedsub = new JTextField(configuration.getMencoderForcedSubLanguage());
 		forcedsub.addKeyListener(new KeyListener() {
 			@Override
@@ -540,9 +540,9 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderForcedSubLanguage(forcedsub.getText());
 			}
 		});
-		builder.add(forcedsub, FormLayoutUtil.flip(cc.xy(7, 25), colSpec, orientation));
+		builder.add(forcedsub, FormLayoutUtil.flip(cc.xy(11, 25), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.95"), FormLayoutUtil.flip(cc.xy(9, 25), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.95") + " ", FormLayoutUtil.flip(cc.xyw(12, 25, 2, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 		forcedtags = new JTextField(configuration.getMencoderForcedSubTags());
 		forcedtags.addKeyListener(new KeyListener() {
 			@Override
@@ -558,7 +558,7 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderForcedSubTags(forcedtags.getText());
 			}
 		});
-		builder.add(forcedtags, FormLayoutUtil.flip(cc.xyw(11, 25, 5), colSpec, orientation));
+		builder.add(forcedtags, FormLayoutUtil.flip(cc.xyw(14, 25, 2), colSpec, orientation));
 
 		builder.addLabel(Messages.getString("MEncoderVideo.10"), FormLayoutUtil.flip(cc.xy(1, 27), colSpec, orientation));
 		defaultaudiosubs = new JTextField(configuration.getMencoderAudioSubLanguages());
@@ -576,7 +576,7 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderAudioSubLanguages(defaultaudiosubs.getText());
 			}
 		});
-		builder.add(defaultaudiosubs, FormLayoutUtil.flip(cc.xyw(3, 27, 8), colSpec, orientation));
+		builder.add(defaultaudiosubs, FormLayoutUtil.flip(cc.xyw(3, 27, 13), colSpec, orientation));
 
 		builder.addLabel(Messages.getString("MEncoderVideo.11"), FormLayoutUtil.flip(cc.xy(1, 29), colSpec, orientation));
 		Object data[] = new Object[]{
