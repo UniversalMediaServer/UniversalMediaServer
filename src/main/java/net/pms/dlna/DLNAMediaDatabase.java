@@ -145,8 +145,9 @@ public class DLNAMediaDatabase implements Runnable {
 						JOptionPane.showMessageDialog(
 							(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 							String.format(Messages.getString("DLNAMediaDatabase.5"), dbDir),
-		                    "PS3 Media Server error",
-		                    JOptionPane.ERROR_MESSAGE);
+							Messages.getString("DLNAMediaDatabase.6"),
+							JOptionPane.ERROR_MESSAGE
+						);
 					}	
 					LOGGER.debug("Damaged cache can't be deleted. Stop the program and delete the folder \"" + dbDir + "\" manually");
 				}

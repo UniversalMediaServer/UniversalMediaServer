@@ -964,7 +964,7 @@ public class PMS {
 				JOptionPane.showMessageDialog(
 					((JFrame) (SwingUtilities.getWindowAncestor((Component) instance.getFrame()))),
 					errorMessage,
-					"Error initalizing UMS",
+					Messages.getString("PMS.42"),
 					JOptionPane.ERROR_MESSAGE
 				);
 			}

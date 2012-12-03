@@ -101,7 +101,7 @@ public class MEncoderAviSynth extends MEncoderVideo {
 					JOptionPane.showMessageDialog(
 						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 						Messages.getString("MEncoderAviSynth.16"),
-						"Information",
+						Messages.getString("Information"),
 						JOptionPane.INFORMATION_MESSAGE
 					);
 				}
