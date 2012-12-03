@@ -186,7 +186,7 @@ public class NavigationShareTab {
 	}
 
 	private void initSimpleComponents(CellConstraints cc) {
-		//ThumbnailSeekPos
+		// Thumbnail seeking position
 		seekpos = new JTextField("" + configuration.getThumbnailSeekPos());
 		seekpos.addKeyListener(new KeyListener() {
 			@Override
@@ -228,7 +228,7 @@ public class NavigationShareTab {
 			thumbgenCheckBox.setSelected(true);
 		}
 
-		// UseMplayerForVideoThumbs
+		// Use MPlayer for video thumbnails
 		mplayer_thumb = new JCheckBox(Messages.getString("FoldTab.14"));
 		mplayer_thumb.setContentAreaFilled(false);
 		mplayer_thumb.addItemListener(new ItemListener() {
@@ -241,7 +241,7 @@ public class NavigationShareTab {
 			mplayer_thumb.setSelected(true);
 		}
 
-		// DvdIsoThumbnails
+		// DVD ISO thumbnails
 		dvdiso_thumb = new JCheckBox(Messages.getString("FoldTab.19"));
 		dvdiso_thumb.setContentAreaFilled(false);
 		dvdiso_thumb.addItemListener(new ItemListener() {
@@ -254,7 +254,7 @@ public class NavigationShareTab {
 			dvdiso_thumb.setSelected(true);
 		}
 
-		// ImageThumbnailsEnabled
+		// Image thumbnails
 		image_thumb = new JCheckBox(Messages.getString("FoldTab.21"));
 		image_thumb.setContentAreaFilled(false);
 		image_thumb.addItemListener(new ItemListener() {
@@ -267,7 +267,7 @@ public class NavigationShareTab {
 			image_thumb.setSelected(true);
 		}
 
-		// AudioThumbnailMethod
+		// Audio thumbnails import
 		final KeyedComboBoxModel thumbKCBM = new KeyedComboBoxModel(new Object[]{"0", "1", "2"}, new Object[]{Messages.getString("FoldTab.35"), Messages.getString("FoldTab.23"), Messages.getString("FoldTab.24")});
 		audiothumbnail = new JComboBox(thumbKCBM);
 		audiothumbnail.setEditable(false);
@@ -289,7 +289,7 @@ public class NavigationShareTab {
 			}
 		});
 
-		// AlternateThumbFolder
+		// Alternate video cover art folder
 		defaultThumbFolder = new JTextField(configuration.getAlternateThumbFolder());
 		defaultThumbFolder.addKeyListener(new KeyListener() {
 			@Override
@@ -306,7 +306,7 @@ public class NavigationShareTab {
 			}
 		});
 
-		// AlternateThumbFolder: select
+		// Alternate video cover art folder button
 		select = new CustomJButton("...");
 		select.addActionListener(new ActionListener() {
 			@Override
@@ -326,7 +326,7 @@ public class NavigationShareTab {
 			}
 		});
 
-		// HideVideoSettings
+		// Hide #Video Settings# folder
 		hidevideosettings = new JCheckBox(Messages.getString("FoldTab.6"));
 		hidevideosettings.setContentAreaFilled(false);
 		if (configuration.getHideVideoSettings()) {
@@ -339,6 +339,7 @@ public class NavigationShareTab {
 			}
 		});
 
+		// Hide #--TRANSCODE--# folder
 		hidetranscode = new JCheckBox(Messages.getString("FoldTab.33"));
 		hidetranscode.setContentAreaFilled(false);
 		if (configuration.getHideTranscodeEnabled()) {
@@ -351,6 +352,7 @@ public class NavigationShareTab {
 			}
 		});
 
+		// Hide cache folder
 		hidemedialibraryfolder = new JCheckBox(Messages.getString("FoldTab.32"));
 		hidemedialibraryfolder.setContentAreaFilled(false);
 		if (configuration.isHideMediaLibraryFolder()) {
@@ -363,6 +365,7 @@ public class NavigationShareTab {
 			}
 		});
 
+		// Browse compressed archives
 		archive = new JCheckBox(Messages.getString("NetworkTab.1"));
 		archive.setContentAreaFilled(false);
 		archive.addItemListener(new ItemListener() {
@@ -375,8 +378,7 @@ public class NavigationShareTab {
 			archive.setSelected(true);
 		}
 
-		cachereset = new CustomJButton(Messages.getString("NetworkTab.18"));
-
+		// Enable the cache
 		cacheenable = new JCheckBox(Messages.getString("NetworkTab.17"));
 		cacheenable.setContentAreaFilled(false);
 		cacheenable.setSelected(configuration.getUseCache());
@@ -391,6 +393,8 @@ public class NavigationShareTab {
 			}
 		});
 
+		// Reset cache
+		cachereset = new CustomJButton(Messages.getString("NetworkTab.18"));
 		cachereset.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -407,7 +411,7 @@ public class NavigationShareTab {
 		});
 		cachereset.setEnabled(configuration.getUseCache());
 
-		// HideExtensions
+		// Hide file extensions
 		hideextensions = new JCheckBox(Messages.getString("FoldTab.5"));
 		hideextensions.setContentAreaFilled(false);
 		if (configuration.isHideExtensions()) {
@@ -420,7 +424,7 @@ public class NavigationShareTab {
 			}
 		});
 
-		// HideEngineNames
+		// Hide transcoding engine names
 		hideengines = new JCheckBox(Messages.getString("FoldTab.8"));
 		hideengines.setContentAreaFilled(false);
 		if (configuration.isHideEngineNames()) {
@@ -433,7 +437,7 @@ public class NavigationShareTab {
 			}
 		});
 
-		// HideEmptyFolders
+		// Hide empty folders
 		hideemptyfolders = new JCheckBox(Messages.getString("FoldTab.31"));
 		hideemptyfolders.setContentAreaFilled(false);
 		if (configuration.isHideEmptyFolders()) {
@@ -446,7 +450,7 @@ public class NavigationShareTab {
 			}
 		});
 
-		// ItunesEnabled
+		// Show iTunes library
 		itunes = new JCheckBox(Messages.getString("FoldTab.30"));
 		itunes.setContentAreaFilled(false);
 		if (configuration.getItunesEnabled()) {
@@ -462,7 +466,7 @@ public class NavigationShareTab {
 			}
 		});
 
-		// IphotoEnabled
+		// Show iPhoto library
 		iphoto = new JCheckBox(Messages.getString("FoldTab.29"));
 		iphoto.setContentAreaFilled(false);
 		if (configuration.getIphotoEnabled()) {
@@ -478,7 +482,7 @@ public class NavigationShareTab {
 			}
 		});
 
-		// ApertureEnabled
+		// Show aperture library
 		aperture = new JCheckBox(Messages.getString("FoldTab.34"));
 		aperture.setContentAreaFilled(false);
 		if (configuration.getApertureEnabled()) {
@@ -494,7 +498,7 @@ public class NavigationShareTab {
 			}
 		});
 
-		// sort method
+		// File order
 		final KeyedComboBoxModel kcbm = new KeyedComboBoxModel(
 			new Object[]{
 				"0", // alphabetical
