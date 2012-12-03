@@ -555,7 +555,7 @@ public class TranscodingTab {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		builder.addLabel(Messages.getString("TrTab2.32"), FormLayoutUtil.flip(cc.xyw(1, 27, 3), colSpec, orientation));
+		builder.addLabel(Messages.getString("TrTab2.32"), FormLayoutUtil.flip(cc.xyw(1, 27, 2), colSpec, orientation));
 
 		Object data[] = new Object[] {
 			configuration.getMencoderMainSettings(),                                                /* default */

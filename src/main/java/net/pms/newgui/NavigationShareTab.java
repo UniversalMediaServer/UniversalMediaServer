@@ -130,7 +130,7 @@ public class NavigationShareTab {
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
 		builder.add(thumbgenCheckBox, FormLayoutUtil.flip(cc.xyw(1, 3, 3), colSpec, orientation));
-		builder.addLabel(Messages.getString("NetworkTab.16"), FormLayoutUtil.flip(cc.xyw(4, 3, 3), colSpec, orientation));
+		builder.addLabel(Messages.getString("NetworkTab.16"), FormLayoutUtil.flip(cc.xyw(4, 3, 2), colSpec, orientation));
 		builder.add(seekpos, FormLayoutUtil.flip(cc.xyw(6, 3, 1), colSpec, orientation));
 
 		builder.add(mplayer_thumb, FormLayoutUtil.flip(cc.xyw(1, 5, 3), colSpec, orientation));
