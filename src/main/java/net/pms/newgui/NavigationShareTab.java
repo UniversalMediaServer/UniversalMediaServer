@@ -186,19 +186,6 @@ public class NavigationShareTab {
 	}
 
 	private void initSimpleComponents(CellConstraints cc) {
-		// Generate thumbnails
-		thumbgenCheckBox = new JCheckBox(Messages.getString("NetworkTab.2"));
-		thumbgenCheckBox.setContentAreaFilled(false);
-		thumbgenCheckBox.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setThumbnailGenerationEnabled((e.getStateChange() == ItemEvent.SELECTED));
-			}
-		});
-		if (configuration.isThumbnailGenerationEnabled()) {
-			thumbgenCheckBox.setSelected(true);
-		}
-
 		//ThumbnailSeekPos
 		seekpos = new JTextField("" + configuration.getThumbnailSeekPos());
 		seekpos.addKeyListener(new KeyListener() {
@@ -221,6 +208,25 @@ public class NavigationShareTab {
 
 			}
 		});
+		if (configuration.isThumbnailGenerationEnabled()) {
+			seekpos.setEnabled(true);
+		} else {
+			seekpos.setEnabled(false);
+		}
+
+		// Generate thumbnails
+		thumbgenCheckBox = new JCheckBox(Messages.getString("NetworkTab.2"));
+		thumbgenCheckBox.setContentAreaFilled(false);
+		thumbgenCheckBox.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setThumbnailGenerationEnabled((e.getStateChange() == ItemEvent.SELECTED));
+				seekpos.setEnabled(configuration.isThumbnailGenerationEnabled());
+			}
+		});
+		if (configuration.isThumbnailGenerationEnabled()) {
+			thumbgenCheckBox.setSelected(true);
+		}
 
 		// UseMplayerForVideoThumbs
 		mplayer_thumb = new JCheckBox(Messages.getString("FoldTab.14"));
