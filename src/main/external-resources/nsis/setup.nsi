@@ -34,7 +34,7 @@ SetCompressorDictSize 32
 
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_DIRECTORY
-Page custom SetMem SetMemLeave ;Custom page
+Page custom AdvancedSettings AdvancedSettingsAfterwards ;Custom page
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 !insertmacro MUI_UNPAGE_CONFIRM
@@ -67,11 +67,14 @@ SectionEnd
 
 Var Dialog
 Var Text
-Var Label
-Var Desc
+Var LabelMemoryLimit
+Var DescMemoryLimit
+Var CheckboxCleanInstall
+Var CheckboxCleanInstallState
+Var DescCleanInstall
 
-Function SetMem
-	!insertmacro MUI_HEADER_TEXT "Choose Memory Allocation" "Choose the maximum amount of memory to allow UMS to use." 
+Function AdvancedSettings
+	!insertmacro MUI_HEADER_TEXT "Advanced Settings" "If you don't understand them, don't change them." 
 	nsDialogs::Create 1018
 	Pop $Dialog
 
@@ -79,21 +82,33 @@ Function SetMem
 		Abort
 	${EndIf}
 
-	${NSD_CreateLabel} 0 0 100% 20u "This allows you to set the Java's Heap size limit. If you are not sure what this means, just leave it at 768. Click Install to continue."
-	Pop $Desc
+	${NSD_CreateLabel} 0 0 100% 20u "This allows you to set the Java Heap size limit. If you are not sure what this means, just leave it at 768."
+	Pop $DescMemoryLimit
 	
-	${NSD_CreateLabel} 2% 50% 37% 12u "Maximum memory in megabytes"
-	Pop $Label
+	${NSD_CreateLabel} 2% 20% 37% 12u "Maximum memory in megabytes"
+	Pop $LabelMemoryLimit
 
-	${NSD_CreateText} 3% 60% 10% 12u "768"
+	${NSD_CreateText} 3% 30% 10% 12u "768"
 	Pop $Text
+
+	${NSD_CreateLabel} 0 50% 100% 20u "This replaces your current configuration files with new ones, allowing you to take advantage of improved defaults. WARNING: All of your settings will be gone."
+	Pop $DescCleanInstall
+
+	${NSD_CreateCheckbox} 3% 65% 100% 12u "Clean install"
+	Pop $CheckboxCleanInstall
 
 	nsDialogs::Show
 FunctionEnd
 
-Function SetMemLeave
+Function AdvancedSettingsAfterwards
 	${NSD_GetText} $Text $0
 	WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "HeapMem" "$0"
+
+	${NSD_GetState} $CheckboxCleanInstall $CheckboxCleanInstallState
+	${If} $CheckboxCleanInstallState == ${BST_CHECKED}
+		ReadENVStr $R1 ALLUSERSPROFILE
+		RMDir /r $R1\UMS
+	${EndIf}
 FunctionEnd
 
 Function CreateDesktopShortcut
