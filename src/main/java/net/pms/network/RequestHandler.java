@@ -63,6 +63,7 @@ public class RequestHandler implements Runnable {
 		this.br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 	}
 
+	@Override
 	public void run() {
 		Request request = null;
 		StartStopListenerDelegate startStopListenerDelegate = new StartStopListenerDelegate(socket.getInetAddress().getHostAddress());
@@ -195,7 +196,7 @@ public class RequestHandler implements Runnable {
 
 						if (!isKnown) {
 							// Truly unknown header, therefore interesting. Save for later use.
-							unknownHeaders.append(separator + headerLine);
+							unknownHeaders.append(separator).append(headerLine);
 							separator = ", ";
 						}
 					}
@@ -209,7 +210,6 @@ public class RequestHandler implements Runnable {
 			if (request != null) {
 				// Still no media renderer recognized?
 				if (request.getMediaRenderer() == null) {
-
 					// Attempt 4: Not really an attempt; all other attempts to recognize
 					// the renderer have failed. The only option left is to assume the
 					// default renderer.
@@ -249,7 +249,6 @@ public class RequestHandler implements Runnable {
 			if (request != null && request.getInputStream() != null) {
 				request.getInputStream().close();
 			}
-
 		} catch (IOException e) {
 			LOGGER.trace("Unexpected IO error: " + e.getClass().getName() + ": " + e.getMessage());
 			if (request != null && request.getInputStream() != null) {
@@ -257,7 +256,7 @@ public class RequestHandler implements Runnable {
 					LOGGER.trace("Closing input stream: " + request.getInputStream());
 					request.getInputStream().close();
 				} catch (IOException e1) {
-					LOGGER.error("Error closing input stream", e);
+					LOGGER.error("Error closing input stream", e1);
 				}
 			}
 		} finally {
@@ -279,6 +278,7 @@ public class RequestHandler implements Runnable {
 	 * Applies the IP filter to the specified internet address. Returns true
 	 * if the address is not allowed and therefore should be filtered out,
 	 * false otherwise.
+	 *
 	 * @param inetAddress The internet address to verify.
 	 * @return True when not allowed, false otherwise.
 	 */

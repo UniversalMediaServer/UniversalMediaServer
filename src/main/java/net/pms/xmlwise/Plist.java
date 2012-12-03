@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("unchecked")
 /**
+ * @deprecated This package is a copy of a third-party library (xmlwise). Future releases will use the original library.
+ *
  * Plist xml handling (serialization and deserialization)
  * <p>
  * <em>The xml plist dtd can be found at http://www.apple.com/DTDs/PropertyList-1.0.dtd</em>
@@ -46,6 +48,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Christoffer Lerno
  */
+@Deprecated
 public final class Plist {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Plist.class);
 

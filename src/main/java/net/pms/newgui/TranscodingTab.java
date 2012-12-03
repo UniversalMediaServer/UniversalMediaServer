@@ -157,7 +157,7 @@ public class TranscodingTab {
 
 		CellConstraints cc = new CellConstraints();
 
-		JButton but = new JButton(LooksFrame.readImageIcon("kdevelop_down-32.png"));
+		CustomJButton but = new CustomJButton(LooksFrame.readImageIcon("button-arrow-down.png"));
 		but.setToolTipText(Messages.getString("TrTab2.6"));
 		but.addActionListener(new ActionListener() {
 			@Override
@@ -185,7 +185,7 @@ public class TranscodingTab {
 		});
 		builder.add(but, FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
 
-		JButton but2 = new JButton(LooksFrame.readImageIcon("up-32.png"));
+		CustomJButton but2 = new CustomJButton(LooksFrame.readImageIcon("button-arrow-up.png"));
 		but2.setToolTipText(Messages.getString("TrTab2.6"));
 		but2.addActionListener(new ActionListener() {
 			@Override
@@ -213,7 +213,7 @@ public class TranscodingTab {
 		});
 		builder.add(but2, FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
 
-		JButton but3 = new JButton(LooksFrame.readImageIcon("connect_no-32.png"));
+		CustomJButton but3 = new CustomJButton(LooksFrame.readImageIcon("button-toggleengine.png"));
 		but3.setToolTipText(Messages.getString("TrTab2.0"));
 		but3.addActionListener(new ActionListener() {
 			@Override
@@ -266,6 +266,7 @@ public class TranscodingTab {
 			}
 		});
 
+		tree.setRequestFocusEnabled(false);
 		tree.setCellRenderer(new TreeRenderer());
 		JScrollPane pane = new JScrollPane(tree, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 
@@ -387,7 +388,8 @@ public class TranscodingTab {
 		builder.addLabel(Messages.getString("TrTab2.23").replaceAll("MAX_BUFFER_SIZE", configuration.getMaxMemoryBufferSizeStr()), FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 		builder.add(maxbuffer, FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("TrTab2.24") + Runtime.getRuntime().availableProcessors() + ")", FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
+		String nCpusLabel = String.format(Messages.getString("TrTab2.24"), Runtime.getRuntime().availableProcessors());
+		builder.addLabel(nCpusLabel, FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
 
 		String[] guiCores = new String[MAX_CORES];
 		for (int i = 0; i < MAX_CORES; i++) {
@@ -471,9 +473,11 @@ public class TranscodingTab {
 
 		forcePCM = new JCheckBox(Messages.getString("TrTab2.27") + " " + (Platform.isWindows() ? Messages.getString("TrTab2.66") : ""));
 		forcePCM.setContentAreaFilled(false);
+
 		if (configuration.isMencoderUsePcm()) {
 			forcePCM.setSelected(true);
 		}
+
 		forcePCM.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -485,9 +489,11 @@ public class TranscodingTab {
 
 		ac3remux = new JCheckBox(Messages.getString("TrTab2.26") + " " + (Platform.isWindows() ? Messages.getString("TrTab2.21") : ""));
 		ac3remux.setContentAreaFilled(false);
+
 		if (configuration.isRemuxAC3()) {
 			ac3remux.setSelected(true);
 		}
+
 		ac3remux.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -499,13 +505,16 @@ public class TranscodingTab {
 
 		forceDTSinPCM = new JCheckBox(Messages.getString("TrTab2.28") + " " + (Platform.isWindows() ? Messages.getString("TrTab2.21") : ""));
 		forceDTSinPCM.setContentAreaFilled(false);
+
 		if (configuration.isDTSEmbedInPCM()) {
 			forceDTSinPCM.setSelected(true);
 		}
+
 		forceDTSinPCM.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				configuration.setDTSEmbedInPCM(forceDTSinPCM.isSelected());
+
 				if (configuration.isDTSEmbedInPCM()) {
 					JOptionPane.showMessageDialog(
 						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
@@ -546,7 +555,7 @@ public class TranscodingTab {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		builder.addLabel(Messages.getString("TrTab2.32"), FormLayoutUtil.flip(cc.xyw(1, 27, 3), colSpec, orientation));
+		builder.addLabel(Messages.getString("TrTab2.32"), FormLayoutUtil.flip(cc.xyw(1, 27, 2), colSpec, orientation));
 
 		Object data[] = new Object[] {
 			configuration.getMencoderMainSettings(),                                                /* default */
@@ -592,9 +601,11 @@ public class TranscodingTab {
 
 		mpeg2remux = new JCheckBox(Messages.getString("MEncoderVideo.39") + (Platform.isWindows() ? Messages.getString("TrTab2.66") : ""));
 		mpeg2remux.setContentAreaFilled(false);
+
 		if (configuration.isMencoderRemuxMPEG2()) {
 			mpeg2remux.setSelected(true);
 		}
+
 		mpeg2remux.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {

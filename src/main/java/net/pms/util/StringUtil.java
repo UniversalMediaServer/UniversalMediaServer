@@ -80,5 +80,4 @@ public class StringUtil {
 		url = url.replace('>', '\u00b5');
 		return url;
 	}
-
 }

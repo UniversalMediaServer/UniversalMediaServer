@@ -46,6 +46,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 		DownloadButton() {
 			super("Download");
 			setEnabled(false);
+			this.setRequestFocusEnabled(false);
 			addActionListener(this);
 		}
 
@@ -65,6 +66,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 		CancelButton() {
 			super("Not Now");
 			setEnabled(true);
+			this.setRequestFocusEnabled(false);
 			addActionListener(this);
 		}
 
@@ -165,6 +167,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 				return "Connecting to server";
 			case UPDATE_AVAILABLE:
 				String permissionsReminder = "";
+
 				if (
 					"Windows 8".equals(System.getProperty("os.name")) ||
 					"Windows 7".equals(System.getProperty("os.name")) ||
@@ -172,6 +175,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 				) {
 					permissionsReminder = ". Make sure UMS is running as administrator before proceeding";
 				}
+
 				return "An update is available" + permissionsReminder;
 			default:
 				return "Unknown state";

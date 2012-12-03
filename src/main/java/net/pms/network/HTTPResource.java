@@ -72,6 +72,7 @@ public class HTTPResource {
 	 */
 	public static String getDefaultMimeType(int type) {
 		String mimeType = HTTPResource.UNKNOWN_VIDEO_TYPEMIME;
+
 		if (type == Format.VIDEO) {
 			mimeType = HTTPResource.UNKNOWN_VIDEO_TYPEMIME;
 		} else if (type == Format.IMAGE) {
@@ -79,6 +80,7 @@ public class HTTPResource {
 		} else if (type == Format.AUDIO) {
 			mimeType = HTTPResource.UNKNOWN_AUDIO_TYPEMIME;
 		}
+
 		return mimeType;
 	}
 
@@ -91,15 +93,17 @@ public class HTTPResource {
 		fileName = "/resources/" + fileName;
 		ClassLoader cll = this.getClass().getClassLoader();
 		InputStream is = cll.getResourceAsStream(fileName.substring(1));
+
 		while (is == null && cll.getParent() != null) {
 			cll = cll.getParent();
 			is = cll.getResourceAsStream(fileName.substring(1));
 		}
+
 		return is;
 	}
 
 	/**
-	 * Creates an InputStream based on an URL. This is used while accessing external resources
+	 * Creates an InputStream based on a URL. This is used while accessing external resources
 	 * like online radio stations.
 	 * @param u URL.
 	 * @param saveOnDisk If true, the file is first downloaded in the harddisk in the temporary folder.
@@ -164,26 +168,34 @@ public class HTTPResource {
 		LOGGER.debug("Retrieving " + url.toString());
 		ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 		URLConnection conn = url.openConnection();
+
 		// GameTrailers blocks user-agents that identify themselves as "Java"
 		conn.setRequestProperty("User-agent", PropertiesUtil.getProjectProperties().get("project.name") + " " + PMS.getVersion());
 		InputStream in = conn.getInputStream();
 		FileOutputStream fOUT = null;
+
 		if (saveOnDisk && f != null) {
 			//fileName = convertURLToFileName(fileName);
 			fOUT = new FileOutputStream(f);
 		}
+
 		byte buf[] = new byte[4096];
-		int n = -1;
+
+		int n;
 		while ((n = in.read(buf)) > -1) {
 			bytes.write(buf, 0, n);
+
 			if (fOUT != null) {
 				fOUT.write(buf, 0, n);
 			}
 		}
+
 		in.close();
+
 		if (fOUT != null) {
 			fOUT.close();
 		}
+
 		return bytes.toByteArray();
 	}
 
@@ -206,6 +218,7 @@ public class HTTPResource {
 		if (index == 1 || index == 2) {
 			return "MPEG_PS_NTSC";
 		}
+
 		return "MPEG_PS_PAL";
 	}
 
@@ -213,9 +226,11 @@ public class HTTPResource {
 		if (index == 1) {
 			return "MPEG_TS_SD_NA_ISO";
 		}
+
 		if (index == 2) {
 			return "MPEG_TS_SD_JP_ISO";
 		}
+
 		return "MPEG_TS_SD_EU_ISO";
 	}
 
@@ -223,9 +238,11 @@ public class HTTPResource {
 		if (index == 1) {
 			return "MPEG_TS_SD_NA";
 		}
+
 		if (index == 2) {
 			return "MPEG_TS_SD_JP";
 		}
+
 		return "MPEG_TS_SD_EU";
 	}
 }

@@ -34,9 +34,7 @@ import java.util.Observable;
 import java.util.Observer;
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.EtchedBorder;
 import javax.swing.plaf.metal.DefaultMetalTheme;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import net.pms.Messages;
@@ -81,15 +79,14 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	public TranscodingTab getTr() {
 		return tr;
 	}
-	
+
 	public GeneralTab getGt() {
 		return nt;
 	}
-	
+
 	public PluginTab getPt() {
 		return pt;
 	}
-	
 
 	public AbstractButton getReload() {
 		return reload;
@@ -104,7 +101,6 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		if (Platform.isWindows()) {
 			try {
 				selectedLaf = (LookAndFeel) Class.forName("com.jgoodies.looks.windows.WindowsLookAndFeel").newInstance();
-				//selectedLaf = (LookAndFeel) Class.forName("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel").newInstance();
 			} catch (Exception e) {
 				selectedLaf = new PlasticLookAndFeel();
 			}
@@ -113,18 +109,19 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		} else {
 			try {
 				String systemClassName = UIManager.getSystemLookAndFeelClassName();
-				// workaround for gnome
+				// Workaround for Gnome
 				try {
 					String gtkLAF = "com.sun.java.swing.plaf.gtk.GTKLookAndFeel";
 					Class.forName(gtkLAF);
+
 					if (systemClassName.equals("javax.swing.plaf.metal.MetalLookAndFeel")) {
 						systemClassName = gtkLAF;
 					}
 				} catch (ClassNotFoundException ce) {
-					LOGGER.debug("Caught exception", ce);
+					LOGGER.error("Error loading GTK look and feel: ", ce);
 				}
 
-				LOGGER.debug("Choosing java look and feel: " + systemClassName);
+				LOGGER.trace("Choosing Java look and feel: " + systemClassName);
 				UIManager.setLookAndFeel(systemClassName);
 			} catch (Exception e1) {
 				selectedLaf = new PlasticLookAndFeel();
@@ -150,7 +147,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			try {
 				UIManager.setLookAndFeel(selectedLaf);
 			} catch (UnsupportedLookAndFeelException e) {
-				LOGGER.debug("Cannot change look and feel", e);
+				LOGGER.warn("Can't change look and feel", e);
 			}
 		}
 
@@ -186,9 +183,11 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		// Set an unicode font for testing exotics languages (japanese)
 		final String language = configuration.getLanguage();
+
 		if (language != null && (language.equals("ja") || language.startsWith("zh"))) {
 			sf = new Font("Serif", Font.PLAIN, 12);
 		}
+
 		if (sf != null) {
 			UIManager.put("Button.font", sf);
 			UIManager.put("ToggleButton.font", sf);
@@ -243,15 +242,19 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		if (showScrollbars.equals("true")) {
 			setContentPane(
 				new JScrollPane(
-				jp,
-				ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
-				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS));
+					jp,
+					ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
+					ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS
+				)
+			);
 		} else if (showScrollbars.equals("optional")) {
 			setContentPane(
 				new JScrollPane(
-				jp,
-				ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-				ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED));
+					jp,
+					ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+					ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
+				)
+			);
 		} else {
 			setContentPane(jp);
 		}
@@ -305,7 +308,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		toolBar.setRollover(true);
 
 		toolBar.add(new JPanel());
-		AbstractButton save = createToolBarButton(Messages.getString("LooksFrame.9"), "filesave-48.png", Messages.getString("LooksFrame.9"));
+		AbstractButton save = createToolBarButton(Messages.getString("LooksFrame.9"), "button-save.png", Messages.getString("LooksFrame.9"));
 		save.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -314,7 +317,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		});
 		toolBar.add(save);
 		toolBar.addSeparator();
-		reload = createToolBarButton(Messages.getString("LooksFrame.12"), "reload_page-48.png", Messages.getString("LooksFrame.12"));
+		reload = createToolBarButton(Messages.getString("LooksFrame.12"), "button-restart.png", Messages.getString("LooksFrame.12"));
 		reload.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -323,7 +326,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		});
 		toolBar.add(reload);
 		toolBar.addSeparator();
-		AbstractButton quit = createToolBarButton(Messages.getString("LooksFrame.5"), "exit-48.png", Messages.getString("LooksFrame.5"));
+		AbstractButton quit = createToolBarButton(Messages.getString("LooksFrame.5"), "button-quit.png", Messages.getString("LooksFrame.5"));
 		quit.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -367,14 +370,14 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		ft = new NavigationShareTab(configuration);
 		pt = new PluginTab(configuration);
 
-		tabbedPane.addTab(Messages.getString("LooksFrame.18"), /* readImageIcon("server-16.png"), */       st.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.19"), /* readImageIcon("mail_new-16.png"), */     tt.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.20"), /* readImageIcon("advanced-16.png"), */     nt.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.27"),                                             pt.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.22"), /* readImageIcon("bookmark-16.png"), */     ft.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.21"), /* readImageIcon("player_play-16.png"), */  tr.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.24"), /* readImageIcon("mail_new-16.png"), */     new HelpTab().build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.25"), /* readImageIcon("documentinfo-16.png"), */ new AboutTab().build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.18"), st.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.19"), tt.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.20"), nt.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.27"), pt.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.22"), ft.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.21"), tr.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.24"), new HelpTab().build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.25"), new AboutTab().build());
 
 		tabbedPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 
@@ -391,7 +394,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	protected AbstractButton createToolBarButton(String text, String iconName, String toolTipText) {
-		JButton button = new JButton(text, readImageIcon(iconName));
+		CustomJButton button = new CustomJButton(text, readImageIcon(iconName));
 		button.setToolTipText(toolTipText);
 		button.setFocusable(false);
 		return button;
@@ -399,11 +402,13 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 	public void quit() {
 		WindowsNamedPipe.setLoop(false);
+
 		try {
 			Thread.sleep(100);
 		} catch (InterruptedException e) {
 			LOGGER.error(null, e);
 		}
+
 		System.exit(0);
 	}
 
@@ -420,6 +425,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	@Override
 	public void setStatusCode(int code, String msg, String icon) {
 		st.getJl().setText(msg);
+
 		try {
 			st.getImagePanel().set(ImageIO.read(LooksFrame.class.getResourceAsStream("/resources/images/" + icon)));
 		} catch (IOException e) {
@@ -441,15 +447,15 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	 * changed.<br>
 	 * The actions requiring a server restart are defined by {@link PmsConfiguration#NEED_RELOAD_FLAGS}
 	 * 
-	 * @param b true if the server has to be restarted, false otherwise
+	 * @param bool true if the server has to be restarted, false otherwise
 	 */
 	@Override
-	public void setReloadable(boolean b) {
-		if(b) {
-			reload.setIcon(readImageIcon("reload_page_required-48.png"));
+	public void setReloadable(boolean bool) {
+		if (bool) {
+			reload.setIcon(readImageIcon("button-restart-required.png"));
 			reload.setToolTipText(Messages.getString("LooksFrame.13"));
 		} else {
-			reload.setIcon(readImageIcon("reload_page-48.png"));
+			reload.setIcon(readImageIcon("button-restart.png"));
 			reload.setToolTipText(Messages.getString("LooksFrame.12"));
 		}
 	}
@@ -471,8 +477,8 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		if (autoUpdater != null) {
 			try {
 				AutoUpdateDialog.showIfNecessary(this, autoUpdater);
-			} catch (NoClassDefFoundError ncdf) {
-				LOGGER.info("Class not found: " + ncdf.getMessage());
+			} catch (NoClassDefFoundError ncdfe) {
+				LOGGER.error("Error displaying AutoUpdateDialog", ncdfe);
 			}
 		}
 	}
@@ -485,6 +491,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		} else {
 			status.setBorder(BorderFactory.createEmptyBorder(0, 9, 8, 0));
 		}
+
 		status.setText(line);
 	}
 

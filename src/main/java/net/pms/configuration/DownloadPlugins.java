@@ -47,12 +47,22 @@ public class DownloadPlugins {
 	private JLabel updateLabel;
 	private String[] props;
 	private boolean test;
+	private boolean old;
 
 	public static ArrayList<DownloadPlugins> downloadList() {
 		ArrayList<DownloadPlugins> res = new ArrayList<DownloadPlugins>();
+
+		if (!PMS.getConfiguration().getExternalNetwork()) {
+			// Do not try to get the plugin list if there is no
+			// external network.
+			return res;
+		}
+
 		try {
 			URL u = new URL(PLUGIN_LIST_URL);
 			URLConnection connection = u.openConnection();
+			connection.setConnectTimeout(5000);
+			connection.setReadTimeout(5000);
 			BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 			parse_list(res, in, false);
 			File test = new File(PMS.getConfiguration().getPluginDirectory() + File.separator + PLUGIN_TEST_FILE);
@@ -63,6 +73,14 @@ public class DownloadPlugins {
 		} catch (Exception e) {
 		}
 		return res;
+	}
+
+	private static int getInt(String val) {
+		try {
+			return Integer.parseInt(val);
+		} catch (Exception e) {
+			return 0;
+		}
 	}
 
 	private static void parse_list(ArrayList<DownloadPlugins> res, BufferedReader in, boolean test) throws IOException {
@@ -118,6 +136,30 @@ public class DownloadPlugins {
 					plugin.type = DownloadPlugins.TYPE_PLATFORM_LIST;
 				}
 			}
+			if (keyval[0].equalsIgnoreCase("require")) {
+				plugin.old = false;
+				String[] minVer = keyval[1].split("\\.");
+				String[] myVer = PMS.getVersion().split("\\.");
+				int max = Math.max(myVer.length, minVer.length);
+				for (int i = 0; i < max; i++) {
+					int my,min;
+					// If the versions are of different length
+					// say that the part of "worng" length is 0
+					my = getInt(((i > myVer.length) ? "0" : myVer[i]));
+					min = getInt(((i > minVer.length) ? "0" : minVer[i]));
+					if (min == my) {
+						// This is equal take the next part of the
+						// version string
+						continue;
+					}
+					if (min > my) {
+						// Old otherwise it is new
+						plugin.old = true;
+					}
+					// anyway stop here
+					break;
+				}
+			}
 			if (keyval[0].equalsIgnoreCase("prop")) {
 				plugin.props = keyval[1].split(",");
 			}
@@ -141,6 +183,7 @@ public class DownloadPlugins {
 		type = DownloadPlugins.TYPE_JAR;
 		rating = "--";
 		jars = null;
+		old = false;
 		this.test = test;
 	}
 
@@ -175,6 +218,10 @@ public class DownloadPlugins {
 
 	public boolean isTest() {
 		return test;
+	}
+
+	public boolean isOld() {
+		return old;
 	}
 
 	private String splitString(String string) {
@@ -322,35 +369,38 @@ public class DownloadPlugins {
 		}
 
 		// Everything after the "," is what we're supposed to run
-		// Determine the jar list 1st
+		// First make note of jars we got
 		File[] oldJar = new File(PMS.getConfiguration().getPluginDirectory()).listFiles();
+
 		// Before we start external installers better save the config
 		PMS.getConfiguration().save();
 		ProcessBuilder pb = new ProcessBuilder(args.substring(pos + 1));
 		pb.redirectErrorStream(true);
 		Map<String, String> env = pb.environment();
-		env.put("PROFILE_PATH", PMS.getConfiguration().getProfileDirectory());
+		env.put("PROFILE_PATH", PMS.getConfiguration().getProfilePath());
+		env.put("UMS_VERSION", PMS.getVersion());
 		Process pid = pb.start();
 		InputStream is = pid.getInputStream();
 		InputStreamReader isr = new InputStreamReader(is);
 		BufferedReader br = new BufferedReader(isr);
 		String line;
 		StringBuilder sb = new StringBuilder();
-
 		while ((line = br.readLine()) != null) {
 			sb.append(line);
 		}
 
+		// Reload the config in case we have new settings
+		PMS.getConfiguration().reload();
 		pid.waitFor();
-		
+
 		File[] newJar = new File(PMS.getConfiguration().getPluginDirectory()).listFiles();
-		for (int i=0; i < newJar.length; i++) {
+		for (int i = 0; i < newJar.length; i++) {
 			File f = newJar[i];
 			if (!f.getAbsolutePath().endsWith(".jar")) {
 				// skip non jar files
 				continue;
 			}
-			for (int j=0; j < oldJar.length; j++) {
+			for (int j = 0; j < oldJar.length; j++) {
 				if (f.getAbsolutePath().equals(oldJar[j].getAbsolutePath())) {
 					// old jar file break out, and set f to null to skip adding it
 					f = null;
@@ -364,7 +414,7 @@ public class DownloadPlugins {
 		}
 	}
 
-	private boolean command(String cmd, String args) {
+	private boolean command(String cmd, String args) throws ConfigurationException {
 		if (cmd.equalsIgnoreCase("move")) {
 			// arg1 is src and arg2 is dst
 			String[] tmp = args.split(",");
@@ -376,6 +426,7 @@ public class DownloadPlugins {
 			}
 			return true;
 		}
+
 		if (cmd.equalsIgnoreCase("touch")) {
 			// arg1 is file to touch
 			String[] tmp = args.split(",");
@@ -385,14 +436,18 @@ public class DownloadPlugins {
 				// Ignore errors, just log it
 				LOGGER.debug("couldn't touch file " + tmp[1]);
 			}
+
 			return true;
 		}
+
 		if (cmd.equalsIgnoreCase("conf")) {
 			String[] tmp = args.split(",", 2);
 			tmp = tmp[1].split("=");
 			PMS.getConfiguration().setCustomProperty(tmp[1], tmp[2]);
+			PMS.getConfiguration().save();
 			return true;
 		}
+
 		if (cmd.equalsIgnoreCase("exec")) {
 			try {
 				doExec(args);
@@ -400,8 +455,10 @@ public class DownloadPlugins {
 			} catch (IOException e) {
 			} catch (InterruptedException e) {
 			}
+
 			return true;
 		}
+
 		return false;
 	}
 
@@ -442,8 +499,10 @@ public class DownloadPlugins {
 					filename = tmp[2];
 				}
 			}
+
 			res &= downloadFile(tmp[0], dir, filename);
 		}
+
 		return res;
 	}
 
@@ -467,9 +526,11 @@ public class DownloadPlugins {
 			}
 			return downloadList(url + ext);
 		}
+
 		if (isTest()) {
 			return downloadFile(url, PMS.getConfiguration().getPluginDirectory(), "");
 		}
+
 		return false;
 	}
 
@@ -501,8 +562,7 @@ public class DownloadPlugins {
 		// Create the instances of the plugins
 		ExternalFactory.instantiateDownloaded(update);
 		updateLabel = null;
-		PMS.getConfiguration().save();
-		PMS.getConfiguration().reload();
+
 		return true;
 	}
 }

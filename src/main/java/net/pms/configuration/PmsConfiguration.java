@@ -20,12 +20,14 @@ package net.pms.configuration;
 
 import com.sun.jna.Platform;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
 import net.pms.Messages;
 import net.pms.io.SystemUtils;
+import net.pms.util.FileUtil;
 import net.pms.util.PropertiesUtil;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
@@ -56,6 +58,9 @@ public class PmsConfiguration {
 	 * for compatibility with other operating systems.
 	 */
 	private static final int MENCODER_MAX_THREADS = 8;
+
+	// TODO: Get this out of here
+	private static boolean avsHackLogged = false;
 
 	private static final String KEY_ALTERNATE_SUBS_FOLDER = "alternate_subs_folder";
 	private static final String KEY_ALTERNATE_THUMB_FOLDER = "alternate_thumb_folder";
@@ -301,8 +306,7 @@ public class PmsConfiguration {
 
 			// if it exists, we know whether it's a file or directory
 			// otherwise, it must be a file since we don't autovivify directories
-
-			if (f.exists() && f.isDirectory()) {
+			if (f.isDirectory()) {
 				PROFILE_DIRECTORY = FilenameUtils.normalize(f.getAbsolutePath());
 				PROFILE_PATH = FilenameUtils.normalize(new File(f, DEFAULT_PROFILE_FILENAME).getAbsolutePath());
 			} else { // doesn't exist or is a file (i.e. not a directory)
@@ -382,16 +386,25 @@ public class PmsConfiguration {
 		if (loadFile) {
 			File pmsConfFile = new File(PROFILE_PATH);
 
-			if (pmsConfFile.isFile() && pmsConfFile.canRead()) {
-				configuration.load(PROFILE_PATH);
+			if (pmsConfFile.isFile()) {
+				if (FileUtil.isFileReadable(pmsConfFile)) {
+					configuration.load(PROFILE_PATH);
+				} else {
+					LOGGER.warn("Can't load {}", PROFILE_PATH);
+				}
 			} else if (SKEL_PROFILE_PATH != null) {
-                File pmsSkelConfFile = new File(SKEL_PROFILE_PATH);
-                if (pmsSkelConfFile.isFile() && pmsSkelConfFile.canRead()) {
-                    // load defaults from skel file, save them later to PROFILE_PATH
-                    configuration.load(pmsSkelConfFile);
-                    LOGGER.info("Default configuration loaded from " + SKEL_PROFILE_PATH);
-                }
-            }
+				File pmsSkelConfFile = new File(SKEL_PROFILE_PATH);
+
+				if (pmsSkelConfFile.isFile()) {
+					if (FileUtil.isFileReadable(pmsSkelConfFile)) {
+						// Load defaults from skel file, save them later to PROFILE_PATH
+						configuration.load(pmsSkelConfFile);
+						LOGGER.info("Default configuration loaded from " + SKEL_PROFILE_PATH);
+					} else {
+						LOGGER.warn("Can't load {}", SKEL_PROFILE_PATH);
+					}
+				}
+			}
 		}
 
         configuration.setPath(PROFILE_PATH);
@@ -546,12 +559,7 @@ public class PmsConfiguration {
 	 * @return The hostname if it is defined, otherwise <code>null</code>.
 	 */
 	public String getServerHostname() {
-		String value = getString(KEY_SERVER_HOSTNAME, "");
-		if (StringUtils.isNotBlank(value)) {
-			return value;
-		} else {
-			return null;
-		}
+		return getString(KEY_SERVER_HOSTNAME, null);
 	}
 
 	/**
@@ -1042,7 +1050,7 @@ public class PmsConfiguration {
 	 * @return The character encoding.
 	 */
 	public String getMencoderSubCp() {
-		return getString(KEY_MENCODER_SUB_CP, StringUtils.EMPTY);
+		return getString(KEY_MENCODER_SUB_CP, "");
 	}
 
 	/**
@@ -1862,9 +1870,6 @@ public class PmsConfiguration {
 	}
 
 	// TODO: Get this out of here
-	private static boolean avsHackLogged = false;
-
-	// TODO: Get this out of here
 	private static List<String> hackAvs(SystemUtils registry, List<String> input) {
 		List<String> toBeRemoved = new ArrayList<String>();
 		for (String engineId : input) {
@@ -1873,9 +1878,11 @@ public class PmsConfiguration {
 					LOGGER.info("AviSynth is not installed. You cannot use " + engineId + " as a transcoding engine.");
 					avsHackLogged = true;
 				}
+
 				toBeRemoved.add(engineId);
 			}
 		}
+
 		List<String> output = new ArrayList<String>();
 		output.addAll(input);
 		output.removeAll(toBeRemoved);
@@ -2398,13 +2405,12 @@ public class PmsConfiguration {
 
 	/**
 	 * Finds out whether the program has admin rights.
+	 * It only checks on Windows and returns true if on a non-Windows OS.
 	 *
-	 * Note: We could (and should) make it check for rights on other operating
-	 * systems, but for now it only checks on Windows and always returns true
-	 * if on a non-Windows OS.
-	 *
-	 * Note 2: Detection of Windows 8 depends on the user having a version of
+	 * Note: Detection of Windows 8 depends on the user having a version of
 	 * JRE newer than 1.6.0_31 installed.
+	 *
+	 * TODO: We should make it check for rights on other operating systems.
 	 */
 	public boolean isAdmin() {
 		if (
@@ -2427,6 +2433,62 @@ public class PmsConfiguration {
 				LOGGER.error("Something prevented UMS from checking Windows permissions", e);
 			}
 		}
+
 		return true;
+	}
+
+	/* Start without external netowrk (increase startup speed) */
+	public static final String KEY_EXTERNAL_NETWORK = "external_network";
+
+	public boolean getExternalNetwork() {
+		return getBoolean(KEY_EXTERNAL_NETWORK, true);
+	}
+
+	public void setExternalNetwork(boolean b) {
+		configuration.setProperty(KEY_EXTERNAL_NETWORK, b);
+	}
+
+	/* Credential path handling */
+	public static final String KEY_CRED_PATH = "cred.path";
+
+	public void initCred() throws IOException {
+		String cp = getCredPath();
+		if (StringUtils.isEmpty(cp)) {
+			// need to make sure we got a cred path here
+			cp = new File(getProfileDirectory() + File.separator + "UMS.cred").getAbsolutePath();
+			configuration.setProperty(KEY_CRED_PATH, cp);
+			try {
+				configuration.save();
+			} catch (ConfigurationException e) {
+			}
+		}
+
+		// Now we know cred path is set
+		File f = new File(cp);
+		if (!f.exists()) {
+			// cred path is set but file isn't there
+			// create empty file with some comments
+			FileOutputStream fos = new FileOutputStream(f);
+			StringBuilder sb = new StringBuilder();
+			sb.append("# Add credentials to the file");
+			sb.append("\n");
+			sb.append("# on the format tag=user,pwd");
+			sb.append("\n");
+			sb.append("# For example:");
+			sb.append("\n");
+			sb.append("# channels.xxx=name,secret");
+			sb.append("\n");
+			fos.write(sb.toString().getBytes());
+			fos.flush();
+			fos.close();
+		}
+	}
+
+	public String getCredPath() {
+		return getString(KEY_CRED_PATH, "");
+	}
+
+	public File getCredFile() {
+		return new File(getCredPath());
 	}
 }

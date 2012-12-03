@@ -119,7 +119,7 @@ public class TSMuxerVideo extends Player {
 
 		String fps = media.getValidFps(false);
 		String videoType = "V_MPEG4/ISO/AVC";
-		if (media != null && media.getCodecV() != null && media.getCodecV().equals("mpeg2video")) {
+		if (media != null && media.getCodecV() != null && media.getCodecV().startsWith("mpeg2")) {
 			videoType = "V_MPEG-2";
 		}
 
@@ -247,7 +247,7 @@ public class TSMuxerVideo extends Player {
 				if (media.getH264AnnexB() != null && media.getH264AnnexB().length > 0) {
 					StreamModifier sm = new StreamModifier();
 					sm.setHeader(media.getH264AnnexB());
-					sm.setH264_annexb(true);
+					sm.setH264AnnexB(true);
 					ffVideoPipe.setModifier(sm);
 				}
 			}
@@ -328,10 +328,10 @@ public class TSMuxerVideo extends Player {
 						// DTS remux or LPCM
 						StreamModifier sm = new StreamModifier();
 						sm.setPcm(pcm);
-						sm.setDtsembed(dtsRemux);
-						sm.setNbchannels(channels);
+						sm.setDtsEmbed(dtsRemux);
+						sm.setNbChannels(channels);
 						sm.setSampleFrequency(params.aid.getSampleRate() < 48000 ? 48000 : params.aid.getSampleRate());
-						sm.setBitspersample(16);
+						sm.setBitsPerSample(16);
 
 						String mixer = null;
 
@@ -347,12 +347,12 @@ public class TSMuxerVideo extends Player {
 							"-quiet",
 							"-really-quiet",
 							"-msglevel", "statusline=2",
-							"-channels", "" + sm.getNbchannels(),
+							"-channels", "" + sm.getNbChannels(),
 							"-ovc", "copy",
 							"-of", "rawaudio",
-							"-mc", sm.isDtsembed() ? "0.1" : "0",
+							"-mc", sm.isDtsEmbed() ? "0.1" : "0",
 							"-noskip",
-							"-oac", sm.isDtsembed() ? "copy" : "pcm",
+							"-oac", sm.isDtsEmbed() ? "copy" : "pcm",
 							isNotBlank(mixer) ? "-af" : "-quiet", isNotBlank(mixer) ? mixer : "-quiet",
 							singleMediaAudio ? "-quiet" : "-aid", singleMediaAudio ? "-quiet" : ("" + params.aid.getId()),
 							"-srate", "48000",
@@ -460,10 +460,10 @@ public class TSMuxerVideo extends Player {
 							// DTS remux or LPCM
 							StreamModifier sm = new StreamModifier();
 							sm.setPcm(pcm);
-							sm.setDtsembed(dtsRemux);
-							sm.setNbchannels(channels);
+							sm.setDtsEmbed(dtsRemux);
+							sm.setNbChannels(channels);
 							sm.setSampleFrequency(audio.getSampleRate() < 48000 ? 48000 : audio.getSampleRate());
-							sm.setBitspersample(16);
+							sm.setBitsPerSample(16);
 							if (!params.mediaRenderer.isMuxDTSToMpeg()) {
 								ffAudioPipe[i].setModifier(sm);
 							}
@@ -481,12 +481,12 @@ public class TSMuxerVideo extends Player {
 								"-quiet",
 								"-really-quiet",
 								"-msglevel", "statusline=2",
-								"-channels", "" + sm.getNbchannels(),
+								"-channels", "" + sm.getNbChannels(),
 								"-ovc", "copy",
 								"-of", "rawaudio",
-								"-mc", sm.isDtsembed() ? "0.1" : "0",
+								"-mc", sm.isDtsEmbed() ? "0.1" : "0",
 								"-noskip",
-								"-oac", sm.isDtsembed() ? "copy" : "pcm",
+								"-oac", sm.isDtsEmbed() ? "copy" : "pcm",
 								isNotBlank(mixer) ? "-af" : "-quiet", isNotBlank(mixer) ? mixer : "-quiet",
 								singleMediaAudio ? "-quiet" : "-aid", singleMediaAudio ? "-quiet" : ("" + audio.getId()),
 								"-srate", "48000",

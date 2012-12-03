@@ -1,13 +1,107 @@
-1.7.0 - 2012-10-??
+2.1.3 - 2012-12-??
 
 	General:
+		
+
+2.1.2 - 2012-12-01
+
+	General:
+		Fixed subtitle support for RTL languages (Arabic, Persian, etc.)
+		Updated MPlayer/MEncoder to SB44, which:
+			Fixed subtitle bug on certain CPUs
+			Improved audio/video sync in some cases
+			Fixed memory leaks
+			Improves AVI support
+
+2.1.1 - 2012-11-25
+
+	General:
+		Fixed a bug preventing UMS from starting
+		Improved Plugin Management page design
+		Minor language update
+
+2.1.0 - 2012-11-23
+
+	General:
+		Enabled HiDPI for retina displays
+		Fixed a bug that prevented showing Galaxy Nexus pictures
+		Allow plugins more freedom on install
+		Logging improvements
+		Stop Windows Media Player from being detected because it has never been supported
+		Language clarifications
+		Updated Dutch Traditional translation (thanks, leroy!)
+		Added support for all 3D SBS videos
+		Fixed blocky video with some files
+		Fixed bug where the program would not start without an internet connection
+		Checks for VSFilter (AviSynth subtitles plugin) in K-Lite Codec Pack
+		Fixed crash when scanning some MP3 files with large cover images on Linux (#22)
+		Added support for external subtitles with the AviSynth/MEncoder engine
+		Stopped virtual folder names being cut off after periods
+		Fixed several rare crashes
+		Renamed the Traces tab to Logs
+		Made text and buttons on the Logs page more readable
+	Plugin Management:
+		Fixed and improved credentials management
+		Improved Plugin Management tab design
+		Buggy plugins no longer logspam
+	Renderers:
+		Added support for Sony Bravia EX620 TVs (thanks, morisato!)
+	External components:
+		Updated H2 Database Engine to 1.3.169, which:
+			Makes library scanning faster
+		Updated InterFrame to 2.2.0, which:
+			Has less artifacts in the interpolated frames
+		Rolled back MediaInfo on OS X to 0.7.58, which:
+			Fixes a bug that caused all videos to be transcoded instead of streamed
+		Updated MPlayer/MEncoder to SB43, which:
+			Runs faster
+			Crashes less
+			Leaks memory less
+			Detects framerates more accurately
+			Improves audio sync
+
+2.0.0 - 2012-10-31
+
+	General:
+		Design facelift
 		Added support for more file archive formats (7-Zip, gzip and tar)
 		Improved DVD and ISO support
-		Fixed SSA subtitle position when using overscan compensation
+		Fixed ASS/SSA subtitle position when using overscan compensation
 		Fixed a rare bug where videos played at half-speed
-		Updated JRE auto-download to 7u7 (latest)
+		Updated JRE auto-download to 7u9 (latest)
 		Admin permissions notifications work on Windows 8 (before they only worked on 7 and Vista)
 		Fixed the FFmpeg Audio engine
+		Updated English settings/descriptions
+		Made some log messages more descriptive
+		MEncoder's "A/V sync alternative method" option is applied correctly again
+		Fixed error while loading iPhoto library
+		Updated many program dependencies to benefit from many bugfixes
+		Fixed bug where disabled engines would be picked
+		Updated links on the Help page
+		Made renderer config layouts more synchronised
+		Added a button to uninstall the Windows service
+		Removed fontconfig from MEncoder for Mac OSX for improved subs compatibility
+		Made names in the transcode folder shorter by removing redundant information
+		The user preference to hide file extensions is applied to the transcode folder subfolder names
+	External components:
+		Updated MPlayer/MEncoder to SB42, which:
+			Runs faster
+			Improves audio/video sync
+			Faster handling of ASS/SSA subtitles
+			Improves DVD support
+		Updated FFmpeg to SB3, which:
+			Fixes memory leaks
+			Fixes other bugs
+		Updated MediaInfo to 0.7.61, which:
+			Fixes MKV framerate detection bug
+			Fixes E-AC-3 duration detection bug
+			More reliable DTS bitrate detection
+		Updated Java Service Wrapper to 3.5.15, which:
+			Improves Windows permissions handling
+	Renderers:
+		Added support for Sony Bravia HX800 TVs (thanks, lelin!)
+		Enabled streaming more file formats to Android devices
+		Improved DivX support on Panasonic devices (thanks, ExSport!)
 	Plugin Management:
 		Created new "Plugin Management" tab
 		Added button to edit the plugin credential file
@@ -15,6 +109,9 @@
 		Added button to reload available plugin list
 		Updated author column of plugin installer to include maintainers
 		Added "version" column to plugin installer
+	Languages:
+		Turkish flag added for the transcode folder
+		Updated settings labels for all languages
 
 1.6.0 - 2012-10-01
 

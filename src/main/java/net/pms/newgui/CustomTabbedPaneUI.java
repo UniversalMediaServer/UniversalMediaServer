@@ -25,6 +25,10 @@ public class CustomTabbedPaneUI extends BasicTabbedPaneUI {
 	}
 
 	@Override
+	protected void paintFocusIndicator(Graphics g, int tabPlacement, Rectangle[] rects, int tabIndex, Rectangle iconRect, Rectangle textRect, boolean isSelected) {
+	}
+
+	@Override
 	protected int calculateTabWidth(int tabPlacement, int tabIndex, FontMetrics metrics) {
 		return 10 + super.calculateTabWidth(tabPlacement, tabIndex, metrics);
 	}

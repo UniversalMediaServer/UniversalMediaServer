@@ -28,6 +28,9 @@ import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.StringTokenizer;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -110,7 +113,15 @@ public class FFMpegVideo extends Player {
 	}
 
 	protected String[] getDefaultArgs() {
-		return new String[]{ "-loglevel", "fatal" };
+		List<String> defaultArgsList = new ArrayList<String>();
+
+		defaultArgsList.add("-loglevel");
+		defaultArgsList.add("fatal");
+
+		String[] defaultArgsArray = new String[defaultArgsList.size()];
+		defaultArgsList.toArray(defaultArgsArray);
+
+		return defaultArgsArray;
 	}
 
 	private int[] getVideoBitrateConfig(String bitrate) {
@@ -208,65 +219,96 @@ public class FFMpegVideo extends Player {
 			audioP = new PipeIPCProcess("mplayer_aud1" + System.currentTimeMillis(), "mplayer_aud2" + System.currentTimeMillis(), false, false);
 		}
 
-		String cmdArray[] = new String[22 + args.length];
-		cmdArray[0] = executable();
-		cmdArray[1] = "-sn";
-		cmdArray[2] = "-sn";
+		List<String> cmdList = new ArrayList<String>();
+		cmdList.add(executable());
 
 		if (params.timeseek > 0 && !mplayer()) {
-			cmdArray[1] = "-ss";
-			cmdArray[2] = "" + params.timeseek;
+			cmdList.add("-ss");
+			cmdList.add("" + params.timeseek);
 		}
 
-		cmdArray[3] = "-sn";
-		cmdArray[4] = "-sn";
-		cmdArray[5] = "-sn";
-		cmdArray[6] = "-sn";
+		String cmd3 = "-sn";
+		String cmd4 = "-sn";
+		String cmd5 = "-sn";
+		String cmd6 = "-sn";
 
 		if (type() == Format.VIDEO) {
-			cmdArray[5] = "-i";
-			cmdArray[6] = fileName;
+			cmd5 = "-i";
+			cmd6 = fileName;
 			if (mplayer()) {
-				cmdArray[3] = "-f";
-				cmdArray[4] = "yuv4mpegpipe";
-				// cmdArray[6] = pipeprefix + videoPipe + (PMS.get().isWindows()?".2":"");
-				cmdArray[6] = videoP.getOutputPipe();
+				cmd3 = "-f";
+				cmd4 = "yuv4mpegpipe";
+				cmd6 = videoP.getOutputPipe();
 			} else if (avisynth()) {
 				File avsFile = FFMpegAviSynthVideo.getAVSScript(fileName, params.sid, params.fromFrame, params.toFrame, null, null);
-				cmdArray[6] = ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath());
+				cmd6 = ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath());
+			}
+		}
+
+		cmdList.add(cmd3);
+		cmdList.add(cmd4);
+		cmdList.add(cmd5);
+		cmdList.add(cmd6);
+
+		final boolean isTSMuxerVideoEngineEnabled = PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry()).contains(TSMuxerVideo.ID);
+
+		ac3Remux = false;
+		dtsRemux = false;
+
+		String audioCodecInput1 = "-c:a";
+		String audioCodecInput2 = "ac3";
+		if (PMS.getConfiguration().isRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && params.mediaRenderer.isTranscodeToAC3()) {
+			// AC-3 remux takes priority
+			ac3Remux = true;
+			audioCodecInput2 = "copy";
+		} else {
+			// Now check for DTS remux and LPCM streaming
+			dtsRemux = isTSMuxerVideoEngineEnabled &&
+				PMS.getConfiguration().isDTSEmbedInPCM() &&
+				params.aid != null &&
+				params.aid.isDTS() &&
+				!avisynth() &&
+				params.mediaRenderer.isDTSPlayable();
+
+			if (dtsRemux) {
+				audioCodecInput1 = "-an";
+				audioCodecInput2 = "-an";
+			} else if (type() == Format.AUDIO) {
+				audioCodecInput1 = "-sn";
+				audioCodecInput2 = "-sn";
 			}
 		}
 
 		// Set the output format
-		cmdArray[7] = "-f";
-		cmdArray[8] = "vob";
-		cmdArray[9] = "-sn";
-		cmdArray[10] = "-sn";
+		String cmd7 = "-f";
+		String cmd8 = "vob";
+		String cmd9 = "-sn";
+		String cmd10 = "-sn";
 
-		if (type() == Format.VIDEO || type() == Format.AUDIO) {
-			if (type() == Format.VIDEO && (mplayer())) {
-				cmdArray[8] = "wav";
-				cmdArray[9] = "-i";
-				// cmdArray[10] = pipeprefix + audioPipe + (PMS.get().isWindows()?".2":"");
-				cmdArray[10] = audioP.getOutputPipe();
-			} else if (type() == Format.AUDIO) {
-				cmdArray[7] = "-i";
-				cmdArray[8] = fileName;
-			}
+		if (dtsRemux) {
+			params.losslessaudio = true;
+			params.forceFps = media.getValidFps(false);
+			cmd8 = "mpeg2video";
+		}
+
+		if (type() == Format.VIDEO && (mplayer())) {
+			cmd8 = "wav";
+			cmd9 = "-i";
+			cmd10 = audioP.getOutputPipe();
+		} else if (type() == Format.AUDIO) {
+			cmd7 = "-i";
+			cmd8 = fileName;
 		}
 
 		if (params.timeend > 0) {
-			cmdArray[9] = "-t";
-			cmdArray[10] = "" + params.timeend;
+			cmd9 = "-t";
+			cmd10 = "" + params.timeend;
 		}
 
-		cmdArray[11] = "-sn";
-		cmdArray[12] = "-sn";
-		cmdArray[13] = "-sn";
-		cmdArray[14] = "-sn";
-
-		cmdArray[cmdArray.length - 3] = "-sn";
-		cmdArray[cmdArray.length - 2] = "-sn";
+		cmdList.add(cmd7);
+		cmdList.add(cmd8);
+		cmdList.add(cmd9);
+		cmdList.add(cmd10);
 
 		int defaultMaxBitrates[] = getVideoBitrateConfig(PMS.getConfiguration().getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
@@ -313,51 +355,16 @@ public class FFMpegVideo extends Player {
 			bufSize = bufSize * 1000;
 			defaultMaxBitrates[0] = defaultMaxBitrates[0] * 1000;
 
-			cmdArray[11] = "-bufsize";
-			cmdArray[12] = "" + bufSize;
+			cmdList.add("-bufsize");
+			cmdList.add("" + bufSize);
 
-			cmdArray[13] = "-maxrate";
-			cmdArray[14] = "" + defaultMaxBitrates[0];
-		}
-
-		final boolean isTSMuxerVideoEngineEnabled = PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry()).contains(TSMuxerVideo.ID);
-
-		ac3Remux = false;
-		dtsRemux = false;
-
-		String audioCodecInput1 = "-c:a";
-		String audioCodecInput2 = "ac3";
-		if (PMS.getConfiguration().isRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && params.mediaRenderer.isTranscodeToAC3()) {
-			// AC-3 remux takes priority
-			ac3Remux = true;
-			audioCodecInput2 = "copy";
-		} else {
-			// Now check for DTS remux and LPCM streaming
-			dtsRemux = isTSMuxerVideoEngineEnabled &&
-				PMS.getConfiguration().isDTSEmbedInPCM() &&
-				params.aid != null &&
-				params.aid.isDTS() &&
-				!avisynth() &&
-				params.mediaRenderer.isDTSPlayable();
-
-			if (dtsRemux) {
-				audioCodecInput1 = "-an";
-				audioCodecInput2 = "-an";
-			} else if (type() == Format.AUDIO) {
-				audioCodecInput1 = "-sn";
-				audioCodecInput2 = "-sn";
-			}
+			cmdList.add("-maxrate");
+			cmdList.add("" + defaultMaxBitrates[0]);
 		}
 
 		// Audio codec
-		cmdArray[15] = audioCodecInput1;
-		cmdArray[16] = audioCodecInput2;
-
-		if (dtsRemux) {
-			params.losslessaudio = true;
-			params.forceFps = media.getValidFps(false);
-			cmdArray[8] = "mpeg2video";
-		}
+		cmdList.add(audioCodecInput1);
+		cmdList.add(audioCodecInput2);
 
 		int channels;
 		if (ac3Remux) {
@@ -370,32 +377,40 @@ public class FFMpegVideo extends Player {
 		LOGGER.trace("channels=" + channels);
 
 		// Audio bitrate
-		cmdArray[17] = ((params.aid.isAC3() && !ac3Remux) || type() == Format.AUDIO) ? "-sn" : "-ab";
-		cmdArray[18] = ((params.aid.isAC3() && !ac3Remux) || type() == Format.AUDIO) ? "-sn" : PMS.getConfiguration().getAudioBitrate() + "k";
-
-		System.arraycopy(args, 0, cmdArray, 19, args.length);
-
-		if (PMS.getConfiguration().isFileBuffer()) {
-			File m = new File(PMS.getConfiguration().getTempFolder(), "pms-transcode.tmp");
-			if (m.exists() && !m.delete()) {
-				LOGGER.info("Temp file currently used.. Waiting 3 seconds");
-
-				try {
-					Thread.sleep(3000);
-				} catch (InterruptedException e) { }
-
-				if (m.exists() && !m.delete()) {
-					LOGGER.info("Temp file cannot be deleted... Serious ERROR");
-				}
-			}
-
-			params.outputFile = m;
-			params.minFileSize = params.minBufferSize;
-			m.deleteOnExit();
-			cmdArray[cmdArray.length - 1] = m.getAbsolutePath();
-		} else {
-			cmdArray[cmdArray.length - 1] = "pipe:";
+		if (!(params.aid.isAC3() && !ac3Remux) && !(type() == Format.AUDIO)) {
+			cmdList.add("-ab");
+			cmdList.add(PMS.getConfiguration().getAudioBitrate() + "k");
 		}
+
+		// Add the arguments being passed from other engines
+		cmdList.addAll(Arrays.asList(args));
+
+		if (!dtsRemux) {
+			if (PMS.getConfiguration().isFileBuffer()) {
+				File m = new File(PMS.getConfiguration().getTempFolder(), "pms-transcode.tmp");
+				if (m.exists() && !m.delete()) {
+					LOGGER.info("Temp file currently used.. Waiting 3 seconds");
+
+					try {
+						Thread.sleep(3000);
+					} catch (InterruptedException e) { }
+
+					if (m.exists() && !m.delete()) {
+						LOGGER.info("Temp file cannot be deleted... Serious ERROR");
+					}
+				}
+
+				params.outputFile = m;
+				params.minFileSize = params.minBufferSize;
+				m.deleteOnExit();
+				cmdList.add(m.getAbsolutePath());
+			} else {
+				cmdList.add("pipe:");
+			}
+		}
+
+		String[] cmdArray = new String[cmdList.size()];
+		cmdList.toArray(cmdArray);
 
 		cmdArray = finalizeTranscoderArgs(
 			this,
@@ -485,13 +500,25 @@ public class FFMpegVideo extends Player {
 
 			PipeIPCProcess ffVideoPipe = new PipeIPCProcess(System.currentTimeMillis() + "ffmpegvideo", System.currentTimeMillis() + "videoout", false, true);
 
-			cmdArray[cmdArray.length - 1] = ffVideoPipe.getInputPipe();
+			cmdList.add(ffVideoPipe.getInputPipe());
 
 			OutputParams ffparams = new OutputParams(PMS.getConfiguration());
 			ffparams.maxBufferSize = 1;
 			ffparams.stdin = params.stdin;
 
-			ProcessWrapperImpl ffVideo = new ProcessWrapperImpl(cmdArray, ffparams);
+			String[] cmdArrayDts = new String[cmdList.size()];
+			cmdList.toArray(cmdArrayDts);
+
+			cmdArrayDts = finalizeTranscoderArgs(
+				this,
+				fileName,
+				dlna,
+				media,
+				params,
+				cmdArrayDts
+			);
+
+			ProcessWrapperImpl ffVideo = new ProcessWrapperImpl(cmdArrayDts, ffparams);
 
 			ProcessWrapper ff_video_pipe_process = ffVideoPipe.getPipeProcess();
 			pw.attachProcess(ff_video_pipe_process);

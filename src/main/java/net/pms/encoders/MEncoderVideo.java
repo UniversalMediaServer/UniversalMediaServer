@@ -45,6 +45,7 @@ import net.pms.formats.v2.SubtitleType;
 import net.pms.formats.v2.SubtitleUtils;
 import net.pms.io.*;
 import net.pms.network.HTTPResource;
+import net.pms.newgui.CustomJButton;
 import net.pms.newgui.FontFileFilter;
 import net.pms.newgui.LooksFrame;
 import net.pms.newgui.MyComboBoxModel;
@@ -95,7 +96,7 @@ public class MEncoderVideo extends Player {
 	private JCheckBox noskip;
 	private JCheckBox intelligentsync;
 	private JTextField alternateSubFolder;
-	private JButton subColor;
+	private CustomJButton subColor;
 	private JTextField ocw;
 	private JTextField och;
 	private JCheckBox subs;
@@ -241,7 +242,7 @@ public class MEncoderVideo extends Player {
 
 		builder.add(noskip, FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
 
-		JButton button = new JButton(Messages.getString("MEncoderVideo.29"));
+		CustomJButton button = new CustomJButton(Messages.getString("MEncoderVideo.29"));
 		button.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -445,7 +446,7 @@ public class MEncoderVideo extends Player {
 
 		builder.add(mencoder_custom_options, FormLayoutUtil.flip(cc.xyw(3, 17, 13), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.7"), FormLayoutUtil.flip(cc.xyw(1, 19, 15), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.7"), FormLayoutUtil.flip(cc.xy(1, 19), colSpec, orientation));
 		langs = new JTextField(configuration.getMencoderAudioLanguages());
 		langs.addKeyListener(new KeyListener() {
 			@Override
@@ -681,7 +682,7 @@ public class MEncoderVideo extends Player {
 		});
 		builder.add(defaultfont, FormLayoutUtil.flip(cc.xyw(3, 31, 8), colSpec, orientation));
 
-		JButton fontselect = new JButton("...");
+		CustomJButton fontselect = new CustomJButton("...");
 		fontselect.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -696,7 +697,7 @@ public class MEncoderVideo extends Player {
 		});
 		builder.add(fontselect, FormLayoutUtil.flip(cc.xyw(11, 31, 2), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.37"), FormLayoutUtil.flip(cc.xyw(1, 33, 3), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.37"), FormLayoutUtil.flip(cc.xyw(1, 33, 2), colSpec, orientation));
 		alternateSubFolder = new JTextField(configuration.getAlternateSubsFolder());
 		alternateSubFolder.addKeyListener(new KeyListener() {
 			@Override
@@ -714,7 +715,7 @@ public class MEncoderVideo extends Player {
 		});
 		builder.add(alternateSubFolder, FormLayoutUtil.flip(cc.xyw(3, 33, 8), colSpec, orientation));
 
-		JButton select = new JButton("...");
+		CustomJButton select = new CustomJButton("...");
 		select.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -923,8 +924,7 @@ public class MEncoderVideo extends Player {
 		builder.add(assdefaultstyle, FormLayoutUtil.flip(cc.xyw(8, 35, 4), colSpec, orientation));
 		assdefaultstyle.setSelected(configuration.isMencoderAssDefaultStyle());
 
-		subColor = new JButton();
-		subColor.setText(Messages.getString("MEncoderVideo.31"));
+		subColor = new CustomJButton(Messages.getString("MEncoderVideo.31"));
 		subColor.setBackground(new Color(configuration.getSubsColor()));
 		subColor.addActionListener(new ActionListener() {
 			@Override
@@ -1660,9 +1660,14 @@ public class MEncoderVideo extends Player {
 					sb.append("-ass-force-style MarginV=").append(subtitleMargin).append(" ");
 				}
 
-				// Workaround for MPlayer #2041, remove when that bug is fixed
-				if (!params.sid.isEmbedded()) {
-					sb.append("-noflip-hebrew ");
+				// MEncoder is not compiled with fontconfig on Mac OSX, therefore
+				// use of the "-ass" option also requires the "-font" option.
+				if (Platform.isMac() && sb.toString().indexOf(" -font ") < 0) {
+					String font = CodecUtil.getDefaultFontPath();
+
+					if (isNotBlank(font)) {
+						sb.append("-font ").append(font).append(" ");
+					}
 				}
 			// Use PLAINTEXT formatting
 			} else {
@@ -1698,8 +1703,12 @@ public class MEncoderVideo extends Player {
 			}
 
 			// Common subtitle options
-			// Use fontconfig if enabled
-			sb.append("-").append(configuration.isMencoderFontConfig() ? "" : "no").append("fontconfig ");
+			// MEncoder on Mac OSX is compiled without fontconfig support.
+			// Appending the flag will break execution, so skip it on Mac OSX.
+			if (!Platform.isMac()) {
+				// Use fontconfig if enabled
+				sb.append("-").append(configuration.isMencoderFontConfig() ? "" : "no").append("fontconfig ");
+			}
 
 			// Apply DVD/VOBsub subtitle quality
 			if (params.sid.getType() == SubtitleType.VOBSUB && configuration.getMencoderVobsubSubtitleQuality() != null) {
@@ -2003,10 +2012,10 @@ public class MEncoderVideo extends Player {
 				 * ugly (unused) bottom 8 pixels would be displayed, or we would limit all
 				 * videos to 1088 causing the bottom 8 meaningful pixels to be cut off.
 				 */
-				if (media.getWidth() == 3840 && media.getHeight() == 1080) {
+				if (media.getWidth() == 3840 && media.getHeight() <= 1080) {
 					// Full-SBS
 					scaleWidth  = 1920;
-					scaleHeight = 1080;
+					scaleHeight = media.getHeight();
 				} else if (media.getWidth() == 1920 && media.getHeight() == 2160) {
 					// Full-OU
 					scaleWidth  = 1920;
@@ -2072,7 +2081,7 @@ public class MEncoderVideo extends Player {
 			cmdList.add("softskip,expand=-" + expandBorderWidth + ":-" + expandBorderHeight);
 		}
 
-		if (configuration.getMencoderMT() && !avisynth && !dvd && !(media.getCodecV() != null && (media.getCodecV().equals("mpeg2video")))) {
+		if (configuration.getMencoderMT() && !avisynth && !dvd && !(media.getCodecV() != null && (media.getCodecV().startsWith("mpeg2")))) {
 			cmdList.add("-lavdopts");
 			cmdList.add("fast");
 		}
@@ -2342,6 +2351,7 @@ public class MEncoderVideo extends Player {
 							it.next();
 							it.remove();
 						}
+
 						break;
 					}
 				}
@@ -2389,16 +2399,16 @@ public class MEncoderVideo extends Player {
 				PipeIPCProcess ffAudioPipe = new PipeIPCProcess(System.currentTimeMillis() + "ffmpegaudio01", System.currentTimeMillis() + "audioout", false, true);
 				StreamModifier sm = new StreamModifier();
 				sm.setPcm(pcm);
-				sm.setDtsembed(dtsRemux);
+				sm.setDtsEmbed(dtsRemux);
 				sm.setSampleFrequency(48000);
-				sm.setBitspersample(16);
+				sm.setBitsPerSample(16);
 
 				String mixer = null;
 				if (pcm && !dtsRemux) {
 					mixer = getLPCMChannelMappingForMencoder(params.aid); // LPCM always outputs 5.1/7.1 for multichannel tracks. Downmix with player if needed!
 				}
 
-				sm.setNbchannels(channels);
+				sm.setNbChannels(channels);
 
 				// It seems that -really-quiet prevents MEncoder from stopping the pipe output after some time
 				// -mc 0.1 makes the DTS-HD extraction work better with latest MEncoder builds, and has no impact on the regular DTS one
@@ -2616,7 +2626,7 @@ public class MEncoderVideo extends Player {
 					} else if ("rm".equals(type)) {
 						secondaryType = "rmvb";
 						interpreter.set(secondaryType, r);
-					} else if ("mpeg2video".equals(type)) {
+					} else if ("mpeg2".startsWith(type)) {
 						secondaryType = "mpeg2";
 						interpreter.set(secondaryType, r);
 					} else if ("mpeg1video".equals(type)) {

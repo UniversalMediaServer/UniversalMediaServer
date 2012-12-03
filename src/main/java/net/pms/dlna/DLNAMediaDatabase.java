@@ -32,6 +32,7 @@ import net.pms.configuration.FormatConfiguration;
 import net.pms.formats.v2.SubtitleType;
 import static org.apache.commons.lang.StringUtils.*;
 import org.h2.engine.Constants;
+import org.h2.jdbc.JdbcSQLException;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.jdbcx.JdbcDataSource;
 import org.h2.store.fs.FileUtils;
@@ -424,7 +425,14 @@ public class DLNAMediaDatabase implements Runnable {
 				} else {
 					ps.setNull(4, Types.DOUBLE);
 				}
-				ps.setInt(5, media.getBitrate());
+
+				// TODO: Stop trying to parse the bitrate of images
+				int databaseBitrate = media.getBitrate();
+				if (databaseBitrate == 0) {
+					LOGGER.debug("Could not parse the bitrate from: " + name);
+				}
+				ps.setInt(5, databaseBitrate);
+
 				ps.setInt(6, media.getWidth());
 				ps.setInt(7, media.getHeight());
 				ps.setLong(8, media.getSize());
@@ -475,6 +483,7 @@ public class DLNAMediaDatabase implements Runnable {
 				if (media.getAudioTracksList().size() > 0) {
 					insert = conn.prepareStatement("INSERT INTO AUDIOTRACKS VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 				}
+
 				for (DLNAMediaAudio audio : media.getAudioTracksList()) {
 					insert.clearParameters();
 					insert.setInt(1, id);
@@ -494,7 +503,17 @@ public class DLNAMediaDatabase implements Runnable {
 					insert.setInt(15, audio.getAudioProperties().getAudioDelay());
 					insert.setString(16, left(trimToEmpty(audio.getMuxingModeAudio()), SIZE_MUXINGMODE));
 					insert.setInt(17, audio.getBitRate());
-					insert.executeUpdate();
+
+					try {
+						insert.executeUpdate();
+					} catch (JdbcSQLException e) {
+						if (e.getErrorCode() == 23505) {
+							LOGGER.debug("A duplicate key error occurred while trying to store the following file's audio information in the database: " + name);
+						} else {
+							LOGGER.debug("An error occurred while trying to store the following file's audio information in the database: " + name);
+						}
+						LOGGER.debug("The error given by jdbc was: " + e);
+					}
 				}
 
 				if (media.getSubtitleTracksList().size() > 0) {
@@ -508,7 +527,16 @@ public class DLNAMediaDatabase implements Runnable {
 						insert.setString(3, left(sub.getLang(), SIZE_LANG));
 						insert.setString(4, left(sub.getFlavor(), SIZE_FLAVOR));
 						insert.setInt(5, sub.getType().getStableIndex());
-						insert.executeUpdate();
+						try {
+							insert.executeUpdate();
+						} catch (JdbcSQLException e) {
+							if (e.getErrorCode() == 23505) {
+								LOGGER.debug("A duplicate key error occurred while trying to store the following file's subtitle information in the database: " + name);
+							} else {
+								LOGGER.debug("An error occurred while trying to store the following file's subtitle information in the database: " + name);
+							}
+							LOGGER.debug("The error given by jdbc was: " + e);
+						}
 					}
 				}
 				close(insert);
@@ -705,10 +733,11 @@ public class DLNAMediaDatabase implements Runnable {
 
 	public synchronized void stopScanLibrary() {
 		if (scanner != null && scanner.isAlive()) {
-			PMS.get().getRootFolder(null).stopscan();
+			PMS.get().getRootFolder(null).stopScan();
 		}
 	}
 
+	@Override
 	public void run() {
 		PMS.get().getRootFolder(null).scan();
 	}
@@ -719,7 +748,7 @@ public class DLNAMediaDatabase implements Runnable {
 		String filename = "database/backup.sql";
 		try {
 			Script.execute(url, "sa", "", filename);
-			DeleteDbFiles.execute(dbDir, "medias", true); // TODO: rename "medias" -> "cache"
+			DeleteDbFiles.execute(dbDir, dbName, true);
 			RunScript.execute(url, "sa", "", filename, null, false);
 		} catch (SQLException se) {
 			LOGGER.error("Error in compacting database: ", se);

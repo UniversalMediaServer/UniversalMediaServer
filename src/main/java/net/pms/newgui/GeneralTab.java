@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
 public class GeneralTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GeneralTab.class);
 
-	private static final String COL_SPEC = "left:pref, 2dlu, p, 2dlu , p, 2dlu, p, 2dlu, pref:grow";
+	private static final String COL_SPEC = "left:pref, 3dlu, p, 3dlu , p, 3dlu, p, 3dlu, pref:grow";
 	private static final String ROW_SPEC = "p, 0dlu, p, 0dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
 
 	private JCheckBox smcheckBox;
@@ -59,8 +59,8 @@ public class GeneralTab {
 	private JTextField ip_filter;
 	private JTextField maxbitrate;
 	private JComboBox renderers;
-	private JPanel pPlugins;
 	private final PmsConfiguration configuration;
+	private JCheckBox extNetBox;
 
 	GeneralTab(PmsConfiguration configuration) {
 		this.configuration = configuration;
@@ -82,6 +82,7 @@ public class GeneralTab {
 		smcheckBox = new JCheckBox(Messages.getString("NetworkTab.3"));
 		smcheckBox.setContentAreaFilled(false);
 		smcheckBox.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setMinimized((e.getStateChange() == ItemEvent.SELECTED));
 			}
@@ -91,12 +92,10 @@ public class GeneralTab {
 			smcheckBox.setSelected(true);
 		}
 
-		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"),
-			FormLayoutUtil.flip(cc.xyw(1, 1, 9), colSpec, orientation));
+		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), FormLayoutUtil.flip(cc.xyw(1, 1, 9), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
-		builder.addLabel(Messages.getString("NetworkTab.0"),
-			FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
+		builder.addLabel(Messages.getString("NetworkTab.0"), FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
 		final KeyedComboBoxModel kcbm = new KeyedComboBoxModel(new Object[] {
 				"ar", "bg", "ca", "zhs", "zht", "cz", "da", "nl", "en", "fi", "fr",
 				"de", "el", "iw", "is", "it", "ja", "ko", "no", "pl", "pt", "br",
@@ -109,25 +108,29 @@ public class GeneralTab {
 				"Spanish", "Swedish", "Turkish"});
 		langs = new JComboBox(kcbm);
 		langs.setEditable(false);
-		String defaultLang = null;
+
+		String defaultLang;
 		if (configuration.getLanguage() != null && configuration.getLanguage().length() > 0) {
 			defaultLang = configuration.getLanguage();
 		} else {
 			defaultLang = Locale.getDefault().getLanguage();
 		}
+
 		if (defaultLang == null) {
 			defaultLang = "en";
 		}
+
 		kcbm.setSelectedKey(defaultLang);
+
 		if (langs.getSelectedIndex() == -1) {
 			langs.setSelectedIndex(0);
 		}
 
 		langs.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
 					configuration.setLanguage((String) kcbm.getSelectedKey());
-
 				}
 			}
 		});
@@ -136,24 +139,26 @@ public class GeneralTab {
 
 		builder.add(smcheckBox, FormLayoutUtil.flip(cc.xyw(1, 9, 9), colSpec, orientation));
 
-		JButton service = new JButton(Messages.getString("NetworkTab.4"));
+		CustomJButton service = new CustomJButton(Messages.getString("NetworkTab.4"));
 		service.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (PMS.get().installWin32Service()) {
+					LOGGER.info(Messages.getString("PMS.41"));
 					JOptionPane.showMessageDialog(
 						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 						Messages.getString("NetworkTab.11") +
 						Messages.getString("NetworkTab.12"),
 						"Information",
-						JOptionPane.INFORMATION_MESSAGE);
-
+						JOptionPane.INFORMATION_MESSAGE
+					);
 				} else {
 					JOptionPane.showMessageDialog(
 						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 						Messages.getString("NetworkTab.14"),
 						"Error",
-						JOptionPane.ERROR_MESSAGE);
+						JOptionPane.ERROR_MESSAGE
+					);
 				}
 			}
 		});
@@ -162,7 +167,26 @@ public class GeneralTab {
 			service.setEnabled(false);
 		}
 
-		JButton checkForUpdates = new JButton(Messages.getString("NetworkTab.8"));
+		CustomJButton serviceUninstall = new CustomJButton(Messages.getString("GeneralTab.2"));
+		serviceUninstall.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				PMS.get().uninstallWin32Service();
+				LOGGER.info(Messages.getString("GeneralTab.3"));
+				JOptionPane.showMessageDialog(
+					(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+					Messages.getString("GeneralTab.3"),
+					"Information",
+					JOptionPane.INFORMATION_MESSAGE
+				);
+			}
+		});
+		builder.add(serviceUninstall, FormLayoutUtil.flip(cc.xy(3, 11), colSpec, orientation));
+		if (System.getProperty(LooksFrame.START_SERVICE) != null || !Platform.isWindows()) {
+			serviceUninstall.setEnabled(false);
+		}
+
+		CustomJButton checkForUpdates = new CustomJButton(Messages.getString("NetworkTab.8"));
 		checkForUpdates.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -175,6 +199,7 @@ public class GeneralTab {
 		autoUpdateCheckBox = new JCheckBox(Messages.getString("NetworkTab.9"));
 		autoUpdateCheckBox.setContentAreaFilled(false);
 		autoUpdateCheckBox.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setAutoUpdate((e.getStateChange() == ItemEvent.SELECTED));
 			}
@@ -188,8 +213,8 @@ public class GeneralTab {
 			autoUpdateCheckBox.setEnabled(false);
 		}
 
-		// Conf edit
-		JButton confEdit = new JButton(Messages.getString("NetworkTab.51"));
+		// Edit UMS configuration file manually
+		CustomJButton confEdit = new CustomJButton(Messages.getString("NetworkTab.51"));
 		confEdit.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -199,27 +224,33 @@ public class GeneralTab {
 				textArea.setFont(new Font("Courier", Font.PLAIN, 12));
 				JScrollPane scrollPane = new JScrollPane(textArea);
 				scrollPane.setPreferredSize(new java.awt.Dimension(900, 450));
+
 				try {
 					FileInputStream fis = new FileInputStream(conf);
 					BufferedReader in = new BufferedReader(new InputStreamReader(fis));
 					String line;
 					StringBuilder sb = new StringBuilder();
+
 					while ((line = in.readLine()) != null) {
 						sb.append(line);
 						sb.append("\n");
 					}
+
 					textArea.setText(sb.toString());
 					fis.close();
 				} catch (Exception e1) {
 					return;
 				}
+
 				tPanel.add(scrollPane, BorderLayout.NORTH);
 				Object[] options = {Messages.getString("LooksFrame.9"), Messages.getString("NetworkTab.45")};
+
 				if (JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 					tPanel, Messages.getString("NetworkTab.51"),
 					JOptionPane.OK_CANCEL_OPTION,
 					JOptionPane.PLAIN_MESSAGE, null, options, null) == JOptionPane.OK_OPTION) {
 					String text = textArea.getText();
+
 					try {
 						FileOutputStream fos = new FileOutputStream(conf);
 						fos.write(text.getBytes());
@@ -285,6 +316,7 @@ public class GeneralTab {
 		networkinterfacesCBX = new JComboBox(networkInterfaces);
 		networkInterfaces.setSelectedKey(configuration.getNetworkInterface());
 		networkinterfacesCBX.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
 					configuration.setNetworkInterface((String) networkInterfaces.getSelectedKey());
@@ -343,6 +375,7 @@ public class GeneralTab {
 		newHTTPEngine = new JCheckBox(Messages.getString("NetworkTab.32"));
 		newHTTPEngine.setSelected(configuration.isHTTPEngineV2());
 		newHTTPEngine.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setHTTPEngineV2((e.getStateChange() == ItemEvent.SELECTED));
 			}
@@ -352,6 +385,7 @@ public class GeneralTab {
 		preventSleep = new JCheckBox(Messages.getString("NetworkTab.33"));
 		preventSleep.setSelected(configuration.isPreventsSleep());
 		preventSleep.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setPreventsSleep((e.getStateChange() == ItemEvent.SELECTED));
 			}
@@ -361,6 +395,7 @@ public class GeneralTab {
 		JCheckBox fdCheckBox = new JCheckBox(Messages.getString("NetworkTab.38"));
 		fdCheckBox.setContentAreaFilled(false);
 		fdCheckBox.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setRendererForceDefault((e.getStateChange() == ItemEvent.SELECTED));
 			}
@@ -403,6 +438,18 @@ public class GeneralTab {
 
 		builder.add(fdCheckBox, FormLayoutUtil.flip(cc.xyw(1, 37, 9), colSpec, orientation));
 
+		// External network box
+		extNetBox = new JCheckBox(Messages.getString("NetworkTab.56"));
+		extNetBox.setContentAreaFilled(false);
+		extNetBox.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setExternalNetwork((e.getStateChange() == ItemEvent.SELECTED));
+			}
+		});
+		extNetBox.setSelected(configuration.getExternalNetwork());
+		builder.add(extNetBox, FormLayoutUtil.flip(cc.xy(1, 38), colSpec, orientation));
+
 		JPanel panel = builder.getPanel();
 
 		// Apply the orientation to the panel and all components in it
@@ -411,7 +458,8 @@ public class GeneralTab {
 		JScrollPane scrollPane = new JScrollPane(
 			panel,
 			JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
+		);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
 		return scrollPane;
 	}
@@ -458,6 +506,7 @@ public class GeneralTab {
 		}
 
 		renderers.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
 					LOGGER.info("Setting renderer default: \"" + renderersKcbm.getSelectedKey() + "\"");

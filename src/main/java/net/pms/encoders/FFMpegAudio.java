@@ -122,7 +122,8 @@ public class FFMpegAudio extends FFMpegVideo {
 		String fileName,
 		DLNAResource dlna,
 		DLNAMediaInfo media,
-		OutputParams params) throws IOException {
+		OutputParams params
+	) throws IOException {
 		params.maxBufferSize = PMS.getConfiguration().getMaxAudioBuffer();
 		params.waitbeforestart = 2000;
 		params.manageFastStart();

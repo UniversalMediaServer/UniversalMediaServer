@@ -1,0 +1,22 @@
+diff -Naur rtmpdump-2.4/librtmp/Makefile rtmpdump-2.4-prefix/librtmp/Makefile
+--- rtmpdump/librtmp/Makefile	2010-06-30 22:01:28.000000000 +0200
++++ rtmpdump/librtmp/Makefile	2011-07-21 19:32:54.031962047 +0200
+@@ -1,6 +1,6 @@
+ VERSION=v2.4
+ 
+-prefix=/usr/local
++prefix=$(PREFIX)
+ 
+ CC=$(CROSS_COMPILE)gcc
+ LD=$(CROSS_COMPILE)ld
+diff -Naur rtmpdump-2.4/Makefile rtmpdump-2.4-prefix/Makefile
+--- rtmpdump/Makefile	2010-06-30 21:58:35.000000000 +0200
++++ rtmpdump/Makefile	2011-07-21 19:32:40.401962576 +0200
+@@ -1,6 +1,6 @@
+ VERSION=v2.4
+ 
+-prefix=/usr/local
++prefix=$(PREFIX)
+ 
+ CC=$(CROSS_COMPILE)gcc
+ LD=$(CROSS_COMPILE)ld
