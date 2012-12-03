@@ -65,6 +65,7 @@ public class PmsConfiguration {
 	private static final String KEY_ALTERNATE_SUBS_FOLDER = "alternate_subs_folder";
 	private static final String KEY_ALTERNATE_THUMB_FOLDER = "alternate_thumb_folder";
 	private static final String KEY_APERTURE_ENABLED = "aperture";
+	private static final String KEY_ATZ_LIMIT = "atz_limit";
 	private static final String KEY_AUDIO_BITRATE = "audiobitrate";
 	private static final String KEY_AUDIO_CHANNEL_COUNT = "audiochannels";
 	private static final String KEY_AUDIO_RESAMPLE = "audio_resample";
@@ -2487,15 +2488,11 @@ public class PmsConfiguration {
 		return new File(getCredPath());
 	}
 
-	// ATZ limit
-	private static final String KEY_ATZ_LIMIT = "atz_limit";
-	public static final int DEFAULT_ATZ_LIMIT = 10000;
-
 	public int getATZLimit() {
-		int tmp = getInt(KEY_ATZ_LIMIT, DEFAULT_ATZ_LIMIT);
+		int tmp = getInt(KEY_ATZ_LIMIT, 10000);
 		if (tmp <= 2) {
 			// this is silly, ignore
-			tmp = DEFAULT_ATZ_LIMIT;
+			tmp = 10000;
 		}
 		return tmp;
 	}

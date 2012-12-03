@@ -73,7 +73,6 @@ public class NavigationShareTab {
 	private CustomJButton select;
 	private CustomJButton cachereset;
 	private JTextField atzLimit;
-	private JCheckBox atz;
 
 	public DefaultListModel getDf() {
 		return df;
@@ -170,7 +169,7 @@ public class NavigationShareTab {
 		builder.addLabel(Messages.getString("FoldTab.18"), FormLayoutUtil.flip(cc.xyw(1, 23, 3), colSpec, orientation));
 		builder.add(sortmethod, FormLayoutUtil.flip(cc.xyw(4, 23, 3), colSpec, orientation));
 
-		builder.add(atz, FormLayoutUtil.flip(cc.xyw(1, 25, 3), colSpec, orientation));
+		builder.addLabel(Messages.getString("FoldTab.37"), FormLayoutUtil.flip(cc.xyw(1, 25, 3), colSpec, orientation));
 		builder.add(atzLimit, FormLayoutUtil.flip(cc.xyw(4, 25, 3), colSpec, orientation));
 
 		builder.add(builderSharedFolder.getPanel(), FormLayoutUtil.flip(cc.xyw(1, 27, 10), colSpec, orientation));
@@ -529,28 +528,7 @@ public class NavigationShareTab {
 			}
 		});
 
-		boolean initATZ = configuration.getATZLimit() != configuration.DEFAULT_ATZ_LIMIT;
-
-		atz = new JCheckBox(Messages.getString("FoldTab.37"), initATZ);
-		atz.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				if (e.getStateChange() == ItemEvent.SELECTED) {
-					atzLimit.setEditable(true);
-					atzLimit.setText("" + configuration.getATZLimit());
-				} else {
-					atzLimit.setEditable(false);
-					atzLimit.setText("");
-					configuration.setATZLimit(0);
-				}
-			}
-		});
-
-		atzLimit = new JTextField("");
-		atzLimit.setEditable(initATZ);
-		if (initATZ) {
-			atzLimit.setText("" + configuration.getATZLimit());
-		}
+		atzLimit = new JTextField("" + configuration.getATZLimit());
 		atzLimit.addKeyListener(new KeyListener() {
 			@Override
 			public void keyPressed(KeyEvent e) {
