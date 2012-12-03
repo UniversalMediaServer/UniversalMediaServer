@@ -158,16 +158,20 @@ EXTERNALPROJECT_ADD(
     BUILD_IN_SOURCE 1
 )
 
+IF (APPLE)
+    # Mac OSX build needs to force the correct architecture.
+    SET(CONFIGURE_COMMAND_OPENSSL ./configure darwin64-x86_64-cc no-shared no-idea no-mdc2 no-rc5 --prefix=${CMAKE_BINARY_DIR})
+    SET(BUILD_COMMAND_OPENSSL make depend MAKEDEPPROG=${CMAKE_C_COMPILER} && make)
+ELSE()
+    SET(CONFIGURE_COMMAND_OPENSSL ./config no-shared no-idea no-mdc2 no-rc5 --prefix=${CMAKE_BINARY_DIR})
+    SET(BUILD_COMMAND_OPENSSL make depend && make)
+ENDIF()
+
 EXTERNALPROJECT_ADD(
     openssl
     URL http://www.openssl.org/source/openssl-1.0.1c.tar.gz
-
-    # Mac OSX build needs to force the correct architecture
-    #CONFIGURE_COMMAND ./configure darwin64-x86_64-cc no-shared no-idea no-mdc2 no-rc5 --prefix=${CMAKE_BINARY_DIR}
-    #BUILD_COMMAND make depend MAKEDEPPROG=${CMAKE_C_COMPILER} && make
-
-    CONFIGURE_COMMAND ./config no-shared no-idea no-mdc2 no-rc5 --prefix=${CMAKE_BINARY_DIR}
-    BUILD_COMMAND make depend && make
+    CONFIGURE_COMMAND ${CONFIGURE_COMMAND_OPENSSL}
+    BUILD_COMMAND ${BUILD_COMMAND_OPENSSL}
     BUILD_IN_SOURCE 1
 )
 
@@ -271,6 +275,16 @@ EXTERNALPROJECT_ADD(
     BUILD_IN_SOURCE 1
 )
 
+IF (APPLE)
+    # Mac OSX build needs to force the correct architecture.
+    # xavs is using old versions of config.guess and config.sub that do not recognize
+    # the same x86_64 architecture on Mac OSX that all other projects use. Forcing the
+    # architecture causes asm errors, so we disable asm as well.
+    SET(CONFIGURE_COMMAND_XAVS ./configure --prefix=${CMAKE_BINARY_DIR} --disable-shared --host=x86_64-apple-darwin --disable-asm)
+ELSE()
+    SET(CONFIGURE_COMMAND_XAVS ./config no-shared no-idea no-mdc2 no-rc5 --prefix=${CMAKE_BINARY_DIR})
+ENDIF()
+
 EXTERNALPROJECT_ADD(
     xavs
     SVN_REPOSITORY https://xavs.svn.sourceforge.net/svnroot/xavs/trunk/
@@ -279,13 +293,7 @@ EXTERNALPROJECT_ADD(
     # Avoid "Server certificate verification failed: issuer is not trusted" error
     SVN_TRUST_CERT 1
 
-    # Mac OSX build needs to force the correct architecture
-    # xavs is using old versions of config.guess and config.sub that do not recognize
-    # the same x86_64 architecture on Mac OSX that all other projects use. Forcing the
-    # architecture causes asm errors, so we disable asm as well.
-    #CONFIGURE_COMMAND ./configure --prefix=${CMAKE_BINARY_DIR} --disable-shared --host=x86_64-apple-darwin --disable-asm
-
-    CONFIGURE_COMMAND ./configure --prefix=${CMAKE_BINARY_DIR} --disable-shared
+    CONFIGURE_COMMAND ${CONFIGURE_COMMAND_XAVS}
     BUILD_IN_SOURCE 1
 )
 
