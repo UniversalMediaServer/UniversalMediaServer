@@ -65,6 +65,7 @@ public class PmsConfiguration {
 	private static final String KEY_ALTERNATE_SUBS_FOLDER = "alternate_subs_folder";
 	private static final String KEY_ALTERNATE_THUMB_FOLDER = "alternate_thumb_folder";
 	private static final String KEY_APERTURE_ENABLED = "aperture";
+	private static final String KEY_ATZ_LIMIT = "atz_limit";
 	private static final String KEY_AUDIO_BITRATE = "audiobitrate";
 	private static final String KEY_AUDIO_CHANNEL_COUNT = "audiochannels";
 	private static final String KEY_AUDIO_RESAMPLE = "audio_resample";
@@ -91,7 +92,7 @@ public class PmsConfiguration {
 	private static final String KEY_FFMPEG_AVISYNTH_MULTITHREADING = "ffmpeg_avisynth_multithreading";
 	private static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
 	private static final String KEY_FORCETRANSCODE = "forcetranscode";
-	private static final String KEY_FOLDER_LIMIT="folder_limit";
+	private static final String KEY_FOLDER_LIMIT = "folder_limit";
 	private static final String KEY_HIDE_EMPTY_FOLDERS = "hide_empty_folders";
 	private static final String KEY_HIDE_ENGINENAMES = "hide_enginenames";
 	private static final String KEY_HIDE_EXTENSIONS = "hide_extensions";
@@ -214,6 +215,7 @@ public class PmsConfiguration {
 	public static final Set<String> NEED_RELOAD_FLAGS = new HashSet<String>(
 		Arrays.asList(
 			KEY_ALTERNATE_THUMB_FOLDER,
+			KEY_ATZ_LIMIT,
 			KEY_NETWORK_INTERFACE,
 			KEY_IP_FILTER,
 			KEY_SORT_METHOD,
@@ -287,12 +289,12 @@ public class PmsConfiguration {
 	private static final String ENV_PROFILE_PATH = "UMS_PROFILE";
 	private static final String PROFILE_DIRECTORY; // path to directory containing UMS config files
 	private static final String PROFILE_PATH; // abs path to profile file e.g. /path/to/UMS.conf
-	private static final String SKEL_PROFILE_PATH ; // abs path to skel (default) profile file e.g. /etc/skel/.config/universalmediaserver/UMS.conf
-	                                                // "project.skelprofile.dir" project property
+	private static final String SKEL_PROFILE_PATH; // abs path to skel (default) profile file e.g. /etc/skel/.config/universalmediaserver/UMS.conf
+	                                               // "project.skelprofile.dir" project property
 	private static final String PROPERTY_PROFILE_PATH = "ums.profile.path";
 
 	static {
-        // first try the system property, typically set via the profile chooser
+		// first try the system property, typically set via the profile chooser
 		String profile = System.getProperty(PROPERTY_PROFILE_PATH);
 
 		// failing that, try the environment variable
@@ -349,13 +351,14 @@ public class PmsConfiguration {
 
 			PROFILE_PATH = FilenameUtils.normalize(new File(PROFILE_DIRECTORY, DEFAULT_PROFILE_FILENAME).getAbsolutePath());
 		}
-        // set SKEL_PROFILE_PATH for Linux systems
-        String skelDir = PropertiesUtil.getProjectProperties().get("project.skelprofile.dir");
-        if (Platform.isLinux() && StringUtils.isNotBlank(skelDir)) {
-            SKEL_PROFILE_PATH = FilenameUtils.normalize(new File(new File(skelDir, PROFILE_DIRECTORY_NAME).getAbsolutePath(), DEFAULT_PROFILE_FILENAME).getAbsolutePath());
-        } else {
-            SKEL_PROFILE_PATH = null;
-        }
+
+		// set SKEL_PROFILE_PATH for Linux systems
+		String skelDir = PropertiesUtil.getProjectProperties().get("project.skelprofile.dir");
+		if (Platform.isLinux() && StringUtils.isNotBlank(skelDir)) {
+			SKEL_PROFILE_PATH = FilenameUtils.normalize(new File(new File(skelDir, PROFILE_DIRECTORY_NAME).getAbsolutePath(), DEFAULT_PROFILE_FILENAME).getAbsolutePath());
+		} else {
+			SKEL_PROFILE_PATH = null;
+		}
 	}
 
 	/**
@@ -373,8 +376,8 @@ public class PmsConfiguration {
 	 * Constructor that will initialize the PMS configuration.
 	 *
 	 * @param loadFile Set to true to attempt to load the PMS configuration
-	 * 					file from the profile path. Set to false to skip
-	 * 					loading.
+	 *                 file from the profile path. Set to false to skip
+	 *                 loading.
 	 * @throws org.apache.commons.configuration.ConfigurationException
 	 * @throws java.io.IOException
 	 */
@@ -406,9 +409,9 @@ public class PmsConfiguration {
 			}
 		}
 
-        configuration.setPath(PROFILE_PATH);
+		configuration.setPath(PROFILE_PATH);
 
-        tempFolder = new TempFolder(getString(KEY_TEMP_FOLDER_PATH, null));
+		tempFolder = new TempFolder(getString(KEY_TEMP_FOLDER_PATH, null));
 		programPaths = createProgramPathsChain(configuration);
 		Locale.setDefault(new Locale(getLanguage()));
 
@@ -1065,7 +1068,7 @@ public class PmsConfiguration {
 	 * Set to true if MEncoder should be forced to use the framerate that is
 	 * parsed by FFmpeg.
 	 * @param value Set to true if the framerate should be forced, false
-	 * 			otherwise.
+	 *              otherwise.
 	 */
 	public void setMencoderForceFps(boolean value) {
 		configuration.setProperty(KEY_MENCODER_FORCE_FPS, value);
@@ -2235,7 +2238,7 @@ public class PmsConfiguration {
 	 * renderer when no match can be made.
 	 *
 	 * @return The name of the renderer PMS should fall back on when header
-	 * 			matching fails.
+	 *         matching fails.
 	 * @see #isRendererForceDefault()
 	 */
 	public String getRendererDefault() {
@@ -2249,8 +2252,8 @@ public class PmsConfiguration {
 	 * match can be made.
 	 *
 	 * @param value The name of the renderer to fall back on. This has to be
-	 * 				<code>""</code> or a case insensitive match with the name
-	 * 				used in any render configuration file.
+	 *              <code>""</code> or a case insensitive match with the name
+	 *              used in any render configuration file.
 	 * @see #setRendererForceDefault(boolean)
 	 */
 	public void setRendererDefault(String value) {
@@ -2368,8 +2371,7 @@ public class PmsConfiguration {
 	public int getSearchRecurse() {
 		if (getBoolean(KEY_SEARCH_RECURSE, true)) {
 			return 100;
-		}
-		else {
+		} else {
 			return 0;
 		}
 	}
@@ -2485,5 +2487,31 @@ public class PmsConfiguration {
 
 	public File getCredFile() {
 		return new File(getCredPath());
+	}
+
+	public int getATZLimit() {
+		int tmp = getInt(KEY_ATZ_LIMIT, 10000);
+		if (tmp <= 2) {
+			// this is silly, ignore
+			tmp = 10000;
+		}
+		return tmp;
+	}
+
+	public void setATZLimit(int val) {
+		if (val <= 2) {
+			// clear prop
+			configuration.clearProperty(KEY_ATZ_LIMIT);
+			return;
+		}
+		configuration.setProperty(KEY_ATZ_LIMIT, val);
+	}
+
+	public void setATZLimit(String str) {
+		try {
+			setATZLimit(Integer.parseInt(str));
+		} catch (Exception e) {
+			setATZLimit(0);
+		}
 	}
 }
