@@ -26,9 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RendererConfiguration {
-	/*
-	 * Static section
-	 */
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
 	private static ArrayList<RendererConfiguration> rendererConfs;
 	private static PmsConfiguration pmsConfiguration;
@@ -197,6 +194,7 @@ public class RendererConfiguration {
 			rootFolder = new RootFolder();
 			rootFolder.discoverChildren();
 		}
+
 		return rootFolder;
 	}
 
@@ -245,6 +243,7 @@ public class RendererConfiguration {
 				}
 			}
 		}
+
 		return null;
 	}
 
@@ -258,6 +257,7 @@ public class RendererConfiguration {
 			// to be the only way to get here.
 			LOGGER.info("Another renderer like " + r.getRendererName() + " was found!");
 		}
+
 		return r;
 	}
 
@@ -288,6 +288,7 @@ public class RendererConfiguration {
 				}
 			}
 		}
+
 		return null;
 	}
 
@@ -425,6 +426,7 @@ public class RendererConfiguration {
 		if (DLNAPN.containsKey(old)) {
 			return DLNAPN.get(old);
 		}
+
 		return old;
 	}
 
@@ -439,6 +441,7 @@ public class RendererConfiguration {
 			default:
 				break;
 		}
+
 		return false;
 	}
 
@@ -527,6 +530,7 @@ public class RendererConfiguration {
 					mimetype = getFormatConfiguration().match(FormatConfiguration.MP3, null, null);
 				}
 			}
+
 			return mimetype;
 		}
 		if (mimetype != null && mimetype.equals(HTTPResource.VIDEO_TRANSCODE)) {
@@ -543,9 +547,11 @@ public class RendererConfiguration {
 					mimetype += ";rate=48000;channels=2";
 				}
 			}
+
 			if (isTranscodeToMP3()) {
 				mimetype = HTTPResource.AUDIO_MP3_TYPEMIME;
 			}
+
 			if (isTranscodeToWAV()) {
 				mimetype = HTTPResource.AUDIO_WAV_TYPEMIME;
 			}
@@ -553,6 +559,7 @@ public class RendererConfiguration {
 		if (mimes.containsKey(mimetype)) {
 			return mimes.get(mimetype);
 		}
+
 		return mimetype;
 	}
 
@@ -658,6 +665,7 @@ public class RendererConfiguration {
 		} else {
 			s = file;
 		}
+
 		return s;
 	}
 
@@ -670,9 +678,11 @@ public class RendererConfiguration {
 		if (isMediaParserV2()) {
 			muxCompatible = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.H264, null) != null;
 		}
+
 		if (Platform.isMac() && System.getProperty("os.version") != null && System.getProperty("os.version").contains("10.4.")) {
 			muxCompatible = false; // no tsMuxeR for 10.4 (yet?)
 		}
+
 		return muxCompatible;
 	}
 
@@ -684,6 +694,7 @@ public class RendererConfiguration {
 		if (isMediaParserV2()) {
 			return getFormatConfiguration().isDTSSupported();
 		}
+
 		return getBoolean(MUX_DTS_TO_MPEG, false);
 	}
 
@@ -699,6 +710,7 @@ public class RendererConfiguration {
 		if (isMediaParserV2()) {
 			return getFormatConfiguration().isLPCMSupported();
 		}
+
 		return getBoolean(MUX_LPCM_TO_MPEG, true);
 	}
 
