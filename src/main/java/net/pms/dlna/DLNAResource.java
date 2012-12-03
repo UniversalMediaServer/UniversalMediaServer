@@ -1190,33 +1190,48 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		if (!isFolder()) {
 			int indexCount = 1;
+
 			if (mediaRenderer.isDLNALocalizationRequired()) {
 				indexCount = getDLNALocalesCount();
 			}
+
 			for (int c = 0; c < indexCount; c++) {
 				openTag(sb, "res");
 
-				/*
-				 * DLNA.ORG_OP : 1er 10 = exemple: TimeSeekRange.dlna.org :npt=187.000-
-				 *                   01 = Range par octets
-				 *                   00 = pas de range, meme pas de pause possible
-				 */ 
-				flags = "DLNA.ORG_OP=01";
-				if (getPlayer() != null) {
-					if (getPlayer().isTimeSeekable() && mediaRenderer.isSeekByTime()) {
+				/**
+				 * DLNA.ORG_OP flags
+				 *
+				 * Two booleans (binary digits) which determine what transport operations the renderer is allowed to
+				 * request (in the form of HTTP headers): the first digit allows the renderer to send
+				 * TimeSeekRange.DLNA.ORG (seek-by-time) headers; the second allows it to send RANGE (seek-by-byte)
+				 * headers.
+				 *
+				 * See here for an example of how these options can be mapped to keys on the renderer's controller:
+				 * http://www.ps3mediaserver.org/forum/viewtopic.php?f=2&t=2908&p=19051#p12550
+				 *
+				 * 00 - no seeking (or even pausing) allowed
+				 * 01 - seek by byte
+				 * 10 - seek by time
+				 * 11 - seek by both
+				 */
 
-						// PS3 doesn't like OP=11
-						if (mediaRenderer.isPS3()) {
-							flags = "DLNA.ORG_OP=10";
-						} else {
+				flags = "DLNA.ORG_OP=01";
+				if (mediaRenderer.isSeekByTime()) {
+					if (getPlayer() != null) { // transcoded
+						if (getPlayer().isTimeSeekable()) {
+							if (mediaRenderer.isPS3()) { // PS3 doesn't like OP=11
+								flags = "DLNA.ORG_OP=10";
+							} else {
+								flags = "DLNA.ORG_OP=11";
+							}
+						}
+					} else { // streamed
+						if (!mediaRenderer.isPS3()) {
 							flags = "DLNA.ORG_OP=11";
 						}
 					}
-				} else {
-					if (mediaRenderer.isSeekByTime() && !mediaRenderer.isPS3()) {
-						flags = "DLNA.ORG_OP=11";
-					}
 				}
+
 				addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
 
 				String mime = getRendererMimeType(mimeType(), mediaRenderer);
