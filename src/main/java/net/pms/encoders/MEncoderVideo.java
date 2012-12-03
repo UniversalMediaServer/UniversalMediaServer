@@ -306,7 +306,12 @@ public class MEncoderVideo extends Player {
 
 					if (result.length > 0 && result[0].startsWith("@@")) {
 						String errorMessage = result[0].substring(2);
-						JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()), errorMessage);
+						JOptionPane.showMessageDialog(
+							SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
+							errorMessage,
+							Messages.getString("Dialog.Error"),
+							JOptionPane.ERROR_MESSAGE
+						);
 					} else {
 						configuration.setCodecSpecificConfig(newCodecparam);
 						break;
