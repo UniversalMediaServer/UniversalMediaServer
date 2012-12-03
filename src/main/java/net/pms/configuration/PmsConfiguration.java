@@ -215,6 +215,7 @@ public class PmsConfiguration {
 	public static final Set<String> NEED_RELOAD_FLAGS = new HashSet<String>(
 		Arrays.asList(
 			KEY_ALTERNATE_THUMB_FOLDER,
+			KEY_ATZ_LIMIT,
 			KEY_NETWORK_INTERFACE,
 			KEY_IP_FILTER,
 			KEY_SORT_METHOD,
