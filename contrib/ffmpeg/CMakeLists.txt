@@ -8,7 +8,7 @@
 #     incremented in the following places prior to each PMS release:
 #
 #         * PMS_FFMPEG_VERSION in contrib/ffmpeg/vendor/ffmpeg-banner.patch
-#         * the corresponding version at the bottom of contrib/ffmpeg/README.md
+#         * the corresponding version at the *bottom* of contrib/ffmpeg/README.md
 #
 #     Note: the version should be incremented no more than *once* per PMS release.
 #
@@ -101,9 +101,16 @@ EXTERNALPROJECT_ADD(
 )
 
 EXTERNALPROJECT_ADD(
+    iconv
+    URL http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.13.1.tar.gz
+    CONFIGURE_COMMAND ./configure --prefix=${CMAKE_BINARY_DIR} --disable-shared
+    BUILD_IN_SOURCE 1
+)
+
+EXTERNALPROJECT_ADD(
     libass
-    DEPENDS fontconfig freetype fribidi
-    URL http://libass.googlecode.com/files/libass-0.10.0.tar.gz
+    DEPENDS fontconfig freetype fribidi iconv
+    URL http://libass.googlecode.com/files/libass-0.10.1.tar.gz
     CONFIGURE_COMMAND PKG_CONFIG_PATH=${CMAKE_BINARY_DIR}/lib/pkgconfig ./configure --prefix=${CMAKE_BINARY_DIR} --disable-shared --enable-static
     BUILD_IN_SOURCE 1
 )
@@ -382,8 +389,12 @@ SET(FFMPEG_CONFIGURE_OPTIONS
     --extra-cflags=-I${CMAKE_BINARY_DIR}/include/openjpeg-1.5 # see above
     --extra-cflags=-static
     --extra-ldflags=-L${CMAKE_BINARY_DIR}/lib
+
+    # Outcomment or remove the following line for Mac OSX, as it breaks compilation
     --extra-ldflags=-static
+
     --extra-libs=-ldl
+    --extra-libs=-liconv
     --prefix=${CMAKE_BINARY_DIR}
 )
 

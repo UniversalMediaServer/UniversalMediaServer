@@ -1,5 +1,5 @@
---- ffmpeg/cmdutils.c	2012-10-08 09:14:33.928824569 +0100
-+++ ffmpeg/cmdutils.c	2012-10-08 09:16:57.292868973 +0100
+--- ffmpeg/cmdutils.c  2012-10-08 09:14:33.928824569 +0100
++++ ffmpeg/cmdutils.c  2012-10-08 09:16:57.292868973 +0100
 @@ -608,7 +608,7 @@
  
  #define INDENT        1
@@ -9,7 +9,7 @@
  #define SHOW_COPYRIGHT 8
  
  #define PRINT_LIB_INFO(libname, LIBNAME, flags, level)                  \
-@@ -654,11 +654,12 @@
+@@ -654,11 +654,13 @@
  #endif
  }
  
@@ -24,7 +24,7 @@
      if (flags & SHOW_COPYRIGHT)
          av_log(NULL, level, " Copyright (c) %d-%d the FFmpeg developers",
                 program_birth_year, this_year);
-@@ -676,6 +677,7 @@
+@@ -676,6 +678,7 @@
          return;
  
      print_program_info (INDENT|SHOW_COPYRIGHT, AV_LOG_INFO);
