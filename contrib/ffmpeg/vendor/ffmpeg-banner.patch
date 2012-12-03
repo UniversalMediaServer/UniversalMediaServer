@@ -14,7 +14,7 @@
  }
  
 +#define FFMPEG_CONFIGURATION "http://git.io/ZHdseg"
-+#define PMS_FFMPEG_VERSION 1
++#define PMS_FFMPEG_VERSION 2
  static void print_program_info(int flags, int level)
  {
      const char *indent = flags & INDENT? "  " : "";

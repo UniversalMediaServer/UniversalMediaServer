@@ -103,7 +103,7 @@ EXTERNALPROJECT_ADD(
 EXTERNALPROJECT_ADD(
     libass
     DEPENDS fontconfig freetype fribidi
-    URL https://libass.googlecode.com/files/libass-0.10.0.tar.gz
+    URL http://libass.googlecode.com/files/libass-0.10.0.tar.gz
     CONFIGURE_COMMAND PKG_CONFIG_PATH=${CMAKE_BINARY_DIR}/lib/pkgconfig ./configure --prefix=${CMAKE_BINARY_DIR} --disable-shared --enable-static
     BUILD_IN_SOURCE 1
 )
@@ -142,7 +142,7 @@ EXTERNALPROJECT_ADD(
 
 EXTERNALPROJECT_ADD(
     openjpeg
-    URL https://openjpeg.googlecode.com/files/openjpeg-1.5.1.tar.gz
+    URL http://openjpeg.googlecode.com/files/openjpeg-1.5.1.tar.gz
     CONFIGURE_COMMAND ./bootstrap.sh && ./configure --prefix=${CMAKE_BINARY_DIR} --disable-shared --enable-static
     BUILD_IN_SOURCE 1
 )
@@ -150,6 +150,11 @@ EXTERNALPROJECT_ADD(
 EXTERNALPROJECT_ADD(
     openssl
     URL http://www.openssl.org/source/openssl-1.0.1c.tar.gz
+
+    # Mac OSX build needs to force the correct architecture
+    #CONFIGURE_COMMAND ./configure darwin64-x86_64-cc no-shared no-idea no-mdc2 no-rc5 --prefix=${CMAKE_BINARY_DIR} 
+    #BUILD_COMMAND make depend MAKEDEPPROG=${CMAKE_C_COMPILER} && make
+
     CONFIGURE_COMMAND ./config no-shared no-idea no-mdc2 no-rc5 --prefix=${CMAKE_BINARY_DIR}
     BUILD_COMMAND make depend && make
     BUILD_IN_SOURCE 1
@@ -249,7 +254,8 @@ EXTERNALPROJECT_ADD(
 
 EXTERNALPROJECT_ADD(
     vpx
-    URL http://webm.googlecode.com/files/libvpx-v1.0.0.tar.bz2
+    GIT_REPOSITORY http://git.chromium.org/webm/libvpx.git
+    GIT_TAG 83e8f2f97 # 2012-11-09
     CONFIGURE_COMMAND ./configure --prefix=${CMAKE_BINARY_DIR} --disable-shared
     BUILD_IN_SOURCE 1
 )
@@ -258,6 +264,16 @@ EXTERNALPROJECT_ADD(
     xavs
     SVN_REPOSITORY https://xavs.svn.sourceforge.net/svnroot/xavs/trunk/
     SVN_REVISION -r55 # 2011-08-21
+
+    # Avoid "Server certificate verification failed: issuer is not trusted" error
+    SVN_TRUST_CERT 1
+
+    # Mac OSX build needs to force the correct architecture
+    # xavs is using old versions of config.guess and config.sub that do not recognize
+    # the same x86_64 architecture on Mac OSX that all other projects use. Forcing the
+    # architecture causes asm errors, so we disable asm as well.
+    #CONFIGURE_COMMAND ./configure --prefix=${CMAKE_BINARY_DIR} --disable-shared --host=x86_64-apple-darwin --disable-asm
+
     CONFIGURE_COMMAND ./configure --prefix=${CMAKE_BINARY_DIR} --disable-shared
     BUILD_IN_SOURCE 1
 )
