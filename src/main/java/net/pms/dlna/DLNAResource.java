@@ -954,7 +954,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				name = "[" + getPlayer().name() + "]";
 			} else {
 				// Ditlew - WDTV Live don't show durations otherwise, and this is useful for finding the main title
-				if (mediaRenderer != null && mediaRenderer.isShowDVDTitleDuration() && getMedia().getDvdtrack() > 0) {
+				if (mediaRenderer != null && mediaRenderer.isShowDVDTitleDuration() && getMedia() != null && getMedia().getDvdtrack() > 0) {
 					name += " - " + getMedia().getDurationString();
 				}
 
