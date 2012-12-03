@@ -145,7 +145,7 @@ public class DLNAMediaDatabase implements Runnable {
 						JOptionPane.showMessageDialog(
 							(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 							String.format(Messages.getString("DLNAMediaDatabase.5"), dbDir),
-							Messages.getString("Error"),
+							Messages.getString("Dialog.Error"),
 							JOptionPane.ERROR_MESSAGE
 						);
 					}

@@ -519,7 +519,7 @@ public class TranscodingTab {
 					JOptionPane.showMessageDialog(
 						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 						Messages.getString("TrTab2.10"),
-						Messages.getString("Information"),
+						Messages.getString("Dialog.Information"),
 						JOptionPane.INFORMATION_MESSAGE);
 				}
 			}
