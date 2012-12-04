@@ -33,17 +33,6 @@ import org.slf4j.LoggerFactory;
 public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ProcessWrapperImpl.class);
 
-	@Override
-	public String toString() {
-		return super.getName();
-	}
-
-	private boolean success;
-
-	public boolean isSuccess() {
-		return success;
-	}
-
 	private String cmdLine;
 	private Process process;
 	private OutputConsumer outConsumer;
@@ -57,6 +46,16 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 	private boolean keepStdout;
 	private boolean keepStderr;
 	private static int processCounter = 0;
+	private boolean success;
+
+	@Override
+	public String toString() {
+		return super.getName();
+	}
+
+	public boolean isSuccess() {
+		return success;
+	}
 
 	public ProcessWrapperImpl(String cmdArray[], OutputParams params) {
 		this(cmdArray, params, false, false);
@@ -155,7 +154,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			stderrConsumer.start();
 			outConsumer = null;
 			if (params.outputFile != null) {
-				LOGGER.debug("Writing in " + params.outputFile.getAbsolutePath());
+				LOGGER.debug("Writing to " + params.outputFile.getAbsolutePath());
 				outConsumer = keepStdout
 					? new OutputTextConsumer(process.getInputStream(), false)
 					: new OutputTextLogger(process.getInputStream());

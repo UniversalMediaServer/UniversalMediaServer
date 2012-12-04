@@ -70,7 +70,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class keeps track of scanned MediaInfo library information.
+ * This class keeps track of media file metadata scanned by the MediaInfo library.
  * 
  * TODO: Change all instance variables to private. For backwards compatibility
  * with external plugin code the variables have all been marked as deprecated
@@ -1204,7 +1204,7 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	public byte[][] getAnnexBFrameHeader(InputFile f) {
-		String cmdArray[] = new String[14];
+		String[] cmdArray = new String[14];
 		cmdArray[0] = PMS.getConfiguration().getFfmpegPath();
 		cmdArray[1] = "-i";
 		if (f.getPush() == null && f.getFilename() != null) {
@@ -1224,7 +1224,7 @@ public class DLNAMediaInfo implements Cloneable {
 		cmdArray[12] = "-y";
 		cmdArray[13] = "pipe:";
 
-		byte returnData[][] = new byte[2][];
+		byte[][] returnData = new byte[2][];
 
 		OutputParams params = new OutputParams(PMS.getConfiguration());
 		params.maxBufferSize = 1;
@@ -1238,8 +1238,7 @@ public class DLNAMediaInfo implements Cloneable {
 				try {
 					Thread.sleep(3000);
 					ffmpeg_annexb_failure = true;
-				} catch (InterruptedException e) {
-				}
+				} catch (InterruptedException e) { }
 				pw.stopProcess();
 			}
 		};

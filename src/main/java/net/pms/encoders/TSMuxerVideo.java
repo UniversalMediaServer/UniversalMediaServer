@@ -680,10 +680,13 @@ public class TSMuxerVideo extends Player {
 		pw.close();
 
 		PipeProcess tsPipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
-		String[] cmdArray = new String[]{executable(), f.getAbsolutePath(), tsPipe.getInputPipe()};
+		String[] cmdArray = new String[]{
+			executable(),
+			f.getAbsolutePath(),
+			tsPipe.getInputPipe()
+		};
 
 		cmdArray = finalizeTranscoderArgs(
-			this,
 			fileName,
 			dlna,
 			media,

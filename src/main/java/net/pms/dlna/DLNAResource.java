@@ -232,13 +232,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *
 	 * The numerical ID (1-based index) assigned to the last child of this folder. The next child is assigned this ID + 1.
 	 */
+	// FIXME should be lastChildId
 	@Deprecated
 	protected int lastChildrenId = 0; // XXX make private and rename lastChildrenId -> lastChildId
 
 	/**
 	 * @deprecated Use standard getter and setter to access this field.
 	 *
-	 * The last time when refresh is called.
+	 * The last time refresh was called.
 	 */
 	@Deprecated
 	protected long lastRefreshTime;
@@ -632,6 +633,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param create
 	 * @return the transcode virtual folder
 	 */
+	// XXX package-private: used by MapFile; should be protected?
 	TranscodeVirtualFolder getTranscodeFolder(boolean create) {
 		if (!isTranscodeFolderAvailable()) {
 			return null;
@@ -662,7 +664,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * and sets the parent to the current node. Avoids the side-effects
 	 * associated with the {@link addChild(DLNAResource)} method.
 	 *
-	 * @param child
+	 * @param child the DLNA resource to add to this node's list of children
 	 */
 	protected synchronized void addChildInternal(DLNAResource child) {
 		if (child.getInternalId() != null) {
@@ -1071,7 +1073,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	/**
 	 * @param prefix
-	 * @return Returns an URL for a given media item. Not used for container types.
+	 * @return Returns a URL for a given media item. Not used for container types.
 	 */
 	protected String getURL(String prefix) {
 		StringBuilder sb = new StringBuilder();
@@ -1128,15 +1130,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return o;
 	}
 
+	// this shouldn't be public
+	@Deprecated
 	public String getFlags() {
 		return flags;
 	}
 
 	/**
-	 * Returns a representation using DIDL response lines. It gives a complete representation of the item, with as many tags as available.
+	 * Returns an XML (DIDL) representation of the DLNA node. It gives a complete representation of the item, with as many tags as available.
 	 * Recommendations as per UPNP specification are followed where possible.
 	 * @param mediaRenderer Media Renderer for which to represent this information. Useful for some hacks.
-	 * @return String representing the item. An example would start like this: {@code <container id="0$1" childCount=1 parentID="0" restricted="true">}
+	 * @return String representing the item. An example would start like this: {@code <container id="0$1" childCount="1" parentID="0" restricted="true">}
 	 */
 	public final String toString(RendererConfiguration mediaRenderer) {
 		StringBuilder sb = new StringBuilder();
@@ -1167,22 +1171,34 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		final DLNAMediaAudio firstAudioTrack = getMedia() != null ? getMedia().getFirstAudioTrack() : null;
 		if (firstAudioTrack != null && StringUtils.isNotBlank(firstAudioTrack.getSongname())) {
-			addXMLTagAndAttribute(sb, "dc:title", encodeXML(firstAudioTrack.getSongname() + (getPlayer() != null && !PMS.getConfiguration().isHideEngineNames() ? (" [" + getPlayer().name() + "]") : "")));
-		} else {
-			addXMLTagAndAttribute(sb, "dc:title", encodeXML((isFolder() || getPlayer() == null) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer))));
+			addXMLTagAndAttribute(
+				sb,
+				"dc:title",
+				encodeXML(firstAudioTrack.getSongname() + (getPlayer() != null && !PMS.getConfiguration().isHideEngineNames() ? (" [" + getPlayer().name() + "]") : ""))
+			);
+		} else { // Ditlew - org
+			// Ditlew
+			addXMLTagAndAttribute(
+				sb,
+				"dc:title",
+				encodeXML((isFolder() || getPlayer() == null) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer)))
+			);
 		}
 
 		if (firstAudioTrack != null) {
 			if (StringUtils.isNotBlank(firstAudioTrack.getAlbum())) {
 				addXMLTagAndAttribute(sb, "upnp:album", encodeXML(firstAudioTrack.getAlbum()));
 			}
+
 			if (StringUtils.isNotBlank(firstAudioTrack.getArtist())) {
 				addXMLTagAndAttribute(sb, "upnp:artist", encodeXML(firstAudioTrack.getArtist()));
 				addXMLTagAndAttribute(sb, "dc:creator", encodeXML(firstAudioTrack.getArtist()));
 			}
+
 			if (StringUtils.isNotBlank(firstAudioTrack.getGenre())) {
 				addXMLTagAndAttribute(sb, "upnp:genre", encodeXML(firstAudioTrack.getGenre()));
 			}
+
 			if (firstAudioTrack.getTrack() > 0) {
 				addXMLTagAndAttribute(sb, "upnp:originalTrackNumber", "" + firstAudioTrack.getTrack());
 			}
@@ -1346,7 +1362,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						if (getPlayer() == null) {
 							addAttribute(sb, "size", getMedia().getSize());
 						} else {
-							// calcul taille wav
+							// Calculate WAV size
 							if (firstAudioTrack != null) {
 								int defaultFrequency = mediaRenderer.isTranscodeAudioTo441() ? 44100 : 48000;
 								if (!PMS.getConfiguration().isAudioResample()) {
@@ -1358,8 +1374,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									}
 								}
 								int na = firstAudioTrack.getAudioProperties().getNumberOfChannels();
-								if (na > 2) // no 5.1 dump in mplayer
-								{
+								if (na > 2) { // no 5.1 dump in mplayer
 									na = 2;
 								}
 								int finalsize = (int) (getMedia().getDurationInSeconds() * defaultFrequency * 2 * na);
@@ -1602,7 +1617,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				low = 0;
 
 				// WDTV Live - if set to TS it asks multiple times and ends by
-				// asking for an invalid offset which kills mencoder
+				// asking for an invalid offset which kills MEncoder
 				if (timeRange.getStartOrZero() > getMedia().getDurationInSeconds()) {
 					return null;
 				}
@@ -1676,7 +1691,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					getSystemName(),
 					this,
 					getMedia(),
-					params);
+					params
+				);
 				if (params.waitbeforestart > 0) {
 					LOGGER.trace("Sleeping for " + params.waitbeforestart + " milliseconds");
 					try {
@@ -1701,7 +1717,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					getSystemName(),
 					this,
 					getMedia(),
-					params);
+					params
+				);
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {

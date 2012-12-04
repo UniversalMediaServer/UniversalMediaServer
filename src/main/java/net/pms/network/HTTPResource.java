@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Implements any item that can be transfered through the HTTP pipes.
- * In the PMS case, this item represent media files.
+ * In the PMS case, this item represents media files.
  * @see DLNAResource
  */
 public class HTTPResource {
@@ -61,8 +61,7 @@ public class HTTPResource {
 	public static final String TIFF_TYPEMIME = "image/tiff";
 	public static final String GIF_TYPEMIME = "image/gif";
 	public static final String BMP_TYPEMIME = "image/bmp";
-	public HTTPResource() {
-	}
+	public HTTPResource() { }
 
 	/**
 	 * Returns for a given item type the default MIME type associated. This is used in the HTTP transfers
@@ -85,9 +84,9 @@ public class HTTPResource {
 	}
 
 	/**
-	 * Returns a InputStream associated to the fileName.
+	 * Returns an InputStream associated with the fileName.
 	 * @param fileName TODO Absolute or relative file path.
-	 * @return If found, an InputStream associated to the fileName. null otherwise.
+	 * @return If found, an InputStream associated with the fileName. null otherwise.
 	 */
 	protected InputStream getResourceInputStream(String fileName) {
 		fileName = "/resources/" + fileName;
@@ -106,8 +105,8 @@ public class HTTPResource {
 	 * Creates an InputStream based on a URL. This is used while accessing external resources
 	 * like online radio stations.
 	 * @param u URL.
-	 * @param saveOnDisk If true, the file is first downloaded in the harddisk in the temporary folder.
-	 * @return InputStream that can be used for sending to the UPNP Media Renderer.
+	 * @param saveOnDisk If true, the file is first downloaded to the temporary folder.
+	 * @return InputStream that can be used for sending to the media renderer.
 	 * @throws IOException
 	 * @see #downloadAndSendBinary(String)
 	 */
@@ -135,12 +134,12 @@ public class HTTPResource {
 			}
 		}
 
-		byte content[] = downloadAndSendBinary(u, saveOnDisk, f);
+		byte[] content = downloadAndSendBinary(u, saveOnDisk, f);
 		return new ByteArrayInputStream(content);
 	}
 
 	/**
-	 * Overloaded method for {@link #downloadAndSendBinary(String, boolean, File)}, without storing any file in the harddisk.
+	 * Overloaded method for {@link #downloadAndSendBinary(String, boolean, File)}, without storing a file on the filesystem.
 	 * @param u URL to retrieve.
 	 * @return byte array.
 	 * @throws IOException
@@ -150,10 +149,10 @@ public class HTTPResource {
 	}
 
 	/**
-	 * Returns a byte array representation of a file given by an URL. File is downloaded and optionally stored in the harddisk.
+	 * Returns a byte array representation of the file given by the URL. The file is downloaded and optionally stored on the filesystem.
 	 * @param u URL to retrieve.
-	 * @param saveOnDisk If true, store the file in the harddisk.
-	 * @param f If saveOnDisk is true, then store the contents of the file represented by u into the associated File. f needs to be opened before
+	 * @param @param saveOnDisk If true, store the file on the filesystem.
+	 * @param f If saveOnDisk is true, then store the contents of the file represented by u in the associated File. f needs to be opened before
 	 * calling this function.
 	 * @return The byte array
 	 * @throws IOException
@@ -175,11 +174,11 @@ public class HTTPResource {
 		FileOutputStream fOUT = null;
 
 		if (saveOnDisk && f != null) {
-			//fileName = convertURLToFileName(fileName);
+			// fileName = convertURLToFileName(fileName);
 			fOUT = new FileOutputStream(f);
 		}
 
-		byte buf[] = new byte[4096];
+		byte[] buf = new byte[4096];
 
 		int n;
 		while ((n = in.read(buf)) > -1) {
@@ -201,13 +200,13 @@ public class HTTPResource {
 
 
 	/**
-	 * Returns an associated MIME type related to the Media Renderer. Some Media Renderer might need that the MIME type is not the correct one.
-	 * @param mimetype MIME type to transform.
-	 * @param mediarenderer Specific Media Renderer.
+	 * Returns the supplied MIME type customized for the supplied media renderer according to the renderer's aliasing rules.
+	 * @param mimetype MIME type to customize.
+	 * @param renderer media renderer to customize the MIME type for.
 	 * @return The MIME type
 	 */
-	public String getRendererMimeType(String mimetype, RendererConfiguration mediarenderer) {
-		return mediarenderer.getMimeType(mimetype);
+	public String getRendererMimeType(String mimetype, RendererConfiguration renderer) {
+		return renderer.getMimeType(mimetype);
 	}
 
 	public int getDLNALocalesCount() {

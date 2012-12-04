@@ -19,10 +19,13 @@
 package net.pms.encoders;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JComponent;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
+import net.pms.encoders.FFMpegVideo;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeProcess;
@@ -31,10 +34,13 @@ import net.pms.io.ProcessWrapperImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FFMpegWebVideo extends Player {
+public class FFMpegWebVideo extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegWebVideo.class);
-	public static final String ID = "ffmpegwebvideo";
 	private final PmsConfiguration configuration;
+
+	// FIXME we have an id() accessor for this; no need for the field to be public
+	@Deprecated
+	public static final String ID = "ffmpegwebvideo";
 
 	@Override
 	public JComponent config() {
@@ -56,11 +62,6 @@ public class FFMpegWebVideo extends Player {
 		return false;
 	}
 
-	@Override
-	public String mimeType() {
-		return "video/mpeg";
-	}
-
 	public FFMpegWebVideo(PmsConfiguration configuration) {
 		this.configuration = configuration;
 	}
@@ -75,8 +76,13 @@ public class FFMpegWebVideo extends Player {
 		params.minBufferSize = params.minFileSize;
 		params.secondread_minsize = 100000;
 
-		// basename of the named pipe: ffmpeg -y -loglevel warning -threads nThreads -i URL -threads nThreads -target ntsc-dvd /path/to/fifoName
-		String fifoName = String.format("ffmpegwebvideo_%d_%d", Thread.currentThread().getId(), System.currentTimeMillis());
+		// basename of the named pipe:
+		// ffmpeg -loglevel warning -threads nThreads -i URL -threads nThreads -transcode-video-options /path/to/fifoName
+		String fifoName = String.format(
+			"ffmpegwebvideo_%d_%d",
+			Thread.currentThread().getId(),
+			System.currentTimeMillis()
+		);
 
 		// This process wraps the command that creates the named pipe
 		PipeProcess pipe = new PipeProcess(fifoName);
@@ -84,26 +90,46 @@ public class FFMpegWebVideo extends Player {
 		params.input_pipes[0] = pipe;
 		int nThreads = configuration.getNumberOfCpuCores();
 
-		// work around an ffmpeg bug: http://ffmpeg.org/trac/ffmpeg/ticket/998
+		// XXX work around an ffmpeg bug: http://ffmpeg.org/trac/ffmpeg/ticket/998
 		if (fileName.startsWith("mms:")) {
 			fileName = "mmsh:" + fileName.substring(4);
 		}
 
 		// build the command line
-		String[] cmdArray = new String[] {
-			executable(),
-			"-y",
-			"-loglevel", "warning",
-			"-threads", "" + nThreads,
-			"-i", fileName,
-			"-threads",  "" + nThreads,
-			"-target", "ntsc-dvd",
-			pipe.getInputPipe()
-		};
+		List<String> cmdList = new ArrayList<String>();
+
+		cmdList.add(executable());
+
+		cmdList.add("-loglevel");
+		cmdList.add("warning");
+
+		// decoder threads
+		cmdList.add("-threads");
+		cmdList.add("" + nThreads);
+
+		cmdList.add("-i");
+		cmdList.add(fileName);
+
+		// encoder threads
+		cmdList.add("-threads");
+		cmdList.add("" + nThreads);
+
+		// preserve the bitrate
+		cmdList.add("-sameq");
+
+		// get the TranscodeVideo (output) options (-acodec, -vcodec, -f)
+		List<String> transcodeOptions = getTranscodeVideoOptions(params.mediaRenderer);
+		cmdList.addAll(transcodeOptions);
+
+		// output file
+		cmdList.add(pipe.getInputPipe());
+
+		// convert the command list to an array
+		String[] cmdArray = new String[ cmdList.size() ];
+		cmdList.toArray(cmdArray);
 
 		// hook to allow plugins to customize this command line
 		cmdArray = finalizeTranscoderArgs(
-			this,
 			fileName,
 			dlna,
 			media,
@@ -122,7 +148,7 @@ public class FFMpegWebVideo extends Player {
 		try {
 			Thread.sleep(200);
 		} catch (InterruptedException e) {
-			LOGGER.error("thread interrupted while waiting for named pipe to be created", e);
+			LOGGER.error("Thread interrupted while waiting for named pipe to be created", e);
 		}
 
 		pipe.deleteLater();
@@ -133,7 +159,7 @@ public class FFMpegWebVideo extends Player {
 		try {
 			Thread.sleep(200);
 		} catch (InterruptedException e) {
-			LOGGER.error("thread interrupted while waiting for transcode to start", e);
+			LOGGER.error("Thread interrupted while waiting for transcode to start", e);
 		}
 
 		return pw;
@@ -144,20 +170,11 @@ public class FFMpegWebVideo extends Player {
 		return "FFmpeg Web Video";
 	}
 
-	@Override
 	// TODO remove this when it's removed from Player
+	@Deprecated
+	@Override
 	public String[] args() {
 		return null;
-	}
-
-	@Override
-	public String executable() {
-		return configuration.getFfmpegPath();
-	}
-
-	@Override
-	public int type() {
-		return Format.VIDEO;
 	}
 
 	/**
