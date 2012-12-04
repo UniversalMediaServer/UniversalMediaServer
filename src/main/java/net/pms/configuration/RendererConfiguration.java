@@ -78,6 +78,7 @@ public class RendererConfiguration {
 	private static final String RENDERER_NAME = "RendererName";
 	private static final String SEEK_BY_TIME = "SeekByTime";
 	private static final String SHOW_AUDIO_METADATA = "ShowAudioMetadata";
+	private static final String SHOW_DVD_TITLE_DURATION = "ShowDVDTitleDuration"; // Ditlew
 	private static final String SHOW_SUB_METADATA = "ShowSubMetadata";
 	private static final String STREAM_EXT = "StreamExtensions";
 	private static final String SUBTITLE_HTTP_HEADER = "SubtitleHttpHeader";
@@ -514,6 +515,7 @@ public class RendererConfiguration {
 				}
 			} else if (mimetype != null && mimetype.equals(HTTPResource.AUDIO_TRANSCODE)) {
 				mimetype = getFormatConfiguration().match(FormatConfiguration.LPCM, null, null);
+
 				if (mimetype != null) {
 					if (isTranscodeAudioTo441()) {
 						mimetype += ";rate=44100;channels=2";
@@ -521,6 +523,7 @@ public class RendererConfiguration {
 						mimetype += ";rate=48000;channels=2";
 					}
 				}
+
 				if (isTranscodeToWAV()) {
 					mimetype = getFormatConfiguration().match(FormatConfiguration.WAV, null, null);
 				} else if (isTranscodeToMP3()) {
@@ -530,6 +533,7 @@ public class RendererConfiguration {
 
 			return mimetype;
 		}
+
 		if (mimetype != null && mimetype.equals(HTTPResource.VIDEO_TRANSCODE)) {
 			mimetype = HTTPResource.MPEG_TYPEMIME;
 			if (isTranscodeToWMV()) {
@@ -574,6 +578,7 @@ public class RendererConfiguration {
 				mimetype = HTTPResource.AUDIO_WAV_TYPEMIME;
 			}
 		}
+
 		if (mimes.containsKey(mimetype)) {
 			return mimes.get(mimetype);
 		}
@@ -678,6 +683,7 @@ public class RendererConfiguration {
 
 	public String getUseSameExtension(String file) {
 		String s = getString(USE_SAME_EXTENSION, null);
+
 		if (s != null) {
 			s = file + "." + s;
 		} else {
