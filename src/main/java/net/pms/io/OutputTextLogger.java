@@ -48,7 +48,9 @@ public class OutputTextLogger extends OutputConsumer {
 				LOGGER.debug(line);
 			}
 		} catch (IOException ioe) {
-			LOGGER.debug("Error consuming input stream: " + ioe.getMessage());
+			LOGGER.debug("Error consuming input stream: {}", ioe.getMessage());
+		} catch (IllegalStateException ise) {
+			LOGGER.debug("Error reading from closed input stream: {}", ise.getMessage());
 		} finally {
 			LineIterator.closeQuietly(it); // clean up all associated resources
 		}
