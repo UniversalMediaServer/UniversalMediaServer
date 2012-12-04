@@ -178,7 +178,7 @@ public class FFMpegVideo extends Player {
 			// convert megabits-per-second (as per the current option name: MaxVideoBitrateMbps) to bps
 			// FIXME rather than dealing with megabit vs mebibit issues here, this should be left up to the client i.e.
 			// the renderer.conf unit should be bits-per-second (and the option should be renamed: MaxVideoBitrateMbps -> MaxVideoBitrate)
-			videoBitrateOptions.add("-b:v");
+			videoBitrateOptions.add("-maxrate");
 			videoBitrateOptions.add("" + iMaxVideoBitrate * 1000 * 1000);
 		}
 
@@ -455,7 +455,7 @@ public class FFMpegVideo extends Player {
 			cmdList.add("-bufsize");
 			cmdList.add("" + bufSize);
 
-			cmdList.add("-b:v");
+			cmdList.add("-maxrate");
 			cmdList.add("" + defaultMaxBitrates[0]);
 		}
 
