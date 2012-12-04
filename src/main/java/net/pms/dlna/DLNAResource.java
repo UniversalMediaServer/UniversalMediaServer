@@ -1223,7 +1223,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				 * headers.
 				 *
 				 * See here for an example of how these options can be mapped to keys on the renderer's controller:
-				 * http://www.ps3mediaserver.org/forum/viewtopic.php?f=2&t=2908&p=19051#p12550
+				 * http://www.ps3mediaserver.org/forum/viewtopic.php?f=2&t=2908&p=12550#p12550
 				 *
 				 * 00 - no seeking (or even pausing) allowed
 				 * 01 - seek by byte
