@@ -145,11 +145,11 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 				}
 			}
 
-			// TODO fix the callers of this code to use simpler mechanisms to
-			// execute short-running commands (e.g. vlc -version) so
-			// that this class is only used to run long-running tasks i.e.
-			// transcodes. in that case, we won't need separate stdout and stderr
-			// and can merge them by calling:
+			// XXX A cleaner way to execute short-running commands (e.g. vlc -version)
+			// is being developed. When that's done, this class can be used solely
+			// for the long-running tasks i.e. transcodes. At that point, we won't need
+			// separate stdout and stderr and can merge them by uncommenting the
+			// following line:
 			// pb.redirectErrorStream(true);
 			process = pb.start();
 			PMS.get().currentProcesses.add(process);
