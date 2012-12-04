@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -287,15 +286,14 @@ public class FFMpegVideo extends Player {
 	}
 
 	private List<String> getCustomArgs() {
-		List<String> customOptions = new ArrayList<String>();
 		String customOptionsString = PMS.getConfiguration().getFfmpegSettings();
 
 		if (StringUtils.isNotBlank(customOptionsString)) {
 			LOGGER.debug("Custom ffmpeg output options: {}", customOptionsString);
 		}
 
-		Collections.addAll(customOptions, StringUtils.split(customOptionsString));
-		return customOptions;
+		String[] customOptions = StringUtils.split(customOptionsString);
+		return new ArrayList<String>(Arrays.asList(customOptions));
 	}
 
 	// XXX hardwired to false and not referenced anywhere else in the codebase
