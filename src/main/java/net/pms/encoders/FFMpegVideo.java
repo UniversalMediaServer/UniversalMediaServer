@@ -372,31 +372,6 @@ public class FFMpegVideo extends Player {
 			cmdList.add("" + params.timeend);
 		}
 
-		// quality (bitrate)
-		String sMaxVideoBitrate = renderer.getMaxVideoBitrate(); // currently Mbit/s
-		int iMaxVideoBitrate = 0;
-
-		if (sMaxVideoBitrate != null) {
-			try {
-				iMaxVideoBitrate = Integer.parseInt(sMaxVideoBitrate);
-			} catch (NumberFormatException nfe) {
-				LOGGER.error("Can't parse max video bitrate", nfe); // this should be handled in RendererConfiguration
-			}
-		}
-
-		if (iMaxVideoBitrate != 0) {
-			// limit the bitrate
-			// FIXME untested
-			cmdList.add("-b:v");
-			// convert megabits-per-second (as per the current option name: MaxVideoBitrateMbps) to bps
-			// FIXME rather than dealing with megabit vs mebibit issues here, this should be left up to the client i.e.
-			// the renderer.conf unit should be bits-per-second (and the option should be renamed: MaxVideoBitrateMbps -> MaxVideoBitrate)
-			cmdList.add("" + iMaxVideoBitrate * 1000 * 1000);
-		} else {
-			// preserve the bitrate
-			cmdList.add("-sameq");
-		}
-
 		// if the source is too large for the renderer, resize it
 		String rescale = getRescaleSpec(renderer, media);
 		if (rescale != null) {
