@@ -227,7 +227,11 @@ public class Request extends HTTPResource {
 					if (subs != null && !subs.isEmpty()) {
 						// TODO: maybe loop subs to get the requested subtitle type instead of using the first one
 						DLNAMediaSubtitle sub = subs.get(0);
-						inputStream = new java.io.FileInputStream(sub.getExternalFile());
+						// XXX external file is null if the first subtitle track is embedded:
+						// http://www.ps3mediaserver.org/forum/viewtopic.php?f=3&t=15805&p=75534#p75534
+						if (sub.isExternal()) {
+							inputStream = new java.io.FileInputStream(sub.getExternalFile());
+						}
 					}
 				} else {
 					// This is a request for a regular file.
@@ -723,7 +727,7 @@ public class Request extends HTTPResource {
 
 			LOGGER.trace("Sending stream: " + sendB + " bytes of " + argument);
 			PMS.get().getFrame().setStatusLine(null);
-		} else {
+		} else { // inputStream is null
 			if (lowRange > 0 && highRange > 0) {
 				output(output, "Content-Length: " + (highRange - lowRange + 1));
 			} else {
