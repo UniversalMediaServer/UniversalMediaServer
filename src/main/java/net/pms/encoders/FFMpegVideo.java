@@ -56,6 +56,10 @@ import org.slf4j.LoggerFactory;
 
 /*
  * Pure FFmpeg video player.
+ *
+ * Design note: helper methods that return lists of <code>String</code>s representing options are public
+ * to facilitate composition e.g. a custom engine (plugin) that uses tsMuxeR for videos without
+ * subtitles and FFmpeg otherwise needs to compose and call methods on both players.
  */
 public class FFMpegVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
@@ -84,7 +88,7 @@ public class FFMpegVideo extends Player {
 	 * @param media metadata for the DLNA resource which is being transcoded
 	 * @return a rescale spec <code>String</code> or <code>null</code> if resizing isn't required.
 	 */
-	public static String getRescaleSpec(RendererConfiguration renderer, DLNAMediaInfo media) {
+	public String getRescaleSpec(RendererConfiguration renderer, DLNAMediaInfo media) {
 		String rescaleSpec = null;
 		boolean isResolutionTooHighForRenderer = renderer.isVideoRescale() && // renderer defines a max width/height
 			(media != null) &&
@@ -106,32 +110,31 @@ public class FFMpegVideo extends Player {
 	}
 
 	/**
-	 * Takes a {@link RendererConfiguration} and returns a {@link List} of <code>String</code>s representing ffmpeg output options
+	 * Takes a renderer and returns a list of <code>String</code>s representing ffmpeg output options
 	 * (i.e. options that define the output file's video codec, audio codec and container)
-	 * compatible with the renderer's <code>TranscodeVideo</code> profile. Implemented here as a static method
-	 * so that it can be used by {@link FFmpegWebVideo} and any other engines that wrap ffmpeg.
+	 * compatible with the renderer's <code>TranscodeVideo</code> profile.
 	 *
 	 * @param renderer The {@link RendererConfiguration} instance whose <code>TranscodeVideo</code> profile is to be processed.
 	 * @return a {@link List} of <code>String</code>s representing the ffmpeg output parameters for the renderer according
 	 * to its <code>TranscodeVideo</code> profile.
 	 */
-	public static List<String> getTranscodeVideoOptions(RendererConfiguration renderer) {
+	public List<String> getTranscodeVideoOptions(RendererConfiguration renderer) {
 		List<String> transcodeOptions = new ArrayList<String>();
 
 		if (renderer.isTranscodeToWMV()) { // WMV
-			transcodeOptions.add("-vcodec");
+			transcodeOptions.add("-c:v");
 			transcodeOptions.add("wmv2");
 
-			transcodeOptions.add("-acodec");
+			transcodeOptions.add("-c:a");
 			transcodeOptions.add("wma2");
 
 			transcodeOptions.add("-f");
 			transcodeOptions.add("asf");
 		} else { // MPEGPSAC3 or MPEGTSAC3
-			transcodeOptions.add("-vcodec");
+			transcodeOptions.add("-c:v");
 			transcodeOptions.add("mpeg2video");
 
-			transcodeOptions.add("-acodec");
+			transcodeOptions.add("-c:a");
 			transcodeOptions.add("ac3");
 
 			if (renderer.isTranscodeToMPEGTSAC3()) { // MPEGTSAC3
@@ -144,6 +147,50 @@ public class FFMpegVideo extends Player {
 		}
 
 		return transcodeOptions;
+	}
+
+	/**
+	 * Takes a renderer and metadata for the current video and returns the bitrate spec for the current transcode according to
+	 * the limits/requirements of the renderer.
+	 *
+	 * @param renderer a {@link RendererConfiguration} instance representing the renderer being streamed to
+	 * @param media the media metadata for the video being streamed. May contain unset/null values (e.g. for web videos).
+	 * @return a {@link List} of <code>String</code>s representing the video bitrate options for this transcode
+	 */
+	public List<String> getVideoBitrateOptions(RendererConfiguration renderer, DLNAMediaInfo media) { // media is currently unused
+		List<String> videoBitrateOptions = new ArrayList<String>();
+		String sMaxVideoBitrate = renderer.getMaxVideoBitrate(); // currently Mbit/s
+		int iMaxVideoBitrate = 0;
+
+		if (sMaxVideoBitrate != null) {
+			try {
+				iMaxVideoBitrate = Integer.parseInt(sMaxVideoBitrate);
+			} catch (NumberFormatException nfe) {
+				LOGGER.error("Can't parse max video bitrate", nfe); // XXX this should be handled in RendererConfiguration
+			}
+		}
+
+		if (iMaxVideoBitrate != 0) {
+			// limit the bitrate
+			// FIXME untested
+			videoBitrateOptions.add("-b:v");
+			// convert megabits-per-second (as per the current option name: MaxVideoBitrateMbps) to bps
+			// FIXME rather than dealing with megabit vs mebibit issues here, this should be left up to the client i.e.
+			// the renderer.conf unit should be bits-per-second (and the option should be renamed: MaxVideoBitrateMbps -> MaxVideoBitrate)
+			videoBitrateOptions.add("" + iMaxVideoBitrate * 1000 * 1000);
+		} else {
+			// preserve the bitrate
+			// XXX while this often preserves the bitrate, it's not what -sameq means
+			videoBitrateOptions.add("-sameq");
+			/*
+			if (media.getBitrate() != 0) {
+				videoBitrateOptions.add("-v:b");
+				videoBitrateOptions.add("" + media.getBitrate());
+			}
+			*/
+		}
+
+		return videoBitrateOptions;
 	}
 
 	protected boolean dtsRemux;
@@ -372,6 +419,12 @@ public class FFMpegVideo extends Player {
 			cmdList.add("" + params.timeend);
 		}
 
+		// add video bitrate options
+		// TODO: Integrate our (more comprehensive) code with this function
+		// from PMS to make keeping synchronised easier.
+		// Until then, leave the following line commented out.
+		// cmdList.addAll(getVideoBitrateOptions(renderer, media));
+
 		// if the source is too large for the renderer, resize it
 		String rescale = getRescaleSpec(renderer, media);
 		if (rescale != null) {
@@ -451,7 +504,10 @@ public class FFMpegVideo extends Player {
 			cmdList.add(PMS.getConfiguration().getAudioBitrate() + "k");
 		}
 
+		// add custom args
 		cmdList.addAll(getSanitizedCustomArgs());
+
+		// add the output options (-f, -acodec, -vcodec)
 		cmdList.addAll(getTranscodeVideoOptions(renderer));
 
 		if (!dtsRemux) {

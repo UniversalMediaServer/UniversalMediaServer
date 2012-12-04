@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JComponent;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.encoders.FFMpegVideo;
@@ -75,6 +76,7 @@ public class FFMpegWebVideo extends FFMpegVideo {
 	) throws IOException {
 		params.minBufferSize = params.minFileSize;
 		params.secondread_minsize = 100000;
+		RendererConfiguration renderer = params.mediaRenderer;
 
 		// basename of the named pipe:
 		// ffmpeg -loglevel warning -threads nThreads -i URL -threads nThreads -transcode-video-options /path/to/fifoName
@@ -114,12 +116,11 @@ public class FFMpegWebVideo extends FFMpegVideo {
 		cmdList.add("-threads");
 		cmdList.add("" + nThreads);
 
-		// preserve the bitrate
-		cmdList.add("-sameq");
+		// add video bitrate options
+		cmdList.addAll(getVideoBitrateOptions(renderer, media));
 
-		// get the TranscodeVideo (output) options (-acodec, -vcodec, -f)
-		List<String> transcodeOptions = getTranscodeVideoOptions(params.mediaRenderer);
-		cmdList.addAll(transcodeOptions);
+		// add the TranscodeVideo (output) options (-acodec, -vcodec, -f)
+		cmdList.addAll(getTranscodeVideoOptions(renderer));
 
 		// output file
 		cmdList.add(pipe.getInputPipe());
