@@ -1236,10 +1236,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					if (getPlayer() != null) { // transcoded
 						if (getPlayer().isTimeSeekable()) {
 							// PS3 doesn't like OP=11
-							// FIXME if this still applies, it should be a dedicated option
+							// FIXME in the unlikely event that this still applies, it should be a dedicated option
 							// (feature detection rather than renderer detection) e.g.
-							// DisableSeekByByte (although this conflicts with the default
-							// option: 01: seek by byte only) or DisableOrgOp11 or MapOrgOp11To10
+							// DLNATranscodeMapSeekByBothToSeekByTime
 							if (mediaRenderer.isPS3()) {
 								flags = "DLNA.ORG_OP=10";
 							} else {

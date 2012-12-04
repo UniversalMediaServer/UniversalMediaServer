@@ -1830,8 +1830,8 @@ public class MEncoderVideo extends Player {
 		 * subtitle stuff
 		 */
 
-		// Handle internal subtitles
-		// Note: embedded and internal are mutually exclusive
+		// handle embedded subtitles
+		// note: isEmbedded() and isExternal() are mutually exclusive
 		if (!configuration.isMencoderDisableSubs() && (params.sid != null) && params.sid.isEmbedded()) {
 			cmdList.add("-sid");
 			cmdList.add("" + params.sid.getId());
