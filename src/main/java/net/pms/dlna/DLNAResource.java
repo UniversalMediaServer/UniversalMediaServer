@@ -217,7 +217,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	protected boolean skipTranscode = false;
 
 	private boolean allChildrenAreFolders = true;
-	private String flags;
+	private String dlnaOrgOpFlags;
 
 	/**
 	 * @deprecated Use standard getter and setter to access this field.
@@ -360,7 +360,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public abstract boolean isFolder();
 
 	public String getDlnaContentFeatures() {
-		return (dlnaspec != null ? (dlnaspec + ";") : "") + getFlags() + ";DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000";
+		return (dlnaspec != null ? (dlnaspec + ";") : "") + getDlnaOrgOpFlags() + ";DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000";
 	}
 
 	public DLNAResource getPrimaryResource() {
@@ -1133,7 +1133,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	// this shouldn't be public
 	@Deprecated
 	public String getFlags() {
-		return flags;
+		return getDlnaOrgOpFlags();
+	}
+
+	// permit the renderer to seek by time, bytes or both
+	private String getDlnaOrgOpFlags() {
+		return "DLNA.ORG_OP=" + dlnaOrgOpFlags;
 	}
 
 	/**
@@ -1218,37 +1223,56 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				 * DLNA.ORG_OP flags
 				 *
 				 * Two booleans (binary digits) which determine what transport operations the renderer is allowed to
-				 * request (in the form of HTTP headers): the first digit allows the renderer to send
+				 * perform (in the form of HTTP headers): the first digit allows the renderer to send
 				 * TimeSeekRange.DLNA.ORG (seek-by-time) headers; the second allows it to send RANGE (seek-by-byte)
 				 * headers.
-				 *
-				 * See here for an example of how these options can be mapped to keys on the renderer's controller:
-				 * http://www.ps3mediaserver.org/forum/viewtopic.php?f=2&t=2908&p=12550#p12550
 				 *
 				 * 00 - no seeking (or even pausing) allowed
 				 * 01 - seek by byte
 				 * 10 - seek by time
 				 * 11 - seek by both
+				 *
+				 * See here for an example of how these options can be mapped to keys on the renderer's controller:
+				 * http://www.ps3mediaserver.org/forum/viewtopic.php?f=2&t=2908&p=12550#p12550
+				 *
+				 * Note that seek-by-time is the preferred option (seek-by-byte is a fallback) but it requires a) support
+				 * by the renderer (via the SeekByTime renderer conf option) and either a) a file that's not being transcoded
+				 * or if it is, b) support by its transcode engine for seek-by-time.
 				 */
+				dlnaOrgOpFlags = "01";
 
-				flags = "DLNA.ORG_OP=01";
 				if (mediaRenderer.isSeekByTime()) {
 					if (getPlayer() != null) { // transcoded
 						if (getPlayer().isTimeSeekable()) {
-							// PS3 doesn't like OP=11
-							// FIXME in the unlikely event that this still applies, it should be a dedicated option
-							// (feature detection rather than renderer detection) e.g.
-							// DLNATranscodeMapSeekByBothToSeekByTime
-							if (mediaRenderer.isPS3()) {
-								flags = "DLNA.ORG_OP=10";
+							/**
+							 * Some renderers - e.g. the PS3 and Panasonic TVs - behave erratically when
+							 * transcoding if we keep the default seek-by-byte permission on when permitting
+							 * seek-by-time: http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=15841
+							 *
+							 * It's not clear if this is a bug in the DLNA libraries of these renderers or a bug
+							 * in UMS, but setting an option in the renderer conf that disables seek-by-byte when
+							 * we permit seek-by-time - e.g.:
+							 *
+							 * SeekByTime = exclusive
+							 *
+							 * works around it.
+							 */
+							if (mediaRenderer.isSeekByTimeExclusive()) {
+								dlnaOrgOpFlags = "10";
 							} else {
-								flags = "DLNA.ORG_OP=11";
+								dlnaOrgOpFlags = "11";
 							}
 						}
 					} else { // streamed
-						if (!mediaRenderer.isPS3()) {
-							flags = "DLNA.ORG_OP=11";
-						}
+						/**
+						 * chocolateboy 2012-11-25: seek-by-time used to be disabled here for the PS3
+						 * (the flag was left at the default seek-by-byte value) and only set to
+						 * seek-by-both for non-PS3 renderers. I can't reproduce with PS3 firmware 4.31
+						 * whatever (undocumented) issue led to the creation of this exception, so
+						 * it has been removed unless/until someone can reproduce it (e.g. with old
+						 * firmware)
+						 */
+						dlnaOrgOpFlags = "11";
 					}
 				}
 
@@ -1278,7 +1302,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									|| mediaRenderer.isTranscodeToMPEGTSAC3());
 							}
 							if (mpegTsMux) {
-								dlnaspec = getMedia().isH264() && !VideoLanVideoStreaming.ID.equals(getPlayer().id()) && getMedia().isMuxable(mediaRenderer) ? "DLNA.ORG_PN=AVC_TS_HD_24_AC3_ISO" : "DLNA.ORG_PN=" + getMPEG_TS_SD_EU_ISOLocalizedValue(c);
+								dlnaspec = getMedia().isH264() && !VideoLanVideoStreaming.ID.equals(getPlayer().id()) && getMedia().isMuxable(mediaRenderer) ?
+									"DLNA.ORG_PN=AVC_TS_HD_24_AC3_ISO" :
+									"DLNA.ORG_PN=" + getMPEG_TS_SD_EU_ISOLocalizedValue(c);
 							} else {
 								dlnaspec = "DLNA.ORG_PN=" + getMPEG_PS_PALLocalizedValue(c);
 							}
@@ -1311,7 +1337,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					dlnaspec = null;
 				}
 
-				addAttribute(sb, "protocolInfo", "http-get:*:" + mime + ":" + (dlnaspec != null ? (dlnaspec + ";") : "") + flags);
+				addAttribute(sb, "protocolInfo", "http-get:*:" + mime + ":" + (dlnaspec != null ? (dlnaspec + ";") : "") + getDlnaOrgOpFlags());
 
 				if (getFormat() != null && getFormat().isVideo() && getMedia() != null && getMedia().isMediaparsed()) {
 					if (getPlayer() == null && getMedia() != null) {
