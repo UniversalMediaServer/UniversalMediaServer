@@ -119,7 +119,7 @@ public class FFMpegVideo extends Player {
 	 * @return a {@link List} of <code>String</code>s representing the ffmpeg output parameters for the renderer according
 	 * to its <code>TranscodeVideo</code> profile.
 	 */
-	public List<String> getTranscodeVideoOptions(RendererConfiguration renderer, DLNAMediaInfo media) {
+	public List<String> getTranscodeVideoOptions(RendererConfiguration renderer, DLNAMediaInfo media, OutputParams params) {
 		List<String> transcodeOptions = new ArrayList<String>();
 
 		if (renderer.isTranscodeToWMV()) { // WMV
@@ -135,8 +135,31 @@ public class FFMpegVideo extends Player {
 			transcodeOptions.add("-c:v");
 			transcodeOptions.add("mpeg2video");
 
-			transcodeOptions.add("-c:a");
-			transcodeOptions.add("ac3");
+			final boolean isTSMuxerVideoEngineEnabled = PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry()).contains(TSMuxerVideo.ID);
+
+			if (PMS.getConfiguration().isRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && renderer.isTranscodeToAC3()) {
+				// AC-3 remux takes priority
+				transcodeOptions.add("-c:a");
+				transcodeOptions.add("copy");
+			} else {
+				// Now check for DTS remux and LPCM streaming
+				dtsRemux = isTSMuxerVideoEngineEnabled &&
+					PMS.getConfiguration().isDTSEmbedInPCM() &&
+					params.aid != null &&
+					params.aid.isDTS() &&
+					!avisynth() &&
+					renderer.isDTSPlayable();
+
+				if (dtsRemux) {
+					// Audio is added in a separate process later
+					transcodeOptions.add("-an");
+				} else if (type() == Format.AUDIO) {
+					// Skip
+				} else {
+					transcodeOptions.add("-c:a");
+					transcodeOptions.add("ac3");
+				}
+			}
 
 			if (renderer.isTranscodeToMPEGTSAC3()) { // MPEGTSAC3
 				transcodeOptions.add("-f");
@@ -356,12 +379,9 @@ public class FFMpegVideo extends Player {
 		ac3Remux = false;
 		dtsRemux = false;
 
-		String audioCodecInput1 = "-c:a";
-		String audioCodecInput2 = "ac3";
 		if (PMS.getConfiguration().isRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && params.mediaRenderer.isTranscodeToAC3()) {
 			// AC-3 remux takes priority
 			ac3Remux = true;
-			audioCodecInput2 = "copy";
 		} else {
 			// Now check for DTS remux and LPCM streaming
 			dtsRemux = isTSMuxerVideoEngineEnabled &&
@@ -370,14 +390,6 @@ public class FFMpegVideo extends Player {
 				params.aid.isDTS() &&
 				!avisynth() &&
 				params.mediaRenderer.isDTSPlayable();
-
-			if (dtsRemux) {
-				audioCodecInput1 = "-an";
-				audioCodecInput2 = "-an";
-			} else if (type() == Format.AUDIO) {
-				audioCodecInput1 = "-sn";
-				audioCodecInput2 = "-sn";
-			}
 		}
 
 		cmdList.add("-i");
@@ -459,10 +471,6 @@ public class FFMpegVideo extends Player {
 			cmdList.add("" + defaultMaxBitrates[0]);
 		}
 
-		// Audio codec
-		cmdList.add(audioCodecInput1);
-		cmdList.add(audioCodecInput2);
-
 		int channels;
 		if (ac3Remux) {
 			channels = params.aid.getAudioProperties().getNumberOfChannels(); // AC-3 remux
@@ -483,7 +491,7 @@ public class FFMpegVideo extends Player {
 		cmdList.addAll(getCustomArgs());
 
 		// add the output options (-f, -acodec, -vcodec)
-		cmdList.addAll(getTranscodeVideoOptions(renderer, media));
+		cmdList.addAll(getTranscodeVideoOptions(renderer, media, params));
 
 		if (!dtsRemux) {
 			cmdList.add("pipe:");
