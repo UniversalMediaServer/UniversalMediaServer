@@ -132,24 +132,21 @@ public class FFMpegVideo extends Player {
 			transcodeOptions.add("-f");
 			transcodeOptions.add("asf");
 		} else { // MPEGPSAC3 or MPEGTSAC3
-			transcodeOptions.add("-c:v");
-			transcodeOptions.add("mpeg2video");
-
 			final boolean isTSMuxerVideoEngineEnabled = PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry()).contains(TSMuxerVideo.ID);
 
+			// Output audio codec
+			dtsRemux = isTSMuxerVideoEngineEnabled &&
+				PMS.getConfiguration().isDTSEmbedInPCM() &&
+				params.aid != null &&
+				params.aid.isDTS() &&
+				!avisynth() &&
+				renderer.isDTSPlayable();
+
 			if (PMS.getConfiguration().isRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && renderer.isTranscodeToAC3()) {
-				// AC-3 remux takes priority
+				// AC-3 remux
 				transcodeOptions.add("-c:a");
 				transcodeOptions.add("copy");
 			} else {
-				// Now check for DTS remux and LPCM streaming
-				dtsRemux = isTSMuxerVideoEngineEnabled &&
-					PMS.getConfiguration().isDTSEmbedInPCM() &&
-					params.aid != null &&
-					params.aid.isDTS() &&
-					!avisynth() &&
-					renderer.isDTSPlayable();
-
 				if (dtsRemux) {
 					// Audio is added in a separate process later
 					transcodeOptions.add("-an");
@@ -161,12 +158,20 @@ public class FFMpegVideo extends Player {
 				}
 			}
 
-			if (renderer.isTranscodeToMPEGTSAC3()) { // MPEGTSAC3
-				transcodeOptions.add("-f");
+			// Output file format
+			transcodeOptions.add("-f");
+			if (dtsRemux) {
+				transcodeOptions.add("mpeg2video");
+			} else if (renderer.isTranscodeToMPEGTSAC3()) { // MPEGTSAC3
 				transcodeOptions.add("mpegts");
 			} else { // default: MPEGPSAC3
-				transcodeOptions.add("-f");
 				transcodeOptions.add("vob");
+			}
+
+			// Output video codec
+			if (!dtsRemux) {
+				transcodeOptions.add("-c:v");
+				transcodeOptions.add("mpeg2video");
 			}
 		}
 
