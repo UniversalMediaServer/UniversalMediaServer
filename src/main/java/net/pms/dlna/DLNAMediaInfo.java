@@ -1049,10 +1049,19 @@ public class DLNAMediaInfo implements Cloneable {
 		if (!h264_parsed) {
 			if (getCodecV() != null && (getCodecV().equals("h264") || getCodecV().startsWith("mpeg2"))) { // what about VC1 ?
 				muxable = true;
-				if (getCodecV().equals("h264") && getContainer() != null && (getContainer().equals("matroska") || getContainer().equals("mkv") || getContainer().equals("mov") || getContainer().equals("mp4"))) { // containers without h264_annexB
+				if (
+					getCodecV().equals("h264") &&
+					getContainer() != null &&
+					(
+						getContainer().equals("matroska") ||
+						getContainer().equals("mkv") ||
+						getContainer().equals("mov") ||
+						getContainer().equals("mp4")
+					)
+				) { // containers without h264_annexB
 					byte headers[][] = getAnnexBFrameHeader(f);
 					if (ffmpeg_annexb_failure) {
-						LOGGER.info("Fatal error when retrieving AVC informations !");
+						LOGGER.info("Error parsing information from the file: " + f.getFile().getName());
 					}
 					if (headers != null) {
 						setH264AnnexB(headers[1]);
@@ -1076,7 +1085,7 @@ public class DLNAMediaInfo implements Cloneable {
 								}
 							}
 							if (!muxable) {
-								LOGGER.debug("H264 file: " + f.getFilename() + " is not ps3 compatible !");
+								LOGGER.debug("H.264 file: " + f.getFilename() + " is not compatible with PS3");
 							}
 						} else {
 							muxable = false;
