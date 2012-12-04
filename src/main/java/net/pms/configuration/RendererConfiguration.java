@@ -774,11 +774,13 @@ public class RendererConfiguration {
 	}
 
 	/**
-	 * Returns the maximum bit rate supported by the media renderer as defined
+	 * Returns the maximum bitrate (in megabits-per-second) supported by the media renderer as defined
 	 * in the renderer configuration. The default value is <code>null</code>.
 	 *
-	 * @return The bit rate.
+	 * @return The bitrate.
 	 */
+	@Deprecated
+	// TODO this should return an integer and the units should be bits-per-second
 	public String getMaxVideoBitrate() {
 		return getString(MAX_VIDEO_BITRATE, null);
 	}

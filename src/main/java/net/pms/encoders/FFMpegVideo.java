@@ -29,10 +29,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.StringTokenizer;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -50,14 +49,13 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.StreamModifier;
 import net.pms.network.HTTPResource;
-import net.pms.util.ProcessUtil;
 import static org.apache.commons.lang.BooleanUtils.isTrue;
 import static org.apache.commons.lang.StringUtils.isBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /*
- * Pure FFmpeg video player. 
+ * Pure FFmpeg video player.
  */
 public class FFMpegVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
@@ -375,20 +373,25 @@ public class FFMpegVideo extends Player {
 		}
 
 		// quality (bitrate)
-		String sMaxVideoBitrate = renderer.getMaxVideoBitrate(); // always Mbit/s; if set, already validated as an integer
+		String sMaxVideoBitrate = renderer.getMaxVideoBitrate(); // currently Mbit/s
 		int iMaxVideoBitrate = 0;
 
 		if (sMaxVideoBitrate != null) {
 			try {
 				iMaxVideoBitrate = Integer.parseInt(sMaxVideoBitrate);
-			} catch (NumberFormatException nfe) { }
+			} catch (NumberFormatException nfe) {
+				LOGGER.error("Can't parse max video bitrate", nfe); // this should be handled in RendererConfiguration
+			}
 		}
 
 		if (iMaxVideoBitrate != 0) {
 			// limit the bitrate
 			// FIXME untested
 			cmdList.add("-b:v");
-			cmdList.add("" + iMaxVideoBitrate * 1000 * 1000); // convert megabits-per-second to bps (XXX convert mebibits-per-second?)
+			// convert megabits-per-second (as per the current option name: MaxVideoBitrateMbps) to bps
+			// FIXME rather than dealing with megabit vs mebibit issues here, this should be left up to the client i.e.
+			// the renderer.conf unit should be bits-per-second (and the option should be renamed: MaxVideoBitrateMbps -> MaxVideoBitrate)
+			cmdList.add("" + iMaxVideoBitrate * 1000 * 1000);
 		} else {
 			// preserve the bitrate
 			cmdList.add("-sameq");
@@ -679,7 +682,7 @@ public class FFMpegVideo extends Player {
 		// Check whether the subtitle actually has a language defined,
 		// uninitialized DLNAMediaSubtitle objects have a null language.
 		if (subtitle != null && subtitle.getLang() != null) {
-			// The resource needs a subtitle, but this engine implementation does not support embedded subtitles yet
+			// The resource needs a subtitle, but this engine implementation does not support subtitles yet
 			return false;
 		}
 
