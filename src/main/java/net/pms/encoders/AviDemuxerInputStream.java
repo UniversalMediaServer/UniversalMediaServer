@@ -125,12 +125,19 @@ public class AviDemuxerInputStream extends InputStream {
 					pipe_process.runInNewThread();
 					tsPipe.deleteLater();
 
-					// Execute the command and ignore the result
 					String[] cmd = new String[]{ts.executable(), f.getAbsolutePath(), tsPipe.getInputPipe()};
-					ProcessWrapperLiteImpl pwl = new ProcessWrapperLiteImpl(cmd);
-					pwl.getResult();
+					ProcessBuilder pb = new ProcessBuilder(cmd);
+					process = pb.start();
+					ProcessWrapper pwi = new ProcessWrapperLiteImpl(process);
+					attachedProcesses.add(pwi);
+
+					// "Gob": a cryptic name for (e.g.) StreamGobbler - i.e. a stream
+					// consumer that reads and discards the stream
+					new Gob(process.getErrorStream()).start();
+					new Gob(process.getInputStream()).start();
 
 					realIS = tsPipe.getInputStream();
+					ProcessUtil.waitFor(process);
 					LOGGER.trace("tsMuxeR muxing finished");
 				} catch (IOException e) {
 					LOGGER.error(null, e);
