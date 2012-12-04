@@ -448,8 +448,7 @@ public class Request extends HTTPResource {
 				response.append(HTTPXMLHelper.eventProp("SourceProtocolInfo"));
 				response.append(HTTPXMLHelper.eventProp("CurrentConnectionIDs"));
 				response.append(HTTPXMLHelper.EVENT_FOOTER);
-			}
-			else if(argument.contains("content_directory")) {
+			} else if(argument.contains("content_directory")) {
 				response.append(HTTPXMLHelper.eventHeader("urn:schemas-upnp-org:service:ContentDirectory:1"));
 				response.append(HTTPXMLHelper.eventProp("TransferIDs"));
 				response.append(HTTPXMLHelper.eventProp("ContainerUpdateIDs"));
@@ -481,7 +480,7 @@ public class Request extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
-			} else if (soapaction != null && soapaction.indexOf("ContentDirectory:1#X_GetFeatureList") > -1) {  // Added for Samsung 2012 TVs
+			} else if (soapaction != null && soapaction.indexOf("ContentDirectory:1#X_GetFeatureList") > -1) { // Added for Samsung 2012 TVs
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
@@ -564,7 +563,14 @@ public class Request extends HTTPResource {
 				}
 
 
-				List<DLNAResource> files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(objectID, browseFlag != null && browseFlag.equals("BrowseDirectChildren"), startingIndex, requestCount, mediaRenderer, searchCriteria);
+				List<DLNAResource> files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(
+					objectID,
+					browseFlag != null && browseFlag.equals("BrowseDirectChildren"),
+					startingIndex,
+					requestCount,
+					mediaRenderer,
+					searchCriteria
+				);
 
 				if (searchCriteria != null && files != null) {
 					searchCriteria = searchCriteria.toLowerCase();

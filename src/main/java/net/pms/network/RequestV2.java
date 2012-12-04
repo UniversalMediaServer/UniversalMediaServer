@@ -630,7 +630,14 @@ public class RequestV2 extends HTTPResource {
 					searchCriteria = getEnclosingValue(content,"<SearchCriteria>","</SearchCriteria>");
 				}
 
-				List<DLNAResource> files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(objectID, browseFlag != null && browseFlag.equals("BrowseDirectChildren"), startingIndex, requestCount, mediaRenderer, searchCriteria);
+				List<DLNAResource> files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(
+					objectID,
+					browseFlag != null && browseFlag.equals("BrowseDirectChildren"),
+					startingIndex,
+					requestCount,
+					mediaRenderer,
+					searchCriteria
+				);
 
 				if (searchCriteria != null && files != null) {
 					searchCriteria = searchCriteria.toLowerCase();
