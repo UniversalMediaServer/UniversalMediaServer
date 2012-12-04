@@ -1698,7 +1698,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					params
 				);
 				if (params.waitbeforestart > 0) {
-					LOGGER.trace("Sleeping for " + params.waitbeforestart + " milliseconds");
+					LOGGER.trace("Sleeping for {} milliseconds", params.waitbeforestart);
 					try {
 						Thread.sleep(params.waitbeforestart);
 					} catch (InterruptedException e) {

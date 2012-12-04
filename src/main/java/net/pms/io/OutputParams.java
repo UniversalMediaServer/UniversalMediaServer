@@ -78,7 +78,6 @@ public class OutputParams {
 			maxBufferSize = 100;
 		}
 		timeseek = 0;
-		outputFile = null;
 		env = null;
 	}
 
@@ -111,7 +110,6 @@ public class OutputParams {
 			", minFileSize=" + minFileSize +
 			", no_videoencode=" + no_videoencode +
 			", noexitcheck=" + noexitcheck +
-			", outputFile=" + outputFile +
 			", output_pipes=" + Arrays.toString(output_pipes) +
 			", secondread_minsize=" + secondread_minsize +
 			", shift_scr=" + shift_scr +

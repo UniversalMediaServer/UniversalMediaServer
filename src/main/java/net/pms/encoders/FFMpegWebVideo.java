@@ -88,6 +88,10 @@ public class FFMpegWebVideo extends FFMpegVideo {
 
 		// This process wraps the command that creates the named pipe
 		PipeProcess pipe = new PipeProcess(fifoName);
+		pipe.deleteLater(); // delete the named pipe later; harmless if it isn't created
+		ProcessWrapper mkfifo_process = pipe.getPipeProcess();
+		// start the process as early as possible
+		mkfifo_process.runInNewThread();
 
 		params.input_pipes[0] = pipe;
 		int nThreads = configuration.getNumberOfCpuCores();
@@ -144,23 +148,19 @@ public class FFMpegWebVideo extends FFMpegVideo {
 
 		// now launch ffmpeg
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
-		ProcessWrapper mkfifo_process = pipe.getPipeProcess();
-		pw.attachProcess(mkfifo_process);
+		pw.attachProcess(mkfifo_process); // clean up the mkfifo process when the transcode ends
 
-		// create the named pipe and wait briefly to allow it to be created
-		mkfifo_process.runInNewThread();
-
+		// give the mkfifo process a little time
 		try {
 			Thread.sleep(200);
 		} catch (InterruptedException e) {
 			LOGGER.error("Thread interrupted while waiting for named pipe to be created", e);
 		}
 
-		pipe.deleteLater();
-
-		// launch transcode command and wait briefly to allow it to start
+		// launch the transcode command...
 		pw.runInNewThread();
 
+		// ... and wait briefly to allow it to start
 		try {
 			Thread.sleep(200);
 		} catch (InterruptedException e) {

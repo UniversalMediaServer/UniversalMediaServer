@@ -196,7 +196,7 @@ public class PMS {
 
 	/**
 	 * Executes a new Process and creates a fork that waits for its results. 
-	 * TODO:Extend explanation on where this is being used.
+	 * TODO Extend explanation on where this is being used.
 	 * @param name Symbolic name for the process to be launched, only used in the trace log
 	 * @param error (boolean) Set to true if you want PMS to add error messages to the trace pane
 	 * @param workDir (File) optional working directory to run the process in
