@@ -102,6 +102,10 @@ public class FFMpegWebVideo extends FFMpegVideo {
 
 		cmdList.add(executable());
 
+		// XXX squashed bug - without this, ffmpeg hangs waiting for a confirmation
+		// that it can write to a file that already exists i.e. the named pipe
+		cmdList.add("-y");
+
 		cmdList.add("-loglevel");
 		cmdList.add("warning");
 
