@@ -33,7 +33,7 @@ class ConfigurationUtil { // package-private
 	 * The value is returned with leading and trailing whitespace removed in both cases.
 	 * @param configuration The configuration to look up the key in.
 	 * @param key The key to look up.
-	 * @param def The default value to return when no valid key value can be found.
+	 * @param def The default value to return when no value is set for the key.
 	 * @return The value configured for the key.
 	 */
 
@@ -56,7 +56,7 @@ class ConfigurationUtil { // package-private
 	 * The value is returned with leading and trailing whitespace removed in both cases.
 	 * @param configuration The configuration to look up the key in.
 	 * @param key The key to look up.
-	 * @param def The default value to return when no valid key value can be found.
+	 * @param def The default value to return when no value is set for the key.
 	 * @return The value configured for the key.
 	 */
 

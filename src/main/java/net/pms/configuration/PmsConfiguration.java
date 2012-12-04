@@ -1859,7 +1859,15 @@ public class PmsConfiguration {
 	}
 
 	public List<String> getEnginesAsList(SystemUtils registry) {
-		List<String> engines = stringToList(getString(KEY_ENGINES, "mencoder,avsmencoder,tsmuxer,ffmpegvideo,ffmpegaudio,mplayeraudio,tsmuxeraudio,ffmpegwebvideo,vlcvideo,mencoderwebvideo,mplayervideodump,mplayerwebaudio,vlcaudio,ffmpegdvrmsremux,rawthumbs"));
+		List<String> engines = stringToList(
+			// an empty string means: disable all engines
+			// http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=15416
+			ConfigurationUtil.getPossiblyBlankConfigurationString(
+				configuration,
+				KEY_ENGINES,
+				"mencoder,avsmencoder,tsmuxer,ffmpegvideo,ffmpegaudio,mplayeraudio,tsmuxeraudio,ffmpegwebvideo,vlcvideo,mencoderwebvideo,mplayervideodump,mplayerwebaudio,vlcaudio,ffmpegdvrmsremux,rawthumbs"
+			)
+		);
 		engines = hackAvs(registry, engines);
 		return engines;
 	}
