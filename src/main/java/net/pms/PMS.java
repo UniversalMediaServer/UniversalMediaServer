@@ -23,9 +23,6 @@ import com.sun.jna.Platform;
 import java.awt.*;
 import java.io.*;
 import java.net.BindException;
-import java.net.NetworkInterface;
-import java.net.SocketException;
-import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
@@ -48,7 +45,6 @@ import net.pms.gui.IFrame;
 import net.pms.io.*;
 import net.pms.logging.LoggingConfigFileLoader;
 import net.pms.network.HTTPServer;
-import net.pms.network.NetworkConfiguration;
 import net.pms.network.ProxyServer;
 import net.pms.network.UPNPHelper;
 import net.pms.newgui.DbgPacker;
@@ -86,6 +82,11 @@ public class PMS {
 
 	// TODO(tcox):  This shouldn't be static
 	private static PmsConfiguration configuration;
+
+	/**
+	 * Universally Unique Identifier used in the UPnP server.
+	 */
+	private String uuid;
 
 	/**
 	 * Returns a pointer to the main PMS GUI.
@@ -762,59 +763,22 @@ public class PMS {
 	}
 
 	/**
-	 * Universally Unique Identifier used in the UPnP server.
-	 */
-	private String uuid;
-
-	/**
-	 * Creates a new {@link #uuid} for the UPnP server to use. Tries to follow the RFCs for creating the UUID based on the link MAC address.
-	 * Defaults to a random one if that method is not available.
+	 * Creates a new random {@link #uuid}. These are used to uniquely identify the server to renderers (i.e.
+	 * renderers treat multiple servers with the same UUID as the same server).
 	 * @return {@link String} with an Universally Unique Identifier.
 	 */
+	// XXX don't use the MAC address to seed the UUID as it breaks multiple profiles:
+	// http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&p=75542#p75542
 	public synchronized String usn() {
 		if (uuid == null) {
 			// Retrieve UUID from configuration
 			uuid = getConfiguration().getUuid();
 
 			if (uuid == null) {
-				// Create a new UUID based on the MAC address of the used network adapter
-				NetworkInterface ni;
+				uuid = UUID.randomUUID().toString();
+				LOGGER.info("Generated new random UUID: {}", uuid);
 
-				try {
-					// this retrieves the network interface via:
-					//
-					// 1) NetworkConfiguration.getAddressForNetworkInterfaceName(pmsConfInterfaceName)
-					// 2) NetworkConfiguration.getDefaultNetworkInterfaceAddress()
-
-					ni = get().getServer().getNetworkInterface();
-
-					// failing that, default to:
-					//
-					// 3) NetworkConfiguration.getNetworkInterfaceByServerName()
-					if (ni == null) {
-						ni = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
-					}
-
-					if (ni != null) {
-						byte[] addr = getRegistry().getHardwareAddress(ni); // return null when java.net.preferIPv4Stack=true
-						if (addr != null) {
-							uuid = UUID.nameUUIDFromBytes(addr).toString();
-							LOGGER.info(String.format("Generated new UUID based on the MAC address of the network adapter '%s'", ni.getDisplayName()));
-						}
-					}
-				} catch (SocketException e) {
-					LOGGER.debug("Caught exception", e);
-				} catch (UnknownHostException e) {
-					LOGGER.debug("Caught exception", e);
-				}
-
-				// Create random UUID if the generation by MAC address failed
-				if (uuid == null) {
-					uuid = UUID.randomUUID().toString();
-					LOGGER.info("Generated new random UUID");
-				}
-
-				// Save the newly generated UUID
+				// save the newly-generated UUID
 				getConfiguration().setUuid(uuid);
 
 				try {
@@ -824,7 +788,7 @@ public class PMS {
 				}
 			}
 
-			LOGGER.info("Using the following UUID configured in UMS.conf: " + uuid);
+			LOGGER.info("Using the following UUID configured in UMS.conf: {}", uuid);
 		}
 
 		return "uuid:" + uuid;
