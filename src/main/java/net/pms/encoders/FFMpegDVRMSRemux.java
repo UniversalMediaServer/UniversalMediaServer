@@ -80,11 +80,22 @@ public class FFMpegDVRMSRemux extends Player {
 		return Format.VIDEO;
 	}
 
+	@Deprecated
 	protected String[] getDefaultArgs() {
-		return new String[]{"-f", "vob", "-copyts", "-vcodec", "copy", "-acodec", "copy"};
+		return new String[] {
+			"-vcodec", "copy",
+			"-acodec", "copy",
+			"-threads", "2",
+			"-g", "1",
+			"-qscale", "1",
+			"-qmin", "2",
+			"-f", "vob",
+			"-copyts"
+		};
 	}
 
 	@Override
+	@Deprecated
 	public String[] args() {
 		return getDefaultArgs();
 
@@ -105,10 +116,13 @@ public class FFMpegDVRMSRemux extends Player {
 		String fileName,
 		DLNAResource dlna,
 		DLNAMediaInfo media,
-		OutputParams params) throws IOException {
+		OutputParams params
+	) throws IOException {
 		return getFFMpegTranscode(fileName, dlna, media, params);
 	}
 
+	// pointless redirection of launchTranscode
+	@Deprecated
 	protected ProcessWrapperImpl getFFMpegTranscode(
 		String fileName,
 		DLNAResource dlna,
@@ -134,10 +148,13 @@ public class FFMpegDVRMSRemux extends Player {
 		cmdList.add(fileName);
 		cmdList.addAll(Arrays.asList(args()));
 
-		String[] ffmpegSettings = StringUtils.split(configuration.getFfmpegSettings());
+		String customSettingsString = configuration.getFfmpegSettings();
+		if (StringUtils.isNotBlank(customSettingsString)) {
+			String[] customSettingsArray = StringUtils.split(customSettingsString);
 
-		if (ffmpegSettings != null) {
-			cmdList.addAll(Arrays.asList(ffmpegSettings));
+			if (customSettingsArray != null) {
+				cmdList.addAll(Arrays.asList(customSettingsArray));
+			}
 		}
 
 		cmdList.add("pipe:");
@@ -145,7 +162,6 @@ public class FFMpegDVRMSRemux extends Player {
 		cmdList.toArray(cmdArray);
 
 		cmdArray = finalizeTranscoderArgs(
-			this,
 			fileName,
 			dlna,
 			media,
@@ -163,7 +179,8 @@ public class FFMpegDVRMSRemux extends Player {
 	public JComponent config() {
 		FormLayout layout = new FormLayout(
 			"left:pref, 3dlu, p, 3dlu, 0:grow",
-			"p, 3dlu, p, 3dlu, 0:grow");
+			"p, 3dlu, p, 3dlu, 0:grow"
+		);
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.setBorder(Borders.EMPTY_BORDER);
 		builder.setOpaque(false);

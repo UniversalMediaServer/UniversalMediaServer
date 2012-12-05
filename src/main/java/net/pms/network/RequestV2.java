@@ -298,7 +298,11 @@ public class RequestV2 extends HTTPResource {
 						DLNAMediaSubtitle sub = subs.get(0);
 
 						try {
-							inputStream = new java.io.FileInputStream(sub.getExternalFile());
+							// XXX external file is null if the first subtitle track is embedded:
+							// http://www.ps3mediaserver.org/forum/viewtopic.php?f=3&t=15805&p=75534#p75534
+							if (sub.isExternal()) {
+								inputStream = new java.io.FileInputStream(sub.getExternalFile());
+							}
 						} catch (NullPointerException npe) {
 							LOGGER.trace("Could not find external subtitles: " + sub);
 						}
@@ -510,7 +514,7 @@ public class RequestV2 extends HTTPResource {
 		} else if (method.equals("POST") && argument.endsWith("upnp/control/connection_manager")) {
 			output.setHeader(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 
-			if (soapaction.indexOf("ConnectionManager:1#GetProtocolInfo") > -1) {
+			if (soapaction != null && soapaction.indexOf("ConnectionManager:1#GetProtocolInfo") > -1) {
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
@@ -523,7 +527,7 @@ public class RequestV2 extends HTTPResource {
 		} else if (method.equals("POST") && argument.endsWith("upnp/control/content_directory")) {
 			output.setHeader(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 
-			if (soapaction.indexOf("ContentDirectory:1#GetSystemUpdateID") > -1) {
+			if (soapaction != null && soapaction.indexOf("ContentDirectory:1#GetSystemUpdateID") > -1) {
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
@@ -536,7 +540,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
-			} else if (soapaction.indexOf("ContentDirectory:1#X_GetFeatureList") > -1) { // Added for Samsung 2012 TVs
+			} else if (soapaction != null && soapaction.indexOf("ContentDirectory:1#X_GetFeatureList") > -1) { // Added for Samsung 2012 TVs
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
@@ -545,7 +549,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
-			} else if (soapaction.indexOf("ContentDirectory:1#GetSortCapabilities") > -1) {
+			} else if (soapaction != null && soapaction.indexOf("ContentDirectory:1#GetSortCapabilities") > -1) {
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
@@ -554,7 +558,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
-			} else if (soapaction.indexOf("ContentDirectory:1#GetSearchCapabilities") > -1) {
+			} else if (soapaction != null && soapaction.indexOf("ContentDirectory:1#GetSearchCapabilities") > -1) {
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
@@ -563,7 +567,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
-			} else if (soapaction.contains("ContentDirectory:1#Browse") || soapaction.contains("ContentDirectory:1#Search")) {
+			} else if (soapaction != null && (soapaction.contains("ContentDirectory:1#Browse") || soapaction.contains("ContentDirectory:1#Search"))) {
 				objectID = getEnclosingValue(content, "<ObjectID>", "</ObjectID>");
 				String containerID = null;
 				if ((objectID == null || objectID.length() == 0)) {
@@ -592,7 +596,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
 				response.append(CRLF);
 
-				if (soapaction.contains("ContentDirectory:1#Search")) {
+				if (soapaction != null && soapaction.contains("ContentDirectory:1#Search")) {
 					response.append(HTTPXMLHelper.SEARCHRESPONSE_HEADER);
 				} else {
 					response.append(HTTPXMLHelper.BROWSERESPONSE_HEADER);
@@ -602,7 +606,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(HTTPXMLHelper.RESULT_HEADER);
 				response.append(HTTPXMLHelper.DIDL_HEADER);
 
-				if (soapaction.contains("ContentDirectory:1#Search")) {
+				if (soapaction != null && soapaction.contains("ContentDirectory:1#Search")) {
 					browseFlag = "BrowseDirectChildren";
 				}
 
@@ -630,7 +634,14 @@ public class RequestV2 extends HTTPResource {
 					searchCriteria = getEnclosingValue(content,"<SearchCriteria>","</SearchCriteria>");
 				}
 
-				List<DLNAResource> files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(objectID, browseFlag != null && browseFlag.equals("BrowseDirectChildren"), startingIndex, requestCount, mediaRenderer, searchCriteria);
+				List<DLNAResource> files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(
+					objectID,
+					browseFlag != null && browseFlag.equals("BrowseDirectChildren"),
+					startingIndex,
+					requestCount,
+					mediaRenderer,
+					searchCriteria
+				);
 
 				if (searchCriteria != null && files != null) {
 					searchCriteria = searchCriteria.toLowerCase();
@@ -720,7 +731,7 @@ public class RequestV2 extends HTTPResource {
 				}
 				response.append("</UpdateID>");
 				response.append(CRLF);
-				if (soapaction.contains("ContentDirectory:1#Search")) {
+				if (soapaction != null && soapaction.contains("ContentDirectory:1#Search")) {
 					response.append(HTTPXMLHelper.SEARCHRESPONSE_FOOTER);
 				} else {
 					response.append(HTTPXMLHelper.BROWSERESPONSE_FOOTER);
@@ -733,31 +744,36 @@ public class RequestV2 extends HTTPResource {
 		} else if (method.equals("SUBSCRIBE")) {
 			output.setHeader("SID", PMS.get().usn());
 			output.setHeader("TIMEOUT", "Second-1800");
-			String cb = soapaction.replace("<", "").replace(">", "");
 
-			try {
-				URL soapActionUrl = new URL(cb);
-				String addr = soapActionUrl.getHost();
-				int port = soapActionUrl.getPort();
-				Socket sock = new Socket(addr,port);
-				OutputStream out = sock.getOutputStream();
+			if (soapaction != null) {
+				String cb = soapaction.replace("<", "").replace(">", "");
 
-				out.write(("NOTIFY /" + argument + " HTTP/1.1").getBytes());
-				out.write(CRLF.getBytes());
-				out.write(("SID: " + PMS.get().usn()).getBytes());
-				out.write(CRLF.getBytes());
-				out.write(("SEQ: " + 0).getBytes());
-				out.write(CRLF.getBytes());
-				out.write(("NT: upnp:event").getBytes());
-				out.write(CRLF.getBytes());
-				out.write(("NTS: upnp:propchange").getBytes());
-				out.write(CRLF.getBytes());
-				out.write(("HOST: " + addr + ":" + port).getBytes());
-				out.write(CRLF.getBytes());
-				out.flush();
-				out.close();
-			} catch (MalformedURLException ex) {
-				LOGGER.debug("Cannot parse address and port from soap action \"" + soapaction + "\"", ex);
+				try {
+					URL soapActionUrl = new URL(cb);
+					String addr = soapActionUrl.getHost();
+					int port = soapActionUrl.getPort();
+					Socket sock = new Socket(addr,port);
+					OutputStream out = sock.getOutputStream();
+	
+					out.write(("NOTIFY /" + argument + " HTTP/1.1").getBytes());
+					out.write(CRLF.getBytes());
+					out.write(("SID: " + PMS.get().usn()).getBytes());
+					out.write(CRLF.getBytes());
+					out.write(("SEQ: " + 0).getBytes());
+					out.write(CRLF.getBytes());
+					out.write(("NT: upnp:event").getBytes());
+					out.write(CRLF.getBytes());
+					out.write(("NTS: upnp:propchange").getBytes());
+					out.write(CRLF.getBytes());
+					out.write(("HOST: " + addr + ":" + port).getBytes());
+					out.write(CRLF.getBytes());
+					out.flush();
+					out.close();
+				} catch (MalformedURLException ex) {
+					LOGGER.debug("Cannot parse address and port from soap action \"" + soapaction + "\"", ex);
+				}
+			} else {
+				LOGGER.debug("Expected soap action in request");
 			}
 
 			if (argument.contains("connection_manager")) {

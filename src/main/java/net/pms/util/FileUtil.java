@@ -97,13 +97,13 @@ public class FileUtil {
 		return null;
 	}
 
-	// FIXME needs to be renamed e.g. doSubtitlesExist or doesSubtitleExist
+	// FIXME rename e.g. isSubtitleExists, isSubtitlesExist...
 	@Deprecated
 	public static boolean doesSubtitlesExists(File file, DLNAMediaInfo media) {
 		return doesSubtitlesExists(file, media, true);
 	}
 
-	// FIXME needs to be renamed e.g. doSubtitlesExist or doesSubtitleExist
+	// FIXME rename e.g. isSubtitleExists...
 	@Deprecated
 	public static boolean doesSubtitlesExists(File file, DLNAMediaInfo media, boolean usecache) {
 		boolean found = browseFolderForSubtitles(file.getParentFile(), file, media, usecache);
@@ -140,7 +140,7 @@ public class FileUtil {
 			cache = new HashMap<File, File[]>();
 		}
 
-		File allSubs[] = cache.get(subFolder);
+		File[] allSubs = cache.get(subFolder);
 		if (allSubs == null) {
 			allSubs = subFolder.listFiles();
 
