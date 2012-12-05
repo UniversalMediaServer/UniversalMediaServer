@@ -1,7 +1,43 @@
-2.1.3 - 2012-12-??
+2.2.0 - 2012-12-??
 
 	General:
-		
+		Added option that creates virtual A-Z subfolders in folders with a lot of files (the last option on the Navigation/Share Settings page)
+		Added option to the Windows installer to perform a "clean install", which removes all configuration files before installing
+		Design and usability improvements
+		Logging improvements
+		Fixed audio/subtitle priority defaults
+		"Definitely disable subtitles" is more reliable
+		Fixed FFmpeg Web Video streaming
+		Fixed DTS support in FFmpeg
+		Improved FFmpeg speed
+		Added support for creating thumbnails from TIFF and other formats
+		Fixed numerous smaller bugs
+	Languages:
+		Minor updates to all languages
+		More text is translatable
+		Updated Brazilian
+		Updated Czech
+	Renderers:
+		Support more Android players (thanks, ExSport!)
+		Improved support for Panasonic TVs
+	External Components:
+		Updated MPlayer/MEncoder to SB45, which:
+			Fixed audio stuttering/repeating bug
+			Fixed alpha for ASS subtitles
+			Improves permissions handling on Windows
+			Removes incorrectly categorised fonts
+		Updated FFmpeg to SB4, which:
+			Improves audio sync when seeking
+			Supports more rare avi files
+			Improves support for demuxing DTS-HD
+			Fixes dozens of memory leaks
+			Improves audio sync for some AVI files using MP3 audio
+			Improves FPS detection
+			Improved sync for interlaced video
+			Allows mid-stream channel layout change for flac audio
+			Supports 24-bit flac encoding
+			Improves support for some CPU-optimisations
+			Fixed a lot of bugs with the implementation of h264
 
 2.1.2 - 2012-12-01
 
