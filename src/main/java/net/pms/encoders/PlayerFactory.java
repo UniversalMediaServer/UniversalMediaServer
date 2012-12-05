@@ -117,6 +117,7 @@ public final class PlayerFactory {
 	 */
 	private static void registerPlayers(final PmsConfiguration configuration) {
 
+		// TODO make these constructors consistent: pass configuration to all or to none
 		if (Platform.isWindows()) {
 			registerPlayer(new FFMpegAviSynthVideo());
 		}

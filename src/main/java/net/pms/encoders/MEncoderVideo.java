@@ -306,7 +306,12 @@ public class MEncoderVideo extends Player {
 
 					if (result.length > 0 && result[0].startsWith("@@")) {
 						String errorMessage = result[0].substring(2);
-						JOptionPane.showMessageDialog(SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()), errorMessage);
+						JOptionPane.showMessageDialog(
+							SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
+							errorMessage,
+							Messages.getString("Dialog.Error"),
+							JOptionPane.ERROR_MESSAGE
+						);
 					} else {
 						configuration.setCodecSpecificConfig(newCodecparam);
 						break;
@@ -603,7 +608,7 @@ public class MEncoderVideo extends Player {
 			Messages.getString("MEncoderVideo.115"),
 			Messages.getString("MEncoderVideo.116"),
 			Messages.getString("MEncoderVideo.117"),
-			Messages.getString("MEncoderVideo.118"),			
+			Messages.getString("MEncoderVideo.118"),
 			Messages.getString("MEncoderVideo.119"),
 			Messages.getString("MEncoderVideo.120"),
 			Messages.getString("MEncoderVideo.121"),
@@ -1220,6 +1225,18 @@ public class MEncoderVideo extends Player {
 		return encodeSettings;
 	}
 
+	/*
+	 * Collapse the multiple internal ways of saying "subtitles are disabled" into a single method
+	 * which returns true if any of the following are true:
+	 *
+	 *     1) configuration.isMencoderDisableSubs()
+	 *     2) params.sid == null
+	 *     3) avisynth()
+	 */
+	private boolean isDisableSubtitles(OutputParams params) {
+		return configuration.isMencoderDisableSubs() || (params.sid == null) || avisynth();
+	}
+
 	@Override
 	public ProcessWrapper launchTranscode(
 		String fileName,
@@ -1524,7 +1541,10 @@ public class MEncoderVideo extends Player {
 
 			// Ditlew - WDTV Live (+ other byte asking clients), CBR. This probably ought to be placed in addMaximumBitrateConstraints(..)
 			int cbr_bitrate = params.mediaRenderer.getCBRVideoBitrate();
-			String cbr_settings = (cbr_bitrate > 0) ? ":vrc_buf_size=5000:vrc_minrate=" + cbr_bitrate + ":vrc_maxrate=" + cbr_bitrate + ":vbitrate=" + ((cbr_bitrate > 16000) ? cbr_bitrate * 1000 : cbr_bitrate) : "";
+			String cbr_settings = (cbr_bitrate > 0) ?
+				":vrc_buf_size=5000:vrc_minrate=" + cbr_bitrate + ":vrc_maxrate=" + cbr_bitrate + ":vbitrate=" + ((cbr_bitrate > 16000) ? cbr_bitrate * 1000 : cbr_bitrate) :
+				"";
+
 			String encodeSettings = "-lavcopts autoaspect=1:vcodec=" + vcodec +
 				(wmv ? ":acodec=wmav2:abitrate=448" : (cbr_settings + ":acodec=" + (configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3") +
 				":abitrate=" + CodecUtil.getAC3Bitrate(configuration, params.aid))) +
@@ -1574,7 +1594,7 @@ public class MEncoderVideo extends Player {
 
 		StringBuilder sb = new StringBuilder();
 		// Set subtitles options
-		if (!configuration.isMencoderDisableSubs() && !avisynth() && params.sid != null) {
+		if (!isDisableSubtitles(params)) {
 			int subtitleMargin = 0;
 			int userMargin     = 0;
 
@@ -1616,7 +1636,7 @@ public class MEncoderVideo extends Player {
 						if (isNotBlank(font)) {
 							/*
 							 * Variable "font" contains a font path instead of a font name.
-							 * Does "-ass-force-style" support font paths? In tests on OSX
+							 * Does "-ass-force-style" support font paths? In tests on OS X
 							 * the font path is ignored (Outline, Shadow and MarginV are
 							 * used, though) and the "-font" definition is used instead.
 							 * See: https://github.com/ps3mediaserver/ps3mediaserver/pull/14
@@ -1660,7 +1680,7 @@ public class MEncoderVideo extends Player {
 					sb.append("-ass-force-style MarginV=").append(subtitleMargin).append(" ");
 				}
 
-				// MEncoder is not compiled with fontconfig on Mac OSX, therefore
+				// MEncoder is not compiled with fontconfig on Mac OS X, therefore
 				// use of the "-ass" option also requires the "-font" option.
 				if (Platform.isMac() && sb.toString().indexOf(" -font ") < 0) {
 					String font = CodecUtil.getDefaultFontPath();
@@ -1703,8 +1723,8 @@ public class MEncoderVideo extends Player {
 			}
 
 			// Common subtitle options
-			// MEncoder on Mac OSX is compiled without fontconfig support.
-			// Appending the flag will break execution, so skip it on Mac OSX.
+			// MEncoder on Mac OS X is compiled without fontconfig support.
+			// Appending the flag will break execution, so skip it on Mac OS X.
 			if (!Platform.isMac()) {
 				// Use fontconfig if enabled
 				sb.append("-").append(configuration.isMencoderFontConfig() ? "" : "no").append("fontconfig ");
@@ -1721,6 +1741,7 @@ public class MEncoderVideo extends Player {
 			if (params.sid.isExternal()) {
 				if (!params.sid.isExternalFileUtf()) {
 					String subcp = null;
+
 					// Append -subcp option for non UTF external subtitles
 					if (isNotBlank(configuration.getMencoderSubCp())) {
 						// Manual setting
@@ -1729,6 +1750,7 @@ public class MEncoderVideo extends Player {
 						// Autodetect charset (blank mencoder_subcp config option)
 						subcp = SubtitleUtils.getSubCpOptionForMencoder(params.sid);
 					}
+
 					if (isNotBlank(subcp)) {
 						sb.append("-subcp ").append(subcp).append(" ");
 						if (configuration.isMencoderSubFribidi()) {
@@ -1819,18 +1841,42 @@ public class MEncoderVideo extends Player {
 		}
 
 		/*
-		 * TODO: Move the following block up with the rest of the
-		 * subtitle stuff
+		 * Handle subtitles
+		 *
+		 * Try to reconcile the fact that the handling of "Definitely disable subtitles" is spread out
+		 * over net.pms.encoders.Player.setAudioAndSubs and here by setting both of MEncoder's "disable
+		 * subs" options if any of the internal conditions for disabling subtitles are met.
 		 */
-		if (isBlank(externalSubtitlesFileName) && params.sid != null) {
-			cmdList.add("-sid");
-			cmdList.add("" + params.sid.getId());
-		} else if (isNotBlank(externalSubtitlesFileName) && !avisynth()) { // Trick necessary for MEncoder to skip the internal embedded track ?
-			cmdList.add("-sid");
-			cmdList.add("100");
-		} else if (isBlank(externalSubtitlesFileName)) { // Trick necessary for MEncoder to not display the internal embedded track
-			cmdList.add("-subdelay");
-			cmdList.add("20000");
+		if (isDisableSubtitles(params)) {
+			// MKV: in some circumstances, MEncoder automatically selects an internal sub unless we explicitly disable (internal) subtitles
+			// http://www.ps3mediaserver.org/forum/viewtopic.php?f=14&t=15891
+			cmdList.add("-nosub");
+
+			// make sure external subs are not automatically loaded
+			cmdList.add("-noautosub");
+		} else {
+			// Note: isEmbedded() and isExternal() are mutually exclusive
+			if (params.sid.isEmbedded()) { // internal (embedded) subs
+				cmdList.add("-sid");
+				cmdList.add("" + params.sid.getId());
+			} else { // external subtitles
+				assert params.sid.isExternal(); // confirm the mutual exclusion
+
+				if (params.sid.getType() == SubtitleType.VOBSUB) {
+					cmdList.add("-vobsub");
+					cmdList.add(externalSubtitlesFileName.substring(0, externalSubtitlesFileName.length() - 4));
+					cmdList.add("-slang");
+					cmdList.add("" + params.sid.getLang());
+				} else {
+					cmdList.add("-sub");
+					cmdList.add(externalSubtitlesFileName.replace(",", "\\,")); // Commas in MEncoder separate multiple subtitle files
+
+					if (params.sid.isExternalFileUtf()) {
+						// Append -utf8 option for UTF-8 external subtitles
+						cmdList.add("-utf8");
+					}
+				}
+			}
 		}
 
 		// -ofps
@@ -1862,28 +1908,6 @@ public class MEncoderVideo extends Player {
 
 		cmdList.add("-ofps");
 		cmdList.add(ofps);
-
-		/*
-		 * TODO: Move the following block up with the rest of the
-		 * subtitle stuff
-		 */
-		// external subtitles file
-		if (!configuration.isMencoderDisableSubs() && !avisynth() && params.sid != null && params.sid.isExternal()) {
-			if (params.sid.getType() == SubtitleType.VOBSUB) {
-				cmdList.add("-vobsub");
-				cmdList.add(externalSubtitlesFileName.substring(0, externalSubtitlesFileName.length() - 4));
-				cmdList.add("-slang");
-				cmdList.add("" + params.sid.getLang());
-			} else {
-				cmdList.add("-sub");
-				cmdList.add(externalSubtitlesFileName.replace(",", "\\,")); // Commas in MEncoder separate multiple subtitle files
-
-				if (params.sid.isExternalFileUtf()) {
-					// append -utf8 option for UTF-8 external subtitles
-					cmdList.add("-utf8");
-				}
-			}
-		}
 
 		if (fileName.toLowerCase().endsWith(".evo")) {
 			cmdList.add("-psprobe");
@@ -2547,7 +2571,6 @@ public class MEncoderVideo extends Player {
 			String[] cmdArray = new String[cmdList.size()];
 			cmdList.toArray(cmdArray);
 			cmdArray = finalizeTranscoderArgs(
-				this,
 				fileName,
 				dlna,
 				media,
