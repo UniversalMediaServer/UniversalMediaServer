@@ -1826,19 +1826,46 @@ public class MEncoderVideo extends Player {
 		}
 
 		/*
-		 * TODO: Move the following block up with the rest of the
-		 * subtitle stuff
+		 * Handle subtitles
+		 *
+		 * Try to reconcile the fact that the handling of "Definitely disable subtitles" is spread out
+		 * over net.pms.encoders.Player.setAudioAndSubs and here by setting both of MEncoder's "disable
+		 * subs" options if any of the criteria for disabling subtitles are met:
+		 *
+		 *     1) configuration.isMencoderDisableSubs()
+		 *     2) params.sid == null
+		 *     3) avisynth()
 		 */
 
-		// handle embedded subtitles
-		if ((params.sid != null) && params.sid.isEmbedded()) { // note: isEmbedded() and isExternal() are mutually exclusive
-			if (configuration.isMencoderDisableSubs()) {
-				// MKV: in some circumstances, MEncoder automatically selects an internal sub unless we explicitly disable (internal) subtitles
-				// http://www.ps3mediaserver.org/forum/viewtopic.php?f=14&t=15891
-				cmdList.add("-nosub");
-			} else {
+		if (configuration.isMencoderDisableSubs() || (params.sid == null) || avisynth()) {
+			// MKV: in some circumstances, MEncoder automatically selects an internal sub unless we explicitly disable (internal) subtitles
+			// http://www.ps3mediaserver.org/forum/viewtopic.php?f=14&t=15891
+			cmdList.add("-nosub");
+
+			// make sure external subs are not automatically loaded
+			cmdList.add("-noautosub");
+		} else {
+			// Note: isEmbedded() and isExternal() are mutually exclusive
+			if (params.sid.isEmbedded()) { // internal (embedded) subs
 				cmdList.add("-sid");
 				cmdList.add("" + params.sid.getId());
+			} else { // external subtitles
+				assert params.sid.isExternal(); // confirm the mutual exclusion
+
+				if (params.sid.getType() == SubtitleType.VOBSUB) {
+					cmdList.add("-vobsub");
+					cmdList.add(externalSubtitlesFileName.substring(0, externalSubtitlesFileName.length() - 4));
+					cmdList.add("-slang");
+					cmdList.add("" + params.sid.getLang());
+				} else {
+					cmdList.add("-sub");
+					cmdList.add(externalSubtitlesFileName.replace(",", "\\,")); // Commas in MEncoder separate multiple subtitle files
+
+					if (params.sid.isExternalFileUtf()) {
+						// Append -utf8 option for UTF-8 external subtitles
+						cmdList.add("-utf8");
+					}
+				}
 			}
 		}
 
@@ -1871,28 +1898,6 @@ public class MEncoderVideo extends Player {
 
 		cmdList.add("-ofps");
 		cmdList.add(ofps);
-
-		/*
-		 * TODO: Move the following block up with the rest of the
-		 * subtitle stuff
-		 */
-		// external subtitles file
-		if (!configuration.isMencoderDisableSubs() && !avisynth() && params.sid != null && params.sid.isExternal()) {
-			if (params.sid.getType() == SubtitleType.VOBSUB) {
-				cmdList.add("-vobsub");
-				cmdList.add(externalSubtitlesFileName.substring(0, externalSubtitlesFileName.length() - 4));
-				cmdList.add("-slang");
-				cmdList.add("" + params.sid.getLang());
-			} else {
-				cmdList.add("-sub");
-				cmdList.add(externalSubtitlesFileName.replace(",", "\\,")); // Commas in MEncoder separate multiple subtitle files
-
-				if (params.sid.isExternalFileUtf()) {
-					// append -utf8 option for UTF-8 external subtitles
-					cmdList.add("-utf8");
-				}
-			}
-		}
 
 		if (fileName.toLowerCase().endsWith(".evo")) {
 			cmdList.add("-psprobe");

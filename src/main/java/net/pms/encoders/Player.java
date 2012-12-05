@@ -278,7 +278,7 @@ public abstract class Player {
 				boolean forcedSubsFound = false;
 				// Priority to external subtitles
 				for (DLNAMediaSubtitle sub : media.getSubtitleTracksList()) {
-					if (matchedSub !=null && matchedSub.getLang() !=null && matchedSub.getLang().equals("off")) {
+					if (matchedSub != null && matchedSub.getLang() != null && matchedSub.getLang().equals("off")) {
 						StringTokenizer st = new StringTokenizer(configuration.getMencoderForcedSubTags(), ",");
 
 						while (st != null && sub.getFlavor() != null && st.hasMoreTokens()) {
