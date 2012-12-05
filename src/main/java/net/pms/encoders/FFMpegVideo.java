@@ -367,6 +367,9 @@ public class FFMpegVideo extends Player {
 
 		cmdList.add(executable());
 
+		// Prevent FFmpeg timeout
+		cmdList.add("-y");
+
 		cmdList.add("-loglevel");
 		cmdList.add("warning");
 
@@ -563,7 +566,8 @@ public class FFMpegVideo extends Player {
 			sm.setNbchannels(channels);
 
 			String ffmpegLPCMextract[] = new String[]{
-				executable(), 
+				executable(),
+				"-y",
 				"-ss", "0",
 				"-i", fileName,
 				"-ac", "" + channels,
@@ -577,11 +581,11 @@ public class FFMpegVideo extends Player {
 			}
 
 			if (params.stdin != null) {
-				ffmpegLPCMextract[3] = "-";
+				ffmpegLPCMextract[4] = "-";
 			}
 
 			if (params.timeseek > 0) {
-				ffmpegLPCMextract[2] = "" + params.timeseek;
+				ffmpegLPCMextract[3] = "" + params.timeseek;
 			}
 
 			OutputParams ffaudioparams = new OutputParams(PMS.getConfiguration());
