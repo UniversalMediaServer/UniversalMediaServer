@@ -194,7 +194,7 @@ public class MapFile extends DLNAResource {
 	public boolean analyzeChildren(int count) {
 		int currentChildrenCount = getChildren().size();
 		int vfolder = 0;
-		while ((getChildren().size() - currentChildrenCount) < count || count == -1) {
+		while (((getChildren().size() - currentChildrenCount) < count) || (count == -1)) {
 			if (vfolder < getConf().getChildren().size()) {
 				addChild(new MapFile(getConf().getChildren().get(vfolder)));
 				++vfolder;
@@ -381,10 +381,12 @@ public class MapFile extends DLNAResource {
 			LOGGER.debug("File automatically added: " + f.getName());
 		}
 
+		// false: don't create the folder if it doesn't exist i.e. find the folder
 		TranscodeVirtualFolder vf = getTranscodeFolder(false);
 
 		for (DLNAResource f : removedFiles) {
 			getChildren().remove(f);
+
 			if (vf != null) {
 				for (int j = vf.getChildren().size() - 1; j >= 0; j--) {
 					if (vf.getChildren().get(j).getName().equals(f.getName())) {

@@ -424,8 +424,13 @@ public class PluginTab {
 		bPlugin.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-					comp, "Options", JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);
+				JOptionPane.showOptionDialog(
+					(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+					comp,
+					Messages.getString("Dialog.Options"),
+					JOptionPane.CLOSED_OPTION,
+					JOptionPane.PLAIN_MESSAGE, null, null, null
+				);
 			}
 		});
 		int y = pPlugins.getComponentCount() + 1;

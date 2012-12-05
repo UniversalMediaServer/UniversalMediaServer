@@ -1,6 +1,21 @@
 # author: chocolateboy
 # original: https://github.com/pyke369/sffmpeg
 # license: GPL
+#
+# updates:
+#
+#     if this build's options or dependencies are changed, the version number should be
+#     incremented in the following places prior to each PMS release:
+#
+#         * PMS_FFMPEG_VERSION in contrib/ffmpeg/vendor/ffmpeg-banner.patch
+#         * the corresponding version at the *bottom* of contrib/ffmpeg/README.md
+#
+#     Note:
+#
+#         * the version should be incremented no more than *once* per PMS release.
+#         * due to bugs in CMake, the build/ffmpeg-prefix directory may need to be removed each
+#           time the version is incremented in order to ensure the patch is reapplied
+#
 # links:
 #
 #     build scripts:
@@ -13,6 +28,7 @@
 #         http://betterlogic.com/roger/2011/09/ffmpeg-compileconfigure-windows/
 #         http://betterlogic.com/roger/2012/09/libflite-cross-compile-woe/
 #         http://ffmpeg.org/trac/ffmpeg/wiki/MacOSXCompilationGuide
+#
 
 PROJECT(ffmpeg)
 
@@ -84,14 +100,21 @@ EXTERNALPROJECT_ADD(
     PATCH_COMMAND patch -p1 < ${CMAKE_SOURCE_DIR}/vendor/gsm-permissions.patch
 
     CONFIGURE_COMMAND ""
-    INSTALL_COMMAND make install INSTALL_ROOT=${CMAKE_BINARY_DIR} GSM_INSTALL_INC=${CMAKE_BINARY_DIR}/include chmod=echo
+    INSTALL_COMMAND make install INSTALL_ROOT=${CMAKE_BINARY_DIR} GSM_INSTALL_INC=${CMAKE_BINARY_DIR}/include
+    BUILD_IN_SOURCE 1
+)
+
+EXTERNALPROJECT_ADD(
+    iconv
+    URL http://ftp.gnu.org/pub/gnu/libiconv/libiconv-1.13.1.tar.gz
+    CONFIGURE_COMMAND ./configure --prefix=${CMAKE_BINARY_DIR} --disable-shared
     BUILD_IN_SOURCE 1
 )
 
 EXTERNALPROJECT_ADD(
     libass
-    DEPENDS fontconfig freetype fribidi
-    URL https://libass.googlecode.com/files/libass-0.10.0.tar.gz
+    DEPENDS fontconfig freetype fribidi iconv
+    URL http://libass.googlecode.com/files/libass-0.10.1.tar.gz
     CONFIGURE_COMMAND PKG_CONFIG_PATH=${CMAKE_BINARY_DIR}/lib/pkgconfig ./configure --prefix=${CMAKE_BINARY_DIR} --disable-shared --enable-static
     BUILD_IN_SOURCE 1
 )
@@ -109,7 +132,7 @@ EXTERNALPROJECT_ADD(
     GIT_TAG 5e471c2 # 2011-03-26
     CONFIGURE_COMMAND ""
     BUILD_COMMAND cd src/trunk && make PREFIX=${CMAKE_BINARY_DIR} SHARED= XCFLAGS=-I${CMAKE_BINARY_DIR}/include XLDFLAGS=-L${CMAKE_BINARY_DIR}/lib XLIBS=-ldl
-    INSTALL_COMMAND cd src/trunk && make PREFIX=${CMAKE_BINARY_DIR} SHARED= install
+    INSTALL_COMMAND cd src/trunk && make install PREFIX=${CMAKE_BINARY_DIR} SHARED=
     BUILD_IN_SOURCE 1
 )
 
@@ -130,16 +153,25 @@ EXTERNALPROJECT_ADD(
 
 EXTERNALPROJECT_ADD(
     openjpeg
-    URL https://openjpeg.googlecode.com/files/openjpeg-1.5.1.tar.gz
+    URL http://openjpeg.googlecode.com/files/openjpeg-1.5.1.tar.gz
     CONFIGURE_COMMAND ./bootstrap.sh && ./configure --prefix=${CMAKE_BINARY_DIR} --disable-shared --enable-static
     BUILD_IN_SOURCE 1
 )
 
+IF (APPLE)
+    # Mac OSX build needs to force the correct architecture.
+    SET(CONFIGURE_COMMAND_OPENSSL ./configure darwin64-x86_64-cc no-shared no-idea no-mdc2 no-rc5 --prefix=${CMAKE_BINARY_DIR})
+    SET(BUILD_COMMAND_OPENSSL make depend MAKEDEPPROG=${CMAKE_C_COMPILER} && make)
+ELSE()
+    SET(CONFIGURE_COMMAND_OPENSSL ./config no-shared no-idea no-mdc2 no-rc5 --prefix=${CMAKE_BINARY_DIR})
+    SET(BUILD_COMMAND_OPENSSL make depend && make)
+ENDIF()
+
 EXTERNALPROJECT_ADD(
     openssl
     URL http://www.openssl.org/source/openssl-1.0.1c.tar.gz
-    CONFIGURE_COMMAND ./config no-shared no-idea no-mdc2 no-rc5 --prefix=${CMAKE_BINARY_DIR}
-    BUILD_COMMAND make depend && make
+    CONFIGURE_COMMAND ${CONFIGURE_COMMAND_OPENSSL}
+    BUILD_COMMAND ${BUILD_COMMAND_OPENSSL}
     BUILD_IN_SOURCE 1
 )
 
@@ -166,7 +198,7 @@ EXTERNALPROJECT_ADD(
     PATCH_COMMAND patch -p1 < ${CMAKE_SOURCE_DIR}/vendor/rtmpdump-prefix.patch
     CONFIGURE_COMMAND ""
     BUILD_COMMAND make PREFIX=${CMAKE_BINARY_DIR} SHARED= XCFLAGS=-I${CMAKE_BINARY_DIR}/include XLDFLAGS=-L${CMAKE_BINARY_DIR}/lib XLIBS=-ldl
-    INSTALL_COMMAND make PREFIX=${CMAKE_BINARY_DIR} SHARED= install
+    INSTALL_COMMAND make install PREFIX=${CMAKE_BINARY_DIR} SHARED=
     BUILD_IN_SOURCE 1
 )
 
@@ -237,22 +269,37 @@ EXTERNALPROJECT_ADD(
 
 EXTERNALPROJECT_ADD(
     vpx
-    URL http://webm.googlecode.com/files/libvpx-v1.0.0.tar.bz2
+    GIT_REPOSITORY http://git.chromium.org/webm/libvpx.git
+    GIT_TAG 83e8f2f97 # 2012-11-09
     CONFIGURE_COMMAND ./configure --prefix=${CMAKE_BINARY_DIR} --disable-shared
     BUILD_IN_SOURCE 1
 )
+
+IF (APPLE)
+    # Mac OSX build needs to force the correct architecture.
+    # xavs is using old versions of config.guess and config.sub that do not recognize
+    # the same x86_64 architecture on Mac OSX that all other projects use. Forcing the
+    # architecture causes asm errors, so we disable asm as well.
+    SET(CONFIGURE_COMMAND_XAVS ./configure --prefix=${CMAKE_BINARY_DIR} --disable-shared --host=x86_64-apple-darwin --disable-asm)
+ELSE()
+    SET(CONFIGURE_COMMAND_XAVS ./config no-shared no-idea no-mdc2 no-rc5 --prefix=${CMAKE_BINARY_DIR})
+ENDIF()
 
 EXTERNALPROJECT_ADD(
     xavs
     SVN_REPOSITORY https://xavs.svn.sourceforge.net/svnroot/xavs/trunk/
     SVN_REVISION -r55 # 2011-08-21
-    CONFIGURE_COMMAND ./configure --prefix=${CMAKE_BINARY_DIR} --disable-shared
+
+    # Avoid "Server certificate verification failed: issuer is not trusted" error
+    SVN_TRUST_CERT 1
+
+    CONFIGURE_COMMAND ${CONFIGURE_COMMAND_XAVS}
     BUILD_IN_SOURCE 1
 )
 
 EXTERNALPROJECT_ADD(
     x264
-    URL ftp://ftp.videolan.org/pub/x264/snapshots/last_x264.tar.bz2
+    URL ftp://ftp.videolan.org/pub/x264/snapshots/x264-snapshot-20121030-2245.tar.bz2
     PATCH_COMMAND patch -p1 < ${CMAKE_SOURCE_DIR}/vendor/x264-anonymize.patch
     CONFIGURE_COMMAND ./configure --prefix=${CMAKE_BINARY_DIR} --enable-static
     BUILD_IN_SOURCE 1
@@ -354,10 +401,17 @@ SET(FFMPEG_CONFIGURE_OPTIONS
     --extra-cflags=-I${CMAKE_BINARY_DIR}/include/openjpeg-1.5 # see above
     --extra-cflags=-static
     --extra-ldflags=-L${CMAKE_BINARY_DIR}/lib
-    --extra-ldflags=-static
     --extra-libs=-ldl
+    --extra-libs=-liconv
     --prefix=${CMAKE_BINARY_DIR}
 )
+
+IF (NOT APPLE)
+    # Don't use this on OS X as it breaks compilation
+    LIST(APPEND FFMPEG_CONFIGURE_OPTIONS
+        --extra-ldflags=-static
+    )
+ENDIF()
 
 SET(FFMPEG_CONFIGURE_COMMAND
     env

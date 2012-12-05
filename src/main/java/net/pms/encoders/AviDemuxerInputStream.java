@@ -164,7 +164,7 @@ public class AviDemuxerInputStream extends InputStream {
 	}
 
 	private void parseHeader() throws IOException {
-		LOGGER.trace("Parsing AVI Stream");
+		LOGGER.trace("Parsing AVI stream");
 		String id = getString(stream, 4);
 		getBytes(stream, 4);
 		String type = getString(stream, 4);
@@ -290,7 +290,7 @@ public class AviDemuxerInputStream extends InputStream {
 			try {
 				command = getString(stream, 4);
 			} catch (Exception e) {
-				LOGGER.trace("Error attendue: " + e.getMessage());
+				LOGGER.trace("Error reading stream: " + e.getMessage());
 				break;
 			}
 
@@ -389,7 +389,7 @@ public class AviDemuxerInputStream extends InputStream {
 
 		if (read < number) {
 			if (read < 0) {
-				throw new IOException("End of Stream");
+				throw new IOException("End of stream");
 			}
 
 			for (int i = read; i < number; i++) {
