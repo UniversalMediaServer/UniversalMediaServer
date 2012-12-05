@@ -671,9 +671,9 @@ public class DLNAMediaInfo implements Cloneable {
 						}
 					}
 				} catch (UnsupportedFormatException ufe) {
-					LOGGER.warn("Can't create thumbnail for {}: {}", inputFile.getFile().getAbsolutePath(), ufe.getMessage());
+					LOGGER.debug("Thumbnailator does not support the format of {}: {}", inputFile.getFile().getAbsolutePath(), ufe.getMessage());
 				} catch (Exception e) {
-					LOGGER.warn("Error generating thumbnail for: {}", inputFile.getFile().getAbsolutePath(), e);
+					LOGGER.debug("Thumbnailator could not generate a thumbnail for: {}", inputFile.getFile().getAbsolutePath(), e);
 				}
 			}
 
