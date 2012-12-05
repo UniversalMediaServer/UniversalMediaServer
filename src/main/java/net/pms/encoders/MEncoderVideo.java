@@ -608,7 +608,7 @@ public class MEncoderVideo extends Player {
 			Messages.getString("MEncoderVideo.115"),
 			Messages.getString("MEncoderVideo.116"),
 			Messages.getString("MEncoderVideo.117"),
-			Messages.getString("MEncoderVideo.118"),			
+			Messages.getString("MEncoderVideo.118"),
 			Messages.getString("MEncoderVideo.119"),
 			Messages.getString("MEncoderVideo.120"),
 			Messages.getString("MEncoderVideo.121"),
@@ -1831,10 +1831,15 @@ public class MEncoderVideo extends Player {
 		 */
 
 		// handle embedded subtitles
-		// note: isEmbedded() and isExternal() are mutually exclusive
-		if (!configuration.isMencoderDisableSubs() && (params.sid != null) && params.sid.isEmbedded()) {
-			cmdList.add("-sid");
-			cmdList.add("" + params.sid.getId());
+		if ((params.sid != null) && params.sid.isEmbedded()) { // note: isEmbedded() and isExternal() are mutually exclusive
+			if (configuration.isMencoderDisableSubs()) {
+				// MKV: in some circumstances, MEncoder automatically selects an internal sub unless we explicitly disable (internal) subtitles
+				// http://www.ps3mediaserver.org/forum/viewtopic.php?f=14&t=15891
+				cmdList.add("-nosub");
+			} else {
+				cmdList.add("-sid");
+				cmdList.add("" + params.sid.getId());
+			}
 		}
 
 		// -ofps
