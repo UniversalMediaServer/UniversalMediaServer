@@ -39,6 +39,7 @@ import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
+import net.coobird.thumbnailator.tasks.UnsupportedFormatException;
 import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.Thumbnails.Builder;
 import net.pms.PMS;
@@ -80,9 +81,11 @@ import org.slf4j.LoggerFactory;
  */
 public class DLNAMediaInfo implements Cloneable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAMediaInfo.class);
+	private static final String THUMBNAIL_DIRECTORY_NAME = "thumbs";
 
 	public static final long ENDFILE_POS = 99999475712L;
 	public static final long TRANS_SIZE = 100000000000L;
+
 	private boolean h264_parsed;
 
 	// Stored in database
@@ -214,7 +217,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @deprecated Use standard getter and setter to access this variable.
 	 */
 	@Deprecated
-	public boolean thumbready; 
+	public boolean thumbready;
 
 	/**
 	 * @deprecated Use standard getter and setter to access this variable.
@@ -437,7 +440,7 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 	}
 
-	public void parse(InputFile f, Format ext, int type, boolean thumbOnly) {
+	public void parse(InputFile inputFile, Format ext, int type, boolean thumbOnly) {
 		int i = 0;
 
 		while (isParsing()) {
@@ -458,11 +461,11 @@ public class DLNAMediaInfo implements Cloneable {
 			return;
 		}
 
-		if (f != null) {
-			if (f.getFile() != null) {
-				setSize(f.getFile().length());
+		if (inputFile != null) {
+			if (inputFile.getFile() != null) {
+				setSize(inputFile.getFile().length());
 			} else {
-				setSize(f.getSize());
+				setSize(inputFile.getSize());
 			}
 
 			ProcessWrapperImpl pw = null;
@@ -472,9 +475,9 @@ public class DLNAMediaInfo implements Cloneable {
 				ffmpeg_parsing = false;
 				DLNAMediaAudio audio = new DLNAMediaAudio();
 
-				if (f.getFile() != null) {
+				if (inputFile.getFile() != null) {
 					try {
-						AudioFile af = AudioFileIO.read(f.getFile());
+						AudioFile af = AudioFileIO.read(inputFile.getFile());
 						AudioHeader ah = af.getAudioHeader();
 						if (ah != null && !thumbOnly) {
 							int length = ah.getTrackLength();
@@ -508,7 +511,14 @@ public class DLNAMediaInfo implements Cloneable {
 								setThumb(t.getArtworkList().get(0).getBinaryData());
 							} else {
 								if (PMS.getConfiguration().getAudioThumbnailMethod() > 0) {
-									setThumb(CoverUtil.get().getThumbnailFromArtistAlbum(PMS.getConfiguration().getAudioThumbnailMethod() == 1 ? CoverUtil.AUDIO_AMAZON : CoverUtil.AUDIO_DISCOGS, audio.getArtist(), audio.getAlbum()));
+									setThumb(
+										CoverUtil.get().getThumbnailFromArtistAlbum(
+											PMS.getConfiguration().getAudioThumbnailMethod() == 1 ?
+												CoverUtil.AUDIO_AMAZON :
+												CoverUtil.AUDIO_DISCOGS,
+											audio.getArtist(), audio.getAlbum()
+										)
+									);
 								}
 							}
 
@@ -531,12 +541,12 @@ public class DLNAMediaInfo implements Cloneable {
 							}
 						}
 					} catch (Throwable e) {
-						LOGGER.debug("Error parsing audio file: " + e.getMessage() + " - " + (e.getCause() != null ? e.getCause().getMessage() : ""));
+						LOGGER.debug("Error parsing audio file: {} - {}", e.getMessage(), e.getCause() != null ? e.getCause().getMessage() : "");
 						ffmpeg_parsing = false;
 					}
 
 					if (audio.getSongname() == null || audio.getSongname().length() == 0) {
-						audio.setSongname(f.getFile().getName());
+						audio.setSongname(inputFile.getFile().getName());
 					}
 
 					if (!ffmpeg_parsing) {
@@ -545,10 +555,10 @@ public class DLNAMediaInfo implements Cloneable {
 				}
 			}
 
-			if (type == Format.IMAGE && f.getFile() != null) {
+			if (type == Format.IMAGE && inputFile.getFile() != null) {
 				try {
 					ffmpeg_parsing = false;
-					ImageInfo info = Sanselan.getImageInfo(f.getFile());
+					ImageInfo info = Sanselan.getImageInfo(inputFile.getFile());
 					setWidth(info.getWidth());
 					setHeight(info.getHeight());
 					setBitsPerPixel(info.getBitsPerPixel());
@@ -556,7 +566,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 					if (formatName.startsWith("JPEG")) {
 						setCodecV("jpg");
-						IImageMetadata meta = Sanselan.getMetadata(f.getFile());
+						IImageMetadata meta = Sanselan.getMetadata(inputFile.getFile());
 
 						if (meta != null && meta instanceof JpegImageMetadata) {
 							JpegImageMetadata jpegmeta = (JpegImageMetadata) meta;
@@ -592,71 +602,76 @@ public class DLNAMediaInfo implements Cloneable {
 					setContainer(getCodecV());
 				} catch (Throwable e) {
 					// ffmpeg_parsing = true;
-					LOGGER.info("Error parsing image with Sanselan... switching to FFmpeg: " + e.getMessage());
+					LOGGER.info("Error parsing image ({}) with Sanselan, switching to FFmpeg", inputFile.getFile().getAbsolutePath(), e);
 				}
+			}
 
+			if (PMS.getConfiguration().getImageThumbnailsEnabled()) {
 				try {
-					if (PMS.getConfiguration().getImageThumbnailsEnabled()) {
-						File thumbDir = new File(PMS.getConfiguration().getTempFolder() + "/thumbs/");
+					File thumbDir = new File(PMS.getConfiguration().getTempFolder(), THUMBNAIL_DIRECTORY_NAME);
 
-						if (!thumbDir.exists() && !thumbDir.mkdirs()) {
-							LOGGER.debug("Could not create directory \"" + thumbDir.getAbsolutePath() + "\"");
-						} else {
-							String thumbFilename = thumbDir + f.getFile().getName() + ".jpg";
-							LOGGER.trace("Creating thumbnail \"" + thumbFilename + "\"");
+					LOGGER.trace("Generating thumbnail for: {}", inputFile.getFile().getAbsolutePath());
 
-							// Create the thumbnail image using the Thumbnailator library
-							final Builder<File> thumbnail = Thumbnails.of(f.getFile());
-							thumbnail.size(320, 180);
-							thumbnail.outputFormat("jpg");
-							thumbnail.outputQuality(1.0f);
+					if (!thumbDir.exists() && !thumbDir.mkdirs()) {
+						LOGGER.warn("Could not create thumbnail directory: {}", thumbDir.getAbsolutePath());
+					} else {
+						File thumbFile = new File(thumbDir, inputFile.getFile().getName() + ".jpg");
+						String thumbFilename = thumbFile.getAbsolutePath();
 
-							try {
-								thumbnail.toFile(thumbFilename);
-							} catch (IIOException e) {
-								LOGGER.debug("Error generating thumbnail for: " + f.getFile().getName());
-								LOGGER.debug("The full error was: " + e);
+						LOGGER.trace("Creating (temporary) thumbnail: {}", thumbFilename);
+
+						// Create the thumbnail image using the Thumbnailator library
+						final Builder<File> thumbnail = Thumbnails.of(inputFile.getFile());
+						thumbnail.size(320, 180);
+						thumbnail.outputFormat("jpg");
+						thumbnail.outputQuality(1.0f);
+
+						try {
+							thumbnail.toFile(thumbFilename);
+						} catch (IIOException e) {
+							LOGGER.debug("Error generating thumbnail for: " + inputFile.getFile().getName());
+							LOGGER.debug("The full error was: " + e);
+						}
+
+						File jpg = new File(thumbFilename);
+
+						if (jpg.exists()) {
+							InputStream is = new FileInputStream(jpg);
+							int sz = is.available();
+
+							if (sz > 0) {
+								setThumb(new byte[sz]);
+								is.read(getThumb());
 							}
 
-							File jpg = new File(thumbFilename);
+							is.close();
 
-							if (jpg.exists()) {
-								InputStream is = new FileInputStream(jpg);
-								int sz = is.available();
-
-								if (sz > 0) {
-									setThumb(new byte[sz]);
-									is.read(getThumb());
-								}
-
-								is.close();
-
-								if (!jpg.delete()) {
-									jpg.deleteOnExit();
-								}
+							if (!jpg.delete()) {
+								jpg.deleteOnExit();
 							}
 						}
 					}
+				} catch (UnsupportedFormatException ufe) {
+					LOGGER.warn("Can't create thumbnail for {}: {}", inputFile.getFile().getAbsolutePath(), ufe.getMessage());
 				} catch (Exception e) {
-					LOGGER.info("Error generating thumbnail of image", e);
+					LOGGER.warn("Error generating thumbnail for: {}", inputFile.getFile().getAbsolutePath(), e);
 				}
 			}
 
 			if (ffmpeg_parsing) {
 				if (!thumbOnly || !PMS.getConfiguration().isUseMplayerForVideoThumbs()) {
-					pw = getFFMpegThumbnail(f);
+					pw = getFFMpegThumbnail(inputFile);
 				}
 
 				String input = "-";
 				boolean dvrms = false;
 
-				if (f.getFile() != null) {
-					input = ProcessUtil.getShortFileNameIfWideChars(f.getFile().getAbsolutePath());
-					dvrms = f.getFile().getAbsolutePath().toLowerCase().endsWith("dvr-ms");
+				if (inputFile.getFile() != null) {
+					input = ProcessUtil.getShortFileNameIfWideChars(inputFile.getFile().getAbsolutePath());
+					dvrms = inputFile.getFile().getAbsolutePath().toLowerCase().endsWith("dvr-ms");
 				}
 
 				if (!ffmpeg_failure && !thumbOnly) {
-
 					if (input.equals("-")) {
 						input = "pipe:";
 					}
@@ -867,10 +882,10 @@ public class DLNAMediaInfo implements Cloneable {
 					}
 				}
 
-				if (!thumbOnly && getContainer() != null && f.getFile() != null && getContainer().equals("mpegts") && isH264() && getDurationInSeconds() == 0) {
+				if (!thumbOnly && getContainer() != null && inputFile.getFile() != null && getContainer().equals("mpegts") && isH264() && getDurationInSeconds() == 0) {
 					// let's do the parsing for getting the duration...
 					try {
-						int length = MpegUtil.getDurationFromMpeg(f.getFile());
+						int length = MpegUtil.getDurationFromMpeg(inputFile.getFile());
 						if (length > 0) {
 							setDuration((double) length);
 						}
@@ -881,8 +896,8 @@ public class DLNAMediaInfo implements Cloneable {
 
 				if (PMS.getConfiguration().isUseMplayerForVideoThumbs() && type == Format.VIDEO && !dvrms) {
 					try {
-						getMplayerThumbnail(f);
-						String frameName = "" + f.hashCode();
+						getMplayerThumbnail(inputFile);
+						String frameName = "" + inputFile.hashCode();
 						frameName = PMS.getConfiguration().getTempFolder() + "/mplayer_thumbs/" + frameName + "00000001/00000001.jpg";
 						frameName = frameName.replace(',', '_');
 						File jpg = new File(frameName);
@@ -943,7 +958,7 @@ public class DLNAMediaInfo implements Cloneable {
 					}
 				}
 			}
-			finalize(type, f);
+			finalize(type, inputFile);
 			setMediaparsed(true);
 		}
 	}

@@ -583,7 +583,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								try {
 									((AdditionalResourceFolderListener) listener).addAdditionalFolder(this, child);
 								} catch (Throwable t) {
-									LOGGER.error(String.format("Failed to add add additional folder for listener of type=%s", listener.getClass()), t);
+									LOGGER.error("Failed to add additional folder for listener of type: {}", listener.getClass(), t);
 								}
 							}
 						}
@@ -615,7 +615,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 			}
 		} catch (Throwable t) {
-			LOGGER.error(String.format("Failed to add child '%s'", child.getName()), t);
+			LOGGER.error("Error adding child: {}", child.getName(), t);
 
 			child.setParent(null);
 			getChildren().remove(child);
@@ -723,9 +723,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 					int parallel_thread_number = 3;
 					if (resource instanceof DVDISOFile) {
-						parallel_thread_number = 1; // my dvd drive is dying wih 3 parallel threads
+						parallel_thread_number = 1; // Some DVD drives die wih 3 parallel threads
 					}
-					ThreadPoolExecutor tpe = new ThreadPoolExecutor(Math.min(count, parallel_thread_number), count, 20, TimeUnit.SECONDS, queue);
+					ThreadPoolExecutor tpe = new ThreadPoolExecutor(
+						Math.min(count, parallel_thread_number),
+						count,
+						20,
+						TimeUnit.SECONDS,
+						queue
+					);
 
 					for (int i = start; i < start + count; i++) {
 						if (i < resource.getChildren().size()) {
@@ -767,7 +773,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	final protected void discoverWithRenderer(RendererConfiguration renderer, int count, boolean forced, String searchStr) {
-		// Discovering if not already done.
+		// Discover children if it hasn't been done already
 		if (!isDiscovered()) {
 			if (PMS.getConfiguration().getFolderLimit() && depthLimit()) {
 				if (renderer.getRendererName().equalsIgnoreCase("Playstation 3") || renderer.isXBOX()) {
@@ -1538,7 +1544,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 										try {
 											((StartStopListener) listener).nowPlaying(getMedia(), self);
 										} catch (Throwable t) {
-											LOGGER.error(String.format("Notification of startPlaying event failed for StartStopListener %s", listener.getClass()), t);
+											LOGGER.error("Notification of startPlaying event failed for StartStopListener {}", listener.getClass(), t);
 										}
 									}
 								};
@@ -1602,7 +1608,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 												try {
 													((StartStopListener) listener).donePlaying(getMedia(), self);
 												} catch (Throwable t) {
-													LOGGER.error(String.format("Notification of donePlaying event failed for StartStopListener %s", listener.getClass()), t);
+													LOGGER.error("Notification of donePlaying event failed for StartStopListener {}", listener.getClass(), t);
 												}
 											}
 										};
@@ -1838,15 +1844,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Checks if a thumbnail exists, and if possible, generates one.
-	 * @param input InputFile to check or generate the thumbnail that is being asked for.
+	 * Checks if a thumbnail exists, and, if not, generates one (if possible).
+	 * Called from Request/RequestV2 in response to thumbnail requests e.g. HEAD /get/0$1$0$42$3/thumbnail0000%5BExample.mkv
+	 * Calls DLNAMediaInfo.generateThumbnail, which in turn calls DLNAMediaInfo.parse.
+	 *
+	 * @param input InputFile to check or generate the thumbnail from.
 	 */
-	protected void checkThumbnail(InputFile input) {
+	protected void checkThumbnail(InputFile inputFile) {
 		if (getMedia() != null && !getMedia().isThumbready() && PMS.getConfiguration().isThumbnailGenerationEnabled()) {
 			getMedia().setThumbready(true);
-			getMedia().generateThumbnail(input, getFormat(), getType());
-			if (getMedia().getThumb() != null && PMS.getConfiguration().getUseCache() && input.getFile() != null) {
-				PMS.get().getDatabase().updateThumbnail(input.getFile().getAbsolutePath(), input.getFile().lastModified(), getType(), getMedia());
+			getMedia().generateThumbnail(inputFile, getFormat(), getType());
+			if (getMedia().getThumb() != null && PMS.getConfiguration().getUseCache() && inputFile.getFile() != null) {
+				PMS.get().getDatabase().updateThumbnail(inputFile.getFile().getAbsolutePath(), inputFile.getFile().lastModified(), getType(), getMedia());
 			}
 		}
 	}
