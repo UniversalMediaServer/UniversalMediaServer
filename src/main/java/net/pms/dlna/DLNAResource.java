@@ -968,6 +968,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		String name = getName();
 		String subtitleFormat;
 		String subtitleLanguage;
+		boolean isNamedNoEncoding = false;
 		if (this instanceof RealFile && PMS.getConfiguration().isHideExtensions() && !isFolder()) {
 			name = FileUtil.getFileNameWithoutExtension(name);
 		}
@@ -988,13 +989,24 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		} else {
 			if (isNoName()) {
 				name = "[No encoding]";
+				isNamedNoEncoding = true;
 			} else if (nametruncate > 0) {
 				name = name.substring(0, nametruncate).trim();
 			}
 		}
 
-		if (isSrtFile() && (getMediaAudio() == null && getMediaSubtitle() == null)
-				&& (getPlayer() == null || getPlayer().isExternalSubtitlesSupported())) {
+		if (
+			isSrtFile() &&
+			!isNamedNoEncoding &&
+			(
+				getMediaAudio() == null &&
+				getMediaSubtitle() == null
+			) && 
+			(
+				getPlayer() == null ||
+				getPlayer().isExternalSubtitlesSupported()
+			)
+		) {
 			name += " {External Subtitles}";
 		}
 
