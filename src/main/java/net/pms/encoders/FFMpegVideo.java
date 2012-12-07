@@ -47,6 +47,7 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.StreamModifier;
 import net.pms.network.HTTPResource;
+import net.pms.util.ProcessUtil;
 import org.apache.commons.lang.StringUtils;
 import static org.apache.commons.lang.StringUtils.isBlank;
 import org.slf4j.Logger;
@@ -250,7 +251,6 @@ public class FFMpegVideo extends Player {
 	}
 
 	@Override
-	@Deprecated
 	public boolean avisynth() {
 		return false;
 	}
@@ -365,6 +365,8 @@ public class FFMpegVideo extends Player {
 		List<String> cmdList = new ArrayList<String>();
 		RendererConfiguration renderer = params.mediaRenderer;
 
+		boolean avisynth = avisynth();
+
 		cmdList.add(executable());
 
 		// Prevent FFmpeg timeout
@@ -400,8 +402,22 @@ public class FFMpegVideo extends Player {
 				params.mediaRenderer.isDTSPlayable();
 		}
 
+		String frameRateRatio = null;
+		String frameRateNumber = null;
+
+		if (media != null) {
+			frameRateRatio = media.getValidFps(true);
+			frameRateNumber = media.getValidFps(false);
+		}
+
+		// Input filename
 		cmdList.add("-i");
-		cmdList.add(fileName);
+		if (avisynth && !fileName.toLowerCase().endsWith(".iso")) {
+			File avsFile = FFMpegAviSynthVideo.getAVSScript(fileName, params.sid, params.fromFrame, params.toFrame, frameRateRatio, frameRateNumber);
+			cmdList.add(ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath()));
+		} else {
+			cmdList.add(fileName);
+		}
 
 		// encoder threads
 		cmdList.add("-threads");

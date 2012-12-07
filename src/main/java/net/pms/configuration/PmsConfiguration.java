@@ -90,6 +90,9 @@ public class PmsConfiguration {
 	private static final String KEY_FFMPEG_ALTERNATIVE_PATH = "alternativeffmpegpath"; // deprecated: FFMpegDVRMSRemux will be removed and DVR-MS will be transcoded
 	private static final String KEY_FFMPEG_MULTITHREADING = "ffmpeg_multithreading";
 	private static final String KEY_FFMPEG_AVISYNTH_MULTITHREADING = "ffmpeg_avisynth_multithreading";
+	private static final String KEY_FFMPEG_AVISYNTH_CONVERT_FPS = "ffmpeg_avisynth_convertfps";
+	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME = "ffmpeg_avisynth_interframe";
+	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
 	private static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
 	private static final String KEY_FORCETRANSCODE = "forcetranscode";
 	private static final String KEY_FOLDER_LIMIT = "folder_limit";
@@ -1607,18 +1610,18 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Set to true if PMS should pass the flag "convertfps=true" to AviSynth.
+	 * Whether we should pass the flag "convertfps=true" to AviSynth.
 	 *
-	 * @param value True if PMS should pass the flag.
+	 * @param value True if we should pass the flag.
 	 */
 	public void setAvisynthConvertFps(boolean value) {
 		configuration.setProperty(KEY_AVISYNTH_CONVERT_FPS, value);
 	}
 
 	/**
-	 * Returns true if PMS should pass the flag "convertfps=true" to AviSynth.
+	 * Returns true if we should pass the flag "convertfps=true" to AviSynth.
 	 *
-	 * @return True if PMS should pass the flag.
+	 * @return True if we should pass the flag.
 	 */
 	public boolean getAvisynthConvertFps() {
 		return getBoolean(KEY_AVISYNTH_CONVERT_FPS, true);
@@ -1743,6 +1746,40 @@ public class PmsConfiguration {
 	public boolean isFfmpegAviSynthMultithreading() {
 		boolean isMultiCore = getNumberOfCpuCores() > 1;
 		return getBoolean(KEY_FFMPEG_AVISYNTH_MULTITHREADING, isMultiCore);
+	}
+
+	/**
+	 * Whether we should pass the flag "convertfps=true" to AviSynth.
+	 *
+	 * @param value True if we should pass the flag.
+	 */
+	public void setFfmpegAvisynthConvertFps(boolean value) {
+		configuration.setProperty(KEY_AVISYNTH_CONVERT_FPS, value);
+	}
+
+	/**
+	 * Returns true if we should pass the flag "convertfps=true" to AviSynth.
+	 *
+	 * @return True if we should pass the flag.
+	 */
+	public boolean getFfmpegAvisynthConvertFps() {
+		return getBoolean(KEY_FFMPEG_AVISYNTH_CONVERT_FPS, true);
+	}
+
+	public void setFfmpegAvisynthInterFrame(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_AVISYNTH_INTERFRAME, value);
+	}
+
+	public boolean getFfmpegAvisynthInterFrame() {
+		return getBoolean(KEY_FFMPEG_AVISYNTH_INTERFRAME, false);
+	}
+
+	public void setFfmpegAvisynthInterFrameGPU(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU, value);
+	}
+
+	public boolean getFfmpegAvisynthInterFrameGPU() {
+		return getBoolean(KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU, false);
 	}
 
 	public boolean isMencoderNoOutOfSync() {
