@@ -1689,6 +1689,11 @@ public class MEncoderVideo extends Player {
 						sb.append("-font ").append(font).append(" ");
 					}
 				}
+
+				// Workaround for MPlayer #2041, remove when that bug is fixed
+				if (!params.sid.isEmbedded()) {
+					sb.append("-noflip-hebrew ");
+				}
 			// Use PLAINTEXT formatting
 			} else {
 				// Set subtitles font
