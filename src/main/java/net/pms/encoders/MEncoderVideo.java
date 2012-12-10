@@ -1481,7 +1481,7 @@ public class MEncoderVideo extends Player {
 
 			// XXX we should weed out the unused/unwanted settings and keep the rest
 			// (see sanitizeArgs()) rather than ignoring the options entirely
-			if (rendererMencoderOptions.contains("expand=") || dvd) {
+			if (rendererMencoderOptions.contains("expand=") && dvd) {
 				rendererMencoderOptions = null;
 			}
 		}
