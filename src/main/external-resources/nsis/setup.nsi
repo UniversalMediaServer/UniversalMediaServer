@@ -91,7 +91,7 @@ Function AdvancedSettings
 	${NSD_CreateText} 3% 30% 10% 12u "768"
 	Pop $Text
 
-	${NSD_CreateLabel} 0 50% 100% 20u "This replaces your current configuration files with new ones, allowing you to take advantage of improved defaults. WARNING: All of your settings will be gone."
+	${NSD_CreateLabel} 0 50% 100% 20u "This replaces your current configuration files with new ones, allowing you to take advantage of improved defaults. This will delete all files in the UMS configuration directory."
 	Pop $DescCleanInstall
 
 	${NSD_CreateCheckbox} 3% 65% 100% 12u "Clean install"
