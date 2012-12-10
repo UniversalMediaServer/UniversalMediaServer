@@ -1,4 +1,5 @@
 !include "MUI.nsh"
+!include "MUI2.nsh"
 !include "FileFunc.nsh"
 !include "TextFunc.nsh"
 !include "WordFunc.nsh"
@@ -26,6 +27,7 @@ SetCompressorDictSize 32
 !define MUI_ABORTWARNING
 !define MUI_FINISHPAGE_RUN "$INSTDIR\UMS.exe"
 !define MUI_WELCOMEFINISHPAGE_BITMAP "${NSISDIR}\Contrib\Graphics\Wizard\win.bmp"
+!define MUI_PAGE_CUSTOMFUNCTION_LEAVE WelcomeLeave
 
 !define MUI_FINISHPAGE_SHOWREADME ""
 !define MUI_FINISHPAGE_SHOWREADME_NOTCHECKED
@@ -34,6 +36,7 @@ SetCompressorDictSize 32
 
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_DIRECTORY
+Page Custom LockedListShow LockedListLeave
 Page custom AdvancedSettings AdvancedSettingsAfterwards ;Custom page
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
@@ -64,6 +67,23 @@ Section -Prerequisites
   endAviSynthInstall:
 
 SectionEnd
+
+Function WelcomeLeave
+  StrCpy $R1 0
+FunctionEnd
+
+Function LockedListShow
+  StrCmp $R1 0 +2 ; Skip the page if clicking Back from the next page.
+    Abort
+  !insertmacro MUI_HEADER_TEXT `UMS must be closed before installation` `If it is already closed, you may need to restart your computer.`
+  LockedList::AddModule "$INSTDIR\MediaInfo.dll"
+  LockedList::Dialog /autonext
+  Pop $R0
+FunctionEnd
+
+Function LockedListLeave
+  StrCpy $R1 1
+FunctionEnd
 
 Var Dialog
 Var Text
