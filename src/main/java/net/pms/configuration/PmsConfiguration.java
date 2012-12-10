@@ -687,12 +687,12 @@ public class PmsConfiguration {
 	/**
 	 * Returns the preferred maximum size for the transcoding memory buffer in megabytes.
 	 * The value returned has a top limit of {@link #MAX_MAX_MEMORY_BUFFER_SIZE}. Default
-	 * value is 400.
+	 * value is 200.
 	 *
 	 * @return The maximum memory buffer size.
 	 */
 	public int getMaxMemoryBufferSize() {
-		return Math.max(0, Math.min(MAX_MAX_MEMORY_BUFFER_SIZE, getInt(KEY_MAX_MEMORY_BUFFER_SIZE, 400)));
+		return Math.max(0, Math.min(MAX_MAX_MEMORY_BUFFER_SIZE, getInt(KEY_MAX_MEMORY_BUFFER_SIZE, 200)));
 	}
 
 	/**
