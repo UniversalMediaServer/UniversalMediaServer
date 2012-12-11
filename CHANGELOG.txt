@@ -1,4 +1,4 @@
-2.2.0 - 2012-12-??
+2.2.0 - 2012-12-11
 
 	General:
 		Added option that creates virtual A-Z subfolders in folders with a lot of files (the last option on the Navigation/Share Settings page)
