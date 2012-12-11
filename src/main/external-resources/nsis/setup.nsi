@@ -75,9 +75,9 @@ FunctionEnd
 Function LockedListShow
   StrCmp $R1 0 +2 ; Skip the page if clicking Back from the next page.
     Abort
-  !insertmacro MUI_HEADER_TEXT `UMS must be closed before installation` `If it is already closed, you may need to restart your computer.`
+  !insertmacro MUI_HEADER_TEXT `UMS must be closed before installation` `Clicking Next will automatically close it.`
   LockedList::AddModule "$INSTDIR\MediaInfo.dll"
-  LockedList::Dialog /autonext
+  LockedList::Dialog /autoclosesilent /autonext
   Pop $R0
 FunctionEnd
 
