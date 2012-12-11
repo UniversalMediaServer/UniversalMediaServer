@@ -12,6 +12,14 @@
 		Improved FFmpeg speed
 		Added support for creating thumbnails from TIFF and other formats
 		Fixed numerous smaller bugs
+		Made thumbnail generation and browsing faster
+		Don't show the text "{External Subtitles}" if the display name is "[No Encoding]" within the transcode folder
+		Added support for True Motion and convertfps to AviSynth/FFmpeg engine
+		Made multithreading more stable with AviSynth/FFmpeg engine
+		Fixed RTL subtitle support
+		Improved stability while seeking and transcoding
+		Fixed custom MEncoder settings at renderer level
+		Added a check to the Windows installer that prevents installation until UMS is closed
 	Languages:
 		Minor updates to all languages
 		More text is translatable
@@ -19,7 +27,7 @@
 		Updated Czech
 	Renderers:
 		Support more Android players (thanks, ExSport!)
-		Improved support for Panasonic TVs
+		Improved support for Panasonic TVs (thanks, ExSport!)
 	External Components:
 		Updated MPlayer/MEncoder to SB45, which:
 			Fixed audio stuttering/repeating bug
