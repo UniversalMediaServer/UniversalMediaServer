@@ -77,7 +77,7 @@ Function LockedListShow
     Abort
   !insertmacro MUI_HEADER_TEXT `UMS must be closed before installation` `Clicking Next will automatically close it.`
   LockedList::AddModule "$INSTDIR\MediaInfo.dll"
-  LockedList::Dialog /autoclosesilent /autonext
+  LockedList::Dialog /autonext /autoclosesilent
   Pop $R0
 FunctionEnd
 
