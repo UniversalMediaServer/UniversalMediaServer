@@ -1314,10 +1314,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						if (getPlayer() != null) {
 							// Do we have some mpegts to offer?
 							boolean mpegTsMux = TSMuxerVideo.ID.equals(getPlayer().id()) || VideoLanVideoStreaming.ID.equals(getPlayer().id());
-							if (!mpegTsMux) { // Maybe, like the PS3, MEncoder can launch tsMuxeR if this a compatible H264 video
-								mpegTsMux = MEncoderVideo.ID.equals(getPlayer().id()) && ((getMediaSubtitle() == null && getMedia() != null && getMedia().getDvdtrack() == 0 && getMedia().isMuxable(mediaRenderer)
-									&& PMS.getConfiguration().isMencoderMuxWhenCompatible() && mediaRenderer.isMuxH264MpegTS())
-									|| mediaRenderer.isTranscodeToMPEGTSAC3());
+							if (!mpegTsMux) { // Maybe, like the PS3, MEncoder can launch tsMuxeR if this a compatible H.264 video
+								mpegTsMux = MEncoderVideo.ID.equals(getPlayer().id()) &&
+									(
+										(
+											getMediaSubtitle() == null &&
+											getMedia() != null &&
+											getMedia().getDvdtrack() == 0 &&
+											getMedia().isMuxable(mediaRenderer) &&
+											PMS.getConfiguration().isMencoderMuxWhenCompatible() &&
+											mediaRenderer.isMuxH264MpegTS()
+										) ||
+										mediaRenderer.isTranscodeToMPEGTSAC3()
+									);
 							}
 							if (mpegTsMux) {
 								dlnaspec = getMedia().isH264() && !VideoLanVideoStreaming.ID.equals(getPlayer().id()) && getMedia().isMuxable(mediaRenderer) ?
