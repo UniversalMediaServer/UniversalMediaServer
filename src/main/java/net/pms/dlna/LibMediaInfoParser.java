@@ -90,9 +90,9 @@ public class LibMediaInfoParser {
 								}
 							} else if (key.equals("Duration/String1") && streamType == MediaInfo.StreamKind.General) {
 								media.setDuration(getDuration(value));
-							} else if (key.equals("Codec_Settings_QPel") && streamType == MediaInfo.StreamKind.Video) {
+							} else if (key.equals("Format_Settings_QPel") && streamType == MediaInfo.StreamKind.Video) {
 								media.putExtra(FormatConfiguration.MI_QPEL, value);
-							} else if (key.equals("Codec_Settings_GMC") && streamType == MediaInfo.StreamKind.Video) {
+							} else if (key.equals("Format_Settings_GMC") && streamType == MediaInfo.StreamKind.Video) {
 								media.putExtra(FormatConfiguration.MI_GMC, value);
 							} else if (key.equals("MuxingMode") && streamType == MediaInfo.StreamKind.Video) {
 								media.setMuxingMode(ovalue);
@@ -178,7 +178,7 @@ public class LibMediaInfoParser {
 								} catch (NumberFormatException nfe) {
 									LOGGER.debug("Could not parse track \"" + value + "\"");
 								}
-							} else if (key.equals("Resolution") && streamType == MediaInfo.StreamKind.Audio) {
+							} else if (key.equals("BitDepth") && streamType == MediaInfo.StreamKind.Audio) {
 								try {
 									currentAudioTrack.setBitsperSample(Integer.parseInt(value));
 								} catch (NumberFormatException nfe) {
