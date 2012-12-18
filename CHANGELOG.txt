@@ -1,7 +1,13 @@
 2.2.1 - 2012-12-??
 
 	General:
-		
+		Improved MEncoder audio sync
+		Improved TS video support on PS3
+		Installer offers to automatically close UMS if it is running
+		Updated JRE auto-download to 7u10
+		Fixed tsMuxeR support on non-PS3 renderers
+		Improved MediaInfo support
+		More files work on Panasonic TVs
 
 2.2.0 - 2012-12-11
 
