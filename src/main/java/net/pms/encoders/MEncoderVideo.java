@@ -1502,6 +1502,13 @@ public class MEncoderVideo extends Player {
 			int nThreads = (dvd || fileName.toLowerCase().endsWith("dvr-ms")) ?
 				1 :
 				configuration.getMencoderMaxThreads();
+
+			// MEncoder loses audio/video sync if more than 4 decoder (lavdopts) threads are used.
+			// Multithreading for decoding offers little performance gain anyway so it's not a big deal.
+			if (nThreads > 4) {
+				nThreads = 4;
+			}
+
 			boolean handleToken = false;
 			int i = 0;
 
