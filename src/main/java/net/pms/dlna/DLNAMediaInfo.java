@@ -249,13 +249,19 @@ public class DLNAMediaInfo implements Cloneable {
 	public boolean encrypted;
 
 	public boolean isMuxable(RendererConfiguration mediaRenderer) {
-		// temporary fix: MediaInfo support will take care of this in the future
-
-		// for now, http://ps3mediaserver.org/forum/viewtopic.php?f=11&t=6361&start=0
-		if (mediaRenderer.isBRAVIA() && getCodecV() != null && getCodecV().startsWith("mpeg2")) {
-			muxable = true;
+		// tsMuxeR should not attempt to mux AVI or DivX files since it does not support them
+		if (
+			getContainer() != null &&
+			(
+				getContainer().equals("avi") ||
+				getContainer().equals("divx")
+			)
+		) {
+			muxable = false;
 		}
 
+		// temporary fix: MediaInfo support will take care of this in the future
+		// for now, http://ps3mediaserver.org/forum/viewtopic.php?f=11&t=6361&start=0
 		if (mediaRenderer.isBRAVIA() && getHeight() < 288) { // not supported for these small heights
 			muxable = false;
 		}
