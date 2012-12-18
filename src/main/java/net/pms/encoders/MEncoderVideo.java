@@ -1304,13 +1304,15 @@ public class MEncoderVideo extends Player {
 			params.sid == null &&
 			!dvd &&
 			!avisynth() &&
-			media != null && (
+			media != null &&
+			(
 				media.isVideoPS3Compatible(newInput) ||
 				!params.mediaRenderer.isH264Level41Limited()
 			) &&
 			media.isMuxable(params.mediaRenderer) &&
 			configuration.isMencoderMuxWhenCompatible() &&
-			params.mediaRenderer.isMuxH264MpegTS() && (
+			params.mediaRenderer.isMuxH264MpegTS() &&
+			(
 				intOCW == 0 &&
 				intOCH == 0
 			)
