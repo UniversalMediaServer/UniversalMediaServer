@@ -1272,11 +1272,13 @@ public class MEncoderVideo extends Player {
 			dvd = true;
 		}
 
-		// don't honour "Switch to tsMuxeR..." if the resource is being streamed via an MEncoder entry in
+		// Don't honour "Remux videos with tsMuxeR..." if the resource is being streamed via a MEncoder entry in
 		// the #--TRANSCODE--# folder
-		boolean forceMencoder = !configuration.getHideTranscodeEnabled()
-			&& dlna.isNoName() // XXX remove this? http://www.ps3mediaserver.org/forum/viewtopic.php?f=11&t=12149
-			&& (dlna.getParent() instanceof FileTranscodeVirtualFolder);
+		boolean forceMencoder = !configuration.getHideTranscodeEnabled() &&
+			dlna.isNoName() && // XXX remove this? http://www.ps3mediaserver.org/forum/viewtopic.php?f=11&t=12149
+			(
+				dlna.getParent() instanceof FileTranscodeVirtualFolder
+			);
 
 		ovccopy  = false;
 		pcm      = false;
