@@ -248,8 +248,16 @@ public class DLNAMediaInfo implements Cloneable {
 	@Deprecated
 	public boolean encrypted;
 
+	/**
+	 * Used to determine whether MEncoderVideo should allow tsMuxeR to mux the
+	 * file instead of transcoding.
+	 * Also used by DLNAResource to help determine the DLNA.ORG_PN (file type)
+	 * value to send to the renderer.
+	 * This extends renderer configs, defining things that are needed by renderers
+	 * but are not possible with their configs yet.
+	 */
 	public boolean isMuxable(RendererConfiguration mediaRenderer) {
-		// tsMuxeR should not attempt to mux AVI or DivX files since it does not support them
+		// tsMuxeR sdoes not support AVI or DivX
 		if (
 			getContainer() != null &&
 			(
@@ -260,9 +268,10 @@ public class DLNAMediaInfo implements Cloneable {
 			muxable = false;
 		}
 
-		// temporary fix: MediaInfo support will take care of this in the future
-		// for now, http://ps3mediaserver.org/forum/viewtopic.php?f=11&t=6361&start=0
-		if (mediaRenderer.isBRAVIA() && getHeight() < 288) { // not supported for these small heights
+		// Temporary fix: MediaInfo support will take care of this in the future
+		// For now, http://ps3mediaserver.org/forum/viewtopic.php?f=11&t=6361&start=0
+		// Bravia does not support AVC video at less than 288px high
+		if (mediaRenderer.isBRAVIA() && getHeight() < 288) {
 			muxable = false;
 		}
 
