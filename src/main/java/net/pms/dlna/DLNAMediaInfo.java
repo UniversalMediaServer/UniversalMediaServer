@@ -239,7 +239,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 	private boolean ffmpeg_failure;
 	private boolean ffmpeg_annexb_failure;
-	private boolean muxable;
+	private boolean muxable = true;
 	private Map<String, String> extras;
 
 	/**
