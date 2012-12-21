@@ -257,7 +257,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * but are not possible with their configs yet.
 	 */
 	public boolean isMuxable(RendererConfiguration mediaRenderer) {
-		// tsMuxeR sdoes not support AVI or DivX
+		// tsMuxeR does not support AVI or DivX
 		if (
 			getContainer() != null &&
 			(
