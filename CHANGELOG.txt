@@ -8,6 +8,13 @@
 		Fixed tsMuxeR support on non-PS3 renderers
 		Improved MediaInfo support
 		More files work on Panasonic TVs
+		Updated images for PS3 and Panasonic TV renderers
+	External Components:
+		Updated MPlayer/MEncoder to SB46, which:
+			Makes ASS/SSA subtitle rendering up to 3.5x faster
+			Improves sync for files with negative timestamps
+			Improves AC-3 audio buffering
+			Fixes memory leaks
 
 2.2.0 - 2012-12-11
 
