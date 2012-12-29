@@ -350,6 +350,9 @@ public class RequestV2 extends HTTPResource {
 					}
 
 					String name = dlna.getDisplayName(mediaRenderer);
+					if (dlna.isNoName()) {
+						name = dlna.getName() + " " + dlna.getDisplayName(mediaRenderer);
+					}
 
 					if (inputStream == null) {
 						// No inputStream indicates that transcoding / remuxing probably crashed.
@@ -363,17 +366,6 @@ public class RequestV2 extends HTTPResource {
 
 						if (rendererMimeType != null && !"".equals(rendererMimeType)) {
 							output.setHeader(HttpHeaders.Names.CONTENT_TYPE, rendererMimeType);
-						}
-
-						final DLNAMediaInfo media = dlna.getMedia();
-						if (media != null) {
-							if (isNotBlank(media.getContainer())) {
-								name += " [container: " + media.getContainer() + "]";
-							}
-
-							if (isNotBlank(media.getCodecV())) {
-								name += " [video: " + media.getCodecV() + "]";
-							}
 						}
 
 						PMS.get().getFrame().setStatusLine("Serving " + name);

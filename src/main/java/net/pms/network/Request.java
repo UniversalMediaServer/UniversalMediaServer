@@ -236,6 +236,10 @@ public class Request extends HTTPResource {
 				} else {
 					// This is a request for a regular file.
 					String name = dlna.getDisplayName(mediaRenderer);
+					if (dlna.isNoName()) {
+						name = dlna.getName() + " " + dlna.getDisplayName(mediaRenderer);
+					}
+
 					inputStream = dlna.getInputStream(Range.create(lowRange, highRange, timeseek, timeRangeEnd), mediaRenderer);
 					if (inputStream == null) {
 						// No inputStream indicates that transcoding / remuxing probably crashed.
@@ -270,16 +274,6 @@ public class Request extends HTTPResource {
 							}
 						}
 
-						final DLNAMediaInfo media = dlna.getMedia();
-
-						if (media != null) {
-							if (StringUtils.isNotBlank(media.getContainer())) {
-								name += " [container: " + media.getContainer() + "]";
-							}
-							if (StringUtils.isNotBlank(media.getCodecV())) {
-								name += " [video: " + media.getCodecV() + "]";
-							}
-						}
 						PMS.get().getFrame().setStatusLine("Serving " + name);
 
 						// Response generation:
