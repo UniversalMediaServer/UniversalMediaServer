@@ -30,7 +30,7 @@ import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.formats.FormatFactory;
 import net.pms.network.HTTPResource;
 import net.pms.util.NaturalComparator;
-import net.sf.sevenzipjbinding.ArchiveFormat;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +44,7 @@ import org.slf4j.LoggerFactory;
 public class MapFile extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MapFile.class);
 	private List<File> discoverable;
+	private String forcedName;
 
 	/**
 	 * @deprecated Use standard getter and setter to access this variable.
@@ -67,11 +68,20 @@ public class MapFile extends DLNAResource {
 	public MapFile() {
 		setConf(new MapFileConfiguration());
 		setLastModified(0);
+		forcedName = null;
 	}
 
 	public MapFile(MapFileConfiguration conf) {
 		setConf(conf);
 		setLastModified(0);
+		forcedName = null;
+	}
+
+	public MapFile(MapFileConfiguration conf, List<File> list) {
+		setConf(conf);
+		setLastModified(0);
+		this.discoverable = list;
+		forcedName = null;
 	}
 
 	private boolean isFileRelevant(File f) {
@@ -110,7 +120,6 @@ public class MapFile extends DLNAResource {
 				}
 			}
 		}
-
 		return isRelevant;
 	}
 
@@ -185,7 +194,7 @@ public class MapFile extends DLNAResource {
 	public boolean analyzeChildren(int count) {
 		int currentChildrenCount = getChildren().size();
 		int vfolder = 0;
-		while ((getChildren().size() - currentChildrenCount) < count || count == -1) {
+		while (((getChildren().size() - currentChildrenCount) < count) || (count == -1)) {
 			if (vfolder < getConf().getChildren().size()) {
 				addChild(new MapFile(getConf().getChildren().get(vfolder)));
 				++vfolder;
@@ -203,8 +212,8 @@ public class MapFile extends DLNAResource {
 	public void discoverChildren() {
 		discoverChildren(null);
 	}
-	
-	
+
+	@Override
 	public void discoverChildren(String str) {
 		//super.discoverChildren(str);
 		if (str != null) {
@@ -218,6 +227,51 @@ public class MapFile extends DLNAResource {
 		}
 
 		List<File> files = getFileList();
+
+		// ATZ handling
+		if (files.size() > PMS.getConfiguration().getATZLimit() && StringUtils.isEmpty(forcedName)) {
+			/*
+			 * Too many files to display at once, add A-Z folders
+			 * instead and let the filters begin
+			 *
+			 * Note: If we done this at the level directly above we don't do it again
+			 * since all files start with the same letter then
+			 */
+			TreeMap<String, ArrayList<File>> map = new TreeMap<String, ArrayList<File>>();
+			for (File f : files) {
+				if ((!f.isFile() && !f.isDirectory()) || f.isHidden()) {
+					// skip these
+					continue;
+				}
+				if (f.isDirectory() && PMS.getConfiguration().isHideEmptyFolders() && !isFolderRelevant(f)) {
+					LOGGER.debug("Ignoring empty/non-relevant directory: " + f.getName());
+					continue;
+				}
+				// Logic her gater all files in a list per letter
+				// non letters end up in "#"
+				char c = f.getName().toUpperCase().charAt(0);
+				if (!(c >= 'A' && c <= 'Z')) {
+					// "other char"
+					c = '#';
+				}
+				ArrayList<File> l = map.get(String.valueOf(c));
+				if (l == null) {
+					// new letter
+					l = new ArrayList<File>();
+				}
+				l.add(f);
+				map.put(String.valueOf(c), l);
+			}
+
+			for (String letter : map.keySet()) {
+				// loop over all letters, this avoids adding
+				// empty letters
+				MapFile mf = new MapFile(getConf(), map.get(letter));
+				mf.forcedName = letter;
+				addChild(mf);
+			}
+			return;
+		}
 
 		switch (PMS.getConfiguration().getSortMethod()) {
 			case 4: // Locale-sensitive natural sort
@@ -327,10 +381,12 @@ public class MapFile extends DLNAResource {
 			LOGGER.debug("File automatically added: " + f.getName());
 		}
 
+		// false: don't create the folder if it doesn't exist i.e. find the folder
 		TranscodeVirtualFolder vf = getTranscodeFolder(false);
 
 		for (DLNAResource f : removedFiles) {
 			getChildren().remove(f);
+
 			if (vf != null) {
 				for (int j = vf.getChildren().size() - 1; j >= 0; j--) {
 					if (vf.getChildren().get(j).getName().equals(f.getName())) {
@@ -350,7 +406,7 @@ public class MapFile extends DLNAResource {
 	}
 
 	private boolean foundInList(List<File> files, DLNAResource d) {
-		for (File f: files) {
+		for (File f : files) {
 			if (!f.isHidden() && isNameMatch(f, d) && (isRealFolder(d) || isSameLastModified(f, d))) {
 				files.remove(f);
 				return true;
@@ -405,7 +461,10 @@ public class MapFile extends DLNAResource {
 
 	@Override
 	public String getName() {
-		return this.getConf().getName();
+		if (StringUtils.isEmpty(forcedName)) {
+			return this.getConf().getName();
+		}
+		return forcedName;
 	}
 
 	@Override

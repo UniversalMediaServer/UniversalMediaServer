@@ -1720,7 +1720,7 @@ build_fontconfig
 build_fribidi
 build_enca
 build_giflib
-build_harfbuzz
+# build_harfbuzz # we do not need harfbuzz right now (also build errors)
 build_jpeg
 build_libpng
 build_libass

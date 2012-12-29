@@ -51,30 +51,35 @@ public class RealFile extends MapFile {
 		if (getType() == Format.VIDEO && file.exists() && PMS.getConfiguration().isAutoloadSubtitles() && file.getName().length() > 4) {
 			setSrtFile(FileUtil.doesSubtitlesExists(file, null));
 		}
+
 		boolean valid = file.exists() && (getFormat() != null || file.isDirectory());
 
 		if (valid && getParent().getDefaultRenderer() != null && getParent().getDefaultRenderer().isMediaParserV2()) {
-			// we need to resolve the dlna resource now
+			// we need to resolve the DLNA resource now
 			run();
-			if (getMedia() != null && getMedia().getThumb() == null && getType() != Format.AUDIO) // MediaInfo retrieves cover art now
-			{
+
+			if (getMedia() != null && getMedia().getThumb() == null && getType() != Format.AUDIO) { // MediaInfo retrieves cover art now
 				getMedia().setThumbready(false);
 			}
+
 			// Given that here getFormat() has already matched some (possibly plugin-defined) format:
 			//    Format.UNKNOWN + bad parse = inconclusive
 			//    known types    + bad parse = bad/encrypted file
 			if (getType() != Format.UNKNOWN && getMedia() != null && (getMedia().isEncrypted() || getMedia().getContainer() == null || getMedia().getContainer().equals(DLNAMediaLang.UND))) {
 				valid = false;
 				if (getMedia().isEncrypted()) {
-					LOGGER.info("The file " + file.getAbsolutePath() + " is encrypted. It will be hidden");
+					LOGGER.info("The file {} is encrypted. It will be hidden", file.getAbsolutePath());
 				} else {
-					LOGGER.info("The file " + file.getAbsolutePath() + " was badly parsed. It will be hidden");
+					LOGGER.info("The file {} was badly parsed. It will be hidden", file.getAbsolutePath());
 				}
 			}
+
+			// XXX isMediaParserV2ThumbnailGeneration is only true for the "default renderer"
 			if (getParent().getDefaultRenderer().isMediaParserV2ThumbnailGeneration()) {
 				checkThumbnail();
 			}
 		}
+
 		return valid;
 	}
 
@@ -83,8 +88,9 @@ public class RealFile extends MapFile {
 		try {
 			return new FileInputStream(getFile());
 		} catch (FileNotFoundException e) {
-			LOGGER.debug("File not found: \"" + getFile().getAbsolutePath() + "\"");
+			LOGGER.debug("File not found: {}", getFile().getAbsolutePath());
 		}
+
 		return null;
 	}
 
@@ -172,13 +178,16 @@ public class RealFile extends MapFile {
 				if (getMedia() == null) {
 					setMedia(new DLNAMediaInfo());
 				}
+
 				found = !getMedia().isMediaparsed() && !getMedia().isParsing();
+
 				if (getFormat() != null) {
 					getFormat().parse(getMedia(), input, getType(), getParent().getDefaultRenderer());
 				} else {
 					// Don't think that will ever happen
 					getMedia().parse(input, getFormat(), getType(), false);
 				}
+
 				if (found && PMS.getConfiguration().getUseCache()) {
 					DLNAMediaDatabase database = PMS.get().getDatabase();
 
@@ -270,8 +279,7 @@ public class RealFile extends MapFile {
 
 	@Override
 	protected String getThumbnailURL() {
-		if (getType() == Format.IMAGE && !PMS.getConfiguration().getImageThumbnailsEnabled())
-		{
+		if (getType() == Format.IMAGE && !PMS.getConfiguration().getImageThumbnailsEnabled()) {
 			return null;
 		}
 		StringBuilder sb = new StringBuilder();

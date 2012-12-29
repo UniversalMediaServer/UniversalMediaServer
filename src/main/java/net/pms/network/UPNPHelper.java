@@ -153,7 +153,7 @@ public class UPNPHelper {
 	}
 
 	public static void sendByeBye() throws IOException {
-		LOGGER.info("Sending BYEBYE...");
+		LOGGER.info("Disconnecting HTTP server from renderers");
 		MulticastSocket ssdpSocket = getNewMulticastSocket();
 
 		sendMessage(ssdpSocket, "upnp:rootdevice", BYEBYE);

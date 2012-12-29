@@ -47,7 +47,7 @@ public class NavigationShareTab {
 	private static final String PANEL_ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 10dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 10dlu, fill:default:grow";
 	private static final String SHARED_FOLDER_COL_SPEC = "left:pref, left:pref, pref, pref, pref, 0:grow";
 	private static final String SHARED_FOLDER_ROW_SPEC = "p, 3dlu, p, 3dlu, fill:default:grow";
-	
+
 	private JList FList;
 	private DefaultListModel df;
 	private JCheckBox hidevideosettings;
@@ -72,6 +72,7 @@ public class NavigationShareTab {
 	private JCheckBox itunes;
 	private CustomJButton select;
 	private CustomJButton cachereset;
+	private JTextField atzLimit;
 
 	public DefaultListModel getDf() {
 		return df;
@@ -167,6 +168,9 @@ public class NavigationShareTab {
 
 		builder.addLabel(Messages.getString("FoldTab.18"), FormLayoutUtil.flip(cc.xyw(1, 23, 3), colSpec, orientation));
 		builder.add(sortmethod, FormLayoutUtil.flip(cc.xyw(4, 23, 3), colSpec, orientation));
+
+		builder.addLabel(Messages.getString("FoldTab.37"), FormLayoutUtil.flip(cc.xyw(1, 25, 3), colSpec, orientation));
+		builder.add(atzLimit, FormLayoutUtil.flip(cc.xyw(4, 25, 3), colSpec, orientation));
 
 		builder.add(builderSharedFolder.getPanel(), FormLayoutUtil.flip(cc.xyw(1, 27, 10), colSpec, orientation));
 
@@ -401,7 +405,7 @@ public class NavigationShareTab {
 				int option = JOptionPane.showConfirmDialog(
 					(Component) PMS.get().getFrame(),
 					Messages.getString("NetworkTab.13") + Messages.getString("NetworkTab.19"),
-					"Question",
+					Messages.getString("Dialog.Question"),
 					JOptionPane.YES_NO_OPTION);
 				if (option == JOptionPane.YES_OPTION) {
 					PMS.get().getDatabase().init(true);
@@ -533,6 +537,28 @@ public class NavigationShareTab {
 				}
 			}
 		});
+
+		atzLimit = new JTextField("" + configuration.getATZLimit());
+		atzLimit.addKeyListener(new KeyListener() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+			}
+
+			@Override
+			public void keyTyped(KeyEvent e) {
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+				try {
+					int ab = Integer.parseInt(atzLimit.getText());
+					configuration.setATZLimit(ab);
+				} catch (NumberFormatException nfe) {
+					LOGGER.debug("Could not parse ATZ limit from \"" + atzLimit.getText() + "\"");
+					LOGGER.debug("The full error was: " + nfe);
+				}
+			}
+		});
 	}
 
 	private PanelBuilder initSharedFoldersGuiComponents(CellConstraints cc) {
@@ -540,7 +566,7 @@ public class NavigationShareTab {
 		Locale locale = new Locale(configuration.getLanguage());
 		ComponentOrientation orientation = ComponentOrientation.getOrientation(locale);
 		String colSpec = FormLayoutUtil.getColSpec(SHARED_FOLDER_COL_SPEC, orientation);
-		
+
 		FormLayout layoutFolders = new FormLayout(colSpec, SHARED_FOLDER_ROW_SPEC);
 		PanelBuilder builderFolder = new PanelBuilder(layoutFolders);
 		builderFolder.setOpaque(true);
@@ -648,7 +674,7 @@ public class NavigationShareTab {
 							int option = JOptionPane.showConfirmDialog(
 								(Component) PMS.get().getFrame(),
 								Messages.getString("FoldTab.3") + Messages.getString("FoldTab.4"),
-								"Question",
+								Messages.getString("Dialog.Question"),
 								JOptionPane.YES_NO_OPTION);
 							if (option == JOptionPane.YES_OPTION) {
 								database.scanLibrary();
@@ -658,7 +684,7 @@ public class NavigationShareTab {
 							int option = JOptionPane.showConfirmDialog(
 								(Component) PMS.get().getFrame(),
 								Messages.getString("FoldTab.10"),
-								"Question",
+								Messages.getString("Dialog.Question"),
 								JOptionPane.YES_NO_OPTION);
 							if (option == JOptionPane.YES_OPTION) {
 								database.stopScanLibrary();

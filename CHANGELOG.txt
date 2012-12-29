@@ -1,7 +1,74 @@
-2.1.3 - 2012-12-??
+2.2.2 - 2012-12-??
 
 	General:
 		
+
+2.2.1 - 2012-12-21
+
+	General:
+		Improved MEncoder audio sync
+		Improved TS video support on PS3
+		Installer offers to automatically close UMS if it is running
+		Updated JRE auto-download to 7u10
+		Fixed tsMuxeR support on non-PS3 renderers
+		Improved MediaInfo support
+		More files work on Panasonic TVs
+		Updated images for PS3 and Panasonic TV renderers
+	External Components:
+		Updated MPlayer/MEncoder to SB46, which:
+			Makes ASS/SSA subtitle rendering up to 3.5x faster
+			Improves sync for files with negative timestamps
+			Improves AC-3 audio buffering
+			Fixes memory leaks
+
+2.2.0 - 2012-12-11
+
+	General:
+		Added option that creates virtual A-Z subfolders in folders with a lot of files (the last option on the Navigation/Share Settings page)
+		Added option to the Windows installer to perform a "clean install", which removes all configuration files before installing
+		Design and usability improvements
+		Logging improvements
+		Fixed audio/subtitle priority defaults
+		"Definitely disable subtitles" is more reliable
+		Fixed FFmpeg Web Video streaming
+		Fixed DTS support in FFmpeg
+		Improved FFmpeg speed
+		Added support for creating thumbnails from TIFF and other formats
+		Fixed numerous smaller bugs
+		Made thumbnail generation and browsing faster
+		Don't show the text "{External Subtitles}" if the display name is "[No Encoding]" within the transcode folder
+		Added support for True Motion and convertfps to AviSynth/FFmpeg engine
+		Made multithreading more stable with AviSynth/FFmpeg engine
+		Fixed RTL subtitle support
+		Improved stability while seeking and transcoding
+		Fixed custom MEncoder settings at renderer level
+		Added a check to the Windows installer that prevents installation until UMS is closed
+	Languages:
+		Minor updates to all languages
+		More text is translatable
+		Updated Brazilian
+		Updated Czech
+	Renderers:
+		Support more Android players (thanks, ExSport!)
+		Improved support for Panasonic TVs (thanks, ExSport!)
+	External Components:
+		Updated MPlayer/MEncoder to SB45, which:
+			Fixed audio stuttering/repeating bug
+			Fixed alpha for ASS subtitles
+			Improves permissions handling on Windows
+			Removes incorrectly categorised fonts
+		Updated FFmpeg to SB4, which:
+			Improves audio sync when seeking
+			Supports more rare avi files
+			Improves support for demuxing DTS-HD
+			Fixes dozens of memory leaks
+			Improves audio sync for some AVI files using MP3 audio
+			Improves FPS detection
+			Improved sync for interlaced video
+			Allows mid-stream channel layout change for flac audio
+			Supports 24-bit flac encoding
+			Improves support for some CPU-optimisations
+			Fixed a lot of bugs with the implementation of h264
 
 2.1.2 - 2012-12-01
 

@@ -1,15 +1,15 @@
-This directory contains update files. An update is only made available if it is compatible with the current release. A release is compatible if it doesn't break too many things. Given a MAJOR.MINOR.PATCH version (e.g. 1.30.1):
+This directory contains update files. An update is only made available if it is compatible with the current release. A release is compatible if it doesn't break too many things. Given a MAJOR.MINOR.REVISION version (e.g. 1.30.1):
 
     Current versioning (flagging breaking changes by incrementing MINOR):
 
         changes in MAJOR are always incompatible
         changes in MINOR are compatible (e.g. 1.60.0 -> 1.61.0) unless the most-significant digit is incremented (e.g. 1.60.0 -> 1.70.0)
-        changes in PATCH are always compatible
+        changes in REVISION are always compatible
 
     Future versioning (semantic versioning):
 
         changes in MAJOR are always incompatible
-        changes in MINOR or PATCH are always compatible
+        changes in MINOR or REVISION are always compatible
 
 Prior to 1.5.0, many different files were used to manage versioning as the logic was effectively implemented in these files rather than in the code. The code is now smart enough to figure out for itself if an update is compatible, so the current file - latest_version.properties - should be the last one that needs to be created.
 

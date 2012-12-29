@@ -72,6 +72,7 @@ public class TSMuxerVideo extends Player {
 		this.configuration = configuration;
 	}
 
+	@Override
 	public boolean excludeFormat(Format extension) {
 		String m = extension.getMatchedId();
 		return m != null && !m.equals("mp4") && !m.equals("mkv") && !m.equals("ts") && !m.equals("tp") && !m.equals("m2ts") && !m.equals("m2t") && !m.equals("mpg") && !m.equals("evo") && !m.equals("mpeg")
@@ -680,10 +681,13 @@ public class TSMuxerVideo extends Player {
 		pw.close();
 
 		PipeProcess tsPipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
-		String[] cmdArray = new String[]{executable(), f.getAbsolutePath(), tsPipe.getInputPipe()};
+		String[] cmdArray = new String[]{
+			executable(),
+			f.getAbsolutePath(),
+			tsPipe.getInputPipe()
+		};
 
 		cmdArray = finalizeTranscoderArgs(
-			this,
 			fileName,
 			dlna,
 			media,
@@ -849,6 +853,7 @@ public class TSMuxerVideo extends Player {
 			tsmuxerforcefps.setSelected(true);
 		}
 		tsmuxerforcefps.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setTsmuxerForceFps(e.getStateChange() == ItemEvent.SELECTED);
 			}
@@ -862,6 +867,7 @@ public class TSMuxerVideo extends Player {
 		}
 
 		muxallaudiotracks.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setMuxAllAudioTracks(e.getStateChange() == ItemEvent.SELECTED);
 			}
@@ -876,10 +882,12 @@ public class TSMuxerVideo extends Player {
 		return panel;
 	}
 
+	@Override
 	public boolean isInternalSubtitlesSupported() {
 		return false;
 	}
 
+	@Override
 	public boolean isExternalSubtitlesSupported() {
 		return false;
 	}
@@ -916,11 +924,9 @@ public class TSMuxerVideo extends Player {
 				return false;
 			}
 		} catch (NullPointerException e) {
-			LOGGER.trace("FFmpeg cannot determine compatibility based on audio track for "
-					+ resource.getSystemName());
+			LOGGER.trace("FFmpeg cannot determine compatibility based on audio track for " + resource.getSystemName());
 		} catch (IndexOutOfBoundsException e) {
-			LOGGER.trace("FFmpeg cannot determine compatibility based on default audio track for "
-					+ resource.getSystemName());
+			LOGGER.trace("FFmpeg cannot determine compatibility based on default audio track for " + resource.getSystemName());
 		}
 
 		Format format = resource.getFormat();
@@ -928,8 +934,7 @@ public class TSMuxerVideo extends Player {
 		if (format != null) {
 			Format.Identifier id = format.getIdentifier();
 
-			if (id.equals(Format.Identifier.MKV)
-					|| id.equals(Format.Identifier.MPG)) {
+			if (id.equals(Format.Identifier.MKV) || id.equals(Format.Identifier.MPG)) {
 				return true;
 			}
 		}
