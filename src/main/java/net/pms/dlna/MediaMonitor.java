@@ -77,12 +77,14 @@ public class MediaMonitor extends VirtualFolder {
 		}
 	}
 
+	@Override
 	public void discoverChildren() {
 		for (File f : dirs) {
 			scanDir(f.listFiles(), this);
 		}
 	}
 
+	@Override
 	public boolean isRefreshNeeded() {
 		return true;
 	}
@@ -99,8 +101,7 @@ public class MediaMonitor extends VirtualFolder {
 		DLNAResource tmp = res.getParent();
 		while (tmp != null) {
 			if (monitorClass(tmp)) {
-				if (old(rf.getFile().getAbsolutePath())) // no duplicates!
-				{
+				if (old(rf.getFile().getAbsolutePath())) { // no duplicates!
 					return;
 				}
 				oldEntries.add(rf.getFile().getAbsolutePath());
@@ -123,7 +124,7 @@ public class MediaMonitor extends VirtualFolder {
 	private void dumpFile() throws IOException {
 		File f = monitorFile();
 		FileWriter out = new FileWriter(f);
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append("######\n");
 		sb.append("## NOTE!!!!!\n");
 		sb.append("## This file is auto generated\n");

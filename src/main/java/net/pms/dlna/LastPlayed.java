@@ -104,6 +104,7 @@ public class LastPlayed extends VirtualFolder {
 		}
 	}
 
+	@Override
 	public void discoverChildren() {
 		for (DLNAResource r : list) {
 			addChild(r);
@@ -163,7 +164,7 @@ public class LastPlayed extends VirtualFolder {
 	private void dumpFile() throws IOException {
 		File f = lastFile();
 		FileWriter out = new FileWriter(f);
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 		sb.append("######\n");
 		sb.append("## NOTE!!!!!\n");
 		sb.append("## This file is auto generated\n");
@@ -178,7 +179,7 @@ public class LastPlayed extends VirtualFolder {
 				} else {
 					id = "internal:" + r.getClass().getName();
 				}
-				sb.append("master:" + id + ";");
+				sb.append("master:").append(id).append(";");
 				sb.append(data);
 				sb.append("\n");
 			}

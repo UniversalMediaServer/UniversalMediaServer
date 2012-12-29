@@ -13,6 +13,7 @@ public class MonitorEntry extends VirtualFolder {
 		this.f = f;
 	}
 
+	@Override
 	public void discoverChildren() {
 		mm.scanDir(f.listFiles(), this);
 	}

@@ -104,6 +104,7 @@ public class RealFile extends MapFile {
 		return getFile().length();
 	}
 
+	@Override
 	public boolean isFolder() {
 		return getFile().isDirectory();
 	}
@@ -296,6 +297,7 @@ public class RealFile extends MapFile {
 		return super.getThumbnailURL();
 	}
 
+	@Override
 	public String write() {
 		return getName()+">"+getFile().getAbsolutePath();
 	}

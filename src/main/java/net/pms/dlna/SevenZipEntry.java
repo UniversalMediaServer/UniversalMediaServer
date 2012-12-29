@@ -197,6 +197,7 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 		}
 	}
 
+	@Override
 	public String write() {
 		return getName() + ">" + file.getAbsolutePath() + ">" + length;
 	}
