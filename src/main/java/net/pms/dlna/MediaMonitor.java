@@ -6,49 +6,52 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-
+import net.pms.dlna.virtual.VirtualFolder;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import net.pms.dlna.virtual.VirtualFolder;
 
 public class MediaMonitor extends VirtualFolder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaMonitor.class);
 	private File[] dirs;
 	private ArrayList<String> oldEntries;
-	
+
 	public MediaMonitor(File[] dirs) {
-		super("New Media",null);
-		this.dirs=dirs;
-		oldEntries=new ArrayList<String>();
+		super("New Media", null);
+		this.dirs = dirs;
+		oldEntries = new ArrayList<String>();
 		parseMonitorFile();
 	}
-	
+
 	private File monitorFile() {
 		return new File("UMS.mon");
 	}
-	
+
 	private void parseMonitorFile() {
-		File f=monitorFile();
-		if(!f.exists())
+		File f = monitorFile();
+		if (!f.exists()) {
 			return;
+		}
 		try {
-			BufferedReader in=new BufferedReader(new FileReader(f));
-			String str;    	
-			
+			BufferedReader in = new BufferedReader(new FileReader(f));
+			String str;
+
 			while ((str = in.readLine()) != null) {
-				if(StringUtils.isEmpty(str))
+				if (StringUtils.isEmpty(str)) {
 					continue;
-				str=str.trim();	
-				if(str.startsWith("#"))
+				}
+				str = str.trim();
+				if (str.startsWith("#")) {
 					continue;
-				if(str.startsWith("entry=")) {
-					String entry=str.substring(6);
-					if(!new File(entry.trim()).exists())
+				}
+				if (str.startsWith("entry=")) {
+					String entry = str.substring(6);
+					if (!new File(entry.trim()).exists()) {
 						continue;
-					if(!oldEntries.contains(entry.trim()))
+					}
+					if (!oldEntries.contains(entry.trim())) {
 						oldEntries.add(entry.trim());
+					}
 				}
 			}
 			in.close();
@@ -56,46 +59,50 @@ public class MediaMonitor extends VirtualFolder {
 		} catch (Exception e) {
 		}
 	}
-	
-	public void scanDir(File[] files,DLNAResource res) {
-		for(int i=0;i<files.length;i++) {
-			File f=files[i];
-			if(f.isFile()) {
+
+	public void scanDir(File[] files, DLNAResource res) {
+		for (int i = 0; i < files.length; i++) {
+			File f = files[i];
+			if (f.isFile()) {
 				// regular file
-				LOGGER.debug("file "+f+" is old? "+old(f.getAbsolutePath()));
-				if(old(f.getAbsolutePath()))
+				LOGGER.debug("file " + f + " is old? " + old(f.getAbsolutePath()));
+				if (old(f.getAbsolutePath())) {
 					continue;
+				}
 				res.addChild(new RealFile(f));
 			}
-			if(f.isDirectory()) {
-				res.addChild(new MonitorEntry(f,this));
+			if (f.isDirectory()) {
+				res.addChild(new MonitorEntry(f, this));
 			}
 		}
 	}
-	
+
 	public void discoverChildren() {
-		for(File f : dirs) {
-			scanDir(f.listFiles(),this);
+		for (File f : dirs) {
+			scanDir(f.listFiles(), this);
 		}
 	}
-	
+
 	public boolean isRefreshNeeded() {
 		return true;
 	}
-	
+
 	private boolean monitorClass(DLNAResource res) {
 		return (res instanceof MonitorEntry) || (res instanceof MediaMonitor);
 	}
-	
+
 	public void stopped(DLNAResource res) {
-		if(!(res instanceof RealFile)) 
+		if (!(res instanceof RealFile)) {
 			return;
-		RealFile rf=(RealFile)res;
-		DLNAResource tmp=res.getParent();
-		while(tmp != null) {
-			if(monitorClass(tmp)) {
-				if(old(rf.getFile().getAbsolutePath())) // no duplicates!
+		}
+		RealFile rf = (RealFile) res;
+		DLNAResource tmp = res.getParent();
+		while (tmp != null) {
+			if (monitorClass(tmp)) {
+				if (old(rf.getFile().getAbsolutePath())) // no duplicates!
+				{
 					return;
+				}
 				oldEntries.add(rf.getFile().getAbsolutePath());
 				setDiscovered(false);
 				getChildren().clear();
@@ -108,20 +115,20 @@ public class MediaMonitor extends VirtualFolder {
 			tmp = tmp.getParent();
 		}
 	}
-	
+
 	private boolean old(String str) {
 		return oldEntries.contains(str);
 	}
-	
+
 	private void dumpFile() throws IOException {
-		File f=monitorFile();
-		FileWriter out=new FileWriter(f);
-		StringBuffer sb=new StringBuffer();
+		File f = monitorFile();
+		FileWriter out = new FileWriter(f);
+		StringBuffer sb = new StringBuffer();
 		sb.append("######\n");
 		sb.append("## NOTE!!!!!\n");
 		sb.append("## This file is auto generated\n");
 		sb.append("## Edit with EXTREME care\n");
-		for(String str : oldEntries) { 
+		for (String str : oldEntries) {
 			sb.append("entry=");
 			sb.append(str);
 			sb.append("\n");
@@ -129,6 +136,5 @@ public class MediaMonitor extends VirtualFolder {
 		out.write(sb.toString());
 		out.flush();
 		out.close();
-	} 
-
+	}
 }

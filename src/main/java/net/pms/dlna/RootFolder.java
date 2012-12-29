@@ -95,21 +95,22 @@ public class RootFolder extends DLNAResource {
 			return;
 		}
 
-		if(PMS.getConfiguration().getLastPlayed()) {
+		if (PMS.getConfiguration().getLastPlayed()) {
 			last = new LastPlayed();
 			addChild(last);
 		}
-		
-		String m=(String) PMS.getConfiguration().getCustomProperty("monitor");
-		if(!StringUtils.isEmpty(m)) {
+
+		String m = (String) PMS.getConfiguration().getCustomProperty("monitor");
+		if (!StringUtils.isEmpty(m)) {
 			String[] tmp = m.split(",");
 			File[] dirs = new File[tmp.length];
-			for(int i=0;i<tmp.length;i++)
+			for (int i = 0; i < tmp.length; i++) {
 				dirs[i]=new File(tmp[i]);
+			}
 			mon = new MediaMonitor(dirs);
 			addChild(mon);
 		}
-		
+
 		if (configuration.getFolderLimit()) {
 			lim = new FolderLimit();
 			addChild(lim);
@@ -922,9 +923,9 @@ public class RootFolder extends DLNAResource {
 
 				try {
 					DLNAResource resource = afar.getChild();
-					LOGGER.debug("add ext list "+listener);
+					LOGGER.debug("add ext list " + listener);
 					resource.setMasterParent(listener);
-					for(DLNAResource r : resource.getChildren()) {
+					for (DLNAResource r : resource.getChildren()) {
 						r.setMasterParent(listener);
 					}
 					res.add(resource);
@@ -960,12 +961,12 @@ public class RootFolder extends DLNAResource {
 	public void reset() {
 		setDiscovered(false);
 	}
-	
+
 	public void stopPlaying(DLNAResource res) {
-		if(mon != null) {
+		if (mon != null) {
 			mon.stopped(res);
 		}
-		if(last != null) {
+		if (last != null) {
 			last.add(res);
 		}
 	}

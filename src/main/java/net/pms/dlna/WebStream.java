@@ -77,9 +77,9 @@ public class WebStream extends DLNAResource {
 
 		setFluxName(fluxName);
 	}
-	
+
 	public String write() {
-		return getFluxName()+">"+getUrl()+">"+getThumbURL()+">"+getSpecificType();
+		return getFluxName() + ">" + getUrl() + ">" + getThumbURL() + ">" + getSpecificType();
 	}
 
 	@Override

@@ -295,7 +295,7 @@ public class RealFile extends MapFile {
 		}
 		return super.getThumbnailURL();
 	}
-	
+
 	public String write() {
 		return getName()+">"+getFile().getAbsolutePath();
 	}

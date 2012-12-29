@@ -37,7 +37,6 @@ import net.pms.encoders.*;
 import net.pms.external.AdditionalResourceFolderListener;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
-import net.pms.external.LastPlayedParent;
 import net.pms.external.StartStopListener;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
@@ -1581,7 +1580,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public void stopPlaying(final String rendererId) {
 		final DLNAResource self = this;
 		final String requestId = getRequestId(rendererId);
-		final RootFolder root = ((defaultRenderer != null)?defaultRenderer.getRootFolder():null);
+		final RootFolder root = ((defaultRenderer != null) ? defaultRenderer.getRootFolder() : null);
 		Runnable defer = new Runnable() {
 			@Override
 			public void run() {
@@ -1613,9 +1612,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								}
 
 								PMS.get().getFrame().setStatusLine("");
-								if(root != null) {
+
+								if (root != null) {
 									root.stopPlaying(self.clone());
 								}
+
 								for (final ExternalListener listener : ExternalFactory.getExternalListeners()) {
 									if (listener instanceof StartStopListener) {
 										// run these asynchronously for slow handlers (e.g. logging, scrobbling)
@@ -1629,6 +1630,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 												}
 											}
 										};
+
 										new Thread(fireStartStopEvent, "StopPlaying Event for " + listener.name()).start();
 									}
 								}
@@ -2409,37 +2411,35 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 		return (depth > DEPTH_WARNING_LIMIT);
 	}
-	
+
 	public boolean isSearched() {
 		return false;
 	}
-	
-	///////////////////////////////////////////////////////////
-	// Handle last played stuff
-	///////////////////////////////////////////////////////////
-	
-	/* This method should be overridden by all media types
-	 * that should be added to the last played list. Default
-	 * it just returns null which means the resource is ignored in the
-	 * last played file 
+
+	/**
+	 * Handle last played stuff
+	 *
+	 * This method should be overridden by all media types that should be
+	 * added to the last played list.
+	 * By default it just returns null which means the resource is ignored
+	 * in the last played file.
 	 */
-	
+
 	public String write() {
 		return null;
 	}
-	
+
 	private ExternalListener masterParent;
-	
+
 	public void setMasterParent(ExternalListener r) {
-		if(masterParent == null) {
-			// if master is already set ignore this...
-			masterParent=r;
+		if (masterParent == null) {
+			// If master is already set ignore this
+			masterParent = r;
 		}
 	}
-	
+
 	public ExternalListener getMasterParent() {
 		return masterParent;
 	}
-	
 }
 
