@@ -1,7 +1,20 @@
 2.2.2 - 2012-12-??
 
 	General:
-		
+		Improved support of many files, especially non-PS3 renderers
+		Fixed AVI support on Panasonic TVs
+		Cleaned up the "serving" text at the bottom of the program
+		Fixed conditional horizontal scrollbar
+		More accurately determine which formats tsMuxeR supports
+	External Components:
+		Updated InterFrame to 2.3.0, which:
+			Increased speed
+			Improved quality in high-action scenes
+			Optimised memory use
+			Supports more video cards
+		Updated MPlayer/MEncoder to SB47, which:
+			Disabled direct rendering for non-ref frames only again
+			Fixes a bug which detected transport streams as finished when they weren't
 
 2.2.1 - 2012-12-21
 
