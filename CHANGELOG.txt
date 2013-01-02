@@ -1,4 +1,4 @@
-2.2.2 - 2012-12-??
+2.2.2 - 2013-01-03
 
 	General:
 		Improved support of many files, especially non-PS3 renderers
