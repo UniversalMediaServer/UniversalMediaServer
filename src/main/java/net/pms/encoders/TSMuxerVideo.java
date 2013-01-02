@@ -127,9 +127,17 @@ public class TSMuxerVideo extends Player {
 		if (this instanceof TsMuxerAudio && media.getFirstAudioTrack() != null) {
 			String fakeFileName = writeResourceToFile("/resources/images/fake.jpg");
 			ffVideoPipe = new PipeIPCProcess(System.currentTimeMillis() + "fakevideo", System.currentTimeMillis() + "videoout", false, true);
+
+			String timeEndValue1 = "-t";
+			String timeEndValue2 = "" + params.timeend;
+			if (params.timeend < 1) {
+				timeEndValue1 = "-y";
+				timeEndValue2 = "-y";
+			}
+
 			String[] ffmpegLPCMextract = new String[] {
 				configuration.getFfmpegPath(),
-				"-t", "" + params.timeend,
+				timeEndValue1, timeEndValue2,
 				"-loop", "1",
 				"-i", fakeFileName,
 				"-qcomp", "0.6",
@@ -146,10 +154,6 @@ public class TSMuxerVideo extends Player {
 
 			// videoType = "V_MPEG-2";
 			videoType = "V_MPEG4/ISO/AVC";
-			if (params.timeend < 1) {
-				ffmpegLPCMextract[1] = "-y";
-				ffmpegLPCMextract[2] = "-y";
-			}
 
 			OutputParams ffparams = new OutputParams(PMS.getConfiguration());
 			ffparams.maxBufferSize = 1;
@@ -209,12 +213,19 @@ public class TSMuxerVideo extends Player {
 
 			ffVideoPipe = new PipeIPCProcess(System.currentTimeMillis() + "ffmpegvideo", System.currentTimeMillis() + "videoout", false, true);
 
+			// Special handling for evo files
+			String evoValue1 = "-quiet";
+			String evoValue2 = "-quiet";
+			if (fileName.toLowerCase().endsWith(".evo")) {
+				evoValue1 = "-psprobe";
+				evoValue2 = "1000000";
+			}
+
 			String[] ffmpegLPCMextract = new String[] {
 				mencoderPath,
-				"-ss", "0",
-				fileName,
-				"-quiet",
-				"-quiet",
+				"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
+				params.stdin != null ? "-" : fileName,
+				evoValue1, evoValue2,
 				"-really-quiet",
 				"-msglevel", "statusline=2",
 				"-ovc", "copy",
@@ -224,15 +235,6 @@ public class TSMuxerVideo extends Player {
 				"-of", "rawvideo",
 				"-o", ffVideoPipe.getInputPipe()
 			};
-
-			if (fileName.toLowerCase().endsWith(".evo")) {
-				ffmpegLPCMextract[4] = "-psprobe";
-				ffmpegLPCMextract[5] = "1000000";
-			}
-
-			if (params.stdin != null) {
-				ffmpegLPCMextract[3] = "-";
-			}
 
 			InputFile newInput = new InputFile();
 			newInput.setFilename(fileName);
@@ -251,10 +253,6 @@ public class TSMuxerVideo extends Player {
 					sm.setH264AnnexB(true);
 					ffVideoPipe.setModifier(sm);
 				}
-			}
-
-			if (params.timeseek > 0) {
-				ffmpegLPCMextract[2] = "" + params.timeseek;
 			}
 
 			OutputParams ffparams = new OutputParams(PMS.getConfiguration());
@@ -342,10 +340,9 @@ public class TSMuxerVideo extends Player {
 
 						ffmpegLPCMextract = new String[] {
 							mencoderPath,
-							"-ss", "0",
-							fileName,
-							"-quiet",
-							"-quiet",
+							"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
+							params.stdin != null ? "-" : fileName,
+							evoValue1, evoValue2,
 							"-really-quiet",
 							"-msglevel", "statusline=2",
 							"-channels", "" + sm.getNbChannels(),
@@ -368,10 +365,9 @@ public class TSMuxerVideo extends Player {
 						// AC-3 remux or encoding
 						ffmpegLPCMextract = new String[] {
 							mencoderPath,
-							"-ss", "0",
-							fileName,
-							"-quiet",
-							"-quiet",
+							"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
+							params.stdin != null ? "-" : fileName,
+							evoValue1, evoValue2,
 							"-really-quiet",
 							"-msglevel", "statusline=2",
 							"-channels", "" + channels,
@@ -387,19 +383,6 @@ public class TSMuxerVideo extends Player {
 							singleMediaAudio ? "-quiet" : "-aid", singleMediaAudio ? "-quiet" : ("" + params.aid.getId()),
 							"-o", ffAudioPipe[0].getInputPipe()
 						};
-					}
-
-					if (fileName.toLowerCase().endsWith(".evo")) {
-						ffmpegLPCMextract[4] = "-psprobe";
-						ffmpegLPCMextract[5] = "1000000";
-					}
-
-					if (params.stdin != null) {
-						ffmpegLPCMextract[3] = "-";
-					}
-
-					if (params.timeseek > 0) {
-						ffmpegLPCMextract[2] = "" + params.timeseek;
 					}
 
 					ffparams = new OutputParams(PMS.getConfiguration());
@@ -476,10 +459,9 @@ public class TSMuxerVideo extends Player {
 
 							ffmpegLPCMextract = new String[]{
 								mencoderPath,
-								"-ss", "0",
-								fileName,
-								"-quiet",
-								"-quiet",
+								"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
+								params.stdin != null ? "-" : fileName,
+								evoValue1, evoValue2,
 								"-really-quiet",
 								"-msglevel", "statusline=2",
 								"-channels", "" + sm.getNbChannels(),
@@ -497,10 +479,9 @@ public class TSMuxerVideo extends Player {
 							// AC-3 remux or encoding
 							ffmpegLPCMextract = new String[]{
 								mencoderPath,
-								"-ss", "0",
-								fileName,
-								"-quiet",
-								"-quiet",
+								"-ss", params.timeseek > 0 ? "" + params.timeseek : "0",
+								params.stdin != null ? "-" : fileName,
+								evoValue1, evoValue2,
 								"-really-quiet",
 								"-msglevel", "statusline=2",
 								"-channels", "" + channels,
@@ -518,17 +499,6 @@ public class TSMuxerVideo extends Player {
 							};
 						}
 
-						if (fileName.toLowerCase().endsWith(".evo")) {
-							ffmpegLPCMextract[4] = "-psprobe";
-							ffmpegLPCMextract[5] = "1000000";
-						}
-
-						if (params.stdin != null) {
-							ffmpegLPCMextract[3] = "-";
-						}
-						if (params.timeseek > 0) {
-							ffmpegLPCMextract[2] = "" + params.timeseek;
-						}
 						ffparams = new OutputParams(PMS.getConfiguration());
 						ffparams.maxBufferSize = 1;
 						ffparams.stdin = params.stdin;
