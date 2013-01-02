@@ -255,17 +255,51 @@ public class DLNAMediaInfo implements Cloneable {
 	 * value to send to the renderer.
 	 * This extends renderer configs, defining things that are needed by renderers
 	 * but are not possible with their configs yet.
+	 *
+	 * Some of this code is repeated in isVideoPS3Compatible(), and since
+	 * both functions are sometimes (but not always) used together, this is
+	 * not an efficient use of code.
+	 * TODO: Fix the above situation.
 	 */
 	public boolean isMuxable(RendererConfiguration mediaRenderer) {
-		// tsMuxeR does not support AVI or DivX
+		// Blacklist all formats not in the following lists
 		if (
 			getContainer() != null &&
-			(
-				getContainer().equals("avi") ||
-				getContainer().equals("divx")
+			!(
+				getContainer().equals("mkv") ||
+				getContainer().equals("mp4") ||
+				getContainer().equals("mov") ||
+				getContainer().equals("ts") ||
+				getContainer().equals("m2ts")
 			)
 		) {
-			muxable = false;
+			if (
+				getCodecV() != null &&
+				!(
+					getCodecV().equals("h264") ||
+					getCodecV().equals("vc1") ||
+					getCodecV().equals("mpeg2")
+				)
+			) {
+				muxable = false;
+			}
+
+			if (getFirstAudioTrack() != null) {
+				String codecA;
+				codecA = getFirstAudioTrack().getCodecA();
+				if (
+					codecA != null &&
+					!(
+						codecA.equals("aac") ||
+						codecA.equals("ac3") ||
+						codecA.equals("dca") ||
+						codecA.equals("dts") ||
+						codecA.equals("eac3")
+					)
+				) {
+					muxable = false;
+				}
+			}
 		}
 
 		// Temporary fix: MediaInfo support will take care of this in the future
