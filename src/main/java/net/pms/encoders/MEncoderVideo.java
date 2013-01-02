@@ -545,7 +545,7 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderForcedSubLanguage(forcedsub.getText());
 			}
 		});
-		builder.add(forcedsub, FormLayoutUtil.flip(cc.xy(11, 25), colSpec, orientation));
+		builder.add(forcedsub, FormLayoutUtil.flip(cc.xyw(11, 25, 2), colSpec, orientation));
 
 		builder.addLabel(Messages.getString("MEncoderVideo.95") + " ", FormLayoutUtil.flip(cc.xyw(12, 25, 2, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 		forcedtags = new JTextField(configuration.getMencoderForcedSubTags());
