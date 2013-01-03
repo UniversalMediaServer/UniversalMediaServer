@@ -1,7 +1,12 @@
+2.2.3 - 2013-01-??
+
+	General:
+		
+
 2.2.2 - 2013-01-03
 
 	General:
-		Improved support of many files, especially non-PS3 renderers
+		Improved support of many files, especially on non-PS3 renderers
 		Fixed AVI support on Panasonic TVs
 		Cleaned up the "serving" text at the bottom of the program
 		Fixed conditional horizontal scrollbar
