@@ -1,4 +1,4 @@
-2.2.4 - 2013-01-??
+2.2.4 - 2013-01-09
 
 	General:
 		Prevents internal and external subtitles from showing at the same time
