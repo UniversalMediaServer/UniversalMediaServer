@@ -93,7 +93,7 @@ public class AviDemuxerInputStream extends InputStream {
 			public void run() {
 				try {
 					// TODO(tcox): Is this used anymore?
-					TSMuxerVideo ts = new TSMuxerVideo(PMS.getConfiguration());
+					TsMuxeRVideo ts = new TsMuxeRVideo(PMS.getConfiguration());
 					File f = new File(PMS.getConfiguration().getTempFolder(), "pms-tsmuxer.meta");
 					PrintWriter pw = new PrintWriter(f);
 					pw.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");

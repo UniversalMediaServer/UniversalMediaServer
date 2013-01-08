@@ -66,8 +66,8 @@ import org.slf4j.LoggerFactory;
  * take RendererConfiguration (renderer) and DLNAMediaInfo (media) parameters, even if one or
  * both of these parameters are unused.
  */
-public class FFMpegVideo extends Player {
-	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
+public class FFmpegVideo extends Player {
+	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegVideo.class);
 	private static final String DEFAULT_QSCALE = "3";
 
 	// FIXME we have an id() accessor for this; no need for the field to be public
@@ -133,10 +133,10 @@ public class FFMpegVideo extends Player {
 			transcodeOptions.add("-f");
 			transcodeOptions.add("asf");
 		} else { // MPEGPSAC3 or MPEGTSAC3
-			final boolean isTSMuxerVideoEngineEnabled = PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry()).contains(TSMuxerVideo.ID);
+			final boolean isTsMuxeRVideoEngineEnabled = PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
 
 			// Output audio codec
-			dtsRemux = isTSMuxerVideoEngineEnabled &&
+			dtsRemux = isTsMuxeRVideoEngineEnabled &&
 				PMS.getConfiguration().isDTSEmbedInPCM() &&
 				params.aid != null &&
 				params.aid.isDTS() &&
@@ -384,7 +384,7 @@ public class FFMpegVideo extends Player {
 		cmdList.add("-threads");
 		cmdList.add("" + nThreads);
 
-		final boolean isTSMuxerVideoEngineEnabled = PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry()).contains(TSMuxerVideo.ID);
+		final boolean isTsMuxeRVideoEngineEnabled = PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
 
 		ac3Remux = false;
 		dtsRemux = false;
@@ -394,7 +394,7 @@ public class FFMpegVideo extends Player {
 			ac3Remux = true;
 		} else {
 			// Now check for DTS remux and LPCM streaming
-			dtsRemux = isTSMuxerVideoEngineEnabled &&
+			dtsRemux = isTsMuxeRVideoEngineEnabled &&
 				PMS.getConfiguration().isDTSEmbedInPCM() &&
 				params.aid != null &&
 				params.aid.isDTS() &&
@@ -413,7 +413,7 @@ public class FFMpegVideo extends Player {
 		// Input filename
 		cmdList.add("-i");
 		if (avisynth && !fileName.toLowerCase().endsWith(".iso")) {
-			File avsFile = FFMpegAviSynthVideo.getAVSScript(fileName, params.sid, params.fromFrame, params.toFrame, frameRateRatio, frameRateNumber);
+			File avsFile = AviSynthFFmpeg.getAVSScript(fileName, params.sid, params.fromFrame, params.toFrame, frameRateRatio, frameRateNumber);
 			cmdList.add(ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath()));
 		} else {
 			cmdList.add(fileName);
@@ -538,7 +538,7 @@ public class FFMpegVideo extends Player {
 			PipeProcess pipe;
 			pipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
-			TSMuxerVideo ts = new TSMuxerVideo(PMS.getConfiguration());
+			TsMuxeRVideo ts = new TsMuxeRVideo(PMS.getConfiguration());
 			File f = new File(PMS.getConfiguration().getTempFolder(), "pms-tsmuxer.meta");
 			String cmd[] = new String[]{ ts.executable(), f.getAbsolutePath(), pipe.getInputPipe() };
 			pw = new ProcessWrapperImpl(cmd, params);

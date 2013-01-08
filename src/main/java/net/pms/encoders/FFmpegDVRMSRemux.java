@@ -43,7 +43,7 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import org.apache.commons.lang.StringUtils;
 
-public class FFMpegDVRMSRemux extends Player {
+public class FFmpegDVRMSRemux extends Player {
 	private JTextField altffpath;
 	public static final String ID = "ffmpegdvrmsremux";
 
@@ -67,7 +67,7 @@ public class FFMpegDVRMSRemux extends Player {
 		return false;
 	}
 
-	public FFMpegDVRMSRemux() {
+	public FFmpegDVRMSRemux() {
 	}
 
 	@Override
@@ -191,7 +191,7 @@ public class FFMpegDVRMSRemux extends Player {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		builder.addLabel(Messages.getString("FFMpegDVRMSRemux.0"), cc.xy(1, 3));
+		builder.addLabel(Messages.getString("FFmpegDVRMSRemux.0"), cc.xy(1, 3));
 		altffpath = new JTextField(PMS.getConfiguration().getFfmpegAlternativePath());
 		altffpath.addKeyListener(new KeyListener() {
 			@Override

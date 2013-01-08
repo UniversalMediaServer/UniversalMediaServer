@@ -119,29 +119,29 @@ public final class PlayerFactory {
 
 		// TODO make these constructors consistent: pass configuration to all or to none
 		if (Platform.isWindows()) {
-			registerPlayer(new FFMpegAviSynthVideo());
+			registerPlayer(new AviSynthFFmpeg());
 		}
 
-		registerPlayer(new FFMpegAudio(configuration));
+		registerPlayer(new FFmpegAudio(configuration));
 		registerPlayer(new MEncoderVideo(configuration));
 
 		if (Platform.isWindows()) {
-			registerPlayer(new MEncoderAviSynth(configuration));
+			registerPlayer(new AviSynthMEncoder(configuration));
 		}
 
-		registerPlayer(new FFMpegVideo());
+		registerPlayer(new FFmpegVideo());
 		registerPlayer(new MPlayerAudio(configuration));
-		registerPlayer(new FFMpegWebVideo(configuration));
+		registerPlayer(new FFmpegWebVideo(configuration));
 		registerPlayer(new MEncoderWebVideo(configuration));
 		registerPlayer(new MPlayerWebVideoDump(configuration));
 		registerPlayer(new MPlayerWebAudio(configuration));
-		registerPlayer(new TSMuxerVideo(configuration));
-		registerPlayer(new TsMuxerAudio(configuration));
+		registerPlayer(new TsMuxeRVideo(configuration));
+		registerPlayer(new TsMuxeRAudio(configuration));
 		registerPlayer(new VideoLanAudioStreaming(configuration));
 		registerPlayer(new VideoLanVideoStreaming(configuration));
 
 		if (Platform.isWindows()) {
-			registerPlayer(new FFMpegDVRMSRemux());
+			registerPlayer(new FFmpegDVRMSRemux());
 		}
 
 		registerPlayer(new RAWThumbnailer());

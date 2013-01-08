@@ -26,7 +26,6 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
-import net.pms.encoders.FFMpegVideo;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeProcess;
@@ -35,8 +34,8 @@ import net.pms.io.ProcessWrapperImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FFMpegWebVideo extends FFMpegVideo {
-	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegWebVideo.class);
+public class FFmpegWebVideo extends FFmpegVideo {
+	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegWebVideo.class);
 	private final PmsConfiguration configuration;
 
 	// FIXME we have an id() accessor for this; no need for the field to be public
@@ -63,7 +62,7 @@ public class FFMpegWebVideo extends FFMpegVideo {
 		return false;
 	}
 
-	public FFMpegWebVideo(PmsConfiguration configuration) {
+	public FFmpegWebVideo(PmsConfiguration configuration) {
 		this.configuration = configuration;
 	}
 

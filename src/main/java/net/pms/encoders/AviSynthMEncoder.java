@@ -45,9 +45,9 @@ import net.pms.util.ProcessUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MEncoderAviSynth extends MEncoderVideo {
-	private static final Logger LOGGER = LoggerFactory.getLogger(MEncoderAviSynth.class);
-	public MEncoderAviSynth(PmsConfiguration configuration) {
+public class AviSynthMEncoder extends MEncoderVideo {
+	private static final Logger LOGGER = LoggerFactory.getLogger(AviSynthMEncoder.class);
+	public AviSynthMEncoder(PmsConfiguration configuration) {
 		super(configuration);
 	}
 
@@ -88,7 +88,7 @@ public class MEncoderAviSynth extends MEncoderVideo {
 		});
 		builder.add(multithreading, cc.xy(2, 3));
 
-		interframe = new JCheckBox(Messages.getString("MEncoderAviSynth.13"));
+		interframe = new JCheckBox(Messages.getString("AviSynthMEncoder.13"));
 		interframe.setContentAreaFilled(false);
 		if (PMS.getConfiguration().getAvisynthInterFrame()) {
 			interframe.setSelected(true);
@@ -100,7 +100,7 @@ public class MEncoderAviSynth extends MEncoderVideo {
 				if (PMS.getConfiguration().getAvisynthInterFrame()) {
 					JOptionPane.showMessageDialog(
 						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-						Messages.getString("MEncoderAviSynth.16"),
+						Messages.getString("AviSynthMEncoder.16"),
 						Messages.getString("Dialog.Information"),
 						JOptionPane.INFORMATION_MESSAGE
 					);
@@ -109,7 +109,7 @@ public class MEncoderAviSynth extends MEncoderVideo {
 		});
 		builder.add(interframe, cc.xy(2, 5));
 
-		interframegpu = new JCheckBox(Messages.getString("MEncoderAviSynth.15"));
+		interframegpu = new JCheckBox(Messages.getString("AviSynthMEncoder.15"));
 		interframegpu.setContentAreaFilled(false);
 		if (PMS.getConfiguration().getAvisynthInterFrameGPU()) {
 			interframegpu.setSelected(true);
@@ -122,7 +122,7 @@ public class MEncoderAviSynth extends MEncoderVideo {
 		});
 		builder.add(interframegpu, cc.xy(2, 7));
 
-		convertfps = new JCheckBox(Messages.getString("MEncoderAviSynth.3"));
+		convertfps = new JCheckBox(Messages.getString("AviSynthMEncoder.3"));
 		convertfps.setContentAreaFilled(false);
 		if (PMS.getConfiguration().getAvisynthConvertFps()) {
 			convertfps.setSelected(true);
@@ -135,11 +135,11 @@ public class MEncoderAviSynth extends MEncoderVideo {
 		});
 		builder.add(convertfps, cc.xy(2, 9));
 
-		String aviSynthScriptInstructions = Messages.getString("MEncoderAviSynth.4") +
-			Messages.getString("MEncoderAviSynth.5") +
-			Messages.getString("MEncoderAviSynth.6") +
-			Messages.getString("MEncoderAviSynth.7") +
-			Messages.getString("MEncoderAviSynth.8");
+		String aviSynthScriptInstructions = Messages.getString("AviSynthMEncoder.4") +
+			Messages.getString("AviSynthMEncoder.5") +
+			Messages.getString("AviSynthMEncoder.6") +
+			Messages.getString("AviSynthMEncoder.7") +
+			Messages.getString("AviSynthMEncoder.8");
 		JTextArea aviSynthScriptInstructionsContainer = new JTextArea(aviSynthScriptInstructions);
 		aviSynthScriptInstructionsContainer.setEditable(false);
 		aviSynthScriptInstructionsContainer.setBorder(BorderFactory.createEtchedBorder());

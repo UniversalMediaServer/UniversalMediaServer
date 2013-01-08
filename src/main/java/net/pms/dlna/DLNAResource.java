@@ -1303,7 +1303,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					if (mime.equals("video/mpeg")) {
 						if (getPlayer() != null) {
 							// Do we have some mpegts to offer?
-							boolean mpegTsMux = TSMuxerVideo.ID.equals(getPlayer().id()) || VideoLanVideoStreaming.ID.equals(getPlayer().id());
+							boolean mpegTsMux = TsMuxeRVideo.ID.equals(getPlayer().id()) || VideoLanVideoStreaming.ID.equals(getPlayer().id());
 							if (!mpegTsMux) { // Maybe, like the PS3, MEncoder can launch tsMuxeR if this a compatible H.264 video
 								mpegTsMux = MEncoderVideo.ID.equals(getPlayer().id()) &&
 									(

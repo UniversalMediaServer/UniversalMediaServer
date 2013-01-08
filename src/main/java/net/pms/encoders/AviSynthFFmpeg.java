@@ -52,8 +52,8 @@ import org.slf4j.LoggerFactory;
 /*
  * This class handles the Windows-specific AviSynth/FFmpeg player combination. 
  */
-public class FFMpegAviSynthVideo extends FFMpegVideo {
-	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegAviSynthVideo.class);
+public class AviSynthFFmpeg extends FFmpegVideo {
+	private static final Logger LOGGER = LoggerFactory.getLogger(AviSynthFFmpeg.class);
 	public static final String ID      = "avsffmpeg";
 
 	@Override
@@ -264,7 +264,7 @@ public class FFMpegAviSynthVideo extends FFMpegVideo {
 		});
 		builder.add(multithreading, cc.xy(2, 3));
 
-		interframe = new JCheckBox(Messages.getString("MEncoderAviSynth.13"));
+		interframe = new JCheckBox(Messages.getString("AviSynthMEncoder.13"));
 		interframe.setContentAreaFilled(false);
 		if (PMS.getConfiguration().getFfmpegAvisynthInterFrame()) {
 			interframe.setSelected(true);
@@ -276,7 +276,7 @@ public class FFMpegAviSynthVideo extends FFMpegVideo {
 				if (PMS.getConfiguration().getFfmpegAvisynthInterFrame()) {
 					JOptionPane.showMessageDialog(
 						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-						Messages.getString("MEncoderAviSynth.16"),
+						Messages.getString("AviSynthMEncoder.16"),
 						Messages.getString("Dialog.Information"),
 						JOptionPane.INFORMATION_MESSAGE
 					);
@@ -285,7 +285,7 @@ public class FFMpegAviSynthVideo extends FFMpegVideo {
 		});
 		builder.add(interframe, cc.xy(2, 5));
 
-		interframegpu = new JCheckBox(Messages.getString("MEncoderAviSynth.15"));
+		interframegpu = new JCheckBox(Messages.getString("AviSynthMEncoder.15"));
 		interframegpu.setContentAreaFilled(false);
 		if (PMS.getConfiguration().getFfmpegAvisynthInterFrameGPU()) {
 			interframegpu.setSelected(true);
@@ -298,7 +298,7 @@ public class FFMpegAviSynthVideo extends FFMpegVideo {
 		});
 		builder.add(interframegpu, cc.xy(2, 7));
 
-		convertfps = new JCheckBox(Messages.getString("MEncoderAviSynth.3"));
+		convertfps = new JCheckBox(Messages.getString("AviSynthMEncoder.3"));
 		convertfps.setContentAreaFilled(false);
 		if (PMS.getConfiguration().getFfmpegAvisynthConvertFps()) {
 			convertfps.setSelected(true);

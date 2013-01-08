@@ -45,14 +45,14 @@ public class MPG extends Format {
 		for (String engine : PMS.getConfiguration().getEnginesAsList(r3.getRegistry())) {
 			if (engine.equals(MEncoderVideo.ID)) {
 				a.add(MEncoderVideo.class);
-			} else if (engine.equals(MEncoderAviSynth.ID) && PMS.get().getRegistry().isAvis()) {
-				a.add(MEncoderAviSynth.class);
-			} else if (engine.equals(FFMpegVideo.ID)) {
-				a.add(FFMpegVideo.class);
-			} else if (engine.equals(FFMpegAviSynthVideo.ID) && PMS.get().getRegistry().isAvis()) {
-				a.add(FFMpegAviSynthVideo.class);
-			} else if (engine.equals(TSMuxerVideo.ID)/* && PMS.get().isWindows()*/) {
-				a.add(TSMuxerVideo.class);
+			} else if (engine.equals(AviSynthMEncoder.ID) && PMS.get().getRegistry().isAvis()) {
+				a.add(AviSynthMEncoder.class);
+			} else if (engine.equals(FFmpegVideo.ID)) {
+				a.add(FFmpegVideo.class);
+			} else if (engine.equals(AviSynthFFmpeg.ID) && PMS.get().getRegistry().isAvis()) {
+				a.add(AviSynthFFmpeg.class);
+			} else if (engine.equals(TsMuxeRVideo.ID)/* && PMS.get().isWindows()*/) {
+				a.add(TsMuxeRVideo.class);
 			}
 		}
 		return a;

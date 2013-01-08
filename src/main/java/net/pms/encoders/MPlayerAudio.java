@@ -90,7 +90,7 @@ public class MPlayerAudio extends Player {
 		params.manageFastStart();
 
 		if (params.mediaRenderer.isTranscodeToMP3()) {
-			FFMpegAudio ffmpegAudio = new FFMpegAudio(configuration);
+			FFmpegAudio ffmpegAudio = new FFmpegAudio(configuration);
 			return ffmpegAudio.launchTranscode(fileName, dlna, media, params);
 		}
 

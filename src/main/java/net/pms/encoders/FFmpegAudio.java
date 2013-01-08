@@ -30,7 +30,6 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
 import net.pms.Messages;
-import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
@@ -40,7 +39,7 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
 
-public class FFMpegAudio extends FFMpegVideo {
+public class FFmpegAudio extends FFmpegVideo {
 	public static final String ID = "ffmpegaudio";
 	private final PmsConfiguration configuration;
 
@@ -48,7 +47,7 @@ public class FFMpegAudio extends FFMpegVideo {
 	@Deprecated
 	JCheckBox noresample;
 
-	public FFMpegAudio(PmsConfiguration configuration) {
+	public FFmpegAudio(PmsConfiguration configuration) {
 		this.configuration = configuration;
 	}
 

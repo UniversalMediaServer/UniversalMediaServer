@@ -12,7 +12,7 @@ package net.pms.external;
  * }
  */
 
-public interface dbgpack {
+public interface DebugPacker {
 	// Return a String or String[]
 	public Object dbgpack_cb();
 }
