@@ -1,7 +1,24 @@
 2.2.4 - 2013-01-??
 
 	General:
-		
+		Prevents internal and external subtitles from showing at the same time
+	External Components:
+		Updated MPlayer/MEncoder to SB48, which:
+			Runs faster
+			Crashes less
+			Detects framerates more accurately
+			Fixed subtitle bug on certain CPUs
+			Improved audio/video sync
+			Fixed memory leaks
+			Improves AVI support
+			Fixed audio stuttering/repeating bug
+			Fixed alpha for ASS subtitles
+			Improves permissions handling on Windows
+			Removes incorrectly categorised fonts
+			Makes ASS/SSA subtitle rendering up to 3.5x faster
+			Improves AC-3 audio buffering
+			Fixes a bug which detected transport streams as finished when they weren't
+			Improved MPEG-PS encoding
 
 2.2.3 - 2013-01-07
 
