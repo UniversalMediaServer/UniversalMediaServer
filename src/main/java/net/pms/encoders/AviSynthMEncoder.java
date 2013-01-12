@@ -47,6 +47,7 @@ import org.slf4j.LoggerFactory;
 
 public class AviSynthMEncoder extends MEncoderVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AviSynthMEncoder.class);
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	public AviSynthMEncoder(PmsConfiguration configuration) {
 		super(configuration);
 	}
@@ -77,27 +78,27 @@ public class AviSynthMEncoder extends MEncoderVideo {
 
 		multithreading = new JCheckBox(Messages.getString("MEncoderVideo.35"));
 		multithreading.setContentAreaFilled(false);
-		if (PMS.getConfiguration().getAvisynthMultiThreading()) {
+		if (configuration.getAvisynthMultiThreading()) {
 			multithreading.setSelected(true);
 		}
 		multithreading.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				PMS.getConfiguration().setAvisynthMultiThreading((e.getStateChange() == ItemEvent.SELECTED));
+				configuration.setAvisynthMultiThreading((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
 		builder.add(multithreading, cc.xy(2, 3));
 
 		interframe = new JCheckBox(Messages.getString("AviSynthMEncoder.13"));
 		interframe.setContentAreaFilled(false);
-		if (PMS.getConfiguration().getAvisynthInterFrame()) {
+		if (configuration.getAvisynthInterFrame()) {
 			interframe.setSelected(true);
 		}
 		interframe.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				PMS.getConfiguration().setAvisynthInterFrame(interframe.isSelected());
-				if (PMS.getConfiguration().getAvisynthInterFrame()) {
+				configuration.setAvisynthInterFrame(interframe.isSelected());
+				if (configuration.getAvisynthInterFrame()) {
 					JOptionPane.showMessageDialog(
 						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 						Messages.getString("AviSynthMEncoder.16"),
@@ -111,26 +112,26 @@ public class AviSynthMEncoder extends MEncoderVideo {
 
 		interframegpu = new JCheckBox(Messages.getString("AviSynthMEncoder.15"));
 		interframegpu.setContentAreaFilled(false);
-		if (PMS.getConfiguration().getAvisynthInterFrameGPU()) {
+		if (configuration.getAvisynthInterFrameGPU()) {
 			interframegpu.setSelected(true);
 		}
 		interframegpu.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				PMS.getConfiguration().setAvisynthInterFrameGPU((e.getStateChange() == ItemEvent.SELECTED));
+				configuration.setAvisynthInterFrameGPU((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
 		builder.add(interframegpu, cc.xy(2, 7));
 
 		convertfps = new JCheckBox(Messages.getString("AviSynthMEncoder.3"));
 		convertfps.setContentAreaFilled(false);
-		if (PMS.getConfiguration().getAvisynthConvertFps()) {
+		if (configuration.getAvisynthConvertFps()) {
 			convertfps.setSelected(true);
 		}
 		convertfps.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				PMS.getConfiguration().setAvisynthConvertFps((e.getStateChange() == ItemEvent.SELECTED));
+				configuration.setAvisynthConvertFps((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
 		builder.add(convertfps, cc.xy(2, 9));
@@ -147,7 +148,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		aviSynthScriptInstructionsContainer.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(new Color(130, 135, 144)), BorderFactory.createEmptyBorder(3, 5, 3, 5)));
 		builder.add(aviSynthScriptInstructionsContainer, cc.xy(2, 11));
 
-		String clip = PMS.getConfiguration().getAvisynthScript();
+		String clip = configuration.getAvisynthScript();
 		if (clip == null) {
 			clip = "";
 		}
@@ -183,7 +184,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 					sb.append(st.nextToken());
 					i++;
 				}
-				PMS.getConfiguration().setAvisynthScript(sb.toString());
+				configuration.setAvisynthScript(sb.toString());
 			}
 		});
 
@@ -220,7 +221,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 	 */
 	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack, int fromFrame, int toFrame, String frameRateRatio, String frameRateNumber) throws IOException {
 		String onlyFileName = fileName.substring(1 + fileName.lastIndexOf("\\"));
-		File file = new File(PMS.getConfiguration().getTempFolder(), "pms-avs-" + onlyFileName + ".avs");
+		File file = new File(configuration.getTempFolder(), "pms-avs-" + onlyFileName + ".avs");
 		PrintWriter pw = new PrintWriter(new FileOutputStream(file));
 
 		/*
@@ -254,7 +255,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		}
 
 		String convertfps = "";
-		if (PMS.getConfiguration().getAvisynthConvertFps()) {
+		if (configuration.getAvisynthConvertFps()) {
 			convertfps = ", convertfps=true";
 		}
 
@@ -268,11 +269,11 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		String mtLine2         = "";
 		String mtLine3         = "";
 		String interframeLines = null;
-		String interframePath  = PMS.getConfiguration().getInterFramePath();
+		String interframePath  = configuration.getInterFramePath();
 
 		int Cores = 1;
-		if (PMS.getConfiguration().getAvisynthMultiThreading()) {
-			Cores = PMS.getConfiguration().getNumberOfCpuCores();
+		if (configuration.getAvisynthMultiThreading()) {
+			Cores = configuration.getNumberOfCpuCores();
 
 			// Goes at the start of the file to initiate multithreading
 			mtLine1 = "SetMemoryMax(512)\nSetMTMode(3," + Cores + ")\n";
@@ -285,12 +286,12 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		}
 
 		// True Motion
-		if (PMS.getConfiguration().getAvisynthInterFrame()) {
+		if (configuration.getAvisynthInterFrame()) {
 			String GPU = "";
 			movieLine = movieLine + ".ConvertToYV12()";
 
 			// Enable GPU to assist with CPU
-			if (PMS.getConfiguration().getAvisynthInterFrameGPU()){
+			if (configuration.getAvisynthInterFrameGPU()){
 				GPU = ", GPU=true";
 			}
 
@@ -303,7 +304,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		}
 
 		String subLine = null;
-		if (subTrack != null && PMS.getConfiguration().isAutoloadSubtitles() && !PMS.getConfiguration().isMencoderDisableSubs()) {
+		if (subTrack != null && configuration.isAutoloadSubtitles() && !configuration.isMencoderDisableSubs()) {
 			if (subTrack.getExternalFile() != null) {
 				LOGGER.info("AviSynth script: Using subtitle track: " + subTrack);
 				String function = "TextSub";
@@ -319,7 +320,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		lines.add(mtLine1);
 
 		boolean fullyManaged = false;
-		String script = PMS.getConfiguration().getAvisynthScript();
+		String script = configuration.getAvisynthScript();
 		StringTokenizer st = new StringTokenizer(script, PMS.AVS_SEPARATOR);
 		while (st.hasMoreTokens()) {
 			String line = st.nextToken();
@@ -331,7 +332,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 
 		lines.add(mtLine2);
 
-		if (PMS.getConfiguration().getAvisynthInterFrame()) {
+		if (configuration.getAvisynthInterFrame()) {
 			lines.add(interframeLines);
 		}
 

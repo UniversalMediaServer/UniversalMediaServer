@@ -49,7 +49,7 @@ import xmlwise.XmlParseException;
 
 public class RootFolder extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RootFolder.class);
-	private final PmsConfiguration configuration = PMS.getConfiguration();
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private boolean running;
 	private FolderLimit lim;
 
@@ -112,7 +112,7 @@ public class RootFolder extends DLNAResource {
 		}
 
 		File webConf = new File(configuration.getProfileDirectory(), "WEB.conf");
-		if (webConf.exists() && PMS.getConfiguration().getExternalNetwork()) {
+		if (webConf.exists() && configuration.getExternalNetwork()) {
 			addWebFolder(webConf);
 		}
 

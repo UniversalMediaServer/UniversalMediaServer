@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 
 public class HTTPServer implements Runnable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(HTTPServer.class);
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private final int port;
 	private String hostname;
 	private ServerSocketChannel serverSocketChannel;
@@ -82,7 +83,6 @@ public class HTTPServer implements Runnable {
 	}
 
 	public boolean start() throws IOException {
-		final PmsConfiguration configuration = PMS.getConfiguration();
 		hostname = configuration.getServerHostname();
 		InetSocketAddress address;
 
@@ -218,7 +218,7 @@ public class HTTPServer implements Runnable {
 				// basic IP filter: solntcev at gmail dot com
 				boolean ignore = false;
 
-				if (PMS.getConfiguration().getIpFiltering().allowed(inetAddress)) {
+				if (configuration.getIpFiltering().allowed(inetAddress)) {
 					LOGGER.trace("Receiving a request from: " + ip);
 				} else {
 					ignore = true;

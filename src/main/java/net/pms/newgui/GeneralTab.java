@@ -219,7 +219,7 @@ public class GeneralTab {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JPanel tPanel = new JPanel(new BorderLayout());
-				final File conf = new File(PMS.getConfiguration().getProfilePath());
+				final File conf = new File(configuration.getProfilePath());
 				final JTextArea textArea = new JTextArea();
 				textArea.setFont(new Font("Courier", Font.PLAIN, 12));
 				JScrollPane scrollPane = new JScrollPane(textArea);
@@ -256,7 +256,7 @@ public class GeneralTab {
 						fos.write(text.getBytes());
 						fos.flush();
 						fos.close();
-						PMS.getConfiguration().reload();
+						configuration.reload();
 					} catch (Exception e1) {
 						JOptionPane.showMessageDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 							Messages.getString("NetworkTab.52") + e1.toString());
@@ -352,7 +352,7 @@ public class GeneralTab {
 
 			@Override
 			public void keyReleased(KeyEvent e) {
-				PMS.getConfiguration().setMaximumBitrate(maxbitrate.getText());
+				configuration.setMaximumBitrate(maxbitrate.getText());
 			}
 		});
 
