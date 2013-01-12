@@ -73,7 +73,7 @@ public class MPlayerAudio extends Player {
 
 	@Override
 	public String executable() {
-		return PMS.getConfiguration().getMplayerPath();
+		return configuration.getMplayerPath();
 	}
 
 	@Override
@@ -94,11 +94,11 @@ public class MPlayerAudio extends Player {
 			return ffmpegAudio.launchTranscode(fileName, dlna, media, params);
 		}
 
-		params.maxBufferSize = PMS.getConfiguration().getMaxAudioBuffer();
+		params.maxBufferSize = configuration.getMaxAudioBuffer();
 		PipeProcess audioP = new PipeProcess("mplayer_aud" + System.currentTimeMillis());
 
 		String mPlayerdefaultAudioArgs[] = new String[] {
-			PMS.getConfiguration().getMplayerPath(),
+			configuration.getMplayerPath(),
 			fileName,
 			"-prefer-ipv4",
 			"-nocache",

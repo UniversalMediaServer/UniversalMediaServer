@@ -27,6 +27,8 @@ import java.lang.reflect.Method;
 import java.nio.CharBuffer;
 import java.util.prefs.Preferences;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +39,7 @@ import org.slf4j.LoggerFactory;
  */
 public class WinUtils extends BasicSystemUtils implements SystemUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WinUtils.class);
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	public interface Kernel32 extends Library {
 		Kernel32 INSTANCE = (Kernel32) Native.loadLibrary("kernel32", Kernel32.class);
@@ -76,7 +79,7 @@ public class WinUtils extends BasicSystemUtils implements SystemUtils {
 	@Override
 	public void disableGoToSleep() {
 		// Disable go to sleep (every 40s)
-		if (PMS.getConfiguration().isPreventsSleep() && System.currentTimeMillis() - lastDontSleepCall > 40000) {
+		if (configuration.isPreventsSleep() && System.currentTimeMillis() - lastDontSleepCall > 40000) {
 			LOGGER.trace("Calling SetThreadExecutionState ES_SYSTEM_REQUIRED");
 			Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_SYSTEM_REQUIRED | Kernel32.ES_CONTINUOUS);
 			lastDontSleepCall = System.currentTimeMillis();
@@ -89,7 +92,7 @@ public class WinUtils extends BasicSystemUtils implements SystemUtils {
 	@Override
 	public void reenableGoToSleep() {
 		// Reenable go to sleep
-		if (PMS.getConfiguration().isPreventsSleep() && System.currentTimeMillis() - lastGoToSleepCall > 40000) {
+		if (configuration.isPreventsSleep() && System.currentTimeMillis() - lastGoToSleepCall > 40000) {
 			LOGGER.trace("Calling SetThreadExecutionState ES_CONTINUOUS");
 			Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_CONTINUOUS);
 			lastGoToSleepCall = System.currentTimeMillis();

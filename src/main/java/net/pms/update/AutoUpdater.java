@@ -5,6 +5,7 @@ import java.util.Observable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.util.UriRetriever;
 import net.pms.util.UriRetrieverCallback;
 import net.pms.util.Version;
@@ -20,6 +21,7 @@ import org.slf4j.LoggerFactory;
 public class AutoUpdater extends Observable implements UriRetrieverCallback {
 	private static final String TARGET_FILENAME = "new-version.exe";
 	private static final Logger LOGGER = LoggerFactory.getLogger(AutoUpdater.class);
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	public static enum State {
 		NOTHING_KNOWN, POLLING_SERVER, NO_UPDATE_AVAILABLE, UPDATE_AVAILABLE, DOWNLOAD_IN_PROGRESS, DOWNLOAD_FINISHED, EXECUTING_SETUP, ERROR
@@ -127,7 +129,7 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 		try {
 			File exe = new File(TARGET_FILENAME);
 			if (!exe.exists()) {
-				exe = new File(PMS.getConfiguration().getTempFolder(), TARGET_FILENAME);
+				exe = new File(configuration.getTempFolder(), TARGET_FILENAME);
 			}
 			Runtime.getRuntime().exec(exe.getAbsolutePath());
 		} catch (IOException e) {
@@ -202,7 +204,7 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 				fileOnDisk.write("test".getBytes());
 			} catch (Exception e) {
 				// seems no rights
-				target = new File(PMS.getConfiguration().getTempFolder(), TARGET_FILENAME);
+				target = new File(configuration.getTempFolder(), TARGET_FILENAME);
 			} finally {
 				fileOnDisk.close();
 			}

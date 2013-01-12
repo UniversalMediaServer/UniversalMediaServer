@@ -35,6 +35,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
@@ -69,6 +70,7 @@ import org.slf4j.LoggerFactory;
 public class FFmpegVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegVideo.class);
 	private static final String DEFAULT_QSCALE = "3";
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	// FIXME we have an id() accessor for this; no need for the field to be public
 	@Deprecated
@@ -133,17 +135,17 @@ public class FFmpegVideo extends Player {
 			transcodeOptions.add("-f");
 			transcodeOptions.add("asf");
 		} else { // MPEGPSAC3 or MPEGTSAC3
-			final boolean isTsMuxeRVideoEngineEnabled = PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
+			final boolean isTsMuxeRVideoEngineEnabled = configuration.getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
 
 			// Output audio codec
 			dtsRemux = isTsMuxeRVideoEngineEnabled &&
-				PMS.getConfiguration().isDTSEmbedInPCM() &&
+				configuration.isDTSEmbedInPCM() &&
 				params.aid != null &&
 				params.aid.isDTS() &&
 				!avisynth() &&
 				renderer.isDTSPlayable();
 
-			if (PMS.getConfiguration().isRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && renderer.isTranscodeToAC3()) {
+			if (configuration.isRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && renderer.isTranscodeToAC3()) {
 				// AC-3 remux
 				transcodeOptions.add("-c:a");
 				transcodeOptions.add("copy");
@@ -257,10 +259,10 @@ public class FFmpegVideo extends Player {
 
 	public String initialString() {
 		String threads = "";
-		if (PMS.getConfiguration().isFfmpegMultithreading()) {
-			threads = " -threads " + PMS.getConfiguration().getNumberOfCpuCores();
+		if (configuration.isFfmpegMultithreading()) {
+			threads = " -threads " + configuration.getNumberOfCpuCores();
 		}
-		return PMS.getConfiguration().getFfmpegSettings() + threads;
+		return configuration.getFfmpegSettings() + threads;
 	}
 
 	@Override
@@ -314,7 +316,7 @@ public class FFmpegVideo extends Player {
 	}
 
 	private List<String> getCustomArgs() {
-		String customOptionsString = PMS.getConfiguration().getFfmpegSettings();
+		String customOptionsString = configuration.getFfmpegSettings();
 
 		if (StringUtils.isNotBlank(customOptionsString)) {
 			LOGGER.debug("Custom ffmpeg output options: {}", customOptionsString);
@@ -337,7 +339,7 @@ public class FFmpegVideo extends Player {
 
 	@Override
 	public String executable() {
-		return PMS.getConfiguration().getFfmpegPath();
+		return configuration.getFfmpegPath();
 	}
 
 	@Override
@@ -361,7 +363,7 @@ public class FFmpegVideo extends Player {
 		OutputParams params,
 		String args[]
 	) throws IOException {
-		int nThreads = PMS.getConfiguration().getNumberOfCpuCores();
+		int nThreads = configuration.getNumberOfCpuCores();
 		List<String> cmdList = new ArrayList<String>();
 		RendererConfiguration renderer = params.mediaRenderer;
 
@@ -384,18 +386,18 @@ public class FFmpegVideo extends Player {
 		cmdList.add("-threads");
 		cmdList.add("" + nThreads);
 
-		final boolean isTsMuxeRVideoEngineEnabled = PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
+		final boolean isTsMuxeRVideoEngineEnabled = configuration.getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
 
 		ac3Remux = false;
 		dtsRemux = false;
 
-		if (PMS.getConfiguration().isRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && params.mediaRenderer.isTranscodeToAC3()) {
+		if (configuration.isRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && params.mediaRenderer.isTranscodeToAC3()) {
 			// AC-3 remux takes priority
 			ac3Remux = true;
 		} else {
 			// Now check for DTS remux and LPCM streaming
 			dtsRemux = isTsMuxeRVideoEngineEnabled &&
-				PMS.getConfiguration().isDTSEmbedInPCM() &&
+				configuration.isDTSEmbedInPCM() &&
 				params.aid != null &&
 				params.aid.isDTS() &&
 				!avisynth() &&
@@ -443,7 +445,7 @@ public class FFmpegVideo extends Player {
 		// if the source is too large for the renderer, resize it
 		cmdList.addAll(getRescaleOptions(renderer, media));
 
-		int defaultMaxBitrates[] = getVideoBitrateConfig(PMS.getConfiguration().getMaximumBitrate());
+		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
 
 		if (renderer.getMaxVideoBitrate() != null) {
@@ -479,7 +481,7 @@ public class FFmpegVideo extends Player {
 			}
 
 			// Audio is always AC3 right now, so subtract the configured amount (usually 640)
-			defaultMaxBitrates[0] = defaultMaxBitrates[0] - PMS.getConfiguration().getAudioBitrate();
+			defaultMaxBitrates[0] = defaultMaxBitrates[0] - configuration.getAudioBitrate();
 
 			// Round down to the nearest Mb
 			defaultMaxBitrates[0] = defaultMaxBitrates[0] / 1000 * 1000;
@@ -501,14 +503,14 @@ public class FFmpegVideo extends Player {
 		} else if (dtsRemux) {
 			channels = 2;
 		} else {
-			channels = PMS.getConfiguration().getAudioChannelCount(); // 5.1 max for AC-3 encoding
+			channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
 		}
 		LOGGER.trace("channels=" + channels);
 
 		// Audio bitrate
 		if (!(params.aid.isAC3() && !ac3Remux) && !(type() == Format.AUDIO)) {
 			cmdList.add("-ab");
-			cmdList.add(PMS.getConfiguration().getAudioBitrate() + "k");
+			cmdList.add(configuration.getAudioBitrate() + "k");
 		}
 
 		// add custom args
@@ -538,8 +540,8 @@ public class FFmpegVideo extends Player {
 			PipeProcess pipe;
 			pipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
-			TsMuxeRVideo ts = new TsMuxeRVideo(PMS.getConfiguration());
-			File f = new File(PMS.getConfiguration().getTempFolder(), "pms-tsmuxer.meta");
+			TsMuxeRVideo ts = new TsMuxeRVideo(configuration);
+			File f = new File(configuration.getTempFolder(), "pms-tsmuxer.meta");
 			String cmd[] = new String[]{ ts.executable(), f.getAbsolutePath(), pipe.getInputPipe() };
 			pw = new ProcessWrapperImpl(cmd, params);
 
@@ -547,7 +549,7 @@ public class FFmpegVideo extends Player {
 
 			cmdList.add(ffVideoPipe.getInputPipe());
 
-			OutputParams ffparams = new OutputParams(PMS.getConfiguration());
+			OutputParams ffparams = new OutputParams(configuration);
 			ffparams.maxBufferSize = 1;
 			ffparams.stdin = params.stdin;
 
@@ -604,7 +606,7 @@ public class FFmpegVideo extends Player {
 				ffmpegLPCMextract[3] = "" + params.timeseek;
 			}
 
-			OutputParams ffaudioparams = new OutputParams(PMS.getConfiguration());
+			OutputParams ffaudioparams = new OutputParams(configuration);
 			ffaudioparams.maxBufferSize = 1;
 			ffaudioparams.stdin = params.stdin;
 			ProcessWrapperImpl ffAudio = new ProcessWrapperImpl(ffmpegLPCMextract, ffaudioparams);
@@ -693,13 +695,13 @@ public class FFmpegVideo extends Player {
 
 		multithreading = new JCheckBox(Messages.getString("MEncoderVideo.35"));
 		multithreading.setContentAreaFilled(false);
-		if (PMS.getConfiguration().isFfmpegMultithreading()) {
+		if (configuration.isFfmpegMultithreading()) {
 			multithreading.setSelected(true);
 		}
 		multithreading.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				PMS.getConfiguration().setFfmpegMultithreading(e.getStateChange() == ItemEvent.SELECTED);
+				configuration.setFfmpegMultithreading(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
 		builder.add(multithreading, cc.xy(2, 3));

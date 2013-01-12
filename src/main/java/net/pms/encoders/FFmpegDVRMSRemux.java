@@ -44,6 +44,7 @@ import net.pms.io.ProcessWrapperImpl;
 import org.apache.commons.lang.StringUtils;
 
 public class FFmpegDVRMSRemux extends Player {
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private JTextField altffpath;
 	public static final String ID = "ffmpegdvrmsremux";
 
@@ -108,7 +109,7 @@ public class FFmpegDVRMSRemux extends Player {
 
 	@Override
 	public String executable() {
-		return PMS.getConfiguration().getFfmpegPath();
+		return configuration.getFfmpegPath();
 	}
 
 	@Override
@@ -129,7 +130,6 @@ public class FFmpegDVRMSRemux extends Player {
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
-		PmsConfiguration configuration = PMS.getConfiguration();
 		String ffmpegAlternativePath = configuration.getFfmpegAlternativePath();
 		List<String> cmdList = new ArrayList<String>();
 
@@ -192,7 +192,7 @@ public class FFmpegDVRMSRemux extends Player {
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
 		builder.addLabel(Messages.getString("FFmpegDVRMSRemux.0"), cc.xy(1, 3));
-		altffpath = new JTextField(PMS.getConfiguration().getFfmpegAlternativePath());
+		altffpath = new JTextField(configuration.getFfmpegAlternativePath());
 		altffpath.addKeyListener(new KeyListener() {
 			@Override
 			public void keyPressed(KeyEvent e) {
@@ -204,7 +204,7 @@ public class FFmpegDVRMSRemux extends Player {
 
 			@Override
 			public void keyReleased(KeyEvent e) {
-				PMS.getConfiguration().setFfmpegAlternativePath(altffpath.getText());
+				configuration.setFfmpegAlternativePath(altffpath.getText());
 			}
 		});
 		builder.add(altffpath, cc.xyw(3, 3, 3));
