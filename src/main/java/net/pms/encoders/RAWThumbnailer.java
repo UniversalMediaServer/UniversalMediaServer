@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import javax.swing.JComponent;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
@@ -16,7 +15,6 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 
 public class RAWThumbnailer extends Player {
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	public final static String ID = "rawthumbs";
 
 	protected String[] getDefaultArgs() {
@@ -36,7 +34,7 @@ public class RAWThumbnailer extends Player {
 
 	@Override
 	public String executable() {
-		return configuration.getDCRawPath();
+		return PMS.getConfiguration().getDCRawPath();
 	}
 
 	@Override
@@ -97,7 +95,7 @@ public class RAWThumbnailer extends Player {
 		params.log = false;
 
 		String cmdArray[] = new String[4];
-		cmdArray[0] = configuration.getDCRawPath();
+		cmdArray[0] = PMS.getConfiguration().getDCRawPath();
 		cmdArray[1] = "-e";
 		cmdArray[2] = "-c";
 		cmdArray[3] = fileName;

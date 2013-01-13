@@ -18,16 +18,19 @@
  */
 package net.pms.io;
 
-import com.sun.jna.Platform;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+
 import net.pms.util.DTSAudioOutputStream;
 import net.pms.util.H264AnnexBInputStream;
 import net.pms.util.PCMAudioOutputStream;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.sun.jna.Platform;
 
 public class PipeIPCProcess extends Thread implements ProcessWrapper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PipeIPCProcess.class);
@@ -49,7 +52,7 @@ public class PipeIPCProcess extends Thread implements ProcessWrapper {
 	}
 
 	public void run() {
-		byte[] b = new byte[512 * 1024];
+		byte b[] = new byte[512 * 1024];
 		int n = -1;
 		InputStream in = null;
 		OutputStream out = null;
@@ -59,21 +62,19 @@ public class PipeIPCProcess extends Thread implements ProcessWrapper {
 			in = mkin.getInputStream();
 			out = mkout.getOutputStream();
 
-			if (modifier != null && modifier.isH264AnnexB()) {
+			if (modifier != null && modifier.isH264_annexb()) {
 				in = new H264AnnexBInputStream(in, modifier.getHeader());
-			} else if (modifier != null && modifier.isDtsEmbed()) {
-				out = new DTSAudioOutputStream(new PCMAudioOutputStream(out, modifier.getNbChannels(), modifier.getSampleFrequency(), modifier.getBitsPerSample()));
+			} else if (modifier != null && modifier.isDtsembed()) {
+				out = new DTSAudioOutputStream(new PCMAudioOutputStream(out, modifier.getNbchannels(), modifier.getSampleFrequency(), modifier.getBitspersample()));
 			} else if (modifier != null && modifier.isPcm()) {
-				out = new PCMAudioOutputStream(out, modifier.getNbChannels(), modifier.getSampleFrequency(), modifier.getBitsPerSample());
+				out = new PCMAudioOutputStream(out, modifier.getNbchannels(), modifier.getSampleFrequency(), modifier.getBitspersample());
 			}
 
-			if (modifier != null && modifier.getHeader() != null && !modifier.isH264AnnexB()) {
+			if (modifier != null && modifier.getHeader() != null && !modifier.isH264_annexb()) {
 				out.write(modifier.getHeader());
 			}
-
 			while ((n = in.read(b)) > -1) {
 				out.write(b, 0, n);
-
 				if (debug != null) {
 					debug.write(b, 0, n);
 				}
@@ -87,11 +88,9 @@ public class PipeIPCProcess extends Thread implements ProcessWrapper {
 				if (in != null) {
 					in.close();
 				}
-
 				if (out != null) {
 					out.close();
 				}
-
 				if (debug != null) {
 					debug.close();
 				}
@@ -146,13 +145,11 @@ public class PipeIPCProcess extends Thread implements ProcessWrapper {
 		if (!Platform.isWindows()) {
 			mkin.getPipeProcess().runInNewThread();
 			mkout.getPipeProcess().runInNewThread();
-
 			try {
 				Thread.sleep(150);
 			} catch (InterruptedException e) {
 			}
 		}
-
 		start();
 	}
 

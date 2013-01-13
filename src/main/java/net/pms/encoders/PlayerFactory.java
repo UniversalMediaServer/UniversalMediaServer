@@ -117,31 +117,30 @@ public final class PlayerFactory {
 	 */
 	private static void registerPlayers(final PmsConfiguration configuration) {
 
-		// TODO make these constructors consistent: pass configuration to all or to none
 		if (Platform.isWindows()) {
-			registerPlayer(new AviSynthFFmpeg());
+			registerPlayer(new FFMpegAviSynthVideo());
 		}
 
-		registerPlayer(new FFmpegAudio(configuration));
+		registerPlayer(new FFMpegAudio(configuration));
 		registerPlayer(new MEncoderVideo(configuration));
 
 		if (Platform.isWindows()) {
-			registerPlayer(new AviSynthMEncoder(configuration));
+			registerPlayer(new MEncoderAviSynth(configuration));
 		}
 
-		registerPlayer(new FFmpegVideo());
+		registerPlayer(new FFMpegVideo());
 		registerPlayer(new MPlayerAudio(configuration));
-		registerPlayer(new FFmpegWebVideo(configuration));
+		registerPlayer(new FFMpegWebVideo(configuration));
 		registerPlayer(new MEncoderWebVideo(configuration));
 		registerPlayer(new MPlayerWebVideoDump(configuration));
 		registerPlayer(new MPlayerWebAudio(configuration));
-		registerPlayer(new TsMuxeRVideo(configuration));
-		registerPlayer(new TsMuxeRAudio(configuration));
+		registerPlayer(new TSMuxerVideo(configuration));
+		registerPlayer(new TsMuxerAudio(configuration));
 		registerPlayer(new VideoLanAudioStreaming(configuration));
 		registerPlayer(new VideoLanVideoStreaming(configuration));
 
 		if (Platform.isWindows()) {
-			registerPlayer(new FFmpegDVRMSRemux());
+			registerPlayer(new FFMpegDVRMSRemux());
 		}
 
 		registerPlayer(new RAWThumbnailer());
@@ -264,13 +263,9 @@ public final class PlayerFactory {
 		if (resource == null) {
 			return null;
 		}
-
-		List<String> enabledEngines = PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry());
-
 		for (Player player : players) {
-			if (enabledEngines.contains(player.id()) && player.isCompatible(resource)) {
-				// Player is enabled and compatible
-				LOGGER.trace("Selecting player " + player.name() + " for resource " + resource.getName());
+			if (player.isCompatible(resource)) {
+				LOGGER.trace("Selecting player " + player.name() + " based on media information.");
 				return player;
 			}
 		}
@@ -308,14 +303,14 @@ public final class PlayerFactory {
 	}
 
 	/**
-	 * Returns all {@link Player}s that match the given resource and are
-	 * enabled. Each of the available players is passed the provided information
-	 * and each player that reports it is compatible will be returned.
-	 *
+	 * Returns all {@link Player}s that match the given resource. Each of the
+	 * available players is passed the provided information and each player that
+	 * reports it is compatible will be returned.
+	 * 
 	 * @param resource
-	 *        The {@link DLNAResource} to match
-	 * @return The list of compatible players if a match could be found,
-	 *         <code>null</code> otherwise.
+	 *            The {@link DLNAResource} to match
+	 * @return The player if a match could be found, <code>null</code>
+	 *         otherwise.
 	 * @since 1.60.0
 	 */
 	public static ArrayList<Player> getPlayers(final DLNAResource resource) {
@@ -323,28 +318,14 @@ public final class PlayerFactory {
 			return null;
 		}
 
-		List<String> enabledEngines = PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry());
 		ArrayList<Player> compatiblePlayers = new ArrayList<Player>();
 
 		for (Player player : players) {
-			if (enabledEngines.contains(player.id()) && player.isCompatible(resource)) {
-				// Player is enabled and compatible
-				LOGGER.trace("Player " + player.name() + " is compatible with resource " + resource.getName());
+			if (player.isCompatible(resource)) {
 				compatiblePlayers.add(player);
 			}
 		}
 
 		return compatiblePlayers;
-	}
-
-	/**
-	 * @deprecated Use {@link #getPlayers(DLNAResource)} instead.
-	 *
-	 * @param resource The resource to match
-	 * @return The list of players if a match could be found, null otherwise.
-	 */
-	@Deprecated
-	public static ArrayList<Player> getEnabledPlayers(final DLNAResource resource) {
-		return getPlayers(resource);
 	}
 }

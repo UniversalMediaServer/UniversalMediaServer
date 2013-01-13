@@ -13,33 +13,38 @@
 	</formats>
 	<includeBaseDirectory>true</includeBaseDirectory>
 
-	<files>
-		<!-- Include ums-X.YY.Z-SNAPSHOT-jar-with-dependencies as ums.jar-->
-		<file>
-			<source>${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar</source>
+	<fileSets>
+		<!-- Include PMS -->
+		<fileSet>
+			<directory>${project.basedir}/target</directory>
 			<outputDirectory>.</outputDirectory>
-			<destName>ums.jar</destName>
 			<fileMode>0644</fileMode>
-			<lineEnding>keep</lineEnding>
-		</file>
+			<includes>
+				<include>ums.jar</include>
+			</includes>
+		</fileSet>
 
 		<!-- Include the tsMuxeR binary -->
-		<file>
-			<source>${project.binaries}/tsMuxeR</source>
-			<outputDirectory>.</outputDirectory>
+		<fileSet>
+			<directory>${project.binaries}</directory>
+			<outputDirectory>linux</outputDirectory>
 			<fileMode>0755</fileMode>
-			<lineEnding>keep</lineEnding>
-		</file>
+			<includes>
+				<include>tsMuxeR</include>
+				<include>tsMuxeR_license.txt</include>
+			</includes>
+		</fileSet>
 
-		<!-- Include executable script UMS.sh -->
-		<file>
-			<source>${project.external-resources}/UMS.sh</source>
+		<!-- Include executable script -->
+		<fileSet>
+			<directory>${project.external-resources}</directory>
 			<outputDirectory>.</outputDirectory>
 			<fileMode>0755</fileMode>
 			<lineEnding>unix</lineEnding>
-		</file>
-	</files>
-	<fileSets>
+			<includes>
+				<include>UMS.sh</include>
+			</includes>
+		</fileSet>
 
 		<!-- Include documentation -->
 		<fileSet>

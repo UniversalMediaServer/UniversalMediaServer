@@ -104,12 +104,12 @@ public class MEncoderWebVideo extends Player {
 		ProcessWrapper mkfifo_process = pipe.getPipeProcess();
 
 		cmdArray = finalizeTranscoderArgs(
+			this,
 			fileName,
 			dlna,
 			media,
 			params,
-			cmdArray
-		);
+			cmdArray);
 
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 		pw.attachProcess(mkfifo_process);

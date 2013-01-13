@@ -21,7 +21,6 @@ package net.pms.dlna;
 import java.io.File;
 import java.util.List;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
@@ -30,18 +29,16 @@ import net.pms.util.ProcessUtil;
 
 public class DVDISOFile extends VirtualFolder {
 	public static final String PREFIX = "[DVD ISO] ";
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	@Override
 	public void resolve() {
 		double titles[] = new double[100];
-		String cmd[] = new String[]{configuration.getMplayerPath(), "-identify", "-endpos", "0", "-v", "-ao", "null", "-vc", "null", "-vo", "null", "-dvd-device", ProcessUtil.getShortFileNameIfWideChars(f.getAbsolutePath()), "dvd://1"};
-		OutputParams params = new OutputParams(configuration);
+		String cmd[] = new String[]{PMS.getConfiguration().getMplayerPath(), "-identify", "-endpos", "0", "-v", "-ao", "null", "-vc", "null", "-vo", "null", "-dvd-device", ProcessUtil.getShortFileNameIfWideChars(f.getAbsolutePath()), "dvd://1"};
+		OutputParams params = new OutputParams(PMS.getConfiguration());
 		params.maxBufferSize = 1;
 		params.log = true;
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(cmd, params, true, false);
 		Runnable r = new Runnable() {
-			@Override
 			public void run() {
 				try {
 					Thread.sleep(10000);
@@ -88,7 +85,7 @@ public class DVDISOFile extends VirtualFolder {
 	public DVDISOFile(File f) {
 		super(PREFIX + (f.isFile() ? f.getName() : "VIDEO_TS"), null);
 		this.f = f;
-		setLastModified(f.lastModified());
+		setLastmodified(f.lastModified());
 	}
 
 	@Override

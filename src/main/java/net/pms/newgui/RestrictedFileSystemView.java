@@ -4,18 +4,20 @@ import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Vector;
+
 import javax.swing.Icon;
 import javax.swing.JFileChooser;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileSystemView;
 import javax.swing.filechooser.FileView;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Fallback implementation of a FileSystemView.
  * <p>
- * Intended usage:<br>
+ * Intendend usage:<br>
  * If the standard JFileChooser cannot open due to an exception, as described in <a
  * href="http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6544857">http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6544857</a>
  * <p>

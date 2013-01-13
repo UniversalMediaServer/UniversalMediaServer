@@ -6,7 +6,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Observable;
 import java.util.Observer;
-import javax.swing.*;
+
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JProgressBar;
+import javax.swing.SwingUtilities;
+
 import net.pms.update.AutoUpdater;
 import net.pms.update.AutoUpdater.State;
 
@@ -46,7 +52,6 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 		DownloadButton() {
 			super("Download");
 			setEnabled(false);
-			this.setRequestFocusEnabled(false);
 			addActionListener(this);
 		}
 
@@ -66,7 +71,6 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 		CancelButton() {
 			super("Not Now");
 			setEnabled(true);
-			this.setRequestFocusEnabled(false);
 			addActionListener(this);
 		}
 
@@ -166,17 +170,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 			case POLLING_SERVER:
 				return "Connecting to server";
 			case UPDATE_AVAILABLE:
-				String permissionsReminder = "";
-
-				if (
-					"Windows 8".equals(System.getProperty("os.name")) ||
-					"Windows 7".equals(System.getProperty("os.name")) ||
-					"Windows Vista".equals(System.getProperty("os.name"))
-				) {
-					permissionsReminder = ". Make sure UMS is running as administrator before proceeding";
-				}
-
-				return "An update is available" + permissionsReminder;
+				return "An update is available";
 			default:
 				return "Unknown state";
 		}

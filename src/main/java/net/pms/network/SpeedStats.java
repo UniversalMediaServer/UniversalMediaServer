@@ -22,11 +22,19 @@ import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
 import net.pms.PMS;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.SystemUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -123,9 +131,9 @@ public class SpeedStats {
 			op.log = true;
 			op.maxBufferSize = 1;
 			SystemUtils sysUtil = PMS.get().getRegistry();
-			final ProcessWrapperImpl pw = new ProcessWrapperImpl(sysUtil.getPingCommand(addr.getHostAddress(), 3, 64000), op, true, false);
+			final ProcessWrapperImpl pw = new ProcessWrapperImpl(sysUtil.getPingCommand(addr.getHostAddress(), 3, 64000), op,
+					true, false);
 			Runnable r = new Runnable() {
-				@Override
 				public void run() {
 					try {
 						Thread.sleep(2000);
@@ -152,11 +160,10 @@ public class SpeedStats {
 						c++;
 					} catch (NumberFormatException e) {
 						// no big deal
-						LOGGER.debug("Could not estimate network speed from time: \"" + timeString + "\"");
+						LOGGER.debug("Could not parse time from \"" + timeString + "\"");
 					}
 				}
 			}
-
 			if (c > 0) {
 				time = time / c;
 			}

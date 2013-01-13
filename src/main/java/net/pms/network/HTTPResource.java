@@ -18,22 +18,31 @@
  */
 package net.pms.network;
 
-import java.io.*;
+import static net.pms.util.StringUtil.convertURLToFileName;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.Authenticator;
 import java.net.URL;
 import java.net.URLConnection;
+
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.util.PropertiesUtil;
-import static net.pms.util.StringUtil.convertURLToFileName;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Implements any item that can be transfered through the HTTP pipes.
- * In the PMS case, this item represents media files.
+ * In the PMS case, this item represent media files.
  * @see DLNAResource
  */
 public class HTTPResource {
@@ -61,7 +70,8 @@ public class HTTPResource {
 	public static final String TIFF_TYPEMIME = "image/tiff";
 	public static final String GIF_TYPEMIME = "image/gif";
 	public static final String BMP_TYPEMIME = "image/bmp";
-	public HTTPResource() { }
+	public HTTPResource() {
+	}
 
 	/**
 	 * Returns for a given item type the default MIME type associated. This is used in the HTTP transfers
@@ -71,7 +81,6 @@ public class HTTPResource {
 	 */
 	public static String getDefaultMimeType(int type) {
 		String mimeType = HTTPResource.UNKNOWN_VIDEO_TYPEMIME;
-
 		if (type == Format.VIDEO) {
 			mimeType = HTTPResource.UNKNOWN_VIDEO_TYPEMIME;
 		} else if (type == Format.IMAGE) {
@@ -79,34 +88,31 @@ public class HTTPResource {
 		} else if (type == Format.AUDIO) {
 			mimeType = HTTPResource.UNKNOWN_AUDIO_TYPEMIME;
 		}
-
 		return mimeType;
 	}
 
 	/**
-	 * Returns an InputStream associated with the fileName.
+	 * Returns a InputStream associated to the fileName.
 	 * @param fileName TODO Absolute or relative file path.
-	 * @return If found, an InputStream associated with the fileName. null otherwise.
+	 * @return If found, an InputStream associated to the fileName. null otherwise.
 	 */
 	protected InputStream getResourceInputStream(String fileName) {
 		fileName = "/resources/" + fileName;
 		ClassLoader cll = this.getClass().getClassLoader();
 		InputStream is = cll.getResourceAsStream(fileName.substring(1));
-
 		while (is == null && cll.getParent() != null) {
 			cll = cll.getParent();
 			is = cll.getResourceAsStream(fileName.substring(1));
 		}
-
 		return is;
 	}
 
 	/**
-	 * Creates an InputStream based on a URL. This is used while accessing external resources
+	 * Creates an InputStream based on an URL. This is used while accessing external resources
 	 * like online radio stations.
 	 * @param u URL.
-	 * @param saveOnDisk If true, the file is first downloaded to the temporary folder.
-	 * @return InputStream that can be used for sending to the media renderer.
+	 * @param saveOnDisk If true, the file is first downloaded in the harddisk in the temporary folder.
+	 * @return InputStream that can be used for sending to the UPNP Media Renderer.
 	 * @throws IOException
 	 * @see #downloadAndSendBinary(String)
 	 */
@@ -134,12 +140,12 @@ public class HTTPResource {
 			}
 		}
 
-		byte[] content = downloadAndSendBinary(u, saveOnDisk, f);
+		byte content[] = downloadAndSendBinary(u, saveOnDisk, f);
 		return new ByteArrayInputStream(content);
 	}
 
 	/**
-	 * Overloaded method for {@link #downloadAndSendBinary(String, boolean, File)}, without storing a file on the filesystem.
+	 * Overloaded method for {@link #downloadAndSendBinary(String, boolean, File)}, without storing any file in the harddisk.
 	 * @param u URL to retrieve.
 	 * @return byte array.
 	 * @throws IOException
@@ -149,10 +155,10 @@ public class HTTPResource {
 	}
 
 	/**
-	 * Returns a byte array representation of the file given by the URL. The file is downloaded and optionally stored on the filesystem.
+	 * Returns a byte array representation of a file given by an URL. File is downloaded and optionally stored in the harddisk.
 	 * @param u URL to retrieve.
-	 * @param @param saveOnDisk If true, store the file on the filesystem.
-	 * @param f If saveOnDisk is true, then store the contents of the file represented by u in the associated File. f needs to be opened before
+	 * @param saveOnDisk If true, store the file in the harddisk.
+	 * @param f If saveOnDisk is true, then store the contents of the file represented by u into the associated File. f needs to be opened before
 	 * calling this function.
 	 * @return The byte array
 	 * @throws IOException
@@ -167,46 +173,38 @@ public class HTTPResource {
 		LOGGER.debug("Retrieving " + url.toString());
 		ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 		URLConnection conn = url.openConnection();
-
 		// GameTrailers blocks user-agents that identify themselves as "Java"
 		conn.setRequestProperty("User-agent", PropertiesUtil.getProjectProperties().get("project.name") + " " + PMS.getVersion());
 		InputStream in = conn.getInputStream();
 		FileOutputStream fOUT = null;
-
 		if (saveOnDisk && f != null) {
-			// fileName = convertURLToFileName(fileName);
+			//fileName = convertURLToFileName(fileName);
 			fOUT = new FileOutputStream(f);
 		}
-
-		byte[] buf = new byte[4096];
-
-		int n;
+		byte buf[] = new byte[4096];
+		int n = -1;
 		while ((n = in.read(buf)) > -1) {
 			bytes.write(buf, 0, n);
-
 			if (fOUT != null) {
 				fOUT.write(buf, 0, n);
 			}
 		}
-
 		in.close();
-
 		if (fOUT != null) {
 			fOUT.close();
 		}
-
 		return bytes.toByteArray();
 	}
 
 
 	/**
-	 * Returns the supplied MIME type customized for the supplied media renderer according to the renderer's aliasing rules.
-	 * @param mimetype MIME type to customize.
-	 * @param renderer media renderer to customize the MIME type for.
+	 * Returns an associated MIME type related to the Media Renderer. Some Media Renderer might need that the MIME type is not the correct one.
+	 * @param mimetype MIME type to transform.
+	 * @param mediarenderer Specific Media Renderer.
 	 * @return The MIME type
 	 */
-	public String getRendererMimeType(String mimetype, RendererConfiguration renderer) {
-		return renderer.getMimeType(mimetype);
+	public String getRendererMimeType(String mimetype, RendererConfiguration mediarenderer) {
+		return mediarenderer.getMimeType(mimetype);
 	}
 
 	public int getDLNALocalesCount() {
@@ -217,7 +215,6 @@ public class HTTPResource {
 		if (index == 1 || index == 2) {
 			return "MPEG_PS_NTSC";
 		}
-
 		return "MPEG_PS_PAL";
 	}
 
@@ -225,11 +222,9 @@ public class HTTPResource {
 		if (index == 1) {
 			return "MPEG_TS_SD_NA_ISO";
 		}
-
 		if (index == 2) {
 			return "MPEG_TS_SD_JP_ISO";
 		}
-
 		return "MPEG_TS_SD_EU_ISO";
 	}
 
@@ -237,11 +232,9 @@ public class HTTPResource {
 		if (index == 1) {
 			return "MPEG_TS_SD_NA";
 		}
-
 		if (index == 2) {
 			return "MPEG_TS_SD_JP";
 		}
-
 		return "MPEG_TS_SD_EU";
 	}
 }

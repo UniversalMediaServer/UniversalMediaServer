@@ -50,8 +50,7 @@ public abstract class Format implements Cloneable {
 		RAW,
 		TIF,
 		WAV,
-		WEB,
-		CUSTOM
+		WEB
 	}
 
 	public int getType() {
@@ -264,7 +263,6 @@ public abstract class Format implements Cloneable {
 	 * Return the class name for string representation.
 	 * @return The name.
 	 */
-	@Override
 	public String toString() {
 		return getClass().getSimpleName();
 	}

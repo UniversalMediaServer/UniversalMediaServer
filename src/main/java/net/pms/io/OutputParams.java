@@ -20,7 +20,7 @@ package net.pms.io;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.Map;
+
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
@@ -28,11 +28,8 @@ import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.IPushOutput;
 
 public class OutputParams {
-	@Deprecated
-	public File outputFile; // XXX no longer used
-
+	public File outputFile;
 	public File workDir;
-	public Map<String,String> env;
 	public double minFileSize;
 	public double minBufferSize;
 	public double maxBufferSize;
@@ -41,8 +38,8 @@ public class OutputParams {
 	public int fromFrame;
 	public int toFrame;
 	public int waitbeforestart;
-	public PipeProcess[] input_pipes = new PipeProcess[2];
-	public PipeProcess[] output_pipes = new PipeProcess[2];
+	public PipeProcess input_pipes[] = new PipeProcess[2];
+	public PipeProcess output_pipes[] = new PipeProcess[2];
 	public DLNAMediaAudio aid;
 	public DLNAMediaSubtitle sid;
 	public int secondread_minsize;
@@ -78,7 +75,7 @@ public class OutputParams {
 			maxBufferSize = 100;
 		}
 		timeseek = 0;
-		env = null;
+		outputFile = null;
 	}
 
 	/**
@@ -93,33 +90,15 @@ public class OutputParams {
 
 	@Override
 	public String toString() {
-		return "OutputParams [aid=" + aid +
-			", avidemux=" + avidemux +
-			", forceFps=" + forceFps +
-			", forceType=" + forceType +
-			", fromFrame=" + fromFrame +
-			", header=" + Arrays.toString(header) +
-			", hidebuffer=" + hidebuffer +
-			", input_pipes=" + Arrays.toString(input_pipes) +
-			", log=" + log +
-			", losslessaudio=" + losslessaudio +
-			", lossyaudio=" + lossyaudio +
-			", maxBufferSize=" + maxBufferSize +
-			", mediaRenderer=" + mediaRenderer +
-			", minBufferSize=" + minBufferSize +
-			", minFileSize=" + minFileSize +
-			", no_videoencode=" + no_videoencode +
-			", noexitcheck=" + noexitcheck +
-			", output_pipes=" + Arrays.toString(output_pipes) +
-			", secondread_minsize=" + secondread_minsize +
-			", shift_scr=" + shift_scr +
-			", sid=" + sid +
-			", stdin=" + stdin +
-			", timeend=" + timeend +
-			", timeseek=" + timeseek +
-			", toFrame=" + toFrame +
-			", waitbeforestart=" + waitbeforestart +
-			", workDir=" + workDir +
-			", env=" + env + "]";
+		return "OutputParams [aid=" + aid + ", avidemux=" + avidemux + ", forceFps=" + forceFps + ", forceType="
+			+ forceType + ", fromFrame=" + fromFrame + ", header=" + Arrays.toString(header) + ", hidebuffer="
+			+ hidebuffer + ", input_pipes=" + Arrays.toString(input_pipes) + ", log=" + log + ", losslessaudio="
+			+ losslessaudio + ", lossyaudio=" + lossyaudio + ", maxBufferSize=" + maxBufferSize
+			+ ", mediaRenderer=" + mediaRenderer + ", minBufferSize=" + minBufferSize + ", minFileSize="
+			+ minFileSize + ", no_videoencode=" + no_videoencode + ", noexitcheck=" + noexitcheck
+			+ ", outputFile=" + outputFile + ", output_pipes=" + Arrays.toString(output_pipes)
+			+ ", secondread_minsize=" + secondread_minsize + ", shift_scr=" + shift_scr + ", sid=" + sid
+			+ ", stdin=" + stdin + ", timeend=" + timeend + ", timeseek=" + timeseek + ", toFrame=" + toFrame
+			+ ", waitbeforestart=" + waitbeforestart + ", workDir=" + workDir + "]";
 	}
 }

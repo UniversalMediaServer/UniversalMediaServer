@@ -2,7 +2,6 @@ package net.pms.configuration;
 
 import java.io.File;
 import net.pms.util.PropertiesUtil;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +40,7 @@ class WindowsDefaultPaths implements ProgramPaths {
 
 	@Override
 	public String getVlcPath() {
-		return getBinariesPath() +  "videolan/vlc.exe";
+		return "videolan/vlc.exe";
 	}
 
 	@Override
@@ -69,7 +68,7 @@ class WindowsDefaultPaths implements ProgramPaths {
 	private String getBinariesPath() {
 		String path = PropertiesUtil.getProjectProperties().get("project.binaries.dir");
 
-		if (isNotBlank(path)) {
+		if (path != null && !"".equals(path)) {
 			if (path.endsWith("/")) {
 				return path;
 			} else {
@@ -91,7 +90,7 @@ class WindowsDefaultPaths implements ProgramPaths {
 		File dir = new File(".");
 		try {
 			String path = dir.getCanonicalPath();
-			if (isNotBlank(path)) {
+			if (path != null && !"".equals(path)) {
 				if (path.endsWith("/")) {
 					return path;
 				} else {

@@ -3,7 +3,6 @@ package net.pms.formats;
 import java.util.ArrayList;
 import java.util.List;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.InputFile;
@@ -16,7 +15,6 @@ import org.slf4j.LoggerFactory;
 
 public class RAW extends JPG {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RAW.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	/**
 	 * {@inheritDoc} 
@@ -53,7 +51,7 @@ public class RAW extends JPG {
 	@Override
 	public ArrayList<Class<? extends Player>> getProfiles() {
 		ArrayList<Class<? extends Player>> profiles = new ArrayList<Class<? extends Player>>();
-		for (String engine : configuration.getEnginesAsList(PMS.get().getRegistry())) {
+		for (String engine : PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry())) {
 			if (engine.equals(RAWThumbnailer.ID)) {
 				profiles.add(RAWThumbnailer.class);
 			}
@@ -69,7 +67,7 @@ public class RAW extends JPG {
 	@Override
 	public void parse(DLNAMediaInfo media, InputFile file, int type, RendererConfiguration renderer) {
 		try {
-			OutputParams params = new OutputParams(configuration);
+			OutputParams params = new OutputParams(PMS.getConfiguration());
 			params.waitbeforestart = 1;
 			params.minBufferSize = 1;
 			params.maxBufferSize = 5;
@@ -77,7 +75,7 @@ public class RAW extends JPG {
 
 
 			String cmdArray[] = new String[4];
-			cmdArray[0] = configuration.getDCRawPath();
+			cmdArray[0] = PMS.getConfiguration().getDCRawPath();
 			cmdArray[1] = "-i";
 			cmdArray[2] = "-v";
 			if (file.getFile() != null) {

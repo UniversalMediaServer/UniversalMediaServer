@@ -26,9 +26,11 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.StringTokenizer;
+
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.external.StartStopListenerDelegate;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +40,7 @@ public class RequestHandler implements Runnable {
 	private Socket socket;
 	private OutputStream output;
 	private BufferedReader br;
-
+	
 	// Used to filter out known headers when the renderer is not recognized
 	private final static String[] KNOWN_HEADERS = {
 		"Accept",
@@ -63,10 +65,10 @@ public class RequestHandler implements Runnable {
 		this.br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 	}
 
-	@Override
 	public void run() {
 		Request request = null;
-		StartStopListenerDelegate startStopListenerDelegate = new StartStopListenerDelegate(socket.getInetAddress().getHostAddress());
+		StartStopListenerDelegate startStopListenerDelegate = new StartStopListenerDelegate(
+			socket.getInetAddress().getHostAddress());
 
 		try {
 			int receivedContentLength = -1;
@@ -142,7 +144,7 @@ public class RequestHandler implements Runnable {
 							request.setHttp10(true);
 						}
 					} else if (request != null && temp.toUpperCase().equals("CALLBACK:")) {
-						request.setSoapaction(s.nextToken());
+							request.setSoapaction(s.nextToken());
 					} else if (request != null && temp.toUpperCase().equals("SOAPACTION:")) {
 						request.setSoapaction(s.nextToken());
 					} else if (headerLine.toUpperCase().contains("CONTENT-LENGTH:")) {
@@ -179,13 +181,11 @@ public class RequestHandler implements Runnable {
 						}
 						request.setTimeseek(Double.parseDouble(timeseek));
 					} else {
-						/*
-						 * If we made it to here, none of the previous header checks matched.
-						 * Unknown headers make interesting logging info when we cannot recognize
-						 * the media renderer, so keep track of the truly unknown ones.
-						 */
+						 // If we made it to here, none of the previous header checks matched.
+						 // Unknown headers make interesting logging info when we cannot recognize
+						 // the media renderer, so keep track of the truly unknown ones.
 						boolean isKnown = false;
-
+						
 						// Try to match possible known headers.
 						for (String knownHeaderString : KNOWN_HEADERS) {
 							if (headerLine.toLowerCase().startsWith(knownHeaderString.toLowerCase())) {
@@ -193,10 +193,10 @@ public class RequestHandler implements Runnable {
 								break;
 							}
 						}
-
+						
 						if (!isKnown) {
 							// Truly unknown header, therefore interesting. Save for later use.
-							unknownHeaders.append(separator).append(headerLine);
+							unknownHeaders.append(separator + headerLine);
 							separator = ", ";
 						}
 					}
@@ -210,23 +210,24 @@ public class RequestHandler implements Runnable {
 			if (request != null) {
 				// Still no media renderer recognized?
 				if (request.getMediaRenderer() == null) {
+					
 					// Attempt 4: Not really an attempt; all other attempts to recognize
 					// the renderer have failed. The only option left is to assume the
 					// default renderer.
 					request.setMediaRenderer(RendererConfiguration.getDefaultConf());
-					LOGGER.trace("Using default media renderer: " + request.getMediaRenderer().getRendererName());
+					LOGGER.trace("Using default media renderer " + request.getMediaRenderer().getRendererName());
 
 					if (userAgentString != null && !userAgentString.equals("FDSSDP")) {
 						// We have found an unknown renderer
-						LOGGER.info("Media renderer was not recognized. Possible identifying HTTP headers: User-Agent: " + userAgentString +
-								("".equals(unknownHeaders.toString()) ? "" : ", " + unknownHeaders.toString()));
+						LOGGER.info("Media renderer was not recognized. Possible identifying HTTP headers: User-Agent: "	+ userAgentString
+								+ ("".equals(unknownHeaders.toString()) ? "" : ", " + unknownHeaders.toString()));
 						PMS.get().setRendererfound(request.getMediaRenderer());
 					}
 				} else {
 					if (userAgentString != null) {
 						LOGGER.trace("HTTP User-Agent: " + userAgentString);
 					}
-					LOGGER.trace("Recognized media renderer: " + request.getMediaRenderer().getRendererName());
+					LOGGER.trace("Recognized media renderer " + request.getMediaRenderer().getRendererName());
 				}
 			}
 
@@ -249,14 +250,15 @@ public class RequestHandler implements Runnable {
 			if (request != null && request.getInputStream() != null) {
 				request.getInputStream().close();
 			}
+
 		} catch (IOException e) {
-			LOGGER.trace("Unexpected IO error: " + e.getClass().getName() + ": " + e.getMessage());
+			LOGGER.trace("Unexpected IO error: " + e.getClass() + ": " + e.getMessage());
 			if (request != null && request.getInputStream() != null) {
 				try {
 					LOGGER.trace("Closing input stream: " + request.getInputStream());
 					request.getInputStream().close();
 				} catch (IOException e1) {
-					LOGGER.error("Error closing input stream", e1);
+					LOGGER.error("Error closing input stream", e);
 				}
 			}
 		} finally {
@@ -273,12 +275,11 @@ public class RequestHandler implements Runnable {
 			LOGGER.trace("Close connection");
 		}
 	}
-
+	
 	/**
 	 * Applies the IP filter to the specified internet address. Returns true
 	 * if the address is not allowed and therefore should be filtered out,
 	 * false otherwise.
-	 *
 	 * @param inetAddress The internet address to verify.
 	 * @return True when not allowed, false otherwise.
 	 */

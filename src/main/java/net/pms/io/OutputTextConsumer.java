@@ -18,18 +18,16 @@
  */
 package net.pms.io;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.LineIterator;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * An input stream consumer that stores the consumed lines in a list and optionally logs each line.
- */
 public class OutputTextConsumer extends OutputConsumer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OutputTextConsumer.class);
 	private List<String> lines = new ArrayList<String>();
@@ -42,29 +40,36 @@ public class OutputTextConsumer extends OutputConsumer {
 		this.log = log;
 	}
 
-	@Override
 	public void run() {
-		LineIterator it = null;
+		BufferedReader br = null;
 		try {
-			it = IOUtils.lineIterator(inputStream, "UTF-8");
-
-			while (it.hasNext()) {
-				String line = it.nextLine();
-
-				if (line.length() > 0) {
+			br = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+			String line = null;
+			int authorized = 10;
+			while ((line = br.readLine()) != null) {
+				if (line.length() > 0 && line.startsWith("[") && authorized > 0) {
 					addLine(line);
-				}
-
-				if (log) {
-					LOGGER.debug(line);
+					if (log) {
+						LOGGER.trace(line);
+					}
+					authorized--;
+				} else if (line.length() > 0 && !line.startsWith("[") && !line.startsWith("100") && !line.startsWith("size") && !line.startsWith("frame") && !line.startsWith("Pos") && !line.startsWith("ERROR:") && !line.startsWith("BUFFER") && !line.startsWith("INITV")) {
+					addLine(line);
+					if (log) {
+						LOGGER.trace(line);
+					}
 				}
 			}
 		} catch (IOException ioe) {
-			LOGGER.debug("Error consuming input stream: {}", ioe.getMessage());
-		} catch (IllegalStateException ise) {
-			LOGGER.debug("Error reading from closed input stream: {}", ise.getMessage());
+			LOGGER.debug("Error consuming stream of spawned process: " + ioe.getMessage());
 		} finally {
-			LineIterator.closeQuietly(it); // clean up all associated resources
+			if (br != null) {
+				try {
+					br.close();
+				} catch (IOException e) {
+					LOGGER.debug("Caught exception", e);
+				}
+			}
 		}
 	}
 
@@ -74,19 +79,15 @@ public class OutputTextConsumer extends OutputConsumer {
 		}
 	}
 
-	@Override
 	public BufferedOutputFile getBuffer() {
 		return null;
 	}
 
-	@Override
 	public List<String> getResults() {
 		List<String> clonedResults = new ArrayList<String>();
-
 		synchronized (linesLock) {
 			clonedResults.addAll(lines);
 		}
-
 		return clonedResults;
 	}
 }

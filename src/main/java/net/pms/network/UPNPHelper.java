@@ -19,11 +19,21 @@
 package net.pms.network;
 
 import java.io.IOException;
-import java.net.*;
+import java.net.BindException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.net.MulticastSocket;
+import java.net.NetworkInterface;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.Locale;
+import java.util.Random;
+import java.util.TimeZone;
+
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -63,7 +73,6 @@ public class UPNPHelper {
 	private static Thread listener;
 	private static Thread aliveThread;
 	private static SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	/**
 	 * Send UPnP discovery search message to discover devices of interest on
@@ -85,15 +94,15 @@ public class UPNPHelper {
 		}
 
 		String discovery =
-			"HTTP/1.1 200 OK" + CRLF +
-			"CACHE-CONTROL: max-age=1200" + CRLF +
-			"DATE: " + sdf.format(new Date(System.currentTimeMillis())) + " GMT" + CRLF +
-			"LOCATION: http://" + PMS.get().getServer().getHost() + ":" + PMS.get().getServer().getPort() + "/description/fetch" + CRLF +
-			"SERVER: " + PMS.get().getServerName() + CRLF +
-			"ST: " + st + CRLF +
-			"EXT: " + CRLF +
-			"USN: " + usn + st + CRLF +
-			"Content-Length: 0" + CRLF + CRLF;
+			"HTTP/1.1 200 OK" + CRLF
+			+ "CACHE-CONTROL: max-age=1200" + CRLF
+			+ "DATE: " + sdf.format(new Date(System.currentTimeMillis())) + " GMT" + CRLF
+			+ "LOCATION: http://" + PMS.get().getServer().getHost() + ":" + PMS.get().getServer().getPort() + "/description/fetch" + CRLF
+			+ "SERVER: " + PMS.get().getServerName() + CRLF
+			+ "ST: " + st + CRLF
+			+ "EXT: " + CRLF
+			+ "USN: " + usn + st + CRLF
+			+ "Content-Length: 0" + CRLF + CRLF;
 		sendReply(host, port, discovery);
 	}
 
@@ -106,6 +115,7 @@ public class UPNPHelper {
 			DatagramPacket dgmPacket = new DatagramPacket(msg.getBytes(), msg.length(), inetAddr, port);
 			ssdpUniSock.send(dgmPacket);
 			ssdpUniSock.close();
+
 		} catch (Exception ex) {
 			LOGGER.info(ex.getMessage());
 		}
@@ -141,11 +151,10 @@ public class UPNPHelper {
 					break;
 				}
 			}
-		} else if (PMS.get().getServer().getNetworkInterface() != null) {
-			LOGGER.trace("Setting multicast network interface: " + PMS.get().getServer().getNetworkInterface());
-			ssdpSocket.setNetworkInterface(PMS.get().getServer().getNetworkInterface());
+		} else if (PMS.get().getServer().getNi() != null) {
+			LOGGER.trace("Setting multicast network interface: " + PMS.get().getServer().getNi());
+			ssdpSocket.setNetworkInterface(PMS.get().getServer().getNi());
 		}
-
 		LOGGER.trace("Sending message from multicast socket on network interface: " + ssdpSocket.getNetworkInterface());
 		LOGGER.trace("Multicast socket is on interface: " + ssdpSocket.getInterface());
 		ssdpSocket.setTimeToLive(32);
@@ -156,7 +165,7 @@ public class UPNPHelper {
 	}
 
 	public static void sendByeBye() throws IOException {
-		LOGGER.info("Disconnecting HTTP server from renderers");
+		LOGGER.info("Sending BYEBYE...");
 		MulticastSocket ssdpSocket = getNewMulticastSocket();
 
 		sendMessage(ssdpSocket, "upnp:rootdevice", BYEBYE);
@@ -173,49 +182,36 @@ public class UPNPHelper {
 	private static void sleep(int delay) {
 		try {
 			Thread.sleep(delay);
-		} catch (InterruptedException e) { }
+		} catch (InterruptedException e) {
+		}
 	}
 
 	private static void sendMessage(DatagramSocket socket, String nt, String message) throws IOException {
 		String msg = buildMsg(nt, message);
-		boolean alreadyLoggedError = false;
 		Random rand = new Random();
+		//LOGGER.trace( "Sending this SSDP packet: " + CRLF + msg);// StringUtils.replace(msg, CRLF, "<CRLF>"));
 		DatagramPacket ssdpPacket = new DatagramPacket(msg.getBytes(), msg.length(), getUPNPAddress(), UPNP_PORT);
-
-		try {
-			socket.send(ssdpPacket);
-		} catch (IOException e) {
-			LOGGER.debug("An error occurred while sending this SSDP packet: " + CRLF + msg);
-			LOGGER.debug("The full error was: " + e);
-			alreadyLoggedError = true;
-		}
+		socket.send(ssdpPacket);
 		sleep(rand.nextInt(1800 / 2));
 
-		try {
-			socket.send(ssdpPacket);
-		} catch (IOException e) {
-			if (!alreadyLoggedError) {
-				LOGGER.debug("An error occurred while sending this SSDP packet: " + CRLF + msg);
-				LOGGER.debug("The full error was: " + e);
-			}
-		}
+		socket.send(ssdpPacket);
 		sleep(rand.nextInt(1800 / 2));
 	}
 	private static int delay = 10000;
 
 	public static void listen() throws IOException {
 		Runnable rAlive = new Runnable() {
-			@Override
 			public void run() {
 				while (true) {
 					try {
 						Thread.sleep(delay);
 						sendAlive();
-						if (delay == 20000) { // every 180s
+						if (delay == 20000) // every 180s
+						{
 							delay = 180000;
 						}
-
-						if (delay == 10000) { // after 10, and 30s
+						if (delay == 10000) // after 10, and 30s
+						{
 							delay = 20000;
 						}
 					} catch (Exception e) {
@@ -224,27 +220,25 @@ public class UPNPHelper {
 				}
 			}
 		};
-
 		aliveThread = new Thread(rAlive, "UPNP-AliveMessageSender");
 		aliveThread.start();
 
 		Runnable r = new Runnable() {
-			@Override
 			public void run() {
 				boolean bindErrorReported = false;
 				while (true) {
 					try {
 						// Use configurable source port as per http://code.google.com/p/ps3mediaserver/issues/detail?id=1166
-						MulticastSocket socket = new MulticastSocket(configuration.getUpnpPort());
+						MulticastSocket socket = new MulticastSocket(PMS.getConfiguration().getUpnpPort());
 						if (bindErrorReported) {
-							LOGGER.warn("Finally, acquiring port " + configuration.getUpnpPort() + " was successful!");
+							LOGGER.warn("Finally, acquiring port " + PMS.getConfiguration().getUpnpPort() + " was successful!");
 						}
 						NetworkInterface ni = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
 						if (ni != null) {
 							socket.setNetworkInterface(ni);
-						} else if (PMS.get().getServer().getNetworkInterface() != null) {
-							LOGGER.trace("Setting multicast network interface: " + PMS.get().getServer().getNetworkInterface());
-							socket.setNetworkInterface(PMS.get().getServer().getNetworkInterface());
+						} else if (PMS.get().getServer().getNi() != null) {
+							LOGGER.trace("Setting multicast network interface: " + PMS.get().getServer().getNi());
+							socket.setNetworkInterface(PMS.get().getServer().getNi());
 						}
 						socket.setTimeToLive(4);
 						socket.setReuseAddress(true);
@@ -261,7 +255,7 @@ public class UPNPHelper {
 								String remoteAddr = address.getHostAddress();
 								int remotePort = packet_r.getPort();
 
-								if (configuration.getIpFiltering().allowed(address)) {
+								if (PMS.getConfiguration().getIpFiltering().allowed(address)) {
 									LOGGER.trace("Receiving a M-SEARCH from [" + remoteAddr + ":" + remotePort + "]");
 
 									if (StringUtils.indexOf(s, "urn:schemas-upnp-org:service:ContentDirectory:1") > 0) {
@@ -289,7 +283,7 @@ public class UPNPHelper {
 						}
 					} catch (BindException e) {
 						if (!bindErrorReported) {
-							LOGGER.error("Unable to bind to " + configuration.getUpnpPort()
+							LOGGER.error("Unable to bind to " + PMS.getConfiguration().getUpnpPort()
 							+ ", which means that PMS will not automatically appear on your renderer! "
 							+ "This usually means that another program occupies the port. Please "
 							+ "stop the other program and free up the port. "
@@ -304,7 +298,6 @@ public class UPNPHelper {
 				}
 			}
 		};
-
 		listener = new Thread(r, "UPNPHelper");
 		listener.start();
 	}

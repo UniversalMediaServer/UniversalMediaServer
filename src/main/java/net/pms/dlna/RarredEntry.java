@@ -18,8 +18,8 @@
  */
 package net.pms.dlna;
 
-import com.github.junrar.Archive;
-import com.github.junrar.rarfile.FileHeader;
+import de.innosystec.unrar.Archive;
+import de.innosystec.unrar.rarfile.FileHeader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,65 +32,58 @@ import org.slf4j.LoggerFactory;
 public class RarredEntry extends DLNAResource implements IPushOutput {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RarredEntry.class);
 	private String name;
-	private File file;
-	private String fileHeaderName;
+	private File pere;
+	private String fileheadername;
 	private long length;
 
 	@Override
 	protected String getThumbnailURL() {
-		if (getType() == Format.IMAGE || getType() == Format.AUDIO) { // no thumbnail support for now for rarred videos
+		if (getType() == Format.IMAGE || getType() == Format.AUDIO) // no thumbnail support for now for real based disk images
+		{
 			return null;
 		}
-
 		return super.getThumbnailURL();
 	}
 
-	public RarredEntry(String name, File file, String fileHeaderName, long length) {
-		this.fileHeaderName = fileHeaderName;
+	public RarredEntry(String name, File pere, String fileheadername, long length) {
+		this.fileheadername = fileheadername;
 		this.name = name;
-		this.file = file;
+		this.pere = pere;
 		this.length = length;
 	}
 
-	@Override
 	public InputStream getInputStream() throws IOException {
 		return null;
 	}
 
-	@Override
 	public String getName() {
 		return name;
 	}
 
-	@Override
 	public long length() {
 		if (getPlayer() != null && getPlayer().type() != Format.IMAGE) {
 			return DLNAMediaInfo.TRANS_SIZE;
 		}
-
 		return length;
 	}
 
-	@Override
 	public boolean isFolder() {
 		return false;
 	}
 
-	// XXX unused
-	@Deprecated
 	public long lastModified() {
 		return 0;
 	}
 
 	@Override
 	public String getSystemName() {
-		return FileUtil.getFileNameWithoutExtension(file.getAbsolutePath()) + "." + FileUtil.getExtension(name);
+		return FileUtil.getFileNameWithoutExtension(pere.getAbsolutePath()) + "." + FileUtil.getExtension(name);
 	}
 
 	@Override
 	public boolean isValid() {
 		checktype();
-		setSrtFile(FileUtil.doesSubtitlesExists(file, null));
+		setSrtFile(FileUtil.doesSubtitlesExists(pere, null));
 		return getFormat() != null;
 	}
 
@@ -102,14 +95,14 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 	@Override
 	public void push(final OutputStream out) throws IOException {
 		Runnable r = new Runnable() {
-			@Override
+
 			public void run() {
 				Archive rarFile = null;
 				try {
-					rarFile = new Archive(file);
+					rarFile = new Archive(pere);
 					FileHeader header = null;
 					for (FileHeader fh : rarFile.getFileHeaders()) {
-						if (fh.getFileNameString().equals(fileHeaderName)) {
+						if (fh.getFileNameString().equals(fileheadername)) {
 							header = fh;
 							break;
 						}
@@ -130,7 +123,6 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 				}
 			}
 		};
-
 		new Thread(r, "Rar Extractor").start();
 	}
 
@@ -139,16 +131,12 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 		if (getFormat() == null || !getFormat().isVideo()) {
 			return;
 		}
-
 		boolean found = false;
-
 		if (!found) {
 			if (getMedia() == null) {
 				setMedia(new DLNAMediaInfo());
 			}
-
 			found = !getMedia().isMediaparsed() && !getMedia().isParsing();
-
 			if (getFormat() != null) {
 				InputFile input = new InputFile();
 				input.setPush(this);
@@ -156,7 +144,6 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 				getFormat().parse(getMedia(), input, getType());
 			}
 		}
-
 		super.resolve();
 	}
 

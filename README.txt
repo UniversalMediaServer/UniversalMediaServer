@@ -1,15 +1,7 @@
 Universal Media Server
-======================
+================
 
 Based on PS3 Media Server by shagrath, all files copyright shagrath unless otherwise specified.
-
-
-Current Developers
-------------------
-
-* SubJunk
-* SharkHunter
-
 
 Links
 -----
@@ -18,7 +10,6 @@ Links
 * Source code:   https://github.com/UniversalMediaServer/UniversalMediaServer
 * Issue tracker: http://code.google.com/p/universal-media-server/issues/list
 
-
 Thanks
 ------
 
@@ -26,6 +17,7 @@ Thanks to:
 
 * Redlum
 * tcox
+* SubJunk
 * taconaut
 * tomeko
 * chocolateboy

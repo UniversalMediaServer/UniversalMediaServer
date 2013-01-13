@@ -6,14 +6,19 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.TimeZone;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @SuppressWarnings("unchecked")
 /**
- * @deprecated This package is a copy of a third-party library (xmlwise). Future releases will use the original library.
- *
  * Plist xml handling (serialization and deserialization)
  * <p>
  * <em>The xml plist dtd can be found at http://www.apple.com/DTDs/PropertyList-1.0.dtd</em>
@@ -48,7 +53,6 @@ import org.slf4j.LoggerFactory;
  *
  * @author Christoffer Lerno
  */
-@Deprecated
 public final class Plist {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Plist.class);
 

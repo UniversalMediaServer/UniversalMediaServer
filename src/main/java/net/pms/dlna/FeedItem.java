@@ -76,8 +76,6 @@ public class FeedItem extends DLNAResource {
 		return length;
 	}
 
-	// XXX unused
-	@Deprecated
 	public long lastModified() {
 		return 0;
 	}

@@ -140,8 +140,7 @@ public class VideoLanVideoStreaming extends Player {
 			getEncodingArgs(),
 			getMux(),
 			(isWindows ? "\\\\" : ""),
-			tsPipe.getInputPipe()
-		);
+			tsPipe.getInputPipe());
 
 		// XXX there's precious little documentation on how (if at all) VLC
 		// treats colons and hyphens (and :name= and --name=) differently
@@ -170,6 +169,7 @@ public class VideoLanVideoStreaming extends Player {
 		cmdList.toArray(cmdArray);
 
 		cmdArray = finalizeTranscoderArgs(
+			this,
 			fileName,
 			dlna,
 			media,

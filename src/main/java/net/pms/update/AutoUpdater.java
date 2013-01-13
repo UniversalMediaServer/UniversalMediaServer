@@ -1,14 +1,18 @@
 package net.pms.update;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Observable;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.util.UriRetriever;
 import net.pms.util.UriRetrieverCallback;
-import net.pms.util.Version;
+
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,15 +25,14 @@ import org.slf4j.LoggerFactory;
 public class AutoUpdater extends Observable implements UriRetrieverCallback {
 	private static final String TARGET_FILENAME = "new-version.exe";
 	private static final Logger LOGGER = LoggerFactory.getLogger(AutoUpdater.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	public static enum State {
 		NOTHING_KNOWN, POLLING_SERVER, NO_UPDATE_AVAILABLE, UPDATE_AVAILABLE, DOWNLOAD_IN_PROGRESS, DOWNLOAD_FINISHED, EXECUTING_SETUP, ERROR
 	}
-
 	private final String serverUrl;
 	private final UriRetriever uriRetriever = new UriRetriever();
 	private final AutoUpdaterServerProperties serverProperties = new AutoUpdaterServerProperties();
+	private final OperatingSystem operatingSystem = new OperatingSystem();
 	private final Version currentVersion;
 	private Executor executor = Executors.newSingleThreadExecutor();
 	private State state = State.NOTHING_KNOWN;
@@ -60,16 +63,16 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 
 	private void doPollServer() throws UpdateException {
 		assertNotInErrorState();
-
+		String propertiesUrl = getPropertiesUrl();
 		try {
 			setState(State.POLLING_SERVER);
-			byte[] propertiesAsData = uriRetriever.get(serverUrl);
+			byte[] propertiesAsData = uriRetriever.get(propertiesUrl);
 			synchronized (stateLock) {
 				serverProperties.loadFrom(propertiesAsData);
 				setState(isUpdateAvailable() ? State.UPDATE_AVAILABLE : State.NO_UPDATE_AVAILABLE);
 			}
 		} catch (IOException e) {
-			wrapException(serverUrl, "Cannot download properties", e);
+			wrapException("Cannot download properties", e);
 		}
 	}
 
@@ -129,11 +132,11 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 		try {
 			File exe = new File(TARGET_FILENAME);
 			if (!exe.exists()) {
-				exe = new File(configuration.getTempFolder(), TARGET_FILENAME);
+				exe = new File(PMS.getConfiguration().getTempFolder(), TARGET_FILENAME);
 			}
 			Runtime.getRuntime().exec(exe.getAbsolutePath());
 		} catch (IOException e) {
-			wrapException(serverProperties.getDownloadUrl(), "Unable to run update. You may need to manually download it.", e);
+			wrapException("Unable to run update. You may need to manually download it.", e);
 		}
 	}
 
@@ -160,14 +163,12 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 	private synchronized void setState(State value) {
 		synchronized (stateLock) {
 			state = value;
-
 			if (state == State.DOWNLOAD_FINISHED) {
 				bytesDownloaded = totalBytes;
 			} else if (state != State.DOWNLOAD_IN_PROGRESS) {
 				bytesDownloaded = -1;
 				totalBytes = -1;
 			}
-
 			if (state != State.ERROR) {
 				errorStateCause = null;
 			}
@@ -178,18 +179,17 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 	}
 
 	public boolean isUpdateAvailable() {
-		// TODO (tcox): Make updates work on Linux and Mac
-		return Version.isPmsUpdatable(currentVersion, serverProperties.getLatestVersion());
+		// TODO(tcox):  Make updates work on Linux and Mac
+		return operatingSystem.isWindows() && serverProperties.getLatestVersion().isGreaterThan(currentVersion);
 	}
 
 	private void downloadUpdate() throws UpdateException {
 		String downloadUrl = serverProperties.getDownloadUrl();
-
 		try {
 			byte[] download = uriRetriever.getWithCallback(downloadUrl, this);
 			writeToDisk(download);
 		} catch (IOException e) {
-			wrapException(downloadUrl, "Cannot download update", e);
+			wrapException("Cannot download update", e);
 		}
 	}
 
@@ -197,14 +197,13 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 		File target = new File(TARGET_FILENAME);
 		InputStream downloadedFromNetwork = new ByteArrayInputStream(download);
 		FileOutputStream fileOnDisk = null;
-
 		try {
 			try {
 				fileOnDisk = new FileOutputStream(target);
 				fileOnDisk.write("test".getBytes());
 			} catch (Exception e) {
 				// seems no rights
-				target = new File(configuration.getTempFolder(), TARGET_FILENAME);
+				target = new File(PMS.getConfiguration().getTempFolder(), TARGET_FILENAME);
 			} finally {
 				fileOnDisk.close();
 			}
@@ -217,8 +216,12 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 		}
 	}
 
-	private void wrapException(String downloadUrl, String message, Throwable cause) throws UpdateException {
+	private void wrapException(String message, Throwable cause) throws UpdateException {
 		throw new UpdateException("Error: " + message, cause);
+	}
+
+	private String getPropertiesUrl() {
+		return serverUrl + "?currentVersion=" + currentVersion + "&operatingSystem=" + operatingSystem + "&cacheBuster=" + Math.random();
 	}
 
 	@Override

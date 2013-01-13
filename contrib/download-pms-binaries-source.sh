@@ -2,7 +2,7 @@
 #
 # download-pms-binaries-source.sh
 #
-# Version: 1.1
+# Version: 1.0
 # Last updated: 2012-01-26
 # Authors: Happy-Neko
 # Based on build-pms-binaries.sh by Patrick Atoon and Happy-Neko
@@ -280,7 +280,6 @@ download_ffmpeg() {
         $GIT checkout ${VERSION_FFMPEG}
         exit_on_error
     fi
-
     rm -rf ./.git
 }
 
@@ -361,30 +360,6 @@ download_giflib() {
 
 
 ##########################################
-# HARFBUZZ
-# http://www.freedesktop.org/wiki/Software/HarfBuzz
-#
-download_harfbuzz() {
-    start_download harfbuzz
-    cd $SRC
-
-    if [ -d harfbuzz ]; then
-        rm -rf harfbuzz
-    fi
-    $GIT clone git://anongit.freedesktop.org/harfbuzz harfbuzz
-    exit_on_error
-    cd harfbuzz
-
-    if [ "$FIXED_REVISIONS" == "yes" ]; then
-        $GIT checkout ${VERSION_HARFBUZZ}
-        exit_on_error
-    fi
-
-    rm -rf ./.git
-}
-
-
-##########################################
 # ICONV
 # http://www.gnu.org/software/libiconv/
 #
@@ -450,7 +425,6 @@ download_libbluray() {
         $GIT checkout ${VERSION_LIBBLURAY}
         exit_on_error
     fi
-
     rm -rf ./.git
 }
 
@@ -525,8 +499,8 @@ download_libpng() {
 
     if [ ! -f libpng-${VERSION_LIBPNG}.tar.gz ]; then
         # One of these two, depending on whether we use the latest release
-        download http://downloads.sourceforge.net/project/libpng/libpng15/older-releases/${VERSION_LIBPNG}/libpng-${VERSION_LIBPNG}.tar.gz
-        #download http://downloads.sourceforge.net/project/libpng/libpng15/${VERSION_LIBPNG}/libpng-${VERSION_LIBPNG}.tar.gz
+        #download http://downloads.sourceforge.net/project/libpng/libpng15/older-releases/${VERSION_LIBPNG}/libpng-${VERSION_LIBPNG}.tar.gz
+        download http://downloads.sourceforge.net/project/libpng/libpng15/${VERSION_LIBPNG}/libpng-${VERSION_LIBPNG}.tar.gz
         exit_on_error
     fi
 }
@@ -659,18 +633,16 @@ download_x264() {
     exit_on_error
     cd x264
 
-    # Automatically checking out the latest stable version
     #if [ "$FIXED_REVISIONS" == "yes" ]; then
     #    $GIT checkout ${VERSION_X264}
     #    exit_on_error
     #fi
-
     rm -rf ./.git
 }
 
 
 ##########################################
-# LIBASS
+# libass
 # http://code.google.com/p/libass/
 #
 download_libass() {
@@ -680,17 +652,9 @@ download_libass() {
     if [ -d libass ]; then
         rm -rf libass
     fi
-
-    $GIT clone https://code.google.com/p/libass/ -b stable
+    $GIT clone https://code.google.com/p/libass/
     exit_on_error
     cd libass
-
-    # Automatically checking out the latest stable version
-    #if [ "$FIXED_REVISIONS" == "yes" ]; then
-    #    $GIT checkout ${VERSION_LIBASS}
-    #    exit_on_error
-    #fi
-
     rm -rf ./.git
 }
 
@@ -820,10 +784,10 @@ download_expat
 download_faad2
 download_freetype
 download_iconv
+# Note: fontconfig requires freetype and iconv to build
 download_fontconfig
 download_fribidi
 download_giflib
-download_harfbuzz
 download_jpeg
 download_ncurses
 download_lame
@@ -832,6 +796,7 @@ download_libdca
 download_libdv
 download_libmad
 download_libzen
+# Note: libmediainfo requires libzen to build
 download_libmediainfo
 download_libpng
 download_libogg
@@ -841,7 +806,7 @@ download_lzo
 download_x264
 download_xvid
 
-# Tools for including with PS3 Media Server
+# Build tools for including with PS3 Media Server
 download_flac
 download_dcraw
 download_enca

@@ -19,16 +19,19 @@
 
 package net.pms.test.formats;
 
-import ch.qos.logback.classic.LoggerContext;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assume.assumeTrue;
+
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
+
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.LibMediaInfoParser;
+import net.pms.dlna.MediaInfoParser;
 import net.pms.formats.DVRMS;
 import net.pms.formats.Format;
 import net.pms.formats.GIF;
@@ -45,13 +48,14 @@ import net.pms.formats.TIF;
 import net.pms.formats.WAV;
 import net.pms.formats.WEB;
 import net.pms.network.HTTPResource;
+
 import org.apache.commons.configuration.ConfigurationException;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assume.assumeTrue;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.LoggerContext;
+
 
 /**
  * Test the recognition of formats.
@@ -78,7 +82,7 @@ public class FormatRecognitionTest {
 		// Initialize the RendererConfiguration
 		RendererConfiguration.loadRendererConfigurations(pmsConf);
 
-		mediaInfoParserIsValid = LibMediaInfoParser.isValid();
+		mediaInfoParserIsValid = MediaInfoParser.isValid();
 	}
 
     /**
@@ -170,17 +174,17 @@ public class FormatRecognitionTest {
 		info.setContainer("mp3");
 		info.setMimeType(HTTPResource.AUDIO_MP3_TYPEMIME);
 		DLNAMediaAudio audio = new DLNAMediaAudio();
-		audio.getAudioProperties().setNumberOfChannels(2);
-		List<DLNAMediaAudio> audioCodes = new ArrayList<DLNAMediaAudio>();
+		audio.setNrAudioChannels(2);
+		ArrayList<DLNAMediaAudio> audioCodes = new ArrayList<DLNAMediaAudio>();
 		audioCodes.add(audio);
-		info.setAudioTracksList(audioCodes);
+		info.setAudioCodes(audioCodes);
 		Format format = new MP3();
 		format.match("test.mp3");
 		assertEquals("PS3 is compatible with MP3", true,
 				conf.isCompatible(info, format));
 
 		// Construct five channel MP3 that the PS3 does not support natively
-		audio.getAudioProperties().setNumberOfChannels(5);
+		audio.setNrAudioChannels(5);
 		assertEquals("PS3 is incompatible with five channel MP3", false,
 				conf.isCompatible(info, format));
 	}
@@ -201,10 +205,10 @@ public class FormatRecognitionTest {
 		info.setContainer("avi");
 		DLNAMediaAudio audio = new DLNAMediaAudio();
 		audio.setCodecA("ac3");
-		audio.getAudioProperties().setNumberOfChannels(5);
-		List<DLNAMediaAudio> audioCodes = new ArrayList<DLNAMediaAudio>();
+		audio.setNrAudioChannels(5);
+		ArrayList<DLNAMediaAudio> audioCodes = new ArrayList<DLNAMediaAudio>();
 		audioCodes.add(audio);
-		info.setAudioTracksList(audioCodes);
+		info.setAudioCodes(audioCodes);
 		info.setCodecV("mp4");
 		Format format = new MPG();
 		format.match("test.avi");
@@ -233,10 +237,10 @@ public class FormatRecognitionTest {
 		info.setContainer("mkv");
 		DLNAMediaAudio audio = new DLNAMediaAudio();
 		audio.setCodecA("ac3");
-		audio.getAudioProperties().setNumberOfChannels(5);
-		List<DLNAMediaAudio> audioCodes = new ArrayList<DLNAMediaAudio>();
+		audio.setNrAudioChannels(5);
+		ArrayList<DLNAMediaAudio> audioCodes = new ArrayList<DLNAMediaAudio>();
 		audioCodes.add(audio);
-		info.setAudioTracksList(audioCodes);
+		info.setAudioCodes(audioCodes);
 		info.setCodecV("mp4");
 		Format format = new MPG();
 		format.match("test.mkv");
@@ -388,14 +392,14 @@ public class FormatRecognitionTest {
 		// Continue the test if the configuration loaded, otherwise skip it.
 		assumeTrue(configurationLoaded);
 
-		// Continue the test if the LibMediaInfoParser can be loaded, otherwise skip it.
-		assumeTrue(LibMediaInfoParser.isValid());
+		// Continue the test if the MediaInfoParser can be loaded, otherwise skip it.
+		assumeTrue(MediaInfoParser.isValid());
 		
 		// Construct media info exactly as VirtualVideoAction does
 		DLNAMediaInfo info = new DLNAMediaInfo();
 		info.setContainer("mpegps");
-		List<DLNAMediaAudio> audioCodes = new ArrayList<DLNAMediaAudio>();
-		info.setAudioTracksList(audioCodes);
+		ArrayList<DLNAMediaAudio> audioCodes = new ArrayList<DLNAMediaAudio>();
+		info.setAudioCodes(audioCodes);
 		info.setMimeType("video/mpeg");
 		info.setCodecV("mpeg2");
 		info.setMediaparsed(true);

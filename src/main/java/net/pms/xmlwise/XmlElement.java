@@ -1,9 +1,10 @@
 package net.pms.xmlwise;
 
-import java.util.LinkedList;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.Node;
+
+import java.util.LinkedList;
 
 /**
  * A simplified XML Element that only has an attribute map, a list of sub elements a text value and

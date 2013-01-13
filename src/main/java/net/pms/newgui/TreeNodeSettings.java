@@ -18,22 +18,26 @@
  */
 package net.pms.newgui;
 
-import com.jgoodies.forms.builder.PanelBuilder;
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Font;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+
 import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.tree.DefaultMutableTreeNode;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import net.pms.Messages;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
 
 public class TreeNodeSettings extends DefaultMutableTreeNode {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TreeNodeSettings.class);
@@ -90,19 +94,16 @@ public class TreeNodeSettings extends DefaultMutableTreeNode {
 	public JPanel getWarningPanel() {
 		if (warningPanel == null) {
 			BufferedImage bi = null;
-
 			try {
-				bi = ImageIO.read(LooksFrame.class.getResourceAsStream("/resources/images/icon-status-warning.png"));
+				bi = ImageIO.read(LooksFrame.class.getResourceAsStream("/resources/images/messagebox_warning-220.png"));
 			} catch (IOException e) {
 				LOGGER.debug("Caught exception", e);
 			}
-
 			ImagePanel ip = new ImagePanel(bi);
 
 			FormLayout layout = new FormLayout(
 				"0:grow, pref, 0:grow",
-				"pref, 3dlu, pref, 12dlu, pref, 3dlu, pref, 3dlu, p, 3dlu, p, 3dlu, p"
-			);
+				"pref, 3dlu, pref, 12dlu, pref, 3dlu, pref, 3dlu, p, 3dlu, p, 3dlu, p");
 
 			PanelBuilder builder = new PanelBuilder(layout);
 			builder.setDefaultDialogBorder();
@@ -117,7 +118,6 @@ public class TreeNodeSettings extends DefaultMutableTreeNode {
 
 			warningPanel = builder.getPanel();
 		}
-
 		return warningPanel;
 	}
 }

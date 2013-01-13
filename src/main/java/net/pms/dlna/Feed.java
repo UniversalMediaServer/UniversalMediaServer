@@ -142,7 +142,7 @@ public class Feed extends DLNAResource {
 				manageItem();
 			}
 		}
-		setLastModified(System.currentTimeMillis());
+		setLastmodified(System.currentTimeMillis());
 	}
 
 	@SuppressWarnings("unchecked")
@@ -184,8 +184,6 @@ public class Feed extends DLNAResource {
 		return 0;
 	}
 
-	// XXX unused
-	@Deprecated
 	public long lastModified() {
 		return 0;
 	}
@@ -207,7 +205,7 @@ public class Feed extends DLNAResource {
 
 	@Override
 	public boolean isRefreshNeeded() {
-	    return (System.currentTimeMillis() - getLastModified() > 3600000);
+	    return (System.currentTimeMillis() - getLastmodified() > 3600000);
 	}
 
 	@Override

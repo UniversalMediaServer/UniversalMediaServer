@@ -2,13 +2,14 @@ package net.pms.dlna;
 
 import java.io.File;
 
+/**
+ * TODO: Change all instance variables to private. For backwards compatibility
+ * with external plugin code the variables have all been marked as deprecated
+ * instead of changed to private, but this will surely change in the future.
+ * When everything has been changed to private, the deprecated note can be
+ * removed.
+ */
 public class InputFile {
-	/**
-	 * TODO: Change all instance variables to private. For backwards compatibility
-	 * with external plugin code the variables have all been marked as deprecated
-	 * rather than being changed to private, but this will change in the future.
-	 * When everything has been changed to private, this note can be removed.
-	 */
 
 	/**
 	 * @deprecated Use standard getter and setter to access this variable.

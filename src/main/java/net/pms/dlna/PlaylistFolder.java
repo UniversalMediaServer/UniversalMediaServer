@@ -18,7 +18,7 @@ public class PlaylistFolder extends DLNAResource {
 
 	public PlaylistFolder(File f) {
 		playlistfile = f;
-		setLastModified(playlistfile.lastModified());
+		setLastmodified(playlistfile.lastModified());
 	}
 
 	@Override

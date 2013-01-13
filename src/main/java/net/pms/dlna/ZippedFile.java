@@ -30,77 +30,67 @@ import org.slf4j.LoggerFactory;
 
 public class ZippedFile extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ZippedFile.class);
-	private File file;
+	private File z;
 	private ZipFile zip;
 
-	public ZippedFile(File file) {
-		this.file = file;
-		setLastModified(file.lastModified());
-
+	public ZippedFile(File z) {
+		this.z = z;
+		setLastmodified(z.lastModified());
 		try {
-			zip = new ZipFile(file);
+			zip = new ZipFile(z);
 			Enumeration<? extends ZipEntry> enm = zip.entries();
-
 			while (enm.hasMoreElements()) {
 				ZipEntry ze = enm.nextElement();
-				addChild(new ZippedEntry(file, ze.getName(), ze.getSize()));
+				addChild(new ZippedEntry(z, ze.getName(), ze.getSize()));
 			}
-
 			zip.close();
 		} catch (ZipException e) {
-			LOGGER.error("Error reading zip file", e);
+			LOGGER.error(null, e);
 		} catch (IOException e) {
-			LOGGER.error("Error reading zip file", e);
+			LOGGER.error(null, e);
 		}
 	}
 
 	@Override
 	protected String getThumbnailURL() {
 		if (getType() == Format.IMAGE) {
-			// no thumbnail support for now for zip files
+			// no thumbnail support for now for real based disk images
 			return null;
 		}
-
 		return super.getThumbnailURL();
 	}
 
-	@Override
 	public InputStream getInputStream() {
 		try {
-			return new ZipInputStream(new FileInputStream(file));
+			return new ZipInputStream(new FileInputStream(z));
 		} catch (FileNotFoundException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	@Override
 	public String getName() {
-		return file.getName();
+		return z.getName();
 	}
 
-	@Override
 	public long length() {
-		return file.length();
+		return z.length();
 	}
 
-	@Override
 	public boolean isFolder() {
 		return true;
 	}
 
-	// XXX unused
-	@Deprecated
 	public long lastModified() {
 		return 0;
 	}
 
 	@Override
 	public String getSystemName() {
-		return file.getAbsolutePath();
+		return z.getAbsolutePath();
 	}
 
 	@Override
 	public boolean isValid() {
-		return file.exists();
+		return z.exists();
 	}
 }

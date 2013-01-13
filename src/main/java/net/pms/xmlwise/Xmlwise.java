@@ -1,22 +1,20 @@
 package net.pms.xmlwise;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.StringReader;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.DocumentBuilder;
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.File;
+
 /**
- * @deprecated This package is a copy of a third-party library (xmlwise). Future releases will use the original library.
- *
  * Xmlwise convenience methods for loading xml documents and render them into
  * XmlElement trees.
  *
  * @author Christoffer Lerno
  */
-@Deprecated
 public class Xmlwise {
 	private Xmlwise() {
 	}

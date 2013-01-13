@@ -27,6 +27,7 @@ import java.io.InputStream;
  * {@link BufferedOutputFileImpl}.
  */
 public interface BufferedOutputFile {
+
 	public abstract void close() throws IOException;
 
 	public abstract WaitBufferedInputStream getCurrentInputStream();
@@ -45,11 +46,14 @@ public interface BufferedOutputFile {
 
 	public abstract int read(boolean firstRead, long readCount);
 
-	public abstract int read(boolean firstRead, long readCount, byte[] b, int off, int len);
+	public abstract int read(boolean firstRead, long readCount, byte[] b,
+			int off, int len);
 
-	public abstract void removeInputStream(WaitBufferedInputStream waitBufferedInputStream);
+	public abstract void removeInputStream(
+			WaitBufferedInputStream waitBufferedInputStream);
 
 	public abstract void detachInputStream();
 
 	public abstract void write(byte[] byteArray) throws IOException;
+
 }

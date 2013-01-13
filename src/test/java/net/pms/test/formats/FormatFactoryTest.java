@@ -19,14 +19,16 @@
 
 package net.pms.test.formats;
 
-import ch.qos.logback.classic.LoggerContext;
-import net.pms.formats.Format;
-import net.pms.formats.FormatFactory;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import net.pms.formats.Format;
+import net.pms.formats.FormatFactory;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.LoggerContext;
 
 /**
  * Test basic functionality of {@link Format}.

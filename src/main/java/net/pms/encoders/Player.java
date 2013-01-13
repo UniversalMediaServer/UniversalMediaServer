@@ -66,13 +66,13 @@ public abstract class Player {
 
 	public abstract String mimeType();
 	public abstract String executable();
-	private static List<FinalizeTranscoderArgsListener> finalizeTranscoderArgsListeners =
+	private static List<FinalizeTranscoderArgsListener> finalizeTranscodeArgsListeners =
 		new ArrayList<FinalizeTranscoderArgsListener>();
 
 	public static void initializeFinalizeTranscoderArgsListeners() {
 		for (ExternalListener listener : ExternalFactory.getExternalListeners()) {
 			if (listener instanceof FinalizeTranscoderArgsListener) {
-				finalizeTranscoderArgsListeners.add((FinalizeTranscoderArgsListener) listener);
+				finalizeTranscodeArgsListeners.add((FinalizeTranscoderArgsListener) listener);
 			}
 		}
 	}
@@ -113,42 +113,23 @@ public abstract class Player {
 		return name();
 	}
 
-	// no need to pass Player as a parameter: it's the invocant
-	@Deprecated
 	protected String[] finalizeTranscoderArgs(
 		Player player,
 		String filename,
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params,
-		String[] cmdArgs
-	) {
-		return finalizeTranscoderArgs(
-			filename,
-			dlna,
-			media,
-			params,
-			cmdArgs
-		);
-	}
-
-	protected String[] finalizeTranscoderArgs(
-		String filename,
-		DLNAResource dlna,
-		DLNAMediaInfo media,
-		OutputParams params,
-		String[] cmdArgs
-	) {
-		if (finalizeTranscoderArgsListeners.isEmpty()) {
+		String[] cmdArgs) {
+		if (finalizeTranscodeArgsListeners.isEmpty()) {
 			return cmdArgs;
 		} else {
 			// make it mutable
 			List<String> cmdList = new ArrayList<String>(Arrays.asList(cmdArgs));
 
-			for (FinalizeTranscoderArgsListener listener : finalizeTranscoderArgsListeners) {
+			for (FinalizeTranscoderArgsListener listener : finalizeTranscodeArgsListeners) {
 				try {
 					cmdList = listener.finalizeTranscoderArgs(
-						this,
+						player,
 						filename,
 						dlna,
 						media,
@@ -167,20 +148,18 @@ public abstract class Player {
 	}
 
 	/**
-	 * This method populates the supplied {@link OutputParams} object with the correct audio track (aid)
-	 * and subtitles (sid), based on the given filename, its MediaInfo metadata and PMS configuration settings.
+	 * This method populates the output parameters with the correct audio track
+	 * and subtitles, based on the given filename, media info and configuration.
 	 * 
 	 * @param fileName
 	 *            The file name used to determine the availability of subtitles.
 	 * @param media
-	 *            The MediaInfo metadata for the file.
+	 *            The MediaInfo details on the file.
 	 * @param params
 	 *            The parameters to populate.
 	 * @param configuration
 	 *            The PMS configuration settings.
 	 */
-	// FIXME this code is almost unreadable in its current form and should be broken down into separate methods
-	// that handle just one facet of its functionality. it also needs to be decoupled from MEncoder
 	public void setAudioAndSubs(String fileName, DLNAMediaInfo media, OutputParams params, PmsConfiguration configuration) {
 		if (params.aid == null && media != null) {
 			// check for preferred audio
@@ -238,7 +217,7 @@ public abstract class Player {
 				String sub = pair.substring(pair.indexOf(",") + 1);
 				audio = audio.trim();
 				sub = sub.trim();
-				LOGGER.trace("Searching for a match for: " + currentLang + " with " + audio + " and " + sub);
+				LOGGER.trace("Search a match for: " + currentLang + " with " + audio + " and " + sub);
 
 				if (Iso639.isCodesMatching(audio, currentLang) || (currentLang != null && audio.equals("*"))) {
 					if (sub.equals("off")) {
@@ -262,7 +241,7 @@ public abstract class Player {
 		}
 
 		if (matchedSub != null && params.sid == null) {
-			if (configuration.isMencoderDisableSubs() || (matchedSub.getLang() != null && matchedSub.getLang().equals("off"))) {
+			if (matchedSub.getLang() != null && matchedSub.getLang().equals("off")) {
 				LOGGER.trace(" Disabled the subtitles: " + matchedSub);
 			} else {
 				params.sid = matchedSub;
@@ -274,21 +253,20 @@ public abstract class Player {
 			File video = new File(fileName);
 			FileUtil.doesSubtitlesExists(video, media, false);
 
-			if (configuration.isAutoloadSubtitles()) {
+			if (configuration.getUseSubtitles()) {
 				boolean forcedSubsFound = false;
 				// Priority to external subtitles
 				for (DLNAMediaSubtitle sub : media.getSubtitleTracksList()) {
-					if (matchedSub != null && matchedSub.getLang() != null && matchedSub.getLang().equals("off")) {
+					if (matchedSub !=null && matchedSub.getLang() !=null && matchedSub.getLang().equals("off")) {
 						StringTokenizer st = new StringTokenizer(configuration.getMencoderForcedSubTags(), ",");
 
 						while (st != null && sub.getFlavor() != null && st.hasMoreTokens()) {
 							String forcedTags = st.nextToken();
 							forcedTags = forcedTags.trim();
 
-							if (
-								sub.getFlavor().toLowerCase().indexOf(forcedTags) > -1 &&
-								Iso639.isCodesMatching(sub.getLang(), configuration.getMencoderForcedSubLanguage())
-							) {
+							if (sub.getFlavor().toLowerCase().indexOf(forcedTags) > -1
+									&& Iso639.isCodesMatching(sub.getLang(), configuration.getMencoderForcedSubLanguage())) {
+
 								LOGGER.trace("Forcing preferred subtitles : " + sub.getLang() + "/" + sub.getFlavor());
 								LOGGER.trace("Forced subtitles track : " + sub);
 
@@ -304,19 +282,18 @@ public abstract class Player {
 							break;
 						}
 					} else {
-						LOGGER.trace("Found subtitles track: " + sub);
-
-						if (sub.getExternalFile() != null) {
-							LOGGER.trace("Found external file: " + sub.getExternalFile().getAbsolutePath());
-							params.sid = sub;
-							break;
-						}
+							LOGGER.trace("Found subtitles track: " + sub);
+							if (sub.getExternalFile() != null) {
+								LOGGER.trace("Found external file: " + sub.getExternalFile().getAbsolutePath());
+								params.sid = sub;
+								break;
+							}
 					}
 				}
 			}
 			if (
-				matchedSub != null && 
-				matchedSub.getLang() != null && 
+				matchedSub !=null && 
+				matchedSub.getLang() !=null && 
 				matchedSub.getLang().equals("off")
 			) {
 				return;

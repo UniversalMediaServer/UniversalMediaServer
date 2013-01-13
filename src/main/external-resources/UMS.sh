@@ -49,4 +49,4 @@ if $cygwin; then
 fi
 
 # Execute the JVM
-exec "$JAVA" $JAVA_OPTS -Xmx768M -Xss2048k -Dfile.encoding=UTF-8 -Djava.net.preferIPv4Stack=true -Djna.nosys=true -classpath "$PMS_JARS" net.pms.PMS "$@"
+exec "$JAVA" $JAVA_OPTS -Xmx768M -Xss1024k -Dfile.encoding=UTF-8 -Djava.net.preferIPv4Stack=true -Djna.nosys=true -classpath "$PMS_JARS" net.pms.PMS "$@"

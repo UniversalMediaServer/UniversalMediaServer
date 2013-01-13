@@ -23,19 +23,31 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+
 import net.pms.PMS;
 import net.pms.encoders.AviDemuxerInputStream;
 import net.pms.util.ProcessUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ProcessWrapperImpl.class);
 
+	@Override
+	public String toString() {
+		return super.getName();
+	}
+
+	private boolean success;
+
+	public boolean isSuccess() {
+		return success;
+	}
+
 	private String cmdLine;
 	private Process process;
-	private OutputConsumer stdoutConsumer;
+	private OutputConsumer outConsumer;
 	private OutputConsumer stderrConsumer;
 	private OutputParams params;
 	private boolean destroyed;
@@ -46,16 +58,6 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 	private boolean keepStdout;
 	private boolean keepStderr;
 	private static int processCounter = 0;
-	private boolean success;
-
-	@Override
-	public String toString() {
-		return super.getName();
-	}
-
-	public boolean isSuccess() {
-		return success;
-	}
 
 	public ProcessWrapperImpl(String cmdArray[], OutputParams params) {
 		this(cmdArray, params, false, false);
@@ -84,7 +86,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 
 		File exec = new File(cmdArray[0]);
 
-		if (exec.isFile()) {
+		if (exec.exists() && exec.isFile()) {
 			cmdArray[0] = exec.getAbsolutePath();
 		}
 
@@ -97,7 +99,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			}
 
 			if (cmdArray[i] != null && cmdArray[i].indexOf(" ") >= 0) {
-				sb.append("\"").append(cmdArray[i]).append("\"");
+				sb.append("\"" + cmdArray[i] + "\"");
 			} else {
 				sb.append(cmdArray[i]);
 			}
@@ -118,124 +120,84 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 		attachedProcesses.add(process);
 	}
 
-	@Override
 	public void run() {
 		ProcessBuilder pb = new ProcessBuilder(cmdArray);
 		try {
 			LOGGER.debug("Starting " + cmdLine);
-
+			if (params.outputFile != null && params.outputFile.getParentFile().isDirectory()) {
+				pb.directory(params.outputFile.getParentFile());
+			}
 			if (params.workDir != null && params.workDir.isDirectory()) {
 				pb.directory(params.workDir);
 			}
-			if (params.env != null && !params.env.isEmpty()) {
-				Map<String,String> environment = pb.environment();
-				// Actual name of system path var is case-sensitive
-
-				String sysPathKey = PMS.get().isWindows() ? "Path" : "PATH";
-				// As is Map
-				String PATH = params.env.containsKey("PATH") ? params.env.get("PATH") :
-					params.env.containsKey("path") ? params.env.get("path") :
-					params.env.containsKey("Path") ? params.env.get("Path") : null;
-				if (PATH != null) {
-					PATH += (File.pathSeparator + environment.get(sysPathKey));
-				}
-				environment.putAll(params.env);
-				if (PATH != null) {
-					environment.put(sysPathKey, PATH);
-				}
-			}
-
-			// XXX A cleaner way to execute short-running commands (e.g. vlc -version)
-			// is being developed. When that's done, this class can be used solely
-			// for the long-running tasks i.e. transcodes. At that point, we won't need
-			// separate stdout and stderr and can merge them by uncommenting the
-			// following line:
-			// pb.redirectErrorStream(true);
 			process = pb.start();
 			PMS.get().currentProcesses.add(process);
-
 			stderrConsumer = keepStderr
 				? new OutputTextConsumer(process.getErrorStream(), true)
 				: new OutputTextLogger(process.getErrorStream());
 			stderrConsumer.start();
-			stdoutConsumer = null;
-
-			if (params.input_pipes[0] != null) {
+			outConsumer = null;
+			if (params.outputFile != null) {
+				LOGGER.debug("Writing in " + params.outputFile.getAbsolutePath());
+				outConsumer = keepStdout
+					? new OutputTextConsumer(process.getInputStream(), false)
+					: new OutputTextLogger(process.getInputStream());
+			} else if (params.input_pipes[0] != null) {
 				LOGGER.debug("Reading pipe: " + params.input_pipes[0].getInputPipe());
 				bo = params.input_pipes[0].getDirectBuffer();
 				if (bo == null || params.losslessaudio || params.lossyaudio || params.no_videoencode) {
 					InputStream is = params.input_pipes[0].getInputStream();
-
-					if (params.avidemux) {
-						is = new AviDemuxerInputStream(is, params, attachedProcesses);
-					}
-
-					stdoutConsumer = new OutputBufferConsumer(is, params);
-					bo = stdoutConsumer.getBuffer();
+					outConsumer = new OutputBufferConsumer((params.avidemux) ? new AviDemuxerInputStream(is, params, attachedProcesses) : is, params);
+					bo = outConsumer.getBuffer();
 				}
 				bo.attachThread(this);
 				new OutputTextLogger(process.getInputStream()).start();
 			} else if (params.log) {
-				stdoutConsumer = keepStdout
+				outConsumer = keepStdout
 					? new OutputTextConsumer(process.getInputStream(), true)
 					: new OutputTextLogger(process.getInputStream());
 			} else {
-				stdoutConsumer = new OutputBufferConsumer(process.getInputStream(), params);
-				bo = stdoutConsumer.getBuffer();
+				outConsumer = new OutputBufferConsumer(process.getInputStream(), params);
+				bo = outConsumer.getBuffer();
 				bo.attachThread(this);
 			}
-
-			if (stdoutConsumer != null) {
-				stdoutConsumer.start();
-			}
-
 			if (params.stdin != null) {
 				params.stdin.push(process.getOutputStream());
+			}
+			if (outConsumer != null) {
+				outConsumer.start();
 			}
 
 			Integer pid = ProcessUtil.getProcessID(process);
 
 			if (pid != null) {
-				LOGGER.debug("Unix process ID ({}): {}", cmdArray[0], pid);
+				LOGGER.debug("Unix process ID (" + cmdArray[0] + "): " + pid);
 			}
 
 			ProcessUtil.waitFor(process);
 
-			// Wait up to a second for the stderr consumer thread to finish
 			try {
-				if (stderrConsumer != null) {
-					stderrConsumer.join(1000);
+				if (outConsumer != null) {
+					outConsumer.join(1000);
 				}
 			} catch (InterruptedException e) {
 			}
-
-			// wait up to a second for the stdout consumer thread to finish
-			try {
-				if (stdoutConsumer != null) {
-					stdoutConsumer.join(1000);
-				}
-			} catch (InterruptedException e) { }
+			if (bo != null) {
+				bo.close();
+			}
 		} catch (Exception e) {
-			LOGGER.error("Error initializing process: ", e);
+			LOGGER.error("Fatal error in process initialization: ", e);
 			stopProcess();
 		} finally {
-			try {
-				if (bo != null) {
-					bo.close();
-				}
-			} catch (IOException ioe) {
-				LOGGER.debug("Error closing buffered output file", ioe.getMessage());
-			}
-
 			if (!destroyed && !params.noexitcheck) {
 				try {
 					success = true;
 					if (process != null && process.exitValue() != 0) {
-						LOGGER.info("Process {} has a return code of {}! Maybe an error occurred... check the log file", cmdArray[0], process.exitValue());
+						LOGGER.info("Process " + cmdArray[0] + " has a return code of " + process.exitValue() + "! Maybe an error occurred... check the log file");
 						success = false;
 					}
 				} catch (IllegalThreadStateException itse) {
-					LOGGER.error("Error reading process exit value", itse);
+					LOGGER.error("An error occurred", itse);
 				}
 			}
 			if (attachedProcesses != null) {
@@ -254,7 +216,6 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 	 * method name.
 	 * @see #runInSameThread()
 	 */
-	@Override
 	public void runInNewThread() {
 		this.start();
 	}
@@ -268,28 +229,30 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 		this.run();
 	}
 
-	@Override
 	public InputStream getInputStream(long seek) throws IOException {
 		if (bo != null) {
 			return bo.getInputStream(seek);
-		} else if (stdoutConsumer != null && stdoutConsumer.getBuffer() != null) {
-			return stdoutConsumer.getBuffer().getInputStream(seek);
+		} else if (outConsumer != null && outConsumer.getBuffer() != null) {
+			return outConsumer.getBuffer().getInputStream(seek);
+		} else if (params.outputFile != null) {
+			BlockerFileInputStream fIn = new BlockerFileInputStream(this, params.outputFile, params.minFileSize);
+			fIn.skip(seek);
+			return fIn;
 		}
 		return null;
 	}
 
 	public List<String> getOtherResults() {
-		if (stdoutConsumer == null) {
+		if (outConsumer == null) {
 			return null;
 		}
 		try {
-			stdoutConsumer.join(1000);
+			outConsumer.join(1000);
 		} catch (InterruptedException e) {
 		}
-		return stdoutConsumer.getResults();
+		return outConsumer.getResults();
 	}
 
-	@Override
 	public List<String> getResults() {
 		try {
 			stderrConsumer.join(1000);
@@ -298,7 +261,6 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 		return stderrConsumer.getResults();
 	}
 
-	@Override
 	public synchronized void stopProcess() {
 		if (!destroyed) {
 			destroyed = true;
@@ -319,23 +281,20 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 					}
 				}
 			}
-			if (stdoutConsumer != null && stdoutConsumer.getBuffer() != null) {
-				stdoutConsumer.getBuffer().reset();
+			if (outConsumer != null && outConsumer.getBuffer() != null) {
+				outConsumer.getBuffer().reset();
 			}
 		}
 	}
 
-	@Override
 	public boolean isDestroyed() {
 		return destroyed;
 	}
 
-	@Override
 	public boolean isReadyToStop() {
 		return nullable;
 	}
 
-	@Override
 	public void setReadyToStop(boolean nullable) {
 		if (nullable != this.nullable) {
 			LOGGER.trace("Ready to Stop: " + nullable);

@@ -3,8 +3,10 @@ package net.pms.util;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Arrays;
+
 import net.pms.PMS;
 import net.pms.newgui.LooksFrame;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

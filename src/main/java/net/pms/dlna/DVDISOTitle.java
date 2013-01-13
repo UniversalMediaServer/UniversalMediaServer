@@ -25,7 +25,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.formats.FormatFactory;
 import net.pms.formats.v2.SubtitleType;
@@ -39,19 +38,18 @@ import org.slf4j.LoggerFactory;
 
 public class DVDISOTitle extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DVDISOTitle.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private File f;
 	private int title;
 	private long length;
 
 	@Override
 	public void resolve() {
-		String cmd[] = new String[]{configuration.getMplayerPath(), "-identify", "-endpos", "0", "-v", "-ao", "null", "-vc", "null", "-vo", "null", "-dvd-device", ProcessUtil.getShortFileNameIfWideChars(f.getAbsolutePath()), "dvd://" + title};
-		OutputParams params = new OutputParams(configuration);
+		String cmd[] = new String[]{PMS.getConfiguration().getMplayerPath(), "-identify", "-endpos", "0", "-v", "-ao", "null", "-vc", "null", "-vo", "null", "-dvd-device", ProcessUtil.getShortFileNameIfWideChars(f.getAbsolutePath()), "dvd://" + title};
+		OutputParams params = new OutputParams(PMS.getConfiguration());
 		params.maxBufferSize = 1;
-		if (configuration.isDvdIsoThumbnails()) {
+		if (PMS.getConfiguration().isDvdIsoThumbnails()) {
 			try {
-				params.workDir = configuration.getTempFolder();
+				params.workDir = PMS.getConfiguration().getTempFolder();
 			} catch (IOException e1) {
 				LOGGER.debug("Caught exception", e1);
 			}
@@ -67,7 +65,7 @@ public class DVDISOTitle extends DLNAResource {
 		params.log = true;
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(cmd, params, true, false);
 		Runnable r = new Runnable() {
-			@Override
+
 			public void run() {
 				try {
 					Thread.sleep(10000);
@@ -138,13 +136,12 @@ public class DVDISOTitle extends DLNAResource {
 			}
 		}
 
-		if (configuration.isDvdIsoThumbnails()) {
+		if (PMS.getConfiguration().isDvdIsoThumbnails()) {
 			try {
 				String frameName = "" + this.hashCode();
-				frameName = configuration.getTempFolder() + "/mplayer_thumbs/" + frameName + "00000001/0000000";
+				frameName = PMS.getConfiguration().getTempFolder() + "/mplayer_thumbs/" + frameName + "00000001/0000000";
 				frameName = frameName.replace(',', '_');
 				File jpg = new File(frameName + "2.jpg");
-
 				if (jpg.exists()) {
 					InputStream is = new FileInputStream(jpg);
 
@@ -168,14 +165,11 @@ public class DVDISOTitle extends DLNAResource {
 						LOGGER.debug("Failed to delete \"" + jpg.getParentFile().getAbsolutePath() + "\"");
 					}
 				}
-
 				jpg = new File(frameName + "1.jpg");
-
 				if (jpg.exists()) {
 					if (!jpg.delete()) {
 						jpg.deleteOnExit();
 					}
-
 					if (!jpg.getParentFile().delete()) {
 						jpg.getParentFile().delete();
 					}
@@ -228,7 +222,7 @@ public class DVDISOTitle extends DLNAResource {
 	public DVDISOTitle(File f, int title) {
 		this.f = f;
 		this.title = title;
-		setLastModified(f.lastModified());
+		setLastmodified(f.lastModified());
 	}
 
 	@Override
@@ -265,7 +259,6 @@ public class DVDISOTitle extends DLNAResource {
 	}
 
 	// Ditlew
-	@Override
 	public long length(RendererConfiguration mediaRenderer) {
 		// WDTV Live at least, needs a realistic size for stop/resume to works proberly. 2030879 = ((15000 + 256) * 1024 / 8 * 1.04) : 1.04 = overhead
 		int cbr_video_bitrate = getDefaultRenderer().getCBRVideoBitrate();
@@ -281,43 +274,34 @@ public class DVDISOTitle extends DLNAResource {
 			if (thumbFolder == null) {
 				thumbFolder = f.getParentFile();
 			}
-
-			cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, f, "jpg");
-
+			cachedThumbnail = FileUtil.getFileNameWitNewExtension(thumbFolder, f, "jpg");
 			if (cachedThumbnail == null) {
-				cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, f, "png");
+				cachedThumbnail = FileUtil.getFileNameWitNewExtension(thumbFolder, f, "png");
 			}
-
 			if (cachedThumbnail == null) {
-				cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, f, ".cover.jpg");
+				cachedThumbnail = FileUtil.getFileNameWitAddedExtension(thumbFolder, f, ".cover.jpg");
 			}
-
 			if (cachedThumbnail == null) {
-				cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, f, ".cover.png");
+				cachedThumbnail = FileUtil.getFileNameWitAddedExtension(thumbFolder, f, ".cover.png");
 			}
-
 			if (alternativeCheck) {
 				break;
 			}
-
-			if (StringUtils.isNotBlank(configuration.getAlternateThumbFolder())) {
-				thumbFolder = new File(configuration.getAlternateThumbFolder());
-
-				if (!thumbFolder.isDirectory()) {
+			if (StringUtils.isNotBlank(PMS.getConfiguration().getAlternateThumbFolder())) {
+				thumbFolder = new File(PMS.getConfiguration().getAlternateThumbFolder());
+				if (!thumbFolder.exists() || !thumbFolder.isDirectory()) {
 					thumbFolder = null;
 					break;
 				}
 			}
-
 			alternativeCheck = true;
 		}
-
 		if (cachedThumbnail != null) {
 			return new FileInputStream(cachedThumbnail);
 		} else if (getMedia() != null && getMedia().getThumb() != null) {
 			return getMedia().getThumbnailInputStream();
 		} else {
-			return getResourceInputStream("images/thumbnail-music.png");
+			return getResourceInputStream("images/cdrwblank-256.png");
 		}
 	}
 }

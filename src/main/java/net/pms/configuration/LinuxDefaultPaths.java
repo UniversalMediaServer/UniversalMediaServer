@@ -2,14 +2,13 @@ package net.pms.configuration;
 
 import java.io.File;
 import net.pms.util.PropertiesUtil;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
 
 class LinuxDefaultPaths implements ProgramPaths {
 	private final String BINARIES_SEARCH_PATH = getBinariesSearchPath();
 
 	@Override
 	public String getEac3toPath() {
-		return null;
+		return getBinaryPath("eac3to");
 	}
 
 	@Override
@@ -67,7 +66,7 @@ class LinuxDefaultPaths implements ProgramPaths {
 	private String getBinariesSearchPath() {
 		String path = PropertiesUtil.getProjectProperties().get("project.binaries.dir");
 
-		if (isNotBlank(path)) {
+		if (path != null && !"".equals(path)) {
 			if (path.endsWith("/")) {
 				return path;
 			} else {

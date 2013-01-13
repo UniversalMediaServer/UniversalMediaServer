@@ -67,6 +67,7 @@ public class MPlayerWebVideoDump extends MPlayerAudio {
 		ProcessWrapper mkfifo_process = audioP.getPipeProcess();
 
 		mPlayerdefaultAudioArgs = finalizeTranscoderArgs(
+			this,
 			fileName,
 			dlna,
 			media,

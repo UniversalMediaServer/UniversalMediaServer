@@ -41,16 +41,9 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
 
-// this does nothing that isn't done by the ffmpeg audio engine
-// and, indeed, it delegates to ffmpeg for MP3 transcodes
-@Deprecated
 public class MPlayerAudio extends Player {
 	public static final String ID = "mplayeraudio";
 	private final PmsConfiguration configuration;
-
-	// XXX should be private
-	@Deprecated
-	JCheckBox noresample;
 
 	public MPlayerAudio(PmsConfiguration configuration) {
 		this.configuration = configuration;
@@ -73,7 +66,7 @@ public class MPlayerAudio extends Player {
 
 	@Override
 	public String executable() {
-		return configuration.getMplayerPath();
+		return PMS.getConfiguration().getMplayerPath();
 	}
 
 	@Override
@@ -81,8 +74,7 @@ public class MPlayerAudio extends Player {
 		String fileName,
 		DLNAResource dlna,
 		DLNAMediaInfo media,
-		OutputParams params
-	) throws IOException {
+		OutputParams params) throws IOException {
 		if (!(this instanceof MPlayerWebAudio) && !(this instanceof MPlayerWebVideoDump)) {
 			params.waitbeforestart = 2000;
 		}
@@ -90,30 +82,14 @@ public class MPlayerAudio extends Player {
 		params.manageFastStart();
 
 		if (params.mediaRenderer.isTranscodeToMP3()) {
-			FFmpegAudio ffmpegAudio = new FFmpegAudio(configuration);
-			return ffmpegAudio.launchTranscode(fileName, dlna, media, params);
+			FFMpegAudio audio = new FFMpegAudio(configuration);
+			return audio.launchTranscode(fileName, dlna, media, params);
 		}
 
-		params.maxBufferSize = configuration.getMaxAudioBuffer();
+		params.maxBufferSize = PMS.getConfiguration().getMaxAudioBuffer();
 		PipeProcess audioP = new PipeProcess("mplayer_aud" + System.currentTimeMillis());
 
-		String mPlayerdefaultAudioArgs[] = new String[] {
-			configuration.getMplayerPath(),
-			fileName,
-			"-prefer-ipv4",
-			"-nocache",
-			"-af",
-			"channels=2",
-			"-srate",
-			"48000",
-			"-vo",
-			"null",
-			"-ao",
-			"pcm:nowaveheader:fast:file=" + audioP.getInputPipe(),
-			"-quiet",
-			"-format",
-			"s16be"
-		};
+		String mPlayerdefaultAudioArgs[] = new String[]{PMS.getConfiguration().getMplayerPath(), fileName, "-prefer-ipv4", "-nocache", "-af", "channels=2", "-srate", "48000", "-vo", "null", "-ao", "pcm:nowaveheader:fast:file=" + audioP.getInputPipe(), "-quiet", "-format", "s16be"};
 		if (params.mediaRenderer.isTranscodeToWAV()) {
 			mPlayerdefaultAudioArgs[11] = "pcm:waveheader:fast:file=" + audioP.getInputPipe();
 			mPlayerdefaultAudioArgs[13] = "-quiet";
@@ -144,12 +120,12 @@ public class MPlayerAudio extends Player {
 		ProcessWrapper mkfifo_process = audioP.getPipeProcess();
 
 		mPlayerdefaultAudioArgs = finalizeTranscoderArgs(
+			this,
 			fileName,
 			dlna,
 			media,
 			params,
-			mPlayerdefaultAudioArgs
-		);
+			mPlayerdefaultAudioArgs);
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(mPlayerdefaultAudioArgs, params);
 		pw.attachProcess(mkfifo_process);
 		mkfifo_process.runInNewThread();
@@ -181,20 +157,20 @@ public class MPlayerAudio extends Player {
 	public int type() {
 		return Format.AUDIO;
 	}
+	JCheckBox noresample;
 
 	@Override
 	public JComponent config() {
 		FormLayout layout = new FormLayout(
 			"left:pref, 0:grow",
-			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, 0:grow"
-		);
+			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, 0:grow");
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.setBorder(Borders.EMPTY_BORDER);
 		builder.setOpaque(false);
 
 		CellConstraints cc = new CellConstraints();
 
-		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), cc.xyw(2, 1, 1));
+		JComponent cmp = builder.addSeparator("Audio settings", cc.xyw(2, 1, 1));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 

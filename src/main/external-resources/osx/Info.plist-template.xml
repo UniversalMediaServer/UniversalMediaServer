@@ -34,7 +34,5 @@
 			<key>WorkingDirectory</key>
 			<string>$APP_PACKAGE/Contents/Resources/Java</string>
 		</dict>
-		<key>NSHighResolutionCapable</key>
-		<true/>
 	</dict>
 </plist>

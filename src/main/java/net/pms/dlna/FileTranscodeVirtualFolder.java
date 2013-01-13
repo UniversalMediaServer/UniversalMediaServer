@@ -21,9 +21,7 @@ package net.pms.dlna;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.encoders.Player;
@@ -32,15 +30,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class populates the file-specific transcode folder with content.
+ * This class populates the TRANSCODE folder with content. 
  */
 public class FileTranscodeVirtualFolder extends VirtualFolder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileTranscodeVirtualFolder.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private boolean resolved;
 
 	/**
-	 * Class to take care of sorting the resources correctly. Resources
+	 * Class to take care of sorting the resources properly. Resources
 	 * are sorted by player, then by audio track, then by subtitle.
 	 */
 	private class ResourceSort implements Comparator<DLNAResource> {
@@ -54,7 +51,7 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 		public int compare(DLNAResource resource1, DLNAResource resource2) {
 			Integer playerIndex1 = players.indexOf(resource1.getPlayer());
 			Integer playerIndex2 = players.indexOf(resource2.getPlayer());
-
+			
 			if (playerIndex1.equals(playerIndex2)) {
 				String audioLang1 = resource1.getMediaAudio().getLang();
 				String audioLang2 = resource2.getMediaAudio().getLang();
@@ -83,40 +80,20 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 				return playerIndex1.compareTo(playerIndex2);
 			}
 		}
+		
 	}
 
-	// FIXME unused
-	@Deprecated
 	public FileTranscodeVirtualFolder(String name, String thumbnailIcon, boolean copy) {
 		super(name, thumbnailIcon);
 	}
 
-	public FileTranscodeVirtualFolder(String name, String thumbnailIcon) { // XXX thumbnailIcon is always null
-		super(name, thumbnailIcon);
-	}
-
-	private void addChapterFile(DLNAResource source) {
-		if (configuration.isChapterSupport() && configuration.getChapterInterval() > 0) {
-			ChapterFileTranscodeVirtualFolder chapterFolder = new ChapterFileTranscodeVirtualFolder(
-				"Chapters:" + source.getDisplayName(),
-				null,
-				configuration.getChapterInterval()
-			);
-			DLNAResource newSeekChild = source.clone();
-			newSeekChild.setNoName(true);
-			chapterFolder.addChildInternal(newSeekChild);
-			addChildInternal(chapterFolder);
-		}
-	}
-
 	/**
-	 * This populates the file-specific transcode folder with all combinations of players,
+	 * This populates the TRANSCODE folder with all combinations of players,
 	 * audio tracks and subtitles.
 	 */
 	@Override
 	public void resolve() {
 		super.resolve();
-
 		if (!resolved && getChildren().size() == 1) { // OK
 			DLNAResource child = getChildren().get(0);
 			child.resolve();
@@ -150,8 +127,8 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 			// List holding all combinations
 			ArrayList<DLNAResource> combos = new ArrayList<DLNAResource>();
 
-			List<DLNAMediaAudio> audioTracks = child.getMedia().getAudioTracksList();
-			List<DLNAMediaSubtitle> subtitles = child.getMedia().getSubtitleTracksList();
+			ArrayList<DLNAMediaAudio> audioTracks = child.getMedia().getAudioTracksList();
+			ArrayList<DLNAMediaSubtitle> subtitles = child.getMedia().getSubtitleTracksList();
 
 			// Make sure a combo with no subtitles will be added
 			DLNAMediaSubtitle noSubtitle = new DLNAMediaSubtitle();
@@ -164,7 +141,7 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 					// Create a temporary copy of the child with the audio and
 					// subtitle modified in order to be able to match players to it.
 					DLNAResource tempModifiedCopy = createModifiedResource(child, audio, subtitle);
-
+			
 					// Determine which players match this audio track and subtitle
 					ArrayList<Player> players = PlayerFactory.getPlayers(tempModifiedCopy);
 
@@ -204,12 +181,8 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 	 * @param player The player to use.
 	 * @return The copy.
 	 */
-	private DLNAResource createComboResource(
-		DLNAResource original,
-		DLNAMediaAudio audio,
-		DLNAMediaSubtitle subtitle,
-		Player player
-	) {
+	private DLNAResource createComboResource(DLNAResource original,
+			DLNAMediaAudio audio, DLNAMediaSubtitle subtitle, Player player) {
 
 		// FIXME: Use new DLNAResource() instead of clone(). Clone is bad, mmmkay?
 		DLNAResource copy = original.clone();
@@ -224,7 +197,7 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 	}
 
 	/**
-	 * Create a copy of the provided original resource and modify it with
+	 * Create a copy of the provided original resource and modifies it with
 	 * the given audio track and subtitles.
 	 *
 	 * @param original The original {@link DLNAResource} to create a copy of.
@@ -232,11 +205,8 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 	 * @param subtitle The subtitle track to use.
 	 * @return The copy.
 	 */
-	private DLNAResource createModifiedResource(
-		DLNAResource original,
-		DLNAMediaAudio audio,
-		DLNAMediaSubtitle subtitle
-	) {
+	private DLNAResource createModifiedResource(DLNAResource original,
+			DLNAMediaAudio audio, DLNAMediaSubtitle subtitle) {
 
 		// FIXME: Use new DLNAResource() instead of clone(). Clone is bad, mmmkay?
 		DLNAResource copy = original.clone();
@@ -246,5 +216,19 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 		copy.setMediaAudio(audio);
 		copy.setMediaSubtitle(subtitle);
 		return copy;
+	}
+
+	private void addChapterFile(DLNAResource source) {
+		if (PMS.getConfiguration().getChapterInterval() > 0 && PMS.getConfiguration().isChapterSupport()) {
+			ChapterFileTranscodeVirtualFolder chapterFolder = new ChapterFileTranscodeVirtualFolder("Chapters:" + source.getDisplayName(), null, PMS.getConfiguration().getChapterInterval());
+			DLNAResource newSeekChild = source.clone();
+			newSeekChild.setNoName(true);
+			chapterFolder.addChildInternal(newSeekChild);
+			addChildInternal(chapterFolder);
+		}
+	}
+
+	public FileTranscodeVirtualFolder(String name, String thumbnailIcon) {
+		super(name, thumbnailIcon);
 	}
 }
