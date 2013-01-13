@@ -28,6 +28,7 @@ import java.net.URLDecoder;
 import java.util.*;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.configuration.DownloadPlugins;
 import net.pms.configuration.MapFileConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -49,7 +50,7 @@ import xmlwise.XmlParseException;
 
 public class RootFolder extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RootFolder.class);
-	private final PmsConfiguration configuration = PMS.getConfiguration();
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private boolean running;
 	private FolderLimit lim;
 
@@ -112,7 +113,7 @@ public class RootFolder extends DLNAResource {
 		}
 
 		File webConf = new File(configuration.getProfileDirectory(), "WEB.conf");
-		if (webConf.exists() && PMS.getConfiguration().getExternalNetwork()) {
+		if (webConf.exists() && configuration.getExternalNetwork()) {
 			addWebFolder(webConf);
 		}
 
@@ -149,10 +150,7 @@ public class RootFolder extends DLNAResource {
 		}
 
 		if (!configuration.getHideVideoSettings()) {
-			DLNAResource videoSettingsRes = getVideoSettingssFolder();
-			if (videoSettingsRes != null) {
-				addChild(videoSettingsRes);
-			}
+			addAdminFolder();
 		}
 
 		setDiscovered(true);
@@ -772,6 +770,80 @@ public class RootFolder extends DLNAResource {
 		}
 
 		return res;
+	}
+
+	private void addAdminFolder() {
+		DLNAResource res = new VirtualFolder(Messages.getString("PMS.131"), null);
+		DLNAResource vsf = getVideoSettingssFolder();
+
+		if (vsf != null) {
+			res.addChild(vsf);
+		}
+
+		res.addChild(new VirtualFolder(Messages.getString("NetworkTab.39"), null) {
+			@Override
+			public void discoverChildren() {
+				final ArrayList<DownloadPlugins> plugins = DownloadPlugins.downloadList();
+				for (final DownloadPlugins plugin : plugins) {
+					addChild(new VirtualVideoAction(plugin.getName(), true) {
+						@Override
+						public boolean enable() {
+							try {
+								plugin.install(null);
+							} catch (Exception e) {
+							}
+
+							return true;
+						}
+					});
+				}
+			}
+		});
+
+		if (configuration.getScriptDir() != null) {
+			final File scriptDir = new File(configuration.getScriptDir());
+
+			if (scriptDir.exists()) {
+				res.addChild(new VirtualFolder(Messages.getString("PMS.132"), null) {
+					@Override
+					public void discoverChildren() {
+						File[] files = scriptDir.listFiles();
+
+						for (int i = 0; i < files.length; i++) {
+							String name = files[i].getName().replaceAll("_", " ");
+							int pos = name.lastIndexOf(".");
+
+							if (pos != -1) {
+								name = name.substring(0,pos);
+							}
+
+							final File f = files[i];
+
+							addChild(new VirtualVideoAction(name, true) {
+								@Override
+								public boolean enable() {
+									try {
+										ProcessBuilder pb = new ProcessBuilder(f.getAbsolutePath());
+										Process pid = pb.start();
+										InputStream is = pid.getInputStream();
+										InputStreamReader isr = new InputStreamReader(is);
+										BufferedReader br = new BufferedReader(isr);
+										while (br.readLine() != null) { 
+										}
+										pid.waitFor();
+									} catch (Exception e) {
+									}
+
+									return true;
+								}
+							});
+						}
+					}
+				});
+			}
+		}
+
+		addChild(res);
 	}
 
 	/**

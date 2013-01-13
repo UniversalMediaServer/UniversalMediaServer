@@ -149,14 +149,14 @@ public class GeneralTab {
 						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 						Messages.getString("NetworkTab.11") +
 						Messages.getString("NetworkTab.12"),
-						"Information",
+						Messages.getString("Dialog.Information"),
 						JOptionPane.INFORMATION_MESSAGE
 					);
 				} else {
 					JOptionPane.showMessageDialog(
 						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 						Messages.getString("NetworkTab.14"),
-						"Error",
+						Messages.getString("Dialog.Error"),
 						JOptionPane.ERROR_MESSAGE
 					);
 				}
@@ -176,7 +176,7 @@ public class GeneralTab {
 				JOptionPane.showMessageDialog(
 					(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 					Messages.getString("GeneralTab.3"),
-					"Information",
+					Messages.getString("Dialog.Information"),
 					JOptionPane.INFORMATION_MESSAGE
 				);
 			}
@@ -219,7 +219,7 @@ public class GeneralTab {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JPanel tPanel = new JPanel(new BorderLayout());
-				final File conf = new File(PMS.getConfiguration().getProfilePath());
+				final File conf = new File(configuration.getProfilePath());
 				final JTextArea textArea = new JTextArea();
 				textArea.setFont(new Font("Courier", Font.PLAIN, 12));
 				JScrollPane scrollPane = new JScrollPane(textArea);
@@ -256,7 +256,7 @@ public class GeneralTab {
 						fos.write(text.getBytes());
 						fos.flush();
 						fos.close();
-						PMS.getConfiguration().reload();
+						configuration.reload();
 					} catch (Exception e1) {
 						JOptionPane.showMessageDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 							Messages.getString("NetworkTab.52") + e1.toString());
@@ -311,7 +311,6 @@ public class GeneralTab {
 		cmp = builder.addSeparator(Messages.getString("NetworkTab.22"), FormLayoutUtil.flip(cc.xyw(1, 17, 9), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
-		
 
 		final KeyedComboBoxModel networkInterfaces = createNetworkInterfacesModel();
 		networkinterfacesCBX = new JComboBox(networkInterfaces);
@@ -353,7 +352,7 @@ public class GeneralTab {
 
 			@Override
 			public void keyReleased(KeyEvent e) {
-				PMS.getConfiguration().setMaximumBitrate(maxbitrate.getText());
+				configuration.setMaximumBitrate(maxbitrate.getText());
 			}
 		});
 
@@ -438,7 +437,7 @@ public class GeneralTab {
 		builder.add(renderers, FormLayoutUtil.flip(cc.xyw(3, 35, 7), colSpec, orientation));
 
 		builder.add(fdCheckBox, FormLayoutUtil.flip(cc.xyw(1, 37, 9), colSpec, orientation));
-		
+
 		// External network box
 		extNetBox = new JCheckBox(Messages.getString("NetworkTab.56"));
 		extNetBox.setContentAreaFilled(false);
@@ -459,7 +458,8 @@ public class GeneralTab {
 		JScrollPane scrollPane = new JScrollPane(
 			panel,
 			JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
+		);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
 		return scrollPane;
 	}

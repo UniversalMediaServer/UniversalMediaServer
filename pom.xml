@@ -31,7 +31,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>2.0.1</version>
+	<version>2.2.5</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -69,7 +69,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>2.0.1</project.version.short>
+		<project.version.short>2.2.5</project.version.short>
 
 		<!--
 			JNA 3.4.0 solves issue #1152, but causes a bug in Windows.
@@ -97,7 +97,6 @@
 		<!-- Skip 4.65-1.05-RC because it doesn't work, author is working on fixing it -->
 		<sevenzip-version>4.65-1.04-RC</sevenzip-version>
 
-		<h2-version>1.3.169</h2-version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.external-resources>${project.basedir}/src/main/external-resources</project.external-resources>
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
@@ -170,6 +169,17 @@
 			<name>JUnRar mirror repository</name>
 			<url>https://junrar-repository.googlecode.com/svn/deploy/</url>
 		</repository>
+
+		<!-- for jai-imageio-core-standalone, which is used by Thumbnailator -->
+		<repository>
+			<releases />
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>mygrid-repository</id>
+			<name>myGrid Repository</name>
+			<url>http://www.mygrid.org.uk/maven/repository</url>
+		</repository>
 	</repositories>
 	<dependencies>
 		<!-- TODO this can be removed when MEncoder is removed -->
@@ -223,9 +233,9 @@
 			<version>2.6</version>
 		</dependency>
 		<dependency>
-			<groupId>org.h2database</groupId>
+			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<version>1.3.169</version>
+			<version>1.3.170</version>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
@@ -287,6 +297,26 @@
 			<artifactId>thumbnailator</artifactId>
 			<version>0.4.2</version>
 		</dependency>
+
+		<!--
+			this is not used on its own, but rather provides
+			ImageReader subclasses that make support for additional
+			formats (e.g. TIFF) available to the ImageIO API, and thus
+			to Thumbnailator (our built-in image thumbnailer).
+
+			XXX be careful upgrading this. this version is redistributable;
+			other versions may not be:
+
+			https://code.google.com/p/thumbnailator/issues/detail?id=32
+			https://github.com/stain/jai-imageio-core
+			http://stackoverflow.com/questions/1209583/using-java-advanced-imaging-with-maven
+		-->
+		<dependency>
+			<groupId>net.java.dev.jai-imageio</groupId>
+			<artifactId>jai-imageio-core-standalone</artifactId>
+			<version>1.2-pre-dr-b04-2011-07-04</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org</groupId>
 			<artifactId>jaudiotagger</artifactId>
@@ -406,18 +436,6 @@
 
 				<!-- Filter to replace Maven properties -->
 				<filtering>true</filtering>
-			</resource>
-
-			<!--
-				There are (or were) reportedly issues with Eclipse's "Externalize Strings" 
-				wizard if these aren't in the source tree, so keep them here for now, even 
-				though it's Mavenly-incorrect.
-			-->
-			<resource>
-				<directory>src/main/java</directory>
-				<includes>
-					<include>**/*.properties</include>
-				</includes>
 			</resource>
 
 			<!-- Copy and filter the NSIS header file to replace Maven properties -->
@@ -696,14 +714,6 @@
 							<downloadUrl>https://xmlwise.googlecode.com/files/xmlwise-${xmlwise-filename-version}.jar</downloadUrl>
 							<checksum>82ed648273281ccd08da6f91df30573edf15185d</checksum>
 						</artifactItem>
-						<artifactItem>
-							<groupId>org.h2database</groupId>
-							<artifactId>h2</artifactId>
-							<version>${h2-version}</version>
-							<packaging>jar</packaging>
-							<install>true</install>
-							<downloadUrl>http://hsql.sourceforge.net/m2-repo/com/h2database/h2/{version}/h2-{version}.{packaging}</downloadUrl>
-						</artifactItem>
 					</artifactItems>
 				</configuration>
 				<executions>
@@ -936,7 +946,7 @@
 					<!-- Plugin to assemble a jar with dependencies -->
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
-						<version>2.3</version>
+						<version>2.4</version>
 						<executions>
 							<execution>
 								<id>make-jar-with-dependencies-win</id>
@@ -951,6 +961,17 @@
 									<archive>
 										<manifest>
 											<mainClass>net.pms.PMS</mainClass>
+											<!--
+												this is required to make the ImageIo image "plugins" provided by jai-imageio-core-standalone work.
+												without it, the following exception is thrown when PMS starts:
+
+												Configuration error: java.util.ServiceConfigurationError: javax.imageio.spi.ImageInputStreamSpi:
+													Provider com.sun.media.imageioimpl.stream.ChannelImageInputStreamSpi could not be instantiated:
+														java.lang.IllegalArgumentException: vendorName == null!
+
+												See: https://thierrywasyl.wordpress.com/2009/07/24/jai-how-to-solve-vendorname-null-exception/
+											-->
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
 										</manifest>
 									</archive>
 								</configuration>
@@ -1158,7 +1179,7 @@
 				<plugins>
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
-						<version>2.2.1</version>
+						<version>2.4</version>
 						<executions>
 							<!-- Assemble a jar with dependencies -->
 							<execution>
@@ -1174,6 +1195,7 @@
 									<archive>
 										<manifest>
 											<mainClass>net.pms.PMS</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
 								</configuration>
@@ -1193,6 +1215,7 @@
 									<archive>
 										<manifest>
 											<mainClass>net.pms.PMS</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
 								</configuration>
@@ -1331,7 +1354,7 @@
 					</plugin>
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
-						<version>2.2.1</version>
+						<version>2.4</version>
 						<executions>
 							<!-- Assemble a jar with dependencies -->
 							<execution>
@@ -1347,6 +1370,7 @@
 									<archive>
 										<manifest>
 											<mainClass>net.pms.PMS</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
 								</configuration>
@@ -1368,6 +1392,7 @@
 									<archive>
 										<manifest>
 											<mainClass>net.pms.PMS</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
 										</manifest>
 									</archive>
 								</configuration>

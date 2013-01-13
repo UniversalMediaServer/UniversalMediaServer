@@ -27,6 +27,8 @@ import java.lang.reflect.Method;
 import java.nio.CharBuffer;
 import java.util.prefs.Preferences;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,10 +39,10 @@ import org.slf4j.LoggerFactory;
  */
 public class WinUtils extends BasicSystemUtils implements SystemUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WinUtils.class);
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	public interface Kernel32 extends Library {
-		Kernel32 INSTANCE = (Kernel32) Native.loadLibrary("kernel32",
-			Kernel32.class);
+		Kernel32 INSTANCE = (Kernel32) Native.loadLibrary("kernel32", Kernel32.class);
 		Kernel32 SYNC_INSTANCE = (Kernel32) Native.synchronizedLibrary(INSTANCE);
 
 		int GetShortPathNameW(WString lpszLongPath, char[] lpdzShortPath, int cchBuffer);
@@ -63,9 +65,11 @@ public class WinUtils extends BasicSystemUtils implements SystemUtils {
 		int ES_SYSTEM_REQUIRED = 0x00000001;
 		int ES_CONTINUOUS = 0x80000000;
 	}
+
 	private static final int KEY_READ = 0x20019;
 	private boolean kerio;
 	private String avsPluginsDir;
+	private String kLiteFiltersDir;
 	public long lastDontSleepCall = 0;
 	public long lastGoToSleepCall = 0;
 
@@ -75,8 +79,7 @@ public class WinUtils extends BasicSystemUtils implements SystemUtils {
 	@Override
 	public void disableGoToSleep() {
 		// Disable go to sleep (every 40s)
-		if (PMS.getConfiguration().isPreventsSleep()
-				&& System.currentTimeMillis() - lastDontSleepCall > 40000) {
+		if (configuration.isPreventsSleep() && System.currentTimeMillis() - lastDontSleepCall > 40000) {
 			LOGGER.trace("Calling SetThreadExecutionState ES_SYSTEM_REQUIRED");
 			Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_SYSTEM_REQUIRED | Kernel32.ES_CONTINUOUS);
 			lastDontSleepCall = System.currentTimeMillis();
@@ -89,8 +92,7 @@ public class WinUtils extends BasicSystemUtils implements SystemUtils {
 	@Override
 	public void reenableGoToSleep() {
 		// Reenable go to sleep
-		if (PMS.getConfiguration().isPreventsSleep()
-				&& System.currentTimeMillis() - lastGoToSleepCall > 40000) {
+		if (configuration.isPreventsSleep() && System.currentTimeMillis() - lastGoToSleepCall > 40000) {
 			LOGGER.trace("Calling SetThreadExecutionState ES_CONTINUOUS");
 			Kernel32.INSTANCE.SetThreadExecutionState(Kernel32.ES_CONTINUOUS);
 			lastGoToSleepCall = System.currentTimeMillis();
@@ -110,6 +112,21 @@ public class WinUtils extends BasicSystemUtils implements SystemUtils {
 			pluginsDir = null;
 		}
 		return pluginsDir;
+	}
+
+	/**
+	 * The Filters directory for K-Lite Codec Pack, which contains vsfilter.dll
+	 */
+	@Override
+	public File getKLiteFiltersDir() {
+		if (kLiteFiltersDir == null) {
+			return null;
+		}
+		File filtersDir = new File(kLiteFiltersDir + "\\Filters");
+		if (!filtersDir.exists()) {
+			filtersDir = null;
+		}
+		return filtersDir;
 	}
 
 	/* (non-Javadoc)
@@ -222,52 +239,63 @@ public class WinUtils extends BasicSystemUtils implements SystemUtils {
 		final Class<? extends Preferences> clz = userRoot.getClass();
 		try {
 			if (clz.getName().endsWith("WindowsPreferences")) {
-				final Method openKey = clz.getDeclaredMethod("WindowsRegOpenKey", int.class,
-					byte[].class, int.class);
+				final Method openKey = clz.getDeclaredMethod("WindowsRegOpenKey", int.class, byte[].class, int.class);
 				openKey.setAccessible(true);
-				final Method closeKey = clz.getDeclaredMethod(
-					"WindowsRegCloseKey", int.class);
+
+				final Method closeKey = clz.getDeclaredMethod("WindowsRegCloseKey", int.class);
 				closeKey.setAccessible(true);
-				final Method winRegQueryValue = clz.getDeclaredMethod(
-					"WindowsRegQueryValueEx", int.class, byte[].class);
+
+				final Method winRegQueryValue = clz.getDeclaredMethod("WindowsRegQueryValueEx", int.class, byte[].class);
 				winRegQueryValue.setAccessible(true);
-				byte[] valb = null;
-				String key = null;
+
+				byte[] valb;
+				String key;
+
+				// Check if VLC is installed
 				key = "SOFTWARE\\VideoLAN\\VLC";
-				int handles[] = (int[]) openKey.invoke(systemRoot, -2147483646,
-					toCstr(key), KEY_READ);
+				int handles[] = (int[]) openKey.invoke(systemRoot, -2147483646, toCstr(key), KEY_READ);
 				if (!(handles.length == 2 && handles[0] != 0 && handles[1] == 0)) {
 					key = "SOFTWARE\\Wow6432Node\\VideoLAN\\VLC";
-					handles = (int[]) openKey.invoke(systemRoot, -2147483646,
-						toCstr(key), KEY_READ);
+					handles = (int[]) openKey.invoke(systemRoot, -2147483646, toCstr(key), KEY_READ);
 				}
 				if (handles.length == 2 && handles[0] != 0 && handles[1] == 0) {
-					valb = (byte[]) winRegQueryValue.invoke(systemRoot,
-						handles[0], toCstr(""));
+					valb = (byte[]) winRegQueryValue.invoke(systemRoot, handles[0], toCstr(""));
 					vlcp = (valb != null ? new String(valb).trim() : null);
-					valb = (byte[]) winRegQueryValue.invoke(systemRoot,
-						handles[0], toCstr("Version"));
+					valb = (byte[]) winRegQueryValue.invoke(systemRoot, handles[0], toCstr("Version"));
 					vlcv = (valb != null ? new String(valb).trim() : null);
 					closeKey.invoke(systemRoot, handles[0]);
 				}
+
+				// Check if AviSynth is installed
 				key = "SOFTWARE\\AviSynth";
-				handles = (int[]) openKey.invoke(systemRoot, -2147483646,
-					toCstr(key), KEY_READ);
+				handles = (int[]) openKey.invoke(systemRoot, -2147483646, toCstr(key), KEY_READ);
 				if (!(handles.length == 2 && handles[0] != 0 && handles[1] == 0)) {
 					key = "SOFTWARE\\Wow6432Node\\AviSynth";
-					handles = (int[]) openKey.invoke(systemRoot, -2147483646,
-						toCstr(key), KEY_READ);
+					handles = (int[]) openKey.invoke(systemRoot, -2147483646, toCstr(key), KEY_READ);
 				}
 				if (handles.length == 2 && handles[0] != 0 && handles[1] == 0) {
 					avis = true;
-					valb = (byte[]) winRegQueryValue.invoke(systemRoot,
-						handles[0], toCstr("plugindir2_5"));
+					valb = (byte[]) winRegQueryValue.invoke(systemRoot, handles[0], toCstr("plugindir2_5"));
 					avsPluginsDir = (valb != null ? new String(valb).trim() : null);
 					closeKey.invoke(systemRoot, handles[0]);
 				}
+
+				// Check if K-Lite Codec Pack is installed
+				key = "SOFTWARE\\Wow6432Node\\KLCodecPack";
+				handles = (int[]) openKey.invoke(systemRoot, -2147483646, toCstr(key), KEY_READ);
+				if (!(handles.length == 2 && handles[0] != 0 && handles[1] == 0)) {
+					key = "SOFTWARE\\KLCodecPack";
+					handles = (int[]) openKey.invoke(systemRoot, -2147483646, toCstr(key), KEY_READ);
+				}
+				if (handles.length == 2 && handles[0] != 0 && handles[1] == 0) {
+					valb = (byte[]) winRegQueryValue.invoke(systemRoot, handles[0], toCstr("installdir"));
+					kLiteFiltersDir = (valb != null ? new String(valb).trim() : null);
+					closeKey.invoke(systemRoot, handles[0]);
+				}
+
+				// Check if Kerio is installed
 				key = "SOFTWARE\\Kerio";
-				handles = (int[]) openKey.invoke(systemRoot, -2147483646,
-					toCstr(key), KEY_READ);
+				handles = (int[]) openKey.invoke(systemRoot, -2147483646, toCstr(key), KEY_READ);
 				if (handles.length == 2 && handles[0] != 0 && handles[1] == 0) {
 					kerio = true;
 				}

@@ -131,23 +131,24 @@ public class DLNAMediaDatabase implements Runnable {
 		// Check whether the database is not severely damaged, corrupted or wrong version
 		boolean force_delete = false;
 		try {
-           	conn = getConnection();
+			conn = getConnection();
 		} catch (SQLException se) { // Connection can't be established, so delete the database
 			force_delete = true;
 		} finally {
 			close(conn);
-			if (FileUtils.exists(dbDir + File.separator + dbName + ".data.db") || force_delete){
+			if (FileUtils.exists(dbDir + File.separator + dbName + ".data.db") || force_delete) {
 				FileUtils.deleteRecursive(dbDir, true);
-				if (!FileUtils.exists(dbDir)){
+				if (!FileUtils.exists(dbDir)) {
 					LOGGER.debug("The cache has been deleted because it was corrupt or had the wrong version");
 				} else {
-					if(!java.awt.GraphicsEnvironment.isHeadless()) {
+					if (!java.awt.GraphicsEnvironment.isHeadless()) {
 						JOptionPane.showMessageDialog(
 							(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 							String.format(Messages.getString("DLNAMediaDatabase.5"), dbDir),
-		                    "PS3 Media Server error",
-		                    JOptionPane.ERROR_MESSAGE);
-					}	
+							Messages.getString("Dialog.Error"),
+							JOptionPane.ERROR_MESSAGE
+						);
+					}
 					LOGGER.debug("Damaged cache can't be deleted. Stop the program and delete the folder \"" + dbDir + "\" manually");
 				}
 			}
@@ -265,15 +266,14 @@ public class DLNAMediaDatabase implements Runnable {
 
 				for (int i = 0; i < chars.length; i++) {
 					// Create regexp rules for characters with a sort order based on the property value
-					executeUpdate(conn, "INSERT INTO REGEXP_RULES VALUES ( '" + chars[i] + "', '(?i)^" + chars[i] + ".+', "
-							+ (i + 2) + " );");
+					executeUpdate(conn, "INSERT INTO REGEXP_RULES VALUES ( '" + chars[i] + "', '(?i)^" + chars[i] + ".+', " + (i + 2) + " );");
 				}
 
 				LOGGER.debug("Database initialized");
 			} catch (SQLException se) {
 				LOGGER.info("Error in table creation: " + se.getMessage());
 			} finally {
-			    close(conn);
+				close(conn);
 			}
 		} else {
 			LOGGER.debug("Database file count: " + dbCount);
@@ -328,7 +328,7 @@ public class DLNAMediaDatabase implements Runnable {
 			while (rs.next()) {
 				DLNAMediaInfo media = new DLNAMediaInfo();
 				int id = rs.getInt("ID");
-				media.setDuration(toDouble(rs,"DURATION"));
+				media.setDuration(toDouble(rs, "DURATION"));
 				media.setBitrate(rs.getInt("BITRATE"));
 				media.setWidth(rs.getInt("WIDTH"));
 				media.setHeight(rs.getInt("HEIGHT"));
@@ -401,7 +401,7 @@ public class DLNAMediaDatabase implements Runnable {
 		}
 		return list;
 	}
-	
+
 	private Double toDouble(ResultSet rs, String column) throws SQLException {
 		Object obj = rs.getObject(column);
 		if (obj instanceof Double) {
@@ -507,7 +507,11 @@ public class DLNAMediaDatabase implements Runnable {
 					try {
 						insert.executeUpdate();
 					} catch (JdbcSQLException e) {
-						LOGGER.debug("An error occurred while trying to store the following file's information in the database: " + name);
+						if (e.getErrorCode() == 23505) {
+							LOGGER.debug("A duplicate key error occurred while trying to store the following file's audio information in the database: " + name);
+						} else {
+							LOGGER.debug("An error occurred while trying to store the following file's audio information in the database: " + name);
+						}
 						LOGGER.debug("The error given by jdbc was: " + e);
 					}
 				}
@@ -523,7 +527,16 @@ public class DLNAMediaDatabase implements Runnable {
 						insert.setString(3, left(sub.getLang(), SIZE_LANG));
 						insert.setString(4, left(sub.getFlavor(), SIZE_FLAVOR));
 						insert.setInt(5, sub.getType().getStableIndex());
-						insert.executeUpdate();
+						try {
+							insert.executeUpdate();
+						} catch (JdbcSQLException e) {
+							if (e.getErrorCode() == 23505) {
+								LOGGER.debug("A duplicate key error occurred while trying to store the following file's subtitle information in the database: " + name);
+							} else {
+								LOGGER.debug("An error occurred while trying to store the following file's subtitle information in the database: " + name);
+							}
+							LOGGER.debug("The error given by jdbc was: " + e);
+						}
 					}
 				}
 				close(insert);
@@ -600,7 +613,7 @@ public class DLNAMediaDatabase implements Runnable {
 		Connection conn = null;
 		PreparedStatement ps = null;
 		ResultSet rs = null;
-		
+
 		try {
 			conn = getConnection();
 			ps = conn.prepareStatement("SELECT COUNT(*) FROM FILES");

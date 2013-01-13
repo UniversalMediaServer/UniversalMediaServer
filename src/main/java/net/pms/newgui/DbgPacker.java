@@ -17,9 +17,9 @@ import javax.swing.plaf.metal.MetalIconFactory;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.external.DebugPacker;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
-import net.pms.external.dbgpack;
 import net.pms.logging.LoggingConfigFileLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,9 +93,9 @@ public class DbgPacker implements ActionListener {
 	private void poll() {
 		// call the client callbacks
 		for (ExternalListener listener : ExternalFactory.getExternalListeners()) {
-			if (listener instanceof dbgpack) {
+			if (listener instanceof DebugPacker) {
 				LOGGER.debug("found client " + listener.name());
-				Object obj = ((dbgpack) listener).dbgpack_cb();
+				Object obj = ((DebugPacker) listener).dbgpack_cb();
 				if (obj instanceof String) {
 					add(((String) obj).split(","));
 				} else if (obj instanceof String[]) {

@@ -23,6 +23,8 @@ import java.net.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
+
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,6 +63,7 @@ public class UPNPHelper {
 	private static Thread listener;
 	private static Thread aliveThread;
 	private static SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	/**
 	 * Send UPnP discovery search message to discover devices of interest on
@@ -153,7 +156,7 @@ public class UPNPHelper {
 	}
 
 	public static void sendByeBye() throws IOException {
-		LOGGER.info("Sending BYEBYE...");
+		LOGGER.info("Disconnecting HTTP server from renderers");
 		MulticastSocket ssdpSocket = getNewMulticastSocket();
 
 		sendMessage(ssdpSocket, "upnp:rootdevice", BYEBYE);
@@ -232,9 +235,9 @@ public class UPNPHelper {
 				while (true) {
 					try {
 						// Use configurable source port as per http://code.google.com/p/ps3mediaserver/issues/detail?id=1166
-						MulticastSocket socket = new MulticastSocket(PMS.getConfiguration().getUpnpPort());
+						MulticastSocket socket = new MulticastSocket(configuration.getUpnpPort());
 						if (bindErrorReported) {
-							LOGGER.warn("Finally, acquiring port " + PMS.getConfiguration().getUpnpPort() + " was successful!");
+							LOGGER.warn("Finally, acquiring port " + configuration.getUpnpPort() + " was successful!");
 						}
 						NetworkInterface ni = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
 						if (ni != null) {
@@ -258,7 +261,7 @@ public class UPNPHelper {
 								String remoteAddr = address.getHostAddress();
 								int remotePort = packet_r.getPort();
 
-								if (PMS.getConfiguration().getIpFiltering().allowed(address)) {
+								if (configuration.getIpFiltering().allowed(address)) {
 									LOGGER.trace("Receiving a M-SEARCH from [" + remoteAddr + ":" + remotePort + "]");
 
 									if (StringUtils.indexOf(s, "urn:schemas-upnp-org:service:ContentDirectory:1") > 0) {
@@ -286,7 +289,7 @@ public class UPNPHelper {
 						}
 					} catch (BindException e) {
 						if (!bindErrorReported) {
-							LOGGER.error("Unable to bind to " + PMS.getConfiguration().getUpnpPort()
+							LOGGER.error("Unable to bind to " + configuration.getUpnpPort()
 							+ ", which means that PMS will not automatically appear on your renderer! "
 							+ "This usually means that another program occupies the port. Please "
 							+ "stop the other program and free up the port. "

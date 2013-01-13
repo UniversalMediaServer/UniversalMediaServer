@@ -20,11 +20,14 @@ package net.pms.formats;
 
 import java.util.ArrayList;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.encoders.*;
 
 public class WEB extends Format {
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	
 	/**
 	 * {@inheritDoc} 
 	 */
@@ -53,7 +56,7 @@ public class WEB extends Format {
 		ArrayList<Class<? extends Player>> a = new ArrayList<Class<? extends Player>>();
 		if (type == AUDIO) {
 			PMS r = PMS.get();
-			for (String engine : PMS.getConfiguration().getEnginesAsList(r.getRegistry())) {
+			for (String engine : configuration.getEnginesAsList(r.getRegistry())) {
 				if (engine.equals(MPlayerWebAudio.ID)) {
 					a.add(MPlayerWebAudio.class);
 				} else if (engine.equals(VideoLanAudioStreaming.ID)) {
@@ -62,9 +65,9 @@ public class WEB extends Format {
 			}
 		} else {
 			PMS r = PMS.get();
-			for (String engine : PMS.getConfiguration().getEnginesAsList(r.getRegistry())) {
-				if (engine.equals(FFMpegWebVideo.ID)) {
-					a.add(FFMpegWebVideo.class);
+			for (String engine : configuration.getEnginesAsList(r.getRegistry())) {
+				if (engine.equals(FFmpegWebVideo.ID)) {
+					a.add(FFmpegWebVideo.class);
 				} else if (engine.equals(MEncoderWebVideo.ID)) {
 					a.add(MEncoderWebVideo.class);
 				} else if (engine.equals(VideoLanVideoStreaming.ID)) {
