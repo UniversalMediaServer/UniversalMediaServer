@@ -2561,13 +2561,15 @@ public class PmsConfiguration {
 			setATZLimit(0);
 		}
 	}
-	
+
 	public boolean openSubs() {
 		return getBoolean(KEY_OPEN_SUBS, false);
 	}
-	
+
+	/*
+	 * Returns false until the feature is improved
+	 */
 	public boolean autoImdb() {
-		//return getBoolean(KEY_AUTO_IMDB, false);
 		return false;
 	}
 }

@@ -4,14 +4,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import net.pms.configuration.RendererConfiguration;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.util.OpenSubtitle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PlaySub extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlaySub.class);
@@ -62,16 +59,19 @@ public class PlaySub extends DLNAResource {
 		return real.getInputStream();
 	}
 
+	@Override
 	public InputStream getInputStream(Range range, RendererConfiguration mediarenderer) throws IOException {
 		setSub();
 		return real.getInputStream(range, mediarenderer);
 	}
 
+	@Override
 	public InputStream getThumbnailInputStream() throws IOException {
 		try {
 			return getResourceInputStream("images/codes/" + lang + ".png");
 		} catch (Exception e) {
 		}
+
 		return super.getThumbnailInputStream();
 	}
 
@@ -80,6 +80,7 @@ public class PlaySub extends DLNAResource {
 		return name;
 	}
 
+	@Override
 	public String getDisplayName() {
 		return getName();
 	}
@@ -104,6 +105,7 @@ public class PlaySub extends DLNAResource {
 		return real.length();
 	}
 
+	@Override
 	public boolean isSrtFile() {
 		return true;
 	}

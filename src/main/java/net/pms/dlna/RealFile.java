@@ -28,7 +28,6 @@ import net.pms.util.FileUtil;
 import net.pms.util.ImdbUtil;
 import net.pms.util.OpenSubtitle;
 import net.pms.util.ProcessUtil;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,9 +85,11 @@ public class RealFile extends MapFile {
 				checkThumbnail();
 			}
 		}
+
 		if (valid) {
 			resolveImdb();
 		}
+
 		return valid;
 	}
 
@@ -305,14 +306,17 @@ public class RealFile extends MapFile {
 		return super.getThumbnailURL();
 	}
 
+	@Override
 	public boolean isSubSelectable() {
 		return true;
 	}
 
+	@Override
 	public String getImdbId() {
 		if (!StringUtils.isEmpty(imdb)) {
 			return imdb;
 		}
+
 		return ImdbUtil.extractImdb(getFile());
 	}
 
@@ -320,22 +324,23 @@ public class RealFile extends MapFile {
 		if (path == null || StringUtils.isEmpty(path)) {
 			return new File(name);
 		}
+
 		return new File(path + File.separator + name);
 	}
 
 	private void resolveImdb() {
-		/*if (!PMS.getConfiguration().autoImdb()) {
-			return;
-		}*/
 		if (!StringUtils.isEmpty(getImdbId())) {
 			// Already got an ImdbId or we shouldn't do this
 			return;
 		}
+
 		final File f = getFile();
 		if (f.isDirectory()) {
 			return;
 		}
+
 		Runnable r = new Runnable() {
+			@Override
 			public void run() {
 				String hash;
 
@@ -356,7 +361,7 @@ public class RealFile extends MapFile {
 					return;
 				}
 
-				// find the . (if any)
+				// Look for a period (.)
 				String name = f.getName();
 				int pos = name.lastIndexOf(".");
 				String rear;
@@ -366,14 +371,15 @@ public class RealFile extends MapFile {
 				} else {
 					rear = name.substring(pos);
 				}
-				// Some string trix
+
+				// Some string tricks
 				String front = name.substring(0, pos);
 				name = front + "_imdb" + imdb + "_" + "_os" + hash + "_" + rear;
 				File dst = fixPath(f.getParent(), name);
-				LOGGER.debug((f.renameTo(dst) ? "Succeded " : "Failed ")
-					+ "to add imdb " + imdb + " to file " + name);
+				LOGGER.debug((f.renameTo(dst) ? "Succeded " : "Failed ") + "to add imdb " + imdb + " to file " + name);
 			}
 		};
+
 		new Thread(r).start();
 	}
 }

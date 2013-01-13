@@ -581,12 +581,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						}
 
 						if (child.getExt().isVideo() && child.isSubSelectable()) {
+							VirtualFolder vf;
 							vf = getSubSelector(true);
 							if (vf != null) {
 								DLNAResource newChild = child.clone();
 								newChild.setPlayer(player);
 								newChild.setMedia(child.getMedia());
-								// newChild.original = child;
 								LOGGER.trace("Duplicate sub " + child.getName() + " with player: " + player.toString());
 
 								vf.addChild(new SubSelFile(newChild));
@@ -678,22 +678,26 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (!isSubSelectable()) {
 			return null;
 		}
+
 		if (PMS.getConfiguration().isMencoderDisableSubs()||
 			!PMS.getConfiguration().getUseSubtitles()||
 			!PMS.getConfiguration().openSubs()) {
 			return null;
 		}
+
 		// search for transcode folder
 		for (DLNAResource r : getChildren()) {
 			if (r instanceof SubSelect) {
 				return (SubSelect) r;
 			}
 		}
+
 		if (create) {
 			SubSelect vf = new SubSelect();
 			addChildInternal(vf);
 			return vf;
 		}
+
 		return null;
 	}
 
@@ -1154,13 +1158,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	private static String encode(String s) {
 		try {
-			if(s == null) {
+			if (s == null) {
 				return "";
 			}
+
 			return URLEncoder.encode(s, "UTF-8");
 		} catch (UnsupportedEncodingException e) {
 			LOGGER.debug("Caught exception", e);
 		}
+
 		return "";
 	}
 
