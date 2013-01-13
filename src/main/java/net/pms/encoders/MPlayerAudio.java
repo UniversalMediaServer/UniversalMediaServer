@@ -30,8 +30,6 @@ import java.util.Arrays;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import net.pms.Messages;
-import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
@@ -46,7 +44,6 @@ import net.pms.network.HTTPResource;
 @Deprecated
 public class MPlayerAudio extends Player {
 	public static final String ID = "mplayeraudio";
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	// XXX should be private
 	@Deprecated

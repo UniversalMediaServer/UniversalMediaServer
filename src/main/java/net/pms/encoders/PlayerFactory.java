@@ -46,8 +46,6 @@ public final class PlayerFactory {
 	 */
 	private static final Logger LOGGER = LoggerFactory.getLogger(FormatFactory.class);
 	
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
-
 	/**
 	 * List of registered and approved {@link Player} objects.
 	 */
@@ -71,7 +69,7 @@ public final class PlayerFactory {
 
 		@Override
 		public int compare(Player player1, Player player2) {
-			List<String> prefs = configuration.getEnginesAsList(PMS.get().getRegistry());
+			List<String> prefs = PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry());
 			Integer index1 = prefs.indexOf(player1.id());
 			Integer index2 = prefs.indexOf(player2.id());
 
@@ -100,13 +98,13 @@ public final class PlayerFactory {
 	 */
 	public static void initialize() {
 		utils = PMS.get().getRegistry();
-		registerPlayers(configuration);
+		registerPlayers();
 	}
 
 	/**
 	 * Register a known set of audio or video transcoders.
 	 */
-	private static void registerPlayers(final PmsConfiguration configuration) {
+	private static void registerPlayers() {
 
 		// TODO make these constructors consistent: pass configuration to all or to none
 		if (Platform.isWindows()) {

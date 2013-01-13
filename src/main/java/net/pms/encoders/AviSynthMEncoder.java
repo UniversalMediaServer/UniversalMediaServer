@@ -36,7 +36,6 @@ import java.util.StringTokenizer;
 import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
@@ -47,7 +46,6 @@ import org.slf4j.LoggerFactory;
 
 public class AviSynthMEncoder extends MEncoderVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AviSynthMEncoder.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	public static final String ID = "avsmencoder";
 

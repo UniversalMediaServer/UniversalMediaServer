@@ -21,8 +21,6 @@ package net.pms.encoders;
 import java.io.IOException;
 import javax.swing.JComponent;
 
-import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
@@ -33,7 +31,6 @@ import net.pms.io.ProcessWrapperImpl;
 
 public class MEncoderWebVideo extends Player {
 	public static final String ID = "mencoderwebvideo";
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	@Override
 	public JComponent config() {

@@ -25,6 +25,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
 import javax.swing.JComponent;
+
+import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
@@ -44,6 +46,7 @@ import org.slf4j.LoggerFactory;
 
 public abstract class Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Player.class);
+	public static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	public static final int VIDEO_SIMPLEFILE_PLAYER = 0;
 	public static final int AUDIO_SIMPLEFILE_PLAYER = 1;
