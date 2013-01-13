@@ -458,7 +458,7 @@ public class PMS {
 		}
 
 		// Initialize a player factory to register all players
-		PlayerFactory.initialize(configuration);
+		PlayerFactory.initialize();
 
 		// Instantiate listeners that require registered players.
 		ExternalFactory.instantiateLateListeners();

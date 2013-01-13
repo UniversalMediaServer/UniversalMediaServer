@@ -48,9 +48,6 @@ import org.slf4j.LoggerFactory;
 public class AviSynthMEncoder extends MEncoderVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AviSynthMEncoder.class);
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
-	public AviSynthMEncoder(PmsConfiguration configuration) {
-		super(configuration);
-	}
 
 	public static final String ID = "avsmencoder";
 

@@ -62,15 +62,11 @@ import org.slf4j.LoggerFactory;
 
 public class TsMuxeRVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TsMuxeRVideo.class);
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private static final String COL_SPEC = "left:pref, 0:grow";
 	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, 0:grow";
 
 	public static final String ID = "tsmuxer";
-	private PmsConfiguration configuration;
-
-	public TsMuxeRVideo(PmsConfiguration configuration) {
-		this.configuration = configuration;
-	}
 
 	@Override
 	public boolean excludeFormat(Format extension) {

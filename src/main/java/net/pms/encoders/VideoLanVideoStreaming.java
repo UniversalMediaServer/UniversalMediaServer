@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JComponent;
+
+import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
@@ -33,12 +35,8 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 
 public class VideoLanVideoStreaming extends Player {
-	private final PmsConfiguration configuration;
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	public static final String ID = "vlcvideo";
-
-	public VideoLanVideoStreaming(PmsConfiguration configuration) {
-		this.configuration = configuration;
-	}
 
 	@Override
 	public int purpose() {

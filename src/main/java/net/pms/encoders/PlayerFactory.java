@@ -44,8 +44,9 @@ public final class PlayerFactory {
 	/**
 	 * Logger used for all logging.
 	 */
-	private static final Logger LOGGER = LoggerFactory
-			.getLogger(FormatFactory.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(FormatFactory.class);
+	
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	/**
 	 * List of registered and approved {@link Player} objects.
@@ -67,11 +68,6 @@ public final class PlayerFactory {
 	 * This takes care of sorting the players by the given PMS configuration.
 	 */
 	private static class PlayerSort implements Comparator<Player> {
-		private PmsConfiguration configuration;
-
-		PlayerSort(PmsConfiguration configuration) {
-			this.configuration = configuration;
-		}
 
 		@Override
 		public int compare(Player player1, Player player2) {
@@ -101,19 +97,14 @@ public final class PlayerFactory {
 	/**
 	 * Constructor that registers all players based on the given configuration,
 	 * frame and registry.
-	 * 
-	 * @param configuration The PMS configuration.
 	 */
-	public static void initialize(final PmsConfiguration configuration) {
+	public static void initialize() {
 		utils = PMS.get().getRegistry();
 		registerPlayers(configuration);
 	}
 
 	/**
 	 * Register a known set of audio or video transcoders.
-	 * 
-	 * @param configuration
-	 *            PMS configuration settings.
 	 */
 	private static void registerPlayers(final PmsConfiguration configuration) {
 
@@ -122,23 +113,23 @@ public final class PlayerFactory {
 			registerPlayer(new AviSynthFFmpeg());
 		}
 
-		registerPlayer(new FFmpegAudio(configuration));
-		registerPlayer(new MEncoderVideo(configuration));
+		registerPlayer(new FFmpegAudio());
+		registerPlayer(new MEncoderVideo());
 
 		if (Platform.isWindows()) {
-			registerPlayer(new AviSynthMEncoder(configuration));
+			registerPlayer(new AviSynthMEncoder());
 		}
 
 		registerPlayer(new FFmpegVideo());
-		registerPlayer(new MPlayerAudio(configuration));
-		registerPlayer(new FFmpegWebVideo(configuration));
-		registerPlayer(new MEncoderWebVideo(configuration));
-		registerPlayer(new MPlayerWebVideoDump(configuration));
-		registerPlayer(new MPlayerWebAudio(configuration));
-		registerPlayer(new TsMuxeRVideo(configuration));
-		registerPlayer(new TsMuxeRAudio(configuration));
-		registerPlayer(new VideoLanAudioStreaming(configuration));
-		registerPlayer(new VideoLanVideoStreaming(configuration));
+		registerPlayer(new MPlayerAudio());
+		registerPlayer(new FFmpegWebVideo());
+		registerPlayer(new MEncoderWebVideo());
+		registerPlayer(new MPlayerWebVideoDump());
+		registerPlayer(new MPlayerWebAudio());
+		registerPlayer(new TsMuxeRVideo());
+		registerPlayer(new TsMuxeRAudio());
+		registerPlayer(new VideoLanAudioStreaming());
+		registerPlayer(new VideoLanVideoStreaming());
 
 		if (Platform.isWindows()) {
 			registerPlayer(new FFmpegDVRMSRemux());
@@ -147,8 +138,8 @@ public final class PlayerFactory {
 		registerPlayer(new RAWThumbnailer());
 
 		// Sort the players according to the configuration settings
-		Collections.sort(allPlayers, new PlayerSort(configuration));
-		Collections.sort(players, new PlayerSort(configuration));
+		Collections.sort(allPlayers, new PlayerSort());
+		Collections.sort(players, new PlayerSort());
 	}
 
 	/**

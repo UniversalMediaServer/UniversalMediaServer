@@ -21,7 +21,6 @@ package net.pms.encoders;
 import java.io.IOException;
 import javax.swing.JComponent;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
@@ -32,9 +31,7 @@ import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
 
 public class MPlayerWebVideoDump extends MPlayerAudio {
-	public MPlayerWebVideoDump(PmsConfiguration configuration) {
-		super(configuration);
-	}
+
 	public static final String ID = "mplayervideodump";
 
 	@Override

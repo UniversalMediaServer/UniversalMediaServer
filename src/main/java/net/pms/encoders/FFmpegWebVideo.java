@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JComponent;
+
+import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -36,7 +38,7 @@ import org.slf4j.LoggerFactory;
 
 public class FFmpegWebVideo extends FFmpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegWebVideo.class);
-	private final PmsConfiguration configuration;
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	// FIXME we have an id() accessor for this; no need for the field to be public
 	@Deprecated
@@ -60,10 +62,6 @@ public class FFmpegWebVideo extends FFmpegVideo {
 	@Override
 	public boolean isTimeSeekable() {
 		return false;
-	}
-
-	public FFmpegWebVideo(PmsConfiguration configuration) {
-		this.configuration = configuration;
 	}
 
 	@Override

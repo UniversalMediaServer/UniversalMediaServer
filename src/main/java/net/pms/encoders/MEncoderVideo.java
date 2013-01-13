@@ -64,6 +64,7 @@ public class MEncoderVideo extends Player {
 	private static final String COL_SPEC = "left:pref, 3dlu, p:grow, 3dlu, right:p:grow, 3dlu, p:grow, 3dlu, right:p:grow, 3dlu, p:grow, 3dlu, right:p:grow, 3dlu, pref:grow";
 	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu,p, 3dlu, p, 3dlu, p, 3dlu, p, 9dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
 	private static final String REMOVE_OPTION = "---REMOVE-ME---"; // use an out-of-band option that can't be confused with a real option
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	private JTextField mencoder_ass_scale;
 	private JTextField mencoder_ass_margin;
@@ -101,7 +102,6 @@ public class MEncoderVideo extends Player {
 	private JTextField och;
 	private JCheckBox subs;
 	private JCheckBox fribidi;
-	private final PmsConfiguration configuration;
 
 	private static final String[] INVALID_CUSTOM_OPTIONS = {
 		"-of",
@@ -169,10 +169,6 @@ public class MEncoderVideo extends Player {
 
 	public JCheckBox getSubs() {
 		return subs;
-	}
-
-	public MEncoderVideo(PmsConfiguration configuration) {
-		this.configuration = configuration;
 	}
 
 	@Override
@@ -1343,7 +1339,7 @@ public class MEncoderVideo extends Player {
 			}
 
 			if (!nomux) {
-				TsMuxeRVideo tv = new TsMuxeRVideo(configuration);
+				TsMuxeRVideo tv = new TsMuxeRVideo();
 				params.forceFps = media.getValidFps(false);
 
 				if (media.getCodecV().equals("h264")) {
@@ -2409,7 +2405,7 @@ public class MEncoderVideo extends Player {
 
 				pipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
-				TsMuxeRVideo ts = new TsMuxeRVideo(configuration);
+				TsMuxeRVideo ts = new TsMuxeRVideo();
 				File f = new File(configuration.getTempFolder(), "pms-tsmuxer.meta");
 				String cmd[] = new String[]{ ts.executable(), f.getAbsolutePath(), pipe.getInputPipe() };
 				pw = new ProcessWrapperImpl(cmd, params);

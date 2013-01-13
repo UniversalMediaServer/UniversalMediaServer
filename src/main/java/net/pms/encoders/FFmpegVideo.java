@@ -540,7 +540,7 @@ public class FFmpegVideo extends Player {
 			PipeProcess pipe;
 			pipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
-			TsMuxeRVideo ts = new TsMuxeRVideo(configuration);
+			TsMuxeRVideo ts = new TsMuxeRVideo();
 			File f = new File(configuration.getTempFolder(), "pms-tsmuxer.meta");
 			String cmd[] = new String[]{ ts.executable(), f.getAbsolutePath(), pipe.getInputPipe() };
 			pw = new ProcessWrapperImpl(cmd, params);
