@@ -21,9 +21,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
-
 import net.pms.PMS;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,8 +29,9 @@ import org.slf4j.LoggerFactory;
 public class OpenSubtitle {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OpenSubtitle.class);
 	private static final String SUB_DIR = "subs";
-	private static final long TOKEN_AGE_TIME = 10*60*1000; // 10 mins
-	private static final long SUB_FILE_AGE = 14*24*60*60*1000; // two weeks
+	private static final long TOKEN_AGE_TIME = 10 * 60 * 1000; // 10 mins
+	private static final long SUB_FILE_AGE = 14 * 24 * 60 * 60 * 1000; // two weeks
+
 	/**
 	 * Size of the chunks that will be hashed in bytes (64 KB)
 	 */
@@ -94,6 +93,7 @@ public class OpenSubtitle {
 		connection.setDefaultUseCaches(false);
 		connection.setRequestProperty("Content-Type", "text/xml");
 		connection.setRequestProperty("Content-Length", "" + query.length());
+
 		// open up the output stream of the connection
 		if (!StringUtils.isEmpty(query)) {
 			DataOutputStream output = new DataOutputStream(connection.getOutputStream());
@@ -110,10 +110,10 @@ public class OpenSubtitle {
 			page.append("\n");
 		}
 		in.close();
-		//LOGGER.debug("opensubs result page "+page.toString());
+
 		return page.toString();
 	}
-	
+
 	private static boolean tokenIsYoung() {
 		long now = System.currentTimeMillis();
 		return ((now - tokenAge) < TOKEN_AGE_TIME);
@@ -132,10 +132,12 @@ public class OpenSubtitle {
 			"</methodCall>\n";
 		Pattern re = Pattern.compile("token.*?<string>([^<]+)</string>", Pattern.DOTALL);
 		Matcher m = re.matcher(postPage(url.openConnection(), req));
+
 		if (m.find()) {
 			token = m.group(1);
 			tokenAge = System.currentTimeMillis();
 		}
+
 		bgCleanSubs();
 	}
 
@@ -146,9 +148,11 @@ public class OpenSubtitle {
 	public static String fetchImdbId(String hash) throws IOException {
 		LOGGER.debug("fetch imdbid for hash " + hash);
 		login();
+
 		if (token == null) {
 			return "";
 		}
+
 		URL url = new URL(OPENSUBS_URL);
 		String req = "<methodCall>\n<methodName>CheckMovieHash2</methodName>\n" +
 			"<params>\n<param>\n<value><string>" + token + "</string></value>\n</param>\n" +
@@ -157,23 +161,28 @@ public class OpenSubtitle {
 			"</params>\n</methodCall>\n";
 		Pattern re = Pattern.compile("MovieImdbID.*?<string>([^<]+)</string>", Pattern.DOTALL);
 		Matcher m = re.matcher(postPage(url.openConnection(), req));
+
 		if (m.find()) {
 			return m.group(1);
 		}
+
 		return "";
 	}
 
 	public static String getHash(File f) throws IOException {
 		LOGGER.debug("get hash of " + f);
 		String hash = ImdbUtil.extractOSHash(f);
+
 		if (!StringUtils.isEmpty(hash)) {
 			return hash;
 		}
+
 		return computeHash(f);
 	}
 
 	public static Map<String, Object> findSubs(File f) throws IOException {
 		Map<String, Object> res = findSubs(getHash(f), f.length());
+
 		if (res.isEmpty()) { // no good on hash! try imdb
 			String imdb = ImdbUtil.extractImdb(f);
 			if (StringUtils.isEmpty(imdb)) {
@@ -181,9 +190,11 @@ public class OpenSubtitle {
 			}
 			res = findSubs(imdb);
 		}
+
 		if (res.isEmpty()) { // final try, use the name
 			res = querySubs(f.getName());
 		}
+
 		return res;
 
 	}
@@ -299,33 +310,40 @@ public class OpenSubtitle {
 
 	public static String getLang(String str) {
 		String[] tmp = str.split(":", 2);
+
 		if (tmp.length > 1) {
 			return tmp[0];
 		}
+
 		return "";
 	}
 
 	public static String getName(String str) {
 		String[] tmp = str.split(":", 2);
+
 		if (tmp.length > 1) {
 			return tmp[1];
 		}
+
 		return str;
 	}
-	
-	private static void bgCleanSubs() {	
+
+	private static void bgCleanSubs() {
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
 				String root = new File("").getAbsolutePath();
 				File path = new File(root + File.separator + SUB_DIR);
+
 				if (!path.exists()) {
 					// no path nothing to do
 					return;
 				}
+
 				File[] files = path.listFiles();
 				long now = System.currentTimeMillis();
-				for (int i=0;i<files.length;i++) {
+
+				for (int i = 0; i < files.length; i++) {
 					long lastTime = files[i].lastModified();
 					if ((now - lastTime) > SUB_FILE_AGE) {
 						files[i].delete();
@@ -333,6 +351,7 @@ public class OpenSubtitle {
 				}
 			}
 		};
+
 		new Thread(r).start();
 	}
 }

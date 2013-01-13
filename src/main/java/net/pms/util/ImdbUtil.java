@@ -3,13 +3,9 @@ package net.pms.util;
 import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ImdbUtil {
-	private static final Logger LOGGER = LoggerFactory.getLogger(ImdbUtil.class);
 	private static final String HASH_REG = "_os([^_]+)_";
 	private static final String IMDB_REG = "_imdb([^_]+)_";
 
@@ -27,6 +23,7 @@ public class ImdbUtil {
 		if (!StringUtils.isEmpty(ret) && !ret.startsWith("tt")) {
 			ret = "tt" + ret;
 		}
+
 		return ret;
 	}
 
@@ -35,9 +32,11 @@ public class ImdbUtil {
 		Pattern re = Pattern.compile(reg);
 		Matcher m = re.matcher(fName);
 		String ret = "";
+
 		while (m.find()) {
 			ret = m.group(1);
 		}
+
 		return ret;
 	}
 }
