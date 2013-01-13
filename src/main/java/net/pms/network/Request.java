@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
@@ -46,6 +47,7 @@ import org.slf4j.LoggerFactory;
 
 public class Request extends HTTPResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Request.class);
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	private final static String CRLF = "\r\n";
 	private final static String HTTP_200_OK = "HTTP/1.1 200 OK";
@@ -347,7 +349,7 @@ public class Request extends HTTPResource {
 			output(output, "Expires: " + getFUTUREDATE() + " GMT");
 			inputStream = getResourceInputStream(argument);
 		} else if ((method.equals("GET") || method.equals("HEAD")) && (argument.equals("description/fetch") || argument.endsWith("1.0.xml"))) {
-			String profileName = PMS.getConfiguration().getProfileName();
+			String profileName = configuration.getProfileName();
 			output(output, CONTENT_TYPE);
 			output(output, "Cache-Control: no-cache");
 			output(output, "Expires: 0");
@@ -538,7 +540,7 @@ public class Request extends HTTPResource {
 
 				// XBOX virtual containers ... doh
 				String searchCriteria = null;
-				if (xbox && PMS.getConfiguration().getUseCache() && PMS.get().getLibrary() != null && containerID != null) {
+				if (xbox && configuration.getUseCache() && PMS.get().getLibrary() != null && containerID != null) {
 					if (containerID.equals("7") && PMS.get().getLibrary().getAlbumFolder() != null) {
 						objectID = PMS.get().getLibrary().getAlbumFolder().getResourceId();
 					} else if (containerID.equals("6") && PMS.get().getLibrary().getArtistFolder() != null) {

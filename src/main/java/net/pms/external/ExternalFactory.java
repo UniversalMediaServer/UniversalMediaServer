@@ -38,6 +38,7 @@ import java.util.List;
 import javax.swing.JLabel;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.RootFolder;
 import net.pms.newgui.LooksFrame;
@@ -54,6 +55,7 @@ public class ExternalFactory {
 	 * For logging messages.
 	 */
 	private static final Logger LOGGER = LoggerFactory.getLogger(ExternalFactory.class);
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	/**
 	 * List of external listener class instances.
@@ -300,7 +302,7 @@ public class ExternalFactory {
 
 	private static void purgeFiles() {
 		File purge = new File("purge");
-		String action = PMS.getConfiguration().getPluginPurgeAction();
+		String action = configuration.getPluginPurgeAction();
 
 		if (action.equalsIgnoreCase("none")) {
 			purge.delete();
@@ -338,7 +340,7 @@ public class ExternalFactory {
 	public static void lookup() {
 		// Start by purging files
 		purgeFiles();
-		File pluginDirectory = new File(PMS.getConfiguration().getPluginDirectory());
+		File pluginDirectory = new File(configuration.getPluginDirectory());
 		LOGGER.info("Searching for plugins in " + pluginDirectory.getAbsolutePath());
 
 		if (!pluginDirectory.exists()) {

@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.encoders.Player;
@@ -35,6 +36,7 @@ import org.slf4j.LoggerFactory;
  */
 public class FileTranscodeVirtualFolder extends VirtualFolder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileTranscodeVirtualFolder.class);
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private boolean resolved;
 
 	/**
@@ -94,11 +96,11 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 	}
 
 	private void addChapterFile(DLNAResource source) {
-		if (PMS.getConfiguration().isChapterSupport() && PMS.getConfiguration().getChapterInterval() > 0) {
+		if (configuration.isChapterSupport() && configuration.getChapterInterval() > 0) {
 			ChapterFileTranscodeVirtualFolder chapterFolder = new ChapterFileTranscodeVirtualFolder(
 				"Chapters:" + source.getDisplayName(),
 				null,
-				PMS.getConfiguration().getChapterInterval()
+				configuration.getChapterInterval()
 			);
 			DLNAResource newSeekChild = source.clone();
 			newSeekChild.setNoName(true);

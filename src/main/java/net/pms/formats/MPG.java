@@ -20,9 +20,11 @@ package net.pms.formats;
 
 import java.util.ArrayList;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.encoders.*;
 
 public class MPG extends Format {
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	/**
 	 * {@inheritDoc} 
 	 */
@@ -36,13 +38,13 @@ public class MPG extends Format {
 		PMS r = PMS.get();
 		PMS r1 = PMS.get();
 		PMS r2 = PMS.get();
-		if (PMS.getConfiguration().getEnginesAsList(r.getRegistry()) == null || PMS.getConfiguration().getEnginesAsList(r1.getRegistry()).isEmpty() || PMS.getConfiguration().getEnginesAsList(r2.getRegistry()).contains("none"))
+		if (configuration.getEnginesAsList(r.getRegistry()) == null || configuration.getEnginesAsList(r1.getRegistry()).isEmpty() || configuration.getEnginesAsList(r2.getRegistry()).contains("none"))
 		{
 			return null;
 		}
 		ArrayList<Class<? extends Player>> a = new ArrayList<Class<? extends Player>>();
 		PMS r3 = PMS.get();
-		for (String engine : PMS.getConfiguration().getEnginesAsList(r3.getRegistry())) {
+		for (String engine : configuration.getEnginesAsList(r3.getRegistry())) {
 			if (engine.equals(MEncoderVideo.ID)) {
 				a.add(MEncoderVideo.class);
 			} else if (engine.equals(AviSynthMEncoder.ID) && PMS.get().getRegistry().isAvis()) {

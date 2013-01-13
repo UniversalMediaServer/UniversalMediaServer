@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.formats.FormatFactory;
 import net.pms.formats.v2.SubtitleType;
@@ -38,18 +39,19 @@ import org.slf4j.LoggerFactory;
 
 public class DVDISOTitle extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DVDISOTitle.class);
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private File f;
 	private int title;
 	private long length;
 
 	@Override
 	public void resolve() {
-		String cmd[] = new String[]{PMS.getConfiguration().getMplayerPath(), "-identify", "-endpos", "0", "-v", "-ao", "null", "-vc", "null", "-vo", "null", "-dvd-device", ProcessUtil.getShortFileNameIfWideChars(f.getAbsolutePath()), "dvd://" + title};
-		OutputParams params = new OutputParams(PMS.getConfiguration());
+		String cmd[] = new String[]{configuration.getMplayerPath(), "-identify", "-endpos", "0", "-v", "-ao", "null", "-vc", "null", "-vo", "null", "-dvd-device", ProcessUtil.getShortFileNameIfWideChars(f.getAbsolutePath()), "dvd://" + title};
+		OutputParams params = new OutputParams(configuration);
 		params.maxBufferSize = 1;
-		if (PMS.getConfiguration().isDvdIsoThumbnails()) {
+		if (configuration.isDvdIsoThumbnails()) {
 			try {
-				params.workDir = PMS.getConfiguration().getTempFolder();
+				params.workDir = configuration.getTempFolder();
 			} catch (IOException e1) {
 				LOGGER.debug("Caught exception", e1);
 			}
@@ -136,10 +138,10 @@ public class DVDISOTitle extends DLNAResource {
 			}
 		}
 
-		if (PMS.getConfiguration().isDvdIsoThumbnails()) {
+		if (configuration.isDvdIsoThumbnails()) {
 			try {
 				String frameName = "" + this.hashCode();
-				frameName = PMS.getConfiguration().getTempFolder() + "/mplayer_thumbs/" + frameName + "00000001/0000000";
+				frameName = configuration.getTempFolder() + "/mplayer_thumbs/" + frameName + "00000001/0000000";
 				frameName = frameName.replace(',', '_');
 				File jpg = new File(frameName + "2.jpg");
 
@@ -298,8 +300,8 @@ public class DVDISOTitle extends DLNAResource {
 				break;
 			}
 
-			if (StringUtils.isNotBlank(PMS.getConfiguration().getAlternateThumbFolder())) {
-				thumbFolder = new File(PMS.getConfiguration().getAlternateThumbFolder());
+			if (StringUtils.isNotBlank(configuration.getAlternateThumbFolder())) {
+				thumbFolder = new File(configuration.getAlternateThumbFolder());
 
 				if (!thumbFolder.isDirectory()) {
 					thumbFolder = null;

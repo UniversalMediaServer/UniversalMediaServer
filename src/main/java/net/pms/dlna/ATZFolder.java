@@ -3,9 +3,11 @@ package net.pms.dlna;
 import java.io.File;
 import java.util.List;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
 
 public class ATZFolder extends VirtualFolder {
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private List<File> files;
 
 	public ATZFolder(String letter, List<File> files) {
@@ -15,11 +17,11 @@ public class ATZFolder extends VirtualFolder {
 
 	private void addFile(File f) {
 		String str = f.getName();
-		if (PMS.getConfiguration().isArchiveBrowsing() && (str.endsWith(".zip") || str.endsWith(".cbz"))) {
+		if (configuration.isArchiveBrowsing() && (str.endsWith(".zip") || str.endsWith(".cbz"))) {
 			addChild(new ZippedFile(f));
-		} else if (PMS.getConfiguration().isArchiveBrowsing() && (str.endsWith(".rar") || str.endsWith(".cbr"))) {
+		} else if (configuration.isArchiveBrowsing() && (str.endsWith(".rar") || str.endsWith(".cbr"))) {
 			addChild(new RarredFile(f));
-		} else if (PMS.getConfiguration().isArchiveBrowsing() && (str.endsWith(".tar") || str.endsWith(".gzip") || str.endsWith(".gz") || str.endsWith(".7z"))) {
+		} else if (configuration.isArchiveBrowsing() && (str.endsWith(".tar") || str.endsWith(".gzip") || str.endsWith(".gz") || str.endsWith(".7z"))) {
 			addChild(new SevenZipFile(f));
 		} else if ((str.endsWith(".iso") || str.endsWith(".img")) || (f.isDirectory() && f.getName().toUpperCase().equals("VIDEO_TS"))) {
 			addChild(new DVDISOFile(f));

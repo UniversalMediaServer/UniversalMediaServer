@@ -155,7 +155,7 @@ public class TsMuxeRVideo extends Player {
 			// videoType = "V_MPEG-2";
 			videoType = "V_MPEG4/ISO/AVC";
 
-			OutputParams ffparams = new OutputParams(PMS.getConfiguration());
+			OutputParams ffparams = new OutputParams(configuration);
 			ffparams.maxBufferSize = 1;
 			ffVideo = new ProcessWrapperImpl(ffmpegLPCMextract, ffparams);
 
@@ -172,7 +172,7 @@ public class TsMuxeRVideo extends Player {
 					fileName
 				};
 
-				ffparams = new OutputParams(PMS.getConfiguration());
+				ffparams = new OutputParams(configuration);
 				ffparams.maxBufferSize = 1;
 				ffAudio = new ProcessWrapperImpl[1];
 				ffAudio[0] = new ProcessWrapperImpl(flacCmd, ffparams);
@@ -200,7 +200,7 @@ public class TsMuxeRVideo extends Player {
 					ffAudioPipe[0].getInputPipe()
 				};
 
-				ffparams = new OutputParams(PMS.getConfiguration());
+				ffparams = new OutputParams(configuration);
 				ffparams.maxBufferSize = 1;
 				ffAudio = new ProcessWrapperImpl[1];
 				ffAudio[0] = new ProcessWrapperImpl(flacCmd, ffparams);
@@ -255,7 +255,7 @@ public class TsMuxeRVideo extends Player {
 				}
 			}
 
-			OutputParams ffparams = new OutputParams(PMS.getConfiguration());
+			OutputParams ffparams = new OutputParams(configuration);
 			ffparams.maxBufferSize = 1;
 			ffparams.stdin = params.stdin;
 			ffVideo = new ProcessWrapperImpl(ffmpegLPCMextract, ffparams);
@@ -385,7 +385,7 @@ public class TsMuxeRVideo extends Player {
 						};
 					}
 
-					ffparams = new OutputParams(PMS.getConfiguration());
+					ffparams = new OutputParams(configuration);
 					ffparams.maxBufferSize = 1;
 					ffparams.stdin = params.stdin;
 					ffAudio = new ProcessWrapperImpl[numAudioTracks];
@@ -499,7 +499,7 @@ public class TsMuxeRVideo extends Player {
 							};
 						}
 
-						ffparams = new OutputParams(PMS.getConfiguration());
+						ffparams = new OutputParams(configuration);
 						ffparams.maxBufferSize = 1;
 						ffparams.stdin = params.stdin;
 						ffAudio[i] = new ProcessWrapperImpl(ffmpegLPCMextract, ffparams);
@@ -730,7 +730,7 @@ public class TsMuxeRVideo extends Player {
 		String outputFileName = resourceName.substring(resourceName.lastIndexOf("/") + 1);
 
 		try {
-			outputFileName = PMS.getConfiguration().getTempFolder() + "/" + outputFileName;
+			outputFileName = configuration.getTempFolder() + "/" + outputFileName;
 		} catch (IOException e) {
 			LOGGER.warn("Failure to determine temporary folder.", e);
 		}
