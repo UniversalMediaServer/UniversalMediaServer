@@ -78,6 +78,7 @@ public class PmsConfiguration {
 	private static final String KEY_AVISYNTH_MULTITHREADING = "avisynth_multithreading";
 	private static final String KEY_AVISYNTH_SCRIPT = "avisynth_script";
 	private static final String KEY_BUFFER_MAX = "buffer_max";
+	private static final String KEY_SCRIPT_DIR = "script_dir";
 	private static final String KEY_BUFFER_TYPE = "buffertype"; // FIXME deprecated: unused
 	private static final String KEY_CHAPTER_INTERVAL = "chapter_interval";
 	private static final String KEY_CHAPTER_SUPPORT = "chapter_support";
@@ -2398,6 +2399,10 @@ public class PmsConfiguration {
 	@Deprecated
 	public boolean initBufferMax() {
 		return getBoolean(KEY_BUFFER_MAX, false);
+	}
+
+	public String getScriptDir() {
+		return getString(KEY_SCRIPT_DIR, null);
 	}
 
 	public String getPluginPurgeAction() {

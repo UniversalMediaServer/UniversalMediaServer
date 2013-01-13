@@ -330,8 +330,8 @@ public class NavigationShareTab {
 			}
 		});
 
-		// Hide #Video Settings# folder
-		hidevideosettings = new JCheckBox(Messages.getString("FoldTab.6"));
+		// Hide Server Settings folder
+		hidevideosettings = new JCheckBox(Messages.getString("FoldTab.38"));
 		hidevideosettings.setContentAreaFilled(false);
 		if (configuration.getHideVideoSettings()) {
 			hidevideosettings.setSelected(true);
