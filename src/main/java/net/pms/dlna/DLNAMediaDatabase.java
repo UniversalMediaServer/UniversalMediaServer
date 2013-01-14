@@ -128,17 +128,12 @@ public class DLNAMediaDatabase implements Runnable {
 		ResultSet rs = null;
 		Statement stmt = null;
 
-		// Check whether the database is not severely damaged, corrupted or wrong version
-		boolean force_delete = false;
 		try {
 			conn = getConnection();
-		} catch (SQLException se) { // Connection can't be established, so delete the database
-			force_delete = true;
-		} finally {
-			close(conn);
-			if (FileUtils.exists(dbDir + File.separator + dbName + ".data.db") || force_delete) {
+		} catch (SQLException se) { 
+			if (FileUtils.exists(dbDir + File.separator + dbName + ".data.db") || (se.getErrorCode() == 90048)) { // Cache is corrupt or wrong version, so delete it
 				FileUtils.deleteRecursive(dbDir, true);
-				if (!FileUtils.exists(dbDir)) {
+				if (!FileUtils.exists(dbDir)){
 					LOGGER.debug("The cache has been deleted because it was corrupt or had the wrong version");
 				} else {
 					if (!java.awt.GraphicsEnvironment.isHeadless()) {
@@ -146,11 +141,16 @@ public class DLNAMediaDatabase implements Runnable {
 							(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 							String.format(Messages.getString("DLNAMediaDatabase.5"), dbDir),
 							Messages.getString("Dialog.Error"),
-							JOptionPane.ERROR_MESSAGE
-						);
-					}
+		                    JOptionPane.ERROR_MESSAGE);
+					}	
 					LOGGER.debug("Damaged cache can't be deleted. Stop the program and delete the folder \"" + dbDir + "\" manually");
+					PMS.getConfiguration().setUseCache(false);
+					return;
 				}
+			} else {
+				LOGGER.debug("Cache connection error: " + se.getMessage());
+				PMS.getConfiguration().setUseCache(false);
+				return;
 			}
 		}
 
