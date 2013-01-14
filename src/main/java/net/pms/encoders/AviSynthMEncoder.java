@@ -163,15 +163,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 			i++;
 		}
 		textArea = new JTextArea(sb.toString());
-		textArea.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		textArea.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				StringBuilder sb = new StringBuilder();
