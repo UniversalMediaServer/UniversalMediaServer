@@ -367,7 +367,7 @@ public class MEncoderVideo extends Player {
 
 		builder.addLabel(Messages.getString("MEncoderVideo.28"), FormLayoutUtil.flip(cc.xy(9, 5, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 		scaleX = new JTextField("" + configuration.getMencoderScaleX());
-		scaleX.addKeyListener(new KeyListener() {
+		scaleX.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
 			}
@@ -389,15 +389,7 @@ public class MEncoderVideo extends Player {
 
 		builder.addLabel(Messages.getString("MEncoderVideo.30"), FormLayoutUtil.flip(cc.xy(13, 5, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 		scaleY = new JTextField("" + configuration.getMencoderScaleY());
-		scaleY.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		scaleY.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				try {
@@ -434,15 +426,7 @@ public class MEncoderVideo extends Player {
 
 		builder.addLabel(Messages.getString("MEncoderVideo.6"), FormLayoutUtil.flip(cc.xy(1, 17), colSpec, orientation));
 		mencoder_custom_options = new JTextField(configuration.getMencoderCustomOptions());
-		mencoder_custom_options.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		mencoder_custom_options.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setMencoderCustomOptions(mencoder_custom_options.getText());
@@ -453,15 +437,7 @@ public class MEncoderVideo extends Player {
 
 		builder.addLabel(Messages.getString("MEncoderVideo.7"), FormLayoutUtil.flip(cc.xy(1, 19), colSpec, orientation));
 		langs = new JTextField(configuration.getMencoderAudioLanguages());
-		langs.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		langs.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setMencoderAudioLanguages(langs.getText());
@@ -473,15 +449,7 @@ public class MEncoderVideo extends Player {
 		builder.addLabel(Messages.getString("MEncoderVideo.28") + " (%)", FormLayoutUtil.flip(cc.xy(1, 21, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 
 		ocw = new JTextField(configuration.getMencoderOverscanCompensationWidth());
-		ocw.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		ocw.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setMencoderOverscanCompensationWidth(ocw.getText());
@@ -491,15 +459,7 @@ public class MEncoderVideo extends Player {
 
 		builder.addLabel(Messages.getString("MEncoderVideo.30") + " (%)", FormLayoutUtil.flip(cc.xy(5, 21), colSpec, orientation));
 		och = new JTextField(configuration.getMencoderOverscanCompensationHeight());
-		och.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		och.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setMencoderOverscanCompensationHeight(och.getText());
@@ -513,15 +473,7 @@ public class MEncoderVideo extends Player {
 
 		builder.addLabel(Messages.getString("MEncoderVideo.9"), FormLayoutUtil.flip(cc.xy(1, 25), colSpec, orientation));
 		defaultsubs = new JTextField(configuration.getMencoderSubLanguages());
-		defaultsubs.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		defaultsubs.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setMencoderSubLanguages(defaultsubs.getText());
@@ -531,15 +483,7 @@ public class MEncoderVideo extends Player {
 
 		builder.addLabel(Messages.getString("MEncoderVideo.94"), FormLayoutUtil.flip(cc.xyw(8, 25, 2, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 		forcedsub = new JTextField(configuration.getMencoderForcedSubLanguage());
-		forcedsub.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		forcedsub.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setMencoderForcedSubLanguage(forcedsub.getText());
@@ -549,15 +493,7 @@ public class MEncoderVideo extends Player {
 
 		builder.addLabel(Messages.getString("MEncoderVideo.95") + " ", FormLayoutUtil.flip(cc.xyw(12, 25, 2, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 		forcedtags = new JTextField(configuration.getMencoderForcedSubTags());
-		forcedtags.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		forcedtags.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setMencoderForcedSubTags(forcedtags.getText());
@@ -567,15 +503,7 @@ public class MEncoderVideo extends Player {
 
 		builder.addLabel(Messages.getString("MEncoderVideo.10"), FormLayoutUtil.flip(cc.xy(1, 27), colSpec, orientation));
 		defaultaudiosubs = new JTextField(configuration.getMencoderAudioSubLanguages());
-		defaultaudiosubs.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		defaultaudiosubs.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setMencoderAudioSubLanguages(defaultaudiosubs.getText());
@@ -635,15 +563,7 @@ public class MEncoderVideo extends Player {
 			}
 		});
 
-		subtitleCodePage.getEditor().getEditorComponent().addKeyListener(new KeyListener() {
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
+		subtitleCodePage.getEditor().getEditorComponent().addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				subtitleCodePage.getItemListeners()[0].itemStateChanged(new ItemEvent(subtitleCodePage, 0, subtitleCodePage.getEditor().getItem(), ItemEvent.SELECTED));
@@ -671,15 +591,7 @@ public class MEncoderVideo extends Player {
 
 		builder.addLabel(Messages.getString("MEncoderVideo.24"), FormLayoutUtil.flip(cc.xy(1, 31), colSpec, orientation));
 		defaultfont = new JTextField(configuration.getMencoderFont());
-		defaultfont.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		defaultfont.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setMencoderFont(defaultfont.getText());
@@ -704,15 +616,7 @@ public class MEncoderVideo extends Player {
 
 		builder.addLabel(Messages.getString("MEncoderVideo.37"), FormLayoutUtil.flip(cc.xyw(1, 33, 2), colSpec, orientation));
 		alternateSubFolder = new JTextField(configuration.getAlternateSubsFolder());
-		alternateSubFolder.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		alternateSubFolder.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setAlternateSubsFolder(alternateSubFolder.getText());
@@ -743,15 +647,7 @@ public class MEncoderVideo extends Player {
 		builder.addLabel(Messages.getString("MEncoderVideo.12"), FormLayoutUtil.flip(cc.xy(1, 37), colSpec, orientation));
 		builder.addLabel(Messages.getString("MEncoderVideo.133"), FormLayoutUtil.flip(cc.xy(1, 37, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 		mencoder_ass_scale = new JTextField(configuration.getMencoderAssScale());
-		mencoder_ass_scale.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		mencoder_ass_scale.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setMencoderAssScale(mencoder_ass_scale.getText());
@@ -760,15 +656,7 @@ public class MEncoderVideo extends Player {
 
 		builder.addLabel(Messages.getString("MEncoderVideo.13"), FormLayoutUtil.flip(cc.xy(5, 37), colSpec, orientation));
 		mencoder_ass_outline = new JTextField(configuration.getMencoderAssOutline());
-		mencoder_ass_outline.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		mencoder_ass_outline.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setMencoderAssOutline(mencoder_ass_outline.getText());
@@ -777,15 +665,7 @@ public class MEncoderVideo extends Player {
 
 		builder.addLabel(Messages.getString("MEncoderVideo.14"), FormLayoutUtil.flip(cc.xy(9, 37), colSpec, orientation));
 		mencoder_ass_shadow = new JTextField(configuration.getMencoderAssShadow());
-		mencoder_ass_shadow.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		mencoder_ass_shadow.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setMencoderAssShadow(mencoder_ass_shadow.getText());
@@ -794,15 +674,7 @@ public class MEncoderVideo extends Player {
 
 		builder.addLabel(Messages.getString("MEncoderVideo.15"), FormLayoutUtil.flip(cc.xy(13, 37), colSpec, orientation));
 		mencoder_ass_margin = new JTextField(configuration.getMencoderAssMargin());
-		mencoder_ass_margin.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		mencoder_ass_margin.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setMencoderAssMargin(mencoder_ass_margin.getText());
@@ -817,15 +689,7 @@ public class MEncoderVideo extends Player {
 		builder.addLabel(Messages.getString("MEncoderVideo.133"), FormLayoutUtil.flip(cc.xy(1, 39, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 
 		mencoder_noass_scale = new JTextField(configuration.getMencoderNoAssScale());
-		mencoder_noass_scale.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		mencoder_noass_scale.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setMencoderNoAssScale(mencoder_noass_scale.getText());
@@ -835,15 +699,7 @@ public class MEncoderVideo extends Player {
 		builder.addLabel(Messages.getString("MEncoderVideo.17"), FormLayoutUtil.flip(cc.xy(5, 39), colSpec, orientation));
 
 		mencoder_noass_outline = new JTextField(configuration.getMencoderNoAssOutline());
-		mencoder_noass_outline.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		mencoder_noass_outline.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setMencoderNoAssOutline(mencoder_noass_outline.getText());
@@ -853,15 +709,7 @@ public class MEncoderVideo extends Player {
 		builder.addLabel(Messages.getString("MEncoderVideo.18"), FormLayoutUtil.flip(cc.xy(9, 39), colSpec, orientation));
 
 		mencoder_noass_blur = new JTextField(configuration.getMencoderNoAssBlur());
-		mencoder_noass_blur.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		mencoder_noass_blur.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setMencoderNoAssBlur(mencoder_noass_blur.getText());
@@ -871,15 +719,7 @@ public class MEncoderVideo extends Player {
 		builder.addLabel(Messages.getString("MEncoderVideo.19"), FormLayoutUtil.flip(cc.xy(13, 39), colSpec, orientation));
 
 		mencoder_noass_subpos = new JTextField(configuration.getMencoderNoAssSubPos());
-		mencoder_noass_subpos.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		mencoder_noass_subpos.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setMencoderNoAssSubPos(mencoder_noass_subpos.getText());
@@ -965,15 +805,7 @@ public class MEncoderVideo extends Player {
 
 		builder.addLabel(Messages.getString("MEncoderVideo.92"), FormLayoutUtil.flip(cc.xy(1, 43), colSpec, orientation));
 		subq = new JTextField(configuration.getMencoderVobsubSubtitleQuality());
-		subq.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		subq.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setMencoderVobsubSubtitleQuality(subq.getText());

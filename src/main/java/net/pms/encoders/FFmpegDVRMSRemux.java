@@ -23,8 +23,8 @@ import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Font;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -193,15 +193,7 @@ public class FFmpegDVRMSRemux extends Player {
 
 		builder.addLabel(Messages.getString("FFmpegDVRMSRemux.0"), cc.xy(1, 3));
 		altffpath = new JTextField(configuration.getFfmpegAlternativePath());
-		altffpath.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		altffpath.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setFfmpegAlternativePath(altffpath.getText());

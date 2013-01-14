@@ -192,15 +192,7 @@ public class NavigationShareTab {
 	private void initSimpleComponents(CellConstraints cc) {
 		// Thumbnail seeking position
 		seekpos = new JTextField("" + configuration.getThumbnailSeekPos());
-		seekpos.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		seekpos.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				try {
@@ -295,15 +287,7 @@ public class NavigationShareTab {
 
 		// Alternate video cover art folder
 		defaultThumbFolder = new JTextField(configuration.getAlternateThumbFolder());
-		defaultThumbFolder.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		defaultThumbFolder.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setAlternateThumbFolder(defaultThumbFolder.getText());
@@ -539,15 +523,7 @@ public class NavigationShareTab {
 		});
 
 		atzLimit = new JTextField("" + configuration.getATZLimit());
-		atzLimit.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		atzLimit.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				try {

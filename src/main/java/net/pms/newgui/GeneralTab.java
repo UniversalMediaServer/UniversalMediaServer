@@ -267,15 +267,7 @@ public class GeneralTab {
 		builder.add(confEdit, FormLayoutUtil.flip(cc.xy(1, 15), colSpec, orientation));
 
 		host = new JTextField(configuration.getServerHostname());
-		host.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		host.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setHostname(host.getText());
@@ -283,15 +275,7 @@ public class GeneralTab {
 		});
 
 		port = new JTextField(configuration.getServerPort() != 5001 ? "" + configuration.getServerPort() : "");
-		port.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		port.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				try {
@@ -325,15 +309,7 @@ public class GeneralTab {
 		});
 
 		ip_filter = new JTextField(configuration.getIpFilter());
-		ip_filter.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		ip_filter.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setIpFilter(ip_filter.getText());
@@ -341,15 +317,7 @@ public class GeneralTab {
 		});
 
 		maxbitrate = new JTextField(configuration.getMaximumBitrate());
-		maxbitrate.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		maxbitrate.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setMaximumBitrate(maxbitrate.getText());
