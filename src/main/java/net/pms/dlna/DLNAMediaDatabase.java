@@ -29,6 +29,7 @@ import javax.swing.SwingUtilities;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.formats.v2.SubtitleType;
 import static org.apache.commons.lang.StringUtils.*;
 import org.h2.engine.Constants;
@@ -50,6 +51,8 @@ import org.slf4j.LoggerFactory;
  */
 public class DLNAMediaDatabase implements Runnable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAMediaDatabase.class);
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
+
 	private String url;
 	private String dbDir;
 	private String dbName;
@@ -94,7 +97,7 @@ public class DLNAMediaDatabase implements Runnable {
 			}
 		}
 		if (Platform.isWindows() && !defaultLocation) {
-			String profileDir = PMS.getConfiguration().getProfileDirectory();
+			String profileDir = configuration.getProfileDirectory();
 			url = String.format("jdbc:h2:%s\\%s/%s", profileDir, dir, dbName);
 			fileDir = new File(profileDir, dir);
 		} else {
@@ -144,12 +147,12 @@ public class DLNAMediaDatabase implements Runnable {
 							JOptionPane.ERROR_MESSAGE);
 					}
 					LOGGER.debug("Damaged cache can't be deleted. Stop the program and delete the folder \"" + dbDir + "\" manually");
-					PMS.getConfiguration().setUseCache(false);
+					configuration.setUseCache(false);
 					return;
 				}
 			} else {
 				LOGGER.debug("Cache connection error: " + se.getMessage());
-				PMS.getConfiguration().setUseCache(false);
+				configuration.setUseCache(false);
 				return;
 			}
 		}
