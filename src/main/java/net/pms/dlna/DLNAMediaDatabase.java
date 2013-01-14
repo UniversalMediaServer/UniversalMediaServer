@@ -30,6 +30,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import static org.apache.commons.lang.StringUtils.*;
 import org.h2.engine.Constants;
@@ -429,11 +430,13 @@ public class DLNAMediaDatabase implements Runnable {
 					ps.setNull(4, Types.DOUBLE);
 				}
 
-				// TODO: Stop trying to parse the bitrate of images
-				int databaseBitrate = media.getBitrate();
-				if (databaseBitrate == 0) {
-					LOGGER.debug("Could not parse the bitrate from: " + name);
-				}
+				int databaseBitrate = 0;
+				if (type != Format.IMAGE){
+					databaseBitrate = media.getBitrate();
+					if (databaseBitrate == 0) {
+						LOGGER.debug("Could not parse the bitrate from: " + name);
+					}
+				}	
 				ps.setInt(5, databaseBitrate);
 
 				ps.setInt(6, media.getWidth());
