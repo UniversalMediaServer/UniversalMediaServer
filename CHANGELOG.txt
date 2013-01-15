@@ -1,7 +1,8 @@
-2.2.5 - 2013-01-??
+2.2.5 - 2013-01-16
 
 	General:
-		Fixed transcoding support on some renderers
+		Fixed transcoding support on some renderers (thanks for testing, Raker13!)
+		Merged the Video Settings folder into the Server Settings folder
 		Fixed a bug with the cache (thanks, valib!)
 		Several code optimizations (thanks, valib!)
 	External Components:
