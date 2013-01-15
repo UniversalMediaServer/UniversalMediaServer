@@ -369,7 +369,7 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	private ProcessWrapperImpl getFFMpegThumbnail(InputFile media) {
-		String args[] = new String[16];
+		String args[] = new String[14];
 		args[0] = getFfmpegPath();
 		boolean dvrms = media.getFile() != null && media.getFile().getAbsolutePath().toLowerCase().endsWith("dvr-ms");
 
@@ -395,9 +395,7 @@ public class DLNAMediaInfo implements Cloneable {
 		args[10] = "1";
 		args[11] = "-f";
 		args[12] = "image2";
-		args[13] = "-loglevel";
-		args[14] = "warning";
-		args[15] = "pipe:";
+		args[13] = "pipe:";
 
 		// FIXME MPlayer should not be used if thumbnail generation is disabled (and it should be disabled in the GUI)
 		if (!configuration.isThumbnailGenerationEnabled() || (configuration.isUseMplayerForVideoThumbs() && !dvrms)) {
