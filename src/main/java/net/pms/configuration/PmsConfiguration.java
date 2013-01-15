@@ -68,6 +68,7 @@ public class PmsConfiguration {
 	private static final String KEY_ATZ_LIMIT = "atz_limit";
 	private static final String KEY_AUDIO_BITRATE = "audiobitrate";
 	private static final String KEY_AUDIO_CHANNEL_COUNT = "audiochannels";
+	private static final String KEY_AUDIO_LANGUAGES = "mencoder_audiolangs"; // TODO (breaking change): should be renamed to e.g. audio_languages
 	private static final String KEY_AUDIO_RESAMPLE = "audio_resample";
 	private static final String KEY_AUDIO_THUMBNAILS_METHOD = "audio_thumbnails_method";
 	private static final String KEY_AUTO_UPDATE = "auto_update";
@@ -85,6 +86,7 @@ public class PmsConfiguration {
 	private static final String KEY_CHARSET_ENCODING = "charsetencoding";
 	private static final String KEY_CODEC_SPEC_SCRIPT = "codec_spec_script";
 	private static final String KEY_DISABLE_FAKESIZE = "disable_fakesize";
+	public static final String KEY_DISABLE_SUBTITLES = "mencoder_disablesubs"; // TODO (breaking change): should be renamed to e.g. disable_subtitles
 	private static final String KEY_DVDISO_THUMBNAILS = "dvd_isos_thumbnails";
 	private static final String KEY_EMBED_DTS_IN_PCM = "embed_dts_in_pcm";
 	private static final String KEY_ENGINES = "engines";
@@ -95,6 +97,8 @@ public class PmsConfiguration {
 	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME = "ffmpeg_avisynth_interframe";
 	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
 	private static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
+	private static final String KEY_FORCED_SUBTITLE_LANGUAGE = "forced_sub_lang";
+	private static final String KEY_FORCED_SUBTITLE_TAGS = "forced_sub_tags";
 	private static final String KEY_FORCETRANSCODE = "forcetranscode";
 	private static final String KEY_FOLDER_LIMIT = "folder_limit";
 	private static final String KEY_HIDE_EMPTY_FOLDERS = "hide_empty_folders";
@@ -119,14 +123,10 @@ public class PmsConfiguration {
 	private static final String KEY_MENCODER_ASS_OUTLINE = "mencoder_ass_outline";
 	private static final String KEY_MENCODER_ASS_SCALE = "mencoder_ass_scale";
 	private static final String KEY_MENCODER_ASS_SHADOW = "mencoder_ass_shadow";
-	private static final String KEY_MENCODER_AUDIO_LANGS = "mencoder_audiolangs";
 	private static final String KEY_MENCODER_AUDIO_SUB_LANGS = "mencoder_audiosublangs";
-	private static final String KEY_MENCODER_CUSTOM_OPTIONS = "mencoder_decode"; // TODO (breaking change): should be renamed to mencoder_video_custom_options
-	private static final String KEY_MENCODER_DISABLE_SUBS = "mencoder_disablesubs";
+	private static final String KEY_MENCODER_CUSTOM_OPTIONS = "mencoder_decode"; // TODO (breaking change): should be renamed to e.g. mencoder_custom_options
 	private static final String KEY_MENCODER_FONT = "mencoder_font";
 	private static final String KEY_MENCODER_FONT_CONFIG = "mencoder_fontconfig";
-	private static final String KEY_MENCODER_FORCED_SUB_LANG = "forced_sub_lang";
-	private static final String KEY_MENCODER_FORCED_SUB_TAGS = "forced_sub_tags";
 	private static final String KEY_MENCODER_FORCE_FPS = "mencoder_forcefps";
 	private static final String KEY_MENCODER_INTELLIGENT_SYNC = "mencoder_intelligent_sync";
 	private static final String KEY_MENCODER_MAIN_SETTINGS = "mencoder_encode";
@@ -147,7 +147,6 @@ public class PmsConfiguration {
 	private static final String KEY_MENCODER_SCALEY = "mencoder_scaley";
 	private static final String KEY_MENCODER_SUB_CP = "mencoder_subcp";
 	private static final String KEY_MENCODER_SUB_FRIBIDI = "mencoder_subfribidi";
-	private static final String KEY_MENCODER_SUB_LANGS = "mencoder_sublangs";
 	private static final String KEY_MENCODER_USE_PCM = "mencoder_usepcm";
 	private static final String KEY_MENCODER_USE_PCM_FOR_HQ_AUDIO_ONLY = "mencoder_usepcm_for_hq_audio_only";
 	private static final String KEY_MENCODER_VOBSUB_SUBTITLE_QUALITY = "mencoder_vobsub_subtitle_quality";
@@ -177,6 +176,7 @@ public class PmsConfiguration {
 	private static final String KEY_SKIP_NETWORK_INTERFACES = "skip_network_interfaces";
 	private static final String KEY_SORT_METHOD = "key_sort_method"; // TODO (breaking change): should be renamed to e.g. sort_method
 	private static final String KEY_SUBS_COLOR = "subs_color";
+	private static final String KEY_SUBTITLES_LANGUAGES = "mencoder_sublangs"; // TODO (breaking change): should be renamed to e.g. subtitles_languages
 	private static final String KEY_TEMP_FOLDER_PATH = "temp";
 	private static final String KEY_THUMBNAIL_GENERATION_ENABLED = "thumbnails"; // TODO (breaking change): should be renamed to e.g. generate_thumbnails
 	private static final String KEY_THUMBNAIL_SEEK_POS = "thumbnail_seek_pos";
@@ -192,7 +192,7 @@ public class PmsConfiguration {
 	private static final String KEY_UUID = "uuid";
 	private static final String KEY_VIDEOTRANSCODE_START_DELAY = "key_videotranscode_start_delay"; // TODO (breaking change): should be renamed to e.g. videotranscode_start_delay
 	private static final String KEY_VIRTUAL_FOLDERS = "vfolders";
-
+	private static final String KEY_VIDEO_HW_ACCELERATION = "video_hardware_acceleration";
 	// the name of the subdirectory under which PMS config files are stored for this build (default: PMS).
 	// see Build for more details
 	private static final String PROFILE_DIRECTORY_NAME = Build.getProfileDirectoryName();
@@ -915,16 +915,40 @@ public class PmsConfiguration {
 	public boolean isMencoderAss() {
 		return getBoolean(KEY_MENCODER_ASS, Platform.isWindows() || Platform.isMac());
 	}
-
+	
 	/**
-	 * Returns whether or not subtitles should be disabled when using MEncoder
-	 * as transcoding engine. Default is false, meaning subtitles should not
-	 * be disabled.
-	 * @return True if subtitles should be disabled, false otherwise.
+	 * @deprecated Use {@link #isDisableSubtitles()} instead.
 	 */
-	public boolean isMencoderDisableSubs() {
-		return getBoolean(KEY_MENCODER_DISABLE_SUBS, false);
-	}
+	 public boolean isMencoderDisableSubs() {
+		 return isDisableSubtitles();
+	 }
+	 
+		
+	 /**
+	  * Returns whether or not subtitles should be disabled for all
+	  * transcoding engines. Default is false, meaning subtitles should not
+	  * be disabled.
+	  * @return True if subtitles should be disabled, false otherwise.
+	  */
+	 public boolean isDisableSubtitles() {
+		 return getBoolean(KEY_DISABLE_SUBTITLES, false);
+	 }
+	 
+	 /**
+	  * @deprecated Use {@link #setDisableSubtitles()} instead.
+	  */
+	 public void setMencoderDisableSubs(boolean value) {
+		 setDisableSubtitles(value);
+	 }
+
+	 /**
+	  * Set whether or not subtitles should be disabled for
+	  * all transcoding engines.
+	  * @param value Set to true if subtitles should be disabled.
+	  */
+	 public void setDisableSubtitles(boolean value) {
+		 configuration.setProperty(KEY_DISABLE_SUBTITLES, value);
+	 }
 
 	/**
 	 * Returns whether or not the Pulse Code Modulation audio format should be
@@ -954,21 +978,25 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Returns the audio language priority for MEncoder as a comma-separated
+	 * @deprecated Use {@link #getAudioLanguages()} instead.
+	 */
+	public String getMencoderAudioLanguages() {
+		return getAudioLanguages();
+	}
+
+	/**
+	 * Returns the audio language priority as a comma separated
 	 * string. For example: <code>"eng,fre,jpn,ger,und"</code>, where "und"
 	 * stands for "undefined".
-	 * Default value is a localized list (e.g. "eng,fre,jpn,ger,und").
+	 * Can be a blank string.
+	 * Default value is "loc,eng,fre,jpn,ger,und".
 	 *
 	 * @return The audio language priority string.
 	 */
-	public String getMencoderAudioLanguages() {
-		return ConfigurationUtil.getPossiblyBlankConfigurationString(
-			configuration,
-			KEY_MENCODER_AUDIO_LANGS,
-			Messages.getString("MEncoderVideo.126")
-		);
+	public String getAudioLanguages() {
+		return ConfigurationUtil.getPossiblyBlankConfigurationString(configuration, KEY_AUDIO_LANGUAGES, Messages.getString("MEncoderVideo.126"));
 	}
-
+	
 	/**
 	 * Returns a string of comma separated audio or subtitle languages,
 	 * ordered by priority.
@@ -983,42 +1011,56 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Returns the subtitle language priority for MEncoder as a comma-separated
-	 * string. For example: <code>"eng,fre,jpn,ger,und"</code>, where "und"
-	 * stands for "undefined".
+	 * @deprecated Use {@link #getSubtitlesLanguages()} instead.
+	 */
+	public String getMencoderSubLanguages() {
+		return getSubtitlesLanguages();
+	}
+
+	/**
+	 * Returns the subtitle language priority as a comma separated
+	 * string. For example: <code>"loc,eng,fre,jpn,ger,und"</code>, where "loc"
+	 * stands for the preferred local language and "und" stands for "undefined".
 	 * Can be a blank string.
-	 * Default value is a localized list (e.g. "eng,fre,jpn,ger,und").
+	 * Default value is "loc,eng,fre,jpn,ger,und".
 	 *
 	 * @return The subtitle language priority string.
 	 */
-	public String getMencoderSubLanguages() {
-		return ConfigurationUtil.getPossiblyBlankConfigurationString(
-			configuration,
-			KEY_MENCODER_SUB_LANGS,
-			Messages.getString("MEncoderVideo.127")
-		);
+	public String getSubtitlesLanguages() {
+		return ConfigurationUtil.getPossiblyBlankConfigurationString(configuration, KEY_SUBTITLES_LANGUAGES, Messages.getString("MEncoderVideo.127"));
+	}
+	
+	/**
+	 * @deprecated Use {@link #getForcedSubtitleLanguage()} instead.
+	 */
+	public String getMencoderForcedSubLanguage() {
+		return getForcedSubtitleLanguage();
 	}
 
 	/**
 	 * Returns the ISO 639 language code for the subtitle language that should
-	 * be forced upon MEncoder.
+	 * be forced.
+	 * Can be a blank string.
 	 * @return The subtitle language code.
 	 */
-	public String getMencoderForcedSubLanguage() {
-		return ConfigurationUtil.getPossiblyBlankConfigurationString(
-			configuration,
-			KEY_MENCODER_FORCED_SUB_LANG,
-			getLanguage()
-		);
+	public String getForcedSubtitleLanguage() {
+		return ConfigurationUtil.getPossiblyBlankConfigurationString(configuration, KEY_FORCED_SUBTITLE_LANGUAGE, getLanguage());
 	}
+	
+	/**
+	 * @deprecated Use {@link #getForcedSubtitleTags()} instead.
+	 */
+	public String getMencoderForcedSubTags() {
+  		return getForcedSubtitleTags();
+  	}
 
 	/**
 	 * Returns the tag string that identifies the subtitle language that
-	 * should be forced upon MEncoder.
+	 * should be forced.
 	 * @return The tag string.
 	 */
-	public String getMencoderForcedSubTags() {
-  		return getString(KEY_MENCODER_FORCED_SUB_TAGS, "forced");
+	public String getForcedSubtitleTags() {
+  		return getString(KEY_FORCED_SUBTITLE_TAGS, "forced");
   	}
 
 	/**
@@ -1088,41 +1130,69 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Sets the audio language priority for MEncoder as a comma-separated
+	 * @deprecated Use {@link #setAudioLanguages()} instead.
+	 */
+	public void setMencoderAudioLanguages(String value) {
+		setAudioLanguages(value);
+	}
+
+	/**
+	 * Sets the audio language priority for MEncoder as a comma separated
 	 * string. For example: <code>"eng,fre,jpn,ger,und"</code>, where "und"
 	 * stands for "undefined".
 	 * @param value The audio language priority string.
 	 */
-	public void setMencoderAudioLanguages(String value) {
-		configuration.setProperty(KEY_MENCODER_AUDIO_LANGS, value);
+	public void setAudioLanguages(String value) {
+		configuration.setProperty(KEY_AUDIO_LANGUAGES, value);
+	}
+	
+	/**
+	 * @deprecated Use {@link #setSubtitlesLanguages()} instead.
+	 */
+	public void setMencoderSubLanguages(String value) {
+		setSubtitlesLanguages(value);
 	}
 
 	/**
-	 * Sets the subtitle language priority for MEncoder as a comma
+	 * Sets the subtitle language priority as a comma
 	 * separated string. For example: <code>"eng,fre,jpn,ger,und"</code>,
 	 * where "und" stands for "undefined".
 	 * @param value The subtitle language priority string.
 	 */
-	public void setMencoderSubLanguages(String value) {
-		configuration.setProperty(KEY_MENCODER_SUB_LANGS, value);
+	public void setSubtitlesLanguages(String value) {
+		configuration.setProperty(KEY_SUBTITLES_LANGUAGES, value);
+	}
+	
+	/**
+	 * @deprecated Use {@link #setForcedSubtitleLanguage()} instead.
+	 */
+	public void setMencoderForcedSubLanguage(String value) {
+		setForcedSubtitleLanguage(value);
 	}
 
 	/**
 	 * Sets the ISO 639 language code for the subtitle language that should
-	 * be forced upon MEncoder.
+	 * be forced.
 	 * @param value The subtitle language code.
 	 */
-	public void setMencoderForcedSubLanguage(String value) {
-		configuration.setProperty(KEY_MENCODER_FORCED_SUB_LANG, value);
+	public void setForcedSubtitleLanguage(String value) {
+		configuration.setProperty(KEY_FORCED_SUBTITLE_LANGUAGE, value);
+	}
+	
+	/**
+	 * @deprecated Use {@link #setForcedSubtitleTags()} instead.
+	 */
+	public void setMencoderForcedSubTags(String value) {
+		setForcedSubtitleTags(value);
 	}
 
 	/**
 	 * Sets the tag string that identifies the subtitle language that
-	 * should be forced upon MEncoder.
+	 * should be forced.
 	 * @param value The tag string.
 	 */
-	public void setMencoderForcedSubTags(String value) {
-		configuration.setProperty(KEY_MENCODER_FORCED_SUB_TAGS, value);
+	public void setForcedSubtitleTags(String value) {
+		configuration.setProperty(KEY_FORCED_SUBTITLE_TAGS, value);
 	}
 
 	/**
@@ -1221,15 +1291,6 @@ public class PmsConfiguration {
 	 */
 	public void setMencoderFontConfig(boolean value) {
 		configuration.setProperty(KEY_MENCODER_FONT_CONFIG, value);
-	}
-
-	/**
-	 * Set whether or not subtitles should be disabled when using MEncoder
-	 * as transcoding engine.
-	 * @param value Set to true if subtitles should be disabled.
-	 */
-	public void setMencoderDisableSubs(boolean value) {
-		configuration.setProperty(KEY_MENCODER_DISABLE_SUBS, value);
 	}
 
 	/**
@@ -2558,5 +2619,21 @@ public class PmsConfiguration {
 		} catch (Exception e) {
 			setATZLimit(0);
 		}
+	}
+	
+	/**
+	 * State if the video hardware acceleration is allowed
+	 * @return true if hardware acceleration is allowed, false otherwise
+	 */
+	public boolean isVideoHardwareAcceleration() {
+		return getBoolean(KEY_VIDEO_HW_ACCELERATION, false);
+	}
+
+	/**
+	 * Set the video hardware acceleration enable/disable
+	 * @param value true if hardware acceleration is allowed, false otherwise
+	 */
+	public void setVideoHardwareAcceleration(boolean value) {
+		configuration.setProperty(KEY_VIDEO_HW_ACCELERATION, value);
 	}
 }

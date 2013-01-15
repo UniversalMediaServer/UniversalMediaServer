@@ -56,6 +56,9 @@ import net.pms.util.FormLayoutUtil;
 import net.pms.util.ProcessUtil;
 import static org.apache.commons.lang.BooleanUtils.isTrue;
 import static org.apache.commons.lang.StringUtils.*;
+
+import org.apache.commons.configuration.event.ConfigurationEvent;
+import org.apache.commons.configuration.event.ConfigurationListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -436,11 +439,11 @@ public class MEncoderVideo extends Player {
 		builder.add(mencoder_custom_options, FormLayoutUtil.flip(cc.xyw(3, 17, 13), colSpec, orientation));
 
 		builder.addLabel(Messages.getString("MEncoderVideo.7"), FormLayoutUtil.flip(cc.xy(1, 19), colSpec, orientation));
-		langs = new JTextField(configuration.getMencoderAudioLanguages());
+		langs = new JTextField(configuration.getAudioLanguages());
 		langs.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				configuration.setMencoderAudioLanguages(langs.getText());
+				configuration.setAudioLanguages(langs.getText());
 			}
 		});
 		builder.add(langs, FormLayoutUtil.flip(cc.xyw(3, 19, 13), colSpec, orientation));
@@ -472,31 +475,31 @@ public class MEncoderVideo extends Player {
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
 		builder.addLabel(Messages.getString("MEncoderVideo.9"), FormLayoutUtil.flip(cc.xy(1, 25), colSpec, orientation));
-		defaultsubs = new JTextField(configuration.getMencoderSubLanguages());
+		defaultsubs = new JTextField(configuration.getSubtitlesLanguages());
 		defaultsubs.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				configuration.setMencoderSubLanguages(defaultsubs.getText());
+				configuration.setSubtitlesLanguages(defaultsubs.getText());
 			}
 		});
 		builder.add(defaultsubs, FormLayoutUtil.flip(cc.xyw(3, 25, 5), colSpec, orientation));
 
 		builder.addLabel(Messages.getString("MEncoderVideo.94"), FormLayoutUtil.flip(cc.xyw(8, 25, 2, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
-		forcedsub = new JTextField(configuration.getMencoderForcedSubLanguage());
+		forcedsub = new JTextField(configuration.getForcedSubtitleLanguage());
 		forcedsub.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				configuration.setMencoderForcedSubLanguage(forcedsub.getText());
+				configuration.setForcedSubtitleLanguage(forcedsub.getText());
 			}
 		});
 		builder.add(forcedsub, FormLayoutUtil.flip(cc.xyw(11, 25, 2), colSpec, orientation));
 
 		builder.addLabel(Messages.getString("MEncoderVideo.95") + " ", FormLayoutUtil.flip(cc.xyw(12, 25, 2, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
-		forcedtags = new JTextField(configuration.getMencoderForcedSubTags());
+		forcedtags = new JTextField(configuration.getForcedSubtitleTags());
 		forcedtags.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				configuration.setMencoderForcedSubTags(forcedtags.getText());
+				configuration.setForcedSubtitleTags(forcedtags.getText());
 			}
 		});
 		builder.add(forcedtags, FormLayoutUtil.flip(cc.xyw(14, 25, 2), colSpec, orientation));
@@ -813,43 +816,33 @@ public class MEncoderVideo extends Player {
 		});
 		builder.add(subq, FormLayoutUtil.flip(cc.xyw(3, 43, 1), colSpec, orientation));
 
-		JCheckBox disableSubs = ((LooksFrame) PMS.get().getFrame()).getTr().getDisableSubs();
-		disableSubs.addItemListener(new ItemListener() {
+		configuration.addConfigurationListener(new ConfigurationListener() {
 			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setMencoderDisableSubs(e.getStateChange() == ItemEvent.SELECTED);
+			public void configurationChanged(ConfigurationEvent event) {
+				if ((!event.isBeforeUpdate()) && event.getPropertyName().equals(PmsConfiguration.KEY_DISABLE_SUBTITLES)) {
+					
+					boolean enabled = !configuration.isDisableSubtitles();
+					subq.setEnabled(enabled);
+//					subcp.setEnabled(enabled);
+					ass.setEnabled(enabled);
+					assdefaultstyle.setEnabled(enabled);
+					fribidi.setEnabled(enabled);
+					fc.setEnabled(enabled);
+					mencoder_ass_scale.setEnabled(enabled);
+					mencoder_ass_outline.setEnabled(enabled);
+					mencoder_ass_shadow.setEnabled(enabled);
+					mencoder_ass_margin.setEnabled(enabled);
+					mencoder_noass_scale.setEnabled(enabled);
+					mencoder_noass_outline.setEnabled(enabled);
+					mencoder_noass_blur.setEnabled(enabled);
+					mencoder_noass_subpos.setEnabled(enabled);
 
-				subs.setEnabled(!configuration.isMencoderDisableSubs());
-				subq.setEnabled(!configuration.isMencoderDisableSubs());
-				defaultsubs.setEnabled(!configuration.isMencoderDisableSubs());
-				subtitleCodePage.setEnabled(!configuration.isMencoderDisableSubs());
-				ass.setEnabled(!configuration.isMencoderDisableSubs());
-				assdefaultstyle.setEnabled(!configuration.isMencoderDisableSubs());
-				fribidi.setEnabled(!configuration.isMencoderDisableSubs());
-				fc.setEnabled(!configuration.isMencoderDisableSubs());
-				mencoder_ass_scale.setEnabled(!configuration.isMencoderDisableSubs());
-				mencoder_ass_outline.setEnabled(!configuration.isMencoderDisableSubs());
-				mencoder_ass_shadow.setEnabled(!configuration.isMencoderDisableSubs());
-				mencoder_ass_margin.setEnabled(!configuration.isMencoderDisableSubs());
-				mencoder_noass_scale.setEnabled(!configuration.isMencoderDisableSubs());
-				mencoder_noass_outline.setEnabled(!configuration.isMencoderDisableSubs());
-				mencoder_noass_blur.setEnabled(!configuration.isMencoderDisableSubs());
-				mencoder_noass_subpos.setEnabled(!configuration.isMencoderDisableSubs());
-				forcedsub.setEnabled(!configuration.isMencoderDisableSubs());
-				forcedtags.setEnabled(!configuration.isMencoderDisableSubs());
-				defaultaudiosubs.setEnabled(!configuration.isMencoderDisableSubs());
-				defaultfont.setEnabled(!configuration.isMencoderDisableSubs());
-				alternateSubFolder.setEnabled(!configuration.isMencoderDisableSubs());
-
-				if (!configuration.isMencoderDisableSubs()) {
-					ass.getItemListeners()[0].itemStateChanged(null);
+					if (enabled) {
+						ass.getItemListeners()[0].itemStateChanged(null);
+					}
 				}
 			}
 		});
-
-		if (configuration.isMencoderDisableSubs()) {
-			disableSubs.setSelected(true);
-		}
 
 		JPanel panel = builder.getPanel();
 

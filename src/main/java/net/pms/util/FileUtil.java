@@ -97,15 +97,25 @@ public class FileUtil {
 		return null;
 	}
 
-	// FIXME rename e.g. isSubtitleExists, isSubtitlesExist...
-	@Deprecated
+	/**
+	 * @deprecated Use {@link #isSubtitlesExists(File file, DLNAMediaInfo media)} instead.
+	 */
 	public static boolean doesSubtitlesExists(File file, DLNAMediaInfo media) {
-		return doesSubtitlesExists(file, media, true);
+		return isSubtitlesExists(file, media);
 	}
-
-	// FIXME rename e.g. isSubtitleExists...
-	@Deprecated
+	
+	public static boolean isSubtitlesExists(File file, DLNAMediaInfo media) {
+		return isSubtitlesExists(file, media, true);
+	}
+	
+	/**
+	 * @deprecated Use {@link #isSubtitlesExists(File file, DLNAMediaInfo media, boolean usecache)} instead.
+	 */
 	public static boolean doesSubtitlesExists(File file, DLNAMediaInfo media, boolean usecache) {
+		return isSubtitlesExists(file, media, usecache);
+	}
+	
+	public static boolean isSubtitlesExists(File file, DLNAMediaInfo media, boolean usecache) {
 		boolean found = browseFolderForSubtitles(file.getParentFile(), file, media, usecache);
 		String alternate = PMS.getConfiguration().getAlternateSubsFolder();
 
