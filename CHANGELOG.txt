@@ -1,7 +1,12 @@
 2.2.5 - 2013-01-??
 
 	General:
-		
+		Fixed transcoding support on some renderers
+		Fixed a bug with the cache (thanks, valib!)
+		Several code optimizations (thanks, valib!)
+	External Components:
+		Updated Java Runtime Environment automatic downloader for Windows to 7u11, which:
+			Fixes serious security holes
 
 2.2.4 - 2013-01-09
 
