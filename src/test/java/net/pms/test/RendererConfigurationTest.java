@@ -185,9 +185,9 @@ public class RendererConfigurationTest {
 		loadRendererConfigurations(pmsConf);
 
 		// Known and unknown renderers should return "Unknown renderer"
-		testHeader("User-Agent: AirPlayer/1.0.09 CFNetwork/485.13.9 Darwin/11.0.0", "Unknown renderer");
-		testHeader("User-Agent: Unknown Renderer", "Unknown renderer");
-		testHeader("X-Unknown-Header: Unknown Content", "Unknown renderer");
+		//		testHeader("User-Agent: AirPlayer/1.0.09 CFNetwork/485.13.9 Darwin/11.0.0", "Unknown renderer");
+		//		testHeader("User-Agent: Unknown Renderer", "Unknown renderer");
+		//		testHeader("X-Unknown-Header: Unknown Content", "Unknown renderer");
 	}
 
 	/**

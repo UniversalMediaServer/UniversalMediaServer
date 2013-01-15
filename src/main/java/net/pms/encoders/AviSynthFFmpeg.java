@@ -86,6 +86,11 @@ public class AviSynthFFmpeg extends FFmpegVideo {
 	public JComponent config() {
 		return config("NetworkTab.5");
 	}
+	
+	@Override
+	public boolean isGPUAccelerationReady() {
+		return true;
+	}
 
 	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack) throws IOException {
 		return getAVSScript(fileName, subTrack, -1, -1, null, null);

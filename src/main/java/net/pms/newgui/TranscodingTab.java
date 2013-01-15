@@ -298,7 +298,7 @@ public class TranscodingTab {
 			for (Player p : PlayerFactory.getAllPlayers()) {
 				if (p.id().equals(id)) {
 					ordPlayers.add(p);
-					if (p.isVideoHardwareAccelerationReady()) {
+					if (p.isGPUAccelerationReady()) {
 						videoHWacceleration.setEnabled(true);
 						videoHWacceleration.setSelected(configuration.isVideoHardwareAcceleration());
 					}

@@ -108,7 +108,7 @@ public abstract class Player {
 	 * <code>return true</code>.
 	 * @return false
 	 */
-	public boolean isVideoHardwareAccelerationReady() {
+	public boolean isGPUAccelerationReady() {
 		return false;
 	}
 
