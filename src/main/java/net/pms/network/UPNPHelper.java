@@ -276,6 +276,10 @@ public class UPNPHelper {
 										sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:device:MediaServer:1");
 									}
 
+									if (StringUtils.indexOf(s, "ssdp:all") > 0) {
+										sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:device:MediaServer:1");
+									}
+
 									if (StringUtils.indexOf(s, PMS.get().usn()) > 0) {
 										sendDiscover(remoteAddr, remotePort, PMS.get().usn());
 									}
