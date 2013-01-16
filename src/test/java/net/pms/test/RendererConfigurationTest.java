@@ -21,8 +21,8 @@ package net.pms.test;
 
 import ch.qos.logback.classic.LoggerContext;
 import java.io.IOException;
-import java.util.Map.Entry;
 import java.util.*;
+import java.util.Map.Entry;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import static net.pms.configuration.RendererConfiguration.*;
@@ -59,6 +59,9 @@ public class RendererConfigurationTest {
 
 		// BraviaEX:
 		testCases.put("X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA KDL-32CX520\"; mv=\"1.7\";", "Sony Bravia EX");
+
+		// BraviaHX:
+		testCases.put("X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA KDL-55HX750\"; mv=\"1.7\";", "Sony Bravia HX");
 
 		// DLinkDSM510:
 		testCases.put("User-Agent: DLNADOC/1.50 INTEL_NMPR/2.1", "D-Link DSM-510");
