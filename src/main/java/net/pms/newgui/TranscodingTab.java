@@ -550,16 +550,16 @@ public class TranscodingTab {
 	
 	private JComponent buildAudioSetupPanel() {
 		String colSpec = FormLayoutUtil.getColSpec("left:pref, 2dlu, pref:grow", orientation);
-		FormLayout layout = new FormLayout(colSpec, "$lgap, pref, 9dlu, 4*(pref, 2dlu), pref, 12dlu, 3*(pref, 2dlu), pref:grow");
+		FormLayout layout = new FormLayout(colSpec, "$lgap, pref, 2dlu, 4*(pref, 2dlu), pref, 12dlu, 3*(pref, 2dlu), pref:grow");
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.setBorder(Borders.DLU4_BORDER);
 		CellConstraints cc = new CellConstraints();
 	
-		JComponent cmp = builder.addSeparator(Messages.getString("TrTab2.3"), FormLayoutUtil.flip(cc.xyw(1, 2, 3), colSpec, orientation));
-		cmp = (JComponent) cmp.getComponent(0);
-		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
+		//		JComponent cmp = builder.addSeparator(Messages.getString("TrTab2.3"), FormLayoutUtil.flip(cc.xyw(1, 2, 3), colSpec, orientation));
+		//		cmp = (JComponent) cmp.getComponent(0);
+		//		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 		
-		builder.addLabel(Messages.getString("TrTab2.50"), FormLayoutUtil.flip(cc.xy(1, 4), colSpec, orientation));
+		builder.addLabel(Messages.getString("TrTab2.50"), FormLayoutUtil.flip(cc.xy(1, 2), colSpec, orientation));
 
 		channels = new JComboBox<Object>(new Object[]{Messages.getString("TrTab2.55"),  Messages.getString("TrTab2.56") /*, "8 channels 7.1" */}); // 7.1 not supported by Mplayer :\
 		channels.setEditable(false);
@@ -574,7 +574,7 @@ public class TranscodingTab {
 				configuration.setAudioChannelCount(Integer.parseInt(e.getItem().toString().substring(0, 1)));
 			}
 		});
-		builder.add(channels, FormLayoutUtil.flip(cc.xy(3, 4), colSpec, orientation));
+		builder.add(channels, FormLayoutUtil.flip(cc.xy(3, 2), colSpec, orientation));
 
 		forcePCM = new JCheckBox(Messages.getString("TrTab2.27"), configuration.isMencoderUsePcm());
 		forcePCM.setContentAreaFilled(false);
@@ -584,7 +584,7 @@ public class TranscodingTab {
 				configuration.setMencoderUsePcm(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(forcePCM, FormLayoutUtil.flip(cc.xy(1, 6), colSpec, orientation));
+		builder.add(forcePCM, FormLayoutUtil.flip(cc.xy(1, 4), colSpec, orientation));
 
 		ac3remux = new JCheckBox(Messages.getString("MEncoderVideo.32") + (Platform.isWindows() 
 								? Messages.getString("TrTab2.21") : ""), configuration.isRemuxAC3());
@@ -595,7 +595,7 @@ public class TranscodingTab {
 				configuration.setRemuxAC3((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
-		builder.add(ac3remux, FormLayoutUtil.flip(cc.xyw(1, 8, 3), colSpec, orientation));
+		builder.add(ac3remux, FormLayoutUtil.flip(cc.xyw(1, 6, 3), colSpec, orientation));
 
 		forceDTSinPCM = new JCheckBox(Messages.getString("TrTab2.28") + (Platform.isWindows() 
 									? Messages.getString("TrTab2.21") : ""), configuration.isDTSEmbedInPCM());
@@ -613,9 +613,9 @@ public class TranscodingTab {
 				}
 			}
 		});
-		builder.add(forceDTSinPCM, FormLayoutUtil.flip(cc.xyw(1, 10, 3), colSpec, orientation));
+		builder.add(forceDTSinPCM, FormLayoutUtil.flip(cc.xyw(1, 8, 3), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("TrTab2.29"), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
+		builder.addLabel(Messages.getString("TrTab2.29"), FormLayoutUtil.flip(cc.xy(1, 10), colSpec, orientation));
 		abitrate = new JTextField("" + configuration.getAudioBitrate());
 		abitrate.addKeyListener(new KeyAdapter() {
 			@Override
@@ -628,9 +628,9 @@ public class TranscodingTab {
 				}
 			}
 		});
-		builder.add(abitrate, FormLayoutUtil.flip(cc.xy(3, 12), colSpec, orientation));
+		builder.add(abitrate, FormLayoutUtil.flip(cc.xy(3, 10), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.7"), FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.7"), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
 		langs = new JTextField(configuration.getAudioLanguages());
 		langs.addKeyListener(new KeyAdapter() {
 			@Override
@@ -638,7 +638,7 @@ public class TranscodingTab {
 				configuration.setAudioLanguages(langs.getText());
 			}
 		});
-		builder.add(langs, FormLayoutUtil.flip(cc.xy(3, 14), colSpec, orientation));
+		builder.add(langs, FormLayoutUtil.flip(cc.xy(3, 12), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 		panel.applyComponentOrientation(orientation);
