@@ -17,14 +17,12 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-package net.pms.test;
+package net.pms.configuration;
 
 import ch.qos.logback.classic.LoggerContext;
 import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
-import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
 import static net.pms.configuration.RendererConfiguration.*;
 import org.apache.commons.configuration.ConfigurationException;
 import static org.junit.Assert.assertEquals;
