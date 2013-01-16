@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
 
 public class TranscodingTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TranscodingTab.class);
-	private static final String COMMON_COL_SPEC = "$lcgap, left:pref, 2dlu, pref:grow, $lcgap";
+	private static final String COMMON_COL_SPEC = "left:pref, 2dlu, pref:grow";
 	private static final String COMMON_ROW_SPEC = "5*(pref, 2dlu), pref, 18dlu, pref, 9dlu:grow, 2*(pref, 2dlu), default, 5*(pref, 2dlu), pref, 9dlu, 2*(pref, 2dlu), pref, 9dlu, 3*(pref, 2dlu), pref, $lgap, default";
 	private static final String EMPTY_COL_SPEC = "left:pref, 2dlu, pref:grow";
 	private static final String EMPTY_ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p , 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 20dlu, p, 3dlu, p, 3dlu, p";
@@ -68,7 +68,7 @@ public class TranscodingTab {
 	private JTextField forcetranscode;
 	private JTextField notranscode;
 	private JTextField maxbuffer;
-	private JComboBox nbcores;
+	private JComboBox<Object> nbcores;
 	private DefaultMutableTreeNode parent[];
 	private JPanel tabbedPanel;
 	private CardLayout cl;
@@ -76,8 +76,8 @@ public class TranscodingTab {
 	private JTree tree;
 	private JCheckBox forcePCM;
 	private JCheckBox forceDTSinPCM;
-	private JComboBox channels;
-	private JComboBox vq;
+	private JComboBox<Object> channels;
+	private JComboBox<Object> vq;
 	private JCheckBox ac3remux;
 	private JCheckBox mpeg2remux;
 	private JCheckBox chapter_support;
@@ -300,7 +300,7 @@ public class TranscodingTab {
 					ordPlayers.add(p);
 					if (p.isGPUAccelerationReady()) {
 						videoHWacceleration.setEnabled(true);
-						videoHWacceleration.setSelected(configuration.isVideoHardwareAcceleration());
+						videoHWacceleration.setSelected(configuration.isGPUAcceleration());
 					}
 					//matched = true;
 				}
@@ -369,11 +369,11 @@ public class TranscodingTab {
 
 		CellConstraints cc = new CellConstraints();
 
-		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), FormLayoutUtil.flip(cc.xyw(2, 1, 3), colSpec, orientation));
+		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), FormLayoutUtil.flip(cc.xyw(1, 1, 3), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 		
-		builder.addLabel(Messages.getString("TrTab2.23").replaceAll("MAX_BUFFER_SIZE", configuration.getMaxMemoryBufferSizeStr()), FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
+		builder.addLabel(Messages.getString("TrTab2.23").replaceAll("MAX_BUFFER_SIZE", configuration.getMaxMemoryBufferSizeStr()), FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 		maxbuffer = new JTextField("" + configuration.getMaxMemoryBufferSize());
 		maxbuffer.addKeyListener(new KeyAdapter() {
 			@Override
@@ -386,15 +386,16 @@ public class TranscodingTab {
 				}
 			}
 		});
-		builder.add(maxbuffer, FormLayoutUtil.flip(cc.xy(4, 3), colSpec, orientation));
+		builder.add(maxbuffer, FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
 		
-		builder.addLabel(Messages.getString("TrTab2.24") + Runtime.getRuntime().availableProcessors() + ")", FormLayoutUtil.flip(cc.xy(2, 5), colSpec, orientation));
+		String nCpusLabel = String.format(Messages.getString("TrTab2.24"), Runtime.getRuntime().availableProcessors());
+		builder.addLabel(nCpusLabel, FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
 
 		String[] guiCores = new String[MAX_CORES];
 		for (int i = 0; i < MAX_CORES; i++) {
 			guiCores[i] = Integer.toString(i + 1);
 		}
-		nbcores = new JComboBox(guiCores);
+		nbcores = new JComboBox<Object>(guiCores);
 		nbcores.setEditable(false);
 		int nbConfCores = configuration.getNumberOfCpuCores();
 		if (nbConfCores > 0 && nbConfCores <= MAX_CORES) {
@@ -409,7 +410,7 @@ public class TranscodingTab {
 			        configuration.setNumberOfCpuCores(Integer.parseInt(e.getItem().toString()));
 			}
 		});
-		builder.add(nbcores, FormLayoutUtil.flip(cc.xy(4, 5), colSpec, orientation));
+		builder.add(nbcores, FormLayoutUtil.flip(cc.xy(3, 5), colSpec, orientation));
 
 		chapter_support = new JCheckBox(Messages.getString("TrTab2.52"), configuration.isChapterSupport());
 		chapter_support.setContentAreaFilled(false);
@@ -419,7 +420,7 @@ public class TranscodingTab {
 				chapter_interval.setEnabled(configuration.isChapterSupport());
 			}
 		});
-		builder.add(chapter_support, FormLayoutUtil.flip(cc.xy(2, 7), colSpec, orientation));
+		builder.add(chapter_support, FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
 		
 		chapter_interval = new JTextField("" + configuration.getChapterInterval());
 		chapter_interval.setEnabled(configuration.isChapterSupport());
@@ -434,7 +435,7 @@ public class TranscodingTab {
 				}
 			}
 		});
-		builder.add(chapter_interval, FormLayoutUtil.flip(cc.xy(4, 7), colSpec, orientation));
+		builder.add(chapter_interval, FormLayoutUtil.flip(cc.xy(3, 7), colSpec, orientation));
 
 		disableSubs = new JCheckBox(Messages.getString("TrTab2.51"),configuration.isDisableSubtitles());
 		disableSubs.setContentAreaFilled(false);
@@ -443,14 +444,14 @@ public class TranscodingTab {
 				configuration.setDisableSubtitles((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
-		builder.add(disableSubs, FormLayoutUtil.flip(cc.xy(2, 11), colSpec, orientation));
+		builder.add(disableSubs, FormLayoutUtil.flip(cc.xy(1, 11), colSpec, orientation));
 
 		JTabbedPane setupTabbedPanel = new JTabbedPane();
 		setupTabbedPanel.addTab(Messages.getString("TrTab2.67"), buildVideoSetupPanel());
 		setupTabbedPanel.addTab(Messages.getString("TrTab2.68"), buildAudioSetupPanel());
 		setupTabbedPanel.addTab(Messages.getString("MEncoderVideo.8"), buildSubtitlesSetupPanel());
 		
-		builder.add(setupTabbedPanel, FormLayoutUtil.flip(cc.xywh(1, 14, 5, 31), colSpec, orientation));
+		builder.add(setupTabbedPanel, FormLayoutUtil.flip(cc.xywh(1, 14, 3, 31), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 		panel.applyComponentOrientation(orientation);
@@ -465,10 +466,10 @@ public class TranscodingTab {
 		builder.setBorder(Borders.DLU4_BORDER);
 		CellConstraints cc = new CellConstraints();
 
-		videoHWacceleration = new JCheckBox(Messages.getString("TrTab2.70"), configuration.isVideoHardwareAcceleration());
+		videoHWacceleration = new JCheckBox(Messages.getString("TrTab2.70"), configuration.isGPUAcceleration());
 		videoHWacceleration.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
-				configuration.setVideoHardwareAcceleration((e.getStateChange() == ItemEvent.SELECTED));
+				configuration.setGPUAcceleration((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
 		builder.add(videoHWacceleration, FormLayoutUtil.flip(cc.xy(1, 2), colSpec, orientation));
@@ -500,7 +501,7 @@ public class TranscodingTab {
 		};
 
 		MyComboBoxModel cbm = new MyComboBoxModel(data);
-		vq = new JComboBox(cbm);
+		vq = new JComboBox<Object>(cbm);
 		vq.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
@@ -560,7 +561,7 @@ public class TranscodingTab {
 		
 		builder.addLabel(Messages.getString("TrTab2.50"), FormLayoutUtil.flip(cc.xy(1, 4), colSpec, orientation));
 
-		channels = new JComboBox(new Object[]{Messages.getString("TrTab2.55"),  Messages.getString("TrTab2.56") /*, "8 channels 7.1" */}); // 7.1 not supported by Mplayer :\
+		channels = new JComboBox<Object>(new Object[]{Messages.getString("TrTab2.55"),  Messages.getString("TrTab2.56") /*, "8 channels 7.1" */}); // 7.1 not supported by Mplayer :\
 		channels.setEditable(false);
 		if (configuration.getAudioChannelCount() == 2) {
 			channels.setSelectedIndex(0);

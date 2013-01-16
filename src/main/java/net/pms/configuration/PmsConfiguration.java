@@ -2625,7 +2625,7 @@ public class PmsConfiguration {
 	 * State if the video hardware acceleration is allowed
 	 * @return true if hardware acceleration is allowed, false otherwise
 	 */
-	public boolean isVideoHardwareAcceleration() {
+	public boolean isGPUAcceleration() {
 		return getBoolean(KEY_VIDEO_HW_ACCELERATION, false);
 	}
 
@@ -2633,7 +2633,7 @@ public class PmsConfiguration {
 	 * Set the video hardware acceleration enable/disable
 	 * @param value true if hardware acceleration is allowed, false otherwise
 	 */
-	public void setVideoHardwareAcceleration(boolean value) {
+	public void setGPUAcceleration(boolean value) {
 		configuration.setProperty(KEY_VIDEO_HW_ACCELERATION, value);
 	}
 }
