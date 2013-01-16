@@ -1875,7 +1875,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	/**
 	 * Returns the input stream for this resource's generic thumbnail,
-	 * i.e. first of:
+	 * which is the first of:
 	 *          - its Format icon, if any
 	 *          - the fallback image, if any
 	 *          - the default video icon
@@ -1887,28 +1887,31 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @throws IOException
 	 */
 	public InputStream getGenericThumbnailInputStream(String fallback) throws IOException {
+		String thumb = fallback;
+		if (getFormat() != null && getFormat().getIcon() != null) {
+			thumb = getFormat().getIcon();
+		}
 
-		String thumb = (getFormat() != null && getFormat().getIcon() != null) ?
-			getFormat().getIcon() : fallback;
-
-		// thumb could be
+		// Thumb could be:
 		if (thumb != null) {
-			// a local file
+			// A local file
 			if (new File(thumb).exists()) {
 				return new FileInputStream(thumb);
 			}
-			// a jar resource
+
+			// A jar resource
 			InputStream is;
 			if ((is = getResourceInputStream(thumb)) != null) {
 				return is;
 			}
-			// a url
+
+			// A URL
 			try {
 				return downloadAndSend(thumb, true);
 			} catch (Exception e) {}
 		}
 
-		// or none of the above
+		// Or none of the above
 		return getResourceInputStream("images/thumbnail-video-256.png");
 	}
 
