@@ -68,7 +68,7 @@ public class TranscodingTab {
 	private JTextField forcetranscode;
 	private JTextField notranscode;
 	private JTextField maxbuffer;
-	private JComboBox<Object> nbcores;
+	private JComboBox nbcores;
 	private DefaultMutableTreeNode parent[];
 	private JPanel tabbedPanel;
 	private CardLayout cl;
@@ -76,8 +76,8 @@ public class TranscodingTab {
 	private JTree tree;
 	private JCheckBox forcePCM;
 	private JCheckBox forceDTSinPCM;
-	private JComboBox<Object> channels;
-	private JComboBox<Object> vq;
+	private JComboBox channels;
+	private JComboBox vq;
 	private JCheckBox ac3remux;
 	private JCheckBox mpeg2remux;
 	private JCheckBox chapter_support;
@@ -395,7 +395,7 @@ public class TranscodingTab {
 		for (int i = 0; i < MAX_CORES; i++) {
 			guiCores[i] = Integer.toString(i + 1);
 		}
-		nbcores = new JComboBox<Object>(guiCores);
+		nbcores = new JComboBox(guiCores);
 		nbcores.setEditable(false);
 		int nbConfCores = configuration.getNumberOfCpuCores();
 		if (nbConfCores > 0 && nbConfCores <= MAX_CORES) {
@@ -501,7 +501,7 @@ public class TranscodingTab {
 		};
 
 		MyComboBoxModel cbm = new MyComboBoxModel(data);
-		vq = new JComboBox<Object>(cbm);
+		vq = new JComboBox(cbm);
 		vq.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
@@ -561,7 +561,7 @@ public class TranscodingTab {
 		
 		builder.addLabel(Messages.getString("TrTab2.50"), FormLayoutUtil.flip(cc.xy(1, 2), colSpec, orientation));
 
-		channels = new JComboBox<Object>(new Object[]{Messages.getString("TrTab2.55"),  Messages.getString("TrTab2.56") /*, "8 channels 7.1" */}); // 7.1 not supported by Mplayer :\
+		channels = new JComboBox(new Object[]{Messages.getString("TrTab2.55"),  Messages.getString("TrTab2.56") /*, "8 channels 7.1" */}); // 7.1 not supported by Mplayer :\
 		channels.setEditable(false);
 		if (configuration.getAudioChannelCount() == 2) {
 			channels.setSelectedIndex(0);
