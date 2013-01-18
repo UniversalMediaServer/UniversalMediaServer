@@ -292,7 +292,7 @@ public class TsMuxeRVideo extends Player {
 					ac3Remux = (params.aid.isAC3() && configuration.isRemuxAC3());
 					dtsRemux = configuration.isDTSEmbedInPCM() && params.aid.isDTS() && params.mediaRenderer.isDTSPlayable();
 
-					pcm = configuration.isMencoderUsePcm() &&
+					pcm = configuration.isUsePCM() &&
 						!mp4_with_non_h264 &&
 						(
 							params.aid.isLossless() ||
@@ -409,7 +409,7 @@ public class TsMuxeRVideo extends Player {
 						ac3Remux = audio.isAC3() && configuration.isRemuxAC3();
 						dtsRemux = configuration.isDTSEmbedInPCM() && audio.isDTS() && params.mediaRenderer.isDTSPlayable();
 
-						pcm = configuration.isMencoderUsePcm() &&
+						pcm = configuration.isUsePCM() &&
 							!mp4_with_non_h264 &&
 							(
 								audio.isLossless() ||
@@ -550,7 +550,7 @@ public class TsMuxeRVideo extends Player {
 			ac3Remux = params.aid.isAC3() && configuration.isRemuxAC3();
 			dtsRemux = configuration.isDTSEmbedInPCM() && params.aid.isDTS() && params.mediaRenderer.isDTSPlayable();
 
-			pcm = configuration.isMencoderUsePcm() &&
+			pcm = configuration.isUsePCM() &&
 				!mp4_with_non_h264 &&
 				(
 					params.aid.isLossless() ||
@@ -608,7 +608,7 @@ public class TsMuxeRVideo extends Player {
 				ac3Remux = lang.isAC3() && configuration.isRemuxAC3();
 				dtsRemux = configuration.isDTSEmbedInPCM() && lang.isDTS() && params.mediaRenderer.isDTSPlayable();
 
-				pcm = configuration.isMencoderUsePcm() &&
+				pcm = configuration.isUsePCM() &&
 					!mp4_with_non_h264 &&
 					(
 						lang.isLossless() ||

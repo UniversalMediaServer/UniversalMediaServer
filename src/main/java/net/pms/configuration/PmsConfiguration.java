@@ -69,7 +69,7 @@ public class PmsConfiguration {
 	private static final String KEY_AUDIO_BITRATE = "audiobitrate";
 	private static final String KEY_AUDIO_CHANNEL_COUNT = "audiochannels";
 	private static final String KEY_AUDIO_LANGUAGES = "mencoder_audiolangs"; // TODO (breaking change): should be renamed to e.g. audio_languages
-	private static final String KEY_AUDIO_RESAMPLE = "audio_resample";
+	private static final String KEY_AUDIO_RESAMPLE = "audio_resample";private static final String KEY_AUDIO_SUB_LANGS = "mencoder_audiosublangs"; // TODO (breaking change): should be renamed to e.g. audiosublangsprivate static final String KEY_AUDIO_RESAMPLE = "audio_resample";
 	private static final String KEY_AUDIO_THUMBNAILS_METHOD = "audio_thumbnails_method";
 	private static final String KEY_AUTO_UPDATE = "auto_update";
 	private static final String KEY_AUTOLOAD_SUBTITLES = "autoloadsrt"; // TODO (breaking change): rename to e.g. autoload_subtitles or autoload_external_subtitles
@@ -123,13 +123,11 @@ public class PmsConfiguration {
 	private static final String KEY_MENCODER_ASS_OUTLINE = "mencoder_ass_outline";
 	private static final String KEY_MENCODER_ASS_SCALE = "mencoder_ass_scale";
 	private static final String KEY_MENCODER_ASS_SHADOW = "mencoder_ass_shadow";
-	private static final String KEY_MENCODER_AUDIO_SUB_LANGS = "mencoder_audiosublangs";
 	private static final String KEY_MENCODER_CUSTOM_OPTIONS = "mencoder_decode"; // TODO (breaking change): should be renamed to e.g. mencoder_custom_options
 	private static final String KEY_MENCODER_FONT = "mencoder_font";
 	private static final String KEY_MENCODER_FONT_CONFIG = "mencoder_fontconfig";
 	private static final String KEY_MENCODER_FORCE_FPS = "mencoder_forcefps";
 	private static final String KEY_MENCODER_INTELLIGENT_SYNC = "mencoder_intelligent_sync";
-	private static final String KEY_MENCODER_MAIN_SETTINGS = "mencoder_encode";
 	private static final String KEY_MENCODER_MAX_THREADS = "mencoder_max_threads";
 	private static final String KEY_MENCODER_MT = "mencoder_mt";
 	private static final String KEY_MENCODER_MUX_COMPATIBLE = "mencoder_mux_compatible";
@@ -147,13 +145,13 @@ public class PmsConfiguration {
 	private static final String KEY_MENCODER_SCALEY = "mencoder_scaley";
 	private static final String KEY_MENCODER_SUB_CP = "mencoder_subcp";
 	private static final String KEY_MENCODER_SUB_FRIBIDI = "mencoder_subfribidi";
-	private static final String KEY_MENCODER_USE_PCM = "mencoder_usepcm";
 	private static final String KEY_MENCODER_USE_PCM_FOR_HQ_AUDIO_ONLY = "mencoder_usepcm_for_hq_audio_only";
 	private static final String KEY_MENCODER_VOBSUB_SUBTITLE_QUALITY = "mencoder_vobsub_subtitle_quality";
 	private static final String KEY_MENCODER_YADIF = "mencoder_yadif";
 	private static final String KEY_MINIMIZED = "minimized";
 	private static final String KEY_MIN_MEMORY_BUFFER_SIZE = "minvideobuffer";
 	private static final String KEY_MIN_STREAM_BUFFER = "minwebbuffer";
+	private static final String KEY_MPEG2_MAIN_SETTINGS = "mencoder_encode"; // TODO (breaking change): should be renamed to e.g. mpeg2_main_settings
 	private static final String KEY_MUX_ALLAUDIOTRACKS = "tsmuxer_mux_all_audiotracks";
 	private static final String KEY_NETWORK_INTERFACE = "network_interface";
 	private static final String KEY_NOTRANSCODE = "notranscode";
@@ -189,10 +187,11 @@ public class PmsConfiguration {
 	private static final String KEY_UPNP_PORT = "upnp_port";
 	private static final String KEY_USE_CACHE = "usecache";
 	private static final String KEY_USE_MPLAYER_FOR_THUMBS = "use_mplayer_for_video_thumbs";
+	private static final String KEY_USE_PCM = "mencoder_usepcm"; // TODO (breaking change): should be renamed to e.g. usepcm
 	private static final String KEY_UUID = "uuid";
 	private static final String KEY_VIDEOTRANSCODE_START_DELAY = "key_videotranscode_start_delay"; // TODO (breaking change): should be renamed to e.g. videotranscode_start_delay
 	private static final String KEY_VIRTUAL_FOLDERS = "vfolders";
-	private static final String KEY_VIDEO_HW_ACCELERATION = "video_hardware_acceleration";
+	private static final String KEY_GPU_ACCELERATION = "vGPU_acceleration";
 	// the name of the subdirectory under which PMS config files are stored for this build (default: PMS).
 	// see Build for more details
 	private static final String PROFILE_DIRECTORY_NAME = Build.getProfileDirectoryName();
@@ -950,13 +949,20 @@ public class PmsConfiguration {
 		 configuration.setProperty(KEY_DISABLE_SUBTITLES, value);
 	 }
 
+	 /**
+	  * @deprecated Use {@link #isUsePcm()} instead.
+	  */
+	public boolean isMencoderUsePcm() {
+		return isUsePCM();
+	}
+	
 	/**
 	 * Returns whether or not the Pulse Code Modulation audio format should be
-	 * forced when using MEncoder as transcoding engine. The default is false.
+	 * forced. The default is false.
 	 * @return True if PCM should be forced, false otherwise.
 	 */
-	public boolean isMencoderUsePcm() {
-		return getBoolean(KEY_MENCODER_USE_PCM, false);
+	public boolean isUsePCM() {
+		return getBoolean(KEY_USE_PCM, false);
 	}
 
 	/**
@@ -1018,11 +1024,11 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Returns the subtitle language priority as a comma separated
-	 * string. For example: <code>"loc,eng,fre,jpn,ger,und"</code>, where "loc"
-	 * stands for the preferred local language and "und" stands for "undefined".
+	 * Returns the subtitle language priority as a comma-separated
+	 * string. For example: <code>"eng,fre,jpn,ger,und"</code>, where "und"
+	 * stands for "undefined".
 	 * Can be a blank string.
-	 * Default value is "loc,eng,fre,jpn,ger,und".
+	 * Default value is a localized list (e.g. "eng,fre,jpn,ger,und").
 	 *
 	 * @return The subtitle language priority string.
 	 */
@@ -1064,8 +1070,15 @@ public class PmsConfiguration {
   	}
 
 	/**
+	 * @deprecated Use {@link #getAudioSubLanguages()} instead.
+	 */
+	public String getMencoderAudioSubLanguages() {
+		return getAudioSubLanguages();
+	}
+
+	/**
 	 * Returns a string of audio language and subtitle language pairs
-	 * ordered by priority for MEncoder to try to match. Audio language
+	 * ordered by priority to try to match. Audio language
 	 * and subtitle language should be comma separated as a pair,
 	 * individual pairs should be semicolon separated. "*" can be used to
 	 * match any language. Subtitle language can be defined as "off".
@@ -1073,10 +1086,10 @@ public class PmsConfiguration {
 	 *
 	 * @return The audio and subtitle languages priority string.
 	 */
-	public String getMencoderAudioSubLanguages() {
+	public String getAudioSubLanguages() {
 		return ConfigurationUtil.getPossiblyBlankConfigurationString(
 			configuration,
-			KEY_MENCODER_AUDIO_SUB_LANGS,
+			KEY_AUDIO_SUB_LANGS,
 			Messages.getString("MEncoderVideo.128")
 		);
 	}
@@ -1196,16 +1209,23 @@ public class PmsConfiguration {
 	}
 
 	/**
+	 * @deprecated Use {@link #setAudioSubLanguages()} instead.
+	 */
+	public void setMencoderAudioSubLanguages(String value) {
+		setAudioSubLanguages(value);
+	}
+
+	/**
 	 * Sets a string of audio language and subtitle language pairs
-	 * ordered by priority for MEncoder to try to match. Audio language
+	 * ordered by priority to try to match. Audio language
 	 * and subtitle language should be comma separated as a pair,
 	 * individual pairs should be semicolon separated. "*" can be used to
 	 * match any language. Subtitle language can be defined as "off". For
 	 * example: <code>"en,off;jpn,eng;*,eng;*;*"</code>.
 	 * @param value The audio and subtitle languages priority string.
 	 */
-	public void setMencoderAudioSubLanguages(String value) {
-		configuration.setProperty(KEY_MENCODER_AUDIO_SUB_LANGS, value);
+	public void setAudioSubLanguages(String value) {
+		configuration.setProperty(KEY_AUDIO_SUB_LANGS, value);
 	}
 
 	/**
@@ -1294,12 +1314,19 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Sets whether or not the Pulse Code Modulation audio format should be
-	 * forced when using MEncoder as transcoding engine.
-	 * @param value Set to true if PCM should be forced.
+	 * @deprecated Use {@link #setUsePcm(boolean)} instead.
 	 */
 	public void setMencoderUsePcm(boolean value) {
-		configuration.setProperty(KEY_MENCODER_USE_PCM, value);
+		setUsePCM(value);
+	}
+
+	/**
+	 * Sets whether or not the Pulse Code Modulation audio format should be
+	 * forced.
+	 * @param value Set to true if PCM should be forced.
+	 */
+	public void setUsePCM(boolean value) {
+		configuration.setProperty(KEY_USE_PCM, value);
 	}
 
 	/**
@@ -1778,15 +1805,14 @@ public class PmsConfiguration {
 		return bufferType.equals(BUFFER_TYPE_FILE);
 	}
 
-	/*
-	 * Converts the getMencoderMainSettings() result, which should
-	 * probably be renamed to something like getMPEG2MainSettings(),
+	/**
+	 * Converts the getMPEG2MainSettings()
 	 * from MEncoder's format to FFmpeg's.
 	 *
 	 * @return MPEG-2 settings formatted for FFmpeg.
 	 */
 	public String getFfmpegSettings() {
-		String mpegSettings = getMencoderMainSettings();
+		String mpegSettings = getMPEG2MainSettings();
 		mpegSettings = mpegSettings.replaceAll("[^\\d=]", "");
 		String mpegSettingsArray[] = mpegSettings.split("=");
 		return "-g " + mpegSettingsArray[1] + " -q:v " + mpegSettingsArray[2] + " -qmin " + mpegSettingsArray[3];
@@ -1915,14 +1941,28 @@ public class PmsConfiguration {
 		configuration.setProperty(KEY_SKIP_LOOP_FILTER_ENABLED, value);
 	}
 
+	/**
+	 * @deprecated Use {@link #getMPEG2MainSettings()} instead.
+	 */
 	public String getMencoderMainSettings() {
-		return getString(KEY_MENCODER_MAIN_SETTINGS, "keyint=5:vqscale=1:vqmin=2");
+		return getMPEG2MainSettings();
 	}
-
+	
+	public String getMPEG2MainSettings() {
+		return getString(KEY_MPEG2_MAIN_SETTINGS, "keyint=5:vqscale=1:vqmin=2");
+	}
+	
+	/**
+	 * @deprecated Use {@link #MPEG2MainSettings(String)} instead.
+	 */
 	public void setMencoderMainSettings(String value) {
-		configuration.setProperty(KEY_MENCODER_MAIN_SETTINGS, value);
+		setMPEG2MainSettings(value);
 	}
 
+	public void setMPEG2MainSettings(String value) {
+		configuration.setProperty(KEY_MPEG2_MAIN_SETTINGS, value);
+	}
+	
 	public String getMencoderVobsubSubtitleQuality() {
 		return getString(KEY_MENCODER_VOBSUB_SUBTITLE_QUALITY, "3");
 	}
@@ -2486,6 +2526,7 @@ public class PmsConfiguration {
 		try {
 			configuration.refresh();
 		} catch (ConfigurationException e) {
+			LOGGER.error(null, e);
 		}
 	}
 
@@ -2506,6 +2547,22 @@ public class PmsConfiguration {
 		configuration.setProperty(KEY_TRANSCODE_FOLDER_NAME, name);
 	}
 
+	/**
+	 * State if the video hardware acceleration is allowed
+	 * @return true if hardware acceleration is allowed, false otherwise
+	 */
+	public boolean isGPUAcceleration() {
+		return getBoolean(KEY_GPU_ACCELERATION, false);
+	}
+
+	/**
+	 * Set the video hardware acceleration enable/disable
+	 * @param value true if hardware acceleration is allowed, false otherwise
+	 */
+	public void setGPUAcceleration(boolean value) {
+		configuration.setProperty(KEY_GPU_ACCELERATION, value);
+	}
+	
 	/**
 	 * Finds out whether the program has admin rights.
 	 * It only checks on Windows and returns true if on a non-Windows OS.
@@ -2619,21 +2676,5 @@ public class PmsConfiguration {
 		} catch (Exception e) {
 			setATZLimit(0);
 		}
-	}
-	
-	/**
-	 * State if the video hardware acceleration is allowed
-	 * @return true if hardware acceleration is allowed, false otherwise
-	 */
-	public boolean isGPUAcceleration() {
-		return getBoolean(KEY_VIDEO_HW_ACCELERATION, false);
-	}
-
-	/**
-	 * Set the video hardware acceleration enable/disable
-	 * @param value true if hardware acceleration is allowed, false otherwise
-	 */
-	public void setGPUAcceleration(boolean value) {
-		configuration.setProperty(KEY_VIDEO_HW_ACCELERATION, value);
 	}
 }

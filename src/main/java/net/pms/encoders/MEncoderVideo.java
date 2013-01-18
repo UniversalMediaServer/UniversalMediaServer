@@ -415,11 +415,11 @@ public class MEncoderVideo extends Player {
 
 		builder.addLabel(Messages.getString("MEncoderVideo.10"), FormLayoutUtil.flip(cc.xy(1, 29), colSpec, orientation));
 
-		defaultaudiosubs = new JTextField(configuration.getMencoderAudioSubLanguages());
+		defaultaudiosubs = new JTextField(configuration.getAudioSubLanguages());
 		defaultaudiosubs.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				configuration.setMencoderAudioSubLanguages(defaultaudiosubs.getText());
+				configuration.setAudioSubLanguages(defaultaudiosubs.getText());
 			}
 		});
 
@@ -1152,7 +1152,7 @@ public class MEncoderVideo extends Player {
 				!avisynth() &&
 				params.mediaRenderer.isDTSPlayable();
 			pcm = isTsMuxeRVideoEngineEnabled &&
-				configuration.isMencoderUsePcm() &&
+				configuration.isUsePCM() &&
 				(
 					!dvd ||
 					configuration.isMencoderRemuxMPEG2()
@@ -1278,8 +1278,8 @@ public class MEncoderVideo extends Player {
 			}
 		}
 
-		if (configuration.getMencoderMainSettings() != null) {
-			String mainConfig = configuration.getMencoderMainSettings();
+		if (configuration.getMPEG2MainSettings() != null) {
+			String mainConfig = configuration.getMPEG2MainSettings();
 			String customSettings = params.mediaRenderer.getCustomMencoderQualitySettings();
 
 			// Custom settings in PMS may override the settings of the saved configuration

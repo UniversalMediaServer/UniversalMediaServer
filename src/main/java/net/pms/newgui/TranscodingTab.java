@@ -491,7 +491,7 @@ public class TranscodingTab {
 		
 		builder.add(new JLabel(Messages.getString("TrTab2.32")), FormLayoutUtil.flip(cc.xy(1, 10), colSpec, orientation));
 		Object data[] = new Object[] {
-			configuration.getMencoderMainSettings(),                                                /* default */
+			configuration.getMPEG2MainSettings(),                                                /* default */
 			String.format("keyint=5:vqscale=1:vqmin=2  /* %s */", Messages.getString("TrTab2.60")), /* great */
 			String.format("keyint=5:vqscale=1:vqmin=1  /* %s */", Messages.getString("TrTab2.61")), /* lossless */
 			String.format("keyint=5:vqscale=2:vqmin=3  /* %s */", Messages.getString("TrTab2.62")), /* good (wired) */
@@ -509,7 +509,7 @@ public class TranscodingTab {
 					if (s.indexOf("/*") > -1) {
 						s = s.substring(0, s.indexOf("/*")).trim();
 					}
-					configuration.setMencoderMainSettings(s);
+					configuration.setMPEG2MainSettings(s);
 				}
 			}
 		});
@@ -576,12 +576,12 @@ public class TranscodingTab {
 		});
 		builder.add(channels, FormLayoutUtil.flip(cc.xy(3, 2), colSpec, orientation));
 
-		forcePCM = new JCheckBox(Messages.getString("TrTab2.27"), configuration.isMencoderUsePcm());
+		forcePCM = new JCheckBox(Messages.getString("TrTab2.27"), configuration.isUsePCM());
 		forcePCM.setContentAreaFilled(false);
 		forcePCM.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				configuration.setMencoderUsePcm(e.getStateChange() == ItemEvent.SELECTED);
+				configuration.setUsePCM(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
 		builder.add(forcePCM, FormLayoutUtil.flip(cc.xy(1, 4), colSpec, orientation));
