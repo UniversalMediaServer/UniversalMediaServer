@@ -59,6 +59,7 @@
 			<directory>${project.external-resources}</directory>
 			<outputDirectory>.</outputDirectory>
 			<fileMode>0644</fileMode>
+			<directoryMode>0755</directoryMode>
 			<lineEnding>unix</lineEnding>
 			<includes>
 				<include>UMS.conf</include>
