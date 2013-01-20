@@ -70,7 +70,7 @@ public class PmsConfiguration {
 	private static final String KEY_AUDIO_CHANNEL_COUNT = "audiochannels";
 	private static final String KEY_AUDIO_LANGUAGES = "mencoder_audiolangs"; // TODO (breaking change): should be renamed to e.g. audio_languages
 	private static final String KEY_AUDIO_RESAMPLE = "audio_resample";
-	private static final String KEY_AUDIO_SUB_LANGS = "mencoder_audiosublangs"; // TODO (breaking change): should be renamed to e.g. audiosublangsprivate static final String KEY_AUDIO_RESAMPLE = "audio_resample";
+	private static final String KEY_AUDIO_SUB_LANGS = "mencoder_audiosublangs"; // TODO (breaking change): should be renamed to e.g. audiosublangs
 	private static final String KEY_AUDIO_THUMBNAILS_METHOD = "audio_thumbnails_method";
 	private static final String KEY_AUTO_UPDATE = "auto_update";
 	private static final String KEY_AUTOLOAD_SUBTITLES = "autoloadsrt"; // TODO (breaking change): rename to e.g. autoload_subtitles or autoload_external_subtitles
