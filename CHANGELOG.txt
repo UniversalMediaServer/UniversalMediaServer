@@ -1,4 +1,4 @@
-2.2.6 - 2013-01-??
+2.2.6 - 2013-01-21
 
 	General:
 		Some renderers (like Philips HTS) can connect more quickly with the server
