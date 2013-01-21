@@ -1,7 +1,14 @@
 2.2.6 - 2013-01-??
 
 	General:
-		
+		Some renderers (like Philips HTS) can connect more quickly with the server
+		Improved support for Sony Bravia HX series TVs
+		Improved design on OS X
+		Fixed FFmpeg video transcoding on Xbox
+		Fixed file permissions on Linux
+		Plugins can use custom icons for files (thanks, skeptical!)
+	Languages:
+		Updated Korean translation (thanks, sunghyuk!)
 
 2.2.5 - 2013-01-16
 
