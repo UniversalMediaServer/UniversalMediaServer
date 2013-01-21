@@ -9,6 +9,12 @@
 		Plugins can use custom icons for files (thanks, skeptical!)
 	Languages:
 		Updated Korean translation (thanks, sunghyuk!)
+	External Components:
+		Updated MPlayer/MEncoder for Windows to SB49, which:
+			Improves MP3 encoding speed
+			Improves MKV support
+			Improves threading
+			Fixes memory leaks
 
 2.2.5 - 2013-01-16
 
