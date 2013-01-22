@@ -1541,7 +1541,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						try {
 							rendererIp = InetAddress.getByName(rendererId);
 							RendererConfiguration renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(rendererIp);
-							String rendererName = renderer.getRendererName();
+							String rendererName = "unknown renderer";
+							if (renderer.getRendererName() != null) {
+								rendererName = renderer.getRendererName();
+							}
 							LOGGER.info("Started playing " + getName() + " on your " + rendererName);
 							LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
 						} catch (UnknownHostException ex) {
@@ -1603,7 +1606,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								try {
 									rendererIp = InetAddress.getByName(rendererId);
 									RendererConfiguration renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(rendererIp);
-									String rendererName = renderer.getRendererName();
+									String rendererName = "unknown renderer";
+									if (renderer.getRendererName() != null) {
+										rendererName = renderer.getRendererName();
+									}
 									LOGGER.info("Stopped playing " + getName() + " on your " + rendererName);
 									LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
 								} catch (UnknownHostException ex) {
