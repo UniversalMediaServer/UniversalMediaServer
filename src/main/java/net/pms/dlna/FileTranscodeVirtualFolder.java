@@ -131,9 +131,13 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 			}
 
 			// Only add the option if the renderer is compatible with the format
-			if (justStreamed.getFormat() != null
-					&& (justStreamed.getFormat().isCompatible(child.getMedia(),
-							renderer) || justStreamed.isSkipTranscode())) {
+			if (
+				justStreamed.getFormat() != null &&
+				(
+					justStreamed.getFormat().isCompatible(child.getMedia(),	renderer) ||
+					justStreamed.isSkipTranscode()
+				)
+			) {
 				justStreamed.setPlayer(null);
 				justStreamed.setMedia(child.getMedia());
 				justStreamed.setNoName(true);
@@ -141,9 +145,7 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 				addChapterFile(justStreamed);
 
 				if (renderer != null) {
-					LOGGER.debug("Duplicate " + child.getName()
-							+ " for direct streaming to renderer: "
-							+ renderer.getRendererName());
+					LOGGER.debug("Duplicate " + child.getName() + " for direct streaming to renderer: " + renderer.getRendererName());
 				}
 			}
 
