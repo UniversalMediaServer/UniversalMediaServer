@@ -1138,6 +1138,17 @@ public class MEncoderVideo extends Player {
 			LOGGER.error("Cannot parse configured MEncoder overscan compensation height: \"{}\"", configuration.getMencoderOverscanCompensationHeight());
 		}
 
+		/**
+		 * Do not use tsMuxeR if:
+		 * - The resource is being streamed via a MEncoder entry in the transcode folder
+		 * - There is a subtitle that matches the user preferences
+		 * - The resource is a DVD
+		 * - We are using AviSynth (TODO: do we still need this check?)
+		 * - The resource is incompatible with tsMuxeR
+		 * - The user has left the "switch to tsMuxeR" option enabled
+		 * - The user has not specified overscan correction
+		 * - The filename does not specify the resource as WEB-DL
+		 */
 		if (
 			!forceMencoder &&
 			params.sid == null &&
@@ -1154,7 +1165,8 @@ public class MEncoderVideo extends Player {
 			(
 				intOCW == 0 &&
 				intOCH == 0
-			)
+			) &&
+			!fileName.contains("WEB-DL")
 		) {
 			String expertOptions[] = getSpecificCodecOptions(
 				configuration.getCodecSpecificConfig(),
