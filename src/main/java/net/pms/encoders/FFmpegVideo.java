@@ -514,7 +514,7 @@ public class FFmpegVideo extends Player {
 			if (!renderer.isTranscodeToMPEGPSAC3() && configuration.getAudioBitrate() <= 384) {
 				cmdList.add(configuration.getAudioBitrate() + "k");
 			} else {
-				cmdList.add(384 + "k");
+				cmdList.add("384k");
 			}
 		}
 
