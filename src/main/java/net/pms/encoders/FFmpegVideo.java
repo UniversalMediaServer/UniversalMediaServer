@@ -362,7 +362,7 @@ public class FFmpegVideo extends Player {
 		cmdList.add("-y");
 
 		cmdList.add("-loglevel");
-		cmdList.add("fatal");
+		cmdList.add("warning");
 
 		if (params.timeseek > 0) {
 			cmdList.add("-ss");
@@ -510,7 +510,12 @@ public class FFmpegVideo extends Player {
 		// Audio bitrate
 		if (!(params.aid.isAC3() && !ac3Remux) && !(type() == Format.AUDIO)) {
 			cmdList.add("-ab");
-			cmdList.add(configuration.getAudioBitrate() + "k");
+			 // Check if audio bitrate meets mp2 specification
+			if (!renderer.isTranscodeToMPEGPSAC3() && configuration.getAudioBitrate() <= 384) {
+				cmdList.add(configuration.getAudioBitrate() + "k");
+			} else {
+				cmdList.add(384 + "k");
+			}
 		}
 
 		// add custom args
