@@ -421,7 +421,6 @@ public class FFmpegVideo extends Player {
 			cmdList.add("0:" + (params.aid.getId() + 1));
 		}
 		
-		
 		// encoder threads
 		cmdList.add("-threads");
 		cmdList.add("" + nThreads);
