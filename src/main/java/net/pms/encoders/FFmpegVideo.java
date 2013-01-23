@@ -349,23 +349,10 @@ public class FFmpegVideo extends Player {
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
-		return getFFMpegTranscode(fileName, dlna, media, params, null);
-	}
-
-	// XXX pointless redirection of launchTranscode
-	// TODO remove this method and move its body into launchTranscode
-	// TODO call setAudioAndSubs to populate params with audio track/subtitles metadata
-	@Deprecated
-	protected ProcessWrapperImpl getFFMpegTranscode(
-		String fileName,
-		DLNAResource dlna,
-		DLNAMediaInfo media,
-		OutputParams params,
-		String args[]
-	) throws IOException {
 		int nThreads = configuration.getNumberOfCpuCores();
 		List<String> cmdList = new ArrayList<String>();
 		RendererConfiguration renderer = params.mediaRenderer;
+		setAudioAndSubs(fileName, media, params, configuration);
 
 		boolean avisynth = avisynth();
 
@@ -375,7 +362,7 @@ public class FFmpegVideo extends Player {
 		cmdList.add("-y");
 
 		cmdList.add("-loglevel");
-		cmdList.add("warning");
+		cmdList.add("fatal");
 
 		if (params.timeseek > 0) {
 			cmdList.add("-ss");
