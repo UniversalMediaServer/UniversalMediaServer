@@ -508,7 +508,7 @@ public class FFmpegVideo extends Player {
 		LOGGER.trace("channels=" + channels);
 
 		// Audio bitrate
-		if (!(params.aid.isAC3() && !ac3Remux) && !(type() == Format.AUDIO)) {
+		if (!(params.aid != null && params.aid.isAC3() && !ac3Remux) && !(type() == Format.AUDIO)) {
 			cmdList.add("-ab");
 			cmdList.add(configuration.getAudioBitrate() + "k");
 		}
