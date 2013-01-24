@@ -349,23 +349,10 @@ public class FFmpegVideo extends Player {
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
-		return getFFMpegTranscode(fileName, dlna, media, params, null);
-	}
-
-	// XXX pointless redirection of launchTranscode
-	// TODO remove this method and move its body into launchTranscode
-	// TODO call setAudioAndSubs to populate params with audio track/subtitles metadata
-	@Deprecated
-	protected ProcessWrapperImpl getFFMpegTranscode(
-		String fileName,
-		DLNAResource dlna,
-		DLNAMediaInfo media,
-		OutputParams params,
-		String args[]
-	) throws IOException {
 		int nThreads = configuration.getNumberOfCpuCores();
 		List<String> cmdList = new ArrayList<String>();
 		RendererConfiguration renderer = params.mediaRenderer;
+		setAudioAndSubs(fileName, media, params, configuration);
 
 		boolean avisynth = avisynth();
 
@@ -420,7 +407,20 @@ public class FFmpegVideo extends Player {
 		} else {
 			cmdList.add(fileName);
 		}
-
+		
+		// Set the video stream
+		cmdList.add("-map");
+		cmdList.add("0:0");
+		
+		// Set the proper audio stream
+		if (media.getAudioTracksList().size() == 1){
+			cmdList.add("-map");
+			cmdList.add("0:1");
+		} else if (media.getAudioTracksList().size() > 1){
+			cmdList.add("-map");
+			cmdList.add("0:" + (params.aid.getId() + 1));
+		}
+		
 		// encoder threads
 		cmdList.add("-threads");
 		cmdList.add("" + nThreads);
@@ -510,7 +510,12 @@ public class FFmpegVideo extends Player {
 		// Audio bitrate
 		if (!(params.aid != null && params.aid.isAC3() && !ac3Remux) && !(type() == Format.AUDIO)) {
 			cmdList.add("-ab");
-			cmdList.add(configuration.getAudioBitrate() + "k");
+			 // Check if audio bitrate meets mp2 specification
+			if (!renderer.isTranscodeToMPEGPSAC3() && configuration.getAudioBitrate() <= 384) {
+				cmdList.add(configuration.getAudioBitrate() + "k");
+			} else {
+				cmdList.add("384k");
+			}
 		}
 
 		// add custom args
@@ -557,7 +562,6 @@ public class FFmpegVideo extends Player {
 			cmdList.toArray(cmdArrayDts);
 
 			cmdArrayDts = finalizeTranscoderArgs(
-				this,
 				fileName,
 				dlna,
 				media,
@@ -578,10 +582,10 @@ public class FFmpegVideo extends Player {
 			PipeIPCProcess ffAudioPipe = new PipeIPCProcess(System.currentTimeMillis() + "ffmpegaudio01", System.currentTimeMillis() + "audioout", false, true);
 			StreamModifier sm = new StreamModifier();
 			sm.setPcm(false);
-			sm.setDtsembed(dtsRemux);
+			sm.setDtsEmbed(dtsRemux);
 			sm.setSampleFrequency(48000);
-			sm.setBitspersample(16);
-			sm.setNbchannels(channels);
+			sm.setBitsPerSample(16);
+			sm.setNbChannels(channels);
 
 			String ffmpegLPCMextract[] = new String[]{
 				executable(),
@@ -725,20 +729,6 @@ public class FFmpegVideo extends Player {
 		if (subtitle != null && subtitle.getLang() != null) {
 			// The resource needs a subtitle, but this engine implementation does not support subtitles yet
 			return false;
-		}
-
-		try {
-			String audioTrackName = resource.getMediaAudio().toString();
-			String defaultAudioTrackName = resource.getMedia().getAudioTracksList().get(0).toString();
-
-			if (!audioTrackName.equals(defaultAudioTrackName)) {
-				// This engine implementation only supports playback of the default audio track at this time
-				return false;
-			}
-		} catch (NullPointerException e) {
-			LOGGER.trace("FFmpeg cannot determine compatibility based on audio track for " + resource.getSystemName());
-		} catch (IndexOutOfBoundsException e) {
-			LOGGER.trace("FFmpeg cannot determine compatibility based on default audio track for " + resource.getSystemName());
 		}
 
 		Format format = resource.getFormat();
