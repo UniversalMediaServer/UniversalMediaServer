@@ -1147,12 +1147,11 @@ public class DLNAMediaInfo implements Cloneable {
 
 	/*
 	 * Checks whether the video has too many reference frames per pixels for the PS3
-	 * This may be outdated and unnecessary; before 2013-01-24 it returned false for files with
-	 * 11 reference frames at 1280x720 because it needed 9 or less, but those files played
-	 * fine on PS3 via tsMuxeR. In the meantime the reference frames limit has been raised
-	 * so that 11 at 1280x720 is allowed to mux to PS3.
 	 *
-	 * TODO: Test more files to find out if this function has any use.
+	 * 2013-01-25: Confirmed maximum reference frames:
+	 *    - 4 for 1920x1080
+	 *    - 11 for 1280x720
+	 * Meaning this math is correct
 	 */
 	public boolean isVideoPS3Compatible(InputFile f) {
 		if (!h264_parsed) {
@@ -1191,7 +1190,7 @@ public class DLNAMediaInfo implements Cloneable {
 								int maxref = (int) Math.floor(10252743 / (getWidth() * getHeight()));
 								if (avcHeader.getRef_frames() > maxref) {
 									muxable = false;
-									LOGGER.debug("The file " + f.getFilename() + " is not compatible with PS3 because it can only take " + maxref + "reference frames at this resolution while this file has " + avcHeader.getRef_frames() + "reference frames");
+									LOGGER.debug("The file " + f.getFilename() + " is not compatible with PS3 because it can only take " + maxref + " reference frames at this resolution while this file has " + avcHeader.getRef_frames() + " reference frames");
 								}
 							}
 							if (!muxable) {
