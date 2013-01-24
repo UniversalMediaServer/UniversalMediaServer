@@ -7,6 +7,19 @@
 		Added initial support for Vizio Smart TVs
 		Fixed playback on unknown renderers
 		Fixed several FFmpeg-related bugs
+		Improved support for videos whose containers change aspect ratios
+	External Components:
+		Updated FFmpeg for Windows to SB5, which:
+			Improves AC-3 audio buffering
+			Fixes memory leaks
+			Fixes a bug which detected transport streams as finished when they weren't
+			Improved MPEG-PS encoding
+			Made error codes more meaningful
+			Improves Matroska (MKV) support
+			Improves threading
+			Optimized AC-3 decoding
+		Updated InterFrame to 2.4.0, which:
+			Improves scene-change detection
 
 2.2.6 - 2013-01-21
 
