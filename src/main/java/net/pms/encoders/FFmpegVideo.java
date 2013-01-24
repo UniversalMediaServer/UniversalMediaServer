@@ -28,6 +28,8 @@ import java.awt.event.ItemListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.CharacterIterator;
+import java.text.StringCharacterIterator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -41,6 +43,7 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
+import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeIPCProcess;
 import net.pms.io.PipeProcess;
@@ -48,6 +51,7 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.StreamModifier;
 import net.pms.network.HTTPResource;
+import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.lang.StringUtils;
 import static org.apache.commons.lang.StringUtils.isBlank;
@@ -87,29 +91,79 @@ public class FFmpegVideo extends Player {
 	 * @return a {@link List} of <code>String</code>s representing the rescale options for this video,
 	 * or an empty list if the video doesn't need to be resized.
 	 */
-	public List<String> getRescaleOptions(RendererConfiguration renderer, DLNAMediaInfo media) {
-		List<String> rescaleOptions = new ArrayList<String>();
+	public List<String> getVideoFilterOptions(RendererConfiguration renderer, DLNAMediaInfo media, OutputParams params) throws IOException {
+		List<String> videoFilterOptions = new ArrayList<String>();
+		String subsOption = null;
 
-		boolean isResolutionTooHighForRenderer = renderer.isVideoRescale() && // renderer defines a max width/height
-			(media != null) &&
-			(
-				(media.getWidth() > renderer.getMaxVideoWidth()) ||
-				(media.getHeight() > renderer.getMaxVideoHeight())
-			);
+		boolean isResolutionTooHighForRenderer = renderer.isVideoRescale() // renderer defines a max width/height
+			&& (media != null)
+			&& (
+					(media.getWidth() > renderer.getMaxVideoWidth())
+					||
+					(media.getHeight() > renderer.getMaxVideoHeight())
+			   );
+				
+		if (params.sid != null && !configuration.isMencoderDisableSubs() && params.sid.isExternal()) {
+			String externalSubtitlesFileName = null;
+			externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getAbsolutePath());
+			StringBuffer s = new StringBuffer(externalSubtitlesFileName.length());
+			CharacterIterator it = new StringCharacterIterator(externalSubtitlesFileName);
 
+			for (char ch = it.first(); ch != CharacterIterator.DONE; ch = it.next()) {
+				switch (ch) {
+					case ':':
+						s.append("\\\\:");
+						break;
+					case '\\':
+						s.append("/");
+						break;
+					default:
+						s.append(ch);
+						break;
+				}
+			}
+			
+			String subsFile = s.toString();
+
+			if (params.sid.getType() == SubtitleType.ASS){
+				subsOption = "ass=" + subsFile;
+			} else if (params.sid.getType() == SubtitleType.SUBRIP){
+			    subsOption = "subtitles=" + subsFile;		    
+			}
+		}
+
+		String rescaleSpec = null;
+				
 		if (isResolutionTooHighForRenderer) {
-			String rescaleSpec = String.format(
+			rescaleSpec = String.format(
 				// http://stackoverflow.com/a/8351875
 				"scale=iw*min(%1$d/iw\\,%2$d/ih):ih*min(%1$d/iw\\,%2$d/ih),pad=%1$d:%2$d:(%1$d-iw)/2:(%2$d-ih)/2",
 				renderer.getMaxVideoWidth(),
 				renderer.getMaxVideoHeight()
 			);
+		}
+		
+		if (subsOption != null || rescaleSpec != null){
+			videoFilterOptions.add("-vf");
+			StringBuilder filterParams = new StringBuilder();
+			filterParams.append("\"");
 
-			rescaleOptions.add("-vf");
-			rescaleOptions.add(rescaleSpec);
+			if (rescaleSpec != null){
+				filterParams.append(rescaleSpec);
+				if (subsOption != null){
+					filterParams.append(", ");
+				}
+			}
+			
+			if (subsOption != null){
+				filterParams.append(subsOption);
+			}
+			
+			filterParams.append("\"");
+			videoFilterOptions.add(filterParams.toString());
 		}
 
-		return rescaleOptions;
+		return videoFilterOptions;
 	}
 
 	/**
@@ -119,6 +173,7 @@ public class FFmpegVideo extends Player {
 	 *
 	 * @param renderer The {@link RendererConfiguration} instance whose <code>TranscodeVideo</code> profile is to be processed.
 	 * @param media the media metadata for the video being streamed. May contain unset/null values (e.g. for web videos).
+	 * @param params output parameters
 	 * @return a {@link List} of <code>String</code>s representing the ffmpeg output parameters for the renderer according
 	 * to its <code>TranscodeVideo</code> profile.
 	 */
@@ -232,7 +287,7 @@ public class FFmpegVideo extends Player {
 
 		return audioBitrateOptions;
 	}
-
+	
 	protected boolean dtsRemux;
 	protected boolean ac3Remux;
 
@@ -443,7 +498,9 @@ public class FFmpegVideo extends Player {
 		// cmdList.addAll(getAudioBitrateOptions(renderer, media));
 
 		// if the source is too large for the renderer, resize it
-		cmdList.addAll(getRescaleOptions(renderer, media));
+		// and/or add subtitles to video filter
+		// FFmpeg must be compiled with --enable-libass parameter
+		cmdList.addAll(getVideoFilterOptions(renderer, media, params));
 
 		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
@@ -726,8 +783,11 @@ public class FFmpegVideo extends Player {
 
 		// Check whether the subtitle actually has a language defined,
 		// uninitialized DLNAMediaSubtitle objects have a null language.
-		if (subtitle != null && subtitle.getLang() != null) {
-			// The resource needs a subtitle, but this engine implementation does not support subtitles yet
+		// For now supports only external subtitles
+		if (subtitle != null && subtitle.getLang() != null
+				&& subtitle.getType() != SubtitleType.ASS
+				&& subtitle.getType() != SubtitleType.SUBRIP
+				&& subtitle.getExternalFile() == null) {
 			return false;
 		}
 
