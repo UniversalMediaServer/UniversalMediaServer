@@ -1204,12 +1204,14 @@ public class MEncoderVideo extends Player {
 				TsMuxeRVideo tv = new TsMuxeRVideo(configuration);
 				params.forceFps = media.getValidFps(false);
 
-				if (media.getCodecV().equals("h264")) {
-					params.forceType = "V_MPEG4/ISO/AVC";
-				} else if (media.getCodecV().startsWith("mpeg2")) {
-					params.forceType = "V_MPEG-2";
-				} else if (media.getCodecV().equals("vc1")) {
-					params.forceType = "V_MS/VFW/WVC1";
+				if (media.getCodecV() != null) {
+					if (media.getCodecV().equals("h264")) {
+						params.forceType = "V_MPEG4/ISO/AVC";
+					} else if (media.getCodecV().startsWith("mpeg2")) {
+						params.forceType = "V_MPEG-2";
+					} else if (media.getCodecV().equals("vc1")) {
+						params.forceType = "V_MS/VFW/WVC1";
+					}
 				}
 
 				return tv.launchTranscode(fileName, dlna, media, params);
