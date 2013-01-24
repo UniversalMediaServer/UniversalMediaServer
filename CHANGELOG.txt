@@ -1,7 +1,12 @@
 2.3.0 - 2013-01-??
 
 	General:
-		
+		FFmpeg supports audio selection (thanks, valib!)
+		Fixed rare bug where files stop half way through
+		Support streaming mp4 to WD TV Live
+		Added initial support for Vizio Smart TVs
+		Fixed playback on unknown renderers
+		Fixed several FFmpeg-related bugs
 
 2.2.6 - 2013-01-21
 
