@@ -1011,7 +1011,7 @@ public class DLNAMediaInfo implements Cloneable {
 						}
 						is.close();
 
-						if (sz > 0 && !java.awt.GraphicsEnvironment.isHeadless()) {
+						if (sz > 0 && !net.pms.PMS.isHeadless()) {
 							BufferedImage image = ImageIO.read(new ByteArrayInputStream(getThumb()));
 							if (image != null) {
 								Graphics g = image.getGraphics();

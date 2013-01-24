@@ -142,7 +142,7 @@ public class DLNAMediaDatabase implements Runnable {
 				if (!FileUtils.exists(dbDir)) {
 					LOGGER.debug("The cache has been deleted because it was corrupt or had the wrong version");
 				} else {
-					if (!java.awt.GraphicsEnvironment.isHeadless()) {
+					if (!net.pms.PMS.isHeadless()) {
 						JOptionPane.showMessageDialog(
 							(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 							String.format(Messages.getString("DLNAMediaDatabase.5"), dbDir),

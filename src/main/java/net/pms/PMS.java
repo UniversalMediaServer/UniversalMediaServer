@@ -878,7 +878,7 @@ public class PMS {
 		try {
 			Toolkit.getDefaultToolkit();
 
-			if (GraphicsEnvironment.isHeadless()) {
+			if (isHeadless()) {
 				if (System.getProperty(NOCONSOLE) == null) {
 					System.setProperty(CONSOLE, Boolean.toString(true));
 				}
@@ -1162,5 +1162,23 @@ public class PMS {
 	@Deprecated
 	public void registerPlayer(Player player) {
 		PlayerFactory.registerPlayer(player);
+	}
+
+	/*
+	 * Check if UMS is running in headless (console) mode, since some Linux
+	 * distros seem to not use java.awt.GraphicsEnvironment.isHeadless() properly
+	 */
+	public static boolean isHeadless() {
+		try {
+			javax.swing.JDialog d = new javax.swing.JDialog();
+			d.dispose();
+			return false;
+		} catch (java.lang.NoClassDefFoundError e) {
+			return true;
+		} catch (java.awt.HeadlessException e) {
+			return true;
+		} catch (java.lang.InternalError e) {
+			return true;
+		}
 	}
 }
