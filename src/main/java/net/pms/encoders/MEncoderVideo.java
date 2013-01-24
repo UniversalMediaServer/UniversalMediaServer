@@ -1138,6 +1138,18 @@ public class MEncoderVideo extends Player {
 			LOGGER.error("Cannot parse configured MEncoder overscan compensation height: \"{}\"", configuration.getMencoderOverscanCompensationHeight());
 		}
 
+		/*
+		 * Check if the video track and the container report different aspect ratios
+		 */
+		boolean aspectRatiosMatch = true;
+		if (
+			media.getAspectRatioContainer() != null &&
+			media.getAspectRatioVideoTrack() != null &&
+			!media.getAspectRatioContainer().equals(media.getAspectRatioVideoTrack())
+		) {
+			aspectRatiosMatch = false;
+		}
+
 		/**
 		 * Do not use tsMuxeR if:
 		 * - The resource is being streamed via a MEncoder entry in the transcode folder
@@ -1166,7 +1178,8 @@ public class MEncoderVideo extends Player {
 				intOCW == 0 &&
 				intOCH == 0
 			) &&
-			!fileName.contains("WEB-DL")
+			!fileName.contains("WEB-DL") &&
+			aspectRatiosMatch
 		) {
 			String expertOptions[] = getSpecificCodecOptions(
 				configuration.getCodecSpecificConfig(),

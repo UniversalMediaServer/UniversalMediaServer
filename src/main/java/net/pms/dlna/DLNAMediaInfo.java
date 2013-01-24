@@ -39,9 +39,9 @@ import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
-import net.coobird.thumbnailator.tasks.UnsupportedFormatException;
 import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.Thumbnails.Builder;
+import net.coobird.thumbnailator.tasks.UnsupportedFormatException;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -136,6 +136,9 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	@Deprecated
 	public String aspect;
+
+	public String aspectRatioContainer;
+	public String aspectRatioVideoTrack;
 
 	/**
 	 * @deprecated Use standard getter and setter to access this variable.
@@ -1568,6 +1571,34 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public void setAspect(String aspect) {
 		this.aspect = aspect;
+	}
+
+	/**
+	 * @return the aspect ratio reported by the container
+	 */
+	public String getAspectRatioContainer() {
+		return aspectRatioContainer;
+	}
+
+	/**
+	 * @param aspect the aspect ratio to set
+	 */
+	public void setAspectRatioContainer(String aspect) {
+		this.aspectRatioContainer = aspect;
+	}
+
+	/**
+	 * @return the aspect ratio of the video track
+	 */
+	public String getAspectRatioVideoTrack() {
+		return aspectRatioVideoTrack;
+	}
+
+	/**
+	 * @param aspect the aspect ratio to set
+	 */
+	public void setAspectRatioVideoTrack(String aspect) {
+		this.aspectRatioVideoTrack = aspect;
 	}
 
 	/**
