@@ -1160,6 +1160,7 @@ public class MEncoderVideo extends Player {
 		 * - The user has left the "switch to tsMuxeR" option enabled
 		 * - The user has not specified overscan correction
 		 * - The filename does not specify the resource as WEB-DL
+		 * - The aspect ratio of the video needs to be changed
 		 */
 		if (
 			!forceMencoder &&
