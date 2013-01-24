@@ -292,7 +292,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 				"LoadPlugin(PluginPath+\"svpflow1.dll\")\n" +
 				"LoadPlugin(PluginPath+\"svpflow2.dll\")\n" +
 				"Import(PluginPath+\"InterFrame2.avsi\")\n" +
-				"InterFrame(Cores=" + Cores + GPU + ")\n";
+				"InterFrame(Cores=" + Cores + GPU + ", Preset=\"Fast\")\n";
 		}
 
 		String subLine = null;
