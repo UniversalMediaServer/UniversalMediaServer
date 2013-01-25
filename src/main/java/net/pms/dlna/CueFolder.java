@@ -168,8 +168,10 @@ public class CueFolder extends DLNAResource {
 					if (tracks.size() > 0 && addedResources.size() > 0) {
 						// last track
 						DLNAResource prec = addedResources.get(addedResources.size() - 1);
-						prec.getSplitRange().setEnd(prec.getMedia().getDurationInSeconds());
-						prec.getMedia().setDuration(prec.getSplitRange().getDuration());
+						try {
+							prec.getSplitRange().setEnd(prec.getMedia().getDurationInSeconds());
+							prec.getMedia().setDuration(prec.getSplitRange().getDuration());
+						} catch (NullPointerException e) { }
 						LOGGER.debug("Track #" + childrenNumber() + " split range: " + prec.getSplitRange().getStartOrZero() + " - " + prec.getSplitRange().getDuration());
 					}
 
