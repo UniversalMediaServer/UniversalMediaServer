@@ -1169,7 +1169,7 @@ public class DLNAMediaInfo implements Cloneable {
 				) { // containers without h264_annexB
 					byte headers[][] = getAnnexBFrameHeader(f);
 					if (ffmpeg_annexb_failure) {
-						LOGGER.info("Error parsing information from the file: " + f.getFile().getName());
+						LOGGER.info("Error parsing information from the file: " + f.getFilename());
 					}
 
 					if (headers != null) {
