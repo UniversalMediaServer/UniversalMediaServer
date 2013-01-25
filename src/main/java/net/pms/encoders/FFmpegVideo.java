@@ -780,13 +780,8 @@ public class FFmpegVideo extends Player {
 
 		// Check whether the subtitle actually has a language defined,
 		// uninitialized DLNAMediaSubtitle objects have a null language.
-		// For now supports only external subtitles
-		if (
-			subtitle != null && subtitle.getLang() != null &&
-			subtitle.getType() != SubtitleType.ASS &&
-			subtitle.getType() != SubtitleType.SUBRIP &&
-			subtitle.getExternalFile() == null
-		) {
+		if (subtitle != null && subtitle.getLang() != null) {
+			// The resource needs a subtitle, but this engine implementation does not support subtitles yet
 			return false;
 		}
 
