@@ -407,21 +407,21 @@ public class FFmpegVideo extends Player {
 		} else {
 			cmdList.add(fileName);
 		}
-		
+
 		// Set the video stream
 		cmdList.add("-map");
 		cmdList.add("0:0");
-		
+
 		// Set the proper audio stream
-		if (media.getAudioTracksList().size() == 1){
+		if (media.getAudioTracksList().size() == 1) {
 			cmdList.add("-map");
 			cmdList.add("0:1");
-		} else if (media.getAudioTracksList().size() > 1){
+		} else if (media.getAudioTracksList().size() > 1) {
 			cmdList.add("-map");
 			cmdList.add("0:" + (params.aid.getId() + 1));
 		}
-		
-		// encoder threads
+
+		// Encoder threads
 		cmdList.add("-threads");
 		cmdList.add("" + nThreads);
 
@@ -510,7 +510,7 @@ public class FFmpegVideo extends Player {
 		// Audio bitrate
 		if (!(params.aid != null && params.aid.isAC3() && !ac3Remux) && !(type() == Format.AUDIO)) {
 			cmdList.add("-ab");
-			 // Check if audio bitrate meets mp2 specification
+			// Check if audio bitrate meets mp2 specification
 			if (!renderer.isTranscodeToMPEGPSAC3() && configuration.getAudioBitrate() <= 384) {
 				cmdList.add(configuration.getAudioBitrate() + "k");
 			} else {
