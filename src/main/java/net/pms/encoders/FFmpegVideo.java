@@ -94,18 +94,16 @@ public class FFmpegVideo extends Player {
 		List<String> videoFilterOptions = new ArrayList<String>();
 		String subsOption = null;
 
-		boolean isResolutionTooHighForRenderer = renderer.isVideoRescale() // renderer defines a max width/height
-			&& (media != null)
-			&& (
-					(media.getWidth() > renderer.getMaxVideoWidth())
-					||
-					(media.getHeight() > renderer.getMaxVideoHeight())
-			   );
-				
+		boolean isResolutionTooHighForRenderer = renderer.isVideoRescale() && // renderer defines a max width/height
+			(media != null) &&
+			(
+				(media.getWidth() > renderer.getMaxVideoWidth()) ||
+				(media.getHeight() > renderer.getMaxVideoHeight())
+			);
+
 		if (params.sid != null && !configuration.isMencoderDisableSubs() && params.sid.isExternal()) {
-			String externalSubtitlesFileName = null;
-			externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getAbsolutePath());
-			StringBuffer s = new StringBuffer(externalSubtitlesFileName.length());
+			String externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getAbsolutePath());
+			StringBuilder s = new StringBuilder(externalSubtitlesFileName.length());
 			CharacterIterator it = new StringCharacterIterator(externalSubtitlesFileName);
 
 			for (char ch = it.first(); ch != CharacterIterator.DONE; ch = it.next()) {
@@ -121,18 +119,18 @@ public class FFmpegVideo extends Player {
 						break;
 				}
 			}
-			
+
 			String subsFile = s.toString();
 
-			if (params.sid.getType() == SubtitleType.ASS){
+			if (params.sid.getType() == SubtitleType.ASS) {
 				subsOption = "ass=" + subsFile;
-			} else if (params.sid.getType() == SubtitleType.SUBRIP){
-			    subsOption = "subtitles=" + subsFile;		    
+			} else if (params.sid.getType() == SubtitleType.SUBRIP) {
+			    subsOption = "subtitles=" + subsFile;
 			}
 		}
 
 		String rescaleSpec = null;
-				
+
 		if (isResolutionTooHighForRenderer) {
 			rescaleSpec = String.format(
 				// http://stackoverflow.com/a/8351875
@@ -141,23 +139,23 @@ public class FFmpegVideo extends Player {
 				renderer.getMaxVideoHeight()
 			);
 		}
-		
-		if (subsOption != null || rescaleSpec != null){
+
+		if (subsOption != null || rescaleSpec != null) {
 			videoFilterOptions.add("-vf");
 			StringBuilder filterParams = new StringBuilder();
 			filterParams.append("\"");
 
-			if (rescaleSpec != null){
+			if (rescaleSpec != null) {
 				filterParams.append(rescaleSpec);
-				if (subsOption != null){
+				if (subsOption != null) {
 					filterParams.append(", ");
 				}
 			}
-			
-			if (subsOption != null){
+
+			if (subsOption != null) {
 				filterParams.append(subsOption);
 			}
-			
+
 			filterParams.append("\"");
 			videoFilterOptions.add(filterParams.toString());
 		}
@@ -286,7 +284,7 @@ public class FFmpegVideo extends Player {
 
 		return audioBitrateOptions;
 	}
-	
+
 	protected boolean dtsRemux;
 	protected boolean ac3Remux;
 
@@ -783,10 +781,12 @@ public class FFmpegVideo extends Player {
 		// Check whether the subtitle actually has a language defined,
 		// uninitialized DLNAMediaSubtitle objects have a null language.
 		// For now supports only external subtitles
-		if (subtitle != null && subtitle.getLang() != null
-				&& subtitle.getType() != SubtitleType.ASS
-				&& subtitle.getType() != SubtitleType.SUBRIP
-				&& subtitle.getExternalFile() == null) {
+		if (
+			subtitle != null && subtitle.getLang() != null &&
+			subtitle.getType() != SubtitleType.ASS &&
+			subtitle.getType() != SubtitleType.SUBRIP &&
+			subtitle.getExternalFile() == null
+		) {
 			return false;
 		}
 
