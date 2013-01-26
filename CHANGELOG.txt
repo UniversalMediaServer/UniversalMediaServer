@@ -1,13 +1,15 @@
 2.3.0 - 2013-01-??
 
 	General:
-		FFmpeg supports audio selection (thanks, valib!)
+		FFmpeg supports audio selection
 		Fixed rare bug where files stop half way through
 		Support streaming mp4 to WD TV Live
 		Added initial support for Vizio Smart TVs
 		Fixed playback on unknown renderers
 		Fixed several FFmpeg-related bugs
 		Improved support for videos whose containers change aspect ratios
+		Tried to fix headless mode detection on Ubuntu
+		Fixed various bugs
 	External Components:
 		Updated FFmpeg for Windows to SB5, which:
 			Improves AC-3 audio buffering
