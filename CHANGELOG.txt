@@ -2,6 +2,7 @@
 
 	General:
 		FFmpeg supports audio selection
+		Improved MKV/MP4 support on PS3
 		Fixed rare bug where files stop half way through
 		Support streaming mp4 to WD TV Live
 		Added initial support for Vizio Smart TVs
