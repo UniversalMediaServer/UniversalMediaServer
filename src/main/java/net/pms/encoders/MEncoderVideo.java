@@ -1169,7 +1169,7 @@ public class MEncoderVideo extends Player {
 			!avisynth() &&
 			media != null &&
 			(
-				media.isVideoPS3Compatible(newInput) ||
+				media.isVideoWithinH264LevelLimits(newInput, params.mediaRenderer) ||
 				!params.mediaRenderer.isH264Level41Limited()
 			) &&
 			media.isMuxable(params.mediaRenderer) &&

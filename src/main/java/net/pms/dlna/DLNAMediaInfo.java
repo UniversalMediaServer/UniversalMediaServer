@@ -261,7 +261,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * This extends renderer configs, defining things that are needed by renderers
 	 * but are not possible with their configs yet.
 	 *
-	 * Some of this code is repeated in isVideoPS3Compatible(), and since
+	 * Some of this code is repeated in isVideoWithinH264LevelLimits(), and since
 	 * both functions are sometimes (but not always) used together, this is
 	 * not an efficient use of code.
 	 * TODO: Fix the above situation.
@@ -1145,14 +1145,10 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 	}
 
-	/*
-	 * Checks whether the video has too many reference frames per pixels for the PS3
-	 *
-	 * 2013-01-25: Confirmed maximum reference frames:
-	 *    - 4 for 1920x1080
-	 *    - 11 for 1280x720
-	 * Meaning this math is correct
+	/**
+	 * Use isVideoWithinH264LevelLimits() instead
 	 */
+	@Deprecated
 	public boolean isVideoPS3Compatible(InputFile f) {
 		if (!h264_parsed) {
 			if (getCodecV() != null && (getCodecV().equals("h264") || getCodecV().startsWith("mpeg2"))) { // what about VC1 ?
@@ -1166,7 +1162,7 @@ public class DLNAMediaInfo implements Cloneable {
 						getContainer().equals("mov") ||
 						getContainer().equals("mp4")
 					)
-				) { // containers without h264_annexB
+				) { // Containers without h264_annexB
 					byte headers[][] = getAnnexBFrameHeader(f);
 					if (ffmpeg_annexb_failure) {
 						LOGGER.info("Error parsing information from the file: " + f.getFilename());
@@ -1187,7 +1183,7 @@ public class DLNAMediaInfo implements Cloneable {
 							muxable = true;
 
 							if (avcHeader.getLevel() >= 41 && getWidth() > 0 && getHeight() > 0) {
-								int maxref = (int) Math.floor(10252743 / (getWidth() * getHeight()));
+								int maxref = (int) Math.floor(8388608 / (getWidth() * getHeight()));
 								if (avcHeader.getRef_frames() > maxref) {
 									muxable = false;
 									LOGGER.debug("The file " + f.getFilename() + " is not compatible with PS3 because it can only take " + maxref + " reference frames at this resolution while this file has " + avcHeader.getRef_frames() + " reference frames");
@@ -1195,6 +1191,84 @@ public class DLNAMediaInfo implements Cloneable {
 							}
 							if (!muxable) {
 								LOGGER.debug("H.264 file: " + f.getFilename() + " is not compatible with PS3");
+							}
+						} else {
+							muxable = false;
+						}
+					} else {
+						muxable = false;
+					}
+				}
+			}
+
+			h264_parsed = true;
+		}
+
+		return muxable;
+	}
+
+	/**
+	 * Checks whether the video has too many reference frames per pixels for the renderer
+	 */
+	public boolean isVideoWithinH264LevelLimits(InputFile f, RendererConfiguration mediaRenderer) {
+		if (!h264_parsed) {
+			if (getCodecV() != null && (getCodecV().equals("h264") || getCodecV().startsWith("mpeg2"))) { // what about VC1 ?
+				muxable = true;
+				if (
+					getCodecV().equals("h264") &&
+					getContainer() != null &&
+					(
+						getContainer().equals("matroska") ||
+						getContainer().equals("mkv") ||
+						getContainer().equals("mov") ||
+						getContainer().equals("mp4")
+					)
+				) { // Containers without h264_annexB
+					byte headers[][] = getAnnexBFrameHeader(f);
+					if (ffmpeg_annexb_failure) {
+						LOGGER.info("Error parsing information from the file: " + f.getFilename());
+					}
+
+					if (headers != null) {
+						setH264AnnexB(headers[1]);
+						if (getH264AnnexB() != null) {
+							int skip = 5;
+							if (getH264AnnexB()[2] == 1) {
+								skip = 4;
+							}
+							byte header[] = new byte[getH264AnnexB().length - skip];
+							System.arraycopy(getH264AnnexB(), skip, header, 0, header.length);
+							AVCHeader avcHeader = new AVCHeader(header);
+							avcHeader.parse();
+							LOGGER.debug("H.264 file: " + f.getFilename() + ": Profile: " + avcHeader.getProfile() + " / level: " + avcHeader.getLevel() + " / ref frames: " + avcHeader.getRef_frames());
+							muxable = true;
+
+							if (avcHeader.getLevel() >= 41 && getWidth() > 0 && getHeight() > 0) {
+								int maxref;
+								if (mediaRenderer.isPS3()) {
+									/**
+									 * 2013-01-25: Confirmed maximum reference frames on PS3:
+									 *    - 4 for 1920x1080
+									 *    - 11 for 1280x720
+									 * Meaning this math is correct
+									 */
+									maxref = (int) Math.floor(10252743 / (getWidth() * getHeight()));
+								} else {
+									/**
+									 * This is the math for level 4.1, which results in:
+									 *    - 4 for 1920x1080
+									 *    - 9 for 1280x720
+									 */
+									maxref = (int) Math.floor(8388608 / (getWidth() * getHeight()));
+								}
+
+								if (avcHeader.getRef_frames() > maxref) {
+									muxable = false;
+									LOGGER.debug("The file " + f.getFilename() + " is not compatible with this renderer because it can only take " + maxref + " reference frames at this resolution while this file has " + avcHeader.getRef_frames() + " reference frames");
+								}
+							}
+							if (!muxable) {
+								LOGGER.debug("H.264 file: " + f.getFilename() + " is not compatible with this renderer");
 							}
 						} else {
 							muxable = false;
