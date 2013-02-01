@@ -231,6 +231,7 @@ public abstract class Player {
 
 		StringTokenizer st1 = new StringTokenizer(configuration.getMencoderAudioSubLanguages(), ";");
 
+		boolean matchedEmbeddedSubtitle = false;
 		while (st1.hasMoreTokens()) {
 			String pair = st1.nextToken();
 			if (pair.contains(",")) {
@@ -247,14 +248,32 @@ public abstract class Player {
 					} else {
 						for (DLNAMediaSubtitle present_sub : media.getSubtitleTracksList()) {
 							if (present_sub.matchCode(sub) || sub.equals("*")) {
-								matchedSub = present_sub;
-								LOGGER.trace(" Found a match: " + matchedSub);
-								break;
+								if (present_sub.getExternalFile() != null) {
+									if (configuration.isAutoloadSubtitles()) {
+										// Subtitle is external and we want external subtitles, look no further
+										matchedSub = present_sub;
+										LOGGER.trace(" Found a match: " + matchedSub);
+										break;
+									} else {
+										// Subtitle is external but we do not want external subtitles, keep searching
+										LOGGER.trace(" External subtitle ignored because of user setting: " + present_sub);
+									}
+								} else {
+									matchedSub = present_sub;
+									LOGGER.trace(" Found a match: " + matchedSub);
+									if (configuration.isAutoloadSubtitles()) {
+										// Subtitle is internal and we will wait to see if an external one is available instead
+										matchedEmbeddedSubtitle = true;
+									} else {
+										// Subtitle is internal and we will use it
+										break;
+									}
+								}
 							}
 						}
 					}
 
-					if (matchedSub != null) {
+					if (matchedSub != null && !matchedEmbeddedSubtitle) {
 						break;
 					}
 				}
@@ -329,7 +348,13 @@ public abstract class Player {
 					lang = lang.trim();
 					LOGGER.trace("Looking for a subtitle track with lang: " + lang);
 					for (DLNAMediaSubtitle sub : media.getSubtitleTracksList()) {
-						if (sub.matchCode(lang)) {
+						if (
+							sub.matchCode(lang) &&
+							!(
+								!configuration.isAutoloadSubtitles() &&
+								sub.getExternalFile() != null
+							)
+						) {
 							params.sid = sub;
 							LOGGER.trace("Matched sub track: " + params.sid);
 							st = null;
