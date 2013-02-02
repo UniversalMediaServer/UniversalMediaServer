@@ -18,6 +18,8 @@
  */
 package net.pms.newgui;
 
+import ch.qos.logback.classic.Level;
+
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -116,7 +118,9 @@ public class TracesTab {
 		// Apply the orientation for the locale
 		Locale locale = new Locale(configuration.getLanguage());
 		ComponentOrientation orientation = ComponentOrientation.getOrientation(locale);
-		String colSpec = FormLayoutUtil.getColSpec("left:pref, 10:grow", orientation);
+		String colSpec = FormLayoutUtil.getColSpec("pref, pref:grow, pref, pref, pref:grow, pref", orientation);
+
+		int cols = colSpec.split(",").length;
 
 		FormLayout layout = new FormLayout(
 			colSpec,
@@ -147,7 +151,7 @@ public class TracesTab {
 
 		jListPane = new JScrollPane(jList, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		jListPane.setBorder(BorderFactory.createEmptyBorder());
-		builder.add(jListPane, cc.xyw(1, 1, 2));
+		builder.add(jListPane, cc.xyw(1, 1, cols));
 
 		// Add buttons to open logfiles (there may be more than one)
 		JPanel pLogFileButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -174,7 +178,44 @@ public class TracesTab {
 			});
 			pLogFileButtons.add(b);
 		}
-		builder.add(pLogFileButtons, cc.xy(2, 2));
+		builder.add(pLogFileButtons, cc.xy(cols, 2));
+		
+		final ch.qos.logback.classic.Logger l=(ch.qos.logback.classic.Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+		final String[] levels = {
+			Messages.getString("TracesTab.6"),
+			Messages.getString("TracesTab.7"),
+			Messages.getString("TracesTab.8"),
+			Messages.getString("TracesTab.9"),
+			Messages.getString("TracesTab.10")
+		};
+		final int[] realLevel = {
+				Level.ERROR_INT,
+				Level.WARN_INT,
+				Level.INFO_INT,
+				Level.DEBUG_INT,
+				Level.TRACE_INT
+		};
+		JComboBox level = new JComboBox(levels);
+		int curLev = l.getLevel().toInt();
+		for (int i=0; i<= realLevel.length; i++) {
+			if (realLevel[i] == curLev) {
+				level.setSelectedIndex(i);
+				break;
+			}
+		}
+		level.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JComboBox cb = (JComboBox)e.getSource();
+				int newLevel = cb.getSelectedIndex();
+				l.setLevel(Level.toLevel(realLevel[newLevel]));
+				LOGGER.info("changed debug level to " + l.getLevel().toString());
+			}
+			
+		});
+		JLabel label = new JLabel(Messages.getString("TracesTab.11") + ": ");
+		builder.add(label, cc.xy(3, 2));
+		builder.add(level, cc.xy(4, 2));
 
 		CustomJButton packDbg = new CustomJButton(Messages.getString("TracesTab.4"));
 		packDbg.addMouseListener(new MouseAdapter() {
