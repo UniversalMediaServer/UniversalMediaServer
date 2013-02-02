@@ -19,7 +19,6 @@
 package net.pms.newgui;
 
 import ch.qos.logback.classic.Level;
-
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -179,7 +178,7 @@ public class TracesTab {
 			pLogFileButtons.add(b);
 		}
 		builder.add(pLogFileButtons, cc.xy(cols, 2));
-		
+
 		final ch.qos.logback.classic.Logger l=(ch.qos.logback.classic.Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 		final String[] levels = {
 			Messages.getString("TracesTab.6"),
@@ -197,21 +196,22 @@ public class TracesTab {
 		};
 		JComboBox level = new JComboBox(levels);
 		int curLev = l.getLevel().toInt();
+
 		for (int i=0; i<= realLevel.length; i++) {
 			if (realLevel[i] == curLev) {
 				level.setSelectedIndex(i);
 				break;
 			}
 		}
+
 		level.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JComboBox cb = (JComboBox)e.getSource();
 				int newLevel = cb.getSelectedIndex();
 				l.setLevel(Level.toLevel(realLevel[newLevel]));
-				LOGGER.info("changed debug level to " + l.getLevel().toString());
+				LOGGER.info("Changed debug level to " + l.getLevel().toString());
 			}
-			
 		});
 		JLabel label = new JLabel(Messages.getString("TracesTab.11") + ": ");
 		builder.add(label, cc.xy(3, 2));
