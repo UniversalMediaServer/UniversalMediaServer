@@ -118,8 +118,8 @@ public class TracesTab {
 		// Apply the orientation for the locale
 		Locale locale = new Locale(configuration.getLanguage());
 		ComponentOrientation orientation = ComponentOrientation.getOrientation(locale);
-		String colSpec = FormLayoutUtil.getColSpec("left:pref, 100px, left:pref, right:pref, 100px, 10:grow", orientation);
-		
+		String colSpec = FormLayoutUtil.getColSpec("pref, pref:grow, pref, pref, pref:grow, pref", orientation);
+
 		int cols = colSpec.split(",").length;
 
 		FormLayout layout = new FormLayout(
