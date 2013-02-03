@@ -36,7 +36,6 @@ import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
 import net.pms.formats.Format;
@@ -101,7 +100,6 @@ public class MEncoderVideo extends Player {
 	private JTextField och;
 	private JCheckBox subs;
 	private JCheckBox fribidi;
-	private final PmsConfiguration configuration;
 
 	private static final String[] INVALID_CUSTOM_OPTIONS = {
 		"-of",
@@ -169,10 +167,6 @@ public class MEncoderVideo extends Player {
 
 	public JCheckBox getSubs() {
 		return subs;
-	}
-
-	public MEncoderVideo(PmsConfiguration configuration) {
-		this.configuration = configuration;
 	}
 
 	@Override
@@ -1201,7 +1195,7 @@ public class MEncoderVideo extends Player {
 			}
 
 			if (!nomux) {
-				TsMuxeRVideo tv = new TsMuxeRVideo(configuration);
+				TsMuxeRVideo tv = new TsMuxeRVideo();
 				params.forceFps = media.getValidFps(false);
 
 				if (media.getCodecV() != null) {
@@ -2269,7 +2263,7 @@ public class MEncoderVideo extends Player {
 
 				pipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
-				TsMuxeRVideo ts = new TsMuxeRVideo(configuration);
+				TsMuxeRVideo ts = new TsMuxeRVideo();
 				File f = new File(configuration.getTempFolder(), "pms-tsmuxer.meta");
 				String cmd[] = new String[]{ ts.executable(), f.getAbsolutePath(), pipe.getInputPipe() };
 				pw = new ProcessWrapperImpl(cmd, params);

@@ -41,7 +41,6 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
@@ -55,7 +54,6 @@ import org.slf4j.LoggerFactory;
  */
 public class AviSynthFFmpeg extends FFmpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AviSynthFFmpeg.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	public static final String ID      = "avsffmpeg";
 
 	@Override

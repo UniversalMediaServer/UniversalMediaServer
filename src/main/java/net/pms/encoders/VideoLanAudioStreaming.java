@@ -18,16 +18,11 @@
  */
 package net.pms.encoders;
 
-import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 
 public class VideoLanAudioStreaming extends VideoLanVideoStreaming {
 	public static final String ID = "vlcaudio";
-
-	public VideoLanAudioStreaming(PmsConfiguration configuration) {
-		super(configuration);
-	}
 
 	@Override
 	public int purpose() {

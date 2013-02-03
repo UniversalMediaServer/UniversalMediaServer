@@ -37,7 +37,6 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
@@ -73,7 +72,6 @@ import org.slf4j.LoggerFactory;
 public class FFmpegVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegVideo.class);
 	private static final String DEFAULT_QSCALE = "3";
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	// FIXME we have an id() accessor for this; no need for the field to be public
 	@Deprecated
@@ -596,7 +594,7 @@ public class FFmpegVideo extends Player {
 			PipeProcess pipe;
 			pipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
-			TsMuxeRVideo ts = new TsMuxeRVideo(configuration);
+			TsMuxeRVideo ts = new TsMuxeRVideo();
 			File f = new File(configuration.getTempFolder(), "pms-tsmuxer.meta");
 			String cmd[] = new String[]{ ts.executable(), f.getAbsolutePath(), pipe.getInputPipe() };
 			pw = new ProcessWrapperImpl(cmd, params);

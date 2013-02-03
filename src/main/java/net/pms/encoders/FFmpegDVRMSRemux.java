@@ -32,8 +32,6 @@ import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
 import net.pms.Messages;
-import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
@@ -44,7 +42,6 @@ import net.pms.io.ProcessWrapperImpl;
 import org.apache.commons.lang.StringUtils;
 
 public class FFmpegDVRMSRemux extends Player {
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private JTextField altffpath;
 	public static final String ID = "ffmpegdvrmsremux";
 

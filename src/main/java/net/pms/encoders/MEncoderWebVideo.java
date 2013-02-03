@@ -20,7 +20,7 @@ package net.pms.encoders;
 
 import java.io.IOException;
 import javax.swing.JComponent;
-import net.pms.configuration.PmsConfiguration;
+
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
@@ -31,7 +31,6 @@ import net.pms.io.ProcessWrapperImpl;
 
 public class MEncoderWebVideo extends Player {
 	public static final String ID = "mencoderwebvideo";
-	private final PmsConfiguration configuration;
 
 	@Override
 	public JComponent config() {
@@ -74,10 +73,6 @@ public class MEncoderWebVideo extends Player {
 				"-vf", "harddup",
 				"-ofps", "25"
 			};
-	}
-
-	public MEncoderWebVideo(PmsConfiguration configuration) {
-		this.configuration = configuration;
 	}
 
 	@Override

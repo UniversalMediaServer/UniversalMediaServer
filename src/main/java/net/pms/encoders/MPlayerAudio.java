@@ -30,8 +30,6 @@ import java.util.Arrays;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import net.pms.Messages;
-import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
@@ -46,15 +44,10 @@ import net.pms.network.HTTPResource;
 @Deprecated
 public class MPlayerAudio extends Player {
 	public static final String ID = "mplayeraudio";
-	private final PmsConfiguration configuration;
 
 	// XXX should be private
 	@Deprecated
 	JCheckBox noresample;
-
-	public MPlayerAudio(PmsConfiguration configuration) {
-		this.configuration = configuration;
-	}
 
 	@Override
 	public String id() {
@@ -90,7 +83,7 @@ public class MPlayerAudio extends Player {
 		params.manageFastStart();
 
 		if (params.mediaRenderer.isTranscodeToMP3()) {
-			FFmpegAudio ffmpegAudio = new FFmpegAudio(configuration);
+			FFmpegAudio ffmpegAudio = new FFmpegAudio();
 			return ffmpegAudio.launchTranscode(fileName, dlna, media, params);
 		}
 
