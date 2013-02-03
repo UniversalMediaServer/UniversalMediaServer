@@ -143,7 +143,6 @@ public class FFmpegVideo extends Player {
 		if (subsOption != null || rescaleSpec != null) {
 			videoFilterOptions.add("-vf");
 			StringBuilder filterParams = new StringBuilder();
-			filterParams.append("\"");
 
 			if (rescaleSpec != null) {
 				filterParams.append(rescaleSpec);
@@ -156,7 +155,6 @@ public class FFmpegVideo extends Player {
 				filterParams.append(subsOption);
 			}
 
-			filterParams.append("\"");
 			videoFilterOptions.add(filterParams.toString());
 		}
 
