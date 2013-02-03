@@ -465,12 +465,15 @@ public class FFmpegVideo extends Player {
 		cmdList.add("0:0");
 
 		// Set the proper audio stream
-		if (media.getAudioTracksList().size() == 1) {
-			cmdList.add("-map");
-			cmdList.add("0:1");
-		} else if (media.getAudioTracksList().size() > 1) {
+		if (media.getAudioTracksList().size() > 1) {
 			cmdList.add("-map");
 			cmdList.add("0:" + (params.aid.getId() + 1));
+		} else {
+			// FIXME: we're assuming here that media.getAudioTracksList().size()=0
+			// just means the media is unparsed but does actually contain an
+			// audio track, not that it's video-only
+			cmdList.add("-map");
+			cmdList.add("0:1");
 		}
 
 		// Encoder threads
@@ -570,6 +573,8 @@ public class FFmpegVideo extends Player {
 			} else {
 				cmdList.add("384k");
 			}
+		} else {
+			cmdList.addAll(getAudioBitrateOptions(renderer, media));
 		}
 
 		// add custom args
@@ -780,8 +785,11 @@ public class FFmpegVideo extends Player {
 
 		// Check whether the subtitle actually has a language defined,
 		// uninitialized DLNAMediaSubtitle objects have a null language.
-		if (subtitle != null && subtitle.getLang() != null) {
-			// The resource needs a subtitle, but this engine implementation does not support subtitles yet
+		// For now supports only external subtitles
+		if (subtitle != null && subtitle.getLang() != null
+				&& subtitle.getType() != SubtitleType.ASS
+				&& subtitle.getType() != SubtitleType.SUBRIP
+				&& subtitle.getExternalFile() == null) {
 			return false;
 		}
 
