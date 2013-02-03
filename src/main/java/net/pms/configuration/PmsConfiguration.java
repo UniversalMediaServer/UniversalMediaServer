@@ -2559,4 +2559,11 @@ public class PmsConfiguration {
 			setATZLimit(0);
 		}
 	}
+	
+	private static final String KEY_OPEN_SUBS = "open_subs";
+
+	public boolean openSubs() {
+		return getBoolean(KEY_OPEN_SUBS, false);
+	}
+	
 }
