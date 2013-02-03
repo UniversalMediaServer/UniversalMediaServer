@@ -192,6 +192,8 @@ public class PmsConfiguration {
 	private static final String KEY_UUID = "uuid";
 	private static final String KEY_VIDEOTRANSCODE_START_DELAY = "key_videotranscode_start_delay"; // TODO (breaking change): should be renamed to e.g. videotranscode_start_delay
 	private static final String KEY_VIRTUAL_FOLDERS = "vfolders";
+	private static final String KEY_AUTO_IMDB = "auto_imdb";
+	private static final String KEY_OPEN_SUBS = "open_subs";
 
 	// the name of the subdirectory under which PMS config files are stored for this build (default: PMS).
 	// see Build for more details
@@ -2558,5 +2560,16 @@ public class PmsConfiguration {
 		} catch (Exception e) {
 			setATZLimit(0);
 		}
+	}
+
+	public boolean openSubs() {
+		return getBoolean(KEY_OPEN_SUBS, false);
+	}
+
+	/*
+	 * Returns false until the feature is improved
+	 */
+	public boolean autoImdb() {
+		return false;
 	}
 }

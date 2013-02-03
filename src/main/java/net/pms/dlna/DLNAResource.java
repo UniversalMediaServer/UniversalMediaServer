@@ -580,6 +580,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							}
 						}
 
+						if (child.getExt().isVideo() && child.isSubSelectable()) {
+							VirtualFolder vf;
+							vf = getSubSelector(true);
+							if (vf != null) {
+								DLNAResource newChild = child.clone();
+								newChild.setPlayer(player);
+								newChild.setMedia(child.getMedia());
+								LOGGER.trace("Duplicate sub " + child.getName() + " with player: " + player.toString());
+
+								vf.addChild(new SubSelFile(newChild));
+							}
+						}
+
 						for (ExternalListener listener : ExternalFactory.getExternalListeners()) {
 							if (listener instanceof AdditionalResourceFolderListener) {
 								try {
@@ -659,6 +672,37 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		return null;
+	}
+
+	private SubSelect getSubSelector(boolean create) {
+		if (!isSubSelectable()) {
+			return null;
+		}
+
+		if (PMS.getConfiguration().isMencoderDisableSubs()||
+			!PMS.getConfiguration().getUseSubtitles()||
+			!PMS.getConfiguration().openSubs()) {
+			return null;
+		}
+
+		// search for transcode folder
+		for (DLNAResource r : getChildren()) {
+			if (r instanceof SubSelect) {
+				return (SubSelect) r;
+			}
+		}
+
+		if (create) {
+			SubSelect vf = new SubSelect();
+			addChildInternal(vf);
+			return vf;
+		}
+
+		return null;
+	}
+
+	public boolean isSubSelectable() {
+		return false;
 	}
 
 	/**
@@ -1114,10 +1158,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	private static String encode(String s) {
 		try {
+			if (s == null) {
+				return "";
+			}
+
 			return URLEncoder.encode(s, "UTF-8");
 		} catch (UnsupportedEncodingException e) {
 			LOGGER.debug("Caught exception", e);
 		}
+
 		return "";
 	}
 
@@ -2430,6 +2479,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	long getLastRefreshTime() {
 		return lastRefreshTime;
+	}
+
+	public String getImdbId() {
+		return "";
 	}
 
 	/**
