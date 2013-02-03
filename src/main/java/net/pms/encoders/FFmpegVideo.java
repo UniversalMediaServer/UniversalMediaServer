@@ -458,19 +458,16 @@ public class FFmpegVideo extends Player {
 			cmdList.add(ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath()));
 		} else {
 			cmdList.add(fileName);
-		}
-
-		// Set the video stream
-		cmdList.add("-map");
-		cmdList.add("0:0");
-
-		// Set the proper audio stream
-		if (media.getAudioTracksList().size() == 1) {
+			
+			// Set the video stream
 			cmdList.add("-map");
-			cmdList.add("0:1");
-		} else if (media.getAudioTracksList().size() > 1) {
-			cmdList.add("-map");
-			cmdList.add("0:" + (params.aid.getId() + 1));
+			cmdList.add("0:0");
+
+			// Set the proper audio stream
+			if (media.getAudioTracksList().size() >= 1) {
+				cmdList.add("-map");
+				cmdList.add("0:" + (params.aid.getId() + 1));
+			}
 		}
 
 		// Encoder threads
