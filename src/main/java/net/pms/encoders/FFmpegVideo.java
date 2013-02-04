@@ -22,6 +22,7 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+import com.sun.jna.Platform;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -121,6 +122,7 @@ public class FFmpegVideo extends Player {
 			}
 
 			String subsFile = s.toString();
+			subsFile = subsFile.replace(",", "\\,");
 
 			if (params.sid.getType() == SubtitleType.ASS) {
 				subsOption = "ass=" + subsFile;
@@ -143,6 +145,9 @@ public class FFmpegVideo extends Player {
 		if (subsOption != null || rescaleSpec != null) {
 			videoFilterOptions.add("-vf");
 			StringBuilder filterParams = new StringBuilder();
+			if (Platform.isWindows()) {
+				filterParams.append("\"");
+			}
 
 			if (rescaleSpec != null) {
 				filterParams.append(rescaleSpec);
@@ -155,6 +160,9 @@ public class FFmpegVideo extends Player {
 				filterParams.append(subsOption);
 			}
 
+			if (Platform.isWindows()) {
+				filterParams.append("\"");
+			}
 			videoFilterOptions.add(filterParams.toString());
 		}
 
