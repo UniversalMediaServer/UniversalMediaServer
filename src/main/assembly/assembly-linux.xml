@@ -23,6 +23,14 @@
 			<lineEnding>keep</lineEnding>
 		</file>
 
+		<!-- Include the FFmpeg binary -->
+		<file>
+			<source>${project.binaries}/ffmpeg</source>
+			<outputDirectory>.</outputDirectory>
+			<fileMode>0755</fileMode>
+			<lineEnding>keep</lineEnding>
+		</file>
+
 		<!-- Include the tsMuxeR binary -->
 		<file>
 			<source>${project.binaries}/tsMuxeR</source>
