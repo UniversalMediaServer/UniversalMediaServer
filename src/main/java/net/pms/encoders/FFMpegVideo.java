@@ -71,8 +71,8 @@ import org.slf4j.LoggerFactory;
  * take RendererConfiguration (renderer) and DLNAMediaInfo (media) parameters, even if one or
  * both of these parameters are unused.
  */
-public class FFmpegVideo extends Player {
-	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegVideo.class);
+public class FFMpegVideo extends Player {
+	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
 	private static final String DEFAULT_QSCALE = "3";
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
