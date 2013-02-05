@@ -126,7 +126,6 @@ public class FFmpegVideo extends Player {
 
 			String subsFile = s.toString();
 			subsFile = subsFile.replace(",", "\\,");
-			LOGGER.debug("subfile "+subsFile);
 
 			if (params.sid.getType() == SubtitleType.ASS) {
 				subsOption = "ass=" + subsFile;
