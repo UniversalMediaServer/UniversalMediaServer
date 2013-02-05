@@ -115,6 +115,9 @@ public class FFmpegVideo extends Player {
 					case '\\':
 						s.append("/");
 						break;
+					case ']':
+					case '[':
+						s.append("\\");	
 					default:
 						s.append(ch);
 						break;
@@ -123,6 +126,7 @@ public class FFmpegVideo extends Player {
 
 			String subsFile = s.toString();
 			subsFile = subsFile.replace(",", "\\,");
+			LOGGER.debug("subfile "+subsFile);
 
 			if (params.sid.getType() == SubtitleType.ASS) {
 				subsOption = "ass=" + subsFile;
@@ -465,12 +469,12 @@ public class FFmpegVideo extends Player {
 		} else {
 			cmdList.add(fileName);
 			
-			// Set the video stream
-			cmdList.add("-map");
-			cmdList.add("0:0");
+			if (media.getAudioTracksList().size() > 1) {
+				// Set the video stream
+				cmdList.add("-map");
+				cmdList.add("0:0");
 
-			// Set the proper audio stream
-			if (media.getAudioTracksList().size() >= 1) {
+				// Set the proper audio stream
 				cmdList.add("-map");
 				cmdList.add("0:" + (params.aid.getId() + 1));
 			}
@@ -583,6 +587,7 @@ public class FFmpegVideo extends Player {
 
 		if (!dtsRemux) {
 			cmdList.add("pipe:");
+
 		}
 
 		String[] cmdArray = new String[cmdList.size()];
