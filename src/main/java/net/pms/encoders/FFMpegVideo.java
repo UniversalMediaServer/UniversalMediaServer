@@ -790,8 +790,6 @@ public class FFMpegVideo extends Player {
 		// For now supports only external subtitles
 		if (
 			subtitle != null && subtitle.getLang() != null &&
-			subtitle.getType() != SubtitleType.ASS &&
-			subtitle.getType() != SubtitleType.SUBRIP &&
 			subtitle.getExternalFile() == null
 		) {
 			return false;
