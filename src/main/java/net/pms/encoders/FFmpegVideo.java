@@ -468,7 +468,7 @@ public class FFmpegVideo extends Player {
 		} else {
 			cmdList.add(fileName);
 
-			if (media.getAudioTracksList().size() > 0) {
+			if (media.getAudioTracksList().size() > 1) {
 				// Set the video stream
 				cmdList.add("-map");
 				cmdList.add("0:0");
