@@ -468,15 +468,17 @@ public class FFmpegVideo extends Player {
 		} else {
 			cmdList.add(fileName);
 
-			if (media.getAudioTracksList().size() > 1) {
+			if (media.getAudioTracksList().size() > 0) {
+				
 				// Set the video stream
 				cmdList.add("-map");
 				cmdList.add("0:0");
+				
 				// Set the proper audio stream
-
 				cmdList.add("-map");
-				cmdList.add("0:" + (params.aid.getId() + 1));
+				cmdList.add("0:" + (media.getAudioTracksList().indexOf(params.aid) + 1));
 			}
+			
 		}
 
 		// Encoder threads
