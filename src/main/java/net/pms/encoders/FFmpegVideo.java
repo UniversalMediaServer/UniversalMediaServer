@@ -470,7 +470,10 @@ public class FFmpegVideo extends Player {
 			cmdList.add("0:0");
 
 			// Set the proper audio stream
-			if (media.getAudioTracksList().size() >= 1) {
+			if (media.getAudioTracksList().size() == 1) {
+				cmdList.add("-map");
+				cmdList.add("0:1");
+			} else if (media.getAudioTracksList().size() > 1) {
 				cmdList.add("-map");
 				cmdList.add("0:" + (params.aid.getId() + 1));
 			}
