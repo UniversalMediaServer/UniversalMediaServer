@@ -2559,4 +2559,16 @@ public class PmsConfiguration {
 			setATZLimit(0);
 		}
 	}
+	
+	//////////////////////////////////////////////
+	
+	private String KEY_DATA_DIR = "data_dir_path";
+	
+	public String getDataDir() {
+		return getString(KEY_DATA_DIR, "data");
+	}
+	
+	public String getDataFile(String str) {
+		return getDataDir() + File.separator + str;
+	}
 }
