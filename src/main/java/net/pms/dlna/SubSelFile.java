@@ -2,12 +2,10 @@ package net.pms.dlna;
 
 import java.io.IOException;
 import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.util.OpenSubtitle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SubSelFile extends VirtualFolder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(SubSelFile.class);
@@ -33,7 +31,7 @@ public class SubSelFile extends VirtualFolder {
 			return;
 		}
 		for (String key : data.keySet()) {
-			LOGGER.debug("add play sub child " + key + " rf " + rf);
+			LOGGER.debug("Add play subtitle child " + key + " rf " + rf);
 			addChild(new PlaySub(OpenSubtitle.getName(key),
 				OpenSubtitle.getLang(key),
 				rf, (String) data.get(key)));

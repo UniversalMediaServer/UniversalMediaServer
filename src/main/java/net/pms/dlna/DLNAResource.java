@@ -579,20 +579,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								transcodeFolder.addChild(fileTranscodeFolder);
 							}
 						}
-						
+
 						if (child.getExt().isVideo() && child.isSubSelectable()) {
 							VirtualFolder vf = getSubSelector(true);
 							if (vf != null) {
 								DLNAResource newChild = child.clone();
 								newChild.setPlayer(player);
 								newChild.setMedia(child.getMedia());
-								// newChild.original = child;
-								LOGGER.trace("Duplicate sub " + child.getName() + " with player: " + player.toString());
+								LOGGER.trace("Duplicate subtitle " + child.getName() + " with player: " + player.toString());
 
 								vf.addChild(new SubSelFile(newChild));
 							}
 						}
-						
 
 						for (ExternalListener listener : ExternalFactory.getExternalListeners()) {
 							if (listener instanceof AdditionalResourceFolderListener) {
@@ -2471,25 +2469,28 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public boolean isSearched() {
 		return false;
 	}
-	
+
 	////////////////////////////////////////////////////
 	// Subtitle handling
 	////////////////////////////////////////////////////
-	
+
 	private SubSelect getSubSelector() {
 		return getSubSelector(false);
 	}
-	
+
 	private SubSelect getSubSelector(boolean create) {
 		if (!isSubSelectable()) {
 			return null;
 		}
-		if (PMS.getConfiguration().isMencoderDisableSubs()||
-			!PMS.getConfiguration().getUseSubtitles()||
-			!PMS.getConfiguration().openSubs()) {
+		if (
+			PMS.getConfiguration().isMencoderDisableSubs() ||
+			!PMS.getConfiguration().getUseSubtitles() ||
+			!PMS.getConfiguration().openSubs()
+		) {
 			return null;
 		}
-		// search for transcode folder
+
+		// Search for transcode folder
 		for (DLNAResource r : getChildren()) {
 			if (r instanceof SubSelect) {
 				return (SubSelect) r;
@@ -2506,6 +2507,5 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public boolean isSubSelectable() {
 		return false;
 	}
-	
 }
 

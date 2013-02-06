@@ -21,9 +21,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
-
 import net.pms.PMS;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,12 +29,14 @@ import org.slf4j.LoggerFactory;
 public class OpenSubtitle {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OpenSubtitle.class);
 	private static final String SUB_DIR = "subs";
-	private static final long TOKEN_AGE_TIME = 10*60*1000; // 10 mins
-	private static final long SUB_FILE_AGE = 14*24*60*60*1000; // two weeks
+	private static final long TOKEN_AGE_TIME = 10 * 60 * 1000; // 10 mins
+	private static final long SUB_FILE_AGE = 14 * 24 * 60 * 60 * 1000; // two weeks
+
 	/**
 	 * Size of the chunks that will be hashed in bytes (64 KB)
 	 */
 	private static final int HASH_CHUNK_SIZE = 64 * 1024;
+
 	private static final String OPENSUBS_URL = "http://api.opensubtitles.org/xml-rpc";
 	private static String token = null;
 	private static long tokenAge;
@@ -126,11 +126,11 @@ public class OpenSubtitle {
 		}
 		URL url = new URL(OPENSUBS_URL);
 		String req = "<methodCall>\n<methodName>LogIn</methodName>\n<params>\n<param>\n<value><string/></value>\n</param>\n" +
-		"<param>\n" +
-		"<value><string/></value>\n</param>\n<param>\n<value><string/></value>\n" +
-		"</param>\n<param>\n<value><string>OS Test User Agent</string></value>\n</param>\n" +
-		"</params>\n" +
-		"</methodCall>\n";
+			"<param>\n" +
+			"<value><string/></value>\n</param>\n<param>\n<value><string/></value>\n" +
+			"</param>\n<param>\n<value><string>OS Test User Agent</string></value>\n</param>\n" +
+			"</params>\n" +
+			"</methodCall>\n";
 		Pattern re = Pattern.compile("token.*?<string>([^<]+)</string>", Pattern.DOTALL);
 		Matcher m = re.matcher(postPage(url.openConnection(), req));
 		if (m.find()) {
@@ -152,10 +152,10 @@ public class OpenSubtitle {
 		}
 		URL url = new URL(OPENSUBS_URL);
 		String req = "<methodCall>\n<methodName>CheckMovieHash2</methodName>\n" +
-		"<params>\n<param>\n<value><string>" + token + "</string></value>\n</param>\n" +
-		"<param>\n<value>\n<array>\n<data>\n<value><string>" + hash + "</string></value>\n" +
-		"</data>\n</array>\n</value>\n</param>" +
-		"</params>\n</methodCall>\n";
+			"<params>\n<param>\n<value><string>" + token + "</string></value>\n</param>\n" +
+			"<param>\n<value>\n<array>\n<data>\n<value><string>" + hash + "</string></value>\n" +
+			"</data>\n</array>\n</value>\n</param>" +
+			"</params>\n</methodCall>\n";
 		Pattern re = Pattern.compile("MovieImdbID.*?<string>([^<]+)</string>", Pattern.DOTALL);
 		Matcher m = re.matcher(postPage(url.openConnection(), req));
 		if (m.find()) {
@@ -214,7 +214,7 @@ public class OpenSubtitle {
 		String qStr = "";
 		if (!StringUtils.isEmpty(hash)) {
 			hashStr = "<member><name>moviehash</name><value><string>" + hash + "</string></value></member>\n" +
-			"<member><name>moviebytesize</name><value><double>" + size + "</double></value></member>\n";
+				"<member><name>moviebytesize</name><value><double>" + size + "</double></value></member>\n";
 		} else if (!StringUtils.isEmpty(imdb)) {
 			imdbStr = "<member><name>imdbid</name><value><string>" + imdb + "</string></value></member>\n";
 		} else if (!StringUtils.isEmpty(query)) {
@@ -223,20 +223,18 @@ public class OpenSubtitle {
 			return res;
 		}
 		String req = "<methodCall>\n<methodName>SearchSubtitles</methodName>\n" +
-		"<params>\n<param>\n<value><string>" + token + "</string></value>\n</param>\n" +
-		"<param>\n<value>\n<array>\n<data>\n<value><struct><member><name>sublanguageid" +
-		"</name><value><string>" + lang + "</string></value></member>" +
-		hashStr + imdbStr + qStr + "\n" +
-		"</struct></value></data>\n</array>\n</value>\n</param>" +
-		"</params>\n</methodCall>\n";
-		Pattern re = Pattern.compile("SubFileName</name>.*?<string>([^<]+)</string>.*?SubLanguageID</name>.*?<string>([^<]+)</string>.*?SubDownloadLink</name>.*?<string>([^<]+)</string>",
-				Pattern.DOTALL);
+			"<params>\n<param>\n<value><string>" + token + "</string></value>\n</param>\n" +
+			"<param>\n<value>\n<array>\n<data>\n<value><struct><member><name>sublanguageid" +
+			"</name><value><string>" + lang + "</string></value></member>" +
+			hashStr + imdbStr + qStr + "\n" +
+			"</struct></value></data>\n</array>\n</value>\n</param>" +
+			"</params>\n</methodCall>\n";
+		Pattern re = Pattern.compile("SubFileName</name>.*?<string>([^<]+)</string>.*?SubLanguageID</name>.*?<string>([^<]+)</string>.*?SubDownloadLink</name>.*?<string>([^<]+)</string>", Pattern.DOTALL);
 		String page = postPage(url.openConnection(), req);
 		Matcher m = re.matcher(page);
 		while (m.find()) {
 			LOGGER.debug("found subtitle " + m.group(2) + " name " + m.group(1) + " zip " + m.group(3));
-			res.put(m.group(2) + ":" + FileUtil.getFileNameWithoutExtension(m.group(1)),
-					m.group(3));
+			res.put(m.group(2) + ":" + FileUtil.getFileNameWithoutExtension(m.group(1)), m.group(3));
 		}
 		return res;
 	}
@@ -315,7 +313,7 @@ public class OpenSubtitle {
 		return str;
 	}
 
-	private static void bgCleanSubs() {	
+	private static void bgCleanSubs() {
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
@@ -327,7 +325,7 @@ public class OpenSubtitle {
 				}
 				File[] files = path.listFiles();
 				long now = System.currentTimeMillis();
-				for (int i=0;i<files.length;i++) {
+				for (int i = 0; i < files.length; i++) {
 					long lastTime = files[i].lastModified();
 					if ((now - lastTime) > SUB_FILE_AGE) {
 						files[i].delete();
