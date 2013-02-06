@@ -1120,7 +1120,7 @@ public class PMS {
 	}
 
 	private static String pidFile() {
-		return PMS.getConfiguration().getDataFile("pms.pid");
+		return configuration.getDataFile("pms.pid");
 	}
 
 	private static void killProc() throws IOException {
