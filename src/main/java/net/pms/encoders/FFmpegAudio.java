@@ -39,7 +39,7 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
 
-public class FFmpegAudio extends FFmpegVideo {
+public class FFmpegAudio extends FFMpegVideo {
 	public static final String ID = "ffmpegaudio";
 	private final PmsConfiguration configuration;
 

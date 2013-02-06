@@ -392,6 +392,11 @@ public class PMS {
 
 		LOGGER.info("Profile name: " + configuration.getProfileName());
 		LOGGER.info("");
+		
+		// Ensure the data dir is created, on windows this 
+		// is usually done by the installer
+		File dDir = new File(configuration.getDataDir());
+		dDir.mkdirs();
 
 		dbgPack = new DbgPacker();
 
@@ -1111,10 +1116,14 @@ public class PMS {
 
 		return tmp[0].equals("javaw.exe") && tmp[8].contains("universal media server");
 	}
+	
+	private static String pidFile() {
+		return PMS.getConfiguration().getDataFile("pms.pid");
+	}
 
 	private static void killProc() throws IOException {
 		ProcessBuilder pb = null;
-		BufferedReader in = new BufferedReader(new FileReader("pms.pid"));
+		BufferedReader in = new BufferedReader(new FileReader(pidFile()));
 		String pid = in.readLine();
 		in.close();
 
@@ -1144,7 +1153,7 @@ public class PMS {
 	}
 
 	private static void dumpPid() throws IOException {
-		FileOutputStream out = new FileOutputStream("pms.pid");
+		FileOutputStream out = new FileOutputStream(pidFile());
 		long pid = getPID();
 		LOGGER.trace("PID: " + pid);
 		String data = String.valueOf(pid) + "\r\n";

@@ -71,8 +71,8 @@ import org.slf4j.LoggerFactory;
  * take RendererConfiguration (renderer) and DLNAMediaInfo (media) parameters, even if one or
  * both of these parameters are unused.
  */
-public class FFmpegVideo extends Player {
-	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegVideo.class);
+public class FFMpegVideo extends Player {
+	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
 	private static final String DEFAULT_QSCALE = "3";
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
@@ -117,7 +117,7 @@ public class FFmpegVideo extends Player {
 						break;
 					case ']':
 					case '[':
-						s.append("\\");	
+						s.append("\\");
 					default:
 						s.append(ch);
 						break;
@@ -130,7 +130,7 @@ public class FFmpegVideo extends Player {
 			if (params.sid.getType() == SubtitleType.ASS) {
 				subsOption = "ass=" + subsFile;
 			} else if (params.sid.getType() == SubtitleType.SUBRIP) {
-			    subsOption = "subtitles=" + subsFile;
+				subsOption = "subtitles=" + subsFile;
 			}
 		}
 
@@ -467,15 +467,15 @@ public class FFmpegVideo extends Player {
 			cmdList.add(ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath()));
 		} else {
 			cmdList.add(fileName);
-			
+
 			if (media.getAudioTracksList().size() > 1) {
 				// Set the video stream
 				cmdList.add("-map");
 				cmdList.add("0:0");
+
 				// Set the proper audio stream
-				
 				cmdList.add("-map");
-				cmdList.add("0:" + (params.aid.getId() + 1));
+				cmdList.add("0:" + (media.getAudioTracksList().indexOf(params.aid) + 1));
 			}
 		}
 
@@ -790,8 +790,6 @@ public class FFmpegVideo extends Player {
 		// For now supports only external subtitles
 		if (
 			subtitle != null && subtitle.getLang() != null &&
-			subtitle.getType() != SubtitleType.ASS &&
-			subtitle.getType() != SubtitleType.SUBRIP &&
 			subtitle.getExternalFile() == null
 		) {
 			return false;

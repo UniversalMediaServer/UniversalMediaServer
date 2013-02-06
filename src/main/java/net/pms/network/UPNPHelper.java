@@ -24,7 +24,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -314,8 +313,12 @@ public class UPNPHelper {
 	}
 
 	public static void shutDownListener() {
-		listener.interrupt();
-		aliveThread.interrupt();
+		try {
+			listener.interrupt();
+			aliveThread.interrupt();
+		} catch (NullPointerException e) {
+			LOGGER.debug("An error occurred while closing UMS.", e);
+		}
 	}
 
 	private static String buildMsg(String nt, String message) {

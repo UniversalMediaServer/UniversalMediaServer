@@ -2560,6 +2560,14 @@ public class PmsConfiguration {
 		}
 	}
 	
+<<<<<<< HEAD
+	private static final String KEY_OPEN_SUBS = "open_subs";
+
+	public boolean openSubs() {
+		return getBoolean(KEY_OPEN_SUBS, false);
+	}
+	
+=======
 	//////////////////////////////////////////////
 	
 	private String KEY_DATA_DIR = "data_dir_path";
@@ -2571,11 +2579,5 @@ public class PmsConfiguration {
 	public String getDataFile(String str) {
 		return getDataDir() + File.separator + str;
 	}
-	
-	private static final String KEY_OPEN_SUBS = "open_subs";
-
-	public boolean openSubs() {
-		return getBoolean(KEY_OPEN_SUBS, false);
-	}
-	
+>>>>>>> master
 }
