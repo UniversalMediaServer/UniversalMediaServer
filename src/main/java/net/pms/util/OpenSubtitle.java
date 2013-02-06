@@ -264,8 +264,8 @@ public class OpenSubtitle {
 	}
 
 	public static String subFile(String name) {
-		String root = new File("").getAbsolutePath();
-		File path = new File(root + File.separator + SUB_DIR);
+		String dir = PMS.getConfiguration().getDataFile(SUB_DIR); 
+		File path = new File(dir);
 		if (!path.exists()) {
 			path.mkdirs();
 		}
