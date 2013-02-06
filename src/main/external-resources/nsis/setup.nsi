@@ -153,7 +153,7 @@ Section "Program Files"
   File "${PROJECT_BASEDIR}\LICENSE.txt"
   File "${PROJECT_BASEDIR}\src\main\external-resources\logback.xml"
   File "${PROJECT_BASEDIR}\src\main\external-resources\icon.ico"
-  
+
   CreateDirectory "$INSTDIR\data"
 
   ;the user may have set the installation dir
