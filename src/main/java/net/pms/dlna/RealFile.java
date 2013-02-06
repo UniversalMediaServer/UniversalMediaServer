@@ -297,7 +297,8 @@ public class RealFile extends MapFile {
 		}
 		return super.getThumbnailURL();
 	}
-	
+
+	@Override
 	public boolean isSubSelectable() {
 		return true;
 	}

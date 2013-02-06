@@ -2577,5 +2577,4 @@ public class PmsConfiguration {
 	public boolean openSubs() {
 		return getBoolean(KEY_OPEN_SUBS, false);
 	}
-	
 }

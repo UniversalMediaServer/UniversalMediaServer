@@ -3,14 +3,9 @@ package net.pms.util;
 import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.apache.commons.lang.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 
 public class ImdbUtil {
-	private static final Logger LOGGER = LoggerFactory.getLogger(ImdbUtil.class);
 	private static final String HASH_REG = "_os([^_]+)_";
 	private static final String IMDB_REG = "_imdb([^_]+)_";
 
