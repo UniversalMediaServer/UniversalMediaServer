@@ -34,7 +34,7 @@ import net.pms.io.ProcessWrapperImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FFmpegWebVideo extends FFmpegVideo {
+public class FFmpegWebVideo extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegWebVideo.class);
 	private final PmsConfiguration configuration;
 
@@ -119,18 +119,20 @@ public class FFmpegWebVideo extends FFmpegVideo {
 		cmdList.add("-i");
 		cmdList.add(fileName);
 
+		cmdList.addAll(getVideoFilterOptions(renderer, media, params));
+		
 		// encoder threads
 		cmdList.add("-threads");
 		cmdList.add("" + nThreads);
+
+		// add the output options (-f, -acodec, -vcodec)
+		cmdList.addAll(getTranscodeVideoOptions(renderer, media, params));
 
 		// add video bitrate options
 		cmdList.addAll(getVideoBitrateOptions(renderer, media));
 
 		// add audio bitrate options
 		cmdList.addAll(getAudioBitrateOptions(renderer, media));
-
-		// add the output options (-f, -acodec, -vcodec)
-		cmdList.addAll(getTranscodeVideoOptions(renderer, media, params));
 
 		// output file
 		cmdList.add(pipe.getInputPipe());

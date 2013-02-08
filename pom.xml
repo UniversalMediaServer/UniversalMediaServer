@@ -31,7 +31,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>2.3.1</version>
+	<version>2.4.0</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -69,7 +69,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>2.3.1</project.version.short>
+		<project.version.short>2.4.0</project.version.short>
 
 		<!--
 			JNA 3.4.0 solves issue #1152, but causes a bug in Windows.
@@ -1028,6 +1028,7 @@
 										<get src="${project.binaries-base}/win32/avisynth/avisynth.exe" dest="${project.binaries}/win32/avisynth/avisynth.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/codecs/drv33260.dll" dest="${project.binaries}/win32/codecs/drv33260.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/codecs/drv43260.dll" dest="${project.binaries}/win32/codecs/drv43260.dll" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/codecs/drvc.dll" dest="${project.binaries}/win32/codecs/drvc.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/codecs/pncrt.dll" dest="${project.binaries}/win32/codecs/pncrt.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/codecs/sipr3260.dll" dest="${project.binaries}/win32/codecs/sipr3260.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/codecs/tokr3260.dll" dest="${project.binaries}/win32/codecs/tokr3260.dll" usetimestamp="true" />
@@ -1245,6 +1246,9 @@
 										<mkdir dir="${project.binaries}" />
 
 										<!-- Download binaries -->
+										<get src="${project.binaries-base}/linux/ffmpeg" dest="${project.binaries}/ffmpeg" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/mencoder" dest="${project.binaries}/mencoder" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/mplayer" dest="${project.binaries}/mplayer" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/tsMuxeR" dest="${project.binaries}/tsMuxeR" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/tsMuxeR_licence.txt" dest="${project.binaries}/tsMuxeR_license.txt" usetimestamp="true" />
 									</target>

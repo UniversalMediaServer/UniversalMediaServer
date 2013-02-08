@@ -1,7 +1,24 @@
-2.3.1 - 2013-02-??
+2.4.0 - 2013-02-??
 
 	General:
-		
+		FFmpeg supports external subtitles
+		Linux build includes MPlayer, MEncoder and FFmpeg binaries like the other versions always have
+		Fixed user setting to automatically load external subtitles
+		Audio/subtitle language priority is now blank by default
+		Improved RealVideo file support
+		Added log level selector to the Logs tab
+		Improved MP4 compatibility on PS3
+		The word "the" at the start of filenames is ignored while sorting by default
+		Program runs on Windows startup by default, can be changed on the General Configuration tab
+	Languages:
+		Updated Czech translation
+	External Components:
+		Added MPlayer/MEncoder SB49 for Linux
+		Added FFmpeg SB6 for Linux
+		Updated Java Runtime Environment automatic downloader for Windows to 7u13, which:
+			Fixes serious security holes
+		Updated FFmpeg for Windows to SB6, which:
+			Enables external subtitles
 
 2.3.0 - 2013-01-27
 

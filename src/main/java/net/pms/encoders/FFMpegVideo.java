@@ -22,6 +22,7 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+import com.sun.jna.Platform;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -70,8 +71,8 @@ import org.slf4j.LoggerFactory;
  * take RendererConfiguration (renderer) and DLNAMediaInfo (media) parameters, even if one or
  * both of these parameters are unused.
  */
-public class FFmpegVideo extends Player {
-	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegVideo.class);
+public class FFMpegVideo extends Player {
+	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
 	private static final String DEFAULT_QSCALE = "3";
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
@@ -114,6 +115,9 @@ public class FFmpegVideo extends Player {
 					case '\\':
 						s.append("/");
 						break;
+					case ']':
+					case '[':
+						s.append("\\");
 					default:
 						s.append(ch);
 						break;
@@ -121,11 +125,12 @@ public class FFmpegVideo extends Player {
 			}
 
 			String subsFile = s.toString();
+			subsFile = subsFile.replace(",", "\\,");
 
 			if (params.sid.getType() == SubtitleType.ASS) {
 				subsOption = "ass=" + subsFile;
 			} else if (params.sid.getType() == SubtitleType.SUBRIP) {
-			    subsOption = "subtitles=" + subsFile;
+				subsOption = "subtitles=" + subsFile;
 			}
 		}
 
@@ -143,7 +148,9 @@ public class FFmpegVideo extends Player {
 		if (subsOption != null || rescaleSpec != null) {
 			videoFilterOptions.add("-vf");
 			StringBuilder filterParams = new StringBuilder();
-			filterParams.append("\"");
+			if (Platform.isWindows()) {
+				filterParams.append("\"");
+			}
 
 			if (rescaleSpec != null) {
 				filterParams.append(rescaleSpec);
@@ -156,7 +163,9 @@ public class FFmpegVideo extends Player {
 				filterParams.append(subsOption);
 			}
 
-			filterParams.append("\"");
+			if (Platform.isWindows()) {
+				filterParams.append("\"");
+			}
 			videoFilterOptions.add(filterParams.toString());
 		}
 
@@ -458,19 +467,16 @@ public class FFmpegVideo extends Player {
 			cmdList.add(ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath()));
 		} else {
 			cmdList.add(fileName);
-		}
 
-		// Set the video stream
-		cmdList.add("-map");
-		cmdList.add("0:0");
+			if (media.getAudioTracksList().size() > 1) {
+				// Set the video stream
+				cmdList.add("-map");
+				cmdList.add("0:v");
 
-		// Set the proper audio stream
-		if (media.getAudioTracksList().size() == 1) {
-			cmdList.add("-map");
-			cmdList.add("0:1");
-		} else if (media.getAudioTracksList().size() > 1) {
-			cmdList.add("-map");
-			cmdList.add("0:" + (params.aid.getId() + 1));
+				// Set the proper audio stream
+				cmdList.add("-map");
+				cmdList.add("0:a:" + (media.getAudioTracksList().indexOf(params.aid)));
+			}
 		}
 
 		// Encoder threads
@@ -580,6 +586,7 @@ public class FFmpegVideo extends Player {
 
 		if (!dtsRemux) {
 			cmdList.add("pipe:");
+
 		}
 
 		String[] cmdArray = new String[cmdList.size()];
@@ -780,8 +787,11 @@ public class FFmpegVideo extends Player {
 
 		// Check whether the subtitle actually has a language defined,
 		// uninitialized DLNAMediaSubtitle objects have a null language.
-		if (subtitle != null && subtitle.getLang() != null) {
-			// The resource needs a subtitle, but this engine implementation does not support subtitles yet
+		// For now supports only external subtitles
+		if (
+			subtitle != null && subtitle.getLang() != null &&
+			subtitle.getExternalFile() == null
+		) {
 			return false;
 		}
 

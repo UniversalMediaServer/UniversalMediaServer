@@ -72,6 +72,7 @@ public class NavigationShareTab {
 	private JCheckBox itunes;
 	private CustomJButton select;
 	private CustomJButton cachereset;
+	private JCheckBox ignorethewordthe;
 	private JTextField atzLimit;
 
 	public DefaultListModel getDf() {
@@ -168,6 +169,7 @@ public class NavigationShareTab {
 
 		builder.addLabel(Messages.getString("FoldTab.18"), FormLayoutUtil.flip(cc.xyw(1, 23, 3), colSpec, orientation));
 		builder.add(sortmethod, FormLayoutUtil.flip(cc.xyw(4, 23, 3), colSpec, orientation));
+		builder.add(ignorethewordthe, FormLayoutUtil.flip(cc.xyw(8, 23, 3), colSpec, orientation));
 
 		builder.addLabel(Messages.getString("FoldTab.37"), FormLayoutUtil.flip(cc.xyw(1, 25, 3), colSpec, orientation));
 		builder.add(atzLimit, FormLayoutUtil.flip(cc.xyw(4, 25, 3), colSpec, orientation));
@@ -519,6 +521,19 @@ public class NavigationShareTab {
 					}
 
 				}
+			}
+		});
+
+		// Ignore the word "the" while sorting
+		ignorethewordthe = new JCheckBox(Messages.getString("FoldTab.39"));
+		ignorethewordthe.setContentAreaFilled(false);
+		if (configuration.isIgnoreTheWordThe()) {
+			ignorethewordthe.setSelected(true);
+		}
+		ignorethewordthe.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setIgnoreTheWordThe((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
 

@@ -49,8 +49,8 @@ public class MPG extends Format {
 				a.add(MEncoderVideo.class);
 			} else if (engine.equals(AviSynthMEncoder.ID) && PMS.get().getRegistry().isAvis()) {
 				a.add(AviSynthMEncoder.class);
-			} else if (engine.equals(FFmpegVideo.ID)) {
-				a.add(FFmpegVideo.class);
+			} else if (engine.equals(FFMpegVideo.ID)) {
+				a.add(FFMpegVideo.class);
 			} else if (engine.equals(AviSynthFFmpeg.ID) && PMS.get().getRegistry().isAvis()) {
 				a.add(AviSynthFFmpeg.class);
 			} else if (engine.equals(TsMuxeRVideo.ID)/* && PMS.get().isWindows()*/) {
