@@ -104,6 +104,7 @@ public class PmsConfiguration {
 	private static final String KEY_HIDE_TRANSCODE_FOLDER = "hide_transcode_folder";
 	private static final String KEY_HIDE_VIDEO_SETTINGS = "hidevideosettings";
 	private static final String KEY_HTTP_ENGINE_V2 = "http_engine_v2";
+	private static final String KEY_IGNORE_THE_WORD_THE = "ignore_the_word_the";
 	private static final String KEY_IMAGE_THUMBNAILS_ENABLED = "image_thumbnails";
 	private static final String KEY_IP_FILTER = "ip_filter";
 	private static final String KEY_IPHOTO_ENABLED = "iphoto";
@@ -241,7 +242,8 @@ public class PmsConfiguration {
 			KEY_SERVER_PORT,
 			KEY_SERVER_HOSTNAME,
 			KEY_CHAPTER_SUPPORT,
-			KEY_HIDE_EXTENSIONS
+			KEY_HIDE_EXTENSIONS,
+			KEY_IGNORE_THE_WORD_THE
 		)
 	);
 
@@ -2270,6 +2272,14 @@ public class PmsConfiguration {
 
 	public void setAudioResample(boolean value) {
 		configuration.setProperty(KEY_AUDIO_RESAMPLE, value);
+	}
+
+	public boolean isIgnoreTheWordThe() {
+		return getBoolean(KEY_IGNORE_THE_WORD_THE, true);
+	}
+
+	public void setIgnoreTheWordThe(boolean value) {
+		configuration.setProperty(KEY_IGNORE_THE_WORD_THE, value);
 	}
 
 	/**
