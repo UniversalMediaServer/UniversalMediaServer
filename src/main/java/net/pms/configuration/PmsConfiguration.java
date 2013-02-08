@@ -19,13 +19,18 @@
 package net.pms.configuration;
 
 import com.sun.jna.Platform;
+import java.awt.Component;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import net.pms.Messages;
+import net.pms.PMS;
 import net.pms.io.SystemUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.PropertiesUtil;
@@ -34,6 +39,7 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.ConversionException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.event.ConfigurationListener;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -1531,6 +1537,61 @@ public class PmsConfiguration {
 	 */
 	public void setMinimized(boolean value) {
 		configuration.setProperty(KEY_MINIMIZED, value);
+	}
+
+	/**
+	 * Returns true if UMS should automatically start on Windows.
+	 *
+	 * @return True if UMS should start automatically, false otherwise.
+	 */
+	public boolean isAutoStart() {
+		File f = new File("C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\Universal Media Server.lnk");
+		if (f.exists()) {
+			return true;
+		}
+			
+		return false;
+	}
+
+	/**
+	 * Set to true if UMS should automatically start on Windows.
+	 *
+	 * @param value True if UMS should start automatically, false otherwise.
+	 */
+	public void setAutoStart(boolean value) {
+		if (value) {
+			File sourceFile = new File("C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Universal Media Server.lnk");
+			File destinationFile = new File("C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\Universal Media Server.lnk");
+
+			try {
+				FileUtils.copyFile(sourceFile, destinationFile);
+				if (destinationFile.exists()) {
+					LOGGER.info("UMS will start automatically with Windows");
+				} else {
+					LOGGER.info("An error occurred while trying to make UMS start automatically with Windows");
+				}
+			} catch (IOException e) {
+				if (!isAdmin()) {
+					try {
+						JOptionPane.showMessageDialog(
+							(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+							"UMS must be run as administrator in order to change this setting.",
+							"Permissions Error",
+							JOptionPane.ERROR_MESSAGE
+						);
+					} catch (NullPointerException e2) {
+						// This happens on the initial program load, ignore it
+					}
+				}
+			}
+		} else {
+			File f = new File("C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\Universal Media Server.lnk");
+			if (f.delete()) {
+				LOGGER.info("UMS will not start automatically with Windows");
+			} else {
+				LOGGER.info("An error occurred while trying to make UMS not start automatically with Windows");
+			}
+		}
 	}
 
 	/**

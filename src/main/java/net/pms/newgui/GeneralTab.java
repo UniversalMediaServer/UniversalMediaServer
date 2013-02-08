@@ -49,6 +49,7 @@ public class GeneralTab {
 	private static final String ROW_SPEC = "p, 0dlu, p, 0dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
 
 	private JCheckBox smcheckBox;
+	private JCheckBox autoStart;
 	private JCheckBox autoUpdateCheckBox;
 	private JCheckBox newHTTPEngine;
 	private JCheckBox preventSleep;
@@ -90,6 +91,19 @@ public class GeneralTab {
 
 		if (configuration.isMinimized()) {
 			smcheckBox.setSelected(true);
+		}
+
+		autoStart = new JCheckBox(Messages.getString("NetworkTab.57"));
+		autoStart.setContentAreaFilled(false);
+		autoStart.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setAutoStart((e.getStateChange() == ItemEvent.SELECTED));
+			}
+		});
+
+		if (configuration.isAutoStart()) {
+			autoStart.setSelected(true);
 		}
 
 		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), FormLayoutUtil.flip(cc.xyw(1, 1, 9), colSpec, orientation));
@@ -137,7 +151,11 @@ public class GeneralTab {
 
 		builder.add(langs, FormLayoutUtil.flip(cc.xyw(3, 7, 7), colSpec, orientation));
 
-		builder.add(smcheckBox, FormLayoutUtil.flip(cc.xyw(1, 9, 9), colSpec, orientation));
+		builder.add(smcheckBox, FormLayoutUtil.flip(cc.xyw(1, 9, 2), colSpec, orientation));
+
+		if (Platform.isWindows()) {
+			builder.add(autoStart, FormLayoutUtil.flip(cc.xyw(3, 9, 7), colSpec, orientation));
+		}
 
 		CustomJButton service = new CustomJButton(Messages.getString("NetworkTab.4"));
 		service.addActionListener(new ActionListener() {
