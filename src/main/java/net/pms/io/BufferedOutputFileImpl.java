@@ -844,7 +844,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 		buffered = false;
 
 		if (maxMemorySize != 1048576) {
-			PMS.get().getFrame().setValue(0, "Empty");
+			PMS.get().getFrame().setValue(0, Messages.getString("StatusTab.5"));
 		}
 	}
 }
