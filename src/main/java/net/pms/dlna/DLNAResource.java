@@ -1423,7 +1423,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									}
 								}
 								int na = firstAudioTrack.getAudioProperties().getNumberOfChannels();
-								if (na > 2) { // no 5.1 dump in mplayer
+								if (na > 2) { // No 5.1 dump in MPlayer
 									na = 2;
 								}
 								int finalsize = (int) (getMedia().getDurationInSeconds() * defaultFrequency * 2 * na);
