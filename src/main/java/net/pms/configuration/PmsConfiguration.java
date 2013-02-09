@@ -1545,9 +1545,23 @@ public class PmsConfiguration {
 	 * @return True if UMS should start automatically, false otherwise.
 	 */
 	public boolean isAutoStart() {
-		File f = new File("C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\Universal Media Server.lnk");
-		if (f.exists()) {
-			return true;
+		String programData = System.getenv("ALLUSERSPROFILE");
+		File f;
+
+		if (programData != null) {
+			// Windows Vista and 7 (maybe Windows 8 too, needs testing)
+			f = new File(programData + "\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\Universal Media Server.lnk");
+			if (f.exists()) {
+				return true;
+			} else {
+				// Windows 2000 and XP
+				f = new File(programData + "\\Start Menu\\Programs\\Startup\\Universal Media Server.lnk");
+				if (f.exists()) {
+					return true;
+				}
+			}
+		} else {
+			LOGGER.debug("Could not find the ProgramData directory");
 		}
 
 		return false;
@@ -1565,8 +1579,14 @@ public class PmsConfiguration {
 			File destinationFile = new File("C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\Universal Media Server.lnk");
 
 			if (programData != null) {
+				// Windows Vista and 7 (maybe Windows 8 too, needs testing)
 				sourceFile = new File(programData + "\\Microsoft\\Windows\\Start Menu\\Programs\\Universal Media Server.lnk");
 				destinationFile = new File(programData + "\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\Universal Media Server.lnk");
+
+				if (!sourceFile.exists()) {
+					// Windows 2000 and XP
+					sourceFile = new File(programData + "\\Start Menu\\Programs\\Startup\\Universal Media Server.lnk");
+				}
 			} else {
 				LOGGER.debug("Could not find the ProgramData directory");
 			}
