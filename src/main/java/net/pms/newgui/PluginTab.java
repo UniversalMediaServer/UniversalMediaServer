@@ -593,7 +593,7 @@ public class PluginTab {
 		final JPasswordField pText = new JPasswordField(p);
 		final char defEchoChar = pText.getEchoChar();
 
-		JButton ok = new JButton("OK");
+		JButton ok = new JButton(Messages.getString("Dialog.OK"));
 		ok.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -623,7 +623,7 @@ public class PluginTab {
 			}
 		});
 
-		JButton cancel = new JButton("Cancel");
+		JButton cancel = new JButton(Messages.getString("NetworkTab.45"));
 		cancel.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
