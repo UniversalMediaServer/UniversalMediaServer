@@ -10,8 +10,11 @@
 		Improved MP4 compatibility on PS3
 		The word "the" at the start of filenames is ignored while sorting by default
 		Program runs on Windows startup by default, can be changed on the General Configuration tab
+		Fixed support for the Channels plugin
 	Languages:
 		Updated Czech translation
+		Updated Russian translation
+		Made more things translatable
 	External Components:
 		Added MPlayer/MEncoder SB49 for Linux
 		Added FFmpeg SB6 for Linux
