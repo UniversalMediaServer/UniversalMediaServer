@@ -1560,8 +1560,16 @@ public class PmsConfiguration {
 	 */
 	public void setAutoStart(boolean value) {
 		if (value) {
+			String programData = System.getenv("ALLUSERSPROFILE");
 			File sourceFile = new File("C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Universal Media Server.lnk");
 			File destinationFile = new File("C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\Universal Media Server.lnk");
+
+			if (programData != null) {
+				sourceFile = new File(programData + "\\Microsoft\\Windows\\Start Menu\\Programs\\Universal Media Server.lnk");
+				destinationFile = new File(programData + "\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\Universal Media Server.lnk");
+			} else {
+				LOGGER.debug("Could not find the ProgramData directory");
+			}
 
 			try {
 				FileUtils.copyFile(sourceFile, destinationFile);
