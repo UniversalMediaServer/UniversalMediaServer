@@ -471,11 +471,11 @@ public class FFMpegVideo extends Player {
 			if (media.getAudioTracksList().size() > 1) {
 				// Set the video stream
 				cmdList.add("-map");
-				cmdList.add("0:0");
+				cmdList.add("0:v");
 
 				// Set the proper audio stream
 				cmdList.add("-map");
-				cmdList.add("0:" + (media.getAudioTracksList().indexOf(params.aid) + 1));
+				cmdList.add("0:a:" + (media.getAudioTracksList().indexOf(params.aid)));
 			}
 		}
 
