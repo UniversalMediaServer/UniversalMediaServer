@@ -396,7 +396,11 @@ public class PMS {
 
 		LOGGER.info("Please wait while we check the MPlayer font cache, this can take a minute or so.");
 
-		checkProcessExistence("MPlayer", true, null, configuration.getMplayerPath(), "dummy");
+		if (Platform.isLinux()) {
+			checkProcessExistence("MPlayer", true, null, "./" + configuration.getMplayerPath(), "dummy");
+		} else {
+			checkProcessExistence("MPlayer", true, null, configuration.getMplayerPath(), "dummy");
+		}
 
 		if (isWindows()) {
 			checkProcessExistence("MPlayer", true, configuration.getTempFolder(), configuration.getMplayerPath(), "dummy");
