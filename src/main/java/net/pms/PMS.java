@@ -205,7 +205,7 @@ public class PMS {
 	 * @throws Exception TODO: Check which exceptions to use
 	 */
 	private boolean checkProcessExistence(String name, boolean error, File workDir, String... params) throws Exception {
-		LOGGER.debug("launching: " + params[0]);
+		LOGGER.debug("Launching: " + params[0]);
 
 		try {
 			ProcessBuilder pb = new ProcessBuilder(params);
@@ -238,14 +238,14 @@ public class PMS {
 			int exit = process.exitValue();
 			if (exit != 0) {
 				if (error) {
-					LOGGER.info("[" + exit + "] Cannot launch " + name + " / Check the presence of " + params[0] + " ...");
+					LOGGER.info("[" + exit + "] Cannot launch " + name + ". Check the presence of " + params[0]);
 				}
 				return false;
 			}
 			return true;
 		} catch (Exception e) {
 			if (error) {
-				LOGGER.error("Cannot launch " + name + " / Check the presence of " + params[0] + " ...", e);
+				LOGGER.error("Cannot launch " + name + ". Check the presence of " + params[0], e);
 			}
 			return false;
 		}
@@ -395,10 +395,13 @@ public class PMS {
 		RendererConfiguration.loadRendererConfigurations(configuration);
 
 		LOGGER.info("Please wait while we check the MPlayer font cache, this can take a minute or so.");
+
 		checkProcessExistence("MPlayer", true, null, configuration.getMplayerPath(), "dummy");
+
 		if (isWindows()) {
 			checkProcessExistence("MPlayer", true, configuration.getTempFolder(), configuration.getMplayerPath(), "dummy");
 		}
+
 		LOGGER.info("Finished checking the MPlayer font cache.");
 
 		// Check the existence of VSFilter / DirectVobSub
