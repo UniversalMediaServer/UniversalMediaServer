@@ -235,16 +235,6 @@ public class PMS {
 			checkThread.interrupt();
 			checkThread = null;
 
-			// XXX no longer used
-			if (params[0].equals("vlc") && stderrConsumer.getResults().get(0).startsWith("VLC")) {
-				return true;
-			}
-
-			// XXX no longer used
-			if (params[0].equals("ffmpeg") && stderrConsumer.getResults().get(0).startsWith("FF")) {
-				return true;
-			}
-
 			int exit = process.exitValue();
 			if (exit != 0) {
 				if (error) {
