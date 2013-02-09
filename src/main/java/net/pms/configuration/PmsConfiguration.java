@@ -1583,8 +1583,8 @@ public class PmsConfiguration {
 					try {
 						JOptionPane.showMessageDialog(
 							(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-							"UMS must be run as administrator in order to change this setting.",
-							"Permissions Error",
+							Messages.getString("NetworkTab.58"),
+							Messages.getString("Dialog.PermissionsError"),
 							JOptionPane.ERROR_MESSAGE
 						);
 					} catch (NullPointerException e2) {

@@ -153,8 +153,8 @@ public class PluginTab {
 				if (!configuration.isAdmin()) {
 					JOptionPane.showMessageDialog(
 						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-						"UMS must be run as administrator in order to install plugins.",
-						"Permissions Error",
+						Messages.getString("PluginTab.15"),
+						Messages.getString("Dialog.PermissionsError"),
 						JOptionPane.ERROR_MESSAGE
 					);
 
