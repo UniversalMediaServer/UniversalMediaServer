@@ -280,7 +280,15 @@ public class MapFile extends DLNAResource {
 				Collections.sort(files, new Comparator<File>() {
 					@Override
 					public int compare(File f1, File f2) {
-						return NaturalComparator.compareNatural(collator, f1.getName(), f2.getName());
+						String filename1ToSort = f1.getName();
+						String filename2ToSort = f2.getName();
+
+						if (configuration.isIgnoreTheWordThe()) {
+							filename1ToSort = f1.getName().replaceAll("^(?i)The[ .]", "");
+							filename2ToSort = f2.getName().replaceAll("^(?i)The[ .]", "");
+						}
+
+						return NaturalComparator.compareNatural(collator, filename1ToSort, filename2ToSort);
 					}
 				});
 				break;
@@ -288,7 +296,15 @@ public class MapFile extends DLNAResource {
 				Collections.sort(files, new Comparator<File>() {
 					@Override
 					public int compare(File f1, File f2) {
-						return f1.getName().compareToIgnoreCase(f2.getName());
+						String filename1ToSort = f1.getName();
+						String filename2ToSort = f2.getName();
+
+						if (configuration.isIgnoreTheWordThe()) {
+							filename1ToSort = f1.getName().replaceAll("^(?i)The[ .]", "");
+							filename2ToSort = f2.getName().replaceAll("^(?i)The[ .]", "");
+						}
+
+						return filename1ToSort.compareToIgnoreCase(filename2ToSort);
 					}
 				});
 				break;
@@ -312,7 +328,15 @@ public class MapFile extends DLNAResource {
 				Collections.sort(files, new Comparator<File>() {
 					@Override
 					public int compare(File f1, File f2) {
-						return collator.compare(f1.getName(), f2.getName());
+						String filename1ToSort = f1.getName();
+						String filename2ToSort = f2.getName();
+
+						if (configuration.isIgnoreTheWordThe()) {
+							filename1ToSort = f1.getName().replaceAll("^(?i)The[ .]", "");
+							filename2ToSort = f2.getName().replaceAll("^(?i)The[ .]", "");
+						}
+
+						return collator.compare(filename1ToSort, filename2ToSort);
 					}
 				});
 				break;

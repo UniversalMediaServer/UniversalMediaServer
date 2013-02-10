@@ -392,9 +392,11 @@ public class PMS {
 
 		LOGGER.info("Profile name: " + configuration.getProfileName());
 		LOGGER.info("");
-		
-		// Ensure the data dir is created, on windows this 
-		// is usually done by the installer
+
+		/**
+		 * Ensure the data directory is created. On Windows this is
+		 * usually done by the installer
+		 */
 		File dDir = new File(configuration.getDataDir());
 		dDir.mkdirs();
 
@@ -1116,9 +1118,9 @@ public class PMS {
 
 		return tmp[0].equals("javaw.exe") && tmp[8].contains("universal media server");
 	}
-	
+
 	private static String pidFile() {
-		return PMS.getConfiguration().getDataFile("pms.pid");
+		return configuration.getDataFile("pms.pid");
 	}
 
 	private static void killProc() throws IOException {

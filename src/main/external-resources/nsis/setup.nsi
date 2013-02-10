@@ -153,7 +153,7 @@ Section "Program Files"
   File "${PROJECT_BASEDIR}\LICENSE.txt"
   File "${PROJECT_BASEDIR}\src\main\external-resources\logback.xml"
   File "${PROJECT_BASEDIR}\src\main\external-resources\icon.ico"
-  
+
   CreateDirectory "$INSTDIR\data"
 
   ;the user may have set the installation dir
@@ -195,6 +195,8 @@ Section "Start Menu Shortcuts"
   CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
   CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\${PROJECT_NAME} (Select Profile).lnk" "$INSTDIR\UMS.exe" "profiles" "$INSTDIR\UMS.exe" 0
   CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\Uninstall.lnk" "$INSTDIR\uninst.exe" "" "$INSTDIR\uninst.exe" 0
+  CreateShortCut "$SMSTARTUP\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
+  CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
 SectionEnd
 
 Section "Uninstall"
