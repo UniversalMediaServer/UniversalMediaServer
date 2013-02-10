@@ -1954,7 +1954,7 @@ public class PmsConfiguration {
 	}
 	
 	/**
-	 * @deprecated Use {@link #MPEG2MainSettings(String)} instead.
+	 * @deprecated Use {@link #setMPEG2MainSettings(String)} instead.
 	 */
 	public void setMencoderMainSettings(String value) {
 		setMPEG2MainSettings(value);
