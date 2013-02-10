@@ -16,8 +16,8 @@ import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.LongBuffer;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
@@ -203,7 +203,7 @@ public class OpenSubtitle {
 
 	public static Map<String, Object> findSubs(String hash, long size, String imdb, String query) throws IOException {
 		login();
-		HashMap<String, Object> res = new HashMap<String, Object>();
+		TreeMap<String, Object> res = new TreeMap<String, Object>();
 		if (token == null) {
 			return res;
 		}
@@ -235,6 +235,10 @@ public class OpenSubtitle {
 		while (m.find()) {
 			LOGGER.debug("found subtitle " + m.group(2) + " name " + m.group(1) + " zip " + m.group(3));
 			res.put(m.group(2) + ":" + FileUtil.getFileNameWithoutExtension(m.group(1)), m.group(3));
+			if (res.size() > PMS.getConfiguration().openSubsLimit()) {
+				// limit the number of hits somewhat
+				break;
+			}
 		}
 		return res;
 	}
@@ -295,8 +299,7 @@ public class OpenSubtitle {
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
-				String root = new File("").getAbsolutePath();
-				File path = new File(root + File.separator + SUB_DIR);
+				File path = new File(PMS.getConfiguration().getDataFile(SUB_DIR));
 				if (!path.exists()) {
 					// no path nothing to do
 					return;

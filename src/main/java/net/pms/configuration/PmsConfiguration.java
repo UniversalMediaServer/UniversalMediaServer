@@ -2573,8 +2573,13 @@ public class PmsConfiguration {
 	}
 	
 	private static final String KEY_OPEN_SUBS = "open_subs";
+	private static final String KEY_OPEN_SUBS_LIM = "open_subs_limit";
 
 	public boolean openSubs() {
 		return getBoolean(KEY_OPEN_SUBS, false);
+	}
+	
+	public int openSubsLimit() {
+		return getInt(KEY_OPEN_SUBS_LIM, 20);
 	}
 }
