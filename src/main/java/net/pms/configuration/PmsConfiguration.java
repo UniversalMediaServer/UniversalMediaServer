@@ -1151,7 +1151,7 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Sets the audio language priority for MEncoder as a comma separated
+	 * Sets the audio language priority as a comma separated
 	 * string. For example: <code>"eng,fre,jpn,ger,und"</code>, where "und"
 	 * stands for "undefined".
 	 * @param value The audio language priority string.
