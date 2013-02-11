@@ -388,4 +388,25 @@ public abstract class Player {
 	 * @since 1.60.0
 	 */
 	public abstract boolean isCompatible(DLNAResource resource);
+	
+	/**
+	 * Returns whether or not another player has the same
+	 * name and id as this one.
+	 * 
+	 * @param other
+	 *            The other player.
+	 * @return True if names and ids match, false otherwise.
+	 */
+	@Override
+	public boolean equals(Object other){
+		if (other == null || !(other instanceof Player)) {
+			return false;
+		}
+		if (other == this) {
+			return true;
+		}
+		Player otherPlayer = (Player)other;
+		return (otherPlayer.name().equals(this.name()) && otherPlayer.id().equals(this.id()));
+	}
 }
+

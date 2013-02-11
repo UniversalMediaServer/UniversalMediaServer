@@ -158,6 +158,11 @@ public final class PlayerFactory {
 	 * @param player Player to be added to the list.
 	 */
 	public static synchronized void registerPlayer(final Player player) {
+		if (allPlayers.contains(player)) {
+			LOGGER.info("Transcoding engine " + player + " already exists, skipping...");
+			return;
+		}
+		
 		boolean ok = false;
 		allPlayers.add(player);
 
