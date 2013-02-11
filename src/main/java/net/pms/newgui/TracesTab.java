@@ -222,7 +222,7 @@ public class TracesTab {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				JComponent comp = PMS.get().dbgPack().config();
-				String[] cancelStr = {"Close"};
+				String[] cancelStr = {Messages.getString("Dialog.Close")};
 				JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 					comp, "Options", JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, cancelStr, null);
 			}

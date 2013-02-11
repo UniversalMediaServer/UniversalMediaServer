@@ -133,6 +133,37 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 		// add audio bitrate options
 		cmdList.addAll(getAudioBitrateOptions(renderer, media));
+		
+		// add (http) headers
+		if (params.header != null && params.header.length > 0) {
+			String hdr = new String(params.header);
+			while (hdr.length() > 0) {
+				if (hdr.charAt(0) == '\"') {
+					int pos = hdr.indexOf("\"", 1);
+					if (pos == -1) {
+						// no ", error
+						break;
+					}
+					String tmp = hdr.substring(1, pos);
+					cmdList.add(tmp.trim());
+					hdr = hdr.substring(pos + 1);
+					continue;
+				}
+				else {
+					// new arg, find space
+					int pos = hdr.indexOf(" ");
+					if (pos == -1) {
+						// no space, we're done
+						cmdList.add(hdr);
+						break;
+					}
+					String tmp = hdr.substring(0, pos);
+					cmdList.add(tmp.trim());
+					hdr = hdr.substring(pos + 1);
+					continue;
+				}
+			}
+		}
 
 		// output file
 		cmdList.add(pipe.getInputPipe());

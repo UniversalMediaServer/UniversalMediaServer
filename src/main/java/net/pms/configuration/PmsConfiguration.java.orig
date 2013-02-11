@@ -2577,6 +2577,58 @@ public class PmsConfiguration {
 
 		return true;
 	}
+<<<<<<< HEAD
+	
+	///////////////////////////////////////////////////////////
+	// Web stuff
+	///////////////////////////////////////////////////////////
+	
+	private static final String KEY_NO_FOLDERS="no_shared";
+    
+    public String getFolders(String tag) {
+    	if(tag == null) {
+    		return getFolders();
+    	}
+    	String x=(tag.toLowerCase()+".folders").replaceAll(" ", "_");
+    	String res=getString(x, "");
+    	if(StringUtils.isEmpty(res)) {
+    		return getFolders();
+    	}
+    	return res;
+    }
+    
+    public String getVirtualFolders(String tag) {
+    	if(tag == null) {
+    		return getVirtualFolders();
+    	}
+    	String x=(tag.toLowerCase()+".vfolders").replaceAll(" ", "_");
+    	String res=getString(x, "");
+    	if(StringUtils.isEmpty(res)) {
+    		return getVirtualFolders();
+    	}
+    	return res;
+    }
+    
+    public boolean getNoFolders(String tag) {
+    	if(tag == null) {
+    		return getBoolean(KEY_NO_FOLDERS,false);
+    	}
+    	String x=(tag.toLowerCase()+".no_shared").replaceAll(" ", "_");
+    	return getBoolean(x,false);
+    }
+    
+    public String[] getPlugins(String tag) {
+    	if(tag == null) {
+    		return null;
+    	}
+    	String x=(tag.toLowerCase()+".plugins").replaceAll(" ", "_");
+    	String str=getString(x,"");
+    	if(StringUtils.isEmpty(str)) {
+    		return null;
+    	}
+    	return str.split(",");
+    }
+=======
 
 	/* Start without external netowrk (increase startup speed) */
 	public static final String KEY_EXTERNAL_NETWORK = "external_network";
@@ -2668,15 +2720,5 @@ public class PmsConfiguration {
 	public String getDataFile(String str) {
 		return getDataDir() + File.separator + str;
 	}
-	
-	private static final String KEY_OPEN_SUBS = "open_subs";
-	private static final String KEY_OPEN_SUBS_LIM = "open_subs_limit";
-
-	public boolean openSubs() {
-		return getBoolean(KEY_OPEN_SUBS, false);
-	}
-	
-	public int openSubsLimit() {
-		return getInt(KEY_OPEN_SUBS_LIM, 20);
-	}
+>>>>>>> master
 }

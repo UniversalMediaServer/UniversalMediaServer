@@ -2470,10 +2470,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public boolean isSearched() {
 		return false;
 	}
-	
-	public byte[] getHeaders() {
-		return null;
-	}
+<<<<<<< HEAD
 
 	////////////////////////////////////////////////////
 	// Subtitle handling
@@ -2512,5 +2509,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public boolean isSubSelectable() {
 		return false;
 	}
+=======
+	
+	public byte[] getHeaders() {
+		return null;
+	}
+>>>>>>> master
 }
 
