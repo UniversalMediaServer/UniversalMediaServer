@@ -1,3 +1,8 @@
+2.4.1 - 2013-02-??
+
+	General:
+		
+
 2.4.0 - 2013-02-10
 
 	General:
@@ -13,7 +18,7 @@
 		Fixed support for the Channels plugin
 	Languages:
 		Updated Czech translation
-		Updated Russian translation
+		Updated Russian translation (thanks, Tianuchka!)
 		Made more things translatable
 	External Components:
 		Added MPlayer/MEncoder SB49 for Linux
