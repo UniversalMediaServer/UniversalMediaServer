@@ -19,6 +19,7 @@
 package net.pms.encoders;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JComponent;
@@ -38,6 +39,32 @@ import org.slf4j.LoggerFactory;
 public class FFmpegWebVideo extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegWebVideo.class);
 	private final PmsConfiguration configuration;
+
+	// see http://ffmpeg.org/ffmpeg-protocols.html
+	
+	private static final List<String> protocols = Arrays.asList(
+		"bluray",
+		"concat",
+		"data",
+		"file",
+		"gopher",
+		"http", // TODO: support -cookies option
+//		"https", // ?
+		"mms",
+		"mmsh",
+		"mmst",
+		"rtmp", // TODO: first verify whether ffmpeg is --enable-rtmp
+		"rtmpe",
+		"rtmps",
+		"rtmpt",
+		"rtmpte",
+		"rtmpts",
+		"rtp",
+		"rtsp",
+		"tcp",
+		"tls",
+		"udp"
+	);
 
 	// FIXME we have an id() accessor for this; no need for the field to be public
 	@Deprecated
@@ -213,7 +240,8 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			Format.Identifier id = format.getIdentifier();
 
 			if (id.equals(Format.Identifier.WEB)) {
-				return true;
+				String url = resource.getSystemName();
+				return protocols.contains(url.split(":")[0]);
 			}
 		}
 
