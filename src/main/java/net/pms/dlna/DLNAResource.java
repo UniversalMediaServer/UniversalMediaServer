@@ -2454,11 +2454,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 		return (depth > DEPTH_WARNING_LIMIT);
 	}
-	
+
 	public boolean isSearched() {
 		return false;
 	}
-	
+
 	public byte[] getHeaders() {
 		return null;
 	}
