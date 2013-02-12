@@ -18,6 +18,7 @@
  */
 package net.pms.newgui;
 
+import ch.qos.logback.classic.Level;
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
@@ -33,6 +34,9 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import javax.swing.*;
@@ -90,15 +94,20 @@ public class TracesTab {
 	}
 	
 	public void append(String msg) {
-		getList().append(msg);
+		DateFormat dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss");
+		Date date = new Date();
+
+		String[] messageDisplay = msg.replaceFirst("]", "string that should never match").split("string that should never match");
+		getList().append(dateFormat.format(date) + " " + messageDisplay[1]);
 		final JScrollBar vbar = jListPane.getVerticalScrollBar();
-		// if scroll bar already was at the bottom we schedule
-		// a new scroll event to again scroll to the bottom
+
+		// If scrollbar was already at the bottom we schedule a new
+		// scroll event to scroll to the bottom again
 		if (vbar.getMaximum() == vbar.getValue() + vbar.getVisibleAmount()) {
 			EventQueue.invokeLater (new Runnable() {
 				@Override
-				public void run () {
-					vbar.setValue (vbar.getMaximum ());
+				public void run() {
+					vbar.setValue(vbar.getMaximum());
 				}
 			});
 		}
@@ -108,18 +117,20 @@ public class TracesTab {
 		// Apply the orientation for the locale
 		Locale locale = new Locale(configuration.getLanguage());
 		ComponentOrientation orientation = ComponentOrientation.getOrientation(locale);
-		String colSpec = FormLayoutUtil.getColSpec("left:pref, 10:grow", orientation);
+		String colSpec = FormLayoutUtil.getColSpec("pref, pref:grow, pref, pref, pref:grow, pref", orientation);
+
+		int cols = colSpec.split(",").length;
 
 		FormLayout layout = new FormLayout(
 			colSpec,
-			"fill:10:grow, p");
+			"fill:10:grow, p"
+		);
 		PanelBuilder builder = new PanelBuilder(layout);
-		//  builder.setBorder(Borders.DLU14_BORDER);
 		builder.setOpaque(true);
 
 		CellConstraints cc = new CellConstraints();
 
-		//create trace text box
+		// Create traces text box
 		jList = new JTextArea();
 		jList.setEditable(false);
 		jList.setBackground(Color.WHITE);
@@ -135,20 +146,21 @@ public class TracesTab {
 		});
 
 		popup.add(defaultItem);
-		jList.addMouseListener(
-			new PopupTriggerMouseListener(
-			popup,
-			jList));
+		jList.addMouseListener(new PopupTriggerMouseListener(popup, jList));
 
 		jListPane = new JScrollPane(jList, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		jListPane.setBorder(BorderFactory.createEmptyBorder());
-		builder.add(jListPane, cc.xyw(1, 1, 2));
+		builder.add(jListPane, cc.xyw(1, 1, cols));
 
-		// Add buttons opening log files
+		// Add buttons to open logfiles (there may be more than one)
 		JPanel pLogFileButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		HashMap<String, String> logFiles = LoggingConfigFileLoader.getLogFilePaths();
 		for (String loggerName : logFiles.keySet()) {
-			CustomJButton b = new CustomJButton(loggerName);
+			String loggerNameDisplay = loggerName;
+			if ("debug.log".equals(loggerName)) {
+				loggerNameDisplay = Messages.getString("TracesTab.5");
+			}
+			CustomJButton b = new CustomJButton(loggerNameDisplay);
 			b.setToolTipText(logFiles.get(loggerName));
 			b.addMouseListener(new MouseAdapter() {
 				@Override
@@ -156,21 +168,61 @@ public class TracesTab {
 					File logFile = new File(((CustomJButton) e.getSource()).getToolTipText());
 					try {
 						java.awt.Desktop.getDesktop().open(logFile);
-					} catch (IOException e1) {
-						LOGGER.error(String.format("Failed to open file %s in default editor", logFile), e1);
+					} catch (IOException ioe) {
+						LOGGER.error(String.format("Failed to open file %s in default editor", logFile), ioe);
+					} catch (UnsupportedOperationException usoe) {
+						LOGGER.error(String.format("Failed to open file %s in default editor", logFile), usoe);
 					}
 				}
 			});
 			pLogFileButtons.add(b);
 		}
-		builder.add(pLogFileButtons, cc.xy(2, 2));
+		builder.add(pLogFileButtons, cc.xy(cols, 2));
+
+		final ch.qos.logback.classic.Logger l=(ch.qos.logback.classic.Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+		final String[] levels = {
+			Messages.getString("TracesTab.6"),
+			Messages.getString("TracesTab.7"),
+			Messages.getString("TracesTab.8"),
+			Messages.getString("TracesTab.9"),
+			Messages.getString("TracesTab.10")
+		};
+		final int[] realLevel = {
+				Level.ERROR_INT,
+				Level.WARN_INT,
+				Level.INFO_INT,
+				Level.DEBUG_INT,
+				Level.TRACE_INT
+		};
+		JComboBox level = new JComboBox(levels);
+		int curLev = l.getLevel().toInt();
+
+		for (int i=0; i<= realLevel.length; i++) {
+			if (realLevel[i] == curLev) {
+				level.setSelectedIndex(i);
+				break;
+			}
+		}
+
+		level.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JComboBox cb = (JComboBox)e.getSource();
+				int newLevel = cb.getSelectedIndex();
+				l.setLevel(Level.toLevel(realLevel[newLevel]));
+				LOGGER.info("Changed debug level to " + l.getLevel().toString());
+			}
+		});
+		JLabel label = new JLabel(Messages.getString("TracesTab.11") + ": ");
+		builder.add(label, cc.xy(3, 2));
+		builder.add(level, cc.xy(4, 2));
 
 		CustomJButton packDbg = new CustomJButton(Messages.getString("TracesTab.4"));
 		packDbg.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				JComponent comp = PMS.get().dbgPack().config();
-				String[] cancelStr = {"Close"};
+				String[] cancelStr = {Messages.getString("Dialog.Close")};
 				JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 					comp, "Options", JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, cancelStr, null);
 			}

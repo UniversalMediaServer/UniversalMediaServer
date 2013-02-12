@@ -21,6 +21,7 @@ package net.pms.dlna;
 import java.io.File;
 import java.util.List;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
@@ -29,12 +30,13 @@ import net.pms.util.ProcessUtil;
 
 public class DVDISOFile extends VirtualFolder {
 	public static final String PREFIX = "[DVD ISO] ";
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	@Override
 	public void resolve() {
 		double titles[] = new double[100];
-		String cmd[] = new String[]{PMS.getConfiguration().getMplayerPath(), "-identify", "-endpos", "0", "-v", "-ao", "null", "-vc", "null", "-vo", "null", "-dvd-device", ProcessUtil.getShortFileNameIfWideChars(f.getAbsolutePath()), "dvd://1"};
-		OutputParams params = new OutputParams(PMS.getConfiguration());
+		String cmd[] = new String[]{configuration.getMplayerPath(), "-identify", "-endpos", "0", "-v", "-ao", "null", "-vc", "null", "-vo", "null", "-dvd-device", ProcessUtil.getShortFileNameIfWideChars(f.getAbsolutePath()), "dvd://1"};
+		OutputParams params = new OutputParams(configuration);
 		params.maxBufferSize = 1;
 		params.log = true;
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(cmd, params, true, false);
@@ -65,10 +67,12 @@ public class DVDISOFile extends VirtualFolder {
 		double oldduration = -1;
 
 		for (int i = 1; i < 99; i++) {
-			// don't take into account titles less than 10 seconds
-			// also, workaround for the mplayer bug which reports several times an unique title with the same length
-			// The "maybe wrong" title is taken into account only if his length is smaller than 1 hour.
-			// Common sense is a single video track on a DVD is usually greater than 1h
+			/**
+			 * Don't take into account titles less than 10 seconds
+			 * Also, workaround for the MPlayer bug which reports a unique title with the same length several times
+			 * The "maybe wrong" title is taken into account only if its duration is less than 1 hour.
+			 * Common-sense is a single video track on a DVD is usually greater than 1h
+			 */
 			if (titles[i] > 10 && (titles[i] != oldduration || oldduration < 3600)) {
 				DVDISOTitle dvd = new DVDISOTitle(f, i);
 				addChild(dvd);

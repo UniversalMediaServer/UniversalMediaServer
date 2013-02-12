@@ -27,6 +27,7 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
 import net.pms.external.StartStopListenerDelegate;
@@ -52,6 +53,7 @@ public class RequestV2 extends HTTPResource {
 	private static int BUFFER_SIZE = 8 * 1024;
 	private static final int[] MULTIPLIER = new int[] { 1, 60, 3600, 24*3600};
 	private final String method;
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	/**
 	 * A {@link String} that contains the argument with which this {@link RequestV2} was
@@ -296,7 +298,16 @@ public class RequestV2 extends HTTPResource {
 					if (subs != null && !subs.isEmpty()) {
 						// TODO: maybe loop subs to get the requested subtitle type instead of using the first one
 						DLNAMediaSubtitle sub = subs.get(0);
-						inputStream = new java.io.FileInputStream(sub.getExternalFile());
+
+						try {
+							// XXX external file is null if the first subtitle track is embedded:
+							// http://www.ps3mediaserver.org/forum/viewtopic.php?f=3&t=15805&p=75534#p75534
+							if (sub.isExternal()) {
+								inputStream = new java.io.FileInputStream(sub.getExternalFile());
+							}
+						} catch (NullPointerException npe) {
+							LOGGER.trace("Could not find external subtitles: " + sub);
+						}
 					}
 				} else {
 					// This is a request for a regular file.
@@ -341,6 +352,9 @@ public class RequestV2 extends HTTPResource {
 					}
 
 					String name = dlna.getDisplayName(mediaRenderer);
+					if (dlna.isNoName()) {
+						name = dlna.getName() + " " + dlna.getDisplayName(mediaRenderer);
+					}
 
 					if (inputStream == null) {
 						// No inputStream indicates that transcoding / remuxing probably crashed.
@@ -354,17 +368,6 @@ public class RequestV2 extends HTTPResource {
 
 						if (rendererMimeType != null && !"".equals(rendererMimeType)) {
 							output.setHeader(HttpHeaders.Names.CONTENT_TYPE, rendererMimeType);
-						}
-
-						final DLNAMediaInfo media = dlna.getMedia();
-						if (media != null) {
-							if (isNotBlank(media.getContainer())) {
-								name += " [container: " + media.getContainer() + "]";
-							}
-
-							if (isNotBlank(media.getCodecV())) {
-								name += " [video: " + media.getCodecV() + "]";
-							}
 						}
 
 						PMS.get().getFrame().setStatusLine("Serving " + name);
@@ -433,6 +436,7 @@ public class RequestV2 extends HTTPResource {
 			} else {
 				output.setHeader(HttpHeaders.Names.CONTENT_TYPE, "image/jpeg");
 			}
+
 			output.setHeader(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
 			output.setHeader(HttpHeaders.Names.CONNECTION, "keep-alive");
 			output.setHeader(HttpHeaders.Names.EXPIRES, getFUTUREDATE() + " GMT");
@@ -444,16 +448,19 @@ public class RequestV2 extends HTTPResource {
 			output.setHeader(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
 			output.setHeader(HttpHeaders.Names.CONNECTION, "keep-alive");
 			inputStream = getResourceInputStream((argument.equals("description/fetch") ? "PMS.xml" : argument));
+
 			if (argument.equals("description/fetch")) {
 				byte b[] = new byte[inputStream.available()];
 				inputStream.read(b);
 				String s = new String(b);
 				s = s.replace("[uuid]", PMS.get().usn()); //.substring(0, PMS.get().usn().length()-2));
-				String profileName = PMS.getConfiguration().getProfileName();
+				String profileName = configuration.getProfileName();
+
 				if (PMS.get().getServer().getHost() != null) {
 					s = s.replace("[host]", PMS.get().getServer().getHost());
 					s = s.replace("[port]", "" + PMS.get().getServer().getPort());
 				}
+
 				if (xbox) {
 					LOGGER.debug("DLNA changes for Xbox 360");
 					s = s.replace("Universal Media Server", "Universal Media Server [" + profileName + "] : Windows Media Connect");
@@ -472,9 +479,10 @@ public class RequestV2 extends HTTPResource {
 					// hacky stuff. replace the png icon by a jpeg one. Like mpeg2 remux,
 					// really need a proper format compatibility list by renderer
 					s = s.replace("<mimetype>image/png</mimetype>", "<mimetype>image/jpeg</mimetype>");
-					s = s.replace("/images/thumbnail-256.png", "/images/thumbnail-120.jpg");
+					s = s.replace("/images/thumbnail-video-256.png", "/images/thumbnail-video-120.jpg");
 					s = s.replace(">256<", ">120<");
 				}
+
 				response.append(s);
 				inputStream = null;
 			}
@@ -484,6 +492,7 @@ public class RequestV2 extends HTTPResource {
 			response.append(CRLF);
 			response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
 			response.append(CRLF);
+
 			if (soapaction != null && soapaction.contains("IsAuthorized")) {
 				response.append(HTTPXMLHelper.XBOX_2);
 				response.append(CRLF);
@@ -491,13 +500,15 @@ public class RequestV2 extends HTTPResource {
 				response.append(HTTPXMLHelper.XBOX_1);
 				response.append(CRLF);
 			}
+
 			response.append(HTTPXMLHelper.BROWSERESPONSE_FOOTER);
 			response.append(CRLF);
 			response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 			response.append(CRLF);
 		} else if (method.equals("POST") && argument.endsWith("upnp/control/connection_manager")) {
 			output.setHeader(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
-			if (soapaction.indexOf("ConnectionManager:1#GetProtocolInfo") > -1) {
+
+			if (soapaction != null && soapaction.indexOf("ConnectionManager:1#GetProtocolInfo") > -1) {
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
@@ -509,7 +520,8 @@ public class RequestV2 extends HTTPResource {
 			}
 		} else if (method.equals("POST") && argument.endsWith("upnp/control/content_directory")) {
 			output.setHeader(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
-			if (soapaction.indexOf("ContentDirectory:1#GetSystemUpdateID") > -1) {
+
+			if (soapaction != null && soapaction.indexOf("ContentDirectory:1#GetSystemUpdateID") > -1) {
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
@@ -522,7 +534,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
-			} else if (soapaction.indexOf("ContentDirectory:1#X_GetFeatureList") > -1) { // Added for Samsung 2012 TVs
+			} else if (soapaction != null && soapaction.indexOf("ContentDirectory:1#X_GetFeatureList") > -1) { // Added for Samsung 2012 TVs
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
@@ -531,7 +543,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
-			} else if (soapaction.indexOf("ContentDirectory:1#GetSortCapabilities") > -1) {
+			} else if (soapaction != null && soapaction.indexOf("ContentDirectory:1#GetSortCapabilities") > -1) {
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
@@ -540,7 +552,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
-			} else if (soapaction.indexOf("ContentDirectory:1#GetSearchCapabilities") > -1) {
+			} else if (soapaction != null && soapaction.indexOf("ContentDirectory:1#GetSearchCapabilities") > -1) {
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
@@ -549,12 +561,12 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
-			} else if (soapaction.contains("ContentDirectory:1#Browse") || soapaction.contains("ContentDirectory:1#Search")) {
+			} else if (soapaction != null && (soapaction.contains("ContentDirectory:1#Browse") || soapaction.contains("ContentDirectory:1#Search"))) {
 				objectID = getEnclosingValue(content, "<ObjectID>", "</ObjectID>");
 				String containerID = null;
 				if ((objectID == null || objectID.length() == 0)) {
 					containerID = getEnclosingValue(content, "<ContainerID>", "</ContainerID>");
-					if (!containerID.contains("$")) {
+					if (containerID == null && !containerID.contains("$")) {
 						objectID = "0";
 					} else {
 						objectID = containerID;
@@ -578,7 +590,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
 				response.append(CRLF);
 
-				if (soapaction.contains("ContentDirectory:1#Search")) {
+				if (soapaction != null && soapaction.contains("ContentDirectory:1#Search")) {
 					response.append(HTTPXMLHelper.SEARCHRESPONSE_HEADER);
 				} else {
 					response.append(HTTPXMLHelper.BROWSERESPONSE_HEADER);
@@ -588,13 +600,13 @@ public class RequestV2 extends HTTPResource {
 				response.append(HTTPXMLHelper.RESULT_HEADER);
 				response.append(HTTPXMLHelper.DIDL_HEADER);
 
-				if (soapaction.contains("ContentDirectory:1#Search")) {
+				if (soapaction != null && soapaction.contains("ContentDirectory:1#Search")) {
 					browseFlag = "BrowseDirectChildren";
 				}
 
 				// XBOX virtual containers ... d'oh!
 				String searchCriteria = null;
-				if (xbox && PMS.getConfiguration().getUseCache() && PMS.get().getLibrary() != null && containerID != null) {
+				if (xbox && configuration.getUseCache() && PMS.get().getLibrary() != null && containerID != null) {
 					if (containerID.equals("7") && PMS.get().getLibrary().getAlbumFolder() != null) {
 						objectID = PMS.get().getLibrary().getAlbumFolder().getResourceId();
 					} else if (containerID.equals("6") && PMS.get().getLibrary().getArtistFolder() != null) {
@@ -616,7 +628,14 @@ public class RequestV2 extends HTTPResource {
 					searchCriteria = getEnclosingValue(content,"<SearchCriteria>","</SearchCriteria>");
 				}
 
-				List<DLNAResource> files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(objectID, browseFlag != null && browseFlag.equals("BrowseDirectChildren"), startingIndex, requestCount, mediaRenderer, searchCriteria);
+				List<DLNAResource> files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(
+					objectID,
+					browseFlag != null && browseFlag.equals("BrowseDirectChildren"),
+					startingIndex,
+					requestCount,
+					mediaRenderer,
+					searchCriteria
+				);
 
 				if (searchCriteria != null && files != null) {
 					searchCriteria = searchCriteria.toLowerCase();
@@ -706,7 +725,7 @@ public class RequestV2 extends HTTPResource {
 				}
 				response.append("</UpdateID>");
 				response.append(CRLF);
-				if (soapaction.contains("ContentDirectory:1#Search")) {
+				if (soapaction != null && soapaction.contains("ContentDirectory:1#Search")) {
 					response.append(HTTPXMLHelper.SEARCHRESPONSE_FOOTER);
 				} else {
 					response.append(HTTPXMLHelper.BROWSERESPONSE_FOOTER);
@@ -719,31 +738,36 @@ public class RequestV2 extends HTTPResource {
 		} else if (method.equals("SUBSCRIBE")) {
 			output.setHeader("SID", PMS.get().usn());
 			output.setHeader("TIMEOUT", "Second-1800");
-			String cb = soapaction.replace("<", "").replace(">", "");
 
-			try {
-				URL soapActionUrl = new URL(cb);
-				String addr = soapActionUrl.getHost();
-				int port = soapActionUrl.getPort();
-				Socket sock = new Socket(addr,port);
-				OutputStream out = sock.getOutputStream();
+			if (soapaction != null) {
+				String cb = soapaction.replace("<", "").replace(">", "");
 
-				out.write(("NOTIFY /" + argument + " HTTP/1.1").getBytes());
-				out.write(CRLF.getBytes());
-				out.write(("SID: " + PMS.get().usn()).getBytes());
-				out.write(CRLF.getBytes());
-				out.write(("SEQ: " + 0).getBytes());
-				out.write(CRLF.getBytes());
-				out.write(("NT: upnp:event").getBytes());
-				out.write(CRLF.getBytes());
-				out.write(("NTS: upnp:propchange").getBytes());
-				out.write(CRLF.getBytes());
-				out.write(("HOST: " + addr + ":" + port).getBytes());
-				out.write(CRLF.getBytes());
-				out.flush();
-				out.close();
-			} catch (MalformedURLException ex) {
-				LOGGER.debug("Cannot parse address and port from soap action \"" + soapaction + "\"", ex);
+				try {
+					URL soapActionUrl = new URL(cb);
+					String addr = soapActionUrl.getHost();
+					int port = soapActionUrl.getPort();
+					Socket sock = new Socket(addr,port);
+					OutputStream out = sock.getOutputStream();
+	
+					out.write(("NOTIFY /" + argument + " HTTP/1.1").getBytes());
+					out.write(CRLF.getBytes());
+					out.write(("SID: " + PMS.get().usn()).getBytes());
+					out.write(CRLF.getBytes());
+					out.write(("SEQ: " + 0).getBytes());
+					out.write(CRLF.getBytes());
+					out.write(("NT: upnp:event").getBytes());
+					out.write(CRLF.getBytes());
+					out.write(("NTS: upnp:propchange").getBytes());
+					out.write(CRLF.getBytes());
+					out.write(("HOST: " + addr + ":" + port).getBytes());
+					out.write(CRLF.getBytes());
+					out.flush();
+					out.close();
+				} catch (MalformedURLException ex) {
+					LOGGER.debug("Cannot parse address and port from soap action \"" + soapaction + "\"", ex);
+				}
+			} else {
+				LOGGER.debug("Expected soap action in request");
 			}
 
 			if (argument.contains("connection_manager")) {

@@ -823,7 +823,7 @@ download_iconv
 download_fontconfig
 download_fribidi
 download_giflib
-ownload_harfbuzz
+download_harfbuzz
 download_jpeg
 download_ncurses
 download_lame

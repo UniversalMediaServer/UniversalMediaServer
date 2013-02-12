@@ -78,7 +78,8 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		String userAgentString = null;
 		StringBuilder unknownHeaders = new StringBuilder();
 		String separator = "";
-		
+		boolean isWindowsMediaPlayer = false;
+
 		HttpRequest nettyRequest = this.nettyRequest = (HttpRequest) e.getMessage();
 
 		InetSocketAddress remoteAddress = (InetSocketAddress) e.getChannel().getRemoteAddress();
@@ -119,9 +120,14 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
 
 		if (renderer != null) {
-			PMS.get().setRendererfound(renderer);
-			request.setMediaRenderer(renderer);
-			LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on address " + ia);
+			if (!"WMP".equals(renderer.getRendererName())) {
+				PMS.get().setRendererfound(renderer);
+				request.setMediaRenderer(renderer);
+				LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on address " + ia);
+			} else {
+				LOGGER.trace("Detected and blocked Windows Media Player");
+				isWindowsMediaPlayer = true;
+			}
 		}
 		
 		for (String name : nettyRequest.getHeaderNames()) {
@@ -139,10 +145,15 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				renderer = RendererConfiguration.getRendererConfigurationByUA(userAgentString);
 
 				if (renderer != null) {
-					request.setMediaRenderer(renderer);
-					renderer.associateIP(ia);	// Associate IP address for later requests
-					PMS.get().setRendererfound(renderer);
-					LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLine + "\"");
+					if (!"WMP".equals(renderer.getRendererName())) {
+						request.setMediaRenderer(renderer);
+						renderer.associateIP(ia);	// Associate IP address for later requests
+						PMS.get().setRendererfound(renderer);
+						LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLine + "\"");
+					} else if (!isWindowsMediaPlayer) {
+						LOGGER.trace("Detected and blocked Windows Media Player");
+						isWindowsMediaPlayer = true;
+					}
 				}
 			}
 
@@ -219,48 +230,52 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			}
 		}
 
-		if (request != null) {
-			// Still no media renderer recognized?
-			if (request.getMediaRenderer() == null) {
+		if (!isWindowsMediaPlayer) {
+			if (request != null) {
+				// Still no media renderer recognized?
+				if (request.getMediaRenderer() == null) {
 
-				// Attempt 4: Not really an attempt; all other attempts to recognize
-				// the renderer have failed. The only option left is to assume the
-				// default renderer.
-				request.setMediaRenderer(RendererConfiguration.getDefaultConf());
-				LOGGER.trace("Using default media renderer " + request.getMediaRenderer().getRendererName());
+					// Attempt 4: Not really an attempt; all other attempts to recognize
+					// the renderer have failed. The only option left is to assume the
+					// default renderer.
+					request.setMediaRenderer(RendererConfiguration.getDefaultConf());
+					LOGGER.trace("Using default media renderer: " + request.getMediaRenderer().getRendererName());
 
-				if (userAgentString != null && !userAgentString.equals("FDSSDP")) {
-					// We have found an unknown renderer
-					LOGGER.info("Media renderer was not recognized. Possible identifying HTTP headers: User-Agent: " + userAgentString
-							+ ("".equals(unknownHeaders.toString()) ? "" : ", " + unknownHeaders.toString()));
-					PMS.get().setRendererfound(request.getMediaRenderer());
+					if (userAgentString != null && !userAgentString.equals("FDSSDP")) {
+						// We have found an unknown renderer
+						LOGGER.info("Media renderer was not recognized. Possible identifying HTTP headers: User-Agent: " + userAgentString
+								+ ("".equals(unknownHeaders.toString()) ? "" : ", " + unknownHeaders.toString()));
+						PMS.get().setRendererfound(request.getMediaRenderer());
+					}
+				} else {
+					if (userAgentString != null) {
+						LOGGER.debug("HTTP User-Agent: " + userAgentString);
+					}
+
+					LOGGER.trace("Recognized media renderer: " + request.getMediaRenderer().getRendererName());
 				}
-			} else {
-				if (userAgentString != null) {
-					LOGGER.trace("HTTP User-Agent: " + userAgentString);
-				}
-				LOGGER.trace("Recognized media renderer " + request.getMediaRenderer().getRendererName());
 			}
-		}
 
-		if (HttpHeaders.getContentLength(nettyRequest) > 0) {
-			byte data[] = new byte[(int) HttpHeaders.getContentLength(nettyRequest)];
-			ChannelBuffer content = nettyRequest.getContent();
-			content.readBytes(data);
-			request.setTextContent(new String(data, "UTF-8"));
-		}
+			if (HttpHeaders.getContentLength(nettyRequest) > 0) {
+				byte data[] = new byte[(int) HttpHeaders.getContentLength(nettyRequest)];
+				ChannelBuffer content = nettyRequest.getContent();
+				content.readBytes(data);
+				request.setTextContent(new String(data, "UTF-8"));
+			}
 
-		if (request != null) {
-			LOGGER.trace("HTTP: " + request.getArgument() + " / " + request.getLowRange() + "-" + request.getHighRange());
-		}
+			if (request != null) {
+				LOGGER.trace("HTTP: " + request.getArgument() + " / " + request.getLowRange() + "-" + request.getHighRange());
+			}
 
-		writeResponse(e, request, ia);
+			writeResponse(e, request, ia);
+		}
 	}
 
 	/**
 	 * Applies the IP filter to the specified internet address. Returns true
 	 * if the address is not allowed and therefore should be filtered out,
 	 * false otherwise.
+	 *
 	 * @param inetAddress The internet address to verify.
 	 * @return True when not allowed, false otherwise.
 	 */
@@ -270,17 +285,17 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 	private void writeResponse(MessageEvent e, RequestV2 request, InetAddress ia) {
 		// Decide whether to close the connection or not.
-		boolean close = HttpHeaders.Values.CLOSE.equalsIgnoreCase(nettyRequest.getHeader(HttpHeaders.Names.CONNECTION))
-			|| nettyRequest.getProtocolVersion().equals(
-			HttpVersion.HTTP_1_0)
-			&& !HttpHeaders.Values.KEEP_ALIVE.equalsIgnoreCase(nettyRequest.getHeader(HttpHeaders.Names.CONNECTION));
+		boolean close = HttpHeaders.Values.CLOSE.equalsIgnoreCase(nettyRequest.getHeader(HttpHeaders.Names.CONNECTION)) ||
+			nettyRequest.getProtocolVersion().equals(HttpVersion.HTTP_1_0) &&
+			!HttpHeaders.Values.KEEP_ALIVE.equalsIgnoreCase(nettyRequest.getHeader(HttpHeaders.Names.CONNECTION));
 
 		// Build the response object.
 		HttpResponse response;
 		if (request.getLowRange() != 0 || request.getHighRange() != 0) {
 			response = new DefaultHttpResponse(
 				HttpVersion.HTTP_1_1,
-				HttpResponseStatus.PARTIAL_CONTENT);
+				HttpResponseStatus.PARTIAL_CONTENT
+			);
 		} else {
 			String soapAction = nettyRequest.getHeader("SOAPACTION");
 
@@ -288,8 +303,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				LOGGER.debug("Invalid action in SOAPACTION: " + soapAction);
 				response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR);
 			} else {
-				response = new DefaultHttpResponse(
-				HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
+				response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
 			}
 		}
 		

@@ -159,6 +159,16 @@ public abstract class Format implements Cloneable {
 		return HTTPResource.getDefaultMimeType(type);
 	}
 
+	protected String icon = null;
+
+	public void setIcon(String filename) {
+		icon = filename;
+	}
+
+	public String getIcon() {
+		return icon;
+	}
+
 	public boolean match(String filename) {
 		boolean match = false;
 		if (filename == null) {
@@ -264,6 +274,7 @@ public abstract class Format implements Cloneable {
 	 * Return the class name for string representation.
 	 * @return The name.
 	 */
+	@Override
 	public String toString() {
 		return getClass().getSimpleName();
 	}

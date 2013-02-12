@@ -49,6 +49,7 @@ public class GeneralTab {
 	private static final String ROW_SPEC = "p, 0dlu, p, 0dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
 
 	private JCheckBox smcheckBox;
+	private JCheckBox autoStart;
 	private JCheckBox autoUpdateCheckBox;
 	private JCheckBox newHTTPEngine;
 	private JCheckBox preventSleep;
@@ -59,8 +60,8 @@ public class GeneralTab {
 	private JTextField ip_filter;
 	private JTextField maxbitrate;
 	private JComboBox renderers;
-	private JPanel pPlugins;
 	private final PmsConfiguration configuration;
+	private JCheckBox extNetBox;
 
 	GeneralTab(PmsConfiguration configuration) {
 		this.configuration = configuration;
@@ -92,12 +93,23 @@ public class GeneralTab {
 			smcheckBox.setSelected(true);
 		}
 
-		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"),
-			FormLayoutUtil.flip(cc.xyw(1, 1, 9), colSpec, orientation));
+		autoStart = new JCheckBox(Messages.getString("NetworkTab.57"));
+		autoStart.setContentAreaFilled(false);
+		autoStart.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setAutoStart((e.getStateChange() == ItemEvent.SELECTED));
+			}
+		});
+
+		if (configuration.isAutoStart()) {
+			autoStart.setSelected(true);
+		}
+
+		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), FormLayoutUtil.flip(cc.xyw(1, 1, 9), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
-		builder.addLabel(Messages.getString("NetworkTab.0"),
-			FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
+		builder.addLabel(Messages.getString("NetworkTab.0"), FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
 		final KeyedComboBoxModel kcbm = new KeyedComboBoxModel(new Object[] {
 				"ar", "bg", "ca", "zhs", "zht", "cz", "da", "nl", "en", "fi", "fr",
 				"de", "el", "iw", "is", "it", "ja", "ko", "no", "pl", "pt", "br",
@@ -139,32 +151,57 @@ public class GeneralTab {
 
 		builder.add(langs, FormLayoutUtil.flip(cc.xyw(3, 7, 7), colSpec, orientation));
 
-		builder.add(smcheckBox, FormLayoutUtil.flip(cc.xyw(1, 9, 9), colSpec, orientation));
+		builder.add(smcheckBox, FormLayoutUtil.flip(cc.xyw(1, 9, 2), colSpec, orientation));
+
+		if (Platform.isWindows()) {
+			builder.add(autoStart, FormLayoutUtil.flip(cc.xyw(3, 9, 7), colSpec, orientation));
+		}
 
 		CustomJButton service = new CustomJButton(Messages.getString("NetworkTab.4"));
 		service.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (PMS.get().installWin32Service()) {
+					LOGGER.info(Messages.getString("PMS.41"));
 					JOptionPane.showMessageDialog(
 						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 						Messages.getString("NetworkTab.11") +
 						Messages.getString("NetworkTab.12"),
-						"Information",
-						JOptionPane.INFORMATION_MESSAGE);
-
+						Messages.getString("Dialog.Information"),
+						JOptionPane.INFORMATION_MESSAGE
+					);
 				} else {
 					JOptionPane.showMessageDialog(
 						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 						Messages.getString("NetworkTab.14"),
-						"Error",
-						JOptionPane.ERROR_MESSAGE);
+						Messages.getString("Dialog.Error"),
+						JOptionPane.ERROR_MESSAGE
+					);
 				}
 			}
 		});
 		builder.add(service, FormLayoutUtil.flip(cc.xy(1, 11), colSpec, orientation));
 		if (System.getProperty(LooksFrame.START_SERVICE) != null || !Platform.isWindows()) {
 			service.setEnabled(false);
+		}
+
+		CustomJButton serviceUninstall = new CustomJButton(Messages.getString("GeneralTab.2"));
+		serviceUninstall.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				PMS.get().uninstallWin32Service();
+				LOGGER.info(Messages.getString("GeneralTab.3"));
+				JOptionPane.showMessageDialog(
+					(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+					Messages.getString("GeneralTab.3"),
+					Messages.getString("Dialog.Information"),
+					JOptionPane.INFORMATION_MESSAGE
+				);
+			}
+		});
+		builder.add(serviceUninstall, FormLayoutUtil.flip(cc.xy(3, 11), colSpec, orientation));
+		if (System.getProperty(LooksFrame.START_SERVICE) != null || !Platform.isWindows()) {
+			serviceUninstall.setEnabled(false);
 		}
 
 		CustomJButton checkForUpdates = new CustomJButton(Messages.getString("NetworkTab.8"));
@@ -200,7 +237,7 @@ public class GeneralTab {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JPanel tPanel = new JPanel(new BorderLayout());
-				final File conf = new File(PMS.getConfiguration().getProfilePath());
+				final File conf = new File(configuration.getProfilePath());
 				final JTextArea textArea = new JTextArea();
 				textArea.setFont(new Font("Courier", Font.PLAIN, 12));
 				JScrollPane scrollPane = new JScrollPane(textArea);
@@ -237,7 +274,7 @@ public class GeneralTab {
 						fos.write(text.getBytes());
 						fos.flush();
 						fos.close();
-						PMS.getConfiguration().reload();
+						configuration.reload();
 					} catch (Exception e1) {
 						JOptionPane.showMessageDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 							Messages.getString("NetworkTab.52") + e1.toString());
@@ -248,15 +285,7 @@ public class GeneralTab {
 		builder.add(confEdit, FormLayoutUtil.flip(cc.xy(1, 15), colSpec, orientation));
 
 		host = new JTextField(configuration.getServerHostname());
-		host.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		host.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setHostname(host.getText());
@@ -264,15 +293,7 @@ public class GeneralTab {
 		});
 
 		port = new JTextField(configuration.getServerPort() != 5001 ? "" + configuration.getServerPort() : "");
-		port.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		port.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				try {
@@ -306,15 +327,7 @@ public class GeneralTab {
 		});
 
 		ip_filter = new JTextField(configuration.getIpFilter());
-		ip_filter.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		ip_filter.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setIpFilter(ip_filter.getText());
@@ -322,18 +335,10 @@ public class GeneralTab {
 		});
 
 		maxbitrate = new JTextField(configuration.getMaximumBitrate());
-		maxbitrate.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		maxbitrate.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				PMS.getConfiguration().setMaximumBitrate(maxbitrate.getText());
+				configuration.setMaximumBitrate(maxbitrate.getText());
 			}
 		});
 
@@ -419,6 +424,18 @@ public class GeneralTab {
 
 		builder.add(fdCheckBox, FormLayoutUtil.flip(cc.xyw(1, 37, 9), colSpec, orientation));
 
+		// External network box
+		extNetBox = new JCheckBox(Messages.getString("NetworkTab.56"));
+		extNetBox.setContentAreaFilled(false);
+		extNetBox.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setExternalNetwork((e.getStateChange() == ItemEvent.SELECTED));
+			}
+		});
+		extNetBox.setSelected(configuration.getExternalNetwork());
+		builder.add(extNetBox, FormLayoutUtil.flip(cc.xy(1, 38), colSpec, orientation));
+
 		JPanel panel = builder.getPanel();
 
 		// Apply the orientation to the panel and all components in it
@@ -427,7 +444,8 @@ public class GeneralTab {
 		JScrollPane scrollPane = new JScrollPane(
 			panel,
 			JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
+		);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
 		return scrollPane;
 	}

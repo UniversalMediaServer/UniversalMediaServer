@@ -49,7 +49,7 @@ public class HTMLConsole {
 			sb.append("<p align=center><b>Scan stopped!</b></p><br>");
 		}
 
-		sb.append("<p align=center><img src='/images/thumbnail-256.png'><br>").append(PropertiesUtil.getProjectProperties().get("project.name")).append(" HTML console<br><br>Menu:<br>");
+		sb.append("<p align=center><img src='/images/logo.png'><br>").append(PropertiesUtil.getProjectProperties().get("project.name")).append(" HTML console<br><br>Menu:<br>");
 		sb.append("<a href=\"home\">Home</a><br>");
 		sb.append("<a href=\"scan\">Scan folders</a><br>");
 		sb.append("<a href=\"compact\">Shrink cache database (not recommended)</a>");

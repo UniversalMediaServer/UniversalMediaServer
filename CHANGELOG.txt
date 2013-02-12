@@ -1,4 +1,258 @@
-1.7.0 - 2012-10-??
+2.4.1 - 2013-02-??
+
+	General:
+		
+
+2.4.0 - 2013-02-10
+
+	General:
+		FFmpeg supports external subtitles
+		Linux build includes MPlayer, MEncoder and FFmpeg binaries like the other versions always have
+		Fixed user setting to automatically load external subtitles
+		Audio/subtitle language priority is now blank by default
+		Improved RealVideo file support
+		Added log level selector to the Logs tab
+		Improved MP4 compatibility on PS3
+		The word "the" at the start of filenames is ignored while sorting by default
+		Program runs on Windows startup by default, can be changed on the General Configuration tab
+		Fixed support for the Channels plugin
+	Languages:
+		Updated Czech translation
+		Updated Russian translation (thanks, Tianuchka!)
+		Made more things translatable
+	External Components:
+		Added MPlayer/MEncoder SB49 for Linux
+		Added FFmpeg SB6 for Linux
+		Updated Java Runtime Environment automatic downloader for Windows to 7u13, which:
+			Fixes serious security holes
+		Updated FFmpeg for Windows to SB6, which:
+			Enables external subtitles
+
+2.3.0 - 2013-01-27
+
+	General:
+		FFmpeg supports audio selection
+		Improved MKV/MP4 support on PS3
+		Fixed rare bug where files stop half way through
+		Support streaming mp4 to WD TV Live
+		Added initial support for Vizio Smart TVs
+		Fixed playback on unknown renderers
+		Fixed several FFmpeg-related bugs
+		Improved support for videos whose containers change aspect ratios
+		Tried to fix headless mode detection on Ubuntu
+		Fixed various bugs
+	External Components:
+		Updated FFmpeg for Windows to SB5, which:
+			Improves AC-3 audio buffering
+			Fixes memory leaks
+			Fixes a bug which detected transport streams as finished when they weren't
+			Improved MPEG-PS encoding
+			Made error codes more meaningful
+			Improves Matroska (MKV) support
+			Improves threading
+			Optimized AC-3 decoding
+		Updated InterFrame to 2.4.0, which:
+			Improves scene-change detection
+
+2.2.6 - 2013-01-21
+
+	General:
+		Some renderers (like Philips HTS) can connect more quickly with the server
+		Improved support for Sony Bravia HX series TVs
+		Improved design on OS X
+		Fixed FFmpeg video transcoding on Xbox
+		Fixed file permissions on Linux
+		Plugins can use custom icons for files (thanks, skeptical!)
+	Languages:
+		Updated Korean translation (thanks, sunghyuk!)
+	External Components:
+		Updated MPlayer/MEncoder for Windows to SB49, which:
+			Improves MP3 encoding speed
+			Improves MKV support
+			Improves threading
+			Fixes memory leaks
+
+2.2.5 - 2013-01-16
+
+	General:
+		Fixed transcoding support on some renderers (thanks for testing, Raker13!)
+		Merged the Video Settings folder into the Server Settings folder
+		Fixed a bug with the cache (thanks, valib!)
+		Several code optimizations (thanks, valib!)
+	External Components:
+		Updated Java Runtime Environment automatic downloader for Windows to 7u11, which:
+			Fixes serious security holes
+
+2.2.4 - 2013-01-09
+
+	General:
+		Prevents internal and external subtitles from showing at the same time
+	External Components:
+		Updated MPlayer/MEncoder to SB48, which:
+			Runs faster
+			Crashes less
+			Detects framerates more accurately
+			Fixed subtitle bug on certain CPUs
+			Improved audio/video sync
+			Fixed memory leaks
+			Improves AVI support
+			Fixed audio stuttering/repeating bug
+			Fixed alpha for ASS subtitles
+			Improves permissions handling on Windows
+			Removes incorrectly categorised fonts
+			Makes ASS/SSA subtitle rendering up to 3.5x faster
+			Improves AC-3 audio buffering
+			Fixes a bug which detected transport streams as finished when they weren't
+			Improved MPEG-PS encoding
+
+2.2.3 - 2013-01-07
+
+	General:
+		Temporarily rolled back MPlayer/MEncoder for Windows to SB42 to fix playback bugs
+
+2.2.2 - 2013-01-03
+
+	General:
+		Improved support of many files, especially on non-PS3 renderers
+		Fixed AVI support on Panasonic TVs
+		Cleaned up the "serving" text at the bottom of the program
+		Fixed conditional horizontal scrollbar
+		More accurately determine which formats tsMuxeR supports
+	External Components:
+		Updated InterFrame to 2.3.0, which:
+			Increased speed
+			Improved quality in high-action scenes
+			Optimised memory use
+			Supports more video cards
+		Updated MPlayer/MEncoder to SB47, which:
+			Disabled direct rendering for non-ref frames only again
+			Fixes a bug which detected transport streams as finished when they weren't
+
+2.2.1 - 2012-12-21
+
+	General:
+		Improved MEncoder audio sync
+		Improved TS video support on PS3
+		Installer offers to automatically close UMS if it is running
+		Updated JRE auto-download to 7u10
+		Fixed tsMuxeR support on non-PS3 renderers
+		Improved MediaInfo support
+		More files work on Panasonic TVs
+		Updated images for PS3 and Panasonic TV renderers
+	External Components:
+		Updated MPlayer/MEncoder to SB46, which:
+			Makes ASS/SSA subtitle rendering up to 3.5x faster
+			Improves sync for files with negative timestamps
+			Improves AC-3 audio buffering
+			Fixes memory leaks
+
+2.2.0 - 2012-12-11
+
+	General:
+		Added option that creates virtual A-Z subfolders in folders with a lot of files (the last option on the Navigation/Share Settings page)
+		Added option to the Windows installer to perform a "clean install", which removes all configuration files before installing
+		Design and usability improvements
+		Logging improvements
+		Fixed audio/subtitle priority defaults
+		"Definitely disable subtitles" is more reliable
+		Fixed FFmpeg Web Video streaming
+		Fixed DTS support in FFmpeg
+		Improved FFmpeg speed
+		Added support for creating thumbnails from TIFF and other formats
+		Fixed numerous smaller bugs
+		Made thumbnail generation and browsing faster
+		Don't show the text "{External Subtitles}" if the display name is "[No Encoding]" within the transcode folder
+		Added support for True Motion and convertfps to AviSynth/FFmpeg engine
+		Made multithreading more stable with AviSynth/FFmpeg engine
+		Fixed RTL subtitle support
+		Improved stability while seeking and transcoding
+		Fixed custom MEncoder settings at renderer level
+		Added a check to the Windows installer that prevents installation until UMS is closed
+	Languages:
+		Minor updates to all languages
+		More text is translatable
+		Updated Brazilian
+		Updated Czech
+	Renderers:
+		Support more Android players (thanks, ExSport!)
+		Improved support for Panasonic TVs (thanks, ExSport!)
+	External Components:
+		Updated MPlayer/MEncoder to SB45, which:
+			Fixed audio stuttering/repeating bug
+			Fixed alpha for ASS subtitles
+			Improves permissions handling on Windows
+			Removes incorrectly categorised fonts
+		Updated FFmpeg to SB4, which:
+			Improves audio sync when seeking
+			Supports more rare avi files
+			Improves support for demuxing DTS-HD
+			Fixes dozens of memory leaks
+			Improves audio sync for some AVI files using MP3 audio
+			Improves FPS detection
+			Improved sync for interlaced video
+			Allows mid-stream channel layout change for flac audio
+			Supports 24-bit flac encoding
+			Improves support for some CPU-optimisations
+			Fixed a lot of bugs with the implementation of h264
+
+2.1.2 - 2012-12-01
+
+	General:
+		Fixed subtitle support for RTL languages (Arabic, Persian, etc.)
+		Updated MPlayer/MEncoder to SB44, which:
+			Fixed subtitle bug on certain CPUs
+			Improved audio/video sync in some cases
+			Fixed memory leaks
+			Improves AVI support
+
+2.1.1 - 2012-11-25
+
+	General:
+		Fixed a bug preventing UMS from starting
+		Improved Plugin Management page design
+		Minor language update
+
+2.1.0 - 2012-11-23
+
+	General:
+		Enabled HiDPI for retina displays
+		Fixed a bug that prevented showing Galaxy Nexus pictures
+		Allow plugins more freedom on install
+		Logging improvements
+		Stop Windows Media Player from being detected because it has never been supported
+		Language clarifications
+		Updated Dutch Traditional translation (thanks, leroy!)
+		Added support for all 3D SBS videos
+		Fixed blocky video with some files
+		Fixed bug where the program would not start without an internet connection
+		Checks for VSFilter (AviSynth subtitles plugin) in K-Lite Codec Pack
+		Fixed crash when scanning some MP3 files with large cover images on Linux (#22)
+		Added support for external subtitles with the AviSynth/MEncoder engine
+		Stopped virtual folder names being cut off after periods
+		Fixed several rare crashes
+		Renamed the Traces tab to Logs
+		Made text and buttons on the Logs page more readable
+	Plugin Management:
+		Fixed and improved credentials management
+		Improved Plugin Management tab design
+		Buggy plugins no longer logspam
+	Renderers:
+		Added support for Sony Bravia EX620 TVs (thanks, morisato!)
+	External components:
+		Updated H2 Database Engine to 1.3.169, which:
+			Makes library scanning faster
+		Updated InterFrame to 2.2.0, which:
+			Has less artifacts in the interpolated frames
+		Rolled back MediaInfo on OS X to 0.7.58, which:
+			Fixes a bug that caused all videos to be transcoded instead of streamed
+		Updated MPlayer/MEncoder to SB43, which:
+			Runs faster
+			Crashes less
+			Leaks memory less
+			Detects framerates more accurately
+			Improves audio sync
+
+2.0.0 - 2012-10-31
 
 	General:
 		Design facelift
@@ -15,22 +269,31 @@
 		Fixed error while loading iPhoto library
 		Updated many program dependencies to benefit from many bugfixes
 		Fixed bug where disabled engines would be picked
-		Updated Android.conf to enable streaming more file formats
-		Branding updates
 		Updated links on the Help page
 		Made renderer config layouts more synchronised
+		Added a button to uninstall the Windows service
+		Removed fontconfig from MEncoder for Mac OSX for improved subs compatibility
+		Made names in the transcode folder shorter by removing redundant information
+		The user preference to hide file extensions is applied to the transcode folder subfolder names
 	External components:
-		Updated MPlayer/MEncoder to SB41, which:
+		Updated MPlayer/MEncoder to SB42, which:
 			Runs faster
 			Improves audio/video sync
 			Faster handling of ASS/SSA subtitles
 			Improves DVD support
+		Updated FFmpeg to SB3, which:
+			Fixes memory leaks
+			Fixes other bugs
 		Updated MediaInfo to 0.7.61, which:
 			Fixes MKV framerate detection bug
 			Fixes E-AC-3 duration detection bug
 			More reliable DTS bitrate detection
-	Mac OS X:
-		Removed fontconfig from MEncoder for Mac OSX for improved subs compatibility
+		Updated Java Service Wrapper to 3.5.15, which:
+			Improves Windows permissions handling
+	Renderers:
+		Added support for Sony Bravia HX800 TVs (thanks, lelin!)
+		Enabled streaming more file formats to Android devices
+		Improved DivX support on Panasonic devices (thanks, ExSport!)
 	Plugin Management:
 		Created new "Plugin Management" tab
 		Added button to edit the plugin credential file
@@ -40,7 +303,7 @@
 		Added "version" column to plugin installer
 	Languages:
 		Turkish flag added for the transcode folder
-		Updated English settings labels
+		Updated settings labels for all languages
 
 1.6.0 - 2012-10-01
 

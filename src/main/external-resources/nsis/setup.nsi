@@ -1,4 +1,5 @@
 !include "MUI.nsh"
+!include "MUI2.nsh"
 !include "FileFunc.nsh"
 !include "TextFunc.nsh"
 !include "WordFunc.nsh"
@@ -26,6 +27,7 @@ SetCompressorDictSize 32
 !define MUI_ABORTWARNING
 !define MUI_FINISHPAGE_RUN "$INSTDIR\UMS.exe"
 !define MUI_WELCOMEFINISHPAGE_BITMAP "${NSISDIR}\Contrib\Graphics\Wizard\win.bmp"
+!define MUI_PAGE_CUSTOMFUNCTION_LEAVE WelcomeLeave
 
 !define MUI_FINISHPAGE_SHOWREADME ""
 !define MUI_FINISHPAGE_SHOWREADME_NOTCHECKED
@@ -34,7 +36,8 @@ SetCompressorDictSize 32
 
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_DIRECTORY
-Page custom SetMem SetMemLeave ;Custom page
+Page Custom LockedListShow LockedListLeave
+Page custom AdvancedSettings AdvancedSettingsAfterwards ;Custom page
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
 !insertmacro MUI_UNPAGE_CONFIRM
@@ -65,13 +68,33 @@ Section -Prerequisites
 
 SectionEnd
 
+Function WelcomeLeave
+  StrCpy $R1 0
+FunctionEnd
+
+Function LockedListShow
+  StrCmp $R1 0 +2 ; Skip the page if clicking Back from the next page.
+    Abort
+  !insertmacro MUI_HEADER_TEXT `UMS must be closed before installation` `Clicking Next will automatically close it.`
+  LockedList::AddModule "$INSTDIR\MediaInfo.dll"
+  LockedList::Dialog /autonext /autoclosesilent
+  Pop $R0
+FunctionEnd
+
+Function LockedListLeave
+  StrCpy $R1 1
+FunctionEnd
+
 Var Dialog
 Var Text
-Var Label
-Var Desc
+Var LabelMemoryLimit
+Var DescMemoryLimit
+Var CheckboxCleanInstall
+Var CheckboxCleanInstallState
+Var DescCleanInstall
 
-Function SetMem
-	!insertmacro MUI_HEADER_TEXT "Choose Memory Allocation" "Choose the maximum amount of memory to allow UMS to use." 
+Function AdvancedSettings
+	!insertmacro MUI_HEADER_TEXT "Advanced Settings" "If you don't understand them, don't change them." 
 	nsDialogs::Create 1018
 	Pop $Dialog
 
@@ -79,21 +102,33 @@ Function SetMem
 		Abort
 	${EndIf}
 
-	${NSD_CreateLabel} 0 0 100% 20u "This allows you to set the Java's Heap size limit. If you are not sure what this means, just leave it at 768. Click Install to continue."
-	Pop $Desc
+	${NSD_CreateLabel} 0 0 100% 20u "This allows you to set the Java Heap size limit. If you are not sure what this means, just leave it at 768."
+	Pop $DescMemoryLimit
 	
-	${NSD_CreateLabel} 2% 50% 37% 12u "Maximum memory in megabytes"
-	Pop $Label
+	${NSD_CreateLabel} 2% 20% 37% 12u "Maximum memory in megabytes"
+	Pop $LabelMemoryLimit
 
-	${NSD_CreateText} 3% 60% 10% 12u "768"
+	${NSD_CreateText} 3% 30% 10% 12u "768"
 	Pop $Text
+
+	${NSD_CreateLabel} 0 50% 100% 20u "This replaces your current configuration files with new ones, allowing you to take advantage of improved defaults. This will delete all files in the UMS configuration directory."
+	Pop $DescCleanInstall
+
+	${NSD_CreateCheckbox} 3% 65% 100% 12u "Clean install"
+	Pop $CheckboxCleanInstall
 
 	nsDialogs::Show
 FunctionEnd
 
-Function SetMemLeave
+Function AdvancedSettingsAfterwards
 	${NSD_GetText} $Text $0
 	WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "HeapMem" "$0"
+
+	${NSD_GetState} $CheckboxCleanInstall $CheckboxCleanInstallState
+	${If} $CheckboxCleanInstallState == ${BST_CHECKED}
+		ReadENVStr $R1 ALLUSERSPROFILE
+		RMDir /r $R1\UMS
+	${EndIf}
 FunctionEnd
 
 Function CreateDesktopShortcut
@@ -118,6 +153,8 @@ Section "Program Files"
   File "${PROJECT_BASEDIR}\LICENSE.txt"
   File "${PROJECT_BASEDIR}\src\main\external-resources\logback.xml"
   File "${PROJECT_BASEDIR}\src\main\external-resources\icon.ico"
+
+  CreateDirectory "$INSTDIR\data"
 
   ;the user may have set the installation dir
   ;as the profile dir, so we can't clobber this
@@ -147,6 +184,7 @@ Section "Program Files"
   ReadENVStr $R0 ALLUSERSPROFILE
   SetOutPath "$R0\UMS"
   AccessControl::GrantOnFile "$R0\UMS" "(S-1-5-32-545)" "FullAccess"
+  AccessControl::GrantOnFile "$INSTDIR\data" "(BU)" "FullAccess"
   File "${PROJECT_BASEDIR}\src\main\external-resources\UMS.conf"
   File "${PROJECT_BASEDIR}\src\main\external-resources\WEB.conf"
 SectionEnd
@@ -157,6 +195,8 @@ Section "Start Menu Shortcuts"
   CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
   CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\${PROJECT_NAME} (Select Profile).lnk" "$INSTDIR\UMS.exe" "profiles" "$INSTDIR\UMS.exe" 0
   CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\Uninstall.lnk" "$INSTDIR\uninst.exe" "" "$INSTDIR\uninst.exe" 0
+  CreateShortCut "$SMSTARTUP\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
+  CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
 SectionEnd
 
 Section "Uninstall"
@@ -167,6 +207,7 @@ Section "Uninstall"
   RMDir /R /REBOOTOK "$INSTDIR\renderers"
   RMDir /R /REBOOTOK "$INSTDIR\documentation"
   RMDir /R /REBOOTOK "$INSTDIR\win32"
+  RMDir /R /REBOOTOK "$INSTDIR\data"
   Delete /REBOOTOK "$INSTDIR\UMS.exe"
   Delete /REBOOTOK "$INSTDIR\UMS.bat"
   Delete /REBOOTOK "$INSTDIR\ums.jar"

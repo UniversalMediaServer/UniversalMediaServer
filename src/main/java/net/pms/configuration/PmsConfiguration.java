@@ -19,20 +19,28 @@
 package net.pms.configuration;
 
 import com.sun.jna.Platform;
+import java.awt.Component;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import net.pms.Messages;
+import net.pms.PMS;
 import net.pms.io.SystemUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.PropertiesUtil;
+import net.pms.util.WindowsRegistry;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.ConversionException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.event.ConfigurationListener;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -64,6 +72,7 @@ public class PmsConfiguration {
 	private static final String KEY_ALTERNATE_SUBS_FOLDER = "alternate_subs_folder";
 	private static final String KEY_ALTERNATE_THUMB_FOLDER = "alternate_thumb_folder";
 	private static final String KEY_APERTURE_ENABLED = "aperture";
+	private static final String KEY_ATZ_LIMIT = "atz_limit";
 	private static final String KEY_AUDIO_BITRATE = "audiobitrate";
 	private static final String KEY_AUDIO_CHANNEL_COUNT = "audiochannels";
 	private static final String KEY_AUDIO_RESAMPLE = "audio_resample";
@@ -76,7 +85,8 @@ public class PmsConfiguration {
 	private static final String KEY_AVISYNTH_MULTITHREADING = "avisynth_multithreading";
 	private static final String KEY_AVISYNTH_SCRIPT = "avisynth_script";
 	private static final String KEY_BUFFER_MAX = "buffer_max";
-	private static final String KEY_BUFFER_TYPE = "buffertype";
+	private static final String KEY_SCRIPT_DIR = "script_dir";
+	private static final String KEY_BUFFER_TYPE = "buffertype"; // FIXME deprecated: unused
 	private static final String KEY_CHAPTER_INTERVAL = "chapter_interval";
 	private static final String KEY_CHAPTER_SUPPORT = "chapter_support";
 	private static final String KEY_CHARSET_ENCODING = "charsetencoding";
@@ -85,12 +95,15 @@ public class PmsConfiguration {
 	private static final String KEY_DVDISO_THUMBNAILS = "dvd_isos_thumbnails";
 	private static final String KEY_EMBED_DTS_IN_PCM = "embed_dts_in_pcm";
 	private static final String KEY_ENGINES = "engines";
-	private static final String KEY_FFMPEG_ALTERNATIVE_PATH = "alternativeffmpegpath";
+	private static final String KEY_FFMPEG_ALTERNATIVE_PATH = "alternativeffmpegpath"; // deprecated: FFmpegDVRMSRemux will be removed and DVR-MS will be transcoded
 	private static final String KEY_FFMPEG_MULTITHREADING = "ffmpeg_multithreading";
 	private static final String KEY_FFMPEG_AVISYNTH_MULTITHREADING = "ffmpeg_avisynth_multithreading";
+	private static final String KEY_FFMPEG_AVISYNTH_CONVERT_FPS = "ffmpeg_avisynth_convertfps";
+	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME = "ffmpeg_avisynth_interframe";
+	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
 	private static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
 	private static final String KEY_FORCETRANSCODE = "forcetranscode";
-	private static final String KEY_FOLDER_LIMIT="folder_limit";
+	private static final String KEY_FOLDER_LIMIT = "folder_limit";
 	private static final String KEY_HIDE_EMPTY_FOLDERS = "hide_empty_folders";
 	private static final String KEY_HIDE_ENGINENAMES = "hide_enginenames";
 	private static final String KEY_HIDE_EXTENSIONS = "hide_extensions";
@@ -98,6 +111,7 @@ public class PmsConfiguration {
 	private static final String KEY_HIDE_TRANSCODE_FOLDER = "hide_transcode_folder";
 	private static final String KEY_HIDE_VIDEO_SETTINGS = "hidevideosettings";
 	private static final String KEY_HTTP_ENGINE_V2 = "http_engine_v2";
+	private static final String KEY_IGNORE_THE_WORD_THE = "ignore_the_word_the";
 	private static final String KEY_IMAGE_THUMBNAILS_ENABLED = "image_thumbnails";
 	private static final String KEY_IP_FILTER = "ip_filter";
 	private static final String KEY_IPHOTO_ENABLED = "iphoto";
@@ -115,7 +129,7 @@ public class PmsConfiguration {
 	private static final String KEY_MENCODER_ASS_SHADOW = "mencoder_ass_shadow";
 	private static final String KEY_MENCODER_AUDIO_LANGS = "mencoder_audiolangs";
 	private static final String KEY_MENCODER_AUDIO_SUB_LANGS = "mencoder_audiosublangs";
-	private static final String KEY_MENCODER_CUSTOM_OPTIONS = "mencoder_decode"; // TODO (breaking change): should be renamed to e.g. mencoder_custom_options
+	private static final String KEY_MENCODER_CUSTOM_OPTIONS = "mencoder_decode"; // TODO (breaking change): should be renamed to mencoder_video_custom_options
 	private static final String KEY_MENCODER_DISABLE_SUBS = "mencoder_disablesubs";
 	private static final String KEY_MENCODER_FONT = "mencoder_font";
 	private static final String KEY_MENCODER_FONT_CONFIG = "mencoder_fontconfig";
@@ -195,7 +209,7 @@ public class PmsConfiguration {
 	private static String HOSTNAME;
 
 	private static String DEFAULT_AVI_SYNTH_SCRIPT;
-	private static final String BUFFER_TYPE_FILE = "file";
+	private static final String BUFFER_TYPE_FILE = "file"; // deprecated: unused
 	private static final int MAX_MAX_MEMORY_DEFAULT_SIZE = 400;
 	private static final int BUFFER_MEMORY_FACTOR = 368;
 	private static int MAX_MAX_MEMORY_BUFFER_SIZE = MAX_MAX_MEMORY_DEFAULT_SIZE;
@@ -213,6 +227,7 @@ public class PmsConfiguration {
 	public static final Set<String> NEED_RELOAD_FLAGS = new HashSet<String>(
 		Arrays.asList(
 			KEY_ALTERNATE_THUMB_FOLDER,
+			KEY_ATZ_LIMIT,
 			KEY_NETWORK_INTERFACE,
 			KEY_IP_FILTER,
 			KEY_SORT_METHOD,
@@ -234,7 +249,8 @@ public class PmsConfiguration {
 			KEY_SERVER_PORT,
 			KEY_SERVER_HOSTNAME,
 			KEY_CHAPTER_SUPPORT,
-			KEY_HIDE_EXTENSIONS
+			KEY_HIDE_EXTENSIONS,
+			KEY_IGNORE_THE_WORD_THE
 		)
 	);
 
@@ -286,12 +302,12 @@ public class PmsConfiguration {
 	private static final String ENV_PROFILE_PATH = "UMS_PROFILE";
 	private static final String PROFILE_DIRECTORY; // path to directory containing UMS config files
 	private static final String PROFILE_PATH; // abs path to profile file e.g. /path/to/UMS.conf
-	private static final String SKEL_PROFILE_PATH ; // abs path to skel (default) profile file e.g. /etc/skel/.config/universalmediaserver/UMS.conf
-	                                                // "project.skelprofile.dir" project property
+	private static final String SKEL_PROFILE_PATH; // abs path to skel (default) profile file e.g. /etc/skel/.config/universalmediaserver/UMS.conf
+	                                               // "project.skelprofile.dir" project property
 	private static final String PROPERTY_PROFILE_PATH = "ums.profile.path";
 
 	static {
-        // first try the system property, typically set via the profile chooser
+		// first try the system property, typically set via the profile chooser
 		String profile = System.getProperty(PROPERTY_PROFILE_PATH);
 
 		// failing that, try the environment variable
@@ -348,13 +364,14 @@ public class PmsConfiguration {
 
 			PROFILE_PATH = FilenameUtils.normalize(new File(PROFILE_DIRECTORY, DEFAULT_PROFILE_FILENAME).getAbsolutePath());
 		}
-        // set SKEL_PROFILE_PATH for Linux systems
-        String skelDir = PropertiesUtil.getProjectProperties().get("project.skelprofile.dir");
-        if (Platform.isLinux() && StringUtils.isNotBlank(skelDir)) {
-            SKEL_PROFILE_PATH = FilenameUtils.normalize(new File(new File(skelDir, PROFILE_DIRECTORY_NAME).getAbsolutePath(), DEFAULT_PROFILE_FILENAME).getAbsolutePath());
-        } else {
-            SKEL_PROFILE_PATH = null;
-        }
+
+		// set SKEL_PROFILE_PATH for Linux systems
+		String skelDir = PropertiesUtil.getProjectProperties().get("project.skelprofile.dir");
+		if (Platform.isLinux() && StringUtils.isNotBlank(skelDir)) {
+			SKEL_PROFILE_PATH = FilenameUtils.normalize(new File(new File(skelDir, PROFILE_DIRECTORY_NAME).getAbsolutePath(), DEFAULT_PROFILE_FILENAME).getAbsolutePath());
+		} else {
+			SKEL_PROFILE_PATH = null;
+		}
 	}
 
 	/**
@@ -372,8 +389,8 @@ public class PmsConfiguration {
 	 * Constructor that will initialize the PMS configuration.
 	 *
 	 * @param loadFile Set to true to attempt to load the PMS configuration
-	 * 					file from the profile path. Set to false to skip
-	 * 					loading.
+	 *                 file from the profile path. Set to false to skip
+	 *                 loading.
 	 * @throws org.apache.commons.configuration.ConfigurationException
 	 * @throws java.io.IOException
 	 */
@@ -405,9 +422,9 @@ public class PmsConfiguration {
 			}
 		}
 
-        configuration.setPath(PROFILE_PATH);
+		configuration.setPath(PROFILE_PATH);
 
-        tempFolder = new TempFolder(getString(KEY_TEMP_FOLDER_PATH, null));
+		tempFolder = new TempFolder(getString(KEY_TEMP_FOLDER_PATH, null));
 		programPaths = createProgramPathsChain(configuration);
 		Locale.setDefault(new Locale(getLanguage()));
 
@@ -680,12 +697,12 @@ public class PmsConfiguration {
 	/**
 	 * Returns the preferred maximum size for the transcoding memory buffer in megabytes.
 	 * The value returned has a top limit of {@link #MAX_MAX_MEMORY_BUFFER_SIZE}. Default
-	 * value is 400.
+	 * value is 200.
 	 *
 	 * @return The maximum memory buffer size.
 	 */
 	public int getMaxMemoryBufferSize() {
-		return Math.max(0, Math.min(MAX_MAX_MEMORY_BUFFER_SIZE, getInt(KEY_MAX_MEMORY_BUFFER_SIZE, 400)));
+		return Math.max(0, Math.min(MAX_MAX_MEMORY_BUFFER_SIZE, getInt(KEY_MAX_MEMORY_BUFFER_SIZE, 200)));
 	}
 
 	/**
@@ -1064,7 +1081,7 @@ public class PmsConfiguration {
 	 * Set to true if MEncoder should be forced to use the framerate that is
 	 * parsed by FFmpeg.
 	 * @param value Set to true if the framerate should be forced, false
-	 * 			otherwise.
+	 *              otherwise.
 	 */
 	public void setMencoderForceFps(boolean value) {
 		configuration.setProperty(KEY_MENCODER_FORCE_FPS, value);
@@ -1524,6 +1541,63 @@ public class PmsConfiguration {
 	}
 
 	/**
+	 * Returns true if UMS should automatically start on Windows.
+	 *
+	 * @return True if UMS should start automatically, false otherwise.
+	 */
+	public boolean isAutoStart() {
+		File f = new File(WindowsRegistry.readRegistry("HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders", "Common Startup") + "\\Universal Media Server.lnk");
+
+		if (f.exists()) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Set to true if UMS should automatically start on Windows.
+	 *
+	 * @param value True if UMS should start automatically, false otherwise.
+	 */
+	public void setAutoStart(boolean value) {
+		File sourceFile = new File(WindowsRegistry.readRegistry("HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders", "Common Programs") + "\\Universal Media Server.lnk");
+		File destinationFile = new File(WindowsRegistry.readRegistry("HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders", "Common Startup") + "\\Universal Media Server.lnk");
+
+		if (value) {
+			try {
+				FileUtils.copyFile(sourceFile, destinationFile);
+				if (destinationFile.exists()) {
+					LOGGER.info("UMS will start automatically with Windows");
+				} else {
+					LOGGER.info("An error occurred while trying to make UMS start automatically with Windows");
+				}
+			} catch (IOException e) {
+				if (!isAdmin()) {
+					try {
+						JOptionPane.showMessageDialog(
+							(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+							Messages.getString("NetworkTab.58"),
+							Messages.getString("Dialog.PermissionsError"),
+							JOptionPane.ERROR_MESSAGE
+						);
+					} catch (NullPointerException e2) {
+						// This happens on the initial program load, ignore it
+					}
+				} else {
+					LOGGER.info("An error occurred while trying to make UMS start automatically with Windows");
+				}
+			}
+		} else {
+			if (destinationFile.delete()) {
+				LOGGER.info("UMS will not start automatically with Windows");
+			} else {
+				LOGGER.info("An error occurred while trying to make UMS not start automatically with Windows");
+			}
+		}
+	}
+
+	/**
 	 * @deprecated use {@link #isAutoloadSubtitles()} instead.
 	 */
 	@Deprecated
@@ -1603,18 +1677,18 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Set to true if PMS should pass the flag "convertfps=true" to AviSynth.
+	 * Whether we should pass the flag "convertfps=true" to AviSynth.
 	 *
-	 * @param value True if PMS should pass the flag.
+	 * @param value True if we should pass the flag.
 	 */
 	public void setAvisynthConvertFps(boolean value) {
 		configuration.setProperty(KEY_AVISYNTH_CONVERT_FPS, value);
 	}
 
 	/**
-	 * Returns true if PMS should pass the flag "convertfps=true" to AviSynth.
+	 * Returns true if we should pass the flag "convertfps=true" to AviSynth.
 	 *
-	 * @return True if PMS should pass the flag.
+	 * @return True if we should pass the flag.
 	 */
 	public boolean getAvisynthConvertFps() {
 		return getBoolean(KEY_AVISYNTH_CONVERT_FPS, true);
@@ -1703,8 +1777,9 @@ public class PmsConfiguration {
 		return getInt(KEY_MIN_STREAM_BUFFER, 1);
 	}
 
+	@Deprecated
 	public boolean isFileBuffer() {
-		String bufferType = getString(KEY_BUFFER_TYPE, "").trim();
+		String bufferType = getString(KEY_BUFFER_TYPE, "");
 		return bufferType.equals(BUFFER_TYPE_FILE);
 	}
 
@@ -1738,6 +1813,40 @@ public class PmsConfiguration {
 	public boolean isFfmpegAviSynthMultithreading() {
 		boolean isMultiCore = getNumberOfCpuCores() > 1;
 		return getBoolean(KEY_FFMPEG_AVISYNTH_MULTITHREADING, isMultiCore);
+	}
+
+	/**
+	 * Whether we should pass the flag "convertfps=true" to AviSynth.
+	 *
+	 * @param value True if we should pass the flag.
+	 */
+	public void setFfmpegAvisynthConvertFps(boolean value) {
+		configuration.setProperty(KEY_AVISYNTH_CONVERT_FPS, value);
+	}
+
+	/**
+	 * Returns true if we should pass the flag "convertfps=true" to AviSynth.
+	 *
+	 * @return True if we should pass the flag.
+	 */
+	public boolean getFfmpegAvisynthConvertFps() {
+		return getBoolean(KEY_FFMPEG_AVISYNTH_CONVERT_FPS, true);
+	}
+
+	public void setFfmpegAvisynthInterFrame(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_AVISYNTH_INTERFRAME, value);
+	}
+
+	public boolean getFfmpegAvisynthInterFrame() {
+		return getBoolean(KEY_FFMPEG_AVISYNTH_INTERFRAME, false);
+	}
+
+	public void setFfmpegAvisynthInterFrameGPU(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU, value);
+	}
+
+	public boolean getFfmpegAvisynthInterFrameGPU() {
+		return getBoolean(KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU, false);
 	}
 
 	public boolean isMencoderNoOutOfSync() {
@@ -1780,10 +1889,12 @@ public class PmsConfiguration {
 		configuration.setProperty(KEY_MENCODER_INTELLIGENT_SYNC, value);
 	}
 
+	@Deprecated
 	public String getFfmpegAlternativePath() {
 		return getString(KEY_FFMPEG_ALTERNATIVE_PATH, null);
 	}
 
+	@Deprecated
 	public void setFfmpegAlternativePath(String value) {
 		configuration.setProperty(KEY_FFMPEG_ALTERNATIVE_PATH, value);
 	}
@@ -2227,6 +2338,14 @@ public class PmsConfiguration {
 		configuration.setProperty(KEY_AUDIO_RESAMPLE, value);
 	}
 
+	public boolean isIgnoreTheWordThe() {
+		return getBoolean(KEY_IGNORE_THE_WORD_THE, true);
+	}
+
+	public void setIgnoreTheWordThe(boolean value) {
+		configuration.setProperty(KEY_IGNORE_THE_WORD_THE, value);
+	}
+
 	/**
 	 * Returns the name of the renderer to fall back on when header matching
 	 * fails. PMS will recognize the configured renderer instead of "Unknown
@@ -2234,7 +2353,7 @@ public class PmsConfiguration {
 	 * renderer when no match can be made.
 	 *
 	 * @return The name of the renderer PMS should fall back on when header
-	 * 			matching fails.
+	 *         matching fails.
 	 * @see #isRendererForceDefault()
 	 */
 	public String getRendererDefault() {
@@ -2248,8 +2367,8 @@ public class PmsConfiguration {
 	 * match can be made.
 	 *
 	 * @param value The name of the renderer to fall back on. This has to be
-	 * 				<code>""</code> or a case insensitive match with the name
-	 * 				used in any render configuration file.
+	 *              <code>""</code> or a case insensitive match with the name
+	 *              used in any render configuration file.
 	 * @see #setRendererForceDefault(boolean)
 	 */
 	public void setRendererDefault(String value) {
@@ -2356,6 +2475,10 @@ public class PmsConfiguration {
 		return getBoolean(KEY_BUFFER_MAX, false);
 	}
 
+	public String getScriptDir() {
+		return getString(KEY_SCRIPT_DIR, null);
+	}
+
 	public String getPluginPurgeAction() {
 		return getString(KEY_PLUGIN_PURGE_ACTION, "delete");
 	}
@@ -2367,8 +2490,7 @@ public class PmsConfiguration {
 	public int getSearchRecurse() {
 		if (getBoolean(KEY_SEARCH_RECURSE, true)) {
 			return 100;
-		}
-		else {
+		} else {
 			return 0;
 		}
 	}
@@ -2399,13 +2521,12 @@ public class PmsConfiguration {
 
 	/**
 	 * Finds out whether the program has admin rights.
+	 * It only checks on Windows and returns true if on a non-Windows OS.
 	 *
-	 * Note: We could (and should) make it check for rights on other operating
-	 * systems, but for now it only checks on Windows and always returns true
-	 * if on a non-Windows OS.
-	 *
-	 * Note 2: Detection of Windows 8 depends on the user having a version of
+	 * Note: Detection of Windows 8 depends on the user having a version of
 	 * JRE newer than 1.6.0_31 installed.
+	 *
+	 * TODO: We should make it check for rights on other operating systems.
 	 */
 	public boolean isAdmin() {
 		if (
@@ -2428,7 +2549,99 @@ public class PmsConfiguration {
 				LOGGER.error("Something prevented UMS from checking Windows permissions", e);
 			}
 		}
+
 		return true;
+	}
+
+	/* Start without external netowrk (increase startup speed) */
+	public static final String KEY_EXTERNAL_NETWORK = "external_network";
+
+	public boolean getExternalNetwork() {
+		return getBoolean(KEY_EXTERNAL_NETWORK, true);
+	}
+
+	public void setExternalNetwork(boolean b) {
+		configuration.setProperty(KEY_EXTERNAL_NETWORK, b);
+	}
+
+	/* Credential path handling */
+	public static final String KEY_CRED_PATH = "cred.path";
+
+	public void initCred() throws IOException {
+		String cp = getCredPath();
+		if (StringUtils.isEmpty(cp)) {
+			// need to make sure we got a cred path here
+			cp = new File(getProfileDirectory() + File.separator + "UMS.cred").getAbsolutePath();
+			configuration.setProperty(KEY_CRED_PATH, cp);
+			try {
+				configuration.save();
+			} catch (ConfigurationException e) {
+			}
+		}
+
+		// Now we know cred path is set
+		File f = new File(cp);
+		if (!f.exists()) {
+			// cred path is set but file isn't there
+			// create empty file with some comments
+			FileOutputStream fos = new FileOutputStream(f);
+			StringBuilder sb = new StringBuilder();
+			sb.append("# Add credentials to the file");
+			sb.append("\n");
+			sb.append("# on the format tag=user,pwd");
+			sb.append("\n");
+			sb.append("# For example:");
+			sb.append("\n");
+			sb.append("# channels.xxx=name,secret");
+			sb.append("\n");
+			fos.write(sb.toString().getBytes());
+			fos.flush();
+			fos.close();
+		}
+	}
+
+	public String getCredPath() {
+		return getString(KEY_CRED_PATH, "");
+	}
+
+	public File getCredFile() {
+		return new File(getCredPath());
+	}
+
+	public int getATZLimit() {
+		int tmp = getInt(KEY_ATZ_LIMIT, 10000);
+		if (tmp <= 2) {
+			// this is silly, ignore
+			tmp = 10000;
+		}
+		return tmp;
+	}
+
+	public void setATZLimit(int val) {
+		if (val <= 2) {
+			// clear prop
+			configuration.clearProperty(KEY_ATZ_LIMIT);
+			return;
+		}
+		configuration.setProperty(KEY_ATZ_LIMIT, val);
+	}
+
+	public void setATZLimit(String str) {
+		try {
+			setATZLimit(Integer.parseInt(str));
+		} catch (Exception e) {
+			setATZLimit(0);
+		}
+	}
+
+	private String KEY_DATA_DIR = "data_dir_path";
+
+	public String getDataDir() {
+		return getString(KEY_DATA_DIR, "data");
+	}
+
+	public String getDataFile(String str) {
+		return getDataDir() + File.separator + str;
 	}
 	
 	///////////////////////////////////////////////////////////

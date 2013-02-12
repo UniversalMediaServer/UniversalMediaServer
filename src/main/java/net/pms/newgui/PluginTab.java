@@ -12,40 +12,58 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPasswordField;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.JTableHeader;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.DownloadPlugins;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
+import net.pms.util.FileUtil;
 import net.pms.util.FormLayoutUtil;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PluginTab {
+	private static final Logger LOGGER = LoggerFactory.getLogger(PluginTab.class);
 	private final PmsConfiguration configuration;
 	private static final String COL_SPEC = "left:pref, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, pref:grow";
-	private static final String ROW_SPEC = "p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p";
+	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
 	private JPanel pPlugins;
 	private ArrayList<DownloadPlugins> plugins;
 
@@ -53,6 +71,7 @@ public class PluginTab {
 		this.configuration = configuration;
 		pPlugins = null;
 		plugins = null;
+		setupCred();
 	}
 
 	public JComponent build() {
@@ -67,89 +86,8 @@ public class PluginTab {
 
 		CellConstraints cc = new CellConstraints();
 
-		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), FormLayoutUtil.flip(cc.xyw(1, 1, 9), colSpec, orientation));
-		cmp = (JComponent) cmp.getComponent(0);
-		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
-
-		// Edit Plugin Credential File button
-		CustomJButton credEdit = new CustomJButton(Messages.getString("NetworkTab.54"));
-		credEdit.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JPanel tPanel = new JPanel(new BorderLayout());
-				String cPath = (String) PMS.getConfiguration().getCustomProperty("cred.path");
-
-				if (StringUtils.isEmpty(cPath)) {
-					cPath = (String) PMS.getConfiguration().getProfileDirectory() + File.separator + "UMS.cred";
-					PMS.getConfiguration().setCustomProperty("cred.path", cPath);
-				}
-
-				final File cred = new File(cPath);
-				final boolean newFile = !cred.exists();
-				final JTextArea textArea = new JTextArea();
-				textArea.setFont(new Font("Courier", Font.PLAIN, 12));
-				JScrollPane scrollPane = new JScrollPane(textArea);
-				scrollPane.setPreferredSize(new java.awt.Dimension(900, 450));
-
-				if (!newFile) {
-					try {
-						FileInputStream fis = new FileInputStream(cred);
-						BufferedReader in = new BufferedReader(new InputStreamReader(fis));
-						String line;
-						StringBuilder sb = new StringBuilder();
-						while ((line = in.readLine()) != null) {
-							sb.append(line);
-							sb.append("\n");
-						}
-						textArea.setText(sb.toString());
-						fis.close();
-					} catch (Exception e1) {
-						return;
-					}
-				} else {
-					StringBuilder sb = new StringBuilder();
-					sb.append("# Add credentials to the file");
-					sb.append("\n");
-					sb.append("# on the format tag=user,pwd");
-					sb.append("\n");
-					sb.append("# For example:");
-					sb.append("\n");
-					sb.append("# channels.xxx=name,secret");
-					sb.append("\n");
-					textArea.setText(sb.toString());
-				}
-
-				tPanel.add(scrollPane, BorderLayout.NORTH);
-
-				Object[] options = {Messages.getString("LooksFrame.9"), Messages.getString("NetworkTab.45")};
-				if (
-					JOptionPane.showOptionDialog(
-						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-						tPanel,
-						Messages.getString("NetworkTab.54"),
-						JOptionPane.OK_CANCEL_OPTION,
-						JOptionPane.PLAIN_MESSAGE,
-						null,
-						options,
-						null
-					) == JOptionPane.OK_OPTION
-				) {
-					String text = textArea.getText();
-					try {
-						FileOutputStream fos = new FileOutputStream(cred);
-						fos.write(text.getBytes());
-						fos.flush();
-						fos.close();
-						PMS.getConfiguration().reload();
-					} catch (Exception e1) {
-						JOptionPane.showMessageDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())), Messages.getString("NetworkTab.55") + e1.toString());
-					}
-				}
-			}
-		});
-		builder.add(credEdit, FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
-
-		JComponent availablePluginsHeading = builder.addSeparator(Messages.getString("PluginTab.1"), FormLayoutUtil.flip(cc.xyw(1, 5, 9), colSpec, orientation));
+		// Available Plugins section
+		JComponent availablePluginsHeading = builder.addSeparator(Messages.getString("PluginTab.1"), FormLayoutUtil.flip(cc.xyw(1, 1, 9), colSpec, orientation));
 		availablePluginsHeading = (JComponent) availablePluginsHeading.getComponent(0);
 		availablePluginsHeading.setFont(availablePluginsHeading.getFont().deriveFont(Font.BOLD));
 
@@ -172,11 +110,7 @@ public class PluginTab {
 				java.awt.Point p = e.getPoint();
 				int rowIndex = rowAtPoint(p);
 
-				if (rowIndex == 0) {
-					return null;
-				}
-
-				DownloadPlugins plugin = plugins.get(rowIndex - 1);
+				DownloadPlugins plugin = plugins.get(rowIndex);
 				return plugin.htmlString();
 			}
 		};
@@ -198,10 +132,13 @@ public class PluginTab {
 		TableColumn descriptionColumn = table.getColumnModel().getColumn(4);
 		descriptionColumn.setMinWidth(300);
 
-		builder.add(table, FormLayoutUtil.flip(cc.xyw(1, 7, 9), colSpec, orientation));
+		JScrollPane pane = new JScrollPane(table, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		pane.setBorder(BorderFactory.createEmptyBorder());
+		pane.setPreferredSize(new Dimension(200, 139));
+		builder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 3, 9), colSpec, orientation));
 
 		CustomJButton install = new CustomJButton(Messages.getString("NetworkTab.39"));
-		builder.add(install, FormLayoutUtil.flip(cc.xy(1, 9), colSpec, orientation));
+		builder.add(install, FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
 		install.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -216,8 +153,8 @@ public class PluginTab {
 				if (!configuration.isAdmin()) {
 					JOptionPane.showMessageDialog(
 						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-						"UMS must be run as administrator in order to install plugins.",
-						"Permissions Error",
+						Messages.getString("PluginTab.15"),
+						Messages.getString("Dialog.PermissionsError"),
 						JOptionPane.ERROR_MESSAGE
 					);
 
@@ -241,19 +178,30 @@ public class PluginTab {
 
 				// Center the installation progress window
 				frame.setLocationRelativeTo(null);
-				frame.setVisible(true);
 				Runnable r = new Runnable() {
 					@Override
 					public void run() {
 						for (int i = 0; i < rows.length; i++) {
-							if (rows[i] == 0) {
-								continue;
+							DownloadPlugins plugin = plugins.get(rows[i]);
+							if (plugin.isOld()) {
+								// This plugin requires newer UMS
+								// display error and skip it.
+								JOptionPane.showMessageDialog(
+										(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+										"Plugin " + plugin.getName() + " requires a newer version of UMS. Please upgrade.",
+										"Version Error",
+										JOptionPane.ERROR_MESSAGE
+									);
+									frame.setVisible(false);
+									continue;
 							}
-							DownloadPlugins plugin = plugins.get(rows[i] - 1);
+							frame.setVisible(true);
 							inst.setText(Messages.getString("NetworkTab.50") + ": " + plugin.getName());
 							try {
 								plugin.install(label);
 							} catch (Exception e) {
+								LOGGER.debug("An error occurred when trying to install the plugin: " + plugin.getName());
+								LOGGER.debug("Full error: " + e);
 							}
 						}
 						frame.setVisible(false);
@@ -264,7 +212,7 @@ public class PluginTab {
 		});
 
 		CustomJButton refresh = new CustomJButton(Messages.getString("PluginTab.2") + " " + Messages.getString("PluginTab.1"));
-		builder.add(refresh, FormLayoutUtil.flip(cc.xy(3, 9), colSpec, orientation));
+		builder.add(refresh, FormLayoutUtil.flip(cc.xy(3, 5), colSpec, orientation));
 		refresh.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -272,12 +220,158 @@ public class PluginTab {
 			}
 		});
 
-		cmp = builder.addSeparator(Messages.getString("PluginTab.0"), FormLayoutUtil.flip(cc.xyw(1, 11, 9), colSpec, orientation));
+		// Installed Plugins section
+		JComponent cmp = builder.addSeparator(Messages.getString("PluginTab.0"), FormLayoutUtil.flip(cc.xyw(1, 7, 9), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
 		pPlugins = new JPanel(new GridLayout());
-		builder.add(pPlugins, FormLayoutUtil.flip(cc.xyw(1, 13, 9), colSpec, orientation));
+		builder.add(pPlugins, FormLayoutUtil.flip(cc.xyw(1, 9, 9), colSpec, orientation));
+
+		// Credentials section
+		cmp = builder.addSeparator(Messages.getString("PluginTab.8"), FormLayoutUtil.flip(cc.xyw(1, 11, 9), colSpec, orientation));
+		cmp = (JComponent) cmp.getComponent(0);
+		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
+
+		credTable.setRowHeight(22);
+		credTable.setIntercellSpacing(new Dimension(8, 0));
+
+		// Define column widths
+		TableColumn ownerColumn = credTable.getColumnModel().getColumn(0);
+		ownerColumn.setMinWidth(70);
+		TableColumn tagColumn = credTable.getColumnModel().getColumn(2);
+		tagColumn.setPreferredWidth(45);
+		TableColumn usrColumn = credTable.getColumnModel().getColumn(2);
+		usrColumn.setPreferredWidth(45);
+		TableColumn pwdColumn = credTable.getColumnModel().getColumn(3);
+		pwdColumn.setPreferredWidth(45);
+
+		pane = new JScrollPane(credTable, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		pane.setBorder(BorderFactory.createEmptyBorder());
+		pane.setPreferredSize(new Dimension(200, 95));
+		builder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 13, 9), colSpec, orientation));
+
+		// Add button
+		CustomJButton add = new CustomJButton(Messages.getString("PluginTab.9"));
+		builder.add(add, FormLayoutUtil.flip(cc.xy(1, 15), colSpec, orientation));
+		add.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				addEditDialog(credTable, -1);
+			}				
+		});
+
+		// Edit button
+		CustomJButton edit = new CustomJButton(Messages.getString("PluginTab.11"));
+		builder.add(edit, FormLayoutUtil.flip(cc.xy(3, 15), colSpec, orientation));
+		edit.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				addEditDialog(credTable, credTable.getSelectedRow());
+			}
+		});
+
+		// Delete button
+		CustomJButton del = new CustomJButton(Messages.getString("PluginTab.12"));
+		builder.add(del, FormLayoutUtil.flip(cc.xy(5, 15), colSpec, orientation));
+		del.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				int[] rows = credTable.getSelectedRows();
+				if (rows.length > 0) {
+					int n = JOptionPane.showConfirmDialog(
+						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+						Messages.getString("PluginTab.13"),
+						"",
+						JOptionPane.YES_NO_OPTION
+					);
+
+					if (n == JOptionPane.YES_OPTION) {
+						for (int i=0; i < rows.length; i++) {
+							String key = (String) credTable.getValueAt(rows[i], 0);
+							if (StringUtils.isNotEmpty((String) credTable.getValueAt(rows[i], 1))) {
+								key = key + "." + (String) credTable.getValueAt(rows[i], 1);
+							}
+							cred.clearProperty(key);
+						}
+					}
+
+					try {
+						cred.save();
+					} catch (ConfigurationException e1) {
+						LOGGER.warn("Couldn't save cred file " + e1);
+					}
+
+					refreshCred(credTable);
+				}
+			}
+		});
+
+		// Edit Plugin Credential File button
+		CustomJButton credEdit = new CustomJButton(Messages.getString("NetworkTab.54"));
+		credEdit.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JPanel tPanel = new JPanel(new BorderLayout());
+
+				final JTextArea textArea = new JTextArea();
+				textArea.setFont(new Font("Courier", Font.PLAIN, 12));
+				JScrollPane scrollPane = new JScrollPane(textArea);
+				scrollPane.setPreferredSize(new java.awt.Dimension(900, 450));
+
+				try {
+					configuration.initCred();
+				} catch (IOException e2) {
+					LOGGER.debug("error creating cred file");
+					return;
+				}
+
+				File f = configuration.getCredFile();
+
+				try {
+					FileInputStream fis = new FileInputStream(f);
+					BufferedReader in = new BufferedReader(new InputStreamReader(fis));
+					String line;
+					StringBuilder sb = new StringBuilder();
+					while ((line = in.readLine()) != null) {
+						sb.append(line);
+						sb.append("\n");
+					}
+					textArea.setText(sb.toString());
+					fis.close();
+				} catch (Exception e1) {
+					return;
+				}
+
+				tPanel.add(scrollPane, BorderLayout.NORTH);
+
+				Object[] options = {Messages.getString("LooksFrame.9"), Messages.getString("NetworkTab.45")};
+				if (
+					JOptionPane.showOptionDialog(
+						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+						tPanel,
+						Messages.getString("NetworkTab.54"),
+						JOptionPane.OK_CANCEL_OPTION,
+						JOptionPane.PLAIN_MESSAGE,
+						null,
+						options,
+						null
+					) == JOptionPane.OK_OPTION
+				) {
+					String text = textArea.getText();
+					try {
+						FileOutputStream fos = new FileOutputStream(f);
+						fos.write(text.getBytes());
+						fos.flush();
+						fos.close();
+						PMS.getConfiguration().reload();
+					} catch (Exception e1) {
+						JOptionPane.showMessageDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())), Messages.getString("NetworkTab.55") + e1.toString());
+					}
+				}
+			}
+		});
+		builder.add(credEdit, FormLayoutUtil.flip(cc.xy(7, 15), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 		JScrollPane scrollPane = new JScrollPane(
@@ -290,21 +384,19 @@ public class PluginTab {
 
 	private void refresh(JTable table, String[] cols) {
 		plugins = DownloadPlugins.downloadList();
-		for (int i = 0; i < cols.length; i++) {
-			table.setValueAt(cols[i], 0, i);
-		}
-
+		prepareTable(table, cols);
+		
 		DefaultTableModel tableModel = (DefaultTableModel) table.getModel();
-		tableModel.setRowCount(1);
+		tableModel.setRowCount(0);
 
 		for (int i = 0; i < plugins.size(); i++) {
-			tableModel.insertRow(i + 1, (Object[]) null);
+			tableModel.insertRow(i, (Object[]) null);
 			DownloadPlugins p = plugins.get(i);
-			table.setValueAt(p.getName(), i + 1, 0);
-			table.setValueAt(p.getVersion(), i + 1, 1);
-			table.setValueAt(p.getRating(), i + 1, 2);
-			table.setValueAt(p.getAuthor(), i + 1, 3);
-			table.setValueAt(p.getDescription(), i + 1, 4);
+			table.setValueAt(p.getName(), i, 0);
+			table.setValueAt(p.getVersion(), i, 1);
+			table.setValueAt(p.getRating(), i, 2);
+			table.setValueAt(p.getAuthor(), i, 3);
+			table.setValueAt(p.getDescription(), i, 4);
 		}
 		tableModel.fireTableDataChanged();
 	}
@@ -332,8 +424,13 @@ public class PluginTab {
 		bPlugin.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-					comp, "Options", JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);
+				JOptionPane.showOptionDialog(
+					(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+					comp,
+					Messages.getString("Dialog.Options"),
+					JOptionPane.CLOSED_OPTION,
+					JOptionPane.PLAIN_MESSAGE, null, null, null
+				);
 			}
 		});
 		int y = pPlugins.getComponentCount() + 1;
@@ -355,9 +452,236 @@ public class PluginTab {
 				}
 			}
 		}
+
 		if (del != null) {
 			pPlugins.remove(del);
 			pPlugins.repaint();
+		}
+	}
+
+	private void prepareTable(JTable table,String[] cols) {
+		JTableHeader hdr = table.getTableHeader();
+		TableColumnModel tcm = hdr.getColumnModel();
+
+		for (int i = 0; i < cols.length; i++) {
+			TableColumn tc = tcm.getColumn(i);
+			tc.setHeaderValue( cols[i] );
+		}
+
+		hdr.repaint();
+	}
+
+	/**
+	 * Credentials section
+	 */
+
+	private PropertiesConfiguration cred;
+	private JTable credTable;
+
+	private void setupCred() {
+		cred = new PropertiesConfiguration();
+		cred.setListDelimiter((char) 0);
+		String[] cols = {
+			Messages.getString("PluginTab.4"),
+			Messages.getString("PluginTab.5"),
+			Messages.getString("PluginTab.6"),
+			Messages.getString("PluginTab.7")
+		};
+		credTable = new JTable(0, cols.length) {
+			@Override
+			public boolean isCellEditable(int rowIndex, int vColIndex) {
+				return false;
+			}
+		};
+		prepareTable(credTable, cols);
+	}
+
+	public void init() {
+		File cFile = configuration.getCredFile();
+		if (cFile.isFile() && FileUtil.isFileReadable(cFile)) {
+			try {
+				cred.load(cFile);
+				cred.setFile(cFile);
+			} catch (ConfigurationException e) {
+				LOGGER.warn("Could not load cred file "+cFile);
+			}
+		} else {
+			LOGGER.warn("Cred file unreadable "+cFile);
+		}
+
+		refreshCred(credTable);
+	}
+
+	private void refreshCred(JTable table) {
+		cred.reload();
+
+		DefaultTableModel tableModel = (DefaultTableModel) table.getModel();
+		tableModel.setRowCount(0);
+
+		TableColumn tcol = credTable.getColumnModel().getColumn(3);
+		tcol.setCellRenderer(new PasswordCellRenderer());
+
+		Iterator itr = cred.getKeys();
+
+		int i = 0;
+		while (itr.hasNext()) {
+			String key = (String) itr.next();
+			if (StringUtils.isEmpty(key)) {
+				continue;
+			}
+			Object val = cred.getProperty(key); 
+			String[] ownerTag = key.split("\\.", 2);
+			ArrayList<String> usrPwd = null;
+
+			if (val instanceof String) {
+				usrPwd = new ArrayList<String>();
+				usrPwd.add((String) val);
+			} else if (val instanceof List<?>) {
+				usrPwd = (ArrayList<String>) val;
+			}
+
+			if (usrPwd == null) {
+				continue;
+			}
+
+			for (String val1 : usrPwd) {
+				tableModel.insertRow(i , (Object[]) null);
+				table.setValueAt(ownerTag[0], i , 0);
+				if (ownerTag.length > 1) {
+					table.setValueAt(ownerTag[1], i , 1);
+				}
+				String[] tmp = val1.split(",", 2);
+				if (tmp.length > 0) { 	
+					table.setValueAt(tmp[0], i , 2);
+				}
+				if (tmp.length > 1) {
+					table.setValueAt(tmp[1], i , 3);
+				}
+
+				i++;
+			}
+		}
+		tableModel.fireTableDataChanged();
+	}
+
+	private void addEditDialog(final JTable table,int row) {
+		JPanel panel = new JPanel();
+		GridLayout layout = new GridLayout(0, 2);
+		panel.setLayout(layout);
+		final JFrame frame = new JFrame(Messages.getString("PluginTab.10"));
+		frame.setSize(270, 130);
+		final JLabel owner = new JLabel(Messages.getString("PluginTab.4"));
+		final JLabel tag = new JLabel(Messages.getString("PluginTab.5"));
+		final JLabel usr = new JLabel(Messages.getString("PluginTab.6"));
+		final JLabel pwd = new JLabel(Messages.getString("PluginTab.7"));
+		final JCheckBox hidden = new JCheckBox(Messages.getString("PluginTab.14"));
+		JLabel empty = new JLabel(" ");
+		hidden.setSelected(false);
+		String o = "";
+		String t = "";
+		String u = "";
+		String p = "";
+		if (row != -1) {
+			o = (String) table.getValueAt(row, 0);
+			t = (String) table.getValueAt(row, 1);
+			u = (String) table.getValueAt(row, 2);
+			p = (String) table.getValueAt(row, 3);
+		}
+		final JTextField oText = new JTextField(o);
+		final JTextField tText = new JTextField(t);
+		final JTextField uText = new JTextField(u);
+		final JPasswordField pText = new JPasswordField(p);
+		final char defEchoChar = pText.getEchoChar();
+
+		JButton ok = new JButton(Messages.getString("Dialog.OK"));
+		ok.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				frame.setVisible(false);
+				String key = oText.getText();
+				String pwd = new String(pText.getPassword());
+				if (
+					StringUtils.isEmpty(key) || 
+					StringUtils.isEmpty(uText.getText()) ||
+					StringUtils.isEmpty(pwd)
+				) {
+					// ignore this
+					return;
+				}
+
+				if (StringUtils.isNotEmpty(tText.getText())) {
+					key = key + "." + tText.getText();
+				}
+				String val = uText.getText() + "," + pwd;
+				cred.addProperty(key, val);
+				try {
+					cred.save();
+				} catch (ConfigurationException e1) {
+					LOGGER.warn("Error saving cred file "+e1);
+				}
+				refreshCred(table);
+			}
+		});
+
+		JButton cancel = new JButton(Messages.getString("NetworkTab.45"));
+		cancel.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				frame.setVisible(false);
+			}
+		});
+
+		hidden.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					pText.setEchoChar((char) 0);
+				} else {
+					pText.setEchoChar(defEchoChar);
+				}
+			}
+		});
+
+		panel.add(owner);
+		panel.add(oText);
+		panel.add(tag);
+		panel.add(tText);
+		panel.add(usr);
+		panel.add(uText);
+		panel.add(pwd);
+		panel.add(pText);
+		panel.add(hidden);
+		panel.add(empty);
+		panel.add(ok);
+		panel.add(cancel);
+		frame.add(panel);
+
+		// Center the installation progress window
+		frame.setLocationRelativeTo(null);
+		frame.setVisible(true);
+	}
+
+	private class PasswordCellRenderer extends DefaultTableCellRenderer {
+		public PasswordCellRenderer() {
+		}
+
+		@Override
+		public Component getTableCellRendererComponent(
+			JTable  tab,
+			Object obj,
+			boolean isSelected,
+			boolean hasFocus,
+			int row,
+			int col
+		) {
+			Component c = super.getTableCellRendererComponent(tab, obj, isSelected, hasFocus, row, col);
+			JLabel l = (JLabel)c;
+
+			if (StringUtils.isNotEmpty(l.getText())) {
+				l.setText("**************");
+			}
+
+			return l;
 		}
 	}
 }

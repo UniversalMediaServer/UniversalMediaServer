@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import jwbroek.cuelib.*;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.encoders.MEncoderVideo;
 import net.pms.encoders.MPlayerAudio;
 import net.pms.encoders.Player;
@@ -17,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 public class CueFolder extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CueFolder.class);
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private File playlistfile;
 
 	public File getPlaylistfile() {
@@ -119,14 +121,14 @@ public class CueFolder extends DLNAResource {
 									// XXX aren't players supposed to be singletons?
 									// NOTE: needs new signature for getPlayer():
 									// PlayerFactory.getPlayer(MEncoderVideo.class)
-									defaultPlayer = new MEncoderVideo(PMS.getConfiguration());
+									defaultPlayer = new MEncoderVideo(configuration);
 								} else {
 									if (r.getFormat().isAudio()) {
 										// XXX PlayerFactory.getPlayer(MPlayerAudio.class)
-										defaultPlayer = new MPlayerAudio(PMS.getConfiguration());
+										defaultPlayer = new MPlayerAudio(configuration);
 									} else {
 										// XXX PlayerFactory.getPlayer(MEncoderVideo.class)
-										defaultPlayer = new MEncoderVideo(PMS.getConfiguration());
+										defaultPlayer = new MEncoderVideo(configuration);
 									}
 								}
 							}
@@ -166,8 +168,10 @@ public class CueFolder extends DLNAResource {
 					if (tracks.size() > 0 && addedResources.size() > 0) {
 						// last track
 						DLNAResource prec = addedResources.get(addedResources.size() - 1);
-						prec.getSplitRange().setEnd(prec.getMedia().getDurationInSeconds());
-						prec.getMedia().setDuration(prec.getSplitRange().getDuration());
+						try {
+							prec.getSplitRange().setEnd(prec.getMedia().getDurationInSeconds());
+							prec.getMedia().setDuration(prec.getSplitRange().getDuration());
+						} catch (NullPointerException e) { }
 						LOGGER.debug("Track #" + childrenNumber() + " split range: " + prec.getSplitRange().getStartOrZero() + " - " + prec.getSplitRange().getDuration());
 					}
 
