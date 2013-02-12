@@ -31,6 +31,8 @@ import net.pms.io.OutputParams;
 import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+
+import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -137,32 +139,12 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		// add (http) headers
 		if (params.header != null && params.header.length > 0) {
 			String hdr = new String(params.header);
-			while (hdr.length() > 0) {
-				if (hdr.charAt(0) == '\"') {
-					int pos = hdr.indexOf("\"", 1);
-					if (pos == -1) {
-						// no ", error
-						break;
-					}
-					String tmp = hdr.substring(1, pos);
-					cmdList.add(tmp.trim());
-					hdr = hdr.substring(pos + 1);
-					continue;
-				}
-				else {
-					// new arg, find space
-					int pos = hdr.indexOf(" ");
-					if (pos == -1) {
-						// no space, we're done
-						cmdList.add(hdr);
-						break;
-					}
-					String tmp = hdr.substring(0, pos);
-					cmdList.add(tmp.trim());
-					hdr = hdr.substring(pos + 1);
-					continue;
-				}
-			}
+			parseOptions(hdr, cmdList);
+		}
+		
+		// add custom options
+		if (StringUtils.isNotEmpty(renderer.getCustomFFMpegOptions())) {
+			parseOptions(renderer.getCustomFFMpegOptions(), cmdList);
 		}
 
 		// output file

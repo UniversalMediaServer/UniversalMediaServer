@@ -583,6 +583,11 @@ public class FFMpegVideo extends Player {
 
 		// add the output options (-f, -acodec, -vcodec)
 		cmdList.addAll(getTranscodeVideoOptions(renderer, media, params));
+		
+		// add custom options
+		if (StringUtils.isNotEmpty(renderer.getCustomFFMpegOptions())) {
+			parseOptions(renderer.getCustomFFMpegOptions(), cmdList);
+		}
 
 		if (!dtsRemux) {
 			cmdList.add("pipe:");
@@ -806,5 +811,34 @@ public class FFMpegVideo extends Player {
 		}
 
 		return false;
+	}
+	
+	protected void parseOptions(String str, List<String> cmdList) {
+		while (str.length() > 0) {
+			if (str.charAt(0) == '\"') {
+				int pos = str.indexOf("\"", 1);
+				if (pos == -1) {
+					// no ", error
+					break;
+				}
+				String tmp = str.substring(1, pos);
+				cmdList.add(tmp.trim());
+				str = str.substring(pos + 1);
+				continue;
+			}
+			else {
+				// new arg, find space
+				int pos = str.indexOf(" ");
+				if (pos == -1) {
+					// no space, we're done
+					cmdList.add(str);
+					break;
+				}
+				String tmp = str.substring(0, pos);
+				cmdList.add(tmp.trim());
+				str = str.substring(pos + 1);
+				continue;
+			}
+		}
 	}
 }
