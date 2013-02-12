@@ -97,6 +97,9 @@ public class RendererConfigurationTest {
 		// Samsung-SMT-G7400:
 		testCases.put("User-Agent: Linux/2.6.35 UPnP/1.0 NDS_MHF DLNADOC/1.50", "Samsung SMT-G7400");
 
+		// VideoWebTV:
+		testCases.put("friendlyName.dlna.org: VideoWEB", "VideoWeb TV");
+
 		// WDTVLive:
 		testCases.put("User-Agent: INTEL_NMPR/2.1 DLNADOC/1.50 Intel MicroStack/1.0.1423", "WD TV Live");
 
