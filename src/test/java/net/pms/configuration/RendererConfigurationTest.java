@@ -97,6 +97,12 @@ public class RendererConfigurationTest {
 		// Samsung-SMT-G7400:
 		testCases.put("User-Agent: Linux/2.6.35 UPnP/1.0 NDS_MHF DLNADOC/1.50", "Samsung SMT-G7400");
 
+		// Showtime 3:
+		testCases.put("User-Agent: Showtime 3.0", "Showtime 3");
+
+		// Showtime 4:
+		testCases.put("User-Agent: Showtime PS3 4.2", "Showtime 4");
+
 		// VideoWebTV:
 		testCases.put("friendlyName.dlna.org: VideoWeb", "VideoWeb TV");
 
