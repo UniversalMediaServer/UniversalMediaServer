@@ -97,6 +97,9 @@ public class RendererConfigurationTest {
 		// Samsung-SMT-G7400:
 		testCases.put("User-Agent: Linux/2.6.35 UPnP/1.0 NDS_MHF DLNADOC/1.50", "Samsung SMT-G7400");
 
+		// Sharp Aquos:
+		testCases.put("User-Agent: DLNADOC/1.50 SHARP-AQUOS-DMP/1.1W", "Sharp Aquos");
+
 		// Showtime 3:
 		testCases.put("User-Agent: Showtime 3.0", "Showtime 3");
 
