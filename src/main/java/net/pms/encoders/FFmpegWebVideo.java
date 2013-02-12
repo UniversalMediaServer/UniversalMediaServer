@@ -31,7 +31,6 @@ import net.pms.io.OutputParams;
 import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
-
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -141,20 +140,20 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			String hdr = new String(params.header);
 			parseOptions(hdr, cmdList);
 		}
-		
-		// add custom options
+
+		// Add custom options
 		if (StringUtils.isNotEmpty(renderer.getCustomFFmpegOptions())) {
 			parseOptions(renderer.getCustomFFmpegOptions(), cmdList);
 		}
 
-		// output file
+		// Output file
 		cmdList.add(pipe.getInputPipe());
 
-		// convert the command list to an array
+		// Convert the command list to an array
 		String[] cmdArray = new String[ cmdList.size() ];
 		cmdList.toArray(cmdArray);
 
-		// hook to allow plugins to customize this command line
+		// Hook to allow plugins to customize this command line
 		cmdArray = finalizeTranscoderArgs(
 			fileName,
 			dlna,
@@ -163,21 +162,20 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			cmdArray
 		);
 
-		// now launch ffmpeg
+		// Now launch FFmpeg
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
-		pw.attachProcess(mkfifo_process); // clean up the mkfifo process when the transcode ends
+		pw.attachProcess(mkfifo_process); // Clean up the mkfifo process when the transcode ends
 
-		// give the mkfifo process a little time
+		// Give the mkfifo process a little time
 		try {
 			Thread.sleep(300);
 		} catch (InterruptedException e) {
 			LOGGER.error("Thread interrupted while waiting for named pipe to be created", e);
 		}
 
-		// launch the transcode command...
+		// Launch the transcode command...
 		pw.runInNewThread();
-
-		// ... and wait briefly to allow it to start
+		// ...and wait briefly to allow it to start
 		try {
 			Thread.sleep(200);
 		} catch (InterruptedException e) {
