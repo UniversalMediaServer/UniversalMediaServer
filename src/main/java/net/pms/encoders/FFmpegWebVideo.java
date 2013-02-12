@@ -18,10 +18,16 @@
  */
 package net.pms.encoders;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.LineIterator;
+import org.apache.commons.lang.StringUtils;
 import javax.swing.JComponent;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -32,13 +38,15 @@ import net.pms.io.OutputParams;
 import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
-import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class FFmpegWebVideo extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegWebVideo.class);
 	private final PmsConfiguration configuration;
+
+	public static PatternList excludes = new PatternList();
+	private static boolean init = readWebFilters("ffmpeg.webfilters");
 
 	// see http://ffmpeg.org/ffmpeg-protocols.html
 	
@@ -65,7 +73,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		"tls",
 		"udp"
 	);
-
+		
 	// FIXME we have an id() accessor for this; no need for the field to be public
 	@Deprecated
 	public static final String ID = "ffmpegwebvideo";
@@ -94,7 +102,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		super(configuration);
 		this.configuration = configuration;
 	}
-
+	
 	@Override
 	public ProcessWrapper launchTranscode(
 		String fileName,
@@ -225,6 +233,32 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		return null;
 	}
 
+	public static boolean readWebFilters(String filename) {
+		PatternList filter = null;
+		String line;
+		try {
+			LineIterator it = FileUtils.lineIterator(new File(filename));
+			try {
+				while (it.hasNext()) {
+					line = it.nextLine().trim();
+					if (line.isEmpty() || line.startsWith("#")) {
+						// continue
+					} else if (line.equals("EXCLUDE")) {
+						filter = excludes;
+					} else if (filter != null) {
+						filter.add(line);
+					}
+				}
+				return true;
+			} finally {
+				it.close();
+			} 
+		} catch (Exception e) {
+			LOGGER.debug("Error reading ffmpeg web filters: " + e.getLocalizedMessage());
+		}
+		return false;
+	}
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -241,10 +275,28 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 			if (id.equals(Format.Identifier.WEB)) {
 				String url = resource.getSystemName();
-				return protocols.contains(url.split(":")[0]);
+				return protocols.contains(url.split(":")[0])
+					&& ! excludes.match(url);
 			}
 		}
 
 		return false;
 	}
 }
+
+// a self-combining list of regexes that recompiles if modified
+
+class PatternList extends ArrayList<String> {
+	Pattern pattern;
+	int modified = 0;
+
+	boolean match(String str) {
+		if (modified != modCount) {
+			pattern = Pattern.compile(StringUtils.join(this, "|"));
+			modified = modCount;
+		}
+		return ! isEmpty() && pattern.matcher(str).find();
+	}
+}
+
+
