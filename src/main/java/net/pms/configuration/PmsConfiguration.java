@@ -35,7 +35,6 @@ import net.pms.io.SystemUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.WindowsRegistry;
-
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.ConversionException;
@@ -1548,7 +1547,7 @@ public class PmsConfiguration {
 	 */
 	public boolean isAutoStart() {
 		File f = new File(WindowsRegistry.readRegistry("HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders", "Common Startup") + "\\Universal Media Server.lnk");
-		
+
 		if (f.exists()) {
 			return true;
 		}
@@ -1590,7 +1589,6 @@ public class PmsConfiguration {
 				}
 			}
 		} else {
-
 			if (destinationFile.delete()) {
 				LOGGER.info("UMS will not start automatically with Windows");
 			} else {
