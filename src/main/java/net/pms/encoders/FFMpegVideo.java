@@ -585,8 +585,8 @@ public class FFMpegVideo extends Player {
 		cmdList.addAll(getTranscodeVideoOptions(renderer, media, params));
 		
 		// add custom options
-		if (StringUtils.isNotEmpty(renderer.getCustomFFMpegOptions())) {
-			parseOptions(renderer.getCustomFFMpegOptions(), cmdList);
+		if (StringUtils.isNotEmpty(renderer.getCustomFFmpegOptions())) {
+			parseOptions(renderer.getCustomFFmpegOptions(), cmdList);
 		}
 
 		if (!dtsRemux) {

@@ -143,8 +143,8 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		}
 		
 		// add custom options
-		if (StringUtils.isNotEmpty(renderer.getCustomFFMpegOptions())) {
-			parseOptions(renderer.getCustomFFMpegOptions(), cmdList);
+		if (StringUtils.isNotEmpty(renderer.getCustomFFmpegOptions())) {
+			parseOptions(renderer.getCustomFFmpegOptions(), cmdList);
 		}
 
 		// output file
