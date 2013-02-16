@@ -128,6 +128,7 @@ Function AdvancedSettingsAfterwards
 	${If} $CheckboxCleanInstallState == ${BST_CHECKED}
 		ReadENVStr $R1 ALLUSERSPROFILE
 		RMDir /r $R1\UMS
+		RMDir /r $TEMP\fontconfig
 	${EndIf}
 FunctionEnd
 
