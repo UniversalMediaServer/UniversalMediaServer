@@ -64,6 +64,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	}
 
 	public FFmpegWebVideo(PmsConfiguration configuration) {
+		super(configuration);
 		this.configuration = configuration;
 	}
 

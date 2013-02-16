@@ -74,7 +74,11 @@ import org.slf4j.LoggerFactory;
 public class FFMpegVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
 	private static final String DEFAULT_QSCALE = "3";
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	private final PmsConfiguration configuration;
+	
+	public FFMpegVideo(PmsConfiguration configuration) {
+		this.configuration = configuration;
+	}
 
 	// FIXME we have an id() accessor for this; no need for the field to be public
 	@Deprecated
