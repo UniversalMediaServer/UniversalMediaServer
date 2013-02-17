@@ -30,7 +30,6 @@ import java.util.Arrays;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import net.pms.Messages;
-import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
