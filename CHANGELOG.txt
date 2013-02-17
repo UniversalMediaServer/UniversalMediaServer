@@ -1,4 +1,4 @@
-2.4.2 - 2013-02-??
+2.4.2 - 2013-02-17
 
 	General:
 		Fixed bug on some renderers where no files/folders were showing
