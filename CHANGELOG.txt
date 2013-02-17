@@ -1,7 +1,8 @@
 2.4.2 - 2013-02-??
 
 	General:
-		
+		Fixed bug on some renderers where no files/folders were showing
+		The Clean Install option on Windows deletes the MPlayer Contconfig cache
 	External Components:
 		Updated FFmpeg for OS X to 1.1.2, which:
 			Adds automatic multithreading
