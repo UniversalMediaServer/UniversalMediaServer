@@ -1234,21 +1234,21 @@ public class MEncoderVideo extends Player {
 		String add = "";
 		String rendererMencoderOptions = params.mediaRenderer.getCustomMencoderOptions(); // default: empty string
 		String globalMencoderOptions = configuration.getMencoderCustomOptions(); // default: empty string
-		
+
 		if (params.mediaRenderer.isKeepAspectRatio()) {
 			rendererMencoderOptions += " -vf softskip,expand=::::1:16/9:4";
 		}
 
-		String combinedCustomOptions = defaultString(globalMencoderOptions)
-			+ " "
-			+ defaultString(rendererMencoderOptions);
+		String combinedCustomOptions = defaultString(globalMencoderOptions) +
+			" " +
+			defaultString(rendererMencoderOptions);
 
 		if (!combinedCustomOptions.contains("-lavdopts")) {
 			add = " -lavdopts debug=0";
 		}
 
 		if (isNotBlank(rendererMencoderOptions)) {
-			/*
+			/**
 			 * Ignore the renderer's custom MEncoder options if a) we're streaming a DVD (i.e. via dvd://)
 			 * or b) the renderer's MEncoder options contain overscan settings (those are handled
 			 * separately)

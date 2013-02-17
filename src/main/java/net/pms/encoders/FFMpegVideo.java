@@ -22,7 +22,6 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-import com.sun.jna.Platform;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -138,17 +137,15 @@ public class FFMpegVideo extends Player {
 				subsOption = "subtitles=" + subsFile;
 			}
 		}
-		
-		if (renderer.isKeepAspectRatio()) {
 
+		if (renderer.isKeepAspectRatio()) {
 			if (media.getWidth() / media.getHeight() > 1.777778) {
 				padding = String.format(
-						"pad=%1$d:%2$d:0:(%2$d-ih)/2",
-						media.getWidth(),
+					"pad=%1$d:%2$d:0:(%2$d-ih)/2",
+					media.getWidth(),
 					(int)(media.getWidth() / 1.777778)
-					);
+				);
 			}
-
 		}
 
 		String rescaleSpec = null;
@@ -172,7 +169,7 @@ public class FFMpegVideo extends Player {
 					filterParams.append(", ");
 				}
 			}
-			
+
 			if (renderer.isKeepAspectRatio() && rescaleSpec == null) {
 				filterParams.append(padding);
 				if (subsOption != null) {

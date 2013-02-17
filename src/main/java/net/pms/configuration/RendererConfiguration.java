@@ -1027,7 +1027,7 @@ public class RendererConfiguration {
 	public String getCustomFFmpegOptions() {
 		return getString(CUSTOM_FFMPEG_OPTIONS, "");
 	}
-	
+
 	public boolean isKeepAspectRatio() {
 		return getBoolean(KEEP_ASPECT_RATIO, false);
 	}
