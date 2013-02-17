@@ -103,18 +103,18 @@ public class FileUtil {
 	public static boolean doesSubtitlesExists(File file, DLNAMediaInfo media) {
 		return isSubtitlesExists(file, media);
 	}
-	
+
 	public static boolean isSubtitlesExists(File file, DLNAMediaInfo media) {
 		return isSubtitlesExists(file, media, true);
 	}
-	
+
 	/**
 	 * @deprecated Use {@link #isSubtitlesExists(File file, DLNAMediaInfo media, boolean usecache)} instead.
 	 */
 	public static boolean doesSubtitlesExists(File file, DLNAMediaInfo media, boolean usecache) {
 		return isSubtitlesExists(file, media, usecache);
 	}
-	
+
 	public static boolean isSubtitlesExists(File file, DLNAMediaInfo media, boolean usecache) {
 		boolean found = browseFolderForSubtitles(file.getParentFile(), file, media, usecache);
 		String alternate = PMS.getConfiguration().getAlternateSubsFolder();

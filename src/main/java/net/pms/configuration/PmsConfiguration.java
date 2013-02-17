@@ -109,6 +109,7 @@ public class PmsConfiguration {
 	private static final String KEY_FORCED_SUBTITLE_TAGS = "forced_sub_tags";
 	private static final String KEY_FORCETRANSCODE = "forcetranscode";
 	private static final String KEY_FOLDER_LIMIT = "folder_limit";
+	private static final String KEY_GPU_ACCELERATION = "gpu_acceleration";
 	private static final String KEY_HIDE_EMPTY_FOLDERS = "hide_empty_folders";
 	private static final String KEY_HIDE_ENGINENAMES = "hide_enginenames";
 	private static final String KEY_HIDE_EXTENSIONS = "hide_extensions";
@@ -200,7 +201,6 @@ public class PmsConfiguration {
 	private static final String KEY_UUID = "uuid";
 	private static final String KEY_VIDEOTRANSCODE_START_DELAY = "key_videotranscode_start_delay"; // TODO (breaking change): should be renamed to e.g. videotranscode_start_delay
 	private static final String KEY_VIRTUAL_FOLDERS = "vfolders";
-	private static final String KEY_GPU_ACCELERATION = "vGPU_acceleration";
 	// the name of the subdirectory under which PMS config files are stored for this build (default: PMS).
 	// see Build for more details
 	private static final String PROFILE_DIRECTORY_NAME = Build.getProfileDirectoryName();
@@ -924,48 +924,47 @@ public class PmsConfiguration {
 	public boolean isMencoderAss() {
 		return getBoolean(KEY_MENCODER_ASS, Platform.isWindows() || Platform.isMac());
 	}
-	
+
 	/**
 	 * @deprecated Use {@link #isDisableSubtitles()} instead.
 	 */
-	 public boolean isMencoderDisableSubs() {
-		 return isDisableSubtitles();
-	 }
-	 
-		
-	 /**
-	  * Returns whether or not subtitles should be disabled for all
-	  * transcoding engines. Default is false, meaning subtitles should not
-	  * be disabled.
-	  * @return True if subtitles should be disabled, false otherwise.
-	  */
-	 public boolean isDisableSubtitles() {
-		 return getBoolean(KEY_DISABLE_SUBTITLES, false);
-	 }
-	 
-	 /**
-	  * @deprecated Use {@link #setDisableSubtitles()} instead.
-	  */
-	 public void setMencoderDisableSubs(boolean value) {
-		 setDisableSubtitles(value);
-	 }
+	public boolean isMencoderDisableSubs() {
+		return isDisableSubtitles();
+	}
 
-	 /**
-	  * Set whether or not subtitles should be disabled for
-	  * all transcoding engines.
-	  * @param value Set to true if subtitles should be disabled.
-	  */
-	 public void setDisableSubtitles(boolean value) {
-		 configuration.setProperty(KEY_DISABLE_SUBTITLES, value);
-	 }
+	/**
+	 * Returns whether or not subtitles should be disabled for all
+	 * transcoding engines. Default is false, meaning subtitles should not
+	 * be disabled.
+	 * @return True if subtitles should be disabled, false otherwise.
+	 */
+	public boolean isDisableSubtitles() {
+		return getBoolean(KEY_DISABLE_SUBTITLES, false);
+	}
 
-	 /**
-	  * @deprecated Use {@link #isUsePcm()} instead.
-	  */
+	/**
+	 * @deprecated Use {@link #setDisableSubtitles()} instead.
+	 */
+	public void setMencoderDisableSubs(boolean value) {
+		setDisableSubtitles(value);
+	}
+
+	/**
+	 * Set whether or not subtitles should be disabled for
+	 * all transcoding engines.
+	 * @param value Set to true if subtitles should be disabled.
+	 */
+	public void setDisableSubtitles(boolean value) {
+		configuration.setProperty(KEY_DISABLE_SUBTITLES, value);
+	}
+
+	/**
+	 * @deprecated Use {@link #isUsePcm()} instead.
+	 */
 	public boolean isMencoderUsePcm() {
 		return isUsePCM();
 	}
-	
+
 	/**
 	 * Returns whether or not the Pulse Code Modulation audio format should be
 	 * forced. The default is false.
@@ -1012,7 +1011,7 @@ public class PmsConfiguration {
 	public String getAudioLanguages() {
 		return ConfigurationUtil.getPossiblyBlankConfigurationString(configuration, KEY_AUDIO_LANGUAGES, Messages.getString("MEncoderVideo.126"));
 	}
-	
+
 	/**
 	 * Returns a string of comma separated audio or subtitle languages,
 	 * ordered by priority.
@@ -1045,7 +1044,7 @@ public class PmsConfiguration {
 	public String getSubtitlesLanguages() {
 		return ConfigurationUtil.getPossiblyBlankConfigurationString(configuration, KEY_SUBTITLES_LANGUAGES, Messages.getString("MEncoderVideo.127"));
 	}
-	
+
 	/**
 	 * @deprecated Use {@link #getForcedSubtitleLanguage()} instead.
 	 */
@@ -1062,13 +1061,13 @@ public class PmsConfiguration {
 	public String getForcedSubtitleLanguage() {
 		return ConfigurationUtil.getPossiblyBlankConfigurationString(configuration, KEY_FORCED_SUBTITLE_LANGUAGE, getLanguage());
 	}
-	
+
 	/**
 	 * @deprecated Use {@link #getForcedSubtitleTags()} instead.
 	 */
 	public String getMencoderForcedSubTags() {
-  		return getForcedSubtitleTags();
-  	}
+		return getForcedSubtitleTags();
+	}
 
 	/**
 	 * Returns the tag string that identifies the subtitle language that
@@ -1076,8 +1075,8 @@ public class PmsConfiguration {
 	 * @return The tag string.
 	 */
 	public String getForcedSubtitleTags() {
-  		return getString(KEY_FORCED_SUBTITLE_TAGS, "forced");
-  	}
+		return getString(KEY_FORCED_SUBTITLE_TAGS, "forced");
+	}
 
 	/**
 	 * @deprecated Use {@link #getAudioSubLanguages()} instead.
@@ -1168,7 +1167,7 @@ public class PmsConfiguration {
 	public void setAudioLanguages(String value) {
 		configuration.setProperty(KEY_AUDIO_LANGUAGES, value);
 	}
-	
+
 	/**
 	 * @deprecated Use {@link #setSubtitlesLanguages()} instead.
 	 */
@@ -1185,7 +1184,7 @@ public class PmsConfiguration {
 	public void setSubtitlesLanguages(String value) {
 		configuration.setProperty(KEY_SUBTITLES_LANGUAGES, value);
 	}
-	
+
 	/**
 	 * @deprecated Use {@link #setForcedSubtitleLanguage()} instead.
 	 */
@@ -1201,7 +1200,7 @@ public class PmsConfiguration {
 	public void setForcedSubtitleLanguage(String value) {
 		configuration.setProperty(KEY_FORCED_SUBTITLE_LANGUAGE, value);
 	}
-	
+
 	/**
 	 * @deprecated Use {@link #setForcedSubtitleTags()} instead.
 	 */
@@ -2014,11 +2013,11 @@ public class PmsConfiguration {
 	public String getMencoderMainSettings() {
 		return getMPEG2MainSettings();
 	}
-	
+
 	public String getMPEG2MainSettings() {
 		return getString(KEY_MPEG2_MAIN_SETTINGS, "keyint=5:vqscale=1:vqmin=2");
 	}
-	
+
 	/**
 	 * @deprecated Use {@link #setMPEG2MainSettings(String)} instead.
 	 */
@@ -2029,7 +2028,7 @@ public class PmsConfiguration {
 	public void setMPEG2MainSettings(String value) {
 		configuration.setProperty(KEY_MPEG2_MAIN_SETTINGS, value);
 	}
-	
+
 	public String getMencoderVobsubSubtitleQuality() {
 		return getString(KEY_MENCODER_VOBSUB_SUBTITLE_QUALITY, "3");
 	}
@@ -2637,7 +2636,7 @@ public class PmsConfiguration {
 	public void setGPUAcceleration(boolean value) {
 		configuration.setProperty(KEY_GPU_ACCELERATION, value);
 	}
-	
+
 	/**
 	 * Finds out whether the program has admin rights.
 	 * It only checks on Windows and returns true if on a non-Windows OS.

@@ -90,7 +90,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	public JComponent config() {
 		return config("NetworkTab.5");
 	}
-	
+
 	@Override
 	public boolean isGPUAccelerationReady() {
 		return true;

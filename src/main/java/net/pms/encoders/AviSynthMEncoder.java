@@ -207,7 +207,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 	public String name() {
 		return "AviSynth/MEncoder";
 	}
-	
+
 	@Override
 	public boolean isGPUAccelerationReady() {
 		return true;

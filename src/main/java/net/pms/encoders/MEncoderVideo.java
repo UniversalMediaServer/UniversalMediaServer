@@ -52,11 +52,10 @@ import net.pms.util.CodecUtil;
 import net.pms.util.FileUtil;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.ProcessUtil;
-import static org.apache.commons.lang.BooleanUtils.isTrue;
-import static org.apache.commons.lang.StringUtils.*;
-
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
+import static org.apache.commons.lang.BooleanUtils.isTrue;
+import static org.apache.commons.lang.StringUtils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -704,7 +703,7 @@ public class MEncoderVideo extends Player {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Color newColor = JColorChooser.showDialog(
-						SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
+					SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
 					Messages.getString("MEncoderVideo.125"),
 					subColor.getBackground()
 				);
@@ -725,7 +724,6 @@ public class MEncoderVideo extends Player {
 					return;
 				}
 				if ((!event.isBeforeUpdate()) && event.getPropertyName().equals(PmsConfiguration.KEY_DISABLE_SUBTITLES)) {
-					
 					boolean enabled = !configuration.isDisableSubtitles();
 					subq.setEnabled(enabled);
 					subtitleCodePage.setEnabled(enabled);
