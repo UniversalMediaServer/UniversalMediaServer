@@ -248,6 +248,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	private String lastSearch;
 
+	protected HashMap<String,Object> attachments = null;
+
 	/**
 	 * Returns parent object, usually a folder type of resource. In the DLDI
 	 * queries, the UPNP server needs to give out the parent container where
@@ -2461,6 +2463,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	public byte[] getHeaders() {
 		return null;
+	}
+	
+	public void attach(String key, Object data) {
+		if (attachments == null) {
+			attachments = new HashMap<String,Object>();
+		}
+		attachments.put(key, data);
+	}
+
+	public Object getAttachment(String key) {
+		return attachments == null ? null : attachments.get(key);
 	}
 }
 
