@@ -915,14 +915,13 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Older versions of MEncoder do not support ASS/SSA subtitles on all
-	 * platforms. Returns true if MEncoder supports them. Default is true
-	 * on Windows and OS X, false otherwise.
-	 * See https://code.google.com/p/ps3mediaserver/issues/detail?id=1097
-	 * @return True if MEncoder supports ASS/SSA subtitles.
+	 * Returns whether the user wants ASS/SSA subtitle support. Default is
+	 * true.
+	 *
+	 * @return True if MEncoder should use ASS/SSA support.
 	 */
 	public boolean isMencoderAss() {
-		return getBoolean(KEY_MENCODER_ASS, Platform.isWindows() || Platform.isMac());
+		return getBoolean(KEY_MENCODER_ASS, true);
 	}
 
 	/**
