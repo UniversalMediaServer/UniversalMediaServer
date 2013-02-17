@@ -98,6 +98,7 @@ public class FFMpegVideo extends Player {
 	public List<String> getVideoFilterOptions(RendererConfiguration renderer, DLNAMediaInfo media, OutputParams params) throws IOException {
 		List<String> videoFilterOptions = new ArrayList<String>();
 		String subsOption = null;
+		String padding = null;
 
 		boolean isResolutionTooHighForRenderer = renderer.isVideoRescale() && // renderer defines a max width/height
 			(media != null) &&
@@ -108,7 +109,7 @@ public class FFMpegVideo extends Player {
 
 		if (params.sid != null && !configuration.isMencoderDisableSubs() && params.sid.isExternal()) {
 			String externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getAbsolutePath());
-			StringBuilder s = new StringBuilder(externalSubtitlesFileName.length());
+			StringBuilder s = new StringBuilder();
 			CharacterIterator it = new StringCharacterIterator(externalSubtitlesFileName);
 
 			for (char ch = it.first(); ch != CharacterIterator.DONE; ch = it.next()) {
@@ -137,6 +138,18 @@ public class FFMpegVideo extends Player {
 				subsOption = "subtitles=" + subsFile;
 			}
 		}
+		
+		if (renderer.isKeepAspectRatio()) {
+
+			if (media.getWidth() / media.getHeight() > 1.777778) {
+				padding = String.format(
+						"pad=%1$d:%2$d:0:(%2$d-ih)/2",
+						media.getWidth(),
+					(int)(media.getWidth() / 1.777778)
+					);
+			}
+
+		}
 
 		String rescaleSpec = null;
 
@@ -149,15 +162,19 @@ public class FFMpegVideo extends Player {
 			);
 		}
 
-		if (subsOption != null || rescaleSpec != null) {
+		if (subsOption != null || rescaleSpec != null || renderer.isKeepAspectRatio()) {
 			videoFilterOptions.add("-vf");
 			StringBuilder filterParams = new StringBuilder();
-			if (Platform.isWindows()) {
-				filterParams.append("\"");
-			}
 
 			if (rescaleSpec != null) {
 				filterParams.append(rescaleSpec);
+				if (subsOption != null || renderer.isKeepAspectRatio()) {
+					filterParams.append(", ");
+				}
+			}
+			
+			if (renderer.isKeepAspectRatio() && rescaleSpec == null) {
+				filterParams.append(padding);
 				if (subsOption != null) {
 					filterParams.append(", ");
 				}
@@ -167,9 +184,6 @@ public class FFMpegVideo extends Player {
 				filterParams.append(subsOption);
 			}
 
-			if (Platform.isWindows()) {
-				filterParams.append("\"");
-			}
 			videoFilterOptions.add(filterParams.toString());
 		}
 
@@ -346,7 +360,7 @@ public class FFMpegVideo extends Player {
 		List<String> defaultArgsList = new ArrayList<String>();
 
 		defaultArgsList.add("-loglevel");
-		defaultArgsList.add("fatal");
+		defaultArgsList.add("warning");
 
 		String[] defaultArgsArray = new String[defaultArgsList.size()];
 		defaultArgsList.toArray(defaultArgsArray);
@@ -427,7 +441,7 @@ public class FFMpegVideo extends Player {
 		cmdList.add("-y");
 
 		cmdList.add("-loglevel");
-		cmdList.add("warning");
+		cmdList.add("info");
 
 		if (params.timeseek > 0) {
 			cmdList.add("-ss");

@@ -65,6 +65,7 @@ public class RendererConfiguration {
 	private static final String FORCE_JPG_THUMBNAILS = "ForceJPGThumbnails"; // Sony devices require JPG thumbnails
 	private static final String H264_L41_LIMITED = "H264Level41Limited";
 	private static final String IMAGE = "Image";
+	private static final String KEEP_ASPECT_RATIO = "KeepAspectRatio";
 	private static final String MAX_VIDEO_BITRATE = "MaxVideoBitrateMbps";
 	private static final String MAX_VIDEO_HEIGHT = "MaxVideoHeight";
 	private static final String MAX_VIDEO_WIDTH = "MaxVideoWidth";
@@ -1025,5 +1026,9 @@ public class RendererConfiguration {
 
 	public String getCustomFFmpegOptions() {
 		return getString(CUSTOM_FFMPEG_OPTIONS, "");
+	}
+	
+	public boolean isKeepAspectRatio() {
+		return getBoolean(KEEP_ASPECT_RATIO, false);
 	}
 }
