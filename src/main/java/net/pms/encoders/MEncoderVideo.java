@@ -1236,7 +1236,7 @@ public class MEncoderVideo extends Player {
 		String globalMencoderOptions = configuration.getMencoderCustomOptions(); // default: empty string
 
 		if (params.mediaRenderer.isKeepAspectRatio()) {
-			rendererMencoderOptions += " -vf softskip,expand=::::1:16/9:4";
+			rendererMencoderOptions += " -vf expand=::::0:16/9:4,softskip";
 		}
 
 		String combinedCustomOptions = defaultString(globalMencoderOptions) +
