@@ -685,7 +685,7 @@ public class TranscodingTab {
 				configuration.setForcedSubtitleTags(forcedtags.getText());
 			}
 		});
-		builder.add(forcedtags, FormLayoutUtil.flip(cc.xy(11, 2), colSpec, orientation));
+		builder.add(forcedtags, FormLayoutUtil.flip(cc.xyw(11, 2, 3), colSpec, orientation));
 
 		builder.addLabel(Messages.getString("MEncoderVideo.37"), FormLayoutUtil.flip(cc.xy(1, 6), colSpec, orientation));
 		alternateSubFolder = new JTextField(configuration.getAlternateSubsFolder());
