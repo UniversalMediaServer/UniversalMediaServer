@@ -75,6 +75,10 @@ public class FFMpegVideo extends Player {
 	private static final String DEFAULT_QSCALE = "3";
 	private final PmsConfiguration configuration;
 	
+	public FFMpegVideo() {
+		this.configuration = PMS.getConfiguration();
+	}
+	
 	public FFMpegVideo(PmsConfiguration configuration) {
 		this.configuration = configuration;
 	}
