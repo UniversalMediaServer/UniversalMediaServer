@@ -449,6 +449,8 @@ public class TranscodingTab {
 		builder.add(disableSubs, FormLayoutUtil.flip(cc.xy(1, 11), colSpec, orientation));
 
 		JTabbedPane setupTabbedPanel = new JTabbedPane();
+		setupTabbedPanel.setUI(new CustomTabbedPaneUI());
+
 		setupTabbedPanel.addTab(Messages.getString("TrTab2.67"), buildVideoSetupPanel());
 		setupTabbedPanel.addTab(Messages.getString("TrTab2.68"), buildAudioSetupPanel());
 		setupTabbedPanel.addTab(Messages.getString("MEncoderVideo.8"), buildSubtitlesSetupPanel());
