@@ -184,7 +184,6 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		pane.setPreferredSize(new Dimension(500, 350));
 		builder.add(pane, cc.xy(2, 13));
 
-
 		return builder.getPanel();
 	}
 
