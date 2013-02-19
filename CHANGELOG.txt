@@ -1,7 +1,10 @@
-2.5.0
+2.5.0 - 2013-02-??
 
 	General:
-		
+		Updated layout on the Transcoding Settings tab
+		Improved aspect ratio handling on Panasonic TVs
+		Enabled ASS/SSA subtitle support on Linux by default
+		Added language flags for Arabic, Croatian, Estonian, Latvian, Serbian and Vietnamese
 
 2.4.2 - 2013-02-17
 
