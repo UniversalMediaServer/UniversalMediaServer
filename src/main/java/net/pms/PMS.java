@@ -205,7 +205,7 @@ public class PMS {
 	 * @throws Exception TODO: Check which exceptions to use
 	 */
 	private boolean checkProcessExistence(String name, boolean error, File workDir, String... params) throws Exception {
-		LOGGER.debug("launching: " + params[0]);
+		LOGGER.debug("Launching: " + params[0]);
 
 		try {
 			ProcessBuilder pb = new ProcessBuilder(params);
@@ -235,27 +235,17 @@ public class PMS {
 			checkThread.interrupt();
 			checkThread = null;
 
-			// XXX no longer used
-			if (params[0].equals("vlc") && stderrConsumer.getResults().get(0).startsWith("VLC")) {
-				return true;
-			}
-
-			// XXX no longer used
-			if (params[0].equals("ffmpeg") && stderrConsumer.getResults().get(0).startsWith("FF")) {
-				return true;
-			}
-
 			int exit = process.exitValue();
 			if (exit != 0) {
 				if (error) {
-					LOGGER.info("[" + exit + "] Cannot launch " + name + " / Check the presence of " + params[0] + " ...");
+					LOGGER.info("[" + exit + "] Cannot launch " + name + ". Check the presence of " + params[0]);
 				}
 				return false;
 			}
 			return true;
 		} catch (Exception e) {
 			if (error) {
-				LOGGER.error("Cannot launch " + name + " / Check the presence of " + params[0] + " ...", e);
+				LOGGER.error("Cannot launch " + name + ". Check the presence of " + params[0], e);
 			}
 			return false;
 		}
@@ -393,15 +383,29 @@ public class PMS {
 		LOGGER.info("Profile name: " + configuration.getProfileName());
 		LOGGER.info("");
 
+		/**
+		 * Ensure the data directory is created. On Windows this is
+		 * usually done by the installer
+		 */
+		File dDir = new File(configuration.getDataDir());
+		dDir.mkdirs();
+
 		dbgPack = new DbgPacker();
 
 		RendererConfiguration.loadRendererConfigurations(configuration);
 
 		LOGGER.info("Please wait while we check the MPlayer font cache, this can take a minute or so.");
-		checkProcessExistence("MPlayer", true, null, configuration.getMplayerPath(), "dummy");
+
+		if (Platform.isLinux()) {
+			checkProcessExistence("MPlayer", true, null, "./" + configuration.getMplayerPath(), "dummy");
+		} else {
+			checkProcessExistence("MPlayer", true, null, configuration.getMplayerPath(), "dummy");
+		}
+
 		if (isWindows()) {
 			checkProcessExistence("MPlayer", true, configuration.getTempFolder(), configuration.getMplayerPath(), "dummy");
 		}
+
 		LOGGER.info("Finished checking the MPlayer font cache.");
 
 		// Check the existence of VSFilter / DirectVobSub
@@ -878,7 +882,7 @@ public class PMS {
 		try {
 			Toolkit.getDefaultToolkit();
 
-			if (GraphicsEnvironment.isHeadless()) {
+			if (isHeadless()) {
 				if (System.getProperty(NOCONSOLE) == null) {
 					System.setProperty(CONSOLE, Boolean.toString(true));
 				}
@@ -1112,9 +1116,13 @@ public class PMS {
 		return tmp[0].equals("javaw.exe") && tmp[8].contains("universal media server");
 	}
 
+	private static String pidFile() {
+		return configuration.getDataFile("pms.pid");
+	}
+
 	private static void killProc() throws IOException {
 		ProcessBuilder pb = null;
-		BufferedReader in = new BufferedReader(new FileReader("pms.pid"));
+		BufferedReader in = new BufferedReader(new FileReader(pidFile()));
 		String pid = in.readLine();
 		in.close();
 
@@ -1144,7 +1152,7 @@ public class PMS {
 	}
 
 	private static void dumpPid() throws IOException {
-		FileOutputStream out = new FileOutputStream("pms.pid");
+		FileOutputStream out = new FileOutputStream(pidFile());
 		long pid = getPID();
 		LOGGER.trace("PID: " + pid);
 		String data = String.valueOf(pid) + "\r\n";
@@ -1162,5 +1170,23 @@ public class PMS {
 	@Deprecated
 	public void registerPlayer(Player player) {
 		PlayerFactory.registerPlayer(player);
+	}
+
+	/*
+	 * Check if UMS is running in headless (console) mode, since some Linux
+	 * distros seem to not use java.awt.GraphicsEnvironment.isHeadless() properly
+	 */
+	public static boolean isHeadless() {
+		try {
+			javax.swing.JDialog d = new javax.swing.JDialog();
+			d.dispose();
+			return false;
+		} catch (java.lang.NoClassDefFoundError e) {
+			return true;
+		} catch (java.awt.HeadlessException e) {
+			return true;
+		} catch (java.lang.InternalError e) {
+			return true;
+		}
 	}
 }

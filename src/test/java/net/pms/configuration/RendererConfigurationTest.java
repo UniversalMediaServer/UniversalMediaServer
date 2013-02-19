@@ -17,14 +17,12 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
-package net.pms.test;
+package net.pms.configuration;
 
 import ch.qos.logback.classic.LoggerContext;
 import java.io.IOException;
-import java.util.Map.Entry;
 import java.util.*;
-import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
+import java.util.Map.Entry;
 import static net.pms.configuration.RendererConfiguration.*;
 import org.apache.commons.configuration.ConfigurationException;
 import static org.junit.Assert.assertEquals;
@@ -59,6 +57,9 @@ public class RendererConfigurationTest {
 
 		// BraviaEX:
 		testCases.put("X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA KDL-32CX520\"; mv=\"1.7\";", "Sony Bravia EX");
+
+		// BraviaHX:
+		testCases.put("X-AV-Client-Info: av=5.0; cn=\"Sony Corporation\"; mn=\"BRAVIA KDL-55HX750\"; mv=\"1.7\";", "Sony Bravia HX");
 
 		// DLinkDSM510:
 		testCases.put("User-Agent: DLNADOC/1.50 INTEL_NMPR/2.1", "D-Link DSM-510");
@@ -95,6 +96,18 @@ public class RendererConfigurationTest {
 
 		// Samsung-SMT-G7400:
 		testCases.put("User-Agent: Linux/2.6.35 UPnP/1.0 NDS_MHF DLNADOC/1.50", "Samsung SMT-G7400");
+
+		// Sharp Aquos:
+		testCases.put("User-Agent: DLNADOC/1.50 SHARP-AQUOS-DMP/1.1W", "Sharp Aquos");
+
+		// Showtime 3:
+		testCases.put("User-Agent: Showtime 3.0", "Showtime 3");
+
+		// Showtime 4:
+		testCases.put("User-Agent: Showtime PS3 4.2", "Showtime 4");
+
+		// VideoWebTV:
+		testCases.put("friendlyName.dlna.org: VideoWeb", "VideoWeb TV");
 
 		// WDTVLive:
 		testCases.put("User-Agent: INTEL_NMPR/2.1 DLNADOC/1.50 Intel MicroStack/1.0.1423", "WD TV Live");

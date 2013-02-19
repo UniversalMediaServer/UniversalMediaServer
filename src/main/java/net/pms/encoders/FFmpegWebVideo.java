@@ -26,17 +26,17 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
-import net.pms.encoders.FFMpegVideo;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FFMpegWebVideo extends FFMpegVideo {
-	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegWebVideo.class);
+public class FFmpegWebVideo extends FFMpegVideo {
+	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegWebVideo.class);
 	private final PmsConfiguration configuration;
 
 	// FIXME we have an id() accessor for this; no need for the field to be public
@@ -63,7 +63,8 @@ public class FFMpegWebVideo extends FFMpegVideo {
 		return false;
 	}
 
-	public FFMpegWebVideo(PmsConfiguration configuration) {
+	public FFmpegWebVideo(PmsConfiguration configuration) {
+		super(configuration);
 		this.configuration = configuration;
 	}
 
@@ -120,27 +121,40 @@ public class FFMpegWebVideo extends FFMpegVideo {
 		cmdList.add("-i");
 		cmdList.add(fileName);
 
-		// encoder threads
+		cmdList.addAll(getVideoFilterOptions(renderer, media, params));
+		
+		// Encoder threads
 		cmdList.add("-threads");
 		cmdList.add("" + nThreads);
 
-		// add video bitrate options
-		cmdList.addAll(getVideoBitrateOptions(renderer, media));
-
-		// add audio bitrate options
-		cmdList.addAll(getAudioBitrateOptions(renderer, media));
-
-		// add the output options (-f, -acodec, -vcodec)
+		// Add the output options (-f, -acodec, -vcodec)
 		cmdList.addAll(getTranscodeVideoOptions(renderer, media, params));
 
-		// output file
+		// Add video bitrate options
+		cmdList.addAll(getVideoBitrateOptions(renderer, media));
+
+		// Add audio bitrate options
+		cmdList.addAll(getAudioBitrateOptions(renderer, media));
+
+		// Add (http) headers
+		if (params.header != null && params.header.length > 0) {
+			String hdr = new String(params.header);
+			parseOptions(hdr, cmdList);
+		}
+
+		// Add custom options
+		if (StringUtils.isNotEmpty(renderer.getCustomFFmpegOptions())) {
+			parseOptions(renderer.getCustomFFmpegOptions(), cmdList);
+		}
+
+		// Output file
 		cmdList.add(pipe.getInputPipe());
 
-		// convert the command list to an array
+		// Convert the command list to an array
 		String[] cmdArray = new String[ cmdList.size() ];
 		cmdList.toArray(cmdArray);
 
-		// hook to allow plugins to customize this command line
+		// Hook to allow plugins to customize this command line
 		cmdArray = finalizeTranscoderArgs(
 			fileName,
 			dlna,
@@ -149,21 +163,20 @@ public class FFMpegWebVideo extends FFMpegVideo {
 			cmdArray
 		);
 
-		// now launch ffmpeg
+		// Now launch FFmpeg
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
-		pw.attachProcess(mkfifo_process); // clean up the mkfifo process when the transcode ends
+		pw.attachProcess(mkfifo_process); // Clean up the mkfifo process when the transcode ends
 
-		// give the mkfifo process a little time
+		// Give the mkfifo process a little time
 		try {
 			Thread.sleep(300);
 		} catch (InterruptedException e) {
 			LOGGER.error("Thread interrupted while waiting for named pipe to be created", e);
 		}
 
-		// launch the transcode command...
+		// Launch the transcode command...
 		pw.runInNewThread();
-
-		// ... and wait briefly to allow it to start
+		// ...and wait briefly to allow it to start
 		try {
 			Thread.sleep(200);
 		} catch (InterruptedException e) {

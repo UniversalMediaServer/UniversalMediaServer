@@ -27,8 +27,8 @@ VIProductVersion "${PROJECT_VERSION_SHORT}.0"
 ; Definitions for Java
 !define JRE6_VERSION "6.0"
 !define JRE7_VERSION "7.0"
-!define JRE_URL "http://download.oracle.com/otn-pub/java/jdk/7u10-b18/jre-7u10-windows-i586.exe"
-!define JRE64_URL "http://download.oracle.com/otn-pub/java/jdk/7u10-b18/jre-7u10-windows-x64.exe"
+!define JRE_URL "http://download.oracle.com/otn-pub/java/jdk/7u13-b20/jre-7u13-windows-i586.exe"
+!define JRE64_URL "http://download.oracle.com/otn-pub/java/jdk/7u13-b20/jre-7u13-windows-x64.exe"
  
 ; use javaw.exe to avoid dosbox.
 ; use java.exe to keep stdout/stderr

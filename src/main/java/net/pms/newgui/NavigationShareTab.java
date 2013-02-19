@@ -72,6 +72,7 @@ public class NavigationShareTab {
 	private JCheckBox itunes;
 	private CustomJButton select;
 	private CustomJButton cachereset;
+	private JCheckBox ignorethewordthe;
 	private JTextField atzLimit;
 
 	public DefaultListModel getDf() {
@@ -168,6 +169,7 @@ public class NavigationShareTab {
 
 		builder.addLabel(Messages.getString("FoldTab.18"), FormLayoutUtil.flip(cc.xyw(1, 23, 3), colSpec, orientation));
 		builder.add(sortmethod, FormLayoutUtil.flip(cc.xyw(4, 23, 3), colSpec, orientation));
+		builder.add(ignorethewordthe, FormLayoutUtil.flip(cc.xyw(8, 23, 3), colSpec, orientation));
 
 		builder.addLabel(Messages.getString("FoldTab.37"), FormLayoutUtil.flip(cc.xyw(1, 25, 3), colSpec, orientation));
 		builder.add(atzLimit, FormLayoutUtil.flip(cc.xyw(4, 25, 3), colSpec, orientation));
@@ -192,15 +194,7 @@ public class NavigationShareTab {
 	private void initSimpleComponents(CellConstraints cc) {
 		// Thumbnail seeking position
 		seekpos = new JTextField("" + configuration.getThumbnailSeekPos());
-		seekpos.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		seekpos.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				try {
@@ -295,15 +289,7 @@ public class NavigationShareTab {
 
 		// Alternate video cover art folder
 		defaultThumbFolder = new JTextField(configuration.getAlternateThumbFolder());
-		defaultThumbFolder.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		defaultThumbFolder.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setAlternateThumbFolder(defaultThumbFolder.getText());
@@ -330,8 +316,8 @@ public class NavigationShareTab {
 			}
 		});
 
-		// Hide #Video Settings# folder
-		hidevideosettings = new JCheckBox(Messages.getString("FoldTab.6"));
+		// Hide Server Settings folder
+		hidevideosettings = new JCheckBox(Messages.getString("FoldTab.38"));
 		hidevideosettings.setContentAreaFilled(false);
 		if (configuration.getHideVideoSettings()) {
 			hidevideosettings.setSelected(true);
@@ -538,16 +524,21 @@ public class NavigationShareTab {
 			}
 		});
 
+		// Ignore the word "the" while sorting
+		ignorethewordthe = new JCheckBox(Messages.getString("FoldTab.39"));
+		ignorethewordthe.setContentAreaFilled(false);
+		if (configuration.isIgnoreTheWordThe()) {
+			ignorethewordthe.setSelected(true);
+		}
+		ignorethewordthe.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setIgnoreTheWordThe((e.getStateChange() == ItemEvent.SELECTED));
+			}
+		});
+
 		atzLimit = new JTextField("" + configuration.getATZLimit());
-		atzLimit.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		atzLimit.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				try {

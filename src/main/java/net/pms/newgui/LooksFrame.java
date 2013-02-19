@@ -397,6 +397,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		CustomJButton button = new CustomJButton(text, readImageIcon(iconName));
 		button.setToolTipText(toolTipText);
 		button.setFocusable(false);
+		button.setBorderPainted(false);
 		return button;
 	}
 

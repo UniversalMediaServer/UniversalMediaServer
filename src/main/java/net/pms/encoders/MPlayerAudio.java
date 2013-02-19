@@ -30,7 +30,6 @@ import java.util.Arrays;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import net.pms.Messages;
-import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
@@ -73,7 +72,7 @@ public class MPlayerAudio extends Player {
 
 	@Override
 	public String executable() {
-		return PMS.getConfiguration().getMplayerPath();
+		return configuration.getMplayerPath();
 	}
 
 	@Override
@@ -90,15 +89,15 @@ public class MPlayerAudio extends Player {
 		params.manageFastStart();
 
 		if (params.mediaRenderer.isTranscodeToMP3()) {
-			FFMpegAudio ffmpegAudio = new FFMpegAudio(configuration);
+			FFmpegAudio ffmpegAudio = new FFmpegAudio(configuration);
 			return ffmpegAudio.launchTranscode(fileName, dlna, media, params);
 		}
 
-		params.maxBufferSize = PMS.getConfiguration().getMaxAudioBuffer();
+		params.maxBufferSize = configuration.getMaxAudioBuffer();
 		PipeProcess audioP = new PipeProcess("mplayer_aud" + System.currentTimeMillis());
 
 		String mPlayerdefaultAudioArgs[] = new String[] {
-			PMS.getConfiguration().getMplayerPath(),
+			configuration.getMplayerPath(),
 			fileName,
 			"-prefer-ipv4",
 			"-nocache",

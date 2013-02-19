@@ -111,7 +111,7 @@ Function AdvancedSettings
 	${NSD_CreateText} 3% 30% 10% 12u "768"
 	Pop $Text
 
-	${NSD_CreateLabel} 0 50% 100% 20u "This replaces your current configuration files with new ones, allowing you to take advantage of improved defaults. This will delete all files in the UMS configuration directory."
+	${NSD_CreateLabel} 0 50% 100% 20u "This replaces your current configuration and deletes MPlayer's font cache, allowing you to take advantage of improved defaults. This deletes UMS configuration directory."
 	Pop $DescCleanInstall
 
 	${NSD_CreateCheckbox} 3% 65% 100% 12u "Clean install"
@@ -128,6 +128,7 @@ Function AdvancedSettingsAfterwards
 	${If} $CheckboxCleanInstallState == ${BST_CHECKED}
 		ReadENVStr $R1 ALLUSERSPROFILE
 		RMDir /r $R1\UMS
+		RMDir /r $TEMP\fontconfig
 	${EndIf}
 FunctionEnd
 
@@ -153,6 +154,8 @@ Section "Program Files"
   File "${PROJECT_BASEDIR}\LICENSE.txt"
   File "${PROJECT_BASEDIR}\src\main\external-resources\logback.xml"
   File "${PROJECT_BASEDIR}\src\main\external-resources\icon.ico"
+
+  CreateDirectory "$INSTDIR\data"
 
   ;the user may have set the installation dir
   ;as the profile dir, so we can't clobber this
@@ -182,6 +185,7 @@ Section "Program Files"
   ReadENVStr $R0 ALLUSERSPROFILE
   SetOutPath "$R0\UMS"
   AccessControl::GrantOnFile "$R0\UMS" "(S-1-5-32-545)" "FullAccess"
+  AccessControl::GrantOnFile "$INSTDIR\data" "(BU)" "FullAccess"
   File "${PROJECT_BASEDIR}\src\main\external-resources\UMS.conf"
   File "${PROJECT_BASEDIR}\src\main\external-resources\WEB.conf"
 SectionEnd
@@ -192,6 +196,8 @@ Section "Start Menu Shortcuts"
   CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
   CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\${PROJECT_NAME} (Select Profile).lnk" "$INSTDIR\UMS.exe" "profiles" "$INSTDIR\UMS.exe" 0
   CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\Uninstall.lnk" "$INSTDIR\uninst.exe" "" "$INSTDIR\uninst.exe" 0
+  CreateShortCut "$SMSTARTUP\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
+  CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
 SectionEnd
 
 Section "Uninstall"
@@ -202,6 +208,7 @@ Section "Uninstall"
   RMDir /R /REBOOTOK "$INSTDIR\renderers"
   RMDir /R /REBOOTOK "$INSTDIR\documentation"
   RMDir /R /REBOOTOK "$INSTDIR\win32"
+  RMDir /R /REBOOTOK "$INSTDIR\data"
   Delete /REBOOTOK "$INSTDIR\UMS.exe"
   Delete /REBOOTOK "$INSTDIR\UMS.bat"
   Delete /REBOOTOK "$INSTDIR\ums.jar"

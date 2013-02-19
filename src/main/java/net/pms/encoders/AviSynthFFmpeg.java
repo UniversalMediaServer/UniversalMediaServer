@@ -41,6 +41,7 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
@@ -52,9 +53,14 @@ import org.slf4j.LoggerFactory;
 /*
  * This class handles the Windows-specific AviSynth/FFmpeg player combination. 
  */
-public class FFMpegAviSynthVideo extends FFMpegVideo {
-	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegAviSynthVideo.class);
-	public static final String ID      = "avsffmpeg";
+public class AviSynthFFmpeg extends FFMpegVideo {
+	private static final Logger LOGGER = LoggerFactory.getLogger(AviSynthFFmpeg.class);
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	public static final String ID = "avsffmpeg";
+	
+	AviSynthFFmpeg() {
+		super(PMS.getConfiguration());
+	}
 
 	@Override
 	public String id() {
@@ -74,15 +80,20 @@ public class FFMpegAviSynthVideo extends FFMpegVideo {
 	@Override
 	public String initialString() {
 		String threads = "";
-		if (PMS.getConfiguration().isFfmpegAviSynthMultithreading()) {
-			threads = " -threads " + PMS.getConfiguration().getNumberOfCpuCores();
+		if (configuration.isFfmpegAviSynthMultithreading()) {
+			threads = " -threads " + configuration.getNumberOfCpuCores();
 		}
-		return PMS.getConfiguration().getFfmpegSettings() + " -ab " + PMS.getConfiguration().getAudioBitrate() + "k" + threads;
+		return configuration.getFfmpegSettings() + " -ab " + configuration.getAudioBitrate() + "k" + threads;
 	}
 
 	@Override
 	public JComponent config() {
 		return config("NetworkTab.5");
+	}
+
+	@Override
+	public boolean isGPUAccelerationReady() {
+		return true;
 	}
 
 	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack) throws IOException {
@@ -94,7 +105,7 @@ public class FFMpegAviSynthVideo extends FFMpegVideo {
 	 */
 	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack, int fromFrame, int toFrame, String frameRateRatio, String frameRateNumber) throws IOException {
 		String onlyFileName = fileName.substring(1 + fileName.lastIndexOf("\\"));
-		File file = new File(PMS.getConfiguration().getTempFolder(), "pms-avs-" + onlyFileName + ".avs");
+		File file = new File(configuration.getTempFolder(), "pms-avs-" + onlyFileName + ".avs");
 		PrintWriter pw = new PrintWriter(new FileOutputStream(file));
 
 		/*
@@ -128,7 +139,7 @@ public class FFMpegAviSynthVideo extends FFMpegVideo {
 		}
 
 		String convertfps = "";
-		if (PMS.getConfiguration().getFfmpegAvisynthConvertFps()) {
+		if (configuration.getFfmpegAvisynthConvertFps()) {
 			convertfps = ", convertfps=true";
 		}
 
@@ -142,11 +153,11 @@ public class FFMpegAviSynthVideo extends FFMpegVideo {
 		String mtLine2         = "";
 		String mtLine3         = "";
 		String interframeLines = null;
-		String interframePath  = PMS.getConfiguration().getInterFramePath();
+		String interframePath  = configuration.getInterFramePath();
 
 		int Cores = 1;
-		if (PMS.getConfiguration().isFfmpegAviSynthMultithreading()) {
-			Cores = PMS.getConfiguration().getNumberOfCpuCores();
+		if (configuration.isFfmpegAviSynthMultithreading()) {
+			Cores = configuration.getNumberOfCpuCores();
 
 			// Goes at the start of the file to initiate multithreading
 			mtLine1 = "SetMemoryMax(512)\nSetMTMode(3," + Cores + ")\n";
@@ -156,12 +167,12 @@ public class FFMpegAviSynthVideo extends FFMpegVideo {
 		}
 
 		// True Motion
-		if (PMS.getConfiguration().getFfmpegAvisynthInterFrame()) {
+		if (configuration.getFfmpegAvisynthInterFrame()) {
 			String GPU = "";
 			movieLine = movieLine + ".ConvertToYV12()";
 
 			// Enable GPU to assist with CPU
-			if (PMS.getConfiguration().getFfmpegAvisynthInterFrameGPU()){
+			if (configuration.getFfmpegAvisynthInterFrameGPU()){
 				GPU = ", GPU=true";
 			}
 
@@ -170,11 +181,11 @@ public class FFMpegAviSynthVideo extends FFMpegVideo {
 				"LoadPlugin(PluginPath+\"svpflow1.dll\")\n" +
 				"LoadPlugin(PluginPath+\"svpflow2.dll\")\n" +
 				"Import(PluginPath+\"InterFrame2.avsi\")\n" +
-				"InterFrame(Cores=" + Cores + GPU + ")\n";
+				"InterFrame(Cores=" + Cores + GPU + ", Preset=\"Fast\")\n";
 		}
 
 		String subLine = null;
-		if (subTrack != null && PMS.getConfiguration().isAutoloadSubtitles() && !PMS.getConfiguration().isMencoderDisableSubs()) {
+		if (subTrack != null && configuration.isAutoloadSubtitles() && !configuration.isDisableSubtitles()) {
 			if (subTrack.getExternalFile() != null) {
 				LOGGER.info("AviSynth script: Using subtitle track: " + subTrack);
 				String function = "TextSub";
@@ -200,7 +211,7 @@ public class FFMpegAviSynthVideo extends FFMpegVideo {
 			lines.add(line);
 		}
 
-		if (PMS.getConfiguration().getFfmpegAvisynthInterFrame()) {
+		if (configuration.getFfmpegAvisynthInterFrame()) {
 			lines.add(mtLine2);
 			lines.add(interframeLines);
 		}
@@ -253,30 +264,30 @@ public class FFMpegAviSynthVideo extends FFMpegVideo {
 
 		multithreading = new JCheckBox(Messages.getString("MEncoderVideo.35"));
 		multithreading.setContentAreaFilled(false);
-		if (PMS.getConfiguration().isFfmpegAviSynthMultithreading()) {
+		if (configuration.isFfmpegAviSynthMultithreading()) {
 			multithreading.setSelected(true);
 		}
 		multithreading.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				PMS.getConfiguration().setFfmpegAviSynthMultithreading(e.getStateChange() == ItemEvent.SELECTED);
+				configuration.setFfmpegAviSynthMultithreading(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
 		builder.add(multithreading, cc.xy(2, 3));
 
-		interframe = new JCheckBox(Messages.getString("MEncoderAviSynth.13"));
+		interframe = new JCheckBox(Messages.getString("AviSynthMEncoder.13"));
 		interframe.setContentAreaFilled(false);
-		if (PMS.getConfiguration().getFfmpegAvisynthInterFrame()) {
+		if (configuration.getFfmpegAvisynthInterFrame()) {
 			interframe.setSelected(true);
 		}
 		interframe.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				PMS.getConfiguration().setFfmpegAvisynthInterFrame(interframe.isSelected());
-				if (PMS.getConfiguration().getFfmpegAvisynthInterFrame()) {
+				configuration.setFfmpegAvisynthInterFrame(interframe.isSelected());
+				if (configuration.getFfmpegAvisynthInterFrame()) {
 					JOptionPane.showMessageDialog(
 						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-						Messages.getString("MEncoderAviSynth.16"),
+						Messages.getString("AviSynthMEncoder.16"),
 						Messages.getString("Dialog.Information"),
 						JOptionPane.INFORMATION_MESSAGE
 					);
@@ -285,28 +296,28 @@ public class FFMpegAviSynthVideo extends FFMpegVideo {
 		});
 		builder.add(interframe, cc.xy(2, 5));
 
-		interframegpu = new JCheckBox(Messages.getString("MEncoderAviSynth.15"));
+		interframegpu = new JCheckBox(Messages.getString("AviSynthMEncoder.15"));
 		interframegpu.setContentAreaFilled(false);
-		if (PMS.getConfiguration().getFfmpegAvisynthInterFrameGPU()) {
+		if (configuration.getFfmpegAvisynthInterFrameGPU()) {
 			interframegpu.setSelected(true);
 		}
 		interframegpu.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				PMS.getConfiguration().setFfmpegAvisynthInterFrameGPU((e.getStateChange() == ItemEvent.SELECTED));
+				configuration.setFfmpegAvisynthInterFrameGPU((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
 		builder.add(interframegpu, cc.xy(2, 7));
 
-		convertfps = new JCheckBox(Messages.getString("MEncoderAviSynth.3"));
+		convertfps = new JCheckBox(Messages.getString("AviSynthMEncoder.3"));
 		convertfps.setContentAreaFilled(false);
-		if (PMS.getConfiguration().getFfmpegAvisynthConvertFps()) {
+		if (configuration.getFfmpegAvisynthConvertFps()) {
 			convertfps.setSelected(true);
 		}
 		convertfps.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				PMS.getConfiguration().setFfmpegAvisynthConvertFps((e.getStateChange() == ItemEvent.SELECTED));
+				configuration.setFfmpegAvisynthConvertFps((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
 		builder.add(convertfps, cc.xy(2, 9));

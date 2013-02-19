@@ -21,11 +21,14 @@ package net.pms.io;
 import com.sun.jna.Platform;
 import java.io.*;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class PipeProcess {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PipeProcess.class);
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	private String linuxPipeName;
 	private WindowsNamedPipe mk;
@@ -60,7 +63,7 @@ public class PipeProcess {
 
 	private static String getPipeName(String pipeName) {
 		try {
-			return PMS.getConfiguration().getTempFolder() + "/" + pipeName;
+			return configuration.getTempFolder() + "/" + pipeName;
 		} catch (IOException e) {
 			LOGGER.error("Pipe may not be in temporary directory", e);
 			return pipeName;
@@ -83,7 +86,7 @@ public class PipeProcess {
 
 	public ProcessWrapper getPipeProcess() {
 		if (!PMS.get().isWindows()) {
-			OutputParams mkfifo_vid_params = new OutputParams(PMS.getConfiguration());
+			OutputParams mkfifo_vid_params = new OutputParams(configuration);
 			mkfifo_vid_params.maxBufferSize = 0.1;
 			mkfifo_vid_params.log = true;
 			String cmdArray[];

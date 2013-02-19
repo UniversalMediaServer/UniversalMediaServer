@@ -27,10 +27,10 @@ import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 
-public class TsMuxerAudio extends TSMuxerVideo {
+public class TsMuxeRAudio extends TsMuxeRVideo {
 	public static final String ID = "tsmuxeraudio";
 
-	public TsMuxerAudio(PmsConfiguration configuration) {
+	public TsMuxeRAudio(PmsConfiguration configuration) {
 		super(configuration);
 	}
 

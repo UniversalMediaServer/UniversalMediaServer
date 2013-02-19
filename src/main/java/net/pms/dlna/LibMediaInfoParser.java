@@ -121,6 +121,10 @@ public class LibMediaInfoParser {
 								media.setEncrypted("encrypted".equals(value));
 							} else if (key.equals("Height")) {
 								media.setHeight(getPixelValue(value));
+							} else if (key.equals("DisplayAspectRatio/String")) {
+								media.setAspectRatioContainer(value);
+							} else if (key.equals("DisplayAspectRatio_Original/Stri")) {
+								media.setAspectRatioVideoTrack(value);
 							} else if (key.equals("FrameRate")) {
 								media.setFrameRate(getFPSValue(value));
 							} else if (key.equals("FrameRateMode")) {

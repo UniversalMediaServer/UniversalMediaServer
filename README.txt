@@ -9,6 +9,7 @@ Current Developers
 
 * SubJunk
 * SharkHunter
+* valib
 
 
 Links

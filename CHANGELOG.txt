@@ -1,7 +1,160 @@
-2.2.2 - 2012-12-??
+2.4.2 - 2013-02-17
 
 	General:
-		
+		Fixed bug on some renderers where no files/folders were showing
+		The Clean Install option on Windows deletes the MPlayer Contconfig cache
+	External Components:
+		Updated FFmpeg for OS X to 1.1.2, which:
+			Adds automatic multithreading
+			Improves QuickTime format support
+			Supports decoding WMA Lossless
+			Supports decoding RealAudio Lossless
+			Fixes security issues
+			Fixes over 150 bugs
+			Supports RTMP
+			Supports Opus
+			Supports encoding external subtitles
+			Supports decoding DTS-HD
+
+2.4.1 - 2013-02-15
+
+	General:
+		Improved autostart support
+	Renderers:
+		Added support for Sharp Aquos TVs
+		Added support for Showtime 4
+	External Components:
+		Updated MPlayer/MEncoder for Windows and Linux to SB50, which:
+			Silences meaningless errors
+			Supports 32-bit Linux installations
+		Updated FFmpeg for Windows and Linux to SB7, which:
+			Adds RTMP support
+			Supports 32-bit Linux installations
+
+2.4.0 - 2013-02-10
+
+	General:
+		FFmpeg supports external subtitles
+		Linux build includes MPlayer, MEncoder and FFmpeg binaries like the other versions always have
+		Fixed user setting to automatically load external subtitles
+		Audio/subtitle language priority is now blank by default
+		Improved RealVideo file support
+		Added log level selector to the Logs tab
+		Improved MP4 compatibility on PS3
+		The word "the" at the start of filenames is ignored while sorting by default
+		Program runs on Windows startup by default, can be changed on the General Configuration tab
+		Fixed support for the Channels plugin
+	Languages:
+		Updated Czech translation
+		Updated Russian translation (thanks, Tianuchka!)
+		Made more things translatable
+	External Components:
+		Added MPlayer/MEncoder SB49 for Linux
+		Added FFmpeg SB6 for Linux
+		Updated Java Runtime Environment automatic downloader for Windows to 7u13, which:
+			Fixes serious security holes
+		Updated FFmpeg for Windows to SB6, which:
+			Enables external subtitles
+
+2.3.0 - 2013-01-27
+
+	General:
+		FFmpeg supports audio selection
+		Improved MKV/MP4 support on PS3
+		Fixed rare bug where files stop half way through
+		Support streaming mp4 to WD TV Live
+		Added initial support for Vizio Smart TVs
+		Fixed playback on unknown renderers
+		Fixed several FFmpeg-related bugs
+		Improved support for videos whose containers change aspect ratios
+		Tried to fix headless mode detection on Ubuntu
+		Fixed various bugs
+	External Components:
+		Updated FFmpeg for Windows to SB5, which:
+			Improves AC-3 audio buffering
+			Fixes memory leaks
+			Fixes a bug which detected transport streams as finished when they weren't
+			Improved MPEG-PS encoding
+			Made error codes more meaningful
+			Improves Matroska (MKV) support
+			Improves threading
+			Optimized AC-3 decoding
+		Updated InterFrame to 2.4.0, which:
+			Improves scene-change detection
+
+2.2.6 - 2013-01-21
+
+	General:
+		Some renderers (like Philips HTS) can connect more quickly with the server
+		Improved support for Sony Bravia HX series TVs
+		Improved design on OS X
+		Fixed FFmpeg video transcoding on Xbox
+		Fixed file permissions on Linux
+		Plugins can use custom icons for files (thanks, skeptical!)
+	Languages:
+		Updated Korean translation (thanks, sunghyuk!)
+	External Components:
+		Updated MPlayer/MEncoder for Windows to SB49, which:
+			Improves MP3 encoding speed
+			Improves MKV support
+			Improves threading
+			Fixes memory leaks
+
+2.2.5 - 2013-01-16
+
+	General:
+		Fixed transcoding support on some renderers (thanks for testing, Raker13!)
+		Merged the Video Settings folder into the Server Settings folder
+		Fixed a bug with the cache (thanks, valib!)
+		Several code optimizations (thanks, valib!)
+	External Components:
+		Updated Java Runtime Environment automatic downloader for Windows to 7u11, which:
+			Fixes serious security holes
+
+2.2.4 - 2013-01-09
+
+	General:
+		Prevents internal and external subtitles from showing at the same time
+	External Components:
+		Updated MPlayer/MEncoder to SB48, which:
+			Runs faster
+			Crashes less
+			Detects framerates more accurately
+			Fixed subtitle bug on certain CPUs
+			Improved audio/video sync
+			Fixed memory leaks
+			Improves AVI support
+			Fixed audio stuttering/repeating bug
+			Fixed alpha for ASS subtitles
+			Improves permissions handling on Windows
+			Removes incorrectly categorised fonts
+			Makes ASS/SSA subtitle rendering up to 3.5x faster
+			Improves AC-3 audio buffering
+			Fixes a bug which detected transport streams as finished when they weren't
+			Improved MPEG-PS encoding
+
+2.2.3 - 2013-01-07
+
+	General:
+		Temporarily rolled back MPlayer/MEncoder for Windows to SB42 to fix playback bugs
+
+2.2.2 - 2013-01-03
+
+	General:
+		Improved support of many files, especially on non-PS3 renderers
+		Fixed AVI support on Panasonic TVs
+		Cleaned up the "serving" text at the bottom of the program
+		Fixed conditional horizontal scrollbar
+		More accurately determine which formats tsMuxeR supports
+	External Components:
+		Updated InterFrame to 2.3.0, which:
+			Increased speed
+			Improved quality in high-action scenes
+			Optimised memory use
+			Supports more video cards
+		Updated MPlayer/MEncoder to SB47, which:
+			Disabled direct rendering for non-ref frames only again
+			Fixes a bug which detected transport streams as finished when they weren't
 
 2.2.1 - 2012-12-21
 

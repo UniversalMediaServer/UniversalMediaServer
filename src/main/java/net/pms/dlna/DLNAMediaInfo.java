@@ -39,10 +39,11 @@ import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
-import net.coobird.thumbnailator.tasks.UnsupportedFormatException;
 import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.Thumbnails.Builder;
+import net.coobird.thumbnailator.tasks.UnsupportedFormatException;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.formats.AudioAsVideo;
 import net.pms.formats.Format;
@@ -82,6 +83,7 @@ import org.slf4j.LoggerFactory;
 public class DLNAMediaInfo implements Cloneable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAMediaInfo.class);
 	private static final String THUMBNAIL_DIRECTORY_NAME = "thumbs";
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	public static final long ENDFILE_POS = 99999475712L;
 	public static final long TRANS_SIZE = 100000000000L;
@@ -134,6 +136,9 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	@Deprecated
 	public String aspect;
+
+	public String aspectRatioContainer;
+	public String aspectRatioVideoTrack;
 
 	/**
 	 * @deprecated Use standard getter and setter to access this variable.
@@ -255,17 +260,51 @@ public class DLNAMediaInfo implements Cloneable {
 	 * value to send to the renderer.
 	 * This extends renderer configs, defining things that are needed by renderers
 	 * but are not possible with their configs yet.
+	 *
+	 * Some of this code is repeated in isVideoWithinH264LevelLimits(), and since
+	 * both functions are sometimes (but not always) used together, this is
+	 * not an efficient use of code.
+	 * TODO: Fix the above situation.
 	 */
 	public boolean isMuxable(RendererConfiguration mediaRenderer) {
-		// tsMuxeR does not support AVI or DivX
+		// Blacklist all formats not in the following lists
 		if (
 			getContainer() != null &&
-			(
-				getContainer().equals("avi") ||
-				getContainer().equals("divx")
+			!(
+				getContainer().equals("mkv") ||
+				getContainer().equals("mp4") ||
+				getContainer().equals("mov") ||
+				getContainer().equals("ts") ||
+				getContainer().equals("m2ts")
 			)
 		) {
-			muxable = false;
+			if (
+				getCodecV() != null &&
+				!(
+					getCodecV().equals("h264") ||
+					getCodecV().equals("vc1") ||
+					getCodecV().equals("mpeg2")
+				)
+			) {
+				muxable = false;
+			}
+
+			if (getFirstAudioTrack() != null) {
+				String codecA;
+				codecA = getFirstAudioTrack().getCodecA();
+				if (
+					codecA != null &&
+					!(
+						codecA.equals("aac") ||
+						codecA.equals("ac3") ||
+						codecA.equals("dca") ||
+						codecA.equals("dts") ||
+						codecA.equals("eac3")
+					)
+				) {
+					muxable = false;
+				}
+			}
 		}
 
 		// Temporary fix: MediaInfo support will take care of this in the future
@@ -333,16 +372,16 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	private ProcessWrapperImpl getFFMpegThumbnail(InputFile media) {
-		String args[] = new String[16];
+		String args[] = new String[14];
 		args[0] = getFfmpegPath();
 		boolean dvrms = media.getFile() != null && media.getFile().getAbsolutePath().toLowerCase().endsWith("dvr-ms");
 
-		if (dvrms && StringUtils.isNotBlank(PMS.getConfiguration().getFfmpegAlternativePath())) {
-			args[0] = PMS.getConfiguration().getFfmpegAlternativePath();
+		if (dvrms && StringUtils.isNotBlank(configuration.getFfmpegAlternativePath())) {
+			args[0] = configuration.getFfmpegAlternativePath();
 		}
 
 		args[1] = "-ss";
-		args[2] = "" + PMS.getConfiguration().getThumbnailSeekPos();
+		args[2] = "" + configuration.getThumbnailSeekPos();
 		args[3] = "-i";
 
 		if (media.getFile() != null) {
@@ -359,19 +398,17 @@ public class DLNAMediaInfo implements Cloneable {
 		args[10] = "1";
 		args[11] = "-f";
 		args[12] = "image2";
-		args[13] = "-loglevel";
-		args[14] = "warning";
-		args[15] = "pipe:";
+		args[13] = "pipe:";
 
 		// FIXME MPlayer should not be used if thumbnail generation is disabled (and it should be disabled in the GUI)
-		if (!PMS.getConfiguration().isThumbnailGenerationEnabled() || (PMS.getConfiguration().isUseMplayerForVideoThumbs() && !dvrms)) {
+		if (!configuration.isThumbnailGenerationEnabled() || (configuration.isUseMplayerForVideoThumbs() && !dvrms)) {
 			args[2] = "0";
 			for (int i = 5; i <= 13; i++) {
 				args[i] = "-an";
 			}
 		}
 
-		OutputParams params = new OutputParams(PMS.getConfiguration());
+		OutputParams params = new OutputParams(configuration);
 		params.maxBufferSize = 1;
 		params.stdin = media.getPush();
 		params.noexitcheck = true; // not serious if anything happens during the thumbnailer
@@ -403,10 +440,10 @@ public class DLNAMediaInfo implements Cloneable {
 
 	private ProcessWrapperImpl getMplayerThumbnail(InputFile media) throws IOException {
 		String args[] = new String[14];
-		args[0] = PMS.getConfiguration().getMplayerPath();
+		args[0] = configuration.getMplayerPath();
 		args[1] = "-ss";
-		boolean toolong = getDurationInSeconds() < PMS.getConfiguration().getThumbnailSeekPos();
-		args[2] = "" + (toolong ? (getDurationInSeconds() / 2) : PMS.getConfiguration().getThumbnailSeekPos());
+		boolean toolong = getDurationInSeconds() < configuration.getThumbnailSeekPos();
+		args[2] = "" + (toolong ? (getDurationInSeconds() / 2) : configuration.getThumbnailSeekPos());
 		args[3] = "-quiet";
 
 		if (media.getFile() != null) {
@@ -427,8 +464,8 @@ public class DLNAMediaInfo implements Cloneable {
 		frameName = frameName.replace(',', '_');
 		args[12] = "jpeg:outdir=" + frameName;
 		args[13] = "-nosound";
-		OutputParams params = new OutputParams(PMS.getConfiguration());
-		params.workDir = PMS.getConfiguration().getTempFolder();
+		OutputParams params = new OutputParams(configuration);
+		params.workDir = configuration.getTempFolder();
 		params.maxBufferSize = 1;
 		params.stdin = media.getPush();
 		params.log = true;
@@ -458,7 +495,7 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	private String getFfmpegPath() {
-		String value = PMS.getConfiguration().getFfmpegPath();
+		String value = configuration.getFfmpegPath();
 
 		if (value == null) {
 			LOGGER.info("No ffmpeg - unable to thumbnail");
@@ -541,10 +578,10 @@ public class DLNAMediaInfo implements Cloneable {
 							if (t.getArtworkList().size() > 0) {
 								setThumb(t.getArtworkList().get(0).getBinaryData());
 							} else {
-								if (PMS.getConfiguration().getAudioThumbnailMethod() > 0) {
+								if (configuration.getAudioThumbnailMethod() > 0) {
 									setThumb(
 										CoverUtil.get().getThumbnailFromArtistAlbum(
-											PMS.getConfiguration().getAudioThumbnailMethod() == 1 ?
+											configuration.getAudioThumbnailMethod() == 1 ?
 												CoverUtil.AUDIO_AMAZON :
 												CoverUtil.AUDIO_DISCOGS,
 											audio.getArtist(), audio.getAlbum()
@@ -640,9 +677,9 @@ public class DLNAMediaInfo implements Cloneable {
 				}
 			}
 
-			if (PMS.getConfiguration().getImageThumbnailsEnabled() && type != Format.VIDEO) {
+			if (configuration.getImageThumbnailsEnabled() && type != Format.VIDEO) {
 				try {
-					File thumbDir = new File(PMS.getConfiguration().getTempFolder(), THUMBNAIL_DIRECTORY_NAME);
+					File thumbDir = new File(configuration.getTempFolder(), THUMBNAIL_DIRECTORY_NAME);
 
 					LOGGER.trace("Generating thumbnail for: {}", inputFile.getFile().getAbsolutePath());
 
@@ -693,7 +730,7 @@ public class DLNAMediaInfo implements Cloneable {
 			}
 
 			if (ffmpeg_parsing) {
-				if (!thumbOnly || !PMS.getConfiguration().isUseMplayerForVideoThumbs()) {
+				if (!thumbOnly || !configuration.isUseMplayerForVideoThumbs()) {
 					pw = getFFMpegThumbnail(inputFile);
 				}
 
@@ -930,11 +967,11 @@ public class DLNAMediaInfo implements Cloneable {
 					}
 				}
 
-				if (PMS.getConfiguration().isUseMplayerForVideoThumbs() && type == Format.VIDEO && !dvrms) {
+				if (configuration.isUseMplayerForVideoThumbs() && type == Format.VIDEO && !dvrms) {
 					try {
 						getMplayerThumbnail(inputFile);
 						String frameName = "" + inputFile.hashCode();
-						frameName = PMS.getConfiguration().getTempFolder() + "/mplayer_thumbs/" + frameName + "00000001/00000001.jpg";
+						frameName = configuration.getTempFolder() + "/mplayer_thumbs/" + frameName + "00000001/00000001.jpg";
 						frameName = frameName.replace(',', '_');
 						File jpg = new File(frameName);
 
@@ -974,7 +1011,7 @@ public class DLNAMediaInfo implements Cloneable {
 						}
 						is.close();
 
-						if (sz > 0 && !java.awt.GraphicsEnvironment.isHeadless()) {
+						if (sz > 0 && !net.pms.PMS.isHeadless()) {
 							BufferedImage image = ImageIO.read(new ByteArrayInputStream(getThumb()));
 							if (image != null) {
 								Graphics g = image.getGraphics();
@@ -1103,11 +1140,15 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 
 		// Check for external subs here
-		if (f.getFile() != null && type == Format.VIDEO && PMS.getConfiguration().isAutoloadSubtitles()) {
-			FileUtil.doesSubtitlesExists(f.getFile(), this);
+		if (f.getFile() != null && type == Format.VIDEO && configuration.isAutoloadSubtitles()) {
+			FileUtil.isSubtitlesExists(f.getFile(), this);
 		}
 	}
 
+	/**
+	 * Use isVideoWithinH264LevelLimits() instead
+	 */
+	@Deprecated
 	public boolean isVideoPS3Compatible(InputFile f) {
 		if (!h264_parsed) {
 			if (getCodecV() != null && (getCodecV().equals("h264") || getCodecV().startsWith("mpeg2"))) { // what about VC1 ?
@@ -1121,10 +1162,10 @@ public class DLNAMediaInfo implements Cloneable {
 						getContainer().equals("mov") ||
 						getContainer().equals("mp4")
 					)
-				) { // containers without h264_annexB
+				) { // Containers without h264_annexB
 					byte headers[][] = getAnnexBFrameHeader(f);
 					if (ffmpeg_annexb_failure) {
-						LOGGER.info("Error parsing information from the file: " + f.getFile().getName());
+						LOGGER.info("Error parsing information from the file: " + f.getFilename());
 					}
 
 					if (headers != null) {
@@ -1138,18 +1179,96 @@ public class DLNAMediaInfo implements Cloneable {
 							System.arraycopy(getH264AnnexB(), skip, header, 0, header.length);
 							AVCHeader avcHeader = new AVCHeader(header);
 							avcHeader.parse();
-							LOGGER.trace("H264 file: " + f.getFilename() + ": Profile: " + avcHeader.getProfile() + " / level: " + avcHeader.getLevel() + " / ref frames: " + avcHeader.getRef_frames());
+							LOGGER.debug("H.264 file: " + f.getFilename() + ": Profile: " + avcHeader.getProfile() + " / level: " + avcHeader.getLevel() + " / ref frames: " + avcHeader.getRef_frames());
 							muxable = true;
 
-							// Check if file is compliant with Level4.1
 							if (avcHeader.getLevel() >= 41 && getWidth() > 0 && getHeight() > 0) {
 								int maxref = (int) Math.floor(8388608 / (getWidth() * getHeight()));
 								if (avcHeader.getRef_frames() > maxref) {
 									muxable = false;
+									LOGGER.debug("The file " + f.getFilename() + " is not compatible with PS3 because it can only take " + maxref + " reference frames at this resolution while this file has " + avcHeader.getRef_frames() + " reference frames");
 								}
 							}
 							if (!muxable) {
 								LOGGER.debug("H.264 file: " + f.getFilename() + " is not compatible with PS3");
+							}
+						} else {
+							muxable = false;
+						}
+					} else {
+						muxable = false;
+					}
+				}
+			}
+
+			h264_parsed = true;
+		}
+
+		return muxable;
+	}
+
+	/**
+	 * Checks whether the video has too many reference frames per pixels for the renderer
+	 */
+	public boolean isVideoWithinH264LevelLimits(InputFile f, RendererConfiguration mediaRenderer) {
+		if (!h264_parsed) {
+			if (getCodecV() != null && (getCodecV().equals("h264") || getCodecV().startsWith("mpeg2"))) { // what about VC1 ?
+				muxable = true;
+				if (
+					getCodecV().equals("h264") &&
+					getContainer() != null &&
+					(
+						getContainer().equals("matroska") ||
+						getContainer().equals("mkv") ||
+						getContainer().equals("mov") ||
+						getContainer().equals("mp4")
+					)
+				) { // Containers without h264_annexB
+					byte headers[][] = getAnnexBFrameHeader(f);
+					if (ffmpeg_annexb_failure) {
+						LOGGER.info("Error parsing information from the file: " + f.getFilename());
+					}
+
+					if (headers != null) {
+						setH264AnnexB(headers[1]);
+						if (getH264AnnexB() != null) {
+							int skip = 5;
+							if (getH264AnnexB()[2] == 1) {
+								skip = 4;
+							}
+							byte header[] = new byte[getH264AnnexB().length - skip];
+							System.arraycopy(getH264AnnexB(), skip, header, 0, header.length);
+							AVCHeader avcHeader = new AVCHeader(header);
+							avcHeader.parse();
+							LOGGER.debug("H.264 file: " + f.getFilename() + ": Profile: " + avcHeader.getProfile() + " / level: " + avcHeader.getLevel() + " / ref frames: " + avcHeader.getRef_frames());
+							muxable = true;
+
+							if (avcHeader.getLevel() >= 41 && getWidth() > 0 && getHeight() > 0) {
+								int maxref;
+								if (mediaRenderer.isPS3()) {
+									/**
+									 * 2013-01-25: Confirmed maximum reference frames on PS3:
+									 *    - 4 for 1920x1080
+									 *    - 11 for 1280x720
+									 * Meaning this math is correct
+									 */
+									maxref = (int) Math.floor(10252743 / (getWidth() * getHeight()));
+								} else {
+									/**
+									 * This is the math for level 4.1, which results in:
+									 *    - 4 for 1920x1080
+									 *    - 9 for 1280x720
+									 */
+									maxref = (int) Math.floor(8388608 / (getWidth() * getHeight()));
+								}
+
+								if (avcHeader.getRef_frames() > maxref) {
+									muxable = false;
+									LOGGER.debug("The file " + f.getFilename() + " is not compatible with this renderer because it can only take " + maxref + " reference frames at this resolution while this file has " + avcHeader.getRef_frames() + " reference frames");
+								}
+							}
+							if (!muxable) {
+								LOGGER.debug("H.264 file: " + f.getFilename() + " is not compatible with this renderer");
 							}
 						} else {
 							muxable = false;
@@ -1289,7 +1408,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 	public byte[][] getAnnexBFrameHeader(InputFile f) {
 		String[] cmdArray = new String[14];
-		cmdArray[0] = PMS.getConfiguration().getFfmpegPath();
+		cmdArray[0] = configuration.getFfmpegPath();
 		cmdArray[1] = "-i";
 
 		if (f.getPush() == null && f.getFilename() != null) {
@@ -1311,7 +1430,7 @@ public class DLNAMediaInfo implements Cloneable {
 		cmdArray[13] = "pipe:";
 
 		byte[][] returnData = new byte[2][];
-		OutputParams params = new OutputParams(PMS.getConfiguration());
+		OutputParams params = new OutputParams(configuration);
 		params.maxBufferSize = 1;
 		params.stdin = f.getPush();
 
@@ -1534,6 +1653,34 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public void setAspect(String aspect) {
 		this.aspect = aspect;
+	}
+
+	/**
+	 * @return the aspect ratio reported by the container
+	 */
+	public String getAspectRatioContainer() {
+		return aspectRatioContainer;
+	}
+
+	/**
+	 * @param aspect the aspect ratio to set
+	 */
+	public void setAspectRatioContainer(String aspect) {
+		this.aspectRatioContainer = aspect;
+	}
+
+	/**
+	 * @return the aspect ratio of the video track
+	 */
+	public String getAspectRatioVideoTrack() {
+		return aspectRatioVideoTrack;
+	}
+
+	/**
+	 * @param aspect the aspect ratio to set
+	 */
+	public void setAspectRatioVideoTrack(String aspect) {
+		this.aspectRatioVideoTrack = aspect;
 	}
 
 	/**

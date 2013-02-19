@@ -21,6 +21,7 @@ package net.pms.dlna;
 import java.io.*;
 import java.util.ArrayList;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.util.FileUtil;
@@ -31,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 public class RealFile extends MapFile {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RealFile.class);
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	public RealFile(File file) {
 		getConf().getFiles().add(file);
@@ -48,8 +50,8 @@ public class RealFile extends MapFile {
 	public boolean isValid() {
 		File file = this.getFile();
 		checktype();
-		if (getType() == Format.VIDEO && file.exists() && PMS.getConfiguration().isAutoloadSubtitles() && file.getName().length() > 4) {
-			setSrtFile(FileUtil.doesSubtitlesExists(file, null));
+		if (getType() == Format.VIDEO && file.exists() && configuration.isAutoloadSubtitles() && file.getName().length() > 4) {
+			setSrtFile(FileUtil.isSubtitlesExists(file, null));
 		}
 
 		boolean valid = file.exists() && (getFormat() != null || file.isDirectory());
@@ -161,7 +163,7 @@ public class RealFile extends MapFile {
 				fileName += "#SplitTrack" + getSplitTrack();
 			}
 			
-			if (PMS.getConfiguration().getUseCache()) {
+			if (configuration.getUseCache()) {
 				DLNAMediaDatabase database = PMS.get().getDatabase();
 
 				if (database != null) {
@@ -189,7 +191,7 @@ public class RealFile extends MapFile {
 					getMedia().parse(input, getFormat(), getType(), false);
 				}
 
-				if (found && PMS.getConfiguration().getUseCache()) {
+				if (found && configuration.getUseCache()) {
 					DLNAMediaDatabase database = PMS.get().getDatabase();
 
 					if (database != null) {
@@ -239,8 +241,8 @@ public class RealFile extends MapFile {
 					break;
 				}
 
-				if (StringUtils.isNotBlank(PMS.getConfiguration().getAlternateThumbFolder())) {
-					thumbFolder = new File(PMS.getConfiguration().getAlternateThumbFolder());
+				if (StringUtils.isNotBlank(configuration.getAlternateThumbFolder())) {
+					thumbFolder = new File(configuration.getAlternateThumbFolder());
 
 					if (!thumbFolder.isDirectory()) {
 						thumbFolder = null;
@@ -280,7 +282,7 @@ public class RealFile extends MapFile {
 
 	@Override
 	protected String getThumbnailURL() {
-		if (getType() == Format.IMAGE && !PMS.getConfiguration().getImageThumbnailsEnabled()) {
+		if (getType() == Format.IMAGE && !configuration.getImageThumbnailsEnabled()) {
 			return null;
 		}
 		StringBuilder sb = new StringBuilder();

@@ -30,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
 import net.pms.dlna.virtual.VirtualFolder;
@@ -67,7 +68,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private static final int STOP_PLAYING_DELAY = 4000;
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAResource.class);
 	private static final SimpleDateFormat SDF_DATE = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
-
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	
 	protected static final int MAX_ARCHIVE_ENTRY_SIZE = 10000000;
 	protected static final int MAX_ARCHIVE_SIZE_SEEK = 800000000;
 
@@ -488,7 +490,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 
 				if (child.getFormat() != null) {
-					setSkipTranscode(child.getFormat().skip(PMS.getConfiguration().getNoTranscode(), getDefaultRenderer() != null ? getDefaultRenderer().getStreamedExtensions() : null));
+					setSkipTranscode(child.getFormat().skip(configuration.getNoTranscode(), getDefaultRenderer() != null ? getDefaultRenderer().getStreamedExtensions() : null));
 				}
 
 				if (child.getFormat() != null && (child.getFormat().transcodable() || parserV2) && (child.getMedia() == null || parserV2)) {
@@ -529,7 +531,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					if (player != null && !allChildrenAreFolders) {
 						boolean forceTranscode = false;
 						if (child.getFormat() != null) {
-							forceTranscode = child.getFormat().skip(PMS.getConfiguration().getForceTranscode(), getDefaultRenderer() != null ? getDefaultRenderer().getTranscodedExtensions() : null);
+							forceTranscode = child.getFormat().skip(configuration.getForceTranscode(), getDefaultRenderer() != null ? getDefaultRenderer().getTranscodedExtensions() : null);
 						}
 
 						boolean hasEmbeddedSubs = false;
@@ -542,8 +544,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 						boolean hasSubsToTranscode = false;
 
-						if (!PMS.getConfiguration().isMencoderDisableSubs()) {
-							hasSubsToTranscode = (PMS.getConfiguration().isAutoloadSubtitles() && child.isSrtFile()) || hasEmbeddedSubs;
+						if (!configuration.isDisableSubtitles()) {
+							hasSubsToTranscode = (configuration.isAutoloadSubtitles() && child.isSrtFile()) || hasEmbeddedSubs;
 						}
 
 						boolean isIncompatible = false;
@@ -641,7 +643,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return null;
 		}
 
-		if (PMS.getConfiguration().getHideTranscodeEnabled()) {
+		if (configuration.getHideTranscodeEnabled()) {
 			return null;
 		}
 
@@ -777,7 +779,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	final protected void discoverWithRenderer(RendererConfiguration renderer, int count, boolean forced, String searchStr) {
 		// Discover children if it hasn't been done already
 		if (!isDiscovered()) {
-			if (PMS.getConfiguration().getFolderLimit() && depthLimit()) {
+			if (configuration.getFolderLimit() && depthLimit()) {
 				if (renderer.getRendererName().equalsIgnoreCase("Playstation 3") || renderer.isXBOX()) {
 					LOGGER.info("Depth limit potentionally hit for " + getDisplayName());
 				}
@@ -971,7 +973,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		String subtitleFormat;
 		String subtitleLanguage;
 		boolean isNamedNoEncoding = false;
-		if (this instanceof RealFile && PMS.getConfiguration().isHideExtensions() && !isFolder()) {
+		if (this instanceof RealFile && configuration.isHideExtensions() && !isFolder()) {
 			name = FileUtil.getFileNameWithoutExtension(name);
 		}
 
@@ -984,7 +986,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					name += " - " + getMedia().getDurationString();
 				}
 
-				if (!PMS.getConfiguration().isHideEngineNames()) {
+				if (!configuration.isHideEngineNames()) {
 					name += " [" + getPlayer().name() + "]";
 				}
 			}
@@ -1199,7 +1201,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			addXMLTagAndAttribute(
 				sb,
 				"dc:title",
-				encodeXML(firstAudioTrack.getSongname() + (getPlayer() != null && !PMS.getConfiguration().isHideEngineNames() ? (" [" + getPlayer().name() + "]") : ""))
+				encodeXML(firstAudioTrack.getSongname() + (getPlayer() != null && !configuration.isHideEngineNames() ? (" [" + getPlayer().name() + "]") : ""))
 			);
 		} else { // Ditlew - org
 			// Ditlew
@@ -1305,7 +1307,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					if (mime.equals("video/mpeg")) {
 						if (getPlayer() != null) {
 							// Do we have some mpegts to offer?
-							boolean mpegTsMux = TSMuxerVideo.ID.equals(getPlayer().id()) || VideoLanVideoStreaming.ID.equals(getPlayer().id());
+							boolean mpegTsMux = TsMuxeRVideo.ID.equals(getPlayer().id()) || VideoLanVideoStreaming.ID.equals(getPlayer().id());
 							if (!mpegTsMux) { // Maybe, like the PS3, MEncoder can launch tsMuxeR if this a compatible H.264 video
 								mpegTsMux = MEncoderVideo.ID.equals(getPlayer().id()) &&
 									(
@@ -1314,7 +1316,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 											getMedia() != null &&
 											getMedia().getDvdtrack() == 0 &&
 											getMedia().isMuxable(mediaRenderer) &&
-											PMS.getConfiguration().isMencoderMuxWhenCompatible() &&
+											configuration.isMencoderMuxWhenCompatible() &&
 											mediaRenderer.isMuxH264MpegTS()
 										) ||
 										mediaRenderer.isTranscodeToMPEGTSAC3()
@@ -1414,7 +1416,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							// Calculate WAV size
 							if (firstAudioTrack != null) {
 								int defaultFrequency = mediaRenderer.isTranscodeAudioTo441() ? 44100 : 48000;
-								if (!PMS.getConfiguration().isAudioResample()) {
+								if (!configuration.isAudioResample()) {
 									try {
 										// FIXME: Which exception could be thrown here?
 										defaultFrequency = firstAudioTrack.getSampleRate();
@@ -1423,7 +1425,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									}
 								}
 								int na = firstAudioTrack.getAudioProperties().getNumberOfChannels();
-								if (na > 2) { // no 5.1 dump in mplayer
+								if (na > 2) { // No 5.1 dump in MPlayer
 									na = 2;
 								}
 								int finalsize = (int) (getMedia().getDurationInSeconds() * defaultFrequency * 2 * na);
@@ -1541,7 +1543,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						try {
 							rendererIp = InetAddress.getByName(rendererId);
 							RendererConfiguration renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(rendererIp);
-							String rendererName = renderer.getRendererName();
+							String rendererName = "unknown renderer";
+							try {
+								rendererName = renderer.getRendererName();
+							} catch (NullPointerException e) { }
 							LOGGER.info("Started playing " + getName() + " on your " + rendererName);
 							LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
 						} catch (UnknownHostException ex) {
@@ -1604,7 +1609,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								try {
 									rendererIp = InetAddress.getByName(rendererId);
 									RendererConfiguration renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(rendererIp);
-									String rendererName = renderer.getRendererName();
+									String rendererName = "unknown renderer";
+									try {
+										rendererName = renderer.getRendererName();
+									} catch (NullPointerException e) { }
 									LOGGER.info("Stopped playing " + getName() + " on your " + rendererName);
 									LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
 								} catch (UnknownHostException ex) {
@@ -1727,9 +1735,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 			return fis;
 		} else {
-			OutputParams params = new OutputParams(PMS.getConfiguration());
+			OutputParams params = new OutputParams(configuration);
 			params.aid = getMediaAudio();
 			params.sid = getMediaSubtitle();
+			params.header = getHeaders();
 			params.mediaRenderer = mediarenderer;
 			timeRange.limit(getSplitRange());
 			params.timeseek = timeRange.getStartOrZero();
@@ -1870,13 +1879,55 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param input InputFile to check or generate the thumbnail from.
 	 */
 	protected void checkThumbnail(InputFile inputFile) {
-		if (getMedia() != null && !getMedia().isThumbready() && PMS.getConfiguration().isThumbnailGenerationEnabled()) {
+		if (getMedia() != null && !getMedia().isThumbready() && configuration.isThumbnailGenerationEnabled()) {
 			getMedia().setThumbready(true);
 			getMedia().generateThumbnail(inputFile, getFormat(), getType());
-			if (getMedia().getThumb() != null && PMS.getConfiguration().getUseCache() && inputFile.getFile() != null) {
+			if (getMedia().getThumb() != null && configuration.getUseCache() && inputFile.getFile() != null) {
 				PMS.get().getDatabase().updateThumbnail(inputFile.getFile().getAbsolutePath(), inputFile.getFile().lastModified(), getType(), getMedia());
 			}
 		}
+	}
+
+	/**
+	 * Returns the input stream for this resource's generic thumbnail,
+	 * which is the first of:
+	 *          - its Format icon, if any
+	 *          - the fallback image, if any
+	 *          - the default video icon
+	 *
+	 * @param fallback
+	 *            the fallback image, or null.
+	 *
+	 * @return The InputStream
+	 * @throws IOException
+	 */
+	public InputStream getGenericThumbnailInputStream(String fallback) throws IOException {
+		String thumb = fallback;
+		if (getFormat() != null && getFormat().getIcon() != null) {
+			thumb = getFormat().getIcon();
+		}
+
+		// Thumb could be:
+		if (thumb != null) {
+			// A local file
+			if (new File(thumb).exists()) {
+				return new FileInputStream(thumb);
+			}
+
+			// A jar resource
+			InputStream is;
+			if ((is = getResourceInputStream(thumb)) != null) {
+				return is;
+			}
+
+			// A URL
+			try {
+				return downloadAndSend(thumb, true);
+			} catch (Exception e) {}
+		}
+
+		// Or none of the above
+		return getResourceInputStream("images/thumbnail-video-256.png");
 	}
 
 	/**
@@ -1888,7 +1939,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @throws IOException
 	 */
 	public InputStream getThumbnailInputStream() throws IOException {
-		return getResourceInputStream("images/thumbnail-video-256.png");
+		return getGenericThumbnailInputStream(null);
 	}
 
 	public String getThumbnailContentType() {
@@ -2414,6 +2465,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	public boolean isSearched() {
 		return false;
+	}
+
+	public byte[] getHeaders() {
+		return null;
 	}
 
 	/**

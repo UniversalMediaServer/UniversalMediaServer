@@ -47,13 +47,13 @@ import net.pms.io.*;
 import net.pms.network.HTTPResource;
 import net.pms.newgui.CustomJButton;
 import net.pms.newgui.FontFileFilter;
-import net.pms.newgui.LooksFrame;
 import net.pms.newgui.MyComboBoxModel;
-import net.pms.newgui.RestrictedFileSystemView;
 import net.pms.util.CodecUtil;
 import net.pms.util.FileUtil;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.ProcessUtil;
+import org.apache.commons.configuration.event.ConfigurationEvent;
+import org.apache.commons.configuration.event.ConfigurationListener;
 import static org.apache.commons.lang.BooleanUtils.isTrue;
 import static org.apache.commons.lang.StringUtils.*;
 import org.slf4j.Logger;
@@ -61,8 +61,8 @@ import org.slf4j.LoggerFactory;
 
 public class MEncoderVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MEncoderVideo.class);
-	private static final String COL_SPEC = "left:pref, 3dlu, p:grow, 3dlu, right:p:grow, 3dlu, p:grow, 3dlu, right:p:grow, 3dlu, p:grow, 3dlu, right:p:grow, 3dlu, pref:grow";
-	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu,p, 3dlu, p, 3dlu, p, 3dlu, p, 9dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
+	private static final String COL_SPEC = "left:pref, 3dlu, p:grow, 3dlu, right:p:grow, 3dlu, p:grow, 3dlu, right:p:grow,3dlu, p:grow, 3dlu, right:p:grow,3dlu, pref:grow";
+	private static final String ROW_SPEC = "p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu,p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 9dlu, p, 2dlu, p, 2dlu, p , 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p, 2dlu, p";
 	private static final String REMOVE_OPTION = "---REMOVE-ME---"; // use an out-of-band option that can't be confused with a real option
 
 	private JTextField mencoder_ass_scale;
@@ -74,11 +74,6 @@ public class MEncoderVideo extends Player {
 	private JTextField mencoder_noass_blur;
 	private JTextField mencoder_noass_outline;
 	private JTextField mencoder_custom_options;
-	private JTextField langs;
-	private JTextField defaultsubs;
-	private JTextField forcedsub;
-	private JTextField forcedtags;
-	private JTextField defaultaudiosubs;
 	private JTextField defaultfont;
 	private JComboBox subtitleCodePage;
 	private JTextField subq;
@@ -92,14 +87,12 @@ public class MEncoderVideo extends Player {
 	private JCheckBox ass;
 	private JCheckBox checkBox;
 	private JCheckBox mencodermt;
-	private JCheckBox videoremux;
 	private JCheckBox noskip;
 	private JCheckBox intelligentsync;
-	private JTextField alternateSubFolder;
-	private CustomJButton subColor;
+	private JButton subColor;
+	private JButton fontselect;
 	private JTextField ocw;
 	private JTextField och;
-	private JCheckBox subs;
 	private JCheckBox fribidi;
 	private final PmsConfiguration configuration;
 
@@ -165,10 +158,6 @@ public class MEncoderVideo extends Player {
 
 	public JCheckBox getNoskip() {
 		return noskip;
-	}
-
-	public JCheckBox getSubs() {
-		return subs;
 	}
 
 	public MEncoderVideo(PmsConfiguration configuration) {
@@ -319,7 +308,8 @@ public class MEncoderVideo extends Player {
 				}
 			}
 		});
-		builder.add(button, FormLayoutUtil.flip(cc.xy(1, 11), colSpec, orientation));
+
+		builder.add(button, FormLayoutUtil.flip(cc.xyw(1, 11, 2), colSpec, orientation));
 
 		forcefps = new JCheckBox(Messages.getString("MEncoderVideo.4"));
 		forcefps.setContentAreaFilled(false);
@@ -363,19 +353,12 @@ public class MEncoderVideo extends Player {
 				scaleY.setEnabled(configuration.isMencoderScaler());
 			}
 		});
-		builder.add(scaler, FormLayoutUtil.flip(cc.xyw(3, 5, 4), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.28"), FormLayoutUtil.flip(cc.xy(9, 5, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+		builder.add(scaler, FormLayoutUtil.flip(cc.xyw(3, 5, 7), colSpec, orientation));
+
+		builder.addLabel(Messages.getString("MEncoderVideo.28"), FormLayoutUtil.flip(cc.xyw(10, 5, 3, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 		scaleX = new JTextField("" + configuration.getMencoderScaleX());
-		scaleX.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		scaleX.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				try {
@@ -385,19 +368,11 @@ public class MEncoderVideo extends Player {
 				}
 			}
 		});
-		builder.add(scaleX, FormLayoutUtil.flip(cc.xy(11, 5), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.30"), FormLayoutUtil.flip(cc.xy(13, 5, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+		builder.add(scaleX, FormLayoutUtil.flip(cc.xyw(13, 5, 3), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.30"), FormLayoutUtil.flip(cc.xyw(10, 7, 3, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 		scaleY = new JTextField("" + configuration.getMencoderScaleY());
-		scaleY.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		scaleY.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				try {
@@ -407,7 +382,8 @@ public class MEncoderVideo extends Player {
 				}
 			}
 		});
-		builder.add(scaleY, FormLayoutUtil.flip(cc.xy(15, 5), colSpec, orientation));
+
+		builder.add(scaleY, FormLayoutUtil.flip(cc.xyw(13, 7, 3), colSpec, orientation));
 
 		if (configuration.isMencoderScaler()) {
 			scaler.setSelected(true);
@@ -416,176 +392,32 @@ public class MEncoderVideo extends Player {
 			scaleY.setEnabled(false);
 		}
 
-		videoremux = new JCheckBox("<html>" + Messages.getString("MEncoderVideo.38") + "</html>");
-		videoremux.setContentAreaFilled(false);
+		cmp = builder.addSeparator(Messages.getString("MEncoderVideo.5"), FormLayoutUtil.flip(cc.xyw(1, 19, 15), colSpec, orientation));
+		cmp = (JComponent) cmp.getComponent(0);
+		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		if (configuration.isMencoderMuxWhenCompatible()) {
-			videoremux.setSelected(true);
-		}
-
-		videoremux.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setMencoderMuxWhenCompatible((e.getStateChange() == ItemEvent.SELECTED));
-			}
-		});
-
-		builder.add(videoremux, FormLayoutUtil.flip(cc.xyw(1, 9, 13), colSpec, orientation));
-
-		builder.addLabel(Messages.getString("MEncoderVideo.6"), FormLayoutUtil.flip(cc.xy(1, 17), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.6"), FormLayoutUtil.flip(cc.xy(1, 21), colSpec, orientation));
 		mencoder_custom_options = new JTextField(configuration.getMencoderCustomOptions());
-		mencoder_custom_options.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		mencoder_custom_options.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setMencoderCustomOptions(mencoder_custom_options.getText());
 			}
 		});
 
-		builder.add(mencoder_custom_options, FormLayoutUtil.flip(cc.xyw(3, 17, 13), colSpec, orientation));
+		builder.add(mencoder_custom_options, FormLayoutUtil.flip(cc.xyw(3, 21, 13), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.7"), FormLayoutUtil.flip(cc.xy(1, 19), colSpec, orientation));
-		langs = new JTextField(configuration.getMencoderAudioLanguages());
-		langs.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
-			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setMencoderAudioLanguages(langs.getText());
-			}
-		});
-		builder.add(langs, FormLayoutUtil.flip(cc.xyw(3, 19, 13), colSpec, orientation));
-
-		builder.addLabel(Messages.getString("MEncoderVideo.93"), FormLayoutUtil.flip(cc.xy(1, 21), colSpec, orientation));
-		builder.addLabel(Messages.getString("MEncoderVideo.28") + " (%)", FormLayoutUtil.flip(cc.xy(1, 21, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
-
-		ocw = new JTextField(configuration.getMencoderOverscanCompensationWidth());
-		ocw.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
-			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setMencoderOverscanCompensationWidth(ocw.getText());
-			}
-		});
-		builder.add(ocw, FormLayoutUtil.flip(cc.xyw(3, 21, 2), colSpec, orientation));
-
-		builder.addLabel(Messages.getString("MEncoderVideo.30") + " (%)", FormLayoutUtil.flip(cc.xy(5, 21), colSpec, orientation));
-		och = new JTextField(configuration.getMencoderOverscanCompensationHeight());
-		och.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
-			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setMencoderOverscanCompensationHeight(och.getText());
-			}
-		});
-		builder.add(och, FormLayoutUtil.flip(cc.xyw(7, 21, 1), colSpec, orientation));
-
-		cmp = builder.addSeparator(Messages.getString("MEncoderVideo.8"), FormLayoutUtil.flip(cc.xyw(1, 23, 15), colSpec, orientation));
+		cmp = builder.addSeparator(Messages.getString("MEncoderVideo.8"), FormLayoutUtil.flip(cc.xyw(1, 25, 15), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.9"), FormLayoutUtil.flip(cc.xy(1, 25), colSpec, orientation));
-		defaultsubs = new JTextField(configuration.getMencoderSubLanguages());
-		defaultsubs.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
-			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setMencoderSubLanguages(defaultsubs.getText());
-			}
-		});
-		builder.add(defaultsubs, FormLayoutUtil.flip(cc.xyw(3, 25, 5), colSpec, orientation));
-
-		builder.addLabel(Messages.getString("MEncoderVideo.94"), FormLayoutUtil.flip(cc.xyw(8, 25, 2, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
-		forcedsub = new JTextField(configuration.getMencoderForcedSubLanguage());
-		forcedsub.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
-			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setMencoderForcedSubLanguage(forcedsub.getText());
-			}
-		});
-		builder.add(forcedsub, FormLayoutUtil.flip(cc.xy(11, 25), colSpec, orientation));
-
-		builder.addLabel(Messages.getString("MEncoderVideo.95") + " ", FormLayoutUtil.flip(cc.xyw(12, 25, 2, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
-		forcedtags = new JTextField(configuration.getMencoderForcedSubTags());
-		forcedtags.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
-			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setMencoderForcedSubTags(forcedtags.getText());
-			}
-		});
-		builder.add(forcedtags, FormLayoutUtil.flip(cc.xyw(14, 25, 2), colSpec, orientation));
-
-		builder.addLabel(Messages.getString("MEncoderVideo.10"), FormLayoutUtil.flip(cc.xy(1, 27), colSpec, orientation));
-		defaultaudiosubs = new JTextField(configuration.getMencoderAudioSubLanguages());
-		defaultaudiosubs.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
-			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setMencoderAudioSubLanguages(defaultaudiosubs.getText());
-			}
-		});
-		builder.add(defaultaudiosubs, FormLayoutUtil.flip(cc.xyw(3, 27, 13), colSpec, orientation));
-
-		builder.addLabel(Messages.getString("MEncoderVideo.11"), FormLayoutUtil.flip(cc.xy(1, 29), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.11"), FormLayoutUtil.flip(cc.xy(1, 31), colSpec, orientation));
 		Object data[] = new Object[]{
 			configuration.getMencoderSubCp(),
+			Messages.getString("MEncoderVideo.129"),
+			Messages.getString("MEncoderVideo.130"),
+			Messages.getString("MEncoderVideo.131"),
+			Messages.getString("MEncoderVideo.132"),
 			Messages.getString("MEncoderVideo.96"),
 			Messages.getString("MEncoderVideo.97"),
 			Messages.getString("MEncoderVideo.98"),
@@ -635,15 +467,7 @@ public class MEncoderVideo extends Player {
 			}
 		});
 
-		subtitleCodePage.getEditor().getEditorComponent().addKeyListener(new KeyListener() {
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
+		subtitleCodePage.getEditor().getEditorComponent().addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				subtitleCodePage.getItemListeners()[0].itemStateChanged(new ItemEvent(subtitleCodePage, 0, subtitleCodePage.getEditor().getItem(), ItemEvent.SELECTED));
@@ -651,7 +475,7 @@ public class MEncoderVideo extends Player {
 		});
 
 		subtitleCodePage.setEditable(true);
-		builder.add(subtitleCodePage, FormLayoutUtil.flip(cc.xyw(3, 29, 7), colSpec, orientation));
+		builder.add(subtitleCodePage, FormLayoutUtil.flip(cc.xyw(3, 31, 7), colSpec, orientation));
 
 		fribidi = new JCheckBox(Messages.getString("MEncoderVideo.23"));
 		fribidi.setContentAreaFilled(false);
@@ -667,27 +491,20 @@ public class MEncoderVideo extends Player {
 			}
 		});
 
-		builder.add(fribidi, FormLayoutUtil.flip(cc.xyw(11, 29, 4), colSpec, orientation));
+		builder.add(fribidi, FormLayoutUtil.flip(cc.xyw(11, 31, 4), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.24"), FormLayoutUtil.flip(cc.xy(1, 33), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.24"), FormLayoutUtil.flip(cc.xy(1, 31), colSpec, orientation));
 		defaultfont = new JTextField(configuration.getMencoderFont());
-		defaultfont.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		defaultfont.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setMencoderFont(defaultfont.getText());
 			}
 		});
-		builder.add(defaultfont, FormLayoutUtil.flip(cc.xyw(3, 31, 8), colSpec, orientation));
 
-		CustomJButton fontselect = new CustomJButton("...");
+		builder.add(defaultfont, FormLayoutUtil.flip(cc.xyw(3, 33, 8), colSpec, orientation));
+
+		fontselect = new CustomJButton("...");
 		fontselect.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -700,196 +517,97 @@ public class MEncoderVideo extends Player {
 				}
 			}
 		});
-		builder.add(fontselect, FormLayoutUtil.flip(cc.xyw(11, 31, 2), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.37"), FormLayoutUtil.flip(cc.xyw(1, 33, 2), colSpec, orientation));
-		alternateSubFolder = new JTextField(configuration.getAlternateSubsFolder());
-		alternateSubFolder.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
+		builder.add(fontselect, FormLayoutUtil.flip(cc.xyw(11, 33, 2), colSpec, orientation));
 
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
+		builder.addLabel(Messages.getString("MEncoderVideo.12"), FormLayoutUtil.flip(cc.xy(1, 39, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 
-			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setAlternateSubsFolder(alternateSubFolder.getText());
-			}
-		});
-		builder.add(alternateSubFolder, FormLayoutUtil.flip(cc.xyw(3, 33, 8), colSpec, orientation));
-
-		CustomJButton select = new CustomJButton("...");
-		select.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JFileChooser chooser;
-				try {
-					chooser = new JFileChooser();
-				} catch (Exception ee) {
-					chooser = new JFileChooser(new RestrictedFileSystemView());
-				}
-				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-				int returnVal = chooser.showDialog((Component) e.getSource(), Messages.getString("FoldTab.28"));
-				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					alternateSubFolder.setText(chooser.getSelectedFile().getAbsolutePath());
-					configuration.setAlternateSubsFolder(chooser.getSelectedFile().getAbsolutePath());
-				}
-			}
-		});
-		builder.add(select, FormLayoutUtil.flip(cc.xyw(11, 33, 2), colSpec, orientation));
-
-		builder.addLabel(Messages.getString("MEncoderVideo.12"), FormLayoutUtil.flip(cc.xy(1, 37), colSpec, orientation));
-		builder.addLabel(Messages.getString("MEncoderVideo.133"), FormLayoutUtil.flip(cc.xy(1, 37, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 		mencoder_ass_scale = new JTextField(configuration.getMencoderAssScale());
-		mencoder_ass_scale.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		mencoder_ass_scale.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setMencoderAssScale(mencoder_ass_scale.getText());
 			}
 		});
 
-		builder.addLabel(Messages.getString("MEncoderVideo.13"), FormLayoutUtil.flip(cc.xy(5, 37), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.13"), FormLayoutUtil.flip(cc.xy(5, 39), colSpec, orientation));
+
 		mencoder_ass_outline = new JTextField(configuration.getMencoderAssOutline());
-		mencoder_ass_outline.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		mencoder_ass_outline.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setMencoderAssOutline(mencoder_ass_outline.getText());
 			}
 		});
 
-		builder.addLabel(Messages.getString("MEncoderVideo.14"), FormLayoutUtil.flip(cc.xy(9, 37), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.14"), FormLayoutUtil.flip(cc.xy(9, 39), colSpec, orientation));
+
 		mencoder_ass_shadow = new JTextField(configuration.getMencoderAssShadow());
-		mencoder_ass_shadow.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		mencoder_ass_shadow.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setMencoderAssShadow(mencoder_ass_shadow.getText());
 			}
 		});
 
-		builder.addLabel(Messages.getString("MEncoderVideo.15"), FormLayoutUtil.flip(cc.xy(13, 37), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.15"), FormLayoutUtil.flip(cc.xy(13, 39), colSpec, orientation));
+
 		mencoder_ass_margin = new JTextField(configuration.getMencoderAssMargin());
-		mencoder_ass_margin.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		mencoder_ass_margin.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setMencoderAssMargin(mencoder_ass_margin.getText());
 			}
 		});
 
-		builder.add(mencoder_ass_scale, FormLayoutUtil.flip(cc.xy(3, 37), colSpec, orientation));
-		builder.add(mencoder_ass_outline, FormLayoutUtil.flip(cc.xy(7, 37), colSpec, orientation));
-		builder.add(mencoder_ass_shadow, FormLayoutUtil.flip(cc.xy(11, 37), colSpec, orientation));
-		builder.add(mencoder_ass_margin, FormLayoutUtil.flip(cc.xy(15, 37), colSpec, orientation));
-		builder.addLabel(Messages.getString("MEncoderVideo.16"), FormLayoutUtil.flip(cc.xy(1, 39), colSpec, orientation));
-		builder.addLabel(Messages.getString("MEncoderVideo.133"), FormLayoutUtil.flip(cc.xy(1, 39, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+		builder.add(mencoder_ass_scale, FormLayoutUtil.flip(cc.xy(3, 39), colSpec, orientation));
+		builder.add(mencoder_ass_outline, FormLayoutUtil.flip(cc.xy(7, 39), colSpec, orientation));
+		builder.add(mencoder_ass_shadow, FormLayoutUtil.flip(cc.xy(11, 39), colSpec, orientation));
+		builder.add(mencoder_ass_margin, FormLayoutUtil.flip(cc.xy(15, 39), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.16"), FormLayoutUtil.flip(cc.xy(1, 41, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 
 		mencoder_noass_scale = new JTextField(configuration.getMencoderNoAssScale());
-		mencoder_noass_scale.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		mencoder_noass_scale.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setMencoderNoAssScale(mencoder_noass_scale.getText());
 			}
 		});
 
-		builder.addLabel(Messages.getString("MEncoderVideo.17"), FormLayoutUtil.flip(cc.xy(5, 39), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.17"), FormLayoutUtil.flip(cc.xy(5, 41), colSpec, orientation));
 
 		mencoder_noass_outline = new JTextField(configuration.getMencoderNoAssOutline());
-		mencoder_noass_outline.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		mencoder_noass_outline.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setMencoderNoAssOutline(mencoder_noass_outline.getText());
 			}
 		});
 
-		builder.addLabel(Messages.getString("MEncoderVideo.18"), FormLayoutUtil.flip(cc.xy(9, 39), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.18"), FormLayoutUtil.flip(cc.xy(9, 41), colSpec, orientation));
 
 		mencoder_noass_blur = new JTextField(configuration.getMencoderNoAssBlur());
-		mencoder_noass_blur.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		mencoder_noass_blur.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setMencoderNoAssBlur(mencoder_noass_blur.getText());
 			}
 		});
 
-		builder.addLabel(Messages.getString("MEncoderVideo.19"), FormLayoutUtil.flip(cc.xy(13, 39), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.19"), FormLayoutUtil.flip(cc.xy(13, 41), colSpec, orientation));
 
 		mencoder_noass_subpos = new JTextField(configuration.getMencoderNoAssSubPos());
-		mencoder_noass_subpos.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		mencoder_noass_subpos.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
 				configuration.setMencoderNoAssSubPos(mencoder_noass_subpos.getText());
 			}
 		});
 
-		builder.add(mencoder_noass_scale, FormLayoutUtil.flip(cc.xy(3, 39), colSpec, orientation));
-		builder.add(mencoder_noass_outline, FormLayoutUtil.flip(cc.xy(7, 39), colSpec, orientation));
-		builder.add(mencoder_noass_blur, FormLayoutUtil.flip(cc.xy(11, 39), colSpec, orientation));
-		builder.add(mencoder_noass_subpos, FormLayoutUtil.flip(cc.xy(15, 39), colSpec, orientation));
+		builder.add(mencoder_noass_scale, FormLayoutUtil.flip(cc.xy(3, 41), colSpec, orientation));
+		builder.add(mencoder_noass_outline, FormLayoutUtil.flip(cc.xy(7, 41), colSpec, orientation));
+		builder.add(mencoder_noass_blur, FormLayoutUtil.flip(cc.xy(11, 41), colSpec, orientation));
+		builder.add(mencoder_noass_subpos, FormLayoutUtil.flip(cc.xy(15, 41), colSpec, orientation));
 
 		ass = new JCheckBox(Messages.getString("MEncoderVideo.20"));
 		ass.setContentAreaFilled(false);
@@ -901,8 +619,7 @@ public class MEncoderVideo extends Player {
 				}
 			}
 		});
-
-		builder.add(ass, FormLayoutUtil.flip(cc.xy(1, 35), colSpec, orientation));
+		builder.add(ass, FormLayoutUtil.flip(cc.xy(1, 37), colSpec, orientation));
 		ass.setSelected(configuration.isMencoderAss());
 		ass.getItemListeners()[0].itemStateChanged(null);
 
@@ -914,8 +631,7 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderFontConfig(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-
-		builder.add(fc, FormLayoutUtil.flip(cc.xyw(3, 35, 5), colSpec, orientation));
+		builder.add(fc, FormLayoutUtil.flip(cc.xyw(3, 37, 5), colSpec, orientation));
 		fc.setSelected(configuration.isMencoderFontConfig());
 
 		assdefaultstyle = new JCheckBox(Messages.getString("MEncoderVideo.36"));
@@ -926,10 +642,44 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderAssDefaultStyle(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(assdefaultstyle, FormLayoutUtil.flip(cc.xyw(8, 35, 4), colSpec, orientation));
+		builder.add(assdefaultstyle, FormLayoutUtil.flip(cc.xyw(8, 37, 4), colSpec, orientation));
 		assdefaultstyle.setSelected(configuration.isMencoderAssDefaultStyle());
 
-		subColor = new CustomJButton(Messages.getString("MEncoderVideo.31"));
+		builder.addLabel(Messages.getString("MEncoderVideo.92"), FormLayoutUtil.flip(cc.xy(1, 45), colSpec, orientation));
+
+		subq = new JTextField(configuration.getMencoderVobsubSubtitleQuality());
+		subq.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				configuration.setMencoderVobsubSubtitleQuality(subq.getText());
+			}
+		});
+		builder.add(subq, FormLayoutUtil.flip(cc.xyw(3, 45, 1), colSpec, orientation));
+
+		builder.addLabel(Messages.getString("MEncoderVideo.93"), FormLayoutUtil.flip(cc.xyw(1, 47, 6), colSpec, orientation));
+
+		builder.addLabel(Messages.getString("MEncoderVideo.28") + " (%)", FormLayoutUtil.flip(cc.xy(1, 49, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+		ocw = new JTextField(configuration.getMencoderOverscanCompensationWidth());
+		ocw.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				configuration.setMencoderOverscanCompensationWidth(ocw.getText());
+			}
+		});
+		builder.add(ocw, FormLayoutUtil.flip(cc.xyw(3, 49, 1), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.30") + " (%)", FormLayoutUtil.flip(cc.xy(5, 49), colSpec, orientation));
+
+		och = new JTextField(configuration.getMencoderOverscanCompensationHeight());
+		och.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				configuration.setMencoderOverscanCompensationHeight(och.getText());
+			}
+		});
+		builder.add(och, FormLayoutUtil.flip(cc.xyw(7, 49, 1), colSpec, orientation));
+
+		subColor = new JButton();
+		subColor.setText(Messages.getString("MEncoderVideo.31"));
 		subColor.setBackground(new Color(configuration.getSubsColor()));
 		subColor.addActionListener(new ActionListener() {
 			@Override
@@ -946,78 +696,42 @@ public class MEncoderVideo extends Player {
 				}
 			}
 		});
-		builder.add(subColor, FormLayoutUtil.flip(cc.xyw(13, 35, 3), colSpec, orientation));
+		builder.add(subColor, FormLayoutUtil.flip(cc.xyw(12, 37, 4), colSpec, orientation));
 
-		subs = new JCheckBox(Messages.getString("MEncoderVideo.22"));
-		subs.setContentAreaFilled(false);
-
-		if (configuration.isAutoloadSubtitles()) {
-			subs.setSelected(true);
-		}
-
-		subs.addItemListener(new ItemListener() {
+		configuration.addConfigurationListener(new ConfigurationListener() {
 			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setAutoloadSubtitles((e.getStateChange() == ItemEvent.SELECTED));
-			}
-		});
-		builder.add(subs, FormLayoutUtil.flip(cc.xyw(1, 41, 15), colSpec, orientation));
+			public void configurationChanged(ConfigurationEvent event) {
+				if (event.getPropertyName() == null ) {
+					return;
+				}
+				if ((!event.isBeforeUpdate()) && event.getPropertyName().equals(PmsConfiguration.KEY_DISABLE_SUBTITLES)) {
+					boolean enabled = !configuration.isDisableSubtitles();
+					subq.setEnabled(enabled);
+					subtitleCodePage.setEnabled(enabled);
+					ass.setEnabled(enabled);
+					assdefaultstyle.setEnabled(enabled);
+					fribidi.setEnabled(enabled);
+					fc.setEnabled(enabled);
+					mencoder_ass_scale.setEnabled(enabled);
+					mencoder_ass_outline.setEnabled(enabled);
+					mencoder_ass_shadow.setEnabled(enabled);
+					mencoder_ass_margin.setEnabled(enabled);
+					mencoder_noass_scale.setEnabled(enabled);
+					mencoder_noass_outline.setEnabled(enabled);
+					mencoder_noass_blur.setEnabled(enabled);
+					mencoder_noass_subpos.setEnabled(enabled);
+					defaultfont.setEnabled(enabled);
+					subColor.setEnabled(enabled);
+					fontselect.setEnabled(enabled);
+					ocw.setEnabled(enabled);
+					och.setEnabled(enabled);
 
-		builder.addLabel(Messages.getString("MEncoderVideo.92"), FormLayoutUtil.flip(cc.xy(1, 43), colSpec, orientation));
-		subq = new JTextField(configuration.getMencoderVobsubSubtitleQuality());
-		subq.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
-			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setMencoderVobsubSubtitleQuality(subq.getText());
-			}
-		});
-		builder.add(subq, FormLayoutUtil.flip(cc.xyw(3, 43, 1), colSpec, orientation));
-
-		JCheckBox disableSubs = ((LooksFrame) PMS.get().getFrame()).getTr().getDisableSubs();
-		disableSubs.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setMencoderDisableSubs(e.getStateChange() == ItemEvent.SELECTED);
-
-				subs.setEnabled(!configuration.isMencoderDisableSubs());
-				subq.setEnabled(!configuration.isMencoderDisableSubs());
-				defaultsubs.setEnabled(!configuration.isMencoderDisableSubs());
-				subtitleCodePage.setEnabled(!configuration.isMencoderDisableSubs());
-				ass.setEnabled(!configuration.isMencoderDisableSubs());
-				assdefaultstyle.setEnabled(!configuration.isMencoderDisableSubs());
-				fribidi.setEnabled(!configuration.isMencoderDisableSubs());
-				fc.setEnabled(!configuration.isMencoderDisableSubs());
-				mencoder_ass_scale.setEnabled(!configuration.isMencoderDisableSubs());
-				mencoder_ass_outline.setEnabled(!configuration.isMencoderDisableSubs());
-				mencoder_ass_shadow.setEnabled(!configuration.isMencoderDisableSubs());
-				mencoder_ass_margin.setEnabled(!configuration.isMencoderDisableSubs());
-				mencoder_noass_scale.setEnabled(!configuration.isMencoderDisableSubs());
-				mencoder_noass_outline.setEnabled(!configuration.isMencoderDisableSubs());
-				mencoder_noass_blur.setEnabled(!configuration.isMencoderDisableSubs());
-				mencoder_noass_subpos.setEnabled(!configuration.isMencoderDisableSubs());
-				forcedsub.setEnabled(!configuration.isMencoderDisableSubs());
-				forcedtags.setEnabled(!configuration.isMencoderDisableSubs());
-				defaultaudiosubs.setEnabled(!configuration.isMencoderDisableSubs());
-				defaultfont.setEnabled(!configuration.isMencoderDisableSubs());
-				alternateSubFolder.setEnabled(!configuration.isMencoderDisableSubs());
-
-				if (!configuration.isMencoderDisableSubs()) {
-					ass.getItemListeners()[0].itemStateChanged(null);
+					if (enabled) {
+						ass.getItemListeners()[0].itemStateChanged(null);
+					}
 				}
 			}
 		});
-
-		if (configuration.isMencoderDisableSubs()) {
-			disableSubs.setSelected(true);
-		}
 
 		JPanel panel = builder.getPanel();
 
@@ -1234,7 +948,7 @@ public class MEncoderVideo extends Player {
 	 *     3) avisynth()
 	 */
 	private boolean isDisableSubtitles(OutputParams params) {
-		return configuration.isMencoderDisableSubs() || (params.sid == null) || avisynth();
+		return configuration.isDisableSubtitles() || (params.sid == null) || avisynth();
 	}
 
 	@Override
@@ -1254,7 +968,7 @@ public class MEncoderVideo extends Player {
 		if (params.sid != null && params.sid.isExternal()) {
 			if (params.sid.isExternalFileUtf16()) {
 				// convert UTF-16 -> UTF-8
-				File convertedSubtitles = new File(PMS.getConfiguration().getTempFolder(), "utf8_" + params.sid.getExternalFile().getName());
+				File convertedSubtitles = new File(configuration.getTempFolder(), "utf8_" + params.sid.getExternalFile().getName());
 				FileUtil.convertFileFromUtf16ToUtf8(params.sid.getExternalFile(), convertedSubtitles);
 				externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(convertedSubtitles.getAbsolutePath());
 			} else {
@@ -1306,6 +1020,30 @@ public class MEncoderVideo extends Player {
 			LOGGER.error("Cannot parse configured MEncoder overscan compensation height: \"{}\"", configuration.getMencoderOverscanCompensationHeight());
 		}
 
+		/*
+		 * Check if the video track and the container report different aspect ratios
+		 */
+		boolean aspectRatiosMatch = true;
+		if (
+			media.getAspectRatioContainer() != null &&
+			media.getAspectRatioVideoTrack() != null &&
+			!media.getAspectRatioContainer().equals(media.getAspectRatioVideoTrack())
+		) {
+			aspectRatiosMatch = false;
+		}
+
+		/**
+		 * Do not use tsMuxeR if:
+		 * - The resource is being streamed via a MEncoder entry in the transcode folder
+		 * - There is a subtitle that matches the user preferences
+		 * - The resource is a DVD
+		 * - We are using AviSynth (TODO: do we still need this check?)
+		 * - The resource is incompatible with tsMuxeR
+		 * - The user has left the "switch to tsMuxeR" option enabled
+		 * - The user has not specified overscan correction
+		 * - The filename does not specify the resource as WEB-DL
+		 * - The aspect ratio of the video needs to be changed
+		 */
 		if (
 			!forceMencoder &&
 			params.sid == null &&
@@ -1313,7 +1051,7 @@ public class MEncoderVideo extends Player {
 			!avisynth() &&
 			media != null &&
 			(
-				media.isVideoPS3Compatible(newInput) ||
+				media.isVideoWithinH264LevelLimits(newInput, params.mediaRenderer) ||
 				!params.mediaRenderer.isH264Level41Limited()
 			) &&
 			media.isMuxable(params.mediaRenderer) &&
@@ -1322,7 +1060,9 @@ public class MEncoderVideo extends Player {
 			(
 				intOCW == 0 &&
 				intOCH == 0
-			)
+			) &&
+			!fileName.contains("WEB-DL") &&
+			aspectRatiosMatch
 		) {
 			String expertOptions[] = getSpecificCodecOptions(
 				configuration.getCodecSpecificConfig(),
@@ -1343,15 +1083,17 @@ public class MEncoderVideo extends Player {
 			}
 
 			if (!nomux) {
-				TSMuxerVideo tv = new TSMuxerVideo(configuration);
+				TsMuxeRVideo tv = new TsMuxeRVideo(configuration);
 				params.forceFps = media.getValidFps(false);
 
-				if (media.getCodecV().equals("h264")) {
-					params.forceType = "V_MPEG4/ISO/AVC";
-				} else if (media.getCodecV().startsWith("mpeg2")) {
-					params.forceType = "V_MPEG-2";
-				} else if (media.getCodecV().equals("vc1")) {
-					params.forceType = "V_MS/VFW/WVC1";
+				if (media.getCodecV() != null) {
+					if (media.getCodecV().equals("h264")) {
+						params.forceType = "V_MPEG4/ISO/AVC";
+					} else if (media.getCodecV().startsWith("mpeg2")) {
+						params.forceType = "V_MPEG-2";
+					} else if (media.getCodecV().equals("vc1")) {
+						params.forceType = "V_MS/VFW/WVC1";
+					}
 				}
 
 				return tv.launchTranscode(fileName, dlna, media, params);
@@ -1399,14 +1141,14 @@ public class MEncoderVideo extends Player {
 			(params.aid.getBitRate() > 370000 && params.aid.getBitRate() < 400000);
 		 */
 
-		final boolean isTSMuxerVideoEngineEnabled = PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry()).contains(TSMuxerVideo.ID);
+		final boolean isTsMuxeRVideoEngineEnabled = configuration.getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
 		final boolean mencoderAC3RemuxAudioDelayBug = (params.aid != null) && (params.aid.getAudioProperties().getAudioDelay() != 0) && (params.timeseek == 0);
 		if (configuration.isRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && params.mediaRenderer.isTranscodeToAC3()) {
 			// AC-3 remux takes priority
 			ac3Remux = true;
 		} else {
 			// Now check for DTS remux and LPCM streaming
-			dtsRemux = isTSMuxerVideoEngineEnabled &&
+			dtsRemux = isTsMuxeRVideoEngineEnabled &&
 				configuration.isDTSEmbedInPCM() &&
 				(
 					!dvd ||
@@ -1415,8 +1157,8 @@ public class MEncoderVideo extends Player {
 				params.aid.isDTS() &&
 				!avisynth() &&
 				params.mediaRenderer.isDTSPlayable();
-			pcm = isTSMuxerVideoEngineEnabled &&
-				configuration.isMencoderUsePcm() &&
+			pcm = isTsMuxeRVideoEngineEnabled &&
+				configuration.isUsePCM() &&
 				(
 					!dvd ||
 					configuration.isMencoderRemuxMPEG2()
@@ -1473,16 +1215,20 @@ public class MEncoderVideo extends Player {
 		String rendererMencoderOptions = params.mediaRenderer.getCustomMencoderOptions(); // default: empty string
 		String globalMencoderOptions = configuration.getMencoderCustomOptions(); // default: empty string
 
-		String combinedCustomOptions = defaultString(globalMencoderOptions)
-			+ " "
-			+ defaultString(rendererMencoderOptions);
+		if (params.mediaRenderer.isKeepAspectRatio()) {
+			rendererMencoderOptions += " -vf expand=::::0:16/9:4,softskip";
+		}
+
+		String combinedCustomOptions = defaultString(globalMencoderOptions) +
+			" " +
+			defaultString(rendererMencoderOptions);
 
 		if (!combinedCustomOptions.contains("-lavdopts")) {
 			add = " -lavdopts debug=0";
 		}
 
 		if (isNotBlank(rendererMencoderOptions)) {
-			/*
+			/**
 			 * Ignore the renderer's custom MEncoder options if a) we're streaming a DVD (i.e. via dvd://)
 			 * or b) the renderer's MEncoder options contain overscan settings (those are handled
 			 * separately)
@@ -1542,8 +1288,8 @@ public class MEncoderVideo extends Player {
 			}
 		}
 
-		if (configuration.getMencoderMainSettings() != null) {
-			String mainConfig = configuration.getMencoderMainSettings();
+		if (configuration.getMPEG2MainSettings() != null) {
+			String mainConfig = configuration.getMPEG2MainSettings();
 			String customSettings = params.mediaRenderer.getCustomMencoderQualitySettings();
 
 			// Custom settings in PMS may override the settings of the saved configuration
@@ -1828,7 +1574,7 @@ public class MEncoderVideo extends Player {
 
 		// Input filename
 		if (avisynth && !fileName.toLowerCase().endsWith(".iso")) {
-			File avsFile = MEncoderAviSynth.getAVSScript(fileName, params.sid, params.fromFrame, params.toFrame, frameRateRatio, frameRateNumber);
+			File avsFile = AviSynthMEncoder.getAVSScript(fileName, params.sid, params.fromFrame, params.toFrame, frameRateRatio, frameRateNumber);
 			cmdList.add(ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath()));
 		} else {
 			if (params.stdin != null) {
@@ -1869,19 +1615,25 @@ public class MEncoderVideo extends Player {
 		 * subs" options if any of the internal conditions for disabling subtitles are met.
 		 */
 		if (isDisableSubtitles(params)) {
-			// MKV: in some circumstances, MEncoder automatically selects an internal sub unless we explicitly disable (internal) subtitles
-			// http://www.ps3mediaserver.org/forum/viewtopic.php?f=14&t=15891
+			// Ensure that internal subtitles are not automatically loaded
 			cmdList.add("-nosub");
 
-			// make sure external subs are not automatically loaded
+			// Ensure that external subtitles are not automatically loaded
 			cmdList.add("-noautosub");
 		} else {
 			// Note: isEmbedded() and isExternal() are mutually exclusive
 			if (params.sid.isEmbedded()) { // internal (embedded) subs
+				// Ensure that external subtitles are not automatically loaded
+				cmdList.add("-noautosub");
+
+				// Specify which internal subtitle we want
 				cmdList.add("-sid");
 				cmdList.add("" + params.sid.getId());
 			} else { // external subtitles
 				assert params.sid.isExternal(); // confirm the mutual exclusion
+
+				// Ensure that internal subtitles are not automatically loaded
+				cmdList.add("-nosub");
 
 				if (params.sid.getType() == SubtitleType.VOBSUB) {
 					cmdList.add("-vobsub");
@@ -2115,15 +1867,24 @@ public class MEncoderVideo extends Player {
 		 * TODO: Integrate this with the other stuff so that "expand" only
 		 * ever appears once in the MEncoder CMD.
 		 */
-		if (media != null && (media.getWidth() % 4 != 0) || media.getHeight() % 4 != 0) {
+		if (media != null && !dvd && ((media.getWidth() % 4 != 0) || media.getHeight() % 4 != 0 || params.mediaRenderer.isKeepAspectRatio())) {
 			int expandBorderWidth;
 			int expandBorderHeight;
+			StringBuilder expandParams = new StringBuilder();
 
 			expandBorderWidth  = media.getWidth() % 4;
 			expandBorderHeight = media.getHeight() % 4;
+			
+			expandParams.append("expand=-" + expandBorderWidth + ":-" + expandBorderHeight);
+
+			if (params.mediaRenderer.isKeepAspectRatio()) {
+				expandParams.append(":::0:16/9");
+			}
+			
+			expandParams.append(",softskip");
 
 			cmdList.add("-vf");
-			cmdList.add("softskip,expand=-" + expandBorderWidth + ":-" + expandBorderHeight);
+			cmdList.add(expandParams.toString());
 		}
 
 		if (configuration.getMencoderMT() && !avisynth && !dvd && !(media.getCodecV() != null && (media.getCodecV().startsWith("mpeg2")))) {
@@ -2403,7 +2164,7 @@ public class MEncoderVideo extends Player {
 
 				pipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
-				TSMuxerVideo ts = new TSMuxerVideo(configuration);
+				TsMuxeRVideo ts = new TsMuxeRVideo(configuration);
 				File f = new File(configuration.getTempFolder(), "pms-tsmuxer.meta");
 				String cmd[] = new String[]{ ts.executable(), f.getAbsolutePath(), pipe.getInputPipe() };
 				pw = new ProcessWrapperImpl(cmd, params);

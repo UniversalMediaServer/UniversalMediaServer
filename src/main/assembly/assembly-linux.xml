@@ -23,6 +23,30 @@
 			<lineEnding>keep</lineEnding>
 		</file>
 
+		<!-- Include the FFmpeg binary -->
+		<file>
+			<source>${project.binaries}/ffmpeg</source>
+			<outputDirectory>.</outputDirectory>
+			<fileMode>0755</fileMode>
+			<lineEnding>keep</lineEnding>
+		</file>
+
+		<!-- Include the MEncoder binary -->
+		<file>
+			<source>${project.binaries}/mencoder</source>
+			<outputDirectory>.</outputDirectory>
+			<fileMode>0755</fileMode>
+			<lineEnding>keep</lineEnding>
+		</file>
+
+		<!-- Include the MPlayer binary -->
+		<file>
+			<source>${project.binaries}/mplayer</source>
+			<outputDirectory>.</outputDirectory>
+			<fileMode>0755</fileMode>
+			<lineEnding>keep</lineEnding>
+		</file>
+
 		<!-- Include the tsMuxeR binary -->
 		<file>
 			<source>${project.binaries}/tsMuxeR</source>
@@ -59,6 +83,7 @@
 			<directory>${project.external-resources}</directory>
 			<outputDirectory>.</outputDirectory>
 			<fileMode>0644</fileMode>
+			<directoryMode>0755</directoryMode>
 			<lineEnding>unix</lineEnding>
 			<includes>
 				<include>UMS.conf</include>

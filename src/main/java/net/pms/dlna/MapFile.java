@@ -25,6 +25,7 @@ import java.text.Collator;
 import java.util.*;
 import net.pms.PMS;
 import net.pms.configuration.MapFileConfiguration;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.virtual.TranscodeVirtualFolder;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.formats.FormatFactory;
@@ -43,6 +44,7 @@ import org.slf4j.LoggerFactory;
  */
 public class MapFile extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MapFile.class);
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private List<File> discoverable;
 	private String forcedName;
 
@@ -86,7 +88,7 @@ public class MapFile extends DLNAResource {
 
 	private boolean isFileRelevant(File f) {
 		String fileName = f.getName().toLowerCase();
-		return (PMS.getConfiguration().isArchiveBrowsing() && (fileName.endsWith(".zip") || fileName.endsWith(".cbz")
+		return (configuration.isArchiveBrowsing() && (fileName.endsWith(".zip") || fileName.endsWith(".cbz")
 			|| fileName.endsWith(".rar") || fileName.endsWith(".cbr")))
 			|| fileName.endsWith(".iso") || fileName.endsWith(".img")
 			|| fileName.endsWith(".m3u") || fileName.endsWith(".m3u8") || fileName.endsWith(".pls") || fileName.endsWith(".cue");
@@ -95,7 +97,7 @@ public class MapFile extends DLNAResource {
 	private boolean isFolderRelevant(File f) {
 		boolean isRelevant = false;
 
-		if (f.isDirectory() && PMS.getConfiguration().isHideEmptyFolders()) {
+		if (f.isDirectory() && configuration.isHideEmptyFolders()) {
 			File[] children = f.listFiles();
 
 			// listFiles() returns null if "this abstract pathname does not denote a directory, or if an I/O error occurs".
@@ -132,11 +134,11 @@ public class MapFile extends DLNAResource {
 			}
 
 			if (!f.isHidden()) {
-				if (PMS.getConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".zip") || lcFilename.endsWith(".cbz"))) {
+				if (configuration.isArchiveBrowsing() && (lcFilename.endsWith(".zip") || lcFilename.endsWith(".cbz"))) {
 					addChild(new ZippedFile(f));
-				} else if (PMS.getConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".rar") || lcFilename.endsWith(".cbr"))) {
+				} else if (configuration.isArchiveBrowsing() && (lcFilename.endsWith(".rar") || lcFilename.endsWith(".cbr"))) {
 					addChild(new RarredFile(f));
-				} else if (PMS.getConfiguration().isArchiveBrowsing() && (lcFilename.endsWith(".tar") || lcFilename.endsWith(".gzip") || lcFilename.endsWith(".gz") || lcFilename.endsWith(".7z"))) {
+				} else if (configuration.isArchiveBrowsing() && (lcFilename.endsWith(".tar") || lcFilename.endsWith(".gzip") || lcFilename.endsWith(".gz") || lcFilename.endsWith(".7z"))) {
 					addChild(new SevenZipFile(f));
 				} else if ((lcFilename.endsWith(".iso") || lcFilename.endsWith(".img")) || (f.isDirectory() && f.getName().toUpperCase().equals("VIDEO_TS"))) {
 					addChild(new DVDISOFile(f));
@@ -146,7 +148,7 @@ public class MapFile extends DLNAResource {
 					addChild(new CueFolder(f));
 				} else {
 					/* Optionally ignore empty directories */
-					if (f.isDirectory() && PMS.getConfiguration().isHideEmptyFolders() && !isFolderRelevant(f)) {
+					if (f.isDirectory() && configuration.isHideEmptyFolders() && !isFolderRelevant(f)) {
 						LOGGER.debug("Ignoring empty/non-relevant directory: " + f.getName());
 					} else { // Otherwise add the file
 						addChild(new RealFile(f));
@@ -229,7 +231,7 @@ public class MapFile extends DLNAResource {
 		List<File> files = getFileList();
 
 		// ATZ handling
-		if (files.size() > PMS.getConfiguration().getATZLimit() && StringUtils.isEmpty(forcedName)) {
+		if (files.size() > configuration.getATZLimit() && StringUtils.isEmpty(forcedName)) {
 			/*
 			 * Too many files to display at once, add A-Z folders
 			 * instead and let the filters begin
@@ -243,7 +245,7 @@ public class MapFile extends DLNAResource {
 					// skip these
 					continue;
 				}
-				if (f.isDirectory() && PMS.getConfiguration().isHideEmptyFolders() && !isFolderRelevant(f)) {
+				if (f.isDirectory() && configuration.isHideEmptyFolders() && !isFolderRelevant(f)) {
 					LOGGER.debug("Ignoring empty/non-relevant directory: " + f.getName());
 					continue;
 				}
@@ -273,12 +275,20 @@ public class MapFile extends DLNAResource {
 			return;
 		}
 
-		switch (PMS.getConfiguration().getSortMethod()) {
+		switch (configuration.getSortMethod()) {
 			case 4: // Locale-sensitive natural sort
 				Collections.sort(files, new Comparator<File>() {
 					@Override
 					public int compare(File f1, File f2) {
-						return NaturalComparator.compareNatural(collator, f1.getName(), f2.getName());
+						String filename1ToSort = f1.getName();
+						String filename2ToSort = f2.getName();
+
+						if (configuration.isIgnoreTheWordThe()) {
+							filename1ToSort = f1.getName().replaceAll("^(?i)The[ .]", "");
+							filename2ToSort = f2.getName().replaceAll("^(?i)The[ .]", "");
+						}
+
+						return NaturalComparator.compareNatural(collator, filename1ToSort, filename2ToSort);
 					}
 				});
 				break;
@@ -286,7 +296,15 @@ public class MapFile extends DLNAResource {
 				Collections.sort(files, new Comparator<File>() {
 					@Override
 					public int compare(File f1, File f2) {
-						return f1.getName().compareToIgnoreCase(f2.getName());
+						String filename1ToSort = f1.getName();
+						String filename2ToSort = f2.getName();
+
+						if (configuration.isIgnoreTheWordThe()) {
+							filename1ToSort = f1.getName().replaceAll("^(?i)The[ .]", "");
+							filename2ToSort = f2.getName().replaceAll("^(?i)The[ .]", "");
+						}
+
+						return filename1ToSort.compareToIgnoreCase(filename2ToSort);
 					}
 				});
 				break;
@@ -310,7 +328,15 @@ public class MapFile extends DLNAResource {
 				Collections.sort(files, new Comparator<File>() {
 					@Override
 					public int compare(File f1, File f2) {
-						return collator.compare(f1.getName(), f2.getName());
+						String filename1ToSort = f1.getName();
+						String filename2ToSort = f2.getName();
+
+						if (configuration.isIgnoreTheWordThe()) {
+							filename1ToSort = f1.getName().replaceAll("^(?i)The[ .]", "");
+							filename2ToSort = f2.getName().replaceAll("^(?i)The[ .]", "");
+						}
+
+						return collator.compare(filename1ToSort, filename2ToSort);
 					}
 				});
 				break;

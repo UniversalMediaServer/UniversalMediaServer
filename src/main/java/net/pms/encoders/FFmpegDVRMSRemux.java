@@ -23,8 +23,8 @@ import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Font;
+import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,7 +43,8 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import org.apache.commons.lang.StringUtils;
 
-public class FFMpegDVRMSRemux extends Player {
+public class FFmpegDVRMSRemux extends Player {
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private JTextField altffpath;
 	public static final String ID = "ffmpegdvrmsremux";
 
@@ -67,7 +68,7 @@ public class FFMpegDVRMSRemux extends Player {
 		return false;
 	}
 
-	public FFMpegDVRMSRemux() {
+	public FFmpegDVRMSRemux() {
 	}
 
 	@Override
@@ -108,7 +109,7 @@ public class FFMpegDVRMSRemux extends Player {
 
 	@Override
 	public String executable() {
-		return PMS.getConfiguration().getFfmpegPath();
+		return configuration.getFfmpegPath();
 	}
 
 	@Override
@@ -129,7 +130,6 @@ public class FFMpegDVRMSRemux extends Player {
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
-		PmsConfiguration configuration = PMS.getConfiguration();
 		String ffmpegAlternativePath = configuration.getFfmpegAlternativePath();
 		List<String> cmdList = new ArrayList<String>();
 
@@ -191,20 +191,12 @@ public class FFMpegDVRMSRemux extends Player {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		builder.addLabel(Messages.getString("FFMpegDVRMSRemux.0"), cc.xy(1, 3));
-		altffpath = new JTextField(PMS.getConfiguration().getFfmpegAlternativePath());
-		altffpath.addKeyListener(new KeyListener() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
+		builder.addLabel(Messages.getString("FFmpegDVRMSRemux.0"), cc.xy(1, 3));
+		altffpath = new JTextField(configuration.getFfmpegAlternativePath());
+		altffpath.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				PMS.getConfiguration().setFfmpegAlternativePath(altffpath.getText());
+				configuration.setFfmpegAlternativePath(altffpath.getText());
 			}
 		});
 		builder.add(altffpath, cc.xyw(3, 3, 3));

@@ -224,7 +224,7 @@ public class RequestHandler implements Runnable {
 					}
 				} else {
 					if (userAgentString != null) {
-						LOGGER.trace("HTTP User-Agent: " + userAgentString);
+						LOGGER.debug("HTTP User-Agent: " + userAgentString);
 					}
 					LOGGER.trace("Recognized media renderer: " + request.getMediaRenderer().getRendererName());
 				}
