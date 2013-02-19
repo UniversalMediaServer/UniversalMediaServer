@@ -143,13 +143,11 @@ public class FFMpegVideo extends Player {
 		}
 
 		if (renderer.isKeepAspectRatio()) {
-			if (media.getWidth() / media.getHeight() > 1.777778) {
-				padding = String.format(
-					"pad=%1$d:%2$d:0:(%2$d-ih)/2",
-					media.getWidth(),
-					(int)(media.getWidth() / 1.777778)
-				);
+			
+			if ((media.getWidth() / (double) media.getHeight()) > (16 / (double) 9)) {
+				padding = "pad=iw:iw/(16/9):0:((iw/(16/9))-ih)/2";
 			}
+			
 		}
 
 		String rescaleSpec = null;
@@ -163,7 +161,7 @@ public class FFMpegVideo extends Player {
 			);
 		}
 
-		if (subsOption != null || rescaleSpec != null || renderer.isKeepAspectRatio()) {
+		if (subsOption != null || rescaleSpec != null || (renderer.isKeepAspectRatio() && padding != null)) {
 			videoFilterOptions.add("-vf");
 			StringBuilder filterParams = new StringBuilder();
 
@@ -174,7 +172,7 @@ public class FFMpegVideo extends Player {
 				}
 			}
 
-			if (renderer.isKeepAspectRatio() && rescaleSpec == null) {
+			if (renderer.isKeepAspectRatio() && padding != null && rescaleSpec == null) {
 				filterParams.append(padding);
 				if (subsOption != null) {
 					filterParams.append(", ");
@@ -447,7 +445,7 @@ public class FFMpegVideo extends Player {
 		cmdList.add("-y");
 
 		cmdList.add("-loglevel");
-		cmdList.add("warning");
+		cmdList.add("info");
 
 		if (params.timeseek > 0) {
 			cmdList.add("-ss");
