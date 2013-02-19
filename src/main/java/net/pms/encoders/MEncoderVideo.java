@@ -1887,7 +1887,7 @@ public class MEncoderVideo extends Player {
 		 * TODO: Integrate this with the other stuff so that "expand" only
 		 * ever appears once in the MEncoder CMD.
 		 */
-		if (media != null && (media.getWidth() % 4 != 0) || media.getHeight() % 4 != 0 || params.mediaRenderer.isKeepAspectRatio()) {
+		if (media != null && !dvd && ((media.getWidth() % 4 != 0) || media.getHeight() % 4 != 0 || params.mediaRenderer.isKeepAspectRatio())) {
 			int expandBorderWidth;
 			int expandBorderHeight;
 			StringBuilder expandParams = new StringBuilder();
