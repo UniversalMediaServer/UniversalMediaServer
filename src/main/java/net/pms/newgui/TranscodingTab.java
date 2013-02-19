@@ -698,7 +698,6 @@ public class TranscodingTab {
 		});
 		builder.add(defaultaudiosubs, FormLayoutUtil.flip(cc.xyw(3, 4, 11), colSpec, orientation));
 
-
 		builder.addLabel(Messages.getString("MEncoderVideo.37"), FormLayoutUtil.flip(cc.xy(1, 6), colSpec, orientation));
 		alternateSubFolder = new JTextField(configuration.getAlternateSubsFolder());
 		alternateSubFolder.addKeyListener(new KeyAdapter() {
