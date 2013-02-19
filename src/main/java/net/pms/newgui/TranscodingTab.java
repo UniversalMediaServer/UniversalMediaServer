@@ -90,6 +90,7 @@ public class TranscodingTab {
 	private JTextField alternateSubFolder;
 	private JButton folderSelectButton;
 	private JCheckBox subs;
+	private JTextField defaultaudiosubs;
 
 	/*
 	 * 16 cores is the maximum allowed by MEncoder as of MPlayer r34863.
@@ -652,7 +653,7 @@ public class TranscodingTab {
 
 	private JComponent buildSubtitlesSetupPanel() {
 		String colSpec = FormLayoutUtil.getColSpec("left:pref, 3dlu, pref:grow, 3dlu, right:pref:grow, 3dlu, pref:grow, 3dlu, right:pref:grow, 3dlu, pref:grow, 3dlu, pref:grow", orientation);
-		FormLayout layout = new FormLayout(colSpec, "$lgap, 3*(pref, 2dlu), pref");
+		FormLayout layout = new FormLayout(colSpec, "$lgap, 3*(pref, 3dlu), pref");
 		final PanelBuilder builder = new PanelBuilder(layout);
 		builder.setBorder(Borders.DLU4_BORDER);
 		CellConstraints cc = new CellConstraints();
@@ -686,6 +687,17 @@ public class TranscodingTab {
 			}
 		});
 		builder.add(forcedtags, FormLayoutUtil.flip(cc.xyw(11, 2, 3), colSpec, orientation));
+
+		builder.addLabel(Messages.getString("MEncoderVideo.10"), FormLayoutUtil.flip(cc.xy(1, 4), colSpec, orientation));
+		defaultaudiosubs = new JTextField(configuration.getAudioSubLanguages());
+		defaultaudiosubs.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				configuration.setAudioSubLanguages(defaultaudiosubs.getText());
+			}
+		});
+		builder.add(defaultaudiosubs, FormLayoutUtil.flip(cc.xyw(3, 4, 11), colSpec, orientation));
+
 
 		builder.addLabel(Messages.getString("MEncoderVideo.37"), FormLayoutUtil.flip(cc.xy(1, 6), colSpec, orientation));
 		alternateSubFolder = new JTextField(configuration.getAlternateSubsFolder());

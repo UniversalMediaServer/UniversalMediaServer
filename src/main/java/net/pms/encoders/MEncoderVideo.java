@@ -74,7 +74,6 @@ public class MEncoderVideo extends Player {
 	private JTextField mencoder_noass_blur;
 	private JTextField mencoder_noass_outline;
 	private JTextField mencoder_custom_options;
-	private JTextField defaultaudiosubs;
 	private JTextField defaultfont;
 	private JComboBox subtitleCodePage;
 	private JTextField subq;
@@ -412,19 +411,7 @@ public class MEncoderVideo extends Player {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.10"), FormLayoutUtil.flip(cc.xy(1, 29), colSpec, orientation));
-
-		defaultaudiosubs = new JTextField(configuration.getAudioSubLanguages());
-		defaultaudiosubs.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setAudioSubLanguages(defaultaudiosubs.getText());
-			}
-		});
-
-		builder.add(defaultaudiosubs, FormLayoutUtil.flip(cc.xyw(3, 29, 8), colSpec, orientation));
 		builder.addLabel(Messages.getString("MEncoderVideo.11"), FormLayoutUtil.flip(cc.xy(1, 31), colSpec, orientation));
-
 		Object data[] = new Object[]{
 			configuration.getMencoderSubCp(),
 			Messages.getString("MEncoderVideo.129"),
@@ -739,7 +726,6 @@ public class MEncoderVideo extends Player {
 					mencoder_noass_outline.setEnabled(enabled);
 					mencoder_noass_blur.setEnabled(enabled);
 					mencoder_noass_subpos.setEnabled(enabled);
-					defaultaudiosubs.setEnabled(enabled);
 					defaultfont.setEnabled(enabled);
 					subColor.setEnabled(enabled);
 					fontselect.setEnabled(enabled);
