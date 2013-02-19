@@ -423,6 +423,11 @@ public class FFMpegVideo extends Player {
 	}
 
 	@Override
+	public boolean isGPUAccelerationReady() {
+		return false;
+	}
+
+	@Override
 	public ProcessWrapper launchTranscode(
 		String fileName,
 		DLNAResource dlna,
