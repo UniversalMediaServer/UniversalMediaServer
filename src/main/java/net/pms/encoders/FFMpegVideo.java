@@ -445,7 +445,7 @@ public class FFMpegVideo extends Player {
 		cmdList.add("-y");
 
 		cmdList.add("-loglevel");
-		cmdList.add("info");
+		cmdList.add("warning");
 
 		if (params.timeseek > 0) {
 			cmdList.add("-ss");
