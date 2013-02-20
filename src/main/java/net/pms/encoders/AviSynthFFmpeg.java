@@ -56,7 +56,11 @@ import org.slf4j.LoggerFactory;
 public class AviSynthFFmpeg extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AviSynthFFmpeg.class);
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
-	public static final String ID      = "avsffmpeg";
+	public static final String ID = "avsffmpeg";
+	
+	AviSynthFFmpeg() {
+		super(PMS.getConfiguration());
+	}
 
 	@Override
 	public String id() {
@@ -85,6 +89,11 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	@Override
 	public JComponent config() {
 		return config("NetworkTab.5");
+	}
+
+	@Override
+	public boolean isGPUAccelerationReady() {
+		return true;
 	}
 
 	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack) throws IOException {
@@ -176,7 +185,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 		}
 
 		String subLine = null;
-		if (subTrack != null && configuration.isAutoloadSubtitles() && !configuration.isMencoderDisableSubs()) {
+		if (subTrack != null && configuration.isAutoloadSubtitles() && !configuration.isDisableSubtitles()) {
 			if (subTrack.getExternalFile() != null) {
 				LOGGER.info("AviSynth script: Using subtitle track: " + subTrack);
 				String function = "TextSub";

@@ -97,6 +97,18 @@ public class RendererConfigurationTest {
 		// Samsung-SMT-G7400:
 		testCases.put("User-Agent: Linux/2.6.35 UPnP/1.0 NDS_MHF DLNADOC/1.50", "Samsung SMT-G7400");
 
+		// Sharp Aquos:
+		testCases.put("User-Agent: DLNADOC/1.50 SHARP-AQUOS-DMP/1.1W", "Sharp Aquos");
+
+		// Showtime 3:
+		testCases.put("User-Agent: Showtime 3.0", "Showtime 3");
+
+		// Showtime 4:
+		testCases.put("User-Agent: Showtime PS3 4.2", "Showtime 4");
+
+		// VideoWebTV:
+		testCases.put("friendlyName.dlna.org: VideoWeb", "VideoWeb TV");
+
 		// WDTVLive:
 		testCases.put("User-Agent: INTEL_NMPR/2.1 DLNADOC/1.50 Intel MicroStack/1.0.1423", "WD TV Live");
 

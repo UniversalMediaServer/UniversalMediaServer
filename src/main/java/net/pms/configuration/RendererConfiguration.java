@@ -65,6 +65,7 @@ public class RendererConfiguration {
 	private static final String FORCE_JPG_THUMBNAILS = "ForceJPGThumbnails"; // Sony devices require JPG thumbnails
 	private static final String H264_L41_LIMITED = "H264Level41Limited";
 	private static final String IMAGE = "Image";
+	private static final String KEEP_ASPECT_RATIO = "KeepAspectRatio";
 	private static final String MAX_VIDEO_BITRATE = "MaxVideoBitrateMbps";
 	private static final String MAX_VIDEO_HEIGHT = "MaxVideoHeight";
 	private static final String MAX_VIDEO_WIDTH = "MaxVideoWidth";
@@ -95,7 +96,7 @@ public class RendererConfiguration {
 	private static final String USE_SAME_EXTENSION = "UseSameExtension";
 	private static final String VIDEO = "Video";
 	private static final String WRAP_DTS_INTO_PCM = "WrapDTSIntoPCM";
-	private static final String CUSTOM_FFMPEG_OPTIONS = "CustomFFMpegOptions";
+	private static final String CUSTOM_FFMPEG_OPTIONS = "CustomFFmpegOptions";
 
 	public static RendererConfiguration getDefaultConf() {
 		return defaultConf;
@@ -1022,8 +1023,12 @@ public class RendererConfiguration {
 			return false;
 		}
 	}
-	
-	public String getCustomFFMpegOptions() {
+
+	public String getCustomFFmpegOptions() {
 		return getString(CUSTOM_FFMPEG_OPTIONS, "");
+	}
+
+	public boolean isKeepAspectRatio() {
+		return getBoolean(KEEP_ASPECT_RATIO, false);
 	}
 }

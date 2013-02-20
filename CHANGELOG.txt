@@ -1,7 +1,35 @@
-2.4.1 - 2013-02-??
+2.4.2 - 2013-02-17
 
 	General:
-		
+		Fixed bug on some renderers where no files/folders were showing
+		The Clean Install option on Windows deletes the MPlayer Contconfig cache
+	External Components:
+		Updated FFmpeg for OS X to 1.1.2, which:
+			Adds automatic multithreading
+			Improves QuickTime format support
+			Supports decoding WMA Lossless
+			Supports decoding RealAudio Lossless
+			Fixes security issues
+			Fixes over 150 bugs
+			Supports RTMP
+			Supports Opus
+			Supports encoding external subtitles
+			Supports decoding DTS-HD
+
+2.4.1 - 2013-02-15
+
+	General:
+		Improved autostart support
+	Renderers:
+		Added support for Sharp Aquos TVs
+		Added support for Showtime 4
+	External Components:
+		Updated MPlayer/MEncoder for Windows and Linux to SB50, which:
+			Silences meaningless errors
+			Supports 32-bit Linux installations
+		Updated FFmpeg for Windows and Linux to SB7, which:
+			Adds RTMP support
+			Supports 32-bit Linux installations
 
 2.4.0 - 2013-02-10
 

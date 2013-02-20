@@ -542,7 +542,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 						boolean hasSubsToTranscode = false;
 
-						if (!configuration.isMencoderDisableSubs()) {
+						if (!configuration.isDisableSubtitles()) {
 							hasSubsToTranscode = (configuration.isAutoloadSubtitles() && child.isSrtFile()) || hasEmbeddedSubs;
 						}
 
@@ -2466,11 +2466,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 		return (depth > DEPTH_WARNING_LIMIT);
 	}
-	
+
 	public boolean isSearched() {
 		return false;
 	}
-	
+
 	public byte[] getHeaders() {
 		return null;
 	}

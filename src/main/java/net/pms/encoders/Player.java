@@ -101,6 +101,17 @@ public abstract class Player {
 		return false;
 	}
 
+	/**
+	 * Each engine capable of video hardware acceleration must override this
+	 * method and set
+	 * <p>
+	 * <code>return true</code>.
+	 * @return false
+	 */
+	public boolean isGPUAccelerationReady() {
+		return false;
+	}
+
 	public abstract ProcessWrapper launchTranscode(
 		String filename,
 		DLNAResource dlna,
@@ -184,7 +195,7 @@ public abstract class Player {
 	public void setAudioAndSubs(String fileName, DLNAMediaInfo media, OutputParams params, PmsConfiguration configuration) {
 		if (params.aid == null && media != null) {
 			// check for preferred audio
-			StringTokenizer st = new StringTokenizer(configuration.getMencoderAudioLanguages(), ",");
+			StringTokenizer st = new StringTokenizer(configuration.getAudioLanguages(), ",");
 			while (st != null && st.hasMoreTokens()) {
 				String lang = st.nextToken();
 				lang = lang.trim();
@@ -281,24 +292,24 @@ public abstract class Player {
 		}
 
 		if (matchedSub != null && params.sid == null) {
-			if (configuration.isMencoderDisableSubs() || (matchedSub.getLang() != null && matchedSub.getLang().equals("off"))) {
+			if (configuration.isDisableSubtitles() || (matchedSub.getLang() != null && matchedSub.getLang().equals("off"))) {
 				LOGGER.trace(" Disabled the subtitles: " + matchedSub);
 			} else {
 				params.sid = matchedSub;
 			}
 		}
 
-		if (!configuration.isMencoderDisableSubs() && params.sid == null && media != null) {
+		if (!configuration.isDisableSubtitles() && params.sid == null && media != null) {
 			// Check for subtitles again
 			File video = new File(fileName);
-			FileUtil.doesSubtitlesExists(video, media, false);
+			FileUtil.isSubtitlesExists(video, media, false);
 
 			if (configuration.isAutoloadSubtitles()) {
 				boolean forcedSubsFound = false;
 				// Priority to external subtitles
 				for (DLNAMediaSubtitle sub : media.getSubtitleTracksList()) {
 					if (matchedSub != null && matchedSub.getLang() != null && matchedSub.getLang().equals("off")) {
-						StringTokenizer st = new StringTokenizer(configuration.getMencoderForcedSubTags(), ",");
+						StringTokenizer st = new StringTokenizer(configuration.getForcedSubtitleTags(), ",");
 
 						while (st != null && sub.getFlavor() != null && st.hasMoreTokens()) {
 							String forcedTags = st.nextToken();
@@ -306,7 +317,7 @@ public abstract class Player {
 
 							if (
 								sub.getFlavor().toLowerCase().indexOf(forcedTags) > -1 &&
-								Iso639.isCodesMatching(sub.getLang(), configuration.getMencoderForcedSubLanguage())
+								Iso639.isCodesMatching(sub.getLang(), configuration.getForcedSubtitleLanguage())
 							) {
 								LOGGER.trace("Forcing preferred subtitles : " + sub.getLang() + "/" + sub.getFlavor());
 								LOGGER.trace("Forced subtitles track : " + sub);
@@ -342,7 +353,7 @@ public abstract class Player {
 			}
 
 			if (params.sid == null) {
-				StringTokenizer st = new StringTokenizer(configuration.getMencoderSubLanguages(), ",");
+				StringTokenizer st = new StringTokenizer(configuration.getSubtitlesLanguages(), ",");
 				while (st != null && st.hasMoreTokens()) {
 					String lang = st.nextToken();
 					lang = lang.trim();

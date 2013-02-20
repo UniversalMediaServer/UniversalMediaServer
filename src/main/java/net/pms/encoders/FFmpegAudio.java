@@ -48,6 +48,7 @@ public class FFmpegAudio extends FFMpegVideo {
 	JCheckBox noresample;
 
 	public FFmpegAudio(PmsConfiguration configuration) {
+		super(configuration);
 		this.configuration = configuration;
 	}
 

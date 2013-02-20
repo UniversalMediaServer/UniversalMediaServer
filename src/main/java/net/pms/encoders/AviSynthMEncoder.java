@@ -184,7 +184,6 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		pane.setPreferredSize(new Dimension(500, 350));
 		builder.add(pane, cc.xy(2, 13));
 
-
 		return builder.getPanel();
 	}
 
@@ -206,6 +205,11 @@ public class AviSynthMEncoder extends MEncoderVideo {
 	@Override
 	public String name() {
 		return "AviSynth/MEncoder";
+	}
+
+	@Override
+	public boolean isGPUAccelerationReady() {
+		return true;
 	}
 
 	/*

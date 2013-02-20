@@ -31,6 +31,7 @@ import net.pms.io.OutputParams;
 import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,6 +64,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	}
 
 	public FFmpegWebVideo(PmsConfiguration configuration) {
+		super(configuration);
 		this.configuration = configuration;
 	}
 
@@ -121,58 +123,38 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 		cmdList.addAll(getVideoFilterOptions(renderer, media, params));
 		
-		// encoder threads
+		// Encoder threads
 		cmdList.add("-threads");
 		cmdList.add("" + nThreads);
 
-		// add the output options (-f, -acodec, -vcodec)
+		// Add the output options (-f, -acodec, -vcodec)
 		cmdList.addAll(getTranscodeVideoOptions(renderer, media, params));
 
-		// add video bitrate options
+		// Add video bitrate options
 		cmdList.addAll(getVideoBitrateOptions(renderer, media));
 
-		// add audio bitrate options
+		// Add audio bitrate options
 		cmdList.addAll(getAudioBitrateOptions(renderer, media));
-		
-		// add (http) headers
+
+		// Add (http) headers
 		if (params.header != null && params.header.length > 0) {
 			String hdr = new String(params.header);
-			while (hdr.length() > 0) {
-				if (hdr.charAt(0) == '\"') {
-					int pos = hdr.indexOf("\"", 1);
-					if (pos == -1) {
-						// no ", error
-						break;
-					}
-					String tmp = hdr.substring(1, pos);
-					cmdList.add(tmp.trim());
-					hdr = hdr.substring(pos + 1);
-					continue;
-				}
-				else {
-					// new arg, find space
-					int pos = hdr.indexOf(" ");
-					if (pos == -1) {
-						// no space, we're done
-						cmdList.add(hdr);
-						break;
-					}
-					String tmp = hdr.substring(0, pos);
-					cmdList.add(tmp.trim());
-					hdr = hdr.substring(pos + 1);
-					continue;
-				}
-			}
+			parseOptions(hdr, cmdList);
 		}
 
-		// output file
+		// Add custom options
+		if (StringUtils.isNotEmpty(renderer.getCustomFFmpegOptions())) {
+			parseOptions(renderer.getCustomFFmpegOptions(), cmdList);
+		}
+
+		// Output file
 		cmdList.add(pipe.getInputPipe());
 
-		// convert the command list to an array
+		// Convert the command list to an array
 		String[] cmdArray = new String[ cmdList.size() ];
 		cmdList.toArray(cmdArray);
 
-		// hook to allow plugins to customize this command line
+		// Hook to allow plugins to customize this command line
 		cmdArray = finalizeTranscoderArgs(
 			fileName,
 			dlna,
@@ -181,21 +163,20 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			cmdArray
 		);
 
-		// now launch ffmpeg
+		// Now launch FFmpeg
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
-		pw.attachProcess(mkfifo_process); // clean up the mkfifo process when the transcode ends
+		pw.attachProcess(mkfifo_process); // Clean up the mkfifo process when the transcode ends
 
-		// give the mkfifo process a little time
+		// Give the mkfifo process a little time
 		try {
 			Thread.sleep(300);
 		} catch (InterruptedException e) {
 			LOGGER.error("Thread interrupted while waiting for named pipe to be created", e);
 		}
 
-		// launch the transcode command...
+		// Launch the transcode command...
 		pw.runInNewThread();
-
-		// ... and wait briefly to allow it to start
+		// ...and wait briefly to allow it to start
 		try {
 			Thread.sleep(200);
 		} catch (InterruptedException e) {

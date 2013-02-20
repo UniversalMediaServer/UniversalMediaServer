@@ -22,7 +22,6 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-import com.sun.jna.Platform;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -74,7 +73,15 @@ import org.slf4j.LoggerFactory;
 public class FFMpegVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
 	private static final String DEFAULT_QSCALE = "3";
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	private final PmsConfiguration configuration;
+	
+	public FFMpegVideo() {
+		this.configuration = PMS.getConfiguration();
+	}
+	
+	public FFMpegVideo(PmsConfiguration configuration) {
+		this.configuration = configuration;
+	}
 
 	// FIXME we have an id() accessor for this; no need for the field to be public
 	@Deprecated
@@ -94,6 +101,7 @@ public class FFMpegVideo extends Player {
 	public List<String> getVideoFilterOptions(RendererConfiguration renderer, DLNAMediaInfo media, OutputParams params) throws IOException {
 		List<String> videoFilterOptions = new ArrayList<String>();
 		String subsOption = null;
+		String padding = null;
 
 		boolean isResolutionTooHighForRenderer = renderer.isVideoRescale() && // renderer defines a max width/height
 			(media != null) &&
@@ -104,7 +112,7 @@ public class FFMpegVideo extends Player {
 
 		if (params.sid != null && !configuration.isMencoderDisableSubs() && params.sid.isExternal()) {
 			String externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getAbsolutePath());
-			StringBuilder s = new StringBuilder(externalSubtitlesFileName.length());
+			StringBuilder s = new StringBuilder();
 			CharacterIterator it = new StringCharacterIterator(externalSubtitlesFileName);
 
 			for (char ch = it.first(); ch != CharacterIterator.DONE; ch = it.next()) {
@@ -134,6 +142,14 @@ public class FFMpegVideo extends Player {
 			}
 		}
 
+		if (renderer.isKeepAspectRatio()) {
+			
+			if ((media.getWidth() / (double) media.getHeight()) > (16 / (double) 9)) {
+				padding = "pad=iw:iw/(16/9):0:((iw/(16/9))-ih)/2";
+			}
+			
+		}
+
 		String rescaleSpec = null;
 
 		if (isResolutionTooHighForRenderer) {
@@ -145,15 +161,19 @@ public class FFMpegVideo extends Player {
 			);
 		}
 
-		if (subsOption != null || rescaleSpec != null) {
+		if (subsOption != null || rescaleSpec != null || (renderer.isKeepAspectRatio() && padding != null)) {
 			videoFilterOptions.add("-vf");
 			StringBuilder filterParams = new StringBuilder();
-			if (Platform.isWindows()) {
-				filterParams.append("\"");
-			}
 
 			if (rescaleSpec != null) {
 				filterParams.append(rescaleSpec);
+				if (subsOption != null || renderer.isKeepAspectRatio()) {
+					filterParams.append(", ");
+				}
+			}
+
+			if (renderer.isKeepAspectRatio() && padding != null && rescaleSpec == null) {
+				filterParams.append(padding);
 				if (subsOption != null) {
 					filterParams.append(", ");
 				}
@@ -163,9 +183,6 @@ public class FFMpegVideo extends Player {
 				filterParams.append(subsOption);
 			}
 
-			if (Platform.isWindows()) {
-				filterParams.append("\"");
-			}
 			videoFilterOptions.add(filterParams.toString());
 		}
 
@@ -342,7 +359,7 @@ public class FFMpegVideo extends Player {
 		List<String> defaultArgsList = new ArrayList<String>();
 
 		defaultArgsList.add("-loglevel");
-		defaultArgsList.add("fatal");
+		defaultArgsList.add("warning");
 
 		String[] defaultArgsArray = new String[defaultArgsList.size()];
 		defaultArgsList.toArray(defaultArgsArray);
@@ -404,6 +421,11 @@ public class FFMpegVideo extends Player {
 	}
 
 	@Override
+	public boolean isGPUAccelerationReady() {
+		return false;
+	}
+
+	@Override
 	public ProcessWrapper launchTranscode(
 		String fileName,
 		DLNAResource dlna,
@@ -423,7 +445,12 @@ public class FFMpegVideo extends Player {
 		cmdList.add("-y");
 
 		cmdList.add("-loglevel");
-		cmdList.add("warning");
+		
+		if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
+			cmdList.add("info"); // Could be changed to "verbose" or "debug" if "info" level is not enough
+		} else {
+			cmdList.add("warning");
+		}
 
 		if (params.timeseek > 0) {
 			cmdList.add("-ss");
@@ -578,11 +605,16 @@ public class FFMpegVideo extends Player {
 			}
 		}
 
-		// add custom args
+		// Add custom args
 		cmdList.addAll(getCustomArgs());
 
-		// add the output options (-f, -acodec, -vcodec)
+		// Add the output options (-f, -acodec, -vcodec)
 		cmdList.addAll(getTranscodeVideoOptions(renderer, media, params));
+
+		// Add custom options
+		if (StringUtils.isNotEmpty(renderer.getCustomFFmpegOptions())) {
+			parseOptions(renderer.getCustomFFmpegOptions(), cmdList);
+		}
 
 		if (!dtsRemux) {
 			cmdList.add("pipe:");
@@ -806,5 +838,33 @@ public class FFMpegVideo extends Player {
 		}
 
 		return false;
+	}
+
+	protected void parseOptions(String str, List<String> cmdList) {
+		while (str.length() > 0) {
+			if (str.charAt(0) == '\"') {
+				int pos = str.indexOf("\"", 1);
+				if (pos == -1) {
+					// No ", error
+					break;
+				}
+				String tmp = str.substring(1, pos);
+				cmdList.add(tmp.trim());
+				str = str.substring(pos + 1);
+				continue;
+			} else {
+				// New arg, find space
+				int pos = str.indexOf(" ");
+				if (pos == -1) {
+					// No space, we're done
+					cmdList.add(str);
+					break;
+				}
+				String tmp = str.substring(0, pos);
+				cmdList.add(tmp.trim());
+				str = str.substring(pos + 1);
+				continue;
+			}
+		}
 	}
 }
