@@ -77,6 +77,7 @@ public class RendererConfiguration {
 	private static final String MUX_LPCM_TO_MPEG = "MuxLPCMToMpeg";
 	private static final String RENDERER_ICON = "RendererIcon";
 	private static final String RENDERER_NAME = "RendererName";
+	private static final String RESCALE_BY_RENDERER = "RescaleByRenderer";
 	private static final String SEEK_BY_TIME = "SeekByTime";
 	private static final String SHOW_AUDIO_METADATA = "ShowAudioMetadata";
 	private static final String SHOW_DVD_TITLE_DURATION = "ShowDVDTitleDuration"; // Ditlew
@@ -1030,5 +1031,9 @@ public class RendererConfiguration {
 
 	public boolean isKeepAspectRatio() {
 		return getBoolean(KEEP_ASPECT_RATIO, false);
+	}
+	
+	public boolean isRescaleByRenderer() {
+		return getBoolean(RESCALE_BY_RENDERER, true);
 	}
 }

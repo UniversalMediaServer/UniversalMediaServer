@@ -142,17 +142,19 @@ public class FFMpegVideo extends Player {
 			}
 		}
 
-		if (renderer.isKeepAspectRatio()) {
+		if (renderer.isKeepAspectRatio() && renderer.isRescaleByRenderer()) {
 			
-			if ((media.getWidth() / (double) media.getHeight()) > (16 / (double) 9)) {
-				padding = "pad=iw:iw/(16/9):0:((iw/(16/9))-ih)/2";
+			if ((media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
+				padding = "pad=iw:iw/(16/9):0:(oh-ih)/2";
+			} else {
+				padding = "pad=ih*(16/9):ih:(ow-iw)/2:0";
 			}
 			
 		}
 
 		String rescaleSpec = null;
 
-		if (isResolutionTooHighForRenderer) {
+		if (isResolutionTooHighForRenderer || (renderer.isKeepAspectRatio() && !renderer.isRescaleByRenderer())) {
 			rescaleSpec = String.format(
 				// http://stackoverflow.com/a/8351875
 				"scale=iw*min(%1$d/iw\\,%2$d/ih):ih*min(%1$d/iw\\,%2$d/ih),pad=%1$d:%2$d:(%1$d-iw)/2:(%2$d-ih)/2",
@@ -161,18 +163,18 @@ public class FFMpegVideo extends Player {
 			);
 		}
 
-		if (subsOption != null || rescaleSpec != null || (renderer.isKeepAspectRatio() && padding != null)) {
+		if (subsOption != null || rescaleSpec != null || padding != null) {
 			videoFilterOptions.add("-vf");
 			StringBuilder filterParams = new StringBuilder();
 
 			if (rescaleSpec != null) {
 				filterParams.append(rescaleSpec);
-				if (subsOption != null || renderer.isKeepAspectRatio()) {
+				if (subsOption != null || padding != null) {
 					filterParams.append(", ");
 				}
 			}
 
-			if (renderer.isKeepAspectRatio() && padding != null && rescaleSpec == null) {
+			if (padding != null && rescaleSpec == null) {
 				filterParams.append(padding);
 				if (subsOption != null) {
 					filterParams.append(", ");
@@ -445,12 +447,7 @@ public class FFMpegVideo extends Player {
 		cmdList.add("-y");
 
 		cmdList.add("-loglevel");
-		
-		if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
-			cmdList.add("info"); // Could be changed to "verbose" or "debug" if "info" level is not enough
-		} else {
-			cmdList.add("warning");
-		}
+		cmdList.add("warning");
 
 		if (params.timeseek > 0) {
 			cmdList.add("-ss");
