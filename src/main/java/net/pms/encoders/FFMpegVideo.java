@@ -110,7 +110,7 @@ public class FFMpegVideo extends Player {
 				(media.getHeight() > renderer.getMaxVideoHeight())
 			);
 
-		if (params.sid != null && !configuration.isMencoderDisableSubs() && params.sid.isExternal()) {
+		if (params.sid != null && !configuration.isDisableSubtitles() && params.sid.isExternal()) {
 			String externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getAbsolutePath());
 			StringBuilder s = new StringBuilder();
 			CharacterIterator it = new StringCharacterIterator(externalSubtitlesFileName);
@@ -142,17 +142,19 @@ public class FFMpegVideo extends Player {
 			}
 		}
 
-		if (renderer.isKeepAspectRatio()) {
+		if (renderer.isKeepAspectRatio() && renderer.isRescaleByRenderer()) {
 			
-			if ((media.getWidth() / (double) media.getHeight()) > (16 / (double) 9)) {
-				padding = "pad=iw:iw/(16/9):0:((iw/(16/9))-ih)/2";
+			if (media != null && media.getHeight() != 0 &&
+				(media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
+				padding = "pad=iw:iw/(16/9):0:(oh-ih)/2";
+			} else {
+				padding = "pad=ih*(16/9):ih:(ow-iw)/2:0";
 			}
-			
 		}
 
 		String rescaleSpec = null;
 
-		if (isResolutionTooHighForRenderer) {
+		if (isResolutionTooHighForRenderer || (renderer.isKeepAspectRatio() && !renderer.isRescaleByRenderer())) {
 			rescaleSpec = String.format(
 				// http://stackoverflow.com/a/8351875
 				"scale=iw*min(%1$d/iw\\,%2$d/ih):ih*min(%1$d/iw\\,%2$d/ih),pad=%1$d:%2$d:(%1$d-iw)/2:(%2$d-ih)/2",
@@ -160,25 +162,33 @@ public class FFMpegVideo extends Player {
 				renderer.getMaxVideoHeight()
 			);
 		}
+		
+		String overrideVF = renderer.getFFmpegVideoFilterOverride();
 
-		if (subsOption != null || rescaleSpec != null || (renderer.isKeepAspectRatio() && padding != null)) {
+		if (subsOption != null || rescaleSpec != null || padding != null || overrideVF != null) {
 			videoFilterOptions.add("-vf");
 			StringBuilder filterParams = new StringBuilder();
-
-			if (rescaleSpec != null) {
-				filterParams.append(rescaleSpec);
-				if (subsOption != null || renderer.isKeepAspectRatio()) {
-					filterParams.append(", ");
-				}
-			}
-
-			if (renderer.isKeepAspectRatio() && padding != null && rescaleSpec == null) {
-				filterParams.append(padding);
+			
+			if (overrideVF != null) {
+				filterParams.append(overrideVF);
 				if (subsOption != null) {
 					filterParams.append(", ");
 				}
-			}
+			} else {
+				if (rescaleSpec != null) {
+					filterParams.append(rescaleSpec);
+					if (subsOption != null || padding != null) {
+						filterParams.append(", ");
+					}
+				}
 
+				if (padding != null) {
+					filterParams.append(padding);
+					if (subsOption != null) {
+						filterParams.append(", ");
+					}
+				}
+			}
 			if (subsOption != null) {
 				filterParams.append(subsOption);
 			}

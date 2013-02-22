@@ -77,6 +77,7 @@ public class RendererConfiguration {
 	private static final String MUX_LPCM_TO_MPEG = "MuxLPCMToMpeg";
 	private static final String RENDERER_ICON = "RendererIcon";
 	private static final String RENDERER_NAME = "RendererName";
+	private static final String RESCALE_BY_RENDERER = "RescaleByRenderer";
 	private static final String SEEK_BY_TIME = "SeekByTime";
 	private static final String SHOW_AUDIO_METADATA = "ShowAudioMetadata";
 	private static final String SHOW_DVD_TITLE_DURATION = "ShowDVDTitleDuration"; // Ditlew
@@ -97,6 +98,7 @@ public class RendererConfiguration {
 	private static final String VIDEO = "Video";
 	private static final String WRAP_DTS_INTO_PCM = "WrapDTSIntoPCM";
 	private static final String CUSTOM_FFMPEG_OPTIONS = "CustomFFmpegOptions";
+	private static final String  OVERRIDE_VF = "OverrideVideoFilter";
 
 	public static RendererConfiguration getDefaultConf() {
 		return defaultConf;
@@ -1030,5 +1032,13 @@ public class RendererConfiguration {
 
 	public boolean isKeepAspectRatio() {
 		return getBoolean(KEEP_ASPECT_RATIO, false);
+	}
+	
+	public boolean isRescaleByRenderer() {
+		return getBoolean(RESCALE_BY_RENDERER, true);
+	}
+	
+	public String getFFmpegVideoFilterOverride() {
+		return getString(OVERRIDE_VF, null);
 	}
 }
