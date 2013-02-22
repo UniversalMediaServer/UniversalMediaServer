@@ -144,12 +144,12 @@ public class FFMpegVideo extends Player {
 
 		if (renderer.isKeepAspectRatio() && renderer.isRescaleByRenderer()) {
 			
-			if ((media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
+			if (media != null && media.getHeight() != 0 &&
+				(media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
 				padding = "pad=iw:iw/(16/9):0:(oh-ih)/2";
 			} else {
 				padding = "pad=ih*(16/9):ih:(ow-iw)/2:0";
 			}
-			
 		}
 
 		String rescaleSpec = null;
@@ -162,25 +162,33 @@ public class FFMpegVideo extends Player {
 				renderer.getMaxVideoHeight()
 			);
 		}
+		
+		String overrideVF = renderer.getFFmpegVideoFilterOverride();
 
-		if (subsOption != null || rescaleSpec != null || padding != null) {
+		if (subsOption != null || rescaleSpec != null || padding != null || overrideVF != null) {
 			videoFilterOptions.add("-vf");
 			StringBuilder filterParams = new StringBuilder();
-
-			if (rescaleSpec != null) {
-				filterParams.append(rescaleSpec);
-				if (subsOption != null || padding != null) {
-					filterParams.append(", ");
-				}
-			}
-
-			if (padding != null && rescaleSpec == null) {
-				filterParams.append(padding);
+			
+			if (overrideVF != null) {
+				filterParams.append(overrideVF);
 				if (subsOption != null) {
 					filterParams.append(", ");
 				}
-			}
+			} else {
+				if (rescaleSpec != null) {
+					filterParams.append(rescaleSpec);
+					if (subsOption != null || padding != null) {
+						filterParams.append(", ");
+					}
+				}
 
+				if (padding != null) {
+					filterParams.append(padding);
+					if (subsOption != null) {
+						filterParams.append(", ");
+					}
+				}
+			}
 			if (subsOption != null) {
 				filterParams.append(subsOption);
 			}
