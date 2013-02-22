@@ -300,7 +300,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		}
 
 		String subLine = null;
-		if (subTrack != null && configuration.isAutoloadSubtitles() && !configuration.isMencoderDisableSubs()) {
+		if (subTrack != null && configuration.isAutoloadSubtitles() && !configuration.isDisableSubtitles()) {
 			if (subTrack.getExternalFile() != null) {
 				LOGGER.info("AviSynth script: Using subtitle track: " + subTrack);
 				String function = "TextSub";

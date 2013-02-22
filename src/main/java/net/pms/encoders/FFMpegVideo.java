@@ -110,7 +110,7 @@ public class FFMpegVideo extends Player {
 				(media.getHeight() > renderer.getMaxVideoHeight())
 			);
 
-		if (params.sid != null && !configuration.isMencoderDisableSubs() && params.sid.isExternal()) {
+		if (params.sid != null && !configuration.isDisableSubtitles() && params.sid.isExternal()) {
 			String externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getAbsolutePath());
 			StringBuilder s = new StringBuilder();
 			CharacterIterator it = new StringCharacterIterator(externalSubtitlesFileName);

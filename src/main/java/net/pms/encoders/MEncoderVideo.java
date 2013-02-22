@@ -943,7 +943,7 @@ public class MEncoderVideo extends Player {
 	 * Collapse the multiple internal ways of saying "subtitles are disabled" into a single method
 	 * which returns true if any of the following are true:
 	 *
-	 *     1) configuration.isMencoderDisableSubs()
+	 *     1) configuration.isDisableSubtitles()
 	 *     2) params.sid == null
 	 *     3) avisynth()
 	 */
