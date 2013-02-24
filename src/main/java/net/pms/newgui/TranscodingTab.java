@@ -45,9 +45,9 @@ import org.slf4j.LoggerFactory;
 
 public class TranscodingTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TranscodingTab.class);
-	private static final String COMMON_COL_SPEC = "left:pref, 2dlu, pref:grow";
-	private static final String COMMON_ROW_SPEC = "5*(pref, 2dlu), pref, 18dlu, pref, 9dlu:grow, 2*(pref, 2dlu), default, 5*(pref, 2dlu), pref, 9dlu, 2*(pref, 2dlu), pref, 9dlu, 3*(pref, 2dlu), pref, $lgap, default";
-	private static final String EMPTY_COL_SPEC = "left:pref, 2dlu, pref:grow";
+	private static final String COMMON_COL_SPEC = "left:pref, 3dlu, pref:grow";
+	private static final String COMMON_ROW_SPEC = "4*(pref, 3dlu), pref, 9dlu, pref, 284dlu, pref";
+	private static final String EMPTY_COL_SPEC = "left:pref, 3dlu, pref:grow";
 	private static final String EMPTY_ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p , 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 20dlu, p, 3dlu, p, 3dlu, p";
 	private static final String LEFT_COL_SPEC = "left:pref, pref, pref, pref, 0:grow";
 	private static final String LEFT_ROW_SPEC = "fill:10:grow, 3dlu, p, 3dlu, p, 3dlu, p";
@@ -447,7 +447,7 @@ public class TranscodingTab {
 				configuration.setDisableSubtitles((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
-		builder.add(disableSubs, FormLayoutUtil.flip(cc.xy(1, 11), colSpec, orientation));
+		builder.add(disableSubs, FormLayoutUtil.flip(cc.xy(1, 9), colSpec, orientation));
 
 		JTabbedPane setupTabbedPanel = new JTabbedPane();
 		setupTabbedPanel.setUI(new CustomTabbedPaneUI());
@@ -456,7 +456,7 @@ public class TranscodingTab {
 		setupTabbedPanel.addTab(Messages.getString("TrTab2.68"), buildAudioSetupPanel());
 		setupTabbedPanel.addTab(Messages.getString("MEncoderVideo.8"), buildSubtitlesSetupPanel());
 
-		builder.add(setupTabbedPanel, FormLayoutUtil.flip(cc.xywh(1, 14, 3, 31), colSpec, orientation));
+		builder.add(setupTabbedPanel, FormLayoutUtil.flip(cc.xywh(1, 11, 3, 3), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 		panel.applyComponentOrientation(orientation);
