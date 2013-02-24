@@ -414,8 +414,29 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderCustomOptions(mencoder_custom_options.getText());
 			}
 		});
-
 		builder.add(mencoder_custom_options, FormLayoutUtil.flip(cc.xyw(3, 21, 13), colSpec, orientation));
+
+		builder.addLabel(Messages.getString("MEncoderVideo.93"), FormLayoutUtil.flip(cc.xy(1, 23), colSpec, orientation));
+
+		builder.addLabel(Messages.getString("MEncoderVideo.28") + " (%)", FormLayoutUtil.flip(cc.xy(1, 23, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+		ocw = new JTextField(configuration.getMencoderOverscanCompensationWidth());
+		ocw.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				configuration.setMencoderOverscanCompensationWidth(ocw.getText());
+			}
+		});
+		builder.add(ocw, FormLayoutUtil.flip(cc.xyw(3, 23, 2), colSpec, orientation));
+
+		builder.addLabel(Messages.getString("MEncoderVideo.30") + " (%)", FormLayoutUtil.flip(cc.xy(5, 23), colSpec, orientation));
+		och = new JTextField(configuration.getMencoderOverscanCompensationHeight());
+		och.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				configuration.setMencoderOverscanCompensationHeight(och.getText());
+			}
+		});
+		builder.add(och, FormLayoutUtil.flip(cc.xyw(7, 23, 1), colSpec, orientation));
 
 		cmp = builder.addSeparator(Messages.getString("MEncoderVideo.8"), FormLayoutUtil.flip(cc.xyw(1, 25, 15), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
@@ -665,28 +686,6 @@ public class MEncoderVideo extends Player {
 			}
 		});
 		builder.add(subq, FormLayoutUtil.flip(cc.xyw(3, 45, 1), colSpec, orientation));
-
-		builder.addLabel(Messages.getString("MEncoderVideo.93"), FormLayoutUtil.flip(cc.xyw(1, 47, 6), colSpec, orientation));
-
-		builder.addLabel(Messages.getString("MEncoderVideo.28") + " (%)", FormLayoutUtil.flip(cc.xy(1, 49, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
-		ocw = new JTextField(configuration.getMencoderOverscanCompensationWidth());
-		ocw.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setMencoderOverscanCompensationWidth(ocw.getText());
-			}
-		});
-		builder.add(ocw, FormLayoutUtil.flip(cc.xyw(3, 49, 1), colSpec, orientation));
-		builder.addLabel(Messages.getString("MEncoderVideo.30") + " (%)", FormLayoutUtil.flip(cc.xy(5, 49), colSpec, orientation));
-
-		och = new JTextField(configuration.getMencoderOverscanCompensationHeight());
-		och.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setMencoderOverscanCompensationHeight(och.getText());
-			}
-		});
-		builder.add(och, FormLayoutUtil.flip(cc.xyw(7, 49, 1), colSpec, orientation));
 
 		subColor = new JButton();
 		subColor.setText(Messages.getString("MEncoderVideo.31"));
