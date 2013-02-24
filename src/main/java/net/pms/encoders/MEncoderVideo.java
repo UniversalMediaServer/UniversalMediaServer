@@ -437,10 +437,6 @@ public class MEncoderVideo extends Player {
 		builder.addLabel(Messages.getString("MEncoderVideo.11"), FormLayoutUtil.flip(cc.xy(1, 19), colSpec, orientation));
 		Object data[] = new Object[]{
 			configuration.getMencoderSubCp(),
-			Messages.getString("MEncoderVideo.129"),
-			Messages.getString("MEncoderVideo.130"),
-			Messages.getString("MEncoderVideo.131"),
-			Messages.getString("MEncoderVideo.132"),
 			Messages.getString("MEncoderVideo.96"),
 			Messages.getString("MEncoderVideo.97"),
 			Messages.getString("MEncoderVideo.98"),
