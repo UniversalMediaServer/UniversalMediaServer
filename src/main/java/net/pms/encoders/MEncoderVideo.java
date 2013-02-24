@@ -357,7 +357,7 @@ public class MEncoderVideo extends Player {
 
 		builder.add(scaler, FormLayoutUtil.flip(cc.xyw(3, 5, 7), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.28"), FormLayoutUtil.flip(cc.xyw(10, 5, 3, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.28"), FormLayoutUtil.flip(cc.xy(9, 5, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 		scaleX = new JTextField("" + configuration.getMencoderScaleX());
 		scaleX.addKeyListener(new KeyAdapter() {
 			@Override
@@ -370,8 +370,8 @@ public class MEncoderVideo extends Player {
 			}
 		});
 
-		builder.add(scaleX, FormLayoutUtil.flip(cc.xyw(13, 5, 3), colSpec, orientation));
-		builder.addLabel(Messages.getString("MEncoderVideo.30"), FormLayoutUtil.flip(cc.xyw(10, 7, 3, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+		builder.add(scaleX, FormLayoutUtil.flip(cc.xy(11, 5), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.30"), FormLayoutUtil.flip(cc.xy(13, 5, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 		scaleY = new JTextField("" + configuration.getMencoderScaleY());
 		scaleY.addKeyListener(new KeyAdapter() {
 			@Override
@@ -384,7 +384,7 @@ public class MEncoderVideo extends Player {
 			}
 		});
 
-		builder.add(scaleY, FormLayoutUtil.flip(cc.xyw(13, 7, 3), colSpec, orientation));
+		builder.add(scaleY, FormLayoutUtil.flip(cc.xy(15, 5), colSpec, orientation));
 
 		if (configuration.isMencoderScaler()) {
 			scaler.setSelected(true);
