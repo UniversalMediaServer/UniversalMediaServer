@@ -127,31 +127,31 @@ public class MEncoderVideo extends Player {
 	protected boolean wmv;
 
 	public static final String DEFAULT_CODEC_CONF_SCRIPT =
-		Messages.getString("MEncoderVideo.68")
-		+ Messages.getString("MEncoderVideo.69")
-		+ Messages.getString("MEncoderVideo.70")
-		+ Messages.getString("MEncoderVideo.71")
-		+ Messages.getString("MEncoderVideo.72")
-		+ Messages.getString("MEncoderVideo.73")
-		+ Messages.getString("MEncoderVideo.75")
-		+ Messages.getString("MEncoderVideo.76")
-		+ Messages.getString("MEncoderVideo.77")
-		+ Messages.getString("MEncoderVideo.78")
-		+ Messages.getString("MEncoderVideo.79")
-		+ "#\n"
-		+ Messages.getString("MEncoderVideo.80")
-		+ "container == iso :: -nosync\n"
-		+ "(container == avi || container == matroska) && vcodec == mpeg4 && acodec == mp3 :: -mc 0.1\n"
-		+ "container == flv :: -mc 0.1\n"
-		+ "container == mov :: -mc 0.1\n"
-		+ "container == rm  :: -mc 0.1\n"
-		+ "container == matroska && framerate == 29.97  :: -nomux -mc 0\n"
-		+ "container == mp4 && vcodec == h264 :: -mc 0.1\n"
-		+ "\n"
-		+ Messages.getString("MEncoderVideo.87")
-		+ Messages.getString("MEncoderVideo.88")
-		+ Messages.getString("MEncoderVideo.89")
-		+ Messages.getString("MEncoderVideo.91");
+		Messages.getString("MEncoderVideo.68") +
+		Messages.getString("MEncoderVideo.69") +
+		Messages.getString("MEncoderVideo.70") +
+		Messages.getString("MEncoderVideo.71") +
+		Messages.getString("MEncoderVideo.72") +
+		Messages.getString("MEncoderVideo.73") +
+		Messages.getString("MEncoderVideo.75") +
+		Messages.getString("MEncoderVideo.76") +
+		Messages.getString("MEncoderVideo.77") +
+		Messages.getString("MEncoderVideo.78") +
+		Messages.getString("MEncoderVideo.79") +
+		"#\n" +
+		Messages.getString("MEncoderVideo.80") +
+		"container == iso :: -nosync\n" +
+		"(container == avi || container == matroska) && vcodec == mpeg4 && acodec == mp3 :: -mc 0.1\n" +
+		"container == flv :: -mc 0.1\n" +
+		"container == mov :: -mc 0.1\n" +
+		"container == rm  :: -mc 0.1\n" +
+		"container == matroska && framerate == 29.97  :: -nomux -mc 0\n" +
+		"container == mp4 && vcodec == h264 :: -mc 0.1\n" +
+		"\n" +
+		Messages.getString("MEncoderVideo.87") +
+		Messages.getString("MEncoderVideo.88") +
+		Messages.getString("MEncoderVideo.89") +
+		Messages.getString("MEncoderVideo.91");
 
 	public JCheckBox getCheckBox() {
 		return checkBox;
@@ -309,16 +309,13 @@ public class MEncoderVideo extends Player {
 				}
 			}
 		});
-
 		builder.add(button, FormLayoutUtil.flip(cc.xyw(1, 11, 2), colSpec, orientation));
 
 		forcefps = new JCheckBox(Messages.getString("MEncoderVideo.4"));
 		forcefps.setContentAreaFilled(false);
-
 		if (configuration.isMencoderForceFps()) {
 			forcefps.setSelected(true);
 		}
-
 		forcefps.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -330,18 +327,15 @@ public class MEncoderVideo extends Player {
 
 		yadif = new JCheckBox(Messages.getString("MEncoderVideo.26"));
 		yadif.setContentAreaFilled(false);
-
 		if (configuration.isMencoderYadif()) {
 			yadif.setSelected(true);
 		}
-
 		yadif.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setMencoderYadif(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-
 		builder.add(yadif, FormLayoutUtil.flip(cc.xyw(3, 7, 7), colSpec, orientation));
 
 		scaler = new JCheckBox(Messages.getString("MEncoderVideo.27"));
@@ -354,7 +348,6 @@ public class MEncoderVideo extends Player {
 				scaleY.setEnabled(configuration.isMencoderScaler());
 			}
 		});
-
 		builder.add(scaler, FormLayoutUtil.flip(cc.xyw(3, 5, 7), colSpec, orientation));
 
 		builder.addLabel(Messages.getString("MEncoderVideo.28"), FormLayoutUtil.flip(cc.xy(9, 5, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
@@ -369,8 +362,8 @@ public class MEncoderVideo extends Player {
 				}
 			}
 		});
-
 		builder.add(scaleX, FormLayoutUtil.flip(cc.xy(11, 5), colSpec, orientation));
+
 		builder.addLabel(Messages.getString("MEncoderVideo.30"), FormLayoutUtil.flip(cc.xy(13, 5, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 		scaleY = new JTextField("" + configuration.getMencoderScaleY());
 		scaleY.addKeyListener(new KeyAdapter() {
@@ -383,7 +376,6 @@ public class MEncoderVideo extends Player {
 				}
 			}
 		});
-
 		builder.add(scaleY, FormLayoutUtil.flip(cc.xy(15, 5), colSpec, orientation));
 
 		if (configuration.isMencoderScaler()) {
