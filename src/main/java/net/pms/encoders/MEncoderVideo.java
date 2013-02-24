@@ -385,7 +385,7 @@ public class MEncoderVideo extends Player {
 			scaleY.setEnabled(false);
 		}
 
-		videoremux = new JCheckBox("<html>" + Messages.getString("MEncoderVideo.38") + "</html>");
+		videoremux = new JCheckBox(Messages.getString("MEncoderVideo.38"));
 		videoremux.setContentAreaFilled(false);
 		if (configuration.isMencoderMuxWhenCompatible()) {
 			videoremux.setSelected(true);
