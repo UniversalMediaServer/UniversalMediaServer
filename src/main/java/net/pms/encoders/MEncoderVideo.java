@@ -309,7 +309,7 @@ public class MEncoderVideo extends Player {
 				}
 			}
 		});
-		builder.add(button, FormLayoutUtil.flip(cc.xyw(1, 11, 2), colSpec, orientation));
+		builder.add(button, FormLayoutUtil.flip(cc.xy(1, 11), colSpec, orientation));
 
 		forcefps = new JCheckBox(Messages.getString("MEncoderVideo.4"));
 		forcefps.setContentAreaFilled(false);
