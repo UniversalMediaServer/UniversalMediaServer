@@ -418,7 +418,7 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderOverscanCompensationWidth(ocw.getText());
 			}
 		});
-		builder.add(ocw, FormLayoutUtil.flip(cc.xyw(3, 15, 2), colSpec, orientation));
+		builder.add(ocw, FormLayoutUtil.flip(cc.xy(3, 15), colSpec, orientation));
 
 		builder.addLabel(Messages.getString("MEncoderVideo.30") + " (%)", FormLayoutUtil.flip(cc.xy(5, 15), colSpec, orientation));
 		och = new JTextField(configuration.getMencoderOverscanCompensationHeight());
@@ -428,7 +428,7 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderOverscanCompensationHeight(och.getText());
 			}
 		});
-		builder.add(och, FormLayoutUtil.flip(cc.xyw(7, 15, 1), colSpec, orientation));
+		builder.add(och, FormLayoutUtil.flip(cc.xy(7, 15), colSpec, orientation));
 
 		cmp = builder.addSeparator(Messages.getString("MEncoderVideo.8"), FormLayoutUtil.flip(cc.xyw(1, 17, 15), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
