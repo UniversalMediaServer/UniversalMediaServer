@@ -165,15 +165,12 @@ public class FFMpegVideo extends Player {
 		
 		String overrideVF = renderer.getFFmpegVideoFilterOverride();
 
-		if (subsOption != null || rescaleSpec != null || padding != null || overrideVF != null) {
+		if (rescaleSpec != null || padding != null || overrideVF != null) {
 			videoFilterOptions.add("-vf");
 			StringBuilder filterParams = new StringBuilder();
 			
 			if (overrideVF != null) {
 				filterParams.append(overrideVF);
-				if (subsOption != null) {
-					filterParams.append(", ");
-				}
 			} else {
 				if (rescaleSpec != null) {
 					filterParams.append(rescaleSpec);
@@ -182,18 +179,16 @@ public class FFMpegVideo extends Player {
 					}
 				}
 
-				if (padding != null) {
+				if (padding != null && rescaleSpec == null) {
 					filterParams.append(padding);
-					if (subsOption != null) {
-						filterParams.append(", ");
-					}
 				}
-			}
-			if (subsOption != null) {
-				filterParams.append(subsOption);
 			}
 
 			videoFilterOptions.add(filterParams.toString());
+		}
+		if (subsOption != null) {
+			videoFilterOptions.add("-vf");
+			videoFilterOptions.add(subsOption);
 		}
 
 		return videoFilterOptions;
