@@ -1612,7 +1612,7 @@ public class MEncoderVideo extends Player {
 				// Specify which internal subtitle we want
 				cmdList.add("-sid");
 				cmdList.add("" + params.sid.getId());
-			} else { // external subtitles
+			} else if (externalSubtitlesFileName != null) { // external subtitles
 				assert params.sid.isExternal(); // confirm the mutual exclusion
 
 				// Ensure that internal subtitles are not automatically loaded
