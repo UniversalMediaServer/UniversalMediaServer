@@ -481,7 +481,7 @@ public class TranscodingTab {
 		builder.add(videoHWacceleration, FormLayoutUtil.flip(cc.xy(1, 2), colSpec, orientation));
 		videoHWacceleration.setEnabled(false);
 
-		mpeg2remux = new JCheckBox(Messages.getString("MEncoderVideo.39") + (Platform.isWindows() ? Messages.getString("TrTab2.21") : ""), configuration.isMencoderRemuxMPEG2());
+		mpeg2remux = new JCheckBox(Messages.getString("MEncoderVideo.39") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : ""), configuration.isMencoderRemuxMPEG2());
 		mpeg2remux.setContentAreaFilled(false);
 		mpeg2remux.addItemListener(new ItemListener() {
 			@Override
@@ -603,7 +603,7 @@ public class TranscodingTab {
 		});
 		builder.add(ac3remux, FormLayoutUtil.flip(cc.xyw(1, 6, 3), colSpec, orientation));
 
-		forceDTSinPCM = new JCheckBox(Messages.getString("TrTab2.28") + (Platform.isWindows() ? Messages.getString("TrTab2.21") : ""), configuration.isDTSEmbedInPCM());
+		forceDTSinPCM = new JCheckBox(Messages.getString("TrTab2.28") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : ""), configuration.isDTSEmbedInPCM());
 		forceDTSinPCM.setContentAreaFilled(false);
 		forceDTSinPCM.addActionListener(new ActionListener() {
 			@Override
