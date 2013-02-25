@@ -911,19 +911,18 @@ public class MEncoderVideo extends Player {
 			if (mediaRenderer.isDefaultVBVSize() && rendererMaxBitrates[1] == 0) {
 				bufSize = 1835;
 			}
-
 			// Make room for audio
 			// If audio is PCM, subtract 4600kb/s
-			if ("pcm".equals(audioType)) {
-				defaultMaxBitrates[0] = defaultMaxBitrates[0] - 4600;
-			}
-			// If audio is DTS, subtract 1510kb/s
-			else if ("dts".equals(audioType)) {
-				defaultMaxBitrates[0] = defaultMaxBitrates[0] - 1510;
-			}
-			// If audio is AC3, subtract the configured amount (usually 640)
-			else if ("ac3".equals(audioType)) {
-				defaultMaxBitrates[0] = defaultMaxBitrates[0] - configuration.getAudioBitrate();
+			switch (audioType) {
+				case "pcm":
+					defaultMaxBitrates[0] = defaultMaxBitrates[0] - 4600;
+					break;
+				case "dts":
+					defaultMaxBitrates[0] = defaultMaxBitrates[0] - 1510;
+					break;
+				case "ac3":
+					defaultMaxBitrates[0] = defaultMaxBitrates[0] - configuration.getAudioBitrate();
+					break;
 			}
 
 			// Round down to the nearest Mb
@@ -1662,12 +1661,16 @@ public class MEncoderVideo extends Player {
 
 		// Make MEncoder output framerate correspond to InterFrame
 		if (avisynth() && configuration.getAvisynthInterFrame() && !"60000/1001".equals(frameRateRatio) && !"50".equals(frameRateRatio) && !"60".equals(frameRateRatio)) {
-			if ("25".equals(frameRateRatio)) {
-				ofps = "50";
-			} else if ("30".equals(frameRateRatio)) {
-				ofps = "60";
-			} else {
-				ofps = "60000/1001";
+			switch (frameRateRatio) {
+				case "25":
+					ofps = "50";
+					break;
+				case "30":
+					ofps = "60";
+					break;
+				default:
+					ofps = "60000/1001";
+					break;
 			}
 		}
 
@@ -1923,82 +1926,97 @@ public class MEncoderVideo extends Player {
 
 				// pass 1: process expertOptions
 				for (int i = 0; i < expertOptions.length; ++i) {
-					if (expertOptions[i].equals("-noass")) {
-						// remove -ass from cmdList in pass 2.
-						// -ass won't have been added in this method (getSpecificCodecOptions
-						// has been called multiple times above to check for -noass and -nomux)
-						// but it may have been added via the renderer or global MEncoder options.
-						// XXX: there are currently 10 other -ass options (-ass-color, -ass-border-color &c.).
-						// technically, they should all be removed...
-						removeCmdListOption.put("-ass", false); // false: option does not have a corresponding value
-						// remove -noass from expertOptions in pass 3
-						expertOptions[i] = REMOVE_OPTION;
-					} else if (expertOptions[i].equals("-nomux")) {
-						expertOptions[i] = REMOVE_OPTION;
-					} else if (expertOptions[i].equals("-mt")) {
-						// not an MEncoder option so remove it from exportOptions.
-						// multi-threaded MEncoder is used by default, so this is obsolete (TODO: Remove it from the description)
-						expertOptions[i] = REMOVE_OPTION;
-					} else if (expertOptions[i].equals("-ofps")) {
-						// replace the cmdList version with the expertOptions version i.e. remove the former
-						removeCmdListOption.put("-ofps", true);
-						// skip (i.e. leave unchanged) the exportOptions value
-						++i;
-					} else if (expertOptions[i].equals("-fps")) {
-						removeCmdListOption.put("-fps", true);
-						++i;
-					} else if (expertOptions[i].equals("-ovc")) {
-						removeCmdListOption.put("-ovc", true);
-						++i;
-					} else if (expertOptions[i].equals("-channels")) {
-						removeCmdListOption.put("-channels", true);
-						++i;
-					} else if (expertOptions[i].equals("-oac")) {
-						removeCmdListOption.put("-oac", true);
-						++i;
-					} else if (expertOptions[i].equals("-quality")) {
-						// XXX like the old (cmdArray) code, this clobbers the old -lavcopts value
-						String lavcopts = String.format(
-							"autoaspect=1:vcodec=%s:acodec=%s:abitrate=%s:threads=%d:%s",
-							vcodec,
-							(configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3"),
-							CodecUtil.getAC3Bitrate(configuration, params.aid),
-							configuration.getMencoderMaxThreads(),
-							expertOptions[i + 1]
-						);
+					switch (expertOptions[i]) {
+						case "-noass":
+							// remove -ass from cmdList in pass 2.
+							// -ass won't have been added in this method (getSpecificCodecOptions
+							// has been called multiple times above to check for -noass and -nomux)
+							// but it may have been added via the renderer or global MEncoder options.
+							// XXX: there are currently 10 other -ass options (-ass-color, -ass-border-color &c.).
+							// technically, they should all be removed...
+							removeCmdListOption.put("-ass", false); // false: option does not have a corresponding value
+							// remove -noass from expertOptions in pass 3
+							expertOptions[i] = REMOVE_OPTION;
+							break;
+						case "-nomux":
+							expertOptions[i] = REMOVE_OPTION;
+							break;
+						case "-mt":
+							// not an MEncoder option so remove it from exportOptions.
+							// multi-threaded MEncoder is used by default, so this is obsolete (TODO: Remove it from the description)
+							expertOptions[i] = REMOVE_OPTION;
+							break;
+						case "-ofps":
+							// replace the cmdList version with the expertOptions version i.e. remove the former
+							removeCmdListOption.put("-ofps", true);
+							// skip (i.e. leave unchanged) the exportOptions value
+							++i;
+							break;
+						case "-fps":
+							removeCmdListOption.put("-fps", true);
+							++i;
+							break;
+						case "-ovc":
+							removeCmdListOption.put("-ovc", true);
+							++i;
+							break;
+						case "-channels":
+							removeCmdListOption.put("-channels", true);
+							++i;
+							break;
+						case "-oac":
+							removeCmdListOption.put("-oac", true);
+							++i;
+							break;
+						case "-quality":
+							// XXX like the old (cmdArray) code, this clobbers the old -lavcopts value
+							String lavcopts = String.format(
+								"autoaspect=1:vcodec=%s:acodec=%s:abitrate=%s:threads=%d:%s",
+								vcodec,
+								(configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3"),
+								CodecUtil.getAC3Bitrate(configuration, params.aid),
+								configuration.getMencoderMaxThreads(),
+								expertOptions[i + 1]
+							);
 
-						// append bitrate-limiting options if configured
-						lavcopts = addMaximumBitrateConstraints(
-							lavcopts,
-							media,
-							lavcopts,
-							params.mediaRenderer,
-							""
-						);
+							// append bitrate-limiting options if configured
+							lavcopts = addMaximumBitrateConstraints(
+								lavcopts,
+								media,
+								lavcopts,
+								params.mediaRenderer,
+								""
+							);
 
-						// a string format with no placeholders, so the cmdList option value is ignored.
-						// note: we protect "%" from being interpreted as a format by converting it to "%%",
-						// which is then turned back into "%" when the format is processed
-						mergeCmdListOption.put("-lavcopts", lavcopts.replace("%", "%%"));
-						// remove -quality <value>
-						expertOptions[i] = expertOptions[i + 1] = REMOVE_OPTION;
-						++i;
-					} else if (expertOptions[i].equals("-mpegopts")) {
-						mergeCmdListOption.put("-mpegopts", "%s:" + expertOptions[i + 1].replace("%", "%%"));
-						// merge if cmdList already contains -mpegopts, but don't append if it doesn't (parity with the old (cmdArray) version)
-						expertOptions[i] = expertOptions[i + 1] = REMOVE_OPTION;
-						++i;
-					} else if (expertOptions[i].equals("-vf")) {
-						mergeCmdListOption.put("-vf", "%s," + expertOptions[i + 1].replace("%", "%%"));
-						++i;
-					} else if (expertOptions[i].equals("-af")) {
-						mergeCmdListOption.put("-af", "%s," + expertOptions[i + 1].replace("%", "%%"));
-						++i;
-					} else if (expertOptions[i].equals("-nosync")) {
-						disableMc0AndNoskip = true;
-						expertOptions[i] = REMOVE_OPTION;
-					} else if (expertOptions[i].equals("-mc")) {
-						disableMc0AndNoskip = true;
+							// a string format with no placeholders, so the cmdList option value is ignored.
+							// note: we protect "%" from being interpreted as a format by converting it to "%%",
+							// which is then turned back into "%" when the format is processed
+							mergeCmdListOption.put("-lavcopts", lavcopts.replace("%", "%%"));
+							// remove -quality <value>
+							expertOptions[i] = expertOptions[i + 1] = REMOVE_OPTION;
+							++i;
+							break;
+						case "-mpegopts":
+							mergeCmdListOption.put("-mpegopts", "%s:" + expertOptions[i + 1].replace("%", "%%"));
+							// merge if cmdList already contains -mpegopts, but don't append if it doesn't (parity with the old (cmdArray) version)
+							expertOptions[i] = expertOptions[i + 1] = REMOVE_OPTION;
+							++i;
+							break;
+						case "-vf":
+							mergeCmdListOption.put("-vf", "%s," + expertOptions[i + 1].replace("%", "%%"));
+							++i;
+							break;
+						case "-af":
+							mergeCmdListOption.put("-af", "%s," + expertOptions[i + 1].replace("%", "%%"));
+							++i;
+							break;
+						case "-nosync":
+							disableMc0AndNoskip = true;
+							expertOptions[i] = REMOVE_OPTION;
+							break;
+						case "-mc":
+							disableMc0AndNoskip = true;
+							break;
 					}
 				}
 
