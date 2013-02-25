@@ -1044,7 +1044,6 @@ public class MEncoderVideo extends Player {
 			params.sid == null &&
 			!dvd &&
 			!avisynth() &&
-			media != null &&
 			(
 				media.isVideoWithinH264LevelLimits(newInput, params.mediaRenderer) ||
 				!params.mediaRenderer.isH264Level41Limited()
@@ -1327,21 +1326,19 @@ public class MEncoderVideo extends Player {
 
 		boolean foundNoassParam = false;
 
-		if (media != null) {
-			String expertOptions [] = getSpecificCodecOptions(
-				configuration.getCodecSpecificConfig(),
-				media,
-				params,
-				fileName,
-				externalSubtitlesFileName,
-				configuration.isMencoderIntelligentSync(),
-				false
-			);
+		String expertOptions [] = getSpecificCodecOptions(
+			configuration.getCodecSpecificConfig(),
+			media,
+			params,
+			fileName,
+			externalSubtitlesFileName,
+			configuration.isMencoderIntelligentSync(),
+			false
+		);
 
-			for (String s : expertOptions) {
-				if (s.equals("-noass")) {
-					foundNoassParam = true;
-				}
+		for (String s : expertOptions) {
+			if (s.equals("-noass")) {
+				foundNoassParam = true;
 			}
 		}
 
@@ -1555,13 +1552,8 @@ public class MEncoderVideo extends Player {
 			cmdList.add("-dvd-device");
 		}
 
-		String frameRateRatio = null;
-		String frameRateNumber = null;
-
-		if (media != null) {
-			frameRateRatio = media.getValidFps(true);
-			frameRateNumber = media.getValidFps(false);
-		}
+		String frameRateRatio = media.getValidFps(true);
+		String frameRateNumber = media.getValidFps(false);
 
 		// Input filename
 		if (avisynth && !fileName.toLowerCase().endsWith(".iso")) {
@@ -1686,7 +1678,6 @@ public class MEncoderVideo extends Player {
 
 		// Check if the media renderer supports this resolution
 		boolean isResolutionTooHighForRenderer = params.mediaRenderer.isVideoRescale()
-			&& media != null
 			&& (
 				(media.getWidth() > params.mediaRenderer.getMaxVideoWidth())
 				||
@@ -1710,7 +1701,7 @@ public class MEncoderVideo extends Player {
 			double rendererAspectRatio;
 
 			// Set defaults
-			if (media != null && media.getWidth() > 0 && media.getHeight() > 0) {
+			if (media.getWidth() > 0 && media.getHeight() > 0) {
 				scaleWidth = media.getWidth();
 				scaleHeight = media.getHeight();
 			}
@@ -1783,7 +1774,6 @@ public class MEncoderVideo extends Player {
 			 * The video resolution is too big for the renderer so we need to scale it down
 			 */
 			} else if (
-				media != null &&
 				media.getWidth() > 0 &&
 				media.getHeight() > 0 &&
 				(
@@ -1862,7 +1852,7 @@ public class MEncoderVideo extends Player {
 		 * TODO: Integrate this with the other stuff so that "expand" only
 		 * ever appears once in the MEncoder CMD.
 		 */
-		if (media != null && !dvd && ((media.getWidth() % 4 != 0) || media.getHeight() % 4 != 0 || params.mediaRenderer.isKeepAspectRatio())) {
+		if (!dvd && ((media.getWidth() % 4 != 0) || media.getHeight() % 4 != 0 || params.mediaRenderer.isKeepAspectRatio())) {
 			int expandBorderWidth;
 			int expandBorderHeight;
 			StringBuilder expandParams = new StringBuilder();
@@ -2088,7 +2078,7 @@ public class MEncoderVideo extends Player {
 		}
 
 		// Force srate because MEncoder doesn't like anything other than 48khz for AC-3
-		if (media != null && !pcm && !dtsRemux && !ac3Remux) {
+		if (!pcm && !dtsRemux && !ac3Remux) {
 			cmdList.add("-af");
 			cmdList.add("lavcresample=" + rate);
 			cmdList.add("-srate");
@@ -2201,7 +2191,7 @@ public class MEncoderVideo extends Player {
 				ffVideo.runInNewThread();
 
 				String aid = null;
-				if (media != null && media.getAudioTracksList().size() > 1 && params.aid != null) {
+				if (media.getAudioTracksList().size() > 1 && params.aid != null) {
 					if (media.getContainer() != null && (media.getContainer().equals(FormatConfiguration.AVI) || media.getContainer().equals(FormatConfiguration.FLV))) {
 						// TODO confirm (MP4s, OGMs and MOVs already tested: first aid is 0; AVIs: first aid is 1)
 						// For AVIs, FLVs and MOVs MEncoder starts audio tracks numbering from 1
@@ -2251,7 +2241,7 @@ public class MEncoderVideo extends Player {
 					ffAudioPipe.setModifier(sm);
 				}
 
-				if (media != null && media.getDvdtrack() > 0) {
+				if (media.getDvdtrack() > 0) {
 					ffmpegLPCMextract[3] = "-dvd-device";
 					ffmpegLPCMextract[4] = fileName;
 					ffmpegLPCMextract[5] = "dvd://" + media.getDvdtrack();
@@ -2470,10 +2460,7 @@ public class MEncoderVideo extends Player {
 				interpreter.set("samplerate", params.aid.getSampleRate());
 			}
 
-			String frameRateNumber = null;
-			if (media != null) {
-				frameRateNumber = media.getValidFps(false);
-			}
+			String frameRateNumber = media.getValidFps(false);
 
 			try {
 				if (frameRateNumber != null) {
