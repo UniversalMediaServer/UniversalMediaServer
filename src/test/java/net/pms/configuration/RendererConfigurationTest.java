@@ -109,6 +109,10 @@ public class RendererConfigurationTest {
 		// Showtime 4:
 		testCases.put("User-Agent: Showtime PS3 4.2", "Showtime 4");
 
+		// Telstra T-Box:
+		// Note: This isn't the full user-agent, just a snippet to find it
+		testCases.put("User-Agent: telstra", "Telstra T-Box");
+
 		// VideoWebTV:
 		testCases.put("friendlyName.dlna.org: VideoWeb", "VideoWeb TV");
 
