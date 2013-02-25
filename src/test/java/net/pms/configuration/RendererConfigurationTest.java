@@ -70,6 +70,9 @@ public class RendererConfigurationTest {
 		testCases.put("User-Agent: MPlayer 1.0rc4-4.2.1", "iPad / iPhone");
 		testCases.put("User-Agent: NSPlayer/4.1.0.3856", "iPad / iPhone");
 
+		// Netgear NeoTV:
+		testCases.put("User-Agent: IPI/1.0 UPnP/1.0 DLNADOC/1.50, friendlyName.dlna.org: BD-Player", "Netgear NeoTV");
+
 		// Philips:
 		testCases.put("User-Agent: Allegro-Software-WebClient/4.61 DLNADOC/1.00", "Philips Aurea");
 
