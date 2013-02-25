@@ -8,14 +8,23 @@
 		Now compiled with Java 7
 		Improved handling of aspect ratios on Sony Bravia TVs
 		The installer only tells Windows to run UMS at startup on new installs or if the user has specified it in UMS
+		The first of many code optimizations for Java 7
+	Renderers:
+		Added support for Netgear NeoTV
+		Added support for Telstra T-Box
+		Improved support for Sony Blu-ray players
 	Languages:
 		Made languages more consistent with eachother
 		Updated Russian translation (thanks, Tianuchka!)
 		Changed default audio/subtitles language priority for English users, which:
 			Disables subtitles when audio is English, otherwise look for English subtitles, prioritizing external before internal subtitles
 	External Components:
+		Updated InterFrame to 2.5.0, which:
+			Improves scene-change detection
+			Minimizes artifacts
 		Updated Java Runtime Environment automatic downloader for Windows to 7u15, which:
 			Fixes serious security holes
+		Updated MediaInfo for Windows to 0.7.62
 
 2.4.2 - 2013-02-17
 
