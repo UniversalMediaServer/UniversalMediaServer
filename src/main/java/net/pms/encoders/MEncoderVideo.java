@@ -1326,7 +1326,7 @@ public class MEncoderVideo extends Player {
 
 		boolean foundNoassParam = false;
 
-		String expertOptions [] = getSpecificCodecOptions(
+		String expertOptions[] = getSpecificCodecOptions(
 			configuration.getCodecSpecificConfig(),
 			media,
 			params,
@@ -1881,176 +1881,164 @@ public class MEncoderVideo extends Player {
 
 		// Process the options for this file in Transcoding Settings -> Mencoder -> Expert Settings: Codec-specific parameters
 		// TODO this is better handled by a plugin with scripting support and will be removed
-		if (media != null) {
-			String expertOptions[] = getSpecificCodecOptions(
-				configuration.getCodecSpecificConfig(),
-				media,
-				params,
-				fileName,
-				externalSubtitlesFileName,
-				configuration.isMencoderIntelligentSync(),
-				false
-			);
 
-			// the parameters (expertOptions) are processed in 3 passes
-			// 1) process expertOptions
-			// 2) process cmdList
-			// 3) append expertOptions to cmdList
+		// the parameters (expertOptions) are processed in 3 passes
+		// 1) process expertOptions
+		// 2) process cmdList
+		// 3) append expertOptions to cmdList
+		if (expertOptions != null && expertOptions.length > 0) {
+			// remove this option (key) from the cmdList in pass 2.
+			// if the boolean value is true, also remove the option's corresponding value
+			Map<String, Boolean> removeCmdListOption = new HashMap<>();
 
-			if (expertOptions != null && expertOptions.length > 0) {
-				// remove this option (key) from the cmdList in pass 2.
-				// if the boolean value is true, also remove the option's corresponding value
-				Map<String, Boolean> removeCmdListOption = new HashMap<>();
+			// if this option (key) is defined in cmdList, merge this string value into the
+			// option's value in pass 2. the value is a string format template into which the
+			// cmdList option value is injected
+			Map<String, String> mergeCmdListOption = new HashMap<>();
 
-				// if this option (key) is defined in cmdList, merge this string value into the
-				// option's value in pass 2. the value is a string format template into which the
-				// cmdList option value is injected
-				Map<String, String> mergeCmdListOption = new HashMap<>();
+			// merges that are performed in pass 2 are logged in this map; the key (string) is
+			// the option name and the value is a boolean indicating whether the option was merged
+			// or not. the map is populated after pass 1 with the options from mergeCmdListOption
+			// and all values initialised to false. if an option was merged, it is not appended
+			// to cmdList
+			Map<String, Boolean> mergedCmdListOption = new HashMap<>();
 
-				// merges that are performed in pass 2 are logged in this map; the key (string) is
-				// the option name and the value is a boolean indicating whether the option was merged
-				// or not. the map is populated after pass 1 with the options from mergeCmdListOption
-				// and all values initialised to false. if an option was merged, it is not appended
-				// to cmdList
-				Map<String, Boolean> mergedCmdListOption = new HashMap<>();
+			// pass 1: process expertOptions
+			for (int i = 0; i < expertOptions.length; ++i) {
+				switch (expertOptions[i]) {
+					case "-noass":
+						// remove -ass from cmdList in pass 2.
+						// -ass won't have been added in this method (getSpecificCodecOptions
+						// has been called multiple times above to check for -noass and -nomux)
+						// but it may have been added via the renderer or global MEncoder options.
+						// XXX: there are currently 10 other -ass options (-ass-color, -ass-border-color &c.).
+						// technically, they should all be removed...
+						removeCmdListOption.put("-ass", false); // false: option does not have a corresponding value
+						// remove -noass from expertOptions in pass 3
+						expertOptions[i] = REMOVE_OPTION;
+						break;
+					case "-nomux":
+						expertOptions[i] = REMOVE_OPTION;
+						break;
+					case "-mt":
+						// not an MEncoder option so remove it from exportOptions.
+						// multi-threaded MEncoder is used by default, so this is obsolete (TODO: Remove it from the description)
+						expertOptions[i] = REMOVE_OPTION;
+						break;
+					case "-ofps":
+						// replace the cmdList version with the expertOptions version i.e. remove the former
+						removeCmdListOption.put("-ofps", true);
+						// skip (i.e. leave unchanged) the exportOptions value
+						++i;
+						break;
+					case "-fps":
+						removeCmdListOption.put("-fps", true);
+						++i;
+						break;
+					case "-ovc":
+						removeCmdListOption.put("-ovc", true);
+						++i;
+						break;
+					case "-channels":
+						removeCmdListOption.put("-channels", true);
+						++i;
+						break;
+					case "-oac":
+						removeCmdListOption.put("-oac", true);
+						++i;
+						break;
+					case "-quality":
+						// XXX like the old (cmdArray) code, this clobbers the old -lavcopts value
+						String lavcopts = String.format(
+							"autoaspect=1:vcodec=%s:acodec=%s:abitrate=%s:threads=%d:%s",
+							vcodec,
+							(configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3"),
+							CodecUtil.getAC3Bitrate(configuration, params.aid),
+							configuration.getMencoderMaxThreads(),
+							expertOptions[i + 1]
+						);
 
-				// pass 1: process expertOptions
-				for (int i = 0; i < expertOptions.length; ++i) {
-					switch (expertOptions[i]) {
-						case "-noass":
-							// remove -ass from cmdList in pass 2.
-							// -ass won't have been added in this method (getSpecificCodecOptions
-							// has been called multiple times above to check for -noass and -nomux)
-							// but it may have been added via the renderer or global MEncoder options.
-							// XXX: there are currently 10 other -ass options (-ass-color, -ass-border-color &c.).
-							// technically, they should all be removed...
-							removeCmdListOption.put("-ass", false); // false: option does not have a corresponding value
-							// remove -noass from expertOptions in pass 3
-							expertOptions[i] = REMOVE_OPTION;
-							break;
-						case "-nomux":
-							expertOptions[i] = REMOVE_OPTION;
-							break;
-						case "-mt":
-							// not an MEncoder option so remove it from exportOptions.
-							// multi-threaded MEncoder is used by default, so this is obsolete (TODO: Remove it from the description)
-							expertOptions[i] = REMOVE_OPTION;
-							break;
-						case "-ofps":
-							// replace the cmdList version with the expertOptions version i.e. remove the former
-							removeCmdListOption.put("-ofps", true);
-							// skip (i.e. leave unchanged) the exportOptions value
-							++i;
-							break;
-						case "-fps":
-							removeCmdListOption.put("-fps", true);
-							++i;
-							break;
-						case "-ovc":
-							removeCmdListOption.put("-ovc", true);
-							++i;
-							break;
-						case "-channels":
-							removeCmdListOption.put("-channels", true);
-							++i;
-							break;
-						case "-oac":
-							removeCmdListOption.put("-oac", true);
-							++i;
-							break;
-						case "-quality":
-							// XXX like the old (cmdArray) code, this clobbers the old -lavcopts value
-							String lavcopts = String.format(
-								"autoaspect=1:vcodec=%s:acodec=%s:abitrate=%s:threads=%d:%s",
-								vcodec,
-								(configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3"),
-								CodecUtil.getAC3Bitrate(configuration, params.aid),
-								configuration.getMencoderMaxThreads(),
-								expertOptions[i + 1]
-							);
+						// append bitrate-limiting options if configured
+						lavcopts = addMaximumBitrateConstraints(
+							lavcopts,
+							media,
+							lavcopts,
+							params.mediaRenderer,
+							""
+						);
 
-							// append bitrate-limiting options if configured
-							lavcopts = addMaximumBitrateConstraints(
-								lavcopts,
-								media,
-								lavcopts,
-								params.mediaRenderer,
-								""
-							);
+						// a string format with no placeholders, so the cmdList option value is ignored.
+						// note: we protect "%" from being interpreted as a format by converting it to "%%",
+						// which is then turned back into "%" when the format is processed
+						mergeCmdListOption.put("-lavcopts", lavcopts.replace("%", "%%"));
+						// remove -quality <value>
+						expertOptions[i] = expertOptions[i + 1] = REMOVE_OPTION;
+						++i;
+						break;
+					case "-mpegopts":
+						mergeCmdListOption.put("-mpegopts", "%s:" + expertOptions[i + 1].replace("%", "%%"));
+						// merge if cmdList already contains -mpegopts, but don't append if it doesn't (parity with the old (cmdArray) version)
+						expertOptions[i] = expertOptions[i + 1] = REMOVE_OPTION;
+						++i;
+						break;
+					case "-vf":
+						mergeCmdListOption.put("-vf", "%s," + expertOptions[i + 1].replace("%", "%%"));
+						++i;
+						break;
+					case "-af":
+						mergeCmdListOption.put("-af", "%s," + expertOptions[i + 1].replace("%", "%%"));
+						++i;
+						break;
+					case "-nosync":
+						disableMc0AndNoskip = true;
+						expertOptions[i] = REMOVE_OPTION;
+						break;
+					case "-mc":
+						disableMc0AndNoskip = true;
+						break;
+				}
+			}
 
-							// a string format with no placeholders, so the cmdList option value is ignored.
-							// note: we protect "%" from being interpreted as a format by converting it to "%%",
-							// which is then turned back into "%" when the format is processed
-							mergeCmdListOption.put("-lavcopts", lavcopts.replace("%", "%%"));
-							// remove -quality <value>
-							expertOptions[i] = expertOptions[i + 1] = REMOVE_OPTION;
-							++i;
-							break;
-						case "-mpegopts":
-							mergeCmdListOption.put("-mpegopts", "%s:" + expertOptions[i + 1].replace("%", "%%"));
-							// merge if cmdList already contains -mpegopts, but don't append if it doesn't (parity with the old (cmdArray) version)
-							expertOptions[i] = expertOptions[i + 1] = REMOVE_OPTION;
-							++i;
-							break;
-						case "-vf":
-							mergeCmdListOption.put("-vf", "%s," + expertOptions[i + 1].replace("%", "%%"));
-							++i;
-							break;
-						case "-af":
-							mergeCmdListOption.put("-af", "%s," + expertOptions[i + 1].replace("%", "%%"));
-							++i;
-							break;
-						case "-nosync":
-							disableMc0AndNoskip = true;
-							expertOptions[i] = REMOVE_OPTION;
-							break;
-						case "-mc":
-							disableMc0AndNoskip = true;
-							break;
+			for (String key : mergeCmdListOption.keySet()) {
+				mergedCmdListOption.put(key, false);
+			}
+
+			// pass 2: process cmdList
+			List<String> transformedCmdList = new ArrayList<>();
+
+			for (int i = 0; i < cmdList.size(); ++i) {
+				String option = cmdList.get(i);
+
+				// we remove an option by *not* adding it to transformedCmdList
+				if (removeCmdListOption.containsKey(option)) {
+					if (isTrue(removeCmdListOption.get(option))) { // true: remove (i.e. don't add) the corresponding value
+						++i;
+					}
+				} else {
+					transformedCmdList.add(option);
+
+					if (mergeCmdListOption.containsKey(option)) {
+						String format = mergeCmdListOption.get(option);
+						String value = String.format(format, cmdList.get(i + 1));
+						// record the fact that an expertOption value has been merged into this cmdList value
+						mergedCmdListOption.put(option, true);
+						transformedCmdList.add(value);
+						++i;
 					}
 				}
+			}
 
-				for (String key : mergeCmdListOption.keySet()) {
-					mergedCmdListOption.put(key, false);
-				}
+			cmdList = transformedCmdList;
 
-				// pass 2: process cmdList
-				List<String> transformedCmdList = new ArrayList<>();
+			// pass 3: append expertOptions to cmdList
+			for (int i = 0; i < expertOptions.length; ++i) {
+				String option = expertOptions[i];
 
-				for (int i = 0; i < cmdList.size(); ++i) {
-					String option = cmdList.get(i);
-
-					// we remove an option by *not* adding it to transformedCmdList
-					if (removeCmdListOption.containsKey(option)) {
-						if (isTrue(removeCmdListOption.get(option))) { // true: remove (i.e. don't add) the corresponding value
-							++i;
-						}
+				if (!option.equals(REMOVE_OPTION)) {
+					if (isTrue(mergedCmdListOption.get(option))) { // true: this option and its value have already been merged into existing cmdList options
+						++i; // skip the value
 					} else {
-						transformedCmdList.add(option);
-
-						if (mergeCmdListOption.containsKey(option)) {
-							String format = mergeCmdListOption.get(option);
-							String value = String.format(format, cmdList.get(i + 1));
-							// record the fact that an expertOption value has been merged into this cmdList value
-							mergedCmdListOption.put(option, true);
-							transformedCmdList.add(value);
-							++i;
-						}
-					}
-				}
-
-				cmdList = transformedCmdList;
-
-				// pass 3: append expertOptions to cmdList
-				for (int i = 0; i < expertOptions.length; ++i) {
-					String option = expertOptions[i];
-
-					if (!option.equals(REMOVE_OPTION)) {
-						if (isTrue(mergedCmdListOption.get(option))) { // true: this option and its value have already been merged into existing cmdList options
-							++i; // skip the value
-						} else {
-							cmdList.add(option);
-						}
+						cmdList.add(option);
 					}
 				}
 			}
