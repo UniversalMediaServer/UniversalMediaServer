@@ -758,7 +758,7 @@ public class MEncoderVideo extends Player {
 	}
 
 	protected String[] getDefaultArgs() {
-		List<String> defaultArgsList = new ArrayList<String>();
+		List<String> defaultArgsList = new ArrayList<>();
 
 		defaultArgsList.add("-msglevel");
 		defaultArgsList.add("statusline=2");
@@ -790,7 +790,7 @@ public class MEncoderVideo extends Player {
 	}
 
 	private String[] sanitizeArgs(String[] args) {
-		List<String> sanitized = new ArrayList<String>();
+		List<String> sanitized = new ArrayList<>();
 		int i = 0;
 
 		while (i < args.length) {
@@ -1544,7 +1544,7 @@ public class MEncoderVideo extends Player {
 			}
 		}
 
-		List<String> cmdList = new ArrayList<String>();
+		List<String> cmdList = new ArrayList<>();
 
 		cmdList.add(executable());
 
@@ -1907,19 +1907,19 @@ public class MEncoderVideo extends Player {
 			if (expertOptions != null && expertOptions.length > 0) {
 				// remove this option (key) from the cmdList in pass 2.
 				// if the boolean value is true, also remove the option's corresponding value
-				Map<String, Boolean> removeCmdListOption = new HashMap<String, Boolean>();
+				Map<String, Boolean> removeCmdListOption = new HashMap<>();
 
 				// if this option (key) is defined in cmdList, merge this string value into the
 				// option's value in pass 2. the value is a string format template into which the
 				// cmdList option value is injected
-				Map<String, String> mergeCmdListOption = new HashMap<String, String>();
+				Map<String, String> mergeCmdListOption = new HashMap<>();
 
 				// merges that are performed in pass 2 are logged in this map; the key (string) is
 				// the option name and the value is a boolean indicating whether the option was merged
 				// or not. the map is populated after pass 1 with the options from mergeCmdListOption
 				// and all values initialised to false. if an option was merged, it is not appended
 				// to cmdList
-				Map<String, Boolean> mergedCmdListOption = new HashMap<String, Boolean>();
+				Map<String, Boolean> mergedCmdListOption = new HashMap<>();
 
 				// pass 1: process expertOptions
 				for (int i = 0; i < expertOptions.length; ++i) {
@@ -2007,7 +2007,7 @@ public class MEncoderVideo extends Player {
 				}
 
 				// pass 2: process cmdList
-				List<String> transformedCmdList = new ArrayList<String>();
+				List<String> transformedCmdList = new ArrayList<>();
 
 				for (int i = 0; i < cmdList.size(); ++i) {
 					String option = cmdList.get(i);
@@ -2516,7 +2516,7 @@ public class MEncoderVideo extends Player {
 		}
 
 		String completeLine = sb.toString();
-		ArrayList<String> args = new ArrayList<String>();
+		ArrayList<String> args = new ArrayList<>();
 		StringTokenizer st = new StringTokenizer(completeLine, " ");
 
 		while (st.hasMoreTokens()) {
