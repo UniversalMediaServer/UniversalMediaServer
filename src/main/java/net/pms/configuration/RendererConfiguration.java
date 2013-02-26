@@ -30,7 +30,7 @@ public class RendererConfiguration {
 	private static ArrayList<RendererConfiguration> rendererConfs;
 	private static PmsConfiguration pmsConfiguration;
 	private static RendererConfiguration defaultConf;
-	private static Map<InetAddress, RendererConfiguration> addressAssociation = new HashMap<InetAddress, RendererConfiguration>();
+	private static Map<InetAddress, RendererConfiguration> addressAssociation = new HashMap<>();
 
 	private RootFolder rootFolder;
 	private final PropertiesConfiguration configuration;
@@ -111,7 +111,7 @@ public class RendererConfiguration {
 	 */
 	public static void loadRendererConfigurations(PmsConfiguration pmsConf) {
 		pmsConfiguration = pmsConf;
-		rendererConfs = new ArrayList<RendererConfiguration>();
+		rendererConfs = new ArrayList<>();
 
 		try {
 			defaultConf = new RendererConfiguration();
@@ -374,7 +374,7 @@ public class RendererConfiguration {
 			configuration.load(f);
 		}
 
-		mimes = new HashMap<String, String>();
+		mimes = new HashMap<>();
 		String mimeTypes = getString(MIME_TYPES_CHANGES, null);
 
 		if (StringUtils.isNotBlank(mimeTypes)) {
@@ -392,7 +392,7 @@ public class RendererConfiguration {
 			}
 		}
 
-		DLNAPN = new HashMap<String, String>();
+		DLNAPN = new HashMap<>();
 		String DLNAPNchanges = getString(DLNA_PN_CHANGES, null);
 
 		if (DLNAPNchanges != null) {
@@ -539,7 +539,6 @@ public class RendererConfiguration {
 		}
 
 		if (mimetype != null && mimetype.equals(HTTPResource.VIDEO_TRANSCODE)) {
-			mimetype = HTTPResource.MPEG_TYPEMIME;
 			if (isTranscodeToWMV()) {
 				mimetype = isMediaParserV2()
 					? getFormatConfiguration().match(FormatConfiguration.WMV, FormatConfiguration.WMV, FormatConfiguration.WMA)
@@ -553,7 +552,7 @@ public class RendererConfiguration {
 					? getFormatConfiguration().match(FormatConfiguration.MPEGPS, FormatConfiguration.MPEG2, FormatConfiguration.AC3)
 					: HTTPResource.MPEG_TYPEMIME;
 			}
-		} else if (mimetype.equals(HTTPResource.AUDIO_TRANSCODE)) {
+		} else if (HTTPResource.AUDIO_TRANSCODE.equals(mimetype)) {
 			if (isTranscodeToWAV()) {
 				mimetype = isMediaParserV2()
 					? getFormatConfiguration().match(FormatConfiguration.WAV, null, null)
