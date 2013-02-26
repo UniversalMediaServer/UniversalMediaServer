@@ -58,7 +58,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	public static final String ID = "avsffmpeg";
 	
-	AviSynthFFmpeg() {
+	public AviSynthFFmpeg() {
 		super(PMS.getConfiguration());
 	}
 
