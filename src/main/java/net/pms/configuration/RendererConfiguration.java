@@ -803,7 +803,6 @@ public class RendererConfiguration {
 	 *
 	 * @return The bitrate.
 	 */
-	@Deprecated
 	// TODO this should return an integer and the units should be bits-per-second
 	public String getMaxVideoBitrate() {
 		return getString(MAX_VIDEO_BITRATE, null);
