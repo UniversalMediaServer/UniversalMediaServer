@@ -31,6 +31,9 @@ import net.pms.io.OutputParams;
 import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.formats.FormatFactory;
+import net.pms.formats.WEB;
+import net.pms.util.ProcessUtil;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +41,7 @@ import org.slf4j.LoggerFactory;
 public class FFmpegWebVideo extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegWebVideo.class);
 	private final PmsConfiguration configuration;
+	private static List<String> protocols;
 
 	// FIXME we have an id() accessor for this; no need for the field to be public
 	@Deprecated
@@ -66,6 +70,37 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	public FFmpegWebVideo(PmsConfiguration configuration) {
 		super(configuration);
 		this.configuration = configuration;
+
+		// Get supported protocols
+		protocols = new ArrayList();
+		String output = ProcessUtil.run(configuration.getFfmpegPath(), "-protocols");
+		boolean add = false;
+		for (String line : output.split("\n")) {
+			if (line.equals("Input:")) {
+				add = true;
+			} else if (line.equals("Output:")) {
+				break;
+			} else if (add) {
+				protocols.add(line);
+			}
+		}
+		// see XXX workaround below
+		protocols.add("mms");
+
+		// And register them as a WEB format
+		final String[] ffmpegProtocols = protocols.toArray(new String[0]);
+		FormatFactory.getExtensions().add(0, new WEB() {
+			@Override
+			public String[] getId() {
+				return ffmpegProtocols;
+			}
+			@Override
+			public String toString() {
+				return "FFMPEG.WEB";
+			}
+		});
+		
+		LOGGER.debug("FFmpeg supported protocols: " + protocols);
 	}
 
 	@Override
@@ -213,7 +248,8 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			Format.Identifier id = format.getIdentifier();
 
 			if (id.equals(Format.Identifier.WEB)) {
-				return true;
+				String url = resource.getSystemName();
+				return protocols.contains(url.split(":")[0]);
 			}
 		}
 
