@@ -18,9 +18,16 @@
  */
 package net.pms.encoders;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.LineIterator;
+import org.apache.commons.lang.StringUtils;
 import javax.swing.JComponent;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -34,7 +41,6 @@ import net.pms.io.ProcessWrapperImpl;
 import net.pms.formats.FormatFactory;
 import net.pms.formats.WEB;
 import net.pms.util.ProcessUtil;
-import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +48,14 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegWebVideo.class);
 	private final PmsConfiguration configuration;
 	private static List<String> protocols;
+	public static PatternMap<Object> excludes = new PatternMap<Object>();
+	public static PatternMap<ArrayList> autoOptions = new PatternMap<ArrayList>() {
+		@Override
+		public ArrayList add(String key, Object value) {
+			return put(key, (ArrayList)parseOptions((String)value));
+		}
+	};
+	private static boolean init = readWebFilters("ffmpeg.webfilters");
 
 	// FIXME we have an id() accessor for this; no need for the field to be public
 	@Deprecated
@@ -71,23 +85,12 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		super(configuration);
 		this.configuration = configuration;
 
-		// Get supported protocols
-		protocols = new ArrayList();
-		String output = ProcessUtil.run(configuration.getFfmpegPath(), "-protocols");
-		boolean add = false;
-		for (String line : output.split("\n")) {
-			if (line.equals("Input:")) {
-				add = true;
-			} else if (line.equals("Output:")) {
-				break;
-			} else if (add) {
-				protocols.add(line);
-			}
-		}
+		protocols = FFmpegOptions.getSupportedProtocols(configuration);
 		// see XXX workaround below
 		protocols.add("mms");
+		LOGGER.debug("FFmpeg supported protocols: " + protocols);
 
-		// And register them as a WEB format
+		// Register protocols as a WEB format
 		final String[] ffmpegProtocols = protocols.toArray(new String[0]);
 		FormatFactory.getExtensions().add(0, new WEB() {
 			@Override
@@ -99,8 +102,6 @@ public class FFmpegWebVideo extends FFMpegVideo {
 				return "FFMPEG.WEB";
 			}
 		});
-		
-		LOGGER.debug("FFmpeg supported protocols: " + protocols);
 	}
 
 	@Override
@@ -113,6 +114,34 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		params.minBufferSize = params.minFileSize;
 		params.secondread_minsize = 100000;
 		RendererConfiguration renderer = params.mediaRenderer;
+
+		// XXX work around an ffmpeg bug: http://ffmpeg.org/trac/ffmpeg/ticket/998
+		if (fileName.startsWith("mms:")) {
+			fileName = "mmsh:" + fileName.substring(4);
+		}
+
+		String protocol = fileName.split(":")[0];
+
+		FFmpegOptions customOptions = new FFmpegOptions();
+
+		// Gather custom options from various sources in ascending priority:
+		// - automatic options
+		String match = autoOptions.match(fileName);
+		if (match != null) {
+			List<String> opts = autoOptions.get(match);
+			if (opts != null) {
+				customOptions.addAll(opts);
+			}
+		}
+		// - (http) header options
+		if (params.header != null && params.header.length > 0) {
+			String hdr = new String(params.header);
+			customOptions.addAll(parseOptions(hdr));
+		}
+		// - renderer options
+		if (StringUtils.isNotEmpty(renderer.getCustomFFmpegOptions())) {
+			customOptions.addAll(parseOptions(renderer.getCustomFFmpegOptions()));
+		}
 
 		// basename of the named pipe:
 		// ffmpeg -loglevel warning -threads nThreads -i URL -threads nThreads -transcode-video-options /path/to/fifoName
@@ -132,11 +161,6 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		params.input_pipes[0] = pipe;
 		int nThreads = configuration.getNumberOfCpuCores();
 
-		// XXX work around an ffmpeg bug: http://ffmpeg.org/trac/ffmpeg/ticket/998
-		if (fileName.startsWith("mms:")) {
-			fileName = "mmsh:" + fileName.substring(4);
-		}
-
 		// build the command line
 		List<String> cmdList = new ArrayList<>();
 
@@ -153,11 +177,17 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		cmdList.add("-threads");
 		cmdList.add("" + nThreads);
 
+		// Add global and input-file custom options, if any
+		if (! customOptions.isEmpty()) {
+			customOptions.transferGlobals(cmdList);
+			customOptions.transferInputFileOptions(cmdList);
+		}
+
 		cmdList.add("-i");
 		cmdList.add(fileName);
 
 		cmdList.addAll(getVideoFilterOptions(renderer, media, params));
-		
+
 		// Encoder threads
 		cmdList.add("-threads");
 		cmdList.add("" + nThreads);
@@ -171,15 +201,9 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		// Add audio bitrate options
 		cmdList.addAll(getAudioBitrateOptions(renderer, media));
 
-		// Add (http) headers
-		if (params.header != null && params.header.length > 0) {
-			String hdr = new String(params.header);
-			parseOptions(hdr, cmdList);
-		}
-
-		// Add custom options
-		if (StringUtils.isNotEmpty(renderer.getCustomFFmpegOptions())) {
-			parseOptions(renderer.getCustomFFmpegOptions(), cmdList);
+		// Add any remaining custom options
+		if (! customOptions.isEmpty()) {
+			customOptions.transferAll(cmdList);
 		}
 
 		// Output file
@@ -249,10 +273,108 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 			if (id.equals(Format.Identifier.WEB)) {
 				String url = resource.getSystemName();
-				return protocols.contains(url.split(":")[0]);
+				return protocols.contains(url.split(":")[0])
+					&& excludes.match(url) == null;
 			}
 		}
 
 		return false;
 	}
+
+	public static boolean readWebFilters(String filename) {
+		PatternMap filter = null;
+		String line;
+		try {
+			LineIterator it = FileUtils.lineIterator(new File(filename));
+			try {
+				while (it.hasNext()) {
+					line = it.nextLine().trim();
+					if (line.isEmpty() || line.startsWith("#")) {
+						// continue
+					} else if (line.equals("EXCLUDE")) {
+						filter = excludes;
+					} else if (line.equals("OPTIONS")) {
+						filter = autoOptions;
+					} else if (filter != null) {
+						String[] var = line.split(" \\| ", 2);
+						filter.add(var[0], var.length > 1 ? var[1] : null);
+					}
+				}
+				return true;
+			} finally {
+				it.close();
+			}
+		} catch (Exception e) {
+			LOGGER.debug("Error reading ffmpeg web filters: " + e.getLocalizedMessage());
+		}
+		return false;
+	}
 }
+
+
+// a self-combining map of regexes that recompiles if modified
+
+class PatternMap<T> extends modAwareHashMap<String,T> {
+	Matcher combo;
+	List<String> groupmap = new ArrayList<String>();
+
+	public T add(String key, Object value) {
+		return put(key, (T)value);
+	}
+
+	// returns the first matching regex
+	String match(String str) {
+		if (! isEmpty()) {
+			if (modified) {
+				compile();
+			}
+			if (combo.reset(str).find()) {
+				for (int i=0; i < combo.groupCount(); i++) {
+					if (combo.group(i+1) != null) {
+						return groupmap.get(i);
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	void compile() {
+		String joined = "";
+		groupmap.clear();
+		for (String regex : this.keySet()) {
+			// add each regex as a capture group
+			joined += "|(" + regex + ")";
+			// map all subgroups to the parent
+			for (int i=0; i<Pattern.compile(regex).matcher("").groupCount()+1; i++) {
+				groupmap.add(regex);
+			}
+		}
+		// compile the combined regex
+		combo = Pattern.compile(joined.substring(1)).matcher("");
+		modified = false;
+	}
+}
+
+// A HashMap that reports whether it's been modified
+// (necessary because 'modCount' isn't accessible outside java.util)
+
+class modAwareHashMap<K,V> extends HashMap<K,V> {
+	public boolean modified = false;
+	@Override
+	public void clear() {
+		modified = true;
+		super.clear();
+	}
+	@Override
+	public V put(K key, V value) {
+		modified = true;
+		return super.put(key, value);
+	}
+	@Override
+	public V remove(Object key) {
+		modified = true;
+		return super.remove(key);
+	}
+}
+
