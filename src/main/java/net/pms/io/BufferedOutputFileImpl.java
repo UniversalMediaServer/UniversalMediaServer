@@ -29,7 +29,6 @@ import java.util.TimerTask;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -211,7 +210,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			System.exit(1);
 		}
 
-		inputStreams = new ArrayList<WaitBufferedInputStream>();
+		inputStreams = new ArrayList<>();
 		timer = new Timer();
 
 		if (params.maxBufferSize > 15 && !params.hidebuffer) {

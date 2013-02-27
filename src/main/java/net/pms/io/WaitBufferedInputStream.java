@@ -39,6 +39,7 @@ class WaitBufferedInputStream extends InputStream {
 		firstRead = true;
 	}
 
+	@Override
 	public int read() throws IOException {
 		int r = outputStream.read(firstRead, getReadCount());
 		if (r != -1) {
@@ -63,10 +64,12 @@ class WaitBufferedInputStream extends InputStream {
 		return read(b, 0, b.length);
 	}
 
+	@Override
 	public int available() throws IOException {
 		return (int) outputStream.getWriteCount();
 	}
 
+	@Override
 	public void close() throws IOException {
 		outputStream.removeInputStream(this);
 		outputStream.detachInputStream();
