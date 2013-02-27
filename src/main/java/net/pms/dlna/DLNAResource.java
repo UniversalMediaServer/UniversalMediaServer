@@ -64,7 +64,7 @@ import org.slf4j.LoggerFactory;
  * removed.
  */
 public abstract class DLNAResource extends HTTPResource implements Cloneable, Runnable {
-	private final Map<String, Integer> requestIdToRefcount = new HashMap<String, Integer>();
+	private final Map<String, Integer> requestIdToRefcount = new HashMap<>();
 	private static final int STOP_PLAYING_DELAY = 4000;
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAResource.class);
 	private static final SimpleDateFormat SDF_DATE = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
@@ -704,7 +704,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	public synchronized List<DLNAResource> getDLNAResources(String objectId, boolean returnChildren, int start, int count, RendererConfiguration renderer, String searchStr) throws IOException {
-		ArrayList<DLNAResource> resources = new ArrayList<DLNAResource>();
+		ArrayList<DLNAResource> resources = new ArrayList<>();
 		DLNAResource resource = search(objectId, count, renderer, searchStr);
 
 		if (resource != null) {
@@ -721,7 +721,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 
 				if (count > 0) {
-					ArrayBlockingQueue<Runnable> queue = new ArrayBlockingQueue<Runnable>(count);
+					ArrayBlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(count);
 
 					int parallel_thread_number = 3;
 					if (resource instanceof DVDISOFile) {
@@ -1503,9 +1503,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				uclass = "object.item.videoItem";
 			}
 		}
-		if (uclass != null) {
-			addXMLTagAndAttribute(sb, "upnp:class", uclass);
-		}
+		addXMLTagAndAttribute(sb, "upnp:class", uclass);
 
 		if (isFolder()) {
 			closeTag(sb, "container");
@@ -1691,13 +1689,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				PipedOutputStream out = new PipedOutputStream();
 				InputStream fis = new PipedInputStream(out);
 				((IPushOutput) this).push(out);
-				if (fis != null) {
-					if (low > 0) {
-						fis.skip(low);
-					}
-					// http://www.ps3mediaserver.org/forum/viewtopic.php?f=11&t=12035
-					fis = wrap(fis, high, low);
+
+				if (low > 0) {
+					fis.skip(low);
 				}
+				// http://www.ps3mediaserver.org/forum/viewtopic.php?f=11&t=12035
+				fis = wrap(fis, high, low);
 
 				return fis;
 			}
