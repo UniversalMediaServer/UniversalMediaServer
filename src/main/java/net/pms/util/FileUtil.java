@@ -41,6 +41,26 @@ public class FileUtil {
 		return f.substring(0, point);
 	}
 
+	public static String getFileNameWithRewriting(String f) {
+		String formattedName;
+		int point = f.lastIndexOf(".");
+
+		if (point == -1) {
+			point = f.length();
+		}
+
+		// Remove file extension
+		formattedName = f.substring(0, point);
+
+		if (formattedName.contains("\\.S[0-9][0-9]E[0-9][0-9]\\.")) {
+			formattedName.replace("\\.S[0-9][1-9]E[1-9][1-9]\\.", " - $2$3$4 - ");
+		} else if (formattedName.contains("\\.S[1-9][0-9]E[0-9][0-9]\\.")) {
+			formattedName.replace("\\.S[1-9][1-9]E[1-9][1-9]\\.", " - $1$2$3$4 - ");
+		}
+
+		return formattedName;
+	}
+
 	public static File getFileNameWithNewExtension(File parent, File file, String ext) {
 		File ff = isFileExists(new File(parent, file.getName()), ext);
 

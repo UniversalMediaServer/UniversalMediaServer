@@ -972,7 +972,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		String subtitleLanguage;
 		boolean isNamedNoEncoding = false;
 		if (this instanceof RealFile && configuration.isHideExtensions() && !isFolder()) {
-			name = FileUtil.getFileNameWithoutExtension(name);
+			name = FileUtil.getFileNameWithRewriting(name);
 		}
 
 		if (getPlayer() != null) {
