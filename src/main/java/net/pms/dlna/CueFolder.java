@@ -64,7 +64,7 @@ public class CueFolder extends DLNAResource {
 	@Override
 	public void resolve() {
 		if (playlistfile.length() < 10000000) {
-			CueSheet sheet = null;
+			CueSheet sheet;
 			try {
 				sheet = CueParser.parse(playlistfile);
 			} catch (IOException e) {
@@ -80,7 +80,7 @@ public class CueFolder extends DLNAResource {
 					List<TrackData> tracks = f.getTrackData();
 					Player defaultPlayer = null;
 					DLNAMediaInfo originalMedia = null;
-					ArrayList<DLNAResource> addedResources = new ArrayList<DLNAResource>();
+					ArrayList<DLNAResource> addedResources = new ArrayList<>();
 					for (int i = 0; i < tracks.size(); i++) {
 						TrackData track = tracks.get(i);
 						if (i > 0) {
