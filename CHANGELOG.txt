@@ -2,16 +2,17 @@
 
 	General:
 		Updated layout on the Transcoding Settings tab
-		Improved aspect ratio handling on Panasonic TVs
+		Improved aspect ratio handling on Panasonic and Sony TVs
 		Enabled ASS/SSA subtitle support on Linux by default
 		Added language flags for Arabic, Croatian, Estonian, Latvian, Serbian and Vietnamese
 		Now compiled with Java 7
-		Improved handling of aspect ratios on Sony Bravia TVs
 		The installer only tells Windows to run UMS at startup on new installs or if the user has specified it in UMS
 		The first of many code optimizations for Java 7
+		Added RTMP support to FFmpeg Web Video engine
 	Renderers:
 		Added support for Netgear NeoTV
 		Added support for Telstra T-Box
+		Added support for Yamaha RX-3900
 		Improved support for Sony Blu-ray players
 	Languages:
 		Made languages more consistent with eachother
