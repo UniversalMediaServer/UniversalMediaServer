@@ -70,6 +70,10 @@ public class RendererConfigurationTest {
 		testCases.put("User-Agent: MPlayer 1.0rc4-4.2.1", "iPad / iPhone");
 		testCases.put("User-Agent: NSPlayer/4.1.0.3856", "iPad / iPhone");
 
+		// Netgear NeoTV:
+		// Need coordination with Vizio here
+		//testCases.put("User-Agent: IPI/1.0 UPnP/1.0 DLNADOC/1.50, friendlyName.dlna.org: BD-Player", "Netgear NeoTV");
+
 		// Philips:
 		testCases.put("User-Agent: Allegro-Software-WebClient/4.61 DLNADOC/1.00", "Philips Aurea");
 
@@ -105,6 +109,10 @@ public class RendererConfigurationTest {
 
 		// Showtime 4:
 		testCases.put("User-Agent: Showtime PS3 4.2", "Showtime 4");
+
+		// Telstra T-Box:
+		// Note: This isn't the full user-agent, just a snippet to find it
+		testCases.put("User-Agent: telstra", "Telstra T-Box");
 
 		// VideoWebTV:
 		testCases.put("friendlyName.dlna.org: VideoWeb", "VideoWeb TV");

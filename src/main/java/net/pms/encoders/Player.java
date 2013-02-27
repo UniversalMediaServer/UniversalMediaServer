@@ -240,7 +240,7 @@ public abstract class Player {
 			return;
 		}
 
-		StringTokenizer st1 = new StringTokenizer(configuration.getMencoderAudioSubLanguages(), ";");
+		StringTokenizer st1 = new StringTokenizer(configuration.getAudioSubLanguages(), ";");
 
 		boolean matchedEmbeddedSubtitle = false;
 		while (st1.hasMoreTokens()) {
