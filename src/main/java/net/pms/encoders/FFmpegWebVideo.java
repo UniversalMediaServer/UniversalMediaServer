@@ -103,7 +103,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		}
 
 		// build the command line
-		List<String> cmdList = new ArrayList<String>();
+		List<String> cmdList = new ArrayList<>();
 
 		cmdList.add(executable());
 

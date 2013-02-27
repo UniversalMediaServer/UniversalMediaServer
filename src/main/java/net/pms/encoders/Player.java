@@ -67,7 +67,7 @@ public abstract class Player {
 	public abstract String mimeType();
 	public abstract String executable();
 	private static List<FinalizeTranscoderArgsListener> finalizeTranscoderArgsListeners =
-		new ArrayList<FinalizeTranscoderArgsListener>();
+		new ArrayList<>();
 
 	public static void initializeFinalizeTranscoderArgsListeners() {
 		for (ExternalListener listener : ExternalFactory.getExternalListeners()) {
@@ -154,7 +154,7 @@ public abstract class Player {
 			return cmdArgs;
 		} else {
 			// make it mutable
-			List<String> cmdList = new ArrayList<String>(Arrays.asList(cmdArgs));
+			List<String> cmdList = new ArrayList<>(Arrays.asList(cmdArgs));
 
 			for (FinalizeTranscoderArgsListener listener : finalizeTranscoderArgsListeners) {
 				try {
@@ -311,7 +311,7 @@ public abstract class Player {
 					if (matchedSub != null && matchedSub.getLang() != null && matchedSub.getLang().equals("off")) {
 						StringTokenizer st = new StringTokenizer(configuration.getForcedSubtitleTags(), ",");
 
-						while (st != null && sub.getFlavor() != null && st.hasMoreTokens()) {
+						while (sub.getFlavor() != null && st.hasMoreTokens()) {
 							String forcedTags = st.nextToken();
 							forcedTags = forcedTags.trim();
 
