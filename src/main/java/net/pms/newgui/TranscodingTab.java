@@ -99,7 +99,7 @@ public class TranscodingTab {
 	private static final int MAX_CORES = 16;
 
 	private void updateEngineModel() {
-		ArrayList<String> engines = new ArrayList<String>();
+		ArrayList<String> engines = new ArrayList<>();
 		Object root = tree.getModel().getRoot();
 		for (int i = 0; i < tree.getModel().getChildCount(root); i++) {
 			Object firstChild = tree.getModel().getChild(root, i);
@@ -290,8 +290,8 @@ public class TranscodingTab {
 	}
 
 	public void addEngines() {
-		ArrayList<Player> disPlayers = new ArrayList<Player>();
-		ArrayList<Player> ordPlayers = new ArrayList<Player>();
+		ArrayList<Player> disPlayers = new ArrayList<>();
+		ArrayList<Player> ordPlayers = new ArrayList<>();
 		PMS r = PMS.get();
 
 		for (String id : configuration.getEnginesAsList(r.getRegistry())) {
@@ -712,7 +712,7 @@ public class TranscodingTab {
 		folderSelectButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JFileChooser chooser = null;
+				JFileChooser chooser;
 				try {
 					chooser = new JFileChooser();
 				} catch (Exception ee) {
