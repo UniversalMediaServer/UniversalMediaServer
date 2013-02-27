@@ -33,6 +33,7 @@ public class ProxyServer extends Thread {
 		start();
 	}
 
+	@Override
 	public void run() {
 		ServerSocket s;
 		try {
