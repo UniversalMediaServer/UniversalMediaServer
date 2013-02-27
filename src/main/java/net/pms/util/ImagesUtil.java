@@ -14,7 +14,7 @@ public class ImagesUtil {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
 			auto(input, baos, exifOrientation);
-		} catch (Exception e) {
+		} catch (IOException | LLJTranException e) {
 			LOGGER.error("Error in auto rotate", e);
 			return null;
 		}
@@ -23,7 +23,7 @@ public class ImagesUtil {
 
 	public static void auto(InputStream input, OutputStream output, int exifOrientation) throws IOException, LLJTranException {
 		// convert sanselan exif orientation -> llj operation
-		int op = 0;
+		int op;
 		switch (exifOrientation) {
 			case 1:
 				op = 0;
@@ -69,12 +69,9 @@ public class ImagesUtil {
 		// for testing LLJTran.XFORM_TRIM and LLJTran.XFORM_ADJUST_EDGES
 		int options = LLJTran.OPT_DEFAULTS | LLJTran.OPT_XFORM_ORIENTATION;
 		llj.transform(op, options);
-
-		// 4. Save the Image which is already transformed as specified by the
-		//    input transformation in Step 2, along with the Exif header.
-		OutputStream out = new BufferedOutputStream(output);
-		llj.save(out, LLJTran.OPT_WRITE_ALL);
-		out.close();
+		try (OutputStream out = new BufferedOutputStream(output)) {
+			llj.save(out, LLJTran.OPT_WRITE_ALL);
+		}
 
 		// Cleanup
 		input.close();

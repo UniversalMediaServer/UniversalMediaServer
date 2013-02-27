@@ -37,6 +37,7 @@ public final class Version implements Comparable<Version> {
 	 * @return less than zero if this version is lower, 0 if they're
 	 * equal, or greater than zero if this version is higher
 	 */
+	@Override
 	public int compareTo(Version other) {
 		final int[] longerElements, shorterElements;
 		final int sign;

@@ -41,7 +41,7 @@ public class ProcessUtil {
 				Field f = p.getClass().getDeclaredField("pid");
 				f.setAccessible(true);
 				pid = f.getInt(p);
-			} catch (Throwable e) {
+			} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
 				LOGGER.debug("Can't determine the Unix process ID: " + e.getMessage());
 			}
 		}
@@ -108,6 +108,7 @@ public class ProcessUtil {
 			if (pid != null) { // Unix only
 				LOGGER.trace("Killing the Unix process: " + pid);
 				Runnable r = new Runnable() {
+					@Override
 					public void run() {
 						try {
 							Thread.sleep(TERM_TIMEOUT);
