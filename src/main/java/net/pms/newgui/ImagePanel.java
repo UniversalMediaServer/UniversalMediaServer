@@ -97,6 +97,7 @@ class ImagePanel extends JPanel {
 		return source;
 	}
 
+	@Override
 	public synchronized void paintComponent(Graphics g) {
 		Graphics2D graphics2d = (Graphics2D) g;
 		if (source == null) {
