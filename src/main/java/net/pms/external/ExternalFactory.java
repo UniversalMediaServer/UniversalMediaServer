@@ -60,17 +60,17 @@ public class ExternalFactory {
 	/**
 	 * List of external listener class instances.
 	 */
-	private static List<ExternalListener> externalListeners = new ArrayList<ExternalListener>();
+	private static List<ExternalListener> externalListeners = new ArrayList<>();
 
 	/**
 	 * List of external listener classes.
 	 */
-	private static List<Class<?>> externalListenerClasses = new ArrayList<Class<?>>();
+	private static List<Class<?>> externalListenerClasses = new ArrayList<>();
 
 	/**
 	 * List of external listener classes (not yet started).
 	 */
-	private static List<Class<?>> downloadedListenerClasses = new ArrayList<Class<?>>();
+	private static List<Class<?>> downloadedListenerClasses = new ArrayList<>();
 	
 	private static boolean allDone = false;
 
@@ -120,13 +120,11 @@ public class ExternalFactory {
 
 			if(resources.hasMoreElements()) {
 				URL url = resources.nextElement();
-
-				// Determine the plugin main class name from the contents of
-				// the plugin file.
-				InputStreamReader in = new InputStreamReader(url.openStream());
-				char[] name = new char[512];
-				in.read(name);
-				in.close();
+				char[] name;
+				try (InputStreamReader in = new InputStreamReader(url.openStream())) {
+					name = new char[512];
+					in.read(name);
+				}
 				return new String(name).trim();
 			}
 		} catch (IOException e) {
@@ -142,7 +140,7 @@ public class ExternalFactory {
 
 	public static void loadJARs(URL[] jarURLs, boolean download) {
 		// find lib jars first
-		ArrayList<URL> libs = new ArrayList<URL>();
+		ArrayList<URL> libs = new ArrayList<>();
 
 		for (int i = 0; i < jarURLs.length; i++) {
 			if (isLib(jarURLs[i])) {
@@ -183,12 +181,11 @@ public class ExternalFactory {
 			URL url = resources.nextElement();
 
 			try {
-				// Determine the plugin main class name from the contents of
-				// the plugin file.
-				InputStreamReader in = new InputStreamReader(url.openStream());
-				char[] name = new char[512];
-				in.read(name);
-				in.close();
+				char[] name;
+				try (InputStreamReader in = new InputStreamReader(url.openStream())) {
+					name = new char[512];
+					in.read(name);
+				}
 				String pluginMainClassName = new String(name).trim();
 
 				LOGGER.info("Found plugin: " + pluginMainClassName);
@@ -205,9 +202,7 @@ public class ExternalFactory {
 				if (download) {
 					downloadedListenerClasses.add(clazz);
 				}
-			} catch (Exception e) {
-				LOGGER.error("Error loading plugin", e);
-			} catch (NoClassDefFoundError e) {
+			} catch (Exception | NoClassDefFoundError e) {
 				LOGGER.error("Error loading plugin", e);
 			}
 		}
@@ -291,10 +286,10 @@ public class ExternalFactory {
 
 	private static void addToPurgeFile(File f) {
 		try {
-			FileWriter out = new FileWriter("purge", true); 
-			out.write(f.getAbsolutePath() + "\r\n");
-			out.flush();
-			out.close();
+			try (FileWriter out = new FileWriter("purge", true)) {
+				out.write(f.getAbsolutePath() + "\r\n");
+				out.flush();
+			}
 		} catch (Exception e) {
 			LOGGER.debug("purge file error " + e);
 		}
@@ -310,22 +305,21 @@ public class ExternalFactory {
 		}
 
 		try {
-			FileInputStream fis = new FileInputStream(purge);
-			BufferedReader in = new BufferedReader(new InputStreamReader(fis)); 
-			String line;
+			try (FileInputStream fis = new FileInputStream(purge)) {
+				BufferedReader in = new BufferedReader(new InputStreamReader(fis)); 
+				String line;
 
-			while ((line = in.readLine()) != null) {
-				File f = new File(line);
+				while ((line = in.readLine()) != null) {
+					File f = new File(line);
 
-				if (action.equalsIgnoreCase("delete")) {
-					f.delete();
-				} else if(action.equalsIgnoreCase("backup")) {
-					FileUtils.moveFileToDirectory(f, new File("backup"), true);
-					f.delete();
+					if (action.equalsIgnoreCase("delete")) {
+						f.delete();
+					} else if(action.equalsIgnoreCase("backup")) {
+						FileUtils.moveFileToDirectory(f, new File("backup"), true);
+						f.delete();
+					}
 				}
 			}
-
-			fis.close();
 		} catch (Exception e) { }
 		purge.delete();
 	}
@@ -376,7 +370,7 @@ public class ExternalFactory {
 		}
 
 		// To load a .jar file the filename needs to converted to a file URL
-		List<URL> jarURLList = new ArrayList<URL>();
+		List<URL> jarURLList = new ArrayList<>();
 
 		for (int i = 0; i < nJars; ++i) {
 			try {
@@ -415,9 +409,7 @@ public class ExternalFactory {
 					// Create a new instance of the plugin class and store it
 					ExternalListener instance = (ExternalListener) clazz.newInstance();
 					registerListener(instance);
-				} catch (InstantiationException e) {
-					LOGGER.error("Error instantiating plugin", e);
-				} catch (IllegalAccessException e) {
+				} catch (InstantiationException | IllegalAccessException e) {
 					LOGGER.error("Error instantiating plugin", e);
 				}
 			}
@@ -437,9 +429,7 @@ public class ExternalFactory {
 					// Create a new instance of the plugin class and store it
 					ExternalListener instance = (ExternalListener) clazz.newInstance();
 					registerListener(instance);
-				} catch (InstantiationException e) {
-					LOGGER.error("Error instantiating plugin", e);
-				} catch (IllegalAccessException e) {
+				} catch (InstantiationException | IllegalAccessException e) {
 					LOGGER.error("Error instantiating plugin", e);
 				}
 			}
@@ -459,11 +449,7 @@ public class ExternalFactory {
 		}
 
 		// Ignore all errors
-		catch (SecurityException e) {
-		} catch (NoSuchMethodException e) { 
-		} catch (IllegalArgumentException e) {
-		} catch (IllegalAccessException e) {
-		} catch (InvocationTargetException e) {
+		catch (SecurityException | NoSuchMethodException | IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
 		}
 	}
 
@@ -495,9 +481,7 @@ public class ExternalFactory {
 						LOGGER.warn("Plugin limit of 30 has been reached");
 					}
 				}
-			} catch (InstantiationException e) {
-				LOGGER.error("Error instantiating plugin", e);
-			} catch (IllegalAccessException e) {
+			} catch (InstantiationException | IllegalAccessException e) {
 				LOGGER.error("Error instantiating plugin", e);
 			}
 		}
