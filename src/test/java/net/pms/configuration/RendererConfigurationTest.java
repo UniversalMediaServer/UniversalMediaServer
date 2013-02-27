@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
  * Test the RendererConfiguration class
  */
 public class RendererConfigurationTest {
-	private final Map<String, String> testCases = new HashMap<String, String>();
+	private final Map<String, String> testCases = new HashMap<>();
 
 	@Before
 	public void setUp() {
@@ -136,9 +136,7 @@ public class RendererConfigurationTest {
 
 		try {
 			pmsConf = new PmsConfiguration(false);
-		} catch (IOException e) {
-			// This should be impossible since no configuration file will be loaded.
-		} catch (ConfigurationException e) {
+		} catch (IOException | ConfigurationException e) {
 			// This should be impossible since no configuration file will be loaded.
 		}
 
@@ -164,9 +162,7 @@ public class RendererConfigurationTest {
 
 		try {
 			pmsConf = new PmsConfiguration(false);
-		} catch (IOException e) {
-			// This should be impossible since no configuration file will be loaded.
-		} catch (ConfigurationException e) {
+		} catch (IOException | ConfigurationException e) {
 			// This should be impossible since no configuration file will be loaded.
 		}
 
@@ -192,9 +188,7 @@ public class RendererConfigurationTest {
 
 		try {
 			pmsConf = new PmsConfiguration(false);
-		} catch (IOException e) {
-			// This should be impossible since no configuration file will be loaded.
-		} catch (ConfigurationException e) {
+		} catch (IOException | ConfigurationException e) {
 			// This should be impossible since no configuration file will be loaded.
 		}
 
@@ -228,32 +222,32 @@ public class RendererConfigurationTest {
 				// Match by User-Agent
 					RendererConfiguration rc = getRendererConfigurationByUA(headerLine);
 					assertNotNull("Recognized renderer for header \"" + headerLine + "\"", rc);
-					assertEquals("Expected renderer \"" + correctRendererName + "\", "
-							+ "instead renderer \"" + rc.getRendererName() + "\" was returned for header \""
-							+ headerLine + "\"", correctRendererName, rc.getRendererName());
+					assertEquals("Expected renderer \"" + correctRendererName + "\", " +
+							"instead renderer \"" + rc.getRendererName() + "\" was returned for header \"" +
+							headerLine + "\"", correctRendererName, rc.getRendererName());
 			} else {
 				// Match by additional header
 					RendererConfiguration rc = getRendererConfigurationByUAAHH(headerLine);
 					assertNotNull("Recognized renderer for header \"" + headerLine + "\"", rc);
-					assertEquals("Expected renderer \"" + correctRendererName + "\" to be recognized, "
-							+ "instead renderer \"" + rc.getRendererName() + "\" was returned for header \""
-							+ headerLine + "\"", correctRendererName, rc.getRendererName());
+					assertEquals("Expected renderer \"" + correctRendererName + "\" to be recognized, " +
+							"instead renderer \"" + rc.getRendererName() + "\" was returned for header \"" +
+							headerLine + "\"", correctRendererName, rc.getRendererName());
 			}
 		} else {
 			// Header is supposed to match no renderer at all
 			if (headerLine != null && headerLine.toLowerCase().startsWith("user-agent")) {
 				// Match by User-Agent
 					RendererConfiguration rc = getRendererConfigurationByUA(headerLine);
-					assertEquals("Expected no matching renderer to be found for header \"" + headerLine
-							+ "\", instead renderer \"" + (rc != null ? rc.getRendererName() : "")
-							+ "\" was recognized.", null,
+					assertEquals("Expected no matching renderer to be found for header \"" + headerLine +
+							"\", instead renderer \"" + (rc != null ? rc.getRendererName() : "") +
+							"\" was recognized.", null,
 							rc);
 			} else {
 				// Match by additional header
 					RendererConfiguration rc = getRendererConfigurationByUAAHH(headerLine);
-					assertEquals("Expected no matching renderer to be found for header \"" + headerLine
-							+ "\", instead renderer \"" + (rc != null ? rc.getRendererName() : "")
-							+ "\" was recognized.", null, rc);
+					assertEquals("Expected no matching renderer to be found for header \"" + headerLine +
+							"\", instead renderer \"" + (rc != null ? rc.getRendererName() : "") +
+							"\" was recognized.", null, rc);
 			}
 		}
 	}
