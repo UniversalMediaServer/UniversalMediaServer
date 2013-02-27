@@ -894,7 +894,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			vfSub.addChild(new VirtualVideoAction(Messages.getString("PMS.10"), configuration.isDisableSubtitles()) {
+			vfSub.addChild(new VirtualVideoAction(Messages.getString("TrTab2.51"), configuration.isDisableSubtitles()) {
 				@Override
 				public boolean enable() {
 					boolean oldValue = configuration.isDisableSubtitles();

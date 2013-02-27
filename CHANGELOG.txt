@@ -5,6 +5,17 @@
 		Improved aspect ratio handling on Panasonic TVs
 		Enabled ASS/SSA subtitle support on Linux by default
 		Added language flags for Arabic, Croatian, Estonian, Latvian, Serbian and Vietnamese
+		Now compiled with Java 7
+		Improved handling of aspect ratios on Sony Bravia TVs
+		The installer only tells Windows to run UMS at startup on new installs or if the user has specified it in UMS
+	Languages:
+		Made languages more consistent with eachother
+		Updated Russian translation (thanks, Tianuchka!)
+		Changed default audio/subtitles language priority for English users, which:
+			Disables subtitles when audio is English, otherwise look for English subtitles, prioritizing external before internal subtitles
+	External Components:
+		Updated Java Runtime Environment automatic downloader for Windows to 7u15, which:
+			Fixes serious security holes
 
 2.4.2 - 2013-02-17
 
