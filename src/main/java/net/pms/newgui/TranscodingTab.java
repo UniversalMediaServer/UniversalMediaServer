@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
 public class TranscodingTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TranscodingTab.class);
 	private static final String COMMON_COL_SPEC = "left:pref, 3dlu, pref:grow";
-	private static final String COMMON_ROW_SPEC = "4*(pref, 3dlu), pref, 9dlu, pref, 284dlu, pref";
+	private static final String COMMON_ROW_SPEC = "4*(pref, 3dlu), pref, 9dlu, pref, 9dlu:grow, pref";
 	private static final String EMPTY_COL_SPEC = "left:pref, 3dlu, pref:grow";
 	private static final String EMPTY_ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p , 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 20dlu, p, 3dlu, p, 3dlu, p";
 	private static final String LEFT_COL_SPEC = "left:pref, pref, pref, pref, 0:grow";
