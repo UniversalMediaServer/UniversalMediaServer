@@ -87,7 +87,7 @@ public class WEB extends Format {
 	@Override
 	// TODO remove screen - it's been tried numerous times (see forum) and it doesn't work
 	public String[] getId() {
-		return new String[] { "http", "mms", "mmsh", "mmst", "rtsp", "rtp", "udp", "screen" };
+		return new String[] { "http", "mms", "mmsh", "mmst", "rtsp", "rtp", "udp", "screen","rtmp"};
 	}
 
 	@Override
