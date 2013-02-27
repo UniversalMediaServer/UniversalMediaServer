@@ -176,7 +176,7 @@ public final class Plist {
 	Plist() {
 		m_dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 		m_dateFormat.setTimeZone(TimeZone.getTimeZone("Z"));
-		m_simpleTypes = new HashMap<Class<?>, ElementType>();
+		m_simpleTypes = new HashMap<>();
 		m_simpleTypes.put(Integer.class, ElementType.INTEGER);
 		m_simpleTypes.put(Byte.class, ElementType.INTEGER);
 		m_simpleTypes.put(Short.class, ElementType.INTEGER);
@@ -367,7 +367,7 @@ public final class Plist {
 	 */
 	private Map<String, Object> parseDict(List<XmlElement> elements) throws Exception {
 		Iterator<XmlElement> element = elements.iterator();
-		HashMap<String, Object> dict = new HashMap<String, Object>();
+		HashMap<String, Object> dict = new HashMap<>();
 		while (element.hasNext()) {
 			XmlElement key = element.next();
 			if (!"key".equals(key.getName())) {
@@ -387,7 +387,7 @@ public final class Plist {
 	 * @throws Exception if there are any problems deserializing the list.
 	 */
 	private List<Object> parseArray(List<XmlElement> elements) throws Exception {
-		ArrayList<Object> list = new ArrayList<Object>(elements.size());
+		ArrayList<Object> list = new ArrayList<>(elements.size());
 		for (XmlElement element : elements) {
 			list.add(parseElementRaw(element));
 		}
