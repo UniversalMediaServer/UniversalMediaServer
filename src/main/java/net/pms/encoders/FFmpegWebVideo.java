@@ -55,6 +55,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			return put(key, (ArrayList)parseOptions((String)value));
 		}
 	};
+	public static PatternMap<String> replacements = new PatternMap<String>();
 	private static boolean init = readWebFilters("ffmpeg.webfilters");
 
 	// FIXME we have an id() accessor for this; no need for the field to be public
@@ -118,6 +119,13 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		// XXX work around an ffmpeg bug: http://ffmpeg.org/trac/ffmpeg/ticket/998
 		if (fileName.startsWith("mms:")) {
 			fileName = "mmsh:" + fileName.substring(4);
+		}
+
+		// check if we have modifier for this url
+		String r = replacements.match(fileName);
+		if (r != null) {
+			fileName = fileName.replaceAll(r, replacements.get(r));
+			LOGGER.debug("modified url: " + fileName);
 		}
 
 		String protocol = fileName.split(":")[0];
@@ -300,6 +308,8 @@ public class FFmpegWebVideo extends FFMpegVideo {
 						filter = excludes;
 					} else if (line.equals("OPTIONS")) {
 						filter = autoOptions;
+					} else if (line.equals("REPLACE")) {
+						filter = replacements;
 					} else if (filter != null) {
 						String[] var = line.split(" \\| ", 2);
 						filter.add(var[0], var.length > 1 ? var[1] : null);
