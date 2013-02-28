@@ -55,7 +55,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		}
 	};
 	public static PatternMap<String> replacements = new PatternMap<>();
-	private static boolean init = readWebFilters("ffmpeg.webfilters");
+	private boolean init = readWebFilters("ffmpeg.webfilters");
 
 	// FIXME we have an id() accessor for this; no need for the field to be public
 	@Deprecated
@@ -127,8 +127,6 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			fileName = fileName.replaceAll(r, replacements.get(r));
 			LOGGER.debug("modified url: " + fileName);
 		}
-
-		String protocol = fileName.split(":")[0];
 
 		FFmpegOptions customOptions = new FFmpegOptions();
 
@@ -294,10 +292,17 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		return false;
 	}
 
-	public static boolean readWebFilters(String filename) {
+	public boolean readWebFilters(String filename) {
 		PatternMap filter = null;
 		String line;
 		try {
+			filename = new File(configuration.getProfileDirectory() + File.separator + filename).getAbsolutePath();
+			File file = new File(filename);
+			if (file.exists()) {
+				LOGGER.debug("Web filters file was found");
+			} else {
+				LOGGER.debug("Web filters file was not found");
+			}
 			LineIterator it = FileUtils.lineIterator(new File(filename));
 			try {
 				while (it.hasNext()) {
