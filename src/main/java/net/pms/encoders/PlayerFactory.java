@@ -162,7 +162,7 @@ public final class PlayerFactory {
 			LOGGER.info("Transcoding engine " + player + " already exists, skipping...");
 			return;
 		}
-		
+
 		boolean ok = false;
 		allPlayers.add(player);
 

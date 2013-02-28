@@ -1,18 +1,13 @@
 package net.pms.encoders;
 
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
+import java.util.List;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.formats.FormatFactory;
-import net.pms.formats.WEB;
 import net.pms.util.ProcessUtil;
 
 public class FFmpegOptions extends optionsHashMap {
-
 	// ffmpeg [global_options] {[input_file_options] -i ‘input_file’} ... {[output_file_options] ‘output_file’} ...
 
 	// options that go in the 'global_options' slot
@@ -28,7 +23,6 @@ public class FFmpegOptions extends optionsHashMap {
 		"-debug_ts", "-intra", "-vdt", "-sameq", "-same_quant", "-deinterlace", "-psnr",
 		"-vstats", "-vstats_file", "-dc", "-qphist", "-vc", "-tvstd", "-isync"
 	);
-
 	// options that go in the 'input_file_options' slot
 	public static final List<String> input_file_options = Arrays.asList(
 		// http options
@@ -58,7 +52,6 @@ public class FFmpegOptions extends optionsHashMap {
 	// we consider everything else to be destined for the 'output_file_options'
 	// slot, though in reality many of the remaining options can be used
 	// with input files too.
-
 	public void transferGlobals(List<String> list) {
 		transferAny(globals, list);
 	}
@@ -69,7 +62,7 @@ public class FFmpegOptions extends optionsHashMap {
 		if (containsKey("-headers")) {
 			String headers = get("-headers");
 			// if it already has CRLF we assume it's ok
-			if (! headers.contains("\r\n")) {
+			if (!headers.contains("\r\n")) {
 				// otherwise we try to fix it
 				headers = headers.replace("User-Agent: ", "\r\nUser-Agent: ")
 					.replace("Cookie: ", "\r\nCookie: ")
@@ -109,9 +102,7 @@ public class FFmpegOptions extends optionsHashMap {
 
 // A HashMap of options and args (if any)
 // which preserves insertion order
-
-class optionsHashMap extends LinkedHashMap<String,String> {
-
+class optionsHashMap extends LinkedHashMap<String, String> {
 	public void addAll(List<String> args) {
 		String opt = null, optarg = null;
 		args.add("-NULL");
@@ -156,5 +147,3 @@ class optionsHashMap extends LinkedHashMap<String,String> {
 		}
 	}
 }
-
-

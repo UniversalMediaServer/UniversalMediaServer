@@ -21,26 +21,25 @@ package net.pms.encoders;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.HashMap;
-import java.util.regex.Pattern;
+import java.util.List;
 import java.util.regex.Matcher;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.LineIterator;
-import org.apache.commons.lang.StringUtils;
+import java.util.regex.Pattern;
 import javax.swing.JComponent;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
+import net.pms.formats.FormatFactory;
+import net.pms.formats.WEB;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
-import net.pms.formats.FormatFactory;
-import net.pms.formats.WEB;
-import net.pms.util.ProcessUtil;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.LineIterator;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,14 +47,14 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegWebVideo.class);
 	private final PmsConfiguration configuration;
 	private static List<String> protocols;
-	public static PatternMap<Object> excludes = new PatternMap<Object>();
+	public static PatternMap<Object> excludes = new PatternMap<>();
 	public static PatternMap<ArrayList> autoOptions = new PatternMap<ArrayList>() {
 		@Override
 		public ArrayList add(String key, Object value) {
-			return put(key, (ArrayList)parseOptions((String)value));
+			return put(key, (ArrayList) parseOptions((String) value));
 		}
 	};
-	public static PatternMap<String> replacements = new PatternMap<String>();
+	public static PatternMap<String> replacements = new PatternMap<>();
 	private static boolean init = readWebFilters("ffmpeg.webfilters");
 
 	// FIXME we have an id() accessor for this; no need for the field to be public
@@ -98,6 +97,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			public String[] getId() {
 				return ffmpegProtocols;
 			}
+
 			@Override
 			public String toString() {
 				return "FFMPEG.WEB";
@@ -147,7 +147,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			customOptions.addAll(parseOptions(hdr));
 		}
 		// - attached options
-		String attached = (String)dlna.getAttachment(ID);
+		String attached = (String) dlna.getAttachment(ID);
 		if (attached != null) {
 			customOptions.addAll(parseOptions(attached));
 		}
@@ -191,7 +191,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		cmdList.add("" + nThreads);
 
 		// Add global and input-file custom options, if any
-		if (! customOptions.isEmpty()) {
+		if (!customOptions.isEmpty()) {
 			customOptions.transferGlobals(cmdList);
 			customOptions.transferInputFileOptions(cmdList);
 		}
@@ -215,7 +215,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		cmdList.addAll(getAudioBitrateOptions(renderer, media));
 
 		// Add any remaining custom options
-		if (! customOptions.isEmpty()) {
+		if (!customOptions.isEmpty()) {
 			customOptions.transferAll(cmdList);
 		}
 
@@ -223,7 +223,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		cmdList.add(pipe.getInputPipe());
 
 		// Convert the command list to an array
-		String[] cmdArray = new String[ cmdList.size() ];
+		String[] cmdArray = new String[cmdList.size()];
 		cmdList.toArray(cmdArray);
 
 		// Hook to allow plugins to customize this command line
@@ -326,26 +326,25 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	}
 }
 
+// A self-combining map of regexes that recompiles if modified
+class PatternMap<T> extends modAwareHashMap<String, T> {
 
-// a self-combining map of regexes that recompiles if modified
-
-class PatternMap<T> extends modAwareHashMap<String,T> {
 	Matcher combo;
-	List<String> groupmap = new ArrayList<String>();
+	List<String> groupmap = new ArrayList<>();
 
 	public T add(String key, Object value) {
-		return put(key, (T)value);
+		return put(key, (T) value);
 	}
 
-	// returns the first matching regex
+	// Returns the first matching regex
 	String match(String str) {
-		if (! isEmpty()) {
+		if (!isEmpty()) {
 			if (modified) {
 				compile();
 			}
 			if (combo.reset(str).find()) {
-				for (int i=0; i < combo.groupCount(); i++) {
-					if (combo.group(i+1) != null) {
+				for (int i = 0; i < combo.groupCount(); i++) {
+					if (combo.group(i + 1) != null) {
 						return groupmap.get(i);
 					}
 				}
@@ -361,7 +360,7 @@ class PatternMap<T> extends modAwareHashMap<String,T> {
 			// add each regex as a capture group
 			joined += "|(" + regex + ")";
 			// map all subgroups to the parent
-			for (int i=0; i<Pattern.compile(regex).matcher("").groupCount()+1; i++) {
+			for (int i = 0; i < Pattern.compile(regex).matcher("").groupCount() + 1; i++) {
 				groupmap.add(regex);
 			}
 		}
@@ -373,23 +372,25 @@ class PatternMap<T> extends modAwareHashMap<String,T> {
 
 // A HashMap that reports whether it's been modified
 // (necessary because 'modCount' isn't accessible outside java.util)
+class modAwareHashMap<K, V> extends HashMap<K, V> {
 
-class modAwareHashMap<K,V> extends HashMap<K,V> {
 	public boolean modified = false;
+
 	@Override
 	public void clear() {
 		modified = true;
 		super.clear();
 	}
+
 	@Override
 	public V put(K key, V value) {
 		modified = true;
 		return super.put(key, value);
 	}
+
 	@Override
 	public V remove(Object key) {
 		modified = true;
 		return super.remove(key);
 	}
 }
-

@@ -1,11 +1,9 @@
 package net.pms.util;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.lang.Process;
-import java.lang.ProcessBuilder;
 import java.lang.reflect.Field;
 import net.pms.PMS;
 import net.pms.io.Gob;
@@ -149,8 +147,8 @@ public class ProcessUtil {
 	public static String getShortFileNameIfWideChars(String name) {
 		return PMS.get().getRegistry().getShortPathNameW(name);
 	}
-	
-	// run cmd and return combined stdout/stderr
+
+	// Run cmd and return combined stdout/stderr
 	public static String run(String... cmd) {
 		try {
 			ProcessBuilder pb = new ProcessBuilder(cmd);
@@ -164,7 +162,7 @@ public class ProcessUtil {
 				output.append(line).append("\n");
 			}
 			return output.toString();
-		} catch (Exception e) {e.printStackTrace();}
+		} catch (Exception e) {}
 		return "";
 	}
 }

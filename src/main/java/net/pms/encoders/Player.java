@@ -106,6 +106,7 @@ public abstract class Player {
 	 * method and set
 	 * <p>
 	 * <code>return true</code>.
+	 *
 	 * @return false
 	 */
 	public boolean isGPUAccelerationReady() {
@@ -171,7 +172,7 @@ public abstract class Player {
 				}
 			}
 
-			String[] cmdArray = new String[ cmdList.size() ];
+			String[] cmdArray = new String[cmdList.size()];
 			cmdList.toArray(cmdArray);
 			return cmdArray;
 		}
@@ -180,15 +181,15 @@ public abstract class Player {
 	/**
 	 * This method populates the supplied {@link OutputParams} object with the correct audio track (aid)
 	 * and subtitles (sid), based on the given filename, its MediaInfo metadata and PMS configuration settings.
-	 * 
+	 *
 	 * @param fileName
-	 *            The file name used to determine the availability of subtitles.
+	 * The file name used to determine the availability of subtitles.
 	 * @param media
-	 *            The MediaInfo metadata for the file.
+	 * The MediaInfo metadata for the file.
 	 * @param params
-	 *            The parameters to populate.
+	 * The parameters to populate.
 	 * @param configuration
-	 *            The PMS configuration settings.
+	 * The PMS configuration settings.
 	 */
 	// FIXME this code is almost unreadable in its current form and should be broken down into separate methods
 	// that handle just one facet of its functionality. it also needs to be decoupled from MEncoder
@@ -345,8 +346,8 @@ public abstract class Player {
 				}
 			}
 			if (
-				matchedSub != null && 
-				matchedSub.getLang() != null && 
+				matchedSub != null &&
+				matchedSub.getLang() != null &&
 				matchedSub.getLang().equals("off")
 			) {
 				return;
@@ -381,32 +382,31 @@ public abstract class Player {
 	 * Returns whether or not the player can handle a given resource.
 	 * If the resource is <code>null</code> compatibility cannot be
 	 * determined and <code>false</code> will be returned.
-	 * 
+	 *
 	 * @param resource
-	 *            The {@link DLNAResource} to be matched.
+	 * The {@link DLNAResource} to be matched.
 	 * @return True when the resource can be handled, false otherwise.
 	 * @since 1.60.0
 	 */
 	public abstract boolean isCompatible(DLNAResource resource);
-	
+
 	/**
 	 * Returns whether or not another player has the same
 	 * name and id as this one.
-	 * 
+	 *
 	 * @param other
-	 *            The other player.
+	 * The other player.
 	 * @return True if names and ids match, false otherwise.
 	 */
 	@Override
-	public boolean equals(Object other){
+	public boolean equals(Object other) {
 		if (other == null || !(other instanceof Player)) {
 			return false;
 		}
 		if (other == this) {
 			return true;
 		}
-		Player otherPlayer = (Player)other;
+		Player otherPlayer = (Player) other;
 		return (otherPlayer.name().equals(this.name()) && otherPlayer.id().equals(this.id()));
 	}
 }
-
