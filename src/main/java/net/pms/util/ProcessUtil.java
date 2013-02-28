@@ -154,7 +154,6 @@ public class ProcessUtil {
 			ProcessBuilder pb = new ProcessBuilder(cmd);
 			pb.redirectErrorStream(true);
 			Process p = pb.start();
-			InputStream is = p.getInputStream();
 			BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
 			String line;
 			StringBuilder output = new StringBuilder();
