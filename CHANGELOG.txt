@@ -9,6 +9,7 @@
 		The installer only tells Windows to run UMS at startup on new installs or if the user has specified it in UMS
 		The first of many code optimizations for Java 7
 		Added RTMP support to FFmpeg Web Video engine
+		Fixed fontconfig support on OS X
 	Renderers:
 		Added support for Netgear NeoTV
 		Added support for Telstra T-Box
