@@ -839,7 +839,11 @@ public class FFMpegVideo extends Player {
 		return false;
 	}
 
-	protected void parseOptions(String str, List<String> cmdList) {
+	protected static List<String> parseOptions(String str) {
+		return str == null ? null : parseOptions(str, new ArrayList());
+	}
+
+	protected static List<String> parseOptions(String str, List<String> cmdList) {
 		while (str.length() > 0) {
 			if (str.charAt(0) == '\"') {
 				int pos = str.indexOf("\"", 1);
@@ -865,5 +869,6 @@ public class FFMpegVideo extends Player {
 				continue;
 			}
 		}
+		return cmdList;
 	}
 }
