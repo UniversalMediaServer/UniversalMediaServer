@@ -55,7 +55,6 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		}
 	};
 	public static PatternMap<String> replacements = new PatternMap<>();
-	private boolean init = readWebFilters("ffmpeg.webfilters");
 
 	// FIXME we have an id() accessor for this; no need for the field to be public
 	@Deprecated
@@ -84,6 +83,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	public FFmpegWebVideo(PmsConfiguration configuration) {
 		super(configuration);
 		this.configuration = configuration;
+		readWebFilters(configuration.getProfileDirectory() + File.separator + "ffmpeg.webfilters");
 
 		protocols = FFmpegOptions.getSupportedProtocols(configuration);
 		// see XXX workaround below
@@ -296,7 +296,6 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		PatternMap filter = null;
 		String line;
 		try {
-			filename = new File(configuration.getProfileDirectory() + File.separator + filename).getAbsolutePath();
 			File file = new File(filename);
 			LineIterator it = FileUtils.lineIterator(new File(filename));
 			try {
