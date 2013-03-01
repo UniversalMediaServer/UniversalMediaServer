@@ -207,7 +207,7 @@ public class OpenSubtitle {
 		if (token == null) {
 			return res;
 		}
-		String lang = PMS.getConfiguration().getMencoderSubLanguages();
+		String lang = PMS.getConfiguration().getSubtitlesLanguages();
 		URL url = new URL(OPENSUBS_URL);
 		String hashStr = "";
 		String imdbStr = "";
