@@ -41,6 +41,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.RootFolder;
+import net.pms.external.URLResolver.URLResult;
 import net.pms.newgui.LooksFrame;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -507,5 +508,17 @@ public class ExternalFactory {
 
 	public static boolean localPluginsInstalled() {
 		return allDone;
+	}
+	
+	public static URLResult resolveURL(String url) {
+		for (ExternalListener list : getExternalListeners() ) {
+			if(list instanceof URLResolver) {
+				URLResult res = ((URLResolver)list).urlResolve(url);
+				if(res.url != null) {
+					return res;				
+				}
+			}
+		}
+		return null;
 	}
 }

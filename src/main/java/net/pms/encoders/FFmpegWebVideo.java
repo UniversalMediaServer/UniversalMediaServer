@@ -22,10 +22,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JComponent;
+
+import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
+import net.pms.external.ExternalFactory;
+import net.pms.external.ExternalListener;
+import net.pms.external.URLResolver;
+import net.pms.external.URLResolver.URLResult;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeProcess;
@@ -101,7 +107,14 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		if (fileName.startsWith("mms:")) {
 			fileName = "mmsh:" + fileName.substring(4);
 		}
-
+		
+		if (!dlna.isURLResolved()) {
+			URLResult r = ExternalFactory.resolveURL(fileName);
+			if (r != null) {
+				fileName = r.url;
+			}
+		}
+		
 		// build the command line
 		List<String> cmdList = new ArrayList<String>();
 

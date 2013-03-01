@@ -2462,5 +2462,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public byte[] getHeaders() {
 		return null;
 	}
+	
+	public boolean isURLResolved() {
+		return false;
+	}
 }
 
