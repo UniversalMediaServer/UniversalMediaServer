@@ -85,7 +85,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		super(configuration);
 		this.configuration = configuration;
 		
-		if (! init) {
+		if (!init) {
 			readWebFilters(configuration.getProfileDirectory() + File.separator + "ffmpeg.webfilters");
 
 			protocols = FFmpegOptions.getSupportedProtocols(configuration);
