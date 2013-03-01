@@ -186,9 +186,9 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		
 		
 		if (!dlna.isURLResolved()) {
-			URLResult r = ExternalFactory.resolveURL(fileName);
-			if (r != null) {
-				fileName = r.url;
+			URLResult r1 = ExternalFactory.resolveURL(fileName);
+			if (r1 != null) {
+				fileName = r1.url;
 			}
 		}
 		
