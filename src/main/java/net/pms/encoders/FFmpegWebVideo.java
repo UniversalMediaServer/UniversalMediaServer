@@ -55,7 +55,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		}
 	};
 	public static PatternMap<String> replacements = new PatternMap<>();
-	private boolean init = readWebFilters("ffmpeg.webfilters");
+	private static boolean init = false;
 
 	// FIXME we have an id() accessor for this; no need for the field to be public
 	@Deprecated
@@ -84,25 +84,30 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	public FFmpegWebVideo(PmsConfiguration configuration) {
 		super(configuration);
 		this.configuration = configuration;
+		
+		if (! init) {
+			readWebFilters(configuration.getProfileDirectory() + File.separator + "ffmpeg.webfilters");
 
-		protocols = FFmpegOptions.getSupportedProtocols(configuration);
-		// see XXX workaround below
-		protocols.add("mms");
-		LOGGER.debug("FFmpeg supported protocols: " + protocols);
+			protocols = FFmpegOptions.getSupportedProtocols(configuration);
+			// see XXX workaround below
+			protocols.add("mms");
+			LOGGER.debug("FFmpeg supported protocols: " + protocols);
 
-		// Register protocols as a WEB format
-		final String[] ffmpegProtocols = protocols.toArray(new String[0]);
-		FormatFactory.getExtensions().add(0, new WEB() {
-			@Override
-			public String[] getId() {
-				return ffmpegProtocols;
-			}
+			// Register protocols as a WEB format
+			final String[] ffmpegProtocols = protocols.toArray(new String[0]);
+			FormatFactory.getExtensions().add(0, new WEB() {
+				@Override
+				public String[] getId() {
+					return ffmpegProtocols;
+				}
 
-			@Override
-			public String toString() {
-				return "FFMPEG.WEB";
-			}
-		});
+				@Override
+				public String toString() {
+					return "FFMPEG.WEB";
+				}
+			});
+			init = true;
+		}
 	}
 
 	@Override
@@ -296,7 +301,6 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		PatternMap filter = null;
 		String line;
 		try {
-			filename = new File(configuration.getProfileDirectory() + File.separator + filename).getAbsolutePath();
 			File file = new File(filename);
 			LineIterator it = FileUtils.lineIterator(new File(filename));
 			try {
