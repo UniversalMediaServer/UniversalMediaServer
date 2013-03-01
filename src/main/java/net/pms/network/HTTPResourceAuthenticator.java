@@ -34,7 +34,7 @@ import java.util.StringTokenizer;
 public class HTTPResourceAuthenticator extends Authenticator {
 
 	// Lookup table for user and password information per hostname
-	static HashMap<String, String> siteinfo = new HashMap<String, String>();
+	static HashMap<String, String> siteinfo = new HashMap<>();
 
 	/**
 	 * Called when password authentication is needed.

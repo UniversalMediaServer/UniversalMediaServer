@@ -162,6 +162,7 @@ Section "Program Files"
   SetOverwrite off
   File "${PROJECT_BASEDIR}\src\main\external-resources\UMS.conf"
   File "${PROJECT_BASEDIR}\src\main\external-resources\WEB.conf"
+  File "${PROJECT_BASEDIR}\src\main\external-resources\ffmpeg.webfilters"
 
   ;Store install folder
   WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "" $INSTDIR
@@ -188,6 +189,7 @@ Section "Program Files"
   AccessControl::GrantOnFile "$INSTDIR\data" "(BU)" "FullAccess"
   File "${PROJECT_BASEDIR}\src\main\external-resources\UMS.conf"
   File "${PROJECT_BASEDIR}\src\main\external-resources\WEB.conf"
+  File "${PROJECT_BASEDIR}\src\main\external-resources\ffmpeg.webfilters"
 SectionEnd
 
 Section "Start Menu Shortcuts"

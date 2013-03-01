@@ -2461,6 +2461,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public byte[] getHeaders() {
 		return null;
 	}
+<<<<<<< HEAD
+	
+	public boolean isURLResolved() {
+		return false;
+=======
 
 	public void attach(String key, Object data) {
 		if (attachments == null) {
@@ -2471,10 +2476,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	public Object getAttachment(String key) {
 		return attachments == null ? null : attachments.get(key);
-	}
-	
-	public boolean isURLResolved() {
-		return false;
+>>>>>>> master
 	}
 }
 

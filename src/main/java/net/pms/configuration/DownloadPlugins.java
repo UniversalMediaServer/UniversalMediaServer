@@ -51,7 +51,7 @@ public class DownloadPlugins {
 	private boolean old;
 
 	public static ArrayList<DownloadPlugins> downloadList() {
-		ArrayList<DownloadPlugins> res = new ArrayList<DownloadPlugins>();
+		ArrayList<DownloadPlugins> res = new ArrayList<>();
 
 		if (!configuration.getExternalNetwork()) {
 			// Do not try to get the plugin list if there is no
@@ -299,12 +299,12 @@ public class DownloadPlugins {
 				int count;
 				byte data[] = new byte[4096];
 				FileOutputStream fos = new FileOutputStream(dst);
-				BufferedOutputStream dest = new BufferedOutputStream(fos, 4096);
-				while ((count = zis.read(data, 0, 4096)) != -1) {
-					dest.write(data, 0, count);
+				try (BufferedOutputStream dest = new BufferedOutputStream(fos, 4096)) {
+					while ((count = zis.read(data, 0, 4096)) != -1) {
+						dest.write(data, 0, count);
+					}
+					dest.flush();
 				}
-				dest.flush();
-				dest.close();
 				if (dst.getAbsolutePath().endsWith(".jar")) {
 					jars.add(dst.toURI().toURL());
 				}
@@ -334,18 +334,16 @@ public class DownloadPlugins {
 		URLConnection connection = u.openConnection();
 		connection.setDoInput(true);
 		connection.setDoOutput(true);
-		InputStream in = connection.getInputStream();
-		FileOutputStream out = new FileOutputStream(f);
-		byte[] buf = new byte[4096];
-		int len;
+		try (InputStream in = connection.getInputStream(); FileOutputStream out = new FileOutputStream(f)) {
+			byte[] buf = new byte[4096];
+			int len;
 
-		while ((len = in.read(buf)) != -1) {
-			out.write(buf, 0, len);
+			while ((len = in.read(buf)) != -1) {
+				out.write(buf, 0, len);
+			}
+
+			out.flush();
 		}
-
-		out.flush();
-		out.close();
-		in.close();
 
 		if (fName.endsWith(".zip")) {
 			for (int i = 0; i < props.length; i++) {
@@ -452,9 +450,7 @@ public class DownloadPlugins {
 		if (cmd.equalsIgnoreCase("exec")) {
 			try {
 				doExec(args);
-			} catch (ConfigurationException e) {
-			} catch (IOException e) {
-			} catch (InterruptedException e) {
+			} catch (ConfigurationException | IOException | InterruptedException e) {
 			}
 
 			return true;
@@ -540,7 +536,7 @@ public class DownloadPlugins {
 		updateLabel = update;
 
 		// Init the jar file list
-		jars = new ArrayList<URL>();
+		jars = new ArrayList<>();
 
 		// Download the list
 		if (!download()) { // Download failed, bail out

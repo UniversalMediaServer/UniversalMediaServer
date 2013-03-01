@@ -18,11 +18,9 @@
  */
 package net.pms.formats.v2;
 
-import net.pms.dlna.DLNAMediaSubtitle;
-
 import java.util.HashMap;
 import java.util.Map;
-
+import net.pms.dlna.DLNAMediaSubtitle;
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.mozilla.universalchardet.Constants.*;
 

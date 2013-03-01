@@ -48,25 +48,27 @@ public class RarredFile extends DLNAResource {
 			}
 
 			rarFile.close();
-		} catch (RarException e) {
-			LOGGER.error(null, e);
-		} catch (IOException e) {
+		} catch (RarException | IOException e) {
 			LOGGER.error(null, e);
 		}
 	}
 
+	@Override
 	public InputStream getInputStream() throws IOException {
 		return new FileInputStream(f);
 	}
 
+	@Override
 	public String getName() {
 		return f.getName();
 	}
 
+	@Override
 	public long length() {
 		return f.length();
 	}
 
+	@Override
 	public boolean isFolder() {
 		return true;
 	}

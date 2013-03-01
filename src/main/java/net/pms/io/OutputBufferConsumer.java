@@ -46,6 +46,7 @@ public class OutputBufferConsumer extends OutputConsumer {
 		outputBuffer = new BufferedOutputFileImpl(params);
 	}
 
+	@Override
 	public void run() {
 		try {
 			//LOGGER.trace("Starting read from pipe");
@@ -70,10 +71,12 @@ public class OutputBufferConsumer extends OutputConsumer {
 		}
 	}
 
+	@Override
 	public BufferedOutputFile getBuffer() {
 		return outputBuffer;
 	}
 
+	@Override
 	public List<String> getResults() {
 		return null;
 	}

@@ -87,18 +87,22 @@ public class WebStream extends DLNAResource {
 		}
 	}
 
+	@Override
 	public InputStream getInputStream() {
 		return null;
 	}
 
+	@Override
 	public long length() {
 		return DLNAMediaInfo.TRANS_SIZE;
 	}
 
+	@Override
 	public String getName() {
 		return getFluxName();
 	}
 
+	@Override
 	public boolean isFolder() {
 		return false;
 	}

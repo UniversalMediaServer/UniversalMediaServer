@@ -53,27 +53,35 @@ public class WEB extends Format {
 
 	@Override
 	public ArrayList<Class<? extends Player>> getProfiles() {
-		ArrayList<Class<? extends Player>> a = new ArrayList<Class<? extends Player>>();
+		ArrayList<Class<? extends Player>> a = new ArrayList<>();
 		if (type == AUDIO) {
 			PMS r = PMS.get();
 			for (String engine : configuration.getEnginesAsList(r.getRegistry())) {
-				if (engine.equals(MPlayerWebAudio.ID)) {
-					a.add(MPlayerWebAudio.class);
-				} else if (engine.equals(VideoLanAudioStreaming.ID)) {
-					a.add(VideoLanAudioStreaming.class);
+				switch (engine) {
+					case MPlayerWebAudio.ID:
+						a.add(MPlayerWebAudio.class);
+						break;
+					case VideoLanAudioStreaming.ID:
+						a.add(VideoLanAudioStreaming.class);
+						break;
 				}
 			}
 		} else {
 			PMS r = PMS.get();
 			for (String engine : configuration.getEnginesAsList(r.getRegistry())) {
-				if (engine.equals(FFmpegWebVideo.ID)) {
-					a.add(FFmpegWebVideo.class);
-				} else if (engine.equals(MEncoderWebVideo.ID)) {
-					a.add(MEncoderWebVideo.class);
-				} else if (engine.equals(VideoLanVideoStreaming.ID)) {
-					a.add(VideoLanVideoStreaming.class);
-				} else if (engine.equals(MPlayerWebVideoDump.ID)) {
-					a.add(MPlayerWebVideoDump.class);
+				switch (engine) {
+					case FFmpegWebVideo.ID:
+						a.add(FFmpegWebVideo.class);
+						break;
+					case MEncoderWebVideo.ID:
+						a.add(MEncoderWebVideo.class);
+						break;
+					case VideoLanVideoStreaming.ID:
+						a.add(VideoLanVideoStreaming.class);
+						break;
+					case MPlayerWebVideoDump.ID:
+						a.add(MPlayerWebVideoDump.class);
+						break;
 				}
 			}
 		}

@@ -170,26 +170,23 @@ public class HTTPResource {
 
 		// GameTrailers blocks user-agents that identify themselves as "Java"
 		conn.setRequestProperty("User-agent", PropertiesUtil.getProjectProperties().get("project.name") + " " + PMS.getVersion());
-		InputStream in = conn.getInputStream();
-		FileOutputStream fOUT = null;
+		FileOutputStream fOUT;
+		try (InputStream in = conn.getInputStream()) {
+			fOUT = null;
+			if (saveOnDisk && f != null) {
+				// fileName = convertURLToFileName(fileName);
+				fOUT = new FileOutputStream(f);
+			}
+			byte[] buf = new byte[4096];
+			int n;
+			while ((n = in.read(buf)) > -1) {
+				bytes.write(buf, 0, n);
 
-		if (saveOnDisk && f != null) {
-			// fileName = convertURLToFileName(fileName);
-			fOUT = new FileOutputStream(f);
-		}
-
-		byte[] buf = new byte[4096];
-
-		int n;
-		while ((n = in.read(buf)) > -1) {
-			bytes.write(buf, 0, n);
-
-			if (fOUT != null) {
-				fOUT.write(buf, 0, n);
+				if (fOUT != null) {
+					fOUT.write(buf, 0, n);
+				}
 			}
 		}
-
-		in.close();
 
 		if (fOUT != null) {
 			fOUT.close();

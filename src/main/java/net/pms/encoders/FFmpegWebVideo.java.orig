@@ -183,7 +183,11 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		params.input_pipes[0] = pipe;
 		int nThreads = configuration.getNumberOfCpuCores();
 
-		
+<<<<<<< HEAD
+		// XXX work around an ffmpeg bug: http://ffmpeg.org/trac/ffmpeg/ticket/998
+		if (fileName.startsWith("mms:")) {
+			fileName = "mmsh:" + fileName.substring(4);
+		}
 		
 		if (!dlna.isURLResolved()) {
 			URLResult r = ExternalFactory.resolveURL(fileName);
@@ -192,6 +196,8 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			}
 		}
 		
+=======
+>>>>>>> master
 		// build the command line
 		List<String> cmdList = new ArrayList<>();
 

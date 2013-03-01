@@ -120,9 +120,7 @@ public class BasicSystemUtils implements SystemUtils {
 	public void browseURI(String uri) {
 		try {
 			Desktop.getDesktop().browse(new URI(uri));
-		} catch (IOException e) {
-			LOGGER.trace("Unable to open the given URI: " + uri + ".");
-		} catch (URISyntaxException e) {
+		} catch (IOException | URISyntaxException e) {
 			LOGGER.trace("Unable to open the given URI: " + uri + ".");
 		}
 	}
@@ -145,12 +143,14 @@ public class BasicSystemUtils implements SystemUtils {
 			MenuItem traceItem = new MenuItem(Messages.getString("LooksFrame.6"));
 
 			defaultItem.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					frame.quit();
 				}
 			});
 
 			traceItem.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					frame.setVisible(true);
 				}
@@ -163,6 +163,7 @@ public class BasicSystemUtils implements SystemUtils {
 
 			trayIcon.setImageAutoSize(true);
 			trayIcon.addActionListener(new ActionListener() {
+				@Override
 				public void actionPerformed(ActionEvent e) {
 					frame.setVisible(true);
 					frame.setFocusable(true);
