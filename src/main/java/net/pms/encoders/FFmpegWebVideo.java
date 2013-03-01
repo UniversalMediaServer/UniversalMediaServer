@@ -298,11 +298,6 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		try {
 			filename = new File(configuration.getProfileDirectory() + File.separator + filename).getAbsolutePath();
 			File file = new File(filename);
-			if (file.exists()) {
-				LOGGER.debug("Web filters file was found");
-			} else {
-				LOGGER.debug("Web filters file was not found");
-			}
 			LineIterator it = FileUtils.lineIterator(new File(filename));
 			try {
 				while (it.hasNext()) {
