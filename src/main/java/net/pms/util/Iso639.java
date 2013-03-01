@@ -20,21 +20,18 @@
 package net.pms.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaLang;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * This class provides a list of languages mapped to ISO 639 language codes
  * and some methods to verify which language matches which ISO code.
  */
 public class Iso639 {
-	private static final Logger LOGGER = LoggerFactory.getLogger(Iso639.class);
-
 	/**
 	 * ISO code alias for the language set in the preferences
 	 */
@@ -43,17 +40,17 @@ public class Iso639 {
 	/**
 	 * Hashmap that contains full language names and their ISO codes.
 	 */
-	private static HashMap<String, String[]> links = new HashMap<String, String[]>();
+	private static HashMap<String, String[]> links = new HashMap<>();
 
 	/**
 	 * List that contains all known language names.
 	 */
-	private static ArrayList<String> languages = new ArrayList<String>();
+	private static ArrayList<String> languages = new ArrayList<>();
 
 	/**
 	 * List that contains all known ISO language codes.
 	 */
-	private static ArrayList<String> codes = new ArrayList<String>();
+	private static ArrayList<String> codes = new ArrayList<>();
 
 	static {
 		// Make sure everything is initialized before it is retrieved.
@@ -226,7 +223,7 @@ public class Iso639 {
 	 * @param iso6392bis The third ISO code
 	 */
 	private static void putCode(String language, String iso6391, String iso6392, String iso6392bis) {
-		ArrayList<String> codeArray = new ArrayList<String>();
+		ArrayList<String> codeArray = new ArrayList<>();
 
 		if (iso6391 != null) {
 			codeArray.add(iso6391);
@@ -259,13 +256,11 @@ public class Iso639 {
 	 * Initialize the list of language codes.
 	 */
 	private static void initCodes() {
-		codes = new ArrayList<String>();
+		codes = new ArrayList<>();
 		Iterator<String[]> iterator = links.values().iterator();
 
 		while (iterator.hasNext()) {
-			for (String s : iterator.next()) {
-				codes.add(s);
-			}
+			codes.addAll(Arrays.asList(iterator.next()));
 		}
 	}
 

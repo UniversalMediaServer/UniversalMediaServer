@@ -56,8 +56,8 @@ public class TaskRunner {
 		}
 	});
 	
-	private final Map<String, Integer> counters = new HashMap<String, Integer>();
-	private final Map<String, Lock> uniquenessLock = new HashMap<String, Lock> ();
+	private final Map<String, Integer> counters = new HashMap<>();
+	private final Map<String, Lock> uniquenessLock = new HashMap<> ();
 	
 	public void submit(Runnable runnable) {
 		executors.execute(runnable);

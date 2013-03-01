@@ -58,6 +58,7 @@ import net.pms.util.MpegUtil;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.sanselan.ImageInfo;
+import org.apache.sanselan.ImageReadException;
 import org.apache.sanselan.Sanselan;
 import org.apache.sanselan.common.IImageMetadata;
 import org.apache.sanselan.formats.jpeg.JpegImageMetadata;
@@ -66,8 +67,13 @@ import org.apache.sanselan.formats.tiff.constants.TiffConstants;
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
 import org.jaudiotagger.audio.AudioHeader;
+import org.jaudiotagger.audio.exceptions.CannotReadException;
+import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
+import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.FieldKey;
+import org.jaudiotagger.tag.KeyNotFoundException;
 import org.jaudiotagger.tag.Tag;
+import org.jaudiotagger.tag.TagException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -158,8 +164,8 @@ public class DLNAMediaInfo implements Cloneable {
 	@Deprecated
 	public int bitsPerPixel;
 
-	private List<DLNAMediaAudio> audioTracks = new ArrayList<DLNAMediaAudio>();
-	private List<DLNAMediaSubtitle> subtitleTracks = new ArrayList<DLNAMediaSubtitle>();
+	private List<DLNAMediaAudio> audioTracks = new ArrayList<>();
+	private List<DLNAMediaSubtitle> subtitleTracks = new ArrayList<>();
 
 	/**
 	 * @deprecated Use standard getter and setter to access this variable.
@@ -323,7 +329,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 	public void putExtra(String key, String value) {
 		if (extras == null) {
-			extras = new HashMap<String, String>();
+			extras = new HashMap<>();
 		}
 
 		extras.put(key, value);
@@ -604,12 +610,12 @@ public class DLNAMediaInfo implements Cloneable {
 									y = t.getFirst(FieldKey.TRACK);
 									audio.setTrack(Integer.parseInt(((y != null && y.length() > 0) ? y : "1")));
 									audio.setGenre(t.getFirst(FieldKey.GENRE));
-								} catch (Throwable e) {
+								} catch (NumberFormatException | KeyNotFoundException e) {
 									LOGGER.debug("Error parsing unimportant metadata: " + e.getMessage());
 								}
 							}
 						}
-					} catch (Throwable e) {
+					} catch (CannotReadException | IOException | TagException | ReadOnlyFileException | InvalidAudioFrameException | NumberFormatException | KeyNotFoundException e) {
 						LOGGER.debug("Error parsing audio file: {} - {}", e.getMessage(), e.getCause() != null ? e.getCause().getMessage() : "");
 						ffmpeg_parsing = false;
 					}
@@ -671,7 +677,7 @@ public class DLNAMediaInfo implements Cloneable {
 					}
 
 					setContainer(getCodecV());
-				} catch (Throwable e) {
+				} catch (ImageReadException | IOException e) {
 					// ffmpeg_parsing = true;
 					LOGGER.info("Error parsing image ({}) with Sanselan, switching to FFmpeg", inputFile.getFile().getAbsolutePath(), e);
 				}
@@ -707,15 +713,14 @@ public class DLNAMediaInfo implements Cloneable {
 						File jpg = new File(thumbFilename);
 
 						if (jpg.exists()) {
-							InputStream is = new FileInputStream(jpg);
-							int sz = is.available();
+							try (InputStream is = new FileInputStream(jpg)) {
+								int sz = is.available();
 
-							if (sz > 0) {
-								setThumb(new byte[sz]);
-								is.read(getThumb());
+								if (sz > 0) {
+									setThumb(new byte[sz]);
+									is.read(getThumb());
+								}
 							}
-
-							is.close();
 
 							if (!jpg.delete()) {
 								jpg.deleteOnExit();
@@ -976,15 +981,14 @@ public class DLNAMediaInfo implements Cloneable {
 						File jpg = new File(frameName);
 
 						if (jpg.exists()) {
-							InputStream is = new FileInputStream(jpg);
-							int sz = is.available();
+							try (InputStream is = new FileInputStream(jpg)) {
+								int sz = is.available();
 
-							if (sz > 0) {
-								setThumb(new byte[sz]);
-								is.read(getThumb());
+								if (sz > 0) {
+									setThumb(new byte[sz]);
+									is.read(getThumb());
+								}
 							}
-
-							is.close();
 
 							if (!jpg.delete()) {
 								jpg.deleteOnExit();
@@ -1748,7 +1752,7 @@ public class DLNAMediaInfo implements Cloneable {
 		if (audioTracks instanceof ArrayList) {
 			return (ArrayList<DLNAMediaAudio>) audioTracks;
 		} else {
-			return new ArrayList<DLNAMediaAudio>();
+			return new ArrayList<>();
 		}
 	}
 
@@ -1786,7 +1790,7 @@ public class DLNAMediaInfo implements Cloneable {
 		if (subtitleTracks instanceof ArrayList) {
 			return (ArrayList<DLNAMediaSubtitle>) subtitleTracks;
 		} else {
-			return new ArrayList<DLNAMediaSubtitle>();
+			return new ArrayList<>();
 		}
 	}
 

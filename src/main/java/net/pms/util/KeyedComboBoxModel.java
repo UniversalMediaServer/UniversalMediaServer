@@ -136,8 +136,8 @@ public class KeyedComboBoxModel implements ComboBoxModel {
 	 * Creates a new keyed combobox model.
 	 */
 	public KeyedComboBoxModel() {
-		data = new ArrayList<ComboBoxItemPair>();
-		listdatalistener = new ArrayList<ListDataListener>();
+		data = new ArrayList<>();
+		listdatalistener = new ArrayList<>();
 	}
 
 	/**
@@ -198,6 +198,7 @@ public class KeyedComboBoxModel implements ComboBoxModel {
 	 *
 	 * @return The selected item or <code>null</code> if there is no selection
 	 */
+	@Override
 	public Object getSelectedItem() {
 		return selectedItemValue;
 	}
@@ -233,6 +234,7 @@ public class KeyedComboBoxModel implements ComboBoxModel {
 	 * @param anItem the list object to select or <code>null</code> to clear the
 	 *               selection
 	 */
+	@Override
 	public void setSelectedItem(final Object anItem) {
 		if (anItem == null) {
 			selectedItemIndex = -1;
@@ -269,6 +271,7 @@ public class KeyedComboBoxModel implements ComboBoxModel {
 	 *
 	 * @param l the <code>ListDataListener</code> to be added
 	 */
+	@Override
 	public synchronized void addListDataListener(final ListDataListener l) {
 		listdatalistener.add(l);
 		tempListeners = null;
@@ -280,6 +283,7 @@ public class KeyedComboBoxModel implements ComboBoxModel {
 	 * @param index the requested index
 	 * @return the value at <code>index</code>
 	 */
+	@Override
 	public Object getElementAt(final int index) {
 		if (index >= data.size()) {
 			return null;
@@ -328,6 +332,7 @@ public class KeyedComboBoxModel implements ComboBoxModel {
 	 *
 	 * @return the length of the list
 	 */
+	@Override
 	public int getSize() {
 		return data.size();
 	}
@@ -338,6 +343,7 @@ public class KeyedComboBoxModel implements ComboBoxModel {
 	 *
 	 * @param l the <code>ListDataListener</code> to be removed
 	 */
+	@Override
 	public void removeListDataListener(final ListDataListener l) {
 		listdatalistener.remove(l);
 		tempListeners = null;

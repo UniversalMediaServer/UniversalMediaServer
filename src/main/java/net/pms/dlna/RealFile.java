@@ -106,6 +106,7 @@ public class RealFile extends MapFile {
 		return getFile().length();
 	}
 
+	@Override
 	public boolean isFolder() {
 		return getFile().isDirectory();
 	}
@@ -119,7 +120,7 @@ public class RealFile extends MapFile {
 		if (this.getConf().getName() == null) {
 			String name = null;
 			File file = getFile();
-			if (file.getName().trim().equals("")) {
+			if (file.getName().trim().isEmpty()) {
 				if (PMS.get().isWindows()) {
 					name = PMS.get().getRegistry().getDiskLabel(file);
 				}

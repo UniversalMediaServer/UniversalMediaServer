@@ -185,7 +185,7 @@ public class XmlElement extends LinkedList<XmlElement> {
 	 * @return a linked list of matching xml elements
 	 */
 	public LinkedList<XmlElement> get(String name) {
-		LinkedList<XmlElement> list = new LinkedList<XmlElement>();
+		LinkedList<XmlElement> list = new LinkedList<>();
 		for (XmlElement element : this) {
 			if (element.getName().equals(name)) {
 				list.add(element);

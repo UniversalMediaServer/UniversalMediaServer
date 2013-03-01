@@ -35,6 +35,7 @@ public class Gob extends Thread {
 		this.in = new BufferedReader(new InputStreamReader(in));
 	}
 
+	@Override
 	public void run() {
 		String line = null;
 		try {
