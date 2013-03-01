@@ -493,13 +493,13 @@ public class ExternalFactory {
 	public static boolean localPluginsInstalled() {
 		return allDone;
 	}
-	
+
 	public static URLResult resolveURL(String url) {
-		for (ExternalListener list : getExternalListeners() ) {
-			if(list instanceof URLResolver) {
+		for (ExternalListener list : getExternalListeners()) {
+			if (list instanceof URLResolver) {
 				URLResult res = ((URLResolver)list).urlResolve(url);
-				if(res.url != null) {
-					return res;				
+				if (res.url != null) {
+					return res;
 				}
 			}
 		}
