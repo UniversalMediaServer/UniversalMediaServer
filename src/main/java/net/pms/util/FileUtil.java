@@ -52,10 +52,10 @@ public class FileUtil {
 		// Remove file extension
 		formattedName = f.substring(0, point);
 
-		if (formattedName.contains("\\.S[0-9][0-9]E[0-9][0-9]\\.")) {
-			formattedName.replace("\\.S[0-9][1-9]E[1-9][1-9]\\.", " - $2$3$4 - ");
-		} else if (formattedName.contains("\\.S[1-9][0-9]E[0-9][0-9]\\.")) {
-			formattedName.replace("\\.S[1-9][1-9]E[1-9][1-9]\\.", " - $1$2$3$4 - ");
+		if (formattedName.contains("\\.[sS][0-9][0-9][eE][0-9][0-9]\\.")) {
+			formattedName.replace("\\.[sS][0-9][0-9][eE][0-9][0-9]\\.", " - $2$3$4 - ");
+		} else if (formattedName.contains("\\.[sS][1-9][0-9][eE][0-9][0-9]\\.")) {
+			formattedName.replace("\\.[sS][1-9][0-9][eE][0-9][0-9]\\.", " - $1$2$3$4 - ");
 		}
 
 		return formattedName;
