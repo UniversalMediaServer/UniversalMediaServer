@@ -252,16 +252,6 @@ public class FFMpegVideo extends Player {
 				}
 			}
 
-			// Output file format
-			transcodeOptions.add("-f");
-			if (dtsRemux) {
-				transcodeOptions.add("mpeg2video");
-			} else if (renderer.isTranscodeToMPEGTSAC3() || renderer.isTranscodeToX264TSAC3()) { // MPEGTSAC3
-				transcodeOptions.add("mpegts");
-			} else { // default: MPEGPSAC3
-				transcodeOptions.add("vob");
-			}
-
 			InputFile newInput = null;
 			if (fileName != null) {
 				newInput = new InputFile();
@@ -303,6 +293,16 @@ public class FFMpegVideo extends Player {
 			} else if (!dtsRemux) {
 				transcodeOptions.add("-c:v");
 				transcodeOptions.add("mpeg2video");
+			}
+
+			// Output file format
+			transcodeOptions.add("-f");
+			if (dtsRemux) {
+				transcodeOptions.add("mpeg2video");
+			} else if (renderer.isTranscodeToMPEGTSAC3() || renderer.isTranscodeToX264TSAC3() || videoRemux) { // MPEGTSAC3
+				transcodeOptions.add("mpegts");
+			} else { // default: MPEGPSAC3
+				transcodeOptions.add("vob");
 			}
 		}
 
