@@ -42,6 +42,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.InputFile;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
@@ -205,6 +206,7 @@ public class FFMpegVideo extends Player {
 	 * @return a {@link List} of <code>String</code>s representing the ffmpeg output parameters for the renderer according
 	 * to its <code>TranscodeVideo</code> profile.
 	 */
+	@Deprecated
 	public List<String> getTranscodeVideoOptions(RendererConfiguration renderer, DLNAMediaInfo media, OutputParams params) {
 		List<String> transcodeOptions = new ArrayList<>();
 
@@ -256,6 +258,106 @@ public class FFMpegVideo extends Player {
 
 			// Output video codec
 			if (!dtsRemux) {
+				transcodeOptions.add("-c:v");
+				transcodeOptions.add("mpeg2video");
+			}
+		}
+
+		return transcodeOptions;
+	}
+
+	/**
+	 * Takes a renderer and returns a list of <code>String</code>s representing ffmpeg output options
+	 * (i.e. options that define the output file's video codec, audio codec and container)
+	 * compatible with the renderer's <code>TranscodeVideo</code> profile.
+	 *
+	 * @param renderer The {@link RendererConfiguration} instance whose <code>TranscodeVideo</code> profile is to be processed.
+	 * @param media the media metadata for the video being streamed. May contain unset/null values (e.g. for web videos).
+	 * @param params output parameters
+	 * @return a {@link List} of <code>String</code>s representing the ffmpeg output parameters for the renderer according
+	 * to its <code>TranscodeVideo</code> profile.
+	 */
+	public List<String> getTranscodeVideoOptions(RendererConfiguration renderer, DLNAMediaInfo media, OutputParams params, String fileName) {
+		List<String> transcodeOptions = new ArrayList<>();
+
+		if (renderer.isTranscodeToWMV()) { // WMV
+			transcodeOptions.add("-c:v");
+			transcodeOptions.add("wmv2");
+
+			transcodeOptions.add("-c:a");
+			transcodeOptions.add("wmav2");
+
+			transcodeOptions.add("-f");
+			transcodeOptions.add("asf");
+		} else { // MPEGPSAC3, MPEGTSAC3 or X264TSAC3
+			final boolean isTsMuxeRVideoEngineEnabled = configuration.getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
+
+			// Output audio codec
+			dtsRemux = isTsMuxeRVideoEngineEnabled &&
+				configuration.isDTSEmbedInPCM() &&
+				params.aid != null &&
+				params.aid.isDTS() &&
+				!avisynth() &&
+				renderer.isDTSPlayable();
+
+			if (configuration.isRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && renderer.isTranscodeToAC3()) {
+				// AC-3 remux
+				transcodeOptions.add("-c:a");
+				transcodeOptions.add("copy");
+			} else {
+				if (dtsRemux) {
+					// Audio is added in a separate process later
+					transcodeOptions.add("-an");
+				} else if (type() == Format.AUDIO) {
+					// Skip
+				} else {
+					transcodeOptions.add("-c:a");
+					transcodeOptions.add("ac3");
+				}
+			}
+
+			// Output file format
+			transcodeOptions.add("-f");
+			if (dtsRemux) {
+				transcodeOptions.add("mpeg2video");
+			} else if (renderer.isTranscodeToMPEGTSAC3() || renderer.isTranscodeToX264TSAC3()) { // MPEGTSAC3
+				transcodeOptions.add("mpegts");
+			} else { // default: MPEGPSAC3
+				transcodeOptions.add("vob");
+			}
+
+			InputFile newInput = new InputFile();
+			newInput.setFilename(fileName);
+			newInput.setPush(params.stdin);
+
+			// Output video codec
+			if (
+				params.sid == null &&
+				!avisynth() &&
+				(
+					media.isVideoWithinH264LevelLimits(newInput, params.mediaRenderer) ||
+					!params.mediaRenderer.isH264Level41Limited()
+				) &&
+				media.isMuxable(params.mediaRenderer) &&
+				configuration.isMencoderMuxWhenCompatible() &&
+				params.mediaRenderer.isMuxH264MpegTS()
+			) {
+				transcodeOptions.add("-c:v");
+				transcodeOptions.add("copy");
+				transcodeOptions.add("-bsf");
+				transcodeOptions.add("h264_mp4toannexb");
+				transcodeOptions.add("-fflags");
+				transcodeOptions.add("+genpts");
+
+				videoRemux = true;
+			} else if (renderer.isTranscodeToX264TSAC3()) {
+				transcodeOptions.add("-c:v");
+				transcodeOptions.add("libx264");
+				transcodeOptions.add("-crf");
+				transcodeOptions.add("20");
+				transcodeOptions.add("-preset");
+				transcodeOptions.add("superfast");
+			} else if (!dtsRemux) {
 				transcodeOptions.add("-c:v");
 				transcodeOptions.add("mpeg2video");
 			}
@@ -318,6 +420,7 @@ public class FFMpegVideo extends Player {
 
 	protected boolean dtsRemux;
 	protected boolean ac3Remux;
+	protected boolean videoRemux;
 
 	@Override
 	public int purpose() {
@@ -398,17 +501,6 @@ public class FFMpegVideo extends Player {
 		return getDefaultArgs(); // unused; return this array for for backwards compatibility
 	}
 
-	private List<String> getCustomArgs() {
-		String customOptionsString = configuration.getFfmpegSettings();
-
-		if (StringUtils.isNotBlank(customOptionsString)) {
-			LOGGER.debug("Custom ffmpeg output options: {}", customOptionsString);
-		}
-
-		String[] customOptions = StringUtils.split(customOptionsString);
-		return new ArrayList<>(Arrays.asList(customOptions));
-	}
-
 	// XXX hardwired to false and not referenced anywhere else in the codebase
 	@Deprecated
 	public boolean mplayer() {
@@ -471,7 +563,7 @@ public class FFMpegVideo extends Player {
 		ac3Remux = false;
 		dtsRemux = false;
 
-		if (configuration.isRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && params.mediaRenderer.isTranscodeToAC3()) {
+		if (configuration.isRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && renderer.isTranscodeToAC3()) {
 			// AC-3 remux takes priority
 			ac3Remux = true;
 		} else {
@@ -543,7 +635,7 @@ public class FFMpegVideo extends Player {
 			defaultMaxBitrates = rendererMaxBitrates;
 		}
 
-		if (params.mediaRenderer.getCBRVideoBitrate() == 0 && defaultMaxBitrates[0] > 0) {
+		if (params.mediaRenderer.getCBRVideoBitrate() == 0 && defaultMaxBitrates[0] > 0 && !videoRemux) {
 			// Convert value from Mb to Kb
 			defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
 
@@ -595,7 +687,7 @@ public class FFMpegVideo extends Player {
 		LOGGER.trace("channels=" + channels);
 
 		// Audio bitrate
-		if (!(params.aid != null && params.aid.isAC3() && !ac3Remux) && !(type() == Format.AUDIO)) {
+		if (!ac3Remux && !dtsRemux && !(type() == Format.AUDIO)) {
 			cmdList.add("-ab");
 			// Check if audio bitrate meets mp2 specification
 			if (!renderer.isTranscodeToMPEGPSAC3() && configuration.getAudioBitrate() <= 384) {
@@ -605,11 +697,14 @@ public class FFMpegVideo extends Player {
 			}
 		}
 
-		// Add custom args
-		cmdList.addAll(getCustomArgs());
+		// Add MPEG-2 quality settings
+		if (!renderer.isTranscodeToX264TSAC3()) {
+			String[] customOptions = StringUtils.split(configuration.getFfmpegSettings());
+			cmdList.addAll(new ArrayList<>(Arrays.asList(customOptions)));
+		}
 
 		// Add the output options (-f, -acodec, -vcodec)
-		cmdList.addAll(getTranscodeVideoOptions(renderer, media, params));
+		cmdList.addAll(getTranscodeVideoOptions(renderer, media, params, fileName));
 
 		// Add custom options
 		if (StringUtils.isNotEmpty(renderer.getCustomFFmpegOptions())) {
@@ -618,7 +713,6 @@ public class FFMpegVideo extends Player {
 
 		if (!dtsRemux) {
 			cmdList.add("pipe:");
-
 		}
 
 		String[] cmdArray = new String[cmdList.size()];
