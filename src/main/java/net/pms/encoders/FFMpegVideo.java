@@ -196,14 +196,15 @@ public class FFMpegVideo extends Player {
 	}
 
 	/**
-	 * Takes a renderer and returns a list of <code>String</code>s representing ffmpeg output options
+	 * Takes a renderer and returns a list of <code>String</code>s representing FFmpeg output options
 	 * (i.e. options that define the output file's video codec, audio codec and container)
 	 * compatible with the renderer's <code>TranscodeVideo</code> profile.
 	 *
 	 * @param renderer The {@link RendererConfiguration} instance whose <code>TranscodeVideo</code> profile is to be processed.
 	 * @param media the media metadata for the video being streamed. May contain unset/null values (e.g. for web videos).
 	 * @param params output parameters
-	 * @return a {@link List} of <code>String</code>s representing the ffmpeg output parameters for the renderer according
+	 *
+	 * @return a {@link List} of <code>String</code>s representing the FFmpeg output parameters for the renderer according
 	 * to its <code>TranscodeVideo</code> profile.
 	 */
 	@Deprecated
@@ -267,14 +268,16 @@ public class FFMpegVideo extends Player {
 	}
 
 	/**
-	 * Takes a renderer and returns a list of <code>String</code>s representing ffmpeg output options
+	 * Takes a renderer and returns a list of <code>String</code>s representing FFmpeg output options
 	 * (i.e. options that define the output file's video codec, audio codec and container)
 	 * compatible with the renderer's <code>TranscodeVideo</code> profile.
 	 *
 	 * @param renderer The {@link RendererConfiguration} instance whose <code>TranscodeVideo</code> profile is to be processed.
 	 * @param media the media metadata for the video being streamed. May contain unset/null values (e.g. for web videos).
 	 * @param params output parameters
-	 * @return a {@link List} of <code>String</code>s representing the ffmpeg output parameters for the renderer according
+	 * @param fileName the name of the file
+	 *
+	 * @return a {@link List} of <code>String</code>s representing the FFmpeg output parameters for the renderer according
 	 * to its <code>TranscodeVideo</code> profile.
 	 */
 	public List<String> getTranscodeVideoOptions(RendererConfiguration renderer, DLNAMediaInfo media, OutputParams params, String fileName) {
