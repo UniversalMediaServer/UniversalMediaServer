@@ -1,4 +1,4 @@
-2.5.0 - 2013-02-??
+2.5.0 - 2013-03-??
 
 	General:
 		Updated layout on the Transcoding Settings tab
@@ -10,6 +10,9 @@
 		The first of many code optimizations for Java 7
 		Added RTMP support to FFmpeg Web Video engine
 		Fixed fontconfig support on OS X
+		Added the ability to transcode to x264 with the renderer option TranscodeVideo=X264TSAC3
+		FFmpeg supports video muxing
+		Made muxing more reliable
 	Renderers:
 		Added support for Netgear NeoTV
 		Added support for Telstra T-Box
