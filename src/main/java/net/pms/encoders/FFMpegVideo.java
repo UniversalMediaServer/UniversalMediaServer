@@ -105,7 +105,7 @@ public class FFMpegVideo extends Player {
 		String padding = null;
 
 		boolean isResolutionTooHighForRenderer = renderer.isVideoRescale() && // renderer defines a max width/height
-			(media != null) &&
+			(media != null && media.isMediaparsed()) &&
 			(
 				(media.getWidth() > renderer.getMaxVideoWidth()) ||
 				(media.getHeight() > renderer.getMaxVideoHeight())
@@ -145,7 +145,7 @@ public class FFMpegVideo extends Player {
 
 		if (renderer.isKeepAspectRatio() && renderer.isRescaleByRenderer()) {
 			
-			if (media != null && media.getHeight() != 0 &&
+			if (media != null && media.isMediaparsed() && media.getHeight() != 0 &&
 				(media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
 				padding = "pad=iw:iw/(16/9):0:(oh-ih)/2";
 			} else {
