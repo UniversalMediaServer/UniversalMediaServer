@@ -195,76 +195,9 @@ public class FFMpegVideo extends Player {
 		return videoFilterOptions;
 	}
 
-	/**
-	 * Takes a renderer and returns a list of <code>String</code>s representing FFmpeg output options
-	 * (i.e. options that define the output file's video codec, audio codec and container)
-	 * compatible with the renderer's <code>TranscodeVideo</code> profile.
-	 *
-	 * @param renderer The {@link RendererConfiguration} instance whose <code>TranscodeVideo</code> profile is to be processed.
-	 * @param media the media metadata for the video being streamed. May contain unset/null values (e.g. for web videos).
-	 * @param params output parameters
-	 *
-	 * @return a {@link List} of <code>String</code>s representing the FFmpeg output parameters for the renderer according
-	 * to its <code>TranscodeVideo</code> profile.
-	 */
 	@Deprecated
 	public List<String> getTranscodeVideoOptions(RendererConfiguration renderer, DLNAMediaInfo media, OutputParams params) {
-		List<String> transcodeOptions = new ArrayList<>();
-
-		if (renderer.isTranscodeToWMV()) { // WMV
-			transcodeOptions.add("-c:v");
-			transcodeOptions.add("wmv2");
-
-			transcodeOptions.add("-c:a");
-			transcodeOptions.add("wmav2");
-
-			transcodeOptions.add("-f");
-			transcodeOptions.add("asf");
-		} else { // MPEGPSAC3 or MPEGTSAC3
-			final boolean isTsMuxeRVideoEngineEnabled = configuration.getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
-
-			// Output audio codec
-			dtsRemux = isTsMuxeRVideoEngineEnabled &&
-				configuration.isDTSEmbedInPCM() &&
-				params.aid != null &&
-				params.aid.isDTS() &&
-				!avisynth() &&
-				renderer.isDTSPlayable();
-
-			if (configuration.isRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && renderer.isTranscodeToAC3()) {
-				// AC-3 remux
-				transcodeOptions.add("-c:a");
-				transcodeOptions.add("copy");
-			} else {
-				if (dtsRemux) {
-					// Audio is added in a separate process later
-					transcodeOptions.add("-an");
-				} else if (type() == Format.AUDIO) {
-					// Skip
-				} else {
-					transcodeOptions.add("-c:a");
-					transcodeOptions.add("ac3");
-				}
-			}
-
-			// Output file format
-			transcodeOptions.add("-f");
-			if (dtsRemux) {
-				transcodeOptions.add("mpeg2video");
-			} else if (renderer.isTranscodeToMPEGTSAC3()) { // MPEGTSAC3
-				transcodeOptions.add("mpegts");
-			} else { // default: MPEGPSAC3
-				transcodeOptions.add("vob");
-			}
-
-			// Output video codec
-			if (!dtsRemux) {
-				transcodeOptions.add("-c:v");
-				transcodeOptions.add("mpeg2video");
-			}
-		}
-
-		return transcodeOptions;
+		return getTranscodeVideoOptions(renderer, media, params, null);
 	}
 
 	/**
@@ -329,16 +262,23 @@ public class FFMpegVideo extends Player {
 				transcodeOptions.add("vob");
 			}
 
-			InputFile newInput = new InputFile();
-			newInput.setFilename(fileName);
-			newInput.setPush(params.stdin);
+			InputFile newInput = null;
+			if (fileName != null) {
+				newInput = new InputFile();
+				newInput.setFilename(fileName);
+				newInput.setPush(params.stdin);
+			}
 
 			// Output video codec
 			if (
+				media.isMediaparsed() &&
 				params.sid == null &&
 				!avisynth() &&
 				(
-					media.isVideoWithinH264LevelLimits(newInput, params.mediaRenderer) ||
+					(
+						newInput != null &&
+						media.isVideoWithinH264LevelLimits(newInput, params.mediaRenderer)
+					) ||
 					!params.mediaRenderer.isH264Level41Limited()
 				) &&
 				media.isMuxable(params.mediaRenderer) &&
