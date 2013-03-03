@@ -139,7 +139,7 @@ class optionsHashMap extends LinkedHashMap<String, String> {
 
 	public void transferAll(List<String> list) {
 		for (Object opt : keySet().toArray()) {
-			_transfer((String)opt, list);
+			_transfer((String) opt, list);
 		}
 	}
 
