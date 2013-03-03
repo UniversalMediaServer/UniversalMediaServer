@@ -117,6 +117,7 @@ public class ExternalFactory {
 			// Each plugin .jar file has to contain a resource named "plugin"
 			// which should contain the name of the main plugin class.
 			resources = classLoader.getResources("plugin");
+			classLoader.close();
 
 			if(resources.hasMoreElements()) {
 				URL url = resources.nextElement();
@@ -172,6 +173,7 @@ public class ExternalFactory {
 			// Each plugin .jar file has to contain a resource named "plugin"
 			// which should contain the name of the main plugin class.
 			resources = classLoader.getResources("plugin");
+			classLoader.close();
 		} catch (IOException e) {
 			LOGGER.error("Can't load plugin resources", e);
 			return;
@@ -319,6 +321,7 @@ public class ExternalFactory {
 						f.delete();
 					}
 				}
+				in.close();
 			}
 		} catch (Exception e) { }
 		purge.delete();

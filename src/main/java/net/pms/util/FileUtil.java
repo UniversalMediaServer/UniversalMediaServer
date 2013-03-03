@@ -258,7 +258,8 @@ public class FileUtil {
 		while ((numberOfBytesRead = bufferedInputStream.read(buf)) > 0 && !universalDetector.isDone()) {
 			universalDetector.handleData(buf, 0, numberOfBytesRead);
 		}
-
+		bufferedInputStream.close();
+		
 		universalDetector.dataEnd();
 		String encoding = universalDetector.getDetectedCharset();
 
