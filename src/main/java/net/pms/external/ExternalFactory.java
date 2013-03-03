@@ -44,6 +44,7 @@ import net.pms.dlna.RootFolder;
 import net.pms.external.URLResolver.URLResult;
 import net.pms.newgui.LooksFrame;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -494,13 +495,45 @@ public class ExternalFactory {
 		return allDone;
 	}
 	
+	private static boolean quoted(String s) {
+		return s.startsWith("\"") && s.endsWith("\""); 
+	}
+	
 	public static URLResult resolveURL(String url) {
 		for (ExternalListener list : getExternalListeners() ) {
 			if(list instanceof URLResolver) {
 				URLResult res = ((URLResolver)list).urlResolve(url);
-				if(res.url != null) {
-					return res;				
+				if (res == null) {
+					// take another resolver this is crap
+					continue;
 				}
+				if (res.args != null && res.args.size() > 0) {
+					// we got args...
+					// so return what we got
+					return res;
+				}
+				if (StringUtils.isEmpty(res.url)) {
+					// take another resolver this is crap
+					continue;
+				}
+				String cmp = url;
+				if (quoted(res.url)) {
+					// the url has been quoted by the 
+					// resolver. If the orignal url was unquoted quote it
+					if (!quoted(url)) {
+						cmp = "\"" + url + "\"";
+					}
+				}
+				if (cmp.equals(res.url)) {
+					// If the resolver returned the same url we already had
+					// (+ some quotes) we look for a better one
+					continue;
+				}
+				if (!quoted(res.url)) {
+					// just to make sure....
+					res.url = "\"" + res.url + "\"";
+				}
+				return res;
 			}
 		}
 		return null;

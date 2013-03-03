@@ -182,13 +182,16 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 		params.input_pipes[0] = pipe;
 		int nThreads = configuration.getNumberOfCpuCores();
-
-		
 		
 		if (!dlna.isURLResolved()) {
 			URLResult r1 = ExternalFactory.resolveURL(fileName);
 			if (r1 != null) {
-				fileName = r1.url;
+				if (StringUtils.isNotEmpty(r1.url)) {
+					fileName = r1.url;
+				}
+				if(r1.args !=null && r1.args.size() > 0) {
+					customOptions.addAll(r1.args);	
+				}
 			}
 		}
 		
