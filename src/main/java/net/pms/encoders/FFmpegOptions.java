@@ -80,7 +80,7 @@ public class FFmpegOptions extends optionsHashMap {
 		transferAny(input_file_options, list);
 	}
 
-	public void FFmpegOptions() {
+	public FFmpegOptions() {
 	}
 
 	public static List<String> getSupportedProtocols(PmsConfiguration configuration) {
