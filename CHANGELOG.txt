@@ -6,14 +6,16 @@
 		Enabled ASS/SSA subtitle support on Linux by default
 		Added language flags for Arabic, Croatian, Estonian, Latvian, Serbian and Vietnamese
 		Now compiled with Java 7
+		Optimized code for Java 7
 		The installer only tells Windows to run UMS at startup on new installs or if the user has specified it in UMS
-		The first of many code optimizations for Java 7
 		Added RTMP support to FFmpeg Web Video engine
 		Fixed fontconfig support on OS X
-		Added the ability to transcode to x264 with the renderer option TranscodeVideo=X264TSAC3
+		FFmpeg can transcode to x264 with the renderer option TranscodeVideo=X264TSAC3
 		FFmpeg supports video muxing
 		Made muxing more reliable
+		Fixed resource leaks
 	Renderers:
+		Added support for KalemSoft Media Player on BlackBerry PlayBook devices
 		Added support for Netgear NeoTV
 		Added support for Telstra T-Box
 		Added support for Yamaha RX-3900
