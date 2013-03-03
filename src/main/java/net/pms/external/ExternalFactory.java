@@ -494,14 +494,14 @@ public class ExternalFactory {
 	public static boolean localPluginsInstalled() {
 		return allDone;
 	}
-	
+
 	private static boolean quoted(String s) {
 		return s.startsWith("\"") && s.endsWith("\""); 
 	}
 	
 	public static URLResult resolveURL(String url) {
-		for (ExternalListener list : getExternalListeners() ) {
-			if(list instanceof URLResolver) {
+		for (ExternalListener list : getExternalListeners()) {
+			if (list instanceof URLResolver) {
 				URLResult res = ((URLResolver)list).urlResolve(url);
 				if (res == null) {
 					// take another resolver this is crap

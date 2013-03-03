@@ -9,7 +9,6 @@ public interface URLResolver extends ExternalListener {
 		public String url;
 		public List<String> args;
 	}
-	
-	public URLResult urlResolve(String url);
 
+	public URLResult urlResolve(String url);
 }

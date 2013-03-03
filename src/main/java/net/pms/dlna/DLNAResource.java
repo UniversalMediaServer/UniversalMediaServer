@@ -2472,7 +2472,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public Object getAttachment(String key) {
 		return attachments == null ? null : attachments.get(key);
 	}
-	
+
 	public boolean isURLResolved() {
 		return false;
 	}
