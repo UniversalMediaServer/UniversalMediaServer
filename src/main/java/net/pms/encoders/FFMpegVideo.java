@@ -883,7 +883,7 @@ public class FFMpegVideo extends Player {
 	}
 
 	protected static List<String> parseOptions(String str) {
-		return str == null ? null : parseOptions(str, new ArrayList());
+		return str == null ? null : parseOptions(str, new ArrayList<String>());
 	}
 
 	protected static List<String> parseOptions(String str, List<String> cmdList) {
