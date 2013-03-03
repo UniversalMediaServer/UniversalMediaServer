@@ -245,16 +245,15 @@ public class GeneralTab {
 
 				try {
 					try (FileInputStream fis = new FileInputStream(conf)) {
-						BufferedReader in = new BufferedReader(new InputStreamReader(fis));
-						String line;
-						StringBuilder sb = new StringBuilder();
-
-						while ((line = in.readLine()) != null) {
-							sb.append(line);
-							sb.append("\n");
+						StringBuilder sb;
+						try (BufferedReader in = new BufferedReader(new InputStreamReader(fis))) {
+							String line;
+							sb = new StringBuilder();
+							while ((line = in.readLine()) != null) {
+								sb.append(line);
+								sb.append("\n");
+							}
 						}
-						
-						in.close();
 						textArea.setText(sb.toString());
 					}
 				} catch (Exception e1) {

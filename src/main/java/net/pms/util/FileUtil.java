@@ -251,15 +251,15 @@ public class FileUtil {
 	 */
 	public static String getFileCharset(File file) throws IOException {
 		byte[] buf = new byte[4096];
-		BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file));
-		final UniversalDetector universalDetector = new UniversalDetector(null);
-
-		int numberOfBytesRead;
-		while ((numberOfBytesRead = bufferedInputStream.read(buf)) > 0 && !universalDetector.isDone()) {
-			universalDetector.handleData(buf, 0, numberOfBytesRead);
+		final UniversalDetector universalDetector;
+		try (BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file))) {
+			universalDetector = new UniversalDetector(null);
+			int numberOfBytesRead;
+			while ((numberOfBytesRead = bufferedInputStream.read(buf)) > 0 && !universalDetector.isDone()) {
+				universalDetector.handleData(buf, 0, numberOfBytesRead);
+			}
 		}
-		bufferedInputStream.close();
-		
+
 		universalDetector.dataEnd();
 		String encoding = universalDetector.getDetectedCharset();
 

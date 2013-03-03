@@ -190,7 +190,7 @@ public class FFMpegVideo extends Player {
 					}
 				}
 			}
-			
+
 			if (subsOption != null) {
 				filterParams.append(subsOption);
 			}

@@ -48,6 +48,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	private final PmsConfiguration configuration;
 	private static List<String> protocols;
 	public static PatternMap<Object> excludes = new PatternMap<>();
+
 	public static PatternMap<ArrayList> autoOptions = new PatternMap<ArrayList>() {
 		private static final long serialVersionUID = 5225786297932747007L;
 
@@ -56,6 +57,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			return put(key, (ArrayList) parseOptions((String) value));
 		}
 	};
+
 	public static PatternMap<String> replacements = new PatternMap<>();
 	private static boolean init = false;
 

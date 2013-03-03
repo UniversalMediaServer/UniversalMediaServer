@@ -307,8 +307,7 @@ public class ExternalFactory {
 		}
 
 		try {
-			try (FileInputStream fis = new FileInputStream(purge)) {
-				BufferedReader in = new BufferedReader(new InputStreamReader(fis)); 
+			try (FileInputStream fis = new FileInputStream(purge); BufferedReader in = new BufferedReader(new InputStreamReader(fis))) { 
 				String line;
 
 				while ((line = in.readLine()) != null) {
@@ -321,7 +320,6 @@ public class ExternalFactory {
 						f.delete();
 					}
 				}
-				in.close();
 			}
 		} catch (Exception e) { }
 		purge.delete();

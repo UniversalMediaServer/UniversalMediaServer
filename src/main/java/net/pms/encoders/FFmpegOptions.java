@@ -8,10 +8,10 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.util.ProcessUtil;
 
 public class FFmpegOptions extends optionsHashMap {
-	// FFmpeg [global_options] {[input_file_options] -i ‘input_file’} ... {[output_file_options] ‘output_file’} ...
+	// ffmpeg [global_options] {[input_file_options] -i ‘input_file’} ... {[output_file_options] ‘output_file’} ...
 
 	private static final long serialVersionUID = -1283795835781170081L;
-	
+
 	// options that go in the 'global_options' slot
 	public static final List<String> globals = Arrays.asList(
 		// global options:
@@ -25,7 +25,7 @@ public class FFmpegOptions extends optionsHashMap {
 		"-debug_ts", "-intra", "-vdt", "-sameq", "-same_quant", "-deinterlace", "-psnr",
 		"-vstats", "-vstats_file", "-dc", "-qphist", "-vc", "-tvstd", "-isync"
 	);
-	
+
 	// options that go in the 'input_file_options' slot
 	public static final List<String> input_file_options = Arrays.asList(
 		// http options
@@ -60,7 +60,6 @@ public class FFmpegOptions extends optionsHashMap {
 	}
 
 	public void transferInputFileOptions(List<String> list) {
-
 		// check for CRLF in header fields
 		if (containsKey("-headers")) {
 			String headers = get("-headers");
