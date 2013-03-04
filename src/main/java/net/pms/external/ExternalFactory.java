@@ -499,6 +499,12 @@ public class ExternalFactory {
 		return s.startsWith("\"") && s.endsWith("\""); 
 	}
 	
+	private static String quote(String s) {
+		if(quoted(s))
+			return s;
+		return "\"" + s + "\"";
+	}
+	
 	public static URLResult resolveURL(String url) {
 		for (ExternalListener list : getExternalListeners()) {
 			if (list instanceof URLResolver) {
@@ -510,28 +516,21 @@ public class ExternalFactory {
 				if (res.args != null && res.args.size() > 0) {
 					// we got args...
 					// so return what we got
+					if(StringUtils.isNotEmpty(res.url)) {
+						res.url = quote(res.url);
+					}
 					return res;
 				}
 				if (StringUtils.isEmpty(res.url)) {
 					// take another resolver this is crap
 					continue;
 				}
-				String cmp = url;
-				if (quoted(res.url)) {
-					// the url has been quoted by the 
-					// resolver. If the orignal url was unquoted quote it
-					if (!quoted(url)) {
-						cmp = "\"" + url + "\"";
-					}
-				}
+				String cmp = quote(url);
+				res.url = quote(res.url);
 				if (cmp.equals(res.url)) {
 					// If the resolver returned the same url we already had
-					// (+ some quotes) we look for a better one
+					// (give or take some quotes) we look for a better one
 					continue;
-				}
-				if (!quoted(res.url)) {
-					// just to make sure....
-					res.url = "\"" + res.url + "\"";
 				}
 				return res;
 			}
