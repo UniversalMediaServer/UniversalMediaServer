@@ -626,7 +626,7 @@ public class FFMpegVideo extends Player {
 			 * Level 4.1-limited renderers like the PS3 can stutter when H.264 video exceeds
 			 * this bitrate
 			 */
-			if (renderer.isTranscodeToX264TSAC3()) {
+			if (renderer.isTranscodeToX264TSAC3() || videoRemux) {
 				if (
 					params.mediaRenderer.isH264Level41Limited() &&
 					defaultMaxBitrates[0] > 31250000
