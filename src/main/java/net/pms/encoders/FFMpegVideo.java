@@ -612,8 +612,12 @@ public class FFMpegVideo extends Player {
 				}
 			}
 
-			// Audio is always AC3 right now, so subtract the configured amount (usually 640)
-			defaultMaxBitrates[0] = defaultMaxBitrates[0] - configuration.getAudioBitrate();
+			// Make room for audio
+			if (dtsRemux) {
+				defaultMaxBitrates[0] = defaultMaxBitrates[0] - 1510;
+			} else {
+				defaultMaxBitrates[0] = defaultMaxBitrates[0] - configuration.getAudioBitrate();
+			}
 
 			// Round down to the nearest Mb
 			defaultMaxBitrates[0] = defaultMaxBitrates[0] / 1000 * 1000;
