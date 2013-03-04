@@ -669,7 +669,7 @@ public class FFMpegVideo extends Player {
 		}
 
 		// Add MPEG-2 quality settings
-		if (!renderer.isTranscodeToX264TSAC3()) {
+		if (!renderer.isTranscodeToX264TSAC3() && !videoRemux) {
 			String[] customOptions = StringUtils.split(configuration.getFfmpegSettings());
 			cmdList.addAll(new ArrayList<>(Arrays.asList(customOptions)));
 		}
