@@ -78,7 +78,6 @@ public class AviDemuxerInputStream extends InputStream {
 						while ((n = pin.read(b)) > -1) {
 							out.write(b, 0, n);
 						}
-						pin.close();
 					} catch (Exception e) {
 						LOGGER.error(null, e);
 					}
