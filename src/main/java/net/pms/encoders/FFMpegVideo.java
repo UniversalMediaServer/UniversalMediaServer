@@ -231,7 +231,7 @@ public class FFMpegVideo extends Player {
 
 			transcodeOptions.add("-f");
 			transcodeOptions.add("asf");
-		} else { // MPEGPSAC3, MPEGTSAC3 or X264TSAC3
+		} else { // MPEGPSAC3, MPEGTSAC3 or H264TSAC3
 			final boolean isTsMuxeRVideoEngineEnabled = configuration.getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
 
 			// Output audio codec
@@ -289,7 +289,7 @@ public class FFMpegVideo extends Player {
 				transcodeOptions.add("+genpts");
 
 				videoRemux = true;
-			} else if (renderer.isTranscodeToX264TSAC3()) {
+			} else if (renderer.isTranscodeToH264TSAC3()) {
 				transcodeOptions.add("-c:v");
 				transcodeOptions.add("libx264");
 				transcodeOptions.add("-crf");
@@ -305,7 +305,7 @@ public class FFMpegVideo extends Player {
 			transcodeOptions.add("-f");
 			if (dtsRemux) {
 				transcodeOptions.add("mpeg2video");
-			} else if (renderer.isTranscodeToMPEGTSAC3() || renderer.isTranscodeToX264TSAC3() || videoRemux) { // MPEGTSAC3
+			} else if (renderer.isTranscodeToMPEGTSAC3() || renderer.isTranscodeToH264TSAC3() || videoRemux) { // MPEGTSAC3
 				transcodeOptions.add("mpegts");
 			} else { // default: MPEGPSAC3
 				transcodeOptions.add("vob");
@@ -594,7 +594,7 @@ public class FFMpegVideo extends Player {
 
 			int bufSize = 1835;
 			// x264 uses different buffering math than MPEG-2
-			if (!renderer.isTranscodeToX264TSAC3()) {
+			if (!renderer.isTranscodeToH264TSAC3()) {
 				if (media.isHDVideo()) {
 					bufSize = defaultMaxBitrates[0] / 3;
 				}
@@ -630,7 +630,7 @@ public class FFMpegVideo extends Player {
 			 * Level 4.1-limited renderers like the PS3 can stutter when H.264 video exceeds
 			 * this bitrate
 			 */
-			if (renderer.isTranscodeToX264TSAC3() || videoRemux) {
+			if (renderer.isTranscodeToH264TSAC3() || videoRemux) {
 				if (
 					params.mediaRenderer.isH264Level41Limited() &&
 					defaultMaxBitrates[0] > 31250000
@@ -677,7 +677,7 @@ public class FFMpegVideo extends Player {
 		}
 
 		// Add MPEG-2 quality settings
-		if (!renderer.isTranscodeToX264TSAC3() && !videoRemux) {
+		if (!renderer.isTranscodeToH264TSAC3() && !videoRemux) {
 			String[] customOptions = StringUtils.split(configuration.getFfmpegSettings());
 			cmdList.addAll(new ArrayList<>(Arrays.asList(customOptions)));
 		}
