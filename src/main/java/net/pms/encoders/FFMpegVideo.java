@@ -584,11 +584,12 @@ public class FFMpegVideo extends Player {
 			rendererMaxBitrates = getVideoBitrateConfig(renderer.getMaxVideoBitrate());
 		}
 
+		// Give priority to the renderer's maximum bitrate setting over the user's setting
 		if ((defaultMaxBitrates[0] == 0 && rendererMaxBitrates[0] > 0) || rendererMaxBitrates[0] < defaultMaxBitrates[0] && rendererMaxBitrates[0] > 0) {
 			defaultMaxBitrates = rendererMaxBitrates;
 		}
 
-		if (params.mediaRenderer.getCBRVideoBitrate() == 0 && defaultMaxBitrates[0] > 0 && !videoRemux) {
+		if (params.mediaRenderer.getCBRVideoBitrate() == 0 && defaultMaxBitrates[0] > 0) {
 			// Convert value from Mb to Kb
 			defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
 
@@ -596,20 +597,23 @@ public class FFMpegVideo extends Player {
 			defaultMaxBitrates[0] = defaultMaxBitrates[0] / 2;
 
 			int bufSize = 1835;
-			if (media.isHDVideo()) {
-				bufSize = defaultMaxBitrates[0] / 3;
-			}
+			// x264 uses different buffering math than MPEG-2
+			if (!renderer.isTranscodeToX264TSAC3()) {
+				if (media.isHDVideo()) {
+					bufSize = defaultMaxBitrates[0] / 3;
+				}
 
-			if (bufSize > 7000) {
-				bufSize = 7000;
-			}
+				if (bufSize > 7000) {
+					bufSize = 7000;
+				}
 
-			if (defaultMaxBitrates[1] > 0) {
-				bufSize = defaultMaxBitrates[1];
-			}
+				if (defaultMaxBitrates[1] > 0) {
+					bufSize = defaultMaxBitrates[1];
+				}
 
-			if (params.mediaRenderer.isDefaultVBVSize() && rendererMaxBitrates[1] == 0) {
-				bufSize = 1835;
+				if (params.mediaRenderer.isDefaultVBVSize() && rendererMaxBitrates[1] == 0) {
+					bufSize = 1835;
+				}
 			}
 
 			// Audio is always AC3 right now, so subtract the configured amount (usually 640)
@@ -621,6 +625,20 @@ public class FFMpegVideo extends Player {
 			// FFmpeg uses bytes for inputs instead of kbytes like MEncoder
 			bufSize = bufSize * 1000;
 			defaultMaxBitrates[0] = defaultMaxBitrates[0] * 1000;
+
+			/**
+			 * Level 4.1-limited renderers like the PS3 can stutter when H.264 video exceeds
+			 * this bitrate
+			 */
+			if (renderer.isTranscodeToX264TSAC3()) {
+				if (
+					params.mediaRenderer.isH264Level41Limited() &&
+					defaultMaxBitrates[0] > 31250000
+				) {
+					defaultMaxBitrates[0] = 31250000;
+				}
+				bufSize = defaultMaxBitrates[0];
+			}
 
 			cmdList.add("-bufsize");
 			cmdList.add("" + bufSize);
