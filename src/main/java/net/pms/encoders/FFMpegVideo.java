@@ -501,6 +501,10 @@ public class FFMpegVideo extends Player {
 		if (params.timeseek > 0) {
 			cmdList.add("-ss");
 			cmdList.add("" + params.timeseek);
+			cmdList.add("-copypriorss");
+			cmdList.add("0");
+			cmdList.add("-avoid_negative_ts");
+			cmdList.add("1");
 		}
 
 		// decoder threads
