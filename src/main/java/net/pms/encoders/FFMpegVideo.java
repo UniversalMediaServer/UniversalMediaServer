@@ -661,6 +661,7 @@ public class FFMpegVideo extends Player {
 		if (!ac3Remux && !dtsRemux && !(type() == Format.AUDIO)) {
 			cmdList.add("-ab");
 			// Check if audio bitrate meets mp2 specification
+			// TODO: Is this needed?
 			if (!renderer.isTranscodeToMPEGPSAC3() && configuration.getAudioBitrate() <= 384) {
 				cmdList.add(configuration.getAudioBitrate() + "k");
 			} else {
