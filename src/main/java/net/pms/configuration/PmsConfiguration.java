@@ -110,6 +110,7 @@ public class PmsConfiguration {
 	private static final String KEY_FORCETRANSCODE = "forcetranscode";
 	private static final String KEY_FOLDER_LIMIT = "folder_limit";
 	private static final String KEY_GPU_ACCELERATION = "gpu_acceleration";
+	private static final String KEY_HIDE_ADVANCED_OPTIONS = "hide_advanced_options";
 	private static final String KEY_HIDE_EMPTY_FOLDERS = "hide_empty_folders";
 	private static final String KEY_HIDE_ENGINENAMES = "hide_enginenames";
 	private static final String KEY_HIDE_EXTENSIONS = "hide_extensions";
@@ -2346,6 +2347,14 @@ public class PmsConfiguration {
 
 	public void setItunesEnabled(boolean value) {
 		configuration.setProperty(KEY_ITUNES_ENABLED, value);
+	}
+
+	public boolean isHideAdvancedOptions() {
+		return getBoolean(PmsConfiguration.KEY_HIDE_ADVANCED_OPTIONS, true);
+	}
+
+	public void setHideAdvancedOptions(final boolean value) {
+		this.configuration.setProperty(PmsConfiguration.KEY_HIDE_ADVANCED_OPTIONS, value);
 	}
 
 	public boolean isHideEmptyFolders() {
