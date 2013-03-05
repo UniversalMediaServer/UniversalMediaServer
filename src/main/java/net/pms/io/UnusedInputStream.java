@@ -37,16 +37,19 @@ public abstract class UnusedInputStream extends InputStream {
 		processToTerminate.setReadyToStop(false);
 	}
 
+	@Override
 	public int available() throws IOException {
 		return inputStream.available();
 	}
 
+	@Override
 	public void close() throws IOException {
 		inputStream.close();
 		if (processToTerminate != null) {
 			processToTerminate.setReadyToStop(true);
 		}
 		Runnable checkEnd = new Runnable() {
+			@Override
 			public void run() {
 				try {
 					Thread.sleep(timeout);
@@ -66,18 +69,22 @@ public abstract class UnusedInputStream extends InputStream {
 		new Thread(checkEnd, "Process Reaper").start();
 	}
 
+	@Override
 	public int read() throws IOException {
 		return inputStream.read();
 	}
 
+	@Override
 	public int read(byte[] b, int off, int len) throws IOException {
 		return inputStream.read(b, off, len);
 	}
 
+	@Override
 	public long skip(long n) throws IOException {
 		return inputStream.skip(n);
 	}
 
+	@Override
 	public String toString() {
 		return inputStream.toString();
 	}

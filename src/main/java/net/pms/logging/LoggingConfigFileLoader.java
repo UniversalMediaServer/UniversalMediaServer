@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
  */
 public class LoggingConfigFileLoader {
 	private static String filepath = null;
-	private static HashMap<String, String> logFilePaths = new HashMap<String, String>(); // key=appender name, value, log file path
+	private static HashMap<String, String> logFilePaths = new HashMap<>(); // key=appender name, value, log file path
 
 	/**
 	 * Gets the full path of a successfully loaded Logback configuration file.
@@ -120,10 +120,7 @@ public class LoggingConfigFileLoader {
 			// Save the filepath after loading the file
 			filepath = file.getAbsolutePath();
 
-		} catch (JoranException je) {
-			// StatusPrinter will handle this
-			je.printStackTrace();
-		}
+		} catch (JoranException je) {}
 
 		for (Logger LOGGER : lc.getLoggerList()) {
 			Iterator<Appender<ILoggingEvent>> it = LOGGER.iteratorForAppenders();

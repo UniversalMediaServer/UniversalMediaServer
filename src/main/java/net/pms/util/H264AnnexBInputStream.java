@@ -11,7 +11,6 @@ public class H264AnnexBInputStream extends InputStream {
 	private int nextTarget;
 	private boolean firstHeader;
 	private byte header[];
-	//private int remaining;
 
 	public H264AnnexBInputStream(InputStream source, byte header[]) {
 		this.source = source;

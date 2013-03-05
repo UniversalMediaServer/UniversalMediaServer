@@ -329,16 +329,16 @@ public class PluginTab {
 				File f = configuration.getCredFile();
 
 				try {
-					FileInputStream fis = new FileInputStream(f);
-					BufferedReader in = new BufferedReader(new InputStreamReader(fis));
-					String line;
-					StringBuilder sb = new StringBuilder();
-					while ((line = in.readLine()) != null) {
-						sb.append(line);
-						sb.append("\n");
+					try (FileInputStream fis = new FileInputStream(f)) {
+						BufferedReader in = new BufferedReader(new InputStreamReader(fis));
+						String line;
+						StringBuilder sb = new StringBuilder();
+						while ((line = in.readLine()) != null) {
+							sb.append(line);
+							sb.append("\n");
+						}
+						textArea.setText(sb.toString());
 					}
-					textArea.setText(sb.toString());
-					fis.close();
 				} catch (Exception e1) {
 					return;
 				}
@@ -360,10 +360,10 @@ public class PluginTab {
 				) {
 					String text = textArea.getText();
 					try {
-						FileOutputStream fos = new FileOutputStream(f);
-						fos.write(text.getBytes());
-						fos.flush();
-						fos.close();
+						try (FileOutputStream fos = new FileOutputStream(f)) {
+							fos.write(text.getBytes());
+							fos.flush();
+						}
 						PMS.getConfiguration().reload();
 					} catch (Exception e1) {
 						JOptionPane.showMessageDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())), Messages.getString("NetworkTab.55") + e1.toString());
@@ -534,7 +534,7 @@ public class PluginTab {
 			ArrayList<String> usrPwd = null;
 
 			if (val instanceof String) {
-				usrPwd = new ArrayList<String>();
+				usrPwd = new ArrayList<>();
 				usrPwd.add((String) val);
 			} else if (val instanceof List<?>) {
 				usrPwd = (ArrayList<String>) val;

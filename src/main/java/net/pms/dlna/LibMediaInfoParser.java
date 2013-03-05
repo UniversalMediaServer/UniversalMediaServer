@@ -41,7 +41,7 @@ public class LibMediaInfoParser {
 		if (!media.isMediaparsed() && file != null && MI.isValid() && MI.Open(file.getAbsolutePath()) > 0) {
 			try {
 				String info = MI.Inform();
-				MediaInfo.StreamKind streamType = MediaInfo.StreamKind.General;
+				MediaInfo.StreamType streamType = MediaInfo.StreamType.General;
 				DLNAMediaAudio currentAudioTrack = new DLNAMediaAudio();
 				boolean audioPrepped = false;
 				DLNAMediaSubtitle currentSubTrack = new DLNAMediaSubtitle();
@@ -55,25 +55,25 @@ public class LibMediaInfoParser {
 
 						// Define the type of media
 						if (line.equals("Video") || line.startsWith("Video #")) {
-							streamType = MediaInfo.StreamKind.Video;
+							streamType = MediaInfo.StreamType.Video;
 						} else if (line.equals("Audio") || line.startsWith("Audio #")) {
 							if (audioPrepped) {
 								addAudio(currentAudioTrack, media);
 								currentAudioTrack = new DLNAMediaAudio();
 							}
 							audioPrepped = true;
-							streamType = MediaInfo.StreamKind.Audio;
+							streamType = MediaInfo.StreamType.Audio;
 						} else if (line.equals("Text") || line.startsWith("Text #")) {
 							if (subPrepped) {
 								addSub(currentSubTrack, media);
 								currentSubTrack = new DLNAMediaSubtitle();
 							}
 							subPrepped = true;
-							streamType = MediaInfo.StreamKind.Text;
+							streamType = MediaInfo.StreamType.Text;
 						} else if (line.equals("Menu") || line.startsWith("Menu #")) {
-							streamType = MediaInfo.StreamKind.Menu;
+							streamType = MediaInfo.StreamType.Menu;
 						} else if (line.equals("Chapters")) {
-							streamType = MediaInfo.StreamKind.Chapters;
+							streamType = MediaInfo.StreamType.Chapters;
 						}
 
 						int point = line.indexOf(":");
@@ -82,37 +82,37 @@ public class LibMediaInfoParser {
 							String ovalue = line.substring(point + 1).trim();
 							String value = ovalue.toLowerCase();
 							if (key.equals("Format") || key.startsWith("Format_Version") || key.startsWith("Format_Profile")) {
-								if (streamType == MediaInfo.StreamKind.Text) {
+								if (streamType == MediaInfo.StreamType.Text) {
 									// First attempt to detect subtitle track format
 									currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(value));
 								} else {
 									getFormat(streamType, media, currentAudioTrack, value, file);
 								}
-							} else if (key.equals("Duration/String1") && streamType == MediaInfo.StreamKind.General) {
+							} else if (key.equals("Duration/String1") && streamType == MediaInfo.StreamType.General) {
 								media.setDuration(getDuration(value));
-							} else if (key.equals("Format_Settings_QPel") && streamType == MediaInfo.StreamKind.Video) {
+							} else if (key.equals("Format_Settings_QPel") && streamType == MediaInfo.StreamType.Video) {
 								media.putExtra(FormatConfiguration.MI_QPEL, value);
-							} else if (key.equals("Format_Settings_GMC") && streamType == MediaInfo.StreamKind.Video) {
+							} else if (key.equals("Format_Settings_GMC") && streamType == MediaInfo.StreamType.Video) {
 								media.putExtra(FormatConfiguration.MI_GMC, value);
-							} else if (key.equals("MuxingMode") && streamType == MediaInfo.StreamKind.Video) {
+							} else if (key.equals("MuxingMode") && streamType == MediaInfo.StreamType.Video) {
 								media.setMuxingMode(ovalue);
 							} else if (key.equals("CodecID")) {
-								if (streamType == MediaInfo.StreamKind.Text) {
+								if (streamType == MediaInfo.StreamType.Text) {
 									// Second attempt to detect subtitle track format (CodecID usually is more accurate)
 									currentSubTrack.setType(SubtitleType.valueOfLibMediaInfoCodec(value));
 								} else {
 									getFormat(streamType, media, currentAudioTrack, value, file);
 								}
 							} else if (key.equals("Language/String")) {
-								if (streamType == MediaInfo.StreamKind.Audio) {
+								if (streamType == MediaInfo.StreamType.Audio) {
 									currentAudioTrack.setLang(getLang(value));
-								} else if (streamType == MediaInfo.StreamKind.Text) {
+								} else if (streamType == MediaInfo.StreamType.Text) {
 									currentSubTrack.setLang(getLang(value));
 								}
 							} else if (key.equals("Title")) {
-								if (streamType == MediaInfo.StreamKind.Audio) {
+								if (streamType == MediaInfo.StreamType.Audio) {
 									currentAudioTrack.setFlavor(getFlavor(value));
-								} else if (streamType == MediaInfo.StreamKind.Text) {
+								} else if (streamType == MediaInfo.StreamType.Text) {
 									currentSubTrack.setFlavor(getFlavor(value));
 								}
 							} else if (key.equals("Width")) {
@@ -130,65 +130,65 @@ public class LibMediaInfoParser {
 							} else if (key.equals("FrameRateMode")) {
 								media.setFrameRateMode(getFrameRateModeValue(value));
 							} else if (key.equals("OverallBitRate")) {
-								if (streamType == MediaInfo.StreamKind.General) {
+								if (streamType == MediaInfo.StreamType.General) {
 									media.setBitrate(getBitrate(value));
 								}
 							} else if (key.equals("Channel(s)")) {
-								if (streamType == MediaInfo.StreamKind.Audio) {
+								if (streamType == MediaInfo.StreamType.Audio) {
 									currentAudioTrack.getAudioProperties().setNumberOfChannels(value);
 								}
 							} else if (key.equals("BitRate")) {
-								if (streamType == MediaInfo.StreamKind.Audio) {
+								if (streamType == MediaInfo.StreamType.Audio) {
 									currentAudioTrack.setBitRate(getBitrate(value));
 								}
 							} else if (key.equals("SamplingRate")) {
-								if (streamType == MediaInfo.StreamKind.Audio) {
+								if (streamType == MediaInfo.StreamType.Audio) {
 									currentAudioTrack.setSampleFrequency(getSampleFrequency(value));
 								}
 							} else if (key.equals("ID/String")) {
 								// Special check for OGM: MediaInfo reports specific Audio/Subs IDs (0xn) while mencoder does not
 								if (value.contains("(0x") && !FormatConfiguration.OGG.equals(media.getContainer())) {
-									if (streamType == MediaInfo.StreamKind.Audio) {
+									if (streamType == MediaInfo.StreamType.Audio) {
 										currentAudioTrack.setId(getSpecificID(value));
-									} else if (streamType == MediaInfo.StreamKind.Text) {
+									} else if (streamType == MediaInfo.StreamType.Text) {
 										currentSubTrack.setId(getSpecificID(value));
 									}
 								} else {
-									if (streamType == MediaInfo.StreamKind.Audio) {
+									if (streamType == MediaInfo.StreamType.Audio) {
 										currentAudioTrack.setId(media.getAudioTracksList().size());
-									} else if (streamType == MediaInfo.StreamKind.Text) {
+									} else if (streamType == MediaInfo.StreamType.Text) {
 										currentSubTrack.setId(media.getSubtitleTracksList().size());
 									}
 								}
-							} else if (key.equals("Cover_Data") && streamType == MediaInfo.StreamKind.General) {
+							} else if (key.equals("Cover_Data") && streamType == MediaInfo.StreamType.General) {
 								media.setThumb(getCover(ovalue));
-							} else if (key.equals("Track") && streamType == MediaInfo.StreamKind.General) {
+							} else if (key.equals("Track") && streamType == MediaInfo.StreamType.General) {
 								currentAudioTrack.setSongname(ovalue);
-							} else if (key.equals("Album") && streamType == MediaInfo.StreamKind.General) {
+							} else if (key.equals("Album") && streamType == MediaInfo.StreamType.General) {
 								currentAudioTrack.setAlbum(ovalue);
-							} else if (key.equals("Performer") && streamType == MediaInfo.StreamKind.General) {
+							} else if (key.equals("Performer") && streamType == MediaInfo.StreamType.General) {
 								currentAudioTrack.setArtist(ovalue);
-							} else if (key.equals("Genre") && streamType == MediaInfo.StreamKind.General) {
+							} else if (key.equals("Genre") && streamType == MediaInfo.StreamType.General) {
 								currentAudioTrack.setGenre(ovalue);
-							} else if (key.equals("Recorded_Date") && streamType == MediaInfo.StreamKind.General) {
+							} else if (key.equals("Recorded_Date") && streamType == MediaInfo.StreamType.General) {
 								try {
 									currentAudioTrack.setYear(Integer.parseInt(value));
 								} catch (NumberFormatException nfe) {
 									LOGGER.debug("Could not parse year \"" + value + "\"");
 								}
-							} else if (key.equals("Track/Position") && streamType == MediaInfo.StreamKind.General) {
+							} else if (key.equals("Track/Position") && streamType == MediaInfo.StreamType.General) {
 								try {
 									currentAudioTrack.setTrack(Integer.parseInt(value));
 								} catch (NumberFormatException nfe) {
 									LOGGER.debug("Could not parse track \"" + value + "\"");
 								}
-							} else if (key.equals("BitDepth") && streamType == MediaInfo.StreamKind.Audio) {
+							} else if (key.equals("BitDepth") && streamType == MediaInfo.StreamType.Audio) {
 								try {
 									currentAudioTrack.setBitsperSample(Integer.parseInt(value));
 								} catch (NumberFormatException nfe) {
 									LOGGER.debug("Could not parse bits per sample \"" + value + "\"");
 								}
-							} else if (key.equals("Video_Delay") && streamType == MediaInfo.StreamKind.Audio) {
+							} else if (key.equals("Video_Delay") && streamType == MediaInfo.StreamType.Audio) {
 								try {
 									currentAudioTrack.getAudioProperties().setAudioDelay(value);
 								} catch (NumberFormatException nfe) {
@@ -247,11 +247,11 @@ public class LibMediaInfoParser {
 
 	@Deprecated
 	// FIXME this is obsolete (replaced by the private method below) and isn't called from anywhere outside this class
-	public static void getFormat(MediaInfo.StreamKind streamType, DLNAMediaInfo media, DLNAMediaAudio audio, String value) {
+	public static void getFormat(MediaInfo.StreamType streamType, DLNAMediaInfo media, DLNAMediaAudio audio, String value) {
 		getFormat(streamType, media, audio, value, null);
 	}
 
-	private static void getFormat(MediaInfo.StreamKind streamType, DLNAMediaInfo media, DLNAMediaAudio audio, String value, File file) {
+	private static void getFormat(MediaInfo.StreamType streamType, DLNAMediaInfo media, DLNAMediaAudio audio, String value, File file) {
 		String format = null;
 
 		if (value.equals("matroska")) {
@@ -367,11 +367,11 @@ public class LibMediaInfoParser {
 		}
 
 		if (format != null) {
-			if (streamType == MediaInfo.StreamKind.General) {
+			if (streamType == MediaInfo.StreamType.General) {
 				media.setContainer(format);
-			} else if (streamType == MediaInfo.StreamKind.Video) {
+			} else if (streamType == MediaInfo.StreamType.Video) {
 				media.setCodecV(format);
-			} else if (streamType == MediaInfo.StreamKind.Audio) {
+			} else if (streamType == MediaInfo.StreamType.Audio) {
 				audio.setCodecA(format);
 			}
 		}

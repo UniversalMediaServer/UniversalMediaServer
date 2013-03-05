@@ -5,8 +5,10 @@ import java.io.IOException;
 import java.io.StringReader;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 /**
  * @deprecated This package is a copy of a third-party library (xmlwise). Future releases will use the original library.
@@ -75,7 +77,7 @@ public class Xmlwise {
 			documentBuilderFactory.setValidating(validate);
 			DocumentBuilder builder = documentBuilderFactory.newDocumentBuilder();
 			return builder.parse(new InputSource(new StringReader(xml)));
-		} catch (Exception e) {
+		} catch (IllegalArgumentException | ParserConfigurationException | SAXException | IOException e) {
 			throw new XmlParseException(e);
 		}
 	}

@@ -93,8 +93,7 @@ public class HelpTab {
 					if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
 						String urlString = event.getURL().toExternalForm();
 
-						if (urlString.startsWith("http://") || urlString.startsWith("https://")
-							|| urlString.startsWith("ftp://")) {
+						if (urlString.startsWith("http://") || urlString.startsWith("https://") || urlString.startsWith("ftp://")) {
 							// Open external links in the desktop web browser
 							URI uri = new URI(urlString);
 							Desktop.getDesktop().browse(uri);
@@ -103,17 +102,13 @@ public class HelpTab {
 							editorPane.setPage(event.getURL());
 						}
 					}
-				} catch (IOException e) {
-					LOGGER.debug("Caught exception", e);
-				} catch (URISyntaxException e) {
+				} catch (IOException | URISyntaxException e) {
 					LOGGER.debug("Caught exception", e);
 				}
 			}
 		});
 
-		JScrollPane pane = new JScrollPane(editorPane,
-			JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		JScrollPane pane = new JScrollPane(editorPane, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		pane.setPreferredSize(new Dimension(500, 400));
 		pane.setBorder(BorderFactory.createEmptyBorder());
 		builder.add(pane, cc.xy(2, 2));

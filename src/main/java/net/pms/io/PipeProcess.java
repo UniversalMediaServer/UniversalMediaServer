@@ -22,7 +22,6 @@ import com.sun.jna.Platform;
 import java.io.*;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -95,9 +95,7 @@ public class MEncoderWebVideo extends Player {
 		String cmdArray[] = new String[args().length + 4];
 		cmdArray[0] = executable();
 		cmdArray[1] = fileName;
-		for (int i = 0; i < args().length; i++) {
-			cmdArray[i + 2] = args()[i];
-		}
+		System.arraycopy(args(), 0, cmdArray, 2, args().length);
 		cmdArray[cmdArray.length - 2] = "-o";
 		cmdArray[cmdArray.length - 1] = pipe.getInputPipe();
 

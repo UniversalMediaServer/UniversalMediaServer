@@ -19,6 +19,7 @@
 package net.pms.dlna;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -92,7 +93,7 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 	@Override
 	public boolean isValid() {
 		checktype();
-		setSrtFile(FileUtil.doesSubtitlesExists(file, null));
+		setSrtFile(FileUtil.isSubtitlesExists(file, null));
 		return getFormat() != null;
 	}
 
@@ -141,7 +142,7 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 							return data.length;
 						}
 					});
-				} catch (Exception e) {
+				} catch (FileNotFoundException | SevenZipException e) {
 					LOGGER.debug("Unpack error. Possibly harmless.", e.getMessage());
 				} finally {
 					try {

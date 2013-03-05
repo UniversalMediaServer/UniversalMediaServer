@@ -52,7 +52,7 @@ public class RAW extends JPG {
 
 	@Override
 	public ArrayList<Class<? extends Player>> getProfiles() {
-		ArrayList<Class<? extends Player>> profiles = new ArrayList<Class<? extends Player>>();
+		ArrayList<Class<? extends Player>> profiles = new ArrayList<>();
 		for (String engine : configuration.getEnginesAsList(PMS.get().getRegistry())) {
 			if (engine.equals(RAWThumbnailer.ID)) {
 				profiles.add(RAWThumbnailer.class);

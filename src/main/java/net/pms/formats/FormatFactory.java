@@ -44,7 +44,7 @@ public final class FormatFactory {
 	/**
 	 * The list of registered formats.
 	 */
-	private static ArrayList<Format> formats = new ArrayList<Format>(Arrays.asList(FORMATS));
+	private static ArrayList<Format> formats = new ArrayList<>(Arrays.asList(FORMATS));
 	
 	/**
 	 * This class is not meant to be instantiated.

@@ -22,7 +22,6 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-import com.sun.jna.Platform;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -43,6 +42,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.InputFile;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
@@ -74,7 +74,15 @@ import org.slf4j.LoggerFactory;
 public class FFMpegVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
 	private static final String DEFAULT_QSCALE = "3";
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	private final PmsConfiguration configuration;
+	
+	public FFMpegVideo() {
+		this.configuration = PMS.getConfiguration();
+	}
+	
+	public FFMpegVideo(PmsConfiguration configuration) {
+		this.configuration = configuration;
+	}
 
 	// FIXME we have an id() accessor for this; no need for the field to be public
 	@Deprecated
@@ -92,19 +100,20 @@ public class FFMpegVideo extends Player {
 	 * or an empty list if the video doesn't need to be resized.
 	 */
 	public List<String> getVideoFilterOptions(RendererConfiguration renderer, DLNAMediaInfo media, OutputParams params) throws IOException {
-		List<String> videoFilterOptions = new ArrayList<String>();
+		List<String> videoFilterOptions = new ArrayList<>();
 		String subsOption = null;
+		String padding = null;
 
 		boolean isResolutionTooHighForRenderer = renderer.isVideoRescale() && // renderer defines a max width/height
-			(media != null) &&
+			(media != null && media.isMediaparsed()) &&
 			(
 				(media.getWidth() > renderer.getMaxVideoWidth()) ||
 				(media.getHeight() > renderer.getMaxVideoHeight())
 			);
 
-		if (params.sid != null && !configuration.isMencoderDisableSubs() && params.sid.isExternal()) {
+		if (params.sid != null && !configuration.isDisableSubtitles() && params.sid.isExternal()) {
 			String externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getAbsolutePath());
-			StringBuilder s = new StringBuilder(externalSubtitlesFileName.length());
+			StringBuilder s = new StringBuilder();
 			CharacterIterator it = new StringCharacterIterator(externalSubtitlesFileName);
 
 			for (char ch = it.first(); ch != CharacterIterator.DONE; ch = it.next()) {
@@ -134,9 +143,19 @@ public class FFMpegVideo extends Player {
 			}
 		}
 
+		if (renderer.isKeepAspectRatio() && renderer.isRescaleByRenderer()) {
+			
+			if (media != null && media.isMediaparsed() && media.getHeight() != 0 &&
+				(media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
+				padding = "pad=iw:iw/(16/9):0:(oh-ih)/2";
+			} else {
+				padding = "pad=ih*(16/9):ih:(ow-iw)/2:0";
+			}
+		}
+
 		String rescaleSpec = null;
 
-		if (isResolutionTooHighForRenderer) {
+		if (isResolutionTooHighForRenderer || (renderer.isKeepAspectRatio() && !renderer.isRescaleByRenderer())) {
 			rescaleSpec = String.format(
 				// http://stackoverflow.com/a/8351875
 				"scale=iw*min(%1$d/iw\\,%2$d/ih):ih*min(%1$d/iw\\,%2$d/ih),pad=%1$d:%2$d:(%1$d-iw)/2:(%2$d-ih)/2",
@@ -144,18 +163,31 @@ public class FFMpegVideo extends Player {
 				renderer.getMaxVideoHeight()
 			);
 		}
+		
+		String overrideVF = renderer.getFFmpegVideoFilterOverride();
 
-		if (subsOption != null || rescaleSpec != null) {
+		if (rescaleSpec != null || padding != null || overrideVF != null || subsOption != null) {
 			videoFilterOptions.add("-vf");
 			StringBuilder filterParams = new StringBuilder();
-			if (Platform.isWindows()) {
-				filterParams.append("\"");
-			}
-
-			if (rescaleSpec != null) {
-				filterParams.append(rescaleSpec);
+			
+			if (overrideVF != null) {
+				filterParams.append(overrideVF);
 				if (subsOption != null) {
 					filterParams.append(", ");
+				}
+			} else {
+				if (rescaleSpec != null) {
+					filterParams.append(rescaleSpec);
+					if (subsOption != null || padding != null) {
+						filterParams.append(", ");
+					}
+				}
+
+				if (padding != null && rescaleSpec == null) {
+					filterParams.append(padding);
+					if (subsOption != null) {
+						filterParams.append(", ");
+					}
 				}
 			}
 
@@ -163,28 +195,32 @@ public class FFMpegVideo extends Player {
 				filterParams.append(subsOption);
 			}
 
-			if (Platform.isWindows()) {
-				filterParams.append("\"");
-			}
 			videoFilterOptions.add(filterParams.toString());
 		}
 
 		return videoFilterOptions;
 	}
 
+	@Deprecated
+	public List<String> getTranscodeVideoOptions(RendererConfiguration renderer, DLNAMediaInfo media, OutputParams params) {
+		return getTranscodeVideoOptions(renderer, media, params, null);
+	}
+
 	/**
-	 * Takes a renderer and returns a list of <code>String</code>s representing ffmpeg output options
+	 * Takes a renderer and returns a list of <code>String</code>s representing FFmpeg output options
 	 * (i.e. options that define the output file's video codec, audio codec and container)
 	 * compatible with the renderer's <code>TranscodeVideo</code> profile.
 	 *
 	 * @param renderer The {@link RendererConfiguration} instance whose <code>TranscodeVideo</code> profile is to be processed.
 	 * @param media the media metadata for the video being streamed. May contain unset/null values (e.g. for web videos).
 	 * @param params output parameters
-	 * @return a {@link List} of <code>String</code>s representing the ffmpeg output parameters for the renderer according
+	 * @param fileName the name of the file
+	 *
+	 * @return a {@link List} of <code>String</code>s representing the FFmpeg output parameters for the renderer according
 	 * to its <code>TranscodeVideo</code> profile.
 	 */
-	public List<String> getTranscodeVideoOptions(RendererConfiguration renderer, DLNAMediaInfo media, OutputParams params) {
-		List<String> transcodeOptions = new ArrayList<String>();
+	public List<String> getTranscodeVideoOptions(RendererConfiguration renderer, DLNAMediaInfo media, OutputParams params, String fileName) {
+		List<String> transcodeOptions = new ArrayList<>();
 
 		if (renderer.isTranscodeToWMV()) { // WMV
 			transcodeOptions.add("-c:v");
@@ -195,7 +231,7 @@ public class FFMpegVideo extends Player {
 
 			transcodeOptions.add("-f");
 			transcodeOptions.add("asf");
-		} else { // MPEGPSAC3 or MPEGTSAC3
+		} else { // MPEGPSAC3, MPEGTSAC3 or H264TSAC3
 			final boolean isTsMuxeRVideoEngineEnabled = configuration.getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
 
 			// Output audio codec
@@ -222,20 +258,57 @@ public class FFMpegVideo extends Player {
 				}
 			}
 
+			InputFile newInput = null;
+			if (fileName != null) {
+				newInput = new InputFile();
+				newInput.setFilename(fileName);
+				newInput.setPush(params.stdin);
+			}
+
+			// Output video codec
+			if (
+				media.isMediaparsed() &&
+				params.sid == null &&
+				!avisynth() &&
+				(
+					(
+						newInput != null &&
+						media.isVideoWithinH264LevelLimits(newInput, params.mediaRenderer)
+					) ||
+					!params.mediaRenderer.isH264Level41Limited()
+				) &&
+				media.isMuxable(params.mediaRenderer) &&
+				configuration.isMencoderMuxWhenCompatible() &&
+				params.mediaRenderer.isMuxH264MpegTS()
+			) {
+				transcodeOptions.add("-c:v");
+				transcodeOptions.add("copy");
+				transcodeOptions.add("-bsf");
+				transcodeOptions.add("h264_mp4toannexb");
+				transcodeOptions.add("-fflags");
+				transcodeOptions.add("+genpts");
+
+				videoRemux = true;
+			} else if (renderer.isTranscodeToH264TSAC3()) {
+				transcodeOptions.add("-c:v");
+				transcodeOptions.add("libx264");
+				transcodeOptions.add("-crf");
+				transcodeOptions.add("20");
+				transcodeOptions.add("-preset");
+				transcodeOptions.add("superfast");
+			} else if (!dtsRemux) {
+				transcodeOptions.add("-c:v");
+				transcodeOptions.add("mpeg2video");
+			}
+
 			// Output file format
 			transcodeOptions.add("-f");
 			if (dtsRemux) {
 				transcodeOptions.add("mpeg2video");
-			} else if (renderer.isTranscodeToMPEGTSAC3()) { // MPEGTSAC3
+			} else if (renderer.isTranscodeToMPEGTSAC3() || renderer.isTranscodeToH264TSAC3() || videoRemux) { // MPEGTSAC3
 				transcodeOptions.add("mpegts");
 			} else { // default: MPEGPSAC3
 				transcodeOptions.add("vob");
-			}
-
-			// Output video codec
-			if (!dtsRemux) {
-				transcodeOptions.add("-c:v");
-				transcodeOptions.add("mpeg2video");
 			}
 		}
 
@@ -251,7 +324,7 @@ public class FFMpegVideo extends Player {
 	 * @return a {@link List} of <code>String</code>s representing the video bitrate options for this transcode
 	 */
 	public List<String> getVideoBitrateOptions(RendererConfiguration renderer, DLNAMediaInfo media) { // media is currently unused
-		List<String> videoBitrateOptions = new ArrayList<String>();
+		List<String> videoBitrateOptions = new ArrayList<>();
 		String sMaxVideoBitrate = renderer.getMaxVideoBitrate(); // currently Mbit/s
 		int iMaxVideoBitrate = 0;
 
@@ -286,7 +359,7 @@ public class FFMpegVideo extends Player {
 	 * @return a {@link List} of <code>String</code>s representing the audio bitrate options for this transcode
 	 */
 	public List<String> getAudioBitrateOptions(RendererConfiguration renderer, DLNAMediaInfo media) {
-		List<String> audioBitrateOptions = new ArrayList<String>();
+		List<String> audioBitrateOptions = new ArrayList<>();
 
 		audioBitrateOptions.add("-q:a");
 		audioBitrateOptions.add(DEFAULT_QSCALE);
@@ -296,6 +369,7 @@ public class FFMpegVideo extends Player {
 
 	protected boolean dtsRemux;
 	protected boolean ac3Remux;
+	protected boolean videoRemux;
 
 	@Override
 	public int purpose() {
@@ -339,10 +413,10 @@ public class FFMpegVideo extends Player {
 	// unused; return this array for backwards-compatibility
 	@Deprecated
 	protected String[] getDefaultArgs() {
-		List<String> defaultArgsList = new ArrayList<String>();
+		List<String> defaultArgsList = new ArrayList<>();
 
 		defaultArgsList.add("-loglevel");
-		defaultArgsList.add("fatal");
+		defaultArgsList.add("warning");
 
 		String[] defaultArgsArray = new String[defaultArgsList.size()];
 		defaultArgsList.toArray(defaultArgsArray);
@@ -376,17 +450,6 @@ public class FFMpegVideo extends Player {
 		return getDefaultArgs(); // unused; return this array for for backwards compatibility
 	}
 
-	private List<String> getCustomArgs() {
-		String customOptionsString = configuration.getFfmpegSettings();
-
-		if (StringUtils.isNotBlank(customOptionsString)) {
-			LOGGER.debug("Custom ffmpeg output options: {}", customOptionsString);
-		}
-
-		String[] customOptions = StringUtils.split(customOptionsString);
-		return new ArrayList<String>(Arrays.asList(customOptions));
-	}
-
 	// XXX hardwired to false and not referenced anywhere else in the codebase
 	@Deprecated
 	public boolean mplayer() {
@@ -404,6 +467,11 @@ public class FFMpegVideo extends Player {
 	}
 
 	@Override
+	public boolean isGPUAccelerationReady() {
+		return false;
+	}
+
+	@Override
 	public ProcessWrapper launchTranscode(
 		String fileName,
 		DLNAResource dlna,
@@ -411,7 +479,7 @@ public class FFMpegVideo extends Player {
 		OutputParams params
 	) throws IOException {
 		int nThreads = configuration.getNumberOfCpuCores();
-		List<String> cmdList = new ArrayList<String>();
+		List<String> cmdList = new ArrayList<>();
 		RendererConfiguration renderer = params.mediaRenderer;
 		setAudioAndSubs(fileName, media, params, configuration);
 
@@ -423,7 +491,12 @@ public class FFMpegVideo extends Player {
 		cmdList.add("-y");
 
 		cmdList.add("-loglevel");
-		cmdList.add("warning");
+		
+		if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
+			cmdList.add("info"); // Could be changed to "verbose" or "debug" if "info" level is not enough
+		} else {
+			cmdList.add("warning");
+		}
 
 		if (params.timeseek > 0) {
 			cmdList.add("-ss");
@@ -439,7 +512,7 @@ public class FFMpegVideo extends Player {
 		ac3Remux = false;
 		dtsRemux = false;
 
-		if (configuration.isRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && params.mediaRenderer.isTranscodeToAC3()) {
+		if (configuration.isRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && renderer.isTranscodeToAC3()) {
 			// AC-3 remux takes priority
 			ac3Remux = true;
 		} else {
@@ -452,13 +525,8 @@ public class FFMpegVideo extends Player {
 				params.mediaRenderer.isDTSPlayable();
 		}
 
-		String frameRateRatio = null;
-		String frameRateNumber = null;
-
-		if (media != null) {
-			frameRateRatio = media.getValidFps(true);
-			frameRateNumber = media.getValidFps(false);
-		}
+		String frameRateRatio = media.getValidFps(true);
+		String frameRateNumber = media.getValidFps(false);
 
 		// Input filename
 		cmdList.add("-i");
@@ -512,6 +580,7 @@ public class FFMpegVideo extends Player {
 			rendererMaxBitrates = getVideoBitrateConfig(renderer.getMaxVideoBitrate());
 		}
 
+		// Give priority to the renderer's maximum bitrate setting over the user's setting
 		if ((defaultMaxBitrates[0] == 0 && rendererMaxBitrates[0] > 0) || rendererMaxBitrates[0] < defaultMaxBitrates[0] && rendererMaxBitrates[0] > 0) {
 			defaultMaxBitrates = rendererMaxBitrates;
 		}
@@ -524,24 +593,31 @@ public class FFMpegVideo extends Player {
 			defaultMaxBitrates[0] = defaultMaxBitrates[0] / 2;
 
 			int bufSize = 1835;
-			if (media.isHDVideo()) {
-				bufSize = defaultMaxBitrates[0] / 3;
+			// x264 uses different buffering math than MPEG-2
+			if (!renderer.isTranscodeToH264TSAC3()) {
+				if (media.isHDVideo()) {
+					bufSize = defaultMaxBitrates[0] / 3;
+				}
+
+				if (bufSize > 7000) {
+					bufSize = 7000;
+				}
+
+				if (defaultMaxBitrates[1] > 0) {
+					bufSize = defaultMaxBitrates[1];
+				}
+
+				if (params.mediaRenderer.isDefaultVBVSize() && rendererMaxBitrates[1] == 0) {
+					bufSize = 1835;
+				}
 			}
 
-			if (bufSize > 7000) {
-				bufSize = 7000;
+			// Make room for audio
+			if (dtsRemux) {
+				defaultMaxBitrates[0] = defaultMaxBitrates[0] - 1510;
+			} else {
+				defaultMaxBitrates[0] = defaultMaxBitrates[0] - configuration.getAudioBitrate();
 			}
-
-			if (defaultMaxBitrates[1] > 0) {
-				bufSize = defaultMaxBitrates[1];
-			}
-
-			if (params.mediaRenderer.isDefaultVBVSize() && rendererMaxBitrates[1] == 0) {
-				bufSize = 1835;
-			}
-
-			// Audio is always AC3 right now, so subtract the configured amount (usually 640)
-			defaultMaxBitrates[0] = defaultMaxBitrates[0] - configuration.getAudioBitrate();
 
 			// Round down to the nearest Mb
 			defaultMaxBitrates[0] = defaultMaxBitrates[0] / 1000 * 1000;
@@ -549,6 +625,20 @@ public class FFMpegVideo extends Player {
 			// FFmpeg uses bytes for inputs instead of kbytes like MEncoder
 			bufSize = bufSize * 1000;
 			defaultMaxBitrates[0] = defaultMaxBitrates[0] * 1000;
+
+			/**
+			 * Level 4.1-limited renderers like the PS3 can stutter when H.264 video exceeds
+			 * this bitrate
+			 */
+			if (renderer.isTranscodeToH264TSAC3() || videoRemux) {
+				if (
+					params.mediaRenderer.isH264Level41Limited() &&
+					defaultMaxBitrates[0] > 31250000
+				) {
+					defaultMaxBitrates[0] = 31250000;
+				}
+				bufSize = defaultMaxBitrates[0];
+			}
 
 			cmdList.add("-bufsize");
 			cmdList.add("" + bufSize);
@@ -568,9 +658,10 @@ public class FFMpegVideo extends Player {
 		LOGGER.trace("channels=" + channels);
 
 		// Audio bitrate
-		if (!(params.aid != null && params.aid.isAC3() && !ac3Remux) && !(type() == Format.AUDIO)) {
+		if (!ac3Remux && !dtsRemux && !(type() == Format.AUDIO)) {
 			cmdList.add("-ab");
 			// Check if audio bitrate meets mp2 specification
+			// TODO: Is this needed?
 			if (!renderer.isTranscodeToMPEGPSAC3() && configuration.getAudioBitrate() <= 384) {
 				cmdList.add(configuration.getAudioBitrate() + "k");
 			} else {
@@ -578,20 +669,29 @@ public class FFMpegVideo extends Player {
 			}
 		}
 
-		// add custom args
-		cmdList.addAll(getCustomArgs());
+		if (params.timeseek > 0) {
+			cmdList.add("-copypriorss");
+			cmdList.add("0");
+			cmdList.add("-avoid_negative_ts");
+			cmdList.add("1");
+		}
 
-		// add the output options (-f, -acodec, -vcodec)
-		cmdList.addAll(getTranscodeVideoOptions(renderer, media, params));
-		
-		// add custom options
-		if (StringUtils.isNotEmpty(renderer.getCustomFFMpegOptions())) {
-			parseOptions(renderer.getCustomFFMpegOptions(), cmdList);
+		// Add MPEG-2 quality settings
+		if (!renderer.isTranscodeToH264TSAC3() && !videoRemux) {
+			String[] customOptions = StringUtils.split(configuration.getFfmpegSettings());
+			cmdList.addAll(new ArrayList<>(Arrays.asList(customOptions)));
+		}
+
+		// Add the output options (-f, -acodec, -vcodec)
+		cmdList.addAll(getTranscodeVideoOptions(renderer, media, params, fileName));
+
+		// Add custom options
+		if (StringUtils.isNotEmpty(renderer.getCustomFFmpegOptions())) {
+			parseOptions(renderer.getCustomFFmpegOptions(), cmdList);
 		}
 
 		if (!dtsRemux) {
 			cmdList.add("pipe:");
-
 		}
 
 		String[] cmdArray = new String[cmdList.size()];
@@ -682,34 +782,33 @@ public class FFMpegVideo extends Player {
 			ProcessWrapperImpl ffAudio = new ProcessWrapperImpl(ffmpegLPCMextract, ffaudioparams);
 
 			params.stdin = null;
+			try (PrintWriter pwMux = new PrintWriter(f)) {
+				pwMux.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
+				String videoType = "V_MPEG-2";
 
-			PrintWriter pwMux = new PrintWriter(f);
-			pwMux.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
-			String videoType = "V_MPEG-2";
-
-			if (params.no_videoencode && params.forceType != null) {
-				videoType = params.forceType;
-			}
-
-			String fps = "";
-			if (params.forceFps != null) {
-				fps = "fps=" + params.forceFps + ", ";
-			}
-
-			String audioType = "A_AC3";
-			if (dtsRemux) {
-				if (params.mediaRenderer.isMuxDTSToMpeg()) {
-					// Renderer can play proper DTS track
-					audioType = "A_DTS";
-				} else {
-					// DTS padded in LPCM trick
-					audioType = "A_LPCM";
+				if (params.no_videoencode && params.forceType != null) {
+					videoType = params.forceType;
 				}
-			}
 
-			pwMux.println(videoType + ", \"" + ffVideoPipe.getOutputPipe() + "\", " + fps + "level=4.1, insertSEI, contSPS, track=1");
-			pwMux.println(audioType + ", \"" + ffAudioPipe.getOutputPipe() + "\", track=2");
-			pwMux.close();
+				String fps = "";
+				if (params.forceFps != null) {
+					fps = "fps=" + params.forceFps + ", ";
+				}
+
+				String audioType = "A_AC3";
+				if (dtsRemux) {
+					if (params.mediaRenderer.isMuxDTSToMpeg()) {
+						// Renderer can play proper DTS track
+						audioType = "A_DTS";
+					} else {
+						// DTS padded in LPCM trick
+						audioType = "A_LPCM";
+					}
+				}
+
+				pwMux.println(videoType + ", \"" + ffVideoPipe.getOutputPipe() + "\", " + fps + "level=4.1, insertSEI, contSPS, track=1");
+				pwMux.println(audioType + ", \"" + ffAudioPipe.getOutputPipe() + "\", track=2");
+			}
 
 			ProcessWrapper pipe_process = pipe.getPipeProcess();
 			pw.attachProcess(pipe_process);
@@ -812,25 +911,28 @@ public class FFMpegVideo extends Player {
 
 		return false;
 	}
-	
-	protected void parseOptions(String str, List<String> cmdList) {
+
+	protected static List<String> parseOptions(String str) {
+		return str == null ? null : parseOptions(str, new ArrayList<String>());
+	}
+
+	protected static List<String> parseOptions(String str, List<String> cmdList) {
 		while (str.length() > 0) {
 			if (str.charAt(0) == '\"') {
 				int pos = str.indexOf("\"", 1);
 				if (pos == -1) {
-					// no ", error
+					// No ", error
 					break;
 				}
 				String tmp = str.substring(1, pos);
 				cmdList.add(tmp.trim());
 				str = str.substring(pos + 1);
 				continue;
-			}
-			else {
-				// new arg, find space
+			} else {
+				// New arg, find space
 				int pos = str.indexOf(" ");
 				if (pos == -1) {
-					// no space, we're done
+					// No space, we're done
 					cmdList.add(str);
 					break;
 				}
@@ -840,5 +942,6 @@ public class FFMpegVideo extends Player {
 				continue;
 			}
 		}
+		return cmdList;
 	}
 }

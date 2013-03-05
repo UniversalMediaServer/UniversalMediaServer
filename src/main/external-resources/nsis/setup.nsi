@@ -111,7 +111,7 @@ Function AdvancedSettings
 	${NSD_CreateText} 3% 30% 10% 12u "768"
 	Pop $Text
 
-	${NSD_CreateLabel} 0 50% 100% 20u "This replaces your current configuration files with new ones, allowing you to take advantage of improved defaults. This will delete all files in the UMS configuration directory."
+	${NSD_CreateLabel} 0 50% 100% 20u "This replaces your current configuration and deletes MPlayer's font cache, allowing you to take advantage of improved defaults. This deletes UMS configuration directory."
 	Pop $DescCleanInstall
 
 	${NSD_CreateCheckbox} 3% 65% 100% 12u "Clean install"
@@ -128,6 +128,7 @@ Function AdvancedSettingsAfterwards
 	${If} $CheckboxCleanInstallState == ${BST_CHECKED}
 		ReadENVStr $R1 ALLUSERSPROFILE
 		RMDir /r $R1\UMS
+		RMDir /r $TEMP\fontconfig
 	${EndIf}
 FunctionEnd
 
@@ -161,6 +162,7 @@ Section "Program Files"
   SetOverwrite off
   File "${PROJECT_BASEDIR}\src\main\external-resources\UMS.conf"
   File "${PROJECT_BASEDIR}\src\main\external-resources\WEB.conf"
+  File "${PROJECT_BASEDIR}\src\main\external-resources\ffmpeg.webfilters"
 
   ;Store install folder
   WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "" $INSTDIR
@@ -187,6 +189,7 @@ Section "Program Files"
   AccessControl::GrantOnFile "$INSTDIR\data" "(BU)" "FullAccess"
   File "${PROJECT_BASEDIR}\src\main\external-resources\UMS.conf"
   File "${PROJECT_BASEDIR}\src\main\external-resources\WEB.conf"
+  File "${PROJECT_BASEDIR}\src\main\external-resources\ffmpeg.webfilters"
 SectionEnd
 
 Section "Start Menu Shortcuts"
@@ -195,7 +198,14 @@ Section "Start Menu Shortcuts"
   CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
   CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\${PROJECT_NAME} (Select Profile).lnk" "$INSTDIR\UMS.exe" "profiles" "$INSTDIR\UMS.exe" 0
   CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}\Uninstall.lnk" "$INSTDIR\uninst.exe" "" "$INSTDIR\uninst.exe" 0
-  CreateShortCut "$SMSTARTUP\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
+
+  ; Only start UMS with Windows when it is a new install
+  IfFileExists "$SMPROGRAMS\${PROJECT_NAME}.lnk" 0 shortcut_file_not_found
+    goto end_of_startup_section
+  shortcut_file_not_found:
+    CreateShortCut "$SMSTARTUP\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
+  end_of_startup_section:
+
   CreateShortCut "$SMPROGRAMS\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe" "" "$INSTDIR\UMS.exe" 0
 SectionEnd
 

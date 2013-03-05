@@ -37,6 +37,7 @@ public class InputFile {
 	/**
 	 * Return the string representation of this InputFile.
 	 */
+	@Override
 	public String toString() {
 		if (file != null) {
 			return file.getName();

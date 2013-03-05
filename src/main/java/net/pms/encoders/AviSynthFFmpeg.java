@@ -56,7 +56,11 @@ import org.slf4j.LoggerFactory;
 public class AviSynthFFmpeg extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AviSynthFFmpeg.class);
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
-	public static final String ID      = "avsffmpeg";
+	public static final String ID = "avsffmpeg";
+	
+	public AviSynthFFmpeg() {
+		super(PMS.getConfiguration());
+	}
 
 	@Override
 	public String id() {
@@ -87,6 +91,11 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 		return config("NetworkTab.5");
 	}
 
+	@Override
+	public boolean isGPUAccelerationReady() {
+		return true;
+	}
+
 	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack) throws IOException {
 		return getAVSScript(fileName, subTrack, -1, -1, null, null);
 	}
@@ -97,138 +106,132 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack, int fromFrame, int toFrame, String frameRateRatio, String frameRateNumber) throws IOException {
 		String onlyFileName = fileName.substring(1 + fileName.lastIndexOf("\\"));
 		File file = new File(configuration.getTempFolder(), "pms-avs-" + onlyFileName + ".avs");
-		PrintWriter pw = new PrintWriter(new FileOutputStream(file));
+		try (PrintWriter pw = new PrintWriter(new FileOutputStream(file))) {
+			String numerator;
+			String denominator;
 
-		/*
-		 * Prepare the framerate variables
-		 */
-		String numerator;
-		String denominator;
-
-		if (frameRateRatio != null && frameRateNumber != null) {
-			if (frameRateRatio.equals(frameRateNumber)) {
-				// No ratio was available
-				numerator = frameRateRatio;
-				denominator = "1";
+			if (frameRateRatio != null && frameRateNumber != null) {
+				if (frameRateRatio.equals(frameRateNumber)) {
+					// No ratio was available
+					numerator = frameRateRatio;
+					denominator = "1";
+				} else {
+					String[] frameRateNumDen = frameRateRatio.split("/");
+					numerator = frameRateNumDen[0];
+					denominator = "1001";
+				}
 			} else {
-				String[] frameRateNumDen = frameRateRatio.split("/");
-				numerator = frameRateNumDen[0];
+				// No framerate was given so we should try the most common one
+				numerator = "24000";
 				denominator = "1001";
-			}
-		} else {
-			// No framerate was given so we should try the most common one
-			numerator = "24000";
-			denominator = "1001";
-			frameRateNumber = "23.976";
-		}
-
-		String assumeFPS = ".AssumeFPS(" + numerator + "," + denominator + ")";
-
-		String directShowFPS = "";
-		if (!"0".equals(frameRateNumber)) {
-			directShowFPS = ", fps=" + frameRateNumber;
-		}
-
-		String convertfps = "";
-		if (configuration.getFfmpegAvisynthConvertFps()) {
-			convertfps = ", convertfps=true";
-		}
-
-		File f = new File(fileName);
-		if (f.exists()) {
-			fileName = ProcessUtil.getShortFileNameIfWideChars(fileName);
-		}
-
-		String movieLine       = "DirectShowSource(\"" + fileName + "\"" + directShowFPS + convertfps + ")" + assumeFPS;
-		String mtLine1         = "";
-		String mtLine2         = "";
-		String mtLine3         = "";
-		String interframeLines = null;
-		String interframePath  = configuration.getInterFramePath();
-
-		int Cores = 1;
-		if (configuration.isFfmpegAviSynthMultithreading()) {
-			Cores = configuration.getNumberOfCpuCores();
-
-			// Goes at the start of the file to initiate multithreading
-			mtLine1 = "SetMemoryMax(512)\nSetMTMode(3," + Cores + ")\n";
-
-			// Goes after the input line to make multithreading more efficient
-			mtLine2 = "SetMTMode(2)";
-		}
-
-		// True Motion
-		if (configuration.getFfmpegAvisynthInterFrame()) {
-			String GPU = "";
-			movieLine = movieLine + ".ConvertToYV12()";
-
-			// Enable GPU to assist with CPU
-			if (configuration.getFfmpegAvisynthInterFrameGPU()){
-				GPU = ", GPU=true";
+				frameRateNumber = "23.976";
 			}
 
-			interframeLines = "\n" +
-				"PluginPath = \"" + interframePath + "\"\n" +
-				"LoadPlugin(PluginPath+\"svpflow1.dll\")\n" +
-				"LoadPlugin(PluginPath+\"svpflow2.dll\")\n" +
-				"Import(PluginPath+\"InterFrame2.avsi\")\n" +
-				"InterFrame(Cores=" + Cores + GPU + ", Preset=\"Fast\")\n";
-		}
+			String assumeFPS = ".AssumeFPS(" + numerator + "," + denominator + ")";
 
-		String subLine = null;
-		if (subTrack != null && configuration.isAutoloadSubtitles() && !configuration.isMencoderDisableSubs()) {
-			if (subTrack.getExternalFile() != null) {
-				LOGGER.info("AviSynth script: Using subtitle track: " + subTrack);
-				String function = "TextSub";
-				if (subTrack.getType() == SubtitleType.VOBSUB) {
-					function = "VobSub";
-				}
-				subLine = function + "(\"" + ProcessUtil.getShortFileNameIfWideChars(subTrack.getExternalFile().getAbsolutePath()) + "\")";
+			String directShowFPS = "";
+			if (!"0".equals(frameRateNumber)) {
+				directShowFPS = ", fps=" + frameRateNumber;
 			}
-		}
 
-		ArrayList<String> lines = new ArrayList<String>();
-
-		lines.add(mtLine1);
-
-		boolean fullyManaged = false;
-		String script = "<movie>\n<sub>\n";
-		StringTokenizer st = new StringTokenizer(script, PMS.AVS_SEPARATOR);
-		while (st.hasMoreTokens()) {
-			String line = st.nextToken();
-			if (line.contains("<movie") || line.contains("<sub")) {
-				fullyManaged = true;
+			String convertfps = "";
+			if (configuration.getFfmpegAvisynthConvertFps()) {
+				convertfps = ", convertfps=true";
 			}
-			lines.add(line);
-		}
 
-		if (configuration.getFfmpegAvisynthInterFrame()) {
-			lines.add(mtLine2);
-			lines.add(interframeLines);
-		}
+			File f = new File(fileName);
+			if (f.exists()) {
+				fileName = ProcessUtil.getShortFileNameIfWideChars(fileName);
+			}
 
-		if (fullyManaged) {
-			for (String s : lines) {
-				if (s.contains("<moviefilename>")) {
-					s = s.replace("<moviefilename>", fileName);
+			String movieLine       = "DirectShowSource(\"" + fileName + "\"" + directShowFPS + convertfps + ")" + assumeFPS;
+			String mtLine1         = "";
+			String mtLine2         = "";
+			String interframeLines = null;
+			String interframePath  = configuration.getInterFramePath();
+
+			int Cores = 1;
+			if (configuration.isFfmpegAviSynthMultithreading()) {
+				Cores = configuration.getNumberOfCpuCores();
+
+				// Goes at the start of the file to initiate multithreading
+				mtLine1 = "SetMemoryMax(512)\nSetMTMode(3," + Cores + ")\n";
+
+				// Goes after the input line to make multithreading more efficient
+				mtLine2 = "SetMTMode(2)";
+			}
+
+			// True Motion
+			if (configuration.getFfmpegAvisynthInterFrame()) {
+				String GPU = "";
+				movieLine = movieLine + ".ConvertToYV12()";
+
+				// Enable GPU to assist with CPU
+				if (configuration.getFfmpegAvisynthInterFrameGPU()){
+					GPU = ", GPU=true";
 				}
 
-				if (movieLine != null) {
-					s = s.replace("<movie>", movieLine);
+				interframeLines = "\n" +
+					"PluginPath = \"" + interframePath + "\"\n" +
+					"LoadPlugin(PluginPath+\"svpflow1.dll\")\n" +
+					"LoadPlugin(PluginPath+\"svpflow2.dll\")\n" +
+					"Import(PluginPath+\"InterFrame2.avsi\")\n" +
+					"InterFrame(Cores=" + Cores + GPU + ", Preset=\"Fast\")\n";
+			}
+
+			String subLine = null;
+			if (subTrack != null && configuration.isAutoloadSubtitles() && !configuration.isDisableSubtitles()) {
+				if (subTrack.getExternalFile() != null) {
+					LOGGER.info("AviSynth script: Using subtitle track: " + subTrack);
+					String function = "TextSub";
+					if (subTrack.getType() == SubtitleType.VOBSUB) {
+						function = "VobSub";
+					}
+					subLine = function + "(\"" + ProcessUtil.getShortFileNameIfWideChars(subTrack.getExternalFile().getAbsolutePath()) + "\")";
 				}
-				s = s.replace("<sub>", subLine != null ? subLine : "#");
-				pw.println(s);
 			}
-		} else {
-			pw.println(movieLine);
-			if (subLine != null) {
-				pw.println(subLine);
-			}
-			pw.println("clip");
 
+			ArrayList<String> lines = new ArrayList<>();
+
+			lines.add(mtLine1);
+
+			boolean fullyManaged = false;
+			String script = "<movie>\n<sub>\n";
+			StringTokenizer st = new StringTokenizer(script, PMS.AVS_SEPARATOR);
+			while (st.hasMoreTokens()) {
+				String line = st.nextToken();
+				if (line.contains("<movie") || line.contains("<sub")) {
+					fullyManaged = true;
+				}
+				lines.add(line);
+			}
+
+			if (configuration.getFfmpegAvisynthInterFrame()) {
+				lines.add(mtLine2);
+				lines.add(interframeLines);
+			}
+
+			if (fullyManaged) {
+				for (String s : lines) {
+					if (s.contains("<moviefilename>")) {
+						s = s.replace("<moviefilename>", fileName);
+					}
+
+					if (movieLine != null) {
+						s = s.replace("<movie>", movieLine);
+					}
+					s = s.replace("<sub>", subLine != null ? subLine : "#");
+					pw.println(s);
+				}
+			} else {
+				pw.println(movieLine);
+				if (subLine != null) {
+					pw.println(subLine);
+				}
+				pw.println("clip");
+
+			}
 		}
-
-		pw.close();
 		file.deleteOnExit();
 		return file;
 	}
