@@ -28,6 +28,8 @@
 			Disables subtitles when audio is English, otherwise look for English subtitles, prioritizing external before internal subtitles
 		Added language flags for Arabic, Croatian, Estonian, Latvian, Serbian and Vietnamese
 	External Components:
+		Updated FFmpeg for Windows and Linux to SB8, which:
+			Increases x264 encoding speed
 		Updated InterFrame to 2.5.0, which:
 			Improves scene-change detection
 			Minimizes artifacts
