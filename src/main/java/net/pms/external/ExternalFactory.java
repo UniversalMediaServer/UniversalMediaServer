@@ -41,8 +41,10 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.RootFolder;
+import net.pms.external.URLResolver.URLResult;
 import net.pms.newgui.LooksFrame;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -491,5 +493,48 @@ public class ExternalFactory {
 
 	public static boolean localPluginsInstalled() {
 		return allDone;
+	}
+
+	private static boolean quoted(String s) {
+		return s.startsWith("\"") && s.endsWith("\""); 
+	}
+	
+	private static String quote(String s) {
+		if(quoted(s))
+			return s;
+		return "\"" + s + "\"";
+	}
+	
+	public static URLResult resolveURL(String url) {
+		for (ExternalListener list : getExternalListeners()) {
+			if (list instanceof URLResolver) {
+				URLResult res = ((URLResolver)list).urlResolve(url);
+				if (res == null) {
+					// take another resolver this is crap
+					continue;
+				}
+				if (res.args != null && res.args.size() > 0) {
+					// we got args...
+					// so return what we got
+					if(StringUtils.isNotEmpty(res.url)) {
+						res.url = quote(res.url);
+					}
+					return res;
+				}
+				if (StringUtils.isEmpty(res.url)) {
+					// take another resolver this is crap
+					continue;
+				}
+				String cmp = quote(url);
+				res.url = quote(res.url);
+				if (cmp.equals(res.url)) {
+					// If the resolver returned the same url we already had
+					// (give or take some quotes) we look for a better one
+					continue;
+				}
+				return res;
+			}
+		}
+		return null;
 	}
 }
