@@ -1,19 +1,25 @@
-2.5.0 - 2013-03-??
+2.5.1 - 2013-03-??
+
+	General:
+		
+
+2.5.0 - 2013-03-05
 
 	General:
 		Updated layout on the Transcoding Settings tab
 		Improved aspect ratio handling on Panasonic and Sony TVs
 		Enabled ASS/SSA subtitle support on Linux by default
-		Added language flags for Arabic, Croatian, Estonian, Latvian, Serbian and Vietnamese
 		Now compiled with Java 7
 		Optimized code for Java 7
 		The installer only tells Windows to run UMS at startup on new installs or if the user has specified it in UMS
 		Added RTMP support to FFmpeg Web Video engine
 		Fixed fontconfig support on OS X
-		FFmpeg can transcode to x264 with the renderer option TranscodeVideo=X264TSAC3
+		FFmpeg can transcode to x264 with the renderer option TranscodeVideo=H264TSAC3
 		FFmpeg supports video muxing
 		Made muxing more reliable
-		Fixed resource leaks
+		Improved audio sync in FFmpeg
+		Improved FFmpeg buffering
+		Bandwidth limit is more accurate with FFmpeg
 	Renderers:
 		Added support for KalemSoft Media Player on BlackBerry PlayBook devices
 		Added support for Netgear NeoTV
@@ -25,11 +31,14 @@
 		Updated Russian translation (thanks, Tianuchka!)
 		Changed default audio/subtitles language priority for English users, which:
 			Disables subtitles when audio is English, otherwise look for English subtitles, prioritizing external before internal subtitles
+		Added language flags for Arabic, Croatian, Estonian, Latvian, Serbian and Vietnamese
 	External Components:
+		Updated FFmpeg for Windows and Linux to SB8, which:
+			Increases x264 encoding speed
 		Updated InterFrame to 2.5.0, which:
 			Improves scene-change detection
 			Minimizes artifacts
-		Updated Java Runtime Environment automatic downloader for Windows to 7u15, which:
+		Updated Java Runtime Environment automatic downloader for Windows to 7u17, which:
 			Fixes serious security holes
 		Updated MediaInfo for Windows to 0.7.62
 

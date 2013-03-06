@@ -231,7 +231,7 @@ public class FFMpegVideo extends Player {
 
 			transcodeOptions.add("-f");
 			transcodeOptions.add("asf");
-		} else { // MPEGPSAC3, MPEGTSAC3 or X264TSAC3
+		} else { // MPEGPSAC3, MPEGTSAC3 or H264TSAC3
 			final boolean isTsMuxeRVideoEngineEnabled = configuration.getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
 
 			// Output audio codec
@@ -289,7 +289,7 @@ public class FFMpegVideo extends Player {
 				transcodeOptions.add("+genpts");
 
 				videoRemux = true;
-			} else if (renderer.isTranscodeToX264TSAC3()) {
+			} else if (renderer.isTranscodeToH264TSAC3()) {
 				transcodeOptions.add("-c:v");
 				transcodeOptions.add("libx264");
 				transcodeOptions.add("-crf");
@@ -305,7 +305,7 @@ public class FFMpegVideo extends Player {
 			transcodeOptions.add("-f");
 			if (dtsRemux) {
 				transcodeOptions.add("mpeg2video");
-			} else if (renderer.isTranscodeToMPEGTSAC3() || renderer.isTranscodeToX264TSAC3() || videoRemux) { // MPEGTSAC3
+			} else if (renderer.isTranscodeToMPEGTSAC3() || renderer.isTranscodeToH264TSAC3() || videoRemux) { // MPEGTSAC3
 				transcodeOptions.add("mpegts");
 			} else { // default: MPEGPSAC3
 				transcodeOptions.add("vob");
@@ -580,11 +580,12 @@ public class FFMpegVideo extends Player {
 			rendererMaxBitrates = getVideoBitrateConfig(renderer.getMaxVideoBitrate());
 		}
 
+		// Give priority to the renderer's maximum bitrate setting over the user's setting
 		if ((defaultMaxBitrates[0] == 0 && rendererMaxBitrates[0] > 0) || rendererMaxBitrates[0] < defaultMaxBitrates[0] && rendererMaxBitrates[0] > 0) {
 			defaultMaxBitrates = rendererMaxBitrates;
 		}
 
-		if (params.mediaRenderer.getCBRVideoBitrate() == 0 && defaultMaxBitrates[0] > 0 && !videoRemux) {
+		if (params.mediaRenderer.getCBRVideoBitrate() == 0 && defaultMaxBitrates[0] > 0) {
 			// Convert value from Mb to Kb
 			defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
 
@@ -592,24 +593,31 @@ public class FFMpegVideo extends Player {
 			defaultMaxBitrates[0] = defaultMaxBitrates[0] / 2;
 
 			int bufSize = 1835;
-			if (media.isHDVideo()) {
-				bufSize = defaultMaxBitrates[0] / 3;
+			// x264 uses different buffering math than MPEG-2
+			if (!renderer.isTranscodeToH264TSAC3()) {
+				if (media.isHDVideo()) {
+					bufSize = defaultMaxBitrates[0] / 3;
+				}
+
+				if (bufSize > 7000) {
+					bufSize = 7000;
+				}
+
+				if (defaultMaxBitrates[1] > 0) {
+					bufSize = defaultMaxBitrates[1];
+				}
+
+				if (params.mediaRenderer.isDefaultVBVSize() && rendererMaxBitrates[1] == 0) {
+					bufSize = 1835;
+				}
 			}
 
-			if (bufSize > 7000) {
-				bufSize = 7000;
+			// Make room for audio
+			if (dtsRemux) {
+				defaultMaxBitrates[0] = defaultMaxBitrates[0] - 1510;
+			} else {
+				defaultMaxBitrates[0] = defaultMaxBitrates[0] - configuration.getAudioBitrate();
 			}
-
-			if (defaultMaxBitrates[1] > 0) {
-				bufSize = defaultMaxBitrates[1];
-			}
-
-			if (params.mediaRenderer.isDefaultVBVSize() && rendererMaxBitrates[1] == 0) {
-				bufSize = 1835;
-			}
-
-			// Audio is always AC3 right now, so subtract the configured amount (usually 640)
-			defaultMaxBitrates[0] = defaultMaxBitrates[0] - configuration.getAudioBitrate();
 
 			// Round down to the nearest Mb
 			defaultMaxBitrates[0] = defaultMaxBitrates[0] / 1000 * 1000;
@@ -617,6 +625,20 @@ public class FFMpegVideo extends Player {
 			// FFmpeg uses bytes for inputs instead of kbytes like MEncoder
 			bufSize = bufSize * 1000;
 			defaultMaxBitrates[0] = defaultMaxBitrates[0] * 1000;
+
+			/**
+			 * Level 4.1-limited renderers like the PS3 can stutter when H.264 video exceeds
+			 * this bitrate
+			 */
+			if (renderer.isTranscodeToH264TSAC3() || videoRemux) {
+				if (
+					params.mediaRenderer.isH264Level41Limited() &&
+					defaultMaxBitrates[0] > 31250000
+				) {
+					defaultMaxBitrates[0] = 31250000;
+				}
+				bufSize = defaultMaxBitrates[0];
+			}
 
 			cmdList.add("-bufsize");
 			cmdList.add("" + bufSize);
@@ -639,6 +661,7 @@ public class FFMpegVideo extends Player {
 		if (!ac3Remux && !dtsRemux && !(type() == Format.AUDIO)) {
 			cmdList.add("-ab");
 			// Check if audio bitrate meets mp2 specification
+			// TODO: Is this needed?
 			if (!renderer.isTranscodeToMPEGPSAC3() && configuration.getAudioBitrate() <= 384) {
 				cmdList.add(configuration.getAudioBitrate() + "k");
 			} else {
@@ -646,8 +669,15 @@ public class FFMpegVideo extends Player {
 			}
 		}
 
+		if (params.timeseek > 0) {
+			cmdList.add("-copypriorss");
+			cmdList.add("0");
+			cmdList.add("-avoid_negative_ts");
+			cmdList.add("1");
+		}
+
 		// Add MPEG-2 quality settings
-		if (!renderer.isTranscodeToX264TSAC3()) {
+		if (!renderer.isTranscodeToH264TSAC3() && !videoRemux) {
 			String[] customOptions = StringUtils.split(configuration.getFfmpegSettings());
 			cmdList.addAll(new ArrayList<>(Arrays.asList(customOptions)));
 		}

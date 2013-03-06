@@ -911,8 +911,8 @@ public class MEncoderVideo extends Player {
 			if (mediaRenderer.isDefaultVBVSize() && rendererMaxBitrates[1] == 0) {
 				bufSize = 1835;
 			}
+
 			// Make room for audio
-			// If audio is PCM, subtract 4600kb/s
 			switch (audioType) {
 				case "pcm":
 					defaultMaxBitrates[0] = defaultMaxBitrates[0] - 4600;
