@@ -37,7 +37,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
-import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
 import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.Thumbnails.Builder;
@@ -56,6 +55,8 @@ import net.pms.util.CoverUtil;
 import net.pms.util.FileUtil;
 import net.pms.util.MpegUtil;
 import net.pms.util.ProcessUtil;
+
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.sanselan.ImageInfo;
 import org.apache.sanselan.ImageReadException;
@@ -681,56 +682,54 @@ public class DLNAMediaInfo implements Cloneable {
 					// ffmpeg_parsing = true;
 					LOGGER.info("Error parsing image ({}) with Sanselan, switching to FFmpeg", inputFile.getFile().getAbsolutePath(), e);
 				}
-			}
 
-			if (configuration.getImageThumbnailsEnabled() && type != Format.VIDEO) {
-				try {
-					File thumbDir = new File(configuration.getTempFolder(), THUMBNAIL_DIRECTORY_NAME);
-
-					LOGGER.trace("Generating thumbnail for: {}", inputFile.getFile().getAbsolutePath());
-
-					if (!thumbDir.exists() && !thumbDir.mkdirs()) {
-						LOGGER.warn("Could not create thumbnail directory: {}", thumbDir.getAbsolutePath());
-					} else {
-						File thumbFile = new File(thumbDir, inputFile.getFile().getName() + ".jpg");
-						String thumbFilename = thumbFile.getAbsolutePath();
-
-						LOGGER.trace("Creating (temporary) thumbnail: {}", thumbFilename);
-
-						// Create the thumbnail image using the Thumbnailator library
-						final Builder<File> thumbnail = Thumbnails.of(inputFile.getFile());
-						thumbnail.size(320, 180);
-						thumbnail.outputFormat("jpg");
-						thumbnail.outputQuality(1.0f);
-
-						try {
+				if (PMS.getConfiguration().getImageThumbnailsEnabled()) {
+					try {
+						File thumbDir = new File(PMS.getConfiguration().getTempFolder(), THUMBNAIL_DIRECTORY_NAME);
+	
+						LOGGER.trace("Generating thumbnail for: {}", inputFile.getFile().getAbsolutePath());
+	
+						if (!thumbDir.exists() && !thumbDir.mkdirs()) {
+							LOGGER.warn("Could not create thumbnail directory: {}", thumbDir.getAbsolutePath());
+						} else {
+							File thumbFile = new File(thumbDir, inputFile.getFile().getName() + ".jpg");
+							String thumbFilename = thumbFile.getAbsolutePath();
+	
+							LOGGER.trace("Creating (temporary) thumbnail: {}", thumbFilename);
+	
+							// Create the thumbnail image using the Thumbnailator library
+							final Builder<File> thumbnail = Thumbnails.of(inputFile.getFile());
+							thumbnail.size(320, 180);
+							thumbnail.outputFormat("jpg");
+							thumbnail.outputQuality(1.0f);
 							thumbnail.toFile(thumbFilename);
-						} catch (IIOException e) {
-							LOGGER.debug("Error generating thumbnail for: " + inputFile.getFile().getName());
-							LOGGER.debug("The full error was: " + e);
-						}
-
-						File jpg = new File(thumbFilename);
-
-						if (jpg.exists()) {
-							try (InputStream is = new FileInputStream(jpg)) {
+	
+							File jpg = new File(thumbFilename);
+	
+							if (jpg.exists()) {
+								InputStream is = new FileInputStream(jpg);
 								int sz = is.available();
-
+	
 								if (sz > 0) {
-									setThumb(new byte[sz]);
-									is.read(getThumb());
+									// Read the entire input stream contents into a byte array
+									byte[] bytes = IOUtils.toByteArray(is);
+	
+									// Set thumbnail image
+									setThumb(bytes);
+								}
+	
+								is.close();
+	
+								if (!jpg.delete()) {
+									jpg.deleteOnExit();
 								}
 							}
-
-							if (!jpg.delete()) {
-								jpg.deleteOnExit();
-							}
 						}
+					} catch (UnsupportedFormatException ufe) {
+						LOGGER.warn("Can't create thumbnail for {}: {}", inputFile.getFile().getAbsolutePath(), ufe.getMessage());
+					} catch (Exception e) {
+						LOGGER.warn("Error generating thumbnail for: {}", inputFile.getFile().getAbsolutePath(), e);
 					}
-				} catch (UnsupportedFormatException ufe) {
-					LOGGER.debug("Thumbnailator does not support the format of {}: {}", inputFile.getFile().getAbsolutePath(), ufe.getMessage());
-				} catch (Exception e) {
-					LOGGER.debug("Thumbnailator could not generate a thumbnail for: {}", inputFile.getFile().getAbsolutePath(), e);
 				}
 			}
 
