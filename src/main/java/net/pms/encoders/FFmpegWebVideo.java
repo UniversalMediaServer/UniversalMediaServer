@@ -26,15 +26,11 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.JComponent;
-
-import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.external.ExternalFactory;
-import net.pms.external.ExternalListener;
-import net.pms.external.URLResolver;
 import net.pms.external.URLResolver.URLResult;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
@@ -181,21 +177,24 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		PipeProcess pipe = new PipeProcess(fifoName);
 		pipe.deleteLater(); // delete the named pipe later; harmless if it isn't created
 		ProcessWrapper mkfifo_process = pipe.getPipeProcess();
-		// start the process as early as possible
+
+		// Start the process as early as possible
 		mkfifo_process.runInNewThread();
 
 		params.input_pipes[0] = pipe;
 		int nThreads = configuration.getNumberOfCpuCores();
-
-		
-		
 		if (!dlna.isURLResolved()) {
 			URLResult r1 = ExternalFactory.resolveURL(fileName);
 			if (r1 != null) {
-				fileName = r1.url;
+				if (StringUtils.isNotEmpty(r1.url)) {
+					fileName = r1.url;
+				}
+				if(r1.args !=null && r1.args.size() > 0) {
+					customOptions.addAll(r1.args);	
+				}
 			}
 		}
-		
+
 		// build the command line
 		List<String> cmdList = new ArrayList<>();
 
