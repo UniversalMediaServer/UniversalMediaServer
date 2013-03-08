@@ -24,6 +24,14 @@ import java.util.List;
 
 public interface ProcessWrapper extends UnusedProcess {
 	public InputStream getInputStream(long seek) throws IOException;
+
+	/**
+	 * Close the input stream.
+	 *
+	 * @throws IOException When something goes wrong while closing the stream.
+	 */
+	public void closeInputStream() throws IOException;
+
 	public List<String> getResults();
 	public boolean isDestroyed();
 	public void runInNewThread();

@@ -42,4 +42,10 @@ public class InternalJavaProcessImpl implements ProcessWrapper {
 	@Override
 	public void stopProcess() {
 	}
+
+	@Override
+	public void closeInputStream() throws IOException {
+		// Since the input stream was not created by this class, this class
+		// should not close it either.
+	}
 }

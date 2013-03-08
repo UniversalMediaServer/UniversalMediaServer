@@ -303,6 +303,15 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 		return null;
 	}
 
+	@Override
+	public void closeInputStream() throws IOException {
+		if (bo != null) {
+			bo.closeInputStream();
+		} else {
+			stdoutConsumer.getBuffer().closeInputStream();
+		}
+	}
+	
 	public List<String> getOtherResults() {
 		if (stdoutConsumer == null) {
 			return null;

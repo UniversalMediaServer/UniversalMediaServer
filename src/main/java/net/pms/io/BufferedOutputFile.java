@@ -52,4 +52,21 @@ public interface BufferedOutputFile {
 	public abstract void detachInputStream();
 
 	public abstract void write(byte[] byteArray) throws IOException;
+
+	/**
+	 * Close the output stream of the buffered output. This signifies
+	 * that no more data will be written to the buffered output.
+	 *
+	 * @throws IOException When closing the output stream fails.
+	 */
+	public abstract void closeOutputStream() throws IOException;
+
+	/**
+	 * Close the input stream of the buffered output. This signifies
+	 * that no more data will be read from the buffered output.
+	 *
+	 * @throws IOException When closing the input stream fails.
+	 */
+	public abstract void closeInputStream() throws IOException;
+
 }

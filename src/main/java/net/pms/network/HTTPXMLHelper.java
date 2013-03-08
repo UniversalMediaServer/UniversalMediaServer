@@ -38,7 +38,7 @@ class HTTPXMLHelper {
 	static final String DIDL_FOOTER = "&lt;/DIDL-Lite&gt;";
 	static final String XBOX_1 = "<u:IsValidatedResponse xmlns:u=\"urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1\">" + CRLF + "<Result>1</Result>" + CRLF + "</u:IsValidatedResponse>";
 	static final String XBOX_2 = "<u:IsAuthorizedResponse xmlns:u=\"urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1\">" + CRLF + "<Result>1</Result>" + CRLF + "</u:IsAuthorizedResponse>";
-	static final String SAMSUNG_ERROR_RESPONSE = "<s:Fault><faultCode>s:Client</faultCode><faultString>UPnPError</faultString><detail><UPnPError xmlns=\"urn:schemas-upnp-org:control-1-0\"><errorCode>401</errorCode><errorDescription>Invalid Action</errorDescription></UPnPError></detail></s:Fault>";
+	static final String UPNP_INVALID_ACTION = "<s:Fault><faultCode>s:Client</faultCode><faultString>UPnPError</faultString><detail><UPnPError xmlns=\"urn:schemas-upnp-org:control-1-0\"><errorCode>401</errorCode><errorDescription>Invalid Action</errorDescription></UPnPError></detail></s:Fault>";
 	static final String EVENT_FOOTER = "</e:propertyset>";
 
 	public static String eventProp(String prop) {

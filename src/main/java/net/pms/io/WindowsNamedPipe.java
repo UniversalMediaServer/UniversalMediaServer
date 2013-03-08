@@ -188,7 +188,8 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 				}
 
 				if (params != null) {
-					directBuffer = new BufferedOutputFileImpl(params);
+					//directBuffer = new BufferedOutputFileImpl(params);
+					directBuffer = new UnbufferedOutputFile(params);
 				} else {
 					writable = new PipedOutputStream();
 					readable = new PipedInputStream((PipedOutputStream) writable, BUFSIZE);
@@ -351,5 +352,10 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 		} else {
 			Kernel32.INSTANCE.CloseHandle(handle1);
 		}
+	}
+
+	@Override
+	public void closeInputStream() throws IOException {
+		// Nothing to close
 	}
 }

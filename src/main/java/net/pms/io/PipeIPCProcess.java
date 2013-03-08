@@ -172,4 +172,9 @@ public class PipeIPCProcess extends Thread implements ProcessWrapper {
 		mkin.getPipeProcess().stopProcess();
 		mkout.getPipeProcess().stopProcess();
 	}
+
+	@Override
+	public void closeInputStream() throws IOException {
+		// TODO Delegate closing the input stream to PipeProcess
+	}
 }
