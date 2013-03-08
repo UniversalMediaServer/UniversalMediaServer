@@ -379,6 +379,7 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	private ProcessWrapperImpl getFFMpegThumbnail(InputFile media) {
+		LOGGER.debug("Generating thumbnail with FFmpeg");
 		String args[] = new String[14];
 		args[0] = getFfmpegPath();
 		boolean dvrms = media.getFile() != null && media.getFile().getAbsolutePath().toLowerCase().endsWith("dvr-ms");
