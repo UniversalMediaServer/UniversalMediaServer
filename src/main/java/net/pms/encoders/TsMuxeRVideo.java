@@ -191,8 +191,8 @@ public class TsMuxeRVideo extends Player {
 
 				String[] flacCmd = new String[] {
 					configuration.getFfmpegPath(),
-					"-ar", rate,
 					"-i", fileName,
+					"-ar", rate,
 					"-f", "wav",
 					"-acodec", depth,
 					"-y",
