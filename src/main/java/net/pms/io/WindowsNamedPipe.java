@@ -352,4 +352,9 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 			Kernel32.INSTANCE.CloseHandle(handle1);
 		}
 	}
+
+	@Override
+	public void closeInputStream() throws IOException {
+		// Nothing to close
+	}
 }
