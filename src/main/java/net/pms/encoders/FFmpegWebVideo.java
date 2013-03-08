@@ -54,12 +54,16 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	private final PmsConfiguration configuration;
 	private static List<String> protocols;
 	public static PatternMap<Object> excludes = new PatternMap<>();
+
 	public static PatternMap<ArrayList> autoOptions = new PatternMap<ArrayList>() {
+		private static final long serialVersionUID = 5225786297932747007L;
+
 		@Override
 		public ArrayList add(String key, Object value) {
 			return put(key, (ArrayList) parseOptions((String) value));
 		}
 	};
+
 	public static PatternMap<String> replacements = new PatternMap<>();
 	private static boolean init = false;
 
@@ -91,7 +95,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		super(configuration);
 		this.configuration = configuration;
 		
-		if (! init) {
+		if (!init) {
 			readWebFilters(configuration.getProfileDirectory() + File.separator + "ffmpeg.webfilters");
 
 			protocols = FFmpegOptions.getSupportedProtocols(configuration);
@@ -224,7 +228,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		cmdList.add("" + nThreads);
 
 		// Add the output options (-f, -acodec, -vcodec)
-		cmdList.addAll(getTranscodeVideoOptions(renderer, media, params));
+		cmdList.addAll(getTranscodeVideoOptions(renderer, media, params, null));
 
 		// Add video bitrate options
 		cmdList.addAll(getVideoBitrateOptions(renderer, media));
@@ -316,7 +320,6 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		PatternMap filter = null;
 		String line;
 		try {
-			File file = new File(filename);
 			LineIterator it = FileUtils.lineIterator(new File(filename));
 			try {
 				while (it.hasNext()) {
@@ -347,7 +350,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 // A self-combining map of regexes that recompiles if modified
 class PatternMap<T> extends modAwareHashMap<String, T> {
-
+	private static final long serialVersionUID = 3096452459003158959L;
 	Matcher combo;
 	List<String> groupmap = new ArrayList<>();
 
@@ -392,7 +395,7 @@ class PatternMap<T> extends modAwareHashMap<String, T> {
 // A HashMap that reports whether it's been modified
 // (necessary because 'modCount' isn't accessible outside java.util)
 class modAwareHashMap<K, V> extends HashMap<K, V> {
-
+	private static final long serialVersionUID = -5334451082377480129L;
 	public boolean modified = false;
 
 	@Override

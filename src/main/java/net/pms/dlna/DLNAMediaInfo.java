@@ -1269,6 +1269,9 @@ public class DLNAMediaInfo implements Cloneable {
 								if (avcHeader.getRef_frames() > maxref) {
 									muxable = false;
 									LOGGER.debug("The file " + f.getFilename() + " is not compatible with this renderer because it can only take " + maxref + " reference frames at this resolution while this file has " + avcHeader.getRef_frames() + " reference frames");
+								} else if (avcHeader.getRef_frames() == -1) {
+									muxable = false;
+									LOGGER.debug("The file " + f.getFilename() + " may not be compatible with this renderer because we can't get its number of reference frames");
 								}
 							}
 							if (!muxable) {

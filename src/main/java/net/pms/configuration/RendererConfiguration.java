@@ -46,6 +46,7 @@ public class RendererConfiguration {
 	private static final String MP3 = "MP3";
 	private static final String MPEGPSAC3 = "MPEGPSAC3";
 	private static final String MPEGTSAC3 = "MPEGTSAC3";
+	private static final String H264TSAC3 = "H264TSAC3";
 	private static final String WAV = "WAV";
 	private static final String WMV = "WMV";
 
@@ -464,7 +465,7 @@ public class RendererConfiguration {
 	}
 
 	public boolean isTranscodeToAC3() {
-		return isTranscodeToMPEGPSAC3() || isTranscodeToMPEGTSAC3();
+		return isTranscodeToMPEGPSAC3() || isTranscodeToMPEGTSAC3() || isTranscodeToH264TSAC3();
 	}
 
 	public boolean isTranscodeToMPEGPSAC3() {
@@ -474,6 +475,10 @@ public class RendererConfiguration {
 
 	public boolean isTranscodeToMPEGTSAC3() {
 		return getVideoTranscode().equals(MPEGTSAC3);
+	}
+
+	public boolean isTranscodeToH264TSAC3() {
+		return getVideoTranscode().equals(H264TSAC3);
 	}
 
 	public boolean isAutoRotateBasedOnExif() {
