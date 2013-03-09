@@ -41,6 +41,7 @@ public class RendererConfiguration {
 
 	// property values
 	private static final String DEPRECATED_MPEGPSAC3 = "MPEGAC3"; // XXX deprecated: old name with missing container
+	private static final String EXCLUSIVE = "exclusive";
 	private static final String LPCM = "LPCM";
 	private static final String MP3 = "MP3";
 	private static final String MPEGPSAC3 = "MPEGPSAC3";
