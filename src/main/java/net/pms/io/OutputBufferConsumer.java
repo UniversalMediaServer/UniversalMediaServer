@@ -43,23 +43,22 @@ public class OutputBufferConsumer extends OutputConsumer {
 
 	public OutputBufferConsumer(InputStream inputStream, OutputParams params) {
 		super(inputStream);
-		//outputBuffer = new BufferedOutputFileImpl(params);
-		outputBuffer = new UnbufferedOutputFile(params);
+		outputBuffer = new BufferedOutputFileImpl(params);
 	}
 
 	@Override
 	public void run() {
 		try {
-			LOGGER.trace("Starting read from pipe");
+			//LOGGER.trace("Starting read from pipe");
 			byte buf[] = new byte[PIPE_BUFFER_SIZE];
 			int n = 0;
 			while ((n = inputStream.read(buf)) > 0) {
-				LOGGER.trace("Fetched " + n + " from pipe");
+				//LOGGER.trace("Fetched " + n + " from pipe");
 				outputBuffer.write(buf, 0, n);
 			}
 			//LOGGER.debug("Finished to read");
 		} catch (IOException ioe) {
-			LOGGER.debug("Error consuming stream of spawned process", ioe);
+			LOGGER.debug("Error consuming stream of spawned process: " + ioe.getMessage());
 		} finally {
 			//LOGGER.trace("Closing read from pipe");
 			if (inputStream != null) {
@@ -68,12 +67,6 @@ public class OutputBufferConsumer extends OutputConsumer {
 				} catch (IOException e) {
 					LOGGER.debug("Caught exception", e);
 				}
-			}
-
-			try {
-				outputBuffer.closeOutputStream();
-			} catch (IOException e) {
-				LOGGER.debug("Caught exception", e);
 			}
 		}
 	}
