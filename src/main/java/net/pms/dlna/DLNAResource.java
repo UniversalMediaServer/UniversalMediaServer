@@ -1313,6 +1313,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									(
 										(
 											getMediaSubtitle() == null &&
+											!isSrtFile() &&
 											getMedia() != null &&
 											getMedia().getDvdtrack() == 0 &&
 											getMedia().isMuxable(mediaRenderer) &&
