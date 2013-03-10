@@ -1308,6 +1308,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						if (getPlayer() != null) {
 							// Do we have some mpegts to offer?
 							boolean mpegTsMux = TsMuxeRVideo.ID.equals(getPlayer().id()) || VideoLanVideoStreaming.ID.equals(getPlayer().id());
+							boolean isMuxableResult = getMedia().isMuxable(mediaRenderer);
 							if (!mpegTsMux) { // Maybe, like the PS3, MEncoder can launch tsMuxeR if this a compatible H.264 video
 								mpegTsMux = MEncoderVideo.ID.equals(getPlayer().id()) &&
 									(
@@ -1316,7 +1317,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 											!isSrtFile() &&
 											getMedia() != null &&
 											getMedia().getDvdtrack() == 0 &&
-											getMedia().isMuxable(mediaRenderer) &&
+											isMuxableResult &&
 											configuration.isMencoderMuxWhenCompatible() &&
 											mediaRenderer.isMuxH264MpegTS()
 										) ||
@@ -1324,7 +1325,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									);
 							}
 							if (mpegTsMux) {
-								dlnaspec = getMedia().isH264() && !VideoLanVideoStreaming.ID.equals(getPlayer().id()) && getMedia().isMuxable(mediaRenderer) ?
+								dlnaspec = getMedia().isH264() && !VideoLanVideoStreaming.ID.equals(getPlayer().id()) && isMuxableResult ?
 									"DLNA.ORG_PN=AVC_TS_HD_24_AC3_ISO" :
 									"DLNA.ORG_PN=" + getMPEG_TS_SD_EU_ISOLocalizedValue(c);
 							} else {
