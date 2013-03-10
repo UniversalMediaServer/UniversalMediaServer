@@ -250,7 +250,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 	private boolean ffmpeg_failure;
 	private boolean ffmpeg_annexb_failure;
-	private boolean muxable = true;
+	private boolean muxable;
 	private Map<String, String> extras;
 
 	/**
@@ -260,23 +260,22 @@ public class DLNAMediaInfo implements Cloneable {
 	public boolean encrypted;
 
 	/**
-	 * Used to determine whether MEncoderVideo should allow tsMuxeR to mux the
-	 * file instead of transcoding.
+	 * Used to determine whether tsMuxeR can mux the file instead of transcoding.
 	 * Also used by DLNAResource to help determine the DLNA.ORG_PN (file type)
-	 * value to send to the renderer.
-	 * This extends renderer configs, defining things that are needed by renderers
-	 * but are not possible with their configs yet.
+	 * value to send to the renderer, which is confusing.
 	 *
 	 * Some of this code is repeated in isVideoWithinH264LevelLimits(), and since
 	 * both functions are sometimes (but not always) used together, this is
 	 * not an efficient use of code.
 	 * TODO: Fix the above situation.
+	 * TODO: Now that FFmpeg is muxing without tsMuxeR, we should make a separate
+	 *       function for that, or even better, re-think this whole approach.
 	 */
 	public boolean isMuxable(RendererConfiguration mediaRenderer) {
-		// Blacklist all formats not in the following lists
+		// Allow the formats in the following list
 		if (
 			getContainer() != null &&
-			!(
+			(
 				getContainer().equals("mkv") ||
 				getContainer().equals("mp4") ||
 				getContainer().equals("mov") ||
@@ -286,29 +285,27 @@ public class DLNAMediaInfo implements Cloneable {
 		) {
 			if (
 				getCodecV() != null &&
-				!(
+				(
 					getCodecV().equals("h264") ||
 					getCodecV().equals("vc1") ||
 					getCodecV().equals("mpeg2")
 				)
 			) {
-				muxable = false;
-			}
-
-			if (getFirstAudioTrack() != null) {
-				String codecA;
-				codecA = getFirstAudioTrack().getCodecA();
-				if (
-					codecA != null &&
-					!(
-						codecA.equals("aac") ||
-						codecA.equals("ac3") ||
-						codecA.equals("dca") ||
-						codecA.equals("dts") ||
-						codecA.equals("eac3")
-					)
-				) {
-					muxable = false;
+				if (getFirstAudioTrack() != null) {
+					String codecA;
+					codecA = getFirstAudioTrack().getCodecA();
+					if (
+						codecA != null &&
+						(
+							codecA.equals("aac") ||
+							codecA.equals("ac3") ||
+							codecA.equals("dca") ||
+							codecA.equals("dts") ||
+							codecA.equals("eac3")
+						)
+					) {
+						muxable = true;
+					}
 				}
 			}
 		}
