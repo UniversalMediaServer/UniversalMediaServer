@@ -85,21 +85,8 @@ public class DLNAMediaDatabase implements Runnable {
 		String dir = "database";
 		dbName = name;
 		File fileDir = new File(dir);
-		boolean defaultLocation = fileDir.mkdir() || fileDir.exists();
-		if (defaultLocation) {
-			// check if the database wasn't created during the installation run, with UAC activated.
-			String to_delete = "to_delete";
-			File checkDir = new File(to_delete);
-			if (checkDir.exists()) {
-				defaultLocation = checkDir.delete();
-			} else {
-				defaultLocation = checkDir.mkdir();
-				if (defaultLocation) {
-					defaultLocation = checkDir.delete();
-				}
-			}
-		}
-		if (Platform.isWindows() && !defaultLocation) {
+
+		if (Platform.isWindows()) {
 			String profileDir = configuration.getProfileDirectory();
 			url = String.format("jdbc:h2:%s\\%s/%s", profileDir, dir, dbName);
 			fileDir = new File(profileDir, dir);
