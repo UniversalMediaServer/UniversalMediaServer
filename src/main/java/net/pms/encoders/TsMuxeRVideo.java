@@ -239,10 +239,14 @@ public class TsMuxeRVideo extends Player {
 			newInput.setFilename(fileName);
 			newInput.setPush(params.stdin);
 
-			boolean compat = (media.isVideoWithinH264LevelLimits(newInput, params.mediaRenderer) || !params.mediaRenderer.isH264Level41Limited());
-
-			if (!compat && params.mediaRenderer.isPS3()) {
-				LOGGER.info("The video will not play or will show a black screen on the PS3");
+			// Warn about the video being outside of H.264 level 4.1 spec if the user has selected tsMuxeR via the transcode folder
+			if (
+				!configuration.getHideTranscodeEnabled() &&
+				dlna.isNoName()
+			) {
+				if (media.isVideoWithinH264LevelLimits(newInput, params.mediaRenderer) || !params.mediaRenderer.isH264Level41Limited()) {
+					LOGGER.info("The video will not play or will show a black screen");
+				}
 			}
 
 			if (media.getH264AnnexB() != null && media.getH264AnnexB().length > 0) {
