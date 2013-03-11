@@ -715,5 +715,6 @@ public class NavigationShareTab {
 	public void setScanLibraryEnabled(boolean enabled) {
 		but5.setEnabled(enabled);
 		but5.setIcon(LooksFrame.readImageIcon("button-scan.png"));
+		but5.setRolloverIcon(LooksFrame.readImageIcon("button-scan.png"));
 	}
 }
