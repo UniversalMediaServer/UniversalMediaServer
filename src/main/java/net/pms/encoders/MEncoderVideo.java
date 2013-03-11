@@ -1032,7 +1032,7 @@ public class MEncoderVideo extends Player {
 		 * - The resource is being streamed via a MEncoder entry in the transcode folder
 		 * - There is a subtitle that matches the user preferences
 		 * - The resource is a DVD
-		 * - We are using AviSynth (TODO: do we still need this check?)
+		 * - We are using AviSynth
 		 * - The resource is incompatible with tsMuxeR
 		 * - The user has disabled the "switch to tsMuxeR" option
 		 * - The user has specified overscan correction
