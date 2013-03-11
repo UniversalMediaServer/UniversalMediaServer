@@ -180,6 +180,7 @@ public class RootFolder extends DLNAResource {
 	/*
 	 * @deprecated Use {@link #stopScan()} instead.
 	 */
+	@Deprecated
 	public void stopscan() {
 		stopScan();
 	}
