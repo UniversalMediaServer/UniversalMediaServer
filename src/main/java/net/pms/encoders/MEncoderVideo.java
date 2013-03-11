@@ -1034,9 +1034,9 @@ public class MEncoderVideo extends Player {
 		 * - The resource is a DVD
 		 * - We are using AviSynth (TODO: do we still need this check?)
 		 * - The resource is incompatible with tsMuxeR
-		 * - The user has left the "switch to tsMuxeR" option enabled
-		 * - The user has not specified overscan correction
-		 * - The filename does not specify the resource as WEB-DL
+		 * - The user has disabled the "switch to tsMuxeR" option
+		 * - The user has specified overscan correction
+		 * - The filename specifies the resource as WEB-DL
 		 * - The aspect ratio of the video needs to be changed
 		 */
 		if (
