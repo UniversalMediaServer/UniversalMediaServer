@@ -846,4 +846,14 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			PMS.get().getFrame().setValue(0, Messages.getString("StatusTab.5"));
 		}
 	}
+
+	@Override
+	public void closeOutputStream() throws IOException {
+		// TODO: Make sure the output stream is closed properly.
+	}
+
+	@Override
+	public void closeInputStream() throws IOException {
+		// TODO: Make sure the input stream is closed properly.
+	}
 }

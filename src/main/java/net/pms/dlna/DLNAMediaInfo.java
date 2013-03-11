@@ -37,7 +37,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
-import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
 import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.Thumbnails.Builder;
@@ -56,6 +55,8 @@ import net.pms.util.CoverUtil;
 import net.pms.util.FileUtil;
 import net.pms.util.MpegUtil;
 import net.pms.util.ProcessUtil;
+
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.sanselan.ImageInfo;
 import org.apache.sanselan.ImageReadException;
@@ -676,11 +677,10 @@ public class DLNAMediaInfo implements Cloneable {
 				} catch (ImageReadException | IOException e) {
 					LOGGER.info("Error parsing image ({}) with Sanselan, switching to FFmpeg", inputFile.getFile().getAbsolutePath(), e);
 				}
-			}
 
-			if (configuration.getImageThumbnailsEnabled() && type != Format.VIDEO) {
+			if (PMS.getConfiguration().getImageThumbnailsEnabled()) {
 				try {
-					File thumbDir = new File(configuration.getTempFolder(), THUMBNAIL_DIRECTORY_NAME);
+					File thumbDir = new File(PMS.getConfiguration().getTempFolder(), THUMBNAIL_DIRECTORY_NAME);
 
 					LOGGER.trace("Generating thumbnail for: {}", inputFile.getFile().getAbsolutePath());
 
@@ -697,35 +697,34 @@ public class DLNAMediaInfo implements Cloneable {
 						thumbnail.size(320, 180);
 						thumbnail.outputFormat("jpg");
 						thumbnail.outputQuality(1.0f);
-
-						try {
-							thumbnail.toFile(thumbFilename);
-						} catch (IIOException e) {
-							LOGGER.debug("Error generating thumbnail for: " + inputFile.getFile().getName());
-							LOGGER.debug("The full error was: " + e);
-						}
+						thumbnail.toFile(thumbFilename);
 
 						File jpg = new File(thumbFilename);
 
 						if (jpg.exists()) {
-							try (InputStream is = new FileInputStream(jpg)) {
-								int sz = is.available();
+							InputStream is = new FileInputStream(jpg);
+							int sz = is.available();
 
-								if (sz > 0) {
-									setThumb(new byte[sz]);
-									is.read(getThumb());
-								}
+							if (sz > 0) {
+								// Read the entire input stream contents into a byte array
+								byte[] bytes = IOUtils.toByteArray(is);
+
+								// Set thumbnail image
+								setThumb(bytes);
 							}
+
+							is.close();
 
 							if (!jpg.delete()) {
 								jpg.deleteOnExit();
 							}
 						}
 					}
-				} catch (UnsupportedFormatException ufe) {
-					LOGGER.debug("Thumbnailator does not support the format of {}: {}", inputFile.getFile().getAbsolutePath(), ufe.getMessage());
-				} catch (Exception e) {
-					LOGGER.debug("Thumbnailator could not generate a thumbnail for: {}", inputFile.getFile().getAbsolutePath(), e);
+					} catch (UnsupportedFormatException ufe) {
+						LOGGER.warn("Can't create thumbnail for {}: {}", inputFile.getFile().getAbsolutePath(), ufe.getMessage());
+					} catch (Exception e) {
+						LOGGER.warn("Error generating thumbnail for: {}", inputFile.getFile().getAbsolutePath(), e);
+					}
 				}
 			}
 
@@ -983,14 +982,21 @@ public class DLNAMediaInfo implements Cloneable {
 						File jpg = new File(frameName);
 
 						if (jpg.exists()) {
-							try (InputStream is = new FileInputStream(jpg)) {
-								int sz = is.available();
+							// Get the input stream for a thumbnail image
+							InputStream is = new FileInputStream(jpg);
+							int sz = is.available();
 
-								if (sz > 0) {
-									setThumb(new byte[sz]);
-									is.read(getThumb());
-								}
+							if (sz > 0) {
+								// Read the entire input stream contents into a byte array
+								byte[] bytes = IOUtils.toByteArray(is);
+
+								// Set thumbnail image
+								setThumb(bytes);
+
 							}
+
+							// Close the input stream
+							pw.closeInputStream();
 
 							if (!jpg.delete()) {
 								jpg.deleteOnExit();
@@ -1007,37 +1013,47 @@ public class DLNAMediaInfo implements Cloneable {
 				}
 
 				if (type == Format.VIDEO && pw != null && getThumb() == null) {
-					InputStream is;
 					try {
-						is = pw.getInputStream(0);
+						// Get the input stream for a thumbnail image
+						InputStream is = pw.getInputStream(0);
 						int sz = is.available();
-						if (sz > 0) {
-							setThumb(new byte[sz]);
-							is.read(getThumb());
-						}
-						is.close();
 
 						if (sz > 0 && !net.pms.PMS.isHeadless()) {
+						if (sz > 0) {
+							// Read the entire input stream contents into a byte array
+							byte[] bytes = IOUtils.toByteArray(is);
+
+							// Set thumbnail image
+							setThumb(bytes);
+						}
+
+						// Close the input stream
+						pw.closeInputStream();
+
+						if (sz > 0 && !java.awt.GraphicsEnvironment.isHeadless() && getWidth() > 0) {
 							BufferedImage image = ImageIO.read(new ByteArrayInputStream(getThumb()));
+
 							if (image != null) {
+								// Draw size information on the thumbnail image
 								Graphics g = image.getGraphics();
 								g.setColor(Color.WHITE);
 								g.setFont(new Font("Arial", Font.PLAIN, 14));
 								int low = 0;
-								if (getWidth() > 0) {
-									if (getWidth() == 1920 || getWidth() == 1440) {
-										g.drawString("1080p", 0, low += 18);
-									} else if (getWidth() == 1280) {
-										g.drawString("720p", 0, low += 18);
-									}
+
+								if (getWidth() == 1920 || getWidth() == 1440) {
+									g.drawString("1080p", 0, low += 18);
+								} else if (getWidth() == 1280) {
+									g.drawString("720p", 0, low += 18);
 								}
+
 								ByteArrayOutputStream out = new ByteArrayOutputStream();
 								ImageIO.write(image, "jpeg", out);
 								setThumb(out.toByteArray());
 							}
 						}
+						}
 					} catch (IOException e) {
-						LOGGER.debug("Error while decoding thumbnail: " + e.getMessage());
+						LOGGER.debug("Error while decoding thumbnail", e);
 					}
 				}
 			}

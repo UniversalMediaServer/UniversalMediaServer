@@ -110,6 +110,7 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 			@Override
 			public void run() {
 				try {
+					int n = -1;
 					//byte data[] = new byte[65536];
 					RandomAccessFile rf = new RandomAccessFile(file, "r");
 
@@ -129,7 +130,7 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 						return;
 					}
 
-					realItem.extractSlow(new ISequentialOutStream() {
+					ExtractOperationResult result = realItem.extractSlow(new ISequentialOutStream() {
 						@Override
 						public int write(byte[] data) throws SevenZipException {
 							try {
