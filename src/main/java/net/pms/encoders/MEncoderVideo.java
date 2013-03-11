@@ -1120,7 +1120,7 @@ public class MEncoderVideo extends Player {
 
 		if (params.mediaRenderer.isTranscodeToWMV()) {
 			wmv = true;
-			vcodec = "wmv2"; // http://wiki.megaframe.org/wiki/Ubuntu_XBOX_360#MEncoder not usable in streaming
+			vcodec = "wmv2"; // http://wiki.megaframe.org/Mencoder_Transcode_for_Xbox_360
 		}
 
 		mpegts = params.mediaRenderer.isTranscodeToMPEGTSAC3();
