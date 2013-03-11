@@ -100,6 +100,8 @@ public class PluginTab {
 		};
 
 		final JTable table = new JTable(1, cols.length) {
+			private static final long serialVersionUID = -5032210766949508624L;
+
 			@Override
 			public boolean isCellEditable(int rowIndex, int vColIndex) {
 				return false;
@@ -488,6 +490,8 @@ public class PluginTab {
 			Messages.getString("PluginTab.7")
 		};
 		credTable = new JTable(0, cols.length) {
+			private static final long serialVersionUID = 1510535097140083493L;
+
 			@Override
 			public boolean isCellEditable(int rowIndex, int vColIndex) {
 				return false;
@@ -662,6 +666,8 @@ public class PluginTab {
 	}
 
 	private class PasswordCellRenderer extends DefaultTableCellRenderer {
+		private static final long serialVersionUID = 1020393206165351323L;
+
 		public PasswordCellRenderer() {
 		}
 
