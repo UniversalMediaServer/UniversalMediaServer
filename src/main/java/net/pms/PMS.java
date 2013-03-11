@@ -396,6 +396,7 @@ public class PMS {
 
 		LOGGER.info("Please wait while we check the MPlayer font cache, this can take a minute or so.");
 
+		// TODO: Make a setting to allow users to choose whether they want to use the system version of MPlayer instead
 		if (Platform.isLinux()) {
 			checkProcessExistence("MPlayer", true, null, "./" + configuration.getMplayerPath(), "dummy");
 		} else {
