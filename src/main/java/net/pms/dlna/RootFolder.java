@@ -54,7 +54,7 @@ public class RootFolder extends DLNAResource {
 	private boolean running;
 	private FolderLimit lim;
 	private String tag;
-	
+
 	public RootFolder() {
 		this(null);
 	}
@@ -104,8 +104,8 @@ public class RootFolder extends DLNAResource {
 			lim = new FolderLimit();
 			addChild(lim);
 		}
-		
-		if(!configuration.getNoFolders(tag)) {
+
+		if (!configuration.getNoFolders(tag)) {
 			for (DLNAResource r : getConfiguredFolders()) {
 				addChild(r);
 			}
@@ -609,7 +609,7 @@ public class RootFolder extends DLNAResource {
 		boolean firstPhoto = true;
 
 		for (Object photoKey : albumPhotos) {
-			Map<?, ? > photo = (Map<?, ?>) photoList.get(photoKey);
+			Map<?, ?> photo = (Map<?, ?>) photoList.get(photoKey);
 
 			if (firstPhoto) {
 				Object x = photoList.get("ThumbPath");
@@ -792,7 +792,7 @@ public class RootFolder extends DLNAResource {
 							int pos = name.lastIndexOf(".");
 
 							if (pos != -1) {
-								name = name.substring(0,pos);
+								name = name.substring(0, pos);
 							}
 
 							final File f = files[i];
@@ -806,7 +806,7 @@ public class RootFolder extends DLNAResource {
 										InputStream is = pid.getInputStream();
 										InputStreamReader isr = new InputStreamReader(is);
 										BufferedReader br = new BufferedReader(isr);
-										while (br.readLine() != null) { 
+										while (br.readLine() != null) {
 										}
 										pid.waitFor();
 									} catch (IOException | InterruptedException e) {
@@ -949,10 +949,10 @@ public class RootFolder extends DLNAResource {
 	private List<DLNAResource> getAdditionalFoldersAtRoot() {
 		List<DLNAResource> res = new ArrayList<>();
 
-		String[] validPlugins=configuration.getPlugins(tag);
+		String[] validPlugins = configuration.getPlugins(tag);
 		for (ExternalListener listener : ExternalFactory.getExternalListeners()) {
-			if(validPlugins != null) {
-				if(Arrays.binarySearch(validPlugins, listener.name())<0) {
+			if (validPlugins != null) {
+				if (Arrays.binarySearch(validPlugins, listener.name()) < 0) {
 					continue;
 				}
 			}

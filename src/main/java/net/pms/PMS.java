@@ -304,7 +304,7 @@ public class PMS {
 			autoUpdater = new AutoUpdater(serverURL, getVersion());
 		}
 		registry = createSystemUtils();
-		
+
 		if (System.getProperty(CONSOLE) == null) {
 			frame = new LooksFrame(autoUpdater, configuration);
 		} else {
@@ -320,7 +320,7 @@ public class PMS {
 				}
 			}
 		});
-		
+
 		frame.setStatusCode(0, Messages.getString("PMS.130"), "icon-status-connecting.png");
 		proxy = -1;
 
@@ -511,7 +511,7 @@ public class PMS {
 		if (!binding) {
 			return false;
 		}
-		
+
 		/// Web stuff
 		web = new RemoteWeb();
 
@@ -685,7 +685,7 @@ public class PMS {
 	public File[] getFoldersConf(String tag) {
 		return getFoldersConf(tag, true);
 	}
-	
+
 	public File[] getFoldersConf(boolean log) {
 		return getFoldersConf(null, log);
 	}
@@ -1197,6 +1197,6 @@ public class PMS {
 			return true;
 		}
 	}
-	
+
 	private RemoteWeb web;
 }
