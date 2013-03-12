@@ -1,7 +1,13 @@
 2.5.1 - 2013-03-??
 
 	General:
-		
+		Improved subtitle support on non-PS3 renderers
+		Made library/file loading faster
+		Fixed 24-bit flac support with tsMuxeR
+	Renderers:
+		Added support for Sony Home Theatre systems
+		Added support for Onkyo TX-NR717
+		Improved Samsung AllShare compatibility
 
 2.5.0 - 2013-03-05
 

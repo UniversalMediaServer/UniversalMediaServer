@@ -1305,17 +1305,21 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 				} else {
 					if (mime.equals("video/mpeg")) {
+						dlnaspec = "DLNA.ORG_PN=" + getMPEG_PS_PALLocalizedValue(c);
+
 						if (getPlayer() != null) {
 							// Do we have some mpegts to offer?
 							boolean mpegTsMux = TsMuxeRVideo.ID.equals(getPlayer().id()) || VideoLanVideoStreaming.ID.equals(getPlayer().id());
+							boolean isMuxableResult = getMedia().isMuxable(mediaRenderer);
 							if (!mpegTsMux) { // Maybe, like the PS3, MEncoder can launch tsMuxeR if this a compatible H.264 video
 								mpegTsMux = MEncoderVideo.ID.equals(getPlayer().id()) &&
 									(
 										(
 											getMediaSubtitle() == null &&
+											!isSrtFile() &&
 											getMedia() != null &&
 											getMedia().getDvdtrack() == 0 &&
-											getMedia().isMuxable(mediaRenderer) &&
+											isMuxableResult &&
 											configuration.isMencoderMuxWhenCompatible() &&
 											mediaRenderer.isMuxH264MpegTS()
 										) ||
@@ -1323,20 +1327,22 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									);
 							}
 							if (mpegTsMux) {
-								dlnaspec = getMedia().isH264() && !VideoLanVideoStreaming.ID.equals(getPlayer().id()) && getMedia().isMuxable(mediaRenderer) ?
-									"DLNA.ORG_PN=AVC_TS_HD_24_AC3_ISO" :
-									"DLNA.ORG_PN=" + getMPEG_TS_SD_EU_ISOLocalizedValue(c);
-							} else {
-								dlnaspec = "DLNA.ORG_PN=" + getMPEG_PS_PALLocalizedValue(c);
+								dlnaspec = "DLNA.ORG_PN=" + getMPEG_TS_SD_EU_ISOLocalizedValue(c);
+								if (
+									getMedia().isH264() &&
+									!VideoLanVideoStreaming.ID.equals(getPlayer().id()) &&
+									isMuxableResult
+								) {
+									dlnaspec = "DLNA.ORG_PN=AVC_TS_HD_24_AC3_ISO";
+								}
 							}
 						} else if (getMedia() != null) {
 							if (getMedia().isMpegTS()) {
-								dlnaspec = getMedia().isH264() ? "DLNA.ORG_PN=AVC_TS_HD_50_AC3" : "DLNA.ORG_PN=" + getMPEG_TS_SD_EULocalizedValue(c);
-							} else {
-								dlnaspec = "DLNA.ORG_PN=" + getMPEG_PS_PALLocalizedValue(c);
+								dlnaspec = "DLNA.ORG_PN=" + getMPEG_TS_SD_EULocalizedValue(c);
+								if (getMedia().isH264()) {
+									dlnaspec = "DLNA.ORG_PN=AVC_TS_HD_50_AC3";
+								}
 							}
-						} else {
-							dlnaspec = "DLNA.ORG_PN=" + getMPEG_PS_PALLocalizedValue(c);
 						}
 					} else if (mime.equals("video/vnd.dlna.mpeg-tts")) {
 						// patters - on Sony BDP m2ts clips aren't listed without this
