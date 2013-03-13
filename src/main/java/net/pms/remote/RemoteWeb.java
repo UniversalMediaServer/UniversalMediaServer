@@ -52,8 +52,7 @@ public class RemoteWeb {
 	private KeyManagerFactory kmf;
 	private TrustManagerFactory tmf;
 	
-	private HttpsServer server;
-	//private HttpServer server1;
+	private HttpServer server;
 	private SSLContext sslContext;
 	
 	private HashMap<String,String> users;
@@ -78,27 +77,12 @@ public class RemoteWeb {
             // setup the socket address
             InetSocketAddress address = new InetSocketAddress ( InetAddress.getByName("0.0.0.0"), port );
 
-            // initialise the HTTPS server
-            server = HttpsServer.create ( address, 0 );
-          //  server1 = HttpServer.create(address,0);
-            sslContext = SSLContext.getInstance ( "TLS" );
-
-            // initialise the keystore
-            char[] password = "umsums".toCharArray ();
-            ks = KeyStore.getInstance ( "JKS" );
-            FileInputStream fis = new FileInputStream ( "UMS.jks" );
-            ks.load ( fis, password );
-
-            // setup the key manager factory
-            kmf = KeyManagerFactory.getInstance ( "SunX509" );
-            kmf.init ( ks, password );
-
-            // setup the trust manager factory
-            tmf = TrustManagerFactory.getInstance ( "SunX509" );
-            tmf.init ( ks );
-
-            // setup the HTTPS context and parameters
-            sslContext.init ( kmf.getKeyManagers (), tmf.getTrustManagers (), null );
+            // initialise the HTTP(S) server
+            if (PMS.getConfiguration().getWebHttps())
+            	server = httpsServer(address);
+            else
+            	server = HttpServer.create(address, 0);
+          
             // Add context handlers
             addCtx("/", new RemoteStartHandler());
             addCtx("/browse", new RemoteBrowseHandler(this));
@@ -108,32 +92,57 @@ public class RemoteWeb {
             addCtx("/raw", new RemoteRawHandler(this));
             //addCtx("/jwplayer", new RemoteFileHandler());
             server.setExecutor(null);
-            server.setHttpsConfigurator ( new HttpsConfigurator( sslContext )
-            {
-                public void configure ( HttpsParameters params )
-                {
-                    try
-                    {
-                        // initialise the SSL context
-                        SSLContext c = SSLContext.getDefault ();
-                        SSLEngine engine = c.createSSLEngine ();
-                        params.setNeedClientAuth ( true );
-                        params.setCipherSuites ( engine.getEnabledCipherSuites () );
-                        params.setProtocols ( engine.getEnabledProtocols () );
-
-                        // get the default parameters
-                        SSLParameters defaultSSLParameters = c.getDefaultSSLParameters ();
-                        params.setSSLParameters ( defaultSSLParameters );
-                    }
-                    catch ( Exception e ) {
-                    	LOGGER.debug("https configure error  "+e);
-                    }
-                }
-            } );
             server.start();
         } catch ( Exception e ) {
         	LOGGER.debug("Couldn't start RemoteWEB "+e);
         }	
+	}
+	
+	private HttpServer httpsServer(InetSocketAddress address) throws Exception {
+		
+		HttpsServer server = HttpsServer.create ( address, 0 );
+
+		sslContext = SSLContext.getInstance ( "TLS" );
+
+		// initialise the keystore
+		char[] password = "umsums".toCharArray ();
+		ks = KeyStore.getInstance ( "JKS" );
+		FileInputStream fis = new FileInputStream ( "UMS.jks" );
+		ks.load ( fis, password );
+
+		// setup the key manager factory
+		kmf = KeyManagerFactory.getInstance ( "SunX509" );
+		kmf.init ( ks, password );
+
+		// setup the trust manager factory
+		tmf = TrustManagerFactory.getInstance ( "SunX509" );
+		tmf.init ( ks );
+		
+		sslContext.init ( kmf.getKeyManagers (), tmf.getTrustManagers (), null );
+
+		server.setHttpsConfigurator ( new HttpsConfigurator( sslContext )
+		{
+			public void configure ( HttpsParameters params )
+			{
+				try
+				{
+					// initialise the SSL context
+					SSLContext c = SSLContext.getDefault ();
+					SSLEngine engine = c.createSSLEngine ();
+					params.setNeedClientAuth ( true );
+					params.setCipherSuites ( engine.getEnabledCipherSuites () );
+					params.setProtocols ( engine.getEnabledProtocols () );
+
+					// get the default parameters
+					SSLParameters defaultSSLParameters = c.getDefaultSSLParameters ();
+					params.setSSLParameters ( defaultSSLParameters );
+				}
+				catch ( Exception e ) {
+					LOGGER.debug("https configure error  "+e);
+				}
+			}
+		} );
+		return server;
 	}
 	
 	public String getTag(String name) {

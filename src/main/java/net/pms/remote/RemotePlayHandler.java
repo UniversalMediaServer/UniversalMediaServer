@@ -82,6 +82,7 @@ public class RemotePlayHandler implements HttpHandler {
 		}
 		if(res.get(0).getFormat().isVideo()) {
 			mediaType="video";
+			mime="video/mp4";
 		}
 		sb.append("<" + mediaType + " width=\"320\" height=\"240\" controls=\"controls\" autoplay=\"autoplay\"");
 		sb.append(" src=\"/media/" + id1 + "\" type=\"" + mime + "\">");

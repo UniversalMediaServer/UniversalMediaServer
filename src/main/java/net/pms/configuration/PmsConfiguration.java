@@ -2762,6 +2762,7 @@ public class PmsConfiguration {
 	///////////////////////////////////////////////////////////
 	
 	private static final String KEY_NO_FOLDERS="no_shared";
+	private static final String KEY_WEB_HTTPS="use_https";
     
     public String getFolders(String tag) {
     	if(tag == null) {
@@ -2805,5 +2806,9 @@ public class PmsConfiguration {
     		return null;
     	}
     	return str.split(",");
+    }
+    
+    public boolean getWebHttps() {
+    	return getBoolean(KEY_WEB_HTTPS, false);
     }
 }
