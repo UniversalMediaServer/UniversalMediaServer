@@ -1012,19 +1012,6 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Returns a string of comma separated audio or subtitle languages,
-	 * ordered by priority.
-	 * @return The string of languages.
-	 */
-	private String getDefaultLanguages() {
-		if ("fr".equals(getLanguage())) {
-			return "fre,jpn,ger,eng,und";
-		} else {
-			return "eng,fre,jpn,ger,und";
-		}
-	}
-
-	/**
 	 * @deprecated Use {@link #getSubtitlesLanguages()} instead.
 	 */
 	public String getMencoderSubLanguages() {
@@ -2756,11 +2743,11 @@ public class PmsConfiguration {
 	public String getDataFile(String str) {
 		return getDataDir() + File.separator + str;
 	}
-	
-	///////////////////////////////////////////////////////////
-	// Web stuff
-	///////////////////////////////////////////////////////////
-	
+
+	/**
+	 * Web stuff
+	 */
+
 	private static final String KEY_NO_FOLDERS="no_shared";
 	private static final String KEY_WEB_HTTPS="use_https";
     

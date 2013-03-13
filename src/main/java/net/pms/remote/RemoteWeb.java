@@ -1,5 +1,13 @@
 package net.pms.remote;
 
+import com.sun.net.httpserver.BasicAuthenticator;
+import com.sun.net.httpserver.Headers;
+import com.sun.net.httpserver.HttpContext;
+import com.sun.net.httpserver.HttpExchange;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpsConfigurator;
+import com.sun.net.httpserver.HttpsParameters;
+import com.sun.net.httpserver.HttpsServer;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -9,73 +17,51 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.URI;
 import java.security.KeyStore;
 import java.util.HashMap;
 import java.util.List;
-
-import javax.imageio.ImageIO;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.TrustManagerFactory;
-
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
-import net.pms.dlna.Range;
 import net.pms.dlna.RootFolder;
-import net.pms.newgui.LooksFrame;
-import net.pms.util.PropertiesUtil;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sun.net.httpserver.BasicAuthenticator;
-import com.sun.net.httpserver.Headers;
-import com.sun.net.httpserver.HttpContext;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
-import com.sun.net.httpserver.HttpPrincipal;
-import com.sun.net.httpserver.HttpServer;
-import com.sun.net.httpserver.HttpsConfigurator;
-import com.sun.net.httpserver.HttpsParameters;
-import com.sun.net.httpserver.HttpsServer;
-
 public class RemoteWeb {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RemoteWeb.class);
 	private static final int DEFAULT_PORT = 9001;
-	
 	private KeyStore ks;
 	private KeyManagerFactory kmf;
 	private TrustManagerFactory tmf;
-	
 	private HttpServer server;
 	private SSLContext sslContext;
-	
-	private HashMap<String,String> users;
-	private HashMap<String,String> tags;
-	private HashMap<String,RootFolder> roots;
-	
+	private HashMap<String, String> users;
+	private HashMap<String, String> tags;
+	private HashMap<String, RootFolder> roots;
+
 	public RemoteWeb() {
 		this(DEFAULT_PORT);
 	}
-	
+
 	public RemoteWeb(int port) {
 		if (port <= 0) {
 			port = DEFAULT_PORT;
 		}
-		
-		users = new HashMap<String,String>();
-		tags = new HashMap<String,String>();
-		roots = new HashMap<String,RootFolder>();
-		
+
+		users = new HashMap<>();
+		tags = new HashMap<>();
+		roots = new HashMap<>();
+
 		try {
 			readCred();
-            // setup the socket address
-            InetSocketAddress address = new InetSocketAddress ( InetAddress.getByName("0.0.0.0"), port );
+			// setup the socket address
+			InetSocketAddress address = new InetSocketAddress(InetAddress.getByName("0.0.0.0"), port);
 
             // initialise the HTTP(S) server
             if (PMS.getConfiguration().getWebHttps())
@@ -97,7 +83,7 @@ public class RemoteWeb {
         	LOGGER.debug("Couldn't start RemoteWEB "+e);
         }	
 	}
-	
+
 	private HttpServer httpsServer(InetSocketAddress address) throws Exception {
 		
 		HttpsServer server = HttpsServer.create ( address, 0 );
@@ -152,11 +138,11 @@ public class RemoteWeb {
 		}
 		return tag;
 	}
-	
+
 	public RootFolder getRoot(String name) {
 		return getRoot(name, false);
 	}
-	
+
 	public RootFolder getRoot(String name, boolean create) {
 		RootFolder root = roots.get(name);
 		if (!create || (root != null)) {
@@ -169,72 +155,77 @@ public class RemoteWeb {
 		roots.put(name, root);
 		return root;
 	}
-	
-	private void addCtx(String path,HttpHandler h) {
-		HttpContext ctx=server.createContext(path, h);
+
+	private void addCtx(String path, HttpHandler h) {
+		HttpContext ctx = server.createContext(path, h);
 		ctx.setAuthenticator(new BasicAuthenticator("") {
-        	public boolean checkCredentials(String user, String pwd) {
-        		LOGGER.debug("authenticate "+user+" pwd "+pwd);
-        		//return pwd.equals(users.get(user));
-        		return true;
-        	}
-        });
+			@Override
+			public boolean checkCredentials(String user, String pwd) {
+				LOGGER.debug("authenticate " + user + " pwd " + pwd);
+				//return pwd.equals(users.get(user));
+				return true;
+			}
+		});
 	}
-	
+
 	private void readCred() throws IOException {
 		String cPath = (String) PMS.getConfiguration().getCustomProperty("cred.path");
-		if(StringUtils.isEmpty(cPath))
-			return ;
-		File f=new File(cPath);
-		if(!f.exists())
-			return ;
+		if (StringUtils.isEmpty(cPath)) {
+			return;
+		}
+		File f = new File(cPath);
+		if (!f.exists()) {
+			return;
+		}
 		BufferedReader in;
 		in = new BufferedReader(new FileReader(f));
 		String str;
 		while ((str = in.readLine()) != null) {
-			str=str.trim();
-			if(StringUtils.isEmpty(str)||str.startsWith("#")) {
+			str = str.trim();
+			if (StringUtils.isEmpty(str) || str.startsWith("#")) {
 				continue;
 			}
-			String[] s=str.split("\\s*=\\s*",2);
-			if(s.length<2) {
+			String[] s = str.split("\\s*=\\s*", 2);
+			if (s.length < 2) {
 				continue;
 			}
-			if(!s[0].startsWith("web")) {
+			if (!s[0].startsWith("web")) {
 				continue;
 			}
-			String[] s1 = s[0].split(".",2);
-			String[] s2 = s[1].split(",",2);
-			if(s2.length < 2) {
+			String[] s1 = s[0].split(".", 2);
+			String[] s2 = s[1].split(",", 2);
+			if (s2.length < 2) {
 				continue;
 			}
 			// s2[0] == usr s2[1] == pwd s1[1] == tag
 			users.put(s2[0], s2[1]);
-			if(s1.length > 1) {
+			if (s1.length > 1) {
 				// there is a tag here
 				tags.put(s2[0], s1[1]);
 			}
 		}
 	}
-	
+
 	static class RemoteThumbHandler implements HttpHandler {
+
 		private RemoteWeb parent;
-		
+
 		public RemoteThumbHandler(RemoteWeb parent) {
 			this.parent = parent;
 		}
-		
+
+		@Override
 		public void handle(HttpExchange t) throws IOException {
-			if(RemoteUtil.deny(t)) {
-	    		throw new IOException("Access denied");
-	    	}
+			if (RemoteUtil.deny(t)) {
+				throw new IOException("Access denied");
+			}
 			String id = RemoteUtil.getId("thumb/", t);
-			if(id.contains("logo")) {
+			if (id.contains("logo")) {
 				RemoteUtil.sendLogo(t);
 				return;
 			}
 			RootFolder root = parent.getRoot(t.getPrincipal().getUsername());
-			if(root == null) {
+			if (root == null) {
 				LOGGER.debug("weird root in thumb req");
 				throw new IOException("Unknown root");
 			}
@@ -243,69 +234,69 @@ public class RemoteWeb {
 				// another error
 				LOGGER.debug("media unkonwn");
 				throw new IOException("Bad id");
-			}	
+			}
 			Headers hdr = t.getResponseHeaders();
-			hdr.add("Content-Type" , res.get(0).getThumbnailContentType());
+			hdr.add("Content-Type", res.get(0).getThumbnailContentType());
 			hdr.add("Accept-Ranges", "bytes");
 			hdr.add("Connection", "keep-alive");
 			InputStream in = res.get(0).getThumbnailInputStream();
 			t.sendResponseHeaders(200, in.available());
 			OutputStream os = t.getResponseBody();
-			LOGGER.debug("input is "+in+" out "+os);
+			LOGGER.debug("input is " + in + " out " + os);
 			if (root.getDefaultRenderer().isMediaParserV2()) {
 				res.get(0).checkThumbnail();
 			}
-			RemoteUtil.dump(in,os);
+			RemoteUtil.dump(in, os);
 		}
 	}
-	
+
 	static class RemoteFileHandler implements HttpHandler {
+		@Override
 		public void handle(HttpExchange t) throws IOException {
-			LOGGER.debug("file req "+t.getRequestURI());
-			if(t.getRequestURI().getPath().contains("crossdomain.xml")) {
-				String data="<?xml version=\"1.0\"?>" +
-				"<!-- http://www.bitsontherun.com/crossdomain.xml -->" +
-				"<cross-domain-policy>" +
-				"<allow-access-from domain=\"*\" />"+
-				"</cross-domain-policy>";
+			LOGGER.debug("file req " + t.getRequestURI());
+			if (t.getRequestURI().getPath().contains("crossdomain.xml")) {
+				String data = "<?xml version=\"1.0\"?>"
+					+ "<!-- http://www.bitsontherun.com/crossdomain.xml -->"
+					+ "<cross-domain-policy>"
+					+ "<allow-access-from domain=\"*\" />"
+					+ "</cross-domain-policy>";
 				t.sendResponseHeaders(200, data.length());
 				OutputStream os = t.getResponseBody();
 				os.write(data.getBytes());
 				os.close();
 				return;
 			}
-			if(t.getRequestURI().getPath().contains("player.swf")) {
-				LOGGER .debug("fetch player.swf");
+			if (t.getRequestURI().getPath().contains("player.swf")) {
+				LOGGER.debug("fetch player.swf");
 				Headers hdr = t.getResponseHeaders();
 				hdr.add("Accept-Ranges", "bytes");
 				hdr.add("Server", PMS.get().getServerName());
 				//hdr.add("Content-Type", "application/javascript; charset=utf-8");
-				RemoteUtil.dumpFile("player.swf",t);
+				RemoteUtil.dumpFile("player.swf", t);
 				return;
 			}
-			if(t.getRequestURI().getPath().contains("jwplayer.js")) {
-				LOGGER .debug("fetch jwplayer.js");
+			if (t.getRequestURI().getPath().contains("jwplayer.js")) {
+				LOGGER.debug("fetch jwplayer.js");
 				Headers hdr = t.getResponseHeaders();
 				hdr.add("Content-Type", "application/x-javascript");
 				hdr.add("Accept-Ranges", "bytes");
 				hdr.add("Server", PMS.get().getServerName());
-				RemoteUtil.dumpFile("jwplayer.js",t);
-				return;
+				RemoteUtil.dumpFile("jwplayer.js", t);
 			}
 		}
 	}
-	
+
 	static class RemoteStartHandler implements HttpHandler {
 		private static final Logger LOGGER = LoggerFactory.getLogger(RemoteStartHandler.class);
 		private final static String CRLF = "\r\n";
-		
+
 		@Override
 		public void handle(HttpExchange t) throws IOException {
-			LOGGER.debug("root req "+t.getRequestURI());
-			if(RemoteUtil.deny(t)) {
-	    		throw new IOException("Access denied");
-	    	}
-			if(t.getRequestURI().getPath().contains("favicon")) {
+			LOGGER.debug("root req " + t.getRequestURI());
+			if (RemoteUtil.deny(t)) {
+				throw new IOException("Access denied");
+			}
+			if (t.getRequestURI().getPath().contains("favicon")) {
 				RemoteUtil.sendLogo(t);
 				return;
 			}
@@ -324,9 +315,9 @@ public class RemoteWeb {
 			sb.append("</body></html>");
 			String response = sb.toString();
 			t.sendResponseHeaders(200, response.length());
-			OutputStream os = t.getResponseBody();
-			os.write(response.getBytes());
-			os.close();
-		}		
+			try (OutputStream os = t.getResponseBody()) {
+				os.write(response.getBytes());
+			}
+		}
 	}
 }

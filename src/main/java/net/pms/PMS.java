@@ -304,7 +304,7 @@ public class PMS {
 			autoUpdater = new AutoUpdater(serverURL, getVersion());
 		}
 		registry = createSystemUtils();
-		
+
 		if (System.getProperty(CONSOLE) == null) {
 			frame = new LooksFrame(autoUpdater, configuration);
 		} else {
@@ -320,12 +320,12 @@ public class PMS {
 				}
 			}
 		});
-		
+
 		frame.setStatusCode(0, Messages.getString("PMS.130"), "icon-status-connecting.png");
 		proxy = -1;
 
 		LOGGER.info("Starting " + PropertiesUtil.getProjectProperties().get("project.name") + " " + getVersion());
-		LOGGER.info("Based on PS3 Media Server by shagrath, copyright 2008-2012");
+		LOGGER.info("Based on PS3 Media Server by shagrath, copyright 2008-2013");
 		LOGGER.info("http://www.universalmediaserver.com");
 		LOGGER.info("");
 
@@ -396,6 +396,7 @@ public class PMS {
 
 		LOGGER.info("Please wait while we check the MPlayer font cache, this can take a minute or so.");
 
+		// TODO: Make a setting to allow users to choose whether they want to use the system version of MPlayer instead
 		if (Platform.isLinux()) {
 			checkProcessExistence("MPlayer", true, null, "./" + configuration.getMplayerPath(), "dummy");
 		} else {
@@ -510,7 +511,7 @@ public class PMS {
 		if (!binding) {
 			return false;
 		}
-		
+
 		/// Web stuff
 		web = new RemoteWeb();
 
@@ -684,7 +685,7 @@ public class PMS {
 	public File[] getFoldersConf(String tag) {
 		return getFoldersConf(tag, true);
 	}
-	
+
 	public File[] getFoldersConf(boolean log) {
 		return getFoldersConf(null, log);
 	}
@@ -1196,6 +1197,6 @@ public class PMS {
 			return true;
 		}
 	}
-	
+
 	private RemoteWeb web;
 }

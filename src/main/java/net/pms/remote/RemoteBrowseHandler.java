@@ -1,39 +1,31 @@
 package net.pms.remote;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import net.pms.PMS;
-import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.Range;
-import net.pms.dlna.RootFolder;
-import net.pms.util.PropertiesUtil;
-
-import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpPrincipal;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.List;
+import net.pms.PMS;
+import net.pms.dlna.DLNAResource;
+import net.pms.dlna.RootFolder;
+import net.pms.util.PropertiesUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RemoteBrowseHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RemoteBrowseHandler.class);
 	private final static String CRLF = "\r\n";
-	
 	private RemoteWeb parent;
-	
+
 	public RemoteBrowseHandler(RemoteWeb parent) {
 		this.parent = parent;
 	}
-	
-	private String mkBrowsePage(String id,HttpExchange t) throws IOException {
+
+	private String mkBrowsePage(String id, HttpExchange t) throws IOException {
 		HttpPrincipal p = t.getPrincipal();
 		RootFolder root = parent.getRoot(p.getUsername(), true);
-    	List<DLNAResource> res = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), null);
+		List<DLNAResource> res = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), null);
 		StringBuilder sb = new StringBuilder();
 		sb.append("<html xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:og=\"http://opengraphprotocol.org/schema/\">");
 		sb.append(CRLF);
@@ -46,7 +38,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 		sb.append("<meta charset=\"utf-8\">");
 		sb.append(CRLF);
 		sb.append("<title>");
-		sb.append(PropertiesUtil.getProjectProperties().get("project.name") + " " + PMS.getVersion());
+		sb.append(PropertiesUtil.getProjectProperties().get("project.name")).append(" ").append(PMS.getVersion());
 		sb.append("</title></head><body>");
 		sb.append(CRLF);
 		sb.append("<div class=\"subtitles cover left\">");
@@ -61,9 +53,9 @@ public class RemoteBrowseHandler implements HttpHandler {
 				//newId = newId + "." + r.getFormat().getMatchedId();
 			}
 			sb.append("<li>");
-			sb.append("<a href=\"" + path + newId + "\"");
-			sb.append(" title=\"" + r.getDisplayName() + "\">");
-			sb.append("<img class=\"cover\" src=\"" + thumb + "\" alt=\"\" />");
+			sb.append("<a href=\"").append(path).append(newId).append("\"");
+			sb.append(" title=\"").append(r.getDisplayName()).append("\">");
+			sb.append("<img class=\"cover\" src=\"").append(thumb).append("\" alt=\"\" />");
 			sb.append("<br><span class=\"ep\">");
 			sb.append(r.getDisplayName());
 			sb.append("</span>");
@@ -74,23 +66,23 @@ public class RemoteBrowseHandler implements HttpHandler {
 		sb.append(CRLF);
 		return sb.toString();
 	}
-	
+
 	private void writePage(String response, HttpExchange t) throws IOException {
-		LOGGER.debug("write page "+response);
-        t.sendResponseHeaders(200, response.length());
-        OutputStream os = t.getResponseBody();
-        os.write(response.getBytes());
-        os.close();
+		LOGGER.debug("write page " + response);
+		t.sendResponseHeaders(200, response.length());
+		OutputStream os = t.getResponseBody();
+		os.write(response.getBytes());
+		os.close();
 	}
-	
-    public void handle(HttpExchange t) throws IOException {
-    	LOGGER.debug("got a browse request "+t.getRequestURI());
-    	if(RemoteUtil.deny(t)) {
-    		throw new IOException("Access denied");
-    	}
-    	String id = RemoteUtil.getId("browse/", t);
-    	LOGGER.debug("found id "+id);
-    	String response = mkBrowsePage(id,t);
-    	writePage(response,t);
-    }
+
+	public void handle(HttpExchange t) throws IOException {
+		LOGGER.debug("got a browse request " + t.getRequestURI());
+		if (RemoteUtil.deny(t)) {
+			throw new IOException("Access denied");
+		}
+		String id = RemoteUtil.getId("browse/", t);
+		LOGGER.debug("found id " + id);
+		String response = mkBrowsePage(id, t);
+		writePage(response, t);
+	}
 }

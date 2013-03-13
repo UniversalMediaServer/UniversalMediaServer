@@ -54,7 +54,7 @@ public class RootFolder extends DLNAResource {
 	private boolean running;
 	private FolderLimit lim;
 	private String tag;
-	
+
 	public RootFolder() {
 		this(null);
 	}
@@ -104,8 +104,8 @@ public class RootFolder extends DLNAResource {
 			lim = new FolderLimit();
 			addChild(lim);
 		}
-		
-		if(!configuration.getNoFolders(tag)) {
+
+		if (!configuration.getNoFolders(tag)) {
 			for (DLNAResource r : getConfiguredFolders()) {
 				addChild(r);
 			}
@@ -170,28 +170,8 @@ public class RootFolder extends DLNAResource {
 		}
 	}
 
-	/**
-	 * Returns whether or not a scan is running.
-	 *
-	 * @return <code>true</code> if a scan is running, <code>false</code>
-	 * otherwise.
-	 */
-	private synchronized boolean isRunning() {
-		return running;
-	}
-
-	/**
-	 * Sets whether or not a scan is running.
-	 *
-	 * @param running Set to <code>true</code> if the scan is running, or to
-	 * <code>false</code> when the scan has stopped.
-	 */
-	private synchronized void setRunning(boolean running) {
-		this.running = running;
-	}
-
 	public void scan() {
-		setRunning(true);
+		running = true;
 
 		if (!isDiscovered()) {
 			discoverChildren();
@@ -208,18 +188,19 @@ public class RootFolder extends DLNAResource {
 	/*
 	 * @deprecated Use {@link #stopScan()} instead.
 	 */
+	@Deprecated
 	public void stopscan() {
 		stopScan();
 	}
 
 	public void stopScan() {
-		setRunning(false);
+		running = false;
 	}
 
 	private synchronized void scan(DLNAResource resource) {
-		if (isRunning()) {
+		if (running) {
 			for (DLNAResource child : resource.getChildren()) {
-				if (isRunning() && child.allowScan()) {
+				if (running && child.allowScan()) {
 					child.setDefaultRenderer(resource.getDefaultRenderer());
 					String trace = null;
 
@@ -628,7 +609,7 @@ public class RootFolder extends DLNAResource {
 		boolean firstPhoto = true;
 
 		for (Object photoKey : albumPhotos) {
-			Map<?, ? > photo = (Map<?, ?>) photoList.get(photoKey);
+			Map<?, ?> photo = (Map<?, ?>) photoList.get(photoKey);
 
 			if (firstPhoto) {
 				Object x = photoList.get("ThumbPath");
@@ -811,7 +792,7 @@ public class RootFolder extends DLNAResource {
 							int pos = name.lastIndexOf(".");
 
 							if (pos != -1) {
-								name = name.substring(0,pos);
+								name = name.substring(0, pos);
 							}
 
 							final File f = files[i];
@@ -825,7 +806,7 @@ public class RootFolder extends DLNAResource {
 										InputStream is = pid.getInputStream();
 										InputStreamReader isr = new InputStreamReader(is);
 										BufferedReader br = new BufferedReader(isr);
-										while (br.readLine() != null) { 
+										while (br.readLine() != null) {
 										}
 										pid.waitFor();
 									} catch (IOException | InterruptedException e) {
@@ -968,10 +949,10 @@ public class RootFolder extends DLNAResource {
 	private List<DLNAResource> getAdditionalFoldersAtRoot() {
 		List<DLNAResource> res = new ArrayList<>();
 
-		String[] validPlugins=configuration.getPlugins(tag);
+		String[] validPlugins = configuration.getPlugins(tag);
 		for (ExternalListener listener : ExternalFactory.getExternalListeners()) {
-			if(validPlugins != null) {
-				if(Arrays.binarySearch(validPlugins, listener.name())<0) {
+			if (validPlugins != null) {
+				if (Arrays.binarySearch(validPlugins, listener.name()) < 0) {
 					continue;
 				}
 			}

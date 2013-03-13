@@ -140,7 +140,7 @@ public class SubtitleTypeTest {
 
 	@Test
 	public void getSupportedFileExtensions() {
-		Set<String> expectedExtensionsSet = new HashSet<String>(Arrays.asList("srt", "txt", "sub", "smi", "ssa", "ass", "idx"));
+		Set<String> expectedExtensionsSet = new HashSet<>(Arrays.asList("srt", "txt", "sub", "smi", "ssa", "ass", "idx"));
 		assertThat(SubtitleType.getSupportedFileExtensions()).isEqualTo(expectedExtensionsSet);
 	}
 
@@ -163,7 +163,7 @@ public class SubtitleTypeTest {
 
 	@Test
 	public void testGetStableIndex_uniqueness() {
-		Set<Integer> stableIndexes = new HashSet<Integer>();
+		Set<Integer> stableIndexes = new HashSet<>();
 		for (SubtitleType subtitleType : values()) {
 			assertThat(stableIndexes.contains(subtitleType.getStableIndex())).isFalse();
 			stableIndexes.add(subtitleType.getStableIndex());

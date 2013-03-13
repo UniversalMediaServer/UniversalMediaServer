@@ -26,6 +26,8 @@ import static org.mozilla.universalchardet.Constants.*;
 
 public class SubtitleUtils {
 	private final static Map<String, String> fileCharsetToMencoderSubcpOptionMap = new HashMap<String, String>() {
+		private static final long serialVersionUID = 1L;
+
 		{
 			// Cyrillic / Russian
 			put(CHARSET_IBM855, "enca:ru:cp1251");
