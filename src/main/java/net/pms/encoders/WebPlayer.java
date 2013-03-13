@@ -29,29 +29,28 @@ public class WebPlayer extends Player {
 
 			// FFMPEG version
 			String[] cmdArray = new String[] {
-					PMS.getConfiguration().getFfmpegPath(),
-					"-y", 
-					"-loglevel", "warning",
-					"-threads", "" + nThreads,
-					"-i", fileName,
-					"-threads",  "" + nThreads,
-					"-f", "m4v",
-					"-ac", "2",
-					"-vcodec", "libx264",
-					"-preset", "baseline",
-					"-preset", "slow",
-					//"-acodec", "copy",
-					"-ab", "56k",
-					"-acodec", "libvo_aacenc",
-//					"-frag_duration", "300",
-	//				"-frag_size", "100",
-		//			"-flags", "+aic+mv4",
-					pipe.getInputPipe()
-				};
-			
+				PMS.getConfiguration().getFfmpegPath(),
+				"-y", 
+				"-loglevel", "warning",
+				"-threads", "" + nThreads,
+				"-i", fileName,
+				"-threads",  "" + nThreads,
+				"-f", "m4v",
+				"-ac", "2",
+				"-vcodec", "libx264",
+				"-preset", "baseline",
+				"-preset", "slow",
+				//"-acodec", "copy",
+				"-ab", "56k",
+				"-acodec", "libvo_aacenc",
+				//"-frag_duration", "300",
+				//"-frag_size", "100",
+				//"-flags", "+aic+mv4",
+				pipe.getInputPipe()
+			};
+
 			// MENCODER version
-			
-	/*		String[] cmdArray = new String[] {
+			/*String[] cmdArray = new String[] {
 					PMS.getConfiguration().getMencoderPath(),
 					fileName,
 					"-quiet",
@@ -61,28 +60,28 @@ public class WebPlayer extends Player {
 					"-of", "mp4",
 					"-o", pipe.getInputPipe()
 			};*/
-			
-			LOGGER.debug("web cmd "+cmdArray.toString());
+
+			LOGGER.debug("Web cmd " + cmdArray.toString());
 			ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 			ProcessWrapper mkfifo_process = pipe.getPipeProcess();
 			pw.attachProcess(mkfifo_process);
 
-		// FFMPEG version
-		String[] cmdArray = new String[]{
-			PMS.getConfiguration().getFfmpegPath(),
-			"-y",
-			"-loglevel", "warning",
-			"-threads", "" + nThreads,
-			"-i", fileName,
-			"-threads", "" + nThreads,
-			"-f", "mp4",
-			"-vcodec", "libx264",
-			//"-acodec", "libfaac",
-			"-frag_duration", "300",
-			"-frag_size", "100",
-			"-flags", "+aic+mv4",
-			pipe.getInputPipe()
-		};
+			// FFMPEG version
+			String[] cmdArray = new String[]{
+				PMS.getConfiguration().getFfmpegPath(),
+				"-y",
+				"-loglevel", "warning",
+				"-threads", "" + nThreads,
+				"-i", fileName,
+				"-threads", "" + nThreads,
+				"-f", "mp4",
+				"-vcodec", "libx264",
+				//"-acodec", "libfaac",
+				"-frag_duration", "300",
+				"-frag_size", "100",
+				"-flags", "+aic+mv4",
+				pipe.getInputPipe()
+			};
 
 			try {
 				Thread.sleep(300);
@@ -90,23 +89,23 @@ public class WebPlayer extends Player {
 				LOGGER.error("thread interrupted while waiting for named pipe to be created", e);
 			}
 
-		/*		String[] cmdArray = new String[] {
-		 PMS.getConfiguration().getMencoderPath(),
-		 fileName,
-		 "-quiet",
-		 "-oac", "copy",
-		 "-ovc", "x264",
-		 "-lavcopts", "vcodec=mpeg4:threads="+nThreads,
-		 "-of", "mp4",
-		 "-o", pipe.getInputPipe()
-		 };*/
+		/*String[] cmdArray = new String[] {
+		PMS.getConfiguration().getMencoderPath(),
+		fileName,
+		"-quiet",
+		"-oac", "copy",
+		"-ovc", "x264",
+		"-lavcopts", "vcodec=mpeg4:threads="+nThreads,
+		"-of", "mp4",
+		"-o", pipe.getInputPipe()
+		};*/
 
 		LOGGER.debug("web cmd " + cmdArray);
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 		ProcessWrapper mkfifo_process = pipe.getPipeProcess();
 		pw.attachProcess(mkfifo_process);
 
-		// create the named pipe and wait briefly to allow it to be created
+		// Create the named pipe and wait briefly to allow it to be created
 		mkfifo_process.runInNewThread();
 
 		try {
@@ -117,7 +116,7 @@ public class WebPlayer extends Player {
 
 		pipe.deleteLater();
 
-		// launch transcode command and wait briefly to allow it to start
+		// Launch transcode command and wait briefly to allow it to start
 		pw.runInNewThread();
 
 		try {

@@ -5,6 +5,7 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpsConfigurator;
 import com.sun.net.httpserver.HttpsParameters;
 import com.sun.net.httpserver.HttpsServer;
@@ -60,77 +61,75 @@ public class RemoteWeb {
 
 		try {
 			readCred();
-			// setup the socket address
+
+			// Setup the socket address
 			InetSocketAddress address = new InetSocketAddress(InetAddress.getByName("0.0.0.0"), port);
 
-            // initialise the HTTP(S) server
-            if (PMS.getConfiguration().getWebHttps())
-            	server = httpsServer(address);
-            else
-            	server = HttpServer.create(address, 0);
-          
-            // Add context handlers
-            addCtx("/", new RemoteStartHandler());
-            addCtx("/browse", new RemoteBrowseHandler(this));
-            addCtx("/play", new RemotePlayHandler(this));
-            addCtx("/media", new RemoteMediaHandler(this));
-            addCtx("/thumb", new RemoteThumbHandler(this));
-            addCtx("/raw", new RemoteRawHandler(this));
-            //addCtx("/jwplayer", new RemoteFileHandler());
-            server.setExecutor(null);
-            server.start();
-        } catch ( Exception e ) {
-        	LOGGER.debug("Couldn't start RemoteWEB "+e);
-        }	
+			// Initialize the HTTP(S) server
+			if (PMS.getConfiguration().getWebHttps()) {
+				server = httpsServer(address);
+			} else {
+				server = HttpServer.create(address, 0);
+			}
+
+			// Add context handlers
+			addCtx("/", new RemoteStartHandler());
+			addCtx("/browse", new RemoteBrowseHandler(this));
+			addCtx("/play", new RemotePlayHandler(this));
+			addCtx("/media", new RemoteMediaHandler(this));
+			addCtx("/thumb", new RemoteThumbHandler(this));
+			addCtx("/raw", new RemoteRawHandler(this));
+			//addCtx("/jwplayer", new RemoteFileHandler());
+			server.setExecutor(null);
+			server.start();
+		} catch (Exception e) {
+			LOGGER.debug("Couldn't start RemoteWEB " + e);
+		}
 	}
 
 	private HttpServer httpsServer(InetSocketAddress address) throws Exception {
-		
-		HttpsServer server = HttpsServer.create ( address, 0 );
+		HttpsServer server = HttpsServer.create(address, 0);
 
-		sslContext = SSLContext.getInstance ( "TLS" );
+		sslContext = SSLContext.getInstance("TLS");
 
-		// initialise the keystore
-		char[] password = "umsums".toCharArray ();
-		ks = KeyStore.getInstance ( "JKS" );
-		FileInputStream fis = new FileInputStream ( "UMS.jks" );
-		ks.load ( fis, password );
+		// Initialize the keystore
+		char[] password = "umsums".toCharArray();
+		ks = KeyStore.getInstance("JKS");
+		FileInputStream fis = new FileInputStream("UMS.jks");
+		ks.load(fis, password);
 
-		// setup the key manager factory
-		kmf = KeyManagerFactory.getInstance ( "SunX509" );
-		kmf.init ( ks, password );
+		// Setup the key manager factory
+		kmf = KeyManagerFactory.getInstance("SunX509");
+		kmf.init(ks, password);
 
-		// setup the trust manager factory
-		tmf = TrustManagerFactory.getInstance ( "SunX509" );
-		tmf.init ( ks );
-		
-		sslContext.init ( kmf.getKeyManagers (), tmf.getTrustManagers (), null );
+		// Setup the trust manager factory
+		tmf = TrustManagerFactory.getInstance("SunX509");
+		tmf.init(ks);
 
-		server.setHttpsConfigurator ( new HttpsConfigurator( sslContext )
-		{
-			public void configure ( HttpsParameters params )
-			{
-				try
-				{
+		sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+
+		server.setHttpsConfigurator(new HttpsConfigurator(sslContext) {
+			@Override
+			public void configure(HttpsParameters params) {
+				try {
 					// initialise the SSL context
-					SSLContext c = SSLContext.getDefault ();
-					SSLEngine engine = c.createSSLEngine ();
-					params.setNeedClientAuth ( true );
-					params.setCipherSuites ( engine.getEnabledCipherSuites () );
-					params.setProtocols ( engine.getEnabledProtocols () );
+					SSLContext c = SSLContext.getDefault();
+					SSLEngine engine = c.createSSLEngine();
+					params.setNeedClientAuth(true);
+					params.setCipherSuites(engine.getEnabledCipherSuites());
+					params.setProtocols(engine.getEnabledProtocols());
 
 					// get the default parameters
-					SSLParameters defaultSSLParameters = c.getDefaultSSLParameters ();
-					params.setSSLParameters ( defaultSSLParameters );
-				}
-				catch ( Exception e ) {
-					LOGGER.debug("https configure error  "+e);
+					SSLParameters defaultSSLParameters = c.getDefaultSSLParameters();
+					params.setSSLParameters(defaultSSLParameters);
+				} catch (Exception e) {
+					LOGGER.debug("https configure error  " + e);
 				}
 			}
-		} );
+		});
 		return server;
 	}
-	
+
 	public String getTag(String name) {
 		String tag = tags.get(name);
 		if (tag == null) {
@@ -207,7 +206,6 @@ public class RemoteWeb {
 	}
 
 	static class RemoteThumbHandler implements HttpHandler {
-
 		private RemoteWeb parent;
 
 		public RemoteThumbHandler(RemoteWeb parent) {
