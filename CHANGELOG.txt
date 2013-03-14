@@ -1,4 +1,4 @@
-2.5.1 - 2013-03-??
+2.5.1 - 2013-03-15
 
 	General:
 		Improved subtitle support on non-PS3 renderers
