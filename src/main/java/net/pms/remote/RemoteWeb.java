@@ -253,15 +253,15 @@ public class RemoteWeb {
 		public void handle(HttpExchange t) throws IOException {
 			LOGGER.debug("file req " + t.getRequestURI());
 			if (t.getRequestURI().getPath().contains("crossdomain.xml")) {
-				String data = "<?xml version=\"1.0\"?>"
-					+ "<!-- http://www.bitsontherun.com/crossdomain.xml -->"
-					+ "<cross-domain-policy>"
-					+ "<allow-access-from domain=\"*\" />"
-					+ "</cross-domain-policy>";
+				String data = "<?xml version=\"1.0\"?>" +
+					"<!-- http://www.bitsontherun.com/crossdomain.xml -->" +
+					"<cross-domain-policy>" +
+					"<allow-access-from domain=\"*\" />" +
+					"</cross-domain-policy>";
 				t.sendResponseHeaders(200, data.length());
-				OutputStream os = t.getResponseBody();
-				os.write(data.getBytes());
-				os.close();
+				try (OutputStream os = t.getResponseBody()) {
+					os.write(data.getBytes());
+				}
 				return;
 			}
 			if (t.getRequestURI().getPath().contains("player.swf")) {
