@@ -133,7 +133,6 @@ public class BasicSystemUtils implements SystemUtils {
 
 	@Override
 	public void addSystemTray(final LooksFrame frame) {
-
 		if (SystemTray.isSupported()) {
 			SystemTray tray = SystemTray.getSystemTray();
 
@@ -189,7 +188,7 @@ public class BasicSystemUtils implements SystemUtils {
 
 	/**
 	 * Fetch the hardware address for a network interface.
-	 * 
+	 *
 	 * @param ni Interface to fetch the mac address for
 	 * @return the mac address as bytes, or null if it couldn't be fetched.
 	 * @throws SocketException
@@ -218,7 +217,7 @@ public class BasicSystemUtils implements SystemUtils {
 
 	/**
 	 * Return the proper tray icon for the operating system.
-	 * 
+	 *
 	 * @return The tray icon.
 	 */
 	private Image resolveTrayIcon() {
