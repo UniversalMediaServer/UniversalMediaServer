@@ -4,6 +4,9 @@
 		Improved subtitle support on non-PS3 renderers
 		Made library/file loading faster
 		Fixed 24-bit flac support with tsMuxeR
+		Stopped using 2 database locations for media caching on Windows
+		Allow library scanning to be stopped
+		Library scanning interface improvements
 	Renderers:
 		Added support for Sony Home Theatre systems
 		Added support for Onkyo TX-NR717
