@@ -795,6 +795,15 @@ public class FFMpegVideo extends Player {
 					fps = "fps=" + params.forceFps + ", ";
 				}
 
+				String audioType = "A_AC3";
+				if (dtsRemux) {
+					if (params.mediaRenderer.isMuxDTSToMpeg()) {
+						// Renderer can play proper DTS track
+						audioType = "A_DTS";
+					} else {
+						// DTS padded in LPCM trick
+						audioType = "A_LPCM";
+					}
 				}
 
 				pwMux.println(videoType + ", \"" + ffVideoPipe.getOutputPipe() + "\", " + fps + "level=4.1, insertSEI, contSPS, track=1");
