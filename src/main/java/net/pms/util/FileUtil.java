@@ -52,10 +52,35 @@ public class FileUtil {
 		// Remove file extension
 		formattedName = f.substring(0, point);
 
-		if (formattedName.contains("\\.[sS][0-9][0-9][eE][0-9][0-9]\\.")) {
-			formattedName.replace("\\.[sS][0-9][0-9][eE][0-9][0-9]\\.", " - $2$3$4 - ");
-		} else if (formattedName.contains("\\.[sS][1-9][0-9][eE][0-9][0-9]\\.")) {
-			formattedName.replace("\\.[sS][1-9][0-9][eE][0-9][0-9]\\.", " - $1$2$3$4 - ");
+		if (formattedName.matches(".*[sS]0[0-9][eE][0-9][0-9].*")) {
+			// This matches scene and most p2p TV episodes within the first 9 seasons
+
+			// Rename the season/episode numbers. For example, "S01E01" changes to " - 101"
+			// Then strip the end of the episode if it does not have the episode name in the title
+			formattedName = formattedName.replaceAll("(?i)\\.[sS]0([0-9])[eE]([0-9])([0-9])(\\.PROPER.*|\\.REPACK.*|\\.480p.*|\\.720p.*|\\.1080p.*|\\.HDTV.*|\\.PDTV.*|\\.WS.*|\\.DVDRip.*)", " - $1$2$3");
+
+			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
+			formattedName = formattedName.replaceAll("(?i)\\.[sS]0([0-9])[eE]([0-9])([0-9])\\.", " - $1$2$3 - ");
+
+			// Remove stuff at the end of the filename like release group, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)\\.PROPER.*|\\.REPACK.*|\\.480p.*|\\.720p.*|\\.1080p.*|\\.HDTV.*|\\.PDTV.*|\\.WS.*|\\.DVDRip.*", "");
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
+		} else if (formattedName.matches(".*[sS][1-9][0-9][eE][0-9][0-9].*")) {
+			// This matches scene and most p2p TV episodes after their first 9 seasons
+
+			// Rename the season/episode numbers. For example, "S11E01" changes to " - 1101"
+			formattedName = formattedName.replaceAll("(?i)\\.[sS]([1-9][0-9])[eE]([0-9])([0-9])(\\.PROPER.*|\\.REPACK.*|\\.480p.*|\\.720p.*|\\.1080p.*|\\.HDTV.*|\\.PDTV.*|\\.WS.*|\\.DVDRip.*)", " - $1$2$3");
+
+			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
+			formattedName = formattedName.replaceAll("(?i)\\.[sS]([1-9][0-9])[eE]([0-9])([0-9])\\.", " - $1$2$3 - ");
+
+			// Remove stuff at the end of the filename like release group, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)\\.PROPER.*|\\.REPACK.*|\\.480p.*|\\.720p.*|\\.1080p.*|\\.HDTV.*|\\.PDTV.*|\\.WS.*|\\.DVDRip.*", "");
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
 		}
 
 		return formattedName;
