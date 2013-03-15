@@ -44,13 +44,16 @@ public class WAV extends Format {
 
 	@Override
 	public ArrayList<Class<? extends Player>> getProfiles() {
-		ArrayList<Class<? extends Player>> a = new ArrayList<Class<? extends Player>>();
+		ArrayList<Class<? extends Player>> a = new ArrayList<>();
 		PMS r = PMS.get();
 		for (String engine : PMS.getConfiguration().getEnginesAsList(r.getRegistry())) {
-			if (engine.equals(MPlayerAudio.ID)) {
-				a.add(MPlayerAudio.class);
-			} else if (engine.equals(FFmpegAudio.ID)) {
-				a.add(FFmpegAudio.class);
+			switch (engine) {
+				case MPlayerAudio.ID:
+					a.add(MPlayerAudio.class);
+					break;
+				case FFmpegAudio.ID:
+					a.add(FFmpegAudio.class);
+					break;
 			}
 		}
 		return a;

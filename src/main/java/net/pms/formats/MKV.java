@@ -37,6 +37,7 @@ public class MKV extends MPG {
 	 * @return True if the format can be handled by PS3, false otherwise.
 	 */
 	@Deprecated
+	@Override
 	public boolean ps3compatible() {
 		return false;
 	}
@@ -44,6 +45,7 @@ public class MKV extends MPG {
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public String[] getId() {
 		return new String[] {
 			"mkv", "dv", "ty", "mov", "ogm", "ogv", "hdmov",

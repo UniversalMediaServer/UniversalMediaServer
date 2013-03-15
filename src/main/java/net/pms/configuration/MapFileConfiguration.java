@@ -56,8 +56,8 @@ public class MapFileConfiguration {
 	}
 
 	public MapFileConfiguration() {
-		children = new ArrayList<MapFileConfiguration>();
-		files = new ArrayList<File>();
+		children = new ArrayList<>();
+		files = new ArrayList<>();
 	}
 
 	public static List<MapFileConfiguration> parse(String conf) {

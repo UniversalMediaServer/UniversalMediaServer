@@ -33,7 +33,7 @@ public class DbgPacker implements ActionListener {
 
 	public DbgPacker() {
 		init = true;
-		items = new LinkedHashMap<File, JCheckBox>();
+		items = new LinkedHashMap<>();
 		debug_log = LoggingConfigFileLoader.getLogFilePaths().get("debug.log");
 		dbg_zip = debug_log.replace("debug.log", "ums_dbg.zip");
 	}
@@ -142,17 +142,19 @@ public class DbgPacker implements ActionListener {
 			LOGGER.debug("DbgPack file " + f.getAbsolutePath() + " does not exist - ignoring");
 			return;
 		}
-		FileInputStream in = new FileInputStream(f);
-		out.putNextEntry(new ZipEntry(f.getName()));
-		while ((len = in.read(buf)) > 0) {
-			out.write(buf, 0, len);
+		try (FileInputStream in = new FileInputStream(f)) {
+			out.putNextEntry(new ZipEntry(f.getName()));
+			while ((len = in.read(buf)) > 0) {
+				out.write(buf, 0, len);
+			}
+			out.closeEntry();
 		}
-		out.closeEntry();
-		in.close();
 	}
 
 	private boolean saveDialog() {
 		JFileChooser fc = new JFileChooser() {
+			private static final long serialVersionUID = -7279491708128801610L;
+
 			@Override
 			public void approveSelection() {
 				File f = getSelectedFile();
@@ -190,15 +192,15 @@ public class DbgPacker implements ActionListener {
 			return;
 		}
 		try {
-			ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(dbg_zip));
-			for (Map.Entry<File, JCheckBox> item : items.entrySet()) {
-				if (item.getValue().isSelected()) {
-					File file = item.getKey();
-					LOGGER.debug("packing " + file.getAbsolutePath());
-					writeToZip(zos, file);
+			try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(dbg_zip))) {
+				for (Map.Entry<File, JCheckBox> item : items.entrySet()) {
+					if (item.getValue().isSelected()) {
+						File file = item.getKey();
+						LOGGER.debug("packing " + file.getAbsolutePath());
+						writeToZip(zos, file);
+					}
 				}
 			}
-			zos.close();
 		} catch (Exception e) {
 			LOGGER.debug("error packing zip file " + e);
 		}

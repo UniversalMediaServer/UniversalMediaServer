@@ -136,8 +136,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 			if (
 				renderer == null && headerLine != null &&
-				headerLine.toUpperCase().startsWith("USER-AGENT") &&
-				request != null
+				headerLine.toUpperCase().startsWith("USER-AGENT")
 			) {
 				userAgentString = headerLine.substring(headerLine.indexOf(":") + 1).trim();
 
@@ -157,7 +156,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				}
 			}
 
-			if (renderer == null && headerLine != null && request != null) {
+			if (renderer == null && headerLine != null) {
 				// Attempt 3: try to recognize the renderer by matching an additional header
 				renderer = RendererConfiguration.getRendererConfigurationByUAAHH(headerLine);
 
@@ -172,9 +171,9 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			try {
 				StringTokenizer s = new StringTokenizer(headerLine);
 				String temp = s.nextToken();
-				if (request != null && temp.toUpperCase().equals("SOAPACTION:")) {
+				if (temp.toUpperCase().equals("SOAPACTION:")) {
 					request.setSoapaction(s.nextToken());
-				} else if (request != null && temp.toUpperCase().equals("CALLBACK:")) {
+				} else if (temp.toUpperCase().equals("CALLBACK:")) {
 					request.setSoapaction(s.nextToken());
 				} else if (headerLine.toUpperCase().indexOf("RANGE: BYTES=") > -1) {
 					String nums = headerLine.substring(

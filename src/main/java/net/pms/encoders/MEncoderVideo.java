@@ -911,8 +911,8 @@ public class MEncoderVideo extends Player {
 			if (mediaRenderer.isDefaultVBVSize() && rendererMaxBitrates[1] == 0) {
 				bufSize = 1835;
 			}
+
 			// Make room for audio
-			// If audio is PCM, subtract 4600kb/s
 			switch (audioType) {
 				case "pcm":
 					defaultMaxBitrates[0] = defaultMaxBitrates[0] - 4600;
@@ -1032,11 +1032,11 @@ public class MEncoderVideo extends Player {
 		 * - The resource is being streamed via a MEncoder entry in the transcode folder
 		 * - There is a subtitle that matches the user preferences
 		 * - The resource is a DVD
-		 * - We are using AviSynth (TODO: do we still need this check?)
+		 * - We are using AviSynth
 		 * - The resource is incompatible with tsMuxeR
-		 * - The user has left the "switch to tsMuxeR" option enabled
-		 * - The user has not specified overscan correction
-		 * - The filename does not specify the resource as WEB-DL
+		 * - The user has disabled the "switch to tsMuxeR" option
+		 * - The user has specified overscan correction
+		 * - The filename specifies the resource as WEB-DL
 		 * - The aspect ratio of the video needs to be changed
 		 */
 		if (
@@ -1120,7 +1120,7 @@ public class MEncoderVideo extends Player {
 
 		if (params.mediaRenderer.isTranscodeToWMV()) {
 			wmv = true;
-			vcodec = "wmv2"; // http://wiki.megaframe.org/wiki/Ubuntu_XBOX_360#MEncoder not usable in streaming
+			vcodec = "wmv2"; // http://wiki.megaframe.org/Mencoder_Transcode_for_Xbox_360
 		}
 
 		mpegts = params.mediaRenderer.isTranscodeToMPEGTSAC3();

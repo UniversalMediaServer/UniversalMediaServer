@@ -47,12 +47,6 @@ public class UPNPHelper {
 	private final static String IPV4_UPNP_HOST = "239.255.255.250";
 
 	/**
-	 * IPv6 Multicast channel reserved for SSDP by Internet Assigned Numbers Authority (IANA).
-	 * MUST be [FF02::C].
-	 */
-	private final static String IPV6_UPNP_HOST = "[FF02::C]";
-
-	/**
 	 * Multicast channel reserved for SSDP by Internet Assigned Numbers Authority (IANA).
 	 * MUST be 1900.
 	 */
@@ -98,13 +92,12 @@ public class UPNPHelper {
 
 	private static void sendReply(String host, int port, String msg) throws IOException {
 		try {
-			DatagramSocket ssdpUniSock = new DatagramSocket();
-
-			LOGGER.trace("Sending this reply [" + host + ":" + port + "]: " + StringUtils.replace(msg, CRLF, "<CRLF>"));
-			InetAddress inetAddr = InetAddress.getByName(host);
-			DatagramPacket dgmPacket = new DatagramPacket(msg.getBytes(), msg.length(), inetAddr, port);
-			ssdpUniSock.send(dgmPacket);
-			ssdpUniSock.close();
+			try (DatagramSocket ssdpUniSock = new DatagramSocket()) {
+				LOGGER.trace("Sending this reply [" + host + ":" + port + "]: " + StringUtils.replace(msg, CRLF, "<CRLF>"));
+				InetAddress inetAddr = InetAddress.getByName(host);
+				DatagramPacket dgmPacket = new DatagramPacket(msg.getBytes(), msg.length(), inetAddr, port);
+				ssdpUniSock.send(dgmPacket);
+			}
 		} catch (Exception ex) {
 			LOGGER.info(ex.getMessage());
 		}
@@ -112,16 +105,13 @@ public class UPNPHelper {
 
 	public static void sendAlive() throws IOException {
 		LOGGER.debug("Sending ALIVE...");
-
-		MulticastSocket ssdpSocket = getNewMulticastSocket();
-		sendMessage(ssdpSocket, "upnp:rootdevice", ALIVE);
-		sendMessage(ssdpSocket, PMS.get().usn(), ALIVE);
-		sendMessage(ssdpSocket, "urn:schemas-upnp-org:device:MediaServer:1", ALIVE);
-		sendMessage(ssdpSocket, "urn:schemas-upnp-org:service:ContentDirectory:1", ALIVE);
-		sendMessage(ssdpSocket, "urn:schemas-upnp-org:service:ConnectionManager:1", ALIVE);
-
-		ssdpSocket.close();
-		ssdpSocket = null;
+		try (MulticastSocket ssdpSocket = getNewMulticastSocket()) {
+			sendMessage(ssdpSocket, "upnp:rootdevice", ALIVE);
+			sendMessage(ssdpSocket, PMS.get().usn(), ALIVE);
+			sendMessage(ssdpSocket, "urn:schemas-upnp-org:device:MediaServer:1", ALIVE);
+			sendMessage(ssdpSocket, "urn:schemas-upnp-org:service:ContentDirectory:1", ALIVE);
+			sendMessage(ssdpSocket, "urn:schemas-upnp-org:service:ConnectionManager:1", ALIVE);
+		}
 	}
 
 	private static MulticastSocket getNewMulticastSocket() throws IOException {
@@ -156,16 +146,14 @@ public class UPNPHelper {
 
 	public static void sendByeBye() throws IOException {
 		LOGGER.info("Disconnecting HTTP server from renderers");
-		MulticastSocket ssdpSocket = getNewMulticastSocket();
+		try (MulticastSocket ssdpSocket = getNewMulticastSocket()) {
+			sendMessage(ssdpSocket, "upnp:rootdevice", BYEBYE);
+			sendMessage(ssdpSocket, "urn:schemas-upnp-org:device:MediaServer:1", BYEBYE);
+			sendMessage(ssdpSocket, "urn:schemas-upnp-org:service:ContentDirectory:1", BYEBYE);
+			sendMessage(ssdpSocket, "urn:schemas-upnp-org:service:ConnectionManager:1", BYEBYE);
 
-		sendMessage(ssdpSocket, "upnp:rootdevice", BYEBYE);
-		sendMessage(ssdpSocket, "urn:schemas-upnp-org:device:MediaServer:1", BYEBYE);
-		sendMessage(ssdpSocket, "urn:schemas-upnp-org:service:ContentDirectory:1", BYEBYE);
-		sendMessage(ssdpSocket, "urn:schemas-upnp-org:service:ConnectionManager:1", BYEBYE);
-
-		ssdpSocket.leaveGroup(getUPNPAddress());
-		ssdpSocket.close();
-		ssdpSocket = null;
+			ssdpSocket.leaveGroup(getUPNPAddress());
+		}
 
 	}
 
@@ -217,7 +205,7 @@ public class UPNPHelper {
 						if (delay == 10000) { // after 10, and 30s
 							delay = 20000;
 						}
-					} catch (Exception e) {
+					} catch (InterruptedException | IOException e) {
 						LOGGER.debug("Error while sending periodic alive message: " + e.getMessage());
 					}
 				}

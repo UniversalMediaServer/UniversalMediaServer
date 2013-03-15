@@ -85,21 +85,8 @@ public class DLNAMediaDatabase implements Runnable {
 		String dir = "database";
 		dbName = name;
 		File fileDir = new File(dir);
-		boolean defaultLocation = fileDir.mkdir() || fileDir.exists();
-		if (defaultLocation) {
-			// check if the database wasn't created during the installation run, with UAC activated.
-			String to_delete = "to_delete";
-			File checkDir = new File(to_delete);
-			if (checkDir.exists()) {
-				defaultLocation = checkDir.delete();
-			} else {
-				defaultLocation = checkDir.mkdir();
-				if (defaultLocation) {
-					defaultLocation = checkDir.delete();
-				}
-			}
-		}
-		if (Platform.isWindows() && !defaultLocation) {
+
+		if (Platform.isWindows()) {
 			String profileDir = configuration.getProfileDirectory();
 			url = String.format("jdbc:h2:%s\\%s/%s", profileDir, dir, dbName);
 			fileDir = new File(profileDir, dir);
@@ -291,9 +278,9 @@ public class DLNAMediaDatabase implements Runnable {
 
 	private void executeUpdate(Connection conn, String sql) throws SQLException {
 		if (conn != null) {
-			Statement stmt = conn.createStatement();
-			stmt.executeUpdate(sql);
-			stmt.close();
+			try (Statement stmt = conn.createStatement()) {
+				stmt.executeUpdate(sql);
+			}
 		}
 	}
 
@@ -323,7 +310,7 @@ public class DLNAMediaDatabase implements Runnable {
 	}
 
 	public ArrayList<DLNAMediaInfo> getData(String name, long modified) {
-		ArrayList<DLNAMediaInfo> list = new ArrayList<DLNAMediaInfo>();
+		ArrayList<DLNAMediaInfo> list = new ArrayList<>();
 		Connection conn = null;
 		ResultSet rs = null;
 		PreparedStatement stmt = null;
@@ -359,45 +346,45 @@ public class DLNAMediaDatabase implements Runnable {
 				media.setMuxingMode(rs.getString("MUXINGMODE"));
 				media.setFrameRateMode(rs.getString("FRAMERATEMODE"));
 				media.setMediaparsed(true);
-				PreparedStatement audios = conn.prepareStatement("SELECT * FROM AUDIOTRACKS WHERE FILEID = ?");
-				audios.setInt(1, id);
-				ResultSet subrs = audios.executeQuery();
-				while (subrs.next()) {
-					DLNAMediaAudio audio = new DLNAMediaAudio();
-					audio.setId(subrs.getInt("ID"));
-					audio.setLang(subrs.getString("LANG"));
-					audio.setFlavor(subrs.getString("FLAVOR"));
-					audio.getAudioProperties().setNumberOfChannels(subrs.getInt("NRAUDIOCHANNELS"));
-					audio.setSampleFrequency(subrs.getString("SAMPLEFREQ"));
-					audio.setCodecA(subrs.getString("CODECA"));
-					audio.setBitsperSample(subrs.getInt("BITSPERSAMPLE"));
-					audio.setAlbum(subrs.getString("ALBUM"));
-					audio.setArtist(subrs.getString("ARTIST"));
-					audio.setSongname(subrs.getString("SONGNAME"));
-					audio.setGenre(subrs.getString("GENRE"));
-					audio.setYear(subrs.getInt("YEAR"));
-					audio.setTrack(subrs.getInt("TRACK"));
-					audio.getAudioProperties().setAudioDelay(subrs.getInt("DELAY"));
-					audio.setMuxingModeAudio(subrs.getString("MUXINGMODE"));
-					audio.setBitRate(subrs.getInt("BITRATE"));
-					media.getAudioTracksList().add(audio);
+				ResultSet subrs;
+				try (PreparedStatement audios = conn.prepareStatement("SELECT * FROM AUDIOTRACKS WHERE FILEID = ?")) {
+					audios.setInt(1, id);
+					subrs = audios.executeQuery();
+					while (subrs.next()) {
+						DLNAMediaAudio audio = new DLNAMediaAudio();
+						audio.setId(subrs.getInt("ID"));
+						audio.setLang(subrs.getString("LANG"));
+						audio.setFlavor(subrs.getString("FLAVOR"));
+						audio.getAudioProperties().setNumberOfChannels(subrs.getInt("NRAUDIOCHANNELS"));
+						audio.setSampleFrequency(subrs.getString("SAMPLEFREQ"));
+						audio.setCodecA(subrs.getString("CODECA"));
+						audio.setBitsperSample(subrs.getInt("BITSPERSAMPLE"));
+						audio.setAlbum(subrs.getString("ALBUM"));
+						audio.setArtist(subrs.getString("ARTIST"));
+						audio.setSongname(subrs.getString("SONGNAME"));
+						audio.setGenre(subrs.getString("GENRE"));
+						audio.setYear(subrs.getInt("YEAR"));
+						audio.setTrack(subrs.getInt("TRACK"));
+						audio.getAudioProperties().setAudioDelay(subrs.getInt("DELAY"));
+						audio.setMuxingModeAudio(subrs.getString("MUXINGMODE"));
+						audio.setBitRate(subrs.getInt("BITRATE"));
+						media.getAudioTracksList().add(audio);
+					}
+					subrs.close();
 				}
-				subrs.close();
-				audios.close();
-
-				PreparedStatement subs = conn.prepareStatement("SELECT * FROM SUBTRACKS WHERE FILEID = ?");
-				subs.setInt(1, id);
-				subrs = subs.executeQuery();
-				while (subrs.next()) {
-					DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
-					sub.setId(subrs.getInt("ID"));
-					sub.setLang(subrs.getString("LANG"));
-					sub.setFlavor(subrs.getString("FLAVOR"));
-					sub.setType(SubtitleType.valueOfStableIndex(subrs.getInt("TYPE")));
-					media.getSubtitleTracksList().add(sub);
+				try (PreparedStatement subs = conn.prepareStatement("SELECT * FROM SUBTRACKS WHERE FILEID = ?")) {
+					subs.setInt(1, id);
+					subrs = subs.executeQuery();
+					while (subrs.next()) {
+						DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
+						sub.setId(subrs.getInt("ID"));
+						sub.setLang(subrs.getString("LANG"));
+						sub.setFlavor(subrs.getString("FLAVOR"));
+						sub.setType(SubtitleType.valueOfStableIndex(subrs.getInt("TYPE")));
+						media.getSubtitleTracksList().add(sub);
+					}
+					subrs.close();
 				}
-				subrs.close();
-				subs.close();
 
 				list.add(media);
 			}
@@ -488,12 +475,13 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setString(22, null);
 			}
 			ps.executeUpdate();
-			ResultSet rs = ps.getGeneratedKeys();
-			int id = -1;
-			while (rs.next()) {
-				id = rs.getInt(1);
+			int id;
+			try (ResultSet rs = ps.getGeneratedKeys()) {
+				id = -1;
+				while (rs.next()) {
+					id = rs.getInt(1);
+				}
 			}
-			rs.close();
 			if (media != null && id > -1) {
 				PreparedStatement insert = null;
 				if (media.getAudioTracksList().size() > 0) {
@@ -596,7 +584,7 @@ public class DLNAMediaDatabase implements Runnable {
 	}
 
 	public ArrayList<String> getStrings(String sql) {
-		ArrayList<String> list = new ArrayList<String>();
+		ArrayList<String> list = new ArrayList<>();
 		Connection conn = null;
 		ResultSet rs = null;
 		PreparedStatement ps = null;
@@ -674,7 +662,7 @@ public class DLNAMediaDatabase implements Runnable {
 	}
 
 	public ArrayList<File> getFiles(String sql) {
-		ArrayList<File> list = new ArrayList<File>();
+		ArrayList<File> list = new ArrayList<>();
 		Connection conn = null;
 		ResultSet rs = null;
 		PreparedStatement ps = null;

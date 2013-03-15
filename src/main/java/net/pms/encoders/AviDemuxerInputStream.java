@@ -97,29 +97,29 @@ public class AviDemuxerInputStream extends InputStream {
 					// TODO(tcox): Is this used anymore?
 					TsMuxeRVideo ts = new TsMuxeRVideo(configuration);
 					File f = new File(configuration.getTempFolder(), "pms-tsmuxer.meta");
-					PrintWriter pw = new PrintWriter(f);
-					pw.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
-					String videoType = "V_MPEG-2";
+					try (PrintWriter pw = new PrintWriter(f)) {
+						pw.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
+						String videoType = "V_MPEG-2";
 
-					if (params.no_videoencode && params.forceType != null) {
-						videoType = params.forceType;
+						if (params.no_videoencode && params.forceType != null) {
+							videoType = params.forceType;
+						}
+
+						String fps = "";
+
+						if (params.forceFps != null) {
+							fps = "fps=" + params.forceFps + ", ";
+						}
+
+						String audioType = "A_LPCM";
+
+						if (params.lossyaudio) {
+							audioType = "A_AC3";
+						}
+
+						pw.println(videoType + ", \"" + params.output_pipes[0].getOutputPipe() + "\", " + fps + "level=4.1, insertSEI, contSPS, track=1");
+						pw.println(audioType + ", \"" + params.output_pipes[1].getOutputPipe() + "\", track=2");
 					}
-
-					String fps = "";
-
-					if (params.forceFps != null) {
-						fps = "fps=" + params.forceFps + ", ";
-					}
-
-					String audioType = "A_LPCM";
-
-					if (params.lossyaudio) {
-						audioType = "A_AC3";
-					}
-
-					pw.println(videoType + ", \"" + params.output_pipes[0].getOutputPipe() + "\", " + fps + "level=4.1, insertSEI, contSPS, track=1");
-					pw.println(audioType + ", \"" + params.output_pipes[1].getOutputPipe() + "\", track=2");
-					pw.close();
 
 					PipeProcess tsPipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 					ProcessWrapper pipe_process = tsPipe.getPipeProcess();

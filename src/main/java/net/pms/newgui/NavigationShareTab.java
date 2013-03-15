@@ -670,6 +670,8 @@ public class NavigationShareTab {
 							if (option == JOptionPane.YES_OPTION) {
 								database.scanLibrary();
 								but5.setIcon(LooksFrame.readImageIcon("button-scan-busy.gif"));
+								but5.setRolloverIcon(LooksFrame.readImageIcon("button-scan-cancel.png"));
+								but5.setToolTipText(Messages.getString("FoldTab.40"));
 							}
 						} else {
 							int option = JOptionPane.showConfirmDialog(
@@ -681,6 +683,8 @@ public class NavigationShareTab {
 								database.stopScanLibrary();
 								PMS.get().getFrame().setStatusLine(null);
 								but5.setIcon(LooksFrame.readImageIcon("button-scan.png"));
+								but5.setRolloverIcon(LooksFrame.readImageIcon("button-scan.png"));
+								but5.setToolTipText(Messages.getString("FoldTab.2"));
 							}
 						}
 					}
@@ -711,5 +715,6 @@ public class NavigationShareTab {
 	public void setScanLibraryEnabled(boolean enabled) {
 		but5.setEnabled(enabled);
 		but5.setIcon(LooksFrame.readImageIcon("button-scan.png"));
+		but5.setRolloverIcon(LooksFrame.readImageIcon("button-scan.png"));
 	}
 }

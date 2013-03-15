@@ -23,12 +23,12 @@ import com.sun.jna.Native;
 import com.sun.jna.WString;
 import com.sun.jna.ptr.LongByReference;
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.CharBuffer;
 import java.util.prefs.Preferences;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -134,7 +134,7 @@ public class WinUtils extends BasicSystemUtils implements SystemUtils {
 	 */
 	@Override
 	public String getShortPathNameW(String longPathName) {
-		boolean unicodeChars = false;
+		boolean unicodeChars;
 		try {
 			byte b1[] = longPathName.getBytes("UTF-8");
 			byte b2[] = longPathName.getBytes("cp1252");
@@ -300,7 +300,7 @@ public class WinUtils extends BasicSystemUtils implements SystemUtils {
 					kerio = true;
 				}
 			}
-		} catch (Exception e) {
+		} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 			LOGGER.debug("Caught exception", e);
 		}
 	}

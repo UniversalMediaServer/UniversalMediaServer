@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
 public class TranscodingTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TranscodingTab.class);
 	private static final String COMMON_COL_SPEC = "left:pref, 3dlu, pref:grow";
-	private static final String COMMON_ROW_SPEC = "4*(pref, 3dlu), pref, 9dlu, pref, 284dlu, pref";
+	private static final String COMMON_ROW_SPEC = "4*(pref, 3dlu), pref, 9dlu, pref, 9dlu:grow, pref";
 	private static final String EMPTY_COL_SPEC = "left:pref, 3dlu, pref:grow";
 	private static final String EMPTY_ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p , 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 20dlu, p, 3dlu, p, 3dlu, p";
 	private static final String LEFT_COL_SPEC = "left:pref, pref, pref, pref, 0:grow";
@@ -99,7 +99,7 @@ public class TranscodingTab {
 	private static final int MAX_CORES = 16;
 
 	private void updateEngineModel() {
-		ArrayList<String> engines = new ArrayList<String>();
+		ArrayList<String> engines = new ArrayList<>();
 		Object root = tree.getModel().getRoot();
 		for (int i = 0; i < tree.getModel().getChildCount(root); i++) {
 			Object firstChild = tree.getModel().getChild(root, i);
@@ -290,8 +290,8 @@ public class TranscodingTab {
 	}
 
 	public void addEngines() {
-		ArrayList<Player> disPlayers = new ArrayList<Player>();
-		ArrayList<Player> ordPlayers = new ArrayList<Player>();
+		ArrayList<Player> disPlayers = new ArrayList<>();
+		ArrayList<Player> ordPlayers = new ArrayList<>();
 		PMS r = PMS.get();
 
 		for (String id : configuration.getEnginesAsList(r.getRegistry())) {
@@ -712,7 +712,7 @@ public class TranscodingTab {
 		folderSelectButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JFileChooser chooser = null;
+				JFileChooser chooser;
 				try {
 					chooser = new JFileChooser();
 				} catch (Exception ee) {

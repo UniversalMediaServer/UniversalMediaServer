@@ -3,18 +3,13 @@ package net.pms.dlna;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import net.pms.PMS;
 
 public class FileSearch implements SearchObj {
-	private static final Logger LOGGER = LoggerFactory.getLogger(FileSearch.class);
 	private ArrayList<RealFile> folders;
 	
 	public FileSearch(List<RealFile> folders) {
-		this.folders = new ArrayList<RealFile>(folders);
+		this.folders = new ArrayList<>(folders);
 	}
 	
 	@Override
