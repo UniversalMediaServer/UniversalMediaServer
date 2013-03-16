@@ -74,10 +74,11 @@ import org.slf4j.LoggerFactory;
 public class FFMpegVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
 	private static final String DEFAULT_QSCALE = "3";
-	private final PmsConfiguration configuration;
+	protected final PmsConfiguration configuration;
 	
+	@Deprecated
 	public FFMpegVideo() {
-		this.configuration = PMS.getConfiguration();
+		this(PMS.getConfiguration());
 	}
 	
 	public FFMpegVideo(PmsConfiguration configuration) {
