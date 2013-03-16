@@ -45,7 +45,6 @@ import org.slf4j.LoggerFactory;
 
 public class FFmpegWebVideo extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegWebVideo.class);
-	private final PmsConfiguration configuration;
 	private static List<String> protocols;
 	public static PatternMap<Object> excludes = new PatternMap<>();
 
@@ -87,7 +86,6 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 	public FFmpegWebVideo(PmsConfiguration configuration) {
 		super(configuration);
-		this.configuration = configuration;
 		
 		if (!init) {
 			readWebFilters(configuration.getProfileDirectory() + File.separator + "ffmpeg.webfilters");
