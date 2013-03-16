@@ -1419,7 +1419,7 @@
 									<bundleName>${project.name}</bundleName>
 									<iconFile>${project.basedir}/src/main/resources/images/logo.icns</iconFile>
 									<version>${project.version}</version>
-									<jvmVersion>1.6+</jvmVersion>
+									<jvmVersion>1.7+</jvmVersion>
 									<!-- Options to the JVM, will be used as the value of VMOptions in Info.plist. -->
 									<vmOptions>-Xmx768M -Xss16M -Dfile.encoding=UTF-8 -Djava.net.preferIPv4Stack=true -jar</vmOptions>
 									<dictionaryFile>${project.external-resources}/osx/Info.plist-template.xml</dictionaryFile>
