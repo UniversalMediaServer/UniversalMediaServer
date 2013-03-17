@@ -81,6 +81,31 @@ public class FileUtil {
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
+		} else if (formattedName.matches(".*\\.[1-2][0-9][0-9][0-9]\\.[0-1][0-9]\\.[0-3][0-9]\\..*")) {
+			// This matches scene and most p2p TV episodes that release several times per week
+
+			// Rename the date. For example, "2013.03.18" changes to " - 2013/03/18"
+			formattedName = formattedName.replaceAll("(?i)\\.([1-2][0-9][0-9][0-9])\\.([0-1][0-9])\\.([0-3][0-9])\\.(\\.PROPER.*|\\.REPACK.*|\\.480p.*|\\.720p.*|\\.1080p.*|\\.HDTV.*|\\.PDTV.*|\\.WS.*|\\.DVDRip.*)", " - $1/$2/$3");
+
+			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
+			formattedName = formattedName.replaceAll("(?i)\\.([1-2][0-9][0-9][0-9])\\.([0-1][0-9])\\.([0-3][0-9])\\.", " - $1/$2/$3 - ");
+
+			// Remove stuff at the end of the filename like release group, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)\\.AC3.*|\\.PROPER.*|\\.REPACK.*|\\.480p.*|\\.720p.*|\\.1080p.*|\\.HDTV.*|\\.PDTV.*|\\.WS.*|\\.DVDRip.*", "");
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
+		} else if (formattedName.matches(".*\\.[1-2][0-9][0-9][0-9]\\..*")) {
+			// This matches scene and most p2p movies
+
+			// Rename the year. For example, "2013" changes to " (2013)"
+			formattedName = formattedName.replaceAll("(?i)\\.([1-2][0-9][0-9][0-9])(\\.PROPER.*|\\.REPACK.*|\\.480p.*|\\.720p.*|\\.1080p.*|\\.HDTV.*|\\.PDTV.*|\\.WS.*|\\.DVDRip.*)", " ($1)");
+
+			// Change "3D" to " (3D)"
+			formattedName = formattedName.replaceAll("(?i)\\.(3D)\\.", " ($1)");
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
 		}
 
 		return formattedName;
