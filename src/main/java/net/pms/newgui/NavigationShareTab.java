@@ -74,6 +74,7 @@ public class NavigationShareTab {
 	private CustomJButton cachereset;
 	private JCheckBox ignorethewordthe;
 	private JTextField atzLimit;
+	private JCheckBox prettifyfilenames;
 
 	public DefaultListModel getDf() {
 		return df;
@@ -173,6 +174,7 @@ public class NavigationShareTab {
 
 		builder.addLabel(Messages.getString("FoldTab.37"), FormLayoutUtil.flip(cc.xyw(1, 25, 3), colSpec, orientation));
 		builder.add(atzLimit, FormLayoutUtil.flip(cc.xyw(4, 25, 3), colSpec, orientation));
+		builder.add(prettifyfilenames, FormLayoutUtil.flip(cc.xyw(8, 25, 3), colSpec, orientation));
 
 		builder.add(builderSharedFolder.getPanel(), FormLayoutUtil.flip(cc.xyw(1, 27, 10), colSpec, orientation));
 
@@ -407,6 +409,9 @@ public class NavigationShareTab {
 		if (configuration.isHideExtensions()) {
 			hideextensions.setSelected(true);
 		}
+		if (configuration.isPrettifyFilenames()) {
+			hideextensions.setEnabled(false);
+		}
 		hideextensions.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -548,6 +553,19 @@ public class NavigationShareTab {
 					LOGGER.debug("Could not parse ATZ limit from \"" + atzLimit.getText() + "\"");
 					LOGGER.debug("The full error was: " + nfe);
 				}
+			}
+		});
+
+		prettifyfilenames = new JCheckBox(Messages.getString("FoldTab.42"));
+		prettifyfilenames.setContentAreaFilled(false);
+		if (configuration.isPrettifyFilenames()) {
+			prettifyfilenames.setSelected(true);
+		}
+		prettifyfilenames.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setPrettifyFilenames((e.getStateChange() == ItemEvent.SELECTED));
+				hideextensions.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
 			}
 		});
 	}

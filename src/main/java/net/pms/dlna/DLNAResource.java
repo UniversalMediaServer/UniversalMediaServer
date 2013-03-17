@@ -973,8 +973,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		String subtitleFormat;
 		String subtitleLanguage;
 		boolean isNamedNoEncoding = false;
-		if (this instanceof RealFile && configuration.isHideExtensions() && !isFolder()) {
-			name = FileUtil.getFileNameWithRewriting(name);
+		if (
+			this instanceof RealFile &&
+			(
+				configuration.isHideExtensions() ||
+				configuration.isPrettifyFilenames()
+			) &&
+			!isFolder()
+		) {
+			if (configuration.isPrettifyFilenames()) {
+				name = FileUtil.getFileNameWithRewriting(name);
+			} else {
+				name = FileUtil.getFileNameWithoutExtension(name);
+			}
 		}
 
 		if (getPlayer() != null) {
