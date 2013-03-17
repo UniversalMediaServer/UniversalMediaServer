@@ -25,7 +25,6 @@ VIProductVersion "${PROJECT_VERSION_SHORT}.0"
 !define REG_KEY_SOFTWARE "SOFTWARE\${PROJECT_NAME}"
  
 ; Definitions for Java
-!define JRE6_VERSION "6.0"
 !define JRE7_VERSION "7.0"
 !define JRE_URL "http://download.oracle.com/otn-pub/java/jdk/7u17-b02/jre-7u17-windows-i586.exe"
 !define JRE64_URL "http://download.oracle.com/otn-pub/java/jdk/7u17-b02/jre-7u17-windows-x64.exe"
@@ -187,10 +186,6 @@ Function CheckJREVersion
     ${GetFileVersion} $R0 $R1
  
     ClearErrors
-    
-    ; Check if JRE6 is installed
-    ${VersionCompare} ${JRE6_VERSION} $R1 $R2
-    StrCmp $R2 "1" 0 CheckDone
     
     ; Check if JRE7 is installed
     ${VersionCompare} ${JRE7_VERSION} $R1 $R2
