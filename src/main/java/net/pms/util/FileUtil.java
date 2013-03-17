@@ -63,7 +63,7 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("(?i)\\.[sS]0([0-9])[eE]([0-9])([0-9])\\.", " - $1$2$3 - ");
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
-			formattedName = formattedName.replaceAll("(?i)\\.PROPER.*|\\.REPACK.*|\\.480p.*|\\.720p.*|\\.1080p.*|\\.HDTV.*|\\.PDTV.*|\\.WS.*|\\.DVDRip.*", "");
+			formattedName = formattedName.replaceAll("(?i)\\.AC3.*|\\.PROPER.*|\\.REPACK.*|\\.480p.*|\\.720p.*|\\.1080p.*|\\.HDTV.*|\\.PDTV.*|\\.WS.*|\\.DVDRip.*", "");
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
@@ -77,7 +77,7 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("(?i)\\.[sS]([1-9][0-9])[eE]([0-9])([0-9])\\.", " - $1$2$3 - ");
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
-			formattedName = formattedName.replaceAll("(?i)\\.PROPER.*|\\.REPACK.*|\\.480p.*|\\.720p.*|\\.1080p.*|\\.HDTV.*|\\.PDTV.*|\\.WS.*|\\.DVDRip.*", "");
+			formattedName = formattedName.replaceAll("(?i)\\.AC3.*|\\.PROPER.*|\\.REPACK.*|\\.480p.*|\\.720p.*|\\.1080p.*|\\.HDTV.*|\\.PDTV.*|\\.WS.*|\\.DVDRip.*", "");
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
