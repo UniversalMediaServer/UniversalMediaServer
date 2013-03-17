@@ -1,7 +1,10 @@
 2.5.2 - 2013-03-??
 
 	General:
-		
+		Offer to automatically update Java Runtime Environment on Windows from 6 to 7
+		Fixed library updating with cache enabled
+		Made detection of network speed more accurate (thanks, ExSport!)
+		Library scanning interface improvements
 
 2.5.1 - 2013-03-15
 
