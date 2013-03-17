@@ -682,9 +682,10 @@ public class NavigationShareTab {
 							if (option == JOptionPane.YES_OPTION) {
 								database.stopScanLibrary();
 								PMS.get().getFrame().setStatusLine(null);
-								but5.setIcon(LooksFrame.readImageIcon("button-scan.png"));
-								but5.setRolloverIcon(LooksFrame.readImageIcon("button-scan.png"));
-								but5.setToolTipText(Messages.getString("FoldTab.2"));
+								if ((LooksFrame) PMS.get().getFrame() != null) {
+									((LooksFrame) PMS.get().getFrame()).getFt().setScanLibraryEnabled(false);
+								}
+								but5.setToolTipText(Messages.getString("FoldTab.41"));
 							}
 						}
 					}
@@ -716,5 +717,6 @@ public class NavigationShareTab {
 		but5.setEnabled(enabled);
 		but5.setIcon(LooksFrame.readImageIcon("button-scan.png"));
 		but5.setRolloverIcon(LooksFrame.readImageIcon("button-scan.png"));
+		but5.setToolTipText(Messages.getString("FoldTab.2"));
 	}
 }
