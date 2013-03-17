@@ -2344,7 +2344,7 @@ public class PmsConfiguration {
 	}
 
 	public boolean isHideMediaLibraryFolder() {
-		return getBoolean(PmsConfiguration.KEY_HIDE_MEDIA_LIBRARY_FOLDER, false);
+		return getBoolean(PmsConfiguration.KEY_HIDE_MEDIA_LIBRARY_FOLDER, true);
 	}
 
 	public void setHideMediaLibraryFolder(final boolean value) {
