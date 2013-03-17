@@ -373,6 +373,11 @@ public class MapFile extends DLNAResource {
 	}
 
 	@Override
+	public void doRefreshChildren() {
+		doRefreshChildren(null);
+	}
+
+	@Override
 	public void doRefreshChildren(String str) {
 		List<File> files = getFileList();
 		List<File> addedFiles = new ArrayList<>();
