@@ -92,6 +92,7 @@ Var DescMemoryLimit
 Var CheckboxCleanInstall
 Var CheckboxCleanInstallState
 Var DescCleanInstall
+Var MaximumMemoryJava
 
 Function AdvancedSettings
 	!insertmacro MUI_HEADER_TEXT "Advanced Settings" "If you don't understand them, don't change them." 
@@ -102,13 +103,30 @@ Function AdvancedSettings
 		Abort
 	${EndIf}
 
-	${NSD_CreateLabel} 0 0 100% 20u "This allows you to set the Java Heap size limit. If you are not sure what this means, just leave it at 768."
+	; Get the amount of RAM on the computer
+	System::Alloc 64
+	Pop $1
+	System::Call "*$1(i64)"
+	System::Call "Kernel32::GlobalMemoryStatusEx(i r1)"
+	System::Call "*$1(i.r2, i.r3, l.r4, l.r5, l.r6, l.r7, l.r8, l.r9, l.r10)"
+	System::Free $1
+	System::Int64Op $4 / 1048576
+	Pop $4
+
+	; Choose the maximum amount of RAM we want to use
+	${If} $4 > 4000
+		StrCpy $MaximumMemoryJava "1280"
+	${Else}
+		StrCpy $MaximumMemoryJava "768"
+	${EndIf}
+
+	${NSD_CreateLabel} 0 0 100% 20u "This allows you to set the Java Heap size limit. The default value is recommended."
 	Pop $DescMemoryLimit
 	
 	${NSD_CreateLabel} 2% 20% 37% 12u "Maximum memory in megabytes"
 	Pop $LabelMemoryLimit
 
-	${NSD_CreateText} 3% 30% 10% 12u "768"
+	${NSD_CreateText} 3% 30% 10% 12u $MaximumMemoryJava
 	Pop $Text
 
 	${NSD_CreateLabel} 0 50% 100% 20u "This replaces your current configuration and deletes MPlayer's font cache, allowing you to take advantage of improved defaults. This deletes UMS configuration directory."
