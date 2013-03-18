@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
  * Test the RendererConfiguration class
  */
 public class RendererConfigurationTest {
-	private final Map<String, String> testCases = new HashMap<>();
+	private final Map<String, String> testCases = new HashMap<String, String>();
 
 	@Before
 	public void setUp() {
@@ -135,7 +135,9 @@ public class RendererConfigurationTest {
 
 		try {
 			pmsConf = new PmsConfiguration(false);
-		} catch (IOException | ConfigurationException e) {
+		} catch (IOException e) {
+			// This should be impossible since no configuration file will be loaded.
+		} catch (ConfigurationException e) {
 			// This should be impossible since no configuration file will be loaded.
 		}
 
@@ -161,7 +163,9 @@ public class RendererConfigurationTest {
 
 		try {
 			pmsConf = new PmsConfiguration(false);
-		} catch (IOException | ConfigurationException e) {
+		} catch (IOException e) {
+			// This should be impossible since no configuration file will be loaded.
+		} catch (ConfigurationException e) {
 			// This should be impossible since no configuration file will be loaded.
 		}
 
@@ -187,7 +191,9 @@ public class RendererConfigurationTest {
 
 		try {
 			pmsConf = new PmsConfiguration(false);
-		} catch (IOException | ConfigurationException e) {
+		} catch (IOException e) {
+			// This should be impossible since no configuration file will be loaded.
+		} catch (ConfigurationException e) {
 			// This should be impossible since no configuration file will be loaded.
 		}
 
