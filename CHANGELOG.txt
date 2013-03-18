@@ -1,10 +1,11 @@
 2.5.2 - 2013-03-??
 
 	General:
-		Offer to automatically update Java Runtime Environment on Windows from 6 to 7
+		Offer to automatically update Java on Windows from 6 to 7
 		Fixed library updating with cache enabled
 		Made detection of network speed more accurate (thanks, ExSport!)
 		Library scanning interface improvements
+		Set a higher maximum memory by default via the Windows installer for computers with 4GB+ of RAM
 
 2.5.1 - 2013-03-15
 
