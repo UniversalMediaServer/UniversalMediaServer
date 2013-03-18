@@ -30,7 +30,7 @@ public class RendererConfiguration {
 	private static ArrayList<RendererConfiguration> rendererConfs;
 	private static PmsConfiguration pmsConfiguration;
 	private static RendererConfiguration defaultConf;
-	private static Map<InetAddress, RendererConfiguration> addressAssociation = new HashMap<>();
+	private static Map<InetAddress, RendererConfiguration> addressAssociation = new HashMap<InetAddress, RendererConfiguration>();
 
 	private RootFolder rootFolder;
 	private final PropertiesConfiguration configuration;
@@ -111,7 +111,7 @@ public class RendererConfiguration {
 	 */
 	public static void loadRendererConfigurations(PmsConfiguration pmsConf) {
 		pmsConfiguration = pmsConf;
-		rendererConfs = new ArrayList<>();
+		rendererConfs = new ArrayList<RendererConfiguration>();
 
 		try {
 			defaultConf = new RendererConfiguration();
@@ -376,7 +376,7 @@ public class RendererConfiguration {
 			configuration.load(f);
 		}
 
-		mimes = new HashMap<>();
+		mimes = new HashMap<String, String>();
 		String mimeTypes = getString(MIME_TYPES_CHANGES, null);
 
 		if (StringUtils.isNotBlank(mimeTypes)) {
@@ -394,7 +394,7 @@ public class RendererConfiguration {
 			}
 		}
 
-		DLNAPN = new HashMap<>();
+		DLNAPN = new HashMap<String, String>();
 		String DLNAPNchanges = getString(DLNA_PN_CHANGES, null);
 
 		if (DLNAPNchanges != null) {
