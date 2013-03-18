@@ -101,7 +101,7 @@ public class FFMpegVideo extends Player {
 	 * or an empty list if the video doesn't need to be resized.
 	 */
 	public List<String> getVideoFilterOptions(RendererConfiguration renderer, DLNAMediaInfo media, OutputParams params) throws IOException {
-		List<String> videoFilterOptions = new ArrayList<>();
+		List<String> videoFilterOptions = new ArrayList<String>();
 		String subsOption = null;
 		String padding = null;
 
@@ -221,7 +221,7 @@ public class FFMpegVideo extends Player {
 	 * to its <code>TranscodeVideo</code> profile.
 	 */
 	public List<String> getTranscodeVideoOptions(RendererConfiguration renderer, DLNAMediaInfo media, OutputParams params, String fileName) {
-		List<String> transcodeOptions = new ArrayList<>();
+		List<String> transcodeOptions = new ArrayList<String>();
 
 		if (renderer.isTranscodeToWMV()) { // WMV
 			transcodeOptions.add("-c:v");
@@ -325,7 +325,7 @@ public class FFMpegVideo extends Player {
 	 * @return a {@link List} of <code>String</code>s representing the video bitrate options for this transcode
 	 */
 	public List<String> getVideoBitrateOptions(RendererConfiguration renderer, DLNAMediaInfo media) { // media is currently unused
-		List<String> videoBitrateOptions = new ArrayList<>();
+		List<String> videoBitrateOptions = new ArrayList<String>();
 		String sMaxVideoBitrate = renderer.getMaxVideoBitrate(); // currently Mbit/s
 		int iMaxVideoBitrate = 0;
 
@@ -360,7 +360,7 @@ public class FFMpegVideo extends Player {
 	 * @return a {@link List} of <code>String</code>s representing the audio bitrate options for this transcode
 	 */
 	public List<String> getAudioBitrateOptions(RendererConfiguration renderer, DLNAMediaInfo media) {
-		List<String> audioBitrateOptions = new ArrayList<>();
+		List<String> audioBitrateOptions = new ArrayList<String>();
 
 		audioBitrateOptions.add("-q:a");
 		audioBitrateOptions.add(DEFAULT_QSCALE);
@@ -414,7 +414,7 @@ public class FFMpegVideo extends Player {
 	// unused; return this array for backwards-compatibility
 	@Deprecated
 	protected String[] getDefaultArgs() {
-		List<String> defaultArgsList = new ArrayList<>();
+		List<String> defaultArgsList = new ArrayList<String>();
 
 		defaultArgsList.add("-loglevel");
 		defaultArgsList.add("warning");
@@ -480,7 +480,7 @@ public class FFMpegVideo extends Player {
 		OutputParams params
 	) throws IOException {
 		int nThreads = configuration.getNumberOfCpuCores();
-		List<String> cmdList = new ArrayList<>();
+		List<String> cmdList = new ArrayList<String>();
 		RendererConfiguration renderer = params.mediaRenderer;
 		setAudioAndSubs(fileName, media, params, configuration);
 
@@ -680,7 +680,7 @@ public class FFMpegVideo extends Player {
 		// Add MPEG-2 quality settings
 		if (!renderer.isTranscodeToH264TSAC3() && !videoRemux) {
 			String[] customOptions = StringUtils.split(configuration.getFfmpegSettings());
-			cmdList.addAll(new ArrayList<>(Arrays.asList(customOptions)));
+			cmdList.addAll(new ArrayList<String>(Arrays.asList(customOptions)));
 		}
 
 		// Add the output options (-f, -acodec, -vcodec)
@@ -783,33 +783,34 @@ public class FFMpegVideo extends Player {
 			ProcessWrapperImpl ffAudio = new ProcessWrapperImpl(ffmpegLPCMextract, ffaudioparams);
 
 			params.stdin = null;
-			try (PrintWriter pwMux = new PrintWriter(f)) {
-				pwMux.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
-				String videoType = "V_MPEG-2";
 
-				if (params.no_videoencode && params.forceType != null) {
-					videoType = params.forceType;
-				}
+			PrintWriter pwMux = new PrintWriter(f);
+			pwMux.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
+			String videoType = "V_MPEG-2";
 
-				String fps = "";
-				if (params.forceFps != null) {
-					fps = "fps=" + params.forceFps + ", ";
-				}
-
-				String audioType = "A_AC3";
-				if (dtsRemux) {
-					if (params.mediaRenderer.isMuxDTSToMpeg()) {
-						// Renderer can play proper DTS track
-						audioType = "A_DTS";
-					} else {
-						// DTS padded in LPCM trick
-						audioType = "A_LPCM";
-					}
-				}
-
-				pwMux.println(videoType + ", \"" + ffVideoPipe.getOutputPipe() + "\", " + fps + "level=4.1, insertSEI, contSPS, track=1");
-				pwMux.println(audioType + ", \"" + ffAudioPipe.getOutputPipe() + "\", track=2");
+			if (params.no_videoencode && params.forceType != null) {
+				videoType = params.forceType;
 			}
+
+			String fps = "";
+			if (params.forceFps != null) {
+				fps = "fps=" + params.forceFps + ", ";
+			}
+
+			String audioType = "A_AC3";
+			if (dtsRemux) {
+				if (params.mediaRenderer.isMuxDTSToMpeg()) {
+					// Renderer can play proper DTS track
+					audioType = "A_DTS";
+				} else {
+					// DTS padded in LPCM trick
+					audioType = "A_LPCM";
+				}
+			}
+
+			pwMux.println(videoType + ", \"" + ffVideoPipe.getOutputPipe() + "\", " + fps + "level=4.1, insertSEI, contSPS, track=1");
+			pwMux.println(audioType + ", \"" + ffAudioPipe.getOutputPipe() + "\", track=2");
+			pwMux.close();
 
 			ProcessWrapper pipe_process = pipe.getPipeProcess();
 			pw.attachProcess(pipe_process);
