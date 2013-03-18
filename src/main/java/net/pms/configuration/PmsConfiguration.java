@@ -224,7 +224,7 @@ public class PmsConfiguration {
 	/**
 	 * The set of the keys defining when the HTTP server has to restarted due to a configuration change
 	 */
-	public static final Set<String> NEED_RELOAD_FLAGS = new HashSet<>(
+	public static final Set<String> NEED_RELOAD_FLAGS = new HashSet<String>(
 		Arrays.asList(
 			KEY_ALTERNATE_THUMB_FOLDER,
 			KEY_ATZ_LIMIT,
@@ -673,7 +673,7 @@ public class PmsConfiguration {
 		String value = getString(key, def);
 		if (value != null) {
 			String[] arr = value.split(",");
-			List<String> result = new ArrayList<>(arr.length);
+			List<String> result = new ArrayList<String>(arr.length);
 			for (String str : arr) {
 				if (str.trim().length() > 0) {
 					result.add(str.trim());
@@ -2058,14 +2058,14 @@ public class PmsConfiguration {
 	}
 
 	private static List<String> stringToList(String input) {
-		List<String> output = new ArrayList<>();
+		List<String> output = new ArrayList<String>();
 		Collections.addAll(output, StringUtils.split(input, LIST_SEPARATOR));
 		return output;
 	}
 
 	// TODO: Get this out of here
 	private static List<String> hackAvs(SystemUtils registry, List<String> input) {
-		List<String> toBeRemoved = new ArrayList<>();
+		List<String> toBeRemoved = new ArrayList<String>();
 		for (String engineId : input) {
 			if (engineId.startsWith("avs") && !registry.isAvis() && Platform.isWindows()) {
 				if (!avsHackLogged) {
@@ -2077,7 +2077,7 @@ public class PmsConfiguration {
 			}
 		}
 
-		List<String> output = new ArrayList<>();
+		List<String> output = new ArrayList<String>();
 		output.addAll(input);
 		output.removeAll(toBeRemoved);
 		return output;
@@ -2647,7 +2647,7 @@ public class PmsConfiguration {
 				}
 
 				return false;
-			} catch (IOException | InterruptedException e) {
+			} catch (Exception e) {
 				LOGGER.error("Something prevented UMS from checking Windows permissions", e);
 			}
 		}
@@ -2684,19 +2684,21 @@ public class PmsConfiguration {
 		// Now we know cred path is set
 		File f = new File(cp);
 		if (!f.exists()) {
-			try (FileOutputStream fos = new FileOutputStream(f)) {
-				StringBuilder sb = new StringBuilder();
-				sb.append("# Add credentials to the file");
-				sb.append("\n");
-				sb.append("# on the format tag=user,pwd");
-				sb.append("\n");
-				sb.append("# For example:");
-				sb.append("\n");
-				sb.append("# channels.xxx=name,secret");
-				sb.append("\n");
-				fos.write(sb.toString().getBytes());
-				fos.flush();
-			}
+			// cred path is set but file isn't there
+			// create empty file with some comments
+			FileOutputStream fos = new FileOutputStream(f);
+			StringBuilder sb = new StringBuilder();
+			sb.append("# Add credentials to the file");
+			sb.append("\n");
+			sb.append("# on the format tag=user,pwd");
+			sb.append("\n");
+			sb.append("# For example:");
+			sb.append("\n");
+			sb.append("# channels.xxx=name,secret");
+			sb.append("\n");
+			fos.write(sb.toString().getBytes());
+			fos.flush();
+			fos.close();
 		}
 	}
 

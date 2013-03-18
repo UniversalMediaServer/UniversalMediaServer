@@ -122,7 +122,7 @@ public class IpFilter {
 		List<ByteRule> rules;
 
 		public IpPredicate(String[] tags) {
-			this.rules = new ArrayList<>(tags.length);
+			this.rules = new ArrayList<ByteRule>(tags.length);
 			for (String s : tags) {
 				s = s.trim();
 				rules.add(parseTag(s));
@@ -197,8 +197,8 @@ public class IpFilter {
 	}
 
 	String rawFilter;
-	List<Predicate> matchers = new ArrayList<>();
-	Set<String> logged = new HashSet<>();
+	List<Predicate> matchers = new ArrayList<Predicate>();
+	Set<String> logged = new HashSet<String>();
 
 	public IpFilter() {
 	}

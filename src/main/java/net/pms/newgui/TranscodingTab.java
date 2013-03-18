@@ -99,7 +99,7 @@ public class TranscodingTab {
 	private static final int MAX_CORES = 16;
 
 	private void updateEngineModel() {
-		ArrayList<String> engines = new ArrayList<>();
+		ArrayList<String> engines = new ArrayList<String>();
 		Object root = tree.getModel().getRoot();
 		for (int i = 0; i < tree.getModel().getChildCount(root); i++) {
 			Object firstChild = tree.getModel().getChild(root, i);
@@ -290,8 +290,8 @@ public class TranscodingTab {
 	}
 
 	public void addEngines() {
-		ArrayList<Player> disPlayers = new ArrayList<>();
-		ArrayList<Player> ordPlayers = new ArrayList<>();
+		ArrayList<Player> disPlayers = new ArrayList<Player>();
+		ArrayList<Player> ordPlayers = new ArrayList<Player>();
 		PMS r = PMS.get();
 
 		for (String id : configuration.getEnginesAsList(r.getRegistry())) {
