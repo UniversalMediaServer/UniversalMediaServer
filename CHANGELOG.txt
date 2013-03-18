@@ -1,4 +1,4 @@
-2.5.2 - 2013-03-??
+2.5.2 - 2013-03-18
 
 	General:
 		Offer to automatically update Java on Windows from 6 to 7
