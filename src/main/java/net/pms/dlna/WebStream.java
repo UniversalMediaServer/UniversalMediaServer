@@ -118,6 +118,11 @@ public class WebStream extends DLNAResource {
 		return getUrl();
 	}
 
+	@Override
+	public void setSystemName(String name) {
+		setUrl(name);
+	}
+
 	/**
 	 * @return the url
 	 * @since 1.50

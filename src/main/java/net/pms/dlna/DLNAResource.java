@@ -39,6 +39,7 @@ import net.pms.external.AdditionalResourceFolderListener;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.external.StartStopListener;
+import net.pms.external.URLResolver.URLResult;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.io.OutputParams;
@@ -248,6 +249,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	private String lastSearch;
 
+	private boolean urlResolved = false;
+
 	protected HashMap<String,Object> attachments = null;
 
 	/**
@@ -351,6 +354,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public abstract String getName();
 
 	public abstract String getSystemName();
+
+	public void setSystemName(String name) {
+	}
 
 	public abstract long length();
 
@@ -1654,6 +1660,21 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @throws IOException
 	 */
 	public InputStream getInputStream(Range range, RendererConfiguration mediarenderer) throws IOException {
+		
+		if (!isURLResolved()) {
+			URLResult r1 = ExternalFactory.resolveURL(getSystemName(), this);
+			if (r1 != null) {
+				if (StringUtils.isNotEmpty(r1.url)) {
+					setSystemName(r1.url);
+				}
+				// (alternatively resolver could dlna.attach() these directly)
+				if (r1.args != null && r1.args.size() > 0) {
+					attach(getPlayer().id(), r1.args);	
+				}
+			}
+			urlResolved = true;
+		}
+
 		LOGGER.trace("Asked stream chunk : " + range + " of " + getName() + " and player " + getPlayer());
 
 		// shagrath: small fix, regression on chapters
@@ -1739,7 +1760,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (this instanceof IPushOutput) {
 				params.stdin = (IPushOutput) this;
 			}
-
+			
 			if (externalProcess == null || externalProcess.isDestroyed()) {
 				LOGGER.info("Starting transcode/remux of " + getName());
 				externalProcess = getPlayer().launchTranscode(
@@ -2473,8 +2494,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return attachments == null ? null : attachments.get(key);
 	}
 
+	public void setURLResolved(boolean b) {
+		urlResolved = b;
+	}
+
 	public boolean isURLResolved() {
-		return false;
+		return urlResolved;
 	}
 }
 

@@ -31,7 +31,6 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.external.ExternalFactory;
-import net.pms.external.URLResolver.URLResult;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.formats.WEB;
@@ -152,9 +151,10 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			customOptions.addAll(parseOptions(hdr));
 		}
 		// - attached options
-		String attached = (String) dlna.getAttachment(ID);
+		Object attached = dlna.getAttachment(ID);
 		if (attached != null) {
-			customOptions.addAll(parseOptions(attached));
+			customOptions.addAll(attached instanceof String ?
+				parseOptions((String)attached) : (List<String>)attached);
 		}
 		// - renderer options
 		if (StringUtils.isNotEmpty(renderer.getCustomFFmpegOptions())) {
@@ -179,17 +179,6 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 		params.input_pipes[0] = pipe;
 		int nThreads = configuration.getNumberOfCpuCores();
-		if (!dlna.isURLResolved()) {
-			URLResult r1 = ExternalFactory.resolveURL(fileName);
-			if (r1 != null) {
-				if (StringUtils.isNotEmpty(r1.url)) {
-					fileName = r1.url;
-				}
-				if (r1.args != null && r1.args.size() > 0) {
-					customOptions.addAll(r1.args);	
-				}
-			}
-		}
 
 		// build the command line
 		List<String> cmdList = new ArrayList<>();

@@ -40,7 +40,9 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
+import net.pms.external.URLResolver;
 import net.pms.external.URLResolver.URLResult;
 import net.pms.newgui.LooksFrame;
 import org.apache.commons.io.FileUtils;
@@ -513,9 +515,25 @@ public class ExternalFactory {
 		return "\"" + s + "\"";
 	}
 
-	public static URLResult resolveURL(String url) {
+	public static URLResult resolveURL(String url, DLNAResource dlna) {
+		// first check if we have a preferred resolver
+		if (dlna != null) {
+			// a plugin may already know which is the right resolver, or
+			// it may want to defer its own internal resolve process: e.g.
+			//       myItem.setURLResolved(false);
+			//       myItem.attach(URLResolver.ID, this));
+			//       myItem.attach("mydata", somestuffIneedlater);
+			URLResolver preferred = (URLResolver)dlna.getAttachment(URLResolver.ID);
+			if (preferred != null) {
+				URLResult res = preferred.urlResolve(url, dlna);
+				if (res != null) {
+					return res;
+				}
+			}
+		}
+		// now try all resolvers
 		for (URLResolver resolver : urlResolvers) {
-			URLResult res = resolver.urlResolve(url);
+			URLResult res = resolver.urlResolve(url, dlna);
 			if (res == null) {
 				// take another resolver this is crap
 				continue;
