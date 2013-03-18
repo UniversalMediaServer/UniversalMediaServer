@@ -913,16 +913,15 @@ public class MEncoderVideo extends Player {
 			}
 
 			// Make room for audio
-			switch (audioType) {
-				case "pcm":
-					defaultMaxBitrates[0] = defaultMaxBitrates[0] - 4600;
-					break;
-				case "dts":
-					defaultMaxBitrates[0] = defaultMaxBitrates[0] - 1510;
-					break;
-				case "ac3":
-					defaultMaxBitrates[0] = defaultMaxBitrates[0] - configuration.getAudioBitrate();
-					break;
+			if ("pcm".equals(audioType)) {
+				// If audio is PCM, subtract 4600kb/s
+				defaultMaxBitrates[0] = defaultMaxBitrates[0] - 4600;
+			} else if ("dts".equals(audioType)) {
+				// If audio is DTS, subtract 1510kb/s
+				defaultMaxBitrates[0] = defaultMaxBitrates[0] - 1510;
+			} else if ("ac3".equals(audioType)) {
+				// If audio is AC3, subtract the configured amount (usually 640)
+				defaultMaxBitrates[0] = defaultMaxBitrates[0] - configuration.getAudioBitrate();
 			}
 
 			// Round down to the nearest Mb
@@ -1653,16 +1652,12 @@ public class MEncoderVideo extends Player {
 
 		// Make MEncoder output framerate correspond to InterFrame
 		if (avisynth() && configuration.getAvisynthInterFrame() && !"60000/1001".equals(frameRateRatio) && !"50".equals(frameRateRatio) && !"60".equals(frameRateRatio)) {
-			switch (frameRateRatio) {
-				case "25":
-					ofps = "50";
-					break;
-				case "30":
-					ofps = "60";
-					break;
-				default:
-					ofps = "60000/1001";
-					break;
+			if ("25".equals(frameRateRatio)) {
+				ofps = "50";
+			} else if ("30".equals(frameRateRatio)) {
+				ofps = "60";
+			} else {
+				ofps = "60000/1001";
 			}
 		}
 
@@ -1904,9 +1899,8 @@ public class MEncoderVideo extends Player {
 			Map<String, Boolean> mergedCmdListOption = new HashMap<String, Boolean>();
 
 			// pass 1: process expertOptions
-			for (int i = 0; i < expertOptions.length; ++i) {
-				switch (expertOptions[i]) {
-					case "-noass":
+				for (int i = 0; i < expertOptions.length; ++i) {
+					if (expertOptions[i].equals("-noass")) {
 						// remove -ass from cmdList in pass 2.
 						// -ass won't have been added in this method (getSpecificCodecOptions
 						// has been called multiple times above to check for -noass and -nomux)
@@ -1916,38 +1910,30 @@ public class MEncoderVideo extends Player {
 						removeCmdListOption.put("-ass", false); // false: option does not have a corresponding value
 						// remove -noass from expertOptions in pass 3
 						expertOptions[i] = REMOVE_OPTION;
-						break;
-					case "-nomux":
+					} else if (expertOptions[i].equals("-nomux")) {
 						expertOptions[i] = REMOVE_OPTION;
-						break;
-					case "-mt":
+					} else if (expertOptions[i].equals("-mt")) {
 						// not an MEncoder option so remove it from exportOptions.
 						// multi-threaded MEncoder is used by default, so this is obsolete (TODO: Remove it from the description)
 						expertOptions[i] = REMOVE_OPTION;
-						break;
-					case "-ofps":
+					} else if (expertOptions[i].equals("-ofps")) {
 						// replace the cmdList version with the expertOptions version i.e. remove the former
 						removeCmdListOption.put("-ofps", true);
 						// skip (i.e. leave unchanged) the exportOptions value
 						++i;
-						break;
-					case "-fps":
+					} else if (expertOptions[i].equals("-fps")) {
 						removeCmdListOption.put("-fps", true);
 						++i;
-						break;
-					case "-ovc":
+					} else if (expertOptions[i].equals("-ovc")) {
 						removeCmdListOption.put("-ovc", true);
 						++i;
-						break;
-					case "-channels":
+					} else if (expertOptions[i].equals("-channels")) {
 						removeCmdListOption.put("-channels", true);
 						++i;
-						break;
-					case "-oac":
+					} else if (expertOptions[i].equals("-oac")) {
 						removeCmdListOption.put("-oac", true);
 						++i;
-						break;
-					case "-quality":
+					} else if (expertOptions[i].equals("-quality")) {
 						// XXX like the old (cmdArray) code, this clobbers the old -lavcopts value
 						String lavcopts = String.format(
 							"autoaspect=1:vcodec=%s:acodec=%s:abitrate=%s:threads=%d:%s",
@@ -1974,30 +1960,24 @@ public class MEncoderVideo extends Player {
 						// remove -quality <value>
 						expertOptions[i] = expertOptions[i + 1] = REMOVE_OPTION;
 						++i;
-						break;
-					case "-mpegopts":
+					} else if (expertOptions[i].equals("-mpegopts")) {
 						mergeCmdListOption.put("-mpegopts", "%s:" + expertOptions[i + 1].replace("%", "%%"));
 						// merge if cmdList already contains -mpegopts, but don't append if it doesn't (parity with the old (cmdArray) version)
 						expertOptions[i] = expertOptions[i + 1] = REMOVE_OPTION;
 						++i;
-						break;
-					case "-vf":
+					} else if (expertOptions[i].equals("-vf")) {
 						mergeCmdListOption.put("-vf", "%s," + expertOptions[i + 1].replace("%", "%%"));
 						++i;
-						break;
-					case "-af":
+					} else if (expertOptions[i].equals("-af")) {
 						mergeCmdListOption.put("-af", "%s," + expertOptions[i + 1].replace("%", "%%"));
 						++i;
-						break;
-					case "-nosync":
+					} else if (expertOptions[i].equals("-nosync")) {
 						disableMc0AndNoskip = true;
 						expertOptions[i] = REMOVE_OPTION;
-						break;
-					case "-mc":
+					} else if (expertOptions[i].equals("-mc")) {
 						disableMc0AndNoskip = true;
-						break;
+					}
 				}
-			}
 
 			for (String key : mergeCmdListOption.keySet()) {
 				mergedCmdListOption.put(key, false);
