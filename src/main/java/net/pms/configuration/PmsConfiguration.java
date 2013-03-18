@@ -1013,19 +1013,6 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Returns a string of comma separated audio or subtitle languages,
-	 * ordered by priority.
-	 * @return The string of languages.
-	 */
-	private String getDefaultLanguages() {
-		if ("fr".equals(getLanguage())) {
-			return "fre,jpn,ger,eng,und";
-		} else {
-			return "eng,fre,jpn,ger,und";
-		}
-	}
-
-	/**
 	 * @deprecated Use {@link #getSubtitlesLanguages()} instead.
 	 */
 	public String getMencoderSubLanguages() {
@@ -2366,7 +2353,7 @@ public class PmsConfiguration {
 	}
 
 	public boolean isHideMediaLibraryFolder() {
-		return getBoolean(PmsConfiguration.KEY_HIDE_MEDIA_LIBRARY_FOLDER, false);
+		return getBoolean(PmsConfiguration.KEY_HIDE_MEDIA_LIBRARY_FOLDER, true);
 	}
 
 	public void setHideMediaLibraryFolder(final boolean value) {

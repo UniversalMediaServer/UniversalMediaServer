@@ -41,7 +41,6 @@ import net.pms.network.HTTPResource;
 
 public class FFmpegAudio extends FFMpegVideo {
 	public static final String ID = "ffmpegaudio";
-	private final PmsConfiguration configuration;
 
 	// should be private
 	@Deprecated
@@ -49,7 +48,6 @@ public class FFmpegAudio extends FFMpegVideo {
 
 	public FFmpegAudio(PmsConfiguration configuration) {
 		super(configuration);
-		this.configuration = configuration;
 	}
 
 	@Override

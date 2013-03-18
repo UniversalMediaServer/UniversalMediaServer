@@ -47,12 +47,6 @@ public class UPNPHelper {
 	private final static String IPV4_UPNP_HOST = "239.255.255.250";
 
 	/**
-	 * IPv6 Multicast channel reserved for SSDP by Internet Assigned Numbers Authority (IANA).
-	 * MUST be [FF02::C].
-	 */
-	private final static String IPV6_UPNP_HOST = "[FF02::C]";
-
-	/**
 	 * Multicast channel reserved for SSDP by Internet Assigned Numbers Authority (IANA).
 	 * MUST be 1900.
 	 */

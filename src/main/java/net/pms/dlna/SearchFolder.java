@@ -3,12 +3,10 @@ package net.pms.dlna;
 import net.pms.dlna.virtual.VirtualFolder;
 
 public class SearchFolder extends VirtualFolder {
-	private String name;
 	private SearchObj sobj;
 
 	public SearchFolder(String name, SearchObj sobj) {
 		super(name, null);
-		this.name = name;
 		this.sobj = sobj;
 	}
 
