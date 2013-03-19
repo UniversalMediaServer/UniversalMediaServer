@@ -86,7 +86,7 @@ public class FFmpegOptions extends optionsHashMap {
 	}
 
 	public static List<String> getSupportedProtocols(PmsConfiguration configuration) {
-		ArrayList<String> protocols = new ArrayList<>();
+		ArrayList<String> protocols = new ArrayList<String>();
 		String output = ProcessUtil.run(configuration.getFfmpegPath(), "-protocols");
 		boolean add = false;
 		for (String line : output.split("\n")) {
