@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 
 public class CodecUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CodecUtil.class);
-	private static final ArrayList<String> codecs = new ArrayList<>();
+	private static final ArrayList<String> codecs = new ArrayList<String>();
 
 	static {
 		// Make sure the list of codecs is initialized before other threads start retrieving it

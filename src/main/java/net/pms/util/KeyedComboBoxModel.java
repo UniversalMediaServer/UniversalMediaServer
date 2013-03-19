@@ -136,8 +136,8 @@ public class KeyedComboBoxModel implements ComboBoxModel {
 	 * Creates a new keyed combobox model.
 	 */
 	public KeyedComboBoxModel() {
-		data = new ArrayList<>();
-		listdatalistener = new ArrayList<>();
+		data = new ArrayList<ComboBoxItemPair>();
+		listdatalistener = new ArrayList<ListDataListener>();
 	}
 
 	/**

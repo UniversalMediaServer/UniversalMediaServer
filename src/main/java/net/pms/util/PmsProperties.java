@@ -18,10 +18,10 @@ public class PmsProperties {
 	public void loadFromByteArray(byte[] data) throws IOException {
 		try {
 			String utf = new String(data, ENCODING);
-			try (StringReader reader = new StringReader(utf)) {
-				properties.clear();
-				properties.load(reader);
-			}
+			StringReader reader = new StringReader(utf);
+			properties.clear();
+			properties.load(reader);
+			reader.close();
 		} catch (UnsupportedEncodingException e) {
 			throw new IOException("Could not decode " + ENCODING);
 		}
@@ -33,8 +33,12 @@ public class PmsProperties {
 	 * @throws IOException
 	 */
 	public void loadFromResourceFile(String filename) throws IOException {
-		try (InputStream inputStream = getClass().getResourceAsStream(filename)) {
+		InputStream inputStream = getClass().getResourceAsStream(filename);
+
+		try {
 			properties.load(inputStream);
+		} finally {
+			inputStream.close();
 		}
 	}
 

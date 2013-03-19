@@ -9,32 +9,32 @@ import java.util.Map;
 
 public class MpegUtil {
 	public static int getDurationFromMpeg(File f) throws IOException {
-		try (RandomAccessFile raf = new RandomAccessFile(f, "r")) {
-			if (raf.length() >= 500000) {
-				Map<Integer, Integer> ptsStart = checkRange(raf, 0, 250000, false);
-				if (ptsStart != null) {
-					Map<Integer, Integer> ptsEnd = checkRange(raf, 0, 250000, true);
-					if (ptsEnd != null) {
-						Iterator<Integer> iterator = ptsStart.keySet().iterator();
-						while (iterator.hasNext()) {
-							Integer id = iterator.next();
-							if (ptsEnd.get(id) != null) {
-								int dur = ptsEnd.get(id).intValue()
-									- ptsStart.get(id).intValue();
-								dur = dur / 90000;
-								return dur;
-							}
+		RandomAccessFile raf = new RandomAccessFile(f, "r");
+		if (raf.length() >= 500000) {
+			Map<Integer, Integer> ptsStart = checkRange(raf, 0, 250000, false);
+			if (ptsStart != null) {
+				Map<Integer, Integer> ptsEnd = checkRange(raf, 0, 250000, true);
+				if (ptsEnd != null) {
+					Iterator<Integer> iterator = ptsStart.keySet().iterator();
+					while (iterator.hasNext()) {
+						Integer id = iterator.next();
+						if (ptsEnd.get(id) != null) {
+							int dur = ptsEnd.get(id).intValue()
+								- ptsStart.get(id).intValue();
+							dur = dur / 90000;
+							return dur;
 						}
 					}
 				}
 			}
 		}
+		raf.close();
 		return 0;
 	}
 
 	private static Map<Integer, Integer> checkRange(RandomAccessFile raf, long startingPos,
 		int range, boolean end) throws IOException {
-		Map<Integer, Integer> pts = new HashMap<>();
+		Map<Integer, Integer> pts = new HashMap<Integer, Integer>();
 		byte buffer[] = new byte[range];
 		if (end) // statringPos not applicable for end==true
 		{

@@ -147,7 +147,7 @@ public class FileUtil {
 		}
 
 		if (cache == null) {
-			cache = new HashMap<>();
+			cache = new HashMap<File, File[]>();
 		}
 
 		File[] allSubs = cache.get(subFolder);
@@ -435,8 +435,8 @@ public class FileUtil {
 							LOGGER.error("Error deleting temporary test file: " + file.getAbsolutePath(), se);
 						}
 					}
-				} catch (IOException | SecurityException ioe) {
-				}
+				} catch (IOException ioe) {
+				} catch (SecurityException se) { }
 			}
 		}
 
@@ -525,8 +525,8 @@ public class FileUtil {
 							LOGGER.warn("Can't delete temporary test file: {}", file.getAbsolutePath());
 						}
 					}
-				} catch (IOException | SecurityException ioe) {
-				}
+				} catch (IOException ioe) {
+				} catch (SecurityException se) { }
 			}
 		}
 

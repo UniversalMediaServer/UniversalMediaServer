@@ -43,7 +43,7 @@ public class ProcessUtil {
 				Field f = p.getClass().getDeclaredField("pid");
 				f.setAccessible(true);
 				pid = f.getInt(p);
-			} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
+			} catch (Throwable e) {
 				LOGGER.debug("Can't determine the Unix process ID: " + e.getMessage());
 			}
 		}

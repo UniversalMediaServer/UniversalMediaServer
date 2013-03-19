@@ -40,17 +40,17 @@ public class Iso639 {
 	/**
 	 * Hashmap that contains full language names and their ISO codes.
 	 */
-	private static HashMap<String, String[]> links = new HashMap<>();
+	private static HashMap<String, String[]> links = new HashMap<String, String[]>();
 
 	/**
 	 * List that contains all known language names.
 	 */
-	private static ArrayList<String> languages = new ArrayList<>();
+	private static ArrayList<String> languages = new ArrayList<String>();
 
 	/**
 	 * List that contains all known ISO language codes.
 	 */
-	private static ArrayList<String> codes = new ArrayList<>();
+	private static ArrayList<String> codes = new ArrayList<String>();
 
 	static {
 		// Make sure everything is initialized before it is retrieved.
@@ -223,7 +223,7 @@ public class Iso639 {
 	 * @param iso6392bis The third ISO code
 	 */
 	private static void putCode(String language, String iso6391, String iso6392, String iso6392bis) {
-		ArrayList<String> codeArray = new ArrayList<>();
+		ArrayList<String> codeArray = new ArrayList<String>();
 
 		if (iso6391 != null) {
 			codeArray.add(iso6391);
@@ -256,7 +256,7 @@ public class Iso639 {
 	 * Initialize the list of language codes.
 	 */
 	private static void initCodes() {
-		codes = new ArrayList<>();
+		codes = new ArrayList<String>();
 		Iterator<String[]> iterator = links.values().iterator();
 
 		while (iterator.hasNext()) {
