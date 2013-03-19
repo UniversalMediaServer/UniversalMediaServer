@@ -34,7 +34,7 @@ public class AudioAsVideo extends MKV {
 
 	@Override
 	public ArrayList<Class<? extends Player>> getProfiles() {
-		ArrayList<Class<? extends Player>> a = new ArrayList<>();
+		ArrayList<Class<? extends Player>> a = new ArrayList<Class<? extends Player>>();
 		PMS r = PMS.get();
 		for (String engine : PMS.getConfiguration().getEnginesAsList(r.getRegistry())) {
 			if (engine.equals(TsMuxeRAudio.ID)) {

@@ -42,7 +42,7 @@ public class MPG extends Format {
 		{
 			return null;
 		}
-		ArrayList<Class<? extends Player>> a = new ArrayList<>();
+		ArrayList<Class<? extends Player>> a = new ArrayList<Class<? extends Player>>();
 		PMS r3 = PMS.get();
 		for (String engine : configuration.getEnginesAsList(r3.getRegistry())) {
 			if (engine.equals(MEncoderVideo.ID)) {

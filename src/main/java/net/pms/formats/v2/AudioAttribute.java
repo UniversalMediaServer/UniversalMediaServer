@@ -42,11 +42,11 @@ public enum AudioAttribute {
 	private static final Pattern libMediaInfoKeyPattern = Pattern.compile("^\\s*(\\S+)\\s*:");
 	private final static Map<String, AudioAttribute> libMediaInfoKeyToAudioAttributeMap;
 	private static Set<String> set(String... args) {
-		return new HashSet<>(Arrays.asList(args));
+		return new HashSet<String>(Arrays.asList(args));
 	}
 
 	static {
-		libMediaInfoKeyToAudioAttributeMap = new HashMap<>();
+		libMediaInfoKeyToAudioAttributeMap = new HashMap<String, AudioAttribute>();
 		for (AudioAttribute audioAttribute : values()) {
 			for (String libMediaInfoKey : audioAttribute.libMediaInfoKeys) {
 				libMediaInfoKeyToAudioAttributeMap.put(libMediaInfoKey.toLowerCase(), audioAttribute);

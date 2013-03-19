@@ -62,13 +62,13 @@ public enum SubtitleType {
 	private final static Map<String, SubtitleType> fileExtensionToSubtitleTypeMap;
 	private final static Map<String, SubtitleType> libmediainfoCodecToSubtitleTypeMap;
 	private static List<String> list(String... args) {
-		return new ArrayList<>(Arrays.asList(args));
+		return new ArrayList<String>(Arrays.asList(args));
 	}
 
 	static {
-		stableIndexToSubtitleTypeMap = new HashMap<>();
-		fileExtensionToSubtitleTypeMap = new HashMap<>();
-		libmediainfoCodecToSubtitleTypeMap = new HashMap<>();
+		stableIndexToSubtitleTypeMap = new HashMap<Integer, SubtitleType>();
+		fileExtensionToSubtitleTypeMap = new HashMap<String, SubtitleType>();
+		libmediainfoCodecToSubtitleTypeMap = new HashMap<String, SubtitleType>();
 		for (SubtitleType subtitleType : values()) {
 			stableIndexToSubtitleTypeMap.put(subtitleType.getStableIndex(), subtitleType);
 			for (String fileExtension : subtitleType.fileExtensions) {
