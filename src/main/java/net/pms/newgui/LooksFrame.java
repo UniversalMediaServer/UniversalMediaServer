@@ -101,7 +101,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		if (Platform.isWindows()) {
 			try {
 				selectedLaf = (LookAndFeel) Class.forName("com.jgoodies.looks.windows.WindowsLookAndFeel").newInstance();
-			} catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+			} catch (Exception e) {
 				selectedLaf = new PlasticLookAndFeel();
 			}
 		} else if (System.getProperty("nativelook") == null && !Platform.isMac()) {
@@ -123,7 +123,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 				LOGGER.trace("Choosing Java look and feel: " + systemClassName);
 				UIManager.setLookAndFeel(systemClassName);
-			} catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e1) {
+			} catch (Exception e1) {
 				selectedLaf = new PlasticLookAndFeel();
 				LOGGER.error("Error while setting native look and feel: ", e1);
 			}

@@ -102,7 +102,9 @@ public class HelpTab {
 							editorPane.setPage(event.getURL());
 						}
 					}
-				} catch (IOException | URISyntaxException e) {
+				} catch (IOException e) {
+					LOGGER.debug("Caught exception", e);
+				} catch (URISyntaxException e) {
 					LOGGER.debug("Caught exception", e);
 				}
 			}
