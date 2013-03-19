@@ -115,7 +115,7 @@ Function AdvancedSettings
 
 	; Choose the maximum amount of RAM we want to use
 	${If} $4 > 4000
-		StrCpy $MaximumMemoryJava "1280"
+		StrCpy $MaximumMemoryJava "1152"
 	${Else}
 		StrCpy $MaximumMemoryJava "768"
 	${EndIf}

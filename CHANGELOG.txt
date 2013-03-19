@@ -1,4 +1,14 @@
-2.5.2 - 2013-03-??
+2.5.3 - 2013-03-??
+
+	General:
+		
+
+2.5.2.1 - 2013-03-??
+
+	General:
+		Fixed the startup error introduced in 2.5.2
+
+2.5.2 - 2013-03-18
 
 	General:
 		Offer to automatically update Java on Windows from 6 to 7
