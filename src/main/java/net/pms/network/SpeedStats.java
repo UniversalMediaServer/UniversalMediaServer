@@ -49,7 +49,7 @@ public class SpeedStats {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SpeedStats.class);
 
-	private final Map<String, Future<Integer>> speedStats = new HashMap<>();
+	private final Map<String, Future<Integer>> speedStats = new HashMap<String, Future<Integer>>();
 
 	/**
 	 * Return the network throughput for the given IP address in MBits. It is calculated in the background, and cached,
@@ -170,7 +170,7 @@ public class SpeedStats {
 				int speedInMbits = (int)(512 / time);
 				LOGGER.info("Address " + addr + " has an estimated network speed of: " + speedInMbits + " Mb/s");
 				synchronized(speedStats) {
-					CompletedFuture<Integer> result = new CompletedFuture<>(speedInMbits);
+					CompletedFuture<Integer> result = new CompletedFuture<Integer>(speedInMbits);
 					// update the statistics with a computed future value
 					speedStats.put(ip, result);
 					speedStats.put(hostname, result);
