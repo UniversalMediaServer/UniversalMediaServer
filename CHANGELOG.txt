@@ -1,9 +1,9 @@
-2.5.3 - 2013-03-??
+2.5.2.2 - 2013-03-19
 
 	General:
-		
+		Reverted maximum memory increase
 
-2.5.2.1 - 2013-03-??
+2.5.2.1 - 2013-03-18
 
 	General:
 		Fixed the startup error introduced in 2.5.2
