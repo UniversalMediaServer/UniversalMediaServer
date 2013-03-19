@@ -192,7 +192,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			}
 		}
 
-		ArrayList<String> lines = new ArrayList<>();
+		ArrayList<String> lines = new ArrayList<String>();
 
 		lines.add(mtLine1);
 

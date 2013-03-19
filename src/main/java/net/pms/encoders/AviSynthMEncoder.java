@@ -308,7 +308,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 			}
 		}
 
-		ArrayList<String> lines = new ArrayList<>();
+		ArrayList<String> lines = new ArrayList<String>();
 
 		lines.add(mtLine1);
 
