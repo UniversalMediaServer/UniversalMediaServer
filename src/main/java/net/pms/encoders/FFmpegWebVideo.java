@@ -46,7 +46,7 @@ import org.slf4j.LoggerFactory;
 public class FFmpegWebVideo extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegWebVideo.class);
 	private static List<String> protocols;
-	public static PatternMap<Object> excludes = new PatternMap<>();
+	public static PatternMap<Object> excludes = new PatternMap<Object>();
 
 	public static PatternMap<ArrayList> autoOptions = new PatternMap<ArrayList>() {
 		private static final long serialVersionUID = 5225786297932747007L;
@@ -57,7 +57,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		}
 	};
 
-	public static PatternMap<String> replacements = new PatternMap<>();
+	public static PatternMap<String> replacements = new PatternMap<String>();
 	private static boolean init = false;
 
 	// FIXME we have an id() accessor for this; no need for the field to be public
@@ -335,7 +335,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 class PatternMap<T> extends modAwareHashMap<String, T> {
 	private static final long serialVersionUID = 3096452459003158959L;
 	Matcher combo;
-	List<String> groupmap = new ArrayList<>();
+	List<String> groupmap = new ArrayList<String>();
 
 	public T add(String key, Object value) {
 		return put(key, (T) value);

@@ -2470,7 +2470,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	public void attach(String key, Object data) {
 		if (attachments == null) {
-			attachments = new HashMap<>();
+			attachments = new HashMap<String,Object>();
 		}
 		attachments.put(key, data);
 	}
