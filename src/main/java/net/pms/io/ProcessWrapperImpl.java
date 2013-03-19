@@ -111,7 +111,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 		this.params = params;
 		this.keepStdout = keepStdout;
 		this.keepStderr = keepStderr;
-		attachedProcesses = new ArrayList<>();
+		attachedProcesses = new ArrayList<ProcessWrapper>();
 	}
 
 	private synchronized int getProcessCounter() {

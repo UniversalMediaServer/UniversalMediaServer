@@ -210,7 +210,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			System.exit(1);
 		}
 
-		inputStreams = new ArrayList<>();
+		inputStreams = new ArrayList<WaitBufferedInputStream>();
 		timer = new Timer();
 
 		if (params.maxBufferSize > 15 && !params.hidebuffer) {

@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
  */
 public class OutputTextConsumer extends OutputConsumer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OutputTextConsumer.class);
-	private List<String> lines = new ArrayList<>();
+	private List<String> lines = new ArrayList<String>();
 	private Object linesLock = new Object();
 	private boolean log;
 
@@ -81,7 +81,7 @@ public class OutputTextConsumer extends OutputConsumer {
 
 	@Override
 	public List<String> getResults() {
-		List<String> clonedResults = new ArrayList<>();
+		List<String> clonedResults = new ArrayList<String>();
 
 		synchronized (linesLock) {
 			clonedResults.addAll(lines);

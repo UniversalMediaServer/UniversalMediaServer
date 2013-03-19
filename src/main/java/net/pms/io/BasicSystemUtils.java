@@ -120,7 +120,9 @@ public class BasicSystemUtils implements SystemUtils {
 	public void browseURI(String uri) {
 		try {
 			Desktop.getDesktop().browse(new URI(uri));
-		} catch (IOException | URISyntaxException e) {
+		} catch (IOException e) {
+			LOGGER.trace("Unable to open the given URI: " + uri + ".");
+		} catch (URISyntaxException e) {
 			LOGGER.trace("Unable to open the given URI: " + uri + ".");
 		}
 	}
