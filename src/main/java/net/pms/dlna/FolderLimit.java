@@ -13,7 +13,7 @@ public class FolderLimit extends VirtualFolder {
 	public FolderLimit() {
 		super("Folder Limit", null);
 		discover = false;
-		levels = new ArrayList<>();
+		levels = new ArrayList<FolderLimitLevel>();
 		levels.add(new FolderLimitLevel(0)); // create level 0
 	}
 

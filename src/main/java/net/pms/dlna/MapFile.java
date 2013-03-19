@@ -166,7 +166,7 @@ public class MapFile extends DLNAResource {
 	}
 
 	private List<File> getFileList() {
-		List<File> out = new ArrayList<>();
+		List<File> out = new ArrayList<File>();
 
 		for (File file : this.conf.getFiles()) {
 			if (file != null && file.isDirectory()) {
@@ -223,7 +223,7 @@ public class MapFile extends DLNAResource {
 		}
 
 		if (discoverable == null) {
-			discoverable = new ArrayList<>();
+			discoverable = new ArrayList<File>();
 		} else {
 			return;
 		}
@@ -239,7 +239,7 @@ public class MapFile extends DLNAResource {
 			 * Note: If we done this at the level directly above we don't do it again
 			 * since all files start with the same letter then
 			 */
-			TreeMap<String, ArrayList<File>> map = new TreeMap<>();
+			TreeMap<String, ArrayList<File>> map = new TreeMap<String, ArrayList<File>>();
 			for (File f : files) {
 				if ((!f.isFile() && !f.isDirectory()) || f.isHidden()) {
 					// skip these
@@ -259,7 +259,7 @@ public class MapFile extends DLNAResource {
 				ArrayList<File> l = map.get(String.valueOf(c));
 				if (l == null) {
 					// new letter
-					l = new ArrayList<>();
+					l = new ArrayList<File>();
 				}
 				l.add(f);
 				map.put(String.valueOf(c), l);
@@ -380,8 +380,8 @@ public class MapFile extends DLNAResource {
 	@Override
 	public void doRefreshChildren(String str) {
 		List<File> files = getFileList();
-		List<File> addedFiles = new ArrayList<>();
-		List<DLNAResource> removedFiles = new ArrayList<>();
+		List<File> addedFiles = new ArrayList<File>();
+		List<DLNAResource> removedFiles = new ArrayList<DLNAResource>();
 
 		for (DLNAResource d : getChildren()) {
 			boolean isNeedMatching = !(d.getClass() == MapFile.class || (d instanceof VirtualFolder && !(d instanceof DVDISOFile)));

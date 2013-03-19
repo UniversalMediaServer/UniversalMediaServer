@@ -230,7 +230,7 @@ public class RootFolder extends DLNAResource {
 	}
 
 	private List<RealFile> getConfiguredFolders() {
-		List<RealFile> res = new ArrayList<>();
+		List<RealFile> res = new ArrayList<RealFile>();
 		File[] files = PMS.get().getFoldersConf();
 
 		if (files == null || files.length == 0) {
@@ -245,7 +245,7 @@ public class RootFolder extends DLNAResource {
 	}
 
 	private List<DLNAResource> getVirtualFolders() {
-		List<DLNAResource> res = new ArrayList<>();
+		List<DLNAResource> res = new ArrayList<DLNAResource>();
 		List<MapFileConfiguration> mapFileConfs = MapFileConfiguration.parse(configuration.getVirtualFolders());
 
 		if (mapFileConfs != null) {
@@ -260,68 +260,69 @@ public class RootFolder extends DLNAResource {
 	private void addWebFolder(File webConf) {
 		if (webConf.exists()) {
 			try {
-				try (LineNumberReader br = new LineNumberReader(new InputStreamReader(new FileInputStream(webConf), "UTF-8"))) {
-					String line;
-					while ((line = br.readLine()) != null) {
-						line = line.trim();
+				LineNumberReader br = new LineNumberReader(new InputStreamReader(new FileInputStream(webConf), "UTF-8"));
+				String line;
+				while ((line = br.readLine()) != null) {
+					line = line.trim();
 
-						if (line.length() > 0 && !line.startsWith("#") && line.indexOf("=") > -1) {
-							String key = line.substring(0, line.indexOf("="));
-							String value = line.substring(line.indexOf("=") + 1);
-							String[] keys = parseFeedKey(key);
+					if (line.length() > 0 && !line.startsWith("#") && line.indexOf("=") > -1) {
+						String key = line.substring(0, line.indexOf("="));
+						String value = line.substring(line.indexOf("=") + 1);
+						String[] keys = parseFeedKey(key);
 
-							try {
-								if (
-									keys[0].equals("imagefeed") ||
-									keys[0].equals("audiofeed") ||
-									keys[0].equals("videofeed") ||
-									keys[0].equals("audiostream") ||
-									keys[0].equals("videostream")
-								) {
-									String[] values = parseFeedValue(value);
-									DLNAResource parent = null;
+						try {
+							if (
+								keys[0].equals("imagefeed") ||
+								keys[0].equals("audiofeed") ||
+								keys[0].equals("videofeed") ||
+								keys[0].equals("audiostream") ||
+								keys[0].equals("videostream")
+							) {
+								String[] values = parseFeedValue(value);
+								DLNAResource parent = null;
 
-									if (keys[1] != null) {
-										StringTokenizer st = new StringTokenizer(keys[1], ",");
-										DLNAResource currentRoot = this;
+								if (keys[1] != null) {
+									StringTokenizer st = new StringTokenizer(keys[1], ",");
+									DLNAResource currentRoot = this;
 
-										while (st.hasMoreTokens()) {
-											String folder = st.nextToken();
-											parent = currentRoot.searchByName(folder);
+									while (st.hasMoreTokens()) {
+										String folder = st.nextToken();
+										parent = currentRoot.searchByName(folder);
 
-											if (parent == null) {
-												parent = new VirtualFolder(folder, "");
-												currentRoot.addChild(parent);
-											}
-
-											currentRoot = parent;
+										if (parent == null) {
+											parent = new VirtualFolder(folder, "");
+											currentRoot.addChild(parent);
 										}
-									}
 
-									if (parent == null) {
-										parent = this;
-									}
-
-									if (keys[0].equals("imagefeed")) {
-										parent.addChild(new ImagesFeed(values[0]));
-									} else if (keys[0].equals("videofeed")) {
-										parent.addChild(new VideosFeed(values[0]));
-									} else if (keys[0].equals("audiofeed")) {
-										parent.addChild(new AudiosFeed(values[0]));
-									} else if (keys[0].equals("audiostream")) {
-										parent.addChild(new WebAudioStream(values[0], values[1], values[2]));
-									} else if (keys[0].equals("videostream")) {
-										parent.addChild(new WebVideoStream(values[0], values[1], values[2]));
+										currentRoot = parent;
 									}
 								}
-							} catch (ArrayIndexOutOfBoundsException e) {
-								// catch exception here and go with parsing
-								LOGGER.info("Error at line " + br.getLineNumber() + " of WEB.conf: " + e.getMessage());
-								LOGGER.debug(null, e);
+
+								if (parent == null) {
+									parent = this;
+								}
+
+								if (keys[0].equals("imagefeed")) {
+									parent.addChild(new ImagesFeed(values[0]));
+								} else if (keys[0].equals("videofeed")) {
+									parent.addChild(new VideosFeed(values[0]));
+								} else if (keys[0].equals("audiofeed")) {
+									parent.addChild(new AudiosFeed(values[0]));
+								} else if (keys[0].equals("audiostream")) {
+									parent.addChild(new WebAudioStream(values[0], values[1], values[2]));
+								} else if (keys[0].equals("videostream")) {
+									parent.addChild(new WebVideoStream(values[0], values[1], values[2]));
+								}
 							}
+						} catch (ArrayIndexOutOfBoundsException e) {
+							// catch exception here and go with parsing
+							LOGGER.info("Error at line " + br.getLineNumber() + " of WEB.conf: " + e.getMessage());
+							LOGGER.debug(null, e);
 						}
 					}
 				}
+
+				br.close();
 			} catch (IOException e) {
 				LOGGER.info("Unexpected error in WEB.conf" + e.getMessage());
 				LOGGER.debug(null, e);
@@ -444,7 +445,11 @@ public class RootFolder extends DLNAResource {
 				} else {
 					LOGGER.info("iPhoto folder not found");
 				}
-			} catch (XmlParseException | URISyntaxException | IOException e) {
+			} catch (XmlParseException e) {
+				LOGGER.error("Something went wrong with the iPhoto Library scan: ", e);
+			} catch (URISyntaxException e) {
+				LOGGER.error("Something went wrong with the iPhoto Library scan: ", e);
+			} catch (IOException e) {
 				LOGGER.error("Something went wrong with the iPhoto Library scan: ", e);
 			} finally {
 				IOUtils.closeQuietly(inputStream);
@@ -467,25 +472,27 @@ public class RootFolder extends DLNAResource {
 
 			try {
 				process = Runtime.getRuntime().exec("defaults read com.apple.iApps ApertureLibraries");
-				try (BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-					String line;
-					res = new VirtualFolder("Aperture libraries", null);
+				BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
+				// Every line entry is one aperture library. We want all of them as a dlna folder.
+				String line;
+				res = new VirtualFolder("Aperture libraries", null);
 
-					while ((line = in.readLine()) != null) {
-						if (line.startsWith("(") || line.startsWith(")")) {
-							continue;
-						}
+				while ((line = in.readLine()) != null) {
+					if (line.startsWith("(") || line.startsWith(")")) {
+						continue;
+					}
 
-						line = line.trim(); // remove extra spaces
-						line = line.substring(1, line.lastIndexOf("\"")); // remove quotes and spaces
-						VirtualFolder apertureLibrary = createApertureDlnaLibrary(line);
+					line = line.trim(); // remove extra spaces
+					line = line.substring(1, line.lastIndexOf("\"")); // remove quotes and spaces
+					VirtualFolder apertureLibrary = createApertureDlnaLibrary(line);
 
-						if (apertureLibrary != null) {
-							res.addChild(apertureLibrary);
-						}
+					if (apertureLibrary != null) {
+						res.addChild(apertureLibrary);
 					}
 				}
-			} catch (IOException | XmlParseException | URISyntaxException e) {
+
+				in.close();
+			} catch (Exception e) {
 				LOGGER.error("Something went wrong with the aperture library scan: ", e);
 			} finally {
 				// Avoid zombie processes, or open stream failures
@@ -801,7 +808,7 @@ public class RootFolder extends DLNAResource {
 										while (br.readLine() != null) { 
 										}
 										pid.waitFor();
-									} catch (IOException | InterruptedException e) {
+									} catch (Exception e) {
 									}
 
 									return true;
@@ -939,7 +946,7 @@ public class RootFolder extends DLNAResource {
 	 * into memory (need to implement AdditionalFolder(s)AtRoot)
 	 */
 	private List<DLNAResource> getAdditionalFoldersAtRoot() {
-		List<DLNAResource> res = new ArrayList<>();
+		List<DLNAResource> res = new ArrayList<DLNAResource>();
 
 		for (ExternalListener listener : ExternalFactory.getExternalListeners()) {
 			if (listener instanceof AdditionalFolderAtRoot) {

@@ -80,7 +80,7 @@ public class CueFolder extends DLNAResource {
 					List<TrackData> tracks = f.getTrackData();
 					Player defaultPlayer = null;
 					DLNAMediaInfo originalMedia = null;
-					ArrayList<DLNAResource> addedResources = new ArrayList<>();
+					ArrayList<DLNAResource> addedResources = new ArrayList<DLNAResource>();
 					for (int i = 0; i < tracks.size(); i++) {
 						TrackData track = tracks.get(i);
 						if (i > 0) {

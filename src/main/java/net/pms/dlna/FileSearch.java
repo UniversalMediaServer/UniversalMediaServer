@@ -9,7 +9,7 @@ public class FileSearch implements SearchObj {
 	private ArrayList<RealFile> folders;
 	
 	public FileSearch(List<RealFile> folders) {
-		this.folders = new ArrayList<>(folders);
+		this.folders = new ArrayList<RealFile>(folders);
 	}
 	
 	@Override

@@ -164,8 +164,8 @@ public class DLNAMediaInfo implements Cloneable {
 	@Deprecated
 	public int bitsPerPixel;
 
-	private List<DLNAMediaAudio> audioTracks = new ArrayList<>();
-	private List<DLNAMediaSubtitle> subtitleTracks = new ArrayList<>();
+	private List<DLNAMediaAudio> audioTracks = new ArrayList<DLNAMediaAudio>();
+	private List<DLNAMediaSubtitle> subtitleTracks = new ArrayList<DLNAMediaSubtitle>();
 
 	/**
 	 * @deprecated Use standard getter and setter to access this variable.
@@ -326,7 +326,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 	public void putExtra(String key, String value) {
 		if (extras == null) {
-			extras = new HashMap<>();
+			extras = new HashMap<String, String>();
 		}
 
 		extras.put(key, value);
@@ -606,12 +606,12 @@ public class DLNAMediaInfo implements Cloneable {
 									y = t.getFirst(FieldKey.TRACK);
 									audio.setTrack(Integer.parseInt(((y != null && y.length() > 0) ? y : "1")));
 									audio.setGenre(t.getFirst(FieldKey.GENRE));
-								} catch (NumberFormatException | KeyNotFoundException e) {
+								} catch (Throwable e) {
 									LOGGER.debug("Error parsing unimportant metadata: " + e.getMessage());
 								}
 							}
 						}
-					} catch (CannotReadException | IOException | TagException | ReadOnlyFileException | InvalidAudioFrameException | NumberFormatException | KeyNotFoundException e) {
+					} catch (Throwable e) {
 						LOGGER.debug("Error parsing audio file: {} - {}", e.getMessage(), e.getCause() != null ? e.getCause().getMessage() : "");
 						ffmpeg_parsing = false;
 					}
@@ -673,7 +673,7 @@ public class DLNAMediaInfo implements Cloneable {
 					}
 
 					setContainer(getCodecV());
-				} catch (ImageReadException | IOException e) {
+				} catch (Throwable e) {
 					LOGGER.info("Error parsing image ({}) with Sanselan, switching to FFmpeg.", inputFile.getFile().getAbsolutePath());
 				}
 			}
@@ -708,14 +708,13 @@ public class DLNAMediaInfo implements Cloneable {
 						File jpg = new File(thumbFilename);
 
 						if (jpg.exists()) {
-							try (InputStream is = new FileInputStream(jpg)) {
-								int sz = is.available();
-
-								if (sz > 0) {
-									setThumb(new byte[sz]);
-									is.read(getThumb());
-								}
+							InputStream is = new FileInputStream(jpg);
+							int sz = is.available();
+							if (sz > 0) {
+								setThumb(new byte[sz]);
+								is.read(getThumb());
 							}
+							is.close();
 
 							if (!jpg.delete()) {
 								jpg.deleteOnExit();
@@ -983,14 +982,13 @@ public class DLNAMediaInfo implements Cloneable {
 						File jpg = new File(frameName);
 
 						if (jpg.exists()) {
-							try (InputStream is = new FileInputStream(jpg)) {
-								int sz = is.available();
-
-								if (sz > 0) {
-									setThumb(new byte[sz]);
-									is.read(getThumb());
-								}
+							InputStream is = new FileInputStream(jpg);
+							int sz = is.available();
+							if (sz > 0) {
+								setThumb(new byte[sz]);
+								is.read(getThumb());
 							}
+							is.close();
 
 							if (!jpg.delete()) {
 								jpg.deleteOnExit();
@@ -1699,7 +1697,7 @@ public class DLNAMediaInfo implements Cloneable {
 		if (audioTracks instanceof ArrayList) {
 			return (ArrayList<DLNAMediaAudio>) audioTracks;
 		} else {
-			return new ArrayList<>();
+			return new ArrayList<DLNAMediaAudio>();
 		}
 	}
 
@@ -1737,7 +1735,7 @@ public class DLNAMediaInfo implements Cloneable {
 		if (subtitleTracks instanceof ArrayList) {
 			return (ArrayList<DLNAMediaSubtitle>) subtitleTracks;
 		} else {
-			return new ArrayList<>();
+			return new ArrayList<DLNAMediaSubtitle>();
 		}
 	}
 

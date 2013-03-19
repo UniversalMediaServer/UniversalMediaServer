@@ -87,8 +87,8 @@ public class DVDISOTitle extends DLNAResource {
 		String aspect = null;
 		String width = null;
 		String height = null;
-		ArrayList<DLNAMediaAudio> audio = new ArrayList<>();
-		ArrayList<DLNAMediaSubtitle> subs = new ArrayList<>();
+		ArrayList<DLNAMediaAudio> audio = new ArrayList<DLNAMediaAudio>();
+		ArrayList<DLNAMediaSubtitle> subs = new ArrayList<DLNAMediaSubtitle>();
 		if (lines != null) {
 			for (String line : lines) {
 				if (line.startsWith("DVD start=")) {
@@ -146,13 +146,17 @@ public class DVDISOTitle extends DLNAResource {
 				File jpg = new File(frameName + "2.jpg");
 
 				if (jpg.exists()) {
-					try (InputStream is = new FileInputStream(jpg)) {
+					InputStream is = new FileInputStream(jpg);
+
+					try {
 						int sz = is.available();
 
 						if (sz > 0) {
 							getMedia().setThumb(new byte[sz]);
 							is.read(getMedia().getThumb());
 						}
+					} finally {
+						is.close();
 					}
 
 					if (!jpg.delete()) {

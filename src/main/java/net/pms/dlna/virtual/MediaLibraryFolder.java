@@ -125,10 +125,10 @@ public class MediaLibraryFolder extends VirtualFolder {
 				}
 			}
 		}
-		ArrayList<File> addedFiles = new ArrayList<>();
-		ArrayList<String> addedString = new ArrayList<>();
-		ArrayList<DLNAResource> removedFiles = new ArrayList<>();
-		ArrayList<DLNAResource> removedString = new ArrayList<>();
+		ArrayList<File> addedFiles = new ArrayList<File>();
+		ArrayList<String> addedString = new ArrayList<String>();
+		ArrayList<DLNAResource> removedFiles = new ArrayList<DLNAResource>();
+		ArrayList<DLNAResource> removedString = new ArrayList<DLNAResource>();
 		int i = 0;
 		if (list != null) {
 			for (File f : list) {
