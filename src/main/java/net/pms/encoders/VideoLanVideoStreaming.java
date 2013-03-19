@@ -122,7 +122,7 @@ public class VideoLanVideoStreaming extends Player {
 		params.minBufferSize = params.minFileSize;
 		params.secondread_minsize = 100000;
 
-		List<String> cmdList = new ArrayList<>();
+		List<String> cmdList = new ArrayList<String>();
 		cmdList.add(executable());
 		cmdList.add("-I");
 		cmdList.add("dummy");

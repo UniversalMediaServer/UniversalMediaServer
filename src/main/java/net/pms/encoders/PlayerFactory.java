@@ -50,12 +50,12 @@ public final class PlayerFactory {
 	/**
 	 * List of registered and approved {@link Player} objects.
 	 */
-	private static ArrayList<Player> players = new ArrayList<>();
+	private static ArrayList<Player> players = new ArrayList<Player>();
 
 	/**
 	 * List of registered {@link Player} objects.
 	 */
-	private static ArrayList<Player> allPlayers = new ArrayList<>();
+	private static ArrayList<Player> allPlayers = new ArrayList<Player>();
 
 	/**
 	 * Interface to Windows specific functions, like Windows Registry. The
@@ -300,7 +300,7 @@ public final class PlayerFactory {
 			final ArrayList<Class<? extends Player>> profileClasses,
 			final int type) {
 
-		ArrayList<Player> compatiblePlayers = new ArrayList<>();
+		ArrayList<Player> compatiblePlayers = new ArrayList<Player>();
 
 		for (Player player : players) {
 			if (profileClasses.contains(player.getClass())
@@ -329,7 +329,7 @@ public final class PlayerFactory {
 		}
 
 		List<String> enabledEngines = PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry());
-		ArrayList<Player> compatiblePlayers = new ArrayList<>();
+		ArrayList<Player> compatiblePlayers = new ArrayList<Player>();
 
 		for (Player player : players) {
 			if (enabledEngines.contains(player.id()) && player.isCompatible(resource)) {

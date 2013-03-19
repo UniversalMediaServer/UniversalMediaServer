@@ -180,7 +180,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		int nThreads = configuration.getNumberOfCpuCores();
 
 		// build the command line
-		List<String> cmdList = new ArrayList<>();
+		List<String> cmdList = new ArrayList<String>();
 
 		cmdList.add(executable());
 

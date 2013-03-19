@@ -67,7 +67,7 @@ public abstract class Player {
 	public abstract String mimeType();
 	public abstract String executable();
 	private static List<FinalizeTranscoderArgsListener> finalizeTranscoderArgsListeners =
-		new ArrayList<>();
+		new ArrayList<FinalizeTranscoderArgsListener>();
 
 	public static void initializeFinalizeTranscoderArgsListeners() {
 		for (ExternalListener listener : ExternalFactory.getExternalListeners()) {
@@ -155,7 +155,7 @@ public abstract class Player {
 			return cmdArgs;
 		} else {
 			// make it mutable
-			List<String> cmdList = new ArrayList<>(Arrays.asList(cmdArgs));
+			List<String> cmdList = new ArrayList<String>(Arrays.asList(cmdArgs));
 
 			for (FinalizeTranscoderArgsListener listener : finalizeTranscoderArgsListeners) {
 				try {

@@ -135,7 +135,7 @@ public class FFmpegAudio extends FFMpegVideo {
 		params.manageFastStart();
 
 		int nThreads = configuration.getNumberOfCpuCores();
-		List<String> cmdList = new ArrayList<>();
+		List<String> cmdList = new ArrayList<String>();
 
 		cmdList.add(executable());
 

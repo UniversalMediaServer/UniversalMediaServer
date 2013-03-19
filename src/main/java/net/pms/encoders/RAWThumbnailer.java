@@ -103,15 +103,16 @@ public class RAWThumbnailer extends Player {
 		cmdArray[3] = fileName;
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 		pw.runInSameThread();
-		ByteArrayOutputStream baos;
-		try (InputStream is = pw.getInputStream(0)) {
-			baos = new ByteArrayOutputStream();
-			int n = -1;
-			byte buffer[] = new byte[4096];
-			while ((n = is.read(buffer)) > -1) {
-				baos.write(buffer, 0, n);
-			}
+
+		InputStream is = pw.getInputStream(0);
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		int n = -1;
+		byte buffer[] = new byte[4096];
+		while ((n = is.read(buffer)) > -1) {
+			baos.write(buffer, 0, n);
 		}
+		is.close();
+
 		byte b[] = baos.toByteArray();
 		baos.close();
 		return b;

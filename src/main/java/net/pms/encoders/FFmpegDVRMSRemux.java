@@ -131,7 +131,7 @@ public class FFmpegDVRMSRemux extends Player {
 		OutputParams params
 	) throws IOException {
 		String ffmpegAlternativePath = configuration.getFfmpegAlternativePath();
-		List<String> cmdList = new ArrayList<>();
+		List<String> cmdList = new ArrayList<String>();
 
 		if (ffmpegAlternativePath != null && ffmpegAlternativePath.length() > 0) {
 			cmdList.add(ffmpegAlternativePath);
