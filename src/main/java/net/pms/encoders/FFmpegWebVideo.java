@@ -185,7 +185,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 				if (StringUtils.isNotEmpty(r1.url)) {
 					fileName = r1.url;
 				}
-				if(r1.args !=null && r1.args.size() > 0) {
+				if (r1.args != null && r1.args.size() > 0) {
 					customOptions.addAll(r1.args);	
 				}
 			}
