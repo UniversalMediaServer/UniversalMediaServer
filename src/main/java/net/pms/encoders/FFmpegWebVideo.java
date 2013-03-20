@@ -30,6 +30,8 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
+import net.pms.external.ExternalFactory;
+import net.pms.external.URLResolver.URLResult;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.formats.WEB;
@@ -173,11 +175,23 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		PipeProcess pipe = new PipeProcess(fifoName);
 		pipe.deleteLater(); // delete the named pipe later; harmless if it isn't created
 		ProcessWrapper mkfifo_process = pipe.getPipeProcess();
-		// start the process as early as possible
+
+		// Start the process as early as possible
 		mkfifo_process.runInNewThread();
 
 		params.input_pipes[0] = pipe;
 		int nThreads = configuration.getNumberOfCpuCores();
+		if (!dlna.isURLResolved()) {
+			URLResult r1 = ExternalFactory.resolveURL(fileName);
+			if (r1 != null) {
+				if (StringUtils.isNotEmpty(r1.url)) {
+					fileName = r1.url;
+				}
+				if (r1.args != null && r1.args.size() > 0) {
+					customOptions.addAll(r1.args);	
+				}
+			}
+		}
 
 		// build the command line
 		List<String> cmdList = new ArrayList<>();
