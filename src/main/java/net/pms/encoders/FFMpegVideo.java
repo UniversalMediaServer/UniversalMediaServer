@@ -305,7 +305,11 @@ public class FFMpegVideo extends Player {
 			// Output file format
 			transcodeOptions.add("-f");
 			if (dtsRemux) {
-				transcodeOptions.add("mpeg2video");
+				if (videoRemux) {
+					transcodeOptions.add("rawvideo");
+				} else {
+					transcodeOptions.add("mpeg2video");
+				}
 			} else if (renderer.isTranscodeToMPEGTSAC3() || renderer.isTranscodeToH264TSAC3() || videoRemux) { // MPEGTSAC3
 				transcodeOptions.add("mpegts");
 			} else { // default: MPEGPSAC3
@@ -786,6 +790,10 @@ public class FFMpegVideo extends Player {
 			try (PrintWriter pwMux = new PrintWriter(f)) {
 				pwMux.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
 				String videoType = "V_MPEG-2";
+
+				if (videoRemux) {
+					videoType = "V_MPEG4/ISO/AVC";
+				}
 
 				if (params.no_videoencode && params.forceType != null) {
 					videoType = params.forceType;
