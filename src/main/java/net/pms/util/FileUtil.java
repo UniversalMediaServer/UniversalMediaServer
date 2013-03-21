@@ -102,13 +102,13 @@ public class FileUtil {
 
 			// Rename the year. For example, "2013" changes to " (2013)"
 			formattedName = formattedName.replaceAll("(?i)\\.([1-2][0-9][0-9][0-9])(" + commonFileEnds + ")", " ($1)");
-
-			// Change "3D" to " (3D)"
-			formattedName = formattedName.replaceAll("(?i)\\.(3D)\\.", " ($1)");
-
-			// Replace periods with spaces
-			formattedName = formattedName.replaceAll("\\.", " ");
 		}
+		
+		// Change "3D" to " (3D)"
+		formattedName = formattedName.replaceAll("(?i)\\.(3D)\\.", " ($1)");
+
+		// Replace periods with spaces
+		formattedName = formattedName.replaceAll("\\.", " ");
 
 		return formattedName;
 	}
