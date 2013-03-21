@@ -179,20 +179,26 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 		params.input_pipes[0] = pipe;
 		int nThreads = configuration.getNumberOfCpuCores();
+		// build the command line
+		List<String> cmdList = new ArrayList<>();
 		if (!dlna.isURLResolved()) {
 			URLResult r1 = ExternalFactory.resolveURL(fileName);
 			if (r1 != null) {
-				if (StringUtils.isNotEmpty(r1.url)) {
-					fileName = r1.url;
+				if (r1.precoder != null) {
+					fileName = "-";
+					cmdList.addAll(r1.precoder);
+					cmdList.add("|");
+				}
+				else {
+					if (StringUtils.isNotEmpty(r1.url)) {
+						fileName = r1.url;
+					}
 				}
 				if (r1.args != null && r1.args.size() > 0) {
 					customOptions.addAll(r1.args);	
 				}
 			}
 		}
-
-		// build the command line
-		List<String> cmdList = new ArrayList<>();
 
 		cmdList.add(executable());
 
