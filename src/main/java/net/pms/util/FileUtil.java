@@ -67,8 +67,6 @@ public class FileUtil {
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
 			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
 
-			// Replace periods with spaces
-			formattedName = formattedName.replaceAll("\\.", " ");
 		} else if (formattedName.matches(".*[sS][1-9][0-9][eE][0-9][0-9].*")) {
 			// This matches scene and most p2p TV episodes after their first 9 seasons
 
@@ -81,8 +79,6 @@ public class FileUtil {
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
 			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
 
-			// Replace periods with spaces
-			formattedName = formattedName.replaceAll("\\.", " ");
 		} else if (formattedName.matches(".*\\.[1-2][0-9][0-9][0-9]\\.[0-1][0-9]\\.[0-3][0-9]\\..*")) {
 			// This matches scene and most p2p TV episodes that release several times per week
 
@@ -95,8 +91,6 @@ public class FileUtil {
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
 			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
 
-			// Replace periods with spaces
-			formattedName = formattedName.replaceAll("\\.", " ");
 		} else if (formattedName.matches(".*\\.[1-2][0-9][0-9][0-9]\\..*")) {
 			// This matches scene and most p2p movies
 
