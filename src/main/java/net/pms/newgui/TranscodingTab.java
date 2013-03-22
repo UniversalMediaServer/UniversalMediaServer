@@ -75,7 +75,7 @@ public class TranscodingTab {
 	private JTextField abitrate;
 	private JTree tree;
 	private JCheckBox forcePCM;
-	private JCheckBox forceDTSinPCM;
+	public static JCheckBox forceDTSinPCM;
 	private JComboBox channels;
 	private JComboBox vq;
 	private JCheckBox ac3remux;

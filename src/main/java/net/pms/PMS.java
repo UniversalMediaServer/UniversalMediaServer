@@ -48,8 +48,11 @@ import net.pms.network.HTTPServer;
 import net.pms.network.ProxyServer;
 import net.pms.network.UPNPHelper;
 import net.pms.newgui.DbgPacker;
+import net.pms.newgui.GeneralTab;
 import net.pms.newgui.LooksFrame;
+import net.pms.newgui.NavigationShareTab;
 import net.pms.newgui.ProfileChooser;
+import net.pms.newgui.TranscodingTab;
 import net.pms.update.AutoUpdater;
 import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
@@ -565,6 +568,113 @@ public class PMS {
 		LOGGER.trace("Waiting 250 milliseconds...");
 		Thread.sleep(250);
 		UPNPHelper.listen();
+
+		// Wizard
+		if (configuration.isRunWizard() && !isHeadless()) {
+			// Ask the user if they want to run the wizard
+			int whetherToRunWizard = JOptionPane.showConfirmDialog(
+				(Component) PMS.get().getFrame(),
+				Messages.getString("Wizard.1"),
+				Messages.getString("Dialog.Question"),
+				JOptionPane.YES_NO_OPTION);
+			if (whetherToRunWizard == JOptionPane.YES_OPTION) {
+				int numberOfQuestions = 4;
+				// The user has chosen to run the wizard
+
+				// Ask if they want UMS to start minimized
+				int whetherToStartMinimized = JOptionPane.showConfirmDialog(
+				(Component) PMS.get().getFrame(),
+				Messages.getString("Wizard.3"),
+				Messages.getString("Wizard.2") + " 1 " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+				JOptionPane.YES_NO_OPTION);
+				if (whetherToStartMinimized == JOptionPane.YES_OPTION) {
+					configuration.setMinimized(true);
+					GeneralTab.smcheckBox.setSelected(true);
+					save();
+				} else if (whetherToStartMinimized == JOptionPane.NO_OPTION) {
+					configuration.setMinimized(false);
+					GeneralTab.smcheckBox.setSelected(false);
+					save();
+				}
+
+				// Ask if their audio receiver/s support DTS audio
+				int whetherToSendDTS = JOptionPane.showConfirmDialog(
+				(Component) PMS.get().getFrame(),
+				Messages.getString("Wizard.5"),
+				Messages.getString("Wizard.2") + " 2 " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+				JOptionPane.YES_NO_OPTION);
+				if (whetherToSendDTS == JOptionPane.YES_OPTION) {
+					configuration.setDTSEmbedInPCM(true);
+					TranscodingTab.forceDTSinPCM.setSelected(true);
+					save();
+				} else if (whetherToSendDTS == JOptionPane.NO_OPTION) {
+					configuration.setDTSEmbedInPCM(false);
+					TranscodingTab.forceDTSinPCM.setSelected(false);
+					save();
+				}
+
+				// Ask if they want to share their iTunes library
+				if (!(Platform.isMac() || Platform.isWindows())) {
+					int whetherToShareITunes = JOptionPane.showConfirmDialog(
+					(Component) PMS.get().getFrame(),
+					Messages.getString("Wizard.6"),
+					Messages.getString("Wizard.2") + " 3 " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+					JOptionPane.YES_NO_OPTION);
+					if (whetherToShareITunes == JOptionPane.YES_OPTION) {
+						configuration.setItunesEnabled(true);
+						NavigationShareTab.itunes.setSelected(true);
+						save();
+					} else if (whetherToShareITunes == JOptionPane.NO_OPTION) {
+						configuration.setItunesEnabled(false);
+						NavigationShareTab.itunes.setSelected(false);
+						save();
+					}
+				}
+
+				// Ask if their network is wired, etc.
+				Object[] options = {
+					Messages.getString("Wizard.8"),
+					Messages.getString("Wizard.9"),
+					Messages.getString("Wizard.10")
+				};
+				int networkType = JOptionPane.showOptionDialog(
+					(Component) PMS.get().getFrame(),
+					Messages.getString("Wizard.7"),
+					Messages.getString("Wizard.2") + " 4 " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+					JOptionPane.YES_NO_CANCEL_OPTION,
+					JOptionPane.QUESTION_MESSAGE,
+					null,
+					options,
+					options[1]);
+				if (networkType == JOptionPane.YES_OPTION) {
+					// Wired (Gigabit)
+					configuration.setMaximumBitrate("0");
+					GeneralTab.maxbitrate.setText("0");
+					configuration.setMPEG2MainSettings("keyint=5:vqscale=1:vqmin=2");
+					save();
+				} else if (networkType == JOptionPane.NO_OPTION) {
+					// Wired (100 Megabit)
+					configuration.setMaximumBitrate("110");
+					GeneralTab.maxbitrate.setText("110");
+					configuration.setMPEG2MainSettings("keyint=5:vqscale=1:vqmin=2");
+					save();
+				} else if (networkType == JOptionPane.CANCEL_OPTION) {
+					// Wireless
+					configuration.setMaximumBitrate("110");
+					GeneralTab.maxbitrate.setText("110");
+					configuration.setMPEG2MainSettings("keyint=25:vqmax=5:vqmin=2");
+					save();
+				}
+
+				configuration.setRunWizard(false);
+				save();
+			} else if (whetherToRunWizard == JOptionPane.NO_OPTION) {
+				// The user has chosen to not run the wizard
+				// Do not ask them again
+				configuration.setRunWizard(false);
+				save();
+			}
+		}
 
 		return true;
 	}
