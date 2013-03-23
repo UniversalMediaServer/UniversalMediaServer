@@ -52,7 +52,7 @@ public class FileUtil {
 		// Remove file extension
 		formattedName = f.substring(0, point);
 
-		String commonFileEnds = "\\.AC3.*|\\.PROPER.*|\\.REPACK.*|\\.480p.*|\\.720p.*|\\.1080p.*|\\.HDTV.*|\\.PDTV.*|\\.WS.*|\\.DVDRip.*|\\.TVRiP.*";
+		String commonFileEnds = "\\.AC3.*|\\.PROPER.*|\\.REPACK.*|480p.*|720p.*|m-720p.*|900p.*|1080p.*|\\.HDTV.*|\\.PDTV.*|\\.WS.*|DVDRip.*|\\.TVRiP.*|\\.BDRip.*|\\.LIMITED.*|\\.FESTiVAL.*|\\.BluRay.*|\\.SUBBED.*|\\.NORDIC.*|\\.x264.*|\\.Dual\\.Audio.*|\\.HSBS.*|\\.H-SBS.*";
 
 		if (formattedName.matches(".*[sS]0[0-9][eE][0-9][0-9].*")) {
 			// This matches scene and most p2p TV episodes within the first 9 seasons
@@ -104,10 +104,23 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("(?i)\\.([1-2][0-9][0-9][0-9])(" + commonFileEnds + ")", " ($1)");
 
 			// Change "3D" to " (3D)"
-			formattedName = formattedName.replaceAll("(?i)\\.(3D)\\.", " ($1)");
+			formattedName = formattedName.replaceAll("(?i)\\.(3D)\\.|\\.(Special.Edition)\\.|\\.(Unrated)\\.|\\.(Final.Cut)\\.|\\.(Remastered)\\.|\\.(Extended.Cut)\\.|\\.(CD[1-3])\\.", " ($1)");
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
+		} else if (formattedName.matches(".*\\[[1-2][0-9][0-9][0-9]\\].*")) {
+			// This matches rarer types of movies
+
+			// Rename the year. For example, "2013" changes to " (2013)"
+			formattedName = formattedName.replaceAll("(?i)\\[([1-2][0-9][0-9][0-9])\\].*", " ($1)");
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
+		} else if (formattedName.matches(".*\\([1-2][0-9][0-9][0-9]\\).*")) {
+			// This matches rarer types of movies
+
+			// Remove stuff at the end of the filename like release group, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
 		}
 
 		return formattedName;
