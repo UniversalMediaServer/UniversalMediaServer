@@ -18,6 +18,7 @@
  */
 package net.pms.encoders;
 
+import com.sun.jna.Platform;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -44,8 +45,6 @@ import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.sun.jna.Platform;
 
 public class FFmpegWebVideo extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegWebVideo.class);
@@ -182,8 +181,8 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		mkfifo_process.runInNewThread();
 
 		params.input_pipes[0] = pipe;
-		int nThreads = configuration.getNumberOfCpuCores();
-		// build the command line
+
+		// Build the command line
 		List<String> cmdList = new ArrayList<>();
 		if (!dlna.isURLResolved()) {
 			URLResult r1 = ExternalFactory.resolveURL(fileName);
@@ -196,14 +195,13 @@ public class FFmpegWebVideo extends FFMpegVideo {
 					}
 					cmdList.addAll(r1.precoder);
 					cmdList.add("|");
-				}
-				else {
+				} else {
 					if (StringUtils.isNotEmpty(r1.url)) {
 						fileName = r1.url;
 					}
 				}
 				if (r1.args != null && r1.args.size() > 0) {
-					customOptions.addAll(r1.args);	
+					customOptions.addAll(r1.args);
 				}
 			}
 		}
@@ -222,7 +220,9 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			cmdList.add("warning");
 		}
 
-		// decoder threads
+		int nThreads = configuration.getNumberOfCpuCores();
+
+		// Decoder threads
 		cmdList.add("-threads");
 		cmdList.add("" + nThreads);
 
