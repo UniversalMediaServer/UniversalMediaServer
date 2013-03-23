@@ -97,6 +97,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			protocols = FFmpegOptions.getSupportedProtocols(configuration);
 			// see XXX workaround below
 			protocols.add("mms");
+			protocols.add("https");
 			LOGGER.debug("FFmpeg supported protocols: " + protocols);
 
 			// Register protocols as a WEB format
@@ -183,22 +184,30 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 		params.input_pipes[0] = pipe;
 		int nThreads = configuration.getNumberOfCpuCores();
+		// build the command line
+		List<String> cmdList = new ArrayList<>();
 		if (!dlna.isURLResolved()) {
 			URLResult r1 = ExternalFactory.resolveURL(fileName);
 			if (r1 != null) {
-				if (StringUtils.isNotEmpty(r1.url)) {
-					fileName = r1.url;
+				if (r1.precoder != null) {
+					fileName = "-";
+					cmdList.add("cmd.exe");
+					cmdList.add("/C");
+					cmdList.addAll(r1.precoder);
+					cmdList.add("|");
 				}
-				if(r1.args !=null && r1.args.size() > 0) {
+				else {
+					if (StringUtils.isNotEmpty(r1.url)) {
+						fileName = r1.url;
+					}
+				}
+				if (r1.args != null && r1.args.size() > 0) {
 					customOptions.addAll(r1.args);	
 				}
 			}
 		}
 
-		// build the command line
-		List<String> cmdList = new ArrayList<>();
-
-		cmdList.add(executable());
+		cmdList.add(executable().replace("/", "\\\\"));
 
 		// XXX squashed bug - without this, ffmpeg hangs waiting for a confirmation
 		// that it can write to a file that already exists i.e. the named pipe

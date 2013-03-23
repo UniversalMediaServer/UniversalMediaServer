@@ -2756,6 +2756,12 @@ public class PmsConfiguration {
 	public String getDataFile(String str) {
 		return getDataDir() + File.separator + str;
 	}
+
+	private String KEY_URL_RES_ORDER = "url_resolve_order";
+
+	public String[] getURLResolveOrder() {
+		return getString(KEY_URL_RES_ORDER, "").split(",");
+	}
 	
 	private static final String KEY_OPEN_SUBS = "open_subs";
 	private static final String KEY_OPEN_SUBS_LIM = "open_subs_limit";
