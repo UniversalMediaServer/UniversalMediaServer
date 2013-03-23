@@ -45,6 +45,8 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sun.jna.Platform;
+
 public class FFmpegWebVideo extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegWebVideo.class);
 	private final PmsConfiguration configuration;
@@ -186,6 +188,10 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			if (r1 != null) {
 				if (r1.precoder != null) {
 					fileName = "-";
+					if (Platform.isWindows()) {
+						cmdList.add("cmd.exe");
+						cmdList.add("/C");
+					}
 					cmdList.addAll(r1.precoder);
 					cmdList.add("|");
 				}
