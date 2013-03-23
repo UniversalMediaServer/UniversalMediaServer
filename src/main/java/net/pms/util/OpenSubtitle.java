@@ -261,6 +261,9 @@ public class OpenSubtitle {
 		if (token == null) {
 			return "";
 		}
+		if (StringUtils.isEmpty(outName)) {
+			outName = subFile(String.valueOf(System.currentTimeMillis()));
+		}
 		File f = new File(outName);
 		URL u = new URL(url);
 		URLConnection connection = u.openConnection();
