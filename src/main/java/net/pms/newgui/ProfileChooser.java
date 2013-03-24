@@ -9,10 +9,12 @@ public class ProfileChooser {
 	private static class ProfileChooserFileFilter extends FileFilter {
 		// XXX: this is more restrictive than the environment variable/property (which accept any filename)
 		// but should simplify things in the UI
+		@Override
 		public boolean accept(File file) {
 			return file.isDirectory() || file.getName().toLowerCase().endsWith(".conf");
 		}
 
+		@Override
 		public String getDescription() {
 			return Messages.getString("ProfileChooser.3");
 		}

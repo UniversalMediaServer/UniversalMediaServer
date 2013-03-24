@@ -244,18 +244,18 @@ public class GeneralTab {
 				scrollPane.setPreferredSize(new java.awt.Dimension(900, 450));
 
 				try {
-					FileInputStream fis = new FileInputStream(conf);
-					BufferedReader in = new BufferedReader(new InputStreamReader(fis));
-					String line;
-					StringBuilder sb = new StringBuilder();
+					try (FileInputStream fis = new FileInputStream(conf)) {
+						BufferedReader in = new BufferedReader(new InputStreamReader(fis));
+						String line;
+						StringBuilder sb = new StringBuilder();
 
-					while ((line = in.readLine()) != null) {
-						sb.append(line);
-						sb.append("\n");
+						while ((line = in.readLine()) != null) {
+							sb.append(line);
+							sb.append("\n");
+						}
+
+						textArea.setText(sb.toString());
 					}
-
-					textArea.setText(sb.toString());
-					fis.close();
 				} catch (Exception e1) {
 					return;
 				}
@@ -270,10 +270,10 @@ public class GeneralTab {
 					String text = textArea.getText();
 
 					try {
-						FileOutputStream fos = new FileOutputStream(conf);
-						fos.write(text.getBytes());
-						fos.flush();
-						fos.close();
+						try (FileOutputStream fos = new FileOutputStream(conf)) {
+							fos.write(text.getBytes());
+							fos.flush();
+						}
 						configuration.reload();
 					} catch (Exception e1) {
 						JOptionPane.showMessageDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
@@ -394,8 +394,8 @@ public class GeneralTab {
 		builder.addLabel(Messages.getString("NetworkTab.36"), FormLayoutUtil.flip(cc.xy(1, 35), colSpec, orientation));
 
 		ArrayList<RendererConfiguration> allConfs = RendererConfiguration.getAllRendererConfigurations();
-		ArrayList<Object> keyValues = new ArrayList<Object>();
-		ArrayList<Object> nameValues = new ArrayList<Object>();
+		ArrayList<Object> keyValues = new ArrayList<>();
+		ArrayList<Object> nameValues = new ArrayList<>();
 		keyValues.add("");
 		nameValues.add(Messages.getString("NetworkTab.37"));
 
@@ -465,8 +465,8 @@ public class GeneralTab {
 	 */
 	public void addRenderers() {
 		ArrayList<RendererConfiguration> allConfs = RendererConfiguration.getAllRendererConfigurations();
-		ArrayList<Object> keyValues = new ArrayList<Object>();
-		ArrayList<Object> nameValues = new ArrayList<Object>();
+		ArrayList<Object> keyValues = new ArrayList<>();
+		ArrayList<Object> nameValues = new ArrayList<>();
 		keyValues.add("");
 		nameValues.add(Messages.getString("NetworkTab.37"));
 

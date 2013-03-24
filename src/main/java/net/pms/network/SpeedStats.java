@@ -49,7 +49,7 @@ public class SpeedStats {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(SpeedStats.class);
 
-	private final Map<String, Future<Integer>> speedStats = new HashMap<String, Future<Integer>>();
+	private final Map<String, Future<Integer>> speedStats = new HashMap<>();
 
 	/**
 	 * Return the network throughput for the given IP address in MBits. It is calculated in the background, and cached,
@@ -139,14 +139,19 @@ public class SpeedStats {
 			failsafe.start();
 			pw.runInSameThread();
 			List<String> ls = pw.getOtherResults();
-			int time = 0;
+			double time = 0;
 			int c = 0;
+			String timeString = null;
 
 			for (String line : ls) {
 				int msPos = line.indexOf("ms");
 
 				if (msPos > -1) {
-					String timeString = line.substring(line.lastIndexOf("=", msPos) + 1, msPos).trim();
+					if (line.lastIndexOf("<", msPos) > -1){
+						timeString = "0.5";
+					} else {
+						timeString = line.substring(line.lastIndexOf("=", msPos) + 1, msPos).trim();
+					}
 					try {
 						time += Double.parseDouble(timeString);
 						c++;
@@ -162,10 +167,10 @@ public class SpeedStats {
 			}
 
 			if (time > 0) {
-				int speedInMbits = 1024 / time;
+				int speedInMbits = (int)(512 / time);
 				LOGGER.info("Address " + addr + " has an estimated network speed of: " + speedInMbits + " Mb/s");
 				synchronized(speedStats) {
-					CompletedFuture<Integer> result = new CompletedFuture<Integer>(speedInMbits);
+					CompletedFuture<Integer> result = new CompletedFuture<>(speedInMbits);
 					// update the statistics with a computed future value
 					speedStats.put(ip, result);
 					speedStats.put(hostname, result);

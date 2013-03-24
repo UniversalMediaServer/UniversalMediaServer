@@ -168,10 +168,8 @@ public class TracesTab {
 					File logFile = new File(((CustomJButton) e.getSource()).getToolTipText());
 					try {
 						java.awt.Desktop.getDesktop().open(logFile);
-					} catch (IOException ioe) {
+					} catch (IOException | UnsupportedOperationException ioe) {
 						LOGGER.error(String.format("Failed to open file %s in default editor", logFile), ioe);
-					} catch (UnsupportedOperationException usoe) {
-						LOGGER.error(String.format("Failed to open file %s in default editor", logFile), usoe);
 					}
 				}
 			});
@@ -222,7 +220,7 @@ public class TracesTab {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				JComponent comp = PMS.get().dbgPack().config();
-				String[] cancelStr = {"Close"};
+				String[] cancelStr = {Messages.getString("Dialog.Close")};
 				JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 					comp, "Options", JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, cancelStr, null);
 			}

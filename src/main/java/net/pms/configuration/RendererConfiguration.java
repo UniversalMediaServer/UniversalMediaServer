@@ -30,7 +30,7 @@ public class RendererConfiguration {
 	private static ArrayList<RendererConfiguration> rendererConfs;
 	private static PmsConfiguration pmsConfiguration;
 	private static RendererConfiguration defaultConf;
-	private static Map<InetAddress, RendererConfiguration> addressAssociation = new HashMap<InetAddress, RendererConfiguration>();
+	private static Map<InetAddress, RendererConfiguration> addressAssociation = new HashMap<>();
 
 	private RootFolder rootFolder;
 	private final PropertiesConfiguration configuration;
@@ -41,11 +41,11 @@ public class RendererConfiguration {
 
 	// property values
 	private static final String DEPRECATED_MPEGPSAC3 = "MPEGAC3"; // XXX deprecated: old name with missing container
-	private static final String EXCLUSIVE = "exclusive";
 	private static final String LPCM = "LPCM";
 	private static final String MP3 = "MP3";
 	private static final String MPEGPSAC3 = "MPEGPSAC3";
 	private static final String MPEGTSAC3 = "MPEGTSAC3";
+	private static final String H264TSAC3 = "H264TSAC3";
 	private static final String WAV = "WAV";
 	private static final String WMV = "WMV";
 
@@ -65,6 +65,7 @@ public class RendererConfiguration {
 	private static final String FORCE_JPG_THUMBNAILS = "ForceJPGThumbnails"; // Sony devices require JPG thumbnails
 	private static final String H264_L41_LIMITED = "H264Level41Limited";
 	private static final String IMAGE = "Image";
+	private static final String KEEP_ASPECT_RATIO = "KeepAspectRatio";
 	private static final String MAX_VIDEO_BITRATE = "MaxVideoBitrateMbps";
 	private static final String MAX_VIDEO_HEIGHT = "MaxVideoHeight";
 	private static final String MAX_VIDEO_WIDTH = "MaxVideoWidth";
@@ -76,6 +77,7 @@ public class RendererConfiguration {
 	private static final String MUX_LPCM_TO_MPEG = "MuxLPCMToMpeg";
 	private static final String RENDERER_ICON = "RendererIcon";
 	private static final String RENDERER_NAME = "RendererName";
+	private static final String RESCALE_BY_RENDERER = "RescaleByRenderer";
 	private static final String SEEK_BY_TIME = "SeekByTime";
 	private static final String SHOW_AUDIO_METADATA = "ShowAudioMetadata";
 	private static final String SHOW_DVD_TITLE_DURATION = "ShowDVDTitleDuration"; // Ditlew
@@ -95,6 +97,8 @@ public class RendererConfiguration {
 	private static final String USE_SAME_EXTENSION = "UseSameExtension";
 	private static final String VIDEO = "Video";
 	private static final String WRAP_DTS_INTO_PCM = "WrapDTSIntoPCM";
+	private static final String CUSTOM_FFMPEG_OPTIONS = "CustomFFmpegOptions";
+	private static final String OVERRIDE_VF = "OverrideVideoFilter";
 
 	public static RendererConfiguration getDefaultConf() {
 		return defaultConf;
@@ -107,7 +111,7 @@ public class RendererConfiguration {
 	 */
 	public static void loadRendererConfigurations(PmsConfiguration pmsConf) {
 		pmsConfiguration = pmsConf;
-		rendererConfs = new ArrayList<RendererConfiguration>();
+		rendererConfs = new ArrayList<>();
 
 		try {
 			defaultConf = new RendererConfiguration();
@@ -190,7 +194,9 @@ public class RendererConfiguration {
 	public RootFolder getRootFolder() {
 		if (rootFolder == null) {
 			rootFolder = new RootFolder();
-			rootFolder.discoverChildren();
+			if (pmsConfiguration.getUseCache()) {
+				rootFolder.discoverChildren();
+			}
 		}
 
 		return rootFolder;
@@ -370,7 +376,7 @@ public class RendererConfiguration {
 			configuration.load(f);
 		}
 
-		mimes = new HashMap<String, String>();
+		mimes = new HashMap<>();
 		String mimeTypes = getString(MIME_TYPES_CHANGES, null);
 
 		if (StringUtils.isNotBlank(mimeTypes)) {
@@ -388,7 +394,7 @@ public class RendererConfiguration {
 			}
 		}
 
-		DLNAPN = new HashMap<String, String>();
+		DLNAPN = new HashMap<>();
 		String DLNAPNchanges = getString(DLNA_PN_CHANGES, null);
 
 		if (DLNAPNchanges != null) {
@@ -460,7 +466,7 @@ public class RendererConfiguration {
 	}
 
 	public boolean isTranscodeToAC3() {
-		return isTranscodeToMPEGPSAC3() || isTranscodeToMPEGTSAC3();
+		return isTranscodeToMPEGPSAC3() || isTranscodeToMPEGTSAC3() || isTranscodeToH264TSAC3();
 	}
 
 	public boolean isTranscodeToMPEGPSAC3() {
@@ -470,6 +476,10 @@ public class RendererConfiguration {
 
 	public boolean isTranscodeToMPEGTSAC3() {
 		return getVideoTranscode().equals(MPEGTSAC3);
+	}
+
+	public boolean isTranscodeToH264TSAC3() {
+		return getVideoTranscode().equals(H264TSAC3);
 	}
 
 	public boolean isAutoRotateBasedOnExif() {
@@ -535,7 +545,6 @@ public class RendererConfiguration {
 		}
 
 		if (mimetype != null && mimetype.equals(HTTPResource.VIDEO_TRANSCODE)) {
-			mimetype = HTTPResource.MPEG_TYPEMIME;
 			if (isTranscodeToWMV()) {
 				mimetype = isMediaParserV2()
 					? getFormatConfiguration().match(FormatConfiguration.WMV, FormatConfiguration.WMV, FormatConfiguration.WMA)
@@ -549,7 +558,7 @@ public class RendererConfiguration {
 					? getFormatConfiguration().match(FormatConfiguration.MPEGPS, FormatConfiguration.MPEG2, FormatConfiguration.AC3)
 					: HTTPResource.MPEG_TYPEMIME;
 			}
-		} else if (mimetype.equals(HTTPResource.AUDIO_TRANSCODE)) {
+		} else if (HTTPResource.AUDIO_TRANSCODE.equals(mimetype)) {
 			if (isTranscodeToWAV()) {
 				mimetype = isMediaParserV2()
 					? getFormatConfiguration().match(FormatConfiguration.WAV, null, null)
@@ -799,7 +808,6 @@ public class RendererConfiguration {
 	 *
 	 * @return The bitrate.
 	 */
-	@Deprecated
 	// TODO this should return an integer and the units should be bits-per-second
 	public String getMaxVideoBitrate() {
 		return getString(MAX_VIDEO_BITRATE, null);
@@ -1020,5 +1028,21 @@ public class RendererConfiguration {
 			// Not natively supported.
 			return false;
 		}
+	}
+
+	public String getCustomFFmpegOptions() {
+		return getString(CUSTOM_FFMPEG_OPTIONS, "");
+	}
+
+	public boolean isKeepAspectRatio() {
+		return getBoolean(KEEP_ASPECT_RATIO, false);
+	}
+	
+	public boolean isRescaleByRenderer() {
+		return getBoolean(RESCALE_BY_RENDERER, true);
+	}
+	
+	public String getFFmpegVideoFilterOverride() {
+		return getString(OVERRIDE_VF, null);
 	}
 }

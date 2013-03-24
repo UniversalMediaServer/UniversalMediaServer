@@ -79,14 +79,17 @@ public class BlockerFileInputStream extends UnusedInputStream {
 		return true;
 	}
 
+	@Override
 	public int available() throws IOException {
 		return super.available();
 	}
 
+	@Override
 	public void close() throws IOException {
 		super.close();
 	}
 
+	@Override
 	public long skip(long n) throws IOException {
 		long l = super.skip(n);
 		readCount += l;

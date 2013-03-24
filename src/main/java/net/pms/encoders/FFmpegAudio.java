@@ -41,14 +41,13 @@ import net.pms.network.HTTPResource;
 
 public class FFmpegAudio extends FFMpegVideo {
 	public static final String ID = "ffmpegaudio";
-	private final PmsConfiguration configuration;
 
 	// should be private
 	@Deprecated
 	JCheckBox noresample;
 
 	public FFmpegAudio(PmsConfiguration configuration) {
-		this.configuration = configuration;
+		super(configuration);
 	}
 
 	@Override
@@ -136,7 +135,7 @@ public class FFmpegAudio extends FFMpegVideo {
 		params.manageFastStart();
 
 		int nThreads = configuration.getNumberOfCpuCores();
-		List<String> cmdList = new ArrayList<String>();
+		List<String> cmdList = new ArrayList<>();
 
 		cmdList.add(executable());
 

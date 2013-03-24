@@ -271,6 +271,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * 
 	 * @return The name.
 	 */
+	@Override
 	public String toString() {
 		return "Audio: " + getAudioCodec() + " / lang: " + getLang() + " / flavor: " + getFlavor() + " / ID: " + getId();
 	}

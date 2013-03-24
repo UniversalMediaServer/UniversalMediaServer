@@ -19,6 +19,7 @@
 package net.pms.dlna;
 
 import com.github.junrar.Archive;
+import com.github.junrar.exception.RarException;
 import com.github.junrar.rarfile.FileHeader;
 import java.io.File;
 import java.io.IOException;
@@ -90,7 +91,7 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 	@Override
 	public boolean isValid() {
 		checktype();
-		setSrtFile(FileUtil.doesSubtitlesExists(file, null));
+		setSrtFile(FileUtil.isSubtitlesExists(file, null));
 		return getFormat() != null;
 	}
 
@@ -118,7 +119,7 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 						LOGGER.trace("Starting the extraction of " + header.getFileNameString());
 						rarFile.extractFile(header, out);
 					}
-				} catch (Exception e) {
+				} catch (RarException | IOException e) {
 					LOGGER.debug("Unpack error, maybe it's normal, as backend can be terminated: " + e.getMessage());
 				} finally {
 					try {

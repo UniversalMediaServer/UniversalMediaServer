@@ -100,6 +100,8 @@ public class PluginTab {
 		};
 
 		final JTable table = new JTable(1, cols.length) {
+			private static final long serialVersionUID = -5032210766949508624L;
+
 			@Override
 			public boolean isCellEditable(int rowIndex, int vColIndex) {
 				return false;
@@ -153,8 +155,8 @@ public class PluginTab {
 				if (!configuration.isAdmin()) {
 					JOptionPane.showMessageDialog(
 						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-						"UMS must be run as administrator in order to install plugins.",
-						"Permissions Error",
+						Messages.getString("PluginTab.15"),
+						Messages.getString("Dialog.PermissionsError"),
 						JOptionPane.ERROR_MESSAGE
 					);
 
@@ -329,16 +331,16 @@ public class PluginTab {
 				File f = configuration.getCredFile();
 
 				try {
-					FileInputStream fis = new FileInputStream(f);
-					BufferedReader in = new BufferedReader(new InputStreamReader(fis));
-					String line;
-					StringBuilder sb = new StringBuilder();
-					while ((line = in.readLine()) != null) {
-						sb.append(line);
-						sb.append("\n");
+					try (FileInputStream fis = new FileInputStream(f)) {
+						BufferedReader in = new BufferedReader(new InputStreamReader(fis));
+						String line;
+						StringBuilder sb = new StringBuilder();
+						while ((line = in.readLine()) != null) {
+							sb.append(line);
+							sb.append("\n");
+						}
+						textArea.setText(sb.toString());
 					}
-					textArea.setText(sb.toString());
-					fis.close();
 				} catch (Exception e1) {
 					return;
 				}
@@ -360,10 +362,10 @@ public class PluginTab {
 				) {
 					String text = textArea.getText();
 					try {
-						FileOutputStream fos = new FileOutputStream(f);
-						fos.write(text.getBytes());
-						fos.flush();
-						fos.close();
+						try (FileOutputStream fos = new FileOutputStream(f)) {
+							fos.write(text.getBytes());
+							fos.flush();
+						}
 						PMS.getConfiguration().reload();
 					} catch (Exception e1) {
 						JOptionPane.showMessageDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())), Messages.getString("NetworkTab.55") + e1.toString());
@@ -488,6 +490,8 @@ public class PluginTab {
 			Messages.getString("PluginTab.7")
 		};
 		credTable = new JTable(0, cols.length) {
+			private static final long serialVersionUID = 1510535097140083493L;
+
 			@Override
 			public boolean isCellEditable(int rowIndex, int vColIndex) {
 				return false;
@@ -534,7 +538,7 @@ public class PluginTab {
 			ArrayList<String> usrPwd = null;
 
 			if (val instanceof String) {
-				usrPwd = new ArrayList<String>();
+				usrPwd = new ArrayList<>();
 				usrPwd.add((String) val);
 			} else if (val instanceof List<?>) {
 				usrPwd = (ArrayList<String>) val;
@@ -593,7 +597,7 @@ public class PluginTab {
 		final JPasswordField pText = new JPasswordField(p);
 		final char defEchoChar = pText.getEchoChar();
 
-		JButton ok = new JButton("OK");
+		JButton ok = new JButton(Messages.getString("Dialog.OK"));
 		ok.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -623,7 +627,7 @@ public class PluginTab {
 			}
 		});
 
-		JButton cancel = new JButton("Cancel");
+		JButton cancel = new JButton(Messages.getString("NetworkTab.45"));
 		cancel.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -662,6 +666,8 @@ public class PluginTab {
 	}
 
 	private class PasswordCellRenderer extends DefaultTableCellRenderer {
+		private static final long serialVersionUID = 1020393206165351323L;
+
 		public PasswordCellRenderer() {
 		}
 

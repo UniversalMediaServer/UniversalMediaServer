@@ -31,7 +31,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>2.4.0</version>
+	<version>2.5.3</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -69,7 +69,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>2.4.0</project.version.short>
+		<project.version.short>2.5.3</project.version.short>
 
 		<!--
 			JNA 3.4.0 solves issue #1152, but causes a bug in Windows.
@@ -107,7 +107,7 @@
 
 		<maven.nsis.project.template>${project.basedir}/src/main/external-resources/nsis/project.jelly</maven.nsis.project.template>
 		<maven-javadoc-plugin-version>2.9</maven-javadoc-plugin-version>
-		<git-commit-id-plugin-version>2.1.0</git-commit-id-plugin-version>
+		<git-commit-id-plugin-version>2.1.4</git-commit-id-plugin-version>
 	</properties>
 	<pluginRepositories>
 		<pluginRepository>
@@ -235,7 +235,7 @@
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<version>1.3.170</version>
+			<version>1.3.171</version>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
@@ -538,6 +538,26 @@
 										<ignore></ignore>
 									</action>
 								</pluginExecution>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											com.savage7.maven.plugins
+										</groupId>
+										<artifactId>
+											maven-external-dependency-plugin
+										</artifactId>
+										<versionRange>
+											[0.5,)
+										</versionRange>
+										<goals>
+											<goal>install-external</goal>
+											<goal>resolve-external</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
 							</pluginExecutions>
 						</lifecycleMappingMetadata>
 					</configuration>
@@ -571,10 +591,10 @@
 
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.5.1</version>
+				<version>3.0</version>
 				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
+					<source>1.7</source>
+					<target>1.7</target>
 				</configuration>
 			</plugin>
 
@@ -851,7 +871,7 @@
 								<linkXref>false</linkXref>
 								<sourceEncoding>utf-8</sourceEncoding>
 								<minimumTokens>100</minimumTokens>
-								<targetJdk>1.6</targetJdk>
+								<targetJdk>1.7</targetJdk>
 							</configuration>
 						</plugin>
 
@@ -1038,35 +1058,6 @@
 										<get src="${project.binaries-base}/win32/dvrms/ffmpeg_MPGMUX.exe" dest="${project.binaries}/win32/dvrms/ffmpeg_MPGMUX.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/dvrms/pthreadGC2.dll" dest="${project.binaries}/win32/dvrms/pthreadGC2.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/fonts/fonts.conf" dest="${project.binaries}/win32/fonts/fonts.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/fonts.dtd" dest="${project.binaries}/win32/fonts/fonts.dtd" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.avail/10-autohint.conf" dest="${project.binaries}/win32/fonts/conf.avail/10-autohint.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.avail/10-no-sub-pixel.conf" dest="${project.binaries}/win32/fonts/conf.avail/10-no-sub-pixel.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.avail/10-sub-pixel-bgr.conf" dest="${project.binaries}/win32/fonts/conf.avail/10-sub-pixel-bgr.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.avail/10-sub-pixel-rgb.conf" dest="${project.binaries}/win32/fonts/conf.avail/10-sub-pixel-rgb.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.avail/10-sub-pixel-vbgr.conf" dest="${project.binaries}/win32/fonts/conf.avail/10-sub-pixel-vbgr.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.avail/10-sub-pixel-vrgb.conf" dest="${project.binaries}/win32/fonts/conf.avail/10-sub-pixel-vrgb.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.avail/10-unhinted.conf" dest="${project.binaries}/win32/fonts/conf.avail/10-unhinted.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.avail/11-lcdfilter-default.conf" dest="${project.binaries}/win32/fonts/conf.avail/11-lcdfilter-default.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.avail/11-lcdfilter-legacy.conf" dest="${project.binaries}/win32/fonts/conf.avail/11-lcdfilter-legacy.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.avail/11-lcdfilter-light.conf" dest="${project.binaries}/win32/fonts/conf.avail/11-lcdfilter-light.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.avail/20-unhint-small-vera.conf" dest="${project.binaries}/win32/fonts/conf.avail/20-unhint-small-vera.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.avail/25-unhint-nonlatin.conf" dest="${project.binaries}/win32/fonts/conf.avail/25-unhint-nonlatin.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.avail/30-metric-aliases.conf" dest="${project.binaries}/win32/fonts/conf.avail/30-metric-aliases.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.avail/30-urw-aliases.conf" dest="${project.binaries}/win32/fonts/conf.avail/30-urw-aliases.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.avail/40-nonlatin.conf" dest="${project.binaries}/win32/fonts/conf.avail/40-nonlatin.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.avail/45-latin.conf" dest="${project.binaries}/win32/fonts/conf.avail/45-latin.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.avail/49-sansserif.conf" dest="${project.binaries}/win32/fonts/conf.avail/49-sansserif.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.avail/50-user.conf" dest="${project.binaries}/win32/fonts/conf.avail/50-user.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.avail/51-local.conf" dest="${project.binaries}/win32/fonts/conf.avail/51-local.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.avail/60-latin.conf" dest="${project.binaries}/win32/fonts/conf.avail/60-latin.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.avail/65-fonts-persian.conf" dest="${project.binaries}/win32/fonts/conf.avail/65-fonts-persian.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.avail/65-khmer.conf" dest="${project.binaries}/win32/fonts/conf.avail/65-khmer.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.avail/65-nonlatin.conf" dest="${project.binaries}/win32/fonts/conf.avail/65-nonlatin.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.avail/69-unifont.conf" dest="${project.binaries}/win32/fonts/conf.avail/69-unifont.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.avail/70-no-bitmaps.conf" dest="${project.binaries}/win32/fonts/conf.avail/70-no-bitmaps.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.avail/70-yes-bitmaps.conf" dest="${project.binaries}/win32/fonts/conf.avail/70-yes-bitmaps.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.avail/80-delicious.conf" dest="${project.binaries}/win32/fonts/conf.avail/80-delicious.conf" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/fonts/conf.avail/90-synthetic.conf" dest="${project.binaries}/win32/fonts/conf.avail/90-synthetic.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/fonts/conf.d/20-unhint-small-vera.conf" dest="${project.binaries}/win32/fonts/conf.d/20-unhint-small-vera.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/fonts/conf.d/30-metric-aliases.conf" dest="${project.binaries}/win32/fonts/conf.d/30-metric-aliases.conf" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/fonts/conf.d/30-urw-aliases.conf" dest="${project.binaries}/win32/fonts/conf.d/30-urw-aliases.conf" usetimestamp="true" />
@@ -1428,7 +1419,7 @@
 									<bundleName>${project.name}</bundleName>
 									<iconFile>${project.basedir}/src/main/resources/images/logo.icns</iconFile>
 									<version>${project.version}</version>
-									<jvmVersion>1.6+</jvmVersion>
+									<jvmVersion>1.7+</jvmVersion>
 									<!-- Options to the JVM, will be used as the value of VMOptions in Info.plist. -->
 									<vmOptions>-Xmx768M -Xss16M -Dfile.encoding=UTF-8 -Djava.net.preferIPv4Stack=true -jar</vmOptions>
 									<dictionaryFile>${project.external-resources}/osx/Info.plist-template.xml</dictionaryFile>

@@ -64,7 +64,7 @@ import org.slf4j.LoggerFactory;
  * removed.
  */
 public abstract class DLNAResource extends HTTPResource implements Cloneable, Runnable {
-	private final Map<String, Integer> requestIdToRefcount = new HashMap<String, Integer>();
+	private final Map<String, Integer> requestIdToRefcount = new HashMap<>();
 	private static final int STOP_PLAYING_DELAY = 4000;
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAResource.class);
 	private static final SimpleDateFormat SDF_DATE = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
@@ -247,6 +247,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	protected long lastRefreshTime;
 
 	private String lastSearch;
+
+	protected HashMap<String,Object> attachments = null;
 
 	/**
 	 * Returns parent object, usually a folder type of resource. In the DLDI
@@ -542,7 +544,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 						boolean hasSubsToTranscode = false;
 
-						if (!configuration.isMencoderDisableSubs()) {
+						if (!configuration.isDisableSubtitles()) {
 							hasSubsToTranscode = (configuration.isAutoloadSubtitles() && child.isSrtFile()) || hasEmbeddedSubs;
 						}
 
@@ -716,7 +718,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	public synchronized List<DLNAResource> getDLNAResources(String objectId, boolean returnChildren, int start, int count, RendererConfiguration renderer, String searchStr) throws IOException {
-		ArrayList<DLNAResource> resources = new ArrayList<DLNAResource>();
+		ArrayList<DLNAResource> resources = new ArrayList<>();
 		DLNAResource resource = search(objectId, count, renderer, searchStr);
 
 		if (resource != null) {
@@ -733,7 +735,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 
 				if (count > 0) {
-					ArrayBlockingQueue<Runnable> queue = new ArrayBlockingQueue<Runnable>(count);
+					ArrayBlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(count);
 
 					int parallel_thread_number = 3;
 					if (resource instanceof DVDISOFile) {
@@ -1315,17 +1317,21 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 				} else {
 					if (mime.equals("video/mpeg")) {
+						dlnaspec = "DLNA.ORG_PN=" + getMPEG_PS_PALLocalizedValue(c);
+
 						if (getPlayer() != null) {
 							// Do we have some mpegts to offer?
 							boolean mpegTsMux = TsMuxeRVideo.ID.equals(getPlayer().id()) || VideoLanVideoStreaming.ID.equals(getPlayer().id());
+							boolean isMuxableResult = getMedia().isMuxable(mediaRenderer);
 							if (!mpegTsMux) { // Maybe, like the PS3, MEncoder can launch tsMuxeR if this a compatible H.264 video
 								mpegTsMux = MEncoderVideo.ID.equals(getPlayer().id()) &&
 									(
 										(
 											getMediaSubtitle() == null &&
+											!isSrtFile() &&
 											getMedia() != null &&
 											getMedia().getDvdtrack() == 0 &&
-											getMedia().isMuxable(mediaRenderer) &&
+											isMuxableResult &&
 											configuration.isMencoderMuxWhenCompatible() &&
 											mediaRenderer.isMuxH264MpegTS()
 										) ||
@@ -1333,20 +1339,22 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									);
 							}
 							if (mpegTsMux) {
-								dlnaspec = getMedia().isH264() && !VideoLanVideoStreaming.ID.equals(getPlayer().id()) && getMedia().isMuxable(mediaRenderer) ?
-									"DLNA.ORG_PN=AVC_TS_HD_24_AC3_ISO" :
-									"DLNA.ORG_PN=" + getMPEG_TS_SD_EU_ISOLocalizedValue(c);
-							} else {
-								dlnaspec = "DLNA.ORG_PN=" + getMPEG_PS_PALLocalizedValue(c);
+								dlnaspec = "DLNA.ORG_PN=" + getMPEG_TS_SD_EU_ISOLocalizedValue(c);
+								if (
+									getMedia().isH264() &&
+									!VideoLanVideoStreaming.ID.equals(getPlayer().id()) &&
+									isMuxableResult
+								) {
+									dlnaspec = "DLNA.ORG_PN=AVC_TS_HD_24_AC3_ISO";
+								}
 							}
 						} else if (getMedia() != null) {
 							if (getMedia().isMpegTS()) {
-								dlnaspec = getMedia().isH264() ? "DLNA.ORG_PN=AVC_TS_HD_50_AC3" : "DLNA.ORG_PN=" + getMPEG_TS_SD_EULocalizedValue(c);
-							} else {
-								dlnaspec = "DLNA.ORG_PN=" + getMPEG_PS_PALLocalizedValue(c);
+								dlnaspec = "DLNA.ORG_PN=" + getMPEG_TS_SD_EULocalizedValue(c);
+								if (getMedia().isH264()) {
+									dlnaspec = "DLNA.ORG_PN=AVC_TS_HD_50_AC3";
+								}
 							}
-						} else {
-							dlnaspec = "DLNA.ORG_PN=" + getMPEG_PS_PALLocalizedValue(c);
 						}
 					} else if (mime.equals("video/vnd.dlna.mpeg-tts")) {
 						// patters - on Sony BDP m2ts clips aren't listed without this
@@ -1435,7 +1443,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									}
 								}
 								int na = firstAudioTrack.getAudioProperties().getNumberOfChannels();
-								if (na > 2) { // no 5.1 dump in mplayer
+								if (na > 2) { // No 5.1 dump in MPlayer
 									na = 2;
 								}
 								int finalsize = (int) (getMedia().getDurationInSeconds() * defaultFrequency * 2 * na);
@@ -1515,9 +1523,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				uclass = "object.item.videoItem";
 			}
 		}
-		if (uclass != null) {
-			addXMLTagAndAttribute(sb, "upnp:class", uclass);
-		}
+		addXMLTagAndAttribute(sb, "upnp:class", uclass);
 
 		if (isFolder()) {
 			closeTag(sb, "container");
@@ -1703,13 +1709,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				PipedOutputStream out = new PipedOutputStream();
 				InputStream fis = new PipedInputStream(out);
 				((IPushOutput) this).push(out);
-				if (fis != null) {
-					if (low > 0) {
-						fis.skip(low);
-					}
-					// http://www.ps3mediaserver.org/forum/viewtopic.php?f=11&t=12035
-					fis = wrap(fis, high, low);
+
+				if (low > 0) {
+					fis.skip(low);
 				}
+				// http://www.ps3mediaserver.org/forum/viewtopic.php?f=11&t=12035
+				fis = wrap(fis, high, low);
 
 				return fis;
 			}
@@ -1742,6 +1747,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			OutputParams params = new OutputParams(configuration);
 			params.aid = getMediaAudio();
 			params.sid = getMediaSubtitle();
+			params.header = getHeaders();
 			params.mediaRenderer = mediarenderer;
 			timeRange.limit(getSplitRange());
 			params.timeseek = timeRange.getStartOrZero();
@@ -2465,8 +2471,27 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 		return (depth > DEPTH_WARNING_LIMIT);
 	}
-	
+
 	public boolean isSearched() {
+		return false;
+	}
+
+	public byte[] getHeaders() {
+		return null;
+	}
+
+	public void attach(String key, Object data) {
+		if (attachments == null) {
+			attachments = new HashMap<>();
+		}
+		attachments.put(key, data);
+	}
+
+	public Object getAttachment(String key) {
+		return attachments == null ? null : attachments.get(key);
+	}
+
+	public boolean isURLResolved() {
 		return false;
 	}
 

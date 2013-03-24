@@ -44,6 +44,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
 	    this.group = group;
 	}
 
+	@Override
     public ChannelPipeline getPipeline() throws Exception {
 		LOGGER.trace("Creating new pipeline");
 		// Create a default pipeline implementation.

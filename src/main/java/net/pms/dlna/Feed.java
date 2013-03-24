@@ -168,18 +168,22 @@ public class Feed extends DLNAResource {
 		}
 	}
 
+	@Override
 	public InputStream getInputStream() throws IOException {
 		return null;
 	}
 
+	@Override
 	public String getName() {
 		return name;
 	}
 
+	@Override
 	public boolean isFolder() {
 		return true;
 	}
 
+	@Override
 	public long length() {
 		return 0;
 	}

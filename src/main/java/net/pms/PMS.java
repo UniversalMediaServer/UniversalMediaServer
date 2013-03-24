@@ -131,7 +131,7 @@ public class PMS {
 	/**
 	 * Array of {@link net.pms.configuration.RendererConfiguration} that have been found by PMS.
 	 */
-	private final ArrayList<RendererConfiguration> foundRenderers = new ArrayList<RendererConfiguration>();
+	private final ArrayList<RendererConfiguration> foundRenderers = new ArrayList<>();
 
 	/**
 	 * Adds a {@link net.pms.configuration.RendererConfiguration} to the list of media renderers found. The list is being used, for
@@ -162,7 +162,7 @@ public class PMS {
 		return proxyServer;
 	}
 
-	public ArrayList<Process> currentProcesses = new ArrayList<Process>();
+	public ArrayList<Process> currentProcesses = new ArrayList<>();
 
 	private PMS() {
 	}
@@ -205,7 +205,7 @@ public class PMS {
 	 * @throws Exception TODO: Check which exceptions to use
 	 */
 	private boolean checkProcessExistence(String name, boolean error, File workDir, String... params) throws Exception {
-		LOGGER.debug("launching: " + params[0]);
+		LOGGER.debug("Launching: " + params[0]);
 
 		try {
 			ProcessBuilder pb = new ProcessBuilder(params);
@@ -235,27 +235,17 @@ public class PMS {
 			checkThread.interrupt();
 			checkThread = null;
 
-			// XXX no longer used
-			if (params[0].equals("vlc") && stderrConsumer.getResults().get(0).startsWith("VLC")) {
-				return true;
-			}
-
-			// XXX no longer used
-			if (params[0].equals("ffmpeg") && stderrConsumer.getResults().get(0).startsWith("FF")) {
-				return true;
-			}
-
 			int exit = process.exitValue();
 			if (exit != 0) {
 				if (error) {
-					LOGGER.info("[" + exit + "] Cannot launch " + name + " / Check the presence of " + params[0] + " ...");
+					LOGGER.info("[" + exit + "] Cannot launch " + name + ". Check the presence of " + params[0]);
 				}
 				return false;
 			}
 			return true;
-		} catch (Exception e) {
+		} catch (IOException | InterruptedException e) {
 			if (error) {
-				LOGGER.error("Cannot launch " + name + " / Check the presence of " + params[0] + " ...", e);
+				LOGGER.error("Cannot launch " + name + ". Check the presence of " + params[0], e);
 			}
 			return false;
 		}
@@ -335,7 +325,7 @@ public class PMS {
 		proxy = -1;
 
 		LOGGER.info("Starting " + PropertiesUtil.getProjectProperties().get("project.name") + " " + getVersion());
-		LOGGER.info("Based on PS3 Media Server by shagrath, copyright 2008-2012");
+		LOGGER.info("Based on PS3 Media Server by shagrath, copyright 2008-2013");
 		LOGGER.info("http://www.universalmediaserver.com");
 		LOGGER.info("");
 
@@ -405,10 +395,18 @@ public class PMS {
 		RendererConfiguration.loadRendererConfigurations(configuration);
 
 		LOGGER.info("Please wait while we check the MPlayer font cache, this can take a minute or so.");
-		checkProcessExistence("MPlayer", true, null, configuration.getMplayerPath(), "dummy");
+
+		// TODO: Make a setting to allow users to choose whether they want to use the system version of MPlayer instead
+		if (Platform.isLinux()) {
+			checkProcessExistence("MPlayer", true, null, "./" + configuration.getMplayerPath(), "dummy");
+		} else {
+			checkProcessExistence("MPlayer", true, null, configuration.getMplayerPath(), "dummy");
+		}
+
 		if (isWindows()) {
 			checkProcessExistence("MPlayer", true, configuration.getTempFolder(), configuration.getMplayerPath(), "dummy");
 		}
+
 		LOGGER.info("Finished checking the MPlayer font cache.");
 
 		// Check the existence of VSFilter / DirectVobSub
@@ -557,8 +555,6 @@ public class PMS {
 
 					get().getServer().stop();
 					Thread.sleep(500);
-				} catch (IOException e) {
-					LOGGER.debug("Caught exception", e);
 				} catch (InterruptedException e) {
 					LOGGER.debug("Caught exception", e);
 				}
@@ -651,7 +647,7 @@ public class PMS {
 			return null;
 		}
 
-		ArrayList<File> directories = new ArrayList<File>();
+		ArrayList<File> directories = new ArrayList<>();
 		String[] foldersArray = folders.split(",");
 
 		for (String folder : foldersArray) {
@@ -868,16 +864,22 @@ public class PMS {
 
 		if (args.length > 0) {
 			for (int a = 0; a < args.length; a++) {
-				if (args[a].equals(CONSOLE)) {
-					System.setProperty(CONSOLE, Boolean.toString(true));
-				} else if (args[a].equals(NATIVELOOK)) {
-					System.setProperty(NATIVELOOK, Boolean.toString(true));
-				} else if (args[a].equals(SCROLLBARS)) {
-					System.setProperty(SCROLLBARS, Boolean.toString(true));
-				} else if (args[a].equals(NOCONSOLE)) {
-					System.setProperty(NOCONSOLE, Boolean.toString(true));
-				} else if (args[a].equals(PROFILES)) {
-					displayProfileChooser = true;
+				switch (args[a]) {
+					case CONSOLE:
+						System.setProperty(CONSOLE, Boolean.toString(true));
+						break;
+					case NATIVELOOK:
+						System.setProperty(NATIVELOOK, Boolean.toString(true));
+						break;
+					case SCROLLBARS:
+						System.setProperty(SCROLLBARS, Boolean.toString(true));
+						break;
+					case NOCONSOLE:
+						System.setProperty(NOCONSOLE, Boolean.toString(true));
+						break;
+					case PROFILES:
+						displayProfileChooser = true;
+						break;
 				}
 			}
 		}
@@ -922,7 +924,7 @@ public class PMS {
 			killOld();
 			// create the PMS instance returned by get()
 			createInstance(); 
-		} catch (Throwable t) {
+		} catch (ConfigurationException | IOException t) {
 			String errorMessage = String.format(
 				"Configuration error: %s: %s",
 				t.getClass().getName(),
@@ -1092,17 +1094,16 @@ public class PMS {
 		ProcessBuilder pb = new ProcessBuilder("tasklist", "/FI", "\"PID eq " + pid + "\"", "/V", "/NH", "/FO", "CSV");
 		pb.redirectErrorStream(true);
 		Process p = pb.start();
-		BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
-
-		try {
-			p.waitFor();
-		} catch (InterruptedException e) {
-			in.close();
-			return false;
+		String line;
+		try (BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+			try {
+				p.waitFor();
+			} catch (InterruptedException e) {
+				in.close();
+				return false;
+			}
+			line = in.readLine();
 		}
-
-		String line = in.readLine();
-		in.close();
 
 		if (line == null) {
 			return false;
@@ -1125,9 +1126,10 @@ public class PMS {
 
 	private static void killProc() throws IOException {
 		ProcessBuilder pb = null;
-		BufferedReader in = new BufferedReader(new FileReader(pidFile()));
-		String pid = in.readLine();
-		in.close();
+		String pid;
+		try (BufferedReader in = new BufferedReader(new FileReader(pidFile()))) {
+			pid = in.readLine();
+		}
 
 		if (Platform.isWindows()) {
 			if (verifyPidName(pid)) {
@@ -1144,7 +1146,7 @@ public class PMS {
 		try {
 			Process p = pb.start();
 			p.waitFor();
-		} catch (Exception e) {
+		} catch (IOException | InterruptedException e) {
 			LOGGER.trace("Error killing process by PID " + e);
 		}
 	}
@@ -1155,13 +1157,13 @@ public class PMS {
 	}
 
 	private static void dumpPid() throws IOException {
-		FileOutputStream out = new FileOutputStream(pidFile());
-		long pid = getPID();
-		LOGGER.trace("PID: " + pid);
-		String data = String.valueOf(pid) + "\r\n";
-		out.write(data.getBytes());
-		out.flush();
-		out.close();
+		try (FileOutputStream out = new FileOutputStream(pidFile())) {
+			long pid = getPID();
+			LOGGER.trace("PID: " + pid);
+			String data = String.valueOf(pid) + "\r\n";
+			out.write(data.getBytes());
+			out.flush();
+		}
 	}
 
 	private DbgPacker dbgPack;
@@ -1184,11 +1186,7 @@ public class PMS {
 			javax.swing.JDialog d = new javax.swing.JDialog();
 			d.dispose();
 			return false;
-		} catch (java.lang.NoClassDefFoundError e) {
-			return true;
-		} catch (java.awt.HeadlessException e) {
-			return true;
-		} catch (java.lang.InternalError e) {
+		} catch (java.lang.NoClassDefFoundError | java.awt.HeadlessException | java.lang.InternalError e) {
 			return true;
 		}
 	}

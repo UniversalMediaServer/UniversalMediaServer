@@ -81,7 +81,7 @@ class LinuxDefaultPaths implements ProgramPaths {
 	/**
 	 * Returns the path to requested binary tool.
 	 * Either absolute if executable found in project.binaries.dir or
-	 * short to search in system-wide  PATH.
+	 * short to search in system-wide PATH.
 	 *
 	 * @param tool The name of binary tool
 	 * @return Path to binary

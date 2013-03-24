@@ -19,13 +19,13 @@
 package net.pms.dlna;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import net.pms.formats.Format;
 import net.pms.util.FileUtil;
-import net.sf.sevenzipjbinding.ExtractOperationResult;
 import net.sf.sevenzipjbinding.IInStream;
 import net.sf.sevenzipjbinding.ISequentialOutStream;
 import net.sf.sevenzipjbinding.ISevenZipInArchive;
@@ -92,7 +92,7 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 	@Override
 	public boolean isValid() {
 		checktype();
-		setSrtFile(FileUtil.doesSubtitlesExists(file, null));
+		setSrtFile(FileUtil.isSubtitlesExists(file, null));
 		return getFormat() != null;
 	}
 
@@ -109,7 +109,6 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 			@Override
 			public void run() {
 				try {
-					int n = -1;
 					//byte data[] = new byte[65536];
 					RandomAccessFile rf = new RandomAccessFile(file, "r");
 
@@ -129,7 +128,7 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 						return;
 					}
 
-					ExtractOperationResult result = realItem.extractSlow(new ISequentialOutStream() {
+					realItem.extractSlow(new ISequentialOutStream() {
 						@Override
 						public int write(byte[] data) throws SevenZipException {
 							try {
@@ -141,7 +140,7 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 							return data.length;
 						}
 					});
-				} catch (Exception e) {
+				} catch (FileNotFoundException | SevenZipException e) {
 					LOGGER.debug("Unpack error. Possibly harmless.", e.getMessage());
 				} finally {
 					try {

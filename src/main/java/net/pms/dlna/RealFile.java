@@ -51,7 +51,7 @@ public class RealFile extends MapFile {
 		File file = this.getFile();
 		checktype();
 		if (getType() == Format.VIDEO && file.exists() && configuration.isAutoloadSubtitles() && file.getName().length() > 4) {
-			setSrtFile(FileUtil.doesSubtitlesExists(file, null));
+			setSrtFile(FileUtil.isSubtitlesExists(file, null));
 		}
 
 		boolean valid = file.exists() && (getFormat() != null || file.isDirectory());
@@ -106,6 +106,7 @@ public class RealFile extends MapFile {
 		return getFile().length();
 	}
 
+	@Override
 	public boolean isFolder() {
 		return getFile().isDirectory();
 	}
@@ -119,7 +120,7 @@ public class RealFile extends MapFile {
 		if (this.getConf().getName() == null) {
 			String name = null;
 			File file = getFile();
-			if (file.getName().trim().equals("")) {
+			if (file.getName().trim().isEmpty()) {
 				if (PMS.get().isWindows()) {
 					name = PMS.get().getRegistry().getDiskLabel(file);
 				}

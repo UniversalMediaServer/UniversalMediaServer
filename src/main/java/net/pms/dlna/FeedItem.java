@@ -56,6 +56,7 @@ public class FeedItem extends DLNAResource {
 		this.setMedia(media);
 	}
 
+	@Override
 	public InputStream getInputStream() throws IOException {
 		InputStream i = downloadAndSend(itemURL, true);
 		if (i != null) {
@@ -64,14 +65,17 @@ public class FeedItem extends DLNAResource {
 		return i;
 	}
 
+	@Override
 	public String getName() {
 		return title;
 	}
 
+	@Override
 	public boolean isFolder() {
 		return false;
 	}
 
+	@Override
 	public long length() {
 		return length;
 	}

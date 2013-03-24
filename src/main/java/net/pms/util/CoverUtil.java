@@ -68,7 +68,7 @@ public class CoverUtil extends HTTPResource {
 	 * This class is not meant to be instantiated. Use {@link #get()} instead.
 	 */
 	private CoverUtil() {
-		covers = new HashMap<String, byte[]>();
+		covers = new HashMap<>();
 	}
 
 	/**
