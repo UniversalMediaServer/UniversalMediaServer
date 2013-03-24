@@ -555,7 +555,7 @@ public class PMS {
 
 					get().getServer().stop();
 					Thread.sleep(500);
-				} catch (IOException | InterruptedException e) {
+				} catch (InterruptedException e) {
 					LOGGER.debug("Caught exception", e);
 				}
 			}
