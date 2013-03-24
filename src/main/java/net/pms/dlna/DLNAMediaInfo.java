@@ -250,7 +250,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 	private boolean ffmpeg_failure;
 	private boolean ffmpeg_annexb_failure;
-	private boolean muxable = true;
+	private boolean muxable;
 	private Map<String, String> extras;
 
 	/**
@@ -260,23 +260,22 @@ public class DLNAMediaInfo implements Cloneable {
 	public boolean encrypted;
 
 	/**
-	 * Used to determine whether MEncoderVideo should allow tsMuxeR to mux the
-	 * file instead of transcoding.
+	 * Used to determine whether tsMuxeR can mux the file instead of transcoding.
 	 * Also used by DLNAResource to help determine the DLNA.ORG_PN (file type)
-	 * value to send to the renderer.
-	 * This extends renderer configs, defining things that are needed by renderers
-	 * but are not possible with their configs yet.
+	 * value to send to the renderer, which is confusing.
 	 *
 	 * Some of this code is repeated in isVideoWithinH264LevelLimits(), and since
 	 * both functions are sometimes (but not always) used together, this is
 	 * not an efficient use of code.
 	 * TODO: Fix the above situation.
+	 * TODO: Now that FFmpeg is muxing without tsMuxeR, we should make a separate
+	 *       function for that, or even better, re-think this whole approach.
 	 */
 	public boolean isMuxable(RendererConfiguration mediaRenderer) {
-		// Blacklist all formats not in the following lists
+		// Allow the formats in the following list
 		if (
 			getContainer() != null &&
-			!(
+			(
 				getContainer().equals("mkv") ||
 				getContainer().equals("mp4") ||
 				getContainer().equals("mov") ||
@@ -286,29 +285,27 @@ public class DLNAMediaInfo implements Cloneable {
 		) {
 			if (
 				getCodecV() != null &&
-				!(
+				(
 					getCodecV().equals("h264") ||
 					getCodecV().equals("vc1") ||
 					getCodecV().equals("mpeg2")
 				)
 			) {
-				muxable = false;
-			}
-
-			if (getFirstAudioTrack() != null) {
-				String codecA;
-				codecA = getFirstAudioTrack().getCodecA();
-				if (
-					codecA != null &&
-					!(
-						codecA.equals("aac") ||
-						codecA.equals("ac3") ||
-						codecA.equals("dca") ||
-						codecA.equals("dts") ||
-						codecA.equals("eac3")
-					)
-				) {
-					muxable = false;
+				if (getFirstAudioTrack() != null) {
+					String codecA;
+					codecA = getFirstAudioTrack().getCodecA();
+					if (
+						codecA != null &&
+						(
+							codecA.equals("aac") ||
+							codecA.equals("ac3") ||
+							codecA.equals("dca") ||
+							codecA.equals("dts") ||
+							codecA.equals("eac3")
+						)
+					) {
+						muxable = true;
+					}
 				}
 			}
 		}
@@ -437,7 +434,7 @@ public class DLNAMediaInfo implements Cloneable {
 			}
 		};
 
-		Thread failsafe = new Thread(r, "FFMpeg Thumbnail Failsafe");
+		Thread failsafe = new Thread(r, "FFmpeg Thumbnail Failsafe");
 		failsafe.start();
 		pw.runInSameThread();
 		setParsing(false);
@@ -485,7 +482,6 @@ public class DLNAMediaInfo implements Cloneable {
 			public void run() {
 				try {
 					Thread.sleep(3000);
-					//mplayer_thumb_failure = true;
 				} catch (InterruptedException e) { }
 
 				pw.stopProcess();
@@ -504,8 +500,8 @@ public class DLNAMediaInfo implements Cloneable {
 		String value = configuration.getFfmpegPath();
 
 		if (value == null) {
-			LOGGER.info("No ffmpeg - unable to thumbnail");
-			throw new RuntimeException("No ffmpeg - unable to thumbnail");
+			LOGGER.info("No FFmpeg - unable to thumbnail");
+			throw new RuntimeException("No FFmpeg - unable to thumbnail");
 		} else {
 			return value;
 		}
@@ -678,8 +674,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 					setContainer(getCodecV());
 				} catch (ImageReadException | IOException e) {
-					// ffmpeg_parsing = true;
-					LOGGER.info("Error parsing image ({}) with Sanselan, switching to FFmpeg", inputFile.getFile().getAbsolutePath(), e);
+					LOGGER.info("Error parsing image ({}) with Sanselan, switching to FFmpeg.", inputFile.getFile().getAbsolutePath());
 				}
 			}
 
@@ -960,8 +955,15 @@ public class DLNAMediaInfo implements Cloneable {
 					}
 				}
 
-				if (!thumbOnly && getContainer() != null && inputFile.getFile() != null && getContainer().equals("mpegts") && isH264() && getDurationInSeconds() == 0) {
-					// let's do the parsing for getting the duration...
+				if (
+					!thumbOnly &&
+					getContainer() != null &&
+					inputFile.getFile() != null &&
+					getContainer().equals("mpegts") &&
+					isH264() &&
+					getDurationInSeconds() == 0
+				) {
+					// Parse the duration
 					try {
 						int length = MpegUtil.getDurationFromMpeg(inputFile.getFile());
 						if (length > 0) {
@@ -1063,7 +1065,6 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
-	 *
 	 * @return 0 if nothing is specified, otherwise the duration
 	 */
 	public double getDurationInSeconds() {
@@ -1149,66 +1150,9 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 	}
 
-	/**
-	 * Use isVideoWithinH264LevelLimits() instead
-	 */
 	@Deprecated
 	public boolean isVideoPS3Compatible(InputFile f) {
-		if (!h264_parsed) {
-			if (getCodecV() != null && (getCodecV().equals("h264") || getCodecV().startsWith("mpeg2"))) { // what about VC1 ?
-				muxable = true;
-				if (
-					getCodecV().equals("h264") &&
-					getContainer() != null &&
-					(
-						getContainer().equals("matroska") ||
-						getContainer().equals("mkv") ||
-						getContainer().equals("mov") ||
-						getContainer().equals("mp4")
-					)
-				) { // Containers without h264_annexB
-					byte headers[][] = getAnnexBFrameHeader(f);
-					if (ffmpeg_annexb_failure) {
-						LOGGER.info("Error parsing information from the file: " + f.getFilename());
-					}
-
-					if (headers != null) {
-						setH264AnnexB(headers[1]);
-						if (getH264AnnexB() != null) {
-							int skip = 5;
-							if (getH264AnnexB()[2] == 1) {
-								skip = 4;
-							}
-							byte header[] = new byte[getH264AnnexB().length - skip];
-							System.arraycopy(getH264AnnexB(), skip, header, 0, header.length);
-							AVCHeader avcHeader = new AVCHeader(header);
-							avcHeader.parse();
-							LOGGER.debug("H.264 file: " + f.getFilename() + ": Profile: " + avcHeader.getProfile() + " / level: " + avcHeader.getLevel() + " / ref frames: " + avcHeader.getRef_frames());
-							muxable = true;
-
-							if (avcHeader.getLevel() >= 41 && getWidth() > 0 && getHeight() > 0) {
-								int maxref = (int) Math.floor(8388608 / (getWidth() * getHeight()));
-								if (avcHeader.getRef_frames() > maxref) {
-									muxable = false;
-									LOGGER.debug("The file " + f.getFilename() + " is not compatible with PS3 because it can only take " + maxref + " reference frames at this resolution while this file has " + avcHeader.getRef_frames() + " reference frames");
-								}
-							}
-							if (!muxable) {
-								LOGGER.debug("H.264 file: " + f.getFilename() + " is not compatible with PS3");
-							}
-						} else {
-							muxable = false;
-						}
-					} else {
-						muxable = false;
-					}
-				}
-			}
-
-			h264_parsed = true;
-		}
-
-		return muxable;
+		return isVideoWithinH264LevelLimits(f, null);
 	}
 
 	/**
@@ -1249,7 +1193,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 							if (avcHeader.getLevel() >= 41 && getWidth() > 0 && getHeight() > 0) {
 								int maxref;
-								if (mediaRenderer.isPS3()) {
+								if (mediaRenderer == null || mediaRenderer.isPS3()) {
 									/**
 									 * 2013-01-25: Confirmed maximum reference frames on PS3:
 									 *    - 4 for 1920x1080

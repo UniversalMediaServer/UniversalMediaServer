@@ -325,7 +325,7 @@ public class PMS {
 		proxy = -1;
 
 		LOGGER.info("Starting " + PropertiesUtil.getProjectProperties().get("project.name") + " " + getVersion());
-		LOGGER.info("Based on PS3 Media Server by shagrath, copyright 2008-2012");
+		LOGGER.info("Based on PS3 Media Server by shagrath, copyright 2008-2013");
 		LOGGER.info("http://www.universalmediaserver.com");
 		LOGGER.info("");
 
@@ -396,6 +396,7 @@ public class PMS {
 
 		LOGGER.info("Please wait while we check the MPlayer font cache, this can take a minute or so.");
 
+		// TODO: Make a setting to allow users to choose whether they want to use the system version of MPlayer instead
 		if (Platform.isLinux()) {
 			checkProcessExistence("MPlayer", true, null, "./" + configuration.getMplayerPath(), "dummy");
 		} else {
@@ -554,7 +555,7 @@ public class PMS {
 
 					get().getServer().stop();
 					Thread.sleep(500);
-				} catch (IOException | InterruptedException e) {
+				} catch (InterruptedException e) {
 					LOGGER.debug("Caught exception", e);
 				}
 			}

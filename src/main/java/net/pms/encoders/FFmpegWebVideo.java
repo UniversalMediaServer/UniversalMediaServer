@@ -45,9 +45,10 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sun.jna.Platform;
+
 public class FFmpegWebVideo extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegWebVideo.class);
-	private final PmsConfiguration configuration;
 	private static List<String> protocols;
 	public static PatternMap<Object> excludes = new PatternMap<>();
 
@@ -89,7 +90,6 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 	public FFmpegWebVideo(PmsConfiguration configuration) {
 		super(configuration);
-		this.configuration = configuration;
 		
 		if (!init) {
 			readWebFilters(configuration.getProfileDirectory() + File.separator + "ffmpeg.webfilters");
@@ -183,20 +183,30 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 		params.input_pipes[0] = pipe;
 		int nThreads = configuration.getNumberOfCpuCores();
+		// build the command line
+		List<String> cmdList = new ArrayList<>();
 		if (!dlna.isURLResolved()) {
 			URLResult r1 = ExternalFactory.resolveURL(fileName);
 			if (r1 != null) {
-				if (StringUtils.isNotEmpty(r1.url)) {
-					fileName = r1.url;
+				if (r1.precoder != null) {
+					fileName = "-";
+					if (Platform.isWindows()) {
+						cmdList.add("cmd.exe");
+						cmdList.add("/C");
+					}
+					cmdList.addAll(r1.precoder);
+					cmdList.add("|");
 				}
-				if(r1.args !=null && r1.args.size() > 0) {
+				else {
+					if (StringUtils.isNotEmpty(r1.url)) {
+						fileName = r1.url;
+					}
+				}
+				if (r1.args != null && r1.args.size() > 0) {
 					customOptions.addAll(r1.args);	
 				}
 			}
 		}
-
-		// build the command line
-		List<String> cmdList = new ArrayList<>();
 
 		cmdList.add(executable());
 

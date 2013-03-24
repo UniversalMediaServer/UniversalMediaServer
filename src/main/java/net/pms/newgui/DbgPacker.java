@@ -153,6 +153,8 @@ public class DbgPacker implements ActionListener {
 
 	private boolean saveDialog() {
 		JFileChooser fc = new JFileChooser() {
+			private static final long serialVersionUID = -7279491708128801610L;
+
 			@Override
 			public void approveSelection() {
 				File f = getSelectedFile();

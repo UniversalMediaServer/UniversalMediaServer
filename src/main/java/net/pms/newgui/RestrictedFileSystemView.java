@@ -300,7 +300,7 @@ public class RestrictedFileSystemView extends FileSystemView {
 	 */
 	@Override
 	public File[] getFiles(File dir, boolean useFileHiding) {
-		Vector<File> files = new Vector<File>();
+		Vector<File> files = new Vector<>();
 
 		// add all files in dir
 		File[] names;

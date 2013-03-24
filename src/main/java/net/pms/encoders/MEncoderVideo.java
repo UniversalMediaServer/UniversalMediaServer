@@ -856,7 +856,11 @@ public class MEncoderVideo extends Player {
 		int bitrates[] = new int[2];
 
 		if (bitrate.contains("(") && bitrate.contains(")")) {
-			bitrates[1] = Integer.parseInt(bitrate.substring(bitrate.indexOf("(") + 1, bitrate.indexOf(")")));
+			try {
+				bitrates[1] = Integer.parseInt(bitrate.substring(bitrate.indexOf("(") + 1, bitrate.indexOf(")")));
+			} catch (NumberFormatException e) {
+				bitrates[1] = 0;
+			}
 		}
 
 		if (bitrate.contains("(")) {
@@ -867,7 +871,11 @@ public class MEncoderVideo extends Player {
 			bitrate = "0";
 		}
 
-		bitrates[0] = (int) Double.parseDouble(bitrate);
+		try {
+			bitrates[0] = (int) Double.parseDouble(bitrate);
+		} catch (NumberFormatException e) {
+			bitrates[0] = 0;
+		}
 
 		return bitrates;
 	}
@@ -1032,11 +1040,11 @@ public class MEncoderVideo extends Player {
 		 * - The resource is being streamed via a MEncoder entry in the transcode folder
 		 * - There is a subtitle that matches the user preferences
 		 * - The resource is a DVD
-		 * - We are using AviSynth (TODO: do we still need this check?)
+		 * - We are using AviSynth
 		 * - The resource is incompatible with tsMuxeR
-		 * - The user has left the "switch to tsMuxeR" option enabled
-		 * - The user has not specified overscan correction
-		 * - The filename does not specify the resource as WEB-DL
+		 * - The user has disabled the "switch to tsMuxeR" option
+		 * - The user has specified overscan correction
+		 * - The filename specifies the resource as WEB-DL
 		 * - The aspect ratio of the video needs to be changed
 		 */
 		if (
@@ -1120,7 +1128,7 @@ public class MEncoderVideo extends Player {
 
 		if (params.mediaRenderer.isTranscodeToWMV()) {
 			wmv = true;
-			vcodec = "wmv2"; // http://wiki.megaframe.org/wiki/Ubuntu_XBOX_360#MEncoder not usable in streaming
+			vcodec = "wmv2"; // http://wiki.megaframe.org/Mencoder_Transcode_for_Xbox_360
 		}
 
 		mpegts = params.mediaRenderer.isTranscodeToMPEGTSAC3();

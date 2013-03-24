@@ -1012,19 +1012,6 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Returns a string of comma separated audio or subtitle languages,
-	 * ordered by priority.
-	 * @return The string of languages.
-	 */
-	private String getDefaultLanguages() {
-		if ("fr".equals(getLanguage())) {
-			return "fre,jpn,ger,eng,und";
-		} else {
-			return "eng,fre,jpn,ger,und";
-		}
-	}
-
-	/**
 	 * @deprecated Use {@link #getSubtitlesLanguages()} instead.
 	 */
 	public String getMencoderSubLanguages() {
@@ -2357,7 +2344,7 @@ public class PmsConfiguration {
 	}
 
 	public boolean isHideMediaLibraryFolder() {
-		return getBoolean(PmsConfiguration.KEY_HIDE_MEDIA_LIBRARY_FOLDER, false);
+		return getBoolean(PmsConfiguration.KEY_HIDE_MEDIA_LIBRARY_FOLDER, true);
 	}
 
 	public void setHideMediaLibraryFolder(final boolean value) {
@@ -2755,5 +2742,22 @@ public class PmsConfiguration {
 
 	public String getDataFile(String str) {
 		return getDataDir() + File.separator + str;
+	}
+
+	private String KEY_URL_RES_ORDER = "url_resolve_order";
+
+	public String[] getURLResolveOrder() {
+		return getString(KEY_URL_RES_ORDER, "").split(",");
+	}
+
+	private static final String KEY_OPEN_SUBS = "open_subs";
+	private static final String KEY_OPEN_SUBS_LIM = "open_subs_limit";
+
+	public boolean openSubs() {
+		return getBoolean(KEY_OPEN_SUBS, false);
+	}
+
+	public int openSubsLimit() {
+		return getInt(KEY_OPEN_SUBS_LIM, 20);
 	}
 }

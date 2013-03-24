@@ -73,10 +73,14 @@ public class ExternalFactory {
 	 * List of external listener classes (not yet started).
 	 */
 	private static List<Class<?>> downloadedListenerClasses = new ArrayList<>();
-	
+
+	/**
+	 * List of urlresolvers.
+	 */
+	private static List<URLResolver> urlResolvers = new ArrayList<>();
+
 	private static boolean allDone = false;
 
-	
 	/**
 	 * Returns the list of external listener class instances.
 	 *
@@ -95,6 +99,9 @@ public class ExternalFactory {
 	public static void registerListener(ExternalListener listener) {
 		if (!externalListeners.contains(listener)) {
 			externalListeners.add(listener);
+			if (listener instanceof URLResolver) {
+				addURLResolver((URLResolver) listener);
+			}
 		}
 	}
 
@@ -111,7 +118,7 @@ public class ExternalFactory {
 	}
 
 	private static String getMainClass(URL jar) {
-		URL[] jarURLs1={jar};
+		URL[] jarURLs1 = {jar};
 		URLClassLoader classLoader = new URLClassLoader(jarURLs1);
 		Enumeration<URL> resources;
 
@@ -120,7 +127,7 @@ public class ExternalFactory {
 			// which should contain the name of the main plugin class.
 			resources = classLoader.getResources("plugin");
 
-			if(resources.hasMoreElements()) {
+			if (resources.hasMoreElements()) {
 				URL url = resources.nextElement();
 				char[] name;
 				try (InputStreamReader in = new InputStreamReader(url.openStream())) {
@@ -498,43 +505,82 @@ public class ExternalFactory {
 	private static boolean quoted(String s) {
 		return s.startsWith("\"") && s.endsWith("\""); 
 	}
-	
+
 	private static String quote(String s) {
-		if(quoted(s))
+		if (quoted(s)) {
 			return s;
+		}
 		return "\"" + s + "\"";
 	}
-	
+
 	public static URLResult resolveURL(String url) {
-		for (ExternalListener list : getExternalListeners()) {
-			if (list instanceof URLResolver) {
-				URLResult res = ((URLResolver)list).urlResolve(url);
-				if (res == null) {
-					// take another resolver this is crap
-					continue;
-				}
-				if (res.args != null && res.args.size() > 0) {
-					// we got args...
-					// so return what we got
-					if(StringUtils.isNotEmpty(res.url)) {
-						res.url = quote(res.url);
-					}
-					return res;
-				}
-				if (StringUtils.isEmpty(res.url)) {
-					// take another resolver this is crap
-					continue;
-				}
-				String cmp = quote(url);
-				res.url = quote(res.url);
-				if (cmp.equals(res.url)) {
-					// If the resolver returned the same url we already had
-					// (give or take some quotes) we look for a better one
-					continue;
+		for (URLResolver resolver : urlResolvers) {
+			URLResult res = resolver.urlResolve(url);
+			if (res == null) {
+				// take another resolver this is crap
+				continue;
+			}
+			if (res.precoder != null && res.precoder.size() > 0) {
+				return res;
+			}
+			res.precoder = null;
+			if (res.args != null && res.args.size() > 0) {
+				// we got args...
+				// so return what we got
+				if (StringUtils.isNotEmpty(res.url)) {
+					res.url = quote(res.url);
 				}
 				return res;
 			}
+			if (StringUtils.isEmpty(res.url)) {
+				// take another resolver this is crap
+				continue;
+			}
+			String cmp = quote(url);
+			res.url = quote(res.url);
+			if (cmp.equals(res.url)) {
+				// If the resolver returned the same url we already had
+				// (give or take some quotes) we look for a better one
+				continue;
+			}
+			return res;
 		}
 		return null;
+	}
+
+	public static void addURLResolver(URLResolver res) {
+		if (urlResolvers.contains(res)) {
+			return;
+		}
+		if (urlResolvers.isEmpty()) {
+			urlResolvers.add(res);
+			return;
+		}
+
+		String[] tmp = PMS.getConfiguration().getURLResolveOrder();
+		if (tmp.length == 0) {
+			// no order at all, just add it
+			urlResolvers.add(res);
+			return;
+		}
+		int id = -1;
+		for (int i = 0; i < tmp.length; i++) {
+			if (tmp[i].equalsIgnoreCase(res.name())) {
+				id = i;
+				break;
+			}
+		}
+
+		if (id == -1) {
+			// no order here, just add it
+			urlResolvers.add(res);
+			return;
+		}
+		if (id > urlResolvers.size()) {
+			// add it last
+			urlResolvers.add(res);
+			return;
+		}
+		urlResolvers.add(id, res);
 	}
 }
