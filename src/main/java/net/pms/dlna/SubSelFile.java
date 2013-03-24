@@ -43,8 +43,7 @@ public class SubSelFile extends VirtualFolder {
 			sub.setType(SubtitleType.SUBRIP);
 			sub.setId(1);
 			sub.setLang(lang);
-			sub.setLiveSub((String) data.get(key), 
-							OpenSubtitle.subFile(name + "_" + lang));
+			sub.setLiveSub((String) data.get(key), OpenSubtitle.subFile(name + "_" + lang));
 			RealFile nrf = new RealFile(rf.getFile(), name);
 			nrf.setMediaSubtitle(sub);
 			nrf.setSrtFile(true);
