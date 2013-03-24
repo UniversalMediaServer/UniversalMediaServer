@@ -107,7 +107,7 @@
 
 		<maven.nsis.project.template>${project.basedir}/src/main/external-resources/nsis/project.jelly</maven.nsis.project.template>
 		<maven-javadoc-plugin-version>2.9</maven-javadoc-plugin-version>
-		<git-commit-id-plugin-version>2.1.0</git-commit-id-plugin-version>
+		<git-commit-id-plugin-version>2.1.4</git-commit-id-plugin-version>
 	</properties>
 	<pluginRepositories>
 		<pluginRepository>
