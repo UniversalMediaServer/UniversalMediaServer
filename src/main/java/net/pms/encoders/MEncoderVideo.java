@@ -856,7 +856,11 @@ public class MEncoderVideo extends Player {
 		int bitrates[] = new int[2];
 
 		if (bitrate.contains("(") && bitrate.contains(")")) {
-			bitrates[1] = Integer.parseInt(bitrate.substring(bitrate.indexOf("(") + 1, bitrate.indexOf(")")));
+			try {
+				bitrates[1] = Integer.parseInt(bitrate.substring(bitrate.indexOf("(") + 1, bitrate.indexOf(")")));
+			} catch (NumberFormatException e) {
+				bitrates[1] = 0;
+			}
 		}
 
 		if (bitrate.contains("(")) {
@@ -867,7 +871,11 @@ public class MEncoderVideo extends Player {
 			bitrate = "0";
 		}
 
-		bitrates[0] = (int) Double.parseDouble(bitrate);
+		try {
+			bitrates[0] = (int) Double.parseDouble(bitrate);
+		} catch (NumberFormatException e) {
+			bitrates[0] = 0;
+		}
 
 		return bitrates;
 	}
