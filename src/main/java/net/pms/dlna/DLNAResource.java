@@ -545,9 +545,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						boolean hasSubsToTranscode = false;
 
 						if (!configuration.isDisableSubtitles()) {
-							hasSubsToTranscode = (configuration.isAutoloadSubtitles() && child.isSrtFile()) || hasEmbeddedSubs;
+							hasSubsToTranscode = (configuration.isAutoloadSubtitles() && child.isSrtFile()) || hasEmbeddedSubs || liveSubs(child);
 						}
-
+						
 						boolean isIncompatible = false;
 
 						if (!child.getFormat().isCompatible(child.getMedia(),getDefaultRenderer())) {
@@ -2530,6 +2530,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	public boolean isSubSelectable() {
+		return false;
+	}
+	
+	private boolean liveSubs(DLNAResource r) {
+		DLNAMediaSubtitle s = r.getMediaSubtitle();
+		if (s != null) {
+			return StringUtils.isNotEmpty(s.getLiveSubURL());
+		}
 		return false;
 	}
 }

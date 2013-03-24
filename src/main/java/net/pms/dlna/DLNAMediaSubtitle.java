@@ -42,6 +42,9 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 
 	private File externalFile;
 	private String externalFileCharacterSet;
+	
+	private String liveSubURL;
+	private String liveSubFile;
 
 	/**
 	 * Returns whether or not the subtitles are embedded.
@@ -190,5 +193,22 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	 */
 	public boolean isExternalFileUtf() {
 		return (isExternalFileUtf8() || isExternalFileUtf16() || isExternalFileUtf32());
+	}
+	
+	public void setLiveSub(String url) {
+		setLiveSub(url, null);
+	}
+	
+	public void setLiveSub(String url, String file) {
+		liveSubURL = url;
+		liveSubFile = file;
+	}
+	
+	public String getLiveSubURL() {
+		return liveSubURL;
+	}
+	
+	public String getLiveSubFile() {
+		return liveSubFile;
 	}
 }

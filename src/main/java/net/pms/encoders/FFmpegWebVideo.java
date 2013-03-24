@@ -97,6 +97,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			protocols = FFmpegOptions.getSupportedProtocols(configuration);
 			// see XXX workaround below
 			protocols.add("mms");
+			protocols.add("https");
 			LOGGER.debug("FFmpeg supported protocols: " + protocols);
 
 			// Register protocols as a WEB format
@@ -208,7 +209,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			}
 		}
 
-		cmdList.add(executable());
+		cmdList.add(executable().replace("/", "\\\\"));
 
 		// XXX squashed bug - without this, ffmpeg hangs waiting for a confirmation
 		// that it can write to a file that already exists i.e. the named pipe
