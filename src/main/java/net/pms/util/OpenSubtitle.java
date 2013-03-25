@@ -234,7 +234,7 @@ public class OpenSubtitle {
 		Matcher m = re.matcher(page);
 		while (m.find()) {
 			LOGGER.debug("found subtitle " + m.group(2) + " name " + m.group(1) + " zip " + m.group(3));
-			res.put(m.group(2) + ":" + FileUtil.getFileNameWithoutExtension(m.group(1)), m.group(3));
+			res.put(m.group(2) + ":" + m.group(1), m.group(3));
 			if (res.size() > PMS.getConfiguration().openSubsLimit()) {
 				// limit the number of hits somewhat
 				break;

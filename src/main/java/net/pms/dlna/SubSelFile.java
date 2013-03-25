@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Map;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.util.FileUtil;
 import net.pms.util.OpenSubtitle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +41,9 @@ public class SubSelFile extends VirtualFolder {
 			}
 			String lang = OpenSubtitle.getLang(key);
 			String name = OpenSubtitle.getName(key);
+			if (name.endsWith(".srt")) {
+				name = FileUtil.getFileNameWithoutExtension(name);
+			}
 			sub.setType(SubtitleType.SUBRIP);
 			sub.setId(1);
 			sub.setLang(lang);
