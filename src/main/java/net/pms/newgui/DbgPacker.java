@@ -21,6 +21,8 @@ import net.pms.external.DebugPacker;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.logging.LoggingConfigFileLoader;
+
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -112,6 +114,10 @@ public class DbgPacker implements ActionListener {
 		}
 		// add core items with debug.log last (LinkedHashMap preserves insertion order)
 		String profileDirectory = configuration.getProfileDirectory();
+		String vfolders = configuration.getVirtualFolders();
+		if (StringUtils.isNotEmpty(vfolders) && vfolders.startsWith("@")) {
+			add(new File(vfolders.substring(1)));
+		}
 		add(new File(profileDirectory, "WEB.conf"));
 		add(new File(configuration.getProfilePath()));
 		add(new File(debug_log));
