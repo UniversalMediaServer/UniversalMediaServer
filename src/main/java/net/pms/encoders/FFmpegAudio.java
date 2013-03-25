@@ -29,6 +29,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import net.pms.Messages;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -40,6 +44,7 @@ import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
 
 public class FFmpegAudio extends FFMpegVideo {
+	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
 	public static final String ID = "ffmpegaudio";
 
 	// should be private
@@ -140,7 +145,12 @@ public class FFmpegAudio extends FFMpegVideo {
 		cmdList.add(executable());
 
 		cmdList.add("-loglevel");
-		cmdList.add("warning");
+		
+		if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
+			cmdList.add("info"); // Could be changed to "verbose" or "debug" if "info" level is not enough
+		} else {
+			cmdList.add("warning");
+		}
 
 		if (params.timeseek > 0) {
 			cmdList.add("-ss");

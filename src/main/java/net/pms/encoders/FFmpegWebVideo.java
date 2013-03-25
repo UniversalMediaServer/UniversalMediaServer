@@ -215,7 +215,12 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		cmdList.add("-y");
 
 		cmdList.add("-loglevel");
-		cmdList.add("warning");
+		
+		if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
+			cmdList.add("info"); // Could be changed to "verbose" or "debug" if "info" level is not enough
+		} else {
+			cmdList.add("warning");
+		}
 
 		// decoder threads
 		cmdList.add("-threads");
