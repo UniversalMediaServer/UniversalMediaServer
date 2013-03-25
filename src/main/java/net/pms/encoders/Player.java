@@ -19,7 +19,6 @@
 package net.pms.encoders;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,7 +40,6 @@ import net.pms.io.ProcessWrapper;
 import net.pms.util.FileUtil;
 import net.pms.util.Iso639;
 import net.pms.util.OpenSubtitle;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -244,15 +242,14 @@ public abstract class Player {
 			params.sid = null;
 			return;
 		}
-		
+
 		if (params.sid != null && !StringUtils.isEmpty(params.sid.getLiveSubURL())) {
 			// live subtitles
 			// currently only open subtitles
-			LOGGER.debug("live subs "+params.sid.getLiveSubURL());
+			LOGGER.debug("Live subtitles " + params.sid.getLiveSubURL());
 			try {
 				matchedSub = params.sid;
-				String file = OpenSubtitle.fetchSubs(matchedSub.getLiveSubURL(),
-						matchedSub.getLiveSubFile());
+				String file = OpenSubtitle.fetchSubs(matchedSub.getLiveSubURL(), matchedSub.getLiveSubFile());
 				if (!StringUtils.isEmpty(file)) {
 					matchedSub.setExternalFile(new File(file));
 					params.sid = matchedSub;
