@@ -43,7 +43,7 @@ public class NavigationShareTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(NavigationShareTab.class);
 	public static final String ALL_DRIVES = Messages.getString("FoldTab.0");
 
-	private static final String PANEL_COL_SPEC = "left:pref, 50dlu, pref, 150dlu, pref, 25dlu, pref, 25dlu, pref, default:grow";
+	private static final String PANEL_COL_SPEC = "left:pref, 50dlu, pref, 150dlu, pref, 25dlu, pref, 9dlu, pref, default:grow";
 	private static final String PANEL_ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 9dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 9dlu, fill:default:grow";
 	private static final String SHARED_FOLDER_COL_SPEC = "left:pref, left:pref, pref, pref, pref, 0:grow";
 	private static final String SHARED_FOLDER_ROW_SPEC = "p, 3dlu, p, 3dlu, fill:default:grow";
@@ -133,42 +133,41 @@ public class NavigationShareTab {
 
 		builder.add(thumbgenCheckBox, FormLayoutUtil.flip(cc.xyw(1, 3, 3), colSpec, orientation));
 		builder.addLabel(Messages.getString("NetworkTab.16"), FormLayoutUtil.flip(cc.xyw(4, 3, 2), colSpec, orientation));
-		builder.add(seekpos, FormLayoutUtil.flip(cc.xyw(6, 3, 1), colSpec, orientation));
-		builder.add(image_thumb, FormLayoutUtil.flip(cc.xyw(8, 3, 3), colSpec, orientation));
+		builder.add(seekpos, FormLayoutUtil.flip(cc.xy(6, 3), colSpec, orientation));
+		builder.add(image_thumb, FormLayoutUtil.flip(cc.xyw(9, 3, 2), colSpec, orientation));
 
-		builder.add(mplayer_thumb, FormLayoutUtil.flip(cc.xyw(1, 5, 3), colSpec, orientation));
-		builder.add(dvdiso_thumb, FormLayoutUtil.flip(cc.xyw(3, 5, 3), colSpec, orientation));
+		builder.addLabel(Messages.getString("FoldTab.26"), FormLayoutUtil.flip(cc.xyw(1, 5, 3), colSpec, orientation));
+		builder.add(audiothumbnail, FormLayoutUtil.flip(cc.xyw(4, 5, 3), colSpec, orientation));
+		builder.add(mplayer_thumb, FormLayoutUtil.flip(cc.xyw(9, 5, 2), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("FoldTab.26"), FormLayoutUtil.flip(cc.xyw(1, 7, 3), colSpec, orientation));
-		builder.add(audiothumbnail, FormLayoutUtil.flip(cc.xyw(4, 7, 3), colSpec, orientation));
+		builder.addLabel(Messages.getString("FoldTab.27"), FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
+		builder.add(defaultThumbFolder, FormLayoutUtil.flip(cc.xyw(4, 7, 2), colSpec, orientation));
+		builder.add(select, FormLayoutUtil.flip(cc.xy(6, 7), colSpec, orientation));
+		builder.add(dvdiso_thumb, FormLayoutUtil.flip(cc.xyw(9, 7, 2), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("FoldTab.27"), FormLayoutUtil.flip(cc.xyw(1, 9, 1), colSpec, orientation));
-		builder.add(defaultThumbFolder, FormLayoutUtil.flip(cc.xyw(4, 9, 3), colSpec, orientation));
-		builder.add(select, FormLayoutUtil.flip(cc.xyw(7, 9, 1), colSpec, orientation));
-
-		cmp = builder.addSeparator(Messages.getString("NetworkTab.15"), FormLayoutUtil.flip(cc.xyw(1, 11, 10), colSpec, orientation));
+		cmp = builder.addSeparator(Messages.getString("NetworkTab.15"), FormLayoutUtil.flip(cc.xyw(1, 9, 10), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
 		builder.add(archive, FormLayoutUtil.flip(cc.xyw(1, 13, 3), colSpec, orientation));
 		builder.add(hidevideosettings, FormLayoutUtil.flip(cc.xyw(4, 13, 3), colSpec, orientation));
-		builder.add(hidetranscode, FormLayoutUtil.flip(cc.xyw(8, 13, 3), colSpec, orientation));
+		builder.add(hidetranscode, FormLayoutUtil.flip(cc.xyw(9, 13, 2), colSpec, orientation));
 
 		builder.add(hideextensions, FormLayoutUtil.flip(cc.xyw(1, 15, 3), colSpec, orientation));
 		builder.add(hideengines, FormLayoutUtil.flip(cc.xyw(4, 15, 3), colSpec, orientation));
-		builder.add(hideemptyfolders, FormLayoutUtil.flip(cc.xyw(8, 15, 3), colSpec, orientation));
+		builder.add(hideemptyfolders, FormLayoutUtil.flip(cc.xyw(9, 15, 2), colSpec, orientation));
 
 		builder.add(itunes, FormLayoutUtil.flip(cc.xyw(1, 17, 3), colSpec, orientation));
 		builder.add(iphoto, FormLayoutUtil.flip(cc.xyw(4, 17, 3), colSpec, orientation));
-		builder.add(aperture, FormLayoutUtil.flip(cc.xyw(8, 17, 3), colSpec, orientation));
+		builder.add(aperture, FormLayoutUtil.flip(cc.xyw(9, 17, 2), colSpec, orientation));
 
 		builder.add(cacheenable, FormLayoutUtil.flip(cc.xy(1, 19), colSpec, orientation));
 		builder.add(cachereset, FormLayoutUtil.flip(cc.xyw(4, 19, 3), colSpec, orientation));
-		builder.add(hidemedialibraryfolder, FormLayoutUtil.flip(cc.xyw(8, 19, 3), colSpec, orientation));
+		builder.add(hidemedialibraryfolder, FormLayoutUtil.flip(cc.xyw(9, 19, 2), colSpec, orientation));
 
 		builder.addLabel(Messages.getString("FoldTab.18"), FormLayoutUtil.flip(cc.xyw(1, 21, 3), colSpec, orientation));
 		builder.add(sortmethod, FormLayoutUtil.flip(cc.xyw(4, 21, 3), colSpec, orientation));
-		builder.add(ignorethewordthe, FormLayoutUtil.flip(cc.xyw(8, 21, 3), colSpec, orientation));
+		builder.add(ignorethewordthe, FormLayoutUtil.flip(cc.xyw(9, 21, 2), colSpec, orientation));
 
 		builder.addLabel(Messages.getString("FoldTab.37"), FormLayoutUtil.flip(cc.xyw(1, 23, 3), colSpec, orientation));
 		builder.add(atzLimit, FormLayoutUtil.flip(cc.xyw(4, 23, 3), colSpec, orientation));
