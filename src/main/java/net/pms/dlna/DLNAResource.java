@@ -2499,18 +2499,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	// Subtitle handling
 	////////////////////////////////////////////////////
 
-	private SubSelect getSubSelector() {
-		return getSubSelector(false);
-	}
-
 	private SubSelect getSubSelector(boolean create) {
 		if (!isSubSelectable()) {
 			return null;
 		}
 		if (
-			PMS.getConfiguration().isMencoderDisableSubs() ||
-			!PMS.getConfiguration().getUseSubtitles() ||
-			!PMS.getConfiguration().openSubs()
+			PMS.getConfiguration().isDisableSubtitles() ||
+			!PMS.getConfiguration().isAutoloadSubtitles() ||
+			!PMS.getConfiguration().isLiveSubtitles()
 		) {
 			return null;
 		}

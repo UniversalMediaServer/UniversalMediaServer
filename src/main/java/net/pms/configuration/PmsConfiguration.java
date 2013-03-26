@@ -167,6 +167,8 @@ public class PmsConfiguration {
 	private static final String KEY_NOTRANSCODE = "notranscode";
 	private static final String KEY_NUMBER_OF_CPU_CORES = "nbcores";
 	private static final String KEY_OPEN_ARCHIVES = "enable_archive_browsing";
+	private static final String KEY_LIVE_SUBTITLES = "live_subtitles";
+	private static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
 	private static final String KEY_OVERSCAN = "mencoder_overscan";
 	private static final String KEY_PLUGIN_DIRECTORY = "plugins";
 	private static final String KEY_PLUGIN_PURGE_ACTION = "plugin_purge";
@@ -201,11 +203,12 @@ public class PmsConfiguration {
 	private static final String KEY_UUID = "uuid";
 	private static final String KEY_VIDEOTRANSCODE_START_DELAY = "key_videotranscode_start_delay"; // TODO (breaking change): should be renamed to e.g. videotranscode_start_delay
 	private static final String KEY_VIRTUAL_FOLDERS = "vfolders";
-	// the name of the subdirectory under which PMS config files are stored for this build (default: PMS).
-	// see Build for more details
+
+	// The name of the subdirectory under which PMS config files are stored for this build (default: PMS).
+	// See Build for more details
 	private static final String PROFILE_DIRECTORY_NAME = Build.getProfileDirectoryName();
 
-	// the default profile name displayed on the renderer
+	// The default profile name displayed on the renderer
 	private static String HOSTNAME;
 
 	private static String DEFAULT_AVI_SYNTH_SCRIPT;
@@ -300,10 +303,17 @@ public class PmsConfiguration {
 	 */
 	private static final String DEFAULT_PROFILE_FILENAME = "UMS.conf";
 	private static final String ENV_PROFILE_PATH = "UMS_PROFILE";
-	private static final String PROFILE_DIRECTORY; // path to directory containing UMS config files
-	private static final String PROFILE_PATH; // abs path to profile file e.g. /path/to/UMS.conf
-	private static final String SKEL_PROFILE_PATH; // abs path to skel (default) profile file e.g. /etc/skel/.config/universalmediaserver/UMS.conf
-	                                               // "project.skelprofile.dir" project property
+
+	// Path to directory containing UMS config files
+	private static final String PROFILE_DIRECTORY;
+
+	// Absolute path to profile file e.g. /path/to/UMS.conf
+	private static final String PROFILE_PATH;
+
+	// Absolute path to skel (default) profile file e.g. /etc/skel/.config/universalmediaserver/UMS.conf
+	// "project.skelprofile.dir" project property
+	private static final String SKEL_PROFILE_PATH; 
+
 	private static final String PROPERTY_PROFILE_PATH = "ums.profile.path";
 
 	static {
@@ -365,7 +375,7 @@ public class PmsConfiguration {
 			PROFILE_PATH = FilenameUtils.normalize(new File(PROFILE_DIRECTORY, DEFAULT_PROFILE_FILENAME).getAbsolutePath());
 		}
 
-		// set SKEL_PROFILE_PATH for Linux systems
+		// Set SKEL_PROFILE_PATH for Linux systems
 		String skelDir = PropertiesUtil.getProjectProperties().get("project.skelprofile.dir");
 		if (Platform.isLinux() && StringUtils.isNotBlank(skelDir)) {
 			SKEL_PROFILE_PATH = FilenameUtils.normalize(new File(new File(skelDir, PROFILE_DIRECTORY_NAME).getAbsolutePath(), DEFAULT_PROFILE_FILENAME).getAbsolutePath());
@@ -2750,14 +2760,11 @@ public class PmsConfiguration {
 		return getString(KEY_URL_RES_ORDER, "").split(",");
 	}
 
-	private static final String KEY_OPEN_SUBS = "open_subs";
-	private static final String KEY_OPEN_SUBS_LIM = "open_subs_limit";
-
-	public boolean openSubs() {
-		return getBoolean(KEY_OPEN_SUBS, false);
+	public boolean isLiveSubtitles() {
+		return getBoolean(KEY_LIVE_SUBTITLES, false);
 	}
 
-	public int openSubsLimit() {
-		return getInt(KEY_OPEN_SUBS_LIM, 20);
+	public int liveSubtitlesLimit() {
+		return getInt(KEY_LIVE_SUBTITLES_LIMIT, 20);
 	}
 }
