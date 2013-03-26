@@ -276,9 +276,10 @@
 			<version>1.2.1</version>
 		</dependency>
 		<dependency>
-			<groupId>org.jboss.netty</groupId>
-			<artifactId>netty</artifactId>
-			<version>3.2.7.Final</version>
+			<groupId>io.netty</groupId>
+			<artifactId>netty</artifactId> <!-- Use 'netty-all' for 4.0 or above -->
+			<version>3.6.3.Final</version>
+			<scope>compile</scope>
 		</dependency>
 
 		<!-- maven replacement for nsisant-1.2.jar -->
