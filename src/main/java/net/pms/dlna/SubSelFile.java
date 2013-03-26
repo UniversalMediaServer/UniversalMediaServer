@@ -41,9 +41,6 @@ public class SubSelFile extends VirtualFolder {
 			}
 			String lang = OpenSubtitle.getLang(key);
 			String name = OpenSubtitle.getName(key);
-			if (name.endsWith(".srt")) {
-				name = FileUtil.getFileNameWithoutExtension(name);
-			}
 			sub.setType(SubtitleType.SUBRIP);
 			sub.setId(1);
 			sub.setLang(lang);
