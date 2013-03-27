@@ -113,6 +113,7 @@ public class PmsConfiguration {
 	private static final String KEY_HIDE_EMPTY_FOLDERS = "hide_empty_folders";
 	private static final String KEY_HIDE_ENGINENAMES = "hide_enginenames";
 	private static final String KEY_HIDE_EXTENSIONS = "hide_extensions";
+	private static final String KEY_HIDE_LIVE_SUBTITLES_FOLDER = "hide_live_subtitles_folder";
 	private static final String KEY_HIDE_MEDIA_LIBRARY_FOLDER = "hide_media_library_folder";
 	private static final String KEY_HIDE_TRANSCODE_FOLDER = "hide_transcode_folder";
 	private static final String KEY_HIDE_VIDEO_SETTINGS = "hidevideosettings";
@@ -167,7 +168,6 @@ public class PmsConfiguration {
 	private static final String KEY_NOTRANSCODE = "notranscode";
 	private static final String KEY_NUMBER_OF_CPU_CORES = "nbcores";
 	private static final String KEY_OPEN_ARCHIVES = "enable_archive_browsing";
-	private static final String KEY_LIVE_SUBTITLES = "live_subtitles";
 	private static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
 	private static final String KEY_OVERSCAN = "mencoder_overscan";
 	private static final String KEY_PLUGIN_DIRECTORY = "plugins";
@@ -240,6 +240,7 @@ public class PmsConfiguration {
 			KEY_OPEN_ARCHIVES,
 			KEY_USE_CACHE,
 			KEY_HIDE_ENGINENAMES,
+			KEY_HIDE_LIVE_SUBTITLES_FOLDER,
 			KEY_ITUNES_ENABLED,
 			KEY_IPHOTO_ENABLED,
 			KEY_APERTURE_ENABLED,
@@ -2761,11 +2762,11 @@ public class PmsConfiguration {
 	}
 
 	public boolean isHideLiveSubtitlesFolder() {
-		return getBoolean(KEY_LIVE_SUBTITLES, true);
+		return getBoolean(KEY_HIDE_LIVE_SUBTITLES_FOLDER, true);
 	}
 
-	public void setLiveSubtitles(boolean value) {
-		configuration.setProperty(KEY_LIVE_SUBTITLES, value);
+	public void setHideLiveSubtitlesFolder(boolean value) {
+		configuration.setProperty(KEY_HIDE_LIVE_SUBTITLES_FOLDER, value);
 	}
 
 	public int liveSubtitlesLimit() {

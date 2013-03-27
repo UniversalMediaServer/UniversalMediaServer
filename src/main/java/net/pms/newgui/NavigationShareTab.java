@@ -563,7 +563,7 @@ public class NavigationShareTab {
 		liveSubtitles.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				configuration.setLiveSubtitles((e.getStateChange() == ItemEvent.SELECTED));
+				configuration.setHideLiveSubtitlesFolder((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
 	}
