@@ -1,7 +1,9 @@
 2.6.0 - 2013-03-??
 
 	General:
-		Implemented default subtitles, to use them:
+		Added "Live Subtitles" which means you can select subtitles from the Internet via your device. It can be enable on the Navigation/Share Settings page.
+		Improved layout of the Navigation/Share Settings page
+		Implemented default subtitle preferences, to use them:
 			Either use the "Clean Install" option on Windows or put "eng,off;*,eng;*,und" into the "Audio/subtitles language priority" box in the "Subtitles settings" tab on the Transcoding Settings page
 		Fixed DTS muxing with FFmpeg
 		Added new "precoder" functionality, useful for plugin developers
@@ -14,6 +16,8 @@
 			Improves audio sync
 			Improves DVD support
 			Supports filenames with uncommon characters
+		Updated Netty to 3.6.3, which:
+			Makes browsing more stable
 
 2.5.2.2 - 2013-03-19
 
