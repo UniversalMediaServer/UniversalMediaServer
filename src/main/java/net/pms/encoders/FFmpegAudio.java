@@ -44,7 +44,7 @@ import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
 
 public class FFmpegAudio extends FFMpegVideo {
-	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegAudio.class);
 	public static final String ID = "ffmpegaudio";
 
 	// should be private
