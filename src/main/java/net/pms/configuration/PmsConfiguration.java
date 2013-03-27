@@ -2760,8 +2760,12 @@ public class PmsConfiguration {
 		return getString(KEY_URL_RES_ORDER, "").split(",");
 	}
 
-	public boolean isLiveSubtitles() {
-		return getBoolean(KEY_LIVE_SUBTITLES, false);
+	public boolean isHideLiveSubtitlesFolder() {
+		return getBoolean(KEY_LIVE_SUBTITLES, true);
+	}
+
+	public void setLiveSubtitles(boolean value) {
+		configuration.setProperty(KEY_LIVE_SUBTITLES, value);
 	}
 
 	public int liveSubtitlesLimit() {
