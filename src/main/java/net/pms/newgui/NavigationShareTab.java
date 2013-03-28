@@ -572,7 +572,7 @@ public class NavigationShareTab {
 			}
 		});
 
-		prettifyfilenames = new JCheckBox(Messages.getString("FoldTab.42"));
+		prettifyfilenames = new JCheckBox(Messages.getString("FoldTab.43"));
 		prettifyfilenames.setContentAreaFilled(false);
 		if (configuration.isPrettifyFilenames()) {
 			prettifyfilenames.setSelected(true);
