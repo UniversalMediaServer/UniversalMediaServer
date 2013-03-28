@@ -1,4 +1,4 @@
-2.6.0 - 2013-03-??
+2.6.0 - 2013-03-29
 
 	General:
 		Added "Live Subtitles" which means you can select subtitles from the Internet via your device. It can be enable on the Navigation/Share Settings page.
@@ -7,16 +7,22 @@
 			Either use the "Clean Install" option on Windows or put "eng,off;*,eng;*,und" into the "Audio/subtitles language priority" box in the "Subtitles settings" tab on the Transcoding Settings page
 		Fixed DTS muxing with FFmpeg
 		Added new "precoder" functionality, useful for plugin developers
+		Added h.264 encoding support to MEncoder (when renderers specify it)
 	Languages:
-		Updated simplified Chinese translation (thanks, lovenemesis!)
+		Updated Czech translation
 		Updated English settings labels
+		Updated Simplified Chinese translation (thanks, lovenemesis!)
 	External Components:
 		Updated h2 database to 1.3.171, which:
-			Increases speed and improves JDK 7 compatibility
-		Updated MPlayer/MEncoder for Windows SB51, which:
+			Increases speed
+			Improves JDK 7 compatibility
+		Updated MPlayer/MEncoder for Windows SB52, which:
 			Improves audio sync
 			Improves DVD support
 			Supports filenames with uncommon characters
+			Fixes memory leaks
+			Improves sync with Real videos
+			Fixes a crash
 		Updated Netty to 3.6.3, which:
 			Makes browsing more stable
 
