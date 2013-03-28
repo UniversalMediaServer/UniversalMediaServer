@@ -26,6 +26,7 @@ import java.net.BindException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 import java.util.logging.LogManager;
 import javax.swing.*;
 import net.pms.configuration.Build;
@@ -555,10 +556,10 @@ public class PMS {
 
 					get().getServer().stop();
 					Thread.sleep(500);
-				} catch (IOException e) {
-					LOGGER.debug("Caught exception", e);
 				} catch (InterruptedException e) {
 					LOGGER.debug("Caught exception", e);
+				} catch (IOException ex) {
+					LOGGER.debug("Caught exception", ex);
 				}
 			}
 		});

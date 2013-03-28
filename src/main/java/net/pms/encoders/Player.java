@@ -39,6 +39,8 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.util.FileUtil;
 import net.pms.util.Iso639;
+import net.pms.util.OpenSubtitle;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -239,6 +241,22 @@ public abstract class Player {
 			LOGGER.trace("Don't want subtitles!");
 			params.sid = null;
 			return;
+		}
+
+		if (params.sid != null && !StringUtils.isEmpty(params.sid.getLiveSubURL())) {
+			// live subtitles
+			// currently only open subtitles
+			LOGGER.debug("Live subtitles " + params.sid.getLiveSubURL());
+			try {
+				matchedSub = params.sid;
+				String file = OpenSubtitle.fetchSubs(matchedSub.getLiveSubURL(), matchedSub.getLiveSubFile());
+				if (!StringUtils.isEmpty(file)) {
+					matchedSub.setExternalFile(new File(file));
+					params.sid = matchedSub;
+					return;
+				}
+			} catch (IOException e) {
+			}
 		}
 
 		StringTokenizer st1 = new StringTokenizer(configuration.getAudioSubLanguages(), ";");

@@ -124,6 +124,7 @@ public class MEncoderVideo extends Player {
 	protected boolean ovccopy;
 	protected boolean ac3Remux;
 	protected boolean mpegts;
+	protected boolean h264ts;
 	protected boolean wmv;
 
 	public static final String DEFAULT_CODEC_CONF_SCRIPT =
@@ -767,12 +768,12 @@ public class MEncoderVideo extends Player {
 		defaultArgsList.add((ac3Remux || dtsRemux) ? "copy" : (pcm ? "pcm" : "lavc"));
 
 		defaultArgsList.add("-of");
-		defaultArgsList.add((wmv || mpegts) ? "lavf" : ((pcm && avisynth()) ? "avi" : ((pcm || dtsRemux) ? "rawvideo" : "mpeg")));
+		defaultArgsList.add((wmv || mpegts || h264ts) ? "lavf" : ((pcm && avisynth()) ? "avi" : ((pcm || dtsRemux) ? "rawvideo" : "mpeg")));
 
 		if (wmv) {
 			defaultArgsList.add("-lavfopts");
 			defaultArgsList.add("format=asf");
-		} else if (mpegts) {
+		} else if (mpegts || h264ts) {
 			defaultArgsList.add("-lavfopts");
 			defaultArgsList.add("format=mpegts");
 		}
@@ -856,7 +857,11 @@ public class MEncoderVideo extends Player {
 		int bitrates[] = new int[2];
 
 		if (bitrate.contains("(") && bitrate.contains(")")) {
-			bitrates[1] = Integer.parseInt(bitrate.substring(bitrate.indexOf("(") + 1, bitrate.indexOf(")")));
+			try {
+				bitrates[1] = Integer.parseInt(bitrate.substring(bitrate.indexOf("(") + 1, bitrate.indexOf(")")));
+			} catch (NumberFormatException e) {
+				bitrates[1] = 0;
+			}
 		}
 
 		if (bitrate.contains("(")) {
@@ -867,7 +872,11 @@ public class MEncoderVideo extends Player {
 			bitrate = "0";
 		}
 
-		bitrates[0] = (int) Double.parseDouble(bitrate);
+		try {
+			bitrates[0] = (int) Double.parseDouble(bitrate);
+		} catch (NumberFormatException e) {
+			bitrates[0] = 0;
+		}
 
 		return bitrates;
 	}
@@ -1115,14 +1124,17 @@ public class MEncoderVideo extends Player {
 			}
 		}
 
+		mpegts = params.mediaRenderer.isTranscodeToMPEGTSAC3();
+		h264ts = params.mediaRenderer.isTranscodeToH264TSAC3();
+
 		String vcodec = "mpeg2video";
 
-		if (params.mediaRenderer.isTranscodeToWMV()) {
+		if (h264ts) {
+			vcodec = "libx264";
+		} else if (params.mediaRenderer.isTranscodeToWMV()) {
 			wmv = true;
 			vcodec = "wmv2"; // http://wiki.megaframe.org/Mencoder_Transcode_for_Xbox_360
 		}
-
-		mpegts = params.mediaRenderer.isTranscodeToMPEGTSAC3();
 
 		/**
 		 * Disable AC3 remux for stereo tracks with 384 kbits bitrate and PS3 renderer (PS3 FW bug?)
@@ -1300,6 +1312,7 @@ public class MEncoderVideo extends Player {
 				(wmv ? ":acodec=wmav2:abitrate=448" : (cbr_settings + ":acodec=" + (configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3") +
 				":abitrate=" + CodecUtil.getAC3Bitrate(configuration, params.aid))) +
 				":threads=" + (wmv ? 1 : configuration.getMencoderMaxThreads()) +
+				(h264ts ? ":o=preset=superfast,crf=20,g=250,i_qfactor=0.71,qcomp=0.6,level=4.1,weightp=0,8x8dct=0,aq-strength=0" : "") +
 				("".equals(mainConfig) ? "" : ":" + mainConfig);
 
 			String audioType = "ac3";

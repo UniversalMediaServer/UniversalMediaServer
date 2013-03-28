@@ -18,6 +18,7 @@
  */
 package net.pms.encoders;
 
+import com.sun.jna.Platform;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,6 +31,8 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
+import net.pms.external.ExternalFactory;
+import net.pms.external.URLResolver.URLResult;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.formats.WEB;
@@ -93,6 +96,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			protocols = FFmpegOptions.getSupportedProtocols(configuration);
 			// see XXX workaround below
 			protocols.add("mms");
+			protocols.add("https");
 			LOGGER.debug("FFmpeg supported protocols: " + protocols);
 
 			// Register protocols as a WEB format
@@ -173,25 +177,53 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		PipeProcess pipe = new PipeProcess(fifoName);
 		pipe.deleteLater(); // delete the named pipe later; harmless if it isn't created
 		ProcessWrapper mkfifo_process = pipe.getPipeProcess();
-		// start the process as early as possible
+
+		// Start the process as early as possible
 		mkfifo_process.runInNewThread();
 
 		params.input_pipes[0] = pipe;
-		int nThreads = configuration.getNumberOfCpuCores();
 
-		// build the command line
+		// Build the command line
 		List<String> cmdList = new ArrayList<String>();
+		if (!dlna.isURLResolved()) {
+			URLResult r1 = ExternalFactory.resolveURL(fileName);
+			if (r1 != null) {
+				if (r1.precoder != null) {
+					fileName = "-";
+					if (Platform.isWindows()) {
+						cmdList.add("cmd.exe");
+						cmdList.add("/C");
+					}
+					cmdList.addAll(r1.precoder);
+					cmdList.add("|");
+				} else {
+					if (StringUtils.isNotEmpty(r1.url)) {
+						fileName = r1.url;
+					}
+				}
+				if (r1.args != null && r1.args.size() > 0) {
+					customOptions.addAll(r1.args);
+				}
+			}
+		}
 
-		cmdList.add(executable());
+		cmdList.add(executable().replace("/", "\\\\"));
 
 		// XXX squashed bug - without this, ffmpeg hangs waiting for a confirmation
 		// that it can write to a file that already exists i.e. the named pipe
 		cmdList.add("-y");
 
 		cmdList.add("-loglevel");
-		cmdList.add("warning");
+		
+		if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
+			cmdList.add("info"); // Could be changed to "verbose" or "debug" if "info" level is not enough
+		} else {
+			cmdList.add("warning");
+		}
 
-		// decoder threads
+		int nThreads = configuration.getNumberOfCpuCores();
+
+		// Decoder threads
 		cmdList.add("-threads");
 		cmdList.add("" + nThreads);
 

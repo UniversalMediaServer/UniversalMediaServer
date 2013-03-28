@@ -545,7 +545,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						boolean hasSubsToTranscode = false;
 
 						if (!configuration.isDisableSubtitles()) {
-							hasSubsToTranscode = (configuration.isAutoloadSubtitles() && child.isSrtFile()) || hasEmbeddedSubs;
+							hasSubsToTranscode = (configuration.isAutoloadSubtitles() && child.isSrtFile()) || hasEmbeddedSubs || liveSubs(child);
 						}
 
 						boolean isIncompatible = false;
@@ -579,6 +579,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								LOGGER.trace("Duplicate " + child.getName() + " with player: " + player.toString());
 
 								transcodeFolder.addChild(fileTranscodeFolder);
+							}
+						}
+
+						if (child.getExt().isVideo() && child.isSubSelectable()) {
+							VirtualFolder vf = getSubSelector(true);
+							if (vf != null) {
+								DLNAResource newChild = child.clone();
+								newChild.setPlayer(player);
+								newChild.setMedia(child.getMedia());
+								LOGGER.trace("Duplicate subtitle " + child.getName() + " with player: " + player.toString());
+
+								vf.addChild(new SubSelFile(newChild));
 							}
 						}
 
@@ -2478,5 +2490,50 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public Object getAttachment(String key) {
 		return attachments == null ? null : attachments.get(key);
 	}
-}
 
+	public boolean isURLResolved() {
+		return false;
+	}
+
+	////////////////////////////////////////////////////
+	// Subtitle handling
+	////////////////////////////////////////////////////
+
+	private SubSelect getSubSelector(boolean create) {
+		if (!isSubSelectable()) {
+			return null;
+		}
+		if (
+			PMS.getConfiguration().isDisableSubtitles() ||
+			!PMS.getConfiguration().isAutoloadSubtitles() ||
+			PMS.getConfiguration().isHideLiveSubtitlesFolder()
+		) {
+			return null;
+		}
+
+		// Search for transcode folder
+		for (DLNAResource r : getChildren()) {
+			if (r instanceof SubSelect) {
+				return (SubSelect) r;
+			}
+		}
+		if (create) {
+			SubSelect vf = new SubSelect();
+			addChildInternal(vf);
+			return vf;
+		}
+		return null;
+	}
+
+	public boolean isSubSelectable() {
+		return false;
+	}
+
+	private boolean liveSubs(DLNAResource r) {
+		DLNAMediaSubtitle s = r.getMediaSubtitle();
+		if (s != null) {
+			return StringUtils.isNotEmpty(s.getLiveSubURL());
+		}
+		return false;
+	}
+}

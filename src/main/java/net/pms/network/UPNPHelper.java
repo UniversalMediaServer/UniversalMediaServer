@@ -14,7 +14,8 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+ * 02110-1301, USA.
  */
 package net.pms.network;
 
@@ -29,34 +30,49 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Helper class to handle the UPnP traffic that makes PMS discoverable by other clients.
+ * Helper class to handle the UPnP traffic that makes PMS discoverable by
+ * other clients.
  * See http://upnp.org/specs/arch/UPnP-arch-DeviceArchitecture-v1.0.pdf
  * and http://upnp.org/specs/arch/UPnP-arch-DeviceArchitecture-v1.1-AnnexA.pdf
  * for the specifications.
  */
 public class UPNPHelper {
+	// Logger instance to write messages to the logs.
 	private static final Logger LOGGER = LoggerFactory.getLogger(UPNPHelper.class);
 
-	private final static String CRLF = "\r\n";
-	private final static String ALIVE = "ssdp:alive";
-	
+	// Carriage return and line feed.
+	private static final String CRLF = "\r\n";
+
+	// The Constant ALIVE.
+	private static final String ALIVE = "ssdp:alive";
+
 	/**
 	 * IPv4 Multicast channel reserved for SSDP by Internet Assigned Numbers Authority (IANA).
 	 * MUST be 239.255.255.250.
 	 */
-	private final static String IPV4_UPNP_HOST = "239.255.255.250";
+	private static final String IPV4_UPNP_HOST = "239.255.255.250";
 
 	/**
 	 * Multicast channel reserved for SSDP by Internet Assigned Numbers Authority (IANA).
 	 * MUST be 1900.
 	 */
-	private final static int UPNP_PORT = 1900;
+	private static final int UPNP_PORT = 1900;
 
-	private final static String BYEBYE = "ssdp:byebye";
-	private static Thread listener;
+	// The Constant BYEBYE.
+	private static final String BYEBYE = "ssdp:byebye";
+
+	// The listener.
+	private static Thread listenerThread;
+
+	// The alive thread.
 	private static Thread aliveThread;
-	private static SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
+
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
+
+	/**
+	 * This utility class is not meant to be instantiated.
+	 */
+	private UPNPHelper() { }
 
 	/**
 	 * Send UPnP discovery search message to discover devices of interest on
@@ -65,10 +81,14 @@ public class UPNPHelper {
 	 * @param host The multicast channel
 	 * @param port The multicast port
 	 * @param st The search target string
-	 * @throws IOException
+	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	private static void sendDiscover(String host, int port, String st) throws IOException {
 		String usn = PMS.get().usn();
+		String serverHost = PMS.get().getServer().getHost();
+		int serverPort = PMS.get().getServer().getPort();
+		SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
+
 		sdf.setTimeZone(TimeZone.getTimeZone("GMT"));
 
 		if (st.equals(usn)) {
@@ -77,58 +97,99 @@ public class UPNPHelper {
 			usn += "::";
 		}
 
-		String discovery =
-			"HTTP/1.1 200 OK" + CRLF +
-			"CACHE-CONTROL: max-age=1200" + CRLF +
-			"DATE: " + sdf.format(new Date(System.currentTimeMillis())) + " GMT" + CRLF +
-			"LOCATION: http://" + PMS.get().getServer().getHost() + ":" + PMS.get().getServer().getPort() + "/description/fetch" + CRLF +
-			"SERVER: " + PMS.get().getServerName() + CRLF +
-			"ST: " + st + CRLF +
-			"EXT: " + CRLF +
-			"USN: " + usn + st + CRLF +
-			"Content-Length: 0" + CRLF + CRLF;
-		sendReply(host, port, discovery);
+		StringBuilder discovery = new StringBuilder();
+
+		discovery.append("HTTP/1.1 200 OK").append(CRLF);
+		discovery.append("CACHE-CONTROL: max-age=1200").append(CRLF);
+		discovery.append("DATE: ").append(sdf.format(new Date(System.currentTimeMillis()))).append(" GMT").append(CRLF);
+		discovery.append("LOCATION: http://").append(serverHost).append(":").append(serverPort).append("/description/fetch").append(CRLF);
+		discovery.append("SERVER: ").append(PMS.get().getServerName()).append(CRLF);
+		discovery.append("ST: ").append(st).append(CRLF);
+		discovery.append("EXT: ").append(CRLF);
+		discovery.append("USN: ").append(usn).append(st).append(CRLF);
+		discovery.append("Content-Length: 0").append(CRLF).append(CRLF);
+
+		sendReply(host, port, discovery.toString());
 	}
 
-	private static void sendReply(String host, int port, String msg) throws IOException {
+	/**
+	 * Send reply.
+	 *
+	 * @param host the host
+	 * @param port the port
+	 * @param msg the msg
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
+	private static void sendReply(String host, int port, String msg) {
 		try {
-			DatagramSocket ssdpUniSock = new DatagramSocket();
-
-			LOGGER.trace("Sending this reply [" + host + ":" + port + "]: " + StringUtils.replace(msg, CRLF, "<CRLF>"));
+			DatagramSocket datagramSocket = new DatagramSocket();
 			InetAddress inetAddr = InetAddress.getByName(host);
 			DatagramPacket dgmPacket = new DatagramPacket(msg.getBytes(), msg.length(), inetAddr, port);
-			ssdpUniSock.send(dgmPacket);
-			ssdpUniSock.close();
-		} catch (Exception ex) {
-			LOGGER.info(ex.getMessage());
+
+			LOGGER.trace("Sending this reply [" + host + ":" + port + "]: " + StringUtils.replace(msg, CRLF, "<CRLF>"));
+
+			datagramSocket.send(dgmPacket);
+			datagramSocket.close();
+		} catch (Exception e) {
+			LOGGER.info(e.getMessage());
+			LOGGER.debug("Error sending reply", e);
 		}
 	}
 
-	public static void sendAlive() throws IOException {
+	/**
+	 * Send alive.
+	 */
+	public static void sendAlive() {
 		LOGGER.debug("Sending ALIVE...");
+		MulticastSocket multicastSocket = null;
 
-		MulticastSocket ssdpSocket = getNewMulticastSocket();
-		sendMessage(ssdpSocket, "upnp:rootdevice", ALIVE);
-		sendMessage(ssdpSocket, PMS.get().usn(), ALIVE);
-		sendMessage(ssdpSocket, "urn:schemas-upnp-org:device:MediaServer:1", ALIVE);
-		sendMessage(ssdpSocket, "urn:schemas-upnp-org:service:ContentDirectory:1", ALIVE);
-		sendMessage(ssdpSocket, "urn:schemas-upnp-org:service:ConnectionManager:1", ALIVE);
+		try {
+			multicastSocket = getNewMulticastSocket();
+			InetAddress upnpAddress = getUPNPAddress();
+			multicastSocket.joinGroup(upnpAddress);
 
-		ssdpSocket.close();
-		ssdpSocket = null;
+			sendMessage(multicastSocket, "upnp:rootdevice", ALIVE);
+			sendMessage(multicastSocket, PMS.get().usn(), ALIVE);
+			sendMessage(multicastSocket, "urn:schemas-upnp-org:device:MediaServer:1", ALIVE);
+			sendMessage(multicastSocket, "urn:schemas-upnp-org:service:ContentDirectory:1", ALIVE);
+			sendMessage(multicastSocket, "urn:schemas-upnp-org:service:ConnectionManager:1", ALIVE);
+		} catch (IOException e) {
+			LOGGER.debug("Error sending ALIVE message", e);
+		} finally {
+			if (multicastSocket != null) {
+				// Clean up the multicast socket nicely
+				try {
+					InetAddress upnpAddress = getUPNPAddress();
+					multicastSocket.leaveGroup(upnpAddress);
+				} catch (IOException e) {
+				}
+
+				multicastSocket.disconnect();
+				multicastSocket.close();
+			}
+		}
 	}
 
+	/**
+	 * Gets the new multicast socket.
+	 *
+	 * @return the new multicast socket
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
 	private static MulticastSocket getNewMulticastSocket() throws IOException {
 		MulticastSocket ssdpSocket = new MulticastSocket();
 		ssdpSocket.setReuseAddress(true);
 		NetworkInterface ni = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
+
 		if (ni != null) {
 			ssdpSocket.setNetworkInterface(ni);
 
 			// force IPv4 address
 			Enumeration<InetAddress> enm = ni.getInetAddresses();
+
 			while (enm.hasMoreElements()) {
 				InetAddress ia = enm.nextElement();
+
 				if (!(ia instanceof Inet6Address)) {
 					ssdpSocket.setInterface(ia);
 					break;
@@ -142,77 +203,111 @@ public class UPNPHelper {
 		LOGGER.trace("Sending message from multicast socket on network interface: " + ssdpSocket.getNetworkInterface());
 		LOGGER.trace("Multicast socket is on interface: " + ssdpSocket.getInterface());
 		ssdpSocket.setTimeToLive(32);
-		ssdpSocket.joinGroup(getUPNPAddress());
 		LOGGER.trace("Socket Timeout: " + ssdpSocket.getSoTimeout());
 		LOGGER.trace("Socket TTL: " + ssdpSocket.getTimeToLive());
 		return ssdpSocket;
 	}
 
-	public static void sendByeBye() throws IOException {
-		LOGGER.info("Disconnecting HTTP server from renderers");
-		MulticastSocket ssdpSocket = getNewMulticastSocket();
+	/**
+	 * Send the UPnP BYEBYE message.
+	 */
+	public static void sendByeBye() {
+		LOGGER.info("Sending BYEBYE...");
 
-		sendMessage(ssdpSocket, "upnp:rootdevice", BYEBYE);
-		sendMessage(ssdpSocket, "urn:schemas-upnp-org:device:MediaServer:1", BYEBYE);
-		sendMessage(ssdpSocket, "urn:schemas-upnp-org:service:ContentDirectory:1", BYEBYE);
-		sendMessage(ssdpSocket, "urn:schemas-upnp-org:service:ConnectionManager:1", BYEBYE);
+		MulticastSocket multicastSocket = null;
 
-		ssdpSocket.leaveGroup(getUPNPAddress());
-		ssdpSocket.close();
-		ssdpSocket = null;
+		try {
+			multicastSocket = getNewMulticastSocket();
+			InetAddress upnpAddress = getUPNPAddress();
+			multicastSocket.joinGroup(upnpAddress);
+	
+			sendMessage(multicastSocket, "upnp:rootdevice", BYEBYE);
+			sendMessage(multicastSocket, "urn:schemas-upnp-org:device:MediaServer:1", BYEBYE);
+			sendMessage(multicastSocket, "urn:schemas-upnp-org:service:ContentDirectory:1", BYEBYE);
+			sendMessage(multicastSocket, "urn:schemas-upnp-org:service:ConnectionManager:1", BYEBYE);
+		} catch (IOException e) {
+			LOGGER.debug("Error sending BYEBYE message", e);
+		} finally {
+			if (multicastSocket != null) {
+				// Clean up the multicast socket nicely
+				try {
+					InetAddress upnpAddress = getUPNPAddress();
+					multicastSocket.leaveGroup(upnpAddress);
+				} catch (IOException e) {
+				}
 
+				multicastSocket.disconnect();
+				multicastSocket.close();
+			}
+		}
 	}
 
+	/**
+	 * Utility method to call {@link Thread#sleep(long)} without having to
+	 * catch the InterruptedException.
+	 *
+	 * @param delay the delay
+	 */
 	private static void sleep(int delay) {
 		try {
 			Thread.sleep(delay);
 		} catch (InterruptedException e) { }
 	}
 
+	/**
+	 * Send the provided message to the socket.
+	 *
+	 * @param socket the socket
+	 * @param nt the nt
+	 * @param message the message
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
 	private static void sendMessage(DatagramSocket socket, String nt, String message) throws IOException {
 		String msg = buildMsg(nt, message);
-		boolean alreadyLoggedError = false;
-		Random rand = new Random();
-		DatagramPacket ssdpPacket = new DatagramPacket(msg.getBytes(), msg.length(), getUPNPAddress(), UPNP_PORT);
+		//Random rand = new Random();
 
-		try {
-			socket.send(ssdpPacket);
-		} catch (IOException e) {
-			LOGGER.debug("An error occurred while sending this SSDP packet: " + CRLF + msg);
-			LOGGER.debug("The full error was: " + e);
-			alreadyLoggedError = true;
-		}
-		sleep(rand.nextInt(1800 / 2));
+		// LOGGER.trace( "Sending this SSDP packet: " + CRLF + StringUtils.replace(msg, CRLF, "<CRLF>")));
 
-		try {
-			socket.send(ssdpPacket);
-		} catch (IOException e) {
-			if (!alreadyLoggedError) {
-				LOGGER.debug("An error occurred while sending this SSDP packet: " + CRLF + msg);
-				LOGGER.debug("The full error was: " + e);
-			}
-		}
-		sleep(rand.nextInt(1800 / 2));
+		InetAddress upnpAddress = getUPNPAddress();
+		DatagramPacket ssdpPacket = new DatagramPacket(msg.getBytes(), msg.length(), upnpAddress, UPNP_PORT);
+		socket.send(ssdpPacket);
+
+		// XXX Why is it necessary to sleep for this random time? What would happen when random equals 0?
+		//sleep(rand.nextInt(1800 / 2));
+
+		// XXX Why send the same packet twice?
+		//socket.send(ssdpPacket);
+
+		// XXX Why is it necessary to sleep for this random time (again)?
+		//sleep(rand.nextInt(1800 / 2));
 	}
-	private static int delay = 10000;
 
+	/**
+	 * Starts up two threads: one to broadcast UPnP ALIVE messages and another
+	 * to listen for responses. 
+	 *
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
 	public static void listen() throws IOException {
 		Runnable rAlive = new Runnable() {
 			@Override
 			public void run() {
-				while (true) {
-					try {
-						Thread.sleep(delay);
-						sendAlive();
-						if (delay == 20000) { // every 180s
-							delay = 180000;
-						}
+				int delay = 10000;
 
-						if (delay == 10000) { // after 10, and 30s
-							delay = 20000;
-						}
-					} catch (Exception e) {
-						LOGGER.debug("Error while sending periodic alive message: " + e.getMessage());
+				while (true) {
+					sleep(delay);
+					sendAlive();
+
+					// The first delay for sending an ALIVE message is 10 seconds,
+					// the second delay is for 20 seconds. From then on, all other
+					// delays are for 180 seconds.
+					switch (delay) {
+					case 10000:
+						delay = 20000;
+						break;
+					case 20000:
+						delay = 180000;
+						break;
 					}
 				}
 			}
@@ -225,34 +320,44 @@ public class UPNPHelper {
 			@Override
 			public void run() {
 				boolean bindErrorReported = false;
+
 				while (true) {
+					MulticastSocket multicastSocket = null;
+
 					try {
 						// Use configurable source port as per http://code.google.com/p/ps3mediaserver/issues/detail?id=1166
-						MulticastSocket socket = new MulticastSocket(configuration.getUpnpPort());
+						multicastSocket = new MulticastSocket(configuration.getUpnpPort());
+
 						if (bindErrorReported) {
 							LOGGER.warn("Finally, acquiring port " + configuration.getUpnpPort() + " was successful!");
 						}
+
 						NetworkInterface ni = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
+
 						if (ni != null) {
-							socket.setNetworkInterface(ni);
+							multicastSocket.setNetworkInterface(ni);
 						} else if (PMS.get().getServer().getNetworkInterface() != null) {
 							LOGGER.trace("Setting multicast network interface: " + PMS.get().getServer().getNetworkInterface());
-							socket.setNetworkInterface(PMS.get().getServer().getNetworkInterface());
+							multicastSocket.setNetworkInterface(PMS.get().getServer().getNetworkInterface());
 						}
-						socket.setTimeToLive(4);
-						socket.setReuseAddress(true);
-						socket.joinGroup(getUPNPAddress());
+
+						multicastSocket.setTimeToLive(4);
+						multicastSocket.setReuseAddress(true);
+						InetAddress upnpAddress = getUPNPAddress();
+						multicastSocket.joinGroup(upnpAddress);
+
 						while (true) {
 							byte[] buf = new byte[1024];
-							DatagramPacket packet_r = new DatagramPacket(buf, buf.length);
-							socket.receive(packet_r);
+							DatagramPacket receivePacket = new DatagramPacket(buf, buf.length);
+							multicastSocket.receive(receivePacket);
 
-							String s = new String(packet_r.getData());
+							String s = new String(receivePacket.getData());
 
-							InetAddress address = packet_r.getAddress();
+							InetAddress address = receivePacket.getAddress();
+
 							if (s.startsWith("M-SEARCH")) {
 								String remoteAddr = address.getHostAddress();
-								int remotePort = packet_r.getPort();
+								int remotePort = receivePacket.getPort();
 
 								if (configuration.getIpFiltering().allowed(address)) {
 									LOGGER.trace("Receiving a M-SEARCH from [" + remoteAddr + ":" + remotePort + "]");
@@ -279,7 +384,7 @@ public class UPNPHelper {
 								}
 							} else if (s.startsWith("NOTIFY")) {
 								String remoteAddr = address.getHostAddress();
-								int remotePort = packet_r.getPort();
+								int remotePort = receivePacket.getPort();
 
 								LOGGER.trace("Receiving a NOTIFY from [" + remoteAddr + ":" + remotePort + "]");
 							}
@@ -292,48 +397,70 @@ public class UPNPHelper {
 							+ "stop the other program and free up the port. "
 							+ "PMS will keep trying to bind to it...[" + e.getMessage() + "]");
 						}
+
 						bindErrorReported = true;
 						sleep(5000);
 					} catch (IOException e) {
 						LOGGER.error("UPNP network exception", e);
 						sleep(1000);
+					} finally {
+						if (multicastSocket != null) {
+							// Clean up the multicast socket nicely
+							try {
+								InetAddress upnpAddress = getUPNPAddress();
+								multicastSocket.leaveGroup(upnpAddress);
+							} catch (IOException e) {
+							}
+
+							multicastSocket.disconnect();
+							multicastSocket.close();
+						}
 					}
 				}
 			}
 		};
 
-		listener = new Thread(r, "UPNPHelper");
-		listener.start();
+		listenerThread = new Thread(r, "UPNPHelper");
+		listenerThread.start();
 	}
 
+	/**
+	 * Shut down the threads that send ALIVE messages and listen to responses.
+	 */
 	public static void shutDownListener() {
-		try {
-			listener.interrupt();
-			aliveThread.interrupt();
-		} catch (NullPointerException e) {
-			LOGGER.debug("An error occurred while closing UMS.", e);
-		}
+		listenerThread.interrupt();
+		aliveThread.interrupt();
 	}
 
+	/**
+	 * Builds a UPnP message string based on a message.
+	 *
+	 * @param nt the nt
+	 * @param message the message
+	 * @return the string
+	 */
 	private static String buildMsg(String nt, String message) {
 		StringBuilder sb = new StringBuilder();
 
-		sb.append("NOTIFY * HTTP/1.1" + CRLF);
-		sb.append("HOST: " + IPV4_UPNP_HOST + ":").append(UPNP_PORT).append(CRLF);
+		sb.append("NOTIFY * HTTP/1.1").append(CRLF);
+		sb.append("HOST: ").append(IPV4_UPNP_HOST).append(":").append(UPNP_PORT).append(CRLF);
 		sb.append("NT: ").append(nt).append(CRLF);
 		sb.append("NTS: ").append(message).append(CRLF);
 
 		if (message.equals(ALIVE)) {
-			sb.append("LOCATION: http://").append(PMS.get().getServer().getHost()).append(":").append(PMS.get().getServer().getPort()).append("/description/fetch" + CRLF);
+			sb.append("LOCATION: http://").append(PMS.get().getServer().getHost()).append(":").append(PMS.get().getServer().getPort()).append("/description/fetch").append(CRLF);
 		}
+
 		sb.append("USN: ").append(PMS.get().usn());
+
 		if (!nt.equals(PMS.get().usn())) {
 			sb.append("::").append(nt);
 		}
+
 		sb.append(CRLF);
 
 		if (message.equals(ALIVE)) {
-			sb.append("CACHE-CONTROL: max-age=1800" + CRLF);
+			sb.append("CACHE-CONTROL: max-age=1800").append(CRLF);
 		}
 
 		if (message.equals(ALIVE)) {
@@ -344,6 +471,12 @@ public class UPNPHelper {
 		return sb.toString();
 	}
 
+	/**
+	 * Gets the uPNP address.
+	 *
+	 * @return the uPNP address
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
 	private static InetAddress getUPNPAddress() throws IOException {
 		return InetAddress.getByAddress(IPV4_UPNP_HOST, new byte[]{(byte) 239, (byte) 255, (byte) 255, (byte) 250});
 	}
