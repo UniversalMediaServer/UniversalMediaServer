@@ -53,24 +53,25 @@ public class OpenSubtitle {
 
 		// Buffer that will contain the head and the tail chunk, chunks will overlap if length is smaller than two chunks
 		byte[] chunkBytes = new byte[(int) Math.min(2 * HASH_CHUNK_SIZE, length)];
-		long head;
-		long tail;
-		try (DataInputStream in = new DataInputStream(stream)) {
-			// First chunk
-			in.readFully(chunkBytes, 0, chunkSizeForFile);
 
-			long position = chunkSizeForFile;
-			long tailChunkPosition = length - chunkSizeForFile;
+		DataInputStream in = new DataInputStream(stream);
 
-			// Seek to position of the tail chunk, or not at all if length is smaller than two chunks 
-			while (position < tailChunkPosition && (position += in.skip(tailChunkPosition - position)) >= 0);
+		// First chunk
+		in.readFully(chunkBytes, 0, chunkSizeForFile);
 
-			// Second chunk, or the rest of the data if length is smaller than two chunks 
-			in.readFully(chunkBytes, chunkSizeForFile, chunkBytes.length - chunkSizeForFile);
+		long position = chunkSizeForFile;
+		long tailChunkPosition = length - chunkSizeForFile;
 
-			head = computeHashForChunk(ByteBuffer.wrap(chunkBytes, 0, chunkSizeForFile));
-			tail = computeHashForChunk(ByteBuffer.wrap(chunkBytes, chunkBytes.length - chunkSizeForFile, chunkSizeForFile));
-		}
+		// Seek to position of the tail chunk, or not at all if length is smaller than two chunks 
+		while (position < tailChunkPosition && (position += in.skip(tailChunkPosition - position)) >= 0);
+
+		// Second chunk, or the rest of the data if length is smaller than two chunks 
+		in.readFully(chunkBytes, chunkSizeForFile, chunkBytes.length - chunkSizeForFile);
+
+		long head = computeHashForChunk(ByteBuffer.wrap(chunkBytes, 0, chunkSizeForFile));
+		long tail = computeHashForChunk(ByteBuffer.wrap(chunkBytes, chunkBytes.length - chunkSizeForFile, chunkSizeForFile));
+
+		in.close();
 		return String.format("%016x", length + head + tail);
 	}
 
@@ -96,21 +97,20 @@ public class OpenSubtitle {
 		//LOGGER.debug("opensub query "+query);
 		// open up the output stream of the connection
 		if (!StringUtils.isEmpty(query)) {
-			try (DataOutputStream output = new DataOutputStream(connection.getOutputStream())) {
-				output.writeBytes(query);
-				output.flush();
-			}
+			DataOutputStream output = new DataOutputStream(connection.getOutputStream());
+			output.writeBytes(query);
+			output.flush();
+			output.close();
 		}
 
-		StringBuilder page;
-		try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
-			page = new StringBuilder();
-			String str;
-			while ((str = in.readLine()) != null) {
-				page.append(str.trim());
-				page.append("\n");
-			}
+		BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+		StringBuilder page = new StringBuilder();
+		String str;
+		while ((str = in.readLine()) != null) {
+			page.append(str.trim());
+			page.append("\n");
 		}
+		in.close();
 		//LOGGER.debug("opensubs result page "+page.toString());
 		return page.toString();
 	}
@@ -203,7 +203,7 @@ public class OpenSubtitle {
 
 	public static Map<String, Object> findSubs(String hash, long size, String imdb, String query) throws IOException {
 		login();
-		TreeMap<String, Object> res = new TreeMap<>();
+		TreeMap<String, Object> res = new TreeMap<String, Object>();
 		if (token == null) {
 			return res;
 		}
@@ -270,14 +270,13 @@ public class OpenSubtitle {
 		connection.setDoInput(true);
 		connection.setDoOutput(true);
 		InputStream in = connection.getInputStream();
-		OutputStream out;
-		try (GZIPInputStream gzipInputStream = new GZIPInputStream(in)) {
-			out = new FileOutputStream(f);
-			byte[] buf = new byte[4096];
-			int len;
-			while ((len = gzipInputStream.read(buf)) > 0) {
-				out.write(buf, 0, len);
-			}
+
+		GZIPInputStream gzipInputStream = new GZIPInputStream(in);
+		OutputStream out = new FileOutputStream(f);
+		byte[] buf = new byte[4096];
+		int len;
+		while ((len = gzipInputStream.read(buf)) > 0) {
+			out.write(buf, 0, len);
 		}
 		out.close();
 		return f.getAbsolutePath();

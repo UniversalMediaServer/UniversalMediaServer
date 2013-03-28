@@ -77,7 +77,7 @@ public class ExternalFactory {
 	/**
 	 * List of urlresolvers.
 	 */
-	private static List<URLResolver> urlResolvers = new ArrayList<>();
+	private static List<URLResolver> urlResolvers = new ArrayList<URLResolver>();
 
 	private static boolean allDone = false;
 

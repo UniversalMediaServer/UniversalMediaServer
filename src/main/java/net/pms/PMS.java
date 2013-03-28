@@ -558,8 +558,6 @@ public class PMS {
 					Thread.sleep(500);
 				} catch (InterruptedException e) {
 					LOGGER.debug("Caught exception", e);
-				} catch (IOException ex) {
-					LOGGER.debug("Caught exception", ex);
 				}
 			}
 		});
