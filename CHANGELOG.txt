@@ -1,4 +1,4 @@
-2.6.0 - 2013-03-??
+2.6.0 - 2013-03-29
 
 	General:
 		Added "Live Subtitles" which means you can select subtitles from the Internet via your device. It can be enable on the Navigation/Share Settings page.
