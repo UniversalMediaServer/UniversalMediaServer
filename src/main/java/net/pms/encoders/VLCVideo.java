@@ -375,7 +375,7 @@ public class VLCVideo extends Player {
 		});
 		builder.add(experimentalCodecs, FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 
-		audioSyncEnabled = new JCheckBox(Messages.getString("VlcTrans.4"), configuration.isVlcAudioSyncEnabled());
+		audioSyncEnabled = new JCheckBox(Messages.getString("MEncoderVideo.2"), configuration.isVlcAudioSyncEnabled());
 		audioSyncEnabled.setContentAreaFilled(false);
 		audioSyncEnabled.addItemListener(new ItemListener() {
 			@Override
