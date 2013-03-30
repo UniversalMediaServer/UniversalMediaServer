@@ -2814,22 +2814,6 @@ public class PmsConfiguration {
 		configuration.setProperty(KEY_VLC_SUBTITLE_ENABLED, value);
 	}
 
-	public String getVlcAudioPri() {
-		return getString(KEY_VLC_AUDIO_PRI, Messages.getString("VlcTrans.7"));
-	}
-
-	public void setVlcAudioPri(String text) {
-		configuration.setProperty(KEY_VLC_AUDIO_PRI, text);
-	}
-
-	public String getVlcSubtitlePri() {
-		return getString(KEY_VLC_SUBTITLE_PRI, Messages.getString("VlcTrans.9"));
-	}
-
-	public void setVlcSubtitlePri(String text) {
-		configuration.setProperty(KEY_VLC_SUBTITLE_PRI, text);
-	}
-
 	public String getVlcScale() {
 		return getString(KEY_VLC_SCALE, "1.0");
 	}

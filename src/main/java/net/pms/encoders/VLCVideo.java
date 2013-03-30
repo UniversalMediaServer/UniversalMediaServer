@@ -19,9 +19,13 @@
 package net.pms.encoders;
 
 import com.jgoodies.forms.builder.DefaultFormBuilder;
+import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.factories.Borders;
+import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import com.sun.jna.Platform;
 import java.awt.ComponentOrientation;
+import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
@@ -56,7 +60,9 @@ import org.slf4j.LoggerFactory;
  */
 public class VLCVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(VLCVideo.class);
-	protected final PmsConfiguration pmsconfig;
+	private static final String COL_SPEC = "right:pref, 3dlu, pref:grow, 7dlu, right:pref, 3dlu, pref:grow";
+	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 9dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
+	protected final PmsConfiguration configuration;
 	public static final String ID = "vlctranscoder";
 	protected JCheckBox hardwareAccel;
 	protected JTextField audioPri;
@@ -68,8 +74,8 @@ public class VLCVideo extends Player {
 	protected JCheckBox sampleRateOverride;
 	protected JTextField extraParams;
 
-	public VLCVideo(PmsConfiguration pmsconfig) {
-		this.pmsconfig = pmsconfig;
+	public VLCVideo(PmsConfiguration configuration) {
+		this.configuration = configuration;
 	}
 
 	@Override
@@ -115,7 +121,7 @@ public class VLCVideo extends Player {
 
 	@Override
 	public String executable() {
-		return pmsconfig.getVlcPath();
+		return configuration.getVlcPath();
 	}
 
 	@Override
@@ -284,7 +290,7 @@ public class VLCVideo extends Player {
 			} else { // Load by ID (better)
 				cmdList.add("--sub-track=" + params.sid.getId());
 			}
-		} else if (!pmsconfig.isMencoderDisableSubs()) { // Not specified, use language from GUI if enabled
+		} else if (!configuration.isDisableSubtitles()) { // Not specified, use language from GUI if enabled
 			cmdList.add("--sub-language=" + subtitlePri.getText());
 		} else {
 			cmdList.add("--sub-" + disableSuffix);
@@ -324,7 +330,7 @@ public class VLCVideo extends Player {
 		// Pass to process wrapper
 		String[] cmdArray = new String[cmdList.size()];
 		cmdList.toArray(cmdArray);
-		cmdArray = finalizeTranscoderArgs(this, fileName, dlna, media, params, cmdArray);
+		cmdArray = finalizeTranscoderArgs(fileName, dlna, media, params, cmdArray);
 		LOGGER.trace("Finalized args: " + StringUtils.join(cmdArray, " "));
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 		pw.attachProcess(pipe_process);
@@ -342,64 +348,61 @@ public class VLCVideo extends Player {
 	@Override
 	public JComponent config() {
 		// Apply the orientation for the locale
-		Locale locale = new Locale(pmsconfig.getLanguage());
+		Locale locale = new Locale(configuration.getLanguage());
 		ComponentOrientation orientation = ComponentOrientation.getOrientation(locale);
-		String colSpec = FormLayoutUtil.getColSpec("right:pref, 3dlu, pref:grow, 7dlu, right:pref, 3dlu, pref:grow", orientation);
-		FormLayout layout = new FormLayout(colSpec, "");
-		// Here goes my 3rd try to learn JGoodies Form
-		layout.setColumnGroups(new int[][]{{1, 5}, {3, 7}});
-		DefaultFormBuilder mainPanel = new DefaultFormBuilder(layout);
+		String colSpec = FormLayoutUtil.getColSpec(COL_SPEC, orientation);
+		FormLayout layout = new FormLayout(colSpec, ROW_SPEC);
+		PanelBuilder builder = new PanelBuilder(layout);
+		builder.setBorder(Borders.EMPTY_BORDER);
+		builder.setOpaque(false);
 
-		mainPanel.appendSeparator(Messages.getString("VlcTrans.1"));
-		mainPanel.append(hardwareAccel = new JCheckBox(Messages.getString("VlcTrans.2"), pmsconfig.isVlcUseHardwareAccel()), 3);
+		CellConstraints cc = new CellConstraints();
+
+		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), FormLayoutUtil.flip(cc.xyw(1, 1, 7), colSpec, orientation));
+		cmp = (JComponent) cmp.getComponent(0);
+		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
+
+		hardwareAccel = new JCheckBox(Messages.getString("VlcTrans.2"), configuration.isVlcUseHardwareAccel());
 		hardwareAccel.setContentAreaFilled(false);
 		hardwareAccel.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				pmsconfig.setVlcUseHardwareAccel(e.getStateChange() == ItemEvent.SELECTED);
+				configuration.setVlcUseHardwareAccel(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		mainPanel.append(experimentalCodecs = new JCheckBox(Messages.getString("VlcTrans.3"), pmsconfig.isVlcExperimentalCodecs()), 3);
+		builder.add(hardwareAccel, FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
+
+		experimentalCodecs = new JCheckBox(Messages.getString("VlcTrans.3"), configuration.isVlcExperimentalCodecs());
 		experimentalCodecs.setContentAreaFilled(false);
 		experimentalCodecs.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				pmsconfig.setVlcExperimentalCodecs(e.getStateChange() == ItemEvent.SELECTED);
+				configuration.setVlcExperimentalCodecs(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		mainPanel.append(audioSyncEnabled = new JCheckBox(Messages.getString("VlcTrans.4"), pmsconfig.isVlcAudioSyncEnabled()), 3);
+		builder.add(experimentalCodecs, FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
+
+		audioSyncEnabled = new JCheckBox(Messages.getString("VlcTrans.4"), configuration.isVlcAudioSyncEnabled());
 		audioSyncEnabled.setContentAreaFilled(false);
 		audioSyncEnabled.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				pmsconfig.setVlcAudioSyncEnabled(e.getStateChange() == ItemEvent.SELECTED);
+				configuration.setVlcAudioSyncEnabled(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		mainPanel.nextLine();
+		builder.add(audioSyncEnabled, FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
 
-		mainPanel.append(Messages.getString("VlcTrans.6"), audioPri = new JTextField(pmsconfig.getVlcAudioPri()));
-		audioPri.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				pmsconfig.setVlcAudioPri(audioPri.getText());
-			}
-		});
-		mainPanel.append(Messages.getString("VlcTrans.8"), subtitlePri = new JTextField(pmsconfig.getVlcSubtitlePri()));
-		subtitlePri.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				pmsconfig.setVlcSubtitlePri(subtitlePri.getText());
-			}
-		});
-
-		// Developer stuff. Theoretically is temporary 
-		mainPanel.appendSeparator(Messages.getString("VlcTrans.10"));
+		// Developer stuff. Theoretically temporary
+		cmp = builder.addSeparator(Messages.getString("VlcTrans.10"), FormLayoutUtil.flip(cc.xyw(1, 9, 7), colSpec, orientation));
+		cmp = (JComponent) cmp.getComponent(0);
+		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
 		// Add scale as a subpanel because it has an awkward layout
+		/**
 		mainPanel.append(Messages.getString("VlcTrans.11"));
 		FormLayout scaleLayout = new FormLayout("pref,3dlu,pref", "");
 		DefaultFormBuilder scalePanel = new DefaultFormBuilder(scaleLayout);
-		double startingScale = Double.valueOf(pmsconfig.getVlcScale());
+		double startingScale = Double.valueOf(configuration.getVlcScale());
 		scalePanel.append(scale = new JTextField(String.valueOf(startingScale)));
 		final JSlider scaleSlider = new JSlider(JSlider.HORIZONTAL, 0, 10, (int) (startingScale * 10));
 		scalePanel.append(scaleSlider);
@@ -408,7 +411,7 @@ public class VLCVideo extends Player {
 			public void stateChanged(ChangeEvent ce) {
 				String value = String.valueOf((double) scaleSlider.getValue() / 10);
 				scale.setText(value);
-				pmsconfig.setVlcScale(value);
+				configuration.setVlcScale(value);
 			}
 		});
 		scale.addKeyListener(new KeyAdapter() {
@@ -420,7 +423,7 @@ public class VLCVideo extends Player {
 				}
 				double value = Double.parseDouble(typed);
 				scaleSlider.setValue((int) (value * 10));
-				pmsconfig.setVlcScale(String.valueOf(value));
+				configuration.setVlcScale(String.valueOf(value));
 			}
 		});
 		mainPanel.append(scalePanel.getPanel(), 3);
@@ -428,14 +431,14 @@ public class VLCVideo extends Player {
 		// Audio sample rate
 		FormLayout sampleRateLayout = new FormLayout("right:pref, 3dlu, right:pref, 3dlu, right:pref, 3dlu, left:pref", "");
 		DefaultFormBuilder sampleRatePanel = new DefaultFormBuilder(sampleRateLayout);
-		sampleRateOverride = new JCheckBox(Messages.getString("VlcTrans.17"), pmsconfig.getVlcSampleRateOverride());
+		sampleRateOverride = new JCheckBox(Messages.getString("VlcTrans.17"), configuration.getVlcSampleRateOverride());
 		sampleRatePanel.append(Messages.getString("VlcTrans.18"), sampleRateOverride);
-		sampleRate = new JTextField(pmsconfig.getVlcSampleRate(), 8);
-		sampleRate.setEnabled(pmsconfig.getVlcSampleRateOverride());
+		sampleRate = new JTextField(configuration.getVlcSampleRate(), 8);
+		sampleRate.setEnabled(configuration.getVlcSampleRateOverride());
 		sampleRate.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				pmsconfig.setVlcSampleRate(sampleRate.getText());
+				configuration.setVlcSampleRate(sampleRate.getText());
 			}
 		});
 		sampleRatePanel.append(Messages.getString("VlcTrans.19"), sampleRate);
@@ -443,7 +446,7 @@ public class VLCVideo extends Player {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				boolean checked = e.getStateChange() == ItemEvent.SELECTED;
-				pmsconfig.setVlcSampleRateOverride(checked);
+				configuration.setVlcSampleRateOverride(checked);
 				sampleRate.setEnabled(checked);
 			}
 		});
@@ -453,8 +456,22 @@ public class VLCVideo extends Player {
 
 		// Extra options
 		mainPanel.nextLine();
-		mainPanel.append(Messages.getString("VlcTrans.20"), extraParams = new JTextField(), 5);
+		*/
+		builder.addLabel(Messages.getString("VlcTrans.20"), FormLayoutUtil.flip(cc.xy(1, 11), colSpec, orientation));
+		extraParams = new JTextField(configuration.getMencoderFont());
+		extraParams.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				configuration.setMencoderFont(extraParams.getText());
+			}
+		});
+		builder.add(extraParams, FormLayoutUtil.flip(cc.xyw(3, 11, 4), colSpec, orientation));
 
-		return mainPanel.getPanel();
+		JPanel panel = builder.getPanel();
+
+		// Apply the orientation to the panel and all components in it
+		panel.applyComponentOrientation(orientation);
+
+		return panel;
 	}
 }
