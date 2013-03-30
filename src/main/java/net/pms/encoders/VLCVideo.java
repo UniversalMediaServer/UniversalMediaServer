@@ -61,7 +61,6 @@ public class VLCVideo extends Player {
 	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 9dlu, p, 3dlu, p";
 	protected final PmsConfiguration configuration;
 	public static final String ID = "vlctranscoder";
-	protected JCheckBox hardwareAccel;
 	protected JTextField audioPri;
 	protected JTextField subtitlePri;
 	protected JTextField scale;
@@ -256,7 +255,7 @@ public class VLCVideo extends Player {
 		cmdList.add("dummy");
 
 		// Hardware acceleration seems to be more stable now, so its enabled
-		if (hardwareAccel.isSelected()) {
+		if (configuration.isGPUAcceleration()) {
 			cmdList.add("--ffmpeg-hw");
 		}
 
@@ -366,16 +365,6 @@ public class VLCVideo extends Player {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		hardwareAccel = new JCheckBox(Messages.getString("VlcTrans.2"), configuration.isVlcUseHardwareAccel());
-		hardwareAccel.setContentAreaFilled(false);
-		hardwareAccel.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setVlcUseHardwareAccel(e.getStateChange() == ItemEvent.SELECTED);
-			}
-		});
-		builder.add(hardwareAccel, FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
-
 		experimentalCodecs = new JCheckBox(Messages.getString("VlcTrans.3"), configuration.isVlcExperimentalCodecs());
 		experimentalCodecs.setContentAreaFilled(false);
 		experimentalCodecs.addItemListener(new ItemListener() {
@@ -384,7 +373,7 @@ public class VLCVideo extends Player {
 				configuration.setVlcExperimentalCodecs(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(experimentalCodecs, FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
+		builder.add(experimentalCodecs, FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 
 		audioSyncEnabled = new JCheckBox(Messages.getString("VlcTrans.4"), configuration.isVlcAudioSyncEnabled());
 		audioSyncEnabled.setContentAreaFilled(false);
@@ -394,10 +383,10 @@ public class VLCVideo extends Player {
 				configuration.setVlcAudioSyncEnabled(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(audioSyncEnabled, FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
+		builder.add(audioSyncEnabled, FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
 
 		// Developer stuff. Theoretically temporary
-		cmp = builder.addSeparator(Messages.getString("VlcTrans.10"), FormLayoutUtil.flip(cc.xyw(1, 9, 5), colSpec, orientation));
+		cmp = builder.addSeparator(Messages.getString("VlcTrans.10"), FormLayoutUtil.flip(cc.xyw(1, 7, 5), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
@@ -461,7 +450,7 @@ public class VLCVideo extends Player {
 		// Extra options
 		mainPanel.nextLine();
 		*/
-		builder.addLabel(Messages.getString("VlcTrans.20"), FormLayoutUtil.flip(cc.xy(1, 11), colSpec, orientation));
+		builder.addLabel(Messages.getString("VlcTrans.20"), FormLayoutUtil.flip(cc.xy(1, 9), colSpec, orientation));
 		extraParams = new JTextField(configuration.getMencoderFont());
 		extraParams.addKeyListener(new KeyAdapter() {
 			@Override
@@ -469,7 +458,7 @@ public class VLCVideo extends Player {
 				configuration.setMencoderFont(extraParams.getText());
 			}
 		});
-		builder.add(extraParams, FormLayoutUtil.flip(cc.xyw(3, 11, 3), colSpec, orientation));
+		builder.add(extraParams, FormLayoutUtil.flip(cc.xyw(3, 9, 3), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 
