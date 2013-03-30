@@ -148,6 +148,11 @@ public class VLCVideo extends Player {
 			config.videoCodec = "mp2v";
 			config.audioCodec = "mp2a"; // NOTE: a52 sometimes causes audio to stop after ~5 mins
 			config.container = "ts";
+		} else if (renderer.isTranscodeToH264TSAC3()) {
+			LOGGER.debug("Using H.264 and AC-3 with ts container");
+			config.videoCodec = "h264";
+			config.audioCodec = "mp2a"; // NOTE: a52 sometimes causes audio to stop after ~5 mins
+			config.container = "ts";
 		} else {
 			// Default codecs for DLNA standard
 			LOGGER.debug("Using DLNA standard codecs with ps (default) container");
