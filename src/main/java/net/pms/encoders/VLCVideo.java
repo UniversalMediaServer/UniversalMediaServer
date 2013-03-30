@@ -18,7 +18,6 @@
  */
 package net.pms.encoders;
 
-import com.jgoodies.forms.builder.DefaultFormBuilder;
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
@@ -33,8 +32,6 @@ import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.*;
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import net.pms.Messages;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -60,8 +57,8 @@ import org.slf4j.LoggerFactory;
  */
 public class VLCVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(VLCVideo.class);
-	private static final String COL_SPEC = "right:pref, 3dlu, pref:grow, 7dlu, right:pref, 3dlu, pref:grow";
-	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 9dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
+	private static final String COL_SPEC = "left:pref, 3dlu, p, 3dlu, 0:grow";
+	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 9dlu, p, 3dlu, p";
 	protected final PmsConfiguration configuration;
 	public static final String ID = "vlctranscoder";
 	protected JCheckBox hardwareAccel;
@@ -358,7 +355,7 @@ public class VLCVideo extends Player {
 
 		CellConstraints cc = new CellConstraints();
 
-		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), FormLayoutUtil.flip(cc.xyw(1, 1, 7), colSpec, orientation));
+		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), FormLayoutUtil.flip(cc.xyw(1, 1, 5), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
@@ -393,7 +390,7 @@ public class VLCVideo extends Player {
 		builder.add(audioSyncEnabled, FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
 
 		// Developer stuff. Theoretically temporary
-		cmp = builder.addSeparator(Messages.getString("VlcTrans.10"), FormLayoutUtil.flip(cc.xyw(1, 9, 7), colSpec, orientation));
+		cmp = builder.addSeparator(Messages.getString("VlcTrans.10"), FormLayoutUtil.flip(cc.xyw(1, 9, 5), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
@@ -465,7 +462,7 @@ public class VLCVideo extends Player {
 				configuration.setMencoderFont(extraParams.getText());
 			}
 		});
-		builder.add(extraParams, FormLayoutUtil.flip(cc.xyw(3, 11, 4), colSpec, orientation));
+		builder.add(extraParams, FormLayoutUtil.flip(cc.xyw(3, 11, 3), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 
