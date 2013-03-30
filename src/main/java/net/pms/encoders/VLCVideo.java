@@ -157,10 +157,12 @@ public class VLCVideo extends Player {
 		}
 		LOGGER.trace("Using " + config.videoCodec + ", " + config.audioCodec + ", " + config.container);
 
+		/**
 		// Audio sample rate handling
 		if (sampleRateOverride.isSelected()) {
 			config.sampleRate = Integer.valueOf(sampleRate.getText());
 		}
+		*/
 
 		// This has caused garbled audio, so only enable when told to
 		if (audioSyncEnabled.isSelected()) {
@@ -192,7 +194,7 @@ public class VLCVideo extends Player {
 		args.put("ab", "128");
 
 		// Video scaling
-		args.put("scale", scale.getText());
+		args.put("scale", "1.0");
 
 		// Audio Channels
 		args.put("channels", 2);
