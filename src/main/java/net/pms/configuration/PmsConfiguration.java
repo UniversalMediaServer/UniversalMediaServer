@@ -204,8 +204,17 @@ public class PmsConfiguration {
 	private static final String KEY_UUID = "uuid";
 	private static final String KEY_VIDEOTRANSCODE_START_DELAY = "key_videotranscode_start_delay"; // TODO (breaking change): should be renamed to e.g. videotranscode_start_delay
 	private static final String KEY_VIRTUAL_FOLDERS = "vfolders";
+	private static final String KEY_VLC_USE_HW_ACCELERATION = "VLC_use_HW_acceleration";
+	private static final String KEY_VLC_USE_EXPERIMENTAL_CODECS = "VLC_use_experimental_codecs";
+	private static final String KEY_VLC_AUDIO_SYNC_ENABLED = "VLC_audio_sync_enabled";
+	private static final String KEY_VLC_SUBTITLE_ENABLED = "VLC_subtitle_enabled";
+	private static final String KEY_VLC_AUDIO_PRI = "VLC_audio_language_priority";
+	private static final String KEY_VLC_SUBTITLE_PRI = "VLC_subtitle_language_priority";
+	private static final String KEY_VLC_SCALE = "VLC_scale";
+	private static final String KEY_VLC_SAMPLE_RATE_OVERRIDE = "VLC_sample_rate_override";
+	private static final String KEY_VLC_SAMPLE_RATE = "VLC_sample_rate";
 
-	// The name of the subdirectory under which PMS config files are stored for this build (default: PMS).
+	// The name of the subdirectory under which UMS config files are stored for this build (default: UMS).
 	// See Build for more details
 	private static final String PROFILE_DIRECTORY_NAME = Build.getProfileDirectoryName();
 
@@ -2060,7 +2069,7 @@ public class PmsConfiguration {
 	}
 
 	public List<String> getEnginesAsList(SystemUtils registry) {
-		List<String> engines = stringToList(getString(KEY_ENGINES, "mencoder,avsmencoder,tsmuxer,ffmpegvideo,ffmpegaudio,mplayeraudio,tsmuxeraudio,ffmpegwebvideo,vlcvideo,mencoderwebvideo,mplayervideodump,mplayerwebaudio,vlcaudio,ffmpegdvrmsremux,rawthumbs"));
+		List<String> engines = stringToList(getString(KEY_ENGINES, "mencoder,avsmencoder,tsmuxer,ffmpegvideo,vlctranscoder,ffmpegaudio,mplayeraudio,tsmuxeraudio,ffmpegwebvideo,vlcvideo,mencoderwebvideo,mplayervideodump,mplayerwebaudio,vlcaudio,ffmpegdvrmsremux,rawthumbs"));
 		engines = hackAvs(registry, engines);
 		return engines;
 	}
@@ -2780,5 +2789,61 @@ public class PmsConfiguration {
 
 	public int liveSubtitlesLimit() {
 		return getInt(KEY_LIVE_SUBTITLES_LIMIT, 20);
+	}
+
+	public boolean isVlcUseHardwareAccel() {
+		return getBoolean(KEY_VLC_USE_HW_ACCELERATION, false);
+	}
+
+	public void setVlcUseHardwareAccel(boolean value) {
+		configuration.setProperty(KEY_VLC_USE_HW_ACCELERATION, value);
+	}
+
+	public boolean isVlcExperimentalCodecs() {
+		return getBoolean(KEY_VLC_USE_EXPERIMENTAL_CODECS, false);
+	}
+
+	public void setVlcExperimentalCodecs(boolean value) {
+		configuration.setProperty(KEY_VLC_USE_EXPERIMENTAL_CODECS, value);
+	}
+
+	public boolean isVlcAudioSyncEnabled() {
+		return getBoolean(KEY_VLC_AUDIO_SYNC_ENABLED, false);
+	}
+
+	public void setVlcAudioSyncEnabled(boolean value) {
+		configuration.setProperty(KEY_VLC_AUDIO_SYNC_ENABLED, value);
+	}
+
+	public boolean isVlcSubtitleEnabled() {
+		return getBoolean(KEY_VLC_SUBTITLE_ENABLED, true);
+	}
+
+	public void setVlcSubtitleEnabled(boolean value) {
+		configuration.setProperty(KEY_VLC_SUBTITLE_ENABLED, value);
+	}
+
+	public String getVlcScale() {
+		return getString(KEY_VLC_SCALE, "1.0");
+	}
+
+	public void setVlcScale(String value) {
+		configuration.setProperty(KEY_VLC_SCALE, value);
+	}
+
+	public boolean getVlcSampleRateOverride() {
+		return getBoolean(KEY_VLC_SAMPLE_RATE_OVERRIDE, false);
+	}
+
+	public void setVlcSampleRateOverride(boolean value) {
+		configuration.setProperty(KEY_VLC_SAMPLE_RATE_OVERRIDE, value);
+	}
+
+	public String getVlcSampleRate() {
+		return getString(KEY_VLC_SAMPLE_RATE, "48000");
+	}
+
+	public void setVlcSampleRate(String value) {
+		configuration.setProperty(KEY_VLC_SAMPLE_RATE, value);
 	}
 }
