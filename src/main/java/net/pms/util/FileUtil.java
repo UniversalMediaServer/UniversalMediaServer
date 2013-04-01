@@ -52,7 +52,7 @@ public class FileUtil {
 		// Remove file extension
 		formattedName = f.substring(0, point);
 
-		String commonFileEnds = "\\.AC3.*|\\.PROPER.*|\\.REPACK.*|\\.480p.*|\\.720p.*|\\.m-720p.*|\\.900p.*|\\.1080p.*|\\.HDTV.*|\\.PDTV.*|\\.WS.*|\\.DVDRip.*|\\.TVRiP.*|\\.BDRip.*|\\.LIMITED.*|\\.FESTiVAL.*|\\.BluRay.*|\\.SUBBED.*|\\.NORDIC.*|\\.x264.*|\\.Dual\\.Audio.*|\\.HSBS.*|\\.H-SBS.*"; 
+		String commonFileEnds = "\\.AC3.*|\\.PROPER.*|\\.REPACK.*|\\.480p.*|\\.720p.*|\\.m-720p.*|\\.900p.*|\\.1080p.*|\\.HDTV.*|\\.PDTV.*|\\.WS.*|\\.HQ\\..*|\\.DVDRip.*|\\.TVRiP.*|\\.BDRip.*|\\.LIMITED.*|\\.FESTiVAL.*|\\.BluRay.*|\\.SUBBED.*|\\.NORDIC.*|\\.x264.*|\\.Dual\\.Audio.*|\\.HSBS.*|\\.H-SBS.*"; 
 
 		if (formattedName.matches(".*[sS]0\\d[eE]\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes within the first 9 seasons
@@ -126,6 +126,32 @@ public class FileUtil {
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
 			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
+		} else if (formattedName.matches(".*\\[[0-9a-zA-Z]{8}\\].*")) {
+			// This matches anime with a hash in the name
+
+			// Remove underscores
+			formattedName = formattedName.replaceAll("_", " ");
+
+			// Remove stuff at the end of the filename like hash, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\s\\(BD.*|\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\].*|\\[h264.*|R1DVD.*", "");
+
+			// Remove group name from the beginning of the filename
+			if (formattedName.substring(0, 1).matches("\\[")) {
+				formattedName = formattedName.replaceFirst("\\[.*\\]\\s|\\[.*\\]", "");
+			}
+		} else if (formattedName.matches(".*\\[720p\\].*|.*\\[1080p\\].*|.*\\[480p\\].*")) {
+			// This matches anime without a hash in the name
+
+			// Remove underscores
+			formattedName = formattedName.replaceAll("_", " ");
+
+			// Remove stuff at the end of the filename like hash, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)\\s\\[720p\\]|\\s\\[1080p\\]|\\s\\[480p\\]", "");
+
+			// Remove group name from the beginning of the filename
+			if (formattedName.substring(0, 1).matches("\\[")) {
+				formattedName = formattedName.replaceFirst("\\[.*\\]\\s|\\[.*\\]", "");
+			}
 		}
 
 		return formattedName;
