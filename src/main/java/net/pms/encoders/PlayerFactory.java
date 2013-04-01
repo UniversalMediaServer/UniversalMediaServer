@@ -130,6 +130,7 @@ public final class PlayerFactory {
 		}
 
 		registerPlayer(new FFMpegVideo(configuration));
+		registerPlayer(new VLCVideo(configuration));
 		registerPlayer(new MPlayerAudio(configuration));
 		registerPlayer(new FFmpegWebVideo(configuration));
 		registerPlayer(new MEncoderWebVideo(configuration));
