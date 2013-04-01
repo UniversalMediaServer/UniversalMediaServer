@@ -208,7 +208,8 @@ public class VLCVideo extends Player {
 		args.put("channels", channels);
 
 		// Static sample rate
-		args.put("samplerate", config.sampleRate);
+		// TODO: Does WMA still need a sample rate of 41000 for Xbox compatibility?
+		args.put("samplerate", "48000");
 
 		// Recommended on VLC DVD encoding page
 		args.put("keyint", 16);
