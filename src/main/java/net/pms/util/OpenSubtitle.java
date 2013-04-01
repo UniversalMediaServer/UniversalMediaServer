@@ -207,7 +207,7 @@ public class OpenSubtitle {
 		if (token == null) {
 			return res;
 		}
-		String lang = PMS.getConfiguration().getSubtitlesLanguages();
+		String lang = iso639(PMS.getConfiguration().getSubtitlesLanguages());
 		URL url = new URL(OPENSUBS_URL);
 		String hashStr = "";
 		String imdbStr = "";
@@ -241,6 +241,20 @@ public class OpenSubtitle {
 			}
 		}
 		return res;
+	}
+	
+	private static String iso639(String s) {
+		String[] tmp = s.split(",");
+		String res = "";
+		String sep = "";
+		for (int i = 0; i < tmp.length; i++) {
+			res = res + sep + Iso639.getISO639_2Code(tmp[i]);
+			sep = ",";
+		}
+		if (StringUtils.isNotEmpty(res)) {
+			return res;
+		}
+		return s;
 	}
 
 	public static String subFile(String name) {
