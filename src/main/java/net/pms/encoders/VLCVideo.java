@@ -184,7 +184,7 @@ public class VLCVideo extends Player {
 		int sampleRate;
 	}
 
-	protected Map<String, Object> getEncodingArgs(CodecConfig config) {
+	protected Map<String, Object> getEncodingArgs(CodecConfig config, OutputParams params) {
 		// See: http://www.videolan.org/doc/streaming-howto/en/ch03.html
 		// See: http://wiki.videolan.org/Codec
 		Map<String, Object> args = new HashMap();
@@ -201,7 +201,11 @@ public class VLCVideo extends Player {
 		args.put("scale", "1.0");
 
 		// Audio Channels
-		args.put("channels", 2);
+		int channels = 2;
+		if (params.aid.getAudioProperties().getNumberOfChannels() > 2 && configuration.getAudioChannelCount() == 6) {
+			channels = 6;
+		}
+		args.put("channels", channels);
 
 		// Static sample rate
 		args.put("samplerate", config.sampleRate);
@@ -307,7 +311,7 @@ public class VLCVideo extends Player {
 
 		// Generate encoding args
 		StringBuilder encodingArgsBuilder = new StringBuilder();
-		for (Map.Entry<String, Object> curEntry : getEncodingArgs(config).entrySet()) {
+		for (Map.Entry<String, Object> curEntry : getEncodingArgs(config, params).entrySet()) {
 			encodingArgsBuilder.append(curEntry.getKey()).append("=").append(curEntry.getValue()).append(",");
 		}
 
