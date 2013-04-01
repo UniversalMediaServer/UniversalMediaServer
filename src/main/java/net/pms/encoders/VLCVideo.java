@@ -193,9 +193,9 @@ public class VLCVideo extends Player {
 		args.put("vcodec", config.videoCodec);
 		args.put("acodec", config.audioCodec);
 
-		// Bitrate in kbit/s (TODO: Use global option?)
+		// Bitrate in kbit/s
 		args.put("vb", "4096");
-		args.put("ab", "128");
+		args.put("ab", configuration.getAudioBitrate());
 
 		// Video scaling
 		args.put("scale", "1.0");
