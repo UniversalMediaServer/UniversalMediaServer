@@ -64,19 +64,13 @@ public class DVDISOFile extends VirtualFolder {
 			}
 		}
 
-		double oldduration = -1;
-
 		for (int i = 1; i < 99; i++) {
 			/**
-			 * Don't take into account titles less than 10 seconds
-			 * Also, workaround for the MPlayer bug which reports a unique title with the same length several times
-			 * The "maybe wrong" title is taken into account only if its duration is less than 1 hour.
-			 * Common-sense is a single video track on a DVD is usually greater than 1h
+			 * Don't take into account titles less than 20 seconds
 			 */
-			if (titles[i] > 20 && (titles[i] != oldduration || oldduration < 3600)) {
+			if (titles[i] > 20) {
 				DVDISOTitle dvd = new DVDISOTitle(f, i);
 				addChild(dvd);
-				oldduration = titles[i];
 			}
 		}
 
