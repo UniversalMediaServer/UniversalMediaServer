@@ -174,6 +174,7 @@ public class PmsConfiguration {
 	private static final String KEY_PLUGIN_DIRECTORY = "plugins";
 	private static final String KEY_PLUGIN_PURGE_ACTION = "plugin_purge";
 	private static final String KEY_PREVENTS_SLEEP = "prevents_sleep_mode";
+	private static final String KEY_PRETTIFY_FILENAMES = "prettify_filenames";
 	private static final String KEY_PROFILE_NAME = "name";
 	private static final String KEY_PROXY_SERVER_PORT = "proxy";
 	private static final String KEY_RENDERER_DEFAULT = "renderer_default";
@@ -2450,6 +2451,14 @@ public class PmsConfiguration {
 
 	public void setIgnoreTheWordThe(boolean value) {
 		configuration.setProperty(KEY_IGNORE_THE_WORD_THE, value);
+	}
+
+	public boolean isPrettifyFilenames() {
+		return getBoolean(KEY_PRETTIFY_FILENAMES, true);
+	}
+
+	public void setPrettifyFilenames(boolean value) {
+		configuration.setProperty(KEY_PRETTIFY_FILENAMES, value);
 	}
 
 	/**

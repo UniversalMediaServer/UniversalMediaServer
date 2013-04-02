@@ -41,6 +41,122 @@ public class FileUtil {
 		return f.substring(0, point);
 	}
 
+	public static String getFileNameWithRewriting(String f) {
+		String formattedName;
+		int point = f.lastIndexOf(".");
+
+		if (point == -1) {
+			point = f.length();
+		}
+
+		// Remove file extension
+		formattedName = f.substring(0, point);
+
+		String commonFileEnds = "\\.AC3.*|\\.PROPER.*|\\.REPACK.*|\\.480p.*|\\.720p.*|\\.m-720p.*|\\.900p.*|\\.1080p.*|\\.HDTV.*|\\.PDTV.*|\\.WS.*|\\.HQ\\..*|\\.DVDRip.*|\\.TVRiP.*|\\.BDRip.*|\\.LIMITED.*|\\.FESTiVAL.*|\\.BluRay.*|\\.SUBBED.*|\\.NORDIC.*|\\.x264.*|\\.Dual\\.Audio.*|\\.HSBS.*|\\.H-SBS.*"; 
+
+		if (formattedName.matches(".*[sS]0\\d[eE]\\d\\d.*")) {
+			// This matches scene and most p2p TV episodes within the first 9 seasons
+
+			// Rename the season/episode numbers. For example, "S01E01" changes to " - 101"
+			// Then strip the end of the episode if it does not have the episode name in the title
+			formattedName = formattedName.replaceAll("(?i)\\.S0(\\d)E(\\d)(\\d)(" + commonFileEnds + ")", " - $1$2$3");
+
+			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
+			formattedName = formattedName.replaceAll("(?i)\\.S0(\\d)E(\\d)(\\d)\\.", " - $1$2$3 - ");
+
+			// Remove stuff at the end of the filename like release group, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
+		} else if (formattedName.matches(".*[sS][1-9]\\d[eE]\\d\\d.*")) {
+			// This matches scene and most p2p TV episodes after their first 9 seasons
+
+			// Rename the season/episode numbers. For example, "S11E01" changes to " - 1101"
+			formattedName = formattedName.replaceAll("(?i)\\.S([1-9]\\d)E(\\d)(\\d)(" + commonFileEnds + ")", " - $1$2$3");
+
+			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
+			formattedName = formattedName.replaceAll("(?i)\\.S([1-9]\\d)E(\\d)(\\d)\\.", " - $1$2$3 - ");
+
+			// Remove stuff at the end of the filename like release group, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
+		} else if (formattedName.matches(".*\\.[1-2]\\d\\d\\d\\.[0-1]\\d\\.[0-3]\\d\\..*")) {
+			// This matches scene and most p2p TV episodes that release several times per week
+
+			// Rename the date. For example, "2013.03.18" changes to " - 2013/03/18"
+			formattedName = formattedName.replaceAll("(?i)\\.([1-2]\\d\\d\\d)\\.([0-1]\\d)\\.([0-3]\\d)\\.(" + commonFileEnds + ")", " - $1/$2/$3");
+
+			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
+			formattedName = formattedName.replaceAll("(?i)\\.([1-2]\\d\\d\\d)\\.([0-1]\\d)\\.([0-3]\\d)\\.", " - $1/$2/$3 - ");
+
+			// Remove stuff at the end of the filename like release group, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
+		} else if (formattedName.matches(".*\\.[1-2]\\d\\d\\d\\..*")) {
+			// This matches scene and most p2p movies
+
+			// Rename the year. For example, "2013" changes to " (2013)"
+			formattedName = formattedName.replaceAll("(?i)\\.([1-2]\\d\\d\\d)(" + commonFileEnds + ")", " ($1)");
+
+			// Change "3D" to " (3D)"
+			formattedName = formattedName.replaceAll("(?i)\\.(3D)\\.|\\.(Special.Edition)\\.|\\.(Unrated)\\.|\\.(Final.Cut)\\.|\\.(Remastered)\\.|\\.(Extended.Cut)\\.|\\.(CD[1-3])\\.", " ($1)");
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
+		} else if (formattedName.matches(".*\\[[1-2]\\d\\d\\d\\].*")) {
+			// This matches rarer types of movies
+
+			// Rename the year. For example, "2013" changes to " (2013)"
+			formattedName = formattedName.replaceAll("(?i)\\[([1-2]\\d\\d\\d)\\].*", " ($1)");
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
+		} else if (formattedName.matches(".*\\([1-2]\\d\\d\\d\\).*")) {
+			// This matches rarer types of movies
+
+			// Remove stuff at the end of the filename like release group, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
+		} else if (formattedName.matches(".*\\([1-2]\\d\\d\\d\\).*")) {
+			// This matches rarer types of movies
+
+			// Remove stuff at the end of the filename like release group, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
+		} else if (formattedName.matches(".*\\[[0-9a-zA-Z]{8}\\].*")) {
+			// This matches anime with a hash in the name
+
+			// Remove underscores
+			formattedName = formattedName.replaceAll("_", " ");
+
+			// Remove stuff at the end of the filename like hash, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\s\\(BD.*|\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\].*|\\[h264.*|R1DVD.*", "");
+
+			// Remove group name from the beginning of the filename
+			if (formattedName.substring(0, 1).matches("\\[")) {
+				formattedName = formattedName.replaceFirst("\\[.*\\]\\s|\\[.*\\]", "");
+			}
+		} else if (formattedName.matches(".*\\[720p\\].*|.*\\[1080p\\].*|.*\\[480p\\].*")) {
+			// This matches anime without a hash in the name
+
+			// Remove underscores
+			formattedName = formattedName.replaceAll("_", " ");
+
+			// Remove stuff at the end of the filename like hash, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)\\s\\[720p\\]|\\s\\[1080p\\]|\\s\\[480p\\]", "");
+
+			// Remove group name from the beginning of the filename
+			if (formattedName.substring(0, 1).matches("\\[")) {
+				formattedName = formattedName.replaceFirst("\\[.*\\]\\s|\\[.*\\]", "");
+			}
+		}
+
+		return formattedName;
+	}
+
 	public static File getFileNameWithNewExtension(File parent, File file, String ext) {
 		File ff = isFileExists(new File(parent, file.getName()), ext);
 
