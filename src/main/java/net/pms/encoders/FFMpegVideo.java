@@ -25,9 +25,15 @@ import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.io.Writer;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.ArrayList;
@@ -55,6 +61,7 @@ import net.pms.network.HTTPResource;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.lang.StringUtils;
 import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,7 +81,7 @@ import org.slf4j.LoggerFactory;
 public class FFMpegVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
 	private static final String DEFAULT_QSCALE = "3";
-	protected final PmsConfiguration configuration;
+	protected static PmsConfiguration configuration;
 	
 	@Deprecated
 	public FFMpegVideo() {
@@ -82,7 +89,7 @@ public class FFMpegVideo extends Player {
 	}
 	
 	public FFMpegVideo(PmsConfiguration configuration) {
-		this.configuration = configuration;
+		FFMpegVideo.configuration = configuration;
 	}
 
 	// FIXME we have an id() accessor for this; no need for the field to be public
@@ -114,6 +121,11 @@ public class FFMpegVideo extends Player {
 
 		if (params.sid != null && !configuration.isDisableSubtitles() && params.sid.isExternal()) {
 			String externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getAbsolutePath());
+
+			if (params.sid.getType() == SubtitleType.SUBRIP) {
+				externalSubtitlesFileName = ConvertSrtToAss(externalSubtitlesFileName, media).toString();
+			}
+			
 			StringBuilder s = new StringBuilder();
 			CharacterIterator it = new StringCharacterIterator(externalSubtitlesFileName);
 
@@ -136,12 +148,7 @@ public class FFMpegVideo extends Player {
 
 			String subsFile = s.toString();
 			subsFile = subsFile.replace(",", "\\,");
-
-			if (params.sid.getType() == SubtitleType.ASS) {
-				subsOption = "ass=" + subsFile;
-			} else if (params.sid.getType() == SubtitleType.SUBRIP) {
-				subsOption = "subtitles=" + subsFile;
-			}
+			subsOption = "ass=" + subsFile;
 		}
 
 		if (renderer.isKeepAspectRatio() && renderer.isRescaleByRenderer()) {
@@ -952,5 +959,106 @@ public class FFMpegVideo extends Player {
 			}
 		}
 		return cmdList;
+	}
+
+	private static File ConvertSrtToAss(String SrtFile, DLNAMediaInfo media) {
+		String outputSubs = SrtFile + ".temp";
+		try {
+			FileInputStream fis = new FileInputStream (SrtFile);
+			BufferedReader input = new BufferedReader(new InputStreamReader(fis, configuration.getSubtitlesCodepage()));
+			Writer output = new BufferedWriter(new FileWriter(outputSubs));
+			String line = null;
+			output.write("[Script Info]\n");
+			output.write("ScriptType: v4.00+\n");
+			output.write("PlayResX: " + media.getWidth() + "\n");
+			output.write("PlayResY: " + media.getHeight() + "\n");
+			output.write("\n");
+			output.write("[V4+ Styles]\n");
+			output.write("Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, AlphaLevel, Encoding\n");
+			StringBuilder s = new StringBuilder();
+			s.append("Style: Default,");
+
+			if (!configuration.getFont().isEmpty()) {
+				s.append(configuration.getFont()).append(",");
+			} else {
+				s.append("Arial,");
+			}
+
+			s.append( (int) 16 * Double.parseDouble(configuration.getMencoderAssScale())).append(","); // Fontsize TODO: convert mencoder_ass_scale properly
+			String primaryColour = "00ffffff";
+			configuration.setSubsColor(0); // Temporary fix until the structure of Mencoder color will be clear
+
+			if (configuration.getSubsColor() != 0) {
+				primaryColour = Integer.toHexString(configuration.getSubsColor());
+			}
+
+			s.append("&H").append(primaryColour).append(","); // PrimaryColour
+
+			// TODO: Next parameters are only copy of default for now. Need to be implemented.
+			s.append("&Hffffff,"); 	// SecondaryColour
+			s.append("&H0,");		// OutlineColour
+			s.append("&H0,"); 		// BackColour
+			s.append("0,"); 		// Bold
+			s.append("0,"); 		// Italic
+			s.append("0,"); 		// Underline
+			s.append("1,"); 		// BorderStyle
+			s.append(configuration.getMencoderAssOutline()).append(","); // Outline
+			s.append("0,"); 		// Shadow
+			s.append("2,"); 		// Alignment
+			s.append("10,"); 		// MarginL
+			s.append("10,"); 		// MarginR
+			s.append("20,"); 		// MarginV
+			s.append("0,"); 		// AlphaLevel
+			s.append("0"); 			// Encoding
+
+			output.write(s.toString() + "\n");
+			output.write("\n");
+			output.write("[Events]\n");
+			output.write("Format: Layer, Start, End, Style, Text\n");
+			
+			while (( line = input.readLine()) != null) {
+				if (line .contains("-->")) {
+					s = new StringBuilder();
+					s.append("Dialogue: 0,");
+					String timeStart = line.substring(1, line.indexOf("-->") - 2).replaceAll(",", ".");
+					String timeEnd = line.substring(line.indexOf("-->") + 5, line.length() - 1).replaceAll(",", ".");
+					s.append(timeStart).append(",");
+					s.append(timeEnd).append(",");
+					s.append("Default").append(",");
+					s.append(convertCode(input.readLine()));
+
+					if (isNotBlank(line = input.readLine())) {
+						s.append("\\N");
+						s.append(convertCode(line));
+					}
+
+					output.write(s.toString() + "\n");
+				}
+			}
+				
+			input.close();
+			output.close();
+					
+		} catch (IOException e) {
+			LOGGER.debug("Converting to ASS file ends wih error: {}", e.getMessage());
+		} 
+
+		File out = new File(outputSubs);
+		out.deleteOnExit();
+
+		return out;
+
+	}
+
+	private static String convertCode(String text) {
+		if (text.startsWith("<i>")) {
+			text = "{\\i1}" + text.substring(text.indexOf("<i>") + 3, text.length());
+		}
+
+		if (text.endsWith("</i>")) {
+			text = text.substring(0, text.indexOf("</i>")) + "{\\i0}";
+		}
+		
+		return text;
 	}
 }

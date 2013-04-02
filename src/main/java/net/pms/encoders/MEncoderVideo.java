@@ -435,68 +435,6 @@ public class MEncoderVideo extends Player {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.11"), FormLayoutUtil.flip(cc.xy(1, 19), colSpec, orientation));
-		Object data[] = new Object[]{
-			configuration.getMencoderSubCp(),
-			Messages.getString("MEncoderVideo.96"),
-			Messages.getString("MEncoderVideo.97"),
-			Messages.getString("MEncoderVideo.98"),
-			Messages.getString("MEncoderVideo.99"),
-			Messages.getString("MEncoderVideo.100"),
-			Messages.getString("MEncoderVideo.101"),
-			Messages.getString("MEncoderVideo.102"),
-			Messages.getString("MEncoderVideo.103"),
-			Messages.getString("MEncoderVideo.104"),
-			Messages.getString("MEncoderVideo.105"),
-			Messages.getString("MEncoderVideo.106"),
-			Messages.getString("MEncoderVideo.107"),
-			Messages.getString("MEncoderVideo.108"),
-			Messages.getString("MEncoderVideo.109"),
-			Messages.getString("MEncoderVideo.110"),
-			Messages.getString("MEncoderVideo.111"),
-			Messages.getString("MEncoderVideo.112"),
-			Messages.getString("MEncoderVideo.113"),
-			Messages.getString("MEncoderVideo.114"),
-			Messages.getString("MEncoderVideo.115"),
-			Messages.getString("MEncoderVideo.116"),
-			Messages.getString("MEncoderVideo.117"),
-			Messages.getString("MEncoderVideo.118"),
-			Messages.getString("MEncoderVideo.119"),
-			Messages.getString("MEncoderVideo.120"),
-			Messages.getString("MEncoderVideo.121"),
-			Messages.getString("MEncoderVideo.122"),
-			Messages.getString("MEncoderVideo.123"),
-			Messages.getString("MEncoderVideo.124")
-		};
-
-		MyComboBoxModel cbm = new MyComboBoxModel(data);
-		subtitleCodePage = new JComboBox(cbm);
-		subtitleCodePage.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				if (e.getStateChange() == ItemEvent.SELECTED) {
-					String s = (String) e.getItem();
-					int offset = s.indexOf("/*");
-
-					if (offset > -1) {
-						s = s.substring(0, offset).trim();
-					}
-
-					configuration.setMencoderSubCp(s);
-				}
-			}
-		});
-
-		subtitleCodePage.getEditor().getEditorComponent().addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				subtitleCodePage.getItemListeners()[0].itemStateChanged(new ItemEvent(subtitleCodePage, 0, subtitleCodePage.getEditor().getItem(), ItemEvent.SELECTED));
-			}
-		});
-
-		subtitleCodePage.setEditable(true);
-		builder.add(subtitleCodePage, FormLayoutUtil.flip(cc.xyw(3, 19, 7), colSpec, orientation));
-
 		fribidi = new JCheckBox(Messages.getString("MEncoderVideo.23"));
 		fribidi.setContentAreaFilled(false);
 
@@ -512,34 +450,7 @@ public class MEncoderVideo extends Player {
 		});
 
 		builder.add(fribidi, FormLayoutUtil.flip(cc.xyw(11, 19, 4), colSpec, orientation));
-		builder.addLabel(Messages.getString("MEncoderVideo.24"), FormLayoutUtil.flip(cc.xy(1, 21), colSpec, orientation));
-
-		defaultfont = new JTextField(configuration.getMencoderFont());
-		defaultfont.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setMencoderFont(defaultfont.getText());
-			}
-		});
-
-		builder.add(defaultfont, FormLayoutUtil.flip(cc.xyw(3, 21, 8), colSpec, orientation));
-
-		fontselect = new CustomJButton("...");
-		fontselect.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JFileChooser chooser = new JFileChooser();
-				chooser.setFileFilter(new FontFileFilter());
-				int returnVal = chooser.showDialog((Component) e.getSource(), Messages.getString("MEncoderVideo.25"));
-				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					defaultfont.setText(chooser.getSelectedFile().getAbsolutePath());
-					configuration.setMencoderFont(chooser.getSelectedFile().getAbsolutePath());
-				}
-			}
-		});
-
-		builder.add(fontselect, FormLayoutUtil.flip(cc.xyw(11, 21, 2), colSpec, orientation));
-
+		
 		builder.addLabel(Messages.getString("MEncoderVideo.12"), FormLayoutUtil.flip(cc.xy(1, 25, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 
 		mencoder_ass_scale = new JTextField(configuration.getMencoderAssScale());
@@ -1511,9 +1422,9 @@ public class MEncoderVideo extends Player {
 					String subcp = null;
 
 					// Append -subcp option for non UTF external subtitles
-					if (isNotBlank(configuration.getMencoderSubCp())) {
+					if (isNotBlank(configuration.getSubtitlesCodepage())) {
 						// Manual setting
-						subcp = configuration.getMencoderSubCp();
+						subcp = configuration.getSubtitlesCodepage();
 					} else if (isNotBlank(SubtitleUtils.getSubCpOptionForMencoder(params.sid))) {
 						// Autodetect charset (blank mencoder_subcp config option)
 						subcp = SubtitleUtils.getSubCpOptionForMencoder(params.sid);

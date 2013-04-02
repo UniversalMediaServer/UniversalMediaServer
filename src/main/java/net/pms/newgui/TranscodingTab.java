@@ -91,6 +91,9 @@ public class TranscodingTab {
 	private JButton folderSelectButton;
 	private JCheckBox subs;
 	private JTextField defaultaudiosubs;
+	private JComboBox subtitleCodePage;
+	private JTextField defaultfont;
+	private JButton fontselect;
 
 	/*
 	 * 16 cores is the maximum allowed by MEncoder as of MPlayer r34863.
@@ -653,7 +656,7 @@ public class TranscodingTab {
 
 	private JComponent buildSubtitlesSetupPanel() {
 		String colSpec = FormLayoutUtil.getColSpec("left:pref, 3dlu, pref:grow, 3dlu, right:pref:grow, 3dlu, pref:grow, 3dlu, right:pref:grow, 3dlu, pref:grow, 3dlu, pref:grow", orientation);
-		FormLayout layout = new FormLayout(colSpec, "$lgap, 3*(pref, 3dlu), pref");
+		FormLayout layout = new FormLayout(colSpec, "$lgap, 5*(pref, 3dlu), pref");
 		final PanelBuilder builder = new PanelBuilder(layout);
 		builder.setBorder(Borders.DLU4_BORDER);
 		CellConstraints cc = new CellConstraints();
@@ -737,6 +740,95 @@ public class TranscodingTab {
 			}
 		});
 		builder.add(subs, FormLayoutUtil.flip(cc.xyw(1, 8, 13), colSpec, orientation));
+		
+		builder.addLabel(Messages.getString("MEncoderVideo.11"), FormLayoutUtil.flip(cc.xy(1, 10), colSpec, orientation));
+		Object data[] = new Object[]{
+			configuration.getSubtitlesCodepage(),
+			Messages.getString("MEncoderVideo.96"),
+			Messages.getString("MEncoderVideo.97"),
+			Messages.getString("MEncoderVideo.98"),
+			Messages.getString("MEncoderVideo.99"),
+			Messages.getString("MEncoderVideo.100"),
+			Messages.getString("MEncoderVideo.101"),
+			Messages.getString("MEncoderVideo.102"),
+			Messages.getString("MEncoderVideo.103"),
+			Messages.getString("MEncoderVideo.104"),
+			Messages.getString("MEncoderVideo.105"),
+			Messages.getString("MEncoderVideo.106"),
+			Messages.getString("MEncoderVideo.107"),
+			Messages.getString("MEncoderVideo.108"),
+			Messages.getString("MEncoderVideo.109"),
+			Messages.getString("MEncoderVideo.110"),
+			Messages.getString("MEncoderVideo.111"),
+			Messages.getString("MEncoderVideo.112"),
+			Messages.getString("MEncoderVideo.113"),
+			Messages.getString("MEncoderVideo.114"),
+			Messages.getString("MEncoderVideo.115"),
+			Messages.getString("MEncoderVideo.116"),
+			Messages.getString("MEncoderVideo.117"),
+			Messages.getString("MEncoderVideo.118"),
+			Messages.getString("MEncoderVideo.119"),
+			Messages.getString("MEncoderVideo.120"),
+			Messages.getString("MEncoderVideo.121"),
+			Messages.getString("MEncoderVideo.122"),
+			Messages.getString("MEncoderVideo.123"),
+			Messages.getString("MEncoderVideo.124")
+		};
+
+		MyComboBoxModel cbm = new MyComboBoxModel(data);
+		subtitleCodePage = new JComboBox(cbm);
+		subtitleCodePage.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					String s = (String) e.getItem();
+					int offset = s.indexOf("/*");
+
+					if (offset > -1) {
+						s = s.substring(0, offset).trim();
+					}
+
+					configuration.setSubtitlesCodepage(s);
+				}
+			}
+		});
+
+		subtitleCodePage.getEditor().getEditorComponent().addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				subtitleCodePage.getItemListeners()[0].itemStateChanged(new ItemEvent(subtitleCodePage, 0, subtitleCodePage.getEditor().getItem(), ItemEvent.SELECTED));
+			}
+		});
+
+		subtitleCodePage.setEditable(true);
+		builder.add(subtitleCodePage, FormLayoutUtil.flip(cc.xyw(3, 10, 7), colSpec, orientation));
+
+		builder.addLabel(Messages.getString("MEncoderVideo.24"), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
+		defaultfont = new JTextField(configuration.getFont());
+		defaultfont.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				configuration.setFont(defaultfont.getText());
+			}
+		});
+
+		builder.add(defaultfont, FormLayoutUtil.flip(cc.xyw(3, 12, 8), colSpec, orientation));
+
+		fontselect = new CustomJButton("...");
+		fontselect.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser chooser = new JFileChooser();
+				chooser.setFileFilter(new FontFileFilter());
+				int returnVal = chooser.showDialog((Component) e.getSource(), Messages.getString("MEncoderVideo.25"));
+				if (returnVal == JFileChooser.APPROVE_OPTION) {
+					defaultfont.setText(chooser.getSelectedFile().getAbsolutePath());
+					configuration.setFont(chooser.getSelectedFile().getAbsolutePath());
+				}
+			}
+		});
+
+		builder.add(fontselect, FormLayoutUtil.flip(cc.xyw(11, 12, 2), colSpec, orientation));
 
 		final JPanel panel = builder.getPanel();
 
