@@ -44,6 +44,9 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
 import net.pms.util.FormLayoutUtil;
+
+import org.apache.commons.configuration.event.ConfigurationEvent;
+import org.apache.commons.configuration.event.ConfigurationListener;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -127,7 +130,12 @@ public class VLCVideo extends Player {
 		// Until problem occurs, assume compatible
 		return true;
 	}
-
+	
+	@Override
+	public boolean isGPUAccelerationReady() {
+		return true;
+	}
+	
 	/**
 	 * Pick codecs for VLC based on formats the client supports;
 	 *
@@ -176,14 +184,14 @@ public class VLCVideo extends Player {
 		String audioCodec;
 		String container;
 		String extraParams;
-		HashMap<String, Object> extraTrans = new HashMap();
+		HashMap<String, Object> extraTrans = new HashMap<>();
 		int sampleRate;
 	}
 
 	protected Map<String, Object> getEncodingArgs(CodecConfig config) {
 		// See: http://www.videolan.org/doc/streaming-howto/en/ch03.html
 		// See: http://wiki.videolan.org/Codec
-		Map<String, Object> args = new HashMap();
+		Map<String, Object> args = new HashMap<>();
 
 		// Codecs to use
 		args.put("vcodec", config.videoCodec);
@@ -251,7 +259,7 @@ public class VLCVideo extends Player {
 		cmdList.add("dummy");
 
 		// Hardware acceleration seems to be more stable now, so its enabled
-		if (hardwareAccel.isSelected()) {
+		if (configuration.isVlcUseHardwareAccel() && configuration.isGPUAcceleration()) {
 			cmdList.add("--ffmpeg-hw");
 		}
 
@@ -283,16 +291,12 @@ public class VLCVideo extends Player {
 		}
 
 		// Handle subtitle language
-		if (params.sid != null) { // User specified language at the client, acknowledge it
+		if (params.sid != null && !configuration.isDisableSubtitles()) { // User specified language at the client, acknowledge it
 			if (params.sid.getLang() == null || params.sid.getLang().equals("und")) { // VLC doesn't understand und, but does understand a non existant track
 				cmdList.add("--sub-" + disableSuffix);
 			} else { // Load by ID (better)
 				cmdList.add("--sub-track=" + params.sid.getId());
 			}
-		} else if (!configuration.isDisableSubtitles()) { // Not specified, use language from GUI if enabled
-			cmdList.add("--sub-language=" + subtitlePri.getText());
-		} else {
-			cmdList.add("--sub-" + disableSuffix);
 		}
 
 		// Skip forward if nessesary
@@ -369,6 +373,7 @@ public class VLCVideo extends Player {
 				configuration.setVlcUseHardwareAccel(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
+		hardwareAccel.setEnabled(configuration.isGPUAcceleration());
 		builder.add(hardwareAccel, FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 
 		experimentalCodecs = new JCheckBox(Messages.getString("VlcTrans.3"), configuration.isVlcExperimentalCodecs());
@@ -465,6 +470,18 @@ public class VLCVideo extends Player {
 			}
 		});
 		builder.add(extraParams, FormLayoutUtil.flip(cc.xyw(3, 11, 3), colSpec, orientation));
+		
+		configuration.addConfigurationListener(new ConfigurationListener() {
+			@Override
+			public void configurationChanged(ConfigurationEvent event) {
+				if (event.getPropertyName() == null ) {
+					return;
+				}
+				if ((!event.isBeforeUpdate()) && event.getPropertyName().equals(PmsConfiguration.KEY_GPU_ACCELERATION)) {
+					hardwareAccel.setEnabled(configuration.isGPUAcceleration());
+				}
+			}
+		});
 
 		JPanel panel = builder.getPanel();
 
