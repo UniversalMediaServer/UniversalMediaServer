@@ -1,6 +1,7 @@
 2.7.0 - 2013-04-??
 
 	General:
+		Added "Prettify filenames" feature, which automatically renames filenames (not the real files, just in UMS) that follow certain naming conventions to be more readable
 		Added VLC video transcoding (thanks, LordQuackstar!)
 		Improved stability of Live Subtitles
 	Renderers:
