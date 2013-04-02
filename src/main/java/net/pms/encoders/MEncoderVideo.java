@@ -1600,7 +1600,8 @@ public class MEncoderVideo extends Player {
 		}
 
 		if (dvd) {
-			cmdList.add("dvd://" + media.getDvdtrack());
+			cmdList.add("dvdnav://" + media.getDvdtrack());
+			cmdList.add("-nocache");
 		}
 
 		for (String arg : args()) {
@@ -2259,7 +2260,7 @@ public class MEncoderVideo extends Player {
 				if (media.getDvdtrack() > 0) {
 					ffmpegLPCMextract[3] = "-dvd-device";
 					ffmpegLPCMextract[4] = fileName;
-					ffmpegLPCMextract[5] = "dvd://" + media.getDvdtrack();
+					ffmpegLPCMextract[5] = "dvdnav://" + media.getDvdtrack();
 				} else if (params.stdin != null) {
 					ffmpegLPCMextract[3] = "-";
 				}
