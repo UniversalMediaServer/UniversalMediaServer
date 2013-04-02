@@ -1222,8 +1222,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		String wireshark = "";
 		final DLNAMediaAudio firstAudioTrack = getMedia() != null ? getMedia().getFirstAudioTrack() : null;
 		if (firstAudioTrack != null && StringUtils.isNotBlank(firstAudioTrack.getSongname())) {
-				wireshark = firstAudioTrack.getSongname() + (getPlayer() != null && !configuration.isHideEngineNames() ? (" [" + getPlayer().name() + "]") : "");
-				addXMLTagAndAttribute(
+			wireshark = firstAudioTrack.getSongname() + (getPlayer() != null && !configuration.isHideEngineNames() ? (" [" + getPlayer().name() + "]") : "");
+			addXMLTagAndAttribute(
 				sb,
 				"dc:title",
 				encodeXML(firstAudioTrack.getSongname() + (getPlayer() != null && !configuration.isHideEngineNames() ? (" [" + getPlayer().name() + "]") : ""))
@@ -1487,7 +1487,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 				endTag(sb);
 				wireshark = wireshark + " " + getFileURL();
-				LOGGER.info("[#####]=> " + wireshark);
+				LOGGER.trace("Network debugger: " + wireshark);
 				wireshark = "";
 				sb.append(getFileURL());
 				closeTag(sb, "res");
