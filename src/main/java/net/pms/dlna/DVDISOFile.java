@@ -73,7 +73,7 @@ public class DVDISOFile extends VirtualFolder {
 			 * The "maybe wrong" title is taken into account only if its duration is less than 1 hour.
 			 * Common-sense is a single video track on a DVD is usually greater than 1h
 			 */
-			if (titles[i] > 10 && (titles[i] != oldduration || oldduration < 3600)) {
+			if (titles[i] > 20 && (titles[i] != oldduration || oldduration < 3600)) {
 				DVDISOTitle dvd = new DVDISOTitle(f, i);
 				addChild(dvd);
 				oldduration = titles[i];
