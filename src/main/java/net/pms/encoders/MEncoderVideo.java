@@ -765,10 +765,24 @@ public class MEncoderVideo extends Player {
 		defaultArgsList.add("statusline=2");
 
 		defaultArgsList.add("-oac");
-		defaultArgsList.add((ac3Remux || dtsRemux) ? "copy" : (pcm ? "pcm" : "lavc"));
+		if (ac3Remux || dtsRemux) {
+			defaultArgsList.add("copy");
+		} else if (pcm) {
+			defaultArgsList.add("pcm");
+		} else {
+			defaultArgsList.add("lavc");
+		}
 
 		defaultArgsList.add("-of");
-		defaultArgsList.add((wmv || mpegts || h264ts) ? "lavf" : ((pcm && avisynth()) ? "avi" : ((pcm || dtsRemux) ? "rawvideo" : "mpeg")));
+		if (wmv || mpegts || h264ts) {
+			defaultArgsList.add("lavf");
+		} else if (pcm && avisynth()) {
+			defaultArgsList.add("avi");
+		} else if (pcm || dtsRemux) {
+			defaultArgsList.add("rawvideo");
+		} else {
+			defaultArgsList.add("mpeg");
+		}
 
 		if (wmv) {
 			defaultArgsList.add("-lavfopts");
