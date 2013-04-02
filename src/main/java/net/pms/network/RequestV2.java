@@ -257,13 +257,14 @@ public class RequestV2 extends HTTPResource {
 		} else if ((method.equals("GET") || method.equals("HEAD")) && argument.startsWith("get/")) {
 			// Request to retrieve a file
 
-			// skip the leading "get/" and extract the
-			// resource ID from the first path element
-			// e.g. "get/0$1$5$3$4/Foo.mp4" -> "0$1$5$3$4"
-
-			// ExSport: I spotted on Android it is asking for "/get/0$2$4$2$1$3" which generates exception with response:
-			// "Http: Response, HTTP/1.1, Status: Internal server error, URL: /get/0$2$4$2$1$3"
-			// This should fix it
+			/**
+			 * Skip the leading "get/" and extract the resource ID from the first path element
+			 * e.g. "get/0$1$5$3$4/Foo.mp4" -> "0$1$5$3$4"
+			 *
+			 * ExSport: I spotted on Android it is asking for "/get/0$2$4$2$1$3" which generates exception with response:
+			 * "Http: Response, HTTP/1.1, Status: Internal server error, URL: /get/0$2$4$2$1$3"
+			 * This should fix it
+			 */
 			String id = argument.substring(4);
 			if (argument.substring(4).contains("/")) {
 				id = argument.substring(4, argument.lastIndexOf("/"));
