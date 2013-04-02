@@ -42,6 +42,9 @@ import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.util.ProcessUtil;
+
+import org.apache.commons.configuration.event.ConfigurationEvent;
+import org.apache.commons.configuration.event.ConfigurationListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -121,6 +124,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 				configuration.setAvisynthInterFrameGPU((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
+		interframegpu.setEnabled(configuration.isGPUAcceleration());
 		builder.add(interframegpu, cc.xy(2, 7));
 
 		convertfps = new JCheckBox(Messages.getString("AviSynthMEncoder.3"));
@@ -183,6 +187,18 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		JScrollPane pane = new JScrollPane(textArea, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		pane.setPreferredSize(new Dimension(500, 350));
 		builder.add(pane, cc.xy(2, 13));
+		
+		configuration.addConfigurationListener(new ConfigurationListener() {
+			@Override
+			public void configurationChanged(ConfigurationEvent event) {
+				if (event.getPropertyName() == null ) {
+					return;
+				}
+				if ((!event.isBeforeUpdate()) && event.getPropertyName().equals(PmsConfiguration.KEY_GPU_ACCELERATION)) {
+					interframegpu.setEnabled(configuration.isGPUAcceleration());
+				}
+			}
+		});
 
 		return builder.getPanel();
 	}
@@ -283,7 +299,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 				movieLine = movieLine + ".ConvertToYV12()";
 
 				// Enable GPU to assist with CPU
-				if (configuration.getAvisynthInterFrameGPU()){
+				if (configuration.getAvisynthInterFrameGPU() && configuration.isGPUAcceleration()){
 					GPU = ", GPU=true";
 				}
 
