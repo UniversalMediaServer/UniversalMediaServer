@@ -985,11 +985,12 @@ public class FFMpegVideo extends Player {
 			}
 
 			s.append( (int) 16 * Double.parseDouble(configuration.getMencoderAssScale())).append(","); // Fontsize TODO: convert mencoder_ass_scale properly
-			String primaryColour = "00ffffff";
-			configuration.setSubsColor(0); // Temporary fix until the structure of Mencoder color will be clear
+			String primaryColour = "ffffff";
+			configuration.setSubsColor(0);
 
 			if (configuration.getSubsColor() != 0) {
 				primaryColour = Integer.toHexString(configuration.getSubsColor());
+				primaryColour = primaryColour.substring(6, 7) + primaryColour.substring(4, 5) + primaryColour.substring(2, 3); // Convert AARRGGBB format to BBGGRR
 			}
 
 			s.append("&H").append(primaryColour).append(","); // PrimaryColour
@@ -1040,7 +1041,7 @@ public class FFMpegVideo extends Player {
 			output.close();
 					
 		} catch (IOException e) {
-			LOGGER.debug("Converting to ASS file ends wih error: {}", e.getMessage());
+			LOGGER.debug("Converting to ASS file raised an error: {}", e.getMessage());
 		} 
 
 		File out = new File(outputSubs);

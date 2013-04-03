@@ -601,6 +601,10 @@ public class MEncoderVideo extends Player {
 				if (newColor != null) {
 					subColor.setBackground(newColor);
 					configuration.setSubsColor(newColor.getRGB());
+					String primaryColour = Integer.toHexString(configuration.getSubsColor());
+					LOGGER.info("Color AARRGGBB: {}", primaryColour);
+					primaryColour = primaryColour.substring(5, 7) + primaryColour.substring(3, 5) + primaryColour.substring(1, 3); // Convert AARRGGBB format to BBGGRR
+					LOGGER.info("Color BBGGRR: {}", primaryColour);
 				}
 			}
 		});
@@ -1299,12 +1303,12 @@ public class MEncoderVideo extends Player {
 					sb.append("-ass-color ").append(assSubColor).append(" -ass-border-color 00000000 -ass-font-scale ").append(configuration.getMencoderAssScale());
 
 					// Set subtitles font
-					if (configuration.getMencoderFont() != null && configuration.getMencoderFont().length() > 0) {
+					if (configuration.getFont() != null && configuration.getFont().length() > 0) {
 						/* Set font with -font option, workaround for the bug:
 						 * https://github.com/Happy-Neko/ps3mediaserver/commit/52e62203ea12c40628de1869882994ce1065446a#commitcomment-990156
 						 */
-						sb.append(" -font ").append(configuration.getMencoderFont()).append(" ");
-						sb.append(" -ass-force-style FontName=").append(configuration.getMencoderFont()).append(",");
+						sb.append(" -font ").append(configuration.getFont()).append(" ");
+						sb.append(" -ass-force-style FontName=").append(configuration.getFont()).append(",");
 					} else {
 						String font = CodecUtil.getDefaultFontPath();
 						if (isNotBlank(font)) {
