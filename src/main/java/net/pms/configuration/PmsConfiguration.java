@@ -169,10 +169,12 @@ public class PmsConfiguration {
 	private static final String KEY_NUMBER_OF_CPU_CORES = "nbcores";
 	private static final String KEY_OPEN_ARCHIVES = "enable_archive_browsing";
 	private static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
+	private static final String KEY_LIVE_SUBTITLES_KEEP = "live_subtitles_keep";
 	private static final String KEY_OVERSCAN = "mencoder_overscan";
 	private static final String KEY_PLUGIN_DIRECTORY = "plugins";
 	private static final String KEY_PLUGIN_PURGE_ACTION = "plugin_purge";
 	private static final String KEY_PREVENTS_SLEEP = "prevents_sleep_mode";
+	private static final String KEY_PRETTIFY_FILENAMES = "prettify_filenames";
 	private static final String KEY_PROFILE_NAME = "name";
 	private static final String KEY_PROXY_SERVER_PORT = "proxy";
 	private static final String KEY_RENDERER_DEFAULT = "renderer_default";
@@ -2451,6 +2453,14 @@ public class PmsConfiguration {
 		configuration.setProperty(KEY_IGNORE_THE_WORD_THE, value);
 	}
 
+	public boolean isPrettifyFilenames() {
+		return getBoolean(KEY_PRETTIFY_FILENAMES, true);
+	}
+
+	public void setPrettifyFilenames(boolean value) {
+		configuration.setProperty(KEY_PRETTIFY_FILENAMES, value);
+	}
+
 	/**
 	 * Returns the name of the renderer to fall back on when header matching
 	 * fails. PMS will recognize the configured renderer instead of "Unknown
@@ -2780,6 +2790,10 @@ public class PmsConfiguration {
 
 	public int liveSubtitlesLimit() {
 		return getInt(KEY_LIVE_SUBTITLES_LIMIT, 20);
+	}
+	
+	public boolean isLiveSubtitlesKeep() {
+		return getBoolean(KEY_LIVE_SUBTITLES_KEEP, false);
 	}
 
 	public boolean isVlcUseHardwareAccel() {

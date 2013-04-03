@@ -284,8 +284,27 @@ public class MapFile extends DLNAResource {
 						String filename2ToSort = f2.getName();
 
 						if (configuration.isIgnoreTheWordThe()) {
-							filename1ToSort = f1.getName().replaceAll("^(?i)The[ .]", "");
-							filename2ToSort = f2.getName().replaceAll("^(?i)The[ .]", "");
+							filename1ToSort = filename1ToSort.replaceAll("^(?i)The[ .]", "");
+							filename2ToSort = filename2ToSort.replaceAll("^(?i)The[ .]", "");
+						}
+
+						if (configuration.isPrettifyFilenames()) {
+							// This chunk makes anime sort properly
+							int squareBracketIndex;
+							if (filename1ToSort.substring(0, 1).matches("\\[")) {
+								filename1ToSort = filename1ToSort.replaceAll("_", " ");
+								squareBracketIndex = filename1ToSort.indexOf("] ");
+								if (squareBracketIndex != -1) {
+									filename1ToSort = filename1ToSort.substring(squareBracketIndex + 2);
+								}
+							}
+							if (filename2ToSort.substring(0, 1).matches("\\[")) {
+								filename2ToSort = filename2ToSort.replaceAll("_", " ");
+								squareBracketIndex = filename2ToSort.indexOf("] ");
+								if (squareBracketIndex != -1) {
+									filename2ToSort = filename2ToSort.substring(squareBracketIndex + 2);
+								}
+							}
 						}
 
 						return NaturalComparator.compareNatural(collator, filename1ToSort, filename2ToSort);
