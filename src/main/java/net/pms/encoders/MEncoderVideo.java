@@ -601,10 +601,6 @@ public class MEncoderVideo extends Player {
 				if (newColor != null) {
 					subColor.setBackground(newColor);
 					configuration.setSubsColor(newColor.getRGB());
-					String primaryColour = Integer.toHexString(configuration.getSubsColor());
-					LOGGER.info("Color AARRGGBB: {}", primaryColour);
-					primaryColour = primaryColour.substring(5, 7) + primaryColour.substring(3, 5) + primaryColour.substring(1, 3); // Convert AARRGGBB format to BBGGRR
-					LOGGER.info("Color BBGGRR: {}", primaryColour);
 				}
 			}
 		});

@@ -986,11 +986,10 @@ public class FFMpegVideo extends Player {
 
 			s.append( (int) 16 * Double.parseDouble(configuration.getMencoderAssScale())).append(","); // Fontsize TODO: convert mencoder_ass_scale properly
 			String primaryColour = "ffffff";
-			configuration.setSubsColor(0);
 
 			if (configuration.getSubsColor() != 0) {
 				primaryColour = Integer.toHexString(configuration.getSubsColor());
-				primaryColour = primaryColour.substring(6, 7) + primaryColour.substring(4, 5) + primaryColour.substring(2, 3); // Convert AARRGGBB format to BBGGRR
+				primaryColour = primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4); // Convert AARRGGBB format to BBGGRR
 			}
 
 			s.append("&H").append(primaryColour).append(","); // PrimaryColour
