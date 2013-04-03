@@ -94,7 +94,6 @@ public class MEncoderVideo extends Player {
 	private JButton fontselect;
 	private JTextField ocw;
 	private JTextField och;
-	private JCheckBox fribidi;
 	private final PmsConfiguration configuration;
 
 	private static final String[] INVALID_CUSTOM_OPTIONS = {
@@ -435,22 +434,6 @@ public class MEncoderVideo extends Player {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		fribidi = new JCheckBox(Messages.getString("MEncoderVideo.23"));
-		fribidi.setContentAreaFilled(false);
-
-		if (configuration.isMencoderSubFribidi()) {
-			fribidi.setSelected(true);
-		}
-
-		fribidi.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setMencoderSubFribidi(e.getStateChange() == ItemEvent.SELECTED);
-			}
-		});
-
-		builder.add(fribidi, FormLayoutUtil.flip(cc.xyw(11, 19, 4), colSpec, orientation));
-		
 		builder.addLabel(Messages.getString("MEncoderVideo.12"), FormLayoutUtil.flip(cc.xy(1, 25, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 
 		mencoder_ass_scale = new JTextField(configuration.getMencoderAssScale());
@@ -618,7 +601,6 @@ public class MEncoderVideo extends Player {
 					subtitleCodePage.setEnabled(enabled);
 					ass.setEnabled(enabled);
 					assdefaultstyle.setEnabled(enabled);
-					fribidi.setEnabled(enabled);
 					fc.setEnabled(enabled);
 					mencoder_ass_scale.setEnabled(enabled);
 					mencoder_ass_outline.setEnabled(enabled);
@@ -1371,8 +1353,8 @@ public class MEncoderVideo extends Player {
 			// Use PLAINTEXT formatting
 			} else {
 				// Set subtitles font
-				if (configuration.getMencoderFont() != null && configuration.getMencoderFont().length() > 0) {
-					sb.append(" -font ").append(configuration.getMencoderFont()).append(" ");
+				if (configuration.getFont() != null && configuration.getFont().length() > 0) {
+					sb.append(" -font ").append(configuration.getFont()).append(" ");
 				} else {
 					String font = CodecUtil.getDefaultFontPath();
 					if (isNotBlank(font)) {

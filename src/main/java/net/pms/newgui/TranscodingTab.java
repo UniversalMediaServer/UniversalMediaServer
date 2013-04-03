@@ -94,6 +94,7 @@ public class TranscodingTab {
 	private JComboBox subtitleCodePage;
 	private JTextField defaultfont;
 	private JButton fontselect;
+	private JCheckBox fribidi;
 
 	/*
 	 * 16 cores is the maximum allowed by MEncoder as of MPlayer r34863.
@@ -802,6 +803,22 @@ public class TranscodingTab {
 
 		subtitleCodePage.setEditable(true);
 		builder.add(subtitleCodePage, FormLayoutUtil.flip(cc.xyw(3, 10, 7), colSpec, orientation));
+		
+		fribidi = new JCheckBox(Messages.getString("MEncoderVideo.23"));
+		fribidi.setContentAreaFilled(false);
+
+		if (configuration.isMencoderSubFribidi()) {
+			fribidi.setSelected(true);
+		}
+
+		fribidi.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setMencoderSubFribidi(e.getStateChange() == ItemEvent.SELECTED);
+			}
+		});
+
+		builder.add(fribidi, FormLayoutUtil.flip(cc.xyw(11, 10, 3), colSpec, orientation));
 
 		builder.addLabel(Messages.getString("MEncoderVideo.24"), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
 		defaultfont = new JTextField(configuration.getFont());

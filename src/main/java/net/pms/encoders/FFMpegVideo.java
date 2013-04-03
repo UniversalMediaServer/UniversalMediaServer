@@ -58,6 +58,7 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.StreamModifier;
 import net.pms.network.HTTPResource;
+import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.lang.StringUtils;
 import static org.apache.commons.lang.StringUtils.isBlank;
@@ -111,6 +112,7 @@ public class FFMpegVideo extends Player {
 		List<String> videoFilterOptions = new ArrayList<>();
 		String subsOption = null;
 		String padding = null;
+		String externalSubtitlesFileName;
 
 		boolean isResolutionTooHighForRenderer = renderer.isVideoRescale() && // renderer defines a max width/height
 			(media != null && media.isMediaparsed()) &&
@@ -120,7 +122,14 @@ public class FFMpegVideo extends Player {
 			);
 
 		if (params.sid != null && !configuration.isDisableSubtitles() && params.sid.isExternal()) {
-			String externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getAbsolutePath());
+			if (params.sid.isExternalFileUtf16()) {
+				// convert UTF-16 -> UTF-8
+				File convertedSubtitles = new File(configuration.getTempFolder(), "utf8_" + params.sid.getExternalFile().getName());
+				FileUtil.convertFileFromUtf16ToUtf8(params.sid.getExternalFile(), convertedSubtitles);
+				externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(convertedSubtitles.getAbsolutePath());
+			} else {
+				externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getAbsolutePath());
+			}
 
 			if (params.sid.getType() == SubtitleType.SUBRIP) {
 				externalSubtitlesFileName = ConvertSrtToAss(externalSubtitlesFileName, media).toString();
@@ -962,16 +971,18 @@ public class FFMpegVideo extends Player {
 	}
 
 	private static File ConvertSrtToAss(String SrtFile, DLNAMediaInfo media) {
-		String outputSubs = SrtFile + ".temp";
+		String outputSubs = null;
+		
 		try {
+			outputSubs = new File(configuration.getTempFolder(), new File(SrtFile).getName()).getAbsolutePath() + ".ass";
 			FileInputStream fis = new FileInputStream (SrtFile);
 			BufferedReader input = new BufferedReader(new InputStreamReader(fis, configuration.getSubtitlesCodepage()));
 			Writer output = new BufferedWriter(new FileWriter(outputSubs));
 			String line = null;
 			output.write("[Script Info]\n");
 			output.write("ScriptType: v4.00+\n");
-			output.write("PlayResX: " + media.getWidth() + "\n");
-			output.write("PlayResY: " + media.getHeight() + "\n");
+//			output.write("PlayResX: " + media.getWidth() + "\n"); // TODO Not clear how it works
+//			output.write("PlayResY: " + media.getHeight() + "\n");
 			output.write("\n");
 			output.write("[V4+ Styles]\n");
 			output.write("Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, AlphaLevel, Encoding\n");
@@ -984,17 +995,12 @@ public class FFMpegVideo extends Player {
 				s.append("Arial,");
 			}
 
-			s.append( (int) 16 * Double.parseDouble(configuration.getMencoderAssScale())).append(","); // Fontsize TODO: convert mencoder_ass_scale properly
-			String primaryColour = "ffffff";
+			s.append( (int) 16 * Double.parseDouble(configuration.getMencoderAssScale())).append(","); // Fontsize
 
-			if (configuration.getSubsColor() != 0) {
-				primaryColour = Integer.toHexString(configuration.getSubsColor());
-				primaryColour = primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4); // Convert AARRGGBB format to BBGGRR
-			}
+			String primaryColour = Integer.toHexString(configuration.getSubsColor());
+			primaryColour = primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4); // Convert AARRGGBB format to BBGGRR
 
 			s.append("&H").append(primaryColour).append(","); // PrimaryColour
-
-			// TODO: Next parameters are only copy of default for now. Need to be implemented.
 			s.append("&Hffffff,"); 	// SecondaryColour
 			s.append("&H0,");		// OutlineColour
 			s.append("&H0,"); 		// BackColour
@@ -1003,7 +1009,7 @@ public class FFMpegVideo extends Player {
 			s.append("0,"); 		// Underline
 			s.append("1,"); 		// BorderStyle
 			s.append(configuration.getMencoderAssOutline()).append(","); // Outline
-			s.append("0,"); 		// Shadow
+			s.append(configuration.getMencoderAssShadow()).append(","); // Shadow
 			s.append("2,"); 		// Alignment
 			s.append("10,"); 		// MarginL
 			s.append("10,"); 		// MarginR
