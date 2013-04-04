@@ -95,6 +95,10 @@ public class TranscodingTab {
 	private JTextField defaultfont;
 	private JButton fontselect;
 	private JCheckBox fribidi;
+	private JTextField mencoder_ass_scale;
+	private JTextField mencoder_ass_outline;
+	private JTextField mencoder_ass_shadow;
+	private JButton subColor;
 
 	/*
 	 * 16 cores is the maximum allowed by MEncoder as of MPlayer r34863.
@@ -657,7 +661,7 @@ public class TranscodingTab {
 
 	private JComponent buildSubtitlesSetupPanel() {
 		String colSpec = FormLayoutUtil.getColSpec("left:pref, 3dlu, pref:grow, 3dlu, right:pref:grow, 3dlu, pref:grow, 3dlu, right:pref:grow, 3dlu, pref:grow, 3dlu, pref:grow", orientation);
-		FormLayout layout = new FormLayout(colSpec, "$lgap, 5*(pref, 3dlu), pref");
+		FormLayout layout = new FormLayout(colSpec, "$lgap, 7*(pref, 3dlu), pref");
 		final PanelBuilder builder = new PanelBuilder(layout);
 		builder.setBorder(Borders.DLU4_BORDER);
 		CellConstraints cc = new CellConstraints();
@@ -846,6 +850,60 @@ public class TranscodingTab {
 		});
 
 		builder.add(fontselect, FormLayoutUtil.flip(cc.xyw(11, 12, 2), colSpec, orientation));
+		
+		builder.addLabel(Messages.getString("MEncoderVideo.12"), FormLayoutUtil.flip(cc.xy(1, 14, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+
+		mencoder_ass_scale = new JTextField(configuration.getMencoderAssScale());
+		mencoder_ass_scale.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				configuration.setMencoderAssScale(mencoder_ass_scale.getText());
+			}
+		});
+
+		builder.addLabel(Messages.getString("MEncoderVideo.13"), FormLayoutUtil.flip(cc.xy(5, 14), colSpec, orientation));
+
+		mencoder_ass_outline = new JTextField(configuration.getMencoderAssOutline());
+		mencoder_ass_outline.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				configuration.setMencoderAssOutline(mencoder_ass_outline.getText());
+			}
+		});
+
+		builder.addLabel(Messages.getString("MEncoderVideo.14"), FormLayoutUtil.flip(cc.xy(9, 14), colSpec, orientation));
+
+		mencoder_ass_shadow = new JTextField(configuration.getMencoderAssShadow());
+		mencoder_ass_shadow.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				configuration.setMencoderAssShadow(mencoder_ass_shadow.getText());
+			}
+		});
+		
+		builder.add(mencoder_ass_scale, FormLayoutUtil.flip(cc.xy(3, 14), colSpec, orientation));
+		builder.add(mencoder_ass_outline, FormLayoutUtil.flip(cc.xy(7, 14), colSpec, orientation));
+		builder.add(mencoder_ass_shadow, FormLayoutUtil.flip(cc.xy(11, 14), colSpec, orientation));
+		
+		subColor = new JButton();
+		subColor.setText(Messages.getString("MEncoderVideo.31"));
+		subColor.setBackground(new Color(configuration.getSubsColor()));
+		subColor.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				Color newColor = JColorChooser.showDialog(
+					SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
+					Messages.getString("MEncoderVideo.125"),
+					subColor.getBackground()
+				);
+
+				if (newColor != null) {
+					subColor.setBackground(newColor);
+					configuration.setSubsColor(newColor.getRGB());
+				}
+			}
+		});
+		builder.add(subColor, FormLayoutUtil.flip(cc.xyw(9, 16, 5), colSpec, orientation));
 
 		final JPanel panel = builder.getPanel();
 

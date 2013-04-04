@@ -566,7 +566,7 @@ public class MEncoderVideo extends Player {
 			}
 		});
 		builder.add(subq, FormLayoutUtil.flip(cc.xyw(3, 29, 1), colSpec, orientation));
-
+/**
 		subColor = new JButton();
 		subColor.setText(Messages.getString("MEncoderVideo.31"));
 		subColor.setBackground(new Color(configuration.getSubsColor()));
@@ -586,7 +586,7 @@ public class MEncoderVideo extends Player {
 			}
 		});
 		builder.add(subColor, FormLayoutUtil.flip(cc.xyw(12, 23, 4), colSpec, orientation));
-
+ */
 		configuration.addConfigurationListener(new ConfigurationListener() {
 			@Override
 			public void configurationChanged(ConfigurationEvent event) {

@@ -995,7 +995,7 @@ public class FFMpegVideo extends Player {
 				s.append("Arial,");
 			}
 
-			s.append( (int) 16 * Double.parseDouble(configuration.getMencoderAssScale())).append(","); // Fontsize
+			s.append( (int) 10 * Double.parseDouble(configuration.getMencoderAssScale())).append(","); // Fontsize
 
 			String primaryColour = Integer.toHexString(configuration.getSubsColor());
 			primaryColour = primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4); // Convert AARRGGBB format to BBGGRR
