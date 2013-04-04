@@ -1021,7 +1021,7 @@ public class FFMpegVideo extends Player {
 			output.write("\n");
 			output.write("[Events]\n");
 			output.write("Format: Layer, Start, End, Style, Text\n");
-			
+
 			while (( line = input.readLine()) != null) {
 				if (line .contains("-->")) {
 					s = new StringBuilder();
@@ -1029,20 +1029,20 @@ public class FFMpegVideo extends Player {
 					s.append(line.substring(1, line.indexOf("-->") - 2).replaceAll(",", ".")).append(",");
 					s.append(line.substring(line.indexOf("-->") + 5, line.length() - 1).replaceAll(",", ".")).append(",");
 					s.append("Default").append(",");
-					s.append(convertCode(input.readLine()));
+					s.append(convertTags(input.readLine()));
 
 					if (isNotBlank(line = input.readLine())) {
 						s.append("\\N");
-						s.append(convertCode(line));
+						s.append(convertTags(line));
 					}
 
 					output.write(s.toString() + "\n");
 				}
 			}
-				
+
 			input.close();
 			output.close();
-					
+
 		} catch (IOException e) {
 			LOGGER.debug("Converting to ASS file raised an error: {}", e.getMessage());
 		} 
@@ -1054,15 +1054,23 @@ public class FFMpegVideo extends Player {
 
 	}
 
-	private static String convertCode(String text) {
-		if (text.startsWith("<i>")) {
-			text = "{\\i1}" + text.substring(text.indexOf("<i>") + 3, text.length());
-		}
+	private static String convertTags(String text) {
+		 String tag = null;
+		 StringBuilder sb = new StringBuilder();
+		 String[] tmp = text.split("<");
 
-		if (text.endsWith("</i>")) {
-			text = text.substring(0, text.indexOf("</i>")) + "{\\i0}";
-		}
-		
-		return text;
+		 for (String s : tmp) {
+			 if (s.startsWith("/") && s.indexOf(">") == 2) {
+				 tag = s.substring(1, 2);
+				 sb.append("{\\").append(tag).append("0}").append(s.substring(3));
+			 } else if (s.indexOf(">") == 1) {
+				 tag = s.substring(0, 1);
+				 sb.append("{\\").append(tag).append("1}").append(s.substring(2));
+			 } else {
+				 sb.append(s);
+			 }
+		 }
+
+		 return sb.toString();
 	}
 }
