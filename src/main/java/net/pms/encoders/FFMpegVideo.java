@@ -1026,10 +1026,8 @@ public class FFMpegVideo extends Player {
 				if (line .contains("-->")) {
 					s = new StringBuilder();
 					s.append("Dialogue: 0,");
-					String timeStart = line.substring(1, line.indexOf("-->") - 2).replaceAll(",", ".");
-					String timeEnd = line.substring(line.indexOf("-->") + 5, line.length() - 1).replaceAll(",", ".");
-					s.append(timeStart).append(",");
-					s.append(timeEnd).append(",");
+					s.append(line.substring(1, line.indexOf("-->") - 2).replaceAll(",", ".")).append(",");
+					s.append(line.substring(line.indexOf("-->") + 5, line.length() - 1).replaceAll(",", ".")).append(",");
 					s.append("Default").append(",");
 					s.append(convertCode(input.readLine()));
 
