@@ -99,41 +99,27 @@ Function GetJRE
     ${If} ${RunningX64}
  	SetRegView 64
  	${EndIf}
-    ReadRegStr $R1 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment" "CurrentVersion"
-    ReadRegStr $R0 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment\$R1" "JavaHome"
+    ReadRegStr $R1 HKLM "SOFTWARE\Wow6432Node\JavaSoft\Java Runtime Environment" "CurrentVersion"
+    ReadRegStr $R0 HKLM "SOFTWARE\Wow6432Node\JavaSoft\Java Runtime Environment\$R1" "JavaHome"
     StrCpy $R0 "$R0\bin\${JAVAEXE}"
     IfErrors CheckRegistry2     
     IfFileExists $R0 0 CheckRegistry2
     Call CheckJREVersion
     IfErrors CheckRegistry2 JreFound
-
- ; 4) Check for registry
+    
+  ; 4) Check for registry 
   CheckRegistry2:
     ClearErrors
-    ${If} ${RunningX64}
- 	SetRegView 64
- 	${EndIf}
-    ReadRegStr $R1 HKLM "SOFTWARE\Wow6432Node\JavaSoft\Java Runtime Environment" "CurrentVersion"
-    ReadRegStr $R0 HKLM "SOFTWARE\Wow6432Node\JavaSoft\Java Runtime Environment\$R1" "JavaHome"
+    ReadRegStr $R1 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment" "CurrentVersion"
+    ReadRegStr $R0 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment\$R1" "JavaHome"
     StrCpy $R0 "$R0\bin\${JAVAEXE}"
-    IfErrors CheckRegistry3     
+    IfErrors CheckRegistry3
     IfFileExists $R0 0 CheckRegistry3
     Call CheckJREVersion
     IfErrors CheckRegistry3 JreFound
-    
-  ; 4) Check for registry 
-  CheckRegistry3:
-    ClearErrors
-    ReadRegStr $R1 HKLM "SOFTWARE\Wow6432Node\JavaSoft\Java Runtime Environment" "CurrentVersion"
-    ReadRegStr $R0 HKLM "SOFTWARE\Wow6432Node\JavaSoft\Java Runtime Environment\$R1" "JavaHome"
-    StrCpy $R0 "$R0\bin\${JAVAEXE}"
-    IfErrors CheckRegistry4
-    IfFileExists $R0 0 CheckRegistry4
-    Call CheckJREVersion
-    IfErrors CheckRegistry4 JreFound
  
   ; 5) Check for registry
-  CheckRegistry4:
+  CheckRegistry3:
     ClearErrors
     ${If} ${RunningX64}
  	SetRegView 32
@@ -143,16 +129,16 @@ Function GetJRE
     ReadRegStr $R1 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment" "CurrentVersion"
     ReadRegStr $R0 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment\$R1" "JavaHome"
     StrCpy $R0 "$R0\bin\${JAVAEXE}"
-    IfErrors CheckRegistry5
-    IfFileExists $R0 0 CheckRegistry5
+    IfErrors CheckRegistry4
+    IfFileExists $R0 0 CheckRegistry4
     Call CheckJREVersion
-    IfErrors CheckRegistry5 JreFound
+    IfErrors CheckRegistry4 JreFound
     
   ; 6) Check for registry
-  CheckRegistry5:
+  CheckRegistry4:
     ClearErrors
-    ReadRegStr $R1 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment" "CurrentVersion"
-    ReadRegStr $R0 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment\$R1" "JavaHome"
+    ReadRegStr $R1 HKLM "SOFTWARE\Wow6432Node\JavaSoft\Java Runtime Environment" "CurrentVersion"
+    ReadRegStr $R0 HKLM "SOFTWARE\Wow6432Node\JavaSoft\Java Runtime Environment\$R1" "JavaHome"
     StrCpy $R0 "$R0\bin\${JAVAEXE}"
     IfErrors DownloadJRE
     IfFileExists $R0 0 DownloadJRE

@@ -614,24 +614,9 @@ public class PMS {
 	 * @return true if UMS could be installed as a Windows service.
 	 * @see net.pms.newgui.GeneralTab#build()
 	 */
-	public boolean installWinService() {
-                if (System.getProperty("sun.arch.data.model").contains("32")) {
-                    return installWin32Service();
-                } else {
-                    return installWin64Service();
-                }
-        }                           
-        public boolean installWin32Service() {
+	public boolean installWin32Service() {
 		PMS.get().uninstallWin32Service();
 		String cmdArray[] = new String[]{"win32/service/wrapper.exe", "-i", "wrapper.conf"};
-		ProcessWrapperImpl pwinstall = new ProcessWrapperImpl(cmdArray, new OutputParams(configuration));
-		pwinstall.runInSameThread();
-		return pwinstall.isSuccess();
-	}
-        
-        public boolean installWin64Service() {
-		PMS.get().uninstallWin64Service();
-		String cmdArray[] = new String[]{"win32/service/win64/wrapper.exe", "-i", "wrapper.conf"};
 		ProcessWrapperImpl pwinstall = new ProcessWrapperImpl(cmdArray, new OutputParams(configuration));
 		pwinstall.runInSameThread();
 		return pwinstall.isSuccess();
@@ -642,21 +627,11 @@ public class PMS {
 	 * This function is called from the General tab.
 	 *
 	 * TODO: Make it detect if the uninstallation was successful
-         * 
-         * Solution: Tell UMS to read the registry at HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\Universal Media Server and check for null (doesn't Exist)
-	 * Also rewrite Uninstall to detect what bit version the wrapper is installed so we invoke the correct uninstall parameter (should be via win registry)
+	 *
 	 * @return true
 	 * @see net.pms.newgui.GeneralTab#build()
 	 */
-        	public boolean uninstallWinService() {
-                if (System.getProperty("sun.arch.data.model").contains("32")) {
-                    return uninstallWin32Service();
-                } else {
-                    return uninstallWin64Service();
-                }
-        }   
-        
-                public boolean uninstallWin32Service() {
+	public boolean uninstallWin32Service() {
 		String cmdArray[] = new String[]{"win32/service/wrapper.exe", "-r", "wrapper.conf"};
 		OutputParams output = new OutputParams(configuration);
 		output.noexitcheck = true;
@@ -664,14 +639,7 @@ public class PMS {
 		pwuninstall.runInSameThread();
 		return true;
 	}
-                public boolean uninstallWin64Service() {
-		String cmdArray[] = new String[]{"win32/service/win64/wrapper.exe", "-r", "wrapper.conf"};
-		OutputParams output = new OutputParams(configuration);
-		output.noexitcheck = true;
-		ProcessWrapperImpl pwuninstall = new ProcessWrapperImpl(cmdArray, output);
-		pwuninstall.runInSameThread();
-		return true;
-	}
+
 	/**
 	 * Transforms a comma separated list of directory entries into an array of {@link String}.
 	 * Checks that the directory exists and is a valid directory.

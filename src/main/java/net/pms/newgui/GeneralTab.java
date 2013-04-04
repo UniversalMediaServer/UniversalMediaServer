@@ -161,7 +161,7 @@ public class GeneralTab {
 		service.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (PMS.get().installWinService()) {
+				if (PMS.get().installWin32Service()) {
 					LOGGER.info(Messages.getString("PMS.41"));
 					JOptionPane.showMessageDialog(
 						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
@@ -189,7 +189,7 @@ public class GeneralTab {
 		serviceUninstall.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				PMS.get().uninstallWinService();
+				PMS.get().uninstallWin32Service();
 				LOGGER.info(Messages.getString("GeneralTab.3"));
 				JOptionPane.showMessageDialog(
 					(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
