@@ -133,11 +133,15 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("_", " ");
 
 			// Remove stuff at the end of the filename like hash, quality, source, etc.
-			formattedName = formattedName.replaceAll("(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\s\\(BD.*|\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*", "");
+			formattedName = formattedName.replaceAll("(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\s\\(BD.*|\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*", "");
 
 			// Remove group name from the beginning of the filename
 			if (formattedName.substring(0, 1).matches("\\[")) {
-				formattedName = formattedName.replaceFirst("\\[.*\\]", "");
+				int closingBracketIndex = formattedName.indexOf("]");
+				if (closingBracketIndex != -1) {
+					formattedName = formattedName.substring(closingBracketIndex + 1);
+				}
+
 				if (formattedName.substring(0, 1).matches("\\s")) {
 					formattedName = formattedName.substring(1);
 				}
@@ -153,7 +157,11 @@ public class FileUtil {
 
 			// Remove group name from the beginning of the filename
 			if (formattedName.substring(0, 1).matches("\\[")) {
-				formattedName = formattedName.replaceFirst("\\[.*\\]", "");
+				int closingBracketIndex = formattedName.indexOf("]");
+				if (closingBracketIndex != -1) {
+					formattedName = formattedName.substring(closingBracketIndex + 1);
+				}
+
 				if (formattedName.substring(0, 1).matches("\\s")) {
 					formattedName = formattedName.substring(1);
 				}
