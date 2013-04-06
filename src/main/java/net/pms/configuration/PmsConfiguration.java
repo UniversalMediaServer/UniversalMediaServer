@@ -180,6 +180,7 @@ public class PmsConfiguration {
 	private static final String KEY_PROXY_SERVER_PORT = "proxy";
 	private static final String KEY_RENDERER_DEFAULT = "renderer_default";
 	private static final String KEY_RENDERER_FORCE_DEFAULT = "renderer_force_default";
+	private static final String KEY_RESUMABLE = "resume";
 	private static final String KEY_SEARCH_FOLDER = "search_folder";
 	private static final String KEY_SEARCH_RECURSE = "search_recurse";
 	private static final String KEY_SERVER_HOSTNAME = "hostname";
@@ -2859,5 +2860,9 @@ public class PmsConfiguration {
 
 	public void setVlcSampleRate(String value) {
 		configuration.setProperty(KEY_VLC_SAMPLE_RATE, value);
+	}
+
+	public boolean getResume() {
+		return getBoolean(KEY_RESUMABLE, true);
 	}
 }
