@@ -267,7 +267,8 @@ public class RequestHandler implements Runnable {
 				LOGGER.error("Error closing connection: ", e);
 			}
 
-			startStopListenerDelegate.stop();
+			long sent = (request != null ? request.getBytesSent() : 0);
+			startStopListenerDelegate.stop(sent);
 			LOGGER.trace("Close connection");
 		}
 	}

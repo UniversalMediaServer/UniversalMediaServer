@@ -25,6 +25,9 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import net.pms.PMS;
 import net.pms.encoders.AviDemuxerInputStream;
 import net.pms.util.ProcessUtil;
@@ -181,7 +184,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 
 			stderrConsumer = keepStderr
 				? new OutputTextConsumer(process.getErrorStream(), true)
-				: new OutputTextLogger(process.getErrorStream());
+				: new OutputTextLogger(process.getErrorStream(), this);
 			stderrConsumer.start();
 			stdoutConsumer = null;
 
@@ -199,11 +202,11 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 					bo = stdoutConsumer.getBuffer();
 				}
 				bo.attachThread(this);
-				new OutputTextLogger(process.getInputStream()).start();
+				new OutputTextLogger(process.getInputStream(), this).start();
 			} else if (params.log) {
 				stdoutConsumer = keepStdout
 					? new OutputTextConsumer(process.getInputStream(), true)
-					: new OutputTextLogger(process.getInputStream());
+					: new OutputTextLogger(process.getInputStream(), this);
 			} else {
 				stdoutConsumer = new OutputBufferConsumer(process.getInputStream(), params);
 				bo = stdoutConsumer.getBuffer();
@@ -367,4 +370,19 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 		}
 		this.nullable = nullable;
 	}
+	
+	private String duration;
+	
+	public void pubackDuration(String s) {
+		Pattern re = Pattern.compile("Duration: ([^,]+),");
+		Matcher m = re.matcher(s);
+		if (m.find()) {
+			duration = m.group(1);
+		}
+	}
+	
+	public String getDuration() {
+		return duration;
+	}
+	
 }

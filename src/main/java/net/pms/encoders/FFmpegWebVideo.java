@@ -233,6 +233,11 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			customOptions.transferInputFileOptions(cmdList);
 		}
 
+		if (params.timeseek > 0) {
+			cmdList.add("-ss");
+			cmdList.add("" + params.timeseek);
+		}
+		
 		cmdList.add("-i");
 		cmdList.add(fileName);
 
