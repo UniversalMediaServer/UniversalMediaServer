@@ -2843,8 +2843,8 @@ public class PmsConfiguration {
 	public void setVlcSampleRate(String value) {
 		configuration.setProperty(KEY_VLC_SAMPLE_RATE, value);
 	}
-	
-	public boolean getResume()  {
+
+	public boolean getResume() {
 		return getBoolean(KEY_RESUMABLE, true);
 	}
 }
