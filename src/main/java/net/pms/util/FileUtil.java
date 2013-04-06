@@ -101,10 +101,13 @@ public class FileUtil {
 			// This matches scene and most p2p movies
 
 			// Rename the year. For example, "2013" changes to " (2013)"
-			formattedName = formattedName.replaceAll("(?i)\\.([1-2][90]\\d\\d)(" + commonFileEnds + ")", " ($1)");
+			formattedName = formattedName.replaceAll("\\.([1-2][90]\\d\\d)", " ($1)");
 
-			// Change "3D" to " (3D)"
-			formattedName = formattedName.replaceAll("(?i)\\.(3D)\\.|\\.(Special.Edition)\\.|\\.(Unrated)\\.|\\.(Final.Cut)\\.|\\.(Remastered)\\.|\\.(Extended.Cut)\\.|\\.(CD[1-3])\\.", " ($1)");
+			// Remove stuff at the end of the filename like release group, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
+
+			// Change "3D" to " (3D)", "CD1" to "(1)", etc.
+			formattedName = formattedName.replaceAll("(?i)\\.(CD[1-3])\\.|\\.(3D)\\.|\\.(Special.Edition)\\.|\\.(Unrated)\\.|\\.(Final.Cut)\\.|\\.(Remastered)\\.|\\.(Extended.Cut)\\.", " ($1)");
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
