@@ -9,7 +9,18 @@ import java.io.IOException;
 import net.pms.PMS;
 
 public class ResumeObj {
+	/**
+	 * The length of time taken from the end of the video to assume the user
+	 * is done viewing. In other words it is an estimation of the length of
+	 * the credits.
+	 * 30000 = 30 seconds
+	 */
 	private static final long BACK_FACTOR = 30000;
+
+	/**
+	 * The minimum length of time elapsed in the video before we allow resuming
+	 * 1000 = 1 second
+	 */
 	private static final long MIN_RESUME_TIME = 120000;
 	private File file;
 	private long offsetTime;
