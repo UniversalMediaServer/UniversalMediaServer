@@ -21,7 +21,7 @@ public class ResumeObj {
 	 * The minimum length of time elapsed in the video before we allow resuming
 	 * 1000 = 1 second
 	 */
-	private static final long MIN_RESUME_TIME = 120000;
+	private static final long MIN_RESUME_TIME = 1000;
 	private File file;
 	private long offsetTime;
 	private long offsetByte;
