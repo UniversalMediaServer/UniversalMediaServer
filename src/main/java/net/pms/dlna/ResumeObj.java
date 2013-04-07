@@ -110,7 +110,7 @@ public class ResumeObj {
 		long duration = thisPlay + getTimeOffset();
 		if (expDuration > MIN_RESUME_TIME) {
 			if (duration >= (expDuration - BACK_FACTOR)) {
-				// we've seen the whole movie (likely)
+				// We've seen the whole video (likely)
 				file.delete();
 				return;
 			}
@@ -125,6 +125,8 @@ public class ResumeObj {
 			return;
 		}
 		bytes += getByteOffset();
+		offsetTime = duration;
+		offsetByte = bytes;
 		write(duration - BACK_FACTOR, bytes, file);
 	}
 }
