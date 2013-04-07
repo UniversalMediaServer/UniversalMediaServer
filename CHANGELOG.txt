@@ -1,7 +1,14 @@
-2.6.1 - 2013-04-??
+2.7.0 - 2013-04-??
 
 	General:
-		
+		Added "Prettify filenames" feature, which automatically renames filenames (not the real files, just in UMS) that follow certain naming conventions to be more readable
+		Added VLC video transcoding (thanks, LordQuackstar!)
+		Improved stability of Live Subtitles
+	Renderers:
+		Fixed stuttering issues with Bravia HX TVs
+		Improved MP4, AVI and MKV support on Sony Blu-ray players
+	Languages:
+		Updated Italian translation (thanks, nocciola82!)
 
 2.6.0 - 2013-03-29
 

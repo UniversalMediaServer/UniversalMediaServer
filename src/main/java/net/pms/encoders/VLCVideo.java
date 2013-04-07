@@ -61,7 +61,6 @@ public class VLCVideo extends Player {
 	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 9dlu, p, 3dlu, p";
 	protected final PmsConfiguration configuration;
 	public static final String ID = "vlctranscoder";
-	protected JCheckBox hardwareAccel;
 	protected JTextField audioPri;
 	protected JTextField subtitlePri;
 	protected JTextField scale;
@@ -148,6 +147,11 @@ public class VLCVideo extends Player {
 			config.videoCodec = "mp2v";
 			config.audioCodec = "mp2a"; // NOTE: a52 sometimes causes audio to stop after ~5 mins
 			config.container = "ts";
+		} else if (renderer.isTranscodeToH264TSAC3()) {
+			LOGGER.debug("Using H.264 and AC-3 with ts container");
+			config.videoCodec = "h264";
+			config.audioCodec = "mp2a"; // NOTE: a52 sometimes causes audio to stop after ~5 mins
+			config.container = "ts";
 		} else {
 			// Default codecs for DLNA standard
 			LOGGER.debug("Using DLNA standard codecs with ps (default) container");
@@ -180,7 +184,7 @@ public class VLCVideo extends Player {
 		int sampleRate;
 	}
 
-	protected Map<String, Object> getEncodingArgs(CodecConfig config) {
+	protected Map<String, Object> getEncodingArgs(CodecConfig config, OutputParams params) {
 		// See: http://www.videolan.org/doc/streaming-howto/en/ch03.html
 		// See: http://wiki.videolan.org/Codec
 		Map<String, Object> args = new HashMap();
@@ -189,18 +193,23 @@ public class VLCVideo extends Player {
 		args.put("vcodec", config.videoCodec);
 		args.put("acodec", config.audioCodec);
 
-		// Bitrate in kbit/s (TODO: Use global option?)
+		// Bitrate in kbit/s
 		args.put("vb", "4096");
-		args.put("ab", "128");
+		args.put("ab", configuration.getAudioBitrate());
 
 		// Video scaling
 		args.put("scale", "1.0");
 
 		// Audio Channels
-		args.put("channels", 2);
+		int channels = 2;
+		if (params.aid.getAudioProperties().getNumberOfChannels() > 2 && configuration.getAudioChannelCount() == 6) {
+			channels = 6;
+		}
+		args.put("channels", channels);
 
 		// Static sample rate
-		args.put("samplerate", config.sampleRate);
+		// TODO: Does WMA still need a sample rate of 41000 for Xbox compatibility?
+		args.put("samplerate", "48000");
 
 		// Recommended on VLC DVD encoding page
 		args.put("keyint", 16);
@@ -251,7 +260,7 @@ public class VLCVideo extends Player {
 		cmdList.add("dummy");
 
 		// Hardware acceleration seems to be more stable now, so its enabled
-		if (hardwareAccel.isSelected()) {
+		if (configuration.isGPUAcceleration()) {
 			cmdList.add("--ffmpeg-hw");
 		}
 
@@ -303,7 +312,7 @@ public class VLCVideo extends Player {
 
 		// Generate encoding args
 		StringBuilder encodingArgsBuilder = new StringBuilder();
-		for (Map.Entry<String, Object> curEntry : getEncodingArgs(config).entrySet()) {
+		for (Map.Entry<String, Object> curEntry : getEncodingArgs(config, params).entrySet()) {
 			encodingArgsBuilder.append(curEntry.getKey()).append("=").append(curEntry.getValue()).append(",");
 		}
 
@@ -361,16 +370,6 @@ public class VLCVideo extends Player {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		hardwareAccel = new JCheckBox(Messages.getString("VlcTrans.2"), configuration.isVlcUseHardwareAccel());
-		hardwareAccel.setContentAreaFilled(false);
-		hardwareAccel.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setVlcUseHardwareAccel(e.getStateChange() == ItemEvent.SELECTED);
-			}
-		});
-		builder.add(hardwareAccel, FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
-
 		experimentalCodecs = new JCheckBox(Messages.getString("VlcTrans.3"), configuration.isVlcExperimentalCodecs());
 		experimentalCodecs.setContentAreaFilled(false);
 		experimentalCodecs.addItemListener(new ItemListener() {
@@ -379,9 +378,9 @@ public class VLCVideo extends Player {
 				configuration.setVlcExperimentalCodecs(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(experimentalCodecs, FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
+		builder.add(experimentalCodecs, FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 
-		audioSyncEnabled = new JCheckBox(Messages.getString("VlcTrans.4"), configuration.isVlcAudioSyncEnabled());
+		audioSyncEnabled = new JCheckBox(Messages.getString("MEncoderVideo.2"), configuration.isVlcAudioSyncEnabled());
 		audioSyncEnabled.setContentAreaFilled(false);
 		audioSyncEnabled.addItemListener(new ItemListener() {
 			@Override
@@ -389,10 +388,10 @@ public class VLCVideo extends Player {
 				configuration.setVlcAudioSyncEnabled(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(audioSyncEnabled, FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
+		builder.add(audioSyncEnabled, FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
 
 		// Developer stuff. Theoretically temporary
-		cmp = builder.addSeparator(Messages.getString("VlcTrans.10"), FormLayoutUtil.flip(cc.xyw(1, 9, 5), colSpec, orientation));
+		cmp = builder.addSeparator(Messages.getString("VlcTrans.10"), FormLayoutUtil.flip(cc.xyw(1, 7, 5), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
@@ -456,7 +455,7 @@ public class VLCVideo extends Player {
 		// Extra options
 		mainPanel.nextLine();
 		*/
-		builder.addLabel(Messages.getString("VlcTrans.20"), FormLayoutUtil.flip(cc.xy(1, 11), colSpec, orientation));
+		builder.addLabel(Messages.getString("VlcTrans.20"), FormLayoutUtil.flip(cc.xy(1, 9), colSpec, orientation));
 		extraParams = new JTextField(configuration.getMencoderFont());
 		extraParams.addKeyListener(new KeyAdapter() {
 			@Override
@@ -464,7 +463,7 @@ public class VLCVideo extends Player {
 				configuration.setMencoderFont(extraParams.getText());
 			}
 		});
-		builder.add(extraParams, FormLayoutUtil.flip(cc.xyw(3, 11, 3), colSpec, orientation));
+		builder.add(extraParams, FormLayoutUtil.flip(cc.xyw(3, 9, 3), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 

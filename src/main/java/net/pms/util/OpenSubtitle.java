@@ -314,6 +314,9 @@ public class OpenSubtitle {
 	}
 
 	private static void bgCleanSubs() {
+		if (PMS.getConfiguration().isLiveSubtitlesKeep()) {
+			return;
+		}
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
