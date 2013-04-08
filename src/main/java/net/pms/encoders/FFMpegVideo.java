@@ -74,10 +74,11 @@ import org.slf4j.LoggerFactory;
 public class FFMpegVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
 	private static final String DEFAULT_QSCALE = "3";
-	private final PmsConfiguration configuration;
+	protected final PmsConfiguration configuration;
 	
+	@Deprecated
 	public FFMpegVideo() {
-		this.configuration = PMS.getConfiguration();
+		this(PMS.getConfiguration());
 	}
 	
 	public FFMpegVideo(PmsConfiguration configuration) {
@@ -278,7 +279,7 @@ public class FFMpegVideo extends Player {
 					!params.mediaRenderer.isH264Level41Limited()
 				) &&
 				media.isMuxable(params.mediaRenderer) &&
-				configuration.isMencoderMuxWhenCompatible() &&
+				configuration.isFFmpegMuxWhenCompatible() &&
 				params.mediaRenderer.isMuxH264MpegTS()
 			) {
 				transcodeOptions.add("-c:v");
@@ -304,7 +305,11 @@ public class FFMpegVideo extends Player {
 			// Output file format
 			transcodeOptions.add("-f");
 			if (dtsRemux) {
-				transcodeOptions.add("mpeg2video");
+				if (videoRemux) {
+					transcodeOptions.add("rawvideo");
+				} else {
+					transcodeOptions.add("mpeg2video");
+				}
 			} else if (renderer.isTranscodeToMPEGTSAC3() || renderer.isTranscodeToH264TSAC3() || videoRemux) { // MPEGTSAC3
 				transcodeOptions.add("mpegts");
 			} else { // default: MPEGPSAC3
@@ -786,6 +791,10 @@ public class FFMpegVideo extends Player {
 				pwMux.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
 				String videoType = "V_MPEG-2";
 
+				if (videoRemux) {
+					videoType = "V_MPEG4/ISO/AVC";
+				}
+
 				if (params.no_videoencode && params.forceType != null) {
 					videoType = params.forceType;
 				}
@@ -841,6 +850,7 @@ public class FFMpegVideo extends Player {
 	}
 
 	private JCheckBox multithreading;
+	private JCheckBox videoremux;
 
 	@Override
 	public JComponent config() {
@@ -850,7 +860,7 @@ public class FFMpegVideo extends Player {
 	protected JComponent config(String languageLabel) {
 		FormLayout layout = new FormLayout(
 			"left:pref, 0:grow",
-			"p, 3dlu, p, 3dlu"
+			"p, 3dlu, p, 3dlu, p"
 		);
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.setBorder(Borders.EMPTY_BORDER);
@@ -874,6 +884,19 @@ public class FFMpegVideo extends Player {
 			}
 		});
 		builder.add(multithreading, cc.xy(2, 3));
+
+		videoremux = new JCheckBox(Messages.getString("FFmpeg.0"));
+		videoremux.setContentAreaFilled(false);
+		if (configuration.isFFmpegMuxWhenCompatible()) {
+			videoremux.setSelected(true);
+		}
+		videoremux.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setFFmpegMuxWhenCompatible(e.getStateChange() == ItemEvent.SELECTED);
+			}
+		});
+		builder.add(videoremux, cc.xy(2, 5));
 
 		return builder.getPanel();
 	}

@@ -937,6 +937,14 @@ public class RootFolder extends DLNAResource {
 					return true;
 				}
 			});
+			res.addChild(new VirtualVideoAction(Messages.getString("FoldTab.42"), 
+						 configuration.isHideLiveSubtitlesFolder()) {
+				@Override
+				public boolean enable() {
+					configuration.setHideLiveSubtitlesFolder(!configuration.isHideLiveSubtitlesFolder());
+					return configuration.isHideLiveSubtitlesFolder();
+				}
+			});
 		}
 
 		return res;

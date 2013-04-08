@@ -87,23 +87,25 @@ public class BasicSystemUtils implements SystemUtils {
 		return false;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see net.pms.io.SystemUtils#getVlcp()
-	 */
 	@Override
+	@Deprecated
 	public String getVlcp() {
+		return getVlcPath();
+	}
+
+	@Override
+	@Deprecated
+	public String getVlcv() {
+		return getVlcVersion();
+	}
+
+	@Override
+	public String getVlcPath() {
 		return vlcp;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see net.pms.io.SystemUtils#getVlcv()
-	 */
 	@Override
-	public String getVlcv() {
+	public String getVlcVersion() {
 		return vlcv;
 	}
 
