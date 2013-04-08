@@ -35,22 +35,12 @@ public class WebPlayer extends Player {
 		// FFmpeg version
 		String[] cmdArray = new String[]{
 			PMS.getConfiguration().getFfmpegPath(),
-			"-y",
-			"-loglevel", "warning",
-			"-threads", "" + nThreads,
 			"-i", fileName,
-			"-threads", "" + nThreads,
-			"-f", "m4v",
-			"-ac", "2",
+			"-b:v", "1500k",
 			"-vcodec", "libx264",
-			"-preset", "baseline",
-			"-preset", "slow",
-			//"-acodec", "copy",
-			"-ab", "56k",
-			"-acodec", "libvo_aacenc",
-			//"-frag_duration", "300",
-			//"-frag_size", "100",
-			//"-flags", "+aic+mv4",
+			"-g", "30",
+			"-s", "640x360",
+			"-f", "mp4",
 			pipe.getInputPipe()
 		};
 
