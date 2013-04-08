@@ -1037,13 +1037,18 @@ public class FFMpegVideo extends Player {
 			output.write("\n");
 			output.write("[Events]\n");
 			output.write("Format: Layer, Start, End, Style, Text\n");
+			
+			String startTime;
+			String startTimeMs;
+			String endTime;
+			String endTimeMs;
 
 			while (( line = input.readLine()) != null) {
 				if (line .contains("-->")) {
-					String startTime = line.substring(1, line.indexOf("-->") - 2).replaceAll(",", ".");
-					String startTimeMs = startTime.substring(startTime.indexOf("."));
-					String endTime = line.substring(line.indexOf("-->") + 5, line.length() - 1).replaceAll(",", ".");
-					String endTimeMs = endTime.substring(endTime.indexOf("."));
+					startTime = line.substring(1, line.indexOf("-->") - 2).replaceAll(",", ".");
+					startTimeMs = startTime.substring(startTime.indexOf("."));
+					endTime = line.substring(line.indexOf("-->") + 5, line.length() - 1).replaceAll(",", ".");
+					endTimeMs = endTime.substring(endTime.indexOf("."));
 
 					// Apply time seeking
 					if (params.timeseek > 0) {
