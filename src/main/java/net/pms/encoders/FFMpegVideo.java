@@ -39,6 +39,8 @@ import java.text.StringCharacterIterator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.StringTokenizer;
+
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import net.pms.Messages;
@@ -132,7 +134,7 @@ public class FFMpegVideo extends Player {
 			}
 
 			if (params.sid.getType() == SubtitleType.SUBRIP) {
-				externalSubtitlesFileName = ConvertSrtToAss(externalSubtitlesFileName, media).toString();
+				externalSubtitlesFileName = ConvertSrtToAss(externalSubtitlesFileName, media, params).toString();
 			}
 			
 			StringBuilder s = new StringBuilder();
@@ -984,7 +986,7 @@ public class FFMpegVideo extends Player {
 		return cmdList;
 	}
 
-	private static File ConvertSrtToAss(String SrtFile, DLNAMediaInfo media) {
+	private static File ConvertSrtToAss(String SrtFile, DLNAMediaInfo media, OutputParams params ) {
 		String outputSubs = null;
 		
 		try {
@@ -1038,12 +1040,27 @@ public class FFMpegVideo extends Player {
 
 			while (( line = input.readLine()) != null) {
 				if (line .contains("-->")) {
+					String startTime = line.substring(1, line.indexOf("-->") - 2).replaceAll(",", ".");
+					String startTimeMs = startTime.substring(startTime.indexOf("."));
+					String endTime = line.substring(line.indexOf("-->") + 5, line.length() - 1).replaceAll(",", ".");
+					String endTimeMs = endTime.substring(endTime.indexOf("."));
+
+					// Apply time seeking
+					if (params.timeseek > 0) {
+						if (convertTimeStringToDouble(startTime) >= params.timeseek) {
+							startTime = convertDoubleToTimeString(convertTimeStringToDouble(startTime) - params.timeseek) + startTimeMs;
+							endTime = convertDoubleToTimeString(convertTimeStringToDouble(endTime) - params.timeseek) + endTimeMs;
+						} else {
+							continue;
+						}
+					}
+
 					s = new StringBuilder();
 					s.append("Dialogue: 0,");
-					s.append(line.substring(1, line.indexOf("-->") - 2).replaceAll(",", ".")).append(",");
-					s.append(line.substring(line.indexOf("-->") + 5, line.length() - 1).replaceAll(",", ".")).append(",");
+					s.append(startTime).append(",");
+					s.append(endTime).append(",");
 					s.append("Default").append(",");
-					s.append(convertTags(input.readLine()));
+					s.append(convertTags(input.readLine())); 
 
 					if (isNotBlank(line = input.readLine())) {
 						s.append("\\N");
@@ -1087,4 +1104,30 @@ public class FFMpegVideo extends Player {
 
 		 return sb.toString();
 	}
+
+	 private static String convertDoubleToTimeString(double d) {
+		 int s = ((int) d) % 60;
+		 int h = (int) (d / 3600);
+		 int m = ((int) (d / 60)) % 60;
+		 return String.format("%01d:%02d:%02d", h, m, s);
+	 }
+
+	 private static Double convertTimeStringToDouble(String time) {
+		 if (time == null) {
+			 return null;
+		 }
+
+		 StringTokenizer st = new StringTokenizer(time, ":");
+
+		 try {
+			 int h = Integer.parseInt(st.nextToken());
+			 int m = Integer.parseInt(st.nextToken());
+			 double s = Double.parseDouble(st.nextToken());
+			 return h * 3600 + m * 60 + s;
+		 } catch (NumberFormatException nfe) {
+			 LOGGER.debug("Failed to convert \"" + time + "\"");
+		 }
+
+		 return null;
+	 }
 }
