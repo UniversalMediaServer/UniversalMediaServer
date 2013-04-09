@@ -96,7 +96,12 @@ public class AVCHeader {
 					getExpGolombCode();
 				}
 			}
-			ref_frames = getExpGolombCode();
+
+			if (!parseFailed) {
+				ref_frames = getExpGolombCode();
+			} else {
+				ref_frames = -1;
+			}
 		}
 	}
 
@@ -118,7 +123,7 @@ public class AVCHeader {
 			return (buffer[pos] & (1 << (7 - modulo))) >> (7 - modulo);
 		} else {
 			if (!parseFailed) {
-				LOGGER.error("Cannot parse AVC header, buffer length is " + buffer.length);
+				LOGGER.debug("Cannot parse AVC header, buffer length is " + buffer.length);
 
 				// Do not log consecutive errors.
 				parseFailed = true;

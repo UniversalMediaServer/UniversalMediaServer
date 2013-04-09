@@ -107,9 +107,7 @@ public class RequestHandler implements Runnable {
 					}
 				}
 
-				if (renderer == null && headerLine != null
-						&& headerLine.toUpperCase().startsWith("USER-AGENT")
-						&& request != null) {
+				if (renderer == null && headerLine.toUpperCase().startsWith("USER-AGENT") && request != null) {
 					userAgentString = headerLine.substring(headerLine.indexOf(":") + 1).trim();
 
 					// Attempt 2: try to recognize the renderer by matching the "User-Agent" header
@@ -122,7 +120,7 @@ public class RequestHandler implements Runnable {
 						LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLine + "\"");
 					}
 				}
-				if (renderer == null && headerLine != null && request != null) {
+				if (renderer == null && request != null) {
 					// Attempt 3: try to recognize the renderer by matching an additional header
 					renderer = RendererConfiguration.getRendererConfigurationByUAAHH(headerLine);
 

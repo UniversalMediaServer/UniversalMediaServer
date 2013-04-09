@@ -35,7 +35,7 @@ import org.slf4j.LoggerFactory;
  * Test the RendererConfiguration class
  */
 public class RendererConfigurationTest {
-	private final Map<String, String> testCases = new HashMap<String, String>();
+	private final Map<String, String> testCases = new HashMap<>();
 
 	@Before
 	public void setUp() {
@@ -69,6 +69,9 @@ public class RendererConfigurationTest {
 		testCases.put("User-Agent: yxplayer2%20lite/1.2.7 CFNetwork/485.13.9 Darwin/11.0.0", "iPad / iPhone");
 		testCases.put("User-Agent: MPlayer 1.0rc4-4.2.1", "iPad / iPhone");
 		testCases.put("User-Agent: NSPlayer/4.1.0.3856", "iPad / iPhone");
+
+		// Netgear NeoTV:
+		testCases.put("friendlyName.dlna.org: BD-Player", "Netgear NeoTV");
 
 		// Philips:
 		testCases.put("User-Agent: Allegro-Software-WebClient/4.61 DLNADOC/1.00", "Philips Aurea");
@@ -106,6 +109,10 @@ public class RendererConfigurationTest {
 		// Showtime 4:
 		testCases.put("User-Agent: Showtime PS3 4.2", "Showtime 4");
 
+		// Telstra T-Box:
+		// Note: This isn't the full user-agent, just a snippet to find it
+		testCases.put("User-Agent: telstra", "Telstra T-Box");
+
 		// VideoWebTV:
 		testCases.put("friendlyName.dlna.org: VideoWeb", "VideoWeb TV");
 
@@ -128,9 +135,7 @@ public class RendererConfigurationTest {
 
 		try {
 			pmsConf = new PmsConfiguration(false);
-		} catch (IOException e) {
-			// This should be impossible since no configuration file will be loaded.
-		} catch (ConfigurationException e) {
+		} catch (IOException | ConfigurationException e) {
 			// This should be impossible since no configuration file will be loaded.
 		}
 
@@ -156,9 +161,7 @@ public class RendererConfigurationTest {
 
 		try {
 			pmsConf = new PmsConfiguration(false);
-		} catch (IOException e) {
-			// This should be impossible since no configuration file will be loaded.
-		} catch (ConfigurationException e) {
+		} catch (IOException | ConfigurationException e) {
 			// This should be impossible since no configuration file will be loaded.
 		}
 
@@ -184,9 +187,7 @@ public class RendererConfigurationTest {
 
 		try {
 			pmsConf = new PmsConfiguration(false);
-		} catch (IOException e) {
-			// This should be impossible since no configuration file will be loaded.
-		} catch (ConfigurationException e) {
+		} catch (IOException | ConfigurationException e) {
 			// This should be impossible since no configuration file will be loaded.
 		}
 
@@ -220,32 +221,32 @@ public class RendererConfigurationTest {
 				// Match by User-Agent
 					RendererConfiguration rc = getRendererConfigurationByUA(headerLine);
 					assertNotNull("Recognized renderer for header \"" + headerLine + "\"", rc);
-					assertEquals("Expected renderer \"" + correctRendererName + "\", "
-							+ "instead renderer \"" + rc.getRendererName() + "\" was returned for header \""
-							+ headerLine + "\"", correctRendererName, rc.getRendererName());
+					assertEquals("Expected renderer \"" + correctRendererName + "\", " +
+							"instead renderer \"" + rc.getRendererName() + "\" was returned for header \"" +
+							headerLine + "\"", correctRendererName, rc.getRendererName());
 			} else {
 				// Match by additional header
 					RendererConfiguration rc = getRendererConfigurationByUAAHH(headerLine);
 					assertNotNull("Recognized renderer for header \"" + headerLine + "\"", rc);
-					assertEquals("Expected renderer \"" + correctRendererName + "\" to be recognized, "
-							+ "instead renderer \"" + rc.getRendererName() + "\" was returned for header \""
-							+ headerLine + "\"", correctRendererName, rc.getRendererName());
+					assertEquals("Expected renderer \"" + correctRendererName + "\" to be recognized, " +
+							"instead renderer \"" + rc.getRendererName() + "\" was returned for header \"" +
+							headerLine + "\"", correctRendererName, rc.getRendererName());
 			}
 		} else {
 			// Header is supposed to match no renderer at all
 			if (headerLine != null && headerLine.toLowerCase().startsWith("user-agent")) {
 				// Match by User-Agent
 					RendererConfiguration rc = getRendererConfigurationByUA(headerLine);
-					assertEquals("Expected no matching renderer to be found for header \"" + headerLine
-							+ "\", instead renderer \"" + (rc != null ? rc.getRendererName() : "")
-							+ "\" was recognized.", null,
+					assertEquals("Expected no matching renderer to be found for header \"" + headerLine +
+							"\", instead renderer \"" + (rc != null ? rc.getRendererName() : "") +
+							"\" was recognized.", null,
 							rc);
 			} else {
 				// Match by additional header
 					RendererConfiguration rc = getRendererConfigurationByUAAHH(headerLine);
-					assertEquals("Expected no matching renderer to be found for header \"" + headerLine
-							+ "\", instead renderer \"" + (rc != null ? rc.getRendererName() : "")
-							+ "\" was recognized.", null, rc);
+					assertEquals("Expected no matching renderer to be found for header \"" + headerLine +
+							"\", instead renderer \"" + (rc != null ? rc.getRendererName() : "") +
+							"\" was recognized.", null, rc);
 			}
 		}
 	}

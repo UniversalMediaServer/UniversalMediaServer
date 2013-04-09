@@ -237,7 +237,7 @@ public class FormatConfiguration {
 	}
 
 	public FormatConfiguration(List<?> lines) {
-		supportSpecs = new ArrayList<SupportSpec>();
+		supportSpecs = new ArrayList<>();
 
 		for (Object line : lines) {
 			if (line != null) {
@@ -466,7 +466,7 @@ public class FormatConfiguration {
 			} else if (token.contains(":")) {
 				// Extra MediaInfo stuff
 				if (supportSpec.miExtras == null) {
-					supportSpec.miExtras = new HashMap<String, Pattern>();
+					supportSpec.miExtras = new HashMap<>();
 				}
 
 				String key = token.substring(0, token.indexOf(":"));

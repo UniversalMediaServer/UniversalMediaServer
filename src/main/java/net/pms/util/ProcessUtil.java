@@ -1,6 +1,8 @@
 package net.pms.util;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import net.pms.PMS;
 import net.pms.io.Gob;
@@ -41,7 +43,7 @@ public class ProcessUtil {
 				Field f = p.getClass().getDeclaredField("pid");
 				f.setAccessible(true);
 				pid = f.getInt(p);
-			} catch (Throwable e) {
+			} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e) {
 				LOGGER.debug("Can't determine the Unix process ID: " + e.getMessage());
 			}
 		}
@@ -108,6 +110,7 @@ public class ProcessUtil {
 			if (pid != null) { // Unix only
 				LOGGER.trace("Killing the Unix process: " + pid);
 				Runnable r = new Runnable() {
+					@Override
 					public void run() {
 						try {
 							Thread.sleep(TERM_TIMEOUT);
@@ -142,5 +145,22 @@ public class ProcessUtil {
 
 	public static String getShortFileNameIfWideChars(String name) {
 		return PMS.get().getRegistry().getShortPathNameW(name);
+	}
+
+	// Run cmd and return combined stdout/stderr
+	public static String run(String... cmd) {
+		try {
+			ProcessBuilder pb = new ProcessBuilder(cmd);
+			pb.redirectErrorStream(true);
+			Process p = pb.start();
+			BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			String line;
+			StringBuilder output = new StringBuilder();
+			while ((line = br.readLine()) != null) {
+				output.append(line).append("\n");
+			}
+			return output.toString();
+		} catch (Exception e) {}
+		return "";
 	}
 }

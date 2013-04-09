@@ -35,7 +35,7 @@ public class ISO extends MPG {
 
 	@Override
 	public ArrayList<Class<? extends Player>> getProfiles() {
-		ArrayList<Class<? extends Player>> list = new ArrayList<Class<? extends Player>>();
+		ArrayList<Class<? extends Player>> list = new ArrayList<>();
 		list.add(MEncoderVideo.class);
 		return list;
 	}
@@ -50,6 +50,7 @@ public class ISO extends MPG {
 	 * @return True if the format can be handled by PS3, false otherwise.
 	 */
 	@Deprecated
+	@Override
 	public boolean ps3compatible() {
 		return false;
 	}
@@ -57,6 +58,7 @@ public class ISO extends MPG {
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public String[] getId() {
 		return ISO_EXTENSIONS;
 	}

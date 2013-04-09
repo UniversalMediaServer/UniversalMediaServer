@@ -98,12 +98,13 @@ public class PmsConfiguration {
 	private static final String KEY_DVDISO_THUMBNAILS = "dvd_isos_thumbnails";
 	private static final String KEY_EMBED_DTS_IN_PCM = "embed_dts_in_pcm";
 	private static final String KEY_ENGINES = "engines";
-	private static final String KEY_FFMPEG_ALTERNATIVE_PATH = "alternativeffmpegpath"; // deprecated: FFmpegDVRMSRemux will be removed and DVR-MS will be transcoded
+	private static final String KEY_FFMPEG_ALTERNATIVE_PATH = "alternativeffmpegpath"; // TODO: FFmpegDVRMSRemux will be removed and DVR-MS will be transcoded
 	private static final String KEY_FFMPEG_MULTITHREADING = "ffmpeg_multithreading";
 	private static final String KEY_FFMPEG_AVISYNTH_MULTITHREADING = "ffmpeg_avisynth_multithreading";
 	private static final String KEY_FFMPEG_AVISYNTH_CONVERT_FPS = "ffmpeg_avisynth_convertfps";
 	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME = "ffmpeg_avisynth_interframe";
 	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
+	private static final String KEY_FFMPEG_MUX_COMPATIBLE = "ffmpeg_mux_compatible";
 	private static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
 	private static final String KEY_FORCED_SUBTITLE_LANGUAGE = "forced_sub_lang";
 	private static final String KEY_FORCED_SUBTITLE_TAGS = "forced_sub_tags";
@@ -113,6 +114,7 @@ public class PmsConfiguration {
 	private static final String KEY_HIDE_EMPTY_FOLDERS = "hide_empty_folders";
 	private static final String KEY_HIDE_ENGINENAMES = "hide_enginenames";
 	private static final String KEY_HIDE_EXTENSIONS = "hide_extensions";
+	private static final String KEY_HIDE_LIVE_SUBTITLES_FOLDER = "hide_live_subtitles_folder";
 	private static final String KEY_HIDE_MEDIA_LIBRARY_FOLDER = "hide_media_library_folder";
 	private static final String KEY_HIDE_TRANSCODE_FOLDER = "hide_transcode_folder";
 	private static final String KEY_HIDE_VIDEO_SETTINGS = "hidevideosettings";
@@ -167,10 +169,14 @@ public class PmsConfiguration {
 	private static final String KEY_NOTRANSCODE = "notranscode";
 	private static final String KEY_NUMBER_OF_CPU_CORES = "nbcores";
 	private static final String KEY_OPEN_ARCHIVES = "enable_archive_browsing";
+	private static final String KEY_LAST_PLAYED = "last_played";
+	private static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
+	private static final String KEY_LIVE_SUBTITLES_KEEP = "live_subtitles_keep";
 	private static final String KEY_OVERSCAN = "mencoder_overscan";
 	private static final String KEY_PLUGIN_DIRECTORY = "plugins";
 	private static final String KEY_PLUGIN_PURGE_ACTION = "plugin_purge";
 	private static final String KEY_PREVENTS_SLEEP = "prevents_sleep_mode";
+	private static final String KEY_PRETTIFY_FILENAMES = "prettify_filenames";
 	private static final String KEY_PROFILE_NAME = "name";
 	private static final String KEY_PROXY_SERVER_PORT = "proxy";
 	private static final String KEY_RENDERER_DEFAULT = "renderer_default";
@@ -201,13 +207,21 @@ public class PmsConfiguration {
 	private static final String KEY_UUID = "uuid";
 	private static final String KEY_VIDEOTRANSCODE_START_DELAY = "key_videotranscode_start_delay"; // TODO (breaking change): should be renamed to e.g. videotranscode_start_delay
 	private static final String KEY_VIRTUAL_FOLDERS = "vfolders";
-	private static final String KEY_LAST_PLAYED = "last_played";
+	private static final String KEY_VLC_USE_HW_ACCELERATION = "VLC_use_HW_acceleration";
+	private static final String KEY_VLC_USE_EXPERIMENTAL_CODECS = "VLC_use_experimental_codecs";
+	private static final String KEY_VLC_AUDIO_SYNC_ENABLED = "VLC_audio_sync_enabled";
+	private static final String KEY_VLC_SUBTITLE_ENABLED = "VLC_subtitle_enabled";
+	private static final String KEY_VLC_AUDIO_PRI = "VLC_audio_language_priority";
+	private static final String KEY_VLC_SUBTITLE_PRI = "VLC_subtitle_language_priority";
+	private static final String KEY_VLC_SCALE = "VLC_scale";
+	private static final String KEY_VLC_SAMPLE_RATE_OVERRIDE = "VLC_sample_rate_override";
+	private static final String KEY_VLC_SAMPLE_RATE = "VLC_sample_rate";
 
-	// the name of the subdirectory under which PMS config files are stored for this build (default: PMS).
-	// see Build for more details
+	// The name of the subdirectory under which UMS config files are stored for this build (default: UMS).
+	// See Build for more details
 	private static final String PROFILE_DIRECTORY_NAME = Build.getProfileDirectoryName();
 
-	// the default profile name displayed on the renderer
+	// The default profile name displayed on the renderer
 	private static String HOSTNAME;
 
 	private static String DEFAULT_AVI_SYNTH_SCRIPT;
@@ -226,7 +240,7 @@ public class PmsConfiguration {
 	/**
 	 * The set of the keys defining when the HTTP server has to restarted due to a configuration change
 	 */
-	public static final Set<String> NEED_RELOAD_FLAGS = new HashSet<String>(
+	public static final Set<String> NEED_RELOAD_FLAGS = new HashSet<>(
 		Arrays.asList(
 			KEY_ALTERNATE_THUMB_FOLDER,
 			KEY_ATZ_LIMIT,
@@ -239,6 +253,7 @@ public class PmsConfiguration {
 			KEY_OPEN_ARCHIVES,
 			KEY_USE_CACHE,
 			KEY_HIDE_ENGINENAMES,
+			KEY_HIDE_LIVE_SUBTITLES_FOLDER,
 			KEY_ITUNES_ENABLED,
 			KEY_IPHOTO_ENABLED,
 			KEY_APERTURE_ENABLED,
@@ -302,10 +317,17 @@ public class PmsConfiguration {
 	 */
 	private static final String DEFAULT_PROFILE_FILENAME = "UMS.conf";
 	private static final String ENV_PROFILE_PATH = "UMS_PROFILE";
-	private static final String PROFILE_DIRECTORY; // path to directory containing UMS config files
-	private static final String PROFILE_PATH; // abs path to profile file e.g. /path/to/UMS.conf
-	private static final String SKEL_PROFILE_PATH; // abs path to skel (default) profile file e.g. /etc/skel/.config/universalmediaserver/UMS.conf
-	                                               // "project.skelprofile.dir" project property
+
+	// Path to directory containing UMS config files
+	private static final String PROFILE_DIRECTORY;
+
+	// Absolute path to profile file e.g. /path/to/UMS.conf
+	private static final String PROFILE_PATH;
+
+	// Absolute path to skel (default) profile file e.g. /etc/skel/.config/universalmediaserver/UMS.conf
+	// "project.skelprofile.dir" project property
+	private static final String SKEL_PROFILE_PATH; 
+
 	private static final String PROPERTY_PROFILE_PATH = "ums.profile.path";
 
 	static {
@@ -330,7 +352,7 @@ public class PmsConfiguration {
 				PROFILE_DIRECTORY = FilenameUtils.normalize(f.getParentFile().getAbsolutePath());
 			}
 		} else {
-			String profileDir = null;
+			String profileDir;
 
 			if (Platform.isWindows()) {
 				String programData = System.getenv("ALLUSERSPROFILE");
@@ -367,7 +389,7 @@ public class PmsConfiguration {
 			PROFILE_PATH = FilenameUtils.normalize(new File(PROFILE_DIRECTORY, DEFAULT_PROFILE_FILENAME).getAbsolutePath());
 		}
 
-		// set SKEL_PROFILE_PATH for Linux systems
+		// Set SKEL_PROFILE_PATH for Linux systems
 		String skelDir = PropertiesUtil.getProjectProperties().get("project.skelprofile.dir");
 		if (Platform.isLinux() && StringUtils.isNotBlank(skelDir)) {
 			SKEL_PROFILE_PATH = FilenameUtils.normalize(new File(new File(skelDir, PROFILE_DIRECTORY_NAME).getAbsolutePath(), DEFAULT_PROFILE_FILENAME).getAbsolutePath());
@@ -675,7 +697,7 @@ public class PmsConfiguration {
 		String value = getString(key, def);
 		if (value != null) {
 			String[] arr = value.split(",");
-			List<String> result = new ArrayList<String>(arr.length);
+			List<String> result = new ArrayList<>(arr.length);
 			for (String str : arr) {
 				if (str.trim().length() > 0) {
 					result.add(str.trim());
@@ -1011,19 +1033,6 @@ public class PmsConfiguration {
 	 */
 	public String getAudioLanguages() {
 		return ConfigurationUtil.getPossiblyBlankConfigurationString(configuration, KEY_AUDIO_LANGUAGES, Messages.getString("MEncoderVideo.126"));
-	}
-
-	/**
-	 * Returns a string of comma separated audio or subtitle languages,
-	 * ordered by priority.
-	 * @return The string of languages.
-	 */
-	private String getDefaultLanguages() {
-		if ("fr".equals(getLanguage())) {
-			return "fre,jpn,ger,eng,und";
-		} else {
-			return "eng,fre,jpn,ger,und";
-		}
 	}
 
 	/**
@@ -1977,12 +1986,10 @@ public class PmsConfiguration {
 		configuration.setProperty(KEY_MENCODER_INTELLIGENT_SYNC, value);
 	}
 
-	@Deprecated
 	public String getFfmpegAlternativePath() {
 		return getString(KEY_FFMPEG_ALTERNATIVE_PATH, null);
 	}
 
-	@Deprecated
 	public void setFfmpegAlternativePath(String value) {
 		configuration.setProperty(KEY_FFMPEG_ALTERNATIVE_PATH, value);
 	}
@@ -2065,7 +2072,7 @@ public class PmsConfiguration {
 	}
 
 	public List<String> getEnginesAsList(SystemUtils registry) {
-		List<String> engines = stringToList(getString(KEY_ENGINES, "mencoder,avsmencoder,tsmuxer,ffmpegvideo,ffmpegaudio,mplayeraudio,tsmuxeraudio,ffmpegwebvideo,vlcvideo,mencoderwebvideo,mplayervideodump,mplayerwebaudio,vlcaudio,ffmpegdvrmsremux,rawthumbs"));
+		List<String> engines = stringToList(getString(KEY_ENGINES, "mencoder,avsmencoder,tsmuxer,ffmpegvideo,vlctranscoder,ffmpegaudio,mplayeraudio,tsmuxeraudio,ffmpegwebvideo,vlcvideo,mencoderwebvideo,mplayervideodump,mplayerwebaudio,vlcaudio,ffmpegdvrmsremux,rawthumbs"));
 		engines = hackAvs(registry, engines);
 		return engines;
 	}
@@ -2075,14 +2082,14 @@ public class PmsConfiguration {
 	}
 
 	private static List<String> stringToList(String input) {
-		List<String> output = new ArrayList<String>();
+		List<String> output = new ArrayList<>();
 		Collections.addAll(output, StringUtils.split(input, LIST_SEPARATOR));
 		return output;
 	}
 
 	// TODO: Get this out of here
 	private static List<String> hackAvs(SystemUtils registry, List<String> input) {
-		List<String> toBeRemoved = new ArrayList<String>();
+		List<String> toBeRemoved = new ArrayList<>();
 		for (String engineId : input) {
 			if (engineId.startsWith("avs") && !registry.isAvis() && Platform.isWindows()) {
 				if (!avsHackLogged) {
@@ -2094,7 +2101,7 @@ public class PmsConfiguration {
 			}
 		}
 
-		List<String> output = new ArrayList<String>();
+		List<String> output = new ArrayList<>();
 		output.addAll(input);
 		output.removeAll(toBeRemoved);
 		return output;
@@ -2283,6 +2290,14 @@ public class PmsConfiguration {
 		return getBoolean(KEY_MENCODER_MUX_COMPATIBLE, true);
 	}
 
+	public void setFFmpegMuxWhenCompatible(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_MUX_COMPATIBLE, value);
+	}
+
+	public boolean isFFmpegMuxWhenCompatible() {
+		return getBoolean(KEY_FFMPEG_MUX_COMPATIBLE, false);
+	}
+
 	public void setMuxAllAudioTracks(boolean value) {
 		configuration.setProperty(KEY_MUX_ALLAUDIOTRACKS, value);
 	}
@@ -2361,7 +2376,7 @@ public class PmsConfiguration {
 	}
 
 	public boolean isHideMediaLibraryFolder() {
-		return getBoolean(PmsConfiguration.KEY_HIDE_MEDIA_LIBRARY_FOLDER, false);
+		return getBoolean(PmsConfiguration.KEY_HIDE_MEDIA_LIBRARY_FOLDER, true);
 	}
 
 	public void setHideMediaLibraryFolder(final boolean value) {
@@ -2446,6 +2461,14 @@ public class PmsConfiguration {
 
 	public void setIgnoreTheWordThe(boolean value) {
 		configuration.setProperty(KEY_IGNORE_THE_WORD_THE, value);
+	}
+
+	public boolean isPrettifyFilenames() {
+		return getBoolean(KEY_PRETTIFY_FILENAMES, true);
+	}
+
+	public void setPrettifyFilenames(boolean value) {
+		configuration.setProperty(KEY_PRETTIFY_FILENAMES, value);
 	}
 
 	/**
@@ -2668,7 +2691,7 @@ public class PmsConfiguration {
 				}
 
 				return false;
-			} catch (Exception e) {
+			} catch (IOException | InterruptedException e) {
 				LOGGER.error("Something prevented UMS from checking Windows permissions", e);
 			}
 		}
@@ -2705,21 +2728,19 @@ public class PmsConfiguration {
 		// Now we know cred path is set
 		File f = new File(cp);
 		if (!f.exists()) {
-			// cred path is set but file isn't there
-			// create empty file with some comments
-			FileOutputStream fos = new FileOutputStream(f);
-			StringBuilder sb = new StringBuilder();
-			sb.append("# Add credentials to the file");
-			sb.append("\n");
-			sb.append("# on the format tag=user,pwd");
-			sb.append("\n");
-			sb.append("# For example:");
-			sb.append("\n");
-			sb.append("# channels.xxx=name,secret");
-			sb.append("\n");
-			fos.write(sb.toString().getBytes());
-			fos.flush();
-			fos.close();
+			try (FileOutputStream fos = new FileOutputStream(f)) {
+				StringBuilder sb = new StringBuilder();
+				sb.append("# Add credentials to the file");
+				sb.append("\n");
+				sb.append("# on the format tag=user,pwd");
+				sb.append("\n");
+				sb.append("# For example:");
+				sb.append("\n");
+				sb.append("# channels.xxx=name,secret");
+				sb.append("\n");
+				fos.write(sb.toString().getBytes());
+				fos.flush();
+			}
 		}
 	}
 
@@ -2765,5 +2786,83 @@ public class PmsConfiguration {
 
 	public String getDataFile(String str) {
 		return getDataDir() + File.separator + str;
+	}
+
+	private String KEY_URL_RES_ORDER = "url_resolve_order";
+
+	public String[] getURLResolveOrder() {
+		return getString(KEY_URL_RES_ORDER, "").split(",");
+	}
+
+	public boolean isHideLiveSubtitlesFolder() {
+		return getBoolean(KEY_HIDE_LIVE_SUBTITLES_FOLDER, true);
+	}
+
+	public void setHideLiveSubtitlesFolder(boolean value) {
+		configuration.setProperty(KEY_HIDE_LIVE_SUBTITLES_FOLDER, value);
+	}
+
+	public int liveSubtitlesLimit() {
+		return getInt(KEY_LIVE_SUBTITLES_LIMIT, 20);
+	}
+	
+	public boolean isLiveSubtitlesKeep() {
+		return getBoolean(KEY_LIVE_SUBTITLES_KEEP, false);
+	}
+
+	public boolean isVlcUseHardwareAccel() {
+		return getBoolean(KEY_VLC_USE_HW_ACCELERATION, false);
+	}
+
+	public void setVlcUseHardwareAccel(boolean value) {
+		configuration.setProperty(KEY_VLC_USE_HW_ACCELERATION, value);
+	}
+
+	public boolean isVlcExperimentalCodecs() {
+		return getBoolean(KEY_VLC_USE_EXPERIMENTAL_CODECS, false);
+	}
+
+	public void setVlcExperimentalCodecs(boolean value) {
+		configuration.setProperty(KEY_VLC_USE_EXPERIMENTAL_CODECS, value);
+	}
+
+	public boolean isVlcAudioSyncEnabled() {
+		return getBoolean(KEY_VLC_AUDIO_SYNC_ENABLED, false);
+	}
+
+	public void setVlcAudioSyncEnabled(boolean value) {
+		configuration.setProperty(KEY_VLC_AUDIO_SYNC_ENABLED, value);
+	}
+
+	public boolean isVlcSubtitleEnabled() {
+		return getBoolean(KEY_VLC_SUBTITLE_ENABLED, true);
+	}
+
+	public void setVlcSubtitleEnabled(boolean value) {
+		configuration.setProperty(KEY_VLC_SUBTITLE_ENABLED, value);
+	}
+
+	public String getVlcScale() {
+		return getString(KEY_VLC_SCALE, "1.0");
+	}
+
+	public void setVlcScale(String value) {
+		configuration.setProperty(KEY_VLC_SCALE, value);
+	}
+
+	public boolean getVlcSampleRateOverride() {
+		return getBoolean(KEY_VLC_SAMPLE_RATE_OVERRIDE, false);
+	}
+
+	public void setVlcSampleRateOverride(boolean value) {
+		configuration.setProperty(KEY_VLC_SAMPLE_RATE_OVERRIDE, value);
+	}
+
+	public String getVlcSampleRate() {
+		return getString(KEY_VLC_SAMPLE_RATE, "48000");
+	}
+
+	public void setVlcSampleRate(String value) {
+		configuration.setProperty(KEY_VLC_SAMPLE_RATE, value);
 	}
 }

@@ -150,7 +150,7 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 			}
 
 			// List holding all combinations
-			ArrayList<DLNAResource> combos = new ArrayList<DLNAResource>();
+			ArrayList<DLNAResource> combos = new ArrayList<>();
 
 			List<DLNAMediaAudio> audioTracks = child.getMedia().getAudioTracksList();
 			List<DLNAMediaSubtitle> subtitles = child.getMedia().getSubtitleTracksList();

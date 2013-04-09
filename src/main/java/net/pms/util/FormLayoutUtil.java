@@ -98,7 +98,7 @@ public class FormLayoutUtil {
 	 * @return an array of flipped column specs in reversed order
 	 */
 	public static String flip(String encodedColumnSpecs) {
-		StringBuffer result = new StringBuffer();
+		StringBuilder result = new StringBuilder();
 		String separator = "";
 		ColumnSpec[] flippedSpecs = flipped(ColumnSpec.decodeSpecs(encodedColumnSpecs));
 		

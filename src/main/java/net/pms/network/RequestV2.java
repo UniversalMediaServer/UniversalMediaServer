@@ -257,10 +257,18 @@ public class RequestV2 extends HTTPResource {
 		} else if ((method.equals("GET") || method.equals("HEAD")) && argument.startsWith("get/")) {
 			// Request to retrieve a file
 
-			// skip the leading "get/" and extract the
-			// resource ID from the first path element
-			// e.g. "get/0$1$5$3$4/Foo.mp4" -> "0$1$5$3$4"
-			String id = argument.substring(4, argument.lastIndexOf("/"));
+			/**
+			 * Skip the leading "get/" and extract the resource ID from the first path element
+			 * e.g. "get/0$1$5$3$4/Foo.mp4" -> "0$1$5$3$4"
+			 *
+			 * ExSport: I spotted on Android it is asking for "/get/0$2$4$2$1$3" which generates exception with response:
+			 * "Http: Response, HTTP/1.1, Status: Internal server error, URL: /get/0$2$4$2$1$3"
+			 * This should fix it
+			 */
+			String id = argument.substring(4);
+			if (argument.substring(4).contains("/")) {
+				id = argument.substring(4, argument.lastIndexOf("/"));
+			}
 
 			// Some clients escape the separators in their request: unescape them.
 			id = id.replace("%24", "$");
@@ -747,22 +755,21 @@ public class RequestV2 extends HTTPResource {
 					String addr = soapActionUrl.getHost();
 					int port = soapActionUrl.getPort();
 					Socket sock = new Socket(addr,port);
-					OutputStream out = sock.getOutputStream();
-	
-					out.write(("NOTIFY /" + argument + " HTTP/1.1").getBytes());
-					out.write(CRLF.getBytes());
-					out.write(("SID: " + PMS.get().usn()).getBytes());
-					out.write(CRLF.getBytes());
-					out.write(("SEQ: " + 0).getBytes());
-					out.write(CRLF.getBytes());
-					out.write(("NT: upnp:event").getBytes());
-					out.write(CRLF.getBytes());
-					out.write(("NTS: upnp:propchange").getBytes());
-					out.write(CRLF.getBytes());
-					out.write(("HOST: " + addr + ":" + port).getBytes());
-					out.write(CRLF.getBytes());
-					out.flush();
-					out.close();
+					try (OutputStream out = sock.getOutputStream()) {
+						out.write(("NOTIFY /" + argument + " HTTP/1.1").getBytes());
+						out.write(CRLF.getBytes());
+						out.write(("SID: " + PMS.get().usn()).getBytes());
+						out.write(CRLF.getBytes());
+						out.write(("SEQ: " + 0).getBytes());
+						out.write(CRLF.getBytes());
+						out.write(("NT: upnp:event").getBytes());
+						out.write(CRLF.getBytes());
+						out.write(("NTS: upnp:propchange").getBytes());
+						out.write(CRLF.getBytes());
+						out.write(("HOST: " + addr + ":" + port).getBytes());
+						out.write(CRLF.getBytes());
+						out.flush();
+					}
 				} catch (MalformedURLException ex) {
 					LOGGER.debug("Cannot parse address and port from soap action \"" + soapaction + "\"", ex);
 				}

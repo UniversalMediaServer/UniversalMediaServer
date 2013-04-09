@@ -166,7 +166,7 @@ public class MapFile extends DLNAResource {
 	}
 
 	private List<File> getFileList() {
-		List<File> out = new ArrayList<File>();
+		List<File> out = new ArrayList<>();
 
 		for (File file : this.conf.getFiles()) {
 			if (file != null && file.isDirectory()) {
@@ -223,7 +223,7 @@ public class MapFile extends DLNAResource {
 		}
 
 		if (discoverable == null) {
-			discoverable = new ArrayList<File>();
+			discoverable = new ArrayList<>();
 		} else {
 			return;
 		}
@@ -239,7 +239,7 @@ public class MapFile extends DLNAResource {
 			 * Note: If we done this at the level directly above we don't do it again
 			 * since all files start with the same letter then
 			 */
-			TreeMap<String, ArrayList<File>> map = new TreeMap<String, ArrayList<File>>();
+			TreeMap<String, ArrayList<File>> map = new TreeMap<>();
 			for (File f : files) {
 				if ((!f.isFile() && !f.isDirectory()) || f.isHidden()) {
 					// skip these
@@ -259,7 +259,7 @@ public class MapFile extends DLNAResource {
 				ArrayList<File> l = map.get(String.valueOf(c));
 				if (l == null) {
 					// new letter
-					l = new ArrayList<File>();
+					l = new ArrayList<>();
 				}
 				l.add(f);
 				map.put(String.valueOf(c), l);
@@ -283,9 +283,34 @@ public class MapFile extends DLNAResource {
 						String filename1ToSort = f1.getName();
 						String filename2ToSort = f2.getName();
 
+						if (configuration.isPrettifyFilenames()) {
+							// This chunk makes anime sort properly
+							int squareBracketIndex;
+							if (filename1ToSort.substring(0, 1).matches("\\[")) {
+								filename1ToSort = filename1ToSort.replaceAll("_", " ");
+								squareBracketIndex = filename1ToSort.indexOf("]");
+								if (squareBracketIndex != -1) {
+									filename1ToSort = filename1ToSort.substring(squareBracketIndex + 1);
+									if (filename1ToSort.substring(0, 1).matches("\\s")) {
+										filename1ToSort = filename1ToSort.substring(1);
+									}
+								}
+							}
+							if (filename2ToSort.substring(0, 1).matches("\\[")) {
+								filename2ToSort = filename2ToSort.replaceAll("_", " ");
+								squareBracketIndex = filename2ToSort.indexOf("]");
+								if (squareBracketIndex != -1) {
+									filename2ToSort = filename2ToSort.substring(squareBracketIndex + 1);
+									if (filename2ToSort.substring(0, 1).matches("\\s")) {
+										filename2ToSort = filename2ToSort.substring(1);
+									}
+								}
+							}
+						}
+
 						if (configuration.isIgnoreTheWordThe()) {
-							filename1ToSort = f1.getName().replaceAll("^(?i)The[ .]", "");
-							filename2ToSort = f2.getName().replaceAll("^(?i)The[ .]", "");
+							filename1ToSort = filename1ToSort.replaceAll("^(?i)The[ .]", "");
+							filename2ToSort = filename2ToSort.replaceAll("^(?i)The[ .]", "");
 						}
 
 						return NaturalComparator.compareNatural(collator, filename1ToSort, filename2ToSort);
@@ -299,9 +324,34 @@ public class MapFile extends DLNAResource {
 						String filename1ToSort = f1.getName();
 						String filename2ToSort = f2.getName();
 
+						if (configuration.isPrettifyFilenames()) {
+							// This chunk makes anime sort properly
+							int squareBracketIndex;
+							if (filename1ToSort.substring(0, 1).matches("\\[")) {
+								filename1ToSort = filename1ToSort.replaceAll("_", " ");
+								squareBracketIndex = filename1ToSort.indexOf("]");
+								if (squareBracketIndex != -1) {
+									filename1ToSort = filename1ToSort.substring(squareBracketIndex + 1);
+									if (filename1ToSort.substring(0, 1).matches("\\s")) {
+										filename1ToSort = filename1ToSort.substring(1);
+									}
+								}
+							}
+							if (filename2ToSort.substring(0, 1).matches("\\[")) {
+								filename2ToSort = filename2ToSort.replaceAll("_", " ");
+								squareBracketIndex = filename2ToSort.indexOf("]");
+								if (squareBracketIndex != -1) {
+									filename2ToSort = filename2ToSort.substring(squareBracketIndex + 1);
+									if (filename2ToSort.substring(0, 1).matches("\\s")) {
+										filename2ToSort = filename2ToSort.substring(1);
+									}
+								}
+							}
+						}
+
 						if (configuration.isIgnoreTheWordThe()) {
-							filename1ToSort = f1.getName().replaceAll("^(?i)The[ .]", "");
-							filename2ToSort = f2.getName().replaceAll("^(?i)The[ .]", "");
+							filename1ToSort = filename1ToSort.replaceAll("^(?i)The[ .]", "");
+							filename2ToSort = filename2ToSort.replaceAll("^(?i)The[ .]", "");
 						}
 
 						return filename1ToSort.compareToIgnoreCase(filename2ToSort);
@@ -331,9 +381,34 @@ public class MapFile extends DLNAResource {
 						String filename1ToSort = f1.getName();
 						String filename2ToSort = f2.getName();
 
+						if (configuration.isPrettifyFilenames()) {
+							// This chunk makes anime sort properly
+							int squareBracketIndex;
+							if (filename1ToSort.substring(0, 1).matches("\\[")) {
+								filename1ToSort = filename1ToSort.replaceAll("_", " ");
+								squareBracketIndex = filename1ToSort.indexOf("]");
+								if (squareBracketIndex != -1) {
+									filename1ToSort = filename1ToSort.substring(squareBracketIndex + 1);
+									if (filename1ToSort.substring(0, 1).matches("\\s")) {
+										filename1ToSort = filename1ToSort.substring(1);
+									}
+								}
+							}
+							if (filename2ToSort.substring(0, 1).matches("\\[")) {
+								filename2ToSort = filename2ToSort.replaceAll("_", " ");
+								squareBracketIndex = filename2ToSort.indexOf("]");
+								if (squareBracketIndex != -1) {
+									filename2ToSort = filename2ToSort.substring(squareBracketIndex + 1);
+									if (filename2ToSort.substring(0, 1).matches("\\s")) {
+										filename2ToSort = filename2ToSort.substring(1);
+									}
+								}
+							}
+						}
+
 						if (configuration.isIgnoreTheWordThe()) {
-							filename1ToSort = f1.getName().replaceAll("^(?i)The[ .]", "");
-							filename2ToSort = f2.getName().replaceAll("^(?i)The[ .]", "");
+							filename1ToSort = filename1ToSort.replaceAll("^(?i)The[ .]", "");
+							filename2ToSort = filename2ToSort.replaceAll("^(?i)The[ .]", "");
 						}
 
 						return collator.compare(filename1ToSort, filename2ToSort);
@@ -373,10 +448,15 @@ public class MapFile extends DLNAResource {
 	}
 
 	@Override
+	public void doRefreshChildren() {
+		doRefreshChildren(null);
+	}
+
+	@Override
 	public void doRefreshChildren(String str) {
 		List<File> files = getFileList();
-		List<File> addedFiles = new ArrayList<File>();
-		List<DLNAResource> removedFiles = new ArrayList<DLNAResource>();
+		List<File> addedFiles = new ArrayList<>();
+		List<DLNAResource> removedFiles = new ArrayList<>();
 
 		for (DLNAResource d : getChildren()) {
 			boolean isNeedMatching = !(d.getClass() == MapFile.class || (d instanceof VirtualFolder && !(d instanceof DVDISOFile)));
@@ -548,6 +628,7 @@ public class MapFile extends DLNAResource {
 		this.potentialCover = potentialCover;
 	}
 
+	@Override
 	public boolean isSearched() {
 		return true;
 	}

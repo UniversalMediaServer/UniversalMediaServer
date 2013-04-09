@@ -123,17 +123,17 @@ public class NetworkConfiguration {
 	/**
 	 * The list of discovered network interfaces.
 	 */
-	private List<InterfaceAssociation> interfaces = new ArrayList<InterfaceAssociation>();
+	private List<InterfaceAssociation> interfaces = new ArrayList<>();
 
 	/**
 	 * The map of discovered default IP addresses belonging to a network interface.
 	 */
-	private Map<String, InterfaceAssociation> mainAddress = new HashMap<String, InterfaceAssociation>();
+	private Map<String, InterfaceAssociation> mainAddress = new HashMap<>();
 
 	/**
 	 * The map of IP addresses connected to an interface name.
 	 */
-	private Map<String, Set<InetAddress>> addressMap = new HashMap<String, Set<InetAddress>>();
+	private Map<String, Set<InetAddress>> addressMap = new HashMap<>();
 
 	/**
 	 * The list of configured network interface names that should be skipped.
@@ -159,7 +159,7 @@ public class NetworkConfiguration {
 	 * @return The available addresses.
 	 */
 	private Set<InetAddress> addAvailableAddresses(NetworkInterface networkInterface) {
-		Set<InetAddress> addrSet = new HashSet<InetAddress>();
+		Set<InetAddress> addrSet = new HashSet<>();
 		LOGGER.trace("available addresses for {} is: {}", networkInterface.getName(), Collections.list(networkInterface.getInetAddresses()));
 
 		for (InterfaceAddress ia : networkInterface.getInterfaceAddresses()) {
@@ -233,7 +233,7 @@ public class NetworkConfiguration {
 	 * @return The list of addresses.
 	 */
 	private Set<InetAddress> getAllAvailableAddresses(Enumeration<NetworkInterface> networkInterfaces) {
-		Set<InetAddress> addrSet = new HashSet<InetAddress>();
+		Set<InetAddress> addrSet = new HashSet<>();
 
 		while (networkInterfaces.hasMoreElements()) {
 			NetworkInterface ni = networkInterfaces.nextElement();
@@ -302,7 +302,7 @@ public class NetworkConfiguration {
 	 * @return The interface names.
 	 */
 	public List<String> getKeys() {
-		List<String> result = new ArrayList<String>(interfaces.size());
+		List<String> result = new ArrayList<>(interfaces.size());
 
 		for (InterfaceAssociation i : interfaces) {
 			result.add(i.getShortName());
@@ -318,7 +318,7 @@ public class NetworkConfiguration {
 	 * @return The list of names.
 	 */
 	public List<String> getDisplayNames() {
-		List<String> result = new ArrayList<String>(interfaces.size());
+		List<String> result = new ArrayList<>(interfaces.size());
 
 		for (InterfaceAssociation i : interfaces) {
 				result.add(i.getDisplayName());

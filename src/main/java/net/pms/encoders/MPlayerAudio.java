@@ -201,6 +201,7 @@ public class MPlayerAudio extends Player {
 		noresample.setContentAreaFilled(false);
 		noresample.setSelected(configuration.isAudioResample());
 		noresample.addItemListener(new ItemListener() {
+			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setAudioResample(e.getStateChange() == ItemEvent.SELECTED);
 			}

@@ -48,6 +48,7 @@ public class PipeIPCProcess extends Thread implements ProcessWrapper {
 		mkout = new PipeProcess(pipeNameOut, "out", forcereconnect2 ? "reconnect" : "dummy");
 	}
 
+	@Override
 	public void run() {
 		byte[] b = new byte[512 * 1024];
 		int n = -1;

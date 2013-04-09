@@ -19,7 +19,7 @@ public class WindowsRegistry {
 	 * @param key registry key
 	 * @return registry value or null if not found
 	 */
-	public static final String readRegistry(String location, String key) {
+	public static String readRegistry(String location, String key) {
 		try {
 			// Run reg query, then read output with StreamReader (internal class)
 			String query = "reg query " + '"' + location + "\" /v \"" + key + '"';
@@ -37,7 +37,7 @@ public class WindowsRegistry {
 				return parsed;
 			}
 			
-		} catch (Exception e) {}
+		} catch (IOException | InterruptedException e) {}
 
 		return null;
 	}

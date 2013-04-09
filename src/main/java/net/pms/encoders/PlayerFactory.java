@@ -50,12 +50,12 @@ public final class PlayerFactory {
 	/**
 	 * List of registered and approved {@link Player} objects.
 	 */
-	private static ArrayList<Player> players = new ArrayList<Player>();
+	private static ArrayList<Player> players = new ArrayList<>();
 
 	/**
 	 * List of registered {@link Player} objects.
 	 */
-	private static ArrayList<Player> allPlayers = new ArrayList<Player>();
+	private static ArrayList<Player> allPlayers = new ArrayList<>();
 
 	/**
 	 * Interface to Windows specific functions, like Windows Registry. The
@@ -130,6 +130,7 @@ public final class PlayerFactory {
 		}
 
 		registerPlayer(new FFMpegVideo(configuration));
+		registerPlayer(new VLCVideo(configuration));
 		registerPlayer(new MPlayerAudio(configuration));
 		registerPlayer(new FFmpegWebVideo(configuration));
 		registerPlayer(new MEncoderWebVideo(configuration));
@@ -158,6 +159,11 @@ public final class PlayerFactory {
 	 * @param player Player to be added to the list.
 	 */
 	public static synchronized void registerPlayer(final Player player) {
+		if (allPlayers.contains(player)) {
+			LOGGER.info("Transcoding engine " + player + " already exists, skipping...");
+			return;
+		}
+
 		boolean ok = false;
 		allPlayers.add(player);
 
@@ -295,7 +301,7 @@ public final class PlayerFactory {
 			final ArrayList<Class<? extends Player>> profileClasses,
 			final int type) {
 
-		ArrayList<Player> compatiblePlayers = new ArrayList<Player>();
+		ArrayList<Player> compatiblePlayers = new ArrayList<>();
 
 		for (Player player : players) {
 			if (profileClasses.contains(player.getClass())
@@ -324,7 +330,7 @@ public final class PlayerFactory {
 		}
 
 		List<String> enabledEngines = PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry());
-		ArrayList<Player> compatiblePlayers = new ArrayList<Player>();
+		ArrayList<Player> compatiblePlayers = new ArrayList<>();
 
 		for (Player player : players) {
 			if (enabledEngines.contains(player.id()) && player.isCompatible(resource)) {
