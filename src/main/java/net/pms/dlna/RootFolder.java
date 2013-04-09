@@ -96,17 +96,17 @@ public class RootFolder extends DLNAResource {
 			return;
 		}
 
-		if (PMS.getConfiguration().getLastPlayed()) {
+		if (configuration.getLastPlayed()) {
 			last = new LastPlayed();
 			addChild(last);
 		}
 
-		String m = (String) PMS.getConfiguration().getCustomProperty("monitor");
+		String m = (String) configuration.getCustomProperty("monitor");
 		if (!StringUtils.isEmpty(m)) {
 			String[] tmp = m.split(",");
 			File[] dirs = new File[tmp.length];
 			for (int i = 0; i < tmp.length; i++) {
-				dirs[i]=new File(tmp[i]);
+				dirs[i] = new File(tmp[i]);
 			}
 			mon = new MediaMonitor(dirs);
 			addChild(mon);
