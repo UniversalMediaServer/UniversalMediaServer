@@ -319,17 +319,22 @@ public class RootFolder extends DLNAResource {
 									if (parent == null) {
 										parent = this;
 									}
-
-									if (keys[0].equals("imagefeed")) {
-										parent.addChild(new ImagesFeed(values[0]));
-									} else if (keys[0].equals("videofeed")) {
-										parent.addChild(new VideosFeed(values[0]));
-									} else if (keys[0].equals("audiofeed")) {
-										parent.addChild(new AudiosFeed(values[0]));
-									} else if (keys[0].equals("audiostream")) {
-										parent.addChild(new WebAudioStream(values[0], values[1], values[2]));
-									} else if (keys[0].equals("videostream")) {
-										parent.addChild(new WebVideoStream(values[0], values[1], values[2]));
+									switch (keys[0]) {
+										case "imagefeed":
+											parent.addChild(new ImagesFeed(values[0]));
+											break;
+										case "videofeed":
+											parent.addChild(new VideosFeed(values[0]));
+											break;
+										case "audiofeed":
+											parent.addChild(new AudiosFeed(values[0]));
+											break;
+										case "audiostream":
+											parent.addChild(new WebAudioStream(values[0], values[1], values[2]));
+											break;
+										case "videostream":
+											parent.addChild(new WebVideoStream(values[0], values[1], values[2]));
+											break;
 									}
 								}
 							} catch (ArrayIndexOutOfBoundsException e) {
