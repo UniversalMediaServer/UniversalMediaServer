@@ -654,30 +654,27 @@ public class RootFolder extends DLNAResource {
 			// the second line should contain a quoted file URL e.g.:
 			// "file://localhost/Users/MyUser/Music/iTunes/iTunes%20Music%20Library.xml"
 			Process process = Runtime.getRuntime().exec("defaults read com.apple.iApps iTunesRecentDatabases");
-			BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-			// we want the 2nd line
-			if ((line = in.readLine()) != null && (line = in.readLine()) != null) {
-				line = line.trim(); // remove extra spaces
-				line = line.substring(1, line.length() - 1); // remove quotes and spaces
-				URI tURI = new URI(line);
-				iTunesFile = URLDecoder.decode(tURI.toURL().getFile(), "UTF8");
-			}
-
-			in.close();
-		} else if (Platform.isWindows()) {
-			Process process = Runtime.getRuntime().exec("reg query \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\" /v \"My Music\"");
-			BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
-			String location = null;
-
-			while ((line = in.readLine()) != null) {
-				final String LOOK_FOR = "REG_SZ";
-				if (line.contains(LOOK_FOR)) {
-					location = line.substring(line.indexOf(LOOK_FOR) + LOOK_FOR.length()).trim();
+			try (BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+				// we want the 2nd line
+				if ((line = in.readLine()) != null && (line = in.readLine()) != null) {
+					line = line.trim(); // remove extra spaces
+					line = line.substring(1, line.length() - 1); // remove quotes and spaces
+					URI tURI = new URI(line);
+					iTunesFile = URLDecoder.decode(tURI.toURL().getFile(), "UTF8");
 				}
 			}
-
-			in.close();
+		} else if (Platform.isWindows()) {
+			Process process = Runtime.getRuntime().exec("reg query \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\" /v \"My Music\"");
+			String location;
+			try (BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+				location = null;
+				while ((line = in.readLine()) != null) {
+					final String LOOK_FOR = "REG_SZ";
+					if (line.contains(LOOK_FOR)) {
+						location = line.substring(line.indexOf(LOOK_FOR) + LOOK_FOR.length()).trim();
+					}
+				}
+			}
 
 			if (location != null) {
 				// Add the iTunes folder to the end

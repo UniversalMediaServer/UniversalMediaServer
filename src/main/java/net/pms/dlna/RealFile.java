@@ -306,6 +306,6 @@ public class RealFile extends MapFile {
 
 	@Override
 	public String write() {
-		return getName()+">"+getFile().getAbsolutePath();
+		return getName() + ">" + getFile().getAbsolutePath();
 	}
 }

@@ -68,7 +68,7 @@ public class LastPlayed extends VirtualFolder {
 	}
 
 	public void add(DLNAResource res) {
-		DLNAResource res1 = null;
+		DLNAResource res1;
 		LOGGER.debug("add " + res + " to last played " + res.getParent() + " " + this);
 		if (res.getParent() == this) {
 			res1 = res; // best guess
@@ -117,45 +117,45 @@ public class LastPlayed extends VirtualFolder {
 			return;
 		}
 		try {
-			BufferedReader in = new BufferedReader(new FileReader(f));
-			String str;
+			try (BufferedReader in = new BufferedReader(new FileReader(f))) {
+				String str;
 
-			while ((str = in.readLine()) != null) {
-				if (StringUtils.isEmpty(str)) {
-					continue;
-				}
-				if (str.startsWith("#")) {
-					continue;
-				}
-				str = str.trim();
-				if (!str.startsWith("master:")) {
-					continue;
-				}
-				str = str.substring(7);
-				int pos = str.indexOf(";");
-				if (pos == -1) {
-					continue;
-				}
-				String master = str.substring(0, pos);
-				str = str.substring(pos + 1);
-				LOGGER.debug("master is " + master + " str " + str);
-				DLNAResource res = null;
-				ExternalListener lpp = null;
-				if (master.startsWith("internal:")) {
-					res = parseInternal(master.substring(9), str);
-				} else {
-					lpp = findLastPlayedParent(master);
-					if (lpp != null) {
-						res = resolveCreateMethod(lpp, str);
+				while ((str = in.readLine()) != null) {
+					if (StringUtils.isEmpty(str)) {
+						continue;
+					}
+					if (str.startsWith("#")) {
+						continue;
+					}
+					str = str.trim();
+					if (!str.startsWith("master:")) {
+						continue;
+					}
+					str = str.substring(7);
+					int pos = str.indexOf(";");
+					if (pos == -1) {
+						continue;
+					}
+					String master = str.substring(0, pos);
+					str = str.substring(pos + 1);
+					LOGGER.debug("master is " + master + " str " + str);
+					DLNAResource res = null;
+					ExternalListener lpp = null;
+					if (master.startsWith("internal:")) {
+						res = parseInternal(master.substring(9), str);
+					} else {
+						lpp = findLastPlayedParent(master);
+						if (lpp != null) {
+							res = resolveCreateMethod(lpp, str);
+						}
+					}
+					if (res != null) {
+						LOGGER.debug("set masterparent for " + res + " to " + lpp);
+						res.setMasterParent(lpp);
+						list.add(res);
 					}
 				}
-				if (res != null) {
-					LOGGER.debug("set masterparent for " + res + " to " + lpp);
-					res.setMasterParent(lpp);
-					list.add(res);
-				}
 			}
-			in.close();
 			dumpFile();
 		} catch (Exception e) {
 		}
@@ -163,30 +163,30 @@ public class LastPlayed extends VirtualFolder {
 
 	private void dumpFile() throws IOException {
 		File f = lastFile();
-		FileWriter out = new FileWriter(f);
-		StringBuilder sb = new StringBuilder();
-		sb.append("######\n");
-		sb.append("## NOTE!!!!!\n");
-		sb.append("## This file is auto generated\n");
-		sb.append("## Edit with EXTREME care\n");
-		for (DLNAResource r : list) {
-			String data = r.write();
-			if (!StringUtils.isEmpty(data)) {
-				ExternalListener parent = r.getMasterParent();
-				String id;
-				if (parent != null) {
-					id = parent.getClass().getName();
-				} else {
-					id = "internal:" + r.getClass().getName();
+		try (FileWriter out = new FileWriter(f)) {
+			StringBuilder sb = new StringBuilder();
+			sb.append("######\n");
+			sb.append("## NOTE!!!!!\n");
+			sb.append("## This file is auto generated\n");
+			sb.append("## Edit with EXTREME care\n");
+			for (DLNAResource r : list) {
+				String data = r.write();
+				if (!StringUtils.isEmpty(data)) {
+					ExternalListener parent = r.getMasterParent();
+					String id;
+					if (parent != null) {
+						id = parent.getClass().getName();
+					} else {
+						id = "internal:" + r.getClass().getName();
+					}
+					sb.append("master:").append(id).append(";");
+					sb.append(data);
+					sb.append("\n");
 				}
-				sb.append("master:").append(id).append(";");
-				sb.append(data);
-				sb.append("\n");
 			}
+			out.write(sb.toString());
+			out.flush();
 		}
-		out.write(sb.toString());
-		out.flush();
-		out.close();
 	}
 
 	private DLNAResource parseInternal(String clazz, String data) {
@@ -224,12 +224,7 @@ public class LastPlayed extends VirtualFolder {
 			create = clazz.getDeclaredMethod("create", String.class);
 			return (DLNAResource) create.invoke(l, arg);
 		// Ignore all errors
-		} catch (SecurityException e) {
-		} catch (NoSuchMethodException e) {
-		} catch (IllegalArgumentException e) {
-		} catch (IllegalAccessException e) {
-		} catch (InvocationTargetException e) {
-		}
+		} catch (SecurityException | NoSuchMethodException | IllegalArgumentException | IllegalAccessException | InvocationTargetException e) { }
 		return null;
 	}
 }

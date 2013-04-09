@@ -19,7 +19,7 @@ public class MediaMonitor extends VirtualFolder {
 	public MediaMonitor(File[] dirs) {
 		super("New Media", null);
 		this.dirs = dirs;
-		oldEntries = new ArrayList<String>();
+		oldEntries = new ArrayList<>();
 		parseMonitorFile();
 	}
 
@@ -33,28 +33,28 @@ public class MediaMonitor extends VirtualFolder {
 			return;
 		}
 		try {
-			BufferedReader in = new BufferedReader(new FileReader(f));
-			String str;
+			try (BufferedReader in = new BufferedReader(new FileReader(f))) {
+				String str;
 
-			while ((str = in.readLine()) != null) {
-				if (StringUtils.isEmpty(str)) {
-					continue;
-				}
-				str = str.trim();
-				if (str.startsWith("#")) {
-					continue;
-				}
-				if (str.startsWith("entry=")) {
-					String entry = str.substring(6);
-					if (!new File(entry.trim()).exists()) {
+				while ((str = in.readLine()) != null) {
+					if (StringUtils.isEmpty(str)) {
 						continue;
 					}
-					if (!oldEntries.contains(entry.trim())) {
-						oldEntries.add(entry.trim());
+					str = str.trim();
+					if (str.startsWith("#")) {
+						continue;
+					}
+					if (str.startsWith("entry=")) {
+						String entry = str.substring(6);
+						if (!new File(entry.trim()).exists()) {
+							continue;
+						}
+						if (!oldEntries.contains(entry.trim())) {
+							oldEntries.add(entry.trim());
+						}
 					}
 				}
 			}
-			in.close();
 			dumpFile();
 		} catch (Exception e) {
 		}
@@ -123,19 +123,19 @@ public class MediaMonitor extends VirtualFolder {
 
 	private void dumpFile() throws IOException {
 		File f = monitorFile();
-		FileWriter out = new FileWriter(f);
-		StringBuilder sb = new StringBuilder();
-		sb.append("######\n");
-		sb.append("## NOTE!!!!!\n");
-		sb.append("## This file is auto generated\n");
-		sb.append("## Edit with EXTREME care\n");
-		for (String str : oldEntries) {
-			sb.append("entry=");
-			sb.append(str);
-			sb.append("\n");
+		try (FileWriter out = new FileWriter(f)) {
+			StringBuilder sb = new StringBuilder();
+			sb.append("######\n");
+			sb.append("## NOTE!!!!!\n");
+			sb.append("## This file is auto generated\n");
+			sb.append("## Edit with EXTREME care\n");
+			for (String str : oldEntries) {
+				sb.append("entry=");
+				sb.append(str);
+				sb.append("\n");
+			}
+			out.write(sb.toString());
+			out.flush();
 		}
-		out.write(sb.toString());
-		out.flush();
-		out.close();
 	}
 }
