@@ -62,6 +62,8 @@ import net.pms.io.StreamModifier;
 import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
+import net.pms.util.StringUtil;
+
 import org.apache.commons.lang.StringUtils;
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
@@ -1039,22 +1041,20 @@ public class FFMpegVideo extends Player {
 			output.write("Format: Layer, Start, End, Style, Text\n");
 			
 			String startTime;
-			String startTimeMs;
 			String endTime;
-			String endTimeMs;
 
 			while (( line = input.readLine()) != null) {
 				if (line .contains("-->")) {
 					startTime = line.substring(1, line.indexOf("-->") - 2).replaceAll(",", ".");
-					startTimeMs = startTime.substring(startTime.indexOf("."));
 					endTime = line.substring(line.indexOf("-->") + 5, line.length() - 1).replaceAll(",", ".");
-					endTimeMs = endTime.substring(endTime.indexOf("."));
 
 					// Apply time seeking
 					if (params.timeseek > 0) {
-						if (convertTimeStringToDouble(startTime) >= params.timeseek) {
-							startTime = convertDoubleToTimeString(convertTimeStringToDouble(startTime) - params.timeseek) + startTimeMs;
-							endTime = convertDoubleToTimeString(convertTimeStringToDouble(endTime) - params.timeseek) + endTimeMs;
+						if (StringUtil.convertStringToTime(startTime) >= params.timeseek) {
+							startTime = StringUtil.convertTimeToString(StringUtil.convertStringToTime(startTime) - params.timeseek, false);
+							startTime = startTime.substring(1, startTime.length() - 1);
+							endTime = StringUtil.convertTimeToString(StringUtil.convertStringToTime(endTime) - params.timeseek, false);
+							endTime = endTime.substring(1, endTime.length() - 1);
 						} else {
 							continue;
 						}
@@ -1109,30 +1109,4 @@ public class FFMpegVideo extends Player {
 
 		 return sb.toString();
 	}
-
-	 private static String convertDoubleToTimeString(double d) {
-		 int s = ((int) d) % 60;
-		 int h = (int) (d / 3600);
-		 int m = ((int) (d / 60)) % 60;
-		 return String.format("%01d:%02d:%02d", h, m, s);
-	 }
-
-	 private static Double convertTimeStringToDouble(String time) {
-		 if (time == null) {
-			 return null;
-		 }
-
-		 StringTokenizer st = new StringTokenizer(time, ":");
-
-		 try {
-			 int h = Integer.parseInt(st.nextToken());
-			 int m = Integer.parseInt(st.nextToken());
-			 double s = Double.parseDouble(st.nextToken());
-			 return h * 3600 + m * 60 + s;
-		 } catch (NumberFormatException nfe) {
-			 LOGGER.debug("Failed to convert \"" + time + "\"");
-		 }
-
-		 return null;
-	 }
 }
