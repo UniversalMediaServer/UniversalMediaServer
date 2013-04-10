@@ -98,7 +98,7 @@ public class SubtitleUtils {
 	
 	public static String dumpSrtTc(String in0, double timeseek) throws Exception {
 		File in = new File(in0);
-		File out = new File(PMS.getConfiguration().getDataFile("subs" + File.separator + in.getName() + "_tc_.srt"));
+		File out = new File(PMS.getConfiguration().getDataFile(in.getName() + "_tc_.srt"));
 		out.delete();
 		String cp = PMS.getConfiguration().getMencoderSubCp();
 		BufferedReader reader = new BufferedReader(new InputStreamReader(
@@ -148,6 +148,7 @@ public class SubtitleUtils {
 		reader.close();
 		w.flush();
 		w.close();
+		PMS.get().addTempFile(out);
 		return out.getAbsolutePath();
 	}
 }
