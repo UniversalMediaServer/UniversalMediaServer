@@ -96,20 +96,22 @@ public class RootFolder extends DLNAResource {
 			return;
 		}
 
-		if (configuration.getLastPlayed()) {
+		if (configuration.isHideRecentlyPlayedFolder()) {
 			last = new LastPlayed();
 			addChild(last);
 		}
 
-		String m = (String) configuration.getCustomProperty("monitor");
-		if (!StringUtils.isEmpty(m)) {
-			String[] tmp = m.split(",");
-			File[] dirs = new File[tmp.length];
-			for (int i = 0; i < tmp.length; i++) {
-				dirs[i] = new File(tmp[i]);
+		if (configuration.isHideNewMediaFolder()) {
+			String m = (String) configuration.getFoldersMonitored();
+			if (!StringUtils.isEmpty(m)) {
+				String[] tmp = m.split(",");
+				File[] dirs = new File[tmp.length];
+				for (int i = 0; i < tmp.length; i++) {
+					dirs[i] = new File(tmp[i]);
+				}
+				mon = new MediaMonitor(dirs);
+				addChild(mon);
 			}
-			mon = new MediaMonitor(dirs);
-			addChild(mon);
 		}
 
 		if (configuration.getFolderLimit()) {

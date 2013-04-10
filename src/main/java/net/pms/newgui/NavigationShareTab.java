@@ -44,8 +44,8 @@ public class NavigationShareTab {
 	public static final String ALL_DRIVES = Messages.getString("FoldTab.0");
 
 	private static final String PANEL_COL_SPEC = "left:pref, 50dlu, pref, 150dlu, pref, 25dlu, pref, 9dlu, pref, default:grow";
-	private static final String PANEL_ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 9dlu, p, 3dlu, p, 3dlu, p, 9dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 9dlu, fill:default:grow";
-	private static final String SHARED_FOLDER_COL_SPEC = "left:pref, left:pref, pref, pref, pref, 0:grow";
+	private static final String PANEL_ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 9dlu, p, 3dlu, p, 3dlu, p, 9dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 9dlu, fill:default:grow";
+	private static final String SHARED_FOLDER_COL_SPEC = "left:pref, left:pref, pref, pref, pref, pref, 0:grow";
 	private static final String SHARED_FOLDER_ROW_SPEC = "p, 3dlu, p, 3dlu, fill:default:grow";
 
 	private JList FList;
@@ -76,6 +76,8 @@ public class NavigationShareTab {
 	private JTextField atzLimit;
 	private JCheckBox liveSubtitles;
 	private JCheckBox prettifyfilenames;
+	private JCheckBox newmediafolder;
+	private JCheckBox recentlyplayedfolder;
 
 	public DefaultListModel getDf() {
 		return df;
@@ -180,8 +182,11 @@ public class NavigationShareTab {
 		builder.add(liveSubtitles, FormLayoutUtil.flip(cc.xyw(1, 25, 3), colSpec, orientation));
 		builder.addLabel(Messages.getString("FoldTab.37"), FormLayoutUtil.flip(cc.xyw(4, 25, 2), colSpec, orientation));
 		builder.add(atzLimit, FormLayoutUtil.flip(cc.xy(6, 25), colSpec, orientation));
+		builder.add(newmediafolder, FormLayoutUtil.flip(cc.xyw(9, 25, 2), colSpec, orientation));
 
-		builder.add(builderSharedFolder.getPanel(), FormLayoutUtil.flip(cc.xyw(1, 27, 10), colSpec, orientation));
+		builder.add(recentlyplayedfolder, FormLayoutUtil.flip(cc.xyw(1, 27, 3), colSpec, orientation));
+
+		builder.add(builderSharedFolder.getPanel(), FormLayoutUtil.flip(cc.xyw(1, 29, 10), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 
@@ -585,6 +590,32 @@ public class NavigationShareTab {
 				hideextensions.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
 			}
 		});
+
+		newmediafolder = new JCheckBox(Messages.getString("FoldTab.45"));
+		newmediafolder.setContentAreaFilled(false);
+		if (configuration.isHideNewMediaFolder()) {
+			newmediafolder.setSelected(true);
+		}
+		newmediafolder.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setHideNewMediaFolder((e.getStateChange() == ItemEvent.SELECTED));
+				hideextensions.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
+			}
+		});
+
+		recentlyplayedfolder = new JCheckBox(Messages.getString("FoldTab.46"));
+		recentlyplayedfolder.setContentAreaFilled(false);
+		if (configuration.isHideRecentlyPlayedFolder()) {
+			recentlyplayedfolder.setSelected(true);
+		}
+		recentlyplayedfolder.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setHideRecentlyPlayedFolder((e.getStateChange() == ItemEvent.SELECTED));
+				hideextensions.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
+			}
+		});
 	}
 
 	private PanelBuilder initSharedFoldersGuiComponents(CellConstraints cc) {
@@ -597,7 +628,7 @@ public class NavigationShareTab {
 		PanelBuilder builderFolder = new PanelBuilder(layoutFolders);
 		builderFolder.setOpaque(true);
 
-		JComponent cmp = builderFolder.addSeparator(Messages.getString("FoldTab.7"), FormLayoutUtil.flip(cc.xyw(1, 1, 6), colSpec, orientation));
+		JComponent cmp = builderFolder.addSeparator(Messages.getString("FoldTab.7"), FormLayoutUtil.flip(cc.xyw(1, 1, 7), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
@@ -661,8 +692,8 @@ public class NavigationShareTab {
 				}
 			}
 		});
-
 		builderFolder.add(but3, FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
+
 		CustomJButton but4 = new CustomJButton(LooksFrame.readImageIcon("button-arrow-up.png"));
 		but4.setToolTipText(Messages.getString("FoldTab.12"));
 		//  but4.setBorder(BorderFactory.createEmptyBorder());
@@ -727,15 +758,30 @@ public class NavigationShareTab {
 				}
 			}
 		});
-
 		builderFolder.add(but5, FormLayoutUtil.flip(cc.xy(5, 3), colSpec, orientation));
 		but5.setEnabled(configuration.getUseCache());
+
+		CustomJButton but6 = new CustomJButton(LooksFrame.readImageIcon("button-monitor.png"));
+		but6.setToolTipText(Messages.getString("FoldTab.44"));
+		but6.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (FList.getSelectedIndex() > -1) {
+					((DefaultListModel) FList.getModel()).remove(FList.getSelectedIndex());
+					if (FList.getModel().getSize() == 0) {
+						((DefaultListModel) FList.getModel()).add(0, ALL_DRIVES);
+					}
+					updateModel();
+				}
+			}
+		});
+		builderFolder.add(but6, FormLayoutUtil.flip(cc.xy(6, 3), colSpec, orientation));
 
 		df = new DefaultListModel();
 		File[] folders = PMS.get().getFoldersConf(false);
 		if (folders != null && folders.length > 0) {
-			for (File file : folders) {
-				df.addElement(file.getAbsolutePath());
+			for (File folder : folders) {
+				df.addElement(folder.getAbsolutePath());
 			}
 		} else {
 			df.addElement(ALL_DRIVES);
@@ -743,7 +789,7 @@ public class NavigationShareTab {
 		FList = new JList();
 		FList.setModel(df);
 		JScrollPane pane = new JScrollPane(FList);
-		builderFolder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 5, 6), colSpec, orientation));
+		builderFolder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 5, 7), colSpec, orientation));
 
 		return builderFolder;
 	}

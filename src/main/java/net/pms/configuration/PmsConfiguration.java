@@ -106,6 +106,8 @@ public class PmsConfiguration {
 	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
 	private static final String KEY_FFMPEG_MUX_COMPATIBLE = "ffmpeg_mux_compatible";
 	private static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
+	private static final String KEY_FOLDERS = "folders";
+	private static final String KEY_FOLDERS_MONITORED = "folders_monitored";
 	private static final String KEY_FORCED_SUBTITLE_LANGUAGE = "forced_sub_lang";
 	private static final String KEY_FORCED_SUBTITLE_TAGS = "forced_sub_tags";
 	private static final String KEY_FORCETRANSCODE = "forcetranscode";
@@ -114,8 +116,10 @@ public class PmsConfiguration {
 	private static final String KEY_HIDE_EMPTY_FOLDERS = "hide_empty_folders";
 	private static final String KEY_HIDE_ENGINENAMES = "hide_enginenames";
 	private static final String KEY_HIDE_EXTENSIONS = "hide_extensions";
+	private static final String KEY_HIDE_RECENTLY_PLAYED_FOLDER = "hide_recently_played_folder";
 	private static final String KEY_HIDE_LIVE_SUBTITLES_FOLDER = "hide_live_subtitles_folder";
 	private static final String KEY_HIDE_MEDIA_LIBRARY_FOLDER = "hide_media_library_folder";
+	private static final String KEY_HIDE_NEW_MEDIA_FOLDER = "hide_new_media_folder";
 	private static final String KEY_HIDE_TRANSCODE_FOLDER = "hide_transcode_folder";
 	private static final String KEY_HIDE_VIDEO_SETTINGS = "hidevideosettings";
 	private static final String KEY_HTTP_ENGINE_V2 = "http_engine_v2";
@@ -169,7 +173,6 @@ public class PmsConfiguration {
 	private static final String KEY_NOTRANSCODE = "notranscode";
 	private static final String KEY_NUMBER_OF_CPU_CORES = "nbcores";
 	private static final String KEY_OPEN_ARCHIVES = "enable_archive_browsing";
-	private static final String KEY_LAST_PLAYED = "last_played";
 	private static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
 	private static final String KEY_LIVE_SUBTITLES_KEEP = "live_subtitles_keep";
 	private static final String KEY_OVERSCAN = "mencoder_overscan";
@@ -230,7 +233,6 @@ public class PmsConfiguration {
 	private static final int BUFFER_MEMORY_FACTOR = 368;
 	private static int MAX_MAX_MEMORY_BUFFER_SIZE = MAX_MAX_MEMORY_DEFAULT_SIZE;
 	private static final char LIST_SEPARATOR = ',';
-	private static final String KEY_FOLDERS = "folders";
 	private final PropertiesConfiguration configuration;
 	private final TempFolder tempFolder;
 	private final ProgramPathDisabler programPaths;
@@ -2120,6 +2122,14 @@ public class PmsConfiguration {
 		configuration.setProperty(KEY_FOLDERS, value);
 	}
 
+	public String getFoldersMonitored() {
+		return getString(KEY_FOLDERS_MONITORED, "");
+	}
+
+	public void setFoldersMonitored(String value) {
+		configuration.setProperty(KEY_FOLDERS_MONITORED, value);
+	}
+
 	public String getNetworkInterface() {
 		return getString(KEY_NETWORK_INTERFACE, "");
 	}
@@ -2471,6 +2481,22 @@ public class PmsConfiguration {
 		configuration.setProperty(KEY_PRETTIFY_FILENAMES, value);
 	}
 
+	public boolean isHideNewMediaFolder() {
+		return getBoolean(PmsConfiguration.KEY_HIDE_NEW_MEDIA_FOLDER, false);
+	}
+
+	public void setHideNewMediaFolder(final boolean value) {
+		this.configuration.setProperty(PmsConfiguration.KEY_HIDE_NEW_MEDIA_FOLDER, value);
+	}
+
+	public boolean isHideRecentlyPlayedFolder() {
+		return getBoolean(PmsConfiguration.KEY_HIDE_RECENTLY_PLAYED_FOLDER, false);
+	}
+
+	public void setHideRecentlyPlayedFolder(final boolean value) {
+		this.configuration.setProperty(PmsConfiguration.KEY_HIDE_RECENTLY_PLAYED_FOLDER, value);
+	}
+
 	/**
 	 * Returns the name of the renderer to fall back on when header matching
 	 * fails. PMS will recognize the configured renderer instead of "Unknown
@@ -2643,10 +2669,6 @@ public class PmsConfiguration {
 	 */
 	public void setTranscodeFolderName(String name) {
 		configuration.setProperty(KEY_TRANSCODE_FOLDER_NAME, name);
-	}
-
-	public boolean getLastPlayed() {
-		return getBoolean(KEY_LAST_PLAYED, false);
 	}
 
 	/**
