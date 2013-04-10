@@ -201,4 +201,8 @@ public abstract class VirtualVideoAction extends DLNAResource {
 		setFormat(FormatFactory.getAssociatedExtension("toto.mpg"));
 		return true;
 	}
+	
+	public boolean isResumeable() {
+		return false;
+	}
 }

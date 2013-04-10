@@ -15,8 +15,8 @@ import net.pms.PMS;
 public class ResumeObj {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ResumeObj.class);
 
-	private static final long BACK_FACTOR = 30000;
-	private static final long MIN_RESUME_TIME = 120000;
+	private static final long BACK_FACTOR = 0;//30000;
+	private static final long MIN_RESUME_TIME = 0;//120000;
 
 	private File file;
 	private long offsetTime;
@@ -132,6 +132,8 @@ public class ResumeObj {
 			return;
 		}
 		bytes += getByteOffset();
+		offsetTime = duration;
+		offsetByte = bytes;
 		write(duration - BACK_FACTOR, bytes, file);
 	}
 }
