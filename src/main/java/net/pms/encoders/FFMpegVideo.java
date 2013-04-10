@@ -25,22 +25,14 @@ import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.io.Writer;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.StringTokenizer;
-
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import net.pms.Messages;
@@ -53,6 +45,7 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.InputFile;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.formats.v2.SubtitleUtils;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeIPCProcess;
 import net.pms.io.PipeProcess;
@@ -62,11 +55,8 @@ import net.pms.io.StreamModifier;
 import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
-import net.pms.util.StringUtil;
-
 import org.apache.commons.lang.StringUtils;
 import static org.apache.commons.lang.StringUtils.isBlank;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -136,32 +126,39 @@ public class FFMpegVideo extends Player {
 			}
 
 			if (params.sid.getType() == SubtitleType.SUBRIP) {
-				externalSubtitlesFileName = ConvertSrtToAss(externalSubtitlesFileName, media, params).toString();
+				try  {
+					externalSubtitlesFileName = SubtitleUtils.ConvertSrtToAss(externalSubtitlesFileName, params.timeseek, configuration).getAbsolutePath();
+				} catch (IOException e) {
+					LOGGER.debug("Converting to ASS file raised an error: {}", e.getMessage());
+				}
+
 			}
 			
-			StringBuilder s = new StringBuilder();
-			CharacterIterator it = new StringCharacterIterator(externalSubtitlesFileName);
+			if (externalSubtitlesFileName != null) {
+				StringBuilder s = new StringBuilder();
+				CharacterIterator it = new StringCharacterIterator(externalSubtitlesFileName);
 
-			for (char ch = it.first(); ch != CharacterIterator.DONE; ch = it.next()) {
-				switch (ch) {
-					case ':':
-						s.append("\\\\:");
-						break;
-					case '\\':
-						s.append("/");
-						break;
-					case ']':
-					case '[':
-						s.append("\\");
-					default:
-						s.append(ch);
-						break;
+				for (char ch = it.first(); ch != CharacterIterator.DONE; ch = it.next()) {
+					switch (ch) {
+						case ':':
+							s.append("\\\\:");
+							break;
+						case '\\':
+							s.append("/");
+							break;
+						case ']':
+						case '[':
+							s.append("\\");
+						default:
+							s.append(ch);
+							break;
+					}
 				}
-			}
 
-			String subsFile = s.toString();
-			subsFile = subsFile.replace(",", "\\,");
-			subsOption = "ass=" + subsFile;
+				String subsFile = s.toString();
+				subsFile = subsFile.replace(",", "\\,");
+				subsOption = "ass=" + subsFile;
+			}
 		}
 
 		if (renderer.isKeepAspectRatio() && renderer.isRescaleByRenderer()) {
@@ -988,125 +985,5 @@ public class FFMpegVideo extends Player {
 		return cmdList;
 	}
 
-	private static File ConvertSrtToAss(String SrtFile, DLNAMediaInfo media, OutputParams params ) {
-		String outputSubs = null;
-		
-		try {
-			outputSubs = new File(configuration.getTempFolder(), new File(SrtFile).getName()).getAbsolutePath() + ".ass";
-			FileInputStream fis = new FileInputStream (SrtFile);
-			BufferedReader input = new BufferedReader(new InputStreamReader(fis, configuration.getSubtitlesCodepage()));
-			Writer output = new BufferedWriter(new FileWriter(outputSubs));
-			String line = null;
-			output.write("[Script Info]\n");
-			output.write("ScriptType: v4.00+\n");
-//			output.write("PlayResX: " + media.getWidth() + "\n"); // TODO Not clear how it works
-//			output.write("PlayResY: " + media.getHeight() + "\n");
-			output.write("\n");
-			output.write("[V4+ Styles]\n");
-			output.write("Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, AlphaLevel, Encoding\n");
-			StringBuilder s = new StringBuilder();
-			s.append("Style: Default,");
-
-			if (!configuration.getFont().isEmpty()) {
-				s.append(configuration.getFont()).append(",");
-			} else {
-				s.append("Arial,");
-			}
-
-			s.append( (int) 10 * Double.parseDouble(configuration.getMencoderAssScale())).append(","); // Fontsize
-
-			String primaryColour = Integer.toHexString(configuration.getSubsColor());
-			primaryColour = primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4); // Convert AARRGGBB format to BBGGRR
-
-			s.append("&H").append(primaryColour).append(","); // PrimaryColour
-			s.append("&Hffffff,"); 	// SecondaryColour
-			s.append("&H0,");		// OutlineColour
-			s.append("&H0,"); 		// BackColour
-			s.append("0,"); 		// Bold
-			s.append("0,"); 		// Italic
-			s.append("0,"); 		// Underline
-			s.append("1,"); 		// BorderStyle
-			s.append(configuration.getMencoderAssOutline()).append(","); // Outline
-			s.append(configuration.getMencoderAssShadow()).append(","); // Shadow
-			s.append("2,"); 		// Alignment
-			s.append("10,"); 		// MarginL
-			s.append("10,"); 		// MarginR
-			s.append("20,"); 		// MarginV
-			s.append("0,"); 		// AlphaLevel
-			s.append("0"); 			// Encoding
-
-			output.write(s.toString() + "\n");
-			output.write("\n");
-			output.write("[Events]\n");
-			output.write("Format: Layer, Start, End, Style, Text\n");
-			
-			String startTime;
-			String endTime;
-
-			while (( line = input.readLine()) != null) {
-				if (line .contains("-->")) {
-					startTime = line.substring(1, line.indexOf("-->") - 2).replaceAll(",", ".");
-					endTime = line.substring(line.indexOf("-->") + 5, line.length() - 1).replaceAll(",", ".");
-
-					// Apply time seeking
-					if (params.timeseek > 0) {
-						if (StringUtil.convertStringToTime(startTime) >= params.timeseek) {
-							startTime = StringUtil.convertTimeToString(StringUtil.convertStringToTime(startTime) - params.timeseek, false);
-							startTime = startTime.substring(1, startTime.length() - 1);
-							endTime = StringUtil.convertTimeToString(StringUtil.convertStringToTime(endTime) - params.timeseek, false);
-							endTime = endTime.substring(1, endTime.length() - 1);
-						} else {
-							continue;
-						}
-					}
-
-					s = new StringBuilder();
-					s.append("Dialogue: 0,");
-					s.append(startTime).append(",");
-					s.append(endTime).append(",");
-					s.append("Default").append(",");
-					s.append(convertTags(input.readLine())); 
-
-					if (isNotBlank(line = input.readLine())) {
-						s.append("\\N");
-						s.append(convertTags(line));
-					}
-
-					output.write(s.toString() + "\n");
-				}
-			}
-
-			input.close();
-			output.close();
-
-		} catch (IOException e) {
-			LOGGER.debug("Converting to ASS file raised an error: {}", e.getMessage());
-		} 
-
-		File out = new File(outputSubs);
-		out.deleteOnExit();
-
-		return out;
-
-	}
-
-	private static String convertTags(String text) {
-		 String tag = null;
-		 StringBuilder sb = new StringBuilder();
-		 String[] tmp = text.split("<");
-
-		 for (String s : tmp) {
-			 if (s.startsWith("/") && s.indexOf(">") == 2) {
-				 tag = s.substring(1, 2);
-				 sb.append("{\\").append(tag).append("0}").append(s.substring(3));
-			 } else if (s.indexOf(">") == 1) {
-				 tag = s.substring(0, 1);
-				 sb.append("{\\").append(tag).append("1}").append(s.substring(2));
-			 } else {
-				 sb.append(s);
-			 }
-		 }
-
-		 return sb.toString();
-	}
+	
 }
