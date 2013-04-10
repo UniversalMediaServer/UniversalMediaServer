@@ -109,6 +109,7 @@ public class NavigationShareTab {
 			}
 
 			configuration.setFolders(sb.toString());
+			configuration.setFoldersMonitored(sb.toString());
 		}
 	}
 
@@ -775,7 +776,7 @@ public class NavigationShareTab {
 				}
 			}
 		});
-		builderFolder.add(but6, FormLayoutUtil.flip(cc.xy(6, 3), colSpec, orientation));
+		//builderFolder.add(but6, FormLayoutUtil.flip(cc.xy(6, 3), colSpec, orientation));
 
 		df = new DefaultListModel();
 		File[] folders = PMS.get().getFoldersConf(false);
