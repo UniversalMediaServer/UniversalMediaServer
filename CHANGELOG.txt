@@ -4,11 +4,17 @@
 		Added "Prettify filenames" feature, which automatically renames filenames (not the real files, just in UMS) that follow certain naming conventions to be more readable
 		Added VLC video transcoding (thanks, LordQuackstar!)
 		Improved stability of Live Subtitles
+		Added option to toggle H.264 remuxing in FFmpeg
+		Re-enabled WMP detection
+		Speed improvements
 	Renderers:
 		Fixed stuttering issues with Bravia HX TVs
-		Improved MP4, AVI and MKV support on Sony Blu-ray players
+		Improved support for Sony Blu-ray players
 	Languages:
 		Updated Italian translation (thanks, nocciola82!)
+	External Components:
+		Updated FFmpeg for Linux to burek's 2013-04-04 build, which:
+			Is compiled statically
 
 2.6.0 - 2013-03-29
 
