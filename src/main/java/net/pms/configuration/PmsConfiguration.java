@@ -210,8 +210,6 @@ public class PmsConfiguration {
 	private static final String KEY_VLC_USE_EXPERIMENTAL_CODECS = "VLC_use_experimental_codecs";
 	private static final String KEY_VLC_AUDIO_SYNC_ENABLED = "VLC_audio_sync_enabled";
 	private static final String KEY_VLC_SUBTITLE_ENABLED = "VLC_subtitle_enabled";
-	private static final String KEY_VLC_AUDIO_PRI = "VLC_audio_language_priority";
-	private static final String KEY_VLC_SUBTITLE_PRI = "VLC_subtitle_language_priority";
 	private static final String KEY_VLC_SCALE = "VLC_scale";
 	private static final String KEY_VLC_SAMPLE_RATE_OVERRIDE = "VLC_sample_rate_override";
 	private static final String KEY_VLC_SAMPLE_RATE = "VLC_sample_rate";
