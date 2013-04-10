@@ -10,6 +10,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.external.ExternalFactory;
@@ -26,7 +27,7 @@ public class LastPlayed extends VirtualFolder {
 	private List<DLNAResource> list;
 
 	public LastPlayed() {
-		super("Last Played", null);
+		super(Messages.getString("VirtualFolder.1"), null);
 		list = Collections.synchronizedList(new ArrayList<DLNAResource>());
 		parseLastFile();
 	}

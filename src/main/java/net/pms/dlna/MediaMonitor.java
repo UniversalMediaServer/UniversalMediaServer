@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import net.pms.Messages;
 import net.pms.dlna.virtual.VirtualFolder;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -17,7 +18,7 @@ public class MediaMonitor extends VirtualFolder {
 	private ArrayList<String> oldEntries;
 
 	public MediaMonitor(File[] dirs) {
-		super("New Media", null);
+		super(Messages.getString("VirtualFolder.2"), null);
 		this.dirs = dirs;
 		oldEntries = new ArrayList<>();
 		parseMonitorFile();
