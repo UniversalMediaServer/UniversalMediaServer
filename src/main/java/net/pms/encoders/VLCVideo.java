@@ -208,9 +208,13 @@ public class VLCVideo extends Player {
 
 		// Audio Channels
 		int channels = 2;
+
+		/**
+		 * Uncomment this block when we use a52 instead of mp2a
 		if (params.aid.getAudioProperties().getNumberOfChannels() > 2 && configuration.getAudioChannelCount() == 6) {
 			channels = 6;
 		}
+		 */
 		args.put("channels", channels);
 
 		// Static sample rate
