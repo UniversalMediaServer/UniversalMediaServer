@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import net.pms.PMS;
 import net.pms.encoders.AviDemuxerInputStream;
 import net.pms.util.ProcessUtil;
@@ -369,9 +370,9 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 		}
 		this.nullable = nullable;
 	}
-
+	
 	private String duration;
-
+	
 	public void pubackDuration(String s) {
 		Pattern re = Pattern.compile("Duration: ([^,]+),");
 		Matcher m = re.matcher(s);
@@ -379,8 +380,9 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			duration = m.group(1);
 		}
 	}
-
+	
 	public String getDuration() {
 		return duration;
 	}
+	
 }

@@ -45,6 +45,7 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.InputFile;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.formats.v2.SubtitleUtils;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeIPCProcess;
 import net.pms.io.PipeProcess;
@@ -115,6 +116,15 @@ public class FFMpegVideo extends Player {
 		if (params.sid != null && !configuration.isDisableSubtitles() && params.sid.isExternal()) {
 			String externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getAbsolutePath());
 			StringBuilder s = new StringBuilder();
+			if (params.sid.getType() == SubtitleType.SUBRIP && params.timeseek > 0) {
+				// dirty stuff here
+				try {
+					externalSubtitlesFileName = SubtitleUtils.dumpSrtTc(externalSubtitlesFileName, params.timeseek);
+				} catch (Exception e) {
+					LOGGER.debug("Couldn't trim subs file " + externalSubtitlesFileName + " error " + e);
+				}
+
+			}
 			CharacterIterator it = new StringCharacterIterator(externalSubtitlesFileName);
 
 			for (char ch = it.first(); ch != CharacterIterator.DONE; ch = it.next()) {
@@ -195,7 +205,7 @@ public class FFMpegVideo extends Player {
 			if (subsOption != null) {
 				filterParams.append(subsOption);
 			}
-
+			
 			videoFilterOptions.add(filterParams.toString());
 		}
 

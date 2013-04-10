@@ -36,7 +36,7 @@ public class OutputTextLogger extends OutputConsumer {
 	public OutputTextLogger(InputStream inputStream) {
 		this(inputStream, null);
 	}
-
+	
 	public OutputTextLogger(InputStream inputStream, ProcessWrapperImpl pwi) {
 		super(inputStream);
 		pw = pwi;

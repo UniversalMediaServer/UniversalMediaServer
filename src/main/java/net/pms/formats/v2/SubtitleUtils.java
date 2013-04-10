@@ -18,13 +18,33 @@
  */
 package net.pms.formats.v2;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.apache.commons.io.FileUtils;
+import org.codehaus.plexus.util.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import net.pms.PMS;
+import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
+import net.pms.util.OpenSubtitle;
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.mozilla.universalchardet.Constants.*;
 
 public class SubtitleUtils {
+	private static final Logger LOGGER = LoggerFactory.getLogger(SubtitleUtils.class);
+
 	private final static Map<String, String> fileCharsetToMencoderSubcpOptionMap = new HashMap<String, String>() {
 		private static final long serialVersionUID = 1L;
 
@@ -74,5 +94,56 @@ public class SubtitleUtils {
 			return null;
 		}
 		return fileCharsetToMencoderSubcpOptionMap.get(dlnaMediaSubtitle.getExternalFileCharacterSet());
+	}
+	
+	public static String dumpSrtTc(String in0, double timeseek) throws Exception {
+		File in = new File(in0);
+		File out = new File(PMS.getConfiguration().getDataFile("subs" + File.separator + in.getName() + "_tc_.srt"));
+		String cp = PMS.getConfiguration().getMencoderSubCp();
+		BufferedReader reader = new BufferedReader(new InputStreamReader(
+											 new FileInputStream(in),cp));
+		BufferedWriter w = new BufferedWriter(new OutputStreamWriter(
+											  new FileOutputStream(out),cp));
+		String line;
+		boolean skip = false;
+		int n = 1;
+		while ((line = reader.readLine()) != null) {
+			try {
+				Integer.parseInt(line);
+				continue;
+			} catch (NumberFormatException e1) {
+			}
+			if(StringUtils.isEmpty(line) ) {
+				skip = false;
+				continue;
+			}
+			if (skip) {
+				continue;
+			}
+			if (line .contains("-->")) {
+				String startTime = line.substring(1, line.indexOf("-->") - 2).replaceAll(",", ".");
+				String endTime = line.substring(line.indexOf("-->") + 5, line.length() - 1).replaceAll(",", ".");
+				Double start = DLNAMediaInfo.parseDurationString(startTime);
+				Double stop = DLNAMediaInfo.parseDurationString(endTime);
+				if (timeseek > start) {
+					skip  = true;
+					continue;
+				}
+				w.write("" + (n++));
+				w.write("\n");
+				w.write(DLNAMediaInfo.getDurationString(start - timeseek));
+				w.write(" --> ");				
+				w.write(DLNAMediaInfo.getDurationString(stop - timeseek));
+				w.write("\n");
+				continue;
+			}
+			
+			w.write(line);
+			w.write("\n\n");
+		}
+		reader.close();
+		w.flush();
+		w.close();
+		return out.getAbsolutePath();
 	}
 }

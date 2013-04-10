@@ -237,7 +237,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			cmdList.add("-ss");
 			cmdList.add("" + params.timeseek);
 		}
-
+		
 		cmdList.add("-i");
 		cmdList.add(fileName);
 
