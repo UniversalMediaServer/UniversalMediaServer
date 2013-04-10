@@ -474,9 +474,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				if (allChildrenAreFolders && !child.isFolder()) {
 					allChildrenAreFolders = false;
 				}
-				
+
 				child.resHash = Math.abs(child.getSystemName().hashCode() + resumeHash());
-				
+
 				DLNAResource resumeRes = null;
 
 				if (child.isResumeable()) {
@@ -488,7 +488,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						addChildInternal(resumeRes);
 					}
 				}
-				
+
 				addChildInternal(child);
 
 				boolean forceTranscodeV2 = false;
@@ -1815,7 +1815,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			params.timeseek = timeRange.getStartOrZero();
 			params.timeend = timeRange.getEndOrZero();
 			params.shift_scr = timeseek_auto;
-			
+
 			if (resume != null) {
 				params.timeseek += (long)(resume.getTimeOffset() / 1000);
 			}
@@ -1823,9 +1823,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (this instanceof IPushOutput) {
 				params.stdin = (IPushOutput) this;
 			}
-			
+
 			if (resume != null) {
-				params.timeseek += (long)(resume.getTimeOffset() / 1000);
+				params.timeseek += (long) (resume.getTimeOffset() / 1000);
 				if (getPlayer() == null) {
 					setPlayer(new ResumePlayer());
 				}
@@ -2609,31 +2609,30 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 		return false;
 	}
-	
+
 	////////////////////////////////////////////////////
 	// Resume handling
 	////////////////////////////////////////////////////
-	
+
 	private ResumeObj resume;
 	private int resHash;
 	private long startTime;
-	
+
 	public int resumeHash() {
 		return resHash;
 	}
-	
+
 	public boolean isResumeable() {
 		return true;
 	}
-	
+
 	private void resumeStop(long bytes) {
 		if (!isResumeable()) {
 			return;
 		}
 		if (resume != null) {
 			resume.stop(startTime, (long) getMedia().getDurationInSeconds() * 1000, bytes);
-		}
-		else {
+		} else {
 			if (!PMS.getConfiguration().getResume()) {
 				return;
 			}
@@ -2654,9 +2653,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 	}
-	
+
 	public final boolean isResume() {
 		return isResumeable() && (resume != null);
 	}
-	
 }

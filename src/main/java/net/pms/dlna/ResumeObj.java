@@ -22,6 +22,7 @@ public class ResumeObj {
 	 * 1000 = 1 second
 	 */
 	private static final long MIN_RESUME_TIME = 1000;
+
 	private File file;
 	private long offsetTime;
 	private long offsetByte;

@@ -775,7 +775,7 @@ public class Request extends HTTPResource {
 
 		return result;
 	}
-	
+
 	public long getBytesSent() {
 		return sendB;
 	}

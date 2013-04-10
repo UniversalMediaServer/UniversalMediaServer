@@ -205,7 +205,7 @@ public class FFMpegVideo extends Player {
 			if (subsOption != null) {
 				filterParams.append(subsOption);
 			}
-			
+
 			videoFilterOptions.add(filterParams.toString());
 		}
 
