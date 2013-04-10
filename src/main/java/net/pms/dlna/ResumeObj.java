@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-<<<<<<< HEAD
 import net.pms.PMS;
 
 public class ResumeObj {
@@ -27,52 +26,23 @@ public class ResumeObj {
 	private long offsetTime;
 	private long offsetByte;
 
-=======
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import net.pms.PMS;
-
-public class ResumeObj {
-	private static final Logger LOGGER = LoggerFactory.getLogger(ResumeObj.class);
-
-	private static final long BACK_FACTOR = 0;//30000;
-	private static final long MIN_RESUME_TIME = 0;//120000;
-
-	private File file;
-	private long offsetTime;
-	private long offsetByte;
-	
->>>>>>> resume
 	private static File resumePath() {
 		File path = new File(PMS.getConfiguration().getDataFile("resume"));
 		path.mkdirs();
 		return path;
 	}
-<<<<<<< HEAD
 
-=======
-	
->>>>>>> resume
 	private static File resumeFile(DLNAResource r) {
 		String fName = r.getName() + "_hash_" + r.resumeHash() + ".resume";
 		return new File(resumePath().getAbsolutePath() + File.separator + fName);
 	}
-<<<<<<< HEAD
-
-=======
 	
->>>>>>> resume
 	public static File[] resumeFiles() {
 		File path = resumePath();
 		return path.listFiles();
 	}
-<<<<<<< HEAD
-
-=======
 	
->>>>>>> resume
 	public static ResumeObj create(DLNAResource r) {
 		if (!PMS.getConfiguration().getResume()) {
 			// resume is off bail early
@@ -90,11 +60,7 @@ public class ResumeObj {
 		}
 		return res;
 	}
-<<<<<<< HEAD
 
-=======
-	
->>>>>>> resume
 	public static ResumeObj store(DLNAResource r, long startTime, long bytes) {
 		File f = resumeFile(r);
 		ResumeObj obj = new ResumeObj(f);
@@ -104,17 +70,12 @@ public class ResumeObj {
 		}
 		return obj;
 	}
-<<<<<<< HEAD
 
-=======
-	
->>>>>>> resume
 	public ResumeObj(File f) {
 		offsetTime = 0;
 		offsetByte = 0;
 		file = f;
 	}
-<<<<<<< HEAD
 
 	public void read() {
 		try {
@@ -155,61 +116,14 @@ public class ResumeObj {
 		return offsetByte;
 	}
 
-=======
-	
-	public void read() {
-		try {
-			BufferedReader in=new BufferedReader(new FileReader(file));
-			String str;
-			while ((str = in.readLine()) != null) {
-				String[] tmp = str.split(",");
-				offsetTime = Long.parseLong(tmp[0]);
-				if (tmp.length > 1) {
-					offsetByte = Long.parseLong(tmp[1]);
-				}
-				break;
-			}
-			in.close();
-		} catch (IOException e) {
-		}
-	}
-	
-	private static void write(long time, long bytes, File f) {
-		try {
-			BufferedWriter out=new BufferedWriter(new FileWriter(f));
-			out.write(time + "," + bytes);
-			out.flush();
-			out.close();
-		} catch (IOException e) {
-		}
-	}
-	
-	public boolean noResume() {
-		return (offsetTime == 0) && (offsetByte == 0);
-	}
-	
-	public long getTimeOffset() {
-		return offsetTime;
-	}
-	
-	public long getByteOffset() {
-		return offsetByte;
-	}
-	
->>>>>>> resume
 	public void stop(long startTime, long expDuration, long bytes) {
 		long now = System.currentTimeMillis();
 		long thisPlay = now - startTime;
 		long duration = thisPlay + getTimeOffset();
-<<<<<<< HEAD
+
 		if (expDuration > MIN_RESUME_TIME) {
 			if (duration >= (expDuration - BACK_FACTOR)) {
 				// We've seen the whole video (likely)
-=======
-		if(expDuration > MIN_RESUME_TIME) {
-			if (duration >= (expDuration - BACK_FACTOR)) {
-				// we've seen the whole movie (likely)
->>>>>>> resume
 				file.delete();
 				return;
 			}
