@@ -52,10 +52,12 @@ import net.pms.newgui.LooksFrame;
 import net.pms.newgui.ProfileChooser;
 import net.pms.update.AutoUpdater;
 import net.pms.util.FileUtil;
+import net.pms.util.OpenSubtitle;
 import net.pms.util.ProcessUtil;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.SystemErrWrapper;
 import net.pms.util.TaskRunner;
+import net.pms.util.TempFileMgr;
 import net.pms.util.Version;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
@@ -392,6 +394,10 @@ public class PMS {
 		dDir.mkdirs();
 
 		dbgPack = new DbgPacker();
+		tfm = new TempFileMgr();
+		
+		/* This should be removed soon */
+		OpenSubtitle.convert();
 
 		RendererConfiguration.loadRendererConfigurations(configuration);
 
@@ -1182,6 +1188,16 @@ public class PMS {
 
 	public DbgPacker dbgPack() {
 		return dbgPack;
+	}
+	
+	private TempFileMgr tfm;
+	
+	public void addTempFile(File f) {
+		tfm.add(f);
+	}
+	
+	public void addTempFile(File f, int cleanTime) {
+		tfm.add(f, cleanTime);
 	}
 
 	@Deprecated
