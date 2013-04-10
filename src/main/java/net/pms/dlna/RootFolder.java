@@ -96,12 +96,12 @@ public class RootFolder extends DLNAResource {
 			return;
 		}
 
-		if (configuration.isHideRecentlyPlayedFolder()) {
+		if (!configuration.isHideRecentlyPlayedFolder()) {
 			last = new RecentlyPlayed();
 			addChild(last);
 		}
 
-		if (configuration.isHideNewMediaFolder()) {
+		if (!configuration.isHideNewMediaFolder()) {
 			String m = (String) configuration.getFoldersMonitored();
 			if (!StringUtils.isEmpty(m)) {
 				String[] tmp = m.split(",");
