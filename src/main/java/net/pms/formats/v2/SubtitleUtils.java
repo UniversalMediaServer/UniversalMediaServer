@@ -148,7 +148,7 @@ public class SubtitleUtils {
 		reader.close();
 		w.flush();
 		w.close();
-		PMS.get().addTempFile(out);
+		PMS.get().addTempFile(out, 2 * 24 * 3600 * 1000); /* 2 days only */
 		return out.getAbsolutePath();
 	}
 }
