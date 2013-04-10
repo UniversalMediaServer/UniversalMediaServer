@@ -12,3 +12,5 @@ pms.iml
 .project
 .settings
 target
+*.orig
+
