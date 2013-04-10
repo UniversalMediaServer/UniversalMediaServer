@@ -99,6 +99,7 @@ public class SubtitleUtils {
 	public static String dumpSrtTc(String in0, double timeseek) throws Exception {
 		File in = new File(in0);
 		File out = new File(PMS.getConfiguration().getDataFile("subs" + File.separator + in.getName() + "_tc_.srt"));
+		out.delete();
 		String cp = PMS.getConfiguration().getMencoderSubCp();
 		BufferedReader reader = new BufferedReader(new InputStreamReader(
 											 new FileInputStream(in),cp));
@@ -114,6 +115,9 @@ public class SubtitleUtils {
 			} catch (NumberFormatException e1) {
 			}
 			if(StringUtils.isEmpty(line) ) {
+				if(!skip) {
+					w.write("\n");
+				}
 				skip = false;
 				continue;
 			}
@@ -129,7 +133,7 @@ public class SubtitleUtils {
 					skip  = true;
 					continue;
 				}
-				w.write("" + (n++));
+				w.write(String.valueOf(n++));
 				w.write("\n");
 				w.write(DLNAMediaInfo.getDurationString(start - timeseek));
 				w.write(" --> ");				
@@ -139,7 +143,7 @@ public class SubtitleUtils {
 			}
 			
 			w.write(line);
-			w.write("\n\n");
+			w.write("\n");
 		}
 		reader.close();
 		w.flush();
