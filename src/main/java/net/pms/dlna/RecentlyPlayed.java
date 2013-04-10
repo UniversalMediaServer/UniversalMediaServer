@@ -20,13 +20,13 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LastPlayed extends VirtualFolder {
-	private static final Logger LOGGER = LoggerFactory.getLogger(LastPlayed.class);
+public class RecentlyPlayed extends VirtualFolder {
+	private static final Logger LOGGER = LoggerFactory.getLogger(RecentlyPlayed.class);
 	private static final int MAX_LIST_SIZE = 250;
 	private static final int DEF_LIST_SIZE = 50;
 	private List<DLNAResource> list;
 
-	public LastPlayed() {
+	public RecentlyPlayed() {
 		super(Messages.getString("VirtualFolder.1"), null);
 		list = Collections.synchronizedList(new ArrayList<DLNAResource>());
 		parseLastFile();

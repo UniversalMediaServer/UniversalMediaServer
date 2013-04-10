@@ -54,7 +54,7 @@ public class RootFolder extends DLNAResource {
 	private boolean running;
 	private FolderLimit lim;
 	private MediaMonitor mon;
-	private LastPlayed last;
+	private RecentlyPlayed last;
 
 	public RootFolder() {
 		setIndexId(0);
@@ -97,7 +97,7 @@ public class RootFolder extends DLNAResource {
 		}
 
 		if (configuration.isHideRecentlyPlayedFolder()) {
-			last = new LastPlayed();
+			last = new RecentlyPlayed();
 			addChild(last);
 		}
 
