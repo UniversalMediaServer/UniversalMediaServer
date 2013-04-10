@@ -70,6 +70,8 @@ public class VLCVideo extends Player {
 	protected JCheckBox sampleRateOverride;
 	protected JTextField extraParams;
 
+	protected boolean videoRemux;
+
 	public VLCVideo(PmsConfiguration configuration) {
 		this.configuration = configuration;
 	}
@@ -152,6 +154,8 @@ public class VLCVideo extends Player {
 			config.videoCodec = "h264";
 			config.audioCodec = "mp2a"; // NOTE: a52 sometimes causes audio to stop after ~5 mins
 			config.container = "ts";
+
+			videoRemux = true;
 		} else {
 			// Default codecs for DLNA standard
 			LOGGER.debug("Using DLNA standard codecs with ps (default) container");
@@ -194,7 +198,9 @@ public class VLCVideo extends Player {
 		args.put("acodec", config.audioCodec);
 
 		// Bitrate in kbit/s
-		args.put("vb", "4096");
+		if (!videoRemux) {
+			args.put("vb", "4096");
+		}
 		args.put("ab", configuration.getAudioBitrate());
 
 		// Video scaling
@@ -302,6 +308,15 @@ public class VLCVideo extends Player {
 			cmdList.add("--sub-language=" + subtitlePri.getText());
 		} else {
 			cmdList.add("--sub-" + disableSuffix);
+		}
+
+		// x264 options
+		if (videoRemux) {
+			cmdList.add("--sout-x264-preset");
+			cmdList.add("superfast");
+
+			cmdList.add("--sout-x264-crf");
+			cmdList.add("20");
 		}
 
 		// Skip forward if nessesary
