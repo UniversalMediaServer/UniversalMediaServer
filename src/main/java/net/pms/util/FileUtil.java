@@ -52,7 +52,7 @@ public class FileUtil {
 		// Remove file extension
 		formattedName = f.substring(0, point);
 
-		String commonFileEnds = "\\.AC3.*|\\.PROPER.*|\\.REPACK.*|\\.480p.*|\\.720p.*|\\.m-720p.*|\\.900p.*|\\.1080p.*|\\.HDTV.*|\\.PDTV.*|\\.WS.*|\\.HQ\\..*|\\.DVDRip.*|\\.TVRiP.*|\\.BDRip.*|\\.LIMITED.*|\\.FESTiVAL.*|\\.BluRay.*|\\.SUBBED.*|\\.NORDIC.*|\\.x264.*|\\.Dual\\.Audio.*|\\.HSBS.*|\\.H-SBS.*"; 
+		String commonFileEnds = "\\.AC3.*|\\.PROPER.*|\\.REPACK.*|\\.iNTERNAL.*|\\.480p.*|\\.720p.*|\\.m-720p.*|\\.900p.*|\\.1080p.*|\\.HDTV.*|\\.PDTV.*|\\.WS.*|\\.HQ\\..*|\\.DVDRip.*|\\.TVRiP.*|\\.BDRip.*|\\.LIMITED.*|\\.FESTiVAL.*|\\.BluRay.*|\\.SUBBED.*|\\.NORDIC.*|\\.x264.*|\\.Dual\\.Audio.*|\\.HSBS.*|\\.H-SBS.*"; 
 
 		if (formattedName.matches(".*[sS]0\\d[eE]\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes within the first 9 seasons
@@ -83,74 +83,91 @@ public class FileUtil {
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
-		} else if (formattedName.matches(".*\\.[1-2]\\d\\d\\d\\.[0-1]\\d\\.[0-3]\\d\\..*")) {
+		} else if (formattedName.matches(".*\\.[1-2][90]\\d\\d\\.[0-1]\\d\\.[0-3]\\d\\..*")) {
 			// This matches scene and most p2p TV episodes that release several times per week
 
 			// Rename the date. For example, "2013.03.18" changes to " - 2013/03/18"
-			formattedName = formattedName.replaceAll("(?i)\\.([1-2]\\d\\d\\d)\\.([0-1]\\d)\\.([0-3]\\d)\\.(" + commonFileEnds + ")", " - $1/$2/$3");
+			formattedName = formattedName.replaceAll("(?i)\\.([1-2][90]\\d\\d)\\.([0-1]\\d)\\.([0-3]\\d)\\.(" + commonFileEnds + ")", " - $1/$2/$3");
 
 			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
-			formattedName = formattedName.replaceAll("(?i)\\.([1-2]\\d\\d\\d)\\.([0-1]\\d)\\.([0-3]\\d)\\.", " - $1/$2/$3 - ");
+			formattedName = formattedName.replaceAll("(?i)\\.([1-2][90]\\d\\d)\\.([0-1]\\d)\\.([0-3]\\d)\\.", " - $1/$2/$3 - ");
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
 			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
-		} else if (formattedName.matches(".*\\.[1-2]\\d\\d\\d\\..*")) {
+		} else if (formattedName.matches(".*\\.[1-2][90]\\d\\d\\..*")) {
 			// This matches scene and most p2p movies
 
 			// Rename the year. For example, "2013" changes to " (2013)"
-			formattedName = formattedName.replaceAll("(?i)\\.([1-2]\\d\\d\\d)(" + commonFileEnds + ")", " ($1)");
+			formattedName = formattedName.replaceAll("\\.([1-2][90]\\d\\d)", " ($1)");
 
-			// Change "3D" to " (3D)"
-			formattedName = formattedName.replaceAll("(?i)\\.(3D)\\.|\\.(Special.Edition)\\.|\\.(Unrated)\\.|\\.(Final.Cut)\\.|\\.(Remastered)\\.|\\.(Extended.Cut)\\.|\\.(CD[1-3])\\.", " ($1)");
+			// Remove stuff at the end of the filename like release group, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
+
+			// Change "3D" to " (3D)", "CD1" to "(1)", etc.
+			formattedName = formattedName.replaceAll("(?i)\\.(CD[1-3])\\.|\\.(3D)\\.|\\.(Special.Edition)\\.|\\.(Unrated)\\.|\\.(Final.Cut)\\.|\\.(Remastered)\\.|\\.(Extended.Cut)\\.", " ($1)");
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
-		} else if (formattedName.matches(".*\\[[1-2]\\d\\d\\d\\].*")) {
+		} else if (formattedName.matches(".*\\[[1-2][90]\\d\\d\\].*")) {
 			// This matches rarer types of movies
 
 			// Rename the year. For example, "2013" changes to " (2013)"
-			formattedName = formattedName.replaceAll("(?i)\\[([1-2]\\d\\d\\d)\\].*", " ($1)");
+			formattedName = formattedName.replaceAll("(?i)\\[([1-2][90]\\d\\d)\\].*", " ($1)");
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
-		} else if (formattedName.matches(".*\\([1-2]\\d\\d\\d\\).*")) {
+		} else if (formattedName.matches(".*\\([1-2][90]\\d\\d\\).*")) {
 			// This matches rarer types of movies
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
 			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
-		} else if (formattedName.matches(".*\\([1-2]\\d\\d\\d\\).*")) {
+		} else if (formattedName.matches(".*\\([1-2][90]\\d\\d\\).*")) {
 			// This matches rarer types of movies
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
 			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
-		} else if (formattedName.matches(".*\\[[0-9a-zA-Z]{8}\\].*")) {
-			// This matches anime with a hash in the name
+		} else if (formattedName.matches(".*\\[[0-9a-zA-Z]{8}\\]$")) {
+			// This matches anime with a hash at the end of the name
 
 			// Remove underscores
 			formattedName = formattedName.replaceAll("_", " ");
 
 			// Remove stuff at the end of the filename like hash, quality, source, etc.
-			formattedName = formattedName.replaceAll("(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\s\\(BD.*|\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\].*|\\[h264.*|R1DVD.*", "");
+			formattedName = formattedName.replaceAll("(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\s\\(BD.*|\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*", "");
 
 			// Remove group name from the beginning of the filename
 			if (formattedName.substring(0, 1).matches("\\[")) {
-				formattedName = formattedName.replaceFirst("\\[.*\\]\\s|\\[.*\\]", "");
+				int closingBracketIndex = formattedName.indexOf("]");
+				if (closingBracketIndex != -1) {
+					formattedName = formattedName.substring(closingBracketIndex + 1);
+				}
+
+				if (formattedName.substring(0, 1).matches("\\s")) {
+					formattedName = formattedName.substring(1);
+				}
 			}
-		} else if (formattedName.matches(".*\\[720p\\].*|.*\\[1080p\\].*|.*\\[480p\\].*")) {
+		} else if (formattedName.matches(".*\\[BD\\].*|.*\\[720p\\].*|.*\\[1080p\\].*|.*\\[480p\\].*|.*\\[Blu-Ray.*|.*\\[h264.*")) {
 			// This matches anime without a hash in the name
 
 			// Remove underscores
 			formattedName = formattedName.replaceAll("_", " ");
 
 			// Remove stuff at the end of the filename like hash, quality, source, etc.
-			formattedName = formattedName.replaceAll("(?i)\\s\\[720p\\]|\\s\\[1080p\\]|\\s\\[480p\\]", "");
+			formattedName = formattedName.replaceAll("(?i)\\[BD\\].*|\\[720p.*|\\[1080p.*|\\[480p.*|\\[Blu-Ray.*\\[h264.*", "");
 
 			// Remove group name from the beginning of the filename
 			if (formattedName.substring(0, 1).matches("\\[")) {
-				formattedName = formattedName.replaceFirst("\\[.*\\]\\s|\\[.*\\]", "");
+				int closingBracketIndex = formattedName.indexOf("]");
+				if (closingBracketIndex != -1) {
+					formattedName = formattedName.substring(closingBracketIndex + 1);
+				}
+
+				if (formattedName.substring(0, 1).matches("\\s")) {
+					formattedName = formattedName.substring(1);
+				}
 			}
 		}
 
