@@ -1,14 +1,11 @@
 package net.pms.util;
 
 import java.util.StringTokenizer;
-
-import net.pms.encoders.FFMpegVideo;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class StringUtil {
-	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(StringUtil.class);
 	
 	/**
 	 * Appends "&lt;<u>tag</u> " to the StringBuilder. This is a typical HTML/DIDL/XML tag opening.
