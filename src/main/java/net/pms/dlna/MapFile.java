@@ -233,6 +233,7 @@ public class MapFile extends DLNAResource {
 		// Virtual folders for TV series
 		if (configuration.isTVSeriesVirtualFolders() && StringUtils.isEmpty(forcedName)) {
 			TreeMap<String, ArrayList<File>> map = new TreeMap<>();
+			int i = 0;
 			for (File f : files) {
 				if ((!f.isFile() && !f.isDirectory()) || f.isHidden()) {
 					// skip these
@@ -255,7 +256,11 @@ public class MapFile extends DLNAResource {
 					}
 					tvSeriesNameList.add(f);
 					map.put(String.valueOf(tvSeriesName), tvSeriesNameList);
+
+					// Prevent the file from being added again below
+					//files.remove(i);
 				}
+				i++;
 			}
 
 			for (String tvSeriesName : map.keySet()) {
