@@ -229,14 +229,14 @@ public class MapFile extends DLNAResource {
 		}
 
 		List<File> files = getFileList();
+		ArrayList<File> filesMinusTVEpisodes = new ArrayList<>();
 
 		// Virtual folders for TV series
 		if (configuration.isTVSeriesVirtualFolders() && StringUtils.isEmpty(forcedName)) {
 			TreeMap<String, ArrayList<File>> map = new TreeMap<>();
-			int i = 0;
 			for (File f : files) {
 				if ((!f.isFile() && !f.isDirectory()) || f.isHidden()) {
-					// skip these
+					// Skip these
 					continue;
 				}
 				if (f.isDirectory() && configuration.isHideEmptyFolders() && !isFolderRelevant(f)) {
@@ -256,11 +256,10 @@ public class MapFile extends DLNAResource {
 					}
 					tvSeriesNameList.add(f);
 					map.put(String.valueOf(tvSeriesName), tvSeriesNameList);
-
-					// Prevent the file from being added again below
-					//files.remove(i);
+				} else {
+					// Add the non-TV episode file to the array to be loaded normally
+					filesMinusTVEpisodes.add(f);
 				}
-				i++;
 			}
 
 			for (String tvSeriesName : map.keySet()) {
@@ -268,6 +267,8 @@ public class MapFile extends DLNAResource {
 				mf.forcedName = tvSeriesName;
 				addChild(mf);
 			}
+
+			files = filesMinusTVEpisodes;
 		}
 
 		// ATZ handling
