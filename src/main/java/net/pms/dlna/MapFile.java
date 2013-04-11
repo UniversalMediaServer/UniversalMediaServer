@@ -407,7 +407,9 @@ public class MapFile extends DLNAResource {
 			}
 
 			for (String tvSeriesName : map.keySet()) {
-				MapFile mf = new MapFile(getConf(), map.get(tvSeriesName));
+				ArrayList<File> tvSeriesNameList = map.get(tvSeriesName);
+				sort(tvSeriesNameList);
+				MapFile mf = new MapFile(getConf(), tvSeriesNameList);
 				mf.forcedName = tvSeriesName;
 				addChild(mf);
 			}
