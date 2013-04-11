@@ -125,20 +125,27 @@ public class FFMpegVideo extends Player {
 				externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getAbsolutePath());
 			}
 
-			if (params.sid.getType() == SubtitleType.SUBRIP &&
-					!params.sid.isExternalFileUtf() &&
-					configuration.isMencoderFontConfig()) {
-				try  {
-					externalSubtitlesFileName = SubtitleUtils.ConvertSrtToAss(externalSubtitlesFileName, params.timeseek, configuration).getAbsolutePath();
-				} catch (IOException e) {
-					LOGGER.debug("Converting to ASS file raised an error: " + e);
-					externalSubtitlesFileName = null;
-				}
+			if (params.sid.getType() == SubtitleType.SUBRIP) {
+				if (!params.sid.isExternalFileUtf() && configuration.isMencoderFontConfig()) {
+					
+					try  {
+						externalSubtitlesFileName = SubtitleUtils.ConvertSrtToAss(externalSubtitlesFileName, params.timeseek, configuration).getAbsolutePath();
+					} catch (IOException e) {
+						LOGGER.debug("Converting to ASS file raised an error: " + e);
+						externalSubtitlesFileName = null;
+					}
 
-			} else if (params.sid.getType() == SubtitleType.SUBRIP && params.timeseek > 0) {
-				// Use SubtitleUtils.dumpSrtTc() from SharkHunter
+				} else if (params.timeseek > 0) {
+
+					try {
+						externalSubtitlesFileName = SubtitleUtils.dumpSrtTc(externalSubtitlesFileName, params.timeseek, configuration);
+					} catch (Exception e) {
+						LOGGER.debug("Couldn't trim subs file " + externalSubtitlesFileName + " error " + e);
+					}
+					
+				}
 			}
-			
+
 			if (externalSubtitlesFileName != null) {
 				StringBuilder s = new StringBuilder();
 				CharacterIterator it = new StringCharacterIterator(externalSubtitlesFileName);

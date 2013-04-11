@@ -23,28 +23,20 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
-import net.pms.io.OutputParams;
 import net.pms.util.StringUtil;
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.mozilla.universalchardet.Constants.*;
 
 public class SubtitleUtils {
-	private static final Logger LOGGER = LoggerFactory.getLogger(SubtitleUtils.class);
 	private final static Map<String, String> fileCharsetToMencoderSubcpOptionMap = new HashMap<String, String>() {
 		private static final long serialVersionUID = 1L;
 
@@ -183,7 +175,7 @@ public class SubtitleUtils {
 		input.close();
 		output.flush();
 		output.close();
-		PMS.get().addTempFile(outputSubs, 2 * 24 * 3600 * 1000); /* 2 days only */
+		outputSubs.deleteOnExit();
 		return outputSubs;
 
 	}
@@ -206,5 +198,61 @@ public class SubtitleUtils {
 		 }
 
 		 return sb.toString();
+	}
+	
+	public static String dumpSrtTc(String in0, double timeseek, PmsConfiguration configuration) throws Exception {
+		File in = new File(in0);
+		File out = new File(configuration.getTempFolder(), in.getName() + "_" + System.currentTimeMillis() + "_tc_.srt");
+		out.delete();
+		String cp = configuration.getSubtitlesCodepage();
+		BufferedReader reader = new BufferedReader(new InputStreamReader(
+											 new FileInputStream(in),cp));
+		BufferedWriter w = new BufferedWriter(new OutputStreamWriter(
+											  new FileOutputStream(out)));
+		String line;
+		boolean skip = false;
+		int n = 1;
+		while ((line = reader.readLine()) != null) {
+			try {
+				Integer.parseInt(line);
+				continue;
+			} catch (NumberFormatException e1) {
+			}
+			if(isBlank(line) ) {
+				if(!skip) {
+					w.write("\n");
+				}
+				skip = false;
+				continue;
+			}
+			if (skip) {
+				continue;
+			}
+			if (line .contains("-->")) {
+				String startTime = line.substring(0, line.indexOf("-->") - 1).replaceAll(",", ".");
+				String endTime = line.substring(line.indexOf("-->") + 4).replaceAll(",", ".");
+				Double start = StringUtil.convertStringToTime(startTime);
+				Double stop = StringUtil.convertStringToTime(endTime);
+				if (timeseek > start) {
+					skip  = true;
+					continue;
+				}
+				w.write(String.valueOf(n++));
+				w.write("\n");
+				w.write(StringUtil.convertTimeToString(start - timeseek, false).replaceAll("\\.", ","));
+				w.write(" --> ");				
+				w.write(StringUtil.convertTimeToString(stop - timeseek, false).replaceAll("\\.", ","));
+				w.write("\n");
+				continue;
+			}
+			
+			w.write(line);
+			w.write("\n");
+		}
+		reader.close();
+		w.flush();
+		w.close();
+		out.deleteOnExit();
+		return out.getAbsolutePath();
 	}
 }
