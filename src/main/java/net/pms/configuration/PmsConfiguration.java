@@ -104,6 +104,7 @@ public class PmsConfiguration {
 	private static final String KEY_FFMPEG_AVISYNTH_CONVERT_FPS = "ffmpeg_avisynth_convertfps";
 	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME = "ffmpeg_avisynth_interframe";
 	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
+	private static final String KEY_FFMPEG_FONT_CONFIG = "ffmpeg_font_config";
 	private static final String KEY_FFMPEG_MUX_COMPATIBLE = "ffmpeg_mux_compatible";
 	private static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
 	private static final String KEY_FONT = "mencoder_font"; // TODO (breaking change): should be renamed to e.g. font
@@ -2321,6 +2322,14 @@ public class PmsConfiguration {
 
 	public boolean isFFmpegMuxWhenCompatible() {
 		return getBoolean(KEY_FFMPEG_MUX_COMPATIBLE, false);
+	}
+	
+	public void setFFmpegFontConfig(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_FONT_CONFIG, value);
+	}
+	
+	public boolean isFFmpegrFontConfig() {
+		return getBoolean(KEY_FFMPEG_FONT_CONFIG, false);
 	}
 
 	public void setMuxAllAudioTracks(boolean value) {

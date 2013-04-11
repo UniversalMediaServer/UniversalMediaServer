@@ -126,7 +126,7 @@ public class FFMpegVideo extends Player {
 			}
 
 			if (params.sid.getType() == SubtitleType.SUBRIP) {
-				if (!params.sid.isExternalFileUtf() && configuration.isMencoderFontConfig()) {
+				if (configuration.isFFmpegrFontConfig()) {
 					try {
 						externalSubtitlesFileName = SubtitleUtils.ConvertSrtToAss(externalSubtitlesFileName, params.timeseek, configuration).getAbsolutePath();
 					} catch (IOException e) {
@@ -887,6 +887,7 @@ public class FFMpegVideo extends Player {
 
 	private JCheckBox multithreading;
 	private JCheckBox videoremux;
+	private JCheckBox fc;
 
 	@Override
 	public JComponent config() {
@@ -896,7 +897,7 @@ public class FFMpegVideo extends Player {
 	protected JComponent config(String languageLabel) {
 		FormLayout layout = new FormLayout(
 			"left:pref, 0:grow",
-			"p, 3dlu, p, 3dlu, p"
+			"p, 3dlu, p, 3dlu, p, 3dlu, p"
 		);
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.setBorder(Borders.EMPTY_BORDER);
@@ -933,6 +934,17 @@ public class FFMpegVideo extends Player {
 			}
 		});
 		builder.add(videoremux, cc.xy(2, 5));
+		
+		fc = new JCheckBox(Messages.getString("MEncoderVideo.21"));
+		fc.setContentAreaFilled(false);
+		fc.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setFFmpegFontConfig(e.getStateChange() == ItemEvent.SELECTED);
+			}
+		});
+		builder.add(fc, cc.xy(2, 7));
+		fc.setSelected(configuration.isFFmpegrFontConfig());
 
 		return builder.getPanel();
 	}
