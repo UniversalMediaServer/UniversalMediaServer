@@ -33,6 +33,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
@@ -182,7 +183,7 @@ public class SubtitleUtils {
 		input.close();
 		output.flush();
 		output.close();
-		outputSubs.deleteOnExit();
+		PMS.get().addTempFile(outputSubs, 2 * 24 * 3600 * 1000); /* 2 days only */
 		return outputSubs;
 
 	}

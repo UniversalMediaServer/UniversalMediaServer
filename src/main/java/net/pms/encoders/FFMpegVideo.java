@@ -129,7 +129,8 @@ public class FFMpegVideo extends Player {
 				try  {
 					externalSubtitlesFileName = SubtitleUtils.ConvertSrtToAss(externalSubtitlesFileName, params.timeseek, configuration).getAbsolutePath();
 				} catch (IOException e) {
-					LOGGER.debug("Converting to ASS file raised an error: {}", e.getMessage());
+					LOGGER.debug("Converting to ASS file raised an error: " + e);
+					externalSubtitlesFileName = null;
 				}
 
 			}
