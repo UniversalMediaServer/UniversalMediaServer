@@ -127,22 +127,18 @@ public class FFMpegVideo extends Player {
 
 			if (params.sid.getType() == SubtitleType.SUBRIP) {
 				if (!params.sid.isExternalFileUtf() && configuration.isMencoderFontConfig()) {
-					
-					try  {
+					try {
 						externalSubtitlesFileName = SubtitleUtils.ConvertSrtToAss(externalSubtitlesFileName, params.timeseek, configuration).getAbsolutePath();
 					} catch (IOException e) {
 						LOGGER.debug("Converting to ASS file raised an error: " + e);
 						externalSubtitlesFileName = null;
 					}
-
 				} else if (params.timeseek > 0) {
-
 					try {
 						externalSubtitlesFileName = SubtitleUtils.dumpSrtTc(externalSubtitlesFileName, params.timeseek, configuration);
 					} catch (Exception e) {
 						LOGGER.debug("Couldn't trim subs file " + externalSubtitlesFileName + " error " + e);
 					}
-					
 				}
 			}
 
@@ -179,9 +175,12 @@ public class FFMpegVideo extends Player {
 		}
 
 		if (renderer.isKeepAspectRatio() && renderer.isRescaleByRenderer()) {
-			
-			if (media != null && media.isMediaparsed() && media.getHeight() != 0 &&
-				(media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
+			if (
+				media != null &&
+				media.isMediaparsed() &&
+				media.getHeight() != 0 &&
+				(media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)
+			) {
 				padding = "pad=iw:iw/(16/9):0:(oh-ih)/2";
 			} else {
 				padding = "pad=ih*(16/9):ih:(ow-iw)/2:0";
@@ -1004,6 +1003,4 @@ public class FFMpegVideo extends Player {
 		}
 		return cmdList;
 	}
-
-	
 }
