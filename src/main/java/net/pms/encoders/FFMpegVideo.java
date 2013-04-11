@@ -133,7 +133,7 @@ public class FFMpegVideo extends Player {
 						LOGGER.debug("Converting to ASS file raised an error: " + e);
 						externalSubtitlesFileName = null;
 					}
-				} else if (params.timeseek > 0) {
+				} else if (!params.sid.isExternalFileUtf() || params.timeseek > 0) {
 					try {
 						externalSubtitlesFileName = SubtitleUtils.dumpSrtTc(externalSubtitlesFileName, params.timeseek, configuration);
 					} catch (Exception e) {
