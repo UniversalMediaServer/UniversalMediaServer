@@ -125,7 +125,9 @@ public class FFMpegVideo extends Player {
 				externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getAbsolutePath());
 			}
 
-			if (params.sid.getType() == SubtitleType.SUBRIP) {
+			if (params.sid.getType() == SubtitleType.SUBRIP &&
+					!params.sid.isExternalFileUtf8() &&
+					configuration.isMencoderFontConfig()) {
 				try  {
 					externalSubtitlesFileName = SubtitleUtils.ConvertSrtToAss(externalSubtitlesFileName, params.timeseek, configuration).getAbsolutePath();
 				} catch (IOException e) {
@@ -133,6 +135,8 @@ public class FFMpegVideo extends Player {
 					externalSubtitlesFileName = null;
 				}
 
+			} else if (params.sid.getType() == SubtitleType.SUBRIP && params.timeseek > 0) {
+				// Use SubtitleUtils.dumpSrtTc() from SharkHunter
 			}
 			
 			if (externalSubtitlesFileName != null) {
@@ -158,7 +162,12 @@ public class FFMpegVideo extends Player {
 
 				String subsFile = s.toString();
 				subsFile = subsFile.replace(",", "\\,");
-				subsOption = "ass=" + subsFile;
+				
+				if (params.sid.getType() == SubtitleType.ASS) {
+					subsOption = "ass=" + subsFile;
+				} else if (params.sid.getType() == SubtitleType.SUBRIP) {
+					subsOption = "subtitles=" + subsFile;
+				}
 			}
 		}
 
