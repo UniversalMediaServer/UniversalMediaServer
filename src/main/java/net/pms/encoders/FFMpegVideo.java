@@ -653,14 +653,17 @@ public class FFMpegVideo extends Player {
 		}
 
 		int channels;
-		if (ac3Remux) {
+		if (renderer.isTranscodeToWMV()) {
+			channels = 2;
+		} else if (ac3Remux) {
 			channels = params.aid.getAudioProperties().getNumberOfChannels(); // AC-3 remux
 		} else if (dtsRemux) {
 			channels = 2;
 		} else {
 			channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
 		}
-		LOGGER.trace("channels=" + channels);
+		cmdList.add("-ac");
+		cmdList.add("" + channels);
 
 		// Audio bitrate
 		if (!ac3Remux && !dtsRemux && !(type() == Format.AUDIO)) {
