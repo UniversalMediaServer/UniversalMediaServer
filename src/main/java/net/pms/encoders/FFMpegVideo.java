@@ -126,7 +126,7 @@ public class FFMpegVideo extends Player {
 			}
 
 			if (params.sid.getType() == SubtitleType.SUBRIP &&
-					!params.sid.isExternalFileUtf8() &&
+					!params.sid.isExternalFileUtf() &&
 					configuration.isMencoderFontConfig()) {
 				try  {
 					externalSubtitlesFileName = SubtitleUtils.ConvertSrtToAss(externalSubtitlesFileName, params.timeseek, configuration).getAbsolutePath();
