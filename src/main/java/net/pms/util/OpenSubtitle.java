@@ -30,7 +30,7 @@ public class OpenSubtitle {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OpenSubtitle.class);
 	private static final String SUB_DIR = "subs";
 	private static final long TOKEN_AGE_TIME = 10 * 60 * 1000; // 10 mins
-	private static final long SUB_FILE_AGE = 14 * 24 * 60 * 60 * 1000; // two weeks
+	//private static final long SUB_FILE_AGE = 14 * 24 * 60 * 60 * 1000; // two weeks
 
 	/**
 	 * Size of the chunks that will be hashed in bytes (64 KB)
@@ -137,7 +137,6 @@ public class OpenSubtitle {
 			token = m.group(1);
 			tokenAge = System.currentTimeMillis();
 		}
-		bgCleanSubs();
 	}
 
 	public static String fetchImdbId(File f) throws IOException {
@@ -294,6 +293,9 @@ public class OpenSubtitle {
 			}
 		}
 		out.close();
+		if (!PMS.getConfiguration().isLiveSubtitlesKeep()) {
+			PMS.get().addTempFile(f);
+		}
 		return f.getAbsolutePath();
 	}
 
@@ -313,28 +315,18 @@ public class OpenSubtitle {
 		return str;
 	}
 
-	private static void bgCleanSubs() {
+	public static void convert() {
 		if (PMS.getConfiguration().isLiveSubtitlesKeep()) {
 			return;
 		}
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				File path = new File(PMS.getConfiguration().getDataFile(SUB_DIR));
-				if (!path.exists()) {
-					// no path nothing to do
-					return;
-				}
-				File[] files = path.listFiles();
-				long now = System.currentTimeMillis();
-				for (int i = 0; i < files.length; i++) {
-					long lastTime = files[i].lastModified();
-					if ((now - lastTime) > SUB_FILE_AGE) {
-						files[i].delete();
-					}
-				}
-			}
-		};
-		new Thread(r).start();
+		File path = new File(PMS.getConfiguration().getDataFile(SUB_DIR));
+		if (!path.exists()) {
+			// no path nothing to do
+			return;
+		}
+		File[] files = path.listFiles();
+		for (int i = 0; i < files.length; i++) {
+			PMS.get().addTempFile(files[i]);
+		}
 	}
 }
