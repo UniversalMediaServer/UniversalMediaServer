@@ -230,6 +230,41 @@ public class MapFile extends DLNAResource {
 
 		List<File> files = getFileList();
 
+		// Virtual folders for TV series
+		if (configuration.isTVSeriesVirtualFolders() && StringUtils.isEmpty(forcedName)) {
+			TreeMap<String, ArrayList<File>> map = new TreeMap<>();
+			for (File f : files) {
+				if ((!f.isFile() && !f.isDirectory()) || f.isHidden()) {
+					// skip these
+					continue;
+				}
+				if (f.isDirectory() && configuration.isHideEmptyFolders() && !isFolderRelevant(f)) {
+					LOGGER.debug("Ignoring empty/non-relevant directory: " + f.getName());
+					continue;
+				}
+
+				if (f.getName().matches(".*[sS]\\d\\d[eE]\\d\\d.*")) {
+					// Extract the series name from the filename
+					String tvSeriesName = f.getName().replaceFirst("(?i)(.*)\\.S\\d\\dE\\d\\d\\..*", "$1");
+					tvSeriesName = tvSeriesName.replaceAll("\\.", " ");
+
+					ArrayList<File> tvSeriesNameList = map.get(String.valueOf(tvSeriesName));
+					if (tvSeriesNameList == null) {
+						// New folder
+						tvSeriesNameList = new ArrayList<>();
+					}
+					tvSeriesNameList.add(f);
+					map.put(String.valueOf(tvSeriesName), tvSeriesNameList);
+				}
+			}
+
+			for (String tvSeriesName : map.keySet()) {
+				MapFile mf = new MapFile(getConf(), map.get(tvSeriesName));
+				mf.forcedName = tvSeriesName;
+				addChild(mf);
+			}
+		}
+
 		// ATZ handling
 		if (files.size() > configuration.getATZLimit() && StringUtils.isEmpty(forcedName)) {
 			/*
