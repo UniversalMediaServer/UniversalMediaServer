@@ -75,7 +75,6 @@ public class Request extends HTTPResource {
 	private double timeRangeEnd;
 	private long highRange;
 	private boolean http10;
-	private long sendB;
 
 	public RendererConfiguration getMediaRenderer() {
 		return mediaRenderer;
@@ -715,7 +714,7 @@ public class Request extends HTTPResource {
 			}
 
 			output(output, "");
-			sendB = 0;
+			long sendB = 0;
 
 			if (lowRange != DLNAMediaInfo.ENDFILE_POS && !method.equals("HEAD")) {
 				sendB = sendBytes(inputStream); //, ((lowRange > 0 && highRange > 0)?(highRange-lowRange):-1)
@@ -774,9 +773,5 @@ public class Request extends HTTPResource {
 		}
 
 		return result;
-	}
-
-	public long getBytesSent() {
-		return sendB;
 	}
 }

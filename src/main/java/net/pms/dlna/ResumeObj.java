@@ -25,8 +25,7 @@ public class ResumeObj {
 
 	private File file;
 	private long offsetTime;
-	private long offsetByte;
-
+	private long resDuration;
 
 	private static File resumePath() {
 		File path = new File(PMS.getConfiguration().getDataFile("resume"));
@@ -59,13 +58,16 @@ public class ResumeObj {
 		if (res.noResume()) {
 			return null;
 		}
+		if (r.getMedia() != null && r.getMedia().getDurationInSeconds() != 0) {
+			r.getMedia().setDuration((double)res.resDuration);
+		}
 		return res;
 	}
 
-	public static ResumeObj store(DLNAResource r, long startTime, long bytes) {
+	public static ResumeObj store(DLNAResource r, long startTime) {
 		File f = resumeFile(r);
 		ResumeObj obj = new ResumeObj(f);
-		obj.stop(startTime, (long) r.getMedia().getDurationInSeconds() * 1000, bytes);
+		obj.stop(startTime, (long) r.getMedia().getDurationInSeconds() * 1000);
 		if (obj.noResume()) {
 			return null;
 		}
@@ -74,7 +76,7 @@ public class ResumeObj {
 
 	public ResumeObj(File f) {
 		offsetTime = 0;
-		offsetByte = 0;
+		resDuration = 0;
 		file = f;
 	}
 
@@ -86,7 +88,7 @@ public class ResumeObj {
 					String[] tmp = str.split(",");
 					offsetTime = Long.parseLong(tmp[0]);
 					if (tmp.length > 1) {
-						offsetByte = Long.parseLong(tmp[1]);
+						resDuration = Long.parseLong(tmp[1]);
 					}
 					break;
 				}
@@ -95,10 +97,10 @@ public class ResumeObj {
 		}
 	}
 
-	private static void write(long time, long bytes, File f) {
+	private static void write(long time, long duration, File f) {
 		try {
 			try (BufferedWriter out = new BufferedWriter(new FileWriter(f))) {
-				out.write(time + "," + bytes);
+				out.write(time + "," + duration);
 				out.flush();
 			}
 		} catch (IOException e) {
@@ -106,18 +108,14 @@ public class ResumeObj {
 	}
 
 	public boolean noResume() {
-		return (offsetTime == 0) && (offsetByte == 0);
+		return (offsetTime == 0);
 	}
 
 	public long getTimeOffset() {
 		return offsetTime;
 	}
 
-	public long getByteOffset() {
-		return offsetByte;
-	}
-
-	public void stop(long startTime, long expDuration, long bytes) {
+	public void stop(long startTime, long expDuration) {
 		long now = System.currentTimeMillis();
 		long thisPlay = now - startTime;
 		long duration = thisPlay + getTimeOffset();
@@ -138,9 +136,8 @@ public class ResumeObj {
 			// to short to resume (at all)
 			return;
 		}
-		bytes += getByteOffset();
 		offsetTime = duration;
-		offsetByte = bytes;
-		write(duration - BACK_FACTOR, bytes, file);
+		resDuration = expDuration;
+		write(duration - BACK_FACTOR, expDuration, file);
 	}
 }

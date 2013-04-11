@@ -28,12 +28,8 @@ public class StartStopListenerDelegate {
 	}
 
 	public synchronized void stop() {
-		stop(0);
-	}
-
-	public synchronized void stop(long sentBytes) {
 		if (started && !stopped) {
-			dlna.stopPlaying(rendererId, sentBytes);
+			dlna.stopPlaying(rendererId);
 			stopped = true;
 		}
 	}

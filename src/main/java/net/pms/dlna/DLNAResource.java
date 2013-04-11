@@ -1649,7 +1649,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * objects available.
 	 * @see StartStopListener
 	 */
-	public void stopPlaying(final String rendererId, long sentBytes) {
+	public void stopPlaying(final String rendererId) {
 		final DLNAResource self = this;
 		final String requestId = getRequestId(rendererId);
 		if (externalProcess != null && getMedia().getDurationInSeconds() != 0) {
@@ -1659,7 +1659,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				getMedia().setDuration(DLNAMediaInfo.parseDurationString(dur));
 			}
 		}
-		resumeStop(sentBytes);
+		resumeStop();
 		Runnable defer = new Runnable() {
 			@Override
 			public void run() {
@@ -1764,9 +1764,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		if (getPlayer() == null && !isResume()) {
-			if (resume != null) {
-				low += resume.getByteOffset();
-			}
 			if (this instanceof IPushOutput) {
 				PipedOutputStream out = new PipedOutputStream();
 				InputStream fis = new PipedInputStream(out);
@@ -2626,23 +2623,23 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return true;
 	}
 
-	private void resumeStop(long bytes) {
+	private void resumeStop() {
 		if (!isResumeable()) {
 			return;
 		}
 		if (resume != null) {
-			resume.stop(startTime, (long) getMedia().getDurationInSeconds() * 1000, bytes);
+			resume.stop(startTime, (long) getMedia().getDurationInSeconds() * 1000);
 		} else {
 			if (!PMS.getConfiguration().getResume()) {
 				return;
 			}
 			for (DLNAResource res : getParent().getChildren()) {
 				if (res.isResume() && res.getName().equals(getName())) {
-					res.resume.stop(startTime, (long) getMedia().getDurationInSeconds() * 1000, bytes);
+					res.resume.stop(startTime, (long) getMedia().getDurationInSeconds() * 1000);
 					return;
 				}
 			}
-			ResumeObj r = ResumeObj.store(this, startTime, bytes);
+			ResumeObj r = ResumeObj.store(this, startTime);
 			if (r != null) {
 				DLNAResource clone = this.clone();
 				clone.resume = r;
