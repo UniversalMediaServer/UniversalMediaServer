@@ -323,9 +323,33 @@ public class MapFile extends DLNAResource {
 				}
 
 				if (f.getName().matches(".*[sS]\\d\\d[eE]\\d\\d.*")) {
-					// Extract the series name from the filename
+					// Extract the series name from the filename of scene episodes
 					String tvSeriesName = f.getName().replaceFirst("(?i)(.*)\\.S\\d\\dE\\d\\d\\..*", "$1");
 					tvSeriesName = tvSeriesName.replaceAll("\\.", " ");
+
+					ArrayList<File> tvSeriesNameList = map.get(String.valueOf(tvSeriesName));
+					if (tvSeriesNameList == null) {
+						// New folder
+						tvSeriesNameList = new ArrayList<>();
+					}
+					tvSeriesNameList.add(f);
+					map.put(String.valueOf(tvSeriesName), tvSeriesNameList);
+				} else if (f.getName().matches(".*[\\s\\._\\]]\\d\\d[\\s\\._\\]].*")) {
+					// Extract the series name from the filename of anime episodes
+					String tvSeriesName = f.getName().replaceFirst("(?i)(.*)[\\s\\._\\]]\\d\\d[\\s\\._\\]].*", "$1");
+					tvSeriesName = tvSeriesName.replaceAll("[\\._]", " ");
+
+					// Remove group name from the beginning of the filename
+					if (tvSeriesName.substring(0, 1).matches("\\[")) {
+						int closingBracketIndex = tvSeriesName.indexOf("]");
+						if (closingBracketIndex != -1) {
+							tvSeriesName = tvSeriesName.substring(closingBracketIndex + 1);
+						}
+
+						if (tvSeriesName.substring(0, 1).matches("\\s")) {
+							tvSeriesName = tvSeriesName.substring(1);
+						}
+					}
 
 					ArrayList<File> tvSeriesNameList = map.get(String.valueOf(tvSeriesName));
 					if (tvSeriesNameList == null) {
