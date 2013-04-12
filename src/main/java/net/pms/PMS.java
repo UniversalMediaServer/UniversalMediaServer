@@ -313,6 +313,170 @@ public class PMS {
 
 		registry = createSystemUtils();
 
+		// Wizard
+		if (configuration.isRunWizard() && !isHeadless()) {
+			// Ask the user if they want to run the wizard
+			int whetherToRunWizard = JOptionPane.showConfirmDialog(
+				(Component) PMS.get().getFrame(),
+				Messages.getString("Wizard.1"),
+				Messages.getString("Dialog.Question"),
+				JOptionPane.YES_NO_OPTION);
+			if (whetherToRunWizard == JOptionPane.YES_OPTION) {
+				// The user has chosen to run the wizard
+
+				// Total number of questions, not including ones that may not be shown
+				int numberOfQuestions = 4;
+
+				// Whether an iTunes library has been found
+				boolean foundItunesLibrary = false;
+
+				// Check for the existence of an iTunes library first so we know how many questions we want to ask
+				if (Platform.isMac() || Platform.isWindows()) {
+					// Check if the iTunes library exists
+					String line;
+					String iTunesFile = null;
+					if (Platform.isMac()) {
+						Process process = Runtime.getRuntime().exec("defaults read com.apple.iApps iTunesRecentDatabases");
+						try (BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+							// we want the 2nd line
+							if ((line = in.readLine()) != null && (line = in.readLine()) != null) {
+								line = line.trim(); // remove extra spaces
+								line = line.substring(1, line.length() - 1); // remove quotes and spaces
+								URI tURI = new URI(line);
+								iTunesFile = URLDecoder.decode(tURI.toURL().getFile(), "UTF8");
+							}
+						}
+					} else if (Platform.isWindows()) {
+						Process process = Runtime.getRuntime().exec("reg query \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\" /v \"My Music\"");
+						String location;
+						try (BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+							location = null;
+							while ((line = in.readLine()) != null) {
+								final String LOOK_FOR = "REG_SZ";
+								if (line.contains(LOOK_FOR)) {
+									location = line.substring(line.indexOf(LOOK_FOR) + LOOK_FOR.length()).trim();
+								}
+							}
+						}
+
+						if (location != null) {
+							// Add the iTunes folder to the end
+							location = location + "\\iTunes\\iTunes Music Library.xml";
+							iTunesFile = location;
+						} else {
+							LOGGER.info("Could not find the My Music folder");
+						}
+					}
+
+					if (iTunesFile != null && (new File(iTunesFile)).exists()) {
+						numberOfQuestions++;
+						foundItunesLibrary = true;
+					}
+				}
+
+				// The current question number
+				int currentQuestionNumber = 1;
+
+				// Ask if they want UMS to start minimized
+				int whetherToStartMinimized = JOptionPane.showConfirmDialog(
+				(Component) PMS.get().getFrame(),
+				Messages.getString("Wizard.3"),
+				Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+				JOptionPane.YES_NO_OPTION);
+				if (whetherToStartMinimized == JOptionPane.YES_OPTION) {
+					configuration.setMinimized(true);
+					save();
+				} else if (whetherToStartMinimized == JOptionPane.NO_OPTION) {
+					configuration.setMinimized(false);
+					save();
+				}
+
+				// Ask if their audio receiver/s support DTS audio
+				int whetherToSendDTS = JOptionPane.showConfirmDialog(
+				(Component) PMS.get().getFrame(),
+				Messages.getString("Wizard.5"),
+				Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+				JOptionPane.YES_NO_OPTION);
+				if (whetherToSendDTS == JOptionPane.YES_OPTION) {
+					configuration.setDTSEmbedInPCM(true);
+					save();
+				} else if (whetherToSendDTS == JOptionPane.NO_OPTION) {
+					configuration.setDTSEmbedInPCM(false);
+					save();
+				}
+
+				// Ask if they want to share their iTunes library
+				if (foundItunesLibrary) {
+					int whetherToShareITunes = JOptionPane.showConfirmDialog(
+					(Component) PMS.get().getFrame(),
+					Messages.getString("Wizard.6"),
+					Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+					JOptionPane.YES_NO_OPTION);
+					if (whetherToShareITunes == JOptionPane.YES_OPTION) {
+						configuration.setItunesEnabled(true);
+						save();
+					} else if (whetherToShareITunes == JOptionPane.NO_OPTION) {
+						configuration.setItunesEnabled(false);
+						save();
+					}
+				}
+
+				// Ask if their network is wired, etc.
+				Object[] options = {
+					Messages.getString("Wizard.8"),
+					Messages.getString("Wizard.9"),
+					Messages.getString("Wizard.10")
+				};
+				int networkType = JOptionPane.showOptionDialog(
+					(Component) PMS.get().getFrame(),
+					Messages.getString("Wizard.7"),
+					Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+					JOptionPane.YES_NO_CANCEL_OPTION,
+					JOptionPane.QUESTION_MESSAGE,
+					null,
+					options,
+					options[1]);
+				if (networkType == JOptionPane.YES_OPTION) {
+					// Wired (Gigabit)
+					configuration.setMaximumBitrate("0");
+					configuration.setMPEG2MainSettings("keyint=5:vqscale=1:vqmin=2");
+					save();
+				} else if (networkType == JOptionPane.NO_OPTION) {
+					// Wired (100 Megabit)
+					configuration.setMaximumBitrate("110");
+					configuration.setMPEG2MainSettings("keyint=5:vqscale=1:vqmin=2");
+					save();
+				} else if (networkType == JOptionPane.CANCEL_OPTION) {
+					// Wireless
+					configuration.setMaximumBitrate("110");
+					configuration.setMPEG2MainSettings("keyint=25:vqmax=5:vqmin=2");
+					save();
+				}
+
+				// Ask if they want to hide advanced options
+				int whetherToHideAdvancedOptions = JOptionPane.showConfirmDialog(
+				(Component) PMS.get().getFrame(),
+				Messages.getString("Wizard.11"),
+				Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+				JOptionPane.YES_NO_OPTION);
+				if (whetherToHideAdvancedOptions == JOptionPane.YES_OPTION) {
+					configuration.setHideAdvancedOptions(true);
+					save();
+				} else if (whetherToHideAdvancedOptions == JOptionPane.NO_OPTION) {
+					configuration.setHideAdvancedOptions(false);
+					save();
+				}
+
+				configuration.setRunWizard(false);
+				save();
+			} else if (whetherToRunWizard == JOptionPane.NO_OPTION) {
+				// The user has chosen to not run the wizard
+				// Do not ask them again
+				configuration.setRunWizard(false);
+				save();
+			}
+		}
+
 		if (System.getProperty(CONSOLE) == null) {
 			frame = new LooksFrame(autoUpdater, configuration);
 		} else {
@@ -588,185 +752,6 @@ public class PMS {
 		LOGGER.trace("Waiting 250 milliseconds...");
 		Thread.sleep(250);
 		UPNPHelper.listen();
-
-		// Wizard
-		if (configuration.isRunWizard() && !isHeadless()) {
-			// Ask the user if they want to run the wizard
-			int whetherToRunWizard = JOptionPane.showConfirmDialog(
-				(Component) PMS.get().getFrame(),
-				Messages.getString("Wizard.1"),
-				Messages.getString("Dialog.Question"),
-				JOptionPane.YES_NO_OPTION);
-			if (whetherToRunWizard == JOptionPane.YES_OPTION) {
-				// The user has chosen to run the wizard
-
-				// Total number of questions, not including ones that may not be shown
-				int numberOfQuestions = 4;
-
-				// Whether an iTunes library has been found
-				boolean foundItunesLibrary = false;
-
-				// Check for the existence of an iTunes library first so we know how many questions we want to ask
-				if (Platform.isMac() || Platform.isWindows()) {
-					// Check if the iTunes library exists
-					String line;
-					String iTunesFile = null;
-					if (Platform.isMac()) {
-						Process process = Runtime.getRuntime().exec("defaults read com.apple.iApps iTunesRecentDatabases");
-						try (BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-							// we want the 2nd line
-							if ((line = in.readLine()) != null && (line = in.readLine()) != null) {
-								line = line.trim(); // remove extra spaces
-								line = line.substring(1, line.length() - 1); // remove quotes and spaces
-								URI tURI = new URI(line);
-								iTunesFile = URLDecoder.decode(tURI.toURL().getFile(), "UTF8");
-							}
-						}
-					} else if (Platform.isWindows()) {
-						Process process = Runtime.getRuntime().exec("reg query \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\" /v \"My Music\"");
-						String location;
-						try (BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-							location = null;
-							while ((line = in.readLine()) != null) {
-								final String LOOK_FOR = "REG_SZ";
-								if (line.contains(LOOK_FOR)) {
-									location = line.substring(line.indexOf(LOOK_FOR) + LOOK_FOR.length()).trim();
-								}
-							}
-						}
-
-						if (location != null) {
-							// Add the iTunes folder to the end
-							location = location + "\\iTunes\\iTunes Music Library.xml";
-							iTunesFile = location;
-						} else {
-							LOGGER.info("Could not find the My Music folder");
-						}
-					}
-
-					if (iTunesFile != null && (new File(iTunesFile)).exists()) {
-						numberOfQuestions++;
-						foundItunesLibrary = true;
-					}
-				}
-
-				// The current question number
-				int currentQuestionNumber = 1;
-
-				// Ask if they want UMS to start minimized
-				int whetherToStartMinimized = JOptionPane.showConfirmDialog(
-				(Component) PMS.get().getFrame(),
-				Messages.getString("Wizard.3"),
-				Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
-				JOptionPane.YES_NO_OPTION);
-				if (whetherToStartMinimized == JOptionPane.YES_OPTION) {
-					configuration.setMinimized(true);
-					GeneralTab.smcheckBox.setSelected(true);
-					save();
-				} else if (whetherToStartMinimized == JOptionPane.NO_OPTION) {
-					configuration.setMinimized(false);
-					GeneralTab.smcheckBox.setSelected(false);
-					save();
-				}
-
-				// Ask if their audio receiver/s support DTS audio
-				int whetherToSendDTS = JOptionPane.showConfirmDialog(
-				(Component) PMS.get().getFrame(),
-				Messages.getString("Wizard.5"),
-				Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
-				JOptionPane.YES_NO_OPTION);
-				if (whetherToSendDTS == JOptionPane.YES_OPTION) {
-					configuration.setDTSEmbedInPCM(true);
-					TranscodingTab.forceDTSinPCM.setSelected(true);
-					save();
-				} else if (whetherToSendDTS == JOptionPane.NO_OPTION) {
-					configuration.setDTSEmbedInPCM(false);
-					TranscodingTab.forceDTSinPCM.setSelected(false);
-					save();
-				}
-
-				// Ask if they want to share their iTunes library
-				if (foundItunesLibrary) {
-					int whetherToShareITunes = JOptionPane.showConfirmDialog(
-					(Component) PMS.get().getFrame(),
-					Messages.getString("Wizard.6"),
-					Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
-					JOptionPane.YES_NO_OPTION);
-					if (whetherToShareITunes == JOptionPane.YES_OPTION) {
-						configuration.setItunesEnabled(true);
-						NavigationShareTab.itunes.setSelected(true);
-						save();
-					} else if (whetherToShareITunes == JOptionPane.NO_OPTION) {
-						configuration.setItunesEnabled(false);
-						NavigationShareTab.itunes.setSelected(false);
-						save();
-					}
-				}
-
-				// Ask if their network is wired, etc.
-				Object[] options = {
-					Messages.getString("Wizard.8"),
-					Messages.getString("Wizard.9"),
-					Messages.getString("Wizard.10")
-				};
-				int networkType = JOptionPane.showOptionDialog(
-					(Component) PMS.get().getFrame(),
-					Messages.getString("Wizard.7"),
-					Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
-					JOptionPane.YES_NO_CANCEL_OPTION,
-					JOptionPane.QUESTION_MESSAGE,
-					null,
-					options,
-					options[1]);
-				if (networkType == JOptionPane.YES_OPTION) {
-					// Wired (Gigabit)
-					configuration.setMaximumBitrate("0");
-					if (!configuration.isHideAdvancedOptions()) {
-						GeneralTab.maxbitrate.setText("0");
-					}
-					configuration.setMPEG2MainSettings("keyint=5:vqscale=1:vqmin=2");
-					save();
-				} else if (networkType == JOptionPane.NO_OPTION) {
-					// Wired (100 Megabit)
-					configuration.setMaximumBitrate("110");
-					if (!configuration.isHideAdvancedOptions()) {
-						GeneralTab.maxbitrate.setText("110");
-					}
-					configuration.setMPEG2MainSettings("keyint=5:vqscale=1:vqmin=2");
-					save();
-				} else if (networkType == JOptionPane.CANCEL_OPTION) {
-					// Wireless
-					configuration.setMaximumBitrate("110");
-					if (!configuration.isHideAdvancedOptions()) {
-						GeneralTab.maxbitrate.setText("110");
-					}
-					configuration.setMPEG2MainSettings("keyint=25:vqmax=5:vqmin=2");
-					save();
-				}
-
-				// Ask if they want to hide advanced options
-				int whetherToHideAdvancedOptions = JOptionPane.showConfirmDialog(
-				(Component) PMS.get().getFrame(),
-				Messages.getString("Wizard.11"),
-				Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
-				JOptionPane.YES_NO_OPTION);
-				if (whetherToHideAdvancedOptions == JOptionPane.YES_OPTION) {
-					configuration.setHideAdvancedOptions(true);
-					save();
-				} else if (whetherToHideAdvancedOptions == JOptionPane.NO_OPTION) {
-					configuration.setHideAdvancedOptions(false);
-					save();
-				}
-
-				configuration.setRunWizard(false);
-				save();
-			} else if (whetherToRunWizard == JOptionPane.NO_OPTION) {
-				// The user has chosen to not run the wizard
-				// Do not ask them again
-				configuration.setRunWizard(false);
-				save();
-			}
-		}
 
 		return true;
 	}
