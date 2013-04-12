@@ -520,6 +520,10 @@ public class ExternalFactory {
 				// take another resolver this is crap
 				continue;
 			}
+			if (res.precoder != null && res.precoder.size() > 0) {
+				return res;
+			}
+			res.precoder = null;
 			if (res.args != null && res.args.size() > 0) {
 				// we got args...
 				// so return what we got

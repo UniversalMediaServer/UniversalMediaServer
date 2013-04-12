@@ -23,9 +23,21 @@ public interface SystemUtils {
 
 	public abstract boolean isKerioFirewall();
 
+	/*
+	 * Use getVlcPath() instead
+	 */
+	@Deprecated
 	public abstract String getVlcp();
 
+	/*
+	 * Use getVlcVersion() instead
+	 */
+	@Deprecated
 	public abstract String getVlcv();
+
+	public abstract String getVlcPath();
+
+	public abstract String getVlcVersion();
 
 	public abstract boolean isAvis();
 

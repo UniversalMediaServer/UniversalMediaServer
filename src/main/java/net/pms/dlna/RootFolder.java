@@ -301,17 +301,22 @@ public class RootFolder extends DLNAResource {
 									if (parent == null) {
 										parent = this;
 									}
-
-									if (keys[0].equals("imagefeed")) {
-										parent.addChild(new ImagesFeed(values[0]));
-									} else if (keys[0].equals("videofeed")) {
-										parent.addChild(new VideosFeed(values[0]));
-									} else if (keys[0].equals("audiofeed")) {
-										parent.addChild(new AudiosFeed(values[0]));
-									} else if (keys[0].equals("audiostream")) {
-										parent.addChild(new WebAudioStream(values[0], values[1], values[2]));
-									} else if (keys[0].equals("videostream")) {
-										parent.addChild(new WebVideoStream(values[0], values[1], values[2]));
+									switch (keys[0]) {
+										case "imagefeed":
+											parent.addChild(new ImagesFeed(values[0]));
+											break;
+										case "videofeed":
+											parent.addChild(new VideosFeed(values[0]));
+											break;
+										case "audiofeed":
+											parent.addChild(new AudiosFeed(values[0]));
+											break;
+										case "audiostream":
+											parent.addChild(new WebAudioStream(values[0], values[1], values[2]));
+											break;
+										case "videostream":
+											parent.addChild(new WebVideoStream(values[0], values[1], values[2]));
+											break;
 									}
 								}
 							} catch (ArrayIndexOutOfBoundsException e) {
@@ -636,30 +641,27 @@ public class RootFolder extends DLNAResource {
 			// the second line should contain a quoted file URL e.g.:
 			// "file://localhost/Users/MyUser/Music/iTunes/iTunes%20Music%20Library.xml"
 			Process process = Runtime.getRuntime().exec("defaults read com.apple.iApps iTunesRecentDatabases");
-			BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-			// we want the 2nd line
-			if ((line = in.readLine()) != null && (line = in.readLine()) != null) {
-				line = line.trim(); // remove extra spaces
-				line = line.substring(1, line.length() - 1); // remove quotes and spaces
-				URI tURI = new URI(line);
-				iTunesFile = URLDecoder.decode(tURI.toURL().getFile(), "UTF8");
-			}
-
-			in.close();
-		} else if (Platform.isWindows()) {
-			Process process = Runtime.getRuntime().exec("reg query \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\" /v \"My Music\"");
-			BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
-			String location = null;
-
-			while ((line = in.readLine()) != null) {
-				final String LOOK_FOR = "REG_SZ";
-				if (line.contains(LOOK_FOR)) {
-					location = line.substring(line.indexOf(LOOK_FOR) + LOOK_FOR.length()).trim();
+			try (BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+				// we want the 2nd line
+				if ((line = in.readLine()) != null && (line = in.readLine()) != null) {
+					line = line.trim(); // remove extra spaces
+					line = line.substring(1, line.length() - 1); // remove quotes and spaces
+					URI tURI = new URI(line);
+					iTunesFile = URLDecoder.decode(tURI.toURL().getFile(), "UTF8");
 				}
 			}
-
-			in.close();
+		} else if (Platform.isWindows()) {
+			Process process = Runtime.getRuntime().exec("reg query \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\" /v \"My Music\"");
+			String location;
+			try (BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+				location = null;
+				while ((line = in.readLine()) != null) {
+					final String LOOK_FOR = "REG_SZ";
+					if (line.contains(LOOK_FOR)) {
+						location = line.substring(line.indexOf(LOOK_FOR) + LOOK_FOR.length()).trim();
+					}
+				}
+			}
 
 			if (location != null) {
 				// Add the iTunes folder to the end
@@ -927,6 +929,14 @@ public class RootFolder extends DLNAResource {
 				public boolean enable() {
 					PMS.get().reset();
 					return true;
+				}
+			});
+			res.addChild(new VirtualVideoAction(Messages.getString("FoldTab.42"), 
+						 configuration.isHideLiveSubtitlesFolder()) {
+				@Override
+				public boolean enable() {
+					configuration.setHideLiveSubtitlesFolder(!configuration.isHideLiveSubtitlesFolder());
+					return configuration.isHideLiveSubtitlesFolder();
 				}
 			});
 		}

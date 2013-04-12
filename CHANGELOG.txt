@@ -1,7 +1,48 @@
-2.5.3 - 2013-03-??
+2.7.0 - 2013-04-??
 
 	General:
-		
+		Added "Prettify filenames" feature, which automatically renames filenames (not the real files, just in UMS) that follow certain naming conventions to be more readable
+		Added VLC video transcoding (thanks, LordQuackstar!)
+		Improved stability of Live Subtitles
+		Added option to toggle H.264 remuxing in FFmpeg
+		Re-enabled WMP detection
+		Speed improvements
+	Renderers:
+		Fixed stuttering issues with Bravia HX TVs
+		Improved support for Sony Blu-ray players
+	Languages:
+		Updated Italian translation (thanks, nocciola82!)
+	External Components:
+		Updated FFmpeg for Linux to burek's 2013-04-04 build, which:
+			Is compiled statically
+
+2.6.0 - 2013-03-29
+
+	General:
+		Added "Live Subtitles" which means you can select subtitles from the Internet via your device. It can be enabled on the Navigation/Share Settings page.
+		Improved layout of the Navigation/Share Settings page
+		Implemented default subtitle preferences, to use them:
+			Either use the "Clean Install" option on Windows or put "eng,off;*,eng;*,und" into the "Audio/subtitles language priority" box in the "Subtitles settings" tab on the Transcoding Settings page
+		Fixed DTS muxing with FFmpeg
+		Added new "precoder" functionality, useful for plugin developers
+		Added H.264 encoding support to MEncoder (when renderers specify it)
+	Languages:
+		Updated Czech translation
+		Updated English settings labels
+		Updated Simplified Chinese translation (thanks, lovenemesis!)
+	External Components:
+		Updated h2 database to 1.3.171, which:
+			Increases speed
+			Improves JDK 7 compatibility
+		Updated MPlayer/MEncoder for Windows to SB52, which:
+			Improves audio sync
+			Improves DVD support
+			Supports filenames with uncommon characters
+			Fixes memory leaks
+			Improves sync with Real videos
+			Fixes a crash
+		Updated Netty to 3.6.3, which:
+			Makes browsing more stable
 
 2.5.2.2 - 2013-03-19
 

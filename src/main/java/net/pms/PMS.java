@@ -55,10 +55,13 @@ import net.pms.newgui.ProfileChooser;
 import net.pms.newgui.TranscodingTab;
 import net.pms.update.AutoUpdater;
 import net.pms.util.FileUtil;
+import net.pms.util.OpenSubtitle;
 import net.pms.util.ProcessUtil;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.SystemErrWrapper;
 import net.pms.util.TaskRunner;
+import net.pms.util.TempFileMgr;
+import net.pms.util.Version;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
@@ -394,6 +397,10 @@ public class PMS {
 		dDir.mkdirs();
 
 		dbgPack = new DbgPacker();
+		tfm = new TempFileMgr();
+
+		// This should be removed soon
+		OpenSubtitle.convert();
 
 		RendererConfiguration.loadRendererConfigurations(configuration);
 
@@ -428,8 +435,19 @@ public class PMS {
 			}
 		}
 
-		if (registry.getVlcv() != null && registry.getVlcp() != null) {
-			LOGGER.info("Found VideoLAN version " + registry.getVlcv() + " at: " + registry.getVlcp());
+		// Check if VLC is found
+		String vlcVersion = registry.getVlcVersion();
+		String vlcPath = registry.getVlcPath();
+
+		if (vlcVersion != null && vlcPath != null) {
+			LOGGER.info("Found VideoLAN version " + vlcVersion + " at: " + vlcPath);
+
+			Version vlc = new Version(vlcVersion);
+			Version requiredVersion = new Version("2.0.2");
+
+			if (vlc.compareTo(requiredVersion) <= 0) {
+				LOGGER.error("Only VLC versions 2.0.2 and above are supported");
+			}
 		}
 
 		// Check if Kerio is installed
@@ -558,7 +576,7 @@ public class PMS {
 
 					get().getServer().stop();
 					Thread.sleep(500);
-				} catch (IOException | InterruptedException e) {
+				} catch (InterruptedException e) {
 					LOGGER.debug("Caught exception", e);
 				}
 			}
@@ -1280,6 +1298,16 @@ public class PMS {
 
 	public DbgPacker dbgPack() {
 		return dbgPack;
+	}
+
+	private TempFileMgr tfm;
+
+	public void addTempFile(File f) {
+		tfm.add(f);
+	}
+
+	public void addTempFile(File f, int cleanTime) {
+		tfm.add(f, cleanTime);
 	}
 
 	@Deprecated

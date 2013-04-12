@@ -242,7 +242,7 @@ public class GeneralTab {
 			autoUpdateCheckBox.setEnabled(false);
 		}
 
-		hideAdvancedOptions = new JCheckBox(Messages.getString("NetworkTab.59"));
+		hideAdvancedOptions = new JCheckBox(Messages.getString("NetworkTab.61"));
 		hideAdvancedOptions.setContentAreaFilled(false);
 		hideAdvancedOptions.addActionListener(new ActionListener() {
 			@Override
