@@ -607,7 +607,7 @@ public class PMS {
 				boolean foundItunesLibrary = false;
 
 				// Check for the existence of an iTunes library first so we know how many questions we want to ask
-				if (!(Platform.isMac() || Platform.isWindows())) {
+				if (Platform.isMac() || Platform.isWindows()) {
 					// Check if the iTunes library exists
 					String line;
 					String iTunesFile = null;
