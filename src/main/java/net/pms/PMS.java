@@ -601,7 +601,7 @@ public class PMS {
 				// The user has chosen to run the wizard
 
 				// Total number of questions, not including ones that may not be shown
-				int numberOfQuestions = 3;
+				int numberOfQuestions = 4;
 
 				// Whether an iTunes library has been found
 				boolean foundItunesLibrary = false;
@@ -741,6 +741,20 @@ public class PMS {
 						GeneralTab.maxbitrate.setText("110");
 					}
 					configuration.setMPEG2MainSettings("keyint=25:vqmax=5:vqmin=2");
+					save();
+				}
+
+				// Ask if they want to hide advanced options
+				int whetherToHideAdvancedOptions = JOptionPane.showConfirmDialog(
+				(Component) PMS.get().getFrame(),
+				Messages.getString("Wizard.11"),
+				Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+				JOptionPane.YES_NO_OPTION);
+				if (whetherToHideAdvancedOptions == JOptionPane.YES_OPTION) {
+					configuration.setHideAdvancedOptions(true);
+					save();
+				} else if (whetherToHideAdvancedOptions == JOptionPane.NO_OPTION) {
+					configuration.setHideAdvancedOptions(false);
 					save();
 				}
 
