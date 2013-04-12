@@ -69,7 +69,7 @@ public class NavigationShareTab {
 	private JTextField defaultThumbFolder;
 	private JCheckBox iphoto;
 	private JCheckBox aperture;
-	private JCheckBox itunes;
+	public static JCheckBox itunes;
 	private CustomJButton select;
 	private CustomJButton cachereset;
 	private JCheckBox ignorethewordthe;
@@ -129,9 +129,10 @@ public class NavigationShareTab {
 		PanelBuilder builderSharedFolder = initSharedFoldersGuiComponents(cc);
 
 		// Build gui with initialized components
-		JComponent cmp = builder.addSeparator(Messages.getString("FoldTab.13"), FormLayoutUtil.flip(cc.xyw(1, 1, 10), colSpec, orientation));
-		cmp = (JComponent) cmp.getComponent(0);
-		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
+		if (!configuration.isHideAdvancedOptions()) {
+			JComponent cmp = builder.addSeparator(Messages.getString("FoldTab.13"), FormLayoutUtil.flip(cc.xyw(1, 1, 10), colSpec, orientation));
+			cmp = (JComponent) cmp.getComponent(0);
+			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
 		builder.add(thumbgenCheckBox, FormLayoutUtil.flip(cc.xyw(1, 3, 3), colSpec, orientation));
 		builder.addLabel(Messages.getString("NetworkTab.16"), FormLayoutUtil.flip(cc.xyw(4, 3, 2), colSpec, orientation));
@@ -181,7 +182,10 @@ public class NavigationShareTab {
 		builder.addLabel(Messages.getString("FoldTab.37"), FormLayoutUtil.flip(cc.xyw(4, 25, 2), colSpec, orientation));
 		builder.add(atzLimit, FormLayoutUtil.flip(cc.xy(6, 25), colSpec, orientation));
 
-		builder.add(builderSharedFolder.getPanel(), FormLayoutUtil.flip(cc.xyw(1, 27, 10), colSpec, orientation));
+			builder.add(builderSharedFolder.getPanel(), FormLayoutUtil.flip(cc.xyw(1, 27, 10), colSpec, orientation));
+		} else {
+			builder.add(builderSharedFolder.getPanel(), FormLayoutUtil.flip(cc.xyw(1, 1, 10), colSpec, orientation));
+		}
 
 		JPanel panel = builder.getPanel();
 

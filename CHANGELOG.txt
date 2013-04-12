@@ -2,11 +2,17 @@
 
 	General:
 		Added "Prettify filenames" feature, which automatically renames filenames (not the real files, just in UMS) that follow certain naming conventions to be more readable
+		Added configuration wizard to simplify common things like network configuration
+		Added an option to hide/show advanced options, hopefully making things less confusing/daunting for most users
 		Added VLC video transcoding (thanks, LordQuackstar!)
 		Improved stability of Live Subtitles
 		Added option to toggle H.264 remuxing in FFmpeg
 		Re-enabled WMP detection
 		Speed improvements
+		Fixed transcoding to Xbox via FFmpeg
+		Added support for WTV files
+		A-to-Z virtual folders support sorting options
+		Fixed a crash with rare MP3 files
 	Renderers:
 		Fixed stuttering issues with Bravia HX TVs
 		Improved support for Sony Blu-ray players
