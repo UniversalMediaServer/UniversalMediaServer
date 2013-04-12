@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Map;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.formats.v2.SubtitleType;
-import net.pms.util.FileUtil;
 import net.pms.util.OpenSubtitle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

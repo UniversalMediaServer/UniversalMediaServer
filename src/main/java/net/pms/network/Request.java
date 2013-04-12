@@ -39,6 +39,7 @@ import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
 import net.pms.external.StartStopListenerDelegate;
+import net.pms.util.StringUtil;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -707,7 +708,7 @@ public class Request extends HTTPResource {
 			}
 
 			if (timeseek > 0 && dlna != null) {
-				String timeseekValue = DLNAMediaInfo.getDurationString(timeseek);
+				String timeseekValue = StringUtil.convertTimeToString(timeseek, true);
 				String timetotalValue = dlna.getMedia().getDurationString();
 				output(output, "TimeSeekRange.dlna.org: npt=" + timeseekValue + "-" + timetotalValue + "/" + timetotalValue);
 				output(output, "X-Seek-Range: npt=" + timeseekValue + "-" + timetotalValue + "/" + timetotalValue);

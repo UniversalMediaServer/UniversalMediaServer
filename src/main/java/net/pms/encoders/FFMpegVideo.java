@@ -45,6 +45,7 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.InputFile;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.formats.v2.SubtitleUtils;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeIPCProcess;
 import net.pms.io.PipeProcess;
@@ -52,6 +53,7 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.StreamModifier;
 import net.pms.network.HTTPResource;
+import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.lang.StringUtils;
 import static org.apache.commons.lang.StringUtils.isBlank;
@@ -74,7 +76,7 @@ import org.slf4j.LoggerFactory;
 public class FFMpegVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
 	private static final String DEFAULT_QSCALE = "3";
-	protected final PmsConfiguration configuration;
+	protected static PmsConfiguration configuration;
 	
 	@Deprecated
 	public FFMpegVideo() {
@@ -82,7 +84,7 @@ public class FFMpegVideo extends Player {
 	}
 	
 	public FFMpegVideo(PmsConfiguration configuration) {
-		this.configuration = configuration;
+		FFMpegVideo.configuration = configuration;
 	}
 
 	// FIXME we have an id() accessor for this; no need for the field to be public
@@ -104,6 +106,7 @@ public class FFMpegVideo extends Player {
 		List<String> videoFilterOptions = new ArrayList<>();
 		String subsOption = null;
 		String padding = null;
+		String externalSubtitlesFileName;
 
 		boolean isResolutionTooHighForRenderer = renderer.isVideoRescale() && // renderer defines a max width/height
 			(media != null && media.isMediaparsed()) &&
@@ -113,41 +116,71 @@ public class FFMpegVideo extends Player {
 			);
 
 		if (params.sid != null && !configuration.isDisableSubtitles() && params.sid.isExternal()) {
-			String externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getAbsolutePath());
-			StringBuilder s = new StringBuilder();
-			CharacterIterator it = new StringCharacterIterator(externalSubtitlesFileName);
+			if (params.sid.isExternalFileUtf16()) {
+				// convert UTF-16 -> UTF-8
+				File convertedSubtitles = new File(configuration.getTempFolder(), "utf8_" + params.sid.getExternalFile().getName());
+				FileUtil.convertFileFromUtf16ToUtf8(params.sid.getExternalFile(), convertedSubtitles);
+				externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(convertedSubtitles.getAbsolutePath());
+			} else {
+				externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getAbsolutePath());
+			}
 
-			for (char ch = it.first(); ch != CharacterIterator.DONE; ch = it.next()) {
-				switch (ch) {
-					case ':':
-						s.append("\\\\:");
-						break;
-					case '\\':
-						s.append("/");
-						break;
-					case ']':
-					case '[':
-						s.append("\\");
-					default:
-						s.append(ch);
-						break;
+			if (params.sid.getType() == SubtitleType.SUBRIP) {
+				if (configuration.isFFmpegrFontConfig()) {
+					try {
+						externalSubtitlesFileName = SubtitleUtils.ConvertSrtToAss(externalSubtitlesFileName, params.timeseek, configuration).getAbsolutePath();
+					} catch (IOException e) {
+						LOGGER.debug("Converting to ASS file raised an error: " + e);
+						externalSubtitlesFileName = null;
+					}
+				} else if (!params.sid.isExternalFileUtf() || params.timeseek > 0) {
+					try {
+						externalSubtitlesFileName = SubtitleUtils.dumpSrtTc(externalSubtitlesFileName, params.timeseek, configuration);
+					} catch (Exception e) {
+						LOGGER.debug("Couldn't trim subs file " + externalSubtitlesFileName + " error " + e);
+					}
 				}
 			}
 
-			String subsFile = s.toString();
-			subsFile = subsFile.replace(",", "\\,");
+			if (externalSubtitlesFileName != null) {
+				StringBuilder s = new StringBuilder();
+				CharacterIterator it = new StringCharacterIterator(externalSubtitlesFileName);
 
-			if (params.sid.getType() == SubtitleType.ASS) {
-				subsOption = "ass=" + subsFile;
-			} else if (params.sid.getType() == SubtitleType.SUBRIP) {
-				subsOption = "subtitles=" + subsFile;
+				for (char ch = it.first(); ch != CharacterIterator.DONE; ch = it.next()) {
+					switch (ch) {
+						case ':':
+							s.append("\\\\:");
+							break;
+						case '\\':
+							s.append("/");
+							break;
+						case ']':
+						case '[':
+							s.append("\\");
+						default:
+							s.append(ch);
+							break;
+					}
+				}
+
+				String subsFile = s.toString();
+				subsFile = subsFile.replace(",", "\\,");
+				
+				if (params.sid.getType() == SubtitleType.ASS) {
+					subsOption = "ass=" + subsFile;
+				} else if (params.sid.getType() == SubtitleType.SUBRIP) {
+					subsOption = "subtitles=" + subsFile;
+				}
 			}
 		}
 
 		if (renderer.isKeepAspectRatio() && renderer.isRescaleByRenderer()) {
-			
-			if (media != null && media.isMediaparsed() && media.getHeight() != 0 &&
-				(media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
+			if (
+				media != null &&
+				media.isMediaparsed() &&
+				media.getHeight() != 0 &&
+				(media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)
+			) {
 				padding = "pad=iw:iw/(16/9):0:(oh-ih)/2";
 			} else {
 				padding = "pad=ih*(16/9):ih:(ow-iw)/2:0";
@@ -854,6 +887,7 @@ public class FFMpegVideo extends Player {
 
 	private JCheckBox multithreading;
 	private JCheckBox videoremux;
+	private JCheckBox fc;
 
 	@Override
 	public JComponent config() {
@@ -863,7 +897,7 @@ public class FFMpegVideo extends Player {
 	protected JComponent config(String languageLabel) {
 		FormLayout layout = new FormLayout(
 			"left:pref, 0:grow",
-			"p, 3dlu, p, 3dlu, p"
+			"p, 3dlu, p, 3dlu, p, 3dlu, p"
 		);
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.setBorder(Borders.EMPTY_BORDER);
@@ -900,6 +934,17 @@ public class FFMpegVideo extends Player {
 			}
 		});
 		builder.add(videoremux, cc.xy(2, 5));
+		
+		fc = new JCheckBox(Messages.getString("MEncoderVideo.21"));
+		fc.setContentAreaFilled(false);
+		fc.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setFFmpegFontConfig(e.getStateChange() == ItemEvent.SELECTED);
+			}
+		});
+		builder.add(fc, cc.xy(2, 7));
+		fc.setSelected(configuration.isFFmpegrFontConfig());
 
 		return builder.getPanel();
 	}

@@ -56,6 +56,8 @@ import net.pms.util.CoverUtil;
 import net.pms.util.FileUtil;
 import net.pms.util.MpegUtil;
 import net.pms.util.ProcessUtil;
+import net.pms.util.StringUtil;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.sanselan.ImageInfo;
 import org.apache.sanselan.ImageReadException;
@@ -779,7 +781,7 @@ public class DLNAMediaInfo implements Cloneable {
 										if (durationStr.indexOf("N/A") > -1) {
 											setDuration(null);
 										} else {
-											setDuration(parseDurationString(durationStr));
+											setDuration(StringUtil.convertStringToTime(durationStr));
 										}
 									} else if (token.startsWith("bitrate: ")) {
 										String bitr = token.substring(9);
@@ -1072,33 +1074,7 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	public String getDurationString() {
-		return durationSec != null ? getDurationString(durationSec) : null;
-	}
-
-	public static String getDurationString(double d) {
-		int s = ((int) d) % 60;
-		int h = (int) (d / 3600);
-		int m = ((int) (d / 60)) % 60;
-		return String.format("%02d:%02d:%02d.00", h, m, s);
-	}
-
-	public static Double parseDurationString(String duration) {
-		if (duration == null) {
-			return null;
-		}
-
-		StringTokenizer st = new StringTokenizer(duration, ":");
-
-		try {
-			int h = Integer.parseInt(st.nextToken());
-			int m = Integer.parseInt(st.nextToken());
-			double s = Double.parseDouble(st.nextToken());
-			return h * 3600 + m * 60 + s;
-		} catch (NumberFormatException nfe) {
-			LOGGER.debug("Failed to parse duration \"" + duration + "\"");
-		}
-
-		return null;
+		return durationSec != null ? StringUtil.convertTimeToString(durationSec, true) : null;
 	}
 
 	public void finalize(int type, InputFile f) {

@@ -18,10 +18,21 @@
  */
 package net.pms.formats.v2;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Map;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaSubtitle;
+import net.pms.util.StringUtil;
 import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.mozilla.universalchardet.Constants.*;
 
 public class SubtitleUtils {
@@ -74,5 +85,165 @@ public class SubtitleUtils {
 			return null;
 		}
 		return fileCharsetToMencoderSubcpOptionMap.get(dlnaMediaSubtitle.getExternalFileCharacterSet());
+	}
+	
+	public static File ConvertSrtToAss(String SrtFile, double timeseek, PmsConfiguration configuration ) throws IOException {
+		File outputSubs = new File(configuration.getTempFolder(), "FFmpeg" + System.currentTimeMillis() + ".ass");
+		BufferedWriter output;
+		try (BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(SrtFile), configuration.getSubtitlesCodepage()))) {
+			output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs)));
+			String line;
+			output.write("[Script Info]\n");
+			output.write("ScriptType: v4.00+\n");
+			//output.write("PlayResX: " + media.getWidth() + "\n"); // TODO Not clear how it works
+			//output.write("PlayResY: " + media.getHeight() + "\n");
+			output.write("\n");
+			output.write("[V4+ Styles]\n");
+			output.write("Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, AlphaLevel, Encoding\n");
+			StringBuilder s = new StringBuilder();
+			s.append("Style: Default,");
+			if (!configuration.getFont().isEmpty()) {
+				s.append(configuration.getFont()).append(",");
+			} else {
+				s.append("Arial,");
+			}
+			s.append( (int) 10 * Double.parseDouble(configuration.getMencoderAssScale())).append(",");
+			String primaryColour = Integer.toHexString(configuration.getSubsColor());
+			primaryColour = primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4);
+			s.append("&H").append(primaryColour).append(",");
+			s.append("&Hffffff,");
+			s.append("&H0,");
+			s.append("&H0,");
+			s.append("0,");
+			s.append("0,");
+			s.append("0,");
+			s.append("1,");
+			s.append(configuration.getMencoderAssOutline()).append(",");
+			s.append(configuration.getMencoderAssShadow()).append(",");
+			s.append("2,");
+			s.append("10,");
+			s.append("10,");
+			s.append("20,");
+			s.append("0,");
+			s.append("0");
+			output.write(s.toString() + "\n");
+			output.write("\n");
+			output.write("[Events]\n");
+			output.write("Format: Layer, Start, End, Style, Text\n");
+			String startTime;
+			String endTime;
+			while (( line = input.readLine()) != null) {
+				if (line .contains("-->")) {
+					startTime = line.substring(0, line.indexOf("-->") - 1).replaceAll(",", ".");
+					endTime = line.substring(line.indexOf("-->") + 4).replaceAll(",", ".");
+
+					// Apply time seeking
+					if (timeseek > 0) {
+						if (StringUtil.convertStringToTime(startTime) >= timeseek) {
+							startTime = StringUtil.convertTimeToString(StringUtil.convertStringToTime(startTime) - timeseek, false);
+							startTime = startTime.substring(1, startTime.length() - 1);
+							endTime = StringUtil.convertTimeToString(StringUtil.convertStringToTime(endTime) - timeseek, false);
+							endTime = endTime.substring(1, endTime.length() - 1);
+						} else {
+							continue;
+						}
+					}
+
+					s = new StringBuilder();
+					s.append("Dialogue: 0,");
+					s.append(startTime).append(",");
+					s.append(endTime).append(",");
+					s.append("Default").append(",");
+					s.append(convertTags(input.readLine())); 
+
+					if (isNotBlank(line = input.readLine())) {
+						s.append("\\N");
+						s.append(convertTags(line));
+					}
+
+					output.write(s.toString() + "\n");
+				}
+			}
+		}
+		output.flush();
+		output.close();
+		outputSubs.deleteOnExit();
+		return outputSubs;
+
+	}
+
+	private static String convertTags(String text) {
+		 String tag;
+		 StringBuilder sb = new StringBuilder();
+		 String[] tmp = text.split("<");
+
+		 for (String s : tmp) {
+			 if (s.startsWith("/") && s.indexOf(">") == 2) {
+				 tag = s.substring(1, 2);
+				 sb.append("{\\").append(tag).append("0}").append(s.substring(3));
+			 } else if (s.indexOf(">") == 1) {
+				 tag = s.substring(0, 1);
+				 sb.append("{\\").append(tag).append("1}").append(s.substring(2));
+			 } else {
+				 sb.append(s);
+			 }
+		 }
+
+		return sb.toString();
+	}
+
+	public static String dumpSrtTc(String in0, double timeseek, PmsConfiguration configuration) throws Exception {
+		File in = new File(in0);
+		File out = new File(configuration.getTempFolder(), in.getName() + "_" + System.currentTimeMillis() + "_tc_.srt");
+		out.delete();
+		String cp = configuration.getSubtitlesCodepage();
+		BufferedWriter w;
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(in), cp))) {
+			w = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(out)));
+			String line;
+			boolean skip = false;
+			int n = 1;
+			while ((line = reader.readLine()) != null) {
+				try {
+					Integer.parseInt(line);
+					continue;
+				} catch (NumberFormatException e1) {
+				}
+				if (isBlank(line)) {
+					if (!skip) {
+						w.write("\n");
+					}
+					skip = false;
+					continue;
+				}
+				if (skip) {
+					continue;
+				}
+				if (line.contains("-->")) {
+					String startTime = line.substring(0, line.indexOf("-->") - 1).replaceAll(",", ".");
+					String endTime = line.substring(line.indexOf("-->") + 4).replaceAll(",", ".");
+					Double start = StringUtil.convertStringToTime(startTime);
+					Double stop = StringUtil.convertStringToTime(endTime);
+					if (timeseek > start) {
+						skip = true;
+						continue;
+					}
+					w.write(String.valueOf(n++));
+					w.write("\n");
+					w.write(StringUtil.convertTimeToString(start - timeseek, false).replaceAll("\\.", ","));
+					w.write(" --> ");
+					w.write(StringUtil.convertTimeToString(stop - timeseek, false).replaceAll("\\.", ","));
+					w.write("\n");
+					continue;
+				}
+
+				w.write(line);
+				w.write("\n");
+			}
+		}
+		w.flush();
+		w.close();
+		out.deleteOnExit();
+		return out.getAbsolutePath();
 	}
 }

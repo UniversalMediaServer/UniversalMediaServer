@@ -104,8 +104,10 @@ public class PmsConfiguration {
 	private static final String KEY_FFMPEG_AVISYNTH_CONVERT_FPS = "ffmpeg_avisynth_convertfps";
 	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME = "ffmpeg_avisynth_interframe";
 	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
+	private static final String KEY_FFMPEG_FONT_CONFIG = "ffmpeg_font_config";
 	private static final String KEY_FFMPEG_MUX_COMPATIBLE = "ffmpeg_mux_compatible";
 	private static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
+	private static final String KEY_FONT = "mencoder_font"; // TODO (breaking change): should be renamed to e.g. font
 	private static final String KEY_FORCED_SUBTITLE_LANGUAGE = "forced_sub_lang";
 	private static final String KEY_FORCED_SUBTITLE_TAGS = "forced_sub_tags";
 	private static final String KEY_FORCETRANSCODE = "forcetranscode";
@@ -137,7 +139,6 @@ public class PmsConfiguration {
 	private static final String KEY_MENCODER_ASS_SCALE = "mencoder_ass_scale";
 	private static final String KEY_MENCODER_ASS_SHADOW = "mencoder_ass_shadow";
 	private static final String KEY_MENCODER_CUSTOM_OPTIONS = "mencoder_decode"; // TODO (breaking change): should be renamed to e.g. mencoder_custom_options
-	private static final String KEY_MENCODER_FONT = "mencoder_font";
 	private static final String KEY_MENCODER_FONT_CONFIG = "mencoder_fontconfig";
 	private static final String KEY_MENCODER_FORCE_FPS = "mencoder_forcefps";
 	private static final String KEY_MENCODER_INTELLIGENT_SYNC = "mencoder_intelligent_sync";
@@ -156,7 +157,6 @@ public class PmsConfiguration {
 	private static final String KEY_MENCODER_SCALER = "mencoder_scaler";
 	private static final String KEY_MENCODER_SCALEX = "mencoder_scalex";
 	private static final String KEY_MENCODER_SCALEY = "mencoder_scaley";
-	private static final String KEY_MENCODER_SUB_CP = "mencoder_subcp";
 	private static final String KEY_MENCODER_SUB_FRIBIDI = "mencoder_subfribidi";
 	private static final String KEY_MENCODER_USE_PCM_FOR_HQ_AUDIO_ONLY = "mencoder_usepcm_for_hq_audio_only";
 	private static final String KEY_MENCODER_VOBSUB_SUBTITLE_QUALITY = "mencoder_vobsub_subtitle_quality";
@@ -191,6 +191,7 @@ public class PmsConfiguration {
 	private static final String KEY_SKIP_NETWORK_INTERFACES = "skip_network_interfaces";
 	private static final String KEY_SORT_METHOD = "key_sort_method"; // TODO (breaking change): should be renamed to e.g. sort_method
 	private static final String KEY_SUBS_COLOR = "subs_color";
+	private static final String KEY_SUBTITLES_CODEPAGE = "mencoder_subcp"; // TODO (breaking change): should be renamed to e.g. subtitles_sodepage
 	private static final String KEY_SUBTITLES_LANGUAGES = "mencoder_sublangs"; // TODO (breaking change): should be renamed to e.g. subtitles_languages
 	private static final String KEY_TEMP_FOLDER_PATH = "temp";
 	private static final String KEY_THUMBNAIL_GENERATION_ENABLED = "thumbnails"; // TODO (breaking change): should be renamed to e.g. generate_thumbnails
@@ -1006,12 +1007,19 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Returns the name of a TrueType font to use for MEncoder subtitles.
+	 * @deprecated Use {@link #getFont()} instead.
+	 */
+	public String getMencoderFont() {
+		return getFont();
+	}
+	
+	/**
+	 * Returns the name of a TrueType font to use for subtitles.
 	 * Default is <code>""</code>.
 	 * @return The font name.
 	 */
-	public String getMencoderFont() {
-		return getString(KEY_MENCODER_FONT, "");
+	public String getFont() {
+		return getString(KEY_FONT, "");
 	}
 
 	/**
@@ -1123,13 +1131,20 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Returns the character encoding (or code page) that MEncoder should use
+	 * @deprecated Use {@link #getSubtitlesCodepage()} instead.
+	 */
+	public String getMencoderSubCp() {
+		return getSubtitlesCodepage();
+	}
+	
+	/**
+	 * Returns the character encoding (or code page) that should used
 	 * for displaying non-Unicode external subtitles. Default is empty string
 	 * (do not force encoding with -subcp key).
 	 * @return The character encoding.
 	 */
-	public String getMencoderSubCp() {
-		return getString(KEY_MENCODER_SUB_CP, "");
+	public String getSubtitlesCodepage() {
+		return getString(KEY_SUBTITLES_CODEPAGE, "");
 	}
 
 	/**
@@ -1285,12 +1300,19 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Sets the character encoding (or code page) that MEncoder should use
+	 * @deprecated Use {@link #ssetSubtitlesCodepage()} instead.
+	 */
+	public void setMencoderSubCp(String value) {
+		setSubtitlesCodepage(value);
+	}
+	
+	/**
+	 * Sets the character encoding (or code page) that should be used
 	 * for displaying non-Unicode external subtitles. Default is empty (autodetect).
 	 * @param value The character encoding.
 	 */
-	public void setMencoderSubCp(String value) {
-		configuration.setProperty(KEY_MENCODER_SUB_CP, value);
+	public void setSubtitlesCodepage(String value) {
+		configuration.setProperty(KEY_SUBTITLES_CODEPAGE, value);
 	}
 
 	/**
@@ -1302,13 +1324,20 @@ public class PmsConfiguration {
 	public void setMencoderSubFribidi(boolean value) {
 		configuration.setProperty(KEY_MENCODER_SUB_FRIBIDI, value);
 	}
-
+	
 	/**
-	 * Sets the name of a TrueType font to use for MEncoder subtitles.
-	 * @param value The font name.
+	 * @deprecated Use {@link #setFont(String value)} instead.
 	 */
 	public void setMencoderFont(String value) {
-		configuration.setProperty(KEY_MENCODER_FONT, value);
+		setFont(value);
+	}
+	
+	/**
+	 * Sets the name of a TrueType font to use for subtitles.
+	 * @param value The font name.
+	 */
+	public void setFont(String value) {
+		configuration.setProperty(KEY_FONT, value);
 	}
 
 	/**
@@ -2295,6 +2324,14 @@ public class PmsConfiguration {
 
 	public boolean isFFmpegMuxWhenCompatible() {
 		return getBoolean(KEY_FFMPEG_MUX_COMPATIBLE, false);
+	}
+	
+	public void setFFmpegFontConfig(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_FONT_CONFIG, value);
+	}
+	
+	public boolean isFFmpegrFontConfig() {
+		return getBoolean(KEY_FFMPEG_FONT_CONFIG, false);
 	}
 
 	public void setMuxAllAudioTracks(boolean value) {
