@@ -600,7 +600,7 @@ public class PMS {
 			if (whetherToRunWizard == JOptionPane.YES_OPTION) {
 				// The user has chosen to run the wizard
 
-				// Total number of questions
+				// Total number of questions, not including ones that may not be shown
 				int numberOfQuestions = 3;
 
 				// Whether an iTunes library has been found
