@@ -650,11 +650,14 @@ public class PMS {
 					}
 				}
 
+				// The current question number
+				int currentQuestionNumber = 1;
+
 				// Ask if they want UMS to start minimized
 				int whetherToStartMinimized = JOptionPane.showConfirmDialog(
 				(Component) PMS.get().getFrame(),
 				Messages.getString("Wizard.3"),
-				Messages.getString("Wizard.2") + " 1 " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+				Messages.getString("Wizard.2") + " " + currentQuestionNumber + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
 				JOptionPane.YES_NO_OPTION);
 				if (whetherToStartMinimized == JOptionPane.YES_OPTION) {
 					configuration.setMinimized(true);
@@ -667,10 +670,11 @@ public class PMS {
 				}
 
 				// Ask if their audio receiver/s support DTS audio
+				currentQuestionNumber++;
 				int whetherToSendDTS = JOptionPane.showConfirmDialog(
 				(Component) PMS.get().getFrame(),
 				Messages.getString("Wizard.5"),
-				Messages.getString("Wizard.2") + " 2 " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+				Messages.getString("Wizard.2") + " " + currentQuestionNumber + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
 				JOptionPane.YES_NO_OPTION);
 				if (whetherToSendDTS == JOptionPane.YES_OPTION) {
 					configuration.setDTSEmbedInPCM(true);
@@ -684,10 +688,11 @@ public class PMS {
 
 				// Ask if they want to share their iTunes library
 				if (foundItunesLibrary) {
+					currentQuestionNumber++;
 					int whetherToShareITunes = JOptionPane.showConfirmDialog(
 					(Component) PMS.get().getFrame(),
 					Messages.getString("Wizard.6"),
-					Messages.getString("Wizard.2") + " 3 " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+					Messages.getString("Wizard.2") + " " + currentQuestionNumber + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
 					JOptionPane.YES_NO_OPTION);
 					if (whetherToShareITunes == JOptionPane.YES_OPTION) {
 						configuration.setItunesEnabled(true);
@@ -701,6 +706,7 @@ public class PMS {
 				}
 
 				// Ask if their network is wired, etc.
+				currentQuestionNumber++;
 				Object[] options = {
 					Messages.getString("Wizard.8"),
 					Messages.getString("Wizard.9"),
@@ -709,7 +715,7 @@ public class PMS {
 				int networkType = JOptionPane.showOptionDialog(
 					(Component) PMS.get().getFrame(),
 					Messages.getString("Wizard.7"),
-					Messages.getString("Wizard.2") + " 4 " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+					Messages.getString("Wizard.2") + " " + currentQuestionNumber + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
 					JOptionPane.YES_NO_CANCEL_OPTION,
 					JOptionPane.QUESTION_MESSAGE,
 					null,
