@@ -598,42 +598,15 @@ public class PMS {
 				Messages.getString("Dialog.Question"),
 				JOptionPane.YES_NO_OPTION);
 			if (whetherToRunWizard == JOptionPane.YES_OPTION) {
-				int numberOfQuestions = 4;
 				// The user has chosen to run the wizard
 
-				// Ask if they want UMS to start minimized
-				int whetherToStartMinimized = JOptionPane.showConfirmDialog(
-				(Component) PMS.get().getFrame(),
-				Messages.getString("Wizard.3"),
-				Messages.getString("Wizard.2") + " 1 " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
-				JOptionPane.YES_NO_OPTION);
-				if (whetherToStartMinimized == JOptionPane.YES_OPTION) {
-					configuration.setMinimized(true);
-					GeneralTab.smcheckBox.setSelected(true);
-					save();
-				} else if (whetherToStartMinimized == JOptionPane.NO_OPTION) {
-					configuration.setMinimized(false);
-					GeneralTab.smcheckBox.setSelected(false);
-					save();
-				}
+				// Total number of questions
+				int numberOfQuestions = 3;
 
-				// Ask if their audio receiver/s support DTS audio
-				int whetherToSendDTS = JOptionPane.showConfirmDialog(
-				(Component) PMS.get().getFrame(),
-				Messages.getString("Wizard.5"),
-				Messages.getString("Wizard.2") + " 2 " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
-				JOptionPane.YES_NO_OPTION);
-				if (whetherToSendDTS == JOptionPane.YES_OPTION) {
-					configuration.setDTSEmbedInPCM(true);
-					TranscodingTab.forceDTSinPCM.setSelected(true);
-					save();
-				} else if (whetherToSendDTS == JOptionPane.NO_OPTION) {
-					configuration.setDTSEmbedInPCM(false);
-					TranscodingTab.forceDTSinPCM.setSelected(false);
-					save();
-				}
+				// Whether an iTunes library has been found
+				boolean foundItunesLibrary = false;
 
-				// Ask if they want to share their iTunes library
+				// Check for the existence of an iTunes library first so we know how many questions we want to ask
 				if (!(Platform.isMac() || Platform.isWindows())) {
 					// Check if the iTunes library exists
 					String line;
@@ -672,21 +645,58 @@ public class PMS {
 					}
 
 					if (iTunesFile != null && (new File(iTunesFile)).exists()) {
-						// The iTunes library does exist
-						int whetherToShareITunes = JOptionPane.showConfirmDialog(
-						(Component) PMS.get().getFrame(),
-						Messages.getString("Wizard.6"),
-						Messages.getString("Wizard.2") + " 3 " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
-						JOptionPane.YES_NO_OPTION);
-						if (whetherToShareITunes == JOptionPane.YES_OPTION) {
-							configuration.setItunesEnabled(true);
-							NavigationShareTab.itunes.setSelected(true);
-							save();
-						} else if (whetherToShareITunes == JOptionPane.NO_OPTION) {
-							configuration.setItunesEnabled(false);
-							NavigationShareTab.itunes.setSelected(false);
-							save();
-						}
+						numberOfQuestions++;
+						foundItunesLibrary = true;
+					}
+				}
+
+				// Ask if they want UMS to start minimized
+				int whetherToStartMinimized = JOptionPane.showConfirmDialog(
+				(Component) PMS.get().getFrame(),
+				Messages.getString("Wizard.3"),
+				Messages.getString("Wizard.2") + " 1 " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+				JOptionPane.YES_NO_OPTION);
+				if (whetherToStartMinimized == JOptionPane.YES_OPTION) {
+					configuration.setMinimized(true);
+					GeneralTab.smcheckBox.setSelected(true);
+					save();
+				} else if (whetherToStartMinimized == JOptionPane.NO_OPTION) {
+					configuration.setMinimized(false);
+					GeneralTab.smcheckBox.setSelected(false);
+					save();
+				}
+
+				// Ask if their audio receiver/s support DTS audio
+				int whetherToSendDTS = JOptionPane.showConfirmDialog(
+				(Component) PMS.get().getFrame(),
+				Messages.getString("Wizard.5"),
+				Messages.getString("Wizard.2") + " 2 " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+				JOptionPane.YES_NO_OPTION);
+				if (whetherToSendDTS == JOptionPane.YES_OPTION) {
+					configuration.setDTSEmbedInPCM(true);
+					TranscodingTab.forceDTSinPCM.setSelected(true);
+					save();
+				} else if (whetherToSendDTS == JOptionPane.NO_OPTION) {
+					configuration.setDTSEmbedInPCM(false);
+					TranscodingTab.forceDTSinPCM.setSelected(false);
+					save();
+				}
+
+				// Ask if they want to share their iTunes library
+				if (foundItunesLibrary) {
+					int whetherToShareITunes = JOptionPane.showConfirmDialog(
+					(Component) PMS.get().getFrame(),
+					Messages.getString("Wizard.6"),
+					Messages.getString("Wizard.2") + " 3 " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+					JOptionPane.YES_NO_OPTION);
+					if (whetherToShareITunes == JOptionPane.YES_OPTION) {
+						configuration.setItunesEnabled(true);
+						NavigationShareTab.itunes.setSelected(true);
+						save();
+					} else if (whetherToShareITunes == JOptionPane.NO_OPTION) {
+						configuration.setItunesEnabled(false);
+						NavigationShareTab.itunes.setSelected(false);
+						save();
 					}
 				}
 
