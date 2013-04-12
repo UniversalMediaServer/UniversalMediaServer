@@ -7,6 +7,10 @@
 		Added option to toggle H.264 remuxing in FFmpeg
 		Re-enabled WMP detection
 		Speed improvements
+		Fixed transcoding to Xbox via FFmpeg
+		Added support for WTV files
+		A-to-Z virtual folders support sorting options
+		Fixed a crash with rare MP3 files
 	Renderers:
 		Fixed stuttering issues with Bravia HX TVs
 		Improved support for Sony Blu-ray players
