@@ -210,147 +210,81 @@ public class MapFile extends DLNAResource {
 		return discoverable.isEmpty();
 	}
 	
+	private String renameForSorting(String filename) {
+		if (configuration.isPrettifyFilenames()) {
+			// This chunk makes anime sort properly
+			int squareBracketIndex;
+			if (filename.substring(0, 1).matches("\\[")) {
+				filename = filename.replaceAll("_", " ");
+				squareBracketIndex = filename.indexOf("]");
+				if (squareBracketIndex != -1) {
+					filename = filename.substring(squareBracketIndex + 1);
+					if (filename.substring(0, 1).matches("\\s")) {
+						filename = filename.substring(1);
+					}
+				}
+			}
+		}
+
+		if (configuration.isIgnoreTheWordThe()) {
+			// Remove "The" from the beginning of files
+			filename = filename.replaceAll("^(?i)The[ .]", "");
+		}
+
+		return filename;
+	}
+	
 	private void sort(List<File> files) {
 		switch (configuration.getSortMethod()) {
-		case 4: // Locale-sensitive natural sort
-			Collections.sort(files, new Comparator<File>() {
-				@Override
-				public int compare(File f1, File f2) {
-					String filename1ToSort = f1.getName();
-					String filename2ToSort = f2.getName();
+			case 4: // Locale-sensitive natural sort
+				Collections.sort(files, new Comparator<File>() {
+					@Override
+					public int compare(File f1, File f2) {
+						String filename1ToSort = renameForSorting(f1.getName());
+						String filename2ToSort = renameForSorting(f2.getName());
 
-					if (configuration.isPrettifyFilenames()) {
-						// This chunk makes anime sort properly
-						int squareBracketIndex;
-						if (filename1ToSort.substring(0, 1).matches("\\[")) {
-							filename1ToSort = filename1ToSort.replaceAll("_", " ");
-							squareBracketIndex = filename1ToSort.indexOf("]");
-							if (squareBracketIndex != -1) {
-								filename1ToSort = filename1ToSort.substring(squareBracketIndex + 1);
-								if (filename1ToSort.substring(0, 1).matches("\\s")) {
-									filename1ToSort = filename1ToSort.substring(1);
-								}
-							}
-						}
-						if (filename2ToSort.substring(0, 1).matches("\\[")) {
-							filename2ToSort = filename2ToSort.replaceAll("_", " ");
-							squareBracketIndex = filename2ToSort.indexOf("]");
-							if (squareBracketIndex != -1) {
-								filename2ToSort = filename2ToSort.substring(squareBracketIndex + 1);
-								if (filename2ToSort.substring(0, 1).matches("\\s")) {
-									filename2ToSort = filename2ToSort.substring(1);
-								}
-							}
-						}
+						return NaturalComparator.compareNatural(collator, filename1ToSort, filename2ToSort);
 					}
+				});
+				break;
+			case 3: // Case-insensitive ASCIIbetical sort
+				Collections.sort(files, new Comparator<File>() {
+					@Override
+					public int compare(File f1, File f2) {
+						String filename1ToSort = renameForSorting(f1.getName());
+						String filename2ToSort = renameForSorting(f2.getName());
 
-					if (configuration.isIgnoreTheWordThe()) {
-						filename1ToSort = filename1ToSort.replaceAll("^(?i)The[ .]", "");
-						filename2ToSort = filename2ToSort.replaceAll("^(?i)The[ .]", "");
+						return filename1ToSort.compareToIgnoreCase(filename2ToSort);
 					}
-
-					return NaturalComparator.compareNatural(collator, filename1ToSort, filename2ToSort);
-				}
-			});
-			break;
-		case 3: // Case-insensitive ASCIIbetical sort
-			Collections.sort(files, new Comparator<File>() {
-				@Override
-				public int compare(File f1, File f2) {
-					String filename1ToSort = f1.getName();
-					String filename2ToSort = f2.getName();
-
-					if (configuration.isPrettifyFilenames()) {
-						// This chunk makes anime sort properly
-						int squareBracketIndex;
-						if (filename1ToSort.substring(0, 1).matches("\\[")) {
-							filename1ToSort = filename1ToSort.replaceAll("_", " ");
-							squareBracketIndex = filename1ToSort.indexOf("]");
-							if (squareBracketIndex != -1) {
-								filename1ToSort = filename1ToSort.substring(squareBracketIndex + 1);
-								if (filename1ToSort.substring(0, 1).matches("\\s")) {
-									filename1ToSort = filename1ToSort.substring(1);
-								}
-							}
-						}
-						if (filename2ToSort.substring(0, 1).matches("\\[")) {
-							filename2ToSort = filename2ToSort.replaceAll("_", " ");
-							squareBracketIndex = filename2ToSort.indexOf("]");
-							if (squareBracketIndex != -1) {
-								filename2ToSort = filename2ToSort.substring(squareBracketIndex + 1);
-								if (filename2ToSort.substring(0, 1).matches("\\s")) {
-									filename2ToSort = filename2ToSort.substring(1);
-								}
-							}
-						}
+				});
+				break;
+			case 2: // Sort by modified date, oldest first
+				Collections.sort(files, new Comparator<File>() {
+					@Override
+					public int compare(File f1, File f2) {
+						return Long.valueOf(f1.lastModified()).compareTo(Long.valueOf(f2.lastModified()));
 					}
-
-					if (configuration.isIgnoreTheWordThe()) {
-						filename1ToSort = filename1ToSort.replaceAll("^(?i)The[ .]", "");
-						filename2ToSort = filename2ToSort.replaceAll("^(?i)The[ .]", "");
+				});
+				break;
+			case 1: // Sort by modified date, newest first
+				Collections.sort(files, new Comparator<File>() {
+					@Override
+					public int compare(File f1, File f2) {
+						return Long.valueOf(f2.lastModified()).compareTo(Long.valueOf(f1.lastModified()));
 					}
+				});
+				break;
+			default: // Locale-sensitive A-Z
+				Collections.sort(files, new Comparator<File>() {
+					@Override
+					public int compare(File f1, File f2) {
+						String filename1ToSort = renameForSorting(f1.getName());
+						String filename2ToSort = renameForSorting(f2.getName());
 
-					return filename1ToSort.compareToIgnoreCase(filename2ToSort);
-				}
-			});
-			break;
-		case 2: // Sort by modified date, oldest first
-			Collections.sort(files, new Comparator<File>() {
-				@Override
-				public int compare(File f1, File f2) {
-					return Long.valueOf(f1.lastModified()).compareTo(Long.valueOf(f2.lastModified()));
-				}
-			});
-			break;
-		case 1: // Sort by modified date, newest first
-			Collections.sort(files, new Comparator<File>() {
-				@Override
-				public int compare(File f1, File f2) {
-					return Long.valueOf(f2.lastModified()).compareTo(Long.valueOf(f1.lastModified()));
-				}
-			});
-			break;
-		default: // Locale-sensitive A-Z
-			Collections.sort(files, new Comparator<File>() {
-				@Override
-				public int compare(File f1, File f2) {
-					String filename1ToSort = f1.getName();
-					String filename2ToSort = f2.getName();
-
-					if (configuration.isPrettifyFilenames()) {
-						// This chunk makes anime sort properly
-						int squareBracketIndex;
-						if (filename1ToSort.substring(0, 1).matches("\\[")) {
-							filename1ToSort = filename1ToSort.replaceAll("_", " ");
-							squareBracketIndex = filename1ToSort.indexOf("]");
-							if (squareBracketIndex != -1) {
-								filename1ToSort = filename1ToSort.substring(squareBracketIndex + 1);
-								if (filename1ToSort.substring(0, 1).matches("\\s")) {
-									filename1ToSort = filename1ToSort.substring(1);
-								}
-							}
-						}
-						if (filename2ToSort.substring(0, 1).matches("\\[")) {
-							filename2ToSort = filename2ToSort.replaceAll("_", " ");
-							squareBracketIndex = filename2ToSort.indexOf("]");
-							if (squareBracketIndex != -1) {
-								filename2ToSort = filename2ToSort.substring(squareBracketIndex + 1);
-								if (filename2ToSort.substring(0, 1).matches("\\s")) {
-									filename2ToSort = filename2ToSort.substring(1);
-								}
-							}
-						}
+						return collator.compare(filename1ToSort, filename2ToSort);
 					}
-
-					if (configuration.isIgnoreTheWordThe()) {
-						filename1ToSort = filename1ToSort.replaceAll("^(?i)The[ .]", "");
-						filename2ToSort = filename2ToSort.replaceAll("^(?i)The[ .]", "");
-					}
-
-					return collator.compare(filename1ToSort, filename2ToSort);
-				}
-			});
-			break;
+				});
+				break;
 		}
 	}
 
@@ -436,9 +370,11 @@ public class MapFile extends DLNAResource {
 					LOGGER.debug("Ignoring empty/non-relevant directory: " + f.getName());
 					continue;
 				}
-				// Logic her gater all files in a list per letter
-				// non letters end up in "#"
-				char c = f.getName().toUpperCase().charAt(0);
+
+				String filenameToSort = renameForSorting(f.getName());
+
+				char c = filenameToSort.toUpperCase().charAt(0);
+
 				if (!(c >= 'A' && c <= 'Z')) {
 					// "other char"
 					c = '#';

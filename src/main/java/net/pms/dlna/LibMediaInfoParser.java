@@ -172,7 +172,9 @@ public class LibMediaInfoParser {
 								currentAudioTrack.setGenre(ovalue);
 							} else if (key.equals("Recorded_Date") && streamType == MediaInfo.StreamType.General) {
 								try {
-									currentAudioTrack.setYear(Integer.parseInt(value));
+									// Try to parse incorrectly stored date
+									String recordedDate = value.replaceAll("[^\\d]{4}", "");
+									currentAudioTrack.setYear(Integer.parseInt(recordedDate));
 								} catch (NumberFormatException nfe) {
 									LOGGER.debug("Could not parse year \"" + value + "\"");
 								}
