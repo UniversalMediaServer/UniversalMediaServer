@@ -52,9 +52,7 @@ import net.pms.network.UPNPHelper;
 import net.pms.newgui.DbgPacker;
 import net.pms.newgui.GeneralTab;
 import net.pms.newgui.LooksFrame;
-import net.pms.newgui.NavigationShareTab;
 import net.pms.newgui.ProfileChooser;
-import net.pms.newgui.TranscodingTab;
 import net.pms.update.AutoUpdater;
 import net.pms.util.FileUtil;
 import net.pms.util.OpenSubtitle;
@@ -324,55 +322,11 @@ public class PMS {
 			if (whetherToRunWizard == JOptionPane.YES_OPTION) {
 				// The user has chosen to run the wizard
 
-				// Total number of questions, not including ones that may not be shown
+				// Total number of questions
 				int numberOfQuestions = 4;
 
 				// Whether an iTunes library has been found
 				boolean foundItunesLibrary = false;
-
-				// Check for the existence of an iTunes library first so we know how many questions we want to ask
-				if (Platform.isMac() || Platform.isWindows()) {
-					// Check if the iTunes library exists
-					String line;
-					String iTunesFile = null;
-					if (Platform.isMac()) {
-						Process process = Runtime.getRuntime().exec("defaults read com.apple.iApps iTunesRecentDatabases");
-						try (BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-							// we want the 2nd line
-							if ((line = in.readLine()) != null && (line = in.readLine()) != null) {
-								line = line.trim(); // remove extra spaces
-								line = line.substring(1, line.length() - 1); // remove quotes and spaces
-								URI tURI = new URI(line);
-								iTunesFile = URLDecoder.decode(tURI.toURL().getFile(), "UTF8");
-							}
-						}
-					} else if (Platform.isWindows()) {
-						Process process = Runtime.getRuntime().exec("reg query \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\" /v \"My Music\"");
-						String location;
-						try (BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-							location = null;
-							while ((line = in.readLine()) != null) {
-								final String LOOK_FOR = "REG_SZ";
-								if (line.contains(LOOK_FOR)) {
-									location = line.substring(line.indexOf(LOOK_FOR) + LOOK_FOR.length()).trim();
-								}
-							}
-						}
-
-						if (location != null) {
-							// Add the iTunes folder to the end
-							location = location + "\\iTunes\\iTunes Music Library.xml";
-							iTunesFile = location;
-						} else {
-							LOGGER.info("Could not find the My Music folder");
-						}
-					}
-
-					if (iTunesFile != null && (new File(iTunesFile)).exists()) {
-						numberOfQuestions++;
-						foundItunesLibrary = true;
-					}
-				}
 
 				// The current question number
 				int currentQuestionNumber = 1;
@@ -403,22 +357,6 @@ public class PMS {
 				} else if (whetherToSendDTS == JOptionPane.NO_OPTION) {
 					configuration.setDTSEmbedInPCM(false);
 					save();
-				}
-
-				// Ask if they want to share their iTunes library
-				if (foundItunesLibrary) {
-					int whetherToShareITunes = JOptionPane.showConfirmDialog(
-					(Component) PMS.get().getFrame(),
-					Messages.getString("Wizard.6"),
-					Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
-					JOptionPane.YES_NO_OPTION);
-					if (whetherToShareITunes == JOptionPane.YES_OPTION) {
-						configuration.setItunesEnabled(true);
-						save();
-					} else if (whetherToShareITunes == JOptionPane.NO_OPTION) {
-						configuration.setItunesEnabled(false);
-						save();
-					}
 				}
 
 				// Ask if their network is wired, etc.
