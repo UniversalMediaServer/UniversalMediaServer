@@ -437,7 +437,7 @@ public class MEncoderVideo extends Player {
 
 		builder.addLabel(Messages.getString("MEncoderVideo.11"), FormLayoutUtil.flip(cc.xy(1, 19), colSpec, orientation));
 		Object data[] = new Object[]{
-			configuration.getMencoderSubCp(),
+			configuration.getSubtitlesCodepage(),
 			Messages.getString("MEncoderVideo.96"),
 			Messages.getString("MEncoderVideo.97"),
 			Messages.getString("MEncoderVideo.98"),
@@ -482,7 +482,7 @@ public class MEncoderVideo extends Player {
 						s = s.substring(0, offset).trim();
 					}
 
-					configuration.setMencoderSubCp(s);
+					configuration.setSubtitlesCodepage(s);
 				}
 			}
 		});
@@ -514,11 +514,11 @@ public class MEncoderVideo extends Player {
 		builder.add(fribidi, FormLayoutUtil.flip(cc.xyw(11, 19, 4), colSpec, orientation));
 		builder.addLabel(Messages.getString("MEncoderVideo.24"), FormLayoutUtil.flip(cc.xy(1, 21), colSpec, orientation));
 
-		defaultfont = new JTextField(configuration.getMencoderFont());
+		defaultfont = new JTextField(configuration.getFont());
 		defaultfont.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				configuration.setMencoderFont(defaultfont.getText());
+				configuration.setFont(defaultfont.getText());
 			}
 		});
 
@@ -533,7 +533,7 @@ public class MEncoderVideo extends Player {
 				int returnVal = chooser.showDialog((Component) e.getSource(), Messages.getString("MEncoderVideo.25"));
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 					defaultfont.setText(chooser.getSelectedFile().getAbsolutePath());
-					configuration.setMencoderFont(chooser.getSelectedFile().getAbsolutePath());
+					configuration.setFont(chooser.getSelectedFile().getAbsolutePath());
 				}
 			}
 		});
@@ -1402,12 +1402,12 @@ public class MEncoderVideo extends Player {
 					sb.append("-ass-color ").append(assSubColor).append(" -ass-border-color 00000000 -ass-font-scale ").append(configuration.getMencoderAssScale());
 
 					// Set subtitles font
-					if (configuration.getMencoderFont() != null && configuration.getMencoderFont().length() > 0) {
+					if (configuration.getFont() != null && configuration.getFont().length() > 0) {
 						/* Set font with -font option, workaround for the bug:
 						 * https://github.com/Happy-Neko/ps3mediaserver/commit/52e62203ea12c40628de1869882994ce1065446a#commitcomment-990156
 						 */
-						sb.append(" -font ").append(configuration.getMencoderFont()).append(" ");
-						sb.append(" -ass-force-style FontName=").append(configuration.getMencoderFont()).append(",");
+						sb.append(" -font ").append(configuration.getFont()).append(" ");
+						sb.append(" -ass-force-style FontName=").append(configuration.getFont()).append(",");
 					} else {
 						String font = CodecUtil.getDefaultFontPath();
 						if (isNotBlank(font)) {
@@ -1474,8 +1474,8 @@ public class MEncoderVideo extends Player {
 			// Use PLAINTEXT formatting
 			} else {
 				// Set subtitles font
-				if (configuration.getMencoderFont() != null && configuration.getMencoderFont().length() > 0) {
-					sb.append(" -font ").append(configuration.getMencoderFont()).append(" ");
+				if (configuration.getFont() != null && configuration.getFont().length() > 0) {
+					sb.append(" -font ").append(configuration.getFont()).append(" ");
 				} else {
 					String font = CodecUtil.getDefaultFontPath();
 					if (isNotBlank(font)) {
@@ -1525,9 +1525,9 @@ public class MEncoderVideo extends Player {
 					String subcp = null;
 
 					// Append -subcp option for non UTF external subtitles
-					if (isNotBlank(configuration.getMencoderSubCp())) {
+					if (isNotBlank(configuration.getSubtitlesCodepage())) {
 						// Manual setting
-						subcp = configuration.getMencoderSubCp();
+						subcp = configuration.getSubtitlesCodepage();
 					} else if (isNotBlank(SubtitleUtils.getSubCpOptionForMencoder(params.sid))) {
 						// Autodetect charset (blank mencoder_subcp config option)
 						subcp = SubtitleUtils.getSubCpOptionForMencoder(params.sid);

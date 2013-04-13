@@ -236,7 +236,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		cmdList.add("-i");
 		cmdList.add(fileName);
 
-		cmdList.addAll(getVideoFilterOptions(renderer, media, params));
+		cmdList.addAll(getVideoFilterOptions(null, renderer, media, params));
 
 		// Encoder threads
 		cmdList.add("-threads");
