@@ -117,7 +117,7 @@ public class SubtitleUtils {
 			s.append("Arial,");
 		}
 
-		s.append( (int) 10 * Double.parseDouble(configuration.getMencoderAssScale())).append(",");
+		s.append( Integer.toString((int) (14 * Double.parseDouble(configuration.getMencoderAssScale())))).append(",");
 		String primaryColour = Integer.toHexString(configuration.getSubsColor());
 		primaryColour = primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4);
 		s.append("&H").append(primaryColour).append(",");

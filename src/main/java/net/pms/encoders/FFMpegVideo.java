@@ -1148,7 +1148,7 @@ public class FFMpegVideo extends Player {
 					}
 
 					if (format[i].contains("Fontsize")) {
-						params[i] = Double.toString( (int) 10 * Double.parseDouble(configuration.getMencoderAssScale()));
+						params[i] = Integer.toString( (int) (14 * Double.parseDouble(configuration.getMencoderAssScale())));
 						continue;
 					}
 
