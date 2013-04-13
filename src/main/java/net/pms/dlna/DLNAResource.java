@@ -1652,7 +1652,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public void stopPlaying(final String rendererId) {
 		final DLNAResource self = this;
 		final String requestId = getRequestId(rendererId);
-		if (externalProcess != null && getMedia().getDurationInSeconds() != 0) {
+		double durSec = getMedia().getDurationInSeconds();
+		if (externalProcess != null && 
+		   (durSec == 0 || durSec == DLNAMediaInfo.TRANS_SIZE)) {
 			ProcessWrapperImpl pw = (ProcessWrapperImpl)externalProcess;
 			String dur = pw.getDuration();
 			if (StringUtils.isNotEmpty(dur)) {

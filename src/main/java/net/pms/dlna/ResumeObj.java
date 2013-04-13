@@ -6,9 +6,15 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import net.pms.PMS;
 
 public class ResumeObj {
+	private static final Logger LOGGER = LoggerFactory.getLogger(ResumeObj.class);
+
 	/**
 	 * The length of time taken from the end of the video to assume the user
 	 * is done viewing. In other words it is an estimation of the length of
