@@ -78,7 +78,7 @@ import org.slf4j.LoggerFactory;
 public class FFMpegVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
 	private static final String DEFAULT_QSCALE = "3";
-	public static final String SUB_DIR = "subs";
+	private static final String SUB_DIR = "subs";
 	protected static PmsConfiguration configuration;
 	
 	@Deprecated
