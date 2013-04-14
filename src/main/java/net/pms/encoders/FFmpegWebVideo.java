@@ -129,7 +129,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		File tempSubs = null;
 
 		if (!isDisableSubtitles(params)) {
-			tempSubs = subsConversion(fileName, dlna, media, params);
+			tempSubs = subsConversion(fileName, media, params);
 		}
 
 		// XXX work around an ffmpeg bug: http://ffmpeg.org/trac/ffmpeg/ticket/998

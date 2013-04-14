@@ -496,7 +496,7 @@ public class FFMpegVideo extends Player {
 		boolean avisynth = avisynth();
 
 		if (!isDisableSubtitles(params)) {
-			tempSubs = subsConversion(fileName, dlna, media, params);
+			tempSubs = subsConversion(fileName, media, params);
 		}
 
 		cmdList.add(executable());
@@ -996,7 +996,7 @@ public class FFMpegVideo extends Player {
 		return cmdList;
 	}
 
-	public File subsConversion(String fileName, DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
+	public File subsConversion(String fileName, DLNAMediaInfo media, OutputParams params) throws IOException {
 		File tempSubs = null;
 
 		String dir = configuration.getDataFile(SUB_DIR);
@@ -1011,7 +1011,7 @@ public class FFMpegVideo extends Player {
 				tempSubs = new File(convertedSubs);
 			} else {
 				try {
-					tempSubs = extractSubtitlesToSubDir(fileName, dlna, media, params);
+					tempSubs = extractSubtitlesToSubDir(fileName, media, params);
 				} catch (IOException e) {
 					LOGGER.debug("Internal subtitles can't be extracted");
 					tempSubs = null;
@@ -1066,12 +1066,11 @@ public class FFMpegVideo extends Player {
 	 * Extracts internal subtitles with given ID to file in ASS format.
 	 *
 	 * @param fileName the video file name 
-	 * @param dlna 
 	 * @param media 
 	 * @param params output parameters
 	 * @return a <code>String</code> representing file name of extracted subtitles
 	 */
-	public File extractSubtitlesToSubDir(String fileName, DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
+	public File extractSubtitlesToSubDir(String fileName, DLNAMediaInfo media, OutputParams params) throws IOException {
 		List<String> cmdList = new ArrayList<>();
 		cmdList.add(executable());
 		cmdList.add("-y");
