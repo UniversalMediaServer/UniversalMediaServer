@@ -32,10 +32,10 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.util.StringUtil;
+import org.apache.commons.lang.StringUtils;
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.mozilla.universalchardet.Constants.*;
-import org.apache.commons.lang.StringUtils;
 
 public class SubtitleUtils {
 	private static final String TEMP_DIR = "temp";
@@ -92,85 +92,82 @@ public class SubtitleUtils {
 	}
 
 	public static File ConvertSrtToAss(String SrtFile, PmsConfiguration configuration) throws IOException {
-		String dir = configuration.getDataFile(SUB_DIR); 
+		String dir = configuration.getDataFile(SUB_DIR);
 		File path = new File(dir);
 		if (!path.exists()) {
 			path.mkdirs();
 		}
 		File outputSubs = new File(path.getAbsolutePath() + File.separator + new File(SrtFile).getName() + "_EXT.ass");
-		BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(SrtFile), configuration.getSubtitlesCodepage()));
-		BufferedWriter	output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs)));
-		String line;
-		output.write("[Script Info]\n");
-		output.write("ScriptType: v4.00+\n");
-		//output.write("PlayResX: " + media.getWidth() + "\n"); // TODO Not clear how it works
-		//output.write("PlayResY: " + media.getHeight() + "\n");
-		output.write("\n");
-		output.write("[V4+ Styles]\n");
-		output.write("Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, AlphaLevel, Encoding\n");
-		StringBuilder s = new StringBuilder();
-		s.append("Style: Default,");
+		BufferedWriter output;
+		try (BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(SrtFile), configuration.getSubtitlesCodepage()))) {
+			output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs)));
+			String line;
+			output.write("[Script Info]\n");
+			output.write("ScriptType: v4.00+\n");
+			output.write("\n");
+			output.write("[V4+ Styles]\n");
+			output.write("Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, AlphaLevel, Encoding\n");
+			StringBuilder s = new StringBuilder();
+			s.append("Style: Default,");
 
-		if (!configuration.getFont().isEmpty()) {
-			s.append(configuration.getFont()).append(",");
-		} else {
-			s.append("Arial,");
-		}
+			if (!configuration.getFont().isEmpty()) {
+				s.append(configuration.getFont()).append(",");
+			} else {
+				s.append("Arial,");
+			}
 
-		s.append( Integer.toString((int) (14 * Double.parseDouble(configuration.getMencoderAssScale())))).append(",");
-		String primaryColour = Integer.toHexString(configuration.getSubsColor());
-		primaryColour = primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4);
-		s.append("&H").append(primaryColour).append(",");
-		s.append("&Hffffff,");
-		s.append("&H0,");
-		s.append("&H0,");
-		s.append("0,");
-		s.append("0,");
-		s.append("0,");
-		s.append("1,");
-		s.append(configuration.getMencoderAssOutline()).append(",");
-		s.append(configuration.getMencoderAssShadow()).append(",");
-		s.append("2,");
-		s.append("10,");
-		s.append("10,");
-		s.append("20,");
-		s.append("0,");
-		s.append("0");
-		output.write(s.toString() + "\n");
-		output.write("\n");
-		output.write("[Events]\n");
-		output.write("Format: Layer, Start, End, Style, Text\n");
-		String startTime = null;
-		String endTime = null;
+			s.append(Integer.toString((int) (14 * Double.parseDouble(configuration.getMencoderAssScale())))).append(",");
+			String primaryColour = Integer.toHexString(configuration.getSubsColor());
+			primaryColour = primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4);
+			s.append("&H").append(primaryColour).append(",");
+			s.append("&Hffffff,");
+			s.append("&H0,");
+			s.append("&H0,");
+			s.append("0,");
+			s.append("0,");
+			s.append("0,");
+			s.append("1,");
+			s.append(configuration.getMencoderAssOutline()).append(",");
+			s.append(configuration.getMencoderAssShadow()).append(",");
+			s.append("2,");
+			s.append("10,");
+			s.append("10,");
+			s.append("20,");
+			s.append("0,");
+			s.append("0");
+			output.write(s.toString() + "\n");
+			output.write("\n");
+			output.write("[Events]\n");
+			output.write("Format: Layer, Start, End, Style, Text\n");
+			String startTime;
+			String endTime;
 
-		while (( line = input.readLine()) != null) {
-			if (line .contains("-->")) {
-				startTime = line.substring(0, line.indexOf("-->") - 1).replaceAll(",", ".");
-				endTime = line.substring(line.indexOf("-->") + 4).replaceAll(",", ".");
-				startTime = StringUtil.convertTimeToString(StringUtil.convertStringToTime(startTime), StringUtil.ASS_FORMAT);
-				endTime = StringUtil.convertTimeToString(StringUtil.convertStringToTime(endTime), StringUtil.ASS_FORMAT);
-				s = new StringBuilder();
-				s.append("Dialogue: 0,");
-				s.append(startTime).append(",");
-				s.append(endTime).append(",");
-				s.append("Default").append(",");
-				s.append(convertTags(input.readLine()));
-				
-				if (isNotBlank(line = input.readLine())) {
-					s.append("\\N");
-					s.append(convertTags(line));
+			while ((line = input.readLine()) != null) {
+				if (line.contains("-->")) {
+					startTime = line.substring(0, line.indexOf("-->") - 1).replaceAll(",", ".");
+					endTime = line.substring(line.indexOf("-->") + 4).replaceAll(",", ".");
+					startTime = StringUtil.convertTimeToString(StringUtil.convertStringToTime(startTime), StringUtil.ASS_FORMAT);
+					endTime = StringUtil.convertTimeToString(StringUtil.convertStringToTime(endTime), StringUtil.ASS_FORMAT);
+					s = new StringBuilder();
+					s.append("Dialogue: 0,");
+					s.append(startTime).append(",");
+					s.append(endTime).append(",");
+					s.append("Default").append(",");
+					s.append(convertTags(input.readLine()));
+
+					if (isNotBlank(line = input.readLine())) {
+						s.append("\\N");
+						s.append(convertTags(line));
+					}
+
+					output.write(s.toString() + "\n");
 				}
-
-				output.write(s.toString() + "\n");
 			}
 		}
-
-		input.close();
 		output.flush();
 		output.close();
 		PMS.get().addTempFile(outputSubs, 2 * 24 * 3600 * 1000);
 		return outputSubs;
-
 	}
 
 	private static String convertTags(String text) {
@@ -198,36 +195,34 @@ public class SubtitleUtils {
 		Double endTime;
 		String line;
 		File outputSubs = new File(tempFile(SrtFile.getName() + System.currentTimeMillis()));
-		BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(SrtFile)));
-		BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs)));
-		
-		while (( line = input.readLine()) != null) {
-			if (line.startsWith("Dialogue:")) {
-				String[] tempStr = line.split(",");
-				startTime = StringUtil.convertStringToTime(tempStr[1]);
-				endTime = StringUtil.convertStringToTime(tempStr[2]);;
+		BufferedWriter output;
+		try (BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(SrtFile)))) {
+			output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs)));
+			while ((line = input.readLine()) != null) {
+				if (line.startsWith("Dialogue:")) {
+					String[] tempStr = line.split(",");
+					startTime = StringUtil.convertStringToTime(tempStr[1]);
+					endTime = StringUtil.convertStringToTime(tempStr[2]);;
 
-				if (startTime >= timeseek) {
-					tempStr[1] = StringUtil.convertTimeToString(startTime - timeseek, StringUtil.ASS_FORMAT);
-					tempStr[2] = StringUtil.convertTimeToString(endTime - timeseek, StringUtil.ASS_FORMAT);
+					if (startTime >= timeseek) {
+						tempStr[1] = StringUtil.convertTimeToString(startTime - timeseek, StringUtil.ASS_FORMAT);
+						tempStr[2] = StringUtil.convertTimeToString(endTime - timeseek, StringUtil.ASS_FORMAT);
+					} else {
+						continue;
+					}
+
+					output.write(StringUtils.join(tempStr, ",") + "\n");
 				} else {
-					continue;
+					output.write(line + "\n");
 				}
-
-				output.write(StringUtils.join(tempStr, ",") + "\n");
-			} else {
-				output.write(line + "\n");
 			}
 		}
-		
-		input.close();
 		output.flush();
 		output.close();
 		PMS.get().addTempFile(outputSubs, 2 * 24 * 3600 * 1000);
 		return outputSubs;
-		
 	}
-	
+
 	public static String tempFile(String name) {
 		String dir = PMS.getConfiguration().getDataFile(TEMP_DIR); 
 		File path = new File(dir);

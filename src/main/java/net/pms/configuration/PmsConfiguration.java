@@ -1012,7 +1012,7 @@ public class PmsConfiguration {
 	public String getMencoderFont() {
 		return getFont();
 	}
-	
+
 	/**
 	 * Returns the name of a TrueType font to use for subtitles.
 	 * Default is <code>""</code>.
@@ -1136,7 +1136,7 @@ public class PmsConfiguration {
 	public String getMencoderSubCp() {
 		return getSubtitlesCodepage();
 	}
-	
+
 	/**
 	 * Returns the character encoding (or code page) that should used
 	 * for displaying non-Unicode external subtitles. Default is empty string
@@ -1305,7 +1305,7 @@ public class PmsConfiguration {
 	public void setMencoderSubCp(String value) {
 		setSubtitlesCodepage(value);
 	}
-	
+
 	/**
 	 * Sets the character encoding (or code page) that should be used
 	 * for displaying non-Unicode external subtitles. Default is empty (autodetect).
@@ -1324,14 +1324,14 @@ public class PmsConfiguration {
 	public void setMencoderSubFribidi(boolean value) {
 		configuration.setProperty(KEY_MENCODER_SUB_FRIBIDI, value);
 	}
-	
+
 	/**
 	 * @deprecated Use {@link #setFont(String value)} instead.
 	 */
 	public void setMencoderFont(String value) {
 		setFont(value);
 	}
-	
+
 	/**
 	 * Sets the name of a TrueType font to use for subtitles.
 	 * @param value The font name.
@@ -2325,11 +2325,11 @@ public class PmsConfiguration {
 	public boolean isFFmpegMuxWhenCompatible() {
 		return getBoolean(KEY_FFMPEG_MUX_COMPATIBLE, false);
 	}
-	
+
 	public void setFFmpegFontConfig(boolean value) {
 		configuration.setProperty(KEY_FFMPEG_FONT_CONFIG, value);
 	}
-	
+
 	public boolean isFFmpegrFontConfig() {
 		return getBoolean(KEY_FFMPEG_FONT_CONFIG, false);
 	}

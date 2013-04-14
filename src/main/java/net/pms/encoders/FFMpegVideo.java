@@ -117,32 +117,32 @@ public class FFMpegVideo extends Player {
 				(media.getHeight() > renderer.getMaxVideoHeight())
 			);
 
-			if (extSubs != null) {
-				StringBuilder s = new StringBuilder();
-				CharacterIterator it = new StringCharacterIterator(extSubs);
+		if (extSubs != null) {
+			StringBuilder s = new StringBuilder();
+			CharacterIterator it = new StringCharacterIterator(extSubs);
 
-				for (char ch = it.first(); ch != CharacterIterator.DONE; ch = it.next()) {
-					switch (ch) {
-						case ':':
-							s.append("\\\\:");
-							break;
-						case '\\':
-							s.append("/");
-							break;
-						case ']':
-						case '[':
-							s.append("\\");
-						default:
-							s.append(ch);
-							break;
-					}
+			for (char ch = it.first(); ch != CharacterIterator.DONE; ch = it.next()) {
+				switch (ch) {
+					case ':':
+						s.append("\\\\:");
+						break;
+					case '\\':
+						s.append("/");
+						break;
+					case ']':
+					case '[':
+						s.append("\\");
+					default:
+						s.append(ch);
+						break;
 				}
-
-				String subsFile = s.toString();
-				subsFile = subsFile.replace(",", "\\,");
-				subsOption = "ass=" + subsFile;
-
 			}
+
+			String subsFile = s.toString();
+			subsFile = subsFile.replace(",", "\\,");
+			subsOption = "ass=" + subsFile;
+
+		}
 
 		if (renderer.isKeepAspectRatio() && renderer.isRescaleByRenderer()) {
 			if (
@@ -493,27 +493,26 @@ public class FFMpegVideo extends Player {
 		File tempSubs = null;
 		params.waitbeforestart = 1000;
 		boolean avisynth = avisynth();
-		
-		String dir = configuration.getDataFile(SUB_DIR); 
+
+		String dir = configuration.getDataFile(SUB_DIR);
 		File subsPath = new File(dir);
 		if (!subsPath.exists()) {
 			subsPath.mkdirs();
 		}
-		
-		
+
 		if (!isDisableSubtitles(params)) {
 			if (params.sid.isEmbedded()) {
 				String convertedSubs = subsPath.getAbsolutePath() + File.separator + new File(fileName).getName() + "_EMB_ID" + params.sid.getId() + ".ass.ass";
 				if (new File(convertedSubs).exists()) {
 					tempSubs = new File(convertedSubs);
-				} else  {
+				} else {
 					try {
 						tempSubs = extractSubtitlesToSubDir(fileName, dlna, media, params);
 					} catch (IOException e) {
 						LOGGER.debug("Internal subtitles can't be extracted");
 						tempSubs = null;
 					}
-					
+
 					if (tempSubs != null) {
 						try {
 							tempSubs = applySubsSettingsToTempSubsFile(tempSubs, media);
@@ -521,18 +520,15 @@ public class FFMpegVideo extends Player {
 							LOGGER.debug("Applying subs setting ends with error: " + e);
 							tempSubs = null;
 						}
-						
 					}
-					
 				}
-
 			} else if (params.sid.isExternal()) { // Convert external subs to ASS format
 				String convertedSubs = subsPath.getAbsolutePath() + File.separator + params.sid.getExternalFile().getName() + "_EXT.ass";
 				if (new File(convertedSubs).exists()) {
 					tempSubs = new File(convertedSubs);
-				} else  {
+				} else {
 					String externalSubtitlesFileName;
-				
+
 					if (params.sid.isExternalFileUtf16()) {
 						// convert UTF-16 -> UTF-8
 						File convertedSubtitles = new File(configuration.getTempFolder(), "UTF-18_" + params.sid.getExternalFile().getName());
@@ -548,7 +544,6 @@ public class FFMpegVideo extends Player {
 						LOGGER.debug("External subtitles can't be converted to ASS format");
 						tempSubs = null;
 					}
-				
 				}
 			}
 
@@ -558,7 +553,6 @@ public class FFMpegVideo extends Player {
 				} catch (IOException e) {
 					LOGGER.debug("Applying timeseekin caused an error: " + e);
 				}
-				
 			}
 		}
 
@@ -653,7 +647,6 @@ public class FFMpegVideo extends Player {
 		} else {
 			cmdList.addAll(getVideoFilterOptions(tempSubs.getAbsolutePath(), renderer, media, params));
 		}
-		
 
 		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
@@ -978,7 +971,7 @@ public class FFMpegVideo extends Player {
 			}
 		});
 		builder.add(videoremux, cc.xy(2, 5));
-		
+
 		fc = new JCheckBox(Messages.getString("MEncoderVideo.21"));
 		fc.setContentAreaFilled(false);
 		fc.addItemListener(new ItemListener() {
@@ -1003,7 +996,7 @@ public class FFMpegVideo extends Player {
 		}
 /**
 		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
-		
+
 		// Check whether the subtitle actually has a language defined,
 		// uninitialized DLNAMediaSubtitle objects have a null language.
 		// For now supports only external subtitles
@@ -1059,7 +1052,7 @@ public class FFMpegVideo extends Player {
 		}
 		return cmdList;
 	}
-	
+
 	/**
 	 * Extracts internal subtitles with given ID to file in ASS format.
 	 *
@@ -1068,7 +1061,6 @@ public class FFMpegVideo extends Player {
 	 * @param media 
 	 * @param params output parameters
 	 * @return a <code>String</code> representing file name of extracted subtitles
-	 * 
 	 */
 	public File extractSubtitlesToSubDir(String fileName, DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
 		List<String> cmdList = new ArrayList<>();
@@ -1090,7 +1082,7 @@ public class FFMpegVideo extends Player {
 			cmdList.add("0:" + (params.sid.getId() + media.getAudioTracksList().size() + 1));
 		}
 
-		String dir = configuration.getDataFile(SUB_DIR); 
+		String dir = configuration.getDataFile(SUB_DIR);
 		File path = new File(dir);
 		if (!path.exists()) {
 			path.mkdirs();
@@ -1115,75 +1107,69 @@ public class FFMpegVideo extends Player {
 
 		PMS.get().addTempFile(tempSubsFile, 2 * 24 * 3600 * 1000);
 		return tempSubsFile;
-		
 	}
 
 	public File applySubsSettingsToTempSubsFile(File tempSubs, DLNAMediaInfo media) throws IOException {
 		File outputSubs = new File(tempSubs.getAbsolutePath() + ".ass");
-		BufferedReader input =  new BufferedReader(new FileReader(tempSubs));
-		BufferedWriter output = new BufferedWriter(new FileWriter(outputSubs));
-		String line = null;
-		String[] format = null;
-		int i;
-
-		while (( line = input.readLine()) != null) {
-			if (line.startsWith("Format:")) {
-				format = line.split(",");
-				output.write(line + "\n");
-				continue;
-			}
-
-			if (line.startsWith("Style: Default")) {
-				String[] params = line.split(",");
-				
-				for (i = 0; i < format.length; i++) {
-					
-					if (format[i].contains("Fontname")) {
-						if (!configuration.getFont().isEmpty()) {
-							params[i] = configuration.getFont();
-						} else {
-							params[i] = "Arial";
-						}
-						continue;
-					}
-
-					if (format[i].contains("Fontsize")) {
-						params[i] = Integer.toString( (int) (14 * Double.parseDouble(configuration.getMencoderAssScale())));
-						continue;
-					}
-
-					if (format[i].contains("PrimaryColour")) {
-						String primaryColour = Integer.toHexString(configuration.getSubsColor());
-						params[i] = "&H" + primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4);
-						continue;
-					}
-
-					if (format[i].contains("Outline")) {
-						params[i] = configuration.getMencoderAssOutline();
-						continue;
-					}
-
-					if (format[i].contains("Shadow")) {
-						params[i] = configuration.getMencoderAssShadow();
-						continue;
-					}
-
+		BufferedWriter output;
+		try (BufferedReader input = new BufferedReader(new FileReader(tempSubs))) {
+			output = new BufferedWriter(new FileWriter(outputSubs));
+			String line;
+			String[] format = null;
+			int i;
+			while (( line = input.readLine()) != null) {
+				if (line.startsWith("Format:")) {
+					format = line.split(",");
+					output.write(line + "\n");
+					continue;
 				}
 
-				output.write(StringUtils.join(params, ",") + "\n");
-				continue;
+				if (line.startsWith("Style: Default")) {
+					String[] params = line.split(",");
+
+					for (i = 0; i < format.length; i++) {
+						if (format[i].contains("Fontname")) {
+							if (!configuration.getFont().isEmpty()) {
+								params[i] = configuration.getFont();
+							} else {
+								params[i] = "Arial";
+							}
+							continue;
+						}
+
+						if (format[i].contains("Fontsize")) {
+							params[i] = Integer.toString((int) (14 * Double.parseDouble(configuration.getMencoderAssScale())));
+							continue;
+						}
+
+						if (format[i].contains("PrimaryColour")) {
+							String primaryColour = Integer.toHexString(configuration.getSubsColor());
+							params[i] = "&H" + primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4);
+							continue;
+						}
+
+						if (format[i].contains("Outline")) {
+							params[i] = configuration.getMencoderAssOutline();
+							continue;
+						}
+
+						if (format[i].contains("Shadow")) {
+							params[i] = configuration.getMencoderAssShadow();
+							continue;
+						}
+					}
+
+					output.write(StringUtils.join(params, ",") + "\n");
+					continue;
+				}
+
+				output.write(line + "\n");
 			}
-
-			output.write(line + "\n");
-
 		}
-
-		input.close();
 		output.flush();
 		output.close();
 		PMS.get().addTempFile(outputSubs, 2 * 24 * 3600 * 1000);
 		return outputSubs;
-
 	}
 	
 	/**
