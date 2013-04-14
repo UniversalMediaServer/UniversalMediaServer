@@ -36,10 +36,14 @@ import net.pms.external.URLResolver.URLResult;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.formats.WEB;
+import net.pms.formats.v2.SubtitleUtils;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.util.FileUtil;
+import net.pms.util.ProcessUtil;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
 import org.apache.commons.lang.StringUtils;
@@ -126,6 +130,11 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		params.minBufferSize = params.minFileSize;
 		params.secondread_minsize = 100000;
 		RendererConfiguration renderer = params.mediaRenderer;
+		File tempSubs = null;
+		
+		if (!isDisableSubtitles(params)) {
+			tempSubs = subsConversion(fileName, dlna, media, params);
+		}
 
 		// XXX work around an ffmpeg bug: http://ffmpeg.org/trac/ffmpeg/ticket/998
 		if (fileName.startsWith("mms:")) {
@@ -236,7 +245,11 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		cmdList.add("-i");
 		cmdList.add(fileName);
 
-		cmdList.addAll(getVideoFilterOptions(null, renderer, media, params));
+		if (tempSubs == null) {
+			cmdList.addAll(getVideoFilterOptions(null, renderer, media, params));
+		} else {
+			cmdList.addAll(getVideoFilterOptions(tempSubs.getAbsolutePath(), renderer, media, params));
+		}
 
 		// Encoder threads
 		cmdList.add("-threads");
