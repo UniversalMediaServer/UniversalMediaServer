@@ -995,7 +995,6 @@ public class FFMpegVideo extends Player {
 		return cmdList;
 	}
 
-
 	public File subsConversion(String fileName, DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
 		File tempSubs = null;
 
@@ -1004,7 +1003,7 @@ public class FFMpegVideo extends Player {
 		if (!subsPath.exists()) {
 			subsPath.mkdirs();
 		}
-		
+
 		if (params.sid.isEmbedded()) {
 			String convertedSubs = subsPath.getAbsolutePath() + File.separator + new File(fileName).getName() + "_EMB_ID" + params.sid.getId() + ".ass.ass";
 			if (new File(convertedSubs).exists()) {
@@ -1058,10 +1057,10 @@ public class FFMpegVideo extends Player {
 				LOGGER.debug("Applying timeseekin caused an error: " + e);
 			}
 		}
-		
+
 		return tempSubs;
 	}
-	
+
 	/**
 	 * Extracts internal subtitles with given ID to file in ASS format.
 	 *
