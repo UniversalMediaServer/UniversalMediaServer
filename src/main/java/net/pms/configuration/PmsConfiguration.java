@@ -753,7 +753,7 @@ public class PmsConfiguration {
 	public String getMencoderAssScale() {
 		return getAssScale();
 	}
-	
+
 	/**
 	 * Returns the font scale used for ASS subtitling. Default value is 1.4.
 	 * @return The ASS font scale.
@@ -795,14 +795,14 @@ public class PmsConfiguration {
 	public String getAssOutline() {
 		return getString(KEY_ASS_OUTLINE, "1");
 	}
-	
+
 	/**
 	 * @deprecated Use {@link #getAssShadow()} instead.
 	 */
 	public String getMencoderAssShadow() {
 		return getAssShadow();
 	}
-	
+
 	/**
 	 * Returns the shadow parameter used for ASS subtitling. Default value is 1.
 	 * @return The ASS shadow parameter.
@@ -887,14 +887,14 @@ public class PmsConfiguration {
 	public void setAssOutline(String value) {
 		configuration.setProperty(KEY_ASS_OUTLINE, value);
 	}
-	
+
 	/**
 	 * @deprecated Use {@link #getAssShadow()} instead.
 	 */
 	public void setMencoderAssShadow(String value) {
 		setAssShadow(value);
 	}
-	
+
 	/**
 	 * Set the shadow parameter used for ASS subtitling.
 	 * @param value The ASS shadow parameter value to set.
@@ -917,7 +917,7 @@ public class PmsConfiguration {
 	public void setAssScale(String value) {
 		configuration.setProperty(KEY_ASS_SCALE, value);
 	}
-	
+
 	/**
 	 * Set the subfont text scale parameter used for subtitling without ASS.
 	 * @param value The subfont text scale parameter value to set.
