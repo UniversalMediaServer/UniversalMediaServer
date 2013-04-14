@@ -99,7 +99,14 @@ public class SubtitleUtils {
 		}
 		File outputSubs = new File(path.getAbsolutePath() + File.separator + new File(SrtFile).getName() + "_EXT.ass");
 		BufferedWriter output;
-		try (BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(SrtFile), configuration.getSubtitlesCodepage()))) {
+		BufferedReader input;
+		try {
+			if (configuration.getSubtitlesCodepage() == null) {
+				input = new BufferedReader(new InputStreamReader(new FileInputStream(SrtFile)));
+			} else {
+				input = new BufferedReader(new InputStreamReader(new FileInputStream(SrtFile), configuration.getSubtitlesCodepage()));
+			}
+			
 			output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs)));
 			String line;
 			output.write("[Script Info]\n");
@@ -163,11 +170,16 @@ public class SubtitleUtils {
 					output.write(s.toString() + "\n");
 				}
 			}
+		} finally {
+			
 		}
+		
+		input.close();
 		output.flush();
 		output.close();
 		PMS.get().addTempFile(outputSubs, 2 * 24 * 3600 * 1000);
 		return outputSubs;
+
 	}
 
 	private static String convertTags(String text) {
