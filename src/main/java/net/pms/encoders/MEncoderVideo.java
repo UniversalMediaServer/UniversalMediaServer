@@ -542,31 +542,31 @@ public class MEncoderVideo extends Player {
 
 		builder.addLabel(Messages.getString("MEncoderVideo.12"), FormLayoutUtil.flip(cc.xy(1, 25, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 
-		mencoder_ass_scale = new JTextField(configuration.getMencoderAssScale());
+		mencoder_ass_scale = new JTextField(configuration.getAssScale());
 		mencoder_ass_scale.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				configuration.setMencoderAssScale(mencoder_ass_scale.getText());
+				configuration.setAssScale(mencoder_ass_scale.getText());
 			}
 		});
 
 		builder.addLabel(Messages.getString("MEncoderVideo.13"), FormLayoutUtil.flip(cc.xy(5, 25), colSpec, orientation));
 
-		mencoder_ass_outline = new JTextField(configuration.getMencoderAssOutline());
+		mencoder_ass_outline = new JTextField(configuration.getAssOutline());
 		mencoder_ass_outline.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				configuration.setMencoderAssOutline(mencoder_ass_outline.getText());
+				configuration.setAssOutline(mencoder_ass_outline.getText());
 			}
 		});
 
 		builder.addLabel(Messages.getString("MEncoderVideo.14"), FormLayoutUtil.flip(cc.xy(9, 25), colSpec, orientation));
 
-		mencoder_ass_shadow = new JTextField(configuration.getMencoderAssShadow());
+		mencoder_ass_shadow = new JTextField(configuration.getAssShadow());
 		mencoder_ass_shadow.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				configuration.setMencoderAssShadow(mencoder_ass_shadow.getText());
+				configuration.setAssShadow(mencoder_ass_shadow.getText());
 			}
 		});
 
@@ -1399,7 +1399,7 @@ public class MEncoderVideo extends Player {
 						}
 					}
 
-					sb.append("-ass-color ").append(assSubColor).append(" -ass-border-color 00000000 -ass-font-scale ").append(configuration.getMencoderAssScale());
+					sb.append("-ass-color ").append(assSubColor).append(" -ass-border-color 00000000 -ass-font-scale ").append(configuration.getAssScale());
 
 					// Set subtitles font
 					if (configuration.getFont() != null && configuration.getFont().length() > 0) {
@@ -1435,7 +1435,7 @@ public class MEncoderVideo extends Player {
 						subtitleMargin = subtitleMargin / 2;
 					}
 
-					sb.append("Outline=").append(configuration.getMencoderAssOutline()).append(",Shadow=").append(configuration.getMencoderAssShadow());
+					sb.append("Outline=").append(configuration.getAssOutline()).append(",Shadow=").append(configuration.getAssShadow());
 
 					try {
 						userMargin = Integer.parseInt(configuration.getMencoderAssMargin());

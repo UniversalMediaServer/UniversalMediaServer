@@ -1146,7 +1146,7 @@ public class FFMpegVideo extends Player {
 						}
 
 						if (format[i].contains("Fontsize")) {
-							params[i] = Integer.toString((int) (14 * Double.parseDouble(configuration.getMencoderAssScale())));
+							params[i] = Integer.toString((int) (14 * Double.parseDouble(configuration.getAssScale())));
 							continue;
 						}
 
@@ -1157,12 +1157,12 @@ public class FFMpegVideo extends Player {
 						}
 
 						if (format[i].contains("Outline")) {
-							params[i] = configuration.getMencoderAssOutline();
+							params[i] = configuration.getAssOutline();
 							continue;
 						}
 
 						if (format[i].contains("Shadow")) {
-							params[i] = configuration.getMencoderAssShadow();
+							params[i] = configuration.getAssShadow();
 							continue;
 						}
 					}

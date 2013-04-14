@@ -116,7 +116,7 @@ public class SubtitleUtils {
 				s.append("Arial,");
 			}
 
-			s.append(Integer.toString((int) (14 * Double.parseDouble(configuration.getMencoderAssScale())))).append(",");
+			s.append(Integer.toString((int) (14 * Double.parseDouble(configuration.getAssScale())))).append(",");
 			String primaryColour = Integer.toHexString(configuration.getSubsColor());
 			primaryColour = primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4);
 			s.append("&H").append(primaryColour).append(",");
@@ -127,8 +127,8 @@ public class SubtitleUtils {
 			s.append("0,");
 			s.append("0,");
 			s.append("1,");
-			s.append(configuration.getMencoderAssOutline()).append(",");
-			s.append(configuration.getMencoderAssShadow()).append(",");
+			s.append(configuration.getAssOutline()).append(",");
+			s.append(configuration.getAssShadow()).append(",");
 			s.append("2,");
 			s.append("10,");
 			s.append("10,");
