@@ -96,16 +96,17 @@ public class FFMpegVideo extends Player {
 
 	/**
 	 * Returns a list of strings representing the rescale options for this transcode i.e. the ffmpeg -vf
-	 * options used to resize a video that's too wide and/or high for the specified renderer.
+	 * options used to show subtitles in SSA/ASS format and resize a video that's too wide and/or high for the specified renderer.
 	 * If the renderer has no size limits, or there's no media metadata, or the video is within the renderer's
 	 * size limits, an empty list is returned.
 	 *
+	 * @param extSubs the substrings filename
 	 * @param renderer the DLNA renderer the video is being streamed to
 	 * @param media metadata for the DLNA resource which is being transcoded
 	 * @return a {@link List} of <code>String</code>s representing the rescale options for this video,
 	 * or an empty list if the video doesn't need to be resized.
 	 */
-	public List<String> getVideoFilterOptions(String extSubs, RendererConfiguration renderer, DLNAMediaInfo media, OutputParams params) throws IOException {
+	public List<String> getVideoFilterOptions(String extSubs, RendererConfiguration renderer, DLNAMediaInfo media) throws IOException {
 		List<String> videoFilterOptions = new ArrayList<>();
 		String subsOption = null;
 		String padding = null;
@@ -585,9 +586,9 @@ public class FFMpegVideo extends Player {
 		// and/or add subtitles to video filter
 		// FFmpeg must be compiled with --enable-libass parameter
 		if (tempSubs == null) {
-			cmdList.addAll(getVideoFilterOptions(null, renderer, media, params));
+			cmdList.addAll(getVideoFilterOptions(null, renderer, media));
 		} else {
-			cmdList.addAll(getVideoFilterOptions(tempSubs.getAbsolutePath(), renderer, media, params));
+			cmdList.addAll(getVideoFilterOptions(tempSubs.getAbsolutePath(), renderer, media));
 		}
 
 		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
