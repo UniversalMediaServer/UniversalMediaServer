@@ -181,6 +181,9 @@ public class PmsConfiguration {
 	private static final String KEY_RENDERER_DEFAULT = "renderer_default";
 	private static final String KEY_RENDERER_FORCE_DEFAULT = "renderer_force_default";
 	private static final String KEY_RESUMABLE = "resume";
+	private static final String KEY_MIN_PLAY_TIME = "min_playtime";
+	private static final String KEY_MIN_PLAY_TIME_WEB = "min_playtime_web";
+	private static final String KEY_MIN_PLAY_TIME_FILE = "min_playtime_file";
 	private static final String KEY_SEARCH_FOLDER = "search_folder";
 	private static final String KEY_SEARCH_RECURSE = "search_recurse";
 	private static final String KEY_SERVER_HOSTNAME = "hostname";
@@ -2863,4 +2866,17 @@ public class PmsConfiguration {
 	public boolean getResume()  {
 		return getBoolean(KEY_RESUMABLE, true);
 	}
+	
+	public int getMinPlayTime() {
+		return getInt(KEY_MIN_PLAY_TIME, 10000);
+	}
+	
+	public int getMinPlayTimeWeb() {
+		return getInt(KEY_MIN_PLAY_TIME_WEB, getMinPlayTime());
+	}
+	
+	public int getMinPlayTimeFile() {
+		return getInt(KEY_MIN_PLAY_TIME_FILE, getMinPlayTime());
+	}
+	
 }

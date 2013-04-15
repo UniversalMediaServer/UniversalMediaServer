@@ -2656,4 +2656,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public final boolean isResume() {
 		return isResumeable() && (resume != null);
 	}
+	
+	public int minPlayTime() {
+		return PMS.getConfiguration().getMinPlayTime();
+	}
 }

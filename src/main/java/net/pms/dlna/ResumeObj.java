@@ -23,15 +23,10 @@ public class ResumeObj {
 	 */
 	private static final long BACK_FACTOR = 30000;
 
-	/**
-	 * The minimum length of time elapsed in the video before we allow resuming
-	 * 1000 = 1 second
-	 */
-	private static final long MIN_RESUME_TIME = 1000;
-
 	private File file;
 	private long offsetTime;
 	private long resDuration;
+	private long minDur;
 
 	private static File resumePath() {
 		File path = new File(PMS.getConfiguration().getDataFile("resume"));
@@ -67,12 +62,14 @@ public class ResumeObj {
 		if (r.getMedia() != null && r.getMedia().getDurationInSeconds() != 0) {
 			r.getMedia().setDuration((double)res.resDuration);
 		}
+		res.setMinDuration(r.minPlayTime());
 		return res;
 	}
 
 	public static ResumeObj store(DLNAResource r, long startTime) {
 		File f = resumeFile(r);
 		ResumeObj obj = new ResumeObj(f);
+		obj.setMinDuration(r.minPlayTime());
 		obj.stop(startTime, (long) r.getMedia().getDurationInSeconds() * 1000);
 		if (obj.noResume()) {
 			return null;
@@ -84,6 +81,14 @@ public class ResumeObj {
 		offsetTime = 0;
 		resDuration = 0;
 		file = f;
+		minDur = PMS.getConfiguration().getMinPlayTime();
+	}
+	
+	public void setMinDuration(long dur) {
+		if (dur == 0) {
+			dur = PMS.getConfiguration().getMinPlayTime();
+		}
+		minDur = dur;
 	}
 
 	public void read() {
@@ -124,9 +129,9 @@ public class ResumeObj {
 	public void stop(long startTime, long expDuration) {
 		long now = System.currentTimeMillis();
 		long thisPlay = now - startTime;
-		long duration = thisPlay + getTimeOffset();
+		long duration = thisPlay + getTimeOffset(); 
 
-		if (expDuration > MIN_RESUME_TIME) {
+		if (expDuration > minDur) {
 			if (duration >= (expDuration - BACK_FACTOR)) {
 				// We've seen the whole video (likely)
 				file.delete();
@@ -138,7 +143,7 @@ public class ResumeObj {
 			file.delete();
 			return;
 		}
-		if (thisPlay < MIN_RESUME_TIME) {
+		if (thisPlay < minDur) {
 			// to short to resume (at all)
 			return;
 		}
