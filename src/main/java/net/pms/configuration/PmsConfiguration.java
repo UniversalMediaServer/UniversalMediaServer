@@ -104,6 +104,7 @@ public class PmsConfiguration {
 	private static final String KEY_FFMPEG_AVISYNTH_CONVERT_FPS = "ffmpeg_avisynth_convertfps";
 	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME = "ffmpeg_avisynth_interframe";
 	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
+	private static final String KEY_FFMPEG_MUX_COMPATIBLE = "ffmpeg_mux_compatible";
 	private static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
 	private static final String KEY_FORCED_SUBTITLE_LANGUAGE = "forced_sub_lang";
 	private static final String KEY_FORCED_SUBTITLE_TAGS = "forced_sub_tags";
@@ -2275,6 +2276,14 @@ public class PmsConfiguration {
 
 	public boolean isMencoderMuxWhenCompatible() {
 		return getBoolean(KEY_MENCODER_MUX_COMPATIBLE, true);
+	}
+
+	public void setFFmpegMuxWhenCompatible(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_MUX_COMPATIBLE, value);
+	}
+
+	public boolean isFFmpegMuxWhenCompatible() {
+		return getBoolean(KEY_FFMPEG_MUX_COMPATIBLE, false);
 	}
 
 	public void setMuxAllAudioTracks(boolean value) {
