@@ -1,4 +1,4 @@
-2.6.1 - 2013-04-??
+2.6.1 - 2013-04-16
 
 	General:
 		Added option to toggle H.264 remuxing in FFmpeg
