@@ -155,8 +155,6 @@ Section "Program Files"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\logback.xml"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\icon.ico"
 
-	CreateDirectory "$INSTDIR\data"
-
 	; The user may have set the installation dir as the profile dir, so we can't clobber this
 	SetOverwrite off
 	File "${PROJECT_BASEDIR}\src\main\external-resources\UMS.conf"
@@ -184,8 +182,11 @@ Section "Program Files"
 
 	ReadENVStr $R0 ALLUSERSPROFILE
 	SetOutPath "$R0\UMS"
+	
+	CreateDirectory "$R0\UMS\data"
+	
 	AccessControl::GrantOnFile "$R0\UMS" "(S-1-5-32-545)" "FullAccess"
-	AccessControl::GrantOnFile "$INSTDIR\data" "(BU)" "FullAccess"
+; 	AccessControl::GrantOnFile "$R0\UMS\data" "(BU)" "FullAccess"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\UMS.conf"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\WEB.conf"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\ffmpeg.webfilters"
@@ -216,7 +217,6 @@ Section "Uninstall"
 	RMDir /R /REBOOTOK "$INSTDIR\renderers"
 	RMDir /R /REBOOTOK "$INSTDIR\documentation"
 	RMDir /R /REBOOTOK "$INSTDIR\win32"
-	RMDir /R /REBOOTOK "$INSTDIR\data"
 	Delete /REBOOTOK "$INSTDIR\UMS.exe"
 	Delete /REBOOTOK "$INSTDIR\UMS.bat"
 	Delete /REBOOTOK "$INSTDIR\ums.jar"

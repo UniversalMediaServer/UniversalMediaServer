@@ -690,7 +690,6 @@ public class FFMpegVideo extends Player {
 			}
 		}
 
-		// TODO: Is this needed? Was it fixed or not?. See https://ffmpeg.org/trac/ffmpeg/ticket/1745
 		if (params.timeseek > 0) {
 			cmdList.add("-copypriorss");
 			cmdList.add("0");

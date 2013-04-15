@@ -2868,10 +2868,8 @@ public class PmsConfiguration {
 		}
 	}
 
-	private String KEY_DATA_DIR = "data_dir_path";
-
 	public String getDataDir() {
-		return getString(KEY_DATA_DIR, "data");
+		return getProfileDirectory() + File.separator + "data";
 	}
 
 	public String getDataFile(String str) {
