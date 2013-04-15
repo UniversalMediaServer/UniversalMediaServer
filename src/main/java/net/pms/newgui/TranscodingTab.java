@@ -75,7 +75,7 @@ public class TranscodingTab {
 	private JTextField abitrate;
 	private JTree tree;
 	private JCheckBox forcePCM;
-	private JCheckBox forceDTSinPCM;
+	public static JCheckBox forceDTSinPCM;
 	private JComboBox channels;
 	private JComboBox vq;
 	private JCheckBox ac3remux;
@@ -142,8 +142,14 @@ public class TranscodingTab {
 		builder.setOpaque(true);
 
 		CellConstraints cc = new CellConstraints();
-		builder.add(buildRightTabbedPanel(), FormLayoutUtil.flip(cc.xyw(4, 1, 3), colSpec, orientation));
-		builder.add(buildLeft(), FormLayoutUtil.flip(cc.xy(2, 1), colSpec, orientation));
+
+		if (!configuration.isHideAdvancedOptions()) {
+			builder.add(buildRightTabbedPanel(), FormLayoutUtil.flip(cc.xyw(4, 1, 3), colSpec, orientation));
+			builder.add(buildLeft(), FormLayoutUtil.flip(cc.xy(2, 1), colSpec, orientation));
+		} else {
+			builder.add(buildRightTabbedPanel(), FormLayoutUtil.flip(cc.xyw(2, 1, 5), colSpec, orientation));
+			builder.add(buildLeft(), FormLayoutUtil.flip(cc.xy(2, 1), colSpec, orientation));
+		}
 
 		JPanel panel = builder.getPanel();
 		
@@ -382,71 +388,6 @@ public class TranscodingTab {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		builder.addLabel(Messages.getString("TrTab2.23").replaceAll("MAX_BUFFER_SIZE", configuration.getMaxMemoryBufferSizeStr()), FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
-		maxbuffer = new JTextField("" + configuration.getMaxMemoryBufferSize());
-		maxbuffer.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				try {
-					int ab = Integer.parseInt(maxbuffer.getText());
-					configuration.setMaxMemoryBufferSize(ab);
-				} catch (NumberFormatException nfe) {
-					LOGGER.debug("Could not parse max memory buffer size from \"" + maxbuffer.getText() + "\"");
-				}
-			}
-		});
-		builder.add(maxbuffer, FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
-
-		String nCpusLabel = String.format(Messages.getString("TrTab2.24"), Runtime.getRuntime().availableProcessors());
-		builder.addLabel(nCpusLabel, FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
-
-		String[] guiCores = new String[MAX_CORES];
-		for (int i = 0; i < MAX_CORES; i++) {
-			guiCores[i] = Integer.toString(i + 1);
-		}
-		nbcores = new JComboBox(guiCores);
-		nbcores.setEditable(false);
-		int nbConfCores = configuration.getNumberOfCpuCores();
-		if (nbConfCores > 0 && nbConfCores <= MAX_CORES) {
-			nbcores.setSelectedItem(Integer.toString(nbConfCores));
-		} else {
-			nbcores.setSelectedIndex(0);
-		}
-
-		nbcores.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-			        configuration.setNumberOfCpuCores(Integer.parseInt(e.getItem().toString()));
-			}
-		});
-		builder.add(nbcores, FormLayoutUtil.flip(cc.xy(3, 5), colSpec, orientation));
-
-		chapter_support = new JCheckBox(Messages.getString("TrTab2.52"), configuration.isChapterSupport());
-		chapter_support.setContentAreaFilled(false);
-		chapter_support.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setChapterSupport((e.getStateChange() == ItemEvent.SELECTED));
-				chapter_interval.setEnabled(configuration.isChapterSupport());
-			}
-		});
-		builder.add(chapter_support, FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
-
-		chapter_interval = new JTextField("" + configuration.getChapterInterval());
-		chapter_interval.setEnabled(configuration.isChapterSupport());
-		chapter_interval.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				try {
-					int ab = Integer.parseInt(chapter_interval.getText());
-					configuration.setChapterInterval(ab);
-				} catch (NumberFormatException nfe) {
-					LOGGER.debug("Could not parse chapter interval from \"" + chapter_interval.getText() + "\"");
-				}
-			}
-		});
-		builder.add(chapter_interval, FormLayoutUtil.flip(cc.xy(3, 7), colSpec, orientation));
-
 		disableSubs = new JCheckBox(Messages.getString("TrTab2.51"),configuration.isDisableSubtitles());
 		disableSubs.setContentAreaFilled(false);
  		disableSubs.addItemListener(new ItemListener() {
@@ -455,7 +396,76 @@ public class TranscodingTab {
 				configuration.setDisableSubtitles((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
-		builder.add(disableSubs, FormLayoutUtil.flip(cc.xy(1, 9), colSpec, orientation));
+
+		if (!configuration.isHideAdvancedOptions()) {
+			builder.addLabel(Messages.getString("TrTab2.23").replaceAll("MAX_BUFFER_SIZE", configuration.getMaxMemoryBufferSizeStr()), FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
+			maxbuffer = new JTextField("" + configuration.getMaxMemoryBufferSize());
+			maxbuffer.addKeyListener(new KeyAdapter() {
+				@Override
+				public void keyReleased(KeyEvent e) {
+					try {
+						int ab = Integer.parseInt(maxbuffer.getText());
+						configuration.setMaxMemoryBufferSize(ab);
+					} catch (NumberFormatException nfe) {
+						LOGGER.debug("Could not parse max memory buffer size from \"" + maxbuffer.getText() + "\"");
+					}
+				}
+			});
+			builder.add(maxbuffer, FormLayoutUtil.flip(cc.xy(3, 3), colSpec, orientation));
+
+			String nCpusLabel = String.format(Messages.getString("TrTab2.24"), Runtime.getRuntime().availableProcessors());
+			builder.addLabel(nCpusLabel, FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
+
+			String[] guiCores = new String[MAX_CORES];
+			for (int i = 0; i < MAX_CORES; i++) {
+				guiCores[i] = Integer.toString(i + 1);
+			}
+			nbcores = new JComboBox(guiCores);
+			nbcores.setEditable(false);
+			int nbConfCores = configuration.getNumberOfCpuCores();
+			if (nbConfCores > 0 && nbConfCores <= MAX_CORES) {
+				nbcores.setSelectedItem(Integer.toString(nbConfCores));
+			} else {
+				nbcores.setSelectedIndex(0);
+			}
+
+			nbcores.addItemListener(new ItemListener() {
+				@Override
+				public void itemStateChanged(ItemEvent e) {
+					configuration.setNumberOfCpuCores(Integer.parseInt(e.getItem().toString()));
+				}
+			});
+			builder.add(nbcores, FormLayoutUtil.flip(cc.xy(3, 5), colSpec, orientation));
+
+			chapter_support = new JCheckBox(Messages.getString("TrTab2.52"), configuration.isChapterSupport());
+			chapter_support.setContentAreaFilled(false);
+			chapter_support.addItemListener(new ItemListener() {
+				@Override
+				public void itemStateChanged(ItemEvent e) {
+					configuration.setChapterSupport((e.getStateChange() == ItemEvent.SELECTED));
+					chapter_interval.setEnabled(configuration.isChapterSupport());
+				}
+			});
+			builder.add(chapter_support, FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
+
+			chapter_interval = new JTextField("" + configuration.getChapterInterval());
+			chapter_interval.setEnabled(configuration.isChapterSupport());
+			chapter_interval.addKeyListener(new KeyAdapter() {
+				@Override
+				public void keyReleased(KeyEvent e) {
+					try {
+						int ab = Integer.parseInt(chapter_interval.getText());
+						configuration.setChapterInterval(ab);
+					} catch (NumberFormatException nfe) {
+						LOGGER.debug("Could not parse chapter interval from \"" + chapter_interval.getText() + "\"");
+					}
+				}
+			});
+			builder.add(chapter_interval, FormLayoutUtil.flip(cc.xy(3, 7), colSpec, orientation));
+			builder.add(disableSubs, FormLayoutUtil.flip(cc.xy(1, 9), colSpec, orientation));
+		} else {
+			builder.add(disableSubs, FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
+		}
 
 		JTabbedPane setupTabbedPanel = new JTabbedPane();
 		setupTabbedPanel.setUI(new CustomTabbedPaneUI());
@@ -464,7 +474,9 @@ public class TranscodingTab {
 		setupTabbedPanel.addTab(Messages.getString("TrTab2.68"), buildAudioSetupPanel());
 		setupTabbedPanel.addTab(Messages.getString("MEncoderVideo.8"), buildSubtitlesSetupPanel());
 
-		builder.add(setupTabbedPanel, FormLayoutUtil.flip(cc.xywh(1, 11, 3, 3), colSpec, orientation));
+		if (!configuration.isHideAdvancedOptions()) {
+			builder.add(setupTabbedPanel, FormLayoutUtil.flip(cc.xywh(1, 11, 3, 3), colSpec, orientation));
+		}
 
 		JPanel panel = builder.getPanel();
 		panel.applyComponentOrientation(orientation);

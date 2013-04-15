@@ -184,14 +184,14 @@ public class VLCVideo extends Player {
 		String audioCodec;
 		String container;
 		String extraParams;
-		HashMap<String, Object> extraTrans = new HashMap();
+		HashMap<String, Object> extraTrans = new HashMap<>();
 		int sampleRate;
 	}
 
 	protected Map<String, Object> getEncodingArgs(CodecConfig config, OutputParams params) {
 		// See: http://www.videolan.org/doc/streaming-howto/en/ch03.html
 		// See: http://wiki.videolan.org/Codec
-		Map<String, Object> args = new HashMap();
+		Map<String, Object> args = new HashMap<>();
 
 		// Codecs to use
 		args.put("vcodec", config.videoCodec);

@@ -112,6 +112,7 @@ public class PmsConfiguration {
 	private static final String KEY_FORCETRANSCODE = "forcetranscode";
 	private static final String KEY_FOLDER_LIMIT = "folder_limit";
 	private static final String KEY_GPU_ACCELERATION = "gpu_acceleration";
+	private static final String KEY_HIDE_ADVANCED_OPTIONS = "hide_advanced_options";
 	private static final String KEY_HIDE_EMPTY_FOLDERS = "hide_empty_folders";
 	private static final String KEY_HIDE_ENGINENAMES = "hide_enginenames";
 	private static final String KEY_HIDE_EXTENSIONS = "hide_extensions";
@@ -179,6 +180,7 @@ public class PmsConfiguration {
 	private static final String KEY_PROXY_SERVER_PORT = "proxy";
 	private static final String KEY_RENDERER_DEFAULT = "renderer_default";
 	private static final String KEY_RENDERER_FORCE_DEFAULT = "renderer_force_default";
+	private static final String KEY_RUN_WIZARD = "run_wizard";
 	private static final String KEY_SEARCH_FOLDER = "search_folder";
 	private static final String KEY_SEARCH_RECURSE = "search_recurse";
 	private static final String KEY_SERVER_HOSTNAME = "hostname";
@@ -2393,6 +2395,14 @@ public class PmsConfiguration {
 		configuration.setProperty(KEY_ITUNES_ENABLED, value);
 	}
 
+	public boolean isHideAdvancedOptions() {
+		return getBoolean(PmsConfiguration.KEY_HIDE_ADVANCED_OPTIONS, true);
+	}
+
+	public void setHideAdvancedOptions(final boolean value) {
+		this.configuration.setProperty(PmsConfiguration.KEY_HIDE_ADVANCED_OPTIONS, value);
+	}
+
 	public boolean isHideEmptyFolders() {
 		return getBoolean(PmsConfiguration.KEY_HIDE_EMPTY_FOLDERS, false);
 	}
@@ -2495,6 +2505,14 @@ public class PmsConfiguration {
 
 	public void setPrettifyFilenames(boolean value) {
 		configuration.setProperty(KEY_PRETTIFY_FILENAMES, value);
+	}
+
+	public boolean isRunWizard() {
+		return getBoolean(KEY_RUN_WIZARD, true);
+	}
+
+	public void setRunWizard(boolean value) {
+		configuration.setProperty(KEY_RUN_WIZARD, value);
 	}
 
 	/**

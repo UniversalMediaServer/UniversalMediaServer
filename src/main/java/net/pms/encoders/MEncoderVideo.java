@@ -393,7 +393,7 @@ public class MEncoderVideo extends Player {
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setMencoderMuxWhenCompatible((e.getStateChange() == ItemEvent.SELECTED));
 			}
-			});
+		});
 		builder.add(videoremux, FormLayoutUtil.flip(cc.xyw(1, 9, 13), colSpec, orientation));
 
 		builder.addLabel(Messages.getString("MEncoderVideo.6"), FormLayoutUtil.flip(cc.xy(1, 13), colSpec, orientation));
@@ -590,7 +590,7 @@ public class MEncoderVideo extends Player {
 		configuration.addConfigurationListener(new ConfigurationListener() {
 			@Override
 			public void configurationChanged(ConfigurationEvent event) {
-				if (event.getPropertyName() == null ) {
+				if (event.getPropertyName() == null) {
 					return;
 				}
 				if ((!event.isBeforeUpdate()) && event.getPropertyName().equals(PmsConfiguration.KEY_DISABLE_SUBTITLES)) {
@@ -706,10 +706,10 @@ public class MEncoderVideo extends Player {
 			for (String option : INVALID_CUSTOM_OPTIONS) {
 				if (option.equals(name)) {
 					if ((i + 1) < args.length) {
-					   value = " " + args[i + 1];
-					   ++i;
+						value = " " + args[i + 1];
+						++i;
 					} else {
-					   value = "";
+						value = "";
 					}
 
 					LOGGER.warn(
@@ -788,6 +788,7 @@ public class MEncoderVideo extends Player {
 
 	/**
 	 * Note: This is not exact. The bitrate can go above this but it is generally pretty good.
+	 *
 	 * @return The maximum bitrate the video should be along with the buffer size using MEncoder vars
 	 */
 	private String addMaximumBitrateConstraints(String encodeSettings, DLNAMediaInfo media, String quality, RendererConfiguration mediaRenderer, String audioType) {
@@ -1766,24 +1767,32 @@ public class MEncoderVideo extends Player {
 		 * case we add borders until it is divisible by 4.
 		 * This fixes the long-time bug of videos displaying in black and
 		 * white with diagonal strips of colour, weird one.
-		 * 
+		 *
 		 * TODO: Integrate this with the other stuff so that "expand" only
 		 * ever appears once in the MEncoder CMD.
 		 */
-		if (!dvd && ((media.getWidth() % 4 != 0) || media.getHeight() % 4 != 0 || params.mediaRenderer.isKeepAspectRatio())) {
+		if (
+			!dvd &&
+			(
+				(media.getWidth() % 4 != 0) ||
+				(media.getHeight() % 4 != 0) ||
+				params.mediaRenderer.isKeepAspectRatio()
+			) &&
+			!configuration.isMencoderScaler()
+		) {
 			int expandBorderWidth;
 			int expandBorderHeight;
 			StringBuilder expandParams = new StringBuilder();
 
 			expandBorderWidth  = media.getWidth() % 4;
 			expandBorderHeight = media.getHeight() % 4;
-			
+
 			expandParams.append("expand=-").append(expandBorderWidth).append(":-").append(expandBorderHeight);
 
 			if (params.mediaRenderer.isKeepAspectRatio()) {
 				expandParams.append(":::0:16/9");
 			}
-			
+
 			expandParams.append(",softskip");
 
 			cmdList.add("-vf");
@@ -2126,7 +2135,7 @@ public class MEncoderVideo extends Player {
 				// -mc 0.1 makes the DTS-HD extraction work better with latest MEncoder builds, and has no impact on the regular DTS one
 				// TODO: See if these notes are still true, and if so leave specific revisions/release names of the latest version tested.
 				String ffmpegLPCMextract[] = new String[]{
-					executable(), 
+					executable(),
 					"-ss", "0",
 					fileName,
 					"-really-quiet",
@@ -2457,9 +2466,11 @@ public class MEncoderVideo extends Player {
 		if (format != null) {
 			Format.Identifier id = format.getIdentifier();
 
-			if (id.equals(Format.Identifier.ISO)
-					|| id.equals(Format.Identifier.MKV)
-					|| id.equals(Format.Identifier.MPG)) {
+			if (
+				id.equals(Format.Identifier.ISO) ||
+				id.equals(Format.Identifier.MKV) ||
+				id.equals(Format.Identifier.MPG)
+			) {
 				return true;
 			}
 		}
