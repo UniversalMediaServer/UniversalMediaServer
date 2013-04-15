@@ -1,3 +1,26 @@
+2.6.1 - 2013-04-16
+
+	General:
+		Added option to toggle H.264 remuxing in FFmpeg
+		Improved stability of Live Subtitles
+		Re-enabled WMP detection
+		Speed improvements
+		Fixed transcoding to Xbox via FFmpeg
+		Added support for WTV files
+		A-to-Z virtual folders support sorting options
+		Fixed a crash with rare MP3 files
+		Allow subtitles to be disabled on Samsung TVs
+	Renderers:
+		Improved Sony Blu-ray Player support (thanks, skeptical!)
+		Fixed exception on Android
+		Fixed stuttering issues with Bravia HX TVs
+	Languages:
+		Updated Dutch translation (thanks, leroy!)
+		Updated Italian language (thanks, nocciola82!)
+	External Components:
+		Updated FFmpeg for Linux to burek's 2013-04-04 build, which:
+			Is compiled statically
+
 2.6.0 - 2013-03-29
 
 	General:

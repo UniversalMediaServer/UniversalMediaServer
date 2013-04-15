@@ -257,10 +257,18 @@ public class RequestV2 extends HTTPResource {
 		} else if ((method.equals("GET") || method.equals("HEAD")) && argument.startsWith("get/")) {
 			// Request to retrieve a file
 
-			// skip the leading "get/" and extract the
-			// resource ID from the first path element
-			// e.g. "get/0$1$5$3$4/Foo.mp4" -> "0$1$5$3$4"
-			String id = argument.substring(4, argument.lastIndexOf("/"));
+			/**
+			 * Skip the leading "get/" and extract the resource ID from the first path element
+			 * e.g. "get/0$1$5$3$4/Foo.mp4" -> "0$1$5$3$4"
+			 *
+			 * ExSport: I spotted on Android it is asking for "/get/0$2$4$2$1$3" which generates exception with response:
+			 * "Http: Response, HTTP/1.1, Status: Internal server error, URL: /get/0$2$4$2$1$3"
+			 * This should fix it
+			 */
+			String id = argument.substring(4);
+			if (argument.substring(4).contains("/")) {
+				id = argument.substring(4, argument.lastIndexOf("/"));
+			}
 
 			// Some clients escape the separators in their request: unescape them.
 			id = id.replace("%24", "$");
@@ -327,27 +335,29 @@ public class RequestV2 extends HTTPResource {
 
 					inputStream = dlna.getInputStream(Range.create(lowRange, highRange, range.getStart(), range.getEnd()), mediaRenderer);
 
-					// Some renderers (like Samsung devices) allow a custom header for a subtitle URL
-					String subtitleHttpHeader = mediaRenderer.getSubtitleHttpHeader();
+					if (!configuration.isDisableSubtitles()) {
+						// Some renderers (like Samsung devices) allow a custom header for a subtitle URL
+						String subtitleHttpHeader = mediaRenderer.getSubtitleHttpHeader();
 
-					if (subtitleHttpHeader != null && !"".equals(subtitleHttpHeader)) {
-						// Device allows a custom subtitle HTTP header; construct it
-						List<DLNAMediaSubtitle> subs = dlna.getMedia().getSubtitleTracksList();
+						if (subtitleHttpHeader != null && !"".equals(subtitleHttpHeader)) {
+							// Device allows a custom subtitle HTTP header; construct it
+							List<DLNAMediaSubtitle> subs = dlna.getMedia().getSubtitleTracksList();
 
-						if (subs != null && !subs.isEmpty()) {
-							DLNAMediaSubtitle sub = subs.get(0);
-							String subtitleUrl;
-							String subExtension = sub.getType().getExtension();
-							if (isNotBlank(subExtension)) {
-								subtitleUrl = "http://" + PMS.get().getServer().getHost() +
-									':' + PMS.get().getServer().getPort() + "/get/" +
-									id + "/subtitle0000." + subExtension;
-							} else {
-								subtitleUrl = "http://" + PMS.get().getServer().getHost() +
-									':' + PMS.get().getServer().getPort() + "/get/" +
-									id + "/subtitle0000";
+							if (subs != null && !subs.isEmpty()) {
+								DLNAMediaSubtitle sub = subs.get(0);
+								String subtitleUrl;
+								String subExtension = sub.getType().getExtension();
+								if (isNotBlank(subExtension)) {
+									subtitleUrl = "http://" + PMS.get().getServer().getHost() +
+										':' + PMS.get().getServer().getPort() + "/get/" +
+										id + "/subtitle0000." + subExtension;
+								} else {
+									subtitleUrl = "http://" + PMS.get().getServer().getHost() +
+										':' + PMS.get().getServer().getPort() + "/get/" +
+										id + "/subtitle0000";
+								}
+								output.setHeader(subtitleHttpHeader, subtitleUrl);
 							}
-							output.setHeader(subtitleHttpHeader, subtitleUrl);
 						}
 					}
 

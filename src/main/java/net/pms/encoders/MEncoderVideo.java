@@ -1860,20 +1860,28 @@ public class MEncoderVideo extends Player {
 		 * TODO: Integrate this with the other stuff so that "expand" only
 		 * ever appears once in the MEncoder CMD.
 		 */
-		if (!dvd && ((media.getWidth() % 4 != 0) || media.getHeight() % 4 != 0 || params.mediaRenderer.isKeepAspectRatio())) {
+		if (
+			!dvd &&
+			(
+				(media.getWidth() % 4 != 0) ||
+				(media.getHeight() % 4 != 0) ||
+				params.mediaRenderer.isKeepAspectRatio()
+			) &&
+			!configuration.isMencoderScaler()
+		) {
 			int expandBorderWidth;
 			int expandBorderHeight;
 			StringBuilder expandParams = new StringBuilder();
 
 			expandBorderWidth  = media.getWidth() % 4;
 			expandBorderHeight = media.getHeight() % 4;
-			
+
 			expandParams.append("expand=-").append(expandBorderWidth).append(":-").append(expandBorderHeight);
 
 			if (params.mediaRenderer.isKeepAspectRatio()) {
 				expandParams.append(":::0:16/9");
 			}
-			
+
 			expandParams.append(",softskip");
 
 			cmdList.add("-vf");

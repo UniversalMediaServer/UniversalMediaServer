@@ -279,7 +279,7 @@ public class FFMpegVideo extends Player {
 					!params.mediaRenderer.isH264Level41Limited()
 				) &&
 				media.isMuxable(params.mediaRenderer) &&
-				configuration.isMencoderMuxWhenCompatible() &&
+				configuration.isFFmpegMuxWhenCompatible() &&
 				params.mediaRenderer.isMuxH264MpegTS()
 			) {
 				transcodeOptions.add("-c:v");
@@ -653,14 +653,17 @@ public class FFMpegVideo extends Player {
 		}
 
 		int channels;
-		if (ac3Remux) {
+		if (renderer.isTranscodeToWMV()) {
+			channels = 2;
+		} else if (ac3Remux) {
 			channels = params.aid.getAudioProperties().getNumberOfChannels(); // AC-3 remux
 		} else if (dtsRemux) {
 			channels = 2;
 		} else {
 			channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
 		}
-		LOGGER.trace("channels=" + channels);
+		cmdList.add("-ac");
+		cmdList.add("" + channels);
 
 		// Audio bitrate
 		if (!ac3Remux && !dtsRemux && !(type() == Format.AUDIO)) {
@@ -851,6 +854,7 @@ public class FFMpegVideo extends Player {
 	}
 
 	private JCheckBox multithreading;
+	private JCheckBox videoremux;
 
 	@Override
 	public JComponent config() {
@@ -860,7 +864,7 @@ public class FFMpegVideo extends Player {
 	protected JComponent config(String languageLabel) {
 		FormLayout layout = new FormLayout(
 			"left:pref, 0:grow",
-			"p, 3dlu, p, 3dlu"
+			"p, 3dlu, p, 3dlu, p"
 		);
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.setBorder(Borders.EMPTY_BORDER);
@@ -884,6 +888,19 @@ public class FFMpegVideo extends Player {
 			}
 		});
 		builder.add(multithreading, cc.xy(2, 3));
+
+		videoremux = new JCheckBox(Messages.getString("FFmpeg.0"));
+		videoremux.setContentAreaFilled(false);
+		if (configuration.isFFmpegMuxWhenCompatible()) {
+			videoremux.setSelected(true);
+		}
+		videoremux.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setFFmpegMuxWhenCompatible(e.getStateChange() == ItemEvent.SELECTED);
+			}
+		});
+		builder.add(videoremux, cc.xy(2, 5));
 
 		return builder.getPanel();
 	}
