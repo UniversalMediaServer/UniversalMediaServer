@@ -182,9 +182,9 @@ Section "Program Files"
 
 	ReadENVStr $R0 ALLUSERSPROFILE
 	SetOutPath "$R0\UMS"
-	
+
 	CreateDirectory "$R0\UMS\data"
-	
+
 	AccessControl::GrantOnFile "$R0\UMS" "(S-1-5-32-545)" "FullAccess"
 ; 	AccessControl::GrantOnFile "$R0\UMS\data" "(BU)" "FullAccess"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\UMS.conf"
