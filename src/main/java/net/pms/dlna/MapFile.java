@@ -210,19 +210,23 @@ public class MapFile extends DLNAResource {
 		return discoverable.isEmpty();
 	}
 	
+	private String renameForSorting(String filename) {
+		if (configuration.isIgnoreTheWordThe()) {
+			// Remove "The" from the beginning of files
+			filename = filename.replaceAll("^(?i)The[ .]", "");
+		}
+
+		return filename;
+	}
+	
 	private void sort(List<File> files) {
 		switch (configuration.getSortMethod()) {
 			case 4: // Locale-sensitive natural sort
 				Collections.sort(files, new Comparator<File>() {
 					@Override
 					public int compare(File f1, File f2) {
-						String filename1ToSort = f1.getName();
-						String filename2ToSort = f2.getName();
-
-						if (configuration.isIgnoreTheWordThe()) {
-							filename1ToSort = filename1ToSort.replaceAll("^(?i)The[ .]", "");
-							filename2ToSort = filename2ToSort.replaceAll("^(?i)The[ .]", "");
-						}
+						String filename1ToSort = renameForSorting(f1.getName());
+						String filename2ToSort = renameForSorting(f2.getName());
 
 						return NaturalComparator.compareNatural(collator, filename1ToSort, filename2ToSort);
 					}
@@ -232,13 +236,8 @@ public class MapFile extends DLNAResource {
 				Collections.sort(files, new Comparator<File>() {
 					@Override
 					public int compare(File f1, File f2) {
-						String filename1ToSort = f1.getName();
-						String filename2ToSort = f2.getName();
-
-						if (configuration.isIgnoreTheWordThe()) {
-							filename1ToSort = filename1ToSort.replaceAll("^(?i)The[ .]", "");
-							filename2ToSort = filename2ToSort.replaceAll("^(?i)The[ .]", "");
-						}
+						String filename1ToSort = renameForSorting(f1.getName());
+						String filename2ToSort = renameForSorting(f2.getName());
 
 						return filename1ToSort.compareToIgnoreCase(filename2ToSort);
 					}
@@ -264,13 +263,8 @@ public class MapFile extends DLNAResource {
 				Collections.sort(files, new Comparator<File>() {
 					@Override
 					public int compare(File f1, File f2) {
-						String filename1ToSort = f1.getName();
-						String filename2ToSort = f2.getName();
-
-						if (configuration.isIgnoreTheWordThe()) {
-							filename1ToSort = filename1ToSort.replaceAll("^(?i)The[ .]", "");
-							filename2ToSort = filename2ToSort.replaceAll("^(?i)The[ .]", "");
-						}
+						String filename1ToSort = renameForSorting(f1.getName());
+						String filename2ToSort = renameForSorting(f2.getName());
 
 						return collator.compare(filename1ToSort, filename2ToSort);
 					}
@@ -318,11 +312,8 @@ public class MapFile extends DLNAResource {
 					LOGGER.debug("Ignoring empty/non-relevant directory: " + f.getName());
 					continue;
 				}
-				String filenameToSort = f.getName();
 
-				if (configuration.isIgnoreTheWordThe()) {
-					filenameToSort = filenameToSort.replaceAll("^(?i)The[ .]", "");
-				}
+				String filenameToSort = renameForSorting(f.getName());
 
 				char c = filenameToSort.toUpperCase().charAt(0);
 
