@@ -108,7 +108,7 @@ public class SubtitleUtils {
 		BufferedWriter output;
 		BufferedReader input;
 		try {
-			if (configuration.getSubtitlesCodepage() == null) {
+			if (isBlank(configuration.getSubtitlesCodepage())) {
 				input = new BufferedReader(new InputStreamReader(new FileInputStream(SrtFile)));
 			} else {
 				input = new BufferedReader(new InputStreamReader(new FileInputStream(SrtFile), configuration.getSubtitlesCodepage()));
