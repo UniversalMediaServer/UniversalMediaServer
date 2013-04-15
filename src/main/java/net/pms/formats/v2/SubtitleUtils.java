@@ -91,6 +91,13 @@ public class SubtitleUtils {
 		return fileCharsetToMencoderSubcpOptionMap.get(dlnaMediaSubtitle.getExternalFileCharacterSet());
 	}
 
+	/**
+	 * Converts external subtitles file in SRT format to SSA/ASS format
+	 * @param SrtFile Subtitles file in SRT format
+	 * @param configuration UMS settings
+	 * @return Converted subtitles file in SSA/ASS format
+	 * @throws IOException
+	 */
 	public static File ConvertSrtToAss(String SrtFile, PmsConfiguration configuration) throws IOException {
 		String dir = configuration.getDataFile(SUB_DIR);
 		File path = new File(dir);
@@ -202,6 +209,13 @@ public class SubtitleUtils {
 		return sb.toString();
 	}
 
+	/**
+	 * Applies timeseeking to subtitles file in SSA/ASS format
+	 * @param SrtFile Subtitles file in SSA/ASS format
+	 * @param timeseek  Time stamp value
+	 * @return Converted subtitles file
+	 * @throws IOException
+	 */
 	public static File applyTimeSeeking(File SrtFile, double timeseek) throws IOException {
 		Double startTime;
 		Double endTime;

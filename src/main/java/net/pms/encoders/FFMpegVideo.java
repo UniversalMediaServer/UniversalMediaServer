@@ -690,6 +690,7 @@ public class FFMpegVideo extends Player {
 			}
 		}
 
+		// TODO: Is this needed? Was it fixed or not?. See https://ffmpeg.org/trac/ffmpeg/ticket/1745
 		if (params.timeseek > 0) {
 			cmdList.add("-copypriorss");
 			cmdList.add("0");
@@ -996,6 +997,16 @@ public class FFMpegVideo extends Player {
 		return cmdList;
 	}
 
+	/**
+	 * Extracts embedded subtitles from video to file in SSA/ASS format, converts external SRT
+	 * subtitles file to SSA/ASS format and applies fontconfig setting to that converted file
+	 * and applies timeseeking when required.
+	 * @param fileName Video file
+	 * @param media Media file metadata
+	 * @param params Output parameters
+	 * @return Converted subtitle file
+	 * @throws IOException
+	 */
 	public File subsConversion(String fileName, DLNAMediaInfo media, OutputParams params) throws IOException {
 		File tempSubs = null;
 
@@ -1010,16 +1021,11 @@ public class FFMpegVideo extends Player {
 			if (new File(convertedSubs).exists()) {
 				tempSubs = new File(convertedSubs);
 			} else {
-				try {
-					tempSubs = extractSubtitlesToSubDir(fileName, media, params);
-				} catch (IOException e) {
-					LOGGER.debug("Internal subtitles can't be extracted");
-					tempSubs = null;
-				}
+				tempSubs = extractSubtitlesToSubDir(fileName, media, params);
 
 				if (tempSubs != null) {
 					try {
-						tempSubs = applySubsSettingsToTempSubsFile(tempSubs, media);
+						tempSubs = applySubsSettingsToTempSubsFile(tempSubs);
 					} catch (IOException e) {
 						LOGGER.debug("Applying subs setting ends with error: " + e);
 						tempSubs = null;
@@ -1045,7 +1051,7 @@ public class FFMpegVideo extends Player {
 				try {
 					tempSubs = SubtitleUtils.ConvertSrtToAss(externalSubtitlesFileName, configuration);
 				} catch (IOException e) {
-					LOGGER.debug("External subtitles can't be converted to ASS format");
+					LOGGER.debug("External subtitles can't be converted to ASS format. Error: " + e);
 					tempSubs = null;
 				}
 			}
@@ -1070,7 +1076,7 @@ public class FFMpegVideo extends Player {
 	 * @param params output parameters
 	 * @return a <code>String</code> representing file name of extracted subtitles
 	 */
-	public File extractSubtitlesToSubDir(String fileName, DLNAMediaInfo media, OutputParams params) throws IOException {
+	public File extractSubtitlesToSubDir(String fileName, DLNAMediaInfo media, OutputParams params) {
 		List<String> cmdList = new ArrayList<>();
 		cmdList.add(executable());
 		cmdList.add("-y");
@@ -1117,7 +1123,7 @@ public class FFMpegVideo extends Player {
 		return tempSubsFile;
 	}
 
-	public File applySubsSettingsToTempSubsFile(File tempSubs, DLNAMediaInfo media) throws IOException {
+	public File applySubsSettingsToTempSubsFile(File tempSubs) throws IOException {
 		File outputSubs = new File(tempSubs.getAbsolutePath() + ".ass");
 		BufferedWriter output;
 		try (BufferedReader input = new BufferedReader(new FileReader(tempSubs))) {
