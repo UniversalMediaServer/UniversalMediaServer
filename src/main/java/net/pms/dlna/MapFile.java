@@ -339,10 +339,10 @@ public class MapFile extends DLNAResource {
 					tvSeriesName = tvSeriesName.replaceAll("\\.", " ");
 
 					isTVEpisode = true;
-				} else if (filename.matches(".*[\\s\\._\\]]\\d\\d[\\s\\._\\]].*")) {
+				} else if (filename.matches(".*[\\s\\._\\]]\\d\\d[\\s\\._\\]\\[v].*")) {
 					// Extract the series name from the filename of anime episodes
 					tvSeriesName = filename.replaceFirst("(?i)(.*)[\\s\\._\\]-]\\d\\d[\\s\\._\\]].*", "$1");
-					tvSeriesName = tvSeriesName.replaceAll("[\\._-]", " ");
+					tvSeriesName = tvSeriesName.replaceAll("[_-]", " ");
 
 					// Remove group name from the beginning of the filename
 					if (tvSeriesName.substring(0, 1).matches("\\[")) {
