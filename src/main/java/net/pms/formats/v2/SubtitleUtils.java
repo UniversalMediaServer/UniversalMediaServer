@@ -94,7 +94,7 @@ public class SubtitleUtils {
 		String cp = PMS.getConfiguration().getMencoderSubCp();
 		BufferedWriter w;
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(in), cp))) {
-			w = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(out), cp));
+			w = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(out)));
 			String line;
 			boolean skip = false;
 			int n = 1;
@@ -115,8 +115,8 @@ public class SubtitleUtils {
 					continue;
 				}
 				if (line .contains("-->")) {
-					String startTime = line.substring(1, line.indexOf("-->") - 2).replaceAll(",", ".");
-					String endTime = line.substring(line.indexOf("-->") + 5, line.length() - 1).replaceAll(",", ".");
+					String startTime = line.substring(0, line.indexOf("-->") - 1).replaceAll(",", ".");
+					String endTime = line.substring(line.indexOf("-->") + 4).replaceAll(",", ".");
 					Double start = DLNAMediaInfo.parseDurationString(startTime);
 					Double stop = DLNAMediaInfo.parseDurationString(endTime);
 					if (timeseek > start) {
