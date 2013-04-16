@@ -77,23 +77,21 @@ Function GetJRE
     Push $R1
     Push $2
  
-  ; 1) Check local JRE
-  CheckLocal:
+   ; 1) Check for registry
+  CheckRegistry:
     ClearErrors
-    StrCpy $R0 "$EXEDIR\jre\bin\${JAVAEXE}"
-    IfFileExists $R0 JreFound
- 
-  ; 2) Check for JAVA_HOME
-  CheckJavaHome:
-    ClearErrors
-    ReadEnvStr $R0 "JAVA_HOME"
+    ${If} ${RunningX64}
+ 	SetRegView 64
+ 	${EndIf}
+    ReadRegStr $R1 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment" "CurrentVersion"
+    ReadRegStr $R0 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment\$R1" "JavaHome"
     StrCpy $R0 "$R0\bin\${JAVAEXE}"
     IfErrors CheckRegistry1     
     IfFileExists $R0 0 CheckRegistry1
-    Call CheckJREVersion
+    Call SetJavaHeap64
     IfErrors CheckRegistry1 JreFound
- 
-  ; 3) Check for registry
+
+ ; 2) Check for registry
   CheckRegistry1:
     ClearErrors
     ${If} ${RunningX64}
@@ -104,21 +102,21 @@ Function GetJRE
     StrCpy $R0 "$R0\bin\${JAVAEXE}"
     IfErrors CheckRegistry2     
     IfFileExists $R0 0 CheckRegistry2
-    Call CheckJREVersion
+    Call SetJavaHeap32
     IfErrors CheckRegistry2 JreFound
     
-  ; 4) Check for registry 
+  ; 3) Check for registry 
   CheckRegistry2:
     ClearErrors
-    ReadRegStr $R1 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment" "CurrentVersion"
-    ReadRegStr $R0 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment\$R1" "JavaHome"
+    ReadRegStr $R1 HKLM "SOFTWARE\Wow6432Node\JavaSoft\Java Runtime Environment" "CurrentVersion"
+    ReadRegStr $R0 HKLM "SOFTWARE\Wow6432Node\JavaSoft\Java Runtime Environment\$R1" "JavaHome"
     StrCpy $R0 "$R0\bin\${JAVAEXE}"
     IfErrors CheckRegistry3
     IfFileExists $R0 0 CheckRegistry3
-    Call CheckJREVersion
+    Call SetJavaHeap32
     IfErrors CheckRegistry3 JreFound
  
-  ; 5) Check for registry
+  ; 4) Check for registry
   CheckRegistry3:
     ClearErrors
     ${If} ${RunningX64}
@@ -131,18 +129,18 @@ Function GetJRE
     StrCpy $R0 "$R0\bin\${JAVAEXE}"
     IfErrors CheckRegistry4
     IfFileExists $R0 0 CheckRegistry4
-    Call CheckJREVersion
+    Call SetJavaHeap32
     IfErrors CheckRegistry4 JreFound
     
-  ; 6) Check for registry
+  ; 5) Check for registry
   CheckRegistry4:
     ClearErrors
-    ReadRegStr $R1 HKLM "SOFTWARE\Wow6432Node\JavaSoft\Java Runtime Environment" "CurrentVersion"
-    ReadRegStr $R0 HKLM "SOFTWARE\Wow6432Node\JavaSoft\Java Runtime Environment\$R1" "JavaHome"
+    ReadRegStr $R1 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment" "CurrentVersion"
+    ReadRegStr $R0 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment\$R1" "JavaHome"
     StrCpy $R0 "$R0\bin\${JAVAEXE}"
     IfErrors DownloadJRE
     IfFileExists $R0 0 DownloadJRE
-    Call CheckJREVersion
+    Call SetJavaHeap32
     IfErrors DownloadJRE JreFound
  
   DownloadJRE:
@@ -164,7 +162,7 @@ Function GetJRE
     Call CheckJREVersion
     IfErrors GoodLuck JreFound
  
-  ; 4) wishing you good luck
+  ; 6) wishing you good luck
   GoodLuck:
     StrCpy $R0 "${JAVAEXE}"
     ; MessageBox MB_ICONSTOP "Cannot find appropriate Java Runtime Environment."
@@ -174,6 +172,18 @@ Function GetJRE
     Pop $2
     Pop $R1
     Exch $R0
+FunctionEnd
+
+; Set heap size for java 64bit  
+Function SetJavaHeap64
+	WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "HeapMem" "1280"
+	Call CheckJreVersion
+FunctionEnd
+
+; Set heap size for java 32bit
+Function SetJavaHeap32
+	WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "HeapMem" "768"
+	Call CheckJreVersion 
 FunctionEnd
  
 ; Pass the "javaw.exe" path by $R0
