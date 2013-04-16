@@ -11,6 +11,9 @@
 		Improved memory defaults on Windows
 	Languages:
 		Updated Spanish translation (thanks, Alfredo Ramos!)
+	External Components:
+		Updated Java Runtime Environment automatic downloader for Windows to 7u21, which:
+			Has lots of security fixes and improvements
 
 2.6.1 - 2013-04-16
 
