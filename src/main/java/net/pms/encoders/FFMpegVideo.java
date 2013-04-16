@@ -120,14 +120,6 @@ public class FFMpegVideo extends Player {
 
 		if (extSubs != null) {
 			StringBuilder s = new StringBuilder();
-			if (params.sid.getType() == SubtitleType.SUBRIP && params.timeseek > 0) {
-				// dirty stuff here
-				try {
-					extSubs = SubtitleUtils.dumpSrtTc(extSubs, params.timeseek);
-				} catch (Exception e) {
-					LOGGER.debug("Couldn't trim subs file " + extSubs + " error " + e);
-				}
-			}
 			CharacterIterator it = new StringCharacterIterator(extSubs);
 
 			for (char ch = it.first(); ch != CharacterIterator.DONE; ch = it.next()) {

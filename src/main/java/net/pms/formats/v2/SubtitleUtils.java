@@ -30,7 +30,6 @@ import java.util.HashMap;
 import java.util.Map;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang.StringUtils;
@@ -254,61 +253,5 @@ public class SubtitleUtils {
 			path.mkdirs();
 		}
 		return path.getAbsolutePath() + File.separator + name + ".tmp";
-	}
-	
-	public static String dumpSrtTc(String in0, double timeseek) throws Exception {
-		File in = new File(in0);
-		File out = new File(PMS.getConfiguration().getDataFile(in.getName() + 
-							"_" + System.currentTimeMillis() + "_tc.srt"));
-		out.delete();
-		String cp = PMS.getConfiguration().getMencoderSubCp();
-		BufferedWriter w;
-		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(in), cp))) {
-			w = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(out)));
-			String line;
-			boolean skip = false;
-			int n = 1;
-			while ((line = reader.readLine()) != null) {
-				try {
-					Integer.parseInt(line);
-					continue;
-				} catch (NumberFormatException e1) {
-				}
-				if (StringUtils.isEmpty(line) ) {
-					if (!skip) {
-						w.write("\n");
-					}
-					skip = false;
-					continue;
-				}
-				if (skip) {
-					continue;
-				}
-				if (line .contains("-->")) {
-					String startTime = line.substring(0, line.indexOf("-->") - 1).replaceAll(",", ".");
-					String endTime = line.substring(line.indexOf("-->") + 4).replaceAll(",", ".");
-					Double start = DLNAMediaInfo.parseDurationString(startTime);
-					Double stop = DLNAMediaInfo.parseDurationString(endTime);
-					if (timeseek > start) {
-						skip  = true;
-						continue;
-					}
-					w.write(String.valueOf(n++));
-					w.write("\n");
-					w.write(DLNAMediaInfo.getDurationString(start - timeseek));
-					w.write(" --> ");				
-					w.write(DLNAMediaInfo.getDurationString(stop - timeseek));
-					w.write("\n");
-					continue;
-				}
-				
-				w.write(line);
-				w.write("\n");
-			}
-		}
-		w.flush();
-		w.close();
-		PMS.get().addTempFile(out, 2 * 24 * 3600 * 1000); /* 2 days only */
-		return out.getAbsolutePath();
 	}
 }
