@@ -307,6 +307,82 @@ public class MapFile extends DLNAResource {
 		}
 
 		List<File> files = getFileList();
+		ArrayList<File> filesMinusTVEpisodes = new ArrayList<>();
+		boolean isTVEpisode;
+
+		// Virtual folders for TV series
+		if (configuration.isTVSeriesVirtualFolders() && StringUtils.isEmpty(forcedName)) {
+			TreeMap<String, ArrayList<File>> map = new TreeMap<>();
+			for (File f : files) {
+				isTVEpisode = false;
+				String filename = f.getName();
+				String tvSeriesName = "";
+
+				if ((!f.isFile() && !f.isDirectory()) || f.isHidden()) {
+					// Skip these
+					continue;
+				}
+				if (f.isDirectory() && configuration.isHideEmptyFolders() && !isFolderRelevant(f)) {
+					LOGGER.debug("Ignoring empty/non-relevant directory: " + filename);
+					continue;
+				}
+
+				if (filename.matches(".*[sS]\\d\\d[eE]\\d\\d.*")) {
+					// Extract the series name from the filename of scene episodes
+					tvSeriesName = filename.replaceFirst("(?i)(.*)\\.S\\d\\dE\\d\\d\\..*", "$1");
+					tvSeriesName = tvSeriesName.replaceAll("\\.", " ");
+
+					isTVEpisode = true;
+				} else if (filename.matches(".*\\.[1-2][90]\\d\\d\\.[0-1]\\d\\.[0-3]\\d\\..*")) {
+					// Extract the series name from the filename of scene episodes that release several times per week
+					tvSeriesName = filename.replaceFirst("(?i)(.*)\\.[1-2][90]\\d\\d\\.[0-1]\\d\\.[0-3]\\d\\..*", "$1");
+					tvSeriesName = tvSeriesName.replaceAll("\\.", " ");
+
+					isTVEpisode = true;
+				} else if (filename.matches(".*[\\s\\._\\]]\\d\\d[\\s\\._\\]\\[v].*")) {
+					// Extract the series name from the filename of anime episodes
+					tvSeriesName = filename.replaceFirst("(?i)(.*)[\\s\\._\\]-]\\d\\d[\\s\\._\\]].*", "$1");
+					tvSeriesName = tvSeriesName.replaceAll("[_-]", " ");
+
+					// Remove group name from the beginning of the filename
+					if (tvSeriesName.substring(0, 1).matches("\\[")) {
+						int closingBracketIndex = tvSeriesName.indexOf("]");
+						if (closingBracketIndex != -1) {
+							tvSeriesName = tvSeriesName.substring(closingBracketIndex + 1);
+						}
+
+						if (tvSeriesName.substring(0, 1).matches("\\s")) {
+							tvSeriesName = tvSeriesName.substring(1);
+						}
+					}
+
+					isTVEpisode = true;
+				}
+
+				if (isTVEpisode && !f.getParentFile().getName().toLowerCase().equals(tvSeriesName.toLowerCase())) {
+					ArrayList<File> tvSeriesNameList = map.get(String.valueOf(tvSeriesName));
+					if (tvSeriesNameList == null) {
+						// New folder
+						tvSeriesNameList = new ArrayList<>();
+					}
+					tvSeriesNameList.add(f);
+					map.put(String.valueOf(tvSeriesName), tvSeriesNameList);
+				} else {
+					// Add the non-TV episode file to the array to be loaded normally
+					filesMinusTVEpisodes.add(f);
+				}
+			}
+
+			for (String tvSeriesName : map.keySet()) {
+				ArrayList<File> tvSeriesNameList = map.get(tvSeriesName);
+				sort(tvSeriesNameList);
+				MapFile mf = new MapFile(getConf(), tvSeriesNameList);
+				mf.forcedName = tvSeriesName;
+				addChild(mf);
+			}
+
+			files = filesMinusTVEpisodes;
+		}
 
 		// ATZ handling
 		if (files.size() > configuration.getATZLimit() && StringUtils.isEmpty(forcedName)) {

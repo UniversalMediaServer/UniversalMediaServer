@@ -76,6 +76,7 @@ public class NavigationShareTab {
 	private JTextField atzLimit;
 	private JCheckBox liveSubtitles;
 	private JCheckBox prettifyfilenames;
+	private JCheckBox tvSeriesVirtualFolders;
 
 	public DefaultListModel getDf() {
 		return df;
@@ -181,6 +182,7 @@ public class NavigationShareTab {
 		builder.add(liveSubtitles, FormLayoutUtil.flip(cc.xyw(1, 25, 3), colSpec, orientation));
 		builder.addLabel(Messages.getString("FoldTab.37"), FormLayoutUtil.flip(cc.xyw(4, 25, 2), colSpec, orientation));
 		builder.add(atzLimit, FormLayoutUtil.flip(cc.xy(6, 25), colSpec, orientation));
+		builder.add(tvSeriesVirtualFolders, FormLayoutUtil.flip(cc.xyw(9, 25, 2), colSpec, orientation));
 
 			builder.add(builderSharedFolder.getPanel(), FormLayoutUtil.flip(cc.xyw(1, 27, 10), colSpec, orientation));
 		} else {
@@ -586,6 +588,19 @@ public class NavigationShareTab {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setPrettifyFilenames((e.getStateChange() == ItemEvent.SELECTED));
+				hideextensions.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
+			}
+		});
+
+		tvSeriesVirtualFolders = new JCheckBox(Messages.getString("FoldTab.44"));
+		tvSeriesVirtualFolders.setContentAreaFilled(false);
+		if (configuration.isTVSeriesVirtualFolders()) {
+			tvSeriesVirtualFolders.setSelected(true);
+		}
+		tvSeriesVirtualFolders.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setTVSeriesVirtualFolders((e.getStateChange() == ItemEvent.SELECTED));
 				hideextensions.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
 			}
 		});

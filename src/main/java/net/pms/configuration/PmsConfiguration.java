@@ -202,6 +202,7 @@ public class PmsConfiguration {
 	private static final String KEY_TSMUXER_FORCEFPS = "tsmuxer_forcefps";
 	private static final String KEY_TSMUXER_PREREMIX_AC3 = "tsmuxer_preremix_ac3";
 	private static final String KEY_TURBO_MODE_ENABLED = "turbomode";
+	private static final String KEY_TV_SERIES_VIRTUAL_FOLDERS = "tv_series_virtual_folders";
 	private static final String KEY_UPNP_PORT = "upnp_port";
 	private static final String KEY_USE_CACHE = "usecache";
 	private static final String KEY_USE_MPLAYER_FOR_THUMBS = "use_mplayer_for_video_thumbs";
@@ -2952,5 +2953,13 @@ public class PmsConfiguration {
 
 	public void setVlcSampleRate(String value) {
 		configuration.setProperty(KEY_VLC_SAMPLE_RATE, value);
+	}
+
+	public boolean isTVSeriesVirtualFolders() {
+		return getBoolean(KEY_TV_SERIES_VIRTUAL_FOLDERS, true);
+	}
+
+	public void setTVSeriesVirtualFolders(boolean value) {
+		configuration.setProperty(KEY_TV_SERIES_VIRTUAL_FOLDERS, value);
 	}
 }
