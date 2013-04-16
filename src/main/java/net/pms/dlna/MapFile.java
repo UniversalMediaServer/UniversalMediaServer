@@ -359,7 +359,7 @@ public class MapFile extends DLNAResource {
 					isTVEpisode = true;
 				}
 
-				if (isTVEpisode) {
+				if (isTVEpisode && !f.getParentFile().getName().toLowerCase().equals(tvSeriesName.toLowerCase())) {
 					ArrayList<File> tvSeriesNameList = map.get(String.valueOf(tvSeriesName));
 					if (tvSeriesNameList == null) {
 						// New folder
