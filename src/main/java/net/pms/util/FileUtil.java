@@ -52,7 +52,8 @@ public class FileUtil {
 		// Remove file extension
 		formattedName = f.substring(0, point);
 
-		String commonFileEnds = "\\.AC3.*|\\.PROPER.*|\\.REPACK.*|\\.iNTERNAL.*|\\.480p.*|\\.720p.*|\\.m-720p.*|\\.900p.*|\\.1080p.*|\\.HDTV.*|\\.PDTV.*|\\.WS.*|\\.HQ\\..*|\\.DVDRip.*|\\.TVRiP.*|\\.BDRip.*|\\.LIMITED.*|\\.FESTiVAL.*|\\.BluRay.*|\\.SUBBED.*|\\.NORDIC.*|\\.x264.*|\\.Dual\\.Audio.*|\\.HSBS.*|\\.H-SBS.*"; 
+		String commonFileEnds = "\\.AC3.*|\\.PROPER.*|\\.REPACK.*|\\.iNTERNAL.*|\\.480p.*|\\.720p.*|\\.m-720p.*|\\.900p.*|\\.1080p.*|\\.HDTV.*|\\.DSR.*|\\.PDTV.*|\\.WS.*|\\.HQ\\..*|\\.DVDRip.*|\\.TVRiP.*|\\.BDRip.*|\\.LIMITED.*|\\.FESTiVAL.*|\\.BluRay.*|\\.SUBBED.*|\\.NORDIC.*|\\.x264.*|\\.Dual\\.Audio.*|\\.HSBS.*|\\.H-SBS.*"; 
+		String commonFileEndsMatch = ".*\\.AC3.*|.*\\.PROPER.*|.*\\.REPACK.*|.*\\.iNTERNAL.*|.*\\.480p.*|.*\\.720p.*|.*\\.m-720p.*|.*\\.900p.*|.*\\.1080p.*|.*\\.HDTV.*|.*\\.DSR.*|.*\\.PDTV.*|.*\\.WS.*|.*\\.HQ\\..*|.*\\.DVDRip.*|.*\\.TVRiP.*|.*\\.BDRip.*|.*\\.LIMITED.*|.*\\.FESTiVAL.*|.*\\.BluRay.*|.*\\.SUBBED.*|.*\\.NORDIC.*|.*\\.x264.*|.*\\.Dual\\.Audio.*|.*\\.HSBS.*|.*\\.H-SBS.*"; 
 
 		if (formattedName.matches(".*[sS]0\\d[eE]\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes within the first 9 seasons
@@ -102,6 +103,17 @@ public class FileUtil {
 
 			// Rename the year. For example, "2013" changes to " (2013)"
 			formattedName = formattedName.replaceAll("\\.([1-2][90]\\d\\d)", " ($1)");
+
+			// Remove stuff at the end of the filename like release group, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
+
+			// Change "3D" to " (3D)", "CD1" to "(1)", etc.
+			formattedName = formattedName.replaceAll("(?i)\\.(CD[1-3])\\.|\\.(3D)\\.|\\.(Special.Edition)\\.|\\.(Unrated)\\.|\\.(Final.Cut)\\.|\\.(Remastered)\\.|\\.(Extended.Cut)\\.", " ($1)");
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
+		} else if (formattedName.matches(commonFileEndsMatch)) {
+			// This matches files that partially follow the scene format
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
 			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
