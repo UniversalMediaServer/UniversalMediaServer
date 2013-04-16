@@ -87,14 +87,14 @@ public class FileUtil {
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
-		} else if (formattedName.matches(".*\\.[1-2][90]\\d\\d\\.[0-1]\\d\\.[0-3]\\d\\..*")) {
+		} else if (formattedName.matches(".*\\.(19|20)\\d\\d\\.[0-1]\\d\\.[0-3]\\d\\..*")) {
 			// This matches scene and most p2p TV episodes that release several times per week
 
 			// Rename the date. For example, "2013.03.18" changes to " - 2013/03/18"
-			formattedName = formattedName.replaceAll("(?i)\\.([1-2][90]\\d\\d)\\.([0-1]\\d)\\.([0-3]\\d)\\.(" + commonFileEnds + ")", " - $1/$2/$3");
+			formattedName = formattedName.replaceAll("(?i)\\.(19|20)(\\d\\d)\\.([0-1]\\d)\\.([0-3]\\d)(" + commonFileEnds + ")", " - $1$2/$3/$4");
 
 			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
-			formattedName = formattedName.replaceAll("(?i)\\.([1-2][90]\\d\\d)\\.([0-1]\\d)\\.([0-3]\\d)\\.", " - $1/$2/$3 - ");
+			formattedName = formattedName.replaceAll("(?i)\\.(19|20)(\\d\\d)\\.([0-1]\\d)\\.([0-3]\\d)\\.", " - $1$2/$3/$4 - ");
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
 			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
@@ -102,11 +102,11 @@ public class FileUtil {
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
-		} else if (formattedName.matches(".*\\.[12][90]\\d\\d\\..*")) {
+		} else if (formattedName.matches(".*\\.(19|20)\\d\\d\\..*")) {
 			// This matches scene and most p2p movies
 
 			// Rename the year. For example, "2013" changes to " (2013)"
-			formattedName = formattedName.replaceAll("\\.([12][90]\\d\\d)", " ($1)");
+			formattedName = formattedName.replaceAll("\\.(19|20)(\\d\\d)", " ($1$2)");
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
 			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
@@ -129,21 +129,21 @@ public class FileUtil {
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
-		} else if (formattedName.matches(".*\\[[1-2][90]\\d\\d\\].*")) {
+		} else if (formattedName.matches(".*\\[(19|20)\\d\\d\\].*")) {
 			// This matches rarer types of movies
 
 			// Rename the year. For example, "2013" changes to " (2013)"
-			formattedName = formattedName.replaceAll("(?i)\\[([1-2][90]\\d\\d)\\].*", " ($1)");
+			formattedName = formattedName.replaceAll("(?i)\\[(19|20)(\\d\\d)\\].*", " ($1$2)");
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
-		} else if (formattedName.matches(".*\\([1-2][90]\\d\\d\\).*")) {
+		} else if (formattedName.matches(".*\\((19|20)\\d\\d\\).*")) {
 			// This matches rarer types of movies
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
 			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
 			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
-		} else if (formattedName.matches(".*\\([1-2][90]\\d\\d\\).*")) {
+		} else if (formattedName.matches(".*\\((19|20)\\d\\d\\).*")) {
 			// This matches rarer types of movies
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
