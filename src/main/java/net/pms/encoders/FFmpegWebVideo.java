@@ -126,6 +126,11 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		params.minBufferSize = params.minFileSize;
 		params.secondread_minsize = 100000;
 		RendererConfiguration renderer = params.mediaRenderer;
+		File tempSubs = null;
+
+		if (!isDisableSubtitles(params)) {
+			tempSubs = subsConversion(fileName, media, params);
+		}
 
 		// XXX work around an ffmpeg bug: http://ffmpeg.org/trac/ffmpeg/ticket/998
 		if (fileName.startsWith("mms:")) {
@@ -236,7 +241,11 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		cmdList.add("-i");
 		cmdList.add(fileName);
 
-		cmdList.addAll(getVideoFilterOptions(renderer, media, params));
+		if (tempSubs == null) {
+			cmdList.addAll(getVideoFilterOptions(null, renderer, media));
+		} else {
+			cmdList.addAll(getVideoFilterOptions(tempSubs.getAbsolutePath(), renderer, media));
+		}
 
 		// Encoder threads
 		cmdList.add("-threads");

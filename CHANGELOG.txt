@@ -1,23 +1,34 @@
 3.0.0 - 2013-04-??
 
 	General:
+		Added internal subtitle support to FFmpeg
+		Added subtitle seeking support to FFmpeg
+		Added subtitle styling (fontconfig) support to FFmpeg
 		Added "Prettify filenames" feature, which automatically renames filenames (not the real files, just in UMS) that follow certain naming conventions to be more readable
 		Added configuration wizard to simplify common things like network configuration
 		Added an option to hide/show advanced options, hopefully making things less confusing/daunting for most users
 		Added VLC video transcoding (thanks, LordQuackstar!)
-		Improved stability of Live Subtitles
+		Improved memory defaults on Windows
+
+2.6.1 - 2013-04-16
+
+	General:
 		Added option to toggle H.264 remuxing in FFmpeg
+		Improved stability of Live Subtitles
 		Re-enabled WMP detection
 		Speed improvements
 		Fixed transcoding to Xbox via FFmpeg
 		Added support for WTV files
 		A-to-Z virtual folders support sorting options
 		Fixed a crash with rare MP3 files
+		Allow subtitles to be disabled on Samsung TVs
 	Renderers:
+		Improved Sony Blu-ray Player support (thanks, skeptical!)
+		Fixed exception on Android
 		Fixed stuttering issues with Bravia HX TVs
-		Improved support for Sony Blu-ray players
 	Languages:
-		Updated Italian translation (thanks, nocciola82!)
+		Updated Dutch translation (thanks, leroy!)
+		Updated Italian language (thanks, nocciola82!)
 	External Components:
 		Updated FFmpeg for Linux to burek's 2013-04-04 build, which:
 			Is compiled statically

@@ -86,6 +86,9 @@ public class PmsConfiguration {
 	private static final String KEY_AVISYNTH_INTERFRAME_GPU = "avisynth_interframegpu";
 	private static final String KEY_AVISYNTH_MULTITHREADING = "avisynth_multithreading";
 	private static final String KEY_AVISYNTH_SCRIPT = "avisynth_script";
+	private static final String KEY_ASS_OUTLINE = "mencoder_ass_outline"; // TODO (breaking change): should be renamed to e.g. ass_outline
+	private static final String KEY_ASS_SCALE = "mencoder_ass_scale"; // TODO (breaking change): should be renamed to e.g. ass_scale
+	private static final String KEY_ASS_SHADOW = "mencoder_ass_shadow"; // TODO (breaking change): should be renamed to e.g. ass_shadow
 	private static final String KEY_BUFFER_MAX = "buffer_max";
 	private static final String KEY_SCRIPT_DIR = "script_dir";
 	private static final String KEY_BUFFER_TYPE = "buffertype"; // FIXME deprecated: unused
@@ -104,6 +107,7 @@ public class PmsConfiguration {
 	private static final String KEY_FFMPEG_AVISYNTH_CONVERT_FPS = "ffmpeg_avisynth_convertfps";
 	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME = "ffmpeg_avisynth_interframe";
 	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
+	private static final String KEY_FFMPEG_FONT_CONFIG = "ffmpeg_font_config";
 	private static final String KEY_FFMPEG_MUX_COMPATIBLE = "ffmpeg_mux_compatible";
 	private static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
 	private static final String KEY_FONT = "mencoder_font"; // TODO (breaking change): should be renamed to e.g. font
@@ -134,9 +138,6 @@ public class PmsConfiguration {
 	private static final String KEY_MENCODER_AC3_FIXED = "mencoder_ac3_fixed";
 	private static final String KEY_MENCODER_ASS_DEFAULTSTYLE = "mencoder_ass_defaultstyle";
 	private static final String KEY_MENCODER_ASS_MARGIN = "mencoder_ass_margin";
-	private static final String KEY_MENCODER_ASS_OUTLINE = "mencoder_ass_outline";
-	private static final String KEY_MENCODER_ASS_SCALE = "mencoder_ass_scale";
-	private static final String KEY_MENCODER_ASS_SHADOW = "mencoder_ass_shadow";
 	private static final String KEY_MENCODER_CUSTOM_OPTIONS = "mencoder_decode"; // TODO (breaking change): should be renamed to e.g. mencoder_custom_options
 	private static final String KEY_MENCODER_FONT_CONFIG = "mencoder_fontconfig";
 	private static final String KEY_MENCODER_FORCE_FPS = "mencoder_forcefps";
@@ -748,11 +749,18 @@ public class PmsConfiguration {
 	}
 
 	/**
+	 * @deprecated Use {@link #getAssScale()} instead.
+	 */
+	public String getMencoderAssScale() {
+		return getAssScale();
+	}
+
+	/**
 	 * Returns the font scale used for ASS subtitling. Default value is 1.4.
 	 * @return The ASS font scale.
 	 */
-	public String getMencoderAssScale() {
-		return getString(KEY_MENCODER_ASS_SCALE, "1.4");
+	public String getAssScale() {
+		return getString(KEY_ASS_SCALE, "1.4");
 	}
 
 	/**
@@ -775,19 +783,33 @@ public class PmsConfiguration {
 	}
 
 	/**
+	 * @deprecated Use {@link #getAssOutline()} instead.
+	 */
+	public String getMencoderAssOutline() {
+		return getAssOutline();
+	}
+
+	/**
 	 * Returns the outline parameter used for ASS subtitling. Default value is 1.
 	 * @return The ASS outline parameter.
 	 */
-	public String getMencoderAssOutline() {
-		return getString(KEY_MENCODER_ASS_OUTLINE, "1");
+	public String getAssOutline() {
+		return getString(KEY_ASS_OUTLINE, "1");
+	}
+
+	/**
+	 * @deprecated Use {@link #getAssShadow()} instead.
+	 */
+	public String getMencoderAssShadow() {
+		return getAssShadow();
 	}
 
 	/**
 	 * Returns the shadow parameter used for ASS subtitling. Default value is 1.
 	 * @return The ASS shadow parameter.
 	 */
-	public String getMencoderAssShadow() {
-		return getString(KEY_MENCODER_ASS_SHADOW, "1");
+	public String getAssShadow() {
+		return getString(KEY_ASS_SHADOW, "1");
 	}
 
 	/**
@@ -853,27 +875,48 @@ public class PmsConfiguration {
 	}
 
 	/**
+	 * @deprecated Use {@link #getAssOutline()} instead.
+	 */
+	public void setMencoderAssOutline(String value) {
+		setAssOutline(value);
+	}
+
+	/**
 	 * Set the outline parameter used for ASS subtitling.
 	 * @param value The ASS outline parameter value to set.
 	 */
-	public void setMencoderAssOutline(String value) {
-		configuration.setProperty(KEY_MENCODER_ASS_OUTLINE, value);
+	public void setAssOutline(String value) {
+		configuration.setProperty(KEY_ASS_OUTLINE, value);
+	}
+
+	/**
+	 * @deprecated Use {@link #getAssShadow()} instead.
+	 */
+	public void setMencoderAssShadow(String value) {
+		setAssShadow(value);
 	}
 
 	/**
 	 * Set the shadow parameter used for ASS subtitling.
 	 * @param value The ASS shadow parameter value to set.
 	 */
-	public void setMencoderAssShadow(String value) {
-		configuration.setProperty(KEY_MENCODER_ASS_SHADOW, value);
+	public void setAssShadow(String value) {
+		configuration.setProperty(KEY_ASS_SHADOW, value);
+	}
+
+	/**
+	 * @deprecated Use {@link #seAssScale(String value)} instead.
+	 */
+	public void setMencoderAssScale(String value) {
+		setAssScale(value);
 	}
 
 	/**
 	 * Set the font scale used for ASS subtitling.
 	 * @param value The ASS font scale value to set.
 	 */
-	public void setMencoderAssScale(String value) {
-		configuration.setProperty(KEY_MENCODER_ASS_SCALE, value);
+	public void setAssScale(String value) {
+		configuration.setProperty(KEY_ASS_SCALE, value);
 	}
 
 	/**
@@ -1012,7 +1055,7 @@ public class PmsConfiguration {
 	public String getMencoderFont() {
 		return getFont();
 	}
-	
+
 	/**
 	 * Returns the name of a TrueType font to use for subtitles.
 	 * Default is <code>""</code>.
@@ -1136,7 +1179,7 @@ public class PmsConfiguration {
 	public String getMencoderSubCp() {
 		return getSubtitlesCodepage();
 	}
-	
+
 	/**
 	 * Returns the character encoding (or code page) that should used
 	 * for displaying non-Unicode external subtitles. Default is empty string
@@ -1305,7 +1348,7 @@ public class PmsConfiguration {
 	public void setMencoderSubCp(String value) {
 		setSubtitlesCodepage(value);
 	}
-	
+
 	/**
 	 * Sets the character encoding (or code page) that should be used
 	 * for displaying non-Unicode external subtitles. Default is empty (autodetect).
@@ -1332,6 +1375,14 @@ public class PmsConfiguration {
 		setFont(value);
 	}
 	
+	/**
+	 * Sets the name of a TrueType font to use for subtitles.
+	 * @param value The font name.
+	 */
+	public void setFont(String value) {
+		configuration.setProperty(KEY_FONT, value);
+	}
+
 	/**
 	 * Sets the name of a TrueType font to use for subtitles.
 	 * @param value The font name.
@@ -2326,6 +2377,14 @@ public class PmsConfiguration {
 		return getBoolean(KEY_FFMPEG_MUX_COMPATIBLE, false);
 	}
 
+	public void setFFmpegFontConfig(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_FONT_CONFIG, value);
+	}
+
+	public boolean isFFmpegrFontConfig() {
+		return getBoolean(KEY_FFMPEG_FONT_CONFIG, false);
+	}
+
 	public void setMuxAllAudioTracks(boolean value) {
 		configuration.setProperty(KEY_MUX_ALLAUDIOTRACKS, value);
 	}
@@ -2818,10 +2877,8 @@ public class PmsConfiguration {
 		}
 	}
 
-	private String KEY_DATA_DIR = "data_dir_path";
-
 	public String getDataDir() {
-		return getString(KEY_DATA_DIR, "data");
+		return getProfileDirectory() + File.separator + "data";
 	}
 
 	public String getDataFile(String str) {

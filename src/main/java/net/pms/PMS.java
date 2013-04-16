@@ -1155,7 +1155,7 @@ public class PMS {
 	private void logSystemInfo() {
 		long memoryInMB = Runtime.getRuntime().maxMemory() / 1048576;
 
-		LOGGER.info("Java: " + System.getProperty("java.version") + "-" + System.getProperty("java.vendor"));
+		LOGGER.info("Java: " + System.getProperty("java.version") + " - " + System.getProperty("sun.arch.data.model") + "bit" + " - " + System.getProperty("java.vendor"));
 		LOGGER.info("OS: " + System.getProperty("os.name") + " " + getOSBitness() + "-bit " + System.getProperty("os.version"));
 		LOGGER.info("Encoding: " + System.getProperty("file.encoding"));
 		LOGGER.info("Memory: " + memoryInMB + " " + Messages.getString("StatusTab.12"));

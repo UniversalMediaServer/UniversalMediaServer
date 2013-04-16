@@ -23,27 +23,23 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
-import net.pms.io.OutputParams;
 import net.pms.util.StringUtil;
+import org.apache.commons.lang.StringUtils;
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.mozilla.universalchardet.Constants.*;
 
 public class SubtitleUtils {
-	private static final Logger LOGGER = LoggerFactory.getLogger(SubtitleUtils.class);
+	private static final String TEMP_DIR = "temp";
+	private static final String SUB_DIR = "subs";
 	private final static Map<String, String> fileCharsetToMencoderSubcpOptionMap = new HashMap<String, String>() {
 		private static final long serialVersionUID = 1L;
 
@@ -94,101 +90,104 @@ public class SubtitleUtils {
 		}
 		return fileCharsetToMencoderSubcpOptionMap.get(dlnaMediaSubtitle.getExternalFileCharacterSet());
 	}
-	
-	public static File ConvertSrtToAss(String SrtFile, double timeseek, PmsConfiguration configuration ) throws IOException {
-		File outputSubs = null;
-		outputSubs = new File(configuration.getTempFolder(), "FFmpeg" + System.currentTimeMillis() + ".ass");
-		BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(SrtFile), configuration.getSubtitlesCodepage()));
-		BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs)));
-		String line = null;
-		output.write("[Script Info]\n");
-		output.write("ScriptType: v4.00+\n");
-//			output.write("PlayResX: " + media.getWidth() + "\n"); // TODO Not clear how it works
-//			output.write("PlayResY: " + media.getHeight() + "\n");
-		output.write("\n");
-		output.write("[V4+ Styles]\n");
-		output.write("Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, AlphaLevel, Encoding\n");
-		StringBuilder s = new StringBuilder();
-		s.append("Style: Default,");
 
-		if (!configuration.getFont().isEmpty()) {
-			s.append(configuration.getFont()).append(",");
-		} else {
-			s.append("Arial,");
+	/**
+	 * Converts external subtitles file in SRT format to SSA/ASS format
+	 * @param SrtFile Subtitles file in SRT format
+	 * @param configuration UMS settings
+	 * @return Converted subtitles file in SSA/ASS format
+	 * @throws IOException
+	 */
+	public static File ConvertSrtToAss(String SrtFile, PmsConfiguration configuration) throws IOException {
+		String dir = configuration.getDataFile(SUB_DIR);
+		File path = new File(dir);
+		if (!path.exists()) {
+			path.mkdirs();
 		}
-
-		s.append( (int) 10 * Double.parseDouble(configuration.getMencoderAssScale())).append(","); // Fontsize
-
-		String primaryColour = Integer.toHexString(configuration.getSubsColor());
-		primaryColour = primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4); // Convert AARRGGBB format to BBGGRR
-
-		s.append("&H").append(primaryColour).append(","); // PrimaryColour
-		s.append("&Hffffff,"); 	// SecondaryColour
-		s.append("&H0,");		// OutlineColour
-		s.append("&H0,"); 		// BackColour
-		s.append("0,"); 		// Bold
-		s.append("0,"); 		// Italic
-		s.append("0,"); 		// Underline
-		s.append("1,"); 		// BorderStyle
-		s.append(configuration.getMencoderAssOutline()).append(","); // Outline
-		s.append(configuration.getMencoderAssShadow()).append(","); // Shadow
-		s.append("2,"); 		// Alignment
-		s.append("10,"); 		// MarginL
-		s.append("10,"); 		// MarginR
-		s.append("20,"); 		// MarginV
-		s.append("0,"); 		// AlphaLevel
-		s.append("0"); 			// Encoding
-		output.write(s.toString() + "\n");
-		output.write("\n");
-		output.write("[Events]\n");
-		output.write("Format: Layer, Start, End, Style, Text\n");
-			
-		String startTime;
-		String endTime;
-
-		while (( line = input.readLine()) != null) {
-			if (line .contains("-->")) {
-				startTime = line.substring(0, line.indexOf("-->") - 1).replaceAll(",", ".");
-				endTime = line.substring(line.indexOf("-->") + 4).replaceAll(",", ".");
-
-				// Apply time seeking
-				if (timeseek > 0) {
-					if (StringUtil.convertStringToTime(startTime) >= timeseek) {
-						startTime = StringUtil.convertTimeToString(StringUtil.convertStringToTime(startTime) - timeseek, false);
-						startTime = startTime.substring(1, startTime.length() - 1);
-						endTime = StringUtil.convertTimeToString(StringUtil.convertStringToTime(endTime) - timeseek, false);
-						endTime = endTime.substring(1, endTime.length() - 1);
-					} else {
-						continue;
-					}
-				}
-
-				s = new StringBuilder();
-				s.append("Dialogue: 0,");
-				s.append(startTime).append(",");
-				s.append(endTime).append(",");
-				s.append("Default").append(",");
-				s.append(convertTags(input.readLine())); 
-
-				if (isNotBlank(line = input.readLine())) {
-					s.append("\\N");
-					s.append(convertTags(line));
-				}
-
-				output.write(s.toString() + "\n");
+		File outputSubs = new File(path.getAbsolutePath() + File.separator + new File(SrtFile).getName() + "_EXT.ass");
+		BufferedWriter output;
+		BufferedReader input;
+		try {
+			if (isBlank(configuration.getSubtitlesCodepage())) {
+				input = new BufferedReader(new InputStreamReader(new FileInputStream(SrtFile)));
+			} else {
+				input = new BufferedReader(new InputStreamReader(new FileInputStream(SrtFile), configuration.getSubtitlesCodepage()));
 			}
-		}
+
+			output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs)));
+			String line;
+			output.write("[Script Info]\n");
+			output.write("ScriptType: v4.00+\n");
+			output.write("\n");
+			output.write("[V4+ Styles]\n");
+			output.write("Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, AlphaLevel, Encoding\n");
+			StringBuilder s = new StringBuilder();
+			s.append("Style: Default,");
+
+			if (!configuration.getFont().isEmpty()) {
+				s.append(configuration.getFont()).append(",");
+			} else {
+				s.append("Arial,");
+			}
+
+			s.append(Integer.toString((int) (14 * Double.parseDouble(configuration.getAssScale())))).append(",");
+			String primaryColour = Integer.toHexString(configuration.getSubsColor());
+			primaryColour = primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4);
+			s.append("&H").append(primaryColour).append(",");
+			s.append("&Hffffff,");
+			s.append("&H0,");
+			s.append("&H0,");
+			s.append("0,");
+			s.append("0,");
+			s.append("0,");
+			s.append("1,");
+			s.append(configuration.getAssOutline()).append(",");
+			s.append(configuration.getAssShadow()).append(",");
+			s.append("2,");
+			s.append("10,");
+			s.append("10,");
+			s.append("20,");
+			s.append("0,");
+			s.append("0");
+			output.write(s.toString() + "\n");
+			output.write("\n");
+			output.write("[Events]\n");
+			output.write("Format: Layer, Start, End, Style, Text\n");
+			String startTime;
+			String endTime;
+
+			while ((line = input.readLine()) != null) {
+				if (line.contains("-->")) {
+					startTime = line.substring(0, line.indexOf("-->") - 1).replaceAll(",", ".");
+					endTime = line.substring(line.indexOf("-->") + 4).replaceAll(",", ".");
+					startTime = StringUtil.convertTimeToString(StringUtil.convertStringToTime(startTime), StringUtil.ASS_FORMAT);
+					endTime = StringUtil.convertTimeToString(StringUtil.convertStringToTime(endTime), StringUtil.ASS_FORMAT);
+					s = new StringBuilder();
+					s.append("Dialogue: 0,");
+					s.append(startTime).append(",");
+					s.append(endTime).append(",");
+					s.append("Default").append(",");
+					s.append(convertTags(input.readLine()));
+
+					if (isNotBlank(line = input.readLine())) {
+						s.append("\\N");
+						s.append(convertTags(line));
+					}
+
+					output.write(s.toString() + "\n");
+				}
+			}
+		} finally { }
 
 		input.close();
 		output.flush();
 		output.close();
-		outputSubs.deleteOnExit();
+		PMS.get().addTempFile(outputSubs, 2 * 24 * 3600 * 1000);
 		return outputSubs;
-
 	}
 
 	private static String convertTags(String text) {
-		 String tag = null;
+		 String tag;
 		 StringBuilder sb = new StringBuilder();
 		 String[] tmp = text.split("<");
 
@@ -204,6 +203,55 @@ public class SubtitleUtils {
 			 }
 		 }
 
-		 return sb.toString();
+		return sb.toString();
+	}
+
+	/**
+	 * Applies timeseeking to subtitles file in SSA/ASS format
+	 * @param SrtFile Subtitles file in SSA/ASS format
+	 * @param timeseek  Time stamp value
+	 * @return Converted subtitles file
+	 * @throws IOException
+	 */
+	public static File applyTimeSeeking(File SrtFile, double timeseek) throws IOException {
+		Double startTime;
+		Double endTime;
+		String line;
+		File outputSubs = new File(tempFile(SrtFile.getName() + System.currentTimeMillis()));
+		BufferedWriter output;
+		try (BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(SrtFile)))) {
+			output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs)));
+			while ((line = input.readLine()) != null) {
+				if (line.startsWith("Dialogue:")) {
+					String[] tempStr = line.split(",");
+					startTime = StringUtil.convertStringToTime(tempStr[1]);
+					endTime = StringUtil.convertStringToTime(tempStr[2]);;
+
+					if (startTime >= timeseek) {
+						tempStr[1] = StringUtil.convertTimeToString(startTime - timeseek, StringUtil.ASS_FORMAT);
+						tempStr[2] = StringUtil.convertTimeToString(endTime - timeseek, StringUtil.ASS_FORMAT);
+					} else {
+						continue;
+					}
+
+					output.write(StringUtils.join(tempStr, ",") + "\n");
+				} else {
+					output.write(line + "\n");
+				}
+			}
+		}
+		output.flush();
+		output.close();
+		PMS.get().addTempFile(outputSubs, 2 * 24 * 3600 * 1000);
+		return outputSubs;
+	}
+
+	public static String tempFile(String name) {
+		String dir = PMS.getConfiguration().getDataFile(TEMP_DIR); 
+		File path = new File(dir);
+		if (!path.exists()) {
+			path.mkdirs();
+		}
+		return path.getAbsolutePath() + File.separator + name + ".tmp";
 	}
 }

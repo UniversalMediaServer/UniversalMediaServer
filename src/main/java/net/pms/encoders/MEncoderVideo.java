@@ -432,33 +432,138 @@ public class MEncoderVideo extends Player {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
+		builder.addLabel(Messages.getString("MEncoderVideo.11"), FormLayoutUtil.flip(cc.xy(1, 19), colSpec, orientation));
+		Object data[] = new Object[]{
+			configuration.getSubtitlesCodepage(),
+			Messages.getString("MEncoderVideo.96"),
+			Messages.getString("MEncoderVideo.97"),
+			Messages.getString("MEncoderVideo.98"),
+			Messages.getString("MEncoderVideo.99"),
+			Messages.getString("MEncoderVideo.100"),
+			Messages.getString("MEncoderVideo.101"),
+			Messages.getString("MEncoderVideo.102"),
+			Messages.getString("MEncoderVideo.103"),
+			Messages.getString("MEncoderVideo.104"),
+			Messages.getString("MEncoderVideo.105"),
+			Messages.getString("MEncoderVideo.106"),
+			Messages.getString("MEncoderVideo.107"),
+			Messages.getString("MEncoderVideo.108"),
+			Messages.getString("MEncoderVideo.109"),
+			Messages.getString("MEncoderVideo.110"),
+			Messages.getString("MEncoderVideo.111"),
+			Messages.getString("MEncoderVideo.112"),
+			Messages.getString("MEncoderVideo.113"),
+			Messages.getString("MEncoderVideo.114"),
+			Messages.getString("MEncoderVideo.115"),
+			Messages.getString("MEncoderVideo.116"),
+			Messages.getString("MEncoderVideo.117"),
+			Messages.getString("MEncoderVideo.118"),
+			Messages.getString("MEncoderVideo.119"),
+			Messages.getString("MEncoderVideo.120"),
+			Messages.getString("MEncoderVideo.121"),
+			Messages.getString("MEncoderVideo.122"),
+			Messages.getString("MEncoderVideo.123"),
+			Messages.getString("MEncoderVideo.124")
+		};
+
+		MyComboBoxModel cbm = new MyComboBoxModel(data);
+		subtitleCodePage = new JComboBox(cbm);
+		subtitleCodePage.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					String s = (String) e.getItem();
+					int offset = s.indexOf("/*");
+
+					if (offset > -1) {
+						s = s.substring(0, offset).trim();
+					}
+
+					configuration.setSubtitlesCodepage(s);
+				}
+			}
+		});
+
+		subtitleCodePage.getEditor().getEditorComponent().addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				subtitleCodePage.getItemListeners()[0].itemStateChanged(new ItemEvent(subtitleCodePage, 0, subtitleCodePage.getEditor().getItem(), ItemEvent.SELECTED));
+			}
+		});
+
+		subtitleCodePage.setEditable(true);
+		builder.add(subtitleCodePage, FormLayoutUtil.flip(cc.xyw(3, 19, 7), colSpec, orientation));
+
+		fribidi = new JCheckBox(Messages.getString("MEncoderVideo.23"));
+		fribidi.setContentAreaFilled(false);
+
+		if (configuration.isMencoderSubFribidi()) {
+			fribidi.setSelected(true);
+		}
+
+		fribidi.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setMencoderSubFribidi(e.getStateChange() == ItemEvent.SELECTED);
+			}
+		});
+
+		builder.add(fribidi, FormLayoutUtil.flip(cc.xyw(11, 19, 4), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.24"), FormLayoutUtil.flip(cc.xy(1, 21), colSpec, orientation));
+
+		defaultfont = new JTextField(configuration.getFont());
+		defaultfont.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				configuration.setFont(defaultfont.getText());
+			}
+		});
+
+		builder.add(defaultfont, FormLayoutUtil.flip(cc.xyw(3, 21, 8), colSpec, orientation));
+
+		fontselect = new CustomJButton("...");
+		fontselect.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser chooser = new JFileChooser();
+				chooser.setFileFilter(new FontFileFilter());
+				int returnVal = chooser.showDialog((Component) e.getSource(), Messages.getString("MEncoderVideo.25"));
+				if (returnVal == JFileChooser.APPROVE_OPTION) {
+					defaultfont.setText(chooser.getSelectedFile().getAbsolutePath());
+					configuration.setFont(chooser.getSelectedFile().getAbsolutePath());
+				}
+			}
+		});
+
+		builder.add(fontselect, FormLayoutUtil.flip(cc.xyw(11, 21, 2), colSpec, orientation));
+
 		builder.addLabel(Messages.getString("MEncoderVideo.12"), FormLayoutUtil.flip(cc.xy(1, 25, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 
-		mencoder_ass_scale = new JTextField(configuration.getMencoderAssScale());
+		mencoder_ass_scale = new JTextField(configuration.getAssScale());
 		mencoder_ass_scale.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				configuration.setMencoderAssScale(mencoder_ass_scale.getText());
+				configuration.setAssScale(mencoder_ass_scale.getText());
 			}
 		});
 
 		builder.addLabel(Messages.getString("MEncoderVideo.13"), FormLayoutUtil.flip(cc.xy(5, 25), colSpec, orientation));
 
-		mencoder_ass_outline = new JTextField(configuration.getMencoderAssOutline());
+		mencoder_ass_outline = new JTextField(configuration.getAssOutline());
 		mencoder_ass_outline.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				configuration.setMencoderAssOutline(mencoder_ass_outline.getText());
+				configuration.setAssOutline(mencoder_ass_outline.getText());
 			}
 		});
 
 		builder.addLabel(Messages.getString("MEncoderVideo.14"), FormLayoutUtil.flip(cc.xy(9, 25), colSpec, orientation));
 
-		mencoder_ass_shadow = new JTextField(configuration.getMencoderAssShadow());
+		mencoder_ass_shadow = new JTextField(configuration.getAssShadow());
 		mencoder_ass_shadow.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				configuration.setMencoderAssShadow(mencoder_ass_shadow.getText());
+				configuration.setAssShadow(mencoder_ass_shadow.getText());
 			}
 		});
 
@@ -1291,7 +1396,7 @@ public class MEncoderVideo extends Player {
 						}
 					}
 
-					sb.append("-ass-color ").append(assSubColor).append(" -ass-border-color 00000000 -ass-font-scale ").append(configuration.getMencoderAssScale());
+					sb.append("-ass-color ").append(assSubColor).append(" -ass-border-color 00000000 -ass-font-scale ").append(configuration.getAssScale());
 
 					// Set subtitles font
 					if (configuration.getFont() != null && configuration.getFont().length() > 0) {
@@ -1327,7 +1432,7 @@ public class MEncoderVideo extends Player {
 						subtitleMargin = subtitleMargin / 2;
 					}
 
-					sb.append("Outline=").append(configuration.getMencoderAssOutline()).append(",Shadow=").append(configuration.getMencoderAssShadow());
+					sb.append("Outline=").append(configuration.getAssOutline()).append(",Shadow=").append(configuration.getAssShadow());
 
 					try {
 						userMargin = Integer.parseInt(configuration.getMencoderAssMargin());
