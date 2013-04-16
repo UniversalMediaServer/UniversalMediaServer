@@ -32,6 +32,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import static java.nio.file.StandardCopyOption.*;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.ArrayList;
@@ -1016,19 +1018,19 @@ public class FFMpegVideo extends Player {
 		}
 
 		if (params.sid.isEmbedded()) {
-			String convertedSubs = subsPath.getAbsolutePath() + File.separator + new File(fileName).getName() + "_EMB_ID" + params.sid.getId() + ".ass.ass";
+			String convertedSubs = subsPath.getAbsolutePath() + File.separator + new File(fileName).getName() + "_EMB_ID" + params.sid.getId() + ".ass";
 			if (new File(convertedSubs).exists()) {
 				tempSubs = new File(convertedSubs);
 			} else {
 				tempSubs = extractSubtitlesToSubDir(fileName, media, params);
+			}
 
-				if (tempSubs != null) {
-					try {
-						tempSubs = applySubsSettingsToTempSubsFile(tempSubs);
-					} catch (IOException e) {
-						LOGGER.debug("Applying subs setting ends with error: " + e);
-						tempSubs = null;
-					}
+			if (tempSubs != null && configuration.isFFmpegrFontConfig()) {
+				try {
+					tempSubs = applySubsSettingsToTempSubsFile(tempSubs);
+				} catch (IOException e) {
+					LOGGER.debug("Applying subs setting ends with error: " + e);
+					tempSubs = null;
 				}
 			}
 		} else if (params.sid.isExternal()) { // Convert external subs to ASS format
@@ -1053,6 +1055,15 @@ public class FFMpegVideo extends Player {
 					LOGGER.debug("External subtitles can't be converted to ASS format. Error: " + e);
 					tempSubs = null;
 				}
+
+				if (tempSubs != null && configuration.isFFmpegrFontConfig()) {
+					try {
+						tempSubs = applySubsSettingsToTempSubsFile(tempSubs);
+					} catch (IOException e) {
+						LOGGER.debug("Applying subs setting ends with error: " + e);
+						tempSubs = null;
+					}
+				}
 			}
 		}
 
@@ -1061,6 +1072,7 @@ public class FFMpegVideo extends Player {
 				tempSubs = SubtitleUtils.applyTimeSeeking(tempSubs, params.timeseek);
 			} catch (IOException e) {
 				LOGGER.debug("Applying timeseekin caused an error: " + e);
+				tempSubs = null;
 			}
 		}
 
@@ -1123,9 +1135,11 @@ public class FFMpegVideo extends Player {
 	}
 
 	public File applySubsSettingsToTempSubsFile(File tempSubs) throws IOException {
-		File outputSubs = new File(tempSubs.getAbsolutePath() + ".ass");
+		File outputSubs = tempSubs;
+		File temp = new File(SubtitleUtils.tempFile(tempSubs.getName()));
+		Files.copy(tempSubs.toPath(), temp.toPath(), REPLACE_EXISTING);
 		BufferedWriter output;
-		try (BufferedReader input = new BufferedReader(new FileReader(tempSubs))) {
+		try (BufferedReader input = new BufferedReader(new FileReader(temp))) {
 			output = new BufferedWriter(new FileWriter(outputSubs));
 			String line;
 			String[] format = null;
@@ -1151,7 +1165,7 @@ public class FFMpegVideo extends Player {
 						}
 
 						if (format[i].contains("Fontsize")) {
-							params[i] = Integer.toString((int) (14 * Double.parseDouble(configuration.getAssScale())));
+							params[i] = Integer.toString((int) (16 * Double.parseDouble(configuration.getAssScale())));
 							continue;
 						}
 
