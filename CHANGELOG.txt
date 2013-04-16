@@ -8,6 +8,7 @@
 		Added configuration wizard to simplify common things like network configuration
 		Added an option to hide/show advanced options, hopefully making things less confusing/daunting for most users
 		Added VLC video transcoding (thanks, LordQuackstar!)
+		Improved memory defaults on Windows
 
 2.6.1 - 2013-04-16
 
