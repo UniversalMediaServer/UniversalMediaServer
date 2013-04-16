@@ -48,7 +48,6 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.InputFile;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleUtils;
-import net.pms.formats.v2.SubtitleUtils;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeIPCProcess;
 import net.pms.io.PipeProcess;
@@ -111,7 +110,6 @@ public class FFMpegVideo extends Player {
 		List<String> videoFilterOptions = new ArrayList<>();
 		String subsOption = null;
 		String padding = null;
-		String externalSubtitlesFileName;
 
 		boolean isResolutionTooHighForRenderer = renderer.isVideoRescale() && // renderer defines a max width/height
 			(media != null && media.isMediaparsed()) &&
@@ -124,35 +122,25 @@ public class FFMpegVideo extends Player {
 			StringBuilder s = new StringBuilder();
 			CharacterIterator it = new StringCharacterIterator(extSubs);
 
-			if (params.sid.getType() == SubtitleType.SUBRIP) {
-				try  {
-					externalSubtitlesFileName = SubtitleUtils.ConvertSrtToAss(externalSubtitlesFileName, params.timeseek, configuration).getAbsolutePath();
-				} catch (IOException e) {
-					LOGGER.debug("Converting to ASS file raised an error: {}", e.getMessage());
+			for (char ch = it.first(); ch != CharacterIterator.DONE; ch = it.next()) {
+				switch (ch) {
+					case ':':
+						s.append("\\\\:");
+						break;
+					case '\\':
+						s.append("/");
+						break;
+					case ']':
+					case '[':
+						s.append("\\");
+					default:
+						s.append(ch);
+						break;
 				}
-
 			}
-			
-			if (externalSubtitlesFileName != null) {
-				StringBuilder s = new StringBuilder();
-				CharacterIterator it = new StringCharacterIterator(externalSubtitlesFileName);
 
-				for (char ch = it.first(); ch != CharacterIterator.DONE; ch = it.next()) {
-					switch (ch) {
-						case ':':
-							s.append("\\\\:");
-							break;
-						case '\\':
-							s.append("/");
-							break;
-						case ']':
-						case '[':
-							s.append("\\");
-						default:
-							s.append(ch);
-							break;
-					}
-				}
+			String subsFile = s.toString();
+			subsFile = subsFile.replace(",", "\\,");
 			subsOption = "ass=" + subsFile;
 
 		}

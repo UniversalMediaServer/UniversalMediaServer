@@ -1367,20 +1367,12 @@ public class PmsConfiguration {
 	public void setMencoderSubFribidi(boolean value) {
 		configuration.setProperty(KEY_MENCODER_SUB_FRIBIDI, value);
 	}
-	
+
 	/**
 	 * @deprecated Use {@link #setFont(String value)} instead.
 	 */
 	public void setMencoderFont(String value) {
 		setFont(value);
-	}
-	
-	/**
-	 * Sets the name of a TrueType font to use for subtitles.
-	 * @param value The font name.
-	 */
-	public void setFont(String value) {
-		configuration.setProperty(KEY_FONT, value);
 	}
 
 	/**

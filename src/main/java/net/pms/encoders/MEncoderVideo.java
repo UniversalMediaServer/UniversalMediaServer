@@ -46,6 +46,8 @@ import net.pms.formats.v2.SubtitleUtils;
 import net.pms.io.*;
 import net.pms.network.HTTPResource;
 import net.pms.newgui.CustomJButton;
+import net.pms.newgui.FontFileFilter;
+import net.pms.newgui.MyComboBoxModel;
 import net.pms.util.CodecUtil;
 import net.pms.util.FileUtil;
 import net.pms.util.FormLayoutUtil;
@@ -92,6 +94,7 @@ public class MEncoderVideo extends Player {
 	private JButton fontselect;
 	private JTextField ocw;
 	private JTextField och;
+	private JCheckBox fribidi;
 	private final PmsConfiguration configuration;
 
 	private static final String[] INVALID_CUSTOM_OPTIONS = {
@@ -671,7 +674,7 @@ public class MEncoderVideo extends Player {
 			}
 		});
 		builder.add(subq, FormLayoutUtil.flip(cc.xyw(3, 29, 1), colSpec, orientation));
-/**
+
 		subColor = new JButton();
 		subColor.setText(Messages.getString("MEncoderVideo.31"));
 		subColor.setBackground(new Color(configuration.getSubsColor()));
@@ -691,7 +694,7 @@ public class MEncoderVideo extends Player {
 			}
 		});
 		builder.add(subColor, FormLayoutUtil.flip(cc.xyw(12, 23, 4), colSpec, orientation));
- */
+
 		configuration.addConfigurationListener(new ConfigurationListener() {
 			@Override
 			public void configurationChanged(ConfigurationEvent event) {
@@ -704,6 +707,7 @@ public class MEncoderVideo extends Player {
 					subtitleCodePage.setEnabled(enabled);
 					ass.setEnabled(enabled);
 					assdefaultstyle.setEnabled(enabled);
+					fribidi.setEnabled(enabled);
 					fc.setEnabled(enabled);
 					mencoder_ass_scale.setEnabled(enabled);
 					mencoder_ass_outline.setEnabled(enabled);
