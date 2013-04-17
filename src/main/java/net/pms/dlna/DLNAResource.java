@@ -2632,7 +2632,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (resume != null) {
 			resume.stop(startTime, (long) getMedia().getDurationInSeconds() * 1000);
 		} else {
-			if (!PMS.getConfiguration().getResume()) {
+			if (!configuration.getResume()) {
 				return;
 			}
 			for (DLNAResource res : getParent().getChildren()) {
@@ -2658,6 +2658,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 	
 	public int minPlayTime() {
-		return PMS.getConfiguration().getMinPlayTime();
+		return configuration.getMinPlayTime();
 	}
 }
