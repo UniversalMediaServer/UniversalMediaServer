@@ -127,7 +127,7 @@ public class SubtitleUtils {
 			output.write("Format: Layer, Start, End, Style, Text\n");
 			String startTime;
 			String endTime;
-			StringBuilder sb = new StringBuilder();
+			StringBuilder sb;
 
 			while ((line = input.readLine()) != null) {
 				if (line.contains("-->")) {
