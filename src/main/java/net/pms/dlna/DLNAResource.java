@@ -487,7 +487,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					addChildInternal(resumeRes);
 				}
 
-
 				addChildInternal(child);
 
 				boolean forceTranscodeV2 = false;

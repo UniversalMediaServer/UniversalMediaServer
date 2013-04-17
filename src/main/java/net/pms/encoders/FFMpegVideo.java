@@ -1031,10 +1031,10 @@ public class FFMpegVideo extends Player {
 	public File subsConversion(String fileName, DLNAMediaInfo media, OutputParams params) throws IOException {
 		File tempSubs = null;
 
-		if(params.sid.getId() == -1) {
+		if (params.sid.getId() == -1) {
 			return null;
 		}
-		
+
 		String dir = configuration.getDataFile(SUB_DIR);
 		File subsPath = new File(dir);
 		if (!subsPath.exists()) {
