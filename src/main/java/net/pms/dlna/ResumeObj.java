@@ -6,14 +6,11 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 
 public class ResumeObj {
-	private static final Logger LOGGER = LoggerFactory.getLogger(ResumeObj.class);
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	/**
 	 * The length of time taken from the end of the video to assume the user
@@ -29,7 +26,7 @@ public class ResumeObj {
 	private long minDur;
 
 	private static File resumePath() {
-		File path = new File(PMS.getConfiguration().getDataFile("resume"));
+		File path = new File(configuration.getDataFile("resume"));
 		path.mkdirs();
 		return path;
 	}
@@ -45,7 +42,7 @@ public class ResumeObj {
 	}
 	
 	public static ResumeObj create(DLNAResource r) {
-		if (!PMS.getConfiguration().getResume()) {
+		if (!configuration.getResume()) {
 			// resume is off bail early
 			return null;
 		}
@@ -81,12 +78,12 @@ public class ResumeObj {
 		offsetTime = 0;
 		resDuration = 0;
 		file = f;
-		minDur = PMS.getConfiguration().getMinPlayTime();
+		minDur = configuration.getMinPlayTime();
 	}
 	
 	public void setMinDuration(long dur) {
 		if (dur == 0) {
-			dur = PMS.getConfiguration().getMinPlayTime();
+			dur = configuration.getMinPlayTime();
 		}
 		minDur = dur;
 	}
