@@ -794,6 +794,13 @@ public class FFMpegVideo extends Player {
 			}
 			cmdListDTS.add(fileName);
 
+			if (params.timeseek > 0) {
+				cmdListDTS.add("-copypriorss");
+				cmdListDTS.add("0");
+				cmdListDTS.add("-avoid_negative_ts");
+				cmdListDTS.add("1");
+			}
+
 			cmdListDTS.add("-ac");
 			cmdListDTS.add("" + channels);
 
