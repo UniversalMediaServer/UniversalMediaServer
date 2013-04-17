@@ -1009,6 +1009,10 @@ public class FFMpegVideo extends Player {
 	public File subsConversion(String fileName, DLNAMediaInfo media, OutputParams params) throws IOException {
 		File tempSubs = null;
 
+		if(params.sid.getId() == -1) {
+			return null;
+		}
+		
 		String dir = configuration.getDataFile(SUB_DIR);
 		File subsPath = new File(dir);
 		if (!subsPath.exists()) {
@@ -1033,8 +1037,9 @@ public class FFMpegVideo extends Player {
 			}
 		} else if (params.sid.isExternal()) { // Convert external subs to ASS format
 			String convertedSubs = subsPath.getAbsolutePath() + File.separator + params.sid.getExternalFile().getName() + "_EXT.ass";
-			if (new File(convertedSubs).exists()) {
-				tempSubs = new File(convertedSubs);
+			File tmp = new File(convertedSubs);
+			if (tmp.exists() && (tmp.lastModified() > params.sid.getExternalFile().lastModified())) {
+				tempSubs = tmp;
 			} else {
 				String externalSubtitlesFileName;
 
