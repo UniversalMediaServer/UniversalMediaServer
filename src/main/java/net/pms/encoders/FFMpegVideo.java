@@ -1031,6 +1031,10 @@ public class FFMpegVideo extends Player {
 	public File subsConversion(String fileName, DLNAMediaInfo media, OutputParams params) throws IOException {
 		File tempSubs = null;
 
+		if (params.sid.getId() == -1) {
+			return null;
+		}
+
 		String dir = configuration.getDataFile(SUB_DIR);
 		File subsPath = new File(dir);
 		if (!subsPath.exists()) {
@@ -1038,7 +1042,7 @@ public class FFMpegVideo extends Player {
 		}
 
 		if (params.sid.isEmbedded()) {
-			String convertedSubs = subsPath.getAbsolutePath() + File.separator + new File(fileName).getName() + "_EMB_ID" + params.sid.getId() + ".ass";
+			String convertedSubs = subsPath.getAbsolutePath() + File.separator + new File(fileName).getName() + "_" +  new File(fileName).lastModified() + "_EMB_ID" + params.sid.getId() + ".ass";
 			if (new File(convertedSubs).exists()) {
 				tempSubs = new File(convertedSubs);
 			} else {
@@ -1054,9 +1058,10 @@ public class FFMpegVideo extends Player {
 				}
 			}
 		} else if (params.sid.isExternal()) { // Convert external subs to ASS format
-			String convertedSubs = subsPath.getAbsolutePath() + File.separator + params.sid.getExternalFile().getName() + "_EXT.ass";
-			if (new File(convertedSubs).exists()) {
-				tempSubs = new File(convertedSubs);
+			String convertedSubs = subsPath.getAbsolutePath() + File.separator + params.sid.getExternalFile().getName() + "_" +  params.sid.getExternalFile().lastModified() + "_EXT.ass";
+			File tmp = new File(convertedSubs);
+			if (tmp.exists() && (tmp.lastModified() > params.sid.getExternalFile().lastModified())) {
+				tempSubs = tmp;
 			} else {
 				String externalSubtitlesFileName;
 
@@ -1133,7 +1138,7 @@ public class FFMpegVideo extends Player {
 			path.mkdirs();
 		}
 
-		File tempSubsFile = new File(path.getAbsolutePath() + File.separator + new File(fileName).getName() + "_EMB_ID" + params.sid.getId() + ".ass");
+		File tempSubsFile = new File(path.getAbsolutePath() + File.separator + new File(fileName).getName() + "_" +  new File(fileName).lastModified() + "_EMB_ID" + params.sid.getId() + ".ass");
 
 		cmdList.add(tempSubsFile.getAbsolutePath());
 
