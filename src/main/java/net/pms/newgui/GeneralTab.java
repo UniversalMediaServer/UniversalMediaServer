@@ -46,11 +46,12 @@ public class GeneralTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GeneralTab.class);
 
 	private static final String COL_SPEC = "left:pref, 3dlu, p, 3dlu , p, 3dlu, p, 3dlu, pref:grow";
-	private static final String ROW_SPEC = "p, 0dlu, p, 0dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
+	private static final String ROW_SPEC = "p, 0dlu, p, 0dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
 
-	private JCheckBox smcheckBox;
+	public static JCheckBox smcheckBox;
 	private JCheckBox autoStart;
 	private JCheckBox autoUpdateCheckBox;
+	private JCheckBox hideAdvancedOptions;
 	private JCheckBox newHTTPEngine;
 	private JCheckBox preventSleep;
 	private JTextField host;
@@ -58,7 +59,7 @@ public class GeneralTab {
 	private JComboBox langs;
 	private JComboBox networkinterfacesCBX;
 	private JTextField ip_filter;
-	private JTextField maxbitrate;
+	public static JTextField maxbitrate;
 	private JComboBox renderers;
 	private final PmsConfiguration configuration;
 	private JCheckBox extNetBox;
@@ -157,51 +158,53 @@ public class GeneralTab {
 			builder.add(autoStart, FormLayoutUtil.flip(cc.xyw(3, 9, 7), colSpec, orientation));
 		}
 
-		CustomJButton service = new CustomJButton(Messages.getString("NetworkTab.4"));
-		service.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (PMS.get().installWin32Service()) {
-					LOGGER.info(Messages.getString("PMS.41"));
+		if (!configuration.isHideAdvancedOptions()) {
+			CustomJButton service = new CustomJButton(Messages.getString("NetworkTab.4"));
+			service.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					if (PMS.get().installWin32Service()) {
+						LOGGER.info(Messages.getString("PMS.41"));
+						JOptionPane.showMessageDialog(
+							(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+							Messages.getString("NetworkTab.11") +
+							Messages.getString("NetworkTab.12"),
+							Messages.getString("Dialog.Information"),
+							JOptionPane.INFORMATION_MESSAGE
+						);
+					} else {
+						JOptionPane.showMessageDialog(
+							(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+							Messages.getString("NetworkTab.14"),
+							Messages.getString("Dialog.Error"),
+							JOptionPane.ERROR_MESSAGE
+						);
+					}
+				}
+			});
+			builder.add(service, FormLayoutUtil.flip(cc.xy(1, 11), colSpec, orientation));
+			if (System.getProperty(LooksFrame.START_SERVICE) != null || !Platform.isWindows()) {
+				service.setEnabled(false);
+			}
+
+			CustomJButton serviceUninstall = new CustomJButton(Messages.getString("GeneralTab.2"));
+			serviceUninstall.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					PMS.get().uninstallWin32Service();
+					LOGGER.info(Messages.getString("GeneralTab.3"));
 					JOptionPane.showMessageDialog(
 						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-						Messages.getString("NetworkTab.11") +
-						Messages.getString("NetworkTab.12"),
+						Messages.getString("GeneralTab.3"),
 						Messages.getString("Dialog.Information"),
 						JOptionPane.INFORMATION_MESSAGE
 					);
-				} else {
-					JOptionPane.showMessageDialog(
-						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-						Messages.getString("NetworkTab.14"),
-						Messages.getString("Dialog.Error"),
-						JOptionPane.ERROR_MESSAGE
-					);
 				}
+			});
+			builder.add(serviceUninstall, FormLayoutUtil.flip(cc.xy(3, 11), colSpec, orientation));
+			if (System.getProperty(LooksFrame.START_SERVICE) != null || !Platform.isWindows()) {
+				serviceUninstall.setEnabled(false);
 			}
-		});
-		builder.add(service, FormLayoutUtil.flip(cc.xy(1, 11), colSpec, orientation));
-		if (System.getProperty(LooksFrame.START_SERVICE) != null || !Platform.isWindows()) {
-			service.setEnabled(false);
-		}
-
-		CustomJButton serviceUninstall = new CustomJButton(Messages.getString("GeneralTab.2"));
-		serviceUninstall.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				PMS.get().uninstallWin32Service();
-				LOGGER.info(Messages.getString("GeneralTab.3"));
-				JOptionPane.showMessageDialog(
-					(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-					Messages.getString("GeneralTab.3"),
-					Messages.getString("Dialog.Information"),
-					JOptionPane.INFORMATION_MESSAGE
-				);
-			}
-		});
-		builder.add(serviceUninstall, FormLayoutUtil.flip(cc.xy(3, 11), colSpec, orientation));
-		if (System.getProperty(LooksFrame.START_SERVICE) != null || !Platform.isWindows()) {
-			serviceUninstall.setEnabled(false);
 		}
 
 		CustomJButton checkForUpdates = new CustomJButton(Messages.getString("NetworkTab.8"));
@@ -212,7 +215,11 @@ public class GeneralTab {
 				frame.checkForUpdates();
 			}
 		});
-		builder.add(checkForUpdates, FormLayoutUtil.flip(cc.xy(1, 13), colSpec, orientation));
+		if (configuration.isHideAdvancedOptions()) {
+			builder.add(checkForUpdates, FormLayoutUtil.flip(cc.xy(1, 11), colSpec, orientation));
+		} else {
+			builder.add(checkForUpdates, FormLayoutUtil.flip(cc.xy(1, 13), colSpec, orientation));
+		}
 
 		autoUpdateCheckBox = new JCheckBox(Messages.getString("NetworkTab.9"));
 		autoUpdateCheckBox.setContentAreaFilled(false);
@@ -225,173 +232,30 @@ public class GeneralTab {
 		if (configuration.isAutoUpdate()) {
 			autoUpdateCheckBox.setSelected(true);
 		}
-		builder.add(autoUpdateCheckBox, FormLayoutUtil.flip(cc.xyw(3, 13, 7), colSpec, orientation));
+		if (configuration.isHideAdvancedOptions()) {
+			builder.add(autoUpdateCheckBox, FormLayoutUtil.flip(cc.xyw(3, 11, 7), colSpec, orientation));
+		} else {
+			builder.add(autoUpdateCheckBox, FormLayoutUtil.flip(cc.xyw(3, 13, 7), colSpec, orientation));
+		}
 		if (!Build.isUpdatable()) {
 			checkForUpdates.setEnabled(false);
 			autoUpdateCheckBox.setEnabled(false);
 		}
 
-		// Edit UMS configuration file manually
-		CustomJButton confEdit = new CustomJButton(Messages.getString("NetworkTab.51"));
-		confEdit.addActionListener(new ActionListener() {
+		hideAdvancedOptions = new JCheckBox(Messages.getString("NetworkTab.61"));
+		hideAdvancedOptions.setContentAreaFilled(false);
+		hideAdvancedOptions.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				JPanel tPanel = new JPanel(new BorderLayout());
-				final File conf = new File(configuration.getProfilePath());
-				final JTextArea textArea = new JTextArea();
-				textArea.setFont(new Font("Courier", Font.PLAIN, 12));
-				JScrollPane scrollPane = new JScrollPane(textArea);
-				scrollPane.setPreferredSize(new java.awt.Dimension(900, 450));
-
-				try {
-					try (FileInputStream fis = new FileInputStream(conf)) {
-						BufferedReader in = new BufferedReader(new InputStreamReader(fis));
-						String line;
-						StringBuilder sb = new StringBuilder();
-
-						while ((line = in.readLine()) != null) {
-							sb.append(line);
-							sb.append("\n");
-						}
-
-						textArea.setText(sb.toString());
-					}
-				} catch (Exception e1) {
-					return;
-				}
-
-				tPanel.add(scrollPane, BorderLayout.NORTH);
-				Object[] options = {Messages.getString("LooksFrame.9"), Messages.getString("NetworkTab.45")};
-
-				if (JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-					tPanel, Messages.getString("NetworkTab.51"),
-					JOptionPane.OK_CANCEL_OPTION,
-					JOptionPane.PLAIN_MESSAGE, null, options, null) == JOptionPane.OK_OPTION) {
-					String text = textArea.getText();
-
-					try {
-						try (FileOutputStream fos = new FileOutputStream(conf)) {
-							fos.write(text.getBytes());
-							fos.flush();
-						}
-						configuration.reload();
-					} catch (Exception e1) {
-						JOptionPane.showMessageDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-							Messages.getString("NetworkTab.52") + e1.toString());
-					}
-				}
+				configuration.setHideAdvancedOptions(hideAdvancedOptions.isSelected());
 			}
 		});
-		builder.add(confEdit, FormLayoutUtil.flip(cc.xy(1, 15), colSpec, orientation));
-
-		host = new JTextField(configuration.getServerHostname());
-		host.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setHostname(host.getText());
-			}
-		});
-
-		port = new JTextField(configuration.getServerPort() != 5001 ? "" + configuration.getServerPort() : "");
-		port.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				try {
-					String p = port.getText();
-					if (StringUtils.isEmpty(p)) {
-						p = "5001";
-					}
-					int ab = Integer.parseInt(p);
-					configuration.setServerPort(ab);
-				} catch (NumberFormatException nfe) {
-					LOGGER.debug("Could not parse port from \"" + port.getText() + "\"");
-				}
-
-			}
-		});
-
-		cmp = builder.addSeparator(Messages.getString("NetworkTab.22"), FormLayoutUtil.flip(cc.xyw(1, 17, 9), colSpec, orientation));
-		cmp = (JComponent) cmp.getComponent(0);
-		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
-
-		final KeyedComboBoxModel networkInterfaces = createNetworkInterfacesModel();
-		networkinterfacesCBX = new JComboBox(networkInterfaces);
-		networkInterfaces.setSelectedKey(configuration.getNetworkInterface());
-		networkinterfacesCBX.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				if (e.getStateChange() == ItemEvent.SELECTED) {
-					configuration.setNetworkInterface((String) networkInterfaces.getSelectedKey());
-				}
-			}
-		});
-
-		ip_filter = new JTextField(configuration.getIpFilter());
-		ip_filter.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setIpFilter(ip_filter.getText());
-			}
-		});
-
-		maxbitrate = new JTextField(configuration.getMaximumBitrate());
-		maxbitrate.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setMaximumBitrate(maxbitrate.getText());
-			}
-		});
-
-		builder.addLabel(Messages.getString("NetworkTab.20"), FormLayoutUtil.flip(cc.xy(1, 19), colSpec, orientation));
-		builder.add(networkinterfacesCBX, FormLayoutUtil.flip(cc.xyw(3, 19, 7), colSpec, orientation));
-		builder.addLabel(Messages.getString("NetworkTab.23"), FormLayoutUtil.flip(cc.xy(1, 21), colSpec, orientation));
-		builder.add(host, FormLayoutUtil.flip(cc.xyw(3, 21, 7), colSpec, orientation));
-		builder.addLabel(Messages.getString("NetworkTab.24"), FormLayoutUtil.flip(cc.xy(1, 23), colSpec, orientation));
-		builder.add(port, FormLayoutUtil.flip(cc.xyw(3, 23, 7), colSpec, orientation));
-		builder.addLabel(Messages.getString("NetworkTab.30"), FormLayoutUtil.flip(cc.xy(1, 25), colSpec, orientation));
-		builder.add(ip_filter, FormLayoutUtil.flip(cc.xyw(3, 25, 7), colSpec, orientation));
-		builder.addLabel(Messages.getString("NetworkTab.35"), FormLayoutUtil.flip(cc.xy(1, 27), colSpec, orientation));
-		builder.add(maxbitrate, FormLayoutUtil.flip(cc.xyw(3, 27, 7), colSpec, orientation));
-
-
-		cmp = builder.addSeparator(Messages.getString("NetworkTab.31"), FormLayoutUtil.flip(cc.xyw(1, 29, 9), colSpec, orientation));
-		cmp = (JComponent) cmp.getComponent(0);
-		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
-
-		newHTTPEngine = new JCheckBox(Messages.getString("NetworkTab.32"));
-		newHTTPEngine.setSelected(configuration.isHTTPEngineV2());
-		newHTTPEngine.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setHTTPEngineV2((e.getStateChange() == ItemEvent.SELECTED));
-			}
-		});
-		builder.add(newHTTPEngine, FormLayoutUtil.flip(cc.xyw(1, 31, 9), colSpec, orientation));
-
-		preventSleep = new JCheckBox(Messages.getString("NetworkTab.33"));
-		preventSleep.setSelected(configuration.isPreventsSleep());
-		preventSleep.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setPreventsSleep((e.getStateChange() == ItemEvent.SELECTED));
-			}
-		});
-		builder.add(preventSleep, FormLayoutUtil.flip(cc.xyw(1, 33, 9), colSpec, orientation));
-
-		JCheckBox fdCheckBox = new JCheckBox(Messages.getString("NetworkTab.38"));
-		fdCheckBox.setContentAreaFilled(false);
-		fdCheckBox.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setRendererForceDefault((e.getStateChange() == ItemEvent.SELECTED));
-			}
-		});
-
-		if (configuration.isRendererForceDefault()) {
-			fdCheckBox.setSelected(true);
+		if (configuration.isHideAdvancedOptions()) {
+			hideAdvancedOptions.setSelected(true);
+			builder.add(hideAdvancedOptions, FormLayoutUtil.flip(cc.xyw(1, 13, 9), colSpec, orientation));
+		} else {
+			builder.add(hideAdvancedOptions, FormLayoutUtil.flip(cc.xyw(1, 15, 9), colSpec, orientation));
 		}
-
-		builder.addLabel(Messages.getString("NetworkTab.36"), FormLayoutUtil.flip(cc.xy(1, 35), colSpec, orientation));
 
 		ArrayList<RendererConfiguration> allConfs = RendererConfiguration.getAllRendererConfigurations();
 		ArrayList<Object> keyValues = new ArrayList<>();
@@ -420,21 +284,185 @@ public class GeneralTab {
 			renderers.setSelectedIndex(0);
 		}
 
-		builder.add(renderers, FormLayoutUtil.flip(cc.xyw(3, 35, 7), colSpec, orientation));
+		if (!configuration.isHideAdvancedOptions()) {
+			// Edit UMS configuration file manually
+			CustomJButton confEdit = new CustomJButton(Messages.getString("NetworkTab.51"));
+			confEdit.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					JPanel tPanel = new JPanel(new BorderLayout());
+					final File conf = new File(configuration.getProfilePath());
+					final JTextArea textArea = new JTextArea();
+					textArea.setFont(new Font("Courier", Font.PLAIN, 12));
+					JScrollPane scrollPane = new JScrollPane(textArea);
+					scrollPane.setPreferredSize(new java.awt.Dimension(900, 450));
 
-		builder.add(fdCheckBox, FormLayoutUtil.flip(cc.xyw(1, 37, 9), colSpec, orientation));
+					try {
+						try (FileInputStream fis = new FileInputStream(conf)) {
+							BufferedReader in = new BufferedReader(new InputStreamReader(fis));
+							String line;
+							StringBuilder sb = new StringBuilder();
 
-		// External network box
-		extNetBox = new JCheckBox(Messages.getString("NetworkTab.56"));
-		extNetBox.setContentAreaFilled(false);
-		extNetBox.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setExternalNetwork((e.getStateChange() == ItemEvent.SELECTED));
+							while ((line = in.readLine()) != null) {
+								sb.append(line);
+								sb.append("\n");
+							}
+
+							textArea.setText(sb.toString());
+						}
+					} catch (Exception e1) {
+						return;
+					}
+
+					tPanel.add(scrollPane, BorderLayout.NORTH);
+					Object[] options = {Messages.getString("LooksFrame.9"), Messages.getString("NetworkTab.45")};
+
+					if (JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+						tPanel, Messages.getString("NetworkTab.51"),
+						JOptionPane.OK_CANCEL_OPTION,
+						JOptionPane.PLAIN_MESSAGE, null, options, null) == JOptionPane.OK_OPTION) {
+						String text = textArea.getText();
+
+						try {
+							try (FileOutputStream fos = new FileOutputStream(conf)) {
+								fos.write(text.getBytes());
+								fos.flush();
+							}
+							configuration.reload();
+						} catch (Exception e1) {
+							JOptionPane.showMessageDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+								Messages.getString("NetworkTab.52") + e1.toString());
+						}
+					}
+				}
+			});
+			builder.add(confEdit, FormLayoutUtil.flip(cc.xy(1, 17), colSpec, orientation));
+
+			host = new JTextField(configuration.getServerHostname());
+			host.addKeyListener(new KeyAdapter() {
+				@Override
+				public void keyReleased(KeyEvent e) {
+					configuration.setHostname(host.getText());
+				}
+			});
+
+			port = new JTextField(configuration.getServerPort() != 5001 ? "" + configuration.getServerPort() : "");
+			port.addKeyListener(new KeyAdapter() {
+				@Override
+				public void keyReleased(KeyEvent e) {
+					try {
+						String p = port.getText();
+						if (StringUtils.isEmpty(p)) {
+							p = "5001";
+						}
+						int ab = Integer.parseInt(p);
+						configuration.setServerPort(ab);
+					} catch (NumberFormatException nfe) {
+						LOGGER.debug("Could not parse port from \"" + port.getText() + "\"");
+					}
+
+				}
+			});
+
+			cmp = builder.addSeparator(Messages.getString("NetworkTab.22"), FormLayoutUtil.flip(cc.xyw(1, 19, 9), colSpec, orientation));
+			cmp = (JComponent) cmp.getComponent(0);
+			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
+
+			final KeyedComboBoxModel networkInterfaces = createNetworkInterfacesModel();
+			networkinterfacesCBX = new JComboBox(networkInterfaces);
+			networkInterfaces.setSelectedKey(configuration.getNetworkInterface());
+			networkinterfacesCBX.addItemListener(new ItemListener() {
+				@Override
+				public void itemStateChanged(ItemEvent e) {
+					if (e.getStateChange() == ItemEvent.SELECTED) {
+						configuration.setNetworkInterface((String) networkInterfaces.getSelectedKey());
+					}
+				}
+			});
+
+			ip_filter = new JTextField(configuration.getIpFilter());
+			ip_filter.addKeyListener(new KeyAdapter() {
+				@Override
+				public void keyReleased(KeyEvent e) {
+					configuration.setIpFilter(ip_filter.getText());
+				}
+			});
+
+			maxbitrate = new JTextField(configuration.getMaximumBitrate());
+			maxbitrate.addKeyListener(new KeyAdapter() {
+				@Override
+				public void keyReleased(KeyEvent e) {
+					configuration.setMaximumBitrate(maxbitrate.getText());
+				}
+			});
+
+			builder.addLabel(Messages.getString("NetworkTab.20"), FormLayoutUtil.flip(cc.xy(1, 21), colSpec, orientation));
+			builder.add(networkinterfacesCBX, FormLayoutUtil.flip(cc.xyw(3, 21, 7), colSpec, orientation));
+			builder.addLabel(Messages.getString("NetworkTab.23"), FormLayoutUtil.flip(cc.xy(1, 23), colSpec, orientation));
+			builder.add(host, FormLayoutUtil.flip(cc.xyw(3, 23, 7), colSpec, orientation));
+			builder.addLabel(Messages.getString("NetworkTab.24"), FormLayoutUtil.flip(cc.xy(1, 25), colSpec, orientation));
+			builder.add(port, FormLayoutUtil.flip(cc.xyw(3, 25, 7), colSpec, orientation));
+			builder.addLabel(Messages.getString("NetworkTab.30"), FormLayoutUtil.flip(cc.xy(1, 27), colSpec, orientation));
+			builder.add(ip_filter, FormLayoutUtil.flip(cc.xyw(3, 27, 7), colSpec, orientation));
+			builder.addLabel(Messages.getString("NetworkTab.35"), FormLayoutUtil.flip(cc.xy(1, 29), colSpec, orientation));
+			builder.add(maxbitrate, FormLayoutUtil.flip(cc.xyw(3, 29, 7), colSpec, orientation));
+
+
+			cmp = builder.addSeparator(Messages.getString("NetworkTab.31"), FormLayoutUtil.flip(cc.xyw(1, 31, 9), colSpec, orientation));
+			cmp = (JComponent) cmp.getComponent(0);
+			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
+
+			newHTTPEngine = new JCheckBox(Messages.getString("NetworkTab.32"));
+			newHTTPEngine.setSelected(configuration.isHTTPEngineV2());
+			newHTTPEngine.addItemListener(new ItemListener() {
+				@Override
+				public void itemStateChanged(ItemEvent e) {
+					configuration.setHTTPEngineV2((e.getStateChange() == ItemEvent.SELECTED));
+				}
+			});
+			builder.add(newHTTPEngine, FormLayoutUtil.flip(cc.xyw(1, 33, 9), colSpec, orientation));
+
+			preventSleep = new JCheckBox(Messages.getString("NetworkTab.33"));
+			preventSleep.setSelected(configuration.isPreventsSleep());
+			preventSleep.addItemListener(new ItemListener() {
+				@Override
+				public void itemStateChanged(ItemEvent e) {
+					configuration.setPreventsSleep((e.getStateChange() == ItemEvent.SELECTED));
+				}
+			});
+			builder.add(preventSleep, FormLayoutUtil.flip(cc.xyw(1, 35, 9), colSpec, orientation));
+
+			JCheckBox fdCheckBox = new JCheckBox(Messages.getString("NetworkTab.38"));
+			fdCheckBox.setContentAreaFilled(false);
+			fdCheckBox.addItemListener(new ItemListener() {
+				@Override
+				public void itemStateChanged(ItemEvent e) {
+					configuration.setRendererForceDefault((e.getStateChange() == ItemEvent.SELECTED));
+				}
+			});
+
+			if (configuration.isRendererForceDefault()) {
+				fdCheckBox.setSelected(true);
 			}
-		});
-		extNetBox.setSelected(configuration.getExternalNetwork());
-		builder.add(extNetBox, FormLayoutUtil.flip(cc.xy(1, 38), colSpec, orientation));
+
+			builder.addLabel(Messages.getString("NetworkTab.36"), FormLayoutUtil.flip(cc.xy(1, 37), colSpec, orientation));
+
+			builder.add(renderers, FormLayoutUtil.flip(cc.xyw(3, 37, 7), colSpec, orientation));
+
+			builder.add(fdCheckBox, FormLayoutUtil.flip(cc.xyw(1, 39, 9), colSpec, orientation));
+
+			// External network box
+			extNetBox = new JCheckBox(Messages.getString("NetworkTab.56"));
+			extNetBox.setContentAreaFilled(false);
+			extNetBox.addItemListener(new ItemListener() {
+				@Override
+				public void itemStateChanged(ItemEvent e) {
+					configuration.setExternalNetwork((e.getStateChange() == ItemEvent.SELECTED));
+				}
+			});
+			extNetBox.setSelected(configuration.getExternalNetwork());
+			builder.add(extNetBox, FormLayoutUtil.flip(cc.xy(1, 41), colSpec, orientation));
+		}
 
 		JPanel panel = builder.getPanel();
 

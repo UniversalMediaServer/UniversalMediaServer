@@ -78,7 +78,7 @@ public class MPG extends Format {
 	public String[] getId() {
 		return new String[] { "mpg", "mpeg", "mpe", "mod", "tivo", "ty", "tmf",
 				"ts", "tp", "m2t", "m2ts", "m2p", "mts", "mp4", "m4v", "avi",
-				"wmv", "wm", "vob", "divx", "div", "vdr" };
+				"wmv", "wm", "vob", "divx", "div", "vdr" , "wtv"};
 	}
 
 	/**
