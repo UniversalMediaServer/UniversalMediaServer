@@ -325,13 +325,10 @@ public class RendererConfiguration {
 		return rank;
 	}
 
-	// FIXME These 'is' methods should disappear. Use feature detection instead.
-	@Deprecated
 	public boolean isXBOX() {
 		return getRendererName().toUpperCase().contains("XBOX");
 	}
 
-	@Deprecated
 	public boolean isXBMC() {
 		return getRendererName().toUpperCase().contains("XBMC");
 	}
@@ -344,7 +341,6 @@ public class RendererConfiguration {
 		return getRendererName().toUpperCase().contains("BRAVIA");
 	}
 
-	@Deprecated
 	public boolean isFDSSDP() {
 		return getRendererName().toUpperCase().contains("FDSSDP");
 	}
