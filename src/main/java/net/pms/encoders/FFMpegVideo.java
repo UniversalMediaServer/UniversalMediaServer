@@ -776,33 +776,46 @@ public class FFMpegVideo extends Player {
 			sm.setBitsPerSample(16);
 			sm.setNbChannels(channels);
 
-			String ffmpegLPCMextract[] = new String[]{
-				executable(),
-				"-y",
-				"-ss", "0",
-				"-i", fileName,
-				"-ac", "" + channels,
-				"-f", "dts",
-				"-c:a", "copy",
-				ffAudioPipe.getInputPipe()
-			};
+			List<String> cmdListDTS = new ArrayList<>();
+			cmdListDTS.add(executable());
+			cmdListDTS.add("-y");
+			cmdListDTS.add("-ss");
+
+			if (params.timeseek > 0) {
+				cmdListDTS.add("" + params.timeseek);
+			} else {
+				cmdListDTS.add("0");
+			}
+
+			if (params.stdin == null) {
+				cmdListDTS.add("-i");
+			} else {
+				cmdListDTS.add("-");
+			}
+			cmdListDTS.add(fileName);
+
+			cmdListDTS.add("-ac");
+			cmdListDTS.add("" + channels);
+
+			cmdListDTS.add("-f");
+			cmdListDTS.add("dts");
+
+			cmdListDTS.add("-c:a");
+			cmdListDTS.add("copy");
+
+			cmdListDTS.add(ffAudioPipe.getInputPipe());
+
+			String[] cmdArrayDTS = new String[cmdListDTS.size()];
+			cmdListDTS.toArray(cmdArrayDTS);
 
 			if (!params.mediaRenderer.isMuxDTSToMpeg()) { // No need to use the PCM trick when media renderer supports DTS
 				ffAudioPipe.setModifier(sm);
 			}
 
-			if (params.stdin != null) {
-				ffmpegLPCMextract[4] = "-";
-			}
-
-			if (params.timeseek > 0) {
-				ffmpegLPCMextract[3] = "" + params.timeseek;
-			}
-
 			OutputParams ffaudioparams = new OutputParams(configuration);
 			ffaudioparams.maxBufferSize = 1;
 			ffaudioparams.stdin = params.stdin;
-			ProcessWrapperImpl ffAudio = new ProcessWrapperImpl(ffmpegLPCMextract, ffaudioparams);
+			ProcessWrapperImpl ffAudio = new ProcessWrapperImpl(cmdArrayDTS, ffaudioparams);
 
 			params.stdin = null;
 			try (PrintWriter pwMux = new PrintWriter(f)) {
