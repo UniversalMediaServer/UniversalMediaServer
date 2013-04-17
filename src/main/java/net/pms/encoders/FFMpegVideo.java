@@ -946,7 +946,7 @@ public class FFMpegVideo extends Player {
 			}
 		});
 		builder.add(fc, cc.xy(2, 7));
-		fc.setSelected(configuration.isFFmpegrFontConfig());
+		fc.setSelected(configuration.isFFmpegFontConfig());
 
 		return builder.getPanel();
 	}
@@ -1045,7 +1045,7 @@ public class FFMpegVideo extends Player {
 				tempSubs = extractSubtitlesToSubDir(fileName, media, params);
 			}
 
-			if (tempSubs != null && configuration.isFFmpegrFontConfig()) {
+			if (tempSubs != null && configuration.isFFmpegFontConfig()) {
 				try {
 					tempSubs = applySubsSettingsToTempSubsFile(tempSubs);
 				} catch (IOException e) {
@@ -1076,7 +1076,7 @@ public class FFMpegVideo extends Player {
 					tempSubs = null;
 				}
 
-				if (tempSubs != null && configuration.isFFmpegrFontConfig()) {
+				if (tempSubs != null && configuration.isFFmpegFontConfig()) {
 					try {
 						tempSubs = applySubsSettingsToTempSubsFile(tempSubs);
 					} catch (IOException e) {
