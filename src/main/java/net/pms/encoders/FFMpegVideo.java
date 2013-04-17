@@ -229,7 +229,7 @@ public class FFMpegVideo extends Player {
 	public List<String> getTranscodeVideoOptions(RendererConfiguration renderer, DLNAMediaInfo media, OutputParams params, String fileName) {
 		List<String> transcodeOptions = new ArrayList<>();
 
-		if (renderer.isTranscodeToWMV()) { // WMV
+		if (renderer.isTranscodeToWMV() && !renderer.isXBOX()) { // WMV
 			transcodeOptions.add("-c:v");
 			transcodeOptions.add("wmv2");
 
@@ -668,7 +668,7 @@ public class FFMpegVideo extends Player {
 		}
 
 		int channels;
-		if (renderer.isTranscodeToWMV()) {
+		if (renderer.isTranscodeToWMV() && !renderer.isXBOX()) {
 			channels = 2;
 		} else if (ac3Remux) {
 			channels = params.aid.getAudioProperties().getNumberOfChannels(); // AC-3 remux
