@@ -2376,7 +2376,7 @@ public class PmsConfiguration {
 		configuration.setProperty(KEY_FFMPEG_FONT_CONFIG, value);
 	}
 
-	public boolean isFFmpegrFontConfig() {
+	public boolean isFFmpegFontConfig() {
 		return getBoolean(KEY_FFMPEG_FONT_CONFIG, false);
 	}
 

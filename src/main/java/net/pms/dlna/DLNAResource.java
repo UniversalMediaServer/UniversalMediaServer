@@ -2576,9 +2576,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return null;
 		}
 		if (
-			PMS.getConfiguration().isDisableSubtitles() ||
-			!PMS.getConfiguration().isAutoloadSubtitles() ||
-			PMS.getConfiguration().isHideLiveSubtitlesFolder()
+			configuration.isDisableSubtitles() ||
+			!configuration.isAutoloadSubtitles() ||
+			configuration.isHideLiveSubtitlesFolder()
 		) {
 			return null;
 		}
