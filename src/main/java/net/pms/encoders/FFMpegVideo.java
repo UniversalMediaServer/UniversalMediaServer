@@ -408,7 +408,7 @@ public class FFMpegVideo extends Player {
 		if (configuration.isFfmpegMultithreading()) {
 			threads = " -threads " + configuration.getNumberOfCpuCores();
 		}
-		return configuration.getFfmpegSettings() + threads;
+		return threads;
 	}
 
 	@Override
@@ -701,7 +701,25 @@ public class FFMpegVideo extends Player {
 
 		// Add MPEG-2 quality settings
 		if (!renderer.isTranscodeToH264TSAC3() && !videoRemux) {
-			String[] customOptions = StringUtils.split(configuration.getFfmpegSettings());
+			String mpeg2Options = configuration.getFfmpegSettings();
+			if (mpeg2Options.contains("Automatic")) {
+				if (mpeg2Options.contains("Wireless")) {
+					mpeg2Options = "-g 25 -qmax 5 -qmin 2";
+
+					// Lower quality for 1080p content
+					if (media.getWidth() > 1280) {
+						mpeg2Options = "-g 25 -qmax 7 -qmin 2";
+					}
+				} else {
+					mpeg2Options = "-g 5 -q:v 1 -qmin 2";
+
+					// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
+					if (params.mediaRenderer.isPS3()) {
+						mpeg2Options = "-g 25 -q:v 1 -qmin 2";
+					}
+				}
+			}
+			String[] customOptions = StringUtils.split(mpeg2Options);
 			cmdList.addAll(new ArrayList<>(Arrays.asList(customOptions)));
 		}
 

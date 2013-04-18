@@ -1306,16 +1306,38 @@ public class MEncoderVideo extends Player {
 		}
 
 		if (configuration.getMPEG2MainSettings() != null) {
-			String mainConfig = configuration.getMPEG2MainSettings();
+			String mpeg2Options = configuration.getMPEG2MainSettings();
 			String customSettings = params.mediaRenderer.getCustomMencoderQualitySettings();
 
-			// Custom settings in PMS may override the settings of the saved configuration
-			if (isNotBlank(customSettings)) {
-				mainConfig = customSettings;
+			boolean isAutomaticQuality = mpeg2Options.contains("Automatic");
+
+			// Custom settings may override the settings of the saved configuration
+			if (isNotBlank(customSettings) && !isAutomaticQuality) {
+				mpeg2Options = customSettings;
 			}
 
-			if (mainConfig.contains("/*")) {
-				mainConfig = mainConfig.substring(mainConfig.indexOf("/*"));
+			// Remove comment from the value
+			if (mpeg2Options.contains("/*")) {
+				mpeg2Options = mpeg2Options.substring(mpeg2Options.indexOf("/*"));
+			}
+
+			// Determine a good quality setting based on video attributes
+			if (isAutomaticQuality) {
+				if (mpeg2Options.contains("Wireless")) {
+					mpeg2Options = "keyint=25:vqmax=5:vqmin=2";
+
+					// Lower quality for 1080p content
+					if (media.getWidth() > 1280) {
+						mpeg2Options = "keyint=25:vqmax=7:vqmin=2";
+					}
+				} else {
+					mpeg2Options = "keyint=5:vqscale=1:vqmin=2";
+
+					// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
+					if (params.mediaRenderer.isPS3()) {
+						mpeg2Options = "keyint=25:vqscale=1:vqmin=2";
+					}
+				}
 			}
 
 			// Ditlew - WDTV Live (+ other byte asking clients), CBR. This probably ought to be placed in addMaximumBitrateConstraints(..)
@@ -1329,17 +1351,16 @@ public class MEncoderVideo extends Player {
 				":abitrate=" + CodecUtil.getAC3Bitrate(configuration, params.aid))) +
 				":threads=" + (wmv ? 1 : configuration.getMencoderMaxThreads()) +
 				(h264ts ? ":o=preset=superfast,crf=20,g=250,i_qfactor=0.71,qcomp=0.6,level=4.1,weightp=0,8x8dct=0,aq-strength=0" : "") +
-				("".equals(mainConfig) ? "" : ":" + mainConfig);
+				("".equals(mpeg2Options) ? "" : ":" + mpeg2Options);
 
 			String audioType = "ac3";
-
 			if (dtsRemux) {
 				audioType = "dts";
 			} else if (pcm) {
 				audioType = "pcm";
 			}
 
-			encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, mainConfig, params.mediaRenderer, audioType);
+			encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, mpeg2Options, params.mediaRenderer, audioType);
 			st = new StringTokenizer(encodeSettings, " ");
 
 			{

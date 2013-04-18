@@ -1959,6 +1959,11 @@ public class PmsConfiguration {
 	 */
 	public String getFfmpegSettings() {
 		String mpegSettings = getMPEG2MainSettings();
+
+		if (mpegSettings.contains("Automatic")) {
+			return mpegSettings;
+		}
+
 		mpegSettings = mpegSettings.replaceAll("[^\\d=]", "");
 		String mpegSettingsArray[] = mpegSettings.split("=");
 		return "-g " + mpegSettingsArray[1] + " -q:v " + mpegSettingsArray[2] + " -qmin " + mpegSettingsArray[3];
@@ -2093,7 +2098,7 @@ public class PmsConfiguration {
 	}
 
 	public String getMPEG2MainSettings() {
-		return getString(KEY_MPEG2_MAIN_SETTINGS, "keyint=5:vqscale=1:vqmin=2");
+		return getString(KEY_MPEG2_MAIN_SETTINGS, "Automatic (Wired)");
 	}
 
 	/**
