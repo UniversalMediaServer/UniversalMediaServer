@@ -509,7 +509,7 @@ public class TranscodingTab {
 
 		builder.add(new JLabel(Messages.getString("TrTab2.32")), FormLayoutUtil.flip(cc.xy(1, 10), colSpec, orientation));
 		Object data[] = new Object[] {
-			configuration.getMPEG2MainSettings(),                                                   /* default */
+			configuration.getMPEG2MainSettings(),                                                   /* current setting */
 			String.format("Automatic (Wired)",                    Messages.getString("TrTab2.70")),
 			String.format("Automatic (Wireless)",                 Messages.getString("TrTab2.71")),
 			String.format("keyint=5:vqscale=1:vqmin=2  /* %s */", Messages.getString("TrTab2.60")), /* great */
