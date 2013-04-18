@@ -2570,7 +2570,7 @@ public class PmsConfiguration {
 	}
 
 	public boolean isPrettifyFilenames() {
-		return getBoolean(KEY_PRETTIFY_FILENAMES, true);
+		return getBoolean(KEY_PRETTIFY_FILENAMES, false);
 	}
 
 	public void setPrettifyFilenames(boolean value) {
