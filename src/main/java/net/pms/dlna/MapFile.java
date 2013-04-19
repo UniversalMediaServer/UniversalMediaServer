@@ -209,7 +209,7 @@ public class MapFile extends DLNAResource {
 		}
 		return discoverable.isEmpty();
 	}
-	
+
 	private String renameForSorting(String filename) {
 		if (configuration.isPrettifyFilenames()) {
 			// This chunk makes anime sort properly
@@ -233,7 +233,7 @@ public class MapFile extends DLNAResource {
 
 		return filename;
 	}
-	
+
 	private void sort(List<File> files) {
 		switch (configuration.getSortMethod()) {
 			case 4: // Locale-sensitive natural sort
