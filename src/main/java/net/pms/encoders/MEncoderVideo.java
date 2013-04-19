@@ -1307,35 +1307,47 @@ public class MEncoderVideo extends Player {
 
 		if (configuration.getMPEG2MainSettings() != null) {
 			String mpeg2Options = configuration.getMPEG2MainSettings();
-			String customSettings = params.mediaRenderer.getCustomMencoderQualitySettings();
+			String mpeg2OptionsRenderer = params.mediaRenderer.getCustomMencoderQualitySettings();
 
-			boolean isAutomaticQuality = mpeg2Options.contains("Automatic");
+			// Renderer settings take priority over user settings
+			if (isNotBlank(mpeg2OptionsRenderer)) {
+				mpeg2Options = mpeg2OptionsRenderer;
+			} else {
+				// Remove comment from the value
+				if (mpeg2Options.contains("/*")) {
+					mpeg2Options = mpeg2Options.substring(mpeg2Options.indexOf("/*"));
+				}
 
-			// Custom settings may override the settings of the saved configuration
-			if (isNotBlank(customSettings) && !isAutomaticQuality) {
-				mpeg2Options = customSettings;
-			}
+				// Find out the maximum bandwidth we are supposed to use
+				int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
+				int rendererMaxBitrates[] = new int[2];
 
-			// Remove comment from the value
-			if (mpeg2Options.contains("/*")) {
-				mpeg2Options = mpeg2Options.substring(mpeg2Options.indexOf("/*"));
-			}
+				if (params.mediaRenderer.getMaxVideoBitrate() != null) {
+					rendererMaxBitrates = getVideoBitrateConfig(params.mediaRenderer.getMaxVideoBitrate());
+				}
 
-			// Determine a good quality setting based on video attributes
-			if (isAutomaticQuality) {
-				if (mpeg2Options.contains("Wireless")) {
-					mpeg2Options = "keyint=25:vqmax=5:vqmin=2";
+				if ((rendererMaxBitrates[0] > 0) && (rendererMaxBitrates[0] < defaultMaxBitrates[0])) {
+					defaultMaxBitrates = rendererMaxBitrates;
+				}
 
-					// Lower quality for 1080p content
-					if (media.getWidth() > 1280) {
-						mpeg2Options = "keyint=25:vqmax=7:vqmin=2";
-					}
-				} else {
-					mpeg2Options = "keyint=5:vqscale=1:vqmin=2";
+				int maximumBitrate = defaultMaxBitrates[0];
 
-					// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
-					if (params.mediaRenderer.isPS3()) {
-						mpeg2Options = "keyint=25:vqscale=1:vqmin=2";
+				// Determine a good quality setting based on video attributes
+				if (mpeg2Options.contains("Automatic")) {
+					if (mpeg2Options.contains("Wireless") || maximumBitrate < 70) {
+						mpeg2Options = "keyint=25:vqmax=5:vqmin=2";
+
+						// Lower quality for 1080p content
+						if (media.getWidth() > 1280) {
+							mpeg2Options = "keyint=25:vqmax=7:vqmin=2";
+						}
+					} else {
+						mpeg2Options = "keyint=5:vqscale=1:vqmin=2";
+
+						// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
+						if (params.mediaRenderer.isPS3()) {
+							mpeg2Options = "keyint=25:vqscale=1:vqmin=2";
+						}
 					}
 				}
 			}
