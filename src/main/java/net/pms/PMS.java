@@ -374,17 +374,17 @@ public class PMS {
 				if (networkType == JOptionPane.YES_OPTION) {
 					// Wired (Gigabit)
 					configuration.setMaximumBitrate("0");
-					configuration.setMPEG2MainSettings("keyint=5:vqscale=1:vqmin=2");
+					configuration.setMPEG2MainSettings("Automatic (Wired)");
 					save();
 				} else if (networkType == JOptionPane.NO_OPTION) {
 					// Wired (100 Megabit)
 					configuration.setMaximumBitrate("110");
-					configuration.setMPEG2MainSettings("keyint=5:vqscale=1:vqmin=2");
+					configuration.setMPEG2MainSettings("Automatic (Wired)");
 					save();
 				} else if (networkType == JOptionPane.CANCEL_OPTION) {
 					// Wireless
 					configuration.setMaximumBitrate("110");
-					configuration.setMPEG2MainSettings("keyint=25:vqmax=5:vqmin=2");
+					configuration.setMPEG2MainSettings("Automatic (Wireless)");
 					save();
 				}
 
