@@ -1558,13 +1558,16 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Returns the maximum video bitrate to be used by MEncoder. The default
-	 * value is 110.
+	 * Returns the maximum video bitrate to be used by MEncoder and FFmpeg.
 	 *
 	 * @return The maximum video bitrate.
 	 */
 	public String getMaximumBitrate() {
-		return getString(KEY_MAX_BITRATE, "110");
+		String maximumBitrate = getString(KEY_MAX_BITRATE, "110");
+		if ("0".equals(maximumBitrate)) {
+			maximumBitrate = "1000";
+		}
+		return maximumBitrate;
 	}
 
 	/**
@@ -1951,22 +1954,42 @@ public class PmsConfiguration {
 		return bufferType.equals(BUFFER_TYPE_FILE);
 	}
 
+	@Deprecated
+	public String getFfmpegSettings() {
+		return getMPEG2MainSettingsFFmpeg();
+	}
+
 	/**
-	 * Converts the getMPEG2MainSettings()
-	 * from MEncoder's format to FFmpeg's.
+	 * Converts the getMPEG2MainSettings() from MEncoder's format to FFmpeg's.
 	 *
 	 * @return MPEG-2 settings formatted for FFmpeg.
 	 */
-	public String getFfmpegSettings() {
+	public String getMPEG2MainSettingsFFmpeg() {
 		String mpegSettings = getMPEG2MainSettings();
 
 		if (mpegSettings.contains("Automatic")) {
 			return mpegSettings;
 		}
 
-		mpegSettings = mpegSettings.replaceAll("[^\\d=]", "");
-		String mpegSettingsArray[] = mpegSettings.split("=");
-		return "-g " + mpegSettingsArray[1] + " -q:v " + mpegSettingsArray[2] + " -qmin " + mpegSettingsArray[3];
+		String mpegSettingsArray[] = mpegSettings.split(":");
+
+		String pairArray[];
+		String returnString = "";
+		for (String pair : mpegSettingsArray) {
+			pairArray = pair.split("=");
+
+			if ("keyint".equals(pairArray[0])) {
+				returnString += "-g " + pairArray[1] + " ";
+			} else if ("vqscale".equals(pairArray[0])) {
+				returnString += "-q:v " + pairArray[1] + " ";
+			} else if ("vqmin".equals(pairArray[0])) {
+				returnString += "-qmin " + pairArray[1] + " ";
+			} else if ("vqmax".equals(pairArray[0])) {
+				returnString += "-qmax " + pairArray[1] + " ";
+			}
+		}
+
+		return returnString;
 	}
 
 	public void setFfmpegMultithreading(boolean value) {

@@ -61,6 +61,7 @@ import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.lang.StringUtils;
 import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -601,11 +602,11 @@ public class FFMpegVideo extends Player {
 		}
 
 		// Give priority to the renderer's maximum bitrate setting over the user's setting
-		if ((defaultMaxBitrates[0] == 0 && rendererMaxBitrates[0] > 0) || rendererMaxBitrates[0] < defaultMaxBitrates[0] && rendererMaxBitrates[0] > 0) {
+		if (rendererMaxBitrates[0] > 0 && rendererMaxBitrates[0] < defaultMaxBitrates[0]) {
 			defaultMaxBitrates = rendererMaxBitrates;
 		}
 
-		if (params.mediaRenderer.getCBRVideoBitrate() == 0 && defaultMaxBitrates[0] > 0) {
+		if (params.mediaRenderer.getCBRVideoBitrate() == 0) {
 			// Convert value from Mb to Kb
 			defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
 
@@ -701,21 +702,28 @@ public class FFMpegVideo extends Player {
 
 		// Add MPEG-2 quality settings
 		if (!renderer.isTranscodeToH264TSAC3() && !videoRemux) {
-			String mpeg2Options = configuration.getFfmpegSettings();
-			if (mpeg2Options.contains("Automatic")) {
-				if (mpeg2Options.contains("Wireless")) {
-					mpeg2Options = "-g 25 -qmax 5 -qmin 2";
+			String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
+			String mpeg2OptionsRenderer = params.mediaRenderer.getCustomFFmpegMPEG2Options();
 
-					// Lower quality for 1080p content
-					if (media.getWidth() > 1280) {
-						mpeg2Options = "-g 25 -qmax 7 -qmin 2";
-					}
-				} else {
-					mpeg2Options = "-g 5 -q:v 1 -qmin 2";
+			// Renderer settings take priority over user settings
+			if (isNotBlank(mpeg2OptionsRenderer)) {
+				mpeg2Options = mpeg2OptionsRenderer;
+			} else {
+				if (mpeg2Options.contains("Automatic")) {
+					if (mpeg2Options.contains("Wireless") || defaultMaxBitrates[0] < 70) {
+						mpeg2Options = "-g 25 -qmax 5 -qmin 2";
 
-					// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
-					if (params.mediaRenderer.isPS3()) {
-						mpeg2Options = "-g 25 -q:v 1 -qmin 2";
+						// Lower quality for 1080p content
+						if (media.getWidth() > 1280) {
+							mpeg2Options = "-g 25 -qmax 7 -qmin 2";
+						}
+					} else {
+						mpeg2Options = "-g 5 -q:v 1 -qmin 2";
+
+						// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
+						if (params.mediaRenderer.isPS3()) {
+							mpeg2Options = "-g 25 -q:v 1 -qmin 2";
+						}
 					}
 				}
 			}
