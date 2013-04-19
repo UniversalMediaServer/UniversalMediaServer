@@ -710,21 +710,19 @@ public class FFMpegVideo extends Player {
 				mpeg2Options = mpeg2OptionsRenderer;
 			} else {
 				if (mpeg2Options.contains("Automatic")) {
-					if (mpeg2Options.contains("Wireless") || defaultMaxBitrates[0] < 70) {
-						mpeg2Options = "-g 5 -q:v 1 -qmin 2";
+					mpeg2Options = "-g 5 -q:v 1 -qmin 2";
 
+					// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
+					if (params.mediaRenderer.isPS3()) {
+						mpeg2Options = "-g 25 -q:v 1 -qmin 2";
+					}
+
+					if (mpeg2Options.contains("Wireless") || defaultMaxBitrates[0] < 70) {
 						// Lower quality for 720p+ content
 						if (media.getWidth() > 1280) {
 							mpeg2Options = "-g 25 -qmax 7 -qmin 2";
 						} else if (media.getWidth() > 720) {
 							mpeg2Options = "-g 25 -qmax 5 -qmin 2";
-						}
-					} else {
-						mpeg2Options = "-g 5 -q:v 1 -qmin 2";
-
-						// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
-						if (params.mediaRenderer.isPS3()) {
-							mpeg2Options = "-g 25 -q:v 1 -qmin 2";
 						}
 					}
 				}
