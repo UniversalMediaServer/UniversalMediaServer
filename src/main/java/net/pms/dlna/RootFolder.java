@@ -677,13 +677,12 @@ public class RootFolder extends DLNAResource {
 
 	/**
 	 * Returns iTunes folder. Used by manageRoot, so it is usually used as a
-	 * folder at the root folder. Only works when PMS is run on MacOsX or
-	 * Windows.
-	 * <p>
+	 * folder at the root folder. Only works on Mac OS X or Windows.
+	 *
 	 * The iTunes XML is parsed fully when this method is called, so it can
 	 * take some time for larger (+1000 albums) databases.
 	 * TODO: Check if only music is being added.
-	 * <P>
+	 *
 	 * This method does not support genius playlists and does not provide a
 	 * media library.
 	 *
