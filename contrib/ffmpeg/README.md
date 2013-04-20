@@ -29,7 +29,7 @@ Then go grab a coffee (or maybe two). The helper will download and compile all F
 Once done, you should get a static system-independent FFmpeg binary in the `build/bin` directory.
 
     $ ./build/bin/ffmpeg
-    ffmpeg version 1.0 (PMS2) for PS3 Media Server Copyright (c) 2000-2012 the FFmpeg developers
+    ffmpeg version 1.0 (PMS1) for PS3 Media Server Copyright (c) 2000-2012 the FFmpeg developers
       built on Oct 10 2012 09:20:17 with gcc 4.6 (Ubuntu/Linaro 4.6.3-1ubuntu5)
       configuration: http://git.io/ZHdseg
     Hyper fast Audio and Video encoder
@@ -55,7 +55,7 @@ All binaries and support files will be installed by the package in the `/usr/loc
 
 ## Tips <a name="Tips"></a>
 
-To find cross-platform variables for build tools &c. look in contrib/ffmpeg/build/CMakeCache.txt.
+To find cross-platform variables for build tools &c. look in build/CMakeCache.txt.
 
 To see build output suppressed by automake:
 
@@ -67,10 +67,27 @@ or:
 
 See [here](https://lists.gnu.org/archive/html/bug-autoconf/2012-01/msg00009.html) for more details.
 
+To make a specific target:
+
+	cd build
+	make <target> # eg make nettle
+
+`--enable-static` and `--disable-shared` work with most configure scripts. If `--enable-shared` is not supported,
+it's usually ignored (and reported as a warning at the end of the config.log).
+
+Type `./configure --help` to see the configuration options. Removing unused features such as documentation and binaries
+can speed up build time, work around bugs, and reduce dependency wrangling.
+
+### Troubleshooting:
+
+Check the library's config.log.
+
+Extract the command lines from build/CMakeFiles/<package>.dir/build.make and try running them manually.
+
 ## Credits <a name="Credits"></a>
 
 The helper and this documentation are based on [sffmpeg](https://github.com/pyke369/sffmpeg) by [pyke369](https://github.com/pyke369).
 
 ## Version <a name="Version"></a>
 
-PMS1
+PMS4
