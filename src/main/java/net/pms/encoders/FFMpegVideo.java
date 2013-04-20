@@ -61,6 +61,7 @@ import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.lang.StringUtils;
 import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -408,7 +409,7 @@ public class FFMpegVideo extends Player {
 		if (configuration.isFfmpegMultithreading()) {
 			threads = " -threads " + configuration.getNumberOfCpuCores();
 		}
-		return configuration.getFfmpegSettings() + threads;
+		return threads;
 	}
 
 	@Override
@@ -601,11 +602,11 @@ public class FFMpegVideo extends Player {
 		}
 
 		// Give priority to the renderer's maximum bitrate setting over the user's setting
-		if ((defaultMaxBitrates[0] == 0 && rendererMaxBitrates[0] > 0) || rendererMaxBitrates[0] < defaultMaxBitrates[0] && rendererMaxBitrates[0] > 0) {
+		if (rendererMaxBitrates[0] > 0 && rendererMaxBitrates[0] < defaultMaxBitrates[0]) {
 			defaultMaxBitrates = rendererMaxBitrates;
 		}
 
-		if (params.mediaRenderer.getCBRVideoBitrate() == 0 && defaultMaxBitrates[0] > 0) {
+		if (params.mediaRenderer.getCBRVideoBitrate() == 0) {
 			// Convert value from Mb to Kb
 			defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
 
@@ -701,7 +702,32 @@ public class FFMpegVideo extends Player {
 
 		// Add MPEG-2 quality settings
 		if (!renderer.isTranscodeToH264TSAC3() && !videoRemux) {
-			String[] customOptions = StringUtils.split(configuration.getFfmpegSettings());
+			String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
+			String mpeg2OptionsRenderer = params.mediaRenderer.getCustomFFmpegMPEG2Options();
+
+			// Renderer settings take priority over user settings
+			if (isNotBlank(mpeg2OptionsRenderer)) {
+				mpeg2Options = mpeg2OptionsRenderer;
+			} else {
+				if (mpeg2Options.contains("Automatic")) {
+					mpeg2Options = "-g 5 -q:v 1 -qmin 2";
+
+					// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
+					if (params.mediaRenderer.isPS3()) {
+						mpeg2Options = "-g 25 -q:v 1 -qmin 2";
+					}
+
+					if (mpeg2Options.contains("Wireless") || defaultMaxBitrates[0] < 70) {
+						// Lower quality for 720p+ content
+						if (media.getWidth() > 1280) {
+							mpeg2Options = "-g 25 -qmax 7 -qmin 2";
+						} else if (media.getWidth() > 720) {
+							mpeg2Options = "-g 25 -qmax 5 -qmin 2";
+						}
+					}
+				}
+			}
+			String[] customOptions = StringUtils.split(mpeg2Options);
 			cmdList.addAll(new ArrayList<>(Arrays.asList(customOptions)));
 		}
 
@@ -946,7 +972,7 @@ public class FFMpegVideo extends Player {
 			}
 		});
 		builder.add(fc, cc.xy(2, 7));
-		fc.setSelected(configuration.isFFmpegrFontConfig());
+		fc.setSelected(configuration.isFFmpegFontConfig());
 
 		return builder.getPanel();
 	}
@@ -1031,6 +1057,10 @@ public class FFMpegVideo extends Player {
 	public File subsConversion(String fileName, DLNAMediaInfo media, OutputParams params) throws IOException {
 		File tempSubs = null;
 
+		if (params.sid.getId() == -1) {
+			return null;
+		}
+
 		String dir = configuration.getDataFile(SUB_DIR);
 		File subsPath = new File(dir);
 		if (!subsPath.exists()) {
@@ -1038,14 +1068,14 @@ public class FFMpegVideo extends Player {
 		}
 
 		if (params.sid.isEmbedded()) {
-			String convertedSubs = subsPath.getAbsolutePath() + File.separator + new File(fileName).getName() + "_EMB_ID" + params.sid.getId() + ".ass";
+			String convertedSubs = subsPath.getAbsolutePath() + File.separator + new File(fileName).getName() + "_" +  new File(fileName).lastModified() + "_EMB_ID" + params.sid.getId() + ".ass";
 			if (new File(convertedSubs).exists()) {
 				tempSubs = new File(convertedSubs);
 			} else {
 				tempSubs = extractSubtitlesToSubDir(fileName, media, params);
 			}
 
-			if (tempSubs != null && configuration.isFFmpegrFontConfig()) {
+			if (tempSubs != null && configuration.isFFmpegFontConfig()) {
 				try {
 					tempSubs = applySubsSettingsToTempSubsFile(tempSubs);
 				} catch (IOException e) {
@@ -1054,9 +1084,10 @@ public class FFMpegVideo extends Player {
 				}
 			}
 		} else if (params.sid.isExternal()) { // Convert external subs to ASS format
-			String convertedSubs = subsPath.getAbsolutePath() + File.separator + params.sid.getExternalFile().getName() + "_EXT.ass";
-			if (new File(convertedSubs).exists()) {
-				tempSubs = new File(convertedSubs);
+			String convertedSubs = subsPath.getAbsolutePath() + File.separator + params.sid.getExternalFile().getName() + "_" +  params.sid.getExternalFile().lastModified() + "_EXT.ass";
+			File tmp = new File(convertedSubs);
+			if (tmp.exists() && (tmp.lastModified() > params.sid.getExternalFile().lastModified())) {
+				tempSubs = tmp;
 			} else {
 				String externalSubtitlesFileName;
 
@@ -1076,7 +1107,7 @@ public class FFMpegVideo extends Player {
 					tempSubs = null;
 				}
 
-				if (tempSubs != null && configuration.isFFmpegrFontConfig()) {
+				if (tempSubs != null && configuration.isFFmpegFontConfig()) {
 					try {
 						tempSubs = applySubsSettingsToTempSubsFile(tempSubs);
 					} catch (IOException e) {
@@ -1133,7 +1164,7 @@ public class FFMpegVideo extends Player {
 			path.mkdirs();
 		}
 
-		File tempSubsFile = new File(path.getAbsolutePath() + File.separator + new File(fileName).getName() + "_EMB_ID" + params.sid.getId() + ".ass");
+		File tempSubsFile = new File(path.getAbsolutePath() + File.separator + new File(fileName).getName() + "_" +  new File(fileName).lastModified() + "_EMB_ID" + params.sid.getId() + ".ass");
 
 		cmdList.add(tempSubsFile.getAbsolutePath());
 

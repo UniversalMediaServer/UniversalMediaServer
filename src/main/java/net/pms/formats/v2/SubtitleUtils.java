@@ -104,7 +104,7 @@ public class SubtitleUtils {
 		if (!path.exists()) {
 			path.mkdirs();
 		}
-		File outputSubs = new File(path.getAbsolutePath() + File.separator + new File(SrtFile).getName() + "_EXT.ass");
+		File outputSubs = new File(path.getAbsolutePath() + File.separator + new File(SrtFile).getName() + "_" +  new File(SrtFile).lastModified() + "_EXT.ass");
 		BufferedWriter output;
 		BufferedReader input;
 		try {

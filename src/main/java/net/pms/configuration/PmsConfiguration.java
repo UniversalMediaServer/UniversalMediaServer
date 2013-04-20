@@ -730,14 +730,6 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Returns the top limit that can be set for the maximum memory buffer size.
-	 * @return The top limit.
-	 */
-	public String getMaxMemoryBufferSizeStr() {
-		return String.valueOf(MAX_MAX_MEMORY_BUFFER_SIZE);
-	}
-
-	/**
 	 * Set the preferred maximum for the transcoding memory buffer in megabytes. The top
 	 * limit for the value is {@link #MAX_MAX_MEMORY_BUFFER_SIZE}.
 	 *
@@ -1558,13 +1550,16 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Returns the maximum video bitrate to be used by MEncoder. The default
-	 * value is 110.
+	 * Returns the maximum video bitrate to be used by MEncoder and FFmpeg.
 	 *
 	 * @return The maximum video bitrate.
 	 */
 	public String getMaximumBitrate() {
-		return getString(KEY_MAX_BITRATE, "110");
+		String maximumBitrate = getString(KEY_MAX_BITRATE, "110");
+		if ("0".equals(maximumBitrate)) {
+			maximumBitrate = "1000";
+		}
+		return maximumBitrate;
 	}
 
 	/**
@@ -1951,17 +1946,42 @@ public class PmsConfiguration {
 		return bufferType.equals(BUFFER_TYPE_FILE);
 	}
 
+	@Deprecated
+	public String getFfmpegSettings() {
+		return getMPEG2MainSettingsFFmpeg();
+	}
+
 	/**
-	 * Converts the getMPEG2MainSettings()
-	 * from MEncoder's format to FFmpeg's.
+	 * Converts the getMPEG2MainSettings() from MEncoder's format to FFmpeg's.
 	 *
 	 * @return MPEG-2 settings formatted for FFmpeg.
 	 */
-	public String getFfmpegSettings() {
+	public String getMPEG2MainSettingsFFmpeg() {
 		String mpegSettings = getMPEG2MainSettings();
-		mpegSettings = mpegSettings.replaceAll("[^\\d=]", "");
-		String mpegSettingsArray[] = mpegSettings.split("=");
-		return "-g " + mpegSettingsArray[1] + " -q:v " + mpegSettingsArray[2] + " -qmin " + mpegSettingsArray[3];
+
+		if (mpegSettings.contains("Automatic")) {
+			return mpegSettings;
+		}
+
+		String mpegSettingsArray[] = mpegSettings.split(":");
+
+		String pairArray[];
+		String returnString = "";
+		for (String pair : mpegSettingsArray) {
+			pairArray = pair.split("=");
+
+			if ("keyint".equals(pairArray[0])) {
+				returnString += "-g " + pairArray[1] + " ";
+			} else if ("vqscale".equals(pairArray[0])) {
+				returnString += "-q:v " + pairArray[1] + " ";
+			} else if ("vqmin".equals(pairArray[0])) {
+				returnString += "-qmin " + pairArray[1] + " ";
+			} else if ("vqmax".equals(pairArray[0])) {
+				returnString += "-qmax " + pairArray[1] + " ";
+			}
+		}
+
+		return returnString;
 	}
 
 	public void setFfmpegMultithreading(boolean value) {
@@ -2093,7 +2113,7 @@ public class PmsConfiguration {
 	}
 
 	public String getMPEG2MainSettings() {
-		return getString(KEY_MPEG2_MAIN_SETTINGS, "keyint=5:vqscale=1:vqmin=2");
+		return getString(KEY_MPEG2_MAIN_SETTINGS, "Automatic (Wired)");
 	}
 
 	/**
@@ -2372,7 +2392,7 @@ public class PmsConfiguration {
 		configuration.setProperty(KEY_FFMPEG_FONT_CONFIG, value);
 	}
 
-	public boolean isFFmpegrFontConfig() {
+	public boolean isFFmpegFontConfig() {
 		return getBoolean(KEY_FFMPEG_FONT_CONFIG, false);
 	}
 
@@ -2550,7 +2570,7 @@ public class PmsConfiguration {
 	}
 
 	public boolean isPrettifyFilenames() {
-		return getBoolean(KEY_PRETTIFY_FILENAMES, true);
+		return getBoolean(KEY_PRETTIFY_FILENAMES, false);
 	}
 
 	public void setPrettifyFilenames(boolean value) {
