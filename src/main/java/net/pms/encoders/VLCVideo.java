@@ -124,8 +124,10 @@ public class VLCVideo extends Player {
 
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		// VLC is a general transcoder that should support every format
-		// Until problem occurs, assume compatible
+		if (resource == null || resource.getFormat().getType() != Format.VIDEO) {
+			return false;
+		}
+
 		return true;
 	}
 

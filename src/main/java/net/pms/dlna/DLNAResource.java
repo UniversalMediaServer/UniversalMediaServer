@@ -703,7 +703,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	protected synchronized void addChildInternal(DLNAResource child) {
 		if (child.getInternalId() != null) {
 			LOGGER.info(
-				"Node ({}) already has an ID ({}), which is overriden now. The previous parent node was: {}",
+				"Node ({}) already has an ID ({}), which is overridden now. The previous parent node was: {}",
 				new Object[] {
 					child.getClass().getName(),
 					child.getResourceId(),

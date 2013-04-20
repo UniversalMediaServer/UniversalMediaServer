@@ -908,11 +908,11 @@ public class MEncoderVideo extends Player {
 			rendererMaxBitrates = getVideoBitrateConfig(mediaRenderer.getMaxVideoBitrate());
 		}
 
-		if ((rendererMaxBitrates[0] > 0) && ((defaultMaxBitrates[0] == 0) || (rendererMaxBitrates[0] < defaultMaxBitrates[0]))) {
+		if (rendererMaxBitrates[0] > 0 && rendererMaxBitrates[0] < defaultMaxBitrates[0]) {
 			defaultMaxBitrates = rendererMaxBitrates;
 		}
 
-		if (mediaRenderer.getCBRVideoBitrate() == 0 && defaultMaxBitrates[0] > 0 && !quality.contains("vrc_buf_size") && !quality.contains("vrc_maxrate") && !quality.contains("vbitrate")) {
+		if (mediaRenderer.getCBRVideoBitrate() == 0 && !quality.contains("vrc_buf_size") && !quality.contains("vrc_maxrate") && !quality.contains("vbitrate")) {
 			// Convert value from Mb to Kb
 			defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
 
@@ -1147,7 +1147,7 @@ public class MEncoderVideo extends Player {
 
 		if (h264ts) {
 			vcodec = "libx264";
-		} else if (params.mediaRenderer.isTranscodeToWMV()) {
+		} else if (params.mediaRenderer.isTranscodeToWMV() && !params.mediaRenderer.isXBOX()) {
 			wmv = true;
 			vcodec = "wmv2"; // http://wiki.megaframe.org/Mencoder_Transcode_for_Xbox_360
 		}
@@ -1223,7 +1223,7 @@ public class MEncoderVideo extends Player {
 		int channels;
 		if (ac3Remux) {
 			channels = params.aid.getAudioProperties().getNumberOfChannels(); // AC-3 remux
-		} else if (dtsRemux || wmv) {
+		} else if (dtsRemux || (!params.mediaRenderer.isXBOX() && wmv)) {
 			channels = 2;
 		} else if (pcm) {
 			channels = params.aid.getAudioProperties().getNumberOfChannels();
@@ -1305,17 +1305,51 @@ public class MEncoderVideo extends Player {
 			}
 		}
 
-		if (configuration.getMPEG2MainSettings() != null) {
-			String mainConfig = configuration.getMPEG2MainSettings();
-			String customSettings = params.mediaRenderer.getCustomMencoderQualitySettings();
+		if (configuration.getMPEG2MainSettings() != null && !h264ts) {
+			String mpeg2Options = configuration.getMPEG2MainSettings();
+			String mpeg2OptionsRenderer = params.mediaRenderer.getCustomMEncoderMPEG2Options();
 
-			// Custom settings in PMS may override the settings of the saved configuration
-			if (isNotBlank(customSettings)) {
-				mainConfig = customSettings;
-			}
+			// Renderer settings take priority over user settings
+			if (isNotBlank(mpeg2OptionsRenderer)) {
+				mpeg2Options = mpeg2OptionsRenderer;
+			} else {
+				// Remove comment from the value
+				if (mpeg2Options.contains("/*")) {
+					mpeg2Options = mpeg2Options.substring(mpeg2Options.indexOf("/*"));
+				}
 
-			if (mainConfig.contains("/*")) {
-				mainConfig = mainConfig.substring(mainConfig.indexOf("/*"));
+				// Find out the maximum bandwidth we are supposed to use
+				int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
+				int rendererMaxBitrates[] = new int[2];
+
+				if (params.mediaRenderer.getMaxVideoBitrate() != null) {
+					rendererMaxBitrates = getVideoBitrateConfig(params.mediaRenderer.getMaxVideoBitrate());
+				}
+
+				if ((rendererMaxBitrates[0] > 0) && (rendererMaxBitrates[0] < defaultMaxBitrates[0])) {
+					defaultMaxBitrates = rendererMaxBitrates;
+				}
+
+				int maximumBitrate = defaultMaxBitrates[0];
+
+				// Determine a good quality setting based on video attributes
+				if (mpeg2Options.contains("Automatic")) {
+					mpeg2Options = "keyint=5:vqscale=1:vqmin=2";
+
+					// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
+					if (params.mediaRenderer.isPS3()) {
+						mpeg2Options = "keyint=25:vqscale=1:vqmin=2";
+					}
+
+					if (mpeg2Options.contains("Wireless") || maximumBitrate < 70) {
+						// Lower quality for 720p+ content
+						if (media.getWidth() > 1280) {
+							mpeg2Options = "keyint=25:vqmax=7:vqmin=2";
+						} else if (media.getWidth() > 720) {
+							mpeg2Options = "keyint=25:vqmax=5:vqmin=2";
+						}
+					}
+				}
 			}
 
 			// Ditlew - WDTV Live (+ other byte asking clients), CBR. This probably ought to be placed in addMaximumBitrateConstraints(..)
@@ -1325,21 +1359,20 @@ public class MEncoderVideo extends Player {
 				"";
 
 			String encodeSettings = "-lavcopts autoaspect=1:vcodec=" + vcodec +
-				(wmv ? ":acodec=wmav2:abitrate=448" : (cbr_settings + ":acodec=" + (configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3") +
+				(wmv && !params.mediaRenderer.isXBOX() ? ":acodec=wmav2:abitrate=448" : (cbr_settings + ":acodec=" + (configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3") +
 				":abitrate=" + CodecUtil.getAC3Bitrate(configuration, params.aid))) +
-				":threads=" + (wmv ? 1 : configuration.getMencoderMaxThreads()) +
+				":threads=" + (wmv && !params.mediaRenderer.isXBOX() ? 1 : configuration.getMencoderMaxThreads()) +
 				(h264ts ? ":o=preset=superfast,crf=20,g=250,i_qfactor=0.71,qcomp=0.6,level=4.1,weightp=0,8x8dct=0,aq-strength=0" : "") +
-				("".equals(mainConfig) ? "" : ":" + mainConfig);
+				("".equals(mpeg2Options) ? "" : ":" + mpeg2Options);
 
 			String audioType = "ac3";
-
 			if (dtsRemux) {
 				audioType = "dts";
 			} else if (pcm) {
 				audioType = "pcm";
 			}
 
-			encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, mainConfig, params.mediaRenderer, audioType);
+			encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, mpeg2Options, params.mediaRenderer, audioType);
 			st = new StringTokenizer(encodeSettings, " ");
 
 			{
