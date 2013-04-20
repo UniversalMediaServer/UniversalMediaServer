@@ -11,6 +11,9 @@
 		Transcoding quality automatically adjusts for content and network speed by default, allowing wireless users an easier experience
 		Improved memory defaults on Windows
 		Fixed audio sync when muxing DTS via FFmpeg
+	Renderers:
+		Xbox 360 supports 5.1 audio
+		Faster transcoding on Xbox 360
 	Languages:
 		Updated Spanish translation (thanks, Alfredo Ramos!)
 	External Components:
