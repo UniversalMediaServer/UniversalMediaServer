@@ -35,6 +35,8 @@ import java.util.Observer;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.plaf.metal.DefaultMetalTheme;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import net.pms.Messages;
@@ -55,17 +57,35 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	private final PmsConfiguration configuration;
 	public static final String START_SERVICE = "start.service";
 	private static final long serialVersionUID = 8723727186288427690L;
+	protected static final Dimension PREFERRED_SIZE = new Dimension(1000, 750);
+	// https://code.google.com/p/ps3mediaserver/issues/detail?id=949
+	protected static final Dimension MINIMUM_SIZE = new Dimension(800, 480);
+
+	/**
+	 * List of context sensitive help pages URLs. These URLs should be
+	 * relative to the documentation directory and in the same order as the
+	 * tabs. The value <code>null</code> means "don't care", activating the
+	 * tab will not change the help page.
+	 */
+	protected static final String[] HELP_PAGES = {
+		"index.html",
+		null,
+		"general_configuration.html",
+		"navigation_share.html",
+		"transcoding.html",
+		null,
+		null
+	};
+
 	private NavigationShareTab ft;
 	private StatusTab st;
 	private TracesTab tt;
 	private TranscodingTab tr;
 	private GeneralTab nt;
+	private HelpTab ht;
 	private PluginTab pt;
 	private AbstractButton reload;
 	private JLabel status;
-	protected static final Dimension PREFERRED_SIZE = new Dimension(1000, 750);
-	// https://code.google.com/p/ps3mediaserver/issues/detail?id=949
-	protected static final Dimension MINIMUM_SIZE = new Dimension(800, 480);
 	private static boolean lookAndFeelInitialized = false;
 
 	public TracesTab getTt() {
@@ -359,7 +379,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	public JComponent buildMain() {
-		JTabbedPane tabbedPane = new JTabbedPane(SwingConstants.TOP);
+		final JTabbedPane tabbedPane = new JTabbedPane(SwingConstants.TOP);
 
 		tabbedPane.setUI(new CustomTabbedPaneUI());
 
@@ -368,6 +388,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		tr = new TranscodingTab(configuration);
 		nt = new GeneralTab(configuration);
 		ft = new NavigationShareTab(configuration);
+		ht = new HelpTab();
 		pt = new PluginTab(configuration);
 
 		tabbedPane.addTab(Messages.getString("LooksFrame.18"), st.build());
@@ -378,6 +399,20 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		tabbedPane.addTab(Messages.getString("LooksFrame.21"), tr.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.24"), new HelpTab().build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.25"), new AboutTab().build());
+
+		tabbedPane.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				int selectedIndex = tabbedPane.getSelectedIndex();
+
+				if (HELP_PAGES[selectedIndex] != null) {
+					PMS.setHelpPage(HELP_PAGES[selectedIndex]);
+
+					// Update the contents of the help tab itself
+					ht.updateContents();
+				}
+			}
+		});
 
 		tabbedPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 
