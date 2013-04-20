@@ -132,10 +132,10 @@ public class VLCVideo extends Player {
 	}
 
 	/**
-	 * Pick codecs for VLC based on formats the client supports;
+	 * Pick codecs for VLC based on formats the renderer supports;
 	 *
-	 * @param formats
-	 * @return
+	 * @param renderer The {@link RendererConfiguration}.
+	 * @return The codec configuration
 	 */
 	protected CodecConfig genConfig(RendererConfiguration renderer) {
 		CodecConfig config = new CodecConfig();
