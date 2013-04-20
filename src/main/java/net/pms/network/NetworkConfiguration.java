@@ -147,9 +147,9 @@ public class NetworkConfiguration {
 	 * {@link #getInstance()} to retrieve an instance.
 	 */
 	private NetworkConfiguration(Enumeration<NetworkInterface> networkInterfaces) {
-	System.setProperty("java.net.preferIPv4Stack", "true");
+		System.setProperty("java.net.preferIPv4Stack", "true");
 
-    	checkNetworkInterface(networkInterfaces, null);
+		checkNetworkInterface(networkInterfaces, null);
 	}
 
 	/**

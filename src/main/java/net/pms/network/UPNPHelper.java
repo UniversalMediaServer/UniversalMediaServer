@@ -189,26 +189,26 @@ public class UPNPHelper {
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	private static MulticastSocket getNewMulticastSocket() throws IOException {
-	NetworkInterface networkInterface = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
+		NetworkInterface networkInterface = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
 
-    	if (networkInterface == null) {
-    		networkInterface = PMS.get().getServer().getNetworkInterface();
-    	}
+		if (networkInterface == null) {
+			networkInterface = PMS.get().getServer().getNetworkInterface();
+		}
 
 		if (networkInterface == null) {
 			throw new IOException("No usable network interface found for UPnP multicast");
 		}
 
-    	List<InetAddress> usableAddresses = new ArrayList<InetAddress>();
-    	List<InetAddress> networkInterfaceAddresses = Collections.list(networkInterface.getInetAddresses());
-    	
+		List<InetAddress> usableAddresses = new ArrayList<InetAddress>();
+		List<InetAddress> networkInterfaceAddresses = Collections.list(networkInterface.getInetAddresses());
+
 		for (InetAddress inetAddress : networkInterfaceAddresses) {
 			if (inetAddress != null && inetAddress instanceof Inet4Address && !inetAddress.isLoopbackAddress()) {
 				usableAddresses.add(inetAddress);
 			}
 		}
 
-		if (usableAddresses.size() == 0) {
+		if (usableAddresses.isEmpty()) {
 			throw new IOException("No usable addresses found for UPnP multicast");
 		}
 
