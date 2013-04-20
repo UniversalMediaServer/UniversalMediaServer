@@ -232,31 +232,35 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		JComponent jp = buildContent();
 		String showScrollbars = System.getProperty("scrollbars", "").toLowerCase();
 
-		/*
-		 * handle scrollbars:
+		/**
+		 * Handle scrollbars:
 		 *
 		 * 1) forced scrollbars (-Dscrollbars=true): always display them
 		 * 2) optional scrollbars (-Dscrollbars=optional): display them as needed
 		 * 3) otherwise (default): don't display them
 		 */
-		if (showScrollbars.equals("true")) {
-			setContentPane(
-				new JScrollPane(
-					jp,
-					ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
-					ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS
-				)
-			);
-		} else if (showScrollbars.equals("optional")) {
-			setContentPane(
-				new JScrollPane(
-					jp,
-					ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-					ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
-				)
-			);
-		} else {
-			setContentPane(jp);
+		switch (showScrollbars) {
+			case "true":
+				setContentPane(
+					new JScrollPane(
+						jp,
+						ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
+						ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS
+					)
+				);
+				break;
+			case "optional":
+				setContentPane(
+					new JScrollPane(
+						jp,
+						ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+						ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
+					)
+				);
+				break;
+			default:
+				setContentPane(jp);
+				break;
 		}
 
 		String projectName = PropertiesUtil.getProjectProperties().get("project.name");
