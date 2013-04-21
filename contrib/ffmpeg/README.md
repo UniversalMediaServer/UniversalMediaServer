@@ -80,9 +80,9 @@ can speed up build time, work around bugs, and reduce dependency wrangling.
 
 ### Troubleshooting:
 
-Check the library's config.log.
+Check the package's config.log.
 
-Extract the command lines from build/CMakeFiles/<package>.dir/build.make and try running them manually.
+Extract the command lines from build/CMakeFiles/&lt;package&gt;.dir/build.make and try running them manually.
 
 ## Credits <a name="Credits"></a>
 
