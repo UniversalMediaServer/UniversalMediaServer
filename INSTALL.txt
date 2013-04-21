@@ -17,11 +17,11 @@ should work on most Unix distributions)
     # if wget isn't installed, run: sudo apt-get install wget
     wget https://universal-media-server.googlecode.com/files/UMS-<version>.tgz
 
-2) Extract the tarball into the ums-<version> directory:
+3) Extract the tarball into a ums-<version> directory:
 
     tar xzvf ums-<version>.tgz
 
-3) Run (note: UMS should NOT be run as root):
+4) Run (note: UMS should NOT be run as root):
 
     cd ums-<version>
     ./UMS.sh
