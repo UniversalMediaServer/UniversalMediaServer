@@ -71,6 +71,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		"index.html",
 		null,
 		"general_configuration.html",
+		null,
 		"navigation_share.html",
 		"transcoding.html",
 		null,
@@ -81,7 +82,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	private StatusTab st;
 	private TracesTab tt;
 	private TranscodingTab tr;
-	private GeneralTab nt;
+	private GeneralTab gt;
 	private HelpTab ht;
 	private PluginTab pt;
 	private AbstractButton reload;
@@ -101,7 +102,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	public GeneralTab getGt() {
-		return nt;
+		return gt;
 	}
 
 	public PluginTab getPt() {
@@ -389,15 +390,15 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		st = new StatusTab(configuration);
 		tt = new TracesTab(configuration);
-		tr = new TranscodingTab(configuration);
-		nt = new GeneralTab(configuration);
-		ft = new NavigationShareTab(configuration);
-		ht = new HelpTab();
+		gt = new GeneralTab(configuration);
 		pt = new PluginTab(configuration);
+		ft = new NavigationShareTab(configuration);		
+		tr = new TranscodingTab(configuration);
+		ht = new HelpTab();
 
 		tabbedPane.addTab(Messages.getString("LooksFrame.18"), st.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.19"), tt.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.20"), nt.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.20"), gt.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.27"), pt.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.22"), ft.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.21"), tr.build());
@@ -542,7 +543,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 	@Override
 	public void serverReady() {
-		nt.addRenderers();
+		gt.addRenderers();
 		pt.addPlugins();
 	}
 
