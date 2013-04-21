@@ -83,7 +83,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 		if (configuration.isFfmpegAviSynthMultithreading()) {
 			threads = " -threads " + configuration.getNumberOfCpuCores();
 		}
-		return configuration.getFfmpegSettings() + " -ab " + configuration.getAudioBitrate() + "k" + threads;
+		return configuration.getMPEG2MainSettingsFFmpeg() + " -ab " + configuration.getAudioBitrate() + "k" + threads;
 	}
 
 	@Override
