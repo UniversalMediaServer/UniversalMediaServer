@@ -26,5 +26,5 @@ should work on most Unix distributions)
     cd ums-<version>
     ./UMS.sh
 
-UMS will look for some files in the ums-<version> directory (the working directory).
+UMS accesses some files in the ums-<version> directory (the working directory).
 Other files will be looked for in ~/.config/UMS
