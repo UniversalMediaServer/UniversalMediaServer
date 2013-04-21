@@ -78,7 +78,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		null
 	};
 
-	private NavigationShareTab ft;
+	private NavigationShareTab nt;
 	private StatusTab st;
 	private TracesTab tt;
 	private TranscodingTab tr;
@@ -94,7 +94,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	public NavigationShareTab getFt() {
-		return ft;
+		return nt;
 	}
 
 	public TranscodingTab getTr() {
@@ -392,7 +392,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		tt = new TracesTab(configuration);
 		gt = new GeneralTab(configuration);
 		pt = new PluginTab(configuration);
-		ft = new NavigationShareTab(configuration);		
+		nt = new NavigationShareTab(configuration);		
 		tr = new TranscodingTab(configuration);
 		ht = new HelpTab();
 
@@ -400,7 +400,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		tabbedPane.addTab(Messages.getString("LooksFrame.19"), tt.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.20"), gt.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.27"), pt.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.22"), ft.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.22"), nt.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.21"), tr.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.24"), new HelpTab().build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.25"), new AboutTab().build());
