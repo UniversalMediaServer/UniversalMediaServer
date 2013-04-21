@@ -92,6 +92,12 @@ public class PMS {
 	private String uuid;
 
 	/**
+	 * Relative location of a context sensitive help page in the documentation
+	 * directory.
+	 */
+	private static String helpPage = "index.html";
+
+	/**
 	 * Returns a pointer to the main PMS GUI.
 	 * @return {@link net.pms.gui.IFrame} Main PMS window.
 	 */
@@ -1321,5 +1327,25 @@ public class PMS {
 		} catch (java.lang.NoClassDefFoundError | java.awt.HeadlessException | java.lang.InternalError e) {
 			return true;
 		}
+	}
+
+	/**
+	 * Sets the relative URL of a context sensitive help page located in the
+	 * documentation directory.
+	 *
+	 * @param page The help page.
+	 */
+	public static void setHelpPage(String page) {
+		helpPage = page;
+	}
+
+	/**
+	 * Returns the relative URL of a context sensitive help page in the
+	 * documentation directory.
+	 *
+	 * @return The help page.
+	 */
+	public static String getHelpPage() {
+		return helpPage;
 	}
 }
