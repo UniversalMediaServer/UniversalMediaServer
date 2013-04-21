@@ -75,7 +75,6 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		"navigation_share.html",
 		"transcoding.html",
 		null,
-		null,
 		null
 	};
 
