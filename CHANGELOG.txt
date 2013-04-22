@@ -1,4 +1,4 @@
-2.6.2 - 2013-04-??
+2.6.2 - 2013-04-22
 
 	General:
 		Fixed audio sync when muxing DTS via FFmpeg
