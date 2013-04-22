@@ -761,7 +761,7 @@ public class FFMpegVideo extends Player {
 			sm.setBitsPerSample(16);
 			sm.setNbChannels(channels);
 
-			List<String> cmdListDTS = new ArrayList<>();
+			List<String> cmdListDTS = new ArrayList<String>();
 			cmdListDTS.add(executable());
 			cmdListDTS.add("-y");
 			cmdListDTS.add("-ss");
