@@ -6,13 +6,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.encoders.FFmpegWebVideo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ResumeObj {
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
