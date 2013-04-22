@@ -718,14 +718,6 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Returns the top limit that can be set for the maximum memory buffer size.
-	 * @return The top limit.
-	 */
-	public String getMaxMemoryBufferSizeStr() {
-		return String.valueOf(MAX_MAX_MEMORY_BUFFER_SIZE);
-	}
-
-	/**
 	 * Set the preferred maximum for the transcoding memory buffer in megabytes. The top
 	 * limit for the value is {@link #MAX_MAX_MEMORY_BUFFER_SIZE}.
 	 *

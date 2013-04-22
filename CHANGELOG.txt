@@ -1,7 +1,8 @@
 2.6.2 - 2013-04-22
 
 	General:
-		
+		Fixed audio sync when muxing DTS via FFmpeg
+		Improved descriptions in GUI
 	External Components:
 		Updated Java Runtime Environment automatic downloader for Windows to 7u21, which:
 			Has lots of security fixes and improvements 
