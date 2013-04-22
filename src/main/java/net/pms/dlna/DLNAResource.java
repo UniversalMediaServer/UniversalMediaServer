@@ -1813,10 +1813,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			params.timeend = timeRange.getEndOrZero();
 			params.shift_scr = timeseek_auto;
 
-			if (resume != null) {
-				params.timeseek += (long)(resume.getTimeOffset() / 1000);
-			}
-
 			if (this instanceof IPushOutput) {
 				params.stdin = (IPushOutput) this;
 			}
