@@ -5,6 +5,7 @@
 		Improved descriptions in GUI
 		Added support for the file:// protocol in WEB.conf
 		Protocols are matched before extensions in WEB.conf
+		Fixed "Can't assign requested address" bug after update to Java 1.6.0.45 on Mac OS X
 	External Components:
 		Updated Java Runtime Environment automatic downloader for Windows to 7u21, which:
 			Has lots of security fixes and improvements 
