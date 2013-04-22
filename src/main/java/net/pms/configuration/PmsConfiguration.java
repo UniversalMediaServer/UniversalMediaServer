@@ -718,14 +718,6 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Returns the top limit that can be set for the maximum memory buffer size.
-	 * @return The top limit.
-	 */
-	public String getMaxMemoryBufferSizeStr() {
-		return String.valueOf(MAX_MAX_MEMORY_BUFFER_SIZE);
-	}
-
-	/**
 	 * Set the preferred maximum for the transcoding memory buffer in megabytes. The top
 	 * limit for the value is {@link #MAX_MAX_MEMORY_BUFFER_SIZE}.
 	 *
@@ -1992,11 +1984,11 @@ public class PmsConfiguration {
 	 * and typically exclude the number at the end of the interface name.
 	 * <p>
 	 * Default is to skip the interfaces created by Virtualbox, OpenVPN and
-	 * Parallels: "tap,vmnet,vnic".
+	 * Parallels: "tap,vmnet,vnic,virtualbox".
 	 * @return The string of network interface names to skip.
 	 */
 	public List<String> getSkipNetworkInterfaces() {
-		return getStringList(KEY_SKIP_NETWORK_INTERFACES, "tap,vmnet,vnic");
+		return getStringList(KEY_SKIP_NETWORK_INTERFACES, "tap,vmnet,vnic,virtualbox");
 	}
 
 	public void setSkipLoopFilterEnabled(boolean value) {

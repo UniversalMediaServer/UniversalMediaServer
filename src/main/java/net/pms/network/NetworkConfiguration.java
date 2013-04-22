@@ -271,10 +271,12 @@ public class NetworkConfiguration {
 		LOGGER.trace("sub address for {} is {}", networkInterface.getName(), subAddress);
 		boolean foundAddress = false;
 
-		for (InterfaceAddress ifaceAddr : networkInterface.getInterfaceAddresses()) {
-			if (ifaceAddr != null) {
-				InetAddress address = ifaceAddr.getAddress();
-				LOGGER.trace("checking {} from {} on {}", new Object[] { address, ifaceAddr, networkInterface.getName() });
+		// networkInterface.getInterfaceAddresses() returns 'null' on some adapters if
+		// the parameter 'java.net.preferIPv4Stack=true' is passed to the JVM
+		// Use networkInterface.getInetAddresses() instead
+		for (InetAddress address : Collections.list(networkInterface.getInetAddresses())) {
+			if (address != null) {
+				LOGGER.trace("checking {} on {}", new Object[] { address, networkInterface.getName() });
 
 				if (isRelevantAddress(address)) {
 					// Avoid adding duplicates
