@@ -1,4 +1,4 @@
-2.6.2 - 2013-04-22
+2.6.2 - 2013-04-??
 
 	General:
 		Fixed audio sync when muxing DTS via FFmpeg
@@ -9,6 +9,19 @@
 		Added installation instructions to the Linux distribution
 		Fixed incorrect server IP address when starting via UMS.exe or UMS.bat
 	External Components:
+		Updated FFmpeg for all operating systems, which:
+			Fixes RTMP bugs
+			Improves support for the following codecs/containers: WMV, MPEG, H.264, Matroska, AVI, AAC, AC-3, WMA, MP3, FLV, OGG
+			Improves 60FPS video support
+			Supports more audio channel layouts
+			Improves pthread support
+			Fixes memory leaks
+			Improves subtitle decoding support
+			Adds support for subtitles character encoding conversion
+			Makes duration estimation more reliable
+			Adds support for .ape files
+			Improves memory use when using hardware acceleration
+			Fixes multithreaded MPEG-4 decoding
 		Updated Java Runtime Environment automatic downloader for Windows to 7u21, which:
 			Has lots of security fixes and improvements 
 
