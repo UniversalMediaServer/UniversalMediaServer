@@ -42,7 +42,7 @@
 			Improves memory use when using hardware acceleration
 			Fixes multithreaded MPEG-4 decoding
 		Updated Java Runtime Environment automatic downloader for Windows to 7u21, which:
-			Has lots of security fixes and improvements 
+			Has lots of security fixes and improvements
 
 2.6.1 - 2013-04-16
 
