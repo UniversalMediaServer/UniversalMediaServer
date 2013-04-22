@@ -140,11 +140,12 @@ public class SubtitleUtils {
 					sb.append(startTime).append(",");
 					sb.append(endTime).append(",");
 					sb.append("Default").append(",");
-					sb.append(convertTags(input.readLine()));
-
-					if (isNotBlank(line = input.readLine())) {
+					sb.append(convertTags(input.readLine(), configuration.getSubsColor()));
+					
+					// Subtitles might be on several lines. Search ahead to find the end.
+					while (isNotBlank(line = input.readLine())) {
 						sb.append("\\N");
-						sb.append(convertTags(line));
+						sb.append(convertTags(line, configuration.getSubsColor()));
 					}
 
 					output.write(sb.toString() + "\n");
@@ -159,7 +160,7 @@ public class SubtitleUtils {
 		return outputSubs;
 	}
 
-	private static String convertTags(String text) {
+	private static String convertTags(String text, int color) {
 		 String tag;
 		 StringBuilder sb = new StringBuilder();
 		 String[] tmp = text.split("<");
@@ -171,11 +172,18 @@ public class SubtitleUtils {
 			 } else if (s.indexOf(">") == 1) {
 				 tag = s.substring(0, 1);
 				 sb.append("{\\").append(tag).append("1}").append(s.substring(2));
+			 } else if (s.startsWith("font color")) {
+				 tag = s.substring(13, 19);
+				 sb.append("{\\c&H").append(tag.substring(4, 6) + tag.substring(2, 4) + tag.substring(0, 2)).append("&}").append(s.substring(21));
+			 } else if (s.contains("font") && s.indexOf(">") == 5) {
+				 String primaryColor = Integer.toHexString(color);
+				 tag = primaryColor.substring(6, 8) + primaryColor.substring(4, 6) + primaryColor.substring(2, 4);
+				 sb.append("{\\c&H").append(tag).append("&}").append(s.substring(6));
 			 } else {
 				 sb.append(s);
 			 }
 		 }
-
+  
 		return sb.toString();
 	}
 
