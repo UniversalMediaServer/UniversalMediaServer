@@ -29,10 +29,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.*;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import net.pms.Messages;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -42,6 +38,8 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FFmpegAudio extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegAudio.class);
@@ -130,7 +128,7 @@ public class FFmpegAudio extends FFMpegVideo {
 
 	@Override
 	public ProcessWrapper launchTranscode(
-		String fileName,
+		String filename,
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params
@@ -162,7 +160,7 @@ public class FFmpegAudio extends FFMpegVideo {
 		cmdList.add("" + nThreads);
 
 		cmdList.add("-i");
-		cmdList.add(fileName);
+		cmdList.add(filename);
 
 		// encoder threads
 		cmdList.add("-threads");
@@ -202,7 +200,7 @@ public class FFmpegAudio extends FFMpegVideo {
 		cmdList.toArray(cmdArray);
 
 		cmdArray = finalizeTranscoderArgs(
-			fileName,
+			filename,
 			dlna,
 			media,
 			params,

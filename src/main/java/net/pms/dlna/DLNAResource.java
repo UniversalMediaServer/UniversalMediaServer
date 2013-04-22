@@ -696,7 +696,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	/**
 	 * Adds the supplied DNLA resource to the internal list of child nodes,
 	 * and sets the parent to the current node. Avoids the side-effects
-	 * associated with the {@link addChild(DLNAResource)} method.
+	 * associated with the {@link #addChild(DLNAResource)} method.
 	 *
 	 * @param child the DLNA resource to add to this node's list of children
 	 */
@@ -1955,7 +1955,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * Called from Request/RequestV2 in response to thumbnail requests e.g. HEAD /get/0$1$0$42$3/thumbnail0000%5BExample.mkv
 	 * Calls DLNAMediaInfo.generateThumbnail, which in turn calls DLNAMediaInfo.parse.
 	 *
-	 * @param input InputFile to check or generate the thumbnail from.
+	 * @param inputFile File to check or generate the thumbnail for.
 	 */
 	protected void checkThumbnail(InputFile inputFile) {
 		if (getMedia() != null && !getMedia().isThumbready() && configuration.isThumbnailGenerationEnabled()) {
@@ -2204,7 +2204,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * @deprecated Use {@link #setLastModified()} instead.
+	 * @deprecated Use {@link #setLastModified(long)} instead.
 	 *
 	 * Sets the timestamp at which this resource was last modified.
 	 *
