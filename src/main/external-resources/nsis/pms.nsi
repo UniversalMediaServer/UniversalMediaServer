@@ -26,8 +26,8 @@ VIProductVersion "${PROJECT_VERSION_SHORT}.0"
  
 ; Definitions for Java
 !define JRE7_VERSION "7.0"
-!define JRE_URL "http://universal-media-server-binaries.googlecode.com/svn/trunk/win32/jre-7u17-windows-i586.exe"
-!define JRE64_URL "http://universal-media-server-binaries.googlecode.com/svn/trunk/win32/jre-7u17-windows-x64.exe"
+!define JRE_URL "http://universal-media-server-binaries.googlecode.com/svn/trunk/win32/jre-x86.exe"
+!define JRE64_URL "http://universal-media-server-binaries.googlecode.com/svn/trunk/win32/jre-x64.exe"
  
 ; use javaw.exe to avoid dosbox.
 ; use java.exe to keep stdout/stderr
