@@ -93,7 +93,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		return tt;
 	}
 
-	public NavigationShareTab getFt() {
+	public NavigationShareTab getNt() {
 		return nt;
 	}
 
@@ -549,6 +549,6 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 	@Override
 	public void setScanLibraryEnabled(boolean flag) {
-		getFt().setScanLibraryEnabled(flag);
+		getNt().setScanLibraryEnabled(flag);
 	}
 }
