@@ -92,7 +92,7 @@ public class SubtitleUtils {
 	}
 
 	/**
-	 * Converts external subtitles file in SRT format to SSA/ASS format
+	 * Converts external subtitles file in SRT format to default SSA/ASS format
 	 * @param SrtFile Subtitles file in SRT format
 	 * @param configuration UMS settings
 	 * @return Converted subtitles file in SSA/ASS format
@@ -104,7 +104,7 @@ public class SubtitleUtils {
 		if (!path.exists()) {
 			path.mkdirs();
 		}
-		File outputSubs = new File(path.getAbsolutePath() + File.separator + new File(SrtFile).getName() + "_EXT.ass");
+		File outputSubs = new File(path.getAbsolutePath() + File.separator + new File(SrtFile).getName() + "_" +  new File(SrtFile).lastModified() + "_EXT.ass");
 		BufferedWriter output;
 		BufferedReader input;
 		try {
@@ -121,40 +121,13 @@ public class SubtitleUtils {
 			output.write("\n");
 			output.write("[V4+ Styles]\n");
 			output.write("Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, AlphaLevel, Encoding\n");
-			StringBuilder s = new StringBuilder();
-			s.append("Style: Default,");
-
-			if (!configuration.getFont().isEmpty()) {
-				s.append(configuration.getFont()).append(",");
-			} else {
-				s.append("Arial,");
-			}
-
-			s.append(Integer.toString((int) (14 * Double.parseDouble(configuration.getAssScale())))).append(",");
-			String primaryColour = Integer.toHexString(configuration.getSubsColor());
-			primaryColour = primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4);
-			s.append("&H").append(primaryColour).append(",");
-			s.append("&Hffffff,");
-			s.append("&H0,");
-			s.append("&H0,");
-			s.append("0,");
-			s.append("0,");
-			s.append("0,");
-			s.append("1,");
-			s.append(configuration.getAssOutline()).append(",");
-			s.append(configuration.getAssShadow()).append(",");
-			s.append("2,");
-			s.append("10,");
-			s.append("10,");
-			s.append("20,");
-			s.append("0,");
-			s.append("0");
-			output.write(s.toString() + "\n");
+			output.write("Style: Default,Arial,16,&Hffffff,&Hffffff,&H0,&H0,0,0,0,1,1,0,2,10,10,10,0,0\n");
 			output.write("\n");
 			output.write("[Events]\n");
 			output.write("Format: Layer, Start, End, Style, Text\n");
 			String startTime;
 			String endTime;
+			StringBuilder sb;
 
 			while ((line = input.readLine()) != null) {
 				if (line.contains("-->")) {
@@ -162,19 +135,19 @@ public class SubtitleUtils {
 					endTime = line.substring(line.indexOf("-->") + 4).replaceAll(",", ".");
 					startTime = StringUtil.convertTimeToString(StringUtil.convertStringToTime(startTime), StringUtil.ASS_FORMAT);
 					endTime = StringUtil.convertTimeToString(StringUtil.convertStringToTime(endTime), StringUtil.ASS_FORMAT);
-					s = new StringBuilder();
-					s.append("Dialogue: 0,");
-					s.append(startTime).append(",");
-					s.append(endTime).append(",");
-					s.append("Default").append(",");
-					s.append(convertTags(input.readLine()));
+					sb = new StringBuilder();
+					sb.append("Dialogue: 0,");
+					sb.append(startTime).append(",");
+					sb.append(endTime).append(",");
+					sb.append("Default").append(",");
+					sb.append(convertTags(input.readLine()));
 
 					if (isNotBlank(line = input.readLine())) {
-						s.append("\\N");
-						s.append(convertTags(line));
+						sb.append("\\N");
+						sb.append(convertTags(line));
 					}
 
-					output.write(s.toString() + "\n");
+					output.write(sb.toString() + "\n");
 				}
 			}
 		} finally { }

@@ -58,7 +58,7 @@ import org.slf4j.LoggerFactory;
 public class VLCVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(VLCVideo.class);
 	private static final String COL_SPEC = "left:pref, 3dlu, p, 3dlu, 0:grow";
-	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 9dlu, p, 3dlu, p";
+	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p, 9dlu, p, 3dlu, p, 3dlu, p";
 	protected final PmsConfiguration configuration;
 	public static final String ID = "vlctranscoder";
 	protected JTextField audioPri;
@@ -124,8 +124,10 @@ public class VLCVideo extends Player {
 
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		// VLC is a general transcoder that should support every format
-		// Until problem occurs, assume compatible
+		if (resource == null || resource.getFormat().getType() != Format.VIDEO) {
+			return false;
+		}
+
 		return true;
 	}
 

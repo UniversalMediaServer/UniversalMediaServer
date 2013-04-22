@@ -390,7 +390,7 @@ public class TranscodingTab {
 		});
 
 		if (!configuration.isHideAdvancedOptions()) {
-			builder.addLabel(Messages.getString("TrTab2.23").replaceAll("MAX_BUFFER_SIZE", configuration.getMaxMemoryBufferSizeStr()), FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
+			builder.addLabel(Messages.getString("TrTab2.23"), FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 			maxbuffer = new JTextField("" + configuration.getMaxMemoryBufferSize());
 			maxbuffer.addKeyListener(new KeyAdapter() {
 				@Override
@@ -509,7 +509,9 @@ public class TranscodingTab {
 
 		builder.add(new JLabel(Messages.getString("TrTab2.32")), FormLayoutUtil.flip(cc.xy(1, 10), colSpec, orientation));
 		Object data[] = new Object[] {
-			configuration.getMPEG2MainSettings(),                                                   /* default */
+			configuration.getMPEG2MainSettings(),                                                   /* current setting */
+			String.format("Automatic (Wired)  /* %s */", Messages.getString("TrTab2.71")),
+			String.format("Automatic (Wireless)  /* %s */", Messages.getString("TrTab2.72")),
 			String.format("keyint=5:vqscale=1:vqmin=2  /* %s */", Messages.getString("TrTab2.60")), /* great */
 			String.format("keyint=5:vqscale=1:vqmin=1  /* %s */", Messages.getString("TrTab2.61")), /* lossless */
 			String.format("keyint=5:vqscale=2:vqmin=3  /* %s */", Messages.getString("TrTab2.62")), /* good (wired) */

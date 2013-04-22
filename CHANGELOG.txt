@@ -8,7 +8,30 @@
 		Added configuration wizard to simplify common things like network configuration
 		Added an option to hide/show advanced options, hopefully making things less confusing/daunting for most users
 		Added VLC video transcoding (thanks, LordQuackstar!)
+		Added new options to iTunes library browsing: Browse by Artist, Album and Genre
+		Transcoding quality automatically adjusts for content and network speed by default, allowing wireless users an easier experience
 		Improved memory defaults on Windows
+		Fixed audio sync when muxing DTS via FFmpeg
+	Renderers:
+		Xbox 360 supports 5.1 audio
+		Faster transcoding on Xbox 360
+	Languages:
+		Updated Spanish translation (thanks, Alfredo Ramos!)
+	External Components:
+		Updated FFmpeg for Windows to 694fa00 (20130412), which:
+			Fixes RTMP bugs
+			Improves support for the following codecs/containers: WMV, MPEG, H.264, Matroska, AVI, AAC, AC-3, WMA, MP3, FLV, OGG
+			Improves 60FPS video support
+			Supports more audio channel layouts
+			Improves pthread support
+			Fixes memory leaks
+			Improves subtitle decoding support
+			Adds support for subtitles character encoding conversion
+			Makes duration estimation more reliable
+			Adds support for .ape files
+			Improves memory use when using hardware acceleration
+		Updated Java Runtime Environment automatic downloader for Windows to 7u21, which:
+			Has lots of security fixes and improvements
 
 2.6.1 - 2013-04-16
 
