@@ -3,6 +3,8 @@
 	General:
 		Fixed audio sync when muxing DTS via FFmpeg
 		Improved descriptions in GUI
+		Added support for the file:// protocol in WEB.conf
+		Protocols are matched before extensions in WEB.conf
 	External Components:
 		Updated Java Runtime Environment automatic downloader for Windows to 7u21, which:
 			Has lots of security fixes and improvements 
