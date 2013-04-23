@@ -24,7 +24,9 @@ public class ResumeObj {
 	 * the credits.
 	 * 30000 = 30 seconds
 	 */
-	private static final long BACK_FACTOR = 30000;
+	private static final long REWIND_TIME = 30000;
+	
+	private static final double BACK_FACTOR = 0.92;
 
 	private File file;
 	private long offsetTime;
@@ -135,24 +137,28 @@ public class ResumeObj {
 		long duration = thisPlay + getTimeOffset(); 
 
 		if (expDuration > minDur) {
-			if (duration >= (expDuration - BACK_FACTOR)) {
+			if (duration >= (expDuration * BACK_FACTOR)) {
 				// We've seen the whole video (likely)
 				file.delete();
 				return;
 			}
 		}
-		if (thisPlay < BACK_FACTOR) {
-			// we assume that we're done here
+		if ((duration - REWIND_TIME ) <= getTimeOffset()) {
+			// We've seen the whole video (likely)
 			file.delete();
+			return;
+		}
+		if (thisPlay < REWIND_TIME) {
 			return;
 		}
 		if (thisPlay < minDur) {
 			// to short to resume (at all)
 			return;
 		}
+		
 		offsetTime = duration;
 		resDuration = expDuration;
 		LOGGER.debug("Resume stop. This segment " + thisPlay + " new time " + duration);
-		write(duration - BACK_FACTOR, expDuration, file);
+		write(duration - REWIND_TIME, expDuration, file);
 	}
 }
