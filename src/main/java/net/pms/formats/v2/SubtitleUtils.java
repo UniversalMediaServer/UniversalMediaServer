@@ -176,9 +176,7 @@ public class SubtitleUtils {
 				 tag = s.substring(13, 19);
 				 sb.append("{\\c&H").append(tag.substring(4, 6) + tag.substring(2, 4) + tag.substring(0, 2)).append("&}").append(s.substring(21));
 			 } else if (s.contains("font") && s.indexOf(">") == 5) {
-				 String primaryColor = Integer.toHexString(color);
-				 tag = primaryColor.substring(6, 8) + primaryColor.substring(4, 6) + primaryColor.substring(2, 4);
-				 sb.append("{\\c&H").append(tag).append("&}").append(s.substring(6));
+				 sb.append("{\\c&Hffffff&}").append(s.substring(6));
 			 } else {
 				 sb.append(s);
 			 }
