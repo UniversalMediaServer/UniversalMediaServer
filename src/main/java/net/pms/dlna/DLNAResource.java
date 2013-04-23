@@ -2621,15 +2621,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	private void resumeStop() {
-		if (!isResumeable()) {
+		if (!configuration.isResumeEnabled() || !isResumeable()) {
 			return;
 		}
 		if (resume != null) {
 			resume.stop(startTime, (long) getMedia().getDurationInSeconds() * 1000);
 		} else {
-			if (!configuration.getResume()) {
-				return;
-			}
 			for (DLNAResource res : getParent().getChildren()) {
 				if (res.isResume() && res.getName().equals(getName())) {
 					res.resume.stop(startTime, (long) getMedia().getDurationInSeconds() * 1000);

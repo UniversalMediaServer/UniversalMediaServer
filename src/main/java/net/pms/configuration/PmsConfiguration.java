@@ -2984,7 +2984,7 @@ public class PmsConfiguration {
 		configuration.setProperty(KEY_VLC_SAMPLE_RATE, value);
 	}
 
-	public boolean getResume()  {
+	public boolean isResumeEnabled()  {
 		return getBoolean(KEY_RESUMABLE, true);
 	}
 	
