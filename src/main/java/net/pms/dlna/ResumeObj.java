@@ -127,6 +127,10 @@ public class ResumeObj {
 	public long getTimeOffset() {
 		return offsetTime;
 	}
+	
+	public boolean isDone() {
+		return !file.exists();
+	}
 
 	public void stop(long startTime, long expDuration) {
 		long now = System.currentTimeMillis();
