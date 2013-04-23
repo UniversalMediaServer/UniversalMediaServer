@@ -6,13 +6,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.encoders.FFmpegWebVideo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ResumeObj {
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
@@ -50,7 +47,7 @@ public class ResumeObj {
 	}
 	
 	public static ResumeObj create(DLNAResource r) {
-		if (!configuration.getResume()) {
+		if (!configuration.isResumeEnabled()) {
 			// resume is off bail early
 			return null;
 		}

@@ -156,7 +156,7 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("_", " ");
 
 			// Remove stuff at the end of the filename like hash, quality, source, etc.
-			formattedName = formattedName.replaceAll("(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\s\\(BD.*|\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*", "");
+			formattedName = formattedName.replaceAll("(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\[720p.*|\\[1080p.*|\\[480p.*|\\s\\(BD.*|\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*", "");
 
 			// Remove group name from the beginning of the filename
 			if (formattedName.substring(0, 1).matches("\\[")) {
@@ -526,7 +526,7 @@ public class FileUtil {
 
 	/**
 	 * Determine whether a file is readable by trying to read it. This works around JDK bugs which
-	 * return the wrong results for {@link java.io.File.canRead()} on Windows, and in some cases, on Unix.
+	 * return the wrong results for {@link java.io.File#canRead()} on Windows, and in some cases, on Unix.
 	 * <p>
 	 * Note: since this method accesses the filesystem, it should not be used in contexts in which performance is critical.
 	 * Note: this method changes the file access time.
@@ -553,7 +553,7 @@ public class FileUtil {
 
 	/**
 	 * Determine whether a file is writable by trying to write it. This works around JDK bugs which
-	 * return the wrong results for {@link java.io.File.canWrite()} on Windows and, in some cases, on Unix.
+	 * return the wrong results for {@link java.io.File#canWrite()} on Windows and, in some cases, on Unix.
 	 * <p>
 	 * Note: since this method accesses the filesystem, it should not be used in contexts in which performance is critical.
 	 * Note: this method changes the file access time and may change the file modification time.
@@ -600,7 +600,7 @@ public class FileUtil {
 	 * Determines whether the supplied directory is readable by trying to
 	 * read its contents.
 	 * This works around JDK bugs which return the wrong results for
-	 * {@link java.io.File.canRead()} on Windows and possibly on Unix.
+	 * {@link java.io.File#canRead()} on Windows and possibly on Unix.
 	 *
 	 * Note: since this method accesses the filesystem, it should not be
 	 * used in contexts in which performance is critical.
@@ -636,7 +636,7 @@ public class FileUtil {
 	 * Determines whether the supplied directory is writable by trying to
 	 * write a file to it.
 	 * This works around JDK bugs which return the wrong results for
-	 * {@link java.io.File.canWrite()} on Windows and possibly on Unix.
+	 * {@link java.io.File#canWrite()} on Windows and possibly on Unix.
 	 *
 	 * Note: since this method accesses the filesystem, it should not be
 	 * used in contexts in which performance is critical.

@@ -73,15 +73,15 @@ public class PmsConfiguration {
 	private static final String KEY_ALTERNATE_THUMB_FOLDER = "alternate_thumb_folder";
 	private static final String KEY_APERTURE_ENABLED = "aperture";
 	private static final String KEY_ATZ_LIMIT = "atz_limit";
-	private static final String KEY_AUDIO_BITRATE = "audiobitrate";
-	private static final String KEY_AUDIO_CHANNEL_COUNT = "audiochannels";
+	private static final String KEY_AUDIO_BITRATE = "audiobitrate"; // TODO (breaking change): should be renamed to e.g. audio_bitrate
+	private static final String KEY_AUDIO_CHANNEL_COUNT = "audiochannels"; // TODO (breaking change): should be renamed to e.g. audio_channels
 	private static final String KEY_AUDIO_LANGUAGES = "mencoder_audiolangs"; // TODO (breaking change): should be renamed to e.g. audio_languages
 	private static final String KEY_AUDIO_RESAMPLE = "audio_resample";
 	private static final String KEY_AUDIO_SUB_LANGS = "mencoder_audiosublangs"; // TODO (breaking change): should be renamed to e.g. audiosublangs
 	private static final String KEY_AUDIO_THUMBNAILS_METHOD = "audio_thumbnails_method";
 	private static final String KEY_AUTO_UPDATE = "auto_update";
 	private static final String KEY_AUTOLOAD_SUBTITLES = "autoloadsrt"; // TODO (breaking change): rename to e.g. autoload_subtitles or autoload_external_subtitles
-	private static final String KEY_AVISYNTH_CONVERT_FPS = "avisynth_convertfps";
+	private static final String KEY_AVISYNTH_CONVERT_FPS = "avisynth_convertfps"; // TODO (breaking change): rename to e.g. avisynth_convert_fps
 	private static final String KEY_AVISYNTH_INTERFRAME = "avisynth_interframe";
 	private static final String KEY_AVISYNTH_INTERFRAME_GPU = "avisynth_interframegpu";
 	private static final String KEY_AVISYNTH_MULTITHREADING = "avisynth_multithreading";
@@ -94,7 +94,7 @@ public class PmsConfiguration {
 	private static final String KEY_BUFFER_TYPE = "buffertype"; // FIXME deprecated: unused
 	private static final String KEY_CHAPTER_INTERVAL = "chapter_interval";
 	private static final String KEY_CHAPTER_SUPPORT = "chapter_support";
-	private static final String KEY_CHARSET_ENCODING = "charsetencoding";
+	private static final String KEY_CHARSET_ENCODING = "charsetencoding"; // TODO (breaking change): should be renamed to e.g. charset_encoding
 	private static final String KEY_CODEC_SPEC_SCRIPT = "codec_spec_script";
 	private static final String KEY_DISABLE_FAKESIZE = "disable_fakesize";
 	public static final String KEY_DISABLE_SUBTITLES = "mencoder_disablesubs"; // TODO (breaking change): should be renamed to e.g. disable_subtitles
@@ -123,7 +123,7 @@ public class PmsConfiguration {
 	private static final String KEY_HIDE_LIVE_SUBTITLES_FOLDER = "hide_live_subtitles_folder";
 	private static final String KEY_HIDE_MEDIA_LIBRARY_FOLDER = "hide_media_library_folder";
 	private static final String KEY_HIDE_TRANSCODE_FOLDER = "hide_transcode_folder";
-	private static final String KEY_HIDE_VIDEO_SETTINGS = "hidevideosettings";
+	private static final String KEY_HIDE_VIDEO_SETTINGS = "hidevideosettings"; // TODO (breaking change): should be renamed to e.g. hide_video_settings
 	private static final String KEY_HTTP_ENGINE_V2 = "http_engine_v2";
 	private static final String KEY_IGNORE_THE_WORD_THE = "ignore_the_word_the";
 	private static final String KEY_IMAGE_THUMBNAILS_ENABLED = "image_thumbnails";
@@ -131,9 +131,9 @@ public class PmsConfiguration {
 	private static final String KEY_IPHOTO_ENABLED = "iphoto";
 	private static final String KEY_ITUNES_ENABLED = "itunes";
 	private static final String KEY_LANGUAGE = "language";
-	private static final String KEY_MAX_AUDIO_BUFFER = "maxaudiobuffer";
-	private static final String KEY_MAX_BITRATE = "maximumbitrate";
-	private static final String KEY_MAX_MEMORY_BUFFER_SIZE = "maxvideobuffer";
+	private static final String KEY_MAX_AUDIO_BUFFER = "maxaudiobuffer"; // TODO (breaking change): should be renamed to e.g. maximum_audio_buffer_size
+	private static final String KEY_MAX_BITRATE = "maximumbitrate"; // TODO (breaking change): should be renamed to e.g. maximum_bitrate
+	private static final String KEY_MAX_MEMORY_BUFFER_SIZE = "maxvideobuffer"; // TODO (breaking change): should be renamed to e.g. maximum_video_buffer_size
 	private static final String KEY_MENCODER_ASS = "mencoder_ass";
 	private static final String KEY_MENCODER_AC3_FIXED = "mencoder_ac3_fixed";
 	private static final String KEY_MENCODER_ASS_DEFAULTSTYLE = "mencoder_ass_defaultstyle";
@@ -165,8 +165,8 @@ public class PmsConfiguration {
 	private static final String KEY_MIN_PLAY_TIME_WEB = "min_playtime_web";
 	private static final String KEY_MIN_PLAY_TIME_FILE = "min_playtime_file";
 	private static final String KEY_MINIMIZED = "minimized";
-	private static final String KEY_MIN_MEMORY_BUFFER_SIZE = "minvideobuffer";
-	private static final String KEY_MIN_STREAM_BUFFER = "minwebbuffer";
+	private static final String KEY_MIN_MEMORY_BUFFER_SIZE = "minvideobuffer"; // TODO (breaking change): should be renamed to e.g. minimum_video_buffer_size
+	private static final String KEY_MIN_STREAM_BUFFER = "minwebbuffer"; // TODO (breaking change): should be renamed to e.g. minimum_web_buffer_size
 	private static final String KEY_MPEG2_MAIN_SETTINGS = "mencoder_encode"; // TODO (breaking change): should be renamed to e.g. mpeg2_main_settings
 	private static final String KEY_MUX_ALLAUDIOTRACKS = "tsmuxer_mux_all_audiotracks";
 	private static final String KEY_NETWORK_INTERFACE = "network_interface";
@@ -191,35 +191,35 @@ public class PmsConfiguration {
 	private static final String KEY_SERVER_HOSTNAME = "hostname";
 	private static final String KEY_SERVER_PORT = "port";
 	private static final String KEY_SHARES = "shares";
-	private static final String KEY_SKIP_LOOP_FILTER_ENABLED = "skiploopfilter";
+	private static final String KEY_SKIP_LOOP_FILTER_ENABLED = "skiploopfilter"; // TODO (breaking change): should be renamed to e.g. mencoder_skip_loop_filter
 	private static final String KEY_SKIP_NETWORK_INTERFACES = "skip_network_interfaces";
 	private static final String KEY_SORT_METHOD = "key_sort_method"; // TODO (breaking change): should be renamed to e.g. sort_method
 	private static final String KEY_SUBS_COLOR = "subs_color";
 	private static final String KEY_SUBTITLES_CODEPAGE = "mencoder_subcp"; // TODO (breaking change): should be renamed to e.g. subtitles_sodepage
 	private static final String KEY_SUBTITLES_LANGUAGES = "mencoder_sublangs"; // TODO (breaking change): should be renamed to e.g. subtitles_languages
-	private static final String KEY_TEMP_FOLDER_PATH = "temp";
+	private static final String KEY_TEMP_FOLDER_PATH = "temp"; // TODO (breaking change): should be renamed to e.g. temp_directory
 	private static final String KEY_THUMBNAIL_GENERATION_ENABLED = "thumbnails"; // TODO (breaking change): should be renamed to e.g. generate_thumbnails
-	private static final String KEY_THUMBNAIL_SEEK_POS = "thumbnail_seek_pos";
+	private static final String KEY_THUMBNAIL_SEEK_POS = "thumbnail_seek_pos"; // TODO (breaking change): should be renamed to e.g. thumbnail_seek_position
 	private static final String KEY_TRANSCODE_BLOCKS_MULTIPLE_CONNECTIONS = "transcode_block_multiple_connections";
 	private static final String KEY_TRANSCODE_FOLDER_NAME = "transcode_folder_name";
 	private static final String KEY_TRANSCODE_KEEP_FIRST_CONNECTION = "transcode_keep_first_connection";
 	private static final String KEY_TSMUXER_FORCEFPS = "tsmuxer_forcefps";
 	private static final String KEY_TSMUXER_PREREMIX_AC3 = "tsmuxer_preremix_ac3";
-	private static final String KEY_TURBO_MODE_ENABLED = "turbomode";
+	private static final String KEY_TURBO_MODE_ENABLED = "turbomode"; // FIXME unused
 	private static final String KEY_UPNP_PORT = "upnp_port";
-	private static final String KEY_USE_CACHE = "usecache";
+	private static final String KEY_USE_CACHE = "usecache"; // TODO (breaking change): should be renamed to e.g. use_cache
 	private static final String KEY_USE_MPLAYER_FOR_THUMBS = "use_mplayer_for_video_thumbs";
 	private static final String KEY_USE_PCM = "mencoder_usepcm"; // TODO (breaking change): should be renamed to e.g. usepcm
 	private static final String KEY_UUID = "uuid";
 	private static final String KEY_VIDEOTRANSCODE_START_DELAY = "key_videotranscode_start_delay"; // TODO (breaking change): should be renamed to e.g. videotranscode_start_delay
 	private static final String KEY_VIRTUAL_FOLDERS = "vfolders";
-	private static final String KEY_VLC_USE_HW_ACCELERATION = "VLC_use_HW_acceleration";
-	private static final String KEY_VLC_USE_EXPERIMENTAL_CODECS = "VLC_use_experimental_codecs";
-	private static final String KEY_VLC_AUDIO_SYNC_ENABLED = "VLC_audio_sync_enabled";
-	private static final String KEY_VLC_SUBTITLE_ENABLED = "VLC_subtitle_enabled";
-	private static final String KEY_VLC_SCALE = "VLC_scale";
-	private static final String KEY_VLC_SAMPLE_RATE_OVERRIDE = "VLC_sample_rate_override";
-	private static final String KEY_VLC_SAMPLE_RATE = "VLC_sample_rate";
+	private static final String KEY_VLC_USE_HW_ACCELERATION = "vlc_use_hw_acceleration";
+	private static final String KEY_VLC_USE_EXPERIMENTAL_CODECS = "vlc_use_experimental_codecs";
+	private static final String KEY_VLC_AUDIO_SYNC_ENABLED = "vlc_audio_sync_enabled";
+	private static final String KEY_VLC_SUBTITLE_ENABLED = "vlc_subtitle_enabled";
+	private static final String KEY_VLC_SCALE = "vlc_scale";
+	private static final String KEY_VLC_SAMPLE_RATE_OVERRIDE = "vlc_sample_rate_override";
+	private static final String KEY_VLC_SAMPLE_RATE = "vlc_sample_rate";
 
 	// The name of the subdirectory under which UMS config files are stored for this build (default: UMS).
 	// See Build for more details
@@ -1004,7 +1004,7 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * @deprecated Use {@link #setDisableSubtitles()} instead.
+	 * @deprecated Use {@link #setDisableSubtitles(boolean)} instead.
 	 */
 	public void setMencoderDisableSubs(boolean value) {
 		setDisableSubtitles(value);
@@ -1214,7 +1214,7 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * @deprecated Use {@link #setAudioLanguages()} instead.
+	 * @deprecated Use {@link #setAudioLanguages(String)} instead.
 	 */
 	public void setMencoderAudioLanguages(String value) {
 		setAudioLanguages(value);
@@ -1231,7 +1231,7 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * @deprecated Use {@link #setSubtitlesLanguages()} instead.
+	 * @deprecated Use {@link #setSubtitlesLanguages(String)} instead.
 	 */
 	public void setMencoderSubLanguages(String value) {
 		setSubtitlesLanguages(value);
@@ -1248,7 +1248,7 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * @deprecated Use {@link #setForcedSubtitleLanguage()} instead.
+	 * @deprecated Use {@link #setForcedSubtitleLanguage(String)} instead.
 	 */
 	public void setMencoderForcedSubLanguage(String value) {
 		setForcedSubtitleLanguage(value);
@@ -1264,7 +1264,7 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * @deprecated Use {@link #setForcedSubtitleTags()} instead.
+	 * @deprecated Use {@link #setForcedSubtitleTags(String)} instead.
 	 */
 	public void setMencoderForcedSubTags(String value) {
 		setForcedSubtitleTags(value);
@@ -1465,7 +1465,8 @@ public class PmsConfiguration {
 	 * upscale the video itself.
 	 *
 	 * @return True if MEncoder should be used, false otherwise.
-	 * @see {@link #getMencoderScaleX(int)}, {@link #getMencoderScaleY(int)}
+	 * @see #getMencoderScaleX()
+	 * @see #getMencoderScaleY()
 	 */
 	public boolean isMencoderScaler() {
 		return getBoolean(KEY_MENCODER_SCALER, false);
@@ -1476,7 +1477,8 @@ public class PmsConfiguration {
 	 * optimal resolution. Set to false to leave upscaling to the renderer.
 	 *
 	 * @param value Set to true if MEncoder should be used to upscale.
-	 * @see {@link #setMencoderScaleX(int)}, {@link #setMencoderScaleY(int)}
+	 * @see #setMencoderScaleX(int)
+	 * @see #setMencoderScaleY(int)
 	 */
 	public void setMencoderScaler(boolean value) {
 		configuration.setProperty(KEY_MENCODER_SCALER, value);
@@ -1523,12 +1525,15 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Returns the number of audio channels that MEncoder should use for
+	 * Returns the number of audio channels that should be used for
 	 * transcoding. Default value is 6 (for 5.1 audio).
 	 *
 	 * @return The number of audio channels.
 	 */
 	public int getAudioChannelCount() {
+		if (!"6".equals(KEY_AUDIO_CHANNEL_COUNT) && !"2".equals(KEY_AUDIO_CHANNEL_COUNT)) {
+			return 6;
+		}
 		return getInt(KEY_AUDIO_CHANNEL_COUNT, 6);
 	}
 
@@ -1539,6 +1544,9 @@ public class PmsConfiguration {
 	 * @param value The number of audio channels.
 	 */
 	public void setAudioChannelCount(int value) {
+		if (value != 6 && value != 2) {
+			value = 6;
+		}
 		configuration.setProperty(KEY_AUDIO_CHANNEL_COUNT, value);
 	}
 
@@ -1582,8 +1590,6 @@ public class PmsConfiguration {
 	 * This only determines whether a thumbnailer (e.g. dcraw, MPlayer)
 	 * is used to generate thumbnails. It does not reflect whether
 	 * thumbnails should be displayed or not.
-	 *
-	 * @return boolean indicating whether thumbnail generation is enabled.
 	 */
 	@Deprecated
 	public boolean getThumbnailsEnabled() {
@@ -2098,11 +2104,11 @@ public class PmsConfiguration {
 	 * and typically exclude the number at the end of the interface name.
 	 * <p>
 	 * Default is to skip the interfaces created by Virtualbox, OpenVPN and
-	 * Parallels: "tap,vmnet,vnic".
+	 * Parallels: "tap,vmnet,vnic,virtualbox".
 	 * @return The string of network interface names to skip.
 	 */
 	public List<String> getSkipNetworkInterfaces() {
-		return getStringList(KEY_SKIP_NETWORK_INTERFACES, "tap,vmnet,vnic");
+		return getStringList(KEY_SKIP_NETWORK_INTERFACES, "tap,vmnet,vnic,virtualbox");
 	}
 
 	public void setSkipLoopFilterEnabled(boolean value) {
@@ -2978,7 +2984,7 @@ public class PmsConfiguration {
 		configuration.setProperty(KEY_VLC_SAMPLE_RATE, value);
 	}
 
-	public boolean getResume()  {
+	public boolean isResumeEnabled()  {
 		return getBoolean(KEY_RESUMABLE, true);
 	}
 	

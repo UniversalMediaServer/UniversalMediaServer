@@ -70,13 +70,22 @@ import org.slf4j.LoggerFactory;
  *
  * Design note:
  *
- * Helper methods that return lists of <code>String</code>s representing options are public
- * to facilitate composition e.g. a custom engine (plugin) that uses tsMuxeR for videos without
- * subtitles and FFmpeg otherwise needs to compose and call methods on both players.
+ * Helper methods that return lists of <code>String</code>s representing
+ * options are public to facilitate composition e.g. a custom engine (plugin)
+ * that uses tsMuxeR for videos without subtitles and FFmpeg otherwise needs to
+ * compose and call methods on both players.
  *
- * To avoid API churn, and to provide wiggle room for future functionality, all of these methods
- * take RendererConfiguration (renderer) and DLNAMediaInfo (media) parameters, even if one or
- * both of these parameters are unused.
+ * To avoid API churn, and to provide wiggle room for future functionality, all
+ * of these methods take the same arguments as launchTranscode (and the same
+ * first four arguments as finalizeTranscoderArgs) even if one or more of the
+ * parameters are unused e.g.:
+ *
+ *     public List<String> getAudioBitrateOptions(
+ *         String filename,
+ *         DLNAResource dlna,
+ *         DLNAMediaInfo media,
+ *         OutputParams params
+ *     )
  */
 public class FFMpegVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
@@ -215,9 +224,10 @@ public class FFMpegVideo extends Player {
 	}
 
 	/**
-	 * Takes a renderer and returns a list of <code>String</code>s representing FFmpeg output options
-	 * (i.e. options that define the output file's video codec, audio codec and container)
-	 * compatible with the renderer's <code>TranscodeVideo</code> profile.
+	 * Returns a list of <code>String</code>s representing ffmpeg output
+	 * options (i.e. options that define the output file's video codec,
+	 * audio codec and container) compatible with the renderer's
+	 * <code>TranscodeVideo</code> profile.
 	 *
 	 * @param renderer The {@link RendererConfiguration} instance whose <code>TranscodeVideo</code> profile is to be processed.
 	 * @param media the media metadata for the video being streamed. May contain unset/null values (e.g. for web videos).
@@ -328,8 +338,8 @@ public class FFMpegVideo extends Player {
 	}
 
 	/**
-	 * Takes a renderer and metadata for the current video and returns the video bitrate spec for the current transcode according to
-	 * the limits/requirements of the renderer.
+	 * Returns the video bitrate spec for the current transcode according
+	 * to the limits/requirements of the renderer.
 	 *
 	 * @param renderer a {@link RendererConfiguration} instance representing the renderer being streamed to
 	 * @param media the media metadata for the video being streamed. May contain unset/null values (e.g. for web videos).
@@ -363,8 +373,8 @@ public class FFMpegVideo extends Player {
 	}
 
 	/**
-	 * Takes a renderer and metadata for the current video and returns the audio bitrate spec for the current transcode according to
-	 * the limits/requirements of the renderer.
+	 * Returns the audio bitrate spec for the current transcode according
+	 * to the limits/requirements of the renderer.
 	 *
 	 * @param renderer a {@link RendererConfiguration} instance representing the renderer being streamed to
 	 * @param media the media metadata for the video being streamed. May contain unset/null values (e.g. for web videos).
@@ -485,7 +495,7 @@ public class FFMpegVideo extends Player {
 
 	@Override
 	public ProcessWrapper launchTranscode(
-		String fileName,
+		String filename,
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params
@@ -493,13 +503,13 @@ public class FFMpegVideo extends Player {
 		int nThreads = configuration.getNumberOfCpuCores();
 		List<String> cmdList = new ArrayList<>();
 		RendererConfiguration renderer = params.mediaRenderer;
-		setAudioAndSubs(fileName, media, params, configuration);
+		setAudioAndSubs(filename, media, params, configuration);
 		File tempSubs = null;
 //		params.waitbeforestart = 1000;
 		boolean avisynth = avisynth();
 
 		if (!isDisableSubtitles(params)) {
-			tempSubs = subsConversion(fileName, media, params);
+			tempSubs = subsConversion(filename, media, params);
 		}
 
 		cmdList.add(executable());
@@ -547,11 +557,11 @@ public class FFMpegVideo extends Player {
 
 		// Input filename
 		cmdList.add("-i");
-		if (avisynth && !fileName.toLowerCase().endsWith(".iso")) {
-			File avsFile = AviSynthFFmpeg.getAVSScript(fileName, params.sid, params.fromFrame, params.toFrame, frameRateRatio, frameRateNumber);
+		if (avisynth && !filename.toLowerCase().endsWith(".iso")) {
+			File avsFile = AviSynthFFmpeg.getAVSScript(filename, params.sid, params.fromFrame, params.toFrame, frameRateRatio, frameRateNumber);
 			cmdList.add(ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath()));
 		} else {
-			cmdList.add(fileName);
+			cmdList.add(filename);
 
 			if (media.getAudioTracksList().size() > 1) {
 				// Set the video stream
@@ -732,7 +742,7 @@ public class FFMpegVideo extends Player {
 		}
 
 		// Add the output options (-f, -acodec, -vcodec)
-		cmdList.addAll(getTranscodeVideoOptions(renderer, media, params, fileName));
+		cmdList.addAll(getTranscodeVideoOptions(renderer, media, params, filename));
 
 		// Add custom options
 		if (StringUtils.isNotEmpty(renderer.getCustomFFmpegOptions())) {
@@ -747,7 +757,7 @@ public class FFMpegVideo extends Player {
 		cmdList.toArray(cmdArray);
 
 		cmdArray = finalizeTranscoderArgs(
-			fileName,
+			filename,
 			dlna,
 			media,
 			params,
@@ -777,7 +787,7 @@ public class FFMpegVideo extends Player {
 			cmdList.toArray(cmdArrayDts);
 
 			cmdArrayDts = finalizeTranscoderArgs(
-				fileName,
+				filename,
 				dlna,
 				media,
 				params,
@@ -818,7 +828,7 @@ public class FFMpegVideo extends Player {
 			} else {
 				cmdListDTS.add("-");
 			}
-			cmdListDTS.add(fileName);
+			cmdListDTS.add(filename);
 
 			if (params.timeseek > 0) {
 				cmdListDTS.add("-copypriorss");

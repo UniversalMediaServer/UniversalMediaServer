@@ -177,7 +177,8 @@ public abstract class Format implements Cloneable {
 		filename = filename.toLowerCase();
 		for (String singleid : getId()) {
 			String id = singleid.toLowerCase();
-			match = filename.endsWith("." + id) || filename.startsWith(id + "://");
+			// XXX match the protocol before the extension
+			match = filename.startsWith(id + "://") || filename.endsWith("." + id);
 			if (match) {
 				matchedId = singleid;
 				return true;

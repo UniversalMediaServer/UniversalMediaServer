@@ -83,7 +83,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 		if (configuration.isFfmpegAviSynthMultithreading()) {
 			threads = " -threads " + configuration.getNumberOfCpuCores();
 		}
-		return configuration.getFfmpegSettings() + " -ab " + configuration.getAudioBitrate() + "k" + threads;
+		return configuration.getMPEG2MainSettingsFFmpeg() + " -ab " + configuration.getAudioBitrate() + "k" + threads;
 	}
 
 	@Override
@@ -96,15 +96,15 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 		return true;
 	}
 
-	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack) throws IOException {
-		return getAVSScript(fileName, subTrack, -1, -1, null, null);
+	public static File getAVSScript(String filename, DLNAMediaSubtitle subTrack) throws IOException {
+		return getAVSScript(filename, subTrack, -1, -1, null, null);
 	}
 
 	/*
 	 * Generate the AviSynth script based on the user's settings
 	 */
-	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack, int fromFrame, int toFrame, String frameRateRatio, String frameRateNumber) throws IOException {
-		String onlyFileName = fileName.substring(1 + fileName.lastIndexOf("\\"));
+	public static File getAVSScript(String filename, DLNAMediaSubtitle subTrack, int fromFrame, int toFrame, String frameRateRatio, String frameRateNumber) throws IOException {
+		String onlyFileName = filename.substring(1 + filename.lastIndexOf("\\"));
 		File file = new File(configuration.getTempFolder(), "pms-avs-" + onlyFileName + ".avs");
 		try (PrintWriter pw = new PrintWriter(new FileOutputStream(file))) {
 			String numerator;
@@ -139,12 +139,12 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				convertfps = ", convertfps=true";
 			}
 
-			File f = new File(fileName);
+			File f = new File(filename);
 			if (f.exists()) {
-				fileName = ProcessUtil.getShortFileNameIfWideChars(fileName);
+				filename = ProcessUtil.getShortFileNameIfWideChars(filename);
 			}
 
-			String movieLine       = "DirectShowSource(\"" + fileName + "\"" + directShowFPS + convertfps + ")" + assumeFPS;
+			String movieLine       = "DirectShowSource(\"" + filename + "\"" + directShowFPS + convertfps + ")" + assumeFPS;
 			String mtLine1         = "";
 			String mtLine2         = "";
 			String interframeLines = null;
@@ -214,7 +214,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			if (fullyManaged) {
 				for (String s : lines) {
 					if (s.contains("<moviefilename>")) {
-						s = s.replace("<moviefilename>", fileName);
+						s = s.replace("<moviefilename>", filename);
 					}
 
 					if (movieLine != null) {
