@@ -140,12 +140,12 @@ public class SubtitleUtils {
 					sb.append(startTime).append(",");
 					sb.append(endTime).append(",");
 					sb.append("Default").append(",");
-					sb.append(convertTags(input.readLine(), configuration.getSubsColor()));
+					sb.append(convertTags(input.readLine()));
 					
 					// Subtitles might be on several lines. Search ahead to find the end.
 					while (isNotBlank(line = input.readLine())) {
 						sb.append("\\N");
-						sb.append(convertTags(line, configuration.getSubsColor()));
+						sb.append(convertTags(line));
 					}
 
 					output.write(sb.toString() + "\n");
@@ -160,7 +160,7 @@ public class SubtitleUtils {
 		return outputSubs;
 	}
 
-	private static String convertTags(String text, int color) {
+	private static String convertTags(String text) {
 		 String tag;
 		 StringBuilder sb = new StringBuilder();
 		 String[] tmp = text.split("<");
