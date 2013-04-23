@@ -174,14 +174,14 @@ public class SubtitleUtils {
 				 sb.append("{\\").append(tag).append("1}").append(s.substring(2));
 			 } else if (s.startsWith("font color")) {
 				 tag = s.substring(13, 19);
-				 sb.append("{\\c&H").append(tag.substring(4, 6) + tag.substring(2, 4) + tag.substring(0, 2)).append("&}").append(s.substring(21));
+				 sb.append("{\\c&H").append(tag.substring(4, 6)).append(tag.substring(2, 4)).append(tag.substring(0, 2)).append("&}").append(s.substring(21));
 			 } else if (s.contains("font") && s.indexOf(">") == 5) {
 				 sb.append("{\\c&Hffffff&}").append(s.substring(6));
 			 } else {
 				 sb.append(s);
 			 }
 		 }
-  
+
 		return sb.toString();
 	}
 
