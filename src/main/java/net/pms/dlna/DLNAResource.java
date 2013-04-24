@@ -2634,7 +2634,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				if (res.isResume() && res.getName().equals(getName())) {
 					res.resume.stop(startTime, (long) getMedia().getDurationInSeconds() * 1000);
 					if (res.resume.isDone()) {
-						getParent().getChildren().remove(this);
+						getParent().getChildren().remove(res);
 					}
 					return;
 				}
