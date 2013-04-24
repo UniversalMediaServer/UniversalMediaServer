@@ -15,14 +15,13 @@ public class ResumeObj {
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private static final Logger LOGGER = LoggerFactory.getLogger(ResumeObj.class);
 
-	/**
-	 * The length of time taken from the end of the video to assume the user
-	 * is done viewing. In other words it is an estimation of the length of
-	 * the credits.
-	 * 30000 = 30 seconds
-	 */
 	private static final long REWIND_TIME = 30000;
-	
+
+	/**
+	 * Mark the file as watched (and therefore not resumable) after this
+	 * percentage of the duration. The remainder of this is an estimation of
+	 * the duration of credits, e.g. 0.92 means 8% of the video is credits.
+	 */
 	private static final double BACK_FACTOR = 0.92;
 
 	private File file;
@@ -127,7 +126,7 @@ public class ResumeObj {
 	public long getTimeOffset() {
 		return offsetTime;
 	}
-	
+
 	public boolean isDone() {
 		return !file.exists();
 	}
@@ -156,7 +155,7 @@ public class ResumeObj {
 			// to short to resume (at all)
 			return;
 		}
-		
+
 		offsetTime = duration;
 		resDuration = expDuration;
 		LOGGER.debug("Resume stop. This segment " + thisPlay + " new time " + duration);
