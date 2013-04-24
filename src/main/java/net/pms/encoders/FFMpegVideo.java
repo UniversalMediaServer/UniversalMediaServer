@@ -1076,9 +1076,9 @@ public class FFMpegVideo extends Player {
 		if (!subsPath.exists()) {
 			subsPath.mkdirs();
 		}
-		
+
 		String convertedSubs = subsPath.getAbsolutePath() + File.separator + FileUtil.getFileNameWithoutExtension(new File(fileName).getName()) + "_" + new File(fileName).lastModified();
-		
+
 		if (params.sid.isEmbedded()) {
 			convertedSubs = convertedSubs + "_EMB_ID" + params.sid.getId() + ".ass";
 			if (new File(convertedSubs).exists()) {
@@ -1164,7 +1164,7 @@ public class FFMpegVideo extends Player {
 
 		cmdList.add("-i");
 		cmdList.add(fileName);
-		
+
 		if (params.sid.isEmbedded()) {
 			cmdList.add("-map");
 			cmdList.add("0:" + (params.sid.getId() + media.getAudioTracksList().size() + 1));
