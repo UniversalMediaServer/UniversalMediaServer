@@ -86,6 +86,7 @@ public class PmsConfiguration {
 	private static final String KEY_AVISYNTH_INTERFRAME_GPU = "avisynth_interframegpu";
 	private static final String KEY_AVISYNTH_MULTITHREADING = "avisynth_multithreading";
 	private static final String KEY_AVISYNTH_SCRIPT = "avisynth_script";
+	private static final String KEY_ASS_MARGIN = "mencoder_ass_margin"; // TODO (breaking change): should be renamed to e.g. ass_margin
 	private static final String KEY_ASS_OUTLINE = "mencoder_ass_outline"; // TODO (breaking change): should be renamed to e.g. ass_outline
 	private static final String KEY_ASS_SCALE = "mencoder_ass_scale"; // TODO (breaking change): should be renamed to e.g. ass_scale
 	private static final String KEY_ASS_SHADOW = "mencoder_ass_shadow"; // TODO (breaking change): should be renamed to e.g. ass_shadow
@@ -137,7 +138,6 @@ public class PmsConfiguration {
 	private static final String KEY_MENCODER_ASS = "mencoder_ass";
 	private static final String KEY_MENCODER_AC3_FIXED = "mencoder_ac3_fixed";
 	private static final String KEY_MENCODER_ASS_DEFAULTSTYLE = "mencoder_ass_defaultstyle";
-	private static final String KEY_MENCODER_ASS_MARGIN = "mencoder_ass_margin";
 	private static final String KEY_MENCODER_CUSTOM_OPTIONS = "mencoder_decode"; // TODO (breaking change): should be renamed to e.g. mencoder_custom_options
 	private static final String KEY_MENCODER_FONT_CONFIG = "mencoder_fontconfig";
 	private static final String KEY_MENCODER_FORCE_FPS = "mencoder_forcefps";
@@ -766,11 +766,18 @@ public class PmsConfiguration {
 	}
 
 	/**
+	 * @deprecated Use {@link #getAssMargin()} instead.
+	 */
+	public String getMencoderAssMargin() {
+		return getString(KEY_ASS_MARGIN, "10");
+	}
+
+	/**
 	 * Returns the margin used for ASS subtitling. Default value is 10.
 	 * @return The ASS margin.
 	 */
-	public String getMencoderAssMargin() {
-		return getString(KEY_MENCODER_ASS_MARGIN, "10");
+	public String getAssMargin() {
+		return getString(KEY_ASS_MARGIN, "10");
 	}
 
 	/**
@@ -858,11 +865,18 @@ public class PmsConfiguration {
 	}
 
 	/**
+	 * @deprecated Use {@link #setAssMargin(String value)} instead.
+	 */
+	public void setMencoderAssMargin(String value) {
+		configuration.setProperty(KEY_ASS_MARGIN, value);
+	}
+
+	/**
 	 * Set the margin used for ASS subtitling.
 	 * @param value The ASS margin value to set.
 	 */
-	public void setMencoderAssMargin(String value) {
-		configuration.setProperty(KEY_MENCODER_ASS_MARGIN, value);
+	public void setAssMargin(String value) {
+		configuration.setProperty(KEY_ASS_MARGIN, value);
 	}
 
 	/**

@@ -888,11 +888,11 @@ public class TranscodingTab {
 		
 		builder.addLabel(Messages.getString("MEncoderVideo.15"), FormLayoutUtil.flip(cc.xy(13, 12), colSpec, orientation));
 
-		ass_margin = new JTextField(configuration.getMencoderAssMargin());
+		ass_margin = new JTextField(configuration.getAssMargin());
 		ass_margin.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				configuration.setMencoderAssMargin(ass_margin.getText());
+				configuration.setAssMargin(ass_margin.getText());
 			}
 		});
 

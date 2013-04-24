@@ -532,6 +532,7 @@ public class MEncoderVideo extends Player {
 					mencoder_noass_subpos.setEnabled(enabled);
 					ocw.setEnabled(enabled);
 					och.setEnabled(enabled);
+					subq.setEnabled(enabled);
 
 					if (enabled) {
 						ass.getItemListeners()[0].itemStateChanged(null);
