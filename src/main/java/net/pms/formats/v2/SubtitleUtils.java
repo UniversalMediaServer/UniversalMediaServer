@@ -29,17 +29,14 @@ import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Map;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang.StringUtils;
 import static org.apache.commons.lang.StringUtils.isBlank;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.mozilla.universalchardet.Constants.*;
 
 public class SubtitleUtils {
 	private static final String TEMP_DIR = "temp";
-	private static final String SUB_DIR = "subs";
 	private final static Map<String, String> fileCharsetToMencoderSubcpOptionMap = new HashMap<String, String>() {
 		private static final long serialVersionUID = 1L;
 
@@ -89,100 +86,6 @@ public class SubtitleUtils {
 			return null;
 		}
 		return fileCharsetToMencoderSubcpOptionMap.get(dlnaMediaSubtitle.getExternalFileCharacterSet());
-	}
-
-	/**
-	 * Converts external subtitles file in SRT format to default SSA/ASS format
-	 * @param SrtFile Subtitles file in SRT format
-	 * @param configuration UMS settings
-	 * @return Converted subtitles file in SSA/ASS format
-	 * @throws IOException
-	 */
-	public static File ConvertSrtToAss(String SrtFile, PmsConfiguration configuration) throws IOException {
-		String dir = configuration.getDataFile(SUB_DIR);
-		File path = new File(dir);
-		if (!path.exists()) {
-			path.mkdirs();
-		}
-		File outputSubs = new File(path.getAbsolutePath() + File.separator + new File(SrtFile).getName() + "_" +  new File(SrtFile).lastModified() + "_EXT.ass");
-		BufferedWriter output;
-		BufferedReader input;
-		try {
-			if (isBlank(configuration.getSubtitlesCodepage())) {
-				input = new BufferedReader(new InputStreamReader(new FileInputStream(SrtFile)));
-			} else {
-				input = new BufferedReader(new InputStreamReader(new FileInputStream(SrtFile), configuration.getSubtitlesCodepage()));
-			}
-
-			output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs)));
-			String line;
-			output.write("[Script Info]\n");
-			output.write("ScriptType: v4.00+\n");
-			output.write("\n");
-			output.write("[V4+ Styles]\n");
-			output.write("Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, AlphaLevel, Encoding\n");
-			output.write("Style: Default,Arial,16,&Hffffff,&Hffffff,&H0,&H0,0,0,0,1,1,0,2,10,10,10,0,0\n");
-			output.write("\n");
-			output.write("[Events]\n");
-			output.write("Format: Layer, Start, End, Style, Text\n");
-			String startTime;
-			String endTime;
-			StringBuilder sb;
-
-			while ((line = input.readLine()) != null) {
-				if (line.contains("-->")) {
-					startTime = line.substring(0, line.indexOf("-->") - 1).replaceAll(",", ".");
-					endTime = line.substring(line.indexOf("-->") + 4).replaceAll(",", ".");
-					startTime = StringUtil.convertTimeToString(StringUtil.convertStringToTime(startTime), StringUtil.ASS_FORMAT);
-					endTime = StringUtil.convertTimeToString(StringUtil.convertStringToTime(endTime), StringUtil.ASS_FORMAT);
-					sb = new StringBuilder();
-					sb.append("Dialogue: 0,");
-					sb.append(startTime).append(",");
-					sb.append(endTime).append(",");
-					sb.append("Default").append(",");
-					sb.append(convertTags(input.readLine()));
-					
-					// Subtitles might be on several lines. Search ahead to find the end.
-					while (isNotBlank(line = input.readLine())) {
-						sb.append("\\N");
-						sb.append(convertTags(line));
-					}
-
-					output.write(sb.toString() + "\n");
-				}
-			}
-		} finally { }
-
-		input.close();
-		output.flush();
-		output.close();
-		PMS.get().addTempFile(outputSubs, 2 * 24 * 3600 * 1000);
-		return outputSubs;
-	}
-
-	private static String convertTags(String text) {
-		 String tag;
-		 StringBuilder sb = new StringBuilder();
-		 String[] tmp = text.split("<");
-
-		 for (String s : tmp) {
-			 if (s.startsWith("/") && s.indexOf(">") == 2) {
-				 tag = s.substring(1, 2);
-				 sb.append("{\\").append(tag).append("0}").append(s.substring(3));
-			 } else if (s.indexOf(">") == 1) {
-				 tag = s.substring(0, 1);
-				 sb.append("{\\").append(tag).append("1}").append(s.substring(2));
-			 } else if (s.startsWith("font color")) {
-				 tag = s.substring(13, 19);
-				 sb.append("{\\c&H").append(tag.substring(4, 6)).append(tag.substring(2, 4)).append(tag.substring(0, 2)).append("&}").append(s.substring(21));
-			 } else if (s.contains("font") && s.indexOf(">") == 5) {
-				 sb.append("{\\c&Hffffff&}").append(s.substring(6));
-			 } else {
-				 sb.append(s);
-			 }
-		 }
-
-		return sb.toString();
 	}
 
 	/**

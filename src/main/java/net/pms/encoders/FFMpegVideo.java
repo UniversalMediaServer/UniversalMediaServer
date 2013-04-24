@@ -1076,13 +1076,15 @@ public class FFMpegVideo extends Player {
 		if (!subsPath.exists()) {
 			subsPath.mkdirs();
 		}
-
+		
+		String convertedSubs = subsPath.getAbsolutePath() + File.separator + FileUtil.getFileNameWithoutExtension(new File(fileName).getName()) + "_" + new File(fileName).lastModified();
+		
 		if (params.sid.isEmbedded()) {
-			String convertedSubs = subsPath.getAbsolutePath() + File.separator + new File(fileName).getName() + "_" +  new File(fileName).lastModified() + "_EMB_ID" + params.sid.getId() + ".ass";
+			convertedSubs = convertedSubs + "_EMB_ID" + params.sid.getId() + ".ass";
 			if (new File(convertedSubs).exists()) {
 				tempSubs = new File(convertedSubs);
 			} else {
-				tempSubs = extractSubtitlesToSubDir(fileName, media, params);
+				tempSubs = convertSubsToAss(fileName, media, params);
 			}
 
 			if (tempSubs != null && configuration.isFFmpegFontConfig()) {
@@ -1094,7 +1096,7 @@ public class FFMpegVideo extends Player {
 				}
 			}
 		} else if (params.sid.isExternal()) { // Convert external subs to ASS format
-			String convertedSubs = subsPath.getAbsolutePath() + File.separator + params.sid.getExternalFile().getName() + "_" +  params.sid.getExternalFile().lastModified() + "_EXT.ass";
+			convertedSubs = convertedSubs + "_EXT.ass";
 			File tmp = new File(convertedSubs);
 			if (tmp.exists() && (tmp.lastModified() > params.sid.getExternalFile().lastModified())) {
 				tempSubs = tmp;
@@ -1110,12 +1112,7 @@ public class FFMpegVideo extends Player {
 					externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getAbsolutePath());
 				}
 
-				try {
-					tempSubs = SubtitleUtils.ConvertSrtToAss(externalSubtitlesFileName, configuration);
-				} catch (IOException e) {
-					LOGGER.debug("External subtitles can't be converted to ASS format. Error: " + e);
-					tempSubs = null;
-				}
+				tempSubs = convertSubsToAss(externalSubtitlesFileName, media, params);
 
 				if (tempSubs != null && configuration.isFFmpegFontConfig()) {
 					try {
@@ -1132,7 +1129,7 @@ public class FFMpegVideo extends Player {
 			try {
 				tempSubs = SubtitleUtils.applyTimeSeeking(tempSubs, params.timeseek);
 			} catch (IOException e) {
-				LOGGER.debug("Applying timeseekin caused an error: " + e);
+				LOGGER.debug("Applying timeseeking caused an error: " + e);
 				tempSubs = null;
 			}
 		}
@@ -1141,16 +1138,16 @@ public class FFMpegVideo extends Player {
 	}
 
 	/**
-	 * Extracts internal subtitles with given ID to file in ASS format.
-	 *
-	 * @param fileName the video file name 
+	 * Converts external subtitles file in SRT format or extract embedded subs to default SSA/ASS format
+	 * @param fileName Subtitles file in SRT format or video file with embedded subs
 	 * @param media 
 	 * @param params output parameters
-	 * @return a <code>String</code> representing file name of extracted subtitles
+	 * @return Converted subtitles file in SSA/ASS format
 	 */
-	public File extractSubtitlesToSubDir(String fileName, DLNAMediaInfo media, OutputParams params) {
+	public static File convertSubsToAss(String fileName, DLNAMediaInfo media, OutputParams params) {
 		List<String> cmdList = new ArrayList<>();
-		cmdList.add(executable());
+		File tempSubsFile = null;
+		cmdList.add(configuration.getFfmpegPath());
 		cmdList.add("-y");
 		cmdList.add("-loglevel");
 
@@ -1160,9 +1157,14 @@ public class FFMpegVideo extends Player {
 			cmdList.add("warning");
 		}
 
+		if (isNotBlank(configuration.getSubtitlesCodepage()) && params.sid.isExternal()) {
+			cmdList.add("-sub_charenc");
+			cmdList.add(configuration.getSubtitlesCodepage());
+		}
+
 		cmdList.add("-i");
 		cmdList.add(fileName);
-
+		
 		if (params.sid.isEmbedded()) {
 			cmdList.add("-map");
 			cmdList.add("0:" + (params.sid.getId() + media.getAudioTracksList().size() + 1));
@@ -1174,7 +1176,15 @@ public class FFMpegVideo extends Player {
 			path.mkdirs();
 		}
 
-		File tempSubsFile = new File(path.getAbsolutePath() + File.separator + new File(fileName).getName() + "_" +  new File(fileName).lastModified() + "_EMB_ID" + params.sid.getId() + ".ass");
+		if (params.sid.isEmbedded()) {
+			tempSubsFile = new File(path.getAbsolutePath() + File.separator + 
+					FileUtil.getFileNameWithoutExtension(new File(fileName).getName()) + "_" + 
+					new File(fileName).lastModified() + "_EMB_ID" + params.sid.getId() + ".ass");
+		} else {
+			tempSubsFile = new File(path.getAbsolutePath() + File.separator + 
+					FileUtil.getFileNameWithoutExtension(new File(fileName).getName()) + "_" + 
+					new File(fileName).lastModified() + "_EXT.ass");
+		}
 
 		cmdList.add(tempSubsFile.getAbsolutePath());
 
@@ -1185,13 +1195,13 @@ public class FFMpegVideo extends Player {
 		pw.runInNewThread();
 
 		try {
-			pw.join(); // Wait until the extraction is finished
+			pw.join(); // Wait until the conversion is finished
 		} catch (InterruptedException e) {
-			LOGGER.debug("Subtitles extraction finished wih error: {}", e);
+			LOGGER.debug("Subtitles conversion finished wih error: " + e);
 			return null;
 		}
 
-		PMS.get().addTempFile(tempSubsFile, 2 * 24 * 3600 * 1000);
+		PMS.get().addTempFile(tempSubsFile, 30 * 24 * 3600 * 1000);
 		return tempSubsFile;
 	}
 
@@ -1256,7 +1266,8 @@ public class FFMpegVideo extends Player {
 		}
 		output.flush();
 		output.close();
-		PMS.get().addTempFile(outputSubs, 2 * 24 * 3600 * 1000);
+		temp.delete();
+		PMS.get().addTempFile(outputSubs, 30 * 24 * 3600 * 1000);
 		return outputSubs;
 	}
 	
