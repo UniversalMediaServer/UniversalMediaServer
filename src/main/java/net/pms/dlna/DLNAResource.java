@@ -1250,7 +1250,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// Ditlew
 			wireshark = wireshark + " " + ((isFolder() || getPlayer() == null) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer)));
 			String tmp = (isFolder() || getPlayer() == null) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer));
-			String resStr = Messages.getString("PMS.134") + " -- ";
+			String resStr = Messages.getString("PMS.134") + ": ";
 			addXMLTagAndAttribute(
 				sb,
 				"dc:title",
