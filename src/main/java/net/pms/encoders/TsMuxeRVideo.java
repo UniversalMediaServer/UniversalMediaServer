@@ -74,8 +74,20 @@ public class TsMuxeRVideo extends Player {
 	@Override
 	public boolean excludeFormat(Format extension) {
 		String m = extension.getMatchedId();
-		return m != null && !m.equals("mp4") && !m.equals("mkv") && !m.equals("ts") && !m.equals("tp") && !m.equals("m2ts") && !m.equals("m2t") && !m.equals("mpg") && !m.equals("evo") && !m.equals("mpeg")
-			&& !m.equals("vob") && !m.equals("m2v") && !m.equals("mts") && !m.equals("mov");
+		return m != null &&
+			!m.equals("mp4") &&
+			!m.equals("mkv") &&
+			!m.equals("ts") &&
+			!m.equals("tp") &&
+			!m.equals("m2ts") &&
+			!m.equals("m2t") &&
+			!m.equals("mpg") &&
+			!m.equals("evo") &&
+			!m.equals("mpeg") &&
+			!m.equals("vob") &&
+			!m.equals("m2v") &&
+			!m.equals("mts") &&
+			!m.equals("mov");
 	}
 
 	@Override
@@ -108,7 +120,8 @@ public class TsMuxeRVideo extends Player {
 		String fileName,
 		DLNAResource dlna,
 		DLNAMediaInfo media,
-		OutputParams params) throws IOException {
+		OutputParams params
+	) throws IOException {
 		setAudioAndSubs(fileName, media, params, configuration);
 
 		PipeIPCProcess ffVideoPipe;
@@ -151,14 +164,17 @@ public class TsMuxeRVideo extends Player {
 				ffVideoPipe.getInputPipe()
 			};
 
-			// videoType = "V_MPEG-2";
 			videoType = "V_MPEG4/ISO/AVC";
 
 			OutputParams ffparams = new OutputParams(configuration);
 			ffparams.maxBufferSize = 1;
 			ffVideo = new ProcessWrapperImpl(ffmpegLPCMextract, ffparams);
 
-			if (fileName.toLowerCase().endsWith(".flac") && media.getFirstAudioTrack().getBitsperSample() >= 24 && media.getFirstAudioTrack().getSampleRate() % 48000 == 0) {
+			if (
+				fileName.toLowerCase().endsWith(".flac") &&
+				media.getFirstAudioTrack().getBitsperSample() >= 24 &&
+				media.getFirstAudioTrack().getSampleRate() % 48000 == 0
+			) {
 				ffAudioPipe = new PipeIPCProcess[1];
 				ffAudioPipe[0] = new PipeIPCProcess(System.currentTimeMillis() + "flacaudio", System.currentTimeMillis() + "audioout", false, true);
 
@@ -736,7 +752,7 @@ public class TsMuxeRVideo extends Player {
 		if (!outputFile.exists()) {
 			final URL resourceUrl = getClass().getClassLoader().getResource(resourceName);
 			byte[] buffer = new byte[1024];
-			int byteCount = 0;
+			int byteCount;
 
 			InputStream inputStream = null;
 			OutputStream outputStream = null;
@@ -749,15 +765,13 @@ public class TsMuxeRVideo extends Player {
 					outputStream.write(buffer, 0, byteCount);
 				}
 			} catch (final IOException e) {
-				LOGGER.error("Failure on saving the embedded resource " + resourceName +
-						" to the file " + outputFile.getAbsolutePath(), e);
+				LOGGER.error("Failure on saving the embedded resource " + resourceName + " to the file " + outputFile.getAbsolutePath(), e);
 			} finally {
 				if (inputStream != null) {
 					try {
 						inputStream.close();
 					} catch (final IOException e) {
-						LOGGER.warn("Problem closing an input stream while reading data from the embedded resource " +
-								resourceName, e);
+						LOGGER.warn("Problem closing an input stream while reading data from the embedded resource " + resourceName, e);
 					}
 				}
 
@@ -766,8 +780,7 @@ public class TsMuxeRVideo extends Player {
 						outputStream.flush();
 						outputStream.close();
 					} catch (final IOException e) {
-						LOGGER.warn("Problem closing the output stream while writing the file "
-								+ outputFile.getAbsolutePath(), e);
+						LOGGER.warn("Problem closing the output stream while writing the file " + outputFile.getAbsolutePath(), e);
 					}
 				}
 			}
