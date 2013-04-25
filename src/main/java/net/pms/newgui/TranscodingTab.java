@@ -812,7 +812,7 @@ public class TranscodingTab {
 
 		subtitleCodePage.setEditable(true);
 		builder.add(subtitleCodePage, FormLayoutUtil.flip(cc.xyw(3, 8, 7), colSpec, orientation));
-		
+
 		fribidi = new JCheckBox(Messages.getString("MEncoderVideo.23"));
 		fribidi.setContentAreaFilled(false);
 
@@ -855,7 +855,7 @@ public class TranscodingTab {
 		});
 
 		builder.add(fontselect, FormLayoutUtil.flip(cc.xyw(11, 10, 2), colSpec, orientation));
-		
+
 		builder.addLabel(Messages.getString("MEncoderVideo.12"), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
 		builder.addLabel(Messages.getString("MEncoderVideo.133"), FormLayoutUtil.flip(cc.xy(1, 12, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 		ass_scale = new JTextField(configuration.getAssScale());
