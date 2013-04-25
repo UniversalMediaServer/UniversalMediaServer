@@ -720,11 +720,11 @@ public class FFMpegVideo extends Player {
 				mpeg2Options = mpeg2OptionsRenderer;
 			} else {
 				if (mpeg2Options.contains("Automatic")) {
-					mpeg2Options = "-g 5 -q:v 1 -qmin 2";
+					mpeg2Options = "-g 5 -q:v 1 -qmin 2 -qmax 3";
 
 					// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
 					if (params.mediaRenderer.isPS3()) {
-						mpeg2Options = "-g 25 -q:v 1 -qmin 2";
+						mpeg2Options = "-g 25 -q:v 1 -qmin 2 -qmax 3";
 					}
 
 					if (mpeg2Options.contains("Wireless") || defaultMaxBitrates[0] < 70) {
