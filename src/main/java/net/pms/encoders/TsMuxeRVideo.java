@@ -131,6 +131,14 @@ public class TsMuxeRVideo extends Player {
 		ProcessWrapperImpl ffAudio[] = null;
 
 		String fps = media.getValidFps(false);
+
+		int width  = media.getWidth();
+		int height = media.getHeight();
+		if (width < 320 || height < 240) {
+			width  = -1;
+			height = -1;
+		}
+
 		String videoType = "V_MPEG4/ISO/AVC";
 		if (media.getCodecV() != null && media.getCodecV().startsWith("mpeg2")) {
 			videoType = "V_MPEG-2";
@@ -541,7 +549,7 @@ public class TsMuxeRVideo extends Player {
 			if (configuration.isFix25FPSAvMismatch()) {
 				fps = "25";
 			}
-			pw.println(videoType + ", \"" + ffVideoPipe.getOutputPipe() + "\", " + (fps != null ? ("fps=" + fps + ", ") : "") + videoparams);
+			pw.println(videoType + ", \"" + ffVideoPipe.getOutputPipe() + "\", " + (fps != null ? ("fps=" + fps + ", ") : "") + (width != -1 ? ("video-width=" + width + ", ") : "") + (height != -1 ? ("video-height=" + height + ", ") : "") + videoparams);
 
 			// disable LPCM transcoding for MP4 container with non-H264 video as workaround for mencoder's A/V sync bug
 			boolean mp4_with_non_h264 = (media.getContainer().equals("mp4") && !media.getCodecV().equals("h264"));
