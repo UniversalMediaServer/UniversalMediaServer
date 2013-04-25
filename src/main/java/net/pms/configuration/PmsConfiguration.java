@@ -1595,11 +1595,6 @@ public class PmsConfiguration {
 
 	/**
 	 * @deprecated Use {@link #isThumbnailGenerationEnabled()} instead.
-	 * <p>
-	 * Returns true if thumbnail generation is enabled, false otherwise.
-	 * This only determines whether a thumbnailer (e.g. dcraw, MPlayer)
-	 * is used to generate thumbnails. It does not reflect whether
-	 * thumbnails should be displayed or not.
 	 */
 	@Deprecated
 	public boolean getThumbnailsEnabled() {
@@ -1622,8 +1617,6 @@ public class PmsConfiguration {
 	 * This only determines whether a thumbnailer (e.g. dcraw, MPlayer)
 	 * is used to generate thumbnails. It does not reflect whether
 	 * thumbnails should be displayed or not.
-	 *
-	 * @return boolean indicating whether thumbnail generation is enabled.
 	 */
 	@Deprecated
 	public void setThumbnailsEnabled(boolean value) {

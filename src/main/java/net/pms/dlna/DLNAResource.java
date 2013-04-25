@@ -69,7 +69,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAResource.class);
 	private static final SimpleDateFormat SDF_DATE = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
-	
+
 	protected static final int MAX_ARCHIVE_ENTRY_SIZE = 10000000;
 	protected static final int MAX_ARCHIVE_SIZE_SEEK = 800000000;
 
@@ -411,7 +411,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Recursive function that searchs through all of the children until it finds
+	 * Recursive function that searches through all of the children until it finds
 	 * a {@link DLNAResource} that matches the name.<p> Only used by
 	 * {@link net.pms.dlna.RootFolder#addWebFolder(File webConf)
 	 * addWebFolder(File webConf)} while parsing the web.conf file.
