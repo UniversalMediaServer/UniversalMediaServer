@@ -1145,11 +1145,11 @@ public class MEncoderVideo extends Player {
 
 				// Determine a good quality setting based on video attributes
 				if (mpeg2Options.contains("Automatic")) {
-					mpeg2Options = "keyint=5:vqscale=1:vqmin=2vqmax=3";
+					mpeg2Options = "keyint=5:vqscale=1:vqmin=2:vqmax=3";
 
 					// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
 					if (params.mediaRenderer.isPS3()) {
-						mpeg2Options = "keyint=25:vqscale=1:vqmin=2vqmax=3";
+						mpeg2Options = "keyint=25:vqscale=1:vqmin=2:vqmax=3";
 					}
 
 					if (mpeg2Options.contains("Wireless") || maximumBitrate < 70) {
