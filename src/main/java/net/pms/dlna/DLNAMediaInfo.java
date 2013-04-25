@@ -678,7 +678,7 @@ public class DLNAMediaInfo implements Cloneable {
 				}
 			}
 
-			if (configuration.getImageThumbnailsEnabled() && type != Format.VIDEO) {
+			if (configuration.getImageThumbnailsEnabled() && type != Format.VIDEO && type != Format.AUDIO) {
 				try {
 					File thumbDir = new File(configuration.getTempFolder(), THUMBNAIL_DIRECTORY_NAME);
 
