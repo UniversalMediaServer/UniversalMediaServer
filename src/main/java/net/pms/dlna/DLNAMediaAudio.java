@@ -230,6 +230,15 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
+	 * Returns true if this media uses audio that is FLAC encoded, false otherwise.
+	 *
+	 * @return True if the audio is FLAC encoded.
+	 */
+	public boolean isFLAC() {
+		return getCodecA() != null && getCodecA().startsWith("fla");
+	}
+
+	/**
 	 * Returns true if this media uses a lossless audio compression codec, false otherwise.
 	 * 
 	 * @return True if the audio is lossless compressed.
