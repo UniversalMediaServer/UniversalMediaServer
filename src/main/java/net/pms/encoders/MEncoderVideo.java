@@ -118,18 +118,14 @@ public class MEncoderVideo extends Player {
 
 	public static final String DEFAULT_CODEC_CONF_SCRIPT =
 		Messages.getString("MEncoderVideo.68") +
-		Messages.getString("MEncoderVideo.69") +
 		Messages.getString("MEncoderVideo.70") +
 		Messages.getString("MEncoderVideo.71") +
 		Messages.getString("MEncoderVideo.72") +
-		Messages.getString("MEncoderVideo.73") +
 		Messages.getString("MEncoderVideo.75") +
 		Messages.getString("MEncoderVideo.76") +
 		Messages.getString("MEncoderVideo.77") +
 		Messages.getString("MEncoderVideo.78") +
-		Messages.getString("MEncoderVideo.79") +
-		"#\n" +
-		Messages.getString("MEncoderVideo.80") +
+		"\n" +
 		"container == iso :: -nosync\n" +
 		"(container == avi || container == matroska) && vcodec == mpeg4 && acodec == mp3 :: -mc 0.1\n" +
 		"container == flv :: -mc 0.1\n" +
@@ -139,7 +135,6 @@ public class MEncoderVideo extends Player {
 		"container == mp4 && vcodec == h264 :: -mc 0.1\n" +
 		"\n" +
 		Messages.getString("MEncoderVideo.87") +
-		Messages.getString("MEncoderVideo.88") +
 		Messages.getString("MEncoderVideo.89") +
 		Messages.getString("MEncoderVideo.91");
 
