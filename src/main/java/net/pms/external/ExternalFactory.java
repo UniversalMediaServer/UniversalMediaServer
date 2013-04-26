@@ -514,6 +514,7 @@ public class ExternalFactory {
 	}
 
 	public static URLResult resolveURL(String url) {
+		String quotedUrl = quote(url);
 		for (URLResolver resolver : urlResolvers) {
 			URLResult res = resolver.urlResolve(url);
 			if (res == null) {
@@ -525,20 +526,13 @@ public class ExternalFactory {
 			}
 			res.precoder = null;
 			if (res.args != null && res.args.size() > 0) {
-				// we got args...
-				// so return what we got
-				if (StringUtils.isNotEmpty(res.url)) {
-					res.url = quote(res.url);
-				}
 				return res;
 			}
 			if (StringUtils.isEmpty(res.url)) {
 				// take another resolver this is crap
 				continue;
 			}
-			String cmp = quote(url);
-			res.url = quote(res.url);
-			if (cmp.equals(res.url)) {
+			if (quotedUrl.equals(quote(res.url))) {
 				// If the resolver returned the same url we already had
 				// (give or take some quotes) we look for a better one
 				continue;
