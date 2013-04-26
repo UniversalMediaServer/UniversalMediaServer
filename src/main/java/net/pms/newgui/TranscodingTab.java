@@ -691,7 +691,7 @@ public class TranscodingTab {
 		});
 		builder.add(defaultsubs, FormLayoutUtil.flip(cc.xyw(3, 2, 5), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.94"), FormLayoutUtil.flip(cc.xyw(8, 2, 2, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.94"), FormLayoutUtil.flip(cc.xy(9, 2, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 		forcedsub = new JTextField(configuration.getForcedSubtitleLanguage());
 		forcedsub.addKeyListener(new KeyAdapter() {
 			@Override
@@ -699,9 +699,9 @@ public class TranscodingTab {
 				configuration.setForcedSubtitleLanguage(forcedsub.getText());
 			}
 		});
-		builder.add(forcedsub, FormLayoutUtil.flip(cc.xyw(11, 2, 2), colSpec, orientation));
+		builder.add(forcedsub, FormLayoutUtil.flip(cc.xy(11, 2), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.95"), FormLayoutUtil.flip(cc.xyw(12, 2, 2, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.95"), FormLayoutUtil.flip(cc.xy(13, 2, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 		forcedtags = new JTextField(configuration.getForcedSubtitleTags());
 		forcedtags.addKeyListener(new KeyAdapter() {
 			@Override
@@ -709,7 +709,7 @@ public class TranscodingTab {
 				configuration.setForcedSubtitleTags(forcedtags.getText());
 			}
 		});
-		builder.add(forcedtags, FormLayoutUtil.flip(cc.xyw(14, 2, 2), colSpec, orientation));
+		builder.add(forcedtags, FormLayoutUtil.flip(cc.xy(15, 2), colSpec, orientation));
 
 		builder.addLabel(Messages.getString("MEncoderVideo.10"), FormLayoutUtil.flip(cc.xy(1, 4), colSpec, orientation));
 		defaultaudiosubs = new JTextField(configuration.getAudioSubLanguages());
@@ -719,7 +719,7 @@ public class TranscodingTab {
 				configuration.setAudioSubLanguages(defaultaudiosubs.getText());
 			}
 		});
-		builder.add(defaultaudiosubs, FormLayoutUtil.flip(cc.xyw(3, 4, 8), colSpec, orientation));
+		builder.add(defaultaudiosubs, FormLayoutUtil.flip(cc.xyw(3, 4, 13), colSpec, orientation));
 
 		builder.addLabel(Messages.getString("MEncoderVideo.37"), FormLayoutUtil.flip(cc.xyw(1, 6, 2), colSpec, orientation));
 		alternateSubFolder = new JTextField(configuration.getAlternateSubsFolder());
@@ -729,7 +729,7 @@ public class TranscodingTab {
 				configuration.setAlternateSubsFolder(alternateSubFolder.getText());
 			}
 		});
-		builder.add(alternateSubFolder, FormLayoutUtil.flip(cc.xyw(3, 6, 8), colSpec, orientation));
+		builder.add(alternateSubFolder, FormLayoutUtil.flip(cc.xyw(3, 6, 12), colSpec, orientation));
 
 		folderSelectButton = new JButton("...");
 		folderSelectButton.addActionListener(new ActionListener() {
@@ -749,7 +749,7 @@ public class TranscodingTab {
 				}
 			}
 		});
-		builder.add(folderSelectButton, FormLayoutUtil.flip(cc.xyw(11, 6, 2), colSpec, orientation));
+		builder.add(folderSelectButton, FormLayoutUtil.flip(cc.xy(15, 6), colSpec, orientation));
 
 		builder.addLabel(Messages.getString("MEncoderVideo.11"), FormLayoutUtil.flip(cc.xy(1, 8), colSpec, orientation));
 		Object data[] = new Object[]{
@@ -837,8 +837,7 @@ public class TranscodingTab {
 				configuration.setFont(defaultfont.getText());
 			}
 		});
-
-		builder.add(defaultfont, FormLayoutUtil.flip(cc.xyw(3, 10, 8), colSpec, orientation));
+		builder.add(defaultfont, FormLayoutUtil.flip(cc.xyw(3, 10, 12), colSpec, orientation));
 
 		fontselect = new CustomJButton("...");
 		fontselect.addActionListener(new ActionListener() {
@@ -854,7 +853,7 @@ public class TranscodingTab {
 			}
 		});
 
-		builder.add(fontselect, FormLayoutUtil.flip(cc.xyw(11, 10, 2), colSpec, orientation));
+		builder.add(fontselect, FormLayoutUtil.flip(cc.xy(15, 10), colSpec, orientation));
 
 		builder.addLabel(Messages.getString("MEncoderVideo.12"), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
 		builder.addLabel(Messages.getString("MEncoderVideo.133"), FormLayoutUtil.flip(cc.xy(1, 12, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
