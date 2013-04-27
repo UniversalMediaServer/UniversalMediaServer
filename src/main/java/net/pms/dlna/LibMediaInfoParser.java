@@ -5,7 +5,7 @@ import java.util.StringTokenizer;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.formats.v2.SubtitleType;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -322,7 +322,7 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.TRUEHD;
 		} else if (value.equals("55") || value.equals("a_mpeg/l3")) {
 			format = FormatConfiguration.MP3;
-		} else if (value.equals("m4a") || value.equals("40") || value.equals("a_aac") || value.equals("aac")) {
+		} else if (value.equals("m4a") || value.equals("40") || value.equals("a_aac") || value.equals("aac") || value.equals("mp42")) {
 			format = FormatConfiguration.AAC;
 		} else if (value.equals("pcm") || (value.equals("1") && (audio.getCodecA() == null || !audio.getCodecA().equals(FormatConfiguration.DTS)))) {
 			format = FormatConfiguration.LPCM;

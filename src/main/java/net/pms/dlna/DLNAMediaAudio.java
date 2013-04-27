@@ -18,6 +18,7 @@
  */
 package net.pms.dlna;
 
+import net.pms.configuration.FormatConfiguration;
 import net.pms.formats.v2.AudioProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -140,102 +141,87 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
-	 * Returns true if this media uses the AC3 audio codec, false otherwise.
-	 * 
-	 * @return True if the AC3 audio codec is used.
+	 * @return True if the audio codec is AC-3.
 	 */
 	public boolean isAC3() {
 		return getCodecA() != null && (getCodecA().equalsIgnoreCase("ac3") || getCodecA().equalsIgnoreCase("a52") || getCodecA().equalsIgnoreCase("liba52"));
 	}
 
 	/**
-	 * Returns true if this media uses the TrueHD audio codec, false otherwise.
-	 * 
-	 * @return True if the TrueHD audio codec is used.
+	 * @return True if the audio codec is TrueHD.
 	 */
 	public boolean isTrueHD() {
 		return getCodecA() != null && getCodecA().equalsIgnoreCase("truehd");
 	}
 
 	/**
-	 * Returns true if this media uses the DTS audio codec, false otherwise.
-	 * 
-	 * @return True if the DTS audio codec is used.
+	 * @return True if the audio codec is DTS.
 	 */
 	public boolean isDTS() {
 		return getCodecA() != null && (getCodecA().startsWith("dts") || getCodecA().equalsIgnoreCase("dca") || getCodecA().equalsIgnoreCase("dca (dts)"));
 	}
 
 	/**
-	 * Returns true if this media uses an AC3, DTS or TrueHD codec, false otherwise.
-	 * 
-	 * @return True if the AC3, DTS or TrueHD codec is used.
+	 * @return True if the audio codec is AC-3, DTS or TrueHD.
 	 */
 	public boolean isNonPCMEncodedAudio() {
 		return isAC3() || isDTS() || isTrueHD();
 	}
 
 	/**
-	 * Returns true if this media uses the MP3 audio codec, false otherwise.
-	 * 
-	 * @return True if the MP3 audio codec is used.
+	 * @return True if the audio codec is MP3.
 	 */
 	public boolean isMP3() {
-		return getCodecA() != null && getCodecA().equalsIgnoreCase("mp3");
+		return getCodecA() != null && getCodecA().equalsIgnoreCase(FormatConfiguration.MP3);
 	}
 
 	/**
-	 * Returns true if this media uses the AAC audio codec, false otherwise.
-	 *
-	 * @return True if the AAC audio codec is used.
+	 * @return True if the audio codec is AAC.
 	 */
 	public boolean isAAC() {
-		return getCodecA() != null && getCodecA().equalsIgnoreCase("aac");
+		return getCodecA() != null && getCodecA().equalsIgnoreCase(FormatConfiguration.AAC);
 	}
 
 	/**
-	 * Returns true if this media uses the Ogg Vorbis audio codec, false otherwise.
-	 *
-	 * @return True if the Ogg Vorbis audio codec is used.
+	 * @return True if the audio codec is Ogg Vorbis.
 	 */
 	public boolean isVorbis() {
 		return getCodecA() != null && getCodecA().equalsIgnoreCase("vorbis");
 	}
 
 	/**
-	 * Returns true if this media uses the WMA audio codec, false otherwise.
-	 *
-	 * @return True if the WMA audio codec is used.
+	 * @return True if the audio codec is WMA.
 	 */
 	public boolean isWMA() {
 		return getCodecA() != null && getCodecA().startsWith("wm");
 	}
 
 	/**
-	 * Returns true if this media uses the Mpeg Audio audio codec, false otherwise.
-	 *
-	 * @return True if the Mpeg Audio audio codec is used.
+	 * @return True if the audio codec is MPEG-2.
 	 */
 	public boolean isMpegAudio() {
 		return getCodecA() != null && getCodecA().equalsIgnoreCase("mp2");
 	}
 
 	/**
-	 * Returns true if this media uses audio that is PCM encoded, false otherwise.
-	 * 
-	 * @return True if the audio is PCM encoded.
+	 * @return True if the audio codec is PCM.
 	 */
 	public boolean isPCM() {
 		return getCodecA() != null && (getCodecA().startsWith("pcm") || getCodecA().equals("LPCM"));
 	}
 
 	/**
-	 * Returns true if this media uses a lossless audio compression codec, false otherwise.
-	 * 
-	 * @return True if the audio is lossless compressed.
+	 * @return True if the audio codec is FLAC.
+	 */
+	public boolean isFLAC() {
+		return getCodecA() != null && getCodecA().startsWith("fla");
+	}
+
+	/**
+	 * @return True if the audio codec is lossless.
 	 */
 	public boolean isLossless() {
-		return getCodecA() != null && (isPCM() || getCodecA().startsWith("fla") || getCodecA().equals("mlp") || getCodecA().equals("wv"));
+		return getCodecA() != null && (isPCM() || getCodecA().startsWith("fla") || getCodecA().equals("mlp") || getCodecA().equals("wv") || getCodecA().equals("alac"));
 	}
 
 	/**
@@ -254,7 +240,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			return "LPCM";
 		} else if (getCodecA() != null && getCodecA().equals("vorbis")) {
 			return "OGG";
-		} else if (getCodecA() != null && getCodecA().equals("aac")) {
+		} else if (getCodecA() != null && getCodecA().equals(FormatConfiguration.AAC)) {
 			return "AAC";
 		} else if (getCodecA() != null && getCodecA().equals("mp3")) {
 			return "MP3";

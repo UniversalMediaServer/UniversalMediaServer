@@ -59,9 +59,9 @@ import net.pms.io.StreamModifier;
 import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
-import org.apache.commons.lang.StringUtils;
-import static org.apache.commons.lang.StringUtils.isBlank;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
+import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -720,11 +720,11 @@ public class FFMpegVideo extends Player {
 				mpeg2Options = mpeg2OptionsRenderer;
 			} else {
 				if (mpeg2Options.contains("Automatic")) {
-					mpeg2Options = "-g 5 -q:v 1 -qmin 2";
+					mpeg2Options = "-g 5 -q:v 1 -qmin 2 -qmax 3";
 
 					// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
 					if (params.mediaRenderer.isPS3()) {
-						mpeg2Options = "-g 25 -q:v 1 -qmin 2";
+						mpeg2Options = "-g 25 -q:v 1 -qmin 2 -qmax 3";
 					}
 
 					if (mpeg2Options.contains("Wireless") || defaultMaxBitrates[0] < 70) {
@@ -1253,6 +1253,11 @@ public class FFMpegVideo extends Player {
 
 						if (format[i].contains("Shadow")) {
 							params[i] = configuration.getAssShadow();
+							continue;
+						}
+
+						if (format[i].contains("MarginV")) {
+							params[i] = configuration.getAssMargin();
 							continue;
 						}
 					}

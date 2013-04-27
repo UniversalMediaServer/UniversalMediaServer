@@ -11,11 +11,14 @@
 		Added new options to iTunes library browsing: Browse by Artist, Album and Genre
 		Transcoding quality automatically adjusts for content and network speed by default, allowing wireless users an easier experience
 		Improved memory defaults on Windows
+		Improved transcoding quality by default
 	Renderers:
 		Xbox 360 supports 5.1 audio
 		Faster transcoding on Xbox 360
 	Languages:
 		Updated Spanish translation (thanks, Alfredo Ramos!)
+	External Components:
+		Updated Thumbnailator to 0.4.3
 
 2.6.2 - 2013-04-22
 

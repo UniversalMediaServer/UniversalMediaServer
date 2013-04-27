@@ -31,8 +31,8 @@ import java.util.Map;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.util.StringUtil;
-import org.apache.commons.lang.StringUtils;
-import static org.apache.commons.lang.StringUtils.isBlank;
+import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.mozilla.universalchardet.Constants.*;
 
 public class SubtitleUtils {

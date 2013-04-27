@@ -8,7 +8,7 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.InputFile;
 import net.pms.dlna.LibMediaInfoParser;
 import net.pms.formats.Format;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -182,7 +182,8 @@ public class FormatConfiguration {
 			int bitrate,
 			int videoWidth,
 			int videoHeight,
-			Map<String, String> extras) {
+			Map<String, String> extras
+		) {
 			boolean matched = false;
 
 			if (format != null && !(matched = pFormat.matcher(format).matches())) {
@@ -428,8 +429,8 @@ public class FormatConfiguration {
 				bitrate,
 				videoWidth,
 				videoHeight,
-				extras)
-			) {
+				extras
+			)) {
 				matchedMimeType = supportSpec.mimeType;
 				break;
 			}

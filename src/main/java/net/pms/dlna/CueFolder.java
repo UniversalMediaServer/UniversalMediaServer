@@ -12,7 +12,7 @@ import net.pms.encoders.MEncoderVideo;
 import net.pms.encoders.MPlayerAudio;
 import net.pms.encoders.Player;
 import net.pms.formats.Format;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
