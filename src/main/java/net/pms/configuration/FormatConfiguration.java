@@ -182,7 +182,8 @@ public class FormatConfiguration {
 			int bitrate,
 			int videoWidth,
 			int videoHeight,
-			Map<String, String> extras) {
+			Map<String, String> extras
+		) {
 			boolean matched = false;
 
 			if (format != null && !(matched = pFormat.matcher(format).matches())) {
@@ -428,8 +429,8 @@ public class FormatConfiguration {
 				bitrate,
 				videoWidth,
 				videoHeight,
-				extras)
-			) {
+				extras
+			)) {
 				matchedMimeType = supportSpec.mimeType;
 				break;
 			}

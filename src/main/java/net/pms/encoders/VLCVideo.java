@@ -35,7 +35,9 @@ import javax.swing.*;
 import net.pms.Messages;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
@@ -125,6 +127,18 @@ public class VLCVideo extends Player {
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		if (resource == null || resource.getFormat().getType() != Format.VIDEO) {
+			return false;
+		}
+
+		// Our implementation of VLC does not support external subtitles yet
+		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
+		if (subtitle != null && subtitle.getExternalFile() != null) {
+			return false;
+		}
+
+		// VLC is unstable when transcoding from flac. It either crashes or sends video without audio. Confirmed with 2.0.6
+		DLNAMediaAudio audio = resource.getMediaAudio();
+		if (audio != null && audio.isFLAC() == true) {
 			return false;
 		}
 

@@ -11,14 +11,27 @@
 		Added new options to iTunes library browsing: Browse by Artist, Album and Genre
 		Transcoding quality automatically adjusts for content and network speed by default, allowing wireless users an easier experience
 		Improved memory defaults on Windows
-		Fixed audio sync when muxing DTS via FFmpeg
+		Improved transcoding quality by default
 	Renderers:
 		Xbox 360 supports 5.1 audio
 		Faster transcoding on Xbox 360
 	Languages:
 		Updated Spanish translation (thanks, Alfredo Ramos!)
 	External Components:
-		Updated FFmpeg for Windows to 694fa00 (20130412), which:
+		Updated Thumbnailator to 0.4.3
+
+2.6.2 - 2013-04-22
+
+	General:
+		Fixed audio sync when muxing DTS via FFmpeg
+		Improved descriptions in GUI
+		Added support for the file:// protocol in WEB.conf
+		Protocols are matched before extensions in WEB.conf
+		Fixed "Can't assign requested address" bug after update to Java 1.6.0.45 on Mac OS X
+		Added installation instructions to the Linux distribution
+		Fixed incorrect server IP address when starting via UMS.exe or UMS.bat
+	External Components:
+		Updated FFmpeg for all operating systems, which:
 			Fixes RTMP bugs
 			Improves support for the following codecs/containers: WMV, MPEG, H.264, Matroska, AVI, AAC, AC-3, WMA, MP3, FLV, OGG
 			Improves 60FPS video support
@@ -30,6 +43,7 @@
 			Makes duration estimation more reliable
 			Adds support for .ape files
 			Improves memory use when using hardware acceleration
+			Fixes multithreaded MPEG-4 decoding
 		Updated Java Runtime Environment automatic downloader for Windows to 7u21, which:
 			Has lots of security fixes and improvements
 

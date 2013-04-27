@@ -71,17 +71,18 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		"index.html",
 		null,
 		"general_configuration.html",
+		null,
 		"navigation_share.html",
 		"transcoding.html",
 		null,
 		null
 	};
 
-	private NavigationShareTab ft;
+	private NavigationShareTab nt;
 	private StatusTab st;
 	private TracesTab tt;
 	private TranscodingTab tr;
-	private GeneralTab nt;
+	private GeneralTab gt;
 	private HelpTab ht;
 	private PluginTab pt;
 	private AbstractButton reload;
@@ -92,8 +93,8 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		return tt;
 	}
 
-	public NavigationShareTab getFt() {
-		return ft;
+	public NavigationShareTab getNt() {
+		return nt;
 	}
 
 	public TranscodingTab getTr() {
@@ -101,7 +102,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	public GeneralTab getGt() {
-		return nt;
+		return gt;
 	}
 
 	public PluginTab getPt() {
@@ -252,31 +253,35 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		JComponent jp = buildContent();
 		String showScrollbars = System.getProperty("scrollbars", "").toLowerCase();
 
-		/*
-		 * handle scrollbars:
+		/**
+		 * Handle scrollbars:
 		 *
 		 * 1) forced scrollbars (-Dscrollbars=true): always display them
 		 * 2) optional scrollbars (-Dscrollbars=optional): display them as needed
 		 * 3) otherwise (default): don't display them
 		 */
-		if (showScrollbars.equals("true")) {
-			setContentPane(
-				new JScrollPane(
-					jp,
-					ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
-					ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS
-				)
-			);
-		} else if (showScrollbars.equals("optional")) {
-			setContentPane(
-				new JScrollPane(
-					jp,
-					ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-					ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
-				)
-			);
-		} else {
-			setContentPane(jp);
+		switch (showScrollbars) {
+			case "true":
+				setContentPane(
+					new JScrollPane(
+						jp,
+						ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
+						ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS
+					)
+				);
+				break;
+			case "optional":
+				setContentPane(
+					new JScrollPane(
+						jp,
+						ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+						ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
+					)
+				);
+				break;
+			default:
+				setContentPane(jp);
+				break;
 		}
 
 		String projectName = PropertiesUtil.getProjectProperties().get("project.name");
@@ -385,17 +390,17 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		st = new StatusTab(configuration);
 		tt = new TracesTab(configuration);
-		tr = new TranscodingTab(configuration);
-		nt = new GeneralTab(configuration);
-		ft = new NavigationShareTab(configuration);
-		ht = new HelpTab();
+		gt = new GeneralTab(configuration);
 		pt = new PluginTab(configuration);
+		nt = new NavigationShareTab(configuration);		
+		tr = new TranscodingTab(configuration);
+		ht = new HelpTab();
 
 		tabbedPane.addTab(Messages.getString("LooksFrame.18"), st.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.19"), tt.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.20"), nt.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.20"), gt.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.27"), pt.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.22"), ft.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.22"), nt.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.21"), tr.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.24"), new HelpTab().build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.25"), new AboutTab().build());
@@ -538,12 +543,12 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 	@Override
 	public void serverReady() {
-		nt.addRenderers();
+		gt.addRenderers();
 		pt.addPlugins();
 	}
 
 	@Override
 	public void setScanLibraryEnabled(boolean flag) {
-		getFt().setScanLibraryEnabled(flag);
+		getNt().setScanLibraryEnabled(flag);
 	}
 }
