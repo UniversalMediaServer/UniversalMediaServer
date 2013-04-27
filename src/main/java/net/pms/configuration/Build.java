@@ -1,7 +1,7 @@
 package net.pms.configuration;
 
 import com.sun.jna.Platform;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 // a one-stop class for values and methods specific to custom PMS builds
 public class Build {
