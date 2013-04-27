@@ -322,7 +322,7 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.TRUEHD;
 		} else if (value.equals("55") || value.equals("a_mpeg/l3")) {
 			format = FormatConfiguration.MP3;
-		} else if (value.equals("m4a") || value.equals("40") || value.equals("a_aac") || value.equals("aac")) {
+		} else if (value.equals("m4a") || value.equals("40") || value.equals("a_aac") || value.equals("aac") || value.equals("mp42")) {
 			format = FormatConfiguration.AAC;
 		} else if (value.equals("pcm") || (value.equals("1") && (audio.getCodecA() == null || !audio.getCodecA().equals(FormatConfiguration.DTS)))) {
 			format = FormatConfiguration.LPCM;
