@@ -44,7 +44,7 @@ import net.pms.dlna.RootFolder;
 import net.pms.external.URLResolver.URLResult;
 import net.pms.newgui.LooksFrame;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
