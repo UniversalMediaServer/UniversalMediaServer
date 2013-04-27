@@ -62,6 +62,7 @@ import net.pms.util.Version;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1032,6 +1033,11 @@ public class PMS {
 
 		if (!headless && displayProfileChooser) {
 			ProfileChooser.display();
+		}
+		
+		try {
+			FileUtils.copyFile(new File("debug.log"), new File("debug.log.prev"));
+		} catch (Exception e) {
 		}
 
 		try {
