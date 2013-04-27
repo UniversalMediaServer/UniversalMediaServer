@@ -144,11 +144,6 @@ public class ResumeObj {
 				return;
 			}
 		}
-		if ((duration - REWIND_TIME ) <= getTimeOffset()) {
-			// We've seen the whole video (likely)
-			file.delete();
-			return;
-		}
 		if (thisPlay < REWIND_TIME) {
 			return;
 		}
@@ -157,9 +152,9 @@ public class ResumeObj {
 			return;
 		}
 		
-		offsetTime = duration;
+		offsetTime = duration - REWIND_TIME;
 		resDuration = expDuration;
 		LOGGER.debug("Resume stop. This segment " + thisPlay + " new time " + duration);
-		write(duration - REWIND_TIME, expDuration, file);
+		write(getTimeOffset(), expDuration, file);
 	}
 }

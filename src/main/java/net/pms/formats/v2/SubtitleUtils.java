@@ -107,14 +107,15 @@ public class SubtitleUtils {
 		File outputSubs = new File(path.getAbsolutePath() + File.separator + new File(SrtFile).getName() + "_" +  new File(SrtFile).lastModified() + "_EXT.ass");
 		BufferedWriter output;
 		BufferedReader input;
+		String subCp = configuration.getSubtitlesCodepage();
 		try {
-			if (isBlank(configuration.getSubtitlesCodepage())) {
+			if (isBlank(subCp)) {
 				input = new BufferedReader(new InputStreamReader(new FileInputStream(SrtFile)));
 			} else {
-				input = new BufferedReader(new InputStreamReader(new FileInputStream(SrtFile), configuration.getSubtitlesCodepage()));
+				input = new BufferedReader(new InputStreamReader(new FileInputStream(SrtFile), subCp));
 			}
 
-			output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs)));
+			output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), subCp));
 			String line;
 			output.write("[Script Info]\n");
 			output.write("ScriptType: v4.00+\n");
@@ -171,6 +172,10 @@ public class SubtitleUtils {
 			 } else if (s.indexOf(">") == 1) {
 				 tag = s.substring(0, 1);
 				 sb.append("{\\").append(tag).append("1}").append(s.substring(2));
+			 } else if (s.startsWith("font color")) {
+				 tag = s.substring(13, 19);
+				 sb.append("{\\c&H").append(tag.substring(4, 6) + tag.substring(2, 4) + tag.substring(0, 2)).append("&}").append(s.substring(21));
+
 			 } else {
 				 sb.append(s);
 			 }

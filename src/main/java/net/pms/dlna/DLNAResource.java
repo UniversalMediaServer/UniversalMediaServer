@@ -50,6 +50,7 @@ import net.pms.util.FileUtil;
 import net.pms.util.ImagesUtil;
 import net.pms.util.Iso639;
 import net.pms.util.MpegUtil;
+import net.pms.util.StringUtil;
 import static net.pms.util.StringUtil.*;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -576,7 +577,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						if (forceTranscode || !isSkipTranscode() && (forceTranscodeV2 || isIncompatible || hasSubsToTranscode)) {
 							child.setPlayer(player);
 							if (resumeRes != null) {
-								resumeRes.setMedia(child.getMedia());
+								DLNAMediaInfo mi = child.getMedia();
+								if (mi != null) {
+									mi = (DLNAMediaInfo) mi.clone();
+									//mi.setMediaparsed(true);
+									resumeRes.setMedia(mi);
+									
+								}
 								resumeRes.setPlayer(player);
 							}
 							LOGGER.trace("Switching " + child.getName() + " to player " + player.toString() + " for transcoding");
@@ -1657,7 +1664,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			ProcessWrapperImpl pw = (ProcessWrapperImpl)externalProcess;
 			String dur = pw.getDuration();
 			if (StringUtils.isNotEmpty(dur)) {
-				getMedia().setDuration(DLNAMediaInfo.parseDurationString(dur));
+				getMedia().setDuration(StringUtil.convertStringToTime(dur));
 			}
 		}
 		resumeStop();
@@ -1824,7 +1831,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					setPlayer(new ResumePlayer());
 				}
 			}
-
+			LOGGER.debug("external proc "+externalProcess+" "+params.timeseek+" "+getMedia()+" "+getMedia().isMediaparsed()+" "+getMedia().getDurationInSeconds());
 			if (externalProcess == null || externalProcess.isDestroyed()) {
 				LOGGER.info("Starting transcode/remux of " + getName());
 				externalProcess = getPlayer().launchTranscode(
@@ -2625,14 +2632,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return;
 		}
 		if (resume != null) {
-			resume.stop(startTime, (long) getMedia().getDurationInSeconds() * 1000);
+			resume.stop(startTime, (long) (getMedia().getDurationInSeconds() * 1000));
 			if (resume.isDone()) {
 				getParent().getChildren().remove(this);
 			}
+			notifyRefresh();
 		} else {
 			for (DLNAResource res : getParent().getChildren()) {
 				if (res.isResume() && res.getName().equals(getName())) {
-					res.resume.stop(startTime, (long) getMedia().getDurationInSeconds() * 1000);
+					res.resume.stop(startTime, (long) (getMedia().getDurationInSeconds() * 1000));
 					if (res.resume.isDone()) {
 						getParent().getChildren().remove(res);
 					}
@@ -2644,7 +2652,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				DLNAResource clone = this.clone();
 				clone.resume = r;
 				clone.resHash = resHash;
-				clone.setMedia(getMedia());
+				if (getMedia() != null) {
+					try {
+						clone.setMedia((DLNAMediaInfo) getMedia().clone());
+					} catch (CloneNotSupportedException e) {
+						LOGGER.debug("resume cloning of mediainfo throws " + e);
+					}
+				}
 				clone.setPlayer(getPlayer());
 				getParent().addChildInternal(clone);
 			}
