@@ -15,16 +15,6 @@ public class ResumeObj {
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private static final Logger LOGGER = LoggerFactory.getLogger(ResumeObj.class);
 
-	/**
-	 * The length of time taken from the end of the video to assume the user
-	 * is done viewing. In other words it is an estimation of the length of
-	 * the credits.
-	 * 30000 = 30 seconds
-	 */
-	private static final long REWIND_TIME = 30000;
-	
-	private static final double BACK_FACTOR = 0.92;
-
 	private File file;
 	private long offsetTime;
 	private long resDuration;
@@ -142,13 +132,13 @@ public class ResumeObj {
 		long duration = thisPlay + getTimeOffset(); 
 
 		if (expDuration > minDur) {
-			if (duration >= (expDuration * BACK_FACTOR)) {
+			if (duration >= (expDuration * configuration.getResumeBackFactor())) {
 				// We've seen the whole video (likely)
 				file.delete();
 				return;
 			}
 		}
-		if (thisPlay < REWIND_TIME) {
+		if (thisPlay < configuration.getResumeRewind()) {
 			return;
 		}
 		if (thisPlay < minDur) {
@@ -156,7 +146,7 @@ public class ResumeObj {
 			return;
 		}
 		
-		offsetTime = duration - REWIND_TIME;
+		offsetTime = duration - configuration.getResumeRewind();
 		resDuration = expDuration;
 		LOGGER.debug("Resume stop. This segment " + thisPlay + " new time " + duration);
 		write(getTimeOffset(), expDuration, file);

@@ -185,6 +185,8 @@ public class PmsConfiguration {
 	private static final String KEY_RENDERER_DEFAULT = "renderer_default";
 	private static final String KEY_RENDERER_FORCE_DEFAULT = "renderer_force_default";
 	private static final String KEY_RESUMABLE = "resume";
+	private static final String KEY_RESUME_REWIND = "resume_rewind";
+	private static final String KEY_RESUME_BACK = "resume_back";
 	private static final String KEY_RUN_WIZARD = "run_wizard";
 	private static final String KEY_SEARCH_FOLDER = "search_folder";
 	private static final String KEY_SEARCH_RECURSE = "search_recurse";
@@ -2998,6 +3000,21 @@ public class PmsConfiguration {
 	
 	public int getMinPlayTimeFile() {
 		return getInt(KEY_MIN_PLAY_TIME_FILE, getMinPlayTime());
+	}
+	
+	public int getResumeRewind() {
+		return getInt(KEY_RESUME_REWIND, 17000);
+	}
+	
+	public double getResumeBackFactor() {
+		int percent = getInt(KEY_RESUME_BACK, 92);
+		if (percent > 97) {
+			percent = 97;
+		}
+		if (percent < 10) {
+			percent = 10;
+		}
+		return (percent / 100.0);
 	}
 	
 }
