@@ -577,13 +577,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						if (forceTranscode || !isSkipTranscode() && (forceTranscodeV2 || isIncompatible || hasSubsToTranscode)) {
 							child.setPlayer(player);
 							if (resumeRes != null) {
-								DLNAMediaInfo mi = child.getMedia();
-								if (mi != null) {
-									mi = (DLNAMediaInfo) mi.clone();
-									//mi.setMediaparsed(true);
-									resumeRes.setMedia(mi);
-									
-								}
 								resumeRes.setPlayer(player);
 							}
 							LOGGER.trace("Switching " + child.getName() + " to player " + player.toString() + " for transcoding");
@@ -631,6 +624,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					} else if (!child.getFormat().isCompatible(child.getMedia(),getDefaultRenderer()) && !child.isFolder()) {
 						getChildren().remove(child);
 					}
+				}
+				
+				if (resumeRes != null) {
+					resumeRes.setMedia(child.getMedia());
 				}
 
 				if (
@@ -1658,7 +1655,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public void stopPlaying(final String rendererId) {
 		final DLNAResource self = this;
 		final String requestId = getRequestId(rendererId);
-		double durSec = getMedia().getDurationInSeconds();
+		long durSec = (long) getMedia().getDurationInSeconds();
 		if (externalProcess != null && 
 		   (durSec == 0 || durSec == DLNAMediaInfo.TRANS_SIZE)) {
 			ProcessWrapperImpl pw = (ProcessWrapperImpl)externalProcess;
@@ -1831,7 +1828,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					setPlayer(new ResumePlayer());
 				}
 			}
-			LOGGER.debug("external proc "+externalProcess+" "+params.timeseek+" "+getMedia()+" "+getMedia().isMediaparsed()+" "+getMedia().getDurationInSeconds());
 			if (externalProcess == null || externalProcess.isDestroyed()) {
 				LOGGER.info("Starting transcode/remux of " + getName());
 				externalProcess = getPlayer().launchTranscode(
@@ -2652,13 +2648,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				DLNAResource clone = this.clone();
 				clone.resume = r;
 				clone.resHash = resHash;
-				if (getMedia() != null) {
-					try {
-						clone.setMedia((DLNAMediaInfo) getMedia().clone());
-					} catch (CloneNotSupportedException e) {
-						LOGGER.debug("resume cloning of mediainfo throws " + e);
-					}
-				}
+				clone.setMedia(getMedia());
 				clone.setPlayer(getPlayer());
 				getParent().addChildInternal(clone);
 			}

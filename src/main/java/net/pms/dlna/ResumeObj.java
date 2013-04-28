@@ -61,8 +61,12 @@ public class ResumeObj {
 		if (res.noResume()) {
 			return null;
 		}
-		if (r.getMedia() != null && r.getMedia().getDurationInSeconds() != 0) {
-			r.getMedia().setDuration((double)res.resDuration);
+
+		if (r.getMedia() != null) {
+			double dur = r.getMedia().getDurationInSeconds();
+			if (dur == 0 || dur == DLNAMediaInfo.TRANS_SIZE) {
+				r.getMedia().setDuration((double)res.resDuration / 1000);
+			}
 		}
 		res.setMinDuration(r.minPlayTime());
 		return res;
