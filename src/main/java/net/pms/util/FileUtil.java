@@ -116,8 +116,7 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
 			LOGGER.info("4: formattedName: '" + formattedName + "'");
 
-			// Change "3D" to " (3D)", "CD1" to "(1)", etc.
-			formattedName = formattedName.replaceAll("(?i)(CD[1-3])|(3D)|(Special[\\s\\.]Edition)|(Unrated)|(Final[\\s\\.]Cut)|(Remastered)|(Extended[\\s\\.]Cut)", "($1)");
+			formattedName = formattedName.replaceAll("(?i)(Special[\\s\\.]Edition)|(Unrated)|(Final[\\s\\.]Cut)|(Remastered)|(Extended[\\s\\.]Cut)", "($1)");
 
 			LOGGER.info("5: formattedName: '" + formattedName + "'");
 			// Replace periods with spaces
@@ -130,8 +129,7 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
 			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
 
-			// Change "3D" to " (3D)", "CD1" to "(1)", etc.
-			formattedName = formattedName.replaceAll("(?i)\\.(CD[1-3])\\.|\\.(3D)\\.|\\.(Special.Edition)\\.|\\.(Unrated)\\.|\\.(Final.Cut)\\.|\\.(Remastered)\\.|\\.(Extended.Cut)\\.", " ($1)");
+			formattedName = formattedName.replaceAll("(?i)(Special[\\s\\.]Edition)|(Unrated)|(Final[\\s\\.]Cut)|(Remastered)|(Extended[\\s\\.]Cut)", "($1)");
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
