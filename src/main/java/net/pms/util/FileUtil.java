@@ -105,23 +105,17 @@ public class FileUtil {
 		} else if (formattedName.matches(".*\\.(19|20)\\d\\d\\..*")) {
 			// This matches scene and most p2p movies
 
-			LOGGER.info("1: formattedName: '" + formattedName + "'");
 			// Rename the year. For example, "2013" changes to " (2013)"
 			formattedName = formattedName.replaceAll("\\.(19|20)(\\d\\d)", " ($1$2)");
-			LOGGER.info("2: formattedName: '" + formattedName + "'");
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
 			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
-			LOGGER.info("3: formattedName: '" + formattedName + "'");
 			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
-			LOGGER.info("4: formattedName: '" + formattedName + "'");
 
 			formattedName = formattedName.replaceAll("(?i)(Special[\\s\\.]Edition)|(Unrated)|(Final[\\s\\.]Cut)|(Remastered)|(Extended[\\s\\.]Cut)", "($1)");
 
-			LOGGER.info("5: formattedName: '" + formattedName + "'");
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
-			LOGGER.info("6: formattedName: '" + formattedName + "'");
 		} else if (formattedName.matches(commonFileEndsMatch)) {
 			// This matches files that partially follow the scene format
 
