@@ -12,6 +12,8 @@
 		Transcoding quality automatically adjusts for content and network speed by default, allowing wireless users an easier experience
 		Improved memory defaults on Windows
 		Improved transcoding quality by default
+		Added support for more types of M4A/AAC audio files
+		Improved renderer detection/connection
 	Renderers:
 		Xbox 360 supports 5.1 audio
 		Faster transcoding on Xbox 360
