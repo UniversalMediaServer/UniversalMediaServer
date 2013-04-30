@@ -1245,20 +1245,20 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		final DLNAMediaAudio firstAudioTrack = getMedia() != null ? getMedia().getFirstAudioTrack() : null;
 		if (firstAudioTrack != null && StringUtils.isNotBlank(firstAudioTrack.getSongname())) {
 			wireshark = firstAudioTrack.getSongname() + (getPlayer() != null && !configuration.isHideEngineNames() ? (" [" + getPlayer().name() + "]") : "");
+			String tmp = firstAudioTrack.getSongname() + (getPlayer() != null && !configuration.isHideEngineNames() ? (" [" + getPlayer().name() + "]") : "");
 			addXMLTagAndAttribute(
 				sb,
 				"dc:title",
-				encodeXML(firstAudioTrack.getSongname() + (getPlayer() != null && !configuration.isHideEngineNames() ? (" [" + getPlayer().name() + "]") : ""))
+				encodeXML(ResumeObj.resStr(this, tmp))
 			);
 		} else { // Ditlew - org
 			// Ditlew
 			wireshark = wireshark + " " + ((isFolder() || getPlayer() == null) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer)));
 			String tmp = (isFolder() || getPlayer() == null) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer));
-			String resStr = Messages.getString("PMS.134") + " -- ";
 			addXMLTagAndAttribute(
 				sb,
 				"dc:title",
-				encodeXML(isResume() ? resStr + tmp : tmp)
+				encodeXML(ResumeObj.resStr(this, tmp))
 			);
 		}
 
@@ -2620,6 +2620,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	public boolean isResumeable() {
+		if (getFormat() != null) {
+			// images are hard to resume
+			return !getFormat().isImage();
+		}	
 		return true;
 	}
 

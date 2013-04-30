@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+
+import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import org.slf4j.Logger;
@@ -36,6 +38,15 @@ public class ResumeObj {
 		return path.listFiles();
 	}
 	
+	public static String resStr(DLNAResource r, String s) {
+		if (r.isResume()) {
+			return Messages.getString("PMS.134") + " -- " + s;
+		}
+		else {
+			return s;
+		}
+	}
+	
 	public static ResumeObj create(DLNAResource r) {
 		if (!configuration.isResumeEnabled()) {
 			// resume is off bail early
@@ -54,8 +65,8 @@ public class ResumeObj {
 
 		if (r.getMedia() != null) {
 			double dur = r.getMedia().getDurationInSeconds();
-			if (dur == 0 || dur == DLNAMediaInfo.TRANS_SIZE) {
-				r.getMedia().setDuration((double)res.resDuration / 1000);
+			if (dur == 0.0 || dur == DLNAMediaInfo.TRANS_SIZE) {
+				r.getMedia().setDuration(new Double(res.resDuration / 1000.0));
 			}
 		}
 		res.setMinDuration(r.minPlayTime());
