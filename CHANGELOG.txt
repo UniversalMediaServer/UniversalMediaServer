@@ -11,7 +11,8 @@
 		Added new options to iTunes library browsing: Browse by Artist, Album and Genre
 		Transcoding quality automatically adjusts for content and network speed by default, allowing wireless users an easier experience
 		Improved memory defaults on Windows
-		Improved transcoding quality by default
+		Improved video transcoding quality by default
+		Improved audio transcoding quality in FFmpeg by default
 	Renderers:
 		Xbox 360 supports 5.1 audio
 		Faster transcoding on Xbox 360
