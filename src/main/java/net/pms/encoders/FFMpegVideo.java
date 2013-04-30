@@ -678,21 +678,21 @@ public class FFMpegVideo extends Player {
 			cmdList.add("" + defaultMaxBitrates[0]);
 		}
 
-		int channels;
-		if (renderer.isTranscodeToWMV() && !renderer.isXBOX()) {
-			channels = 2;
-		} else if (ac3Remux) {
-			channels = params.aid.getAudioProperties().getNumberOfChannels(); // AC-3 remux
-		} else if (dtsRemux) {
-			channels = 2;
-		} else {
-			channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
-		}
-		cmdList.add("-ac");
-		cmdList.add("" + channels);
-
 		// Audio bitrate
 		if (!ac3Remux && !dtsRemux && !(type() == Format.AUDIO)) {
+			int channels;
+			if (renderer.isTranscodeToWMV() && !renderer.isXBOX()) {
+				channels = 2;
+			} else if (ac3Remux) {
+				channels = params.aid.getAudioProperties().getNumberOfChannels(); // AC-3 remux
+			} else if (dtsRemux) {
+				channels = 2;
+			} else {
+				channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
+			}
+			cmdList.add("-ac");
+			cmdList.add("" + channels);
+
 			cmdList.add("-ab");
 			// Check if audio bitrate meets mp2 specification
 			// TODO: Is this needed?
