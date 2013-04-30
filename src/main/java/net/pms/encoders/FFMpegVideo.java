@@ -685,8 +685,6 @@ public class FFMpegVideo extends Player {
 				channels = 2;
 			} else if (ac3Remux) {
 				channels = params.aid.getAudioProperties().getNumberOfChannels(); // AC-3 remux
-			} else if (dtsRemux) {
-				channels = 2;
 			} else {
 				channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
 			}
@@ -810,7 +808,7 @@ public class FFMpegVideo extends Player {
 			sm.setDtsEmbed(dtsRemux);
 			sm.setSampleFrequency(48000);
 			sm.setBitsPerSample(16);
-			sm.setNbChannels(channels);
+			sm.setNbChannels(2);
 
 			List<String> cmdListDTS = new ArrayList<>();
 			cmdListDTS.add(executable());
@@ -838,7 +836,7 @@ public class FFMpegVideo extends Player {
 			}
 
 			cmdListDTS.add("-ac");
-			cmdListDTS.add("" + channels);
+			cmdListDTS.add("2");
 
 			cmdListDTS.add("-f");
 			cmdListDTS.add("dts");
