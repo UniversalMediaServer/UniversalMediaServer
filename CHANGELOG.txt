@@ -1,4 +1,4 @@
-2.6.3 - 2013-04-??
+2.6.3 - 2013-04-30
 
 	General:
 		Improved detection of renderers
