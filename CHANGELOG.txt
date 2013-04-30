@@ -1,4 +1,4 @@
-3.0.0 - 2013-04-??
+3.0.0 - 2013-05-??
 
 	General:
 		Added internal subtitle support to FFmpeg
@@ -12,15 +12,20 @@
 		Transcoding quality automatically adjusts for content and network speed by default, allowing wireless users an easier experience
 		Improved memory defaults on Windows
 		Improved transcoding quality by default
-		Added support for more types of M4A/AAC audio files
-		Improved renderer detection/connection
 	Renderers:
 		Xbox 360 supports 5.1 audio
 		Faster transcoding on Xbox 360
 	Languages:
 		Updated Spanish translation (thanks, Alfredo Ramos!)
+
+2.6.3 - 2013-05-01
+
+	General:
+		Improved detection of renderers
+		Improved AAC/M4A support
 	External Components:
-		Updated Thumbnailator to 0.4.3
+		Updated Apache commons-lang to 3.1
+		Updated thumbnailator to 0.4.3
 
 2.6.2 - 2013-04-22
 
