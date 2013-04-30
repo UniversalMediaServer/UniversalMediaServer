@@ -19,7 +19,7 @@
 package net.pms.configuration;
 
 import org.apache.commons.configuration.Configuration;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 /*
  * Helper methods for classes that wrap config (property) files e.g. PmsConfiguration and RendererConfiguration.

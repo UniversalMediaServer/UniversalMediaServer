@@ -21,7 +21,7 @@ package net.pms.formats.v2;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 /**
  * Enum with possible audio track attributes.

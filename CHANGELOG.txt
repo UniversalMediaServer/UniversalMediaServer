@@ -1,3 +1,12 @@
+2.6.3 - 2013-05-01
+
+	General:
+		Improved detection of renderers
+		Improved AAC/M4A support
+	External Components:
+		Updated Apache commons-lang to 3.1
+		Updated thumbnailator to 0.4.3
+
 2.6.2 - 2013-04-22
 
 	General:

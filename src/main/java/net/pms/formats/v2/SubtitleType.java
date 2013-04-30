@@ -19,8 +19,8 @@
 package net.pms.formats.v2;
 
 import java.util.*;
-import static org.apache.commons.lang.StringUtils.isBlank;
-import static org.apache.commons.lang.StringUtils.trim;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.trim;
 
 /**
  * Enum with possible types of subtitle tracks and methods for determining

@@ -41,7 +41,7 @@ import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class FFmpegDVRMSRemux extends Player {
 	private static final PmsConfiguration configuration = PMS.getConfiguration();

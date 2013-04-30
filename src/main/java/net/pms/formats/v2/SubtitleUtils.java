@@ -21,7 +21,7 @@ package net.pms.formats.v2;
 import java.util.HashMap;
 import java.util.Map;
 import net.pms.dlna.DLNAMediaSubtitle;
-import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.mozilla.universalchardet.Constants.*;
 
 public class SubtitleUtils {

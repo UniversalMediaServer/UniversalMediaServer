@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import net.pms.network.HTTPResource;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

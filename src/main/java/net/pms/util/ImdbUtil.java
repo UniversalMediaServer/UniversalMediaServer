@@ -3,7 +3,7 @@ package net.pms.util;
 import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class ImdbUtil {
 	private static final String HASH_REG = "_os([^_]+)_";
