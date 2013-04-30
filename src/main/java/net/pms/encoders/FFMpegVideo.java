@@ -692,13 +692,7 @@ public class FFMpegVideo extends Player {
 			cmdList.add("" + channels);
 
 			cmdList.add("-ab");
-			// Check if audio bitrate meets mp2 specification
-			// TODO: Is this needed?
-			if (!renderer.isTranscodeToMPEGPSAC3() && configuration.getAudioBitrate() <= 384) {
-				cmdList.add(configuration.getAudioBitrate() + "k");
-			} else {
-				cmdList.add("384k");
-			}
+			cmdList.add(configuration.getAudioBitrate() + "k");
 		}
 
 		if (params.timeseek > 0) {
