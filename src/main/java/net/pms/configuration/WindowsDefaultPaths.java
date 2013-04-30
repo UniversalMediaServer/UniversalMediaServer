@@ -2,7 +2,7 @@ package net.pms.configuration;
 
 import java.io.File;
 import net.pms.util.PropertiesUtil;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
