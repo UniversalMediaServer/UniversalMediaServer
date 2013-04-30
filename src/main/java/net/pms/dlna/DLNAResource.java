@@ -345,7 +345,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return true;
 	}
 
-	/**Any {@link DLNAResource} needs to represent the container or item with a String.
+	/**
+	 * Any {@link DLNAResource} needs to represent the container or item with a String.
+	 *
 	 * @return String to be showed in the UPNP client.
 	 */
 	public abstract String getName();
