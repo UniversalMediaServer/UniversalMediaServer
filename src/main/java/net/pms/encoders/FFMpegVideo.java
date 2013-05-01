@@ -1058,6 +1058,7 @@ public class FFMpegVideo extends Player {
 	 */
 	public File subsConversion(String fileName, DLNAMediaInfo media, OutputParams params) throws IOException {
 		File tempSubs = null;
+		String convertedSubs;
 
 		if (params.sid.getId() == -1) {
 			return null;
@@ -1069,12 +1070,14 @@ public class FFMpegVideo extends Player {
 			subsPath.mkdirs();
 		}
 
-		String convertedSubs = subsPath.getAbsolutePath() + File.separator + FileUtil.getFileNameWithoutExtension(new File(fileName).getName()) + "_" + new File(fileName).lastModified();
-
 		if (params.sid.isEmbedded()) {
-			convertedSubs = convertedSubs + "_EMB_ID" + params.sid.getId() + ".ass";
-			if (new File(convertedSubs).exists()) {
-				tempSubs = new File(convertedSubs);
+			convertedSubs = subsPath.getAbsolutePath() + File.separator
+					+ FileUtil.getFileNameWithoutExtension(new File(fileName).getName())
+					+ "_" + new File(fileName).lastModified() + "_EMB_ID" + params.sid.getId() + ".ass";
+			File tmp = new File(convertedSubs);
+			
+			if (tmp.exists()) {
+				tempSubs = tmp;
 			} else {
 				tempSubs = convertSubsToAss(fileName, media, params);
 			}
@@ -1088,16 +1091,19 @@ public class FFMpegVideo extends Player {
 				}
 			}
 		} else if (params.sid.isExternal()) { // Convert external subs to ASS format
-			convertedSubs = convertedSubs + "_EXT.ass";
+			convertedSubs = subsPath.getAbsolutePath() + File.separator
+					+ FileUtil.getFileNameWithoutExtension(params.sid.getExternalFile().getName())
+					+ "_" + params.sid.getExternalFile().lastModified() + "_EXT.ass";
 			File tmp = new File(convertedSubs);
-			if (tmp.exists() && (tmp.lastModified() > params.sid.getExternalFile().lastModified())) {
+			
+			if (tmp.exists()) {
 				tempSubs = tmp;
 			} else {
 				String externalSubtitlesFileName;
 
 				if (params.sid.isExternalFileUtf16()) {
 					// convert UTF-16 -> UTF-8
-					File convertedSubtitles = new File(configuration.getTempFolder(), "UTF-18_" + params.sid.getExternalFile().getName());
+					File convertedSubtitles = new File(configuration.getTempFolder(), "UTF-8_" + params.sid.getExternalFile().getName());
 					FileUtil.convertFileFromUtf16ToUtf8(params.sid.getExternalFile(), convertedSubtitles);
 					externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(convertedSubtitles.getAbsolutePath());
 				} else {
@@ -1135,10 +1141,12 @@ public class FFMpegVideo extends Player {
 	 * @param media 
 	 * @param params output parameters
 	 * @return Converted subtitles file in SSA/ASS format
+	 * @throws IOException 
 	 */
-	public static File convertSubsToAss(String fileName, DLNAMediaInfo media, OutputParams params) {
+	public static File convertSubsToAss(String fileName, DLNAMediaInfo media, OutputParams params) throws IOException {
 		List<String> cmdList = new ArrayList<>();
 		File tempSubsFile = null;
+		File inputFile = new File(fileName);
 		cmdList.add(configuration.getFfmpegPath());
 		cmdList.add("-y");
 		cmdList.add("-loglevel");
@@ -1149,7 +1157,11 @@ public class FFMpegVideo extends Player {
 			cmdList.add("warning");
 		}
 
-		if (isNotBlank(configuration.getSubtitlesCodepage()) && params.sid.isExternal()) {
+		if (isNotBlank(configuration.getSubtitlesCodepage())
+				&& params.sid.isExternal()
+				&& !FileUtil.isFileUTF8(inputFile)
+				&& FileUtil.getFileCharset(inputFile) != configuration.getSubtitlesCodepage()) {
+			
 			cmdList.add("-sub_charenc");
 			cmdList.add(configuration.getSubtitlesCodepage());
 		}
@@ -1168,14 +1180,14 @@ public class FFMpegVideo extends Player {
 			path.mkdirs();
 		}
 
+		String outFile = path.getAbsolutePath() + File.separator 
+				+ FileUtil.getFileNameWithoutExtension(inputFile.getName())
+				+ "_" + inputFile.lastModified();
+
 		if (params.sid.isEmbedded()) {
-			tempSubsFile = new File(path.getAbsolutePath() + File.separator + 
-					FileUtil.getFileNameWithoutExtension(new File(fileName).getName()) + "_" + 
-					new File(fileName).lastModified() + "_EMB_ID" + params.sid.getId() + ".ass");
+			tempSubsFile = new File(outFile + "_EMB_ID" + params.sid.getId() + ".ass");
 		} else {
-			tempSubsFile = new File(path.getAbsolutePath() + File.separator + 
-					FileUtil.getFileNameWithoutExtension(new File(fileName).getName()) + "_" + 
-					new File(fileName).lastModified() + "_EXT.ass");
+			tempSubsFile = new File(outFile + "_EXT.ass");
 		}
 
 		cmdList.add(tempSubsFile.getAbsolutePath());

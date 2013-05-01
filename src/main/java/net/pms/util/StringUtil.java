@@ -104,13 +104,17 @@ public class StringUtil {
 		int h = (int) (d / 3600);
 		int m = ((int) (d / 60)) % 60;
 
+		if (format.equals(SRT_FORMAT)) {
+			return String.format(format, h, m, s).replaceAll(".", ",");
+		}
+
 		return String.format(format, h, m, s);
 	}
 
 	/**
 	 * Converts string in time format to double.
 	 *
-	 * @param time in string format OO:00:00.000
+	 * @param time in string format 00:00:00.000
 	 * @return Time in double.
 	 */
 	public static Double convertStringToTime(String time) {
@@ -118,6 +122,10 @@ public class StringUtil {
 			return null;
 		}
 
+		if (time.contains(",")) {
+			time = time.replaceAll(",", ".");
+		}
+		
 		StringTokenizer st = new StringTokenizer(time, ":");
 
 		try {
