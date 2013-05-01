@@ -1370,11 +1370,11 @@ public class DLNAMediaInfo implements Cloneable {
 
 		cmdArray[3] = "-vframes";
 		cmdArray[4] = "1";
-		cmdArray[5] = "-vcodec";
+		cmdArray[5] = "-c:v";
 		cmdArray[6] = "copy";
 		cmdArray[7] = "-f";
 		cmdArray[8] = "h264";
-		cmdArray[9] = "-vbsf";
+		cmdArray[9] = "-bsf";
 		cmdArray[10] = "h264_mp4toannexb";
 		cmdArray[11] = "-an";
 		cmdArray[12] = "-y";

@@ -84,8 +84,8 @@ public class FFmpegDVRMSRemux extends Player {
 	@Deprecated
 	protected String[] getDefaultArgs() {
 		return new String[] {
-			"-vcodec", "copy",
-			"-acodec", "copy",
+			"-c:v", "copy",
+			"-c:a", "copy",
 			"-threads", "2",
 			"-g", "1",
 			"-qscale", "1",

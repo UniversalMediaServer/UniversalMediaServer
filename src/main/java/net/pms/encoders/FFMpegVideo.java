@@ -733,7 +733,7 @@ public class FFMpegVideo extends Player {
 			cmdList.addAll(new ArrayList<>(Arrays.asList(customOptions)));
 		}
 
-		// Add the output options (-f, -acodec, -vcodec)
+		// Add the output options (-f, -c:a, -c:v, etc.)
 		cmdList.addAll(getTranscodeVideoOptions(renderer, media, params, filename));
 
 		// Add custom options
