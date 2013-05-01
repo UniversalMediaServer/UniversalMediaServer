@@ -1228,7 +1228,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			addXMLTagAndAttribute(
 				sb,
 				"dc:title",
-				encodeXML(firstAudioTrack.getSongname() + (getPlayer() != null && !configuration.isHideEngineNames() ? (" [" + getPlayer().name() + "]") : ""))
+				encodeXML(wireshark)
 			);
 		} else { // Ditlew - org
 			// Ditlew
