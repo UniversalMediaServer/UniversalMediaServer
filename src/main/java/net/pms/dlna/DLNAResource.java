@@ -1236,7 +1236,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			addXMLTagAndAttribute(
 				sb,
 				"dc:title",
-				encodeXML((isFolder() || getPlayer() == null) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer)))
+				encodeXML(wireshark)
 			);
 		}
 
