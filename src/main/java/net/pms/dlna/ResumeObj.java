@@ -38,15 +38,6 @@ public class ResumeObj {
 		return path.listFiles();
 	}
 	
-	public static String resStr(DLNAResource r, String s) {
-		if (r.isResume()) {
-			return Messages.getString("PMS.134") + " -- " + s;
-		}
-		else {
-			return s;
-		}
-	}
-	
 	public static ResumeObj create(DLNAResource r) {
 		if (!configuration.isResumeEnabled()) {
 			// resume is off bail early
