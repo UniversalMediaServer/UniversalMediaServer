@@ -30,9 +30,11 @@ import java.util.HashMap;
 import java.util.Map;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaSubtitle;
+import net.pms.io.OutputParams;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.mozilla.universalchardet.Constants.*;
 
 public class SubtitleUtils {
@@ -95,7 +97,7 @@ public class SubtitleUtils {
 	 * @return Converted subtitles file
 	 * @throws IOException
 	 */
-	public static File applyTimeSeeking(File SrtFile, double timeseek) throws IOException {
+	public static File applyTimeSeekingToASS(File SrtFile, double timeseek) throws IOException {
 		Double startTime;
 		Double endTime;
 		String line;
@@ -135,5 +137,53 @@ public class SubtitleUtils {
 			path.mkdirs();
 		}
 		return path.getAbsolutePath() + File.separator + name + ".tmp";
+	}
+
+	public static File applyTimeSeekingToSrt(File in, OutputParams params) throws IOException {
+		BufferedReader reader = null;
+		String cp = PMS.getConfiguration().getSubtitlesCodepage();
+		if (isNotBlank(cp) && !params.sid.isExternalFileUtf8()) {
+			reader = new BufferedReader(new InputStreamReader(new FileInputStream(in),cp)); // Always convert codepage
+		} else if (params.timeseek > 0) {
+			reader = new BufferedReader(new InputStreamReader(new FileInputStream(in))); // Apply timeseeking without codepage conversion
+		} else {
+			return in; // Codepage conversion or timeseeking is not needed
+		}
+
+		File out = new File(tempFile(in.getName() + System.currentTimeMillis()));
+		BufferedWriter w = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(out)));
+		String line;
+		int n = 1;
+
+		while ((line = reader.readLine()) != null) {
+			if (line .contains("-->")) {
+				String startTime = line.substring(0, line.indexOf("-->") - 1);
+				String endTime = line.substring(line.indexOf("-->") + 4);
+				Double start = StringUtil.convertStringToTime(startTime);
+				Double stop = StringUtil.convertStringToTime(endTime);
+
+				if (start >= params.timeseek) {
+					w.write("" + (n++) + "\n");
+					w.write(StringUtil.convertTimeToString(start - params.timeseek, StringUtil.SRT_FORMAT));
+					w.write(" --> ");	
+					w.write(StringUtil.convertTimeToString(stop - params.timeseek, StringUtil.SRT_FORMAT) + "\n");
+
+					while (isNotBlank(line = reader.readLine())) { // Read all following subs lines
+						w.write(line + "\n");
+					}
+
+					w.write("" + "\n");
+
+				} else {
+					continue;
+				}
+			}
+		}
+
+		reader.close();
+		w.flush();
+		w.close();
+		PMS.get().addTempFile(out, 2 * 24 * 3600 * 1000);
+		return out;
 	}
 }

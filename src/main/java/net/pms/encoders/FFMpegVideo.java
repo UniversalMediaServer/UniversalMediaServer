@@ -49,6 +49,7 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.InputFile;
 import net.pms.formats.Format;
+import net.pms.formats.v2.SubtitleType;
 import net.pms.formats.v2.SubtitleUtils;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeIPCProcess;
@@ -115,10 +116,11 @@ public class FFMpegVideo extends Player {
 	 * @param extSubs the substrings filename
 	 * @param renderer the DLNA renderer the video is being streamed to
 	 * @param media metadata for the DLNA resource which is being transcoded
+	 * @param params 
 	 * @return a {@link List} of <code>String</code>s representing the rescale options for this video,
 	 * or an empty list if the video doesn't need to be resized.
 	 */
-	public List<String> getVideoFilterOptions(String extSubs, RendererConfiguration renderer, DLNAMediaInfo media) throws IOException {
+	public List<String> getVideoFilterOptions(String extSubs, RendererConfiguration renderer, DLNAMediaInfo media, OutputParams params) throws IOException {
 		List<String> videoFilterOptions = new ArrayList<>();
 		String subsOption = null;
 		String padding = null;
@@ -153,7 +155,12 @@ public class FFMpegVideo extends Player {
 
 			String subsFile = s.toString();
 			subsFile = subsFile.replace(",", "\\,");
-			subsOption = "ass=" + subsFile;
+
+			if (params.sid.isEmbedded()) {
+				subsOption = "ass=" + subsFile;
+			} else if (params.sid.isExternal() && params.sid.getType() == SubtitleType.SUBRIP) {
+				subsOption = "subtitles=" + subsFile;
+			}
 
 		}
 
@@ -522,7 +529,7 @@ public class FFMpegVideo extends Player {
 		if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
 			cmdList.add("info"); // Could be changed to "verbose" or "debug" if "info" level is not enough
 		} else {
-			cmdList.add("warning");
+			cmdList.add("fatal");
 		}
 
 		if (params.timeseek > 0) {
@@ -599,9 +606,9 @@ public class FFMpegVideo extends Player {
 		// and/or add subtitles to video filter
 		// FFmpeg must be compiled with --enable-libass parameter
 		if (tempSubs == null) {
-			cmdList.addAll(getVideoFilterOptions(null, renderer, media));
+			cmdList.addAll(getVideoFilterOptions(null, renderer, media, params));
 		} else {
-			cmdList.addAll(getVideoFilterOptions(tempSubs.getAbsolutePath(), renderer, media));
+			cmdList.addAll(getVideoFilterOptions(tempSubs.getAbsolutePath(), renderer, media, params));
 		}
 
 		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
@@ -1090,7 +1097,13 @@ public class FFMpegVideo extends Player {
 					tempSubs = null;
 				}
 			}
-		} else if (params.sid.isExternal()) { // Convert external subs to ASS format
+		} else if (params.sid.isExternal() && params.sid.getType() == SubtitleType.SUBRIP) {
+			tempSubs = params.sid.getExternalFile();
+		}
+		
+/* 		
+ * TODO Return it back when the fontconfig for external subs will be needed
+  		else if (params.sid.isExternal()) { // Convert external subs to ASS format
 			convertedSubs = subsPath.getAbsolutePath() + File.separator +
 					FileUtil.getFileNameWithoutExtension(params.sid.getExternalFile().getName()) +
 					"_" + params.sid.getExternalFile().lastModified() + "_EXT.ass";
@@ -1121,14 +1134,22 @@ public class FFMpegVideo extends Player {
 					}
 				}
 			}
-		}
+		}	
+*/
 
-		if (tempSubs != null && params.timeseek > 0) {
+		if (tempSubs != null && params.sid.isEmbedded() && params.timeseek > 0) {
 			try {
-				tempSubs = SubtitleUtils.applyTimeSeeking(tempSubs, params.timeseek);
+				tempSubs = SubtitleUtils.applyTimeSeekingToASS(tempSubs, params.timeseek);
 			} catch (IOException e) {
 				LOGGER.debug("Applying timeseeking caused an error: " + e);
 				tempSubs = null;
+			}
+		} else if (params.sid.isExternal() && params.sid.getType() == SubtitleType.SUBRIP) {
+			try {
+				tempSubs = SubtitleUtils.applyTimeSeekingToSrt(tempSubs, params);
+			} catch (IOException e) {
+				LOGGER.debug("Applying timeseeking caused an error: " + e);
+				tempSubs = null;;
 			}
 		}
 
@@ -1154,7 +1175,7 @@ public class FFMpegVideo extends Player {
 		if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
 			cmdList.add("info"); // Could be changed to "verbose" or "debug" if "info" level is not enough
 		} else {
-			cmdList.add("warning");
+			cmdList.add("fatal");
 		}
 
 		if (
