@@ -1161,7 +1161,7 @@ public class FFMpegVideo extends Player {
 			isNotBlank(configuration.getSubtitlesCodepage()) &&
 			params.sid.isExternal() &&
 			!params.sid.isExternalFileUtf8() &&
-			params.sid.getExternalFileCharacterSet() != (configuration.getSubtitlesCodepage()) // ExternalFileCharacterSet can be null
+			params.sid.getExternalFileCharacterSet() != configuration.getSubtitlesCodepage() // ExternalFileCharacterSet can be null
 		) {
 			cmdList.add("-sub_charenc");
 			cmdList.add(configuration.getSubtitlesCodepage());
