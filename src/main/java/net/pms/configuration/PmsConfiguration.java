@@ -127,6 +127,7 @@ public class PmsConfiguration {
 	private static final String KEY_HIDE_VIDEO_SETTINGS = "hidevideosettings"; // TODO (breaking change): should be renamed to e.g. hide_video_settings
 	private static final String KEY_HTTP_ENGINE_V2 = "http_engine_v2";
 	private static final String KEY_IGNORE_THE_WORD_THE = "ignore_the_word_the";
+	private static final String KEY_IGNORED_RENDERERS = "ignored_renderers";
 	private static final String KEY_IMAGE_THUMBNAILS_ENABLED = "image_thumbnails";
 	private static final String KEY_IP_FILTER = "ip_filter";
 	private static final String KEY_IPHOTO_ENABLED = "iphoto";
@@ -1591,6 +1592,20 @@ public class PmsConfiguration {
 	 */
 	public void setMaximumBitrate(String value) {
 		configuration.setProperty(KEY_MAX_BITRATE, value);
+	}
+
+	/**
+	 * @return The comma-separated list of ignored renderers.
+	 */
+	public String getIgnoredRenderers() {
+		return getString(KEY_IGNORED_RENDERERS, "");
+	}
+
+	/**
+	 * @param value The comma-separated list of ignored renderers.
+	 */
+	public void setIgnoredRenderers(String value) {
+		configuration.setProperty(KEY_IGNORED_RENDERERS, value);
 	}
 
 	/**
