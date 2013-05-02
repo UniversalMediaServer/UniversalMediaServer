@@ -96,7 +96,7 @@ public class DownloadPlugins {
 					}
 					res.add(plugin);
 				} else {
-					LOGGER.info("An invalid plugin was ignored");
+					LOGGER.trace("An invalid plugin was ignored (1)");
 				}
 				plugin = new DownloadPlugins(test);
 			}
@@ -171,7 +171,7 @@ public class DownloadPlugins {
 			}
 			res.add(plugin);
 		} else {
-			LOGGER.info("An invalid plugin was ignored");
+			LOGGER.trace("An invalid plugin was ignored (2)");
 		}
 		in.close();
 	}
