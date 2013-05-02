@@ -105,7 +105,7 @@ public class StringUtil {
 		int m = ((int) (d / 60)) % 60;
 
 		if (format.equals(SRT_FORMAT)) {
-			return String.format(format, h, m, s).replaceAll(".", ",");
+			return String.format(format, h, m, s).replaceAll("\\.", ",");
 		}
 
 		return String.format(format, h, m, s);

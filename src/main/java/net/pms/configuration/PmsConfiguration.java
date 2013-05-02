@@ -1186,7 +1186,7 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Returns the character encoding (or code page) that should used
+	 * Returns the character encoding (or code page) that should be used
 	 * for displaying non-Unicode external subtitles. Default is empty string
 	 * (do not force encoding with -subcp key).
 	 * @return The character encoding.

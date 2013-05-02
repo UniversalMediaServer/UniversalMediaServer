@@ -1143,7 +1143,7 @@ public class FFMpegVideo extends Player {
 	 * @return Converted subtitles file in SSA/ASS format
 	 * @throws IOException 
 	 */
-	public static File convertSubsToAss(String fileName, DLNAMediaInfo media, OutputParams params) throws IOException {
+	public static File convertSubsToAss(String fileName, DLNAMediaInfo media, OutputParams params) {
 		List<String> cmdList = new ArrayList<>();
 		File tempSubsFile = null;
 		File inputFile = new File(fileName);
@@ -1160,8 +1160,8 @@ public class FFMpegVideo extends Player {
 		if (
 			isNotBlank(configuration.getSubtitlesCodepage()) &&
 			params.sid.isExternal() &&
-			!FileUtil.isFileUTF8(inputFile) &&
-			!FileUtil.getFileCharset(inputFile).equals(configuration.getSubtitlesCodepage())
+			!params.sid.isExternalFileUtf8() &&
+			params.sid.getExternalFileCharacterSet() != (configuration.getSubtitlesCodepage()) // ExternalFileCharacterSet can be null
 		) {
 			cmdList.add("-sub_charenc");
 			cmdList.add(configuration.getSubtitlesCodepage());
