@@ -1071,11 +1071,11 @@ public class FFMpegVideo extends Player {
 		}
 
 		if (params.sid.isEmbedded()) {
-			convertedSubs = subsPath.getAbsolutePath() + File.separator
-					+ FileUtil.getFileNameWithoutExtension(new File(fileName).getName())
-					+ "_" + new File(fileName).lastModified() + "_EMB_ID" + params.sid.getId() + ".ass";
+			convertedSubs = subsPath.getAbsolutePath() + File.separator +
+					FileUtil.getFileNameWithoutExtension(new File(fileName).getName()) +
+					"_" + new File(fileName).lastModified() + "_EMB_ID" + params.sid.getId() + ".ass";
 			File tmp = new File(convertedSubs);
-			
+
 			if (tmp.exists()) {
 				tempSubs = tmp;
 			} else {
@@ -1091,11 +1091,11 @@ public class FFMpegVideo extends Player {
 				}
 			}
 		} else if (params.sid.isExternal()) { // Convert external subs to ASS format
-			convertedSubs = subsPath.getAbsolutePath() + File.separator
-					+ FileUtil.getFileNameWithoutExtension(params.sid.getExternalFile().getName())
-					+ "_" + params.sid.getExternalFile().lastModified() + "_EXT.ass";
+			convertedSubs = subsPath.getAbsolutePath() + File.separator +
+					FileUtil.getFileNameWithoutExtension(params.sid.getExternalFile().getName()) +
+					"_" + params.sid.getExternalFile().lastModified() + "_EXT.ass";
 			File tmp = new File(convertedSubs);
-			
+
 			if (tmp.exists()) {
 				tempSubs = tmp;
 			} else {
@@ -1157,11 +1157,12 @@ public class FFMpegVideo extends Player {
 			cmdList.add("warning");
 		}
 
-		if (isNotBlank(configuration.getSubtitlesCodepage())
-				&& params.sid.isExternal()
-				&& !FileUtil.isFileUTF8(inputFile)
-				&& FileUtil.getFileCharset(inputFile) != configuration.getSubtitlesCodepage()) {
-			
+		if (
+			isNotBlank(configuration.getSubtitlesCodepage()) &&
+			params.sid.isExternal() &&
+			!FileUtil.isFileUTF8(inputFile) &&
+			!FileUtil.getFileCharset(inputFile).equals(configuration.getSubtitlesCodepage())
+		) {
 			cmdList.add("-sub_charenc");
 			cmdList.add(configuration.getSubtitlesCodepage());
 		}
@@ -1180,9 +1181,9 @@ public class FFMpegVideo extends Player {
 			path.mkdirs();
 		}
 
-		String outFile = path.getAbsolutePath() + File.separator 
-				+ FileUtil.getFileNameWithoutExtension(inputFile.getName())
-				+ "_" + inputFile.lastModified();
+		String outFile = path.getAbsolutePath() + File.separator +
+				FileUtil.getFileNameWithoutExtension(inputFile.getName()) +
+				"_" + inputFile.lastModified();
 
 		if (params.sid.isEmbedded()) {
 			tempSubsFile = new File(outFile + "_EMB_ID" + params.sid.getId() + ".ass");
