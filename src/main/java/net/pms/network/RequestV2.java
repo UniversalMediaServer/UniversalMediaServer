@@ -771,6 +771,7 @@ public class RequestV2 extends HTTPResource {
 						out.write(("HOST: " + addr + ":" + port).getBytes());
 						out.write(CRLF.getBytes());
 						out.flush();
+						sock.close();
 					}
 				} catch (MalformedURLException ex) {
 					LOGGER.debug("Cannot parse address and port from soap action \"" + soapaction + "\"", ex);

@@ -439,6 +439,7 @@ public class Request extends HTTPResource {
 				output(out, "NTS: upnp:propchange");
 				output(out, "HOST: " + addr + ":" + port);
 				output(out, CONTENT_TYPE_UTF8);
+				sock.close();
 			} catch (MalformedURLException ex) {
 				LOGGER.debug("Cannot parse address and port from soap action \"" + soapaction + "\"", ex);
 			}

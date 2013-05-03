@@ -309,6 +309,7 @@ public class GeneralTab {
 								sb.append("\n");
 							}
 
+							in.close();
 							textArea.setText(sb.toString());
 						}
 					} catch (Exception e1) {
