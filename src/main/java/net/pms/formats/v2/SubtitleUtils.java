@@ -183,8 +183,6 @@ public class SubtitleUtils {
 
 					w.write("" + "\n");
 
-				} else {
-					continue;
 				}
 			}
 		}
