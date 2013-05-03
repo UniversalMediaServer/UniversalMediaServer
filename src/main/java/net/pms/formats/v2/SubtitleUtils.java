@@ -29,18 +29,16 @@ import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
-
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.io.OutputParams;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.mozilla.universalchardet.Constants.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SubtitleUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StringUtil.class);
@@ -118,7 +116,7 @@ public class SubtitleUtils {
 				if (line.startsWith("Dialogue:")) {
 					String[] tempStr = line.split(",");
 					startTime = convertStringToTime(tempStr[1]);
-					endTime = convertStringToTime(tempStr[2]);;
+					endTime = convertStringToTime(tempStr[2]);
 
 					if (startTime >= timeseek) {
 						tempStr[1] = convertTimeToString(startTime - timeseek, ASS_FORMAT);
@@ -149,7 +147,7 @@ public class SubtitleUtils {
 	}
 
 	public static File applyTimeSeekingToSrt(File in, OutputParams params) throws IOException {
-		BufferedReader reader = null;
+		BufferedReader reader;
 		String cp = PMS.getConfiguration().getSubtitlesCodepage();
 		if (isNotBlank(cp) && !params.sid.isExternalFileUtf8()) {
 			reader = new BufferedReader(new InputStreamReader(new FileInputStream(in),cp)); // Always convert codepage
@@ -182,7 +180,6 @@ public class SubtitleUtils {
 					}
 
 					w.write("" + "\n");
-
 				}
 			}
 		}
@@ -193,7 +190,7 @@ public class SubtitleUtils {
 		PMS.get().addTempFile(out, 2 * 24 * 3600 * 1000);
 		return out;
 	}
-	
+
 	/**
 	 * Converts time to string.
 	 *

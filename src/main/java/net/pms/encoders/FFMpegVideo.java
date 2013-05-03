@@ -1100,7 +1100,7 @@ public class FFMpegVideo extends Player {
 		} else if (params.sid.isExternal() && params.sid.getType() == SubtitleType.SUBRIP) {
 			tempSubs = params.sid.getExternalFile();
 		}
-		
+
 /* 		
  * TODO Return it back when the fontconfig for external subs will be needed
   		else if (params.sid.isExternal()) { // Convert external subs to ASS format
@@ -1149,7 +1149,7 @@ public class FFMpegVideo extends Player {
 				tempSubs = SubtitleUtils.applyTimeSeekingToSrt(tempSubs, params);
 			} catch (IOException e) {
 				LOGGER.debug("Applying timeseeking caused an error: " + e);
-				tempSubs = null;;
+				tempSubs = null;
 			}
 		}
 
@@ -1166,7 +1166,7 @@ public class FFMpegVideo extends Player {
 	 */
 	public static File convertSubsToAss(String fileName, DLNAMediaInfo media, OutputParams params) {
 		List<String> cmdList = new ArrayList<>();
-		File tempSubsFile = null;
+		File tempSubsFile;
 		File inputFile = new File(fileName);
 		cmdList.add(configuration.getFfmpegPath());
 		cmdList.add("-y");
@@ -1182,7 +1182,7 @@ public class FFMpegVideo extends Player {
 			isNotBlank(configuration.getSubtitlesCodepage()) &&
 			params.sid.isExternal() &&
 			!params.sid.isExternalFileUtf8() &&
-			params.sid.getExternalFileCharacterSet() != configuration.getSubtitlesCodepage() // ExternalFileCharacterSet can be null
+			!params.sid.getExternalFileCharacterSet().equals(configuration.getSubtitlesCodepage()) // ExternalFileCharacterSet can be null
 		) {
 			cmdList.add("-sub_charenc");
 			cmdList.add(configuration.getSubtitlesCodepage());
