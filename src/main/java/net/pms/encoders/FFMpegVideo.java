@@ -113,14 +113,14 @@ public class FFMpegVideo extends Player {
 	 * If the renderer has no size limits, or there's no media metadata, or the video is within the renderer's
 	 * size limits, an empty list is returned.
 	 *
-	 * @param extSubs the substrings filename
+	 * @param tempSubs the substrings filename
 	 * @param renderer the DLNA renderer the video is being streamed to
 	 * @param media metadata for the DLNA resource which is being transcoded
 	 * @param params 
 	 * @return a {@link List} of <code>String</code>s representing the rescale options for this video,
 	 * or an empty list if the video doesn't need to be resized.
 	 */
-	public List<String> getVideoFilterOptions(String extSubs, RendererConfiguration renderer, DLNAMediaInfo media, OutputParams params) throws IOException {
+	public List<String> getVideoFilterOptions(File tempSubs, RendererConfiguration renderer, DLNAMediaInfo media, OutputParams params) throws IOException {
 		List<String> videoFilterOptions = new ArrayList<>();
 		String subsOption = null;
 		String padding = null;
@@ -132,9 +132,9 @@ public class FFMpegVideo extends Player {
 				(media.getHeight() > renderer.getMaxVideoHeight())
 			);
 
-		if (extSubs != null) {
+		if (tempSubs != null) {
 			StringBuilder s = new StringBuilder();
-			CharacterIterator it = new StringCharacterIterator(extSubs);
+			CharacterIterator it = new StringCharacterIterator(tempSubs.getAbsolutePath());
 
 			for (char ch = it.first(); ch != CharacterIterator.DONE; ch = it.next()) {
 				switch (ch) {
@@ -605,11 +605,7 @@ public class FFMpegVideo extends Player {
 		// if the source is too large for the renderer, resize it
 		// and/or add subtitles to video filter
 		// FFmpeg must be compiled with --enable-libass parameter
-		if (tempSubs == null) {
-			cmdList.addAll(getVideoFilterOptions(null, renderer, media, params));
-		} else {
-			cmdList.addAll(getVideoFilterOptions(tempSubs.getAbsolutePath(), renderer, media, params));
-		}
+		cmdList.addAll(getVideoFilterOptions(tempSubs, renderer, media, params));
 
 		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
@@ -1177,7 +1173,7 @@ public class FFMpegVideo extends Player {
 		} else {
 			cmdList.add("fatal");
 		}
-
+		/* TODO Use it when external subs should be converted by ffmpeg
 		if (
 			isNotBlank(configuration.getSubtitlesCodepage()) &&
 			params.sid.isExternal() &&
@@ -1187,7 +1183,7 @@ public class FFMpegVideo extends Player {
 			cmdList.add("-sub_charenc");
 			cmdList.add(configuration.getSubtitlesCodepage());
 		}
-
+		*/
 		cmdList.add("-i");
 		cmdList.add(fileName);
 
