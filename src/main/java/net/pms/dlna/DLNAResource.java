@@ -584,7 +584,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							}
 						}
 
-						if (child.getExt().isVideo() && child.isSubSelectable()) {
+						if (child.getFormat().isVideo() && child.isSubSelectable()) {
 							VirtualFolder vf = getSubSelector(true);
 							if (vf != null) {
 								DLNAResource newChild = child.clone();
