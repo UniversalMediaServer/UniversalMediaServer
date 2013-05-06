@@ -113,11 +113,11 @@ public class GeneralTab {
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 		builder.addLabel(Messages.getString("NetworkTab.0"), FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
 		final KeyedComboBoxModel kcbm = new KeyedComboBoxModel(new Object[] {
-				"ar", "bg", "ca", "zhs", "zht", "cz", "da", "nl", "en", "fi", "fr",
+				"ar", "bg", "ca", "zhs", "zht", "cz", "da", "nl", "en", "en_uk", "fi", "fr",
 				"de", "el", "iw", "is", "it", "ja", "ko", "no", "pl", "pt", "br",
 				"ro", "ru", "sl", "es", "sv", "tr"}, new Object[] {
 				"Arabic", "Bulgarian", "Catalan", "Chinese (Simplified)",
-				"Chinese (Traditional)", "Czech", "Danish", "Dutch", "English",
+				"Chinese (Traditional)", "Czech", "Danish", "Dutch", "English (US)", "English (UK)",
 				"Finnish", "French", "German", "Greek", "Hebrew", "Icelandic", "Italian",
 				"Japanese", "Korean", "Norwegian", "Polish", "Portuguese",
 				"Portuguese (Brazilian)", "Romanian", "Russian", "Slovenian",
