@@ -329,9 +329,6 @@ public class PMS {
 				// Total number of questions
 				int numberOfQuestions = 4;
 
-				// Whether an iTunes library has been found
-				boolean foundItunesLibrary = false;
-
 				// The current question number
 				int currentQuestionNumber = 1;
 
