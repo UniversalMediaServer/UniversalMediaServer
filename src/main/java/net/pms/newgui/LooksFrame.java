@@ -309,6 +309,10 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			setSize(PREFERRED_SIZE);
 		}
 
+		// Display tooltips immediately and for a long time
+		ToolTipManager.sharedInstance().setInitialDelay(0);
+		ToolTipManager.sharedInstance().setDismissDelay(60000);
+
 		setResizable(true);
 		Dimension paneSize = getSize();
 		setLocation(
