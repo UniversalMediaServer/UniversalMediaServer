@@ -908,7 +908,7 @@ public class TranscodingTab {
 				configuration.setAutoloadSubtitles((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
-		builder.add(subs, FormLayoutUtil.flip(cc.xyw(1, 14, 13), colSpec, orientation));
+		builder.add(subs, FormLayoutUtil.flip(cc.xyw(1, 14, 11), colSpec, orientation));
 
 		subColor = new JButton();
 		subColor.setText(Messages.getString("MEncoderVideo.31"));
