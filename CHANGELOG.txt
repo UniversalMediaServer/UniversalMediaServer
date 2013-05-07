@@ -13,11 +13,18 @@
 		Improved memory defaults on Windows
 		Improved video transcoding quality by default
 		Improved audio transcoding quality in FFmpeg by default
+		Made the menu icon on OS X grayscale to fit with most other programs (thanks, Kefran!)
+		Made file list population faster
+		Added option to ignore certain renderer configurations
+		Fixed memory leaks
+		Added tooltips to several options to make them clearer
 	Renderers:
 		Xbox 360 supports 5.1 audio
 		Faster transcoding on Xbox 360
 	Languages:
-		Updated Spanish translation (thanks, Alfredo Ramos!)
+		Added English (UK) to the list of languages
+		Updated English settings
+		Updated Spanish translation (thanks, Alfredo Ramos and uman2k!)
 
 2.6.3 - 2013-05-01
 
