@@ -1355,12 +1355,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 											mediaRenderer.isTranscodeToMPEGTSAC3()
 										);
 								}
+
 								if (mpegTsMux) {
 									dlnaspec = "DLNA.ORG_PN=" + getMPEG_TS_SD_EU_ISOLocalizedValue(c);
 									if (
 										getMedia().isH264() &&
 										!VideoLanVideoStreaming.ID.equals(getPlayer().id()) &&
-										isMuxableResult
+										mediaRenderer.isBRAVIA() &&
+										getMedia().getCodecV() != null &&
+										getMedia().getCodecV().startsWith("mpeg2")
 									) {
 										dlnaspec = "DLNA.ORG_PN=AVC_TS_HD_24_AC3_ISO";
 									}
