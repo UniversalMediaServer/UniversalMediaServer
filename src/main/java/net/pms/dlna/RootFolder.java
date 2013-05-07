@@ -728,9 +728,9 @@ public class RootFolder extends DLNAResource {
 							if ("Music".equals(Playlist.get("Name").toString())) {
 								// Create virtual folders for artists, albums and genres
 
-								VirtualFolder virtualFolderArtists = new VirtualFolder("Browse by Artist", null);
-								VirtualFolder virtualFolderAlbums = new VirtualFolder("Browse by Albums", null);
-								VirtualFolder virtualFolderGenres = new VirtualFolder("Browse by Genre", null);
+								VirtualFolder virtualFolderArtists = new VirtualFolder(Messages.getString("FoldTab.50"), null);
+								VirtualFolder virtualFolderAlbums = new VirtualFolder(Messages.getString("FoldTab.51"), null);
+								VirtualFolder virtualFolderGenres = new VirtualFolder(Messages.getString("FoldTab.52"), null);
 								PlaylistTracks = (List<?>) Playlist.get("Playlist Items"); // list of tracks in a playlist
 
 								String artistName;
