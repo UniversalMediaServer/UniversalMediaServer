@@ -381,6 +381,7 @@ public class NavigationShareTab {
 
 		// Enable the cache
 		cacheenable = new JCheckBox(Messages.getString("NetworkTab.17"));
+		cacheenable.setToolTipText(Messages.getString("FoldTab.48"));
 		cacheenable.setContentAreaFilled(false);
 		cacheenable.setSelected(configuration.getUseCache());
 		cacheenable.addItemListener(new ItemListener() {
@@ -430,6 +431,7 @@ public class NavigationShareTab {
 
 		// Hide transcoding engine names
 		hideengines = new JCheckBox(Messages.getString("FoldTab.8"));
+		hideengines.setToolTipText(Messages.getString("FoldTab.46"));
 		hideengines.setContentAreaFilled(false);
 		if (configuration.isHideEngineNames()) {
 			hideengines.setSelected(true);
@@ -456,6 +458,7 @@ public class NavigationShareTab {
 
 		// Show iTunes library
 		itunes = new JCheckBox(Messages.getString("FoldTab.30"));
+		itunes.setToolTipText(Messages.getString("FoldTab.47"));
 		itunes.setContentAreaFilled(false);
 		if (configuration.getItunesEnabled()) {
 			itunes.setSelected(true);
@@ -540,6 +543,7 @@ public class NavigationShareTab {
 
 		// Ignore the word "the" while sorting
 		ignorethewordthe = new JCheckBox(Messages.getString("FoldTab.39"));
+		ignorethewordthe.setToolTipText(Messages.getString("FoldTab.44"));
 		ignorethewordthe.setContentAreaFilled(false);
 		if (configuration.isIgnoreTheWordThe()) {
 			ignorethewordthe.setSelected(true);
@@ -552,6 +556,7 @@ public class NavigationShareTab {
 		});
 
 		atzLimit = new JTextField("" + configuration.getATZLimit());
+		atzLimit.setToolTipText(Messages.getString("FoldTab.49"));
 		atzLimit.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
@@ -578,6 +583,7 @@ public class NavigationShareTab {
 		});
 
 		prettifyfilenames = new JCheckBox(Messages.getString("FoldTab.43"));
+		prettifyfilenames.setToolTipText(Messages.getString("FoldTab.45"));
 		prettifyfilenames.setContentAreaFilled(false);
 		if (configuration.isPrettifyFilenames()) {
 			prettifyfilenames.setSelected(true);
