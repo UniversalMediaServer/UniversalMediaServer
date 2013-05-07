@@ -401,6 +401,7 @@ public class TranscodingTab {
 		if (!configuration.isHideAdvancedOptions()) {
 			builder.addLabel(Messages.getString("TrTab2.23"), FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 			maxbuffer = new JTextField("" + configuration.getMaxMemoryBufferSize());
+			maxbuffer.setToolTipText(Messages.getString("TrTab2.73"));
 			maxbuffer.addKeyListener(new KeyAdapter() {
 				@Override
 				public void keyReleased(KeyEvent e) {
@@ -531,6 +532,7 @@ public class TranscodingTab {
 
 		MyComboBoxModel cbm = new MyComboBoxModel(data);
 		vq = new JComboBox(cbm);
+		vq.setToolTipText(Messages.getString("TrTab2.74"));
 		vq.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -660,6 +662,7 @@ public class TranscodingTab {
 
 		builder.addLabel(Messages.getString("MEncoderVideo.7"), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
 		langs = new JTextField(configuration.getAudioLanguages());
+		langs.setToolTipText(Messages.getString("TrTab2.75"));
 		langs.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
@@ -683,6 +686,7 @@ public class TranscodingTab {
 
 		builder.addLabel(Messages.getString("MEncoderVideo.9"), FormLayoutUtil.flip(cc.xy(1, 2), colSpec, orientation));
 		defaultsubs = new JTextField(configuration.getSubtitlesLanguages());
+		defaultsubs.setToolTipText(Messages.getString("TrTab2.76"));
 		defaultsubs.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
@@ -713,6 +717,7 @@ public class TranscodingTab {
 
 		builder.addLabel(Messages.getString("MEncoderVideo.10"), FormLayoutUtil.flip(cc.xy(1, 4), colSpec, orientation));
 		defaultaudiosubs = new JTextField(configuration.getAudioSubLanguages());
+		defaultaudiosubs.setToolTipText(Messages.getString("TrTab2.77"));
 		defaultaudiosubs.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
@@ -901,6 +906,7 @@ public class TranscodingTab {
 		builder.add(ass_margin, FormLayoutUtil.flip(cc.xy(15, 12), colSpec, orientation));
 		
 		subs = new JCheckBox(Messages.getString("MEncoderVideo.22"), configuration.isAutoloadSubtitles());
+		subs.setToolTipText(Messages.getString("TrTab2.78"));
 		subs.setContentAreaFilled(false);
 		subs.addItemListener(new ItemListener() {
 			@Override
