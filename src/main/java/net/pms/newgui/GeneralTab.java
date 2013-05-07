@@ -161,6 +161,7 @@ public class GeneralTab {
 
 		if (!configuration.isHideAdvancedOptions()) {
 			CustomJButton service = new CustomJButton(Messages.getString("NetworkTab.4"));
+			service.setToolTipText(Messages.getString("NetworkTab.63"));
 			service.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -349,6 +350,7 @@ public class GeneralTab {
 			});
 
 			port = new JTextField(configuration.getServerPort() != 5001 ? "" + configuration.getServerPort() : "");
+			port.setToolTipText(Messages.getString("NetworkTab.64"));
 			port.addKeyListener(new KeyAdapter() {
 				@Override
 				public void keyReleased(KeyEvent e) {
@@ -391,6 +393,7 @@ public class GeneralTab {
 			});
 
 			maxbitrate = new JTextField(configuration.getMaximumBitrate());
+			maxbitrate.setToolTipText(Messages.getString("NetworkTab.65"));
 			maxbitrate.addKeyListener(new KeyAdapter() {
 				@Override
 				public void keyReleased(KeyEvent e) {
@@ -421,7 +424,7 @@ public class GeneralTab {
 					configuration.setHTTPEngineV2((e.getStateChange() == ItemEvent.SELECTED));
 				}
 			});
-			builder.add(newHTTPEngine, FormLayoutUtil.flip(cc.xyw(1, 33, 9), colSpec, orientation));
+			builder.add(newHTTPEngine, FormLayoutUtil.flip(cc.xy(1, 33), colSpec, orientation));
 
 			preventSleep = new JCheckBox(Messages.getString("NetworkTab.33"));
 			preventSleep.setSelected(configuration.isPreventsSleep());
@@ -431,7 +434,7 @@ public class GeneralTab {
 					configuration.setPreventsSleep((e.getStateChange() == ItemEvent.SELECTED));
 				}
 			});
-			builder.add(preventSleep, FormLayoutUtil.flip(cc.xyw(1, 35, 9), colSpec, orientation));
+			builder.add(preventSleep, FormLayoutUtil.flip(cc.xy(1, 35), colSpec, orientation));
 
 			JCheckBox fdCheckBox = new JCheckBox(Messages.getString("NetworkTab.38"));
 			fdCheckBox.setContentAreaFilled(false);
@@ -452,6 +455,7 @@ public class GeneralTab {
 
 			builder.addLabel(Messages.getString("NetworkTab.62"), FormLayoutUtil.flip(cc.xy(1, 39), colSpec, orientation));
 			ignoredRenderers = new JTextField(configuration.getIgnoredRenderers());
+			ignoredRenderers.setToolTipText(Messages.getString("NetworkTab.66"));
 			ignoredRenderers.addKeyListener(new KeyAdapter() {
 				@Override
 				public void keyReleased(KeyEvent e) {
@@ -460,10 +464,11 @@ public class GeneralTab {
 			});
 			builder.add(ignoredRenderers, FormLayoutUtil.flip(cc.xyw(3, 39, 7), colSpec, orientation));
 
-			builder.add(fdCheckBox, FormLayoutUtil.flip(cc.xyw(1, 41, 9), colSpec, orientation));
+			builder.add(fdCheckBox, FormLayoutUtil.flip(cc.xy(1, 41), colSpec, orientation));
 
 			// External network box
 			extNetBox = new JCheckBox(Messages.getString("NetworkTab.56"));
+			extNetBox.setToolTipText(Messages.getString("NetworkTab.67"));
 			extNetBox.setContentAreaFilled(false);
 			extNetBox.addItemListener(new ItemListener() {
 				@Override
