@@ -26,7 +26,6 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.io.OutputParams;
-import net.pms.util.StringUtil;
 import static org.apache.commons.io.FilenameUtils.getBaseName;
 import static org.apache.commons.lang3.StringUtils.*;
 import static org.mozilla.universalchardet.Constants.*;
@@ -34,12 +33,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SubtitleUtils {
-	private static final Logger LOGGER = LoggerFactory.getLogger(StringUtil.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(SubtitleUtils.class);
 	private final static PmsConfiguration configuration = PMS.getConfiguration();
 	public static final String ASS_TIME_FORMAT = "%01d:%02d:%02.2f";
 	public static final String SRT_TIME_FORMAT = "%02d:%02d:%02.3f";
 	public static final String SEC_TIME_FORMAT = "%02d:%02d:%02d";
-	private static final String TEMP_DIR = "temp";
 	private final static Map<String, String> fileCharsetToMencoderSubcpOptionMap = new HashMap<String, String>() {
 		private static final long serialVersionUID = 1L;
 
