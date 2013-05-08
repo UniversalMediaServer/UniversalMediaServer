@@ -628,7 +628,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						getChildren().remove(child);
 					}
 				}
-				
+
 				if (resumeRes != null) {
 					resumeRes.setMedia(child.getMedia());
 				}
@@ -1248,11 +1248,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		final DLNAMediaAudio firstAudioTrack = getMedia() != null ? getMedia().getFirstAudioTrack() : null;
 		if (firstAudioTrack != null && StringUtils.isNotBlank(firstAudioTrack.getSongname())) {
 			wireshark = firstAudioTrack.getSongname() + (getPlayer() != null && !configuration.isHideEngineNames() ? (" [" + getPlayer().name() + "]") : "");
-			String tmp = firstAudioTrack.getSongname() + (getPlayer() != null && !configuration.isHideEngineNames() ? (" [" + getPlayer().name() + "]") : "");
 			addXMLTagAndAttribute(
 				sb,
 				"dc:title",
-				encodeXML(resumeStr(tmp))
+				encodeXML(resumeStr(wireshark))
 			);
 		} else { // Ditlew - org
 			// Ditlew
@@ -1769,7 +1768,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				timeseek_auto = true;
 			}
 		}
-		
+
 		if (getPlayer() == null && !isResume()) {
 			if (this instanceof IPushOutput) {
 				PipedOutputStream out = new PipedOutputStream();
@@ -2623,11 +2622,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	public boolean isResumeable() {
 		if (getFormat() != null) {
-			// images are hard to resume
-			// and audio are to short to fit into
-			// the resume player
+			// Only resume videos
 			return getFormat().isVideo();
-		}	
+		}
 		return true;
 	}
 
@@ -2666,16 +2663,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public final boolean isResume() {
 		return isResumeable() && (resume != null);
 	}
-	
+
 	public int minPlayTime() {
 		return configuration.getMinPlayTime();
 	}
-	
+
 	private String resumeStr(String s) {
 		if (isResume()) {
-			return Messages.getString("PMS.134") + " -- " + s;
-		}
-		else {
+			return Messages.getString("PMS.134") + ": " + s;
+		} else {
 			return s;
 		}
 	}

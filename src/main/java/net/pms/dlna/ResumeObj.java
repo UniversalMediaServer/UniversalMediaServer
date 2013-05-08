@@ -6,8 +6,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-
-import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import org.slf4j.Logger;
@@ -32,12 +30,12 @@ public class ResumeObj {
 		String fName = r.getName() + "_hash_" + r.resumeHash() + ".resume";
 		return new File(resumePath().getAbsolutePath() + File.separator + fName);
 	}
-	
+
 	public static File[] resumeFiles() {
 		File path = resumePath();
 		return path.listFiles();
 	}
-	
+
 	public static ResumeObj create(DLNAResource r) {
 		if (!configuration.isResumeEnabled()) {
 			// resume is off bail early
@@ -81,7 +79,7 @@ public class ResumeObj {
 		file = f;
 		minDur = configuration.getMinPlayTime();
 	}
-	
+
 	public void setMinDuration(long dur) {
 		if (dur == 0) {
 			dur = configuration.getMinPlayTime();
@@ -131,7 +129,7 @@ public class ResumeObj {
 	public void stop(long startTime, long expDuration) {
 		long now = System.currentTimeMillis();
 		long thisPlay = now - startTime;
-		long duration = thisPlay + getTimeOffset(); 
+		long duration = thisPlay + getTimeOffset();
 
 		if (expDuration > minDur) {
 			if (duration >= (expDuration * configuration.getResumeBackFactor())) {
