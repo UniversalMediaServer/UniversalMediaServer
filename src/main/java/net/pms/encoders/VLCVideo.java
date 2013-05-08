@@ -285,9 +285,9 @@ public class VLCVideo extends Player {
 		cmdList.add("-I");
 		cmdList.add("dummy");
 
-		// Hardware acceleration seems to be more stable now, so its enabled
-		if (configuration.isGPUAcceleration()) {
-			cmdList.add("--ffmpeg-hw");
+		// Disable Hardware acceleration which is enabled by default
+		if (!configuration.isGPUAcceleration()) {
+			cmdList.add("--no-ffmpeg-hw");
 		}
 
 		// Useful for the more esoteric codecs people use
