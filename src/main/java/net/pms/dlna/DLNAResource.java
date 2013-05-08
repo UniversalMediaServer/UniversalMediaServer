@@ -49,6 +49,7 @@ import net.pms.util.FileUtil;
 import net.pms.util.ImagesUtil;
 import net.pms.util.Iso639;
 import net.pms.util.MpegUtil;
+import net.pms.util.OpenSubtitle;
 import static net.pms.util.StringUtil.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -1340,7 +1341,239 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								// Do we have some mpegts to offer?
 								boolean mpegTsMux = TsMuxeRVideo.ID.equals(getPlayer().id()) || VideoLanVideoStreaming.ID.equals(getPlayer().id());
 								boolean isMuxableResult = getMedia().isMuxable(mediaRenderer);
-								if (!mpegTsMux) { // Maybe, like the PS3, MEncoder can launch tsMuxeR if this a compatible H.264 video
+								boolean isBravia = mediaRenderer.isBRAVIA();
+								if (!mpegTsMux && configuration.isMencoderMuxWhenCompatible()) {
+									if (isBravia) {
+										/**
+										 * Sony Bravia TVs (and possibly other renderers) need ORG_PN to be accurate.
+										 * If the value does not match the media, it won't play the media.
+										 * Often we can lazily predict the correct value to send, but due to
+										 * MEncoder needing to mux via tsMuxeR, we need to work it all out
+										 * before even sending the file list to these devices.
+										 * This is very time-consuming so we should a) avoid using this
+										 * chunk of code whenever possible, and b) design a better system.
+										 * Ideally we would just mux to MPEG-PS instead of MPEG-TS so we could
+										 * know it will always be PS, but most renderers will not accept H.264
+										 * inside MPEG-PS. Another option may be to always produce MPEG-TS
+										 * instead and we should check if that will be OK for all renderers.
+										 *
+										 * This code block comes from Player.setAudioAndSubs()
+										 */
+										boolean finishedMatchingPreferences = false;
+										OutputParams params = new OutputParams(configuration);
+										if (getMedia() != null) {
+											// check for preferred audio
+											StringTokenizer st = new StringTokenizer(configuration.getAudioLanguages(), ",");
+											while (st != null && st.hasMoreTokens()) {
+												String lang = st.nextToken();
+												lang = lang.trim();
+												LOGGER.trace("Looking for an audio track with lang: " + lang);
+												for (DLNAMediaAudio audio : getMedia().getAudioTracksList()) {
+													if (audio.matchCode(lang)) {
+														params.aid = audio;
+														LOGGER.trace("Matched audio track: " + audio);
+														st = null;
+														break;
+													}
+												}
+											}
+										}
+
+										if (params.aid == null && getMedia().getAudioTracksList().size() > 0) {
+											// Take a default audio track, dts first if possible
+											for (DLNAMediaAudio audio : getMedia().getAudioTracksList()) {
+												if (audio.isDTS()) {
+													params.aid = audio;
+													LOGGER.trace("Found priority audio track with DTS: " + audio);
+													break;
+												}
+											}
+
+											if (params.aid == null) {
+												params.aid = getMedia().getAudioTracksList().get(0);
+												LOGGER.trace("Chose a default audio track: " + params.aid);
+											}
+										}
+
+										String currentLang = null;
+										DLNAMediaSubtitle matchedSub = null;
+
+										if (params.aid != null) {
+											currentLang = params.aid.getLang();
+										}
+
+										if (params.sid != null && params.sid.getId() == -1) {
+											LOGGER.trace("Don't want subtitles!");
+											params.sid = null;
+											setMediaSubtitle(params.sid);
+											finishedMatchingPreferences = true;
+										}
+
+										if (!finishedMatchingPreferences && params.sid != null && !StringUtils.isEmpty(params.sid.getLiveSubURL())) {
+											// live subtitles
+											// currently only open subtitles
+											LOGGER.debug("Live subtitles " + params.sid.getLiveSubURL());
+											try {
+												matchedSub = params.sid;
+												String file = OpenSubtitle.fetchSubs(matchedSub.getLiveSubURL(), matchedSub.getLiveSubFile());
+												if (!StringUtils.isEmpty(file)) {
+													matchedSub.setExternalFile(new File(file));
+													params.sid = matchedSub;
+													setMediaSubtitle(params.sid);
+													finishedMatchingPreferences = true;
+												}
+											} catch (IOException e) {
+											}
+										}
+
+										if (!finishedMatchingPreferences) {
+											StringTokenizer st1 = new StringTokenizer(configuration.getAudioSubLanguages(), ";");
+
+											boolean matchedEmbeddedSubtitle = false;
+											while (st1.hasMoreTokens()) {
+												String pair = st1.nextToken();
+												if (pair.contains(",")) {
+													String audio = pair.substring(0, pair.indexOf(","));
+													String sub = pair.substring(pair.indexOf(",") + 1);
+													audio = audio.trim();
+													sub = sub.trim();
+													LOGGER.trace("Searching for a match for: " + currentLang + " with " + audio + " and " + sub);
+
+													if (Iso639.isCodesMatching(audio, currentLang) || (currentLang != null && audio.equals("*"))) {
+														if (sub.equals("off")) {
+															matchedSub = new DLNAMediaSubtitle();
+															matchedSub.setLang("off");
+														} else {
+															for (DLNAMediaSubtitle present_sub : getMedia().getSubtitleTracksList()) {
+																if (present_sub.matchCode(sub) || sub.equals("*")) {
+																	if (present_sub.getExternalFile() != null) {
+																		if (configuration.isAutoloadSubtitles()) {
+																			// Subtitle is external and we want external subtitles, look no further
+																			matchedSub = present_sub;
+																			LOGGER.trace(" Found a match: " + matchedSub);
+																			break;
+																		} else {
+																			// Subtitle is external but we do not want external subtitles, keep searching
+																			LOGGER.trace(" External subtitle ignored because of user setting: " + present_sub);
+																		}
+																	} else {
+																		matchedSub = present_sub;
+																		LOGGER.trace(" Found a match: " + matchedSub);
+																		if (configuration.isAutoloadSubtitles()) {
+																			// Subtitle is internal and we will wait to see if an external one is available instead
+																			matchedEmbeddedSubtitle = true;
+																		} else {
+																			// Subtitle is internal and we will use it
+																			break;
+																		}
+																	}
+																}
+															}
+														}
+
+														if (matchedSub != null && !matchedEmbeddedSubtitle) {
+															break;
+														}
+													}
+												}
+											}
+
+											if (matchedSub != null && params.sid == null) {
+												if (configuration.isDisableSubtitles() || (matchedSub.getLang() != null && matchedSub.getLang().equals("off"))) {
+													LOGGER.trace(" Disabled the subtitles: " + matchedSub);
+												} else {
+													params.sid = matchedSub;
+													setMediaSubtitle(params.sid);
+												}
+											}
+
+											if (!configuration.isDisableSubtitles() && params.sid == null && getMedia() != null) {
+												// Check for subtitles again
+												File video = new File(getSystemName());
+												FileUtil.isSubtitlesExists(video, getMedia(), false);
+
+												if (configuration.isAutoloadSubtitles()) {
+													boolean forcedSubsFound = false;
+													// Priority to external subtitles
+													for (DLNAMediaSubtitle sub : getMedia().getSubtitleTracksList()) {
+														if (matchedSub != null && matchedSub.getLang() != null && matchedSub.getLang().equals("off")) {
+															StringTokenizer st = new StringTokenizer(configuration.getForcedSubtitleTags(), ",");
+
+															while (sub.getFlavor() != null && st.hasMoreTokens()) {
+																String forcedTags = st.nextToken();
+																forcedTags = forcedTags.trim();
+
+																if (
+																	sub.getFlavor().toLowerCase().indexOf(forcedTags) > -1 &&
+																	Iso639.isCodesMatching(sub.getLang(), configuration.getForcedSubtitleLanguage())
+																) {
+																	LOGGER.trace("Forcing preferred subtitles : " + sub.getLang() + "/" + sub.getFlavor());
+																	LOGGER.trace("Forced subtitles track : " + sub);
+
+																	if (sub.getExternalFile() != null) {
+																		LOGGER.trace("Found external forced file : " + sub.getExternalFile().getAbsolutePath());
+																	}
+																	params.sid = sub;
+																	setMediaSubtitle(params.sid);
+																	forcedSubsFound = true;
+																	break;
+																}
+															}
+															if (forcedSubsFound == true) {
+																break;
+															}
+														} else {
+															LOGGER.trace("Found subtitles track: " + sub);
+
+															if (sub.getExternalFile() != null) {
+																LOGGER.trace("Found external file: " + sub.getExternalFile().getAbsolutePath());
+																params.sid = sub;
+																setMediaSubtitle(params.sid);
+																break;
+															}
+														}
+													}
+												}
+												if (
+													matchedSub != null &&
+													matchedSub.getLang() != null &&
+													matchedSub.getLang().equals("off")
+												) {
+													finishedMatchingPreferences = true;
+												}
+
+												if (!finishedMatchingPreferences && params.sid == null) {
+													StringTokenizer st = new StringTokenizer(configuration.getSubtitlesLanguages(), ",");
+													while (st != null && st.hasMoreTokens()) {
+														String lang = st.nextToken();
+														lang = lang.trim();
+														LOGGER.trace("Looking for a subtitle track with lang: " + lang);
+														for (DLNAMediaSubtitle sub : getMedia().getSubtitleTracksList()) {
+															if (
+																sub.matchCode(lang) &&
+																!(
+																	!configuration.isAutoloadSubtitles() &&
+																	sub.getExternalFile() != null
+																)
+															) {
+																params.sid = sub;
+																LOGGER.trace("Matched sub track: " + params.sid);
+																st = null;
+																break;
+															}
+														}
+													}
+												}
+											}
+										}
+
+										if (getMediaSubtitle() == null) {
+											LOGGER.trace("We do not want a subtitle for " + getName());
+										} else {
+											LOGGER.trace("We do want a subtitle for " + getName());
+										}
+									}
+
 									mpegTsMux = MEncoderVideo.ID.equals(getPlayer().id()) &&
 										(
 											(
@@ -1349,7 +1582,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 												getMedia() != null &&
 												getMedia().getDvdtrack() == 0 &&
 												isMuxableResult &&
-												configuration.isMencoderMuxWhenCompatible() &&
 												mediaRenderer.isMuxH264MpegTS()
 											) ||
 											mediaRenderer.isTranscodeToMPEGTSAC3()
@@ -1361,7 +1593,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									if (
 										getMedia().isH264() &&
 										!VideoLanVideoStreaming.ID.equals(getPlayer().id()) &&
-										mediaRenderer.isBRAVIA() &&
+										isBravia &&
 										getMedia().getCodecV() != null &&
 										getMedia().getCodecV().startsWith("mpeg2")
 									) {
