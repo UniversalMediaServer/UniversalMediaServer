@@ -123,7 +123,7 @@ public class ResumeObj {
 	public long getTimeOffset() {
 		return offsetTime;
 	}
-	
+
 	public boolean isDone() {
 		return !file.exists();
 	}
@@ -147,7 +147,7 @@ public class ResumeObj {
 			// to short to resume (at all)
 			return;
 		}
-		
+
 		offsetTime = duration - configuration.getResumeRewind();
 		resDuration = expDuration;
 		LOGGER.debug("Resume stop. This segment " + thisPlay + " new time " + duration);
