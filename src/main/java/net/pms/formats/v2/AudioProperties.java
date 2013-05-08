@@ -20,7 +20,7 @@ package net.pms.formats.v2;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import static org.apache.commons.lang.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

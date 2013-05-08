@@ -25,7 +25,7 @@ import java.nio.channels.ServerSocketChannel;
 import java.util.concurrent.Executors;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFactory;

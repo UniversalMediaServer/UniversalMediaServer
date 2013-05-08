@@ -47,6 +47,8 @@ import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.util.ProcessUtil;
+import org.apache.commons.configuration.event.ConfigurationEvent;
+import org.apache.commons.configuration.event.ConfigurationListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -167,7 +169,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				movieLine = movieLine + ".ConvertToYV12()";
 
 				// Enable GPU to assist with CPU
-				if (configuration.getFfmpegAvisynthInterFrameGPU()){
+				if (configuration.getFfmpegAvisynthInterFrameGPU() && interframegpu.isEnabled()){
 					GPU = ", GPU=true";
 				}
 
@@ -238,7 +240,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 
 	private JCheckBox multithreading;
 	private JCheckBox interframe;
-	private JCheckBox interframegpu;
+	private static JCheckBox interframegpu;
 	private JCheckBox convertfps;
 
 	@Override
@@ -315,6 +317,18 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			}
 		});
 		builder.add(convertfps, cc.xy(2, 9));
+
+		configuration.addConfigurationListener(new ConfigurationListener() {
+			@Override
+			public void configurationChanged(ConfigurationEvent event) {
+				if (event.getPropertyName() == null) {
+					return;
+				}
+				if ((!event.isBeforeUpdate()) && event.getPropertyName().equals(PmsConfiguration.KEY_GPU_ACCELERATION)) {
+					interframegpu.setEnabled(configuration.isGPUAcceleration());
+				}
+			}
+		});
 
 		return builder.getPanel();
 	}

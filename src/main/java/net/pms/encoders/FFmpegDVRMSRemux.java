@@ -41,7 +41,7 @@ import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class FFmpegDVRMSRemux extends Player {
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
@@ -84,8 +84,8 @@ public class FFmpegDVRMSRemux extends Player {
 	@Deprecated
 	protected String[] getDefaultArgs() {
 		return new String[] {
-			"-vcodec", "copy",
-			"-acodec", "copy",
+			"-c:v", "copy",
+			"-c:a", "copy",
 			"-threads", "2",
 			"-g", "1",
 			"-qscale", "1",

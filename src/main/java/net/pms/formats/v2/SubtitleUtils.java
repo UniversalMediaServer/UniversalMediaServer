@@ -28,18 +28,24 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.StringTokenizer;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaSubtitle;
+import net.pms.io.OutputParams;
 import net.pms.util.StringUtil;
-import org.apache.commons.lang.StringUtils;
-import static org.apache.commons.lang.StringUtils.isBlank;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
+import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.mozilla.universalchardet.Constants.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SubtitleUtils {
+	private static final Logger LOGGER = LoggerFactory.getLogger(StringUtil.class);
+	public static final String ASS_FORMAT = "%01d:%02d:%02.2f";
+	public static final String SRT_FORMAT = "%02d:%02d:%02.3f";
+	public static final String SEC_FORMAT = "%02d:%02d:%02d";
 	private static final String TEMP_DIR = "temp";
-	private static final String SUB_DIR = "subs";
 	private final static Map<String, String> fileCharsetToMencoderSubcpOptionMap = new HashMap<String, String>() {
 		private static final long serialVersionUID = 1L;
 
@@ -92,106 +98,13 @@ public class SubtitleUtils {
 	}
 
 	/**
-	 * Converts external subtitles file in SRT format to default SSA/ASS format
-	 * @param SrtFile Subtitles file in SRT format
-	 * @param configuration UMS settings
-	 * @return Converted subtitles file in SSA/ASS format
-	 * @throws IOException
-	 */
-	public static File ConvertSrtToAss(String SrtFile, PmsConfiguration configuration) throws IOException {
-		String dir = configuration.getDataFile(SUB_DIR);
-		File path = new File(dir);
-		if (!path.exists()) {
-			path.mkdirs();
-		}
-		File outputSubs = new File(path.getAbsolutePath() + File.separator + new File(SrtFile).getName() + "_" +  new File(SrtFile).lastModified() + "_EXT.ass");
-		BufferedWriter output;
-		BufferedReader input;
-		String subCp = configuration.getSubtitlesCodepage();
-		try {
-			if (isBlank(subCp)) {
-				input = new BufferedReader(new InputStreamReader(new FileInputStream(SrtFile)));
-			} else {
-				input = new BufferedReader(new InputStreamReader(new FileInputStream(SrtFile), subCp));
-			}
-
-			output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), subCp));
-			String line;
-			output.write("[Script Info]\n");
-			output.write("ScriptType: v4.00+\n");
-			output.write("\n");
-			output.write("[V4+ Styles]\n");
-			output.write("Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, AlphaLevel, Encoding\n");
-			output.write("Style: Default,Arial,16,&Hffffff,&Hffffff,&H0,&H0,0,0,0,1,1,0,2,10,10,10,0,0\n");
-			output.write("\n");
-			output.write("[Events]\n");
-			output.write("Format: Layer, Start, End, Style, Text\n");
-			String startTime;
-			String endTime;
-			StringBuilder sb;
-
-			while ((line = input.readLine()) != null) {
-				if (line.contains("-->")) {
-					startTime = line.substring(0, line.indexOf("-->") - 1).replaceAll(",", ".");
-					endTime = line.substring(line.indexOf("-->") + 4).replaceAll(",", ".");
-					startTime = StringUtil.convertTimeToString(StringUtil.convertStringToTime(startTime), StringUtil.ASS_FORMAT);
-					endTime = StringUtil.convertTimeToString(StringUtil.convertStringToTime(endTime), StringUtil.ASS_FORMAT);
-					sb = new StringBuilder();
-					sb.append("Dialogue: 0,");
-					sb.append(startTime).append(",");
-					sb.append(endTime).append(",");
-					sb.append("Default").append(",");
-					sb.append(convertTags(input.readLine()));
-
-					if (isNotBlank(line = input.readLine())) {
-						sb.append("\\N");
-						sb.append(convertTags(line));
-					}
-
-					output.write(sb.toString() + "\n");
-				}
-			}
-		} finally { }
-
-		input.close();
-		output.flush();
-		output.close();
-		PMS.get().addTempFile(outputSubs, 2 * 24 * 3600 * 1000);
-		return outputSubs;
-	}
-
-	private static String convertTags(String text) {
-		 String tag;
-		 StringBuilder sb = new StringBuilder();
-		 String[] tmp = text.split("<");
-
-		 for (String s : tmp) {
-			 if (s.startsWith("/") && s.indexOf(">") == 2) {
-				 tag = s.substring(1, 2);
-				 sb.append("{\\").append(tag).append("0}").append(s.substring(3));
-			 } else if (s.indexOf(">") == 1) {
-				 tag = s.substring(0, 1);
-				 sb.append("{\\").append(tag).append("1}").append(s.substring(2));
-			 } else if (s.startsWith("font color")) {
-				 tag = s.substring(13, 19);
-				 sb.append("{\\c&H").append(tag.substring(4, 6) + tag.substring(2, 4) + tag.substring(0, 2)).append("&}").append(s.substring(21));
-
-			 } else {
-				 sb.append(s);
-			 }
-		 }
-
-		return sb.toString();
-	}
-
-	/**
 	 * Applies timeseeking to subtitles file in SSA/ASS format
 	 * @param SrtFile Subtitles file in SSA/ASS format
 	 * @param timeseek  Time stamp value
 	 * @return Converted subtitles file
 	 * @throws IOException
 	 */
-	public static File applyTimeSeeking(File SrtFile, double timeseek) throws IOException {
+	public static File applyTimeSeekingToASS(File SrtFile, double timeseek) throws IOException {
 		Double startTime;
 		Double endTime;
 		String line;
@@ -202,12 +115,12 @@ public class SubtitleUtils {
 			while ((line = input.readLine()) != null) {
 				if (line.startsWith("Dialogue:")) {
 					String[] tempStr = line.split(",");
-					startTime = StringUtil.convertStringToTime(tempStr[1]);
-					endTime = StringUtil.convertStringToTime(tempStr[2]);;
+					startTime = convertStringToTime(tempStr[1]);
+					endTime = convertStringToTime(tempStr[2]);
 
 					if (startTime >= timeseek) {
-						tempStr[1] = StringUtil.convertTimeToString(startTime - timeseek, StringUtil.ASS_FORMAT);
-						tempStr[2] = StringUtil.convertTimeToString(endTime - timeseek, StringUtil.ASS_FORMAT);
+						tempStr[1] = convertTimeToString(startTime - timeseek, ASS_FORMAT);
+						tempStr[2] = convertTimeToString(endTime - timeseek, ASS_FORMAT);
 					} else {
 						continue;
 					}
@@ -231,5 +144,100 @@ public class SubtitleUtils {
 			path.mkdirs();
 		}
 		return path.getAbsolutePath() + File.separator + name + ".tmp";
+	}
+
+	public static File applyTimeSeekingToSrt(File in, OutputParams params) throws IOException {
+		BufferedReader reader;
+		String cp = PMS.getConfiguration().getSubtitlesCodepage();
+		if (isNotBlank(cp) && !params.sid.isExternalFileUtf8()) {
+			reader = new BufferedReader(new InputStreamReader(new FileInputStream(in),cp)); // Always convert codepage
+		} else if (params.timeseek > 0) {
+			reader = new BufferedReader(new InputStreamReader(new FileInputStream(in))); // Apply timeseeking without codepage conversion
+		} else {
+			return in; // Codepage conversion or timeseeking is not needed
+		}
+
+		File out = new File(tempFile(in.getName() + System.currentTimeMillis()));
+		BufferedWriter w = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(out)));
+		String line;
+		int n = 1;
+
+		while ((line = reader.readLine()) != null) {
+			if (line .contains("-->")) {
+				String startTime = line.substring(0, line.indexOf("-->") - 1);
+				String endTime = line.substring(line.indexOf("-->") + 4);
+				Double start = convertStringToTime(startTime);
+				Double stop = convertStringToTime(endTime);
+
+				if (start >= params.timeseek) {
+					w.write("" + (n++) + "\n");
+					w.write(convertTimeToString(start - params.timeseek, SRT_FORMAT));
+					w.write(" --> ");	
+					w.write(convertTimeToString(stop - params.timeseek, SRT_FORMAT) + "\n");
+
+					while (isNotBlank(line = reader.readLine())) { // Read all following subs lines
+						w.write(line + "\n");
+					}
+
+					w.write("" + "\n");
+				}
+			}
+		}
+
+		reader.close();
+		w.flush();
+		w.close();
+		PMS.get().addTempFile(out, 2 * 24 * 3600 * 1000);
+		return out;
+	}
+
+	/**
+	 * Converts time to string.
+	 *
+	 * @param d time in double.
+	 * @param format Format string e.g. "%02d:%02d:%02d" or use predefined constants
+	 * ASS_FORMAT, SRT_FORMAT, SEC_FORMAT.
+	 *
+	 * @return Converted String.
+	 */
+	public static String convertTimeToString(double d, String format) {
+		double s = d % 60;
+		int h = (int) (d / 3600);
+		int m = ((int) (d / 60)) % 60;
+
+		if (format.equals(SRT_FORMAT)) {
+			return String.format(format, h, m, s).replaceAll("\\.", ",");
+		}
+
+		return String.format(format, h, m, s);
+	}
+
+	/**
+	 * Converts string in time format to double.
+	 *
+	 * @param time in string format 00:00:00.000
+	 * @return Time in double.
+	 */
+	public static Double convertStringToTime(String time) {
+		if (time == null) {
+			return null;
+		}
+
+		if (time.contains(",")) {
+			time = time.replaceAll(",", ".");
+		}
+
+		StringTokenizer st = new StringTokenizer(time, ":");
+
+		try {
+			int h = Integer.parseInt(st.nextToken());
+			int m = Integer.parseInt(st.nextToken());
+			double s = Double.parseDouble(st.nextToken());
+			return h * 3600 + m * 60 + s;
+		} catch (NumberFormatException nfe) {
+			LOGGER.debug("Failed to convert \"" + time + "\"");
+		}
+
+		return null;
 	}
 }

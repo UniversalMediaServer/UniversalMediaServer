@@ -42,7 +42,7 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.event.ConfigurationListener;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,6 +86,7 @@ public class PmsConfiguration {
 	private static final String KEY_AVISYNTH_INTERFRAME_GPU = "avisynth_interframegpu";
 	private static final String KEY_AVISYNTH_MULTITHREADING = "avisynth_multithreading";
 	private static final String KEY_AVISYNTH_SCRIPT = "avisynth_script";
+	private static final String KEY_ASS_MARGIN = "mencoder_ass_margin"; // TODO (breaking change): should be renamed to e.g. ass_margin
 	private static final String KEY_ASS_OUTLINE = "mencoder_ass_outline"; // TODO (breaking change): should be renamed to e.g. ass_outline
 	private static final String KEY_ASS_SCALE = "mencoder_ass_scale"; // TODO (breaking change): should be renamed to e.g. ass_scale
 	private static final String KEY_ASS_SHADOW = "mencoder_ass_shadow"; // TODO (breaking change): should be renamed to e.g. ass_shadow
@@ -115,7 +116,7 @@ public class PmsConfiguration {
 	private static final String KEY_FORCED_SUBTITLE_TAGS = "forced_sub_tags";
 	private static final String KEY_FORCETRANSCODE = "forcetranscode";
 	private static final String KEY_FOLDER_LIMIT = "folder_limit";
-	private static final String KEY_GPU_ACCELERATION = "gpu_acceleration";
+	public static final String KEY_GPU_ACCELERATION = "gpu_acceleration";
 	private static final String KEY_HIDE_ADVANCED_OPTIONS = "hide_advanced_options";
 	private static final String KEY_HIDE_EMPTY_FOLDERS = "hide_empty_folders";
 	private static final String KEY_HIDE_ENGINENAMES = "hide_enginenames";
@@ -126,6 +127,7 @@ public class PmsConfiguration {
 	private static final String KEY_HIDE_VIDEO_SETTINGS = "hidevideosettings"; // TODO (breaking change): should be renamed to e.g. hide_video_settings
 	private static final String KEY_HTTP_ENGINE_V2 = "http_engine_v2";
 	private static final String KEY_IGNORE_THE_WORD_THE = "ignore_the_word_the";
+	private static final String KEY_IGNORED_RENDERERS = "ignored_renderers";
 	private static final String KEY_IMAGE_THUMBNAILS_ENABLED = "image_thumbnails";
 	private static final String KEY_IP_FILTER = "ip_filter";
 	private static final String KEY_IPHOTO_ENABLED = "iphoto";
@@ -137,7 +139,6 @@ public class PmsConfiguration {
 	private static final String KEY_MENCODER_ASS = "mencoder_ass";
 	private static final String KEY_MENCODER_AC3_FIXED = "mencoder_ac3_fixed";
 	private static final String KEY_MENCODER_ASS_DEFAULTSTYLE = "mencoder_ass_defaultstyle";
-	private static final String KEY_MENCODER_ASS_MARGIN = "mencoder_ass_margin";
 	private static final String KEY_MENCODER_CUSTOM_OPTIONS = "mencoder_decode"; // TODO (breaking change): should be renamed to e.g. mencoder_custom_options
 	private static final String KEY_MENCODER_FONT_CONFIG = "mencoder_fontconfig";
 	private static final String KEY_MENCODER_FORCE_FPS = "mencoder_forcefps";
@@ -772,11 +773,18 @@ public class PmsConfiguration {
 	}
 
 	/**
+	 * @deprecated Use {@link #getAssMargin()} instead.
+	 */
+	public String getMencoderAssMargin() {
+		return getString(KEY_ASS_MARGIN, "10");
+	}
+
+	/**
 	 * Returns the margin used for ASS subtitling. Default value is 10.
 	 * @return The ASS margin.
 	 */
-	public String getMencoderAssMargin() {
-		return getString(KEY_MENCODER_ASS_MARGIN, "10");
+	public String getAssMargin() {
+		return getString(KEY_ASS_MARGIN, "10");
 	}
 
 	/**
@@ -864,11 +872,18 @@ public class PmsConfiguration {
 	}
 
 	/**
+	 * @deprecated Use {@link #setAssMargin(String value)} instead.
+	 */
+	public void setMencoderAssMargin(String value) {
+		configuration.setProperty(KEY_ASS_MARGIN, value);
+	}
+
+	/**
 	 * Set the margin used for ASS subtitling.
 	 * @param value The ASS margin value to set.
 	 */
-	public void setMencoderAssMargin(String value) {
-		configuration.setProperty(KEY_MENCODER_ASS_MARGIN, value);
+	public void setAssMargin(String value) {
+		configuration.setProperty(KEY_ASS_MARGIN, value);
 	}
 
 	/**
@@ -1178,7 +1193,7 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Returns the character encoding (or code page) that should used
+	 * Returns the character encoding (or code page) that should be used
 	 * for displaying non-Unicode external subtitles. Default is empty string
 	 * (do not force encoding with -subcp key).
 	 * @return The character encoding.
@@ -1586,12 +1601,21 @@ public class PmsConfiguration {
 	}
 
 	/**
+	 * @return The comma-separated list of ignored renderers.
+	 */
+	public String getIgnoredRenderers() {
+		return getString(KEY_IGNORED_RENDERERS, "");
+	}
+
+	/**
+	 * @param value The comma-separated list of ignored renderers.
+	 */
+	public void setIgnoredRenderers(String value) {
+		configuration.setProperty(KEY_IGNORED_RENDERERS, value);
+	}
+
+	/**
 	 * @deprecated Use {@link #isThumbnailGenerationEnabled()} instead.
-	 * <p>
-	 * Returns true if thumbnail generation is enabled, false otherwise.
-	 * This only determines whether a thumbnailer (e.g. dcraw, MPlayer)
-	 * is used to generate thumbnails. It does not reflect whether
-	 * thumbnails should be displayed or not.
 	 */
 	@Deprecated
 	public boolean getThumbnailsEnabled() {
@@ -1614,8 +1638,6 @@ public class PmsConfiguration {
 	 * This only determines whether a thumbnailer (e.g. dcraw, MPlayer)
 	 * is used to generate thumbnails. It does not reflect whether
 	 * thumbnails should be displayed or not.
-	 *
-	 * @return boolean indicating whether thumbnail generation is enabled.
 	 */
 	@Deprecated
 	public void setThumbnailsEnabled(boolean value) {
@@ -2174,7 +2196,7 @@ public class PmsConfiguration {
 	}
 
 	public List<String> getEnginesAsList(SystemUtils registry) {
-		List<String> engines = stringToList(getString(KEY_ENGINES, "mencoder,avsmencoder,tsmuxer,ffmpegvideo,vlctranscoder,ffmpegaudio,mplayeraudio,tsmuxeraudio,ffmpegwebvideo,vlcvideo,mencoderwebvideo,mplayervideodump,mplayerwebaudio,vlcaudio,ffmpegdvrmsremux,rawthumbs"));
+		List<String> engines = stringToList(getString(KEY_ENGINES, "mencoder,avsmencoder,tsmuxer,ffmpegvideo,ffmpegaudio,mplayeraudio,tsmuxeraudio,ffmpegwebvideo,vlcvideo,mencoderwebvideo,mplayervideodump,mplayerwebaudio,vlcaudio,ffmpegdvrmsremux,rawthumbs"));
 		engines = hackAvs(registry, engines);
 		return engines;
 	}

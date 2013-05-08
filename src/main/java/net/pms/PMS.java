@@ -62,6 +62,7 @@ import net.pms.util.Version;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -328,9 +329,6 @@ public class PMS {
 				// Total number of questions
 				int numberOfQuestions = 4;
 
-				// Whether an iTunes library has been found
-				boolean foundItunesLibrary = false;
-
 				// The current question number
 				int currentQuestionNumber = 1;
 
@@ -389,7 +387,7 @@ public class PMS {
 					save();
 				} else if (networkType == JOptionPane.CANCEL_OPTION) {
 					// Wireless
-					configuration.setMaximumBitrate("110");
+					configuration.setMaximumBitrate("30");
 					configuration.setMPEG2MainSettings("Automatic (Wireless)");
 					save();
 				}
@@ -1032,6 +1030,11 @@ public class PMS {
 
 		if (!headless && displayProfileChooser) {
 			ProfileChooser.display();
+		}
+		
+		try {
+			FileUtils.copyFile(new File("debug.log"), new File("debug.log.prev"));
+		} catch (Exception e) {
 		}
 
 		try {

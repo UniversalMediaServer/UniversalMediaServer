@@ -42,7 +42,7 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -246,17 +246,13 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		cmdList.add("-i");
 		cmdList.add(filename);
 
-		if (tempSubs == null) {
-			cmdList.addAll(getVideoFilterOptions(null, renderer, media));
-		} else {
-			cmdList.addAll(getVideoFilterOptions(tempSubs.getAbsolutePath(), renderer, media));
-		}
+		cmdList.addAll(getVideoFilterOptions(tempSubs, renderer, media, params));
 
 		// Encoder threads
 		cmdList.add("-threads");
 		cmdList.add("" + nThreads);
 
-		// Add the output options (-f, -acodec, -vcodec)
+		// Add the output options (-f, -c:a, -c:v, etc.)
 		cmdList.addAll(getTranscodeVideoOptions(renderer, media, params, null));
 
 		// Add video bitrate options

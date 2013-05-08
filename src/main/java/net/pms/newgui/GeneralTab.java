@@ -38,7 +38,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.network.NetworkConfiguration;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.KeyedComboBoxModel;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +46,7 @@ public class GeneralTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GeneralTab.class);
 
 	private static final String COL_SPEC = "left:pref, 3dlu, p, 3dlu , p, 3dlu, p, 3dlu, pref:grow";
-	private static final String ROW_SPEC = "p, 0dlu, p, 0dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
+	private static final String ROW_SPEC = "p, 0dlu, p, 0dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
 
 	public static JCheckBox smcheckBox;
 	private JCheckBox autoStart;
@@ -61,6 +61,7 @@ public class GeneralTab {
 	private JTextField ip_filter;
 	public static JTextField maxbitrate;
 	private JComboBox renderers;
+	private JTextField ignoredRenderers;
 	private final PmsConfiguration configuration;
 	private JCheckBox extNetBox;
 
@@ -112,11 +113,11 @@ public class GeneralTab {
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 		builder.addLabel(Messages.getString("NetworkTab.0"), FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
 		final KeyedComboBoxModel kcbm = new KeyedComboBoxModel(new Object[] {
-				"ar", "bg", "ca", "zhs", "zht", "cz", "da", "nl", "en", "fi", "fr",
+				"ar", "bg", "ca", "zhs", "zht", "cz", "da", "nl", "en", "en_uk", "fi", "fr",
 				"de", "el", "iw", "is", "it", "ja", "ko", "no", "pl", "pt", "br",
 				"ro", "ru", "sl", "es", "sv", "tr"}, new Object[] {
 				"Arabic", "Bulgarian", "Catalan", "Chinese (Simplified)",
-				"Chinese (Traditional)", "Czech", "Danish", "Dutch", "English",
+				"Chinese (Traditional)", "Czech", "Danish", "Dutch", "English (US)", "English (UK)",
 				"Finnish", "French", "German", "Greek", "Hebrew", "Icelandic", "Italian",
 				"Japanese", "Korean", "Norwegian", "Polish", "Portuguese",
 				"Portuguese (Brazilian)", "Romanian", "Russian", "Slovenian",
@@ -160,6 +161,7 @@ public class GeneralTab {
 
 		if (!configuration.isHideAdvancedOptions()) {
 			CustomJButton service = new CustomJButton(Messages.getString("NetworkTab.4"));
+			service.setToolTipText(Messages.getString("NetworkTab.63"));
 			service.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -308,6 +310,7 @@ public class GeneralTab {
 								sb.append("\n");
 							}
 
+							in.close();
 							textArea.setText(sb.toString());
 						}
 					} catch (Exception e1) {
@@ -347,6 +350,7 @@ public class GeneralTab {
 			});
 
 			port = new JTextField(configuration.getServerPort() != 5001 ? "" + configuration.getServerPort() : "");
+			port.setToolTipText(Messages.getString("NetworkTab.64"));
 			port.addKeyListener(new KeyAdapter() {
 				@Override
 				public void keyReleased(KeyEvent e) {
@@ -389,6 +393,7 @@ public class GeneralTab {
 			});
 
 			maxbitrate = new JTextField(configuration.getMaximumBitrate());
+			maxbitrate.setToolTipText(Messages.getString("NetworkTab.65"));
 			maxbitrate.addKeyListener(new KeyAdapter() {
 				@Override
 				public void keyReleased(KeyEvent e) {
@@ -407,7 +412,6 @@ public class GeneralTab {
 			builder.addLabel(Messages.getString("NetworkTab.35"), FormLayoutUtil.flip(cc.xy(1, 29), colSpec, orientation));
 			builder.add(maxbitrate, FormLayoutUtil.flip(cc.xyw(3, 29, 7), colSpec, orientation));
 
-
 			cmp = builder.addSeparator(Messages.getString("NetworkTab.31"), FormLayoutUtil.flip(cc.xyw(1, 31, 9), colSpec, orientation));
 			cmp = (JComponent) cmp.getComponent(0);
 			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
@@ -420,7 +424,7 @@ public class GeneralTab {
 					configuration.setHTTPEngineV2((e.getStateChange() == ItemEvent.SELECTED));
 				}
 			});
-			builder.add(newHTTPEngine, FormLayoutUtil.flip(cc.xyw(1, 33, 9), colSpec, orientation));
+			builder.add(newHTTPEngine, FormLayoutUtil.flip(cc.xy(1, 33), colSpec, orientation));
 
 			preventSleep = new JCheckBox(Messages.getString("NetworkTab.33"));
 			preventSleep.setSelected(configuration.isPreventsSleep());
@@ -430,7 +434,7 @@ public class GeneralTab {
 					configuration.setPreventsSleep((e.getStateChange() == ItemEvent.SELECTED));
 				}
 			});
-			builder.add(preventSleep, FormLayoutUtil.flip(cc.xyw(1, 35, 9), colSpec, orientation));
+			builder.add(preventSleep, FormLayoutUtil.flip(cc.xy(1, 35), colSpec, orientation));
 
 			JCheckBox fdCheckBox = new JCheckBox(Messages.getString("NetworkTab.38"));
 			fdCheckBox.setContentAreaFilled(false);
@@ -449,10 +453,22 @@ public class GeneralTab {
 
 			builder.add(renderers, FormLayoutUtil.flip(cc.xyw(3, 37, 7), colSpec, orientation));
 
-			builder.add(fdCheckBox, FormLayoutUtil.flip(cc.xyw(1, 39, 9), colSpec, orientation));
+			builder.addLabel(Messages.getString("NetworkTab.62"), FormLayoutUtil.flip(cc.xy(1, 39), colSpec, orientation));
+			ignoredRenderers = new JTextField(configuration.getIgnoredRenderers());
+			ignoredRenderers.setToolTipText(Messages.getString("NetworkTab.66"));
+			ignoredRenderers.addKeyListener(new KeyAdapter() {
+				@Override
+				public void keyReleased(KeyEvent e) {
+					configuration.setIgnoredRenderers(ignoredRenderers.getText());
+				}
+			});
+			builder.add(ignoredRenderers, FormLayoutUtil.flip(cc.xyw(3, 39, 7), colSpec, orientation));
+
+			builder.add(fdCheckBox, FormLayoutUtil.flip(cc.xy(1, 41), colSpec, orientation));
 
 			// External network box
 			extNetBox = new JCheckBox(Messages.getString("NetworkTab.56"));
+			extNetBox.setToolTipText(Messages.getString("NetworkTab.67"));
 			extNetBox.setContentAreaFilled(false);
 			extNetBox.addItemListener(new ItemListener() {
 				@Override
@@ -461,7 +477,7 @@ public class GeneralTab {
 				}
 			});
 			extNetBox.setSelected(configuration.getExternalNetwork());
-			builder.add(extNetBox, FormLayoutUtil.flip(cc.xy(1, 41), colSpec, orientation));
+			builder.add(extNetBox, FormLayoutUtil.flip(cc.xy(1, 43), colSpec, orientation));
 		}
 
 		JPanel panel = builder.getPanel();

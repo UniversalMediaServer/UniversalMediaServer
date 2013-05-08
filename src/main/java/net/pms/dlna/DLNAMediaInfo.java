@@ -56,7 +56,7 @@ import net.pms.util.CoverUtil;
 import net.pms.util.FileUtil;
 import net.pms.util.MpegUtil;
 import net.pms.util.ProcessUtil;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.sanselan.ImageInfo;
 import org.apache.sanselan.ImageReadException;
 import org.apache.sanselan.Sanselan;
@@ -678,7 +678,7 @@ public class DLNAMediaInfo implements Cloneable {
 				}
 			}
 
-			if (configuration.getImageThumbnailsEnabled() && type != Format.VIDEO) {
+			if (configuration.getImageThumbnailsEnabled() && type != Format.VIDEO && type != Format.AUDIO) {
 				try {
 					File thumbDir = new File(configuration.getTempFolder(), THUMBNAIL_DIRECTORY_NAME);
 
@@ -1370,11 +1370,11 @@ public class DLNAMediaInfo implements Cloneable {
 
 		cmdArray[3] = "-vframes";
 		cmdArray[4] = "1";
-		cmdArray[5] = "-vcodec";
+		cmdArray[5] = "-c:v";
 		cmdArray[6] = "copy";
 		cmdArray[7] = "-f";
 		cmdArray[8] = "h264";
-		cmdArray[9] = "-vbsf";
+		cmdArray[9] = "-bsf";
 		cmdArray[10] = "h264_mp4toannexb";
 		cmdArray[11] = "-an";
 		cmdArray[12] = "-y";

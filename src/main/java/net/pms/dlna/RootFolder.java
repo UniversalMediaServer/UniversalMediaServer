@@ -42,7 +42,7 @@ import net.pms.gui.IFrame;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import xmlwise.Plist;
@@ -728,9 +728,9 @@ public class RootFolder extends DLNAResource {
 							if ("Music".equals(Playlist.get("Name").toString())) {
 								// Create virtual folders for artists, albums and genres
 
-								VirtualFolder virtualFolderArtists = new VirtualFolder("Browse by Artist", null);
-								VirtualFolder virtualFolderAlbums = new VirtualFolder("Browse by Albums", null);
-								VirtualFolder virtualFolderGenres = new VirtualFolder("Browse by Genre", null);
+								VirtualFolder virtualFolderArtists = new VirtualFolder(Messages.getString("FoldTab.50"), null);
+								VirtualFolder virtualFolderAlbums = new VirtualFolder(Messages.getString("FoldTab.51"), null);
+								VirtualFolder virtualFolderGenres = new VirtualFolder(Messages.getString("FoldTab.52"), null);
 								PlaylistTracks = (List<?>) Playlist.get("Playlist Items"); // list of tracks in a playlist
 
 								String artistName;
@@ -1036,7 +1036,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			vfSub.addChild(new VirtualVideoAction(Messages.getString("PMS.6"), configuration.isAutoloadSubtitles()) {
+			vfSub.addChild(new VirtualVideoAction(Messages.getString("MEncoderVideo.22"), configuration.isAutoloadSubtitles()) {
 				@Override
 				public boolean enable() {
 					boolean oldValue = configuration.isAutoloadSubtitles();
@@ -1056,7 +1056,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(Messages.getString("PMS.7"), configuration.getSkipLoopFilterEnabled()) {
+			res.addChild(new VirtualVideoAction(Messages.getString("MEncoderVideo.0"), configuration.getSkipLoopFilterEnabled()) {
 				@Override
 				public boolean enable() {
 					configuration.setSkipLoopFilterEnabled(!configuration.getSkipLoopFilterEnabled());

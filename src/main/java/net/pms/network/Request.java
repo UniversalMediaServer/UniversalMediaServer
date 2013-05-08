@@ -39,7 +39,7 @@ import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
 import net.pms.external.StartStopListenerDelegate;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -439,6 +439,7 @@ public class Request extends HTTPResource {
 				output(out, "NTS: upnp:propchange");
 				output(out, "HOST: " + addr + ":" + port);
 				output(out, CONTENT_TYPE_UTF8);
+				sock.close();
 			} catch (MalformedURLException ex) {
 				LOGGER.debug("Cannot parse address and port from soap action \"" + soapaction + "\"", ex);
 			}

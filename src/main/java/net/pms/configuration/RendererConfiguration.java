@@ -21,7 +21,7 @@ import net.pms.util.PropertiesUtil;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.ConversionException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -132,7 +132,12 @@ public class RendererConfiguration {
 						LOGGER.info("Loading configuration file: " + f.getName());
 						RendererConfiguration r = new RendererConfiguration(f);
 						r.rank = rank++;
-						rendererConfs.add(r);
+						String rendererName = r.getRendererName();
+						if (!pmsConfiguration.getIgnoredRenderers().contains(rendererName)) {
+							rendererConfs.add(r);
+						} else {
+							LOGGER.info("Ignored " + rendererName + " configuration file.");
+						}
 					} catch (ConfigurationException ce) {
 						LOGGER.info("Error in loading configuration of: " + f.getAbsolutePath());
 					}
