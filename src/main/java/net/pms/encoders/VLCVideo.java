@@ -285,7 +285,7 @@ public class VLCVideo extends Player {
 		cmdList.add("-I");
 		cmdList.add("dummy");
 
-		// Disable Hardware acceleration which is enabled by default
+		// Disable hardware acceleration which is enabled by default
 		if (!configuration.isGPUAcceleration()) {
 			cmdList.add("--no-ffmpeg-hw");
 		}
