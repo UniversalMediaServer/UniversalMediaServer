@@ -116,7 +116,7 @@ public class PmsConfiguration {
 	private static final String KEY_FORCED_SUBTITLE_TAGS = "forced_sub_tags";
 	private static final String KEY_FORCETRANSCODE = "forcetranscode";
 	private static final String KEY_FOLDER_LIMIT = "folder_limit";
-	private static final String KEY_GPU_ACCELERATION = "gpu_acceleration";
+	public static final String KEY_GPU_ACCELERATION = "gpu_acceleration";
 	private static final String KEY_HIDE_ADVANCED_OPTIONS = "hide_advanced_options";
 	private static final String KEY_HIDE_EMPTY_FOLDERS = "hide_empty_folders";
 	private static final String KEY_HIDE_ENGINENAMES = "hide_enginenames";
