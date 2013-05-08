@@ -35,7 +35,9 @@ import javax.swing.*;
 import net.pms.Messages;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
@@ -44,7 +46,7 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
 import net.pms.util.FormLayoutUtil;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,7 +60,7 @@ import org.slf4j.LoggerFactory;
 public class VLCVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(VLCVideo.class);
 	private static final String COL_SPEC = "left:pref, 3dlu, p, 3dlu, 0:grow";
-	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 9dlu, p, 3dlu, p";
+	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p, 9dlu, p, 3dlu, p, 3dlu, p";
 	protected final PmsConfiguration configuration;
 	public static final String ID = "vlctranscoder";
 	protected JTextField audioPri;
@@ -124,16 +126,30 @@ public class VLCVideo extends Player {
 
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		// VLC is a general transcoder that should support every format
-		// Until problem occurs, assume compatible
+		if (resource == null || resource.getFormat().getType() != Format.VIDEO) {
+			return false;
+		}
+
+		// Our implementation of VLC does not support external subtitles yet
+		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
+		if (subtitle != null && subtitle.getExternalFile() != null) {
+			return false;
+		}
+
+		// VLC is unstable when transcoding from flac. It either crashes or sends video without audio. Confirmed with 2.0.6
+		DLNAMediaAudio audio = resource.getMediaAudio();
+		if (audio != null && audio.isFLAC() == true) {
+			return false;
+		}
+
 		return true;
 	}
 
 	/**
-	 * Pick codecs for VLC based on formats the client supports;
+	 * Pick codecs for VLC based on formats the renderer supports;
 	 *
-	 * @param formats
-	 * @return
+	 * @param renderer The {@link RendererConfiguration}.
+	 * @return The codec configuration
 	 */
 	protected CodecConfig genConfig(RendererConfiguration renderer) {
 		CodecConfig config = new CodecConfig();
@@ -184,14 +200,14 @@ public class VLCVideo extends Player {
 		String audioCodec;
 		String container;
 		String extraParams;
-		HashMap<String, Object> extraTrans = new HashMap();
+		HashMap<String, Object> extraTrans = new HashMap<>();
 		int sampleRate;
 	}
 
 	protected Map<String, Object> getEncodingArgs(CodecConfig config, OutputParams params) {
 		// See: http://www.videolan.org/doc/streaming-howto/en/ch03.html
 		// See: http://wiki.videolan.org/Codec
-		Map<String, Object> args = new HashMap();
+		Map<String, Object> args = new HashMap<>();
 
 		// Codecs to use
 		args.put("vcodec", config.videoCodec);
@@ -208,9 +224,13 @@ public class VLCVideo extends Player {
 
 		// Audio Channels
 		int channels = 2;
+
+		/**
+		 * Uncomment this block when we use a52 instead of mp2a
 		if (params.aid.getAudioProperties().getNumberOfChannels() > 2 && configuration.getAudioChannelCount() == 6) {
 			channels = 6;
 		}
+		 */
 		args.put("channels", channels);
 
 		// Static sample rate
@@ -265,9 +285,9 @@ public class VLCVideo extends Player {
 		cmdList.add("-I");
 		cmdList.add("dummy");
 
-		// Hardware acceleration seems to be more stable now, so its enabled
-		if (configuration.isGPUAcceleration()) {
-			cmdList.add("--ffmpeg-hw");
+		// Disable hardware acceleration which is enabled by default
+		if (!configuration.isGPUAcceleration()) {
+			cmdList.add("--no-ffmpeg-hw");
 		}
 
 		// Useful for the more esoteric codecs people use
@@ -471,11 +491,11 @@ public class VLCVideo extends Player {
 		mainPanel.nextLine();
 		*/
 		builder.addLabel(Messages.getString("VlcTrans.20"), FormLayoutUtil.flip(cc.xy(1, 9), colSpec, orientation));
-		extraParams = new JTextField(configuration.getMencoderFont());
+		extraParams = new JTextField(configuration.getFont());
 		extraParams.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				configuration.setMencoderFont(extraParams.getText());
+				configuration.setFont(extraParams.getText());
 			}
 		});
 		builder.add(extraParams, FormLayoutUtil.flip(cc.xyw(3, 9, 3), colSpec, orientation));

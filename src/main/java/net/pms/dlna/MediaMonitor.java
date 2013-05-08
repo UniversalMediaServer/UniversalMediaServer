@@ -7,6 +7,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import net.pms.Messages;
+import net.pms.PMS;
 import net.pms.dlna.virtual.VirtualFolder;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -25,7 +26,7 @@ public class MediaMonitor extends VirtualFolder {
 	}
 
 	private File monitorFile() {
-		return new File("UMS.mon");
+		return new File(PMS.getConfiguration().getDataFile("UMS.mon"));
 	}
 
 	private void parseMonitorFile() {

@@ -21,7 +21,7 @@ import net.pms.util.PropertiesUtil;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.ConversionException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +56,7 @@ public class RendererConfiguration {
 	private static final String CBR_VIDEO_BITRATE = "CBRVideoBitrate"; // Ditlew
 	private static final String CHUNKED_TRANSFER = "ChunkedTransfer";
 	private static final String CUSTOM_MENCODER_OPTIONS = "CustomMencoderOptions";
-	private static final String CUSTOM_MENCODER_QUALITY_SETTINGS = "CustomMencoderQualitySettings";
+	private static final String CUSTOM_MENCODER_MPEG2_OPTIONS = "CustomMencoderQualitySettings"; // TODO (breaking change): value should be CustomMEncoderMPEG2Options
 	private static final String DEFAULT_VBV_BUFSIZE = "DefaultVBVBufSize";
 	private static final String DLNA_LOCALIZATION_REQUIRED = "DLNALocalizationRequired";
 	private static final String DLNA_ORGPN_USE = "DLNAOrgPN";
@@ -132,7 +132,12 @@ public class RendererConfiguration {
 						LOGGER.info("Loading configuration file: " + f.getName());
 						RendererConfiguration r = new RendererConfiguration(f);
 						r.rank = rank++;
-						rendererConfs.add(r);
+						String rendererName = r.getRendererName();
+						if (!pmsConfiguration.getIgnoredRenderers().contains(rendererName)) {
+							rendererConfs.add(r);
+						} else {
+							LOGGER.info("Ignored " + rendererName + " configuration file.");
+						}
 					} catch (ConfigurationException ce) {
 						LOGGER.info("Error in loading configuration of: " + f.getAbsolutePath());
 					}
@@ -325,13 +330,10 @@ public class RendererConfiguration {
 		return rank;
 	}
 
-	// FIXME These 'is' methods should disappear. Use feature detection instead.
-	@Deprecated
 	public boolean isXBOX() {
 		return getRendererName().toUpperCase().contains("XBOX");
 	}
 
-	@Deprecated
 	public boolean isXBMC() {
 		return getRendererName().toUpperCase().contains("XBMC");
 	}
@@ -344,7 +346,6 @@ public class RendererConfiguration {
 		return getRendererName().toUpperCase().contains("BRAVIA");
 	}
 
-	@Deprecated
 	public boolean isFDSSDP() {
 		return getRendererName().toUpperCase().contains("FDSSDP");
 	}
@@ -813,14 +814,48 @@ public class RendererConfiguration {
 		return getString(MAX_VIDEO_BITRATE, null);
 	}
 
+	@Deprecated
+	public String getCustomMencoderQualitySettings() {
+		return getCustomMEncoderMPEG2Options();
+	}
+
 	/**
-	 * Returns the override settings for MEncoder quality settings in PMS as
+	 * Returns the override settings for MEncoder quality settings as
 	 * defined in the renderer configuration. The default value is "".
 	 *
 	 * @return The MEncoder quality settings.
 	 */
-	public String getCustomMencoderQualitySettings() {
-		return getString(CUSTOM_MENCODER_QUALITY_SETTINGS, "");
+	public String getCustomMEncoderMPEG2Options() {
+		return getString(CUSTOM_MENCODER_MPEG2_OPTIONS, "");
+	}
+
+	/**
+	 * Converts the getCustomMencoderQualitySettings() from MEncoder's format to FFmpeg's.
+	 *
+	 * @return The FFmpeg quality settings.
+	 */
+	public String getCustomFFmpegMPEG2Options() {
+		String mpegSettings = getCustomMEncoderMPEG2Options();
+
+		String mpegSettingsArray[] = mpegSettings.split(":");
+
+		String pairArray[];
+		String returnString = "";
+		for (String pair : mpegSettingsArray) {
+			pairArray = pair.split("=");
+
+			if ("keyint".equals(pairArray[0])) {
+				returnString += "-g " + pairArray[1] + " ";
+			} else if ("vqscale".equals(pairArray[0])) {
+				returnString += "-q:v " + pairArray[1] + " ";
+			} else if ("vqmin".equals(pairArray[0])) {
+				returnString += "-qmin " + pairArray[1] + " ";
+			} else if ("vqmax".equals(pairArray[0])) {
+				returnString += "-qmax " + pairArray[1] + " ";
+			}
+		}
+
+		return returnString;
 	}
 
 	/**

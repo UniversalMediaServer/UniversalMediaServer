@@ -25,7 +25,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -175,28 +175,32 @@ public class UPNPHelper {
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	private static MulticastSocket getNewMulticastSocket() throws IOException {
-		MulticastSocket ssdpSocket = new MulticastSocket();
-		ssdpSocket.setReuseAddress(true);
-		NetworkInterface ni = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
+		NetworkInterface networkInterface = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
 
-		if (ni != null) {
-			ssdpSocket.setNetworkInterface(ni);
-
-			// force IPv4 address
-			Enumeration<InetAddress> enm = ni.getInetAddresses();
-
-			while (enm.hasMoreElements()) {
-				InetAddress ia = enm.nextElement();
-
-				if (!(ia instanceof Inet6Address)) {
-					ssdpSocket.setInterface(ia);
-					break;
-				}
-			}
-		} else if (PMS.get().getServer().getNetworkInterface() != null) {
-			LOGGER.trace("Setting multicast network interface: " + PMS.get().getServer().getNetworkInterface());
-			ssdpSocket.setNetworkInterface(PMS.get().getServer().getNetworkInterface());
+		if (networkInterface == null) {
+			networkInterface = PMS.get().getServer().getNetworkInterface();
 		}
+
+		if (networkInterface == null) {
+			throw new IOException("No usable network interface found for UPnP multicast");
+		}
+
+		List<InetAddress> usableAddresses = new ArrayList<>();
+		List<InetAddress> networkInterfaceAddresses = Collections.list(networkInterface.getInetAddresses());
+
+		for (InetAddress inetAddress : networkInterfaceAddresses) {
+			if (inetAddress != null && inetAddress instanceof Inet4Address && !inetAddress.isLoopbackAddress()) {
+				usableAddresses.add(inetAddress);
+			}
+		}
+
+		if (usableAddresses.isEmpty()) {
+			throw new IOException("No usable addresses found for UPnP multicast");
+		}
+
+		InetSocketAddress localAddress = new InetSocketAddress(usableAddresses.get(0), 0);
+		MulticastSocket ssdpSocket = new MulticastSocket(localAddress);
+		ssdpSocket.setReuseAddress(true);
 
 		LOGGER.trace("Sending message from multicast socket on network interface: " + ssdpSocket.getNetworkInterface());
 		LOGGER.trace("Multicast socket is on interface: " + ssdpSocket.getInterface());
@@ -332,11 +336,20 @@ public class UPNPHelper {
 
 						NetworkInterface ni = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
 
-						if (ni != null) {
-							multicastSocket.setNetworkInterface(ni);
-						} else if (PMS.get().getServer().getNetworkInterface() != null) {
-							LOGGER.trace("Setting multicast network interface: " + PMS.get().getServer().getNetworkInterface());
-							multicastSocket.setNetworkInterface(PMS.get().getServer().getNetworkInterface());
+						try {
+							/**
+							 * Setting the network interface will throw a SocketException on Mac OS X
+							 * with Java 1.6.0_45 or higher, but if we don't do it some Windows
+							 * configurations will not listen at all.
+							 */
+							if (ni != null) {
+									multicastSocket.setNetworkInterface(ni);
+							} else if (PMS.get().getServer().getNetworkInterface() != null) {
+									multicastSocket.setNetworkInterface(PMS.get().getServer().getNetworkInterface());
+									LOGGER.trace("Setting multicast network interface: " + PMS.get().getServer().getNetworkInterface());
+							}
+						} catch (SocketException e) {
+							// Not setting the network interface will work just fine on Mac OSX.
 						}
 
 						multicastSocket.setTimeToLive(4);
@@ -476,6 +489,6 @@ public class UPNPHelper {
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	private static InetAddress getUPNPAddress() throws IOException {
-		return InetAddress.getByAddress(IPV4_UPNP_HOST, new byte[]{(byte) 239, (byte) 255, (byte) 255, (byte) 250});
+		return InetAddress.getByName(IPV4_UPNP_HOST);
 	}
 }

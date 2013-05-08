@@ -48,8 +48,8 @@ public class NavigationShareTab {
 	private static final String SHARED_FOLDER_COL_SPEC = "left:pref, left:pref, pref, pref, pref, pref, 0:grow";
 	private static final String SHARED_FOLDER_ROW_SPEC = "p, 3dlu, p, 3dlu, fill:default:grow";
 
-	private JList FList;
-	private DefaultListModel df;
+	private JList<String> FList;
+	private DefaultListModel<String> df;
 	private JCheckBox hidevideosettings;
 	private JCheckBox hidetranscode;
 	private JCheckBox hidemedialibraryfolder;
@@ -69,7 +69,7 @@ public class NavigationShareTab {
 	private JTextField defaultThumbFolder;
 	private JCheckBox iphoto;
 	private JCheckBox aperture;
-	private JCheckBox itunes;
+	public static JCheckBox itunes;
 	private CustomJButton select;
 	private CustomJButton cachereset;
 	private JCheckBox ignorethewordthe;
@@ -79,7 +79,7 @@ public class NavigationShareTab {
 	private JCheckBox newmediafolder;
 	private JCheckBox recentlyplayedfolder;
 
-	public DefaultListModel getDf() {
+	public DefaultListModel<String> getDf() {
 		return df;
 	}
 
@@ -100,7 +100,7 @@ public class NavigationShareTab {
 					sb.append(",");
 				}
 
-				String entry = (String) df.getElementAt(i);
+				String entry = df.getElementAt(i);
 
 				// escape embedded commas. note: backslashing isn't safe as it conflicts with
 				// Windows path separators:
@@ -132,9 +132,10 @@ public class NavigationShareTab {
 		PanelBuilder builderSharedFolder = initSharedFoldersGuiComponents(cc);
 
 		// Build gui with initialized components
-		JComponent cmp = builder.addSeparator(Messages.getString("FoldTab.13"), FormLayoutUtil.flip(cc.xyw(1, 1, 10), colSpec, orientation));
-		cmp = (JComponent) cmp.getComponent(0);
-		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
+		if (!configuration.isHideAdvancedOptions()) {
+			JComponent cmp = builder.addSeparator(Messages.getString("FoldTab.13"), FormLayoutUtil.flip(cc.xyw(1, 1, 10), colSpec, orientation));
+			cmp = (JComponent) cmp.getComponent(0);
+			cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
 		builder.add(thumbgenCheckBox, FormLayoutUtil.flip(cc.xyw(1, 3, 3), colSpec, orientation));
 		builder.addLabel(Messages.getString("NetworkTab.16"), FormLayoutUtil.flip(cc.xyw(4, 3, 2), colSpec, orientation));
@@ -185,6 +186,10 @@ public class NavigationShareTab {
 		builder.add(atzLimit, FormLayoutUtil.flip(cc.xy(6, 25), colSpec, orientation));
 		builder.add(newmediafolder, FormLayoutUtil.flip(cc.xyw(9, 25, 2), colSpec, orientation));
 
+			builder.add(builderSharedFolder.getPanel(), FormLayoutUtil.flip(cc.xyw(1, 27, 10), colSpec, orientation));
+		} else {
+			builder.add(builderSharedFolder.getPanel(), FormLayoutUtil.flip(cc.xyw(1, 1, 10), colSpec, orientation));
+		}
 		builder.add(recentlyplayedfolder, FormLayoutUtil.flip(cc.xyw(1, 27, 3), colSpec, orientation));
 
 		builder.add(builderSharedFolder.getPanel(), FormLayoutUtil.flip(cc.xyw(1, 29, 10), colSpec, orientation));
@@ -383,6 +388,7 @@ public class NavigationShareTab {
 
 		// Enable the cache
 		cacheenable = new JCheckBox(Messages.getString("NetworkTab.17"));
+		cacheenable.setToolTipText(Messages.getString("FoldTab.48"));
 		cacheenable.setContentAreaFilled(false);
 		cacheenable.setSelected(configuration.getUseCache());
 		cacheenable.addItemListener(new ItemListener() {
@@ -391,7 +397,7 @@ public class NavigationShareTab {
 				configuration.setUseCache((e.getStateChange() == ItemEvent.SELECTED));
 				cachereset.setEnabled(configuration.getUseCache());
 				if ((LooksFrame) PMS.get().getFrame() != null) {
-					((LooksFrame) PMS.get().getFrame()).getFt().setScanLibraryEnabled(configuration.getUseCache());
+					((LooksFrame) PMS.get().getFrame()).getNt().setScanLibraryEnabled(configuration.getUseCache());
 				}
 			}
 		});
@@ -432,6 +438,7 @@ public class NavigationShareTab {
 
 		// Hide transcoding engine names
 		hideengines = new JCheckBox(Messages.getString("FoldTab.8"));
+		hideengines.setToolTipText(Messages.getString("FoldTab.46"));
 		hideengines.setContentAreaFilled(false);
 		if (configuration.isHideEngineNames()) {
 			hideengines.setSelected(true);
@@ -458,6 +465,7 @@ public class NavigationShareTab {
 
 		// Show iTunes library
 		itunes = new JCheckBox(Messages.getString("FoldTab.30"));
+		itunes.setToolTipText(Messages.getString("FoldTab.47"));
 		itunes.setContentAreaFilled(false);
 		if (configuration.getItunesEnabled()) {
 			itunes.setSelected(true);
@@ -542,6 +550,7 @@ public class NavigationShareTab {
 
 		// Ignore the word "the" while sorting
 		ignorethewordthe = new JCheckBox(Messages.getString("FoldTab.39"));
+		ignorethewordthe.setToolTipText(Messages.getString("FoldTab.44"));
 		ignorethewordthe.setContentAreaFilled(false);
 		if (configuration.isIgnoreTheWordThe()) {
 			ignorethewordthe.setSelected(true);
@@ -554,6 +563,7 @@ public class NavigationShareTab {
 		});
 
 		atzLimit = new JTextField("" + configuration.getATZLimit());
+		atzLimit.setToolTipText(Messages.getString("FoldTab.49"));
 		atzLimit.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
@@ -580,6 +590,7 @@ public class NavigationShareTab {
 		});
 
 		prettifyfilenames = new JCheckBox(Messages.getString("FoldTab.43"));
+		prettifyfilenames.setToolTipText(Messages.getString("FoldTab.45"));
 		prettifyfilenames.setContentAreaFilled(false);
 		if (configuration.isPrettifyFilenames()) {
 			prettifyfilenames.setSelected(true);
@@ -592,7 +603,7 @@ public class NavigationShareTab {
 			}
 		});
 
-		newmediafolder = new JCheckBox(Messages.getString("FoldTab.45"));
+		newmediafolder = new JCheckBox(Messages.getString("FoldTab.53"));
 		newmediafolder.setContentAreaFilled(false);
 		if (configuration.isHideNewMediaFolder()) {
 			newmediafolder.setSelected(true);
@@ -605,7 +616,7 @@ public class NavigationShareTab {
 			}
 		});
 
-		recentlyplayedfolder = new JCheckBox(Messages.getString("FoldTab.46"));
+		recentlyplayedfolder = new JCheckBox(Messages.getString("FoldTab.55"));
 		recentlyplayedfolder.setContentAreaFilled(false);
 		if (configuration.isHideRecentlyPlayedFolder()) {
 			recentlyplayedfolder.setSelected(true);
@@ -647,9 +658,9 @@ public class NavigationShareTab {
 				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 				int returnVal = chooser.showOpenDialog((Component) e.getSource());
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					((DefaultListModel) FList.getModel()).add(FList.getModel().getSize(), chooser.getSelectedFile().getAbsolutePath());
+					((DefaultListModel<String>) FList.getModel()).add(FList.getModel().getSize(), chooser.getSelectedFile().getAbsolutePath());
 					if (FList.getModel().getElementAt(0).equals(ALL_DRIVES)) {
-						((DefaultListModel) FList.getModel()).remove(0);
+						((DefaultListModel<String>) FList.getModel()).remove(0);
 					}
 					updateModel();
 				}
@@ -664,9 +675,9 @@ public class NavigationShareTab {
 			@Override
 			public void actionPerformed(java.awt.event.ActionEvent e) {
 				if (FList.getSelectedIndex() > -1) {
-					((DefaultListModel) FList.getModel()).remove(FList.getSelectedIndex());
+					((DefaultListModel<String>) FList.getModel()).remove(FList.getSelectedIndex());
 					if (FList.getModel().getSize() == 0) {
-						((DefaultListModel) FList.getModel()).add(0, ALL_DRIVES);
+						((DefaultListModel<String>) FList.getModel()).add(0, ALL_DRIVES);
 					}
 					updateModel();
 				}
@@ -680,7 +691,7 @@ public class NavigationShareTab {
 		but3.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				DefaultListModel model = ((DefaultListModel) FList.getModel());
+				DefaultListModel<String> model = ((DefaultListModel<String>) FList.getModel());
 				for (int i = 0; i < model.size() - 1; i++) {
 					if (FList.isSelectedIndex(i)) {
 						String value = model.get(i).toString();
@@ -701,7 +712,7 @@ public class NavigationShareTab {
 		but4.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				DefaultListModel model = ((DefaultListModel) FList.getModel());
+				DefaultListModel<String> model = ((DefaultListModel<String>) FList.getModel());
 				for (int i = 1; i < model.size(); i++) {
 					if (FList.isSelectedIndex(i)) {
 						String value = model.get(i).toString();
@@ -750,7 +761,7 @@ public class NavigationShareTab {
 								database.stopScanLibrary();
 								PMS.get().getFrame().setStatusLine(null);
 								if ((LooksFrame) PMS.get().getFrame() != null) {
-									((LooksFrame) PMS.get().getFrame()).getFt().setScanLibraryEnabled(false);
+									((LooksFrame) PMS.get().getFrame()).getNt().setScanLibraryEnabled(false);
 								}
 								but5.setToolTipText(Messages.getString("FoldTab.41"));
 							}
@@ -762,8 +773,9 @@ public class NavigationShareTab {
 		builderFolder.add(but5, FormLayoutUtil.flip(cc.xy(5, 3), colSpec, orientation));
 		but5.setEnabled(configuration.getUseCache());
 
+		df = new DefaultListModel<>();
 		CustomJButton but6 = new CustomJButton(LooksFrame.readImageIcon("button-monitor.png"));
-		but6.setToolTipText(Messages.getString("FoldTab.44"));
+		but6.setToolTipText(Messages.getString("FoldTab.53"));
 		but6.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -787,7 +799,7 @@ public class NavigationShareTab {
 		} else {
 			df.addElement(ALL_DRIVES);
 		}
-		FList = new JList();
+		FList = new JList<>();
 		FList.setModel(df);
 		JScrollPane pane = new JScrollPane(FList);
 		builderFolder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 5, 7), colSpec, orientation));

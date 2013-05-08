@@ -5,7 +5,8 @@ import java.util.StringTokenizer;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.formats.v2.SubtitleType;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,10 +17,12 @@ public class LibMediaInfoParser {
 
 	static {
 		MI = new MediaInfo();
+
 		if (MI.isValid()) {
 			MI.Option("Complete", "1");
 			MI.Option("Language", "raw");
 		}
+
 		base64 = new Base64();
 	}
 
@@ -50,6 +53,7 @@ public class LibMediaInfoParser {
 				if (StringUtils.isNotBlank(info)) {
 					media.setSize(file.length());
 					StringTokenizer st = new StringTokenizer(info, "\n\r");
+
 					while (st.hasMoreTokens()) {
 						String line = st.nextToken().trim();
 
@@ -77,10 +81,12 @@ public class LibMediaInfoParser {
 						}
 
 						int point = line.indexOf(":");
+
 						if (point > -1) {
 							String key = line.substring(0, point).trim();
 							String ovalue = line.substring(point + 1).trim();
 							String value = ovalue.toLowerCase();
+
 							if (key.equals("Format") || key.startsWith("Format_Version") || key.startsWith("Format_Profile")) {
 								if (streamType == MediaInfo.StreamType.Text) {
 									// First attempt to detect subtitle track format
@@ -172,7 +178,9 @@ public class LibMediaInfoParser {
 								currentAudioTrack.setGenre(ovalue);
 							} else if (key.equals("Recorded_Date") && streamType == MediaInfo.StreamType.General) {
 								try {
-									currentAudioTrack.setYear(Integer.parseInt(value));
+									// Try to parse incorrectly stored date
+									String recordedDate = value.replaceAll("[^\\d]{4}", "");
+									currentAudioTrack.setYear(Integer.parseInt(recordedDate));
 								} catch (NumberFormatException nfe) {
 									LOGGER.debug("Could not parse year \"" + value + "\"");
 								}
@@ -207,6 +215,34 @@ public class LibMediaInfoParser {
 					addSub(currentSubTrack, media);
 				}
 
+				/**
+				 * Native M4A/AAC streaming bug: http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=16691
+				 * Some M4A files have generic codec id "mp42" instead of "M4A". For example:
+				 *
+				 * General
+				 * Format                                   : MPEG-4
+				 * Format profile                           : Apple audio with iTunes info
+				 * Codec ID                                 : M4A
+				 *
+				 * vs
+				 *
+				 * General
+				 * Format                                   : MPEG-4
+				 * Format profile                           : Base Media / Version 2
+				 * Codec ID                                 : mp42
+				 *
+				 * As a workaround, set container type to AAC for MP4 files that have a single AAC audio track and no video.
+				 */
+				if (
+					FormatConfiguration.MP4.equals(media.getContainer()) &&
+					isBlank(media.getCodecV()) &&
+					media.getAudioTracksList() != null &&
+					media.getAudioTracksList().size() == 1 &&
+					FormatConfiguration.AAC.equals(media.getAudioTracksList().get(0).getCodecA())
+				) {
+					media.setContainer(FormatConfiguration.AAC);
+				}
+
 				media.finalize(type, inputFile);
 			} catch (Exception e) {
 				LOGGER.error("Error in MediaInfo parsing:", e);
@@ -229,9 +265,11 @@ public class LibMediaInfoParser {
 		if (currentAudioTrack.getLang() == null) {
 			currentAudioTrack.setLang(DLNAMediaLang.UND);
 		}
+
 		if (currentAudioTrack.getCodecA() == null) {
 			currentAudioTrack.setCodecA(DLNAMediaLang.UND);
 		}
+
 		media.getAudioTracksList().add(currentAudioTrack);
 	}
 
@@ -239,9 +277,11 @@ public class LibMediaInfoParser {
 		if (currentSubTrack.getType() == SubtitleType.UNSUPPORTED) {
 			return;
 		}
+
 		if (currentSubTrack.getLang() == null) {
 			currentSubTrack.setLang(DLNAMediaLang.UND);
 		}
+
 		media.getSubtitleTracksList().add(currentSubTrack);
 	}
 
@@ -381,6 +421,7 @@ public class LibMediaInfoParser {
 		if (value.indexOf("pixel") > -1) {
 			value = value.substring(0, value.indexOf("pixel"));
 		}
+
 		value = value.trim();
 
 		// Value can look like "512 / 512" at this point
@@ -410,20 +451,25 @@ public class LibMediaInfoParser {
 		if (value.indexOf("(0x") > -1) {
 			value = value.substring(0, value.indexOf("(0x"));
 		}
+
 		value = value.trim();
 		int id = Integer.parseInt(value);
 		return id;
 	}
 
 	public static String getSampleFrequency(String value) {
-		// Some tracks show several values like "48000 / 48000 / 24000" for HE-AAC
-		// We store only the first value
+		/**
+		 * Some tracks show several values, e.g. "48000 / 48000 / 24000" for HE-AAC
+		 * We store only the first value
+		 */
 		if (value.indexOf("/") > -1) {
 			value = value.substring(0, value.indexOf("/"));
 		}
+
 		if (value.indexOf("khz") > -1) {
 			value = value.substring(0, value.indexOf("khz"));
 		}
+
 		value = value.trim();
 		return value;
 	}
@@ -432,6 +478,7 @@ public class LibMediaInfoParser {
 		if (value.indexOf("fps") > -1) {
 			value = value.substring(0, value.indexOf("fps"));
 		}
+
 		value = value.trim();
 		return value;
 	}
@@ -449,9 +496,11 @@ public class LibMediaInfoParser {
 		if (value.indexOf("(") > -1) {
 			value = value.substring(0, value.indexOf("("));
 		}
+
 		if (value.indexOf("/") > -1) {
 			value = value.substring(0, value.indexOf("/"));
 		}
+
 		value = value.trim();
 		return value;
 	}
@@ -464,25 +513,33 @@ public class LibMediaInfoParser {
 	private static double getDuration(String value) {
 		int h = 0, m = 0, s = 0;
 		StringTokenizer st = new StringTokenizer(value, " ");
+
 		while (st.hasMoreTokens()) {
 			String token = st.nextToken();
 			int hl = token.indexOf("h");
+
 			if (hl > -1) {
 				h = Integer.parseInt(token.substring(0, hl).trim());
 			}
+
 			int mnl = token.indexOf("mn");
+
 			if (mnl > -1) {
 				m = Integer.parseInt(token.substring(0, mnl).trim());
 			}
+
 			int msl = token.indexOf("ms");
+
 			if (msl == -1) {
 				// Only check if ms was not found
 				int sl = token.indexOf("s");
+
 				if (sl > -1) {
 					s = Integer.parseInt(token.substring(0, sl).trim());
 				}
 			}
 		}
+
 		return (h * 3600) + (m * 60) + s;
 	}
 
@@ -494,6 +551,7 @@ public class LibMediaInfoParser {
 		} catch (Exception e) {
 			LOGGER.error("Error in decoding thumbnail data", e);
 		}
+
 		return null;
 	}
 }

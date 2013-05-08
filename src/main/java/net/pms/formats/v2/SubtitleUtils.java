@@ -18,13 +18,34 @@
  */
 package net.pms.formats.v2;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.StringTokenizer;
+import net.pms.PMS;
 import net.pms.dlna.DLNAMediaSubtitle;
-import static org.apache.commons.lang.StringUtils.isBlank;
+import net.pms.io.OutputParams;
+import net.pms.util.StringUtil;
+import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.mozilla.universalchardet.Constants.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SubtitleUtils {
+	private static final Logger LOGGER = LoggerFactory.getLogger(StringUtil.class);
+	public static final String ASS_FORMAT = "%01d:%02d:%02.2f";
+	public static final String SRT_FORMAT = "%02d:%02d:%02.3f";
+	public static final String SEC_FORMAT = "%02d:%02d:%02d";
+	private static final String TEMP_DIR = "temp";
 	private final static Map<String, String> fileCharsetToMencoderSubcpOptionMap = new HashMap<String, String>() {
 		private static final long serialVersionUID = 1L;
 
@@ -74,5 +95,149 @@ public class SubtitleUtils {
 			return null;
 		}
 		return fileCharsetToMencoderSubcpOptionMap.get(dlnaMediaSubtitle.getExternalFileCharacterSet());
+	}
+
+	/**
+	 * Applies timeseeking to subtitles file in SSA/ASS format
+	 * @param SrtFile Subtitles file in SSA/ASS format
+	 * @param timeseek  Time stamp value
+	 * @return Converted subtitles file
+	 * @throws IOException
+	 */
+	public static File applyTimeSeekingToASS(File SrtFile, double timeseek) throws IOException {
+		Double startTime;
+		Double endTime;
+		String line;
+		File outputSubs = new File(tempFile(SrtFile.getName() + System.currentTimeMillis()));
+		BufferedWriter output;
+		try (BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(SrtFile)))) {
+			output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs)));
+			while ((line = input.readLine()) != null) {
+				if (line.startsWith("Dialogue:")) {
+					String[] tempStr = line.split(",");
+					startTime = convertStringToTime(tempStr[1]);
+					endTime = convertStringToTime(tempStr[2]);
+
+					if (startTime >= timeseek) {
+						tempStr[1] = convertTimeToString(startTime - timeseek, ASS_FORMAT);
+						tempStr[2] = convertTimeToString(endTime - timeseek, ASS_FORMAT);
+					} else {
+						continue;
+					}
+
+					output.write(StringUtils.join(tempStr, ",") + "\n");
+				} else {
+					output.write(line + "\n");
+				}
+			}
+		}
+		output.flush();
+		output.close();
+		PMS.get().addTempFile(outputSubs, 2 * 24 * 3600 * 1000);
+		return outputSubs;
+	}
+
+	public static String tempFile(String name) {
+		String dir = PMS.getConfiguration().getDataFile(TEMP_DIR); 
+		File path = new File(dir);
+		if (!path.exists()) {
+			path.mkdirs();
+		}
+		return path.getAbsolutePath() + File.separator + name + ".tmp";
+	}
+
+	public static File applyTimeSeekingToSrt(File in, OutputParams params) throws IOException {
+		BufferedReader reader;
+		String cp = PMS.getConfiguration().getSubtitlesCodepage();
+		if (isNotBlank(cp) && !params.sid.isExternalFileUtf8()) {
+			reader = new BufferedReader(new InputStreamReader(new FileInputStream(in),cp)); // Always convert codepage
+		} else if (params.timeseek > 0) {
+			reader = new BufferedReader(new InputStreamReader(new FileInputStream(in))); // Apply timeseeking without codepage conversion
+		} else {
+			return in; // Codepage conversion or timeseeking is not needed
+		}
+
+		File out = new File(tempFile(in.getName() + System.currentTimeMillis()));
+		BufferedWriter w = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(out)));
+		String line;
+		int n = 1;
+
+		while ((line = reader.readLine()) != null) {
+			if (line .contains("-->")) {
+				String startTime = line.substring(0, line.indexOf("-->") - 1);
+				String endTime = line.substring(line.indexOf("-->") + 4);
+				Double start = convertStringToTime(startTime);
+				Double stop = convertStringToTime(endTime);
+
+				if (start >= params.timeseek) {
+					w.write("" + (n++) + "\n");
+					w.write(convertTimeToString(start - params.timeseek, SRT_FORMAT));
+					w.write(" --> ");	
+					w.write(convertTimeToString(stop - params.timeseek, SRT_FORMAT) + "\n");
+
+					while (isNotBlank(line = reader.readLine())) { // Read all following subs lines
+						w.write(line + "\n");
+					}
+
+					w.write("" + "\n");
+				}
+			}
+		}
+
+		reader.close();
+		w.flush();
+		w.close();
+		PMS.get().addTempFile(out, 2 * 24 * 3600 * 1000);
+		return out;
+	}
+
+	/**
+	 * Converts time to string.
+	 *
+	 * @param d time in double.
+	 * @param format Format string e.g. "%02d:%02d:%02d" or use predefined constants
+	 * ASS_FORMAT, SRT_FORMAT, SEC_FORMAT.
+	 *
+	 * @return Converted String.
+	 */
+	public static String convertTimeToString(double d, String format) {
+		double s = d % 60;
+		int h = (int) (d / 3600);
+		int m = ((int) (d / 60)) % 60;
+
+		if (format.equals(SRT_FORMAT)) {
+			return String.format(format, h, m, s).replaceAll("\\.", ",");
+		}
+
+		return String.format(format, h, m, s);
+	}
+
+	/**
+	 * Converts string in time format to double.
+	 *
+	 * @param time in string format 00:00:00.000
+	 * @return Time in double.
+	 */
+	public static Double convertStringToTime(String time) {
+		if (time == null) {
+			return null;
+		}
+
+		if (time.contains(",")) {
+			time = time.replaceAll(",", ".");
+		}
+
+		StringTokenizer st = new StringTokenizer(time, ":");
+
+		try {
+			int h = Integer.parseInt(st.nextToken());
+			int m = Integer.parseInt(st.nextToken());
+			double s = Double.parseDouble(st.nextToken());
+			return h * 3600 + m * 60 + s;
+		} catch (NumberFormatException nfe) {
+			LOGGER.debug("Failed to convert \"" + time + "\"");
+		}
+
+		return null;
 	}
 }

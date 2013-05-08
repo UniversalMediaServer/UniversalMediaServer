@@ -33,7 +33,7 @@ public class RecentlyPlayed extends VirtualFolder {
 	}
 
 	private File lastFile() {
-		return new File("UMS.last");
+		return new File(PMS.getConfiguration().getDataFile("UMS.last"));
 	}
 
 	private ExternalListener findLastPlayedParent(String className) {

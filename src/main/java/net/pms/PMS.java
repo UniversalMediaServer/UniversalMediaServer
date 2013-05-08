@@ -52,14 +52,17 @@ import net.pms.newgui.LooksFrame;
 import net.pms.newgui.ProfileChooser;
 import net.pms.update.AutoUpdater;
 import net.pms.util.FileUtil;
+import net.pms.util.OpenSubtitle;
 import net.pms.util.ProcessUtil;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.SystemErrWrapper;
 import net.pms.util.TaskRunner;
+import net.pms.util.TempFileMgr;
 import net.pms.util.Version;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,6 +91,12 @@ public class PMS {
 	 * Universally Unique Identifier used in the UPnP server.
 	 */
 	private String uuid;
+
+	/**
+	 * Relative location of a context sensitive help page in the documentation
+	 * directory.
+	 */
+	private static String helpPage = "index.html";
 
 	/**
 	 * Returns a pointer to the main PMS GUI.
@@ -306,6 +315,107 @@ public class PMS {
 
 		registry = createSystemUtils();
 
+		// Wizard
+		if (configuration.isRunWizard() && !isHeadless()) {
+			// Ask the user if they want to run the wizard
+			int whetherToRunWizard = JOptionPane.showConfirmDialog(
+				(Component) PMS.get().getFrame(),
+				Messages.getString("Wizard.1"),
+				Messages.getString("Dialog.Question"),
+				JOptionPane.YES_NO_OPTION);
+			if (whetherToRunWizard == JOptionPane.YES_OPTION) {
+				// The user has chosen to run the wizard
+
+				// Total number of questions
+				int numberOfQuestions = 4;
+
+				// The current question number
+				int currentQuestionNumber = 1;
+
+				// Ask if they want UMS to start minimized
+				int whetherToStartMinimized = JOptionPane.showConfirmDialog(
+				(Component) PMS.get().getFrame(),
+				Messages.getString("Wizard.3"),
+				Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+				JOptionPane.YES_NO_OPTION);
+				if (whetherToStartMinimized == JOptionPane.YES_OPTION) {
+					configuration.setMinimized(true);
+					save();
+				} else if (whetherToStartMinimized == JOptionPane.NO_OPTION) {
+					configuration.setMinimized(false);
+					save();
+				}
+
+				// Ask if their audio receiver/s support DTS audio
+				int whetherToSendDTS = JOptionPane.showConfirmDialog(
+				(Component) PMS.get().getFrame(),
+				Messages.getString("Wizard.5"),
+				Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+				JOptionPane.YES_NO_OPTION);
+				if (whetherToSendDTS == JOptionPane.YES_OPTION) {
+					configuration.setDTSEmbedInPCM(true);
+					save();
+				} else if (whetherToSendDTS == JOptionPane.NO_OPTION) {
+					configuration.setDTSEmbedInPCM(false);
+					save();
+				}
+
+				// Ask if their network is wired, etc.
+				Object[] options = {
+					Messages.getString("Wizard.8"),
+					Messages.getString("Wizard.9"),
+					Messages.getString("Wizard.10")
+				};
+				int networkType = JOptionPane.showOptionDialog(
+					(Component) PMS.get().getFrame(),
+					Messages.getString("Wizard.7"),
+					Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+					JOptionPane.YES_NO_CANCEL_OPTION,
+					JOptionPane.QUESTION_MESSAGE,
+					null,
+					options,
+					options[1]);
+				if (networkType == JOptionPane.YES_OPTION) {
+					// Wired (Gigabit)
+					configuration.setMaximumBitrate("0");
+					configuration.setMPEG2MainSettings("Automatic (Wired)");
+					save();
+				} else if (networkType == JOptionPane.NO_OPTION) {
+					// Wired (100 Megabit)
+					configuration.setMaximumBitrate("110");
+					configuration.setMPEG2MainSettings("Automatic (Wired)");
+					save();
+				} else if (networkType == JOptionPane.CANCEL_OPTION) {
+					// Wireless
+					configuration.setMaximumBitrate("30");
+					configuration.setMPEG2MainSettings("Automatic (Wireless)");
+					save();
+				}
+
+				// Ask if they want to hide advanced options
+				int whetherToHideAdvancedOptions = JOptionPane.showConfirmDialog(
+				(Component) PMS.get().getFrame(),
+				Messages.getString("Wizard.11"),
+				Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+				JOptionPane.YES_NO_OPTION);
+				if (whetherToHideAdvancedOptions == JOptionPane.YES_OPTION) {
+					configuration.setHideAdvancedOptions(true);
+					save();
+				} else if (whetherToHideAdvancedOptions == JOptionPane.NO_OPTION) {
+					configuration.setHideAdvancedOptions(false);
+					save();
+				}
+
+				configuration.setRunWizard(false);
+				save();
+			} else if (whetherToRunWizard == JOptionPane.NO_OPTION) {
+				// The user has chosen to not run the wizard
+				// Do not ask them again
+				configuration.setRunWizard(false);
+				save();
+			}
+		}
+
 		if (System.getProperty(CONSOLE) == null) {
 			frame = new LooksFrame(autoUpdater, configuration);
 		} else {
@@ -392,6 +502,13 @@ public class PMS {
 		dDir.mkdirs();
 
 		dbgPack = new DbgPacker();
+		tfm = new TempFileMgr();
+
+		// This should be removed soon
+		OpenSubtitle.convert();
+		
+		// Start this here to let the converison work
+		tfm.schedule();
 
 		RendererConfiguration.loadRendererConfigurations(configuration);
 
@@ -917,6 +1034,11 @@ public class PMS {
 		if (!headless && displayProfileChooser) {
 			ProfileChooser.display();
 		}
+		
+		try {
+			FileUtils.copyFile(new File("debug.log"), new File("debug.log.prev"));
+		} catch (Exception e) {
+		}
 
 		try {
 			setConfiguration(new PmsConfiguration());
@@ -1045,7 +1167,7 @@ public class PMS {
 	private void logSystemInfo() {
 		long memoryInMB = Runtime.getRuntime().maxMemory() / 1048576;
 
-		LOGGER.info("Java: " + System.getProperty("java.version") + "-" + System.getProperty("java.vendor"));
+		LOGGER.info("Java: " + System.getProperty("java.version") + " - " + System.getProperty("sun.arch.data.model") + "bit" + " - " + System.getProperty("java.vendor"));
 		LOGGER.info("OS: " + System.getProperty("os.name") + " " + getOSBitness() + "-bit " + System.getProperty("os.version"));
 		LOGGER.info("Encoding: " + System.getProperty("file.encoding"));
 		LOGGER.info("Memory: " + memoryInMB + " " + Messages.getString("StatusTab.12"));
@@ -1184,6 +1306,16 @@ public class PMS {
 		return dbgPack;
 	}
 
+	private TempFileMgr tfm;
+
+	public void addTempFile(File f) {
+		tfm.add(f);
+	}
+
+	public void addTempFile(File f, int cleanTime) {
+		tfm.add(f, cleanTime);
+	}
+
 	@Deprecated
 	public void registerPlayer(Player player) {
 		PlayerFactory.registerPlayer(player);
@@ -1201,5 +1333,25 @@ public class PMS {
 		} catch (java.lang.NoClassDefFoundError | java.awt.HeadlessException | java.lang.InternalError e) {
 			return true;
 		}
+	}
+
+	/**
+	 * Sets the relative URL of a context sensitive help page located in the
+	 * documentation directory.
+	 *
+	 * @param page The help page.
+	 */
+	public static void setHelpPage(String page) {
+		helpPage = page;
+	}
+
+	/**
+	 * Returns the relative URL of a context sensitive help page in the
+	 * documentation directory.
+	 *
+	 * @return The help page.
+	 */
+	public static String getHelpPage() {
+		return helpPage;
 	}
 }

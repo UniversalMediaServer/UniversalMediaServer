@@ -1,14 +1,89 @@
-2.7.0 - 2013-04-??
+3.0.0 - 2013-05-??
 
 	General:
+		Added internal subtitle support to FFmpeg
+		Added subtitle seeking support to FFmpeg
+		Added subtitle styling (fontconfig) support to FFmpeg
 		Added "Prettify filenames" feature, which automatically renames filenames (not the real files, just in UMS) that follow certain naming conventions to be more readable
+		Added configuration wizard to simplify common things like network configuration
+		Added an option to hide/show advanced options, hopefully making things less confusing/daunting for most users
 		Added VLC video transcoding (thanks, LordQuackstar!)
-		Improved stability of Live Subtitles
+		Added new options to iTunes library browsing: Browse by Artist, Album and Genre
+		Transcoding quality automatically adjusts for content and network speed by default, allowing wireless users an easier experience
+		Improved memory defaults on Windows
+		Improved video transcoding quality by default
+		Improved audio transcoding quality in FFmpeg by default
+		Made the menu icon on OS X grayscale to fit with most other programs (thanks, Kefran!)
+		Made file list population faster
+		Added option to ignore certain renderer configurations
+		Fixed memory leaks
+		Added tooltips to several options to make them clearer
 	Renderers:
-		Fixed stuttering issues with Bravia HX TVs
-		Improved MP4, AVI and MKV support on Sony Blu-ray players
+		Xbox 360 supports 5.1 audio
+		Faster transcoding on Xbox 360
 	Languages:
-		Updated Italian translation (thanks, nocciola82!)
+		Added English (UK) to the list of languages
+		Updated English settings
+		Updated Spanish translation (thanks, Alfredo Ramos and uman2k!)
+
+2.6.3 - 2013-05-01
+
+	General:
+		Improved detection of renderers
+		Improved AAC/M4A support
+	External Components:
+		Updated Apache commons-lang to 3.1
+		Updated thumbnailator to 0.4.3
+
+2.6.2 - 2013-04-22
+
+	General:
+		Fixed audio sync when muxing DTS via FFmpeg
+		Improved descriptions in GUI
+		Added support for the file:// protocol in WEB.conf
+		Protocols are matched before extensions in WEB.conf
+		Fixed "Can't assign requested address" bug after update to Java 1.6.0.45 on Mac OS X
+		Added installation instructions to the Linux distribution
+		Fixed incorrect server IP address when starting via UMS.exe or UMS.bat
+	External Components:
+		Updated FFmpeg for all operating systems, which:
+			Fixes RTMP bugs
+			Improves support for the following codecs/containers: WMV, MPEG, H.264, Matroska, AVI, AAC, AC-3, WMA, MP3, FLV, OGG
+			Improves 60FPS video support
+			Supports more audio channel layouts
+			Improves pthread support
+			Fixes memory leaks
+			Improves subtitle decoding support
+			Adds support for subtitles character encoding conversion
+			Makes duration estimation more reliable
+			Adds support for .ape files
+			Improves memory use when using hardware acceleration
+			Fixes multithreaded MPEG-4 decoding
+		Updated Java Runtime Environment automatic downloader for Windows to 7u21, which:
+			Has lots of security fixes and improvements
+
+2.6.1 - 2013-04-16
+
+	General:
+		Added option to toggle H.264 remuxing in FFmpeg
+		Improved stability of Live Subtitles
+		Re-enabled WMP detection
+		Speed improvements
+		Fixed transcoding to Xbox via FFmpeg
+		Added support for WTV files
+		A-to-Z virtual folders support sorting options
+		Fixed a crash with rare MP3 files
+		Allow subtitles to be disabled on Samsung TVs
+	Renderers:
+		Improved Sony Blu-ray Player support (thanks, skeptical!)
+		Fixed exception on Android
+		Fixed stuttering issues with Bravia HX TVs
+	Languages:
+		Updated Dutch translation (thanks, leroy!)
+		Updated Italian language (thanks, nocciola82!)
+	External Components:
+		Updated FFmpeg for Linux to burek's 2013-04-04 build, which:
+			Is compiled statically
 
 2.6.0 - 2013-03-29
 

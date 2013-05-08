@@ -46,8 +46,6 @@ import net.pms.formats.v2.SubtitleUtils;
 import net.pms.io.*;
 import net.pms.network.HTTPResource;
 import net.pms.newgui.CustomJButton;
-import net.pms.newgui.FontFileFilter;
-import net.pms.newgui.MyComboBoxModel;
 import net.pms.util.CodecUtil;
 import net.pms.util.FileUtil;
 import net.pms.util.FormLayoutUtil;
@@ -55,7 +53,7 @@ import net.pms.util.ProcessUtil;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
 import static org.apache.commons.lang.BooleanUtils.isTrue;
-import static org.apache.commons.lang.StringUtils.*;
+import static org.apache.commons.lang3.StringUtils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,17 +63,11 @@ public class MEncoderVideo extends Player {
 	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 9dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
 	private static final String REMOVE_OPTION = "---REMOVE-ME---"; // use an out-of-band option that can't be confused with a real option
 
-	private JTextField mencoder_ass_scale;
-	private JTextField mencoder_ass_margin;
-	private JTextField mencoder_ass_outline;
-	private JTextField mencoder_ass_shadow;
 	private JTextField mencoder_noass_scale;
 	private JTextField mencoder_noass_subpos;
 	private JTextField mencoder_noass_blur;
 	private JTextField mencoder_noass_outline;
 	private JTextField mencoder_custom_options;
-	private JTextField defaultfont;
-	private JComboBox subtitleCodePage;
 	private JTextField subq;
 	private JCheckBox forcefps;
 	private JCheckBox yadif;
@@ -90,11 +82,8 @@ public class MEncoderVideo extends Player {
 	private JCheckBox videoremux;
 	private JCheckBox noskip;
 	private JCheckBox intelligentsync;
-	private JButton subColor;
-	private JButton fontselect;
 	private JTextField ocw;
 	private JTextField och;
-	private JCheckBox fribidi;
 	private final PmsConfiguration configuration;
 
 	private static final String[] INVALID_CUSTOM_OPTIONS = {
@@ -129,18 +118,14 @@ public class MEncoderVideo extends Player {
 
 	public static final String DEFAULT_CODEC_CONF_SCRIPT =
 		Messages.getString("MEncoderVideo.68") +
-		Messages.getString("MEncoderVideo.69") +
 		Messages.getString("MEncoderVideo.70") +
 		Messages.getString("MEncoderVideo.71") +
 		Messages.getString("MEncoderVideo.72") +
-		Messages.getString("MEncoderVideo.73") +
 		Messages.getString("MEncoderVideo.75") +
 		Messages.getString("MEncoderVideo.76") +
 		Messages.getString("MEncoderVideo.77") +
 		Messages.getString("MEncoderVideo.78") +
-		Messages.getString("MEncoderVideo.79") +
-		"#\n" +
-		Messages.getString("MEncoderVideo.80") +
+		"\n" +
 		"container == iso :: -nosync\n" +
 		"(container == avi || container == matroska) && vcodec == mpeg4 && acodec == mp3 :: -mc 0.1\n" +
 		"container == flv :: -mc 0.1\n" +
@@ -150,7 +135,6 @@ public class MEncoderVideo extends Player {
 		"container == mp4 && vcodec == h264 :: -mc 0.1\n" +
 		"\n" +
 		Messages.getString("MEncoderVideo.87") +
-		Messages.getString("MEncoderVideo.88") +
 		Messages.getString("MEncoderVideo.89") +
 		Messages.getString("MEncoderVideo.91");
 
@@ -396,7 +380,7 @@ public class MEncoderVideo extends Player {
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setMencoderMuxWhenCompatible((e.getStateChange() == ItemEvent.SELECTED));
 			}
-			});
+		});
 		builder.add(videoremux, FormLayoutUtil.flip(cc.xyw(1, 9, 13), colSpec, orientation));
 
 		builder.addLabel(Messages.getString("MEncoderVideo.6"), FormLayoutUtil.flip(cc.xy(1, 13), colSpec, orientation));
@@ -435,155 +419,6 @@ public class MEncoderVideo extends Player {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.11"), FormLayoutUtil.flip(cc.xy(1, 19), colSpec, orientation));
-		Object data[] = new Object[]{
-			configuration.getMencoderSubCp(),
-			Messages.getString("MEncoderVideo.96"),
-			Messages.getString("MEncoderVideo.97"),
-			Messages.getString("MEncoderVideo.98"),
-			Messages.getString("MEncoderVideo.99"),
-			Messages.getString("MEncoderVideo.100"),
-			Messages.getString("MEncoderVideo.101"),
-			Messages.getString("MEncoderVideo.102"),
-			Messages.getString("MEncoderVideo.103"),
-			Messages.getString("MEncoderVideo.104"),
-			Messages.getString("MEncoderVideo.105"),
-			Messages.getString("MEncoderVideo.106"),
-			Messages.getString("MEncoderVideo.107"),
-			Messages.getString("MEncoderVideo.108"),
-			Messages.getString("MEncoderVideo.109"),
-			Messages.getString("MEncoderVideo.110"),
-			Messages.getString("MEncoderVideo.111"),
-			Messages.getString("MEncoderVideo.112"),
-			Messages.getString("MEncoderVideo.113"),
-			Messages.getString("MEncoderVideo.114"),
-			Messages.getString("MEncoderVideo.115"),
-			Messages.getString("MEncoderVideo.116"),
-			Messages.getString("MEncoderVideo.117"),
-			Messages.getString("MEncoderVideo.118"),
-			Messages.getString("MEncoderVideo.119"),
-			Messages.getString("MEncoderVideo.120"),
-			Messages.getString("MEncoderVideo.121"),
-			Messages.getString("MEncoderVideo.122"),
-			Messages.getString("MEncoderVideo.123"),
-			Messages.getString("MEncoderVideo.124")
-		};
-
-		MyComboBoxModel cbm = new MyComboBoxModel(data);
-		subtitleCodePage = new JComboBox(cbm);
-		subtitleCodePage.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				if (e.getStateChange() == ItemEvent.SELECTED) {
-					String s = (String) e.getItem();
-					int offset = s.indexOf("/*");
-
-					if (offset > -1) {
-						s = s.substring(0, offset).trim();
-					}
-
-					configuration.setMencoderSubCp(s);
-				}
-			}
-		});
-
-		subtitleCodePage.getEditor().getEditorComponent().addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				subtitleCodePage.getItemListeners()[0].itemStateChanged(new ItemEvent(subtitleCodePage, 0, subtitleCodePage.getEditor().getItem(), ItemEvent.SELECTED));
-			}
-		});
-
-		subtitleCodePage.setEditable(true);
-		builder.add(subtitleCodePage, FormLayoutUtil.flip(cc.xyw(3, 19, 7), colSpec, orientation));
-
-		fribidi = new JCheckBox(Messages.getString("MEncoderVideo.23"));
-		fribidi.setContentAreaFilled(false);
-
-		if (configuration.isMencoderSubFribidi()) {
-			fribidi.setSelected(true);
-		}
-
-		fribidi.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setMencoderSubFribidi(e.getStateChange() == ItemEvent.SELECTED);
-			}
-		});
-
-		builder.add(fribidi, FormLayoutUtil.flip(cc.xyw(11, 19, 4), colSpec, orientation));
-		builder.addLabel(Messages.getString("MEncoderVideo.24"), FormLayoutUtil.flip(cc.xy(1, 21), colSpec, orientation));
-
-		defaultfont = new JTextField(configuration.getMencoderFont());
-		defaultfont.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setMencoderFont(defaultfont.getText());
-			}
-		});
-
-		builder.add(defaultfont, FormLayoutUtil.flip(cc.xyw(3, 21, 8), colSpec, orientation));
-
-		fontselect = new CustomJButton("...");
-		fontselect.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JFileChooser chooser = new JFileChooser();
-				chooser.setFileFilter(new FontFileFilter());
-				int returnVal = chooser.showDialog((Component) e.getSource(), Messages.getString("MEncoderVideo.25"));
-				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					defaultfont.setText(chooser.getSelectedFile().getAbsolutePath());
-					configuration.setMencoderFont(chooser.getSelectedFile().getAbsolutePath());
-				}
-			}
-		});
-
-		builder.add(fontselect, FormLayoutUtil.flip(cc.xyw(11, 21, 2), colSpec, orientation));
-
-		builder.addLabel(Messages.getString("MEncoderVideo.12"), FormLayoutUtil.flip(cc.xy(1, 25, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
-
-		mencoder_ass_scale = new JTextField(configuration.getMencoderAssScale());
-		mencoder_ass_scale.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setMencoderAssScale(mencoder_ass_scale.getText());
-			}
-		});
-
-		builder.addLabel(Messages.getString("MEncoderVideo.13"), FormLayoutUtil.flip(cc.xy(5, 25), colSpec, orientation));
-
-		mencoder_ass_outline = new JTextField(configuration.getMencoderAssOutline());
-		mencoder_ass_outline.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setMencoderAssOutline(mencoder_ass_outline.getText());
-			}
-		});
-
-		builder.addLabel(Messages.getString("MEncoderVideo.14"), FormLayoutUtil.flip(cc.xy(9, 25), colSpec, orientation));
-
-		mencoder_ass_shadow = new JTextField(configuration.getMencoderAssShadow());
-		mencoder_ass_shadow.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setMencoderAssShadow(mencoder_ass_shadow.getText());
-			}
-		});
-
-		builder.addLabel(Messages.getString("MEncoderVideo.15"), FormLayoutUtil.flip(cc.xy(13, 25), colSpec, orientation));
-
-		mencoder_ass_margin = new JTextField(configuration.getMencoderAssMargin());
-		mencoder_ass_margin.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setMencoderAssMargin(mencoder_ass_margin.getText());
-			}
-		});
-
-		builder.add(mencoder_ass_scale, FormLayoutUtil.flip(cc.xy(3, 25), colSpec, orientation));
-		builder.add(mencoder_ass_outline, FormLayoutUtil.flip(cc.xy(7, 25), colSpec, orientation));
-		builder.add(mencoder_ass_shadow, FormLayoutUtil.flip(cc.xy(11, 25), colSpec, orientation));
-		builder.add(mencoder_ass_margin, FormLayoutUtil.flip(cc.xy(15, 25), colSpec, orientation));
 		builder.addLabel(Messages.getString("MEncoderVideo.16"), FormLayoutUtil.flip(cc.xy(1, 27, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 
 		mencoder_noass_scale = new JTextField(configuration.getMencoderNoAssScale());
@@ -675,53 +510,24 @@ public class MEncoderVideo extends Player {
 		});
 		builder.add(subq, FormLayoutUtil.flip(cc.xyw(3, 29, 1), colSpec, orientation));
 
-		subColor = new JButton();
-		subColor.setText(Messages.getString("MEncoderVideo.31"));
-		subColor.setBackground(new Color(configuration.getSubsColor()));
-		subColor.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Color newColor = JColorChooser.showDialog(
-					SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
-					Messages.getString("MEncoderVideo.125"),
-					subColor.getBackground()
-				);
-
-				if (newColor != null) {
-					subColor.setBackground(newColor);
-					configuration.setSubsColor(newColor.getRGB());
-				}
-			}
-		});
-		builder.add(subColor, FormLayoutUtil.flip(cc.xyw(12, 23, 4), colSpec, orientation));
-
 		configuration.addConfigurationListener(new ConfigurationListener() {
 			@Override
 			public void configurationChanged(ConfigurationEvent event) {
-				if (event.getPropertyName() == null ) {
+				if (event.getPropertyName() == null) {
 					return;
 				}
 				if ((!event.isBeforeUpdate()) && event.getPropertyName().equals(PmsConfiguration.KEY_DISABLE_SUBTITLES)) {
 					boolean enabled = !configuration.isDisableSubtitles();
-					subq.setEnabled(enabled);
-					subtitleCodePage.setEnabled(enabled);
 					ass.setEnabled(enabled);
 					assdefaultstyle.setEnabled(enabled);
-					fribidi.setEnabled(enabled);
 					fc.setEnabled(enabled);
-					mencoder_ass_scale.setEnabled(enabled);
-					mencoder_ass_outline.setEnabled(enabled);
-					mencoder_ass_shadow.setEnabled(enabled);
-					mencoder_ass_margin.setEnabled(enabled);
 					mencoder_noass_scale.setEnabled(enabled);
 					mencoder_noass_outline.setEnabled(enabled);
 					mencoder_noass_blur.setEnabled(enabled);
 					mencoder_noass_subpos.setEnabled(enabled);
-					defaultfont.setEnabled(enabled);
-					subColor.setEnabled(enabled);
-					fontselect.setEnabled(enabled);
 					ocw.setEnabled(enabled);
 					och.setEnabled(enabled);
+					subq.setEnabled(enabled);
 
 					if (enabled) {
 						ass.getItemListeners()[0].itemStateChanged(null);
@@ -815,10 +621,10 @@ public class MEncoderVideo extends Player {
 			for (String option : INVALID_CUSTOM_OPTIONS) {
 				if (option.equals(name)) {
 					if ((i + 1) < args.length) {
-					   value = " " + args[i + 1];
-					   ++i;
+						value = " " + args[i + 1];
+						++i;
 					} else {
-					   value = "";
+						value = "";
 					}
 
 					LOGGER.warn(
@@ -897,6 +703,7 @@ public class MEncoderVideo extends Player {
 
 	/**
 	 * Note: This is not exact. The bitrate can go above this but it is generally pretty good.
+	 *
 	 * @return The maximum bitrate the video should be along with the buffer size using MEncoder vars
 	 */
 	private String addMaximumBitrateConstraints(String encodeSettings, DLNAMediaInfo media, String quality, RendererConfiguration mediaRenderer, String audioType) {
@@ -907,11 +714,11 @@ public class MEncoderVideo extends Player {
 			rendererMaxBitrates = getVideoBitrateConfig(mediaRenderer.getMaxVideoBitrate());
 		}
 
-		if ((rendererMaxBitrates[0] > 0) && ((defaultMaxBitrates[0] == 0) || (rendererMaxBitrates[0] < defaultMaxBitrates[0]))) {
+		if (rendererMaxBitrates[0] > 0 && rendererMaxBitrates[0] < defaultMaxBitrates[0]) {
 			defaultMaxBitrates = rendererMaxBitrates;
 		}
 
-		if (mediaRenderer.getCBRVideoBitrate() == 0 && defaultMaxBitrates[0] > 0 && !quality.contains("vrc_buf_size") && !quality.contains("vrc_maxrate") && !quality.contains("vbitrate")) {
+		if (mediaRenderer.getCBRVideoBitrate() == 0 && !quality.contains("vrc_buf_size") && !quality.contains("vrc_maxrate") && !quality.contains("vbitrate")) {
 			// Convert value from Mb to Kb
 			defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
 
@@ -1146,7 +953,7 @@ public class MEncoderVideo extends Player {
 
 		if (h264ts) {
 			vcodec = "libx264";
-		} else if (params.mediaRenderer.isTranscodeToWMV()) {
+		} else if (params.mediaRenderer.isTranscodeToWMV() && !params.mediaRenderer.isXBOX()) {
 			wmv = true;
 			vcodec = "wmv2"; // http://wiki.megaframe.org/Mencoder_Transcode_for_Xbox_360
 		}
@@ -1222,7 +1029,7 @@ public class MEncoderVideo extends Player {
 		int channels;
 		if (ac3Remux) {
 			channels = params.aid.getAudioProperties().getNumberOfChannels(); // AC-3 remux
-		} else if (dtsRemux || wmv) {
+		} else if (dtsRemux || (!params.mediaRenderer.isXBOX() && wmv)) {
 			channels = 2;
 		} else if (pcm) {
 			channels = params.aid.getAudioProperties().getNumberOfChannels();
@@ -1304,17 +1111,51 @@ public class MEncoderVideo extends Player {
 			}
 		}
 
-		if (configuration.getMPEG2MainSettings() != null) {
-			String mainConfig = configuration.getMPEG2MainSettings();
-			String customSettings = params.mediaRenderer.getCustomMencoderQualitySettings();
+		if (configuration.getMPEG2MainSettings() != null && !h264ts) {
+			String mpeg2Options = configuration.getMPEG2MainSettings();
+			String mpeg2OptionsRenderer = params.mediaRenderer.getCustomMEncoderMPEG2Options();
 
-			// Custom settings in PMS may override the settings of the saved configuration
-			if (isNotBlank(customSettings)) {
-				mainConfig = customSettings;
-			}
+			// Renderer settings take priority over user settings
+			if (isNotBlank(mpeg2OptionsRenderer)) {
+				mpeg2Options = mpeg2OptionsRenderer;
+			} else {
+				// Remove comment from the value
+				if (mpeg2Options.contains("/*")) {
+					mpeg2Options = mpeg2Options.substring(mpeg2Options.indexOf("/*"));
+				}
 
-			if (mainConfig.contains("/*")) {
-				mainConfig = mainConfig.substring(mainConfig.indexOf("/*"));
+				// Find out the maximum bandwidth we are supposed to use
+				int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
+				int rendererMaxBitrates[] = new int[2];
+
+				if (params.mediaRenderer.getMaxVideoBitrate() != null) {
+					rendererMaxBitrates = getVideoBitrateConfig(params.mediaRenderer.getMaxVideoBitrate());
+				}
+
+				if ((rendererMaxBitrates[0] > 0) && (rendererMaxBitrates[0] < defaultMaxBitrates[0])) {
+					defaultMaxBitrates = rendererMaxBitrates;
+				}
+
+				int maximumBitrate = defaultMaxBitrates[0];
+
+				// Determine a good quality setting based on video attributes
+				if (mpeg2Options.contains("Automatic")) {
+					mpeg2Options = "keyint=5:vqscale=1:vqmin=2:vqmax=3";
+
+					// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
+					if (params.mediaRenderer.isPS3()) {
+						mpeg2Options = "keyint=25:vqscale=1:vqmin=2:vqmax=3";
+					}
+
+					if (mpeg2Options.contains("Wireless") || maximumBitrate < 70) {
+						// Lower quality for 720p+ content
+						if (media.getWidth() > 1280) {
+							mpeg2Options = "keyint=25:vqmax=7:vqmin=2";
+						} else if (media.getWidth() > 720) {
+							mpeg2Options = "keyint=25:vqmax=5:vqmin=2";
+						}
+					}
+				}
 			}
 
 			// Ditlew - WDTV Live (+ other byte asking clients), CBR. This probably ought to be placed in addMaximumBitrateConstraints(..)
@@ -1324,21 +1165,20 @@ public class MEncoderVideo extends Player {
 				"";
 
 			String encodeSettings = "-lavcopts autoaspect=1:vcodec=" + vcodec +
-				(wmv ? ":acodec=wmav2:abitrate=448" : (cbr_settings + ":acodec=" + (configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3") +
+				(wmv && !params.mediaRenderer.isXBOX() ? ":acodec=wmav2:abitrate=448" : (cbr_settings + ":acodec=" + (configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3") +
 				":abitrate=" + CodecUtil.getAC3Bitrate(configuration, params.aid))) +
-				":threads=" + (wmv ? 1 : configuration.getMencoderMaxThreads()) +
+				":threads=" + (wmv && !params.mediaRenderer.isXBOX() ? 1 : configuration.getMencoderMaxThreads()) +
 				(h264ts ? ":o=preset=superfast,crf=20,g=250,i_qfactor=0.71,qcomp=0.6,level=4.1,weightp=0,8x8dct=0,aq-strength=0" : "") +
-				("".equals(mainConfig) ? "" : ":" + mainConfig);
+				("".equals(mpeg2Options) ? "" : ":" + mpeg2Options);
 
 			String audioType = "ac3";
-
 			if (dtsRemux) {
 				audioType = "dts";
 			} else if (pcm) {
 				audioType = "pcm";
 			}
 
-			encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, mainConfig, params.mediaRenderer, audioType);
+			encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, mpeg2Options, params.mediaRenderer, audioType);
 			st = new StringTokenizer(encodeSettings, " ");
 
 			{
@@ -1399,15 +1239,15 @@ public class MEncoderVideo extends Player {
 						}
 					}
 
-					sb.append("-ass-color ").append(assSubColor).append(" -ass-border-color 00000000 -ass-font-scale ").append(configuration.getMencoderAssScale());
+					sb.append("-ass-color ").append(assSubColor).append(" -ass-border-color 00000000 -ass-font-scale ").append(configuration.getAssScale());
 
 					// Set subtitles font
-					if (configuration.getMencoderFont() != null && configuration.getMencoderFont().length() > 0) {
+					if (configuration.getFont() != null && configuration.getFont().length() > 0) {
 						/* Set font with -font option, workaround for the bug:
 						 * https://github.com/Happy-Neko/ps3mediaserver/commit/52e62203ea12c40628de1869882994ce1065446a#commitcomment-990156
 						 */
-						sb.append(" -font ").append(configuration.getMencoderFont()).append(" ");
-						sb.append(" -ass-force-style FontName=").append(configuration.getMencoderFont()).append(",");
+						sb.append(" -font ").append(configuration.getFont()).append(" ");
+						sb.append(" -ass-force-style FontName=").append(configuration.getFont()).append(",");
 					} else {
 						String font = CodecUtil.getDefaultFontPath();
 						if (isNotBlank(font)) {
@@ -1435,7 +1275,7 @@ public class MEncoderVideo extends Player {
 						subtitleMargin = subtitleMargin / 2;
 					}
 
-					sb.append("Outline=").append(configuration.getMencoderAssOutline()).append(",Shadow=").append(configuration.getMencoderAssShadow());
+					sb.append("Outline=").append(configuration.getAssOutline()).append(",Shadow=").append(configuration.getAssShadow());
 
 					try {
 						userMargin = Integer.parseInt(configuration.getMencoderAssMargin());
@@ -1474,8 +1314,8 @@ public class MEncoderVideo extends Player {
 			// Use PLAINTEXT formatting
 			} else {
 				// Set subtitles font
-				if (configuration.getMencoderFont() != null && configuration.getMencoderFont().length() > 0) {
-					sb.append(" -font ").append(configuration.getMencoderFont()).append(" ");
+				if (configuration.getFont() != null && configuration.getFont().length() > 0) {
+					sb.append(" -font ").append(configuration.getFont()).append(" ");
 				} else {
 					String font = CodecUtil.getDefaultFontPath();
 					if (isNotBlank(font)) {
@@ -1525,9 +1365,9 @@ public class MEncoderVideo extends Player {
 					String subcp = null;
 
 					// Append -subcp option for non UTF external subtitles
-					if (isNotBlank(configuration.getMencoderSubCp())) {
+					if (isNotBlank(configuration.getSubtitlesCodepage())) {
 						// Manual setting
-						subcp = configuration.getMencoderSubCp();
+						subcp = configuration.getSubtitlesCodepage();
 					} else if (isNotBlank(SubtitleUtils.getSubCpOptionForMencoder(params.sid))) {
 						// Autodetect charset (blank mencoder_subcp config option)
 						subcp = SubtitleUtils.getSubCpOptionForMencoder(params.sid);
@@ -1875,24 +1715,32 @@ public class MEncoderVideo extends Player {
 		 * case we add borders until it is divisible by 4.
 		 * This fixes the long-time bug of videos displaying in black and
 		 * white with diagonal strips of colour, weird one.
-		 * 
+		 *
 		 * TODO: Integrate this with the other stuff so that "expand" only
 		 * ever appears once in the MEncoder CMD.
 		 */
-		if (!dvd && ((media.getWidth() % 4 != 0) || media.getHeight() % 4 != 0 || params.mediaRenderer.isKeepAspectRatio())) {
+		if (
+			!dvd &&
+			(
+				(media.getWidth() % 4 != 0) ||
+				(media.getHeight() % 4 != 0) ||
+				params.mediaRenderer.isKeepAspectRatio()
+			) &&
+			!configuration.isMencoderScaler()
+		) {
 			int expandBorderWidth;
 			int expandBorderHeight;
 			StringBuilder expandParams = new StringBuilder();
 
 			expandBorderWidth  = media.getWidth() % 4;
 			expandBorderHeight = media.getHeight() % 4;
-			
+
 			expandParams.append("expand=-").append(expandBorderWidth).append(":-").append(expandBorderHeight);
 
 			if (params.mediaRenderer.isKeepAspectRatio()) {
 				expandParams.append(":::0:16/9");
 			}
-			
+
 			expandParams.append(",softskip");
 
 			cmdList.add("-vf");
@@ -2235,7 +2083,7 @@ public class MEncoderVideo extends Player {
 				// -mc 0.1 makes the DTS-HD extraction work better with latest MEncoder builds, and has no impact on the regular DTS one
 				// TODO: See if these notes are still true, and if so leave specific revisions/release names of the latest version tested.
 				String ffmpegLPCMextract[] = new String[]{
-					executable(), 
+					executable(),
 					"-ss", "0",
 					fileName,
 					"-really-quiet",
@@ -2566,9 +2414,11 @@ public class MEncoderVideo extends Player {
 		if (format != null) {
 			Format.Identifier id = format.getIdentifier();
 
-			if (id.equals(Format.Identifier.ISO)
-					|| id.equals(Format.Identifier.MKV)
-					|| id.equals(Format.Identifier.MPG)) {
+			if (
+				id.equals(Format.Identifier.ISO) ||
+				id.equals(Format.Identifier.MKV) ||
+				id.equals(Format.Identifier.MPG)
+			) {
 				return true;
 			}
 		}

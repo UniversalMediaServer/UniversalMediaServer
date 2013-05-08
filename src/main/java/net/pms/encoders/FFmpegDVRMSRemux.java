@@ -41,7 +41,7 @@ import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class FFmpegDVRMSRemux extends Player {
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
@@ -84,8 +84,8 @@ public class FFmpegDVRMSRemux extends Player {
 	@Deprecated
 	protected String[] getDefaultArgs() {
 		return new String[] {
-			"-vcodec", "copy",
-			"-acodec", "copy",
+			"-c:v", "copy",
+			"-c:a", "copy",
 			"-threads", "2",
 			"-g", "1",
 			"-qscale", "1",
@@ -114,18 +114,18 @@ public class FFmpegDVRMSRemux extends Player {
 
 	@Override
 	public ProcessWrapper launchTranscode(
-		String fileName,
+		String filename,
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
-		return getFFMpegTranscode(fileName, dlna, media, params);
+		return getFFMpegTranscode(filename, dlna, media, params);
 	}
 
 	// pointless redirection of launchTranscode
 	@Deprecated
 	protected ProcessWrapperImpl getFFMpegTranscode(
-		String fileName,
+		String filename,
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params
@@ -145,7 +145,7 @@ public class FFmpegDVRMSRemux extends Player {
 		}
 
 		cmdList.add("-i");
-		cmdList.add(fileName);
+		cmdList.add(filename);
 		cmdList.addAll(Arrays.asList(args()));
 
 		String customSettingsString = configuration.getFfmpegSettings();
@@ -162,7 +162,7 @@ public class FFmpegDVRMSRemux extends Player {
 		cmdList.toArray(cmdArray);
 
 		cmdArray = finalizeTranscoderArgs(
-			fileName,
+			filename,
 			dlna,
 			media,
 			params,

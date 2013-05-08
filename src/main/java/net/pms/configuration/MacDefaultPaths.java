@@ -1,7 +1,7 @@
 package net.pms.configuration;
 
 import net.pms.util.PropertiesUtil;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 class MacDefaultPaths implements ProgramPaths {
 	@Override

@@ -31,7 +31,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
 import net.pms.external.StartStopListenerDelegate;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelFuture;
@@ -335,27 +335,29 @@ public class RequestV2 extends HTTPResource {
 
 					inputStream = dlna.getInputStream(Range.create(lowRange, highRange, range.getStart(), range.getEnd()), mediaRenderer);
 
-					// Some renderers (like Samsung devices) allow a custom header for a subtitle URL
-					String subtitleHttpHeader = mediaRenderer.getSubtitleHttpHeader();
+					if (!configuration.isDisableSubtitles()) {
+						// Some renderers (like Samsung devices) allow a custom header for a subtitle URL
+						String subtitleHttpHeader = mediaRenderer.getSubtitleHttpHeader();
 
-					if (subtitleHttpHeader != null && !"".equals(subtitleHttpHeader)) {
-						// Device allows a custom subtitle HTTP header; construct it
-						List<DLNAMediaSubtitle> subs = dlna.getMedia().getSubtitleTracksList();
+						if (subtitleHttpHeader != null && !"".equals(subtitleHttpHeader)) {
+							// Device allows a custom subtitle HTTP header; construct it
+							List<DLNAMediaSubtitle> subs = dlna.getMedia().getSubtitleTracksList();
 
-						if (subs != null && !subs.isEmpty()) {
-							DLNAMediaSubtitle sub = subs.get(0);
-							String subtitleUrl;
-							String subExtension = sub.getType().getExtension();
-							if (isNotBlank(subExtension)) {
-								subtitleUrl = "http://" + PMS.get().getServer().getHost() +
-									':' + PMS.get().getServer().getPort() + "/get/" +
-									id + "/subtitle0000." + subExtension;
-							} else {
-								subtitleUrl = "http://" + PMS.get().getServer().getHost() +
-									':' + PMS.get().getServer().getPort() + "/get/" +
-									id + "/subtitle0000";
+							if (subs != null && !subs.isEmpty()) {
+								DLNAMediaSubtitle sub = subs.get(0);
+								String subtitleUrl;
+								String subExtension = sub.getType().getExtension();
+								if (isNotBlank(subExtension)) {
+									subtitleUrl = "http://" + PMS.get().getServer().getHost() +
+										':' + PMS.get().getServer().getPort() + "/get/" +
+										id + "/subtitle0000." + subExtension;
+								} else {
+									subtitleUrl = "http://" + PMS.get().getServer().getHost() +
+										':' + PMS.get().getServer().getPort() + "/get/" +
+										id + "/subtitle0000";
+								}
+								output.setHeader(subtitleHttpHeader, subtitleUrl);
 							}
-							output.setHeader(subtitleHttpHeader, subtitleUrl);
 						}
 					}
 
@@ -769,6 +771,7 @@ public class RequestV2 extends HTTPResource {
 						out.write(("HOST: " + addr + ":" + port).getBytes());
 						out.write(CRLF.getBytes());
 						out.flush();
+						sock.close();
 					}
 				} catch (MalformedURLException ex) {
 					LOGGER.debug("Cannot parse address and port from soap action \"" + soapaction + "\"", ex);

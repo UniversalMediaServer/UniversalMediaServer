@@ -47,6 +47,8 @@ import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.util.ProcessUtil;
+import org.apache.commons.configuration.event.ConfigurationEvent;
+import org.apache.commons.configuration.event.ConfigurationListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,7 +85,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 		if (configuration.isFfmpegAviSynthMultithreading()) {
 			threads = " -threads " + configuration.getNumberOfCpuCores();
 		}
-		return configuration.getFfmpegSettings() + " -ab " + configuration.getAudioBitrate() + "k" + threads;
+		return configuration.getMPEG2MainSettingsFFmpeg() + " -ab " + configuration.getAudioBitrate() + "k" + threads;
 	}
 
 	@Override
@@ -96,15 +98,15 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 		return true;
 	}
 
-	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack) throws IOException {
-		return getAVSScript(fileName, subTrack, -1, -1, null, null);
+	public static File getAVSScript(String filename, DLNAMediaSubtitle subTrack) throws IOException {
+		return getAVSScript(filename, subTrack, -1, -1, null, null);
 	}
 
 	/*
 	 * Generate the AviSynth script based on the user's settings
 	 */
-	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack, int fromFrame, int toFrame, String frameRateRatio, String frameRateNumber) throws IOException {
-		String onlyFileName = fileName.substring(1 + fileName.lastIndexOf("\\"));
+	public static File getAVSScript(String filename, DLNAMediaSubtitle subTrack, int fromFrame, int toFrame, String frameRateRatio, String frameRateNumber) throws IOException {
+		String onlyFileName = filename.substring(1 + filename.lastIndexOf("\\"));
 		File file = new File(configuration.getTempFolder(), "pms-avs-" + onlyFileName + ".avs");
 		try (PrintWriter pw = new PrintWriter(new FileOutputStream(file))) {
 			String numerator;
@@ -139,12 +141,12 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				convertfps = ", convertfps=true";
 			}
 
-			File f = new File(fileName);
+			File f = new File(filename);
 			if (f.exists()) {
-				fileName = ProcessUtil.getShortFileNameIfWideChars(fileName);
+				filename = ProcessUtil.getShortFileNameIfWideChars(filename);
 			}
 
-			String movieLine       = "DirectShowSource(\"" + fileName + "\"" + directShowFPS + convertfps + ")" + assumeFPS;
+			String movieLine       = "DirectShowSource(\"" + filename + "\"" + directShowFPS + convertfps + ")" + assumeFPS;
 			String mtLine1         = "";
 			String mtLine2         = "";
 			String interframeLines = null;
@@ -167,7 +169,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				movieLine = movieLine + ".ConvertToYV12()";
 
 				// Enable GPU to assist with CPU
-				if (configuration.getFfmpegAvisynthInterFrameGPU()){
+				if (configuration.getFfmpegAvisynthInterFrameGPU() && interframegpu.isEnabled()){
 					GPU = ", GPU=true";
 				}
 
@@ -214,7 +216,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			if (fullyManaged) {
 				for (String s : lines) {
 					if (s.contains("<moviefilename>")) {
-						s = s.replace("<moviefilename>", fileName);
+						s = s.replace("<moviefilename>", filename);
 					}
 
 					if (movieLine != null) {
@@ -238,7 +240,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 
 	private JCheckBox multithreading;
 	private JCheckBox interframe;
-	private JCheckBox interframegpu;
+	private static JCheckBox interframegpu;
 	private JCheckBox convertfps;
 
 	@Override
@@ -315,6 +317,18 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			}
 		});
 		builder.add(convertfps, cc.xy(2, 9));
+
+		configuration.addConfigurationListener(new ConfigurationListener() {
+			@Override
+			public void configurationChanged(ConfigurationEvent event) {
+				if (event.getPropertyName() == null) {
+					return;
+				}
+				if ((!event.isBeforeUpdate()) && event.getPropertyName().equals(PmsConfiguration.KEY_GPU_ACCELERATION)) {
+					interframegpu.setEnabled(configuration.isGPUAcceleration());
+				}
+			}
+		});
 
 		return builder.getPanel();
 	}

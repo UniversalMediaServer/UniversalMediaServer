@@ -50,7 +50,7 @@ import net.pms.util.ImagesUtil;
 import net.pms.util.Iso639;
 import net.pms.util.MpegUtil;
 import static net.pms.util.StringUtil.*;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +69,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAResource.class);
 	private static final SimpleDateFormat SDF_DATE = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
-	
+
 	protected static final int MAX_ARCHIVE_ENTRY_SIZE = 10000000;
 	protected static final int MAX_ARCHIVE_SIZE_SEEK = 800000000;
 
@@ -345,7 +345,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return true;
 	}
 
-	/**Any {@link DLNAResource} needs to represent the container or item with a String.
+	/**
+	 * Any {@link DLNAResource} needs to represent the container or item with a String.
+	 *
 	 * @return String to be showed in the UPNP client.
 	 */
 	public abstract String getName();
@@ -412,7 +414,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Recursive function that searchs through all of the children until it finds
+	 * Recursive function that searches through all of the children until it finds
 	 * a {@link DLNAResource} that matches the name.<p> Only used by
 	 * {@link net.pms.dlna.RootFolder#addWebFolder(File webConf)
 	 * addWebFolder(File webConf)} while parsing the web.conf file.
@@ -584,7 +586,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							}
 						}
 
-						if (child.getExt().isVideo() && child.isSubSelectable()) {
+						if (child.getFormat().isVideo() && child.isSubSelectable()) {
 							VirtualFolder vf = getSubSelector(true);
 							if (vf != null) {
 								DLNAResource newChild = child.clone();
@@ -680,14 +682,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	/**
 	 * Adds the supplied DNLA resource to the internal list of child nodes,
 	 * and sets the parent to the current node. Avoids the side-effects
-	 * associated with the {@link addChild(DLNAResource)} method.
+	 * associated with the {@link #addChild(DLNAResource)} method.
 	 *
 	 * @param child the DLNA resource to add to this node's list of children
 	 */
 	protected synchronized void addChildInternal(DLNAResource child) {
 		if (child.getInternalId() != null) {
 			LOGGER.info(
-				"Node ({}) already has an ID ({}), which is overriden now. The previous parent node was: {}",
+				"Node ({}) already has an ID ({}), which is overridden now. The previous parent node was: {}",
 				new Object[] {
 					child.getClass().getName(),
 					child.getResourceId(),
@@ -1228,15 +1230,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			addXMLTagAndAttribute(
 				sb,
 				"dc:title",
-				encodeXML(firstAudioTrack.getSongname() + (getPlayer() != null && !configuration.isHideEngineNames() ? (" [" + getPlayer().name() + "]") : ""))
+				encodeXML(wireshark)
 			);
 		} else { // Ditlew - org
 			// Ditlew
-			wireshark = wireshark + " " + ((isFolder() || getPlayer() == null) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer)));
+			wireshark = ((isFolder() || getPlayer() == null) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer)));
 			addXMLTagAndAttribute(
 				sb,
 				"dc:title",
-				encodeXML((isFolder() || getPlayer() == null) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer)))
+				encodeXML(wireshark)
 			);
 		}
 
@@ -1323,77 +1325,76 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					mime = "video/mpeg";
 				}
 
-				// TODO: Remove, or at least make this generic
-				// Whole extensions/mime-types mess to rethink anyway
-				if (mediaRenderer.isPS3()) {
-					if (mime.equals("video/x-divx")) {
-						dlnaspec = "DLNA.ORG_PN=AVI";
-					} else if (mime.equals("video/x-ms-wmv") && getMedia() != null && getMedia().getHeight() > 700) {
-						dlnaspec = "DLNA.ORG_PN=WMVHIGH_PRO";
-					}
-				} else {
-					if (mime.equals("video/mpeg")) {
-						dlnaspec = "DLNA.ORG_PN=" + getMPEG_PS_PALLocalizedValue(c);
+				dlnaspec = null;
 
-						if (getPlayer() != null) {
-							// Do we have some mpegts to offer?
-							boolean mpegTsMux = TsMuxeRVideo.ID.equals(getPlayer().id()) || VideoLanVideoStreaming.ID.equals(getPlayer().id());
-							boolean isMuxableResult = getMedia().isMuxable(mediaRenderer);
-							if (!mpegTsMux) { // Maybe, like the PS3, MEncoder can launch tsMuxeR if this a compatible H.264 video
-								mpegTsMux = MEncoderVideo.ID.equals(getPlayer().id()) &&
-									(
-										(
-											getMediaSubtitle() == null &&
-											!isSrtFile() &&
-											getMedia() != null &&
-											getMedia().getDvdtrack() == 0 &&
-											isMuxableResult &&
-											configuration.isMencoderMuxWhenCompatible() &&
-											mediaRenderer.isMuxH264MpegTS()
-										) ||
-										mediaRenderer.isTranscodeToMPEGTSAC3()
-									);
-							}
-							if (mpegTsMux) {
-								dlnaspec = "DLNA.ORG_PN=" + getMPEG_TS_SD_EU_ISOLocalizedValue(c);
-								if (
-									getMedia().isH264() &&
-									!VideoLanVideoStreaming.ID.equals(getPlayer().id()) &&
-									isMuxableResult
-								) {
-									dlnaspec = "DLNA.ORG_PN=AVC_TS_HD_24_AC3_ISO";
-								}
-							}
-						} else if (getMedia() != null) {
-							if (getMedia().isMpegTS()) {
-								dlnaspec = "DLNA.ORG_PN=" + getMPEG_TS_SD_EULocalizedValue(c);
-								if (getMedia().isH264()) {
-									dlnaspec = "DLNA.ORG_PN=AVC_TS_HD_50_AC3";
-								}
-							}
+				if (mediaRenderer.isDLNAOrgPNUsed()) {
+					if (mediaRenderer.isPS3()) {
+						if (mime.equals("video/x-divx")) {
+							dlnaspec = "DLNA.ORG_PN=AVI";
+						} else if (mime.equals("video/x-ms-wmv") && getMedia() != null && getMedia().getHeight() > 700) {
+							dlnaspec = "DLNA.ORG_PN=WMVHIGH_PRO";
 						}
-					} else if (mime.equals("video/vnd.dlna.mpeg-tts")) {
-						// patters - on Sony BDP m2ts clips aren't listed without this
-						dlnaspec = "DLNA.ORG_PN=" + getMPEG_TS_SD_EULocalizedValue(c);
-					} else if (mime.equals("image/jpeg")) {
-						dlnaspec = "DLNA.ORG_PN=JPEG_LRG";
-					} else if (mime.equals("audio/mpeg")) {
-						dlnaspec = "DLNA.ORG_PN=MP3";
-					} else if (mime.substring(0, 9).equals("audio/L16") || mime.equals("audio/wav")) {
-						dlnaspec = "DLNA.ORG_PN=LPCM";
+					} else {
+						if (mime.equals("video/mpeg")) {
+							dlnaspec = "DLNA.ORG_PN=" + getMPEG_PS_PALLocalizedValue(c);
+
+							if (getPlayer() != null) {
+								// Do we have some mpegts to offer?
+								boolean mpegTsMux = TsMuxeRVideo.ID.equals(getPlayer().id()) || VideoLanVideoStreaming.ID.equals(getPlayer().id());
+								boolean isMuxableResult = getMedia().isMuxable(mediaRenderer);
+								if (!mpegTsMux) { // Maybe, like the PS3, MEncoder can launch tsMuxeR if this a compatible H.264 video
+									mpegTsMux = MEncoderVideo.ID.equals(getPlayer().id()) &&
+										(
+											(
+												getMediaSubtitle() == null &&
+												!isSrtFile() &&
+												getMedia() != null &&
+												getMedia().getDvdtrack() == 0 &&
+												isMuxableResult &&
+												configuration.isMencoderMuxWhenCompatible() &&
+												mediaRenderer.isMuxH264MpegTS()
+											) ||
+											mediaRenderer.isTranscodeToMPEGTSAC3()
+										);
+								}
+								if (mpegTsMux) {
+									dlnaspec = "DLNA.ORG_PN=" + getMPEG_TS_SD_EU_ISOLocalizedValue(c);
+									if (
+										getMedia().isH264() &&
+										!VideoLanVideoStreaming.ID.equals(getPlayer().id()) &&
+										isMuxableResult
+									) {
+										dlnaspec = "DLNA.ORG_PN=AVC_TS_HD_24_AC3_ISO";
+									}
+								}
+							} else if (getMedia() != null) {
+								if (getMedia().isMpegTS()) {
+									dlnaspec = "DLNA.ORG_PN=" + getMPEG_TS_SD_EULocalizedValue(c);
+									if (getMedia().isH264()) {
+										dlnaspec = "DLNA.ORG_PN=AVC_TS_HD_50_AC3";
+									}
+								}
+							}
+						} else if (mime.equals("video/vnd.dlna.mpeg-tts")) {
+							// patters - on Sony BDP m2ts clips aren't listed without this
+							dlnaspec = "DLNA.ORG_PN=" + getMPEG_TS_SD_EULocalizedValue(c);
+						} else if (mime.equals("image/jpeg")) {
+							dlnaspec = "DLNA.ORG_PN=JPEG_LRG";
+						} else if (mime.equals("audio/mpeg")) {
+							dlnaspec = "DLNA.ORG_PN=MP3";
+						} else if (mime.substring(0, 9).equals("audio/L16") || mime.equals("audio/wav")) {
+							dlnaspec = "DLNA.ORG_PN=LPCM";
+						}
+					}
+
+					if (dlnaspec != null) {
+						dlnaspec = "DLNA.ORG_PN=" + mediaRenderer.getDLNAPN(dlnaspec.substring(12));
 					}
 				}
 
-				if (dlnaspec != null) {
-					dlnaspec = "DLNA.ORG_PN=" + mediaRenderer.getDLNAPN(dlnaspec.substring(12));
-				}
-
-				if (!mediaRenderer.isDLNAOrgPNUsed()) {
-					dlnaspec = null;
-				}
-
-				wireshark = wireshark + " " + "http-get:*:" + mime + ":" + (dlnaspec != null ? (dlnaspec + ";") : "") + getDlnaOrgOpFlags();
-				addAttribute(sb, "protocolInfo", "http-get:*:" + mime + ":" + (dlnaspec != null ? (dlnaspec + ";") : "") + getDlnaOrgOpFlags());
+				String tempString = "http-get:*:" + mime + ":" + (dlnaspec != null ? (dlnaspec + ";") : "") + getDlnaOrgOpFlags();
+				wireshark = wireshark + " " + tempString;
+				addAttribute(sb, "protocolInfo", tempString);
 
 				if (getFormat() != null && getFormat().isVideo() && getMedia() != null && getMedia().isMediaparsed()) {
 					if (getPlayer() == null && getMedia() != null) {
@@ -1922,7 +1923,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * Called from Request/RequestV2 in response to thumbnail requests e.g. HEAD /get/0$1$0$42$3/thumbnail0000%5BExample.mkv
 	 * Calls DLNAMediaInfo.generateThumbnail, which in turn calls DLNAMediaInfo.parse.
 	 *
-	 * @param input InputFile to check or generate the thumbnail from.
+	 * @param inputFile File to check or generate the thumbnail for.
 	 */
 	protected void checkThumbnail(InputFile inputFile) {
 		if (getMedia() != null && !getMedia().isThumbready() && configuration.isThumbnailGenerationEnabled()) {
@@ -2171,7 +2172,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * @deprecated Use {@link #setLastModified()} instead.
+	 * @deprecated Use {@link #setLastModified(long)} instead.
 	 *
 	 * Sets the timestamp at which this resource was last modified.
 	 *
@@ -2541,9 +2542,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return null;
 		}
 		if (
-			PMS.getConfiguration().isDisableSubtitles() ||
-			!PMS.getConfiguration().isAutoloadSubtitles() ||
-			PMS.getConfiguration().isHideLiveSubtitlesFolder()
+			configuration.isDisableSubtitles() ||
+			!configuration.isAutoloadSubtitles() ||
+			configuration.isHideLiveSubtitlesFolder()
 		) {
 			return null;
 		}

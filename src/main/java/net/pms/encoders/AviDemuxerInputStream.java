@@ -84,6 +84,7 @@ public class AviDemuxerInputStream extends InputStream {
 				}
 			};
 
+			pin.close();
 			vOut = pout;
 			new Thread(r, "Avi Demuxer").start();
 		} else {
