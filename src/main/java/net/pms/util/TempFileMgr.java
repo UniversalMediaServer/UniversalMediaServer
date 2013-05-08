@@ -20,7 +20,6 @@ public class TempFileMgr {
 	public TempFileMgr() {
 		files = new HashMap<>();
 		parseCleanFile();
-		schedule();
 	}
 
 	public void add(File f) {
@@ -61,7 +60,7 @@ public class TempFileMgr {
 		}
 	}
 
-	private void schedule() {
+	public void schedule() {
 		TimerTask task = new TimerTask() {
 			@Override
 			public void run() {
