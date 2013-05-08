@@ -23,9 +23,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.io.OutputParams;
 import net.pms.util.StringUtil;
+import static org.apache.commons.io.FilenameUtils.getBaseName;
 import static org.apache.commons.lang3.StringUtils.*;
 import static org.mozilla.universalchardet.Constants.*;
 import org.slf4j.Logger;
@@ -33,6 +35,7 @@ import org.slf4j.LoggerFactory;
 
 public class SubtitleUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StringUtil.class);
+	private final static PmsConfiguration configuration = PMS.getConfiguration();
 	public static final String ASS_TIME_FORMAT = "%01d:%02d:%02.2f";
 	public static final String SRT_TIME_FORMAT = "%02d:%02d:%02.3f";
 	public static final String SEC_TIME_FORMAT = "%02d:%02d:%02d";
@@ -95,13 +98,13 @@ public class SubtitleUtils {
 	 * @return Converted subtitles file
 	 * @throws IOException
 	 */
-	public static File applyTimeSeekingToASS(File SrtFile, OutputParams params) throws IOException {
+	public static File applyTimeSeekingToASS(File subsFile, OutputParams params) throws IOException {
 		Double startTime;
 		Double endTime;
 		String line;
-		File outputSubs = new File(tempFile(SrtFile.getName() + System.currentTimeMillis()));
+		File outputSubs = new File(configuration.getTempFolder(), getBaseName(subsFile.getName()) + "_" + System.currentTimeMillis()  + ".tmp");
 		BufferedWriter output;
-		try (BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(SrtFile)))) {
+		try (BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(subsFile)))) {
 			output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs)));
 			Double timeseek = params.timeseek;
 			while ((line = input.readLine()) != null) {
@@ -129,29 +132,20 @@ public class SubtitleUtils {
 		return outputSubs;
 	}
 
-	public static String tempFile(String name) {
-		String dir = PMS.getConfiguration().getDataFile(TEMP_DIR); 
-		File path = new File(dir);
-		if (!path.exists()) {
-			path.mkdirs();
-		}
-		return path.getAbsolutePath() + File.separator + name + ".tmp";
-	}
-
-	public static File applyTimeSeekingToSrt(File in, OutputParams params) throws IOException {
+	public static File applyTimeSeekingToSrt(File subsFile, OutputParams params) throws IOException {
 		BufferedReader reader;
 		Double timeseek = params.timeseek;
-		String cp = PMS.getConfiguration().getSubtitlesCodepage();
+		String cp = configuration.getSubtitlesCodepage();
 		if (isNotBlank(cp) && !params.sid.isExternalFileUtf8()) {
-			reader = new BufferedReader(new InputStreamReader(new FileInputStream(in),cp)); // Always convert codepage
+			reader = new BufferedReader(new InputStreamReader(new FileInputStream(subsFile),cp)); // Always convert codepage
 		} else if (timeseek > 0) {
-			reader = new BufferedReader(new InputStreamReader(new FileInputStream(in))); // Apply timeseeking without codepage conversion
+			reader = new BufferedReader(new InputStreamReader(new FileInputStream(subsFile))); // Apply timeseeking without codepage conversion
 		} else {
-			return in; // Codepage conversion or timeseeking is not needed
+			return subsFile; // Codepage conversion or timeseeking is not needed
 		}
 
-		File out = new File(tempFile(in.getName() + System.currentTimeMillis()));
-		BufferedWriter w = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(out)));
+		File outputSubs = new File(configuration.getTempFolder(), getBaseName(subsFile.getName()) + "_" + System.currentTimeMillis()  + ".tmp");
+		BufferedWriter w = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs)));
 		String line;
 		int n = 1;
 
@@ -180,8 +174,8 @@ public class SubtitleUtils {
 		reader.close();
 		w.flush();
 		w.close();
-		PMS.get().addTempFile(out, 2 * 24 * 3600 * 1000);
-		return out;
+		PMS.get().addTempFile(outputSubs, 2 * 24 * 3600 * 1000);
+		return outputSubs;
 	}
 
 	/**

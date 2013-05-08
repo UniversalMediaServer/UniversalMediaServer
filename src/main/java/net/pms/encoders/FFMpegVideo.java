@@ -1229,7 +1229,7 @@ public class FFMpegVideo extends Player {
 
 	public File applySubsSettingsToTempSubsFile(File tempSubs) throws IOException {
 		File outputSubs = tempSubs;
-		File temp = new File(SubtitleUtils.tempFile(tempSubs.getName()));
+		File temp = new File(configuration.getTempFolder(), tempSubs.getName());
 		Files.copy(tempSubs.toPath(), temp.toPath(), REPLACE_EXISTING);
 		BufferedWriter output;
 		try (BufferedReader input = new BufferedReader(new FileReader(temp))) {
