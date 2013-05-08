@@ -297,7 +297,10 @@ public class DLNAMediaInfo implements Cloneable {
 					if (
 						codecA != null &&
 						(
-							codecA.equals("aac") ||
+							(
+								codecA.equals("aac") &&
+								getFirstAudioTrack().getAudioProperties().getNumberOfChannels() == 2
+							) ||
 							codecA.equals("ac3") ||
 							codecA.equals("dca") ||
 							codecA.equals("dts") ||
