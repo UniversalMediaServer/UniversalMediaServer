@@ -1137,6 +1137,9 @@ public class RootFolder extends DLNAResource {
 				try {
 					DLNAResource resource = afar.getChild();
 					LOGGER.debug("add ext list " + listener);
+					if(resource == null) {
+						continue;
+					}
 					resource.setMasterParent(listener);
 					for (DLNAResource r : resource.getChildren()) {
 						r.setMasterParent(listener);
