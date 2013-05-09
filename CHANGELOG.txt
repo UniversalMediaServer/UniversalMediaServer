@@ -18,7 +18,7 @@
 		Added option to ignore certain renderer configurations
 		Fixed memory leaks
 		Added tooltips to several options to make them clearer
-		Improved file compatibility on non-PS3 renderers
+		Improved file compatibility on all renderers
 	Renderers:
 		Xbox 360 supports 5.1 audio
 		Faster transcoding on Xbox 360
