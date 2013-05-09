@@ -18,13 +18,19 @@
 		Added option to ignore certain renderer configurations
 		Fixed memory leaks
 		Added tooltips to several options to make them clearer
+		Improved file compatibility on non-PS3 renderers
 	Renderers:
 		Xbox 360 supports 5.1 audio
 		Faster transcoding on Xbox 360
+		Improved file compatibility on Sony Bravia TVs
+		Improved support for Samsung TVs
+		Added profile for Samsung D7000 TVs
 	Languages:
 		Added English (UK) to the list of languages
 		Updated English settings
 		Updated Spanish translation (thanks, Alfredo Ramos and uman2k!)
+		Updated all language flags
+		Corrected Slovak flag
 
 2.6.3 - 2013-05-01
 
