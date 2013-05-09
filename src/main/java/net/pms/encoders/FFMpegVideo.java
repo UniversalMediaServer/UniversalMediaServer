@@ -1079,7 +1079,7 @@ public class FFMpegVideo extends Player {
 					"_" + new File(fileName).lastModified() + "_EMB_ID" + params.sid.getId() + ".ass";
 			File tmp = new File(convertedSubs);
 
-			if (tmp.exists()) {
+			if (tmp.canRead()) {
 				tempSubs = tmp;
 			} else {
 				tempSubs = convertSubsToAss(fileName, media, params);
@@ -1135,7 +1135,7 @@ public class FFMpegVideo extends Player {
 
 		if (tempSubs != null && params.sid.isEmbedded() && params.timeseek > 0) {
 			try {
-				tempSubs = SubtitleUtils.applyTimeSeekingToASS(tempSubs, params.timeseek);
+				tempSubs = SubtitleUtils.applyTimeSeekingToASS(tempSubs, params);
 			} catch (IOException e) {
 				LOGGER.debug("Applying timeseeking caused an error: " + e);
 				tempSubs = null;
@@ -1189,7 +1189,7 @@ public class FFMpegVideo extends Player {
 
 		if (params.sid.isEmbedded()) {
 			cmdList.add("-map");
-			cmdList.add("0:" + (params.sid.getId() + media.getAudioTracksList().size() + 1));
+			cmdList.add("0:s:" + (media.getSubtitleTracksList().indexOf(params.sid)));
 		}
 
 		String dir = configuration.getDataFile(SUB_DIR);
@@ -1229,7 +1229,7 @@ public class FFMpegVideo extends Player {
 
 	public File applySubsSettingsToTempSubsFile(File tempSubs) throws IOException {
 		File outputSubs = tempSubs;
-		File temp = new File(SubtitleUtils.tempFile(tempSubs.getName()));
+		File temp = new File(configuration.getTempFolder(), tempSubs.getName());
 		Files.copy(tempSubs.toPath(), temp.toPath(), REPLACE_EXISTING);
 		BufferedWriter output;
 		try (BufferedReader input = new BufferedReader(new FileReader(temp))) {
