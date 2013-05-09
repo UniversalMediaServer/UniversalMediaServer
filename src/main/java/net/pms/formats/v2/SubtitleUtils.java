@@ -84,6 +84,7 @@ public class SubtitleUtils {
 	/**
 	 * Returns value for -subcp option for non UTF-8 external subtitles based on
 	 * detected charset.
+	 *
 	 * @param dlnaMediaSubtitle DLNAMediaSubtitle with external subtitles file.
 	 * @return value for mencoder's -subcp option or null if can't determine.
 	 */
@@ -99,8 +100,9 @@ public class SubtitleUtils {
 
 	/**
 	 * Applies timeseeking to subtitles file in SSA/ASS format
+	 *
 	 * @param SrtFile Subtitles file in SSA/ASS format
-	 * @param timeseek  Time stamp value
+	 * @param timeseek Time stamp value
 	 * @return Converted subtitles file
 	 * @throws IOException
 	 */
@@ -138,7 +140,7 @@ public class SubtitleUtils {
 	}
 
 	public static String tempFile(String name) {
-		String dir = PMS.getConfiguration().getDataFile(TEMP_DIR); 
+		String dir = PMS.getConfiguration().getDataFile(TEMP_DIR);
 		File path = new File(dir);
 		if (!path.exists()) {
 			path.mkdirs();
@@ -150,7 +152,7 @@ public class SubtitleUtils {
 		BufferedReader reader;
 		String cp = PMS.getConfiguration().getSubtitlesCodepage();
 		if (isNotBlank(cp) && !params.sid.isExternalFileUtf8()) {
-			reader = new BufferedReader(new InputStreamReader(new FileInputStream(in),cp)); // Always convert codepage
+			reader = new BufferedReader(new InputStreamReader(new FileInputStream(in), cp)); // Always convert codepage
 		} else if (params.timeseek > 0) {
 			reader = new BufferedReader(new InputStreamReader(new FileInputStream(in))); // Apply timeseeking without codepage conversion
 		} else {
@@ -163,7 +165,7 @@ public class SubtitleUtils {
 		int n = 1;
 
 		while ((line = reader.readLine()) != null) {
-			if (line .contains("-->")) {
+			if (line.contains("-->")) {
 				String startTime = line.substring(0, line.indexOf("-->") - 1);
 				String endTime = line.substring(line.indexOf("-->") + 4);
 				Double start = convertStringToTime(startTime);
@@ -172,7 +174,7 @@ public class SubtitleUtils {
 				if (start >= params.timeseek) {
 					w.write("" + (n++) + "\n");
 					w.write(convertTimeToString(start - params.timeseek, SRT_FORMAT));
-					w.write(" --> ");	
+					w.write(" --> ");
 					w.write(convertTimeToString(stop - params.timeseek, SRT_FORMAT) + "\n");
 
 					while (isNotBlank(line = reader.readLine())) { // Read all following subs lines
