@@ -145,7 +145,7 @@ public class TsMuxeRVideo extends Player {
 				"-qdiff", "4",
 				"-me_range", "4",
 				"-f", "h264",
-				"-vcodec", "libx264",
+				"-c:v", "libx264",
 				"-an",
 				"-y",
 				ffVideoPipe.getInputPipe()
