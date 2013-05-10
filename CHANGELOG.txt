@@ -30,7 +30,8 @@
 		Updated English settings
 		Updated Spanish translation (thanks, Alfredo Ramos and uman2k!)
 		Updated all language flags
-		Corrected Slovak flag
+		Corrected Slovak language flag
+		Added language flags for Icelandic, Lithuanian and Slovenian
 
 2.6.3 - 2013-05-01
 
