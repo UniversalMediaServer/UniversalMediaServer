@@ -123,7 +123,6 @@ public class FFMpegVideo extends Player {
 	public List<String> getVideoFilterOptions(File tempSubs, RendererConfiguration renderer, DLNAMediaInfo media, OutputParams params) throws IOException {
 		List<String> videoFilterOptions = new ArrayList<>();
 		String subsOption = null;
-		String padding = null;
 
 		boolean isResolutionTooHighForRenderer = renderer.isVideoRescale() && // renderer defines a max width/height
 			(media != null && media.isMediaparsed()) &&
@@ -164,51 +163,42 @@ public class FFMpegVideo extends Player {
 
 		}
 
-		if (renderer.isKeepAspectRatio() && renderer.isRescaleByRenderer()) {
+		String rescaleOrPadding = null;
+
+		if (isResolutionTooHighForRenderer || (renderer.isKeepAspectRatio() && !renderer.isRescaleByRenderer() && media.getWidth() < 720)) { // Do not rescale for SD video and higher
+			rescaleOrPadding = String.format(
+				// http://stackoverflow.com/a/8351875
+				"scale=iw*min(%1$d/iw\\,%2$d/ih):ih*min(%1$d/iw\\,%2$d/ih),pad=%1$d:%2$d:(%1$d-iw)/2:(%2$d-ih)/2",
+				renderer.getMaxVideoWidth(),
+				renderer.getMaxVideoHeight()
+			);
+		} else if (renderer.isKeepAspectRatio()) {
 			if (
 				media != null &&
 				media.isMediaparsed() &&
 				media.getHeight() != 0 &&
 				(media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)
 			) {
-				padding = "pad=iw:iw/(16/9):0:(oh-ih)/2";
+				rescaleOrPadding = "pad=iw:iw/(16/9):0:(oh-ih)/2";
 			} else {
-				padding = "pad=ih*(16/9):ih:(ow-iw)/2:0";
+				rescaleOrPadding = "pad=ih*(16/9):ih:(ow-iw)/2:0";
 			}
 		}
 
-		String rescaleSpec = null;
-
-		if (isResolutionTooHighForRenderer || (renderer.isKeepAspectRatio() && !renderer.isRescaleByRenderer())) {
-			rescaleSpec = String.format(
-				// http://stackoverflow.com/a/8351875
-				"scale=iw*min(%1$d/iw\\,%2$d/ih):ih*min(%1$d/iw\\,%2$d/ih),pad=%1$d:%2$d:(%1$d-iw)/2:(%2$d-ih)/2",
-				renderer.getMaxVideoWidth(),
-				renderer.getMaxVideoHeight()
-			);
-		}
-		
 		String overrideVF = renderer.getFFmpegVideoFilterOverride();
 
-		if (rescaleSpec != null || padding != null || overrideVF != null || subsOption != null) {
+		if (rescaleOrPadding != null || overrideVF != null || subsOption != null) {
 			videoFilterOptions.add("-vf");
 			StringBuilder filterParams = new StringBuilder();
-			
+
 			if (overrideVF != null) {
 				filterParams.append(overrideVF);
 				if (subsOption != null) {
 					filterParams.append(", ");
 				}
 			} else {
-				if (rescaleSpec != null) {
-					filterParams.append(rescaleSpec);
-					if (subsOption != null || padding != null) {
-						filterParams.append(", ");
-					}
-				}
-
-				if (padding != null && rescaleSpec == null) {
-					filterParams.append(padding);
+				if (rescaleOrPadding != null) {
+					filterParams.append(rescaleOrPadding);
 					if (subsOption != null) {
 						filterParams.append(", ");
 					}
