@@ -13,22 +13,28 @@
 		Improved memory defaults on Windows
 		Improved video transcoding quality by default
 		Improved audio transcoding quality in FFmpeg by default
-		Made the menu icon on OS X grayscale to fit with most other programs (thanks, Kefran!)
-		Made file list population faster
-		Added option to ignore certain renderer configurations
 		Fixed memory leaks
 		Added tooltips to several options to make them clearer
-		Improved file compatibility on all renderers
 	Renderers:
 		Xbox 360 supports 5.1 audio
 		Faster transcoding on Xbox 360
-		Improved file compatibility on Sony Bravia TVs
-		Improved support for Samsung TVs
 		Added profile for Samsung D7000 TVs
 	Languages:
 		Added English (UK) to the list of languages
-		Updated English settings
 		Updated Spanish translation (thanks, Alfredo Ramos and uman2k!)
+
+2.6.4 - 2013-05-10
+
+	General:
+		Made the menu icon on OS X grayscale to fit with most other programs (thanks, Kefran!)
+		Made file list population faster
+		Added option to ignore certain renderer configurations
+		Improved file compatibility on all renderers
+	Renderers:
+		Improved file compatibility on Sony Bravia TVs
+		Improved file compatibility on Samsung TVs
+	Languages:
+		Updated English settings
 		Updated all language flags
 		Corrected Slovak language flag
 		Added language flags for Icelandic, Lithuanian and Slovenian
