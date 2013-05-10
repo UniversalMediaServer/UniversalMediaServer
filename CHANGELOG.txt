@@ -1,4 +1,4 @@
-2.6.4 - 2013-05-??
+2.6.4 - 2013-05-10
 
 	General:
 		Made the menu icon on OS X grayscale to fit with most other programs (thanks, Kefran!)
