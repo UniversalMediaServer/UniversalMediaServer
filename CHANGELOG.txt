@@ -1,3 +1,19 @@
+2.6.4 - 2013-05-10
+
+	General:
+		Made the menu icon on OS X grayscale to fit with most other programs (thanks, Kefran!)
+		Made file list population faster
+		Added option to ignore certain renderer configurations
+		Improved file compatibility on all renderers
+	Renderers:
+		Improved file compatibility on Sony Bravia TVs
+		Improved file compatibility on Samsung TVs
+	Languages:
+		Updated English settings
+		Updated all language flags
+		Corrected Slovak language flag
+		Added language flags for Icelandic, Lithuanian and Slovenian
+
 2.6.3 - 2013-05-01
 
 	General:

@@ -132,7 +132,12 @@ public class RendererConfiguration {
 						LOGGER.info("Loading configuration file: " + f.getName());
 						RendererConfiguration r = new RendererConfiguration(f);
 						r.rank = rank++;
-						rendererConfs.add(r);
+						String rendererName = r.getRendererName();
+						if (!pmsConfiguration.getIgnoredRenderers().contains(rendererName)) {
+							rendererConfs.add(r);
+						} else {
+							LOGGER.info("Ignored " + rendererName + " configuration file.");
+						}
 					} catch (ConfigurationException ce) {
 						LOGGER.info("Error in loading configuration of: " + f.getAbsolutePath());
 					}

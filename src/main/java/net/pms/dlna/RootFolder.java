@@ -881,7 +881,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			vfSub.addChild(new VirtualVideoAction(Messages.getString("PMS.6"), configuration.isAutoloadSubtitles()) {
+			vfSub.addChild(new VirtualVideoAction(Messages.getString("MEncoderVideo.22"), configuration.isAutoloadSubtitles()) {
 				@Override
 				public boolean enable() {
 					boolean oldValue = configuration.isAutoloadSubtitles();
@@ -901,7 +901,7 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(Messages.getString("PMS.7"), configuration.getSkipLoopFilterEnabled()) {
+			res.addChild(new VirtualVideoAction(Messages.getString("MEncoderVideo.0"), configuration.getSkipLoopFilterEnabled()) {
 				@Override
 				public boolean enable() {
 					configuration.setSkipLoopFilterEnabled(!configuration.getSkipLoopFilterEnabled());

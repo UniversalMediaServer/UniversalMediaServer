@@ -242,7 +242,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		cmdList.add("-threads");
 		cmdList.add("" + nThreads);
 
-		// Add the output options (-f, -acodec, -vcodec)
+		// Add the output options (-f, -c:a, -c:v, etc.)
 		cmdList.addAll(getTranscodeVideoOptions(renderer, media, params, null));
 
 		// Add video bitrate options

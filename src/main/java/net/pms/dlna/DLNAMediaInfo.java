@@ -272,40 +272,21 @@ public class DLNAMediaInfo implements Cloneable {
 	 *       function for that, or even better, re-think this whole approach.
 	 */
 	public boolean isMuxable(RendererConfiguration mediaRenderer) {
-		// Allow the formats in the following list
-		if (
-			getContainer() != null &&
-			(
-				getContainer().equals("mkv") ||
-				getContainer().equals("mp4") ||
-				getContainer().equals("mov") ||
-				getContainer().equals("ts") ||
-				getContainer().equals("m2ts")
-			)
-		) {
-			if (
-				getCodecV() != null &&
-				(
-					getCodecV().equals("h264") ||
-					getCodecV().equals("vc1") ||
-					getCodecV().equals("mpeg2")
-				)
-			) {
-				if (getFirstAudioTrack() != null) {
-					String codecA;
-					codecA = getFirstAudioTrack().getCodecA();
-					if (
-						codecA != null &&
-						(
-							codecA.equals("aac") ||
-							codecA.equals("ac3") ||
-							codecA.equals("dca") ||
-							codecA.equals("dts") ||
-							codecA.equals("eac3")
-						)
-					) {
-						muxable = true;
-					}
+		// Make sure the file is H.264 video with AC-3/DTS audio
+		if (getCodecV() != null && getCodecV().equals("h264")) {
+			if (getFirstAudioTrack() != null) {
+				String codecA;
+				codecA = getFirstAudioTrack().getCodecA();
+				if (
+					codecA != null &&
+					(
+						codecA.equals("ac3") ||
+						codecA.equals("dca") ||
+						codecA.equals("dts") ||
+						codecA.equals("eac3")
+					)
+				) {
+					muxable = true;
 				}
 			}
 		}
@@ -1368,11 +1349,11 @@ public class DLNAMediaInfo implements Cloneable {
 
 		cmdArray[3] = "-vframes";
 		cmdArray[4] = "1";
-		cmdArray[5] = "-vcodec";
+		cmdArray[5] = "-c:v";
 		cmdArray[6] = "copy";
 		cmdArray[7] = "-f";
 		cmdArray[8] = "h264";
-		cmdArray[9] = "-vbsf";
+		cmdArray[9] = "-bsf";
 		cmdArray[10] = "h264_mp4toannexb";
 		cmdArray[11] = "-an";
 		cmdArray[12] = "-y";
