@@ -46,7 +46,7 @@ public class GeneralTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GeneralTab.class);
 
 	private static final String COL_SPEC = "left:pref, 3dlu, p, 3dlu , p, 3dlu, p, 3dlu, pref:grow";
-	private static final String ROW_SPEC = "p, 0dlu, p, 0dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
+	private static final String ROW_SPEC = "p, 0dlu, p, 0dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
 
 	private JCheckBox smcheckBox;
 	private JCheckBox autoStart;
@@ -60,6 +60,7 @@ public class GeneralTab {
 	private JTextField ip_filter;
 	private JTextField maxbitrate;
 	private JComboBox renderers;
+	private JTextField ignoredRenderers;
 	private final PmsConfiguration configuration;
 	private JCheckBox extNetBox;
 
@@ -422,7 +423,17 @@ public class GeneralTab {
 
 		builder.add(renderers, FormLayoutUtil.flip(cc.xyw(3, 35, 7), colSpec, orientation));
 
-		builder.add(fdCheckBox, FormLayoutUtil.flip(cc.xyw(1, 37, 9), colSpec, orientation));
+		builder.addLabel(Messages.getString("NetworkTab.62"), FormLayoutUtil.flip(cc.xy(1, 37), colSpec, orientation));
+		ignoredRenderers = new JTextField(configuration.getIgnoredRenderers());
+		ignoredRenderers.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				configuration.setIgnoredRenderers(ignoredRenderers.getText());
+			}
+		});
+		builder.add(ignoredRenderers, FormLayoutUtil.flip(cc.xyw(3, 37, 7), colSpec, orientation));
+
+		builder.add(fdCheckBox, FormLayoutUtil.flip(cc.xyw(1, 39, 9), colSpec, orientation));
 
 		// External network box
 		extNetBox = new JCheckBox(Messages.getString("NetworkTab.56"));
@@ -434,7 +445,7 @@ public class GeneralTab {
 			}
 		});
 		extNetBox.setSelected(configuration.getExternalNetwork());
-		builder.add(extNetBox, FormLayoutUtil.flip(cc.xy(1, 38), colSpec, orientation));
+		builder.add(extNetBox, FormLayoutUtil.flip(cc.xy(1, 41), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 
