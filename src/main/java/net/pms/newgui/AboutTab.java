@@ -96,7 +96,7 @@ public class AboutTab {
 		lMplayerLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lMplayerLink.addMouseListener(mplayerLink);
 
-		final LinkMouseListener spirtonLink = new LinkMouseListener("MPlayer, MEncoder, FFmpeg and InterFrame builds", "http://www.spirton.com");
+		final LinkMouseListener spirtonLink = new LinkMouseListener("MPlayer, MEncoder and InterFrame builds", "http://www.spirton.com");
 		JLabel lSpirtonLink = builder.addLabel(spirtonLink.getLabel(), cc.xy(2, 15, "center, fill"));
 		lSpirtonLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lSpirtonLink.addMouseListener(spirtonLink);

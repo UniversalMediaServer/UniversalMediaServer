@@ -337,7 +337,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		toolBar.setRollover(true);
 
 		toolBar.add(new JPanel());
-		AbstractButton save = createToolBarButton(Messages.getString("LooksFrame.9"), "button-save.png", Messages.getString("LooksFrame.9"));
+		AbstractButton save = createToolBarButton(Messages.getString("LooksFrame.9"), "button-save.png");
 		save.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -346,7 +346,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		});
 		toolBar.add(save);
 		toolBar.addSeparator();
-		reload = createToolBarButton(Messages.getString("LooksFrame.12"), "button-restart.png", Messages.getString("LooksFrame.12"));
+		reload = createToolBarButton(Messages.getString("LooksFrame.12"), "button-restart.png");
 		reload.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -355,7 +355,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		});
 		toolBar.add(reload);
 		toolBar.addSeparator();
-		AbstractButton quit = createToolBarButton(Messages.getString("LooksFrame.5"), "button-quit.png", Messages.getString("LooksFrame.5"));
+		AbstractButton quit = createToolBarButton(Messages.getString("LooksFrame.5"), "button-quit.png");
 		quit.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -437,6 +437,13 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		return tabbedPane;
 	}
 
+	protected AbstractButton createToolBarButton(String text, String iconName) {
+		CustomJButton button = new CustomJButton(text, readImageIcon(iconName));
+		button.setFocusable(false);
+		button.setBorderPainted(false);
+		return button;
+	}
+
 	protected AbstractButton createToolBarButton(String text, String iconName, String toolTipText) {
 		CustomJButton button = new CustomJButton(text, readImageIcon(iconName));
 		button.setToolTipText(toolTipText);
@@ -501,7 +508,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			reload.setToolTipText(Messages.getString("LooksFrame.13"));
 		} else {
 			reload.setIcon(readImageIcon("button-restart.png"));
-			reload.setToolTipText(Messages.getString("LooksFrame.12"));
+			reload.setToolTipText(null);
 		}
 	}
 
