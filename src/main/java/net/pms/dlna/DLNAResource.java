@@ -1893,10 +1893,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									LOGGER.debug("" + ex);
 								}
 
+								// Initiate the code that figures out whether to create a resume item
 								long durSec = (long) getMedia().getDurationInSeconds();
-								if (externalProcess != null && 
-								   (durSec == 0 || durSec == DLNAMediaInfo.TRANS_SIZE)) {
-									ProcessWrapperImpl pw = (ProcessWrapperImpl)externalProcess;
+								if (externalProcess != null && (durSec == 0 || durSec == DLNAMediaInfo.TRANS_SIZE)) {
+									ProcessWrapperImpl pw = (ProcessWrapperImpl) externalProcess;
 									String dur = pw.getDuration();
 									if (StringUtils.isNotEmpty(dur)) {
 										getMedia().setDuration(SubtitleUtils.convertStringToTime(dur));
