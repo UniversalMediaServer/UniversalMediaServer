@@ -1860,16 +1860,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public void stopPlaying(final String rendererId) {
 		final DLNAResource self = this;
 		final String requestId = getRequestId(rendererId);
-		long durSec = (long) getMedia().getDurationInSeconds();
-		if (externalProcess != null && 
-		   (durSec == 0 || durSec == DLNAMediaInfo.TRANS_SIZE)) {
-			ProcessWrapperImpl pw = (ProcessWrapperImpl)externalProcess;
-			String dur = pw.getDuration();
-			if (StringUtils.isNotEmpty(dur)) {
-				getMedia().setDuration(SubtitleUtils.convertStringToTime(dur));
-			}
-		}
-		resumeStop();
 		Runnable defer = new Runnable() {
 			@Override
 			public void run() {
@@ -1902,6 +1892,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								} catch (UnknownHostException ex) {
 									LOGGER.debug("" + ex);
 								}
+
+								long durSec = (long) getMedia().getDurationInSeconds();
+								if (externalProcess != null && 
+								   (durSec == 0 || durSec == DLNAMediaInfo.TRANS_SIZE)) {
+									ProcessWrapperImpl pw = (ProcessWrapperImpl)externalProcess;
+									String dur = pw.getDuration();
+									if (StringUtils.isNotEmpty(dur)) {
+										getMedia().setDuration(SubtitleUtils.convertStringToTime(dur));
+									}
+								}
+								resumeStop();
 
 								PMS.get().getFrame().setStatusLine("");
 
