@@ -124,8 +124,9 @@ public class FFMpegVideo extends Player {
 		List<String> videoFilterOptions = new ArrayList<>();
 		String subsOption = null;
 
-		boolean isResolutionTooHighForRenderer = renderer.isVideoRescale() && // renderer defines a max width/height
-			(media != null && media.isMediaparsed()) &&
+		boolean isMediaValid = media != null && media.isMediaparsed() && media.getHeight() != 0;
+		boolean isResolutionTooHighForRenderer = renderer.isVideoRescale() && isMediaValid &&// renderer defines a max width/height
+
 			(
 				(media.getWidth() > renderer.getMaxVideoWidth()) ||
 				(media.getHeight() > renderer.getMaxVideoHeight())
@@ -172,13 +173,8 @@ public class FFMpegVideo extends Player {
 				renderer.getMaxVideoWidth(),
 				renderer.getMaxVideoHeight()
 			);
-		} else if (renderer.isKeepAspectRatio()) {
-			if (
-				media != null &&
-				media.isMediaparsed() &&
-				media.getHeight() != 0 &&
-				(media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)
-			) {
+		} else if (renderer.isKeepAspectRatio() && isMediaValid) {
+			if ((media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
 				rescaleOrPadding = "pad=iw:iw/(16/9):0:(oh-ih)/2";
 			} else {
 				rescaleOrPadding = "pad=ih*(16/9):ih:(ow-iw)/2:0";
