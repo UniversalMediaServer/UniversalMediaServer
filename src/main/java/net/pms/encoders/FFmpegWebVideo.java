@@ -126,12 +126,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		params.minBufferSize = params.minFileSize;
 		params.secondread_minsize = 100000;
 		RendererConfiguration renderer = params.mediaRenderer;
-		File tempSubs = null;
-
-		if (!isDisableSubtitles(params)) {
-			tempSubs = subsConversion(filename, media, params);
-		}
-
+		
 		// XXX work around an ffmpeg bug: http://ffmpeg.org/trac/ffmpeg/ticket/998
 		if (filename.startsWith("mms:")) {
 			filename = "mmsh:" + filename.substring(4);
@@ -241,20 +236,20 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		cmdList.add("-i");
 		cmdList.add(filename);
 
-		cmdList.addAll(getVideoFilterOptions(tempSubs, renderer, media, params));
+		cmdList.addAll(getVideoFilterOptions(filename, dlna, media, params));
 
 		// Encoder threads
 		cmdList.add("-threads");
 		cmdList.add("" + nThreads);
 
 		// Add the output options (-f, -c:a, -c:v, etc.)
-		cmdList.addAll(getTranscodeVideoOptions(renderer, media, params, null));
+		cmdList.addAll(getVideoTranscodeOptions(filename, dlna, media, params));
 
 		// Add video bitrate options
-		cmdList.addAll(getVideoBitrateOptions(renderer, media));
+		cmdList.addAll(getVideoBitrateOptions(filename, dlna, media, params));
 
 		// Add audio bitrate options
-		cmdList.addAll(getAudioBitrateOptions(renderer, media));
+		cmdList.addAll(getAudioBitrateOptions(filename, dlna, media, params));
 
 		// Add any remaining custom options
 		if (!customOptions.isEmpty()) {
