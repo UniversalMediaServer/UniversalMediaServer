@@ -132,11 +132,10 @@ public class FFMpegVideo extends Player {
 		}
 
 		boolean isMediaValid = media != null && media.isMediaparsed() && media.getHeight() != 0;
-		boolean isResolutionTooHighForRenderer = renderer.isVideoRescale() && isMediaValid &&// renderer defines a max width/height
-
+		boolean isResolutionTooHighForRenderer = renderer.isVideoRescale() && isMediaValid && // renderer defines a max width/height
 			(
-				(media.getWidth() > renderer.getMaxVideoWidth()) ||
-				(media.getHeight() > renderer.getMaxVideoHeight())
+				media.getWidth() > renderer.getMaxVideoWidth() ||
+				media.getHeight() > renderer.getMaxVideoHeight()
 			);
 
 		if (tempSubs != null) {

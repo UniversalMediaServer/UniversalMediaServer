@@ -387,7 +387,7 @@ public class PMS {
 					save();
 				} else if (networkType == JOptionPane.CANCEL_OPTION) {
 					// Wireless
-					configuration.setMaximumBitrate("30");
+					configuration.setMaximumBitrate("50");
 					configuration.setMPEG2MainSettings("Automatic (Wireless)");
 					save();
 				}
@@ -1100,9 +1100,7 @@ public class PMS {
 	}
 
 	public void storeFileInCache(File file, int formatType) {
-		if (getConfiguration().getUseCache()
-				&& !getDatabase().isDataExists(file.getAbsolutePath(), file.lastModified())) {
-
+		if (getConfiguration().getUseCache() && !getDatabase().isDataExists(file.getAbsolutePath(), file.lastModified())) {
 			getDatabase().insertData(file.getAbsolutePath(), file.lastModified(), formatType, null);
 		}
 	}
