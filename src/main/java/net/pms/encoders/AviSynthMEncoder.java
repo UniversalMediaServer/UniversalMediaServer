@@ -380,14 +380,14 @@ public class AviSynthMEncoder extends MEncoderVideo {
 
 		Format format = resource.getFormat();
 		Format.Identifier id = Format.Identifier.CUSTOM;
-		
+
 		if (format != null) {
 			id = format.getIdentifier();
 			if (id == Format.Identifier.WEB) {
 				return false;
 			}
 		}
-		
+
 		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
 
 		// Check whether the subtitle actually has a language defined,
