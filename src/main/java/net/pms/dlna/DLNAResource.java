@@ -1801,7 +1801,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	public void startPlaying(final String rendererId) {
 		final String requestId = getRequestId(rendererId);
-		startTime = System.currentTimeMillis();
 		synchronized (requestIdToRefcount) {
 			Integer temp = requestIdToRefcount.get(requestId);
 			if (temp == null) {
@@ -1827,6 +1826,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						} catch (UnknownHostException ex) {
 							LOGGER.debug("" + ex);
 						}
+
+						startTime = System.currentTimeMillis();
 
 						for (final ExternalListener listener : ExternalFactory.getExternalListeners()) {
 							if (listener instanceof StartStopListener) {
