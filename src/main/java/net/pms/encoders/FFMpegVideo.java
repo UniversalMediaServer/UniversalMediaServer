@@ -108,21 +108,28 @@ public class FFMpegVideo extends Player {
 	public static final String ID = "ffmpegvideo";
 
 	/**
-	 * Returns a list of strings representing the rescale options for this transcode i.e. the ffmpeg -vf
+	 * Returns a list of strings representing subtitles and rescale options for this transcode i.e. the ffmpeg -vf
 	 * options used to show subtitles in SSA/ASS format and resize a video that's too wide and/or high for the specified renderer.
 	 * If the renderer has no size limits, or there's no media metadata, or the video is within the renderer's
 	 * size limits, an empty list is returned.
 	 *
-	 * @param tempSubs the substrings filename
-	 * @param renderer the DLNA renderer the video is being streamed to
+	 * @param fileName the name of the file
+	 * @param dlna the DLNA renderer the video is being streamed to
 	 * @param media metadata for the DLNA resource which is being transcoded
-	 * @param params 
-	 * @return a {@link List} of <code>String</code>s representing the rescale options for this video,
+	 * @param params output parameters
+	 * 
+	 * @return a {@link List} of <code>String</code>s representing subtitles and rescale options for this video,
 	 * or an empty list if the video doesn't need to be resized.
 	 */
-	public List<String> getVideoFilterOptions(File tempSubs, RendererConfiguration renderer, DLNAMediaInfo media, OutputParams params) throws IOException {
+	public List<String> getVideoFilterOptions(String fileName, DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
 		List<String> videoFilterOptions = new ArrayList<>();
 		String subsOption = null;
+		RendererConfiguration renderer = params.mediaRenderer;
+		String tempSubs = null;
+		
+		if (!isDisableSubtitles(params)) {
+			tempSubs = manipulateSubtitles(fileName, media, params);
+		}
 
 		boolean isMediaValid = media != null && media.isMediaparsed() && media.getHeight() != 0;
 		boolean isResolutionTooHighForRenderer = renderer.isVideoRescale() && isMediaValid &&// renderer defines a max width/height
@@ -134,7 +141,7 @@ public class FFMpegVideo extends Player {
 
 		if (tempSubs != null) {
 			StringBuilder s = new StringBuilder();
-			CharacterIterator it = new StringCharacterIterator(tempSubs.getAbsolutePath());
+			CharacterIterator it = new StringCharacterIterator(tempSubs);
 
 			for (char ch = it.first(); ch != CharacterIterator.DONE; ch = it.next()) {
 				switch (ch) {
@@ -213,7 +220,7 @@ public class FFMpegVideo extends Player {
 
 	@Deprecated
 	public List<String> getTranscodeVideoOptions(RendererConfiguration renderer, DLNAMediaInfo media, OutputParams params) {
-		return getTranscodeVideoOptions(renderer, media, params, null);
+		return getVideoTranscodeOptions(null, null, media, params);
 	}
 
 	/**
@@ -222,16 +229,17 @@ public class FFMpegVideo extends Player {
 	 * audio codec and container) compatible with the renderer's
 	 * <code>TranscodeVideo</code> profile.
 	 *
-	 * @param renderer The {@link RendererConfiguration} instance whose <code>TranscodeVideo</code> profile is to be processed.
+	 * @param fileName the name of the file
+	 * @param dlna the DLNA renderer the video is being streamed to
 	 * @param media the media metadata for the video being streamed. May contain unset/null values (e.g. for web videos).
 	 * @param params output parameters
-	 * @param fileName the name of the file
-	 *
+	 * 
 	 * @return a {@link List} of <code>String</code>s representing the FFmpeg output parameters for the renderer according
 	 * to its <code>TranscodeVideo</code> profile.
 	 */
-	public List<String> getTranscodeVideoOptions(RendererConfiguration renderer, DLNAMediaInfo media, OutputParams params, String fileName) {
+	public List<String> getVideoTranscodeOptions(String fileName, DLNAResource dlna, DLNAMediaInfo media, OutputParams params) {
 		List<String> transcodeOptions = new ArrayList<>();
+		RendererConfiguration renderer = params.mediaRenderer;
 
 		if (renderer.isTranscodeToWMV() && !renderer.isXBOX()) { // WMV
 			transcodeOptions.add("-c:v");
@@ -334,13 +342,16 @@ public class FFMpegVideo extends Player {
 	 * Returns the video bitrate spec for the current transcode according
 	 * to the limits/requirements of the renderer.
 	 *
-	 * @param renderer a {@link RendererConfiguration} instance representing the renderer being streamed to
+	 * @param fileName the name of the file
+	 * @param dlna the DLNA renderer the video is being streamed to
 	 * @param media the media metadata for the video being streamed. May contain unset/null values (e.g. for web videos).
+	 * @param params output parameters
+	 * 
 	 * @return a {@link List} of <code>String</code>s representing the video bitrate options for this transcode
 	 */
-	public List<String> getVideoBitrateOptions(RendererConfiguration renderer, DLNAMediaInfo media) { // media is currently unused
+	public List<String> getVideoBitrateOptions(String fileName, DLNAResource dlna, DLNAMediaInfo media, OutputParams params) { // media is currently unused
 		List<String> videoBitrateOptions = new ArrayList<>();
-		String sMaxVideoBitrate = renderer.getMaxVideoBitrate(); // currently Mbit/s
+		String sMaxVideoBitrate = params.mediaRenderer.getMaxVideoBitrate(); // currently Mbit/s
 		int iMaxVideoBitrate = 0;
 
 		if (sMaxVideoBitrate != null) {
@@ -369,11 +380,14 @@ public class FFMpegVideo extends Player {
 	 * Returns the audio bitrate spec for the current transcode according
 	 * to the limits/requirements of the renderer.
 	 *
-	 * @param renderer a {@link RendererConfiguration} instance representing the renderer being streamed to
+	 * @param fileName the name of the file
+	 * @param dlna the DLNA renderer the video is being streamed to
 	 * @param media the media metadata for the video being streamed. May contain unset/null values (e.g. for web videos).
+	 * @param params output parameters
+	 * 
 	 * @return a {@link List} of <code>String</code>s representing the audio bitrate options for this transcode
 	 */
-	public List<String> getAudioBitrateOptions(RendererConfiguration renderer, DLNAMediaInfo media) {
+	public List<String> getAudioBitrateOptions(String fileName, DLNAResource dlna, DLNAMediaInfo media, OutputParams params) {
 		List<String> audioBitrateOptions = new ArrayList<>();
 
 		audioBitrateOptions.add("-q:a");
@@ -497,13 +511,10 @@ public class FFMpegVideo extends Player {
 		List<String> cmdList = new ArrayList<>();
 		RendererConfiguration renderer = params.mediaRenderer;
 		setAudioAndSubs(filename, media, params, configuration);
-		File tempSubs = null;
 //		params.waitbeforestart = 1000;
 		boolean avisynth = avisynth();
 
-		if (!isDisableSubtitles(params)) {
-			tempSubs = subsConversion(filename, media, params);
-		}
+
 
 		cmdList.add(executable());
 
@@ -591,7 +602,7 @@ public class FFMpegVideo extends Player {
 		// if the source is too large for the renderer, resize it
 		// and/or add subtitles to video filter
 		// FFmpeg must be compiled with --enable-libass parameter
-		cmdList.addAll(getVideoFilterOptions(tempSubs, renderer, media, params));
+		cmdList.addAll(getVideoFilterOptions(filename, dlna, media, params));
 
 		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
@@ -723,7 +734,7 @@ public class FFMpegVideo extends Player {
 		}
 
 		// Add the output options (-f, -c:a, -c:v, etc.)
-		cmdList.addAll(getTranscodeVideoOptions(renderer, media, params, filename));
+		cmdList.addAll(getVideoTranscodeOptions(filename, dlna, media, params));
 
 		// Add custom options
 		if (StringUtils.isNotEmpty(renderer.getCustomFFmpegOptions())) {
@@ -1036,16 +1047,19 @@ public class FFMpegVideo extends Player {
 	}
 
 	/**
-	 * Extracts embedded subtitles from video to file in SSA/ASS format, converts external SRT
-	 * subtitles file to SSA/ASS format and applies fontconfig setting to that converted file
-	 * and applies timeseeking when required.
+	 * Extracts embedded subtitles from video to file in SSA/ASS format,
+	 * applies fontconfig setting to that extracted file
+	 * and applies timeseeking to that extracted or external subtitles when required.
+	 * 
 	 * @param fileName Video file
+	 * @param dlna Media file metadata
 	 * @param media Media file metadata
 	 * @param params Output parameters
+	 * 
 	 * @return Converted subtitle file
 	 * @throws IOException
 	 */
-	public File subsConversion(String fileName, DLNAMediaInfo media, OutputParams params) throws IOException {
+	private static String manipulateSubtitles(String fileName, DLNAMediaInfo media, OutputParams params) throws IOException {
 		File tempSubs = null;
 		String convertedSubs;
 
@@ -1068,7 +1082,7 @@ public class FFMpegVideo extends Player {
 			if (tmp.canRead()) {
 				tempSubs = tmp;
 			} else {
-				tempSubs = convertSubsToAss(fileName, media, params);
+				tempSubs = extractSubsToAss(fileName, media, params);
 			}
 
 			if (tempSubs != null && configuration.isFFmpegFontConfig()) {
@@ -1082,42 +1096,6 @@ public class FFMpegVideo extends Player {
 		} else if (params.sid.isExternal() && params.sid.getType() == SubtitleType.SUBRIP) {
 			tempSubs = params.sid.getExternalFile();
 		}
-
-/* 		
- * TODO Return it back when the fontconfig for external subs will be needed
-  		else if (params.sid.isExternal()) { // Convert external subs to ASS format
-			convertedSubs = subsPath.getAbsolutePath() + File.separator +
-					FileUtil.getFileNameWithoutExtension(params.sid.getExternalFile().getName()) +
-					"_" + params.sid.getExternalFile().lastModified() + "_EXT.ass";
-			File tmp = new File(convertedSubs);
-
-			if (tmp.exists()) {
-				tempSubs = tmp;
-			} else {
-				String externalSubtitlesFileName;
-
-				if (params.sid.isExternalFileUtf16()) {
-					// convert UTF-16 -> UTF-8
-					File convertedSubtitles = new File(configuration.getTempFolder(), "UTF-8_" + params.sid.getExternalFile().getName());
-					FileUtil.convertFileFromUtf16ToUtf8(params.sid.getExternalFile(), convertedSubtitles);
-					externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(convertedSubtitles.getAbsolutePath());
-				} else {
-					externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getAbsolutePath());
-				}
-
-				tempSubs = convertSubsToAss(externalSubtitlesFileName, media, params);
-
-				if (tempSubs != null && configuration.isFFmpegFontConfig()) {
-					try {
-						tempSubs = applySubsSettingsToTempSubsFile(tempSubs);
-					} catch (IOException e) {
-						LOGGER.debug("Applying subs setting ends with error: " + e);
-						tempSubs = null;
-					}
-				}
-			}
-		}	
-*/
 
 		if (tempSubs != null && params.sid.isEmbedded() && params.timeseek > 0) {
 			try {
@@ -1134,19 +1112,25 @@ public class FFMpegVideo extends Player {
 				tempSubs = null;
 			}
 		}
+		
+		if (tempSubs == null) {
+			return null;
+		}
 
-		return tempSubs;
+		return tempSubs.getAbsolutePath();
 	}
 
 	/**
-	 * Converts external subtitles file in SRT format or extract embedded subs to default SSA/ASS format
-	 * @param fileName Subtitles file in SRT format or video file with embedded subs
-	 * @param media 
+	 * Extract embedded subs to default SSA/ASS format
+	 * 
+	 * @param fileName video file with embedded subs
+	 * @param media Media file metadata
 	 * @param params output parameters
-	 * @return Converted subtitles file in SSA/ASS format
+	 * 
+	 * @return Extracted subtitles file in SSA/ASS format
 	 * @throws IOException 
 	 */
-	public static File convertSubsToAss(String fileName, DLNAMediaInfo media, OutputParams params) {
+	private static File extractSubsToAss(String fileName, DLNAMediaInfo media, OutputParams params) {
 		List<String> cmdList = new ArrayList<>();
 		File tempSubsFile;
 		File inputFile = new File(fileName);
@@ -1159,17 +1143,7 @@ public class FFMpegVideo extends Player {
 		} else {
 			cmdList.add("fatal");
 		}
-		/* TODO Use it when external subs should be converted by ffmpeg
-		if (
-			isNotBlank(configuration.getSubtitlesCodepage()) &&
-			params.sid.isExternal() &&
-			!params.sid.isExternalFileUtf8() &&
-			!params.sid.getExternalFileCharacterSet().equals(configuration.getSubtitlesCodepage()) // ExternalFileCharacterSet can be null
-		) {
-			cmdList.add("-sub_charenc");
-			cmdList.add(configuration.getSubtitlesCodepage());
-		}
-		*/
+
 		cmdList.add("-i");
 		cmdList.add(fileName);
 
@@ -1213,7 +1187,7 @@ public class FFMpegVideo extends Player {
 		return tempSubsFile;
 	}
 
-	public File applySubsSettingsToTempSubsFile(File tempSubs) throws IOException {
+	private static File applySubsSettingsToTempSubsFile(File tempSubs) throws IOException {
 		File outputSubs = tempSubs;
 		File temp = new File(configuration.getTempFolder(), tempSubs.getName());
 		Files.copy(tempSubs.toPath(), temp.toPath(), REPLACE_EXISTING);
