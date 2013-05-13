@@ -150,8 +150,7 @@ public class RecentlyPlayed extends VirtualFolder {
 					if (pos != -1) {
 						if (str.startsWith("sub")) {
 							// subs data
-							subData = str.substring(0, pos);
-							pos += 3;
+							subData = str.substring(3, pos);
 						}
 						str = str.substring(pos + 1);
 					}
