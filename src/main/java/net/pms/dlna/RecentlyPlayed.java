@@ -9,6 +9,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -147,10 +148,12 @@ public class RecentlyPlayed extends VirtualFolder {
 					pos = str.indexOf(";");
 					String subData = null;
 					if (pos != -1) {
-						// subs data
-						subData = str.substring(0, pos);
+						if (str.startsWith("sub")) {
+							// subs data
+							subData = str.substring(0, pos);
+							pos += 3;
+						}
 						str = str.substring(pos + 1);
-						
 					}
 					LOGGER.debug("master is " + master + " str " + str);
 					DLNAResource res = null;
@@ -198,12 +201,16 @@ public class RecentlyPlayed extends VirtualFolder {
 
 	private void dumpFile() throws IOException {
 		File f = lastFile();
+		Date now=new Date();
 		try (FileWriter out = new FileWriter(f)) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("######\n");
 			sb.append("## NOTE!!!!!\n");
 			sb.append("## This file is auto generated\n");
 			sb.append("## Edit with EXTREME care\n");
+			sb.append("## Generated: ");
+			sb.append(now.toString());
+			sb.append("\n");
 			for (DLNAResource r : list) {
 				String data = r.write();
 				if (!StringUtils.isEmpty(data)) {
@@ -217,6 +224,7 @@ public class RecentlyPlayed extends VirtualFolder {
 					sb.append("master:").append(id).append(";");
 					if (r.getMediaSubtitle() != null) {
 						DLNAMediaSubtitle sub = r.getMediaSubtitle();
+						sb.append("sub");
 						sb.append(sub.getLang());
 						sb.append(",");
 						if (sub.isExternal()) {
