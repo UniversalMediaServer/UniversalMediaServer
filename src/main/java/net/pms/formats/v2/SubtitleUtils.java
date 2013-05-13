@@ -76,6 +76,7 @@ public class SubtitleUtils {
 	/**
 	 * Returns value for -subcp option for non UTF-8 external subtitles based on
 	 * detected charset.
+	 *
 	 * @param dlnaMediaSubtitle DLNAMediaSubtitle with external subtitles file.
 	 * @return value for mencoder's -subcp option or null if can't determine.
 	 */
@@ -91,8 +92,9 @@ public class SubtitleUtils {
 
 	/**
 	 * Applies timeseeking to subtitles file in SSA/ASS format
+	 *
 	 * @param SrtFile Subtitles file in SSA/ASS format
-	 * @param timeseek  Time stamp value
+	 * @param timeseek Time stamp value
 	 * @return Converted subtitles file
 	 * @throws IOException
 	 */
@@ -148,7 +150,7 @@ public class SubtitleUtils {
 		int n = 1;
 
 		while ((line = reader.readLine()) != null) {
-			if (line .contains("-->")) {
+			if (line.contains("-->")) {
 				String startTime = line.substring(0, line.indexOf("-->") - 1);
 				String endTime = line.substring(line.indexOf("-->") + 4);
 				Double start = convertStringToTime(startTime);
@@ -157,7 +159,7 @@ public class SubtitleUtils {
 				if (start >= timeseek) {
 					w.write("" + (n++) + "\n");
 					w.write(convertTimeToString(start - timeseek, SRT_TIME_FORMAT));
-					w.write(" --> ");	
+					w.write(" --> ");
 					w.write(convertTimeToString(stop - timeseek, SRT_TIME_FORMAT) + "\n");
 
 					while (isNotBlank(line = reader.readLine())) { // Read all following subs lines
