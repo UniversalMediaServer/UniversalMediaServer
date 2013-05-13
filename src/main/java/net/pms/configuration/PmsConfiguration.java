@@ -162,6 +162,9 @@ public class PmsConfiguration {
 	private static final String KEY_MENCODER_USE_PCM_FOR_HQ_AUDIO_ONLY = "mencoder_usepcm_for_hq_audio_only";
 	private static final String KEY_MENCODER_VOBSUB_SUBTITLE_QUALITY = "mencoder_vobsub_subtitle_quality";
 	private static final String KEY_MENCODER_YADIF = "mencoder_yadif";
+	private static final String KEY_MIN_PLAY_TIME = "min_playtime";
+	private static final String KEY_MIN_PLAY_TIME_WEB = "min_playtime_web";
+	private static final String KEY_MIN_PLAY_TIME_FILE = "min_playtime_file";
 	private static final String KEY_MINIMIZED = "minimized";
 	private static final String KEY_MIN_MEMORY_BUFFER_SIZE = "minvideobuffer"; // TODO (breaking change): should be renamed to e.g. minimum_video_buffer_size
 	private static final String KEY_MIN_STREAM_BUFFER = "minwebbuffer"; // TODO (breaking change): should be renamed to e.g. minimum_web_buffer_size
@@ -182,6 +185,9 @@ public class PmsConfiguration {
 	private static final String KEY_PROXY_SERVER_PORT = "proxy";
 	private static final String KEY_RENDERER_DEFAULT = "renderer_default";
 	private static final String KEY_RENDERER_FORCE_DEFAULT = "renderer_force_default";
+	private static final String KEY_RESUMABLE = "resume";
+	private static final String KEY_RESUME_REWIND = "resume_rewind";
+	private static final String KEY_RESUME_BACK = "resume_back";
 	private static final String KEY_RUN_WIZARD = "run_wizard";
 	private static final String KEY_SEARCH_FOLDER = "search_folder";
 	private static final String KEY_SEARCH_RECURSE = "search_recurse";
@@ -3001,4 +3007,36 @@ public class PmsConfiguration {
 	public void setVlcSampleRate(String value) {
 		configuration.setProperty(KEY_VLC_SAMPLE_RATE, value);
 	}
+
+	public boolean isResumeEnabled()  {
+		return getBoolean(KEY_RESUMABLE, true);
+	}
+	
+	public int getMinPlayTime() {
+		return getInt(KEY_MIN_PLAY_TIME, 10000);
+	}
+	
+	public int getMinPlayTimeWeb() {
+		return getInt(KEY_MIN_PLAY_TIME_WEB, getMinPlayTime());
+	}
+	
+	public int getMinPlayTimeFile() {
+		return getInt(KEY_MIN_PLAY_TIME_FILE, getMinPlayTime());
+	}
+	
+	public int getResumeRewind() {
+		return getInt(KEY_RESUME_REWIND, 17000);
+	}
+	
+	public double getResumeBackFactor() {
+		int percent = getInt(KEY_RESUME_BACK, 92);
+		if (percent > 97) {
+			percent = 97;
+		}
+		if (percent < 10) {
+			percent = 10;
+		}
+		return (percent / 100.0);
+	}
+	
 }
