@@ -27,7 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *  A version of OutputTextConsumer that a) logs all output to the debug.log and b) doesn't store the output
+ * A version of OutputTextConsumer that a) logs all output to the debug.log and b) doesn't store the output
  */
 public class OutputTextLogger extends OutputConsumer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OutputTextLogger.class);
@@ -53,7 +53,7 @@ public class OutputTextLogger extends OutputConsumer {
 				String line = it.nextLine();
 				LOGGER.debug(line);
 				if (pw != null) {
-					if(line.contains("Duration:")) {
+					if (line.contains("Duration:")) {
 						pw.pubackDuration(line);
 					}
 				}
