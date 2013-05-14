@@ -442,7 +442,7 @@ public class PMS {
 
 		String commitId = PropertiesUtil.getProjectProperties().get("git.commit.id");
 		String commitTime = PropertiesUtil.getProjectProperties().get("git.commit.time");
-		String shortCommitId = commitId.substring(0,  9);
+		String shortCommitId = commitId.substring(0, 9);
 
 		LOGGER.info("Build: " + shortCommitId + " (" + commitTime + ")");
 
