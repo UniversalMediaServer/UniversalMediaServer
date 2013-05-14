@@ -289,7 +289,7 @@ public final class PlayerFactory {
 					return player;
 				}
 			} else {
-				LOGGER.trace("player: {}, enabled: {}, compatible: {}", player.name(), false, null);
+				LOGGER.trace("player: {}, enabled: {}", player.name(), false);
 			}
 		}
 
