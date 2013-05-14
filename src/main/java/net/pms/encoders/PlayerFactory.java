@@ -134,6 +134,7 @@ public final class PlayerFactory {
 		registerPlayer(new MPlayerAudio(configuration));
 		registerPlayer(new FFmpegWebVideo(configuration));
 		registerPlayer(new MEncoderWebVideo(configuration));
+		registerPlayer(new VLCWebVideo(configuration));
 		registerPlayer(new MPlayerWebVideoDump(configuration));
 		registerPlayer(new MPlayerWebAudio(configuration));
 		registerPlayer(new TsMuxeRVideo(configuration));
@@ -241,8 +242,7 @@ public final class PlayerFactory {
 	 *         otherwise.
 	 */
 	@Deprecated
-	public static Player getPlayer(final Class<? extends Player> profileClass,
-			final Format ext) {
+	public static Player getPlayer(final Class<? extends Player> profileClass, final Format ext) {
 
 		for (Player player : players) {
 			if (player.getClass().equals(profileClass)
@@ -268,18 +268,32 @@ public final class PlayerFactory {
 	 */
 	public static Player getPlayer(final DLNAResource resource) {
 		if (resource == null) {
+			LOGGER.warn("Invalid resource (null): no player found");
 			return null;
+		} else {
+			LOGGER.trace("Getting player for {}", resource.getName());
 		}
 
 		List<String> enabledEngines = PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry());
 
 		for (Player player : players) {
-			if (enabledEngines.contains(player.id()) && player.isCompatible(resource)) {
-				// Player is enabled and compatible
-				LOGGER.trace("Selecting player " + player.name() + " for resource " + resource.getName());
-				return player;
+			boolean enabled = enabledEngines.contains(player.id());
+
+			if (enabled) {
+				boolean compatible = player.isCompatible(resource);
+
+				LOGGER.trace("player: {}, enabled: {}, compatible: {}", player.name(), enabled, compatible);
+
+				if (compatible) {
+					// Player is enabled and compatible
+					return player;
+				}
+			} else {
+				LOGGER.trace("player: {}, enabled: {}, compatible: {}", player.name(), false, null);
 			}
 		}
+
+		LOGGER.trace("no player found for {}", resource.getName());
 
 		return null;
 	}

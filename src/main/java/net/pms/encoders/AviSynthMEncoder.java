@@ -41,6 +41,7 @@ import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
@@ -374,20 +375,6 @@ public class AviSynthMEncoder extends MEncoderVideo {
 	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		if (resource == null || resource.getFormat().getType() != Format.VIDEO) {
-			return false;
-		}
-
-		Format format = resource.getFormat();
-		Format.Identifier id = Format.Identifier.CUSTOM;
-
-		if (format != null) {
-			id = format.getIdentifier();
-			if (id == Format.Identifier.WEB) {
-				return false;
-			}
-		}
-
 		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
 
 		// Check whether the subtitle actually has a language defined,
@@ -415,7 +402,10 @@ public class AviSynthMEncoder extends MEncoderVideo {
 			LOGGER.trace("AviSynth/MEncoder cannot determine compatibility based on default audio track for " + resource.getSystemName());
 		}
 
-		if (id.equals(Format.Identifier.MKV) || id.equals(Format.Identifier.MPG)) {
+		if (
+			PlayerUtil.isType(resource, Format.VIDEO, Format.Identifier.MKV) ||
+			PlayerUtil.isType(resource, Format.VIDEO, Format.Identifier.MPG)
+		) {
 			return true;
 		}
 
