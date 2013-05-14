@@ -717,7 +717,7 @@ public class Request extends HTTPResource {
 			}
 
 			output(output, "");
-			int sendB = 0;
+			long sendB = 0;
 
 			if (lowRange != DLNAMediaInfo.ENDFILE_POS && !method.equals("HEAD")) {
 				sendB = sendBytes(inputStream); //, ((lowRange > 0 && highRange > 0)?(highRange-lowRange):-1)

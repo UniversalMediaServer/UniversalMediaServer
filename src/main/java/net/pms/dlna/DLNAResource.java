@@ -41,8 +41,10 @@ import net.pms.external.ExternalListener;
 import net.pms.external.StartStopListener;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
+import net.pms.formats.v2.SubtitleUtils;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
+import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.SizeLimitInputStream;
 import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
@@ -406,6 +408,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		setChildren(new ArrayList<DLNAResource>());
 		setUpdateId(1);
 		lastSearch = null;
+		resHash = 0;
 	}
 
 	public DLNAResource(int specificType) {
@@ -474,6 +477,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 				if (allChildrenAreFolders && !child.isFolder()) {
 					allChildrenAreFolders = false;
+				}
+
+				child.resHash = Math.abs(child.getSystemName().hashCode() + resumeHash());
+
+				DLNAResource resumeRes = null;
+
+				ResumeObj r = ResumeObj.create(child);
+				if (r != null) {
+					resumeRes = child.clone();
+					resumeRes.resume = r;
+					resumeRes.resHash = child.resHash;
+					addChildInternal(resumeRes);
 				}
 
 				addChildInternal(child);
@@ -564,6 +579,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						// 4) The file has embedded or external subs and SkipTranscode is not enabled for this extension
 						if (forceTranscode || !isSkipTranscode() && (forceTranscodeV2 || isIncompatible || hasSubsToTranscode)) {
 							child.setPlayer(player);
+							if (resumeRes != null) {
+								resumeRes.setPlayer(player);
+							}
 							LOGGER.trace("Switching " + child.getName() + " to player " + player.toString() + " for transcoding");
 						}
 
@@ -609,6 +627,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					} else if (!child.getFormat().isCompatible(child.getMedia(),getDefaultRenderer()) && !child.isFolder()) {
 						getChildren().remove(child);
 					}
+				}
+
+				if (resumeRes != null) {
+					resumeRes.setMedia(child.getMedia());
 				}
 
 				if (
@@ -1201,15 +1223,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			addXMLTagAndAttribute(
 				sb,
 				"dc:title",
-				encodeXML(wireshark)
+				encodeXML(resumeStr(wireshark))
 			);
 		} else { // Ditlew - org
 			// Ditlew
 			wireshark = ((isFolder() || getPlayer() == null) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer)));
+			String tmp = (isFolder() || getPlayer() == null) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer));
 			addXMLTagAndAttribute(
 				sb,
 				"dc:title",
-				encodeXML(wireshark)
+				encodeXML(resumeStr(tmp))
 			);
 		}
 
@@ -1804,6 +1827,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							LOGGER.debug("" + ex);
 						}
 
+						startTime = System.currentTimeMillis();
+
 						for (final ExternalListener listener : ExternalFactory.getExternalListeners()) {
 							if (listener instanceof StartStopListener) {
 								// run these asynchronously for slow handlers (e.g. logging, scrobbling)
@@ -1868,6 +1893,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								} catch (UnknownHostException ex) {
 									LOGGER.debug("" + ex);
 								}
+
+								// Initiate the code that figures out whether to create a resume item
+								long durSec = (long) getMedia().getDurationInSeconds();
+								if (externalProcess != null && (durSec == 0 || durSec == DLNAMediaInfo.TRANS_SIZE)) {
+									ProcessWrapperImpl pw = (ProcessWrapperImpl) externalProcess;
+									String dur = pw.getDuration();
+									if (StringUtils.isNotEmpty(dur)) {
+										getMedia().setDuration(SubtitleUtils.convertStringToTime(dur));
+									}
+								}
+								resumeStop();
 
 								PMS.get().getFrame().setStatusLine("");
 
@@ -1939,7 +1975,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
-		if (getPlayer() == null) {
+		if (getPlayer() == null && !isResume()) {
 			if (this instanceof IPushOutput) {
 				PipedOutputStream out = new PipedOutputStream();
 				InputStream fis = new PipedInputStream(out);
@@ -1993,6 +2029,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				params.stdin = (IPushOutput) this;
 			}
 
+			if (resume != null) {
+				params.timeseek += (long) (resume.getTimeOffset() / 1000);
+				if (getPlayer() == null) {
+					setPlayer(new ResumePlayer());
+				}
+			}
 			if (externalProcess == null || externalProcess.isDestroyed()) {
 				LOGGER.info("Starting transcode/remux of " + getName());
 				externalProcess = getPlayer().launchTranscode(
@@ -2792,5 +2834,73 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return StringUtils.isNotEmpty(s.getLiveSubURL());
 		}
 		return false;
+	}
+
+	////////////////////////////////////////////////////
+	// Resume handling
+	////////////////////////////////////////////////////
+
+	private ResumeObj resume;
+	private int resHash;
+	private long startTime;
+
+	public int resumeHash() {
+		return resHash;
+	}
+
+	public boolean isResumeable() {
+		if (getFormat() != null) {
+			// Only resume videos
+			return getFormat().isVideo();
+		}
+		return true;
+	}
+
+	private void resumeStop() {
+		if (!configuration.isResumeEnabled() || !isResumeable()) {
+			return;
+		}
+		if (resume != null) {
+			resume.stop(startTime, (long) (getMedia().getDurationInSeconds() * 1000));
+			if (resume.isDone()) {
+				getParent().getChildren().remove(this);
+			}
+			notifyRefresh();
+		} else {
+			for (DLNAResource res : getParent().getChildren()) {
+				if (res.isResume() && res.getName().equals(getName())) {
+					res.resume.stop(startTime, (long) (getMedia().getDurationInSeconds() * 1000));
+					if (res.resume.isDone()) {
+						getParent().getChildren().remove(res);
+					}
+					return;
+				}
+			}
+			ResumeObj r = ResumeObj.store(this, startTime);
+			if (r != null) {
+				DLNAResource clone = this.clone();
+				clone.resume = r;
+				clone.resHash = resHash;
+				clone.setMedia(getMedia());
+				clone.setPlayer(getPlayer());
+				getParent().addChildInternal(clone);
+			}
+		}
+	}
+
+	public final boolean isResume() {
+		return isResumeable() && (resume != null);
+	}
+
+	public int minPlayTime() {
+		return configuration.getMinPlayTime();
+	}
+
+	private String resumeStr(String s) {
+		if (isResume()) {
+			return Messages.getString("PMS.134") + ": " + s;
+		} else {
+			return s;
+		}
 	}
 }
