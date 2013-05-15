@@ -4,11 +4,12 @@
 		Added internal subtitle support to FFmpeg
 		Added subtitle seeking support to FFmpeg
 		Added subtitle styling (fontconfig) support to FFmpeg
-		Added "Prettify filenames" feature, which automatically renames filenames (not the real files, just in UMS) that follow certain naming conventions to be more readable
+		Added "Prettify filenames" feature, for details on its use see the tooltip on the Navigation tab
 		Added configuration wizard to simplify common things like network configuration
 		Added an option to hide/show advanced options, hopefully making things less confusing/daunting for most users
 		Added VLC video transcoding (thanks, LordQuackstar!)
 		Added new options to iTunes library browsing: Browse by Artist, Album and Genre
+		Added video resume feature, for details on its use see the tooltip on the Navigation tab
 		Transcoding quality automatically adjusts for content and network speed by default, allowing wireless users an easier experience
 		Improved memory defaults on Windows
 		Improved video transcoding quality by default
@@ -21,6 +22,7 @@
 		Added profile for Samsung D7000 TVs
 	Languages:
 		Added English (UK) to the list of languages
+		Updated Czech translation
 		Updated Spanish translation (thanks, Alfredo Ramos and uman2k!)
 
 2.6.4 - 2013-05-10
