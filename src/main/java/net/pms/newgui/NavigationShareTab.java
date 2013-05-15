@@ -44,7 +44,7 @@ public class NavigationShareTab {
 	public static final String ALL_DRIVES = Messages.getString("FoldTab.0");
 
 	private static final String PANEL_COL_SPEC = "left:pref, 9dlu, pref, 3dlu, 25dlu, 9dlu, default:grow";
-	private static final String PANEL_ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 9dlu, p, 3dlu, p, 3dlu, p, 9dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 9dlu, fill:default:grow";
+	private static final String PANEL_ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 9dlu, p, 3dlu, p, 3dlu, p, 9dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 9dlu, fill:default:grow";
 	private static final String SHARED_FOLDER_COL_SPEC = "left:pref, left:pref, pref, pref, pref, 0:grow";
 	private static final String SHARED_FOLDER_ROW_SPEC = "p, 3dlu, p, 3dlu, fill:default:grow";
 
@@ -76,6 +76,7 @@ public class NavigationShareTab {
 	private JTextField atzLimit;
 	private JCheckBox liveSubtitles;
 	private JCheckBox prettifyfilenames;
+	private JCheckBox resume;
 
 	public DefaultListModel<String> getDf() {
 		return df;
@@ -181,7 +182,9 @@ public class NavigationShareTab {
 			builder.add(atzLimit, FormLayoutUtil.flip(cc.xy(5, 23), colSpec, orientation));
 			builder.add(archive, FormLayoutUtil.flip(cc.xy(7, 23), colSpec, orientation));
 
-			builder.add(builderSharedFolder.getPanel(), FormLayoutUtil.flip(cc.xyw(1, 25, 7), colSpec, orientation));
+			builder.add(resume, FormLayoutUtil.flip(cc.xy(1, 25), colSpec, orientation));
+
+			builder.add(builderSharedFolder.getPanel(), FormLayoutUtil.flip(cc.xyw(1, 27, 7), colSpec, orientation));
 		} else {
 			builder.add(builderSharedFolder.getPanel(), FormLayoutUtil.flip(cc.xyw(1, 1, 7), colSpec, orientation));
 		}
@@ -592,6 +595,19 @@ public class NavigationShareTab {
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setPrettifyFilenames((e.getStateChange() == ItemEvent.SELECTED));
 				hideextensions.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
+			}
+		});
+
+		resume = new JCheckBox(Messages.getString("NetworkTab.68"));
+		resume.setToolTipText(Messages.getString("NetworkTab.69"));
+		resume.setContentAreaFilled(false);
+		if (configuration.isResumeEnabled()) {
+			resume.setSelected(true);
+		}
+		resume.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setResume((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
 	}

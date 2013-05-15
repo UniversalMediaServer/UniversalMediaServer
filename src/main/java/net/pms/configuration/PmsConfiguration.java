@@ -185,7 +185,7 @@ public class PmsConfiguration {
 	private static final String KEY_PROXY_SERVER_PORT = "proxy";
 	private static final String KEY_RENDERER_DEFAULT = "renderer_default";
 	private static final String KEY_RENDERER_FORCE_DEFAULT = "renderer_force_default";
-	private static final String KEY_RESUMABLE = "resume";
+	private static final String KEY_RESUME = "resume";
 	private static final String KEY_RESUME_REWIND = "resume_rewind";
 	private static final String KEY_RESUME_BACK = "resume_back";
 	private static final String KEY_RUN_WIZARD = "run_wizard";
@@ -3009,25 +3009,29 @@ public class PmsConfiguration {
 	}
 
 	public boolean isResumeEnabled()  {
-		return getBoolean(KEY_RESUMABLE, true);
+		return getBoolean(KEY_RESUME, true);
 	}
-	
+
+	public void setResume(boolean value) {
+		configuration.setProperty(KEY_RESUME, value);
+	}
+
 	public int getMinPlayTime() {
 		return getInt(KEY_MIN_PLAY_TIME, 10000);
 	}
-	
+
 	public int getMinPlayTimeWeb() {
 		return getInt(KEY_MIN_PLAY_TIME_WEB, getMinPlayTime());
 	}
-	
+
 	public int getMinPlayTimeFile() {
 		return getInt(KEY_MIN_PLAY_TIME_FILE, getMinPlayTime());
 	}
-	
+
 	public int getResumeRewind() {
 		return getInt(KEY_RESUME_REWIND, 17000);
 	}
-	
+
 	public double getResumeBackFactor() {
 		int percent = getInt(KEY_RESUME_BACK, 92);
 		if (percent > 97) {
@@ -3038,5 +3042,4 @@ public class PmsConfiguration {
 		}
 		return (percent / 100.0);
 	}
-	
 }
