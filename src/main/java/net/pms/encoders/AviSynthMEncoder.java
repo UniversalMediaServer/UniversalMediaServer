@@ -375,6 +375,14 @@ public class AviSynthMEncoder extends MEncoderVideo {
 	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
+		Format format = resource.getFormat();
+
+		if (format != null) {
+			if (format.getIdentifier() == Format.Identifier.WEB) {
+				return false;
+			}
+		}
+
 		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
 
 		// Check whether the subtitle actually has a language defined,
