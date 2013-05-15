@@ -84,6 +84,7 @@ public class FormLayoutUtil {
 	 *            the original comma-separated encoded column specifications
 	 * @return an array of flipped column specs in reversed order
 	 */
+	@SuppressWarnings("unused")
 	private static ColumnSpec[] flipped(String encodedColumnSpecs) {
 		return flipped(ColumnSpec.decodeSpecs(encodedColumnSpecs));
 	}

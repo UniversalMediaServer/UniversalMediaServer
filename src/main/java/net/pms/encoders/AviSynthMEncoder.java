@@ -42,6 +42,8 @@ import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.util.ProcessUtil;
+import org.apache.commons.configuration.event.ConfigurationEvent;
+import org.apache.commons.configuration.event.ConfigurationListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +59,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 	private JTextArea textArea;
 	private JCheckBox convertfps;
 	private JCheckBox interframe;
-	private JCheckBox interframegpu;
+	private static JCheckBox interframegpu;
 	private JCheckBox multithreading;
 
 	@Override
@@ -184,6 +186,18 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		pane.setPreferredSize(new Dimension(500, 350));
 		builder.add(pane, cc.xy(2, 13));
 
+		configuration.addConfigurationListener(new ConfigurationListener() {
+			@Override
+			public void configurationChanged(ConfigurationEvent event) {
+				if (event.getPropertyName() == null) {
+					return;
+				}
+				if ((!event.isBeforeUpdate()) && event.getPropertyName().equals(PmsConfiguration.KEY_GPU_ACCELERATION)) {
+					interframegpu.setEnabled(configuration.isGPUAcceleration());
+				}
+			}
+		});
+
 		return builder.getPanel();
 	}
 
@@ -283,17 +297,18 @@ public class AviSynthMEncoder extends MEncoderVideo {
 			String GPU = "";
 			movieLine = movieLine + ".ConvertToYV12()";
 
-			// Enable GPU to assist with CPU
-			if (configuration.getAvisynthInterFrameGPU()){
-				GPU = ", GPU=true";
-			}
+				// Enable GPU to assist with CPU
+				if (configuration.getAvisynthInterFrameGPU() && interframegpu.isEnabled()){
+					GPU = ", GPU=true";
+				}
 
-			interframeLines = "\n" +
-				"PluginPath = \"" + interframePath + "\"\n" +
-				"LoadPlugin(PluginPath+\"svpflow1.dll\")\n" +
-				"LoadPlugin(PluginPath+\"svpflow2.dll\")\n" +
-				"Import(PluginPath+\"InterFrame2.avsi\")\n" +
-				"InterFrame(Cores=" + Cores + GPU + ", Preset=\"Fast\")\n";
+				interframeLines = "\n" +
+					"PluginPath = \"" + interframePath + "\"\n" +
+					"LoadPlugin(PluginPath+\"svpflow1.dll\")\n" +
+					"LoadPlugin(PluginPath+\"svpflow2.dll\")\n" +
+					"Import(PluginPath+\"InterFrame2.avsi\")\n" +
+					"InterFrame(Cores=" + Cores + GPU + ", Preset=\"Fast\")\n";
+			}
 		}
 
 		String subLine = null;
@@ -365,6 +380,16 @@ public class AviSynthMEncoder extends MEncoderVideo {
 			return false;
 		}
 
+		Format format = resource.getFormat();
+		Format.Identifier id = Format.Identifier.CUSTOM;
+
+		if (format != null) {
+			id = format.getIdentifier();
+			if (id == Format.Identifier.WEB) {
+				return false;
+			}
+		}
+
 		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
 
 		// Check whether the subtitle actually has a language defined,
@@ -392,14 +417,8 @@ public class AviSynthMEncoder extends MEncoderVideo {
 			LOGGER.trace("AviSynth/MEncoder cannot determine compatibility based on default audio track for " + resource.getSystemName());
 		}
 
-		Format format = resource.getFormat();
-
-		if (format != null) {
-			Format.Identifier id = format.getIdentifier();
-
-			if (id.equals(Format.Identifier.MKV) || id.equals(Format.Identifier.MPG)) {
-				return true;
-			}
+		if (id.equals(Format.Identifier.MKV) || id.equals(Format.Identifier.MPG)) {
+			return true;
 		}
 
 		return false;

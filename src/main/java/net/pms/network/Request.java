@@ -439,6 +439,7 @@ public class Request extends HTTPResource {
 				output(out, "NTS: upnp:propchange");
 				output(out, "HOST: " + addr + ":" + port);
 				output(out, CONTENT_TYPE_UTF8);
+				sock.close();
 			} catch (MalformedURLException ex) {
 				LOGGER.debug("Cannot parse address and port from soap action \"" + soapaction + "\"", ex);
 			}
@@ -716,7 +717,7 @@ public class Request extends HTTPResource {
 			}
 
 			output(output, "");
-			int sendB = 0;
+			long sendB = 0;
 
 			if (lowRange != DLNAMediaInfo.ENDFILE_POS && !method.equals("HEAD")) {
 				sendB = sendBytes(inputStream); //, ((lowRange > 0 && highRange > 0)?(highRange-lowRange):-1)

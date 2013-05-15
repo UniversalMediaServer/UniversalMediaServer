@@ -17,10 +17,12 @@ public class LibMediaInfoParser {
 
 	static {
 		MI = new MediaInfo();
+
 		if (MI.isValid()) {
 			MI.Option("Complete", "1");
 			MI.Option("Language", "raw");
 		}
+
 		base64 = new Base64();
 	}
 
@@ -51,6 +53,7 @@ public class LibMediaInfoParser {
 				if (StringUtils.isNotBlank(info)) {
 					media.setSize(file.length());
 					StringTokenizer st = new StringTokenizer(info, "\n\r");
+
 					while (st.hasMoreTokens()) {
 						String line = st.nextToken().trim();
 
@@ -78,10 +81,12 @@ public class LibMediaInfoParser {
 						}
 
 						int point = line.indexOf(":");
+
 						if (point > -1) {
 							String key = line.substring(0, point).trim();
 							String ovalue = line.substring(point + 1).trim();
 							String value = ovalue.toLowerCase();
+
 							if (key.equals("Format") || key.startsWith("Format_Version") || key.startsWith("Format_Profile")) {
 								if (streamType == MediaInfo.StreamType.Text) {
 									// First attempt to detect subtitle track format
@@ -260,9 +265,11 @@ public class LibMediaInfoParser {
 		if (currentAudioTrack.getLang() == null) {
 			currentAudioTrack.setLang(DLNAMediaLang.UND);
 		}
+
 		if (currentAudioTrack.getCodecA() == null) {
 			currentAudioTrack.setCodecA(DLNAMediaLang.UND);
 		}
+
 		media.getAudioTracksList().add(currentAudioTrack);
 	}
 
@@ -270,9 +277,11 @@ public class LibMediaInfoParser {
 		if (currentSubTrack.getType() == SubtitleType.UNSUPPORTED) {
 			return;
 		}
+
 		if (currentSubTrack.getLang() == null) {
 			currentSubTrack.setLang(DLNAMediaLang.UND);
 		}
+
 		media.getSubtitleTracksList().add(currentSubTrack);
 	}
 
@@ -412,6 +421,7 @@ public class LibMediaInfoParser {
 		if (value.indexOf("pixel") > -1) {
 			value = value.substring(0, value.indexOf("pixel"));
 		}
+
 		value = value.trim();
 
 		// Value can look like "512 / 512" at this point
@@ -441,20 +451,25 @@ public class LibMediaInfoParser {
 		if (value.indexOf("(0x") > -1) {
 			value = value.substring(0, value.indexOf("(0x"));
 		}
+
 		value = value.trim();
 		int id = Integer.parseInt(value);
 		return id;
 	}
 
 	public static String getSampleFrequency(String value) {
-		// Some tracks show several values like "48000 / 48000 / 24000" for HE-AAC
-		// We store only the first value
+		/**
+		 * Some tracks show several values, e.g. "48000 / 48000 / 24000" for HE-AAC
+		 * We store only the first value
+		 */
 		if (value.indexOf("/") > -1) {
 			value = value.substring(0, value.indexOf("/"));
 		}
+
 		if (value.indexOf("khz") > -1) {
 			value = value.substring(0, value.indexOf("khz"));
 		}
+
 		value = value.trim();
 		return value;
 	}
@@ -463,6 +478,7 @@ public class LibMediaInfoParser {
 		if (value.indexOf("fps") > -1) {
 			value = value.substring(0, value.indexOf("fps"));
 		}
+
 		value = value.trim();
 		return value;
 	}
@@ -480,9 +496,11 @@ public class LibMediaInfoParser {
 		if (value.indexOf("(") > -1) {
 			value = value.substring(0, value.indexOf("("));
 		}
+
 		if (value.indexOf("/") > -1) {
 			value = value.substring(0, value.indexOf("/"));
 		}
+
 		value = value.trim();
 		return value;
 	}
@@ -495,25 +513,33 @@ public class LibMediaInfoParser {
 	private static double getDuration(String value) {
 		int h = 0, m = 0, s = 0;
 		StringTokenizer st = new StringTokenizer(value, " ");
+
 		while (st.hasMoreTokens()) {
 			String token = st.nextToken();
 			int hl = token.indexOf("h");
+
 			if (hl > -1) {
 				h = Integer.parseInt(token.substring(0, hl).trim());
 			}
+
 			int mnl = token.indexOf("mn");
+
 			if (mnl > -1) {
 				m = Integer.parseInt(token.substring(0, mnl).trim());
 			}
+
 			int msl = token.indexOf("ms");
+
 			if (msl == -1) {
 				// Only check if ms was not found
 				int sl = token.indexOf("s");
+
 				if (sl > -1) {
 					s = Integer.parseInt(token.substring(0, sl).trim());
 				}
 			}
 		}
+
 		return (h * 3600) + (m * 60) + s;
 	}
 
@@ -525,6 +551,7 @@ public class LibMediaInfoParser {
 		} catch (Exception e) {
 			LOGGER.error("Error in decoding thumbnail data", e);
 		}
+
 		return null;
 	}
 }

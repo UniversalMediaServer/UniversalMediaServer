@@ -118,7 +118,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 	@Override
 	public ProcessWrapper launchTranscode(
-		String fileName,
+		String filename,
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params
@@ -126,24 +126,29 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		params.minBufferSize = params.minFileSize;
 		params.secondread_minsize = 100000;
 		RendererConfiguration renderer = params.mediaRenderer;
+		File tempSubs = null;
+
+		if (!isDisableSubtitles(params)) {
+			tempSubs = subsConversion(filename, media, params);
+		}
 
 		// XXX work around an ffmpeg bug: http://ffmpeg.org/trac/ffmpeg/ticket/998
-		if (fileName.startsWith("mms:")) {
-			fileName = "mmsh:" + fileName.substring(4);
+		if (filename.startsWith("mms:")) {
+			filename = "mmsh:" + filename.substring(4);
 		}
 
 		// check if we have modifier for this url
-		String r = replacements.match(fileName);
+		String r = replacements.match(filename);
 		if (r != null) {
-			fileName = fileName.replaceAll(r, replacements.get(r));
-			LOGGER.debug("modified url: " + fileName);
+			filename = filename.replaceAll(r, replacements.get(r));
+			LOGGER.debug("modified url: " + filename);
 		}
 
 		FFmpegOptions customOptions = new FFmpegOptions();
 
 		// Gather custom options from various sources in ascending priority:
 		// - automatic options
-		String match = autoOptions.match(fileName);
+		String match = autoOptions.match(filename);
 		if (match != null) {
 			List<String> opts = autoOptions.get(match);
 			if (opts != null) {
@@ -186,10 +191,10 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		// Build the command line
 		List<String> cmdList = new ArrayList<String>();
 		if (!dlna.isURLResolved()) {
-			URLResult r1 = ExternalFactory.resolveURL(fileName);
+			URLResult r1 = ExternalFactory.resolveURL(filename);
 			if (r1 != null) {
 				if (r1.precoder != null) {
-					fileName = "-";
+					filename = "-";
 					if (Platform.isWindows()) {
 						cmdList.add("cmd.exe");
 						cmdList.add("/C");
@@ -198,7 +203,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 					cmdList.add("|");
 				} else {
 					if (StringUtils.isNotEmpty(r1.url)) {
-						fileName = r1.url;
+						filename = r1.url;
 					}
 				}
 				if (r1.args != null && r1.args.size() > 0) {
@@ -233,10 +238,15 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			customOptions.transferInputFileOptions(cmdList);
 		}
 
-		cmdList.add("-i");
-		cmdList.add(fileName);
+		if (params.timeseek > 0) {
+			cmdList.add("-ss");
+			cmdList.add("" + params.timeseek);
+		}
 
-		cmdList.addAll(getVideoFilterOptions(renderer, media, params));
+		cmdList.add("-i");
+		cmdList.add(filename);
+
+		cmdList.addAll(getVideoFilterOptions(tempSubs, renderer, media, params));
 
 		// Encoder threads
 		cmdList.add("-threads");
@@ -265,7 +275,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 		// Hook to allow plugins to customize this command line
 		cmdArray = finalizeTranscoderArgs(
-			fileName,
+			filename,
 			dlna,
 			media,
 			params,

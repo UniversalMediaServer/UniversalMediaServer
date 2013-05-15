@@ -36,7 +36,7 @@ public class AudioProperties {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AudioProperties.class);
 
 	private static final Pattern intPattern = Pattern.compile("([\\+-]?\\d+)([eE][\\+-]?\\d+)?");
-	private static final Pattern floatPattern = Pattern.compile("([\\+-]?\\d(\\.\\d*)?|\\.\\d+)([eE][\\+-]?(\\d(\\.\\d*)?|\\.\\d+))?");
+//	private static final Pattern floatPattern = Pattern.compile("([\\+-]?\\d(\\.\\d*)?|\\.\\d+)([eE][\\+-]?(\\d(\\.\\d*)?|\\.\\d+))?");
 
 	private int numberOfChannels = 2;
 	private int audioDelay = 0;

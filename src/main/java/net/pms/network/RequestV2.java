@@ -757,22 +757,22 @@ public class RequestV2 extends HTTPResource {
 					String addr = soapActionUrl.getHost();
 					int port = soapActionUrl.getPort();
 					Socket sock = new Socket(addr,port);
-					OutputStream out = sock.getOutputStream();
-
-					out.write(("NOTIFY /" + argument + " HTTP/1.1").getBytes());
-					out.write(CRLF.getBytes());
-					out.write(("SID: " + PMS.get().usn()).getBytes());
-					out.write(CRLF.getBytes());
-					out.write(("SEQ: " + 0).getBytes());
-					out.write(CRLF.getBytes());
-					out.write(("NT: upnp:event").getBytes());
-					out.write(CRLF.getBytes());
-					out.write(("NTS: upnp:propchange").getBytes());
-					out.write(CRLF.getBytes());
-					out.write(("HOST: " + addr + ":" + port).getBytes());
-					out.write(CRLF.getBytes());
-					out.flush();
-					out.close();
+					try (OutputStream out = sock.getOutputStream()) {
+						out.write(("NOTIFY /" + argument + " HTTP/1.1").getBytes());
+						out.write(CRLF.getBytes());
+						out.write(("SID: " + PMS.get().usn()).getBytes());
+						out.write(CRLF.getBytes());
+						out.write(("SEQ: " + 0).getBytes());
+						out.write(CRLF.getBytes());
+						out.write(("NT: upnp:event").getBytes());
+						out.write(CRLF.getBytes());
+						out.write(("NTS: upnp:propchange").getBytes());
+						out.write(CRLF.getBytes());
+						out.write(("HOST: " + addr + ":" + port).getBytes());
+						out.write(CRLF.getBytes());
+						out.flush();
+						sock.close();
+					}
 				} catch (MalformedURLException ex) {
 					LOGGER.debug("Cannot parse address and port from soap action \"" + soapaction + "\"", ex);
 				}

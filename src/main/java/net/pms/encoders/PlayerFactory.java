@@ -130,6 +130,7 @@ public final class PlayerFactory {
 		}
 
 		registerPlayer(new FFMpegVideo(configuration));
+		registerPlayer(new VLCVideo(configuration));
 		registerPlayer(new MPlayerAudio(configuration));
 		registerPlayer(new FFmpegWebVideo(configuration));
 		registerPlayer(new MEncoderWebVideo(configuration));
@@ -260,7 +261,7 @@ public final class PlayerFactory {
 	 * and the first that reports it is compatible will be returned.
 	 * 
 	 * @param resource
-	 *            The {@link DLNAMediaResource} to match
+	 *            The {@link DLNAResource} to match
 	 * @return The player if a match could be found, <code>null</code>
 	 *         otherwise.
 	 * @since 1.60.0

@@ -212,7 +212,6 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 		DLNAMediaSubtitle subtitle,
 		Player player
 	) {
-
 		// FIXME: Use new DLNAResource() instead of clone(). Clone is bad, mmmkay?
 		DLNAResource copy = original.clone();
 
@@ -239,7 +238,6 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 		DLNAMediaAudio audio,
 		DLNAMediaSubtitle subtitle
 	) {
-
 		// FIXME: Use new DLNAResource() instead of clone(). Clone is bad, mmmkay?
 		DLNAResource copy = original.clone();
 

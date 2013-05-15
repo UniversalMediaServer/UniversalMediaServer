@@ -41,6 +41,159 @@ public class FileUtil {
 		return f.substring(0, point);
 	}
 
+	public static String getFileNameWithRewriting(String f) {
+		String formattedName;
+		int point = f.lastIndexOf(".");
+
+		if (point == -1) {
+			point = f.length();
+		}
+
+		// Remove file extension
+		formattedName = f.substring(0, point);
+
+		String commonFileEnds = "[\\s\\.]AC3.*|[\\s\\.]REPACK.*|[\\s\\.]480p.*|[\\s\\.]720p.*|[\\s\\.]m-720p.*|[\\s\\.]900p.*|[\\s\\.]1080p.*|[\\s\\.]HDTV.*|[\\s\\.]DSR.*|[\\s\\.]PDTV.*|[\\s\\.]WS.*|[\\s\\.]HQ.*|[\\s\\.]DVDRip.*|[\\s\\.]TVRiP.*|[\\s\\.]BDRip.*|[\\s\\.]BluRay.*|[\\s\\.]Blu-ray.*|[\\s\\.]SUBBED.*|[\\s\\.]x264.*|[\\s\\.]Dual[\\s\\.]Audio.*|[\\s\\.]HSBS.*|[\\s\\.]H-SBS.*";
+		String commonFileEndsMatch = ".*[\\s\\.]AC3.*|.*[\\s\\.]REPACK.*|.*[\\s\\.]480p.*|.*[\\s\\.]720p.*|.*[\\s\\.]m-720p.*|.*[\\s\\.]900p.*|.*[\\s\\.]1080p.*|.*[\\s\\.]HDTV.*|.*[\\s\\.]DSR.*|.*[\\s\\.]PDTV.*|.*[\\s\\.]WS.*|.*[\\s\\.]HQ.*|.*[\\s\\.]DVDRip.*|.*[\\s\\.]TVRiP.*|.*[\\s\\.]BDRip.*|.*[\\s\\.]BluRay.*|.*[\\s\\.]Blu-ray.*|.*[\\s\\.]SUBBED.*|.*[\\s\\.]x264.*|.*[\\s\\.]Dual[\\s\\.]Audio.*|.*[\\s\\.]HSBS.*|.*[\\s\\.]H-SBS.*";
+		String commonFileEndsCaseSensitive = "[\\s\\.]PROPER.*|[\\s\\.]iNTERNAL.*|[\\s\\.]LIMITED.*|[\\s\\.]FESTiVAL.*|[\\s\\.]NORDIC.*";
+
+		if (formattedName.matches(".*[sS]0\\d[eE]\\d\\d.*")) {
+			// This matches scene and most p2p TV episodes within the first 9 seasons
+
+			// Rename the season/episode numbers. For example, "S01E01" changes to " - 101"
+			// Then strip the end of the episode if it does not have the episode name in the title
+			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S0(\\d)E(\\d)(\\d)(" + commonFileEnds + ")", " - $1$2$3");
+			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S0(\\d)E(\\d)(\\d)(" + commonFileEndsCaseSensitive + ")", " - $1$2$3");
+
+			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
+			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S0(\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3 - ");
+
+			// Remove stuff at the end of the filename like release group, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
+			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
+		} else if (formattedName.matches(".*[sS][1-9]\\d[eE]\\d\\d.*")) {
+			// This matches scene and most p2p TV episodes after their first 9 seasons
+
+			// Rename the season/episode numbers. For example, "S11E01" changes to " - 1101"
+			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)(" + commonFileEnds + ")", " - $1$2$3");
+			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)(" + commonFileEndsCaseSensitive + ")", " - $1$2$3");
+
+			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
+			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3 - ");
+
+			// Remove stuff at the end of the filename like release group, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
+			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
+		} else if (formattedName.matches(".*\\.(19|20)\\d\\d\\.[0-1]\\d\\.[0-3]\\d\\..*")) {
+			// This matches scene and most p2p TV episodes that release several times per week
+
+			// Rename the date. For example, "2013.03.18" changes to " - 2013/03/18"
+			formattedName = formattedName.replaceAll("(?i)\\.(19|20)(\\d\\d)\\.([0-1]\\d)\\.([0-3]\\d)(" + commonFileEnds + ")", " - $1$2/$3/$4");
+
+			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
+			formattedName = formattedName.replaceAll("(?i)\\.(19|20)(\\d\\d)\\.([0-1]\\d)\\.([0-3]\\d)\\.", " - $1$2/$3/$4 - ");
+
+			// Remove stuff at the end of the filename like release group, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
+			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
+		} else if (formattedName.matches(".*\\.(19|20)\\d\\d\\..*")) {
+			// This matches scene and most p2p movies
+
+			// Rename the year. For example, "2013" changes to " (2013)"
+			formattedName = formattedName.replaceAll("\\.(19|20)(\\d\\d)", " ($1$2)");
+
+			// Remove stuff at the end of the filename like release group, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
+			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
+
+			formattedName = formattedName.replaceAll("(?i)(Special[\\s\\.]Edition)|(Unrated)|(Final[\\s\\.]Cut)|(Remastered)|(Extended[\\s\\.]Cut)", "($1)");
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
+		} else if (formattedName.matches(commonFileEndsMatch)) {
+			// This matches files that partially follow the scene format
+
+			// Remove stuff at the end of the filename like release group, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
+			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
+
+			formattedName = formattedName.replaceAll("(?i)(Special[\\s\\.]Edition)|(Unrated)|(Final[\\s\\.]Cut)|(Remastered)|(Extended[\\s\\.]Cut)", "($1)");
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
+		} else if (formattedName.matches(".*\\[(19|20)\\d\\d\\].*")) {
+			// This matches rarer types of movies
+
+			// Rename the year. For example, "2013" changes to " (2013)"
+			formattedName = formattedName.replaceAll("(?i)\\[(19|20)(\\d\\d)\\].*", " ($1$2)");
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
+		} else if (formattedName.matches(".*\\((19|20)\\d\\d\\).*")) {
+			// This matches rarer types of movies
+
+			// Remove stuff at the end of the filename like release group, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
+			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
+		} else if (formattedName.matches(".*\\((19|20)\\d\\d\\).*")) {
+			// This matches rarer types of movies
+
+			// Remove stuff at the end of the filename like release group, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
+			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
+		} else if (formattedName.matches(".*\\[[0-9a-zA-Z]{8}\\]$")) {
+			// This matches anime with a hash at the end of the name
+
+			// Remove underscores
+			formattedName = formattedName.replaceAll("_", " ");
+
+			// Remove stuff at the end of the filename like hash, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\[720p.*|\\[1080p.*|\\[480p.*|\\s\\(BD.*|\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*", "");
+
+			// Remove group name from the beginning of the filename
+			if (formattedName.substring(0, 1).matches("\\[")) {
+				int closingBracketIndex = formattedName.indexOf("]");
+				if (closingBracketIndex != -1) {
+					formattedName = formattedName.substring(closingBracketIndex + 1);
+				}
+
+				if (formattedName.substring(0, 1).matches("\\s")) {
+					formattedName = formattedName.substring(1);
+				}
+			}
+		} else if (formattedName.matches(".*\\[BD\\].*|.*\\[720p\\].*|.*\\[1080p\\].*|.*\\[480p\\].*|.*\\[Blu-Ray.*|.*\\[h264.*")) {
+			// This matches anime without a hash in the name
+
+			// Remove underscores
+			formattedName = formattedName.replaceAll("_", " ");
+
+			// Remove stuff at the end of the filename like hash, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)\\[BD\\].*|\\[720p.*|\\[1080p.*|\\[480p.*|\\[Blu-Ray.*\\[h264.*", "");
+
+			// Remove group name from the beginning of the filename
+			if (formattedName.substring(0, 1).matches("\\[")) {
+				int closingBracketIndex = formattedName.indexOf("]");
+				if (closingBracketIndex != -1) {
+					formattedName = formattedName.substring(closingBracketIndex + 1);
+				}
+
+				if (formattedName.substring(0, 1).matches("\\s")) {
+					formattedName = formattedName.substring(1);
+				}
+			}
+		}
+
+		return formattedName;
+	}
+
 	public static File getFileNameWithNewExtension(File parent, File file, String ext) {
 		File ff = isFileExists(new File(parent, file.getName()), ext);
 
@@ -259,6 +412,7 @@ public class FileUtil {
 			universalDetector.handleData(buf, 0, numberOfBytesRead);
 		}
 
+		bufferedInputStream.close();
 		universalDetector.dataEnd();
 		String encoding = universalDetector.getDetectedCharset();
 
@@ -373,7 +527,7 @@ public class FileUtil {
 
 	/**
 	 * Determine whether a file is readable by trying to read it. This works around JDK bugs which
-	 * return the wrong results for {@link java.io.File.canRead()} on Windows, and in some cases, on Unix.
+	 * return the wrong results for {@link java.io.File#canRead()} on Windows, and in some cases, on Unix.
 	 * <p>
 	 * Note: since this method accesses the filesystem, it should not be used in contexts in which performance is critical.
 	 * Note: this method changes the file access time.
@@ -400,7 +554,7 @@ public class FileUtil {
 
 	/**
 	 * Determine whether a file is writable by trying to write it. This works around JDK bugs which
-	 * return the wrong results for {@link java.io.File.canWrite()} on Windows and, in some cases, on Unix.
+	 * return the wrong results for {@link java.io.File#canWrite()} on Windows and, in some cases, on Unix.
 	 * <p>
 	 * Note: since this method accesses the filesystem, it should not be used in contexts in which performance is critical.
 	 * Note: this method changes the file access time and may change the file modification time.
@@ -447,7 +601,7 @@ public class FileUtil {
 	 * Determines whether the supplied directory is readable by trying to
 	 * read its contents.
 	 * This works around JDK bugs which return the wrong results for
-	 * {@link java.io.File.canRead()} on Windows and possibly on Unix.
+	 * {@link java.io.File#canRead()} on Windows and possibly on Unix.
 	 *
 	 * Note: since this method accesses the filesystem, it should not be
 	 * used in contexts in which performance is critical.
@@ -483,7 +637,7 @@ public class FileUtil {
 	 * Determines whether the supplied directory is writable by trying to
 	 * write a file to it.
 	 * This works around JDK bugs which return the wrong results for
-	 * {@link java.io.File.canWrite()} on Windows and possibly on Unix.
+	 * {@link java.io.File#canWrite()} on Windows and possibly on Unix.
 	 *
 	 * Note: since this method accesses the filesystem, it should not be
 	 * used in contexts in which performance is critical.

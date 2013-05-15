@@ -1,6 +1,7 @@
 package net.pms.util;
 
 public class StringUtil {
+
 	/**
 	 * Appends "&lt;<u>tag</u> " to the StringBuilder. This is a typical HTML/DIDL/XML tag opening.
 	 * @param sb String to append the tag beginning to.
