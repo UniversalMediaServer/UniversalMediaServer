@@ -104,28 +104,28 @@ public class SubtitleUtils {
 		String line;
 		File outputSubs = new File(configuration.getTempFolder(), getBaseName(subsFile.getName()) + "_" + System.currentTimeMillis()  + ".tmp");
 		BufferedWriter output;
-		try (BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(subsFile)))) {
-			output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs)));
-			Double timeseek = params.timeseek;
-			while ((line = input.readLine()) != null) {
-				if (line.startsWith("Dialogue:")) {
-					String[] tempStr = line.split(",");
-					startTime = convertStringToTime(tempStr[1]);
-					endTime = convertStringToTime(tempStr[2]);
+		BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(subsFile)));
+		output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs)));
+		Double timeseek = params.timeseek;
+		while ((line = input.readLine()) != null) {
+			if (line.startsWith("Dialogue:")) {
+				String[] tempStr = line.split(",");
+				startTime = convertStringToTime(tempStr[1]);
+				endTime = convertStringToTime(tempStr[2]);
 
-					if (startTime >= timeseek) {
-						tempStr[1] = convertTimeToString(startTime - timeseek, ASS_TIME_FORMAT);
-						tempStr[2] = convertTimeToString(endTime - timeseek, ASS_TIME_FORMAT);
-					} else {
-						continue;
-					}
-
-					output.write(join(tempStr, ",") + "\n");
+				if (startTime >= timeseek) {
+					tempStr[1] = convertTimeToString(startTime - timeseek, ASS_TIME_FORMAT);
+					tempStr[2] = convertTimeToString(endTime - timeseek, ASS_TIME_FORMAT);
 				} else {
-					output.write(line + "\n");
+					continue;
 				}
+
+				output.write(join(tempStr, ",") + "\n");
+			} else {
+				output.write(line + "\n");
 			}
 		}
+		input.close();
 		output.flush();
 		output.close();
 		PMS.get().addTempFile(outputSubs, 2 * 24 * 3600 * 1000);

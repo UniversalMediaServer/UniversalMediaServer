@@ -209,69 +209,6 @@ public class MapFile extends DLNAResource {
 		}
 		return discoverable.isEmpty();
 	}
-	
-	private String renameForSorting(String filename) {
-		if (configuration.isIgnoreTheWordThe()) {
-			// Remove "The" from the beginning of files
-			filename = filename.replaceAll("^(?i)The[ .]", "");
-		}
-
-		return filename;
-	}
-	
-	private void sort(List<File> files) {
-		switch (configuration.getSortMethod()) {
-			case 4: // Locale-sensitive natural sort
-				Collections.sort(files, new Comparator<File>() {
-					@Override
-					public int compare(File f1, File f2) {
-						String filename1ToSort = renameForSorting(f1.getName());
-						String filename2ToSort = renameForSorting(f2.getName());
-
-						return NaturalComparator.compareNatural(collator, filename1ToSort, filename2ToSort);
-					}
-				});
-				break;
-			case 3: // Case-insensitive ASCIIbetical sort
-				Collections.sort(files, new Comparator<File>() {
-					@Override
-					public int compare(File f1, File f2) {
-						String filename1ToSort = renameForSorting(f1.getName());
-						String filename2ToSort = renameForSorting(f2.getName());
-
-						return filename1ToSort.compareToIgnoreCase(filename2ToSort);
-					}
-				});
-				break;
-			case 2: // Sort by modified date, oldest first
-				Collections.sort(files, new Comparator<File>() {
-					@Override
-					public int compare(File f1, File f2) {
-						return Long.valueOf(f1.lastModified()).compareTo(Long.valueOf(f2.lastModified()));
-					}
-				});
-				break;
-			case 1: // Sort by modified date, newest first
-				Collections.sort(files, new Comparator<File>() {
-					@Override
-					public int compare(File f1, File f2) {
-						return Long.valueOf(f2.lastModified()).compareTo(Long.valueOf(f1.lastModified()));
-					}
-				});
-				break;
-			default: // Locale-sensitive A-Z
-				Collections.sort(files, new Comparator<File>() {
-					@Override
-					public int compare(File f1, File f2) {
-						String filename1ToSort = renameForSorting(f1.getName());
-						String filename2ToSort = renameForSorting(f2.getName());
-
-						return collator.compare(filename1ToSort, filename2ToSort);
-					}
-				});
-				break;
-		}
-	}
 
 	private String renameForSorting(String filename) {
 		if (configuration.isPrettifyFilenames()) {

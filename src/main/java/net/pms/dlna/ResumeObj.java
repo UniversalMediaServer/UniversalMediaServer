@@ -89,27 +89,27 @@ public class ResumeObj {
 
 	public void read() {
 		try {
-			try (BufferedReader in = new BufferedReader(new FileReader(file))) {
-				String str;
-				while ((str = in.readLine()) != null) {
-					String[] tmp = str.split(",");
-					offsetTime = Long.parseLong(tmp[0]);
-					if (tmp.length > 1) {
-						resDuration = Long.parseLong(tmp[1]);
-					}
-					break;
+			BufferedReader in = new BufferedReader(new FileReader(file));
+			String str;
+			while ((str = in.readLine()) != null) {
+				String[] tmp = str.split(",");
+				offsetTime = Long.parseLong(tmp[0]);
+				if (tmp.length > 1) {
+					resDuration = Long.parseLong(tmp[1]);
 				}
+				break;
 			}
+			in.close();
 		} catch (IOException e) {
 		}
 	}
 
 	private static void write(long time, long duration, File f) {
 		try {
-			try (BufferedWriter out = new BufferedWriter(new FileWriter(f))) {
-				out.write(time + "," + duration);
-				out.flush();
-			}
+			BufferedWriter out = new BufferedWriter(new FileWriter(f));
+			out.write(time + "," + duration);
+			out.flush();
+			out.close();
 		} catch (IOException e) {
 		}
 	}

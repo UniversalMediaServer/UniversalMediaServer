@@ -200,14 +200,14 @@ public class VLCVideo extends Player {
 		String audioCodec;
 		String container;
 		String extraParams;
-		HashMap<String, Object> extraTrans = new HashMap<>();
+		HashMap<String, Object> extraTrans = new HashMap<String, Object>();
 		int sampleRate;
 	}
 
 	protected Map<String, Object> getEncodingArgs(CodecConfig config, OutputParams params) {
 		// See: http://www.videolan.org/doc/streaming-howto/en/ch03.html
 		// See: http://wiki.videolan.org/Codec
-		Map<String, Object> args = new HashMap<>();
+		Map<String, Object> args = new HashMap<String, Object>();
 
 		// Codecs to use
 		args.put("vcodec", config.videoCodec);
@@ -280,7 +280,7 @@ public class VLCVideo extends Player {
 		params.minBufferSize = params.minFileSize;
 		params.secondread_minsize = 100000;
 
-		List<String> cmdList = new ArrayList<>();
+		List<String> cmdList = new ArrayList<String>();
 		cmdList.add(executable());
 		cmdList.add("-I");
 		cmdList.add("dummy");

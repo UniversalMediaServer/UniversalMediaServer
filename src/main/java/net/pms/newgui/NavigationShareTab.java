@@ -756,7 +756,7 @@ public class NavigationShareTab {
 		builderFolder.add(but5, FormLayoutUtil.flip(cc.xy(5, 3), colSpec, orientation));
 		but5.setEnabled(configuration.getUseCache());
 
-		df = new DefaultListModel<>();
+		df = new DefaultListModel<String>();
 		File[] folders = PMS.get().getFoldersConf(false);
 		if (folders != null && folders.length > 0) {
 			for (File file : folders) {
@@ -765,7 +765,7 @@ public class NavigationShareTab {
 		} else {
 			df.addElement(ALL_DRIVES);
 		}
-		FList = new JList<>();
+		FList = new JList<String>();
 		FList.setModel(df);
 		JScrollPane pane = new JScrollPane(FList);
 		builderFolder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 5, 6), colSpec, orientation));

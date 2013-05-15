@@ -27,7 +27,7 @@ public class ResumePlayer extends FFMpegVideo {
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params) throws IOException {
-		List<String> cmdList = new ArrayList<>();
+		List<String> cmdList = new ArrayList<String>();
 		int nThreads = PMS.getConfiguration().getNumberOfCpuCores();
 
 		cmdList.add(executable());

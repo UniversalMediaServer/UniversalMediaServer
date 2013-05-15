@@ -1147,7 +1147,7 @@ public class FFMpegVideo extends Player {
 	 * @throws IOException 
 	 */
 	public static File convertSubsToAss(String fileName, DLNAMediaInfo media, OutputParams params) {
-		List<String> cmdList = new ArrayList<>();
+		List<String> cmdList = new ArrayList<String>();
 		File tempSubsFile;
 		File inputFile = new File(fileName);
 		cmdList.add(configuration.getFfmpegPath());
@@ -1218,65 +1218,65 @@ public class FFMpegVideo extends Player {
 		File temp = new File(configuration.getTempFolder(), tempSubs.getName());
 		Files.copy(tempSubs.toPath(), temp.toPath(), REPLACE_EXISTING);
 		BufferedWriter output;
-		try (BufferedReader input = new BufferedReader(new FileReader(temp))) {
-			output = new BufferedWriter(new FileWriter(outputSubs));
-			String line;
-			String[] format = null;
-			int i;
-			while (( line = input.readLine()) != null) {
-				if (line.startsWith("Format:")) {
-					format = line.split(",");
-					output.write(line + "\n");
-					continue;
-				}
+		BufferedReader input = new BufferedReader(new FileReader(temp));
+		output = new BufferedWriter(new FileWriter(outputSubs));
+		String line;
+		String[] format = null;
+		int i;
+		while (( line = input.readLine()) != null) {
+			if (line.startsWith("Format:")) {
+				format = line.split(",");
+				output.write(line + "\n");
+				continue;
+			}
 
-				if (line.startsWith("Style: Default")) {
-					String[] params = line.split(",");
+			if (line.startsWith("Style: Default")) {
+				String[] params = line.split(",");
 
-					for (i = 0; i < format.length; i++) {
-						if (format[i].contains("Fontname")) {
-							if (!configuration.getFont().isEmpty()) {
-								params[i] = configuration.getFont();
-							} else {
-								params[i] = "Arial";
-							}
-							continue;
+				for (i = 0; i < format.length; i++) {
+					if (format[i].contains("Fontname")) {
+						if (!configuration.getFont().isEmpty()) {
+							params[i] = configuration.getFont();
+						} else {
+							params[i] = "Arial";
 						}
-
-						if (format[i].contains("Fontsize")) {
-							params[i] = Integer.toString((int) (16 * Double.parseDouble(configuration.getAssScale())));
-							continue;
-						}
-
-						if (format[i].contains("PrimaryColour")) {
-							String primaryColour = Integer.toHexString(configuration.getSubsColor());
-							params[i] = "&H" + primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4);
-							continue;
-						}
-
-						if (format[i].contains("Outline")) {
-							params[i] = configuration.getAssOutline();
-							continue;
-						}
-
-						if (format[i].contains("Shadow")) {
-							params[i] = configuration.getAssShadow();
-							continue;
-						}
-
-						if (format[i].contains("MarginV")) {
-							params[i] = configuration.getAssMargin();
-							continue;
-						}
+						continue;
 					}
 
-					output.write(StringUtils.join(params, ",") + "\n");
-					continue;
+					if (format[i].contains("Fontsize")) {
+						params[i] = Integer.toString((int) (16 * Double.parseDouble(configuration.getAssScale())));
+						continue;
+					}
+
+					if (format[i].contains("PrimaryColour")) {
+						String primaryColour = Integer.toHexString(configuration.getSubsColor());
+						params[i] = "&H" + primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4);
+						continue;
+					}
+
+					if (format[i].contains("Outline")) {
+						params[i] = configuration.getAssOutline();
+						continue;
+					}
+
+					if (format[i].contains("Shadow")) {
+						params[i] = configuration.getAssShadow();
+						continue;
+					}
+
+					if (format[i].contains("MarginV")) {
+						params[i] = configuration.getAssMargin();
+						continue;
+					}
 				}
 
-				output.write(line + "\n");
+				output.write(StringUtils.join(params, ",") + "\n");
+				continue;
 			}
+
+			output.write(line + "\n");
 		}
+		input.close();
 		output.flush();
 		output.close();
 		temp.delete();

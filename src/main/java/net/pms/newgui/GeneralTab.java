@@ -260,8 +260,8 @@ public class GeneralTab {
 		}
 
 		ArrayList<RendererConfiguration> allConfs = RendererConfiguration.getAllRendererConfigurations();
-		ArrayList<Object> keyValues = new ArrayList<>();
-		ArrayList<Object> nameValues = new ArrayList<>();
+		ArrayList<Object> keyValues = new ArrayList<Object>();
+		ArrayList<Object> nameValues = new ArrayList<Object>();
 		keyValues.add("");
 		nameValues.add(Messages.getString("NetworkTab.37"));
 
@@ -300,19 +300,19 @@ public class GeneralTab {
 					scrollPane.setPreferredSize(new java.awt.Dimension(900, 450));
 
 					try {
-						try (FileInputStream fis = new FileInputStream(conf)) {
-							BufferedReader in = new BufferedReader(new InputStreamReader(fis));
-							String line;
-							StringBuilder sb = new StringBuilder();
+						FileInputStream fis = new FileInputStream(conf);
+						BufferedReader in = new BufferedReader(new InputStreamReader(fis));
+						String line;
+						StringBuilder sb = new StringBuilder();
 
-							while ((line = in.readLine()) != null) {
-								sb.append(line);
-								sb.append("\n");
-							}
-
-							in.close();
-							textArea.setText(sb.toString());
+						while ((line = in.readLine()) != null) {
+							sb.append(line);
+							sb.append("\n");
 						}
+
+						in.close();
+						textArea.setText(sb.toString());
+						fis.close();
 					} catch (Exception e1) {
 						return;
 					}
@@ -327,10 +327,10 @@ public class GeneralTab {
 						String text = textArea.getText();
 
 						try {
-							try (FileOutputStream fos = new FileOutputStream(conf)) {
-								fos.write(text.getBytes());
-								fos.flush();
-							}
+							FileOutputStream fos = new FileOutputStream(conf);
+							fos.write(text.getBytes());
+							fos.flush();
+							fos.close();
 							configuration.reload();
 						} catch (Exception e1) {
 							JOptionPane.showMessageDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),

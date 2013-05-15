@@ -241,20 +241,6 @@ public class OpenSubtitle {
 		}
 		return res;
 	}
-	
-	private static String iso639(String s) {
-		String[] tmp = s.split(",");
-		String res = "";
-		String sep = "";
-		for (int i = 0; i < tmp.length; i++) {
-			res = res + sep + Iso639.getISO639_2Code(tmp[i]);
-			sep = ",";
-		}
-		if (StringUtils.isNotEmpty(res)) {
-			return res;
-		}
-		return s;
-	}
 
 	private static String iso639(String s) {
 		String[] tmp = s.split(",");

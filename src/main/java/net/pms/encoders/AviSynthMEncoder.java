@@ -297,18 +297,17 @@ public class AviSynthMEncoder extends MEncoderVideo {
 			String GPU = "";
 			movieLine = movieLine + ".ConvertToYV12()";
 
-				// Enable GPU to assist with CPU
-				if (configuration.getAvisynthInterFrameGPU() && interframegpu.isEnabled()){
-					GPU = ", GPU=true";
-				}
-
-				interframeLines = "\n" +
-					"PluginPath = \"" + interframePath + "\"\n" +
-					"LoadPlugin(PluginPath+\"svpflow1.dll\")\n" +
-					"LoadPlugin(PluginPath+\"svpflow2.dll\")\n" +
-					"Import(PluginPath+\"InterFrame2.avsi\")\n" +
-					"InterFrame(Cores=" + Cores + GPU + ", Preset=\"Fast\")\n";
+			// Enable GPU to assist with CPU
+			if (configuration.getAvisynthInterFrameGPU() && interframegpu.isEnabled()){
+				GPU = ", GPU=true";
 			}
+
+			interframeLines = "\n" +
+				"PluginPath = \"" + interframePath + "\"\n" +
+				"LoadPlugin(PluginPath+\"svpflow1.dll\")\n" +
+				"LoadPlugin(PluginPath+\"svpflow2.dll\")\n" +
+				"Import(PluginPath+\"InterFrame2.avsi\")\n" +
+				"InterFrame(Cores=" + Cores + GPU + ", Preset=\"Fast\")\n";
 		}
 
 		String subLine = null;

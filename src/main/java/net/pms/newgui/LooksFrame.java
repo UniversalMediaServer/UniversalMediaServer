@@ -260,28 +260,24 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		 * 2) optional scrollbars (-Dscrollbars=optional): display them as needed
 		 * 3) otherwise (default): don't display them
 		 */
-		switch (showScrollbars) {
-			case "true":
-				setContentPane(
-					new JScrollPane(
-						jp,
-						ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
-						ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS
-					)
-				);
-				break;
-			case "optional":
-				setContentPane(
-					new JScrollPane(
-						jp,
-						ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-						ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
-					)
-				);
-				break;
-			default:
-				setContentPane(jp);
-				break;
+		if ("true".equals(showScrollbars)) {
+			setContentPane(
+				new JScrollPane(
+					jp,
+					ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
+					ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS
+				)
+			);
+		} else if ("optional".equals(showScrollbars)) {
+			setContentPane(
+				new JScrollPane(
+					jp,
+					ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+					ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
+				)
+			);
+		} else {
+			setContentPane(jp);
 		}
 
 		String projectName = PropertiesUtil.getProjectProperties().get("project.name");

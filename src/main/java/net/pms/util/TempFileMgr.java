@@ -18,7 +18,7 @@ public class TempFileMgr {
 	HashMap<File, Integer> files;
 
 	public TempFileMgr() {
-		files = new HashMap<>();
+		files = new HashMap<File, Integer>();
 		parseCleanFile();
 	}
 
@@ -81,36 +81,36 @@ public class TempFileMgr {
 			return;
 		}
 		try {
-			try (BufferedReader in = new BufferedReader(new FileReader(f))) {
-				String str;
+			BufferedReader in = new BufferedReader(new FileReader(f));
+			String str;
 
-				while ((str = in.readLine()) != null) {
-					if (StringUtils.isEmpty(str) || str.startsWith("#")) {
-						continue;
-					}
-					String[] tmp = str.split(",");
-					if (tmp.length > 1) {
-						add(new File(tmp[0]), tmp[1]);
-					} else {
-						add(new File(tmp[0]));
-					}
+			while ((str = in.readLine()) != null) {
+				if (StringUtils.isEmpty(str) || str.startsWith("#")) {
+					continue;
+				}
+				String[] tmp = str.split(",");
+				if (tmp.length > 1) {
+					add(new File(tmp[0]), tmp[1]);
+				} else {
+					add(new File(tmp[0]));
 				}
 			}
+			in.close();
 		} catch (Exception e) {
 		}
 	}
 
 	private void dumpFile() throws IOException {
-		try (FileOutputStream out = new FileOutputStream(cleanFile())) {
-			Date now = new Date();
-			String n = "## " + now.toString() + "\n";
-			out.write("#########\n".getBytes());
-			out.write(n.getBytes());
-			for (File f : files.keySet()) {
-				String str = f.getAbsolutePath() + "," + files.get(f) + "\n";
-				out.write(str.getBytes());
-			}
-			out.flush();
+		FileOutputStream out = new FileOutputStream(cleanFile());
+		Date now = new Date();
+		String n = "## " + now.toString() + "\n";
+		out.write("#########\n".getBytes());
+		out.write(n.getBytes());
+		for (File f : files.keySet()) {
+			String str = f.getAbsolutePath() + "," + files.get(f) + "\n";
+			out.write(str.getBytes());
 		}
+		out.flush();
+		out.close();
 	}
 }
