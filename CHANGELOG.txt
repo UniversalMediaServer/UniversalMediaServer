@@ -16,6 +16,7 @@
 		Improved audio transcoding quality in FFmpeg by default
 		Fixed memory leaks
 		Added tooltips to several options to make them clearer
+		OS X build runs optimized Java 7 code
 	Renderers:
 		Xbox 360 supports 5.1 audio
 		Faster transcoding on Xbox 360
