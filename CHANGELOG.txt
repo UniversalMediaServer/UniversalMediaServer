@@ -1,4 +1,4 @@
-3.0.0 - 2013-05-??
+3.0.0-a1 - 2013-05-15
 
 	General:
 		Added internal subtitle support to FFmpeg
