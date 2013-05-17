@@ -27,7 +27,8 @@ public class ResumeObj {
 	}
 
 	private static File resumeFile(DLNAResource r) {
-		String fName = r.getName() + "_hash_" + r.resumeHash() + ".resume";
+		String wName = r.getName().replaceAll("[:\\[\\]\n\r]", "").replaceAll(" ", "_").trim();
+		String fName = wName + "_hash_" + r.resumeHash() + ".resume";
 		return new File(resumePath().getAbsolutePath() + File.separator + fName);
 	}
 
