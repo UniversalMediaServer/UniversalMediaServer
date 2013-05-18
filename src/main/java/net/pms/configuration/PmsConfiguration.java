@@ -188,6 +188,7 @@ public class PmsConfiguration {
 	private static final String KEY_RESUME = "resume";
 	private static final String KEY_RESUME_REWIND = "resume_rewind";
 	private static final String KEY_RESUME_BACK = "resume_back";
+	private static final String KEY_RESUME_KEEP_TIME = "resume_keep_time";
 	private static final String KEY_RUN_WIZARD = "run_wizard";
 	private static final String KEY_SEARCH_FOLDER = "search_folder";
 	private static final String KEY_SEARCH_RECURSE = "search_recurse";
@@ -3041,5 +3042,9 @@ public class PmsConfiguration {
 			percent = 10;
 		}
 		return (percent / 100.0);
+	}
+	
+	public int getResumeKeepTime() {
+		return getInt(KEY_RESUME_KEEP_TIME, 0);
 	}
 }
