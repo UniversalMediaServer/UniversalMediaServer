@@ -220,4 +220,10 @@ public class HebrewProber extends CharsetProber
         // these letters as Non-Final letters outweighs the damage since these words 
         // are quite rare.
     }
+
+	@Override
+	public String getProberName() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

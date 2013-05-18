@@ -212,4 +212,11 @@ public class Latin1Prober extends CharsetProber
         /*ASV*/  0,  3,  1,  3,  1,  1,  1,  3, 
         /*ASO*/  0,  3,  1,  3,  1,  1,  3,  3,
     };
+
+
+	@Override
+	public String getProberName() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

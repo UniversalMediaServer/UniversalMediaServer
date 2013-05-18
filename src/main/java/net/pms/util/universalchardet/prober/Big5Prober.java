@@ -142,4 +142,10 @@ public class Big5Prober extends CharsetProber
     @Override
     public void setOption()
     {}
+
+	@Override
+	public String getProberName() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

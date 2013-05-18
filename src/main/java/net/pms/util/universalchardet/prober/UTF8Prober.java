@@ -137,4 +137,10 @@ public class UTF8Prober extends CharsetProber
 
     public void setOption()
     {}
+
+	@Override
+	public String getProberName() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

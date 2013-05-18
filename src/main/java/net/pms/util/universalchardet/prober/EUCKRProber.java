@@ -141,4 +141,10 @@ public class EUCKRProber extends CharsetProber
     @Override
     public void setOption()
     {}
+
+	@Override
+	public String getProberName() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

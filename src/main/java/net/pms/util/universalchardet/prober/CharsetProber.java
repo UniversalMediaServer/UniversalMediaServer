@@ -79,6 +79,7 @@ public abstract class CharsetProber
     public abstract void reset();
     public abstract float getConfidence();
     public abstract void setOption();
+    public abstract String getProberName();
 
     // ByteBuffer.position() indicates number of bytes written.
     public ByteBuffer filterWithoutEnglishLetters(final byte[] buf, int offset, int length)

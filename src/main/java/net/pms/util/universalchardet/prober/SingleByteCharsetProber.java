@@ -103,6 +103,11 @@ public class SingleByteCharsetProber extends CharsetProber
     {
         return this.model.getKeepEnglishLetter();
     }
+    
+    
+    public String getProberName() {
+    	return this.model.toString();
+    }
 
     @Override
     public String getCharSetName()

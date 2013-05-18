@@ -1,0 +1,199 @@
+          1
+00:00:07,500 --> 00:00:20,000
+| pøeklad <i>Telemachus Rhade</i> 2009 |
+| èasování titulky.com |
+
+1
+00:01:19,052 --> 00:01:21,691
+<i>U.S.S. Kelvin pro základnu Flotily.</i>
+
+2
+00:01:21,726 --> 00:01:24,330
+<i>Základno, obdr¾eli
+jste na¹i zprávu?</i>
+
+3
+00:01:24,365 --> 00:01:25,655
+<i>Kelvine, ovìøili jste ty údaje?</i>
+
+4
+00:01:25,690 --> 00:01:28,529
+<i>Na¹e gravitaèní senzory se zbláznily.
+Mìli byste to vidìt!</i>
+
+5
+00:01:28,564 --> 00:01:29,654
+<i>Vypadá to jako bouøe.</i>
+
+6
+00:01:29,689 --> 00:01:34,128
+- Co jste nám poslali nedává smysl.
+- Ano, madam, rozumím, proto jsme to poslali.
+
+7
+00:01:34,163 --> 00:01:36,812
+- Hlá¹ení!
+- Zatím nemáme obraz, je¹tì 20 sekund.
+
+8
+00:01:36,847 --> 00:01:40,886
+Informujte kapitána Robaua,
+¾e Flotila doporuèuje ostra¾itost.
+
+9
+00:01:40,921 --> 00:01:42,291
+- Polarizujte obrazovku.
+- A» je to cokoliv...
+
+10
+00:01:42,326 --> 00:01:47,850
+- Kapitáne, máme obraz.
+- Opakuji: mohou to být Klingoni?
+
+11
+00:01:47,885 --> 00:01:50,324
+<i>Ne, poruèíku. Jsme 75.000 kilometrù
+od jejich území.</i>
+
+12
+00:01:50,359 --> 00:01:52,483
+Kapitáne, vidíte to?
+
+13
+00:01:55,083 --> 00:01:56,563
+Mùj Bo¾e.
+
+14
+00:02:16,877 --> 00:02:19,717
+Mám údaje.
+Zamìøili na nás zbranì!
+
+15
+00:02:20,117 --> 00:02:22,076
+Zamìøily nás torpéda na 320-ti°!
+
+16
+00:02:22,111 --> 00:02:24,036
+Pøipravit zbranì!
+
+17
+00:02:25,995 --> 00:02:27,995
+Únikový manévr Delta 5!
+
+18
+00:02:29,234 --> 00:02:31,234
+Rychle se blí¾í!
+
+19
+00:02:36,792 --> 00:02:38,672
+Palte v¹emi phasery!
+
+20
+00:02:38,707 --> 00:02:39,917
+Jaké je po¹kození?
+
+21
+00:02:39,952 --> 00:02:42,951
+<i>Warpový pohon byl znièen!
+Nic podobného jsem je¹tì nevidìl.</i>
+
+22
+00:02:43,831 --> 00:02:46,316
+Zbranì nefungují.
+Primární energie na 38%.
+
+23
+00:02:46,351 --> 00:02:49,349
+- Odpálili dal¹í!
+- V¹echnu energii do pøedních ¹títù!
+
+24
+00:02:56,867 --> 00:02:58,628
+Poruèíku!
+
+25
+00:03:02,306 --> 00:03:06,345
+- Atmosférická stabilizace znièena.
+- Mìli jsme vùbec aktivní ¹títy?
+
+26
+00:03:06,380 --> 00:03:10,384
+- Máme ztráty na ¾ivotech, pane.
+- ©títy na 11% a klesají. 10%, 9%...
+
+27
+00:03:10,419 --> 00:03:15,103
+V¹echnu zbývající energii do pøedních ¹títù.
+Pøipravte èluny k evakuaci.
+
+28
+00:03:16,822 --> 00:03:18,823
+Zdravím.
+
+29
+00:03:19,222 --> 00:03:24,661
+Mùj velitel si ¾ádá pøítomnost va¹eho kapitána.
+Za úèelem vyjednání pøímìøí.
+
+30
+00:03:24,696 --> 00:03:27,900
+Pøiletíte k nám na loï v raketoplánu.
+
+31
+00:03:27,940 --> 00:03:31,180
+Odmítnout, by bylo nemoudré.
+
+32
+00:03:42,897 --> 00:03:44,856
+Pojïte se mnou.
+
+33
+00:03:50,215 --> 00:03:53,734
+Pokud se neozvu do 15 minut,
+evakuujte posádku.
+
+34
+00:03:53,769 --> 00:03:56,534
+- Pane, kdy¾...
+- Tady nám nikdo nepomù¾e.
+
+35
+00:03:56,569 --> 00:03:57,813
+Pou¾ijte autopilota.
+
+36
+00:03:59,372 --> 00:04:01,651
+- A opus»te loï.
+- Rozkaz, kapitáne.
+
+37
+00:04:01,751 --> 00:04:04,032
+Teï jste kapitán vy, pane Kirku.
+
+38
+00:05:17,333 --> 00:05:19,293
+Má zrychlený tep.
+
+39
+00:05:41,608 --> 00:05:43,527
+Podívejte se na tu loï.
+
+40
+00:05:44,967 --> 00:05:48,806
+- Znáte toto plavidlo?
+- Kdo je vá¹ velitel?
+
+41
+00:05:50,005 --> 00:05:53,290
+- To je on?
+- Mluvím jménem kapitána Nerona.
+
+42
+00:05:53,325 --> 00:05:59,164
+Tak se kapitána Nerona zeptejte, kdo
+mu dal právo zaútoèit na loï Federace.
+
+43
+00:06:11,121 --> 00:06:15,319
+Víte, kde se nachází
+velvyslanec Spock?

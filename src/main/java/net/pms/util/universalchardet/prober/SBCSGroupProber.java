@@ -40,6 +40,7 @@ package net.pms.util.universalchardet.prober;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.util.universalchardet.prober.sequence.Latin2CzechModel;
 
+import net.pms.util.universalchardet.prober.sequence.Latin2PolishModel;
 import net.pms.util.universalchardet.prober.sequence.SequenceModel;
 import net.pms.util.universalchardet.prober.sequence.Win1250CzechModel;
 import net.pms.util.universalchardet.prober.sequence.Win1251Model;
@@ -49,6 +50,7 @@ import net.pms.util.universalchardet.prober.sequence.MacCyrillicModel;
 import net.pms.util.universalchardet.prober.sequence.Ibm866Model;
 import net.pms.util.universalchardet.prober.sequence.Ibm855Model;
 import net.pms.util.universalchardet.prober.sequence.Latin7Model;
+import net.pms.util.universalchardet.prober.sequence.Win1252GermanModel;
 import net.pms.util.universalchardet.prober.sequence.Win1253Model;
 import net.pms.util.universalchardet.prober.sequence.Latin5BulgarianModel;
 import net.pms.util.universalchardet.prober.sequence.Win1251BulgarianModel;
@@ -86,6 +88,8 @@ public class SBCSGroupProber extends CharsetProber
     private static final SequenceModel hebrewModel = new HebrewModel();
     private static final SequenceModel win1250CzechModel = new Win1250CzechModel();
 	private static final SequenceModel latin2CzechModel = new Latin2CzechModel();
+	private static final SequenceModel latin2PolishModel = new Latin2PolishModel();
+	private static final SequenceModel win1252GermanModel = new Win1252GermanModel();
     
 
     ////////////////////////////////////////////////////////////////
@@ -95,8 +99,8 @@ public class SBCSGroupProber extends CharsetProber
     {
         super();
 
-        this.probers = new CharsetProber[15];
-        this.isActive = new boolean[15];
+        this.probers = new CharsetProber[17];
+        this.isActive = new boolean[17];
         
         this.probers[0] = new SingleByteCharsetProber(win1251Model);
         this.probers[1] = new SingleByteCharsetProber(koi8rModel);
@@ -116,7 +120,10 @@ public class SBCSGroupProber extends CharsetProber
         hebprober.setModalProbers(this.probers[11], this.probers[12]);
 
 		this.probers[13] = new SingleByteCharsetProber(latin2CzechModel);
-		this.probers[14] = new SingleByteCharsetProber(win1250CzechModel);    
+		this.probers[14] = new SingleByteCharsetProber(win1250CzechModel);
+		this.probers[15] = new SingleByteCharsetProber(latin2PolishModel);
+		this.probers[16] = new SingleByteCharsetProber(win1252GermanModel);
+		
         reset();
     }
     
@@ -130,7 +137,7 @@ public class SBCSGroupProber extends CharsetProber
             }
         }
         
-        LOGGER.debug("Detected by " + this.probers[this.bestGuess].toString());
+        LOGGER.debug("Detected by " + this.probers[this.bestGuess].getProberName());
         return this.probers[this.bestGuess].getCharSetName();
     }
 
@@ -218,4 +225,9 @@ public class SBCSGroupProber extends CharsetProber
     @Override
     public void setOption()
     {}
+
+	@Override
+	public String getProberName() {
+		return null;
+	}
 }
