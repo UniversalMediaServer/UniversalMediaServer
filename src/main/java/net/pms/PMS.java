@@ -387,7 +387,7 @@ public class PMS {
 					save();
 				} else if (networkType == JOptionPane.CANCEL_OPTION) {
 					// Wireless
-					configuration.setMaximumBitrate("30");
+					configuration.setMaximumBitrate("50");
 					configuration.setMPEG2MainSettings("Automatic (Wireless)");
 					save();
 				}
@@ -442,7 +442,7 @@ public class PMS {
 
 		String commitId = PropertiesUtil.getProjectProperties().get("git.commit.id");
 		String commitTime = PropertiesUtil.getProjectProperties().get("git.commit.time");
-		String shortCommitId = commitId.substring(0,  9);
+		String shortCommitId = commitId.substring(0, 9);
 
 		LOGGER.info("Build: " + shortCommitId + " (" + commitTime + ")");
 
@@ -1100,9 +1100,7 @@ public class PMS {
 	}
 
 	public void storeFileInCache(File file, int formatType) {
-		if (getConfiguration().getUseCache()
-				&& !getDatabase().isDataExists(file.getAbsolutePath(), file.lastModified())) {
-
+		if (getConfiguration().getUseCache() && !getDatabase().isDataExists(file.getAbsolutePath(), file.lastModified())) {
 			getDatabase().insertData(file.getAbsolutePath(), file.lastModified(), formatType, null);
 		}
 	}

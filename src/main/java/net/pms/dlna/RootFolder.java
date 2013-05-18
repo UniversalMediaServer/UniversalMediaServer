@@ -39,6 +39,8 @@ import net.pms.external.AdditionalFoldersAtRoot;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.gui.IFrame;
+import net.pms.util.FileUtil;
+
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -993,6 +995,61 @@ public class RootFolder extends DLNAResource {
 					}
 				});
 			}
+		}
+		
+		// resume file mgmt
+		if(configuration.isResumeEnabled()) {
+			final File[] files = ResumeObj.resumeFiles();
+			res.addChild(new VirtualFolder(Messages.getString("PMS.135"), null) {
+				public void discoverChildren() {
+					addChild(new VirtualVideoAction(Messages.getString("PMS.136"), true) {
+						public boolean enable() {
+							for (File f : files) {
+								f.delete();
+							}
+							getParent().getChildren().clear();
+							return true;
+						}
+					});
+					for (final File f : files) {
+						String name = FileUtil.getFileNameWithoutExtension(f.getName());
+						name = name.replaceAll(ResumeObj.CLEAN_REG, "");
+						addChild(new VirtualVideoAction(name, false) {
+							public boolean enable() {
+								f.delete();
+								getParent().getChildren().remove(this);
+								return false;
+							}
+						});
+					}
+				}
+			});
+		}
+		
+		// recently played mgmt
+		if (last != null) {
+			final List<DLNAResource> l = last.getList();
+			res.addChild(new VirtualFolder(Messages.getString("PMS.137"), null) {
+				public void discoverChildren() {
+					addChild(new VirtualVideoAction(Messages.getString("PMS.136"), true) {
+						public boolean enable() {
+							getParent().getChildren().clear();
+							l.clear();
+							return true;
+						}
+					});
+					for(final DLNAResource r : l) {
+						addChild(new VirtualVideoAction(r.getName(), false) {
+							public boolean enable() {
+								getParent().getChildren().remove(this);
+								l.remove(r);
+								last.update();
+								return false;
+							}
+						});
+					}
+				}
+			});
 		}
 
 		addChild(res);

@@ -123,13 +123,12 @@ public class FFMpegVideo extends Player {
 	public List<String> getVideoFilterOptions(File tempSubs, RendererConfiguration renderer, DLNAMediaInfo media, OutputParams params) throws IOException {
 		List<String> videoFilterOptions = new ArrayList<>();
 		String subsOption = null;
-		String padding = null;
 
-		boolean isResolutionTooHighForRenderer = renderer.isVideoRescale() && // renderer defines a max width/height
-			(media != null && media.isMediaparsed()) &&
+		boolean isMediaValid = media != null && media.isMediaparsed() && media.getHeight() != 0;
+		boolean isResolutionTooHighForRenderer = renderer.isVideoRescale() && isMediaValid && // renderer defines a max width/height
 			(
-				(media.getWidth() > renderer.getMaxVideoWidth()) ||
-				(media.getHeight() > renderer.getMaxVideoHeight())
+				media.getWidth() > renderer.getMaxVideoWidth() ||
+				media.getHeight() > renderer.getMaxVideoHeight()
 			);
 
 		if (tempSubs != null) {
@@ -164,51 +163,37 @@ public class FFMpegVideo extends Player {
 
 		}
 
-		if (renderer.isKeepAspectRatio() && renderer.isRescaleByRenderer()) {
-			if (
-				media != null &&
-				media.isMediaparsed() &&
-				media.getHeight() != 0 &&
-				(media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)
-			) {
-				padding = "pad=iw:iw/(16/9):0:(oh-ih)/2";
-			} else {
-				padding = "pad=ih*(16/9):ih:(ow-iw)/2:0";
-			}
-		}
+		String rescaleOrPadding = null;
 
-		String rescaleSpec = null;
-
-		if (isResolutionTooHighForRenderer || (renderer.isKeepAspectRatio() && !renderer.isRescaleByRenderer())) {
-			rescaleSpec = String.format(
+		if (isResolutionTooHighForRenderer || (renderer.isKeepAspectRatio() && !renderer.isRescaleByRenderer() && media.getWidth() < 720)) { // Do not rescale for SD video and higher
+			rescaleOrPadding = String.format(
 				// http://stackoverflow.com/a/8351875
 				"scale=iw*min(%1$d/iw\\,%2$d/ih):ih*min(%1$d/iw\\,%2$d/ih),pad=%1$d:%2$d:(%1$d-iw)/2:(%2$d-ih)/2",
 				renderer.getMaxVideoWidth(),
 				renderer.getMaxVideoHeight()
 			);
+		} else if (renderer.isKeepAspectRatio() && isMediaValid) {
+			if ((media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
+				rescaleOrPadding = "pad=iw:iw/(16/9):0:(oh-ih)/2";
+			} else {
+				rescaleOrPadding = "pad=ih*(16/9):ih:(ow-iw)/2:0";
+			}
 		}
-		
+
 		String overrideVF = renderer.getFFmpegVideoFilterOverride();
 
-		if (rescaleSpec != null || padding != null || overrideVF != null || subsOption != null) {
+		if (rescaleOrPadding != null || overrideVF != null || subsOption != null) {
 			videoFilterOptions.add("-vf");
 			StringBuilder filterParams = new StringBuilder();
-			
+
 			if (overrideVF != null) {
 				filterParams.append(overrideVF);
 				if (subsOption != null) {
 					filterParams.append(", ");
 				}
 			} else {
-				if (rescaleSpec != null) {
-					filterParams.append(rescaleSpec);
-					if (subsOption != null || padding != null) {
-						filterParams.append(", ");
-					}
-				}
-
-				if (padding != null && rescaleSpec == null) {
-					filterParams.append(padding);
+				if (rescaleOrPadding != null) {
+					filterParams.append(rescaleOrPadding);
 					if (subsOption != null) {
 						filterParams.append(", ");
 					}
@@ -1079,7 +1064,7 @@ public class FFMpegVideo extends Player {
 					"_" + new File(fileName).lastModified() + "_EMB_ID" + params.sid.getId() + ".ass";
 			File tmp = new File(convertedSubs);
 
-			if (tmp.exists()) {
+			if (tmp.canRead()) {
 				tempSubs = tmp;
 			} else {
 				tempSubs = convertSubsToAss(fileName, media, params);
@@ -1135,7 +1120,7 @@ public class FFMpegVideo extends Player {
 
 		if (tempSubs != null && params.sid.isEmbedded() && params.timeseek > 0) {
 			try {
-				tempSubs = SubtitleUtils.applyTimeSeekingToASS(tempSubs, params.timeseek);
+				tempSubs = SubtitleUtils.applyTimeSeekingToASS(tempSubs, params);
 			} catch (IOException e) {
 				LOGGER.debug("Applying timeseeking caused an error: " + e);
 				tempSubs = null;
@@ -1189,7 +1174,7 @@ public class FFMpegVideo extends Player {
 
 		if (params.sid.isEmbedded()) {
 			cmdList.add("-map");
-			cmdList.add("0:" + (params.sid.getId() + media.getAudioTracksList().size() + 1));
+			cmdList.add("0:s:" + (media.getSubtitleTracksList().indexOf(params.sid)));
 		}
 
 		String dir = configuration.getDataFile(SUB_DIR);
@@ -1229,7 +1214,7 @@ public class FFMpegVideo extends Player {
 
 	public File applySubsSettingsToTempSubsFile(File tempSubs) throws IOException {
 		File outputSubs = tempSubs;
-		File temp = new File(SubtitleUtils.tempFile(tempSubs.getName()));
+		File temp = new File(configuration.getTempFolder(), tempSubs.getName());
 		Files.copy(tempSubs.toPath(), temp.toPath(), REPLACE_EXISTING);
 		BufferedWriter output;
 		try (BufferedReader input = new BufferedReader(new FileReader(temp))) {

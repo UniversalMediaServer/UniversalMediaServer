@@ -78,6 +78,7 @@ public class NavigationShareTab {
 	private JCheckBox prettifyfilenames;
 	private JCheckBox newmediafolder;
 	private JCheckBox recentlyplayedfolder;
+	private JCheckBox resume;
 
 	public DefaultListModel<String> getDf() {
 		return df;
@@ -190,8 +191,10 @@ public class NavigationShareTab {
 		} else {
 			builder.add(builderSharedFolder.getPanel(), FormLayoutUtil.flip(cc.xyw(1, 1, 10), colSpec, orientation));
 		}
-		builder.add(recentlyplayedfolder, FormLayoutUtil.flip(cc.xyw(1, 27, 3), colSpec, orientation));
-
+		builder.add(resume, FormLayoutUtil.flip(cc.xy(1, 27), colSpec, orientation));
+		builder.add(recentlyplayedfolder, FormLayoutUtil.flip(cc.xyw(4, 27, 3), colSpec, orientation));
+		
+		
 		builder.add(builderSharedFolder.getPanel(), FormLayoutUtil.flip(cc.xyw(1, 29, 10), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
@@ -626,6 +629,19 @@ public class NavigationShareTab {
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setHideRecentlyPlayedFolder((e.getStateChange() == ItemEvent.SELECTED));
 				hideextensions.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
+			}
+		});
+		
+		resume = new JCheckBox(Messages.getString("NetworkTab.68"));
+		resume.setToolTipText(Messages.getString("NetworkTab.69"));
+		resume.setContentAreaFilled(false);
+		if (configuration.isResumeEnabled()) {
+			resume.setSelected(true);
+		}
+		resume.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setResume((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
 	}

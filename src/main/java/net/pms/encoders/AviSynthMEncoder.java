@@ -378,6 +378,16 @@ public class AviSynthMEncoder extends MEncoderVideo {
 			return false;
 		}
 
+		Format format = resource.getFormat();
+		Format.Identifier id = Format.Identifier.CUSTOM;
+
+		if (format != null) {
+			id = format.getIdentifier();
+			if (id == Format.Identifier.WEB) {
+				return false;
+			}
+		}
+
 		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
 
 		// Check whether the subtitle actually has a language defined,
@@ -405,14 +415,8 @@ public class AviSynthMEncoder extends MEncoderVideo {
 			LOGGER.trace("AviSynth/MEncoder cannot determine compatibility based on default audio track for " + resource.getSystemName());
 		}
 
-		Format format = resource.getFormat();
-
-		if (format != null) {
-			Format.Identifier id = format.getIdentifier();
-
-			if (id.equals(Format.Identifier.MKV) || id.equals(Format.Identifier.MPG)) {
-				return true;
-			}
+		if (id.equals(Format.Identifier.MKV) || id.equals(Format.Identifier.MPG)) {
+			return true;
 		}
 
 		return false;

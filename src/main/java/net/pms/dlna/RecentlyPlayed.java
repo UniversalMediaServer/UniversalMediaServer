@@ -117,6 +117,17 @@ public class RecentlyPlayed extends VirtualFolder {
 			addChild(r);
 		}
 	}
+	
+	public List<DLNAResource> getList() {
+		return list;
+	}
+	
+	public void update() {
+		try {
+			dumpFile();
+		} catch (IOException e) {
+		}
+	}
 
 	private void parseLastFile() {
 		File f = lastFile();
