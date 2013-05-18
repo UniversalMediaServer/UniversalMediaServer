@@ -110,6 +110,20 @@ public class FileUtilTest {
 		assertThat(FileUtil.getFileCharset(file)).isEqualTo(Constants.CHARSET_BIG5);
 	}
 
+	/**
+	@Test
+	public void testGetFileCharset_WINDOWS_1250() throws Exception {
+		File file = FileUtils.toFile(CLASS.getResource("czech-cp1250.srt"));
+		assertThat(FileUtil.getFileCharset(file)).isEqualTo(Constants.CHARSET_WINDOWS_1250);
+	}
+*/
+	@Test
+	public void testGetFileCharset_ISO_8859_2() throws Exception {
+		File file = FileUtils.toFile(CLASS.getResource("czech-ISO-8859-2.srt"));
+		assertThat(FileUtil.getFileCharset(file)).isEqualTo(Constants.CHARSET_ISO_8859_2);
+	}
+
+
 	@Test
 	public void testIsFileUTF8() throws Exception {
 		File file_utf8 = FileUtils.toFile(CLASS.getResource("russian-utf8-without-bom.srt"));
