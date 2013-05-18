@@ -37,13 +37,12 @@
 
 package net.pms.util.universalchardet.prober;
 
-import net.pms.util.universalchardet.Constants;
-
-import net.pms.util.universalchardet.prober.statemachine.CodingStateMachine;
-import net.pms.util.universalchardet.prober.statemachine.SJISSMModel;
-import net.pms.util.universalchardet.prober.statemachine.SMModel;
-import net.pms.util.universalchardet.prober.contextanalysis.SJISContextAnalysis;
-import net.pms.util.universalchardet.prober.distributionanalysis.SJISDistributionAnalysis;
+import org.mozilla.universalchardet.prober.statemachine.CodingStateMachine;
+import org.mozilla.universalchardet.prober.statemachine.SJISSMModel;
+import org.mozilla.universalchardet.prober.statemachine.SMModel;
+import org.mozilla.universalchardet.prober.contextanalysis.SJISContextAnalysis;
+import org.mozilla.universalchardet.prober.distributionanalysis.SJISDistributionAnalysis;
+import org.mozilla.universalchardet.Constants;
 
 
 public class SJISProber extends CharsetProber

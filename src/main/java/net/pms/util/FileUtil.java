@@ -8,7 +8,9 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.formats.v2.SubtitleType;
 import static net.pms.util.universalchardet.Constants.*;
+//import net.pms.util.universalchardet.UniversalDetector;
 import static org.apache.commons.lang3.StringUtils.*;
+
 import org.mozilla.universalchardet.UniversalDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

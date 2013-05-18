@@ -38,11 +38,12 @@
 
 package net.pms.util.universalchardet;
 
-import net.pms.util.universalchardet.prober.CharsetProber;
-import net.pms.util.universalchardet.prober.MBCSGroupProber;
-import net.pms.util.universalchardet.prober.SBCSGroupProber;
-import net.pms.util.universalchardet.prober.EscCharsetProber;
-import net.pms.util.universalchardet.prober.Latin1Prober;
+import org.mozilla.universalchardet.prober.CharsetProber;
+import org.mozilla.universalchardet.prober.MBCSGroupProber;
+import org.mozilla.universalchardet.prober.SBCSGroupProber;
+import org.mozilla.universalchardet.prober.EscCharsetProber;
+import org.mozilla.universalchardet.prober.Latin1Prober;
+import org.mozilla.universalchardet.Constants;
 
 public class UniversalDetector
 {

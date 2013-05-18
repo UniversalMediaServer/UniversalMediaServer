@@ -36,12 +36,13 @@
  * ***** END LICENSE BLOCK ***** */
 
 package net.pms.util.universalchardet.prober;
-import net.pms.util.universalchardet.prober.statemachine.CodingStateMachine;
-import net.pms.util.universalchardet.prober.statemachine.HZSMModel;
-import net.pms.util.universalchardet.prober.statemachine.ISO2022CNSMModel;
-import net.pms.util.universalchardet.prober.statemachine.ISO2022JPSMModel;
-import net.pms.util.universalchardet.prober.statemachine.ISO2022KRSMModel;
-import net.pms.util.universalchardet.prober.statemachine.SMModel;
+
+import org.mozilla.universalchardet.prober.statemachine.CodingStateMachine;
+import org.mozilla.universalchardet.prober.statemachine.SMModel;
+import org.mozilla.universalchardet.prober.statemachine.HZSMModel;
+import org.mozilla.universalchardet.prober.statemachine.ISO2022CNSMModel;
+import org.mozilla.universalchardet.prober.statemachine.ISO2022JPSMModel;
+import org.mozilla.universalchardet.prober.statemachine.ISO2022KRSMModel;
 
 
 public class EscCharsetProber extends CharsetProber

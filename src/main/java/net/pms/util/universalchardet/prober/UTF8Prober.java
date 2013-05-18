@@ -37,11 +37,10 @@
 
 package net.pms.util.universalchardet.prober;
 
-import net.pms.util.universalchardet.Constants;
-
 import org.mozilla.universalchardet.prober.statemachine.CodingStateMachine;
 import org.mozilla.universalchardet.prober.statemachine.SMModel;
 import org.mozilla.universalchardet.prober.statemachine.UTF8SMModel;
+import org.mozilla.universalchardet.Constants;
 
 
 public class UTF8Prober extends CharsetProber

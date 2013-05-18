@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Kohei TAKETA <k-tak@void.in> (Java port)
+ *   Lersh99
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -37,12 +38,11 @@
 
 package net.pms.util.universalchardet.prober;
 
-import net.pms.util.universalchardet.Constants;
-
-import net.pms.util.universalchardet.prober.distributionanalysis.EUCTWDistributionAnalysis;
-import net.pms.util.universalchardet.prober.statemachine.CodingStateMachine;
-import net.pms.util.universalchardet.prober.statemachine.EUCTWSMModel;
-import net.pms.util.universalchardet.prober.statemachine.SMModel;
+import org.mozilla.universalchardet.prober.distributionanalysis.EUCTWDistributionAnalysis;
+import org.mozilla.universalchardet.prober.statemachine.CodingStateMachine;
+import org.mozilla.universalchardet.prober.statemachine.EUCTWSMModel;
+import org.mozilla.universalchardet.prober.statemachine.SMModel;
+import org.mozilla.universalchardet.Constants;
 
 
 public class EUCTWProber extends CharsetProber
@@ -114,7 +114,7 @@ public class EUCTWProber extends CharsetProber
                     this.lastChar[1] = buf[offset];
                     this.distributionAnalyzer.handleOneChar(this.lastChar, 0, charLen);
                 } else {
-                    this.distributionAnalyzer.handleData(buf, i-1, charLen);
+                    this.distributionAnalyzer.handleOneChar(buf, i-1, charLen);
                 }
             }
         }

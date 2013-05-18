@@ -36,7 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 package net.pms.util.universalchardet.prober.sequence;
 
-import net.pms.util.universalchardet.Constants;
+import org.mozilla.universalchardet.Constants;
 
 
 public class Win1253Model extends GreekModel

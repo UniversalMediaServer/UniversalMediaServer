@@ -37,7 +37,8 @@
 
 package net.pms.util.universalchardet.prober.sequence;
 
-import net.pms.util.universalchardet.Constants;
+import org.mozilla.universalchardet.Constants;
+
 
 public class Ibm855Model extends CyrillicModel
 {

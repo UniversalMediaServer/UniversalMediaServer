@@ -39,8 +39,7 @@
 package net.pms.util.universalchardet.prober;
 
 import java.nio.ByteBuffer;
-
-import net.pms.util.universalchardet.Constants;
+import org.mozilla.universalchardet.Constants;
 
 
 public class Latin1Prober extends CharsetProber

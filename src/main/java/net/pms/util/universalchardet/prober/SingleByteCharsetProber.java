@@ -38,7 +38,7 @@
 
 package net.pms.util.universalchardet.prober;
 
-import net.pms.util.universalchardet.prober.sequence.SequenceModel;
+import org.mozilla.universalchardet.prober.sequence.SequenceModel;
 
 public class SingleByteCharsetProber extends CharsetProber
 {
@@ -76,10 +76,10 @@ public class SingleByteCharsetProber extends CharsetProber
     ////////////////////////////////////////////////////////////////
     // methods
     ////////////////////////////////////////////////////////////////
-    public SingleByteCharsetProber(SequenceModel latin5bulgarianmodel)
+    public SingleByteCharsetProber(SequenceModel model)
     {
         super();
-        this.model = latin5bulgarianmodel;
+        this.model = model;
         this.reversed = false;
         this.nameProber = null;
         this.seqCounters = new int[NUMBER_OF_SEQ_CAT];
@@ -87,12 +87,12 @@ public class SingleByteCharsetProber extends CharsetProber
     }
     
     public SingleByteCharsetProber(
-            SequenceModel hebrewmodel,
+            SequenceModel model,
             boolean reversed,
             CharsetProber nameProber)
     {
         super();
-        this.model = hebrewmodel;
+        this.model = model;
         this.reversed = reversed;
         this.nameProber = nameProber;
         this.seqCounters = new int[NUMBER_OF_SEQ_CAT];

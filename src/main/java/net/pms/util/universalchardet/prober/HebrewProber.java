@@ -37,8 +37,7 @@
 
 package net.pms.util.universalchardet.prober;
 
-import net.pms.util.universalchardet.Constants;
-
+import org.mozilla.universalchardet.Constants;
 
 
 public class HebrewProber extends CharsetProber
