@@ -38,11 +38,11 @@
 
 package net.pms.util.universalchardet.prober;
 
-import org.mozilla.universalchardet.prober.distributionanalysis.GB2312DistributionAnalysis;
-import org.mozilla.universalchardet.prober.statemachine.CodingStateMachine;
-import org.mozilla.universalchardet.prober.statemachine.GB18030SMModel;
-import org.mozilla.universalchardet.prober.statemachine.SMModel;
-import org.mozilla.universalchardet.Constants;
+import net.pms.util.universalchardet.prober.distributionanalysis.GB2312DistributionAnalysis;
+import net.pms.util.universalchardet.prober.statemachine.CodingStateMachine;
+import net.pms.util.universalchardet.prober.statemachine.GB18030SMModel;
+import net.pms.util.universalchardet.prober.statemachine.SMModel;
+import net.pms.util.universalchardet.Constants;
 
 
 public class GB18030Prober extends CharsetProber

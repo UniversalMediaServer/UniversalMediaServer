@@ -38,11 +38,11 @@
 
 package net.pms.util.universalchardet.prober;
 
-import org.mozilla.universalchardet.prober.distributionanalysis.EUCTWDistributionAnalysis;
-import org.mozilla.universalchardet.prober.statemachine.CodingStateMachine;
-import org.mozilla.universalchardet.prober.statemachine.EUCTWSMModel;
-import org.mozilla.universalchardet.prober.statemachine.SMModel;
-import org.mozilla.universalchardet.Constants;
+import net.pms.util.universalchardet.prober.distributionanalysis.EUCTWDistributionAnalysis;
+import net.pms.util.universalchardet.prober.statemachine.CodingStateMachine;
+import net.pms.util.universalchardet.prober.statemachine.EUCTWSMModel;
+import net.pms.util.universalchardet.prober.statemachine.SMModel;
+import net.pms.util.universalchardet.Constants;
 
 
 public class EUCTWProber extends CharsetProber

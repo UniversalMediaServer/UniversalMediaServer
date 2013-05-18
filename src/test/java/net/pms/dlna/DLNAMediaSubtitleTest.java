@@ -26,7 +26,7 @@ import org.apache.commons.io.FileUtils;
 import static org.fest.assertions.Assertions.assertThat;
 import org.junit.Before;
 import org.junit.Test;
-import static org.mozilla.universalchardet.Constants.*;
+import static net.pms.util.universalchardet.Constants.*;
 import org.slf4j.LoggerFactory;
 
 public class DLNAMediaSubtitleTest {

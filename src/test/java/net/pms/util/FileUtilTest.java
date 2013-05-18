@@ -22,11 +22,13 @@ import ch.qos.logback.classic.LoggerContext;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+
+import net.pms.util.universalchardet.Constants;
+
 import org.apache.commons.io.FileUtils;
 import static org.fest.assertions.Assertions.assertThat;
 import org.junit.Before;
 import org.junit.Test;
-import org.mozilla.universalchardet.Constants;
 import org.slf4j.LoggerFactory;
 
 public class FileUtilTest {

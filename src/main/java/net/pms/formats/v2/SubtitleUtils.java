@@ -28,7 +28,7 @@ import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.io.OutputParams;
 import static org.apache.commons.io.FilenameUtils.getBaseName;
 import static org.apache.commons.lang3.StringUtils.*;
-import static org.mozilla.universalchardet.Constants.*;
+import static net.pms.util.universalchardet.Constants.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

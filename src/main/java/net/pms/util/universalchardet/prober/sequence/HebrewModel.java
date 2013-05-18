@@ -39,7 +39,7 @@
 
 package net.pms.util.universalchardet.prober.sequence;
 
-import org.mozilla.universalchardet.Constants;
+import net.pms.util.universalchardet.Constants;
 
 
 public class HebrewModel extends SequenceModel

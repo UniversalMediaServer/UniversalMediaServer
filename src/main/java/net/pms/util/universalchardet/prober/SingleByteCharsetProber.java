@@ -38,7 +38,7 @@
 
 package net.pms.util.universalchardet.prober;
 
-import org.mozilla.universalchardet.prober.sequence.SequenceModel;
+import net.pms.util.universalchardet.prober.sequence.SequenceModel;
 
 public class SingleByteCharsetProber extends CharsetProber
 {

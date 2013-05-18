@@ -37,11 +37,11 @@
 
 package net.pms.util.universalchardet.prober;
 
-import org.mozilla.universalchardet.prober.distributionanalysis.EUCKRDistributionAnalysis;
-import org.mozilla.universalchardet.prober.statemachine.CodingStateMachine;
-import org.mozilla.universalchardet.prober.statemachine.EUCKRSMModel;
-import org.mozilla.universalchardet.prober.statemachine.SMModel;
-import org.mozilla.universalchardet.Constants;
+import net.pms.util.universalchardet.prober.distributionanalysis.EUCKRDistributionAnalysis;
+import net.pms.util.universalchardet.prober.statemachine.CodingStateMachine;
+import net.pms.util.universalchardet.prober.statemachine.EUCKRSMModel;
+import net.pms.util.universalchardet.prober.statemachine.SMModel;
+import net.pms.util.universalchardet.Constants;
 
 
 public class EUCKRProber extends CharsetProber
