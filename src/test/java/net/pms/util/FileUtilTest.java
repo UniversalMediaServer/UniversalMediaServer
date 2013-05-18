@@ -118,11 +118,16 @@ public class FileUtilTest {
 	}
 */
 	@Test
-	public void testGetFileCharset_ISO_8859_2() throws Exception {
+	public void testGetFileCharset_Czech_ISO_8859_2() throws Exception {
 		File file = FileUtils.toFile(CLASS.getResource("czech-ISO-8859-2.srt"));
 		assertThat(FileUtil.getFileCharset(file)).isEqualTo(Constants.CHARSET_ISO_8859_2);
 	}
 
+	@Test
+	public void testGetFileCharset_Polish_ISO_8859_2() throws Exception {
+		File file = FileUtils.toFile(CLASS.getResource("polish-ISO-8859-2.srt"));
+		assertThat(FileUtil.getFileCharset(file)).isEqualTo(Constants.CHARSET_ISO_8859_2);
+	}
 
 	@Test
 	public void testIsFileUTF8() throws Exception {

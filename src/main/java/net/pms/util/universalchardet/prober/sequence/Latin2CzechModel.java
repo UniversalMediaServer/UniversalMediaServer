@@ -1,3 +1,5 @@
+// based on https://github.com/PyYoshi/cChardet.git
+
 package net.pms.util.universalchardet.prober.sequence;
 
 import net.pms.util.universalchardet.Constants;

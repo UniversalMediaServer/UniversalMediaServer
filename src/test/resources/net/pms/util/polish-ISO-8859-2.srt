@@ -1,0 +1,200 @@
+1
+00:00:00,100 --> 00:00:02,600
+v. 1.2
+
+2
+00:00:03,000 --> 00:00:06,074
+Subtitles downloaded from www.OpenSubtitles.org
+
+3
+00:01:19,000 --> 00:01:22,100
+/- USS Kelvin do Gwiezdnej Floty.
+/- Tu Gwiezdna Flota.
+
+4
+00:01:22,200 --> 00:01:25,200
+/- Otrzymali¶cie nasz przekaz?
+/- Kelvin, potwierdzili¶cie odczyty?
+
+5
+00:01:25,300 --> 00:01:28,500
+/Sensory grawitacyjne szalej±.
+/Szkoda, ¿e tego nie widzicie.
+
+6
+00:01:28,600 --> 00:01:31,400
+/- Wygl±da jak burza elektryczna.
+/- Te odczyty nie mog± byæ prawdziwe.
+
+7
+00:01:31,500 --> 00:01:34,200
+/Wiem o tym
+/i dlatego je wys³ali¶my.
+
+8
+00:01:34,300 --> 00:01:36,600
+- Raport.
+- Jeste¶my poza zasiêgiem wzrokowym.
+
+9
+00:01:36,700 --> 00:01:40,900
+/Dowództwo Floty uczula kapitana Robau,
+/by zachowa³ szczególn± ostro¿no¶æ.
+
+10
+00:01:41,000 --> 00:01:42,400
+Spolaryzowaæ ekran.
+
+11
+00:01:42,500 --> 00:01:45,500
+/- Mo¿liwe, ¿e to obiekt klingoñski?
+- Mamy obraz, kapitanie.
+
+12
+00:01:45,600 --> 00:01:50,000
+/- Czy to Klingoni?
+/- Nie. Jeste¶my 75 000 km od granicy.
+
+13
+00:01:50,100 --> 00:01:54,400
+Kapitanie, widzi pan to?
+
+14
+00:01:54,900 --> 00:01:57,800
+Mój Bo¿e.
+
+15
+00:02:16,800 --> 00:02:20,100
+- Mam odczyt. Namierzyli nas.
+- Pe³na gotowo¶æ.
+
+16
+00:02:20,200 --> 00:02:25,300
+Torpeda na kursie 3-2-0 MARK 2.
+
+17
+00:02:25,900 --> 00:02:29,000
+Manewr wymijaj±cy DELTA 5.
+
+18
+00:02:29,100 --> 00:02:32,100
+Nadlatuj±.
+
+19
+00:02:36,600 --> 00:02:39,500
+Pe³na moc fazerów.
+Jakie s± zniszczenia?
+
+20
+00:02:39,600 --> 00:02:43,700
+/Wysiad³ napêd warp.
+/Pierwszy raz widzê co¶ takiego.
+
+21
+00:02:43,800 --> 00:02:45,900
+Broñ nie dzia³a.
+Moc - 38%.
+
+22
+00:02:46,000 --> 00:02:53,500
+- Wystrzeliwuj± kolejn±.
+- Ca³a moc na przednie os³ony.
+
+23
+00:02:56,700 --> 00:02:59,800
+Poruczniku!
+
+24
+00:03:03,400 --> 00:03:05,900
+- Tracimy stabilno¶æ!
+- Os³ony dzia³aj±?
+
+25
+00:03:06,000 --> 00:03:09,400
+- Ofiary ¶miertelne na pok³adach 17 i 13.
+- 11% i ci±gle spada. 10%.
+
+26
+00:03:09,500 --> 00:03:10,600
+Os³ony 9% i spada.
+
+27
+00:03:10,700 --> 00:03:17,100
+Ca³a energia na przednie os³ony.
+Przygotujcie promy do ewakuacji.
+
+28
+00:03:17,200 --> 00:03:19,400
+/Witajcie.
+
+29
+00:03:19,500 --> 00:03:22,000
+/Mój dowódca pragnie spotkaæ siê
+/z waszym kapitanem,
+
+30
+00:03:22,100 --> 00:03:24,700
+/aby negocjowaæ zawieszenie broni.
+
+31
+00:03:24,800 --> 00:03:33,000
+/Na pok³ad przylecisz wahad³owcem.
+/Odmowa by³aby nierozs±dna.
+
+32
+00:03:42,700 --> 00:03:46,000
+Chod¼ ze mn±.
+
+33
+00:03:50,500 --> 00:03:54,000
+Je¶li nie odezwê siê za 15 minut,
+ewakuuj za³ogê.
+
+34
+00:03:54,100 --> 00:03:56,700
+- Sir, nie mo¿emy...
+- Nikt nam tu nie pomo¿e.
+
+35
+00:03:56,800 --> 00:03:59,400
+Zaprogramuj autopilota...
+
+36
+00:03:59,500 --> 00:04:01,900
+- i opu¶æ statek.
+- Tak jest.
+
+37
+00:04:02,000 --> 00:04:07,700
+Teraz pan jest kapitanem, panie Kirk.
+
+38
+00:05:17,000 --> 00:05:21,100
+Ma podwy¿szone têtno.
+
+39
+00:05:41,600 --> 00:05:45,000
+Spójrz na ten statek.
+
+40
+00:05:45,100 --> 00:05:49,700
+- Czy wygl±da znajomo?
+- Kto jest twoim dowódc±?
+
+41
+00:05:49,800 --> 00:05:53,100
+- On?
+- Przemawiam w imieniu kapitana Nero.
+
+42
+00:05:53,200 --> 00:06:00,700
+Wiêc zapytaj go,
+jakim prawem atakuje statek Federacji?
+
+43
+00:06:11,200 --> 00:06:17,000
+Znasz miejsce pobytu ambasadora Spocka?
+
+44
+00:06:17,600 --> 00:06:21,800
+Nie znam ambasadora Spocka.
