@@ -1035,6 +1035,7 @@ public class RootFolder extends DLNAResource {
 						public boolean enable() {
 							getParent().getChildren().clear();
 							l.clear();
+							last.update();
 							return true;
 						}
 					});

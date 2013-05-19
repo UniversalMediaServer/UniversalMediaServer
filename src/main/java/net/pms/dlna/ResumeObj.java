@@ -132,6 +132,9 @@ public class ResumeObj {
 	}
 
 	public long getTimeOffset() {
+		if (isDone()) {
+			return 0;
+		}
 		read();
 		return offsetTime;
 	}
