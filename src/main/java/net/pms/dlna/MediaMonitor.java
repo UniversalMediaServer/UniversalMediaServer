@@ -19,7 +19,7 @@ public class MediaMonitor extends VirtualFolder {
 	private ArrayList<String> oldEntries;
 
 	public MediaMonitor(File[] dirs) {
-		super(Messages.getString("VirtualFolder.2"), null);
+		super(Messages.getString("VirtualFolder.2"), "images/thumbnail-video-256.png");
 		this.dirs = dirs;
 		oldEntries = new ArrayList<>();
 		parseMonitorFile();

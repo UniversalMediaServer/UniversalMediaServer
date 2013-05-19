@@ -1863,7 +1863,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public void stopPlaying(final String rendererId) {
 		final DLNAResource self = this;
 		final String requestId = getRequestId(rendererId);
-		final RootFolder root = ((defaultRenderer != null) ? defaultRenderer.getRootFolder() : null);
 		Runnable defer = new Runnable() {
 			@Override
 			public void run() {
@@ -1906,13 +1905,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 										getMedia().setDuration(SubtitleUtils.convertStringToTime(dur));
 									}
 								}
-								resumeStop();
 
 								PMS.get().getFrame().setStatusLine("");
-
-								if (root != null) {
-									root.stopPlaying(self.clone());
-								}
+								
+								internalStop();
 
 								for (final ExternalListener listener : ExternalFactory.getExternalListeners()) {
 									if (listener instanceof StartStopListener) {
@@ -2851,11 +2847,31 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private ResumeObj resume;
 	private int resHash;
 	private long startTime;
+	
+	private void internalStop() {
+		DLNAResource res=resumeStop();
+		final RootFolder root = ((defaultRenderer != null) ? defaultRenderer.getRootFolder() : null);
+		if (root != null) {
+			if(res == null)
+				res = this.clone();
+			else
+				res = res.clone();
+			root.stopPlaying(res);
+		}
+	}
 
 	public int resumeHash() {
 		return resHash;
 	}
 
+	public ResumeObj getResume() {
+		return resume;
+	}
+	
+	public void setResume(ResumeObj r) {
+		resume = r;
+	}
+	
 	public boolean isResumeable() {
 		if (getFormat() != null) {
 			// Only resume videos
@@ -2864,9 +2880,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return true;
 	}
 
-	private void resumeStop() {
+	private DLNAResource resumeStop() {
 		if (!configuration.isResumeEnabled() || !isResumeable()) {
-			return;
+			return null;
 		}
 		if (resume != null) {
 			resume.stop(startTime, (long) (getMedia().getDurationInSeconds() * 1000));
@@ -2880,8 +2896,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					res.resume.stop(startTime, (long) (getMedia().getDurationInSeconds() * 1000));
 					if (res.resume.isDone()) {
 						getParent().getChildren().remove(res);
+						return null;
 					}
-					return;
+					return res;
 				}
 			}
 			ResumeObj r = ResumeObj.store(this, startTime);
@@ -2892,8 +2909,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				clone.setMedia(getMedia());
 				clone.setPlayer(getPlayer());
 				getParent().addChildInternal(clone);
+				return clone;
 			}
 		}
+		return null;
 	}
 
 	public final boolean isResume() {

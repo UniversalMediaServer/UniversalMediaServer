@@ -31,7 +31,7 @@ public class RecentlyPlayed extends VirtualFolder {
 	private List<DLNAResource> list;
 
 	public RecentlyPlayed() {
-		super(Messages.getString("VirtualFolder.1"), null);
+		super(Messages.getString("VirtualFolder.1"), "images/thumbnail-video-256.png");
 		list = Collections.synchronizedList(new ArrayList<DLNAResource>());
 		parseLastFile();
 	}
@@ -91,9 +91,11 @@ public class RecentlyPlayed extends VirtualFolder {
 				res1 = resolveCreateMethod(res.getMasterParent(), data);
 				res1.setMasterParent(res.getMasterParent());
 				res1.setMediaSubtitle(res.getMediaSubtitle());
+				res1.setResume(res.getResume());
 			} else {
 				res1 = res.clone();
 				res1.setMediaSubtitle(res.getMediaSubtitle());
+				res1.setResume(res.getResume());
 			}
 		}
 		int max = getMax();
@@ -115,6 +117,12 @@ public class RecentlyPlayed extends VirtualFolder {
 	public void discoverChildren() {
 		for (DLNAResource r : list) {
 			addChild(r);
+			if (r.isResume()) {
+				// add this non resume after
+				DLNAResource clone = r.clone();
+				clone.setResume(null);
+				addChild(clone);
+			}
 		}
 	}
 	
@@ -158,12 +166,18 @@ public class RecentlyPlayed extends VirtualFolder {
 					str = str.substring(pos + 1);
 					pos = str.indexOf(";");
 					String subData = null;
-					if (pos != -1) {
+					String resData = null;
+					while (pos != -1) {
+						if (str.startsWith("resume")) {
+							// resume data
+							resData = str.substring(6, pos);
+						}
 						if (str.startsWith("sub")) {
 							// subs data
 							subData = str.substring(3, pos);
 						}
 						str = str.substring(pos + 1);
+						pos = str.indexOf(";");
 					}
 					LOGGER.debug("master is " + master + " str " + str);
 					DLNAResource res = null;
@@ -179,6 +193,11 @@ public class RecentlyPlayed extends VirtualFolder {
 					if (res != null) {
 						LOGGER.debug("set masterparent for " + res + " to " + lpp);
 						res.setMasterParent(lpp);
+						if (resData != null) {
+							ResumeObj r = new ResumeObj(new File(resData));
+							r.read();
+							res.setResume(r);
+						}
 						if (subData != null) {
 							DLNAMediaSubtitle s = res.getMediaSubtitle();
 							if (s == null) {
@@ -232,20 +251,28 @@ public class RecentlyPlayed extends VirtualFolder {
 						id = "internal:" + r.getClass().getName();
 					}
 					sb.append("master:").append(id).append(";");
+					if (r.isResume()) {
+						sb.append("resume");
+						sb.append(r.getResume().getResumeFile().getAbsolutePath());
+						sb.append(";");
+					}
 					if (r.getMediaSubtitle() != null) {
 						DLNAMediaSubtitle sub = r.getMediaSubtitle();
-						sb.append("sub");
-						sb.append(sub.getLang());
-						sb.append(",");
-						if (sub.isExternal()) {
-							sb.append("file:");
-							sb.append(sub.getExternalFile().getAbsolutePath());
+						if (sub.getLang() != null &&
+							sub.getId() != -1) {
+							sb.append("sub");
+							sb.append(sub.getLang());
+							sb.append(",");
+							if (sub.isExternal()) {
+								sb.append("file:");
+								sb.append(sub.getExternalFile().getAbsolutePath());
+							}
+							else {
+								sb.append("id:");
+								sb.append("" + sub.getId());
+							}
+							sb.append(";");
 						}
-						else {
-							sb.append("id:");
-							sb.append("" + sub.getId());
-						}
-						sb.append(";");
 					}
 					sb.append(data);
 					sb.append("\n");
