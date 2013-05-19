@@ -50,7 +50,9 @@ import net.pms.util.universalchardet.prober.sequence.MacCyrillicModel;
 import net.pms.util.universalchardet.prober.sequence.Ibm866Model;
 import net.pms.util.universalchardet.prober.sequence.Ibm855Model;
 import net.pms.util.universalchardet.prober.sequence.Latin7Model;
+import net.pms.util.universalchardet.prober.sequence.Win1252FrenchModel;
 import net.pms.util.universalchardet.prober.sequence.Win1252GermanModel;
+import net.pms.util.universalchardet.prober.sequence.Win1252SpanishModel;
 import net.pms.util.universalchardet.prober.sequence.Win1253Model;
 import net.pms.util.universalchardet.prober.sequence.Latin5BulgarianModel;
 import net.pms.util.universalchardet.prober.sequence.Win1251BulgarianModel;
@@ -90,6 +92,8 @@ public class SBCSGroupProber extends CharsetProber
 	private static final SequenceModel latin2CzechModel = new Latin2CzechModel();
 	private static final SequenceModel latin2PolishModel = new Latin2PolishModel();
 	private static final SequenceModel win1252GermanModel = new Win1252GermanModel();
+	private static final SequenceModel win1252FrenchModel = new Win1252FrenchModel();
+	private static final SequenceModel win1252SpanishModel = new Win1252SpanishModel();
     
 
     ////////////////////////////////////////////////////////////////
@@ -99,8 +103,8 @@ public class SBCSGroupProber extends CharsetProber
     {
         super();
 
-        this.probers = new CharsetProber[17];
-        this.isActive = new boolean[17];
+        this.probers = new CharsetProber[19];
+        this.isActive = new boolean[19];
         
         this.probers[0] = new SingleByteCharsetProber(win1251Model);
         this.probers[1] = new SingleByteCharsetProber(koi8rModel);
@@ -119,10 +123,13 @@ public class SBCSGroupProber extends CharsetProber
         this.probers[12] = new SingleByteCharsetProber(hebrewModel, true, hebprober);
         hebprober.setModalProbers(this.probers[11], this.probers[12]);
 
-		this.probers[13] = new SingleByteCharsetProber(latin2CzechModel);
-		this.probers[14] = new SingleByteCharsetProber(win1250CzechModel);
-		this.probers[15] = new SingleByteCharsetProber(latin2PolishModel);
-		this.probers[16] = new SingleByteCharsetProber(win1252GermanModel);
+		this.probers[13] = new SingleByteCharsetProber(latin2PolishModel);
+		this.probers[14] = new SingleByteCharsetProber(win1252GermanModel);
+		this.probers[15] = new SingleByteCharsetProber(win1252FrenchModel);
+		this.probers[16] = new SingleByteCharsetProber(win1252SpanishModel);
+		this.probers[17] = new SingleByteCharsetProber(latin2CzechModel);
+		this.probers[18] = new SingleByteCharsetProber(win1250CzechModel);
+		
 		
         reset();
     }
