@@ -12,7 +12,7 @@ public class FrenchModel extends SequenceModel {
 				TYPICAL_POSITIVE_RATIO,
 				false,
 				name,
-                proberName);
+				proberName);
 	}
 
 	private static final byte[] frenchLangModel = new byte[] {

@@ -131,10 +131,10 @@ public class SBCSGroupProber extends CharsetProber
 		this.probers[17] = new SingleByteCharsetProber(latin2CzechModel);
 		this.probers[18] = new SingleByteCharsetProber(win1250CzechModel);
 		this.probers[19] = new SingleByteCharsetProber(latin9TurkishModel);
-		
+
         reset();
     }
-    
+
     @Override
     public String getCharSetName()
     {
