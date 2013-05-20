@@ -47,7 +47,7 @@ public class Win1251BulgarianModel extends BulgarianModel
     ////////////////////////////////////////////////////////////////
     public Win1251BulgarianModel()
     {
-        super(win1251BulgarianCharToOrderMap, Constants.CHARSET_WINDOWS_1251);
+        super(win1251BulgarianCharToOrderMap, Constants.CHARSET_WINDOWS_1251, "Win1251BulgarianModel");
     }
     
     

@@ -5,13 +5,14 @@ package net.pms.util.universalchardet.prober.sequence;
 public class TurkishModel extends SequenceModel {
 	public static final float TYPICAL_POSITIVE_RATIO = 0.970290f;
 
-	public TurkishModel(short[] charToOrderMap, String name) {
+	public TurkishModel(short[] charToOrderMap, String name, String proberName) {
 		super(
 				charToOrderMap,
 				turkishLangModel,
 				TYPICAL_POSITIVE_RATIO,
 				false,
-				name);
+				name,
+                proberName);
 	}
 
 	private static final byte[] turkishLangModel = new byte[] {

@@ -46,7 +46,7 @@ public class Win1253Model extends GreekModel
     ////////////////////////////////////////////////////////////////
     public Win1253Model()
     {
-        super(win1253CharToOrderMap, Constants.CHARSET_WINDOWS_1253);
+        super(win1253CharToOrderMap, Constants.CHARSET_WINDOWS_1253, "Win1253Model");
     }
     
     

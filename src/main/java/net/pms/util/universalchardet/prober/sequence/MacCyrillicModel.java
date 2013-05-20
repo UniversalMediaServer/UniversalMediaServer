@@ -47,7 +47,7 @@ public class MacCyrillicModel extends CyrillicModel
     ////////////////////////////////////////////////////////////////
     public MacCyrillicModel()
     {
-        super(macCyrillicCharToOrderMap, Constants.CHARSET_MACCYRILLIC);
+        super(macCyrillicCharToOrderMap, Constants.CHARSET_MACCYRILLIC, "MacCyrillicModel");
     }
     
     

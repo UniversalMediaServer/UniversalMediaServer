@@ -5,13 +5,14 @@ package net.pms.util.universalchardet.prober.sequence;
 public class CzechModel extends SequenceModel {
 	public static final float TYPICAL_POSITIVE_RATIO = 0.969392f;
 
-	public CzechModel(short[] charToOrderMap, String name) {
+	public CzechModel(short[] charToOrderMap, String name, String proberName) {
 		super(
 				charToOrderMap,
 				czechLangModel,
 				TYPICAL_POSITIVE_RATIO,
 				false,
-				name);
+				name,
+                proberName);
 	}
 
 	private static final byte[] czechLangModel = new byte[] {

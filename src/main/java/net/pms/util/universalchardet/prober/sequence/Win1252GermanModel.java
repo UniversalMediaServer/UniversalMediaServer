@@ -9,7 +9,7 @@ public static final float TYPICAL_POSITIVE_RATIO = 0.947368f;
 	
 
 	public Win1252GermanModel() { 
-		super(germanWin1252CharToOrderMap, Constants.CHARSET_WINDOWS_1252);
+		super(germanWin1252CharToOrderMap, Constants.CHARSET_WINDOWS_1252, "Win1252GermanModel");
 	}
 
 	/**

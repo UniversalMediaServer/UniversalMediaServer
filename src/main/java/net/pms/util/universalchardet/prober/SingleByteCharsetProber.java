@@ -106,7 +106,7 @@ public class SingleByteCharsetProber extends CharsetProber
     
     
     public String getProberName() {
-    	return this.model.toString();
+    	return this.model.getProberName();
     }
 
     @Override

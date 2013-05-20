@@ -48,15 +48,15 @@ public class GreekModel extends SequenceModel
     ////////////////////////////////////////////////////////////////
     // methods
     ////////////////////////////////////////////////////////////////
-    public GreekModel(short[] charToOrderMap, String name)
+    public GreekModel(short[] charToOrderMap, String name, String proberName)
     {
         super(
                 charToOrderMap,
                 greekLangModel,
                 TYPICAL_POSITIVE_RATIO,
                 false,
-                name
-                );
+                name,
+                proberName);
     }
     
 

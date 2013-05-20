@@ -5,13 +5,14 @@ package net.pms.util.universalchardet.prober.sequence;
 public class SpanishModel extends SequenceModel {
 	public static final float TYPICAL_POSITIVE_RATIO = 0.983906f;
 
-	public SpanishModel(short[] charToOrderMap, String name) {
+	public SpanishModel(short[] charToOrderMap, String name, String proberName) {
 		super(
 				charToOrderMap,
 				spanishLangModel,
 				TYPICAL_POSITIVE_RATIO,
 				false,
-				name);
+				name,
+                proberName);
 	}
 
 	private static final byte[] spanishLangModel = new byte[] {

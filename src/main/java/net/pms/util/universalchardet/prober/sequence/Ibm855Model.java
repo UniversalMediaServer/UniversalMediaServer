@@ -47,7 +47,7 @@ public class Ibm855Model extends CyrillicModel
     ////////////////////////////////////////////////////////////////
     public Ibm855Model()
     {
-        super(ibm855CharToOrderMap, Constants.CHARSET_IBM855);
+        super(ibm855CharToOrderMap, Constants.CHARSET_IBM855, "Ibm855Model");
     }
     
     

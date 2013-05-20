@@ -48,6 +48,7 @@ public abstract class SequenceModel
     protected float     typicalPositiveRatio;
     protected boolean   keepEnglishLetter;
     protected String    charsetName;
+    protected String    proberName;
     
 
     ////////////////////////////////////////////////////////////////
@@ -58,13 +59,15 @@ public abstract class SequenceModel
             byte[] precedenceMatrix,
             float typicalPositiveRatio,
             boolean keepEnglishLetter,
-            String charsetName)
+            String charsetName,
+            String proberName)
     {
         this.charToOrderMap = charToOrderMap;
         this.precedenceMatrix = precedenceMatrix;
         this.typicalPositiveRatio = typicalPositiveRatio;
         this.keepEnglishLetter = keepEnglishLetter;
         this.charsetName = charsetName;
+        this.proberName = proberName;
     }
     
     public short getOrder(byte b)
@@ -91,5 +94,10 @@ public abstract class SequenceModel
     public String getCharsetName()
     {
         return this.charsetName;
+    }
+ 
+    public String getProberName()
+    {
+        return this.proberName;
     }
 }

@@ -8,7 +8,7 @@ public class Latin9TurkishModel extends GreekModel {
 	    ////////////////////////////////////////////////////////////////
 	    public Latin9TurkishModel()
 	    {
-	        super(latin9CharToOrderMap, Constants.CHARSET_ISO_8859_9);
+	        super(latin9CharToOrderMap, Constants.CHARSET_ISO_8859_9, "Latin9TurkishModel");
 	    }
 	    
 	    

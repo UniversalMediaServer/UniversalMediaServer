@@ -5,13 +5,14 @@ package net.pms.util.universalchardet.prober.sequence;
 public class FrenchModel extends SequenceModel {
 	public static final float TYPICAL_POSITIVE_RATIO = 0.985451f;
 
-	public FrenchModel(short[] charToOrderMap, String name) {
+	public FrenchModel(short[] charToOrderMap, String name, String proberName) {
 		super(
 				charToOrderMap,
 				frenchLangModel,
 				TYPICAL_POSITIVE_RATIO,
 				false,
-				name);
+				name,
+                proberName);
 	}
 
 	private static final byte[] frenchLangModel = new byte[] {

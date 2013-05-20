@@ -9,7 +9,7 @@ public class Win1250CzechModel extends CzechModel {
 	
 
 	public Win1250CzechModel() { 
-		super(czechWin1250CharToOrderMap, Constants.CHARSET_WINDOWS_1250);
+		super(czechWin1250CharToOrderMap, Constants.CHARSET_WINDOWS_1250, "Win1250CzechModel");
 	}
 
 	/**

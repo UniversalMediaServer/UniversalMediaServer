@@ -47,7 +47,7 @@ public class Latin5BulgarianModel extends BulgarianModel
     ////////////////////////////////////////////////////////////////
     public Latin5BulgarianModel()
     {
-        super(latin5BulgarianCharToOrderMap, Constants.CHARSET_ISO_8859_5);
+        super(latin5BulgarianCharToOrderMap, Constants.CHARSET_ISO_8859_5, "Latin5BulgarianModel");
     }
     
     

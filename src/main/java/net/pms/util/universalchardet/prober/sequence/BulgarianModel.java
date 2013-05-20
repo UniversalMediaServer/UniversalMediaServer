@@ -48,14 +48,15 @@ public class BulgarianModel extends SequenceModel
     ////////////////////////////////////////////////////////////////
     // methods
     ////////////////////////////////////////////////////////////////
-    public BulgarianModel(short[] charToOrderMap, String name)
+    public BulgarianModel(short[] charToOrderMap, String name, String proberName)
     {
         super(
                 charToOrderMap,
                 bulgarianLangModel,
                 TYPICAL_POSITIVE_RATIO,
                 false,
-                name);
+                name,
+                proberName);
     }
     
     

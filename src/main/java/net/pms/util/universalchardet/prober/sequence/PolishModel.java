@@ -5,13 +5,14 @@ package net.pms.util.universalchardet.prober.sequence;
 public class PolishModel extends SequenceModel {
 	public static final float TYPICAL_POSITIVE_RATIO = 0.974309f;
 
-	public PolishModel(short[] charToOrderMap, String name) {
+	public PolishModel(short[] charToOrderMap, String name, String proberName) {
 		super(
 				charToOrderMap,
 				polishLangModel,
 				TYPICAL_POSITIVE_RATIO,
 				false,
-				name);
+				name,
+                proberName);
 	}
 
 	private static final byte[] polishLangModel = new byte[] {

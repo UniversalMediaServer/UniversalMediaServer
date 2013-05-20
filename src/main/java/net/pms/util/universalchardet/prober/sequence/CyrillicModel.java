@@ -48,15 +48,15 @@ public class CyrillicModel extends SequenceModel
     ////////////////////////////////////////////////////////////////
     // methods
     ////////////////////////////////////////////////////////////////
-    public CyrillicModel(short[] charToOrderMap, String name)
+    public CyrillicModel(short[] charToOrderMap, String name, String proberName)
     {
         super(
                 charToOrderMap,
                 russianLangModel,
                 TYPICAL_POSITIVE_RATIO,
                 false,
-                name
-                );
+                name,
+                proberName);
     }
     
 

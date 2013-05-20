@@ -47,7 +47,7 @@ public class Latin7Model extends GreekModel
     ////////////////////////////////////////////////////////////////
     public Latin7Model()
     {
-        super(latin7CharToOrderMap, Constants.CHARSET_ISO_8859_7);
+        super(latin7CharToOrderMap, Constants.CHARSET_ISO_8859_7, "Latin7Model");
     }
     
     

@@ -145,8 +145,7 @@ public class SBCSGroupProber extends CharsetProber
             }
         }
 
-       String proberName = this.probers[this.bestGuess].getProberName();
-       LOGGER.debug("Detected by " + proberName.substring(proberName.lastIndexOf(".") + 1, proberName.indexOf("@")));
+       LOGGER.debug("Detected by " + this.probers[this.bestGuess].getProberName());
        return this.probers[this.bestGuess].getCharSetName();
     }
 

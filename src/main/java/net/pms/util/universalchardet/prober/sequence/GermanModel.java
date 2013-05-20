@@ -5,13 +5,14 @@ package net.pms.util.universalchardet.prober.sequence;
 public class GermanModel extends SequenceModel {
 	public static final float TYPICAL_POSITIVE_RATIO = 0.985431f;
 
-	public GermanModel(short[] charToOrderMap, String name) {
+	public GermanModel(short[] charToOrderMap, String name, String proberName) {
 		super(
 				charToOrderMap,
 				germanLangModel,
 				TYPICAL_POSITIVE_RATIO,
 				false,
-				name);
+				name,
+                proberName);
 	}
 
 	private static final byte[] germanLangModel = new byte[] {

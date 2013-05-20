@@ -47,7 +47,7 @@ public class Latin5Model extends CyrillicModel
     ////////////////////////////////////////////////////////////////
     public Latin5Model()
     {
-        super(latin5CharToOrderMap, Constants.CHARSET_ISO_8859_5);
+        super(latin5CharToOrderMap, Constants.CHARSET_ISO_8859_5, "Latin5Model");
     }
     
     

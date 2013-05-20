@@ -47,7 +47,7 @@ public class Koi8rModel extends CyrillicModel
     ////////////////////////////////////////////////////////////////
     public Koi8rModel()
     {
-        super(koi8rCharToOrderMap, Constants.CHARSET_KOI8_R);
+        super(koi8rCharToOrderMap, Constants.CHARSET_KOI8_R, "Koi8rModel");
     }
     
     

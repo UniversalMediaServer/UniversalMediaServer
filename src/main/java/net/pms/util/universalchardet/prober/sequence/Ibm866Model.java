@@ -47,7 +47,7 @@ public class Ibm866Model extends CyrillicModel
     ////////////////////////////////////////////////////////////////
     public Ibm866Model()
     {
-        super(ibm866CharToOrderMap, Constants.CHARSET_IBM866);
+        super(ibm866CharToOrderMap, Constants.CHARSET_IBM866, "Ibm866Model");
     }
     
     
