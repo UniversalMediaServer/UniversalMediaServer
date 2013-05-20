@@ -41,6 +41,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.util.universalchardet.prober.sequence.Latin2CzechModel;
 
 import net.pms.util.universalchardet.prober.sequence.Latin2PolishModel;
+import net.pms.util.universalchardet.prober.sequence.Latin9TurkishModel;
 import net.pms.util.universalchardet.prober.sequence.SequenceModel;
 import net.pms.util.universalchardet.prober.sequence.Win1250CzechModel;
 import net.pms.util.universalchardet.prober.sequence.Win1251Model;
@@ -94,7 +95,7 @@ public class SBCSGroupProber extends CharsetProber
 	private static final SequenceModel win1252GermanModel = new Win1252GermanModel();
 	private static final SequenceModel win1252FrenchModel = new Win1252FrenchModel();
 	private static final SequenceModel win1252SpanishModel = new Win1252SpanishModel();
-    
+	private static final SequenceModel latin9TurkishModel = new Latin9TurkishModel();
 
     ////////////////////////////////////////////////////////////////
     // methods
@@ -103,8 +104,8 @@ public class SBCSGroupProber extends CharsetProber
     {
         super();
 
-        this.probers = new CharsetProber[19];
-        this.isActive = new boolean[19];
+        this.probers = new CharsetProber[20];
+        this.isActive = new boolean[20];
         
         this.probers[0] = new SingleByteCharsetProber(win1251Model);
         this.probers[1] = new SingleByteCharsetProber(koi8rModel);
@@ -129,7 +130,7 @@ public class SBCSGroupProber extends CharsetProber
 		this.probers[16] = new SingleByteCharsetProber(win1252SpanishModel);
 		this.probers[17] = new SingleByteCharsetProber(latin2CzechModel);
 		this.probers[18] = new SingleByteCharsetProber(win1250CzechModel);
-		
+		this.probers[19] = new SingleByteCharsetProber(latin9TurkishModel);
 		
         reset();
     }
@@ -143,9 +144,10 @@ public class SBCSGroupProber extends CharsetProber
                 this.bestGuess = 0;
             }
         }
-        
-        LOGGER.debug("Detected by " + this.probers[this.bestGuess].getProberName());
-        return this.probers[this.bestGuess].getCharSetName();
+
+       String proberName = this.probers[this.bestGuess].getProberName();
+       LOGGER.debug("Detected by " + proberName.substring(proberName.lastIndexOf(".") + 1, proberName.indexOf("@")));
+       return this.probers[this.bestGuess].getCharSetName();
     }
 
     @Override
@@ -235,6 +237,7 @@ public class SBCSGroupProber extends CharsetProber
 
 	@Override
 	public String getProberName() {
+		// TODO Auto-generated method stub
 		return null;
 	}
 }

@@ -8,6 +8,7 @@ public final class Constants
     public static final String CHARSET_ISO_8859_5   = "ISO-8859-5".intern();
     public static final String CHARSET_ISO_8859_7   = "ISO-8859-7".intern();
     public static final String CHARSET_ISO_8859_8   = "ISO-8859-8".intern();
+    public static final String CHARSET_ISO_8859_9 	= "ISO-8859-9".intern();
     public static final String CHARSET_BIG5         = "BIG5".intern();
     public static final String CHARSET_GB18030      = "GB18030".intern();
     public static final String CHARSET_EUC_JP       = "EUC-JP".intern();
