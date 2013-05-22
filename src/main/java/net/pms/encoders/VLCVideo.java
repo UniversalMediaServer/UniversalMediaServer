@@ -46,6 +46,7 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
 import net.pms.util.FormLayoutUtil;
+import net.pms.util.PlayerUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -126,10 +127,6 @@ public class VLCVideo extends Player {
 
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		if (resource == null || resource.getFormat().getType() != Format.VIDEO) {
-			return false;
-		}
-
 		// Our implementation of VLC does not support external subtitles yet
 		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
 		if (subtitle != null && subtitle.getExternalFile() != null) {
@@ -142,7 +139,12 @@ public class VLCVideo extends Player {
 			return false;
 		}
 
-		return true;
+		// Only handle local video - web video is handled by VLCWebVideo
+		if (PlayerUtil.isType(resource, Format.VIDEO, Format.Identifier.WEB, false)) {
+			return true;
+		}
+
+		return false;
 	}
 
 	/**

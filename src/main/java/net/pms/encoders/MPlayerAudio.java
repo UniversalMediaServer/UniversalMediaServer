@@ -39,6 +39,7 @@ import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
+import net.pms.util.PlayerUtil;
 
 // this does nothing that isn't done by the ffmpeg audio engine
 // and, indeed, it delegates to ffmpeg for MP3 transcodes
@@ -216,21 +217,13 @@ public class MPlayerAudio extends Player {
 	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		if (resource == null || resource.getFormat().getType() != Format.AUDIO) {
-			return false;
-		}
-
-		Format format = resource.getFormat();
-
-		if (format != null) {
-			Format.Identifier id = format.getIdentifier();
-
-			if (id.equals(Format.Identifier.FLAC)
-					|| id.equals(Format.Identifier.M4A)
-					|| id.equals(Format.Identifier.OGG)
-					|| id.equals(Format.Identifier.WAV)) {
-				return true;
-			}
+		if (
+			PlayerUtil.isType(resource, Format.AUDIO, Format.Identifier.FLAC) ||
+			PlayerUtil.isType(resource, Format.AUDIO, Format.Identifier.M4A) ||
+			PlayerUtil.isType(resource, Format.AUDIO, Format.Identifier.OGG) ||
+			PlayerUtil.isType(resource, Format.AUDIO, Format.Identifier.WAV)
+		) {
+			return true;
 		}
 
 		return false;

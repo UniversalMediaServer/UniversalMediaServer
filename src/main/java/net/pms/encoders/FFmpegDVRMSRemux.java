@@ -41,6 +41,7 @@ import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.util.PlayerUtil;
 import org.apache.commons.lang3.StringUtils;
 
 public class FFmpegDVRMSRemux extends Player {
@@ -214,18 +215,8 @@ public class FFmpegDVRMSRemux extends Player {
 	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		if (resource == null || resource.getFormat().getType() != Format.VIDEO) {
-			return false;
-		}
-
-		Format format = resource.getFormat();
-
-		if (format != null) {
-			Format.Identifier id = format.getIdentifier();
-
-			if (id.equals(Format.Identifier.DVRMS)) {
-				return true;
-			}
+		if (PlayerUtil.isType(resource, Format.VIDEO, Format.Identifier.DVRMS)) {
+			return true;
 		}
 
 		return false;
