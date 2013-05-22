@@ -23,10 +23,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import net.pms.util.universalchardet.Constants;
+import net.pms.util.universalchardet.ConstantsExtended;
 
 import org.apache.commons.io.FileUtils;
 import static org.fest.assertions.Assertions.assertThat;
+import org.mozilla.universalchardet.Constants;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.LoggerFactory;
@@ -120,13 +121,13 @@ public class FileUtilTest {
 	@Test
 	public void testGetFileCharset_Czech_ISO_8859_2() throws Exception {
 		File file = FileUtils.toFile(CLASS.getResource("czech-ISO-8859-2.srt"));
-		assertThat(FileUtil.getFileCharset(file)).isEqualTo(Constants.CHARSET_ISO_8859_2);
+		assertThat(FileUtil.getFileCharset(file)).isEqualTo(ConstantsExtended.CHARSET_ISO_8859_2);
 	}
 
 	@Test
 	public void testGetFileCharset_Polish_ISO_8859_2() throws Exception {
 		File file = FileUtils.toFile(CLASS.getResource("polish-ISO-8859-2.srt"));
-		assertThat(FileUtil.getFileCharset(file)).isEqualTo(Constants.CHARSET_ISO_8859_2);
+		assertThat(FileUtil.getFileCharset(file)).isEqualTo(ConstantsExtended.CHARSET_ISO_8859_2);
 	}
 
 	@Test
