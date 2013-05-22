@@ -31,8 +31,46 @@ public class RAW extends JPG {
 	 */
 	@Override
 	public String[] getId() {
-		return new String[] { "arw", "cr2", "crw", "dng", "raf", "mrw", "nef",
-				"pef", "srf", "orf" };
+		return new String[] {
+			"3fr",
+			"ari",
+			"arw",
+			"bay",
+			"cap",
+			"cr2",
+			"crw",
+			"dcr",
+			"dcs",
+			"dng",
+			"drf",
+			"eip",
+			"erf",
+			"fff",
+			"iiq",
+			"k25",
+			"kdc",
+			"mdc",
+			"mef",
+			"mos",
+			"mrw",
+			"nef",
+			"nrw",
+			"obm",
+			"orf",
+			"pef",
+			"ptx",
+			"pxn",
+			"r3d",
+			"raf",
+			"raw",
+			"rw2",
+			"rwl",
+			"rwz",
+			"sr2",
+			"srf",
+			"srw",
+			"x3f"
+		};
 	}
 
 	/**
@@ -75,7 +113,6 @@ public class RAW extends JPG {
 			params.maxBufferSize = 5;
 			params.hidebuffer = true;
 
-
 			String cmdArray[] = new String[4];
 			cmdArray[0] = configuration.getDCRawPath();
 			cmdArray[1] = "-i";
@@ -98,14 +135,13 @@ public class RAW extends JPG {
 			}
 
 			if (media.getWidth() > 0) {
-
 				media.setThumb(RAWThumbnailer.getThumbnail(params, file.getFile().getAbsolutePath()));
 				if (media.getThumb() != null) {
 					media.setSize(media.getThumb().length);
 				}
 
-				media.setCodecV("jpg");
-				media.setContainer("jpg");
+				media.setCodecV("raw");
+				media.setContainer("raw");
 			}
 
 			media.finalize(type, file);
