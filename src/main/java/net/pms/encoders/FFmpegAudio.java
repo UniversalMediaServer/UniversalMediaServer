@@ -38,6 +38,7 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
+import net.pms.util.PlayerUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -218,21 +219,13 @@ public class FFmpegAudio extends FFMpegVideo {
 	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		if (resource == null || resource.getFormat().getType() != Format.AUDIO) {
-			return false;
-		}
-
-		Format format = resource.getFormat();
-
-		if (format != null) {
-			Format.Identifier id = format.getIdentifier();
-
-			if (id.equals(Format.Identifier.FLAC)
-					|| id.equals(Format.Identifier.M4A)
-					|| id.equals(Format.Identifier.OGG)
-					|| id.equals(Format.Identifier.WAV)) {
-				return true;
-			}
+		if (
+			PlayerUtil.isType(resource, Format.AUDIO, Format.Identifier.FLAC) ||
+			PlayerUtil.isType(resource, Format.AUDIO, Format.Identifier.M4A) ||
+			PlayerUtil.isType(resource, Format.AUDIO, Format.Identifier.OGG) ||
+			PlayerUtil.isType(resource, Format.AUDIO, Format.Identifier.WAV)
+		) {
+			return true;
 		}
 
 		return false;

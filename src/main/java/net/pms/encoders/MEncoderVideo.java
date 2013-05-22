@@ -49,6 +49,7 @@ import net.pms.newgui.CustomJButton;
 import net.pms.util.CodecUtil;
 import net.pms.util.FileUtil;
 import net.pms.util.FormLayoutUtil;
+import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
@@ -2405,22 +2406,12 @@ public class MEncoderVideo extends Player {
 	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		if (resource == null || resource.getFormat().getType() != Format.VIDEO) {
-			return false;
-		}
-
-		Format format = resource.getFormat();
-
-		if (format != null) {
-			Format.Identifier id = format.getIdentifier();
-
-			if (
-				id.equals(Format.Identifier.ISO) ||
-				id.equals(Format.Identifier.MKV) ||
-				id.equals(Format.Identifier.MPG)
-			) {
-				return true;
-			}
+		if (
+			PlayerUtil.isType(resource, Format.VIDEO, Format.Identifier.ISO) ||
+			PlayerUtil.isType(resource, Format.VIDEO, Format.Identifier.MKV) ||
+			PlayerUtil.isType(resource, Format.VIDEO, Format.Identifier.MPG)
+		) {
+			return true;
 		}
 
 		return false;

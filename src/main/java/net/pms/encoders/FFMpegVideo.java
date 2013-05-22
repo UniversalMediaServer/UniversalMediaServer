@@ -59,6 +59,7 @@ import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.StreamModifier;
 import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
+import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -972,30 +973,11 @@ public class FFMpegVideo extends Player {
 	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		if (resource == null || resource.getFormat().getType() != Format.VIDEO) {
-			return false;
-		}
-/**
-		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
-
-		// Check whether the subtitle actually has a language defined,
-		// uninitialized DLNAMediaSubtitle objects have a null language.
-		// For now supports only external subtitles
 		if (
-			subtitle != null && subtitle.getLang() != null &&
-			subtitle.getExternalFile() == null
+			PlayerUtil.isType(resource, Format.VIDEO, Format.Identifier.MKV) ||
+			PlayerUtil.isType(resource, Format.VIDEO, Format.Identifier.MPG)
 		) {
-			return false;
-		}
-*/
-		Format format = resource.getFormat();
-
-		if (format != null) {
-			Format.Identifier id = format.getIdentifier();
-
-			if (id.equals(Format.Identifier.MKV) || id.equals(Format.Identifier.MPG)) {
-				return true;
-			}
+			return true;
 		}
 
 		return false;
