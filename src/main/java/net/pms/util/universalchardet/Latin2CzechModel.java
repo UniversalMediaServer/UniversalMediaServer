@@ -7,7 +7,7 @@ public class Latin2CzechModel extends CzechModel {
 	public static final float TYPICAL_POSITIVE_RATIO = 0.968107f;
 
 	public Latin2CzechModel() {
-		super(latin2CharToOrderMap, ConstantsExtended.CHARSET_ISO_8859_2, "Latin2CzechModel");
+		super(latin2CharToOrderMap, ConstantsExtended.CHARSET_ISO_8859_2);
 	}
 
 	private static final short[] latin2CharToOrderMap = new short[] {

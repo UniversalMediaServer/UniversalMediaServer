@@ -7,7 +7,7 @@ import org.mozilla.universalchardet.prober.sequence.SequenceModel;
 public class CzechModel extends SequenceModel {
 	public static final float TYPICAL_POSITIVE_RATIO = 0.969392f;
 
-	public CzechModel(short[] charToOrderMap, String name, String proberName) {
+	public CzechModel(short[] charToOrderMap, String name) {
 		super(
 				charToOrderMap,
 				czechLangModel,

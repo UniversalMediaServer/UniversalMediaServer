@@ -7,7 +7,7 @@ import org.mozilla.universalchardet.prober.sequence.SequenceModel;
 public class FrenchModel extends SequenceModel {
 	public static final float TYPICAL_POSITIVE_RATIO = 0.985451f;
 
-	public FrenchModel(short[] charToOrderMap, String name, String proberName) {
+	public FrenchModel(short[] charToOrderMap, String name) {
 		super(
 				charToOrderMap,
 				frenchLangModel,

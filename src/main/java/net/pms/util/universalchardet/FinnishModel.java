@@ -7,7 +7,7 @@ import org.mozilla.universalchardet.prober.sequence.SequenceModel;
 public class FinnishModel extends SequenceModel {
 	public static final float TYPICAL_POSITIVE_RATIO = 0.995928f;
 
-	public FinnishModel(short[] charToOrderMap, String name, String proberName) {
+	public FinnishModel(short[] charToOrderMap, String name) {
 		super(
 				charToOrderMap,
 				finnishLangModel,

@@ -7,7 +7,7 @@ import org.mozilla.universalchardet.prober.sequence.SequenceModel;
 public class SwedishModel extends SequenceModel {
 	public static final float TYPICAL_POSITIVE_RATIO = 0.989923f;
 
-	public SwedishModel(short[] charToOrderMap, String name, String proberName) {
+	public SwedishModel(short[] charToOrderMap, String name) {
 		super(
 				charToOrderMap,
 				swedishLangModel,

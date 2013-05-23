@@ -7,7 +7,7 @@ import org.mozilla.universalchardet.prober.sequence.SequenceModel;
 public class PolishModel extends SequenceModel {
 	public static final float TYPICAL_POSITIVE_RATIO = 0.974309f;
 
-	public PolishModel(short[] charToOrderMap, String name, String proberName) {
+	public PolishModel(short[] charToOrderMap, String name) {
 		super(
 				charToOrderMap,
 				polishLangModel,

@@ -7,7 +7,7 @@ import org.mozilla.universalchardet.prober.sequence.SequenceModel;
 public class TurkishModel extends SequenceModel {
 	public static final float TYPICAL_POSITIVE_RATIO = 0.970290f;
 
-	public TurkishModel(short[] charToOrderMap, String name, String proberName) {
+	public TurkishModel(short[] charToOrderMap, String name) {
 		super(
 				charToOrderMap,
 				turkishLangModel,

@@ -7,7 +7,7 @@ public class Latin2PolishModel extends PolishModel {
 	public static final float TYPICAL_POSITIVE_RATIO = 0.974309f;
 
 	public Latin2PolishModel() {
-		super(polishLatin2CharToOrderMap, ConstantsExtended.CHARSET_ISO_8859_2, "Latin2PolishModel");
+		super(polishLatin2CharToOrderMap, ConstantsExtended.CHARSET_ISO_8859_2);
 	}
 
 	/**
