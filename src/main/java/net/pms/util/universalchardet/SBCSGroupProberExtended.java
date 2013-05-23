@@ -79,7 +79,6 @@ public class SBCSGroupProberExtended extends CharsetProber
     private static final SequenceModel latin5BulgarianModel = new Latin5BulgarianModel();
     private static final SequenceModel win1251BulgarianModel = new Win1251BulgarianModel();
     private static final SequenceModel hebrewModel = new HebrewModel();
-    private static final SequenceModel win1250CzechModel = new Win1250CzechModel();
 	private static final SequenceModel latin2CzechModel = new Latin2CzechModel();
 	private static final SequenceModel latin2PolishModel = new Latin2PolishModel();
 	private static final SequenceModel win1252GermanModel = new Win1252GermanModel();
@@ -92,8 +91,8 @@ public class SBCSGroupProberExtended extends CharsetProber
     ////////////////////////////////////////////////////////////////
     public SBCSGroupProberExtended()
     {
-        this.probers = new CharsetProber[20];
-        this.isActive = new boolean[20];
+        this.probers = new CharsetProber[19];
+        this.isActive = new boolean[19];
         
         this.probers[0] = new SingleByteCharsetProber(win1251Model);
         this.probers[1] = new SingleByteCharsetProber(koi8rModel);
@@ -117,8 +116,7 @@ public class SBCSGroupProberExtended extends CharsetProber
 		this.probers[15] = new SingleByteCharsetProber(win1252FrenchModel);
 		this.probers[16] = new SingleByteCharsetProber(win1252SpanishModel);
 		this.probers[17] = new SingleByteCharsetProber(latin2CzechModel);
-		this.probers[18] = new SingleByteCharsetProber(win1250CzechModel);
-		this.probers[19] = new SingleByteCharsetProber(latin9TurkishModel);
+		this.probers[18] = new SingleByteCharsetProber(latin9TurkishModel);
 
         reset();
     }
