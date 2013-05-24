@@ -126,7 +126,7 @@ public class PmsConfiguration {
 	private static final String KEY_HIDE_RECENTLY_PLAYED_FOLDER = "hide_recently_played_folder";
 	private static final String KEY_HIDE_LIVE_SUBTITLES_FOLDER = "hide_live_subtitles_folder";
 	private static final String KEY_HIDE_MEDIA_LIBRARY_FOLDER = "hide_media_library_folder";
-	private static final String KEY_HIDE_NEW_MEDIA_FOLDER = "hide_new_media_folder";
+	private static final String KEY_HIDE_SUBS_INFO = "hide_subs_info";
 	private static final String KEY_HIDE_TRANSCODE_FOLDER = "hide_transcode_folder";
 	private static final String KEY_HIDE_VIDEO_SETTINGS = "hidevideosettings"; // TODO (breaking change): should be renamed to e.g. hide_video_settings
 	private static final String KEY_HTTP_ENGINE_V2 = "http_engine_v2";
@@ -3073,5 +3073,9 @@ public class PmsConfiguration {
 	
 	public int getResumeKeepTime() {
 		return getInt(KEY_RESUME_KEEP_TIME, 0);
+	}
+	
+	public boolean hideSubInfo() {
+		return getBoolean(KEY_HIDE_SUBS_INFO, false);
 	}
 }
