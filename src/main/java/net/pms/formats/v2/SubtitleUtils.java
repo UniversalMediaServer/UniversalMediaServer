@@ -26,6 +26,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.io.OutputParams;
+import static net.pms.util.universalchardet.ConstantsExtended.*;
 import static org.apache.commons.io.FilenameUtils.getBaseName;
 import static org.apache.commons.lang3.StringUtils.*;
 import static org.mozilla.universalchardet.Constants.*;
@@ -52,6 +53,8 @@ public class SubtitleUtils {
 			// Greek
 			put(CHARSET_WINDOWS_1253, "cp1253");
 			put(CHARSET_ISO_8859_7, "ISO-8859-7");
+			// Central Europe
+			put(CHARSET_ISO_8859_2, "ISO-8859-2");
 			// Western Europe
 			put(CHARSET_WINDOWS_1252, "cp1252");
 			// Hebrew
@@ -70,6 +73,8 @@ public class SubtitleUtils {
 			put(CHARSET_ISO_2022_JP, "ISO-2022-JP");
 			put(CHARSET_EUC_JP, "euc-jp");
 			put(CHARSET_SHIFT_JIS, "shift-jis");
+			// Turkish
+			put(CHARSET_ISO_8859_9, "ISO-8859-9");
 		}
 	};
 
