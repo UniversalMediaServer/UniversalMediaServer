@@ -7,9 +7,11 @@ import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.formats.v2.SubtitleType;
-import static org.apache.commons.lang3.StringUtils.*;
 import static org.mozilla.universalchardet.Constants.*;
-import org.mozilla.universalchardet.UniversalDetector;
+import net.pms.util.universalchardet.UniversalDetectorExtended;
+import static org.apache.commons.lang3.StringUtils.*;
+
+//import org.mozilla.universalchardet.UniversalDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -405,7 +407,7 @@ public class FileUtil {
 	public static String getFileCharset(File file) throws IOException {
 		byte[] buf = new byte[4096];
 		BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file));
-		final UniversalDetector universalDetector = new UniversalDetector(null);
+		final UniversalDetectorExtended universalDetector = new UniversalDetectorExtended(null);
 
 		int numberOfBytesRead;
 		while ((numberOfBytesRead = bufferedInputStream.read(buf)) > 0 && !universalDetector.isDone()) {
