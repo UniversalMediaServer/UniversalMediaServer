@@ -323,7 +323,12 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		return PlayerUtil.isWebVideo(resource);
+		if (PlayerUtil.isWebVideo(resource)) {
+			String url = resource.getSystemName();
+			return protocols.contains(url.split(":")[0]) && excludes.match(url) == null;
+		}
+
+		return false;
 	}
 
 	public boolean readWebFilters(String filename) {
