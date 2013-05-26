@@ -73,8 +73,6 @@ public class SubtitleUtils {
 			put(CHARSET_ISO_2022_JP, "ISO-2022-JP");
 			put(CHARSET_EUC_JP, "euc-jp");
 			put(CHARSET_SHIFT_JIS, "shift-jis");
-			// Turkish
-			put(CHARSET_ISO_8859_9, "ISO-8859-9");
 		}
 	};
 
