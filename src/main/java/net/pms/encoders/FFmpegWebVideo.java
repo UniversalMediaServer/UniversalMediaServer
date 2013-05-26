@@ -33,7 +33,6 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.external.ExternalFactory;
 import net.pms.external.URLResolver.URLResult;
-import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.formats.WEB;
 import net.pms.io.OutputParams;
@@ -323,7 +322,12 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		return PlayerUtil.isWebVideo(resource);
+		if (PlayerUtil.isWebVideo(resource)) {
+			String url = resource.getSystemName();
+			return protocols.contains(url.split(":")[0]) && excludes.match(url) == null;
+		}
+
+		return false;
 	}
 
 	public boolean readWebFilters(String filename) {
