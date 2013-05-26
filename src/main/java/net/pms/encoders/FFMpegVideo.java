@@ -498,7 +498,7 @@ public class FFMpegVideo extends Player {
 		RendererConfiguration renderer = params.mediaRenderer;
 		setAudioAndSubs(filename, media, params, configuration);
 		File tempSubs = null;
-//		params.waitbeforestart = 1000;
+		params.waitbeforestart = 2500;
 		boolean avisynth = avisynth();
 
 		if (!isDisableSubtitles(params)) {
