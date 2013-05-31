@@ -21,18 +21,16 @@ package net.pms.dlna;
 import java.io.*;
 import java.util.ArrayList;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RealFile extends MapFile {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RealFile.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	public RealFile(File file) {
 		getConf().getFiles().add(file);
@@ -50,8 +48,8 @@ public class RealFile extends MapFile {
 	public boolean isValid() {
 		File file = this.getFile();
 		checktype();
-		if (getType() == Format.VIDEO && file.exists() && configuration.isAutoloadSubtitles() && file.getName().length() > 4) {
-			setSrtFile(FileUtil.isSubtitlesExists(file, null));
+		if (getType() == Format.VIDEO && file.exists() && PMS.getConfiguration().isAutoloadSubtitles() && file.getName().length() > 4) {
+			setSrtFile(FileUtil.doesSubtitlesExists(file, null));
 		}
 
 		boolean valid = file.exists() && (getFormat() != null || file.isDirectory());
@@ -106,7 +104,6 @@ public class RealFile extends MapFile {
 		return getFile().length();
 	}
 
-	@Override
 	public boolean isFolder() {
 		return getFile().isDirectory();
 	}
@@ -120,7 +117,7 @@ public class RealFile extends MapFile {
 		if (this.getConf().getName() == null) {
 			String name = null;
 			File file = getFile();
-			if (file.getName().trim().isEmpty()) {
+			if (file.getName().trim().equals("")) {
 				if (PMS.get().isWindows()) {
 					name = PMS.get().getRegistry().getDiskLabel(file);
 				}
@@ -162,8 +159,8 @@ public class RealFile extends MapFile {
 			if (getSplitTrack() > 0) {
 				fileName += "#SplitTrack" + getSplitTrack();
 			}
-
-			if (configuration.getUseCache()) {
+			
+			if (PMS.getConfiguration().getUseCache()) {
 				DLNAMediaDatabase database = PMS.get().getDatabase();
 
 				if (database != null) {
@@ -191,7 +188,7 @@ public class RealFile extends MapFile {
 					getMedia().parse(input, getFormat(), getType(), false);
 				}
 
-				if (found && configuration.getUseCache()) {
+				if (found && PMS.getConfiguration().getUseCache()) {
 					DLNAMediaDatabase database = PMS.get().getDatabase();
 
 					if (database != null) {
@@ -215,50 +212,50 @@ public class RealFile extends MapFile {
 
 		if (getParent() != null && getParent() instanceof RealFile) {
 			cachedThumbnail = ((RealFile) getParent()).getPotentialCover();
-			File thumbFolder = null;
-			boolean alternativeCheck = false;
+		}
+		File thumbFolder = null;
+		boolean alternativeCheck = false;
 
-			while (cachedThumbnail == null) {
-				if (thumbFolder == null && getType() != Format.IMAGE) {
-					thumbFolder = file.getParentFile();
-				}
-
-				cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, file, "jpg");
-
-				if (cachedThumbnail == null) {
-					cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, file, "png");
-				}
-
-				if (cachedThumbnail == null) {
-					cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, file, ".cover.jpg");
-				}
-
-				if (cachedThumbnail == null) {
-					cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, file, ".cover.png");
-				}
-
-				if (alternativeCheck) {
-					break;
-				}
-
-				if (StringUtils.isNotBlank(configuration.getAlternateThumbFolder())) {
-					thumbFolder = new File(configuration.getAlternateThumbFolder());
-
-					if (!thumbFolder.isDirectory()) {
-						thumbFolder = null;
-						break;
-					}
-				}
-
-				alternativeCheck = true;
+		while (cachedThumbnail == null) {
+			if (thumbFolder == null && getType() != Format.IMAGE) {
+				thumbFolder = file.getParentFile();
 			}
 
-			if (file.isDirectory()) {
-				cachedThumbnail = FileUtil.getFileNameWithNewExtension(file.getParentFile(), file, "/folder.jpg");
+			cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, file, "jpg");
 
-				if (cachedThumbnail == null) {
-					cachedThumbnail = FileUtil.getFileNameWithNewExtension(file.getParentFile(), file, "/folder.png");
+			if (cachedThumbnail == null) {
+				cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, file, "png");
+			}
+
+			if (cachedThumbnail == null) {
+				cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, file, ".cover.jpg");
+			}
+
+			if (cachedThumbnail == null) {
+				cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, file, ".cover.png");
+			}
+
+			if (alternativeCheck) {
+				break;
+			}
+
+			if (StringUtils.isNotBlank(PMS.getConfiguration().getAlternateThumbFolder())) {
+				thumbFolder = new File(PMS.getConfiguration().getAlternateThumbFolder());
+
+				if (!thumbFolder.isDirectory()) {
+					thumbFolder = null;
+					break;
 				}
+			}
+
+			alternativeCheck = true;
+		}
+
+		if (file.isDirectory()) {
+			cachedThumbnail = FileUtil.getFileNameWithNewExtension(file.getParentFile(), file, "/folder.jpg");
+
+			if (cachedThumbnail == null) {
+				cachedThumbnail = FileUtil.getFileNameWithNewExtension(file.getParentFile(), file, "/folder.png");
 			}
 		}
 
@@ -282,7 +279,7 @@ public class RealFile extends MapFile {
 
 	@Override
 	protected String getThumbnailURL() {
-		if (getType() == Format.IMAGE && !configuration.getImageThumbnailsEnabled()) {
+		if (getType() == Format.IMAGE && !PMS.getConfiguration().getImageThumbnailsEnabled()) {
 			return null;
 		}
 		StringBuilder sb = new StringBuilder();
@@ -297,10 +294,5 @@ public class RealFile extends MapFile {
 			return null;
 		}
 		return super.getThumbnailURL();
-	}
-
-	@Override
-	public boolean isSubSelectable() {
-		return true;
 	}
 }
