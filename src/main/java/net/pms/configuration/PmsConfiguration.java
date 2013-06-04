@@ -175,6 +175,7 @@ public class PmsConfiguration {
 	private static final String KEY_MPEG2_MAIN_SETTINGS = "mencoder_encode"; // TODO (breaking change): should be renamed to e.g. mpeg2_main_settings
 	private static final String KEY_MUX_ALLAUDIOTRACKS = "tsmuxer_mux_all_audiotracks";
 	private static final String KEY_NETWORK_INTERFACE = "network_interface";
+	private static final String KEY_HIDE_NEW_MEDIA_FOLDER = "hide_new_media";
 	private static final String KEY_NOTRANSCODE = "notranscode";
 	private static final String KEY_NUMBER_OF_CPU_CORES = "nbcores";
 	private static final String KEY_OPEN_ARCHIVES = "enable_archive_browsing";
@@ -2632,11 +2633,11 @@ public class PmsConfiguration {
 	}
 
 	public boolean isHideNewMediaFolder() {
-		return getBoolean(PmsConfiguration.KEY_HIDE_NEW_MEDIA_FOLDER, false);
+		return getBoolean(KEY_HIDE_NEW_MEDIA_FOLDER, false);
 	}
 
 	public void setHideNewMediaFolder(final boolean value) {
-		this.configuration.setProperty(PmsConfiguration.KEY_HIDE_NEW_MEDIA_FOLDER, value);
+		this.configuration.setProperty(KEY_HIDE_NEW_MEDIA_FOLDER, value);
 	}
 
 	public boolean isHideRecentlyPlayedFolder() {

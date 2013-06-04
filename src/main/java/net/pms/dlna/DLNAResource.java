@@ -1073,7 +1073,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 			name = (getPlayer() != null ? ("[" + getPlayer().name() + "]") : "") + " {Audio: " + getMediaAudio().getAudioCodec() + audioLanguage + ((getMediaAudio().getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowAudioMetadata()) ? (" (" + getMediaAudio().getFlavor() + ")") : "") + "}";
 		}
-
+		
 		if (getMediaSubtitle() != null && 
 			getMediaSubtitle().getId() != -1 &&
 			!configuration.hideSubInfo()) {
