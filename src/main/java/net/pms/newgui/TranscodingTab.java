@@ -488,8 +488,8 @@ public class TranscodingTab {
 	}
 
 	private JComponent buildVideoSetupPanel() {
-		String colSpec = FormLayoutUtil.getColSpec("left:pref, 2dlu, pref:grow", orientation);
-		FormLayout layout = new FormLayout(colSpec, "$lgap, 2*(pref, 2dlu), 10dlu, 10dlu, 4*(pref, 2dlu), pref");
+		String colSpec = FormLayoutUtil.getColSpec("left:pref, 3dlu, pref:grow", orientation);
+		FormLayout layout = new FormLayout(colSpec, "$lgap, 2*(pref, 3dlu), 10dlu, 10dlu, 4*(pref, 3dlu), pref");
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.setBorder(Borders.DLU4_BORDER);
 		CellConstraints cc = new CellConstraints();
@@ -613,8 +613,8 @@ public class TranscodingTab {
 	}
 
 	private JComponent buildAudioSetupPanel() {
-		String colSpec = FormLayoutUtil.getColSpec("left:pref, 2dlu, pref:grow", orientation);
-		FormLayout layout = new FormLayout(colSpec, "$lgap, pref, 2dlu, 4*(pref, 2dlu), pref, 12dlu, 3*(pref, 2dlu), pref:grow");
+		String colSpec = FormLayoutUtil.getColSpec("left:pref, 3dlu, pref:grow", orientation);
+		FormLayout layout = new FormLayout(colSpec, "$lgap, pref, 3dlu, 4*(pref, 3dlu), pref, 12dlu, 3*(pref, 3dlu), pref:grow");
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.setBorder(Borders.DLU4_BORDER);
 		CellConstraints cc = new CellConstraints();
