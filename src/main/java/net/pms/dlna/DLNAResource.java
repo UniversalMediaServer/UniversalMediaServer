@@ -41,7 +41,7 @@ import net.pms.external.ExternalListener;
 import net.pms.external.StartStopListener;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
-import net.pms.formats.v2.SubtitleUtils;
+import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
@@ -1904,7 +1904,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 										ProcessWrapperImpl pw = (ProcessWrapperImpl) externalProcess;
 										String dur = pw.getDuration();
 										if (StringUtils.isNotEmpty(dur)) {
-											getMedia().setDuration(SubtitleUtils.convertStringToTime(dur));
+											getMedia().setDuration(convertStringToTime(dur));
 										}
 									}
 								}

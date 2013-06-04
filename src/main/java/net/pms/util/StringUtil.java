@@ -1,7 +1,13 @@
 package net.pms.util;
 
-public class StringUtil {
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
+public class StringUtil {
+	private static final int[] MULTIPLIER = new int[] {1, 60, 3600, 24*3600};
+	public static final String ASS_TIME_FORMAT = "%01d:%02d:%02.2f";
+	public static final String SRT_TIME_FORMAT = "%02d:%02d:%02.3f";
+	public static final String SEC_TIME_FORMAT = "%02d:%02d:%02d";
+	
 	/**
 	 * Appends "&lt;<u>tag</u> " to the StringBuilder. This is a typical HTML/DIDL/XML tag opening.
 	 * @param sb String to append the tag beginning to.
@@ -80,5 +86,50 @@ public class StringUtil {
 		url = url.replace('<', '\u00b5');
 		url = url.replace('>', '\u00b5');
 		return url;
+	}
+
+	/**
+	 * Parse as double, or if it's not just one number, handles {hour}:{minute}:{seconds}
+	 * @param time
+	 * @return
+	 */
+	public static double convertStringToTime(String time) throws IllegalArgumentException {
+		if (isBlank(time)) {
+			throw new IllegalArgumentException("time String should not be blank.");
+		}
+		
+		try {
+			return Double.parseDouble(time);
+		} catch (NumberFormatException e) {
+			String[] arrs = time.split(":");
+			double value, sum = 0;
+			for (int i = 0; i < arrs.length; i++) {
+				value = Double.parseDouble(arrs[arrs.length - i - 1]);
+				sum += value * MULTIPLIER[i];
+			}
+			return sum;
+		}
+
+	}
+
+	/**
+	 * Converts time to string.
+	 *
+	 * @param d time in double.
+	 * @param timeFormat Format string e.g. "%02d:%02d:%02d" or use predefined constants
+	 * ASS_TIME_FORMAT, SRT_TIME_FORMAT, SEC_TIME_FORMAT.
+	 *
+	 * @return Converted String.
+	 */
+	public static String convertTimeToString(double d, String timeFormat) {
+		double s = d % 60;
+		int h = (int) (d / 3600);
+		int m = ((int) (d / 60)) % 60;
+
+		if (timeFormat.equals(SRT_TIME_FORMAT)) {
+			return String.format(timeFormat, h, m, s).replaceAll("\\.", ",");
+		}
+
+		return String.format(timeFormat, h, m, s);
 	}
 }
