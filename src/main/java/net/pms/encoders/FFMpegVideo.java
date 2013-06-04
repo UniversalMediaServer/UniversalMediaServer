@@ -303,8 +303,6 @@ public class FFMpegVideo extends Player {
 			} else if (renderer.isTranscodeToH264TSAC3()) {
 				transcodeOptions.add("-c:v");
 				transcodeOptions.add("libx264");
-				transcodeOptions.add("-crf");
-				transcodeOptions.add("20");
 				transcodeOptions.add("-preset");
 				transcodeOptions.add("superfast");
 			} else if (!dtsRemux) {
@@ -691,35 +689,50 @@ public class FFMpegVideo extends Player {
 			cmdList.add("1");
 		}
 
-		// Add MPEG-2 quality settings
-		if (!renderer.isTranscodeToH264TSAC3() && !videoRemux) {
-			String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
-			String mpeg2OptionsRenderer = params.mediaRenderer.getCustomFFmpegMPEG2Options();
+		if (!videoRemux) {
+			if (!renderer.isTranscodeToH264TSAC3()) {
+				// Add MPEG-2 quality settings
+				String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
+				String mpeg2OptionsRenderer = params.mediaRenderer.getCustomFFmpegMPEG2Options();
 
-			// Renderer settings take priority over user settings
-			if (isNotBlank(mpeg2OptionsRenderer)) {
-				mpeg2Options = mpeg2OptionsRenderer;
-			} else {
-				if (mpeg2Options.contains("Automatic")) {
-					mpeg2Options = "-g 5 -q:v 1 -qmin 2 -qmax 3";
+				// Renderer settings take priority over user settings
+				if (isNotBlank(mpeg2OptionsRenderer)) {
+					mpeg2Options = mpeg2OptionsRenderer;
+				} else {
+					if (mpeg2Options.contains("Automatic")) {
+						mpeg2Options = "-g 5 -q:v 1 -qmin 2 -qmax 3";
 
-					// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
-					if (params.mediaRenderer.isPS3()) {
-						mpeg2Options = "-g 25 -q:v 1 -qmin 2 -qmax 3";
-					}
+						// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
+						if (params.mediaRenderer.isPS3()) {
+							mpeg2Options = "-g 25 -q:v 1 -qmin 2 -qmax 3";
+						}
 
-					if (mpeg2Options.contains("Wireless") || defaultMaxBitrates[0] < 70) {
-						// Lower quality for 720p+ content
-						if (media.getWidth() > 1280) {
-							mpeg2Options = "-g 25 -qmax 7 -qmin 2";
-						} else if (media.getWidth() > 720) {
-							mpeg2Options = "-g 25 -qmax 5 -qmin 2";
+						if (mpeg2Options.contains("Wireless") || defaultMaxBitrates[0] < 70) {
+							// Lower quality for 720p+ content
+							if (media.getWidth() > 1280) {
+								mpeg2Options = "-g 25 -qmax 7 -qmin 2";
+							} else if (media.getWidth() > 720) {
+								mpeg2Options = "-g 25 -qmax 5 -qmin 2";
+							}
 						}
 					}
 				}
+				String[] customOptions = StringUtils.split(mpeg2Options);
+				cmdList.addAll(new ArrayList<>(Arrays.asList(customOptions)));
+			} else {
+				// Add x264 quality settings
+				String x264CRF = configuration.getx264ConstantRateFactor();
+				if (x264CRF.contains("Automatic")) {
+					x264CRF = "-crf 16";
+
+					// Lower CRF for 720p+ content
+					if (media.getWidth() > 720) {
+						x264CRF = "-crf 19";
+					}
+				}
+				String[] customOptions = StringUtils.split(x264CRF);
+				cmdList.addAll(new ArrayList<>(Arrays.asList(customOptions)));
 			}
-			String[] customOptions = StringUtils.split(mpeg2Options);
-			cmdList.addAll(new ArrayList<>(Arrays.asList(customOptions)));
 		}
 
 		// Add the output options (-f, -c:a, -c:v, etc.)
