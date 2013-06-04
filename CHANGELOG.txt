@@ -1,7 +1,13 @@
 3.0.0-a2 - 2013-05-??
 
 	General:
-		
+		Fixed RAW image transcoding and support 28 additional RAW file extensions
+		Fixed various bugs
+	External Components:
+		Updated MediaInfo for Windows to 0.7.63, which:
+			Adds H.265 (HEVC) support
+			Fixed some crashes with .mov files
+			Improved AVI support
 
 3.0.0-a1 - 2013-05-15
 

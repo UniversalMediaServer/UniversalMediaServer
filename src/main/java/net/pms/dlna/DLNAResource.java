@@ -568,7 +568,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 						boolean isIncompatible = false;
 
-						if (!child.getFormat().isCompatible(child.getMedia(),getDefaultRenderer())) {
+						if (!child.getFormat().isCompatible(child.getMedia(), getDefaultRenderer())) {
 							isIncompatible = true;
 						}
 
@@ -624,7 +624,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								}
 							}
 						}
-					} else if (!child.getFormat().isCompatible(child.getMedia(),getDefaultRenderer()) && !child.isFolder()) {
+					} else if (!child.getFormat().isCompatible(child.getMedia(), getDefaultRenderer()) && !child.isFolder()) {
 						getChildren().remove(child);
 					}
 				}

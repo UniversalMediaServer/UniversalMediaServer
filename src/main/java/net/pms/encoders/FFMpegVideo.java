@@ -59,6 +59,7 @@ import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.StreamModifier;
 import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
+import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -302,8 +303,6 @@ public class FFMpegVideo extends Player {
 			} else if (renderer.isTranscodeToH264TSAC3()) {
 				transcodeOptions.add("-c:v");
 				transcodeOptions.add("libx264");
-				transcodeOptions.add("-crf");
-				transcodeOptions.add("20");
 				transcodeOptions.add("-preset");
 				transcodeOptions.add("superfast");
 			} else if (!dtsRemux) {
@@ -497,7 +496,7 @@ public class FFMpegVideo extends Player {
 		RendererConfiguration renderer = params.mediaRenderer;
 		setAudioAndSubs(filename, media, params, configuration);
 		File tempSubs = null;
-//		params.waitbeforestart = 1000;
+		params.waitbeforestart = 2500;
 		boolean avisynth = avisynth();
 
 		if (!isDisableSubtitles(params)) {
@@ -690,35 +689,50 @@ public class FFMpegVideo extends Player {
 			cmdList.add("1");
 		}
 
-		// Add MPEG-2 quality settings
-		if (!renderer.isTranscodeToH264TSAC3() && !videoRemux) {
-			String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
-			String mpeg2OptionsRenderer = params.mediaRenderer.getCustomFFmpegMPEG2Options();
+		if (!videoRemux) {
+			if (!renderer.isTranscodeToH264TSAC3()) {
+				// Add MPEG-2 quality settings
+				String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
+				String mpeg2OptionsRenderer = params.mediaRenderer.getCustomFFmpegMPEG2Options();
 
-			// Renderer settings take priority over user settings
-			if (isNotBlank(mpeg2OptionsRenderer)) {
-				mpeg2Options = mpeg2OptionsRenderer;
-			} else {
-				if (mpeg2Options.contains("Automatic")) {
-					mpeg2Options = "-g 5 -q:v 1 -qmin 2 -qmax 3";
+				// Renderer settings take priority over user settings
+				if (isNotBlank(mpeg2OptionsRenderer)) {
+					mpeg2Options = mpeg2OptionsRenderer;
+				} else {
+					if (mpeg2Options.contains("Automatic")) {
+						mpeg2Options = "-g 5 -q:v 1 -qmin 2 -qmax 3";
 
-					// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
-					if (params.mediaRenderer.isPS3()) {
-						mpeg2Options = "-g 25 -q:v 1 -qmin 2 -qmax 3";
-					}
+						// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
+						if (params.mediaRenderer.isPS3()) {
+							mpeg2Options = "-g 25 -q:v 1 -qmin 2 -qmax 3";
+						}
 
-					if (mpeg2Options.contains("Wireless") || defaultMaxBitrates[0] < 70) {
-						// Lower quality for 720p+ content
-						if (media.getWidth() > 1280) {
-							mpeg2Options = "-g 25 -qmax 7 -qmin 2";
-						} else if (media.getWidth() > 720) {
-							mpeg2Options = "-g 25 -qmax 5 -qmin 2";
+						if (mpeg2Options.contains("Wireless") || defaultMaxBitrates[0] < 70) {
+							// Lower quality for 720p+ content
+							if (media.getWidth() > 1280) {
+								mpeg2Options = "-g 25 -qmax 7 -qmin 2";
+							} else if (media.getWidth() > 720) {
+								mpeg2Options = "-g 25 -qmax 5 -qmin 2";
+							}
 						}
 					}
 				}
+				String[] customOptions = StringUtils.split(mpeg2Options);
+				cmdList.addAll(new ArrayList<>(Arrays.asList(customOptions)));
+			} else {
+				// Add x264 quality settings
+				String x264CRF = configuration.getx264ConstantRateFactor();
+				if (x264CRF.contains("Automatic")) {
+					x264CRF = "-crf 16";
+
+					// Lower CRF for 720p+ content
+					if (media.getWidth() > 720) {
+						x264CRF = "-crf 19";
+					}
+				}
+				String[] customOptions = StringUtils.split(x264CRF);
+				cmdList.addAll(new ArrayList<>(Arrays.asList(customOptions)));
 			}
-			String[] customOptions = StringUtils.split(mpeg2Options);
-			cmdList.addAll(new ArrayList<>(Arrays.asList(customOptions)));
 		}
 
 		// Add the output options (-f, -c:a, -c:v, etc.)
@@ -972,30 +986,11 @@ public class FFMpegVideo extends Player {
 	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		if (resource == null || resource.getFormat().getType() != Format.VIDEO) {
-			return false;
-		}
-/**
-		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
-
-		// Check whether the subtitle actually has a language defined,
-		// uninitialized DLNAMediaSubtitle objects have a null language.
-		// For now supports only external subtitles
 		if (
-			subtitle != null && subtitle.getLang() != null &&
-			subtitle.getExternalFile() == null
+			PlayerUtil.isType(resource, Format.VIDEO, Format.Identifier.MKV) ||
+			PlayerUtil.isType(resource, Format.VIDEO, Format.Identifier.MPG)
 		) {
-			return false;
-		}
-*/
-		Format format = resource.getFormat();
-
-		if (format != null) {
-			Format.Identifier id = format.getIdentifier();
-
-			if (id.equals(Format.Identifier.MKV) || id.equals(Format.Identifier.MPG)) {
-				return true;
-			}
+			return true;
 		}
 
 		return false;

@@ -225,6 +225,7 @@ public class PmsConfiguration {
 	private static final String KEY_VLC_SCALE = "vlc_scale";
 	private static final String KEY_VLC_SAMPLE_RATE_OVERRIDE = "vlc_sample_rate_override";
 	private static final String KEY_VLC_SAMPLE_RATE = "vlc_sample_rate";
+	private static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
 
 	// The name of the subdirectory under which UMS config files are stored for this build (default: UMS).
 	// See Build for more details
@@ -2163,6 +2164,14 @@ public class PmsConfiguration {
 		configuration.setProperty(KEY_MPEG2_MAIN_SETTINGS, value);
 	}
 
+	public String getx264ConstantRateFactor() {
+		return getString(KEY_X264_CONSTANT_RATE_FACTOR, "Automatic");
+	}
+
+	public void setx264ConstantRateFactor(String value) {
+		configuration.setProperty(KEY_X264_CONSTANT_RATE_FACTOR, value);
+	}
+
 	public String getMencoderVobsubSubtitleQuality() {
 		return getString(KEY_MENCODER_VOBSUB_SUBTITLE_QUALITY, "3");
 	}
@@ -2197,8 +2206,44 @@ public class PmsConfiguration {
 		configuration.setProperty(KEY_ENGINES, listToString(enginesAsList));
 	}
 
+	/**
+	 * TODO this should use Player.id() instead of hardwiring the identifiers
+	 * TODO rather than loading the players here, this should delegate
+	 * to (or solely be implemented in) PlayerFactory
+	 * TODO the registry parameter (a "hack" for AviSynth) should be removed
+	 */
 	public List<String> getEnginesAsList(SystemUtils registry) {
-		List<String> engines = stringToList(getString(KEY_ENGINES, "mencoder,avsmencoder,tsmuxer,ffmpegvideo,ffmpegaudio,mplayeraudio,tsmuxeraudio,ffmpegwebvideo,vlcvideo,mencoderwebvideo,mplayervideodump,mplayerwebaudio,vlcaudio,ffmpegdvrmsremux,rawthumbs"));
+		String defaultEngines = StringUtils.join(
+			new String[] {
+				"mencoder",
+				"avsmencoder",
+				"tsmuxer",
+				"ffmpegvideo",
+				"ffmpegaudio",
+				"mplayeraudio",
+				"tsmuxeraudio",
+				"ffmpegwebvideo",
+				"vlcwebvideo", // (VLCWebVideo)
+				"vlcvideo", // (VideoLanVideoStreaming) TODO (legacy web video engine): remove
+				"mencoderwebvideo",
+				"mplayervideodump",
+				"mplayerwebaudio",
+				"vlcaudio", // (VideoLanAudioStreaming) TODO (legacy web audio engine): remove
+				"ffmpegdvrmsremux",
+				"rawthumbs"
+			},
+			","
+		);
+		List<String> engines = stringToList(
+			// Possibly blank: An empty string means: disable all engines
+			// http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=15416
+			ConfigurationUtil.getPossiblyBlankConfigurationString(
+				configuration,
+				KEY_ENGINES,
+				defaultEngines
+			)
+		);
+
 		engines = hackAvs(registry, engines);
 		return engines;
 	}
