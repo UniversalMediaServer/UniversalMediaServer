@@ -139,35 +139,35 @@ public class SubtitleUtils {
 		}
 
 		File outputSubs = new File(configuration.getTempFolder(), getBaseName(subsFile.getName()) + "_" + System.currentTimeMillis()  + ".tmp");
-		BufferedWriter w = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs)));
-		String line;
-		int n = 1;
+		try (BufferedWriter w = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs)))) {
+			String line;
+			int n = 1;
 
-		while ((line = reader.readLine()) != null) {
-			if (line.contains("-->")) {
-				String startTime = line.substring(0, line.indexOf("-->") - 1);
-				String endTime = line.substring(line.indexOf("-->") + 4);
-				Double start = convertStringToTime(startTime);
-				Double stop = convertStringToTime(endTime);
+			while ((line = reader.readLine()) != null) {
+				if (line.contains("-->")) {
+					String startTime = line.substring(0, line.indexOf("-->") - 1);
+					String endTime = line.substring(line.indexOf("-->") + 4);
+					Double start = convertStringToTime(startTime);
+					Double stop = convertStringToTime(endTime);
 
-				if (start >= timeseek) {
-					w.write("" + (n++) + "\n");
-					w.write(convertTimeToString(start - timeseek, SRT_TIME_FORMAT));
-					w.write(" --> ");
-					w.write(convertTimeToString(stop - timeseek, SRT_TIME_FORMAT) + "\n");
+					if (start >= timeseek) {
+						w.write("" + (n++) + "\n");
+						w.write(convertTimeToString(start - timeseek, SRT_TIME_FORMAT));
+						w.write(" --> ");
+						w.write(convertTimeToString(stop - timeseek, SRT_TIME_FORMAT) + "\n");
 
-					while (isNotBlank(line = reader.readLine())) { // Read all following subs lines
-						w.write(line + "\n");
+						while (isNotBlank(line = reader.readLine())) { // Read all following subs lines
+							w.write(line + "\n");
+						}
+
+						w.write("" + "\n");
 					}
-
-					w.write("" + "\n");
 				}
 			}
-		}
 
-		reader.close();
-		w.flush();
-		w.close();
+			reader.close();
+			w.flush();
+		}
 		PMS.get().addTempFile(outputSubs, 2 * 24 * 3600 * 1000);
 		return outputSubs;
 	}

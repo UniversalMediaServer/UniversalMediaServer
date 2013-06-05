@@ -40,7 +40,6 @@ import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.gui.IFrame;
 import net.pms.util.FileUtil;
-
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -976,14 +975,16 @@ public class RootFolder extends DLNAResource {
 				});
 			}
 		}
-		
+
 		// resume file mgmt
-		if(configuration.isResumeEnabled()) {
+		if (configuration.isResumeEnabled()) {
 			final File[] files = ResumeObj.resumeFiles();
 			if (files.length > 0) {
 				res.addChild(new VirtualFolder(Messages.getString("PMS.135"), null) {
+					@Override
 					public void discoverChildren() {
 						addChild(new VirtualVideoAction(Messages.getString("PMS.136"), true) {
+							@Override
 							public boolean enable() {
 								for (File f : files) {
 									f.delete();
@@ -996,6 +997,7 @@ public class RootFolder extends DLNAResource {
 							String name = FileUtil.getFileNameWithoutExtension(f.getName());
 							name = name.replaceAll(ResumeObj.CLEAN_REG, "");
 							addChild(new VirtualVideoAction(name, false) {
+								@Override
 								public boolean enable() {
 									f.delete();
 									getParent().getChildren().remove(this);

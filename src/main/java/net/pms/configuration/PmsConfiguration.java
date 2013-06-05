@@ -3089,11 +3089,11 @@ public class PmsConfiguration {
 		}
 		return (percent / 100.0);
 	}
-	
+
 	public int getResumeKeepTime() {
 		return getInt(KEY_RESUME_KEEP_TIME, 0);
 	}
-	
+
 	public boolean hideSubInfo() {
 		return getBoolean(KEY_HIDE_SUBS_INFO, false);
 	}

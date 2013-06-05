@@ -57,7 +57,6 @@ import net.pms.util.FileUtil;
 import net.pms.util.MpegUtil;
 import net.pms.util.ProcessUtil;
 import net.pms.util.StringUtil;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.sanselan.ImageInfo;
 import org.apache.sanselan.ImageReadException;

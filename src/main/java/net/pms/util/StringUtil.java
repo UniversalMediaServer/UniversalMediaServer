@@ -90,6 +90,7 @@ public class StringUtil {
 
 	/**
 	 * Parse as double, or if it's not just one number, handles {hour}:{minute}:{seconds}
+	 *
 	 * @param time
 	 * @return
 	 */
@@ -97,7 +98,7 @@ public class StringUtil {
 		if (isBlank(time)) {
 			throw new IllegalArgumentException("time String should not be blank.");
 		}
-		
+
 		try {
 			return Double.parseDouble(time);
 		} catch (NumberFormatException e) {
