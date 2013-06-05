@@ -1,13 +1,23 @@
-3.0.0-a2 - 2013-05-??
+3.0.0-a2 - 2013-06-??
 
 	General:
+		Added manual configuration option (hide_subs_info) to hide subtitle info from filenames while browsing
+		FFmpeg starts faster
+		Improved quality of H.264 transcoding by default
+		Added H.264 transcoding quality option
 		Fixed RAW image transcoding and support 28 additional RAW file extensions
+		Fixed layout issues
 		Fixed various bugs
+	Languages:
+		Updated Dutch translation (thanks, Leroy!)
 	External Components:
 		Updated MediaInfo for Windows to 0.7.63, which:
 			Adds H.265 (HEVC) support
 			Fixed some crashes with .mov files
 			Improved AVI support
+		Updated Netty to 3.6.6
+		Updated Thumbnailator to 0.4.4, which:
+			Fixes memory errors with the latest Java Runtimes
 
 3.0.0-a1 - 2013-05-15
 
