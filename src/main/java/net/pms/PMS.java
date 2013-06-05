@@ -342,6 +342,20 @@ public class PMS {
 		LOGGER.info("Working directory: " + cwd);
 
 		LOGGER.info("Temp directory: " + configuration.getTempFolder());
+
+		/**
+		 * Verify the java.io.tmpdir is writable; JNA requires it.
+		 * Note: the configured tempFolder has already been checked, but it
+		 * may differ from the java.io.tmpdir so double check to be sure.
+		 */
+		File javaTmpdir = new File(System.getProperty("java.io.tmpdir"));
+
+		if (!FileUtil.isDirectoryWritable(javaTmpdir)) {
+			LOGGER.error("The Java temp directory \"" + javaTmpdir.getAbsolutePath() + "\" is not writable for PMS!");
+			LOGGER.error("Please make sure the directory is writable for user \"" + System.getProperty("user.name") + "\"");
+			throw new IOException("Cannot write to Java temp directory");
+		}
+
 		LOGGER.info("Logging config file: " + LoggingConfigFileLoader.getConfigFilePath());
 
 		HashMap<String, String> lfps = LoggingConfigFileLoader.getLogFilePaths();
