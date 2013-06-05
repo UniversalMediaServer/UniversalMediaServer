@@ -1075,34 +1075,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * none is available, "thumbnail0000.png" is used.
 	 */
 	protected String getThumbnailURL() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(PMS.get().getServer().getURL());
-		sb.append("/images/");
-		String id = null;
-
-		if (getMediaAudio() != null) {
-			id = getMediaAudio().getLang();
-		}
-
-		if (getMediaSubtitle() != null && getMediaSubtitle().getId() != -1) {
-			id = getMediaSubtitle().getLang();
-		}
-
-		if ((getMediaSubtitle() != null || getMediaAudio() != null) && StringUtils.isBlank(id)) {
-			id = DLNAMediaLang.UND;
-		}
-
-		if (id != null) {
-			String code = Iso639.getISO639_2Code(id.toLowerCase());
-			sb.append("codes/").append(code).append(".png");
-			return sb.toString();
-		}
-
-		if (isAvisynth()) {
-			sb.append("logo-avisynth.png");
-			return sb.toString();
-		}
-
 		return getURL("thumbnail0000");
 	}
 
@@ -2198,6 +2170,28 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @throws IOException
 	 */
 	public InputStream getThumbnailInputStream() throws IOException {
+		String id = null;
+
+		if (getMediaAudio() != null) {
+			id = getMediaAudio().getLang();
+		}
+
+		if (getMediaSubtitle() != null && getMediaSubtitle().getId() != -1) {
+			id = getMediaSubtitle().getLang();
+		}
+
+		if ((getMediaSubtitle() != null || getMediaAudio() != null) && StringUtils.isBlank(id)) {
+			id = DLNAMediaLang.UND;
+		}
+
+		if (id != null) {
+			String code = Iso639.getISO639_2Code(id.toLowerCase());
+			return getResourceInputStream("/images/codes/" + code + ".png");
+		}
+
+		if (isAvisynth()) {
+			return getResourceInputStream("/images/logo-avisynth.png");
+		}
 		return getGenericThumbnailInputStream(null);
 	}
 
