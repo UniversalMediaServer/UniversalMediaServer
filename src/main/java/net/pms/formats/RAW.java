@@ -104,8 +104,8 @@ public class RAW extends JPG {
 					media.setSize(media.getThumb().length);
 				}
 
-				media.setCodecV("jpg");
-				media.setContainer("jpg");
+				media.setCodecV("raw");
+				media.setContainer("raw");
 			}
 
 			media.finalize(type, file);

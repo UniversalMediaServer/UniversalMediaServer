@@ -14,19 +14,21 @@ import net.pms.io.InternalJavaProcessImpl;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RAWThumbnailer extends Player {
+	private static final Logger LOGGER = LoggerFactory.getLogger(RAWThumbnailer.class);
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	public final static String ID = "rawthumbs";
 
 	protected String[] getDefaultArgs() {
-		return new String[]{"-e", "-c"};
+		return new String[]{ "-e", "-c" };
 	}
 
 	@Override
 	public String[] args() {
 		return getDefaultArgs();
-
 	}
 
 	@Override
@@ -45,9 +47,12 @@ public class RAWThumbnailer extends Player {
 	}
 
 	@Override
-	public ProcessWrapper launchTranscode(String fileName, DLNAResource dlna, DLNAMediaInfo media,
-		OutputParams params) throws IOException {
-
+	public ProcessWrapper launchTranscode(
+		String fileName,
+		DLNAResource dlna,
+		DLNAMediaInfo media,
+		OutputParams params
+	) throws IOException {
 		params.waitbeforestart = 1;
 		params.minBufferSize = 1;
 		params.maxBufferSize = 5;
@@ -61,6 +66,7 @@ public class RAWThumbnailer extends Player {
 			try {
 				media.setThumb(getThumbnail(params, fileName));
 			} catch (Exception e) {
+				LOGGER.error("Error extracting thumbnail", e);
 				return null;
 			}
 		}
