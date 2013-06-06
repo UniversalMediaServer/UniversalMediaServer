@@ -105,7 +105,8 @@ public class StringUtil {
 			String[] arrs = time.split(":");
 			double value, sum = 0;
 			for (int i = 0; i < arrs.length; i++) {
-				value = Double.parseDouble(arrs[arrs.length - i - 1]);
+                String tmp =  arrs[arrs.length - i - 1];
+				value = Double.parseDouble(tmp.replace(",","."));
 				sum += value * MULTIPLIER[i];
 			}
 			return sum;
