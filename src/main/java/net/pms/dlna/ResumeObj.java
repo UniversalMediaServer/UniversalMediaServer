@@ -115,7 +115,7 @@ public class ResumeObj {
 				out.write(time + "," + duration);
 				out.flush();
 				out.close();
-				if(configuration.getResumeKeepTime() > 0) {
+				if (configuration.getResumeKeepTime() > 0) {
 					PMS.get().addTempFile(f, configuration.getResumeKeepTime() * DAYS);
 				}
 			}

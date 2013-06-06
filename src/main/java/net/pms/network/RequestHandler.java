@@ -29,6 +29,7 @@ import java.util.StringTokenizer;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.external.StartStopListenerDelegate;
+import static net.pms.util.StringUtil.convertStringToTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -167,7 +168,7 @@ public class RequestHandler implements Runnable {
 						} else if (timeseek.indexOf("-") > -1) {
 							timeseek = timeseek.substring(0, timeseek.indexOf("-"));
 						}
-						request.setTimeseek(Double.parseDouble(timeseek));
+						request.setTimeseek(convertStringToTime(timeseek));
 					} else if (headerLine.toUpperCase().indexOf("TIMESEEKRANGE.DLNA.ORG : NPT=") > -1) { // firmware 2.40
 						String timeseek = headerLine.substring(headerLine.toUpperCase().indexOf("TIMESEEKRANGE.DLNA.ORG : NPT=") + 29);
 						if (timeseek.endsWith("-")) {
@@ -175,7 +176,7 @@ public class RequestHandler implements Runnable {
 						} else if (timeseek.indexOf("-") > -1) {
 							timeseek = timeseek.substring(0, timeseek.indexOf("-"));
 						}
-						request.setTimeseek(Double.parseDouble(timeseek));
+						request.setTimeseek(convertStringToTime(timeseek));
 					} else {
 						/*
 						 * If we made it to here, none of the previous header checks matched.

@@ -78,6 +78,7 @@ public class TranscodingTab {
 	public static JCheckBox forceDTSinPCM;
 	private JComboBox channels;
 	private JComboBox vq;
+	private JComboBox x264Quality;
 	private JCheckBox ac3remux;
 	private JCheckBox mpeg2remux;
 	private JCheckBox chapter_support;
@@ -487,8 +488,8 @@ public class TranscodingTab {
 	}
 
 	private JComponent buildVideoSetupPanel() {
-		String colSpec = FormLayoutUtil.getColSpec("left:pref, 2dlu, pref:grow", orientation);
-		FormLayout layout = new FormLayout(colSpec, "$lgap, 2*(pref, 2dlu), 10dlu, 10dlu, 3*(pref, 2dlu), pref");
+		String colSpec = FormLayoutUtil.getColSpec("left:pref, 3dlu, pref:grow", orientation);
+		FormLayout layout = new FormLayout(colSpec, "$lgap, 2*(pref, 3dlu), 10dlu, 10dlu, 4*(pref, 3dlu), pref");
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.setBorder(Borders.DLU4_BORDER);
 		CellConstraints cc = new CellConstraints();
@@ -554,7 +555,38 @@ public class TranscodingTab {
 		vq.setEditable(true);
 		builder.add(vq, FormLayoutUtil.flip(cc.xy(3, 10), colSpec, orientation));
 
-		builder.add(new JLabel(Messages.getString("TrTab2.8")), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
+		builder.add(new JLabel(Messages.getString("TrTab2.79")), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
+		Object x264QualityOptions[] = new Object[] {
+			configuration.getx264ConstantRateFactor(),                                 /* Current setting */
+			String.format("Automatic /* %s */", Messages.getString("TrTab2.80")), /* Automatic */
+			String.format("16  /* %s */", Messages.getString("TrTab2.61"))        /* Lossless */
+		};
+
+		MyComboBoxModel cbm2 = new MyComboBoxModel(x264QualityOptions);
+		x264Quality = new JComboBox(cbm2);
+		x264Quality.setToolTipText(Messages.getString("TrTab2.81"));
+		x264Quality.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					String s = (String) e.getItem();
+					if (s.indexOf("/*") > -1) {
+						s = s.substring(0, s.indexOf("/*")).trim();
+					}
+					configuration.setx264ConstantRateFactor(s);
+				}
+			}
+		});
+		x264Quality.getEditor().getEditorComponent().addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				x264Quality.getItemListeners()[0].itemStateChanged(new ItemEvent(x264Quality, 0, x264Quality.getEditor().getItem(), ItemEvent.SELECTED));
+			}
+		});
+		x264Quality.setEditable(true);
+		builder.add(x264Quality, FormLayoutUtil.flip(cc.xy(3, 12), colSpec, orientation));
+
+		builder.add(new JLabel(Messages.getString("TrTab2.8")), FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
 		notranscode = new JTextField(configuration.getNoTranscode());
 		notranscode.addKeyListener(new KeyAdapter() {
 			@Override
@@ -562,9 +594,9 @@ public class TranscodingTab {
 				configuration.setNoTranscode(notranscode.getText());
 			}
 		});
-		builder.add(notranscode, FormLayoutUtil.flip(cc.xy(3, 12), colSpec, orientation));
+		builder.add(notranscode, FormLayoutUtil.flip(cc.xy(3, 14), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("TrTab2.9"), FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
+		builder.addLabel(Messages.getString("TrTab2.9"), FormLayoutUtil.flip(cc.xy(1, 16), colSpec, orientation));
 		forcetranscode = new JTextField(configuration.getForceTranscode());
 		forcetranscode.addKeyListener(new KeyAdapter() {
 			@Override
@@ -572,7 +604,7 @@ public class TranscodingTab {
 				configuration.setForceTranscode(forcetranscode.getText());
 			}
 		});
-		builder.add(forcetranscode, FormLayoutUtil.flip(cc.xy(3, 14), colSpec, orientation));
+		builder.add(forcetranscode, FormLayoutUtil.flip(cc.xy(3, 16), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 		panel.applyComponentOrientation(orientation);
@@ -581,8 +613,8 @@ public class TranscodingTab {
 	}
 
 	private JComponent buildAudioSetupPanel() {
-		String colSpec = FormLayoutUtil.getColSpec("left:pref, 2dlu, pref:grow", orientation);
-		FormLayout layout = new FormLayout(colSpec, "$lgap, pref, 2dlu, 4*(pref, 2dlu), pref, 12dlu, 3*(pref, 2dlu), pref:grow");
+		String colSpec = FormLayoutUtil.getColSpec("left:pref, 3dlu, pref:grow", orientation);
+		FormLayout layout = new FormLayout(colSpec, "$lgap, pref, 3dlu, 4*(pref, 3dlu), pref, 12dlu, 3*(pref, 3dlu), pref:grow");
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.setBorder(Borders.DLU4_BORDER);
 		CellConstraints cc = new CellConstraints();

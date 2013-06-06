@@ -1190,6 +1190,51 @@ public class MEncoderVideo extends Player {
 					overriddenMainArgs[i++] = st.nextToken();
 				}
 			}
+		} else if (configuration.getx264ConstantRateFactor() != null && h264ts) {
+			String x264CRF = configuration.getx264ConstantRateFactor();
+
+			// Remove comment from the value
+			if (x264CRF.contains("/*")) {
+				x264CRF = x264CRF.substring(x264CRF.indexOf("/*"));
+			}
+
+			// Determine a good quality setting based on video attributes
+			if (x264CRF.contains("Automatic")) {
+				x264CRF = "crf=16,";
+
+				// Lower CRF for 720p+ content
+				if (media.getWidth() > 720) {
+					x264CRF = "crf=19,";
+				}
+			} else {
+				x264CRF = "crf=" + x264CRF + ",";
+			}
+
+			String encodeSettings = "-lavcopts autoaspect=1:vcodec=" + vcodec +
+				(wmv && !params.mediaRenderer.isXBOX() ? ":acodec=wmav2:abitrate=448" : (":acodec=" + (configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3") +
+				":abitrate=" + CodecUtil.getAC3Bitrate(configuration, params.aid))) +
+				":threads=" + (wmv && !params.mediaRenderer.isXBOX() ? 1 : configuration.getMencoderMaxThreads()) +
+				(h264ts ? ":o=preset=superfast," + x264CRF + "g=250,i_qfactor=0.71,qcomp=0.6,level=4.1,weightp=0,8x8dct=0,aq-strength=0" : "") +
+				("".equals(x264CRF) ? "" : ":" + x264CRF);
+
+			String audioType = "ac3";
+			if (dtsRemux) {
+				audioType = "dts";
+			} else if (pcm) {
+				audioType = "pcm";
+			}
+
+			encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, x264CRF, params.mediaRenderer, audioType);
+			st = new StringTokenizer(encodeSettings, " ");
+
+			{
+				int i = overriddenMainArgs.length; // Old length
+				overriddenMainArgs = Arrays.copyOf(overriddenMainArgs, overriddenMainArgs.length + st.countTokens());
+
+				while (st.hasMoreTokens()) {
+					overriddenMainArgs[i++] = st.nextToken();
+				}
+			}
 		}
 
 		boolean foundNoassParam = false;
