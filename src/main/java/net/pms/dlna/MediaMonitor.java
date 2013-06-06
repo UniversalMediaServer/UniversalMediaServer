@@ -6,6 +6,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.virtual.VirtualFolder;
@@ -125,12 +127,16 @@ public class MediaMonitor extends VirtualFolder {
 
 	private void dumpFile() throws IOException {
 		File f = monitorFile();
+        Date now = new Date();
 		try (FileWriter out = new FileWriter(f)) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("######\n");
 			sb.append("## NOTE!!!!!\n");
 			sb.append("## This file is auto generated\n");
 			sb.append("## Edit with EXTREME care\n");
+            sb.append("## Generated: ");
+            sb.append(now.toString());
+            sb.append("\n");
 			for (String str : oldEntries) {
 				sb.append("entry=");
 				sb.append(str);
