@@ -978,11 +978,10 @@ public class RootFolder extends DLNAResource {
 
 		// resume file mgmt
 		if (configuration.isResumeEnabled()) {
-			final File[] files = ResumeObj.resumeFiles();
-			if (files.length > 0) {
 				res.addChild(new VirtualFolder(Messages.getString("PMS.135"), null) {
 					@Override
 					public void discoverChildren() {
+                        final File[] files = ResumeObj.resumeFiles();
 						addChild(new VirtualVideoAction(Messages.getString("PMS.136"), true) {
 							@Override
 							public boolean enable() {
@@ -1007,7 +1006,6 @@ public class RootFolder extends DLNAResource {
 						}
 					}
 				});
-			}
 		}
 
 		addChild(res);
