@@ -195,8 +195,10 @@ public class RecentlyPlayed extends VirtualFolder {
 						res.setMasterParent(lpp);
 						if (resData != null) {
 							ResumeObj r = new ResumeObj(new File(resData));
-							r.read();
-							res.setResume(r);
+                            if (!r.isDone()) {
+							    r.read();
+							    res.setResume(r);
+                            }
 						}
 						if (subData != null) {
 							DLNAMediaSubtitle s = res.getMediaSubtitle();
