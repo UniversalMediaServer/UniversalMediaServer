@@ -2,8 +2,11 @@ package net.pms.util;
 
 import java.io.*;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.PrettyNameConfig;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.formats.v2.SubtitleType;
@@ -16,6 +19,7 @@ import org.slf4j.LoggerFactory;
 public class FileUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileUtil.class);
 	private static Map<File, File[]> cache;
+	private static List<PrettyNameConfig> prettyCfg;
 
 	public static File isFileExists(String f, String ext) {
 		return isFileExists(new File(f), ext);
@@ -40,8 +44,36 @@ public class FileUtil {
 
 		return f.substring(0, point);
 	}
-
+	
 	public static String getFileNameWithRewriting(String f) {
+		PmsConfiguration cfg = PMS.getConfiguration();
+		if (prettyCfg == null) {
+			prettyCfg = PrettyNameConfig.parse(cfg.getPrettyCfgFile());
+		}
+		if (prettyCfg == null) {
+			// still null, give up
+			return getFileNameWithRewriting_i(f);
+		}
+		
+		if (cfg.getPretty("builtin")) {
+			f = getFileNameWithRewriting_i(f);
+		}
+		
+		for (PrettyNameConfig p : prettyCfg) {
+			if (p.isBad()) {
+				continue;
+			}
+			if (cfg.getPretty(p.getConf())) {
+				f = f.replaceAll(p.getExpr(), p.getRepl());
+				if (p.stop()) {
+					break;
+				}
+			}
+		}
+		return f;
+	}
+
+	public static String getFileNameWithRewriting_i(String f) {
 		String formattedName;
 		int point = f.lastIndexOf(".");
 

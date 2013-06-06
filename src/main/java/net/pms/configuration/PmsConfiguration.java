@@ -3097,4 +3097,20 @@ public class PmsConfiguration {
 	public boolean hideSubInfo() {
 		return getBoolean(KEY_HIDE_SUBS_INFO, false);
 	}
+	
+	private final static String KEY_PRETTY_CFG = "pretty_cfg";
+	private final static String KEY_PRETTY_PRE = "pretty_";
+	
+	public String getPrettyCfgFile() {
+		return getString(KEY_PRETTY_CFG, null);
+	}
+	
+	public boolean getPretty(String key) {
+		if (StringUtils.isEmpty(key)) {
+			// no key = always true
+			return true;
+		}
+		return getBoolean(KEY_PRETTY_PRE + key, false);
+		
+	}
 }
