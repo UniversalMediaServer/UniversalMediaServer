@@ -10,7 +10,7 @@ should work on most Unix distributions)
 1) Install the dependencies (this only needs to be done once):
 
     sudo apt-get install mediainfo openjdk-7-jre
-    # you can also optionally install VLC: sudo apt-get install vlc
+    # you can also optionally install dcraw and VLC: sudo apt-get install dcraw vlc
 
 2) Download the tarball e.g.:
 

@@ -30,6 +30,7 @@ import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
+import net.pms.util.PlayerUtil;
 
 public class MPlayerWebVideoDump extends MPlayerAudio {
 	public MPlayerWebVideoDump(PmsConfiguration configuration) {
@@ -98,7 +99,7 @@ public class MPlayerWebVideoDump extends MPlayerAudio {
 
 	@Override
 	public String name() {
-		return "MPlayer Video Dump";
+		return "MPlayer Web Video";
 	}
 
 	@Override
@@ -116,20 +117,6 @@ public class MPlayerWebVideoDump extends MPlayerAudio {
 	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		if (resource == null || resource.getFormat().getType() != Format.VIDEO) {
-			return false;
-		}
-
-		Format format = resource.getFormat();
-
-		if (format != null) {
-			Format.Identifier id = format.getIdentifier();
-
-			if (id.equals(Format.Identifier.WEB)) {
-				return true;
-			}
-		}
-
-		return false;
+		return PlayerUtil.isWebVideo(resource);
 	}
 }
