@@ -3097,4 +3097,10 @@ public class PmsConfiguration {
 	public boolean hideSubInfo() {
 		return getBoolean(KEY_HIDE_SUBS_INFO, false);
 	}
+
+    private static final String  KEY_EXT_WEB_HTTPS = "ext_https";
+
+    public boolean getExtHttps() {
+        return getBoolean(KEY_EXT_WEB_HTTPS, false);
+    }
 }

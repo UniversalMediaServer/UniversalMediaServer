@@ -95,6 +95,17 @@ public class RootFolder extends DLNAResource {
 			return;
 		}
 
+        addChild(new VirtualFolder("Upload Folder", null) {
+            public void discoverChildren() {
+                if (PMS.get().uploadFolder() == null) {
+                    return;
+                }
+                for (DLNAResource r : PMS.get().uploadFolder()) {
+                    addChild(r);
+                }
+            }
+        });
+
 		if (configuration.getFolderLimit()) {
 			lim = new FolderLimit();
 			addChild(lim);

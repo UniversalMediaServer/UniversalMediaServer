@@ -32,8 +32,10 @@ import net.pms.configuration.Build;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaDatabase;
+import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibrary;
+import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
 import net.pms.external.ExternalFactory;
@@ -47,6 +49,7 @@ import net.pms.logging.LoggingConfigFileLoader;
 import net.pms.network.HTTPServer;
 import net.pms.network.ProxyServer;
 import net.pms.network.UPNPHelper;
+import net.pms.network.UploadServer;
 import net.pms.newgui.DbgPacker;
 import net.pms.newgui.LooksFrame;
 import net.pms.newgui.ProfileChooser;
@@ -590,7 +593,6 @@ public class PMS {
 		System.setErr(new PrintStream(new SystemErrWrapper(), true));
 
 		server = new HTTPServer(configuration.getServerPort());
-
 		/*
 		 * XXX: keep this here (i.e. after registerExtensions and before registerPlayers) so that plugins
 		 * can register custom players correctly (e.g. in the GUI) and/or add/replace custom formats
@@ -634,8 +636,10 @@ public class PMS {
 			LOGGER.info("FATAL ERROR: Unable to bind on port: " + configuration.getServerPort() + ", because: " + b.getMessage());
 			LOGGER.info("Maybe another process is running or the hostname is wrong.");
 		}
+        userver = new UploadServer();
 
-		new Thread("Connection Checker") {
+
+        new Thread("Connection Checker") {
 			@Override
 			public void run() {
 				try {
@@ -1366,4 +1370,32 @@ public class PMS {
 	public static String getHelpPage() {
 		return helpPage;
 	}
+
+    private ArrayList<DLNAResource> ufolder;
+    private VirtualFolder dummyUfolder;
+    private UploadServer userver;
+
+    public void upload(DLNAResource r, boolean tmp) {
+        if (ufolder == null) {
+            ufolder = new ArrayList<DLNAResource>();
+            dummyUfolder = new VirtualFolder("",null);
+            dummyUfolder.setBaseId("0$000");
+        }
+        if (tmp) {
+            r.setFakeParentId("0$000");
+            dummyUfolder.addChild(r);
+        }
+        else {
+            ufolder.add(r);
+        }
+
+    }
+
+    public ArrayList<DLNAResource> uploadFolder() {
+        return ufolder;
+    }
+
+    public DLNAResource dummyUFolder() {
+       return dummyUfolder;
+    }
 }
