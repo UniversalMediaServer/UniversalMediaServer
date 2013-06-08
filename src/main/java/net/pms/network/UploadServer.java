@@ -57,6 +57,7 @@ public class UploadServer implements HttpHandler {
             // Add context handlers
            // addCtx("/file", new UploadFile(this));
             addCtx("/url", new UploadFile(this));
+            addCtx("/file", new UploadFile(this));
             addCtx("/", this);
             //addCtx("/jwplayer", new RemoteFileHandler());
             server.setExecutor(null);

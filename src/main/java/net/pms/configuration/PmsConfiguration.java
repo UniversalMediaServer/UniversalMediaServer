@@ -3103,4 +3103,12 @@ public class PmsConfiguration {
     public boolean getExtHttps() {
         return getBoolean(KEY_EXT_WEB_HTTPS, false);
     }
+
+    private static final String  KEY_UPLOAD_PATH = "upload_path";
+
+    public String getUploadFile(String file) {
+        String s = getString(KEY_UPLOAD_PATH, getDataFile("upload"));
+        new File(s).mkdirs();
+        return s + File.separator + file;
+    }
 }

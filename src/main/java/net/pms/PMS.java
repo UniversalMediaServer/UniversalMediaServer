@@ -1371,27 +1371,27 @@ public class PMS {
 		return helpPage;
 	}
 
-    private ArrayList<DLNAResource> ufolder;
+    private VirtualFolder ufolder;
     private VirtualFolder dummyUfolder;
     private UploadServer userver;
 
     public void upload(DLNAResource r, boolean tmp) {
         if (ufolder == null) {
-            ufolder = new ArrayList<DLNAResource>();
+            ufolder = new VirtualFolder("Upload Folder", null);
+            ufolder.setBaseId("0$000");
             dummyUfolder = new VirtualFolder("",null);
             dummyUfolder.setBaseId("0$000");
         }
         if (tmp) {
-            r.setFakeParentId("0$000");
             dummyUfolder.addChild(r);
         }
         else {
-            ufolder.add(r);
+            ufolder.addChild(r);
         }
 
     }
 
-    public ArrayList<DLNAResource> uploadFolder() {
+    public VirtualFolder uploadFolder() {
         return ufolder;
     }
 
