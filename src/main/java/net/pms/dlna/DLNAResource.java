@@ -746,15 +746,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		ArrayList<DLNAResource> resources = new ArrayList<>();
         // hack
         if (objectId.startsWith("0$000")) {
-            if (PMS.get().dummyUFolder() != null) {
-                for (DLNAResource r : PMS.get().dummyUFolder().getChildren())  {
-                    if (r.getResourceId().equals(objectId)) {
-                        ArrayList<DLNAResource> res = new ArrayList<DLNAResource>();
-                        res.add(r);
-                        return res;
-                    }
-                }
-            }
             if (PMS.get().uploadFolder() != null) {
                 for (DLNAResource r : PMS.get().uploadFolder().getChildren())  {
                     if (r.getResourceId().equals(objectId)) {

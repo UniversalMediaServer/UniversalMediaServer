@@ -3107,7 +3107,13 @@ public class PmsConfiguration {
     private static final String  KEY_UPLOAD_PATH = "upload_path";
 
     public String getUploadFile(String file) {
-        String s = getString(KEY_UPLOAD_PATH, getDataFile("upload"));
+        int pos = file.lastIndexOf("/");
+        String key = KEY_UPLOAD_PATH;
+        if (pos != -1) {
+            key = key + "." + file.substring(0, pos);
+            file = file.substring(pos + 1);
+        }
+        String s = getString(key, getDataFile("upload"));
         new File(s).mkdirs();
         return s + File.separator + file;
     }

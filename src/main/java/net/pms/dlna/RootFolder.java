@@ -95,7 +95,7 @@ public class RootFolder extends DLNAResource {
 			return;
 		}
 
-        addChild(PMS.get().uploadFolder());
+        //addChild(PMS.get().uploadFolder());
 
 		if (configuration.getFolderLimit()) {
 			lim = new FolderLimit();
@@ -115,9 +115,13 @@ public class RootFolder extends DLNAResource {
 			addChild(sf);
 		}
 
-		File webConf = new File(configuration.getProfileDirectory(), "WEB.conf");
+		final File webConf = new File(configuration.getProfileDirectory(), "WEB.conf");
 		if (webConf.exists() && configuration.getExternalNetwork()) {
-			addWebFolder(webConf);
+			addChild(new VirtualFolder("WEB", null) {
+               public void discoverChildren() {
+                   addWebFolder(webConf, this);
+               }
+            });
 		}
 
 		if (Platform.isMac() && configuration.getIphotoEnabled()) {
@@ -260,7 +264,7 @@ public class RootFolder extends DLNAResource {
 		return res;
 	}
 
-	private void addWebFolder(File webConf) {
+	private void addWebFolder(File webConf, DLNAResource top) {
 		if (webConf.exists()) {
 			try {
 				try (LineNumberReader br = new LineNumberReader(new InputStreamReader(new FileInputStream(webConf), "UTF-8"))) {
@@ -286,7 +290,7 @@ public class RootFolder extends DLNAResource {
 
 									if (keys[1] != null) {
 										StringTokenizer st = new StringTokenizer(keys[1], ",");
-										DLNAResource currentRoot = this;
+										DLNAResource currentRoot = top;
 
 										while (st.hasMoreTokens()) {
 											String folder = st.nextToken();
@@ -302,7 +306,7 @@ public class RootFolder extends DLNAResource {
 									}
 
 									if (parent == null) {
-										parent = this;
+										parent = top;
 									}
 									switch (keys[0]) {
 										case "imagefeed":
@@ -329,6 +333,7 @@ public class RootFolder extends DLNAResource {
 							}
 						}
 					}
+                    br.close();
 				}
 			} catch (IOException e) {
 				LOGGER.info("Unexpected error in WEB.conf" + e.getMessage());

@@ -31,9 +31,7 @@ import javax.swing.*;
 import net.pms.configuration.Build;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.DLNAMediaDatabase;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.RootFolder;
+import net.pms.dlna.*;
 import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.encoders.Player;
@@ -66,6 +64,7 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1372,22 +1371,14 @@ public class PMS {
 	}
 
     private VirtualFolder ufolder;
-    private VirtualFolder dummyUfolder;
     private UploadServer userver;
 
-    public void upload(DLNAResource r, boolean tmp) {
+    public void upload(DLNAResource r) {
         if (ufolder == null) {
             ufolder = new VirtualFolder("Upload Folder", null);
             ufolder.setBaseId("0$000");
-            dummyUfolder = new VirtualFolder("",null);
-            dummyUfolder.setBaseId("0$000");
         }
-        if (tmp) {
-            dummyUfolder.addChild(r);
-        }
-        else {
-            ufolder.addChild(r);
-        }
+        ufolder.addChild(r);
 
     }
 
@@ -1395,7 +1386,28 @@ public class PMS {
         return ufolder;
     }
 
-    public DLNAResource dummyUFolder() {
-       return dummyUfolder;
+    public void addToWeb(WebStream obj, String thumb, int format) throws IOException {
+        File webConf = new File(configuration.getProfileDirectory(), "WEB.conf");
+        FileOutputStream out = new FileOutputStream(webConf, true);
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n"); // make sure we got a new line
+        if (format == Format.VIDEO) {
+            sb.append("video");
+        }
+        if (format == Format.AUDIO) {
+            sb.append("audio");
+        }
+        sb.append("stream.Upload=");
+        sb.append(obj.getName());
+        sb.append(",");
+        sb.append(obj.getSystemName());
+        if (StringUtils.isNotEmpty(thumb))  {
+            sb.append(",");
+            sb.append(thumb);
+        }
+        sb.append("\n");
+        out.write(sb.toString().getBytes());
+        out.flush();
+        out.close();
     }
 }

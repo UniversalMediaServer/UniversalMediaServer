@@ -2,16 +2,17 @@ package net.pms.network;
 
 import com.sun.net.httpserver.HttpServer;
 import net.pms.PMS;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.*;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.security.KeyStore;
+import java.util.HashMap;
+
 import com.sun.net.httpserver.BasicAuthenticator;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpContext;
@@ -33,6 +34,7 @@ public class UploadServer implements HttpHandler {
     private KeyManagerFactory kmf;
     private TrustManagerFactory tmf;
     private SSLContext sslContext;
+    private HashMap<String, String> users;
 
     public UploadServer() {
         this(DEFAULT_PORT);
@@ -43,6 +45,9 @@ public class UploadServer implements HttpHandler {
             port = DEFAULT_PORT;
         }
         try {
+
+            users = new HashMap<String, String>();
+            readCred();
 
             // Setup the socket address
             InetSocketAddress address = new InetSocketAddress(InetAddress.getByName("0.0.0.0"), port);
@@ -115,11 +120,43 @@ public class UploadServer implements HttpHandler {
         ctx.setAuthenticator(new BasicAuthenticator("") {
             @Override
             public boolean checkCredentials(String user, String pwd) {
-                LOGGER.debug("authenticate " + user + " pwd " + pwd);
-                //return pwd.equals(users.get(user));
-                return true;
+                //LOGGER.debug("authenticate " + user + " pwd " + pwd);
+                return pwd.equals(users.get(user));
             }
         });
+    }
+
+    private void readCred() throws IOException {
+        String cPath = (String) PMS.getConfiguration().getCustomProperty("cred.path");
+        if (StringUtils.isEmpty(cPath)) {
+            return;
+        }
+        File f = new File(cPath);
+        if (!f.exists()) {
+            return;
+        }
+        BufferedReader in;
+        in = new BufferedReader(new FileReader(f));
+        String str;
+        while ((str = in.readLine()) != null) {
+            str = str.trim();
+            if (StringUtils.isEmpty(str) || str.startsWith("#")) {
+                continue;
+            }
+            String[] s = str.split("\\s*=\\s*", 2);
+            if (s.length < 2) {
+                continue;
+            }
+            if (!s[0].startsWith("upload")) {
+                continue;
+            }
+            String[] s2 = s[1].split(",", 2);
+            if (s2.length < 2) {
+                continue;
+            }
+            // s2[0] == usr s2[1] == pwd
+            users.put(s2[0], s2[1]);
+        }
     }
 
     @Override
