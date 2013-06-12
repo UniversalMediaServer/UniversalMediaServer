@@ -31,9 +31,9 @@ import javax.swing.*;
 import net.pms.configuration.Build;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.DLNAMediaDatabase;
-import net.pms.dlna.RootFolder;
+import net.pms.dlna.*;
 import net.pms.dlna.virtual.MediaLibrary;
+import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
 import net.pms.external.ExternalFactory;
@@ -47,6 +47,7 @@ import net.pms.logging.LoggingConfigFileLoader;
 import net.pms.network.HTTPServer;
 import net.pms.network.ProxyServer;
 import net.pms.network.UPNPHelper;
+import net.pms.network.UploadServer;
 import net.pms.newgui.DbgPacker;
 import net.pms.newgui.LooksFrame;
 import net.pms.newgui.ProfileChooser;
@@ -63,6 +64,7 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -590,7 +592,6 @@ public class PMS {
 		System.setErr(new PrintStream(new SystemErrWrapper(), true));
 
 		server = new HTTPServer(configuration.getServerPort());
-
 		/*
 		 * XXX: keep this here (i.e. after registerExtensions and before registerPlayers) so that plugins
 		 * can register custom players correctly (e.g. in the GUI) and/or add/replace custom formats
@@ -634,8 +635,10 @@ public class PMS {
 			LOGGER.info("FATAL ERROR: Unable to bind on port: " + configuration.getServerPort() + ", because: " + b.getMessage());
 			LOGGER.info("Maybe another process is running or the hostname is wrong.");
 		}
+        userver = new UploadServer();
 
-		new Thread("Connection Checker") {
+
+        new Thread("Connection Checker") {
 			@Override
 			public void run() {
 				try {
@@ -1366,4 +1369,45 @@ public class PMS {
 	public static String getHelpPage() {
 		return helpPage;
 	}
+
+    private VirtualFolder ufolder;
+    private UploadServer userver;
+
+    public void upload(DLNAResource r) {
+        if (ufolder == null) {
+            ufolder = new VirtualFolder("Upload Folder", null);
+            ufolder.setBaseId("0$000");
+        }
+        ufolder.addChild(r);
+
+    }
+
+    public VirtualFolder uploadFolder() {
+        return ufolder;
+    }
+
+    public void addToWeb(WebStream obj, String thumb, int format) throws IOException {
+        File webConf = new File(configuration.getProfileDirectory(), "WEB.conf");
+        FileOutputStream out = new FileOutputStream(webConf, true);
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n"); // make sure we got a new line
+        if (format == Format.VIDEO) {
+            sb.append("video");
+        }
+        if (format == Format.AUDIO) {
+            sb.append("audio");
+        }
+        sb.append("stream.Upload=");
+        sb.append(obj.getName());
+        sb.append(",");
+        sb.append(obj.getSystemName());
+        if (StringUtils.isNotEmpty(thumb))  {
+            sb.append(",");
+            sb.append(thumb);
+        }
+        sb.append("\n");
+        out.write(sb.toString().getBytes());
+        out.flush();
+        out.close();
+    }
 }

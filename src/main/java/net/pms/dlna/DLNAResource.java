@@ -744,6 +744,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	public synchronized List<DLNAResource> getDLNAResources(String objectId, boolean returnChildren, int start, int count, RendererConfiguration renderer, String searchStr) throws IOException {
 		ArrayList<DLNAResource> resources = new ArrayList<>();
+        // hack
+        if (objectId.startsWith("0$000")) {
+            if (PMS.get().uploadFolder() != null) {
+                for (DLNAResource r : PMS.get().uploadFolder().getChildren())  {
+                    if (r.getResourceId().equals(objectId)) {
+                        ArrayList<DLNAResource> res = new ArrayList<DLNAResource>();
+                        res.add(r);
+                        return res;
+                    }
+                }
+            }
+        }
+
 		DLNAResource resource = search(objectId, count, renderer, searchStr);
 
 		if (resource != null) {
@@ -2910,4 +2923,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return s;
 		}
 	}
+
+    public void setBaseId(String i) {
+        id = i;
+    }
 }

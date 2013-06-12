@@ -3097,4 +3097,24 @@ public class PmsConfiguration {
 	public boolean hideSubInfo() {
 		return getBoolean(KEY_HIDE_SUBS_INFO, false);
 	}
+
+    private static final String  KEY_EXT_WEB_HTTPS = "ext_https";
+
+    public boolean getExtHttps() {
+        return getBoolean(KEY_EXT_WEB_HTTPS, false);
+    }
+
+    private static final String  KEY_UPLOAD_PATH = "upload_path";
+
+    public String getUploadFile(String file) {
+        int pos = file.lastIndexOf("/");
+        String key = KEY_UPLOAD_PATH;
+        if (pos != -1) {
+            key = key + "." + file.substring(0, pos);
+            file = file.substring(pos + 1);
+        }
+        String s = getString(key, getDataFile("upload"));
+        new File(s).mkdirs();
+        return s + File.separator + file;
+    }
 }
