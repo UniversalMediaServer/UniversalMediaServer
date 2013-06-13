@@ -11,6 +11,18 @@
 	Languages:
 		Updated Dutch translation (thanks, Leroy!)
 	External Components:
+		Updated FFmpeg to, which:
+			Improves ASS/SSA subtitle support
+			Improves handling of aspect ratios, even when muxing
+			Fixes multithreaded MPEG-4 decoding
+			Added multithreading to ALAC decoding
+			Speeds up JPEG decoding
+			Fixes and improves MP3, AAC and DTS decoding stability
+			Fixes memory leaks
+			Fixes channel mapping with surround AAC audio
+			Improves H.264 and VC-1 support
+			Improves Vorbis support
+			Improves Matroska support
 		Updated MediaInfo for Windows to 0.7.63, which:
 			Adds H.265 (HEVC) support
 			Fixed some crashes with .mov files
