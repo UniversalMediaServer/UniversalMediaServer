@@ -1274,46 +1274,62 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				 * DLNA.ORG_OP flags
 				 *
 				 * Two booleans (binary digits) which determine what transport operations the renderer is allowed to
-				 * perform (in the form of HTTP headers): the first digit allows the renderer to send
-				 * TimeSeekRange.DLNA.ORG (seek-by-time) headers; the second allows it to send RANGE (seek-by-byte)
+				 * perform (in the form of HTTP request headers): the first digit allows the renderer to send
+				 * TimeSeekRange.DLNA.ORG (seek by time) headers; the second allows it to send RANGE (seek by byte)
 				 * headers.
 				 *
-				 * 00 - no seeking (or even pausing) allowed
-				 * 01 - seek by byte
-				 * 10 - seek by time
-				 * 11 - seek by both
+				 *    00 - no seeking (or even pausing) allowed
+				 *    01 - seek by byte
+				 *    10 - seek by time
+				 *    11 - seek by both
 				 *
 				 * See here for an example of how these options can be mapped to keys on the renderer's controller:
 				 * http://www.ps3mediaserver.org/forum/viewtopic.php?f=2&t=2908&p=12550#p12550
 				 *
-				 * Note that seek-by-time is the preferred option (seek-by-byte is a fallback) but it requires a) support
-				 * by the renderer (via the SeekByTime renderer conf option) and either a) a file that's not being transcoded
-				 * or if it is, b) support by its transcode engine for seek-by-time.
+				 * Note that seek-by-byte is the preferred option for streamed files [1] and seek-by-time is the
+				 * preferred option for transcoded files.
+				 *
+				 * [1] see http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=15841&p=76201#p76201
+				 *
+				 * seek-by-time requires a) support by the renderer (via the SeekByTime renderer conf option)
+				 * and b) support by the transcode engine.
+				 *
+				 * The seek-by-byte fallback doesn't work well with transcoded files [2], but it's better than
+				 * disabling seeking (and pausing) altogether.
+				 *
+				 * [2] http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=16567#p16567 (bottom post)
 				 */
-				dlnaOrgOpFlags = "01";
+				dlnaOrgOpFlags = "01"; // seek by byte (exclusive)
 
-				if (mediaRenderer.isSeekByTime()) {
-					if (getPlayer() != null) { // transcoded
-						if (getPlayer().isTimeSeekable()) {
-							/**
-							 * Some renderers - e.g. the PS3 and Panasonic TVs - behave erratically when
-							 * transcoding if we keep the default seek-by-byte permission on when permitting
-							 * seek-by-time: http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=15841
-							 *
-							 * It's not clear if this is a bug in the DLNA libraries of these renderers or a bug
-							 * in UMS, but setting an option in the renderer conf that disables seek-by-byte when
-							 * we permit seek-by-time - e.g.:
-							 *
-							 * SeekByTime = exclusive
-							 *
-							 * works around it.
-							 */
-							if (mediaRenderer.isSeekByTimeExclusive()) {
-								dlnaOrgOpFlags = "10";
-							} else {
-								dlnaOrgOpFlags = "11";
-							}
-						}
+				if (mediaRenderer.isSeekByTime() && getPlayer() != null && getPlayer().isTimeSeekable()) {
+					/**
+					 * Some renderers - e.g. the PS3 and Panasonic TVs - behave erratically when
+					 * transcoding if we keep the default seek-by-byte permission on when permitting
+					 * seek-by-time: http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=15841
+					 *
+					 * It's not clear if this is a bug in the DLNA libraries of these renderers or a bug
+					 * in UMS, but setting an option in the renderer conf that disables seek-by-byte when
+					 * we permit seek-by-time - e.g.:
+					 *
+					 *    SeekByTime = exclusive
+					 *
+					 * works around it.
+					 */
+
+					/**
+					 * TODO (e.g. in a beta release): set seek-by-time (exclusive) here for *all* renderers:
+					 * seek-by-byte isn't needed here (both the renderer and the engine support seek-by-time)
+					 * and may be buggy on other renderers than the ones we currently handle.
+					 *
+					 * In the unlikely event that a renderer *requires* seek-by-both here, it can
+					 * opt in with (e.g.):
+					 *
+					 *    SeekByTime = both
+					 */
+					if (mediaRenderer.isSeekByTimeExclusive()) {
+						dlnaOrgOpFlags = "10"; // seek by time (exclusive)
+					} else {
+						dlnaOrgOpFlags = "11"; // seek by both
 					}
 				}
 
