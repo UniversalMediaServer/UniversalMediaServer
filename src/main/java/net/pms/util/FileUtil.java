@@ -253,6 +253,7 @@ public class FileUtil {
 	/**
 	 * @deprecated Use {@link #isSubtitlesExists(File file, DLNAMediaInfo media)} instead.
 	 */
+	@Deprecated
 	public static boolean doesSubtitlesExists(File file, DLNAMediaInfo media) {
 		return isSubtitlesExists(file, media);
 	}
@@ -264,6 +265,7 @@ public class FileUtil {
 	/**
 	 * @deprecated Use {@link #isSubtitlesExists(File file, DLNAMediaInfo media, boolean usecache)} instead.
 	 */
+	@Deprecated
 	public static boolean doesSubtitlesExists(File file, DLNAMediaInfo media, boolean usecache) {
 		return isSubtitlesExists(file, media, usecache);
 	}
