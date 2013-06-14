@@ -72,7 +72,7 @@ public class RealFile extends MapFile {
 				if (getMedia().isEncrypted()) {
 					LOGGER.info("The file {} is encrypted. It will be hidden", file.getAbsolutePath());
 				} else {
-					LOGGER.info("The file {} was badly parsed. It will be hidden", file.getAbsolutePath());
+					LOGGER.info("The file {} could not be parsed. It will be hidden", file.getAbsolutePath());
 				}
 			}
 

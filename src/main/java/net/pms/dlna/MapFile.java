@@ -430,15 +430,15 @@ public class MapFile extends DLNAResource {
 		}
 
 		// false: don't create the folder if it doesn't exist i.e. find the folder
-		TranscodeVirtualFolder vf = getTranscodeFolder(false);
+		TranscodeVirtualFolder transcodeFolder = getTranscodeFolder(false);
 
 		for (DLNAResource f : removedFiles) {
 			getChildren().remove(f);
 
-			if (vf != null) {
-				for (int j = vf.getChildren().size() - 1; j >= 0; j--) {
-					if (vf.getChildren().get(j).getName().equals(f.getName())) {
-						vf.getChildren().remove(j);
+			if (transcodeFolder != null) {
+				for (int j = transcodeFolder.getChildren().size() - 1; j >= 0; j--) {
+					if (transcodeFolder.getChildren().get(j).getName().equals(f.getName())) {
+						transcodeFolder.getChildren().remove(j);
 					}
 				}
 			}

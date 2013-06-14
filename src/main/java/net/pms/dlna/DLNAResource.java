@@ -585,9 +585,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							LOGGER.trace("Switching " + child.getName() + " to player " + player.toString() + " for transcoding");
 						}
 
-						// Should the child be added to the transcode folder?
-						if (child.getFormat().isVideo() && child.isTranscodeFolderAvailable()) {
-							// true: create (and append) the #--TRANSCODE--# folder to this folder if it doesn't already exist
+						// Should the child be added to the #--TRANSCODE--# folder?
+						if ((child.getFormat().isVideo() || child.getFormat().isAudio()) && child.isTranscodeFolderAvailable()) {
+							// true: create (and append) the #--TRANSCODE--# folder to this
+							// folder if supported/enabled and if it doesn't already exist
 							VirtualFolder transcodeFolder = getTranscodeFolder(true);
 
 							if (transcodeFolder != null) {
