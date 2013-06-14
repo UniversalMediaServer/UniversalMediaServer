@@ -215,7 +215,7 @@ public class FFmpegDVRMSRemux extends Player {
 	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		if (PlayerUtil.isType(resource, Format.VIDEO, Format.Identifier.DVRMS)) {
+		if (PlayerUtil.isVideo(resource, Format.Identifier.DVRMS)) {
 			return true;
 		}
 

@@ -371,8 +371,8 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 		}
 
 		if (
-			PlayerUtil.isType(resource, Format.VIDEO, Format.Identifier.MKV) ||
-			PlayerUtil.isType(resource, Format.VIDEO, Format.Identifier.MPG)
+			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
+			PlayerUtil.isVideo(resource, Format.Identifier.MPG)
 		) {
 			return true;
 		}

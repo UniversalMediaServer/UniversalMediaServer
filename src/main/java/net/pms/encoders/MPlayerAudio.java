@@ -218,10 +218,10 @@ public class MPlayerAudio extends Player {
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		if (
-			PlayerUtil.isType(resource, Format.AUDIO, Format.Identifier.FLAC) ||
-			PlayerUtil.isType(resource, Format.AUDIO, Format.Identifier.M4A) ||
-			PlayerUtil.isType(resource, Format.AUDIO, Format.Identifier.OGG) ||
-			PlayerUtil.isType(resource, Format.AUDIO, Format.Identifier.WAV)
+			PlayerUtil.isAudio(resource, Format.Identifier.FLAC) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.M4A) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.OGG) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.WAV)
 		) {
 			return true;
 		}

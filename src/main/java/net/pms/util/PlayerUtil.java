@@ -4,28 +4,8 @@ import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 
 public class PlayerUtil {
-	/**
-	 * Returns whether or not the supplied DLNA resource matches the supplied format and format identifier.
-	 *
-	 * @param resource the DLNA resource
-	 * @param matchType the {@link Format} type to match against
-	 * @param matchIdentifier the {@link Format.Identifier} to match against
-	 * @return true if the format and identifier match, false otherwise
-	 */
-	public static boolean isType(DLNAResource resource, int matchType, Format.Identifier matchIdentifier) {
-		return isType(resource, matchType, matchIdentifier, true);
-	}
-
-	/**
-	 * Returns a specified value if the supplied DLNA resource matches the supplied format and format identifier.
-	 *
-	 * @param resource the DLNA resource
-	 * @param matchType the {@link Format} type to match against
-	 * @param matchIdentifier the {@link Format.Identifier} to match against
-	 * @param ifMatch the value to return
-	 * @return ifMatch if the format and identifier match, !ifMatch otherwise
-	 */
-	public static boolean isType(DLNAResource resource, int matchType, Format.Identifier matchIdentifier, boolean ifMatch) {
+	// Returns whether or not the supplied DLNA resource matches the supplied format and format identifier
+	private static boolean isType(DLNAResource resource, int matchType, Format.Identifier matchIdentifier) {
 		boolean match = false;
 
 		if (resource != null) {
@@ -35,8 +15,12 @@ public class PlayerUtil {
 			// XXX the old isCompatible implementations (incorrectly) used to match
 			// with getType() == matchType
 			if ((format != null) && ((format.getType() & matchType) == matchType)) {
-				Format.Identifier identifier = format.getIdentifier();
-				match = identifier.equals(matchIdentifier) ? ifMatch : !ifMatch;
+				if (matchIdentifier == null) { // match any identifier
+					match = true;
+				} else { // match the specified format identifier
+					Format.Identifier identifier = format.getIdentifier();
+					match = identifier.equals(matchIdentifier);
+				}
 			}
 		}
 
@@ -44,13 +28,66 @@ public class PlayerUtil {
 	}
 
 	/**
-	 * Returns whether or not the supplied DLNA resource is a web video file.
+	 * Returns whether or not the supplied DLNA resource is an image file.
 	 *
 	 * @param resource the DLNA resource
-	 * @return true if the DLNA resource is a web video file, false otherwise.
+	 * @return true if the DLNA resource is an image file, false otherwise.
 	 */
-	public static boolean isWebVideo(DLNAResource resource) {
-		return isType(resource, Format.VIDEO, Format.Identifier.WEB);
+	public static boolean isImage(DLNAResource resource) {
+		return isType(resource, Format.IMAGE, null);
+	}
+
+	/**
+	 * Returns whether or not the supplied DLNA resource is an image file.
+	 *
+	 * @param resource the DLNA resource
+	 * @param identifier the format identifier to match against
+	 * @return true if the DLNA resource is an image file with the specified format identifier, false otherwise
+	 */
+	public static boolean isImage(DLNAResource resource, Format.Identifier identifier) {
+		return isType(resource, Format.IMAGE, identifier);
+	}
+
+	/**
+	 * Returns whether or not the supplied DLNA resource is an audio file.
+	 *
+	 * @param resource the DLNA resource
+	 * @return true if the DLNA resource is an audio file, false otherwise.
+	 */
+	public static boolean isAudio(DLNAResource resource) {
+		return isType(resource, Format.AUDIO, null);
+	}
+
+	/**
+	 * Returns whether or not the supplied DLNA resource is an audio file.
+	 *
+	 * @param resource the DLNA resource
+	 * @param identifier the format identifier to match against
+	 * @return true if the DLNA resource is an audio file with the specified format identifier, false otherwise
+	 */
+	public static boolean isAudio(DLNAResource resource, Format.Identifier identifier) {
+		return isType(resource, Format.AUDIO, identifier);
+	}
+
+	/**
+	 * Returns whether or not the supplied DLNA resource is a video file.
+	 *
+	 * @param resource the DLNA resource
+	 * @return true if the DLNA resource is a video file, false otherwise.
+	 */
+	public static boolean isVideo(DLNAResource resource) {
+		return isType(resource, Format.VIDEO, null);
+	}
+
+	/**
+	 * Returns whether or not the supplied DLNA resource is a video file.
+	 *
+	 * @param resource the DLNA resource
+	 * @param identifier the format identifier to match against
+	 * @return true if the DLNA resource is a video file with the specified format identifier, false otherwise.
+	 */
+	public static boolean isVideo(DLNAResource resource, Format.Identifier identifier) {
+		return isType(resource, Format.VIDEO, identifier);
 	}
 
 	/**
@@ -61,5 +98,15 @@ public class PlayerUtil {
 	 */
 	public static boolean isWebAudio(DLNAResource resource) {
 		return isType(resource, Format.AUDIO, Format.Identifier.WEB);
+	}
+
+	/**
+	 * Returns whether or not the supplied DLNA resource is a web video file.
+	 *
+	 * @param resource the DLNA resource
+	 * @return true if the DLNA resource is a web video file, false otherwise.
+	 */
+	public static boolean isWebVideo(DLNAResource resource) {
+		return isType(resource, Format.VIDEO, Format.Identifier.WEB);
 	}
 }

@@ -1,6 +1,6 @@
 /*
  * PS3 Media Server, for streaming media to your PS3.
- * Copyright (C) 2012 chocolateboy
+ * Copyright (C) 2008-2013 A. Brochard.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License

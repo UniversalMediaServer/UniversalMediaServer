@@ -981,21 +981,6 @@ public class FFMpegVideo extends Player {
 		return builder.getPanel();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public boolean isCompatible(DLNAResource resource) {
-		if (
-			PlayerUtil.isType(resource, Format.VIDEO, Format.Identifier.MKV) ||
-			PlayerUtil.isType(resource, Format.VIDEO, Format.Identifier.MPG)
-		) {
-			return true;
-		}
-
-		return false;
-	}
-
 	protected static List<String> parseOptions(String str) {
 		return str == null ? null : parseOptions(str, new ArrayList<String>());
 	}
@@ -1288,5 +1273,20 @@ public class FFMpegVideo extends Player {
 	 */
 	public boolean isDisableSubtitles(OutputParams params) {
 		return configuration.isDisableSubtitles() || (params.sid == null) || avisynth();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean isCompatible(DLNAResource resource) {
+		if (
+			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
+			PlayerUtil.isVideo(resource, Format.Identifier.MPG)
+		) {
+			return true;
+		}
+
+		return false;
 	}
 }

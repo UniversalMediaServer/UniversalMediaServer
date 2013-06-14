@@ -54,16 +54,16 @@ public abstract class Format implements Cloneable {
 		CUSTOM
 	}
 
+	public static final int AUDIO    =  1;
+	public static final int IMAGE    =  2;
+	public static final int VIDEO    =  4;
+	public static final int UNKNOWN  =  8;
+	public static final int PLAYLIST = 16;
+	public static final int ISO      = 32;
+
 	public int getType() {
 		return type;
 	}
-
-	public static final int ISO = 32;
-	public static final int PLAYLIST = 16;
-	public static final int UNKNOWN = 8;
-	public static final int VIDEO = 4;
-	public static final int AUDIO = 1;
-	public static final int IMAGE = 2;
 
 	/**
 	 * The identifier (filename extension or protocol) that was matched for a

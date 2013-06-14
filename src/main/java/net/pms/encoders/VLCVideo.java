@@ -125,28 +125,6 @@ public class VLCVideo extends Player {
 		return configuration.getVlcPath();
 	}
 
-	@Override
-	public boolean isCompatible(DLNAResource resource) {
-		// Our implementation of VLC does not support external subtitles yet
-		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
-		if (subtitle != null && subtitle.getExternalFile() != null) {
-			return false;
-		}
-
-		// VLC is unstable when transcoding from flac. It either crashes or sends video without audio. Confirmed with 2.0.6
-		DLNAMediaAudio audio = resource.getMediaAudio();
-		if (audio != null && audio.isFLAC() == true) {
-			return false;
-		}
-
-		// Only handle local video - web video is handled by VLCWebVideo
-		if (PlayerUtil.isType(resource, Format.VIDEO, Format.Identifier.WEB, false)) {
-			return true;
-		}
-
-		return false;
-	}
-
 	/**
 	 * Pick codecs for VLC based on formats the renderer supports;
 	 *
@@ -508,5 +486,27 @@ public class VLCVideo extends Player {
 		panel.applyComponentOrientation(orientation);
 
 		return panel;
+	}
+
+	@Override
+	public boolean isCompatible(DLNAResource resource) {
+		// Our implementation of VLC does not support external subtitles yet
+		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
+		if (subtitle != null && subtitle.getExternalFile() != null) {
+			return false;
+		}
+
+		// VLC is unstable when transcoding from flac. It either crashes or sends video without audio. Confirmed with 2.0.6
+		DLNAMediaAudio audio = resource.getMediaAudio();
+		if (audio != null && audio.isFLAC() == true) {
+			return false;
+		}
+
+		// Only handle local video - web video is handled by VLCWebVideo
+		if (!PlayerUtil.isVideo(resource, Format.Identifier.WEB)) {
+			return true;
+		}
+
+		return false;
 	}
 }

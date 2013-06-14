@@ -131,6 +131,6 @@ public class RAWThumbnailer extends Player {
 	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		return PlayerUtil.isType(resource, Format.IMAGE, Format.Identifier.RAW);
+		return PlayerUtil.isImage(resource, Format.Identifier.RAW);
 	}
 }
