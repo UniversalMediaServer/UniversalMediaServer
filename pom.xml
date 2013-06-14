@@ -77,7 +77,7 @@
 			This property should be removed when Windows can use the
 			same version.
 		-->
-		<jna-version>3.4.0</jna-version>
+		<default-jna-version>3.4.0</default-jna-version>
 
 		<cuelib-version>1.2.1-2008-06-13</cuelib-version>
 		<jgoodies-common-version>1.2.1</jgoodies-common-version>
@@ -181,6 +181,8 @@
 		</repository>
 	</repositories>
 	<dependencies>
+		<!-- XXX note: the JNA dependency is declared at the profile level -->
+
 		<!-- TODO this can be removed when MEncoder is removed -->
 		<dependency>
 			<groupId>org.beanshell</groupId>
@@ -321,11 +323,6 @@
 			<groupId>org</groupId>
 			<artifactId>jaudiotagger</artifactId>
 			<version>2.0.3</version>
-		</dependency>
-		<dependency>
-			<groupId>net.java.dev.jna</groupId>
-			<artifactId>jna</artifactId>
-			<version>${jna-version}</version>
 		</dependency>
 
 		<!-- XXX: not Mavenized: http://www.jgoodies.com/downloads/libraries.html -->
@@ -921,7 +918,7 @@
 									<locale>sl</locale>
 									<locale>sv</locale>
 									<locale>zhs</locale>
-									<locale>zht</locale>				
+									<locale>zht</locale>
 								</locales>
 							</configuration>
 						</plugin>
@@ -941,6 +938,37 @@
 		</plugins>
 	</build>
 	<profiles>
+		<!-- settings for Windows build environments -->
+		<profile>
+			<id>build-platform-windows</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+				<os>
+					<family>windows</family>
+				</os>
+			</activation>
+
+			<properties>
+				<!-- use the bundled makensis.exe on Windows -->
+				<makensis-bin>${project.external-resources}/third-party/nsis/makensis.exe</makensis-bin>
+			</properties>
+		</profile>
+
+		<!-- settings for POSIX build environments -->
+		<profile>
+			<id>build-platform-posix</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+				<os>
+					<family>!windows</family>
+				</os>
+			</activation>
+
+			<properties>
+				<!-- use the system makensis on Linux, Mac OS X &c. -->
+				<makensis-bin>makensis</makensis-bin>
+			</properties>
+		</profile>
 
 		<!--
 			Windows profile: takes care of building the final package for Microsoft Windows
@@ -974,10 +1002,17 @@
 					</releases>
 				</pluginRepository>
 			</pluginRepositories>
-			
+
+			<dependencies>
+				<dependency>
+					<groupId>net.java.dev.jna</groupId>
+					<artifactId>jna</artifactId>
+					<version>${jna-version}</version>
+				</dependency>
+			</dependencies>
+
 			<build>
 				<plugins>
-
 					<!-- Plugin to assemble a jar with dependencies -->
 					<plugin>
 						<artifactId>maven-assembly-plugin</artifactId>
@@ -1140,7 +1175,7 @@
 							<execution>
 								<id>build-pms-windows</id>
 								<configuration>
-									<makensisBin>${project.external-resources}/third-party/nsis/makensis.exe</makensisBin>
+									<makensisBin>${makensis-bin}</makensisBin>
 									<outputFile>${project.build.directory}/UMS.exe</outputFile>
 									<setupScript>${project.external-resources}/nsis/pms.nsi</setupScript>
 								</configuration>
@@ -1154,7 +1189,7 @@
 							<execution>
 								<id>build-setup-windows</id>
 								<configuration>
-									<makensisBin>${project.external-resources}/third-party/nsis/makensis.exe</makensisBin>
+									<makensisBin>${makensis-bin}</makensisBin>
 									<outputFile>${project.build.directory}/UMS-setup.exe</outputFile>
 									<setupScript>${project.external-resources}/nsis/setup.nsi</setupScript>
 								</configuration>
@@ -1181,6 +1216,14 @@
 					<family>unix</family>
 				</os>
 			</activation>
+
+			<dependencies>
+				<dependency>
+					<groupId>net.java.dev.jna</groupId>
+					<artifactId>jna</artifactId>
+					<version>${default-jna-version}</version>
+				</dependency>
+			</dependencies>
 
 			<build>
 				<plugins>
@@ -1290,6 +1333,15 @@
 					<family>mac</family>
 				</os>
 			</activation>
+
+			<dependencies>
+				<dependency>
+					<groupId>net.java.dev.jna</groupId>
+					<artifactId>jna</artifactId>
+					<version>${default-jna-version}</version>
+				</dependency>
+			</dependencies>
+
 			<build>
 				<plugins>
 
