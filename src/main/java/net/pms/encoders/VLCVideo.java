@@ -51,6 +51,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+// FIXME (breaking change): VLCWebVideo doesn't customize any of this, so everything should be *private*
+// TODO (when transcoding to MPEG-2): handle non-MPEG-2 compatible input framerates
+
 /**
  * Use VLC as a backend transcoder. Note that 0.x and 1.x versions are
  * unsupported (and probably will crash). Only the latest version will be
@@ -132,47 +135,56 @@ public class VLCVideo extends Player {
 	 * @return The codec configuration
 	 */
 	protected CodecConfig genConfig(RendererConfiguration renderer) {
-		CodecConfig config = new CodecConfig();
+		CodecConfig codecConfig = new CodecConfig();
+
+		/**
+		 * XXX a52 (AC-3) causes the audio to cut out after
+		 * a while (5, 10, and 45 minutes have been spotted)
+		 * with versions as recent as 2.0.5. MP2 works without
+		 * issue, so we use that as a workaround for now.
+		 * codecConfig.audioCodec = "a52";
+		 */
+
 		if (renderer.isTranscodeToWMV()) {
 			// Assume WMV = XBox = all media renderers with this flag
 			LOGGER.debug("Using XBox WMV codecs");
-			config.videoCodec = "wmv2";
-			config.audioCodec = "wma";
-			config.container = "asf";
-		} else if (renderer.isTranscodeToMPEGTSAC3()) {
-			// Default codecs for DLNA standard
-			LOGGER.debug("Using DLNA standard codecs with ts container");
-			config.videoCodec = "mp2v";
-			config.audioCodec = "mp2a"; // NOTE: a52 sometimes causes audio to stop after ~5 mins
-			config.container = "ts";
+			codecConfig.videoCodec = "wmv2";
+			codecConfig.audioCodec = "wma";
+			codecConfig.container = "asf";
 		} else if (renderer.isTranscodeToH264TSAC3()) {
 			LOGGER.debug("Using H.264 and AC-3 with ts container");
-			config.videoCodec = "h264";
-			config.audioCodec = "mp2a"; // NOTE: a52 sometimes causes audio to stop after ~5 mins
-			config.container = "ts";
+			codecConfig.videoCodec = "h264";
+			codecConfig.audioCodec = "mp2a";
+			codecConfig.container = "ts";
 
 			videoRemux = true;
 		} else {
-			// Default codecs for DLNA standard
-			LOGGER.debug("Using DLNA standard codecs with ps (default) container");
-			config.videoCodec = "mp2v";
-			config.audioCodec = "mp2a"; // NOTE: a52 sometimes causes audio to stop after ~5 mins
-			config.container = "ps";
+			codecConfig.videoCodec = "mp2v";
+			codecConfig.audioCodec = "mp2a";
+
+			if (renderer.isTranscodeToMPEGTSAC3()) {
+				LOGGER.debug("Using standard DLNA codecs with an MPEG-TS container");
+				codecConfig.container = "ts";
+			} else {
+				LOGGER.debug("Using standard DLNA codecs with an MPEG-PS (default) container");
+				codecConfig.container = "ps";
+			}
 		}
-		LOGGER.trace("Using " + config.videoCodec + ", " + config.audioCodec + ", " + config.container);
+
+		LOGGER.trace("Using " + codecConfig.videoCodec + ", " + codecConfig.audioCodec + ", " + codecConfig.container);
 
 		/**
 		// Audio sample rate handling
 		if (sampleRateOverride.isSelected()) {
-			config.sampleRate = Integer.valueOf(sampleRate.getText());
+			codecConfig.sampleRate = Integer.valueOf(sampleRate.getText());
 		}
 		*/
 
 		// This has caused garbled audio, so only enable when told to
 		if (audioSyncEnabled.isSelected()) {
-			config.extraTrans.put("audio-sync", "");
+			codecConfig.extraTrans.put("audio-sync", "");
 		}
-		return config;
+		return codecConfig;
 	}
 
 	protected static class CodecConfig {
@@ -184,14 +196,14 @@ public class VLCVideo extends Player {
 		int sampleRate;
 	}
 
-	protected Map<String, Object> getEncodingArgs(CodecConfig config, OutputParams params) {
+	protected Map<String, Object> getEncodingArgs(CodecConfig codecConfig, OutputParams params) {
 		// See: http://www.videolan.org/doc/streaming-howto/en/ch03.html
 		// See: http://wiki.videolan.org/Codec
 		Map<String, Object> args = new HashMap<>();
 
 		// Codecs to use
-		args.put("vcodec", config.videoCodec);
-		args.put("acodec", config.audioCodec);
+		args.put("vcodec", codecConfig.videoCodec);
+		args.put("acodec", codecConfig.audioCodec);
 
 		// Bitrate in kbit/s
 		if (!videoRemux) {
@@ -227,11 +239,14 @@ public class VLCVideo extends Player {
 		// args.add("scodec=dvbs");
 		// args.add("senc=dvbsub");
 
+		// Enable multi-threading
+		args.put("threads", "" + configuration.getNumberOfCpuCores());
+
 		// Hardcode subtitles into video
 		args.put("soverlay", "");
 
 		// Add extra args
-		args.putAll(config.extraTrans);
+		args.putAll(codecConfig.extraTrans);
 
 		return args;
 	}

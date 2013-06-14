@@ -562,7 +562,7 @@ public class PMS {
 		String vlcPath = registry.getVlcPath();
 
 		if (vlcVersion != null && vlcPath != null) {
-			LOGGER.info("Found VideoLAN version " + vlcVersion + " at: " + vlcPath);
+			LOGGER.info("Found VLC version " + vlcVersion + " at: " + vlcPath);
 
 			Version vlc = new Version(vlcVersion);
 			Version requiredVersion = new Version("2.0.2");
