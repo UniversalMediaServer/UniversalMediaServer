@@ -4,6 +4,11 @@ import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 
 public class PlayerUtil {
+	/**
+	 * This class is not meant to be instantiated.
+	 */
+	private PlayerUtil() { }
+
 	// Returns whether or not the supplied DLNA resource matches the supplied format and format identifier
 	private static boolean isType(DLNAResource resource, int matchType, Format.Identifier matchIdentifier) {
 		boolean match = false;

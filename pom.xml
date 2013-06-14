@@ -406,7 +406,10 @@
 	</dependencies>
 	<build>
 		<defaultGoal>assembly:assembly</defaultGoal>
+
+		<!-- specify how files in src/main/resources are bundled in the target jar -->
 		<resources>
+			<!-- 1) package unfiltered resources -->
 
 			<!--
 				This needs to be defined explicitly if a <resources>...</resources> 
@@ -415,10 +418,18 @@
 			<resource>
 				<directory>src/main/resources</directory>
 				<!--
-					By default Maven packages resources in the top-level of the jar. 
-					For compatibility with trunk PMS, we preserve that destination. If this is 
-					ever changed to the Maven default, a handful of files will need to be changed 
-					to reference "/resource.name" rather than "/resources/resource.name"
+					By default, Maven packages resources in the top-level of the jar e.g.
+
+						/example.res
+
+					The old PMS ant build packaged them in a "resources" directory
+					e.g:
+
+						/resources/example.res
+
+					Currently, we preserve the old destination. If this is ever changed
+					to the Maven default, a handful of files will need to be changed to
+					reference "/example.res" rather than "/resources/example.res"
 				-->
 				<targetPath>resources</targetPath>
 				<excludes>
@@ -428,6 +439,8 @@
 				<!-- Avoid inadvertently filtering binaries -->
 				<filtering>false</filtering>
 			</resource>
+
+			<!-- 2) package filtered resources -->
 			<resource>
 				<directory>src/main/resources</directory>
 				<targetPath>resources</targetPath>
@@ -439,12 +452,14 @@
 				<filtering>true</filtering>
 			</resource>
 
-			<!-- Copy and filter the NSIS header file to replace Maven properties -->
+			<!-- 3) package filtered NSIS header files -->
 			<resource>
 				<directory>src/main/external-resources/nsis</directory>
 				<includes>
 					<include>extra.nsh</include>
 				</includes>
+
+				<!-- Filter to replace Maven properties -->
 				<filtering>true</filtering>
 				<targetPath>..</targetPath>
 			</resource>
