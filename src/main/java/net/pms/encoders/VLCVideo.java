@@ -261,11 +261,6 @@ public class VLCVideo extends Player {
 		PipeProcess tsPipe = new PipeProcess("VLC" + System.currentTimeMillis() + "." + config.container);
 		ProcessWrapper pipe_process = tsPipe.getPipeProcess();
 
-		LOGGER.trace("filename: " + fileName);
-		LOGGER.trace("dlna: " + dlna);
-		LOGGER.trace("media: " + media);
-		LOGGER.trace("outputparams: " + params);
-
 		// XXX it can take a long time for Windows to create a named pipe
 		// (and mkfifo can be slow if /tmp isn't memory-mapped), so start this as early as possible
 		pipe_process.runInNewThread();
