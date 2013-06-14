@@ -74,7 +74,7 @@ public class PMS {
 	private static final String PROFILES = "profiles";
 
 	/**
-	 * @deprecated The version has moved to the resources/project.properties file. Use {@link #getVersion()} instead. 
+	 * @deprecated The version has moved to the resources/project.properties file. Use {@link #getVersion()} instead.
 	 */
 	@Deprecated
 	public static String VERSION;
@@ -99,18 +99,20 @@ public class PMS {
 	private static String helpPage = "index.html";
 
 	/**
-	 * Returns a pointer to the main PMS GUI.
-	 * @return {@link net.pms.gui.IFrame} Main PMS window.
+	 * Returns a pointer to the PMS GUI's main window.
+	 * @return {@link net.pms.newgui.IFrame} Main PMS window.
 	 */
 	public IFrame getFrame() {
 		return frame;
 	}
 
 	/**
-	 * getRootFolder returns the Root Folder for a given renderer. There could be the case
+	 * Returns the root folder for a given renderer. There could be the case
 	 * where a given media renderer needs a different root structure.
-	 * @param renderer {@link net.pms.configuration.RendererConfiguration} is the renderer for which to get the RootFolder structure. If <b>null</b>, then
-	 * the default renderer is used.
+	 *
+	 * @param renderer {@link net.pms.configuration.RendererConfiguration}
+	 * is the renderer for which to get the RootFolder structure. If <code>null</code>,
+	 * then the default renderer is used.
 	 * @return {@link net.pms.dlna.RootFolder} The root folder structure for a given renderer
 	 */
 	public RootFolder getRootFolder(RendererConfiguration renderer) {
@@ -118,6 +120,7 @@ public class PMS {
 		if (renderer == null) {
 			renderer = RendererConfiguration.getDefaultConf();
 		}
+
 		return renderer.getRootFolder();
 	}
 
@@ -127,13 +130,13 @@ public class PMS {
 	private static PMS instance = null;
 
 	/**
-	 * @deprecated This field is not used and will be removed in the future. 
+	 * @deprecated This field is not used and will be removed in the future.
 	 */
 	@Deprecated
 	public final static SimpleDateFormat sdfDate = new SimpleDateFormat("HH:mm:ss.SSS", Locale.US);
 
 	/**
-	 * @deprecated This field is not used and will be removed in the future. 
+	 * @deprecated This field is not used and will be removed in the future.
 	 */
 	@Deprecated
 	public final static SimpleDateFormat sdfHour = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
@@ -166,6 +169,7 @@ public class PMS {
 	 */
 	private String serverName;
 
+	// FIXME unused
 	private ProxyServer proxyServer;
 
 	public ProxyServer getProxy() {
@@ -178,7 +182,7 @@ public class PMS {
 	}
 
 	/**
-	 * {@link net.pms.gui.IFrame} object that represents PMS GUI.
+	 * {@link net.pms.newgui.IFrame} object that represents the PMS GUI.
 	 */
 	IFrame frame;
 
@@ -192,7 +196,7 @@ public class PMS {
 	private int proxy;
 
 	/**
-	 * Interface to Windows specific functions, like Windows Registry. registry is set by {@link #init()}.
+	 * Interface to Windows-specific functions, like Windows Registry. registry is set by {@link #init()}.
 	 * @see net.pms.io.WinUtils
 	 */
 	private SystemUtils registry;
@@ -205,7 +209,7 @@ public class PMS {
 	}
 
 	/**
-	 * Executes a new Process and creates a fork that waits for its results. 
+	 * Executes a new Process and creates a fork that waits for its results.
 	 * TODO Extend explanation on where this is being used.
 	 * @param name Symbolic name for the process to be launched, only used in the trace log
 	 * @param error (boolean) Set to true if you want PMS to add error messages to the trace pane
@@ -674,7 +678,7 @@ public class PMS {
 
 		frame.serverReady();
 
-		//UPNPHelper.sendByeBye();
+		// UPNPHelper.sendByeBye();
 		Runtime.getRuntime().addShutdownHook(new Thread("PMS Listeners Stopper") {
 			@Override
 			public void run() {
@@ -772,7 +776,7 @@ public class PMS {
 	}
 
 	/**
-	 * Transforms a comma separated list of directory entries into an array of {@link String}.
+	 * Transforms a comma-separated list of directory entries into an array of {@link String}.
 	 * Checks that the directory exists and is a valid directory.
 	 * @param log whether to output log information
 	 * @return {@link java.io.File}[] Array of directories.
@@ -863,7 +867,7 @@ public class PMS {
 
 	// Cannot remove these methods because of backwards compatibility;
 	// none of the PMS code uses it, but some plugins still do.
-	
+
 	/**
 	 * @deprecated Use the SLF4J logging API instead.
 	 * Adds a message to the debug stream, or {@link System#out} in case the
@@ -901,7 +905,7 @@ public class PMS {
 	 * Adds a message to the error stream. This is usually called by
 	 * statements that are in a try/catch block.
 	 * @param msg {@link String} to be added to the error stream
-	 * @param t {@link Throwable} comes from an {@link Exception} 
+	 * @param t {@link Throwable} comes from an {@link Exception}
 	 */
 	@Deprecated
 	public static void error(String msg, Throwable t) {
@@ -941,7 +945,7 @@ public class PMS {
 	}
 
 	/**
-	 * Returns the user friendly name of the UPnP server. 
+	 * Returns the user friendly name of the UPnP server.
 	 * @return {@link String} with the user friendly name.
 	 */
 	public String getServerName() {
@@ -955,6 +959,7 @@ public class PMS {
 			sb.append(", UPnP/1.0, UMS/").append(getVersion());
 			serverName = sb.toString();
 		}
+
 		return serverName;
 	}
 
@@ -1048,7 +1053,7 @@ public class PMS {
 		if (!headless && displayProfileChooser) {
 			ProfileChooser.display();
 		}
-		
+
 		try {
 			FileUtils.copyFile(new File("debug.log"), new File("debug.log.prev"));
 		} catch (Exception e) {
@@ -1056,7 +1061,6 @@ public class PMS {
 
 		try {
 			setConfiguration(new PmsConfiguration());
-
 			assert getConfiguration() != null;
 
 			// Load the (optional) logback config file. This has to be called after 'new PmsConfiguration'
