@@ -18,12 +18,6 @@
  */
 package net.pms.formats;
 
-import java.util.ArrayList;
-import net.pms.PMS;
-import net.pms.encoders.FFmpegAudio;
-import net.pms.encoders.MPlayerAudio;
-import net.pms.encoders.Player;
-
 public class WAV extends Format {
 	/**
 	 * {@inheritDoc} 
@@ -40,23 +34,6 @@ public class WAV extends Format {
 	@Override
 	public boolean transcodable() {
 		return true;
-	}
-
-	@Override
-	public ArrayList<Class<? extends Player>> getProfiles() {
-		ArrayList<Class<? extends Player>> a = new ArrayList<>();
-		PMS r = PMS.get();
-		for (String engine : PMS.getConfiguration().getEnginesAsList(r.getRegistry())) {
-			switch (engine) {
-				case MPlayerAudio.ID:
-					a.add(MPlayerAudio.class);
-					break;
-				case FFmpegAudio.ID:
-					a.add(FFmpegAudio.class);
-					break;
-			}
-		}
-		return a;
 	}
 
 	/**

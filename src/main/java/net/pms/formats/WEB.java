@@ -18,16 +18,10 @@
  */
 package net.pms.formats;
 
-import java.util.ArrayList;
-import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
-import net.pms.encoders.*;
 
 public class WEB extends Format {
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
-	
 	/**
 	 * {@inheritDoc} 
 	 */
@@ -51,44 +45,6 @@ public class WEB extends Format {
 		return type == IMAGE;
 	}
 
-	@Override
-	public ArrayList<Class<? extends Player>> getProfiles() {
-		ArrayList<Class<? extends Player>> a = new ArrayList<>();
-		if (type == AUDIO) {
-			PMS r = PMS.get();
-			for (String engine : configuration.getEnginesAsList(r.getRegistry())) {
-				switch (engine) {
-					case MPlayerWebAudio.ID:
-						a.add(MPlayerWebAudio.class);
-						break;
-					case VideoLanAudioStreaming.ID:
-						a.add(VideoLanAudioStreaming.class);
-						break;
-				}
-			}
-		} else {
-			PMS r = PMS.get();
-			for (String engine : configuration.getEnginesAsList(r.getRegistry())) {
-				switch (engine) {
-					case FFmpegWebVideo.ID:
-						a.add(FFmpegWebVideo.class);
-						break;
-					case MEncoderWebVideo.ID:
-						a.add(MEncoderWebVideo.class);
-						break;
-					case VideoLanVideoStreaming.ID:
-						a.add(VideoLanVideoStreaming.class);
-						break;
-					case MPlayerWebVideoDump.ID:
-						a.add(MPlayerWebVideoDump.class);
-						break;
-				}
-			}
-		}
-
-		return a;
-	}
-
 	/**
 	 * {@inheritDoc}
 	 */
@@ -96,7 +52,17 @@ public class WEB extends Format {
 	// TODO remove screen - it's been tried numerous times (see forum) and it doesn't work
 	public String[] getId() {
 		return new String[] {
-			"file", "http", "mms", "mmsh", "mmst", "rtsp", "rtp", "udp", "screen", "rtmp", "https"
+			"file",
+			"http",
+			"https",
+			"mms",
+			"mmsh",
+			"mmst",
+			"rtmp",
+			"rtp",
+			"rtsp",
+			"screen",
+			"udp"
 		};
 	}
 

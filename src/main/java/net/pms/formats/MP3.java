@@ -18,9 +18,6 @@
  */
 package net.pms.formats;
 
-import java.util.ArrayList;
-import net.pms.encoders.Player;
-
 public class MP3 extends Format {
 	/**
 	 * {@inheritDoc} 
@@ -55,11 +52,6 @@ public class MP3 extends Format {
 	@Override
 	public boolean ps3compatible() {
 		return true;
-	}
-
-	@Override
-	public ArrayList<Class<? extends Player>> getProfiles() {
-		return null;
 	}
 
 	@Override

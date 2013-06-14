@@ -18,10 +18,6 @@
  */
 package net.pms.formats;
 
-import java.util.ArrayList;
-import net.pms.encoders.MEncoderVideo;
-import net.pms.encoders.Player;
-
 public class ISO extends MPG {
 	public static final String[] ISO_EXTENSIONS = new String[] {
 		"img",
@@ -34,13 +30,6 @@ public class ISO extends MPG {
 	@Override
 	public Identifier getIdentifier() {
 		return Identifier.ISO;
-	}
-
-	@Override
-	public ArrayList<Class<? extends Player>> getProfiles() {
-		ArrayList<Class<? extends Player>> list = new ArrayList<>();
-		list.add(MEncoderVideo.class);
-		return list;
 	}
 
 	/**

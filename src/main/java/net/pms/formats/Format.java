@@ -18,12 +18,10 @@
  */
 package net.pms.formats;
 
-import java.util.ArrayList;
 import java.util.StringTokenizer;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.InputFile;
-import net.pms.encoders.Player;
 import net.pms.network.HTTPResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -114,27 +112,27 @@ public abstract class Format implements Cloneable {
 	 * Returns whether or not a format can be handled by the PS3 natively.
 	 * This means the format can be streamed to PS3 instead of having to be
 	 * transcoded.
-	 * 
+	 *
 	 * @return True if the format can be handled by PS3, false otherwise.
 	 */
 	@Deprecated
 	public abstract boolean ps3compatible();
-	
+
 	/**
 	 * Returns whether or not media can be handled by the renderer natively,
 	 * based on the given media information and renderer. If the format can be
 	 * streamed (as opposed to having to be transcoded), <code>true</code> will
 	 * be returned.
-	 * 
+	 *
 	 * @param media
 	 *            The media information.
 	 * @param renderer
 	 *            The renderer for which to check. If <code>null</code> is set
 	 *            as renderer, the default renderer configuration will be used.
-	 * 
+	 *
 	 * @return True if the format can be handled by the renderer, false
 	 *         otherwise.
-	 * 
+	 *
 	 * @since 1.50.1
 	 */
 	public boolean isCompatible(DLNAMediaInfo media, RendererConfiguration renderer) {
@@ -153,7 +151,6 @@ public abstract class Format implements Cloneable {
 	}
 
 	public abstract boolean transcodable();
-	public abstract ArrayList<Class<? extends Player>> getProfiles();
 
 	public String mimeType() {
 		return HTTPResource.getDefaultMimeType(type);
