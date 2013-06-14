@@ -36,6 +36,10 @@ public class FLAC extends OGG {
 	 */
 	@Override
 	public String[] getId() {
-		return new String[] { "flac", "mlp", "fla" };
+		return new String[] {
+			"fla",
+			"flac",
+			"mlp",
+		};
 	}
 }

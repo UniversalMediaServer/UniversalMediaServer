@@ -63,7 +63,7 @@ public class PlayerUtilTest {
 	}
 
 	@Test
-	// sanityCheck
+	// sanity check
 	public void testFixtures() {
 		assertNotNull(image);
 		assertNotNull(image.getFormat());

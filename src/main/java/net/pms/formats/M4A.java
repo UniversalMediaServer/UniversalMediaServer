@@ -32,7 +32,11 @@ public class M4A extends OGG {
 	 */
 	@Override
 	public String[] getId() {
-		return new String[] { "wma", "m4a", "aac" };
+		return new String[] {
+			"aac",
+			"m4a",
+			"wma",
+		};
 	}
 
 	/**

@@ -32,7 +32,10 @@ public class TIF extends JPG {
 	 */
 	@Override
 	public String[] getId() {
-		return new String[] { "tif", "tiff" };
+		return new String[] {
+			"tif",
+			"tiff"
+		};
 	}
 
 	@Override

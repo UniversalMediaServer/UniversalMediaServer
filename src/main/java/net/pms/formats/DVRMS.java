@@ -60,7 +60,10 @@ public class DVRMS extends Format {
 	 */
 	@Override
 	public String[] getId() {
-		return new String[] { "dvr-ms", "dvr" };
+		return new String[] {
+			"dvr",
+			"dvr-ms",
+		};
 	}
 
 	/**
