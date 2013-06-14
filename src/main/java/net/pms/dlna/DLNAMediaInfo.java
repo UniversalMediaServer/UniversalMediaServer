@@ -51,13 +51,13 @@ import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
-import net.pms.util.AVCHeader;
 import net.pms.util.CoverUtil;
 import net.pms.util.FileUtil;
 import net.pms.util.MpegUtil;
 import net.pms.util.ProcessUtil;
 import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.*;
 import org.apache.sanselan.ImageInfo;
 import org.apache.sanselan.ImageReadException;
 import org.apache.sanselan.Sanselan;
@@ -94,8 +94,6 @@ public class DLNAMediaInfo implements Cloneable {
 
 	public static final long ENDFILE_POS = 99999475712L;
 	public static final long TRANS_SIZE = 100000000000L;
-
-	private boolean h264_parsed;
 
 	// Stored in database
 	private Double durationSec;
@@ -164,6 +162,9 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	@Deprecated
 	public int bitsPerPixel;
+
+	private byte referenceFrameCount = -1;
+	private String avcLevel = null;
 
 	private List<DLNAMediaAudio> audioTracks = new ArrayList<>();
 	private List<DLNAMediaSubtitle> subtitleTracks = new ArrayList<>();
@@ -1121,90 +1122,58 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 	}
 
-	@Deprecated
-	public boolean isVideoPS3Compatible(InputFile f) {
-		return isVideoWithinH264LevelLimits(f, null);
-	}
-
 	/**
 	 * Checks whether the video has too many reference frames per pixels for the renderer
+	 * TODO move to PlayerUtil
 	 */
-	public boolean isVideoWithinH264LevelLimits(InputFile f, RendererConfiguration mediaRenderer) {
-		if (!h264_parsed) {
-			if (getCodecV() != null && (getCodecV().equals("h264") || getCodecV().startsWith("mpeg2"))) { // what about VC1 ?
-				muxable = true;
+	public synchronized boolean isVideoWithinH264LevelLimits(InputFile f, RendererConfiguration mediaRenderer) {
+		if ("h264".equals(getCodecV())) {
+			if (getReferenceFrameCount() > -1) {
+				LOGGER.debug("H.264 file: {} level {} / ref frames {}", f.getFilename(), defaultString(getAvcLevel(), "N/A"), getReferenceFrameCount());
+
 				if (
-					getCodecV().equals("h264") &&
-					getContainer() != null &&
 					(
-						getContainer().equals("matroska") ||
-						getContainer().equals("mkv") ||
-						getContainer().equals("mov") ||
-						getContainer().equals("mp4")
-					)
-				) { // Containers without h264_annexB
-					byte headers[][] = getAnnexBFrameHeader(f);
-					if (ffmpeg_annexb_failure) {
-						LOGGER.info("Error parsing information from the file: " + f.getFilename());
-					}
-
-					if (headers != null) {
-						setH264AnnexB(headers[1]);
-						if (getH264AnnexB() != null) {
-							int skip = 5;
-							if (getH264AnnexB()[2] == 1) {
-								skip = 4;
-							}
-							byte header[] = new byte[getH264AnnexB().length - skip];
-							System.arraycopy(getH264AnnexB(), skip, header, 0, header.length);
-							AVCHeader avcHeader = new AVCHeader(header);
-							avcHeader.parse();
-							LOGGER.debug("H.264 file: " + f.getFilename() + ": Profile: " + avcHeader.getProfile() + " / level: " + avcHeader.getLevel() + " / ref frames: " + avcHeader.getRef_frames());
-							muxable = true;
-
-							if (avcHeader.getLevel() >= 41 && getWidth() > 0 && getHeight() > 0) {
-								int maxref;
-								if (mediaRenderer == null || mediaRenderer.isPS3()) {
-									/**
-									 * 2013-01-25: Confirmed maximum reference frames on PS3:
-									 *    - 4 for 1920x1080
-									 *    - 11 for 1280x720
-									 * Meaning this math is correct
-									 */
-									maxref = (int) Math.floor(10252743 / (getWidth() * getHeight()));
-								} else {
-									/**
-									 * This is the math for level 4.1, which results in:
-									 *    - 4 for 1920x1080
-									 *    - 9 for 1280x720
-									 */
-									maxref = (int) Math.floor(8388608 / (getWidth() * getHeight()));
-								}
-
-								if (avcHeader.getRef_frames() > maxref) {
-									muxable = false;
-									LOGGER.debug("The file " + f.getFilename() + " is not compatible with this renderer because it can only take " + maxref + " reference frames at this resolution while this file has " + avcHeader.getRef_frames() + " reference frames");
-								} else if (avcHeader.getRef_frames() == -1) {
-									muxable = false;
-									LOGGER.debug("The file " + f.getFilename() + " may not be compatible with this renderer because we can't get its number of reference frames");
-								}
-							}
-							if (!muxable) {
-								LOGGER.debug("H.264 file: " + f.getFilename() + " is not compatible with this renderer");
-							}
-						} else {
-							muxable = false;
-						}
+						"4.1".equals(getAvcLevel()) ||
+						"4.2".equals(getAvcLevel()) ||
+						"5".equals(getAvcLevel()) ||
+						"5.0".equals(getAvcLevel()) ||
+						"5.1".equals(getAvcLevel()) ||
+						"5.2".equals(getAvcLevel())
+					) &&
+					getWidth() > 0 &&
+					getHeight() > 0
+				) {
+					int maxref;
+					if (mediaRenderer == null || mediaRenderer.isPS3()) {
+						/**
+						 * 2013-01-25: Confirmed maximum reference frames on PS3:
+						 *    - 4 for 1920x1080
+						 *    - 11 for 1280x720
+						 * Meaning this math is correct
+						 */
+						maxref = (int) Math.floor(10252743 / (getWidth() * getHeight()));
 					} else {
-						muxable = false;
+						/**
+						 * This is the math for level 4.1, which results in:
+						 *    - 4 for 1920x1080
+						 *    - 9 for 1280x720
+						 */
+						maxref = (int) Math.floor(8388608 / (getWidth() * getHeight()));
+					}
+					if (getReferenceFrameCount() > maxref) {
+						LOGGER.info("H.264 file: {} is not compatible with this renderer because it can only take {} reference frames at this resolution while this file has {} reference frames.", f.getFilename(), maxref, getReferenceFrameCount());
+						return false;
 					}
 				}
+				return true;
+			} else {
+				LOGGER.warn("H.264 file: {} Unparsed reference frame count. We will try remuxing at our own risk.", f.getFilename());
+				return true;
 			}
-
-			h264_parsed = true;
+		} else {
+			LOGGER.debug("Not a H.264 file: {} Do not check reference frame limits.", f.getFilename());
+			return true;
 		}
-
-		return muxable;
 	}
 
 	public boolean isMuxable(String filename, String codecA) {
@@ -1654,9 +1623,45 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
+	 * @return reference frame count for video stream or {@code -1} if not parsed.
+	 */
+	public synchronized byte getReferenceFrameCount() {
+		return referenceFrameCount;
+	}
+
+	/**
+	 * Sets reference frame count for video stream or {@code -1} if not parsed.
+	 *
+	 * @param referenceFrameCount reference frame count.
+	 */
+	public synchronized void setReferenceFrameCount(byte referenceFrameCount) {
+		if (referenceFrameCount < -1) {
+			throw new IllegalArgumentException("referenceFrameCount should be >= -1.");
+		}
+		this.referenceFrameCount = referenceFrameCount;
+	}
+
+	/**
+	 * @return AVC level for video stream or {@code null} if not parsed.
+	 */
+	public synchronized String getAvcLevel() {
+		return avcLevel;
+	}
+
+	/**
+	 * Sets AVC level for video stream or {@code null} if not parsed.
+	 *
+	 * @param avcLevel AVC level.
+	 */
+	public synchronized void setAvcLevel(String avcLevel) {
+		this.avcLevel = avcLevel;
+	}
+
+	/**
 	 * @return the audioTracks
 	 * @since 1.60.0
 	 */
+	// TODO (breaking change): rename to getAudioTracks
 	public List<DLNAMediaAudio> getAudioTracksList() {
 		return audioTracks;
 	}
@@ -1678,6 +1683,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @param audioTracks the audioTracks to set
 	 * @since 1.60.0
 	 */
+	// TODO (breaking change): rename to setAudioTracks
 	public void setAudioTracksList(List<DLNAMediaAudio> audioTracks) {
 		this.audioTracks = audioTracks;
 	}
@@ -1695,6 +1701,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @return the subtitleTracks
 	 * @since 1.60.0
 	 */
+	// TODO (breaking change): rename to getSubtitleTracks
 	public List<DLNAMediaSubtitle> getSubtitleTracksList() {
 		return subtitleTracks;
 	}
@@ -1716,6 +1723,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @param subtitleTracks the subtitleTracks to set
 	 * @since 1.60.0
 	 */
+	// TODO (breaking change): rename to setSubtitleTracks
 	public void setSubtitleTracksList(List<DLNAMediaSubtitle> subtitleTracks) {
 		this.subtitleTracks = subtitleTracks;
 	}
