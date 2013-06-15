@@ -407,9 +407,8 @@ public class PmsConfiguration {
 	 * from the profile path.
 	 *
 	 * @throws org.apache.commons.configuration.ConfigurationException
-	 * @throws java.io.IOException
 	 */
-	public PmsConfiguration() throws ConfigurationException, IOException {
+	public PmsConfiguration() throws ConfigurationException {
 		this(true);
 	}
 
@@ -420,9 +419,8 @@ public class PmsConfiguration {
 	 *                 file from the profile path. Set to false to skip
 	 *                 loading.
 	 * @throws org.apache.commons.configuration.ConfigurationException
-	 * @throws java.io.IOException
 	 */
-	public PmsConfiguration(boolean loadFile) throws ConfigurationException, IOException {
+	public PmsConfiguration(boolean loadFile) throws ConfigurationException {
 		configuration = new PropertiesConfiguration();
 		configuration.setListDelimiter((char) 0);
 
@@ -544,15 +542,6 @@ public class PmsConfiguration {
 	 */
 	public boolean isTsmuxerForceFps() {
 		return getBoolean(KEY_TSMUXER_FORCEFPS, true);
-	}
-
-	/**
-	 * Force tsMuxeR to mux all audio tracks.
-	 * TODO: Remove this redundant code.
-	 * @return True
-	 */
-	public boolean isTsmuxerPreremuxAc3() {
-		return true;
 	}
 
 	/**
