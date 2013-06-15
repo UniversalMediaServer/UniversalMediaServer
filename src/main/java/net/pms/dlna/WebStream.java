@@ -23,6 +23,8 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import net.pms.network.HTTPResourceAuthenticator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * TODO: Change all instance variables to private. For backwards compatibility
@@ -32,7 +34,9 @@ import net.pms.network.HTTPResourceAuthenticator;
  * removed.
  */
 public class WebStream extends DLNAResource {
-	@Override
+    private static final Logger LOGGER = LoggerFactory.getLogger(WebStream.class);
+
+    @Override
 	public boolean isValid() {
 		checktype();
 		return getFormat() != null;
@@ -165,4 +169,8 @@ public class WebStream extends DLNAResource {
 	protected void setThumbURL(String thumbURL) {
 		this.thumbURL = thumbURL;
 	}
+
+    public boolean isSubSelectable() {
+        return true;
+    }
 }

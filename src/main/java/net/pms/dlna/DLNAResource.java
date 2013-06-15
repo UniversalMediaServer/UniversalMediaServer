@@ -602,7 +602,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								transcodeFolder.addChild(fileTranscodeFolder);
 							}
 						}
-
 						if (child.getFormat().isVideo() && child.isSubSelectable()) {
 							VirtualFolder vf = getSubSelector(true);
 							if (vf != null) {
@@ -2806,9 +2805,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	////////////////////////////////////////////////////
 
 	private SubSelect getSubSelector(boolean create) {
-		if (!isSubSelectable()) {
-			return null;
-		}
 		if (
 			configuration.isDisableSubtitles() ||
 			!configuration.isAutoloadSubtitles() ||
