@@ -95,7 +95,6 @@ public class PmsConfiguration {
 	private static final String KEY_BUFFER_TYPE = "buffertype"; // FIXME deprecated: unused
 	private static final String KEY_CHAPTER_INTERVAL = "chapter_interval";
 	private static final String KEY_CHAPTER_SUPPORT = "chapter_support";
-	private static final String KEY_CHARSET_ENCODING = "charsetencoding"; // TODO (breaking change): should be renamed to e.g. charset_encoding
 	private static final String KEY_CODEC_SPEC_SCRIPT = "codec_spec_script";
 	private static final String KEY_DISABLE_FAKESIZE = "disable_fakesize";
 	public static final String KEY_DISABLE_SUBTITLES = "mencoder_disablesubs"; // TODO (breaking change): should be renamed to e.g. disable_subtitles
@@ -209,8 +208,6 @@ public class PmsConfiguration {
 	private static final String KEY_TRANSCODE_FOLDER_NAME = "transcode_folder_name";
 	private static final String KEY_TRANSCODE_KEEP_FIRST_CONNECTION = "transcode_keep_first_connection";
 	private static final String KEY_TSMUXER_FORCEFPS = "tsmuxer_forcefps";
-	private static final String KEY_TSMUXER_PREREMIX_AC3 = "tsmuxer_preremix_ac3";
-	private static final String KEY_TURBO_MODE_ENABLED = "turbomode"; // FIXME unused
 	private static final String KEY_UPNP_PORT = "upnp_port";
 	private static final String KEY_USE_CACHE = "usecache"; // TODO (breaking change): should be renamed to e.g. use_cache
 	private static final String KEY_USE_MPLAYER_FOR_THUMBS = "use_mplayer_for_video_thumbs";
@@ -568,14 +565,6 @@ public class PmsConfiguration {
 	 */
 	public int getAudioBitrate() {
 		return getInt(KEY_AUDIO_BITRATE, 640);
-	}
-
-	/**
-	 * Force tsMuxeR to mux all audio tracks.
-	 * TODO: Remove this redundant code; getter always returns true.
-	 */
-	public void setTsmuxerPreremuxAc3(boolean value) {
-		configuration.setProperty(KEY_TSMUXER_PREREMIX_AC3, value);
 	}
 
 	/**
@@ -1705,22 +1694,6 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * @deprecated This method is not used anywhere.
-	 */
-	@Deprecated
-	public boolean isTurboModeEnabled() {
-		return getBoolean(KEY_TURBO_MODE_ENABLED, false);
-	}
-
-	/**
-	 * @deprecated This method is not used anywhere.
-	 */
-	@Deprecated
-	public void setTurboModeEnabled(boolean value) {
-		configuration.setProperty(KEY_TURBO_MODE_ENABLED, value);
-	}
-
-	/**
 	 * Returns true if PMS should start minimized, i.e. without its window
 	 * opened. Default value false: to start with a window.
 	 *
@@ -2095,14 +2068,6 @@ public class PmsConfiguration {
 
 	public void setTrancodeKeepFirstConnections(boolean value) {
 		configuration.setProperty(KEY_TRANSCODE_KEEP_FIRST_CONNECTION, value);
-	}
-
-	public String getCharsetEncoding() {
-		return getString(KEY_CHARSET_ENCODING, "850");
-	}
-
-	public void setCharsetEncoding(String value) {
-		configuration.setProperty(KEY_CHARSET_ENCODING, value);
 	}
 
 	public boolean isMencoderIntelligentSync() {
