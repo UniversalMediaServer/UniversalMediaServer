@@ -779,7 +779,6 @@ public class MEncoderVideo extends Player {
 
 	@Override
 	public ProcessWrapper launchTranscode(
-		String fileName,
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params
@@ -788,7 +787,8 @@ public class MEncoderVideo extends Player {
 
 		boolean avisynth = avisynth();
 
-		setAudioAndSubs(fileName, media, params, configuration);
+		final String filename = dlna.getSystemName();
+		setAudioAndSubs(filename, media, params, configuration);
 		String externalSubtitlesFileName = null;
 
 		if (params.sid != null && params.sid.isExternal()) {
@@ -803,7 +803,7 @@ public class MEncoderVideo extends Player {
 		}
 
 		InputFile newInput = new InputFile();
-		newInput.setFilename(fileName);
+		newInput.setFilename(filename);
 		newInput.setPush(params.stdin);
 
 		dvd = false;
@@ -886,14 +886,14 @@ public class MEncoderVideo extends Player {
 				intOCW == 0 &&
 				intOCH == 0
 			) &&
-			!fileName.contains("WEB-DL") &&
+			!filename.contains("WEB-DL") &&
 			aspectRatiosMatch
 		) {
 			String expertOptions[] = getSpecificCodecOptions(
 				configuration.getCodecSpecificConfig(),
 				media,
 				params,
-				fileName,
+				filename,
 				externalSubtitlesFileName,
 				configuration.isMencoderIntelligentSync(),
 				false
@@ -921,14 +921,14 @@ public class MEncoderVideo extends Player {
 					}
 				}
 
-				return tv.launchTranscode(fileName, dlna, media, params);
+				return tv.launchTranscode(filename, dlna, media, params);
 			}
 		} else if (params.sid == null && dvd && configuration.isMencoderRemuxMPEG2() && params.mediaRenderer.isMpeg2Supported()) {
 			String expertOptions[] = getSpecificCodecOptions(
 				configuration.getCodecSpecificConfig(),
 				media,
 				params,
-				fileName,
+				filename,
 				externalSubtitlesFileName,
 				configuration.isMencoderIntelligentSync(),
 				false
@@ -1078,7 +1078,7 @@ public class MEncoderVideo extends Player {
 		overriddenMainArgs = new String[st.countTokens()];
 
 		{
-			int nThreads = (dvd || fileName.toLowerCase().endsWith("dvr-ms")) ?
+			int nThreads = (dvd || filename.toLowerCase().endsWith("dvr-ms")) ?
 				1 :
 				configuration.getMencoderMaxThreads();
 
@@ -1243,7 +1243,7 @@ public class MEncoderVideo extends Player {
 			configuration.getCodecSpecificConfig(),
 			media,
 			params,
-			fileName,
+			filename,
 			externalSubtitlesFileName,
 			configuration.isMencoderIntelligentSync(),
 			false
@@ -1469,18 +1469,18 @@ public class MEncoderVideo extends Player {
 		String frameRateNumber = media.getValidFps(false);
 
 		// Input filename
-		if (avisynth && !fileName.toLowerCase().endsWith(".iso")) {
-			File avsFile = AviSynthMEncoder.getAVSScript(fileName, params.sid, params.fromFrame, params.toFrame, frameRateRatio, frameRateNumber);
+		if (avisynth && !filename.toLowerCase().endsWith(".iso")) {
+			File avsFile = AviSynthMEncoder.getAVSScript(filename, params.sid, params.fromFrame, params.toFrame, frameRateRatio, frameRateNumber);
 			cmdList.add(ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath()));
 		} else {
 			if (params.stdin != null) {
 				cmdList.add("-");
 			} else {
 				if (dvd) {
-					String dvdFileName = fileName.replace("\\VIDEO_TS", "");
+					String dvdFileName = filename.replace("\\VIDEO_TS", "");
 					cmdList.add(dvdFileName);
 				} else {
-					cmdList.add(fileName);
+					cmdList.add(filename);
 				}
 			}
 		}
@@ -1582,7 +1582,7 @@ public class MEncoderVideo extends Player {
 		cmdList.add("-ofps");
 		cmdList.add(ofps);
 
-		if (fileName.toLowerCase().endsWith(".evo")) {
+		if (filename.toLowerCase().endsWith(".evo")) {
 			cmdList.add("-psprobe");
 			cmdList.add("10000");
 		}
@@ -2131,7 +2131,7 @@ public class MEncoderVideo extends Player {
 				String ffmpegLPCMextract[] = new String[]{
 					executable(),
 					"-ss", "0",
-					fileName,
+					filename,
 					"-really-quiet",
 					"-msglevel", "statusline=2",
 					"-channels", "" + channels,
@@ -2152,13 +2152,13 @@ public class MEncoderVideo extends Player {
 
 				if (media.getDvdtrack() > 0) {
 					ffmpegLPCMextract[3] = "-dvd-device";
-					ffmpegLPCMextract[4] = fileName;
+					ffmpegLPCMextract[4] = filename;
 					ffmpegLPCMextract[5] = "dvd://" + media.getDvdtrack();
 				} else if (params.stdin != null) {
 					ffmpegLPCMextract[3] = "-";
 				}
 
-				if (fileName.toLowerCase().endsWith(".evo")) {
+				if (filename.toLowerCase().endsWith(".evo")) {
 					ffmpegLPCMextract[4] = "-psprobe";
 					ffmpegLPCMextract[5] = "1000000";
 				}
@@ -2261,7 +2261,7 @@ public class MEncoderVideo extends Player {
 			String[] cmdArray = new String[cmdList.size()];
 			cmdList.toArray(cmdArray);
 			cmdArray = finalizeTranscoderArgs(
-				fileName,
+				filename,
 				dlna,
 				media,
 				params,

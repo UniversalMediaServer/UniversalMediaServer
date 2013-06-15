@@ -115,8 +115,14 @@ public abstract class Player {
 		return false;
 	}
 
+	/**
+	 * @deprecated Use {@link #launchTranscode(net.pms.dlna.DLNAResource, net.pms.dlna.DLNAMediaInfo, net.pms.io.OutputParams)} instead.
+	 */
+	@Deprecated
+	public final ProcessWrapper launchTranscode(String filename, DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
+		return launchTranscode(dlna, media, params);
+	}
 	public abstract ProcessWrapper launchTranscode(
-		String filename,
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params

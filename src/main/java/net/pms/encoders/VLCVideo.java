@@ -252,7 +252,7 @@ public class VLCVideo extends Player {
 	}
 
 	@Override
-	public ProcessWrapper launchTranscode(String fileName, DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
+	public ProcessWrapper launchTranscode(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
 		boolean isWindows = Platform.isWindows();
 
 		// Make sure we can play this
@@ -260,6 +260,7 @@ public class VLCVideo extends Player {
 
 		PipeProcess tsPipe = new PipeProcess("VLC" + System.currentTimeMillis() + "." + config.container);
 		ProcessWrapper pipe_process = tsPipe.getPipeProcess();
+		final String filename = dlna.getSystemName();
 
 		// XXX it can take a long time for Windows to create a named pipe
 		// (and mkfifo can be slow if /tmp isn't memory-mapped), so start this as early as possible
@@ -291,7 +292,7 @@ public class VLCVideo extends Player {
 		}
 
 		// File needs to be given before sout, otherwise vlc complains
-		cmdList.add(fileName);
+		cmdList.add(filename);
 
 		// Huge fake track id that shouldn't conflict with any real subtitle or audio id. Hopefully.
 		String disableSuffix = "track=214748361";
@@ -363,7 +364,7 @@ public class VLCVideo extends Player {
 		// Pass to process wrapper
 		String[] cmdArray = new String[cmdList.size()];
 		cmdList.toArray(cmdArray);
-		cmdArray = finalizeTranscoderArgs(fileName, dlna, media, params, cmdArray);
+		cmdArray = finalizeTranscoderArgs(filename, dlna, media, params, cmdArray);
 		LOGGER.trace("Finalized args: " + StringUtils.join(cmdArray, " "));
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 		pw.attachProcess(pipe_process);

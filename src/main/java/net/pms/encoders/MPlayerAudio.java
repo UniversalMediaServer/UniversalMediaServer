@@ -78,7 +78,6 @@ public class MPlayerAudio extends Player {
 
 	@Override
 	public ProcessWrapper launchTranscode(
-		String fileName,
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params
@@ -88,10 +87,11 @@ public class MPlayerAudio extends Player {
 		}
 
 		params.manageFastStart();
+		final String filename = dlna.getSystemName();
 
 		if (params.mediaRenderer.isTranscodeToMP3()) {
 			FFmpegAudio ffmpegAudio = new FFmpegAudio(configuration);
-			return ffmpegAudio.launchTranscode(fileName, dlna, media, params);
+			return ffmpegAudio.launchTranscode(dlna, media, params);
 		}
 
 		params.maxBufferSize = configuration.getMaxAudioBuffer();
@@ -99,7 +99,7 @@ public class MPlayerAudio extends Player {
 
 		String mPlayerdefaultAudioArgs[] = new String[] {
 			configuration.getMplayerPath(),
-			fileName,
+			filename,
 			"-prefer-ipv4",
 			"-nocache",
 			"-af",
@@ -144,7 +144,7 @@ public class MPlayerAudio extends Player {
 		ProcessWrapper mkfifo_process = audioP.getPipeProcess();
 
 		mPlayerdefaultAudioArgs = finalizeTranscoderArgs(
-			fileName,
+			filename,
 			dlna,
 			media,
 			params,

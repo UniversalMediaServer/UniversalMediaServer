@@ -118,7 +118,6 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 	@Override
 	public synchronized ProcessWrapper launchTranscode(
-		String filename,
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params
@@ -127,9 +126,10 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		params.secondread_minsize = 100000;
 		RendererConfiguration renderer = params.mediaRenderer;
 		File tempSubs = null;
+		String filename = dlna.getSystemName();
 
 		if (!isDisableSubtitles(params)) {
-			tempSubs = subsConversion(filename, media, params);
+			tempSubs = getSubtitles(dlna, media, params);
 		}
 
 		// XXX work around an ffmpeg bug: http://ffmpeg.org/trac/ffmpeg/ticket/998
@@ -246,20 +246,20 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		cmdList.add("-i");
 		cmdList.add(filename);
 
-		cmdList.addAll(getVideoFilterOptions(tempSubs, renderer, media, params));
+		cmdList.addAll(getVideoFilterOptions(dlna, media, params, tempSubs));
 
 		// Encoder threads
 		cmdList.add("-threads");
 		cmdList.add("" + nThreads);
 
 		// Add the output options (-f, -c:a, -c:v, etc.)
-		cmdList.addAll(getTranscodeVideoOptions(renderer, media, params, null));
+		cmdList.addAll(getVideoTranscodeOptions(dlna, media, params));
 
 		// Add video bitrate options
-		cmdList.addAll(getVideoBitrateOptions(renderer, media));
+		cmdList.addAll(getVideoBitrateOptions(dlna, media, params));
 
 		// Add audio bitrate options
-		cmdList.addAll(getAudioBitrateOptions(renderer, media));
+		cmdList.addAll(getAudioBitrateOptions(dlna, media, params));
 
 		// Add any remaining custom options
 		if (!customOptions.isEmpty()) {

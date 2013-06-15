@@ -83,7 +83,6 @@ public class MEncoderWebVideo extends Player {
 
 	@Override
 	public ProcessWrapper launchTranscode(
-		String fileName,
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params) throws IOException {
@@ -95,7 +94,8 @@ public class MEncoderWebVideo extends Player {
 
 		String cmdArray[] = new String[args().length + 4];
 		cmdArray[0] = executable();
-		cmdArray[1] = fileName;
+		final String filename = dlna.getSystemName();
+		cmdArray[1] = filename;
 		System.arraycopy(args(), 0, cmdArray, 2, args().length);
 		cmdArray[cmdArray.length - 2] = "-o";
 		cmdArray[cmdArray.length - 1] = pipe.getInputPipe();
@@ -103,7 +103,7 @@ public class MEncoderWebVideo extends Player {
 		ProcessWrapper mkfifo_process = pipe.getPipeProcess();
 
 		cmdArray = finalizeTranscoderArgs(
-			fileName,
+			filename,
 			dlna,
 			media,
 			params,

@@ -54,21 +54,22 @@ public class MPlayerWebVideoDump extends MPlayerAudio {
 	}
 
 	@Override
-	public ProcessWrapper launchTranscode(String fileName, DLNAResource dlna, DLNAMediaInfo media,
+	public ProcessWrapper launchTranscode(DLNAResource dlna, DLNAMediaInfo media,
 		OutputParams params) throws IOException {
 		params.minBufferSize = params.minFileSize;
 		params.secondread_minsize = 100000;
 		params.waitbeforestart = 6000;
 		params.maxBufferSize = PMS.getConfiguration().getMaxAudioBuffer();
 		PipeProcess audioP = new PipeProcess("mplayer_webvid" + System.currentTimeMillis());
+		final String filename = dlna.getSystemName();
 
-		String mPlayerdefaultAudioArgs[] = new String[]{PMS.getConfiguration().getMplayerPath(), fileName, "-nocache", "-dumpstream", "-quiet", "-dumpfile", audioP.getInputPipe()};
+		String mPlayerdefaultAudioArgs[] = new String[]{PMS.getConfiguration().getMplayerPath(), filename, "-nocache", "-dumpstream", "-quiet", "-dumpfile", audioP.getInputPipe()};
 		params.input_pipes[0] = audioP;
 
 		ProcessWrapper mkfifo_process = audioP.getPipeProcess();
 
 		mPlayerdefaultAudioArgs = finalizeTranscoderArgs(
-			fileName,
+			filename,
 			dlna,
 			media,
 			params,
