@@ -23,8 +23,6 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import net.pms.network.HTTPResourceAuthenticator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * TODO: Change all instance variables to private. For backwards compatibility
@@ -34,9 +32,8 @@ import org.slf4j.LoggerFactory;
  * removed.
  */
 public class WebStream extends DLNAResource {
-    private static final Logger LOGGER = LoggerFactory.getLogger(WebStream.class);
 
-    @Override
+	@Override
 	public boolean isValid() {
 		checktype();
 		return getFormat() != null;
