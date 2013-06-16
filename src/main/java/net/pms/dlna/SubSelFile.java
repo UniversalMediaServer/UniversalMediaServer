@@ -68,6 +68,9 @@ public class SubSelFile extends VirtualFolder {
 
         @Override
         public int compare(String key1, String key2) {
+            if (langs == null) {
+                return 0;
+            }
             Integer index1 = langs.indexOf(OpenSubtitle.getLang(key1));
             Integer index2 = langs.indexOf(OpenSubtitle.getLang(key2));
 
