@@ -322,6 +322,7 @@ public class Iso639 {
 		putCode("Bini", null, "bin", "bin");
 		putCode("Bislama", "bi", "bis", "bis");
 		putCode("Bosnian", "bs", "bos", "bos");
+        putCode("Brazilian Portuguse", null, "pob", "pob");
 		putCode("Braj", null, "bra", "bra");
 		putCode("Breton", "br", "bre", "bre");
 		putCode("Buginese", null, "bug", "bug");
