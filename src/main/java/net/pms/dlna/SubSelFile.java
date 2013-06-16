@@ -1,13 +1,11 @@
 package net.pms.dlna;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
 
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
-import net.pms.encoders.Player;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.util.OpenSubtitle;
 import org.slf4j.Logger;
@@ -39,7 +37,7 @@ public class SubSelFile extends VirtualFolder {
 		if (data == null || data.isEmpty()) {
 			return;
 		}
-        List<String> sortedKeys = new ArrayList(data.keySet());
+        List<String> sortedKeys = new ArrayList<>(data.keySet());
         Collections.sort(sortedKeys, new SubSort(PMS.getConfiguration()));
 		for (String key : sortedKeys) {
 			LOGGER.debug("Add play subtitle child " + key + " rf " + orig);
