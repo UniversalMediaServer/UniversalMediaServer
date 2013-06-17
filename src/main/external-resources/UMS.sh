@@ -49,7 +49,6 @@ if $cygwin; then
 fi
  
 # Configure fontconfig (used by our build of FFmpeg)
-# TODO Mac OS X has same paths?
 if [ "x$FONTCONFIG_PATH" = "x" ]; then
     FONTCONFIG_PATH=/etc/fonts
     export FONTCONFIG_PATH
