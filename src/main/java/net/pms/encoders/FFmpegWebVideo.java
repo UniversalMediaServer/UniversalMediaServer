@@ -125,9 +125,9 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		params.minBufferSize = params.minFileSize;
 		params.secondread_minsize = 100000;
 		RendererConfiguration renderer = params.mediaRenderer;
+		String filename = dlna.getSystemName();
 		setAudioAndSubs(filename, media, params, configuration);
 		File tempSubs = null;
-		String filename = dlna.getSystemName();
 
 		if (!isDisableSubtitles(params)) {
 			tempSubs = getSubtitles(dlna, media, params);
