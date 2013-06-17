@@ -32,6 +32,7 @@ import net.pms.network.HTTPResourceAuthenticator;
  * removed.
  */
 public class WebStream extends DLNAResource {
+
 	@Override
 	public boolean isValid() {
 		checktype();
@@ -165,4 +166,8 @@ public class WebStream extends DLNAResource {
 	protected void setThumbURL(String thumbURL) {
 		this.thumbURL = thumbURL;
 	}
+
+    public boolean isSubSelectable() {
+        return true;
+    }
 }

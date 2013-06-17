@@ -90,6 +90,7 @@ public class HTTPResource {
 	 */
 	protected InputStream getResourceInputStream(String fileName) {
 		fileName = "/resources/" + fileName;
+        fileName = fileName.replaceAll("//", "/");
 		ClassLoader cll = this.getClass().getClassLoader();
 		InputStream is = cll.getResourceAsStream(fileName.substring(1));
 
