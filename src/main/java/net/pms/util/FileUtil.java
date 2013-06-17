@@ -272,7 +272,7 @@ public class FileUtil {
 
 	public static boolean isSubtitlesExists(File file, DLNAMediaInfo media, boolean usecache) {
 		boolean found = browseFolderForSubtitles(file.getParentFile(), file, media, usecache);
-		String alternate = PMS.getConfiguration().getAlternateSubsFolder();
+		String alternate = PMS.getConfiguration().getAlternateSubtitlesFolder();
 
 		if (isNotBlank(alternate)) { // https://code.google.com/p/ps3mediaserver/issues/detail?id=737#c5
 			File subFolder = new File(alternate);

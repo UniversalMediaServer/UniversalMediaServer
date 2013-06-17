@@ -224,7 +224,7 @@ public class MEncoderVideo extends Player {
 			public void actionPerformed(ActionEvent e) {
 				JPanel codecPanel = new JPanel(new BorderLayout());
 				final JTextArea textArea = new JTextArea();
-				textArea.setText(configuration.getCodecSpecificConfig());
+				textArea.setText(configuration.getMencoderCodecSpecificConfig());
 				textArea.setFont(new Font("Courier", Font.PLAIN, 12));
 				JScrollPane scrollPane = new JScrollPane(textArea);
 				scrollPane.setPreferredSize(new java.awt.Dimension(900, 100));
@@ -289,7 +289,7 @@ public class MEncoderVideo extends Player {
 							JOptionPane.ERROR_MESSAGE
 						);
 					} else {
-						configuration.setCodecSpecificConfig(newCodecparam);
+						configuration.setMencoderCodecSpecificConfig(newCodecparam);
 						break;
 					}
 				}
@@ -890,7 +890,7 @@ public class MEncoderVideo extends Player {
 			aspectRatiosMatch
 		) {
 			String expertOptions[] = getSpecificCodecOptions(
-				configuration.getCodecSpecificConfig(),
+				configuration.getMencoderCodecSpecificConfig(),
 				media,
 				params,
 				filename,
@@ -925,7 +925,7 @@ public class MEncoderVideo extends Player {
 			}
 		} else if (params.sid == null && dvd && configuration.isMencoderRemuxMPEG2() && params.mediaRenderer.isMpeg2Supported()) {
 			String expertOptions[] = getSpecificCodecOptions(
-				configuration.getCodecSpecificConfig(),
+				configuration.getMencoderCodecSpecificConfig(),
 				media,
 				params,
 				filename,
@@ -971,13 +971,13 @@ public class MEncoderVideo extends Player {
 
 		final boolean isTsMuxeRVideoEngineEnabled = configuration.getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
 		final boolean mencoderAC3RemuxAudioDelayBug = (params.aid != null) && (params.aid.getAudioProperties().getAudioDelay() != 0) && (params.timeseek == 0);
-		if (configuration.isRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && params.mediaRenderer.isTranscodeToAC3()) {
+		if (configuration.isAudioRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && params.mediaRenderer.isTranscodeToAC3()) {
 			// AC-3 remux takes priority
 			ac3Remux = true;
 		} else {
 			// Now check for DTS remux and LPCM streaming
 			dtsRemux = isTsMuxeRVideoEngineEnabled &&
-				configuration.isDTSEmbedInPCM() &&
+				configuration.isAudioEmbedDtsInPcm() &&
 				(
 					!dvd ||
 					configuration.isMencoderRemuxMPEG2()
@@ -986,7 +986,7 @@ public class MEncoderVideo extends Player {
 				!avisynth() &&
 				params.mediaRenderer.isDTSPlayable();
 			pcm = isTsMuxeRVideoEngineEnabled &&
-				configuration.isUsePCM() &&
+				configuration.isAudioUsePCM() &&
 				(
 					!dvd ||
 					configuration.isMencoderRemuxMPEG2()
@@ -1240,7 +1240,7 @@ public class MEncoderVideo extends Player {
 		boolean foundNoassParam = false;
 
 		String expertOptions[] = getSpecificCodecOptions(
-			configuration.getCodecSpecificConfig(),
+			configuration.getMencoderCodecSpecificConfig(),
 			media,
 			params,
 			filename,
@@ -1324,9 +1324,9 @@ public class MEncoderVideo extends Player {
 					sb.append("Outline=").append(configuration.getAssOutline()).append(",Shadow=").append(configuration.getAssShadow());
 
 					try {
-						userMargin = Integer.parseInt(configuration.getMencoderAssMargin());
+						userMargin = Integer.parseInt(configuration.getAssMargin());
 					} catch (NumberFormatException n) {
-						LOGGER.debug("Could not parse SSA margin from \"" + configuration.getMencoderAssMargin() + "\"");
+						LOGGER.debug("Could not parse SSA margin from \"" + configuration.getAssMargin() + "\"");
 					}
 
 					subtitleMargin = subtitleMargin + userMargin;

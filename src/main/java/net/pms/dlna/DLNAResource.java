@@ -508,7 +508,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 
 				if (child.getFormat() != null) {
-					setSkipTranscode(child.getFormat().skip(configuration.getNoTranscode(), getDefaultRenderer() != null ? getDefaultRenderer().getStreamedExtensions() : null));
+					setSkipTranscode(child.getFormat().skip(configuration.getDisableTranscodeForExtensions(), getDefaultRenderer() != null ? getDefaultRenderer().getStreamedExtensions() : null));
 				}
 
 				if (child.getFormat() != null && (child.getFormat().transcodable() || parserV2) && (child.getMedia() == null || parserV2)) {
@@ -549,7 +549,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					if (player != null && !allChildrenAreFolders) {
 						boolean forceTranscode = false;
 						if (child.getFormat() != null) {
-							forceTranscode = child.getFormat().skip(configuration.getForceTranscode(), getDefaultRenderer() != null ? getDefaultRenderer().getTranscodedExtensions() : null);
+							forceTranscode = child.getFormat().skip(configuration.getForceTranscodeForExtensions(), getDefaultRenderer() != null ? getDefaultRenderer().getTranscodedExtensions() : null);
 						}
 
 						boolean hasEmbeddedSubs = false;
@@ -563,7 +563,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						boolean hasSubsToTranscode = false;
 
 						if (!configuration.isDisableSubtitles()) {
-							hasSubsToTranscode = (configuration.isAutoloadSubtitles() && child.isSrtFile()) || hasEmbeddedSubs || liveSubs(child);
+							hasSubsToTranscode = (configuration.isAutoloadExternalSubtitles() && child.isSrtFile()) || hasEmbeddedSubs || liveSubs(child);
 						}
 
 						boolean isIncompatible = false;
@@ -1464,7 +1464,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 															for (DLNAMediaSubtitle present_sub : getMedia().getSubtitleTracksList()) {
 																if (present_sub.matchCode(sub) || sub.equals("*")) {
 																	if (present_sub.getExternalFile() != null) {
-																		if (configuration.isAutoloadSubtitles()) {
+																		if (configuration.isAutoloadExternalSubtitles()) {
 																			// Subtitle is external and we want external subtitles, look no further
 																			matchedSub = present_sub;
 																			LOGGER.trace(" Found a match: " + matchedSub);
@@ -1476,7 +1476,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 																	} else {
 																		matchedSub = present_sub;
 																		LOGGER.trace(" Found a match: " + matchedSub);
-																		if (configuration.isAutoloadSubtitles()) {
+																		if (configuration.isAutoloadExternalSubtitles()) {
 																			// Subtitle is internal and we will wait to see if an external one is available instead
 																			matchedEmbeddedSubtitle = true;
 																		} else {
@@ -1509,7 +1509,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 												File video = new File(getSystemName());
 												FileUtil.isSubtitlesExists(video, getMedia(), false);
 
-												if (configuration.isAutoloadSubtitles()) {
+												if (configuration.isAutoloadExternalSubtitles()) {
 													boolean forcedSubsFound = false;
 													// Priority to external subtitles
 													for (DLNAMediaSubtitle sub : getMedia().getSubtitleTracksList()) {
@@ -1569,7 +1569,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 															if (
 																sub.matchCode(lang) &&
 																!(
-																	!configuration.isAutoloadSubtitles() &&
+																	!configuration.isAutoloadExternalSubtitles() &&
 																	sub.getExternalFile() != null
 																)
 															) {
@@ -2829,7 +2829,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 		if (
 			configuration.isDisableSubtitles() ||
-			!configuration.isAutoloadSubtitles() ||
+			!configuration.isAutoloadExternalSubtitles() ||
 			configuration.isHideLiveSubtitlesFolder()
 		) {
 			return null;

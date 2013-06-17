@@ -148,7 +148,7 @@ public class FFmpegDVRMSRemux extends Player {
 		cmdList.add(filename);
 		cmdList.addAll(Arrays.asList(args()));
 
-		String customSettingsString = configuration.getFfmpegSettings();
+		String customSettingsString = configuration.getMPEG2MainSettingsFFmpeg();
 		if (StringUtils.isNotBlank(customSettingsString)) {
 			String[] customSettingsArray = StringUtils.split(customSettingsString);
 

@@ -357,10 +357,10 @@ public class PMS {
 				Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
 				JOptionPane.YES_NO_OPTION);
 				if (whetherToSendDTS == JOptionPane.YES_OPTION) {
-					configuration.setDTSEmbedInPCM(true);
+					configuration.setAudioEmbedDtsInPcm(true);
 					save();
 				} else if (whetherToSendDTS == JOptionPane.NO_OPTION) {
-					configuration.setDTSEmbedInPCM(false);
+					configuration.setAudioEmbedDtsInPcm(false);
 					save();
 				}
 
@@ -1076,7 +1076,7 @@ public class PMS {
 			killOld();
 			// create the PMS instance returned by get()
 			createInstance(); 
-		} catch (ConfigurationException | IOException t) {
+		} catch (ConfigurationException t) {
 			String errorMessage = String.format(
 				"Configuration error: %s: %s",
 				t.getClass().getName(),
