@@ -978,7 +978,7 @@ public class TranscodingTab {
 		disableSubs.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				// If Disable Subtitles is not selected, subtitles are enabled
+				// If "Disable Subtitles" is not selected, subtitles are enabled
 				boolean enabled = e.getStateChange() != ItemEvent.SELECTED;
 				for (Component component : panel.getComponents()) {
 					component.setEnabled(enabled);
