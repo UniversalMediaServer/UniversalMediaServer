@@ -976,12 +976,12 @@ public class RootFolder extends DLNAResource {
 			}
 		}
 
-		// resume file mgmt
+		// Resume file management
 		if (configuration.isResumeEnabled()) {
 				res.addChild(new VirtualFolder(Messages.getString("PMS.135"), null) {
 					@Override
 					public void discoverChildren() {
-                        final File[] files = ResumeObj.resumeFiles();
+						final File[] files = ResumeObj.resumeFiles();
 						addChild(new VirtualVideoAction(Messages.getString("PMS.136"), true) {
 							@Override
 							public boolean enable() {
