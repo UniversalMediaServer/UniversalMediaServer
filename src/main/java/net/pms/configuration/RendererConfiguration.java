@@ -86,6 +86,7 @@ public class RendererConfiguration {
 	private static final String STREAM_EXT = "StreamExtensions";
 	private static final String SUBTITLE_HTTP_HEADER = "SubtitleHttpHeader";
 	private static final String SUPPORTED = "Supported";
+	private static final String THUMBNAIL_AS_RESOURCE = "ThumbnailAsResource";
 	private static final String TRANSCODE_AUDIO_441KHZ = "TranscodeAudioTo441kHz";
 	private static final String TRANSCODE_AUDIO = "TranscodeAudio";
 	private static final String TRANSCODED_SIZE = "TranscodedVideoFileSize";
@@ -936,6 +937,17 @@ public class RendererConfiguration {
 
 	public boolean isDLNAOrgPNUsed() {
 		return getBoolean(DLNA_ORGPN_USE, true);
+	}
+
+	/**
+	 * Returns whether or not to use the "res" element instead of the "albumArtURI"
+	 * element for thumbnails in DLNA reponses. E.g. Samsung 2012 models do not
+	 * recognize the "albumArtURI" element. Default value is <code>false</code>.
+	 *
+	 * @return True if the "res" element should be used, false otherwise.
+	 */
+	public boolean getThumbNailAsResource() {
+		return getBoolean(THUMBNAIL_AS_RESOURCE, false);
 	}
 
 	/**
