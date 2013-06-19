@@ -53,6 +53,7 @@ import net.pms.util.MpegUtil;
 import net.pms.util.OpenSubtitle;
 import static net.pms.util.StringUtil.*;
 import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1222,7 +1223,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		String wireshark = "";
 		final DLNAMediaAudio firstAudioTrack = getMedia() != null ? getMedia().getFirstAudioTrack() : null;
-		if (firstAudioTrack != null && StringUtils.isNotBlank(firstAudioTrack.getSongname())) {
+		if (firstAudioTrack != null && isNotBlank(firstAudioTrack.getSongname())) {
 			wireshark = firstAudioTrack.getSongname() + (getPlayer() != null && !configuration.isHideEngineNames() ? (" [" + getPlayer().name() + "]") : "");
 			addXMLTagAndAttribute(
 				sb,
@@ -1241,16 +1242,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		if (firstAudioTrack != null) {
-			if (StringUtils.isNotBlank(firstAudioTrack.getAlbum())) {
+			if (isNotBlank(firstAudioTrack.getAlbum())) {
 				addXMLTagAndAttribute(sb, "upnp:album", encodeXML(firstAudioTrack.getAlbum()));
 			}
 
-			if (StringUtils.isNotBlank(firstAudioTrack.getArtist())) {
+			if (isNotBlank(firstAudioTrack.getArtist())) {
 				addXMLTagAndAttribute(sb, "upnp:artist", encodeXML(firstAudioTrack.getArtist()));
 				addXMLTagAndAttribute(sb, "dc:creator", encodeXML(firstAudioTrack.getArtist()));
 			}
 
-			if (StringUtils.isNotBlank(firstAudioTrack.getGenre())) {
+			if (isNotBlank(firstAudioTrack.getGenre())) {
 				addXMLTagAndAttribute(sb, "upnp:genre", encodeXML(firstAudioTrack.getGenre()));
 			}
 
@@ -1793,12 +1794,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param sb The StringBuilder to append the response to.
 	 */
 	private void appendThumbnail(RendererConfiguration mediaRenderer, StringBuilder sb) {
-		String thumbURL = getThumbnailURL();
+		final String thumbURL = getThumbnailURL();
+		final boolean addThumbnailAsResElement = isFolder() || mediaRenderer.getThumbNailAsResource() || mediaRenderer.isForceJPGThumbnails();
 
-		if (!isFolder() && (getFormat() == null || (getFormat() != null && thumbURL != null))) {
-			if (mediaRenderer.getThumbNailAsResource()) {
-				// Samsung 2012 (ES and EH) models do not recognize the "albumArtURI" element.
-				// Instead, the "res" element should be used.
+		if (isNotBlank(thumbURL)) {
+			if (addThumbnailAsResElement) {
+				// Samsung 2012 (ES and EH) models do not recognize the "albumArtURI" element. Instead,
+				// the "res" element should be used.
+				// Also use "res" when faking JPEG thumbs.
 				openTag(sb, "res");
 				addAttribute(sb, "resolution", getMedia().getResolution());
 
@@ -1816,7 +1819,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				openTag(sb, "upnp:albumArtURI");
 				addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
 
-				if (getThumbnailContentType().equals(PNG_TYPEMIME) && !mediaRenderer.isForceJPGThumbnails()) {
+				if (getThumbnailContentType().equals(PNG_TYPEMIME)) {
 					addAttribute(sb, "dlna:profileID", "PNG_TN");
 				} else {
 					addAttribute(sb, "dlna:profileID", "JPEG_TN");
@@ -1826,20 +1829,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				sb.append(thumbURL);
 				closeTag(sb, "upnp:albumArtURI");
 			}
-		}
-
-		if ((isFolder() || mediaRenderer.isForceJPGThumbnails()) && thumbURL != null) {
-			openTag(sb, "res");
-
-			if (getThumbnailContentType().equals(PNG_TYPEMIME) && !mediaRenderer.isForceJPGThumbnails()) {
-				addAttribute(sb, "protocolInfo", "http-get:*:image/png:DLNA.ORG_PN=PNG_TN");
-			} else {
-				addAttribute(sb, "protocolInfo", "http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_TN");
-			}
-
-			endTag(sb);
-			sb.append(thumbURL);
-			closeTag(sb, "res");
 		}
 	}
 
