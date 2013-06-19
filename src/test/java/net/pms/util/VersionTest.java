@@ -18,9 +18,8 @@
  */
 package net.pms.util;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
@@ -47,10 +46,10 @@ public class VersionTest {
 		assertFalse(v1.equals(null));
 		assertFalse(v2.equals(null));
 
-		assertThat(v1.hashCode(), is(v1.hashCode()));
-		assertThat(v2.hashCode(), is(v2.hashCode()));
-		assertThat(v1.hashCode(), is(v2.hashCode()));
-		assertThat(v2.hashCode(), is(v1.hashCode()));
+		assertThat(v1.hashCode()).isEqualTo(v1.hashCode());
+		assertThat(v2.hashCode()).isEqualTo(v2.hashCode());
+		assertThat(v1.hashCode()).isEqualTo(v2.hashCode());
+		assertThat(v2.hashCode()).isEqualTo(v1.hashCode());
 
 		assertFalse(v1.isGreaterThan(v1));
 		assertFalse(v2.isGreaterThan(v2));
@@ -89,8 +88,8 @@ public class VersionTest {
 		assertFalse(v1.equals(v2));
 		assertFalse(v2.equals(v1));
 
-		assertThat(v1.hashCode(), not(v2.hashCode()));
-		assertThat(v2.hashCode(), not(v1.hashCode()));
+		assertThat(v1.hashCode()).isNotEqualTo(v2.hashCode());
+		assertThat(v2.hashCode()).isNotEqualTo(v1.hashCode());
 	}
 
 	private void assertIsPmsUpdatable(Version v1, Version v2) {
@@ -105,7 +104,7 @@ public class VersionTest {
 	}
 
 	private void assertVersionToStringEquals(Version v, String s) {
-		assertThat(v.toString(), is(s));
+		assertThat(v.toString()).isEqualTo(s);
 	}
 
 	@Test
