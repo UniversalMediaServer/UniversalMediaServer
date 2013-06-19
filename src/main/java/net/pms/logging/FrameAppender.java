@@ -25,7 +25,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import net.pms.gui.IFrame;
+import net.pms.newgui.IFrame;
 
 /**
  * Special Logback appender to 'print' log messages on the PMS GUI.
