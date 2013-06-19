@@ -1,13 +1,17 @@
 package net.pms.util;
 
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.formats.v2.SubtitleType;
-import static org.apache.commons.lang3.StringUtils.*;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.endsWithIgnoreCase;
+import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 import static org.mozilla.universalchardet.Constants.*;
 import org.mozilla.universalchardet.UniversalDetector;
 import org.slf4j.Logger;
@@ -19,6 +23,27 @@ public class FileUtil {
 
 	public static File isFileExists(String f, String ext) {
 		return isFileExists(new File(f), ext);
+	}
+
+	/**
+	 * Returns the protocol of the supplied filename if it's a URI,
+	 * or <code>null</code> if it's not.
+	 *
+	 * @param filename the filename whose protocol is to be determined
+	 * @return the filename's protocol if it's a URI, or <code>null</code>
+	 * if it's not.
+	 */
+	public static String getProtocol(String filename) {
+		String protocol = null;
+
+		if (filename != null) {
+			try {
+				URI uri = new URI(filename.toLowerCase());
+				protocol = uri.getScheme();
+			} catch (URISyntaxException use) { }
+		}
+
+		return protocol;
 	}
 
 	public static String getExtension(String f) {

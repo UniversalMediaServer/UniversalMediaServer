@@ -73,22 +73,22 @@ public class TsMuxeRVideo extends Player {
 	}
 
 	@Override
-	public boolean excludeFormat(Format extension) {
-		String m = extension.getMatchedId();
-		return m != null &&
-			!m.equals("mp4") &&
-			!m.equals("mkv") &&
-			!m.equals("ts") &&
-			!m.equals("tp") &&
-			!m.equals("m2ts") &&
-			!m.equals("m2t") &&
-			!m.equals("mpg") &&
-			!m.equals("evo") &&
-			!m.equals("mpeg") &&
-			!m.equals("vob") &&
-			!m.equals("m2v") &&
-			!m.equals("mts") &&
-			!m.equals("mov");
+	public boolean excludeFormat(Format format) {
+		String extension = format.getMatchedExtension();
+		return extension != null
+			&& !extension.equals("mp4")
+			&& !extension.equals("mkv")
+			&& !extension.equals("ts")
+			&& !extension.equals("tp")
+			&& !extension.equals("m2ts")
+			&& !extension.equals("m2t")
+			&& !extension.equals("mpg")
+			&& !extension.equals("evo")
+			&& !extension.equals("mpeg")
+			&& !extension.equals("vob")
+			&& !extension.equals("m2v")
+			&& !extension.equals("mts")
+			&& !extension.equals("mov");
 	}
 
 	@Override

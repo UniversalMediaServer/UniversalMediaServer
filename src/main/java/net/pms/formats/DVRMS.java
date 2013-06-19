@@ -40,7 +40,7 @@ public class DVRMS extends Format {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public String[] getId() {
+	public String[] getSupportedExtensions() {
 		return new String[] {
 			"dvr",
 			"dvr-ms",

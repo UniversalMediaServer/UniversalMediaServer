@@ -98,20 +98,6 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			protocols.add("mms");
 			protocols.add("https");
 			LOGGER.debug("FFmpeg supported protocols: " + protocols);
-
-			// Register protocols as a WEB format
-			final String[] ffmpegProtocols = protocols.toArray(new String[0]);
-			FormatFactory.getExtensions().add(0, new WEB() {
-				@Override
-				public String[] getId() {
-					return ffmpegProtocols;
-				}
-
-				@Override
-				public String toString() {
-					return "FFMPEG.WEB";
-				}
-			});
 			init = true;
 		}
 	}

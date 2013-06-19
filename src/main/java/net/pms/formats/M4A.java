@@ -31,7 +31,7 @@ public class M4A extends OGG {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public String[] getId() {
+	public String[] getSupportedExtensions() {
 		return new String[] {
 			"aac",
 			"m4a",

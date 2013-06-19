@@ -46,7 +46,7 @@ public class MKV extends MPG {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public String[] getId() {
+	public String[] getSupportedExtensions() {
 		return new String[] {
 			"3g2",
 			"3gp",

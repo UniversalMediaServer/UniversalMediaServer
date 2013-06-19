@@ -1137,15 +1137,6 @@ public class PMS {
 		return server;
 	}
 
-	/**
-	 * @deprecated Use {@link net.pms.formats.FormatFactory#getExtensions()} instead.
-	 *
-	 * @return The list of formats. 
-	 */
-	public ArrayList<Format> getExtensions() {
-		return FormatFactory.getExtensions();
-	}
-
 	public void save() {
 		try {
 			configuration.save();

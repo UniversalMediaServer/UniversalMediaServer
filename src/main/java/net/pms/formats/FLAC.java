@@ -35,7 +35,7 @@ public class FLAC extends OGG {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public String[] getId() {
+	public String[] getSupportedExtensions() {
 		return new String[] {
 			"fla",
 			"flac",

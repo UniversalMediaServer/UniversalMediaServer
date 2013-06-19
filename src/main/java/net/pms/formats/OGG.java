@@ -36,7 +36,7 @@ public class OGG extends MP3 {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public String[] getId() {
+	public String[] getSupportedExtensions() {
 		return new String[] {
 			"aa3",
 			"aif",

@@ -44,7 +44,7 @@ public class MPG extends Format {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public String[] getId() {
+	public String[] getSupportedExtensions() {
 		return new String[] {
 			"avi",
 			"div",

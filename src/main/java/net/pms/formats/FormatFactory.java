@@ -21,6 +21,7 @@ package net.pms.formats;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,15 +37,28 @@ public final class FormatFactory {
 	/**
 	 * Initial list of known formats.
 	 */
-	private static final Format[] FORMATS = new Format[] { new WEB(),
-			new MKV(), new M4A(), new MP3(), new ISO(), new MPG(), new WAV(),
-			new JPG(), new OGG(), new PNG(), new GIF(), new TIF(), new FLAC(),
-			new DVRMS(), new RAW() };
+	private static final Format[] FORMATS = new Format[] {
+		new DVRMS(),
+		new FLAC(),
+		new GIF(),
+		new ISO(),
+		new JPG(),
+		new M4A(),
+		new MKV(),
+		new MP3(),
+		new MPG(),
+		new OGG(),
+		new PNG(),
+		new RAW(),
+		new TIF(),
+		new WAV(),
+		new WEB(),
+	};
 
 	/**
 	 * The list of registered formats.
 	 */
-	private static ArrayList<Format> formats = new ArrayList<>(Arrays.asList(FORMATS));
+	private static List<Format> formats = new ArrayList<>(Arrays.asList(FORMATS));
 	
 	/**
 	 * This class is not meant to be instantiated.
@@ -62,21 +76,22 @@ public final class FormatFactory {
 
 	/**
 	 * Match a given filename to all known formats and return a fresh instance
-	 * of that format. Matching is done by the extension (e.g. ".gif") or
+	 * of that format. Matching is done by the file extension (e.g. ".gif") or
 	 * protocol (e.g. "http://") of the filename. Will return <code>null</code>
 	 * if no match can be made.
 	 * 
 	 * @param filename The filename to match.
 	 * @return The format.
 	 * @see Format#match(String)
+	 * @since 1.90.0
 	 */
 	public static Format getAssociatedFormat(final String filename) {
-		for (Format ext : formats) {
-			if (ext.match(filename)) {
-				LOGGER.trace("Matched format " + ext + " to \"" + filename + "\"");
+		for (Format format : formats) {
+			if (format.match(filename)) {
+				LOGGER.trace("Matched format " + format + " to \"" + filename + "\"");
 
 				// Return a fresh instance
-				return ext.duplicate();
+				return format.duplicate();
 			}
 		}
 
@@ -85,21 +100,22 @@ public final class FormatFactory {
 	}
 
 	/**
-	 * Returns the list of known formats.
+	 * Returns the list of supported formats.
 	 *
-	 * @return The list of known formats.
+	 * @return The list of supported formats.
+	 * @since 1.90.0
 	 */
-	public static ArrayList<Format> getExtensions() {
+	public static List<Format> getSupportedFormats() {
 		return formats;
 	}
 
 	/**
 	 * Sets the list of known formats.
 	 *
-	 * @param formatList The list of known formats.
+	 * @param formatList The list of supported formats.
+	 * @since 1.90.0
 	 */
-	public static void setExtensions(ArrayList<Format> formatList) {
+	public static void setFormats(List<Format> formatList) {
 		formats = formatList;
 	}
 }
-

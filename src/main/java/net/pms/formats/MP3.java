@@ -35,7 +35,7 @@ public class MP3 extends Format {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public String[] getId() {
+	public String[] getSupportedExtensions() {
 		return new String[] { "mp3" };
 	}
 
