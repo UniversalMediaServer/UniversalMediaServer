@@ -1902,14 +1902,11 @@ public class PmsConfiguration {
 				"tsmuxer",
 				"ffmpegvideo",
 				"ffmpegaudio",
-				"mplayeraudio",
 				"tsmuxeraudio",
 				"ffmpegwebvideo",
 				"vlcwebvideo", // (VLCWebVideo)
 				"vlcvideo", // (VideoLanVideoStreaming) TODO (legacy web video engine): remove
 				"mencoderwebvideo",
-				"mplayervideodump",
-				"mplayerwebaudio",
 				"vlcaudio", // (VideoLanAudioStreaming) TODO (legacy web audio engine): remove
 				"ffmpegdvrmsremux",
 				"rawthumbs"

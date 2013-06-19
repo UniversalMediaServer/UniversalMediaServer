@@ -27,8 +27,8 @@ import jwbroek.cuelib.*;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.Range.Time;
+import net.pms.encoders.FFmpegAudio;
 import net.pms.encoders.MEncoderVideo;
-import net.pms.encoders.MPlayerAudio;
 import net.pms.encoders.Player;
 import net.pms.formats.Format;
 import org.apache.commons.lang3.StringUtils;
@@ -139,12 +139,12 @@ public class CueFolder extends DLNAResource {
 									LOGGER.error("No file format known for file \"{}\", assuming it is a video for now.", r.getName());
 									// XXX aren't players supposed to be singletons?
 									// NOTE: needs new signature for getPlayer():
-									// PlayerFactory.getPlayer(MEncoderVideo.class)
+									// TODO PlayerFactory.getPlayer(MEncoderVideo.class)
 									defaultPlayer = new MEncoderVideo(configuration);
 								} else {
 									if (r.getFormat().isAudio()) {
-										// XXX PlayerFactory.getPlayer(MPlayerAudio.class)
-										defaultPlayer = new MPlayerAudio(configuration);
+										// TODO XXX PlayerFactory.getPlayer(MPlayerAudio.class)
+										defaultPlayer = new FFmpegAudio(configuration);
 									} else {
 										// XXX PlayerFactory.getPlayer(MEncoderVideo.class)
 										defaultPlayer = new MEncoderVideo(configuration);
