@@ -657,9 +657,11 @@ public class PmsConfiguration {
 
 	/**
 	 * The TCP/IP port number for a proxy server. Default value is -1.
-	 * TODO: Is this still used?
+	 *
 	 * @return The proxy port number.
 	 */
+	// no longer used
+	@Deprecated
 	public int getProxyServerPort() {
 		return getInt(KEY_PROXY_SERVER_PORT, DEFAULT_PROXY_SERVER_PORT);
 	}
