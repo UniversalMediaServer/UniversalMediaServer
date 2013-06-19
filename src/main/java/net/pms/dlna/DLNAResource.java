@@ -968,9 +968,22 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return false;
 	}
 
+	/**
+	 * @deprecated Use {@link #resolveFormat()} instead.
+	 */
+	@Deprecated
 	protected void checktype() {
+		resolveFormat();
+	}
+
+	/**
+	 * Sets the resource's {@link net.pms.formats.Format} according to its filename
+	 * if it isn't set already.
+	 * @since 1.90.0
+	 */
+	protected void resolveFormat() {
 		if (getFormat() == null) {
-			setFormat(FormatFactory.getAssociatedExtension(getSystemName()));
+			setFormat(FormatFactory.getAssociatedFormat(getSystemName()));
 		}
 
 		if (getFormat() != null && getFormat().isUnknown()) {

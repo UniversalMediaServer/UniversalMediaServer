@@ -119,64 +119,78 @@ public class CueFolder extends DLNAResource {
 							LOGGER.debug("Track #" + i + " split range: " + prec.getSplitRange().getStartOrZero() + " - " + prec.getSplitRange().getDuration());
 						}
 						Position start = track.getIndices().get(0).getPosition();
-						RealFile r = new RealFile(new File(playlistfile.getParentFile(), f.getFile()));
-						addChild(r);
-						addedResources.add(r);
-						if (i > 0 && r.getMedia() == null) {
-							r.setMedia(new DLNAMediaInfo());
-							r.getMedia().setMediaparsed(true);
-						}
-						r.resolve();
-						if (i == 0) {
-							originalMedia = r.getMedia();
-						}
-						r.getSplitRange().setStart(getTime(start));
-						r.setSplitTrack(i + 1);
+						RealFile realFile = new RealFile(new File(playlistfile.getParentFile(), f.getFile()));
+						addChild(realFile);
+						addedResources.add(realFile);
 
-						if (r.getPlayer() == null) { // assign a splitter engine if file is natively supported by renderer
+						if (i > 0 && realFile.getMedia() == null) {
+							realFile.setMedia(new DLNAMediaInfo());
+							realFile.getMedia().setMediaparsed(true);
+						}
+						realFile.resolve();
+						if (i == 0) {
+							originalMedia = realFile.getMedia();
+						}
+						realFile.getSplitRange().setStart(getTime(start));
+						realFile.setSplitTrack(i + 1);
+
+						// Assign a splitter engine if file is natively supported by renderer
+						if (realFile.getPlayer() == null) {
 							if (defaultPlayer == null) {
-								if (r.getFormat() == null) {
-									LOGGER.error("No file format known for file \"{}\", assuming it is a video for now.", r.getName());
-									// XXX aren't players supposed to be singletons?
-									// NOTE: needs new signature for getPlayer():
-									// TODO PlayerFactory.getPlayer(MEncoderVideo.class)
+								/*
+									XXX why are we creating new player instances? aren't they
+									supposed to be singletons?
+
+									TODO don't hardwire the player here; leave it to the
+									player factory to select the right player for the
+									resource's format e.g:
+
+										defaultPlayer = PlayerFactory.getPlayer(realFile);
+								*/
+								if (realFile.getFormat() == null) {
+									LOGGER.error("No file format known for file \"{}\", assuming it is a video for now.", realFile.getName());
+									/*
+										TODO (see above):
+
+											r.resolveFormat(); // sets the format based on the filename
+											defaultPlayer = PlayerFactory.getPlayer(realFile);
+									*/
 									defaultPlayer = new MEncoderVideo(configuration);
 								} else {
-									if (r.getFormat().isAudio()) {
-										// TODO XXX PlayerFactory.getPlayer(MPlayerAudio.class)
+									if (realFile.getFormat().isAudio()) {
 										defaultPlayer = new FFmpegAudio(configuration);
 									} else {
-										// XXX PlayerFactory.getPlayer(MEncoderVideo.class)
 										defaultPlayer = new MEncoderVideo(configuration);
 									}
 								}
 							}
 
-							r.setPlayer(defaultPlayer);
+							realFile.setPlayer(defaultPlayer);
 						}
 
-						if (r.getMedia() != null) {
+						if (realFile.getMedia() != null) {
 							try {
-								r.setMedia((DLNAMediaInfo) originalMedia.clone());
+								realFile.setMedia((DLNAMediaInfo) originalMedia.clone());
 							} catch (CloneNotSupportedException e) {
 								LOGGER.info("Error in cloning media info: " + e.getMessage());
 							}
-							if (r.getMedia() != null && r.getMedia().getFirstAudioTrack() != null) {
-								if (r.getFormat().isAudio()) {
-									r.getMedia().getFirstAudioTrack().setSongname(track.getTitle());
+
+							if (realFile.getMedia() != null && realFile.getMedia().getFirstAudioTrack() != null) {
+								if (realFile.getFormat().isAudio()) {
+									realFile.getMedia().getFirstAudioTrack().setSongname(track.getTitle());
 								} else {
-									r.getMedia().getFirstAudioTrack().setSongname("Chapter #" + (i + 1));
+									realFile.getMedia().getFirstAudioTrack().setSongname("Chapter #" + (i + 1));
 								}
-								r.getMedia().getFirstAudioTrack().setTrack(i + 1);
-								r.getMedia().setSize(-1);
+								realFile.getMedia().getFirstAudioTrack().setTrack(i + 1);
+								realFile.getMedia().setSize(-1);
 								if (StringUtils.isNotBlank(sheet.getTitle())) {
-									r.getMedia().getFirstAudioTrack().setAlbum(sheet.getTitle());
+									realFile.getMedia().getFirstAudioTrack().setAlbum(sheet.getTitle());
 								}
 								if (StringUtils.isNotBlank(sheet.getPerformer())) {
-									r.getMedia().getFirstAudioTrack().setArtist(sheet.getPerformer());
+									realFile.getMedia().getFirstAudioTrack().setArtist(sheet.getPerformer());
 								}
 								if (StringUtils.isNotBlank(track.getPerformer())) {
-									r.getMedia().getFirstAudioTrack().setArtist(track.getPerformer());
+									realFile.getMedia().getFirstAudioTrack().setArtist(track.getPerformer());
 								}
 							}
 

@@ -53,6 +53,14 @@ public final class FormatFactory {
 	}
 
 	/**
+	 * @deprecated Use {@link #getAssociatedFormat(String)} instead.
+	 */
+	@Deprecated
+	public static Format getAssociatedExtension(final String filename) {
+		return getAssociatedFormat(filename);
+	}
+
+	/**
 	 * Match a given filename to all known formats and return a fresh instance
 	 * of that format. Matching is done by the extension (e.g. ".gif") or
 	 * protocol (e.g. "http://") of the filename. Will return <code>null</code>
@@ -62,7 +70,7 @@ public final class FormatFactory {
 	 * @return The format.
 	 * @see Format#match(String)
 	 */
-	public static Format getAssociatedExtension(final String filename) {
+	public static Format getAssociatedFormat(final String filename) {
 		for (Format ext : formats) {
 			if (ext.match(filename)) {
 				LOGGER.trace("Matched format " + ext + " to \"" + filename + "\"");

@@ -49,7 +49,7 @@ public class RealFile extends MapFile {
 	// FIXME: this is called repeatedly for invalid files e.g. files MediaInfo can't parse
 	public boolean isValid() {
 		File file = this.getFile();
-		checktype();
+		resolveFormat();
 		if (getType() == Format.VIDEO && file.exists() && configuration.isAutoloadExternalSubtitles() && file.getName().length() > 4) {
 			setSrtFile(FileUtil.isSubtitlesExists(file, null));
 		}
@@ -138,12 +138,12 @@ public class RealFile extends MapFile {
 	}
 
 	@Override
-	protected void checktype() {
+	protected void resolveFormat() {
 		if (getFormat() == null) {
-			setFormat(FormatFactory.getAssociatedExtension(getFile().getAbsolutePath()));
+			setFormat(FormatFactory.getAssociatedFormat(getFile().getAbsolutePath()));
 		}
 
-		super.checktype();
+		super.resolveFormat();
 	}
 
 	@Override

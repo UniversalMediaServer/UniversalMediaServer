@@ -1026,15 +1026,15 @@ public class PMS {
 	}
 
 	/**
-	 * @deprecated Use {@link net.pms.formats.FormatFactory#getAssociatedExtension(String)}
+	 * @deprecated Use {@link net.pms.formats.FormatFactory#getAssociatedFormat(String)}
 	 * instead.
 	 *
 	 * @param filename
 	 * @return The format.
 	 */
 	@Deprecated
-	public Format getAssociatedExtension(String filename) {
-		return FormatFactory.getAssociatedExtension(filename);
+	public Format getAssociatedFormat(String filename) {
+		return FormatFactory.getAssociatedFormat(filename);
 	}
 
 	public static void main(String args[]) throws IOException, ConfigurationException {

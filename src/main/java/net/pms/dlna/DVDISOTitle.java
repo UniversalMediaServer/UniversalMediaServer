@@ -250,7 +250,7 @@ public class DVDISOTitle extends DLNAResource {
 	@Override
 	public boolean isValid() {
 		if (getFormat() == null) {
-			setFormat(FormatFactory.getAssociatedExtension("dummy.iso"));
+			setFormat(FormatFactory.getAssociatedFormat("dummy.iso"));
 		}
 		return true;
 	}
