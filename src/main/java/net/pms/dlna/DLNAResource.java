@@ -1803,7 +1803,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				// the "res" element should be used.
 				// Also use "res" when faking JPEG thumbs.
 				openTag(sb, "res");
-				addAttribute(sb, "resolution", getMedia().getResolution());
 
 				if (getThumbnailContentType().equals(PNG_TYPEMIME) && !mediaRenderer.isForceJPGThumbnails()) {
 					addAttribute(sb, "protocolInfo", "http-get:*:image/png:DLNA.ORG_PN=PNG_TN");
