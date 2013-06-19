@@ -4,6 +4,7 @@ import com.sun.jna.Platform;
 import java.io.File;
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -19,7 +20,6 @@ import net.pms.network.HTTPResource;
 import net.pms.network.SpeedStats;
 import net.pms.util.PropertiesUtil;
 import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.ConversionException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -126,7 +126,9 @@ public class RendererConfiguration {
 			LOGGER.info("Loading renderer configurations from " + renderersDir.getAbsolutePath());
 
 			File[] confs = renderersDir.listFiles();
+			Arrays.sort(confs);
 			int rank = 1;
+
 			for (File f : confs) {
 				if (f.getName().endsWith(".conf")) {
 					try {
@@ -142,7 +144,6 @@ public class RendererConfiguration {
 					} catch (ConfigurationException ce) {
 						LOGGER.info("Error in loading configuration of: " + f.getAbsolutePath());
 					}
-
 				}
 			}
 		}
