@@ -1120,6 +1120,7 @@ public class PMS {
 			);
 
 			System.err.println(errorMessage);
+			t.printStackTrace();
 
 			if (!headless && instance != null) {
 				JOptionPane.showMessageDialog(

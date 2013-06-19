@@ -332,22 +332,26 @@ public class TranscodingTab {
 		}
 
 		for (Player p : ordPlayers) {
-			TreeNodeSettings en = new TreeNodeSettings(p.name(), p, null);
+			TreeNodeSettings engine = new TreeNodeSettings(p.name(), p, null);
+
 			if (disPlayers.contains(p)) {
-				en.setEnable(false);
+				engine.setEnable(false);
 			}
-			JComponent jc = en.getConfigPanel();
+
+			JComponent jc = engine.getConfigPanel();
 			if (jc == null) {
 				jc = buildEmpty();
 			}
+
 			jc.addComponentListener(new ComponentAdapter() {
 				@Override
 				public void componentShown(ComponentEvent e) {
 					handleCardComponentChange(e.getComponent());
 				}
 			});
-			tabbedPanel.add(en.id(), jc);
-			parent[p.purpose()].add(en);
+
+			tabbedPanel.add(engine.id(), jc);
+			parent[p.purpose()].add(engine);
 		}
 
 		for (int i = 0; i < tree.getRowCount(); i++) {

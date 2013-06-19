@@ -1891,10 +1891,8 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * TODO this should use Player.id() instead of hardwiring the identifiers
-	 * TODO rather than loading the players here, this should delegate
-	 * to (or solely be implemented in) PlayerFactory
-	 * TODO the registry parameter (a "hack" for AviSynth) should be removed
+	 * TODO look at the changes that were made to this in PMS and if they seem
+	 * stable, merge them.
 	 */
 	public List<String> getEnginesAsList(SystemUtils registry) {
 		String defaultEngines = StringUtils.join(
