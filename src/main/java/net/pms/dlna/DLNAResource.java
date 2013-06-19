@@ -2378,26 +2378,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * @deprecated Use {@link #getFormat()} instead.
-	 *
-	 * @return The format of this resource.
-	 */
-	@Deprecated
-	public Format getExt() {
-		return getFormat();
-	}
-
-	/**
-	 * @deprecated Use {@link #setFormat(Format)} instead.
-	 *
-	 * @param format The format to set.
-	 */
-	@Deprecated
-	protected void setExt(Format format) {
-		setFormat(format);
-	}
-
-	/**
 	 * Returns the {@link DLNAMediaInfo} object for this resource, containing the
 	 * specifics of this resource, e.g. the duration.
 	 *
