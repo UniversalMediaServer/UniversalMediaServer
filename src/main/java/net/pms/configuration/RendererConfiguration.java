@@ -34,6 +34,7 @@ public class RendererConfiguration {
 
 	private RootFolder rootFolder;
 	private final PropertiesConfiguration configuration;
+	private final ConfigurationReader configurationReader;
 	private FormatConfiguration formatConfiguration;
 	private int rank;
 	private final Map<String, String> mimes;
@@ -159,6 +160,31 @@ public class RendererConfiguration {
 				}
 			}
 		}
+	}
+
+	private int getInt(String key, int def) {
+		return configurationReader.getInt(key, def);
+	}
+
+	private long getLong(String key, int def) {
+		return configurationReader.getLong(key, def);
+	}
+
+	private boolean getBoolean(String key, boolean def) {
+		return configurationReader.getBoolean(key, def);
+	}
+
+	/**
+	 * Return the <code>String</code> value for a given configuration key if the
+	 * value is non-blank (i.e. not null, not an empty string, not all whitespace).
+	 * Otherwise return the supplied default value.
+	 * The value is returned with leading and trailing whitespace removed in both cases.
+	 * @param key The key to look up.
+	 * @param def The default value to return when no valid key value can be found.
+	 * @return The value configured for the key.
+	 */
+	private String getString(String key, String def) {
+		return configurationReader.getString(key, def);
 	}
 
 	/**
@@ -371,6 +397,11 @@ public class RendererConfiguration {
 
 	public RendererConfiguration(File f) throws ConfigurationException {
 		configuration = new PropertiesConfiguration();
+
+		// false: don't log overrides (every renderer conf
+		// overrides multiple settings)
+		configurationReader = new ConfigurationReader(configuration, false);
+
 		configuration.setListDelimiter((char) 0);
 
 		if (f != null) {
@@ -416,7 +447,7 @@ public class RendererConfiguration {
 		}
 
 		if (f == null) {
-			// the default renderer supports everything !
+			// The default renderer supports everything!
 			configuration.addProperty(MEDIAPARSERV2, true);
 			configuration.addProperty(MEDIAPARSERV2_THUMB, true);
 			configuration.addProperty(SUPPORTED, "f:.+");
@@ -947,43 +978,6 @@ public class RendererConfiguration {
 	 */
 	public String getSubtitleHttpHeader() {
 		return getString(SUBTITLE_HTTP_HEADER, "");
-	}
-
-	private int getInt(String key, int def) {
-		try {
-			return configuration.getInt(key, def);
-		} catch (ConversionException e) {
-			return def;
-		}
-	}
-
-	private long getLong(String key, int def) {
-		try {
-			return configuration.getLong(key, def);
-		} catch (ConversionException e) {
-			return def;
-		}
-	}
-
-	private boolean getBoolean(String key, boolean def) {
-		try {
-			return configuration.getBoolean(key, def);
-		} catch (ConversionException e) {
-			return def;
-		}
-	}
-
-	/**
-	 * Return the <code>String</code> value for a given configuration key if the
-	 * value is non-blank (i.e. not null, not an empty string, not all whitespace).
-	 * Otherwise return the supplied default value.
-	 * The value is returned with leading and trailing whitespace removed in both cases.
-	 * @param key The key to look up.
-	 * @param def The default value to return when no valid key value can be found.
-	 * @return The value configured for the key.
-	 */
-	private String getString(String key, String def) {
-		return ConfigurationUtil.getNonBlankConfigurationString(configuration, key, def);
 	}
 
 	@Override

@@ -239,6 +239,7 @@ public class PmsConfiguration {
 	private static final char LIST_SEPARATOR = ',';
 	private static final String KEY_FOLDERS = "folders";
 	private final PropertiesConfiguration configuration;
+	private final ConfigurationReader configurationReader;
 	private final TempFolder tempFolder;
 	private final ProgramPathDisabler programPaths;
 
@@ -425,6 +426,7 @@ public class PmsConfiguration {
 	 */
 	public PmsConfiguration(boolean loadFile) throws ConfigurationException {
 		configuration = new PropertiesConfiguration();
+		configurationReader = new ConfigurationReader(configuration, true); // true: log
 		configuration.setListDelimiter((char) 0);
 
 		if (loadFile) {
@@ -476,6 +478,62 @@ public class PmsConfiguration {
 			new ConfigurationProgramPaths(configuration,
 			new WindowsRegistryProgramPaths(
 			new PlatformSpecificDefaultPathsFactory().get())));
+	}
+
+	/**
+	 * Return the <code>int</code> value for a given configuration key. First, the key
+	 * is looked up in the current configuration settings. If it exists and contains a
+	 * valid value, that value is returned. If the key contains an invalid value or
+	 * cannot be found, the specified default value is returned.
+	 * @param key The key to look up.
+	 * @param def The default value to return when no valid key value can be found.
+	 * @return The value configured for the key.
+	 */
+	private int getInt(String key, int def) {
+		return configurationReader.getInt(key, def);
+	}
+
+	/**
+	 * Return the <code>boolean</code> value for a given configuration key. First, the
+	 * key is looked up in the current configuration settings. If it exists and contains
+	 * a valid value, that value is returned. If the key contains an invalid value or
+	 * cannot be found, the specified default value is returned.
+	 * @param key The key to look up.
+	 * @param def The default value to return when no valid key value can be found.
+	 * @return The value configured for the key.
+	 */
+	private boolean getBoolean(String key, boolean def) {
+		return configurationReader.getBoolean(key, def);
+	}
+
+	/**
+	 * Return the <code>String</code> value for a given configuration key if the
+	 * value is non-blank (i.e. not null, not an empty string, not all whitespace).
+	 * Otherwise return the supplied default value.
+	 * The value is returned with leading and trailing whitespace removed in both cases.
+	 * @param key The key to look up.
+	 * @param def The default value to return when no valid key value can be found.
+	 * @return The value configured for the key.
+	 */
+	private String getString(String key, String def) {
+		return configurationReader.getNonBlankConfigurationString(key, def);
+	}
+
+	/**
+	 * Return a <code>List</code> of <code>String</code> values for a given configuration
+	 * key. First, the key is looked up in the current configuration settings. If it
+	 * exists and contains a valid value, that value is returned. If the key contains an
+	 * invalid value or cannot be found, a list with the specified default values is
+	 * returned.
+	 * @param key The key to look up.
+	 * @param def The default values to return when no valid key value can be found.
+	 *            These values should be entered as a comma-separated string. Whitespace
+	 *            will be trimmed. For example: <code>"gnu,    gnat  ,moo "</code> will be
+	 *            returned as <code>{ "gnu", "gnat", "moo" }</code>.
+	 * @return The list of value strings configured for the key.
+	 */
+	private List<String> getStringList(String key, String def) {
+		return configurationReader.getStringList(key, def);
 	}
 
 	public File getTempFolder() throws IOException {
@@ -619,82 +677,6 @@ public class PmsConfiguration {
 		}
 
 		return getString(KEY_LANGUAGE, def);
-	}
-
-	/**
-	 * Return the <code>int</code> value for a given configuration key. First, the key
-	 * is looked up in the current configuration settings. If it exists and contains a
-	 * valid value, that value is returned. If the key contains an invalid value or
-	 * cannot be found, the specified default value is returned.
-	 * @param key The key to look up.
-	 * @param def The default value to return when no valid key value can be found.
-	 * @return The value configured for the key.
-	 */
-	private int getInt(String key, int def) {
-		try {
-			return configuration.getInt(key, def);
-		} catch (ConversionException e) {
-			return def;
-		}
-	}
-
-	/**
-	 * Return the <code>boolean</code> value for a given configuration key. First, the
-	 * key is looked up in the current configuration settings. If it exists and contains
-	 * a valid value, that value is returned. If the key contains an invalid value or
-	 * cannot be found, the specified default value is returned.
-	 * @param key The key to look up.
-	 * @param def The default value to return when no valid key value can be found.
-	 * @return The value configured for the key.
-	 */
-	private boolean getBoolean(String key, boolean def) {
-		try {
-			return configuration.getBoolean(key, def);
-		} catch (ConversionException e) {
-			return def;
-		}
-	}
-
-	/**
-	 * Return the <code>String</code> value for a given configuration key if the
-	 * value is non-blank (i.e. not null, not an empty string, not all whitespace).
-	 * Otherwise return the supplied default value.
-	 * The value is returned with leading and trailing whitespace removed in both cases.
-	 * @param key The key to look up.
-	 * @param def The default value to return when no valid key value can be found.
-	 * @return The value configured for the key.
-	 */
-	private String getString(String key, String def) {
-		return ConfigurationUtil.getNonBlankConfigurationString(configuration, key, def);
-	}
-
-	/**
-	 * Return a <code>List</code> of <code>String</code> values for a given configuration
-	 * key. First, the key is looked up in the current configuration settings. If it
-	 * exists and contains a valid value, that value is returned. If the key contains an
-	 * invalid value or cannot be found, a list with the specified default values is
-	 * returned.
-	 * @param key The key to look up.
-	 * @param def The default values to return when no valid key value can be found.
-	 *            These values should be entered as a comma-separated string, whitespace
-	 *            will be trimmed. For example: <code>"gnu,    gnat  ,moo "</code> will be
-	 *            returned as <code>{ "gnu", "gnat", "moo" }</code>.
-	 * @return The list of value strings configured for the key.
-	 */
-	private List<String> getStringList(String key, String def) {
-		String value = getString(key, def);
-		if (value != null) {
-			String[] arr = value.split(",");
-			List<String> result = new ArrayList<>(arr.length);
-			for (String str : arr) {
-				if (str.trim().length() > 0) {
-					result.add(str.trim());
-				}
-			}
-			return result;
-		} else {
-			return Collections.emptyList();
-		}
 	}
 
 	/**
@@ -986,7 +968,10 @@ public class PmsConfiguration {
 	 * @return The audio language priority string.
 	 */
 	public String getAudioLanguages() {
-		return ConfigurationUtil.getPossiblyBlankConfigurationString(configuration, KEY_AUDIO_LANGUAGES, Messages.getString("MEncoderVideo.126"));
+		return configurationReader.getPossiblyBlankConfigurationString(
+			KEY_AUDIO_LANGUAGES,
+			Messages.getString("MEncoderVideo.126")
+		);
 	}
 
 	/**
@@ -999,7 +984,10 @@ public class PmsConfiguration {
 	 * @return The subtitle language priority string.
 	 */
 	public String getSubtitlesLanguages() {
-		return ConfigurationUtil.getPossiblyBlankConfigurationString(configuration, KEY_SUBTITLES_LANGUAGES, Messages.getString("MEncoderVideo.127"));
+		return configurationReader.getPossiblyBlankConfigurationString(
+			KEY_SUBTITLES_LANGUAGES,
+			Messages.getString("MEncoderVideo.127")
+		);
 	}
 
 	/**
@@ -1009,7 +997,10 @@ public class PmsConfiguration {
 	 * @return The subtitle language code.
 	 */
 	public String getForcedSubtitleLanguage() {
-		return ConfigurationUtil.getPossiblyBlankConfigurationString(configuration, KEY_FORCED_SUBTITLE_LANGUAGE, getLanguage());
+		return configurationReader.getPossiblyBlankConfigurationString(
+			KEY_FORCED_SUBTITLE_LANGUAGE,
+			getLanguage()
+		);
 	}
 
 	/**
@@ -1032,8 +1023,7 @@ public class PmsConfiguration {
 	 * @return The audio and subtitle languages priority string.
 	 */
 	public String getAudioSubLanguages() {
-		return ConfigurationUtil.getPossiblyBlankConfigurationString(
-			configuration,
+		return configurationReader.getPossiblyBlankConfigurationString(
 			KEY_AUDIO_SUB_LANGS,
 			Messages.getString("MEncoderVideo.128")
 		);
@@ -1929,8 +1919,7 @@ public class PmsConfiguration {
 		List<String> engines = stringToList(
 			// Possibly blank: An empty string means: disable all engines
 			// http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=15416
-			ConfigurationUtil.getPossiblyBlankConfigurationString(
-				configuration,
+			configurationReader.getPossiblyBlankConfigurationString(
 				KEY_ENGINES,
 				defaultEngines
 			)
@@ -2283,7 +2272,7 @@ public class PmsConfiguration {
 	}
 
 	public Object getCustomProperty(String property) {
-		return configuration.getProperty(property);
+		return configurationReader.getCustomProperty(property);
 	}
 
 	public void setCustomProperty(String property, Object value) {
