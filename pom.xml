@@ -170,13 +170,6 @@
 			</snapshots>
 		</repository>
 
-		<!-- JUnRar by Edmund Wagner -->
-		<repository>
-			<id>JUnRar mirror repository</id>
-			<name>JUnRar mirror repository</name>
-			<url>https://junrar-repository.googlecode.com/svn/deploy/</url>
-		</repository>
-
 		<!-- for jai-imageio-core-standalone, which is used by Thumbnailator -->
 		<repository>
 			<releases />
