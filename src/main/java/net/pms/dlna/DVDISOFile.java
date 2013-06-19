@@ -35,7 +35,22 @@ public class DVDISOFile extends VirtualFolder {
 	@Override
 	public void resolve() {
 		double titles[] = new double[100];
-		String cmd[] = new String[]{configuration.getMplayerPath(), "-identify", "-endpos", "0", "-v", "-ao", "null", "-vc", "null", "-vo", "null", "-dvd-device", ProcessUtil.getShortFileNameIfWideChars(f.getAbsolutePath()), "dvd://1"};
+		String cmd[] = new String[]{
+			configuration.getMplayerPath(),
+			"-identify",
+			"-endpos",
+			"0",
+			"-v",
+			"-ao",
+			"null",
+			"-vc",
+			"null",
+			"-vo",
+			"null",
+			"-dvd-device",
+			ProcessUtil.getShortFileNameIfWideChars(f.getAbsolutePath()),
+			"dvd://1"
+		};
 		OutputParams params = new OutputParams(configuration);
 		params.maxBufferSize = 1;
 		params.log = true;

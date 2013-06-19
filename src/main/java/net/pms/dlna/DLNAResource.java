@@ -77,6 +77,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	protected static final int MAX_ARCHIVE_SIZE_SEEK = 800000000;
 
 	/**
+	 * The name displayed on the renderer. Cached the first time getDisplayName(RendererConfiguration) is called.
+	 */
+	private String displayName;
+
+	/**
 	 * @deprecated This field will be removed. Use {@link net.pms.configuration.PmsConfiguration#getTranscodeFolderName()} instead.
 	 */
 	@Deprecated
@@ -1019,7 +1024,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return String representing the item.
 	 */
 	public String getDisplayName(RendererConfiguration mediaRenderer) {
-		String name = getName();
+		if (displayName != null) { // cached
+			return displayName;
+		}
+
+		displayName = getName();
 		String subtitleFormat;
 		String subtitleLanguage;
 		boolean isNamedNoEncoding = false;
@@ -1032,31 +1041,31 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			!isFolder()
 		) {
 			if (configuration.isPrettifyFilenames()) {
-				name = FileUtil.getFileNameWithRewriting(name);
+				displayName = FileUtil.getFileNameWithRewriting(displayName);
 			} else {
-				name = FileUtil.getFileNameWithoutExtension(name);
+				displayName = FileUtil.getFileNameWithoutExtension(displayName);
 			}
 		}
 
 		if (getPlayer() != null) {
 			if (isNoName()) {
-				name = "[" + getPlayer().name() + "]";
+				displayName = "[" + getPlayer().name() + "]";
 			} else {
 				// Ditlew - WDTV Live don't show durations otherwise, and this is useful for finding the main title
 				if (mediaRenderer != null && mediaRenderer.isShowDVDTitleDuration() && getMedia() != null && getMedia().getDvdtrack() > 0) {
-					name += " - " + getMedia().getDurationString();
+					displayName += " - " + getMedia().getDurationString();
 				}
 
 				if (!configuration.isHideEngineNames()) {
-					name += " [" + getPlayer().name() + "]";
+					displayName += " [" + getPlayer().name() + "]";
 				}
 			}
 		} else {
 			if (isNoName()) {
-				name = "[No encoding]";
+				displayName = "[No encoding]";
 				isNamedNoEncoding = true;
 			} else if (nametruncate > 0) {
-				name = name.substring(0, nametruncate).trim();
+				displayName = displayName.substring(0, nametruncate).trim();
 			}
 		}
 
@@ -1073,7 +1082,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			) &&
 			!configuration.hideSubInfo()
 		) {
-			name += " {External Subtitles}";
+			displayName += " {External Subtitles}";
 		}
 
 		if (getMediaAudio() != null) {
@@ -1082,7 +1091,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				audioLanguage = "";
 			}
 
-			name = (getPlayer() != null ? ("[" + getPlayer().name() + "]") : "") + " {Audio: " + getMediaAudio().getAudioCodec() + audioLanguage + ((getMediaAudio().getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowAudioMetadata()) ? (" (" + getMediaAudio().getFlavor() + ")") : "") + "}";
+			displayName = (getPlayer() != null ? ("[" + getPlayer().name() + "]") : "") + " {Audio: " + getMediaAudio().getAudioCodec() + audioLanguage + ((getMediaAudio().getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowAudioMetadata()) ? (" (" + getMediaAudio().getFlavor() + ")") : "") + "}";
 		}
 
 		if (
@@ -1100,18 +1109,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				subtitleLanguage = "";
 			}
 
-			name += " {Sub: " + subtitleFormat + subtitleLanguage + ((getMediaSubtitle().getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowSubMetadata()) ? (" (" + getMediaSubtitle().getFlavor() + ")") : "") + "}";
+			displayName += " {Sub: " + subtitleFormat + subtitleLanguage + ((getMediaSubtitle().getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowSubMetadata()) ? (" (" + getMediaSubtitle().getFlavor() + ")") : "") + "}";
 		}
 
 		if (isAvisynth()) {
-			name = (getPlayer() != null ? ("[" + getPlayer().name()) : "") + " + AviSynth]";
+			displayName = (getPlayer() != null ? ("[" + getPlayer().name()) : "") + " + AviSynth]";
 		}
 
 		if (getSplitRange().isEndLimitAvailable()) {
-			name = ">> " + DLNAMediaInfo.getDurationString(getSplitRange().getStart());
+			displayName = ">> " + DLNAMediaInfo.getDurationString(getSplitRange().getStart());
 		}
 
-		return name;
+		return displayName;
 	}
 
 	/**
