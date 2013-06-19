@@ -32,12 +32,12 @@ import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import org.apache.commons.io.FileUtils;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.h2.engine.Constants;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.jdbcx.JdbcDataSource;
-import org.h2.store.fs.FileUtils;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.RunScript;
 import org.h2.tools.Script;
@@ -125,9 +125,11 @@ public class DLNAMediaDatabase implements Runnable {
 		try {
 			conn = getConnection();
 		} catch (SQLException se) {
-			if (FileUtils.exists(dbDir + File.separator + dbName + ".data.db") || (se.getErrorCode() == 90048)) { // Cache is corrupt or wrong version, so delete it
-				FileUtils.deleteRecursive(dbDir, true);
-				if (!FileUtils.exists(dbDir)) {
+			final File dbFile = new File(dbDir + File.separator + dbName + ".data.db");
+			final File dbDirectory = new File(dbDir);
+			if (dbFile.exists() || (se.getErrorCode() == 90048)) { // Cache is corrupt or a wrong version, so delete it
+				FileUtils.deleteQuietly(dbDirectory);
+				if (!dbDirectory.exists()) {
 					LOGGER.debug("The cache has been deleted because it was corrupt or had the wrong version");
 				} else {
 					if (!net.pms.PMS.isHeadless()) {
