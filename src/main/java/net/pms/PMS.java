@@ -549,7 +549,7 @@ public class PMS {
 		 *
 		 * XXX an event bus (e.g. MBassador or Guava EventBus
 		 * (if they fix the memory-leak issue)) notification
-		 * would be cleaner and could suport other lifecycle
+		 * would be cleaner and could support other lifecycle
 		 * notifications (see above).
 		 */
 		FrameAppender.setFrame(frame);
