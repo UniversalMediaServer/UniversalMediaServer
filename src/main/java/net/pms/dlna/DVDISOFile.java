@@ -20,6 +20,7 @@ package net.pms.dlna;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
@@ -29,8 +30,50 @@ import net.pms.io.ProcessWrapperImpl;
 import net.pms.util.ProcessUtil;
 
 public class DVDISOFile extends VirtualFolder {
-	public static final String PREFIX = "[DVD ISO] ";
+	private static final String NAME = "[DVD ISO] %s";
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	private File file;
+	private boolean isVideoTS;
+
+	private static String getName(File file) {
+		return String.format(NAME, getFilename(file));
+	}
+
+	// FIXME the logic here (all folders are VIDEO_TS folders) isn't
+	// consistent with the logic used to set isVideoTS
+	private static String getFilename(File file) {
+		return file.isFile() ? file.getName() : "VIDEO_TS";
+	}
+
+	public String getFilename() {
+		return getFilename(file);
+	}
+
+	public DVDISOFile(File file) {
+		super(getName(file), null);
+		this.file = file;
+
+		/*
+		 * XXX this is the logic used in the old (pre 1.90.0) getDisplayName override,
+		 * though it should probably be:
+		 *
+		 *     this.isVideoTS = file.isDirectory() && file.getName().toUpperCase().equals("VIDEO_TS");
+		 */
+		isVideoTS = file.getName().toUpperCase().equals("VIDEO_TS");
+
+		setLastModified(file.lastModified());
+	}
+
+	protected void finalizeDisplayNameVars(Map<String, Object> vars) {
+		if (isVideoTS) {
+			vars.put("isVTS", true);
+
+			File dvdFolder = file.getParentFile();
+			if (dvdFolder != null) {
+				vars.put("vtsDVD", dvdFolder.getName());
+			}
+		}
+	}
 
 	@Override
 	public void resolve() {
@@ -48,7 +91,7 @@ public class DVDISOFile extends VirtualFolder {
 			"-vo",
 			"null",
 			"-dvd-device",
-			ProcessUtil.getShortFileNameIfWideChars(f.getAbsolutePath()),
+			ProcessUtil.getShortFileNameIfWideChars(file.getAbsolutePath()),
 			"dvd://1"
 		};
 		OutputParams params = new OutputParams(configuration);
@@ -89,31 +132,15 @@ public class DVDISOFile extends VirtualFolder {
 			 * Common-sense is a single video track on a DVD is usually greater than 1h
 			 */
 			if (titles[i] > 10 && (titles[i] != oldduration || oldduration < 3600)) {
-				DVDISOTitle dvd = new DVDISOTitle(f, i);
+				DVDISOTitle dvd = new DVDISOTitle(file, i);
 				addChild(dvd);
 				oldduration = titles[i];
 			}
 		}
 
 		if (childrenNumber() > 0) {
-			PMS.get().storeFileInCache(f, Format.ISO);
+			PMS.get().storeFileInCache(file, Format.ISO);
 		}
 
-	}
-	private File f;
-
-	public DVDISOFile(File f) {
-		super(PREFIX + (f.isFile() ? f.getName() : "VIDEO_TS"), null);
-		this.f = f;
-		setLastModified(f.lastModified());
-	}
-
-	@Override
-	public String getDisplayName() {
-		String s = super.getDisplayName();
-		if (f.getName().toUpperCase().equals("VIDEO_TS")) {
-			s += " {" + f.getParentFile().getName() + "}";
-		}
-		return s;
 	}
 }

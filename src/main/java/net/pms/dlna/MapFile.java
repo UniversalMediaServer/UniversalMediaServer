@@ -453,32 +453,35 @@ public class MapFile extends DLNAResource {
 		}
 	}
 
-	private boolean foundInList(List<File> files, DLNAResource d) {
-		for (File f : files) {
-			if (!f.isHidden() && isNameMatch(f, d) && (isRealFolder(d) || isSameLastModified(f, d))) {
-				files.remove(f);
+	private boolean foundInList(List<File> files, DLNAResource dlna) {
+		for (File file: files) {
+			if (!file.isHidden() && isNameMatch(dlna, file) && (isRealFolder(dlna) || isSameLastModified(dlna, file))) {
+				files.remove(file);
 				return true;
 			}
 		}
 		return false;
 	}
 
-	private boolean isSameLastModified(File f, DLNAResource d) {
-		return d.getLastModified() == f.lastModified();
+	private boolean isSameLastModified(DLNAResource dlna, File file) {
+		return dlna.getLastModified() == file.lastModified();
 	}
 
-	private boolean isRealFolder(DLNAResource d) {
-		return d instanceof RealFile && d.isFolder();
+	private boolean isRealFolder(DLNAResource dlna) {
+		return dlna instanceof RealFile && dlna.isFolder();
 	}
 
-	private boolean isNameMatch(File file, DLNAResource resource) {
-		return (resource.getName().equals(file.getName()) || isDVDIsoMatch(file, resource));
+	private boolean isNameMatch(DLNAResource dlna, File file) {
+		return (dlna.getName().equals(file.getName()) || isDVDIsoMatch(dlna, file));
 	}
 
-	private boolean isDVDIsoMatch(File file, DLNAResource resource) {
-		return (resource instanceof DVDISOFile) &&
-			resource.getName().startsWith(DVDISOFile.PREFIX) &&
-			resource.getName().substring(DVDISOFile.PREFIX.length()).equals(file.getName());
+	private boolean isDVDIsoMatch(DLNAResource dlna, File file) {
+		if (dlna instanceof DVDISOFile) {
+			DVDISOFile dvdISOFile = (DVDISOFile) dlna;
+			return dvdISOFile.getFilename().equals(file.getName());
+		} else {
+			return false;
+		}
 	}
 
 	@Override
