@@ -9,6 +9,8 @@ import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.formats.v2.SubtitleType;
+import org.apache.commons.io.FilenameUtils;
+import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.endsWithIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
@@ -20,6 +22,102 @@ import org.slf4j.LoggerFactory;
 public class FileUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileUtil.class);
 	private static Map<File, File[]> cache;
+	// signal an invalid parameter in getFileLocation() without raising an exception or returning null
+	private static final String DEFAULT_BASENAME = "NO_DEFAULT_BASENAME_SUPPLIED.conf";
+
+	// this class is not instantiable
+	private FileUtil() { }
+
+	/**
+	 * A helper class used by {@link #getFileLocation(String, String, String)}
+	 * which provides access to a file's absolute path and that of its directory.
+	 *
+	 * @since 1.90.0
+	 */
+	public static final class FileLocation {
+		private String directoryPath;
+		private String filePath;
+
+		FileLocation(File directory, File file) {
+			this.directoryPath = FilenameUtils.normalize(directory.getAbsolutePath());
+			this.filePath = FilenameUtils.normalize(file.getAbsolutePath());
+		}
+
+		public String getDirectoryPath() {
+			return directoryPath;
+		}
+
+		public String getFilePath() {
+			return filePath;
+		}
+	}
+
+	/**
+	 * Returns a {@link FileLocation} object which provides access to the directory
+	 * and file paths of the specified file as normalised, absolute paths.
+	 *
+	 * This determines the directory and file path of a file according to the rules
+	 * outlined here: http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&amp;t=3507&amp;p=49895#p49895
+	 *
+	 * @param customPath an optional user-defined path for the resource
+	 * @param defaultDirectory a default directory path used if no custom path is provided
+	 * @param defaultBasename a default directory name used if a) no custom path is provided
+	 * or b) the custom path is a directory
+	 * @return a {@link FileLocation} object providing access to the file's directory and file paths,
+	 * or <code>null</code> if a location can't be created from the supplied paths.
+	 * @since 1.90.0
+	 */
+	// this is called from a static initialiser, where errors aren't clearly reported,
+	// so do everything possible to return a valid reponse, even if the parameters
+	// aren't sane
+	static public FileLocation getFileLocation(
+		String customPath,
+		String defaultDirectory,
+		String defaultBasename
+	) {
+		File customFile = null;
+		File directory = null;
+		File file = null;
+
+		if (isBlank(defaultBasename)) {
+			// shouldn't get here
+			defaultBasename = DEFAULT_BASENAME;
+		}
+
+		if (defaultDirectory == null) {
+			defaultDirectory = ""; // current directory
+		}
+
+		if (customPath != null) {
+			customFile = new File(customPath).getAbsoluteFile();
+		}
+
+		if (customFile != null) {
+			if (customFile.exists()) {
+				if (customFile.isDirectory()) {
+					directory = customFile;
+					file = new File(customFile, defaultBasename).getAbsoluteFile();
+				} else {
+					directory = customFile.getParentFile();
+					file = customFile;
+				}
+			} else {
+				File parentDirectoryFile = customFile.getParentFile();
+				if (parentDirectoryFile != null && parentDirectoryFile.exists()) {
+					// parent directory exists: the file can be created
+					directory = parentDirectoryFile;
+					file = customFile;
+				}
+			}
+		}
+
+		if (directory == null || file == null) {
+			directory = new File(defaultDirectory).getAbsoluteFile();
+			file = new File(directory, defaultBasename).getAbsoluteFile();
+		}
+
+		return new FileLocation(directory, file);
+	}
 
 	public static File isFileExists(String f, String ext) {
 		return isFileExists(new File(f), ext);
@@ -220,13 +318,7 @@ public class FileUtil {
 	}
 
 	public static File getFileNameWithNewExtension(File parent, File file, String ext) {
-		File ff = isFileExists(new File(parent, file.getName()), ext);
-
-		if (ff != null && ff.exists()) {
-			return ff;
-		}
-
-		return null;
+		return isFileExists(new File(parent, file.getName()), ext);
 	}
 
 	/**
@@ -262,14 +354,14 @@ public class FileUtil {
 			point = f.getName().length();
 		}
 
-		File lowerCasedFilename = new File(f.getParentFile(), f.getName().substring(0, point) + "." + ext.toLowerCase());
-		if (lowerCasedFilename.exists()) {
-			return lowerCasedFilename;
+		File lowerCasedFile = new File(f.getParentFile(), f.getName().substring(0, point) + "." + ext.toLowerCase());
+		if (lowerCasedFile.exists()) {
+			return lowerCasedFile;
 		}
 
-		File upperCasedFilename = new File(f.getParentFile(), f.getName().substring(0, point) + "." + ext.toUpperCase());
-		if (upperCasedFilename.exists()) {
-			return upperCasedFilename;
+		File upperCasedFile = new File(f.getParentFile(), f.getName().substring(0, point) + "." + ext.toUpperCase());
+		if (upperCasedFile.exists()) {
+			return upperCasedFile;
 		}
 
 		return null;

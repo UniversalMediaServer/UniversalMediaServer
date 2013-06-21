@@ -33,11 +33,11 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.io.SystemUtils;
 import net.pms.util.FileUtil;
+import net.pms.util.FileUtil.FileLocation;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.WindowsRegistry;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.ConversionException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.event.ConfigurationListener;
 import org.apache.commons.io.FileUtils;
@@ -246,7 +246,7 @@ public class PmsConfiguration {
 	private final IpFilter filter = new IpFilter();
 
 	/**
-	 * The set of the keys defining when the HTTP server has to restarted due to a configuration change
+	 * The set of keys defining when the HTTP server has to restarted due to a configuration change
 	 */
 	public static final Set<String> NEED_RELOAD_FLAGS = new HashSet<>(
 		Arrays.asList(
@@ -284,7 +284,7 @@ public class PmsConfiguration {
 		The following code enables a single setting - UMS_PROFILE - to be used to
 		initialize PROFILE_PATH i.e. the path to the current session's profile (AKA UMS.conf).
 		It also initializes PROFILE_DIRECTORY - i.e. the directory the profile is located in -
-		which is needed for configuration-by-convention detection of WEB.conf (anything else?).
+		which is needed to detect the default WEB.conf location (anything else?).
 
 		While this convention - and therefore PROFILE_DIRECTORY - will remain,
 		adding more configurables - e.g. web_conf = ... - is on the TODO list.
@@ -326,6 +326,7 @@ public class PmsConfiguration {
 	 */
 	private static final String DEFAULT_PROFILE_FILENAME = "UMS.conf";
 	private static final String ENV_PROFILE_PATH = "UMS_PROFILE";
+	private static final String DEFAULT_WEB_CONF_FILENAME = "WEB.conf";
 
 	// Path to directory containing UMS config files
 	private static final String PROFILE_DIRECTORY;
@@ -333,75 +334,73 @@ public class PmsConfiguration {
 	// Absolute path to profile file e.g. /path/to/UMS.conf
 	private static final String PROFILE_PATH;
 
+	// Absolute path to WEB.conf file e.g. /path/to/WEB.conf
+	private static String WEB_CONF_PATH;
+
 	// Absolute path to skel (default) profile file e.g. /etc/skel/.config/universalmediaserver/UMS.conf
 	// "project.skelprofile.dir" project property
 	private static final String SKEL_PROFILE_PATH; 
 
 	private static final String PROPERTY_PROFILE_PATH = "ums.profile.path";
+	private static final String SYSTEM_PROFILE_DIRECTORY;
 
 	static {
-		// first try the system property, typically set via the profile chooser
-		String profile = System.getProperty(PROPERTY_PROFILE_PATH);
+		// first of all, set up the path to the default system profile directory
+		if (Platform.isWindows()) {
+			String programData = System.getenv("ALLUSERSPROFILE");
+
+			if (programData != null) {
+				SYSTEM_PROFILE_DIRECTORY = String.format("%s\\%s", programData, PROFILE_DIRECTORY_NAME);
+			} else {
+				SYSTEM_PROFILE_DIRECTORY = ""; // i.e. current (working) directory
+			}
+		} else if (Platform.isMac()) {
+			SYSTEM_PROFILE_DIRECTORY = String.format(
+				"%s/%s/%s",
+				System.getProperty("user.home"),
+				"/Library/Application Support",
+				PROFILE_DIRECTORY_NAME
+			);
+		} else {
+			String xdgConfigHome = System.getenv("XDG_CONFIG_HOME");
+
+			if (xdgConfigHome == null) {
+				SYSTEM_PROFILE_DIRECTORY = String.format("%s/.config/%s", System.getProperty("user.home"), PROFILE_DIRECTORY_NAME);
+			} else {
+				SYSTEM_PROFILE_DIRECTORY = String.format("%s/%s", xdgConfigHome, PROFILE_DIRECTORY_NAME);
+			}
+		}
+
+		// now set the profile path. first: check for a custom setting.
+		// try the system property, typically set via the profile chooser
+		String customProfilePath = System.getProperty(PROPERTY_PROFILE_PATH);
 
 		// failing that, try the environment variable
-		if (profile == null) {
-			profile = System.getenv(ENV_PROFILE_PATH);
+		if (StringUtils.isBlank(customProfilePath)) {
+			customProfilePath = System.getenv(ENV_PROFILE_PATH);
 		}
 
-		if (profile != null) {
-			File f = new File(profile);
-
-			// if it exists, we know whether it's a file or directory
-			// otherwise, it must be a file since we don't autovivify directories
-			if (f.isDirectory()) {
-				PROFILE_DIRECTORY = FilenameUtils.normalize(f.getAbsolutePath());
-				PROFILE_PATH = FilenameUtils.normalize(new File(f, DEFAULT_PROFILE_FILENAME).getAbsolutePath());
-			} else { // doesn't exist or is a file (i.e. not a directory)
-				PROFILE_PATH = FilenameUtils.normalize(f.getAbsolutePath());
-				PROFILE_DIRECTORY = FilenameUtils.normalize(f.getParentFile().getAbsolutePath());
-			}
-		} else {
-			String profileDir;
-
-			if (Platform.isWindows()) {
-				String programData = System.getenv("ALLUSERSPROFILE");
-				if (programData != null) {
-					profileDir = String.format("%s\\%s", programData, PROFILE_DIRECTORY_NAME);
-				} else {
-					profileDir = ""; // i.e. current (working) directory
-				}
-			} else if (Platform.isMac()) {
-				profileDir = String.format(
-					"%s/%s/%s",
-					System.getProperty("user.home"),
-					"/Library/Application Support",
-					PROFILE_DIRECTORY_NAME
-				);
-			} else {
-				String xdgConfigHome = System.getenv("XDG_CONFIG_HOME");
-
-				if (xdgConfigHome == null) {
-					profileDir = String.format("%s/.config/%s", System.getProperty("user.home"), PROFILE_DIRECTORY_NAME);
-				} else {
-					profileDir = String.format("%s/%s", xdgConfigHome, PROFILE_DIRECTORY_NAME);
-				}
-			}
-
-			File f = new File(profileDir);
-
-			if ((f.exists() || f.mkdir()) && f.isDirectory()) {
-				PROFILE_DIRECTORY = FilenameUtils.normalize(f.getAbsolutePath());
-			} else {
-				PROFILE_DIRECTORY = FilenameUtils.normalize(new File("").getAbsolutePath());
-			}
-
-			PROFILE_PATH = FilenameUtils.normalize(new File(PROFILE_DIRECTORY, DEFAULT_PROFILE_FILENAME).getAbsolutePath());
-		}
+		// if customProfilePath is still blank, the default profile dir/filename is used
+		FileLocation profileLocation = FileUtil.getFileLocation(
+			customProfilePath,
+			SYSTEM_PROFILE_DIRECTORY,
+			DEFAULT_PROFILE_FILENAME
+		);
+		PROFILE_PATH = profileLocation.getFilePath();
+		PROFILE_DIRECTORY = profileLocation.getDirectoryPath();
 
 		// Set SKEL_PROFILE_PATH for Linux systems
 		String skelDir = PropertiesUtil.getProjectProperties().get("project.skelprofile.dir");
 		if (Platform.isLinux() && StringUtils.isNotBlank(skelDir)) {
-			SKEL_PROFILE_PATH = FilenameUtils.normalize(new File(new File(skelDir, PROFILE_DIRECTORY_NAME).getAbsolutePath(), DEFAULT_PROFILE_FILENAME).getAbsolutePath());
+			SKEL_PROFILE_PATH = FilenameUtils.normalize(
+				new File(
+					new File(
+						skelDir,
+						PROFILE_DIRECTORY_NAME
+					).getAbsolutePath(),
+					DEFAULT_PROFILE_FILENAME
+				).getAbsolutePath()
+			);
 		} else {
 			SKEL_PROFILE_PATH = null;
 		}
@@ -476,9 +475,13 @@ public class PmsConfiguration {
 	 */
 	private static ProgramPathDisabler createProgramPathsChain(Configuration configuration) {
 		return new ProgramPathDisabler(
-			new ConfigurationProgramPaths(configuration,
-			new WindowsRegistryProgramPaths(
-			new PlatformSpecificDefaultPathsFactory().get())));
+			new ConfigurationProgramPaths(
+				configuration,
+				new WindowsRegistryProgramPaths(
+					new PlatformSpecificDefaultPathsFactory().get()
+				)
+			)
+		);
 	}
 
 	/**
@@ -2415,6 +2418,29 @@ public class PmsConfiguration {
 		return PROFILE_DIRECTORY;
 	}
 
+	/**
+	 * Returns the absolute path to the WEB.conf file. By default
+	 * this is <pre>PROFILE_DIRECTORY + File.pathSeparator + WEB.conf</pre>,
+	 * but it can be overridden via the <pre>web_conf</pre> profile option.
+	 * The existence of the file is not checked.
+	 *
+	 * @return the path to the WEB.conf file.
+	 */
+	public String getWebConfPath() {
+		// Initialise this here rather than in the constructor
+		// or statically so that custom settings are logged
+		// to the debug.log/Logs tab.
+		if (WEB_CONF_PATH == null) {
+			WEB_CONF_PATH = FileUtil.getFileLocation(
+				getString(KEY_WEB_CONF_PATH, null),
+				PROFILE_DIRECTORY,
+				DEFAULT_WEB_CONF_FILENAME
+			).getFilePath();
+		}
+
+		return WEB_CONF_PATH;
+	}
+
 	public String getPluginDirectory() {
 		return getString(KEY_PLUGIN_DIRECTORY, "plugins");
 	}
@@ -2424,7 +2450,7 @@ public class PmsConfiguration {
 	}
 
 	public String getProfileName() {
-		if (HOSTNAME == null) { // calculate this lazily
+		if (HOSTNAME == null) { // Initialise this lazily
 			try {
 				HOSTNAME = InetAddress.getLocalHost().getHostName();
 			} catch (UnknownHostException e) {

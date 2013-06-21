@@ -310,6 +310,34 @@ public class PMS {
 		return null;
 	}
 
+	/**
+	 * Helper method for displayBanner: return a file or directory's
+	 * permissions in the Unix ls style e.g.: "rw" (read-write),
+	 * "r-" (read-only) &c.
+	 */
+	private String getPathPermissions(String path) {
+		String permissions;
+		File file = new File(path);
+
+		if (file.exists()) {
+			if (file.isFile()) {
+				permissions = String.format("%s%s",
+					FileUtil.isFileReadable(file) ? "r" : "-",
+					FileUtil.isFileWritable(file) ? "w" : "-"
+				);
+			} else {
+				permissions = String.format("%s%s",
+					FileUtil.isDirectoryReadable(file) ? "r" : "-",
+					FileUtil.isDirectoryWritable(file) ? "w" : "-"
+				);
+			}
+		} else {
+			permissions = "file not found";
+		}
+
+		return permissions;
+	}
+
 	private void displayBanner() throws IOException {
 		LOGGER.info("Starting " + PropertiesUtil.getProjectProperties().get("project.name") + " " + getVersion());
 		LOGGER.info("Based on PS3 Media Server by shagrath, copyright 2008-2013");
@@ -363,25 +391,19 @@ public class PMS {
 			}
 		}
 
-		LOGGER.info("");
-
-		LOGGER.info("Profile directory: " + configuration.getProfileDirectory());
 		String profilePath = configuration.getProfilePath();
+		String profileDirectoryPath = configuration.getProfileDirectory();
+
+		LOGGER.info("");
+		LOGGER.info("Profile directory: " + profileDirectoryPath);
+		LOGGER.info("Profile directory permissions: " + getPathPermissions(profileDirectoryPath));
 		LOGGER.info("Profile path: " + profilePath);
-
-		File profileFile = new File(profilePath);
-
-		if (profileFile.exists()) {
-			String permissions = String.format("%s%s",
-				FileUtil.isFileReadable(profileFile) ? "r" : "-",
-				FileUtil.isFileWritable(profileFile) ? "w" : "-"
-			);
-			LOGGER.info("Profile permissions: " + permissions);
-		} else {
-			LOGGER.info("Profile permissions: no such file");
-		}
-
+		LOGGER.info("Profile permissions: " + getPathPermissions(profilePath));
 		LOGGER.info("Profile name: " + configuration.getProfileName());
+		LOGGER.info("");
+		String webConfPath = configuration.getWebConfPath();
+		LOGGER.info("Web conf path: " + webConfPath);
+		LOGGER.info("Web conf permissions: " + getPathPermissions(webConfPath));
 		LOGGER.info("");
 
 		/**
