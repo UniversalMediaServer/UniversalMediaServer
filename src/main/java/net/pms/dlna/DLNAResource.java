@@ -1192,6 +1192,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		try {
 			o = (DLNAResource) super.clone();
 			o.setId(null);
+
+			// Clear the cached display name
+			o.displayName = null;
 		} catch (CloneNotSupportedException e) {
 			LOGGER.error(null, e);
 		}
