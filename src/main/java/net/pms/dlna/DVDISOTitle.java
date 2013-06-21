@@ -249,7 +249,7 @@ public class DVDISOTitle extends DLNAResource {
 
 	@Override
 	public String getName() {
-		return Messages.getString("DVDISOTitle.1" + title);
+		return Messages.getString("DVDISOTitle.1") + " " + title;
 	}
 
 	@Override
