@@ -9,7 +9,7 @@ public class Build {
 	 * Repository where to locate the file. Note: using "raw.github.com"
 	 * to access the raw file. 
 	 */
-	private static final String REPO = "https://raw.github.com/UniversalMediaServer/UniversalMediaServer";
+	private static final String REPO = "https://raw.github.com/Optimusprimeums/UniversalMediaServer";
 
 	/**
 	 * The URL of the properties file used by the {@link AutoUpdater} to announce PMS updates.
