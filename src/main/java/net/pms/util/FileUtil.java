@@ -61,10 +61,9 @@ public class FileUtil {
 	 *
 	 * @param customPath an optional user-defined path for the resource
 	 * @param defaultDirectory a default directory path used if no custom path is provided
-	 * @param defaultBasename a default directory name used if a) no custom path is provided
-	 * or b) the custom path is a directory
-	 * @return a {@link FileLocation} object providing access to the file's directory and file paths,
-	 * or <code>null</code> if a location can't be created from the supplied paths.
+	 * @param defaultBasename a default filename used if a) no custom path is provided
+	 *                        or b) the custom path is a directory
+	 * @return a {@link FileLocation} object providing access to the file's directory and file paths
 	 * @since 1.90.0
 	 */
 	// this is called from a static initialiser, where errors aren't clearly reported,
