@@ -1054,9 +1054,12 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	public String getDurationString() {
-		return durationSec != null ? getDurationString(durationSec) : null;
+		return durationSec != null ? StringUtil.convertTimeToString(durationSec, StringUtil.DURATION_TIME_FORMAT) : null;
 	}
 
+	/**
+	 * @deprecated Use {@link #StringUtil.convertTimeToString(durationSec, StringUtil.DURATION_TIME_FORMAT)} instead.
+	 */
 	public static String getDurationString(double d) {
 		int s = ((int) d) % 60;
 		int h = (int) (d / 3600);
@@ -1074,38 +1077,40 @@ public class DLNAMediaInfo implements Cloneable {
 
 	public void finalize(int type, InputFile f) {
 		String codecA = null;
+		String codecV = getCodecV();
+		String container = getContainer();
 
 		if (getFirstAudioTrack() != null) {
 			codecA = getFirstAudioTrack().getCodecA();
 		}
 
-		if (getContainer() != null && getContainer().equals("avi")) {
+		if (container != null && container.equals("avi")) {
 			setMimeType(HTTPResource.AVI_TYPEMIME);
-		} else if (getContainer() != null && (getContainer().equals("asf") || getContainer().equals("wmv"))) {
+		} else if (container != null && (container.equals("asf") || container.equals("wmv"))) {
 			setMimeType(HTTPResource.WMV_TYPEMIME);
-		} else if (getContainer() != null && (getContainer().equals("matroska") || getContainer().equals("mkv"))) {
+		} else if (container != null && (container.equals("matroska") || container.equals("mkv"))) {
 			setMimeType(HTTPResource.MATROSKA_TYPEMIME);
-		} else if (getCodecV() != null && getCodecV().equals("mjpeg")) {
+		} else if (codecV != null && codecV.equals("mjpeg")) {
 			setMimeType(HTTPResource.JPEG_TYPEMIME);
-		} else if ("png".equals(getCodecV()) || "png".equals(getContainer())) {
+		} else if ("png".equals(codecV) || "png".equals(container)) {
 			setMimeType(HTTPResource.PNG_TYPEMIME);
-		} else if ("gif".equals(getCodecV()) || "gif".equals(getContainer())) {
+		} else if ("gif".equals(codecV) || "gif".equals(container)) {
 			setMimeType(HTTPResource.GIF_TYPEMIME);
-		} else if (getCodecV() != null && (getCodecV().equals("h264") || getCodecV().equals("h263") || getCodecV().toLowerCase().equals("mpeg4") || getCodecV().toLowerCase().equals("mp4"))) {
+		} else if (codecV != null && (codecV.equals("h264") || codecV.equals("h263") || codecV.toLowerCase().equals("mpeg4") || codecV.toLowerCase().equals("mp4"))) {
 			setMimeType(HTTPResource.MP4_TYPEMIME);
-		} else if (getCodecV() != null && (getCodecV().indexOf("mpeg") > -1 || getCodecV().indexOf("mpg") > -1)) {
+		} else if (codecV != null && (codecV.indexOf("mpeg") > -1 || codecV.indexOf("mpg") > -1)) {
 			setMimeType(HTTPResource.MPEG_TYPEMIME);
-		} else if (getCodecV() == null && codecA != null && codecA.contains("mp3")) {
+		} else if (codecV == null && codecA != null && codecA.contains("mp3")) {
 			setMimeType(HTTPResource.AUDIO_MP3_TYPEMIME);
-		} else if (getCodecV() == null && codecA != null && codecA.contains("aac")) {
+		} else if (codecV == null && codecA != null && codecA.contains("aac")) {
 			setMimeType(HTTPResource.AUDIO_MP4_TYPEMIME);
-		} else if (getCodecV() == null && codecA != null && codecA.contains("flac")) {
+		} else if (codecV == null && codecA != null && codecA.contains("flac")) {
 			setMimeType(HTTPResource.AUDIO_FLAC_TYPEMIME);
-		} else if (getCodecV() == null && codecA != null && codecA.contains("vorbis")) {
+		} else if (codecV == null && codecA != null && codecA.contains("vorbis")) {
 			setMimeType(HTTPResource.AUDIO_OGG_TYPEMIME);
-		} else if (getCodecV() == null && codecA != null && (codecA.contains("asf") || codecA.startsWith("wm"))) {
+		} else if (codecV == null && codecA != null && (codecA.contains("asf") || codecA.startsWith("wm"))) {
 			setMimeType(HTTPResource.AUDIO_WMA_TYPEMIME);
-		} else if (getCodecV() == null && codecA != null && (codecA.startsWith("pcm") || codecA.contains("wav"))) {
+		} else if (codecV == null && codecA != null && (codecA.startsWith("pcm") || codecA.contains("wav"))) {
 			setMimeType(HTTPResource.AUDIO_WAV_TYPEMIME);
 		} else {
 			setMimeType(HTTPResource.getDefaultMimeType(type));

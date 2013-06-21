@@ -70,7 +70,7 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 				setState(isUpdateAvailable() ? State.UPDATE_AVAILABLE : State.NO_UPDATE_AVAILABLE);
 			}
 		} catch (IOException e) {
-			wrapException(serverUrl, "Cannot download properties", e);
+			wrapException("Cannot download properties", e);
 		}
 	}
 
@@ -136,7 +136,7 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 			}
 			Runtime.getRuntime().exec(exe.getAbsolutePath());
 		} catch (IOException e) {
-			wrapException(serverProperties.getDownloadUrl(), "Unable to run update. You may need to manually download it.", e);
+			wrapException("Unable to run update. You may need to manually download it.", e);
 		}
 	}
 
@@ -192,7 +192,7 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 			byte[] download = uriRetriever.getWithCallback(downloadUrl, this);
 			writeToDisk(download);
 		} catch (IOException e) {
-			wrapException(downloadUrl, "Cannot download update", e);
+			wrapException("Cannot download update", e);
 		}
 	}
 
@@ -220,7 +220,7 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 		}
 	}
 
-	private void wrapException(String downloadUrl, String message, Throwable cause) throws UpdateException {
+	private void wrapException(String message, Throwable cause) throws UpdateException {
 		throw new UpdateException("Error: " + message, cause);
 	}
 
