@@ -31,6 +31,7 @@ import net.pms.formats.FormatFactory;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.Messages;
 import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.lang3.StringUtils;
@@ -40,9 +41,15 @@ import org.slf4j.LoggerFactory;
 public class DVDISOTitle extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DVDISOTitle.class);
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
-	private File f;
+	private File file;
 	private int title;
 	private long length;
+
+	public DVDISOTitle(File file, int title) {
+		this.file = file;
+		this.title = title;
+		setLastModified(file.lastModified());
+	}
 
 	@Override
 	protected void resolveOnce() {
@@ -59,7 +66,7 @@ public class DVDISOTitle extends DLNAResource {
 			"-vo",
 			"null",
 			"-dvd-device",
-			ProcessUtil.getShortFileNameIfWideChars(f.getAbsolutePath()),
+			ProcessUtil.getShortFileNameIfWideChars(file.getAbsolutePath()),
 			"dvd://" + title
 		};
 
@@ -235,12 +242,6 @@ public class DVDISOTitle extends DLNAResource {
 		return length;
 	}
 
-	public DVDISOTitle(File f, int title) {
-		this.f = f;
-		this.title = title;
-		setLastModified(f.lastModified());
-	}
-
 	@Override
 	public InputStream getInputStream() throws IOException {
 		return null;
@@ -248,12 +249,12 @@ public class DVDISOTitle extends DLNAResource {
 
 	@Override
 	public String getName() {
-		return "Title " + title;
+		return Messages.getString("DVDISOTitle.1" + title);
 	}
 
 	@Override
 	public String getSystemName() {
-		return f.getAbsolutePath();
+		return file.getAbsolutePath();
 	}
 
 	@Override
@@ -289,21 +290,21 @@ public class DVDISOTitle extends DLNAResource {
 		boolean alternativeCheck = false;
 		while (cachedThumbnail == null) {
 			if (thumbFolder == null) {
-				thumbFolder = f.getParentFile();
+				thumbFolder = file.getParentFile();
 			}
 
-			cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, f, "jpg");
+			cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, file, "jpg");
 
 			if (cachedThumbnail == null) {
-				cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, f, "png");
-			}
-
-			if (cachedThumbnail == null) {
-				cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, f, ".cover.jpg");
+				cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, file, "png");
 			}
 
 			if (cachedThumbnail == null) {
-				cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, f, ".cover.png");
+				cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, file, ".cover.jpg");
+			}
+
+			if (cachedThumbnail == null) {
+				cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, file, ".cover.png");
 			}
 
 			if (alternativeCheck) {
