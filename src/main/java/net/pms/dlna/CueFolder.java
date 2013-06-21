@@ -81,7 +81,7 @@ public class CueFolder extends DLNAResource {
 	}
 
 	@Override
-	public void resolve() {
+	protected void resolveOnce() {
 		if (playlistfile.length() < 10000000) {
 			CueSheet sheet;
 			try {

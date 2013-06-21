@@ -38,7 +38,6 @@ import org.slf4j.LoggerFactory;
 public class FileTranscodeVirtualFolder extends VirtualFolder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileTranscodeVirtualFolder.class);
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
-	private boolean resolved;
 
 	// FIXME unused
 	@Deprecated
@@ -180,10 +179,8 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 	 * audio tracks and subtitles.
 	 */
 	@Override
-	public void resolve() {
-		super.resolve();
-
-		if (!resolved && getChildren().size() == 1) { // OK
+	protected void resolveOnce() {
+		if (getChildren().size() == 1) { // OK
 			DLNAResource child = getChildren().get(0);
 			child.resolve();
 
@@ -301,7 +298,5 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 				addChapterFolder(dlna);
 			}
 		}
-
-		resolved = true;
 	}
 }

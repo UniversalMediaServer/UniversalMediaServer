@@ -200,7 +200,6 @@ public class RealFile extends MapFile {
 				}
 			}
 		}
-		super.resolve();
 	}
 
 	@Override

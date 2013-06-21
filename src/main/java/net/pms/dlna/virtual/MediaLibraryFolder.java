@@ -72,11 +72,6 @@ public class MediaLibraryFolder extends VirtualFolder {
 		}
 	}
 
-	@Override
-	public void resolve() {
-		super.resolve();
-	}
-
 	private String transformSQL(String sql) {
 
 		sql = sql.replace("${0}", transformName(getName()));

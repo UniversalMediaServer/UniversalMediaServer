@@ -136,7 +136,7 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 	}
 
 	@Override
-	public void resolve() {
+	protected void resolveOnce() {
 		if (getFormat() == null || !getFormat().isVideo()) {
 			return;
 		}
@@ -157,8 +157,6 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 				getFormat().parse(getMedia(), input, getType());
 			}
 		}
-
-		super.resolve();
 	}
 
 	@Override
