@@ -23,6 +23,7 @@
 			Improves H.264 and VC-1 support
 			Improves Vorbis support
 			Improves Matroska support
+			Improves MPEG-TS muxing
 		Updated MediaInfo for Windows to 0.7.63, which:
 			Adds H.265 (HEVC) support
 			Fixed some crashes with .mov files
