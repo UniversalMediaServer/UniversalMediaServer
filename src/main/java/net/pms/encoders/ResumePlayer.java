@@ -23,12 +23,12 @@ public class ResumePlayer extends FFMpegVideo {
 
 	@Override
 	public ProcessWrapper launchTranscode(
-		String fileName,
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params) throws IOException {
 		List<String> cmdList = new ArrayList<>();
 		int nThreads = PMS.getConfiguration().getNumberOfCpuCores();
+		final String filename = dlna.getSystemName();
 
 		cmdList.add(executable());
 
@@ -53,7 +53,7 @@ public class ResumePlayer extends FFMpegVideo {
 		}
 
 		cmdList.add("-i");
-		cmdList.add(fileName);
+		cmdList.add(filename);
 
 		cmdList.add("-vcodec");
 		cmdList.add("copy");
@@ -61,7 +61,7 @@ public class ResumePlayer extends FFMpegVideo {
 		cmdList.add("copy");
 
 		cmdList.add("-f");
-		cmdList.add(FileUtils.getExtension(fileName));
+		cmdList.add(FileUtils.getExtension(filename));
 
 		PipeProcess pipe = new PipeProcess("resumeplayer" + System.currentTimeMillis(), params);
 		params.input_pipes[0] = pipe;

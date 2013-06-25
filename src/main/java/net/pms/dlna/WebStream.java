@@ -34,7 +34,7 @@ import net.pms.network.HTTPResourceAuthenticator;
 public class WebStream extends DLNAResource {
 	@Override
 	public boolean isValid() {
-		checktype();
+		resolveFormat();
 		return getFormat() != null;
 	}
 

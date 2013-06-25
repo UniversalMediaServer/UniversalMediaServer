@@ -16,17 +16,46 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-package net.pms.gui;
+package net.pms.newgui;
 
-public interface IFrame {
-	public void append(String msg);
-	public void setValue(int v, String msg);
-	public void setReadValue(long v, String msg);
-	public void setStatusCode(int code, String msg, String icon);
-	public void addRendererIcon(int code, String msg, String icon);
-	public void setReloadable(boolean reload);
-	public void addEngines();
-	public void setStatusLine(String line);
-	public void serverReady();
-	public void setScanLibraryEnabled(boolean flag);
+public class DummyFrame implements IFrame {
+	@Override
+	public void append(String msg) {
+	}
+
+	@Override
+	public void setValue(int v, String msg) {
+	}
+
+	@Override
+	public void setReadValue(long v, String msg) {
+	}
+
+	@Override
+	public void setStatusCode(int code, String msg, String icon) {
+	}
+
+	@Override
+	public void setReloadable(boolean reload) {
+	}
+
+	@Override
+	public void addEngines() {
+	}
+
+	@Override
+	public void setStatusLine(String line) {
+	}
+
+	@Override
+	public void addRendererIcon(int code, String msg, String icon) {
+	}
+
+	@Override
+	public void serverReady() {
+	}
+	
+	@Override
+	public void setScanLibraryEnabled(boolean flag) {
+	}
 }

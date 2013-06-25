@@ -31,7 +31,7 @@ public class GIF extends JPG {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public String[] getId() {
+	public String[] getSupportedExtensions() {
 		return new String[] { "gif" };
 	}
 

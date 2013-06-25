@@ -129,11 +129,11 @@ public class FFmpegAudio extends FFMpegVideo {
 
 	@Override
 	public ProcessWrapper launchTranscode(
-		String filename,
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
+		final String filename = dlna.getSystemName();
 		params.maxBufferSize = configuration.getMaxAudioBuffer();
 		params.waitbeforestart = 2000;
 		params.manageFastStart();
@@ -220,10 +220,10 @@ public class FFmpegAudio extends FFMpegVideo {
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		if (
-			PlayerUtil.isType(resource, Format.AUDIO, Format.Identifier.FLAC) ||
-			PlayerUtil.isType(resource, Format.AUDIO, Format.Identifier.M4A) ||
-			PlayerUtil.isType(resource, Format.AUDIO, Format.Identifier.OGG) ||
-			PlayerUtil.isType(resource, Format.AUDIO, Format.Identifier.WAV)
+			PlayerUtil.isAudio(resource, Format.Identifier.FLAC) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.M4A) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.OGG) ||
+			PlayerUtil.isAudio(resource, Format.Identifier.WAV)
 		) {
 			return true;
 		}
