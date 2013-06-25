@@ -115,8 +115,14 @@ public abstract class Player {
 		return false;
 	}
 
+	/**
+	 * @deprecated Use {@link #launchTranscode(net.pms.dlna.DLNAResource, net.pms.dlna.DLNAMediaInfo, net.pms.io.OutputParams)} instead.
+	 */
+	@Deprecated
+	public final ProcessWrapper launchTranscode(String filename, DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
+		return launchTranscode(dlna, media, params);
+	}
 	public abstract ProcessWrapper launchTranscode(
-		String filename,
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params
@@ -279,7 +285,7 @@ public abstract class Player {
 						for (DLNAMediaSubtitle present_sub : media.getSubtitleTracksList()) {
 							if (present_sub.matchCode(sub) || sub.equals("*")) {
 								if (present_sub.getExternalFile() != null) {
-									if (configuration.isAutoloadSubtitles()) {
+									if (configuration.isAutoloadExternalSubtitles()) {
 										// Subtitle is external and we want external subtitles, look no further
 										matchedSub = present_sub;
 										LOGGER.trace(" Found a match: " + matchedSub);
@@ -291,7 +297,7 @@ public abstract class Player {
 								} else {
 									matchedSub = present_sub;
 									LOGGER.trace(" Found a match: " + matchedSub);
-									if (configuration.isAutoloadSubtitles()) {
+									if (configuration.isAutoloadExternalSubtitles()) {
 										// Subtitle is internal and we will wait to see if an external one is available instead
 										matchedEmbeddedSubtitle = true;
 									} else {
@@ -323,7 +329,7 @@ public abstract class Player {
 			File video = new File(fileName);
 			FileUtil.isSubtitlesExists(video, media, false);
 
-			if (configuration.isAutoloadSubtitles()) {
+			if (configuration.isAutoloadExternalSubtitles()) {
 				boolean forcedSubsFound = false;
 				// Priority to external subtitles
 				for (DLNAMediaSubtitle sub : media.getSubtitleTracksList()) {
@@ -381,7 +387,7 @@ public abstract class Player {
 						if (
 							sub.matchCode(lang) &&
 							!(
-								!configuration.isAutoloadSubtitles() &&
+								!configuration.isAutoloadExternalSubtitles() &&
 								sub.getExternalFile() != null
 							)
 						) {

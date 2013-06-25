@@ -31,8 +31,11 @@ public class TIF extends JPG {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public String[] getId() {
-		return new String[] { "tif", "tiff" };
+	public String[] getSupportedExtensions() {
+		return new String[] {
+			"tif",
+			"tiff"
+		};
 	}
 
 	@Override

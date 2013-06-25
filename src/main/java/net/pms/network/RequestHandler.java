@@ -102,7 +102,7 @@ public class RequestHandler implements Runnable {
 					renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
 
 					if (renderer != null) {
-						PMS.get().setRendererfound(renderer);
+						PMS.get().setRendererFound(renderer);
 						request.setMediaRenderer(renderer);
 						LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on address " + ia);
 					}
@@ -115,7 +115,7 @@ public class RequestHandler implements Runnable {
 					renderer = RendererConfiguration.getRendererConfigurationByUA(userAgentString);
 
 					if (renderer != null) {
-						PMS.get().setRendererfound(renderer);
+						PMS.get().setRendererFound(renderer);
 						request.setMediaRenderer(renderer);
 						renderer.associateIP(ia);	// Associate IP address for later requests
 						LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLine + "\"");
@@ -126,7 +126,7 @@ public class RequestHandler implements Runnable {
 					renderer = RendererConfiguration.getRendererConfigurationByUAAHH(headerLine);
 
 					if (renderer != null) {
-						PMS.get().setRendererfound(renderer);
+						PMS.get().setRendererFound(renderer);
 						request.setMediaRenderer(renderer);
 						renderer.associateIP(ia);	// Associate IP address for later requests
 						LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLine + "\"");
@@ -219,7 +219,7 @@ public class RequestHandler implements Runnable {
 						// We have found an unknown renderer
 						LOGGER.info("Media renderer was not recognized. Possible identifying HTTP headers: User-Agent: " + userAgentString +
 								("".equals(unknownHeaders.toString()) ? "" : ", " + unknownHeaders.toString()));
-						PMS.get().setRendererfound(request.getMediaRenderer());
+						PMS.get().setRendererFound(request.getMediaRenderer());
 					}
 				} else {
 					if (userAgentString != null) {

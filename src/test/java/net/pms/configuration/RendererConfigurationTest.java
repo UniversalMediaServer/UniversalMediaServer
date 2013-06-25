@@ -135,7 +135,7 @@ public class RendererConfigurationTest {
 
 		try {
 			pmsConf = new PmsConfiguration(false);
-		} catch (IOException | ConfigurationException e) {
+		} catch (ConfigurationException e) {
 			// This should be impossible since no configuration file will be loaded.
 		}
 
@@ -161,7 +161,7 @@ public class RendererConfigurationTest {
 
 		try {
 			pmsConf = new PmsConfiguration(false);
-		} catch (IOException | ConfigurationException e) {
+		} catch (ConfigurationException e) {
 			// This should be impossible since no configuration file will be loaded.
 		}
 
@@ -187,7 +187,7 @@ public class RendererConfigurationTest {
 
 		try {
 			pmsConf = new PmsConfiguration(false);
-		} catch (IOException | ConfigurationException e) {
+		} catch (ConfigurationException e) {
 			// This should be impossible since no configuration file will be loaded.
 		}
 
