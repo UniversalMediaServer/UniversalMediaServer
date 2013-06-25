@@ -5,13 +5,24 @@
 		FFmpeg starts faster
 		Improved quality of H.264 transcoding by default
 		Added H.264 transcoding quality option
+		Improved speed of list population
+		VLC video no longer loops
+		Added multithreading support to VLC
+		Audio files are added to the transcode folder
+		Chapter folders are hidden if the video duration is less than the chapter length
+		Improved file compatibility detection for H.264 muxing
+		Renamed a lot of configuration variables
+		Added thumbnail support to Samsung 2012 ES and EH models (thanks, dmitche3!)
+		Removed the obsolete MPlayerAudio, MPlayerWebAudio and MPlayerWebVideoDump engines
+		Fixed startup issue on OS X
 		Fixed RAW image transcoding and support 28 additional RAW file extensions
+		Fixed incorrect server IP address when starting UMS by launching UMS.exe or UMS.bat
 		Fixed layout issues
 		Fixed various bugs
 	Languages:
 		Updated Dutch translation (thanks, Leroy!)
 	External Components:
-		Updated FFmpeg to, which:
+		Updated FFmpeg on all operating systems, which:
 			Improves ASS/SSA subtitle support
 			Improves handling of aspect ratios, even when muxing
 			Fixes multithreaded MPEG-4 decoding
