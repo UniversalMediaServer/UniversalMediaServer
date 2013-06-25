@@ -224,7 +224,7 @@ public class MEncoderVideo extends Player {
 			public void actionPerformed(ActionEvent e) {
 				JPanel codecPanel = new JPanel(new BorderLayout());
 				final JTextArea textArea = new JTextArea();
-				textArea.setText(configuration.getCodecSpecificConfig());
+				textArea.setText(configuration.getMencoderCodecSpecificConfig());
 				textArea.setFont(new Font("Courier", Font.PLAIN, 12));
 				JScrollPane scrollPane = new JScrollPane(textArea);
 				scrollPane.setPreferredSize(new java.awt.Dimension(900, 100));
@@ -289,7 +289,7 @@ public class MEncoderVideo extends Player {
 							JOptionPane.ERROR_MESSAGE
 						);
 					} else {
-						configuration.setCodecSpecificConfig(newCodecparam);
+						configuration.setMencoderCodecSpecificConfig(newCodecparam);
 						break;
 					}
 				}
@@ -779,7 +779,6 @@ public class MEncoderVideo extends Player {
 
 	@Override
 	public ProcessWrapper launchTranscode(
-		String fileName,
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params
@@ -788,7 +787,8 @@ public class MEncoderVideo extends Player {
 
 		boolean avisynth = avisynth();
 
-		setAudioAndSubs(fileName, media, params, configuration);
+		final String filename = dlna.getSystemName();
+		setAudioAndSubs(filename, media, params, configuration);
 		String externalSubtitlesFileName = null;
 
 		if (params.sid != null && params.sid.isExternal()) {
@@ -803,7 +803,7 @@ public class MEncoderVideo extends Player {
 		}
 
 		InputFile newInput = new InputFile();
-		newInput.setFilename(fileName);
+		newInput.setFilename(filename);
 		newInput.setPush(params.stdin);
 
 		dvd = false;
@@ -886,14 +886,14 @@ public class MEncoderVideo extends Player {
 				intOCW == 0 &&
 				intOCH == 0
 			) &&
-			!fileName.contains("WEB-DL") &&
+			!filename.contains("WEB-DL") &&
 			aspectRatiosMatch
 		) {
 			String expertOptions[] = getSpecificCodecOptions(
-				configuration.getCodecSpecificConfig(),
+				configuration.getMencoderCodecSpecificConfig(),
 				media,
 				params,
-				fileName,
+				filename,
 				externalSubtitlesFileName,
 				configuration.isMencoderIntelligentSync(),
 				false
@@ -921,14 +921,14 @@ public class MEncoderVideo extends Player {
 					}
 				}
 
-				return tv.launchTranscode(fileName, dlna, media, params);
+				return tv.launchTranscode(filename, dlna, media, params);
 			}
 		} else if (params.sid == null && dvd && configuration.isMencoderRemuxMPEG2() && params.mediaRenderer.isMpeg2Supported()) {
 			String expertOptions[] = getSpecificCodecOptions(
-				configuration.getCodecSpecificConfig(),
+				configuration.getMencoderCodecSpecificConfig(),
 				media,
 				params,
-				fileName,
+				filename,
 				externalSubtitlesFileName,
 				configuration.isMencoderIntelligentSync(),
 				false
@@ -971,13 +971,13 @@ public class MEncoderVideo extends Player {
 
 		final boolean isTsMuxeRVideoEngineEnabled = configuration.getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
 		final boolean mencoderAC3RemuxAudioDelayBug = (params.aid != null) && (params.aid.getAudioProperties().getAudioDelay() != 0) && (params.timeseek == 0);
-		if (configuration.isRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && params.mediaRenderer.isTranscodeToAC3()) {
+		if (configuration.isAudioRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && params.mediaRenderer.isTranscodeToAC3()) {
 			// AC-3 remux takes priority
 			ac3Remux = true;
 		} else {
 			// Now check for DTS remux and LPCM streaming
 			dtsRemux = isTsMuxeRVideoEngineEnabled &&
-				configuration.isDTSEmbedInPCM() &&
+				configuration.isAudioEmbedDtsInPcm() &&
 				(
 					!dvd ||
 					configuration.isMencoderRemuxMPEG2()
@@ -986,7 +986,7 @@ public class MEncoderVideo extends Player {
 				!avisynth() &&
 				params.mediaRenderer.isDTSPlayable();
 			pcm = isTsMuxeRVideoEngineEnabled &&
-				configuration.isUsePCM() &&
+				configuration.isAudioUsePCM() &&
 				(
 					!dvd ||
 					configuration.isMencoderRemuxMPEG2()
@@ -1078,7 +1078,7 @@ public class MEncoderVideo extends Player {
 		overriddenMainArgs = new String[st.countTokens()];
 
 		{
-			int nThreads = (dvd || fileName.toLowerCase().endsWith("dvr-ms")) ?
+			int nThreads = (dvd || filename.toLowerCase().endsWith("dvr-ms")) ?
 				1 :
 				configuration.getMencoderMaxThreads();
 
@@ -1240,10 +1240,10 @@ public class MEncoderVideo extends Player {
 		boolean foundNoassParam = false;
 
 		String expertOptions[] = getSpecificCodecOptions(
-			configuration.getCodecSpecificConfig(),
+			configuration.getMencoderCodecSpecificConfig(),
 			media,
 			params,
-			fileName,
+			filename,
 			externalSubtitlesFileName,
 			configuration.isMencoderIntelligentSync(),
 			false
@@ -1324,9 +1324,9 @@ public class MEncoderVideo extends Player {
 					sb.append("Outline=").append(configuration.getAssOutline()).append(",Shadow=").append(configuration.getAssShadow());
 
 					try {
-						userMargin = Integer.parseInt(configuration.getMencoderAssMargin());
+						userMargin = Integer.parseInt(configuration.getAssMargin());
 					} catch (NumberFormatException n) {
-						LOGGER.debug("Could not parse SSA margin from \"" + configuration.getMencoderAssMargin() + "\"");
+						LOGGER.debug("Could not parse SSA margin from \"" + configuration.getAssMargin() + "\"");
 					}
 
 					subtitleMargin = subtitleMargin + userMargin;
@@ -1469,18 +1469,18 @@ public class MEncoderVideo extends Player {
 		String frameRateNumber = media.getValidFps(false);
 
 		// Input filename
-		if (avisynth && !fileName.toLowerCase().endsWith(".iso")) {
-			File avsFile = AviSynthMEncoder.getAVSScript(fileName, params.sid, params.fromFrame, params.toFrame, frameRateRatio, frameRateNumber);
+		if (avisynth && !filename.toLowerCase().endsWith(".iso")) {
+			File avsFile = AviSynthMEncoder.getAVSScript(filename, params.sid, params.fromFrame, params.toFrame, frameRateRatio, frameRateNumber);
 			cmdList.add(ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath()));
 		} else {
 			if (params.stdin != null) {
 				cmdList.add("-");
 			} else {
 				if (dvd) {
-					String dvdFileName = fileName.replace("\\VIDEO_TS", "");
+					String dvdFileName = filename.replace("\\VIDEO_TS", "");
 					cmdList.add(dvdFileName);
 				} else {
-					cmdList.add(fileName);
+					cmdList.add(filename);
 				}
 			}
 		}
@@ -1582,7 +1582,7 @@ public class MEncoderVideo extends Player {
 		cmdList.add("-ofps");
 		cmdList.add(ofps);
 
-		if (fileName.toLowerCase().endsWith(".evo")) {
+		if (filename.toLowerCase().endsWith(".evo")) {
 			cmdList.add("-psprobe");
 			cmdList.add("10000");
 		}
@@ -2131,7 +2131,7 @@ public class MEncoderVideo extends Player {
 				String ffmpegLPCMextract[] = new String[]{
 					executable(),
 					"-ss", "0",
-					fileName,
+					filename,
 					"-really-quiet",
 					"-msglevel", "statusline=2",
 					"-channels", "" + channels,
@@ -2152,13 +2152,13 @@ public class MEncoderVideo extends Player {
 
 				if (media.getDvdtrack() > 0) {
 					ffmpegLPCMextract[3] = "-dvd-device";
-					ffmpegLPCMextract[4] = fileName;
+					ffmpegLPCMextract[4] = filename;
 					ffmpegLPCMextract[5] = "dvd://" + media.getDvdtrack();
 				} else if (params.stdin != null) {
 					ffmpegLPCMextract[3] = "-";
 				}
 
-				if (fileName.toLowerCase().endsWith(".evo")) {
+				if (filename.toLowerCase().endsWith(".evo")) {
 					ffmpegLPCMextract[4] = "-psprobe";
 					ffmpegLPCMextract[5] = "1000000";
 				}
@@ -2261,7 +2261,7 @@ public class MEncoderVideo extends Player {
 			String[] cmdArray = new String[cmdList.size()];
 			cmdList.toArray(cmdArray);
 			cmdArray = finalizeTranscoderArgs(
-				fileName,
+				filename,
 				dlna,
 				media,
 				params,
@@ -2452,9 +2452,9 @@ public class MEncoderVideo extends Player {
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		if (
-			PlayerUtil.isType(resource, Format.VIDEO, Format.Identifier.ISO) ||
-			PlayerUtil.isType(resource, Format.VIDEO, Format.Identifier.MKV) ||
-			PlayerUtil.isType(resource, Format.VIDEO, Format.Identifier.MPG)
+			PlayerUtil.isVideo(resource, Format.Identifier.ISO) ||
+			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
+			PlayerUtil.isVideo(resource, Format.Identifier.MPG)
 		) {
 			return true;
 		}

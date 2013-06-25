@@ -131,12 +131,9 @@ public final class PlayerFactory {
 
 		registerPlayer(new FFMpegVideo(configuration));
 		registerPlayer(new VLCVideo(configuration));
-		registerPlayer(new MPlayerAudio(configuration));
 		registerPlayer(new FFmpegWebVideo(configuration));
 		registerPlayer(new MEncoderWebVideo(configuration));
 		registerPlayer(new VLCWebVideo(configuration));
-		registerPlayer(new MPlayerWebVideoDump(configuration));
-		registerPlayer(new MPlayerWebAudio(configuration));
 		registerPlayer(new TsMuxeRVideo(configuration));
 		registerPlayer(new TsMuxeRAudio(configuration));
 		registerPlayer(new VideoLanAudioStreaming(configuration));

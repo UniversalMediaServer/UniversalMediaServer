@@ -51,7 +51,6 @@ import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
-import net.pms.util.AVCHeader;
 import net.pms.util.CoverUtil;
 import net.pms.util.FileUtil;
 import net.pms.util.MpegUtil;
@@ -164,6 +163,9 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	@Deprecated
 	public int bitsPerPixel;
+
+	private byte referenceFrameCount = -1;
+	private String avcLevel = null;
 
 	private List<DLNAMediaAudio> audioTracks = new ArrayList<>();
 	private List<DLNAMediaSubtitle> subtitleTracks = new ArrayList<>();
@@ -1121,25 +1123,19 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 
 		// Check for external subs here
-		if (f.getFile() != null && type == Format.VIDEO && configuration.isAutoloadSubtitles()) {
+		if (f.getFile() != null && type == Format.VIDEO && configuration.isAutoloadExternalSubtitles()) {
 			FileUtil.isSubtitlesExists(f.getFile(), this);
 		}
 	}
 
-	@Deprecated
-	public boolean isVideoPS3Compatible(InputFile f) {
-		return isVideoWithinH264LevelLimits(f, null);
-	}
-
 	/**
 	 * Checks whether the video has too many reference frames per pixels for the renderer
+	 * TODO move to PlayerUtil
 	 */
-	public boolean isVideoWithinH264LevelLimits(InputFile f, RendererConfiguration mediaRenderer) {
+	public synchronized boolean isVideoWithinH264LevelLimits(InputFile f, RendererConfiguration mediaRenderer) {
 		if (!h264_parsed) {
-			if (getCodecV() != null && (getCodecV().equals("h264") || getCodecV().startsWith("mpeg2"))) { // what about VC1 ?
-				muxable = true;
+			if ("h264".equals(getCodecV())) {
 				if (
-					getCodecV().equals("h264") &&
 					getContainer() != null &&
 					(
 						getContainer().equals("matroska") ||
@@ -1162,12 +1158,20 @@ public class DLNAMediaInfo implements Cloneable {
 							}
 							byte header[] = new byte[getH264AnnexB().length - skip];
 							System.arraycopy(getH264AnnexB(), skip, header, 0, header.length);
-							AVCHeader avcHeader = new AVCHeader(header);
-							avcHeader.parse();
-							LOGGER.debug("H.264 file: " + f.getFilename() + ": Profile: " + avcHeader.getProfile() + " / level: " + avcHeader.getLevel() + " / ref frames: " + avcHeader.getRef_frames());
-							muxable = true;
 
-							if (avcHeader.getLevel() >= 41 && getWidth() > 0 && getHeight() > 0) {
+							if (
+								getReferenceFrameCount() > -1 &&
+								(
+									"4.1".equals(getAvcLevel()) ||
+									"4.2".equals(getAvcLevel()) ||
+									"5".equals(getAvcLevel()) ||
+									"5.0".equals(getAvcLevel()) ||
+									"5.1".equals(getAvcLevel()) ||
+									"5.2".equals(getAvcLevel())
+								) &&
+								getWidth() > 0 &&
+								getHeight() > 0
+							) {
 								int maxref;
 								if (mediaRenderer == null || mediaRenderer.isPS3()) {
 									/**
@@ -1186,22 +1190,20 @@ public class DLNAMediaInfo implements Cloneable {
 									maxref = (int) Math.floor(8388608 / (getWidth() * getHeight()));
 								}
 
-								if (avcHeader.getRef_frames() > maxref) {
-									muxable = false;
-									LOGGER.debug("The file " + f.getFilename() + " is not compatible with this renderer because it can only take " + maxref + " reference frames at this resolution while this file has " + avcHeader.getRef_frames() + " reference frames");
-								} else if (avcHeader.getRef_frames() == -1) {
-									muxable = false;
+								if (getReferenceFrameCount() > maxref) {
+									LOGGER.debug("The file " + f.getFilename() + " is not compatible with this renderer because it can only take " + maxref + " reference frames at this resolution while this file has " + getReferenceFrameCount() + " reference frames");
+									return false;
+								} else if (getReferenceFrameCount() == -1) {
 									LOGGER.debug("The file " + f.getFilename() + " may not be compatible with this renderer because we can't get its number of reference frames");
+									return false;
 								}
 							}
-							if (!muxable) {
-								LOGGER.debug("H.264 file: " + f.getFilename() + " is not compatible with this renderer");
-							}
 						} else {
-							muxable = false;
+							LOGGER.debug("The H.264 stream inside the following file is not compatible with this renderer: " + f.getFilename());
+							return false;
 						}
 					} else {
-						muxable = false;
+						return false;
 					}
 				}
 			}
@@ -1209,7 +1211,7 @@ public class DLNAMediaInfo implements Cloneable {
 			h264_parsed = true;
 		}
 
-		return muxable;
+		return true;
 	}
 
 	public boolean isMuxable(String filename, String codecA) {
@@ -1659,9 +1661,45 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
+	 * @return reference frame count for video stream or {@code -1} if not parsed.
+	 */
+	public synchronized byte getReferenceFrameCount() {
+		return referenceFrameCount;
+	}
+
+	/**
+	 * Sets reference frame count for video stream or {@code -1} if not parsed.
+	 *
+	 * @param referenceFrameCount reference frame count.
+	 */
+	public synchronized void setReferenceFrameCount(byte referenceFrameCount) {
+		if (referenceFrameCount < -1) {
+			throw new IllegalArgumentException("referenceFrameCount should be >= -1.");
+		}
+		this.referenceFrameCount = referenceFrameCount;
+	}
+
+	/**
+	 * @return AVC level for video stream or {@code null} if not parsed.
+	 */
+	public synchronized String getAvcLevel() {
+		return avcLevel;
+	}
+
+	/**
+	 * Sets AVC level for video stream or {@code null} if not parsed.
+	 *
+	 * @param avcLevel AVC level.
+	 */
+	public synchronized void setAvcLevel(String avcLevel) {
+		this.avcLevel = avcLevel;
+	}
+
+	/**
 	 * @return the audioTracks
 	 * @since 1.60.0
 	 */
+	// TODO (breaking change): rename to getAudioTracks
 	public List<DLNAMediaAudio> getAudioTracksList() {
 		return audioTracks;
 	}
@@ -1683,6 +1721,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @param audioTracks the audioTracks to set
 	 * @since 1.60.0
 	 */
+	// TODO (breaking change): rename to setAudioTracks
 	public void setAudioTracksList(List<DLNAMediaAudio> audioTracks) {
 		this.audioTracks = audioTracks;
 	}
@@ -1700,6 +1739,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @return the subtitleTracks
 	 * @since 1.60.0
 	 */
+	// TODO (breaking change): rename to getSubtitleTracks
 	public List<DLNAMediaSubtitle> getSubtitleTracksList() {
 		return subtitleTracks;
 	}
@@ -1721,6 +1761,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @param subtitleTracks the subtitleTracks to set
 	 * @since 1.60.0
 	 */
+	// TODO (breaking change): rename to setSubtitleTracks
 	public void setSubtitleTracksList(List<DLNAMediaSubtitle> subtitleTracks) {
 		this.subtitleTracks = subtitleTracks;
 	}

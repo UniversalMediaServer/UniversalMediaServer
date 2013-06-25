@@ -6,7 +6,7 @@ import net.pms.configuration.FormatConfiguration;
 import net.pms.formats.v2.SubtitleType;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
-import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,6 +96,8 @@ public class LibMediaInfoParser {
 								}
 							} else if (key.equals("Duration/String1") && streamType == MediaInfo.StreamType.General) {
 								media.setDuration(getDuration(value));
+							} else if (key.equals("Format_Settings_RefFrames/String") && streamType == MediaInfo.StreamType.Video) {
+								media.setReferenceFrameCount(getReferenceFrameCount(value));
 							} else if (key.equals("Format_Settings_QPel") && streamType == MediaInfo.StreamType.Video) {
 								media.putExtra(FormatConfiguration.MI_QPEL, value);
 							} else if (key.equals("Format_Settings_GMC") && streamType == MediaInfo.StreamType.Video) {
@@ -404,6 +406,8 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.BMP;
 		} else if (value.equals("tiff")) {
 			format = FormatConfiguration.TIFF;
+		} else if (StringUtils.contains(value, "@l") && streamType == MediaInfo.StreamType.Video) {
+			media.setAvcLevel(getAvcLevel(value));
 		}
 
 		if (format != null) {
@@ -431,6 +435,40 @@ public class LibMediaInfoParser {
 
 		int pixels = Integer.parseInt(value);
 		return pixels;
+	}
+
+	/**
+	 * @param value {@code Format_Settings_RefFrames/String} value to parse.
+	 * @return reference frame count or {@code -1} if could not parse.
+	 */
+	public static byte getReferenceFrameCount(String value) {
+		try {
+			// Values like "16 frame3"
+			return Byte.parseByte(StringUtils.substringBefore(value, " "));
+		} catch (NumberFormatException ex) {
+			// Not parsed
+			LOGGER.warn("Could not parse ReferenceFrameCount value {}." , value);
+			LOGGER.warn("Exception: ", ex);
+			return -1;
+		}
+	}
+
+	/**
+	 * @param value {@code Format_Profile} value to parse.
+	 * @return AVC level or {@code null} if could not parse.
+	 */
+	public static String getAvcLevel(String value) {
+		// Example values:
+		// High@L3.0
+		// High@L4.0
+		// High@L4.1
+		final String avcLevel = substringAfterLast(lowerCase(value), "@l");
+		if (isNotBlank(avcLevel)) {
+			return avcLevel;
+		} else {
+			LOGGER.warn("Could not parse AvcLevel value {}." , value);
+			return null;
+		}
 	}
 
 	public static int getBitrate(String value) {

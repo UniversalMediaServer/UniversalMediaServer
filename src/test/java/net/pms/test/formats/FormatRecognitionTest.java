@@ -69,8 +69,6 @@ public class FormatRecognitionTest {
 
 		try {
 			pmsConf = new PmsConfiguration(false);
-		} catch (IOException e) {
-			// This should be impossible since no configuration file will be loaded.
 		} catch (ConfigurationException e) {
 			// This should be impossible since no configuration file will be loaded.
 		}
@@ -380,8 +378,6 @@ public class FormatRecognitionTest {
 			PMS.setConfiguration(new PmsConfiguration());
 			configurationLoaded = true;
 		} catch (ConfigurationException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
 			e.printStackTrace();
 		}
 

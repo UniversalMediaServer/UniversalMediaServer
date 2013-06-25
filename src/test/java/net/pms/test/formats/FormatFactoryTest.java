@@ -55,27 +55,6 @@ public class FormatFactoryTest {
 		result = FormatFactory.getAssociatedExtension("");
 		assertNull("Empty string matches no extension", result);
 
-		// Unsupported protocol and extension
-		result = FormatFactory.getAssociatedExtension(
-			"bogus://example.com/test.bogus"
-		);
-		assertNull(
-		    "Unsupported protocol and extension: \"bogus://example.com/test.bogus\" matches no format",
-		    result
-		);
-				
-		// XXX an unsupported (here misspelt) protocol should result in a failed match rather
-		// than fall through to an extension match
-		/*
-			result = FormatFactory.getAssociatedExtension(
-				"htp://example.com/test.mp3"
-			);
-			assertNull(
-				"Unsupported protocol: \"htp://example.com/test.mp3\" matches no format",
-				result
-			);
-		*/
-
 		// Unsupported extension
 		result = FormatFactory.getAssociatedExtension(
 			"test.bogus"
@@ -88,6 +67,12 @@ public class FormatFactoryTest {
 		// Confirm the protocol (e.g. WEB) is checked before the extension
 		testSingleFormat("http://example.com/test.mp3", "WEB");
 		testSingleFormat("http://example.com/test.asf?format=.wmv", "WEB");
+
+		// confirm that the WEB format is assigned for arbitrary protocols
+		testSingleFormat("svn+ssh://example.com/example.test", "WEB");
+		testSingleFormat("bogus://example.com/test.test", "WEB");
+		testSingleFormat("fake://example.com/test.test", "WEB");
+		testSingleFormat("pms://example", "WEB");
 	}
 
 	/**
