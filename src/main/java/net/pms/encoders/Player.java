@@ -199,9 +199,23 @@ public abstract class Player {
 	 * @param configuration
 	 * The PMS configuration settings.
 	 */
-	// FIXME this code is almost unreadable in its current form and should be broken down into separate methods
-	// that handle just one facet of its functionality. it also needs to be decoupled from MEncoder
 	public void setAudioAndSubs(String fileName, DLNAMediaInfo media, OutputParams params, PmsConfiguration configuration) {
+		setAudioOutputParameters(media, params, configuration);
+		setSubtitleOutputParameters(fileName, media, params, configuration);
+	}
+
+	/**
+	 * This method populates the supplied {@link OutputParams} object with the correct audio track (aid)
+	 * based on the MediaInfo metadata and PMS configuration settings.
+	 *
+	 * @param media
+	 * The MediaInfo metadata for the file.
+	 * @param params
+	 * The parameters to populate.
+	 * @param configuration
+	 * The PMS configuration settings.
+	 */
+	public void setAudioOutputParameters(DLNAMediaInfo media, OutputParams params, PmsConfiguration configuration) {
 		if (params.aid == null && media != null) {
 			// check for preferred audio
 			StringTokenizer st = new StringTokenizer(configuration.getAudioLanguages(), ",");
@@ -213,29 +227,39 @@ public abstract class Player {
 					if (audio.matchCode(lang)) {
 						params.aid = audio;
 						LOGGER.trace("Matched audio track: " + audio);
-						st = null;
-						break;
+						return;
 					}
 				}
 			}
-		}
 
-		if (params.aid == null && media.getAudioTracksList().size() > 0) {
-			// Take a default audio track, dts first if possible
+			// preferred audio not found take a default audio track, dts first if possible
 			for (DLNAMediaAudio audio : media.getAudioTracksList()) {
 				if (audio.isDTS()) {
 					params.aid = audio;
 					LOGGER.trace("Found priority audio track with DTS: " + audio);
-					break;
+					return;
 				}
 			}
 
-			if (params.aid == null) {
-				params.aid = media.getAudioTracksList().get(0);
-				LOGGER.trace("Chose a default audio track: " + params.aid);
-			}
+			params.aid = media.getAudioTracksList().get(0);
+			LOGGER.trace("Chose a default audio track: " + params.aid);
 		}
-
+	}
+	
+	/**
+	 * This method populates the supplied {@link OutputParams} object with the correct subtitles (sid)
+	 * based on the given filename, its MediaInfo metadata and PMS configuration settings.
+	 *
+	 * @param fileName
+	 * The file name used to determine the availability of subtitles.
+	 * @param media
+	 * The MediaInfo metadata for the file.
+	 * @param params
+	 * The parameters to populate.
+	 * @param configuration
+	 * The PMS configuration settings.
+	 */
+	public void setSubtitleOutputParameters(String fileName, DLNAMediaInfo media, OutputParams params, PmsConfiguration configuration) {
 		String currentLang = null;
 		DLNAMediaSubtitle matchedSub = null;
 
@@ -265,11 +289,11 @@ public abstract class Player {
 			}
 		}
 
-		StringTokenizer st1 = new StringTokenizer(configuration.getAudioSubLanguages(), ";");
+		StringTokenizer st = new StringTokenizer(configuration.getAudioSubLanguages(), ";");
 
 		boolean matchedEmbeddedSubtitle = false;
-		while (st1.hasMoreTokens()) {
-			String pair = st1.nextToken();
+		while (st.hasMoreTokens()) {
+			String pair = st.nextToken();
 			if (pair.contains(",")) {
 				String audio = pair.substring(0, pair.indexOf(","));
 				String sub = pair.substring(pair.indexOf(",") + 1);
@@ -334,7 +358,7 @@ public abstract class Player {
 				// Priority to external subtitles
 				for (DLNAMediaSubtitle sub : media.getSubtitleTracksList()) {
 					if (matchedSub != null && matchedSub.getLang() != null && matchedSub.getLang().equals("off")) {
-						StringTokenizer st = new StringTokenizer(configuration.getForcedSubtitleTags(), ",");
+						st = new StringTokenizer(configuration.getForcedSubtitleTags(), ",");
 
 						while (sub.getFlavor() != null && st.hasMoreTokens()) {
 							String forcedTags = st.nextToken();
@@ -378,7 +402,7 @@ public abstract class Player {
 			}
 
 			if (params.sid == null) {
-				StringTokenizer st = new StringTokenizer(configuration.getSubtitlesLanguages(), ",");
+				st = new StringTokenizer(configuration.getSubtitlesLanguages(), ",");
 				while (st != null && st.hasMoreTokens()) {
 					String lang = st.nextToken();
 					lang = lang.trim();
@@ -393,15 +417,14 @@ public abstract class Player {
 						) {
 							params.sid = sub;
 							LOGGER.trace("Matched sub track: " + params.sid);
-							st = null;
-							break;
+							return;
 						}
 					}
 				}
 			}
 		}
 	}
-
+	
 	/**
 	 * Returns whether or not the player can handle a given resource.
 	 * If the resource is <code>null</code> compatibility cannot be
