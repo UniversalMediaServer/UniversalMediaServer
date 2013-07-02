@@ -14,6 +14,7 @@ import java.util.List;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.virtual.VirtualFolder;
+import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.formats.Format;
@@ -75,6 +76,10 @@ public class RecentlyPlayed extends VirtualFolder {
 	public void add(DLNAResource res) {
 		DLNAResource res1;
 		LOGGER.debug("add " + res + " to last played " + res.getParent() + " " + this);
+        if (res instanceof VirtualVideoAction) {
+            // don't add these
+            return;
+        }
 		if (res.getParent() == this) {
 			res1 = res; // best guess
 			for (DLNAResource r : list) {
