@@ -218,10 +218,10 @@ public abstract class Player {
 	public void setAudioOutputParameters(DLNAMediaInfo media, OutputParams params, PmsConfiguration configuration) {
 		if (params.aid == null && media != null) {
 			// check for preferred audio
+			DLNAMediaAudio dtsTrack = null;
 			StringTokenizer st = new StringTokenizer(configuration.getAudioLanguages(), ",");
 			while (st != null && st.hasMoreTokens()) {
-				String lang = st.nextToken();
-				lang = lang.trim();
+				String lang = st.nextToken().trim();
 				LOGGER.trace("Looking for an audio track with lang: " + lang);
 				for (DLNAMediaAudio audio : media.getAudioTracksList()) {
 					if (audio.matchCode(lang)) {
@@ -229,23 +229,25 @@ public abstract class Player {
 						LOGGER.trace("Matched audio track: " + audio);
 						return;
 					}
+
+					if (dtsTrack == null && audio.isDTS()) {
+						dtsTrack = audio;
+					}
 				}
 			}
 
-			// preferred audio not found take a default audio track, dts first if possible
-			for (DLNAMediaAudio audio : media.getAudioTracksList()) {
-				if (audio.isDTS()) {
-					params.aid = audio;
-					LOGGER.trace("Found priority audio track with DTS: " + audio);
-					return;
-				}
+			// preferred audio not found, take a default audio track, dts first if available
+			if (dtsTrack != null) {
+				params.aid = dtsTrack;
+				LOGGER.trace("Found priority audio track with DTS: " + dtsTrack);
+			} else {
+				params.aid = media.getAudioTracksList().get(0);
+				LOGGER.trace("Chose a default audio track: " + params.aid);
 			}
 
-			params.aid = media.getAudioTracksList().get(0);
-			LOGGER.trace("Chose a default audio track: " + params.aid);
 		}
 	}
-	
+
 	/**
 	 * This method populates the supplied {@link OutputParams} object with the correct subtitles (sid)
 	 * based on the given filename, its MediaInfo metadata and PMS configuration settings.
@@ -424,7 +426,7 @@ public abstract class Player {
 			}
 		}
 	}
-	
+
 	/**
 	 * Returns whether or not the player can handle a given resource.
 	 * If the resource is <code>null</code> compatibility cannot be
