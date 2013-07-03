@@ -791,7 +791,7 @@ public class MEncoderVideo extends Player {
 		boolean avisynth = avisynth();
 
 		final String filename = dlna.getSystemName();
-		setAudioAndSubs(filename, media, params, configuration);
+		setAudioAndSubs(filename, media, params);
 		String externalSubtitlesFileName = null;
 
 		if (params.sid != null && params.sid.isExternal()) {

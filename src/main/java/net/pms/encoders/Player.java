@@ -121,7 +121,6 @@ public abstract class Player {
 	/**
 	 * @deprecated Use {@link #launchTranscode(net.pms.dlna.DLNAResource, net.pms.dlna.DLNAMediaInfo, net.pms.io.OutputParams)} instead.
 	 */
-	@Deprecated
 	public final ProcessWrapper launchTranscode(String filename, DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
 		return launchTranscode(dlna, media, params);
 	}
@@ -190,6 +189,13 @@ public abstract class Player {
 	}
 
 	/**
+	 * @deprecated Use {@link #setAudioAndSubs(String fileName, DLNAMediaInfo media, OutputParams params)} instead.
+	 */
+	public void setAudioAndSubs(String fileName, DLNAMediaInfo media, OutputParams params, PmsConfiguration configuration) {
+		setAudioAndSubs(fileName, media, params);
+	}
+
+	/**
 	 * This method populates the supplied {@link OutputParams} object with the correct audio track (aid)
 	 * and subtitles (sid), based on the given filename, its MediaInfo metadata and PMS configuration settings.
 	 *
@@ -199,12 +205,10 @@ public abstract class Player {
 	 * The MediaInfo metadata for the file.
 	 * @param params
 	 * The parameters to populate.
-	 * @param configuration
-	 * The PMS configuration settings.
 	 */
-	public void setAudioAndSubs(String fileName, DLNAMediaInfo media, OutputParams params, PmsConfiguration configuration) {
-		setAudioOutputParameters(media, params, configuration);
-		setSubtitleOutputParameters(fileName, media, params, configuration);
+	public void setAudioAndSubs(String fileName, DLNAMediaInfo media, OutputParams params) {
+		setAudioOutputParameters(media, params);
+		setSubtitleOutputParameters(fileName, media, params);
 	}
 
 	/**
@@ -215,10 +219,8 @@ public abstract class Player {
 	 * The MediaInfo metadata for the file.
 	 * @param params
 	 * The parameters to populate.
-	 * @param configuration
-	 * The PMS configuration settings.
 	 */
-	public void setAudioOutputParameters(DLNAMediaInfo media, OutputParams params, PmsConfiguration configuration) {
+	public void setAudioOutputParameters(DLNAMediaInfo media, OutputParams params) {
 		if (params.aid == null && media != null) {
 			// check for preferred audio
 			DLNAMediaAudio dtsTrack = null;
@@ -261,10 +263,8 @@ public abstract class Player {
 	 * The MediaInfo metadata for the file.
 	 * @param params
 	 * The parameters to populate.
-	 * @param configuration
-	 * The PMS configuration settings.
 	 */
-	public void setSubtitleOutputParameters(String fileName, DLNAMediaInfo media, OutputParams params, PmsConfiguration configuration) {
+	public void setSubtitleOutputParameters(String fileName, DLNAMediaInfo media, OutputParams params) {
 		String currentLang = null;
 		DLNAMediaSubtitle matchedSub = null;
 

@@ -126,7 +126,7 @@ public class TsMuxeRVideo extends Player {
 		OutputParams params
 	) throws IOException {
 		final String filename = dlna.getSystemName();
-		setAudioAndSubs(filename, media, params, configuration);
+		setAudioAndSubs(filename, media, params);
 
 		PipeIPCProcess ffVideoPipe;
 		ProcessWrapperImpl ffVideo;

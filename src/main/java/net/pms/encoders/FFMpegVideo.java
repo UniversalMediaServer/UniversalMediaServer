@@ -485,7 +485,7 @@ public class FFMpegVideo extends Player {
 		List<String> cmdList = new ArrayList<>();
 		RendererConfiguration renderer = params.mediaRenderer;
 		final String filename = dlna.getSystemName();
-		setAudioAndSubs(filename, media, params, configuration);
+		setAudioAndSubs(filename, media, params);
 		File tempSubs = null;
 		params.waitbeforestart = 2500;
 		boolean avisynth = avisynth();
