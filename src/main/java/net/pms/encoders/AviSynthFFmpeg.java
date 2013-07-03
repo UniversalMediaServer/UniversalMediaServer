@@ -58,12 +58,7 @@ import org.slf4j.LoggerFactory;
  */
 public class AviSynthFFmpeg extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AviSynthFFmpeg.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	public static final String ID = "avsffmpeg";
-	
-	public AviSynthFFmpeg() {
-		super(PMS.getConfiguration());
-	}
 
 	@Override
 	public String id() {

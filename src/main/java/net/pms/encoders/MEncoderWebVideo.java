@@ -32,7 +32,6 @@ import net.pms.util.PlayerUtil;
 
 public class MEncoderWebVideo extends Player {
 	public static final String ID = "mencoderwebvideo";
-	private final PmsConfiguration configuration;
 
 	@Override
 	public JComponent config() {
@@ -77,8 +76,12 @@ public class MEncoderWebVideo extends Player {
 			};
 	}
 
+	@Deprecated
 	public MEncoderWebVideo(PmsConfiguration configuration) {
 		this.configuration = configuration;
+	}
+
+	public MEncoderWebVideo() {
 	}
 
 	@Override

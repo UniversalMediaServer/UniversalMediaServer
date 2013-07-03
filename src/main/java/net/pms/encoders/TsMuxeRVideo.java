@@ -66,11 +66,14 @@ public class TsMuxeRVideo extends Player {
 	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, 0:grow";
 
 	public static final String ID = "tsmuxer";
-	private PmsConfiguration configuration;
 
+	@Deprecated
 	public TsMuxeRVideo(PmsConfiguration configuration) {
 		this.configuration = configuration;
 	}
+
+	public TsMuxeRVideo() {
+	}	
 
 	@Override
 	public boolean excludeFormat(Format format) {

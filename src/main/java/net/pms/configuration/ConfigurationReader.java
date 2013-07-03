@@ -33,7 +33,7 @@ import java.util.*;
 // this class and all its methods are package private
 class ConfigurationReader {
 	private static final Logger logger = LoggerFactory.getLogger(ConfigurationReader.class);
-	private Map<String, Object> logMap = new HashMap<String, Object>();
+	private Map<String, Object> logMap = new HashMap<>();
 	private final Configuration configuration;
 	private final boolean logOverrides;
 
@@ -190,7 +190,7 @@ class ConfigurationReader {
 
 		if (stringValue != null) {
 			String[] array = stringValue.split(",");
-			List<String> result = new ArrayList<String>(array.length);
+			List<String> result = new ArrayList<>(array.length);
 
 			for (String s : array) {
 				if (s.trim().length() > 0) {

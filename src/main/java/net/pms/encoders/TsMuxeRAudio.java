@@ -31,8 +31,12 @@ import net.pms.util.PlayerUtil;
 public class TsMuxeRAudio extends TsMuxeRVideo {
 	public static final String ID = "tsmuxeraudio";
 
+	@Deprecated
 	public TsMuxeRAudio(PmsConfiguration configuration) {
 		super(configuration);
+	}
+
+	public TsMuxeRAudio() {
 	}
 
 	@Override

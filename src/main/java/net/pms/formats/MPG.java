@@ -18,11 +18,7 @@
  */
 package net.pms.formats;
 
-import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
-
 public class MPG extends Format {
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	/**
 	 * {@inheritDoc} 
 	 */

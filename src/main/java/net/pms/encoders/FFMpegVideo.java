@@ -93,13 +93,11 @@ public class FFMpegVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
 	private static final String DEFAULT_QSCALE = "3";
 	private static final String SUB_DIR = "subs";
-	protected static PmsConfiguration configuration;
 	
-	@Deprecated
 	public FFMpegVideo() {
-		this(PMS.getConfiguration());
 	}
 	
+	@Deprecated
 	public FFMpegVideo(PmsConfiguration configuration) {
 		FFMpegVideo.configuration = configuration;
 	}
@@ -757,7 +755,7 @@ public class FFMpegVideo extends Player {
 			PipeProcess pipe;
 			pipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
-			TsMuxeRVideo ts = new TsMuxeRVideo(configuration);
+			TsMuxeRVideo ts = new TsMuxeRVideo();
 			File f = new File(configuration.getTempFolder(), "pms-tsmuxer.meta");
 			String cmd[] = new String[]{ ts.executable(), f.getAbsolutePath(), pipe.getInputPipe() };
 			pw = new ProcessWrapperImpl(cmd, params);

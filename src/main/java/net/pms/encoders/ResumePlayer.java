@@ -18,7 +18,6 @@ public class ResumePlayer extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
 
 	public ResumePlayer() {
-		super(PMS.getConfiguration());
 	}
 
 	@Override

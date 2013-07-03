@@ -65,7 +65,6 @@ public class VLCVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(VLCVideo.class);
 	private static final String COL_SPEC = "left:pref, 3dlu, p, 3dlu, 0:grow";
 	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p, 9dlu, p, 3dlu, p, 3dlu, p";
-	protected final PmsConfiguration configuration;
 	public static final String ID = "vlctranscoder";
 	protected JTextField audioPri;
 	protected JTextField subtitlePri;
@@ -78,8 +77,12 @@ public class VLCVideo extends Player {
 
 	protected boolean videoRemux;
 
+	@Deprecated
 	public VLCVideo(PmsConfiguration configuration) {
 		this.configuration = configuration;
+	}
+
+	public VLCVideo() {
 	}
 
 	@Override

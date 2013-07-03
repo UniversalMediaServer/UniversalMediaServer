@@ -20,7 +20,6 @@
 package net.pms.configuration;
 
 import ch.qos.logback.classic.LoggerContext;
-import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
 import static net.pms.configuration.RendererConfiguration.*;

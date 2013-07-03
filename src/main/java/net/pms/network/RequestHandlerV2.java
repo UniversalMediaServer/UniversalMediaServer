@@ -231,7 +231,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				// We have found an unknown renderer
 				LOGGER.info("Media renderer was not recognized. Possible identifying HTTP headers: User-Agent: " + userAgentString
 						+ ("".equals(unknownHeaders.toString()) ? "" : ", " + unknownHeaders.toString()));
-				PMS.get().setRendererfound(request.getMediaRenderer());
+				PMS.get().setRendererFound(request.getMediaRenderer());
 			}
 		} else {
 			if (userAgentString != null) {

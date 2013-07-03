@@ -14,12 +14,10 @@ class ConfigurationProgramPaths implements ProgramPaths {
 	private static final String KEY_IMCONVERT_PATH  = "imconvert_path";
 	private static final String KEY_INTERFRAME_PATH = "interframe_path";
 
-	private final Configuration configuration;
 	private final ConfigurationReader configurationReader;
 	private final ProgramPaths defaults;
 
 	public ConfigurationProgramPaths(Configuration configuration, ProgramPaths defaults) {
-		this.configuration = configuration;
 		this.configurationReader = new ConfigurationReader(configuration, true); // true: log
 		this.defaults = defaults;
 	}

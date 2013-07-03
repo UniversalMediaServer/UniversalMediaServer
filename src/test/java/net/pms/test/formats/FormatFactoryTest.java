@@ -48,15 +48,15 @@ public class FormatFactoryTest {
 	@Test
 	public final void testFormatFactoryEdgeCases() {
 		// Null string
-		Format result = FormatFactory.getAssociatedExtension(null);
+		Format result = FormatFactory.getAssociatedFormat(null);
 		assertNull("Null string matches no format", result);
 
 		// Empty string
-		result = FormatFactory.getAssociatedExtension("");
+		result = FormatFactory.getAssociatedFormat("");
 		assertNull("Empty string matches no extension", result);
 
 		// Unsupported extension
-		result = FormatFactory.getAssociatedExtension(
+		result = FormatFactory.getAssociatedFormat(
 			"test.bogus"
 		);
 		assertNull(
@@ -108,7 +108,7 @@ public class FormatFactoryTest {
 	 *            The name of the expected format.
 	 */
 	private void testSingleFormat(final String filename, final String formatName) {
-		Format result = FormatFactory.getAssociatedExtension(filename);
+		Format result = FormatFactory.getAssociatedFormat(filename);
 
 		if (result != null) {
 			assertEquals("\"" + filename + "\" is expected to match",

@@ -20,7 +20,6 @@
 package net.pms.test.formats;
 
 import ch.qos.logback.classic.LoggerContext;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import net.pms.PMS;

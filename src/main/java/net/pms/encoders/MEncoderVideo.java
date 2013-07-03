@@ -85,7 +85,6 @@ public class MEncoderVideo extends Player {
 	private JCheckBox intelligentsync;
 	private JTextField ocw;
 	private JTextField och;
-	private final PmsConfiguration configuration;
 
 	private static final String[] INVALID_CUSTOM_OPTIONS = {
 		"-of",
@@ -147,8 +146,12 @@ public class MEncoderVideo extends Player {
 		return noskip;
 	}
 
+	@Deprecated
 	public MEncoderVideo(PmsConfiguration configuration) {
 		this.configuration = configuration;
+	}
+
+	public MEncoderVideo() {
 	}
 
 	@Override
@@ -908,7 +911,7 @@ public class MEncoderVideo extends Player {
 			}
 
 			if (!nomux) {
-				TsMuxeRVideo tv = new TsMuxeRVideo(configuration);
+				TsMuxeRVideo tv = new TsMuxeRVideo();
 				params.forceFps = media.getValidFps(false);
 
 				if (media.getCodecV() != null) {
@@ -921,7 +924,7 @@ public class MEncoderVideo extends Player {
 					}
 				}
 
-				return tv.launchTranscode(filename, dlna, media, params);
+				return tv.launchTranscode(dlna, media, params);
 			}
 		} else if (params.sid == null && dvd && configuration.isMencoderRemuxMPEG2() && params.mediaRenderer.isMpeg2Supported()) {
 			String expertOptions[] = getSpecificCodecOptions(
@@ -2073,7 +2076,7 @@ public class MEncoderVideo extends Player {
 
 				pipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
-				TsMuxeRVideo ts = new TsMuxeRVideo(configuration);
+				TsMuxeRVideo ts = new TsMuxeRVideo();
 				File f = new File(configuration.getTempFolder(), "pms-tsmuxer.meta");
 				String cmd[] = new String[]{ ts.executable(), f.getAbsolutePath(), pipe.getInputPipe() };
 				pw = new ProcessWrapperImpl(cmd, params);

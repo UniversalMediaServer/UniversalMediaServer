@@ -37,7 +37,7 @@ public class FrameAppender<E> extends UnsynchronizedAppenderBase<E> {
 	private Encoder<E> encoder;
 	private final ByteArrayOutputStream outputStream = new ByteArrayOutputStream(256);
 	private final Object lock = new Object();
-	private final List<String> buffer = new ArrayList<String>();
+	private final List<String> buffer = new ArrayList<>();
 
 	/**
 	 * Checks that the required parameters are set and if everything is in

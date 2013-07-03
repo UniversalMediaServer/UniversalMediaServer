@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 import jwbroek.cuelib.*;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.Range.Time;
 import net.pms.encoders.FFmpegAudio;
 import net.pms.encoders.MEncoderVideo;
@@ -37,7 +36,6 @@ import org.slf4j.LoggerFactory;
 
 public class CueFolder extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(CueFolder.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private File playlistfile;
 
 	public File getPlaylistfile() {
@@ -155,12 +153,12 @@ public class CueFolder extends DLNAResource {
 											r.resolveFormat(); // sets the format based on the filename
 											defaultPlayer = PlayerFactory.getPlayer(realFile);
 									*/
-									defaultPlayer = new MEncoderVideo(configuration);
+									defaultPlayer = new MEncoderVideo();
 								} else {
 									if (realFile.getFormat().isAudio()) {
-										defaultPlayer = new FFmpegAudio(configuration);
+										defaultPlayer = new FFmpegAudio();
 									} else {
-										defaultPlayer = new MEncoderVideo(configuration);
+										defaultPlayer = new MEncoderVideo();
 									}
 								}
 							}

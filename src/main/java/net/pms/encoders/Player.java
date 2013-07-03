@@ -25,6 +25,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
 import javax.swing.JComponent;
+
+import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
@@ -68,6 +70,7 @@ public abstract class Player {
 
 	public abstract String mimeType();
 	public abstract String executable();
+	protected static PmsConfiguration configuration = PMS.getConfiguration();
 	private static List<FinalizeTranscoderArgsListener> finalizeTranscoderArgsListeners =
 		new ArrayList<>();
 

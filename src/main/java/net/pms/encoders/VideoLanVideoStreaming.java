@@ -35,12 +35,15 @@ import net.pms.util.PlayerUtil;
 
 /* XXX this is the old/obsolete VLC web video streaming engine */
 public class VideoLanVideoStreaming extends Player {
-	private final PmsConfiguration configuration;
 	public static final String ID = "vlcvideo";
 
+	@Deprecated
 	public VideoLanVideoStreaming(PmsConfiguration configuration) {
 		this.configuration = configuration;
 	}
+
+	public VideoLanVideoStreaming() {
+	}	
 
 	@Override
 	public int purpose() {

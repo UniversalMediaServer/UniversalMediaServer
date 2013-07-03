@@ -33,8 +33,6 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.external.ExternalFactory;
 import net.pms.external.URLResolver.URLResult;
-import net.pms.formats.FormatFactory;
-import net.pms.formats.WEB;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
@@ -87,9 +85,23 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		return false;
 	}
 
+	@Deprecated
 	public FFmpegWebVideo(PmsConfiguration configuration) {
 		super(configuration);
 		
+		if (!init) {
+			readWebFilters(configuration.getProfileDirectory() + File.separator + "ffmpeg.webfilters");
+
+			protocols = FFmpegOptions.getSupportedProtocols(configuration);
+			// see XXX workaround below
+			protocols.add("mms");
+			protocols.add("https");
+			LOGGER.debug("FFmpeg supported protocols: " + protocols);
+			init = true;
+		}
+	}
+	
+	public FFmpegWebVideo() {
 		if (!init) {
 			readWebFilters(configuration.getProfileDirectory() + File.separator + "ffmpeg.webfilters");
 

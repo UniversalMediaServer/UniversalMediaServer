@@ -5,8 +5,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import javax.swing.JComponent;
-import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
@@ -20,7 +18,6 @@ import org.slf4j.LoggerFactory;
 
 public class RAWThumbnailer extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RAWThumbnailer.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	public final static String ID = "rawthumbs";
 
 	protected String[] getDefaultArgs() {
