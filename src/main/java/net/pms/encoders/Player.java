@@ -25,7 +25,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
 import javax.swing.JComponent;
-
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -225,7 +224,7 @@ public abstract class Player {
 			// check for preferred audio
 			DLNAMediaAudio dtsTrack = null;
 			StringTokenizer st = new StringTokenizer(configuration.getAudioLanguages(), ",");
-			while (st != null && st.hasMoreTokens()) {
+			while (st.hasMoreTokens()) {
 				String lang = st.nextToken().trim();
 				LOGGER.trace("Looking for an audio track with lang: " + lang);
 				for (DLNAMediaAudio audio : media.getAudioTracksList()) {
@@ -249,7 +248,6 @@ public abstract class Player {
 				params.aid = media.getAudioTracksList().get(0);
 				LOGGER.trace("Chose a default audio track: " + params.aid);
 			}
-
 		}
 	}
 
