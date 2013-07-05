@@ -46,6 +46,7 @@ import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
@@ -57,12 +58,7 @@ import org.slf4j.LoggerFactory;
  */
 public class AviSynthFFmpeg extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AviSynthFFmpeg.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	public static final String ID = "avsffmpeg";
-	
-	public AviSynthFFmpeg() {
-		super(PMS.getConfiguration());
-	}
 
 	@Override
 	public String id() {
@@ -182,17 +178,17 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 					"InterFrame(Cores=" + Cores + GPU + ", Preset=\"Fast\")\n";
 		}
 
-		String subLine = null;
-		if (subTrack != null && configuration.isAutoloadSubtitles() && !configuration.isDisableSubtitles()) {
-			if (subTrack.getExternalFile() != null) {
-				LOGGER.info("AviSynth script: Using subtitle track: " + subTrack);
-				String function = "TextSub";
-				if (subTrack.getType() == SubtitleType.VOBSUB) {
-					function = "VobSub";
+			String subLine = null;
+			if (subTrack != null && configuration.isAutoloadExternalSubtitles() && !configuration.isDisableSubtitles()) {
+				if (subTrack.getExternalFile() != null) {
+					LOGGER.info("AviSynth script: Using subtitle track: " + subTrack);
+					String function = "TextSub";
+					if (subTrack.getType() == SubtitleType.VOBSUB) {
+						function = "VobSub";
+					}
+					subLine = function + "(\"" + ProcessUtil.getShortFileNameIfWideChars(subTrack.getExternalFile().getAbsolutePath()) + "\")";
 				}
-				subLine = function + "(\"" + ProcessUtil.getShortFileNameIfWideChars(subTrack.getExternalFile().getAbsolutePath()) + "\")";
 			}
-		}
 
 		ArrayList<String> lines = new ArrayList<String>();
 
@@ -339,16 +335,10 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		if (resource == null || resource.getFormat().getType() != Format.VIDEO) {
-			return false;
-		}
-
 		Format format = resource.getFormat();
-		Format.Identifier id = Format.Identifier.CUSTOM;
 
 		if (format != null) {
-			id = format.getIdentifier();
-			if (id == Format.Identifier.WEB) {
+			if (format.getIdentifier() == Format.Identifier.WEB) {
 				return false;
 			}
 		}
@@ -376,7 +366,10 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			LOGGER.trace("AviSynth/FFmpeg cannot determine compatibility based on default audio track for " + resource.getSystemName());
 		}
 
-		if (id.equals(Format.Identifier.MKV) || id.equals(Format.Identifier.MPG)) {
+		if (
+			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
+			PlayerUtil.isVideo(resource, Format.Identifier.MPG)
+		) {
 			return true;
 		}
 

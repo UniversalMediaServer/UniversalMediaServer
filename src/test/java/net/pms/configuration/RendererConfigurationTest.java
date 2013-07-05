@@ -20,7 +20,6 @@
 package net.pms.configuration;
 
 import ch.qos.logback.classic.LoggerContext;
-import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
 import static net.pms.configuration.RendererConfiguration.*;
@@ -135,8 +134,6 @@ public class RendererConfigurationTest {
 
 		try {
 			pmsConf = new PmsConfiguration(false);
-		} catch (IOException e) {
-			// This should be impossible since no configuration file will be loaded.
 		} catch (ConfigurationException e) {
 			// This should be impossible since no configuration file will be loaded.
 		}
@@ -163,8 +160,6 @@ public class RendererConfigurationTest {
 
 		try {
 			pmsConf = new PmsConfiguration(false);
-		} catch (IOException e) {
-			// This should be impossible since no configuration file will be loaded.
 		} catch (ConfigurationException e) {
 			// This should be impossible since no configuration file will be loaded.
 		}
@@ -191,8 +186,6 @@ public class RendererConfigurationTest {
 
 		try {
 			pmsConf = new PmsConfiguration(false);
-		} catch (IOException e) {
-			// This should be impossible since no configuration file will be loaded.
 		} catch (ConfigurationException e) {
 			// This should be impossible since no configuration file will be loaded.
 		}

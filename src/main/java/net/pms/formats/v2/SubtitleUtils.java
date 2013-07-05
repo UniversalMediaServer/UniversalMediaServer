@@ -21,23 +21,17 @@ package net.pms.formats.v2;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.StringTokenizer;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.io.OutputParams;
+import static net.pms.util.StringUtil.*;
 import static org.apache.commons.io.FilenameUtils.getBaseName;
 import static org.apache.commons.lang3.StringUtils.*;
 import static org.mozilla.universalchardet.Constants.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class SubtitleUtils {
-	private static final Logger LOGGER = LoggerFactory.getLogger(SubtitleUtils.class);
 	private final static PmsConfiguration configuration = PMS.getConfiguration();
-	public static final String ASS_TIME_FORMAT = "%01d:%02d:%02.2f";
-	public static final String SRT_TIME_FORMAT = "%02d:%02d:%02.3f";
-	public static final String SEC_TIME_FORMAT = "%02d:%02d:%02d";
 	private final static Map<String, String> fileCharsetToMencoderSubcpOptionMap = new HashMap<String, String>() {
 		private static final long serialVersionUID = 1L;
 
@@ -176,51 +170,5 @@ public class SubtitleUtils {
 		w.close();
 		PMS.get().addTempFile(outputSubs, 2 * 24 * 3600 * 1000);
 		return outputSubs;
-	}
-
-	/**
-	 * Converts time to string.
-	 *
-	 * @param d time in double.
-	 * @param timeFormat Format string e.g. "%02d:%02d:%02d" or use predefined constants
-	 * ASS_TIME_FORMAT, SRT_TIME_FORMAT, SEC_TIME_FORMAT.
-	 *
-	 * @return Converted String.
-	 */
-	public static String convertTimeToString(double d, String timeFormat) {
-		double s = d % 60;
-		int h = (int) (d / 3600);
-		int m = ((int) (d / 60)) % 60;
-
-		if (timeFormat.equals(SRT_TIME_FORMAT)) {
-			return String.format(timeFormat, h, m, s).replaceAll("\\.", ",");
-		}
-
-		return String.format(timeFormat, h, m, s);
-	}
-
-	/**
-	 * Converts string in time format to double.
-	 *
-	 * @param time string in format 00:00:00.000
-	 * @return Time in double.
-	 * 
-	 */
-	public static Double convertStringToTime(String time) throws IllegalArgumentException  {
-		if (isBlank(time)) {
-			throw new IllegalArgumentException("time String should not be blank.");
-		}
-
-		StringTokenizer st = new StringTokenizer(time, ":");
-
-		try {
-			int h = Integer.parseInt(st.nextToken());
-			int m = Integer.parseInt(st.nextToken());
-			double s = Double.parseDouble(replace(st.nextToken(), ",", "."));
-			return h * 3600 + m * 60 + s;
-		} catch (NumberFormatException nfe) {
-			LOGGER.debug("Failed to convert \"" + time + "\"");
-			throw nfe;
-		}
 	}
 }

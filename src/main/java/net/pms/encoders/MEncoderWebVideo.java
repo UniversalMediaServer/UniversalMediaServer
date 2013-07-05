@@ -28,10 +28,10 @@ import net.pms.io.OutputParams;
 import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.util.PlayerUtil;
 
 public class MEncoderWebVideo extends Player {
 	public static final String ID = "mencoderwebvideo";
-	private final PmsConfiguration configuration;
 
 	@Override
 	public JComponent config() {
@@ -76,13 +76,16 @@ public class MEncoderWebVideo extends Player {
 			};
 	}
 
+	@Deprecated
 	public MEncoderWebVideo(PmsConfiguration configuration) {
 		this.configuration = configuration;
 	}
 
+	public MEncoderWebVideo() {
+	}
+
 	@Override
 	public ProcessWrapper launchTranscode(
-		String fileName,
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params) throws IOException {
@@ -94,7 +97,8 @@ public class MEncoderWebVideo extends Player {
 
 		String cmdArray[] = new String[args().length + 4];
 		cmdArray[0] = executable();
-		cmdArray[1] = fileName;
+		final String filename = dlna.getSystemName();
+		cmdArray[1] = filename;
 		System.arraycopy(args(), 0, cmdArray, 2, args().length);
 		cmdArray[cmdArray.length - 2] = "-o";
 		cmdArray[cmdArray.length - 1] = pipe.getInputPipe();
@@ -102,7 +106,7 @@ public class MEncoderWebVideo extends Player {
 		ProcessWrapper mkfifo_process = pipe.getPipeProcess();
 
 		cmdArray = finalizeTranscoderArgs(
-			fileName,
+			filename,
 			dlna,
 			media,
 			params,
@@ -156,20 +160,6 @@ public class MEncoderWebVideo extends Player {
 	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		if (resource == null || resource.getFormat().getType() != Format.VIDEO) {
-			return false;
-		}
-
-		Format format = resource.getFormat();
-
-		if (format != null) {
-			Format.Identifier id = format.getIdentifier();
-
-			if (id.equals(Format.Identifier.WEB)) {
-				return true;
-			}
-		}
-
-		return false;
+		return PlayerUtil.isWebVideo(resource);
 	}
 }

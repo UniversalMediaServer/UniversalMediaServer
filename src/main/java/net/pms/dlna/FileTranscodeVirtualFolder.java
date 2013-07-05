@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -37,53 +38,6 @@ import org.slf4j.LoggerFactory;
 public class FileTranscodeVirtualFolder extends VirtualFolder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileTranscodeVirtualFolder.class);
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
-	private boolean resolved;
-
-	/**
-	 * Class to take care of sorting the resources correctly. Resources
-	 * are sorted by player, then by audio track, then by subtitle.
-	 */
-	private class ResourceSort implements Comparator<DLNAResource> {
-		private ArrayList<Player> players;
-
-		ResourceSort(ArrayList<Player> players) {
-			this.players = players;
-		}
-
-		@Override
-		public int compare(DLNAResource resource1, DLNAResource resource2) {
-			Integer playerIndex1 = players.indexOf(resource1.getPlayer());
-			Integer playerIndex2 = players.indexOf(resource2.getPlayer());
-
-			if (playerIndex1.equals(playerIndex2)) {
-				String audioLang1 = resource1.getMediaAudio().getLang();
-				String audioLang2 = resource2.getMediaAudio().getLang();
-
-				if (audioLang1.equals(audioLang2)) {
-					String subtitle1 = resource1.getMediaSubtitle().getLang();
-					String subtitle2 = resource2.getMediaSubtitle().getLang();
-
-					if (subtitle1 != null && subtitle2 != null) {
-						return subtitle1.compareToIgnoreCase(subtitle2);
-					} else {
-						if (subtitle1 == null && subtitle2 == null) {
-							return 0;
-						} else {
-							if (subtitle1 == null) {
-								return -1;
-							} else {
-								return 1;
-							}
-						}
-					}
-				} else {
-					return audioLang1.compareToIgnoreCase(audioLang2);
-				}
-			} else {
-				return playerIndex1.compareTo(playerIndex2);
-			}
-		}
-	}
 
 	// FIXME unused
 	@Deprecated
@@ -95,110 +49,9 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 		super(name, thumbnailIcon);
 	}
 
-	private void addChapterFile(DLNAResource source) {
-		if (configuration.isChapterSupport() && configuration.getChapterInterval() > 0) {
-			ChapterFileTranscodeVirtualFolder chapterFolder = new ChapterFileTranscodeVirtualFolder(
-				"Chapters:" + source.getDisplayName(),
-				null,
-				configuration.getChapterInterval()
-			);
-			DLNAResource newSeekChild = source.clone();
-			newSeekChild.setNoName(true);
-			chapterFolder.addChildInternal(newSeekChild);
-			addChildInternal(chapterFolder);
-		}
-	}
-
 	/**
-	 * This populates the file-specific transcode folder with all combinations of players,
-	 * audio tracks and subtitles.
-	 */
-	@Override
-	public void resolve() {
-		super.resolve();
-
-		if (!resolved && getChildren().size() == 1) { // OK
-			DLNAResource child = getChildren().get(0);
-			child.resolve();
-
-			// First, add the option to simply stream the resource
-			DLNAResource justStreamed = child.clone();
-
-			RendererConfiguration renderer = null;
-
-			if (this.getParent() != null) {
-				renderer = this.getParent().getDefaultRenderer();
-			}
-
-			// Only add the option if the renderer is compatible with the format
-			if (
-				justStreamed.getFormat() != null &&
-				(
-					justStreamed.getFormat().isCompatible(child.getMedia(),	renderer) ||
-					justStreamed.isSkipTranscode()
-				)
-			) {
-				justStreamed.setPlayer(null);
-				justStreamed.setMedia(child.getMedia());
-				justStreamed.setNoName(true);
-				addChildInternal(justStreamed);
-				addChapterFile(justStreamed);
-
-				if (renderer != null) {
-					LOGGER.debug("Duplicate " + child.getName() + " for direct streaming to renderer: " + renderer.getRendererName());
-				}
-			}
-
-			// List holding all combinations
-			ArrayList<DLNAResource> combos = new ArrayList<DLNAResource>();
-
-			List<DLNAMediaAudio> audioTracks = child.getMedia().getAudioTracksList();
-			List<DLNAMediaSubtitle> subtitles = child.getMedia().getSubtitleTracksList();
-
-			// Make sure a combo with no subtitles will be added
-			DLNAMediaSubtitle noSubtitle = new DLNAMediaSubtitle();
-			noSubtitle.setId(-1);
-			subtitles.add(noSubtitle);
-
-			// Create combinations of all audio tracks, subtitles and players.
-			for (DLNAMediaAudio audio : audioTracks) {
-				for (DLNAMediaSubtitle subtitle : subtitles) {
-					// Create a temporary copy of the child with the audio and
-					// subtitle modified in order to be able to match players to it.
-					DLNAResource tempModifiedCopy = createModifiedResource(child, audio, subtitle);
-
-					// Determine which players match this audio track and subtitle
-					ArrayList<Player> players = PlayerFactory.getPlayers(tempModifiedCopy);
-
-					for (Player player : players) {
-						// Create a copy based on this combination
-						DLNAResource combo = createComboResource(child, audio, subtitle, player);
-						combos.add(combo);
-					}
-				}
-			}
-
-			// Sort the list of combinations
-			Collections.sort(combos, new ResourceSort(PlayerFactory.getAllPlayers()));
-
-			// Now add the sorted list of combinations to the folder
-			for (DLNAResource combo : combos) {
-				LOGGER.trace("Adding " + combo.toString() + " - "
-						+ combo.getPlayer().name() + " - "
-						+ combo.getMediaAudio().toString() + " - "
-						+ combo.getMediaSubtitle().toString());
-
-				addChildInternal(combo);
-				addChapterFile(combo);
-			}
-		}
-
-		resolved = true;
-	}
-
-	/**
-	 * Create a copy of the provided original resource with the given audio
-	 * track, subtitles and player.
+	 * Create a copy of the provided original resource and optionally set
+	 * the copy's audio track, subtitle track and player.
 	 *
 	 * @param original The original {@link DLNAResource} to create a copy of.
 	 * @param audio The audio track to use.
@@ -206,15 +59,13 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 	 * @param player The player to use.
 	 * @return The copy.
 	 */
-	private DLNAResource createComboResource(
+	private DLNAResource createResourceWithAudioSubtitlePlayer(
 		DLNAResource original,
 		DLNAMediaAudio audio,
 		DLNAMediaSubtitle subtitle,
-		Player player
-	) {
-		// FIXME: Use new DLNAResource() instead of clone(). Clone is bad, mmmkay?
+		Player player) {
+		// FIXME clone is broken. should be e.g. original.newInstance()
 		DLNAResource copy = original.clone();
-
 		copy.setMedia(original.getMedia());
 		copy.setNoName(true);
 		copy.setMediaAudio(audio);
@@ -225,26 +76,227 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 	}
 
 	/**
-	 * Create a copy of the provided original resource and modify it with
-	 * the given audio track and subtitles.
-	 *
-	 * @param original The original {@link DLNAResource} to create a copy of.
-	 * @param audio The audio track to use.
-	 * @param subtitle The subtitle track to use.
-	 * @return The copy.
+	 * Helper class to take care of sorting the resources correctly. Resources
+	 * are sorted by player, then by audio track, then by subtitle.
 	 */
-	private DLNAResource createModifiedResource(
-		DLNAResource original,
-		DLNAMediaAudio audio,
-		DLNAMediaSubtitle subtitle
-	) {
-		// FIXME: Use new DLNAResource() instead of clone(). Clone is bad, mmmkay?
-		DLNAResource copy = original.clone();
+	private class ResourceSort implements Comparator<DLNAResource> {
 
-		copy.setMedia(original.getMedia());
-		copy.setNoName(true);
-		copy.setMediaAudio(audio);
-		copy.setMediaSubtitle(subtitle);
-		return copy;
+		private ArrayList<Player> players;
+
+		ResourceSort(ArrayList<Player> players) {
+			this.players = players;
+		}
+
+		private String getMediaAudioLanguage(DLNAResource dlna) {
+			return dlna.getMediaAudio() == null ? null : dlna.getMediaAudio().getLang();
+		}
+
+		private String getMediaSubtitleLanguage(DLNAResource dlna) {
+			return dlna.getMediaSubtitle() == null ? null : dlna.getMediaSubtitle().getLang();
+		}
+
+		private int compareLanguage(String lang1, String lang2) {
+			if (lang1 == null && lang2 == null) {
+				return 0;
+			} else if (lang1 != null && lang2 != null) {
+				return lang1.compareToIgnoreCase(lang2);
+			} else {
+				if (lang1 == null) {
+					return -1;
+				} else {
+					return 1;
+				}
+			}
+		}
+
+		@Override
+		public int compare(DLNAResource dlna1, DLNAResource dlna2) {
+			Integer playerIndex1 = players.indexOf(dlna1.getPlayer());
+			Integer playerIndex2 = players.indexOf(dlna2.getPlayer());
+
+			if (!playerIndex1.equals(playerIndex2)) {
+				return playerIndex1.compareTo(playerIndex2);
+			}
+
+			int cmpAudioLang = compareLanguage(
+				getMediaAudioLanguage(dlna1),
+				getMediaAudioLanguage(dlna2));
+
+			if (cmpAudioLang != 0) {
+				return cmpAudioLang;
+			}
+
+			int cmpSubtitleLang = compareLanguage(
+				getMediaSubtitleLanguage(dlna1),
+				getMediaSubtitleLanguage(dlna2));
+
+			return cmpSubtitleLang;
+		}
+	}
+
+	private boolean isSeekable(DLNAResource dlna) {
+		Player player = dlna.getPlayer();
+
+		if ((player == null) || player.isTimeSeekable()) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	private void addChapterFolder(DLNAResource dlna) {
+		if (!dlna.getFormat().isVideo()) {
+			return;
+		}
+
+		int chapterInterval = configuration.isChapterSupport()
+			? configuration.getChapterInterval()
+			: -1;
+
+		if ((chapterInterval > 0) && isSeekable(dlna)) {
+			// don't add a chapter folder if the duration of the video
+			// is less than the chapter length.
+			double duration = dlna.getMedia().getDurationInSeconds(); // 0 if the duration is unknown
+			if (duration != 0 && duration <= (chapterInterval * 60)) {
+				return;
+			}
+
+			ChapterFileTranscodeVirtualFolder chapterFolder = new ChapterFileTranscodeVirtualFolder(
+				String.format(
+				Messages.getString("FileTranscodeVirtualFolder.1"),
+				dlna.getDisplayName()),
+				null,
+				chapterInterval);
+			DLNAResource copy = dlna.clone();
+			copy.setNoName(true);
+			chapterFolder.addChildInternal(copy);
+			addChildInternal(chapterFolder);
+		}
+	}
+
+	/**
+	 * This populates the file-specific transcode folder with all combinations of players,
+	 * audio tracks and subtitles.
+	 */
+	@Override
+	protected void resolveOnce() {
+		if (getChildren().size() == 1) { // OK
+			DLNAResource child = getChildren().get(0);
+			child.resolve();
+
+			RendererConfiguration renderer = null;
+			if (this.getParent() != null) {
+				renderer = this.getParent().getDefaultRenderer();
+			}
+
+			// First, add the option to simply stream the resource.
+			// Only add the option if the renderer is compatible with the format
+			if (child.getFormat() != null
+				&& (child.getFormat().isCompatible(child.getMedia(), renderer)
+				|| child.isSkipTranscode())) {
+				if (renderer != null) {
+					LOGGER.trace(
+						"Duplicating {} for direct streaming to renderer: {}",
+						child.getName(),
+						renderer.getRendererName());
+				}
+
+				DLNAResource noTranscode = createResourceWithAudioSubtitlePlayer(child, null, null, null);
+				addChildInternal(noTranscode);
+				addChapterFolder(noTranscode);
+			}
+
+			// assemble copies for each combination of audio, subtitle and player
+			ArrayList<DLNAResource> entries = new ArrayList<DLNAResource>();
+
+			// create copies of the audio/subtitle track lists as we're making (local)
+			// modifications to them
+			List<DLNAMediaAudio> audioTracks = new ArrayList<DLNAMediaAudio>(child.getMedia().getAudioTracksList());
+			List<DLNAMediaSubtitle> subtitleTracks = new ArrayList<DLNAMediaSubtitle>(child.getMedia().getSubtitleTracksList());
+
+			/*
+			 we add (or may add) a null entry to the audio list and/or subtitle list
+			 to ensure the inner loop is always entered:
+
+			 for audio in audioTracks:
+			 for subtitle in subtitleTracks:
+			 for player in players:
+			 newResource(audio, subtitle, player)
+
+			 there are 4 different scenarios:
+
+			 1) a file with audio tracks and no subtitles (subtitle == null): in that case we want
+			 to assign a player for each audio track
+
+			 2) a file with subtitles and no audio tracks (audio == null): in that case we want
+			 to assign a player for each subtitle track
+
+			 3) a file with no audio tracks (audio == null) and no subtitles (subtitle == null)
+			 e.g. an audio file, a video with no sound and no subtitles or a web audio/video file:
+			 in that case we still want to provide a selection of players e.g. FFmpeg Web Video
+			 and VLC Web Video for a web video or FFmpeg Audio and MPlayer Audio for an audio file
+
+			 4) one or more audio tracks AND one or more subtitle tracks: this is the case this code
+			 used to handle when it solely dealt with (local) video files: assign a player
+			 for each combination of audio track and subtitle track
+
+			 If a null audio or subtitle track is passed to createResourceWithAudioSubtitlePlayer,
+			 it sets the copy's corresponding mediaAudio (AKA params.aid) or mediaSubtitle
+			 (AKA params.sid) value to null.
+
+			 Note: this is the only place in the codebase where mediaAudio and mediaSubtitle
+			 are assigned (ignoring the trivial clone operation in ChapterFileTranscodeVirtualFolder),
+			 so setting one or both of them to null is a no-op as they're already null.
+			 */
+
+			if (audioTracks.isEmpty()) {
+				audioTracks.add(null);
+			}
+
+			if (subtitleTracks.isEmpty()) {
+				subtitleTracks.add(null);
+			} else {
+				// if there are subtitles, make sure a no-subtitle option is added
+				// for each player
+				DLNAMediaSubtitle noSubtitle = new DLNAMediaSubtitle();
+				noSubtitle.setId(-1);
+				subtitleTracks.add(noSubtitle);
+			}
+
+			for (DLNAMediaAudio audio : audioTracks) {
+				// Create combinations of all audio tracks, subtitles and players.
+				for (DLNAMediaSubtitle subtitle : subtitleTracks) {
+					// Create a temporary copy of the child with the audio and
+					// subtitle modified in order to be able to match players to it.
+					DLNAResource temp = createResourceWithAudioSubtitlePlayer(child, audio, subtitle, null);
+
+					// Determine which players match this audio track and subtitle
+					ArrayList<Player> players = PlayerFactory.getPlayers(temp);
+
+					// create a copy for each compatible player
+					for (Player player : players) {
+						DLNAResource copy = createResourceWithAudioSubtitlePlayer(child, audio, subtitle, player);
+						entries.add(copy);
+					}
+				}
+			}
+
+			// Sort the list of combinations
+			Collections.sort(entries, new ResourceSort(PlayerFactory.getAllPlayers()));
+
+			// Now add the sorted list of combinations to the folder
+			for (DLNAResource dlna : entries) {
+				LOGGER.trace(
+					"Adding {}: audio: {}, subtitle: {}, player: {}",
+					new Object[]{
+					dlna.getName(),
+					dlna.getMediaAudio(),
+					dlna.getMediaSubtitle(),
+					(dlna.getPlayer() != null ? dlna.getPlayer().name() : null),});
+
+				addChildInternal(dlna);
+				addChapterFolder(dlna);
+			}
+		}
 	}
 }

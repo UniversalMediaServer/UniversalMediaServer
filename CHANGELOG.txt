@@ -1,3 +1,66 @@
+3.0.0-a2 - 2013-07-?? - Changes since 3.0.0-a1
+
+	General:
+		Added manual configuration option (hide_subs_info) to hide subtitle info from filenames while browsing
+		FFmpeg starts faster
+		Improved quality of H.264 transcoding by default
+		Added H.264 transcoding quality option
+		Improved speed of list population
+		VLC video no longer loops
+		Added multithreading support to VLC
+		Audio files are added to the transcode folder
+		Chapter folders are hidden if the video duration is less than the chapter length
+		Improved file compatibility detection for H.264 muxing
+		Renamed a lot of configuration variables
+		Added thumbnail support to Samsung 2012 ES and EH models (thanks, dmitche3!)
+		Removed the obsolete MPlayerAudio, MPlayerWebAudio and MPlayerWebVideoDump engines
+		Fixed startup issue on OS X
+		Fixed RAW image transcoding and support 28 additional RAW file extensions
+		Fixed incorrect server IP address when starting UMS by launching UMS.exe or UMS.bat
+		Fixed layout issues
+		Fixed various bugs
+	Languages:
+		Updated Dutch translation (thanks, Leroy!)
+	External Components:
+		Updated FFmpeg on all operating systems, which:
+			Improves ASS/SSA subtitle support
+			Improves handling of aspect ratios, even when muxing
+			Fixes multithreaded MPEG-4 decoding
+			Added multithreading to ALAC decoding
+			Speeds up JPEG decoding
+			Fixes and improves MP3, AAC and DTS decoding stability
+			Fixes memory leaks
+			Fixes channel mapping with surround AAC audio
+			Improves H.264 and VC-1 support
+			Improves Vorbis support
+			Improves Matroska support
+			Improves MPEG-TS muxing
+		Updated MediaInfo for Windows to 0.7.63, which:
+			Adds H.265 (HEVC) support
+			Fixed some crashes with .mov files
+			Improved AVI support
+		Updated Netty to 3.6.6
+		Updated Thumbnailator to 0.4.4, which:
+			Fixes memory errors with the latest Java Runtimes
+
+2.6.5 - 2013-06-06 - Changes since 2.6.4
+
+	General:
+		Made sure it is possible to override thumbnails
+		Fixed RAW image transcoding and support 28 additional RAW file extensions
+	Languages:
+		Updated Czech translation
+		Updated Dutch translation (thanks, leroy!)
+		Updated Spanish translation (thanks, Alfredo Ramos and uman2k!)
+	External Components:
+		Updated MediaInfo for Windows to 0.7.63, which:
+			Adds H.265 (HEVC) support
+			Fixed some crashes with .mov files
+			Improved AVI support
+		Updated Netty to 3.6.6
+		Updated Thumbnailator to 0.4.4, which:
+			Fixes memory errors with the latest Java Runtimes
+
 3.0.0-a1 - 2013-05-15
 
 	General:
@@ -16,6 +79,7 @@
 		Improved audio transcoding quality in FFmpeg by default
 		Fixed memory leaks
 		Added tooltips to several options to make them clearer
+		OS X build runs optimized Java 7 code
 	Renderers:
 		Xbox 360 supports 5.1 audio
 		Faster transcoding on Xbox 360

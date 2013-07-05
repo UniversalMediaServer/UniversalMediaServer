@@ -59,6 +59,7 @@ import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.StreamModifier;
 import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
+import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -92,13 +93,11 @@ public class FFMpegVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
 	private static final String DEFAULT_QSCALE = "3";
 	private static final String SUB_DIR = "subs";
-	protected static PmsConfiguration configuration;
 	
-	@Deprecated
 	public FFMpegVideo() {
-		this(PMS.getConfiguration());
 	}
 	
+	@Deprecated
 	public FFMpegVideo(PmsConfiguration configuration) {
 		FFMpegVideo.configuration = configuration;
 	}
@@ -113,16 +112,17 @@ public class FFMpegVideo extends Player {
 	 * If the renderer has no size limits, or there's no media metadata, or the video is within the renderer's
 	 * size limits, an empty list is returned.
 	 *
-	 * @param tempSubs the substrings filename
-	 * @param renderer the DLNA renderer the video is being streamed to
+	 * @param filename
+	 * @param dlna
 	 * @param media metadata for the DLNA resource which is being transcoded
 	 * @param params 
 	 * @return a {@link List} of <code>String</code>s representing the rescale options for this video,
 	 * or an empty list if the video doesn't need to be resized.
 	 */
-	public List<String> getVideoFilterOptions(File tempSubs, RendererConfiguration renderer, DLNAMediaInfo media, OutputParams params) throws IOException {
+	public List<String> getVideoFilterOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params, File tempSubs) throws IOException {
 		List<String> videoFilterOptions = new ArrayList<String>();
 		String subsOption = null;
+		final RendererConfiguration renderer = params.mediaRenderer;
 
 		boolean isMediaValid = media != null && media.isMediaparsed() && media.getHeight() != 0;
 		boolean isResolutionTooHighForRenderer = renderer.isVideoRescale() && isMediaValid && // renderer defines a max width/height
@@ -210,27 +210,23 @@ public class FFMpegVideo extends Player {
 		return videoFilterOptions;
 	}
 
-	@Deprecated
-	public List<String> getTranscodeVideoOptions(RendererConfiguration renderer, DLNAMediaInfo media, OutputParams params) {
-		return getTranscodeVideoOptions(renderer, media, params, null);
-	}
-
 	/**
 	 * Returns a list of <code>String</code>s representing ffmpeg output
 	 * options (i.e. options that define the output file's video codec,
 	 * audio codec and container) compatible with the renderer's
 	 * <code>TranscodeVideo</code> profile.
 	 *
-	 * @param renderer The {@link RendererConfiguration} instance whose <code>TranscodeVideo</code> profile is to be processed.
+	 * @param dlna
 	 * @param media the media metadata for the video being streamed. May contain unset/null values (e.g. for web videos).
 	 * @param params output parameters
-	 * @param fileName the name of the file
 	 *
 	 * @return a {@link List} of <code>String</code>s representing the FFmpeg output parameters for the renderer according
 	 * to its <code>TranscodeVideo</code> profile.
 	 */
-	public List<String> getTranscodeVideoOptions(RendererConfiguration renderer, DLNAMediaInfo media, OutputParams params, String fileName) {
+	public synchronized List<String> getVideoTranscodeOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) {
 		List<String> transcodeOptions = new ArrayList<String>();
+		final String filename = dlna.getSystemName();
+		final RendererConfiguration renderer = params.mediaRenderer;
 
 		if (renderer.isTranscodeToWMV() && !renderer.isXBOX()) { // WMV
 			transcodeOptions.add("-c:v");
@@ -246,13 +242,13 @@ public class FFMpegVideo extends Player {
 
 			// Output audio codec
 			dtsRemux = isTsMuxeRVideoEngineEnabled &&
-				configuration.isDTSEmbedInPCM() &&
+				configuration.isAudioEmbedDtsInPcm() &&
 				params.aid != null &&
 				params.aid.isDTS() &&
 				!avisynth() &&
 				renderer.isDTSPlayable();
 
-			if (configuration.isRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && renderer.isTranscodeToAC3()) {
+			if (configuration.isAudioRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && renderer.isTranscodeToAC3()) {
 				// AC-3 remux
 				transcodeOptions.add("-c:a");
 				transcodeOptions.add("copy");
@@ -269,9 +265,9 @@ public class FFMpegVideo extends Player {
 			}
 
 			InputFile newInput = null;
-			if (fileName != null) {
+			if (filename != null) {
 				newInput = new InputFile();
-				newInput.setFilename(fileName);
+				newInput.setFilename(filename);
 				newInput.setPush(params.stdin);
 			}
 
@@ -302,8 +298,6 @@ public class FFMpegVideo extends Player {
 			} else if (renderer.isTranscodeToH264TSAC3()) {
 				transcodeOptions.add("-c:v");
 				transcodeOptions.add("libx264");
-				transcodeOptions.add("-crf");
-				transcodeOptions.add("20");
 				transcodeOptions.add("-preset");
 				transcodeOptions.add("superfast");
 			} else if (!dtsRemux) {
@@ -333,13 +327,14 @@ public class FFMpegVideo extends Player {
 	 * Returns the video bitrate spec for the current transcode according
 	 * to the limits/requirements of the renderer.
 	 *
-	 * @param renderer a {@link RendererConfiguration} instance representing the renderer being streamed to
+	 * @param dlna
 	 * @param media the media metadata for the video being streamed. May contain unset/null values (e.g. for web videos).
+	 * @param params
 	 * @return a {@link List} of <code>String</code>s representing the video bitrate options for this transcode
 	 */
-	public List<String> getVideoBitrateOptions(RendererConfiguration renderer, DLNAMediaInfo media) { // media is currently unused
+	public List<String> getVideoBitrateOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) { // media is currently unused
 		List<String> videoBitrateOptions = new ArrayList<String>();
-		String sMaxVideoBitrate = renderer.getMaxVideoBitrate(); // currently Mbit/s
+		String sMaxVideoBitrate = params.mediaRenderer.getMaxVideoBitrate(); // currently Mbit/s
 		int iMaxVideoBitrate = 0;
 
 		if (sMaxVideoBitrate != null) {
@@ -368,11 +363,12 @@ public class FFMpegVideo extends Player {
 	 * Returns the audio bitrate spec for the current transcode according
 	 * to the limits/requirements of the renderer.
 	 *
-	 * @param renderer a {@link RendererConfiguration} instance representing the renderer being streamed to
+	 * @param dlna
 	 * @param media the media metadata for the video being streamed. May contain unset/null values (e.g. for web videos).
+	 * @param params
 	 * @return a {@link List} of <code>String</code>s representing the audio bitrate options for this transcode
 	 */
-	public List<String> getAudioBitrateOptions(RendererConfiguration renderer, DLNAMediaInfo media) {
+	public List<String> getAudioBitrateOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) {
 		List<String> audioBitrateOptions = new ArrayList<String>();
 
 		audioBitrateOptions.add("-q:a");
@@ -464,12 +460,6 @@ public class FFMpegVideo extends Player {
 		return getDefaultArgs(); // unused; return this array for for backwards compatibility
 	}
 
-	// XXX hardwired to false and not referenced anywhere else in the codebase
-	@Deprecated
-	public boolean mplayer() {
-		return false;
-	}
-
 	@Override
 	public String mimeType() {
 		return HTTPResource.VIDEO_TRANSCODE;
@@ -486,8 +476,7 @@ public class FFMpegVideo extends Player {
 	}
 
 	@Override
-	public ProcessWrapper launchTranscode(
-		String filename,
+	public synchronized ProcessWrapper launchTranscode(
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params
@@ -495,13 +484,14 @@ public class FFMpegVideo extends Player {
 		int nThreads = configuration.getNumberOfCpuCores();
 		List<String> cmdList = new ArrayList<String>();
 		RendererConfiguration renderer = params.mediaRenderer;
-		setAudioAndSubs(filename, media, params, configuration);
+		final String filename = dlna.getSystemName();
+		setAudioAndSubs(filename, media, params);
 		File tempSubs = null;
-//		params.waitbeforestart = 1000;
+		params.waitbeforestart = 2500;
 		boolean avisynth = avisynth();
 
 		if (!isDisableSubtitles(params)) {
-			tempSubs = subsConversion(filename, media, params);
+			tempSubs = getSubtitles(dlna, media, params);
 		}
 
 		cmdList.add(executable());
@@ -531,13 +521,13 @@ public class FFMpegVideo extends Player {
 		ac3Remux = false;
 		dtsRemux = false;
 
-		if (configuration.isRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && renderer.isTranscodeToAC3()) {
+		if (configuration.isAudioRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && renderer.isTranscodeToAC3()) {
 			// AC-3 remux takes priority
 			ac3Remux = true;
 		} else {
 			// Now check for DTS remux and LPCM streaming
 			dtsRemux = isTsMuxeRVideoEngineEnabled &&
-				configuration.isDTSEmbedInPCM() &&
+				configuration.isAudioEmbedDtsInPcm() &&
 				params.aid != null &&
 				params.aid.isDTS() &&
 				!avisynth() &&
@@ -590,7 +580,7 @@ public class FFMpegVideo extends Player {
 		// if the source is too large for the renderer, resize it
 		// and/or add subtitles to video filter
 		// FFmpeg must be compiled with --enable-libass parameter
-		cmdList.addAll(getVideoFilterOptions(tempSubs, renderer, media, params));
+		cmdList.addAll(getVideoFilterOptions(dlna, media, params, tempSubs));
 
 		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
@@ -690,39 +680,54 @@ public class FFMpegVideo extends Player {
 			cmdList.add("1");
 		}
 
-		// Add MPEG-2 quality settings
-		if (!renderer.isTranscodeToH264TSAC3() && !videoRemux) {
-			String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
-			String mpeg2OptionsRenderer = params.mediaRenderer.getCustomFFmpegMPEG2Options();
+		if (!videoRemux) {
+			if (!renderer.isTranscodeToH264TSAC3()) {
+				// Add MPEG-2 quality settings
+				String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
+				String mpeg2OptionsRenderer = params.mediaRenderer.getCustomFFmpegMPEG2Options();
 
-			// Renderer settings take priority over user settings
-			if (isNotBlank(mpeg2OptionsRenderer)) {
-				mpeg2Options = mpeg2OptionsRenderer;
-			} else {
-				if (mpeg2Options.contains("Automatic")) {
-					mpeg2Options = "-g 5 -q:v 1 -qmin 2 -qmax 3";
+				// Renderer settings take priority over user settings
+				if (isNotBlank(mpeg2OptionsRenderer)) {
+					mpeg2Options = mpeg2OptionsRenderer;
+				} else {
+					if (mpeg2Options.contains("Automatic")) {
+						mpeg2Options = "-g 5 -q:v 1 -qmin 2 -qmax 3";
 
-					// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
-					if (params.mediaRenderer.isPS3()) {
-						mpeg2Options = "-g 25 -q:v 1 -qmin 2 -qmax 3";
-					}
+						// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
+						if (params.mediaRenderer.isPS3()) {
+							mpeg2Options = "-g 25 -q:v 1 -qmin 2 -qmax 3";
+						}
 
-					if (mpeg2Options.contains("Wireless") || defaultMaxBitrates[0] < 70) {
-						// Lower quality for 720p+ content
-						if (media.getWidth() > 1280) {
-							mpeg2Options = "-g 25 -qmax 7 -qmin 2";
-						} else if (media.getWidth() > 720) {
-							mpeg2Options = "-g 25 -qmax 5 -qmin 2";
+						if (mpeg2Options.contains("Wireless") || defaultMaxBitrates[0] < 70) {
+							// Lower quality for 720p+ content
+							if (media.getWidth() > 1280) {
+								mpeg2Options = "-g 25 -qmax 7 -qmin 2";
+							} else if (media.getWidth() > 720) {
+								mpeg2Options = "-g 25 -qmax 5 -qmin 2";
+							}
 						}
 					}
 				}
+				String[] customOptions = StringUtils.split(mpeg2Options);
+				cmdList.addAll(new ArrayList<String>(Arrays.asList(customOptions)));
+			} else {
+				// Add x264 quality settings
+				String x264CRF = configuration.getx264ConstantRateFactor();
+				if (x264CRF.contains("Automatic")) {
+					x264CRF = "-crf 16";
+
+					// Lower CRF for 720p+ content
+					if (media.getWidth() > 720) {
+						x264CRF = "-crf 19";
+					}
+				}
+				String[] customOptions = StringUtils.split(x264CRF);
+				cmdList.addAll(new ArrayList<String>(Arrays.asList(customOptions)));
 			}
-			String[] customOptions = StringUtils.split(mpeg2Options);
-			cmdList.addAll(new ArrayList<String>(Arrays.asList(customOptions)));
 		}
 
 		// Add the output options (-f, -c:a, -c:v, etc.)
-		cmdList.addAll(getTranscodeVideoOptions(renderer, media, params, filename));
+		cmdList.addAll(getVideoTranscodeOptions(dlna, media, params));
 
 		// Add custom options
 		if (StringUtils.isNotEmpty(renderer.getCustomFFmpegOptions())) {
@@ -750,7 +755,7 @@ public class FFMpegVideo extends Player {
 			PipeProcess pipe;
 			pipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
-			TsMuxeRVideo ts = new TsMuxeRVideo(configuration);
+			TsMuxeRVideo ts = new TsMuxeRVideo();
 			File f = new File(configuration.getTempFolder(), "pms-tsmuxer.meta");
 			String cmd[] = new String[]{ ts.executable(), f.getAbsolutePath(), pipe.getInputPipe() };
 			pw = new ProcessWrapperImpl(cmd, params);
@@ -968,40 +973,6 @@ public class FFMpegVideo extends Player {
 		return builder.getPanel();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public boolean isCompatible(DLNAResource resource) {
-		if (resource == null || resource.getFormat().getType() != Format.VIDEO) {
-			return false;
-		}
-/**
-		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
-
-		// Check whether the subtitle actually has a language defined,
-		// uninitialized DLNAMediaSubtitle objects have a null language.
-		// For now supports only external subtitles
-		if (
-			subtitle != null && subtitle.getLang() != null &&
-			subtitle.getExternalFile() == null
-		) {
-			return false;
-		}
-*/
-		Format format = resource.getFormat();
-
-		if (format != null) {
-			Format.Identifier id = format.getIdentifier();
-
-			if (id.equals(Format.Identifier.MKV) || id.equals(Format.Identifier.MPG)) {
-				return true;
-			}
-		}
-
-		return false;
-	}
-
 	protected static List<String> parseOptions(String str) {
 		return str == null ? null : parseOptions(str, new ArrayList<String>());
 	}
@@ -1039,15 +1010,15 @@ public class FFMpegVideo extends Player {
 	 * Extracts embedded subtitles from video to file in SSA/ASS format, converts external SRT
 	 * subtitles file to SSA/ASS format and applies fontconfig setting to that converted file
 	 * and applies timeseeking when required.
-	 * @param fileName Video file
-	 * @param media Media file metadata
+	 *
 	 * @param params Output parameters
 	 * @return Converted subtitle file
 	 * @throws IOException
 	 */
-	public File subsConversion(String fileName, DLNAMediaInfo media, OutputParams params) throws IOException {
+	public File getSubtitles(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
 		File tempSubs = null;
 		String convertedSubs;
+		final String filename = dlna.getSystemName();
 
 		if (params.sid.getId() == -1) {
 			return null;
@@ -1061,14 +1032,14 @@ public class FFMpegVideo extends Player {
 
 		if (params.sid.isEmbedded()) {
 			convertedSubs = subsPath.getAbsolutePath() + File.separator +
-					FileUtil.getFileNameWithoutExtension(new File(fileName).getName()) +
-					"_" + new File(fileName).lastModified() + "_EMB_ID" + params.sid.getId() + ".ass";
+					FileUtil.getFileNameWithoutExtension(new File(filename).getName()) +
+					"_" + new File(filename).lastModified() + "_EMB_ID" + params.sid.getId() + ".ass";
 			File tmp = new File(convertedSubs);
 
 			if (tmp.canRead()) {
 				tempSubs = tmp;
 			} else {
-				tempSubs = convertSubsToAss(fileName, media, params);
+				tempSubs = convertSubsToAss(filename, media, params);
 			}
 
 			if (tempSubs != null && configuration.isFFmpegFontConfig()) {
@@ -1294,5 +1265,20 @@ public class FFMpegVideo extends Player {
 	 */
 	public boolean isDisableSubtitles(OutputParams params) {
 		return configuration.isDisableSubtitles() || (params.sid == null) || avisynth();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean isCompatible(DLNAResource resource) {
+		if (
+			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
+			PlayerUtil.isVideo(resource, Format.Identifier.MPG)
+		) {
+			return true;
+		}
+
+		return false;
 	}
 }

@@ -29,7 +29,6 @@ import net.pms.dlna.virtual.VirtualFolder;
  * folder support" is activated in the settings.
  */
 public class ChapterFileTranscodeVirtualFolder extends VirtualFolder {
-	private boolean resolved;
 	private final int interval;
 
 	/**
@@ -51,10 +50,8 @@ public class ChapterFileTranscodeVirtualFolder extends VirtualFolder {
 	 * @see net.pms.dlna.DLNAResource#resolve()
 	 */
 	@Override
-	public void resolve() {
-		super.resolve();
-
-		if (!resolved && getChildren().size() == 1) { //OK
+	protected void resolveOnce() {
+		if (getChildren().size() == 1) { // OK
 			DLNAResource child = getChildren().get(0);
 			child.resolve();
 			int nbMinutes = (int) (child.getMedia().getDurationInSeconds() / 60);
@@ -73,7 +70,5 @@ public class ChapterFileTranscodeVirtualFolder extends VirtualFolder {
 				addChildInternal(newChildNoSub);
 			}
 		}
-		resolved = true;
 	}
-
 }

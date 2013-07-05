@@ -32,12 +32,12 @@ import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import org.apache.commons.io.FileUtils;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.h2.engine.Constants;
 import org.h2.jdbc.JdbcSQLException;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.jdbcx.JdbcDataSource;
-import org.h2.store.fs.FileUtils;
 import org.h2.tools.DeleteDbFiles;
 import org.h2.tools.RunScript;
 import org.h2.tools.Script;
@@ -68,6 +68,7 @@ public class DLNAMediaDatabase implements Runnable {
 	private final int SIZE_ASPECT = 32;
 	private final int SIZE_ASPECTRATIO_CONTAINER = 5;
 	private final int SIZE_ASPECTRATIO_VIDEOTRACK = 5;
+	private final int SIZE_AVC_LEVEL = 3;
 	private final int SIZE_CONTAINER = 32;
 	private final int SIZE_MODEL = 128;
 	private final int SIZE_MUXINGMODE = 32;
@@ -124,9 +125,11 @@ public class DLNAMediaDatabase implements Runnable {
 		try {
 			conn = getConnection();
 		} catch (SQLException se) {
-			if (FileUtils.exists(dbDir + File.separator + dbName + ".data.db") || (se.getErrorCode() == 90048)) { // Cache is corrupt or wrong version, so delete it
-				FileUtils.deleteRecursive(dbDir, true);
-				if (!FileUtils.exists(dbDir)) {
+			final File dbFile = new File(dbDir + File.separator + dbName + ".data.db");
+			final File dbDirectory = new File(dbDir);
+			if (dbFile.exists() || (se.getErrorCode() == 90048)) { // Cache is corrupt or a wrong version, so delete it
+				FileUtils.deleteQuietly(dbDirectory);
+				if (!dbDirectory.exists()) {
 					LOGGER.debug("The cache has been deleted because it was corrupt or had the wrong version");
 				} else {
 					if (!net.pms.PMS.isHeadless()) {
@@ -204,6 +207,8 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", ASPECT            VARCHAR2(").append(SIZE_ASPECT).append(")");
 				sb.append(", ASPECTRATIOCONTAINER    VARCHAR2(").append(SIZE_ASPECTRATIO_CONTAINER).append(")");
 				sb.append(", ASPECTRATIOVIDEOTRACK   VARCHAR2(").append(SIZE_ASPECTRATIO_VIDEOTRACK).append(")");
+				sb.append(", REFRAMES          TINYINT");
+				sb.append(", AVCLEVEL          VARCHAR2(").append(SIZE_AVC_LEVEL).append(")");
 				sb.append(", BITSPERPIXEL      INT");
 				sb.append(", THUMB             BINARY");
 				sb.append(", CONTAINER         VARCHAR2(").append(SIZE_CONTAINER).append(")");
@@ -333,6 +338,8 @@ public class DLNAMediaDatabase implements Runnable {
 				media.setAspect(rs.getString("ASPECT"));
 				media.setAspectRatioContainer(rs.getString("ASPECTRATIOCONTAINER"));
 				media.setAspectRatioVideoTrack(rs.getString("ASPECTRATIOVIDEOTRACK"));
+				media.setReferenceFrameCount(rs.getByte("REFRAMES"));
+				media.setAvcLevel(rs.getString("AVCLEVEL"));
 				media.setBitsPerPixel(rs.getInt("BITSPERPIXEL"));
 				media.setThumb(rs.getBytes("THUMB"));
 				media.setContainer(rs.getString("CONTAINER"));
@@ -412,7 +419,7 @@ public class DLNAMediaDatabase implements Runnable {
 		PreparedStatement ps = null;
 		try {
 			conn = getConnection();
-			ps = conn.prepareStatement("INSERT INTO FILES(FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, FRAMERATE, ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, BITSPERPIXEL, THUMB, CONTAINER, MODEL, EXPOSURE, ORIENTATION, ISO, MUXINGMODE, FRAMERATEMODE) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+			ps = conn.prepareStatement("INSERT INTO FILES(FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, FRAMERATE, ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, BITSPERPIXEL, THUMB, CONTAINER, MODEL, EXPOSURE, ORIENTATION, ISO, MUXINGMODE, FRAMERATEMODE) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 			ps.setString(1, name);
 			ps.setTimestamp(2, new Timestamp(modified));
 			ps.setInt(3, type);
@@ -429,7 +436,7 @@ public class DLNAMediaDatabase implements Runnable {
 					if (databaseBitrate == 0) {
 						LOGGER.debug("Could not parse the bitrate from: " + name);
 					}
-				}	
+				}
 				ps.setInt(5, databaseBitrate);
 
 				ps.setInt(6, media.getWidth());
@@ -440,19 +447,21 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setString(11, left(media.getAspect(), SIZE_ASPECT));
 				ps.setString(12, left(media.getAspect(), SIZE_ASPECTRATIO_CONTAINER));
 				ps.setString(13, left(media.getAspect(), SIZE_ASPECTRATIO_VIDEOTRACK));
-				ps.setInt(14, media.getBitsPerPixel());
-				ps.setBytes(15, media.getThumb());
-				ps.setString(16, left(media.getContainer(), SIZE_CONTAINER));
+				ps.setByte(14, media.getReferenceFrameCount());
+				ps.setString(15, left(media.getAvcLevel(), SIZE_AVC_LEVEL));
+				ps.setInt(16, media.getBitsPerPixel());
+				ps.setBytes(17, media.getThumb());
+				ps.setString(18, left(media.getContainer(), SIZE_CONTAINER));
 				if (media.getExtras() != null) {
-					ps.setString(17, left(media.getExtrasAsString(), SIZE_MODEL));
+					ps.setString(19, left(media.getExtrasAsString(), SIZE_MODEL));
 				} else {
-					ps.setString(17, left(media.getModel(), SIZE_MODEL));
+					ps.setString(19, left(media.getModel(), SIZE_MODEL));
 				}
-				ps.setInt(18, media.getExposure());
-				ps.setInt(19, media.getOrientation());
-				ps.setInt(20, media.getIso());
-				ps.setString(21, left(media.getMuxingModeAudio(), SIZE_MUXINGMODE));
-				ps.setString(22, left(media.getFrameRateMode(), SIZE_FRAMERATE_MODE));
+				ps.setInt(20, media.getExposure());
+				ps.setInt(21, media.getOrientation());
+				ps.setInt(22, media.getIso());
+				ps.setString(23, left(media.getMuxingModeAudio(), SIZE_MUXINGMODE));
+				ps.setString(24, left(media.getFrameRateMode(), SIZE_FRAMERATE_MODE));
 			} else {
 				ps.setString(4, null);
 				ps.setInt(5, 0);
@@ -464,15 +473,17 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setString(11, null);
 				ps.setString(12, null);
 				ps.setString(13, null);
-				ps.setInt(14, 0);
-				ps.setBytes(15, null);
-				ps.setString(16, null);
-				ps.setString(17, null);
-				ps.setInt(18, 0);
-				ps.setInt(19, 0);
+				ps.setByte(14, (byte) -1);
+				ps.setString(15, null);
+				ps.setInt(16, 0);
+				ps.setBytes(17, null);
+				ps.setString(18, null);
+				ps.setString(19, null);
 				ps.setInt(20, 0);
-				ps.setString(21, null);
-				ps.setString(22, null);
+				ps.setInt(21, 0);
+				ps.setInt(22, 0);
+				ps.setString(23, null);
+				ps.setString(24, null);
 			}
 			ps.executeUpdate();
 			ResultSet rs = ps.getGeneratedKeys();

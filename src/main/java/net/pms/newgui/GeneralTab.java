@@ -153,7 +153,7 @@ public class GeneralTab {
 
 		builder.add(langs, FormLayoutUtil.flip(cc.xyw(3, 7, 7), colSpec, orientation));
 
-		builder.add(smcheckBox, FormLayoutUtil.flip(cc.xyw(1, 9, 2), colSpec, orientation));
+		builder.add(smcheckBox, FormLayoutUtil.flip(cc.xy(1, 9), colSpec, orientation));
 
 		if (Platform.isWindows()) {
 			builder.add(autoStart, FormLayoutUtil.flip(cc.xyw(3, 9, 7), colSpec, orientation));

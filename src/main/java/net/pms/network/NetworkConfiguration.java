@@ -164,12 +164,15 @@ public class NetworkConfiguration {
 		Set<InetAddress> addrSet = new HashSet<InetAddress>();
 		LOGGER.trace("available addresses for {} is: {}", networkInterface.getName(), Collections.list(networkInterface.getInetAddresses()));
 
-		for (InterfaceAddress ia : networkInterface.getInterfaceAddresses()) {
-			if (ia != null) {
-				InetAddress address = ia.getAddress();
-
+		/**
+		 * networkInterface.getInterfaceAddresses() returns 'null' on some adapters if 
+		 * the parameter 'java.net.preferIPv4Stack=true' is passed to the JVM
+		 * Use networkInterface.getInetAddresses() instead
+		 */
+		for (InetAddress address : Collections.list(networkInterface.getInetAddresses())) {
+			if (address != null) {
 				if (isRelevantAddress(address)) {
-					addrSet.add(ia.getAddress());
+					addrSet.add(address);
 				}
 			}
 		}

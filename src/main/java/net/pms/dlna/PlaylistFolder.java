@@ -52,7 +52,7 @@ public class PlaylistFolder extends DLNAResource {
 	}
 
 	@Override
-	public synchronized void resolve() {
+	protected void resolveOnce() {
 		if (playlistfile.length() < 10000000) {
 			ArrayList<Entry> entries = new ArrayList<Entry>();
 			boolean m3u = false;

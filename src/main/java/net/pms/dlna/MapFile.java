@@ -109,7 +109,7 @@ public class MapFile extends DLNAResource {
 			} else {
 				for (File child : children) {
 					if (child.isFile()) {
-						if (FormatFactory.getAssociatedExtension(child.getName()) != null || isFileRelevant(child)) {
+						if (FormatFactory.getAssociatedFormat(child.getName()) != null || isFileRelevant(child)) {
 							isRelevant = true;
 							break;
 						}
@@ -416,7 +416,7 @@ public class MapFile extends DLNAResource {
 		}
 
 		for (File f : files) {
-			if (!f.isHidden() && (f.isDirectory() || FormatFactory.getAssociatedExtension(f.getName()) != null)) {
+			if (!f.isHidden() && (f.isDirectory() || FormatFactory.getAssociatedFormat(f.getName()) != null)) {
 				addedFiles.add(f);
 			}
 		}
@@ -430,15 +430,15 @@ public class MapFile extends DLNAResource {
 		}
 
 		// false: don't create the folder if it doesn't exist i.e. find the folder
-		TranscodeVirtualFolder vf = getTranscodeFolder(false);
+		TranscodeVirtualFolder transcodeFolder = getTranscodeFolder(false);
 
 		for (DLNAResource f : removedFiles) {
 			getChildren().remove(f);
 
-			if (vf != null) {
-				for (int j = vf.getChildren().size() - 1; j >= 0; j--) {
-					if (vf.getChildren().get(j).getName().equals(f.getName())) {
-						vf.getChildren().remove(j);
+			if (transcodeFolder != null) {
+				for (int j = transcodeFolder.getChildren().size() - 1; j >= 0; j--) {
+					if (transcodeFolder.getChildren().get(j).getName().equals(f.getName())) {
+						transcodeFolder.getChildren().remove(j);
 					}
 				}
 			}
@@ -453,32 +453,35 @@ public class MapFile extends DLNAResource {
 		}
 	}
 
-	private boolean foundInList(List<File> files, DLNAResource d) {
-		for (File f : files) {
-			if (!f.isHidden() && isNameMatch(f, d) && (isRealFolder(d) || isSameLastModified(f, d))) {
-				files.remove(f);
+	private boolean foundInList(List<File> files, DLNAResource dlna) {
+		for (File file: files) {
+			if (!file.isHidden() && isNameMatch(dlna, file) && (isRealFolder(dlna) || isSameLastModified(dlna, file))) {
+				files.remove(file);
 				return true;
 			}
 		}
 		return false;
 	}
 
-	private boolean isSameLastModified(File f, DLNAResource d) {
-		return d.getLastModified() == f.lastModified();
+	private boolean isSameLastModified(DLNAResource dlna, File file) {
+		return dlna.getLastModified() == file.lastModified();
 	}
 
-	private boolean isRealFolder(DLNAResource d) {
-		return d instanceof RealFile && d.isFolder();
+	private boolean isRealFolder(DLNAResource dlna) {
+		return dlna instanceof RealFile && dlna.isFolder();
 	}
 
-	private boolean isNameMatch(File file, DLNAResource resource) {
-		return (resource.getName().equals(file.getName()) || isDVDIsoMatch(file, resource));
+	private boolean isNameMatch(DLNAResource dlna, File file) {
+		return (dlna.getName().equals(file.getName()) || isDVDIsoMatch(dlna, file));
 	}
 
-	private boolean isDVDIsoMatch(File file, DLNAResource resource) {
-		return (resource instanceof DVDISOFile) &&
-			resource.getName().startsWith(DVDISOFile.PREFIX) &&
-			resource.getName().substring(DVDISOFile.PREFIX.length()).equals(file.getName());
+	private boolean isDVDIsoMatch(DLNAResource dlna, File file) {
+		if (dlna instanceof DVDISOFile) {
+			DVDISOFile dvdISOFile = (DVDISOFile) dlna;
+			return dvdISOFile.getFilename().equals(file.getName());
+		} else {
+			return false;
+		}
 	}
 
 	@Override

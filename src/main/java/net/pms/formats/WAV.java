@@ -18,12 +18,6 @@
  */
 package net.pms.formats;
 
-import java.util.ArrayList;
-import net.pms.PMS;
-import net.pms.encoders.FFmpegAudio;
-import net.pms.encoders.MPlayerAudio;
-import net.pms.encoders.Player;
-
 public class WAV extends Format {
 	/**
 	 * {@inheritDoc} 
@@ -42,25 +36,11 @@ public class WAV extends Format {
 		return true;
 	}
 
-	@Override
-	public ArrayList<Class<? extends Player>> getProfiles() {
-		ArrayList<Class<? extends Player>> a = new ArrayList<Class<? extends Player>>();
-		PMS r = PMS.get();
-		for (String engine : PMS.getConfiguration().getEnginesAsList(r.getRegistry())) {
-			if (engine.equals(MPlayerAudio.ID)) {
-				a.add(MPlayerAudio.class);
-			} else if (engine.equals(FFmpegAudio.ID)) {
-				a.add(FFmpegAudio.class);
-			}
-		}
-		return a;
-	}
-
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public String[] getId() {
+	public String[] getSupportedExtensions() {
 		return new String[] { "wav" };
 	}
 

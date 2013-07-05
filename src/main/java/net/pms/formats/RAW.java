@@ -1,13 +1,11 @@
 package net.pms.formats;
 
-import java.util.ArrayList;
 import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.InputFile;
-import net.pms.encoders.Player;
 import net.pms.encoders.RAWThumbnailer;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
@@ -30,9 +28,47 @@ public class RAW extends JPG {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public String[] getId() {
-		return new String[] { "arw", "cr2", "crw", "dng", "raf", "mrw", "nef",
-				"pef", "srf", "orf" };
+	public String[] getSupportedExtensions() {
+		return new String[] {
+			"3fr",
+			"ari",
+			"arw",
+			"bay",
+			"cap",
+			"cr2",
+			"crw",
+			"dcr",
+			"dcs",
+			"dng",
+			"drf",
+			"eip",
+			"erf",
+			"fff",
+			"iiq",
+			"k25",
+			"kdc",
+			"mdc",
+			"mef",
+			"mos",
+			"mrw",
+			"nef",
+			"nrw",
+			"obm",
+			"orf",
+			"pef",
+			"ptx",
+			"pxn",
+			"r3d",
+			"raf",
+			"raw",
+			"rw2",
+			"rwl",
+			"rwz",
+			"sr2",
+			"srf",
+			"srw",
+			"x3f"
+		};
 	}
 
 	/**
@@ -51,17 +87,6 @@ public class RAW extends JPG {
 	}
 
 	@Override
-	public ArrayList<Class<? extends Player>> getProfiles() {
-		ArrayList<Class<? extends Player>> profiles = new ArrayList<Class<? extends Player>>();
-		for (String engine : configuration.getEnginesAsList(PMS.get().getRegistry())) {
-			if (engine.equals(RAWThumbnailer.ID)) {
-				profiles.add(RAWThumbnailer.class);
-			}
-		}
-		return profiles;
-	}
-
-	@Override
 	public boolean transcodable() {
 		return true;
 	}
@@ -74,7 +99,6 @@ public class RAW extends JPG {
 			params.minBufferSize = 1;
 			params.maxBufferSize = 5;
 			params.hidebuffer = true;
-
 
 			String cmdArray[] = new String[4];
 			cmdArray[0] = configuration.getDCRawPath();
@@ -98,14 +122,13 @@ public class RAW extends JPG {
 			}
 
 			if (media.getWidth() > 0) {
-
 				media.setThumb(RAWThumbnailer.getThumbnail(params, file.getFile().getAbsolutePath()));
 				if (media.getThumb() != null) {
 					media.setSize(media.getThumb().length);
 				}
 
-				media.setCodecV("jpg");
-				media.setContainer("jpg");
+				media.setCodecV("raw");
+				media.setContainer("raw");
 			}
 
 			media.finalize(type, file);

@@ -31,6 +31,8 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
 import net.pms.external.StartStopListenerDelegate;
+import net.pms.util.StringUtil;
+import static net.pms.util.StringUtil.convertStringToTime;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
@@ -51,7 +53,6 @@ public class RequestV2 extends HTTPResource {
 	private final static String CRLF = "\r\n";
 	private static SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
 	private static int BUFFER_SIZE = 8 * 1024;
-	private static final int[] MULTIPLIER = new int[] { 1, 60, 3600, 24*3600};
 	private final String method;
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
@@ -135,7 +136,7 @@ public class RequestV2 extends HTTPResource {
 	}
 
 	public void setTimeRangeStartString(String str) {
-		setTimeRangeStart(convertTime(str));
+		setTimeRangeStart(convertStringToTime(str));
 	}
 
 	public void setTimeRangeEnd(Double rangeEnd) {
@@ -143,7 +144,7 @@ public class RequestV2 extends HTTPResource {
 	}
 
 	public void setTimeRangeEndString(String str) {
-		setTimeRangeEnd(convertTime(str));
+		setTimeRangeEnd(convertStringToTime(str));
 	}
 
 	/**
@@ -852,9 +853,9 @@ public class RequestV2 extends HTTPResource {
 
 			if (range.isStartOffsetAvailable() && dlna != null) {
 				// Add timeseek information headers.
-				String timeseekValue = DLNAMediaInfo.getDurationString(range.getStartOrZero());
+				String timeseekValue = StringUtil.convertTimeToString(range.getStartOrZero(), StringUtil.DURATION_TIME_FORMAT);
 				String timetotalValue = dlna.getMedia().getDurationString();
-				String timeEndValue = range.isEndLimitAvailable() ? DLNAMediaInfo.getDurationString(range.getEnd()) : timetotalValue;
+				String timeEndValue = range.isEndLimitAvailable() ? StringUtil.convertTimeToString(range.getEnd(), StringUtil.DURATION_TIME_FORMAT) : timetotalValue;
 				output.setHeader("TimeSeekRange.dlna.org", "npt=" + timeseekValue + "-" + timeEndValue + "/" + timetotalValue);
 				output.setHeader("X-Seek-Range", "npt=" + timeseekValue + "-" + timeEndValue + "/" + timetotalValue);
 			}
@@ -955,25 +956,5 @@ public class RequestV2 extends HTTPResource {
 			result = content.substring(leftTagPos + leftTag.length(), rightTagPos);
 		}
 		return result;
-	}
-
-	/**
-	 * Parse as double, or if it's not just one number, handles {hour}:{minute}:{seconds}
-	 * @param time
-	 * @return
-	 */
-	private double convertTime(String time) {
-		try {
-			return Double.parseDouble(time);
-		} catch (NumberFormatException e) {
-			String[] arrs = time.split(":");
-			double value, sum = 0;
-			for (int i = 0; i < arrs.length; i++) {
-				value = Double.parseDouble(arrs[arrs.length - i - 1]);
-				sum += value * MULTIPLIER[i];
-			}
-			return sum;
-		}
-
 	}
 }

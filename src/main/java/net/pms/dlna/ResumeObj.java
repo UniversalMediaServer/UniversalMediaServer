@@ -14,6 +14,9 @@ import org.slf4j.LoggerFactory;
 public class ResumeObj {
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private static final Logger LOGGER = LoggerFactory.getLogger(ResumeObj.class);
+	private static final int DAYS = 3600 * 24 * 1000;
+	
+	public static final String CLEAN_REG = "_hash_(\\d+)";
 
 	private File file;
 	private long offsetTime;
@@ -27,7 +30,8 @@ public class ResumeObj {
 	}
 
 	private static File resumeFile(DLNAResource r) {
-		String fName = r.getName() + "_hash_" + r.resumeHash() + ".resume";
+		String wName = r.getName().replaceAll("[:\\[\\]\n\r]", "").trim();
+		String fName = wName + "_hash_" + r.resumeHash() + ".resume";
 		return new File(resumePath().getAbsolutePath() + File.separator + fName);
 	}
 
@@ -110,6 +114,9 @@ public class ResumeObj {
 			out.write(time + "," + duration);
 			out.flush();
 			out.close();
+			if (configuration.getResumeKeepTime() > 0) {
+				PMS.get().addTempFile(f, configuration.getResumeKeepTime() * DAYS);
+			}
 		} catch (IOException e) {
 		}
 	}
