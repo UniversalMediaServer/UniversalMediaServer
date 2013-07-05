@@ -1,4 +1,4 @@
-3.0.0-a2 - 2013-06-?? - Changes since 3.0.0-a1
+3.0.0-a2 - 2013-07-05 - Changes since 3.0.0-a1
 
 	General:
 		Added manual configuration option (hide_subs_info) to hide subtitle info from filenames while browsing
