@@ -133,7 +133,7 @@ public class FileUtil {
 		// so psuedo-urls (e.g. librtmp-style urls containing spaces)
 		// will pass without throwing URISyntaxException.
 		if (filename != null && filename.matches("\\S+://.*")) {
-			return filename.split(":")[0].toLowerCase();
+			return filename.split("://")[0].toLowerCase();
 		}
 		return null;
 	}
