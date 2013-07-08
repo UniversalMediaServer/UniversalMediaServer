@@ -132,7 +132,7 @@ public class FileUtil {
 		// we use a lax validate/parse here instead of URI.getScheme()
 		// so psuedo-urls (e.g. librtmp-style urls containing spaces)
 		// will pass without throwing URISyntaxException.
-		if (filename != null && filename.matches("\\w+://.*")) {
+		if (filename != null && filename.matches("\\S+://.*")) {
 			return filename.split(":")[0].toLowerCase();
 		}
 		return null;
