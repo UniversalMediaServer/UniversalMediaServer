@@ -1875,10 +1875,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	private void appendThumbnail(RendererConfiguration mediaRenderer, StringBuilder sb) {
 		final String thumbURL = getThumbnailURL();
-		final boolean addThumbnailAsResElement = isFolder() || mediaRenderer.getThumbNailAsResource() || mediaRenderer.isForceJPGThumbnails();
 
 		if (isNotBlank(thumbURL)) {
-			if (addThumbnailAsResElement) {
+			if (mediaRenderer.getThumbNailAsResource()) {
 				// Samsung 2012 (ES and EH) models do not recognize the "albumArtURI" element. Instead,
 				// the "res" element should be used.
 				// Also use "res" when faking JPEG thumbs.
@@ -1898,7 +1897,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				openTag(sb, "upnp:albumArtURI");
 				addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
 
-				if (getThumbnailContentType().equals(PNG_TYPEMIME)) {
+				if (getThumbnailContentType().equals(PNG_TYPEMIME) && !mediaRenderer.isForceJPGThumbnails()) {
 					addAttribute(sb, "dlna:profileID", "PNG_TN");
 				} else {
 					addAttribute(sb, "dlna:profileID", "JPEG_TN");
