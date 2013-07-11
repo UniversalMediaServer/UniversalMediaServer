@@ -32,8 +32,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.file.Files;
-import static java.nio.file.StandardCopyOption.*;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.ArrayList;
@@ -61,6 +59,7 @@ import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -1187,7 +1186,11 @@ public class FFMpegVideo extends Player {
 	public File applySubsSettingsToTempSubsFile(File tempSubs) throws IOException {
 		File outputSubs = tempSubs;
 		File temp = new File(configuration.getTempFolder(), tempSubs.getName());
-		Files.copy(tempSubs.toPath(), temp.toPath(), REPLACE_EXISTING);
+
+		File sourceFile = new File(tempSubs.toString());
+		File destinationFile = new File(temp.toString());
+		FileUtils.copyFile(sourceFile, destinationFile);
+
 		BufferedWriter output;
 		BufferedReader input = new BufferedReader(new FileReader(temp));
 		output = new BufferedWriter(new FileWriter(outputSubs));
