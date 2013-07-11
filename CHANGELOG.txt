@@ -1,3 +1,14 @@
+3.0.0-a3 - 2013-07-12 - Changes since 3.0.0-a2
+
+	General:
+		Fixed folder browsing in 32-bit mode
+	External Components:
+		Updated MediaInfo for Windows to 0.7.64, which:
+			Added HEVC/H.265 in MKV support
+			Added Dolby E support
+			Improved AVI, MKV, MPEG-TS, QuickTime, RMVB, MPEG-4, AAC, AVC, AC-3 and DTS support
+			Faster MPEG-TS analysis
+
 3.0.0-a2 - 2013-07-05 - Changes since 3.0.0-a1
 
 	General:
