@@ -86,13 +86,7 @@
 		<jgoodies-looks-version>2.4.2</jgoodies-looks-version>
 		<junrar-version>0.7</junrar-version>
 		<mediautil-version>1.0</mediautil-version>
-		<xmlwise-version>1.2</xmlwise-version>
-		<!--
-			the xmlwise jar's filename uses underscores for the version rather than dots e.g. xmlwise-1_2.jar.
-			dynamic properties are a DRYer/saner solution, but I couldn't get properties-maven-plugin
-			to work with Maven 2.2.1...
-		-->
-		<xmlwise-filename-version>1_2</xmlwise-filename-version>
+		<xmlwise-version>1.2.11</xmlwise-version>
 		<slf4j-version>1.7.1</slf4j-version>
 
 		<!-- Skip 4.65-1.05-RC because it doesn't work, author is working on fixing it -->
@@ -359,9 +353,8 @@
 			<version>${mediautil-version}</version>
 		</dependency>
 
-		<!-- XXX: not Mavenized: https://code.google.com/p/xmlwise/ -->
 		<dependency>
-			<groupId>com.googlecode</groupId>
+			<groupId>xmlwise</groupId>
 			<artifactId>xmlwise</artifactId>
 			<version>${xmlwise-version}</version>
 		</dependency>
@@ -728,16 +721,6 @@
 							<checksum>aa7ae51bb24a9268a8e57c6afe478c4293f84fda</checksum>
 							<extractFile>mediautil-${mediautil-version}/mediautil-${mediautil-version}.jar</extractFile>
 							<extractFileChecksum>e843cd55def75dce57123c79b7f36caca4841466</extractFileChecksum>
-						</artifactItem>
-						<artifactItem>
-							<groupId>com.googlecode</groupId>
-							<artifactId>xmlwise</artifactId>
-							<version>${xmlwise-version}</version>
-							<packaging>jar</packaging>
-							<install>true</install>
-							<force>false</force>
-							<downloadUrl>https://xmlwise.googlecode.com/files/xmlwise-${xmlwise-filename-version}.jar</downloadUrl>
-							<checksum>82ed648273281ccd08da6f91df30573edf15185d</checksum>
 						</artifactItem>
 					</artifactItems>
 				</configuration>
