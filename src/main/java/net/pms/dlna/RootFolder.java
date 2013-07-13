@@ -25,15 +25,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.util.*;
 import java.text.Collator;
 import java.text.Normalizer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
- import java.util.Map;
- import java.util.StringTokenizer; 
+import java.util.*;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.DownloadPlugins;
@@ -1228,7 +1222,7 @@ public class RootFolder extends DLNAResource {
 					LOGGER.error(String.format("Failed to append AdditionalFolderAtRoot with name=%s, class=%s", afar.name(), afar.getClass()), t);
 				}
 			} else if (listener instanceof AdditionalFoldersAtRoot) {
-				java.util.Iterator<DLNAResource> folders = ((AdditionalFoldersAtRoot) listener).getChildren();
+				Iterator<DLNAResource> folders = ((AdditionalFoldersAtRoot) listener).getChildren();
 
 				while (folders.hasNext()) {
 					DLNAResource resource = folders.next();
