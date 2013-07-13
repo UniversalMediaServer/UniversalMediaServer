@@ -81,9 +81,8 @@
 		<jna-version-windows>3.2.5</jna-version-windows>
 
 		<cuelib-version>1.2.1-2008-06-13</cuelib-version>
-		<jgoodies-common-version>1.2.1</jgoodies-common-version>
-		<jgoodies-forms-version>1.4.2</jgoodies-forms-version>
-		<jgoodies-looks-version>2.4.2</jgoodies-looks-version>
+		<jgoodies-forms-version>1.6.0</jgoodies-forms-version>
+		<jgoodies-looks-version>2.5.2</jgoodies-looks-version>
 		<junrar-version>0.7</junrar-version>
 		<mediautil-version>1.0</mediautil-version>
 		<xmlwise-version>1.2.11</xmlwise-version>
@@ -312,24 +311,15 @@
 			<version>2.0.3</version>
 		</dependency>
 
-		<!-- XXX: not Mavenized: http://www.jgoodies.com/downloads/libraries.html -->
 		<dependency>
 			<groupId>com.jgoodies</groupId>
-			<artifactId>common</artifactId>
-			<version>${jgoodies-common-version}</version>
-		</dependency>
-
-		<!-- XXX: not Mavenized: http://www.jgoodies.com/downloads/libraries.html -->
-		<dependency>
-			<groupId>com.jgoodies</groupId>
-			<artifactId>forms</artifactId>
+			<artifactId>jgoodies-forms</artifactId>
 			<version>${jgoodies-forms-version}</version>
 		</dependency>
 
-		<!-- XXX: not Mavenized: http://www.jgoodies.com/downloads/libraries.html -->
 		<dependency>
 			<groupId>com.jgoodies</groupId>
-			<artifactId>looks</artifactId>
+			<artifactId>jgoodies-looks</artifactId>
 			<version>${jgoodies-looks-version}</version>
 		</dependency>
 
@@ -651,18 +641,6 @@
 					<force>false</force>
 					<artifactItems>
 						<artifactItem>
-							<groupId>com.jgoodies</groupId>
-							<artifactId>common</artifactId>
-							<version>${jgoodies-common-version}</version>
-							<packaging>jar</packaging>
-							<install>true</install>
-							<force>false</force>
-							<downloadUrl>http://www.jgoodies.com/download/libraries/{artifactId}/jgoodies-{artifactId}-{_version}.zip</downloadUrl>
-							<checksum>5a4cf9866a7339e64e52f46101b5b13fe50b9c80</checksum>
-							<extractFile>jgoodies-{artifactId}-{version}/jgoodies-{artifactId}-{version}.{packaging}</extractFile>
-							<extractFileChecksum>f3955d59f2263fb889b02febec74377647a2eaba</extractFileChecksum>
-						</artifactItem>
-						<artifactItem>
 							<groupId>sevenzip</groupId>
 							<artifactId>jbinding</artifactId>
 							<version>${sevenzip-version}</version>
@@ -677,30 +655,6 @@
 							<packaging>jar</packaging>
 							<install>true</install>
 							<downloadUrl>http://www.spirton.com/uploads/7-Zip-JBinding/7-Zip-JBinding-AllPlatforms-{version}.{packaging}</downloadUrl>
-						</artifactItem>
-						<artifactItem>
-							<groupId>com.jgoodies</groupId>
-							<artifactId>forms</artifactId>
-							<version>${jgoodies-forms-version}</version>
-							<packaging>jar</packaging>
-							<install>true</install>
-							<force>false</force>
-							<downloadUrl>http://www.jgoodies.com/download/libraries/{artifactId}/jgoodies-{artifactId}-{_version}.zip</downloadUrl>
-							<checksum>83bb8780a38cb6bc854964da298f0f657868871d</checksum>
-							<extractFile>jgoodies-{artifactId}-{version}/jgoodies-{artifactId}-{version}.{packaging}</extractFile>
-							<extractFileChecksum>de8a67990cbeae62910cc2022f06c466476f2f2b</extractFileChecksum>
-						</artifactItem>
-						<artifactItem>
-							<groupId>com.jgoodies</groupId>
-							<artifactId>looks</artifactId>
-							<version>${jgoodies-looks-version}</version>
-							<packaging>jar</packaging>
-							<install>true</install>
-							<force>false</force>
-							<downloadUrl>http://www.jgoodies.com/download/libraries/{artifactId}/jgoodies-{artifactId}-{_version}.zip</downloadUrl>
-							<checksum>ccba2963e63c8349f8a16a10abfd5102a94a182b</checksum>
-							<extractFile>jgoodies-{artifactId}-{version}/jgoodies-{artifactId}-{version}.{packaging}</extractFile>
-							<extractFileChecksum>535745c08e342f7ea78556baad44a4a52ffb7863</extractFileChecksum>
 						</artifactItem>
 						<artifactItem>
 							<groupId>jwbroek.cuelib</groupId>
