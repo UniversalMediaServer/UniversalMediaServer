@@ -93,7 +93,7 @@
 			to work with Maven 2.2.1...
 		-->
 		<xmlwise-filename-version>1_2</xmlwise-filename-version>
-		<slf4j-version>1.7.1</slf4j-version>
+		<slf4j-version>1.7.5</slf4j-version>
 
 		<!-- Skip 4.65-1.05-RC because it doesn't work, author is working on fixing it -->
 		<sevenzip-version>4.65-1.04-RC</sevenzip-version>
