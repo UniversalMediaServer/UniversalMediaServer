@@ -976,7 +976,7 @@ public class RootFolder extends DLNAResource {
 
 	private void addAdminFolder() {
 		DLNAResource res = new VirtualFolder(Messages.getString("PMS.131"), null);
-		DLNAResource vsf = getVideoSettingssFolder();
+		DLNAResource vsf = getVideoSettingsFolder();
 
 		if (vsf != null) {
 			res.addChild(vsf);
@@ -1085,7 +1085,7 @@ public class RootFolder extends DLNAResource {
 	 * used as a folder at the root folder. Child objects are created when
 	 * this folder is created.
 	 */
-	private DLNAResource getVideoSettingssFolder() {
+	private DLNAResource getVideoSettingsFolder() {
 		DLNAResource res = null;
 
 		if (!configuration.getHideVideoSettings()) {
