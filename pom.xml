@@ -1308,7 +1308,11 @@
 											<arg value="-e" />
 											<arg value="set dest to POSIX file &quot;${project.build.directory}/${project.build.finalName}-distribution&quot;" />
 											<arg value="-e" />
+											<arg value="if not exists dest then" />
+											<arg value="-e" />
 											<arg value="make new alias file to folder src at folder dest" />
+											<arg value="-e" />
+											<arg value="end if" />
 											<arg value="-e" />
 											<arg value="end tell" />
 										</exec>
