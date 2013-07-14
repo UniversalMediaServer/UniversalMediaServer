@@ -15,11 +15,6 @@ class ProgramPathDisabler implements ProgramPaths {
 	}
 
 	@Override
-	public String getEac3toPath() {
-		return ifEnabled.getEac3toPath();
-	}
-
-	@Override
 	public String getFfmpegPath() {
 		return disableFfmpeg ? null : ifEnabled.getFfmpegPath();
 	}

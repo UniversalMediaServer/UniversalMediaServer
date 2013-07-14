@@ -10,11 +10,6 @@ class WindowsDefaultPaths implements ProgramPaths {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WindowsDefaultPaths.class);
 
 	@Override
-	public String getEac3toPath() {
-		return getBinariesPath() + "win32/eac3to/eac3to.exe";
-	}
-
-	@Override
 	public String getFfmpegPath() {
 		return getBinariesPath() + "win32/ffmpeg.exe";
 	}

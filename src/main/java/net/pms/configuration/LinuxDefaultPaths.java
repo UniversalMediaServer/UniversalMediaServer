@@ -8,11 +8,6 @@ class LinuxDefaultPaths implements ProgramPaths {
 	private final String BINARIES_SEARCH_PATH = getBinariesSearchPath();
 
 	@Override
-	public String getEac3toPath() {
-		return null;
-	}
-
-	@Override
 	public String getFfmpegPath() {
 		return getBinaryPath("ffmpeg");
 	}

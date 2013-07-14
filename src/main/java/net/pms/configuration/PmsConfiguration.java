@@ -552,10 +552,6 @@ public class PmsConfiguration {
 		programPaths.disableVlc();
 	}
 
-	public String getEac3toPath() {
-		return programPaths.getEac3toPath();
-	}
-
 	public String getMencoderPath() {
 		return programPaths.getMencoderPath();
 	}
