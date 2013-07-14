@@ -217,9 +217,6 @@ public class FFmpegAudio extends FFMpegVideo {
 		return pw;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		if (
