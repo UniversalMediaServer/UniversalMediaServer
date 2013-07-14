@@ -119,7 +119,7 @@ public class FFMpegVideo extends Player {
 	 * @return a {@link List} of <code>String</code>s representing the rescale options for this video,
 	 * or an empty list if the video doesn't need to be resized.
 	 */
-	public List<String> getVideoFilterOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params, File tempSubs) throws IOException {
+	public List<String> getVideoFilterOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
 		List<String> videoFilterOptions = new ArrayList<>();
 		String subsOption = null;
 		final RendererConfiguration renderer = params.mediaRenderer;
@@ -131,36 +131,39 @@ public class FFMpegVideo extends Player {
 				media.getHeight() > renderer.getMaxVideoHeight()
 			);
 
-		if (tempSubs != null) {
-			StringBuilder s = new StringBuilder();
-			CharacterIterator it = new StringCharacterIterator(tempSubs.getAbsolutePath());
+		if (!isDisableSubtitles(params)) {
+			File tempSubs = getSubtitles(dlna, media, params);
+			if (tempSubs != null) {
+				StringBuilder s = new StringBuilder();
+				CharacterIterator it = new StringCharacterIterator(tempSubs.getAbsolutePath());
 
-			for (char ch = it.first(); ch != CharacterIterator.DONE; ch = it.next()) {
-				switch (ch) {
-					case ':':
-						s.append("\\\\:");
-						break;
-					case '\\':
-						s.append("/");
-						break;
-					case ']':
-					case '[':
-						s.append("\\");
-					default:
-						s.append(ch);
-						break;
+				for (char ch = it.first(); ch != CharacterIterator.DONE; ch = it.next()) {
+					switch (ch) {
+						case ':':
+							s.append("\\\\:");
+							break;
+						case '\\':
+							s.append("/");
+							break;
+						case ']':
+						case '[':
+							s.append("\\");
+						default:
+							s.append(ch);
+							break;
+					}
 				}
+
+				String subsFile = s.toString();
+				subsFile = subsFile.replace(",", "\\,");
+
+				if (params.sid.isEmbedded() || params.sid.getType() == SubtitleType.ASS) {
+					subsOption = "ass=" + subsFile;
+				} else if (params.sid.isExternal() && params.sid.getType() == SubtitleType.SUBRIP) {
+					subsOption = "subtitles=" + subsFile;
+				}
+
 			}
-
-			String subsFile = s.toString();
-			subsFile = subsFile.replace(",", "\\,");
-
-			if (params.sid.isEmbedded() || params.sid.getType() == SubtitleType.ASS) {
-				subsOption = "ass=" + subsFile;
-			} else if (params.sid.isExternal() && params.sid.getType() == SubtitleType.SUBRIP) {
-				subsOption = "subtitles=" + subsFile;
-			}
-
 		}
 
 		String rescaleOrPadding = null;
@@ -486,13 +489,8 @@ public class FFMpegVideo extends Player {
 		RendererConfiguration renderer = params.mediaRenderer;
 		final String filename = dlna.getSystemName();
 		setAudioAndSubs(filename, media, params);
-		File tempSubs = null;
 		params.waitbeforestart = 2500;
 		boolean avisynth = avisynth();
-
-		if (!isDisableSubtitles(params)) {
-			tempSubs = getSubtitles(dlna, media, params);
-		}
 
 		cmdList.add(executable());
 
@@ -580,7 +578,7 @@ public class FFMpegVideo extends Player {
 		// if the source is too large for the renderer, resize it
 		// and/or add subtitles to video filter
 		// FFmpeg must be compiled with --enable-libass parameter
-		cmdList.addAll(getVideoFilterOptions(dlna, media, params, tempSubs));
+		cmdList.addAll(getVideoFilterOptions(dlna, media, params));
 
 		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
