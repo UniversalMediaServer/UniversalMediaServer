@@ -98,10 +98,9 @@ public class FFmpegAudio extends FFMpegVideo {
 		return ID;
 	}
 
-	// FIXME why is this false if launchTranscode supports it (-ss)?
 	@Override
 	public boolean isTimeSeekable() {
-		return false;
+		return true;
 	}
 
 	@Override
