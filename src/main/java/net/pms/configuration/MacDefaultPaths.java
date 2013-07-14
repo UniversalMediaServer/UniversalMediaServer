@@ -38,11 +38,6 @@ class MacDefaultPaths implements ProgramPaths {
 	public String getDCRaw() {
 		return getBinariesPath() + "osx/dcraw";
 	}
-	
-	@Override
-	public String getIMConvertPath() {
-		return getBinariesPath() + "osx/convert";
-	}
 
 	@Override
 	public String getInterFramePath() {

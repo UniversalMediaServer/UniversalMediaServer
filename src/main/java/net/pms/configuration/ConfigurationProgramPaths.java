@@ -70,11 +70,6 @@ class ConfigurationProgramPaths implements ProgramPaths {
 	}
 
 	@Override
-	public String getIMConvertPath() {
-		return getString(KEY_IMCONVERT_PATH, defaults.getIMConvertPath());
-	}
-
-	@Override
 	public String getInterFramePath() {
 		return getString(KEY_INTERFRAME_PATH, defaults.getInterFramePath());
 	}

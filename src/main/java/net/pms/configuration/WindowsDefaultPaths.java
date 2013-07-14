@@ -45,11 +45,6 @@ class WindowsDefaultPaths implements ProgramPaths {
 	}
 
 	@Override
-	public String getIMConvertPath() {
-		return getBinariesPath() + "win32/convert.exe";
-	}
-
-	@Override
 	public String getInterFramePath() {
 		return getBinariesPathAbsolute() + "win32/interframe/";
 	}

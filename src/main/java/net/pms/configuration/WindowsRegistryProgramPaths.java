@@ -60,11 +60,6 @@ class WindowsRegistryProgramPaths implements ProgramPaths {
 	}
 
 	@Override
-	public String getIMConvertPath() {
-		return defaults.getIMConvertPath();
-	}
-
-	@Override
 	public String getInterFramePath() {
 		return defaults.getInterFramePath();
 	}

@@ -66,11 +66,6 @@ class ProgramPathDisabler implements ProgramPaths {
 	}
 
 	@Override
-	public String getIMConvertPath() {
-		return disableIMConvert ? null : ifEnabled.getIMConvertPath();
-	}
-
-	@Override
 	public String getInterFramePath() {
 		return disableInterFrame ? null : ifEnabled.getInterFramePath();
 	}
