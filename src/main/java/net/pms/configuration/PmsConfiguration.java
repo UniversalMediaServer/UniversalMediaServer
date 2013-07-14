@@ -241,7 +241,7 @@ public class PmsConfiguration {
 	private final PropertiesConfiguration configuration;
 	private final ConfigurationReader configurationReader;
 	private final TempFolder tempFolder;
-	private final ProgramPathDisabler programPaths;
+	private final ProgramPaths programPaths;
 
 	private final IpFilter filter = new IpFilter();
 
@@ -473,13 +473,11 @@ public class PmsConfiguration {
 	 * then the Windows registry, then check for a platform-specific
 	 * default.
 	 */
-	private static ProgramPathDisabler createProgramPathsChain(Configuration configuration) {
-		return new ProgramPathDisabler(
-			new ConfigurationProgramPaths(
-				configuration,
-				new WindowsRegistryProgramPaths(
-					new PlatformSpecificDefaultPathsFactory().get()
-				)
+	private static ProgramPaths createProgramPathsChain(Configuration configuration) {
+		return new ConfigurationProgramPaths(
+			configuration,
+			new WindowsRegistryProgramPaths(
+				new PlatformSpecificDefaultPathsFactory().get()
 			)
 		);
 	}
@@ -548,10 +546,6 @@ public class PmsConfiguration {
 		return programPaths.getVlcPath();
 	}
 
-	public void disableVlc() {
-		programPaths.disableVlc();
-	}
-
 	public String getMencoderPath() {
 		return programPaths.getMencoderPath();
 	}
@@ -564,24 +558,12 @@ public class PmsConfiguration {
 		return programPaths.getDCRaw();
 	}
 
-	public void disableMEncoder() {
-		programPaths.disableMencoder();
-	}
-
 	public String getFfmpegPath() {
 		return programPaths.getFfmpegPath();
 	}
 
-	public void disableFfmpeg() {
-		programPaths.disableFfmpeg();
-	}
-
 	public String getMplayerPath() {
 		return programPaths.getMplayerPath();
-	}
-
-	public void disableMplayer() {
-		programPaths.disableMplayer();
 	}
 
 	public String getTsmuxerPath() {
