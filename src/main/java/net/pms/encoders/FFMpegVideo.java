@@ -155,7 +155,7 @@ public class FFMpegVideo extends Player {
 			String subsFile = s.toString();
 			subsFile = subsFile.replace(",", "\\,");
 
-			if (params.sid.isEmbedded()) {
+			if (params.sid.isEmbedded() || params.sid.getType() == SubtitleType.ASS) {
 				subsOption = "ass=" + subsFile;
 			} else if (params.sid.isExternal() && params.sid.getType() == SubtitleType.SUBRIP) {
 				subsOption = "subtitles=" + subsFile;
@@ -1049,59 +1049,67 @@ public class FFMpegVideo extends Player {
 					tempSubs = null;
 				}
 			}
-		} else if (params.sid.isExternal() && params.sid.getType() == SubtitleType.SUBRIP) {
+		} else if (params.sid.isExternal() && params.sid.getType() == SubtitleType.SUBRIP
+				|| params.sid.getType() == SubtitleType.ASS) {
 			tempSubs = params.sid.getExternalFile();
 		}
 
 /* 		
  * TODO Return it back when the fontconfig for external subs will be needed
-  		else if (params.sid.isExternal()) { // Convert external subs to ASS format
-			convertedSubs = subsPath.getAbsolutePath() + File.separator +
-					FileUtil.getFileNameWithoutExtension(params.sid.getExternalFile().getName()) +
-					"_" + params.sid.getExternalFile().lastModified() + "_EXT.ass";
-			File tmp = new File(convertedSubs);
-
-			if (tmp.exists()) {
+			else if (params.sid.isExternal()) {
+			File tmp = params.sid.getExternalFile();
+			if (params.sid.getType() == SubtitleType.ASS) {
 				tempSubs = tmp;
-			} else {
-				String externalSubtitlesFileName;
+			} else { // Convert external subs to ASS format
+				convertedSubs = subsPath.getAbsolutePath() + File.separator +
+						FileUtil.getFileNameWithoutExtension(tmp.getName()) +
+						"_" + params.sid.getExternalFile().lastModified() + "_EXT.ass";
+				tmp = new File(convertedSubs);
 
-				if (params.sid.isExternalFileUtf16()) {
-					// convert UTF-16 -> UTF-8
-					File convertedSubtitles = new File(configuration.getTempFolder(), "UTF-8_" + params.sid.getExternalFile().getName());
-					FileUtil.convertFileFromUtf16ToUtf8(params.sid.getExternalFile(), convertedSubtitles);
-					externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(convertedSubtitles.getAbsolutePath());
+				if (tmp.exists()) {
+					tempSubs = tmp;
 				} else {
-					externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getAbsolutePath());
-				}
+					String externalSubtitlesFileName;
 
-				tempSubs = convertSubsToAss(externalSubtitlesFileName, media, params);
-
-				if (tempSubs != null && configuration.isFFmpegFontConfig()) {
-					try {
-						tempSubs = applySubsSettingsToTempSubsFile(tempSubs);
-					} catch (IOException e) {
-						LOGGER.debug("Applying subs setting ends with error: " + e);
-						tempSubs = null;
+					if (params.sid.isExternalFileUtf16()) {
+						// convert UTF-16 -> UTF-8
+						File convertedSubtitles = new File(configuration.getTempFolder(), "UTF-8_" + params.sid.getExternalFile().getName());
+						FileUtil.convertFileFromUtf16ToUtf8(params.sid.getExternalFile(), convertedSubtitles);
+						externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(convertedSubtitles.getAbsolutePath());
+					} else {
+						externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getAbsolutePath());
 					}
+
+					tempSubs = convertSubsToAss(externalSubtitlesFileName, media, params);
+				}
+			}
+
+			if (tempSubs != null && configuration.isFFmpegFontConfig()) {
+				try {
+					tempSubs = applySubsSettingsToTempSubsFile(tempSubs);
+				} catch (IOException e) {
+					LOGGER.debug("Applying subs setting ends with error: " + e);
+					tempSubs = null;
 				}
 			}
 		}	
 */
 
-		if (tempSubs != null && params.sid.isEmbedded() && params.timeseek > 0) {
-			try {
-				tempSubs = SubtitleUtils.applyTimeSeekingToASS(tempSubs, params);
-			} catch (IOException e) {
-				LOGGER.debug("Applying timeseeking caused an error: " + e);
-				tempSubs = null;
-			}
-		} else if (params.sid.isExternal() && params.sid.getType() == SubtitleType.SUBRIP) {
-			try {
-				tempSubs = SubtitleUtils.applyTimeSeekingToSrt(tempSubs, params);
-			} catch (IOException e) {
-				LOGGER.debug("Applying timeseeking caused an error: " + e);
-				tempSubs = null;
+		if (tempSubs != null && params.timeseek > 0) {
+			if (params.sid.isEmbedded() || params.sid.getType() == SubtitleType.ASS) {
+				try {
+					tempSubs = SubtitleUtils.applyTimeSeekingToASS(tempSubs, params);
+				} catch (IOException e) {
+					LOGGER.debug("Applying timeseeking caused an error: " + e);
+					tempSubs = null;
+				}
+			} else if (params.sid.isExternal() && params.sid.getType() == SubtitleType.SUBRIP) {
+				try {
+					tempSubs = SubtitleUtils.applyTimeSeekingToSrt(tempSubs, params);
+				} catch (IOException e) {
+					LOGGER.debug("Applying timeseeking caused an error: " + e);
+					tempSubs = null;
+				}
 			}
 		}
 
