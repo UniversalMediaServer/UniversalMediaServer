@@ -1047,8 +1047,8 @@ public class FFMpegVideo extends Player {
 					tempSubs = null;
 				}
 			}
-		} else if (params.sid.isExternal() && params.sid.getType() == SubtitleType.SUBRIP
-				|| params.sid.getType() == SubtitleType.ASS) {
+		} else if (params.sid.isExternal() && (params.sid.getType() == SubtitleType.SUBRIP
+				|| params.sid.getType() == SubtitleType.ASS)) {
 			tempSubs = params.sid.getExternalFile();
 		}
 
