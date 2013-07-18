@@ -1418,11 +1418,22 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							dlnaspec = "DLNA.ORG_PN=" + getMPEG_PS_PALLocalizedValue(c);
 
 							if (getPlayer() != null) {
-								// Do we have some mpegts to offer?
-								boolean mpegTsMux = TsMuxeRVideo.ID.equals(getPlayer().id()) || VideoLanVideoStreaming.ID.equals(getPlayer().id());
+								boolean isFileMPEGTS = TsMuxeRVideo.ID.equals(getPlayer().id()) || VideoLanVideoStreaming.ID.equals(getPlayer().id());
 								boolean isMuxableResult = getMedia().isMuxable(mediaRenderer);
 								boolean isBravia = mediaRenderer.isBRAVIA();
-								if (!mpegTsMux && configuration.isMencoderMuxWhenCompatible()) {
+								if (
+									!isFileMPEGTS &&
+									(
+										(
+											configuration.isMencoderMuxWhenCompatible() &&
+											MEncoderVideo.ID.equals(getPlayer().id())
+										) ||
+										(
+											configuration.isFFmpegMuxWhenCompatible() &&
+											FFMpegVideo.ID.equals(getPlayer().id())
+										)
+									)
+								) {
 									if (isBravia) {
 										/**
 										 * Sony Bravia TVs (and possibly other renderers) need ORG_PN to be accurate.
@@ -1654,21 +1665,22 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 										}
 									}
 
-									mpegTsMux = MEncoderVideo.ID.equals(getPlayer().id()) &&
+									if (
 										(
-											(
-												getMediaSubtitle() == null &&
-												!isSrtFile() &&
-												getMedia() != null &&
-												getMedia().getDvdtrack() == 0 &&
-												isMuxableResult &&
-												mediaRenderer.isMuxH264MpegTS()
-											) ||
-											mediaRenderer.isTranscodeToMPEGTSAC3()
-										);
+											getMediaSubtitle() == null &&
+											!isSrtFile() &&
+											getMedia() != null &&
+											getMedia().getDvdtrack() == 0 &&
+											isMuxableResult &&
+											mediaRenderer.isMuxH264MpegTS()
+										) ||
+										mediaRenderer.isTranscodeToMPEGTSAC3()
+									) {
+										isFileMPEGTS = true;
+									}
 								}
 
-								if (mpegTsMux) {
+								if (isFileMPEGTS) {
 									dlnaspec = "DLNA.ORG_PN=" + getMPEG_TS_SD_EU_ISOLocalizedValue(c);
 									if (
 										getMedia().isH264() &&
