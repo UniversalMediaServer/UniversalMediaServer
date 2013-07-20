@@ -91,7 +91,7 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 
 	@Override
 	public boolean isValid() {
-		checktype();
+		resolveFormat();
 		setSrtFile(FileUtil.isSubtitlesExists(file, null));
 		return getFormat() != null;
 	}

@@ -31,8 +31,12 @@ import net.pms.util.PlayerUtil;
 public class TsMuxeRAudio extends TsMuxeRVideo {
 	public static final String ID = "tsmuxeraudio";
 
+	@Deprecated
 	public TsMuxeRAudio(PmsConfiguration configuration) {
 		super(configuration);
+	}
+
+	public TsMuxeRAudio() {
 	}
 
 	@Override
@@ -52,13 +56,12 @@ public class TsMuxeRAudio extends TsMuxeRVideo {
 
 	@Override
 	public ProcessWrapper launchTranscode(
-		String fileName,
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params) throws IOException {
 		params.timeend = media.getDurationInSeconds();
 		params.waitbeforestart = 2500;
-		return super.launchTranscode(fileName, dlna, media, params);
+		return super.launchTranscode(dlna, media, params);
 	}
 
 	@Override
@@ -81,6 +84,6 @@ public class TsMuxeRAudio extends TsMuxeRVideo {
 	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		return PlayerUtil.isType(resource, Format.VIDEO, Format.Identifier.AUDIO_AS_VIDEO);
+		return PlayerUtil.isVideo(resource, Format.Identifier.AUDIO_AS_VIDEO);
 	}
 }

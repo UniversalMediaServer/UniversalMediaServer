@@ -1,13 +1,11 @@
 package net.pms.formats;
 
-import java.util.ArrayList;
 import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.InputFile;
-import net.pms.encoders.Player;
 import net.pms.encoders.RAWThumbnailer;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
@@ -30,7 +28,7 @@ public class RAW extends JPG {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public String[] getId() {
+	public String[] getSupportedExtensions() {
 		return new String[] {
 			"3fr",
 			"ari",
@@ -86,17 +84,6 @@ public class RAW extends JPG {
 	@Override
 	public boolean ps3compatible() {
 		return false;
-	}
-
-	@Override
-	public ArrayList<Class<? extends Player>> getProfiles() {
-		ArrayList<Class<? extends Player>> profiles = new ArrayList<>();
-		for (String engine : configuration.getEnginesAsList(PMS.get().getRegistry())) {
-			if (engine.equals(RAWThumbnailer.ID)) {
-				profiles.add(RAWThumbnailer.class);
-			}
-		}
-		return profiles;
 	}
 
 	@Override

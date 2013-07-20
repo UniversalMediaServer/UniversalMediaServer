@@ -56,6 +56,12 @@ public class MediaInfo {
 		}
 	}
 
+	/**
+	 * XXX Note: none of JNA's 3 calling conventions
+	 * (ALT_CONVENTION, C_CONVENTION, STDCALL_CONVENTION)
+	 * work with MediaInfo.dll when JNA > 3.2.5.
+	 */
+
 	// Internal stuff
 	interface MediaInfoDLL_Internal extends Library {
 		MediaInfoDLL_Internal INSTANCE = (MediaInfoDLL_Internal) Native.loadLibrary(

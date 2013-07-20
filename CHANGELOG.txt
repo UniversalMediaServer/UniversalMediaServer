@@ -1,17 +1,39 @@
-3.0.0-a2 - 2013-06-?? - Changes since 3.0.0-a1
+3.0.0-a3 - 2013-07-12 - Changes since 3.0.0-a2
+
+	General:
+		Fixed folder browsing in 32-bit mode
+	External Components:
+		Updated MediaInfo for Windows to 0.7.64, which:
+			Added HEVC/H.265 in MKV support
+			Added Dolby E support
+			Improved AVI, MKV, MPEG-TS, QuickTime, RMVB, MPEG-4, AAC, AVC, AC-3 and DTS support
+			Faster MPEG-TS analysis
+
+3.0.0-a2 - 2013-07-05 - Changes since 3.0.0-a1
 
 	General:
 		Added manual configuration option (hide_subs_info) to hide subtitle info from filenames while browsing
 		FFmpeg starts faster
 		Improved quality of H.264 transcoding by default
 		Added H.264 transcoding quality option
+		Improved speed of list population
+		VLC video no longer loops
+		Added multithreading support to VLC
+		Audio files are added to the transcode folder
+		Chapter folders are hidden if the video duration is less than the chapter length
+		Improved file compatibility detection for H.264 muxing
+		Renamed a lot of configuration variables
+		Added thumbnail support to Samsung 2012 ES and EH models (thanks, dmitche3!)
+		Removed the obsolete MPlayerAudio, MPlayerWebAudio and MPlayerWebVideoDump engines
+		Fixed startup issue on OS X
 		Fixed RAW image transcoding and support 28 additional RAW file extensions
+		Fixed incorrect server IP address when starting UMS by launching UMS.exe or UMS.bat
 		Fixed layout issues
 		Fixed various bugs
 	Languages:
 		Updated Dutch translation (thanks, Leroy!)
 	External Components:
-		Updated FFmpeg to, which:
+		Updated FFmpeg on all operating systems, which:
 			Improves ASS/SSA subtitle support
 			Improves handling of aspect ratios, even when muxing
 			Fixes multithreaded MPEG-4 decoding
@@ -23,6 +45,7 @@
 			Improves H.264 and VC-1 support
 			Improves Vorbis support
 			Improves Matroska support
+			Improves MPEG-TS muxing
 		Updated MediaInfo for Windows to 0.7.63, which:
 			Adds H.265 (HEVC) support
 			Fixed some crashes with .mov files
