@@ -87,8 +87,8 @@ public class SubtitleUtils {
 	/**
 	 * Applies timeseeking to subtitles file in SSA/ASS format
 	 *
-	 * @param SrtFile Subtitles file in SSA/ASS format
-	 * @param timeseek Time stamp value
+	 * @param subsFile Subtitles file in SSA/ASS format
+	 * @param params Output parameters with time stamp value
 	 * @return Converted subtitles file
 	 * @throws IOException
 	 */
@@ -126,6 +126,14 @@ public class SubtitleUtils {
 		return outputSubs;
 	}
 
+	/**
+	 * Applies codepage conversion and timeseeking to subtitles file in SUBRIP format if needed 
+	 *
+	 * @param subsFile Subtitles file in SUBRIP format
+	 * @param params Output parameters with time stamp value
+	 * @return Converted subtitles file
+	 * @throws IOException
+	 */
 	public static File applyTimeSeekingToSrt(File subsFile, OutputParams params) throws IOException {
 		BufferedReader reader;
 		Double timeseek = params.timeseek;
