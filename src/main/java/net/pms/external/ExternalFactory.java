@@ -514,36 +514,27 @@ public class ExternalFactory {
 	}
 
 	public static URLResult resolveURL(String url) {
+		String quotedUrl = quote(url);
 		for (URLResolver resolver : urlResolvers) {
 			URLResult res = resolver.urlResolve(url);
-			if (res == null) {
-				// take another resolver this is crap
-				continue;
-			}
-			if (res.precoder != null && res.precoder.size() > 0) {
-				return res;
-			}
-			res.precoder = null;
-			if (res.args != null && res.args.size() > 0) {
-				// we got args...
-				// so return what we got
-				if (StringUtils.isNotEmpty(res.url)) {
-					res.url = quote(res.url);
+			if (res != null) {
+				if (StringUtils.isEmpty(res.url) || quotedUrl.equals(quote(res.url))) {
+					res.url = null;
 				}
-				return res;
+				if (res.precoder != null && res.precoder.size() == 0) {
+					res.precoder = null;
+				}
+				if (res.args != null && res.args.size() == 0) {
+					res.args = null;
+				}
+				if (res.url != null || res.precoder != null || res.args != null) {
+					LOGGER.debug(((ExternalListener)resolver).name() + " resolver:"
+						+ (res.url == null ? "" : " url=" + res.url)
+						+ (res.precoder == null ? "" : " precoder=" + res.precoder)
+						+ (res.args == null ? "" : " args=" + res.args));
+					return res;
+				}
 			}
-			if (StringUtils.isEmpty(res.url)) {
-				// take another resolver this is crap
-				continue;
-			}
-			String cmp = quote(url);
-			res.url = quote(res.url);
-			if (cmp.equals(res.url)) {
-				// If the resolver returned the same url we already had
-				// (give or take some quotes) we look for a better one
-				continue;
-			}
-			return res;
 		}
 		return null;
 	}
