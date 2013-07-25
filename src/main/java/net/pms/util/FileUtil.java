@@ -1,8 +1,6 @@
 package net.pms.util;
 
 import java.io.*;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import net.pms.PMS;
@@ -123,24 +121,21 @@ public class FileUtil {
 	}
 
 	/**
-	 * Returns the protocol of the supplied filename if it's a URI,
-	 * or <code>null</code> if it's not.
+	 * Returns the protocol of the supplied filename if any,
+	 * or <code>null</code> if none.
 	 *
 	 * @param filename the filename whose protocol is to be determined
-	 * @return the filename's protocol if it's a URI, or <code>null</code>
-	 * if it's not.
+	 * @return the filename's protocol if any, or <code>null</code>
+	 * if none.
 	 */
 	public static String getProtocol(String filename) {
-		String protocol = null;
-
-		if (filename != null) {
-			try {
-				URI uri = new URI(filename.toLowerCase());
-				protocol = uri.getScheme();
-			} catch (URISyntaxException use) { }
+		// we use a lax validate/parse here instead of URI.getScheme()
+		// so psuedo-urls (e.g. librtmp-style urls containing spaces)
+		// will pass without throwing URISyntaxException.
+		if (filename != null && filename.matches("\\S+://.*")) {
+			return filename.split("://")[0].toLowerCase();
 		}
-
-		return protocol;
+		return null;
 	}
 
 	public static String getExtension(String f) {
