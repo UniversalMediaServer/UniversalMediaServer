@@ -1088,19 +1088,11 @@ public class FFMpegVideo extends Player {
 			}
 		}	
 */
-
-		if (tempSubs != null && (params.sid.isEmbedded() ||  (params.sid.isExternal() && params.sid.getType() == SubtitleType.ASS)) && params.timeseek > 0) {
+		if (tempSubs != null) {
 			try {
-				tempSubs = SubtitleUtils.applyTimeSeekingToASS(tempSubs, params);
+				tempSubs = SubtitleUtils.applyCodepageConversionAndTimeseekingToSubtitlesFile(tempSubs, params);
 			} catch (IOException e) {
-				LOGGER.debug("Applying timeseeking caused an error: " + e);
-				tempSubs = null;
-			}
-		} else if (params.sid.isExternal() && params.sid.getType() == SubtitleType.SUBRIP) {
-			try {
-				tempSubs = SubtitleUtils.applyTimeSeekingToSrt(tempSubs, params);
-			} catch (IOException e) {
-				LOGGER.debug("Applying timeseeking caused an error: " + e);
+				LOGGER.debug("Applying codepage conversion or timeseeking caused an error: " + e);
 				tempSubs = null;
 			}
 		}
