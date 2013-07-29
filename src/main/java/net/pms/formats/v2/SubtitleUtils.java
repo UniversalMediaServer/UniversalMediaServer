@@ -104,7 +104,7 @@ public class SubtitleUtils {
 		BufferedReader reader;
 		String cp = configuration.getSubtitlesCodepage();
 		File outputSubs = null;
-		if (isNotBlank(cp) && params.sid.isExternal() && !params.sid.isExternalFileUtf8()) {
+		if (isNotBlank(cp) && params.sid.isExternal()) {
 			reader = new BufferedReader(new InputStreamReader(new FileInputStream(subsFile),cp)); // Always convert codepage
 		} else if (timeseek > 0) {
 			reader = new BufferedReader(new InputStreamReader(new FileInputStream(subsFile))); // Apply timeseeking without codepage conversion
