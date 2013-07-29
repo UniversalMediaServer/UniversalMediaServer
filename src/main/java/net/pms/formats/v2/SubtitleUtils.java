@@ -171,7 +171,7 @@ public class SubtitleUtils {
 			return null;
 		}
 				
-		PMS.get().addTempFile(outputSubs, 2 * 24 * 3600 * 1000);
+		outputSubs.deleteOnExit();;
 		return outputSubs;
 	}
 }
