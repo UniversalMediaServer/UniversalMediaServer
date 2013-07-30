@@ -115,6 +115,7 @@ public class SubtitleUtils {
 			File convertedSubtitles = new File(configuration.getTempFolder(), "utf8_" + subsFile.getName());
 			FileUtil.convertFileFromUtf16ToUtf8(subsFile, convertedSubtitles);
 			subsFile = convertedSubtitles;
+			convertedSubtitles.deleteOnExit();
 		}
 
 		if (isNotBlank(cp) && !params.sid.isExternalFileUtf8() && !params.sid.isExternalFileUtf16()) {
@@ -183,7 +184,7 @@ public class SubtitleUtils {
 		} else {
 			return null;
 		}
-				
+
 		outputSubs.deleteOnExit();;
 		return outputSubs;
 	}
