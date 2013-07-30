@@ -21,10 +21,15 @@ package net.pms.formats.v2;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.apache.commons.io.FileUtils;
+
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.io.OutputParams;
+import net.pms.util.FileUtil;
+import net.pms.util.ProcessUtil;
 import static net.pms.util.StringUtil.*;
 import static org.apache.commons.io.FilenameUtils.getBaseName;
 import static org.apache.commons.lang3.StringUtils.*;
@@ -104,8 +109,16 @@ public class SubtitleUtils {
 		BufferedReader reader;
 		String cp = configuration.getSubtitlesCodepage();
 		File outputSubs = null;
-		if (isNotBlank(cp) && params.sid.isExternal()) {
-			reader = new BufferedReader(new InputStreamReader(new FileInputStream(subsFile),cp)); // Always convert codepage
+
+		if (params.sid.isExternalFileUtf16()) {
+			// convert UTF-16 -> UTF-8
+			File convertedSubtitles = new File(configuration.getTempFolder(), "utf8_" + subsFile.getName());
+			FileUtil.convertFileFromUtf16ToUtf8(subsFile, convertedSubtitles);
+			subsFile = convertedSubtitles;
+		}
+
+		if (isNotBlank(cp) && !params.sid.isExternalFileUtf8() && !params.sid.isExternalFileUtf16()) {
+			reader = new BufferedReader(new InputStreamReader(new FileInputStream(subsFile), cp)); // Convert codepage to UTF-8
 		} else if (timeseek > 0) {
 			reader = new BufferedReader(new InputStreamReader(new FileInputStream(subsFile))); // Apply timeseeking without codepage conversion
 		} else {
