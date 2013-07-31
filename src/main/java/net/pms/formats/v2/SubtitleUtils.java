@@ -19,6 +19,7 @@
 package net.pms.formats.v2;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -97,36 +98,27 @@ public class SubtitleUtils {
 	 * @return Converted subtitles file
 	 * @throws IOException
 	 */
-	public static File applyCodepageConversionAndTimeseekingToSubtitlesFile(File subsFile, OutputParams params) throws IOException {
+	public static File applyCodepageConversionAndTimeseekingToSubtitlesFile(OutputParams params) throws IOException {
 		Double timeseek = params.timeseek;
-		if (params.sid.isEmbedded() && timeseek == 0) {
-			return subsFile;
-		}
-
 		Double startTime;
 		Double endTime;
 		String line;
 		BufferedReader reader;
-		String cp = configuration.getSubtitlesCodepage();
 		File outputSubs = null;
-
-		if (params.sid.isExternalFileUtf16()) {
-			// convert UTF-16 -> UTF-8
-			File convertedSubtitles = new File(configuration.getTempFolder(), "utf8_" + subsFile.getName());
-			FileUtil.convertFileFromUtf16ToUtf8(subsFile, convertedSubtitles);
-			subsFile = convertedSubtitles;
-			convertedSubtitles.deleteOnExit();
-		}
-
-		if (isNotBlank(cp) && !params.sid.isExternalFileUtf8() && !params.sid.isExternalFileUtf16()) {
-			reader = new BufferedReader(new InputStreamReader(new FileInputStream(subsFile), cp)); // Convert codepage to UTF-8
-		} else if (timeseek > 0) {
-			reader = new BufferedReader(new InputStreamReader(new FileInputStream(subsFile))); // Apply timeseeking without codepage conversion
-		} else {
-			return subsFile; // Codepage conversion or timeseeking is not needed
-		}
-
+		String cp = configuration.getSubtitlesCodepage();
+		String subsFileCharset = params.sid.getExternalFileCharacterSet();
+		File subsFile = params.sid.getExternalFile();
 		outputSubs = new File(configuration.getTempFolder(), getBaseName(subsFile.getName()) + "_" + System.currentTimeMillis()  + ".tmp");
+		final boolean isSubtitlesCodepageForcedInConfigurationAndSupportedByJVM = isNotBlank(cp) && Charset.isSupported(cp) && !params.sid.isExternalFileUtf();
+		final boolean isSubtitlesCodepageAutoDetectedAndSupportedByJVM = isNotBlank(subsFileCharset) && Charset.isSupported(subsFileCharset);
+		if (isSubtitlesCodepageForcedInConfigurationAndSupportedByJVM) {
+			reader = new BufferedReader(new InputStreamReader(new FileInputStream(subsFile), Charset.forName(cp)));
+		} else if (isSubtitlesCodepageAutoDetectedAndSupportedByJVM) {
+			reader = new BufferedReader(new InputStreamReader(new FileInputStream(subsFile), Charset.forName(subsFileCharset)));
+		} else {
+			reader = new BufferedReader(new InputStreamReader(new FileInputStream(subsFile)));
+		}
+
 		if (params.sid.getType() == SubtitleType.ASS) {
 			try (BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs)))) {
 
