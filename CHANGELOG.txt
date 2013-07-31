@@ -1,3 +1,8 @@
+3.0.0-a4 - 2013-08-??
+
+	General:
+		
+
 3.0.0-a3 - 2013-07-12 - Changes since 3.0.0-a2
 
 	General:
