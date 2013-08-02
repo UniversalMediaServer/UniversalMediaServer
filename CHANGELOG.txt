@@ -3,6 +3,7 @@
 	General:
 		Fixed external ASS/SSA support (Thanks, skeptical!)
 		Fixed FFmpeg muxing on non-PS3 renderers
+		Fixed use of custom Java Heapsize (Thanks, OptimusPrime!)
 	Languages:
 		Updated Spanish translation (thanks, AlfredoRamos!)
 	External Components:
