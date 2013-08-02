@@ -58,12 +58,7 @@ import org.slf4j.LoggerFactory;
  */
 public class AviSynthFFmpeg extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AviSynthFFmpeg.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	public static final String ID = "avsffmpeg";
-	
-	public AviSynthFFmpeg() {
-		super(PMS.getConfiguration());
-	}
 
 	@Override
 	public String id() {
@@ -183,7 +178,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			}
 
 			String subLine = null;
-			if (subTrack != null && configuration.isAutoloadSubtitles() && !configuration.isDisableSubtitles()) {
+			if (subTrack != null && configuration.isAutoloadExternalSubtitles() && !configuration.isDisableSubtitles()) {
 				if (subTrack.getExternalFile() != null) {
 					LOGGER.info("AviSynth script: Using subtitle track: " + subTrack);
 					String function = "TextSub";
@@ -371,8 +366,8 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 		}
 
 		if (
-			PlayerUtil.isType(resource, Format.VIDEO, Format.Identifier.MKV) ||
-			PlayerUtil.isType(resource, Format.VIDEO, Format.Identifier.MPG)
+			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
+			PlayerUtil.isVideo(resource, Format.Identifier.MPG)
 		) {
 			return true;
 		}

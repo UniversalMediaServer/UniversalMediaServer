@@ -38,7 +38,7 @@ import net.pms.external.AdditionalFolderAtRoot;
 import net.pms.external.AdditionalFoldersAtRoot;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
-import net.pms.gui.IFrame;
+import net.pms.newgui.IFrame;
 import net.pms.util.FileUtil;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
@@ -133,26 +133,27 @@ public class RootFolder extends DLNAResource {
 			addChild(sf);
 		}
 
-		File webConf = new File(configuration.getProfileDirectory(), "WEB.conf");
+		String webConfPath = configuration.getWebConfPath();
+		File webConf = new File(webConfPath);
 		if (webConf.exists() && configuration.getExternalNetwork()) {
 			addWebFolder(webConf);
 		}
 
-		if (Platform.isMac() && configuration.getIphotoEnabled()) {
+		if (Platform.isMac() && configuration.isShowIphotoLibrary()) {
 			DLNAResource iPhotoRes = getiPhotoFolder();
 			if (iPhotoRes != null) {
 				addChild(iPhotoRes);
 			}
 		}
 
-		if (Platform.isMac() && configuration.getApertureEnabled()) {
+		if (Platform.isMac() && configuration.isShowApertureLibrary()) {
 			DLNAResource apertureRes = getApertureFolder();
 			if (apertureRes != null) {
 				addChild(apertureRes);
 			}
 		}
 
-		if ((Platform.isMac() || Platform.isWindows()) && configuration.getItunesEnabled()) {
+		if ((Platform.isMac() || Platform.isWindows()) && configuration.isShowItunesLibrary()) {
 			DLNAResource iTunesRes = getiTunesFolder();
 			if (iTunesRes != null) {
 				addChild(iTunesRes);
@@ -996,12 +997,12 @@ public class RootFolder extends DLNAResource {
 			}
 		}
 
-		// resume file mgmt
+		// Resume file management
 		if (configuration.isResumeEnabled()) {
 				res.addChild(new VirtualFolder(Messages.getString("PMS.135"), null) {
 					@Override
 					public void discoverChildren() {
-                        final File[] files = ResumeObj.resumeFiles();
+						final File[] files = ResumeObj.resumeFiles();
 						addChild(new VirtualVideoAction(Messages.getString("PMS.136"), true) {
 							@Override
 							public boolean enable() {
@@ -1116,12 +1117,12 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			vfSub.addChild(new VirtualVideoAction(Messages.getString("MEncoderVideo.22"), configuration.isAutoloadSubtitles()) {
+			vfSub.addChild(new VirtualVideoAction(Messages.getString("MEncoderVideo.22"), configuration.isAutoloadExternalSubtitles()) {
 				@Override
 				public boolean enable() {
-					boolean oldValue = configuration.isAutoloadSubtitles();
+					boolean oldValue = configuration.isAutoloadExternalSubtitles();
 					boolean newValue = !oldValue;
-					configuration.setAutoloadSubtitles(newValue);
+					configuration.setAutoloadExternalSubtitles(newValue);
 					return newValue;
 				}
 			});
@@ -1144,11 +1145,11 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			res.addChild(new VirtualVideoAction(Messages.getString("TrTab2.28"), configuration.isDTSEmbedInPCM()) {
+			res.addChild(new VirtualVideoAction(Messages.getString("TrTab2.28"), configuration.isAudioEmbedDtsInPcm()) {
 				@Override
 				public boolean enable() {
-					configuration.setDTSEmbedInPCM(!configuration.isDTSEmbedInPCM());
-					return configuration.isDTSEmbedInPCM();
+					configuration.setAudioEmbedDtsInPcm(!configuration.isAudioEmbedDtsInPcm());
+					return configuration.isAudioEmbedDtsInPcm();
 				}
 			});
 

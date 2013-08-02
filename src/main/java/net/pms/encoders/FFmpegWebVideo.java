@@ -33,8 +33,6 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.external.ExternalFactory;
 import net.pms.external.URLResolver.URLResult;
-import net.pms.formats.FormatFactory;
-import net.pms.formats.WEB;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
@@ -87,6 +85,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		return false;
 	}
 
+	@Deprecated
 	public FFmpegWebVideo(PmsConfiguration configuration) {
 		super(configuration);
 		
@@ -98,27 +97,25 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			protocols.add("mms");
 			protocols.add("https");
 			LOGGER.debug("FFmpeg supported protocols: " + protocols);
+			init = true;
+		}
+	}
+	
+	public FFmpegWebVideo() {
+		if (!init) {
+			readWebFilters(configuration.getProfileDirectory() + File.separator + "ffmpeg.webfilters");
 
-			// Register protocols as a WEB format
-			final String[] ffmpegProtocols = protocols.toArray(new String[0]);
-			FormatFactory.getExtensions().add(0, new WEB() {
-				@Override
-				public String[] getId() {
-					return ffmpegProtocols;
-				}
-
-				@Override
-				public String toString() {
-					return "FFMPEG.WEB";
-				}
-			});
+			protocols = FFmpegOptions.getSupportedProtocols(configuration);
+			// see XXX workaround below
+			protocols.add("mms");
+			protocols.add("https");
+			LOGGER.debug("FFmpeg supported protocols: " + protocols);
 			init = true;
 		}
 	}
 
 	@Override
-	public ProcessWrapper launchTranscode(
-		String filename,
+	public synchronized ProcessWrapper launchTranscode(
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params
@@ -126,11 +123,12 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		params.minBufferSize = params.minFileSize;
 		params.secondread_minsize = 100000;
 		RendererConfiguration renderer = params.mediaRenderer;
-        setAudioAndSubs(filename, media, params, configuration);
+		String filename = dlna.getSystemName();
+		setAudioAndSubs(filename, media, params);
 		File tempSubs = null;
 
 		if (!isDisableSubtitles(params)) {
-			tempSubs = subsConversion(filename, media, params);
+			tempSubs = getSubtitles(dlna, media, params);
 		}
 
 		// XXX work around an ffmpeg bug: http://ffmpeg.org/trac/ffmpeg/ticket/998
@@ -247,20 +245,20 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		cmdList.add("-i");
 		cmdList.add(filename);
 
-		cmdList.addAll(getVideoFilterOptions(tempSubs, renderer, media, params));
+		cmdList.addAll(getVideoFilterOptions(dlna, media, params, tempSubs));
 
 		// Encoder threads
 		cmdList.add("-threads");
 		cmdList.add("" + nThreads);
 
 		// Add the output options (-f, -c:a, -c:v, etc.)
-		cmdList.addAll(getTranscodeVideoOptions(renderer, media, params, null));
+		cmdList.addAll(getVideoTranscodeOptions(dlna, media, params));
 
 		// Add video bitrate options
-		cmdList.addAll(getVideoBitrateOptions(renderer, media));
+		cmdList.addAll(getVideoBitrateOptions(dlna, media, params));
 
 		// Add audio bitrate options
-		cmdList.addAll(getAudioBitrateOptions(renderer, media));
+		cmdList.addAll(getAudioBitrateOptions(dlna, media, params));
 
 		// Add any remaining custom options
 		if (!customOptions.isEmpty()) {

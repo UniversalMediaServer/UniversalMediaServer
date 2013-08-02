@@ -5,8 +5,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import javax.swing.JComponent;
-import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
@@ -20,7 +18,6 @@ import org.slf4j.LoggerFactory;
 
 public class RAWThumbnailer extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RAWThumbnailer.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	public final static String ID = "rawthumbs";
 
 	protected String[] getDefaultArgs() {
@@ -49,7 +46,6 @@ public class RAWThumbnailer extends Player {
 
 	@Override
 	public ProcessWrapper launchTranscode(
-		String fileName,
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params
@@ -58,6 +54,7 @@ public class RAWThumbnailer extends Player {
 		params.minBufferSize = 1;
 		params.maxBufferSize = 5;
 		params.hidebuffer = true;
+		final String filename = dlna.getSystemName();
 
 		if (media == null || media.getThumb() == null) {
 			return null;
@@ -65,7 +62,7 @@ public class RAWThumbnailer extends Player {
 
 		if (media.getThumb().length == 0) {
 			try {
-				media.setThumb(getThumbnail(params, fileName));
+				media.setThumb(getThumbnail(params, filename));
 			} catch (Exception e) {
 				LOGGER.error("Error extracting thumbnail", e);
 				return null;
@@ -131,6 +128,6 @@ public class RAWThumbnailer extends Player {
 	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		return PlayerUtil.isType(resource, Format.IMAGE, Format.Identifier.RAW);
+		return PlayerUtil.isImage(resource, Format.Identifier.RAW);
 	}
 }

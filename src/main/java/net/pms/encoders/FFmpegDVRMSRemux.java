@@ -32,8 +32,6 @@ import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
 import net.pms.Messages;
-import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
@@ -45,7 +43,6 @@ import net.pms.util.PlayerUtil;
 import org.apache.commons.lang3.StringUtils;
 
 public class FFmpegDVRMSRemux extends Player {
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private JTextField altffpath;
 	public static final String ID = "ffmpegdvrmsremux";
 
@@ -67,9 +64,6 @@ public class FFmpegDVRMSRemux extends Player {
 	@Override
 	public boolean avisynth() {
 		return false;
-	}
-
-	public FFmpegDVRMSRemux() {
 	}
 
 	@Override
@@ -115,24 +109,23 @@ public class FFmpegDVRMSRemux extends Player {
 
 	@Override
 	public ProcessWrapper launchTranscode(
-		String filename,
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
-		return getFFMpegTranscode(filename, dlna, media, params);
+		return getFFMpegTranscode(dlna, media, params);
 	}
 
 	// pointless redirection of launchTranscode
 	@Deprecated
 	protected ProcessWrapperImpl getFFMpegTranscode(
-		String filename,
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
 		String ffmpegAlternativePath = configuration.getFfmpegAlternativePath();
 		List<String> cmdList = new ArrayList<>();
+		final String filename = dlna.getSystemName();
 
 		if (ffmpegAlternativePath != null && ffmpegAlternativePath.length() > 0) {
 			cmdList.add(ffmpegAlternativePath);
@@ -149,7 +142,7 @@ public class FFmpegDVRMSRemux extends Player {
 		cmdList.add(filename);
 		cmdList.addAll(Arrays.asList(args()));
 
-		String customSettingsString = configuration.getFfmpegSettings();
+		String customSettingsString = configuration.getMPEG2MainSettingsFFmpeg();
 		if (StringUtils.isNotBlank(customSettingsString)) {
 			String[] customSettingsArray = StringUtils.split(customSettingsString);
 
@@ -215,7 +208,7 @@ public class FFmpegDVRMSRemux extends Player {
 	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		if (PlayerUtil.isType(resource, Format.VIDEO, Format.Identifier.DVRMS)) {
+		if (PlayerUtil.isVideo(resource, Format.Identifier.DVRMS)) {
 			return true;
 		}
 

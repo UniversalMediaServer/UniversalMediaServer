@@ -332,22 +332,26 @@ public class TranscodingTab {
 		}
 
 		for (Player p : ordPlayers) {
-			TreeNodeSettings en = new TreeNodeSettings(p.name(), p, null);
+			TreeNodeSettings engine = new TreeNodeSettings(p.name(), p, null);
+
 			if (disPlayers.contains(p)) {
-				en.setEnable(false);
+				engine.setEnable(false);
 			}
-			JComponent jc = en.getConfigPanel();
+
+			JComponent jc = engine.getConfigPanel();
 			if (jc == null) {
 				jc = buildEmpty();
 			}
+
 			jc.addComponentListener(new ComponentAdapter() {
 				@Override
 				public void componentShown(ComponentEvent e) {
 					handleCardComponentChange(e.getComponent());
 				}
 			});
-			tabbedPanel.add(en.id(), jc);
-			parent[p.purpose()].add(en);
+
+			tabbedPanel.add(engine.id(), jc);
+			parent[p.purpose()].add(engine);
 		}
 
 		for (int i = 0; i < tree.getRowCount(); i++) {
@@ -587,21 +591,21 @@ public class TranscodingTab {
 		builder.add(x264Quality, FormLayoutUtil.flip(cc.xy(3, 12), colSpec, orientation));
 
 		builder.add(new JLabel(Messages.getString("TrTab2.8")), FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
-		notranscode = new JTextField(configuration.getNoTranscode());
+		notranscode = new JTextField(configuration.getDisableTranscodeForExtensions());
 		notranscode.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				configuration.setNoTranscode(notranscode.getText());
+				configuration.setDisableTranscodeForExtensions(notranscode.getText());
 			}
 		});
 		builder.add(notranscode, FormLayoutUtil.flip(cc.xy(3, 14), colSpec, orientation));
 
 		builder.addLabel(Messages.getString("TrTab2.9"), FormLayoutUtil.flip(cc.xy(1, 16), colSpec, orientation));
-		forcetranscode = new JTextField(configuration.getForceTranscode());
+		forcetranscode = new JTextField(configuration.getForceTranscodeForExtensions());
 		forcetranscode.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				configuration.setForceTranscode(forcetranscode.getText());
+				configuration.setForceTranscodeForExtensions(forcetranscode.getText());
 			}
 		});
 		builder.add(forcetranscode, FormLayoutUtil.flip(cc.xy(3, 16), colSpec, orientation));
@@ -636,37 +640,37 @@ public class TranscodingTab {
 		});
 		builder.add(channels, FormLayoutUtil.flip(cc.xy(3, 2), colSpec, orientation));
 
-		forcePCM = new JCheckBox(Messages.getString("TrTab2.27"), configuration.isUsePCM());
+		forcePCM = new JCheckBox(Messages.getString("TrTab2.27"), configuration.isAudioUsePCM());
 		forcePCM.setContentAreaFilled(false);
 		forcePCM.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				configuration.setUsePCM(e.getStateChange() == ItemEvent.SELECTED);
+				configuration.setAudioUsePCM(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
 		builder.add(forcePCM, FormLayoutUtil.flip(cc.xy(1, 4), colSpec, orientation));
 
 		ac3remux = new JCheckBox(Messages.getString("TrTab2.26") + " " + (Platform.isWindows() ? Messages.getString("TrTab2.21") : ""));
 
-		if (configuration.isRemuxAC3()) {
+		if (configuration.isAudioRemuxAC3()) {
 			ac3remux.setSelected(true);
 		}
 
 		ac3remux.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				configuration.setRemuxAC3((e.getStateChange() == ItemEvent.SELECTED));
+				configuration.setAudioRemuxAC3((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
 		builder.add(ac3remux, FormLayoutUtil.flip(cc.xyw(1, 6, 3), colSpec, orientation));
 
-		forceDTSinPCM = new JCheckBox(Messages.getString("TrTab2.28") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : ""), configuration.isDTSEmbedInPCM());
+		forceDTSinPCM = new JCheckBox(Messages.getString("TrTab2.28") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : ""), configuration.isAudioEmbedDtsInPcm());
 		forceDTSinPCM.setContentAreaFilled(false);
 		forceDTSinPCM.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				configuration.setDTSEmbedInPCM(forceDTSinPCM.isSelected());
-				if (configuration.isDTSEmbedInPCM()) {
+				configuration.setAudioEmbedDtsInPcm(forceDTSinPCM.isSelected());
+				if (configuration.isAudioEmbedDtsInPcm()) {
 					JOptionPane.showMessageDialog(
 						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 						Messages.getString("TrTab2.10"),
@@ -759,11 +763,11 @@ public class TranscodingTab {
 		builder.add(defaultaudiosubs, FormLayoutUtil.flip(cc.xyw(3, 4, 13), colSpec, orientation));
 
 		builder.addLabel(Messages.getString("MEncoderVideo.37"), FormLayoutUtil.flip(cc.xyw(1, 6, 2), colSpec, orientation));
-		alternateSubFolder = new JTextField(configuration.getAlternateSubsFolder());
+		alternateSubFolder = new JTextField(configuration.getAlternateSubtitlesFolder());
 		alternateSubFolder.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				configuration.setAlternateSubsFolder(alternateSubFolder.getText());
+				configuration.setAlternateSubtitlesFolder(alternateSubFolder.getText());
 			}
 		});
 		builder.add(alternateSubFolder, FormLayoutUtil.flip(cc.xyw(3, 6, 12), colSpec, orientation));
@@ -782,7 +786,7 @@ public class TranscodingTab {
 				int returnVal = chooser.showDialog((Component) e.getSource(), Messages.getString("FoldTab.28"));
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 					alternateSubFolder.setText(chooser.getSelectedFile().getAbsolutePath());
-					configuration.setAlternateSubsFolder(chooser.getSelectedFile().getAbsolutePath());
+					configuration.setAlternateSubtitlesFolder(chooser.getSelectedFile().getAbsolutePath());
 				}
 			}
 		});
@@ -937,13 +941,13 @@ public class TranscodingTab {
 		builder.add(ass_shadow, FormLayoutUtil.flip(cc.xy(11, 12), colSpec, orientation));
 		builder.add(ass_margin, FormLayoutUtil.flip(cc.xy(15, 12), colSpec, orientation));
 		
-		subs = new JCheckBox(Messages.getString("MEncoderVideo.22"), configuration.isAutoloadSubtitles());
+		subs = new JCheckBox(Messages.getString("MEncoderVideo.22"), configuration.isAutoloadExternalSubtitles());
 		subs.setToolTipText(Messages.getString("TrTab2.78"));
 		subs.setContentAreaFilled(false);
 		subs.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				configuration.setAutoloadSubtitles((e.getStateChange() == ItemEvent.SELECTED));
+				configuration.setAutoloadExternalSubtitles((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
 		builder.add(subs, FormLayoutUtil.flip(cc.xyw(1, 14, 11), colSpec, orientation));
@@ -978,7 +982,7 @@ public class TranscodingTab {
 		disableSubs.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				// If Disable Subtitles is not selected, subtitles are enabled
+				// If "Disable Subtitles" is not selected, subtitles are enabled
 				boolean enabled = e.getStateChange() != ItemEvent.SELECTED;
 				for (Component component : panel.getComponents()) {
 					component.setEnabled(enabled);

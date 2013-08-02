@@ -119,7 +119,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
 
 		if (renderer != null) {
-			PMS.get().setRendererfound(renderer);
+			PMS.get().setRendererFound(renderer);
 			request.setMediaRenderer(renderer);
 			LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on address " + ia);
 		}
@@ -140,7 +140,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				if (renderer != null) {
 					request.setMediaRenderer(renderer);
 					renderer.associateIP(ia);	// Associate IP address for later requests
-					PMS.get().setRendererfound(renderer);
+					PMS.get().setRendererFound(renderer);
 					LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLine + "\"");
 				}
 			}
@@ -152,7 +152,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				if (renderer != null) {
 					request.setMediaRenderer(renderer);
 					renderer.associateIP(ia);	// Associate IP address for later requests
-					PMS.get().setRendererfound(renderer);
+					PMS.get().setRendererFound(renderer);
 					LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLine + "\"");
 				}
 			}
@@ -231,7 +231,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				// We have found an unknown renderer
 				LOGGER.info("Media renderer was not recognized. Possible identifying HTTP headers: User-Agent: " + userAgentString
 						+ ("".equals(unknownHeaders.toString()) ? "" : ", " + unknownHeaders.toString()));
-				PMS.get().setRendererfound(request.getMediaRenderer());
+				PMS.get().setRendererFound(request.getMediaRenderer());
 			}
 		} else {
 			if (userAgentString != null) {

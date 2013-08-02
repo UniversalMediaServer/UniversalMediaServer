@@ -7,6 +7,7 @@ public class StringUtil {
 	public static final String ASS_TIME_FORMAT = "%01d:%02d:%02.2f";
 	public static final String SRT_TIME_FORMAT = "%02d:%02d:%02.3f";
 	public static final String SEC_TIME_FORMAT = "%02d:%02d:%02d";
+	public static final String DURATION_TIME_FORMAT = "%02d:%02d:%02.2f";
 	
 	/**
 	 * Appends "&lt;<u>tag</u> " to the StringBuilder. This is a typical HTML/DIDL/XML tag opening.
@@ -105,7 +106,7 @@ public class StringUtil {
 			String[] arrs = time.split(":");
 			double value, sum = 0;
 			for (int i = 0; i < arrs.length; i++) {
-                String tmp = arrs[arrs.length - i - 1];
+				String tmp = arrs[arrs.length - i - 1];
 				value = Double.parseDouble(tmp.replace(",", "."));
 				sum += value * MULTIPLIER[i];
 			}
@@ -119,7 +120,7 @@ public class StringUtil {
 	 *
 	 * @param d time in double.
 	 * @param timeFormat Format string e.g. "%02d:%02d:%02d" or use predefined constants
-	 * ASS_TIME_FORMAT, SRT_TIME_FORMAT, SEC_TIME_FORMAT.
+	 * ASS_TIME_FORMAT, SRT_TIME_FORMAT, SEC_TIME_FORMAT, DURATION_TIME_FORMAT.
 	 *
 	 * @return Converted String.
 	 */

@@ -89,7 +89,7 @@ public class ZippedEntry extends DLNAResource implements IPushOutput {
 
 	@Override
 	public boolean isValid() {
-		checktype();
+		resolveFormat();
 		setSrtFile(FileUtil.isSubtitlesExists(file, null));
 		return getFormat() != null;
 	}
@@ -139,7 +139,7 @@ public class ZippedEntry extends DLNAResource implements IPushOutput {
 	}
 
 	@Override
-	public void resolve() {
+	protected void resolveOnce() {
 		if (getFormat() == null || !getFormat().isVideo()) {
 			return;
 		}
@@ -160,8 +160,6 @@ public class ZippedEntry extends DLNAResource implements IPushOutput {
 				getFormat().parse(getMedia(), input, getType());
 			}
 		}
-
-		super.resolve();
 	}
 
 	@Override

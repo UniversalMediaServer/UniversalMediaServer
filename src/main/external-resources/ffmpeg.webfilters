@@ -10,7 +10,7 @@
 EXCLUDE
 
 # unresolved youtube urls
-gdata\.youtube\.com|youtube_gdata
+#gdata\.youtube\.com|youtube_gdata
 
 # other unresolved urls
 feeds\.feedburner\.com

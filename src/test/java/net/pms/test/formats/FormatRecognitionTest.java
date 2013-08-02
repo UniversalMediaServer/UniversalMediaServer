@@ -20,7 +20,6 @@
 package net.pms.test.formats;
 
 import ch.qos.logback.classic.LoggerContext;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import net.pms.PMS;
@@ -69,8 +68,6 @@ public class FormatRecognitionTest {
 
 		try {
 			pmsConf = new PmsConfiguration(false);
-		} catch (IOException e) {
-			// This should be impossible since no configuration file will be loaded.
 		} catch (ConfigurationException e) {
 			// This should be impossible since no configuration file will be loaded.
 		}
@@ -380,8 +377,6 @@ public class FormatRecognitionTest {
 			PMS.setConfiguration(new PmsConfiguration());
 			configurationLoaded = true;
 		} catch (ConfigurationException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
 			e.printStackTrace();
 		}
 

@@ -51,6 +51,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+// FIXME (breaking change): VLCWebVideo doesn't customize any of this, so everything should be *private*
+// TODO (when transcoding to MPEG-2): handle non-MPEG-2 compatible input framerates
+
 /**
  * Use VLC as a backend transcoder. Note that 0.x and 1.x versions are
  * unsupported (and probably will crash). Only the latest version will be
@@ -62,7 +65,6 @@ public class VLCVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(VLCVideo.class);
 	private static final String COL_SPEC = "left:pref, 3dlu, p, 3dlu, 0:grow";
 	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p, 9dlu, p, 3dlu, p, 3dlu, p";
-	protected final PmsConfiguration configuration;
 	public static final String ID = "vlctranscoder";
 	protected JTextField audioPri;
 	protected JTextField subtitlePri;
@@ -75,8 +77,12 @@ public class VLCVideo extends Player {
 
 	protected boolean videoRemux;
 
+	@Deprecated
 	public VLCVideo(PmsConfiguration configuration) {
 		this.configuration = configuration;
+	}
+
+	public VLCVideo() {
 	}
 
 	@Override
@@ -125,28 +131,6 @@ public class VLCVideo extends Player {
 		return configuration.getVlcPath();
 	}
 
-	@Override
-	public boolean isCompatible(DLNAResource resource) {
-		// Our implementation of VLC does not support external subtitles yet
-		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
-		if (subtitle != null && subtitle.getExternalFile() != null) {
-			return false;
-		}
-
-		// VLC is unstable when transcoding from flac. It either crashes or sends video without audio. Confirmed with 2.0.6
-		DLNAMediaAudio audio = resource.getMediaAudio();
-		if (audio != null && audio.isFLAC() == true) {
-			return false;
-		}
-
-		// Only handle local video - web video is handled by VLCWebVideo
-		if (PlayerUtil.isType(resource, Format.VIDEO, Format.Identifier.WEB, false)) {
-			return true;
-		}
-
-		return false;
-	}
-
 	/**
 	 * Pick codecs for VLC based on formats the renderer supports;
 	 *
@@ -154,47 +138,56 @@ public class VLCVideo extends Player {
 	 * @return The codec configuration
 	 */
 	protected CodecConfig genConfig(RendererConfiguration renderer) {
-		CodecConfig config = new CodecConfig();
+		CodecConfig codecConfig = new CodecConfig();
+
+		/**
+		 * XXX a52 (AC-3) causes the audio to cut out after
+		 * a while (5, 10, and 45 minutes have been spotted)
+		 * with versions as recent as 2.0.5. MP2 works without
+		 * issue, so we use that as a workaround for now.
+		 * codecConfig.audioCodec = "a52";
+		 */
+
 		if (renderer.isTranscodeToWMV()) {
 			// Assume WMV = XBox = all media renderers with this flag
 			LOGGER.debug("Using XBox WMV codecs");
-			config.videoCodec = "wmv2";
-			config.audioCodec = "wma";
-			config.container = "asf";
-		} else if (renderer.isTranscodeToMPEGTSAC3()) {
-			// Default codecs for DLNA standard
-			LOGGER.debug("Using DLNA standard codecs with ts container");
-			config.videoCodec = "mp2v";
-			config.audioCodec = "mp2a"; // NOTE: a52 sometimes causes audio to stop after ~5 mins
-			config.container = "ts";
+			codecConfig.videoCodec = "wmv2";
+			codecConfig.audioCodec = "wma";
+			codecConfig.container = "asf";
 		} else if (renderer.isTranscodeToH264TSAC3()) {
 			LOGGER.debug("Using H.264 and AC-3 with ts container");
-			config.videoCodec = "h264";
-			config.audioCodec = "mp2a"; // NOTE: a52 sometimes causes audio to stop after ~5 mins
-			config.container = "ts";
+			codecConfig.videoCodec = "h264";
+			codecConfig.audioCodec = "mp2a";
+			codecConfig.container = "ts";
 
 			videoRemux = true;
 		} else {
-			// Default codecs for DLNA standard
-			LOGGER.debug("Using DLNA standard codecs with ps (default) container");
-			config.videoCodec = "mp2v";
-			config.audioCodec = "mp2a"; // NOTE: a52 sometimes causes audio to stop after ~5 mins
-			config.container = "ps";
+			codecConfig.videoCodec = "mp2v";
+			codecConfig.audioCodec = "mp2a";
+
+			if (renderer.isTranscodeToMPEGTSAC3()) {
+				LOGGER.debug("Using standard DLNA codecs with an MPEG-TS container");
+				codecConfig.container = "ts";
+			} else {
+				LOGGER.debug("Using standard DLNA codecs with an MPEG-PS (default) container");
+				codecConfig.container = "ps";
+			}
 		}
-		LOGGER.trace("Using " + config.videoCodec + ", " + config.audioCodec + ", " + config.container);
+
+		LOGGER.trace("Using " + codecConfig.videoCodec + ", " + codecConfig.audioCodec + ", " + codecConfig.container);
 
 		/**
 		// Audio sample rate handling
 		if (sampleRateOverride.isSelected()) {
-			config.sampleRate = Integer.valueOf(sampleRate.getText());
+			codecConfig.sampleRate = Integer.valueOf(sampleRate.getText());
 		}
 		*/
 
 		// This has caused garbled audio, so only enable when told to
 		if (audioSyncEnabled.isSelected()) {
-			config.extraTrans.put("audio-sync", "");
+			codecConfig.extraTrans.put("audio-sync", "");
 		}
-		return config;
+		return codecConfig;
 	}
 
 	protected static class CodecConfig {
@@ -206,14 +199,14 @@ public class VLCVideo extends Player {
 		int sampleRate;
 	}
 
-	protected Map<String, Object> getEncodingArgs(CodecConfig config, OutputParams params) {
+	protected Map<String, Object> getEncodingArgs(CodecConfig codecConfig, OutputParams params) {
 		// See: http://www.videolan.org/doc/streaming-howto/en/ch03.html
 		// See: http://wiki.videolan.org/Codec
 		Map<String, Object> args = new HashMap<>();
 
 		// Codecs to use
-		args.put("vcodec", config.videoCodec);
-		args.put("acodec", config.audioCodec);
+		args.put("vcodec", codecConfig.videoCodec);
+		args.put("acodec", codecConfig.audioCodec);
 
 		// Bitrate in kbit/s
 		if (!videoRemux) {
@@ -249,17 +242,20 @@ public class VLCVideo extends Player {
 		// args.add("scodec=dvbs");
 		// args.add("senc=dvbsub");
 
+		// Enable multi-threading
+		args.put("threads", "" + configuration.getNumberOfCpuCores());
+
 		// Hardcode subtitles into video
 		args.put("soverlay", "");
 
 		// Add extra args
-		args.putAll(config.extraTrans);
+		args.putAll(codecConfig.extraTrans);
 
 		return args;
 	}
 
 	@Override
-	public ProcessWrapper launchTranscode(String fileName, DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
+	public ProcessWrapper launchTranscode(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
 		boolean isWindows = Platform.isWindows();
 
 		// Make sure we can play this
@@ -267,11 +263,7 @@ public class VLCVideo extends Player {
 
 		PipeProcess tsPipe = new PipeProcess("VLC" + System.currentTimeMillis() + "." + config.container);
 		ProcessWrapper pipe_process = tsPipe.getPipeProcess();
-
-		LOGGER.trace("filename: " + fileName);
-		LOGGER.trace("dlna: " + dlna);
-		LOGGER.trace("media: " + media);
-		LOGGER.trace("outputparams: " + params);
+		final String filename = dlna.getSystemName();
 
 		// XXX it can take a long time for Windows to create a named pipe
 		// (and mkfifo can be slow if /tmp isn't memory-mapped), so start this as early as possible
@@ -303,7 +295,7 @@ public class VLCVideo extends Player {
 		}
 
 		// File needs to be given before sout, otherwise vlc complains
-		cmdList.add(fileName);
+		cmdList.add(filename);
 
 		// Huge fake track id that shouldn't conflict with any real subtitle or audio id. Hopefully.
 		String disableSuffix = "track=214748361";
@@ -364,8 +356,8 @@ public class VLCVideo extends Player {
 		cmdList.add("--sout");
 		cmdList.add(transcodeSpec);
 
-		// Force VLC to die when finished
-		cmdList.add("vlc:// quit");
+		// Force VLC to exit when finished
+		cmdList.add("vlc://quit");
 
 		// Add any extra parameters
 		if (!extraParams.getText().trim().isEmpty()) { // Add each part as a new item
@@ -375,7 +367,7 @@ public class VLCVideo extends Player {
 		// Pass to process wrapper
 		String[] cmdArray = new String[cmdList.size()];
 		cmdList.toArray(cmdArray);
-		cmdArray = finalizeTranscoderArgs(fileName, dlna, media, params, cmdArray);
+		cmdArray = finalizeTranscoderArgs(filename, dlna, media, params, cmdArray);
 		LOGGER.trace("Finalized args: " + StringUtils.join(cmdArray, " "));
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 		pw.attachProcess(pipe_process);
@@ -508,5 +500,27 @@ public class VLCVideo extends Player {
 		panel.applyComponentOrientation(orientation);
 
 		return panel;
+	}
+
+	@Override
+	public boolean isCompatible(DLNAResource resource) {
+		// Our implementation of VLC does not support external subtitles yet
+		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
+		if (subtitle != null && subtitle.getExternalFile() != null) {
+			return false;
+		}
+
+		// VLC is unstable when transcoding from flac. It either crashes or sends video without audio. Confirmed with 2.0.6
+		DLNAMediaAudio audio = resource.getMediaAudio();
+		if (audio != null && audio.isFLAC() == true) {
+			return false;
+		}
+
+		// Only handle local video - web video is handled by VLCWebVideo
+		if (!PlayerUtil.isVideo(resource, Format.Identifier.WEB)) {
+			return true;
+		}
+
+		return false;
 	}
 }

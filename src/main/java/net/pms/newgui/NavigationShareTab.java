@@ -470,7 +470,7 @@ public class NavigationShareTab {
 		itunes = new JCheckBox(Messages.getString("FoldTab.30"));
 		itunes.setToolTipText(Messages.getString("FoldTab.47"));
 		itunes.setContentAreaFilled(false);
-		if (configuration.getItunesEnabled()) {
+		if (configuration.isShowItunesLibrary()) {
 			itunes.setSelected(true);
 		}
 		if (!(Platform.isMac() || Platform.isWindows())) {
@@ -479,14 +479,14 @@ public class NavigationShareTab {
 		itunes.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				configuration.setItunesEnabled((e.getStateChange() == ItemEvent.SELECTED));
+				configuration.setShowItunesLibrary((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
 
 		// Show iPhoto library
 		iphoto = new JCheckBox(Messages.getString("FoldTab.29"));
 		iphoto.setContentAreaFilled(false);
-		if (configuration.getIphotoEnabled()) {
+		if (configuration.isShowIphotoLibrary()) {
 			iphoto.setSelected(true);
 		}
 		if (!Platform.isMac()) {
@@ -495,14 +495,14 @@ public class NavigationShareTab {
 		iphoto.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				configuration.setIphotoEnabled((e.getStateChange() == ItemEvent.SELECTED));
+				configuration.setShowIphotoLibrary((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
 
 		// Show aperture library
 		aperture = new JCheckBox(Messages.getString("FoldTab.34"));
 		aperture.setContentAreaFilled(false);
-		if (configuration.getApertureEnabled()) {
+		if (configuration.isShowApertureLibrary()) {
 			aperture.setSelected(true);
 		}
 		if (!Platform.isMac()) {
@@ -511,7 +511,7 @@ public class NavigationShareTab {
 		aperture.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
-				configuration.setApertureEnabled((e.getStateChange() == ItemEvent.SELECTED));
+				configuration.setShowApertureLibrary((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
 
@@ -790,24 +790,7 @@ public class NavigationShareTab {
 		but5.setEnabled(configuration.getUseCache());
 
 		df = new DefaultListModel<>();
-		CustomJButton but6 = new CustomJButton(LooksFrame.readImageIcon("button-monitor.png"));
-		but6.setToolTipText(Messages.getString("FoldTab.53"));
-		but6.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (FList.getSelectedIndex() > -1) {
-					((DefaultListModel) FList.getModel()).remove(FList.getSelectedIndex());
-					if (FList.getModel().getSize() == 0) {
-						((DefaultListModel) FList.getModel()).add(0, ALL_DRIVES);
-					}
-					updateModel();
-				}
-			}
-		});
-		//builderFolder.add(but6, FormLayoutUtil.flip(cc.xy(6, 3), colSpec, orientation));
-
-		df = new DefaultListModel();
-		File[] folders = PMS.get().getFoldersConf(false);
+		File[] folders = PMS.get().getFoldersConf();
 		if (folders != null && folders.length > 0) {
 			for (File folder : folders) {
 				df.addElement(folder.getAbsolutePath());

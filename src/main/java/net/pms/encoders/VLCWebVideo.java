@@ -26,9 +26,13 @@ public class VLCWebVideo extends VLCVideo {
 	@Deprecated
 	public static final String ID = "vlcwebvideo";
 
+	@Deprecated
 	public VLCWebVideo(PmsConfiguration configuration) {
 		super(configuration);
 	}
+
+	public VLCWebVideo() {
+	}	
 
 	@Override
 	public int purpose() {

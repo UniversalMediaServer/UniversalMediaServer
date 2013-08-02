@@ -62,20 +62,17 @@ public final class PlayerFactory {
 	 * registry is set by the constructor.
 	 */
 	private static SystemUtils utils;
+	
+	private static PmsConfiguration configuration = PMS.getConfiguration();
 
 	/**
 	 * This takes care of sorting the players by the given PMS configuration.
 	 */
 	private static class PlayerSort implements Comparator<Player> {
-		private PmsConfiguration configuration;
-
-		PlayerSort(PmsConfiguration configuration) {
-			this.configuration = configuration;
-		}
 
 		@Override
 		public int compare(Player player1, Player player2) {
-			List<String> prefs = configuration.getEnginesAsList(PMS.get().getRegistry());
+			List<String> prefs = configuration.getEnginesAsList(utils);
 			Integer index1 = prefs.indexOf(player1.id());
 			Integer index2 = prefs.indexOf(player2.id());
 
@@ -98,49 +95,44 @@ public final class PlayerFactory {
 	private PlayerFactory() {
 	}
 
+	@Deprecated
+	public static void initialize(final PmsConfiguration configuration) {
+		initialize();
+	}
+
 	/**
 	 * Constructor that registers all players based on the given configuration,
 	 * frame and registry.
-	 * 
-	 * @param configuration The PMS configuration.
 	 */
-	public static void initialize(final PmsConfiguration configuration) {
+	public static void initialize() {
 		utils = PMS.get().getRegistry();
-		registerPlayers(configuration);
+		registerPlayers();
 	}
 
 	/**
 	 * Register a known set of audio or video transcoders.
-	 * 
-	 * @param configuration
-	 *            PMS configuration settings.
 	 */
-	private static void registerPlayers(final PmsConfiguration configuration) {
-
-		// TODO make these constructors consistent: pass configuration to all or to none
+	private static void registerPlayers() {
 		if (Platform.isWindows()) {
 			registerPlayer(new AviSynthFFmpeg());
 		}
 
-		registerPlayer(new FFmpegAudio(configuration));
-		registerPlayer(new MEncoderVideo(configuration));
+		registerPlayer(new FFmpegAudio());
+		registerPlayer(new MEncoderVideo());
 
 		if (Platform.isWindows()) {
-			registerPlayer(new AviSynthMEncoder(configuration));
+			registerPlayer(new AviSynthMEncoder());
 		}
 
-		registerPlayer(new FFMpegVideo(configuration));
-		registerPlayer(new VLCVideo(configuration));
-		registerPlayer(new MPlayerAudio(configuration));
-		registerPlayer(new FFmpegWebVideo(configuration));
-		registerPlayer(new MEncoderWebVideo(configuration));
-		registerPlayer(new VLCWebVideo(configuration));
-		registerPlayer(new MPlayerWebVideoDump(configuration));
-		registerPlayer(new MPlayerWebAudio(configuration));
-		registerPlayer(new TsMuxeRVideo(configuration));
-		registerPlayer(new TsMuxeRAudio(configuration));
-		registerPlayer(new VideoLanAudioStreaming(configuration));
-		registerPlayer(new VideoLanVideoStreaming(configuration));
+		registerPlayer(new FFMpegVideo());
+		registerPlayer(new VLCVideo());
+		registerPlayer(new FFmpegWebVideo());
+		registerPlayer(new MEncoderWebVideo());
+		registerPlayer(new VLCWebVideo());
+		registerPlayer(new TsMuxeRVideo());
+		registerPlayer(new TsMuxeRAudio());
+		registerPlayer(new VideoLanAudioStreaming());
+		registerPlayer(new VideoLanVideoStreaming());
 
 		if (Platform.isWindows()) {
 			registerPlayer(new FFmpegDVRMSRemux());
@@ -149,8 +141,8 @@ public final class PlayerFactory {
 		registerPlayer(new RAWThumbnailer());
 
 		// Sort the players according to the configuration settings
-		Collections.sort(allPlayers, new PlayerSort(configuration));
-		Collections.sort(players, new PlayerSort(configuration));
+		Collections.sort(allPlayers, new PlayerSort());
+		Collections.sort(players, new PlayerSort());
 	}
 
 	/**
@@ -274,7 +266,7 @@ public final class PlayerFactory {
 			LOGGER.trace("Getting player for {}", resource.getName());
 		}
 
-		List<String> enabledEngines = PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry());
+		List<String> enabledEngines = configuration.getEnginesAsList(utils);
 
 		for (Player player : players) {
 			boolean enabled = enabledEngines.contains(player.id());
@@ -343,7 +335,7 @@ public final class PlayerFactory {
 			return null;
 		}
 
-		List<String> enabledEngines = PMS.getConfiguration().getEnginesAsList(PMS.get().getRegistry());
+		List<String> enabledEngines = configuration.getEnginesAsList(utils);
 		ArrayList<Player> compatiblePlayers = new ArrayList<>();
 
 		for (Player player : players) {

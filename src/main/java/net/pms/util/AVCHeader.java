@@ -24,7 +24,10 @@ import org.slf4j.LoggerFactory;
 /**
  * @author shagrath
  * Derived from the mpeg4ip project and the ToNMT tool
+ *
+ * @deprecated now we are using {@link net.pms.dlna.LibMediaInfoParser} for extracting AVC stream info.
  */
+@Deprecated
 public class AVCHeader {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AVCHeader.class);
 
