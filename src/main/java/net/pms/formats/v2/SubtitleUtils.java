@@ -115,7 +115,7 @@ public class SubtitleUtils {
 		}
 
 		if (params.sid.getType() == SubtitleType.ASS) {
-			try (BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs)))) {
+			try (BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), Charset.forName(CHARSET_UTF_8)))) {
 
 				while ((line = reader.readLine()) != null) {
 					if (line.startsWith("Dialogue:")) {
@@ -135,11 +135,12 @@ public class SubtitleUtils {
 						output.write(line + "\n");
 					}
 				}
-				reader.close();
+
 				output.flush();
+				output.close();
 			}
 		} else if (params.sid.getType() == SubtitleType.SUBRIP) {
-			try (BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs)))) {
+			try (BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), Charset.forName(CHARSET_UTF_8)))) {
 				int n = 1;
 
 				while ((line = reader.readLine()) != null) {
@@ -164,14 +165,15 @@ public class SubtitleUtils {
 					}
 				}
 
-				reader.close();
 				output.flush();
 				output.close();
 			}
 		} else {
+			reader.close();
 			return null;
 		}
 
+		reader.close();
 		outputSubs.deleteOnExit();
 		return outputSubs;
 	}
