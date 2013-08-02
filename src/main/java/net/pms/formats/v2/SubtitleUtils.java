@@ -99,7 +99,7 @@ public class SubtitleUtils {
 		Double endTime;
 		String line;
 		BufferedReader reader;
-		File outputSubs = null;
+		File outputSubs;
 		String cp = configuration.getSubtitlesCodepage();
 		String subsFileCharset = params.sid.getExternalFileCharacterSet();
 		File subsFile = params.sid.getExternalFile();
@@ -172,7 +172,7 @@ public class SubtitleUtils {
 			return null;
 		}
 
-		outputSubs.deleteOnExit();;
+		outputSubs.deleteOnExit();
 		return outputSubs;
 	}
 }
