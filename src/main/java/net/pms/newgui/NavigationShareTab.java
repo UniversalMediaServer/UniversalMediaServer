@@ -606,7 +606,7 @@ public class NavigationShareTab {
 			}
 		});
 
-		newmediafolder = new JCheckBox(Messages.getString("FoldTab.53"));
+		newmediafolder = new JCheckBox(Messages.getString("FoldTab.54"));
 		newmediafolder.setContentAreaFilled(false);
 		if (configuration.isHideNewMediaFolder()) {
 			newmediafolder.setSelected(true);
@@ -615,7 +615,6 @@ public class NavigationShareTab {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setHideNewMediaFolder((e.getStateChange() == ItemEvent.SELECTED));
-				hideextensions.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
 			}
 		});
 
@@ -628,7 +627,6 @@ public class NavigationShareTab {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setHideRecentlyPlayedFolder((e.getStateChange() == ItemEvent.SELECTED));
-				hideextensions.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
 			}
 		});
 		
