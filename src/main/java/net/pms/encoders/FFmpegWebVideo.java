@@ -125,11 +125,6 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		RendererConfiguration renderer = params.mediaRenderer;
 		String filename = dlna.getSystemName();
 		setAudioAndSubs(filename, media, params);
-		File tempSubs = null;
-
-		if (!isDisableSubtitles(params)) {
-			tempSubs = getSubtitles(dlna, media, params);
-		}
 
 		// XXX work around an ffmpeg bug: http://ffmpeg.org/trac/ffmpeg/ticket/998
 		if (filename.startsWith("mms:")) {
@@ -245,7 +240,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		cmdList.add("-i");
 		cmdList.add(filename);
 
-		cmdList.addAll(getVideoFilterOptions(dlna, media, params, tempSubs));
+		cmdList.addAll(getVideoFilterOptions(dlna, media, params));
 
 		// Encoder threads
 		cmdList.add("-threads");
