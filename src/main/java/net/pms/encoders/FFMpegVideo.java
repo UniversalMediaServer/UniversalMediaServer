@@ -181,7 +181,7 @@ public class FFMpegVideo extends Player {
 				videoFilterOptions.add("1");
 				videoFilterOptions.add("-af");
 				videoFilterOptions.add("asetpts=PTS-" + params.timeseek + "/TB");
-				subsOption = subsOption  + ", setpts=PTS-" + params.timeseek + "/TB";
+				subsOption += ", setpts=PTS-" + params.timeseek + "/TB";
 			}	
 		}
 
@@ -1068,7 +1068,7 @@ public class FFMpegVideo extends Player {
 				try {
 					tempSubs = SubtitleUtils.applyCodepageConversion(params, tmp);
 				} catch (IOException e) {
-					LOGGER.debug("Applying codepage conversion or timeseeking caused an error: " + e);
+					LOGGER.debug("Applying codepage conversion caused an error: " + e);
 					tempSubs = null;
 				}
 			}
