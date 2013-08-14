@@ -22,26 +22,30 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
+
 import static java.nio.file.StandardCopyOption.*;
+
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -59,12 +63,15 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.StreamModifier;
 import net.pms.network.HTTPResource;
-import net.pms.util.FileUtil;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
+
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,17 +120,20 @@ public class FFMpegVideo extends Player {
 	 * If the renderer has no size limits, or there's no media metadata, or the video is within the renderer's
 	 * size limits, an empty list is returned.
 	 *
-	 * @param filename
 	 * @param dlna
 	 * @param media metadata for the DLNA resource which is being transcoded
 	 * @param params 
 	 * @return a {@link List} of <code>String</code>s representing the rescale options for this video,
 	 * or an empty list if the video doesn't need to be resized.
 	 */
-	public List<String> getVideoFilterOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params, File tempSubs) throws IOException {
+	public List<String> getVideoFilterOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
 		List<String> videoFilterOptions = new ArrayList<>();
 		String subsOption = null;
+		File tempSubs = null;
 		final RendererConfiguration renderer = params.mediaRenderer;
+		if (!isDisableSubtitles(params)) {
+			tempSubs = getSubtitles(dlna, media, params);
+		}
 
 		boolean isMediaValid = media != null && media.isMediaparsed() && media.getHeight() != 0;
 		boolean isResolutionTooHighForRenderer = renderer.isVideoRescale() && isMediaValid && // renderer defines a max width/height
@@ -161,7 +171,18 @@ public class FFMpegVideo extends Player {
 			} else if (params.sid.isExternal() && params.sid.getType() == SubtitleType.SUBRIP) {
 				subsOption = "subtitles=" + subsFile;
 			}
-
+			
+			// based on https://trac.ffmpeg.org/ticket/2067
+			if (params.timeseek > 0) {
+				videoFilterOptions.add("-copyts");
+				videoFilterOptions.add("-copypriorss");
+				videoFilterOptions.add("0");
+				videoFilterOptions.add("-avoid_negative_ts");
+				videoFilterOptions.add("1");
+				videoFilterOptions.add("-af");
+				videoFilterOptions.add("asetpts=PTS-" + params.timeseek + "/TB");
+				subsOption += ", setpts=PTS-" + params.timeseek + "/TB";
+			}	
 		}
 
 		String rescaleOrPadding = null;
@@ -486,22 +507,16 @@ public class FFMpegVideo extends Player {
 		List<String> cmdList = new ArrayList<>();
 		RendererConfiguration renderer = params.mediaRenderer;
 		final String filename = dlna.getSystemName();
-		setAudioAndSubs(filename, media, params);
-		File tempSubs = null;
-		params.waitbeforestart = 2500;
 		boolean avisynth = avisynth();
+		params.waitbeforestart = 2500;
 
-		if (!isDisableSubtitles(params)) {
-			tempSubs = getSubtitles(dlna, media, params);
-		}
-
+		setAudioAndSubs(filename, media, params);
 		cmdList.add(executable());
 
 		// Prevent FFmpeg timeout
 		cmdList.add("-y");
-
-		cmdList.add("-loglevel");
 		
+		cmdList.add("-loglevel");
 		if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
 			cmdList.add("info"); // Could be changed to "verbose" or "debug" if "info" level is not enough
 		} else {
@@ -581,7 +596,7 @@ public class FFMpegVideo extends Player {
 		// if the source is too large for the renderer, resize it
 		// and/or add subtitles to video filter
 		// FFmpeg must be compiled with --enable-libass parameter
-		cmdList.addAll(getVideoFilterOptions(dlna, media, params, tempSubs));
+		cmdList.addAll(getVideoFilterOptions(dlna, media, params));
 
 		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
@@ -595,7 +610,7 @@ public class FFMpegVideo extends Player {
 			defaultMaxBitrates = rendererMaxBitrates;
 		}
 
-		if (params.mediaRenderer.getCBRVideoBitrate() == 0) {
+		if (params.mediaRenderer.getCBRVideoBitrate() == 0 && params.timeend == 0) {
 			// Convert value from Mb to Kb
 			defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
 
@@ -672,13 +687,6 @@ public class FFMpegVideo extends Player {
 
 			cmdList.add("-ab");
 			cmdList.add(configuration.getAudioBitrate() + "k");
-		}
-
-		if (params.timeseek > 0) {
-			cmdList.add("-copypriorss");
-			cmdList.add("0");
-			cmdList.add("-avoid_negative_ts");
-			cmdList.add("1");
 		}
 
 		if (!videoRemux) {
@@ -1017,8 +1025,7 @@ public class FFMpegVideo extends Player {
 	 */
 	public File getSubtitles(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
 		File tempSubs = null;
-		String convertedSubs;
-		final String filename = dlna.getSystemName();
+		String filename = dlna.getSystemName();
 
 		if (params.sid.getId() == -1) {
 			return null;
@@ -1031,30 +1038,40 @@ public class FFMpegVideo extends Player {
 		}
 
 		if (params.sid.isEmbedded()) {
-			convertedSubs = subsPath.getAbsolutePath() + File.separator +
-					FileUtil.getFileNameWithoutExtension(new File(filename).getName()) +
-					"_" + new File(filename).lastModified() + "_EMB_ID" + params.sid.getId() + ".ass";
-			File tmp = new File(convertedSubs);
+			tempSubs = convertSubsToAss(filename, media, params);
+			if (tempSubs == null) {
+				return null;
+			}
 
-			if (tmp.canRead()) {
-				tempSubs = tmp;
-			} else {
-				tempSubs = convertSubsToAss(filename, media, params);
+			if (configuration.isFFmpegFontConfig()) {
+				try {
+					tempSubs = applyFontconfigToASSTempSubsFile(tempSubs);
+				} catch (IOException e) {
+					LOGGER.debug("Applying subs setting ends with error: " + e);
+					return null;
+				}
 			}
 
 			params.sid.setExternalFile(tempSubs);
 			params.sid.setType(SubtitleType.ASS);
+		}
 
-			if (tempSubs != null && configuration.isFFmpegFontConfig()) {
+		if (params.sid.isExternal() && (params.sid.getType() == SubtitleType.SUBRIP || params.sid.getType() == SubtitleType.ASS)) {
+			filename = params.sid.getExternalFile().getAbsolutePath();
+			File tmp = new File(subsPath.getAbsolutePath() + File.separator +
+							FilenameUtils.getBaseName(filename) + "_" + new File(filename).lastModified() +
+							"_ID" + params.sid.getId() + "." + FilenameUtils.getExtension(filename));
+
+			if (tmp.canRead()) {
+				tempSubs = tmp;
+			} else {
 				try {
-					tempSubs = applySubsSettingsToTempSubsFile(tempSubs);
+					tempSubs = SubtitleUtils.applyCodepageConversion(params, tmp);
 				} catch (IOException e) {
-					LOGGER.debug("Applying subs setting ends with error: " + e);
+					LOGGER.debug("Applying codepage conversion caused an error: " + e);
 					tempSubs = null;
 				}
 			}
-		} else if (params.sid.isExternal() && (params.sid.getType() == SubtitleType.SUBRIP || params.sid.getType() == SubtitleType.ASS)) {
-			tempSubs = params.sid.getExternalFile();
 		}
 
 /* 		
@@ -1092,14 +1109,6 @@ public class FFMpegVideo extends Player {
 			}
 		}	
 */
-		if (tempSubs != null) {
-			try {
-				tempSubs = SubtitleUtils.applyCodepageConversionAndTimeseekingToSubtitlesFile(params);
-			} catch (IOException e) {
-				LOGGER.debug("Applying codepage conversion or timeseeking caused an error: " + e);
-				tempSubs = null;
-			}
-		}
 
 		return tempSubs;
 	}
@@ -1110,17 +1119,13 @@ public class FFMpegVideo extends Player {
 	 * @param media 
 	 * @param params output parameters
 	 * @return Converted subtitles file in SSA/ASS format
-	 * @throws FileNotFoundException 
-	 * @throws IOException 
 	 */
 	public static File convertSubsToAss(String fileName, DLNAMediaInfo media, OutputParams params) {
 		List<String> cmdList = new ArrayList<>();
-		File tempSubsFile;
-		File inputFile = new File(fileName);
+		File tempSubsFile = null;
 		cmdList.add(configuration.getFfmpegPath());
 		cmdList.add("-y");
 		cmdList.add("-loglevel");
-
 		if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
 			cmdList.add("info"); // Could be changed to "verbose" or "debug" if "info" level is not enough
 		} else {
@@ -1145,22 +1150,12 @@ public class FFMpegVideo extends Player {
 			cmdList.add("0:s:" + (media.getSubtitleTracksList().indexOf(params.sid)));
 		}
 
-		String dir = configuration.getDataFile(SUB_DIR);
-		File path = new File(dir);
-		if (!path.exists()) {
-			path.mkdirs();
+		try {
+			tempSubsFile = new File(configuration.getTempFolder(), FilenameUtils.getBaseName(fileName) + ".ass");
+		} catch (IOException e1) {
+			LOGGER.debug("Subtitles conversion finished wih error: " + e1);
+			return null;
 		}
-
-		String outFile = path.getAbsolutePath() + File.separator +
-				FileUtil.getFileNameWithoutExtension(inputFile.getName()) +
-				"_" + inputFile.lastModified();
-
-		if (params.sid.isEmbedded()) {
-			tempSubsFile = new File(outFile + "_EMB_ID" + params.sid.getId() + ".ass");
-		} else {
-			tempSubsFile = new File(outFile + "_EXT.ass");
-		}
-
 		cmdList.add(tempSubsFile.getAbsolutePath());
 
 		String[] cmdArray = new String[cmdList.size()];
@@ -1176,13 +1171,13 @@ public class FFMpegVideo extends Player {
 			return null;
 		}
 
-		PMS.get().addTempFile(tempSubsFile, 30 * 24 * 3600 * 1000);
+		tempSubsFile.deleteOnExit();
 		return tempSubsFile;
 	}
 
-	public File applySubsSettingsToTempSubsFile(File tempSubs) throws IOException {
+	public File applyFontconfigToASSTempSubsFile(File tempSubs) throws IOException {
 		File outputSubs = tempSubs;
-		File temp = new File(configuration.getTempFolder(), tempSubs.getName());
+		File temp = new File(configuration.getTempFolder(), tempSubs.getName() + ".tmp");
 		Files.copy(tempSubs.toPath(), temp.toPath(), REPLACE_EXISTING);
 		BufferedWriter output;
 		try (BufferedReader input = new BufferedReader(new FileReader(temp))) {

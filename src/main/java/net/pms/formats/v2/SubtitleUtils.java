@@ -22,12 +22,11 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
+
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.io.OutputParams;
-import static net.pms.util.StringUtil.*;
-import static org.apache.commons.io.FilenameUtils.getBaseName;
 import static org.apache.commons.lang3.StringUtils.*;
 import static org.mozilla.universalchardet.Constants.*;
 
@@ -90,20 +89,16 @@ public class SubtitleUtils {
 	 *
 	 * @param subsFile Subtitles file
 	 * @param params Output parameters with time stamp value
+	 * @param outputSubs 
 	 * @return Converted subtitles file
 	 * @throws IOException
 	 */
-	public static File applyCodepageConversionAndTimeseekingToSubtitlesFile(OutputParams params) throws IOException {
-		Double timeseek = params.timeseek;
-		Double startTime;
-		Double endTime;
+	public static File applyCodepageConversion(OutputParams params, File outputSubs) throws IOException {
 		String line;
 		BufferedReader reader;
-		File outputSubs;
 		String cp = configuration.getSubtitlesCodepage();
 		String subsFileCharset = params.sid.getExternalFileCharacterSet();
 		File subsFile = params.sid.getExternalFile();
-		outputSubs = new File(configuration.getTempFolder(), getBaseName(subsFile.getName()) + "_" + System.currentTimeMillis()  + ".tmp");
 		final boolean isSubtitlesCodepageForcedInConfigurationAndSupportedByJVM = isNotBlank(cp) && Charset.isSupported(cp) && !params.sid.isExternalFileUtf();
 		final boolean isSubtitlesCodepageAutoDetectedAndSupportedByJVM = isNotBlank(subsFileCharset) && Charset.isSupported(subsFileCharset);
 		if (isSubtitlesCodepageForcedInConfigurationAndSupportedByJVM) {
@@ -113,68 +108,18 @@ public class SubtitleUtils {
 		} else {
 			reader = new BufferedReader(new InputStreamReader(new FileInputStream(subsFile)));
 		}
-
-		if (params.sid.getType() == SubtitleType.ASS) {
-			try (BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), Charset.forName(CHARSET_UTF_8)))) {
-
-				while ((line = reader.readLine()) != null) {
-					if (line.startsWith("Dialogue:")) {
-						String[] tempStr = line.split(",");
-						startTime = convertStringToTime(tempStr[1]);
-						endTime = convertStringToTime(tempStr[2]);
-
-						if (startTime >= timeseek) {
-							tempStr[1] = convertTimeToString(startTime - timeseek, ASS_TIME_FORMAT);
-							tempStr[2] = convertTimeToString(endTime - timeseek, ASS_TIME_FORMAT);
-						} else {
-							continue;
-						}
-
-						output.write(join(tempStr, ",") + "\n");
-					} else {
-						output.write(line + "\n");
-					}
-				}
-
-				output.flush();
-				output.close();
+		
+		try (BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), Charset.forName(CHARSET_UTF_8)))) {
+			while ((line = reader.readLine()) != null) {
+				output.write(line + "\n");
 			}
-		} else if (params.sid.getType() == SubtitleType.SUBRIP) {
-			try (BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), Charset.forName(CHARSET_UTF_8)))) {
-				int n = 1;
 
-				while ((line = reader.readLine()) != null) {
-					if (line.contains("-->")) {
-						String start = line.substring(0, line.indexOf("-->") - 1);
-						String end = line.substring(line.indexOf("-->") + 4);
-						startTime = convertStringToTime(start);
-						endTime = convertStringToTime(end);
-
-						if (startTime >= timeseek) {
-							output.write("" + (n++) + "\n");
-							output.write(convertTimeToString(startTime - timeseek, SRT_TIME_FORMAT));
-							output.write(" --> ");
-							output.write(convertTimeToString(endTime - timeseek, SRT_TIME_FORMAT) + "\n");
-
-							while (isNotBlank(line = reader.readLine())) { // Read all following subs lines
-								output.write(line + "\n");
-							}
-
-							output.write("" + "\n");
-						}
-					}
-				}
-
-				output.flush();
-				output.close();
-			}
-		} else {
-			reader.close();
-			return null;
+			output.flush();
+			output.close();
 		}
 
 		reader.close();
-		outputSubs.deleteOnExit();
+		PMS.get().addTempFile(outputSubs, 30 * 24 * 3600 * 1000);
 		return outputSubs;
 	}
 }
