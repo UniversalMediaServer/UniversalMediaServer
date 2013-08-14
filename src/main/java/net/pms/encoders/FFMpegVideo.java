@@ -28,6 +28,7 @@ import java.awt.event.ItemListener;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -155,7 +156,7 @@ public class FFMpegVideo extends Player {
 			String subsFile = s.toString();
 			subsFile = subsFile.replace(",", "\\,");
 
-			if (params.sid.isEmbedded()) {
+			if (params.sid.isEmbedded() || (params.sid.isExternal() && params.sid.getType() == SubtitleType.ASS)) {
 				subsOption = "ass=" + subsFile;
 			} else if (params.sid.isExternal() && params.sid.getType() == SubtitleType.SUBRIP) {
 				subsOption = "subtitles=" + subsFile;
@@ -1041,6 +1042,9 @@ public class FFMpegVideo extends Player {
 				tempSubs = convertSubsToAss(filename, media, params);
 			}
 
+			params.sid.setExternalFile(tempSubs);
+			params.sid.setType(SubtitleType.ASS);
+
 			if (tempSubs != null && configuration.isFFmpegFontConfig()) {
 				try {
 					tempSubs = applySubsSettingsToTempSubsFile(tempSubs);
@@ -1049,7 +1053,7 @@ public class FFMpegVideo extends Player {
 					tempSubs = null;
 				}
 			}
-		} else if (params.sid.isExternal() && params.sid.getType() == SubtitleType.SUBRIP) {
+		} else if (params.sid.isExternal() && (params.sid.getType() == SubtitleType.SUBRIP || params.sid.getType() == SubtitleType.ASS)) {
 			tempSubs = params.sid.getExternalFile();
 		}
 
@@ -1088,19 +1092,11 @@ public class FFMpegVideo extends Player {
 			}
 		}	
 */
-
-		if (tempSubs != null && params.sid.isEmbedded() && params.timeseek > 0) {
+		if (tempSubs != null) {
 			try {
-				tempSubs = SubtitleUtils.applyTimeSeekingToASS(tempSubs, params);
+				tempSubs = SubtitleUtils.applyCodepageConversionAndTimeseekingToSubtitlesFile(params);
 			} catch (IOException e) {
-				LOGGER.debug("Applying timeseeking caused an error: " + e);
-				tempSubs = null;
-			}
-		} else if (params.sid.isExternal() && params.sid.getType() == SubtitleType.SUBRIP) {
-			try {
-				tempSubs = SubtitleUtils.applyTimeSeekingToSrt(tempSubs, params);
-			} catch (IOException e) {
-				LOGGER.debug("Applying timeseeking caused an error: " + e);
+				LOGGER.debug("Applying codepage conversion or timeseeking caused an error: " + e);
 				tempSubs = null;
 			}
 		}
@@ -1114,6 +1110,7 @@ public class FFMpegVideo extends Player {
 	 * @param media 
 	 * @param params output parameters
 	 * @return Converted subtitles file in SSA/ASS format
+	 * @throws FileNotFoundException 
 	 * @throws IOException 
 	 */
 	public static File convertSubsToAss(String fileName, DLNAMediaInfo media, OutputParams params) {

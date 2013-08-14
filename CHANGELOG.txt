@@ -1,3 +1,25 @@
+3.0.0-a4 - 2013-08-??
+
+	General:
+		Fixed external ASS/SSA support (Thanks, skeptical!)
+		Fixed FFmpeg muxing on non-PS3 renderers
+		Fixed use of custom Java Heapsize (Thanks, OptimusPrime!)
+	Languages:
+		Updated Spanish translation (thanks, AlfredoRamos!)
+	External Components:
+		Updated Apache Commons Codec to 1.8
+		Updated Cobertura Maven Plugin to 2.5.2
+		Updated FindBugs Maven Plugin to 2.5.2
+		Updated Gson to 2.2.4
+		Updated H2 Database Engine to 1.3.172
+		Updated JUnit to 4.11
+		Updated Logback to 1.0.13
+		Updated Maven Source Plugin to 2.2.1
+		Updated PMD Maven Plugin to 3.0.1
+		Updated slf4j to 1.7.5
+		Updated Thumbnailator to 0.4.5, which:
+			Fixes use of Exif orientation
+
 3.0.0-a3 - 2013-07-12 - Changes since 3.0.0-a2
 
 	General:

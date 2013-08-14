@@ -1324,6 +1324,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
+		String mime = null;
+
 		if (!isFolder()) {
 			int indexCount = 1;
 
@@ -1399,7 +1401,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 				addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
 
-				String mime = getRendererMimeType(mimeType(), mediaRenderer);
+				mime = getRendererMimeType(mimeType(), mediaRenderer);
 				if (mime == null) {
 					mime = "video/mpeg";
 				}
@@ -1418,11 +1420,22 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							dlnaspec = "DLNA.ORG_PN=" + getMPEG_PS_PALLocalizedValue(c);
 
 							if (getPlayer() != null) {
-								// Do we have some mpegts to offer?
-								boolean mpegTsMux = TsMuxeRVideo.ID.equals(getPlayer().id()) || VideoLanVideoStreaming.ID.equals(getPlayer().id());
+								boolean isFileMPEGTS = TsMuxeRVideo.ID.equals(getPlayer().id()) || VideoLanVideoStreaming.ID.equals(getPlayer().id());
 								boolean isMuxableResult = getMedia().isMuxable(mediaRenderer);
 								boolean isBravia = mediaRenderer.isBRAVIA();
-								if (!mpegTsMux && configuration.isMencoderMuxWhenCompatible()) {
+								if (
+									!isFileMPEGTS &&
+									(
+										(
+											configuration.isMencoderMuxWhenCompatible() &&
+											MEncoderVideo.ID.equals(getPlayer().id())
+										) ||
+										(
+											configuration.isFFmpegMuxWhenCompatible() &&
+											FFMpegVideo.ID.equals(getPlayer().id())
+										)
+									)
+								) {
 									if (isBravia) {
 										/**
 										 * Sony Bravia TVs (and possibly other renderers) need ORG_PN to be accurate.
@@ -1654,21 +1667,22 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 										}
 									}
 
-									mpegTsMux = MEncoderVideo.ID.equals(getPlayer().id()) &&
+									if (
 										(
-											(
-												getMediaSubtitle() == null &&
-												!isSrtFile() &&
-												getMedia() != null &&
-												getMedia().getDvdtrack() == 0 &&
-												isMuxableResult &&
-												mediaRenderer.isMuxH264MpegTS()
-											) ||
-											mediaRenderer.isTranscodeToMPEGTSAC3()
-										);
+											getMediaSubtitle() == null &&
+											!isSrtFile() &&
+											getMedia() != null &&
+											getMedia().getDvdtrack() == 0 &&
+											isMuxableResult &&
+											mediaRenderer.isMuxH264MpegTS()
+										) ||
+										mediaRenderer.isTranscodeToMPEGTSAC3()
+									) {
+										isFileMPEGTS = true;
+									}
 								}
 
-								if (mpegTsMux) {
+								if (isFileMPEGTS) {
 									dlnaspec = "DLNA.ORG_PN=" + getMPEG_TS_SD_EU_ISOLocalizedValue(c);
 									if (
 										getMedia().isH264() &&
@@ -1814,7 +1828,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			addXMLTagAndAttribute(sb, "dc:date", SDF_DATE.format(new Date(getLastModified())));
 		}
 
-		String uclass;
+		String uclass = null;
 		if (first != null && getMedia() != null && !getMedia().isSecondaryFormatValid()) {
 			uclass = "dummy";
 		} else {
@@ -1830,12 +1844,26 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				} else if (xbox && getFakeParentId() != null && getFakeParentId().equals("F")) {
 					uclass = "object.container.playlistContainer";
 				}
-			} else if (getFormat() != null && getFormat().isVideo()) {
-				uclass = "object.item.videoItem";
-			} else if (getFormat() != null && getFormat().isImage()) {
-				uclass = "object.item.imageItem.photo";
-			} else if (getFormat() != null && getFormat().isAudio()) {
-				uclass = "object.item.audioItem.musicTrack";
+			} else if (mime != null) {
+				// UPNP class and mimetype should always agree or the renderer may get confused
+				// and reject the item (relevant if we're spoofing formats, e.g. audio as video).
+				if (mime.startsWith("video")) {
+					uclass = "object.item.videoItem";
+				} else if (mime.startsWith("image")) {
+					uclass = "object.item.imageItem.photo";
+				} else if (mime.startsWith("audio")) {
+					uclass = "object.item.audioItem.musicTrack";
+				}
+			} else if (getFormat() != null) {
+				// Normally we shouldn't get here, but it's a giant function and
+				// it can't hurt to have a backup in case the logic ever changes.
+				if (getFormat().isVideo()) {
+					uclass = "object.item.videoItem";
+				} else if (getFormat().isImage()) {
+					uclass = "object.item.imageItem.photo";
+				} else if (getFormat().isAudio()) {
+					uclass = "object.item.audioItem.musicTrack";
+				}
 			} else {
 				uclass = "object.item.videoItem";
 			}
@@ -1859,10 +1887,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	private void appendThumbnail(RendererConfiguration mediaRenderer, StringBuilder sb) {
 		final String thumbURL = getThumbnailURL();
-		final boolean addThumbnailAsResElement = isFolder() || mediaRenderer.getThumbNailAsResource() || mediaRenderer.isForceJPGThumbnails();
 
 		if (isNotBlank(thumbURL)) {
-			if (addThumbnailAsResElement) {
+			if (mediaRenderer.getThumbNailAsResource()) {
 				// Samsung 2012 (ES and EH) models do not recognize the "albumArtURI" element. Instead,
 				// the "res" element should be used.
 				// Also use "res" when faking JPEG thumbs.
@@ -1882,7 +1909,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				openTag(sb, "upnp:albumArtURI");
 				addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
 
-				if (getThumbnailContentType().equals(PNG_TYPEMIME)) {
+				if (getThumbnailContentType().equals(PNG_TYPEMIME) && !mediaRenderer.isForceJPGThumbnails()) {
 					addAttribute(sb, "dlna:profileID", "PNG_TN");
 				} else {
 					addAttribute(sb, "dlna:profileID", "JPEG_TN");
