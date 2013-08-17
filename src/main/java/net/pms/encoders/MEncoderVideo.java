@@ -614,6 +614,21 @@ public class MEncoderVideo extends Player {
 		return defaultArgsArray;
 	}
 
+	/**
+	 * Returns the argument string surrounded with quotes if it contains a space,
+	 * otherwise returns the string as is.
+	 *
+	 * @param arg The argument string
+	 * @return The string, optionally in quotes. 
+	 */
+	private String quoteArg(String arg) {
+		if (arg != null && arg.indexOf(" ") > -1) {
+			return "\"" + arg + "\"";
+		}
+
+		return arg;
+	}
+
 	private String[] sanitizeArgs(String[] args) {
 		List<String> sanitized = new ArrayList<>();
 		int i = 0;
@@ -1295,8 +1310,8 @@ public class MEncoderVideo extends Player {
 						/* Set font with -font option, workaround for the bug:
 						 * https://github.com/Happy-Neko/ps3mediaserver/commit/52e62203ea12c40628de1869882994ce1065446a#commitcomment-990156
 						 */
-						sb.append(" -font ").append(configuration.getFont()).append(" ");
-						sb.append(" -ass-force-style FontName=").append(configuration.getFont()).append(",");
+						sb.append(" -font ").append(quoteArg(configuration.getFont())).append(" ");
+						sb.append(" -ass-force-style FontName=").append(quoteArg(configuration.getFont())).append(",");
 					} else {
 						String font = CodecUtil.getDefaultFontPath();
 						if (isNotBlank(font)) {
@@ -1307,8 +1322,8 @@ public class MEncoderVideo extends Player {
 							 * used, though) and the "-font" definition is used instead.
 							 * See: https://github.com/ps3mediaserver/ps3mediaserver/pull/14
 							 */
-							sb.append(" -font ").append(font).append(" ");
-							sb.append(" -ass-force-style FontName=").append(font).append(",");
+							sb.append(" -font ").append(quoteArg(font)).append(" ");
+							sb.append(" -ass-force-style FontName=").append(quoteArg(font)).append(",");
 						} else {
 							sb.append(" -font Arial ");
 							sb.append(" -ass-force-style FontName=Arial,");
@@ -1352,7 +1367,7 @@ public class MEncoderVideo extends Player {
 					String font = CodecUtil.getDefaultFontPath();
 
 					if (isNotBlank(font)) {
-						sb.append("-font ").append(font).append(" ");
+						sb.append("-font ").append(quoteArg(font)).append(" ");
 					}
 				}
 
@@ -1364,11 +1379,11 @@ public class MEncoderVideo extends Player {
 			} else {
 				// Set subtitles font
 				if (configuration.getFont() != null && configuration.getFont().length() > 0) {
-					sb.append(" -font ").append(configuration.getFont()).append(" ");
+					sb.append(" -font ").append(quoteArg(configuration.getFont())).append(" ");
 				} else {
 					String font = CodecUtil.getDefaultFontPath();
 					if (isNotBlank(font)) {
-						sb.append(" -font ").append(font).append(" ");
+						sb.append(" -font ").append(quoteArg(font)).append(" ");
 					}
 				}
 
