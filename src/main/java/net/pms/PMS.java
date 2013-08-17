@@ -1413,4 +1413,12 @@ public class PMS {
 	public static String getHelpPage() {
 		return helpPage;
 	}
+
+	/**
+	 * @deprecated Use {@link com.sun.jna.Platform#isWindows()} instead
+	 */
+	@Deprecated
+	public boolean isWindows() {
+		return Platform.isWindows();
+	}
 }
