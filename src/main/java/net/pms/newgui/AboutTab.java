@@ -19,21 +19,26 @@
 package net.pms.newgui;
 
 import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+
 import java.awt.Cursor;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.util.PropertiesUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -53,8 +58,8 @@ public class AboutTab {
 		);
 
 		PanelBuilder builder = new PanelBuilder(layout);
-		builder.setDefaultDialogBorder();
-		builder.setOpaque(true);
+		builder.border(Borders.DIALOG);
+		builder.opaque(true);
 		CellConstraints cc = new CellConstraints();
 
 		String projectName = PropertiesUtil.getProjectProperties().get("project.name");

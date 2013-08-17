@@ -19,19 +19,24 @@
 package net.pms.newgui;
 
 import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+
 import java.awt.Font;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+
 import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.tree.DefaultMutableTreeNode;
+
 import net.pms.Messages;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,8 +110,8 @@ public class TreeNodeSettings extends DefaultMutableTreeNode {
 			);
 
 			PanelBuilder builder = new PanelBuilder(layout);
-			builder.setDefaultDialogBorder();
-			builder.setOpaque(false);
+			builder.border(Borders.DIALOG);
+			builder.opaque(false);
 			CellConstraints cc = new CellConstraints();
 
 			JLabel jl = new JLabel(Messages.getString("TreeNodeSettings.4"));

@@ -19,8 +19,10 @@
 package net.pms.newgui;
 
 import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+
 import java.awt.Color;
 import java.awt.ComponentOrientation;
 import java.awt.Dimension;
@@ -32,11 +34,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.util.Locale;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
+
 import net.pms.Messages;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.util.FormLayoutUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,8 +92,8 @@ public class StatusTab {
 		);
 
 		PanelBuilder builder = new PanelBuilder(layout);
-		builder.setDefaultDialogBorder();
-		builder.setOpaque(true);
+		builder.border(Borders.DIALOG);
+		builder.opaque(true);
 		CellConstraints cc = new CellConstraints();
 
 		JComponent cmp = builder.addSeparator(Messages.getString("StatusTab.2"), FormLayoutUtil.flip(cc.xyw(1, 1, 5), colSpec, orientation));
@@ -139,7 +144,7 @@ public class StatusTab {
 			"pref, 3dlu, pref"
 		);
 		PanelBuilder rendererBuilder = new PanelBuilder(layoutRenderer);
-		rendererBuilder.setOpaque(true);
+		rendererBuilder.opaque(true);
 		for (int i = 0; i < MAX_RENDERERS; i++) {
 			renderers[i] = buildImagePanel(null);
 			rendererBuilder.add(renderers[i], cc.xy(2 + i, 1));
