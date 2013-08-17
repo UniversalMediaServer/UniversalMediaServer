@@ -736,7 +736,7 @@ public class DLNAMediaDatabase implements Runnable {
 
 	public synchronized void scanLibrary() {
 		if (isScanLibraryRunning()) {
-			LOGGER.info("Scanner is already running !");
+			LOGGER.info(Messages.getString("NetworkTab.70"));
 		} else {
 			scanner = new Thread(this, "Library Scanner");
 			scanner.start();

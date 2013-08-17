@@ -149,6 +149,7 @@ public class PmsConfiguration {
 	private static final String KEY_MENCODER_NOASS_SCALE = "mencoder_noass_scale";
 	private static final String KEY_MENCODER_NOASS_SUBPOS = "mencoder_noass_subpos";
 	private static final String KEY_MENCODER_NO_OUT_OF_SYNC = "mencoder_nooutofsync";
+	private static final String KEY_MENCODER_NORMALIZE_VOLUME = "mencoder_normalize_volume";
 	private static final String KEY_MENCODER_OVERSCAN_COMPENSATION_HEIGHT = "mencoder_overscan_compensation_height";
 	private static final String KEY_MENCODER_OVERSCAN_COMPENSATION_WIDTH = "mencoder_overscan_compensation_width";
 	private static final String KEY_AUDIO_REMUX_AC3 = "audio_remux_ac3";
@@ -2119,6 +2120,14 @@ public class PmsConfiguration {
 
 	public boolean isMencoderMuxWhenCompatible() {
 		return getBoolean(KEY_MENCODER_MUX_COMPATIBLE, true);
+	}
+
+	public void setMEncoderNormalizeVolume(boolean value) {
+		configuration.setProperty(KEY_MENCODER_NORMALIZE_VOLUME, value);
+	}
+
+	public boolean isMEncoderNormalizeVolume() {
+		return getBoolean(KEY_MENCODER_NORMALIZE_VOLUME, false);
 	}
 
 	public void setFFmpegMuxWhenCompatible(boolean value) {
