@@ -599,7 +599,7 @@
 		Updated links on the Help page
 		Made renderer config layouts more synchronised
 		Added a button to uninstall the Windows service
-		Removed fontconfig from MEncoder for Mac OSX for improved subs compatibility
+		Removed fontconfig from MEncoder for Mac OS X for improved subs compatibility
 		Made names in the transcode folder shorter by removing redundant information
 		The user preference to hide file extensions is applied to the transcode folder subfolder names
 	External components:
@@ -807,7 +807,7 @@
 			Improves fonts
 			Improves caching
 			Improves multithreading stability
-		Updated MPlayer and MEncoder for OSX to SB32
+		Updated MPlayer and MEncoder for OS X to SB32
 		Lots of code optimisations
 		Made program restarts more reliable
 		Fixed AviSynth ConvertFPS option
