@@ -22,7 +22,6 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -34,18 +33,14 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
-
 import static java.nio.file.StandardCopyOption.*;
-
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
-
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -65,13 +60,10 @@ import net.pms.io.StreamModifier;
 import net.pms.network.HTTPResource;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
-
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -171,7 +163,7 @@ public class FFMpegVideo extends Player {
 			} else if (params.sid.isExternal() && params.sid.getType() == SubtitleType.SUBRIP) {
 				subsOption = "subtitles=" + subsFile;
 			}
-			
+
 			// based on https://trac.ffmpeg.org/ticket/2067
 			if (params.timeseek > 0) {
 				videoFilterOptions.add("-copyts");
@@ -515,7 +507,7 @@ public class FFMpegVideo extends Player {
 
 		// Prevent FFmpeg timeout
 		cmdList.add("-y");
-		
+
 		cmdList.add("-loglevel");
 		if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
 			cmdList.add("info"); // Could be changed to "verbose" or "debug" if "info" level is not enough
@@ -1056,7 +1048,13 @@ public class FFMpegVideo extends Player {
 			params.sid.setType(SubtitleType.ASS);
 		}
 
-		if (params.sid.isExternal() && (params.sid.getType() == SubtitleType.SUBRIP || params.sid.getType() == SubtitleType.ASS)) {
+		if (
+			params.sid.isExternal() &&
+			(
+				params.sid.getType() == SubtitleType.SUBRIP ||
+				params.sid.getType() == SubtitleType.ASS
+			)
+		) {
 			filename = params.sid.getExternalFile().getAbsolutePath();
 			File tmp = new File(subsPath.getAbsolutePath() + File.separator +
 							FilenameUtils.getBaseName(filename) + "_" + new File(filename).lastModified() +
