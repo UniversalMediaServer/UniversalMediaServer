@@ -4,7 +4,6 @@ import org.apache.commons.configuration.Configuration;
 
 class ConfigurationProgramPaths implements ProgramPaths {
 	private static final String KEY_VLC_PATH        = "vlc_path";
-	private static final String KEY_EAC3TO_PATH     = "eac3to_path";
 	private static final String KEY_MENCODER_PATH   = "mencoder_path";
 	private static final String KEY_FFMPEG_PATH     = "ffmpeg_path";
 	private static final String KEY_MPLAYER_PATH    = "mplayer_path";
@@ -20,11 +19,6 @@ class ConfigurationProgramPaths implements ProgramPaths {
 	public ConfigurationProgramPaths(Configuration configuration, ProgramPaths defaults) {
 		this.configurationReader = new ConfigurationReader(configuration, true); // true: log
 		this.defaults = defaults;
-	}
-
-	@Override
-	public String getEac3toPath() {
-		return getString(KEY_EAC3TO_PATH, defaults.getEac3toPath());
 	}
 
 	@Override
@@ -73,11 +67,6 @@ class ConfigurationProgramPaths implements ProgramPaths {
 	@Override
 	public String getDCRaw() {
 		return getString(KEY_DCRAW, defaults.getDCRaw());
-	}
-
-	@Override
-	public String getIMConvertPath() {
-		return getString(KEY_IMCONVERT_PATH, defaults.getIMConvertPath());
 	}
 
 	@Override

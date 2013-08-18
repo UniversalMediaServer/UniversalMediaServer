@@ -49,7 +49,7 @@ public class PipeProcess {
 			}
 		}
 
-		if (PMS.get().isWindows()) {
+		if (Platform.isWindows()) {
 			mk = new WindowsNamedPipe(pipeName, forcereconnect, in, params);
 		} else {
 			linuxPipeName = getPipeName(pipeName);
@@ -70,21 +70,21 @@ public class PipeProcess {
 	}
 
 	public String getInputPipe() {
-		if (!PMS.get().isWindows()) {
+		if (!Platform.isWindows()) {
 			return linuxPipeName;
 		}
 		return mk.getPipeName();
 	}
 
 	public String getOutputPipe() {
-		if (!PMS.get().isWindows()) {
+		if (!Platform.isWindows()) {
 			return linuxPipeName;
 		}
 		return mk.getPipeName();
 	}
 
 	public ProcessWrapper getPipeProcess() {
-		if (!PMS.get().isWindows()) {
+		if (!Platform.isWindows()) {
 			OutputParams mkfifo_vid_params = new OutputParams(configuration);
 			mkfifo_vid_params.maxBufferSize = 0.1;
 			mkfifo_vid_params.log = true;
@@ -104,14 +104,14 @@ public class PipeProcess {
 	}
 
 	public void deleteLater() {
-		if (!PMS.get().isWindows()) {
+		if (!Platform.isWindows()) {
 			File f = new File(linuxPipeName);
 			f.deleteOnExit();
 		}
 	}
 
 	public BufferedOutputFile getDirectBuffer() throws IOException {
-		if (!PMS.get().isWindows()) {
+		if (!Platform.isWindows()) {
 			return null;
 		}
 
@@ -119,7 +119,7 @@ public class PipeProcess {
 	}
 
 	public InputStream getInputStream() throws IOException {
-		if (!PMS.get().isWindows()) {
+		if (!Platform.isWindows()) {
 			LOGGER.trace("Opening file " + linuxPipeName + " for reading...");
 			RandomAccessFile raf = new RandomAccessFile(linuxPipeName, "r");
 
@@ -130,7 +130,7 @@ public class PipeProcess {
 	}
 
 	public OutputStream getOutputStream() throws IOException {
-		if (!PMS.get().isWindows()) {
+		if (!Platform.isWindows()) {
 			LOGGER.trace("Opening file " + linuxPipeName + " for writing...");
 			RandomAccessFile raf = new RandomAccessFile(linuxPipeName, "rw");
 

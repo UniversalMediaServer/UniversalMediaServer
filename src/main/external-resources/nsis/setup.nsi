@@ -26,7 +26,8 @@ SetCompressor /SOLID lzma
 SetCompressorDictSize 32
 
 !define MUI_ABORTWARNING
-!define MUI_FINISHPAGE_RUN "$INSTDIR\UMS.exe"
+!define MUI_FINISHPAGE_RUN
+!define MUI_FINISHPAGE_RUN_FUNCTION RunUMS
 !define MUI_WELCOMEFINISHPAGE_BITMAP "${NSISDIR}\Contrib\Graphics\Wizard\win.bmp"
 !define MUI_PAGE_CUSTOMFUNCTION_LEAVE WelcomeLeave
 
@@ -166,6 +167,12 @@ Function AdvancedSettingsAfterwards
 		RMDir /r $TEMP\fontconfig
 	${EndIf}
 FunctionEnd
+
+;Run program through explorer.exe to de-evaluate user from admin to regular one.
+;http://mdb-blog.blogspot.ru/2013/01/nsis-lunch-program-as-user-from-uac.html
+Function RunUMS
+	Exec '"$WINDIR\explorer.exe" "$INSTDIR\UMS.exe"'
+FunctionEnd 
 
 Function CreateDesktopShortcut
 	CreateShortCut "$DESKTOP\${PROJECT_NAME}.lnk" "$INSTDIR\UMS.exe"
