@@ -40,8 +40,6 @@ import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
-import net.pms.newgui.DummyFrame;
-import net.pms.newgui.IFrame;
 import net.pms.io.*;
 import net.pms.logging.FrameAppender;
 import net.pms.logging.LoggingConfigFileLoader;
@@ -49,6 +47,8 @@ import net.pms.network.HTTPServer;
 import net.pms.network.ProxyServer;
 import net.pms.network.UPNPHelper;
 import net.pms.newgui.DbgPacker;
+import net.pms.newgui.DummyFrame;
+import net.pms.newgui.IFrame;
 import net.pms.newgui.LooksFrame;
 import net.pms.newgui.ProfileChooser;
 import net.pms.update.AutoUpdater;
@@ -197,13 +197,6 @@ public class PMS {
 	 * {@link net.pms.newgui.IFrame} object that represents the PMS GUI.
 	 */
 	private IFrame frame;
-
-	/**
-	 * @see com.sun.jna.Platform#isWindows()
-	 */
-	public boolean isWindows() {
-		return Platform.isWindows();
-	}
 
 	/**
 	 * Interface to Windows-specific functions, like Windows Registry. registry is set by {@link #init()}.
@@ -597,7 +590,7 @@ public class PMS {
 			checkProcessExistence("MPlayer", true, null, configuration.getMplayerPath(), "dummy");
 		}
 
-		if (isWindows()) {
+		if (Platform.isWindows()) {
 			checkProcessExistence("MPlayer", true, configuration.getTempFolder(), configuration.getMplayerPath(), "dummy");
 		}
 
@@ -1233,7 +1226,7 @@ public class PMS {
 	private void logSystemInfo() {
 		long memoryInMB = Runtime.getRuntime().maxMemory() / 1048576;
 
-		LOGGER.info("Java: " + System.getProperty("java.version") + " - " + System.getProperty("sun.arch.data.model") + "bit" + " - " + System.getProperty("java.vendor"));
+		LOGGER.info("Java: " + System.getProperty("java.vm.name") + " " + System.getProperty("java.version") + " " + System.getProperty("sun.arch.data.model") + "-bit" + " by " + System.getProperty("java.vendor"));
 		LOGGER.info("OS: " + System.getProperty("os.name") + " " + getOSBitness() + "-bit " + System.getProperty("os.version"));
 		LOGGER.info("Encoding: " + System.getProperty("file.encoding"));
 		LOGGER.info("Memory: " + memoryInMB + " " + Messages.getString("StatusTab.12"));
@@ -1419,5 +1412,13 @@ public class PMS {
 	 */
 	public static String getHelpPage() {
 		return helpPage;
+	}
+
+	/**
+	 * @deprecated Use {@link com.sun.jna.Platform#isWindows()} instead
+	 */
+	@Deprecated
+	public boolean isWindows() {
+		return Platform.isWindows();
 	}
 }

@@ -46,6 +46,7 @@ ShowInstDetails nevershow
 !include "x64.nsh"
 
 Section ""
+	Var /GLOBAL SERVER_JRE_FOUND
 	Call GetJRE
 	Pop $R0
 
@@ -60,7 +61,12 @@ Section ""
 
 	; Change for your purpose (-jar etc.)
 	${GetParameters} $1
-	StrCpy $0 '"$R0" -classpath update.jar;ums.jar $R3 -Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8 ${CLASS} $1'
+
+	${If} $SERVER_JRE_FOUND == 'yes'
+		StrCpy $0 '"$R0" -classpath update.jar;ums.jar -server $R3 -Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8 ${CLASS} $1'
+	${Else}
+		StrCpy $0 '"$R0" -classpath update.jar;ums.jar $R3 -Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8 ${CLASS} $1'
+	${EndIf}
 
 	SetOutPath $EXEDIR
 	Exec $0
@@ -86,6 +92,7 @@ Function GetJRE
 		ReadRegStr $R1 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment" "CurrentVersion"
 		ReadRegStr $R0 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment\$R1" "JavaHome"
 		StrCpy $R0 "$R0\bin\${JAVAEXE}"
+		StrCpy $SERVER_JRE_FOUND "yes"
 		IfErrors CheckRegistry1     
 		IfFileExists $R0 0 CheckRegistry1
 		Call CheckJREVersion
@@ -100,6 +107,7 @@ Function GetJRE
 		ReadRegStr $R1 HKLM "SOFTWARE\Wow6432Node\JavaSoft\Java Runtime Environment" "CurrentVersion"
 		ReadRegStr $R0 HKLM "SOFTWARE\Wow6432Node\JavaSoft\Java Runtime Environment\$R1" "JavaHome"
 		StrCpy $R0 "$R0\bin\${JAVAEXE}"
+		StrCpy $SERVER_JRE_FOUND "no"
 		IfErrors CheckRegistry2     
 		IfFileExists $R0 0 CheckRegistry2
 		Call CheckJREVersion

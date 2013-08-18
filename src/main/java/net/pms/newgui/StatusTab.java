@@ -19,6 +19,7 @@
 package net.pms.newgui;
 
 import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Color;
@@ -87,8 +88,8 @@ public class StatusTab {
 		);
 
 		PanelBuilder builder = new PanelBuilder(layout);
-		builder.setDefaultDialogBorder();
-		builder.setOpaque(true);
+		builder.border(Borders.DIALOG);
+		builder.opaque(true);
 		CellConstraints cc = new CellConstraints();
 
 		JComponent cmp = builder.addSeparator(Messages.getString("StatusTab.2"), FormLayoutUtil.flip(cc.xyw(1, 1, 5), colSpec, orientation));
@@ -139,7 +140,7 @@ public class StatusTab {
 			"pref, 3dlu, pref"
 		);
 		PanelBuilder rendererBuilder = new PanelBuilder(layoutRenderer);
-		rendererBuilder.setOpaque(true);
+		rendererBuilder.opaque(true);
 		for (int i = 0; i < MAX_RENDERERS; i++) {
 			renderers[i] = buildImagePanel(null);
 			rendererBuilder.add(renderers[i], cc.xy(2 + i, 1));

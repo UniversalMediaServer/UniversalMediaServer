@@ -33,7 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Contains the Windows specific native functionality. Do not try to instantiate on Linux/MacOSX !
+ * Contains the Windows specific native functionality. Do not try to instantiate on Linux/MacOS X !
  * @author zsombor
  *
  */

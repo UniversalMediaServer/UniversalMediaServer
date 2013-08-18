@@ -15,11 +15,6 @@ class WindowsRegistryProgramPaths implements ProgramPaths {
 	}
 
 	@Override
-	public String getEac3toPath() {
-		return defaults.getEac3toPath();
-	}
-
-	@Override
 	public String getFfmpegPath() {
 		return defaults.getFfmpegPath();
 	}
@@ -62,11 +57,6 @@ class WindowsRegistryProgramPaths implements ProgramPaths {
 	@Override
 	public String getDCRaw() {
 		return defaults.getDCRaw();
-	}
-
-	@Override
-	public String getIMConvertPath() {
-		return defaults.getIMConvertPath();
 	}
 
 	@Override

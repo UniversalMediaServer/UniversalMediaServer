@@ -65,8 +65,8 @@ public class FFmpegAudio extends FFMpegVideo {
 			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, 0:grow"
 		);
 		PanelBuilder builder = new PanelBuilder(layout);
-		builder.setBorder(Borders.EMPTY_BORDER);
-		builder.setOpaque(false);
+		builder.border(Borders.EMPTY);
+		builder.opaque(false);
 
 		CellConstraints cc = new CellConstraints();
 
@@ -98,7 +98,6 @@ public class FFmpegAudio extends FFMpegVideo {
 		return ID;
 	}
 
-	// FIXME why is this false if launchTranscode supports it (-ss)?
 	@Override
 	public boolean isTimeSeekable() {
 		return false;
@@ -218,9 +217,6 @@ public class FFmpegAudio extends FFMpegVideo {
 		return pw;
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
 		if (
