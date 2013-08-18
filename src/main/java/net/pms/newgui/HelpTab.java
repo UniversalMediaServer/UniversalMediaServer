@@ -66,7 +66,7 @@ public class HelpTab {
 			"pref, fill:default:grow"
 		);
 		PanelBuilder builder = new PanelBuilder(layout);
-		builder.setOpaque(true);
+		builder.opaque(true);
 		CellConstraints cc = new CellConstraints();
 		editorPane = new JEditorPane();
 		editorPane.setEditable(false);
