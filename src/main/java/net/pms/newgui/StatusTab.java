@@ -22,7 +22,6 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-
 import java.awt.Color;
 import java.awt.ComponentOrientation;
 import java.awt.Dimension;
@@ -34,14 +33,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.util.Locale;
-
 import javax.imageio.ImageIO;
 import javax.swing.*;
-
 import net.pms.Messages;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.util.FormLayoutUtil;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
