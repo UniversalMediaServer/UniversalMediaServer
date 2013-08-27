@@ -2317,11 +2317,14 @@ public class MEncoderVideo extends Player {
 			if (!directpipe) {
 				ProcessWrapper mkfifo_process = pipe.getPipeProcess();
 				pw.attachProcess(mkfifo_process);
-				mkfifo_process.runInNewThread();
-				try {
-					Thread.sleep(50);
-				} catch (InterruptedException e) {
-				}
+
+				/**
+				 * It can take a long time for Windows to create a named pipe (and
+				 * mkfifo can be slow if /tmp isn't memory-mapped), so run this in
+				 * the current thread.
+				 */
+				mkfifo_process.runInSameThread();
+
 				pipe.deleteLater();
 			}
 		}

@@ -50,6 +50,10 @@ public class ProcessWrapperLiteImpl implements ProcessWrapper {
 	}
 
 	@Override
+	public void runInSameThread() {
+	}
+
+	@Override
 	public boolean isReadyToStop() {
 		return false;
 	}
