@@ -752,14 +752,17 @@ public class RootFolder extends DLNAResource {
 							String artistName;
 							String albumName;
 							String genreName;
+
 							if (PlaylistTracks != null) {
 								for (Object t : PlaylistTracks) {
 									Map<?, ?> td = (Map<?, ?>) t;
 									track = (Map<?, ?>) Tracks.get(td.get("Track ID").toString());
 
-									if (track != null
-										&& track.get("Location") != null
-										&& track.get("Location").toString().startsWith("file://")) {
+									if (
+										track != null &&
+										track.get("Location") != null &&
+										track.get("Location").toString().startsWith("file://")
+									) {
 										String name = Normalizer.normalize((String) track.get("Name"), Normalizer.Form.NFC);
 										// remove dots from name to prevent media renderer from trimming
 										name = name.replace('.', '-');
@@ -791,9 +794,7 @@ public class RootFolder extends DLNAResource {
 											albumName = Normalizer.normalize(albumName, Normalizer.Form.NFC);
 										}
 
-										if (genreName == null) {
-											genreName = "Unknown Genre";
-										} else if ("".equals(genreName.replaceAll("[^a-zA-Z]", ""))) {
+										if (genreName == null || "".equals(genreName.replaceAll("[^a-zA-Z]", ""))) {
 											// This prevents us from adding blank or numerical genres
 											genreName = "Unknown Genre";
 										} else {
@@ -809,10 +810,10 @@ public class RootFolder extends DLNAResource {
 										File refFile = new File(URLDecoder.decode(tURI2.toURL().getFile(), "UTF-8"));
 										RealFile file = new RealFile(refFile, name);
 
-										// Artists folder - Put the track into the artist's album folder and the artist's "All tracks" folder
+										// Put the track into the artist's album folder and the artist's "All tracks" folder
 										{
 											VirtualFolder individualArtistFolder = null;
-											VirtualFolder individualArtistAllTracksFolder = null;
+											VirtualFolder individualArtistAllTracksFolder;
 											VirtualFolder individualArtistAlbumFolder = null;
 
 											for (DLNAResource artist : virtualFolderArtists.getChildren()) {
@@ -845,7 +846,7 @@ public class RootFolder extends DLNAResource {
 											individualArtistAllTracksFolder.addChild(file);
 										}
 
-										// Albums folder - Put the track into its album folder
+										// Put the track into its album folder
 										{
 											if (!isCompilation) {
 												albumName += " – " + artistName;
@@ -865,7 +866,7 @@ public class RootFolder extends DLNAResource {
 											individualAlbumFolder.addChild(file.clone());
 										}
 
-										// Genres folder - Put the track into its genre folder
+										// Put the track into its genre folder
 										{
 											VirtualFolder individualGenreFolder = null;
 											for (DLNAResource genre : virtualFolderGenres.getChildren()) {
@@ -881,7 +882,7 @@ public class RootFolder extends DLNAResource {
 											individualGenreFolder.addChild(file.clone());
 										}
 
-										// ALL TRACKS - Put the track into the global "All tracks" folder
+										// Put the track into the global "All tracks" folder
 										virtualFolderAllTracks.addChild(file.clone());
 									}
 								}
@@ -919,7 +920,6 @@ public class RootFolder extends DLNAResource {
 									return a.getName().compareToIgnoreCase(b.getName());
 								}
 							});
-
 						} else {
 							// Add all playlists
 							VirtualFolder pf = new VirtualFolder(Playlist.get("Name").toString(), null);
@@ -930,9 +930,11 @@ public class RootFolder extends DLNAResource {
 									Map<?, ?> td = (Map<?, ?>) t;
 									track = (Map<?, ?>) Tracks.get(td.get("Track ID").toString());
 
-									if (track != null
-										&& track.get("Location") != null
-										&& track.get("Location").toString().startsWith("file://")) {
+									if (
+										track != null &&
+										track.get("Location") != null &&
+										track.get("Location").toString().startsWith("file://")
+									) {
 										String name = Normalizer.normalize(track.get("Name").toString(), Normalizer.Form.NFC);
 										// remove dots from name to prevent media renderer from trimming
 										name = name.replace('.', '-');
@@ -952,7 +954,6 @@ public class RootFolder extends DLNAResource {
 							if (kind >= 0 && kind != 17 && kind != 19 && kind != 20) {
 								// System folder, but not voice memos (17) and purchased items (19 & 20)
 								res.addChild(pf);
-
 							} else {
 								// User playlist or playlist folder
 								if (playlistsFolder == null) {
