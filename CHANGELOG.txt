@@ -1,8 +1,10 @@
-3.0.0-a4 - 2013-08-??
+3.0.0-a4 - 2013-09-??
 
 	General:
 		Improved support for iTunes compilations
 		Added support for external subtitles in VLC
+		Expanded and fixed filename prettifying
+		Made video playback more stable
 		Fixed support for non-English iTunes libraries
 		Fixed external ASS/SSA support (Thanks, skeptical!)
 		Fixed FFmpeg muxing on non-PS3 renderers
@@ -13,6 +15,7 @@
 		Run the program in Java's server mode when using 64-bit JRE
 	Renderers:
 		Added support for Bravia W series TVs
+		Improved support for KalemSoft Media Player on BlackBerry PlayBook
 	Languages:
 		Updated French translation
 		Updated Spanish translation (thanks, AlfredoRamos!)
