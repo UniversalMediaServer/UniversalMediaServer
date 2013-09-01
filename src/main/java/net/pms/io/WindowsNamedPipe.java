@@ -124,6 +124,12 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 
 	@Override
 	public void runInNewThread() {
+		// Constructor already called start(), do nothing
+	}
+
+	@Override
+	public void runInSameThread() {
+		// Constructor already called start(), do nothing
 	}
 
 	@Override
