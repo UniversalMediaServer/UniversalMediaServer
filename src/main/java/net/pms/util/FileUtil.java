@@ -1,8 +1,6 @@
 package net.pms.util;
 
 import java.io.*;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import net.pms.PMS;
@@ -123,24 +121,21 @@ public class FileUtil {
 	}
 
 	/**
-	 * Returns the protocol of the supplied filename if it's a URI,
-	 * or <code>null</code> if it's not.
+	 * Returns the protocol of the supplied filename if any,
+	 * or <code>null</code> if none.
 	 *
 	 * @param filename the filename whose protocol is to be determined
-	 * @return the filename's protocol if it's a URI, or <code>null</code>
-	 * if it's not.
+	 * @return the filename's protocol if any, or <code>null</code>
+	 * if none.
 	 */
 	public static String getProtocol(String filename) {
-		String protocol = null;
-
-		if (filename != null) {
-			try {
-				URI uri = new URI(filename.toLowerCase());
-				protocol = uri.getScheme();
-			} catch (URISyntaxException use) { }
+		// we use a lax validate/parse here instead of URI.getScheme()
+		// so psuedo-urls (e.g. librtmp-style urls containing spaces)
+		// will pass without throwing URISyntaxException.
+		if (filename != null && filename.matches("\\S+://.*")) {
+			return filename.split("://")[0].toLowerCase();
 		}
-
-		return protocol;
+		return null;
 	}
 
 	public static String getExtension(String f) {
@@ -174,9 +169,11 @@ public class FileUtil {
 		// Remove file extension
 		formattedName = f.substring(0, point);
 
-		String commonFileEnds = "[\\s\\.]AC3.*|[\\s\\.]REPACK.*|[\\s\\.]480p.*|[\\s\\.]720p.*|[\\s\\.]m-720p.*|[\\s\\.]900p.*|[\\s\\.]1080p.*|[\\s\\.]HDTV.*|[\\s\\.]DSR.*|[\\s\\.]PDTV.*|[\\s\\.]WS.*|[\\s\\.]HQ.*|[\\s\\.]DVDRip.*|[\\s\\.]TVRiP.*|[\\s\\.]BDRip.*|[\\s\\.]BluRay.*|[\\s\\.]Blu-ray.*|[\\s\\.]SUBBED.*|[\\s\\.]x264.*|[\\s\\.]Dual[\\s\\.]Audio.*|[\\s\\.]HSBS.*|[\\s\\.]H-SBS.*";
-		String commonFileEndsMatch = ".*[\\s\\.]AC3.*|.*[\\s\\.]REPACK.*|.*[\\s\\.]480p.*|.*[\\s\\.]720p.*|.*[\\s\\.]m-720p.*|.*[\\s\\.]900p.*|.*[\\s\\.]1080p.*|.*[\\s\\.]HDTV.*|.*[\\s\\.]DSR.*|.*[\\s\\.]PDTV.*|.*[\\s\\.]WS.*|.*[\\s\\.]HQ.*|.*[\\s\\.]DVDRip.*|.*[\\s\\.]TVRiP.*|.*[\\s\\.]BDRip.*|.*[\\s\\.]BluRay.*|.*[\\s\\.]Blu-ray.*|.*[\\s\\.]SUBBED.*|.*[\\s\\.]x264.*|.*[\\s\\.]Dual[\\s\\.]Audio.*|.*[\\s\\.]HSBS.*|.*[\\s\\.]H-SBS.*";
-		String commonFileEndsCaseSensitive = "[\\s\\.]PROPER.*|[\\s\\.]iNTERNAL.*|[\\s\\.]LIMITED.*|[\\s\\.]FESTiVAL.*|[\\s\\.]NORDIC.*";
+		String commonFileEnds = "[\\s\\.]AC3.*|[\\s\\.]REPACK.*|[\\s\\.]480p.*|[\\s\\.]720p.*|[\\s\\.]m-720p.*|[\\s\\.]900p.*|[\\s\\.]1080p.*|[\\s\\.]HDTV.*|[\\s\\.]DSR.*|[\\s\\.]PDTV.*|[\\s\\.]WS.*|[\\s\\.]HQ.*|[\\s\\.]DVDRip.*|[\\s\\.]TVRiP.*|[\\s\\.]BDRip.*|[\\s\\.]BluRay.*|[\\s\\.]Blu-ray.*|[\\s\\.]SUBBED.*|[\\s\\.]x264.*|[\\s\\.]Dual[\\s\\.]Audio.*|[\\s\\.]HSBS.*|[\\s\\.]H-SBS.*|[\\s\\.]RERiP.*";
+		String commonFileEndsMatch = ".*[\\s\\.]AC3.*|.*[\\s\\.]REPACK.*|.*[\\s\\.]480p.*|.*[\\s\\.]720p.*|.*[\\s\\.]m-720p.*|.*[\\s\\.]900p.*|.*[\\s\\.]1080p.*|.*[\\s\\.]HDTV.*|.*[\\s\\.]DSR.*|.*[\\s\\.]PDTV.*|.*[\\s\\.]WS.*|.*[\\s\\.]HQ.*|.*[\\s\\.]DVDRip.*|.*[\\s\\.]TVRiP.*|.*[\\s\\.]BDRip.*|.*[\\s\\.]BluRay.*|.*[\\s\\.]Blu-ray.*|.*[\\s\\.]SUBBED.*|.*[\\s\\.]x264.*|.*[\\s\\.]Dual[\\s\\.]Audio.*|.*[\\s\\.]HSBS.*|.*[\\s\\.]H-SBS.*|.*[\\s\\.]RERiP.*";
+		String commonFileEndsCaseSensitive = "[\\s\\.]PROPER.*|[\\s\\.]iNTERNAL.*|[\\s\\.]LIMITED.*|[\\s\\.]LiMiTED.*|[\\s\\.]FESTiVAL.*|[\\s\\.]NORDIC.*";
+
+		String commonFileMiddle = "(?i)(Special[\\s\\.]Edition|Unrated|Final[\\s\\.]Cut|Remastered|Extended[\\s\\.]Cut|Extended)";
 
 		if (formattedName.matches(".*[sS]0\\d[eE]\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes within the first 9 seasons
@@ -236,7 +233,7 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
 			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
 
-			formattedName = formattedName.replaceAll("(?i)(Special[\\s\\.]Edition)|(Unrated)|(Final[\\s\\.]Cut)|(Remastered)|(Extended[\\s\\.]Cut)", "($1)");
+			formattedName = formattedName.replaceAll(commonFileMiddle, "($1)");
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
@@ -247,7 +244,7 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
 			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
 
-			formattedName = formattedName.replaceAll("(?i)(Special[\\s\\.]Edition)|(Unrated)|(Final[\\s\\.]Cut)|(Remastered)|(Extended[\\s\\.]Cut)", "($1)");
+			formattedName = formattedName.replaceAll(commonFileMiddle, "($1)");
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");

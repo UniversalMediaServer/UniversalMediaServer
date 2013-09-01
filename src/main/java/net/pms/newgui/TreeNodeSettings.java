@@ -19,6 +19,7 @@
 package net.pms.newgui;
 
 import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Font;
@@ -105,8 +106,8 @@ public class TreeNodeSettings extends DefaultMutableTreeNode {
 			);
 
 			PanelBuilder builder = new PanelBuilder(layout);
-			builder.setDefaultDialogBorder();
-			builder.setOpaque(false);
+			builder.border(Borders.DIALOG);
+			builder.opaque(false);
 			CellConstraints cc = new CellConstraints();
 
 			JLabel jl = new JLabel(Messages.getString("TreeNodeSettings.4"));

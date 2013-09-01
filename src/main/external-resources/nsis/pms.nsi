@@ -46,6 +46,7 @@ ShowInstDetails nevershow
 !include "x64.nsh"
 
 Section ""
+	Var /GLOBAL SERVER_JRE_FOUND
 	Call GetJRE
 	Pop $R0
 
@@ -60,7 +61,12 @@ Section ""
 
 	; Change for your purpose (-jar etc.)
 	${GetParameters} $1
-	StrCpy $0 '"$R0" -classpath update.jar;ums.jar $R3 -Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8 ${CLASS} $1'
+
+	${If} $SERVER_JRE_FOUND == 'yes'
+		StrCpy $0 '"$R0" -classpath update.jar;ums.jar -server $R3 -Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8 ${CLASS} $1'
+	${Else}
+		StrCpy $0 '"$R0" -classpath update.jar;ums.jar $R3 -Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8 ${CLASS} $1'
+	${EndIf}
 
 	SetOutPath $EXEDIR
 	Exec $0
@@ -86,9 +92,10 @@ Function GetJRE
 		ReadRegStr $R1 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment" "CurrentVersion"
 		ReadRegStr $R0 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment\$R1" "JavaHome"
 		StrCpy $R0 "$R0\bin\${JAVAEXE}"
+		StrCpy $SERVER_JRE_FOUND "yes"
 		IfErrors CheckRegistry1     
 		IfFileExists $R0 0 CheckRegistry1
-		Call SetJavaHeap64
+		Call CheckJREVersion
 		IfErrors CheckRegistry1 JreFound
 
 	; 2) Check for registry
@@ -100,9 +107,10 @@ Function GetJRE
 		ReadRegStr $R1 HKLM "SOFTWARE\Wow6432Node\JavaSoft\Java Runtime Environment" "CurrentVersion"
 		ReadRegStr $R0 HKLM "SOFTWARE\Wow6432Node\JavaSoft\Java Runtime Environment\$R1" "JavaHome"
 		StrCpy $R0 "$R0\bin\${JAVAEXE}"
+		StrCpy $SERVER_JRE_FOUND "no"
 		IfErrors CheckRegistry2     
 		IfFileExists $R0 0 CheckRegistry2
-		Call SetJavaHeap32
+		Call CheckJREVersion
 		IfErrors CheckRegistry2 JreFound
 
 	; 3) Check for registry 
@@ -113,7 +121,7 @@ Function GetJRE
 		StrCpy $R0 "$R0\bin\${JAVAEXE}"
 		IfErrors CheckRegistry3
 		IfFileExists $R0 0 CheckRegistry3
-		Call SetJavaHeap32
+		Call CheckJREVersion
 		IfErrors CheckRegistry3 JreFound
 
 	; 4) Check for registry
@@ -129,7 +137,7 @@ Function GetJRE
 		StrCpy $R0 "$R0\bin\${JAVAEXE}"
 		IfErrors CheckRegistry4
 		IfFileExists $R0 0 CheckRegistry4
-		Call SetJavaHeap32
+		Call CheckJREVersion
 		IfErrors CheckRegistry4 JreFound
 
 	; 5) Check for registry
@@ -140,7 +148,7 @@ Function GetJRE
 		StrCpy $R0 "$R0\bin\${JAVAEXE}"
 		IfErrors DownloadJRE
 		IfFileExists $R0 0 DownloadJRE
-		Call SetJavaHeap32
+		Call CheckJREVersion
 		IfErrors DownloadJRE JreFound
 
 	DownloadJRE:
@@ -172,18 +180,6 @@ Function GetJRE
 		Pop $2
 		Pop $R1
 		Exch $R0
-FunctionEnd
-
-; Set heap size for java 64bit
-Function SetJavaHeap64
-	WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "HeapMem" "1280"
-	Call CheckJreVersion
-FunctionEnd
-
-; Set heap size for java 32bit
-Function SetJavaHeap32
-	WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "HeapMem" "768"
-	Call CheckJreVersion 
 FunctionEnd
 
 ; Pass the "javaw.exe" path by $R0

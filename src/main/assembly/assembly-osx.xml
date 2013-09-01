@@ -4,7 +4,7 @@
 	xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
 	
 	<!--
-		For Mac OSX the actual assembly of the App Bundle and DMG disk image 
+		For Mac OS X the actual assembly of the App Bundle and DMG disk image 
 		is handled by the osxappbundle-maven-plugin. This assembly descriptor merely 
 		copies all the files in the right place so the other plugin can pick them 
 		up easily.

@@ -92,7 +92,14 @@ public class DLNAMediaInfo implements Cloneable {
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	public static final long ENDFILE_POS = 99999475712L;
-	public static final long TRANS_SIZE = 100000000000L;
+
+	/**
+	 * Maximum size of a stream, taking into account that some renderers (like
+	 * the PS3) will convert this <code>long</code> to <code>int</code>.
+	 * Truncating this value will still return the maximum value that an
+	 * <code>int</code> can contain.
+	 */
+	public static final long TRANS_SIZE = Long.MAX_VALUE - Integer.MAX_VALUE - 1;
 
 	private boolean h264_parsed;
 

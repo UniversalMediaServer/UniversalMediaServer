@@ -61,7 +61,7 @@ import org.slf4j.LoggerFactory;
 public class MEncoderVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MEncoderVideo.class);
 	private static final String COL_SPEC = "left:pref, 3dlu, p:grow, 3dlu, right:p:grow, 3dlu, p:grow, 3dlu, right:p:grow,3dlu, p:grow, 3dlu, right:p:grow,3dlu, pref:grow";
-	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 9dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
+	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 9dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
 	private static final String REMOVE_OPTION = "---REMOVE-ME---"; // use an out-of-band option that can't be confused with a real option
 
 	private JTextField mencoder_noass_scale;
@@ -81,6 +81,7 @@ public class MEncoderVideo extends Player {
 	private JCheckBox checkBox;
 	private JCheckBox mencodermt;
 	private JCheckBox videoremux;
+	private JCheckBox normalizeaudio;
 	private JCheckBox noskip;
 	private JCheckBox intelligentsync;
 	private JTextField ocw;
@@ -163,8 +164,8 @@ public class MEncoderVideo extends Player {
 
 		FormLayout layout = new FormLayout(colSpec, ROW_SPEC);
 		PanelBuilder builder = new PanelBuilder(layout);
-		builder.setBorder(Borders.EMPTY_BORDER);
-		builder.setOpaque(false);
+		builder.border(Borders.EMPTY);
+		builder.opaque(false);
 
 		CellConstraints cc = new CellConstraints();
 
@@ -387,7 +388,21 @@ public class MEncoderVideo extends Player {
 		});
 		builder.add(videoremux, FormLayoutUtil.flip(cc.xyw(1, 9, 13), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.6"), FormLayoutUtil.flip(cc.xy(1, 13), colSpec, orientation));
+		normalizeaudio = new JCheckBox(Messages.getString("MEncoderVideo.134"));
+		normalizeaudio.setContentAreaFilled(false);
+		if (configuration.isMEncoderNormalizeVolume()) {
+			normalizeaudio.setSelected(true);
+		}
+		normalizeaudio.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setMEncoderNormalizeVolume((e.getStateChange() == ItemEvent.SELECTED));
+			}
+		});
+		// Uncomment this if volume normalizing in MEncoder is ever fixed.
+		// builder.add(normalizeaudio, FormLayoutUtil.flip(cc.xyw(1, 13, 13), colSpec, orientation));
+
+		builder.addLabel(Messages.getString("MEncoderVideo.6"), FormLayoutUtil.flip(cc.xy(1, 15), colSpec, orientation));
 		mencoder_custom_options = new JTextField(configuration.getMencoderCustomOptions());
 		mencoder_custom_options.addKeyListener(new KeyAdapter() {
 			@Override
@@ -395,11 +410,11 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderCustomOptions(mencoder_custom_options.getText());
 			}
 		});
-		builder.add(mencoder_custom_options, FormLayoutUtil.flip(cc.xyw(3, 13, 13), colSpec, orientation));
+		builder.add(mencoder_custom_options, FormLayoutUtil.flip(cc.xyw(3, 15, 13), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.93"), FormLayoutUtil.flip(cc.xy(1, 15), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.93"), FormLayoutUtil.flip(cc.xy(1, 17), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.28") + " (%)", FormLayoutUtil.flip(cc.xy(1, 15, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.28") + " (%)", FormLayoutUtil.flip(cc.xy(1, 17, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 		ocw = new JTextField(configuration.getMencoderOverscanCompensationWidth());
 		ocw.addKeyListener(new KeyAdapter() {
 			@Override
@@ -407,9 +422,9 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderOverscanCompensationWidth(ocw.getText());
 			}
 		});
-		builder.add(ocw, FormLayoutUtil.flip(cc.xy(3, 15), colSpec, orientation));
+		builder.add(ocw, FormLayoutUtil.flip(cc.xy(3, 17), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.30") + " (%)", FormLayoutUtil.flip(cc.xy(5, 15), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.30") + " (%)", FormLayoutUtil.flip(cc.xy(5, 17), colSpec, orientation));
 		och = new JTextField(configuration.getMencoderOverscanCompensationHeight());
 		och.addKeyListener(new KeyAdapter() {
 			@Override
@@ -417,9 +432,9 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderOverscanCompensationHeight(och.getText());
 			}
 		});
-		builder.add(och, FormLayoutUtil.flip(cc.xy(7, 15), colSpec, orientation));
+		builder.add(och, FormLayoutUtil.flip(cc.xy(7, 17), colSpec, orientation));
 
-		cmp = builder.addSeparator(Messages.getString("MEncoderVideo.8"), FormLayoutUtil.flip(cc.xyw(1, 17, 15), colSpec, orientation));
+		cmp = builder.addSeparator(Messages.getString("MEncoderVideo.8"), FormLayoutUtil.flip(cc.xyw(1, 19, 15), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
@@ -612,6 +627,21 @@ public class MEncoderVideo extends Player {
 		defaultArgsList.toArray(defaultArgsArray);
 
 		return defaultArgsArray;
+	}
+
+	/**
+	 * Returns the argument string surrounded with quotes if it contains a space,
+	 * otherwise returns the string as is.
+	 *
+	 * @param arg The argument string
+	 * @return The string, optionally in quotes. 
+	 */
+	private String quoteArg(String arg) {
+		if (arg != null && arg.indexOf(" ") > -1) {
+			return "\"" + arg + "\"";
+		}
+
+		return arg;
 	}
 
 	private String[] sanitizeArgs(String[] args) {
@@ -973,7 +1003,14 @@ public class MEncoderVideo extends Player {
 
 		final boolean isTsMuxeRVideoEngineEnabled = configuration.getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
 		final boolean mencoderAC3RemuxAudioDelayBug = (params.aid != null) && (params.aid.getAudioProperties().getAudioDelay() != 0) && (params.timeseek == 0);
-		if (configuration.isAudioRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && params.mediaRenderer.isTranscodeToAC3()) {
+		if (
+			configuration.isAudioRemuxAC3() &&
+			params.aid != null &&
+			params.aid.isAC3() &&
+			!avisynth() &&
+			params.mediaRenderer.isTranscodeToAC3() &&
+			!configuration.isMEncoderNormalizeVolume()
+		) {
 			// AC-3 remux takes priority
 			ac3Remux = true;
 		} else {
@@ -1294,8 +1331,8 @@ public class MEncoderVideo extends Player {
 						/* Set font with -font option, workaround for the bug:
 						 * https://github.com/Happy-Neko/ps3mediaserver/commit/52e62203ea12c40628de1869882994ce1065446a#commitcomment-990156
 						 */
-						sb.append(" -font ").append(configuration.getFont()).append(" ");
-						sb.append(" -ass-force-style FontName=").append(configuration.getFont()).append(",");
+						sb.append(" -font ").append(quoteArg(configuration.getFont())).append(" ");
+						sb.append(" -ass-force-style FontName=").append(quoteArg(configuration.getFont())).append(",");
 					} else {
 						String font = CodecUtil.getDefaultFontPath();
 						if (isNotBlank(font)) {
@@ -1306,8 +1343,8 @@ public class MEncoderVideo extends Player {
 							 * used, though) and the "-font" definition is used instead.
 							 * See: https://github.com/ps3mediaserver/ps3mediaserver/pull/14
 							 */
-							sb.append(" -font ").append(font).append(" ");
-							sb.append(" -ass-force-style FontName=").append(font).append(",");
+							sb.append(" -font ").append(quoteArg(font)).append(" ");
+							sb.append(" -ass-force-style FontName=").append(quoteArg(font)).append(",");
 						} else {
 							sb.append(" -font Arial ");
 							sb.append(" -ass-force-style FontName=Arial,");
@@ -1351,7 +1388,7 @@ public class MEncoderVideo extends Player {
 					String font = CodecUtil.getDefaultFontPath();
 
 					if (isNotBlank(font)) {
-						sb.append("-font ").append(font).append(" ");
+						sb.append("-font ").append(quoteArg(font)).append(" ");
 					}
 				}
 
@@ -1363,11 +1400,11 @@ public class MEncoderVideo extends Player {
 			} else {
 				// Set subtitles font
 				if (configuration.getFont() != null && configuration.getFont().length() > 0) {
-					sb.append(" -font ").append(configuration.getFont()).append(" ");
+					sb.append(" -font ").append(quoteArg(configuration.getFont())).append(" ");
 				} else {
 					String font = CodecUtil.getDefaultFontPath();
 					if (isNotBlank(font)) {
-						sb.append(" -font ").append(font).append(" ");
+						sb.append(" -font ").append(quoteArg(font)).append(" ");
 					}
 				}
 
@@ -1972,7 +2009,11 @@ public class MEncoderVideo extends Player {
 		// Force srate because MEncoder doesn't like anything other than 48khz for AC-3
 		if (!pcm && !dtsRemux && !ac3Remux) {
 			cmdList.add("-af");
-			cmdList.add("lavcresample=" + rate);
+			String af = "lavcresample=" + rate;
+			if (configuration.isMEncoderNormalizeVolume()) {
+				af += ":volnorm=1";
+			}
+			cmdList.add(af);
 			cmdList.add("-srate");
 			cmdList.add(rate);
 		}
@@ -2257,11 +2298,14 @@ public class MEncoderVideo extends Player {
 			if (!directpipe) {
 				ProcessWrapper mkfifo_process = pipe.getPipeProcess();
 				pw.attachProcess(mkfifo_process);
-				mkfifo_process.runInNewThread();
-				try {
-					Thread.sleep(50);
-				} catch (InterruptedException e) {
-				}
+
+				/**
+				 * It can take a long time for Windows to create a named pipe (and
+				 * mkfifo can be slow if /tmp isn't memory-mapped), so run this in
+				 * the current thread.
+				 */
+				mkfifo_process.runInSameThread();
+
 				pipe.deleteLater();
 			}
 		}

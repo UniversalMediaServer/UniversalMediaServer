@@ -19,6 +19,7 @@
 package net.pms.newgui;
 
 import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Cursor;
@@ -53,8 +54,8 @@ public class AboutTab {
 		);
 
 		PanelBuilder builder = new PanelBuilder(layout);
-		builder.setDefaultDialogBorder();
-		builder.setOpaque(true);
+		builder.border(Borders.DIALOG);
+		builder.opaque(true);
 		CellConstraints cc = new CellConstraints();
 
 		String projectName = PropertiesUtil.getProjectProperties().get("project.name");

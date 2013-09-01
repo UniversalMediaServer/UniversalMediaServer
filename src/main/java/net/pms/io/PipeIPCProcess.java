@@ -148,6 +148,8 @@ public class PipeIPCProcess extends Thread implements ProcessWrapper {
 			mkin.getPipeProcess().runInNewThread();
 			mkout.getPipeProcess().runInNewThread();
 
+			// Allow the threads some time to do their work before
+			// starting the main thread
 			try {
 				Thread.sleep(150);
 			} catch (InterruptedException e) {
@@ -155,6 +157,23 @@ public class PipeIPCProcess extends Thread implements ProcessWrapper {
 		}
 
 		start();
+	}
+
+	@Override
+	public void runInSameThread() {
+		if (!Platform.isWindows()) {
+			mkin.getPipeProcess().runInNewThread();
+			mkout.getPipeProcess().runInNewThread();
+
+			// Allow the threads some time to do their work before
+			// running the main thread
+			try {
+				Thread.sleep(150);
+			} catch (InterruptedException e) {
+			}
+		}
+
+		run();
 	}
 
 	@Override

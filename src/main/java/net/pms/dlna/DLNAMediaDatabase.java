@@ -734,11 +734,8 @@ public class DLNAMediaDatabase implements Runnable {
 	}
 
 	public synchronized void scanLibrary() {
-		if (scanner == null) {
-			scanner = new Thread(this, "Library Scanner");
-			scanner.start();
-		} else if (scanner.isAlive()) {
-			LOGGER.info("Scanner is already running !");
+		if (isScanLibraryRunning()) {
+			LOGGER.info(Messages.getString("NetworkTab.70"));
 		} else {
 			scanner = new Thread(this, "Library Scanner");
 			scanner.start();
@@ -746,7 +743,7 @@ public class DLNAMediaDatabase implements Runnable {
 	}
 
 	public synchronized void stopScanLibrary() {
-		if (scanner != null && scanner.isAlive()) {
+		if (isScanLibraryRunning()) {
 			PMS.get().getRootFolder(null).stopScan();
 		}
 	}

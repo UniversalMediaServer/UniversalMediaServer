@@ -125,7 +125,7 @@ public class TracesTab {
 			"fill:10:grow, p"
 		);
 		PanelBuilder builder = new PanelBuilder(layout);
-		builder.setOpaque(true);
+		builder.opaque(true);
 
 		CellConstraints cc = new CellConstraints();
 

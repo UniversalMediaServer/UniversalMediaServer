@@ -220,7 +220,7 @@ public abstract class Player {
 	 * The parameters to populate.
 	 */
 	public void setAudioOutputParameters(DLNAMediaInfo media, OutputParams params) {
-		if (params.aid == null && media != null) {
+		if (params.aid == null && media != null && media.getFirstAudioTrack() != null) {
 			// check for preferred audio
 			DLNAMediaAudio dtsTrack = null;
 			StringTokenizer st = new StringTokenizer(configuration.getAudioLanguages(), ",");

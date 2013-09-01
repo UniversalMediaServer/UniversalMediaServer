@@ -81,8 +81,8 @@ public class PluginTab {
 
 		FormLayout layout = new FormLayout(colSpec, ROW_SPEC);
 		PanelBuilder builder = new PanelBuilder(layout);
-		builder.setBorder(Borders.DLU4_BORDER);
-		builder.setOpaque(true);
+		builder.border(Borders.DLU4);
+		builder.opaque(true);
 
 		CellConstraints cc = new CellConstraints();
 

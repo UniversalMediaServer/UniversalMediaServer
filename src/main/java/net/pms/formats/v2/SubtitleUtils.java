@@ -19,14 +19,13 @@
 package net.pms.formats.v2;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.io.OutputParams;
-import static net.pms.util.StringUtil.*;
-import static org.apache.commons.io.FilenameUtils.getBaseName;
 import static org.apache.commons.lang3.StringUtils.*;
 import static org.mozilla.universalchardet.Constants.*;
 
@@ -85,90 +84,40 @@ public class SubtitleUtils {
 	}
 
 	/**
-	 * Applies timeseeking to subtitles file in SSA/ASS format
+	 * Applies codepage conversion and timeseeking to subtitles file in ASS/SSA and SUBRIP format if needed 
 	 *
-	 * @param SrtFile Subtitles file in SSA/ASS format
-	 * @param timeseek Time stamp value
+	 * @param subsFile Subtitles file
+	 * @param params Output parameters with time stamp value
+	 * @param outputSubs 
 	 * @return Converted subtitles file
 	 * @throws IOException
 	 */
-	public static File applyTimeSeekingToASS(File subsFile, OutputParams params) throws IOException {
-		Double startTime;
-		Double endTime;
+	public static File applyCodepageConversion(OutputParams params, File outputSubs) throws IOException {
 		String line;
-		File outputSubs = new File(configuration.getTempFolder(), getBaseName(subsFile.getName()) + "_" + System.currentTimeMillis()  + ".tmp");
-		BufferedWriter output;
-		BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(subsFile)));
-		output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs)));
-		Double timeseek = params.timeseek;
-		while ((line = input.readLine()) != null) {
-			if (line.startsWith("Dialogue:")) {
-				String[] tempStr = line.split(",");
-				startTime = convertStringToTime(tempStr[1]);
-				endTime = convertStringToTime(tempStr[2]);
-
-				if (startTime >= timeseek) {
-					tempStr[1] = convertTimeToString(startTime - timeseek, ASS_TIME_FORMAT);
-					tempStr[2] = convertTimeToString(endTime - timeseek, ASS_TIME_FORMAT);
-				} else {
-					continue;
-				}
-
-				output.write(join(tempStr, ",") + "\n");
-			} else {
-				output.write(line + "\n");
-			}
+		BufferedReader reader;
+		String cp = configuration.getSubtitlesCodepage();
+		String subsFileCharset = params.sid.getExternalFileCharacterSet();
+		File subsFile = params.sid.getExternalFile();
+		final boolean isSubtitlesCodepageForcedInConfigurationAndSupportedByJVM = isNotBlank(cp) && Charset.isSupported(cp) && !params.sid.isExternalFileUtf();
+		final boolean isSubtitlesCodepageAutoDetectedAndSupportedByJVM = isNotBlank(subsFileCharset) && Charset.isSupported(subsFileCharset);
+		if (isSubtitlesCodepageForcedInConfigurationAndSupportedByJVM) {
+			reader = new BufferedReader(new InputStreamReader(new FileInputStream(subsFile), Charset.forName(cp)));
+		} else if (isSubtitlesCodepageAutoDetectedAndSupportedByJVM) {
+			reader = new BufferedReader(new InputStreamReader(new FileInputStream(subsFile), Charset.forName(subsFileCharset)));
+		} else {
+			reader = new BufferedReader(new InputStreamReader(new FileInputStream(subsFile)));
 		}
-		input.close();
+
+		BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), Charset.forName(CHARSET_UTF_8)));
+		while ((line = reader.readLine()) != null) {
+			output.write(line + "\n");
+		}
+
 		output.flush();
 		output.close();
-		PMS.get().addTempFile(outputSubs, 2 * 24 * 3600 * 1000);
-		return outputSubs;
-	}
-
-	public static File applyTimeSeekingToSrt(File subsFile, OutputParams params) throws IOException {
-		BufferedReader reader;
-		Double timeseek = params.timeseek;
-		String cp = configuration.getSubtitlesCodepage();
-		if (isNotBlank(cp) && !params.sid.isExternalFileUtf8()) {
-			reader = new BufferedReader(new InputStreamReader(new FileInputStream(subsFile),cp)); // Always convert codepage
-		} else if (timeseek > 0) {
-			reader = new BufferedReader(new InputStreamReader(new FileInputStream(subsFile))); // Apply timeseeking without codepage conversion
-		} else {
-			return subsFile; // Codepage conversion or timeseeking is not needed
-		}
-
-		File outputSubs = new File(configuration.getTempFolder(), getBaseName(subsFile.getName()) + "_" + System.currentTimeMillis()  + ".tmp");
-		BufferedWriter w = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs)));
-		String line;
-		int n = 1;
-
-		while ((line = reader.readLine()) != null) {
-			if (line.contains("-->")) {
-				String startTime = line.substring(0, line.indexOf("-->") - 1);
-				String endTime = line.substring(line.indexOf("-->") + 4);
-				Double start = convertStringToTime(startTime);
-				Double stop = convertStringToTime(endTime);
-
-				if (start >= timeseek) {
-					w.write("" + (n++) + "\n");
-					w.write(convertTimeToString(start - timeseek, SRT_TIME_FORMAT));
-					w.write(" --> ");
-					w.write(convertTimeToString(stop - timeseek, SRT_TIME_FORMAT) + "\n");
-
-					while (isNotBlank(line = reader.readLine())) { // Read all following subs lines
-						w.write(line + "\n");
-					}
-
-					w.write("" + "\n");
-				}
-			}
-		}
 
 		reader.close();
-		w.flush();
-		w.close();
-		PMS.get().addTempFile(outputSubs, 2 * 24 * 3600 * 1000);
+		PMS.get().addTempFile(outputSubs, 30 * 24 * 3600 * 1000);
 		return outputSubs;
 	}
 }
