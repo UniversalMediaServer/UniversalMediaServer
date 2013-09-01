@@ -31,6 +31,10 @@ public class InternalJavaProcessImpl implements ProcessWrapper {
 	}
 
 	@Override
+	public void runInSameThread() {
+	}
+
+	@Override
 	public boolean isReadyToStop() {
 		return false;
 	}

@@ -177,8 +177,12 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		pipe.deleteLater(); // delete the named pipe later; harmless if it isn't created
 		ProcessWrapper mkfifo_process = pipe.getPipeProcess();
 
-		// Start the process as early as possible
-		mkfifo_process.runInNewThread();
+		/**
+		 * It can take a long time for Windows to create a named pipe (and
+		 * mkfifo can be slow if /tmp isn't memory-mapped), so run this in
+		 * the current thread.
+		 */
+		mkfifo_process.runInSameThread();
 
 		params.input_pipes[0] = pipe;
 

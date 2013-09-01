@@ -25,6 +25,11 @@ import net.pms.configuration.PmsConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Process to create a platform specific communications pipe that provides
+ * an input stream and output stream. Other processes can then transmit
+ * content via this pipe.
+ */
 public class PipeProcess {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PipeProcess.class);
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
