@@ -1,7 +1,7 @@
-3.0.0-a5 - 2013-09-??
+3.0.0-a5 - 2013-09-02
 
 	General:
-		
+		Fixed a startup problem affecting some users
 
 3.0.0-a4 - 2013-09-01
 
