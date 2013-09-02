@@ -1,3 +1,8 @@
+3.0.0-a5 - 2013-09-02
+
+	General:
+		Fixed a startup problem affecting some users
+
 3.0.0-a4 - 2013-09-01
 
 	General:
@@ -930,10 +935,10 @@
 	Added option to select and force the default renderer
 
 
-↑ ========================================================== ↑
-↑      Universal Media Server changelog above this line      ↑
-↓ PS3 Media Server (SubJunk Build) changelog below this line ↓
-↓ ========================================================== ↓
+â†‘ ========================================================== â†‘
+â†‘      Universal Media Server changelog above this line      â†‘
+â†“ PS3 Media Server (SubJunk Build) changelog below this line â†“
+â†“ ========================================================== â†“
 
 
 1.52.2-SB71:
