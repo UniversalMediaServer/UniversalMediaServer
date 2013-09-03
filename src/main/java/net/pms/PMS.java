@@ -252,13 +252,19 @@ public class PMS {
 			checkThread.interrupt();
 			checkThread = null;
 
-			int exit = process.exitValue();
-			if (exit != 0) {
-				if (error) {
-					LOGGER.info("[" + exit + "] Cannot launch " + name + ". Check the presence of " + params[0]);
+			try {
+				int exit = process.exitValue();
+				if (exit != 0) {
+					if (error) {
+						LOGGER.info("[" + exit + "] Cannot launch " + name + ". Check the presence of " + params[0]);
+					}
+					return false;
 				}
-				return false;
+			} catch (IllegalThreadStateException ise) {
+				LOGGER.trace("Forcing shutdown of process: " + process);
+				ProcessUtil.destroy(process);
 			}
+
 			return true;
 		} catch (IOException | InterruptedException e) {
 			if (error) {
