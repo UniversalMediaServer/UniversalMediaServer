@@ -42,16 +42,16 @@ public class SelectRenderers extends JPanel implements ItemListener {
 	private final PmsConfiguration configuration = PMS.getConfiguration();
 	Locale locale = new Locale(configuration.getLanguage());
 	ComponentOrientation orientation = ComponentOrientation.getOrientation(locale);
-	private final List<JCheckBox> checkboxes;
+	private final List<JCheckBox> checkBoxes;
 	private JCheckBox selectAll = new JCheckBox(Messages.getString("GeneralTab.7"));
 	private JCheckBox deselectAll = new JCheckBox(Messages.getString("GeneralTab.8"));
-	private ArrayList<String> allConfs = RendererConfiguration.getAllRenderersNames();
+	private String[] allRenderersNames = RendererConfiguration.getAllRenderersNames();
 	private static JFrame frame;
 
 public SelectRenderers() {
 		super(new BorderLayout());
 		String rendererName;
-		JPanel checkPanel = new JPanel(new GridLayout(0, 2));
+		JPanel checkPanel = new JPanel(new GridLayout(0, 3));
 
 		selectAll.setSelected(false);
 		selectAll.addItemListener(this);
@@ -60,24 +60,6 @@ public SelectRenderers() {
 		deselectAll.setSelected(false);
 		deselectAll.addItemListener(this);
 		checkPanel.add(deselectAll);
-		checkPanel.add(new JLabel("____________________________"));
-		checkPanel.add(new JLabel("____________________________"));
-
-		checkboxes = new ArrayList<>();
-
-		for (int i = 0; i < allConfs.size(); i++) {
-			rendererName = allConfs.get(i);
-			JCheckBox checkbox = new JCheckBox(rendererName);
-			if (configuration.getIgnoredRenderers().contains(rendererName)) {
-				checkbox.setSelected(false);
-			} else {
-				checkbox.setSelected(true);
-			}
-			
-			checkbox.addItemListener(this);
-			checkboxes.add(checkbox);
-			checkPanel.add(checkboxes.get(i));
-		}
 
 		final CustomJButton saveRenderersConfiguration = new CustomJButton(Messages.getString("GeneralTab.6"));
 		saveRenderersConfiguration.addActionListener(new ActionListener() {
@@ -94,6 +76,26 @@ public SelectRenderers() {
 		});
 		checkPanel.add(saveRenderersConfiguration);
 
+		checkPanel.add(new JLabel("____________________________"));
+		checkPanel.add(new JLabel("____________________________"));
+		checkPanel.add(new JLabel("____________________________"));
+
+		checkBoxes = new ArrayList<>();
+		
+		for (int i = 0; i < allRenderersNames.length; i++) {
+			rendererName = allRenderersNames[i];
+			JCheckBox checkbox = new JCheckBox(rendererName);
+			if (configuration.getIgnoredRenderers().contains(rendererName)) {
+				checkbox.setSelected(false);
+			} else {
+				checkbox.setSelected(true);
+			}
+			
+			checkbox.addItemListener(this);
+			checkBoxes.add(checkbox);
+			checkPanel.add(checkBoxes.get(i));
+		}
+
 		checkPanel.applyComponentOrientation(orientation);
 		add(checkPanel, BorderLayout.LINE_START);
 		setBorder(BorderFactory.createEmptyBorder(20,20,20,20));
@@ -105,22 +107,22 @@ public SelectRenderers() {
 		StringBuilder ignoredRenders = new StringBuilder();
 		if (source == selectAll) {
 			deselectAll.setSelected(false);
-			for (int i = 0; i < checkboxes.size(); i++) {
-				checkboxes.get(i).setSelected(true);
+			for (int i = 0; i < checkBoxes.size(); i++) {
+				checkBoxes.get(i).setSelected(true);
 			}
 		} else if (source == deselectAll) {
 			selectAll.setSelected(false);
-			for (int i = 0; i < checkboxes.size(); i++) {
-				checkboxes.get(i).setSelected(false);
+			for (int i = 0; i < checkBoxes.size(); i++) {
+				checkBoxes.get(i).setSelected(false);
 			}
 		} else {
 			selectAll.setSelected(false);
 			deselectAll.setSelected(false);
 		}
 
-		for (int i = 0; i < allConfs.size(); i++) {
-			if (!checkboxes.get(i).isSelected()) {
-				ignoredRenders.append(allConfs.get(i)).append(",");
+		for (int i = 0; i < allRenderersNames.length; i++) {
+			if (!checkBoxes.get(i).isSelected()) {
+				ignoredRenders.append(allRenderersNames[i]).append(",");
 			}
 		}
 

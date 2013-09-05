@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
 public class RendererConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
 	private static ArrayList<RendererConfiguration> enabledRendererConfs;
-	private static ArrayList<String> allRenderersNames;
+	private static String[] allRenderersNames;
 	private static PmsConfiguration pmsConfiguration;
 	private static RendererConfiguration defaultConf;
 	private static Map<InetAddress, RendererConfiguration> addressAssociation = new HashMap<>();
@@ -118,7 +118,6 @@ public class RendererConfiguration {
 	public static void loadRendererConfigurations(PmsConfiguration pmsConf) {
 		pmsConfiguration = pmsConf;
 		enabledRendererConfs = new ArrayList<>();
-		allRenderersNames = new ArrayList<>();
 
 		try {
 			defaultConf = new RendererConfiguration();
@@ -134,25 +133,29 @@ public class RendererConfiguration {
 			File[] confs = renderersDir.listFiles();
 			Arrays.sort(confs);
 			int rank = 1;
+			ArrayList<String> tempConfs = new ArrayList<>();
 
 			for (File f : confs) {
 				if (f.getName().endsWith(".conf")) {
 					try {
-						LOGGER.info("Loading configuration file: " + f.getName());
 						RendererConfiguration r = new RendererConfiguration(f);
 						r.rank = rank++;
 						String rendererName = r.getRendererName();
+						tempConfs.add(rendererName);
 						if (!pmsConfiguration.getIgnoredRenderers().contains(rendererName)) {
 							enabledRendererConfs.add(r);
+							LOGGER.info("Loaded configuration file: " + f.getName());
 						} else {
 							LOGGER.info("Ignored " + rendererName + " configuration file.");
 						}
-						allRenderersNames.add(r.getRendererName());
 					} catch (ConfigurationException ce) {
 						LOGGER.info("Error in loading configuration of: " + f.getAbsolutePath());
 					}
 				}
 			}
+			allRenderersNames = new String[tempConfs.size()];
+			tempConfs.toArray(allRenderersNames);
+		    Arrays.sort(allRenderersNames);
 		}
 
 		if (enabledRendererConfs.size() > 0) {
@@ -1094,7 +1097,7 @@ public class RendererConfiguration {
 		return getString(OVERRIDE_VF, null);
 	}
 	
-	public static ArrayList<String> getAllRenderersNames() {
+	public static String[] getAllRenderersNames() {
 		return allRenderersNames;
 	}
 }
