@@ -45,7 +45,7 @@ public class SelectRenderers extends JPanel implements ItemListener {
 	private final List<JCheckBox> checkBoxes;
 	private JCheckBox selectAll = new JCheckBox(Messages.getString("GeneralTab.7"));
 	private JCheckBox deselectAll = new JCheckBox(Messages.getString("GeneralTab.8"));
-	private String[] allRenderersNames = RendererConfiguration.getAllRenderersNames();
+	private ArrayList<String> allRenderersNames = RendererConfiguration.getAllRenderersNames();
 	private static JFrame frame;
 
 public SelectRenderers() {
@@ -82,8 +82,8 @@ public SelectRenderers() {
 
 		checkBoxes = new ArrayList<>();
 		
-		for (int i = 0; i < allRenderersNames.length; i++) {
-			rendererName = allRenderersNames[i];
+		for (int i = 0; i < allRenderersNames.size(); i++) {
+			rendererName = allRenderersNames.get(i);
 			JCheckBox checkbox = new JCheckBox(rendererName);
 			if (configuration.getIgnoredRenderers().contains(rendererName)) {
 				checkbox.setSelected(false);
@@ -120,9 +120,9 @@ public SelectRenderers() {
 			deselectAll.setSelected(false);
 		}
 
-		for (int i = 0; i < allRenderersNames.length; i++) {
+		for (int i = 0; i < allRenderersNames.size(); i++) {
 			if (!checkBoxes.get(i).isSelected()) {
-				ignoredRenders.append(allRenderersNames[i]).append(",");
+				ignoredRenders.append(allRenderersNames.get(i)).append(",");
 			}
 		}
 

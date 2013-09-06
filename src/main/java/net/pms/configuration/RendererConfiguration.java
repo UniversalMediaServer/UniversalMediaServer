@@ -6,6 +6,7 @@ import java.io.File;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -31,7 +32,7 @@ import org.slf4j.LoggerFactory;
 public class RendererConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
 	private static ArrayList<RendererConfiguration> enabledRendererConfs;
-	private static String[] allRenderersNames;
+	private static ArrayList<String> allRenderersNames = new ArrayList<>();
 	private static PmsConfiguration pmsConfiguration;
 	private static RendererConfiguration defaultConf;
 	private static Map<InetAddress, RendererConfiguration> addressAssociation = new HashMap<>();
@@ -133,15 +134,13 @@ public class RendererConfiguration {
 			File[] confs = renderersDir.listFiles();
 			Arrays.sort(confs);
 			int rank = 1;
-			ArrayList<String> tempConfs = new ArrayList<>();
-
 			for (File f : confs) {
 				if (f.getName().endsWith(".conf")) {
 					try {
 						RendererConfiguration r = new RendererConfiguration(f);
 						r.rank = rank++;
 						String rendererName = r.getRendererName();
-						tempConfs.add(rendererName);
+						allRenderersNames.add(rendererName);
 						if (!pmsConfiguration.getIgnoredRenderers().contains(rendererName)) {
 							enabledRendererConfs.add(r);
 							LOGGER.info("Loaded configuration file: " + f.getName());
@@ -153,9 +152,8 @@ public class RendererConfiguration {
 					}
 				}
 			}
-			allRenderersNames = new String[tempConfs.size()];
-			tempConfs.toArray(allRenderersNames);
-		    Arrays.sort(allRenderersNames);
+			
+			Collections.sort(allRenderersNames);
 		}
 
 		if (enabledRendererConfs.size() > 0) {
@@ -1097,7 +1095,7 @@ public class RendererConfiguration {
 		return getString(OVERRIDE_VF, null);
 	}
 	
-	public static String[] getAllRenderersNames() {
+	public static ArrayList<String> getAllRenderersNames() {
 		return allRenderersNames;
 	}
 }
