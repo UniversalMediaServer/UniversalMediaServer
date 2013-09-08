@@ -145,7 +145,7 @@ public class RendererConfiguration {
 							enabledRendererConfs.add(r);
 							LOGGER.info("Loaded configuration for renderer: " + rendererName);
 						} else {
-							LOGGER.info("Ignored " + rendererName + " configuration");
+							LOGGER.debug("Ignored " + rendererName + " configuration");
 						}
 					} catch (ConfigurationException ce) {
 						LOGGER.info("Error in loading configuration of: " + f.getAbsolutePath());
