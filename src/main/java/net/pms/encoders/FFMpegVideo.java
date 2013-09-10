@@ -198,25 +198,25 @@ public class FFMpegVideo extends Player {
 
 		String overrideVF = renderer.getFFmpegVideoFilterOverride();
 
-		if (rescaleOrPadding != null || overrideVF != null || subsOption != null) {
+		if (rescaleOrPadding != null || overrideVF != null || isNotBlank(subsOption)) {
 			videoFilterOptions.add("-vf");
 			StringBuilder filterParams = new StringBuilder();
 
 			if (overrideVF != null) {
 				filterParams.append(overrideVF);
-				if (subsOption != null) {
+				if (isNotBlank(subsOption)) {
 					filterParams.append(", ");
 				}
 			} else {
 				if (rescaleOrPadding != null) {
 					filterParams.append(rescaleOrPadding);
-					if (subsOption != null) {
+					if (isNotBlank(subsOption)) {
 						filterParams.append(", ");
 					}
 				}
 			}
 
-			if (subsOption != null) {
+			if (isNotBlank(subsOption)) {
 				filterParams.append(subsOption);
 			}
 
