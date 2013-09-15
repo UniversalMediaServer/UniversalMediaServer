@@ -1254,8 +1254,7 @@ public class MEncoderVideo extends Player {
 				(wmv && !params.mediaRenderer.isXBOX() ? ":acodec=wmav2:abitrate=448" : (":acodec=" + (configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3") +
 				":abitrate=" + CodecUtil.getAC3Bitrate(configuration, params.aid))) +
 				":threads=" + (wmv && !params.mediaRenderer.isXBOX() ? 1 : configuration.getMencoderMaxThreads()) +
-				(h264ts ? ":o=preset=superfast," + x264CRF + "g=250,i_qfactor=0.71,qcomp=0.6,level=4.1,weightp=0,8x8dct=0,aq-strength=0" : "") +
-				("".equals(x264CRF) ? "" : ":" + x264CRF);
+				(h264ts ? ":o=preset=superfast," + x264CRF + "g=250,i_qfactor=0.71,qcomp=0.6,level=4.1,weightp=0,8x8dct=0,aq-strength=0" : "");
 
 			String audioType = "ac3";
 			if (dtsRemux) {

@@ -72,7 +72,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private boolean resolved;
 	private static final int STOP_PLAYING_DELAY = 4000;
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAResource.class);
-	private static final SimpleDateFormat SDF_DATE = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
+	private final SimpleDateFormat SDF_DATE = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	protected static final int MAX_ARCHIVE_ENTRY_SIZE = 10000000;

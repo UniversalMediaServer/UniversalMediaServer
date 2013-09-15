@@ -198,25 +198,25 @@ public class FFMpegVideo extends Player {
 
 		String overrideVF = renderer.getFFmpegVideoFilterOverride();
 
-		if (rescaleOrPadding != null || overrideVF != null || subsOption != null) {
+		if (rescaleOrPadding != null || overrideVF != null || isNotBlank(subsOption)) {
 			videoFilterOptions.add("-vf");
 			StringBuilder filterParams = new StringBuilder();
 
 			if (overrideVF != null) {
 				filterParams.append(overrideVF);
-				if (subsOption != null) {
+				if (isNotBlank(subsOption)) {
 					filterParams.append(", ");
 				}
 			} else {
 				if (rescaleOrPadding != null) {
 					filterParams.append(rescaleOrPadding);
-					if (subsOption != null) {
+					if (isNotBlank(subsOption)) {
 						filterParams.append(", ");
 					}
 				}
 			}
 
-			if (subsOption != null) {
+			if (isNotBlank(subsOption)) {
 				filterParams.append(subsOption);
 			}
 
@@ -1191,9 +1191,8 @@ public class FFMpegVideo extends Player {
 							outputString.append(line).append("\n");
 							output.write(outputString.toString());
 						} else  {
-// TODO Use it when be clear how the configuration.getAssScale() should be used to calculate the font size related to the video height
-//							outputString.append("PlayResY: ").append(media.getHeight()).append("\n");
-//							outputString.append("PlayResX: ").append(media.getWidth()).append("\n");
+							outputString.append("PlayResY: ").append(media.getHeight()).append("\n");
+							outputString.append("PlayResX: ").append(media.getWidth()).append("\n");
 							break;
 						}
 					}
@@ -1220,7 +1219,7 @@ public class FFMpegVideo extends Player {
 						}
 
 						if (format[i].contains("Fontsize")) {
-							params[i] = Integer.toString((int) (16 * Double.parseDouble(configuration.getAssScale())));
+							params[i] = Integer.toString((int) ((Integer.parseInt(params[i]) * media.getHeight()/288 * Double.parseDouble(configuration.getAssScale()))));
 							continue;
 						}
 

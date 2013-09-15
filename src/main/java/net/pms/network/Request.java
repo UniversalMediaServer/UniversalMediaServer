@@ -57,7 +57,7 @@ public class Request extends HTTPResource {
 	private final static String HTTP_206_OK_10 = "HTTP/1.0 206 Partial Content";
 	private final static String CONTENT_TYPE_UTF8 = "CONTENT-TYPE: text/xml; charset=\"utf-8\"";
 	private final static String CONTENT_TYPE = "Content-Type: text/xml; charset=\"utf-8\"";
-	private static SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
+	private SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
 	private final String method;
 	private String argument;
 	private String soapaction;
