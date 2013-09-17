@@ -521,7 +521,6 @@ public class PMS {
 				JOptionPane.YES_NO_OPTION);
 				if (whetherToSelectRenderers == JOptionPane.YES_OPTION) {
 					SelectRenderers.showDialog();
-					save();
 				}
 
 				// Ask if they want to hide advanced options
