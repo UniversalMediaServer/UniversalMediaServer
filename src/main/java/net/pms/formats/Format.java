@@ -267,7 +267,8 @@ public abstract class Format implements Cloneable {
 		} else {
 			media.parse(file, this, type, false);
 		}
-		LOGGER.trace("Parsing results: " + file + " / " + media);
+
+		LOGGER.trace("Parsing results for file \"{}\": {}", file.toString(), media.toString());
 	}
 
 	/**
