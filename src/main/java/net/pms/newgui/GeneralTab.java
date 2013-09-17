@@ -460,7 +460,7 @@ public class GeneralTab {
 			setRenderers.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					SelectRenderers.createAndShowGUI();
+					SelectRenderers.showDialog();
 					}
 			});
 

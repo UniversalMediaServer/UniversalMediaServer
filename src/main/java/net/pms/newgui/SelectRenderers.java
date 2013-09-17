@@ -37,18 +37,17 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 
 public class SelectRenderers extends JPanel implements ItemListener {
-	private static final Logger LOGGER = LoggerFactory.getLogger(SelectRenderers.class);
 	private static final long serialVersionUID = -2724796596060834064L;
-	private final PmsConfiguration configuration = PMS.getConfiguration();
+	private final static PmsConfiguration configuration = PMS.getConfiguration();
 	Locale locale = new Locale(configuration.getLanguage());
 	ComponentOrientation orientation = ComponentOrientation.getOrientation(locale);
 	private final List<JCheckBox> checkBoxes;
 	private JCheckBox selectAll = new JCheckBox(Messages.getString("GeneralTab.7"));
 	private JCheckBox deselectAll = new JCheckBox(Messages.getString("GeneralTab.8"));
-	private ArrayList<String> allRenderersNames = RendererConfiguration.getAllRenderersNames();
-	private static JFrame frame;
+	private static ArrayList<String> allRenderersNames;
+	private static final Logger LOGGER = LoggerFactory.getLogger(PMS.class);
 
-public SelectRenderers() {
+	public SelectRenderers() {
 		super(new BorderLayout());
 		String rendererName;
 		JPanel checkPanel = new JPanel(new GridLayout(0, 3));
@@ -61,21 +60,7 @@ public SelectRenderers() {
 		deselectAll.addItemListener(this);
 		checkPanel.add(deselectAll);
 
-		final CustomJButton saveRenderersConfiguration = new CustomJButton(Messages.getString("GeneralTab.6"));
-		saveRenderersConfiguration.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				try {
-					configuration.save();
-				} catch (ConfigurationException e1) {
-					LOGGER.info("Saving renderer configurations ends with error: "  + e1);
-				}
-				frame.dispose();
-				frame = null;
-			}
-		});
-		checkPanel.add(saveRenderersConfiguration);
-
+		checkPanel.add(new JLabel(""));
 		checkPanel.add(new JLabel("____________________________"));
 		checkPanel.add(new JLabel("____________________________"));
 		checkPanel.add(new JLabel("____________________________"));
@@ -102,6 +87,7 @@ public SelectRenderers() {
 	}
 
 	/** Listens to the check boxes. */
+	
 	public void itemStateChanged(ItemEvent e) {
 		Object source = e.getItemSelectable();
 		StringBuilder ignoredRenders = new StringBuilder();
@@ -132,27 +118,23 @@ public SelectRenderers() {
 	/**
 	 * Create the GUI and show it.
 	 */
-	public static void createAndShowGUI() {
-		if (frame == null) {
-			//Create and set up the window.
-			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-			frame = new JFrame(Messages.getString("GeneralTab.5"));
-			frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
-			frame.setIconImage(LooksFrame.readImageIcon("icon-32.png").getImage());
-
-			//Create and set up the content pane.
-			JComponent contentPane = new SelectRenderers();
-			contentPane.setOpaque(true);
-			frame.setContentPane(contentPane);
-			frame.pack();
-			Dimension frameSize = frame.getSize();
-			frame.setLocation(
-					(screenSize.width - frameSize.width) / 2,
-					(screenSize.height - frameSize.height) / 2
-				);
-			frame.setVisible(true);
-		} else if (frame.isDisplayable()) {
-			frame.setVisible(true);
+	public static void showDialog() {
+		RendererConfiguration.loadRendererConfigurations(configuration);
+		allRenderersNames = RendererConfiguration.getAllRenderersNames();
+		int selectRenderers = JOptionPane.showOptionDialog(
+				null,
+				new SelectRenderers(),
+				Messages.getString("GeneralTab.5"),
+				JOptionPane.OK_CANCEL_OPTION,
+				JOptionPane.PLAIN_MESSAGE,
+				null, null, null);
+		if (selectRenderers == JOptionPane.YES_OPTION) {
+			try {
+				configuration.save();
+			} catch (ConfigurationException e) {
+				LOGGER.error("Could not save configuration", e);
+			}
+			
 		}
 	}
 }

@@ -20,6 +20,7 @@
 package net.pms;
 
 import com.sun.jna.Platform;
+
 import java.awt.*;
 import java.io.*;
 import java.net.BindException;
@@ -27,7 +28,9 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.logging.LogManager;
+
 import javax.swing.*;
+
 import net.pms.configuration.Build;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -51,6 +54,7 @@ import net.pms.newgui.DummyFrame;
 import net.pms.newgui.IFrame;
 import net.pms.newgui.LooksFrame;
 import net.pms.newgui.ProfileChooser;
+import net.pms.newgui.SelectRenderers;
 import net.pms.update.AutoUpdater;
 import net.pms.util.FileUtil;
 import net.pms.util.OpenSubtitle;
@@ -60,6 +64,7 @@ import net.pms.util.SystemErrWrapper;
 import net.pms.util.TaskRunner;
 import net.pms.util.TempFileMgr;
 import net.pms.util.Version;
+
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
@@ -505,6 +510,17 @@ public class PMS {
 					// Wireless
 					configuration.setMaximumBitrate("50");
 					configuration.setMPEG2MainSettings("Automatic (Wireless)");
+					save();
+				}
+				
+				// Ask if they want select renderers
+				int whetherToSelectRenderers = JOptionPane.showConfirmDialog(
+				null,
+				Messages.getString("Do you want select renderers"),
+				Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+				JOptionPane.YES_NO_OPTION);
+				if (whetherToSelectRenderers == JOptionPane.YES_OPTION) {
+					SelectRenderers.showDialog();
 					save();
 				}
 
