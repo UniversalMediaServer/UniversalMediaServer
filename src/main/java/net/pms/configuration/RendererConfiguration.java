@@ -37,7 +37,10 @@ public class RendererConfiguration {
 	private final ConfigurationReader configurationReader;
 	private FormatConfiguration formatConfiguration;
 	private int rank;
+
+	// Holds MIME type aliases
 	private final Map<String, String> mimes;
+
 	private final Map<String, String> DLNAPN;
 
 	// property values
@@ -548,85 +551,94 @@ public class RendererConfiguration {
 		return getBoolean(DLNA_LOCALIZATION_REQUIRED, false);
 	}
 
-	public String getMimeType(String mimetype) {
-		if (isMediaParserV2()) {
-			if (mimetype != null && mimetype.equals(HTTPResource.VIDEO_TRANSCODE)) {
-				mimetype = getFormatConfiguration().match(FormatConfiguration.MPEGPS, FormatConfiguration.MPEG2, FormatConfiguration.AC3);
-				if (isTranscodeToMPEGTSAC3()) {
-					mimetype = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.MPEG2, FormatConfiguration.AC3);
-				} else if (isTranscodeToWMV()) {
-					mimetype = getFormatConfiguration().match(FormatConfiguration.WMV, FormatConfiguration.WMV, FormatConfiguration.WMA);
-				}
-			} else if (mimetype != null && mimetype.equals(HTTPResource.AUDIO_TRANSCODE)) {
-				mimetype = getFormatConfiguration().match(FormatConfiguration.LPCM, null, null);
+	/**
+	 * Determine the mime type specific for this renderer, given a generic mime
+	 * type. This translation takes into account all configured "Supported"
+	 * lines and mime type aliases for this renderer.
+	 * 
+	 * @param matchedMimeType
+	 *            The mime type to look up. Special values are
+	 *            <code>HTTPResource.VIDEO_TRANSCODE</code> and
+	 *            <code>HTTPResource.AUDIO_TRANSCODE</code>, which will be
+	 *            translated to the mime type of the transcoding profile
+	 *            configured for this renderer.
+	 * @return The mime type.
+	 */
+	public String getMimeType(String mimeType) {
+		if (mimeType == null) {
+			return null;
+		}
 
-				if (mimetype != null) {
-					if (isTranscodeAudioTo441()) {
-						mimetype += ";rate=44100;channels=2";
-					} else {
-						mimetype += ";rate=48000;channels=2";
+		String matchedMimeType = null;
+
+		if (isMediaParserV2()) {
+			// Use the supported information in the configuration to determine the mime type.
+			if (HTTPResource.VIDEO_TRANSCODE.equals(mimeType)) {
+				if (isTranscodeToMPEGTSAC3()) {
+					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.MPEG2, FormatConfiguration.AC3);
+				} else if (isTranscodeToWMV()) {
+					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.WMV, FormatConfiguration.WMV, FormatConfiguration.WMA);
+				} else {
+					// Default video transcoding mime type
+					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGPS, FormatConfiguration.MPEG2, FormatConfiguration.AC3);
+				}
+			} else if (HTTPResource.AUDIO_TRANSCODE.equals(mimeType)) {
+				if (isTranscodeToWAV()) {
+					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.WAV, null, null);
+				} else if (isTranscodeToMP3()) {
+					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MP3, null, null);
+				} else {
+					// Default audio transcoding mime type
+					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.LPCM, null, null);
+
+					if (matchedMimeType != null) {
+						if (isTranscodeAudioTo441()) {
+							matchedMimeType += ";rate=44100;channels=2";
+						} else {
+							matchedMimeType += ";rate=48000;channels=2";
+						}
 					}
 				}
-
-				if (isTranscodeToWAV()) {
-					mimetype = getFormatConfiguration().match(FormatConfiguration.WAV, null, null);
-				} else if (isTranscodeToMP3()) {
-					mimetype = getFormatConfiguration().match(FormatConfiguration.MP3, null, null);
-				}
 			}
-
-			return mimetype;
 		}
 
-		if (mimetype != null && mimetype.equals(HTTPResource.VIDEO_TRANSCODE)) {
-			if (isTranscodeToWMV()) {
-				mimetype = isMediaParserV2()
-					? getFormatConfiguration().match(FormatConfiguration.WMV, FormatConfiguration.WMV, FormatConfiguration.WMA)
-					: HTTPResource.WMV_TYPEMIME;
-			} else if (isTranscodeToMPEGTSAC3()) {
-				mimetype = isMediaParserV2()
-					? getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.MPEG2, FormatConfiguration.AC3)
-					: HTTPResource.MPEG_TYPEMIME;
-			} else { // default: MPEGPSAC3
-				mimetype = isMediaParserV2()
-					? getFormatConfiguration().match(FormatConfiguration.MPEGPS, FormatConfiguration.MPEG2, FormatConfiguration.AC3)
-					: HTTPResource.MPEG_TYPEMIME;
-			}
-		} else if (HTTPResource.AUDIO_TRANSCODE.equals(mimetype)) {
-			if (isTranscodeToWAV()) {
-				mimetype = isMediaParserV2()
-					? getFormatConfiguration().match(FormatConfiguration.WAV, null, null)
-					: HTTPResource.AUDIO_WAV_TYPEMIME;
-			} else if (isTranscodeToMP3()) {
-				mimetype = isMediaParserV2()
-					? getFormatConfiguration().match(FormatConfiguration.MP3, null, null)
-					: HTTPResource.AUDIO_MP3_TYPEMIME;
-			} else { // default: LPCM
-				mimetype = isMediaParserV2()
-					? getFormatConfiguration().match(FormatConfiguration.LPCM, null, null)
-					: HTTPResource.AUDIO_LPCM_TYPEMIME;
-
-				if (isTranscodeAudioTo441()) {
-					mimetype += ";rate=44100;channels=2";
+		if (matchedMimeType == null) {
+			// No match found, try without media parser v2
+			if (HTTPResource.VIDEO_TRANSCODE.equals(mimeType)) {
+				if (isTranscodeToWMV()) {
+					matchedMimeType = HTTPResource.WMV_TYPEMIME;
 				} else {
-					mimetype += ";rate=48000;channels=2";
+					// Default video transcoding mime type
+					matchedMimeType = HTTPResource.MPEG_TYPEMIME;
+				}
+			} else if (HTTPResource.AUDIO_TRANSCODE.equals(mimeType)) {
+				if (isTranscodeToWAV()) {
+					matchedMimeType = HTTPResource.AUDIO_WAV_TYPEMIME;
+				} else if (isTranscodeToMP3()) {
+					matchedMimeType = HTTPResource.AUDIO_MP3_TYPEMIME;
+				} else {
+					// Default audio transcoding mime type
+					matchedMimeType = HTTPResource.AUDIO_LPCM_TYPEMIME;
+	
+					if (isTranscodeAudioTo441()) {
+						matchedMimeType += ";rate=44100;channels=2";
+					} else {
+						matchedMimeType += ";rate=48000;channels=2";
+					}
 				}
 			}
-
-			if (isTranscodeToMP3()) {
-				mimetype = HTTPResource.AUDIO_MP3_TYPEMIME;
-			}
-
-			if (isTranscodeToWAV()) {
-				mimetype = HTTPResource.AUDIO_WAV_TYPEMIME;
-			}
 		}
 
-		if (mimes.containsKey(mimetype)) {
-			return mimes.get(mimetype);
+		if (matchedMimeType == null) {
+			matchedMimeType = mimeType;
 		}
 
-		return mimetype;
+		// Apply renderer specific mime type aliases
+		if (mimes.containsKey(matchedMimeType)) {
+			return mimes.get(matchedMimeType);
+		}
+
+		return matchedMimeType;
 	}
 
 	/**
