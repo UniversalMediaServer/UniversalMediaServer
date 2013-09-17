@@ -27,11 +27,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
-
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
