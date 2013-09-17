@@ -578,7 +578,7 @@ public class Request extends HTTPResource {
 				if (searchCriteria != null && files != null) {
 					searchCriteria = searchCriteria.toLowerCase();
 
-					for(int i = files.size() - 1; i >= 0; i--) {
+					for (int i = files.size() - 1; i >= 0; i--) {
 						DLNAResource res = files.get(i);
 
 						if (res.isSearched()) {
@@ -617,7 +617,7 @@ public class Request extends HTTPResource {
 						}
 
 						if (uf.isCompatible(mediaRenderer) && (uf.getPlayer() == null || uf.getPlayer().isPlayerCompatible(mediaRenderer))) {
-							response.append(uf.toString(mediaRenderer));
+							response.append(uf.getDidlString(mediaRenderer));
 						} else {
 							minus++;
 						}
