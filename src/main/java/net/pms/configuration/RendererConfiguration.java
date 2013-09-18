@@ -140,7 +140,6 @@ public class RendererConfiguration {
 						RendererConfiguration r = new RendererConfiguration(f);
 						r.rank = rank++;
 						String rendererName = r.getRendererName();
-						allRenderersNames.add(rendererName);
 						if (!pmsConfiguration.getIgnoredRenderers().contains(rendererName)) {
 							enabledRendererConfs.add(r);
 							LOGGER.info("Loaded configuration for renderer: " + rendererName);
@@ -152,8 +151,6 @@ public class RendererConfiguration {
 					}
 				}
 			}
-			
-			Collections.sort(allRenderersNames);
 		}
 
 		if (enabledRendererConfs.size() > 0) {
@@ -168,6 +165,26 @@ public class RendererConfiguration {
 					defaultConf = fallbackConf;
 				}
 			}
+		}
+	}
+	
+	private static void loadRenderersNames() {
+		File renderersDir = getRenderersDir();
+
+		if (renderersDir != null) {
+			LOGGER.info("Loading renderer names from " + renderersDir.getAbsolutePath());
+
+			for (File f : renderersDir.listFiles()) {
+				if (f.getName().endsWith(".conf")) {
+					try {
+						allRenderersNames.add(new RendererConfiguration(f).getRendererName());
+					} catch (ConfigurationException ce) {
+						LOGGER.info("Error in loading configuration of: " + f.getAbsolutePath());
+					}
+				}
+			}
+
+			Collections.sort(allRenderersNames);
 		}
 	}
 
@@ -1086,16 +1103,20 @@ public class RendererConfiguration {
 	public boolean isKeepAspectRatio() {
 		return getBoolean(KEEP_ASPECT_RATIO, false);
 	}
-	
+
 	public boolean isRescaleByRenderer() {
 		return getBoolean(RESCALE_BY_RENDERER, true);
 	}
-	
+
 	public String getFFmpegVideoFilterOverride() {
 		return getString(OVERRIDE_VF, null);
 	}
-	
+
 	public static ArrayList<String> getAllRenderersNames() {
+		if (allRenderersNames.isEmpty()) {
+			loadRenderersNames();
+		}
+
 		return allRenderersNames;
 	}
 }

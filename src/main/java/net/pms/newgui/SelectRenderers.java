@@ -119,7 +119,6 @@ public class SelectRenderers extends JPanel implements ItemListener {
 	 * Create the GUI and show it.
 	 */
 	public static void showDialog() {
-		RendererConfiguration.loadRendererConfigurations(configuration);
 		allRenderersNames = RendererConfiguration.getAllRenderersNames();
 		int selectRenderers = JOptionPane.showOptionDialog(
 				null,
@@ -134,7 +133,6 @@ public class SelectRenderers extends JPanel implements ItemListener {
 			} catch (ConfigurationException e) {
 				LOGGER.error("Could not save configuration", e);
 			}
-			
 		}
 	}
 }
