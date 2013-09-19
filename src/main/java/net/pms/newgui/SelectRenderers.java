@@ -45,7 +45,7 @@ public class SelectRenderers extends JPanel implements ItemListener {
 	private JCheckBox selectAll = new JCheckBox(Messages.getString("GeneralTab.7"));
 	private JCheckBox deselectAll = new JCheckBox(Messages.getString("GeneralTab.8"));
 	private static ArrayList<String> allRenderersNames;
-	private static final Logger LOGGER = LoggerFactory.getLogger(PMS.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(SelectRenderers.class);
 
 	public SelectRenderers() {
 		super(new BorderLayout());
