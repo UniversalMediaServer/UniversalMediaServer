@@ -1036,20 +1036,20 @@ public class FFMpegVideo extends Player {
 		}
 
 		String filename = dlna.getSystemName();
-		File tempSubs = null;
-		File convertedSubsName = null;
+		File tempSubs;
+		File convertedSubsName;
 		File convertedSubsNameSSA = new File(subsPath.getAbsolutePath() + File.separator +
-											FilenameUtils.getBaseName(filename) + "_" + 
-											new File(filename).lastModified() +
-											"_ID" + params.sid.getId() + ".ass");
+				FilenameUtils.getBaseName(filename) + "_" + 
+				new File(filename).lastModified() +
+				"_ID" + params.sid.getId() + ".ass");
 		File convertedSubsNameSUBRIP = null;
 		
 		if (params.sid.isExternal()) {
 			if (params.sid.getId() == 100) { // Real external subs
 				convertedSubsNameSUBRIP = new File(subsPath.getAbsolutePath() + File.separator +
-											FilenameUtils.getBaseName(params.sid.getExternalFile().getName()) +	"_" +
-											params.sid.getExternalFile().lastModified() +
-											"_ID" + params.sid.getId() + ".ass");
+						FilenameUtils.getBaseName(params.sid.getExternalFile().getName()) + "_" +
+						params.sid.getExternalFile().lastModified() +
+						"_ID" + params.sid.getId() + ".ass");
 				if (convertedSubsNameSUBRIP.canRead()) { 
 					return convertedSubsNameSUBRIP; // External subs are already converted
 				} else {
@@ -1115,7 +1115,7 @@ public class FFMpegVideo extends Player {
 	 */
 	public static File convertSubsToAss(String fileName, DLNAMediaInfo media, OutputParams params) {
 		List<String> cmdList = new ArrayList<>();
-		File tempSubsFile = null;
+		File tempSubsFile;
 		cmdList.add(configuration.getFfmpegPath());
 		cmdList.add("-y");
 		cmdList.add("-loglevel");
