@@ -13,8 +13,19 @@
 		Added support for Samsung Galaxy S3
 		Improved DirecTV support
 		Updated DirecTV image
+		Improved PS3 support
 	External Components:
 		Updated H2 Database Engine to 1.3.173
+		Updated Maven Cobertura Plugin to 2.6
+		Updated Maven Doxia Docbook Simple Plugin to 1.4
+		Updated Maven Git Commit ID Plugin to 2.1.5, which:
+			Improves stability
+		Updated Maven IDEA Plugin to 2.2.1
+		Updated Maven Javadoc Plugin to 2.9.1, which:
+			Makes it more threadsafe
+			Improves security
+		Updated Maven Surefire Plugin to 2.16, which:
+			Fixes problems with character encodings
 
 3.0.0-a5 - 2013-09-02
 
