@@ -2220,8 +2220,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// (Re)start transcoding process if necessary
 			if (externalProcess == null || externalProcess.isDestroyed()) {
 				// First playback attempt => start new transcoding process
-				LOGGER.info("Starting transcode/remux of " + getName());
-				LOGGER.debug("Launching transcode with media info: " + getMedia().toString());
+				LOGGER.debug("Starting transcode/remux of " + getName() + " with media info: " + getMedia().toString());
 
 				externalProcess = getPlayer().launchTranscode(this, getMedia(), params);
 
