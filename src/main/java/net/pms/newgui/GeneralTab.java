@@ -450,12 +450,8 @@ public class GeneralTab {
 			if (configuration.isRendererForceDefault()) {
 				fdCheckBox.setSelected(true);
 			}
-
-			builder.addLabel(Messages.getString("NetworkTab.36"), FormLayoutUtil.flip(cc.xy(1, 37), colSpec, orientation));
-
-			builder.add(renderers, FormLayoutUtil.flip(cc.xyw(3, 37, 7), colSpec, orientation));
-
-			builder.addLabel(Messages.getString("NetworkTab.62"), FormLayoutUtil.flip(cc.xy(1, 39), colSpec, orientation));
+			
+			builder.addLabel(Messages.getString("NetworkTab.62"), FormLayoutUtil.flip(cc.xy(1, 37), colSpec, orientation));
 			final CustomJButton setRenderers = new CustomJButton(Messages.getString("GeneralTab.5"));
 			setRenderers.addActionListener(new ActionListener() {
 				@Override
@@ -464,7 +460,13 @@ public class GeneralTab {
 					}
 			});
 
-			builder.add(setRenderers, FormLayoutUtil.flip(cc.xy(3, 39), colSpec, orientation));
+			builder.add(setRenderers, FormLayoutUtil.flip(cc.xy(3, 37), colSpec, orientation));
+
+			builder.addLabel(Messages.getString("NetworkTab.36"), FormLayoutUtil.flip(cc.xy(1, 39), colSpec, orientation));
+
+			builder.add(renderers, FormLayoutUtil.flip(cc.xyw(3, 39, 7), colSpec, orientation));
+
+			
 
 			// External network box
 			extNetBox = new JCheckBox(Messages.getString("NetworkTab.56"));
