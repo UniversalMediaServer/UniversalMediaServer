@@ -512,11 +512,11 @@ public class PMS {
 					configuration.setMPEG2MainSettings("Automatic (Wireless)");
 					save();
 				}
-				
+
 				// Ask if they want select renderers
 				int whetherToSelectRenderers = JOptionPane.showConfirmDialog(
 				null,
-				Messages.getString("Do you want select renderers"),
+				Messages.getString("Wizard.12"),
 				Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
 				JOptionPane.YES_NO_OPTION);
 				if (whetherToSelectRenderers == JOptionPane.YES_OPTION) {
