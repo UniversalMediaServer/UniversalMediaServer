@@ -1,6 +1,7 @@
 3.0.0-a6 - 2013-09-??
 
 	General:
+		Added support for muxing (losslessly streaming) more files with tsMuxeR by default
 		A more helpful error is displayed when something is using the UMS HTTP port
 		Improved calculation of subtitle font size in FFmpeg
 		Expanded filename prettifying
@@ -26,6 +27,10 @@
 			Improves security
 		Updated Maven Surefire Plugin to 2.16, which:
 			Fixes problems with character encodings
+		Updated tsMuxeR for Windows to 1.12.6b, which:
+			Improves muxing speed
+			Improves stream standards compatibility
+			Fixes E-AC3 support
 
 3.0.0-a5 - 2013-09-02
 
