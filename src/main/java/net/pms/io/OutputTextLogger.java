@@ -52,10 +52,8 @@ public class OutputTextLogger extends OutputConsumer {
 			while (it.hasNext()) {
 				String line = it.nextLine();
 				LOGGER.debug(line);
-				if (pw != null) {
-					if (line.contains("Duration:")) {
-						pw.pubackDuration(line);
-					}
+				if (filtered) {
+					filtered = filter(line);
 				}
 			}
 		} catch (IOException ioe) {

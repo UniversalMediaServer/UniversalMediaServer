@@ -288,6 +288,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 		// Now launch FFmpeg
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
+		setOutputParsing(dlna, pw, true); // Always parse for duration
 		pw.attachProcess(mkfifo_process); // Clean up the mkfifo process when the transcode ends
 
 		// Give the mkfifo process a little time
