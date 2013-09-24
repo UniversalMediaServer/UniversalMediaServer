@@ -1302,10 +1302,13 @@ public class PmsConfiguration {
 	 * @return The number of audio channels.
 	 */
 	public int getAudioChannelCount() {
-		if (!"6".equals(KEY_AUDIO_CHANNEL_COUNT) && !"2".equals(KEY_AUDIO_CHANNEL_COUNT)) {
+		int valueFromUserConfig = getInt(KEY_AUDIO_CHANNEL_COUNT, 6);
+
+		if (valueFromUserConfig != 6 && valueFromUserConfig != 2) {
 			return 6;
 		}
-		return getInt(KEY_AUDIO_CHANNEL_COUNT, 6);
+
+		return valueFromUserConfig;
 	}
 
 	/**
@@ -1343,6 +1346,17 @@ public class PmsConfiguration {
 			maximumBitrate = "1000";
 		}
 		return maximumBitrate;
+	}
+
+	/**
+	 * The same as getMaximumBitrate() but this value is displayed to the user
+	 * because for our own uses we turn the value "0" into the value "1000" but
+	 * that can be confusing for the user.
+	 *
+	 * @return The maximum video bitrate to display in the GUI.
+	 */
+	public String getMaximumBitrateDisplay() {
+		return getString(KEY_MAX_BITRATE, "110");
 	}
 
 	/**

@@ -392,7 +392,7 @@ public class GeneralTab {
 				}
 			});
 
-			maxbitrate = new JTextField(configuration.getMaximumBitrate());
+			maxbitrate = new JTextField(configuration.getMaximumBitrateDisplay());
 			maxbitrate.setToolTipText(Messages.getString("NetworkTab.65"));
 			maxbitrate.addKeyListener(new KeyAdapter() {
 				@Override
