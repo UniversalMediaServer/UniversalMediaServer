@@ -1453,6 +1453,9 @@ public class FFMpegVideo extends Player {
 		return false;
 	}
 
+	// matches 'Duration: 00:17:17.00' but not 'Duration: N/A'
+	static final Matcher reDuration = Pattern.compile("Duration:\\s+([\\d:.]+),").matcher("");
+
 	/**
 	 * Set up a filter to parse ffmpeg's stderr output for info
 	 * (e.g. duration) if required.
@@ -1461,15 +1464,12 @@ public class FFMpegVideo extends Player {
 		if (configuration.isResumeEnabled() && dlna.getMedia() != null) {
 			long duration = force ? 0 : (long) dlna.getMedia().getDurationInSeconds();
 			if (duration == 0 || duration == DLNAMediaInfo.TRANS_SIZE) {
-				// matches 'Duration: 00:17:17.00' but not 'Duration: N/A'
-				final Pattern re = Pattern.compile("Duration:\\s+([\\d:.]+),");
 				OutputTextLogger ffParser = new OutputTextLogger(null, pw) {
 					@Override
 					public boolean filter(String line) {
-						Matcher m = re.matcher(line);
-						if (m.find()) {
-							String d = m.group(1);
-							LOGGER.trace("[" + name() + " player] setting duration: " + d);
+						if (reDuration.reset(line).find()) {
+							String d = reDuration.group(1);
+							LOGGER.trace("[{}] setting duration: {}", ID, d);
 							dlna.getMedia().setDuration(convertStringToTime(d));
 							return false; // done, stop filtering
 						}

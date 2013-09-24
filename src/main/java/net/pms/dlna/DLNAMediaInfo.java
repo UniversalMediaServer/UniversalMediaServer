@@ -231,6 +231,8 @@ public class DLNAMediaInfo implements Cloneable {
 	@Deprecated
 	public boolean mediaparsed;
 
+	public boolean ffmegparsed;
+
 	/**
 	 * isMediaParserV2 related, used to manage thumbnail management separated
 	 * from the main parsing process.
@@ -743,9 +745,18 @@ public class DLNAMediaInfo implements Cloneable {
 				}
 
 				String input = "-";
-				boolean dvrms = false;
+				parseFFmpeg((ArrayList<String>) pw.getResults(), pw, inputFile, type, thumbOnly, ffmpeg_failure, "-");
+			}
+ 
+			finalize(type, inputFile);
+			setMediaparsed(true);
+		}
+	}
 
-				if (inputFile.getFile() != null) {
+	public void parseFFmpeg(ArrayList<String> lines, ProcessWrapperImpl pw, InputFile inputFile, int type, boolean thumbOnly, boolean failure, String input) {
+		boolean dvrms = false;
+
+				if (inputFile != null && inputFile.getFile() != null) {
 					input = ProcessUtil.getShortFileNameIfWideChars(inputFile.getFile().getAbsolutePath());
 					dvrms = inputFile.getFile().getAbsolutePath().toLowerCase().endsWith("dvr-ms");
 				}
@@ -756,7 +767,6 @@ public class DLNAMediaInfo implements Cloneable {
 					}
 
 					boolean matchs = false;
-					ArrayList<String> lines = (ArrayList<String>) pw.getResults();
 					int langId = 0;
 					int subId = 0;
 					ListIterator<String> FFmpegMetaData = lines.listIterator();
@@ -1012,6 +1022,7 @@ public class DLNAMediaInfo implements Cloneable {
 				if (
 					!thumbOnly &&
 					getContainer() != null &&
+					inputFile != null &&
 					inputFile.getFile() != null &&
 					getContainer().equals("mpegts") &&
 					isH264() &&
@@ -1028,7 +1039,7 @@ public class DLNAMediaInfo implements Cloneable {
 					}
 				}
 
-				if (configuration.isUseMplayerForVideoThumbs() && type == Format.VIDEO && !dvrms) {
+				if (inputFile != null && configuration.isUseMplayerForVideoThumbs() && type == Format.VIDEO && !dvrms) {
 					try {
 						getMplayerThumbnail(inputFile);
 						String frameName = "" + inputFile.hashCode();
@@ -1063,13 +1074,16 @@ public class DLNAMediaInfo implements Cloneable {
 				if (type == Format.VIDEO && pw != null && getThumb() == null) {
 					InputStream is;
 					try {
+						int sz = 0;
 						is = pw.getInputStream(0);
-						int sz = is.available();
-						if (sz > 0) {
-							setThumb(new byte[sz]);
-							is.read(getThumb());
+						if (is != null) {
+							sz = is.available();
+							if (sz > 0) {
+								setThumb(new byte[sz]);
+								is.read(getThumb());
+							}
+							is.close();
 						}
-						is.close();
 
 						if (sz > 0 && !net.pms.PMS.isHeadless()) {
 							BufferedImage image = ImageIO.read(new ByteArrayInputStream(getThumb()));
@@ -1094,11 +1108,7 @@ public class DLNAMediaInfo implements Cloneable {
 						LOGGER.debug("Error while decoding thumbnail: " + e.getMessage());
 					}
 				}
-			}
-
-			finalize(type, inputFile);
-			setMediaparsed(true);
-		}
+		ffmegparsed = true;
 	}
 
 	public boolean isH264() {
@@ -2013,6 +2023,10 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public void setMediaparsed(boolean mediaparsed) {
 		this.mediaparsed = mediaparsed;
+	}
+
+	public boolean isFFmegparsed() {
+		return ffmegparsed;
 	}
 
 	/**

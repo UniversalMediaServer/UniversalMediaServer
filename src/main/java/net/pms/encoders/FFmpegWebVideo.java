@@ -33,10 +33,12 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.external.ExternalFactory;
 import net.pms.external.URLResolver.URLResult;
+import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.io.OutputTextLogger;
 import net.pms.util.PlayerUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
@@ -288,7 +290,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 		// Now launch FFmpeg
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
-		setOutputParsing(dlna, pw, true); // Always parse for duration
+		parseMediaInfo(filename, dlna, pw); // Better late than never
 		pw.attachProcess(mkfifo_process); // Clean up the mkfifo process when the transcode ends
 
 		// Give the mkfifo process a little time
@@ -364,6 +366,36 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			LOGGER.debug("Error reading ffmpeg web filters: " + e.getLocalizedMessage());
 		}
 		return false;
+	}
+
+	static final Matcher endOfHeader = Pattern.compile("Press \\[q\\]|A-V:|At least|Invalid").matcher("");
+
+	/**
+	 * Parse media info from ffmpeg headers during playback
+	 */
+	public void parseMediaInfo(String filename, final DLNAResource dlna, final ProcessWrapperImpl pw) {
+		if (dlna.getMedia() == null) {
+			dlna.setMedia(new DLNAMediaInfo());
+		} else if (dlna.getMedia().isFFmegparsed()) {
+			return;
+		}
+		final ArrayList<String> lines = new ArrayList<String>();
+		final String input = filename.length() > 200 ? filename.substring(0, 199) : filename;
+		OutputTextLogger ffParser = new OutputTextLogger(null, pw) {
+			@Override
+			public boolean filter(String line) {
+				if (endOfHeader.reset(line).find()) {
+					dlna.getMedia().parseFFmpeg(lines, pw, null, Format.VIDEO, false, false, input);
+					LOGGER.trace("[{}] parsed media from headers: {}", ID, dlna.getMedia());
+					dlna.getParent().updateChild(dlna);
+					return false; // done, stop filtering
+				}
+				lines.add(line);
+				return true; // keep filtering
+			}
+		};
+		ffParser.setFiltered(true);
+		pw.setStderrConsumer(ffParser);
 	}
 }
 
