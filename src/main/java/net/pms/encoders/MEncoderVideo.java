@@ -919,10 +919,7 @@ public class MEncoderVideo extends Player {
 				intOCW == 0 &&
 				intOCH == 0
 			) &&
-			!(
-				filename.contains("WEB-DL") &&
-				!Platform.isWindows()
-			) &&
+			!filename.contains("WEB-DL") &&
 			aspectRatiosMatch
 		) {
 			String expertOptions[] = getSpecificCodecOptions(
