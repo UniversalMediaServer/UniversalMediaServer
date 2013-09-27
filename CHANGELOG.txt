@@ -27,10 +27,6 @@
 			Improves security
 		Updated Maven Surefire Plugin to 2.16, which:
 			Fixes problems with character encodings
-		Updated tsMuxeR for Windows to 1.12.6b, which:
-			Improves muxing speed
-			Improves stream standards compatibility
-			Fixes E-AC3 support
 
 3.0.0-a5 - 2013-09-02
 
