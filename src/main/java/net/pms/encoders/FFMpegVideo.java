@@ -1103,15 +1103,19 @@ public class FFMpegVideo extends Player {
 			cmdList.add("fatal");
 		}
 
-		if (
-			isNotBlank(configuration.getSubtitlesCodepage()) &&
-			params.sid.isExternal() &&
-			!params.sid.isExternalFileUtf8() &&
-			(params.sid.getExternalFileCharacterSet() == null || // ExternalFileCharacterSet can be null
-			!params.sid.getExternalFileCharacterSet().equals(configuration.getSubtitlesCodepage())) 
-		) {
-			cmdList.add("-sub_charenc");
-			cmdList.add(configuration.getSubtitlesCodepage());
+		// Try to specify input encoding if we have a non utf-8 external sub
+		if (params.sid.isExternal() && !params.sid.isExternalFileUtf8()) {
+			String encoding = params.sid.getExternalFileCharacterSet() != null ?
+					// actually detected
+					params.sid.getExternalFileCharacterSet() :
+				isNotBlank(configuration.getSubtitlesCodepage()) ?
+					// globally specified, may be wrong
+					configuration.getSubtitlesCodepage() :
+				null;
+			if (encoding != null) {
+				cmdList.add("-sub_charenc");
+				cmdList.add(encoding);
+			}
 		}
 
 		cmdList.add("-i");
