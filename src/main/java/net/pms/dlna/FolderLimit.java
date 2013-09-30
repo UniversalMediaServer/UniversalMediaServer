@@ -6,7 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class FolderLimit extends VirtualFolder {
-	private static final Logger logger = LoggerFactory.getLogger(FolderLimit.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(FolderLimit.class);
 	private ArrayList<FolderLimitLevel> levels;
 	private boolean discover;
 
@@ -18,7 +18,7 @@ public class FolderLimit extends VirtualFolder {
 	}
 
 	public void setStart(DLNAResource res) {
-		logger.debug("setting folder lim " + res);
+		LOGGER.debug("setting folder lim " + res);
 		if (res == null) {
 			return;
 		}

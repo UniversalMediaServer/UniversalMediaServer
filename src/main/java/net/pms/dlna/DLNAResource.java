@@ -72,7 +72,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private boolean resolved;
 	private static final int STOP_PLAYING_DELAY = 4000;
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAResource.class);
-	private static final SimpleDateFormat SDF_DATE = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
+	private final SimpleDateFormat SDF_DATE = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	protected static final int MAX_ARCHIVE_ENTRY_SIZE = 10000000;
@@ -458,17 +458,27 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Adds a new DLNAResource to the child list. Only useful if this object is of the container type.<P>
-	 * TODO: (botijo) check what happens with the child object. This function can and will transform the child
-	 * object. If the transcode option is set, the child item is converted to a container with the real
-	 * item and the transcode option folder. There is also a parser in order to get the right name and type,
-	 * I suppose. Is this the right place to be doing things like these?
-	 * @param child DLNAResource to add to a container type.
+	 * Adds a new DLNAResource to the child list. Only useful if this object is
+	 * of the container type.
+	 * <P>
+	 * TODO: (botijo) check what happens with the child object. This function
+	 * can and will transform the child object. If the transcode option is set,
+	 * the child item is converted to a container with the real item and the
+	 * transcode option folder. There is also a parser in order to get the right
+	 * name and type, I suppose. Is this the right place to be doing things like
+	 * these?
+	 * <p>
+	 * FIXME: Ideally the logic below is completely renderer-agnostic. Focus on
+	 * harvesting generic data and transform it for a specific renderer as late
+	 * as possible. 
+	 * 
+	 * @param child
+	 *            DLNAResource to add to a container type.
 	 */
 	public void addChild(DLNAResource child) {
 		// child may be null (spotted - via rootFolder.addChild() - in a misbehaving plugin
 		if (child == null) {
-			LOGGER.error("A plugin has attempted to add a null child to " + getName());
+			LOGGER.error("A plugin has attempted to add a null child to \"{}\"", getName());
 			LOGGER.debug("Error info:", new NullPointerException("Invalid DLNA resource"));
 			return;
 		}
@@ -482,7 +492,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		try {
 			if (child.isValid()) {
-				LOGGER.trace("Adding " + child.getName() + " / class: " + child.getClass().getName());
+				LOGGER.trace("Adding new child \"{}\" with class \"{}\"", child.getName(), child.getClass().getName());
 
 				if (allChildrenAreFolders && !child.isFolder()) {
 					allChildrenAreFolders = false;
@@ -502,170 +512,199 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 				addChildInternal(child);
 
-				boolean forceTranscodeV2 = false;
 				boolean parserV2 = child.getMedia() != null && getDefaultRenderer() != null && getDefaultRenderer().isMediaParserV2();
 				if (parserV2) {
-					// We already have useful info, just need to layout folders
+					// See which mime type the renderer prefers in case it supports the media
 					String mimeType = getDefaultRenderer().getFormatConfiguration().match(child.getMedia());
 					if (mimeType != null) {
-						// This is streamable
-						child.getMedia().setMimeType(mimeType.equals(FormatConfiguration.MIMETYPE_AUTO) ? child.getMedia().getMimeType() : mimeType);
+						// Media is streamable
+						if (!FormatConfiguration.MIMETYPE_AUTO.equals(mimeType)) {
+							// Override with the preferred mime type of the renderer
+							LOGGER.trace("Overriding detected mime type \"{}\" for file \"{}\" with renderer preferred mime type \"{}\"",
+									child.getMedia().getMimeType(), child.getName(), mimeType);
+							child.getMedia().setMimeType(mimeType);
+						}
+
+						LOGGER.trace("File \"{}\" can be streamed with mime type \"{}\"", child.getName(), child.getMedia().getMimeType());
 					} else {
-						// This is transcodable
-						forceTranscodeV2 = true;
+						// Media is transcodable
+						LOGGER.trace("File \"{}\" can be transcoded", child.getName());
 					}
 				}
 
 				if (child.getFormat() != null) {
-					setSkipTranscode(child.getFormat().skip(configuration.getDisableTranscodeForExtensions(), getDefaultRenderer() != null ? getDefaultRenderer().getStreamedExtensions() : null));
-				}
+					String configurationSkipExtensions = configuration.getDisableTranscodeForExtensions();
+					String rendererSkipExtensions = null;
 
-				if (child.getFormat() != null && (child.getFormat().transcodable() || parserV2) && (child.getMedia() == null || parserV2)) {
-					if (!parserV2) {
-						child.setMedia(new DLNAMediaInfo());
+					if (getDefaultRenderer() != null) {
+						rendererSkipExtensions = getDefaultRenderer().getStreamedExtensions();
 					}
 
-					// Try to determine a player to use for transcoding.
-					Player player = null;
-
-					// First, try to match a player based on the name of the DLNAResource
-					// or its parent. If the name ends in "[unique player id]", that player
-					// is preferred.
-					String name = getName();
-
-					for (Player p : PlayerFactory.getAllPlayers()) {
-						String end = "[" + p.id() + "]";
-
-						if (name.endsWith(end)) {
-							nametruncate = name.lastIndexOf(end);
-							player = p;
-							LOGGER.trace("Selecting player based on name end");
-							break;
-						} else if (getParent() != null && getParent().getName().endsWith(end)) {
-							getParent().nametruncate = getParent().getName().lastIndexOf(end);
-							player = p;
-							LOGGER.trace("Selecting player based on parent name end");
-							break;
-						}
+					// Should transcoding be skipped for this format?
+					boolean skip = child.getFormat().skip(configurationSkipExtensions, rendererSkipExtensions);
+					setSkipTranscode(skip);
+					
+					if (skip) {
+						LOGGER.trace("File \"{}\" will be forced to skip transcoding by configuration", child.getName());
 					}
 
-					// If no preferred player could be determined from the name, try to
-					// match a player based on media information and format.
-					if (player == null) {
-						player = PlayerFactory.getPlayer(child);
-					}
-
-					if (player != null && !allChildrenAreFolders) {
-						boolean forceTranscode = false;
-						if (child.getFormat() != null) {
-							forceTranscode = child.getFormat().skip(configuration.getForceTranscodeForExtensions(), getDefaultRenderer() != null ? getDefaultRenderer().getTranscodedExtensions() : null);
+					if (parserV2 || (child.getFormat().transcodable() && child.getMedia() == null)) {
+						if (!parserV2) {
+							child.setMedia(new DLNAMediaInfo());
 						}
-
-						boolean hasEmbeddedSubs = false;
-
-						if (child.getMedia() != null) {
-							for (DLNAMediaSubtitle s : child.getMedia().getSubtitleTracksList()) {
-								hasEmbeddedSubs = (hasEmbeddedSubs || s.isEmbedded());
+	
+						// Try to determine a player to use for transcoding.
+						Player player = null;
+	
+						// First, try to match a player based on the name of the DLNAResource
+						// or its parent. If the name ends in "[unique player id]", that player
+						// is preferred.
+						String name = getName();
+	
+						for (Player p : PlayerFactory.getAllPlayers()) {
+							String end = "[" + p.id() + "]";
+	
+							if (name.endsWith(end)) {
+								nametruncate = name.lastIndexOf(end);
+								player = p;
+								LOGGER.trace("Selecting player based on name end");
+								break;
+							} else if (getParent() != null && getParent().getName().endsWith(end)) {
+								getParent().nametruncate = getParent().getName().lastIndexOf(end);
+								player = p;
+								LOGGER.trace("Selecting player based on parent name end");
+								break;
 							}
 						}
-
-						boolean hasSubsToTranscode = false;
-
-						if (!configuration.isDisableSubtitles()) {
-							hasSubsToTranscode = (configuration.isAutoloadExternalSubtitles() && child.isSrtFile()) || hasEmbeddedSubs || liveSubs(child);
+	
+						// If no preferred player could be determined from the name, try to
+						// match a player based on media information and format.
+						if (player == null) {
+							player = PlayerFactory.getPlayer(child);
 						}
-
-						boolean isIncompatible = false;
-
-						if (!child.getFormat().isCompatible(child.getMedia(), getDefaultRenderer())) {
-							isIncompatible = true;
-						}
-
-						// Force transcoding if any of the following are true:
-						// 1) The file is not supported by the renderer and SkipTranscode is not enabled for this extension
-						// 2) ForceTranscode enabled for this extension
-						// 3) FFmpeg support and the file is not PS3 compatible (XXX need to remove this?) and SkipTranscode is not enabled for this extension
-						// 4) The file has embedded or external subs and SkipTranscode is not enabled for this extension
-						if (forceTranscode || !isSkipTranscode() && (forceTranscodeV2 || isIncompatible || hasSubsToTranscode)) {
-							child.setPlayer(player);
-							if (resumeRes != null) {
-								resumeRes.setPlayer(player);
+	
+						if (player != null && !allChildrenAreFolders) {
+							String configurationForceExtensions = configuration.getForceTranscodeForExtensions();
+							String rendererForceExtensions = null;
+							
+							if (getDefaultRenderer() != null) {
+								rendererForceExtensions = getDefaultRenderer().getTranscodedExtensions();
 							}
-							LOGGER.trace("Switching " + child.getName() + " to player " + player.toString() + " for transcoding");
-						}
 
-						// Should the child be added to the #--TRANSCODE--# folder?
-						if ((child.getFormat().isVideo() || child.getFormat().isAudio()) && child.isTranscodeFolderAvailable()) {
-							// true: create (and append) the #--TRANSCODE--# folder to this
-							// folder if supported/enabled and if it doesn't already exist
-							VirtualFolder transcodeFolder = getTranscodeFolder(true);
+							// Should transcoding be forced for this format?
+							boolean forceTranscode = child.getFormat().skip(configurationForceExtensions, rendererForceExtensions);
 
-							if (transcodeFolder != null) {
-								VirtualFolder fileTranscodeFolder = new FileTranscodeVirtualFolder(child.getDisplayName(), null);
-
-								DLNAResource newChild = child.clone();
-								newChild.setPlayer(player);
-								newChild.setMedia(child.getMedia());
-								fileTranscodeFolder.addChildInternal(newChild);
-								LOGGER.trace("Duplicate " + child.getName() + " with player: " + player.toString());
-
-								transcodeFolder.addChild(fileTranscodeFolder);
+							if (forceTranscode) {
+								LOGGER.trace("File \"{}\" will be forced to be transcoded by configuration", child.getName());
 							}
-						}
-						if (child.getFormat().isVideo() && child.isSubSelectable()) {
-							VirtualFolder vf = getSubSelector(true);
-							if (vf != null) {
-								DLNAResource newChild = child.clone();
-								newChild.setPlayer(player);
-								newChild.setMedia(child.getMedia());
-								LOGGER.trace("Duplicate subtitle " + child.getName() + " with player: " + player.toString());
 
-								vf.addChild(new SubSelFile(newChild));
-							}
-						}
-
-						for (ExternalListener listener : ExternalFactory.getExternalListeners()) {
-							if (listener instanceof AdditionalResourceFolderListener) {
-								try {
-									((AdditionalResourceFolderListener) listener).addAdditionalFolder(this, child);
-								} catch (Throwable t) {
-									LOGGER.error("Failed to add additional folder for listener of type: {}", listener.getClass(), t);
+							boolean hasEmbeddedSubs = false;
+	
+							if (child.getMedia() != null) {
+								for (DLNAMediaSubtitle s : child.getMedia().getSubtitleTracksList()) {
+									hasEmbeddedSubs = (hasEmbeddedSubs || s.isEmbedded());
 								}
 							}
+	
+							boolean hasSubsToTranscode = false;
+	
+							if (!configuration.isDisableSubtitles()) {
+								// FIXME: Why transcode if the renderer can handle embedded subs?
+								hasSubsToTranscode = (configuration.isAutoloadExternalSubtitles() && child.isSrtFile()) || hasEmbeddedSubs;
+
+								if (hasSubsToTranscode) {
+									LOGGER.trace("File \"{}\" has subs that need transcoding", child.getName());
+								}
+							}
+	
+							boolean isIncompatible = false;
+	
+							if (!child.getFormat().isCompatible(child.getMedia(), getDefaultRenderer())) {
+								isIncompatible = true;
+								LOGGER.trace("File \"{}\" is not supported by the renderer", child.getName());
+							}
+	
+							// Prefer transcoding over streaming if:
+							// 1) the media is unsupported by the renderer, or
+							// 2) there are subs to transcode
+							boolean preferTranscode = isIncompatible || hasSubsToTranscode;
+
+							// Transcode if:
+							// 1) transcoding is forced by configuration, or
+							// 2) transcoding is preferred and not prevented by configuration
+							if (forceTranscode || (preferTranscode && !isSkipTranscode())) {
+								child.setPlayer(player);
+
+								if (parserV2) {
+									LOGGER.trace("Final verdict: \"{}\" will be transcoded with player \"{}\" with mime type \"{}\"", child.getName(), player.toString(), child.getMedia().getMimeType());
+								} else {
+									LOGGER.trace("Final verdict: \"{}\" will be transcoded with player \"{}\"", child.getName(), player.toString());
+								}
+							} else {
+								LOGGER.trace("Final verdict: \"{}\" will be streamed", child.getName());
+							}
+	
+							// Should the child be added to the #--TRANSCODE--# folder?
+							if ((child.getFormat().isVideo() || child.getFormat().isAudio()) && child.isTranscodeFolderAvailable()) {
+								// true: create (and append) the #--TRANSCODE--# folder to this
+								// folder if supported/enabled and if it doesn't already exist
+								VirtualFolder transcodeFolder = getTranscodeFolder(true);
+								if (transcodeFolder != null) {
+									VirtualFolder fileTranscodeFolder = new FileTranscodeVirtualFolder(child.getDisplayName(), null);
+	
+									DLNAResource newChild = child.clone();
+									newChild.setPlayer(player);
+									newChild.setMedia(child.getMedia());
+									fileTranscodeFolder.addChildInternal(newChild);
+									LOGGER.trace("Adding \"{}\" to transcode folder for player: \"{}\"", child.getName(), player.toString());
+	
+									transcodeFolder.addChild(fileTranscodeFolder);
+								}
+							}
+	
+							for (ExternalListener listener : ExternalFactory.getExternalListeners()) {
+								if (listener instanceof AdditionalResourceFolderListener) {
+									try {
+										((AdditionalResourceFolderListener) listener).addAdditionalFolder(this, child);
+									} catch (Throwable t) {
+										LOGGER.error("Failed to add additional folder for listener of type: \"{}\"", listener.getClass(), t);
+									}
+								}
+							}
+						} else if (!child.getFormat().isCompatible(child.getMedia(), getDefaultRenderer()) && !child.isFolder()) {
+							LOGGER.trace("Ignoring file \"{}\" because it is not compatible with renderer \"{}\"", child.getName(), getDefaultRenderer().getRendererName());
+							getChildren().remove(child);
 						}
-					} else if (!child.getFormat().isCompatible(child.getMedia(), getDefaultRenderer()) && !child.isFolder()) {
-						getChildren().remove(child);
-					}
-				}
-
-				if (resumeRes != null) {
-					resumeRes.setMedia(child.getMedia());
-				}
-
-				if (
-					child.getFormat() != null &&
-					child.getFormat().getSecondaryFormat() != null &&
-					child.getMedia() != null &&
-					getDefaultRenderer() != null &&
-					getDefaultRenderer().supportsFormat(child.getFormat().getSecondaryFormat())
-				) {
-					DLNAResource newChild = child.clone();
-					newChild.setFormat(newChild.getFormat().getSecondaryFormat());
-					newChild.first = child;
-					child.second = newChild;
-
-					if (!newChild.getFormat().isCompatible(newChild.getMedia(), getDefaultRenderer())) {
-						Player player = PlayerFactory.getPlayer(newChild);
-						newChild.setPlayer(player);
 					}
 
-					if (child.getMedia() != null && child.getMedia().isSecondaryFormatValid()) {
-						addChild(newChild);
+					if (child.getFormat().getSecondaryFormat() != null &&
+						child.getMedia() != null &&
+						getDefaultRenderer() != null &&
+						getDefaultRenderer().supportsFormat(child.getFormat().getSecondaryFormat())
+					) {
+						DLNAResource newChild = child.clone();
+						newChild.setFormat(newChild.getFormat().getSecondaryFormat());
+						LOGGER.trace("Detected secondary format \"{}\" for \"{}\"", newChild.getFormat().toString(), newChild.getName());
+						newChild.first = child;
+						child.second = newChild;
+	
+						if (!newChild.getFormat().isCompatible(newChild.getMedia(), getDefaultRenderer())) {
+							Player player = PlayerFactory.getPlayer(newChild);
+							newChild.setPlayer(player);
+							LOGGER.trace("Secondary format \"{}\" will use player \"{}\" for \"{}\"", newChild.getFormat().toString(), child.getPlayer().name(), newChild.getName());
+						}
+	
+						if (child.getMedia() != null && child.getMedia().isSecondaryFormatValid()) {
+							addChild(newChild);
+							LOGGER.trace("Adding secondary format \"{}\" for \"{}\"", newChild.getFormat().toString(), newChild.getName());
+						} else {
+							LOGGER.trace("Ignoring secondary format \"{}\" for \"{}\": invalid format", newChild.getFormat().toString(), newChild.getName());
+						}
 					}
 				}
 			}
 		} catch (Throwable t) {
-			LOGGER.error("Error adding child: {}", child.getName(), t);
+			LOGGER.error("Error adding child: \"{}\"", child.getName(), t);
 
 			child.setParent(null);
 			getChildren().remove(child);
@@ -1253,12 +1292,28 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Returns an XML (DIDL) representation of the DLNA node. It gives a complete representation of the item, with as many tags as available.
-	 * Recommendations as per UPNP specification are followed where possible.
-	 * @param mediaRenderer Media Renderer for which to represent this information. Useful for some hacks.
-	 * @return String representing the item. An example would start like this: {@code <container id="0$1" childCount="1" parentID="0" restricted="true">}
+	 * @deprecated Use {@link #getDidlString(RendererConfiguration)} instead.
+	 *
+	 * @param mediaRenderer
+	 * @return
 	 */
+	@Deprecated
 	public final String toString(RendererConfiguration mediaRenderer) {
+		return getDidlString(mediaRenderer);
+	}
+
+	/**
+	 * Returns an XML (DIDL) representation of the DLNA node. It gives a
+	 * complete representation of the item, with as many tags as available.
+	 * Recommendations as per UPNP specification are followed where possible.
+	 * 
+	 * @param mediaRenderer
+	 *            Media Renderer for which to represent this information. Useful
+	 *            for some hacks.
+	 * @return String representing the item. An example would start like this:
+	 *         {@code <container id="0$1" childCount="1" parentID="0" restricted="true">}
+	 */
+	public final String getDidlString(RendererConfiguration mediaRenderer) {
 		StringBuilder sb = new StringBuilder();
 
 		if (isFolder()) {
@@ -1323,8 +1378,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				addXMLTagAndAttribute(sb, "upnp:originalTrackNumber", "" + firstAudioTrack.getTrack());
 			}
 		}
-
-		String mime = null;
 
 		if (!isFolder()) {
 			int indexCount = 1;
@@ -1401,8 +1454,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 				addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
 
-				mime = getRendererMimeType(mimeType(), mediaRenderer);
+				// FIXME: There is a flaw here. In addChild(DLNAResource) the mime type
+				// is determined for the default renderer. This renderer may rewrite the
+				// mime type based on its configuration. Looking up that mime type is
+				// not guaranteed to return a match for another renderer.
+				String mime = mediaRenderer.getMimeType(mimeType());
+
 				if (mime == null) {
+					// FIXME: Setting the default to "video/mpeg" leaves a lot of audio files in the cold.
 					mime = "video/mpeg";
 				}
 
@@ -1828,7 +1887,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			addXMLTagAndAttribute(sb, "dc:date", SDF_DATE.format(new Date(getLastModified())));
 		}
 
-		String uclass = null;
+		String uclass;
 		if (first != null && getMedia() != null && !getMedia().isSecondaryFormatValid()) {
 			uclass = "dummy";
 		} else {
@@ -1844,26 +1903,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				} else if (xbox && getFakeParentId() != null && getFakeParentId().equals("F")) {
 					uclass = "object.container.playlistContainer";
 				}
-			} else if (mime != null) {
-				// UPNP class and mimetype should always agree or the renderer may get confused
-				// and reject the item (relevant if we're spoofing formats, e.g. audio as video).
-				if (mime.startsWith("video")) {
-					uclass = "object.item.videoItem";
-				} else if (mime.startsWith("image")) {
-					uclass = "object.item.imageItem.photo";
-				} else if (mime.startsWith("audio")) {
-					uclass = "object.item.audioItem.musicTrack";
-				}
-			} else if (getFormat() != null) {
-				// Normally we shouldn't get here, but it's a giant function and
-				// it can't hurt to have a backup in case the logic ever changes.
-				if (getFormat().isVideo()) {
-					uclass = "object.item.videoItem";
-				} else if (getFormat().isImage()) {
-					uclass = "object.item.imageItem.photo";
-				} else if (getFormat().isAudio()) {
-					uclass = "object.item.audioItem.musicTrack";
-				}
+			} else if (getFormat() != null && getFormat().isVideo()) {
+				uclass = "object.item.videoItem";
+			} else if (getFormat() != null && getFormat().isImage()) {
+				uclass = "object.item.imageItem.photo";
+			} else if (getFormat() != null && getFormat().isAudio()) {
+				uclass = "object.item.audioItem.musicTrack";
 			} else {
 				uclass = "object.item.videoItem";
 			}
@@ -2177,8 +2222,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// (Re)start transcoding process if necessary
 			if (externalProcess == null || externalProcess.isDestroyed()) {
 				// First playback attempt => start new transcoding process
-				LOGGER.info("Starting transcode/remux of " + getName());
+				LOGGER.debug("Starting transcode/remux of " + getName() + " with media info: " + getMedia().toString());
+
 				externalProcess = getPlayer().launchTranscode(this, getMedia(), params);
+
 				if (params.waitbeforestart > 0) {
 					LOGGER.trace("Sleeping for {} milliseconds", params.waitbeforestart);
 					try {
@@ -2276,6 +2323,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	public String mimeType() {
 		if (getPlayer() != null) {
+			// FIXME: This cannot be right. A player like FFmpeg can output many
+			// formats depending on the media and the renderer. Also, players are
+			// singletons. Therefore it is impossible to have exactly one mime
+			// type to return.
 			return getPlayer().mimeType();
 		} else if (getMedia() != null && getMedia().isMediaparsed()) {
 			return getMedia().getMimeType();
@@ -2416,7 +2467,20 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + " [id=" + getId() + ", name=" + getName() + ", full path=" + getResourceId() + ", ext=" + getFormat() + ", discovered=" + isDiscovered() + "]";
+		StringBuilder result = new StringBuilder();
+		result.append(getClass().getSimpleName());
+		result.append(" [id=");
+		result.append(getId());
+		result.append(", name=");
+		result.append(getName());
+		result.append(", full path=");
+		result.append(getResourceId());
+		result.append(", ext=");
+		result.append(getFormat());
+		result.append(", discovered=");
+		result.append(isDiscovered());
+		result.append("]");
+		return result.toString();
 	}
 
 	/**
@@ -2455,6 +2519,26 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		// Set deprecated variable for backwards compatibility
 		ext = format;
+	}
+ 
+	/**
+	 * @deprecated Use {@link #getFormat()} instead.
+	 *
+	 * @return The format of this resource.
+	 */
+	@Deprecated
+	public Format getExt() {
+		return getFormat();
+	}
+
+	/**
+	 * @deprecated Use {@link #setFormat(Format)} instead.
+	 *
+	 * @param format The format to set.
+	 */
+	@Deprecated
+	protected void setExt(Format format) {
+		setFormat(format);
 	}
 
 	/**

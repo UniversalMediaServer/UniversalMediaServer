@@ -123,8 +123,8 @@ public class NavigationShareTab {
 		// Set basic layout
 		FormLayout layout = new FormLayout(colSpec, PANEL_ROW_SPEC);
 		PanelBuilder builder = new PanelBuilder(layout);
-		builder.setBorder(Borders.DLU4_BORDER);
-		builder.setOpaque(true);
+		builder.border(Borders.DLU4);
+		builder.opaque(true);
 
 		CellConstraints cc = new CellConstraints();
 
@@ -652,7 +652,7 @@ public class NavigationShareTab {
 
 		FormLayout layoutFolders = new FormLayout(colSpec, SHARED_FOLDER_ROW_SPEC);
 		PanelBuilder builderFolder = new PanelBuilder(layoutFolders);
-		builderFolder.setOpaque(true);
+		builderFolder.opaque(true);
 
 		JComponent cmp = builderFolder.addSeparator(Messages.getString("FoldTab.7"), FormLayoutUtil.flip(cc.xyw(1, 1, 7), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);

@@ -31,7 +31,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>3.0.0-a4</version>
+	<version>3.0.0-a6</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -81,18 +81,11 @@
 		<jna-version-windows>3.2.5</jna-version-windows>
 
 		<cuelib-version>1.2.1-2008-06-13</cuelib-version>
-		<jgoodies-common-version>1.2.1</jgoodies-common-version>
-		<jgoodies-forms-version>1.4.2</jgoodies-forms-version>
-		<jgoodies-looks-version>2.4.2</jgoodies-looks-version>
+		<jgoodies-forms-version>1.6.0</jgoodies-forms-version>
+		<jgoodies-looks-version>2.5.2</jgoodies-looks-version>
 		<junrar-version>0.7</junrar-version>
 		<mediautil-version>1.0</mediautil-version>
-		<xmlwise-version>1.2</xmlwise-version>
-		<!--
-			the xmlwise jar's filename uses underscores for the version rather than dots e.g. xmlwise-1_2.jar.
-			dynamic properties are a DRYer/saner solution, but I couldn't get properties-maven-plugin
-			to work with Maven 2.2.1...
-		-->
-		<xmlwise-filename-version>1_2</xmlwise-filename-version>
+		<xmlwise-version>1.2.11</xmlwise-version>
 		<slf4j-version>1.7.5</slf4j-version>
 
 		<!-- Skip 4.65-1.05-RC because it doesn't work, author is working on fixing it -->
@@ -106,8 +99,8 @@
 		<project.binaries-base>http://universal-media-server-binaries.googlecode.com/svn/trunk</project.binaries-base>
 		<!-- <project.binaries-base>http://ps3mediaserver.googlecode.com/svn/tags/1.40.0</project.binaries-base> -->
 
-		<maven-javadoc-plugin-version>2.9</maven-javadoc-plugin-version>
-		<git-commit-id-plugin-version>2.1.4</git-commit-id-plugin-version>
+		<maven-javadoc-plugin-version>2.9.1</maven-javadoc-plugin-version>
+		<git-commit-id-plugin-version>2.1.5</git-commit-id-plugin-version>
 
 		<!--
 			 use the Windows makensis.exe for Windows builds unless
@@ -237,7 +230,7 @@
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<version>1.3.172</version>
+			<version>1.3.173</version>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
@@ -318,24 +311,15 @@
 			<version>2.0.3</version>
 		</dependency>
 
-		<!-- XXX: not Mavenized: http://www.jgoodies.com/downloads/libraries.html -->
 		<dependency>
 			<groupId>com.jgoodies</groupId>
-			<artifactId>common</artifactId>
-			<version>${jgoodies-common-version}</version>
-		</dependency>
-
-		<!-- XXX: not Mavenized: http://www.jgoodies.com/downloads/libraries.html -->
-		<dependency>
-			<groupId>com.jgoodies</groupId>
-			<artifactId>forms</artifactId>
+			<artifactId>jgoodies-forms</artifactId>
 			<version>${jgoodies-forms-version}</version>
 		</dependency>
 
-		<!-- XXX: not Mavenized: http://www.jgoodies.com/downloads/libraries.html -->
 		<dependency>
 			<groupId>com.jgoodies</groupId>
-			<artifactId>looks</artifactId>
+			<artifactId>jgoodies-looks</artifactId>
 			<version>${jgoodies-looks-version}</version>
 		</dependency>
 
@@ -359,9 +343,8 @@
 			<version>${mediautil-version}</version>
 		</dependency>
 
-		<!-- XXX: not Mavenized: https://code.google.com/p/xmlwise/ -->
 		<dependency>
-			<groupId>com.googlecode</groupId>
+			<groupId>xmlwise</groupId>
 			<artifactId>xmlwise</artifactId>
 			<version>${xmlwise-version}</version>
 		</dependency>
@@ -489,9 +472,9 @@
 
 							There is an incompatible JNA native library installed on this system.
 						-->
-						<argLine>-Duser.language=en -Djna.nosys=true</argLine> <!-- only one argLine element is processed -->
+						<argLine>-Duser.language=en -Djna.nosys=true -XX:-UseSplitVerifier</argLine> <!-- only one argLine element is processed -->
 					</configuration>
-					<version>2.12.3</version>
+					<version>2.16</version>
 				</plugin>
 
 				<!--
@@ -600,6 +583,8 @@
 				<configuration>
 					<source>1.7</source>
 					<target>1.7</target>
+					<testSource>1.7</testSource>
+					<testTarget>1.7</testTarget>
 				</configuration>
 			</plugin>
 
@@ -621,7 +606,7 @@
 
 			<plugin>
 				<artifactId>maven-idea-plugin</artifactId>
-				<version>2.2</version>
+				<version>2.2.1</version>
 				<configuration>
 					<downloadSources>true</downloadSources>
 					<downloadJavadocs>true</downloadJavadocs>
@@ -658,18 +643,6 @@
 					<force>false</force>
 					<artifactItems>
 						<artifactItem>
-							<groupId>com.jgoodies</groupId>
-							<artifactId>common</artifactId>
-							<version>${jgoodies-common-version}</version>
-							<packaging>jar</packaging>
-							<install>true</install>
-							<force>false</force>
-							<downloadUrl>http://www.jgoodies.com/download/libraries/{artifactId}/jgoodies-{artifactId}-{_version}.zip</downloadUrl>
-							<checksum>5a4cf9866a7339e64e52f46101b5b13fe50b9c80</checksum>
-							<extractFile>jgoodies-{artifactId}-{version}/jgoodies-{artifactId}-{version}.{packaging}</extractFile>
-							<extractFileChecksum>f3955d59f2263fb889b02febec74377647a2eaba</extractFileChecksum>
-						</artifactItem>
-						<artifactItem>
 							<groupId>sevenzip</groupId>
 							<artifactId>jbinding</artifactId>
 							<version>${sevenzip-version}</version>
@@ -684,30 +657,6 @@
 							<packaging>jar</packaging>
 							<install>true</install>
 							<downloadUrl>http://www.spirton.com/uploads/7-Zip-JBinding/7-Zip-JBinding-AllPlatforms-{version}.{packaging}</downloadUrl>
-						</artifactItem>
-						<artifactItem>
-							<groupId>com.jgoodies</groupId>
-							<artifactId>forms</artifactId>
-							<version>${jgoodies-forms-version}</version>
-							<packaging>jar</packaging>
-							<install>true</install>
-							<force>false</force>
-							<downloadUrl>http://www.jgoodies.com/download/libraries/{artifactId}/jgoodies-{artifactId}-{_version}.zip</downloadUrl>
-							<checksum>83bb8780a38cb6bc854964da298f0f657868871d</checksum>
-							<extractFile>jgoodies-{artifactId}-{version}/jgoodies-{artifactId}-{version}.{packaging}</extractFile>
-							<extractFileChecksum>de8a67990cbeae62910cc2022f06c466476f2f2b</extractFileChecksum>
-						</artifactItem>
-						<artifactItem>
-							<groupId>com.jgoodies</groupId>
-							<artifactId>looks</artifactId>
-							<version>${jgoodies-looks-version}</version>
-							<packaging>jar</packaging>
-							<install>true</install>
-							<force>false</force>
-							<downloadUrl>http://www.jgoodies.com/download/libraries/{artifactId}/jgoodies-{artifactId}-{_version}.zip</downloadUrl>
-							<checksum>ccba2963e63c8349f8a16a10abfd5102a94a182b</checksum>
-							<extractFile>jgoodies-{artifactId}-{version}/jgoodies-{artifactId}-{version}.{packaging}</extractFile>
-							<extractFileChecksum>535745c08e342f7ea78556baad44a4a52ffb7863</extractFileChecksum>
 						</artifactItem>
 						<artifactItem>
 							<groupId>jwbroek.cuelib</groupId>
@@ -728,16 +677,6 @@
 							<checksum>aa7ae51bb24a9268a8e57c6afe478c4293f84fda</checksum>
 							<extractFile>mediautil-${mediautil-version}/mediautil-${mediautil-version}.jar</extractFile>
 							<extractFileChecksum>e843cd55def75dce57123c79b7f36caca4841466</extractFileChecksum>
-						</artifactItem>
-						<artifactItem>
-							<groupId>com.googlecode</groupId>
-							<artifactId>xmlwise</artifactId>
-							<version>${xmlwise-version}</version>
-							<packaging>jar</packaging>
-							<install>true</install>
-							<force>false</force>
-							<downloadUrl>https://xmlwise.googlecode.com/files/xmlwise-${xmlwise-filename-version}.jar</downloadUrl>
-							<checksum>82ed648273281ccd08da6f91df30573edf15185d</checksum>
 						</artifactItem>
 					</artifactItems>
 				</configuration>
@@ -772,7 +711,7 @@
 					<dependency>
 						<groupId>org.apache.maven.doxia</groupId>
 						<artifactId>doxia-module-docbook-simple</artifactId>
-						<version>1.2</version>
+						<version>1.4</version>
 					</dependency>
 				</dependencies>
 				<configuration>
@@ -780,7 +719,7 @@
 						<plugin>
 							<groupId>org.apache.maven.plugins</groupId>
 							<artifactId>maven-project-info-reports-plugin</artifactId>
-							<version>2.4</version>
+							<version>2.7</version>
 							<reports>
 								<report>index</report>
 								<report>dependencies</report>
@@ -794,7 +733,7 @@
 						<plugin>
 							<groupId>org.apache.maven.plugins</groupId>
 							<artifactId>maven-surefire-report-plugin</artifactId>
-							<version>2.5</version>
+							<version>2.15</version>
 							<configuration>
 								<showSuccess>false</showSuccess>
 							</configuration>
@@ -821,7 +760,7 @@
 								</tags>
 								<detectJavaApiLink>false</detectJavaApiLink>
 								<links>
-									<link>http://download.oracle.com/javase/6/docs/api/</link>
+									<link>http://docs.oracle.com/javase/7/docs/api/</link>
 								</links>
 
 								<!--
@@ -832,7 +771,7 @@
 								<docletArtifact>
 									<groupId>org.jboss.apiviz</groupId>
 									<artifactId>apiviz</artifactId>
-									<version>1.3.1.GA</version>
+									<version>1.3.2.GA</version>
 								</docletArtifact>
 								<useStandardDocletOptions>true</useStandardDocletOptions>
 							</configuration>
@@ -856,7 +795,7 @@
 						<plugin>
 							<groupId>org.apache.maven.plugins</groupId>
 							<artifactId>maven-checkstyle-plugin</artifactId>
-							<version>2.8</version>
+							<version>2.10</version>
 						</plugin>
 						-->
 
@@ -864,7 +803,7 @@
 						<plugin>
 							<groupId>org.codehaus.mojo</groupId>
 							<artifactId>cobertura-maven-plugin</artifactId>
-							<version>2.5.2</version>
+							<version>2.6</version>
 						</plugin>
 
 						<!-- PMD and CPD code analysis report -->
@@ -1048,11 +987,9 @@
 										<get src="${project.binaries-base}/MediaInfo.dll" dest="${project.binaries}/MediaInfo.dll"  usetimestamp="true" />
 										<get src="${project.binaries-base}/MediaInfo64.dll" dest="${project.binaries}/MediaInfo64.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/MediaInfo-License.html" dest="${project.binaries}/MediaInfo-License.html" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/Convert_License.txt" dest="${project.binaries}/win32/Convert_License.txt"  usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/LICENSE-dsnative.txt" dest="${project.binaries}/win32/LICENSE-dsnative.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/LICENSE-mplayer.txt" dest="${project.binaries}/win32/LICENSE-mplayer.txt" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/builds.txt" dest="${project.binaries}/win32/builds.txt" usetimestamp="true" />
-										<get src="${project.binaries-base}/win32/convert.exe" dest="${project.binaries}/win32/convert.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/dcrawMS.exe" dest="${project.binaries}/win32/dcrawMS.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/ffmpeg.exe" dest="${project.binaries}/win32/ffmpeg.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/flac.exe" dest="${project.binaries}/win32/flac.exe" usetimestamp="true" />
@@ -1371,7 +1308,11 @@
 											<arg value="-e" />
 											<arg value="set dest to POSIX file &quot;${project.build.directory}/${project.build.finalName}-distribution&quot;" />
 											<arg value="-e" />
+											<arg value="if not exists dest then" />
+											<arg value="-e" />
 											<arg value="make new alias file to folder src at folder dest" />
+											<arg value="-e" />
+											<arg value="end if" />
 											<arg value="-e" />
 											<arg value="end tell" />
 										</exec>

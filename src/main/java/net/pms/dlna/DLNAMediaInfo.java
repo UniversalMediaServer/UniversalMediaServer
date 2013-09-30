@@ -92,7 +92,14 @@ public class DLNAMediaInfo implements Cloneable {
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	public static final long ENDFILE_POS = 99999475712L;
-	public static final long TRANS_SIZE = 100000000000L;
+
+	/**
+	 * Maximum size of a stream, taking into account that some renderers (like
+	 * the PS3) will convert this <code>long</code> to <code>int</code>.
+	 * Truncating this value will still return the maximum value that an
+	 * <code>int</code> can contain.
+	 */
+	public static final long TRANS_SIZE = Long.MAX_VALUE - Integer.MAX_VALUE - 1;
 
 	private boolean h264_parsed;
 
@@ -1224,20 +1231,45 @@ public class DLNAMediaInfo implements Cloneable {
 
 	@Override
 	public String toString() {
-		String s = "container: " + getContainer() + " / bitrate: " + getBitrate() + " / size: " + getSize() + " / codecV: " + getCodecV() + " / duration: " + getDurationString() + " / width: " + getWidth() + " / height: " + getHeight() + " / frameRate: " + getFrameRate() + " / thumb size : " + (getThumb() != null ? getThumb().length : 0) + " / muxingMode: " + getMuxingMode();
+		StringBuilder result = new StringBuilder();
+		result.append("container: ");
+		result.append(getContainer());
+		result.append(", bitrate: ");
+		result.append(getBitrate());
+		result.append(", size: ");
+		result.append(getSize());
+		result.append(", video codec: ");
+		result.append(getCodecV());
+		result.append(", duration: ");
+		result.append(getDurationString());
+		result.append(", width: ");
+		result.append(getWidth());
+		result.append(", height: ");
+		result.append(getHeight());
+		result.append(", frame rate: ");
+		result.append(getFrameRate());
+
+		if (getThumb() != null) {
+			result.append(", thumb size : ");
+			result.append(getThumb().length);
+		}
+
+		result.append(", muxing mode: ");
+		result.append(getMuxingMode());
+		result.append(", mime type: ");
+		result.append(getMimeType());
 
 		for (DLNAMediaAudio audio : getAudioTracksList()) {
-			s += "\n\taudio: id=" + audio.getId() + " / lang: " + audio.getLang() + " / flavor: " + audio.getFlavor() + " / codec: " + audio.getCodecA() + " / sf:" + audio.getSampleFrequency() + " / na: " + (audio.getAudioProperties() != null ? audio.getAudioProperties().getNumberOfChannels() : "-") + " / bs: " + audio.getBitsperSample();
-			if (audio.getArtist() != null) {
-				s += " / " + audio.getArtist() + "|" + audio.getAlbum() + "|" + audio.getSongname() + "|" + audio.getYear() + "|" + audio.getTrack();
-			}
+			result.append("\n\tAudio track ");
+			result.append(audio.toString());
 		}
 
 		for (DLNAMediaSubtitle sub : getSubtitleTracksList()) {
-			s += "\n\tsub: id=" + sub.getId() + " / lang: " + sub.getLang() + " / flavor: " + sub.getFlavor() + " / type: " + (sub.getType() != null ? sub.getType().toString() : "null");
+			result.append("\n\tSubtitle track ");
+			result.append(sub.toString());
 		}
 
-		return s;
+		return result.toString();
 	}
 
 	public InputStream getThumbnailInputStream() {

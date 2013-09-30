@@ -77,8 +77,8 @@ public class GeneralTab {
 
 		FormLayout layout = new FormLayout(colSpec, ROW_SPEC);
 		PanelBuilder builder = new PanelBuilder(layout);
-		builder.setBorder(Borders.DLU4_BORDER);
-		builder.setOpaque(true);
+		builder.border(Borders.DLU4);
+		builder.opaque(true);
 
 		CellConstraints cc = new CellConstraints();
 
@@ -392,7 +392,7 @@ public class GeneralTab {
 				}
 			});
 
-			maxbitrate = new JTextField(configuration.getMaximumBitrate());
+			maxbitrate = new JTextField(configuration.getMaximumBitrateDisplay());
 			maxbitrate.setToolTipText(Messages.getString("NetworkTab.65"));
 			maxbitrate.addKeyListener(new KeyAdapter() {
 				@Override

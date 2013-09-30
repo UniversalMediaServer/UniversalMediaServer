@@ -209,7 +209,9 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 				// seems no rights
 				target = new File(configuration.getTempFolder(), TARGET_FILENAME);
 			} finally {
-				fileOnDisk.close();
+				if (fileOnDisk != null) {
+					fileOnDisk.close();
+				}
 			}
 			fileOnDisk = new FileOutputStream(target);
 			int bytesSaved = IOUtils.copy(downloadedFromNetwork, fileOnDisk);

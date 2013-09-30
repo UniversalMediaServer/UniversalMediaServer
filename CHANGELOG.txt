@@ -1,24 +1,79 @@
-3.0.0-a4 - 2013-08-??
+3.0.0-a6 - 2013-09-??
 
 	General:
+		Added support for muxing (losslessly streaming) more files with tsMuxeR by default
+		A more helpful error is displayed when something is using the UMS HTTP port
+		Improved calculation of subtitle font size in FFmpeg
+		Expanded filename prettifying
+		Fixed x264 transcoding with MEncoder
+		Fixed a rare startup bug
+		Fixed FFmpeg subtitles bug
+		Fixed a general subtitles bug (thanks, Skeptical!)
+		Fixed several minor bugs
+	Renderers:
+		Added support for Samsung Galaxy S3
+		Improved DirecTV support
+		Updated DirecTV image
+		Improved PS3 support
+	External Components:
+		Updated H2 Database Engine to 1.3.173
+		Updated Maven Cobertura Plugin to 2.6
+		Updated Maven Doxia Docbook Simple Plugin to 1.4
+		Updated Maven Git Commit ID Plugin to 2.1.5, which:
+			Improves stability
+		Updated Maven IDEA Plugin to 2.2.1
+		Updated Maven Javadoc Plugin to 2.9.1, which:
+			Makes it more threadsafe
+			Improves security
+		Updated Maven Surefire Plugin to 2.16, which:
+			Fixes problems with character encodings
+
+3.0.0-a5 - 2013-09-02
+
+	General:
+		Fixed a startup problem affecting some users
+
+3.0.0-a4 - 2013-09-01
+
+	General:
+		Improved support for iTunes compilations
+		Added support for external subtitles in VLC
+		Expanded and fixed filename prettifying
+		Made video playback more stable
+		Fixed support for non-English iTunes libraries
 		Fixed external ASS/SSA support (Thanks, skeptical!)
 		Fixed FFmpeg muxing on non-PS3 renderers
 		Fixed use of custom Java Heapsize (Thanks, OptimusPrime!)
+		Fixed VLC audio/subtitle language selection
+		Fixed streaming radio timing out after 1:45:32
+		Fixed MEncoder subtitle support when the font name contains a space
+		Run the program in Java's server mode when using 64-bit JRE
+	Renderers:
+		Added support for Bravia W series TVs
+		Improved support for KalemSoft Media Player on BlackBerry PlayBook
 	Languages:
+		Updated French translation
 		Updated Spanish translation (thanks, AlfredoRamos!)
 	External Components:
 		Updated Apache Commons Codec to 1.8
+		Updated Checkstyle to 2.10
 		Updated Cobertura Maven Plugin to 2.5.2
 		Updated FindBugs Maven Plugin to 2.5.2
 		Updated Gson to 2.2.4
 		Updated H2 Database Engine to 1.3.172
+		Updated JBoss APIviz to 1.3.2
+		Updated jgoodies-forms to 1.6.0
+		Updated jgoodies-looks to 2.5.2
 		Updated JUnit to 4.11
 		Updated Logback to 1.0.13
+		Updated Maven Project Info Reports to 2.7
 		Updated Maven Source Plugin to 2.2.1
+		Updated Maven Surefire to 2.15
 		Updated PMD Maven Plugin to 3.0.1
 		Updated slf4j to 1.7.5
 		Updated Thumbnailator to 0.4.5, which:
 			Fixes use of Exif orientation
+		Updated xmlwise to 1.2.11
 
 3.0.0-a3 - 2013-07-12 - Changes since 3.0.0-a2
 
@@ -599,7 +654,7 @@
 		Updated links on the Help page
 		Made renderer config layouts more synchronised
 		Added a button to uninstall the Windows service
-		Removed fontconfig from MEncoder for Mac OSX for improved subs compatibility
+		Removed fontconfig from MEncoder for Mac OS X for improved subs compatibility
 		Made names in the transcode folder shorter by removing redundant information
 		The user preference to hide file extensions is applied to the transcode folder subfolder names
 	External components:
@@ -807,7 +862,7 @@
 			Improves fonts
 			Improves caching
 			Improves multithreading stability
-		Updated MPlayer and MEncoder for OSX to SB32
+		Updated MPlayer and MEncoder for OS X to SB32
 		Lots of code optimisations
 		Made program restarts more reliable
 		Fixed AviSynth ConvertFPS option
@@ -910,10 +965,10 @@
 	Added option to select and force the default renderer
 
 
-↑ ========================================================== ↑
-↑      Universal Media Server changelog above this line      ↑
-↓ PS3 Media Server (SubJunk Build) changelog below this line ↓
-↓ ========================================================== ↓
+â†‘ ========================================================== â†‘
+â†‘      Universal Media Server changelog above this line      â†‘
+â†“ PS3 Media Server (SubJunk Build) changelog below this line â†“
+â†“ ========================================================== â†“
 
 
 1.52.2-SB71:

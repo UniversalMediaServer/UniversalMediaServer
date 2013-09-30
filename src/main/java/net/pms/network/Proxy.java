@@ -55,6 +55,9 @@ public class Proxy extends Thread {
 			int targetPort = 80;
 			while (true) {
 				str = fromBrowser.readLine();
+				if (str == null) {
+					break;
+				}
 				if (str.startsWith("GET") || str.startsWith("DESCRIBE") || str.startsWith("POST") || str.startsWith("HEAD")) {
 					getter = str;
 				}

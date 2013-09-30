@@ -349,7 +349,7 @@ public class UPNPHelper {
 									LOGGER.trace("Setting multicast network interface: " + PMS.get().getServer().getNetworkInterface());
 							}
 						} catch (SocketException e) {
-							// Not setting the network interface will work just fine on Mac OSX.
+							// Not setting the network interface will work just fine on Mac OS X.
 						}
 
 						multicastSocket.setTimeToLive(4);

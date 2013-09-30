@@ -253,13 +253,46 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	}
 
 	/**
-	 * Returns the identifying name for the audio properties.
+	 * Returns a string containing all identifying audio properties.
 	 * 
-	 * @return The name.
+	 * @return The properties string.
 	 */
 	@Override
 	public String toString() {
-		return "Audio: " + getAudioCodec() + " / lang: " + getLang() + " / flavor: " + getFlavor() + " / ID: " + getId();
+		StringBuilder result = new StringBuilder();
+		result.append("id: ");
+		result.append(getId());
+		result.append(", lang: ");
+		result.append(getLang());
+		result.append(", flavor: ");
+		result.append(getFlavor());
+		result.append(", audio codec: ");
+		result.append(getAudioCodec());
+		result.append(", sample frequency:");
+		result.append(getSampleFrequency());
+		
+		if (getAudioProperties() != null) {
+			result.append(", number of channels: ");
+			result.append(getAudioProperties().getNumberOfChannels());
+		}
+
+		result.append(", bits per sample: ");
+		result.append(getBitsperSample());
+
+		if (getArtist() != null) {
+			result.append(", artist: ");
+			result.append(getArtist());
+			result.append(", album: ");
+			result.append(getAlbum());
+			result.append(", song name: ");
+			result.append(getSongname());
+			result.append(", year: ");
+			result.append(getYear());
+			result.append(", track: ");
+			result.append(getTrack());
+		}
+
+		return result.toString();
 	}
 
 	@Override

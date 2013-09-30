@@ -152,6 +152,7 @@ public class PmsConfiguration {
 	private static final String KEY_MENCODER_NOASS_SCALE = "mencoder_noass_scale";
 	private static final String KEY_MENCODER_NOASS_SUBPOS = "mencoder_noass_subpos";
 	private static final String KEY_MENCODER_NO_OUT_OF_SYNC = "mencoder_nooutofsync";
+	private static final String KEY_MENCODER_NORMALIZE_VOLUME = "mencoder_normalize_volume";
 	private static final String KEY_MENCODER_OVERSCAN_COMPENSATION_HEIGHT = "mencoder_overscan_compensation_height";
 	private static final String KEY_MENCODER_OVERSCAN_COMPENSATION_WIDTH = "mencoder_overscan_compensation_width";
 	private static final String KEY_AUDIO_REMUX_AC3 = "audio_remux_ac3";
@@ -244,7 +245,7 @@ public class PmsConfiguration {
 	private final PropertiesConfiguration configuration;
 	private final ConfigurationReader configurationReader;
 	private final TempFolder tempFolder;
-	private final ProgramPathDisabler programPaths;
+	private final ProgramPaths programPaths;
 
 	private final IpFilter filter = new IpFilter();
 
@@ -476,13 +477,11 @@ public class PmsConfiguration {
 	 * then the Windows registry, then check for a platform-specific
 	 * default.
 	 */
-	private static ProgramPathDisabler createProgramPathsChain(Configuration configuration) {
-		return new ProgramPathDisabler(
-			new ConfigurationProgramPaths(
-				configuration,
-				new WindowsRegistryProgramPaths(
-					new PlatformSpecificDefaultPathsFactory().get()
-				)
+	private static ProgramPaths createProgramPathsChain(Configuration configuration) {
+		return new ConfigurationProgramPaths(
+			configuration,
+			new WindowsRegistryProgramPaths(
+				new PlatformSpecificDefaultPathsFactory().get()
 			)
 		);
 	}
@@ -551,14 +550,6 @@ public class PmsConfiguration {
 		return programPaths.getVlcPath();
 	}
 
-	public void disableVlc() {
-		programPaths.disableVlc();
-	}
-
-	public String getEac3toPath() {
-		return programPaths.getEac3toPath();
-	}
-
 	public String getMencoderPath() {
 		return programPaths.getMencoderPath();
 	}
@@ -571,24 +562,12 @@ public class PmsConfiguration {
 		return programPaths.getDCRaw();
 	}
 
-	public void disableMEncoder() {
-		programPaths.disableMencoder();
-	}
-
 	public String getFfmpegPath() {
 		return programPaths.getFfmpegPath();
 	}
 
-	public void disableFfmpeg() {
-		programPaths.disableFfmpeg();
-	}
-
 	public String getMplayerPath() {
 		return programPaths.getMplayerPath();
-	}
-
-	public void disableMplayer() {
-		programPaths.disableMplayer();
 	}
 
 	public String getTsmuxerPath() {
@@ -1326,10 +1305,13 @@ public class PmsConfiguration {
 	 * @return The number of audio channels.
 	 */
 	public int getAudioChannelCount() {
-		if (!"6".equals(KEY_AUDIO_CHANNEL_COUNT) && !"2".equals(KEY_AUDIO_CHANNEL_COUNT)) {
+		int valueFromUserConfig = getInt(KEY_AUDIO_CHANNEL_COUNT, 6);
+
+		if (valueFromUserConfig != 6 && valueFromUserConfig != 2) {
 			return 6;
 		}
-		return getInt(KEY_AUDIO_CHANNEL_COUNT, 6);
+
+		return valueFromUserConfig;
 	}
 
 	/**
@@ -1367,6 +1349,17 @@ public class PmsConfiguration {
 			maximumBitrate = "1000";
 		}
 		return maximumBitrate;
+	}
+
+	/**
+	 * The same as getMaximumBitrate() but this value is displayed to the user
+	 * because for our own uses we turn the value "0" into the value "1000" but
+	 * that can be confusing for the user.
+	 *
+	 * @return The maximum video bitrate to display in the GUI.
+	 */
+	public String getMaximumBitrateDisplay() {
+		return getString(KEY_MAX_BITRATE, "110");
 	}
 
 	/**
@@ -2154,6 +2147,14 @@ public class PmsConfiguration {
 		return getBoolean(KEY_MENCODER_MUX_COMPATIBLE, true);
 	}
 
+	public void setMEncoderNormalizeVolume(boolean value) {
+		configuration.setProperty(KEY_MENCODER_NORMALIZE_VOLUME, value);
+	}
+
+	public boolean isMEncoderNormalizeVolume() {
+		return getBoolean(KEY_MENCODER_NORMALIZE_VOLUME, false);
+	}
+
 	public void setFFmpegMuxWhenCompatible(boolean value) {
 		configuration.setProperty(KEY_FFMPEG_MUX_COMPATIBLE, value);
 	}
@@ -2495,10 +2496,6 @@ public class PmsConfiguration {
 
 	public void setAutoUpdate(boolean value) {
 		configuration.setProperty(KEY_AUTO_UPDATE, value);
-	}
-
-	public String getIMConvertPath() {
-		return programPaths.getIMConvertPath();
 	}
 
 	public int getUpnpPort() {

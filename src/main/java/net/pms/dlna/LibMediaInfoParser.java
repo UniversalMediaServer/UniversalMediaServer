@@ -2,16 +2,28 @@ package net.pms.dlna;
 
 import java.io.File;
 import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.formats.v2.SubtitleType;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
-import static org.apache.commons.lang3.StringUtils.*;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.lowerCase;
+import static org.apache.commons.lang3.StringUtils.substringAfterLast;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class LibMediaInfoParser {
 	private static final Logger LOGGER = LoggerFactory.getLogger(LibMediaInfoParser.class);
+
+	// Regular expression to parse a 4 digit year number from a string
+	private static final String YEAR_REGEX = ".*([\\d]{4}).*";
+
+	// Pattern to parse the year from a string
+	private static final Pattern yearPattern = Pattern.compile(YEAR_REGEX);
+
 	private static MediaInfo MI;
 	private static Base64 base64;
 
@@ -179,12 +191,15 @@ public class LibMediaInfoParser {
 							} else if (key.equals("Genre") && streamType == MediaInfo.StreamType.General) {
 								currentAudioTrack.setGenre(ovalue);
 							} else if (key.equals("Recorded_Date") && streamType == MediaInfo.StreamType.General) {
-								try {
-									// Try to parse incorrectly stored date
-									String recordedDate = value.replaceAll("[^\\d]{4}", "");
-									currentAudioTrack.setYear(Integer.parseInt(recordedDate));
-								} catch (NumberFormatException nfe) {
-									LOGGER.debug("Could not parse year \"" + value + "\"");
+								// Try to parse the year from the stored date
+								Matcher matcher = yearPattern.matcher(value);
+
+								if (matcher.matches()) {
+									try {
+										currentAudioTrack.setYear(Integer.parseInt(matcher.group(1)));
+									} catch (NumberFormatException nfe) {
+										LOGGER.debug("Could not parse year from recorded date \"" + value + "\"");
+									}
 								}
 							} else if (key.equals("Track/Position") && streamType == MediaInfo.StreamType.General) {
 								try {

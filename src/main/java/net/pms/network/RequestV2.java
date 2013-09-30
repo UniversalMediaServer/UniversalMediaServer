@@ -51,7 +51,7 @@ import org.slf4j.LoggerFactory;
 public class RequestV2 extends HTTPResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RequestV2.class);
 	private final static String CRLF = "\r\n";
-	private static SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
+	private final SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
 	private static int BUFFER_SIZE = 8 * 1024;
 	private final String method;
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
@@ -689,7 +689,7 @@ public class RequestV2 extends HTTPResource {
 							uf.setFakeParentId(containerID);
 						}
 						if (uf.isCompatible(mediaRenderer) && (uf.getPlayer() == null || uf.getPlayer().isPlayerCompatible(mediaRenderer))) {
-							response.append(uf.toString(mediaRenderer));
+							response.append(uf.getDidlString(mediaRenderer));
 						} else {
 							minus++;
 						}
@@ -744,7 +744,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
-				// LOGGER.trace(response.toString());
+				LOGGER.trace(response.toString());
 			}
 		} else if (method.equals("SUBSCRIBE")) {
 			output.setHeader("SID", PMS.get().usn());
