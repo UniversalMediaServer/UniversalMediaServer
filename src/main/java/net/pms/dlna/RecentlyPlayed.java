@@ -20,12 +20,12 @@ import net.pms.external.ExternalListener;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.util.FileUtil;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RecentlyPlayed extends VirtualFolder {
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(RecentlyPlayed.class);
 	private static final int MAX_LIST_SIZE = 250;
 	private static final int DEF_LIST_SIZE = 50;
@@ -76,10 +76,10 @@ public class RecentlyPlayed extends VirtualFolder {
 	public void add(DLNAResource res) {
 		DLNAResource res1;
 		LOGGER.debug("add " + res + " to last played " + res.getParent() + " " + this);
-        if (res instanceof VirtualVideoAction) {
-            // don't add these
-            return;
-        }
+		if (res instanceof VirtualVideoAction) {
+			// don't add these
+			return;
+		}
 		if (res.getParent() == this) {
 			res1 = res; // best guess
 			for (DLNAResource r : list) {
@@ -130,11 +130,11 @@ public class RecentlyPlayed extends VirtualFolder {
 			}
 		}
 	}
-	
+
 	public List<DLNAResource> getList() {
 		return list;
 	}
-	
+
 	public void update() {
 		try {
 			dumpFile();
@@ -200,10 +200,10 @@ public class RecentlyPlayed extends VirtualFolder {
 						res.setMasterParent(lpp);
 						if (resData != null) {
 							ResumeObj r = new ResumeObj(new File(resData));
-                            if (!r.isDone()) {
-							    r.read();
-							    res.setResume(r);
-                            }
+							if (!r.isDone()) {
+								r.read();
+								res.setResume(r);
+							}
 						}
 						if (subData != null) {
 							DLNAMediaSubtitle s = res.getMediaSubtitle();
@@ -218,11 +218,9 @@ public class RecentlyPlayed extends VirtualFolder {
 								String sFile = subData.substring(5);
 								s.setExternalFile(new File(sFile));
 								s.setId(1);
-								SubtitleType t=SubtitleType.valueOfFileExtension(
-										FileUtil.getExtension(sFile));
+								SubtitleType t = SubtitleType.valueOfFileExtension(FileUtil.getExtension(sFile));
 								s.setType(t);
-							}
-							else if (subData.startsWith("id:")) {
+							} else if (subData.startsWith("id:")) {
 								s.setId(Integer.parseInt(subData.substring(3)));
 							}
 						}
@@ -231,13 +229,13 @@ public class RecentlyPlayed extends VirtualFolder {
 				}
 			}
 			dumpFile();
-		} catch (Exception e) {
+		} catch (IOException | NumberFormatException e) {
 		}
 	}
 
 	private void dumpFile() throws IOException {
 		File f = lastFile();
-		Date now=new Date();
+		Date now = new Date();
 		try (FileWriter out = new FileWriter(f)) {
 			StringBuilder sb = new StringBuilder();
 			sb.append("######\n");
@@ -265,18 +263,17 @@ public class RecentlyPlayed extends VirtualFolder {
 					}
 					if (r.getMediaSubtitle() != null) {
 						DLNAMediaSubtitle sub = r.getMediaSubtitle();
-						if (sub.getLang() != null &&
-							sub.getId() != -1) {
+						if (sub.getLang() != null
+							&& sub.getId() != -1) {
 							sb.append("sub");
 							sb.append(sub.getLang());
 							sb.append(",");
 							if (sub.isExternal()) {
 								sb.append("file:");
 								sb.append(sub.getExternalFile().getAbsolutePath());
-							}
-							else {
+							} else {
 								sb.append("id:");
-								sb.append("" + sub.getId());
+								sb.append("").append(sub.getId());
 							}
 							sb.append(";");
 						}
@@ -324,8 +321,9 @@ public class RecentlyPlayed extends VirtualFolder {
 			Class<?> clazz = l.getClass();
 			create = clazz.getDeclaredMethod("create", String.class);
 			return (DLNAResource) create.invoke(l, arg);
-		// Ignore all errors
-		} catch (SecurityException | NoSuchMethodException | IllegalArgumentException | IllegalAccessException | InvocationTargetException e) { }
+			// Ignore all errors
+		} catch (SecurityException | NoSuchMethodException | IllegalArgumentException | IllegalAccessException | InvocationTargetException e) {
+		}
 		return null;
 	}
 }

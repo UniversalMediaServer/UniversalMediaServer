@@ -630,7 +630,7 @@ public class RootFolder extends DLNAResource {
 		boolean firstPhoto = true;
 
 		for (Object photoKey : albumPhotos) {
-			Map<?, ? > photo = (Map<?, ?>) photoList.get(photoKey);
+			Map<?, ?> photo = (Map<?, ?>) photoList.get(photoKey);
 
 			if (firstPhoto) {
 				Object x = photoList.get("ThumbPath");
@@ -1037,7 +1037,7 @@ public class RootFolder extends DLNAResource {
 							int pos = name.lastIndexOf(".");
 
 							if (pos != -1) {
-								name = name.substring(0,pos);
+								name = name.substring(0, pos);
 							}
 
 							final File f = files[i];
@@ -1051,7 +1051,7 @@ public class RootFolder extends DLNAResource {
 										InputStream is = pid.getInputStream();
 										InputStreamReader isr = new InputStreamReader(is);
 										BufferedReader br = new BufferedReader(isr);
-										while (br.readLine() != null) { 
+										while (br.readLine() != null) {
 										}
 										pid.waitFor();
 									} catch (IOException | InterruptedException e) {
@@ -1068,42 +1068,44 @@ public class RootFolder extends DLNAResource {
 
 		// Resume file management
 		if (configuration.isResumeEnabled()) {
-				res.addChild(new VirtualFolder(Messages.getString("PMS.135"), null) {
-					@Override
-					public void discoverChildren() {
-						final File[] files = ResumeObj.resumeFiles();
-						addChild(new VirtualVideoAction(Messages.getString("PMS.136"), true) {
+			res.addChild(new VirtualFolder(Messages.getString("PMS.135"), null) {
+				@Override
+				public void discoverChildren() {
+					final File[] files = ResumeObj.resumeFiles();
+					addChild(new VirtualVideoAction(Messages.getString("PMS.136"), true) {
+						@Override
+						public boolean enable() {
+							for (File f : files) {
+								f.delete();
+							}
+							getParent().getChildren().remove(this);
+							return false;
+						}
+					});
+					for (final File f : files) {
+						String name = FileUtil.getFileNameWithoutExtension(f.getName());
+						name = name.replaceAll(ResumeObj.CLEAN_REG, "");
+						addChild(new VirtualVideoAction(name, false) {
 							@Override
 							public boolean enable() {
-                                for (File f : files) {
-                                    f.delete();
-                                }
+								f.delete();
 								getParent().getChildren().remove(this);
 								return false;
 							}
 						});
-                        for (final File f : files) {
-                            String name = FileUtil.getFileNameWithoutExtension(f.getName());
-                            name = name.replaceAll(ResumeObj.CLEAN_REG, "");
-                            addChild(new VirtualVideoAction(name, false) {
-                                @Override
-                                public boolean enable() {
-                                    f.delete();
-                                    getParent().getChildren().remove(this);
-                                    return false;
-                                }
-                            });
-                        }
 					}
+				}
 			});
 		}
-		
+
 		// recently played mgmt
 		if (last != null) {
 			final List<DLNAResource> l = last.getList();
 			res.addChild(new VirtualFolder(Messages.getString("PMS.137"), null) {
+				@Override
 				public void discoverChildren() {
 					addChild(new VirtualVideoAction(Messages.getString("PMS.136"), true) {
+						@Override
 						public boolean enable() {
 							getParent().getChildren().clear();
 							l.clear();
@@ -1111,8 +1113,9 @@ public class RootFolder extends DLNAResource {
 							return true;
 						}
 					});
-					for(final DLNAResource r : l) {
+					for (final DLNAResource r : l) {
 						addChild(new VirtualVideoAction(r.getName(), false) {
+							@Override
 							public boolean enable() {
 								getParent().getChildren().remove(this);
 								l.remove(r);
@@ -1267,7 +1270,7 @@ public class RootFolder extends DLNAResource {
 				try {
 					DLNAResource resource = afar.getChild();
 					LOGGER.debug("add ext list " + listener);
-					if(resource == null) {
+					if (resource == null) {
 						continue;
 					}
 					resource.setMasterParent(listener);
@@ -1284,7 +1287,7 @@ public class RootFolder extends DLNAResource {
 				while (folders.hasNext()) {
 					DLNAResource resource = folders.next();
 					resource.setMasterParent(listener);
-					for(DLNAResource r : resource.getChildren()) {
+					for (DLNAResource r : resource.getChildren()) {
 						r.setMasterParent(listener);
 					}
 					try {
@@ -1316,4 +1319,4 @@ public class RootFolder extends DLNAResource {
 			last.add(res);
 		}
 	}
-} 
+}
