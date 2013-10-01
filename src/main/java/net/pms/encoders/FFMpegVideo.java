@@ -28,6 +28,7 @@ import java.awt.event.ItemListener;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -59,6 +60,7 @@ import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -1029,51 +1031,51 @@ public class FFMpegVideo extends Player {
 			return null;
 		}
 
+		String filename = dlna.getSystemName();
+		String md5 = null;
+		// Calculates the MD5 digest of the original external SUBRIP file
+		if (params.sid.isExternal() && params.sid.getId() == 100) {
+			FileInputStream fis = new FileInputStream(params.sid.getExternalFile());
+			md5 = DigestUtils.md5Hex(fis);
+		}
+
 		String dir = configuration.getDataFile(SUB_DIR);
 		File subsPath = new File(dir);
 		if (!subsPath.exists()) {
 			subsPath.mkdirs();
 		}
 
-		String filename = dlna.getSystemName();
-		File tempSubs;
-		File convertedSubsName;
-		File convertedSubsNameSSA = new File(subsPath.getAbsolutePath() + File.separator +
-				FilenameUtils.getBaseName(filename) + "_" + 
-				new File(filename).lastModified() +
-				"_ID" + params.sid.getId() + ".ass");
-		File convertedSubsNameSUBRIP = null;
-		
-		if (params.sid.isExternal()) {
-			if (params.sid.getId() == 100) { // Real external subs
-				convertedSubsNameSUBRIP = new File(subsPath.getAbsolutePath() + File.separator +
-						FilenameUtils.getBaseName(params.sid.getExternalFile().getName()) + "_" +
-						params.sid.getExternalFile().lastModified() +
-						"_ID" + params.sid.getId() + ".ass");
-				if (convertedSubsNameSUBRIP.canRead()) { 
-					return convertedSubsNameSUBRIP; // External subs are already converted
-				} else {
-					if (params.sid.isExternalFileUtf16()) {
-						// convert UTF-16 -> UTF-8
-						File convertedSubtitles = new File(configuration.getTempFolder(), params.sid.getExternalFile().getName());
-						FileUtil.convertFileFromUtf16ToUtf8(params.sid.getExternalFile(), convertedSubtitles);
-						filename = ProcessUtil.getShortFileNameIfWideChars(convertedSubtitles.getAbsolutePath());
-					} else {
-						filename = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getAbsolutePath());
-					}
-				}
-			} else if (params.sid.getId() < 100) { // Check converted embedded subs
-				if (convertedSubsNameSSA.canRead()) { 
-					return convertedSubsNameSSA; // Embedded subs are already converted
-				}
-			}
+		// getSystemName() may return a url without meaningful basename/lastmodified
+		// characteristics, so use its MD5 digest as a unique identifier instead
+		File convertedSubs = new File(subsPath.getAbsolutePath() + File.separator
+			+ FilenameUtils.getBaseName(filename).replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r]", "").trim()
+			+ "_ID" + params.sid.getId()
+			+ (params.sid.isExternal() && params.sid.getId() == 100 ? "_" + md5 : "")
+			+ ".ass");
+
+		if (convertedSubs.canRead()) {
+			// subs are already converted
+			return convertedSubs; 
 		}
 
-		tempSubs = convertSubsToAss(filename, media, params);
+		filename = params.sid.isExternal() ?
+			params.sid.getExternalFile().getAbsolutePath() : filename;
+		boolean isExternalAss = params.sid.isExternal() && params.sid.getType() == SubtitleType.ASS;
+
+		File tempSubs = isExternalAss ?
+			params.sid.getExternalFile() : convertSubsToAss(filename, media, params);
 		if (tempSubs == null) {
 			return null;
 		}
 
+		if (!FileUtil.isFileUTF8(tempSubs)) {
+			tempSubs = SubtitleUtils.applyCodepageConversion(tempSubs, convertedSubs);
+		} else {
+			FileUtils.copyFile(tempSubs, convertedSubs);
+			tempSubs = convertedSubs;
+		}
+
+		// Now we're sure we actually have our own modifiable file
 		if (configuration.isFFmpegFontConfig()) {
 			try {
 				tempSubs = applyFontconfigToASSTempSubsFile(tempSubs, media);
@@ -1081,19 +1083,6 @@ public class FFMpegVideo extends Player {
 				LOGGER.debug("Applying subs setting ends with error: " + e);
 				return null;
 			}
-		}
-
-		if (params.sid.isEmbedded()) {
-			convertedSubsName = convertedSubsNameSSA;
-		} else {
-			convertedSubsName = convertedSubsNameSUBRIP;
-		}
-		
-		if (!FileUtil.isFileUTF8(tempSubs)) {
-			tempSubs = SubtitleUtils.applyCodepageConversion(tempSubs, convertedSubsName);
-		} else {
-			FileUtils.copyFile(tempSubs, convertedSubsName);
-			tempSubs= convertedSubsName;
 		}
 
 		if (params.sid.isEmbedded()) {
@@ -1130,7 +1119,7 @@ public class FFMpegVideo extends Player {
 			params.sid.isExternal() &&
 			!params.sid.isExternalFileUtf8() &&
 			(params.sid.getExternalFileCharacterSet() == null || // ExternalFileCharacterSet can be null
-			!params.sid.getExternalFileCharacterSet().equals(configuration.getSubtitlesCodepage())) 
+			!params.sid.getExternalFileCharacterSet().equals(configuration.getSubtitlesCodepage())) // Force SubtitlesCodePage because FileCharacterSet decoding is not 100% correct
 		) {
 			cmdList.add("-sub_charenc");
 			cmdList.add(configuration.getSubtitlesCodepage());
