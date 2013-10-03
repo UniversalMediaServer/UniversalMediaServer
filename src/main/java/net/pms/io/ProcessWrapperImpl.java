@@ -373,7 +373,8 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 	private String duration;
 
 	public void pubackDuration(String s) {
-		Pattern re = Pattern.compile("Duration:\\s*([^,]+),");
+		// match 'Duration: 00:17:17.00' but not 'Duration: N/A'
+		Pattern re = Pattern.compile("Duration:\\s+([\\d:.]+),");
 		Matcher m = re.matcher(s);
 		if (m.find()) {
 			duration = m.group(1);
