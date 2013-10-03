@@ -29,7 +29,9 @@ import java.awt.Font;
 import java.awt.event.*;
 import java.io.File;
 import java.util.Locale;
+import java.util.Vector;
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -48,8 +50,8 @@ public class NavigationShareTab {
 	private static final String SHARED_FOLDER_COL_SPEC = "left:pref, left:pref, pref, pref, pref, pref, 0:grow";
 	private static final String SHARED_FOLDER_ROW_SPEC = "p, 3dlu, p, 3dlu, fill:default:grow";
 
-	private JList<String> FList;
-	private DefaultListModel<String> df;
+	private JTable FList;
+	private SharedFoldersTableModel folderTableModel;
 	private JCheckBox hidevideosettings;
 	private JCheckBox hidetranscode;
 	private JCheckBox hidemedialibraryfolder;
@@ -80,8 +82,8 @@ public class NavigationShareTab {
 	private JCheckBox recentlyplayedfolder;
 	private JCheckBox resume;
 
-	public DefaultListModel<String> getDf() {
-		return df;
+	public SharedFoldersTableModel getDf() {
+		return folderTableModel;
 	}
 
 	private final PmsConfiguration configuration;
@@ -91,17 +93,17 @@ public class NavigationShareTab {
 	}
 
 	private void updateModel() {
-		if (df.size() == 1 && df.getElementAt(0).equals(ALL_DRIVES)) {
+		if (folderTableModel.getRowCount() == 1 && folderTableModel.getValueAt(0, 0).equals(ALL_DRIVES)) {
 			configuration.setFolders("");
 		} else {
 			StringBuilder sb = new StringBuilder();
 
-			for (int i = 0; i < df.size(); i++) {
+			for (int i = 0; i < folderTableModel.getRowCount(); i++) {
 				if (i > 0) {
 					sb.append(",");
 				}
 
-				String entry = df.getElementAt(i);
+				String entry = (String) folderTableModel.getValueAt(i, 0);
 
 				// escape embedded commas. note: backslashing isn't safe as it conflicts with
 				// Windows path separators:
@@ -657,6 +659,9 @@ public class NavigationShareTab {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
+		folderTableModel = new SharedFoldersTableModel(); 
+		FList = new JTable(folderTableModel); 
+
 		CustomJButton but = new CustomJButton(LooksFrame.readImageIcon("button-adddirectory.png"));
 		but.setToolTipText(Messages.getString("FoldTab.9"));
 		but.addActionListener(new java.awt.event.ActionListener() {
@@ -671,9 +676,9 @@ public class NavigationShareTab {
 				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 				int returnVal = chooser.showOpenDialog((Component) e.getSource());
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					((DefaultListModel<String>) FList.getModel()).add(FList.getModel().getSize(), chooser.getSelectedFile().getAbsolutePath());
-					if (FList.getModel().getElementAt(0).equals(ALL_DRIVES)) {
-						((DefaultListModel<String>) FList.getModel()).remove(0);
+					((SharedFoldersTableModel) FList.getModel()).addRow(new Object[]{chooser.getSelectedFile().getAbsolutePath(), false});
+					if (FList.getModel().getValueAt(0, 0).equals(ALL_DRIVES)) {
+						((SharedFoldersTableModel) FList.getModel()).removeRow(0);
 					}
 					updateModel();
 				}
@@ -687,10 +692,10 @@ public class NavigationShareTab {
 		but2.addActionListener(new java.awt.event.ActionListener() {
 			@Override
 			public void actionPerformed(java.awt.event.ActionEvent e) {
-				if (FList.getSelectedIndex() > -1) {
-					((DefaultListModel<String>) FList.getModel()).remove(FList.getSelectedIndex());
-					if (FList.getModel().getSize() == 0) {
-						((DefaultListModel<String>) FList.getModel()).add(0, ALL_DRIVES);
+				if (FList.getSelectedRow() > -1) {
+					((SharedFoldersTableModel) FList.getModel()).removeRow(FList.getSelectedRow());
+					if (FList.getModel().getRowCount() == 0) {
+						folderTableModel.addRow(new Object[]{ALL_DRIVES, false});
 					}
 					updateModel();
 				}
@@ -704,13 +709,13 @@ public class NavigationShareTab {
 		but3.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				DefaultListModel<String> model = ((DefaultListModel<String>) FList.getModel());
-				for (int i = 0; i < model.size() - 1; i++) {
-					if (FList.isSelectedIndex(i)) {
-						String value = model.get(i).toString();
-						model.set(i, model.get(i + 1));
-						model.set(i + 1, value);
-						FList.setSelectedIndex(i + 1);
+				SharedFoldersTableModel model = ((SharedFoldersTableModel) FList.getModel());
+				for (int i = 0; i < model.getRowCount() - 1; i++) {
+					if (FList.isRowSelected(i)) {
+						String value = model.getValueAt(i, 0).toString();
+						model.setValueAt(model.getValueAt(i + 1, 0), i, 0);
+						model.setValueAt(value, i + 1, 0);
+						FList.changeSelection(i + 1, 1, false, false);
 						updateModel();
 						break;
 					}
@@ -725,14 +730,14 @@ public class NavigationShareTab {
 		but4.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				DefaultListModel<String> model = ((DefaultListModel<String>) FList.getModel());
-				for (int i = 1; i < model.size(); i++) {
-					if (FList.isSelectedIndex(i)) {
-						String value = model.get(i).toString();
+				SharedFoldersTableModel model = ((SharedFoldersTableModel) FList.getModel());
+				for (int i = 1; i < model.getRowCount(); i++) {
+					if (FList.isRowSelected(i)) {
+						String value = model.getValueAt(i, 0).toString();
 
-						model.set(i, model.get(i - 1));
-						model.set(i - 1, value);
-						FList.setSelectedIndex(i - 1);
+						model.setValueAt(model.getValueAt(i - 1, 0), i, 0);
+						model.setValueAt(value, i - 1, 0);
+						FList.changeSelection(i - 1, 1, false, false);
 						updateModel();
 						break;
 
@@ -786,17 +791,15 @@ public class NavigationShareTab {
 		builderFolder.add(but5, FormLayoutUtil.flip(cc.xy(5, 3), colSpec, orientation));
 		but5.setEnabled(configuration.getUseCache());
 
-		df = new DefaultListModel<>();
 		File[] folders = PMS.get().getFoldersConf();
 		if (folders != null && folders.length > 0) {
 			for (File folder : folders) {
-				df.addElement(folder.getAbsolutePath());
+				folderTableModel.addRow(new Object[]{folder.getAbsolutePath(), false});
 			}
 		} else {
-			df.addElement(ALL_DRIVES);
+			folderTableModel.addRow(new Object[]{ALL_DRIVES, false});
 		}
-		FList = new JList<>();
-		FList.setModel(df);
+
 		JScrollPane pane = new JScrollPane(FList);
 		builderFolder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 5, 7), colSpec, orientation));
 
@@ -808,5 +811,37 @@ public class NavigationShareTab {
 		but5.setIcon(LooksFrame.readImageIcon("button-scan.png"));
 		but5.setRolloverIcon(LooksFrame.readImageIcon("button-scan.png"));
 		but5.setToolTipText(Messages.getString("FoldTab.2"));
+	}
+
+	public class SharedFoldersTableModel extends DefaultTableModel {
+		public SharedFoldersTableModel() {
+			super(new String[]{"Directory", "Advanced Monitoring"}, 0);
+		}
+
+		@Override
+		public Class<?> getColumnClass(int columnIndex) {
+			Class clazz = String.class;
+			switch (columnIndex) {
+				case 1:
+					clazz = Boolean.class;
+					break;
+			}
+			return clazz;
+		}
+
+		@Override
+		public boolean isCellEditable(int row, int column) {
+			return column == 1;
+		}
+
+		@Override
+		public void setValueAt(Object aValue, int row, int column) {
+			if (aValue instanceof Boolean && column == 1) {
+				System.out.println(aValue);
+				Vector rowData = (Vector) getDataVector().get(row);
+				rowData.set(1, (boolean) aValue);
+				fireTableCellUpdated(row, column);
+			}
+		}
 	}
 }
