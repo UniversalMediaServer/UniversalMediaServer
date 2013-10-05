@@ -731,7 +731,6 @@ public class NavigationShareTab {
 						FList.setValueAt(value2                    , i + 1, 1);
 						FList.changeSelection(i + 1, 1, false, false);
 
-						updateModel();
 						break;
 					}
 				}
@@ -756,7 +755,6 @@ public class NavigationShareTab {
 						FList.setValueAt(value2                    , i - 1, 1);
 						FList.changeSelection(i - 1, 1, false, false);
 
-						updateModel();
 						break;
 
 					}
