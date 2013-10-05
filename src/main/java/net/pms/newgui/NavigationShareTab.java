@@ -96,23 +96,34 @@ public class NavigationShareTab {
 		if (folderTableModel.getRowCount() == 1 && folderTableModel.getValueAt(0, 0).equals(ALL_DRIVES)) {
 			configuration.setFolders("");
 		} else {
-			StringBuilder sb = new StringBuilder();
+			StringBuilder folders = new StringBuilder();
+			StringBuilder foldersMonitored = new StringBuilder();
 
+			int i2 = 0;
 			for (int i = 0; i < folderTableModel.getRowCount(); i++) {
 				if (i > 0) {
-					sb.append(",");
+					folders.append(",");
 				}
 
-				String entry = (String) folderTableModel.getValueAt(i, 0);
+				String directory = (String) folderTableModel.getValueAt(i, 0);
+				boolean monitored = (boolean) folderTableModel.getValueAt(i, 1);
 
 				// escape embedded commas. note: backslashing isn't safe as it conflicts with
 				// Windows path separators:
 				// http://ps3mediaserver.org/forum/viewtopic.php?f=14&t=8883&start=250#p43520
-				sb.append(entry.replace(",", "&comma;"));
+				folders.append(directory.replace(",", "&comma;"));
+				if (monitored) {
+					if (i2 > 0) {
+						foldersMonitored.append(",");
+					}
+					i2++;
+
+					foldersMonitored.append(directory.replace(",", "&comma;"));
+				}
 			}
 
-			configuration.setFolders(sb.toString());
-			configuration.setFoldersMonitored(sb.toString());
+			configuration.setFolders(folders.toString());
+			configuration.setFoldersMonitored(foldersMonitored.toString());
 		}
 	}
 
@@ -709,13 +720,17 @@ public class NavigationShareTab {
 		but3.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				SharedFoldersTableModel model = ((SharedFoldersTableModel) FList.getModel());
-				for (int i = 0; i < model.getRowCount() - 1; i++) {
+				for (int i = 0; i < FList.getRowCount() - 1; i++) {
 					if (FList.isRowSelected(i)) {
-						String value = model.getValueAt(i, 0).toString();
-						model.setValueAt(model.getValueAt(i + 1, 0), i, 0);
-						model.setValueAt(value, i + 1, 0);
+						Object  value1 = FList.getValueAt(i, 0);
+						boolean value2 = (boolean) FList.getValueAt(i, 1);
+
+						FList.setValueAt(FList.getValueAt(i + 1, 0), i    , 0);
+						FList.setValueAt(value1                    , i + 1, 0);
+						FList.setValueAt(FList.getValueAt(i + 1, 1), i    , 1);
+						FList.setValueAt(value2                    , i + 1, 1);
 						FList.changeSelection(i + 1, 1, false, false);
+
 						updateModel();
 						break;
 					}
@@ -730,14 +745,17 @@ public class NavigationShareTab {
 		but4.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				SharedFoldersTableModel model = ((SharedFoldersTableModel) FList.getModel());
-				for (int i = 1; i < model.getRowCount(); i++) {
+				for (int i = 1; i < FList.getRowCount(); i++) {
 					if (FList.isRowSelected(i)) {
-						String value = model.getValueAt(i, 0).toString();
+						Object  value1 = FList.getValueAt(i, 0);
+						boolean value2 = (boolean) FList.getValueAt(i, 1);
 
-						model.setValueAt(model.getValueAt(i - 1, 0), i, 0);
-						model.setValueAt(value, i - 1, 0);
+						FList.setValueAt(FList.getValueAt(i - 1, 0), i    , 0);
+						FList.setValueAt(value1                    , i - 1, 0);
+						FList.setValueAt(FList.getValueAt(i - 1, 1), i    , 1);
+						FList.setValueAt(value2                    , i - 1, 1);
 						FList.changeSelection(i - 1, 1, false, false);
+
 						updateModel();
 						break;
 
@@ -791,10 +809,19 @@ public class NavigationShareTab {
 		builderFolder.add(but5, FormLayoutUtil.flip(cc.xy(5, 3), colSpec, orientation));
 		but5.setEnabled(configuration.getUseCache());
 
-		File[] folders = PMS.get().getFoldersConf();
+		File[] folders = PMS.get().getSharedFoldersArray(false);
 		if (folders != null && folders.length > 0) {
 			for (File folder : folders) {
-				folderTableModel.addRow(new Object[]{folder.getAbsolutePath(), false});
+				File[] foldersMonitored = PMS.get().getSharedFoldersArray(true);
+				boolean isMonitored = false;
+				if (foldersMonitored != null && foldersMonitored.length > 0) {
+					for (File folderMonitored : foldersMonitored) {
+						if (folderMonitored.getAbsolutePath().equals(folder.getAbsolutePath())) {
+							isMonitored = true;
+						}
+					}
+				}
+				folderTableModel.addRow(new Object[]{folder.getAbsolutePath(), isMonitored});
 			}
 		} else {
 			folderTableModel.addRow(new Object[]{ALL_DRIVES, false});
@@ -836,12 +863,14 @@ public class NavigationShareTab {
 
 		@Override
 		public void setValueAt(Object aValue, int row, int column) {
+			Vector rowVector = (Vector) dataVector.elementAt(row);
 			if (aValue instanceof Boolean && column == 1) {
-				System.out.println(aValue);
-				Vector rowData = (Vector) getDataVector().get(row);
-				rowData.set(1, (boolean) aValue);
-				fireTableCellUpdated(row, column);
+				rowVector.setElementAt((boolean) aValue, 1);
+			} else {
+				rowVector.setElementAt(aValue, column);
 			}
+			fireTableCellUpdated(row, column);
+			updateModel();
 		}
 	}
 }

@@ -828,11 +828,19 @@ public class PMS {
 	}
 
 	/**
-	 * @deprecated Use {@link #getFoldersConf()} instead.
+	 * @deprecated Use {@link #getSharedFoldersArray()} instead.
 	 */
 	@Deprecated
 	public File[] getFoldersConf(boolean log) {
-		return getFoldersConf();
+		return getSharedFoldersArray(false);
+	}
+
+	/**
+	 * @deprecated Use {@link #getSharedFoldersArray()} instead.
+	 */
+	@Deprecated
+	public File[] getFoldersConf() {
+		return getSharedFoldersArray(false);
 	}
 
 	/**
@@ -843,8 +851,14 @@ public class PMS {
 	 * @throws java.io.IOException
 	 */
 
-	public File[] getFoldersConf() {
-		String folders = getConfiguration().getFolders();
+	public File[] getSharedFoldersArray(boolean monitored) {
+		String folders;
+
+		if (monitored) {
+			folders = getConfiguration().getFoldersMonitored();
+		} else {
+			folders = getConfiguration().getFolders();
+		}
 
 		if (folders == null || folders.length() == 0) {
 			return null;
