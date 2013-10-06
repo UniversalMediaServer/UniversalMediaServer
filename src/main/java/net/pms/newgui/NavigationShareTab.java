@@ -32,6 +32,7 @@ import java.util.Locale;
 import java.util.Vector;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -670,8 +671,10 @@ public class NavigationShareTab {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		folderTableModel = new SharedFoldersTableModel(); 
-		FList = new JTable(folderTableModel); 
+		folderTableModel = new SharedFoldersTableModel();
+		FList = new JTable(folderTableModel);
+		TableColumn column = FList.getColumnModel().getColumn(0);
+		column.setMinWidth(650);
 
 		CustomJButton but = new CustomJButton(LooksFrame.readImageIcon("button-adddirectory.png"));
 		but.setToolTipText(Messages.getString("FoldTab.9"));
