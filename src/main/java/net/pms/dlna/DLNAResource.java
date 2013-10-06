@@ -555,28 +555,32 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	
 						// Try to determine a player to use for transcoding.
 						Player player = null;
-	
-						// First, try to match a player based on the name of the DLNAResource
+
+						// First, try to match a player from recently played folder or based on the name of the DLNAResource
 						// or its parent. If the name ends in "[unique player id]", that player
 						// is preferred.
 						String name = getName();
+
+						if (!configuration.isHideRecentlyPlayedFolder()) {
+							player = child.getPlayer();
+						} else {
+							for (Player p : PlayerFactory.getPlayers()) {
+								String end = "[" + p.id() + "]";
 	
-						for (Player p : PlayerFactory.getAllPlayers()) {
-							String end = "[" + p.id() + "]";
-	
-							if (name.endsWith(end)) {
-								nametruncate = name.lastIndexOf(end);
-								player = p;
-								LOGGER.trace("Selecting player based on name end");
-								break;
-							} else if (getParent() != null && getParent().getName().endsWith(end)) {
-								getParent().nametruncate = getParent().getName().lastIndexOf(end);
-								player = p;
-								LOGGER.trace("Selecting player based on parent name end");
-								break;
+								if (name.endsWith(end)) {
+									nametruncate = name.lastIndexOf(end);
+									player = p;
+									LOGGER.trace("Selecting player based on name end");
+									break;
+								} else if (getParent() != null && getParent().getName().endsWith(end)) {
+									getParent().nametruncate = getParent().getName().lastIndexOf(end);
+									player = p;
+									LOGGER.trace("Selecting player based on parent name end");
+									break;
+								}
 							}
 						}
-	
+
 						// If no preferred player could be determined from the name, try to
 						// match a player based on media information and format.
 						if (player == null) {

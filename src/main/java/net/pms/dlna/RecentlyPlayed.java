@@ -11,15 +11,19 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
+import net.pms.encoders.Player;
+import net.pms.encoders.PlayerFactory;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.util.FileUtil;
+
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +49,15 @@ public class RecentlyPlayed extends VirtualFolder {
 		for (ExternalListener l : ExternalFactory.getExternalListeners()) {
 			if (className.equals(l.getClass().getName())) {
 				return l;
+			}
+		}
+		return null;
+	}
+	
+	private Player findLastPlayer(String playerName) {
+		for (Player p : PlayerFactory.getPlayers()) {
+			if (playerName.equals(p.name())) {
+				return p;
 			}
 		}
 		return null;
@@ -172,7 +185,13 @@ public class RecentlyPlayed extends VirtualFolder {
 					pos = str.indexOf(";");
 					String subData = null;
 					String resData = null;
+					DLNAResource res = null;
+					Player player = null;
 					while (pos != -1) {
+						if (str.startsWith("player:")) {
+							// find last player
+							player = findLastPlayer(str.substring(7, pos));
+						}
 						if (str.startsWith("resume")) {
 							// resume data
 							resData = str.substring(6, pos);
@@ -185,7 +204,6 @@ public class RecentlyPlayed extends VirtualFolder {
 						pos = str.indexOf(";");
 					}
 					LOGGER.debug("master is " + master + " str " + str);
-					DLNAResource res = null;
 					ExternalListener lpp = null;
 					if (master.startsWith("internal:")) {
 						res = parseInternal(master.substring(9), str);
@@ -193,11 +211,13 @@ public class RecentlyPlayed extends VirtualFolder {
 						lpp = findLastPlayedParent(master);
 						if (lpp != null) {
 							res = resolveCreateMethod(lpp, str);
+							if (res != null) {
+								LOGGER.debug("set masterparent for " + res + " to " + lpp);
+								res.setMasterParent(lpp);
+							}
 						}
 					}
 					if (res != null) {
-						LOGGER.debug("set masterparent for " + res + " to " + lpp);
-						res.setMasterParent(lpp);
 						if (resData != null) {
 							ResumeObj r = new ResumeObj(new File(resData));
 							if (!r.isDone()) {
@@ -205,6 +225,7 @@ public class RecentlyPlayed extends VirtualFolder {
 								res.setResume(r);
 							}
 						}
+						res.setPlayer(player);
 						if (subData != null) {
 							DLNAMediaSubtitle s = res.getMediaSubtitle();
 							if (s == null) {
@@ -217,7 +238,7 @@ public class RecentlyPlayed extends VirtualFolder {
 							if (subData.startsWith("file:")) {
 								String sFile = subData.substring(5);
 								s.setExternalFile(new File(sFile));
-								s.setId(1);
+								s.setId(100);
 								SubtitleType t = SubtitleType.valueOfFileExtension(FileUtil.getExtension(sFile));
 								s.setType(t);
 							} else if (subData.startsWith("id:")) {
@@ -255,7 +276,11 @@ public class RecentlyPlayed extends VirtualFolder {
 					} else {
 						id = "internal:" + r.getClass().getName();
 					}
+
 					sb.append("master:").append(id).append(";");
+					if (r.getPlayer() != null) {
+						sb.append("player:").append(r.getPlayer().toString()).append(";");
+					}
 					if (r.isResume()) {
 						sb.append("resume");
 						sb.append(r.getResume().getResumeFile().getAbsolutePath());
