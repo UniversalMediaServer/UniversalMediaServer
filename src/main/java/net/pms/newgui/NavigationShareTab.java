@@ -25,6 +25,7 @@ import com.jgoodies.forms.layout.FormLayout;
 import com.sun.jna.Platform;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.*;
 import java.io.File;
@@ -829,6 +830,8 @@ public class NavigationShareTab {
 		}
 
 		JScrollPane pane = new JScrollPane(FList);
+		Dimension d = FList.getPreferredSize();
+		pane.setPreferredSize(new Dimension(d.width, FList.getRowHeight() * 8));
 		builderFolder.add(pane, FormLayoutUtil.flip(cc.xyw(1, 5, 7), colSpec, orientation));
 
 		return builderFolder;
