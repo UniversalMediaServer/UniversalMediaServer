@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.virtual.VirtualFolder;
@@ -23,7 +22,6 @@ import net.pms.external.ExternalListener;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.util.FileUtil;
-
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +51,7 @@ public class RecentlyPlayed extends VirtualFolder {
 		}
 		return null;
 	}
-	
+
 	private Player findLastPlayer(String playerName) {
 		for (Player p : PlayerFactory.getPlayers()) {
 			if (playerName.equals(p.name())) {
@@ -204,7 +202,7 @@ public class RecentlyPlayed extends VirtualFolder {
 						pos = str.indexOf(";");
 					}
 					LOGGER.debug("master is " + master + " str " + str);
-					ExternalListener lpp = null;
+					ExternalListener lpp;
 					if (master.startsWith("internal:")) {
 						res = parseInternal(master.substring(9), str);
 					} else {
