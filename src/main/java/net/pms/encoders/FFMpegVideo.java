@@ -341,35 +341,131 @@ public class FFMpegVideo extends Player {
 
 	/**
 	 * Returns the video bitrate spec for the current transcode according
-	 * to the limits/requirements of the renderer.
+	 * to the limits/requirements of the renderer and the user's settings.
 	 *
 	 * @param dlna
 	 * @param media the media metadata for the video being streamed. May contain unset/null values (e.g. for web videos).
 	 * @param params
 	 * @return a {@link List} of <code>String</code>s representing the video bitrate options for this transcode
 	 */
-	public List<String> getVideoBitrateOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) { // media is currently unused
+	public List<String> getVideoBitrateOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) {
 		List<String> videoBitrateOptions = new ArrayList<>();
-		String sMaxVideoBitrate = params.mediaRenderer.getMaxVideoBitrate(); // currently Mbit/s
-		int iMaxVideoBitrate = 0;
 
-		if (sMaxVideoBitrate != null) {
-			try {
-				iMaxVideoBitrate = Integer.parseInt(sMaxVideoBitrate);
-			} catch (NumberFormatException nfe) {
-				LOGGER.error("Can't parse max video bitrate", nfe); // XXX this should be handled in RendererConfiguration
-			}
+		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
+		int rendererMaxBitrates[] = new int[2];
+
+		if (params.mediaRenderer.getMaxVideoBitrate() != null) {
+			rendererMaxBitrates = getVideoBitrateConfig(params.mediaRenderer.getMaxVideoBitrate());
 		}
 
-		if (iMaxVideoBitrate == 0) { // unlimited: try to preserve the bitrate
-			videoBitrateOptions.add("-q:v"); // video qscale
-			videoBitrateOptions.add(DEFAULT_QSCALE);
-		} else { // limit the bitrate FIXME untested
-			// convert megabits-per-second (as per the current option name: MaxVideoBitrateMbps) to bps
-			// FIXME rather than dealing with megabit vs mebibit issues here, this should be left up to the client i.e.
-			// the renderer.conf unit should be bits-per-second (and the option should be renamed: MaxVideoBitrateMbps -> MaxVideoBitrate)
+		// Give priority to the renderer's maximum bitrate setting over the user's setting
+		if (rendererMaxBitrates[0] > 0 && rendererMaxBitrates[0] < defaultMaxBitrates[0]) {
+			defaultMaxBitrates = rendererMaxBitrates;
+		}
+
+		if (params.mediaRenderer.getCBRVideoBitrate() == 0 && params.timeend == 0) {
+			// Convert value from Mb to Kb
+			defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
+
+			// Halve it since it seems to send up to 1 second of video in advance
+			defaultMaxBitrates[0] = defaultMaxBitrates[0] / 2;
+
+			int bufSize = 1835;
+			if (!params.mediaRenderer.isTranscodeToH264TSAC3()) {
+				if (media.isHDVideo()) {
+					bufSize = defaultMaxBitrates[0] / 3;
+				}
+
+				if (bufSize > 7000) {
+					bufSize = 7000;
+				}
+
+				if (defaultMaxBitrates[1] > 0) {
+					bufSize = defaultMaxBitrates[1];
+				}
+
+				if (params.mediaRenderer.isDefaultVBVSize() && rendererMaxBitrates[1] == 0) {
+					bufSize = 1835;
+				}
+			}
+
+			// Make room for audio
+			if (dtsRemux) {
+				defaultMaxBitrates[0] = defaultMaxBitrates[0] - 1510;
+			} else {
+				defaultMaxBitrates[0] = defaultMaxBitrates[0] - configuration.getAudioBitrate();
+			}
+
+			// Round down to the nearest Mb
+			defaultMaxBitrates[0] = defaultMaxBitrates[0] / 1000 * 1000;
+
+			// FFmpeg uses bytes for inputs instead of kbytes like MEncoder
+			bufSize = bufSize * 1000;
+			defaultMaxBitrates[0] = defaultMaxBitrates[0] * 1000;
+
+			/**
+			 * Level 4.1-limited renderers like the PS3 can stutter when H.264 video exceeds
+			 * this bitrate
+			 */
+			if (params.mediaRenderer.isTranscodeToH264TSAC3() || videoRemux) {
+				if (
+					params.mediaRenderer.isH264Level41Limited() &&
+					defaultMaxBitrates[0] > 31250000
+				) {
+					defaultMaxBitrates[0] = 31250000;
+				}
+				bufSize = defaultMaxBitrates[0];
+			}
+
+			videoBitrateOptions.add("-bufsize");
+			videoBitrateOptions.add(String.valueOf(bufSize));
+
 			videoBitrateOptions.add("-maxrate");
-			videoBitrateOptions.add(String.valueOf(iMaxVideoBitrate * 1000 * 1000));
+			videoBitrateOptions.add(String.valueOf(defaultMaxBitrates[0]));
+		}
+
+		if (!videoRemux) {
+			if (!params.mediaRenderer.isTranscodeToH264TSAC3()) {
+				// Add MPEG-2 quality settings
+				String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
+				String mpeg2OptionsRenderer = params.mediaRenderer.getCustomFFmpegMPEG2Options();
+
+				// Renderer settings take priority over user settings
+				if (isNotBlank(mpeg2OptionsRenderer)) {
+					mpeg2Options = mpeg2OptionsRenderer;
+				} else if (mpeg2Options.contains("Automatic")) {
+					mpeg2Options = "-g 5 -q:v 1 -qmin 2 -qmax 3";
+
+					// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
+					if (params.mediaRenderer.isPS3()) {
+						mpeg2Options = "-g 25 -q:v 1 -qmin 2 -qmax 3";
+					}
+
+					if (mpeg2Options.contains("Wireless") || defaultMaxBitrates[0] < 70) {
+						// Lower quality for 720p+ content
+						if (media.getWidth() > 1280) {
+							mpeg2Options = "-g 25 -qmax 7 -qmin 2";
+						} else if (media.getWidth() > 720) {
+							mpeg2Options = "-g 25 -qmax 5 -qmin 2";
+						}
+					}
+				}
+				String[] customOptions = StringUtils.split(mpeg2Options);
+				videoBitrateOptions.addAll(new ArrayList<>(Arrays.asList(customOptions)));
+			} else {
+				// Add x264 quality settings
+				String x264CRF = configuration.getx264ConstantRateFactor();
+				if (x264CRF.contains("Automatic")) {
+					x264CRF = "-crf 16";
+
+					// Lower CRF for 720p+ content
+					if (media.getWidth() > 720) {
+						x264CRF = "-crf 19";
+					}
+				}
+				String[] customOptions = StringUtils.split(x264CRF);
+				videoBitrateOptions.addAll(new ArrayList<>(Arrays.asList(customOptions)));
+			}
 		}
 
 		return videoBitrateOptions;
@@ -579,96 +675,18 @@ public class FFMpegVideo extends Player {
 			cmdList.add(String.valueOf(params.timeend));
 		}
 
-		// add video bitrate options
-		// TODO: Integrate our (more comprehensive) code with this function
-		// from PMS to make keeping synchronised easier.
-		// Until then, leave the following line commented out.
-		// cmdList.addAll(getVideoBitrateOptions(renderer, media));
+		cmdList.addAll(getVideoBitrateOptions(dlna, media, params));
 
 		// add audio bitrate options
 		// TODO: Integrate our (more comprehensive) code with this function
 		// from PMS to make keeping synchronised easier.
 		// Until then, leave the following line commented out.
-		// cmdList.addAll(getAudioBitrateOptions(renderer, media));
+		// cmdList.addAll(getAudioBitrateOptions(dlna, media, params));
 
 		// if the source is too large for the renderer, resize it
 		// and/or add subtitles to video filter
 		// FFmpeg must be compiled with --enable-libass parameter
 		cmdList.addAll(getVideoFilterOptions(dlna, media, params));
-
-		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
-		int rendererMaxBitrates[] = new int[2];
-
-		if (renderer.getMaxVideoBitrate() != null) {
-			rendererMaxBitrates = getVideoBitrateConfig(renderer.getMaxVideoBitrate());
-		}
-
-		// Give priority to the renderer's maximum bitrate setting over the user's setting
-		if (rendererMaxBitrates[0] > 0 && rendererMaxBitrates[0] < defaultMaxBitrates[0]) {
-			defaultMaxBitrates = rendererMaxBitrates;
-		}
-
-		if (params.mediaRenderer.getCBRVideoBitrate() == 0 && params.timeend == 0) {
-			// Convert value from Mb to Kb
-			defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
-
-			// Halve it since it seems to send up to 1 second of video in advance
-			defaultMaxBitrates[0] = defaultMaxBitrates[0] / 2;
-
-			int bufSize = 1835;
-			// x264 uses different buffering math than MPEG-2
-			if (!renderer.isTranscodeToH264TSAC3()) {
-				if (media.isHDVideo()) {
-					bufSize = defaultMaxBitrates[0] / 3;
-				}
-
-				if (bufSize > 7000) {
-					bufSize = 7000;
-				}
-
-				if (defaultMaxBitrates[1] > 0) {
-					bufSize = defaultMaxBitrates[1];
-				}
-
-				if (params.mediaRenderer.isDefaultVBVSize() && rendererMaxBitrates[1] == 0) {
-					bufSize = 1835;
-				}
-			}
-
-			// Make room for audio
-			if (dtsRemux) {
-				defaultMaxBitrates[0] = defaultMaxBitrates[0] - 1510;
-			} else {
-				defaultMaxBitrates[0] = defaultMaxBitrates[0] - configuration.getAudioBitrate();
-			}
-
-			// Round down to the nearest Mb
-			defaultMaxBitrates[0] = defaultMaxBitrates[0] / 1000 * 1000;
-
-			// FFmpeg uses bytes for inputs instead of kbytes like MEncoder
-			bufSize = bufSize * 1000;
-			defaultMaxBitrates[0] = defaultMaxBitrates[0] * 1000;
-
-			/**
-			 * Level 4.1-limited renderers like the PS3 can stutter when H.264 video exceeds
-			 * this bitrate
-			 */
-			if (renderer.isTranscodeToH264TSAC3() || videoRemux) {
-				if (
-					params.mediaRenderer.isH264Level41Limited() &&
-					defaultMaxBitrates[0] > 31250000
-				) {
-					defaultMaxBitrates[0] = 31250000;
-				}
-				bufSize = defaultMaxBitrates[0];
-			}
-
-			cmdList.add("-bufsize");
-			cmdList.add(String.valueOf(bufSize));
-
-			cmdList.add("-maxrate");
-			cmdList.add(String.valueOf(defaultMaxBitrates[0]));
-		}
 
 		// Audio bitrate
 		if (!ac3Remux && !dtsRemux && !(type() == Format.AUDIO)) {
@@ -685,52 +703,6 @@ public class FFMpegVideo extends Player {
 
 			cmdList.add("-ab");
 			cmdList.add(configuration.getAudioBitrate() + "k");
-		}
-
-		if (!videoRemux) {
-			if (!renderer.isTranscodeToH264TSAC3()) {
-				// Add MPEG-2 quality settings
-				String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
-				String mpeg2OptionsRenderer = params.mediaRenderer.getCustomFFmpegMPEG2Options();
-
-				// Renderer settings take priority over user settings
-				if (isNotBlank(mpeg2OptionsRenderer)) {
-					mpeg2Options = mpeg2OptionsRenderer;
-				} else {
-					if (mpeg2Options.contains("Automatic")) {
-						mpeg2Options = "-g 5 -q:v 1 -qmin 2 -qmax 3";
-
-						// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
-						if (params.mediaRenderer.isPS3()) {
-							mpeg2Options = "-g 25 -q:v 1 -qmin 2 -qmax 3";
-						}
-
-						if (mpeg2Options.contains("Wireless") || defaultMaxBitrates[0] < 70) {
-							// Lower quality for 720p+ content
-							if (media.getWidth() > 1280) {
-								mpeg2Options = "-g 25 -qmax 7 -qmin 2";
-							} else if (media.getWidth() > 720) {
-								mpeg2Options = "-g 25 -qmax 5 -qmin 2";
-							}
-						}
-					}
-				}
-				String[] customOptions = StringUtils.split(mpeg2Options);
-				cmdList.addAll(new ArrayList<>(Arrays.asList(customOptions)));
-			} else {
-				// Add x264 quality settings
-				String x264CRF = configuration.getx264ConstantRateFactor();
-				if (x264CRF.contains("Automatic")) {
-					x264CRF = "-crf 16";
-
-					// Lower CRF for 720p+ content
-					if (media.getWidth() > 720) {
-						x264CRF = "-crf 19";
-					}
-				}
-				String[] customOptions = StringUtils.split(x264CRF);
-				cmdList.addAll(new ArrayList<>(Arrays.asList(customOptions)));
-			}
 		}
 
 		// Add the output options (-f, -c:a, -c:v, etc.)
