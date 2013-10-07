@@ -181,7 +181,7 @@ public class RendererConfiguration {
 				}
 			}
 
-			Collections.sort(allRenderersNames);
+			Collections.sort(allRenderersNames, String.CASE_INSENSITIVE_ORDER);
 		}
 	}
 
