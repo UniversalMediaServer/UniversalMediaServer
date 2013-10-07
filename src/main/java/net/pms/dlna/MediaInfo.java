@@ -229,8 +229,12 @@ public class MediaInfo {
 
 	@Override
 	protected void finalize() throws Throwable {
-		if (Handle != null) {
-			dispose();
+		try {
+			if (Handle != null) {
+				dispose();
+			}
+		} finally {
+			super.finalize();
 		}
 	}
 
