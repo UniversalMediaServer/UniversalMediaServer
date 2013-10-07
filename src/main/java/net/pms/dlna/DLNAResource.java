@@ -500,7 +500,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 				child.resHash = Math.abs(child.getSystemName().hashCode() + resumeHash());
 
-				DLNAResource resumeRes = null;
+				DLNAResource resumeRes;
 
 				ResumeObj r = ResumeObj.create(child);
 				if (r != null) {
