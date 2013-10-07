@@ -291,6 +291,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 	 * method name.
 	 * @see #runInNewThread()
 	 */
+	@Override
 	public void runInSameThread() {
 		this.run();
 	}

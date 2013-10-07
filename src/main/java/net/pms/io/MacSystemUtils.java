@@ -1,7 +1,7 @@
 package net.pms.io;
 
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.List;
