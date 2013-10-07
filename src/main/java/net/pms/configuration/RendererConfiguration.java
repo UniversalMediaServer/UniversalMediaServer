@@ -23,6 +23,7 @@ import net.pms.util.PropertiesUtil;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.WordUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,6 +108,7 @@ public class RendererConfiguration {
 	private static final String WRAP_DTS_INTO_PCM = "WrapDTSIntoPCM";
 	private static final String CUSTOM_FFMPEG_OPTIONS = "CustomFFmpegOptions";
 	private static final String OVERRIDE_VF = "OverrideVideoFilter";
+	private static final String TEXTWRAP = "TextWrap";
 
 	public static RendererConfiguration getDefaultConf() {
 		return defaultConf;
@@ -1141,5 +1143,47 @@ public class RendererConfiguration {
 
 	public int getTranscodedVideoAudioSampleRate() {
 		return getInt(TRANSCODED_VIDEO_AUDIO_SAMPLE_RATE, 48000);
+	}
+	
+	public String getTextWrap() {
+		return getString(TEXTWRAP, "").toLowerCase();
+	}
+
+	protected int line_w = -1, line_h, indent;
+	protected String inset;
+	protected boolean dc_date = true;
+
+	public String getDcTitle(String name, DLNAResource dlna) {
+		if (line_w == -1) {
+			// Init text wrap settings
+			String s = getTextWrap();
+			line_w = getIntAt(s, "width:", 0);
+			indent = getIntAt(s, "indent:", 0);
+			line_h = getIntAt(s, "height:", 0);
+			dc_date = getIntAt(s, "date:", 1) != 0;
+			String ws = Character.toString((char) getIntAt(s, "whitespace:", 9));
+			inset = new String(new byte[indent]).replaceAll(".", ws);
+		}
+		// Wrap text if applicable
+		if (line_w > 0 && name.length() > line_w) {
+			int i = dlna.isFolder() ? 0 : indent;
+			String head = name.substring(0, i + (Character.isSpace(name.charAt(i)) ? 1 : 0));
+			String tail = name.substring(i);
+			String[] lines = WordUtils.wrap(tail, line_w-i, "\n", true).split("\n");
+			return head + StringUtils.join(lines, "\n" + (dlna.isFolder() ? "" : inset));
+		}
+		return name;
+	}
+
+	public boolean isOmitDcDate() {
+		return !dc_date;
+	}
+
+	public static int getIntAt(String s, String key, int fallback) {
+		try {
+			return Integer.valueOf((s + " ").split(key)[1].split("\\D")[0]);
+		} catch (Exception e) {
+			return fallback;
+		}
 	}
 }

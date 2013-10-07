@@ -53,7 +53,7 @@ import net.pms.util.MpegUtil;
 import net.pms.util.OpenSubtitle;
 import net.pms.util.StringUtil;
 import static net.pms.util.StringUtil.*;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1110,6 +1110,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		displayName = getName();
+		
 		String subtitleFormat;
 		String subtitleLanguage;
 		boolean isNamedNoEncoding = false;
@@ -1200,6 +1201,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (getSplitRange().isEndLimitAvailable()) {
 			displayName = ">> " + StringUtil.convertTimeToString(getSplitRange().getStart(), StringUtil.DURATION_TIME_FORMAT);
 		}
+
 
 		return displayName;
 	}
@@ -1353,7 +1355,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			addXMLTagAndAttribute(
 				sb,
 				"dc:title",
-				encodeXML(resumeStr(wireshark))
+				encodeXML(mediaRenderer.getDcTitle(resumeStr(wireshark), this))
 			);
 		} else { // Ditlew - org
 			// Ditlew
@@ -1362,7 +1364,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			addXMLTagAndAttribute(
 				sb,
 				"dc:title",
-				encodeXML(resumeStr(tmp))
+				encodeXML(mediaRenderer.getDcTitle(resumeStr(tmp), this))
 			);
 		}
 
@@ -1889,7 +1891,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		appendThumbnail(mediaRenderer, sb);
 
-		if (getLastModified() > 0) {
+		if (getLastModified() > 0 && !mediaRenderer.isOmitDcDate()) {
 			addXMLTagAndAttribute(sb, "dc:date", SDF_DATE.format(new Date(getLastModified())));
 		}
 
