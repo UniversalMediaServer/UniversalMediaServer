@@ -299,8 +299,7 @@ public class GeneralTab {
 					scrollPane.setPreferredSize(new java.awt.Dimension(900, 450));
 
 					try {
-						try (FileInputStream fis = new FileInputStream(conf)) {
-							BufferedReader in = new BufferedReader(new InputStreamReader(fis));
+						try (FileInputStream fis = new FileInputStream(conf); BufferedReader in = new BufferedReader(new InputStreamReader(fis))) {
 							String line;
 							StringBuilder sb = new StringBuilder();
 
@@ -308,9 +307,6 @@ public class GeneralTab {
 								sb.append(line);
 								sb.append("\n");
 							}
-
-							in.close();
-							textArea.setText(sb.toString());
 						}
 					} catch (Exception e1) {
 						return;
