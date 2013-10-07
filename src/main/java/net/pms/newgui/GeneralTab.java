@@ -23,14 +23,12 @@ import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import com.sun.jna.Platform;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-
 import javax.swing.*;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -40,7 +38,6 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.network.NetworkConfiguration;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.KeyedComboBoxModel;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -450,14 +447,14 @@ public class GeneralTab {
 			if (configuration.isRendererForceDefault()) {
 				fdCheckBox.setSelected(true);
 			}
-			
+
 			builder.addLabel(Messages.getString("NetworkTab.62"), FormLayoutUtil.flip(cc.xy(1, 37), colSpec, orientation));
 			final CustomJButton setRenderers = new CustomJButton(Messages.getString("GeneralTab.5"));
 			setRenderers.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					SelectRenderers.showDialog();
-					}
+				}
 			});
 
 			builder.add(setRenderers, FormLayoutUtil.flip(cc.xy(3, 37), colSpec, orientation));
@@ -465,8 +462,6 @@ public class GeneralTab {
 			builder.addLabel(Messages.getString("NetworkTab.36"), FormLayoutUtil.flip(cc.xy(1, 39), colSpec, orientation));
 
 			builder.add(renderers, FormLayoutUtil.flip(cc.xyw(3, 39, 7), colSpec, orientation));
-
-			
 
 			// External network box
 			extNetBox = new JCheckBox(Messages.getString("NetworkTab.56"));
@@ -527,7 +522,8 @@ public class GeneralTab {
 
 		final KeyedComboBoxModel renderersKcbm = new KeyedComboBoxModel(
 			(Object[]) keyValues.toArray(new Object[keyValues.size()]),
-			(Object[]) nameValues.toArray(new Object[nameValues.size()]));
+			(Object[]) nameValues.toArray(new Object[nameValues.size()])
+		);
 		renderers.setModel(renderersKcbm);
 		renderers.setEditable(false);
 		String defaultRenderer = configuration.getRendererDefault();
@@ -547,5 +543,4 @@ public class GeneralTab {
 			}
 		});
 	}
-
 }

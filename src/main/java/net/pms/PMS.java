@@ -20,7 +20,6 @@
 package net.pms;
 
 import com.sun.jna.Platform;
-
 import java.awt.*;
 import java.io.*;
 import java.net.BindException;
@@ -28,9 +27,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.logging.LogManager;
-
 import javax.swing.*;
-
 import net.pms.configuration.Build;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -64,7 +61,6 @@ import net.pms.util.SystemErrWrapper;
 import net.pms.util.TaskRunner;
 import net.pms.util.TempFileMgr;
 import net.pms.util.Version;
-
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;

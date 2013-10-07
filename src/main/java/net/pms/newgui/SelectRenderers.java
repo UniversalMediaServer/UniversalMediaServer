@@ -16,7 +16,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
 package net.pms.newgui;
 
 import java.awt.*;
@@ -24,17 +23,14 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-
 import javax.swing.*;
-
-import org.apache.commons.configuration.ConfigurationException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import org.apache.commons.configuration.ConfigurationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SelectRenderers extends JPanel implements ItemListener {
 	private static final long serialVersionUID = -2724796596060834064L;
@@ -66,7 +62,7 @@ public class SelectRenderers extends JPanel implements ItemListener {
 		checkPanel.add(new JLabel("____________________________"));
 
 		checkBoxes = new ArrayList<>();
-		
+
 		for (int i = 0; i < allRenderersNames.size(); i++) {
 			rendererName = allRenderersNames.get(i);
 			JCheckBox checkbox = new JCheckBox(rendererName);
@@ -75,7 +71,7 @@ public class SelectRenderers extends JPanel implements ItemListener {
 			} else {
 				checkbox.setSelected(true);
 			}
-			
+
 			checkbox.addItemListener(this);
 			checkBoxes.add(checkbox);
 			checkPanel.add(checkBoxes.get(i));
@@ -83,11 +79,13 @@ public class SelectRenderers extends JPanel implements ItemListener {
 
 		checkPanel.applyComponentOrientation(orientation);
 		add(checkPanel, BorderLayout.LINE_START);
-		setBorder(BorderFactory.createEmptyBorder(20,20,20,20));
+		setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 	}
 
-	/** Listens to the check boxes. */
-	
+	/**
+	 * Listens to the check boxes.
+	 */
+	@Override
 	public void itemStateChanged(ItemEvent e) {
 		Object source = e.getItemSelectable();
 		StringBuilder ignoredRenders = new StringBuilder();
@@ -121,12 +119,12 @@ public class SelectRenderers extends JPanel implements ItemListener {
 	public static void showDialog() {
 		allRenderersNames = RendererConfiguration.getAllRenderersNames();
 		int selectRenderers = JOptionPane.showOptionDialog(
-				null,
-				new SelectRenderers(),
-				Messages.getString("GeneralTab.5"),
-				JOptionPane.OK_CANCEL_OPTION,
-				JOptionPane.PLAIN_MESSAGE,
-				null, null, null);
+			null,
+			new SelectRenderers(),
+			Messages.getString("GeneralTab.5"),
+			JOptionPane.OK_CANCEL_OPTION,
+			JOptionPane.PLAIN_MESSAGE,
+			null, null, null);
 		if (selectRenderers == JOptionPane.YES_OPTION) {
 			try {
 				configuration.save();
@@ -136,4 +134,3 @@ public class SelectRenderers extends JPanel implements ItemListener {
 		}
 	}
 }
-
