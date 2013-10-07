@@ -92,10 +92,12 @@ public class MapFileConfiguration {
 class FileSerializer implements JsonSerializer<File>, JsonDeserializer<File> {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileSerializer.class);
 
+	@Override
 	public JsonElement serialize(File src, Type typeOfSrc, JsonSerializationContext context) {
 		return new JsonPrimitive(src.getAbsolutePath());
 	}
 
+	@Override
 	public File deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
 		File file = new File(json.getAsJsonPrimitive().getAsString());
 
