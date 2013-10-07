@@ -846,7 +846,7 @@ public class NavigationShareTab {
 
 	public class SharedFoldersTableModel extends DefaultTableModel {
 		public SharedFoldersTableModel() {
-			super(new String[]{"Directory", "Advanced Monitoring"}, 0);
+			super(new String[]{Messages.getString("FoldTab.56"), Messages.getString("FoldTab.57")}, 0);
 		}
 
 		@Override
