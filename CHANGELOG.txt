@@ -1,15 +1,19 @@
 3.0.0-b1 - 2013-10-??
 
 	General:
-		Added support for muxing (losslessly streaming) more files with tsMuxeR by default
+		Added the New Media folder, which contains unwatched media
+		Added the Recently Played folder, which contains watched media
+		Added checkboxes to enable/disable renderers
 		A more helpful error is displayed when something is using the UMS HTTP port
 		Improved calculation of subtitle font size in FFmpeg
 		Expanded filename prettifying
+		Fixed tsMuxeR video detection bug
 		Fixed x264 transcoding with MEncoder
 		Fixed a rare startup bug
 		Fixed FFmpeg subtitles bug
 		Fixed a general subtitles bug (thanks, Skeptical!)
 		Fixed several minor bugs
+		Fixed plugin compatibility problems
 	Renderers:
 		Added support for Samsung Galaxy S3
 		Improved DirecTV support
