@@ -240,7 +240,7 @@ public class ExternalFactory {
 			}
 		}
 
-		ArrayList<RendererConfiguration> renders = RendererConfiguration.getAllRendererConfigurations();
+		ArrayList<RendererConfiguration> renders = RendererConfiguration.getEnabledRenderersConfigurations();
 
 		for (RendererConfiguration r : renders) {
 			RootFolder rf = r.getRootFolder();
