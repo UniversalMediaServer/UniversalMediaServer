@@ -303,4 +303,9 @@ public class RealFile extends MapFile {
 	public boolean isSubSelectable() {
 		return true;
 	}
+
+	@Override
+	public String write() {
+		return getName() + ">" + getFile().getAbsolutePath();
+	}
 }
