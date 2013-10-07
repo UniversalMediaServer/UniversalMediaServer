@@ -5,6 +5,7 @@ import java.io.File;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -27,7 +28,8 @@ import org.slf4j.LoggerFactory;
 
 public class RendererConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
-	private static ArrayList<RendererConfiguration> rendererConfs;
+	private static ArrayList<RendererConfiguration> enabledRendererConfs;
+	private static ArrayList<String> allRenderersNames = new ArrayList<>();
 	private static PmsConfiguration pmsConfiguration;
 	private static RendererConfiguration defaultConf;
 	private static Map<InetAddress, RendererConfiguration> addressAssociation = new HashMap<>();
@@ -116,7 +118,7 @@ public class RendererConfiguration {
 	 */
 	public static void loadRendererConfigurations(PmsConfiguration pmsConf) {
 		pmsConfiguration = pmsConf;
-		rendererConfs = new ArrayList<>();
+		enabledRendererConfs = new ArrayList<>();
 
 		try {
 			defaultConf = new RendererConfiguration();
@@ -132,18 +134,17 @@ public class RendererConfiguration {
 			File[] confs = renderersDir.listFiles();
 			Arrays.sort(confs);
 			int rank = 1;
-
 			for (File f : confs) {
 				if (f.getName().endsWith(".conf")) {
 					try {
-						LOGGER.info("Loading configuration file: " + f.getName());
 						RendererConfiguration r = new RendererConfiguration(f);
 						r.rank = rank++;
 						String rendererName = r.getRendererName();
 						if (!pmsConfiguration.getIgnoredRenderers().contains(rendererName)) {
-							rendererConfs.add(r);
+							enabledRendererConfs.add(r);
+							LOGGER.info("Loaded configuration for renderer: " + rendererName);
 						} else {
-							LOGGER.info("Ignored " + rendererName + " configuration file.");
+							LOGGER.debug("Ignored " + rendererName + " configuration");
 						}
 					} catch (ConfigurationException ce) {
 						LOGGER.info("Error in loading configuration of: " + f.getAbsolutePath());
@@ -152,7 +153,7 @@ public class RendererConfiguration {
 			}
 		}
 
-		if (rendererConfs.size() > 0) {
+		if (enabledRendererConfs.size() > 0) {
 			// See if a different default configuration was configured
 			String rendererFallback = pmsConfiguration.getRendererDefault();
 
@@ -164,6 +165,26 @@ public class RendererConfiguration {
 					defaultConf = fallbackConf;
 				}
 			}
+		}
+	}
+
+	private static void loadRenderersNames() {
+		File renderersDir = getRenderersDir();
+
+		if (renderersDir != null) {
+			LOGGER.info("Loading renderer names from " + renderersDir.getAbsolutePath());
+
+			for (File f : renderersDir.listFiles()) {
+				if (f.getName().endsWith(".conf")) {
+					try {
+						allRenderersNames.add(new RendererConfiguration(f).getRendererName());
+					} catch (ConfigurationException ce) {
+						LOGGER.warn("Error loading " + f.getAbsolutePath());
+					}
+				}
+			}
+
+			Collections.sort(allRenderersNames, String.CASE_INSENSITIVE_ORDER);
 		}
 	}
 
@@ -192,13 +213,18 @@ public class RendererConfiguration {
 		return configurationReader.getString(key, def);
 	}
 
+	@Deprecated
+	public static ArrayList<RendererConfiguration> getAllRendererConfigurations() {
+		return getEnabledRenderersConfigurations();
+	}
+
 	/**
 	 * Returns the list of all renderer configurations.
 	 *
 	 * @return The list of all configurations.
 	 */
-	public static ArrayList<RendererConfiguration> getAllRendererConfigurations() {
-		return rendererConfs;
+	public static ArrayList<RendererConfiguration> getEnabledRenderersConfigurations() {
+		return enabledRendererConfs;
 	}
 
 	protected static File getRenderersDir() {
@@ -222,7 +248,7 @@ public class RendererConfiguration {
 	}
 
 	public static void resetAllRenderers() {
-		for (RendererConfiguration rc : rendererConfs) {
+		for (RendererConfiguration rc : enabledRendererConfs) {
 			rc.rootFolder = null;
 		}
 	}
@@ -277,7 +303,7 @@ public class RendererConfiguration {
 			return manageRendererMatch(defaultConf);
 		} else {
 			// Try to find a match
-			for (RendererConfiguration r : rendererConfs) {
+			for (RendererConfiguration r : enabledRendererConfs) {
 				if (r.matchUserAgent(userAgentString)) {
 					return manageRendererMatch(r);
 				}
@@ -319,7 +345,7 @@ public class RendererConfiguration {
 			return manageRendererMatch(defaultConf);
 		} else {
 			// Try to find a match
-			for (RendererConfiguration r : rendererConfs) {
+			for (RendererConfiguration r : enabledRendererConfs) {
 				if (StringUtils.isNotBlank(r.getUserAgentAdditionalHttpHeader()) && header.startsWith(r.getUserAgentAdditionalHttpHeader())) {
 					String value = header.substring(header.indexOf(":", r.getUserAgentAdditionalHttpHeader().length()) + 1);
 					if (r.matchAdditionalUserAgent(value)) {
@@ -344,7 +370,7 @@ public class RendererConfiguration {
 	 * @since 1.50.1
 	 */
 	public static RendererConfiguration getRendererConfigurationByName(String name) {
-		for (RendererConfiguration conf : rendererConfs) {
+		for (RendererConfiguration conf : enabledRendererConfs) {
 			if (conf.getRendererName().toLowerCase().contains(name.toLowerCase())) {
 				return conf;
 			}
@@ -396,7 +422,7 @@ public class RendererConfiguration {
 		return getBoolean(SHOW_DVD_TITLE_DURATION, false);
 	}
 
-	private RendererConfiguration() throws ConfigurationException {
+	RendererConfiguration() throws ConfigurationException {
 		this(null);
 	}
 
@@ -885,22 +911,22 @@ public class RendererConfiguration {
 		String mpegSettingsArray[] = mpegSettings.split(":");
 
 		String pairArray[];
-		String returnString = "";
+		StringBuilder returnString = new StringBuilder();
 		for (String pair : mpegSettingsArray) {
 			pairArray = pair.split("=");
 
 			if ("keyint".equals(pairArray[0])) {
-				returnString += "-g " + pairArray[1] + " ";
+				returnString.append("-g ").append(pairArray[1]).append(" ");
 			} else if ("vqscale".equals(pairArray[0])) {
-				returnString += "-q:v " + pairArray[1] + " ";
+				returnString.append("-q:v ").append(pairArray[1]).append(" ");
 			} else if ("vqmin".equals(pairArray[0])) {
-				returnString += "-qmin " + pairArray[1] + " ";
+				returnString.append("-qmin ").append(pairArray[1]).append(" ");
 			} else if ("vqmax".equals(pairArray[0])) {
-				returnString += "-qmax " + pairArray[1] + " ";
+				returnString.append("-qmax ").append(pairArray[1]).append(" ");
 			}
 		}
 
-		return returnString;
+		return returnString.toString();
 	}
 
 	/**
@@ -1091,12 +1117,20 @@ public class RendererConfiguration {
 	public boolean isKeepAspectRatio() {
 		return getBoolean(KEEP_ASPECT_RATIO, false);
 	}
-	
+
 	public boolean isRescaleByRenderer() {
 		return getBoolean(RESCALE_BY_RENDERER, true);
 	}
-	
+
 	public String getFFmpegVideoFilterOverride() {
 		return getString(OVERRIDE_VF, null);
+	}
+
+	public static ArrayList<String> getAllRenderersNames() {
+		if (allRenderersNames.isEmpty()) {
+			loadRenderersNames();
+		}
+
+		return allRenderersNames;
 	}
 }

@@ -51,6 +51,7 @@ import net.pms.newgui.DummyFrame;
 import net.pms.newgui.IFrame;
 import net.pms.newgui.LooksFrame;
 import net.pms.newgui.ProfileChooser;
+import net.pms.newgui.SelectRenderers;
 import net.pms.update.AutoUpdater;
 import net.pms.util.FileUtil;
 import net.pms.util.OpenSubtitle;
@@ -506,6 +507,16 @@ public class PMS {
 					configuration.setMaximumBitrate("50");
 					configuration.setMPEG2MainSettings("Automatic (Wireless)");
 					save();
+				}
+
+				// Ask if they want select renderers
+				int whetherToSelectRenderers = JOptionPane.showConfirmDialog(
+				null,
+				Messages.getString("Wizard.12"),
+				Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+				JOptionPane.YES_NO_OPTION);
+				if (whetherToSelectRenderers == JOptionPane.YES_OPTION) {
+					SelectRenderers.showDialog();
 				}
 
 				// Ask if they want to hide advanced options
