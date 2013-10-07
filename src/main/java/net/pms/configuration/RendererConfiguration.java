@@ -210,6 +210,11 @@ public class RendererConfiguration {
 		return configurationReader.getString(key, def);
 	}
 
+	@Deprecated
+	public static ArrayList<RendererConfiguration> getAllRendererConfigurations() {
+		return getEnabledRenderersConfigurations();
+	}
+
 	/**
 	 * Returns the list of all renderer configurations.
 	 *
