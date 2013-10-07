@@ -27,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RecentlyPlayed extends VirtualFolder {
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(RecentlyPlayed.class);
 	private static final int MAX_LIST_SIZE = 250;
 	private static final int DEF_LIST_SIZE = 50;
