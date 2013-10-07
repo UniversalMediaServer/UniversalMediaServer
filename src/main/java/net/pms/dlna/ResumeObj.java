@@ -103,6 +103,7 @@ public class ResumeObj {
 					}
 					break;
 				}
+				in.close();
 			}
 		} catch (IOException e) {
 		}
@@ -131,6 +132,10 @@ public class ResumeObj {
 	}
 
 	public long getTimeOffset() {
+		if (isDone()) {
+			return 0;
+		}
+		read();
 		return offsetTime;
 	}
 
@@ -141,7 +146,7 @@ public class ResumeObj {
 	public void stop(long startTime, long expDuration) {
 		long now = System.currentTimeMillis();
 		long thisPlay = now - startTime;
-		long duration = thisPlay + getTimeOffset();
+		long duration = thisPlay + offsetTime;
 
 		if (expDuration > minDur) {
 			if (duration >= (expDuration * configuration.getResumeBackFactor())) {
@@ -161,6 +166,6 @@ public class ResumeObj {
 		offsetTime = duration - configuration.getResumeRewind();
 		resDuration = expDuration;
 		LOGGER.debug("Resume stop. This segment " + thisPlay + " new time " + duration);
-		write(getTimeOffset(), expDuration, file);
+		write(offsetTime, expDuration, file);
 	}
 }

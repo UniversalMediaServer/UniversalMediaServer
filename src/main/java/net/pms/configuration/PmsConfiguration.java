@@ -108,6 +108,8 @@ public class PmsConfiguration {
 	private static final String KEY_FFMPEG_FONT_CONFIG = "ffmpeg_font_config";
 	private static final String KEY_FFMPEG_MUX_COMPATIBLE = "ffmpeg_mux_compatible";
 	private static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
+	private static final String KEY_FOLDERS = "folders";
+	private static final String KEY_FOLDERS_MONITORED = "folders_monitored";
 	private static final String KEY_FONT = "subtitles_font";
 	private static final String KEY_FORCED_SUBTITLE_LANGUAGE = "forced_subtitle_language";
 	private static final String KEY_FORCED_SUBTITLE_TAGS = "forced_subtitle_tags";
@@ -118,6 +120,7 @@ public class PmsConfiguration {
 	private static final String KEY_HIDE_EMPTY_FOLDERS = "hide_empty_folders";
 	private static final String KEY_HIDE_ENGINENAMES = "hide_enginenames";
 	private static final String KEY_HIDE_EXTENSIONS = "hide_extensions";
+	private static final String KEY_HIDE_RECENTLY_PLAYED_FOLDER = "hide_recently_played_folder";
 	private static final String KEY_HIDE_LIVE_SUBTITLES_FOLDER = "hide_live_subtitles_folder";
 	private static final String KEY_HIDE_MEDIA_LIBRARY_FOLDER = "hide_media_library_folder";
 	private static final String KEY_HIDE_SUBS_INFO = "hide_subs_info";
@@ -170,6 +173,7 @@ public class PmsConfiguration {
 	private static final String KEY_MPEG2_MAIN_SETTINGS = "mpeg2_main_settings";
 	private static final String KEY_MUX_ALLAUDIOTRACKS = "tsmuxer_mux_all_audiotracks";
 	private static final String KEY_NETWORK_INTERFACE = "network_interface";
+	private static final String KEY_HIDE_NEW_MEDIA_FOLDER = "hide_new_media";
 	private static final String KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS = "disable_transcode_for_extensions";
 	private static final String KEY_NUMBER_OF_CPU_CORES = "number_of_cpu_cores";
 	private static final String KEY_OPEN_ARCHIVES = "enable_archive_browsing";
@@ -238,7 +242,6 @@ public class PmsConfiguration {
 	private static final int BUFFER_MEMORY_FACTOR = 368;
 	private static int MAX_MAX_MEMORY_BUFFER_SIZE = MAX_MAX_MEMORY_DEFAULT_SIZE;
 	private static final char LIST_SEPARATOR = ',';
-	private static final String KEY_FOLDERS = "folders";
 	private final PropertiesConfiguration configuration;
 	private final ConfigurationReader configurationReader;
 	private final TempFolder tempFolder;
@@ -1966,6 +1969,14 @@ public class PmsConfiguration {
 		configuration.setProperty(KEY_FOLDERS, value);
 	}
 
+	public String getFoldersMonitored() {
+		return getString(KEY_FOLDERS_MONITORED, "");
+	}
+
+	public void setFoldersMonitored(String value) {
+		configuration.setProperty(KEY_FOLDERS_MONITORED, value);
+	}
+
 	public String getNetworkInterface() {
 		return getString(KEY_NETWORK_INTERFACE, "");
 	}
@@ -2351,6 +2362,22 @@ public class PmsConfiguration {
 
 	public void setRunWizard(boolean value) {
 		configuration.setProperty(KEY_RUN_WIZARD, value);
+	}
+
+	public boolean isHideNewMediaFolder() {
+		return getBoolean(KEY_HIDE_NEW_MEDIA_FOLDER, false);
+	}
+
+	public void setHideNewMediaFolder(final boolean value) {
+		this.configuration.setProperty(KEY_HIDE_NEW_MEDIA_FOLDER, value);
+	}
+
+	public boolean isHideRecentlyPlayedFolder() {
+		return getBoolean(PmsConfiguration.KEY_HIDE_RECENTLY_PLAYED_FOLDER, false);
+	}
+
+	public void setHideRecentlyPlayedFolder(final boolean value) {
+		this.configuration.setProperty(PmsConfiguration.KEY_HIDE_RECENTLY_PLAYED_FOLDER, value);
 	}
 
 	/**

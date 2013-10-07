@@ -79,6 +79,11 @@ public class WebStream extends DLNAResource {
 	}
 
 	@Override
+	public String write() {
+		return getFluxName() + ">" + getUrl() + ">" + getThumbURL() + ">" + getSpecificType();
+	}
+
+	@Override
 	public InputStream getThumbnailInputStream() throws IOException {
 		if (getThumbURL() != null) {
 			return downloadAndSend(getThumbURL(), true);

@@ -416,6 +416,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		setUpdateId(1);
 		lastSearch = null;
 		resHash = 0;
+		masterParent = null;
 	}
 
 	public DLNAResource(int specificType) {
@@ -483,6 +484,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		child.setParent(this);
+		child.setMasterParent(getMasterParent());
 
 		if (getParent() != null) {
 			setDefaultRenderer(getParent().getDefaultRenderer());
@@ -553,28 +555,32 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	
 						// Try to determine a player to use for transcoding.
 						Player player = null;
-	
-						// First, try to match a player based on the name of the DLNAResource
+
+						// First, try to match a player from recently played folder or based on the name of the DLNAResource
 						// or its parent. If the name ends in "[unique player id]", that player
 						// is preferred.
 						String name = getName();
+
+						if (!configuration.isHideRecentlyPlayedFolder()) {
+							player = child.getPlayer();
+						} else {
+							for (Player p : PlayerFactory.getPlayers()) {
+								String end = "[" + p.id() + "]";
 	
-						for (Player p : PlayerFactory.getAllPlayers()) {
-							String end = "[" + p.id() + "]";
-	
-							if (name.endsWith(end)) {
-								nametruncate = name.lastIndexOf(end);
-								player = p;
-								LOGGER.trace("Selecting player based on name end");
-								break;
-							} else if (getParent() != null && getParent().getName().endsWith(end)) {
-								getParent().nametruncate = getParent().getName().lastIndexOf(end);
-								player = p;
-								LOGGER.trace("Selecting player based on parent name end");
-								break;
+								if (name.endsWith(end)) {
+									nametruncate = name.lastIndexOf(end);
+									player = p;
+									LOGGER.trace("Selecting player based on name end");
+									break;
+								} else if (getParent() != null && getParent().getName().endsWith(end)) {
+									getParent().nametruncate = getParent().getName().lastIndexOf(end);
+									player = p;
+									LOGGER.trace("Selecting player based on parent name end");
+									break;
+								}
 							}
 						}
-	
+
 						// If no preferred player could be determined from the name, try to
 						// match a player based on media information and format.
 						if (player == null) {
@@ -1170,7 +1176,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		if (
-			getMediaSubtitle() != null && 
+			getMediaSubtitle() != null &&
 			getMediaSubtitle().getId() != -1 &&
 			!configuration.hideSubInfo()
 		) {
@@ -2081,9 +2087,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 										}
 									}
 								}
-								resumeStop();
 
 								PMS.get().getFrame().setStatusLine("");
+
+								internalStop();
 
 								for (final ExternalListener listener : ExternalFactory.getExternalListeners()) {
 									if (listener instanceof StartStopListener) {
@@ -2098,6 +2105,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 												}
 											}
 										};
+
 										new Thread(fireStartStopEvent, "StopPlaying Event for " + listener.name()).start();
 									}
 								}
@@ -3039,8 +3047,30 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private int resHash;
 	private long startTime;
 
+	private void internalStop() {
+		DLNAResource res = resumeStop();
+		final RootFolder root = ((defaultRenderer != null) ? defaultRenderer.getRootFolder() : null);
+		if (root != null) {
+			if (res == null) {
+				res = this.clone();
+			} else {
+				res = res.clone();
+			}
+
+			root.stopPlaying(res);
+		}
+	}
+
 	public int resumeHash() {
 		return resHash;
+	}
+
+	public ResumeObj getResume() {
+		return resume;
+	}
+
+	public void setResume(ResumeObj r) {
+		resume = r;
 	}
 
 	public boolean isResumeable() {
@@ -3051,9 +3081,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return true;
 	}
 
-	private void resumeStop() {
+	private DLNAResource resumeStop() {
 		if (!configuration.isResumeEnabled() || !isResumeable()) {
-			return;
+			return null;
 		}
 		if (resume != null) {
 			resume.stop(startTime, (long) (getMedia().getDurationInSeconds() * 1000));
@@ -3067,8 +3097,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					res.resume.stop(startTime, (long) (getMedia().getDurationInSeconds() * 1000));
 					if (res.resume.isDone()) {
 						getParent().getChildren().remove(res);
+						return null;
 					}
-					return;
+					return res;
 				}
 			}
 			ResumeObj r = ResumeObj.store(this, startTime);
@@ -3079,8 +3110,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				clone.setMedia(getMedia());
 				clone.setPlayer(getPlayer());
 				getParent().addChildInternal(clone);
+				return clone;
 			}
 		}
+		return null;
 	}
 
 	public final boolean isResume() {
@@ -3097,5 +3130,31 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		} else {
 			return s;
 		}
+	}
+
+	/**
+	 * Handle last played stuff
+	 *
+	 * This method should be overridden by all media types that should be
+	 * added to the last played list.
+	 * By default it just returns null which means the resource is ignored
+	 * in the last played file.
+	 */
+
+	public String write() {
+		return null;
+	}
+
+	private ExternalListener masterParent;
+
+	public void setMasterParent(ExternalListener r) {
+		if (masterParent == null) {
+			// If master is already set ignore this
+			masterParent = r;
+		}
+	}
+
+	public ExternalListener getMasterParent() {
+		return masterParent;
 	}
 }
