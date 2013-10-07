@@ -521,17 +521,17 @@ public class ExternalFactory {
 				if (StringUtils.isEmpty(res.url) || quotedUrl.equals(quote(res.url))) {
 					res.url = null;
 				}
-				if (res.precoder != null && res.precoder.size() == 0) {
+				if (res.precoder != null && res.precoder.isEmpty()) {
 					res.precoder = null;
 				}
-				if (res.args != null && res.args.size() == 0) {
+				if (res.args != null && res.args.isEmpty()) {
 					res.args = null;
 				}
 				if (res.url != null || res.precoder != null || res.args != null) {
-					LOGGER.debug(((ExternalListener)resolver).name() + " resolver:"
-						+ (res.url == null ? "" : " url=" + res.url)
-						+ (res.precoder == null ? "" : " precoder=" + res.precoder)
-						+ (res.args == null ? "" : " args=" + res.args));
+					LOGGER.debug(((ExternalListener)resolver).name() + " resolver:" +
+						(res.url == null ? "" : " url=" + res.url) +
+						(res.precoder == null ? "" : " precoder=" + res.precoder) +
+						(res.args == null ? "" : " args=" + res.args));
 					return res;
 				}
 			}

@@ -18,9 +18,9 @@
  */
 package net.pms.dlna;
 
+import com.sun.jna.Platform;
 import java.io.*;
 import java.util.ArrayList;
-import com.sun.jna.Platform;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.formats.Format;
