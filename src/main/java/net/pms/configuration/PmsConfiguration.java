@@ -1710,15 +1710,19 @@ public class PmsConfiguration {
 		String returnString = "";
 		for (String pair : mpegSettingsArray) {
 			pairArray = pair.split("=");
-
-			if ("keyint".equals(pairArray[0])) {
-				returnString += "-g " + pairArray[1] + " ";
-			} else if ("vqscale".equals(pairArray[0])) {
-				returnString += "-q:v " + pairArray[1] + " ";
-			} else if ("vqmin".equals(pairArray[0])) {
-				returnString += "-qmin " + pairArray[1] + " ";
-			} else if ("vqmax".equals(pairArray[0])) {
-				returnString += "-qmax " + pairArray[1] + " ";
+			switch (pairArray[0]) {
+				case "keyint":
+					returnString += "-g " + pairArray[1] + " ";
+					break;
+				case "vqscale":
+					returnString += "-q:v " + pairArray[1] + " ";
+					break;
+				case "vqmin":
+					returnString += "-qmin " + pairArray[1] + " ";
+					break;
+				case "vqmax":
+					returnString += "-qmax " + pairArray[1] + " ";
+					break;
 			}
 		}
 
