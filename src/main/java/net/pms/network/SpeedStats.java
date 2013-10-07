@@ -141,7 +141,7 @@ public class SpeedStats {
 			List<String> ls = pw.getOtherResults();
 			double time = 0;
 			int c = 0;
-			String timeString = null;
+			String timeString;
 
 			for (String line : ls) {
 				int msPos = line.indexOf("ms");
