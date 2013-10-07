@@ -1,4 +1,4 @@
-3.0.0-a6 - 2013-09-??
+3.0.0-b1 - 2013-10-??
 
 	General:
 		Added support for muxing (losslessly streaming) more files with tsMuxeR by default
