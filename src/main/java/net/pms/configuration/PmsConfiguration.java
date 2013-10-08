@@ -19,6 +19,7 @@
 package net.pms.configuration;
 
 import com.sun.jna.Platform;
+
 import java.awt.Component;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -26,9 +27,11 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
+
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.io.SystemUtils;
@@ -36,6 +39,7 @@ import net.pms.util.FileUtil;
 import net.pms.util.FileUtil.FileLocation;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.WindowsRegistry;
+
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -1707,26 +1711,26 @@ public class PmsConfiguration {
 		String mpegSettingsArray[] = mpegSettings.split(":");
 
 		String pairArray[];
-		String returnString = "";
+		StringBuilder returnString = new StringBuilder();
 		for (String pair : mpegSettingsArray) {
 			pairArray = pair.split("=");
 			switch (pairArray[0]) {
 				case "keyint":
-					returnString += "-g " + pairArray[1] + " ";
+					returnString.append("-g ").append(pairArray[1]).append(" ");
 					break;
 				case "vqscale":
-					returnString += "-q:v " + pairArray[1] + " ";
+					returnString.append("-q:v ").append(pairArray[1]).append(" ");
 					break;
 				case "vqmin":
-					returnString += "-qmin " + pairArray[1] + " ";
+					returnString.append("-qmin ").append(pairArray[1]).append(" ");
 					break;
 				case "vqmax":
-					returnString += "-qmax " + pairArray[1] + " ";
+					returnString.append("-qmax ").append(pairArray[1]).append(" ");
 					break;
 			}
 		}
 
-		return returnString;
+		return returnString.toString();
 	}
 
 	public void setFfmpegMultithreading(boolean value) {
