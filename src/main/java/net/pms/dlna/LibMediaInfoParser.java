@@ -501,8 +501,12 @@ public class LibMediaInfoParser {
 	}
 
 	public static int getSpecificID(String value) {
-		if (value.indexOf("(0x") > -1) {
-			value = value.substring(0, value.indexOf("(0x"));
+		// If ID is given as 'streamID-substreamID' use the second (which is hopefully unique).
+		// For example in vob audio ID can be '189 (0xBD)-32 (0x80)' and text ID '189 (0xBD)-128 (0x20)'
+		int end = value.lastIndexOf("(0x");
+		if (end > -1) {
+			int start = value.lastIndexOf("-") + 1;
+			value = value.substring(start > end ? 0 : start, end);
 		}
 
 		value = value.trim();

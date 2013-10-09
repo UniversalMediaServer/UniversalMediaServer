@@ -45,7 +45,8 @@ public enum SubtitleType {
 			list("S_TEXT/SSA", "S_TEXT/ASS", "S_SSA", "S_ASS", "SSA", "ASS"), type.TEXT),
 	VOBSUB (6, "VobSub",
 			list("idx"),
-			list("S_VOBSUB", "subp", "mp4s", "E0"), type.PICTURE),
+			// TODO: "RLE" may also apply to other formats
+			list("S_VOBSUB", "subp", "mp4s", "E0", "RLE"), type.PICTURE),
 	UNSUPPORTED (7, "Unsupported", list(), list(), type.UNDEF),
 	USF (8, "Universal Subtitle Format", list(), list("S_TEXT/USF", "S_USF"), type.TEXT),
 	BMP (9, "BMP", list(), list("S_IMAGE/BMP"), type.PICTURE),
