@@ -352,6 +352,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 				PMS.get().reset();
 			}
 		});
+		reload.setToolTipText(Messages.getString("LooksFrame.28"));
 		toolBar.add(reload);
 		toolBar.addSeparator();
 		AbstractButton quit = createToolBarButton(Messages.getString("LooksFrame.5"), "button-quit.png");
@@ -507,7 +508,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			reload.setToolTipText(Messages.getString("LooksFrame.13"));
 		} else {
 			reload.setIcon(readImageIcon("button-restart.png"));
-			reload.setToolTipText(null);
+			reload.setToolTipText(Messages.getString("LooksFrame.28"));
 		}
 	}
 

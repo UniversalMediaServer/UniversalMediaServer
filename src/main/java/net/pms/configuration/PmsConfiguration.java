@@ -1707,26 +1707,26 @@ public class PmsConfiguration {
 		String mpegSettingsArray[] = mpegSettings.split(":");
 
 		String pairArray[];
-		String returnString = "";
+		StringBuilder returnString = new StringBuilder();
 		for (String pair : mpegSettingsArray) {
 			pairArray = pair.split("=");
 			switch (pairArray[0]) {
 				case "keyint":
-					returnString += "-g " + pairArray[1] + " ";
+					returnString.append("-g ").append(pairArray[1]).append(" ");
 					break;
 				case "vqscale":
-					returnString += "-q:v " + pairArray[1] + " ";
+					returnString.append("-q:v ").append(pairArray[1]).append(" ");
 					break;
 				case "vqmin":
-					returnString += "-qmin " + pairArray[1] + " ";
+					returnString.append("-qmin ").append(pairArray[1]).append(" ");
 					break;
 				case "vqmax":
-					returnString += "-qmax " + pairArray[1] + " ";
+					returnString.append("-qmax ").append(pairArray[1]).append(" ");
 					break;
 			}
 		}
 
-		return returnString;
+		return returnString.toString();
 	}
 
 	public void setFfmpegMultithreading(boolean value) {
