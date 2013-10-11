@@ -90,7 +90,6 @@ public class MapFileConfiguration {
 			gsonBuilder.registerTypeAdapter(File.class, new FileSerializer());
 			Gson gson = gsonBuilder.create();
 			Type listType = (new TypeToken<ArrayList<MapFileConfiguration>>() { }).getType();
-			LOGGER.info("String from file: " + conf);
 			List<MapFileConfiguration> out = gson.fromJson(conf, listType);
 			return out;
 		} else if (configuration.getVirtualFolders().trim().length() > 0) {
@@ -126,8 +125,6 @@ public class MapFileConfiguration {
 			gsonBuilder.registerTypeAdapter(File.class, new FileSerializer());
 			Gson gson = gsonBuilder.create();
 			Type listType = (new TypeToken<ArrayList<MapFileConfiguration>>() { }).getType();
-			LOGGER.info("Original string: " + conf);
-			LOGGER.info("Converted string: " + jsonStringFromConf);
 			List<MapFileConfiguration> out = gson.fromJson(jsonStringFromConf.replaceAll("\\\\","\\\\\\\\"), listType);
 
 			return out;
