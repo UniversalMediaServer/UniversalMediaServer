@@ -1067,18 +1067,6 @@ public class MEncoderVideo extends Player {
 			params.avidemux = true;
 		}
 
-		int channels;
-		if (ac3Remux) {
-			channels = params.aid.getAudioProperties().getNumberOfChannels(); // AC-3 remux
-		} else if (dtsRemux || (!params.mediaRenderer.isXBOX() && wmv)) {
-			channels = 2;
-		} else if (pcm) {
-			channels = params.aid.getAudioProperties().getNumberOfChannels();
-		} else {
-			channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
-		}
-		LOGGER.trace("channels=" + channels);
-
 		String add = "";
 		String rendererMencoderOptions = params.mediaRenderer.getCustomMencoderOptions(); // default: empty string
 		String globalMencoderOptions = configuration.getMencoderCustomOptions(); // default: empty string
@@ -1091,22 +1079,35 @@ public class MEncoderVideo extends Player {
 			add = " -lavdopts debug=0";
 		}
 
-		if (isNotBlank(rendererMencoderOptions)) {
-			/**
-			 * Ignore the renderer's custom MEncoder options if a) we're streaming a DVD (i.e. via dvd://)
-			 * or b) the renderer's MEncoder options contain overscan settings (those are handled
-			 * separately)
-			 */
-
-			// XXX we should weed out the unused/unwanted settings and keep the rest
-			// (see sanitizeArgs()) rather than ignoring the options entirely
-			if (rendererMencoderOptions.contains("expand=") && dvd) {
-				rendererMencoderOptions = null;
-			}
+		/**
+		 * Ignore the renderer's custom MEncoder options if a) we're streaming a DVD (i.e. via dvd://)
+		 * or b) the renderer's MEncoder options contain overscan settings (those are handled
+		 * separately)
+		 */
+		// XXX we should weed out the unused/unwanted settings and keep the rest
+		// (see sanitizeArgs()) rather than ignoring the options entirely
+		if (rendererMencoderOptions.contains("expand=") && dvd) {
+			rendererMencoderOptions = "";
 		}
 
+		int channels;
+		if (ac3Remux) {
+			channels = params.aid.getAudioProperties().getNumberOfChannels(); // AC-3 remux
+		} else if (dtsRemux || (!params.mediaRenderer.isXBOX() && wmv)) {
+			channels = 2;
+		} else if (pcm) {
+			channels = params.aid.getAudioProperties().getNumberOfChannels();
+		} else {
+			channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
+		}
+		String channelsString = "-channels " + channels;
+		if (rendererMencoderOptions.contains("-channels")) {
+			channelsString = "";
+		}
+		LOGGER.trace("channels=" + channels);
+
 		StringTokenizer st = new StringTokenizer(
-			"-channels " + channels +
+			channelsString +
 			(isNotBlank(globalMencoderOptions) ? " " + globalMencoderOptions : "") +
 			(isNotBlank(rendererMencoderOptions) ? " " + rendererMencoderOptions : "") +
 			add,
