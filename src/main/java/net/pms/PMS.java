@@ -861,7 +861,6 @@ public class PMS {
 	 * @return {@link java.io.File}[] Array of directories.
 	 * @throws java.io.IOException
 	 */
-
 	public File[] getSharedFoldersArray(boolean monitored) {
 		String folders;
 
