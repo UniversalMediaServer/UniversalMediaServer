@@ -219,7 +219,8 @@ public class PmsConfiguration {
 	private static final String KEY_UUID = "uuid";
 	private static final String KEY_VIDEO_HW_ACCELERATION = "video_hardware_acceleration";
 	private static final String KEY_VIDEOTRANSCODE_START_DELAY = "videotranscode_start_delay";
-	private static final String KEY_VIRTUAL_FOLDERS = "vfolders";
+	private static final String KEY_VIRTUAL_FOLDERS = "virtual_folders";
+	private static final String KEY_VIRTUAL_FOLDERS_FILE = "virtual_folders_file";
 	private static final String KEY_VLC_USE_HW_ACCELERATION = "vlc_use_hw_acceleration";
 	private static final String KEY_VLC_USE_EXPERIMENTAL_CODECS = "vlc_use_experimental_codecs";
 	private static final String KEY_VLC_AUDIO_SYNC_ENABLED = "vlc_audio_sync_enabled";
@@ -2440,6 +2441,10 @@ public class PmsConfiguration {
 
 	public String getVirtualFolders() {
 		return getString(KEY_VIRTUAL_FOLDERS, "");
+	}
+
+	public String getVirtualFoldersFile() {
+		return getString(KEY_VIRTUAL_FOLDERS_FILE, "");
 	}
 
 	public String getProfilePath() {
