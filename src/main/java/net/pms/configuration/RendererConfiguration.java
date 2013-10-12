@@ -1169,8 +1169,7 @@ public class RendererConfiguration {
 			int i = dlna.isFolder() ? 0 : indent;
 			String head = name.substring(0, i + (Character.isSpace(name.charAt(i)) ? 1 : 0));
 			String tail = name.substring(i);
-			String[] lines = WordUtils.wrap(tail, line_w-i, "\n", true).split("\n");
-			return head + StringUtils.join(lines, "\n" + (dlna.isFolder() ? "" : inset));
+			return head + WordUtils.wrap(tail, line_w-i, "\n" + (dlna.isFolder() ? "" : inset), true);
 		}
 		return name;
 	}

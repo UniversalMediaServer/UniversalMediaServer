@@ -53,7 +53,7 @@ import net.pms.util.MpegUtil;
 import net.pms.util.OpenSubtitle;
 import net.pms.util.StringUtil;
 import static net.pms.util.StringUtil.*;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
