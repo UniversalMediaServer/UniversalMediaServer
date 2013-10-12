@@ -1206,9 +1206,34 @@ public class MEncoderVideo extends Player {
 				":vrc_buf_size=5000:vrc_minrate=" + cbr_bitrate + ":vrc_maxrate=" + cbr_bitrate + ":vbitrate=" + ((cbr_bitrate > 16000) ? cbr_bitrate * 1000 : cbr_bitrate) :
 				"";
 
-			String encodeSettings = "-lavcopts autoaspect=1:vcodec=" + vcodec +
-				(wmv && !params.mediaRenderer.isXBOX() ? ":acodec=wmav2:abitrate=448" : (cbr_settings + ":acodec=" + (configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3") +
-				":abitrate=" + CodecUtil.getAC3Bitrate(configuration, params.aid))) +
+			// Set the audio codec used by Lavc
+			String acodec   = "";
+			if (!rendererMencoderOptions.contains("acodec=")) {
+				acodec = ":acodec=";
+				if (wmv && !params.mediaRenderer.isXBOX()) {
+					acodec += "wmav2";
+				} else {
+					acodec = cbr_settings + acodec;
+					if (configuration.isMencoderAc3Fixed()) {
+						acodec += "ac3_fixed";
+					} else {
+						acodec += "ac3";
+					}
+				}
+			}
+
+			// Set the audio bitrate used by 
+			String abitrate = "";
+			if (!rendererMencoderOptions.contains("abitrate=")) {
+				abitrate = ":abitrate=";
+				if (wmv && !params.mediaRenderer.isXBOX()) {
+					abitrate += "448";
+				} else {
+					abitrate += CodecUtil.getAC3Bitrate(configuration, params.aid);
+				}
+			}
+
+			String encodeSettings = "-lavcopts autoaspect=1:vcodec=" + vcodec + acodec + abitrate +
 				":threads=" + (wmv && !params.mediaRenderer.isXBOX() ? 1 : configuration.getMencoderMaxThreads()) +
 				("".equals(mpeg2Options) ? "" : ":" + mpeg2Options);
 
@@ -2020,12 +2045,8 @@ public class MEncoderVideo extends Player {
 			cmdList.add("" + params.timeend);
 		}
 
-		String rate = "48000";
-		if (params.mediaRenderer.isXBOX()) {
-			rate = "44100";
-		}
-
 		// Force srate because MEncoder doesn't like anything other than 48khz for AC-3
+		String rate = "" + params.mediaRenderer.getTranscodedVideoAudioSampleRate();
 		if (!pcm && !dtsRemux && !ac3Remux) {
 			cmdList.add("-af");
 			String af = "lavcresample=" + rate;
