@@ -94,10 +94,11 @@ public class RendererConfiguration {
 	private static final String THUMBNAIL_AS_RESOURCE = "ThumbnailAsResource";
 	private static final String TRANSCODE_AUDIO_441KHZ = "TranscodeAudioTo441kHz";
 	private static final String TRANSCODE_AUDIO = "TranscodeAudio";
-	private static final String TRANSCODED_SIZE = "TranscodedVideoFileSize";
 	private static final String TRANSCODE_EXT = "TranscodeExtensions";
 	private static final String TRANSCODE_FAST_START = "TranscodeFastStart";
 	private static final String TRANSCODE_VIDEO = "TranscodeVideo";
+	private static final String TRANSCODED_SIZE = "TranscodedVideoFileSize";
+	private static final String TRANSCODED_VIDEO_AUDIO_SAMPLE_RATE = "TranscodedVideoAudioSampleRate";
 	private static final String USER_AGENT_ADDITIONAL_HEADER = "UserAgentAdditionalHeader";
 	private static final String USER_AGENT_ADDITIONAL_SEARCH = "UserAgentAdditionalHeaderSearch";
 	private static final String USER_AGENT = "UserAgentSearch";
@@ -1136,5 +1137,9 @@ public class RendererConfiguration {
 		}
 
 		return allRenderersNames;
+	}
+
+	public int getTranscodedVideoAudioSampleRate() {
+		return getInt(TRANSCODED_VIDEO_AUDIO_SAMPLE_RATE, 48000);
 	}
 }

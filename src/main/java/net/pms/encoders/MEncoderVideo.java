@@ -1067,18 +1067,6 @@ public class MEncoderVideo extends Player {
 			params.avidemux = true;
 		}
 
-		int channels;
-		if (ac3Remux) {
-			channels = params.aid.getAudioProperties().getNumberOfChannels(); // AC-3 remux
-		} else if (dtsRemux || (!params.mediaRenderer.isXBOX() && wmv)) {
-			channels = 2;
-		} else if (pcm) {
-			channels = params.aid.getAudioProperties().getNumberOfChannels();
-		} else {
-			channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
-		}
-		LOGGER.trace("channels=" + channels);
-
 		String add = "";
 		String rendererMencoderOptions = params.mediaRenderer.getCustomMencoderOptions(); // default: empty string
 		String globalMencoderOptions = configuration.getMencoderCustomOptions(); // default: empty string
@@ -1091,22 +1079,35 @@ public class MEncoderVideo extends Player {
 			add = " -lavdopts debug=0";
 		}
 
-		if (isNotBlank(rendererMencoderOptions)) {
-			/**
-			 * Ignore the renderer's custom MEncoder options if a) we're streaming a DVD (i.e. via dvd://)
-			 * or b) the renderer's MEncoder options contain overscan settings (those are handled
-			 * separately)
-			 */
-
-			// XXX we should weed out the unused/unwanted settings and keep the rest
-			// (see sanitizeArgs()) rather than ignoring the options entirely
-			if (rendererMencoderOptions.contains("expand=") && dvd) {
-				rendererMencoderOptions = null;
-			}
+		/**
+		 * Ignore the renderer's custom MEncoder options if a) we're streaming a DVD (i.e. via dvd://)
+		 * or b) the renderer's MEncoder options contain overscan settings (those are handled
+		 * separately)
+		 */
+		// XXX we should weed out the unused/unwanted settings and keep the rest
+		// (see sanitizeArgs()) rather than ignoring the options entirely
+		if (rendererMencoderOptions.contains("expand=") && dvd) {
+			rendererMencoderOptions = "";
 		}
 
+		int channels;
+		if (ac3Remux) {
+			channels = params.aid.getAudioProperties().getNumberOfChannels(); // AC-3 remux
+		} else if (dtsRemux || (!params.mediaRenderer.isXBOX() && wmv)) {
+			channels = 2;
+		} else if (pcm) {
+			channels = params.aid.getAudioProperties().getNumberOfChannels();
+		} else {
+			channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
+		}
+		String channelsString = "-channels " + channels;
+		if (rendererMencoderOptions.contains("-channels")) {
+			channelsString = "";
+		}
+		LOGGER.trace("channels=" + channels);
+
 		StringTokenizer st = new StringTokenizer(
-			"-channels " + channels +
+			channelsString +
 			(isNotBlank(globalMencoderOptions) ? " " + globalMencoderOptions : "") +
 			(isNotBlank(rendererMencoderOptions) ? " " + rendererMencoderOptions : "") +
 			add,
@@ -1205,9 +1206,34 @@ public class MEncoderVideo extends Player {
 				":vrc_buf_size=5000:vrc_minrate=" + cbr_bitrate + ":vrc_maxrate=" + cbr_bitrate + ":vbitrate=" + ((cbr_bitrate > 16000) ? cbr_bitrate * 1000 : cbr_bitrate) :
 				"";
 
-			String encodeSettings = "-lavcopts autoaspect=1:vcodec=" + vcodec +
-				(wmv && !params.mediaRenderer.isXBOX() ? ":acodec=wmav2:abitrate=448" : (cbr_settings + ":acodec=" + (configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3") +
-				":abitrate=" + CodecUtil.getAC3Bitrate(configuration, params.aid))) +
+			// Set the audio codec used by Lavc
+			String acodec   = "";
+			if (!rendererMencoderOptions.contains("acodec=")) {
+				acodec = ":acodec=";
+				if (wmv && !params.mediaRenderer.isXBOX()) {
+					acodec += "wmav2";
+				} else {
+					acodec = cbr_settings + acodec;
+					if (configuration.isMencoderAc3Fixed()) {
+						acodec += "ac3_fixed";
+					} else {
+						acodec += "ac3";
+					}
+				}
+			}
+
+			// Set the audio bitrate used by 
+			String abitrate = "";
+			if (!rendererMencoderOptions.contains("abitrate=")) {
+				abitrate = ":abitrate=";
+				if (wmv && !params.mediaRenderer.isXBOX()) {
+					abitrate += "448";
+				} else {
+					abitrate += CodecUtil.getAC3Bitrate(configuration, params.aid);
+				}
+			}
+
+			String encodeSettings = "-lavcopts autoaspect=1:vcodec=" + vcodec + acodec + abitrate +
 				":threads=" + (wmv && !params.mediaRenderer.isXBOX() ? 1 : configuration.getMencoderMaxThreads()) +
 				("".equals(mpeg2Options) ? "" : ":" + mpeg2Options);
 
@@ -2019,12 +2045,8 @@ public class MEncoderVideo extends Player {
 			cmdList.add("" + params.timeend);
 		}
 
-		String rate = "48000";
-		if (params.mediaRenderer.isXBOX()) {
-			rate = "44100";
-		}
-
 		// Force srate because MEncoder doesn't like anything other than 48khz for AC-3
+		String rate = "" + params.mediaRenderer.getTranscodedVideoAudioSampleRate();
 		if (!pcm && !dtsRemux && !ac3Remux) {
 			cmdList.add("-af");
 			String af = "lavcresample=" + rate;
