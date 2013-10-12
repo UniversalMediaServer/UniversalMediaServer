@@ -1158,11 +1158,14 @@ public class RendererConfiguration {
 			// Init text wrap settings
 			String s = getTextWrap();
 			line_w = getIntAt(s, "width:", 0);
-			indent = getIntAt(s, "indent:", 0);
-			line_h = getIntAt(s, "height:", 0);
-			dc_date = getIntAt(s, "date:", 1) != 0;
-			String ws = Character.toString((char) getIntAt(s, "whitespace:", 9));
-			inset = new String(new byte[indent]).replaceAll(".", ws);
+			if (line_w > 0) {
+				line_h = getIntAt(s, "height:", 0);
+				indent = getIntAt(s, "indent:", 0);
+				dc_date = getIntAt(s, "date:", 1) != 0;
+				int ws = getIntAt(s, "whitespace:", 9);
+				inset = new String(new byte[indent]).replaceAll(".", Character.toString((char) ws));
+				LOGGER.debug("{}: TextWrap width:{} height:{} indent:{} whitespace:{} date:{}", getRendererName(), line_w, line_h, indent, ws, dc_date ? "1" : "0");
+			}
 		}
 		// Wrap text if applicable
 		if (line_w > 0 && name.length() > line_w) {
