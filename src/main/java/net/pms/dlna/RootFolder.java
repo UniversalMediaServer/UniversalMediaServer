@@ -270,7 +270,7 @@ public class RootFolder extends DLNAResource {
 
 	private List<DLNAResource> getVirtualFolders() {
 		List<DLNAResource> res = new ArrayList<>();
-		List<MapFileConfiguration> mapFileConfs = MapFileConfiguration.parse(configuration.getVirtualFolders());
+		List<MapFileConfiguration> mapFileConfs = MapFileConfiguration.parseVirtualFolders();
 
 		if (mapFileConfs != null) {
 			for (MapFileConfiguration f : mapFileConfs) {
