@@ -1156,6 +1156,11 @@ public class MEncoderVideo extends Player {
 			}
 		}
 
+		String vcodecString = ":vcodec=" + vcodec;
+		if (combinedCustomOptions.contains("vcodec=")) {
+			vcodecString = "";
+		}
+
 		if (configuration.getMPEG2MainSettings() != null && !h264ts) {
 			String mpeg2Options = configuration.getMPEG2MainSettings();
 			String mpeg2OptionsRenderer = params.mediaRenderer.getCustomMEncoderMPEG2Options();
@@ -1236,7 +1241,7 @@ public class MEncoderVideo extends Player {
 				}
 			}
 
-			String encodeSettings = "-lavcopts autoaspect=1:vcodec=" + vcodec + acodec + abitrate +
+			String encodeSettings = "-lavcopts autoaspect=1" + vcodecString + acodec + abitrate +
 				":threads=" + (wmv && !params.mediaRenderer.isXBOX() ? 1 : configuration.getMencoderMaxThreads()) +
 				("".equals(mpeg2Options) ? "" : ":" + mpeg2Options);
 
@@ -1278,7 +1283,7 @@ public class MEncoderVideo extends Player {
 				x264CRF = "crf=" + x264CRF + ",";
 			}
 
-			String encodeSettings = "-lavcopts autoaspect=1:vcodec=" + vcodec +
+			String encodeSettings = "-lavcopts autoaspect=1" + vcodecString +
 				":acodec=" + (configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3") +
 				":abitrate=" + CodecUtil.getAC3Bitrate(configuration, params.aid) +
 				":threads=" + configuration.getMencoderMaxThreads() +
