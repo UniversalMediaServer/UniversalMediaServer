@@ -1067,17 +1067,8 @@ public class MEncoderVideo extends Player {
 			params.avidemux = true;
 		}
 
-		String add = "";
-		String rendererMencoderOptions = params.mediaRenderer.getCustomMencoderOptions(); // default: empty string
-		String globalMencoderOptions = configuration.getMencoderCustomOptions(); // default: empty string
-
-		String combinedCustomOptions = defaultString(globalMencoderOptions) +
-			" " +
-			defaultString(rendererMencoderOptions);
-
-		if (!combinedCustomOptions.contains("-lavdopts")) {
-			add = " -lavdopts debug=0";
-		}
+		// Default: Empty string
+		String rendererMencoderOptions = params.mediaRenderer.getCustomMencoderOptions();
 
 		/**
 		 * Ignore the renderer's custom MEncoder options if a) we're streaming a DVD (i.e. via dvd://)
@@ -1088,6 +1079,18 @@ public class MEncoderVideo extends Player {
 		// (see sanitizeArgs()) rather than ignoring the options entirely
 		if (rendererMencoderOptions.contains("expand=") && dvd) {
 			rendererMencoderOptions = "";
+		}
+
+		// Default: Empty string
+		String globalMencoderOptions = configuration.getMencoderCustomOptions();
+
+		String combinedCustomOptions = defaultString(globalMencoderOptions) +
+			" " +
+			defaultString(rendererMencoderOptions);
+
+		String add = "";
+		if (!combinedCustomOptions.contains("-lavdopts")) {
+			add = " -lavdopts debug=0";
 		}
 
 		int channels;
@@ -1101,7 +1104,7 @@ public class MEncoderVideo extends Player {
 			channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
 		}
 		String channelsString = "-channels " + channels;
-		if (rendererMencoderOptions.contains("-channels")) {
+		if (combinedCustomOptions.contains("-channels")) {
 			channelsString = "";
 		}
 		LOGGER.trace("channels=" + channels);
@@ -1208,7 +1211,7 @@ public class MEncoderVideo extends Player {
 
 			// Set the audio codec used by Lavc
 			String acodec   = "";
-			if (!rendererMencoderOptions.contains("acodec=")) {
+			if (!combinedCustomOptions.contains("acodec=")) {
 				acodec = ":acodec=";
 				if (wmv && !params.mediaRenderer.isXBOX()) {
 					acodec += "wmav2";
@@ -1224,7 +1227,7 @@ public class MEncoderVideo extends Player {
 
 			// Set the audio bitrate used by 
 			String abitrate = "";
-			if (!rendererMencoderOptions.contains("abitrate=")) {
+			if (!combinedCustomOptions.contains("abitrate=")) {
 				abitrate = ":abitrate=";
 				if (wmv && !params.mediaRenderer.isXBOX()) {
 					abitrate += "448";
