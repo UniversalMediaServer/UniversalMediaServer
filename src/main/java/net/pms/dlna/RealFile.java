@@ -215,50 +215,51 @@ public class RealFile extends MapFile {
 
 		if (getParent() != null && getParent() instanceof RealFile) {
 			cachedThumbnail = ((RealFile) getParent()).getPotentialCover();
-			File thumbFolder = null;
-			boolean alternativeCheck = false;
+		}
 
-			while (cachedThumbnail == null) {
-				if (thumbFolder == null && getType() != Format.IMAGE) {
-					thumbFolder = file.getParentFile();
-				}
+		File thumbFolder = null;
+		boolean alternativeCheck = false;
 
-				cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, file, "jpg");
-
-				if (cachedThumbnail == null) {
-					cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, file, "png");
-				}
-
-				if (cachedThumbnail == null) {
-					cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, file, ".cover.jpg");
-				}
-
-				if (cachedThumbnail == null) {
-					cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, file, ".cover.png");
-				}
-
-				if (alternativeCheck) {
-					break;
-				}
-
-				if (StringUtils.isNotBlank(configuration.getAlternateThumbFolder())) {
-					thumbFolder = new File(configuration.getAlternateThumbFolder());
-
-					if (!thumbFolder.isDirectory()) {
-						thumbFolder = null;
-						break;
-					}
-				}
-
-				alternativeCheck = true;
+		while (cachedThumbnail == null) {
+			if (thumbFolder == null && getType() != Format.IMAGE) {
+				thumbFolder = file.getParentFile();
 			}
 
-			if (file.isDirectory()) {
-				cachedThumbnail = FileUtil.getFileNameWithNewExtension(file.getParentFile(), file, "/folder.jpg");
+			cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, file, "jpg");
 
-				if (cachedThumbnail == null) {
-					cachedThumbnail = FileUtil.getFileNameWithNewExtension(file.getParentFile(), file, "/folder.png");
+			if (cachedThumbnail == null) {
+				cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, file, "png");
+			}
+
+			if (cachedThumbnail == null) {
+				cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, file, ".cover.jpg");
+			}
+
+			if (cachedThumbnail == null) {
+				cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, file, ".cover.png");
+			}
+
+			if (alternativeCheck) {
+				break;
+			}
+
+			if (StringUtils.isNotBlank(configuration.getAlternateThumbFolder())) {
+				thumbFolder = new File(configuration.getAlternateThumbFolder());
+
+				if (!thumbFolder.isDirectory()) {
+					thumbFolder = null;
+					break;
 				}
+			}
+
+			alternativeCheck = true;
+		}
+
+		if (file.isDirectory()) {
+			cachedThumbnail = FileUtil.getFileNameWithNewExtension(file.getParentFile(), file, "/folder.jpg");
+
+			if (cachedThumbnail == null) {
+				cachedThumbnail = FileUtil.getFileNameWithNewExtension(file.getParentFile(), file, "/folder.png");
 			}
 		}
 
