@@ -1670,9 +1670,23 @@ public class MEncoderVideo extends Player {
 			);
 
 		// Video scaler and overscan compensation
-		boolean scaleBool = isResolutionTooHighForRenderer
-			|| (configuration.isMencoderScaler() && (configuration.getMencoderScaleX() != 0 || configuration.getMencoderScaleY() != 0))
-			|| (intOCW > 0 || intOCH > 0);
+		boolean scaleBool = false;
+		if (
+			isResolutionTooHighForRenderer ||
+			(
+				configuration.isMencoderScaler() &&
+				(
+					configuration.getMencoderScaleX() != 0 ||
+					configuration.getMencoderScaleY() != 0
+				)
+			) ||
+			(
+				intOCW > 0 ||
+				intOCH > 0
+			)
+		) {
+			scaleBool = true;
+		}
 
 		if ((deinterlace || scaleBool) && !avisynth()) {
 			StringBuilder vfValueOverscanPrepend = new StringBuilder();
