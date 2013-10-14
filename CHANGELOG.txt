@@ -7,6 +7,10 @@
 		A more helpful error is displayed when something is using the UMS HTTP port
 		Improved calculation of subtitle font size in FFmpeg
 		Expanded filename prettifying
+		Made some custom MEncoder options safer to use
+		Improved file compatibility for mod2 videos
+		Fixed and improved support for virtual folders
+		Fixed conflicts between some renderer config options
 		Fixed tsMuxeR video detection bug
 		Fixed x264 transcoding with MEncoder
 		Fixed a rare startup bug
