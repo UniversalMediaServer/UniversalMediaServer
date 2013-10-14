@@ -1688,6 +1688,14 @@ public class MEncoderVideo extends Player {
 			scaleBool = true;
 		}
 
+		int scaleWidth = 0;
+		int scaleHeight = 0;
+		String vfValue = "";
+		if (media.getWidth() > 0 && media.getHeight() > 0) {
+			scaleWidth = media.getWidth();
+			scaleHeight = media.getHeight();
+		}
+
 		if ((deinterlace || scaleBool) && !avisynth()) {
 			StringBuilder vfValueOverscanPrepend = new StringBuilder();
 			StringBuilder vfValueOverscanMiddle  = new StringBuilder();
@@ -1695,15 +1703,7 @@ public class MEncoderVideo extends Player {
 			StringBuilder vfValueComplete        = new StringBuilder();
 
 			String deinterlaceComma = "";
-			int scaleWidth = 0;
-			int scaleHeight = 0;
 			double rendererAspectRatio;
-
-			// Set defaults
-			if (media.getWidth() > 0 && media.getHeight() > 0) {
-				scaleWidth = media.getWidth();
-				scaleHeight = media.getHeight();
-			}
 
 			/*
 			 * Implement overscan compensation settings
@@ -1833,12 +1833,7 @@ public class MEncoderVideo extends Player {
 				deinterlaceComma = ",";
 			}
 
-			String vfValue = (deinterlace ? "yadif" : "") + (scaleBool ? deinterlaceComma + vfValueComplete : "");
-
-			if (isNotBlank(vfValue)) {
-				cmdList.add("-vf");
-				cmdList.add(vfValue);
-			}
+			vfValue = (deinterlace ? "yadif" : "") + (scaleBool ? deinterlaceComma + vfValueComplete : "");
 		}
 
 		/*
@@ -1854,29 +1849,33 @@ public class MEncoderVideo extends Player {
 		if (
 			!dvd &&
 			(
-				(media.getWidth() % 4 != 0) ||
-				(media.getHeight() % 4 != 0) ||
+				(scaleWidth % 4 != 0) ||
+				(scaleHeight % 4 != 0) ||
 				params.mediaRenderer.isKeepAspectRatio()
 			) &&
 			!configuration.isMencoderScaler()
 		) {
 			int expandBorderWidth;
 			int expandBorderHeight;
-			StringBuilder expandParams = new StringBuilder();
 
-			expandBorderWidth  = media.getWidth() % 4;
-			expandBorderHeight = media.getHeight() % 4;
+			expandBorderWidth  = scaleWidth % 4;
+			expandBorderHeight = scaleHeight % 4;
 
-			expandParams.append("expand=-").append(expandBorderWidth).append(":-").append(expandBorderHeight);
+			if (isNotBlank(vfValue)) {
+				vfValue += ",";
+			}
+			vfValue += "expand=-" + expandBorderWidth + ":-" + expandBorderHeight;
 
 			if (params.mediaRenderer.isKeepAspectRatio()) {
-				expandParams.append(":::0:16/9");
+				vfValue += ":::0:16/9";
 			}
 
-			expandParams.append(",softskip");
+			vfValue += ",softskip";
+		}
 
+		if (isNotBlank(vfValue)) {
 			cmdList.add("-vf");
-			cmdList.add(expandParams.toString());
+			cmdList.add(vfValue);
 		}
 
 		if (configuration.getMencoderMT() && !avisynth && !dvd && !(media.getCodecV() != null && (media.getCodecV().startsWith("mpeg2")))) {
