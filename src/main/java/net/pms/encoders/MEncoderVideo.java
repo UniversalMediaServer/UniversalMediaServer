@@ -1864,19 +1864,26 @@ public class MEncoderVideo extends Player {
 			) &&
 			!configuration.isMencoderScaler()
 		) {
-			scaleWidth  = convertToMod4(scaleWidth);
-			scaleHeight = convertToMod4(scaleHeight);
+			int expandBorderWidth;
+			int expandBorderHeight;
 
-			if (isNotBlank(vfValue)) {
-				vfValue += ",";
-			}
-			vfValue += "expand=-" + scaleWidth + ":-" + scaleHeight;
+			expandBorderWidth  = scaleWidth % 4;
+			expandBorderHeight = scaleHeight % 4;
+
+			String vfValuePrepend = "";
+			vfValuePrepend += "expand=-" + expandBorderWidth + ":-" + expandBorderHeight;
 
 			if (params.mediaRenderer.isKeepAspectRatio()) {
-				vfValue += ":::0:16/9";
+				vfValuePrepend += ":::0:16/9";
 			}
 
-			vfValue += ",softskip";
+			vfValuePrepend += ",softskip";
+
+			if (isNotBlank(vfValue)) {
+				vfValuePrepend += ",";
+			}
+
+			vfValue = vfValuePrepend + vfValue;
 		}
 
 		if (isNotBlank(vfValue)) {
@@ -2558,7 +2565,7 @@ public class MEncoderVideo extends Player {
 
 	public int convertToMod4(int number) {
 		if (number % 4 != 0) {
-			number = number % 4;
+			number = number - (number % 4);
 		}
 
 		return number;
