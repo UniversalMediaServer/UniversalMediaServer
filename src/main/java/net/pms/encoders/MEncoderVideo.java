@@ -1740,6 +1740,9 @@ public class MEncoderVideo extends Player {
 					}
 				}
 
+				scaleWidth  = convertToMod4(scaleWidth);
+				scaleHeight = convertToMod4(scaleHeight);
+
 				vfValueOverscanPrepend.append("softskip,expand=-").append(intOCWPixels).append(":-").append(intOCHPixels);
 				vfValueOverscanMiddle.append(",scale=").append(scaleWidth).append(":").append(scaleHeight);
 			}
@@ -1764,6 +1767,9 @@ public class MEncoderVideo extends Player {
 						scaleHeight = params.mediaRenderer.getMaxVideoHeight();
 					}
 				}
+
+				scaleWidth  = convertToMod4(scaleWidth);
+				scaleHeight = convertToMod4(scaleHeight);
 
 				LOGGER.info("Setting video resolution to: " + scaleWidth + "x" + scaleHeight + ", your Video Scaler setting");
 
@@ -1816,6 +1822,9 @@ public class MEncoderVideo extends Player {
 					}
 				}
 
+				scaleWidth  = convertToMod4(scaleWidth);
+				scaleHeight = convertToMod4(scaleHeight);
+
 				LOGGER.info("Setting video resolution to: " + scaleWidth + "x" + scaleHeight + ", the maximum your renderer supports");
 
 				vfValueVS.append("scale=").append(scaleWidth).append(":").append(scaleHeight);
@@ -1855,16 +1864,13 @@ public class MEncoderVideo extends Player {
 			) &&
 			!configuration.isMencoderScaler()
 		) {
-			int expandBorderWidth;
-			int expandBorderHeight;
-
-			expandBorderWidth  = scaleWidth % 4;
-			expandBorderHeight = scaleHeight % 4;
+			scaleWidth  = convertToMod4(scaleWidth);
+			scaleHeight = convertToMod4(scaleHeight);
 
 			if (isNotBlank(vfValue)) {
 				vfValue += ",";
 			}
-			vfValue += "expand=-" + expandBorderWidth + ":-" + expandBorderHeight;
+			vfValue += "expand=-" + scaleWidth + ":-" + scaleHeight;
 
 			if (params.mediaRenderer.isKeepAspectRatio()) {
 				vfValue += ":::0:16/9";
@@ -2548,5 +2554,13 @@ public class MEncoderVideo extends Player {
 		}
 
 		return false;
+	}
+
+	public int convertToMod4(int number) {
+		if (number % 4 != 0) {
+			number = number % 4;
+		}
+
+		return number;
 	}
 }
