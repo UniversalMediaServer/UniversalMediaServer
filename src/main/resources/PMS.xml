@@ -27,6 +27,34 @@
 				<depth>24</depth>
 				<url>/images/icon-256.png</url>
 			</icon>
+			<icon>
+				<mimetype>image/png</mimetype>
+				<width>128</width>
+				<height>128</height>
+				<depth>24</depth>
+				<url>/images/icon-128.png</url>
+			</icon>
+			<icon>
+				<mimetype>image/jpeg</mimetype>
+				<width>128</width>
+				<height>128</height>
+				<depth>24</depth>
+				<url>/images/icon-128.jpg</url>
+			</icon>
+			<icon>
+				<mimetype>image/png</mimetype>
+				<width>48</width>
+				<height>48</height>
+				<depth>24</depth>
+				<url>/images/icon-48.png</url>
+			</icon>
+			<icon>
+				<mimetype>image/jpeg</mimetype>
+				<width>48</width>
+				<height>48</height>
+				<depth>24</depth>
+				<url>/images/icon-48.jpg</url>
+			</icon>
 		</iconList>
 		<presentationURL>http://[host]:[port]/console/index.html</presentationURL> 
 		<serviceList>
