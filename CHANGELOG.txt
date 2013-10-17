@@ -4,6 +4,7 @@
 		Added the New Media folder, which contains unwatched media
 		Added the Recently Played folder, which contains watched media
 		Added checkboxes to enable/disable renderers
+		Enabled support for cover files in virtual folders (thanks, D-Kalck!)
 		A more helpful error is displayed when something is using the UMS HTTP port
 		Improved calculation of subtitle font size in FFmpeg
 		Expanded filename prettifying
@@ -19,10 +20,11 @@
 		Fixed several minor bugs
 		Fixed plugin compatibility problems
 	Renderers:
-		Added support for Samsung Galaxy S3
+		Added support for Samsung mobiles (Galaxy S3, S4, Note, Note 2, and Note 3)
 		Improved DirecTV support
 		Updated DirecTV image
 		Improved PS3 support
+		Enabled text-wrapping for long names on Sony Blu-ray players
 	External Components:
 		Updated H2 Database Engine to 1.3.173
 		Updated Maven Cobertura Plugin to 2.6
