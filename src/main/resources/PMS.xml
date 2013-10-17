@@ -17,9 +17,9 @@
 		<modelNumber>01</modelNumber>
 		<modelURL>http://www.universalmediaserver.com</modelURL>
 		<serialNumber/>
-        <UPC/>
-        <UDN>[uuid]</UDN>
-        <iconList>
+		<UPC/>
+		<UDN>[uuid]</UDN>
+		<iconList>
 			<icon>
 				<mimetype>image/png</mimetype>
 				<width>256</width>
