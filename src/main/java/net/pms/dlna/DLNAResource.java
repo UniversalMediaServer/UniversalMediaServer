@@ -1110,7 +1110,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		displayName = getName();
-		
 		String subtitleFormat;
 		String subtitleLanguage;
 		boolean isNamedNoEncoding = false;
@@ -1201,7 +1200,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (getSplitRange().isEndLimitAvailable()) {
 			displayName = ">> " + StringUtil.convertTimeToString(getSplitRange().getStart(), StringUtil.DURATION_TIME_FORMAT);
 		}
-
 
 		return displayName;
 	}

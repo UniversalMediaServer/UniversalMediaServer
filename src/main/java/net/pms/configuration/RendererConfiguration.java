@@ -1144,7 +1144,7 @@ public class RendererConfiguration {
 	public int getTranscodedVideoAudioSampleRate() {
 		return getInt(TRANSCODED_VIDEO_AUDIO_SAMPLE_RATE, 48000);
 	}
-	
+
 	public String getTextWrap() {
 		return getString(TEXTWRAP, "").toLowerCase();
 	}
@@ -1172,7 +1172,7 @@ public class RendererConfiguration {
 			int i = dlna.isFolder() ? 0 : indent;
 			String head = name.substring(0, i + (Character.isSpace(name.charAt(i)) ? 1 : 0));
 			String tail = name.substring(i);
-			return head + WordUtils.wrap(tail, line_w-i, "\n" + (dlna.isFolder() ? "" : inset), true);
+			return head + WordUtils.wrap(tail, line_w - i, "\n" + (dlna.isFolder() ? "" : inset), true);
 		}
 		return name;
 	}
