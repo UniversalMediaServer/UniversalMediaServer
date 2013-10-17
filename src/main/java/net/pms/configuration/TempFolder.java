@@ -47,8 +47,8 @@ class TempFolder {
 	}
 
 	private File getUserSpecifiedTempFolder(String userSpecifiedFolder) throws IOException {
-		if (userSpecifiedFolder != null && userSpecifiedFolder.length() == 0) {
-			throw new IOException("Temporary directory path must not be empty if specified");
+		if (userSpecifiedFolder.length() == 0) {
+			throw new IOException("Temporary directory path must not be null or empty if specified");
 		}
 
 		File folderFile = new File(userSpecifiedFolder);

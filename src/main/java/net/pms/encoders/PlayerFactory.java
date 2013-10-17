@@ -263,7 +263,7 @@ public final class PlayerFactory {
 			LOGGER.warn("Invalid resource (null): no player found");
 			return null;
 		} else {
-			LOGGER.trace("Getting player for {}", resource.getName());
+			LOGGER.trace("Getting player for resource \"{}\"", resource.getName());
 		}
 
 		List<String> enabledEngines = configuration.getEnginesAsList(utils);
@@ -274,18 +274,19 @@ public final class PlayerFactory {
 			if (enabled) {
 				boolean compatible = player.isCompatible(resource);
 
-				LOGGER.trace("player: {}, enabled: {}, compatible: {}", player.name(), enabled, compatible);
-
 				if (compatible) {
 					// Player is enabled and compatible
+					LOGGER.trace("Returning compatible player \"{}\"", player.name());
 					return player;
+				} else {
+					LOGGER.trace("Player \"{}\" is incompatible", player.name());
 				}
 			} else {
-				LOGGER.trace("player: {}, enabled: {}", player.name(), false);
+				LOGGER.trace("Player \"{}\" is disabled", player.name());
 			}
 		}
 
-		LOGGER.trace("no player found for {}", resource.getName());
+		LOGGER.trace("No player found for {}", resource.getName());
 
 		return null;
 	}

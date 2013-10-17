@@ -85,6 +85,7 @@ public class FormatConfiguration {
 		private String maxVideoWidth;
 		private String mimeType;
 		private String videoCodec;
+		private String supportLine;
 
 		SupportSpec() {
 			this.mimeType = MIMETYPE_AUTO;
@@ -187,34 +188,42 @@ public class FormatConfiguration {
 			boolean matched = false;
 
 			if (format != null && !(matched = pFormat.matcher(format).matches())) {
+				LOGGER.trace("Format \"{}\" failed to match support line {}", format, supportLine);
 				return false;
 			}
 
 			if (matched && videoCodec != null && pVideoCodec != null && !(matched = pVideoCodec.matcher(videoCodec).matches())) {
+				LOGGER.trace("Video codec \"{}\" failed to match support line {}", videoCodec, supportLine);
 				return false;
 			}
 
 			if (matched && audioCodec != null && pAudioCodec != null && !(matched = pAudioCodec.matcher(audioCodec).matches())) {
+				LOGGER.trace("Audio codec \"{}\" failed to match support line {}", audioCodec, supportLine);
 				return false;
 			}
 
 			if (matched && nbAudioChannels > 0 && iMaxNbChannels > 0 && nbAudioChannels > iMaxNbChannels) {
+				LOGGER.trace("Number of channels \"{}\" failed to match support line {}", nbAudioChannels, supportLine);
 				return false;
 			}
 
 			if (matched && frequency > 0 && iMaxFrequency > 0 && frequency > iMaxFrequency) {
+				LOGGER.trace("Frequency \"{}\" failed to match support line {}", frequency, supportLine);
 				return false;
 			}
 
 			if (matched && bitrate > 0 && iMaxBitrate > 0 && bitrate > iMaxBitrate) {
+				LOGGER.trace("Bitrate \"{}\" failed to match support line {}", bitrate, supportLine);
 				return false;
 			}
 
 			if (matched && videoWidth > 0 && iMaxVideoWidth > 0 && videoWidth > iMaxVideoWidth) {
+				LOGGER.trace("Video width \"{}\" failed to match support line {}", videoWidth, supportLine);
 				return false;
 			}
 
 			if (matched && videoHeight > 0 && iMaxVideoHeight > 0 && videoHeight > iMaxVideoHeight) {
+				LOGGER.trace("Video height \"{}\" failed to match support line {}", videoHeight, supportLine);
 				return false;
 			}
 
@@ -231,6 +240,12 @@ public class FormatConfiguration {
 						matched = miExtras.get(MI_GMC).matcher(value).matches();
 					}
 				}
+			}
+
+			if (matched) {
+				LOGGER.trace("Matched support line {}", supportLine);
+			} else {
+				LOGGER.trace("Extras failed to match support line {}", supportLine);
 			}
 
 			return matched;
@@ -442,6 +457,8 @@ public class FormatConfiguration {
 	private SupportSpec parseSupportLine(String line) {
 		StringTokenizer st = new StringTokenizer(line, "\t ");
 		SupportSpec supportSpec = new SupportSpec();
+
+		supportSpec.supportLine = line;
 
 		while (st.hasMoreTokens()) {
 			String token = st.nextToken();

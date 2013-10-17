@@ -18,140 +18,100 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 -->
 <html>
-<head>
-<title>Avisynth</title>
-<link href="css/style.css" rel="stylesheet" type="text/css" />
-</head>
-<body>
-	<h1>Avisynth</h1>
-
-	<h2>Why transcode?</h2>
-
-	<p>You may think why bother with transcoding when muxing is
-		available. That is absolutely right in most cases. But there are some
-		video files which can't be muxed because of special conditions. For
-		example, you may get a trailer with h.264 video codec and AVC level
-		5.1. but your playback device (PS3, Xbox, TV) might not support that.
-		In that case you will need transcoding.</p>
-
-	<p>You can see that there are some reasons why people want to
-		optimize transcoding. On the Windows platform there is an additional
-		method available for transcoding.</p>
-
-
-	<h2>Avisynth</h2>
-
-	<p>
-		<a title="Avisynth" href="http://en.wikipedia.org/wiki/Avisynth">Avisynth</a>
-		is a frame server for free, available on Windows platform (development
-		of the Linux version will not be continued). Regarding UMS readme one
-		should install <a title="Avisynth 2.5.7"
-			href="http://sourceforge.net/projects/avisynth2/files/AviSynth%202.5/AviSynth%202.5.7/Avisynth_257.exe/download">Avisynth
-			2.5.7</a>. Latest Avisynth 2.5.8 seems to cause stuttering on certain
-		files.
-	</p>
-
-
-	<h3>VSfilter</h3>
-
-	<p>
-		After installing Avisynth you also have to install the plugin
-		vsfilter. <a title="VSfilter Avisynth"
-			href="http://sourceforge.net/project/showfiles.php?group_id=82303&amp;package_id=84359">Download
+	<head>
+		<title>AviSynth</title>
+		<link href="css/style.css" rel="stylesheet" type="text/css" />
+	</head>
+	<body>
+		<h1>AviSynth</h1>
+		<h2>Why transcode?</h2>
+		<p>You may think why bother with transcoding when muxing is
+			available. That is absolutely right in most cases. But there are some
+			video files which can't be muxed because of special conditions. For
+			example, you may get a trailer with h.264 video codec and AVC level
+			5.1. but your playback device (PS3, Xbox, TV) might not support that.
+			In that case you will need transcoding.</p>
+		<p>You can see that there are some reasons why people want to
+			optimize transcoding. On the Windows platform there is an additional
+			method available for transcoding.</p>
+		<h2>AviSynth</h2>
+		<p>
+			<a title="AviSynth" href="http://en.wikipedia.org/wiki/Avisynth">AviSynth</a>
+			is a frame server for free, available on Windows platform (development
+			of the Linux version will not be continued). Regarding UMS readme one
+			should install <a title="AviSynth 2.5.7" href="http://sourceforge.net/projects/avisynth2/files/AviSynth%202.5/AviSynth%202.5.7/Avisynth_257.exe/download">AviSynth
+			2.5.7</a>. Latest AviSynth 2.5.8 seems to cause stuttering on certain
+			files.
+		</p>
+		<h3>VSfilter</h3>
+		<p>
+			After installing AviSynth you also have to install the plugin
+			vsfilter. <a title="VSfilter AviSynth" href="http://sourceforge.net/project/showfiles.php?group_id=82303&amp;package_id=84359">Download
 			it here</a>. You have to decompress the 7z-file and copy the vsfilter.dll
-		from unicode-subdirectory to your Avisynth plugin directory
-		(C:\program files\AviSynth 2.5\plugins).
-	</p>
-
-
-	<h3>Decoding with ffdshow</h3>
-
-	<p>
-		Transcoding means decoding the video in the first step on the PC and
-		in the second step encoding it to MPG2 and streaming it to your PS3.
-		For decoding the free software <a title="ffdshow"
-			href="http://en.wikipedia.org/wiki/Ffdshow">ffdshow</a> is commonly
-		being used. In order to demux container formats ffdshow needs the free
-		<a title="Haali Media Splitter"
-			href="http://en.wikipedia.org/wiki/Haali_Media_Splitter">Haali
+			from unicode-subdirectory to your AviSynth plugin directory
+			(C:\program files\AviSynth 2.5\plugins).
+		</p>
+		<h3>Decoding with ffdshow</h3>
+		<p>
+			Transcoding means decoding the video in the first step on the PC and
+			in the second step encoding it to MPG2 and streaming it to your PS3.
+			For decoding the free software <a title="ffdshow" href="http://en.wikipedia.org/wiki/Ffdshow">ffdshow</a> is commonly
+			being used. In order to demux container formats ffdshow needs the free
+			<a title="Haali Media Splitter" href="http://en.wikipedia.org/wiki/Haali_Media_Splitter">Haali
 			Media Splitter</a>. Both software are avialable as software packages, so
-		called codec packs.
-	</p>
-
-
-	<h3>K-Lite Mega Codec Pack</h3>
-
-	<p>
-		Who wants to get an "everything included" package should consider
-		K-Lite Mega Codec Pack which is available <a
-			title="K-Lite Mega Codec Pack"
-			href="http://www.codecguide.com/download_mega.htm">here</a>. There
-		are different variants available, from basic to mega but also a 64-bit
-		variant.
-	</p>
-
-	<p>After installing k-lite codec pack you may have to configure
-		subtitles and your speaker setup.</p>
-
-	<p>Change to Windows Start menu "programs &gt; K-Lite Codec Pack
-		&gt; Configuration &gt; ffdshow audio decoder". In menu "mixer" you
-		have to set your speaker config. In order to get 5.1 surround sound
-		(speakers: 4x surround, 1x center, 1x subwoofer) on your PS3 you have
-		to set "3/0/2 - 5 channels".</p>
-
-	<p>After that run "programs &gt; K-Lite Codec Pack &gt;
-		Configuration &gt;Haali Media Splitter" and change to options tab.
-		Choose menu "languages" and select your language priority:</p>
-
-	<ul>
-		<li>Audio language priority: ger,eng</li>
-		<li>Subtitle language priority: ger,eng</li>
-		<li>audio and subtitle languages: ger,off;eng,ger;*,ger;*,eng</li>
-		<li>Trackset languages: ger,eng</li>
-		<li>The example above is optimized for German language. Here is
-			an example for English language:</li>
-		<li>Audio language priority: eng</li>
-		<li>Subtitle language priority: eng</li>
-		<li>audio and subtitle languages: eng,off;*,eng</li>
-		<li>Trackset languages: eng</li>
-	</ul>
-
-	<p>The settings above are only valid when the avisynth video engine
-		is used for transcoding.</p>
-	<p>Go to menu compatibility and set "autoload VSFilter" to "Yes".</p>
-
-
-	<h3>CCCP Codec Pack</h3>
-
-	<p>
-		For those who prefer minimal installations <a title="CCCP Codec Pack"
-			href="http://www.cccp-project.net/">CCCP codec pack</a> is the right
-		choice. It is available <a title="Download CCCP Codec Pack"
-			href="http://www.cccp-project.net/download.php?type=cccp">here</a>.
-		Read <a title="CCCP Codec Pack FAQ"
-			href="http://www.cccp-project.net/wiki/index.php?title=FAQ">FAQ</a>
-		for configuration. It should be similar to setup k-lite codec pack.
-	</p>
-
-
-	<h2>activate Avisynth-engine</h2>
-
-	<p>
-		<img title="pms-engines2" src="images/pms-engines2.jpg"
-			alt="pms-engines2" />
-	</p>
-
-	<p>After installing and configuring Avisynth, ffdshow and Haali
-		media splitter you can enable both engines Anisynth/MEncoder and
-		Avisynth/ffmpeg.</p>
-
-	<!--  Navigation -->
-	<hr />
-	<ul>
-		<li>Next: <a href="coreavc.html">CoreAVC</a></li>
-		<li>Previous: <a href="videolan.html">VLC media player</a></li>
-		<li>Top: <a href="index.html">Help</a></li>
-	</ul>
-
-</body>
+			called codec packs.
+		</p>
+		<h3>K-Lite Mega Codec Pack</h3>
+		<p>
+			Who wants to get an "everything included" package should consider
+			K-Lite Mega Codec Pack which is available <a title="K-Lite Mega Codec Pack" href="http://www.codecguide.com/download_mega.htm">here</a>. There
+			are different variants available, from basic to mega but also a 64-bit
+			variant.
+		</p>
+		<p>After installing k-lite codec pack you may have to configure
+			subtitles and your speaker setup.</p>
+		<p>Change to Windows Start menu "programs &gt; K-Lite Codec Pack
+			&gt; Configuration &gt; ffdshow audio decoder". In menu "mixer" you
+			have to set your speaker config. In order to get 5.1 surround sound
+			(speakers: 4x surround, 1x center, 1x subwoofer) on your PS3 you have
+			to set "3/0/2 - 5 channels".</p>
+		<p>After that, run "programs &gt; K-Lite Codec Pack &gt;
+			Configuration &gt;Haali Media Splitter" and change to options tab.
+			Choose menu "languages" and select your language priority:</p>
+		<ul>
+			<li>Audio language priority: ger,eng</li>
+			<li>Subtitle language priority: ger,eng</li>
+			<li>Audio and subtitle languages: ger,off;eng,ger;*,ger;*,eng</li>
+			<li>Trackset languages: ger,eng</li>
+			<li>The example above is optimized for German language. Here is an example for English language:</li>
+			<li>Audio language priority: eng</li>
+			<li>Subtitle language priority: eng</li>
+			<li>Audio and subtitle languages: eng,off;*,eng</li>
+			<li>Trackset languages: eng</li>
+		</ul>
+		<p>The settings above are only valid when the avisynth video engine
+			is used for transcoding.</p>
+		<p>Go to menu compatibility and set "autoload VSFilter" to "Yes".</p>
+		<h3>CCCP Codec Pack</h3>
+		<p>
+			For those who prefer minimal installations <a title="CCCP Codec Pack" href="http://www.cccp-project.net/">CCCP codec pack</a> is the right
+			choice. It is available <a title="Download CCCP Codec Pack" href="http://www.cccp-project.net/download.php?type=cccp">here</a>.
+			Read <a title="CCCP Codec Pack FAQ" href="http://www.cccp-project.net/wiki/index.php?title=FAQ">FAQ</a>
+			for configuration. It should be similar to setup K-Lite Codec Pack.
+		</p>
+		<h2>Activate AviSynth engine</h2>
+		<p>
+			<img title="pms-engines2" src="images/pms-engines2.jpg" alt="pms-engines2" />
+		</p>
+		<p>After installing and configuring AviSynth, ffdshow and Haali
+			media splitter you can enable both engines AviSynth/MEncoder and
+			AviSynth/ffmpeg.</p>
+		<!--  Navigation -->
+		<hr />
+		<ul>
+			<li>Next: <a href="coreavc.html">CoreAVC</a></li>
+			<li>Previous: <a href="videolan.html">VLC media player</a></li>
+			<li>Top: <a href="index.html">Help</a></li>
+		</ul>
+	</body>
 </html>

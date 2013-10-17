@@ -57,7 +57,7 @@ public class Request extends HTTPResource {
 	private final static String HTTP_206_OK_10 = "HTTP/1.0 206 Partial Content";
 	private final static String CONTENT_TYPE_UTF8 = "CONTENT-TYPE: text/xml; charset=\"utf-8\"";
 	private final static String CONTENT_TYPE = "Content-Type: text/xml; charset=\"utf-8\"";
-	private static SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
+	private SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss", Locale.US);
 	private final String method;
 	private String argument;
 	private String soapaction;
@@ -578,7 +578,7 @@ public class Request extends HTTPResource {
 				if (searchCriteria != null && files != null) {
 					searchCriteria = searchCriteria.toLowerCase();
 
-					for(int i = files.size() - 1; i >= 0; i--) {
+					for (int i = files.size() - 1; i >= 0; i--) {
 						DLNAResource res = files.get(i);
 
 						if (res.isSearched()) {
@@ -617,7 +617,7 @@ public class Request extends HTTPResource {
 						}
 
 						if (uf.isCompatible(mediaRenderer) && (uf.getPlayer() == null || uf.getPlayer().isPlayerCompatible(mediaRenderer))) {
-							response.append(uf.toString(mediaRenderer));
+							response.append(uf.getDidlString(mediaRenderer));
 						} else {
 							minus++;
 						}

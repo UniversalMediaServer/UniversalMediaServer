@@ -56,6 +56,7 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.StreamModifier;
 import net.pms.network.HTTPResource;
+import net.pms.util.FileUtil;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.io.FileUtils;
@@ -119,7 +120,7 @@ public class FFMpegVideo extends Player {
 	 */
 	public List<String> getVideoFilterOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
 		List<String> videoFilterOptions = new ArrayList<String>();
-		String subsOption = null;
+		StringBuilder subsOption = new StringBuilder();
 		File tempSubs = null;
 		final RendererConfiguration renderer = params.mediaRenderer;
 		if (!isDisableSubtitles(params)) {
@@ -158,9 +159,11 @@ public class FFMpegVideo extends Player {
 			subsFile = subsFile.replace(",", "\\,");
 
 			if (params.sid.isEmbedded() || (params.sid.isExternal() && params.sid.getType() == SubtitleType.ASS)) {
-				subsOption = "ass=" + subsFile;
+				subsOption.append("ass=");
+				subsOption.append(subsFile);
 			} else if (params.sid.isExternal() && params.sid.getType() == SubtitleType.SUBRIP) {
-				subsOption = "subtitles=" + subsFile;
+				subsOption.append("subtitles=");
+				subsOption.append(subsFile);
 			}
 
 			// based on https://trac.ffmpeg.org/ticket/2067
@@ -172,7 +175,7 @@ public class FFMpegVideo extends Player {
 				videoFilterOptions.add("1");
 				videoFilterOptions.add("-af");
 				videoFilterOptions.add("asetpts=PTS-" + params.timeseek + "/TB");
-				subsOption += ", setpts=PTS-" + params.timeseek + "/TB";
+				subsOption.append(", setpts=PTS-").append(params.timeseek).append("/TB");
 			}	
 		}
 
@@ -195,25 +198,25 @@ public class FFMpegVideo extends Player {
 
 		String overrideVF = renderer.getFFmpegVideoFilterOverride();
 
-		if (rescaleOrPadding != null || overrideVF != null || subsOption != null) {
+		if (rescaleOrPadding != null || overrideVF != null || isNotBlank(subsOption)) {
 			videoFilterOptions.add("-vf");
 			StringBuilder filterParams = new StringBuilder();
 
 			if (overrideVF != null) {
 				filterParams.append(overrideVF);
-				if (subsOption != null) {
+				if (isNotBlank(subsOption)) {
 					filterParams.append(", ");
 				}
 			} else {
 				if (rescaleOrPadding != null) {
 					filterParams.append(rescaleOrPadding);
-					if (subsOption != null) {
+					if (isNotBlank(subsOption)) {
 						filterParams.append(", ");
 					}
 				}
 			}
 
-			if (subsOption != null) {
+			if (isNotBlank(subsOption)) {
 				filterParams.append(subsOption);
 			}
 
@@ -338,35 +341,131 @@ public class FFMpegVideo extends Player {
 
 	/**
 	 * Returns the video bitrate spec for the current transcode according
-	 * to the limits/requirements of the renderer.
+	 * to the limits/requirements of the renderer and the user's settings.
 	 *
 	 * @param dlna
 	 * @param media the media metadata for the video being streamed. May contain unset/null values (e.g. for web videos).
 	 * @param params
 	 * @return a {@link List} of <code>String</code>s representing the video bitrate options for this transcode
 	 */
-	public List<String> getVideoBitrateOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) { // media is currently unused
+	public List<String> getVideoBitrateOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) {
 		List<String> videoBitrateOptions = new ArrayList<String>();
-		String sMaxVideoBitrate = params.mediaRenderer.getMaxVideoBitrate(); // currently Mbit/s
-		int iMaxVideoBitrate = 0;
 
-		if (sMaxVideoBitrate != null) {
-			try {
-				iMaxVideoBitrate = Integer.parseInt(sMaxVideoBitrate);
-			} catch (NumberFormatException nfe) {
-				LOGGER.error("Can't parse max video bitrate", nfe); // XXX this should be handled in RendererConfiguration
-			}
+		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
+		int rendererMaxBitrates[] = new int[2];
+
+		if (params.mediaRenderer.getMaxVideoBitrate() != null) {
+			rendererMaxBitrates = getVideoBitrateConfig(params.mediaRenderer.getMaxVideoBitrate());
 		}
 
-		if (iMaxVideoBitrate == 0) { // unlimited: try to preserve the bitrate
-			videoBitrateOptions.add("-q:v"); // video qscale
-			videoBitrateOptions.add(DEFAULT_QSCALE);
-		} else { // limit the bitrate FIXME untested
-			// convert megabits-per-second (as per the current option name: MaxVideoBitrateMbps) to bps
-			// FIXME rather than dealing with megabit vs mebibit issues here, this should be left up to the client i.e.
-			// the renderer.conf unit should be bits-per-second (and the option should be renamed: MaxVideoBitrateMbps -> MaxVideoBitrate)
+		// Give priority to the renderer's maximum bitrate setting over the user's setting
+		if (rendererMaxBitrates[0] > 0 && rendererMaxBitrates[0] < defaultMaxBitrates[0]) {
+			defaultMaxBitrates = rendererMaxBitrates;
+		}
+
+		if (params.mediaRenderer.getCBRVideoBitrate() == 0 && params.timeend == 0) {
+			// Convert value from Mb to Kb
+			defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
+
+			// Halve it since it seems to send up to 1 second of video in advance
+			defaultMaxBitrates[0] = defaultMaxBitrates[0] / 2;
+
+			int bufSize = 1835;
+			if (!params.mediaRenderer.isTranscodeToH264TSAC3()) {
+				if (media.isHDVideo()) {
+					bufSize = defaultMaxBitrates[0] / 3;
+				}
+
+				if (bufSize > 7000) {
+					bufSize = 7000;
+				}
+
+				if (defaultMaxBitrates[1] > 0) {
+					bufSize = defaultMaxBitrates[1];
+				}
+
+				if (params.mediaRenderer.isDefaultVBVSize() && rendererMaxBitrates[1] == 0) {
+					bufSize = 1835;
+				}
+			}
+
+			// Make room for audio
+			if (dtsRemux) {
+				defaultMaxBitrates[0] = defaultMaxBitrates[0] - 1510;
+			} else {
+				defaultMaxBitrates[0] = defaultMaxBitrates[0] - configuration.getAudioBitrate();
+			}
+
+			// Round down to the nearest Mb
+			defaultMaxBitrates[0] = defaultMaxBitrates[0] / 1000 * 1000;
+
+			// FFmpeg uses bytes for inputs instead of kbytes like MEncoder
+			bufSize = bufSize * 1000;
+			defaultMaxBitrates[0] = defaultMaxBitrates[0] * 1000;
+
+			/**
+			 * Level 4.1-limited renderers like the PS3 can stutter when H.264 video exceeds
+			 * this bitrate
+			 */
+			if (params.mediaRenderer.isTranscodeToH264TSAC3() || videoRemux) {
+				if (
+					params.mediaRenderer.isH264Level41Limited() &&
+					defaultMaxBitrates[0] > 31250000
+				) {
+					defaultMaxBitrates[0] = 31250000;
+				}
+				bufSize = defaultMaxBitrates[0];
+			}
+
+			videoBitrateOptions.add("-bufsize");
+			videoBitrateOptions.add(String.valueOf(bufSize));
+
 			videoBitrateOptions.add("-maxrate");
-			videoBitrateOptions.add("" + iMaxVideoBitrate * 1000 * 1000);
+			videoBitrateOptions.add(String.valueOf(defaultMaxBitrates[0]));
+		}
+
+		if (!videoRemux) {
+			if (!params.mediaRenderer.isTranscodeToH264TSAC3()) {
+				// Add MPEG-2 quality settings
+				String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
+				String mpeg2OptionsRenderer = params.mediaRenderer.getCustomFFmpegMPEG2Options();
+
+				// Renderer settings take priority over user settings
+				if (isNotBlank(mpeg2OptionsRenderer)) {
+					mpeg2Options = mpeg2OptionsRenderer;
+				} else if (mpeg2Options.contains("Automatic")) {
+					mpeg2Options = "-g 5 -q:v 1 -qmin 2 -qmax 3";
+
+					// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
+					if (params.mediaRenderer.isPS3()) {
+						mpeg2Options = "-g 25 -q:v 1 -qmin 2 -qmax 3";
+					}
+
+					if (mpeg2Options.contains("Wireless") || defaultMaxBitrates[0] < 70) {
+						// Lower quality for 720p+ content
+						if (media.getWidth() > 1280) {
+							mpeg2Options = "-g 25 -qmax 7 -qmin 2";
+						} else if (media.getWidth() > 720) {
+							mpeg2Options = "-g 25 -qmax 5 -qmin 2";
+						}
+					}
+				}
+				String[] customOptions = StringUtils.split(mpeg2Options);
+				videoBitrateOptions.addAll(new ArrayList<String>(Arrays.asList(customOptions)));
+			} else {
+				// Add x264 quality settings
+				String x264CRF = configuration.getx264ConstantRateFactor();
+				if (x264CRF.contains("Automatic")) {
+					x264CRF = "-crf 16";
+
+					// Lower CRF for 720p+ content
+					if (media.getWidth() > 720) {
+						x264CRF = "-crf 19";
+					}
+				}
+				String[] customOptions = StringUtils.split(x264CRF);
+				videoBitrateOptions.addAll(new ArrayList<String>(Arrays.asList(customOptions)));
+			}
 		}
 
 		return videoBitrateOptions;
@@ -499,7 +598,11 @@ public class FFMpegVideo extends Player {
 		RendererConfiguration renderer = params.mediaRenderer;
 		final String filename = dlna.getSystemName();
 		boolean avisynth = avisynth();
-		params.waitbeforestart = 2500;
+		if (params.timeseek > 0) {
+			params.waitbeforestart = 200;
+		} else {
+			params.waitbeforestart = 2500;
+		}
 
 		setAudioAndSubs(filename, media, params);
 		cmdList.add(executable());
@@ -516,12 +619,12 @@ public class FFMpegVideo extends Player {
 
 		if (params.timeseek > 0) {
 			cmdList.add("-ss");
-			cmdList.add("" + params.timeseek);
+			cmdList.add(String.valueOf(params.timeseek));
 		}
 
 		// decoder threads
 		cmdList.add("-threads");
-		cmdList.add("" + nThreads);
+		cmdList.add(String.valueOf(nThreads));
 
 		final boolean isTsMuxeRVideoEngineEnabled = configuration.getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
 
@@ -565,103 +668,25 @@ public class FFMpegVideo extends Player {
 
 		// Encoder threads
 		cmdList.add("-threads");
-		cmdList.add("" + nThreads);
+		cmdList.add(String.valueOf(nThreads));
 
 		if (params.timeend > 0) {
 			cmdList.add("-t");
-			cmdList.add("" + params.timeend);
+			cmdList.add(String.valueOf(params.timeend));
 		}
 
-		// add video bitrate options
-		// TODO: Integrate our (more comprehensive) code with this function
-		// from PMS to make keeping synchronised easier.
-		// Until then, leave the following line commented out.
-		// cmdList.addAll(getVideoBitrateOptions(renderer, media));
+		cmdList.addAll(getVideoBitrateOptions(dlna, media, params));
 
 		// add audio bitrate options
 		// TODO: Integrate our (more comprehensive) code with this function
 		// from PMS to make keeping synchronised easier.
 		// Until then, leave the following line commented out.
-		// cmdList.addAll(getAudioBitrateOptions(renderer, media));
+		// cmdList.addAll(getAudioBitrateOptions(dlna, media, params));
 
 		// if the source is too large for the renderer, resize it
 		// and/or add subtitles to video filter
 		// FFmpeg must be compiled with --enable-libass parameter
 		cmdList.addAll(getVideoFilterOptions(dlna, media, params));
-
-		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
-		int rendererMaxBitrates[] = new int[2];
-
-		if (renderer.getMaxVideoBitrate() != null) {
-			rendererMaxBitrates = getVideoBitrateConfig(renderer.getMaxVideoBitrate());
-		}
-
-		// Give priority to the renderer's maximum bitrate setting over the user's setting
-		if (rendererMaxBitrates[0] > 0 && rendererMaxBitrates[0] < defaultMaxBitrates[0]) {
-			defaultMaxBitrates = rendererMaxBitrates;
-		}
-
-		if (params.mediaRenderer.getCBRVideoBitrate() == 0 && params.timeend == 0) {
-			// Convert value from Mb to Kb
-			defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
-
-			// Halve it since it seems to send up to 1 second of video in advance
-			defaultMaxBitrates[0] = defaultMaxBitrates[0] / 2;
-
-			int bufSize = 1835;
-			// x264 uses different buffering math than MPEG-2
-			if (!renderer.isTranscodeToH264TSAC3()) {
-				if (media.isHDVideo()) {
-					bufSize = defaultMaxBitrates[0] / 3;
-				}
-
-				if (bufSize > 7000) {
-					bufSize = 7000;
-				}
-
-				if (defaultMaxBitrates[1] > 0) {
-					bufSize = defaultMaxBitrates[1];
-				}
-
-				if (params.mediaRenderer.isDefaultVBVSize() && rendererMaxBitrates[1] == 0) {
-					bufSize = 1835;
-				}
-			}
-
-			// Make room for audio
-			if (dtsRemux) {
-				defaultMaxBitrates[0] = defaultMaxBitrates[0] - 1510;
-			} else {
-				defaultMaxBitrates[0] = defaultMaxBitrates[0] - configuration.getAudioBitrate();
-			}
-
-			// Round down to the nearest Mb
-			defaultMaxBitrates[0] = defaultMaxBitrates[0] / 1000 * 1000;
-
-			// FFmpeg uses bytes for inputs instead of kbytes like MEncoder
-			bufSize = bufSize * 1000;
-			defaultMaxBitrates[0] = defaultMaxBitrates[0] * 1000;
-
-			/**
-			 * Level 4.1-limited renderers like the PS3 can stutter when H.264 video exceeds
-			 * this bitrate
-			 */
-			if (renderer.isTranscodeToH264TSAC3() || videoRemux) {
-				if (
-					params.mediaRenderer.isH264Level41Limited() &&
-					defaultMaxBitrates[0] > 31250000
-				) {
-					defaultMaxBitrates[0] = 31250000;
-				}
-				bufSize = defaultMaxBitrates[0];
-			}
-
-			cmdList.add("-bufsize");
-			cmdList.add("" + bufSize);
-
-			cmdList.add("-maxrate");
-			cmdList.add("" + defaultMaxBitrates[0]);
-		}
 
 		// Audio bitrate
 		if (!ac3Remux && !dtsRemux && !(type() == Format.AUDIO)) {
@@ -674,56 +699,10 @@ public class FFMpegVideo extends Player {
 				channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
 			}
 			cmdList.add("-ac");
-			cmdList.add("" + channels);
+			cmdList.add(String.valueOf(channels));
 
 			cmdList.add("-ab");
 			cmdList.add(configuration.getAudioBitrate() + "k");
-		}
-
-		if (!videoRemux) {
-			if (!renderer.isTranscodeToH264TSAC3()) {
-				// Add MPEG-2 quality settings
-				String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
-				String mpeg2OptionsRenderer = params.mediaRenderer.getCustomFFmpegMPEG2Options();
-
-				// Renderer settings take priority over user settings
-				if (isNotBlank(mpeg2OptionsRenderer)) {
-					mpeg2Options = mpeg2OptionsRenderer;
-				} else {
-					if (mpeg2Options.contains("Automatic")) {
-						mpeg2Options = "-g 5 -q:v 1 -qmin 2 -qmax 3";
-
-						// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
-						if (params.mediaRenderer.isPS3()) {
-							mpeg2Options = "-g 25 -q:v 1 -qmin 2 -qmax 3";
-						}
-
-						if (mpeg2Options.contains("Wireless") || defaultMaxBitrates[0] < 70) {
-							// Lower quality for 720p+ content
-							if (media.getWidth() > 1280) {
-								mpeg2Options = "-g 25 -qmax 7 -qmin 2";
-							} else if (media.getWidth() > 720) {
-								mpeg2Options = "-g 25 -qmax 5 -qmin 2";
-							}
-						}
-					}
-				}
-				String[] customOptions = StringUtils.split(mpeg2Options);
-				cmdList.addAll(new ArrayList<String>(Arrays.asList(customOptions)));
-			} else {
-				// Add x264 quality settings
-				String x264CRF = configuration.getx264ConstantRateFactor();
-				if (x264CRF.contains("Automatic")) {
-					x264CRF = "-crf 16";
-
-					// Lower CRF for 720p+ content
-					if (media.getWidth() > 720) {
-						x264CRF = "-crf 19";
-					}
-				}
-				String[] customOptions = StringUtils.split(x264CRF);
-				cmdList.addAll(new ArrayList<String>(Arrays.asList(customOptions)));
-			}
 		}
 
 		// Add the output options (-f, -c:a, -c:v, etc.)
@@ -803,7 +782,7 @@ public class FFMpegVideo extends Player {
 			cmdListDTS.add("-ss");
 
 			if (params.timeseek > 0) {
-				cmdListDTS.add("" + params.timeseek);
+				cmdListDTS.add(String.valueOf(params.timeseek));
 			} else {
 				cmdListDTS.add("0");
 			}
@@ -846,7 +825,6 @@ public class FFMpegVideo extends Player {
 			ProcessWrapperImpl ffAudio = new ProcessWrapperImpl(cmdArrayDTS, ffaudioparams);
 
 			params.stdin = null;
-
 			PrintWriter pwMux = new PrintWriter(f);
 			pwMux.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
 			String videoType = "V_MPEG-2";
@@ -859,9 +837,10 @@ public class FFMpegVideo extends Player {
 				videoType = params.forceType;
 			}
 
-			String fps = "";
+			StringBuilder fps = new StringBuilder();
+			fps.append("");
 			if (params.forceFps != null) {
-				fps = "fps=" + params.forceFps + ", ";
+				fps.append("fps=").append(params.forceFps).append(", ");
 			}
 
 			String audioType = "A_AC3";
@@ -884,7 +863,7 @@ public class FFMpegVideo extends Player {
 			pipe_process.runInNewThread();
 
 			try {
-				Thread.sleep(50);
+				wait(50);
 			} catch (InterruptedException e) {
 			}
 
@@ -896,7 +875,7 @@ public class FFMpegVideo extends Player {
 			ff_pipe_process.runInNewThread();
 
 			try {
-				Thread.sleep(50);
+				wait(50);
 			} catch (InterruptedException e) {
 			}
 
@@ -1011,15 +990,14 @@ public class FFMpegVideo extends Player {
 	 * subtitles file to SSA/ASS format and applies fontconfig setting to that converted file
 	 * and applies timeseeking when required.
 	 *
+	 * @param dlna DLNAResource
+	 * @param media DLNAMediaInfo
 	 * @param params Output parameters
 	 * @return Converted subtitle file
 	 * @throws IOException
 	 */
 	public File getSubtitles(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
-		File tempSubs = null;
-		String filename = dlna.getSystemName();
-
-		if (params.sid.getId() == -1) {
+		if (media == null || params.sid.getId() == -1) {
 			return null;
 		}
 
@@ -1029,84 +1007,63 @@ public class FFMpegVideo extends Player {
 			subsPath.mkdirs();
 		}
 
-		if (params.sid.isEmbedded()) {
-			tempSubs = convertSubsToAss(filename, media, params);
-			if (tempSubs == null) {
+		boolean isEmbeddedSource = params.sid.getId() < 100;
+
+		String filename = isEmbeddedSource ?
+			dlna.getSystemName() : params.sid.getExternalFile().getAbsolutePath();
+		String basename;
+
+		long modId = new File(filename).lastModified();
+		if (modId != 0) {
+			// We have a real file
+			basename = FilenameUtils.getBaseName(filename);
+		} else {
+			// It's something else, e.g. a url or psuedo-url without meaningful
+			// lastmodified and (maybe) basename characteristics.
+			basename = dlna.getName().replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r]", "").trim();
+			modId = filename.hashCode();
+		}
+
+		File convertedSubs = new File(subsPath.getAbsolutePath() + File.separator
+			+ basename + "_ID" + params.sid.getId() + "_" + modId + ".ass");
+
+		if (convertedSubs.canRead()) {
+			// subs are already converted
+			return convertedSubs; 
+		}
+
+		boolean isExternalAss = params.sid.getType() == SubtitleType.ASS &&
+			params.sid.isExternal() && !isEmbeddedSource;
+
+		File tempSubs = isExternalAss ?
+			params.sid.getExternalFile() : convertSubsToAss(filename, media, params);
+		if (tempSubs == null) {
+			return null;
+		}
+
+		if (!FileUtil.isFileUTF8(tempSubs)) {
+			tempSubs = SubtitleUtils.applyCodepageConversion(tempSubs, convertedSubs);
+		} else {
+			FileUtils.copyFile(tempSubs, convertedSubs);
+			tempSubs = convertedSubs;
+		}
+
+		// Now we're sure we actually have our own modifiable file
+		if (configuration.isFFmpegFontConfig()) {
+			try {
+				tempSubs = applyFontconfigToASSTempSubsFile(tempSubs, media);
+			} catch (IOException e) {
+				LOGGER.debug("Applying subs setting ends with error: " + e);
 				return null;
 			}
+		}
 
-			if (configuration.isFFmpegFontConfig()) {
-				try {
-					tempSubs = applyFontconfigToASSTempSubsFile(tempSubs);
-				} catch (IOException e) {
-					LOGGER.debug("Applying subs setting ends with error: " + e);
-					return null;
-				}
-			}
-
+		if (isEmbeddedSource) {
 			params.sid.setExternalFile(tempSubs);
 			params.sid.setType(SubtitleType.ASS);
 		}
-
-		if (
-			params.sid.isExternal() &&
-			(
-				params.sid.getType() == SubtitleType.SUBRIP ||
-				params.sid.getType() == SubtitleType.ASS
-			)
-		) {
-			filename = params.sid.getExternalFile().getAbsolutePath();
-			File tmp = new File(subsPath.getAbsolutePath() + File.separator +
-							FilenameUtils.getBaseName(filename) + "_" + new File(filename).lastModified() +
-							"_ID" + params.sid.getId() + "." + FilenameUtils.getExtension(filename));
-
-			if (tmp.canRead()) {
-				tempSubs = tmp;
-			} else {
-				try {
-					tempSubs = SubtitleUtils.applyCodepageConversion(params, tmp);
-				} catch (IOException e) {
-					LOGGER.debug("Applying codepage conversion caused an error: " + e);
-					tempSubs = null;
-				}
-			}
-		}
-
-/* 		
- * TODO Return it back when the fontconfig for external subs will be needed
-  		else if (params.sid.isExternal()) { // Convert external subs to ASS format
-			convertedSubs = subsPath.getAbsolutePath() + File.separator +
-					FileUtil.getFileNameWithoutExtension(params.sid.getExternalFile().getName()) +
-					"_" + params.sid.getExternalFile().lastModified() + "_EXT.ass";
-			File tmp = new File(convertedSubs);
-
-			if (tmp.exists()) {
-				tempSubs = tmp;
-			} else {
-				String externalSubtitlesFileName;
-
-				if (params.sid.isExternalFileUtf16()) {
-					// convert UTF-16 -> UTF-8
-					File convertedSubtitles = new File(configuration.getTempFolder(), "UTF-8_" + params.sid.getExternalFile().getName());
-					FileUtil.convertFileFromUtf16ToUtf8(params.sid.getExternalFile(), convertedSubtitles);
-					externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(convertedSubtitles.getAbsolutePath());
-				} else {
-					externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getAbsolutePath());
-				}
-
-				tempSubs = convertSubsToAss(externalSubtitlesFileName, media, params);
-
-				if (tempSubs != null && configuration.isFFmpegFontConfig()) {
-					try {
-						tempSubs = applySubsSettingsToTempSubsFile(tempSubs);
-					} catch (IOException e) {
-						LOGGER.debug("Applying subs setting ends with error: " + e);
-						tempSubs = null;
-					}
-				}
-			}
-		}	
-*/
+		
+		PMS.get().addTempFile(tempSubs, 30 * 24 * 3600 * 1000);
 
 		return tempSubs;
 	}
@@ -1120,7 +1077,7 @@ public class FFMpegVideo extends Player {
 	 */
 	public static File convertSubsToAss(String fileName, DLNAMediaInfo media, OutputParams params) {
 		List<String> cmdList = new ArrayList<String>();
-		File tempSubsFile = null;
+		File tempSubsFile;
 		cmdList.add(configuration.getFfmpegPath());
 		cmdList.add("-y");
 		cmdList.add("-loglevel");
@@ -1129,17 +1086,24 @@ public class FFMpegVideo extends Player {
 		} else {
 			cmdList.add("fatal");
 		}
-		/* TODO Use it when external subs should be converted by ffmpeg
-		if (
-			isNotBlank(configuration.getSubtitlesCodepage()) &&
-			params.sid.isExternal() &&
-			!params.sid.isExternalFileUtf8() &&
-			!params.sid.getExternalFileCharacterSet().equals(configuration.getSubtitlesCodepage()) // ExternalFileCharacterSet can be null
-		) {
-			cmdList.add("-sub_charenc");
-			cmdList.add(configuration.getSubtitlesCodepage());
+
+		// Try to specify input encoding if we have a non utf-8 external sub
+		if (params.sid.getId() == 100 && !params.sid.isExternalFileUtf8()) {
+			String encoding = isNotBlank(configuration.getSubtitlesCodepage()) ?
+					// Prefer the global user-specified encoding if we have one.
+					// Note: likely wrong if the file isn't supplied by the user.
+					configuration.getSubtitlesCodepage() :
+				params.sid.getExternalFileCharacterSet() != null ?
+					// Fall back on the actually detected encoding if we have it.
+					// Note: accuracy isn't 100% guaranteed.
+					params.sid.getExternalFileCharacterSet() :
+				null; // Otherwise we're out of luck!
+			if (encoding != null) {
+				cmdList.add("-sub_charenc");
+				cmdList.add(encoding);
+			}
 		}
-		*/
+
 		cmdList.add("-i");
 		cmdList.add(fileName);
 
@@ -1173,8 +1137,9 @@ public class FFMpegVideo extends Player {
 		return tempSubsFile;
 	}
 
-	public File applyFontconfigToASSTempSubsFile(File tempSubs) throws IOException {
+	public File applyFontconfigToASSTempSubsFile(File tempSubs, DLNAMediaInfo media) throws IOException {
 		File outputSubs = tempSubs;
+		StringBuilder outputString = new StringBuilder();
 		File temp = new File(configuration.getTempFolder(), tempSubs.getName() + ".tmp");
 
 		File sourceFile = new File(tempSubs.toString());
@@ -1188,9 +1153,27 @@ public class FFMpegVideo extends Player {
 		String[] format = null;
 		int i;
 		while (( line = input.readLine()) != null) {
+			outputString.setLength(0);
+			if (line.startsWith("[Script Info]")) {
+				outputString.append(line).append("\n");
+				output.write(outputString.toString());
+				while (( line = input.readLine()) != null) {
+					outputString.setLength(0);
+					if (!line.isEmpty()) {
+						outputString.append(line).append("\n");
+						output.write(outputString.toString());
+					} else  {
+						outputString.append("PlayResY: ").append(media.getHeight()).append("\n");
+						outputString.append("PlayResX: ").append(media.getWidth()).append("\n");
+						break;
+					}
+				}
+			}
+
 			if (line.startsWith("Format:")) {
 				format = line.split(",");
-				output.write(line + "\n");
+				outputString.append(line).append("\n");
+				output.write(outputString.toString());
 				continue;
 			}
 
@@ -1208,7 +1191,7 @@ public class FFMpegVideo extends Player {
 					}
 
 					if (format[i].contains("Fontsize")) {
-						params[i] = Integer.toString((int) (16 * Double.parseDouble(configuration.getAssScale())));
+						params[i] = Integer.toString((int) ((Integer.parseInt(params[i]) * media.getHeight()/288 * Double.parseDouble(configuration.getAssScale()))));
 						continue;
 					}
 
@@ -1234,17 +1217,18 @@ public class FFMpegVideo extends Player {
 					}
 				}
 
-				output.write(StringUtils.join(params, ",") + "\n");
+				outputString.append(StringUtils.join(params, ",")).append("\n");
+				output.write(outputString.toString());
 				continue;
 			}
 
-			output.write(line + "\n");
+			outputString.append(line).append("\n");
+			output.write(outputString.toString());
 		}
 		input.close();
 		output.flush();
 		output.close();
-		temp.delete();
-		PMS.get().addTempFile(outputSubs, 30 * 24 * 3600 * 1000);
+		temp.deleteOnExit();
 		return outputSubs;
 	}
 	

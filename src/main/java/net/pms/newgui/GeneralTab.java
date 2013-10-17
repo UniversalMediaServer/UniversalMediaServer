@@ -61,7 +61,6 @@ public class GeneralTab {
 	private JTextField ip_filter;
 	public static JTextField maxbitrate;
 	private JComboBox renderers;
-	private JTextField ignoredRenderers;
 	private final PmsConfiguration configuration;
 	private JCheckBox extNetBox;
 
@@ -259,7 +258,7 @@ public class GeneralTab {
 			builder.add(hideAdvancedOptions, FormLayoutUtil.flip(cc.xyw(1, 15, 9), colSpec, orientation));
 		}
 
-		ArrayList<RendererConfiguration> allConfs = RendererConfiguration.getAllRendererConfigurations();
+		ArrayList<RendererConfiguration> allConfs = RendererConfiguration.getEnabledRenderersConfigurations();
 		ArrayList<Object> keyValues = new ArrayList<Object>();
 		ArrayList<Object> nameValues = new ArrayList<Object>();
 		keyValues.add("");
@@ -392,7 +391,7 @@ public class GeneralTab {
 				}
 			});
 
-			maxbitrate = new JTextField(configuration.getMaximumBitrate());
+			maxbitrate = new JTextField(configuration.getMaximumBitrateDisplay());
 			maxbitrate.setToolTipText(Messages.getString("NetworkTab.65"));
 			maxbitrate.addKeyListener(new KeyAdapter() {
 				@Override
@@ -449,22 +448,20 @@ public class GeneralTab {
 				fdCheckBox.setSelected(true);
 			}
 
-			builder.addLabel(Messages.getString("NetworkTab.36"), FormLayoutUtil.flip(cc.xy(1, 37), colSpec, orientation));
-
-			builder.add(renderers, FormLayoutUtil.flip(cc.xyw(3, 37, 7), colSpec, orientation));
-
-			builder.addLabel(Messages.getString("NetworkTab.62"), FormLayoutUtil.flip(cc.xy(1, 39), colSpec, orientation));
-			ignoredRenderers = new JTextField(configuration.getIgnoredRenderers());
-			ignoredRenderers.setToolTipText(Messages.getString("NetworkTab.66"));
-			ignoredRenderers.addKeyListener(new KeyAdapter() {
+			builder.addLabel(Messages.getString("NetworkTab.62"), FormLayoutUtil.flip(cc.xy(1, 37), colSpec, orientation));
+			final CustomJButton setRenderers = new CustomJButton(Messages.getString("GeneralTab.5"));
+			setRenderers.addActionListener(new ActionListener() {
 				@Override
-				public void keyReleased(KeyEvent e) {
-					configuration.setIgnoredRenderers(ignoredRenderers.getText());
+				public void actionPerformed(ActionEvent e) {
+					SelectRenderers.showDialog();
 				}
 			});
-			builder.add(ignoredRenderers, FormLayoutUtil.flip(cc.xyw(3, 39, 7), colSpec, orientation));
 
-			builder.add(fdCheckBox, FormLayoutUtil.flip(cc.xy(1, 41), colSpec, orientation));
+			builder.add(setRenderers, FormLayoutUtil.flip(cc.xy(3, 37), colSpec, orientation));
+
+			builder.addLabel(Messages.getString("NetworkTab.36"), FormLayoutUtil.flip(cc.xy(1, 39), colSpec, orientation));
+
+			builder.add(renderers, FormLayoutUtil.flip(cc.xyw(3, 39, 7), colSpec, orientation));
 
 			// External network box
 			extNetBox = new JCheckBox(Messages.getString("NetworkTab.56"));
@@ -508,7 +505,7 @@ public class GeneralTab {
 	 * initialized.
 	 */
 	public void addRenderers() {
-		ArrayList<RendererConfiguration> allConfs = RendererConfiguration.getAllRendererConfigurations();
+		ArrayList<RendererConfiguration> allConfs = RendererConfiguration.getEnabledRenderersConfigurations();
 		ArrayList<Object> keyValues = new ArrayList<Object>();
 		ArrayList<Object> nameValues = new ArrayList<Object>();
 		keyValues.add("");
@@ -525,7 +522,8 @@ public class GeneralTab {
 
 		final KeyedComboBoxModel renderersKcbm = new KeyedComboBoxModel(
 			(Object[]) keyValues.toArray(new Object[keyValues.size()]),
-			(Object[]) nameValues.toArray(new Object[nameValues.size()]));
+			(Object[]) nameValues.toArray(new Object[nameValues.size()])
+		);
 		renderers.setModel(renderersKcbm);
 		renderers.setEditable(false);
 		String defaultRenderer = configuration.getRendererDefault();

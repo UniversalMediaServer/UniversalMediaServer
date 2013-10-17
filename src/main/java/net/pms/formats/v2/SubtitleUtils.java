@@ -25,7 +25,7 @@ import java.util.Map;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaSubtitle;
-import net.pms.io.OutputParams;
+import net.pms.util.FileUtil;
 import static org.apache.commons.lang3.StringUtils.*;
 import static org.mozilla.universalchardet.Constants.*;
 
@@ -84,28 +84,26 @@ public class SubtitleUtils {
 	}
 
 	/**
-	 * Applies codepage conversion and timeseeking to subtitles file in ASS/SSA and SUBRIP format if needed 
+	 * Applies codepage conversion to subtitles file 
 	 *
-	 * @param subsFile Subtitles file
-	 * @param params Output parameters with time stamp value
-	 * @param outputSubs 
+	 * @param fileToConvert Subtitles file to convert
+	 * @param outputSubs Converted subtitles file
 	 * @return Converted subtitles file
 	 * @throws IOException
 	 */
-	public static File applyCodepageConversion(OutputParams params, File outputSubs) throws IOException {
+	public static File applyCodepageConversion(File fileToConvert, File outputSubs) throws IOException {
 		String line;
 		BufferedReader reader;
 		String cp = configuration.getSubtitlesCodepage();
-		String subsFileCharset = params.sid.getExternalFileCharacterSet();
-		File subsFile = params.sid.getExternalFile();
-		final boolean isSubtitlesCodepageForcedInConfigurationAndSupportedByJVM = isNotBlank(cp) && Charset.isSupported(cp) && !params.sid.isExternalFileUtf();
+		String subsFileCharset = FileUtil.getFileCharset(fileToConvert);
+		final boolean isSubtitlesCodepageForcedInConfigurationAndSupportedByJVM = isNotBlank(cp) && Charset.isSupported(cp);
 		final boolean isSubtitlesCodepageAutoDetectedAndSupportedByJVM = isNotBlank(subsFileCharset) && Charset.isSupported(subsFileCharset);
 		if (isSubtitlesCodepageForcedInConfigurationAndSupportedByJVM) {
-			reader = new BufferedReader(new InputStreamReader(new FileInputStream(subsFile), Charset.forName(cp)));
+			reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileToConvert), Charset.forName(cp)));
 		} else if (isSubtitlesCodepageAutoDetectedAndSupportedByJVM) {
-			reader = new BufferedReader(new InputStreamReader(new FileInputStream(subsFile), Charset.forName(subsFileCharset)));
+			reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileToConvert), Charset.forName(subsFileCharset)));
 		} else {
-			reader = new BufferedReader(new InputStreamReader(new FileInputStream(subsFile)));
+			reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileToConvert)));
 		}
 
 		BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), Charset.forName(CHARSET_UTF_8)));
@@ -117,7 +115,6 @@ public class SubtitleUtils {
 		output.close();
 
 		reader.close();
-		PMS.get().addTempFile(outputSubs, 30 * 24 * 3600 * 1000);
 		return outputSubs;
 	}
 }

@@ -31,7 +31,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>3.0.0-a5</version>
+	<version>3.0.0-b1</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -98,8 +98,8 @@
 		<project.binaries-base>http://universal-media-server-binaries.googlecode.com/svn/trunk</project.binaries-base>
 		<!-- <project.binaries-base>http://ps3mediaserver.googlecode.com/svn/tags/1.40.0</project.binaries-base> -->
 
-		<maven-javadoc-plugin-version>2.9</maven-javadoc-plugin-version>
-		<git-commit-id-plugin-version>2.1.4</git-commit-id-plugin-version>
+		<maven-javadoc-plugin-version>2.9.1</maven-javadoc-plugin-version>
+		<git-commit-id-plugin-version>2.1.5</git-commit-id-plugin-version>
 	</properties>
 	<pluginRepositories>
 		<pluginRepository>
@@ -220,7 +220,7 @@
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<version>1.3.172</version>
+			<version>1.3.173</version>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
@@ -469,7 +469,7 @@
 						-->
 						<argLine>-Duser.language=en -Djna.nosys=true -XX:-UseSplitVerifier</argLine> <!-- only one argLine element is processed -->
 					</configuration>
-					<version>2.15</version>
+					<version>2.16</version>
 				</plugin>
 
 				<!--
@@ -601,7 +601,7 @@
 
 			<plugin>
 				<artifactId>maven-idea-plugin</artifactId>
-				<version>2.2</version>
+				<version>2.2.1</version>
 				<configuration>
 					<downloadSources>true</downloadSources>
 					<downloadJavadocs>true</downloadJavadocs>
@@ -706,7 +706,7 @@
 					<dependency>
 						<groupId>org.apache.maven.doxia</groupId>
 						<artifactId>doxia-module-docbook-simple</artifactId>
-						<version>1.2</version>
+						<version>1.4</version>
 					</dependency>
 				</dependencies>
 				<configuration>
@@ -798,7 +798,7 @@
 						<plugin>
 							<groupId>org.codehaus.mojo</groupId>
 							<artifactId>cobertura-maven-plugin</artifactId>
-							<version>2.5.2</version>
+							<version>2.6</version>
 						</plugin>
 
 						<!-- PMD and CPD code analysis report -->

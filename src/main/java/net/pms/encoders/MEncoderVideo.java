@@ -1066,6 +1066,32 @@ public class MEncoderVideo extends Player {
 			params.avidemux = true;
 		}
 
+		// Default: Empty string
+		String rendererMencoderOptions = params.mediaRenderer.getCustomMencoderOptions();
+
+		/**
+		 * Ignore the renderer's custom MEncoder options if a) we're streaming a DVD (i.e. via dvd://)
+		 * or b) the renderer's MEncoder options contain overscan settings (those are handled
+		 * separately)
+		 */
+		// XXX we should weed out the unused/unwanted settings and keep the rest
+		// (see sanitizeArgs()) rather than ignoring the options entirely
+		if (rendererMencoderOptions.contains("expand=") && dvd) {
+			rendererMencoderOptions = "";
+		}
+
+		// Default: Empty string
+		String globalMencoderOptions = configuration.getMencoderCustomOptions();
+
+		String combinedCustomOptions = defaultString(globalMencoderOptions) +
+			" " +
+			defaultString(rendererMencoderOptions);
+
+		String add = "";
+		if (!combinedCustomOptions.contains("-lavdopts")) {
+			add = " -lavdopts debug=0";
+		}
+
 		int channels;
 		if (ac3Remux) {
 			channels = params.aid.getAudioProperties().getNumberOfChannels(); // AC-3 remux
@@ -1076,36 +1102,14 @@ public class MEncoderVideo extends Player {
 		} else {
 			channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
 		}
+		String channelsString = "-channels " + channels;
+		if (combinedCustomOptions.contains("-channels")) {
+			channelsString = "";
+		}
 		LOGGER.trace("channels=" + channels);
 
-		String add = "";
-		String rendererMencoderOptions = params.mediaRenderer.getCustomMencoderOptions(); // default: empty string
-		String globalMencoderOptions = configuration.getMencoderCustomOptions(); // default: empty string
-
-		String combinedCustomOptions = defaultString(globalMencoderOptions) +
-			" " +
-			defaultString(rendererMencoderOptions);
-
-		if (!combinedCustomOptions.contains("-lavdopts")) {
-			add = " -lavdopts debug=0";
-		}
-
-		if (isNotBlank(rendererMencoderOptions)) {
-			/**
-			 * Ignore the renderer's custom MEncoder options if a) we're streaming a DVD (i.e. via dvd://)
-			 * or b) the renderer's MEncoder options contain overscan settings (those are handled
-			 * separately)
-			 */
-
-			// XXX we should weed out the unused/unwanted settings and keep the rest
-			// (see sanitizeArgs()) rather than ignoring the options entirely
-			if (rendererMencoderOptions.contains("expand=") && dvd) {
-				rendererMencoderOptions = null;
-			}
-		}
-
 		StringTokenizer st = new StringTokenizer(
-			"-channels " + channels +
+			channelsString +
 			(isNotBlank(globalMencoderOptions) ? " " + globalMencoderOptions : "") +
 			(isNotBlank(rendererMencoderOptions) ? " " + rendererMencoderOptions : "") +
 			add,
@@ -1149,6 +1153,11 @@ public class MEncoderVideo extends Player {
 
 				overriddenMainArgs[i++] = token;
 			}
+		}
+
+		String vcodecString = ":vcodec=" + vcodec;
+		if (combinedCustomOptions.contains("vcodec=")) {
+			vcodecString = "";
 		}
 
 		if (configuration.getMPEG2MainSettings() != null && !h264ts) {
@@ -1204,11 +1213,35 @@ public class MEncoderVideo extends Player {
 				":vrc_buf_size=5000:vrc_minrate=" + cbr_bitrate + ":vrc_maxrate=" + cbr_bitrate + ":vbitrate=" + ((cbr_bitrate > 16000) ? cbr_bitrate * 1000 : cbr_bitrate) :
 				"";
 
-			String encodeSettings = "-lavcopts autoaspect=1:vcodec=" + vcodec +
-				(wmv && !params.mediaRenderer.isXBOX() ? ":acodec=wmav2:abitrate=448" : (cbr_settings + ":acodec=" + (configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3") +
-				":abitrate=" + CodecUtil.getAC3Bitrate(configuration, params.aid))) +
+			// Set the audio codec used by Lavc
+			String acodec   = "";
+			if (!combinedCustomOptions.contains("acodec=")) {
+				acodec = ":acodec=";
+				if (wmv && !params.mediaRenderer.isXBOX()) {
+					acodec += "wmav2";
+				} else {
+					acodec = cbr_settings + acodec;
+					if (configuration.isMencoderAc3Fixed()) {
+						acodec += "ac3_fixed";
+					} else {
+						acodec += "ac3";
+					}
+				}
+			}
+
+			// Set the audio bitrate used by 
+			String abitrate = "";
+			if (!combinedCustomOptions.contains("abitrate=")) {
+				abitrate = ":abitrate=";
+				if (wmv && !params.mediaRenderer.isXBOX()) {
+					abitrate += "448";
+				} else {
+					abitrate += CodecUtil.getAC3Bitrate(configuration, params.aid);
+				}
+			}
+
+			String encodeSettings = "-lavcopts autoaspect=1" + vcodecString + acodec + abitrate +
 				":threads=" + (wmv && !params.mediaRenderer.isXBOX() ? 1 : configuration.getMencoderMaxThreads()) +
-				(h264ts ? ":o=preset=superfast,crf=20,g=250,i_qfactor=0.71,qcomp=0.6,level=4.1,weightp=0,8x8dct=0,aq-strength=0" : "") +
 				("".equals(mpeg2Options) ? "" : ":" + mpeg2Options);
 
 			String audioType = "ac3";
@@ -1249,12 +1282,11 @@ public class MEncoderVideo extends Player {
 				x264CRF = "crf=" + x264CRF + ",";
 			}
 
-			String encodeSettings = "-lavcopts autoaspect=1:vcodec=" + vcodec +
-				(wmv && !params.mediaRenderer.isXBOX() ? ":acodec=wmav2:abitrate=448" : (":acodec=" + (configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3") +
-				":abitrate=" + CodecUtil.getAC3Bitrate(configuration, params.aid))) +
-				":threads=" + (wmv && !params.mediaRenderer.isXBOX() ? 1 : configuration.getMencoderMaxThreads()) +
-				(h264ts ? ":o=preset=superfast," + x264CRF + "g=250,i_qfactor=0.71,qcomp=0.6,level=4.1,weightp=0,8x8dct=0,aq-strength=0" : "") +
-				("".equals(x264CRF) ? "" : ":" + x264CRF);
+			String encodeSettings = "-lavcopts autoaspect=1" + vcodecString +
+				":acodec=" + (configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3") +
+				":abitrate=" + CodecUtil.getAC3Bitrate(configuration, params.aid) +
+				":threads=" + configuration.getMencoderMaxThreads() +
+				":o=preset=superfast," + x264CRF + "g=250,i_qfactor=0.71,qcomp=0.6,level=4.1,weightp=0,8x8dct=0,aq-strength=0";
 
 			String audioType = "ac3";
 			if (dtsRemux) {
@@ -1633,9 +1665,31 @@ public class MEncoderVideo extends Player {
 			);
 
 		// Video scaler and overscan compensation
-		boolean scaleBool = isResolutionTooHighForRenderer
-			|| (configuration.isMencoderScaler() && (configuration.getMencoderScaleX() != 0 || configuration.getMencoderScaleY() != 0))
-			|| (intOCW > 0 || intOCH > 0);
+		boolean scaleBool = false;
+		if (
+			isResolutionTooHighForRenderer ||
+			(
+				configuration.isMencoderScaler() &&
+				(
+					configuration.getMencoderScaleX() != 0 ||
+					configuration.getMencoderScaleY() != 0
+				)
+			) ||
+			(
+				intOCW > 0 ||
+				intOCH > 0
+			)
+		) {
+			scaleBool = true;
+		}
+
+		int scaleWidth = 0;
+		int scaleHeight = 0;
+		String vfValue = "";
+		if (media.getWidth() > 0 && media.getHeight() > 0) {
+			scaleWidth = media.getWidth();
+			scaleHeight = media.getHeight();
+		}
 
 		if ((deinterlace || scaleBool) && !avisynth()) {
 			StringBuilder vfValueOverscanPrepend = new StringBuilder();
@@ -1644,15 +1698,7 @@ public class MEncoderVideo extends Player {
 			StringBuilder vfValueComplete        = new StringBuilder();
 
 			String deinterlaceComma = "";
-			int scaleWidth = 0;
-			int scaleHeight = 0;
 			double rendererAspectRatio;
-
-			// Set defaults
-			if (media.getWidth() > 0 && media.getHeight() > 0) {
-				scaleWidth = media.getWidth();
-				scaleHeight = media.getHeight();
-			}
 
 			/*
 			 * Implement overscan compensation settings
@@ -1689,6 +1735,9 @@ public class MEncoderVideo extends Player {
 					}
 				}
 
+				scaleWidth  = convertToMod4(scaleWidth);
+				scaleHeight = convertToMod4(scaleHeight);
+
 				vfValueOverscanPrepend.append("softskip,expand=-").append(intOCWPixels).append(":-").append(intOCHPixels);
 				vfValueOverscanMiddle.append(",scale=").append(scaleWidth).append(":").append(scaleHeight);
 			}
@@ -1713,6 +1762,9 @@ public class MEncoderVideo extends Player {
 						scaleHeight = params.mediaRenderer.getMaxVideoHeight();
 					}
 				}
+
+				scaleWidth  = convertToMod4(scaleWidth);
+				scaleHeight = convertToMod4(scaleHeight);
 
 				LOGGER.info("Setting video resolution to: " + scaleWidth + "x" + scaleHeight + ", your Video Scaler setting");
 
@@ -1765,6 +1817,9 @@ public class MEncoderVideo extends Player {
 					}
 				}
 
+				scaleWidth  = convertToMod4(scaleWidth);
+				scaleHeight = convertToMod4(scaleHeight);
+
 				LOGGER.info("Setting video resolution to: " + scaleWidth + "x" + scaleHeight + ", the maximum your renderer supports");
 
 				vfValueVS.append("scale=").append(scaleWidth).append(":").append(scaleHeight);
@@ -1782,12 +1837,7 @@ public class MEncoderVideo extends Player {
 				deinterlaceComma = ",";
 			}
 
-			String vfValue = (deinterlace ? "yadif" : "") + (scaleBool ? deinterlaceComma + vfValueComplete : "");
-
-			if (isNotBlank(vfValue)) {
-				cmdList.add("-vf");
-				cmdList.add(vfValue);
-			}
+			vfValue = (deinterlace ? "yadif" : "") + (scaleBool ? deinterlaceComma + vfValueComplete : "");
 		}
 
 		/*
@@ -1803,29 +1853,37 @@ public class MEncoderVideo extends Player {
 		if (
 			!dvd &&
 			(
-				(media.getWidth() % 4 != 0) ||
-				(media.getHeight() % 4 != 0) ||
+				(scaleWidth % 4 != 0) ||
+				(scaleHeight % 4 != 0) ||
 				params.mediaRenderer.isKeepAspectRatio()
 			) &&
 			!configuration.isMencoderScaler()
 		) {
 			int expandBorderWidth;
 			int expandBorderHeight;
-			StringBuilder expandParams = new StringBuilder();
 
-			expandBorderWidth  = media.getWidth() % 4;
-			expandBorderHeight = media.getHeight() % 4;
+			expandBorderWidth  = scaleWidth % 4;
+			expandBorderHeight = scaleHeight % 4;
 
-			expandParams.append("expand=-").append(expandBorderWidth).append(":-").append(expandBorderHeight);
+			String vfValuePrepend = "";
+			vfValuePrepend += "expand=-" + expandBorderWidth + ":-" + expandBorderHeight;
 
 			if (params.mediaRenderer.isKeepAspectRatio()) {
-				expandParams.append(":::0:16/9");
+				vfValuePrepend += ":::0:16/9";
 			}
 
-			expandParams.append(",softskip");
+			vfValuePrepend += ",softskip";
 
+			if (isNotBlank(vfValue)) {
+				vfValuePrepend += ",";
+			}
+
+			vfValue = vfValuePrepend + vfValue;
+		}
+
+		if (isNotBlank(vfValue)) {
 			cmdList.add("-vf");
-			cmdList.add(expandParams.toString());
+			cmdList.add(vfValue);
 		}
 
 		if (configuration.getMencoderMT() && !avisynth && !dvd && !(media.getCodecV() != null && (media.getCodecV().startsWith("mpeg2")))) {
@@ -2001,12 +2059,8 @@ public class MEncoderVideo extends Player {
 			cmdList.add("" + params.timeend);
 		}
 
-		String rate = "48000";
-		if (params.mediaRenderer.isXBOX()) {
-			rate = "44100";
-		}
-
 		// Force srate because MEncoder doesn't like anything other than 48khz for AC-3
+		String rate = "" + params.mediaRenderer.getTranscodedVideoAudioSampleRate();
 		if (!pcm && !dtsRemux && !ac3Remux) {
 			cmdList.add("-af");
 			String af = "lavcresample=" + rate;
@@ -2488,5 +2542,13 @@ public class MEncoderVideo extends Player {
 		}
 
 		return false;
+	}
+
+	public int convertToMod4(int number) {
+		if (number % 4 != 0) {
+			number = number - (number % 4);
+		}
+
+		return number;
 	}
 }

@@ -67,9 +67,10 @@ public class AviDemuxerInputStream extends InputStream {
 		if (params.no_videoencode && params.forceType != null && params.forceType.equals("V_MPEG4/ISO/AVC") && params.header != null) {
 			// NOT USED RIGHT NOW
 			PipedOutputStream pout = new PipedOutputStream();
+			Runnable r;
 			final InputStream pin = new H264AnnexBInputStream(new PipedInputStream(pout), params.header);
 			final OutputStream out = params.output_pipes[0].getOutputStream();
-			Runnable r = new Runnable() {
+			r = new Runnable() {
 				@Override
 				public void run() {
 					try {
@@ -83,7 +84,6 @@ public class AviDemuxerInputStream extends InputStream {
 					}
 				}
 			};
-
 			pin.close();
 			vOut = pout;
 			new Thread(r, "Avi Demuxer").start();

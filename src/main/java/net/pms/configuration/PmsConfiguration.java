@@ -108,6 +108,8 @@ public class PmsConfiguration {
 	private static final String KEY_FFMPEG_FONT_CONFIG = "ffmpeg_font_config";
 	private static final String KEY_FFMPEG_MUX_COMPATIBLE = "ffmpeg_mux_compatible";
 	private static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
+	private static final String KEY_FOLDERS = "folders";
+	private static final String KEY_FOLDERS_MONITORED = "folders_monitored";
 	private static final String KEY_FONT = "subtitles_font";
 	private static final String KEY_FORCED_SUBTITLE_LANGUAGE = "forced_subtitle_language";
 	private static final String KEY_FORCED_SUBTITLE_TAGS = "forced_subtitle_tags";
@@ -118,6 +120,7 @@ public class PmsConfiguration {
 	private static final String KEY_HIDE_EMPTY_FOLDERS = "hide_empty_folders";
 	private static final String KEY_HIDE_ENGINENAMES = "hide_enginenames";
 	private static final String KEY_HIDE_EXTENSIONS = "hide_extensions";
+	private static final String KEY_HIDE_RECENTLY_PLAYED_FOLDER = "hide_recently_played_folder";
 	private static final String KEY_HIDE_LIVE_SUBTITLES_FOLDER = "hide_live_subtitles_folder";
 	private static final String KEY_HIDE_MEDIA_LIBRARY_FOLDER = "hide_media_library_folder";
 	private static final String KEY_HIDE_SUBS_INFO = "hide_subs_info";
@@ -170,6 +173,7 @@ public class PmsConfiguration {
 	private static final String KEY_MPEG2_MAIN_SETTINGS = "mpeg2_main_settings";
 	private static final String KEY_MUX_ALLAUDIOTRACKS = "tsmuxer_mux_all_audiotracks";
 	private static final String KEY_NETWORK_INTERFACE = "network_interface";
+	private static final String KEY_HIDE_NEW_MEDIA_FOLDER = "hide_new_media";
 	private static final String KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS = "disable_transcode_for_extensions";
 	private static final String KEY_NUMBER_OF_CPU_CORES = "number_of_cpu_cores";
 	private static final String KEY_OPEN_ARCHIVES = "enable_archive_browsing";
@@ -215,7 +219,8 @@ public class PmsConfiguration {
 	private static final String KEY_UUID = "uuid";
 	private static final String KEY_VIDEO_HW_ACCELERATION = "video_hardware_acceleration";
 	private static final String KEY_VIDEOTRANSCODE_START_DELAY = "videotranscode_start_delay";
-	private static final String KEY_VIRTUAL_FOLDERS = "vfolders";
+	private static final String KEY_VIRTUAL_FOLDERS = "virtual_folders";
+	private static final String KEY_VIRTUAL_FOLDERS_FILE = "virtual_folders_file";
 	private static final String KEY_VLC_USE_HW_ACCELERATION = "vlc_use_hw_acceleration";
 	private static final String KEY_VLC_USE_EXPERIMENTAL_CODECS = "vlc_use_experimental_codecs";
 	private static final String KEY_VLC_AUDIO_SYNC_ENABLED = "vlc_audio_sync_enabled";
@@ -238,7 +243,6 @@ public class PmsConfiguration {
 	private static final int BUFFER_MEMORY_FACTOR = 368;
 	private static int MAX_MAX_MEMORY_BUFFER_SIZE = MAX_MAX_MEMORY_DEFAULT_SIZE;
 	private static final char LIST_SEPARATOR = ',';
-	private static final String KEY_FOLDERS = "folders";
 	private final PropertiesConfiguration configuration;
 	private final ConfigurationReader configurationReader;
 	private final TempFolder tempFolder;
@@ -1302,10 +1306,13 @@ public class PmsConfiguration {
 	 * @return The number of audio channels.
 	 */
 	public int getAudioChannelCount() {
-		if (!"6".equals(KEY_AUDIO_CHANNEL_COUNT) && !"2".equals(KEY_AUDIO_CHANNEL_COUNT)) {
+		int valueFromUserConfig = getInt(KEY_AUDIO_CHANNEL_COUNT, 6);
+
+		if (valueFromUserConfig != 6 && valueFromUserConfig != 2) {
 			return 6;
 		}
-		return getInt(KEY_AUDIO_CHANNEL_COUNT, 6);
+
+		return valueFromUserConfig;
 	}
 
 	/**
@@ -1343,6 +1350,17 @@ public class PmsConfiguration {
 			maximumBitrate = "1000";
 		}
 		return maximumBitrate;
+	}
+
+	/**
+	 * The same as getMaximumBitrate() but this value is displayed to the user
+	 * because for our own uses we turn the value "0" into the value "1000" but
+	 * that can be confusing for the user.
+	 *
+	 * @return The maximum video bitrate to display in the GUI.
+	 */
+	public String getMaximumBitrateDisplay() {
+		return getString(KEY_MAX_BITRATE, "110");
 	}
 
 	/**
@@ -1690,22 +1708,21 @@ public class PmsConfiguration {
 		String mpegSettingsArray[] = mpegSettings.split(":");
 
 		String pairArray[];
-		String returnString = "";
+		StringBuilder returnString = new StringBuilder();
 		for (String pair : mpegSettingsArray) {
 			pairArray = pair.split("=");
-
 			if ("keyint".equals(pairArray[0])) {
-				returnString += "-g " + pairArray[1] + " ";
+				returnString.append("-g ").append(pairArray[1]).append(" ");
 			} else if ("vqscale".equals(pairArray[0])) {
-				returnString += "-q:v " + pairArray[1] + " ";
+				returnString.append("-q:v ").append(pairArray[1]).append(" ");
 			} else if ("vqmin".equals(pairArray[0])) {
-				returnString += "-qmin " + pairArray[1] + " ";
+				returnString.append("-qmin ").append(pairArray[1]).append(" ");
 			} else if ("vqmax".equals(pairArray[0])) {
-				returnString += "-qmax " + pairArray[1] + " ";
+				returnString.append("-qmax ").append(pairArray[1]).append(" ");
 			}
 		}
 
-		return returnString;
+		return returnString.toString();
 	}
 
 	public void setFfmpegMultithreading(boolean value) {
@@ -1950,6 +1967,14 @@ public class PmsConfiguration {
 
 	public void setFolders(String value) {
 		configuration.setProperty(KEY_FOLDERS, value);
+	}
+
+	public String getFoldersMonitored() {
+		return getString(KEY_FOLDERS_MONITORED, "");
+	}
+
+	public void setFoldersMonitored(String value) {
+		configuration.setProperty(KEY_FOLDERS_MONITORED, value);
 	}
 
 	public String getNetworkInterface() {
@@ -2339,6 +2364,22 @@ public class PmsConfiguration {
 		configuration.setProperty(KEY_RUN_WIZARD, value);
 	}
 
+	public boolean isHideNewMediaFolder() {
+		return getBoolean(KEY_HIDE_NEW_MEDIA_FOLDER, false);
+	}
+
+	public void setHideNewMediaFolder(final boolean value) {
+		this.configuration.setProperty(KEY_HIDE_NEW_MEDIA_FOLDER, value);
+	}
+
+	public boolean isHideRecentlyPlayedFolder() {
+		return getBoolean(PmsConfiguration.KEY_HIDE_RECENTLY_PLAYED_FOLDER, false);
+	}
+
+	public void setHideRecentlyPlayedFolder(final boolean value) {
+		this.configuration.setProperty(PmsConfiguration.KEY_HIDE_RECENTLY_PLAYED_FOLDER, value);
+	}
+
 	/**
 	 * Returns the name of the renderer to fall back on when header matching
 	 * fails. PMS will recognize the configured renderer instead of "Unknown
@@ -2395,6 +2436,10 @@ public class PmsConfiguration {
 
 	public String getVirtualFolders() {
 		return getString(KEY_VIRTUAL_FOLDERS, "");
+	}
+
+	public String getVirtualFoldersFile() {
+		return getString(KEY_VIRTUAL_FOLDERS_FILE, "");
 	}
 
 	public String getProfilePath() {
