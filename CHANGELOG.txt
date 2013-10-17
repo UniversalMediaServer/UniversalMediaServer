@@ -1,4 +1,4 @@
-3.0.0-b1 - 2013-10-??
+3.0.0-b1 - 2013-10-17
 
 	General:
 		Added the New Media folder, which contains unwatched media
