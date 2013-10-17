@@ -486,14 +486,6 @@ public class RequestV2 extends HTTPResource {
 					s = s.replace("Universal Media Server", "Universal Media Server [" + profileName + "]");
 				}
 
-				if (!mediaRenderer.isPS3()) {
-					// hacky stuff. replace the png icon by a jpeg one. Like mpeg2 remux,
-					// really need a proper format compatibility list by renderer
-					s = s.replace("<mimetype>image/png</mimetype>", "<mimetype>image/jpeg</mimetype>");
-					s = s.replace("/images/thumbnail-video-256.png", "/images/thumbnail-video-120.jpg");
-					s = s.replace(">256<", ">120<");
-				}
-
 				response.append(s);
 				inputStream = null;
 			}
