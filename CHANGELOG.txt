@@ -20,7 +20,6 @@
 		Fixed several minor bugs
 		Fixed plugin compatibility problems
 	Renderers:
-		Added support for Samsung mobiles (Galaxy S3, S4, Note, Note 2, and Note 3)
 		Improved DirecTV support
 		Updated DirecTV image
 		Improved PS3 support
