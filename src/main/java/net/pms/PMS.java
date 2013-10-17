@@ -509,16 +509,6 @@ public class PMS {
 					save();
 				}
 
-				// Ask if they want select renderers
-				int whetherToSelectRenderers = JOptionPane.showConfirmDialog(
-				null,
-				Messages.getString("Wizard.12"),
-				Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
-				JOptionPane.YES_NO_OPTION);
-				if (whetherToSelectRenderers == JOptionPane.YES_OPTION) {
-					SelectRenderers.showDialog();
-				}
-
 				// Ask if they want to hide advanced options
 				int whetherToHideAdvancedOptions = JOptionPane.showConfirmDialog(
 				(Component) PMS.get().getFrame(),
