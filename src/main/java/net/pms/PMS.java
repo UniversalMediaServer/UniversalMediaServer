@@ -598,7 +598,7 @@ public class PMS {
 			}
 		});
 
-		frame.setStatusCode(0, Messages.getString("PMS.130"), "icon-status-connecting.png");
+		frame.setStatusCode(0, Messages.getString("PMS.138"), "icon-status-connecting.png");
 		RendererConfiguration.loadRendererConfigurations(configuration);
 
 		LOGGER.info("Please wait while we check the MPlayer font cache, this can take a minute or so.");
@@ -615,6 +615,8 @@ public class PMS {
 		}
 
 		LOGGER.info("Finished checking the MPlayer font cache.");
+
+		frame.setStatusCode(0, Messages.getString("PMS.130"), "icon-status-connecting.png");
 
 		// Check the existence of VSFilter / DirectVobSub
 		if (registry.isAvis() && registry.getAvsPluginsDir() != null) {
