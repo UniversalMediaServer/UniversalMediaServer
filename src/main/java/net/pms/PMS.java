@@ -51,7 +51,6 @@ import net.pms.newgui.DummyFrame;
 import net.pms.newgui.IFrame;
 import net.pms.newgui.LooksFrame;
 import net.pms.newgui.ProfileChooser;
-import net.pms.newgui.SelectRenderers;
 import net.pms.update.AutoUpdater;
 import net.pms.util.FileUtil;
 import net.pms.util.OpenSubtitle;
@@ -439,7 +438,8 @@ public class PMS {
 				(Component) PMS.get().getFrame(),
 				Messages.getString("Wizard.1"),
 				Messages.getString("Dialog.Question"),
-				JOptionPane.YES_NO_OPTION);
+				JOptionPane.YES_NO_OPTION
+			);
 			if (whetherToRunWizard == JOptionPane.YES_OPTION) {
 				// The user has chosen to run the wizard
 
@@ -451,10 +451,11 @@ public class PMS {
 
 				// Ask if they want UMS to start minimized
 				int whetherToStartMinimized = JOptionPane.showConfirmDialog(
-				(Component) PMS.get().getFrame(),
-				Messages.getString("Wizard.3"),
-				Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
-				JOptionPane.YES_NO_OPTION);
+					(Component) PMS.get().getFrame(),
+					Messages.getString("Wizard.3"),
+					Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+					JOptionPane.YES_NO_OPTION
+				);
 				if (whetherToStartMinimized == JOptionPane.YES_OPTION) {
 					configuration.setMinimized(true);
 					save();
@@ -465,10 +466,11 @@ public class PMS {
 
 				// Ask if their audio receiver/s support DTS audio
 				int whetherToSendDTS = JOptionPane.showConfirmDialog(
-				(Component) PMS.get().getFrame(),
-				Messages.getString("Wizard.5"),
-				Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
-				JOptionPane.YES_NO_OPTION);
+					(Component) PMS.get().getFrame(),
+					Messages.getString("Wizard.5"),
+					Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+					JOptionPane.YES_NO_OPTION
+				);
 				if (whetherToSendDTS == JOptionPane.YES_OPTION) {
 					configuration.setAudioEmbedDtsInPcm(true);
 					save();
@@ -491,7 +493,8 @@ public class PMS {
 					JOptionPane.QUESTION_MESSAGE,
 					null,
 					options,
-					options[1]);
+					options[1]
+				);
 				if (networkType == JOptionPane.YES_OPTION) {
 					// Wired (Gigabit)
 					configuration.setMaximumBitrate("0");
@@ -511,10 +514,11 @@ public class PMS {
 
 				// Ask if they want to hide advanced options
 				int whetherToHideAdvancedOptions = JOptionPane.showConfirmDialog(
-				(Component) PMS.get().getFrame(),
-				Messages.getString("Wizard.11"),
-				Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
-				JOptionPane.YES_NO_OPTION);
+					(Component) PMS.get().getFrame(),
+					Messages.getString("Wizard.11"),
+					Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+					JOptionPane.YES_NO_OPTION
+				);
 				if (whetherToHideAdvancedOptions == JOptionPane.YES_OPTION) {
 					configuration.setHideAdvancedOptions(true);
 					save();
