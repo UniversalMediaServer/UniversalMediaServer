@@ -465,11 +465,20 @@ public class PMS {
 				}
 
 				// Ask if their audio receiver/s support DTS audio
-				int whetherToSendDTS = JOptionPane.showConfirmDialog(
+
+				Object[] optionsDTS = {
+					UIManager.getString("OptionPane.yesButtonText"),
+					UIManager.getString("OptionPane.noButtonText")
+				};
+				int whetherToSendDTS = JOptionPane.showOptionDialog(
 					(Component) PMS.get().getFrame(),
 					Messages.getString("Wizard.5"),
 					Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
-					JOptionPane.YES_NO_OPTION
+					JOptionPane.YES_NO_OPTION,
+					JOptionPane.QUESTION_MESSAGE,
+					null,
+					optionsDTS,
+					optionsDTS[1]
 				);
 				if (whetherToSendDTS == JOptionPane.YES_OPTION) {
 					configuration.setAudioEmbedDtsInPcm(true);
