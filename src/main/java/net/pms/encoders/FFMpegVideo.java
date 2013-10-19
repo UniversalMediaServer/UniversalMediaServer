@@ -174,8 +174,8 @@ public class FFMpegVideo extends Player {
 				videoFilterOptions.add("-avoid_negative_ts");
 				videoFilterOptions.add("1");
 				videoFilterOptions.add("-af");
-				videoFilterOptions.add("asetpts=PTS-" + params.timeseek + "/TB");
-				subsOption.append(", setpts=PTS-").append(params.timeseek).append("/TB");
+				videoFilterOptions.add("asetpts=PTS-" + (int)params.timeseek + "/TB");
+				subsOption.append(",setpts=PTS-").append((int)params.timeseek).append("/TB");
 			}	
 		}
 
@@ -619,7 +619,7 @@ public class FFMpegVideo extends Player {
 
 		if (params.timeseek > 0) {
 			cmdList.add("-ss");
-			cmdList.add(String.valueOf(params.timeseek));
+			cmdList.add(String.valueOf((int)params.timeseek));
 		}
 
 		// decoder threads
@@ -1011,6 +1011,8 @@ public class FFMpegVideo extends Player {
 
 		String filename = isEmbeddedSource ?
 			dlna.getSystemName() : params.sid.getExternalFile().getAbsolutePath();
+      /*  if(!configuration.convertSubs())
+            return new File(filename);*/
 		String basename;
 
 		long modId = new File(filename).lastModified();
@@ -1062,6 +1064,7 @@ public class FFMpegVideo extends Player {
 			params.sid.setExternalFile(tempSubs);
 			params.sid.setType(SubtitleType.ASS);
 		}
+        params.sid.setType(SubtitleType.ASS);
 		
 		PMS.get().addTempFile(tempSubs, 30 * 24 * 3600 * 1000);
 
