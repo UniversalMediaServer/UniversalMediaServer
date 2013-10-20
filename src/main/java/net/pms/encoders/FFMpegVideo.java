@@ -1007,6 +1007,7 @@ public class FFMpegVideo extends Player {
 			subsPath.mkdirs();
 		}
 
+		boolean applyFotntConfig = configuration.isFFmpegFontConfig();
 		boolean isEmbeddedSource = params.sid.getId() < 100;
 
 		String filename = isEmbeddedSource ?
@@ -1025,8 +1026,11 @@ public class FFMpegVideo extends Player {
 			modId = filename.hashCode();
 		}
 
-		File convertedSubs = new File(subsPath.getAbsolutePath() + File.separator
-			+ basename + "_ID" + params.sid.getId() + "_" + modId + ".ass");
+		File convertedSubs = applyFotntConfig ?
+				new File(subsPath.getAbsolutePath() + File.separator 
+						+ basename + "_ID" + params.sid.getId() + "_" + modId + ".ass") : 
+				new File(subsPath.getAbsolutePath() + File.separator 
+						+ modId + "_" + params.sid.getExternalFile().getName());
 
 		if (convertedSubs.canRead()) {
 			// subs are already converted
@@ -1036,7 +1040,7 @@ public class FFMpegVideo extends Player {
 		boolean isExternalAss = params.sid.getType() == SubtitleType.ASS &&
 			params.sid.isExternal() && !isEmbeddedSource;
 
-		File tempSubs = isExternalAss ?
+		File tempSubs = (isExternalAss || (!applyFotntConfig && params.sid.getType() == SubtitleType.SUBRIP)) ?
 			params.sid.getExternalFile() : convertSubsToAss(filename, media, params);
 		if (tempSubs == null) {
 			return null;
@@ -1050,7 +1054,7 @@ public class FFMpegVideo extends Player {
 		}
 
 		// Now we're sure we actually have our own modifiable file
-		if (configuration.isFFmpegFontConfig()) {
+		if (applyFotntConfig) {
 			try {
 				tempSubs = applyFontconfigToASSTempSubsFile(tempSubs, media);
 			} catch (IOException e) {
@@ -1063,7 +1067,6 @@ public class FFMpegVideo extends Player {
 			params.sid.setExternalFile(tempSubs);
 			params.sid.setType(SubtitleType.ASS);
 		}
-		params.sid.setType(SubtitleType.ASS);
 
 		PMS.get().addTempFile(tempSubs, 30 * 24 * 3600 * 1000);
 
