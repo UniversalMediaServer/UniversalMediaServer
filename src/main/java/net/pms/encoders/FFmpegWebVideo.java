@@ -210,7 +210,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			}
 		}
 
-		cmdList.add(executable().replace("/", "\\\\"));
+		cmdList.add(executable());
 
 		// XXX squashed bug - without this, ffmpeg hangs waiting for a confirmation
 		// that it can write to a file that already exists i.e. the named pipe
@@ -238,7 +238,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 		if (params.timeseek > 0) {
 			cmdList.add("-ss");
-			cmdList.add("" + (int)params.timeseek);
+			cmdList.add("" + (int) params.timeseek);
 		}
 
 		cmdList.add("-i");
