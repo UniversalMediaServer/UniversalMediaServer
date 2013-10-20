@@ -22,8 +22,8 @@ import net.pms.network.SpeedStats;
 import net.pms.util.PropertiesUtil;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang.WordUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,8 +43,8 @@ public class RendererConfiguration {
 
 	// Holds MIME type aliases
 	private final Map<String, String> mimes;
-    private final Map<String, String> charMap;
 
+	private final Map<String, String> charMap;
 	private final Map<String, String> DLNAPN;
 
 	// property values
@@ -462,27 +462,25 @@ public class RendererConfiguration {
 			}
 		}
 
-        charMap = new HashMap<>();
-        String ch = getString(CHARMAP, null);
-        if (StringUtils.isNotBlank(ch)) {
-            StringTokenizer st = new StringTokenizer(ch, " ");
-            String org = "";
+		charMap = new HashMap<>();
+		String ch = getString(CHARMAP, null);
+		if (StringUtils.isNotBlank(ch)) {
+			StringTokenizer st = new StringTokenizer(ch, " ");
+			String org = "";
 
-            while (st.hasMoreTokens()) {
-                String tok = st.nextToken().trim();
-                if(StringUtils.isBlank(tok)) {
-                    continue;
-                }
-                if(StringUtils.isBlank(org)) {
-                    org = tok;
-                }
-                else {
-                    charMap.put(org, tok);
-                    org = "";
-                }
-            }
-        }
-
+			while (st.hasMoreTokens()) {
+				String tok = st.nextToken().trim();
+				if (StringUtils.isBlank(tok)) {
+					continue;
+				}
+				if (StringUtils.isBlank(org)) {
+					org = tok;
+				} else {
+					charMap.put(org, tok);
+					org = "";
+				}
+			}
+		}
 
 		DLNAPN = new HashMap<>();
 		String DLNAPNchanges = getString(DLNA_PN_CHANGES, null);
@@ -609,7 +607,7 @@ public class RendererConfiguration {
 	 * type. This translation takes into account all configured "Supported"
 	 * lines and mime type aliases for this renderer.
 	 * 
-	 * @param matchedMimeType
+	 * @param mimeType
 	 *            The mime type to look up. Special values are
 	 *            <code>HTTPResource.VIDEO_TRANSCODE</code> and
 	 *            <code>HTTPResource.AUDIO_TRANSCODE</code>, which will be
@@ -1191,6 +1189,7 @@ public class RendererConfiguration {
 				LOGGER.debug("{}: TextWrap width:{} height:{} indent:{} whitespace:{} date:{}", getRendererName(), line_w, line_h, indent, ws, dc_date ? "1" : "0");
 			}
 		}
+
 		// Wrap text if applicable
 		if (line_w > 0 && name.length() > line_w) {
 			int i = dlna.isFolder() ? 0 : indent;
@@ -1198,9 +1197,9 @@ public class RendererConfiguration {
 			String tail = name.substring(i);
 			name = head + WordUtils.wrap(tail, line_w - i, "\n" + (dlna.isFolder() ? "" : inset), true);
 		}
-        for(String s : charMap.keySet()) {
-            name =  name.replaceAll(s, charMap.get(s));
-        }
+		for (String s : charMap.keySet()) {
+			name = name.replaceAll(s, charMap.get(s));
+		}
 		return name;
 	}
 
@@ -1211,7 +1210,7 @@ public class RendererConfiguration {
 	public static int getIntAt(String s, String key, int fallback) {
 		try {
 			return Integer.valueOf((s + " ").split(key)[1].split("\\D")[0]);
-		} catch (Exception e) {
+		} catch (NumberFormatException e) {
 			return fallback;
 		}
 	}

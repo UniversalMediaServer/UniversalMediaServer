@@ -117,6 +117,7 @@ public class FFMpegVideo extends Player {
 	 * @param params 
 	 * @return a {@link List} of <code>String</code>s representing the rescale options for this video,
 	 * or an empty list if the video doesn't need to be resized.
+	 * @throws java.io.IOException
 	 */
 	public List<String> getVideoFilterOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
 		List<String> videoFilterOptions = new ArrayList<>();
@@ -967,7 +968,6 @@ public class FFMpegVideo extends Player {
 				String tmp = str.substring(1, pos);
 				cmdList.add(tmp.trim());
 				str = str.substring(pos + 1);
-				continue;
 			} else {
 				// New arg, find space
 				int pos = str.indexOf(" ");
@@ -979,7 +979,6 @@ public class FFMpegVideo extends Player {
 				String tmp = str.substring(0, pos);
 				cmdList.add(tmp.trim());
 				str = str.substring(pos + 1);
-				continue;
 			}
 		}
 		return cmdList;
@@ -1007,7 +1006,7 @@ public class FFMpegVideo extends Player {
 			subsPath.mkdirs();
 		}
 
-		boolean applyFotntConfig = configuration.isFFmpegFontConfig();
+		boolean applyFontConfig = configuration.isFFmpegFontConfig();
 		boolean isEmbeddedSource = params.sid.getId() < 100;
 
 		String filename = isEmbeddedSource ?
@@ -1026,22 +1025,40 @@ public class FFMpegVideo extends Player {
 			modId = filename.hashCode();
 		}
 
-		File convertedSubs = applyFotntConfig ?
-				new File(subsPath.getAbsolutePath() + File.separator 
-						+ basename + "_ID" + params.sid.getId() + "_" + modId + ".ass") : 
-				new File(subsPath.getAbsolutePath() + File.separator 
-						+ modId + "_" + params.sid.getExternalFile().getName());
+		File convertedSubs;
+		if (applyFontConfig) {
+			convertedSubs = new File(subsPath.getAbsolutePath() + File.separator + basename + "_ID" + params.sid.getId() + "_" + modId + ".ass");
+		} else {
+			convertedSubs = new File(subsPath.getAbsolutePath() + File.separator + modId + "_" + params.sid.getExternalFile().getName());
+		}
 
 		if (convertedSubs.canRead()) {
 			// subs are already converted
 			return convertedSubs; 
 		}
 
-		boolean isExternalAss = params.sid.getType() == SubtitleType.ASS &&
-			params.sid.isExternal() && !isEmbeddedSource;
+		boolean isExternalAss = false;
+		if (
+			params.sid.getType() == SubtitleType.ASS &&
+			params.sid.isExternal() &&
+			!isEmbeddedSource
+		) {
+			isExternalAss = true;
+		}
 
-		File tempSubs = (isExternalAss || (!applyFotntConfig && params.sid.getType() == SubtitleType.SUBRIP)) ?
-			params.sid.getExternalFile() : convertSubsToAss(filename, media, params);
+		File tempSubs;
+		if (
+			isExternalAss ||
+			(
+				!applyFontConfig &&
+				params.sid.getType() == SubtitleType.SUBRIP
+			)
+		) {
+			tempSubs = params.sid.getExternalFile();
+		} else {
+			tempSubs = convertSubsToAss(filename, media, params);
+		}
+
 		if (tempSubs == null) {
 			return null;
 		}
@@ -1054,7 +1071,7 @@ public class FFMpegVideo extends Player {
 		}
 
 		// Now we're sure we actually have our own modifiable file
-		if (applyFotntConfig) {
+		if (applyFontConfig) {
 			try {
 				tempSubs = applyFontconfigToASSTempSubsFile(tempSubs, media);
 			} catch (IOException e) {
@@ -1214,7 +1231,6 @@ public class FFMpegVideo extends Player {
 
 						if (format[i].contains("MarginV")) {
 							params[i] = configuration.getAssMargin();
-							continue;
 						}
 					}
 
@@ -1240,6 +1256,8 @@ public class FFMpegVideo extends Player {
 	 *     1) configuration.isDisableSubtitles()
 	 *     2) params.sid == null
 	 *     3) avisynth()
+	 * @param params
+	 * @return 
 	 */
 	public boolean isDisableSubtitles(OutputParams params) {
 		return configuration.isDisableSubtitles() || (params.sid == null) || avisynth();
@@ -1247,6 +1265,7 @@ public class FFMpegVideo extends Player {
 
 	/**
 	 * {@inheritDoc}
+	 * @return 
 	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
