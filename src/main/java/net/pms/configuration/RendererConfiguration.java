@@ -43,6 +43,7 @@ public class RendererConfiguration {
 
 	// Holds MIME type aliases
 	private final Map<String, String> mimes;
+    private final Map<String, String> charMap;
 
 	private final Map<String, String> DLNAPN;
 
@@ -109,6 +110,7 @@ public class RendererConfiguration {
 	private static final String CUSTOM_FFMPEG_OPTIONS = "CustomFFmpegOptions";
 	private static final String OVERRIDE_VF = "OverrideVideoFilter";
 	private static final String TEXTWRAP = "TextWrap";
+    private static final String CHARMAP = "CharMap";
 
 	public static RendererConfiguration getDefaultConf() {
 		return defaultConf;
@@ -459,6 +461,28 @@ public class RendererConfiguration {
 				}
 			}
 		}
+
+        charMap = new HashMap<>();
+        String ch = getString(CHARMAP, null);
+        if (StringUtils.isNotBlank(ch)) {
+            StringTokenizer st = new StringTokenizer(ch, " ");
+            String org = "";
+
+            while (st.hasMoreTokens()) {
+                String tok = st.nextToken().trim();
+                if(StringUtils.isBlank(tok)) {
+                    continue;
+                }
+                if(StringUtils.isBlank(org)) {
+                    org = tok;
+                }
+                else {
+                    charMap.put(org, tok);
+                    org = "";
+                }
+            }
+        }
+
 
 		DLNAPN = new HashMap<>();
 		String DLNAPNchanges = getString(DLNA_PN_CHANGES, null);
@@ -1172,8 +1196,11 @@ public class RendererConfiguration {
 			int i = dlna.isFolder() ? 0 : indent;
 			String head = name.substring(0, i + (Character.isSpace(name.charAt(i)) ? 1 : 0));
 			String tail = name.substring(i);
-			return head + WordUtils.wrap(tail, line_w - i, "\n" + (dlna.isFolder() ? "" : inset), true);
+			name = head + WordUtils.wrap(tail, line_w - i, "\n" + (dlna.isFolder() ? "" : inset), true);
 		}
+        for(String s : charMap.keySet()) {
+            name =  name.replaceAll(s, charMap.get(s));
+        }
 		return name;
 	}
 
