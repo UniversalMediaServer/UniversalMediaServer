@@ -2,17 +2,12 @@ package net.pms.configuration;
 
 import java.io.File;
 import net.pms.util.PropertiesUtil;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 class WindowsDefaultPaths implements ProgramPaths {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WindowsDefaultPaths.class);
-
-	@Override
-	public String getEac3toPath() {
-		return getBinariesPath() + "win32/eac3to/eac3to.exe";
-	}
 
 	@Override
 	public String getFfmpegPath() {
@@ -47,11 +42,6 @@ class WindowsDefaultPaths implements ProgramPaths {
 	@Override
 	public String getDCRaw() {
 		return getBinariesPath() + "win32/dcrawMS.exe";
-	}
-
-	@Override
-	public String getIMConvertPath() {
-		return getBinariesPath() + "win32/convert.exe";
 	}
 
 	@Override

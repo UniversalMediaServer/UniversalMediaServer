@@ -55,7 +55,7 @@ import net.pms.util.FileUtil;
 import net.pms.util.FormLayoutUtil;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,8 +81,8 @@ public class PluginTab {
 
 		FormLayout layout = new FormLayout(colSpec, ROW_SPEC);
 		PanelBuilder builder = new PanelBuilder(layout);
-		builder.setBorder(Borders.DLU4_BORDER);
-		builder.setOpaque(true);
+		builder.border(Borders.DLU4);
+		builder.opaque(true);
 
 		CellConstraints cc = new CellConstraints();
 

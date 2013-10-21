@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Timer;
 import java.util.TimerTask;
 import net.pms.Messages;
@@ -717,7 +718,16 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 		}
 
 		if (mb >= endOF - len) {
-			System.arraycopy(buffer, mb, buf, off, endOF - mb - cut);
+			try {
+				System.arraycopy(buffer, mb, buf, off, endOF - mb - cut);
+			} catch (ArrayIndexOutOfBoundsException e) {
+				LOGGER.trace("Something went wrong with the buffer, error: " + e);
+				LOGGER.trace("buffer: " + Arrays.toString(buffer));
+				LOGGER.trace("mb: " + mb);
+				LOGGER.trace("buf: " + Arrays.toString(buf));
+				LOGGER.trace("off: " + off);
+				LOGGER.trace("endOF - mb - cut: " + (endOF - mb - cut));
+			}
 			return endOF - mb;
 		} else {
 			System.arraycopy(buffer, mb, buf, off, len - cut);

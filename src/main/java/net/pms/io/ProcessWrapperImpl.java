@@ -25,6 +25,8 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import net.pms.PMS;
 import net.pms.encoders.AviDemuxerInputStream;
 import net.pms.util.ProcessUtil;
@@ -141,7 +143,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			if (params.env != null && !params.env.isEmpty()) {
 				// Actual name of system path var is case-sensitive
 
-				String sysPathKey = PMS.get().isWindows() ? "Path" : "PATH";
+				String sysPathKey = Platform.isWindows() ? "Path" : "PATH";
 				// As is Map
 				String PATH = params.env.containsKey("PATH") ? params.env.get("PATH") :
 					params.env.containsKey("path") ? params.env.get("path") :
@@ -155,7 +157,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 				}
 			}
 
-			// Fontconfig on Mac OSX may have problems locating fonts. As a result
+			// Fontconfig on Mac OS X may have problems locating fonts. As a result
 			// subtitles may be rendered invisible. Force feed fontconfig the
 			// FONTCONFIG_PATH environment variable to the prepackaged fontconfig
 			// configuration directory that comes with UMS on Mac OS X to make
@@ -181,7 +183,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 
 			stderrConsumer = keepStderr
 				? new OutputTextConsumer(process.getErrorStream(), true)
-				: new OutputTextLogger(process.getErrorStream());
+				: new OutputTextLogger(process.getErrorStream(), this);
 			stderrConsumer.start();
 			stdoutConsumer = null;
 
@@ -199,11 +201,11 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 					bo = stdoutConsumer.getBuffer();
 				}
 				bo.attachThread(this);
-				new OutputTextLogger(process.getInputStream()).start();
+				new OutputTextLogger(process.getInputStream(), this).start();
 			} else if (params.log) {
 				stdoutConsumer = keepStdout
 					? new OutputTextConsumer(process.getInputStream(), true)
-					: new OutputTextLogger(process.getInputStream());
+					: new OutputTextLogger(process.getInputStream(), this);
 			} else {
 				stdoutConsumer = new OutputBufferConsumer(process.getInputStream(), params);
 				bo = stdoutConsumer.getBuffer();
@@ -289,6 +291,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 	 * method name.
 	 * @see #runInNewThread()
 	 */
+	@Override
 	public void runInSameThread() {
 		this.run();
 	}
@@ -366,5 +369,20 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			LOGGER.trace("Ready to Stop: " + nullable);
 		}
 		this.nullable = nullable;
+	}
+
+	private String duration;
+
+	public void pubackDuration(String s) {
+		// match 'Duration: 00:17:17.00' but not 'Duration: N/A'
+		Pattern re = Pattern.compile("Duration:\\s+([\\d:.]+),");
+		Matcher m = re.matcher(s);
+		if (m.find()) {
+			duration = m.group(1);
+		}
+	}
+
+	public String getDuration() {
+		return duration;
 	}
 }

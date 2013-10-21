@@ -20,7 +20,6 @@
 package net.pms.configuration;
 
 import ch.qos.logback.classic.LoggerContext;
-import java.io.IOException;
 import java.util.*;
 import java.util.Map.Entry;
 import static net.pms.configuration.RendererConfiguration.*;
@@ -135,7 +134,7 @@ public class RendererConfigurationTest {
 
 		try {
 			pmsConf = new PmsConfiguration(false);
-		} catch (IOException | ConfigurationException e) {
+		} catch (ConfigurationException e) {
 			// This should be impossible since no configuration file will be loaded.
 		}
 
@@ -161,21 +160,21 @@ public class RendererConfigurationTest {
 
 		try {
 			pmsConf = new PmsConfiguration(false);
-		} catch (IOException | ConfigurationException e) {
+
+			// Set default to PlayStation 3
+			pmsConf.setRendererDefault("PlayStation 3");
+			pmsConf.setRendererForceDefault(true);
+
+			// Initialize the RendererConfiguration
+			loadRendererConfigurations(pmsConf);
+
+			// Known and unknown renderers should always return default
+			testHeader("User-Agent: AirPlayer/1.0.09 CFNetwork/485.13.9 Darwin/11.0.0", "PlayStation 3");
+			testHeader("User-Agent: Unknown Renderer", "PlayStation 3");
+			testHeader("X-Unknown-Header: Unknown Content", "PlayStation 3");
+		} catch (ConfigurationException e) {
 			// This should be impossible since no configuration file will be loaded.
 		}
-
-		// Set default to PlayStation 3
-		pmsConf.setRendererDefault("PlayStation 3");
-		pmsConf.setRendererForceDefault(true);
-
-		// Initialize the RendererConfiguration
-		loadRendererConfigurations(pmsConf);
-
-		// Known and unknown renderers should always return default
-		testHeader("User-Agent: AirPlayer/1.0.09 CFNetwork/485.13.9 Darwin/11.0.0", "PlayStation 3");
-		testHeader("User-Agent: Unknown Renderer", "PlayStation 3");
-		testHeader("X-Unknown-Header: Unknown Content", "PlayStation 3");
 	}
 
 	/**
@@ -187,21 +186,21 @@ public class RendererConfigurationTest {
 
 		try {
 			pmsConf = new PmsConfiguration(false);
-		} catch (IOException | ConfigurationException e) {
+
+			// Set default to non existent renderer
+			pmsConf.setRendererDefault("Bogus Renderer");
+			pmsConf.setRendererForceDefault(true);
+
+			// Initialize the RendererConfiguration
+			loadRendererConfigurations(pmsConf);
+
+			// Known and unknown renderers should return "Unknown renderer"
+			testHeader("User-Agent: AirPlayer/1.0.09 CFNetwork/485.13.9 Darwin/11.0.0", "Unknown renderer");
+			testHeader("User-Agent: Unknown Renderer", "Unknown renderer");
+			testHeader("X-Unknown-Header: Unknown Content", "Unknown renderer");
+		} catch (ConfigurationException e) {
 			// This should be impossible since no configuration file will be loaded.
 		}
-
-		// Set default to non existent renderer
-		pmsConf.setRendererDefault("Bogus Renderer");
-		pmsConf.setRendererForceDefault(true);
-
-		// Initialize the RendererConfiguration
-		loadRendererConfigurations(pmsConf);
-
-		// Known and unknown renderers should return "Unknown renderer"
-		testHeader("User-Agent: AirPlayer/1.0.09 CFNetwork/485.13.9 Darwin/11.0.0", "Unknown renderer");
-		testHeader("User-Agent: Unknown Renderer", "Unknown renderer");
-		testHeader("X-Unknown-Header: Unknown Content", "Unknown renderer");
 	}
 
 	/**

@@ -26,12 +26,17 @@ import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
+import net.pms.util.PlayerUtil;
 
 public class TsMuxeRAudio extends TsMuxeRVideo {
 	public static final String ID = "tsmuxeraudio";
 
+	@Deprecated
 	public TsMuxeRAudio(PmsConfiguration configuration) {
 		super(configuration);
+	}
+
+	public TsMuxeRAudio() {
 	}
 
 	@Override
@@ -51,13 +56,12 @@ public class TsMuxeRAudio extends TsMuxeRVideo {
 
 	@Override
 	public ProcessWrapper launchTranscode(
-		String fileName,
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params) throws IOException {
 		params.timeend = media.getDurationInSeconds();
 		params.waitbeforestart = 2500;
-		return super.launchTranscode(fileName, dlna, media, params);
+		return super.launchTranscode(dlna, media, params);
 	}
 
 	@Override
@@ -80,20 +84,6 @@ public class TsMuxeRAudio extends TsMuxeRVideo {
 	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		if (resource == null || resource.getFormat().getType() != Format.VIDEO) {
-			return false;
-		}
-
-		Format format = resource.getFormat();
-
-		if (format != null) {
-			Format.Identifier id = format.getIdentifier();
-
-			if (id.equals(Format.Identifier.AUDIO_AS_VIDEO)) {
-				return true;
-			}
-		}
-
-		return false;
+		return PlayerUtil.isVideo(resource, Format.Identifier.AUDIO_AS_VIDEO);
 	}
 }

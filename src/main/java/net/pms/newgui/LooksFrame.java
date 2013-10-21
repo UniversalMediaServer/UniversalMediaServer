@@ -35,12 +35,13 @@ import java.util.Observer;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.plaf.metal.DefaultMetalTheme;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.gui.IFrame;
 import net.pms.io.WindowsNamedPipe;
 import net.pms.newgui.update.AutoUpdateDialog;
 import net.pms.update.AutoUpdater;
@@ -55,25 +56,44 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	private final PmsConfiguration configuration;
 	public static final String START_SERVICE = "start.service";
 	private static final long serialVersionUID = 8723727186288427690L;
-	private NavigationShareTab ft;
-	private StatusTab st;
-	private TracesTab tt;
-	private TranscodingTab tr;
-	private GeneralTab nt;
-	private PluginTab pt;
-	private AbstractButton reload;
-	private JLabel status;
 	protected static final Dimension PREFERRED_SIZE = new Dimension(1000, 750);
 	// https://code.google.com/p/ps3mediaserver/issues/detail?id=949
 	protected static final Dimension MINIMUM_SIZE = new Dimension(800, 480);
+
+	/**
+	 * List of context sensitive help pages URLs. These URLs should be
+	 * relative to the documentation directory and in the same order as the
+	 * tabs. The value <code>null</code> means "don't care", activating the
+	 * tab will not change the help page.
+	 */
+	protected static final String[] HELP_PAGES = {
+		"index.html",
+		null,
+		"general_configuration.html",
+		null,
+		"navigation_share.html",
+		"transcoding.html",
+		null,
+		null
+	};
+
+	private NavigationShareTab nt;
+	private StatusTab st;
+	private TracesTab tt;
+	private TranscodingTab tr;
+	private GeneralTab gt;
+	private HelpTab ht;
+	private PluginTab pt;
+	private AbstractButton reload;
+	private JLabel status;
 	private static boolean lookAndFeelInitialized = false;
 
 	public TracesTab getTt() {
 		return tt;
 	}
 
-	public NavigationShareTab getFt() {
-		return ft;
+	public NavigationShareTab getNt() {
+		return nt;
 	}
 
 	public TranscodingTab getTr() {
@@ -81,7 +101,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	public GeneralTab getGt() {
-		return nt;
+		return gt;
 	}
 
 	public PluginTab getPt() {
@@ -232,31 +252,35 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		JComponent jp = buildContent();
 		String showScrollbars = System.getProperty("scrollbars", "").toLowerCase();
 
-		/*
-		 * handle scrollbars:
+		/**
+		 * Handle scrollbars:
 		 *
 		 * 1) forced scrollbars (-Dscrollbars=true): always display them
 		 * 2) optional scrollbars (-Dscrollbars=optional): display them as needed
 		 * 3) otherwise (default): don't display them
 		 */
-		if (showScrollbars.equals("true")) {
-			setContentPane(
-				new JScrollPane(
-					jp,
-					ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
-					ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS
-				)
-			);
-		} else if (showScrollbars.equals("optional")) {
-			setContentPane(
-				new JScrollPane(
-					jp,
-					ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-					ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
-				)
-			);
-		} else {
-			setContentPane(jp);
+		switch (showScrollbars) {
+			case "true":
+				setContentPane(
+					new JScrollPane(
+						jp,
+						ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
+						ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS
+					)
+				);
+				break;
+			case "optional":
+				setContentPane(
+					new JScrollPane(
+						jp,
+						ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+						ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
+					)
+				);
+				break;
+			default:
+				setContentPane(jp);
+				break;
 		}
 
 		String projectName = PropertiesUtil.getProjectProperties().get("project.name");
@@ -284,6 +308,10 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			setSize(PREFERRED_SIZE);
 		}
 
+		// Display tooltips immediately and for a long time
+		ToolTipManager.sharedInstance().setInitialDelay(0);
+		ToolTipManager.sharedInstance().setDismissDelay(60000);
+
 		setResizable(true);
 		Dimension paneSize = getSize();
 		setLocation(
@@ -308,7 +336,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		toolBar.setRollover(true);
 
 		toolBar.add(new JPanel());
-		AbstractButton save = createToolBarButton(Messages.getString("LooksFrame.9"), "button-save.png", Messages.getString("LooksFrame.9"));
+		AbstractButton save = createToolBarButton(Messages.getString("LooksFrame.9"), "button-save.png");
 		save.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -317,16 +345,17 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		});
 		toolBar.add(save);
 		toolBar.addSeparator();
-		reload = createToolBarButton(Messages.getString("LooksFrame.12"), "button-restart.png", Messages.getString("LooksFrame.12"));
+		reload = createToolBarButton(Messages.getString("LooksFrame.12"), "button-restart.png");
 		reload.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				PMS.get().reset();
 			}
 		});
+		reload.setToolTipText(Messages.getString("LooksFrame.28"));
 		toolBar.add(reload);
 		toolBar.addSeparator();
-		AbstractButton quit = createToolBarButton(Messages.getString("LooksFrame.5"), "button-quit.png", Messages.getString("LooksFrame.5"));
+		AbstractButton quit = createToolBarButton(Messages.getString("LooksFrame.5"), "button-quit.png");
 		quit.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -359,25 +388,40 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	public JComponent buildMain() {
-		JTabbedPane tabbedPane = new JTabbedPane(SwingConstants.TOP);
+		final JTabbedPane tabbedPane = new JTabbedPane(SwingConstants.TOP);
 
 		tabbedPane.setUI(new CustomTabbedPaneUI());
 
 		st = new StatusTab(configuration);
 		tt = new TracesTab(configuration);
-		tr = new TranscodingTab(configuration);
-		nt = new GeneralTab(configuration);
-		ft = new NavigationShareTab(configuration);
+		gt = new GeneralTab(configuration);
 		pt = new PluginTab(configuration);
+		nt = new NavigationShareTab(configuration);		
+		tr = new TranscodingTab(configuration);
+		ht = new HelpTab();
 
 		tabbedPane.addTab(Messages.getString("LooksFrame.18"), st.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.19"), tt.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.20"), nt.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.20"), gt.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.27"), pt.build());
-		tabbedPane.addTab(Messages.getString("LooksFrame.22"), ft.build());
+		tabbedPane.addTab(Messages.getString("LooksFrame.22"), nt.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.21"), tr.build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.24"), new HelpTab().build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.25"), new AboutTab().build());
+
+		tabbedPane.addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				int selectedIndex = tabbedPane.getSelectedIndex();
+
+				if (HELP_PAGES[selectedIndex] != null) {
+					PMS.setHelpPage(HELP_PAGES[selectedIndex]);
+
+					// Update the contents of the help tab itself
+					ht.updateContents();
+				}
+			}
+		});
 
 		tabbedPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 
@@ -391,6 +435,13 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		tabbedPane.setComponentOrientation(orientation);
 
 		return tabbedPane;
+	}
+
+	protected AbstractButton createToolBarButton(String text, String iconName) {
+		CustomJButton button = new CustomJButton(text, readImageIcon(iconName));
+		button.setFocusable(false);
+		button.setBorderPainted(false);
+		return button;
 	}
 
 	protected AbstractButton createToolBarButton(String text, String iconName, String toolTipText) {
@@ -457,7 +508,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 			reload.setToolTipText(Messages.getString("LooksFrame.13"));
 		} else {
 			reload.setIcon(readImageIcon("button-restart.png"));
-			reload.setToolTipText(Messages.getString("LooksFrame.12"));
+			reload.setToolTipText(Messages.getString("LooksFrame.28"));
 		}
 	}
 
@@ -503,12 +554,12 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 	@Override
 	public void serverReady() {
-		nt.addRenderers();
+		gt.addRenderers();
 		pt.addPlugins();
 	}
 
 	@Override
 	public void setScanLibraryEnabled(boolean flag) {
-		getFt().setScanLibraryEnabled(flag);
+		getNt().setScanLibraryEnabled(flag);
 	}
 }

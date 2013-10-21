@@ -18,6 +18,7 @@
  */
 package net.pms.encoders;
 
+import com.sun.jna.Platform;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,22 +31,21 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
-import net.pms.formats.Format;
-import net.pms.formats.FormatFactory;
-import net.pms.formats.WEB;
+import net.pms.external.ExternalFactory;
+import net.pms.external.URLResolver.URLResult;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
+import net.pms.util.PlayerUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class FFmpegWebVideo extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegWebVideo.class);
-	private final PmsConfiguration configuration;
 	private static List<String> protocols;
 	public static PatternMap<Object> excludes = new PatternMap<>();
 
@@ -85,9 +85,9 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		return false;
 	}
 
+	@Deprecated
 	public FFmpegWebVideo(PmsConfiguration configuration) {
 		super(configuration);
-		this.configuration = configuration;
 		
 		if (!init) {
 			readWebFilters(configuration.getProfileDirectory() + File.separator + "ffmpeg.webfilters");
@@ -95,28 +95,27 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			protocols = FFmpegOptions.getSupportedProtocols(configuration);
 			// see XXX workaround below
 			protocols.add("mms");
+			protocols.add("https");
 			LOGGER.debug("FFmpeg supported protocols: " + protocols);
+			init = true;
+		}
+	}
+	
+	public FFmpegWebVideo() {
+		if (!init) {
+			readWebFilters(configuration.getProfileDirectory() + File.separator + "ffmpeg.webfilters");
 
-			// Register protocols as a WEB format
-			final String[] ffmpegProtocols = protocols.toArray(new String[0]);
-			FormatFactory.getExtensions().add(0, new WEB() {
-				@Override
-				public String[] getId() {
-					return ffmpegProtocols;
-				}
-
-				@Override
-				public String toString() {
-					return "FFMPEG.WEB";
-				}
-			});
+			protocols = FFmpegOptions.getSupportedProtocols(configuration);
+			// see XXX workaround below
+			protocols.add("mms");
+			protocols.add("https");
+			LOGGER.debug("FFmpeg supported protocols: " + protocols);
 			init = true;
 		}
 	}
 
 	@Override
-	public ProcessWrapper launchTranscode(
-		String fileName,
+	public synchronized ProcessWrapper launchTranscode(
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params
@@ -124,24 +123,26 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		params.minBufferSize = params.minFileSize;
 		params.secondread_minsize = 100000;
 		RendererConfiguration renderer = params.mediaRenderer;
+		String filename = dlna.getSystemName();
+		setAudioAndSubs(filename, media, params);
 
 		// XXX work around an ffmpeg bug: http://ffmpeg.org/trac/ffmpeg/ticket/998
-		if (fileName.startsWith("mms:")) {
-			fileName = "mmsh:" + fileName.substring(4);
+		if (filename.startsWith("mms:")) {
+			filename = "mmsh:" + filename.substring(4);
 		}
 
 		// check if we have modifier for this url
-		String r = replacements.match(fileName);
+		String r = replacements.match(filename);
 		if (r != null) {
-			fileName = fileName.replaceAll(r, replacements.get(r));
-			LOGGER.debug("modified url: " + fileName);
+			filename = filename.replaceAll(r, replacements.get(r));
+			LOGGER.debug("modified url: " + filename);
 		}
 
 		FFmpegOptions customOptions = new FFmpegOptions();
 
 		// Gather custom options from various sources in ascending priority:
 		// - automatic options
-		String match = autoOptions.match(fileName);
+		String match = autoOptions.match(filename);
 		if (match != null) {
 			List<String> opts = autoOptions.get(match);
 			if (opts != null) {
@@ -175,14 +176,39 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		PipeProcess pipe = new PipeProcess(fifoName);
 		pipe.deleteLater(); // delete the named pipe later; harmless if it isn't created
 		ProcessWrapper mkfifo_process = pipe.getPipeProcess();
-		// start the process as early as possible
-		mkfifo_process.runInNewThread();
+
+		/**
+		 * It can take a long time for Windows to create a named pipe (and
+		 * mkfifo can be slow if /tmp isn't memory-mapped), so run this in
+		 * the current thread.
+		 */
+		mkfifo_process.runInSameThread();
 
 		params.input_pipes[0] = pipe;
-		int nThreads = configuration.getNumberOfCpuCores();
 
-		// build the command line
+		// Build the command line
 		List<String> cmdList = new ArrayList<>();
+		if (!dlna.isURLResolved()) {
+			URLResult r1 = ExternalFactory.resolveURL(filename);
+			if (r1 != null) {
+				if (r1.precoder != null) {
+					filename = "-";
+					if (Platform.isWindows()) {
+						cmdList.add("cmd.exe");
+						cmdList.add("/C");
+					}
+					cmdList.addAll(r1.precoder);
+					cmdList.add("|");
+				} else {
+					if (StringUtils.isNotEmpty(r1.url)) {
+						filename = r1.url;
+					}
+				}
+				if (r1.args != null && r1.args.size() > 0) {
+					customOptions.addAll(r1.args);
+				}
+			}
+		}
 
 		cmdList.add(executable());
 
@@ -191,9 +217,16 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		cmdList.add("-y");
 
 		cmdList.add("-loglevel");
-		cmdList.add("warning");
+		
+		if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
+			cmdList.add("info"); // Could be changed to "verbose" or "debug" if "info" level is not enough
+		} else {
+			cmdList.add("warning");
+		}
 
-		// decoder threads
+		int nThreads = configuration.getNumberOfCpuCores();
+
+		// Decoder threads
 		cmdList.add("-threads");
 		cmdList.add("" + nThreads);
 
@@ -203,23 +236,28 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			customOptions.transferInputFileOptions(cmdList);
 		}
 
-		cmdList.add("-i");
-		cmdList.add(fileName);
+		if (params.timeseek > 0) {
+			cmdList.add("-ss");
+			cmdList.add("" + (int) params.timeseek);
+		}
 
-		cmdList.addAll(getVideoFilterOptions(renderer, media, params));
+		cmdList.add("-i");
+		cmdList.add(filename);
+
+		cmdList.addAll(getVideoFilterOptions(dlna, media, params));
 
 		// Encoder threads
 		cmdList.add("-threads");
 		cmdList.add("" + nThreads);
 
-		// Add the output options (-f, -acodec, -vcodec)
-		cmdList.addAll(getTranscodeVideoOptions(renderer, media, params, null));
+		// Add the output options (-f, -c:a, -c:v, etc.)
+		cmdList.addAll(getVideoTranscodeOptions(dlna, media, params));
 
 		// Add video bitrate options
-		cmdList.addAll(getVideoBitrateOptions(renderer, media));
+		cmdList.addAll(getVideoBitrateOptions(dlna, media, params));
 
 		// Add audio bitrate options
-		cmdList.addAll(getAudioBitrateOptions(renderer, media));
+		cmdList.addAll(getAudioBitrateOptions(dlna, media, params));
 
 		// Add any remaining custom options
 		if (!customOptions.isEmpty()) {
@@ -235,7 +273,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 		// Hook to allow plugins to customize this command line
 		cmdArray = finalizeTranscoderArgs(
-			fileName,
+			filename,
 			dlna,
 			media,
 			params,
@@ -282,20 +320,9 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		if (resource == null || resource.getFormat().getType() != Format.VIDEO) {
-			return false;
-		}
-
-		Format format = resource.getFormat();
-
-		if (format != null) {
-			Format.Identifier id = format.getIdentifier();
-
-			if (id.equals(Format.Identifier.WEB)) {
-				String url = resource.getSystemName();
-				return protocols.contains(url.split(":")[0])
-					&& excludes.match(url) == null;
-			}
+		if (PlayerUtil.isWebVideo(resource)) {
+			String url = resource.getSystemName();
+			return protocols.contains(url.split(":")[0]) && excludes.match(url) == null;
 		}
 
 		return false;

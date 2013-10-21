@@ -20,7 +20,7 @@ package net.pms.formats.v2;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import static org.apache.commons.lang.StringUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +36,7 @@ public class AudioProperties {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AudioProperties.class);
 
 	private static final Pattern intPattern = Pattern.compile("([\\+-]?\\d+)([eE][\\+-]?\\d+)?");
-	private static final Pattern floatPattern = Pattern.compile("([\\+-]?\\d(\\.\\d*)?|\\.\\d+)([eE][\\+-]?(\\d(\\.\\d*)?|\\.\\d+))?");
+//	private static final Pattern floatPattern = Pattern.compile("([\\+-]?\\d(\\.\\d*)?|\\.\\d+)([eE][\\+-]?(\\d(\\.\\d*)?|\\.\\d+))?");
 
 	private int numberOfChannels = 2;
 	private int audioDelay = 0;

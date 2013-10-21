@@ -51,6 +51,8 @@ import org.slf4j.LoggerFactory;
 public class TracesTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TracesTab.class);
 	private PmsConfiguration configuration;
+	private JTextArea jList;
+	protected JScrollPane jListPane;
 
 	class PopupTriggerMouseListener extends MouseAdapter {
 		private JPopupMenu popup;
@@ -82,9 +84,6 @@ public class TracesTab {
 		}
 	}
 
-	private JTextArea jList;
-	protected JScrollPane jListPane;
-
 	TracesTab(PmsConfiguration configuration) {
 		this.configuration = configuration;
 	}
@@ -104,7 +103,7 @@ public class TracesTab {
 		// If scrollbar was already at the bottom we schedule a new
 		// scroll event to scroll to the bottom again
 		if (vbar.getMaximum() == vbar.getValue() + vbar.getVisibleAmount()) {
-			EventQueue.invokeLater (new Runnable() {
+			EventQueue.invokeLater(new Runnable() {
 				@Override
 				public void run() {
 					vbar.setValue(vbar.getMaximum());
@@ -126,7 +125,7 @@ public class TracesTab {
 			"fill:10:grow, p"
 		);
 		PanelBuilder builder = new PanelBuilder(layout);
-		builder.setOpaque(true);
+		builder.opaque(true);
 
 		CellConstraints cc = new CellConstraints();
 

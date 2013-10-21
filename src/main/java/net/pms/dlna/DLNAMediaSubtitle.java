@@ -43,6 +43,9 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	private File externalFile;
 	private String externalFileCharacterSet;
 
+	private String liveSubURL;
+	private String liveSubFile;
+
 	/**
 	 * Returns whether or not the subtitles are embedded.
 	 *
@@ -65,14 +68,25 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 
 	@Override
 	public String toString() {
-		return "DLNAMediaSubtitle{" +
-				"id=" + getId() +
-				", type=" + type +
-				", flavor='" + flavor + '\'' +
-				", lang='" + getLang() + '\'' +
-				", externalFile=" + externalFile +
-				", externalFileCharacterSet='" + externalFileCharacterSet + '\'' +
-				'}';
+		StringBuilder result = new StringBuilder();
+		result.append("id: ");
+		result.append(getId());
+		result.append(", type: ");
+		result.append(type);
+		result.append(", flavor: ");
+		result.append(flavor);
+		result.append(", lang: ");
+		result.append(getLang());
+
+		if (externalFile != null) {
+			result.append(", externalFile: ");
+			result.append(externalFile.toString());
+		}
+
+		result.append(", externalFileCharacterSet: ");
+		result.append(externalFileCharacterSet);
+
+		return result.toString();
 	}
 
 	/**
@@ -190,5 +204,22 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	 */
 	public boolean isExternalFileUtf() {
 		return (isExternalFileUtf8() || isExternalFileUtf16() || isExternalFileUtf32());
+	}
+
+	public void setLiveSub(String url) {
+		setLiveSub(url, null);
+	}
+
+	public void setLiveSub(String url, String file) {
+		liveSubURL = url;
+		liveSubFile = file;
+	}
+
+	public String getLiveSubURL() {
+		return liveSubURL;
+	}
+
+	public String getLiveSubFile() {
+		return liveSubFile;
 	}
 }

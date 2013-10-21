@@ -23,21 +23,21 @@ import ch.qos.logback.core.encoder.Encoder;
 import ch.qos.logback.core.status.ErrorStatus;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import net.pms.PMS;
-import net.pms.gui.IFrame;
+import java.util.ArrayList;
+import java.util.List;
+import net.pms.newgui.IFrame;
 
 /**
  * Special Logback appender to 'print' log messages on the PMS GUI.
- * 
+ *
  * @author thomas@innot.de
- * 
  */
 public class FrameAppender<E> extends UnsynchronizedAppenderBase<E> {
-	private IFrame frame;
+	static private IFrame frame;
 	private Encoder<E> encoder;
-	private final ByteArrayOutputStream outputstream = new ByteArrayOutputStream(
-		256);
+	private final ByteArrayOutputStream outputStream = new ByteArrayOutputStream(256);
 	private final Object lock = new Object();
+	private final List<String> buffer = new ArrayList<>();
 
 	/**
 	 * Checks that the required parameters are set and if everything is in
@@ -45,26 +45,41 @@ public class FrameAppender<E> extends UnsynchronizedAppenderBase<E> {
 	 */
 	@Override
 	public void start() {
-		int error = 0;
+		boolean error = true;
+
 		if (this.encoder == null) {
-			addStatus(new ErrorStatus(
-				"No encoder set for the appender named \"" + name + "\".",
-				this));
-			error++;
+			addStatus(
+				new ErrorStatus(
+					"No encoder set for the appender named [" + name + "].",
+					this
+				)
+			);
 		} else {
 			try {
-				encoder.init(outputstream);
+				encoder.init(outputStream);
+				error = false;
 			} catch (IOException ioe) {
-				addStatus(new ErrorStatus(
-					"Failed to initialize encoder for appender named ["
-					+ name + "].", this, ioe));
-				error++;
+				addStatus(
+					new ErrorStatus(
+						"Failed to initialize encoder for appender named [" + name + "].",
+						this,
+						ioe
+					)
+				);
 			}
 		}
 
-		if (error == 0) {
+		if (!error) {
 			super.start();
 		}
+	}
+
+	// Callback called by UMS when the GUI (or dummy GUI) has been initialised.
+	// everywhere else in the codebase accesses the frame via PMS.get().getFrame(),
+	// but we can't do that here as UMS is in the process of constructing
+	// the instance that PMS.get() returns when this class is instantiated.
+	public static void setFrame(IFrame iframe) {
+		frame = iframe;
 	}
 
 	/* (non-Javadoc)
@@ -72,32 +87,31 @@ public class FrameAppender<E> extends UnsynchronizedAppenderBase<E> {
 	 */
 	@Override
 	protected void append(E eventObject) {
-
-		if (frame == null) {
-			// TODO: somehow ensure that PMS.get() does not get called before
-			// PMS has been instantiated. Otherwise PMS will be instantiated by
-			// this call and any log messages generated during PMS startup will
-			// be ignored.
-			// Currently the PMS API does not have a method to check if it
-			// has been instantiated.
-
-			frame = PMS.get().getFrame();
-		}
-
 		try {
-			if (frame != null) {
-				synchronized (lock) {
-					this.encoder.doEncode(eventObject);
-					String msg = outputstream.toString("UTF-8");
-					frame.append(msg);
-					outputstream.reset();
-				}
+			// if the frame hasn't been initialized yet,
+			// buffer the messages until it's available
+			synchronized (lock) {
+				this.encoder.doEncode(eventObject);
+				String msg = outputStream.toString("UTF-8");
+				outputStream.reset();
 
+				if (frame == null) {
+					buffer.add(msg);
+				} else {
+					if (!buffer.isEmpty()) {
+						for (String buffered : buffer) { // drain the buffer
+							frame.append(buffered);
+						}
+
+						buffer.clear();
+					}
+
+					frame.append(msg);
+				}
 			}
 		} catch (IOException ioe) {
 			addStatus(new ErrorStatus("IO failure in appender", this, ioe));
 		}
-
 	}
 
 	/**
@@ -110,10 +124,10 @@ public class FrameAppender<E> extends UnsynchronizedAppenderBase<E> {
 
 	/**
 	 * Set the logback Encoder for the appender.
-	 * 
+	 *
 	 * Needs to be called (via the <encoder class="..."> element in the
 	 * logback.xml config file) before the appender can be started.
-	 * 
+	 *
 	 * @param encoder
 	 */
 	public void setEncoder(Encoder<E> encoder) {

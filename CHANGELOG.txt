@@ -1,9 +1,329 @@
-2.5.1 - 2013-03-??
+3.0.0-b2 - 2013-10-??
+
+	General:
+		
+	Renderers:
+		Added support for Samsung mobiles (Galaxy S3, S4, Note, Note 2, and Note 3)
+
+3.0.0-b1 - 2013-10-17
+
+	General:
+		Added the New Media folder, which contains unwatched media
+		Added the Recently Played folder, which contains watched media
+		Added checkboxes to enable/disable renderers
+		Enabled support for cover files in virtual folders (thanks, D-Kalck!)
+		A more helpful error is displayed when something is using the UMS HTTP port
+		Improved calculation of subtitle font size in FFmpeg
+		Expanded filename prettifying
+		Made some custom MEncoder options safer to use
+		Improved file compatibility for mod2 videos
+		Fixed and improved support for virtual folders
+		Fixed conflicts between some renderer config options
+		Fixed tsMuxeR video detection bug
+		Fixed x264 transcoding with MEncoder
+		Fixed a rare startup bug
+		Fixed FFmpeg subtitles bug
+		Fixed a general subtitles bug (thanks, Skeptical!)
+		Fixed several minor bugs
+		Fixed plugin compatibility problems
+	Renderers:
+		Improved DirecTV support
+		Updated DirecTV image
+		Improved PS3 support
+		Enabled text-wrapping for long names on Sony Blu-ray players
+	External Components:
+		Updated H2 Database Engine to 1.3.173
+		Updated Maven Cobertura Plugin to 2.6
+		Updated Maven Doxia Docbook Simple Plugin to 1.4
+		Updated Maven Git Commit ID Plugin to 2.1.5, which:
+			Improves stability
+		Updated Maven IDEA Plugin to 2.2.1
+		Updated Maven Javadoc Plugin to 2.9.1, which:
+			Makes it more threadsafe
+			Improves security
+		Updated Maven Surefire Plugin to 2.16, which:
+			Fixes problems with character encodings
+
+3.0.0-a5 - 2013-09-02
+
+	General:
+		Fixed a startup problem affecting some users
+
+3.0.0-a4 - 2013-09-01
+
+	General:
+		Improved support for iTunes compilations
+		Added support for external subtitles in VLC
+		Expanded and fixed filename prettifying
+		Made video playback more stable
+		Fixed support for non-English iTunes libraries
+		Fixed external ASS/SSA support (Thanks, skeptical!)
+		Fixed FFmpeg muxing on non-PS3 renderers
+		Fixed use of custom Java Heapsize (Thanks, OptimusPrime!)
+		Fixed VLC audio/subtitle language selection
+		Fixed streaming radio timing out after 1:45:32
+		Fixed MEncoder subtitle support when the font name contains a space
+		Run the program in Java's server mode when using 64-bit JRE
+	Renderers:
+		Added support for Bravia W series TVs
+		Improved support for KalemSoft Media Player on BlackBerry PlayBook
+	Languages:
+		Updated French translation
+		Updated Spanish translation (thanks, AlfredoRamos!)
+	External Components:
+		Updated Apache Commons Codec to 1.8
+		Updated Checkstyle to 2.10
+		Updated Cobertura Maven Plugin to 2.5.2
+		Updated FindBugs Maven Plugin to 2.5.2
+		Updated Gson to 2.2.4
+		Updated H2 Database Engine to 1.3.172
+		Updated JBoss APIviz to 1.3.2
+		Updated jgoodies-forms to 1.6.0
+		Updated jgoodies-looks to 2.5.2
+		Updated JUnit to 4.11
+		Updated Logback to 1.0.13
+		Updated Maven Project Info Reports to 2.7
+		Updated Maven Source Plugin to 2.2.1
+		Updated Maven Surefire to 2.15
+		Updated PMD Maven Plugin to 3.0.1
+		Updated slf4j to 1.7.5
+		Updated Thumbnailator to 0.4.5, which:
+			Fixes use of Exif orientation
+		Updated xmlwise to 1.2.11
+
+3.0.0-a3 - 2013-07-12 - Changes since 3.0.0-a2
+
+	General:
+		Fixed folder browsing in 32-bit mode
+	External Components:
+		Updated MediaInfo for Windows to 0.7.64, which:
+			Added HEVC/H.265 in MKV support
+			Added Dolby E support
+			Improved AVI, MKV, MPEG-TS, QuickTime, RMVB, MPEG-4, AAC, AVC, AC-3 and DTS support
+			Faster MPEG-TS analysis
+
+3.0.0-a2 - 2013-07-05 - Changes since 3.0.0-a1
+
+	General:
+		Added manual configuration option (hide_subs_info) to hide subtitle info from filenames while browsing
+		FFmpeg starts faster
+		Improved quality of H.264 transcoding by default
+		Added H.264 transcoding quality option
+		Improved speed of list population
+		VLC video no longer loops
+		Added multithreading support to VLC
+		Audio files are added to the transcode folder
+		Chapter folders are hidden if the video duration is less than the chapter length
+		Improved file compatibility detection for H.264 muxing
+		Renamed a lot of configuration variables
+		Added thumbnail support to Samsung 2012 ES and EH models (thanks, dmitche3!)
+		Removed the obsolete MPlayerAudio, MPlayerWebAudio and MPlayerWebVideoDump engines
+		Fixed startup issue on OS X
+		Fixed RAW image transcoding and support 28 additional RAW file extensions
+		Fixed incorrect server IP address when starting UMS by launching UMS.exe or UMS.bat
+		Fixed layout issues
+		Fixed various bugs
+	Languages:
+		Updated Dutch translation (thanks, Leroy!)
+	External Components:
+		Updated FFmpeg on all operating systems, which:
+			Improves ASS/SSA subtitle support
+			Improves handling of aspect ratios, even when muxing
+			Fixes multithreaded MPEG-4 decoding
+			Added multithreading to ALAC decoding
+			Speeds up JPEG decoding
+			Fixes and improves MP3, AAC and DTS decoding stability
+			Fixes memory leaks
+			Fixes channel mapping with surround AAC audio
+			Improves H.264 and VC-1 support
+			Improves Vorbis support
+			Improves Matroska support
+			Improves MPEG-TS muxing
+		Updated MediaInfo for Windows to 0.7.63, which:
+			Adds H.265 (HEVC) support
+			Fixed some crashes with .mov files
+			Improved AVI support
+		Updated Netty to 3.6.6
+		Updated Thumbnailator to 0.4.4, which:
+			Fixes memory errors with the latest Java Runtimes
+
+2.6.5 - 2013-06-06 - Changes since 2.6.4
+
+	General:
+		Made sure it is possible to override thumbnails
+		Fixed RAW image transcoding and support 28 additional RAW file extensions
+	Languages:
+		Updated Czech translation
+		Updated Dutch translation (thanks, leroy!)
+		Updated Spanish translation (thanks, Alfredo Ramos and uman2k!)
+	External Components:
+		Updated MediaInfo for Windows to 0.7.63, which:
+			Adds H.265 (HEVC) support
+			Fixed some crashes with .mov files
+			Improved AVI support
+		Updated Netty to 3.6.6
+		Updated Thumbnailator to 0.4.4, which:
+			Fixes memory errors with the latest Java Runtimes
+
+3.0.0-a1 - 2013-05-15
+
+	General:
+		Added internal subtitle support to FFmpeg
+		Added subtitle seeking support to FFmpeg
+		Added subtitle styling (fontconfig) support to FFmpeg
+		Added "Prettify filenames" feature, for details on its use see the tooltip on the Navigation tab
+		Added configuration wizard to simplify common things like network configuration
+		Added an option to hide/show advanced options, hopefully making things less confusing/daunting for most users
+		Added VLC video transcoding (thanks, LordQuackstar!)
+		Added new options to iTunes library browsing: Browse by Artist, Album and Genre
+		Added the ability to resume videos after closing the program, for details on its use see the tooltip on the Navigation tab
+		Transcoding quality automatically adjusts for content and network speed by default, allowing wireless users an easier experience
+		Improved memory defaults on Windows
+		Improved video transcoding quality by default
+		Improved audio transcoding quality in FFmpeg by default
+		Fixed memory leaks
+		Added tooltips to several options to make them clearer
+		OS X build runs optimized Java 7 code
+	Renderers:
+		Xbox 360 supports 5.1 audio
+		Faster transcoding on Xbox 360
+		Added profile for Samsung D7000 TVs
+	Languages:
+		Added English (UK) to the list of languages
+		Updated Czech translation
+		Updated Spanish translation (thanks, Alfredo Ramos and uman2k!)
+
+2.6.4 - 2013-05-10
+
+	General:
+		Made the menu icon on OS X grayscale to fit with most other programs (thanks, Kefran!)
+		Made file list population faster
+		Added option to ignore certain renderer configurations
+		Improved file compatibility on all renderers
+	Renderers:
+		Improved file compatibility on Sony Bravia TVs
+		Improved file compatibility on Samsung TVs
+	Languages:
+		Updated English settings
+		Updated all language flags
+		Corrected Slovak language flag
+		Added language flags for Icelandic, Lithuanian and Slovenian
+
+2.6.3 - 2013-05-01
+
+	General:
+		Improved detection of renderers
+		Improved AAC/M4A support
+	External Components:
+		Updated Apache commons-lang to 3.1
+		Updated thumbnailator to 0.4.3
+
+2.6.2 - 2013-04-22
+
+	General:
+		Fixed audio sync when muxing DTS via FFmpeg
+		Improved descriptions in GUI
+		Added support for the file:// protocol in WEB.conf
+		Protocols are matched before extensions in WEB.conf
+		Fixed "Can't assign requested address" bug after update to Java 1.6.0.45 on Mac OS X
+		Added installation instructions to the Linux distribution
+		Fixed incorrect server IP address when starting via UMS.exe or UMS.bat
+	External Components:
+		Updated FFmpeg for all operating systems, which:
+			Fixes RTMP bugs
+			Improves support for the following codecs/containers: WMV, MPEG, H.264, Matroska, AVI, AAC, AC-3, WMA, MP3, FLV, OGG
+			Improves 60FPS video support
+			Supports more audio channel layouts
+			Improves pthread support
+			Fixes memory leaks
+			Improves subtitle decoding support
+			Adds support for subtitles character encoding conversion
+			Makes duration estimation more reliable
+			Adds support for .ape files
+			Improves memory use when using hardware acceleration
+			Fixes multithreaded MPEG-4 decoding
+		Updated Java Runtime Environment automatic downloader for Windows to 7u21, which:
+			Has lots of security fixes and improvements
+
+2.6.1 - 2013-04-16
+
+	General:
+		Added option to toggle H.264 remuxing in FFmpeg
+		Improved stability of Live Subtitles
+		Re-enabled WMP detection
+		Speed improvements
+		Fixed transcoding to Xbox via FFmpeg
+		Added support for WTV files
+		A-to-Z virtual folders support sorting options
+		Fixed a crash with rare MP3 files
+		Allow subtitles to be disabled on Samsung TVs
+	Renderers:
+		Improved Sony Blu-ray Player support (thanks, skeptical!)
+		Fixed exception on Android
+		Fixed stuttering issues with Bravia HX TVs
+	Languages:
+		Updated Dutch translation (thanks, leroy!)
+		Updated Italian language (thanks, nocciola82!)
+	External Components:
+		Updated FFmpeg for Linux to burek's 2013-04-04 build, which:
+			Is compiled statically
+
+2.6.0 - 2013-03-29
+
+	General:
+		Added "Live Subtitles" which means you can select subtitles from the Internet via your device. It can be enabled on the Navigation/Share Settings page.
+		Improved layout of the Navigation/Share Settings page
+		Implemented default subtitle preferences, to use them:
+			Either use the "Clean Install" option on Windows or put "eng,off;*,eng;*,und" into the "Audio/subtitles language priority" box in the "Subtitles settings" tab on the Transcoding Settings page
+		Fixed DTS muxing with FFmpeg
+		Added new "precoder" functionality, useful for plugin developers
+		Added H.264 encoding support to MEncoder (when renderers specify it)
+	Languages:
+		Updated Czech translation
+		Updated English settings labels
+		Updated Simplified Chinese translation (thanks, lovenemesis!)
+	External Components:
+		Updated h2 database to 1.3.171, which:
+			Increases speed
+			Improves JDK 7 compatibility
+		Updated MPlayer/MEncoder for Windows to SB52, which:
+			Improves audio sync
+			Improves DVD support
+			Supports filenames with uncommon characters
+			Fixes memory leaks
+			Improves sync with Real videos
+			Fixes a crash
+		Updated Netty to 3.6.3, which:
+			Makes browsing more stable
+
+2.5.2.2 - 2013-03-19
+
+	General:
+		Reverted maximum memory increase
+
+2.5.2.1 - 2013-03-18
+
+	General:
+		Fixed the startup error introduced in 2.5.2
+
+2.5.2 - 2013-03-18
+
+	General:
+		Offer to automatically update Java on Windows from 6 to 7
+		Fixed library updating with cache enabled
+		Made detection of network speed more accurate (thanks, ExSport!)
+		Library scanning interface improvements
+		Set a higher maximum memory by default via the Windows installer for computers with 4GB+ of RAM
+
+2.5.1 - 2013-03-15
 
 	General:
 		Improved subtitle support on non-PS3 renderers
 		Made library/file loading faster
 		Fixed 24-bit flac support with tsMuxeR
+		Stopped using 2 database locations for media caching on Windows
+		Allow library scanning to be stopped
+		Library scanning interface improvements
 	Renderers:
 		Added support for Sony Home Theatre systems
 		Added support for Onkyo TX-NR717
@@ -350,7 +670,7 @@
 		Updated links on the Help page
 		Made renderer config layouts more synchronised
 		Added a button to uninstall the Windows service
-		Removed fontconfig from MEncoder for Mac OSX for improved subs compatibility
+		Removed fontconfig from MEncoder for Mac OS X for improved subs compatibility
 		Made names in the transcode folder shorter by removing redundant information
 		The user preference to hide file extensions is applied to the transcode folder subfolder names
 	External components:
@@ -558,7 +878,7 @@
 			Improves fonts
 			Improves caching
 			Improves multithreading stability
-		Updated MPlayer and MEncoder for OSX to SB32
+		Updated MPlayer and MEncoder for OS X to SB32
 		Lots of code optimisations
 		Made program restarts more reliable
 		Fixed AviSynth ConvertFPS option
@@ -661,10 +981,10 @@
 	Added option to select and force the default renderer
 
 
-↑ ========================================================== ↑
-↑      Universal Media Server changelog above this line      ↑
-↓ PS3 Media Server (SubJunk Build) changelog below this line ↓
-↓ ========================================================== ↓
+â†‘ ========================================================== â†‘
+â†‘      Universal Media Server changelog above this line      â†‘
+â†“ PS3 Media Server (SubJunk Build) changelog below this line â†“
+â†“ ========================================================== â†“
 
 
 1.52.2-SB71:

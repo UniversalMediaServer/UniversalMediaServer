@@ -41,15 +41,22 @@ import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
+import org.apache.commons.configuration.event.ConfigurationEvent;
+import org.apache.commons.configuration.event.ConfigurationListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class AviSynthMEncoder extends MEncoderVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AviSynthMEncoder.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
+
+	@Deprecated
 	public AviSynthMEncoder(PmsConfiguration configuration) {
 		super(configuration);
+	}
+
+	public AviSynthMEncoder() {
 	}
 
 	public static final String ID = "avsmencoder";
@@ -57,7 +64,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 	private JTextArea textArea;
 	private JCheckBox convertfps;
 	private JCheckBox interframe;
-	private JCheckBox interframegpu;
+	private static JCheckBox interframegpu;
 	private JCheckBox multithreading;
 
 	@Override
@@ -67,8 +74,8 @@ public class AviSynthMEncoder extends MEncoderVideo {
 			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 12dlu, p, 3dlu, 0:grow"
 		);
 		PanelBuilder builder = new PanelBuilder(layout);
-		builder.setBorder(Borders.EMPTY_BORDER);
-		builder.setOpaque(false);
+		builder.border(Borders.EMPTY);
+		builder.opaque(false);
 
 		CellConstraints cc = new CellConstraints();
 
@@ -184,6 +191,18 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		pane.setPreferredSize(new Dimension(500, 350));
 		builder.add(pane, cc.xy(2, 13));
 
+		configuration.addConfigurationListener(new ConfigurationListener() {
+			@Override
+			public void configurationChanged(ConfigurationEvent event) {
+				if (event.getPropertyName() == null) {
+					return;
+				}
+				if ((!event.isBeforeUpdate()) && event.getPropertyName().equals(PmsConfiguration.KEY_GPU_ACCELERATION)) {
+					interframegpu.setEnabled(configuration.isGPUAcceleration());
+				}
+			}
+		});
+
 		return builder.getPanel();
 	}
 
@@ -283,7 +302,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 				movieLine = movieLine + ".ConvertToYV12()";
 
 				// Enable GPU to assist with CPU
-				if (configuration.getAvisynthInterFrameGPU()){
+				if (configuration.getAvisynthInterFrameGPU() && interframegpu.isEnabled()){
 					GPU = ", GPU=true";
 				}
 
@@ -296,7 +315,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 			}
 
 			String subLine = null;
-			if (subTrack != null && configuration.isAutoloadSubtitles() && !configuration.isDisableSubtitles()) {
+			if (subTrack != null && configuration.isAutoloadExternalSubtitles() && !configuration.isDisableSubtitles()) {
 				if (subTrack.getExternalFile() != null) {
 					LOGGER.info("AviSynth script: Using subtitle track: " + subTrack);
 					String function = "TextSub";
@@ -360,8 +379,12 @@ public class AviSynthMEncoder extends MEncoderVideo {
 	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		if (resource == null || resource.getFormat().getType() != Format.VIDEO) {
-			return false;
+		Format format = resource.getFormat();
+
+		if (format != null) {
+			if (format.getIdentifier() == Format.Identifier.WEB) {
+				return false;
+			}
 		}
 
 		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
@@ -391,14 +414,11 @@ public class AviSynthMEncoder extends MEncoderVideo {
 			LOGGER.trace("AviSynth/MEncoder cannot determine compatibility based on default audio track for " + resource.getSystemName());
 		}
 
-		Format format = resource.getFormat();
-
-		if (format != null) {
-			Format.Identifier id = format.getIdentifier();
-
-			if (id.equals(Format.Identifier.MKV) || id.equals(Format.Identifier.MPG)) {
-				return true;
-			}
+		if (
+			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
+			PlayerUtil.isVideo(resource, Format.Identifier.MPG)
+		) {
+			return true;
 		}
 
 		return false;

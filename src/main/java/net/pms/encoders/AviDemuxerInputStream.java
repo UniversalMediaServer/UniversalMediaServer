@@ -67,23 +67,24 @@ public class AviDemuxerInputStream extends InputStream {
 		if (params.no_videoencode && params.forceType != null && params.forceType.equals("V_MPEG4/ISO/AVC") && params.header != null) {
 			// NOT USED RIGHT NOW
 			PipedOutputStream pout = new PipedOutputStream();
-			final InputStream pin = new H264AnnexBInputStream(new PipedInputStream(pout), params.header);
-			final OutputStream out = params.output_pipes[0].getOutputStream();
-			Runnable r = new Runnable() {
-				@Override
-				public void run() {
-					try {
-						byte[] b = new byte[512 * 1024];
-						int n;
-						while ((n = pin.read(b)) > -1) {
-							out.write(b, 0, n);
+			Runnable r;
+			try (InputStream pin = new H264AnnexBInputStream(new PipedInputStream(pout), params.header)) {
+				final OutputStream out = params.output_pipes[0].getOutputStream();
+				r = new Runnable() {
+					@Override
+					public void run() {
+						try {
+							byte[] b = new byte[512 * 1024];
+							int n;
+							while ((n = pin.read(b)) > -1) {
+								out.write(b, 0, n);
+							}
+						} catch (Exception e) {
+							LOGGER.error(null, e);
 						}
-					} catch (Exception e) {
-						LOGGER.error(null, e);
 					}
-				}
-			};
-
+				};
+			}
 			vOut = pout;
 			new Thread(r, "Avi Demuxer").start();
 		} else {
@@ -95,7 +96,7 @@ public class AviDemuxerInputStream extends InputStream {
 			public void run() {
 				try {
 					// TODO(tcox): Is this used anymore?
-					TsMuxeRVideo ts = new TsMuxeRVideo(configuration);
+					TsMuxeRVideo ts = new TsMuxeRVideo();
 					File f = new File(configuration.getTempFolder(), "pms-tsmuxer.meta");
 					try (PrintWriter pw = new PrintWriter(f)) {
 						pw.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");

@@ -19,6 +19,7 @@
 package net.pms.newgui;
 
 import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Cursor;
@@ -49,12 +50,12 @@ public class AboutTab {
 	public JComponent build() {
 		FormLayout layout = new FormLayout(
 			"0:grow, pref, 0:grow",
-			"pref, 3dlu, pref, 12dlu, pref, 12dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, p, 3dlu, p, 3dlu, p"
+			"pref, 3dlu, pref, 12dlu, pref, 12dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, pref, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p"
 		);
 
 		PanelBuilder builder = new PanelBuilder(layout);
-		builder.setDefaultDialogBorder();
-		builder.setOpaque(true);
+		builder.border(Borders.DIALOG);
+		builder.opaque(true);
 		CellConstraints cc = new CellConstraints();
 
 		String projectName = PropertiesUtil.getProjectProperties().get("project.name");
@@ -96,7 +97,7 @@ public class AboutTab {
 		lMplayerLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lMplayerLink.addMouseListener(mplayerLink);
 
-		final LinkMouseListener spirtonLink = new LinkMouseListener("MPlayer, MEncoder, FFmpeg and InterFrame builds", "http://www.spirton.com");
+		final LinkMouseListener spirtonLink = new LinkMouseListener("MPlayer, MEncoder and InterFrame builds", "http://www.spirton.com");
 		JLabel lSpirtonLink = builder.addLabel(spirtonLink.getLabel(), cc.xy(2, 15, "center, fill"));
 		lSpirtonLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lSpirtonLink.addMouseListener(spirtonLink);
@@ -115,6 +116,11 @@ public class AboutTab {
 		JLabel lDryIconsLink = builder.addLabel(dryIconsLink.getLabel(), cc.xy(2, 21, "center, fill"));
 		lDryIconsLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		lDryIconsLink.addMouseListener(dryIconsLink);
+
+		final LinkMouseListener svpLink = new LinkMouseListener("SVP", "http://www.svp-team.com/");
+		JLabel lSVPLink = builder.addLabel(svpLink.getLabel(), cc.xy(2, 23, "center, fill"));
+		lSVPLink.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		lSVPLink.addMouseListener(svpLink);
 
 		JScrollPane scrollPane = new JScrollPane(builder.getPanel());
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());

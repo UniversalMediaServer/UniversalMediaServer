@@ -46,7 +46,10 @@ import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
+import org.apache.commons.configuration.event.ConfigurationEvent;
+import org.apache.commons.configuration.event.ConfigurationListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,12 +58,7 @@ import org.slf4j.LoggerFactory;
  */
 public class AviSynthFFmpeg extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(AviSynthFFmpeg.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	public static final String ID = "avsffmpeg";
-	
-	public AviSynthFFmpeg() {
-		super(PMS.getConfiguration());
-	}
 
 	@Override
 	public String id() {
@@ -83,7 +81,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 		if (configuration.isFfmpegAviSynthMultithreading()) {
 			threads = " -threads " + configuration.getNumberOfCpuCores();
 		}
-		return configuration.getFfmpegSettings() + " -ab " + configuration.getAudioBitrate() + "k" + threads;
+		return configuration.getMPEG2MainSettingsFFmpeg() + " -ab " + configuration.getAudioBitrate() + "k" + threads;
 	}
 
 	@Override
@@ -96,15 +94,15 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 		return true;
 	}
 
-	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack) throws IOException {
-		return getAVSScript(fileName, subTrack, -1, -1, null, null);
+	public static File getAVSScript(String filename, DLNAMediaSubtitle subTrack) throws IOException {
+		return getAVSScript(filename, subTrack, -1, -1, null, null);
 	}
 
 	/*
 	 * Generate the AviSynth script based on the user's settings
 	 */
-	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack, int fromFrame, int toFrame, String frameRateRatio, String frameRateNumber) throws IOException {
-		String onlyFileName = fileName.substring(1 + fileName.lastIndexOf("\\"));
+	public static File getAVSScript(String filename, DLNAMediaSubtitle subTrack, int fromFrame, int toFrame, String frameRateRatio, String frameRateNumber) throws IOException {
+		String onlyFileName = filename.substring(1 + filename.lastIndexOf("\\"));
 		File file = new File(configuration.getTempFolder(), "pms-avs-" + onlyFileName + ".avs");
 		try (PrintWriter pw = new PrintWriter(new FileOutputStream(file))) {
 			String numerator;
@@ -139,12 +137,12 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				convertfps = ", convertfps=true";
 			}
 
-			File f = new File(fileName);
+			File f = new File(filename);
 			if (f.exists()) {
-				fileName = ProcessUtil.getShortFileNameIfWideChars(fileName);
+				filename = ProcessUtil.getShortFileNameIfWideChars(filename);
 			}
 
-			String movieLine       = "DirectShowSource(\"" + fileName + "\"" + directShowFPS + convertfps + ")" + assumeFPS;
+			String movieLine       = "DirectShowSource(\"" + filename + "\"" + directShowFPS + convertfps + ")" + assumeFPS;
 			String mtLine1         = "";
 			String mtLine2         = "";
 			String interframeLines = null;
@@ -167,7 +165,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 				movieLine = movieLine + ".ConvertToYV12()";
 
 				// Enable GPU to assist with CPU
-				if (configuration.getFfmpegAvisynthInterFrameGPU()){
+				if (configuration.getFfmpegAvisynthInterFrameGPU() && interframegpu.isEnabled()){
 					GPU = ", GPU=true";
 				}
 
@@ -180,7 +178,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			}
 
 			String subLine = null;
-			if (subTrack != null && configuration.isAutoloadSubtitles() && !configuration.isDisableSubtitles()) {
+			if (subTrack != null && configuration.isAutoloadExternalSubtitles() && !configuration.isDisableSubtitles()) {
 				if (subTrack.getExternalFile() != null) {
 					LOGGER.info("AviSynth script: Using subtitle track: " + subTrack);
 					String function = "TextSub";
@@ -214,7 +212,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			if (fullyManaged) {
 				for (String s : lines) {
 					if (s.contains("<moviefilename>")) {
-						s = s.replace("<moviefilename>", fileName);
+						s = s.replace("<moviefilename>", filename);
 					}
 
 					if (movieLine != null) {
@@ -238,7 +236,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 
 	private JCheckBox multithreading;
 	private JCheckBox interframe;
-	private JCheckBox interframegpu;
+	private static JCheckBox interframegpu;
 	private JCheckBox convertfps;
 
 	@Override
@@ -247,8 +245,8 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			"left:pref, 0:grow",
 			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu");
 		PanelBuilder builder = new PanelBuilder(layout);
-		builder.setBorder(Borders.EMPTY_BORDER);
-		builder.setOpaque(false);
+		builder.border(Borders.EMPTY);
+		builder.opaque(false);
 
 		CellConstraints cc = new CellConstraints();
 
@@ -316,6 +314,18 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 		});
 		builder.add(convertfps, cc.xy(2, 9));
 
+		configuration.addConfigurationListener(new ConfigurationListener() {
+			@Override
+			public void configurationChanged(ConfigurationEvent event) {
+				if (event.getPropertyName() == null) {
+					return;
+				}
+				if ((!event.isBeforeUpdate()) && event.getPropertyName().equals(PmsConfiguration.KEY_GPU_ACCELERATION)) {
+					interframegpu.setEnabled(configuration.isGPUAcceleration());
+				}
+			}
+		});
+
 		return builder.getPanel();
 	}
 
@@ -324,8 +334,12 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		if (resource == null || resource.getFormat().getType() != Format.VIDEO) {
-			return false;
+		Format format = resource.getFormat();
+
+		if (format != null) {
+			if (format.getIdentifier() == Format.Identifier.WEB) {
+				return false;
+			}
 		}
 
 		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
@@ -351,14 +365,11 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			LOGGER.trace("AviSynth/FFmpeg cannot determine compatibility based on default audio track for " + resource.getSystemName());
 		}
 
-		Format format = resource.getFormat();
-
-		if (format != null) {
-			Format.Identifier id = format.getIdentifier();
-
-			if (id.equals(Format.Identifier.MKV) || id.equals(Format.Identifier.MPG)) {
-				return true;
-			}
+		if (
+			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
+			PlayerUtil.isVideo(resource, Format.Identifier.MPG)
+		) {
+			return true;
 		}
 
 		return false;

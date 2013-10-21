@@ -43,14 +43,18 @@ import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
+import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.SizeLimitInputStream;
 import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
 import net.pms.util.ImagesUtil;
 import net.pms.util.Iso639;
 import net.pms.util.MpegUtil;
+import net.pms.util.OpenSubtitle;
+import net.pms.util.StringUtil;
 import static net.pms.util.StringUtil.*;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,13 +69,19 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class DLNAResource extends HTTPResource implements Cloneable, Runnable {
 	private final Map<String, Integer> requestIdToRefcount = new HashMap<>();
+	private boolean resolved;
 	private static final int STOP_PLAYING_DELAY = 4000;
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAResource.class);
-	private static final SimpleDateFormat SDF_DATE = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
+	private final SimpleDateFormat SDF_DATE = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
-	
+
 	protected static final int MAX_ARCHIVE_ENTRY_SIZE = 10000000;
 	protected static final int MAX_ARCHIVE_SIZE_SEEK = 800000000;
+
+	/**
+	 * The name displayed on the renderer. Cached the first time getDisplayName(RendererConfiguration) is called.
+	 */
+	private String displayName;
 
 	/**
 	 * @deprecated This field will be removed. Use {@link net.pms.configuration.PmsConfiguration#getTranscodeFolderName()} instead.
@@ -345,7 +355,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return true;
 	}
 
-	/**Any {@link DLNAResource} needs to represent the container or item with a String.
+	/**
+	 * Any {@link DLNAResource} needs to represent the container or item with a String.
+	 *
 	 * @return String to be showed in the UPNP client.
 	 */
 	public abstract String getName();
@@ -403,6 +415,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		setChildren(new ArrayList<DLNAResource>());
 		setUpdateId(1);
 		lastSearch = null;
+		resHash = 0;
+		masterParent = null;
 	}
 
 	public DLNAResource(int specificType) {
@@ -411,7 +425,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Recursive function that searchs through all of the children until it finds
+	 * Recursive function that searches through all of the children until it finds
 	 * a {@link DLNAResource} that matches the name.<p> Only used by
 	 * {@link net.pms.dlna.RootFolder#addWebFolder(File webConf)
 	 * addWebFolder(File webConf)} while parsing the web.conf file.
@@ -444,22 +458,33 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Adds a new DLNAResource to the child list. Only useful if this object is of the container type.<P>
-	 * TODO: (botijo) check what happens with the child object. This function can and will transform the child
-	 * object. If the transcode option is set, the child item is converted to a container with the real
-	 * item and the transcode option folder. There is also a parser in order to get the right name and type,
-	 * I suppose. Is this the right place to be doing things like these?
-	 * @param child DLNAResource to add to a container type.
+	 * Adds a new DLNAResource to the child list. Only useful if this object is
+	 * of the container type.
+	 * <P>
+	 * TODO: (botijo) check what happens with the child object. This function
+	 * can and will transform the child object. If the transcode option is set,
+	 * the child item is converted to a container with the real item and the
+	 * transcode option folder. There is also a parser in order to get the right
+	 * name and type, I suppose. Is this the right place to be doing things like
+	 * these?
+	 * <p>
+	 * FIXME: Ideally the logic below is completely renderer-agnostic. Focus on
+	 * harvesting generic data and transform it for a specific renderer as late
+	 * as possible. 
+	 * 
+	 * @param child
+	 *            DLNAResource to add to a container type.
 	 */
 	public void addChild(DLNAResource child) {
 		// child may be null (spotted - via rootFolder.addChild() - in a misbehaving plugin
 		if (child == null) {
-			LOGGER.error("A plugin has attempted to add a null child to " + getName());
+			LOGGER.error("A plugin has attempted to add a null child to \"{}\"", getName());
 			LOGGER.debug("Error info:", new NullPointerException("Invalid DLNA resource"));
 			return;
 		}
 
 		child.setParent(this);
+		child.setMasterParent(getMasterParent());
 
 		if (getParent() != null) {
 			setDefaultRenderer(getParent().getDefaultRenderer());
@@ -467,159 +492,223 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		try {
 			if (child.isValid()) {
-				LOGGER.trace("Adding " + child.getName() + " / class: " + child.getClass().getName());
+				LOGGER.trace("Adding new child \"{}\" with class \"{}\"", child.getName(), child.getClass().getName());
 
 				if (allChildrenAreFolders && !child.isFolder()) {
 					allChildrenAreFolders = false;
 				}
 
+				child.resHash = Math.abs(child.getSystemName().hashCode() + resumeHash());
+
+				DLNAResource resumeRes;
+
+				ResumeObj r = ResumeObj.create(child);
+				if (r != null) {
+					resumeRes = child.clone();
+					resumeRes.resume = r;
+					resumeRes.resHash = child.resHash;
+					addChildInternal(resumeRes);
+				}
+
 				addChildInternal(child);
 
-				boolean forceTranscodeV2 = false;
 				boolean parserV2 = child.getMedia() != null && getDefaultRenderer() != null && getDefaultRenderer().isMediaParserV2();
 				if (parserV2) {
-					// We already have useful info, just need to layout folders
+					// See which mime type the renderer prefers in case it supports the media
 					String mimeType = getDefaultRenderer().getFormatConfiguration().match(child.getMedia());
 					if (mimeType != null) {
-						// This is streamable
-						child.getMedia().setMimeType(mimeType.equals(FormatConfiguration.MIMETYPE_AUTO) ? child.getMedia().getMimeType() : mimeType);
+						// Media is streamable
+						if (!FormatConfiguration.MIMETYPE_AUTO.equals(mimeType)) {
+							// Override with the preferred mime type of the renderer
+							LOGGER.trace("Overriding detected mime type \"{}\" for file \"{}\" with renderer preferred mime type \"{}\"",
+									child.getMedia().getMimeType(), child.getName(), mimeType);
+							child.getMedia().setMimeType(mimeType);
+						}
+
+						LOGGER.trace("File \"{}\" can be streamed with mime type \"{}\"", child.getName(), child.getMedia().getMimeType());
 					} else {
-						// This is transcodable
-						forceTranscodeV2 = true;
+						// Media is transcodable
+						LOGGER.trace("File \"{}\" can be transcoded", child.getName());
 					}
 				}
 
 				if (child.getFormat() != null) {
-					setSkipTranscode(child.getFormat().skip(configuration.getNoTranscode(), getDefaultRenderer() != null ? getDefaultRenderer().getStreamedExtensions() : null));
-				}
+					String configurationSkipExtensions = configuration.getDisableTranscodeForExtensions();
+					String rendererSkipExtensions = null;
 
-				if (child.getFormat() != null && (child.getFormat().transcodable() || parserV2) && (child.getMedia() == null || parserV2)) {
-					if (!parserV2) {
-						child.setMedia(new DLNAMediaInfo());
+					if (getDefaultRenderer() != null) {
+						rendererSkipExtensions = getDefaultRenderer().getStreamedExtensions();
 					}
 
-					// Try to determine a player to use for transcoding.
-					Player player = null;
-
-					// First, try to match a player based on the name of the DLNAResource
-					// or its parent. If the name ends in "[unique player id]", that player
-					// is preferred.
-					String name = getName();
-
-					for (Player p : PlayerFactory.getAllPlayers()) {
-						String end = "[" + p.id() + "]";
-
-						if (name.endsWith(end)) {
-							nametruncate = name.lastIndexOf(end);
-							player = p;
-							LOGGER.trace("Selecting player based on name end");
-							break;
-						} else if (getParent() != null && getParent().getName().endsWith(end)) {
-							getParent().nametruncate = getParent().getName().lastIndexOf(end);
-							player = p;
-							LOGGER.trace("Selecting player based on parent name end");
-							break;
-						}
+					// Should transcoding be skipped for this format?
+					boolean skip = child.getFormat().skip(configurationSkipExtensions, rendererSkipExtensions);
+					setSkipTranscode(skip);
+					
+					if (skip) {
+						LOGGER.trace("File \"{}\" will be forced to skip transcoding by configuration", child.getName());
 					}
 
-					// If no preferred player could be determined from the name, try to
-					// match a player based on media information and format.
-					if (player == null) {
-						player = PlayerFactory.getPlayer(child);
-					}
-
-					if (player != null && !allChildrenAreFolders) {
-						boolean forceTranscode = false;
-						if (child.getFormat() != null) {
-							forceTranscode = child.getFormat().skip(configuration.getForceTranscode(), getDefaultRenderer() != null ? getDefaultRenderer().getTranscodedExtensions() : null);
+					if (parserV2 || (child.getFormat().transcodable() && child.getMedia() == null)) {
+						if (!parserV2) {
+							child.setMedia(new DLNAMediaInfo());
 						}
+	
+						// Try to determine a player to use for transcoding.
+						Player player = null;
 
-						boolean hasEmbeddedSubs = false;
+						// First, try to match a player from recently played folder or based on the name of the DLNAResource
+						// or its parent. If the name ends in "[unique player id]", that player
+						// is preferred.
+						String name = getName();
 
-						if (child.getMedia() != null) {
-							for (DLNAMediaSubtitle s : child.getMedia().getSubtitleTracksList()) {
-								hasEmbeddedSubs = (hasEmbeddedSubs || s.isEmbedded());
-							}
-						}
-
-						boolean hasSubsToTranscode = false;
-
-						if (!configuration.isDisableSubtitles()) {
-							hasSubsToTranscode = (configuration.isAutoloadSubtitles() && child.isSrtFile()) || hasEmbeddedSubs;
-						}
-
-						boolean isIncompatible = false;
-
-						if (!child.getFormat().isCompatible(child.getMedia(),getDefaultRenderer())) {
-							isIncompatible = true;
-						}
-
-						// Force transcoding if any of the following are true:
-						// 1) The file is not supported by the renderer and SkipTranscode is not enabled for this extension
-						// 2) ForceTranscode enabled for this extension
-						// 3) FFmpeg support and the file is not PS3 compatible (XXX need to remove this?) and SkipTranscode is not enabled for this extension
-						// 4) The file has embedded or external subs and SkipTranscode is not enabled for this extension
-						if (forceTranscode || !isSkipTranscode() && (forceTranscodeV2 || isIncompatible || hasSubsToTranscode)) {
-							child.setPlayer(player);
-							LOGGER.trace("Switching " + child.getName() + " to player " + player.toString() + " for transcoding");
-						}
-
-						// Should the child be added to the transcode folder?
-						if (child.getFormat().isVideo() && child.isTranscodeFolderAvailable()) {
-							// true: create (and append) the #--TRANSCODE--# folder to this folder if it doesn't already exist
-							VirtualFolder transcodeFolder = getTranscodeFolder(true);
-
-							if (transcodeFolder != null) {
-								VirtualFolder fileTranscodeFolder = new FileTranscodeVirtualFolder(child.getDisplayName(), null);
-
-								DLNAResource newChild = child.clone();
-								newChild.setPlayer(player);
-								newChild.setMedia(child.getMedia());
-								fileTranscodeFolder.addChildInternal(newChild);
-								LOGGER.trace("Duplicate " + child.getName() + " with player: " + player.toString());
-
-								transcodeFolder.addChild(fileTranscodeFolder);
-							}
-						}
-
-						for (ExternalListener listener : ExternalFactory.getExternalListeners()) {
-							if (listener instanceof AdditionalResourceFolderListener) {
-								try {
-									((AdditionalResourceFolderListener) listener).addAdditionalFolder(this, child);
-								} catch (Throwable t) {
-									LOGGER.error("Failed to add additional folder for listener of type: {}", listener.getClass(), t);
+						if (!configuration.isHideRecentlyPlayedFolder()) {
+							player = child.getPlayer();
+						} else {
+							for (Player p : PlayerFactory.getPlayers()) {
+								String end = "[" + p.id() + "]";
+	
+								if (name.endsWith(end)) {
+									nametruncate = name.lastIndexOf(end);
+									player = p;
+									LOGGER.trace("Selecting player based on name end");
+									break;
+								} else if (getParent() != null && getParent().getName().endsWith(end)) {
+									getParent().nametruncate = getParent().getName().lastIndexOf(end);
+									player = p;
+									LOGGER.trace("Selecting player based on parent name end");
+									break;
 								}
 							}
 						}
-					} else if (!child.getFormat().isCompatible(child.getMedia(),getDefaultRenderer()) && !child.isFolder()) {
-						getChildren().remove(child);
+
+						// If no preferred player could be determined from the name, try to
+						// match a player based on media information and format.
+						if (player == null) {
+							player = PlayerFactory.getPlayer(child);
+						}
+	
+						if (player != null && !allChildrenAreFolders) {
+							String configurationForceExtensions = configuration.getForceTranscodeForExtensions();
+							String rendererForceExtensions = null;
+							
+							if (getDefaultRenderer() != null) {
+								rendererForceExtensions = getDefaultRenderer().getTranscodedExtensions();
+							}
+
+							// Should transcoding be forced for this format?
+							boolean forceTranscode = child.getFormat().skip(configurationForceExtensions, rendererForceExtensions);
+
+							if (forceTranscode) {
+								LOGGER.trace("File \"{}\" will be forced to be transcoded by configuration", child.getName());
+							}
+
+							boolean hasEmbeddedSubs = false;
+	
+							if (child.getMedia() != null) {
+								for (DLNAMediaSubtitle s : child.getMedia().getSubtitleTracksList()) {
+									hasEmbeddedSubs = (hasEmbeddedSubs || s.isEmbedded());
+								}
+							}
+	
+							boolean hasSubsToTranscode = false;
+	
+							if (!configuration.isDisableSubtitles()) {
+								// FIXME: Why transcode if the renderer can handle embedded subs?
+								hasSubsToTranscode = (configuration.isAutoloadExternalSubtitles() && child.isSrtFile()) || hasEmbeddedSubs;
+
+								if (hasSubsToTranscode) {
+									LOGGER.trace("File \"{}\" has subs that need transcoding", child.getName());
+								}
+							}
+	
+							boolean isIncompatible = false;
+	
+							if (!child.getFormat().isCompatible(child.getMedia(), getDefaultRenderer())) {
+								isIncompatible = true;
+								LOGGER.trace("File \"{}\" is not supported by the renderer", child.getName());
+							}
+	
+							// Prefer transcoding over streaming if:
+							// 1) the media is unsupported by the renderer, or
+							// 2) there are subs to transcode
+							boolean preferTranscode = isIncompatible || hasSubsToTranscode;
+
+							// Transcode if:
+							// 1) transcoding is forced by configuration, or
+							// 2) transcoding is preferred and not prevented by configuration
+							if (forceTranscode || (preferTranscode && !isSkipTranscode())) {
+								child.setPlayer(player);
+
+								if (parserV2) {
+									LOGGER.trace("Final verdict: \"{}\" will be transcoded with player \"{}\" with mime type \"{}\"", child.getName(), player.toString(), child.getMedia().getMimeType());
+								} else {
+									LOGGER.trace("Final verdict: \"{}\" will be transcoded with player \"{}\"", child.getName(), player.toString());
+								}
+							} else {
+								LOGGER.trace("Final verdict: \"{}\" will be streamed", child.getName());
+							}
+	
+							// Should the child be added to the #--TRANSCODE--# folder?
+							if ((child.getFormat().isVideo() || child.getFormat().isAudio()) && child.isTranscodeFolderAvailable()) {
+								// true: create (and append) the #--TRANSCODE--# folder to this
+								// folder if supported/enabled and if it doesn't already exist
+								VirtualFolder transcodeFolder = getTranscodeFolder(true);
+								if (transcodeFolder != null) {
+									VirtualFolder fileTranscodeFolder = new FileTranscodeVirtualFolder(child.getDisplayName(), null);
+	
+									DLNAResource newChild = child.clone();
+									newChild.setPlayer(player);
+									newChild.setMedia(child.getMedia());
+									fileTranscodeFolder.addChildInternal(newChild);
+									LOGGER.trace("Adding \"{}\" to transcode folder for player: \"{}\"", child.getName(), player.toString());
+	
+									transcodeFolder.addChild(fileTranscodeFolder);
+								}
+							}
+	
+							for (ExternalListener listener : ExternalFactory.getExternalListeners()) {
+								if (listener instanceof AdditionalResourceFolderListener) {
+									try {
+										((AdditionalResourceFolderListener) listener).addAdditionalFolder(this, child);
+									} catch (Throwable t) {
+										LOGGER.error("Failed to add additional folder for listener of type: \"{}\"", listener.getClass(), t);
+									}
+								}
+							}
+						} else if (!child.getFormat().isCompatible(child.getMedia(), getDefaultRenderer()) && !child.isFolder()) {
+							LOGGER.trace("Ignoring file \"{}\" because it is not compatible with renderer \"{}\"", child.getName(), getDefaultRenderer().getRendererName());
+							getChildren().remove(child);
+						}
 					}
-				}
 
-				if (
-					child.getFormat() != null &&
-					child.getFormat().getSecondaryFormat() != null &&
-					child.getMedia() != null &&
-					getDefaultRenderer() != null &&
-					getDefaultRenderer().supportsFormat(child.getFormat().getSecondaryFormat())
-				) {
-					DLNAResource newChild = child.clone();
-					newChild.setFormat(newChild.getFormat().getSecondaryFormat());
-					newChild.first = child;
-					child.second = newChild;
-
-					if (!newChild.getFormat().isCompatible(newChild.getMedia(), getDefaultRenderer())) {
-						Player player = PlayerFactory.getPlayer(newChild);
-						newChild.setPlayer(player);
-					}
-
-					if (child.getMedia() != null && child.getMedia().isSecondaryFormatValid()) {
-						addChild(newChild);
+					if (child.getFormat().getSecondaryFormat() != null &&
+						child.getMedia() != null &&
+						getDefaultRenderer() != null &&
+						getDefaultRenderer().supportsFormat(child.getFormat().getSecondaryFormat())
+					) {
+						DLNAResource newChild = child.clone();
+						newChild.setFormat(newChild.getFormat().getSecondaryFormat());
+						LOGGER.trace("Detected secondary format \"{}\" for \"{}\"", newChild.getFormat().toString(), newChild.getName());
+						newChild.first = child;
+						child.second = newChild;
+	
+						if (!newChild.getFormat().isCompatible(newChild.getMedia(), getDefaultRenderer())) {
+							Player player = PlayerFactory.getPlayer(newChild);
+							newChild.setPlayer(player);
+							LOGGER.trace("Secondary format \"{}\" will use player \"{}\" for \"{}\"", newChild.getFormat().toString(), child.getPlayer().name(), newChild.getName());
+						}
+	
+						if (child.getMedia() != null && child.getMedia().isSecondaryFormatValid()) {
+							addChild(newChild);
+							LOGGER.trace("Adding secondary format \"{}\" for \"{}\"", newChild.getFormat().toString(), newChild.getName());
+						} else {
+							LOGGER.trace("Ignoring secondary format \"{}\" for \"{}\": invalid format", newChild.getFormat().toString(), newChild.getName());
+						}
 					}
 				}
 			}
 		} catch (Throwable t) {
-			LOGGER.error("Error adding child: {}", child.getName(), t);
+			LOGGER.error("Error adding child: \"{}\"", child.getName(), t);
 
 			child.setParent(null);
 			getChildren().remove(child);
@@ -666,14 +755,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	/**
 	 * Adds the supplied DNLA resource to the internal list of child nodes,
 	 * and sets the parent to the current node. Avoids the side-effects
-	 * associated with the {@link addChild(DLNAResource)} method.
+	 * associated with the {@link #addChild(DLNAResource)} method.
 	 *
 	 * @param child the DLNA resource to add to this node's list of children
 	 */
 	protected synchronized void addChildInternal(DLNAResource child) {
 		if (child.getInternalId() != null) {
 			LOGGER.info(
-				"Node ({}) already has an ID ({}), which is overriden now. The previous parent node was: {}",
+				"Node ({}) already has an ID ({}), which is overridden now. The previous parent node was: {}",
 				new Object[] {
 					child.getClass().getName(),
 					child.getResourceId(),
@@ -707,30 +796,31 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	public synchronized List<DLNAResource> getDLNAResources(String objectId, boolean returnChildren, int start, int count, RendererConfiguration renderer, String searchStr) throws IOException {
 		ArrayList<DLNAResource> resources = new ArrayList<>();
-		DLNAResource resource = search(objectId, count, renderer, searchStr);
+		DLNAResource dlna = search(objectId, count, renderer, searchStr);
 
-		if (resource != null) {
-			resource.setDefaultRenderer(renderer);
+		if (dlna != null) {
+			String systemName = dlna.getSystemName();
+			dlna.setDefaultRenderer(renderer);
 
 			if (!returnChildren) {
-				resources.add(resource);
-				resource.refreshChildrenIfNeeded(searchStr);
+				resources.add(dlna);
+				dlna.refreshChildrenIfNeeded(searchStr);
 			} else {
-				resource.discoverWithRenderer(renderer, count, true, searchStr);
+				dlna.discoverWithRenderer(renderer, count, true, searchStr);
 
 				if (count == 0) {
-					count = resource.getChildren().size();
+					count = dlna.getChildren().size();
 				}
 
 				if (count > 0) {
 					ArrayBlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(count);
 
-					int parallel_thread_number = 3;
-					if (resource instanceof DVDISOFile) {
-						parallel_thread_number = 1; // Some DVD drives die wih 3 parallel threads
+					int nParallelThreads = 3;
+					if (dlna instanceof DVDISOFile) {
+						nParallelThreads = 1; // Some DVD drives die with 3 parallel threads
 					}
 					ThreadPoolExecutor tpe = new ThreadPoolExecutor(
-						Math.min(count, parallel_thread_number),
+						Math.min(count, nParallelThreads),
 						count,
 						20,
 						TimeUnit.SECONDS,
@@ -738,20 +828,25 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					);
 
 					for (int i = start; i < start + count; i++) {
-						if (i < resource.getChildren().size()) {
-							final DLNAResource child = resource.getChildren().get(i);
+						if (i < dlna.getChildren().size()) {
+							final DLNAResource child = dlna.getChildren().get(i);
+
 							if (child != null) {
 								tpe.execute(child);
 								resources.add(child);
+							} else {
+								LOGGER.warn("null child at index {} in {}", i, systemName);
 							}
 						}
 					}
 					try {
 						tpe.shutdown();
 						tpe.awaitTermination(20, TimeUnit.SECONDS);
-					} catch (InterruptedException e) { }
+					} catch (InterruptedException e) {
+						LOGGER.error("error while shutting down thread pool executor for " + systemName, e);
+					}
 
-					LOGGER.trace("End of analysis");
+					LOGGER.trace("End of analysis for " + systemName);
 				}
 			}
 		}
@@ -931,9 +1026,22 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return false;
 	}
 
+	/**
+	 * @deprecated Use {@link #resolveFormat()} instead.
+	 */
+	@Deprecated
 	protected void checktype() {
+		resolveFormat();
+	}
+
+	/**
+	 * Sets the resource's {@link net.pms.formats.Format} according to its filename
+	 * if it isn't set already.
+	 * @since 1.90.0
+	 */
+	protected void resolveFormat() {
 		if (getFormat() == null) {
-			setFormat(FormatFactory.getAssociatedExtension(getSystemName()));
+			setFormat(FormatFactory.getAssociatedFormat(getSystemName()));
 		}
 
 		if (getFormat() != null && getFormat().isUnknown()) {
@@ -942,16 +1050,44 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Determine all properties for this DLNAResource that are relevant for playback
-	 * or hierarchy traversal. This can be a costly operation, so when the method is
-	 * finished the property <code>resolved</code> is set to <code>true</code>.
+	 * Hook to lazily initialise immutable resources e.g. ISOs, zip files &amp;c.
+	 *
+	 * @since 1.90.0
+	 * @see #resolve()
 	 */
-	public void resolve() {
+	protected void resolveOnce() { }
+
+	/**
+	 * Resolve events are hooks that allow DLNA resources to perform various forms
+	 * of initialisation when navigated to or streamed i.e. they function as lazy
+	 * constructors.
+	 *
+	 * This method is called by request handlers for a) requests for a stream
+	 * or b) content directory browsing i.e. for potentially every request for a file or
+	 * folder the renderer hasn't cached. Many resource types are immutable (e.g. playlists,
+	 * zip files, DVD ISOs &amp;c.) and only need to respond to this event once.
+	 * Most resource types don't "subscribe" to this event at all. This default implementation
+	 * provides hooks for immutable resources and handles the event for resource types that
+	 * don't care about it. The rest override this method and handle it accordingly. Currently,
+	 * the only resource type that overrides it is {@link RealFile}.
+	 *
+	 * Note: resolving a resource once (only) doesn't prevent children being added to or
+	 * removed from it (if supported). There are other mechanisms for that e.g.
+	 * {@link #doRefreshChildren()} (see {@link Feed} for an example).
+	 */
+	public synchronized void resolve() {
+		if (!resolved) {
+			resolveOnce();
+			// if resolve() isn't overridden, this file/folder is immutable
+			// (or doesn't respond to resolve events, which amounts to the
+			// same thing), so don't spam it with this event again.
+			resolved = true;
+		}
 	}
 
 	// Ditlew
 	/**
-	 * Returns the DisplayName for the default renderer.
+	 * Returns the display name for the default renderer.
 	 *
 	 * @return The display name.
 	 * @see #getDisplayName(RendererConfiguration)
@@ -969,33 +1105,48 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return String representing the item.
 	 */
 	public String getDisplayName(RendererConfiguration mediaRenderer) {
-		String name = getName();
+		if (displayName != null) { // cached
+			return displayName;
+		}
+
+		displayName = getName();
 		String subtitleFormat;
 		String subtitleLanguage;
 		boolean isNamedNoEncoding = false;
-		if (this instanceof RealFile && configuration.isHideExtensions() && !isFolder()) {
-			name = FileUtil.getFileNameWithoutExtension(name);
+		if (
+			this instanceof RealFile &&
+			(
+				configuration.isHideExtensions() ||
+				configuration.isPrettifyFilenames()
+			) &&
+			!isFolder()
+		) {
+			if (configuration.isPrettifyFilenames()) {
+				displayName = FileUtil.getFileNameWithRewriting(displayName);
+			} else {
+				displayName = FileUtil.getFileNameWithoutExtension(displayName);
+			}
 		}
 
 		if (getPlayer() != null) {
 			if (isNoName()) {
-				name = "[" + getPlayer().name() + "]";
+				displayName = "[" + getPlayer().name() + "]";
 			} else {
 				// Ditlew - WDTV Live don't show durations otherwise, and this is useful for finding the main title
 				if (mediaRenderer != null && mediaRenderer.isShowDVDTitleDuration() && getMedia() != null && getMedia().getDvdtrack() > 0) {
-					name += " - " + getMedia().getDurationString();
+					displayName += " - " + getMedia().getDurationString();
 				}
 
 				if (!configuration.isHideEngineNames()) {
-					name += " [" + getPlayer().name() + "]";
+					displayName += " [" + getPlayer().name() + "]";
 				}
 			}
 		} else {
 			if (isNoName()) {
-				name = "[No encoding]";
+				displayName = "[No encoding]";
 				isNamedNoEncoding = true;
 			} else if (nametruncate > 0) {
-				name = name.substring(0, nametruncate).trim();
+				displayName = displayName.substring(0, nametruncate).trim();
 			}
 		}
 
@@ -1009,9 +1160,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			(
 				getPlayer() == null ||
 				getPlayer().isExternalSubtitlesSupported()
-			)
+			) &&
+			!configuration.hideSubInfo()
 		) {
-			name += " {External Subtitles}";
+			displayName += " {External Subtitles}";
 		}
 
 		if (getMediaAudio() != null) {
@@ -1020,10 +1172,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				audioLanguage = "";
 			}
 
-			name = (getPlayer() != null ? ("[" + getPlayer().name() + "]") : "") + " {Audio: " + getMediaAudio().getAudioCodec() + audioLanguage + ((getMediaAudio().getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowAudioMetadata()) ? (" (" + getMediaAudio().getFlavor() + ")") : "") + "}";
+			displayName = (getPlayer() != null ? ("[" + getPlayer().name() + "]") : "") + " {Audio: " + getMediaAudio().getAudioCodec() + audioLanguage + ((getMediaAudio().getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowAudioMetadata()) ? (" (" + getMediaAudio().getFlavor() + ")") : "") + "}";
 		}
 
-		if (getMediaSubtitle() != null && getMediaSubtitle().getId() != -1) {
+		if (
+			getMediaSubtitle() != null &&
+			getMediaSubtitle().getId() != -1 &&
+			!configuration.hideSubInfo()
+		) {
 			subtitleFormat = getMediaSubtitle().getType().getDescription();
 			if ("(Advanced) SubStation Alpha".equals(subtitleFormat)) {
 				subtitleFormat = "SSA";
@@ -1034,18 +1190,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				subtitleLanguage = "";
 			}
 
-			name += " {Sub: " + subtitleFormat + subtitleLanguage + ((getMediaSubtitle().getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowSubMetadata()) ? (" (" + getMediaSubtitle().getFlavor() + ")") : "") + "}";
+			displayName += " {Sub: " + subtitleFormat + subtitleLanguage + ((getMediaSubtitle().getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowSubMetadata()) ? (" (" + getMediaSubtitle().getFlavor() + ")") : "") + "}";
 		}
 
 		if (isAvisynth()) {
-			name = (getPlayer() != null ? ("[" + getPlayer().name()) : "") + " + AviSynth]";
+			displayName = (getPlayer() != null ? ("[" + getPlayer().name()) : "") + " + AviSynth]";
 		}
 
 		if (getSplitRange().isEndLimitAvailable()) {
-			name = ">> " + DLNAMediaInfo.getDurationString(getSplitRange().getStart());
+			displayName = ">> " + StringUtil.convertTimeToString(getSplitRange().getStart(), StringUtil.DURATION_TIME_FORMAT);
 		}
 
-		return name;
+		return displayName;
 	}
 
 	/**
@@ -1062,34 +1218,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * none is available, "thumbnail0000.png" is used.
 	 */
 	protected String getThumbnailURL() {
-		StringBuilder sb = new StringBuilder();
-		sb.append(PMS.get().getServer().getURL());
-		sb.append("/images/");
-		String id = null;
-
-		if (getMediaAudio() != null) {
-			id = getMediaAudio().getLang();
-		}
-
-		if (getMediaSubtitle() != null && getMediaSubtitle().getId() != -1) {
-			id = getMediaSubtitle().getLang();
-		}
-
-		if ((getMediaSubtitle() != null || getMediaAudio() != null) && StringUtils.isBlank(id)) {
-			id = DLNAMediaLang.UND;
-		}
-
-		if (id != null) {
-			String code = Iso639.getISO639_2Code(id.toLowerCase());
-			sb.append("codes/").append(code).append(".png");
-			return sb.toString();
-		}
-
-		if (isAvisynth()) {
-			sb.append("logo-avisynth.png");
-			return sb.toString();
-		}
-
 		return getURL("thumbnail0000");
 	}
 
@@ -1145,6 +1273,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		try {
 			o = (DLNAResource) super.clone();
 			o.setId(null);
+
+			// Clear the cached display name
+			o.displayName = null;
+			// Make sure clones (typically #--TRANSCODE--# folder files)
+			// have the option to respond to resolve events
+			o.resolved = false;
 		} catch (CloneNotSupportedException e) {
 			LOGGER.error(null, e);
 		}
@@ -1164,12 +1298,28 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Returns an XML (DIDL) representation of the DLNA node. It gives a complete representation of the item, with as many tags as available.
-	 * Recommendations as per UPNP specification are followed where possible.
-	 * @param mediaRenderer Media Renderer for which to represent this information. Useful for some hacks.
-	 * @return String representing the item. An example would start like this: {@code <container id="0$1" childCount="1" parentID="0" restricted="true">}
+	 * @deprecated Use {@link #getDidlString(RendererConfiguration)} instead.
+	 *
+	 * @param mediaRenderer
+	 * @return
 	 */
+	@Deprecated
 	public final String toString(RendererConfiguration mediaRenderer) {
+		return getDidlString(mediaRenderer);
+	}
+
+	/**
+	 * Returns an XML (DIDL) representation of the DLNA node. It gives a
+	 * complete representation of the item, with as many tags as available.
+	 * Recommendations as per UPNP specification are followed where possible.
+	 * 
+	 * @param mediaRenderer
+	 *            Media Renderer for which to represent this information. Useful
+	 *            for some hacks.
+	 * @return String representing the item. An example would start like this:
+	 *         {@code <container id="0$1" childCount="1" parentID="0" restricted="true">}
+	 */
+	public final String getDidlString(RendererConfiguration mediaRenderer) {
 		StringBuilder sb = new StringBuilder();
 
 		if (isFolder()) {
@@ -1196,33 +1346,37 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		addAttribute(sb, "restricted", "true");
 		endTag(sb);
 
+		String wireshark = "";
 		final DLNAMediaAudio firstAudioTrack = getMedia() != null ? getMedia().getFirstAudioTrack() : null;
-		if (firstAudioTrack != null && StringUtils.isNotBlank(firstAudioTrack.getSongname())) {
+		if (firstAudioTrack != null && isNotBlank(firstAudioTrack.getSongname())) {
+			wireshark = firstAudioTrack.getSongname() + (getPlayer() != null && !configuration.isHideEngineNames() ? (" [" + getPlayer().name() + "]") : "");
 			addXMLTagAndAttribute(
 				sb,
 				"dc:title",
-				encodeXML(firstAudioTrack.getSongname() + (getPlayer() != null && !configuration.isHideEngineNames() ? (" [" + getPlayer().name() + "]") : ""))
+				encodeXML(mediaRenderer.getDcTitle(resumeStr(wireshark), this))
 			);
 		} else { // Ditlew - org
 			// Ditlew
+			wireshark = ((isFolder() || getPlayer() == null) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer)));
+			String tmp = (isFolder() || getPlayer() == null) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer));
 			addXMLTagAndAttribute(
 				sb,
 				"dc:title",
-				encodeXML((isFolder() || getPlayer() == null) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer)))
+				encodeXML(mediaRenderer.getDcTitle(resumeStr(tmp), this))
 			);
 		}
 
 		if (firstAudioTrack != null) {
-			if (StringUtils.isNotBlank(firstAudioTrack.getAlbum())) {
+			if (isNotBlank(firstAudioTrack.getAlbum())) {
 				addXMLTagAndAttribute(sb, "upnp:album", encodeXML(firstAudioTrack.getAlbum()));
 			}
 
-			if (StringUtils.isNotBlank(firstAudioTrack.getArtist())) {
+			if (isNotBlank(firstAudioTrack.getArtist())) {
 				addXMLTagAndAttribute(sb, "upnp:artist", encodeXML(firstAudioTrack.getArtist()));
 				addXMLTagAndAttribute(sb, "dc:creator", encodeXML(firstAudioTrack.getArtist()));
 			}
 
-			if (StringUtils.isNotBlank(firstAudioTrack.getGenre())) {
+			if (isNotBlank(firstAudioTrack.getGenre())) {
 				addXMLTagAndAttribute(sb, "upnp:genre", encodeXML(firstAudioTrack.getGenre()));
 			}
 
@@ -1245,140 +1399,410 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				 * DLNA.ORG_OP flags
 				 *
 				 * Two booleans (binary digits) which determine what transport operations the renderer is allowed to
-				 * perform (in the form of HTTP headers): the first digit allows the renderer to send
-				 * TimeSeekRange.DLNA.ORG (seek-by-time) headers; the second allows it to send RANGE (seek-by-byte)
+				 * perform (in the form of HTTP request headers): the first digit allows the renderer to send
+				 * TimeSeekRange.DLNA.ORG (seek by time) headers; the second allows it to send RANGE (seek by byte)
 				 * headers.
 				 *
-				 * 00 - no seeking (or even pausing) allowed
-				 * 01 - seek by byte
-				 * 10 - seek by time
-				 * 11 - seek by both
+				 *    00 - no seeking (or even pausing) allowed
+				 *    01 - seek by byte
+				 *    10 - seek by time
+				 *    11 - seek by both
 				 *
 				 * See here for an example of how these options can be mapped to keys on the renderer's controller:
 				 * http://www.ps3mediaserver.org/forum/viewtopic.php?f=2&t=2908&p=12550#p12550
 				 *
-				 * Note that seek-by-time is the preferred option (seek-by-byte is a fallback) but it requires a) support
-				 * by the renderer (via the SeekByTime renderer conf option) and either a) a file that's not being transcoded
-				 * or if it is, b) support by its transcode engine for seek-by-time.
+				 * Note that seek-by-byte is the preferred option for streamed files [1] and seek-by-time is the
+				 * preferred option for transcoded files.
+				 *
+				 * [1] see http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=15841&p=76201#p76201
+				 *
+				 * seek-by-time requires a) support by the renderer (via the SeekByTime renderer conf option)
+				 * and b) support by the transcode engine.
+				 *
+				 * The seek-by-byte fallback doesn't work well with transcoded files [2], but it's better than
+				 * disabling seeking (and pausing) altogether.
+				 *
+				 * [2] http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=16567#p16567 (bottom post)
 				 */
-				dlnaOrgOpFlags = "01";
+				dlnaOrgOpFlags = "01"; // seek by byte (exclusive)
 
-				if (mediaRenderer.isSeekByTime()) {
-					if (getPlayer() != null) { // transcoded
-						if (getPlayer().isTimeSeekable()) {
-							/**
-							 * Some renderers - e.g. the PS3 and Panasonic TVs - behave erratically when
-							 * transcoding if we keep the default seek-by-byte permission on when permitting
-							 * seek-by-time: http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=15841
-							 *
-							 * It's not clear if this is a bug in the DLNA libraries of these renderers or a bug
-							 * in UMS, but setting an option in the renderer conf that disables seek-by-byte when
-							 * we permit seek-by-time - e.g.:
-							 *
-							 * SeekByTime = exclusive
-							 *
-							 * works around it.
-							 */
-							if (mediaRenderer.isSeekByTimeExclusive()) {
-								dlnaOrgOpFlags = "10";
-							} else {
-								dlnaOrgOpFlags = "11";
-							}
-						}
+				if (mediaRenderer.isSeekByTime() && getPlayer() != null && getPlayer().isTimeSeekable()) {
+					/**
+					 * Some renderers - e.g. the PS3 and Panasonic TVs - behave erratically when
+					 * transcoding if we keep the default seek-by-byte permission on when permitting
+					 * seek-by-time: http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=15841
+					 *
+					 * It's not clear if this is a bug in the DLNA libraries of these renderers or a bug
+					 * in UMS, but setting an option in the renderer conf that disables seek-by-byte when
+					 * we permit seek-by-time - e.g.:
+					 *
+					 *    SeekByTime = exclusive
+					 *
+					 * works around it.
+					 */
+
+					/**
+					 * TODO (e.g. in a beta release): set seek-by-time (exclusive) here for *all* renderers:
+					 * seek-by-byte isn't needed here (both the renderer and the engine support seek-by-time)
+					 * and may be buggy on other renderers than the ones we currently handle.
+					 *
+					 * In the unlikely event that a renderer *requires* seek-by-both here, it can
+					 * opt in with (e.g.):
+					 *
+					 *    SeekByTime = both
+					 */
+					if (mediaRenderer.isSeekByTimeExclusive()) {
+						dlnaOrgOpFlags = "10"; // seek by time (exclusive)
+					} else {
+						dlnaOrgOpFlags = "11"; // seek by both
 					}
 				}
 
 				addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
 
-				String mime = getRendererMimeType(mimeType(), mediaRenderer);
+				// FIXME: There is a flaw here. In addChild(DLNAResource) the mime type
+				// is determined for the default renderer. This renderer may rewrite the
+				// mime type based on its configuration. Looking up that mime type is
+				// not guaranteed to return a match for another renderer.
+				String mime = mediaRenderer.getMimeType(mimeType());
+
 				if (mime == null) {
+					// FIXME: Setting the default to "video/mpeg" leaves a lot of audio files in the cold.
 					mime = "video/mpeg";
 				}
 
-				// TODO: Remove, or at least make this generic
-				// Whole extensions/mime-types mess to rethink anyway
-				if (mediaRenderer.isPS3()) {
-					if (mime.equals("video/x-divx")) {
-						dlnaspec = "DLNA.ORG_PN=AVI";
-					} else if (mime.equals("video/x-ms-wmv") && getMedia() != null && getMedia().getHeight() > 700) {
-						dlnaspec = "DLNA.ORG_PN=WMVHIGH_PRO";
-					}
-				} else {
-					if (mime.equals("video/mpeg")) {
-						dlnaspec = "DLNA.ORG_PN=" + getMPEG_PS_PALLocalizedValue(c);
+				dlnaspec = null;
 
-						if (getPlayer() != null) {
-							// Do we have some mpegts to offer?
-							boolean mpegTsMux = TsMuxeRVideo.ID.equals(getPlayer().id()) || VideoLanVideoStreaming.ID.equals(getPlayer().id());
-							boolean isMuxableResult = getMedia().isMuxable(mediaRenderer);
-							if (!mpegTsMux) { // Maybe, like the PS3, MEncoder can launch tsMuxeR if this a compatible H.264 video
-								mpegTsMux = MEncoderVideo.ID.equals(getPlayer().id()) &&
+				if (mediaRenderer.isDLNAOrgPNUsed()) {
+					if (mediaRenderer.isPS3()) {
+						if (mime.equals("video/x-divx")) {
+							dlnaspec = "DLNA.ORG_PN=AVI";
+						} else if (mime.equals("video/x-ms-wmv") && getMedia() != null && getMedia().getHeight() > 700) {
+							dlnaspec = "DLNA.ORG_PN=WMVHIGH_PRO";
+						}
+					} else {
+						if (mime.equals("video/mpeg")) {
+							dlnaspec = "DLNA.ORG_PN=" + getMPEG_PS_PALLocalizedValue(c);
+
+							if (getPlayer() != null) {
+								boolean isFileMPEGTS = TsMuxeRVideo.ID.equals(getPlayer().id()) || VideoLanVideoStreaming.ID.equals(getPlayer().id());
+								boolean isMuxableResult = getMedia().isMuxable(mediaRenderer);
+								boolean isBravia = mediaRenderer.isBRAVIA();
+								if (
+									!isFileMPEGTS &&
 									(
+										(
+											configuration.isMencoderMuxWhenCompatible() &&
+											MEncoderVideo.ID.equals(getPlayer().id())
+										) ||
+										(
+											configuration.isFFmpegMuxWhenCompatible() &&
+											FFMpegVideo.ID.equals(getPlayer().id())
+										)
+									)
+								) {
+									if (isBravia) {
+										/**
+										 * Sony Bravia TVs (and possibly other renderers) need ORG_PN to be accurate.
+										 * If the value does not match the media, it won't play the media.
+										 * Often we can lazily predict the correct value to send, but due to
+										 * MEncoder needing to mux via tsMuxeR, we need to work it all out
+										 * before even sending the file list to these devices.
+										 * This is very time-consuming so we should a) avoid using this
+										 * chunk of code whenever possible, and b) design a better system.
+										 * Ideally we would just mux to MPEG-PS instead of MPEG-TS so we could
+										 * know it will always be PS, but most renderers will not accept H.264
+										 * inside MPEG-PS. Another option may be to always produce MPEG-TS
+										 * instead and we should check if that will be OK for all renderers.
+										 *
+										 * This code block comes from Player.setAudioAndSubs()
+										 */
+										boolean finishedMatchingPreferences = false;
+										OutputParams params = new OutputParams(configuration);
+										if (getMedia() != null) {
+											// check for preferred audio
+											StringTokenizer st = new StringTokenizer(configuration.getAudioLanguages(), ",");
+											while (st != null && st.hasMoreTokens()) {
+												String lang = st.nextToken();
+												lang = lang.trim();
+												LOGGER.trace("Looking for an audio track with lang: " + lang);
+												for (DLNAMediaAudio audio : getMedia().getAudioTracksList()) {
+													if (audio.matchCode(lang)) {
+														params.aid = audio;
+														LOGGER.trace("Matched audio track: " + audio);
+														st = null;
+														break;
+													}
+												}
+											}
+										}
+
+										if (params.aid == null && getMedia().getAudioTracksList().size() > 0) {
+											// Take a default audio track, dts first if possible
+											for (DLNAMediaAudio audio : getMedia().getAudioTracksList()) {
+												if (audio.isDTS()) {
+													params.aid = audio;
+													LOGGER.trace("Found priority audio track with DTS: " + audio);
+													break;
+												}
+											}
+
+											if (params.aid == null) {
+												params.aid = getMedia().getAudioTracksList().get(0);
+												LOGGER.trace("Chose a default audio track: " + params.aid);
+											}
+										}
+
+										String currentLang = null;
+										DLNAMediaSubtitle matchedSub = null;
+
+										if (params.aid != null) {
+											currentLang = params.aid.getLang();
+										}
+
+										if (params.sid != null && params.sid.getId() == -1) {
+											LOGGER.trace("Don't want subtitles!");
+											params.sid = null;
+											setMediaSubtitle(params.sid);
+											finishedMatchingPreferences = true;
+										}
+
+										if (!finishedMatchingPreferences && params.sid != null && !StringUtils.isEmpty(params.sid.getLiveSubURL())) {
+											// live subtitles
+											// currently only open subtitles
+											LOGGER.debug("Live subtitles " + params.sid.getLiveSubURL());
+											try {
+												matchedSub = params.sid;
+												String file = OpenSubtitle.fetchSubs(matchedSub.getLiveSubURL(), matchedSub.getLiveSubFile());
+												if (!StringUtils.isEmpty(file)) {
+													matchedSub.setExternalFile(new File(file));
+													params.sid = matchedSub;
+													setMediaSubtitle(params.sid);
+													finishedMatchingPreferences = true;
+												}
+											} catch (IOException e) {
+											}
+										}
+
+										if (!finishedMatchingPreferences) {
+											StringTokenizer st1 = new StringTokenizer(configuration.getAudioSubLanguages(), ";");
+
+											boolean matchedEmbeddedSubtitle = false;
+											while (st1.hasMoreTokens()) {
+												String pair = st1.nextToken();
+												if (pair.contains(",")) {
+													String audio = pair.substring(0, pair.indexOf(","));
+													String sub = pair.substring(pair.indexOf(",") + 1);
+													audio = audio.trim();
+													sub = sub.trim();
+													LOGGER.trace("Searching for a match for: " + currentLang + " with " + audio + " and " + sub);
+
+													if (Iso639.isCodesMatching(audio, currentLang) || (currentLang != null && audio.equals("*"))) {
+														if (sub.equals("off")) {
+															matchedSub = new DLNAMediaSubtitle();
+															matchedSub.setLang("off");
+														} else {
+															for (DLNAMediaSubtitle present_sub : getMedia().getSubtitleTracksList()) {
+																if (present_sub.matchCode(sub) || sub.equals("*")) {
+																	if (present_sub.getExternalFile() != null) {
+																		if (configuration.isAutoloadExternalSubtitles()) {
+																			// Subtitle is external and we want external subtitles, look no further
+																			matchedSub = present_sub;
+																			LOGGER.trace(" Found a match: " + matchedSub);
+																			break;
+																		} else {
+																			// Subtitle is external but we do not want external subtitles, keep searching
+																			LOGGER.trace(" External subtitle ignored because of user setting: " + present_sub);
+																		}
+																	} else {
+																		matchedSub = present_sub;
+																		LOGGER.trace(" Found a match: " + matchedSub);
+																		if (configuration.isAutoloadExternalSubtitles()) {
+																			// Subtitle is internal and we will wait to see if an external one is available instead
+																			matchedEmbeddedSubtitle = true;
+																		} else {
+																			// Subtitle is internal and we will use it
+																			break;
+																		}
+																	}
+																}
+															}
+														}
+
+														if (matchedSub != null && !matchedEmbeddedSubtitle) {
+															break;
+														}
+													}
+												}
+											}
+
+											if (matchedSub != null && params.sid == null) {
+												if (configuration.isDisableSubtitles() || (matchedSub.getLang() != null && matchedSub.getLang().equals("off"))) {
+													LOGGER.trace(" Disabled the subtitles: " + matchedSub);
+												} else {
+													params.sid = matchedSub;
+													setMediaSubtitle(params.sid);
+												}
+											}
+
+											if (!configuration.isDisableSubtitles() && params.sid == null && getMedia() != null) {
+												// Check for subtitles again
+												File video = new File(getSystemName());
+												FileUtil.isSubtitlesExists(video, getMedia(), false);
+
+												if (configuration.isAutoloadExternalSubtitles()) {
+													boolean forcedSubsFound = false;
+													// Priority to external subtitles
+													for (DLNAMediaSubtitle sub : getMedia().getSubtitleTracksList()) {
+														if (matchedSub != null && matchedSub.getLang() != null && matchedSub.getLang().equals("off")) {
+															StringTokenizer st = new StringTokenizer(configuration.getForcedSubtitleTags(), ",");
+
+															while (sub.getFlavor() != null && st.hasMoreTokens()) {
+																String forcedTags = st.nextToken();
+																forcedTags = forcedTags.trim();
+
+																if (
+																	sub.getFlavor().toLowerCase().indexOf(forcedTags) > -1 &&
+																	Iso639.isCodesMatching(sub.getLang(), configuration.getForcedSubtitleLanguage())
+																) {
+																	LOGGER.trace("Forcing preferred subtitles : " + sub.getLang() + "/" + sub.getFlavor());
+																	LOGGER.trace("Forced subtitles track : " + sub);
+
+																	if (sub.getExternalFile() != null) {
+																		LOGGER.trace("Found external forced file : " + sub.getExternalFile().getAbsolutePath());
+																	}
+																	params.sid = sub;
+																	setMediaSubtitle(params.sid);
+																	forcedSubsFound = true;
+																	break;
+																}
+															}
+															if (forcedSubsFound == true) {
+																break;
+															}
+														} else {
+															LOGGER.trace("Found subtitles track: " + sub);
+
+															if (sub.getExternalFile() != null) {
+																LOGGER.trace("Found external file: " + sub.getExternalFile().getAbsolutePath());
+																params.sid = sub;
+																setMediaSubtitle(params.sid);
+																break;
+															}
+														}
+													}
+												}
+												if (
+													matchedSub != null &&
+													matchedSub.getLang() != null &&
+													matchedSub.getLang().equals("off")
+												) {
+													finishedMatchingPreferences = true;
+												}
+
+												if (!finishedMatchingPreferences && params.sid == null) {
+													StringTokenizer st = new StringTokenizer(configuration.getSubtitlesLanguages(), ",");
+													while (st != null && st.hasMoreTokens()) {
+														String lang = st.nextToken();
+														lang = lang.trim();
+														LOGGER.trace("Looking for a subtitle track with lang: " + lang);
+														for (DLNAMediaSubtitle sub : getMedia().getSubtitleTracksList()) {
+															if (
+																sub.matchCode(lang) &&
+																!(
+																	!configuration.isAutoloadExternalSubtitles() &&
+																	sub.getExternalFile() != null
+																)
+															) {
+																params.sid = sub;
+																LOGGER.trace("Matched sub track: " + params.sid);
+																st = null;
+																break;
+															}
+														}
+													}
+												}
+											}
+										}
+
+										if (getMediaSubtitle() == null) {
+											LOGGER.trace("We do not want a subtitle for " + getName());
+										} else {
+											LOGGER.trace("We do want a subtitle for " + getName());
+										}
+									}
+
+									if (
 										(
 											getMediaSubtitle() == null &&
 											!isSrtFile() &&
 											getMedia() != null &&
 											getMedia().getDvdtrack() == 0 &&
 											isMuxableResult &&
-											configuration.isMencoderMuxWhenCompatible() &&
 											mediaRenderer.isMuxH264MpegTS()
 										) ||
 										mediaRenderer.isTranscodeToMPEGTSAC3()
-									);
-							}
-							if (mpegTsMux) {
-								dlnaspec = "DLNA.ORG_PN=" + getMPEG_TS_SD_EU_ISOLocalizedValue(c);
-								if (
-									getMedia().isH264() &&
-									!VideoLanVideoStreaming.ID.equals(getPlayer().id()) &&
-									isMuxableResult
-								) {
-									dlnaspec = "DLNA.ORG_PN=AVC_TS_HD_24_AC3_ISO";
+									) {
+										isFileMPEGTS = true;
+									}
+								}
+
+								if (isFileMPEGTS) {
+									dlnaspec = "DLNA.ORG_PN=" + getMPEG_TS_SD_EU_ISOLocalizedValue(c);
+									if (
+										getMedia().isH264() &&
+										!VideoLanVideoStreaming.ID.equals(getPlayer().id()) &&
+										isMuxableResult
+									) {
+										dlnaspec = "DLNA.ORG_PN=AVC_TS_HD_24_AC3_ISO";
+									}
+								}
+							} else if (getMedia() != null) {
+								if (getMedia().isMpegTS()) {
+									dlnaspec = "DLNA.ORG_PN=" + getMPEG_TS_SD_EULocalizedValue(c);
+									if (getMedia().isH264()) {
+										dlnaspec = "DLNA.ORG_PN=AVC_TS_HD_50_AC3";
+									}
 								}
 							}
-						} else if (getMedia() != null) {
-							if (getMedia().isMpegTS()) {
-								dlnaspec = "DLNA.ORG_PN=" + getMPEG_TS_SD_EULocalizedValue(c);
-								if (getMedia().isH264()) {
-									dlnaspec = "DLNA.ORG_PN=AVC_TS_HD_50_AC3";
-								}
-							}
+						} else if (mime.equals("video/vnd.dlna.mpeg-tts")) {
+							// patters - on Sony BDP m2ts clips aren't listed without this
+							dlnaspec = "DLNA.ORG_PN=" + getMPEG_TS_SD_EULocalizedValue(c);
+						} else if (mime.equals("image/jpeg")) {
+							dlnaspec = "DLNA.ORG_PN=JPEG_LRG";
+						} else if (mime.equals("audio/mpeg")) {
+							dlnaspec = "DLNA.ORG_PN=MP3";
+						} else if (mime.substring(0, 9).equals("audio/L16") || mime.equals("audio/wav")) {
+							dlnaspec = "DLNA.ORG_PN=LPCM";
 						}
-					} else if (mime.equals("video/vnd.dlna.mpeg-tts")) {
-						// patters - on Sony BDP m2ts clips aren't listed without this
-						dlnaspec = "DLNA.ORG_PN=" + getMPEG_TS_SD_EULocalizedValue(c);
-					} else if (mime.equals("image/jpeg")) {
-						dlnaspec = "DLNA.ORG_PN=JPEG_LRG";
-					} else if (mime.equals("audio/mpeg")) {
-						dlnaspec = "DLNA.ORG_PN=MP3";
-					} else if (mime.substring(0, 9).equals("audio/L16") || mime.equals("audio/wav")) {
-						dlnaspec = "DLNA.ORG_PN=LPCM";
+					}
+
+					if (dlnaspec != null) {
+						dlnaspec = "DLNA.ORG_PN=" + mediaRenderer.getDLNAPN(dlnaspec.substring(12));
 					}
 				}
 
-				if (dlnaspec != null) {
-					dlnaspec = "DLNA.ORG_PN=" + mediaRenderer.getDLNAPN(dlnaspec.substring(12));
-				}
-
-				if (!mediaRenderer.isDLNAOrgPNUsed()) {
-					dlnaspec = null;
-				}
-
-				addAttribute(sb, "protocolInfo", "http-get:*:" + mime + ":" + (dlnaspec != null ? (dlnaspec + ";") : "") + getDlnaOrgOpFlags());
+				String tempString = "http-get:*:" + mime + ":" + (dlnaspec != null ? (dlnaspec + ";") : "") + getDlnaOrgOpFlags();
+				wireshark = wireshark + " " + tempString;
+				addAttribute(sb, "protocolInfo", tempString);
 
 				if (getFormat() != null && getFormat().isVideo() && getMedia() != null && getMedia().isMediaparsed()) {
 					if (getPlayer() == null && getMedia() != null) {
+						wireshark = wireshark + " " + "size=" + getMedia().getSize();
 						addAttribute(sb, "size", getMedia().getSize());
 					} else {
 						long transcoded_size = mediaRenderer.getTranscodedSize();
 						if (transcoded_size != 0) {
+							wireshark = wireshark + " " + "size=" + transcoded_size;
 							addAttribute(sb, "size", transcoded_size);
 						}
 					}
 					if (getMedia().getDuration() != null) {
 						if (getSplitRange().isEndLimitAvailable()) {
-							addAttribute(sb, "duration", DLNAMediaInfo.getDurationString(getSplitRange().getDuration()));
+							wireshark = wireshark + " " + "duration=" + StringUtil.convertTimeToString(getSplitRange().getDuration(), StringUtil.DURATION_TIME_FORMAT);
+							addAttribute(sb, "duration", StringUtil.convertTimeToString(getSplitRange().getDuration(), StringUtil.DURATION_TIME_FORMAT));
 						} else {
+							wireshark = wireshark + " " + "duration=" + getMedia().getDurationString();
 							addAttribute(sb, "duration", getMedia().getDurationString());
 						}
 					}
@@ -1396,18 +1820,21 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 				} else if (getFormat() != null && getFormat().isImage()) {
 					if (getMedia() != null && getMedia().isMediaparsed()) {
+						wireshark = wireshark + " " + "size=" + getMedia().getSize();
 						addAttribute(sb, "size", getMedia().getSize());
 						if (getMedia().getResolution() != null) {
 							addAttribute(sb, "resolution", getMedia().getResolution());
 						}
 					} else {
+						wireshark = wireshark + " " + "size=" + length();
 						addAttribute(sb, "size", length());
 					}
 				} else if (getFormat() != null && getFormat().isAudio()) {
 					if (getMedia() != null && getMedia().isMediaparsed()) {
 						addAttribute(sb, "bitrate", getMedia().getBitrate());
 						if (getMedia().getDuration() != null) {
-							addAttribute(sb, "duration", DLNAMediaInfo.getDurationString(getMedia().getDuration()));
+							wireshark = wireshark + " " + "duration=" + StringUtil.convertTimeToString(getMedia().getDuration(), StringUtil.DURATION_TIME_FORMAT);
+							addAttribute(sb, "duration", StringUtil.convertTimeToString(getMedia().getDuration(), StringUtil.DURATION_TIME_FORMAT));
 						}
 						if (firstAudioTrack != null && firstAudioTrack.getSampleFrequency() != null) {
 							addAttribute(sb, "sampleFrequency", firstAudioTrack.getSampleFrequency());
@@ -1417,6 +1844,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						}
 
 						if (getPlayer() == null) {
+							wireshark = wireshark + " " + "size=" + getMedia().getSize();
 							addAttribute(sb, "size", getMedia().getSize());
 						} else {
 							// Calculate WAV size
@@ -1434,54 +1862,34 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								if (na > 2) { // No 5.1 dump in MPlayer
 									na = 2;
 								}
-								int finalsize = (int) (getMedia().getDurationInSeconds() * defaultFrequency * 2 * na);
-								LOGGER.debug("Calculated size: " + finalsize);
-								addAttribute(sb, "size", finalsize);
+								int finalSize = (int) (getMedia().getDurationInSeconds() * defaultFrequency * 2 * na);
+								LOGGER.trace("Calculated size for " + getSystemName() + ": " + finalSize);
+								wireshark = wireshark + " " + "size=" + finalSize;
+								addAttribute(sb, "size", finalSize);
 							}
 						}
 					} else {
+						wireshark = wireshark + " " + "size=" + length();
 						addAttribute(sb, "size", length());
 					}
 				} else {
+					wireshark = wireshark + " " + "size=" + DLNAMediaInfo.TRANS_SIZE + " duration=" + "09:59:59";
 					addAttribute(sb, "size", DLNAMediaInfo.TRANS_SIZE);
 					addAttribute(sb, "duration", "09:59:59");
 					addAttribute(sb, "bitrate", "1000000");
 				}
 				endTag(sb);
+				wireshark = wireshark + " " + getFileURL();
+				LOGGER.trace("Network debugger: " + wireshark);
+				wireshark = "";
 				sb.append(getFileURL());
 				closeTag(sb, "res");
 			}
 		}
 
-		String thumbURL = getThumbnailURL();
-		if (!isFolder() && (getFormat() == null || (getFormat() != null && thumbURL != null))) {
-			openTag(sb, "upnp:albumArtURI");
-			addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
+		appendThumbnail(mediaRenderer, sb);
 
-			if (getThumbnailContentType().equals(PNG_TYPEMIME) && !mediaRenderer.isForceJPGThumbnails()) {
-				addAttribute(sb, "dlna:profileID", "PNG_TN");
-			} else {
-				addAttribute(sb, "dlna:profileID", "JPEG_TN");
-			}
-			endTag(sb);
-			sb.append(thumbURL);
-			closeTag(sb, "upnp:albumArtURI");
-		}
-
-		if ((isFolder() || mediaRenderer.isForceJPGThumbnails()) && thumbURL != null) {
-			openTag(sb, "res");
-
-			if (getThumbnailContentType().equals(PNG_TYPEMIME) && !mediaRenderer.isForceJPGThumbnails()) {
-				addAttribute(sb, "protocolInfo", "http-get:*:image/png:DLNA.ORG_PN=PNG_TN");
-			} else {
-				addAttribute(sb, "protocolInfo", "http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_TN");
-			}
-			endTag(sb);
-			sb.append(thumbURL);
-			closeTag(sb, "res");
-		}
-
-		if (getLastModified() > 0) {
+		if (getLastModified() > 0 && !mediaRenderer.isOmitDcDate()) {
 			addXMLTagAndAttribute(sb, "dc:date", SDF_DATE.format(new Date(getLastModified())));
 		}
 
@@ -1521,6 +1929,50 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return sb.toString();
 	}
 
+	/**
+	 * Generate and append the response for the thumbnail based on the
+	 * configuration of the renderer.
+	 *
+	 * @param mediaRenderer The renderer configuration.
+	 * @param sb The StringBuilder to append the response to.
+	 */
+	private void appendThumbnail(RendererConfiguration mediaRenderer, StringBuilder sb) {
+		final String thumbURL = getThumbnailURL();
+
+		if (isNotBlank(thumbURL)) {
+			if (mediaRenderer.getThumbNailAsResource()) {
+				// Samsung 2012 (ES and EH) models do not recognize the "albumArtURI" element. Instead,
+				// the "res" element should be used.
+				// Also use "res" when faking JPEG thumbs.
+				openTag(sb, "res");
+
+				if (getThumbnailContentType().equals(PNG_TYPEMIME) && !mediaRenderer.isForceJPGThumbnails()) {
+					addAttribute(sb, "protocolInfo", "http-get:*:image/png:DLNA.ORG_PN=PNG_TN");
+				} else {
+					addAttribute(sb, "protocolInfo", "http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_TN");
+				}
+
+				endTag(sb);
+				sb.append(thumbURL);
+				closeTag(sb, "res");
+			} else {
+				// Renderers that can handle the "albumArtURI" element.
+				openTag(sb, "upnp:albumArtURI");
+				addAttribute(sb, "xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
+
+				if (getThumbnailContentType().equals(PNG_TYPEMIME) && !mediaRenderer.isForceJPGThumbnails()) {
+					addAttribute(sb, "dlna:profileID", "PNG_TN");
+				} else {
+					addAttribute(sb, "dlna:profileID", "JPEG_TN");
+				}
+
+				endTag(sb);
+				sb.append(thumbURL);
+				closeTag(sb, "upnp:albumArtURI");
+			}
+		}
+	}
+
 	private String getRequestId(String rendererId) {
 		return String.format("%s|%x|%s", rendererId, hashCode(), getSystemName());
 	}
@@ -1556,6 +2008,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						} catch (UnknownHostException ex) {
 							LOGGER.debug("" + ex);
 						}
+
+						startTime = System.currentTimeMillis();
 
 						for (final ExternalListener listener : ExternalFactory.getExternalListeners()) {
 							if (listener instanceof StartStopListener) {
@@ -1622,7 +2076,21 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									LOGGER.debug("" + ex);
 								}
 
+								// Initiate the code that figures out whether to create a resume item
+								if (getMedia() != null) {
+									long durSec = (long) getMedia().getDurationInSeconds();
+									if (externalProcess != null && (durSec == 0 || durSec == DLNAMediaInfo.TRANS_SIZE)) {
+										ProcessWrapperImpl pw = (ProcessWrapperImpl) externalProcess;
+										String dur = pw.getDuration();
+										if (StringUtils.isNotEmpty(dur)) {
+											getMedia().setDuration(convertStringToTime(dur));
+										}
+									}
+								}
+
 								PMS.get().getFrame().setStatusLine("");
+
+								internalStop();
 
 								for (final ExternalListener listener : ExternalFactory.getExternalListeners()) {
 									if (listener instanceof StartStopListener) {
@@ -1637,6 +2105,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 												}
 											}
 										};
+
 										new Thread(fireStartStopEvent, "StopPlaying Event for " + listener.name()).start();
 									}
 								}
@@ -1692,7 +2161,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
-		if (getPlayer() == null) {
+		// Determine source of the stream
+		if (getPlayer() == null && !isResume()) {
+			// No transcoding
 			if (this instanceof IPushOutput) {
 				PipedOutputStream out = new PipedOutputStream();
 				InputStream fis = new PipedInputStream(out);
@@ -1732,6 +2203,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 			return fis;
 		} else {
+			// Pipe transcoding result
 			OutputParams params = new OutputParams(configuration);
 			params.aid = getMediaAudio();
 			params.sid = getMediaSubtitle();
@@ -1746,14 +2218,20 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				params.stdin = (IPushOutput) this;
 			}
 
+			if (resume != null) {
+				params.timeseek += (long) (resume.getTimeOffset() / 1000);
+				if (getPlayer() == null) {
+					setPlayer(new ResumePlayer());
+				}
+			}
+
+			// (Re)start transcoding process if necessary
 			if (externalProcess == null || externalProcess.isDestroyed()) {
-				LOGGER.info("Starting transcode/remux of " + getName());
-				externalProcess = getPlayer().launchTranscode(
-					getSystemName(),
-					this,
-					getMedia(),
-					params
-				);
+				// First playback attempt => start new transcoding process
+				LOGGER.debug("Starting transcode/remux of " + getName() + " with media info: " + getMedia().toString());
+
+				externalProcess = getPlayer().launchTranscode(this, getMedia(), params);
+
 				if (params.waitbeforestart > 0) {
 					LOGGER.trace("Sleeping for {} milliseconds", params.waitbeforestart);
 					try {
@@ -1763,8 +2241,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 					LOGGER.trace("Finished sleeping for " + params.waitbeforestart + " milliseconds");
 				}
-			} else if (params.timeseek > 0 && getMedia() != null && getMedia().isMediaparsed()
-					&& getMedia().getDurationInSeconds() > 0) {
+			} else if (
+				params.timeseek > 0 &&
+				getMedia() != null &&
+				getMedia().isMediaparsed() &&
+				getMedia().getDurationInSeconds() > 0
+			) {
+				// Time seek request => stop running transcode process and start a new one
 				LOGGER.debug("Requesting time seek: " + params.timeseek + " seconds");
 				params.minBufferSize = 1;
 				Runnable r = new Runnable() {
@@ -1774,12 +2257,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 				};
 				new Thread(r, "External Process Stopper").start();
-				ProcessWrapper newExternalProcess = getPlayer().launchTranscode(
-					getSystemName(),
-					this,
-					getMedia(),
-					params
-				);
+				ProcessWrapper newExternalProcess = getPlayer().launchTranscode(this, getMedia(), params);
 				try {
 					Thread.sleep(1000);
 				} catch (InterruptedException e) {
@@ -1799,7 +2277,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				is = externalProcess.getInputStream(low);
 				timer++;
 				if (is == null) {
-					LOGGER.trace("External input stream instance is null... sounds not good, waiting 500ms");
+					LOGGER.debug("External input stream instance is null... sounds not good, waiting 500ms");
 					try {
 						Thread.sleep(500);
 					} catch (InterruptedException e) {
@@ -1815,7 +2293,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				Runnable r = new Runnable() {
 					@Override
 					public void run() {
-						LOGGER.trace("External input stream instance is null... stopping process");
+						LOGGER.error("External input stream instance is null... stopping process");
 						externalProcess.stopProcess();
 					}
 				};
@@ -1851,6 +2329,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	public String mimeType() {
 		if (getPlayer() != null) {
+			// FIXME: This cannot be right. A player like FFmpeg can output many
+			// formats depending on the media and the renderer. Also, players are
+			// singletons. Therefore it is impossible to have exactly one mime
+			// type to return.
 			return getPlayer().mimeType();
 		} else if (getMedia() != null && getMedia().isMediaparsed()) {
 			return getMedia().getMimeType();
@@ -1873,7 +2355,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * Called from Request/RequestV2 in response to thumbnail requests e.g. HEAD /get/0$1$0$42$3/thumbnail0000%5BExample.mkv
 	 * Calls DLNAMediaInfo.generateThumbnail, which in turn calls DLNAMediaInfo.parse.
 	 *
-	 * @param input InputFile to check or generate the thumbnail from.
+	 * @param inputFile File to check or generate the thumbnail for.
 	 */
 	protected void checkThumbnail(InputFile inputFile) {
 		if (getMedia() != null && !getMedia().isThumbready() && configuration.isThumbnailGenerationEnabled()) {
@@ -1924,7 +2406,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		// Or none of the above
-		return getResourceInputStream("images/thumbnail-video-256.png");
+		String defaultThumbnailImage = "images/thumbnail-video-256.png";
+		if (getDefaultRenderer() != null && getDefaultRenderer().isForceJPGThumbnails()) {
+			defaultThumbnailImage = "images/thumbnail-video-120.jpg";
+		}
+		return getResourceInputStream(defaultThumbnailImage);
 	}
 
 	/**
@@ -1936,6 +2422,28 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @throws IOException
 	 */
 	public InputStream getThumbnailInputStream() throws IOException {
+		String id = null;
+
+		if (getMediaAudio() != null) {
+			id = getMediaAudio().getLang();
+		}
+
+		if (getMediaSubtitle() != null && getMediaSubtitle().getId() != -1) {
+			id = getMediaSubtitle().getLang();
+		}
+
+		if ((getMediaSubtitle() != null || getMediaAudio() != null) && StringUtils.isBlank(id)) {
+			id = DLNAMediaLang.UND;
+		}
+
+		if (id != null) {
+			String code = Iso639.getISO639_2Code(id.toLowerCase());
+			return getResourceInputStream("/images/codes/" + code + ".png");
+		}
+
+		if (isAvisynth()) {
+			return getResourceInputStream("/images/logo-avisynth.png");
+		}
 		return getGenericThumbnailInputStream(null);
 	}
 
@@ -1969,7 +2477,20 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + " [id=" + getId() + ", name=" + getName() + ", full path=" + getResourceId() + ", ext=" + getFormat() + ", discovered=" + isDiscovered() + "]";
+		StringBuilder result = new StringBuilder();
+		result.append(getClass().getSimpleName());
+		result.append(" [id=");
+		result.append(getId());
+		result.append(", name=");
+		result.append(getName());
+		result.append(", full path=");
+		result.append(getResourceId());
+		result.append(", ext=");
+		result.append(getFormat());
+		result.append(", discovered=");
+		result.append(isDiscovered());
+		result.append("]");
+		return result.toString();
 	}
 
 	/**
@@ -2009,7 +2530,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// Set deprecated variable for backwards compatibility
 		ext = format;
 	}
-
+ 
 	/**
 	 * @deprecated Use {@link #getFormat()} instead.
 	 *
@@ -2122,7 +2643,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * @deprecated Use {@link #setLastModified()} instead.
+	 * @deprecated Use {@link #setLastModified(long)} instead.
 	 *
 	 * Sets the timestamp at which this resource was last modified.
 	 *
@@ -2478,5 +2999,166 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public Object getAttachment(String key) {
 		return attachments == null ? null : attachments.get(key);
 	}
-}
 
+	public boolean isURLResolved() {
+		return false;
+	}
+
+	////////////////////////////////////////////////////
+	// Subtitle handling
+	////////////////////////////////////////////////////
+
+	private SubSelect getSubSelector(boolean create) {
+		if (
+			configuration.isDisableSubtitles() ||
+			!configuration.isAutoloadExternalSubtitles() ||
+			configuration.isHideLiveSubtitlesFolder()
+		) {
+			return null;
+		}
+
+		// Search for transcode folder
+		for (DLNAResource r : getChildren()) {
+			if (r instanceof SubSelect) {
+				return (SubSelect) r;
+			}
+		}
+		if (create) {
+			SubSelect vf = new SubSelect();
+			addChildInternal(vf);
+			return vf;
+		}
+		return null;
+	}
+
+	public boolean isSubSelectable() {
+		return false;
+	}
+
+	private boolean liveSubs(DLNAResource r) {
+		DLNAMediaSubtitle s = r.getMediaSubtitle();
+		if (s != null) {
+			return StringUtils.isNotEmpty(s.getLiveSubURL());
+		}
+		return false;
+	}
+
+	////////////////////////////////////////////////////
+	// Resume handling
+	////////////////////////////////////////////////////
+
+	private ResumeObj resume;
+	private int resHash;
+	private long startTime;
+
+	private void internalStop() {
+		DLNAResource res = resumeStop();
+		final RootFolder root = ((defaultRenderer != null) ? defaultRenderer.getRootFolder() : null);
+		if (root != null) {
+			if (res == null) {
+				res = this.clone();
+			} else {
+				res = res.clone();
+			}
+
+			root.stopPlaying(res);
+		}
+	}
+
+	public int resumeHash() {
+		return resHash;
+	}
+
+	public ResumeObj getResume() {
+		return resume;
+	}
+
+	public void setResume(ResumeObj r) {
+		resume = r;
+	}
+
+	public boolean isResumeable() {
+		if (getFormat() != null) {
+			// Only resume videos
+			return getFormat().isVideo();
+		}
+		return true;
+	}
+
+	private DLNAResource resumeStop() {
+		if (!configuration.isResumeEnabled() || !isResumeable()) {
+			return null;
+		}
+		if (resume != null) {
+			resume.stop(startTime, (long) (getMedia().getDurationInSeconds() * 1000));
+			if (resume.isDone()) {
+				getParent().getChildren().remove(this);
+			}
+			notifyRefresh();
+		} else {
+			for (DLNAResource res : getParent().getChildren()) {
+				if (res.isResume() && res.getName().equals(getName())) {
+					res.resume.stop(startTime, (long) (getMedia().getDurationInSeconds() * 1000));
+					if (res.resume.isDone()) {
+						getParent().getChildren().remove(res);
+						return null;
+					}
+					return res;
+				}
+			}
+			ResumeObj r = ResumeObj.store(this, startTime);
+			if (r != null) {
+				DLNAResource clone = this.clone();
+				clone.resume = r;
+				clone.resHash = resHash;
+				clone.setMedia(getMedia());
+				clone.setPlayer(getPlayer());
+				getParent().addChildInternal(clone);
+				return clone;
+			}
+		}
+		return null;
+	}
+
+	public final boolean isResume() {
+		return isResumeable() && (resume != null);
+	}
+
+	public int minPlayTime() {
+		return configuration.getMinPlayTime();
+	}
+
+	private String resumeStr(String s) {
+		if (isResume()) {
+			return Messages.getString("PMS.134") + ": " + s;
+		} else {
+			return s;
+		}
+	}
+
+	/**
+	 * Handle last played stuff
+	 *
+	 * This method should be overridden by all media types that should be
+	 * added to the last played list.
+	 * By default it just returns null which means the resource is ignored
+	 * in the last played file.
+	 */
+
+	public String write() {
+		return null;
+	}
+
+	private ExternalListener masterParent;
+
+	public void setMasterParent(ExternalListener r) {
+		if (masterParent == null) {
+			// If master is already set ignore this
+			masterParent = r;
+		}
+	}
+
+	public ExternalListener getMasterParent() {
+		return masterParent;
+	}
+}

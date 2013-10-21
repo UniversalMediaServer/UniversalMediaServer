@@ -34,7 +34,7 @@ import net.pms.network.HTTPResourceAuthenticator;
 public class WebStream extends DLNAResource {
 	@Override
 	public boolean isValid() {
-		checktype();
+		resolveFormat();
 		return getFormat() != null;
 	}
 
@@ -76,6 +76,11 @@ public class WebStream extends DLNAResource {
 		}
 
 		setFluxName(fluxName);
+	}
+
+	@Override
+	public String write() {
+		return getFluxName() + ">" + getUrl() + ">" + getThumbURL() + ">" + getSpecificType();
 	}
 
 	@Override
@@ -164,5 +169,10 @@ public class WebStream extends DLNAResource {
 	 */
 	protected void setThumbURL(String thumbURL) {
 		this.thumbURL = thumbURL;
+	}
+
+	@Override
+	public boolean isSubSelectable() {
+		return true;
 	}
 }

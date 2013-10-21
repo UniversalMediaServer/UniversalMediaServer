@@ -18,6 +18,7 @@
  */
 package net.pms.dlna;
 
+import com.sun.jna.Platform;
 import java.io.*;
 import java.util.ArrayList;
 import net.pms.PMS;
@@ -26,7 +27,7 @@ import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,8 +50,8 @@ public class RealFile extends MapFile {
 	// FIXME: this is called repeatedly for invalid files e.g. files MediaInfo can't parse
 	public boolean isValid() {
 		File file = this.getFile();
-		checktype();
-		if (getType() == Format.VIDEO && file.exists() && configuration.isAutoloadSubtitles() && file.getName().length() > 4) {
+		resolveFormat();
+		if (getType() == Format.VIDEO && file.exists() && configuration.isAutoloadExternalSubtitles() && file.getName().length() > 4) {
 			setSrtFile(FileUtil.isSubtitlesExists(file, null));
 		}
 
@@ -72,7 +73,7 @@ public class RealFile extends MapFile {
 				if (getMedia().isEncrypted()) {
 					LOGGER.info("The file {} is encrypted. It will be hidden", file.getAbsolutePath());
 				} else {
-					LOGGER.info("The file {} was badly parsed. It will be hidden", file.getAbsolutePath());
+					LOGGER.info("The file {} could not be parsed. It will be hidden", file.getAbsolutePath());
 				}
 			}
 
@@ -121,7 +122,7 @@ public class RealFile extends MapFile {
 			String name = null;
 			File file = getFile();
 			if (file.getName().trim().isEmpty()) {
-				if (PMS.get().isWindows()) {
+				if (Platform.isWindows()) {
 					name = PMS.get().getRegistry().getDiskLabel(file);
 				}
 				if (name != null && name.length() > 0) {
@@ -138,12 +139,12 @@ public class RealFile extends MapFile {
 	}
 
 	@Override
-	protected void checktype() {
+	protected void resolveFormat() {
 		if (getFormat() == null) {
-			setFormat(FormatFactory.getAssociatedExtension(getFile().getAbsolutePath()));
+			setFormat(FormatFactory.getAssociatedFormat(getFile().getAbsolutePath()));
 		}
 
-		super.checktype();
+		super.resolveFormat();
 	}
 
 	@Override
@@ -162,7 +163,7 @@ public class RealFile extends MapFile {
 			if (getSplitTrack() > 0) {
 				fileName += "#SplitTrack" + getSplitTrack();
 			}
-			
+
 			if (configuration.getUseCache()) {
 				DLNAMediaDatabase database = PMS.get().getDatabase();
 
@@ -200,7 +201,6 @@ public class RealFile extends MapFile {
 				}
 			}
 		}
-		super.resolve();
 	}
 
 	@Override
@@ -215,50 +215,51 @@ public class RealFile extends MapFile {
 
 		if (getParent() != null && getParent() instanceof RealFile) {
 			cachedThumbnail = ((RealFile) getParent()).getPotentialCover();
-			File thumbFolder = null;
-			boolean alternativeCheck = false;
+		}
 
-			while (cachedThumbnail == null) {
-				if (thumbFolder == null && getType() != Format.IMAGE) {
-					thumbFolder = file.getParentFile();
-				}
+		File thumbFolder = null;
+		boolean alternativeCheck = false;
 
-				cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, file, "jpg");
-
-				if (cachedThumbnail == null) {
-					cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, file, "png");
-				}
-
-				if (cachedThumbnail == null) {
-					cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, file, ".cover.jpg");
-				}
-
-				if (cachedThumbnail == null) {
-					cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, file, ".cover.png");
-				}
-
-				if (alternativeCheck) {
-					break;
-				}
-
-				if (StringUtils.isNotBlank(configuration.getAlternateThumbFolder())) {
-					thumbFolder = new File(configuration.getAlternateThumbFolder());
-
-					if (!thumbFolder.isDirectory()) {
-						thumbFolder = null;
-						break;
-					}
-				}
-
-				alternativeCheck = true;
+		while (cachedThumbnail == null) {
+			if (thumbFolder == null && getType() != Format.IMAGE) {
+				thumbFolder = file.getParentFile();
 			}
 
-			if (file.isDirectory()) {
-				cachedThumbnail = FileUtil.getFileNameWithNewExtension(file.getParentFile(), file, "/folder.jpg");
+			cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, file, "jpg");
 
-				if (cachedThumbnail == null) {
-					cachedThumbnail = FileUtil.getFileNameWithNewExtension(file.getParentFile(), file, "/folder.png");
+			if (cachedThumbnail == null) {
+				cachedThumbnail = FileUtil.getFileNameWithNewExtension(thumbFolder, file, "png");
+			}
+
+			if (cachedThumbnail == null) {
+				cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, file, ".cover.jpg");
+			}
+
+			if (cachedThumbnail == null) {
+				cachedThumbnail = FileUtil.getFileNameWithAddedExtension(thumbFolder, file, ".cover.png");
+			}
+
+			if (alternativeCheck) {
+				break;
+			}
+
+			if (StringUtils.isNotBlank(configuration.getAlternateThumbFolder())) {
+				thumbFolder = new File(configuration.getAlternateThumbFolder());
+
+				if (!thumbFolder.isDirectory()) {
+					thumbFolder = null;
+					break;
 				}
+			}
+
+			alternativeCheck = true;
+		}
+
+		if (file.isDirectory()) {
+			cachedThumbnail = FileUtil.getFileNameWithNewExtension(file.getParentFile(), file, "/folder.jpg");
+
+			if (cachedThumbnail == null) {
+				cachedThumbnail = FileUtil.getFileNameWithNewExtension(file.getParentFile(), file, "/folder.png");
 			}
 		}
 
@@ -297,5 +298,15 @@ public class RealFile extends MapFile {
 			return null;
 		}
 		return super.getThumbnailURL();
+	}
+
+	@Override
+	public boolean isSubSelectable() {
+		return true;
+	}
+
+	@Override
+	public String write() {
+		return getName() + ">" + getFile().getAbsolutePath();
 	}
 }

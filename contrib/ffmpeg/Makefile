@@ -4,6 +4,11 @@ sffmpeg:
 	cmake -DCMAKE_BUILD_TYPE=Release .. && \
 	make
 
+buildfiles:
+	@mkdir -p build && \
+	cd build && \
+	cmake -DCMAKE_BUILD_TYPE=Release ..
+
 distclean:
 	@rm -rf build
 
@@ -14,4 +19,3 @@ deb:
 
 debclean:
 	@debuild clean
-

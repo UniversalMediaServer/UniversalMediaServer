@@ -52,7 +52,7 @@ public class PlaylistFolder extends DLNAResource {
 	}
 
 	@Override
-	public synchronized void resolve() {
+	protected void resolveOnce() {
 		if (playlistfile.length() < 10000000) {
 			ArrayList<Entry> entries = new ArrayList<>();
 			boolean m3u = false;
@@ -70,7 +70,7 @@ public class PlaylistFolder extends DLNAResource {
 							LOGGER.debug("Reading PLS playlist: " + playlistfile.getName());
 						}
 					}
-					String fileName = null;
+					String fileName;
 					String title = null;
 					while ((line = br.readLine()) != null) {
 						line = line.trim();

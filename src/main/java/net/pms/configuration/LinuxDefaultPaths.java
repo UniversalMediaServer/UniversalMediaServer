@@ -2,15 +2,10 @@ package net.pms.configuration;
 
 import java.io.File;
 import net.pms.util.PropertiesUtil;
-import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 class LinuxDefaultPaths implements ProgramPaths {
 	private final String BINARIES_SEARCH_PATH = getBinariesSearchPath();
-
-	@Override
-	public String getEac3toPath() {
-		return null;
-	}
 
 	@Override
 	public String getFfmpegPath() {
@@ -45,11 +40,6 @@ class LinuxDefaultPaths implements ProgramPaths {
 	@Override
 	public String getDCRaw() {
 		return getBinaryPath("dcraw");
-	}
-	
-	@Override
-	public String getIMConvertPath() {
-		return getBinaryPath("convert");
 	}
 
 	@Override

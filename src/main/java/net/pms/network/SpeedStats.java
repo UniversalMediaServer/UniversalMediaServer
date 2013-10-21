@@ -139,14 +139,19 @@ public class SpeedStats {
 			failsafe.start();
 			pw.runInSameThread();
 			List<String> ls = pw.getOtherResults();
-			int time = 0;
+			double time = 0;
 			int c = 0;
+			String timeString;
 
 			for (String line : ls) {
 				int msPos = line.indexOf("ms");
 
 				if (msPos > -1) {
-					String timeString = line.substring(line.lastIndexOf("=", msPos) + 1, msPos).trim();
+					if (line.lastIndexOf("<", msPos) > -1){
+						timeString = "0.5";
+					} else {
+						timeString = line.substring(line.lastIndexOf("=", msPos) + 1, msPos).trim();
+					}
 					try {
 						time += Double.parseDouble(timeString);
 						c++;
@@ -162,7 +167,7 @@ public class SpeedStats {
 			}
 
 			if (time > 0) {
-				int speedInMbits = 1024 / time;
+				int speedInMbits = (int)(512 / time);
 				LOGGER.info("Address " + addr + " has an estimated network speed of: " + speedInMbits + " Mb/s");
 				synchronized(speedStats) {
 					CompletedFuture<Integer> result = new CompletedFuture<>(speedInMbits);

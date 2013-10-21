@@ -7,7 +7,11 @@ import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.formats.v2.SubtitleType;
-import static org.apache.commons.lang.StringUtils.*;
+import org.apache.commons.io.FilenameUtils;
+import static org.apache.commons.lang.StringUtils.isBlank;
+import static org.apache.commons.lang.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.endsWithIgnoreCase;
+import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 import static org.mozilla.universalchardet.Constants.*;
 import org.mozilla.universalchardet.UniversalDetector;
 import org.slf4j.Logger;
@@ -16,9 +20,122 @@ import org.slf4j.LoggerFactory;
 public class FileUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileUtil.class);
 	private static Map<File, File[]> cache;
+	// signal an invalid parameter in getFileLocation() without raising an exception or returning null
+	private static final String DEFAULT_BASENAME = "NO_DEFAULT_BASENAME_SUPPLIED.conf";
+
+	// this class is not instantiable
+	private FileUtil() { }
+
+	/**
+	 * A helper class used by {@link #getFileLocation(String, String, String)}
+	 * which provides access to a file's absolute path and that of its directory.
+	 *
+	 * @since 1.90.0
+	 */
+	public static final class FileLocation {
+		private String directoryPath;
+		private String filePath;
+
+		FileLocation(File directory, File file) {
+			this.directoryPath = FilenameUtils.normalize(directory.getAbsolutePath());
+			this.filePath = FilenameUtils.normalize(file.getAbsolutePath());
+		}
+
+		public String getDirectoryPath() {
+			return directoryPath;
+		}
+
+		public String getFilePath() {
+			return filePath;
+		}
+	}
+
+	/**
+	 * Returns a {@link FileLocation} object which provides access to the directory
+	 * and file paths of the specified file as normalised, absolute paths.
+	 *
+	 * This determines the directory and file path of a file according to the rules
+	 * outlined here: http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&amp;t=3507&amp;p=49895#p49895
+	 *
+	 * @param customPath an optional user-defined path for the resource
+	 * @param defaultDirectory a default directory path used if no custom path is provided
+	 * @param defaultBasename a default filename used if a) no custom path is provided
+	 *                        or b) the custom path is a directory
+	 * @return a {@link FileLocation} object providing access to the file's directory and file paths
+	 * @since 1.90.0
+	 */
+	// this is called from a static initialiser, where errors aren't clearly reported,
+	// so do everything possible to return a valid reponse, even if the parameters
+	// aren't sane
+	static public FileLocation getFileLocation(
+		String customPath,
+		String defaultDirectory,
+		String defaultBasename
+	) {
+		File customFile = null;
+		File directory = null;
+		File file = null;
+
+		if (isBlank(defaultBasename)) {
+			// shouldn't get here
+			defaultBasename = DEFAULT_BASENAME;
+		}
+
+		if (defaultDirectory == null) {
+			defaultDirectory = ""; // current directory
+		}
+
+		if (customPath != null) {
+			customFile = new File(customPath).getAbsoluteFile();
+		}
+
+		if (customFile != null) {
+			if (customFile.exists()) {
+				if (customFile.isDirectory()) {
+					directory = customFile;
+					file = new File(customFile, defaultBasename).getAbsoluteFile();
+				} else {
+					directory = customFile.getParentFile();
+					file = customFile;
+				}
+			} else {
+				File parentDirectoryFile = customFile.getParentFile();
+				if (parentDirectoryFile != null && parentDirectoryFile.exists()) {
+					// parent directory exists: the file can be created
+					directory = parentDirectoryFile;
+					file = customFile;
+				}
+			}
+		}
+
+		if (directory == null || file == null) {
+			directory = new File(defaultDirectory).getAbsoluteFile();
+			file = new File(directory, defaultBasename).getAbsoluteFile();
+		}
+
+		return new FileLocation(directory, file);
+	}
 
 	public static File isFileExists(String f, String ext) {
 		return isFileExists(new File(f), ext);
+	}
+
+	/**
+	 * Returns the protocol of the supplied filename if any,
+	 * or <code>null</code> if none.
+	 *
+	 * @param filename the filename whose protocol is to be determined
+	 * @return the filename's protocol if any, or <code>null</code>
+	 * if none.
+	 */
+	public static String getProtocol(String filename) {
+		// we use a lax validate/parse here instead of URI.getScheme()
+		// so psuedo-urls (e.g. librtmp-style urls containing spaces)
+		// will pass without throwing URISyntaxException.
+		if (filename != null && filename.matches("\\S+://.*")) {
+			return filename.split("://")[0].toLowerCase();
+		}
+		return null;
 	}
 
 	public static String getExtension(String f) {
@@ -41,14 +158,163 @@ public class FileUtil {
 		return f.substring(0, point);
 	}
 
-	public static File getFileNameWithNewExtension(File parent, File file, String ext) {
-		File ff = isFileExists(new File(parent, file.getName()), ext);
+	public static String getFileNameWithRewriting(String f) {
+		String formattedName;
+		int point = f.lastIndexOf(".");
 
-		if (ff != null && ff.exists()) {
-			return ff;
+		if (point == -1) {
+			point = f.length();
 		}
 
-		return null;
+		// Remove file extension
+		formattedName = f.substring(0, point);
+
+		String commonFileEnds = "[\\s\\.]AC3.*|[\\s\\.]REPACK.*|[\\s\\.]480p.*|[\\s\\.]720p.*|[\\s\\.]m-720p.*|[\\s\\.]900p.*|[\\s\\.]1080p.*|[\\s\\.]HDTV.*|[\\s\\.]DSR.*|[\\s\\.]PDTV.*|[\\s\\.]WS.*|[\\s\\.]HQ.*|[\\s\\.]DVDRip.*|[\\s\\.]TVRiP.*|[\\s\\.]BDRip.*|[\\s\\.]BluRay.*|[\\s\\.]Blu-ray.*|[\\s\\.]SUBBED.*|[\\s\\.]x264.*|[\\s\\.]Dual[\\s\\.]Audio.*|[\\s\\.]HSBS.*|[\\s\\.]H-SBS.*|[\\s\\.]RERiP.*|[\\s\\.]DIRFIX.*";
+		String commonFileEndsMatch = ".*[\\s\\.]AC3.*|.*[\\s\\.]REPACK.*|.*[\\s\\.]480p.*|.*[\\s\\.]720p.*|.*[\\s\\.]m-720p.*|.*[\\s\\.]900p.*|.*[\\s\\.]1080p.*|.*[\\s\\.]HDTV.*|.*[\\s\\.]DSR.*|.*[\\s\\.]PDTV.*|.*[\\s\\.]WS.*|.*[\\s\\.]HQ.*|.*[\\s\\.]DVDRip.*|.*[\\s\\.]TVRiP.*|.*[\\s\\.]BDRip.*|.*[\\s\\.]BluRay.*|.*[\\s\\.]Blu-ray.*|.*[\\s\\.]SUBBED.*|.*[\\s\\.]x264.*|.*[\\s\\.]Dual[\\s\\.]Audio.*|.*[\\s\\.]HSBS.*|.*[\\s\\.]H-SBS.*|.*[\\s\\.]RERiP.*|.*[\\s\\.]DIRFIX.*";
+		String commonFileEndsCaseSensitive = "[\\s\\.]PROPER.*|[\\s\\.]iNTERNAL.*|[\\s\\.]LIMITED.*|[\\s\\.]LiMiTED.*|[\\s\\.]FESTiVAL.*|[\\s\\.]NORDIC.*";
+
+		String commonFileMiddle = "(?i)(Special[\\s\\.]Edition|Unrated|Final[\\s\\.]Cut|Remastered|Extended[\\s\\.]Cut|Extended)";
+
+		if (formattedName.matches(".*[sS]0\\d[eE]\\d\\d.*")) {
+			// This matches scene and most p2p TV episodes within the first 9 seasons
+
+			// Rename the season/episode numbers. For example, "S01E01" changes to " - 101"
+			// Then strip the end of the episode if it does not have the episode name in the title
+			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S0(\\d)E(\\d)(\\d)(" + commonFileEnds + ")", " - $1$2$3");
+			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S0(\\d)E(\\d)(\\d)(" + commonFileEndsCaseSensitive + ")", " - $1$2$3");
+
+			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
+			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S0(\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3 - ");
+
+			// Remove stuff at the end of the filename like release group, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
+			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
+		} else if (formattedName.matches(".*[sS][1-9]\\d[eE]\\d\\d.*")) {
+			// This matches scene and most p2p TV episodes after their first 9 seasons
+
+			// Rename the season/episode numbers. For example, "S11E01" changes to " - 1101"
+			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)(" + commonFileEnds + ")", " - $1$2$3");
+			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)(" + commonFileEndsCaseSensitive + ")", " - $1$2$3");
+
+			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
+			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3 - ");
+
+			// Remove stuff at the end of the filename like release group, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
+			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
+		} else if (formattedName.matches(".*\\.(19|20)\\d\\d\\.[0-1]\\d\\.[0-3]\\d\\..*")) {
+			// This matches scene and most p2p TV episodes that release several times per week
+
+			// Rename the date. For example, "2013.03.18" changes to " - 2013/03/18"
+			formattedName = formattedName.replaceAll("(?i)\\.(19|20)(\\d\\d)\\.([0-1]\\d)\\.([0-3]\\d)(" + commonFileEnds + ")", " - $1$2/$3/$4");
+
+			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
+			formattedName = formattedName.replaceAll("(?i)\\.(19|20)(\\d\\d)\\.([0-1]\\d)\\.([0-3]\\d)\\.", " - $1$2/$3/$4 - ");
+
+			// Remove stuff at the end of the filename like release group, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
+			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
+		} else if (formattedName.matches(".*\\.(19|20)\\d\\d\\..*")) {
+			// This matches scene and most p2p movies
+
+			// Rename the year. For example, "2013" changes to " (2013)"
+			formattedName = formattedName.replaceAll("\\.(19|20)(\\d\\d)", " ($1$2)");
+
+			// Remove stuff at the end of the filename like release group, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
+			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
+
+			formattedName = formattedName.replaceAll(commonFileMiddle, "($1)");
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
+		} else if (formattedName.matches(commonFileEndsMatch)) {
+			// This matches files that partially follow the scene format
+
+			// Remove stuff at the end of the filename like release group, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
+			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
+
+			formattedName = formattedName.replaceAll(commonFileMiddle, "($1)");
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
+		} else if (formattedName.matches(".*\\[(19|20)\\d\\d\\].*")) {
+			// This matches rarer types of movies
+
+			// Rename the year. For example, "2013" changes to " (2013)"
+			formattedName = formattedName.replaceAll("(?i)\\[(19|20)(\\d\\d)\\].*", " ($1$2)");
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
+		} else if (formattedName.matches(".*\\((19|20)\\d\\d\\).*")) {
+			// This matches rarer types of movies
+
+			// Remove stuff at the end of the filename like release group, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
+			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
+		} else if (formattedName.matches(".*\\((19|20)\\d\\d\\).*")) {
+			// This matches rarer types of movies
+
+			// Remove stuff at the end of the filename like release group, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
+			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
+		} else if (formattedName.matches(".*\\[[0-9a-zA-Z]{8}\\]$")) {
+			// This matches anime with a hash at the end of the name
+
+			// Remove underscores
+			formattedName = formattedName.replaceAll("_", " ");
+
+			// Remove stuff at the end of the filename like hash, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\[720p.*|\\[1080p.*|\\[480p.*|\\s\\(BD.*|\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*", "");
+
+			// Remove group name from the beginning of the filename
+			if (formattedName.substring(0, 1).matches("\\[")) {
+				int closingBracketIndex = formattedName.indexOf("]");
+				if (closingBracketIndex != -1) {
+					formattedName = formattedName.substring(closingBracketIndex + 1);
+				}
+
+				if (formattedName.substring(0, 1).matches("\\s")) {
+					formattedName = formattedName.substring(1);
+				}
+			}
+		} else if (formattedName.matches(".*\\[BD\\].*|.*\\[720p\\].*|.*\\[1080p\\].*|.*\\[480p\\].*|.*\\[Blu-Ray.*|.*\\[h264.*")) {
+			// This matches anime without a hash in the name
+
+			// Remove underscores
+			formattedName = formattedName.replaceAll("_", " ");
+
+			// Remove stuff at the end of the filename like hash, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)\\[BD\\].*|\\[720p.*|\\[1080p.*|\\[480p.*|\\[Blu-Ray.*\\[h264.*", "");
+
+			// Remove group name from the beginning of the filename
+			if (formattedName.substring(0, 1).matches("\\[")) {
+				int closingBracketIndex = formattedName.indexOf("]");
+				if (closingBracketIndex != -1) {
+					formattedName = formattedName.substring(closingBracketIndex + 1);
+				}
+
+				if (formattedName.substring(0, 1).matches("\\s")) {
+					formattedName = formattedName.substring(1);
+				}
+			}
+		}
+
+		return formattedName;
+	}
+
+	public static File getFileNameWithNewExtension(File parent, File file, String ext) {
+		return isFileExists(new File(parent, file.getName()), ext);
 	}
 
 	/**
@@ -84,14 +350,14 @@ public class FileUtil {
 			point = f.getName().length();
 		}
 
-		File lowerCasedFilename = new File(f.getParentFile(), f.getName().substring(0, point) + "." + ext.toLowerCase());
-		if (lowerCasedFilename.exists()) {
-			return lowerCasedFilename;
+		File lowerCasedFile = new File(f.getParentFile(), f.getName().substring(0, point) + "." + ext.toLowerCase());
+		if (lowerCasedFile.exists()) {
+			return lowerCasedFile;
 		}
 
-		File upperCasedFilename = new File(f.getParentFile(), f.getName().substring(0, point) + "." + ext.toUpperCase());
-		if (upperCasedFilename.exists()) {
-			return upperCasedFilename;
+		File upperCasedFile = new File(f.getParentFile(), f.getName().substring(0, point) + "." + ext.toUpperCase());
+		if (upperCasedFile.exists()) {
+			return upperCasedFile;
 		}
 
 		return null;
@@ -100,6 +366,7 @@ public class FileUtil {
 	/**
 	 * @deprecated Use {@link #isSubtitlesExists(File file, DLNAMediaInfo media)} instead.
 	 */
+	@Deprecated
 	public static boolean doesSubtitlesExists(File file, DLNAMediaInfo media) {
 		return isSubtitlesExists(file, media);
 	}
@@ -111,13 +378,17 @@ public class FileUtil {
 	/**
 	 * @deprecated Use {@link #isSubtitlesExists(File file, DLNAMediaInfo media, boolean usecache)} instead.
 	 */
+	@Deprecated
 	public static boolean doesSubtitlesExists(File file, DLNAMediaInfo media, boolean usecache) {
 		return isSubtitlesExists(file, media, usecache);
 	}
 
 	public static boolean isSubtitlesExists(File file, DLNAMediaInfo media, boolean usecache) {
-		boolean found = browseFolderForSubtitles(file.getParentFile(), file, media, usecache);
-		String alternate = PMS.getConfiguration().getAlternateSubsFolder();
+		boolean found = false;
+		if (file.exists()) {
+			found = browseFolderForSubtitles(file.getParentFile(), file, media, usecache);
+		}
+		String alternate = PMS.getConfiguration().getAlternateSubtitlesFolder();
 
 		if (isNotBlank(alternate)) { // https://code.google.com/p/ps3mediaserver/issues/detail?id=737#c5
 			File subFolder = new File(alternate);
@@ -251,14 +522,14 @@ public class FileUtil {
 	 */
 	public static String getFileCharset(File file) throws IOException {
 		byte[] buf = new byte[4096];
-		BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file));
-		final UniversalDetector universalDetector = new UniversalDetector(null);
-
-		int numberOfBytesRead;
-		while ((numberOfBytesRead = bufferedInputStream.read(buf)) > 0 && !universalDetector.isDone()) {
-			universalDetector.handleData(buf, 0, numberOfBytesRead);
+		final UniversalDetector universalDetector;
+		try (BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file))) {
+			universalDetector = new UniversalDetector(null);
+			int numberOfBytesRead;
+			while ((numberOfBytesRead = bufferedInputStream.read(buf)) > 0 && !universalDetector.isDone()) {
+				universalDetector.handleData(buf, 0, numberOfBytesRead);
+			}
 		}
-
 		universalDetector.dataEnd();
 		String encoding = universalDetector.getDetectedCharset();
 
@@ -373,7 +644,7 @@ public class FileUtil {
 
 	/**
 	 * Determine whether a file is readable by trying to read it. This works around JDK bugs which
-	 * return the wrong results for {@link java.io.File.canRead()} on Windows, and in some cases, on Unix.
+	 * return the wrong results for {@link java.io.File#canRead()} on Windows, and in some cases, on Unix.
 	 * <p>
 	 * Note: since this method accesses the filesystem, it should not be used in contexts in which performance is critical.
 	 * Note: this method changes the file access time.
@@ -400,7 +671,7 @@ public class FileUtil {
 
 	/**
 	 * Determine whether a file is writable by trying to write it. This works around JDK bugs which
-	 * return the wrong results for {@link java.io.File.canWrite()} on Windows and, in some cases, on Unix.
+	 * return the wrong results for {@link java.io.File#canWrite()} on Windows and, in some cases, on Unix.
 	 * <p>
 	 * Note: since this method accesses the filesystem, it should not be used in contexts in which performance is critical.
 	 * Note: this method changes the file access time and may change the file modification time.
@@ -447,7 +718,7 @@ public class FileUtil {
 	 * Determines whether the supplied directory is readable by trying to
 	 * read its contents.
 	 * This works around JDK bugs which return the wrong results for
-	 * {@link java.io.File.canRead()} on Windows and possibly on Unix.
+	 * {@link java.io.File#canRead()} on Windows and possibly on Unix.
 	 *
 	 * Note: since this method accesses the filesystem, it should not be
 	 * used in contexts in which performance is critical.
@@ -483,7 +754,7 @@ public class FileUtil {
 	 * Determines whether the supplied directory is writable by trying to
 	 * write a file to it.
 	 * This works around JDK bugs which return the wrong results for
-	 * {@link java.io.File.canWrite()} on Windows and possibly on Unix.
+	 * {@link java.io.File#canWrite()} on Windows and possibly on Unix.
 	 *
 	 * Note: since this method accesses the filesystem, it should not be
 	 * used in contexts in which performance is critical.

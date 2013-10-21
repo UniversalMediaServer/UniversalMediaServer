@@ -21,7 +21,7 @@ import net.pms.PMS;
 import net.pms.external.ExternalFactory;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,7 +97,7 @@ public class DownloadPlugins {
 					}
 					res.add(plugin);
 				} else {
-					LOGGER.info("An invalid plugin was ignored");
+					LOGGER.trace("An invalid plugin was ignored (1)");
 				}
 				plugin = new DownloadPlugins(test);
 				continue;
@@ -173,7 +173,7 @@ public class DownloadPlugins {
 			}
 			res.add(plugin);
 		} else {
-			LOGGER.info("An invalid plugin was ignored");
+			LOGGER.trace("An invalid plugin was ignored (2)");
 		}
 		in.close();
 	}

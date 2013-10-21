@@ -4,6 +4,8 @@ import com.sun.jna.Platform;
 import java.io.File;
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -19,24 +21,30 @@ import net.pms.network.HTTPResource;
 import net.pms.network.SpeedStats;
 import net.pms.util.PropertiesUtil;
 import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.ConversionException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.WordUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RendererConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
-	private static ArrayList<RendererConfiguration> rendererConfs;
+	private static ArrayList<RendererConfiguration> enabledRendererConfs;
+	private static ArrayList<String> allRenderersNames = new ArrayList<>();
 	private static PmsConfiguration pmsConfiguration;
 	private static RendererConfiguration defaultConf;
 	private static Map<InetAddress, RendererConfiguration> addressAssociation = new HashMap<>();
 
 	private RootFolder rootFolder;
 	private final PropertiesConfiguration configuration;
+	private final ConfigurationReader configurationReader;
 	private FormatConfiguration formatConfiguration;
 	private int rank;
+
+	// Holds MIME type aliases
 	private final Map<String, String> mimes;
+
+	private final Map<String, String> charMap;
 	private final Map<String, String> DLNAPN;
 
 	// property values
@@ -56,8 +64,9 @@ public class RendererConfiguration {
 	private static final String CBR_VIDEO_BITRATE = "CBRVideoBitrate"; // Ditlew
 	private static final String CHUNKED_TRANSFER = "ChunkedTransfer";
 	private static final String CUSTOM_MENCODER_OPTIONS = "CustomMencoderOptions";
-	private static final String CUSTOM_MENCODER_QUALITY_SETTINGS = "CustomMencoderQualitySettings";
+	private static final String CUSTOM_MENCODER_MPEG2_OPTIONS = "CustomMencoderQualitySettings"; // TODO (breaking change): value should be CustomMEncoderMPEG2Options
 	private static final String DEFAULT_VBV_BUFSIZE = "DefaultVBVBufSize";
+	private static final String DISABLE_MENCODER_NOSKIP = "DisableMencoderNoskip";
 	private static final String DLNA_LOCALIZATION_REQUIRED = "DLNALocalizationRequired";
 	private static final String DLNA_ORGPN_USE = "DLNAOrgPN";
 	private static final String DLNA_PN_CHANGES = "DLNAProfileChanges";
@@ -85,12 +94,14 @@ public class RendererConfiguration {
 	private static final String STREAM_EXT = "StreamExtensions";
 	private static final String SUBTITLE_HTTP_HEADER = "SubtitleHttpHeader";
 	private static final String SUPPORTED = "Supported";
+	private static final String THUMBNAIL_AS_RESOURCE = "ThumbnailAsResource";
 	private static final String TRANSCODE_AUDIO_441KHZ = "TranscodeAudioTo441kHz";
 	private static final String TRANSCODE_AUDIO = "TranscodeAudio";
-	private static final String TRANSCODED_SIZE = "TranscodedVideoFileSize";
 	private static final String TRANSCODE_EXT = "TranscodeExtensions";
 	private static final String TRANSCODE_FAST_START = "TranscodeFastStart";
 	private static final String TRANSCODE_VIDEO = "TranscodeVideo";
+	private static final String TRANSCODED_SIZE = "TranscodedVideoFileSize";
+	private static final String TRANSCODED_VIDEO_AUDIO_SAMPLE_RATE = "TranscodedVideoAudioSampleRate";
 	private static final String USER_AGENT_ADDITIONAL_HEADER = "UserAgentAdditionalHeader";
 	private static final String USER_AGENT_ADDITIONAL_SEARCH = "UserAgentAdditionalHeaderSearch";
 	private static final String USER_AGENT = "UserAgentSearch";
@@ -99,6 +110,8 @@ public class RendererConfiguration {
 	private static final String WRAP_DTS_INTO_PCM = "WrapDTSIntoPCM";
 	private static final String CUSTOM_FFMPEG_OPTIONS = "CustomFFmpegOptions";
 	private static final String OVERRIDE_VF = "OverrideVideoFilter";
+	private static final String TEXTWRAP = "TextWrap";
+	private static final String CHARMAP = "CharMap";
 
 	public static RendererConfiguration getDefaultConf() {
 		return defaultConf;
@@ -111,7 +124,7 @@ public class RendererConfiguration {
 	 */
 	public static void loadRendererConfigurations(PmsConfiguration pmsConf) {
 		pmsConfiguration = pmsConf;
-		rendererConfs = new ArrayList<>();
+		enabledRendererConfs = new ArrayList<>();
 
 		try {
 			defaultConf = new RendererConfiguration();
@@ -125,23 +138,28 @@ public class RendererConfiguration {
 			LOGGER.info("Loading renderer configurations from " + renderersDir.getAbsolutePath());
 
 			File[] confs = renderersDir.listFiles();
+			Arrays.sort(confs);
 			int rank = 1;
 			for (File f : confs) {
 				if (f.getName().endsWith(".conf")) {
 					try {
-						LOGGER.info("Loading configuration file: " + f.getName());
 						RendererConfiguration r = new RendererConfiguration(f);
 						r.rank = rank++;
-						rendererConfs.add(r);
+						String rendererName = r.getRendererName();
+						if (!pmsConfiguration.getIgnoredRenderers().contains(rendererName)) {
+							enabledRendererConfs.add(r);
+							LOGGER.info("Loaded configuration for renderer: " + rendererName);
+						} else {
+							LOGGER.debug("Ignored " + rendererName + " configuration");
+						}
 					} catch (ConfigurationException ce) {
 						LOGGER.info("Error in loading configuration of: " + f.getAbsolutePath());
 					}
-
 				}
 			}
 		}
 
-		if (rendererConfs.size() > 0) {
+		if (enabledRendererConfs.size() > 0) {
 			// See if a different default configuration was configured
 			String rendererFallback = pmsConfiguration.getRendererDefault();
 
@@ -156,13 +174,64 @@ public class RendererConfiguration {
 		}
 	}
 
+	private static void loadRenderersNames() {
+		File renderersDir = getRenderersDir();
+
+		if (renderersDir != null) {
+			LOGGER.info("Loading renderer names from " + renderersDir.getAbsolutePath());
+
+			for (File f : renderersDir.listFiles()) {
+				if (f.getName().endsWith(".conf")) {
+					try {
+						allRenderersNames.add(new RendererConfiguration(f).getRendererName());
+					} catch (ConfigurationException ce) {
+						LOGGER.warn("Error loading " + f.getAbsolutePath());
+					}
+				}
+			}
+
+			Collections.sort(allRenderersNames, String.CASE_INSENSITIVE_ORDER);
+		}
+	}
+
+	private int getInt(String key, int def) {
+		return configurationReader.getInt(key, def);
+	}
+
+	private long getLong(String key, int def) {
+		return configurationReader.getLong(key, def);
+	}
+
+	private boolean getBoolean(String key, boolean def) {
+		return configurationReader.getBoolean(key, def);
+	}
+
+	/**
+	 * Return the <code>String</code> value for a given configuration key if the
+	 * value is non-blank (i.e. not null, not an empty string, not all whitespace).
+	 * Otherwise return the supplied default value.
+	 * The value is returned with leading and trailing whitespace removed in both cases.
+	 *
+	 * @param key The key to look up.
+	 * @param def The default value to return when no valid key value can be found.
+	 * @return The value configured for the key.
+	 */
+	private String getString(String key, String def) {
+		return configurationReader.getString(key, def);
+	}
+
+	@Deprecated
+	public static ArrayList<RendererConfiguration> getAllRendererConfigurations() {
+		return getEnabledRenderersConfigurations();
+	}
+
 	/**
 	 * Returns the list of all renderer configurations.
 	 *
 	 * @return The list of all configurations.
 	 */
-	public static ArrayList<RendererConfiguration> getAllRendererConfigurations() {
-		return rendererConfs;
+	public static ArrayList<RendererConfiguration> getEnabledRenderersConfigurations() {
+		return enabledRendererConfs;
 	}
 
 	protected static File getRenderersDir() {
@@ -186,7 +255,7 @@ public class RendererConfiguration {
 	}
 
 	public static void resetAllRenderers() {
-		for (RendererConfiguration rc : rendererConfs) {
+		for (RendererConfiguration rc : enabledRendererConfs) {
 			rc.rootFolder = null;
 		}
 	}
@@ -194,7 +263,9 @@ public class RendererConfiguration {
 	public RootFolder getRootFolder() {
 		if (rootFolder == null) {
 			rootFolder = new RootFolder(getRendererName());
-			rootFolder.discoverChildren();
+			if (pmsConfiguration.getUseCache()) {
+				rootFolder.discoverChildren();
+			}
 		}
 
 		return rootFolder;
@@ -210,6 +281,7 @@ public class RendererConfiguration {
 	 * Associate an IP address with this renderer. The association will
 	 * persist between requests, allowing the renderer to be recognized
 	 * by its address in later requests.
+	 *
 	 * @param sa The IP address to associate.
 	 * @see #getRendererConfigurationBySocketAddress(InetAddress)
 	 */
@@ -239,7 +311,7 @@ public class RendererConfiguration {
 			return manageRendererMatch(defaultConf);
 		} else {
 			// Try to find a match
-			for (RendererConfiguration r : rendererConfs) {
+			for (RendererConfiguration r : enabledRendererConfs) {
 				if (r.matchUserAgent(userAgentString)) {
 					return manageRendererMatch(r);
 				}
@@ -281,7 +353,7 @@ public class RendererConfiguration {
 			return manageRendererMatch(defaultConf);
 		} else {
 			// Try to find a match
-			for (RendererConfiguration r : rendererConfs) {
+			for (RendererConfiguration r : enabledRendererConfs) {
 				if (StringUtils.isNotBlank(r.getUserAgentAdditionalHttpHeader()) && header.startsWith(r.getUserAgentAdditionalHttpHeader())) {
 					String value = header.substring(header.indexOf(":", r.getUserAgentAdditionalHttpHeader().length()) + 1);
 					if (r.matchAdditionalUserAgent(value)) {
@@ -306,7 +378,7 @@ public class RendererConfiguration {
 	 * @since 1.50.1
 	 */
 	public static RendererConfiguration getRendererConfigurationByName(String name) {
-		for (RendererConfiguration conf : rendererConfs) {
+		for (RendererConfiguration conf : enabledRendererConfs) {
 			if (conf.getRendererName().toLowerCase().contains(name.toLowerCase())) {
 				return conf;
 			}
@@ -323,13 +395,10 @@ public class RendererConfiguration {
 		return rank;
 	}
 
-	// FIXME These 'is' methods should disappear. Use feature detection instead.
-	@Deprecated
 	public boolean isXBOX() {
 		return getRendererName().toUpperCase().contains("XBOX");
 	}
 
-	@Deprecated
 	public boolean isXBMC() {
 		return getRendererName().toUpperCase().contains("XBMC");
 	}
@@ -342,7 +411,6 @@ public class RendererConfiguration {
 		return getRendererName().toUpperCase().contains("BRAVIA");
 	}
 
-	@Deprecated
 	public boolean isFDSSDP() {
 		return getRendererName().toUpperCase().contains("FDSSDP");
 	}
@@ -362,12 +430,17 @@ public class RendererConfiguration {
 		return getBoolean(SHOW_DVD_TITLE_DURATION, false);
 	}
 
-	private RendererConfiguration() throws ConfigurationException {
+	RendererConfiguration() throws ConfigurationException {
 		this(null);
 	}
 
 	public RendererConfiguration(File f) throws ConfigurationException {
 		configuration = new PropertiesConfiguration();
+
+		// false: don't log overrides (every renderer conf
+		// overrides multiple settings)
+		configurationReader = new ConfigurationReader(configuration, false);
+
 		configuration.setListDelimiter((char) 0);
 
 		if (f != null) {
@@ -392,6 +465,28 @@ public class RendererConfiguration {
 			}
 		}
 
+        charMap = new HashMap<>();
+        String ch = getString(CHARMAP, null);
+        if (StringUtils.isNotBlank(ch)) {
+            StringTokenizer st = new StringTokenizer(ch, " ");
+            String org = "";
+
+            while (st.hasMoreTokens()) {
+                String tok = st.nextToken().trim();
+                if(StringUtils.isBlank(tok)) {
+                    continue;
+                }
+                tok = tok.replaceAll("###0", " ");
+                if(StringUtils.isBlank(org)) {
+                    org = tok;
+                }
+                else {
+                    charMap.put(org, tok);
+                    org = "";
+                }
+            }
+        }
+
 		DLNAPN = new HashMap<>();
 		String DLNAPNchanges = getString(DLNA_PN_CHANGES, null);
 
@@ -413,7 +508,7 @@ public class RendererConfiguration {
 		}
 
 		if (f == null) {
-			// the default renderer supports everything !
+			// The default renderer supports everything!
 			configuration.addProperty(MEDIAPARSERV2, true);
 			configuration.addProperty(MEDIAPARSERV2_THUMB, true);
 			configuration.addProperty(SUPPORTED, "f:.+");
@@ -512,85 +607,98 @@ public class RendererConfiguration {
 		return getBoolean(DLNA_LOCALIZATION_REQUIRED, false);
 	}
 
-	public String getMimeType(String mimetype) {
-		if (isMediaParserV2()) {
-			if (mimetype != null && mimetype.equals(HTTPResource.VIDEO_TRANSCODE)) {
-				mimetype = getFormatConfiguration().match(FormatConfiguration.MPEGPS, FormatConfiguration.MPEG2, FormatConfiguration.AC3);
-				if (isTranscodeToMPEGTSAC3()) {
-					mimetype = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.MPEG2, FormatConfiguration.AC3);
-				} else if (isTranscodeToWMV()) {
-					mimetype = getFormatConfiguration().match(FormatConfiguration.WMV, FormatConfiguration.WMV, FormatConfiguration.WMA);
-				}
-			} else if (mimetype != null && mimetype.equals(HTTPResource.AUDIO_TRANSCODE)) {
-				mimetype = getFormatConfiguration().match(FormatConfiguration.LPCM, null, null);
+	public boolean isDisableMencoderNoskip() {
+		return getBoolean(DISABLE_MENCODER_NOSKIP, false);
+	}
 
-				if (mimetype != null) {
-					if (isTranscodeAudioTo441()) {
-						mimetype += ";rate=44100;channels=2";
-					} else {
-						mimetype += ";rate=48000;channels=2";
+	/**
+	 * Determine the mime type specific for this renderer, given a generic mime
+	 * type. This translation takes into account all configured "Supported"
+	 * lines and mime type aliases for this renderer.
+	 *
+	 * @param mimeType
+	 *            The mime type to look up. Special values are
+	 *            <code>HTTPResource.VIDEO_TRANSCODE</code> and
+	 *            <code>HTTPResource.AUDIO_TRANSCODE</code>, which will be
+	 *            translated to the mime type of the transcoding profile
+	 *            configured for this renderer.
+	 * @return The mime type.
+	 */
+	public String getMimeType(String mimeType) {
+		if (mimeType == null) {
+			return null;
+		}
+
+		String matchedMimeType = null;
+
+		if (isMediaParserV2()) {
+			// Use the supported information in the configuration to determine the mime type.
+			if (HTTPResource.VIDEO_TRANSCODE.equals(mimeType)) {
+				if (isTranscodeToMPEGTSAC3()) {
+					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.MPEG2, FormatConfiguration.AC3);
+				} else if (isTranscodeToWMV()) {
+					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.WMV, FormatConfiguration.WMV, FormatConfiguration.WMA);
+				} else {
+					// Default video transcoding mime type
+					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGPS, FormatConfiguration.MPEG2, FormatConfiguration.AC3);
+				}
+			} else if (HTTPResource.AUDIO_TRANSCODE.equals(mimeType)) {
+				if (isTranscodeToWAV()) {
+					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.WAV, null, null);
+				} else if (isTranscodeToMP3()) {
+					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MP3, null, null);
+				} else {
+					// Default audio transcoding mime type
+					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.LPCM, null, null);
+
+					if (matchedMimeType != null) {
+						if (isTranscodeAudioTo441()) {
+							matchedMimeType += ";rate=44100;channels=2";
+						} else {
+							matchedMimeType += ";rate=48000;channels=2";
+						}
 					}
 				}
-
-				if (isTranscodeToWAV()) {
-					mimetype = getFormatConfiguration().match(FormatConfiguration.WAV, null, null);
-				} else if (isTranscodeToMP3()) {
-					mimetype = getFormatConfiguration().match(FormatConfiguration.MP3, null, null);
-				}
 			}
-
-			return mimetype;
 		}
 
-		if (mimetype != null && mimetype.equals(HTTPResource.VIDEO_TRANSCODE)) {
-			if (isTranscodeToWMV()) {
-				mimetype = isMediaParserV2()
-					? getFormatConfiguration().match(FormatConfiguration.WMV, FormatConfiguration.WMV, FormatConfiguration.WMA)
-					: HTTPResource.WMV_TYPEMIME;
-			} else if (isTranscodeToMPEGTSAC3()) {
-				mimetype = isMediaParserV2()
-					? getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.MPEG2, FormatConfiguration.AC3)
-					: HTTPResource.MPEG_TYPEMIME;
-			} else { // default: MPEGPSAC3
-				mimetype = isMediaParserV2()
-					? getFormatConfiguration().match(FormatConfiguration.MPEGPS, FormatConfiguration.MPEG2, FormatConfiguration.AC3)
-					: HTTPResource.MPEG_TYPEMIME;
-			}
-		} else if (HTTPResource.AUDIO_TRANSCODE.equals(mimetype)) {
-			if (isTranscodeToWAV()) {
-				mimetype = isMediaParserV2()
-					? getFormatConfiguration().match(FormatConfiguration.WAV, null, null)
-					: HTTPResource.AUDIO_WAV_TYPEMIME;
-			} else if (isTranscodeToMP3()) {
-				mimetype = isMediaParserV2()
-					? getFormatConfiguration().match(FormatConfiguration.MP3, null, null)
-					: HTTPResource.AUDIO_MP3_TYPEMIME;
-			} else { // default: LPCM
-				mimetype = isMediaParserV2()
-					? getFormatConfiguration().match(FormatConfiguration.LPCM, null, null)
-					: HTTPResource.AUDIO_LPCM_TYPEMIME;
-
-				if (isTranscodeAudioTo441()) {
-					mimetype += ";rate=44100;channels=2";
+		if (matchedMimeType == null) {
+			// No match found, try without media parser v2
+			if (HTTPResource.VIDEO_TRANSCODE.equals(mimeType)) {
+				if (isTranscodeToWMV()) {
+					matchedMimeType = HTTPResource.WMV_TYPEMIME;
 				} else {
-					mimetype += ";rate=48000;channels=2";
+					// Default video transcoding mime type
+					matchedMimeType = HTTPResource.MPEG_TYPEMIME;
+				}
+			} else if (HTTPResource.AUDIO_TRANSCODE.equals(mimeType)) {
+				if (isTranscodeToWAV()) {
+					matchedMimeType = HTTPResource.AUDIO_WAV_TYPEMIME;
+				} else if (isTranscodeToMP3()) {
+					matchedMimeType = HTTPResource.AUDIO_MP3_TYPEMIME;
+				} else {
+					// Default audio transcoding mime type
+					matchedMimeType = HTTPResource.AUDIO_LPCM_TYPEMIME;
+
+					if (isTranscodeAudioTo441()) {
+						matchedMimeType += ";rate=44100;channels=2";
+					} else {
+						matchedMimeType += ";rate=48000;channels=2";
+					}
 				}
 			}
-
-			if (isTranscodeToMP3()) {
-				mimetype = HTTPResource.AUDIO_MP3_TYPEMIME;
-			}
-
-			if (isTranscodeToWAV()) {
-				mimetype = HTTPResource.AUDIO_WAV_TYPEMIME;
-			}
 		}
 
-		if (mimes.containsKey(mimetype)) {
-			return mimes.get(mimetype);
+		if (matchedMimeType == null) {
+			matchedMimeType = mimeType;
 		}
 
-		return mimetype;
+		// Apply renderer specific mime type aliases
+		if (mimes.containsKey(matchedMimeType)) {
+			return mimes.get(matchedMimeType);
+		}
+
+		return matchedMimeType;
 	}
 
 	/**
@@ -671,7 +779,7 @@ public class RendererConfiguration {
 	 * be matched with the additional header search pattern. The header name
 	 * must be an exact match (read: the header has to start with the exact
 	 * same case sensitive string). The default value is <code>null</code>.
-	 * 
+	 *
 	 * @return The additional HTTP header name.
 	 */
 	public String getUserAgentAdditionalHttpHeader() {
@@ -811,14 +919,52 @@ public class RendererConfiguration {
 		return getString(MAX_VIDEO_BITRATE, null);
 	}
 
+	@Deprecated
+	public String getCustomMencoderQualitySettings() {
+		return getCustomMEncoderMPEG2Options();
+	}
+
 	/**
-	 * Returns the override settings for MEncoder quality settings in PMS as
+	 * Returns the override settings for MEncoder quality settings as
 	 * defined in the renderer configuration. The default value is "".
 	 *
 	 * @return The MEncoder quality settings.
 	 */
-	public String getCustomMencoderQualitySettings() {
-		return getString(CUSTOM_MENCODER_QUALITY_SETTINGS, "");
+	public String getCustomMEncoderMPEG2Options() {
+		return getString(CUSTOM_MENCODER_MPEG2_OPTIONS, "");
+	}
+
+	/**
+	 * Converts the getCustomMencoderQualitySettings() from MEncoder's format to FFmpeg's.
+	 *
+	 * @return The FFmpeg quality settings.
+	 */
+	public String getCustomFFmpegMPEG2Options() {
+		String mpegSettings = getCustomMEncoderMPEG2Options();
+
+		String mpegSettingsArray[] = mpegSettings.split(":");
+
+		String pairArray[];
+		StringBuilder returnString = new StringBuilder();
+		for (String pair : mpegSettingsArray) {
+			pairArray = pair.split("=");
+			switch (pairArray[0]) {
+				case "keyint":
+					returnString.append("-g ").append(pairArray[1]).append(" ");
+					break;
+				case "vqscale":
+					returnString.append("-q:v ").append(pairArray[1]).append(" ");
+					break;
+				case "vqmin":
+					returnString.append("-qmin ").append(pairArray[1]).append(" ");
+					break;
+				case "vqmax":
+					returnString.append("-qmax ").append(pairArray[1]).append(" ");
+					break;
+			}
+		}
+
+		return returnString.toString();
 	}
 
 	/**
@@ -870,6 +1016,17 @@ public class RendererConfiguration {
 	}
 
 	/**
+	 * Returns whether or not to use the "res" element instead of the "albumArtURI"
+	 * element for thumbnails in DLNA reponses. E.g. Samsung 2012 models do not
+	 * recognize the "albumArtURI" element. Default value is <code>false</code>.
+	 *
+	 * @return True if the "res" element should be used, false otherwise.
+	 */
+	public boolean getThumbNailAsResource() {
+		return getBoolean(THUMBNAIL_AS_RESOURCE, false);
+	}
+
+	/**
 	 * Returns the comma separated list of file extensions that are forced to
 	 * be transcoded and never streamed, as defined in the renderer
 	 * configuration. Default value is "".
@@ -910,43 +1067,6 @@ public class RendererConfiguration {
 	 */
 	public String getSubtitleHttpHeader() {
 		return getString(SUBTITLE_HTTP_HEADER, "");
-	}
-
-	private int getInt(String key, int def) {
-		try {
-			return configuration.getInt(key, def);
-		} catch (ConversionException e) {
-			return def;
-		}
-	}
-
-	private long getLong(String key, int def) {
-		try {
-			return configuration.getLong(key, def);
-		} catch (ConversionException e) {
-			return def;
-		}
-	}
-
-	private boolean getBoolean(String key, boolean def) {
-		try {
-			return configuration.getBoolean(key, def);
-		} catch (ConversionException e) {
-			return def;
-		}
-	}
-
-	/**
-	 * Return the <code>String</code> value for a given configuration key if the
-	 * value is non-blank (i.e. not null, not an empty string, not all whitespace).
-	 * Otherwise return the supplied default value.
-	 * The value is returned with leading and trailing whitespace removed in both cases.
-	 * @param key The key to look up.
-	 * @param def The default value to return when no valid key value can be found.
-	 * @return The value configured for the key.
-	 */
-	private String getString(String key, String def) {
-		return ConfigurationUtil.getNonBlankConfigurationString(configuration, key, def);
 	}
 
 	@Override
@@ -1017,7 +1137,7 @@ public class RendererConfiguration {
 			String noTranscode = "";
 
 			if (PMS.getConfiguration() != null) {
-				noTranscode = PMS.getConfiguration().getNoTranscode();
+				noTranscode = PMS.getConfiguration().getDisableTranscodeForExtensions();
 			}
 
 			// Is the format among the ones to be streamed?
@@ -1035,12 +1155,76 @@ public class RendererConfiguration {
 	public boolean isKeepAspectRatio() {
 		return getBoolean(KEEP_ASPECT_RATIO, false);
 	}
-	
+
 	public boolean isRescaleByRenderer() {
 		return getBoolean(RESCALE_BY_RENDERER, true);
 	}
-	
+
 	public String getFFmpegVideoFilterOverride() {
 		return getString(OVERRIDE_VF, null);
+	}
+
+	public static ArrayList<String> getAllRenderersNames() {
+		if (allRenderersNames.isEmpty()) {
+			loadRenderersNames();
+		}
+
+		return allRenderersNames;
+	}
+
+	public int getTranscodedVideoAudioSampleRate() {
+		return getInt(TRANSCODED_VIDEO_AUDIO_SAMPLE_RATE, 48000);
+	}
+
+	public String getTextWrap() {
+		return getString(TEXTWRAP, "").toLowerCase();
+	}
+
+	protected int line_w = -1, line_h, indent;
+	protected String inset;
+	protected boolean dc_date = true;
+
+	public String getDcTitle(String name, DLNAResource dlna) {
+		// Init text wrap settings
+		String s = getTextWrap();
+		if (!"".equals(s.trim())) {
+			if (line_w == -1) {
+				line_w = getIntAt(s, "width:", 0);
+				if (line_w > 0) {
+					line_h = getIntAt(s, "height:", 0);
+					indent = getIntAt(s, "indent:", 0);
+					dc_date = getIntAt(s, "date:", 1) != 0;
+					int ws = getIntAt(s, "whitespace:", 9);
+					inset = new String(new byte[indent]).replaceAll(".", Character.toString((char) ws));
+					LOGGER.debug("{}: TextWrap width:{} height:{} indent:{} whitespace:{} date:{}", getRendererName(), line_w, line_h, indent, ws, dc_date ? "1" : "0");
+				}
+			}
+
+			// Wrap text if applicable
+			if (line_w > 0 && name.length() > line_w) {
+				int i = dlna.isFolder() ? 0 : indent;
+				String head = name.substring(0, i + (Character.isWhitespace(name.charAt(i)) ? 1 : 0));
+				String tail = name.substring(i);
+				name = head + WordUtils.wrap(tail, line_w - i, "\n" + (dlna.isFolder() ? "" : inset), true);
+			}
+
+			for (String s2 : charMap.keySet()) {
+				name = name.replaceAll(s2, charMap.get(s2));
+			}
+		}
+
+		return name;
+	}
+
+	public boolean isOmitDcDate() {
+		return !dc_date;
+	}
+
+	public static int getIntAt(String s, String key, int fallback) {
+		try {
+			return Integer.valueOf((s + " ").split(key)[1].split("\\D")[0]);
+		} catch (Exception e) {
+			return fallback;
+		}
 	}
 }

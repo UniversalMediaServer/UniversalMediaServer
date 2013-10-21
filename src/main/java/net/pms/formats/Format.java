@@ -18,13 +18,12 @@
  */
 package net.pms.formats;
 
-import java.util.ArrayList;
 import java.util.StringTokenizer;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.InputFile;
-import net.pms.encoders.Player;
 import net.pms.network.HTTPResource;
+import net.pms.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,6 +32,16 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class Format implements Cloneable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Format.class);
+	private String icon = null;
+	protected int type = UNKNOWN;
+	protected Format secondaryFormat;
+
+	/**
+	 * The extension or protocol that was matched for a
+	 * particular filename or URL. Requires {@link #match(String)}
+	 * to be called first.
+	 */
+	private String matchedExtension;
 
 	public enum Identifier {
 		AUDIO_AS_VIDEO,
@@ -54,36 +63,38 @@ public abstract class Format implements Cloneable {
 		CUSTOM
 	}
 
+	public static final int AUDIO    =  1;
+	public static final int IMAGE    =  2;
+	public static final int VIDEO    =  4;
+	public static final int UNKNOWN  =  8;
+	public static final int PLAYLIST = 16;
+	public static final int ISO      = 32;
+
 	public int getType() {
 		return type;
 	}
 
-	public static final int ISO = 32;
-	public static final int PLAYLIST = 16;
-	public static final int UNKNOWN = 8;
-	public static final int VIDEO = 4;
-	public static final int AUDIO = 1;
-	public static final int IMAGE = 2;
-
 	/**
-	 * The identifier (filename extension or protocol) that was matched for a
-	 * particular filename or URL. Requires {@link #match(String)} to be called
-	 * first.
-	 */
-	protected String matchedId;
-
-	/**
-	 * Returns the identifier (filename extension or protocol) that was matched
+	 * Returns the extension or protocol that was matched
 	 * for a particular filename or URL. Requires {@link #match(String)} to be
 	 * called first.
 	 *
-	 * @return The matched identifier.
+	 * @return The matched extension or protocol.
 	 */
-	public String getMatchedId() {
-		return matchedId;
+	public String getMatchedExtension() {
+		return matchedExtension;
 	}
-	protected int type = UNKNOWN;
-	protected Format secondaryFormat;
+
+	/**
+	 * Sets the extension or protocol that was matched
+	 * for a particular filename or URL.
+	 *
+	 * @param extension the extension or protocol that was matched.
+	 * @since 1.90.0
+	 */
+	public void setMatchedExtension(String extension) {
+		matchedExtension = extension;
+	}
 
 	public Format getSecondaryFormat() {
 		return secondaryFormat;
@@ -100,13 +111,26 @@ public abstract class Format implements Cloneable {
 	}
 
 	/**
-	 * Returns the identifiers that can be used to identify a particular
-	 * format. Valid identifiers are filename extensions or URL protocols,
-	 * e.g. "mp3" or "http". Identifiers are expected to be in lower case.
-	 *
-	 * @return An array of identifiers.
+	 * @deprecated Use {@link #getSupportedExtensions} instead.
 	 */
-	public abstract String[] getId();
+	@Deprecated
+	public String[] getId() {
+		return getSupportedExtensions();
+	}
+
+	/**
+	 * Returns a list of file extensions to use to identify
+	 * a particular format e.g. "mp3" or "mpg". Extensions
+	 * are expected to be in lower case. The default value is
+	 * <code>null</code>, indicating no matching should be done
+	 * by file extension.
+	 *
+	 * @return An array of extensions.
+	 * @since 1.90.0
+	 */
+	public String[] getSupportedExtensions() {
+		return null;
+	}
 
 	/**
 	 * @deprecated Use {@link #isCompatible(DLNAMediaInfo, RendererConfiguration)} instead.
@@ -114,27 +138,27 @@ public abstract class Format implements Cloneable {
 	 * Returns whether or not a format can be handled by the PS3 natively.
 	 * This means the format can be streamed to PS3 instead of having to be
 	 * transcoded.
-	 * 
+	 *
 	 * @return True if the format can be handled by PS3, false otherwise.
 	 */
 	@Deprecated
 	public abstract boolean ps3compatible();
-	
+
 	/**
 	 * Returns whether or not media can be handled by the renderer natively,
 	 * based on the given media information and renderer. If the format can be
 	 * streamed (as opposed to having to be transcoded), <code>true</code> will
 	 * be returned.
-	 * 
+	 *
 	 * @param media
 	 *            The media information.
 	 * @param renderer
 	 *            The renderer for which to check. If <code>null</code> is set
 	 *            as renderer, the default renderer configuration will be used.
-	 * 
+	 *
 	 * @return True if the format can be handled by the renderer, false
 	 *         otherwise.
-	 * 
+	 *
 	 * @since 1.50.1
 	 */
 	public boolean isCompatible(DLNAMediaInfo media, RendererConfiguration renderer) {
@@ -153,13 +177,10 @@ public abstract class Format implements Cloneable {
 	}
 
 	public abstract boolean transcodable();
-	public abstract ArrayList<Class<? extends Player>> getProfiles();
 
 	public String mimeType() {
 		return HTTPResource.getDefaultMimeType(type);
 	}
-
-	protected String icon = null;
 
 	public void setIcon(String filename) {
 		icon = filename;
@@ -169,21 +190,38 @@ public abstract class Format implements Cloneable {
 		return icon;
 	}
 
+	/**
+	 * Returns whether or not this format matches the supplied filename.
+	 * Returns false if the filename is a URI, otherwise matches
+	 * against the file extensions returned by {@link #getSupportedExtensions()}.
+	 *
+	 * @param filename the filename to match
+	 * @return <code>true</code> if the format matches, <code>false</code> otherwise.
+	 */
 	public boolean match(String filename) {
-		boolean match = false;
 		if (filename == null) {
-			return match;
+			return false;
 		}
+
 		filename = filename.toLowerCase();
-		for (String singleid : getId()) {
-			String id = singleid.toLowerCase();
-			match = filename.endsWith("." + id) || filename.startsWith(id + "://");
-			if (match) {
-				matchedId = singleid;
-				return true;
+		String[] supportedExtensions = getSupportedExtensions();
+
+		if (supportedExtensions != null) {
+			String protocol = FileUtil.getProtocol(filename);
+			if (protocol != null) { // URIs are handled by WEB.match
+				return false;
+			}
+
+			for (String extension : supportedExtensions) {
+				String ext = extension.toLowerCase();
+				if (filename.endsWith("." + ext)) {
+					setMatchedExtension(ext);
+					return true;
+				}
 			}
 		}
-		return match;
+
+		return false;
 	}
 
 	public boolean isVideo() {
@@ -229,17 +267,19 @@ public abstract class Format implements Cloneable {
 		} else {
 			media.parse(file, this, type, false);
 		}
-		LOGGER.trace("Parsing results: " + file + " / " + media);
+
+		LOGGER.trace("Parsing results for file \"{}\": {}", file.toString(), media.toString());
 	}
 
 	/**
-	 * Returns whether or not the matched identifier of this format is among
+	 * Returns whether or not the matched extension of this format is among
 	 * the list of supplied extensions.
 	 *
-	 * @param extensions String of comma separated extensions
-	 * @param moreExtensions String of comma separated extensions
+	 * @param extensions String of comma-separated extensions
+	 * @param moreExtensions String of comma-separated extensions
 	 *
-	 * @return True if this format matches any extension, false otherwise.
+	 * @return True if this format matches an extension in the supplied lists,
+	 * false otherwise.
 	 *
 	 * @see #match(String)
 	 */
@@ -250,7 +290,7 @@ public abstract class Format implements Cloneable {
 			while (st.hasMoreTokens()) {
 				String id = st.nextToken().toLowerCase();
 
-				if (matchedId != null && matchedId.toLowerCase().equals(id)) {
+				if (matchedExtension != null && matchedExtension.toLowerCase().equals(id)) {
 					return true;
 				}
 			}
@@ -262,11 +302,12 @@ public abstract class Format implements Cloneable {
 			while (st.hasMoreTokens()) {
 				String id = st.nextToken().toLowerCase();
 
-				if (matchedId != null && matchedId.toLowerCase().equals(id)) {
+				if (matchedExtension != null && matchedExtension.toLowerCase().equals(id)) {
 					return true;
 				}
 			}
 		}
+
 		return false;
 	}
 
@@ -280,9 +321,9 @@ public abstract class Format implements Cloneable {
 	}
 
 	/**
-	 * Returns the identifier string for the format.
+	 * Returns the specific identifier for the format.
 	 *
-	 * @return The identifier string.
+	 * @return The identifier.
 	 */
 	public abstract Identifier getIdentifier();
 }

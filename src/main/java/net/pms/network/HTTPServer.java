@@ -25,7 +25,7 @@ import java.nio.channels.ServerSocketChannel;
 import java.util.concurrent.Executors;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFactory;
@@ -121,7 +121,15 @@ public class HTTPServer implements Runnable {
 			bootstrap.setOption("child.reuseAddress", true);
 			bootstrap.setOption("child.sendBufferSize", 65536);
 			bootstrap.setOption("child.receiveBufferSize", 65536);
-			channel = bootstrap.bind(address);
+
+			try {
+				channel = bootstrap.bind(address);
+			} catch (Exception e) {
+				LOGGER.error("Another program is using port " + port + ", which UMS needs.");
+				LOGGER.error("You can change the port UMS uses on the General Configuration tab.");
+				LOGGER.trace("The error was: " + e);
+			}
+
 			group.add(channel);
 
 			if (hostname == null && iafinal != null) {

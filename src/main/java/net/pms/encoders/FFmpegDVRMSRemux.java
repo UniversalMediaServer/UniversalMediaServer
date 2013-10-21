@@ -32,8 +32,6 @@ import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
 import net.pms.Messages;
-import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
@@ -41,10 +39,10 @@ import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
-import org.apache.commons.lang.StringUtils;
+import net.pms.util.PlayerUtil;
+import org.apache.commons.lang3.StringUtils;
 
 public class FFmpegDVRMSRemux extends Player {
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private JTextField altffpath;
 	public static final String ID = "ffmpegdvrmsremux";
 
@@ -68,9 +66,6 @@ public class FFmpegDVRMSRemux extends Player {
 		return false;
 	}
 
-	public FFmpegDVRMSRemux() {
-	}
-
 	@Override
 	public String name() {
 		return "FFmpeg DVR-MS Remux";
@@ -84,8 +79,8 @@ public class FFmpegDVRMSRemux extends Player {
 	@Deprecated
 	protected String[] getDefaultArgs() {
 		return new String[] {
-			"-vcodec", "copy",
-			"-acodec", "copy",
+			"-c:v", "copy",
+			"-c:a", "copy",
 			"-threads", "2",
 			"-g", "1",
 			"-qscale", "1",
@@ -114,24 +109,23 @@ public class FFmpegDVRMSRemux extends Player {
 
 	@Override
 	public ProcessWrapper launchTranscode(
-		String fileName,
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
-		return getFFMpegTranscode(fileName, dlna, media, params);
+		return getFFMpegTranscode(dlna, media, params);
 	}
 
 	// pointless redirection of launchTranscode
 	@Deprecated
 	protected ProcessWrapperImpl getFFMpegTranscode(
-		String fileName,
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
 		String ffmpegAlternativePath = configuration.getFfmpegAlternativePath();
 		List<String> cmdList = new ArrayList<>();
+		final String filename = dlna.getSystemName();
 
 		if (ffmpegAlternativePath != null && ffmpegAlternativePath.length() > 0) {
 			cmdList.add(ffmpegAlternativePath);
@@ -145,10 +139,10 @@ public class FFmpegDVRMSRemux extends Player {
 		}
 
 		cmdList.add("-i");
-		cmdList.add(fileName);
+		cmdList.add(filename);
 		cmdList.addAll(Arrays.asList(args()));
 
-		String customSettingsString = configuration.getFfmpegSettings();
+		String customSettingsString = configuration.getMPEG2MainSettingsFFmpeg();
 		if (StringUtils.isNotBlank(customSettingsString)) {
 			String[] customSettingsArray = StringUtils.split(customSettingsString);
 
@@ -162,7 +156,7 @@ public class FFmpegDVRMSRemux extends Player {
 		cmdList.toArray(cmdArray);
 
 		cmdArray = finalizeTranscoderArgs(
-			fileName,
+			filename,
 			dlna,
 			media,
 			params,
@@ -182,8 +176,8 @@ public class FFmpegDVRMSRemux extends Player {
 			"p, 3dlu, p, 3dlu, 0:grow"
 		);
 		PanelBuilder builder = new PanelBuilder(layout);
-		builder.setBorder(Borders.EMPTY_BORDER);
-		builder.setOpaque(false);
+		builder.border(Borders.EMPTY);
+		builder.opaque(false);
 
 		CellConstraints cc = new CellConstraints();
 
@@ -214,18 +208,8 @@ public class FFmpegDVRMSRemux extends Player {
 	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		if (resource == null || resource.getFormat().getType() != Format.VIDEO) {
-			return false;
-		}
-
-		Format format = resource.getFormat();
-
-		if (format != null) {
-			Format.Identifier id = format.getIdentifier();
-
-			if (id.equals(Format.Identifier.DVRMS)) {
-				return true;
-			}
+		if (PlayerUtil.isVideo(resource, Format.Identifier.DVRMS)) {
+			return true;
 		}
 
 		return false;
