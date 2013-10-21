@@ -64,8 +64,7 @@ public class MediaMonitor extends VirtualFolder {
 	}
 
 	public void scanDir(File[] files, DLNAResource res) {
-		for (int i = 0; i < files.length; i++) {
-			File f = files[i];
+		for (File f : files) {
 			if (f.isFile()) {
 				// regular file
 				LOGGER.debug("file " + f + " is old? " + old(f.getAbsolutePath()));

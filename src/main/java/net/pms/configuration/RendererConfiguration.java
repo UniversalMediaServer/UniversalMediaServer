@@ -62,7 +62,9 @@ public class RendererConfiguration {
 	private static final String AUTO_EXIF_ROTATE = "AutoExifRotate";
 	private static final String BYTE_TO_TIMESEEK_REWIND_SECONDS = "ByteToTimeseekRewindSeconds"; // Ditlew
 	private static final String CBR_VIDEO_BITRATE = "CBRVideoBitrate"; // Ditlew
+	private static final String CHARMAP = "CharMap";
 	private static final String CHUNKED_TRANSFER = "ChunkedTransfer";
+	private static final String CUSTOM_FFMPEG_OPTIONS = "CustomFFmpegOptions";
 	private static final String CUSTOM_MENCODER_OPTIONS = "CustomMencoderOptions";
 	private static final String CUSTOM_MENCODER_MPEG2_OPTIONS = "CustomMencoderQualitySettings"; // TODO (breaking change): value should be CustomMEncoderMPEG2Options
 	private static final String DEFAULT_VBV_BUFSIZE = "DefaultVBVBufSize";
@@ -84,6 +86,7 @@ public class RendererConfiguration {
 	private static final String MUX_DTS_TO_MPEG = "MuxDTSToMpeg";
 	private static final String MUX_H264_WITH_MPEGTS = "MuxH264ToMpegTS";
 	private static final String MUX_LPCM_TO_MPEG = "MuxLPCMToMpeg";
+	private static final String OVERRIDE_VF = "OverrideVideoFilter";
 	private static final String RENDERER_ICON = "RendererIcon";
 	private static final String RENDERER_NAME = "RendererName";
 	private static final String RESCALE_BY_RENDERER = "RescaleByRenderer";
@@ -94,6 +97,7 @@ public class RendererConfiguration {
 	private static final String STREAM_EXT = "StreamExtensions";
 	private static final String SUBTITLE_HTTP_HEADER = "SubtitleHttpHeader";
 	private static final String SUPPORTED = "Supported";
+	private static final String TEXTWRAP = "TextWrap";
 	private static final String THUMBNAIL_AS_RESOURCE = "ThumbnailAsResource";
 	private static final String TRANSCODE_AUDIO_441KHZ = "TranscodeAudioTo441kHz";
 	private static final String TRANSCODE_AUDIO = "TranscodeAudio";
@@ -108,10 +112,6 @@ public class RendererConfiguration {
 	private static final String USE_SAME_EXTENSION = "UseSameExtension";
 	private static final String VIDEO = "Video";
 	private static final String WRAP_DTS_INTO_PCM = "WrapDTSIntoPCM";
-	private static final String CUSTOM_FFMPEG_OPTIONS = "CustomFFmpegOptions";
-	private static final String OVERRIDE_VF = "OverrideVideoFilter";
-	private static final String TEXTWRAP = "TextWrap";
-	private static final String CHARMAP = "CharMap";
 
 	public static RendererConfiguration getDefaultConf() {
 		return defaultConf;

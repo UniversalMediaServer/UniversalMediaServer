@@ -270,8 +270,8 @@ public class MediaInfo {
 	/**
 	 * Get a piece of information about a file (parameter is a string).
 	 *
-	 * @param StreamType Type of Stream (general, video, audio...)
-	 * @param StreamNumber Stream number in Type of Stream (first, second...)
+	 * @param streamType Type of Stream (general, video, audio...)
+	 * @param streamNumber Stream number in Type of Stream (first, second...)
 	 * @param parameter Parameter you are looking for in the Stream (Codec, width, bitrate...),
 	 *            in string format ("Codec", "Width"...)
 	 * @return a string about information you search, an empty string if there is a problem
@@ -283,12 +283,13 @@ public class MediaInfo {
 	/**
 	 * Get a piece of information about a file (parameter is a string).
 	 *
-	 * @param StreamType Type of Stream (general, video, audio...)
-	 * @param StreamNumber Stream number in Type of Stream (first, second...)
+	 * @param streamType Type of Stream (general, video, audio...)
+	 * @param streamNumber Stream number in Type of Stream (first, second...)
 	 * @param parameter Parameter you are looking for in the Stream (Codec, width, bitrate...),
 	 *            in string format ("Codec", "Width"...)
 	 * @param infoType Type of information you want about the parameter (the text, the measure,
 	 *            the help...)
+	 * @return a string about information you search, an empty string if there is a problem
 	 */
 	public String Get(StreamType streamType, int streamNumber, String parameter, InfoType infoType) {
 		return Get(streamType, streamNumber, parameter, infoType, InfoType.Name);
@@ -297,8 +298,8 @@ public class MediaInfo {
 	/**
 	 * Get a piece of information about a file (parameter is a string).
 	 *
-	 * @param StreamType Type of Stream (general, video, audio...)
-	 * @param StreamNumber Stream number in Type of Stream (first, second...)
+	 * @param streamType Type of Stream (general, video, audio...)
+	 * @param streamNumber Stream number in Type of Stream (first, second...)
 	 * @param parameter Parameter you are looking for in the Stream (Codec, width, bitrate...),
 	 *            in string format ("Codec", "Width"...)
 	 * @param infoType Type of information you want about the parameter (the text, the measure,
@@ -319,8 +320,8 @@ public class MediaInfo {
 	/**
 	 * Get a piece of information about a file (parameter is an integer).
 	 *
-	 * @param StreamType Type of Stream (general, video, audio...)
-	 * @param StreamNumber Stream number in Type of Stream (first, second...)
+	 * @param streamType Type of Stream (general, video, audio...)
+	 * @param streamNumber Stream number in Type of Stream (first, second...)
 	 * @param parameterIndex Parameter you are looking for in the Stream (Codec, width, bitrate...),
 	 *            in integer format (first parameter, second parameter...)
 	 * @return a string about information you search, an empty string if there is a problem
@@ -332,8 +333,8 @@ public class MediaInfo {
 	/**
 	 * Get a piece of information about a file (parameter is an integer).
 	 *
-	 * @param StreamType Type of Stream (general, video, audio...)
-	 * @param StreamNumber Stream number in Type of Stream (first, second...)
+	 * @param streamType Type of Stream (general, video, audio...)
+	 * @param streamNumber Stream number in Type of Stream (first, second...)
 	 * @param parameterIndex Parameter you are looking for in the Stream (Codec, width, bitrate...),
 	 *            in integer format (first parameter, second parameter...)
 	 * @param infoType Type of information you want about the parameter (the text, the measure,
@@ -353,7 +354,7 @@ public class MediaInfo {
 	 * Count of Streams of a Stream kind (StreamNumber not filled), or count of piece of
 	 * information in this Stream.
 	 *
-	 * @param StreamType Type of Stream (general, video, audio...)
+	 * @param streamType Type of Stream (general, video, audio...)
 	 * @return number of Streams of the given Stream kind
 	 */
 	public int Count_Get(StreamType streamType) {
@@ -364,8 +365,8 @@ public class MediaInfo {
 	 * Count of Streams of a Stream kind (StreamNumber not filled), or count of piece of
 	 * information in this Stream.
 	 *
-	 * @param StreamType Type of Stream (general, video, audio...)
-	 * @param StreamNumber Stream number in this kind of Stream (first, second...)
+	 * @param streamType Type of Stream (general, video, audio...)
+	 * @param streamNumber Stream number in this kind of Stream (first, second...)
 	 * @return number of Streams of the given Stream kind
 	 */
 	public int Count_Get(StreamType streamType, int streamNumber) {
