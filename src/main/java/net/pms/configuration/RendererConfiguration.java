@@ -465,27 +465,26 @@ public class RendererConfiguration {
 			}
 		}
 
-        charMap = new HashMap<>();
-        String ch = getString(CHARMAP, null);
-        if (StringUtils.isNotBlank(ch)) {
-            StringTokenizer st = new StringTokenizer(ch, " ");
-            String org = "";
+		charMap = new HashMap<>();
+		String ch = getString(CHARMAP, null);
+		if (StringUtils.isNotBlank(ch)) {
+			StringTokenizer st = new StringTokenizer(ch, " ");
+			String org = "";
 
-            while (st.hasMoreTokens()) {
-                String tok = st.nextToken().trim();
-                if(StringUtils.isBlank(tok)) {
-                    continue;
-                }
-                tok = tok.replaceAll("###0", " ");
-                if(StringUtils.isBlank(org)) {
-                    org = tok;
-                }
-                else {
-                    charMap.put(org, tok);
-                    org = "";
-                }
-            }
-        }
+			while (st.hasMoreTokens()) {
+				String tok = st.nextToken().trim();
+				if (StringUtils.isBlank(tok)) {
+					continue;
+				}
+				tok = tok.replaceAll("###0", " ");
+				if (StringUtils.isBlank(org)) {
+					org = tok;
+				} else {
+					charMap.put(org, tok);
+					org = "";
+				}
+			}
+		}
 
 		DLNAPN = new HashMap<>();
 		String DLNAPNchanges = getString(DLNA_PN_CHANGES, null);
