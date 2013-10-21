@@ -85,7 +85,7 @@ public class RemotePlayHandler implements HttpHandler {
 		sb.append("Your browser doesn't appear to support the HTML5 video tag");
 		sb.append("</").append(mediaType).append("><br><br>");
 		List<DLNAResource> res1 = root.getDLNAResources(id, false, 0, 0, RendererConfiguration.getDefaultConf());
-		String rawId = id + "." + res1.get(0).getFormat().getMatchedId();
+		String rawId = id ;//+ "." + res1.get(0).getFormat().getMatchedId();
 		sb.append("<a href=\"/raw/").append(rawId).append("\" target=\"_blank\">Download</a>");
 		sb.append(CRLF);
 		/*String emb = "<OBJECT ID=\"MediaPlayer1\" CLASSID=\"CLSID:22d6f312-b0f6-11d0-94ab-0080c74c7e95\" CODEBASE=\"http://activex.microsoft.com/activex/controls/mplayer/en/nsmp2inf.cab# Version=5,1,52,701\" STANDBY=\"Loading Microsoft Windows Media Player components...\" TYPE=\"application/x-oleobject\" width=\"320\" height=\"280\">"+

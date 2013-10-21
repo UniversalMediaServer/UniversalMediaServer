@@ -1,13 +1,7 @@
 package net.pms.remote;
 
-import com.sun.net.httpserver.BasicAuthenticator;
-import com.sun.net.httpserver.Headers;
-import com.sun.net.httpserver.HttpContext;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
-import com.sun.net.httpserver.HttpsConfigurator;
-import com.sun.net.httpserver.HttpsParameters;
-import com.sun.net.httpserver.HttpsServer;
+import com.sun.net.httpserver.*;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;

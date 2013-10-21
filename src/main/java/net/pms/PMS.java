@@ -909,13 +909,7 @@ public class PMS {
 		return f;
 	}
 
-	public File[] getFoldersConf(String tag) {
-		return getFoldersConf(tag, true);
-	}
 
-	public File[] getFoldersConf(boolean log) {
-		return getFoldersConf(null, log);
-	}
 
 	/**
 	 * Restarts the server. The trigger is either a button on the main PMS window or via

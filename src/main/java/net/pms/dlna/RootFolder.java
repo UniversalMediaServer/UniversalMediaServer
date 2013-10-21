@@ -263,7 +263,7 @@ public class RootFolder extends DLNAResource {
 
 	private List<RealFile> getConfiguredFolders() {
 		List<RealFile> res = new ArrayList<>();
-		File[] files = PMS.get().getFoldersConf(tag);
+		//File[] files = PMS.get().getFoldersConf(tag);
 		File[] files = PMS.get().getSharedFoldersArray(false);
 
 		if (files == null || files.length == 0) {
@@ -878,7 +878,7 @@ public class RootFolder extends DLNAResource {
 										// Put the track into its album folder
 										{
 											if (!isCompilation) {
-												albumName += " – " + artistName;
+												albumName += " ï¿½ " + artistName;
 											}
 
 											VirtualFolder individualAlbumFolder = null;
