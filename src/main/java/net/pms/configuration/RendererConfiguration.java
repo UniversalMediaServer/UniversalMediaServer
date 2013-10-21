@@ -110,7 +110,7 @@ public class RendererConfiguration {
 	private static final String CUSTOM_FFMPEG_OPTIONS = "CustomFFmpegOptions";
 	private static final String OVERRIDE_VF = "OverrideVideoFilter";
 	private static final String TEXTWRAP = "TextWrap";
-    private static final String CHARMAP = "CharMap";
+	private static final String CHARMAP = "CharMap";
 
 	public static RendererConfiguration getDefaultConf() {
 		return defaultConf;
@@ -210,6 +210,7 @@ public class RendererConfiguration {
 	 * value is non-blank (i.e. not null, not an empty string, not all whitespace).
 	 * Otherwise return the supplied default value.
 	 * The value is returned with leading and trailing whitespace removed in both cases.
+	 *
 	 * @param key The key to look up.
 	 * @param def The default value to return when no valid key value can be found.
 	 * @return The value configured for the key.
@@ -279,6 +280,7 @@ public class RendererConfiguration {
 	 * Associate an IP address with this renderer. The association will
 	 * persist between requests, allowing the renderer to be recognized
 	 * by its address in later requests.
+	 *
 	 * @param sa The IP address to associate.
 	 * @see #getRendererConfigurationBySocketAddress(InetAddress)
 	 */
@@ -606,7 +608,7 @@ public class RendererConfiguration {
 	 * Determine the mime type specific for this renderer, given a generic mime
 	 * type. This translation takes into account all configured "Supported"
 	 * lines and mime type aliases for this renderer.
-	 * 
+	 *
 	 * @param mimeType
 	 *            The mime type to look up. Special values are
 	 *            <code>HTTPResource.VIDEO_TRANSCODE</code> and
@@ -670,7 +672,7 @@ public class RendererConfiguration {
 				} else {
 					// Default audio transcoding mime type
 					matchedMimeType = HTTPResource.AUDIO_LPCM_TYPEMIME;
-	
+
 					if (isTranscodeAudioTo441()) {
 						matchedMimeType += ";rate=44100;channels=2";
 					} else {
@@ -770,7 +772,7 @@ public class RendererConfiguration {
 	 * be matched with the additional header search pattern. The header name
 	 * must be an exact match (read: the header has to start with the exact
 	 * same case sensitive string). The default value is <code>null</code>.
-	 * 
+	 *
 	 * @return The additional HTTP header name.
 	 */
 	public String getUserAgentAdditionalHttpHeader() {
