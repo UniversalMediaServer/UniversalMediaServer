@@ -1221,7 +1221,7 @@ public class RendererConfiguration {
 	public static int getIntAt(String s, String key, int fallback) {
 		try {
 			return Integer.valueOf((s + " ").split(key)[1].split("\\D")[0]);
-		} catch (NumberFormatException e) {
+		} catch (Exception e) {
 			return fallback;
 		}
 	}
