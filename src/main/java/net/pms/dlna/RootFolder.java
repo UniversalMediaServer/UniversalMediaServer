@@ -255,7 +255,7 @@ public class RootFolder extends DLNAResource {
 
 	private List<RealFile> getConfiguredFolders() {
 		List<RealFile> res = new ArrayList<>();
-		File[] files = PMS.get().getSharedFoldersArray(false);
+		File[] files = PMS.get().getSharedFoldersArray();
 
 		if (files == null || files.length == 0) {
 			files = File.listRoots();
