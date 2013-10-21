@@ -473,6 +473,7 @@ public class RendererConfiguration {
                 if(StringUtils.isBlank(tok)) {
                     continue;
                 }
+                tok = tok.replaceAll("###0", " ");
                 if(StringUtils.isBlank(org)) {
                     org = tok;
                 }
