@@ -22,8 +22,8 @@ import net.pms.network.SpeedStats;
 import net.pms.util.PropertiesUtil;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang.WordUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,8 +43,8 @@ public class RendererConfiguration {
 
 	// Holds MIME type aliases
 	private final Map<String, String> mimes;
-    private final Map<String, String> charMap;
 
+	private final Map<String, String> charMap;
 	private final Map<String, String> DLNAPN;
 
 	// property values
@@ -66,6 +66,7 @@ public class RendererConfiguration {
 	private static final String CUSTOM_MENCODER_OPTIONS = "CustomMencoderOptions";
 	private static final String CUSTOM_MENCODER_MPEG2_OPTIONS = "CustomMencoderQualitySettings"; // TODO (breaking change): value should be CustomMEncoderMPEG2Options
 	private static final String DEFAULT_VBV_BUFSIZE = "DefaultVBVBufSize";
+	private static final String DISABLE_MENCODER_NOSKIP = "DisableMencoderNoskip";
 	private static final String DLNA_LOCALIZATION_REQUIRED = "DLNALocalizationRequired";
 	private static final String DLNA_ORGPN_USE = "DLNAOrgPN";
 	private static final String DLNA_PN_CHANGES = "DLNAProfileChanges";
@@ -110,7 +111,7 @@ public class RendererConfiguration {
 	private static final String CUSTOM_FFMPEG_OPTIONS = "CustomFFmpegOptions";
 	private static final String OVERRIDE_VF = "OverrideVideoFilter";
 	private static final String TEXTWRAP = "TextWrap";
-    private static final String CHARMAP = "CharMap";
+	private static final String CHARMAP = "CharMap";
 
 	public static RendererConfiguration getDefaultConf() {
 		return defaultConf;
@@ -210,6 +211,7 @@ public class RendererConfiguration {
 	 * value is non-blank (i.e. not null, not an empty string, not all whitespace).
 	 * Otherwise return the supplied default value.
 	 * The value is returned with leading and trailing whitespace removed in both cases.
+	 *
 	 * @param key The key to look up.
 	 * @param def The default value to return when no valid key value can be found.
 	 * @return The value configured for the key.
@@ -279,6 +281,7 @@ public class RendererConfiguration {
 	 * Associate an IP address with this renderer. The association will
 	 * persist between requests, allowing the renderer to be recognized
 	 * by its address in later requests.
+	 *
 	 * @param sa The IP address to associate.
 	 * @see #getRendererConfigurationBySocketAddress(InetAddress)
 	 */
@@ -484,7 +487,6 @@ public class RendererConfiguration {
             }
         }
 
-
 		DLNAPN = new HashMap<>();
 		String DLNAPNchanges = getString(DLNA_PN_CHANGES, null);
 
@@ -605,12 +607,16 @@ public class RendererConfiguration {
 		return getBoolean(DLNA_LOCALIZATION_REQUIRED, false);
 	}
 
+	public boolean isDisableMencoderNoskip() {
+		return getBoolean(DISABLE_MENCODER_NOSKIP, false);
+	}
+
 	/**
 	 * Determine the mime type specific for this renderer, given a generic mime
 	 * type. This translation takes into account all configured "Supported"
 	 * lines and mime type aliases for this renderer.
-	 * 
-	 * @param matchedMimeType
+	 *
+	 * @param mimeType
 	 *            The mime type to look up. Special values are
 	 *            <code>HTTPResource.VIDEO_TRANSCODE</code> and
 	 *            <code>HTTPResource.AUDIO_TRANSCODE</code>, which will be
@@ -673,7 +679,7 @@ public class RendererConfiguration {
 				} else {
 					// Default audio transcoding mime type
 					matchedMimeType = HTTPResource.AUDIO_LPCM_TYPEMIME;
-	
+
 					if (isTranscodeAudioTo441()) {
 						matchedMimeType += ";rate=44100;channels=2";
 					} else {
@@ -773,7 +779,7 @@ public class RendererConfiguration {
 	 * be matched with the additional header search pattern. The header name
 	 * must be an exact match (read: the header has to start with the exact
 	 * same case sensitive string). The default value is <code>null</code>.
-	 * 
+	 *
 	 * @return The additional HTTP header name.
 	 */
 	public String getUserAgentAdditionalHttpHeader() {
@@ -1179,29 +1185,34 @@ public class RendererConfiguration {
 	protected boolean dc_date = true;
 
 	public String getDcTitle(String name, DLNAResource dlna) {
-		if (line_w == -1) {
-			// Init text wrap settings
-			String s = getTextWrap();
-			line_w = getIntAt(s, "width:", 0);
-			if (line_w > 0) {
-				line_h = getIntAt(s, "height:", 0);
-				indent = getIntAt(s, "indent:", 0);
-				dc_date = getIntAt(s, "date:", 1) != 0;
-				int ws = getIntAt(s, "whitespace:", 9);
-				inset = new String(new byte[indent]).replaceAll(".", Character.toString((char) ws));
-				LOGGER.debug("{}: TextWrap width:{} height:{} indent:{} whitespace:{} date:{}", getRendererName(), line_w, line_h, indent, ws, dc_date ? "1" : "0");
+		// Init text wrap settings
+		String s = getTextWrap();
+		if (!"".equals(s.trim())) {
+			if (line_w == -1) {
+				line_w = getIntAt(s, "width:", 0);
+				if (line_w > 0) {
+					line_h = getIntAt(s, "height:", 0);
+					indent = getIntAt(s, "indent:", 0);
+					dc_date = getIntAt(s, "date:", 1) != 0;
+					int ws = getIntAt(s, "whitespace:", 9);
+					inset = new String(new byte[indent]).replaceAll(".", Character.toString((char) ws));
+					LOGGER.debug("{}: TextWrap width:{} height:{} indent:{} whitespace:{} date:{}", getRendererName(), line_w, line_h, indent, ws, dc_date ? "1" : "0");
+				}
+			}
+
+			// Wrap text if applicable
+			if (line_w > 0 && name.length() > line_w) {
+				int i = dlna.isFolder() ? 0 : indent;
+				String head = name.substring(0, i + (Character.isWhitespace(name.charAt(i)) ? 1 : 0));
+				String tail = name.substring(i);
+				name = head + WordUtils.wrap(tail, line_w - i, "\n" + (dlna.isFolder() ? "" : inset), true);
+			}
+
+			for (String s2 : charMap.keySet()) {
+				name = name.replaceAll(s2, charMap.get(s2));
 			}
 		}
-		// Wrap text if applicable
-		if (line_w > 0 && name.length() > line_w) {
-			int i = dlna.isFolder() ? 0 : indent;
-			String head = name.substring(0, i + (Character.isSpace(name.charAt(i)) ? 1 : 0));
-			String tail = name.substring(i);
-			name = head + WordUtils.wrap(tail, line_w - i, "\n" + (dlna.isFolder() ? "" : inset), true);
-		}
-        for(String s : charMap.keySet()) {
-            name =  name.replaceAll(s, charMap.get(s));
-        }
+
 		return name;
 	}
 
