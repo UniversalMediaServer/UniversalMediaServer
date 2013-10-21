@@ -1201,7 +1201,7 @@ public class RendererConfiguration {
 			// Wrap text if applicable
 			if (line_w > 0 && name.length() > line_w) {
 				int i = dlna.isFolder() ? 0 : indent;
-				String head = name.substring(0, i + (Character.isSpace(name.charAt(i)) ? 1 : 0));
+				String head = name.substring(0, i + (Character.isWhitespace(name.charAt(i)) ? 1 : 0));
 				String tail = name.substring(i);
 				name = head + WordUtils.wrap(tail, line_w - i, "\n" + (dlna.isFolder() ? "" : inset), true);
 			}
