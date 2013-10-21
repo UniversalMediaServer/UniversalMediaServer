@@ -1184,32 +1184,31 @@ public class RendererConfiguration {
 	protected boolean dc_date = true;
 
 	public String getDcTitle(String name, DLNAResource dlna) {
-		// Init text wrap settings
-		String s = getTextWrap();
-		if (!"".equals(s.trim())) {
-			if (line_w == -1) {
-				line_w = getIntAt(s, "width:", 0);
-				if (line_w > 0) {
-					line_h = getIntAt(s, "height:", 0);
-					indent = getIntAt(s, "indent:", 0);
-					dc_date = getIntAt(s, "date:", 1) != 0;
-					int ws = getIntAt(s, "whitespace:", 9);
-					inset = new String(new byte[indent]).replaceAll(".", Character.toString((char) ws));
-					LOGGER.debug("{}: TextWrap width:{} height:{} indent:{} whitespace:{} date:{}", getRendererName(), line_w, line_h, indent, ws, dc_date ? "1" : "0");
-				}
-			}
+		if (line_w == -1) {
+			// Init text wrap settings
+			String s = getTextWrap();
+			line_w = getIntAt(s, "width:", 0);
 
-			// Wrap text if applicable
-			if (line_w > 0 && name.length() > line_w) {
-				int i = dlna.isFolder() ? 0 : indent;
-				String head = name.substring(0, i + (Character.isWhitespace(name.charAt(i)) ? 1 : 0));
-				String tail = name.substring(i);
-				name = head + WordUtils.wrap(tail, line_w - i, "\n" + (dlna.isFolder() ? "" : inset), true);
+			if (line_w > 0) {
+				line_h = getIntAt(s, "height:", 0);
+				indent = getIntAt(s, "indent:", 0);
+				dc_date = getIntAt(s, "date:", 1) != 0;
+				int ws = getIntAt(s, "whitespace:", 9);
+				inset = new String(new byte[indent]).replaceAll(".", Character.toString((char) ws));
+				LOGGER.debug("{}: TextWrap width:{} height:{} indent:{} whitespace:{} date:{}", getRendererName(), line_w, line_h, indent, ws, dc_date ? "1" : "0");
 			}
+		}
 
-			for (String s2 : charMap.keySet()) {
-				name = name.replaceAll(s2, charMap.get(s2));
-			}
+		// Wrap text if applicable
+		if (line_w > 0 && name.length() > line_w) {
+			int i = dlna.isFolder() ? 0 : indent;
+			String head = name.substring(0, i + (Character.isWhitespace(name.charAt(i)) ? 1 : 0));
+			String tail = name.substring(i);
+			name = head + WordUtils.wrap(tail, line_w - i, "\n" + (dlna.isFolder() ? "" : inset), true);
+		}
+
+		for (String s : charMap.keySet()) {
+			name = name.replaceAll(s, charMap.get(s));
 		}
 
 		return name;
