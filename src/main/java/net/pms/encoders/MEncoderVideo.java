@@ -992,6 +992,27 @@ public class MEncoderVideo extends Player {
 			vcodec = "wmv2"; // http://wiki.megaframe.org/Mencoder_Transcode_for_Xbox_360
 		}
 
+		// Default: Empty string
+		String rendererMencoderOptions = params.mediaRenderer.getCustomMencoderOptions();
+
+		/**
+		 * Ignore the renderer's custom MEncoder options if a) we're streaming a DVD (i.e. via dvd://)
+		 * or b) the renderer's MEncoder options contain overscan settings (those are handled
+		 * separately)
+		 */
+		// XXX we should weed out the unused/unwanted settings and keep the rest
+		// (see sanitizeArgs()) rather than ignoring the options entirely
+		if (rendererMencoderOptions.contains("expand=") && dvd) {
+			rendererMencoderOptions = "";
+		}
+
+		// Default: Empty string
+		String globalMencoderOptions = configuration.getMencoderCustomOptions();
+
+		String combinedCustomOptions = defaultString(globalMencoderOptions) +
+			" " +
+			defaultString(rendererMencoderOptions);
+
 		/**
 		 * Disable AC3 remux for stereo tracks with 384 kbits bitrate and PS3 renderer (PS3 FW bug?)
 		 *
@@ -1010,7 +1031,8 @@ public class MEncoderVideo extends Player {
 			params.aid.isAC3() &&
 			!avisynth() &&
 			params.mediaRenderer.isTranscodeToAC3() &&
-			!configuration.isMEncoderNormalizeVolume()
+			!configuration.isMEncoderNormalizeVolume() &&
+			!combinedCustomOptions.contains("acodec=")
 		) {
 			// AC-3 remux takes priority
 			ac3Remux = true;
@@ -1024,7 +1046,8 @@ public class MEncoderVideo extends Player {
 				) && params.aid != null &&
 				params.aid.isDTS() &&
 				!avisynth() &&
-				params.mediaRenderer.isDTSPlayable();
+				params.mediaRenderer.isDTSPlayable() &&
+				!combinedCustomOptions.contains("acodec=");
 			pcm = isTsMuxeRVideoEngineEnabled &&
 				configuration.isAudioUsePCM() &&
 				(
@@ -1051,7 +1074,8 @@ public class MEncoderVideo extends Player {
 							params.aid.isMpegAudio()
 						)
 					)
-				) && params.mediaRenderer.isLPCMPlayable();
+				) && params.mediaRenderer.isLPCMPlayable() &&
+				!combinedCustomOptions.contains("acodec=");
 		}
 
 		if (dtsRemux || pcm) {
@@ -1066,27 +1090,6 @@ public class MEncoderVideo extends Player {
 		if (pcm && avisynth()) {
 			params.avidemux = true;
 		}
-
-		// Default: Empty string
-		String rendererMencoderOptions = params.mediaRenderer.getCustomMencoderOptions();
-
-		/**
-		 * Ignore the renderer's custom MEncoder options if a) we're streaming a DVD (i.e. via dvd://)
-		 * or b) the renderer's MEncoder options contain overscan settings (those are handled
-		 * separately)
-		 */
-		// XXX we should weed out the unused/unwanted settings and keep the rest
-		// (see sanitizeArgs()) rather than ignoring the options entirely
-		if (rendererMencoderOptions.contains("expand=") && dvd) {
-			rendererMencoderOptions = "";
-		}
-
-		// Default: Empty string
-		String globalMencoderOptions = configuration.getMencoderCustomOptions();
-
-		String combinedCustomOptions = defaultString(globalMencoderOptions) +
-			" " +
-			defaultString(rendererMencoderOptions);
 
 		String add = "";
 		if (!combinedCustomOptions.contains("-lavdopts")) {
