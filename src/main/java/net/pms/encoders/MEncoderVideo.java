@@ -2070,7 +2070,10 @@ public class MEncoderVideo extends Player {
 			} else if (configuration.isMencoderNoOutOfSync() && !disableMc0AndNoskip) {
 				cmdList.add("-mc");
 				cmdList.add("0");
-				cmdList.add("-noskip");
+
+				if (!params.mediaRenderer.isDisableMencoderNoskip()) {
+					cmdList.add("-noskip");
+				}
 			}
 		}
 

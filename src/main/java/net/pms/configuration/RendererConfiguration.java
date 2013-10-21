@@ -66,6 +66,7 @@ public class RendererConfiguration {
 	private static final String CUSTOM_MENCODER_OPTIONS = "CustomMencoderOptions";
 	private static final String CUSTOM_MENCODER_MPEG2_OPTIONS = "CustomMencoderQualitySettings"; // TODO (breaking change): value should be CustomMEncoderMPEG2Options
 	private static final String DEFAULT_VBV_BUFSIZE = "DefaultVBVBufSize";
+	private static final String DISABLE_MENCODER_NOSKIP = "DisableMencoderNoskip";
 	private static final String DLNA_LOCALIZATION_REQUIRED = "DLNALocalizationRequired";
 	private static final String DLNA_ORGPN_USE = "DLNAOrgPN";
 	private static final String DLNA_PN_CHANGES = "DLNAProfileChanges";
@@ -602,6 +603,10 @@ public class RendererConfiguration {
 
 	public boolean isDLNALocalizationRequired() {
 		return getBoolean(DLNA_LOCALIZATION_REQUIRED, false);
+	}
+
+	public boolean isDisableMencoderNoskip() {
+		return getBoolean(DISABLE_MENCODER_NOSKIP, false);
 	}
 
 	/**
