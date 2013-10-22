@@ -5,6 +5,7 @@ import java.io.File;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -239,6 +240,10 @@ public class RendererConfiguration {
 		return enabledRendererConfs;
 	}
 
+	public static Collection<RendererConfiguration> getConnectedRenderersConfigurations() {
+		return addressAssociation.values();
+	}
+
 	protected static File getRenderersDir() {
 		final String[] pathList = PropertiesUtil.getProjectProperties().get("project.renderers.dir").split(",");
 
@@ -394,6 +399,10 @@ public class RendererConfiguration {
 
 	public FormatConfiguration getFormatConfiguration() {
 		return formatConfiguration;
+	}
+
+	public File getFile() {
+		return configuration.getFile();
 	}
 
 	public int getRank() {
