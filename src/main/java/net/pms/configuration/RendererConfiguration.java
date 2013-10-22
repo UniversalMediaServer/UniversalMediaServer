@@ -47,6 +47,11 @@ public class RendererConfiguration {
 	private final Map<String, String> charMap;
 	private final Map<String, String> DLNAPN;
 
+	// TextWrap parameters
+	protected int line_w = -1, line_h, indent;
+	protected String inset;
+	protected boolean dc_date = true;
+
 	// property values
 	private static final String DEPRECATED_MPEGPSAC3 = "MPEGAC3"; // XXX deprecated: old name with missing container
 	private static final String LPCM = "LPCM";
@@ -463,6 +468,17 @@ public class RendererConfiguration {
 					mimes.put(old, nw);
 				}
 			}
+		}
+
+		String s = getTextWrap();
+		line_w = getIntAt(s, "width:", 0);
+		if (line_w > 0) {
+			line_h = getIntAt(s, "height:", 0);
+			indent = getIntAt(s, "indent:", 0);
+			dc_date = getIntAt(s, "date:", 1) != 0;
+			int ws = getIntAt(s, "whitespace:", 9);
+			inset = new String(new byte[indent]).replaceAll(".", Character.toString((char) ws));
+			LOGGER.debug("{}: TextWrap width:{} height:{} indent:{} whitespace:{} date:{}", getRendererName(), line_w, line_h, indent, ws, dc_date ? "1" : "0");
 		}
 
 		charMap = new HashMap<>();
@@ -1179,26 +1195,7 @@ public class RendererConfiguration {
 		return getString(TEXTWRAP, "").toLowerCase();
 	}
 
-	protected int line_w = -1, line_h, indent;
-	protected String inset;
-	protected boolean dc_date = true;
-
 	public String getDcTitle(String name, DLNAResource dlna) {
-		if (line_w == -1) {
-			// Init text wrap settings
-			String s = getTextWrap();
-			line_w = getIntAt(s, "width:", 0);
-
-			if (line_w > 0) {
-				line_h = getIntAt(s, "height:", 0);
-				indent = getIntAt(s, "indent:", 0);
-				dc_date = getIntAt(s, "date:", 1) != 0;
-				int ws = getIntAt(s, "whitespace:", 9);
-				inset = new String(new byte[indent]).replaceAll(".", Character.toString((char) ws));
-				LOGGER.debug("{}: TextWrap width:{} height:{} indent:{} whitespace:{} date:{}", getRendererName(), line_w, line_h, indent, ws, dc_date ? "1" : "0");
-			}
-		}
-
 		// Wrap text if applicable
 		if (line_w > 0 && name.length() > line_w) {
 			int i = dlna.isFolder() ? 0 : indent;
