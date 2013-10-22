@@ -47,8 +47,8 @@ public class PipeProcess {
 		}
 
 		if (extras != null) {
-			for (int i = 0; i < extras.length; i++) {
-				if (extras[i].equals("reconnect")) {
+			for (String extra : extras) {
+				if (extra.equals("reconnect")) {
 					forcereconnect = true;
 				}
 			}

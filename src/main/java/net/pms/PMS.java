@@ -859,7 +859,6 @@ public class PMS {
 	 * Checks that the directory exists and is a valid directory.
 	 *
 	 * @return {@link java.io.File}[] Array of directories.
-	 * @throws java.io.IOException
 	 */
 	public File[] getSharedFoldersArray(boolean monitored) {
 		String folders;
@@ -909,7 +908,6 @@ public class PMS {
 	/**
 	 * Restarts the server. The trigger is either a button on the main PMS window or via
 	 * an action item.
-	 * @throws java.io.IOException
 	 */
 	// XXX: don't try to optimize this by reusing the same server instance.
 	// see the comment above HTTPServer.stop()
@@ -1087,8 +1085,8 @@ public class PMS {
 		boolean headless = true;
 
 		if (args.length > 0) {
-			for (int a = 0; a < args.length; a++) {
-				switch (args[a]) {
+			for (String arg : args) {
+				switch (arg) {
 					case CONSOLE:
 						System.setProperty(CONSOLE, Boolean.toString(true));
 						break;

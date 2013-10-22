@@ -229,7 +229,6 @@ public class Request extends HTTPResource {
 	 * @param output The {@link HttpResponse} object that will be used to construct the response.
 	 * @param startStopListenerDelegate The {@link StartStopListenerDelegate} object that is used
 	 * 			to notify plugins that the {@link DLNAResource} is about to start playing.
-	 * @return The {@link ChannelFuture} object via which the response was sent.
 	 * @throws IOException
 	 */
 	public void answer(

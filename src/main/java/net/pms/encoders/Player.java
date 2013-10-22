@@ -70,8 +70,7 @@ public abstract class Player {
 	public abstract String mimeType();
 	public abstract String executable();
 	protected static PmsConfiguration configuration = PMS.getConfiguration();
-	private static List<FinalizeTranscoderArgsListener> finalizeTranscoderArgsListeners =
-		new ArrayList<>();
+	private static List<FinalizeTranscoderArgsListener> finalizeTranscoderArgsListeners = new ArrayList<>();
 
 	public static void initializeFinalizeTranscoderArgsListeners() {
 		for (ExternalListener listener : ExternalFactory.getExternalListeners()) {
@@ -123,6 +122,7 @@ public abstract class Player {
 	public final ProcessWrapper launchTranscode(String filename, DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
 		return launchTranscode(dlna, media, params);
 	}
+
 	public abstract ProcessWrapper launchTranscode(
 		DLNAResource dlna,
 		DLNAMediaInfo media,
@@ -406,7 +406,7 @@ public abstract class Player {
 
 			if (params.sid == null) {
 				st = new StringTokenizer(configuration.getSubtitlesLanguages(), ",");
-				while (st != null && st.hasMoreTokens()) {
+				while (st.hasMoreTokens()) {
 					String lang = st.nextToken();
 					lang = lang.trim();
 					LOGGER.trace("Looking for a subtitle track with lang: " + lang);
