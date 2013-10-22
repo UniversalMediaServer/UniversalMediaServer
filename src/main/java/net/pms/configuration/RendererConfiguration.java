@@ -48,7 +48,7 @@ public class RendererConfiguration {
 	private final Map<String, String> DLNAPN;
 
 	// TextWrap parameters
-	protected int line_w = -1, line_h, indent;
+	protected int line_w, line_h, indent;
 	protected String inset;
 	protected boolean dc_date = true;
 
@@ -470,7 +470,7 @@ public class RendererConfiguration {
 			}
 		}
 
-		String s = getTextWrap();
+		String s = getString(TEXTWRAP, "").toLowerCase();
 		line_w = getIntAt(s, "width:", 0);
 		if (line_w > 0) {
 			line_h = getIntAt(s, "height:", 0);
@@ -478,7 +478,6 @@ public class RendererConfiguration {
 			dc_date = getIntAt(s, "date:", 1) != 0;
 			int ws = getIntAt(s, "whitespace:", 9);
 			inset = new String(new byte[indent]).replaceAll(".", Character.toString((char) ws));
-			LOGGER.debug("{}: TextWrap width:{} height:{} indent:{} whitespace:{} date:{}", getRendererName(), line_w, line_h, indent, ws, dc_date ? "1" : "0");
 		}
 
 		charMap = new HashMap<>();
@@ -1189,10 +1188,6 @@ public class RendererConfiguration {
 
 	public int getTranscodedVideoAudioSampleRate() {
 		return getInt(TRANSCODED_VIDEO_AUDIO_SAMPLE_RATE, 48000);
-	}
-
-	public String getTextWrap() {
-		return getString(TEXTWRAP, "").toLowerCase();
 	}
 
 	public String getDcTitle(String name, DLNAResource dlna) {
