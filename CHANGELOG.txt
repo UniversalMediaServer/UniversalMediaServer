@@ -1,9 +1,31 @@
 3.0.0-b2 - 2013-10-??
 
 	General:
-		
+		Added support for muxing (losslessly streaming) more files with tsMuxeR by default
+		Added more information to our debug logs
+		The "Clean Install" option on Windows removes the program directory
+		The server logo displays on more renderers
+		The wizard defaults to "no" for DTS streaming by default for compatibility
+		A status message is displayed while UMS is checking the MPlayer font cache
+		MPlayer/MEncoder is no longer included in the Linux builds
+		Fixed FFmpeg web videos on Linux and OS X
+		Added renderer config option DisableMencoderNoskip
+		Made the use of acodec in CustomMencoderOptions safer
+		Videos work when tsMuxeR is the only engine enabled
+		Code optimizations to run faster
 	Renderers:
 		Added support for Samsung mobiles (Galaxy S3, S4, Note, Note 2, and Note 3)
+		Added support for Panasonic TX-L32V10E TVs
+		Updated Samsung AllShare logo
+	Languages:
+		Updated Czech translation
+		Updated Spanish translation (thanks, AlfredoRamos!)
+	External Components:
+		Updated tsMuxeR for Windows to 2.0.6b, which:
+			Improves muxing speed
+			Improves stream standards compatibility
+			Fixes E-AC3 support
+			Adds support for DTS-express audio
 
 3.0.0-b1 - 2013-10-17
 
