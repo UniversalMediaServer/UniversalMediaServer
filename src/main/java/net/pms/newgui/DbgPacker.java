@@ -106,22 +106,28 @@ public class DbgPacker implements ActionListener {
 			}
 		}
 		PmsConfiguration configuration = PMS.getConfiguration();
+
 		// check dbgpack property in UMS.conf
-		LOGGER.debug("checking dbgpack property in UMS.conf");
+		LOGGER.debug("Checking dbgpack property in UMS.conf");
 		String f = (String) configuration.getCustomProperty("dbgpack");
 		if (f != null) {
 			add(f.split(","));
 		}
+
 		// add confs of connected renderers
 		for (RendererConfiguration r : RendererConfiguration.getConnectedRenderersConfigurations()) {
 			add(r.getFile());
 		}
+
 		// add core items with debug.log last (LinkedHashMap preserves insertion order)
 		String profileDirectory = configuration.getProfileDirectory();
+
+		// add virtual folders file if it exists
 		String vfolders = configuration.getVirtualFoldersFile();
 		if (StringUtils.isNotEmpty(vfolders)) {
 			add(new File(vfolders.substring(1)));
 		}
+
 		add(new File(profileDirectory, "WEB.conf"));
 		add(new File(configuration.getProfilePath()));
 		add(new File(debug_log + ".prev"));
