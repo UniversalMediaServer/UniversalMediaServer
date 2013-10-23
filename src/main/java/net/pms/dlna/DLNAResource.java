@@ -1341,11 +1341,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *         {@code <container id="0$1" childCount="1" parentID="0" restricted="true">}
 	 */
 	public final String getDidlString(RendererConfiguration mediaRenderer) {
-		boolean externalSubsSupported = false;
 		boolean subsAreValid = false;
 		StringBuilder sb = new StringBuilder();
 		if (!configuration.isDisableSubtitles() && mediaRenderer.getSupportedSubtitles() != null && getMedia() != null && getPlayer() == null) {
-			externalSubsSupported = true;
 			setExternalSubs();
 			if (getMediaSubtitle() != null) {
 				String subs = mediaRenderer.getSupportedSubtitles();
@@ -1932,19 +1930,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
-		if (externalSubsSupported) {
-			if (subsAreValid) {
-				openTag(sb, "res");
-
-				addAttribute(sb, "protocolInfo", "http-get:*:text/srt:*");
-				endTag(sb);
-				String subsURL = getSubsURL(getMediaSubtitle());
-				sb.append(subsURL);
-
-				closeTag(sb, "res");
-				LOGGER.trace("Network debugger: http-get:*:text/srt:*" +  subsURL);
-			}
+		if (subsAreValid) {
+			openTag(sb, "res");
+			addAttribute(sb, "protocolInfo", "http-get:*:text/srt:*");
+			endTag(sb);
+			String subsURL = getSubsURL(getMediaSubtitle());
+			sb.append(subsURL);
+			closeTag(sb, "res");
+			LOGGER.trace("Network debugger: http-get:*:text/srt:*" +  subsURL);
 		}
+
 
 		appendThumbnail(mediaRenderer, sb);
 
