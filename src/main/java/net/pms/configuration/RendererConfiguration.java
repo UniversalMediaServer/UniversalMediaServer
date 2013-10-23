@@ -103,6 +103,7 @@ public class RendererConfiguration {
 	private static final String STREAM_EXT = "StreamExtensions";
 	private static final String SUBTITLE_HTTP_HEADER = "SubtitleHttpHeader";
 	private static final String SUPPORTED = "Supported";
+	private static final String SUPPORTED_SUBTITLES_TYPE = "SupportedSubtitlesType";
 	private static final String TEXTWRAP = "TextWrap";
 	private static final String THUMBNAIL_AS_RESOURCE = "ThumbnailAsResource";
 	private static final String TRANSCODE_AUDIO_441KHZ = "TranscodeAudioTo441kHz";
@@ -1225,5 +1226,9 @@ public class RendererConfiguration {
 		} catch (Exception e) {
 			return fallback;
 		}
+	}
+	
+	public String getSupportedSubtitles() {
+		return getString(SUPPORTED_SUBTITLES_TYPE, null);
 	}
 }

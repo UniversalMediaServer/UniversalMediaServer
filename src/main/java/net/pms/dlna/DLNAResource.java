@@ -27,6 +27,7 @@ import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
@@ -41,6 +42,7 @@ import net.pms.external.ExternalListener;
 import net.pms.external.StartStopListener;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
+import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
@@ -53,8 +55,11 @@ import net.pms.util.MpegUtil;
 import net.pms.util.OpenSubtitle;
 import net.pms.util.StringUtil;
 import static net.pms.util.StringUtil.*;
+
 import org.apache.commons.lang3.StringUtils;
+
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1145,7 +1150,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		} else {
 			if (isNoName()) {
 				displayName = "[No encoding]";
-				isNamedNoEncoding = true;
+				if (mediaRenderer != null && mediaRenderer.getSupportedSubtitles() != null) {
+					isNamedNoEncoding = false;
+				} else  {
+					isNamedNoEncoding = true;
+				}
+				
 			} else if (nametruncate > 0) {
 				displayName = displayName.substring(0, nametruncate).trim();
 			}
@@ -1236,6 +1246,21 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		sb.append(encode(getName()));
 		return sb.toString();
 	}
+	
+	/**
+	 * @param subs
+	 * @return Returns a URL for a given subtitles item. Not used for container types.
+	 */
+	protected String getSubsURL(DLNAMediaSubtitle subs) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(PMS.get().getServer().getURL());
+		sb.append("/get/");
+		sb.append(getResourceId()); //id
+		sb.append("/");
+		sb.append("subtitle0000");
+		sb.append(encode(subs.getExternalFile().getName()));
+		return sb.toString();
+	}
 
 	/**
 	 * Transforms a String to UTF-8.
@@ -1321,7 +1346,23 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *         {@code <container id="0$1" childCount="1" parentID="0" restricted="true">}
 	 */
 	public final String getDidlString(RendererConfiguration mediaRenderer) {
+		boolean externalSubsSupported = false;
+		boolean subsAreValid = false;
 		StringBuilder sb = new StringBuilder();
+		if (!configuration.isDisableSubtitles() && mediaRenderer.getSupportedSubtitles() != null && getMedia() != null && getPlayer() == null) {
+			externalSubsSupported = true;
+			setExternalSubs();
+			if (getMediaSubtitle() != null) {
+				String subs = mediaRenderer.getSupportedSubtitles();
+				String[] params = subs.split(",");
+				for (int i = 0; i < params.length; i++) {
+					if (getMediaSubtitle().getType().toString().equals(params[i])) {
+						subsAreValid = true;
+						break;
+					}
+				}
+			}
+		}
 
 		if (isFolder()) {
 			openTag(sb, "container");
@@ -1358,8 +1399,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			);
 		} else { // Ditlew - org
 			// Ditlew
-			wireshark = ((isFolder() || getPlayer() == null) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer)));
-			String tmp = (isFolder() || getPlayer() == null) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer));
+			wireshark = ((isFolder() || getPlayer() == null && subsAreValid) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer)));
+			String tmp = (isFolder() || getPlayer() == null && subsAreValid) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer));
 			addXMLTagAndAttribute(
 				sb,
 				"dc:title",
@@ -1782,10 +1823,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						dlnaspec = "DLNA.ORG_PN=" + mediaRenderer.getDLNAPN(dlnaspec.substring(12));
 					}
 				}
-
+				
 				String tempString = "http-get:*:" + mime + ":" + (dlnaspec != null ? (dlnaspec + ";") : "") + getDlnaOrgOpFlags();
+
 				wireshark = wireshark + " " + tempString;
 				addAttribute(sb, "protocolInfo", tempString);
+
+				if (subsAreValid) {
+					addAttribute(sb, "pv:subtitleFileType", getMediaSubtitle().getType().toString());
+					wireshark = wireshark + " " + "pv:subtitleFileType=" + getMediaSubtitle().getType().toString();
+					addAttribute(sb, "pv:subtitleFileUri", getSubsURL(getMediaSubtitle()));
+					wireshark = wireshark + " " + "pv:subtitleFileUri=" + getSubsURL(getMediaSubtitle());
+				}
 
 				if (getFormat() != null && getFormat().isVideo() && getMedia() != null && getMedia().isMediaparsed()) {
 					if (getPlayer() == null && getMedia() != null) {
@@ -1885,6 +1934,20 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				wireshark = "";
 				sb.append(getFileURL());
 				closeTag(sb, "res");
+			}
+		}
+
+		if (externalSubsSupported) {
+			if (subsAreValid) {
+				openTag(sb, "res");
+
+				addAttribute(sb, "protocolInfo", "http-get:*:text/srt:*");
+				endTag(sb);
+				String subsURL = getSubsURL(getMediaSubtitle());
+				sb.append(subsURL);
+
+				closeTag(sb, "res");
+				LOGGER.trace("Network debugger: http-get:*:text/srt:*" +  subsURL);
 			}
 		}
 
@@ -3161,5 +3224,159 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	public ExternalListener getMasterParent() {
 		return masterParent;
+	}
+
+	/**
+	 * This code block comes from Player.setAudioAndSubs()
+	 * TODO try to make it in Player itself
+	 */
+	private void setExternalSubs() {
+		// Add subtitles for renderers capable to play external subtitles
+		String currentLang = null;
+		DLNAMediaSubtitle matchedSub = null;
+		OutputParams params = new OutputParams(configuration);
+		boolean finishedMatchingPreferences = false;
+
+		if (params.aid != null) {
+			currentLang = params.aid.getLang();
+		}
+
+		if (params.sid != null && params.sid.getId() == -1) {
+			LOGGER.trace("Don't want subtitles!");
+			params.sid = null;
+			setMediaSubtitle(params.sid);
+			finishedMatchingPreferences = true;
+		}
+
+		if (!finishedMatchingPreferences) {
+			StringTokenizer st1 = new StringTokenizer(configuration.getAudioSubLanguages(), ";");
+
+			boolean matchedEmbeddedSubtitle = false;
+			while (st1.hasMoreTokens()) {
+				String pair = st1.nextToken();
+				if (pair.contains(",")) {
+					String audio = pair.substring(0, pair.indexOf(","));
+					String sub = pair.substring(pair.indexOf(",") + 1);
+					audio = audio.trim();
+					sub = sub.trim();
+					LOGGER.trace("Searching for a match for: " + currentLang + " with " + audio + " and " + sub);
+						if (Iso639.isCodesMatching(audio, currentLang) || (currentLang != null && audio.equals("*"))) {
+						if (sub.equals("off")) {
+							matchedSub = new DLNAMediaSubtitle();
+							matchedSub.setLang("off");
+						} else {
+							for (DLNAMediaSubtitle present_sub : getMedia().getSubtitleTracksList()) {
+								if (present_sub.matchCode(sub) || sub.equals("*")) {
+									if (present_sub.getExternalFile() != null) {
+										if (configuration.isAutoloadExternalSubtitles()) {
+											// Subtitle is external and we want external subtitles, look no further
+											matchedSub = present_sub;
+											LOGGER.trace(" Found a match: " + matchedSub);
+											break;
+										} else {
+											// Subtitle is external but we do not want external subtitles, keep searching
+											LOGGER.trace(" External subtitle ignored because of user setting: " + present_sub);
+										}
+									} else {
+										matchedSub = present_sub;
+										LOGGER.trace(" Found a match: " + matchedSub);
+										if (configuration.isAutoloadExternalSubtitles()) {
+											// Subtitle is internal and we will wait to see if an external one is available instead
+											matchedEmbeddedSubtitle = true;
+										} else {
+											// Subtitle is internal and we will use it
+											break;
+										}
+									}
+								}
+							}
+						}
+							if (matchedSub != null && !matchedEmbeddedSubtitle) {
+							break;
+						}
+					}
+				}
+			}
+				if (matchedSub != null && params.sid == null) {
+				if (configuration.isDisableSubtitles() || (matchedSub.getLang() != null && matchedSub.getLang().equals("off"))) {
+					LOGGER.trace(" Disabled the subtitles: " + matchedSub);
+				} else {
+					params.sid = matchedSub;
+					setMediaSubtitle(params.sid);
+				}
+			}
+				if (!configuration.isDisableSubtitles() && params.sid == null && getMedia() != null) {
+				// Check for subtitles again
+				File video = new File(getSystemName());
+				FileUtil.isSubtitlesExists(video, getMedia(), false);
+					if (configuration.isAutoloadExternalSubtitles()) {
+					boolean forcedSubsFound = false;
+					// Priority to external subtitles
+					for (DLNAMediaSubtitle sub : getMedia().getSubtitleTracksList()) {
+						if (matchedSub != null && matchedSub.getLang() != null && matchedSub.getLang().equals("off")) {
+							StringTokenizer st = new StringTokenizer(configuration.getForcedSubtitleTags(), ",");
+								while (sub.getFlavor() != null && st.hasMoreTokens()) {
+								String forcedTags = st.nextToken();
+								forcedTags = forcedTags.trim();
+									if (
+										sub.getFlavor().toLowerCase().indexOf(forcedTags) > -1 &&
+										Iso639.isCodesMatching(sub.getLang(), configuration.getForcedSubtitleLanguage())
+										) {
+									LOGGER.trace("Forcing preferred subtitles : " + sub.getLang() + "/" + sub.getFlavor());
+									LOGGER.trace("Forced subtitles track : " + sub);
+										if (sub.getExternalFile() != null) {
+										LOGGER.trace("Found external forced file : " + sub.getExternalFile().getAbsolutePath());
+									}
+									params.sid = sub;
+									setMediaSubtitle(params.sid);
+									forcedSubsFound = true;
+									break;
+								}
+							}
+							if (forcedSubsFound == true) {
+								break;
+							}
+						} else {
+							LOGGER.trace("Found subtitles track: " + sub);
+								if (sub.getExternalFile() != null) {
+								LOGGER.trace("Found external file: " + sub.getExternalFile().getAbsolutePath());
+								params.sid = sub;
+								setMediaSubtitle(params.sid);
+								break;
+							}
+						}
+					}
+				}
+				if (
+						matchedSub != null &&
+						matchedSub.getLang() != null &&
+						matchedSub.getLang().equals("off")
+						) {
+					finishedMatchingPreferences = true;
+				}
+					if (!finishedMatchingPreferences && params.sid == null) {
+					StringTokenizer st = new StringTokenizer(configuration.getSubtitlesLanguages(), ",");
+					while (st != null && st.hasMoreTokens()) {
+						String lang = st.nextToken();
+						lang = lang.trim();
+						LOGGER.trace("Looking for a subtitle track with lang: " + lang);
+						for (DLNAMediaSubtitle sub : getMedia().getSubtitleTracksList()) {
+							if (
+									sub.matchCode(lang) &&
+									!(
+											!configuration.isAutoloadExternalSubtitles() &&
+											sub.getExternalFile() != null
+											)
+									) {
+								params.sid = sub;
+								LOGGER.trace("Matched sub track: " + params.sid);
+								st = null;
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 }
