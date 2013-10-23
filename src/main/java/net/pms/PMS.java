@@ -861,13 +861,17 @@ public class PMS {
 	 * @return {@link java.io.File}[] Array of directories.
 	 * @throws java.io.IOException
 	 */
-	public File[] getSharedFoldersArray(boolean monitored) {
+    public File[] getSharedFoldersArray(boolean monitored) {
+        return getSharedFoldersArray(monitored, null);
+    }
+
+	public File[] getSharedFoldersArray(boolean monitored, ArrayList<String> tags) {
 		String folders;
 
 		if (monitored) {
 			folders = getConfiguration().getFoldersMonitored();
 		} else {
-			folders = getConfiguration().getFolders();
+			folders = getConfiguration().getFolders(tags);
 		}
 
 		if (folders == null || folders.length() == 0) {

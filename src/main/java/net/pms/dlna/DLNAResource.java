@@ -561,7 +561,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						// is preferred.
 						String name = getName();
 
-						if (!configuration.isHideRecentlyPlayedFolder()) {
+						if (!configuration.isHideRecentlyPlayedFolder(null)) {
 							player = child.getPlayer();
 						} else {
 							for (Player p : PlayerFactory.getPlayers()) {

@@ -113,7 +113,7 @@ public class DbgPacker implements ActionListener {
 		}
 		// add core items with debug.log last (LinkedHashMap preserves insertion order)
 		String profileDirectory = configuration.getProfileDirectory();
-		String vfolders = configuration.getVirtualFolders();
+		String vfolders = configuration.getVirtualFolders(null);
 		if (StringUtils.isNotEmpty(vfolders) && vfolders.startsWith("@")) {
 			add(new File(vfolders.substring(1)));
 		}
