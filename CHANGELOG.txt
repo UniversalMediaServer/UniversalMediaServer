@@ -21,6 +21,8 @@
 		Updated Czech translation
 		Updated Spanish translation (thanks, AlfredoRamos!)
 	External Components:
+		Updated Java Runtime Environment automatic downloader for Windows to 7u45, which:
+			Improves security
 		Updated tsMuxeR for Windows to 2.0.6b, which:
 			Improves muxing speed
 			Improves stream standards compatibility
