@@ -900,7 +900,7 @@ public class MEncoderVideo extends Player {
 		 * - The resource is incompatible with tsMuxeR
 		 * - The user has disabled the "switch to tsMuxeR" option
 		 * - The user has specified overscan correction
-		 * - The filename specifies the resource as WEB-DL
+		 * - The filename specifies the resource as WEB-DL and the OS is not Windows
 		 * - The aspect ratio of the video needs to be changed
 		 */
 		if (
@@ -919,7 +919,10 @@ public class MEncoderVideo extends Player {
 				intOCW == 0 &&
 				intOCH == 0
 			) &&
-			!filename.contains("WEB-DL") &&
+			!(
+				filename.contains("WEB-DL") &&
+				!Platform.isWindows()
+			) &&
 			aspectRatiosMatch
 		) {
 			String expertOptions[] = getSpecificCodecOptions(
