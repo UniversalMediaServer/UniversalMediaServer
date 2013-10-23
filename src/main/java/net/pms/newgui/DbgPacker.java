@@ -17,6 +17,7 @@ import javax.swing.plaf.metal.MetalIconFactory;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.external.DebugPacker;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
@@ -110,6 +111,10 @@ public class DbgPacker implements ActionListener {
 		String f = (String) configuration.getCustomProperty("dbgpack");
 		if (f != null) {
 			add(f.split(","));
+		}
+		// add confs of connected renderers
+		for (RendererConfiguration r : RendererConfiguration.getConnectedRenderersConfigurations()) {
+			add(r.getFile());
 		}
 		// add core items with debug.log last (LinkedHashMap preserves insertion order)
 		String profileDirectory = configuration.getProfileDirectory();
@@ -230,7 +235,7 @@ public class DbgPacker implements ActionListener {
 					reload((JComponent) e.getSource());
 				}
 			} catch (IOException e1) {
-				LOGGER.debug(String.format("Failed to open '%s' in default desktop application %s", str, e1));
+				LOGGER.debug("Failed to open default desktop application: " + e1);
 			}
 		}
 	}
