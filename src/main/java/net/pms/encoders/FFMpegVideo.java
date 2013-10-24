@@ -663,15 +663,6 @@ public class FFMpegVideo extends Player {
 			cmdList.add(filename);
 		}
 
-		// Encoder threads
-		cmdList.add("-threads");
-		cmdList.add(String.valueOf(nThreads));
-
-		if (params.timeend > 0) {
-			cmdList.add("-t");
-			cmdList.add(String.valueOf(params.timeend));
-		}
-
 		// Apply any video filters and associated options. These should go
 		// after video input is specified and before output streams are mapped.
 		cmdList.addAll(getVideoFilterOptions(dlna, media, params));
@@ -688,6 +679,15 @@ public class FFMpegVideo extends Player {
 		}
 
 		// Now configure the output streams
+
+		// Encoder threads
+		cmdList.add("-threads");
+		cmdList.add(String.valueOf(nThreads));
+
+		if (params.timeend > 0) {
+			cmdList.add("-t");
+			cmdList.add(String.valueOf(params.timeend));
+		}
 
 		cmdList.addAll(getVideoBitrateOptions(dlna, media, params));
 
