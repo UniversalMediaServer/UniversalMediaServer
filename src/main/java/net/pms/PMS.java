@@ -29,6 +29,7 @@ import java.util.Map.Entry;
 import java.util.logging.LogManager;
 import javax.swing.*;
 import net.pms.configuration.Build;
+import net.pms.configuration.NameFilter;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaDatabase;
@@ -98,6 +99,8 @@ public class PMS {
 	 * directory.
 	 */
 	private static String helpPage = "index.html";
+
+    private NameFilter filter;
 
 	/**
 	 * Returns a pointer to the PMS GUI's main window.
@@ -414,6 +417,11 @@ public class PMS {
 
 		dbgPack = new DbgPacker();
 		tfm = new TempFileMgr();
+        try {
+            filter = new NameFilter();
+        } catch (ConfigurationException e) {
+            filter = null;
+        }
 
 		// This should be removed soon
 		OpenSubtitle.convert();
@@ -471,15 +479,15 @@ public class PMS {
 					UIManager.getString("OptionPane.noButtonText")
 				};
 				int whetherToSendDTS = JOptionPane.showOptionDialog(
-					(Component) PMS.get().getFrame(),
-					Messages.getString("Wizard.5"),
-					Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
-					JOptionPane.YES_NO_OPTION,
-					JOptionPane.QUESTION_MESSAGE,
-					null,
-					optionsDTS,
-					optionsDTS[1]
-				);
+                        (Component) PMS.get().getFrame(),
+                        Messages.getString("Wizard.5"),
+                        Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE,
+                        null,
+                        optionsDTS,
+                        optionsDTS[1]
+                );
 				if (whetherToSendDTS == JOptionPane.YES_OPTION) {
 					configuration.setAudioEmbedDtsInPcm(true);
 					save();
@@ -1454,4 +1462,21 @@ public class PMS {
 	public boolean isWindows() {
 		return Platform.isWindows();
 	}
+
+    public static boolean filter(RendererConfiguration render, String name) {
+        NameFilter nf = instance.filter;
+        if(nf == null || render == null) {
+            return false;
+        }
+        ArrayList<String> tags = render.tags();
+        if(tags == null) {
+            return false;
+        }
+        for(String tag : tags) {
+            if(nf.filter(tag, name)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

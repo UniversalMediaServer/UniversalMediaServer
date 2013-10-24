@@ -1234,4 +1234,11 @@ public class RendererConfiguration {
 			return fallback;
 		}
 	}
+
+    public ArrayList<String> tags() {
+        if(rootFolder != null) {
+            return rootFolder.getTags();
+        }
+        return null;
+    }
 }
