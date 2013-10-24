@@ -1349,7 +1349,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				String subs = mediaRenderer.getSupportedSubtitles();
 				String[] params = subs.split(",");
 				for (int i = 0; i < params.length; i++) {
-					if (getMediaSubtitle().getType().toString().equals(params[i])) {
+					if (getMediaSubtitle().getType().toString().equals(params[i].trim().toUpperCase())) {
 						subsAreValid = true;
 						break;
 					}
