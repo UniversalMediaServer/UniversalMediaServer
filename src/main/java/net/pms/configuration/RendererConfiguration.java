@@ -262,13 +262,13 @@ public class RendererConfiguration {
 
 	public RootFolder getRootFolder() {
 		if (rootFolder == null) {
-            ArrayList<String> tags = new ArrayList();
-            tags.add(getRendererName());
-            for(InetAddress sa : addressAssociation.keySet()) {
-                if(addressAssociation.get(sa) == this) {
-                    tags.add(sa.getHostAddress());
-                }
-            }
+			ArrayList<String> tags = new ArrayList();
+			tags.add(getRendererName());
+			for (InetAddress sa : addressAssociation.keySet()) {
+				if (addressAssociation.get(sa) == this) {
+					tags.add(sa.getHostAddress());
+				}
+			}
 
 			rootFolder = new RootFolder(tags);
 			if (pmsConfiguration.getUseCache()) {
