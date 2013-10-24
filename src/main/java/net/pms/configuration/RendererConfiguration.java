@@ -489,7 +489,7 @@ public class RendererConfiguration {
 			inset = new String(new byte[indent]).replaceAll(".", Character.toString((char) ws));
 		}
 
-		charMap = new HashMap<>();
+		charMap = new HashMap<String, String>();
 		String ch = getString(CHARMAP, null);
 		if (StringUtils.isNotBlank(ch)) {
 			StringTokenizer st = new StringTokenizer(ch, " ");

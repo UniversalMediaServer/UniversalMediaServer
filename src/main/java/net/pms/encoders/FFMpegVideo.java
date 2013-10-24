@@ -1234,9 +1234,8 @@ public class FFMpegVideo extends Player {
 						continue;
 					}
 
-						if (format[i].contains("MarginV")) {
-							params[i] = configuration.getAssMargin();
-						}
+					if (format[i].contains("MarginV")) {
+						params[i] = configuration.getAssMargin();
 					}
 				}
 

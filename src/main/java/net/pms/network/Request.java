@@ -750,17 +750,18 @@ public class Request extends HTTPResource {
 					URL soapActionUrl = new URL(cb);
 					String addr = soapActionUrl.getHost();
 					int port = soapActionUrl.getPort();
-					try (Socket sock = new Socket(addr,port)) {
-						OutputStream out = sock.getOutputStream();
+					Socket sock = new Socket(addr,port);
+					OutputStream out = sock.getOutputStream();
 
-						output(out, "NOTIFY /" + argument + " HTTP/1.1");
-						output(out, "SID: " + PMS.get().usn());
-						output(out, "SEQ: " + 0);
-						output(out, "NT: upnp:event");
-						output(out, "NTS: upnp:propchange");
-						output(out, "HOST: " + addr + ":" + port);
-						output(out, CONTENT_TYPE_UTF8);
-					}
+					output(out, "NOTIFY /" + argument + " HTTP/1.1");
+					output(out, "SID: " + PMS.get().usn());
+					output(out, "SEQ: " + 0);
+					output(out, "NT: upnp:event");
+					output(out, "NTS: upnp:propchange");
+					output(out, "HOST: " + addr + ":" + port);
+					output(out, CONTENT_TYPE_UTF8);
+
+					sock.close();
 				} catch (MalformedURLException ex) {
 					LOGGER.debug("Cannot parse address and port from soap action \"" + soapaction + "\"", ex);
 				}
