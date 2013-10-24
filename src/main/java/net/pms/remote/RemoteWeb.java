@@ -70,7 +70,7 @@ public class RemoteWeb {
             addCtx("/media", new RemoteMediaHandler(this));
             addCtx("/thumb", new RemoteThumbHandler(this));
             addCtx("/raw", new RemoteRawHandler(this));
-            //addCtx("/jwplayer", new RemoteFileHandler());
+            addCtx("/js", new RemoteFileHandler());
             server.setExecutor(null);
             server.start();
         } catch ( Exception e ) {

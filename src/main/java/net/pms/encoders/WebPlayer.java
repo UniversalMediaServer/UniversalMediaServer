@@ -22,40 +22,76 @@ public class WebPlayer extends Player {
 		DLNAMediaInfo media,
 		OutputParams params) throws IOException {
 		LOGGER.debug("web player wrapper called");
-		String fifoName = String.format("webplayer%d_%d", Thread.currentThread().getId(), System.currentTimeMillis());
+        params.waitbeforestart = 2000;
 
-		PipeProcess pipe = new PipeProcess(fifoName);
-        String fileName = dlna.getSystemName();
+        String fifoName = String.format(
+                "ffmpegwebvideo_%d_%d",
+                Thread.currentThread().getId(),
+                System.currentTimeMillis()
+        );
         int nThreads = configuration.getNumberOfCpuCores();
+        String fileName = dlna.getSystemName();
 
-			// FFMPEG version
-			String[] cmdArray = new String[] {
-					PMS.getConfiguration().getFfmpegPath(),
-					"-y", 
-					"-loglevel", "warning",
-					"-threads", "" + nThreads,
-					"-i", fileName,
-					"-f", "h264",
-					"-vcodec", "libx264",
-					"-preset", "baseline",
-					"-preset", "slow",
-					"-acodec", "copy",
-//					"-frag_duration", "300",
-	//				"-frag_size", "100",
-		//			"-flags", "+aic+mv4",
-					pipe.getInputPipe()
-				};
-			
-			LOGGER.debug("web cmd "+cmdArray.toString());
-			ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
-			ProcessWrapper mkfifo_process = pipe.getPipeProcess();
-			pw.attachProcess(mkfifo_process);
+        // This process wraps the command that creates the named pipe
+        PipeProcess pipe = new PipeProcess(fifoName);
+        pipe.deleteLater(); // delete the named pipe later; harmless if it isn't created
+        ProcessWrapper mkfifo_process = pipe.getPipeProcess();
 
-			try {
-				Thread.sleep(300);
-			} catch (InterruptedException e) {
-				LOGGER.error("thread interrupted while waiting for named pipe to be created", e);
-			}
+        /**
+         * It can take a long time for Windows to create a named pipe (and
+         * mkfifo can be slow if /tmp isn't memory-mapped), so run this in
+         * the current thread.
+         */
+        mkfifo_process.runInSameThread();
+
+        params.input_pipes[0] = pipe;
+
+        // FFMPEG version
+        String[] cmdArray = new String[] {
+                PMS.getConfiguration().getFfmpegPath(),
+                "-y", "-re",
+                "-loglevel", "warning",
+                "-threads", "" + nThreads,
+                "-i", fileName,
+                "-threads", "" + nThreads,
+                "-f", "mp4",
+                "-c:v", "libx264",
+                "-ab", "56k",
+                "-acodec", "libvo_aacenc",
+                "-b:v", "4000k",
+                "-bufsize:v", "1835k",
+                "-g", "30",
+                "-r", "25",
+                "-s", "640x360",
+                "-movflags", "frag_keyframe+empty_moov",
+					//"-frag_duration", "300",
+				//"-frag_size", "100",
+    //			"-flags", "+aic+mv4",
+                pipe.getInputPipe()
+            };
+
+
+        // Now launch FFmpeg
+        ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
+        pw.attachProcess(mkfifo_process); // Clean up the mkfifo process when the transcode ends
+
+        // Give the mkfifo process a little time
+        try {
+            Thread.sleep(300);
+        } catch (InterruptedException e) {
+            LOGGER.error("Thread interrupted while waiting for named pipe to be created", e);
+        }
+
+        // Launch the transcode command...
+        pw.runInNewThread();
+        // ...and wait briefly to allow it to start
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            LOGGER.error("Thread interrupted while waiting for transcode to start", e);
+        }
+
+        return pw;
 
 		/*		String[] cmdArray = new String[] {
 		 PMS.getConfiguration().getMencoderPath(),
@@ -67,30 +103,6 @@ public class WebPlayer extends Player {
 		 "-of", "mp4",
 		 "-o", pipe.getInputPipe()
 		 };*/
-
-
-		// create the named pipe and wait briefly to allow it to be created
-		mkfifo_process.runInNewThread();
-
-		try {
-			Thread.sleep(200);
-		} catch (InterruptedException e) {
-			LOGGER.error("thread interrupted while waiting for named pipe to be created", e);
-		}
-
-		pipe.deleteLater();
-
-		// launch transcode command and wait briefly to allow it to start
-		pw.runInNewThread();
-
-		try {
-			Thread.sleep(200);
-		} catch (InterruptedException e) {
-			LOGGER.error("thread interrupted while waiting for transcode to start", e);
-		}
-
-		LOGGER.debug("return pw " + pw);
-		return pw;
 	}
 
 	@Override

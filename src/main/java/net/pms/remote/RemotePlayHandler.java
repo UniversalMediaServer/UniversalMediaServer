@@ -40,11 +40,23 @@ public class RemotePlayHandler implements HttpHandler {
 		sb.append("http://swesub.nu/css/style.css");
 		sb.append("\">");
 		/*sb.append("<script type='text/javascript' ");
-		 sb.append("src=\"/files/jwplayer.js\">");
+		 //sb.append("src=\"/files/flowplayer.js\">");
 		 //sb.append("src=\"http://www.longtailvideo.com/jwplayer/jwplayer.js\">");
 		 sb.append("</script>");*/
+        /*sb.append("<script src=\"//ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js\"></script>");
+       // sb.append("<script src=\"//ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js\"></script>");
+        //<!-- 2. flowplayer -->
+        sb.append("<script src=\"//releases.flowplayer.org/5.4.3/flowplayer.min.js\"></script>");
+
+        //<!-- 3. skin -->
+        sb.append("<link rel=\"stylesheet\" href=\"//releases.flowplayer.org/5.4.3/skin/minimalist.css\">");*/
 		sb.append("</head>");
 		sb.append("<body>");
+      /*  sb.append("<div class=\"flowplayer\" data-engine=\"flash\">");
+        sb.append("<video>");
+        sb.append("<source type=\"video/flash\" src=\"/media/");
+        sb.append(id1).append("\">");
+        sb.append("</video></div>");*/
 		/*String x="<script type=\"text/javascript\" src=\"/jwplayer/jwplayer.js\"></script>"+
 		 "<video class=\"jwplayer\" src=\"";
 		 sb.append(x+"/media/"+id1+"\"></video>");*/
@@ -78,9 +90,9 @@ public class RemotePlayHandler implements HttpHandler {
 
 		if(res.get(0).getFormat().isVideo()) {
 			mediaType="video";
-			mime="video/mp4";
+			mime="video/mpeg4";
 		}
-		sb.append("<").append(mediaType).append(" width=\"320\" height=\"240\" controls=\"controls\" autoplay=\"autoplay\"");
+		sb.append("<").append(mediaType).append(" width=\"640\" height=\"360\" controls=\"controls\" autoplay=\"autoplay\"");
 		sb.append(" src=\"/media/").append(id1).append("\" type=\"").append(mime).append("\">");
 		sb.append("Your browser doesn't appear to support the HTML5 video tag");
 		sb.append("</").append(mediaType).append("><br><br>");
