@@ -33,7 +33,7 @@ public class RemotePlayHandler implements HttpHandler {
 		StringBuilder sb = new StringBuilder();
 		List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, root.getDefaultRenderer());
 //		sb.append("<html xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:og=\"http://opengraphprotocol.org/schema/\">");
-		sb.append("<html>");
+		sb.append("<!DOCTYPE html>");
 		sb.append(CRLF);
 		sb.append("<head>");
 		sb.append("<link rel=\"stylesheet\" href=\"");

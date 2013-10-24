@@ -54,7 +54,8 @@ public class RemoteWeb {
 
 		try {
 			readCred();
-			// setup the socket address
+
+			// Setup the socket address
 			InetSocketAddress address = new InetSocketAddress(InetAddress.getByName("0.0.0.0"), port);
 
             // initialise the HTTP(S) server
@@ -79,52 +80,48 @@ public class RemoteWeb {
 	}
 
 	private HttpServer httpsServer(InetSocketAddress address) throws Exception {
-		
-		HttpsServer server = HttpsServer.create ( address, 0 );
+		HttpsServer server = HttpsServer.create(address, 0);
 
-		sslContext = SSLContext.getInstance ( "TLS" );
+		sslContext = SSLContext.getInstance("TLS");
 
-		// initialise the keystore
-		char[] password = "umsums".toCharArray ();
-		ks = KeyStore.getInstance ( "JKS" );
-		FileInputStream fis = new FileInputStream ( "UMS.jks" );
-		ks.load ( fis, password );
+		// Initialize the keystore
+		char[] password = "umsums".toCharArray();
+		ks = KeyStore.getInstance("JKS");
+		FileInputStream fis = new FileInputStream("UMS.jks");
+		ks.load(fis, password);
 
-		// setup the key manager factory
-		kmf = KeyManagerFactory.getInstance ( "SunX509" );
-		kmf.init ( ks, password );
+		// Setup the key manager factory
+		kmf = KeyManagerFactory.getInstance("SunX509");
+		kmf.init(ks, password);
 
-		// setup the trust manager factory
-		tmf = TrustManagerFactory.getInstance ( "SunX509" );
-		tmf.init ( ks );
-		
-		sslContext.init ( kmf.getKeyManagers (), tmf.getTrustManagers (), null );
+		// Setup the trust manager factory
+		tmf = TrustManagerFactory.getInstance("SunX509");
+		tmf.init(ks);
 
-		server.setHttpsConfigurator ( new HttpsConfigurator( sslContext )
-		{
-			public void configure ( HttpsParameters params )
-			{
-				try
-				{
+		sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+
+		server.setHttpsConfigurator(new HttpsConfigurator(sslContext) {
+			@Override
+			public void configure(HttpsParameters params) {
+				try {
 					// initialise the SSL context
-					SSLContext c = SSLContext.getDefault ();
-					SSLEngine engine = c.createSSLEngine ();
-					params.setNeedClientAuth ( true );
-					params.setCipherSuites ( engine.getEnabledCipherSuites () );
-					params.setProtocols ( engine.getEnabledProtocols () );
+					SSLContext c = SSLContext.getDefault();
+					SSLEngine engine = c.createSSLEngine();
+					params.setNeedClientAuth(true);
+					params.setCipherSuites(engine.getEnabledCipherSuites());
+					params.setProtocols(engine.getEnabledProtocols());
 
 					// get the default parameters
-					SSLParameters defaultSSLParameters = c.getDefaultSSLParameters ();
-					params.setSSLParameters ( defaultSSLParameters );
-				}
-				catch ( Exception e ) {
-					LOGGER.debug("https configure error  "+e);
+					SSLParameters defaultSSLParameters = c.getDefaultSSLParameters();
+					params.setSSLParameters(defaultSSLParameters);
+				} catch (Exception e) {
+					LOGGER.debug("https configure error  " + e);
 				}
 			}
-		} );
+		});
 		return server;
 	}
-	
+
 	public String getTag(String name) {
 		String tag = tags.get(name);
 		if (tag == null) {
@@ -201,7 +198,6 @@ public class RemoteWeb {
 	}
 
 	static class RemoteThumbHandler implements HttpHandler {
-
 		private RemoteWeb parent;
 
 		public RemoteThumbHandler(RemoteWeb parent) {
@@ -249,15 +245,15 @@ public class RemoteWeb {
 		public void handle(HttpExchange t) throws IOException {
 			LOGGER.debug("file req " + t.getRequestURI());
 			if (t.getRequestURI().getPath().contains("crossdomain.xml")) {
-				String data = "<?xml version=\"1.0\"?>"
-					+ "<!-- http://www.bitsontherun.com/crossdomain.xml -->"
-					+ "<cross-domain-policy>"
-					+ "<allow-access-from domain=\"*\" />"
-					+ "</cross-domain-policy>";
+				String data = "<?xml version=\"1.0\"?>" +
+					"<!-- http://www.bitsontherun.com/crossdomain.xml -->" +
+					"<cross-domain-policy>" +
+					"<allow-access-from domain=\"*\" />" +
+					"</cross-domain-policy>";
 				t.sendResponseHeaders(200, data.length());
-				OutputStream os = t.getResponseBody();
-				os.write(data.getBytes());
-				os.close();
+				try (OutputStream os = t.getResponseBody()) {
+					os.write(data.getBytes());
+				}
 				return;
 			}
 			if (t.getRequestURI().getPath().contains("player.swf")) {

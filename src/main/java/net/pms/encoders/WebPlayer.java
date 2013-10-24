@@ -5,6 +5,7 @@ import javax.swing.JComponent;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
+import static net.pms.encoders.Player.VIDEO_WEBSTREAM_PLAYER;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeProcess;
@@ -20,7 +21,8 @@ public class WebPlayer extends Player {
 	public ProcessWrapper launchTranscode(
 		DLNAResource dlna,
 		DLNAMediaInfo media,
-		OutputParams params) throws IOException {
+		OutputParams params
+	) throws IOException {
 		LOGGER.debug("web player wrapper called");
         params.waitbeforestart = 2000;
 
