@@ -1558,7 +1558,7 @@ public class PmsConfiguration {
 	 * @return True if PMS should hide the folder, false othewise.
 	 */
 	public boolean getHideVideoSettings(ArrayList<String> tags) {
-        return tagLoopBool(tags, ".hide_set", KEY_HIDE_VIDEO_SETTINGS, true);
+		return tagLoopBool(tags, ".hide_set", KEY_HIDE_VIDEO_SETTINGS, true);
 	}
 
 	/**
@@ -1967,7 +1967,7 @@ public class PmsConfiguration {
 	}
 
 	public String getFolders(ArrayList<String> tags) {
-        return tagLoop(tags, ".folders", KEY_FOLDERS);
+		return tagLoop(tags, ".folders", KEY_FOLDERS);
 	}
 
 	public void setFolders(String value) {
@@ -2370,7 +2370,7 @@ public class PmsConfiguration {
 	}
 
 	public boolean isHideNewMediaFolder(ArrayList<String> tags) {
-        return tagLoopBool(tags, ".new_media", KEY_HIDE_NEW_MEDIA_FOLDER, false);
+		return tagLoopBool(tags, ".new_media", KEY_HIDE_NEW_MEDIA_FOLDER, false);
 	}
 
 	public void setHideNewMediaFolder(final boolean value) {
@@ -2378,7 +2378,7 @@ public class PmsConfiguration {
 	}
 
 	public boolean isHideRecentlyPlayedFolder(ArrayList<String> tags) {
-        return tagLoopBool(tags, ".recent", KEY_HIDE_RECENTLY_PLAYED_FOLDER, false);
+		return tagLoopBool(tags, ".recent", KEY_HIDE_RECENTLY_PLAYED_FOLDER, false);
 	}
 
 	public void setHideRecentlyPlayedFolder(final boolean value) {
@@ -2440,11 +2440,11 @@ public class PmsConfiguration {
 	}
 
 	public String getVirtualFolders(ArrayList<String> tags) {
-        return tagLoop(tags, ".vfolders", KEY_VIRTUAL_FOLDERS);
+		return tagLoop(tags, ".vfolders", KEY_VIRTUAL_FOLDERS);
 	}
 
 	public String getVirtualFoldersFile(ArrayList<String> tags) {
-        return tagLoop(tags, ".vfolders.file", KEY_VIRTUAL_FOLDERS_FILE);
+		return tagLoop(tags, ".vfolders.file", KEY_VIRTUAL_FOLDERS_FILE);
 	}
 
 	public String getProfilePath() {
@@ -2840,37 +2840,40 @@ public class PmsConfiguration {
 		return getBoolean(KEY_HIDE_SUBS_INFO, false);
 	}
 
-    public String getPlugins(ArrayList<String> tags) {
-        return tagLoop(tags, ".plugins", "dummy");
-    }
+	public String getPlugins(ArrayList<String> tags) {
+		return tagLoop(tags, ".plugins", "dummy");
+	}
 
-    public boolean isHideWebFolder(ArrayList<String> tags) {
-        return tagLoopBool(tags, ".web", "dummy" , false);
-    }
+	public boolean isHideWebFolder(ArrayList<String> tags) {
+		return tagLoopBool(tags, ".web", "dummy", false);
+	}
 
-    private String tagLoop(ArrayList<String> tags, String suff, String fallback) {
-        if(tags == null || tags.isEmpty()) {
-            // no tags use fallback
-            return getString(fallback, "");
-        }
-        for(String tag : tags) {
-            String x = (tag.toLowerCase() + suff).replaceAll(" ", "_");
-            String res = getString(x, "");
-            if(StringUtils.isNotBlank(res)) {
-                // use first tag found
-                return res;
-            }
-        }
-        // down here no matching tag was found
-        // return fallback
-        return getString(fallback, "");
-    }
+	private String tagLoop(ArrayList<String> tags, String suff, String fallback) {
+		if (tags == null || tags.isEmpty()) {
+			// no tags use fallback
+			return getString(fallback, "");
+		}
 
-    private boolean tagLoopBool(ArrayList<String> tags, String suff, String fallback, boolean def) {
-        String b = tagLoop(tags, suff, fallback);
-        if(StringUtils.isBlank(b)) {
-            return def;
-        }
-        return b.trim().equalsIgnoreCase("true");
-    }
+		for (String tag : tags) {
+			String x = (tag.toLowerCase() + suff).replaceAll(" ", "_");
+			String res = getString(x, "");
+			if (StringUtils.isNotBlank(res)) {
+				// use first tag found
+				return res;
+			}
+		}
+
+		// down here no matching tag was found
+		// return fallback
+		return getString(fallback, "");
+	}
+
+	private boolean tagLoopBool(ArrayList<String> tags, String suff, String fallback, boolean def) {
+		String b = tagLoop(tags, suff, fallback);
+		if (StringUtils.isBlank(b)) {
+			return def;
+		}
+
+		return b.trim().equalsIgnoreCase("true");
+	}
 }

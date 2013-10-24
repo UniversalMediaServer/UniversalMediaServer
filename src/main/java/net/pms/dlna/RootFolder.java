@@ -58,17 +58,16 @@ public class RootFolder extends DLNAResource {
 	private FolderLimit lim;
 	private MediaMonitor mon;
 	private RecentlyPlayed last;
-    private ArrayList<String> tags;
+	private ArrayList<String> tags;
 
 	public RootFolder(ArrayList<String> tags) {
 		setIndexId(0);
-        this.tags = tags;
+		this.tags = tags;
 	}
 
-    public RootFolder() {
-        this(null);
-    }
-
+	public RootFolder() {
+		this(null);
+	}
 
 	@Override
 	public InputStream getInputStream() {
@@ -1268,17 +1267,17 @@ public class RootFolder extends DLNAResource {
 	 */
 	private List<DLNAResource> getAdditionalFoldersAtRoot() {
 		List<DLNAResource> res = new ArrayList<>();
-        String[] legalPlugs = null;
-        String tmp = configuration.getPlugins(tags);
-        if(StringUtils.isNotBlank(tmp)) {
-            legalPlugs = tmp.split(",");
-        }
+		String[] legalPlugs = null;
+		String tmp = configuration.getPlugins(tags);
+		if (StringUtils.isNotBlank(tmp)) {
+			legalPlugs = tmp.split(",");
+		}
 
 		for (ExternalListener listener : ExternalFactory.getExternalListeners()) {
-            if(illegalPlugin(legalPlugs, listener.name())) {
-                LOGGER.debug("plugin " + listener.name() + " is not legal for render");
-                continue;
-            }
+			if (illegalPlugin(legalPlugs, listener.name())) {
+				LOGGER.debug("plugin " + listener.name() + " is not legal for render");
+				continue;
+			}
 			if (listener instanceof AdditionalFolderAtRoot) {
 				AdditionalFolderAtRoot afar = (AdditionalFolderAtRoot) listener;
 
@@ -1335,24 +1334,22 @@ public class RootFolder extends DLNAResource {
 		}
 	}
 
-    private boolean illegalPlugin(String[] plugs, String name) {
-        if(StringUtils.isBlank(name)) {
-            if(plugs == null || plugs.length == 0) {
-                // only allowed without plugins filter
-                return false;
-            }
-            else {
-                return true;
-            }
-        }
-        if(plugs == null || plugs.length == 0) {
-            return false;
-        }
-        for(String p : plugs) {
-            if(name.equals(p)) {
-                return false;
-            }
-        }
-        return true;
-    }
+	private boolean illegalPlugin(String[] plugs, String name) {
+		if (StringUtils.isBlank(name)) {
+			if (plugs == null || plugs.length == 0) {
+				// only allowed without plugins filter
+				return false;
+			}
+			return true;
+		}
+		if (plugs == null || plugs.length == 0) {
+			return false;
+		}
+		for (String p : plugs) {
+			if (name.equals(p)) {
+				return false;
+			}
+		}
+		return true;
+	}
 }
