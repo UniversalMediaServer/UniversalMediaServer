@@ -1026,7 +1026,7 @@ public class FFMpegVideo extends Player {
 		}
 
 		File convertedSubs;
-		if (applyFontConfig) {
+		if (applyFontConfig || isEmbeddedSource) {
 			convertedSubs = new File(subsPath.getAbsolutePath() + File.separator + basename + "_ID" + params.sid.getId() + "_" + modId + ".ass");
 		} else {
 			convertedSubs = new File(subsPath.getAbsolutePath() + File.separator + modId + "_" + params.sid.getExternalFile().getName());
@@ -1051,6 +1051,7 @@ public class FFMpegVideo extends Player {
 			isExternalAss ||
 			(
 				!applyFontConfig &&
+				!isEmbeddedSource &&
 				params.sid.getType() == SubtitleType.SUBRIP
 			)
 		) {
