@@ -246,8 +246,8 @@ public class OpenSubtitle {
 		String[] tmp = s.split(",");
 		String res = "";
 		String sep = "";
-		for (int i = 0; i < tmp.length; i++) {
-			res = res + sep + Iso639.getISO639_2Code(tmp[i]);
+		for (String tmp1 : tmp) {
+			res = res + sep + Iso639.getISO639_2Code(tmp1);
 			sep = ",";
 		}
 		if (StringUtils.isNotEmpty(res)) {
@@ -324,8 +324,8 @@ public class OpenSubtitle {
 			return;
 		}
 		File[] files = path.listFiles();
-		for (int i = 0; i < files.length; i++) {
-			PMS.get().addTempFile(files[i]);
+		for (File file : files) {
+			PMS.get().addTempFile(file);
 		}
 	}
 }

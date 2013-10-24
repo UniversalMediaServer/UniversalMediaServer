@@ -66,8 +66,8 @@ public class RestrictedFileSystemView extends FileSystemView {
 		}
 
 		File[] roots = getRoots();
-		for (int i = 0; i < roots.length; i++) {
-			if (roots[i].equals(f)) {
+		for (File root : roots) {
+			if (root.equals(f)) {
 				return true;
 			}
 		}

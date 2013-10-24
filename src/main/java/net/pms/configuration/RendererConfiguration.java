@@ -5,6 +5,7 @@ import java.io.File;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,8 +23,8 @@ import net.pms.network.SpeedStats;
 import net.pms.util.PropertiesUtil;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang.WordUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +45,13 @@ public class RendererConfiguration {
 	// Holds MIME type aliases
 	private final Map<String, String> mimes;
 
+	private final Map<String, String> charMap;
 	private final Map<String, String> DLNAPN;
+
+	// TextWrap parameters
+	protected int line_w, line_h, indent;
+	protected String inset;
+	protected boolean dc_date = true;
 
 	// property values
 	private static final String DEPRECATED_MPEGPSAC3 = "MPEGAC3"; // XXX deprecated: old name with missing container
@@ -61,10 +68,13 @@ public class RendererConfiguration {
 	private static final String AUTO_EXIF_ROTATE = "AutoExifRotate";
 	private static final String BYTE_TO_TIMESEEK_REWIND_SECONDS = "ByteToTimeseekRewindSeconds"; // Ditlew
 	private static final String CBR_VIDEO_BITRATE = "CBRVideoBitrate"; // Ditlew
+	private static final String CHARMAP = "CharMap";
 	private static final String CHUNKED_TRANSFER = "ChunkedTransfer";
+	private static final String CUSTOM_FFMPEG_OPTIONS = "CustomFFmpegOptions";
 	private static final String CUSTOM_MENCODER_OPTIONS = "CustomMencoderOptions";
 	private static final String CUSTOM_MENCODER_MPEG2_OPTIONS = "CustomMencoderQualitySettings"; // TODO (breaking change): value should be CustomMEncoderMPEG2Options
 	private static final String DEFAULT_VBV_BUFSIZE = "DefaultVBVBufSize";
+	private static final String DISABLE_MENCODER_NOSKIP = "DisableMencoderNoskip";
 	private static final String DLNA_LOCALIZATION_REQUIRED = "DLNALocalizationRequired";
 	private static final String DLNA_ORGPN_USE = "DLNAOrgPN";
 	private static final String DLNA_PN_CHANGES = "DLNAProfileChanges";
@@ -82,6 +92,7 @@ public class RendererConfiguration {
 	private static final String MUX_DTS_TO_MPEG = "MuxDTSToMpeg";
 	private static final String MUX_H264_WITH_MPEGTS = "MuxH264ToMpegTS";
 	private static final String MUX_LPCM_TO_MPEG = "MuxLPCMToMpeg";
+	private static final String OVERRIDE_VF = "OverrideVideoFilter";
 	private static final String RENDERER_ICON = "RendererIcon";
 	private static final String RENDERER_NAME = "RendererName";
 	private static final String RESCALE_BY_RENDERER = "RescaleByRenderer";
@@ -92,6 +103,7 @@ public class RendererConfiguration {
 	private static final String STREAM_EXT = "StreamExtensions";
 	private static final String SUBTITLE_HTTP_HEADER = "SubtitleHttpHeader";
 	private static final String SUPPORTED = "Supported";
+	private static final String TEXTWRAP = "TextWrap";
 	private static final String THUMBNAIL_AS_RESOURCE = "ThumbnailAsResource";
 	private static final String TRANSCODE_AUDIO_441KHZ = "TranscodeAudioTo441kHz";
 	private static final String TRANSCODE_AUDIO = "TranscodeAudio";
@@ -106,9 +118,6 @@ public class RendererConfiguration {
 	private static final String USE_SAME_EXTENSION = "UseSameExtension";
 	private static final String VIDEO = "Video";
 	private static final String WRAP_DTS_INTO_PCM = "WrapDTSIntoPCM";
-	private static final String CUSTOM_FFMPEG_OPTIONS = "CustomFFmpegOptions";
-	private static final String OVERRIDE_VF = "OverrideVideoFilter";
-	private static final String TEXTWRAP = "TextWrap";
 
 	public static RendererConfiguration getDefaultConf() {
 		return defaultConf;
@@ -208,6 +217,7 @@ public class RendererConfiguration {
 	 * value is non-blank (i.e. not null, not an empty string, not all whitespace).
 	 * Otherwise return the supplied default value.
 	 * The value is returned with leading and trailing whitespace removed in both cases.
+	 *
 	 * @param key The key to look up.
 	 * @param def The default value to return when no valid key value can be found.
 	 * @return The value configured for the key.
@@ -228,6 +238,10 @@ public class RendererConfiguration {
 	 */
 	public static ArrayList<RendererConfiguration> getEnabledRenderersConfigurations() {
 		return enabledRendererConfs;
+	}
+
+	public static Collection<RendererConfiguration> getConnectedRenderersConfigurations() {
+		return addressAssociation.values();
 	}
 
 	protected static File getRenderersDir() {
@@ -277,6 +291,7 @@ public class RendererConfiguration {
 	 * Associate an IP address with this renderer. The association will
 	 * persist between requests, allowing the renderer to be recognized
 	 * by its address in later requests.
+	 *
 	 * @param sa The IP address to associate.
 	 * @see #getRendererConfigurationBySocketAddress(InetAddress)
 	 */
@@ -386,6 +401,10 @@ public class RendererConfiguration {
 		return formatConfiguration;
 	}
 
+	public File getFile() {
+		return configuration.getFile();
+	}
+
 	public int getRank() {
 		return rank;
 	}
@@ -456,6 +475,37 @@ public class RendererConfiguration {
 					String old = mime_change.substring(0, equals).trim().toLowerCase();
 					String nw = mime_change.substring(equals + 1).trim().toLowerCase();
 					mimes.put(old, nw);
+				}
+			}
+		}
+
+		String s = getString(TEXTWRAP, "").toLowerCase();
+		line_w = getIntAt(s, "width:", 0);
+		if (line_w > 0) {
+			line_h = getIntAt(s, "height:", 0);
+			indent = getIntAt(s, "indent:", 0);
+			dc_date = getIntAt(s, "date:", 1) != 0;
+			int ws = getIntAt(s, "whitespace:", 9);
+			inset = new String(new byte[indent]).replaceAll(".", Character.toString((char) ws));
+		}
+
+		charMap = new HashMap<>();
+		String ch = getString(CHARMAP, null);
+		if (StringUtils.isNotBlank(ch)) {
+			StringTokenizer st = new StringTokenizer(ch, " ");
+			String org = "";
+
+			while (st.hasMoreTokens()) {
+				String tok = st.nextToken().trim();
+				if (StringUtils.isBlank(tok)) {
+					continue;
+				}
+				tok = tok.replaceAll("###0", " ");
+				if (StringUtils.isBlank(org)) {
+					org = tok;
+				} else {
+					charMap.put(org, tok);
+					org = "";
 				}
 			}
 		}
@@ -580,12 +630,16 @@ public class RendererConfiguration {
 		return getBoolean(DLNA_LOCALIZATION_REQUIRED, false);
 	}
 
+	public boolean isDisableMencoderNoskip() {
+		return getBoolean(DISABLE_MENCODER_NOSKIP, false);
+	}
+
 	/**
 	 * Determine the mime type specific for this renderer, given a generic mime
 	 * type. This translation takes into account all configured "Supported"
 	 * lines and mime type aliases for this renderer.
-	 * 
-	 * @param matchedMimeType
+	 *
+	 * @param mimeType
 	 *            The mime type to look up. Special values are
 	 *            <code>HTTPResource.VIDEO_TRANSCODE</code> and
 	 *            <code>HTTPResource.AUDIO_TRANSCODE</code>, which will be
@@ -648,7 +702,7 @@ public class RendererConfiguration {
 				} else {
 					// Default audio transcoding mime type
 					matchedMimeType = HTTPResource.AUDIO_LPCM_TYPEMIME;
-	
+
 					if (isTranscodeAudioTo441()) {
 						matchedMimeType += ";rate=44100;channels=2";
 					} else {
@@ -748,7 +802,7 @@ public class RendererConfiguration {
 	 * be matched with the additional header search pattern. The header name
 	 * must be an exact match (read: the header has to start with the exact
 	 * same case sensitive string). The default value is <code>null</code>.
-	 * 
+	 *
 	 * @return The additional HTTP header name.
 	 */
 	public String getUserAgentAdditionalHttpHeader() {
@@ -1140,35 +1194,19 @@ public class RendererConfiguration {
 		return getInt(TRANSCODED_VIDEO_AUDIO_SAMPLE_RATE, 48000);
 	}
 
-	public String getTextWrap() {
-		return getString(TEXTWRAP, "").toLowerCase();
-	}
-
-	protected int line_w = -1, line_h, indent;
-	protected String inset;
-	protected boolean dc_date = true;
-
 	public String getDcTitle(String name, DLNAResource dlna) {
-		if (line_w == -1) {
-			// Init text wrap settings
-			String s = getTextWrap();
-			line_w = getIntAt(s, "width:", 0);
-			if (line_w > 0) {
-				line_h = getIntAt(s, "height:", 0);
-				indent = getIntAt(s, "indent:", 0);
-				dc_date = getIntAt(s, "date:", 1) != 0;
-				int ws = getIntAt(s, "whitespace:", 9);
-				inset = new String(new byte[indent]).replaceAll(".", Character.toString((char) ws));
-				LOGGER.debug("{}: TextWrap width:{} height:{} indent:{} whitespace:{} date:{}", getRendererName(), line_w, line_h, indent, ws, dc_date ? "1" : "0");
-			}
-		}
 		// Wrap text if applicable
 		if (line_w > 0 && name.length() > line_w) {
 			int i = dlna.isFolder() ? 0 : indent;
-			String head = name.substring(0, i + (Character.isSpace(name.charAt(i)) ? 1 : 0));
+			String head = name.substring(0, i + (Character.isWhitespace(name.charAt(i)) ? 1 : 0));
 			String tail = name.substring(i);
-			return head + WordUtils.wrap(tail, line_w - i, "\n" + (dlna.isFolder() ? "" : inset), true);
+			name = head + WordUtils.wrap(tail, line_w - i, "\n" + (dlna.isFolder() ? "" : inset), true);
 		}
+
+		for (String s : charMap.keySet()) {
+			name = name.replaceAll(s, charMap.get(s));
+		}
+
 		return name;
 	}
 

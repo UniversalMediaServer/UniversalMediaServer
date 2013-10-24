@@ -349,10 +349,9 @@ public class DownloadPlugins {
 		in.close();
 
 		if (fName.endsWith(".zip")) {
-			for (int i = 0; i < props.length; i++) {
-				if (props[i].equalsIgnoreCase("unzip")) {
+			for (String prop : props) {
+				if (prop.equalsIgnoreCase("unzip")) {
 					unzip(f, dir);
-					continue;
 				}
 			}
 		}
@@ -396,8 +395,7 @@ public class DownloadPlugins {
 		pid.waitFor();
 
 		File[] newJar = new File(configuration.getPluginDirectory()).listFiles();
-		for (int i = 0; i < newJar.length; i++) {
-			File f = newJar[i];
+		for (File f : newJar) {
 			if (!f.getAbsolutePath().endsWith(".jar")) {
 				// skip non jar files
 				continue;

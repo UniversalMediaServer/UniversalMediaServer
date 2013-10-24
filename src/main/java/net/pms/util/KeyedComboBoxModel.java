@@ -68,6 +68,7 @@ public class KeyedComboBoxModel implements ComboBoxModel {
 		 * The key.
 		 */
 		private Object key;
+
 		/**
 		 * The value for the key.
 		 */
@@ -113,23 +114,29 @@ public class KeyedComboBoxModel implements ComboBoxModel {
 			this.value = value;
 		}
 	}
+
 	/**
 	 * The index of the selected item.
 	 */
 	private int selectedItemIndex;
+
 	private Object selectedItemValue;
+
 	/**
 	 * The data (contains ComboBoxItemPairs).
 	 */
 	private ArrayList<ComboBoxItemPair> data;
+
 	/**
 	 * The listeners.
 	 */
 	private ArrayList<ListDataListener> listdatalistener;
+
 	/**
 	 * The cached listeners as array.
 	 */
 	private transient ListDataListener[] tempListeners;
+
 	private boolean allowOtherValue;
 
 	/**
@@ -185,8 +192,7 @@ public class KeyedComboBoxModel implements ComboBoxModel {
 		if (tempListeners == null) {
 			tempListeners = listdatalistener.toArray(new ListDataListener[listdatalistener.size()]);
 		}
-		for (int i = 0; i < tempListeners.length; i++) {
-			final ListDataListener l = tempListeners[i];
+		for (ListDataListener l : tempListeners) {
 			if (l != null && evt != null) {
 				l.contentsChanged(evt);
 			}

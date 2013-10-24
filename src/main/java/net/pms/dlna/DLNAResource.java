@@ -783,7 +783,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * If children is false, then it returns the found object as the only object in the list.
 	 * TODO: (botijo) This function does a lot more than this!
 	 * @param objectId ID to search for.
-	 * @param returnChildren State if you want all the children in the returned list.
+	 * @param children State if you want all the children in the returned list.
 	 * @param start
 	 * @param count
 	 * @param renderer Renderer for which to do the actions.
@@ -935,8 +935,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * Recursive function that searches for a given ID.
 	 *
 	 * @param searchId ID to search for.
-	 * @param renderer
 	 * @param count
+	 * @param renderer
+	 * @param searchStr
 	 * @return Item found, or null otherwise.
 	 * @see #getId()
 	 */
@@ -1262,11 +1263,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 		return getChildren().size();
 	}
+
 	/**
 	 * (non-Javadoc)
 	 * @see java.lang.Object#clone()
 	 */
-
 	@Override
 	protected DLNAResource clone() {
 		DLNAResource o = null;
@@ -2406,7 +2407,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		// Or none of the above
-		return getResourceInputStream("images/thumbnail-video-256.png");
+		String defaultThumbnailImage = "images/thumbnail-video-256.png";
+		if (getDefaultRenderer() != null && getDefaultRenderer().isForceJPGThumbnails()) {
+			defaultThumbnailImage = "images/thumbnail-video-120.jpg";
+		}
+		return getResourceInputStream(defaultThumbnailImage);
 	}
 
 	/**

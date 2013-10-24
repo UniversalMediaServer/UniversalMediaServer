@@ -52,7 +52,6 @@ import net.pms.newgui.DummyFrame;
 import net.pms.newgui.IFrame;
 import net.pms.newgui.LooksFrame;
 import net.pms.newgui.ProfileChooser;
-import net.pms.newgui.SelectRenderers;
 import net.pms.update.AutoUpdater;
 import net.pms.util.FileUtil;
 import net.pms.util.OpenSubtitle;
@@ -440,7 +439,8 @@ public class PMS {
 				(Component) PMS.get().getFrame(),
 				Messages.getString("Wizard.1"),
 				Messages.getString("Dialog.Question"),
-				JOptionPane.YES_NO_OPTION);
+				JOptionPane.YES_NO_OPTION
+			);
 			if (whetherToRunWizard == JOptionPane.YES_OPTION) {
 				// The user has chosen to run the wizard
 
@@ -452,10 +452,11 @@ public class PMS {
 
 				// Ask if they want UMS to start minimized
 				int whetherToStartMinimized = JOptionPane.showConfirmDialog(
-				(Component) PMS.get().getFrame(),
-				Messages.getString("Wizard.3"),
-				Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
-				JOptionPane.YES_NO_OPTION);
+					(Component) PMS.get().getFrame(),
+					Messages.getString("Wizard.3"),
+					Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+					JOptionPane.YES_NO_OPTION
+				);
 				if (whetherToStartMinimized == JOptionPane.YES_OPTION) {
 					configuration.setMinimized(true);
 					save();
@@ -465,11 +466,21 @@ public class PMS {
 				}
 
 				// Ask if their audio receiver/s support DTS audio
-				int whetherToSendDTS = JOptionPane.showConfirmDialog(
-				(Component) PMS.get().getFrame(),
-				Messages.getString("Wizard.5"),
-				Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
-				JOptionPane.YES_NO_OPTION);
+
+				Object[] optionsDTS = {
+					UIManager.getString("OptionPane.yesButtonText"),
+					UIManager.getString("OptionPane.noButtonText")
+				};
+				int whetherToSendDTS = JOptionPane.showOptionDialog(
+					(Component) PMS.get().getFrame(),
+					Messages.getString("Wizard.5"),
+					Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+					JOptionPane.YES_NO_OPTION,
+					JOptionPane.QUESTION_MESSAGE,
+					null,
+					optionsDTS,
+					optionsDTS[1]
+				);
 				if (whetherToSendDTS == JOptionPane.YES_OPTION) {
 					configuration.setAudioEmbedDtsInPcm(true);
 					save();
@@ -492,7 +503,8 @@ public class PMS {
 					JOptionPane.QUESTION_MESSAGE,
 					null,
 					options,
-					options[1]);
+					options[1]
+				);
 				if (networkType == JOptionPane.YES_OPTION) {
 					// Wired (Gigabit)
 					configuration.setMaximumBitrate("0");
@@ -512,10 +524,11 @@ public class PMS {
 
 				// Ask if they want to hide advanced options
 				int whetherToHideAdvancedOptions = JOptionPane.showConfirmDialog(
-				(Component) PMS.get().getFrame(),
-				Messages.getString("Wizard.11"),
-				Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
-				JOptionPane.YES_NO_OPTION);
+					(Component) PMS.get().getFrame(),
+					Messages.getString("Wizard.11"),
+					Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
+					JOptionPane.YES_NO_OPTION
+				);
 				if (whetherToHideAdvancedOptions == JOptionPane.YES_OPTION) {
 					configuration.setHideAdvancedOptions(true);
 					save();
@@ -586,23 +599,20 @@ public class PMS {
 			}
 		});
 
-		frame.setStatusCode(0, Messages.getString("PMS.130"), "icon-status-connecting.png");
+		frame.setStatusCode(0, Messages.getString("PMS.138"), "icon-status-connecting.png");
 		RendererConfiguration.loadRendererConfigurations(configuration);
 
 		LOGGER.info("Please wait while we check the MPlayer font cache, this can take a minute or so.");
 
-		// TODO: Make a setting to allow users to choose whether they want to use the system version of MPlayer instead
-		if (Platform.isLinux()) {
-			checkProcessExistence("MPlayer", true, null, "./" + configuration.getMplayerPath(), "dummy");
-		} else {
-			checkProcessExistence("MPlayer", true, null, configuration.getMplayerPath(), "dummy");
-		}
+		checkProcessExistence("MPlayer", true, null, configuration.getMplayerPath(), "dummy");
 
 		if (Platform.isWindows()) {
 			checkProcessExistence("MPlayer", true, configuration.getTempFolder(), configuration.getMplayerPath(), "dummy");
 		}
 
 		LOGGER.info("Finished checking the MPlayer font cache.");
+
+		frame.setStatusCode(0, Messages.getString("PMS.130"), "icon-status-connecting.png");
 
 		// Check the existence of VSFilter / DirectVobSub
 		if (registry.isAvis() && registry.getAvsPluginsDir() != null) {
@@ -850,7 +860,6 @@ public class PMS {
 	 * Checks that the directory exists and is a valid directory.
 	 *
 	 * @return {@link java.io.File}[] Array of directories.
-	 * @throws java.io.IOException
 	 */
 	public File[] getSharedFoldersArray(boolean monitored) {
 		String folders;
@@ -900,7 +909,6 @@ public class PMS {
 	/**
 	 * Restarts the server. The trigger is either a button on the main PMS window or via
 	 * an action item.
-	 * @throws java.io.IOException
 	 */
 	// XXX: don't try to optimize this by reusing the same server instance.
 	// see the comment above HTTPServer.stop()
@@ -1078,16 +1086,16 @@ public class PMS {
 		boolean headless = true;
 
 		if (args.length > 0) {
-			for (int a = 0; a < args.length; a++) {
-				if (args[a].equals(CONSOLE)) {
+			for (String arg : args) {
+				if (arg.equals(CONSOLE)) {
 					System.setProperty(CONSOLE, Boolean.toString(true));
-				} else if (args[a].equals(NATIVELOOK)) {
+				} else if (arg.equals(NATIVELOOK)) {
 					System.setProperty(NATIVELOOK, Boolean.toString(true));
-				} else if (args[a].equals(SCROLLBARS)) {
+				} else if (arg.equals(SCROLLBARS)) {
 					System.setProperty(SCROLLBARS, Boolean.toString(true));
-				} else if (args[a].equals(NOCONSOLE)) {
+				} else if (arg.equals(NOCONSOLE)) {
 					System.setProperty(NOCONSOLE, Boolean.toString(true));
-				} else if (args[a].equals(PROFILES)) {
+				} else if (arg.equals(PROFILES)) {
 					displayProfileChooser = true;
 				}
 			}
@@ -1245,6 +1253,7 @@ public class PMS {
 		LOGGER.info("OS: " + System.getProperty("os.name") + " " + getOSBitness() + "-bit " + System.getProperty("os.version"));
 		LOGGER.info("Encoding: " + System.getProperty("file.encoding"));
 		LOGGER.info("Memory: " + memoryInMB + " " + Messages.getString("StatusTab.12"));
+		LOGGER.info("Language: " + getConfiguration().getLanguage());
 		LOGGER.info("");
 
 		if (Platform.isMac()) {

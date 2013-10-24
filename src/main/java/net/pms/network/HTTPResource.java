@@ -152,7 +152,7 @@ public class HTTPResource {
 	/**
 	 * Returns a byte array representation of the file given by the URL. The file is downloaded and optionally stored on the filesystem.
 	 * @param u URL to retrieve.
-	 * @param @param saveOnDisk If true, store the file on the filesystem.
+	 * @param saveOnDisk If true, store the file on the filesystem.
 	 * @param f If saveOnDisk is true, then store the contents of the file represented by u in the associated File. f needs to be opened before
 	 * calling this function.
 	 * @return The byte array

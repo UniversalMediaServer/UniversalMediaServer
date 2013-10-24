@@ -413,7 +413,7 @@ public class RequestV2 extends HTTPResource {
 							// Calculate the corresponding highRange (this is usually redundant).
 							highRange = lowRange + bytes - (bytes > 0 ? 1 : 0);
 
-							LOGGER.trace((chunked ? "Using chunked response. " : "")  + "Sending " + bytes + " bytes.");
+							LOGGER.trace((chunked ? "Using chunked response. " : "") + "Sending " + bytes + " bytes.");
 
 							output.setHeader(HttpHeaders.Names.CONTENT_RANGE, "bytes " + lowRange + "-" + (highRange > -1 ? highRange : "*") + "/" + (totalsize > -1 ? totalsize : "*"));
 
@@ -484,14 +484,6 @@ public class RequestV2 extends HTTPResource {
 						"</service>" + CRLF);
 				} else {
 					s = s.replace("Universal Media Server", "Universal Media Server [" + profileName + "]");
-				}
-
-				if (!mediaRenderer.isPS3()) {
-					// hacky stuff. replace the png icon by a jpeg one. Like mpeg2 remux,
-					// really need a proper format compatibility list by renderer
-					s = s.replace("<mimetype>image/png</mimetype>", "<mimetype>image/jpeg</mimetype>");
-					s = s.replace("/images/thumbnail-video-256.png", "/images/thumbnail-video-120.jpg");
-					s = s.replace(">256<", ">120<");
 				}
 
 				response.append(s);
@@ -615,7 +607,7 @@ public class RequestV2 extends HTTPResource {
 					browseFlag = "BrowseDirectChildren";
 				}
 
-				// XBOX virtual containers ... d'oh!
+				// Xbox virtual containers ... d'oh!
 				String searchCriteria = null;
 				if (xbox && configuration.getUseCache() && PMS.get().getLibrary() != null && containerID != null) {
 					if (containerID.equals("7") && PMS.get().getLibrary().getAlbumFolder() != null) {
@@ -636,7 +628,7 @@ public class RequestV2 extends HTTPResource {
 						}
 					}
 				} else if (soapaction.contains("ContentDirectory:1#Search")) {
-					searchCriteria = getEnclosingValue(content,"<SearchCriteria>","</SearchCriteria>");
+					searchCriteria = getEnclosingValue(content, "<SearchCriteria>", "</SearchCriteria>");
 				}
 
 				List<DLNAResource> files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(
@@ -651,7 +643,7 @@ public class RequestV2 extends HTTPResource {
 				if (searchCriteria != null && files != null) {
 					searchCriteria = searchCriteria.toLowerCase();
 
-					for(int i = files.size() - 1; i >= 0; i--) {
+					for (int i = files.size() - 1; i >= 0; i--) {
 						DLNAResource res = files.get(i);
 
 						if (res.isSearched()) {
@@ -688,6 +680,7 @@ public class RequestV2 extends HTTPResource {
 						if (xbox && containerID != null) {
 							uf.setFakeParentId(containerID);
 						}
+
 						if (uf.isCompatible(mediaRenderer) && (uf.getPlayer() == null || uf.getPlayer().isPlayerCompatible(mediaRenderer))) {
 							response.append(uf.getDidlString(mediaRenderer));
 						} else {
@@ -699,41 +692,51 @@ public class RequestV2 extends HTTPResource {
 				response.append(HTTPXMLHelper.DIDL_FOOTER);
 				response.append(HTTPXMLHelper.RESULT_FOOTER);
 				response.append(CRLF);
+
 				int filessize = 0;
 				if (files != null) {
 					filessize = files.size();
 				}
+
 				response.append("<NumberReturned>").append(filessize - minus).append("</NumberReturned>");
 				response.append(CRLF);
 				DLNAResource parentFolder = null;
+
 				if (files != null && filessize > 0) {
 					parentFolder = files.get(0).getParent();
 				}
+
 				if (browseFlag != null && browseFlag.equals("BrowseDirectChildren") && mediaRenderer.isMediaParserV2() && mediaRenderer.isDLNATreeHack()) {
-					// with the new parser, files are parsed and analyzed *before* creating the DLNA tree,
-					// every 10 items (the ps3 asks 10 by 10),
+					// with the new parser, files are parsed and analyzed *before*
+					// creating the DLNA tree, every 10 items (the ps3 asks 10 by 10),
 					// so we do not know exactly the total number of items in the DLNA folder to send
 					// (regular files, plus the #transcode folder, maybe the #imdb one, also files can be
 					// invalidated and hidden if format is broken or encrypted, etc.).
 					// let's send a fake total size to force the renderer to ask following items
 					int totalCount = startingIndex + requestCount + 1; // returns 11 when 10 asked
-					if (filessize - minus <= 0) // if no more elements, send the startingIndex
-					{
+
+					// If no more elements, send the startingIndex
+					if (filessize - minus <= 0) {
 						totalCount = startingIndex;
 					}
+
 					response.append("<TotalMatches>").append(totalCount).append("</TotalMatches>");
 				} else if (browseFlag != null && browseFlag.equals("BrowseDirectChildren")) {
 					response.append("<TotalMatches>").append(((parentFolder != null) ? parentFolder.childrenNumber() : filessize) - minus).append("</TotalMatches>");
-				} else { //from upnp spec: If BrowseMetadata is specified in the BrowseFlags then TotalMatches = 1
+				} else {
+					// From upnp spec: If BrowseMetadata is specified in the BrowseFlags then TotalMatches = 1
 					response.append("<TotalMatches>1</TotalMatches>");
 				}
+
 				response.append(CRLF);
 				response.append("<UpdateID>");
+
 				if (parentFolder != null) {
 					response.append(parentFolder.getUpdateId());
 				} else {
 					response.append("1");
 				}
+
 				response.append("</UpdateID>");
 				response.append(CRLF);
 				if (soapaction != null && soapaction.contains("ContentDirectory:1#Search")) {
@@ -955,6 +958,7 @@ public class RequestV2 extends HTTPResource {
 		if (leftTagPos > -1 && rightTagPos > leftTagPos) {
 			result = content.substring(leftTagPos + leftTag.length(), rightTagPos);
 		}
+
 		return result;
 	}
 }

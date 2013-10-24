@@ -31,7 +31,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>3.0.0-b1</version>
+	<version>3.0.0-b2</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -1169,8 +1169,6 @@
 
 										<!-- Download binaries -->
 										<get src="${project.binaries-base}/linux/ffmpeg" dest="${project.binaries}/ffmpeg" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/mencoder" dest="${project.binaries}/mencoder" usetimestamp="true" />
-										<get src="${project.binaries-base}/linux/mplayer" dest="${project.binaries}/mplayer" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/tsMuxeR" dest="${project.binaries}/tsMuxeR" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/tsMuxeR_licence.txt" dest="${project.binaries}/tsMuxeR_license.txt" usetimestamp="true" />
 									</target>

@@ -1,3 +1,10 @@
+3.0.0-b2 - 2013-10-??
+
+	General:
+		
+	Renderers:
+		Added support for Samsung mobiles (Galaxy S3, S4, Note, Note 2, and Note 3)
+
 3.0.0-b1 - 2013-10-17
 
 	General:
