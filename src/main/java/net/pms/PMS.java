@@ -26,7 +26,6 @@ import java.net.BindException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.logging.Level;
 import java.util.logging.LogManager;
 import javax.swing.*;
 import net.pms.configuration.Build;

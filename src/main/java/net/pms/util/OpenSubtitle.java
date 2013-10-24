@@ -291,6 +291,7 @@ public class OpenSubtitle {
 		while ((len = gzipInputStream.read(buf)) > 0) {
 			out.write(buf, 0, len);
 		}
+		gzipInputStream.close();
 		out.close();
 		if (!PMS.getConfiguration().isLiveSubtitlesKeep()) {
 			PMS.get().addTempFile(f);

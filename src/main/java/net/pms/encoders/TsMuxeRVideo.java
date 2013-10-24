@@ -673,6 +673,7 @@ public class TsMuxeRVideo extends Player {
 				pw.println(type + ", \"" + ffAudioPipe[i].getOutputPipe() + "\", " + timeshift + "track=" + (2 + i));
 			}
 		}
+		pw.close();
 
 		PipeProcess tsPipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 		String[] cmdArray = new String[]{
