@@ -614,7 +614,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	
 							if (!configuration.isDisableSubtitles()) {
 								// FIXME: Why transcode if the renderer can handle embedded subs?
-								hasSubsToTranscode = (configuration.isAutoloadExternalSubtitles() && child.isSrtFile()) || hasEmbeddedSubs;
+								hasSubsToTranscode = (configuration.isAutoloadExternalSubtitles() && child.isSubsFile()) || hasEmbeddedSubs;
 
 								if (hasSubsToTranscode) {
 									LOGGER.trace("File \"{}\" has subs that need transcoding", child.getName());
@@ -1157,7 +1157,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		if (
-			isSrtFile() &&
+			isSubsFile() &&
 			!isNamedNoEncoding &&
 			(
 				getMediaAudio() == null &&
@@ -1773,7 +1773,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									if (
 										(
 											getMediaSubtitle() == null &&
-											!isSrtFile() &&
+											!isSubsFile() &&
 											getMedia() != null &&
 											getMedia().getDvdtrack() == 0 &&
 											isMuxableResult &&
@@ -2771,7 +2771,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return the srtFile
 	 * @since 1.50
 	 */
-	protected boolean isSrtFile() {
+	protected boolean isSubsFile() {
 		return srtFile;
 	}
 
@@ -2781,7 +2781,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param srtFile the srtFile to set
 	 * @since 1.50
 	 */
-	protected void setSrtFile(boolean srtFile) {
+	protected void setSubsFile(boolean srtFile) {
 		this.srtFile = srtFile;
 	}
 

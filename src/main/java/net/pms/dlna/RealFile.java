@@ -52,7 +52,7 @@ public class RealFile extends MapFile {
 		File file = this.getFile();
 		resolveFormat();
 		if (getType() == Format.VIDEO && file.exists() && configuration.isAutoloadExternalSubtitles() && file.getName().length() > 4) {
-			setSrtFile(FileUtil.isSubtitlesExists(file, null));
+			setSubsFile(FileUtil.isSubtitlesExists(file, null));
 		}
 
 		boolean valid = file.exists() && (getFormat() != null || file.isDirectory());
