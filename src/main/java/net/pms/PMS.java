@@ -73,6 +73,8 @@ public class PMS {
 	private static final String CONSOLE = "console";
 	private static final String NOCONSOLE = "noconsole";
 	private static final String PROFILES = "profiles";
+	private File[] monitoredFolders;
+	private File[] sharedFolders;
 
 	/**
 	 * @deprecated The version has moved to the resources/project.properties file. Use {@link #getVersion()} instead.
@@ -561,6 +563,9 @@ public class PMS {
 
 		registry = createSystemUtils();
 
+		monitoredFolders = getFoldersArray(true);
+		sharedFolders = getFoldersArray(false);
+
 		if (System.getProperty(CONSOLE) == null) {
 			frame = new LooksFrame(autoUpdater, configuration);
 		} else {
@@ -853,14 +858,33 @@ public class PMS {
 	public File[] getFoldersConf() {
 		return getSharedFoldersArray(false);
 	}
-
+	
+	public File[] getSharedFoldersArray() {
+		return sharedFolders;
+	}
+	
+	public File[] getMonitoredFoldersArray() {
+		return monitoredFolders;
+	}
+	
+	/**
+	 * @deprecated Use {@link #getSharedFoldersArray()} or {@link #getMonitoredFoldersArray()} instead.
+	 */
+	public File[] getSharedFoldersArray(boolean monitored) {
+		if (monitored) {
+			return getMonitoredFoldersArray();
+		} else {
+			return getSharedFoldersArray();
+		}
+	}
+	
 	/**
 	 * Transforms a comma-separated list of directory entries into an array of {@link String}.
 	 * Checks that the directory exists and is a valid directory.
 	 *
 	 * @return {@link java.io.File}[] Array of directories.
 	 */
-	public File[] getSharedFoldersArray(boolean monitored) {
+	private File[] getFoldersArray(boolean monitored) {
 		String folders;
 
 		if (monitored) {
@@ -881,11 +905,6 @@ public class PMS {
 			// Windows path separators:
 			// http://ps3mediaserver.org/forum/viewtopic.php?f=14&t=8883&start=250#p43520
 			folder = folder.replaceAll("&comma;", ",");
-
-			// this is called *way* too often
-			// so log it so we can fix it.
-			LOGGER.info("Checking shared folder: " + folder);
-
 			File file = new File(folder);
 
 			if (file.exists()) {

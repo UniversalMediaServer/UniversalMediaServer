@@ -811,10 +811,10 @@ public class NavigationShareTab {
 		builderFolder.add(but5, FormLayoutUtil.flip(cc.xy(5, 3), colSpec, orientation));
 		but5.setEnabled(configuration.getUseCache());
 
-		File[] folders = PMS.get().getSharedFoldersArray(false);
+		File[] folders = PMS.get().getSharedFoldersArray();
 		if (folders != null && folders.length > 0) {
 			for (File folder : folders) {
-				File[] foldersMonitored = PMS.get().getSharedFoldersArray(true);
+				File[] foldersMonitored = PMS.get().getMonitoredFoldersArray();
 				boolean isMonitored = false;
 				if (foldersMonitored != null && foldersMonitored.length > 0) {
 					for (File folderMonitored : foldersMonitored) {
