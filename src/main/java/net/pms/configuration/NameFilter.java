@@ -1,6 +1,8 @@
 package net.pms.configuration;
 
 import net.pms.PMS;
+import net.pms.dlna.DLNAResource;
+import net.pms.dlna.RealFile;
 import net.pms.util.FileUtil;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -27,12 +29,35 @@ public class NameFilter {
         }
     }
 
-    public boolean filter(String tag, String name) {
-        String str = configurationReader.getNonBlankConfigurationString(tag, null);
+    private boolean doFilter(String tag, String name, String what) {
+        String str = configurationReader.getNonBlankConfigurationString(tag + what, null);
         if(StringUtils.isBlank(str)) {
             return false;
         }
         // if regexp matches we'll filter this out
         return name.matches(str);
+    }
+
+    /*
+     * This function is here to make it possible
+     * filter more types of files
+     */
+
+    private boolean doFile(String tag, DLNAResource res) {
+        if(res instanceof RealFile) {
+            RealFile rf = (RealFile)res;
+            return doFilter(tag, rf.getFile().getAbsolutePath(), ".file");
+        }
+        else {
+            return false;
+        }
+    }
+
+    public boolean filter(String tag, DLNAResource res) {
+         return doFilter(tag, res.getName(), ".name") ||
+                doFile(tag,res) ||
+                doFilter(tag, res.getSystemName(), ".sys") ||
+                // name is done twice here without an explicit what
+                doFilter(tag, res.getName(), "");
     }
 }

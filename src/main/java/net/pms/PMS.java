@@ -33,6 +33,7 @@ import net.pms.configuration.NameFilter;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaDatabase;
+import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.encoders.Player;
@@ -1463,7 +1464,7 @@ public class PMS {
 		return Platform.isWindows();
 	}
 
-    public static boolean filter(RendererConfiguration render, String name) {
+    public static boolean filter(RendererConfiguration render, DLNAResource res) {
         NameFilter nf = instance.filter;
         if(nf == null || render == null) {
             return false;
@@ -1473,7 +1474,7 @@ public class PMS {
             return false;
         }
         for(String tag : tags) {
-            if(nf.filter(tag, name)) {
+            if(nf.filter(tag, res)) {
                 return true;
             }
         }
