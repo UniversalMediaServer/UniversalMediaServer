@@ -665,6 +665,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									transcodeFolder.addChild(fileTranscodeFolder);
 								}
 							}
+
+                            if (child.getFormat().isVideo() && child.isSubSelectable()) {
+                                VirtualFolder vf = getSubSelector(true);
+                                if (vf != null) {
+                                    DLNAResource newChild = child.clone();
+                                    newChild.setPlayer(player);
+                                    newChild.setMedia(child.getMedia());
+                                    LOGGER.trace("Duplicate subtitle " + child.getName() + " with player: " + player.toString());
+
+                                    vf.addChild(new SubSelFile(newChild));
+                                }
+                            }
 	
 							for (ExternalListener listener : ExternalFactory.getExternalListeners()) {
 								if (listener instanceof AdditionalResourceFolderListener) {
