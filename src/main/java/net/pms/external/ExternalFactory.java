@@ -151,9 +151,9 @@ public class ExternalFactory {
 		// find lib jars first
 		ArrayList<URL> libs = new ArrayList<>();
 
-		for (int i = 0; i < jarURLs.length; i++) {
-			if (isLib(jarURLs[i])) {
-				libs.add(jarURLs[i]);
+		for (URL jarURL : jarURLs) {
+			if (isLib(jarURL)) {
+				libs.add(jarURL);
 			}
 		}
 
@@ -161,9 +161,9 @@ public class ExternalFactory {
 		libs.toArray(jarURLs1);
 		int pos = libs.size();
 
-		for (int i = 0; i < jarURLs.length; i++) {
-			jarURLs1[pos] = jarURLs[i];
-			loadJAR(jarURLs1, download, jarURLs[i]);
+		for (URL jarURL : jarURLs) {
+			jarURLs1[pos] = jarURL;
+			loadJAR(jarURLs1, download, jarURL);
 		}
 	}
 
@@ -260,8 +260,7 @@ public class ExternalFactory {
 
 		URLClassLoader cl = (URLClassLoader) clazz1.getClassLoader();
 		URL[] urls = cl.getURLs();
-		for (int i = 0; i < urls.length; i++) {
-			URL url = urls[i];
+		for (URL url : urls) {
 			String mainClass1 = getMainClass(url);
 
 			if (mainClass1 == null || !mainClass.equals(mainClass1)) {

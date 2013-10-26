@@ -1040,16 +1040,15 @@ public class RootFolder extends DLNAResource {
 					@Override
 					public void discoverChildren() {
 						File[] files = scriptDir.listFiles();
-
-						for (int i = 0; i < files.length; i++) {
-							String name = files[i].getName().replaceAll("_", " ");
+						for (File file : files) {
+							String name = file.getName().replaceAll("_", " ");
 							int pos = name.lastIndexOf(".");
 
 							if (pos != -1) {
 								name = name.substring(0, pos);
 							}
 
-							final File f = files[i];
+							final File f = file;
 
 							addChild(new VirtualVideoAction(name, true) {
 								@Override
