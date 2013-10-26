@@ -1384,18 +1384,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		addAttribute(sb, "restricted", "true");
 		endTag(sb);
 
-		String wireshark = "";
+		StringBuilder wireshark = new StringBuilder();
 		final DLNAMediaAudio firstAudioTrack = getMedia() != null ? getMedia().getFirstAudioTrack() : null;
 		if (firstAudioTrack != null && isNotBlank(firstAudioTrack.getSongname())) {
-			wireshark = firstAudioTrack.getSongname() + (getPlayer() != null && !configuration.isHideEngineNames() ? (" [" + getPlayer().name() + "]") : "");
+			wireshark.append(firstAudioTrack.getSongname() + (getPlayer() != null && !configuration.isHideEngineNames() ? (" [" + getPlayer().name() + "]") : ""));
 			addXMLTagAndAttribute(
 				sb,
 				"dc:title",
-				encodeXML(mediaRenderer.getDcTitle(resumeStr(wireshark), this))
+				encodeXML(mediaRenderer.getDcTitle(resumeStr(wireshark.toString()), this))
 			);
 		} else { // Ditlew - org
 			// Ditlew
-			wireshark = ((isFolder() || getPlayer() == null && subsAreValid) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer)));
+			wireshark.append(((isFolder() || getPlayer() == null && subsAreValid) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer))));
 			String tmp = (isFolder() || getPlayer() == null && subsAreValid) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer));
 			addXMLTagAndAttribute(
 				sb,
@@ -1822,33 +1822,33 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				
 				String tempString = "http-get:*:" + mime + ":" + (dlnaspec != null ? (dlnaspec + ";") : "") + getDlnaOrgOpFlags();
 
-				wireshark = wireshark + " " + tempString;
+				wireshark.append(" ").append(tempString);
 				addAttribute(sb, "protocolInfo", tempString);
 
 				if (subsAreValid) {
 					addAttribute(sb, "pv:subtitleFileType", getMediaSubtitle().getType().toString());
-					wireshark = wireshark + " " + "pv:subtitleFileType=" + getMediaSubtitle().getType().toString();
+					wireshark.append(" pv:subtitleFileType=").append(getMediaSubtitle().getType().toString());
 					addAttribute(sb, "pv:subtitleFileUri", getSubsURL(getMediaSubtitle()));
-					wireshark = wireshark + " " + "pv:subtitleFileUri=" + getSubsURL(getMediaSubtitle());
+					wireshark.append(" pv:subtitleFileUri=").append(getSubsURL(getMediaSubtitle()));
 				}
 
 				if (getFormat() != null && getFormat().isVideo() && getMedia() != null && getMedia().isMediaparsed()) {
 					if (getPlayer() == null && getMedia() != null) {
-						wireshark = wireshark + " " + "size=" + getMedia().getSize();
+						wireshark.append(" size=").append(getMedia().getSize());
 						addAttribute(sb, "size", getMedia().getSize());
 					} else {
 						long transcoded_size = mediaRenderer.getTranscodedSize();
 						if (transcoded_size != 0) {
-							wireshark = wireshark + " " + "size=" + transcoded_size;
+							wireshark.append(" size=").append(transcoded_size);
 							addAttribute(sb, "size", transcoded_size);
 						}
 					}
 					if (getMedia().getDuration() != null) {
 						if (getSplitRange().isEndLimitAvailable()) {
-							wireshark = wireshark + " " + "duration=" + StringUtil.convertTimeToString(getSplitRange().getDuration(), StringUtil.DURATION_TIME_FORMAT);
+							wireshark.append(" duration=").append(StringUtil.convertTimeToString(getSplitRange().getDuration(), StringUtil.DURATION_TIME_FORMAT));
 							addAttribute(sb, "duration", StringUtil.convertTimeToString(getSplitRange().getDuration(), StringUtil.DURATION_TIME_FORMAT));
 						} else {
-							wireshark = wireshark + " " + "duration=" + getMedia().getDurationString();
+							wireshark.append(" duration=").append(getMedia().getDurationString());
 							addAttribute(sb, "duration", getMedia().getDurationString());
 						}
 					}
@@ -1866,20 +1866,20 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 				} else if (getFormat() != null && getFormat().isImage()) {
 					if (getMedia() != null && getMedia().isMediaparsed()) {
-						wireshark = wireshark + " " + "size=" + getMedia().getSize();
+						wireshark.append(" size=").append(getMedia().getSize());
 						addAttribute(sb, "size", getMedia().getSize());
 						if (getMedia().getResolution() != null) {
 							addAttribute(sb, "resolution", getMedia().getResolution());
 						}
 					} else {
-						wireshark = wireshark + " " + "size=" + length();
+						wireshark.append(" size=").append(length());
 						addAttribute(sb, "size", length());
 					}
 				} else if (getFormat() != null && getFormat().isAudio()) {
 					if (getMedia() != null && getMedia().isMediaparsed()) {
 						addAttribute(sb, "bitrate", getMedia().getBitrate());
 						if (getMedia().getDuration() != null) {
-							wireshark = wireshark + " " + "duration=" + StringUtil.convertTimeToString(getMedia().getDuration(), StringUtil.DURATION_TIME_FORMAT);
+							wireshark.append(" duration=").append(StringUtil.convertTimeToString(getMedia().getDuration(), StringUtil.DURATION_TIME_FORMAT));
 							addAttribute(sb, "duration", StringUtil.convertTimeToString(getMedia().getDuration(), StringUtil.DURATION_TIME_FORMAT));
 						}
 						if (firstAudioTrack != null && firstAudioTrack.getSampleFrequency() != null) {
@@ -1890,7 +1890,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						}
 
 						if (getPlayer() == null) {
-							wireshark = wireshark + " " + "size=" + getMedia().getSize();
+							wireshark.append(" size=").append(getMedia().getSize());
 							addAttribute(sb, "size", getMedia().getSize());
 						} else {
 							// Calculate WAV size
@@ -1910,24 +1910,24 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								}
 								int finalSize = (int) (getMedia().getDurationInSeconds() * defaultFrequency * 2 * na);
 								LOGGER.trace("Calculated size for " + getSystemName() + ": " + finalSize);
-								wireshark = wireshark + " " + "size=" + finalSize;
+								wireshark.append(" size=").append(finalSize);
 								addAttribute(sb, "size", finalSize);
 							}
 						}
 					} else {
-						wireshark = wireshark + " " + "size=" + length();
+						wireshark.append(" size=").append(length());
 						addAttribute(sb, "size", length());
 					}
 				} else {
-					wireshark = wireshark + " " + "size=" + DLNAMediaInfo.TRANS_SIZE + " duration=" + "09:59:59";
+					wireshark.append(" size=").append(DLNAMediaInfo.TRANS_SIZE).append(" duration=09:59:59");
 					addAttribute(sb, "size", DLNAMediaInfo.TRANS_SIZE);
 					addAttribute(sb, "duration", "09:59:59");
 					addAttribute(sb, "bitrate", "1000000");
 				}
 				endTag(sb);
-				wireshark = wireshark + " " + getFileURL();
-				LOGGER.trace("Network debugger: " + wireshark);
-				wireshark = "";
+				wireshark.append(" ").append(getFileURL());
+				LOGGER.trace("Network debugger: " + wireshark.toString());
+				wireshark.setLength(0);
 				sb.append(getFileURL());
 				closeTag(sb, "res");
 			}
