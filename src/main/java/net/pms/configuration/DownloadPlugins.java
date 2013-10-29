@@ -72,7 +72,7 @@ public class DownloadPlugins {
 				parse_list(res, in, true);
 			}
 		} catch (Exception e) {
-			LOGGER.debug("download plugin list error "+e);
+			LOGGER.debug("Error while downloading the list of plugins: " + e);
 		}
 		return res;
 	}

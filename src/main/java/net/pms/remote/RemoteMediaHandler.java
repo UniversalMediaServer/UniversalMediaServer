@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 
 public class RemoteMediaHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RemoteMediaHandler.class);
-	private final static String CRLF = "\r\n";
 	private RemoteWeb parent;
 	private String path;
 	private RendererConfiguration render;
@@ -56,9 +55,8 @@ public class RemoteMediaHandler implements HttpHandler {
 		}
 		long len = res.get(0).length();
 		Range range = RemoteUtil.parseRange(t.getRequestHeaders(), len);
-		Range.Byte rb = range.asByteRange();
 		String mime = root.getDefaultRenderer().getMimeType(res.get(0).mimeType());
-		if(res.get(0).getFormat().isVideo()&&!mime.equals("video/mp4")) {
+		if (res.get(0).getFormat().isVideo() && !mime.equals("video/mp4")) {
 			mime = "video/mp4";
 			res.get(0).setPlayer(new WebPlayer());
 		}

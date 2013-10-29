@@ -56,16 +56,10 @@ public class RootFolder extends DLNAResource {
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private boolean running;
 	private FolderLimit lim;
-	private String tag;
 	private MediaMonitor mon;
 	private RecentlyPlayed last;
 
 	public RootFolder() {
-		this(null);
-	}
-
-	public RootFolder(String tag) {
-		this.tag = tag;
 		setIndexId(0);
 	}
 
@@ -128,14 +122,12 @@ public class RootFolder extends DLNAResource {
 			addChild(lim);
 		}
 
-		if (!configuration.getNoFolders(tag)) {
-			for (DLNAResource r : getConfiguredFolders()) {
-				addChild(r);
-			}
+		for (DLNAResource r : getConfiguredFolders()) {
+			addChild(r);
+		}
 
-			for (DLNAResource r : getVirtualFolders()) {
-				addChild(r);
-			}
+		for (DLNAResource r : getVirtualFolders()) {
+			addChild(r);
 		}
 
 		if (configuration.getSearchFolder()) {
@@ -263,7 +255,6 @@ public class RootFolder extends DLNAResource {
 
 	private List<RealFile> getConfiguredFolders() {
 		List<RealFile> res = new ArrayList<>();
-		//File[] files = PMS.get().getFoldersConf(tag);
 		File[] files = PMS.get().getSharedFoldersArray(false);
 
 		if (files == null || files.length == 0) {
@@ -878,7 +869,7 @@ public class RootFolder extends DLNAResource {
 										// Put the track into its album folder
 										{
 											if (!isCompilation) {
-												albumName += " � " + artistName;
+												albumName += " - " + artistName;
 											}
 
 											VirtualFolder individualAlbumFolder = null;
@@ -1271,13 +1262,7 @@ public class RootFolder extends DLNAResource {
 	private List<DLNAResource> getAdditionalFoldersAtRoot() {
 		List<DLNAResource> res = new ArrayList<>();
 
-		String[] validPlugins = configuration.getPlugins(tag);
 		for (ExternalListener listener : ExternalFactory.getExternalListeners()) {
-			if (validPlugins != null) {
-				if (Arrays.binarySearch(validPlugins, listener.name()) < 0) {
-					continue;
-				}
-			}
 			if (listener instanceof AdditionalFolderAtRoot) {
 				AdditionalFolderAtRoot afar = (AdditionalFolderAtRoot) listener;
 
