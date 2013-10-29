@@ -159,6 +159,7 @@ public final class NaturalComparator {
 	 * <p>Compares two strings using the given collator and comparing
 	 * contained numbers based on their numeric values.</p>
 	 *
+	 * @param collator
 	 * @param s first string
 	 * @param t second string
 	 * @return zero iff <code>s</code> and <code>t</code> are equal, a value
