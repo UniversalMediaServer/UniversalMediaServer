@@ -27,6 +27,7 @@ import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
@@ -53,8 +54,11 @@ import net.pms.util.MpegUtil;
 import net.pms.util.OpenSubtitle;
 import net.pms.util.StringUtil;
 import static net.pms.util.StringUtil.*;
+
 import org.apache.commons.lang3.StringUtils;
+
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1344,15 +1348,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		boolean subsAreValid = false;
 		StringBuilder sb = new StringBuilder();
 		if (!configuration.isDisableSubtitles() && StringUtils.isNotBlank(mediaRenderer.getSupportedSubtitles()) && getMedia() != null && getPlayer() == null) {
-			if (!getMedia().getSubtitleTracksList().isEmpty()) {
-				setMediaSubtitle(getMedia().getSubtitleTracksList().get(0));
-			}
-
-			if (getMediaSubtitle() != null) {
-				String subs = mediaRenderer.getSupportedSubtitles();
-				String[] params = subs.split(",");
-				for (int i = 0; i < params.length; i++) {
-					if (getMediaSubtitle().getType().toString().equals(params[i].trim().toUpperCase())) {
+			OutputParams params = new OutputParams(configuration);
+			Player.setAudioAndSubs(getSystemName(), getMedia(), params);
+			if(params.sid != null) {
+				setMediaSubtitle(params.sid);
+				String[] supportedSubs = mediaRenderer.getSupportedSubtitles().split(",");
+				for (int i = 0; i < supportedSubs.length; i++) {
+					if (getMediaSubtitle().getType().toString().equals(supportedSubs[i].trim().toUpperCase())) {
 						subsAreValid = true;
 						break;
 					}
