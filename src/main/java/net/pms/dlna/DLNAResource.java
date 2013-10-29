@@ -27,7 +27,6 @@ import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
@@ -54,11 +53,8 @@ import net.pms.util.MpegUtil;
 import net.pms.util.OpenSubtitle;
 import net.pms.util.StringUtil;
 import static net.pms.util.StringUtil.*;
-
 import org.apache.commons.lang3.StringUtils;
-
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
