@@ -2768,6 +2768,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
+	 * @Deprecated use {@link #isSubsFile()} instead
+	 */
+	@Deprecated
+	protected boolean isSrtFile() {
+		return isSubsFile();
+	}
+
+	/**
 	 * Returns true if this resource has subtitles in a file.
 	 *
 	 * @return the srtFile
@@ -2775,6 +2783,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	protected boolean isSubsFile() {
 		return srtFile;
+	}
+
+	/**
+	 * @Deprecated use {@link #setSubsFile()} instead
+	 */
+	@Deprecated
+	protected void setSrtFile(boolean srtFile) {
+		setSubsFile(srtFile);
 	}
 
 	/**
