@@ -10,6 +10,13 @@ Current Developers
 * SubJunk
 * SharkHunter
 * valib
+* skeptical
+
+Current Forum Moderators
+------------------------
+
+* Optimus_prime
+* DeFlanko
 
 
 Links
