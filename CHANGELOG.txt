@@ -2,6 +2,7 @@
 
 	General:
 		Added support for muxing (losslessly streaming) more files with tsMuxeR by default
+		Added support for sending subtitle streams (without transcoding) to more devices
 		Added more information to our debug logs
 		The "Clean Install" option on Windows removes the program directory
 		The server logo displays on more renderers
@@ -12,10 +13,13 @@
 		Added renderer config option DisableMencoderNoskip
 		Made the use of acodec in CustomMencoderOptions safer
 		Videos work when tsMuxeR is the only engine enabled
+		Fixed a bug where VLC would include unwanted subtitles
 		Code optimizations to run faster
 	Renderers:
+		Added support for LG 42LA644V TVs (thanks, khmelnov.roman)
 		Added support for Samsung mobiles (Galaxy S3, S4, Note, Note 2, and Note 3)
 		Added support for Panasonic TX-L32V10E TVs
+		Updated support for Bravia W series TVs (thanks, flux131)
 		Updated Samsung AllShare logo
 	Languages:
 		Updated Czech translation
