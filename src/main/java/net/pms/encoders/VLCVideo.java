@@ -358,8 +358,25 @@ public class VLCVideo extends Player {
 			cmdList.add("--sout-x264-preset");
 			cmdList.add("superfast");
 
+			String x264CRF = configuration.getx264ConstantRateFactor();
+
+			// Remove comment from the value
+			if (x264CRF.contains("/*")) {
+				x264CRF = x264CRF.substring(x264CRF.indexOf("/*"));
+			}
+
+			// Determine a good quality setting based on video attributes
+			if (x264CRF.contains("Automatic")) {
+				x264CRF = "16";
+
+				// Lower CRF for 720p+ content
+				if (media.getWidth() > 720) {
+					x264CRF = "19";
+				}
+			}
+
 			cmdList.add("--sout-x264-crf");
-			cmdList.add("20");
+			cmdList.add(x264CRF);
 		}
 
 		// Skip forward if necessary
