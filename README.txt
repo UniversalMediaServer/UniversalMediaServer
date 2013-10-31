@@ -51,5 +51,12 @@ Thanks to:
 
 for documentation and contributions to the community.
 
+Thanks to:
+
+* AlfredoRamos
+* Tianuchka
+
+for significant/frequent language translations.
+
 * boblinds and snoots for the network test cases :)
 * sarraken, bleuecinephile, bd.azerty, fabounnet for the support and feedback
