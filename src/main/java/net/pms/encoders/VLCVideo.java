@@ -346,9 +346,6 @@ public class VLCVideo extends Player {
 			} else { // VLC doesn't understand "und", but does understand a nonexistent track
 				cmdList.add("--sub-" + disableSuffix);
 			}
-		} else if (!configuration.isDisableSubtitles()) { // Not specified, use language from GUI if enabled
-			// FIXME: VLC does not understand "loc" or "und".
-			cmdList.add("--sub-language=" + configuration.getSubtitlesLanguages());
 		} else {
 			cmdList.add("--sub-" + disableSuffix);
 		}
