@@ -18,19 +18,17 @@
 		Added new options to iTunes library browsing: Browse by Artist, Album and Genre
 		Added manual configuration option (hide_subs_info) to hide subtitle info from filenames while browsing
 		Added checkboxes to enable/disable renderers
+		Added tooltips to several options to make them clearer
+		Added H.264 transcoding quality option
 		Enabled support for cover files in virtual folders (thanks, D-Kalck!)
+		Improved video transcoding quality by default
+		Improved audio transcoding quality in FFmpeg by default
 		A more helpful error is displayed when something is using the UMS HTTP port
 		Made some custom MEncoder options safer to use
 		Improved file compatibility for mod2 videos
 		Improved support for iTunes compilations
 		Made video playback more stable
-		Fixed external ASS/SSA support (Thanks, skeptical!)
-		Fixed FFmpeg muxing on non-PS3 renderers
-		Fixed use of custom Java Heapsize (Thanks, OptimusPrime!)
-		Fixed streaming radio timing out after 1:45:32
-		Fixed MEncoder subtitle support when the font name contains a space
 		FFmpeg starts faster
-		Added H.264 transcoding quality option
 		Improved speed of list population
 		Audio files are added to the transcode folder
 		Chapter folders are hidden if the video duration is less than the chapter length
@@ -38,29 +36,31 @@
 		Renamed a lot of configuration variables
 		Removed the obsolete MPlayerAudio, MPlayerWebAudio and MPlayerWebVideoDump engines
 		Improved memory defaults on Windows
-		Improved video transcoding quality by default
-		Improved audio transcoding quality in FFmpeg by default
-		Fixed memory leaks
-		Added tooltips to several options to make them clearer
 		The "Clean Install" option on Windows removes the program directory
 		The server logo displays on more renderers
 		A status message is displayed while UMS is checking the MPlayer font cache
 		MPlayer/MEncoder is no longer included in the Linux builds
-		Fixed FFmpeg web videos on Linux and OS X
 		Added renderer config option DisableMencoderNoskip
 		Made the use of acodec in CustomMencoderOptions safer
 		Videos work when tsMuxeR is the only engine enabled
 		Code optimizations to run faster
+		Fixed FFmpeg web videos on Linux and OS X
+		Fixed external ASS/SSA support (Thanks, skeptical!)
+		Fixed FFmpeg muxing on non-PS3 renderers
+		Fixed use of custom Java Heapsize (Thanks, OptimusPrime!)
+		Fixed streaming radio timing out after 1:45:32
+		Fixed MEncoder subtitle support when the font name contains a space
 		Fixed startup issue on OS X
 		Fixed RAW image transcoding and support 28 additional RAW file extensions
 		Fixed incorrect server IP address when starting UMS by launching UMS.exe or UMS.bat
-		Fixed layout issues
-		Fixed various bugs
 		Fixed and improved support for virtual folders
 		Fixed conflicts between some renderer config options
 		Fixed tsMuxeR video detection bug
 		Fixed x264 transcoding with MEncoder
 		Fixed a rare startup bug
+		Fixed layout issues
+		Fixed memory leaks
+		Fixed various bugs
 	Renderers:
 		Added support for LG 42LA644V TVs (thanks, khmelnov.roman)
 		Added profile for Samsung D7000 TVs
