@@ -900,7 +900,7 @@ public class MEncoderVideo extends Player {
 		 * - The resource is incompatible with tsMuxeR
 		 * - The user has disabled the "switch to tsMuxeR" option
 		 * - The user has specified overscan correction
-		 * - The filename specifies the resource as WEB-DL
+		 * - The filename specifies the resource as WEB-DL and the OS is not Windows
 		 * - The aspect ratio of the video needs to be changed
 		 */
 		if (
@@ -919,7 +919,10 @@ public class MEncoderVideo extends Player {
 				intOCW == 0 &&
 				intOCH == 0
 			) &&
-			!filename.contains("WEB-DL") &&
+			!(
+				filename.contains("WEB-DL") &&
+				!Platform.isWindows()
+			) &&
 			aspectRatiosMatch
 		) {
 			String expertOptions[] = getSpecificCodecOptions(
@@ -1665,12 +1668,16 @@ public class MEncoderVideo extends Player {
 		boolean deinterlace = configuration.isMencoderYadif();
 
 		// Check if the media renderer supports this resolution
-		boolean isResolutionTooHighForRenderer = params.mediaRenderer.isVideoRescale()
-			&& (
-				(media.getWidth() > params.mediaRenderer.getMaxVideoWidth())
-				||
-				(media.getHeight() > params.mediaRenderer.getMaxVideoHeight())
-			);
+		boolean isResolutionTooHighForRenderer = false;
+		if (
+			params.mediaRenderer.isVideoRescale() &&
+			(
+				media.getWidth() > params.mediaRenderer.getMaxVideoWidth() ||
+				media.getHeight() > params.mediaRenderer.getMaxVideoHeight()
+			)
+		) {
+			isResolutionTooHighForRenderer = true;
+		}
 
 		// Video scaler and overscan compensation
 		boolean scaleBool = false;
@@ -1777,18 +1784,9 @@ public class MEncoderVideo extends Player {
 				LOGGER.info("Setting video resolution to: " + scaleWidth + "x" + scaleHeight + ", your Video Scaler setting");
 
 				vfValueVS.append("scale=").append(scaleWidth).append(":").append(scaleHeight);
+			} else if (isResolutionTooHighForRenderer) {
+				// The video resolution is too big for the renderer so we need to scale it down
 
-			/*
-			 * The video resolution is too big for the renderer so we need to scale it down
-			 */
-			} else if (
-				media.getWidth() > 0 &&
-				media.getHeight() > 0 &&
-				(
-					media.getWidth()  > params.mediaRenderer.getMaxVideoWidth() || 
-					media.getHeight() > params.mediaRenderer.getMaxVideoHeight()
-				)
-			) {
 				double videoAspectRatio = (double) media.getWidth() / (double) media.getHeight();
 				rendererAspectRatio = (double) params.mediaRenderer.getMaxVideoWidth() / (double) params.mediaRenderer.getMaxVideoHeight();
 
