@@ -44,6 +44,7 @@
 		Made the use of acodec in CustomMencoderOptions safer
 		Videos work when tsMuxeR is the only engine enabled
 		Code optimizations to run faster
+		Fixed duplicate entries in DVD/playlist/feed folders
 		Fixed FFmpeg web videos on Linux and OS X
 		Fixed external ASS/SSA support (Thanks, skeptical!)
 		Fixed FFmpeg muxing on non-PS3 renderers
@@ -291,6 +292,7 @@
 		Renamed a lot of configuration variables
 		Added thumbnail support to Samsung 2012 ES and EH models (thanks, dmitche3!)
 		Removed the obsolete MPlayerAudio, MPlayerWebAudio and MPlayerWebVideoDump engines
+		Fixed duplicate entries in DVD/playlist/feed folders
 		Fixed startup issue on OS X
 		Fixed RAW image transcoding and support 28 additional RAW file extensions
 		Fixed incorrect server IP address when starting UMS by launching UMS.exe or UMS.bat
