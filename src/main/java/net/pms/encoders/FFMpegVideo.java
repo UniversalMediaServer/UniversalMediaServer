@@ -463,15 +463,15 @@ public class FFMpegVideo extends Player {
 				}
 
 				if (x264CRF.contains("Automatic")) {
-					x264CRF = "-crf 16";
+					x264CRF = "16";
 
 					// Lower CRF for 720p+ content
 					if (media.getWidth() > 720) {
-						x264CRF = "-crf 19";
+						x264CRF = "19";
 					}
 				}
-				String[] customOptions = StringUtils.split(x264CRF);
-				videoBitrateOptions.addAll(new ArrayList<>(Arrays.asList(customOptions)));
+				videoBitrateOptions.add("-crf");
+				videoBitrateOptions.add(x264CRF);
 			}
 		}
 
