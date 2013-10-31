@@ -1,6 +1,10 @@
 3.0.0 - 2013-11-?? - Changes since 2.6.5
 
 	General:
+		Transcoding quality automatically adjusts for content and network speed by default, allowing wireless users an easier experience
+		Added the New Media folder, which contains unwatched media
+		Added the Recently Played folder, which contains watched media
+		Added the ability to resume videos after closing the program, for details on its use see the tooltip on the Navigation tab
 		Added support for muxing (losslessly streaming) more files with tsMuxeR by default
 		Added support for sending subtitle streams (without transcoding) to more devices
 		Added more information to our debug logs
@@ -12,10 +16,7 @@
 		Added an option to hide/show advanced options, hopefully making things less confusing/daunting for most users
 		Added VLC video transcoding (thanks, LordQuackstar!)
 		Added new options to iTunes library browsing: Browse by Artist, Album and Genre
-		Added the ability to resume videos after closing the program, for details on its use see the tooltip on the Navigation tab
 		Added manual configuration option (hide_subs_info) to hide subtitle info from filenames while browsing
-		Added the New Media folder, which contains unwatched media
-		Added the Recently Played folder, which contains watched media
 		Added checkboxes to enable/disable renderers
 		Enabled support for cover files in virtual folders (thanks, D-Kalck!)
 		A more helpful error is displayed when something is using the UMS HTTP port
@@ -36,7 +37,6 @@
 		Improved file compatibility detection for H.264 muxing
 		Renamed a lot of configuration variables
 		Removed the obsolete MPlayerAudio, MPlayerWebAudio and MPlayerWebVideoDump engines
-		Transcoding quality automatically adjusts for content and network speed by default, allowing wireless users an easier experience
 		Improved memory defaults on Windows
 		Improved video transcoding quality by default
 		Improved audio transcoding quality in FFmpeg by default
@@ -44,14 +44,12 @@
 		Added tooltips to several options to make them clearer
 		The "Clean Install" option on Windows removes the program directory
 		The server logo displays on more renderers
-		The wizard defaults to "no" for DTS streaming by default for compatibility
 		A status message is displayed while UMS is checking the MPlayer font cache
 		MPlayer/MEncoder is no longer included in the Linux builds
 		Fixed FFmpeg web videos on Linux and OS X
 		Added renderer config option DisableMencoderNoskip
 		Made the use of acodec in CustomMencoderOptions safer
 		Videos work when tsMuxeR is the only engine enabled
-		Fixed a bug where VLC would include unwanted subtitles
 		Code optimizations to run faster
 		Fixed startup issue on OS X
 		Fixed RAW image transcoding and support 28 additional RAW file extensions
