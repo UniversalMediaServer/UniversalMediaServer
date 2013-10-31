@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.Iterator;
 import net.pms.PMS;
 import org.codehaus.plexus.util.StringUtils;
 
@@ -44,13 +45,14 @@ public class TempFileMgr {
 
 	private void scan() {
 		long now = System.currentTimeMillis();
-		for (File f : files.keySet()) {
+		for (Iterator<File> it = files.keySet().iterator(); it.hasNext();) {
+			File f = it.next();
 			if (!f.exists()) {
-				files.remove(f);
+				it.remove();
 				continue;
 			}
 			if ((now - f.lastModified()) > files.get(f)) {
-				files.remove(f);
+				it.remove();
 				f.delete();
 			}
 		}
