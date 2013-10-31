@@ -1,4 +1,4 @@
-3.0.0 - 2013-11-??
+3.0.0 - 2013-11-?? - Changes since 3.0.0-b1
 
 	General:
 		Added support for muxing (losslessly streaming) more files with tsMuxeR by default
@@ -33,7 +33,7 @@
 			Fixes E-AC3 support
 			Adds support for DTS-express audio
 
-3.0.0-b1 - 2013-10-17
+3.0.0-b1 - 2013-10-17 - Changes since 3.0.0-a5
 
 	General:
 		Added the New Media folder, which contains unwatched media
@@ -72,12 +72,12 @@
 		Updated Maven Surefire Plugin to 2.16, which:
 			Fixes problems with character encodings
 
-3.0.0-a5 - 2013-09-02
+3.0.0-a5 - 2013-09-02 - Changes since 3.0.0-a4
 
 	General:
 		Fixed a startup problem affecting some users
 
-3.0.0-a4 - 2013-09-01
+3.0.0-a4 - 2013-09-01 - Changes since 3.0.0-a3
 
 	General:
 		Improved support for iTunes compilations
