@@ -456,6 +456,12 @@ public class FFMpegVideo extends Player {
 			} else {
 				// Add x264 quality settings
 				String x264CRF = configuration.getx264ConstantRateFactor();
+
+				// Remove comment from the value
+				if (x264CRF.contains("/*")) {
+					x264CRF = x264CRF.substring(x264CRF.indexOf("/*"));
+				}
+
 				if (x264CRF.contains("Automatic")) {
 					x264CRF = "-crf 16";
 
