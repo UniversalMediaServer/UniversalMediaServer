@@ -1279,21 +1279,19 @@ public class MEncoderVideo extends Player {
 
 			// Determine a good quality setting based on video attributes
 			if (x264CRF.contains("Automatic")) {
-				x264CRF = "crf=16,";
+				x264CRF = "16";
 
-				// Lower CRF for 720p+ content
+				// Higher CRF for 720p+ content
 				if (media.getWidth() > 720) {
-					x264CRF = "crf=19,";
+					x264CRF = "19";
 				}
-			} else {
-				x264CRF = "crf=" + x264CRF + ",";
 			}
 
 			String encodeSettings = "-lavcopts autoaspect=1" + vcodecString +
 				":acodec=" + (configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3") +
 				":abitrate=" + CodecUtil.getAC3Bitrate(configuration, params.aid) +
 				":threads=" + configuration.getMencoderMaxThreads() +
-				":o=preset=superfast," + x264CRF + "g=250,i_qfactor=0.71,qcomp=0.6,level=4.1,weightp=0,8x8dct=0,aq-strength=0";
+				":o=preset=superfast,crf=" + x264CRF + ",g=250,i_qfactor=0.71,qcomp=0.6,level=4.1,weightp=0,8x8dct=0,aq-strength=0";
 
 			String audioType = "ac3";
 			if (dtsRemux) {
