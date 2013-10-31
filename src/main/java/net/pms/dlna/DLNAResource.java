@@ -1157,12 +1157,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		} else {
 			if (isNoName()) {
 				displayName = "[No encoding]";
+				isNamedNoEncoding = true;
 				if (mediaRenderer != null && mediaRenderer.getSupportedSubtitles() != null) {
 					isNamedNoEncoding = false;
-				} else  {
-					isNamedNoEncoding = true;
 				}
-				
 			} else if (nametruncate > 0) {
 				displayName = displayName.substring(0, nametruncate).trim();
 			}
@@ -1253,7 +1251,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		sb.append(encode(getName()));
 		return sb.toString();
 	}
-	
+
 	/**
 	 * @param subs
 	 * @return Returns a URL for a given subtitles item. Not used for container types.
@@ -1358,10 +1356,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (!configuration.isDisableSubtitles() && StringUtils.isNotBlank(mediaRenderer.getSupportedSubtitles()) && getMedia() != null && getPlayer() == null) {
 			OutputParams params = new OutputParams(configuration);
 			Player.setAudioAndSubs(getSystemName(), getMedia(), params);
-			if(params.sid != null) {
+			if (params.sid != null) {
 				String[] supportedSubs = mediaRenderer.getSupportedSubtitles().split(",");
-				for (int i = 0; i < supportedSubs.length; i++) {
-					if (params.sid.getType().toString().equals(supportedSubs[i].trim().toUpperCase())) {
+				for (String supportedSub : supportedSubs) {
+					if (params.sid.getType().toString().equals(supportedSub.trim().toUpperCase())) {
 						setMediaSubtitle(params.sid);
 						subsAreValid = true;
 						break;
@@ -1829,7 +1827,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						dlnaspec = "DLNA.ORG_PN=" + mediaRenderer.getDLNAPN(dlnaspec.substring(12));
 					}
 				}
-				
+
 				String tempString = "http-get:*:" + mime + ":" + (dlnaspec != null ? (dlnaspec + ";") : "") + getDlnaOrgOpFlags();
 
 				wireshark.append(" ").append(tempString);
@@ -1954,9 +1952,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			String subsURL = getSubsURL(getMediaSubtitle());
 			sb.append(subsURL);
 			closeTag(sb, "res");
-			LOGGER.trace("Network debugger: http-get:*:text/" + format + ":*" +  subsURL);
+			LOGGER.trace("Network debugger: http-get:*:text/" + format + ":*" + subsURL);
 		}
-
 
 		appendThumbnail(mediaRenderer, sb);
 

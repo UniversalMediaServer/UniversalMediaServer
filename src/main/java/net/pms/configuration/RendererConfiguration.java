@@ -1227,7 +1227,7 @@ public class RendererConfiguration {
 			return fallback;
 		}
 	}
-	
+
 	public String getSupportedSubtitles() {
 		return getString(SUPPORTED_SUBTITLES_TYPE, null);
 	}
