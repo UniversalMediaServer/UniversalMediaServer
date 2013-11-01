@@ -4,10 +4,10 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public class StringUtil {
 	private static final int[] MULTIPLIER = new int[] {1, 60, 3600, 24*3600};
-	public static final String ASS_TIME_FORMAT = "%01d:%02d:%02.2f";
-	public static final String SRT_TIME_FORMAT = "%02d:%02d:%02.3f";
+	public static final String ASS_TIME_FORMAT = "%01d:%02d:%05.2f";
+	public static final String SRT_TIME_FORMAT = "%02d:%02d:%06.3f";
 	public static final String SEC_TIME_FORMAT = "%02d:%02d:%02d";
-	public static final String DURATION_TIME_FORMAT = "%02d:%02d:%02.2f";
+	public static final String DURATION_TIME_FORMAT = "%02d:%02d:%05.2f";
 	
 	/**
 	 * Appends "&lt;<u>tag</u> " to the StringBuilder. This is a typical HTML/DIDL/XML tag opening.
