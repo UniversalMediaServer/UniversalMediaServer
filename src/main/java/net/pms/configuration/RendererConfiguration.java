@@ -103,6 +103,7 @@ public class RendererConfiguration {
 	private static final String STREAM_EXT = "StreamExtensions";
 	private static final String SUBTITLE_HTTP_HEADER = "SubtitleHttpHeader";
 	private static final String SUPPORTED = "Supported";
+	private static final String SUPPORTED_SUBTITLES_TYPE = "SupportedSubtitlesType";
 	private static final String TEXTWRAP = "TextWrap";
 	private static final String THUMBNAIL_AS_RESOURCE = "ThumbnailAsResource";
 	private static final String TRANSCODE_AUDIO_441KHZ = "TranscodeAudioTo441kHz";
@@ -655,7 +656,7 @@ public class RendererConfiguration {
 		String matchedMimeType = null;
 
 		if (isMediaParserV2()) {
-			// Use the supported information in the configuration to determine the mime type.
+			// Use the supported information in the configuration to determine the transcoding mime type.
 			if (HTTPResource.VIDEO_TRANSCODE.equals(mimeType)) {
 				if (isTranscodeToMPEGTSAC3()) {
 					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.MPEG2, FormatConfiguration.AC3);
@@ -683,31 +684,36 @@ public class RendererConfiguration {
 					}
 				}
 			}
+
+			if (matchedMimeType != null) {
+				return matchedMimeType;
+			} else {
+				// Return the mime type as it was determined by MediaParserV2.
+				return mimeType;
+			}
 		}
 
-		if (matchedMimeType == null) {
-			// No match found, try without media parser v2
-			if (HTTPResource.VIDEO_TRANSCODE.equals(mimeType)) {
-				if (isTranscodeToWMV()) {
-					matchedMimeType = HTTPResource.WMV_TYPEMIME;
-				} else {
-					// Default video transcoding mime type
-					matchedMimeType = HTTPResource.MPEG_TYPEMIME;
-				}
-			} else if (HTTPResource.AUDIO_TRANSCODE.equals(mimeType)) {
-				if (isTranscodeToWAV()) {
-					matchedMimeType = HTTPResource.AUDIO_WAV_TYPEMIME;
-				} else if (isTranscodeToMP3()) {
-					matchedMimeType = HTTPResource.AUDIO_MP3_TYPEMIME;
-				} else {
-					// Default audio transcoding mime type
-					matchedMimeType = HTTPResource.AUDIO_LPCM_TYPEMIME;
+		// No match found, try without media parser v2
+		if (HTTPResource.VIDEO_TRANSCODE.equals(mimeType)) {
+			if (isTranscodeToWMV()) {
+				matchedMimeType = HTTPResource.WMV_TYPEMIME;
+			} else {
+				// Default video transcoding mime type
+				matchedMimeType = HTTPResource.MPEG_TYPEMIME;
+			}
+		} else if (HTTPResource.AUDIO_TRANSCODE.equals(mimeType)) {
+			if (isTranscodeToWAV()) {
+				matchedMimeType = HTTPResource.AUDIO_WAV_TYPEMIME;
+			} else if (isTranscodeToMP3()) {
+				matchedMimeType = HTTPResource.AUDIO_MP3_TYPEMIME;
+			} else {
+				// Default audio transcoding mime type
+				matchedMimeType = HTTPResource.AUDIO_LPCM_TYPEMIME;
 
-					if (isTranscodeAudioTo441()) {
-						matchedMimeType += ";rate=44100;channels=2";
-					} else {
-						matchedMimeType += ";rate=48000;channels=2";
-					}
+				if (isTranscodeAudioTo441()) {
+					matchedMimeType += ";rate=44100;channels=2";
+				} else {
+					matchedMimeType += ";rate=48000;channels=2";
 				}
 			}
 		}
@@ -1225,5 +1231,9 @@ public class RendererConfiguration {
 		} catch (Exception e) {
 			return fallback;
 		}
+	}
+
+	public String getSupportedSubtitles() {
+		return getString(SUPPORTED_SUBTITLES_TYPE, null);
 	}
 }
