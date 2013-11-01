@@ -1,4 +1,4 @@
-3.0.0 - 2013-11-?? - Changes since 2.6.5
+3.0.0 - 2013-11-01 - Changes since 2.6.5
 
 	General:
 		Transcoding quality automatically adjusts for content and network speed by default, allowing wireless users an easier experience
@@ -145,7 +145,7 @@
 			Adds support for DTS-express audio
 		Updated xmlwise to 1.2.11
 
-3.0.0 - 2013-11-?? - Changes since 3.0.0-b1
+3.0.0 - 2013-11-01 - Changes since 3.0.0-b1
 
 	General:
 		Added support for muxing (losslessly streaming) more files with tsMuxeR by default
