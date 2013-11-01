@@ -22,9 +22,10 @@ public class SubSelFile extends VirtualFolder {
 	@Override
 	public void discoverChildren() {
 		Map<String, Object> data;
+		RealFile rf = null;
 		try {
 			if (orig instanceof RealFile) {
-				RealFile rf = (RealFile) orig;
+				rf = (RealFile) orig;
 				data = OpenSubtitle.findSubs(rf.getFile());
 			} else {
 				data = OpenSubtitle.querySubs(orig.getDisplayName());
@@ -46,13 +47,16 @@ public class SubSelFile extends VirtualFolder {
 			String lang = OpenSubtitle.getLang(key);
 			String name = OpenSubtitle.getName(key);
 			sub.setType(SubtitleType.SUBRIP);
-			sub.setId(1);
+			sub.setId(101);
 			sub.setLang(lang);
 			sub.setLiveSub((String) data.get(key), OpenSubtitle.subFile(name + "_" + lang));
 			DLNAResource nrf = orig.clone();
 			nrf.setMediaSubtitle(sub);
-			nrf.setSrtFile(true);
+			nrf.setSubsFile(true);
 			addChild(nrf);
+			if (rf != null) {
+				((RealFile) nrf).ignoreThumbHandling();
+			}
 		}
 	}
 

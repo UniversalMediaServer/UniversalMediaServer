@@ -454,9 +454,10 @@ public class MapFile extends DLNAResource {
 	}
 
 	private boolean foundInList(List<File> files, DLNAResource dlna) {
-		for (File file: files) {
+		for (Iterator<File> it = files.iterator(); it.hasNext();) {
+			File file = it.next();
 			if (!file.isHidden() && isNameMatch(dlna, file) && (isRealFolder(dlna) || isSameLastModified(dlna, file))) {
-				files.remove(file);
+				it.remove();
 				return true;
 			}
 		}

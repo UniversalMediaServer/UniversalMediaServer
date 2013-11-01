@@ -205,7 +205,7 @@ public abstract class Player {
 	 * @param params
 	 * The parameters to populate.
 	 */
-	public void setAudioAndSubs(String fileName, DLNAMediaInfo media, OutputParams params) {
+	public static void setAudioAndSubs(String fileName, DLNAMediaInfo media, OutputParams params) {
 		setAudioOutputParameters(media, params);
 		setSubtitleOutputParameters(fileName, media, params);
 	}
@@ -219,7 +219,7 @@ public abstract class Player {
 	 * @param params
 	 * The parameters to populate.
 	 */
-	public void setAudioOutputParameters(DLNAMediaInfo media, OutputParams params) {
+	public static void setAudioOutputParameters(DLNAMediaInfo media, OutputParams params) {
 		if (params.aid == null && media != null && media.getFirstAudioTrack() != null) {
 			// check for preferred audio
 			DLNAMediaAudio dtsTrack = null;
@@ -262,7 +262,7 @@ public abstract class Player {
 	 * @param params
 	 * The parameters to populate.
 	 */
-	public void setSubtitleOutputParameters(String fileName, DLNAMediaInfo media, OutputParams params) {
+	public static void setSubtitleOutputParameters(String fileName, DLNAMediaInfo media, OutputParams params) {
 		String currentLang = null;
 		DLNAMediaSubtitle matchedSub = null;
 

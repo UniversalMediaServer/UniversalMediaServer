@@ -10,6 +10,13 @@ Current Developers
 * SubJunk
 * SharkHunter
 * valib
+* skeptical
+
+Current Forum Moderators
+------------------------
+
+* Optimus_prime
+* DeFlanko
 
 
 Links
@@ -43,6 +50,13 @@ Thanks to:
 * otmanix
 
 for documentation and contributions to the community.
+
+Thanks to:
+
+* AlfredoRamos
+* Tianuchka
+
+for significant/frequent language translations.
 
 * boblinds and snoots for the network test cases :)
 * sarraken, bleuecinephile, bd.azerty, fabounnet for the support and feedback
