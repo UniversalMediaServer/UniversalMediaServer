@@ -500,7 +500,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 				child.resHash = Math.abs(child.getSystemName().hashCode() + resumeHash());
 
-				DLNAResource resumeRes;
+				DLNAResource resumeRes = null;
 
 				ResumeObj r = ResumeObj.create(child);
 				if (r != null) {
@@ -639,6 +639,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							if (forceTranscode || (preferTranscode && !isSkipTranscode())) {
 								child.setPlayer(player);
 
+								if (resumeRes != null) {
+									resumeRes.setPlayer(player);
+								}
+
 								if (parserV2) {
 									LOGGER.trace("Final verdict: \"{}\" will be transcoded with player \"{}\" with mime type \"{}\"", child.getName(), player.toString(), child.getMedia().getMimeType());
 								} else {
@@ -693,7 +697,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						}
 					}
 
-					if (child.getFormat().getSecondaryFormat() != null &&
+					if (resumeRes != null) {
+						resumeRes.setMedia(child.getMedia());
+					}
+
+					if (
+						child.getFormat().getSecondaryFormat() != null &&
 						child.getMedia() != null &&
 						getDefaultRenderer() != null &&
 						getDefaultRenderer().supportsFormat(child.getFormat().getSecondaryFormat())
