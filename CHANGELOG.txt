@@ -72,6 +72,7 @@
 		Improved support for KalemSoft Media Player on BlackBerry PlayBook
 		Updated support for Bravia W series TVs (thanks, flux131)
 		Updated Samsung AllShare logo
+		Updated notes on Philips PFL (thanks, ler0y!)
 		Xbox 360 supports 5.1 audio
 		Faster transcoding on Xbox 360
 		Improved DirecTV support
@@ -160,11 +161,15 @@
 		Made the use of acodec in CustomMencoderOptions safer
 		Videos work when tsMuxeR is the only engine enabled
 		Fixed a bug where VLC would include unwanted subtitles
+		Fixed MIME types in some situations
+		Fixed (hopefully) a duration/seeking bug
+		Fixed the video resuming feature
 		Code optimizations to run faster
 	Renderers:
 		Added support for LG 42LA644V TVs (thanks, khmelnov.roman)
 		Added support for Samsung mobiles (Galaxy S3, S4, Note, Note 2, and Note 3)
 		Added support for Panasonic TX-L32V10E TVs
+		Updated notes on Philips PFL (thanks, ler0y!)
 		Updated support for Bravia W series TVs (thanks, flux131)
 		Updated Samsung AllShare logo
 	Languages:
