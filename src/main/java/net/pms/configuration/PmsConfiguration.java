@@ -173,7 +173,6 @@ public class PmsConfiguration {
 	private static final String KEY_MPEG2_MAIN_SETTINGS = "mpeg2_main_settings";
 	private static final String KEY_MUX_ALLAUDIOTRACKS = "tsmuxer_mux_all_audiotracks";
 	private static final String KEY_NETWORK_INTERFACE = "network_interface";
-	private static final String KEY_HIDE_NEW_MEDIA_FOLDER = "hide_new_media";
 	private static final String KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS = "disable_transcode_for_extensions";
 	private static final String KEY_NUMBER_OF_CPU_CORES = "number_of_cpu_cores";
 	private static final String KEY_OPEN_ARCHIVES = "enable_archive_browsing";
@@ -219,8 +218,8 @@ public class PmsConfiguration {
 	private static final String KEY_UUID = "uuid";
 	private static final String KEY_VIDEO_HW_ACCELERATION = "video_hardware_acceleration";
 	private static final String KEY_VIDEOTRANSCODE_START_DELAY = "videotranscode_start_delay";
-	private static final String KEY_VIRTUAL_FOLDERS = "virtual_folders";
-	private static final String KEY_VIRTUAL_FOLDERS_FILE = "virtual_folders_file";
+	private static final String KEY_VIRTUAL_FOLDERS = "vfolders";
+	private static final String KEY_HDAUDIO_PASSTHROUGH = "hdaudio_passthrough";
 	private static final String KEY_VLC_USE_HW_ACCELERATION = "vlc_use_hw_acceleration";
 	private static final String KEY_VLC_USE_EXPERIMENTAL_CODECS = "vlc_use_experimental_codecs";
 	private static final String KEY_VLC_AUDIO_SYNC_ENABLED = "vlc_audio_sync_enabled";
@@ -243,6 +242,7 @@ public class PmsConfiguration {
 	private static final int BUFFER_MEMORY_FACTOR = 368;
 	private static int MAX_MAX_MEMORY_BUFFER_SIZE = MAX_MAX_MEMORY_DEFAULT_SIZE;
 	private static final char LIST_SEPARATOR = ',';
+	private static final String KEY_FOLDERS = "folders";
 	private final PropertiesConfiguration configuration;
 	private final ConfigurationReader configurationReader;
 	private final TempFolder tempFolder;
@@ -2142,6 +2142,14 @@ public class PmsConfiguration {
 
 	public boolean isAudioEmbedDtsInPcm() {
 		return getBoolean(KEY_AUDIO_EMBED_DTS_IN_PCM, false);
+	}
+
+	public void setHDAudioPassthrough(boolean value) {
+		configuration.setProperty(KEY_HDAUDIO_PASSTHROUGH, value);
+	}
+
+	public boolean isHDAudioPassthrough() {
+		return getBoolean(KEY_HDAUDIO_PASSTHROUGH, false);
 	}
 
 	public void setMencoderMuxWhenCompatible(boolean value) {

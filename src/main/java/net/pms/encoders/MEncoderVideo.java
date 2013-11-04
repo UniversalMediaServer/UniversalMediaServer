@@ -110,6 +110,7 @@ public class MEncoderVideo extends Player {
 	protected String overriddenMainArgs[];
 
 	protected boolean dtsRemux;
+	protected boolean encodedAudioPassthrough;
 	protected boolean pcm;
 	protected boolean ovccopy;
 	protected boolean ac3Remux;
@@ -603,7 +604,7 @@ public class MEncoderVideo extends Player {
 			defaultArgsList.add("lavf");
 		} else if (pcm && avisynth()) {
 			defaultArgsList.add("avi");
-		} else if (pcm || dtsRemux) {
+		} else if (pcm || dtsRemux || encodedAudioPassthrough) {
 			defaultArgsList.add("rawvideo");
 		} else {
 			defaultArgsList.add("mpeg");
@@ -1059,7 +1060,16 @@ public class MEncoderVideo extends Player {
 			// AC-3 remux takes priority
 			ac3Remux = true;
 		} else {
-			// Now check for DTS remux and LPCM streaming
+			// Now check for DTS remux, LPCM streaming and encoded audio passthrough
+			encodedAudioPassthrough = isTsMuxeRVideoEngineEnabled &&
+				configuration.isHDAudioPassthrough() && 
+				(
+					!dvd ||
+					configuration.isMencoderRemuxMPEG2()
+				) && params.aid != null && 
+				params.aid.isNonPCMEncodedAudio() && 
+				!avisynth() && 
+				params.mediaRenderer.isMuxLPCMToMpeg();
 			dtsRemux = isTsMuxeRVideoEngineEnabled &&
 				configuration.isAudioEmbedDtsInPcm() &&
 				(
@@ -1100,7 +1110,7 @@ public class MEncoderVideo extends Player {
 				!combinedCustomOptions.contains("acodec=");
 		}
 
-		if (dtsRemux || pcm) {
+		if (dtsRemux || pcm || encodedAudioPassthrough) {
 			params.losslessaudio = true;
 			params.forceFps = media.getValidFps(false);
 		}
@@ -1121,7 +1131,7 @@ public class MEncoderVideo extends Player {
 		int channels;
 		if (ac3Remux) {
 			channels = params.aid.getAudioProperties().getNumberOfChannels(); // AC-3 remux
-		} else if (dtsRemux || (!params.mediaRenderer.isXBOX() && wmv)) {
+		} else if (dtsRemux || encodedAudioPassthrough || (!params.mediaRenderer.isXBOX() && wmv)) {
 			channels = 2;
 		} else if (pcm) {
 			channels = params.aid.getAudioProperties().getNumberOfChannels();
@@ -1273,7 +1283,7 @@ public class MEncoderVideo extends Player {
 			String audioType = "ac3";
 			if (dtsRemux) {
 				audioType = "dts";
-			} else if (pcm) {
+			} else if (pcm || encodedAudioPassthrough) {
 				audioType = "pcm";
 			}
 
@@ -1315,7 +1325,7 @@ public class MEncoderVideo extends Player {
 			String audioType = "ac3";
 			if (dtsRemux) {
 				audioType = "dts";
-			} else if (pcm) {
+			} else if (pcm || encodedAudioPassthrough) {
 				audioType = "pcm";
 			}
 
@@ -1592,7 +1602,7 @@ public class MEncoderVideo extends Player {
 			}
 		}
 
-		if (!dtsRemux && !pcm && !avisynth() && params.aid != null && media.getAudioTracksList().size() > 1) {
+		if (!dtsRemux && !encodedAudioPassthrough && !pcm && !avisynth() && params.aid != null && media.getAudioTracksList().size() > 1) {
 			cmdList.add("-aid");
 			boolean lavf = false; // TODO Need to add support for LAVF demuxing
 			cmdList.add("" + (lavf ? params.aid.getId() + 1 : params.aid.getId()));
@@ -2081,7 +2091,7 @@ public class MEncoderVideo extends Player {
 			}
 		}
 
-		if ((pcm || dtsRemux || ac3Remux) || (configuration.isMencoderNoOutOfSync() && !disableMc0AndNoskip)) {
+		if ((pcm || dtsRemux || encodedAudioPassthrough || ac3Remux) || (configuration.isMencoderNoOutOfSync() && !disableMc0AndNoskip)) {
 			if (configuration.isFix25FPSAvMismatch()) {
 				cmdList.add("-mc");
 				cmdList.add("0.005");
@@ -2102,7 +2112,7 @@ public class MEncoderVideo extends Player {
 
 		// Force srate because MEncoder doesn't like anything other than 48khz for AC-3
 		String rate = "" + params.mediaRenderer.getTranscodedVideoAudioSampleRate();
-		if (!pcm && !dtsRemux && !ac3Remux) {
+		if (!pcm && !dtsRemux && !ac3Remux && !encodedAudioPassthrough) {
 			cmdList.add("-af");
 			String af = "lavcresample=" + rate;
 			if (configuration.isMEncoderNormalizeVolume()) {
@@ -2124,7 +2134,7 @@ public class MEncoderVideo extends Player {
 
 		ProcessWrapperImpl pw;
 
-		if (pcm || dtsRemux) {
+		if (pcm || dtsRemux || encodedAudioPassthrough) {
 			// Transcode video, demux audio, remux with tsMuxeR
 			boolean channels_filter_present = false;
 
@@ -2136,7 +2146,7 @@ public class MEncoderVideo extends Player {
 			}
 
 			if (params.avidemux) {
-				pipe = new PipeProcess("mencoder" + System.currentTimeMillis(), (pcm || dtsRemux || ac3Remux) ? null : params);
+				pipe = new PipeProcess("mencoder" + System.currentTimeMillis(), (pcm || dtsRemux || encodedAudioPassthrough || ac3Remux) ? null : params);
 				params.input_pipes[0] = pipe;
 
 				cmdList.add("-o");
@@ -2234,11 +2244,12 @@ public class MEncoderVideo extends Player {
 				StreamModifier sm = new StreamModifier();
 				sm.setPcm(pcm);
 				sm.setDtsEmbed(dtsRemux);
+				sm.setEncodedAudioPassthrough(encodedAudioPassthrough);
 				sm.setSampleFrequency(48000);
 				sm.setBitsPerSample(16);
 
 				String mixer = null;
-				if (pcm && !dtsRemux) {
+				if (pcm && !dtsRemux && !encodedAudioPassthrough) {
 					mixer = getLPCMChannelMappingForMencoder(params.aid); // LPCM always outputs 5.1/7.1 for multichannel tracks. Downmix with player if needed!
 				}
 
@@ -2256,10 +2267,10 @@ public class MEncoderVideo extends Player {
 					"-channels", "" + channels,
 					"-ovc", "copy",
 					"-of", "rawaudio",
-					"-mc", dtsRemux ? "0.1" : "0",
+					"-mc", (dtsRemux || encodedAudioPassthrough) ? "0.1" : "0",
 					"-noskip",
 					(aid == null) ? "-quiet" : "-aid", (aid == null) ? "-quiet" : aid,
-					"-oac", (ac3Remux || dtsRemux) ? "copy" : "pcm",
+					"-oac", (ac3Remux || dtsRemux || encodedAudioPassthrough) ? "copy" : "pcm",
 					(isNotBlank(mixer) && !channels_filter_present) ? "-af" : "-quiet", (isNotBlank(mixer) && !channels_filter_present) ? mixer : "-quiet",
 					"-srate", "48000",
 					"-o", ffAudioPipe.getInputPipe()
@@ -2371,7 +2382,7 @@ public class MEncoderVideo extends Player {
 				cmdList.add("statusline=2");
 				params.input_pipes = new PipeProcess[2];
 			} else {
-				pipe = new PipeProcess("mencoder" + System.currentTimeMillis(), (pcm || dtsRemux) ? null : params);
+				pipe = new PipeProcess("mencoder" + System.currentTimeMillis(), (pcm || dtsRemux || encodedAudioPassthrough) ? null : params);
 				params.input_pipes[0] = pipe;
 				cmdList.add("-o");
 				cmdList.add(pipe.getInputPipe());
