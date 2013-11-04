@@ -35,19 +35,19 @@ public class RealFile extends MapFile {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RealFile.class);
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
-    private boolean useSuperThumb;
+	private boolean useSuperThumb;
 
 	public RealFile(File file) {
 		getConf().getFiles().add(file);
 		setLastModified(file.lastModified());
-        useSuperThumb = false;
+		useSuperThumb = false;
 	}
 
 	public RealFile(File file, String name) {
 		getConf().getFiles().add(file);
 		getConf().setName(name);
 		setLastModified(file.lastModified());
-        useSuperThumb = false;
+		useSuperThumb = false;
 	}
 
 	@Override
@@ -214,9 +214,9 @@ public class RealFile extends MapFile {
 
 	@Override
 	public InputStream getThumbnailInputStream() throws IOException {
-        if (useSuperThumb) {
-            return super.getThumbnailInputStream();
-        }
+		if (useSuperThumb) {
+			return super.getThumbnailInputStream();
+		}
 
 		File file = getFile();
 		File cachedThumbnail = null;
@@ -318,7 +318,7 @@ public class RealFile extends MapFile {
 		return getName() + ">" + getFile().getAbsolutePath();
 	}
 
-    public void ignoreThumbHandling() {
-        useSuperThumb = true;
-    }
+	public void ignoreThumbHandling() {
+		useSuperThumb = true;
+	}
 }

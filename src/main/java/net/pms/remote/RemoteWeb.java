@@ -58,25 +58,26 @@ public class RemoteWeb {
 			// Setup the socket address
 			InetSocketAddress address = new InetSocketAddress(InetAddress.getByName("0.0.0.0"), port);
 
-            // initialise the HTTP(S) server
-            if (PMS.getConfiguration().getWebHttps())
-            	server = httpsServer(address);
-            else
-            	server = HttpServer.create(address, 0);
-          
-            // Add context handlers
-            addCtx("/", new RemoteStartHandler());
-            addCtx("/browse", new RemoteBrowseHandler(this));
-            addCtx("/play", new RemotePlayHandler(this));
-            addCtx("/media", new RemoteMediaHandler(this));
-            addCtx("/thumb", new RemoteThumbHandler(this));
-            addCtx("/raw", new RemoteRawHandler(this));
-            addCtx("/js", new RemoteFileHandler());
-            server.setExecutor(null);
-            server.start();
-        } catch ( Exception e ) {
-        	LOGGER.debug("Couldn't start RemoteWEB "+e);
-        }	
+			// initialise the HTTP(S) server
+			if (PMS.getConfiguration().getWebHttps()) {
+				server = httpsServer(address);
+			} else {
+				server = HttpServer.create(address, 0);
+			}
+
+			// Add context handlers
+			addCtx("/", new RemoteStartHandler());
+			addCtx("/browse", new RemoteBrowseHandler(this));
+			addCtx("/play", new RemotePlayHandler(this));
+			addCtx("/media", new RemoteMediaHandler(this));
+			addCtx("/thumb", new RemoteThumbHandler(this));
+			addCtx("/raw", new RemoteRawHandler(this));
+			addCtx("/js", new RemoteFileHandler());
+			server.setExecutor(null);
+			server.start();
+		} catch (Exception e) {
+			LOGGER.debug("Couldn't start RemoteWEB " + e);
+		}
 	}
 
 	private HttpServer httpsServer(InetSocketAddress address) throws Exception {
@@ -139,7 +140,7 @@ public class RemoteWeb {
 		if (!create || (root != null)) {
 			return root;
 		}
-		root = new RootFolder(getTag(name));
+		root = new RootFolder();
 		root.setDefaultRenderer(RendererConfiguration.getDefaultConf());
 		//root.setDefaultRenderer(RendererConfiguration.getRendererConfigurationByName("web"));
 		root.discoverChildren();

@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 
 public class RemoteRawHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RemoteRawHandler.class);
-	private final static String CRLF = "\r\n";
 	private RemoteWeb parent;
 
 	public RemoteRawHandler(RemoteWeb parent) {

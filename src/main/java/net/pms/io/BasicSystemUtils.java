@@ -143,7 +143,7 @@ public class BasicSystemUtils implements SystemUtils {
 			PopupMenu popup = new PopupMenu();
 			MenuItem defaultItem = new MenuItem(Messages.getString("LooksFrame.5"));
 			MenuItem traceItem = new MenuItem(Messages.getString("LooksFrame.6"));
-			MenuItem webInterfaceItem = new MenuItem(Messages.getString("LooksFrame.28"));
+			MenuItem webInterfaceItem = new MenuItem(Messages.getString("LooksFrame.29"));
 
 			defaultItem.addActionListener(new ActionListener() {
 				@Override

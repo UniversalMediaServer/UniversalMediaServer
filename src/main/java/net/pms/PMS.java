@@ -728,8 +728,9 @@ public class PMS {
 			return false;
 		}
 
-/// Web stuff
+		// Web stuff
 		web = new RemoteWeb();
+
 		// initialize the cache
 		if (configuration.getUseCache()) {
 			initializeDatabase(); // XXX: this must be done *before* new MediaLibrary -> new MediaLibraryFolder
@@ -907,8 +908,6 @@ public class PMS {
 		directories.toArray(f);
 		return f;
 	}
-
-
 
 	/**
 	 * Restarts the server. The trigger is either a button on the main PMS window or via
