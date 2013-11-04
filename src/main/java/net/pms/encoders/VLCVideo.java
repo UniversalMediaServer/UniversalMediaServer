@@ -209,7 +209,13 @@ public class VLCVideo extends Player {
 		args.put("vcodec", codecConfig.videoCodec);
 		args.put("acodec", codecConfig.audioCodec);
 
-		// Bitrate in kbit/s
+		/**
+		 * Bitrate in kbit/s
+		 *
+		 * TODO: Make this engine smarter with bitrates, see 
+		 * FFMpegVideo.getVideoBitrateOptions() for our best
+		 * implementation of this.
+		 */
 		if (!videoRemux) {
 			args.put("vb", "4096");
 		}
