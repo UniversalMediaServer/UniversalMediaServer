@@ -776,6 +776,22 @@ public class MEncoderVideo extends Player {
 				bufSize = 1835;
 			}
 
+			/**
+			 * Although the maximum bitrate for H.264 Level 4.1 is
+			 * officially 50,000 kbit/s, some 4.1-capable renderers
+			 * like the PS3 stutter when video exceeds roughly 31,250
+			 * kbit/s.
+			 */
+			if (mediaRenderer.isTranscodeToH264TSAC3()) {
+				if (
+					mediaRenderer.isH264Level41Limited() &&
+					defaultMaxBitrates[0] > 31250
+				) {
+					defaultMaxBitrates[0] = 31250;
+				}
+				bufSize = defaultMaxBitrates[0];
+			}
+
 			// Make room for audio
 			switch (audioType) {
 				case "pcm":

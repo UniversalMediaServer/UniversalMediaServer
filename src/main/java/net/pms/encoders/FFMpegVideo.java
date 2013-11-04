@@ -390,6 +390,22 @@ public class FFMpegVideo extends Player {
 				}
 			}
 
+			/**
+			 * Although the maximum bitrate for H.264 Level 4.1 is
+			 * officially 50,000 kbit/s, some 4.1-capable renderers
+			 * like the PS3 stutter when video exceeds roughly 31,250
+			 * kbit/s.
+			 */
+			if (params.mediaRenderer.isTranscodeToH264TSAC3() || videoRemux) {
+				if (
+					params.mediaRenderer.isH264Level41Limited() &&
+					defaultMaxBitrates[0] > 31250000
+				) {
+					defaultMaxBitrates[0] = 31250000;
+				}
+				bufSize = defaultMaxBitrates[0];
+			}
+
 			// Make room for audio
 			if (dtsRemux) {
 				defaultMaxBitrates[0] = defaultMaxBitrates[0] - 1510;
@@ -403,20 +419,6 @@ public class FFMpegVideo extends Player {
 			// FFmpeg uses bytes for inputs instead of kbytes like MEncoder
 			bufSize = bufSize * 1000;
 			defaultMaxBitrates[0] = defaultMaxBitrates[0] * 1000;
-
-			/**
-			 * Level 4.1-limited renderers like the PS3 can stutter when H.264 video exceeds
-			 * this bitrate
-			 */
-			if (params.mediaRenderer.isTranscodeToH264TSAC3() || videoRemux) {
-				if (
-					params.mediaRenderer.isH264Level41Limited() &&
-					defaultMaxBitrates[0] > 31250000
-				) {
-					defaultMaxBitrates[0] = 31250000;
-				}
-				bufSize = defaultMaxBitrates[0];
-			}
 
 			videoBitrateOptions.add("-bufsize");
 			videoBitrateOptions.add(String.valueOf(bufSize));
