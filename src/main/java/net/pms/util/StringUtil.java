@@ -3,7 +3,7 @@ package net.pms.util;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public class StringUtil {
-	private static final int[] MULTIPLIER = new int[] {1, 60, 3600, 24*3600};
+	private static final int[] MULTIPLIER = new int[] {3600, 60, 1};
 	public static final String ASS_TIME_FORMAT = "%01d:%02d:%05.2f";
 	public static final String SRT_TIME_FORMAT = "%02d:%02d:%06.3f";
 	public static final String SEC_TIME_FORMAT = "%02d:%02d:%02d";
@@ -103,13 +103,14 @@ public class StringUtil {
 		try {
 			return Double.parseDouble(time);
 		} catch (NumberFormatException e) {
-			String[] arrs = time.split(":");
-			double value, sum = 0;
-			for (int i = 0; i < arrs.length; i++) {
-				String tmp = arrs[arrs.length - i - 1];
-				value = Double.parseDouble(tmp.replace(",", "."));
-				sum += value * MULTIPLIER[i];
+			String[] arguments = time.split(":");
+			double sum = 0;
+			int i = 0;
+			for (String argument : arguments) {
+				sum += Double.parseDouble(argument.replace(",", ".")) * MULTIPLIER[i];
+				i++;
 			}
+
 			return sum;
 		}
 
