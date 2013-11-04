@@ -8,9 +8,10 @@ public class StringUtil {
 	public static final String SRT_TIME_FORMAT = "%02d:%02d:%06.3f";
 	public static final String SEC_TIME_FORMAT = "%02d:%02d:%02d";
 	public static final String DURATION_TIME_FORMAT = "%02d:%02d:%05.2f";
-	
+
 	/**
 	 * Appends "&lt;<u>tag</u> " to the StringBuilder. This is a typical HTML/DIDL/XML tag opening.
+	 *
 	 * @param sb String to append the tag beginning to.
 	 * @param tag String that represents the tag
 	 */
@@ -21,6 +22,7 @@ public class StringUtil {
 
 	/**
 	 * Appends the closing symbol &gt; to the StringBuilder. This is a typical HTML/DIDL/XML tag closing.
+	 *
 	 * @param sb String to append the ending character of a tag.
 	 */
 	public static void endTag(StringBuilder sb) {
@@ -29,6 +31,7 @@ public class StringUtil {
 
 	/**
 	 * Appends "&lt;/<u>tag</u>&gt;" to the StringBuilder. This is a typical closing HTML/DIDL/XML tag.
+	 *
 	 * @param sb
 	 * @param tag
 	 */
@@ -58,6 +61,7 @@ public class StringUtil {
 
 	/**
 	 * Does basic transformations between characters and their HTML representation with ampersands.
+	 *
 	 * @param s String to be encoded
 	 * @return Encoded String
 	 */
@@ -74,6 +78,7 @@ public class StringUtil {
 
 	/**
 	 * Converts a URL string to a more canonical form
+	 *
 	 * @param url String to be converted
 	 * @return Converted String.
 	 */
@@ -113,7 +118,6 @@ public class StringUtil {
 
 			return sum;
 		}
-
 	}
 
 	/**
