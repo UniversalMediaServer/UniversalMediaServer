@@ -384,9 +384,9 @@ public class FFMpegVideo extends Player {
 			if (params.mediaRenderer.isTranscodeToH264TSAC3() || videoRemux) {
 				if (
 					params.mediaRenderer.isH264Level41Limited() &&
-					defaultMaxBitrates[0] > 31250000
+					defaultMaxBitrates[0] > 31250
 				) {
-					defaultMaxBitrates[0] = 31250000;
+					defaultMaxBitrates[0] = 31250;
 				}
 				bufSize = defaultMaxBitrates[0];
 			} else {
