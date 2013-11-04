@@ -760,27 +760,14 @@ public class MEncoderVideo extends Player {
 			defaultMaxBitrates[0] = defaultMaxBitrates[0] / 2;
 
 			int bufSize = 1835;
-			if (media.isHDVideo()) {
-				bufSize = defaultMaxBitrates[0] / 3;
-			}
-
-			if (bufSize > 7000) {
-				bufSize = 7000;
-			}
-
-			if (defaultMaxBitrates[1] > 0) {
-				bufSize = defaultMaxBitrates[1];
-			}
-
-			if (mediaRenderer.isDefaultVBVSize() && rendererMaxBitrates[1] == 0) {
-				bufSize = 1835;
-			}
 
 			/**
 			 * Although the maximum bitrate for H.264 Level 4.1 is
 			 * officially 50,000 kbit/s, some 4.1-capable renderers
 			 * like the PS3 stutter when video exceeds roughly 31,250
 			 * kbit/s.
+			 *
+			 * We also apply the correct buffer size in this section.
 			 */
 			if (mediaRenderer.isTranscodeToH264TSAC3()) {
 				if (
@@ -790,6 +777,22 @@ public class MEncoderVideo extends Player {
 					defaultMaxBitrates[0] = 31250;
 				}
 				bufSize = defaultMaxBitrates[0];
+			} else {
+				if (media.isHDVideo()) {
+					bufSize = defaultMaxBitrates[0] / 3;
+				}
+
+				if (bufSize > 7000) {
+					bufSize = 7000;
+				}
+
+				if (defaultMaxBitrates[1] > 0) {
+					bufSize = defaultMaxBitrates[1];
+				}
+
+				if (mediaRenderer.isDefaultVBVSize() && rendererMaxBitrates[1] == 0) {
+					bufSize = 1835;
+				}
 			}
 
 			// Make room for audio
