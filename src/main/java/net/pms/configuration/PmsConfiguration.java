@@ -1903,7 +1903,6 @@ public class PmsConfiguration {
 		String defaultEngines = StringUtils.join(
 			new String[] {
 				"mencoder",
-				"avsmencoder",
 				"tsmuxer",
 				"ffmpegvideo",
 				"ffmpegaudio",
