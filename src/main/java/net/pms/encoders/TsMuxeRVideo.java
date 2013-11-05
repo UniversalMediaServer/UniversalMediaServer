@@ -300,7 +300,7 @@ public class TsMuxeRVideo extends Player {
 			if (params.aid != null) {
 				boolean ac3Remux;
 				boolean dtsRemux;
-				boolean hdaudiopassthrough;
+				boolean encodedAudioPassthrough;
 				boolean pcm;
 
 				// Disable LPCM transcoding for MP4 container with non-H264 video as workaround for MEncoder's A/V sync bug
@@ -322,7 +322,7 @@ public class TsMuxeRVideo extends Player {
 
 					ac3Remux = (params.aid.isAC3() && configuration.isAudioRemuxAC3());
 					dtsRemux = configuration.isAudioEmbedDtsInPcm() && params.aid.isDTS() && params.mediaRenderer.isDTSPlayable();
-					hdaudiopassthrough = configuration.isHDAudioPassthrough() && params.aid.isNonPCMEncodedAudio();
+					encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && params.aid.isNonPCMEncodedAudio();
 					pcm = configuration.isAudioUsePCM() &&
 						!mp4_with_non_h264 &&
 						(
@@ -345,7 +345,7 @@ public class TsMuxeRVideo extends Player {
 					int channels;
 					if (ac3Remux) {
 						channels = params.aid.getAudioProperties().getNumberOfChannels(); // AC-3 remux
-					} else if (dtsRemux || hdaudiopassthrough) {
+					} else if (dtsRemux || encodedAudioPassthrough) {
 						channels = 2;
 					} else if (pcm) {
 						channels = params.aid.getAudioProperties().getNumberOfChannels();
@@ -353,19 +353,19 @@ public class TsMuxeRVideo extends Player {
 						channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
 					}
 
-					if (!ac3Remux && (dtsRemux || pcm || hdaudiopassthrough)) {
+					if (!ac3Remux && (dtsRemux || pcm || encodedAudioPassthrough)) {
 						// DTS remux or LPCM
 						StreamModifier sm = new StreamModifier();
 						sm.setPcm(pcm);
 						sm.setDtsEmbed(dtsRemux);
-						sm.setEncodedAudioPassthrough(hdaudiopassthrough);
+						sm.setEncodedAudioPassthrough(encodedAudioPassthrough);
 						sm.setNbChannels(channels);
 						sm.setSampleFrequency(params.aid.getSampleRate() < 48000 ? 48000 : params.aid.getSampleRate());
 						sm.setBitsPerSample(16);
 
 						String mixer = null;
 
-						if (pcm && !dtsRemux && !hdaudiopassthrough) {
+						if (pcm && !dtsRemux && !encodedAudioPassthrough) {
 							mixer = getLPCMChannelMappingForMencoder(params.aid);
 						}
 
@@ -440,7 +440,7 @@ public class TsMuxeRVideo extends Player {
 
 						ac3Remux = audio.isAC3() && configuration.isAudioRemuxAC3();
 						dtsRemux = configuration.isAudioEmbedDtsInPcm() && audio.isDTS() && params.mediaRenderer.isDTSPlayable();
-						hdaudiopassthrough = configuration.isHDAudioPassthrough() && params.aid.isNonPCMEncodedAudio();
+						encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && params.aid.isNonPCMEncodedAudio();
 						pcm = configuration.isAudioUsePCM() &&
 							!mp4_with_non_h264 &&
 							(
@@ -463,7 +463,7 @@ public class TsMuxeRVideo extends Player {
 						int channels;
 						if (ac3Remux) {
 							channels = audio.getAudioProperties().getNumberOfChannels(); // AC-3 remux
-						} else if (dtsRemux || hdaudiopassthrough) {
+						} else if (dtsRemux || encodedAudioPassthrough) {
 							channels = 2;
 						} else if (pcm) {
 							channels = audio.getAudioProperties().getNumberOfChannels();
@@ -471,12 +471,12 @@ public class TsMuxeRVideo extends Player {
 							channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
 						}
 
-						if (!ac3Remux && (dtsRemux || pcm || hdaudiopassthrough)) {
+						if (!ac3Remux && (dtsRemux || pcm || encodedAudioPassthrough)) {
 							// DTS remux or LPCM
 							StreamModifier sm = new StreamModifier();
 							sm.setPcm(pcm);
 							sm.setDtsEmbed(dtsRemux);
-							sm.setEncodedAudioPassthrough(hdaudiopassthrough);
+							sm.setEncodedAudioPassthrough(encodedAudioPassthrough);
 							sm.setNbChannels(channels);
 							sm.setSampleFrequency(audio.getSampleRate() < 48000 ? 48000 : audio.getSampleRate());
 							sm.setBitsPerSample(16);
@@ -485,7 +485,7 @@ public class TsMuxeRVideo extends Player {
 							}
 
 							String mixer = null;
-							if (pcm && !dtsRemux && !hdaudiopassthrough) {
+							if (pcm && !dtsRemux && !encodedAudioPassthrough) {
 								mixer = getLPCMChannelMappingForMencoder(audio);
 							}
 
@@ -564,7 +564,7 @@ public class TsMuxeRVideo extends Player {
 				String timeshift = "";
 				boolean ac3Remux;
 				boolean dtsRemux;
-				boolean hdaudiopassthrough;
+				boolean encodedAudioPassthrough;
 				boolean pcm;
 
 				/**
@@ -579,7 +579,7 @@ public class TsMuxeRVideo extends Player {
 
 				ac3Remux = params.aid.isAC3() && configuration.isAudioRemuxAC3();
 				dtsRemux = configuration.isAudioEmbedDtsInPcm() && params.aid.isDTS() && params.mediaRenderer.isDTSPlayable();
-				hdaudiopassthrough = configuration.isHDAudioPassthrough() && params.aid.isNonPCMEncodedAudio();
+				encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && params.aid.isNonPCMEncodedAudio();
 				pcm = configuration.isAudioUsePCM() &&
 					!mp4_with_non_h264 &&
 					(
@@ -606,7 +606,7 @@ public class TsMuxeRVideo extends Player {
 					if (pcm || this instanceof TsMuxeRAudio) {
 						type = "A_LPCM";
 					}
-					if (hdaudiopassthrough || this instanceof TsMuxeRAudio) {
+					if (encodedAudioPassthrough || this instanceof TsMuxeRAudio) {
 						type = "A_LPCM";
 					}
 					if (dtsRemux || this instanceof TsMuxeRAudio) {
@@ -626,7 +626,7 @@ public class TsMuxeRVideo extends Player {
 					String timeshift = "";
 					boolean ac3Remux;
 					boolean dtsRemux;
-					boolean hdaudiopassthrough;
+					boolean encodedAudioPassthrough;
 					boolean pcm;
 
 					/**
@@ -641,7 +641,7 @@ public class TsMuxeRVideo extends Player {
 
 					ac3Remux = lang.isAC3() && configuration.isAudioRemuxAC3();
 					dtsRemux = configuration.isAudioEmbedDtsInPcm() && lang.isDTS() && params.mediaRenderer.isDTSPlayable();
-					hdaudiopassthrough = configuration.isHDAudioPassthrough() && params.aid.isNonPCMEncodedAudio();
+					encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && params.aid.isNonPCMEncodedAudio();
 					pcm = configuration.isAudioUsePCM() &&
 						!mp4_with_non_h264 &&
 						(
@@ -668,7 +668,7 @@ public class TsMuxeRVideo extends Player {
 						if (pcm) {
 							type = "A_LPCM";
 						}
-						if (hdaudiopassthrough) {
+						if (encodedAudioPassthrough) {
 							type = "A_LPCM";
 						}
 						if (dtsRemux) {

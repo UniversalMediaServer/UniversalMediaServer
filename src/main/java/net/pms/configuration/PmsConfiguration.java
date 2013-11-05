@@ -98,6 +98,7 @@ public class PmsConfiguration {
 	public static final String KEY_DISABLE_SUBTITLES = "disable_subtitles";
 	private static final String KEY_DVDISO_THUMBNAILS = "dvd_isos_thumbnails";
 	private static final String KEY_AUDIO_EMBED_DTS_IN_PCM = "audio_embed_dts_in_pcm";
+	private static final String KEY_ENCODED_AUDIO_PASSTHROUGH = "encoded_audio_passthrough";
 	private static final String KEY_ENGINES = "engines";
 	private static final String KEY_FFMPEG_ALTERNATIVE_PATH = "alternativeffmpegpath"; // TODO: FFmpegDVRMSRemux will be removed and DVR-MS will be transcoded
 	private static final String KEY_FFMPEG_MULTITHREADING = "ffmpeg_multithreading";
@@ -221,7 +222,6 @@ public class PmsConfiguration {
 	private static final String KEY_VIDEOTRANSCODE_START_DELAY = "videotranscode_start_delay";
 	private static final String KEY_VIRTUAL_FOLDERS = "virtual_folders";
 	private static final String KEY_VIRTUAL_FOLDERS_FILE = "virtual_folders_file";
-	private static final String KEY_HDAUDIO_PASSTHROUGH = "hdaudio_passthrough";
 	private static final String KEY_VLC_USE_HW_ACCELERATION = "vlc_use_hw_acceleration";
 	private static final String KEY_VLC_USE_EXPERIMENTAL_CODECS = "vlc_use_experimental_codecs";
 	private static final String KEY_VLC_AUDIO_SYNC_ENABLED = "vlc_audio_sync_enabled";
@@ -2144,12 +2144,12 @@ public class PmsConfiguration {
 		return getBoolean(KEY_AUDIO_EMBED_DTS_IN_PCM, false);
 	}
 
-	public void setHDAudioPassthrough(boolean value) {
-		configuration.setProperty(KEY_HDAUDIO_PASSTHROUGH, value);
+	public void setEncodedAudioPassthrough(boolean value) {
+		configuration.setProperty(KEY_ENCODED_AUDIO_PASSTHROUGH, value);
 	}
 
-	public boolean isHDAudioPassthrough() {
-		return getBoolean(KEY_HDAUDIO_PASSTHROUGH, false);
+	public boolean isEncodedAudioPassthrough() {
+		return getBoolean(KEY_ENCODED_AUDIO_PASSTHROUGH, false);
 	}
 
 	public void setMencoderMuxWhenCompatible(boolean value) {

@@ -75,7 +75,7 @@ public class TranscodingTab {
 	private JTextField abitrate;
 	private JTree tree;
 	private JCheckBox forcePCM;
-	private JCheckBox hdaudiopass;
+	private JCheckBox encodedAudioPassthrough;
 	public static JCheckBox forceDTSinPCM;
 	private JComboBox channels;
 	private JComboBox vq;
@@ -665,16 +665,16 @@ public class TranscodingTab {
 		});
 		builder.add(ac3remux, FormLayoutUtil.flip(cc.xyw(1, 6, 3), colSpec, orientation));
 
-		hdaudiopass = new JCheckBox(Messages.getString("TrTab2.53") + (Platform.isWindows() ? Messages.getString("TrTab2.21") : ""));
-		hdaudiopass.setContentAreaFilled(false);
-		if (configuration.isHDAudioPassthrough()) {
-			hdaudiopass.setSelected(true);
+		encodedAudioPassthrough = new JCheckBox(Messages.getString("TrTab2.53") + (Platform.isWindows() ? Messages.getString("TrTab2.21") : ""));
+		encodedAudioPassthrough.setContentAreaFilled(false);
+		if (configuration.isEncodedAudioPassthrough()) {
+			encodedAudioPassthrough.setSelected(true);
 		}
-		hdaudiopass.addActionListener(new ActionListener() {
+		encodedAudioPassthrough.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				configuration.setHDAudioPassthrough(hdaudiopass.isSelected());
-				if (configuration.isHDAudioPassthrough()) {
+				configuration.setEncodedAudioPassthrough(encodedAudioPassthrough.isSelected());
+				if (configuration.isEncodedAudioPassthrough()) {
 					JOptionPane.showMessageDialog(
 						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 						Messages.getString("TrTab2.10"),
@@ -685,7 +685,7 @@ public class TranscodingTab {
 			}
 		});
 
-		builder.add(hdaudiopass, cc.xyw(1, 8, 3));
+		builder.add(encodedAudioPassthrough, cc.xyw(1, 8, 3));
 
 		forceDTSinPCM = new JCheckBox(Messages.getString("TrTab2.28") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : ""), configuration.isAudioEmbedDtsInPcm());
 		forceDTSinPCM.setContentAreaFilled(false);

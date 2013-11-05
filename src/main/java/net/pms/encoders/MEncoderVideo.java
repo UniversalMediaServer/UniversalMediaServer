@@ -1062,7 +1062,7 @@ public class MEncoderVideo extends Player {
 		} else {
 			// Now check for DTS remux, LPCM streaming and encoded audio passthrough
 			encodedAudioPassthrough = isTsMuxeRVideoEngineEnabled &&
-				configuration.isHDAudioPassthrough() && 
+				configuration.isEncodedAudioPassthrough() && 
 				(
 					!dvd ||
 					configuration.isMencoderRemuxMPEG2()
