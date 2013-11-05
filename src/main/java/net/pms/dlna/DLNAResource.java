@@ -27,6 +27,7 @@ import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
@@ -613,7 +614,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	
 							if (!configuration.isDisableSubtitles()) {
 								// FIXME: Why transcode if the renderer can handle embedded subs?
-								hasSubsToTranscode = (configuration.isAutoloadExternalSubtitles() && child.isSubsFile()) || hasEmbeddedSubs;
+								hasSubsToTranscode = (configuration.isAutoloadExternalSubtitles() && !isNotBlank(getDefaultRenderer().getSupportedSubtitles()) && child.isSubsFile()) || hasEmbeddedSubs;
 
 								if (hasSubsToTranscode) {
 									LOGGER.trace("File \"{}\" has subs that need transcoding", child.getName());
