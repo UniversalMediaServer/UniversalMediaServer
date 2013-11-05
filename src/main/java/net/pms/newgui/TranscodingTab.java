@@ -679,7 +679,8 @@ public class TranscodingTab {
 						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 						Messages.getString("TrTab2.10"),
 						"Information",
-						JOptionPane.INFORMATION_MESSAGE);
+						JOptionPane.INFORMATION_MESSAGE
+					);
 				}
 			}
 		});

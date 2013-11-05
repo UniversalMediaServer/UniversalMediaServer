@@ -108,9 +108,9 @@ public class PCMAudioOutputStream extends FlowParserOutputStream {
 
 	@Override
 	protected void beforeChunkSend() throws IOException {
-		if (!wavMode)
+		if (!wavMode) {
 			writePayload(payload);
-		else if (!headerSent) {
+		} else if (!headerSent) {
 			writePayload(payload);
 			headerSent = true;
 		}

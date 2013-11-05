@@ -669,7 +669,7 @@ public class TsMuxeRVideo extends Player {
 							type = "A_LPCM";
 						}
 						if (hdaudiopassthrough) {
-						type = "A_LPCM";
+							type = "A_LPCM";
 						}
 						if (dtsRemux) {
 							type = "A_LPCM";
