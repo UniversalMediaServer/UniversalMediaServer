@@ -619,7 +619,7 @@ public class TranscodingTab {
 
 	private JComponent buildAudioSetupPanel() {
 		String colSpec = FormLayoutUtil.getColSpec("left:pref, 3dlu, pref:grow", orientation);
-		FormLayout layout = new FormLayout(colSpec, "$lgap, pref, 3dlu, 4*(pref, 3dlu), pref, 12dlu, 3*(pref, 3dlu), pref:grow");
+		FormLayout layout = new FormLayout(colSpec, "$lgap, pref, 3dlu, 5*(pref, 3dlu), pref, 12dlu, 3*(pref, 3dlu), pref:grow");
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.border(Borders.DLU4);
 		CellConstraints cc = new CellConstraints();
@@ -665,7 +665,7 @@ public class TranscodingTab {
 		});
 		builder.add(ac3remux, FormLayoutUtil.flip(cc.xyw(1, 6, 3), colSpec, orientation));
 
-		encodedAudioPassthrough = new JCheckBox(Messages.getString("TrTab2.53") + (Platform.isWindows() ? Messages.getString("TrTab2.21") : ""));
+		encodedAudioPassthrough = new JCheckBox(Messages.getString("TrTab2.53") + " " + (Platform.isWindows() ? Messages.getString("TrTab2.21") : ""));
 		encodedAudioPassthrough.setContentAreaFilled(false);
 		if (configuration.isEncodedAudioPassthrough()) {
 			encodedAudioPassthrough.setSelected(true);
