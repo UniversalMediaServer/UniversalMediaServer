@@ -21,6 +21,14 @@
 			Fixes memory leaks
 			Fixes multithreaded decoding
 			Fixes bugs
+		Updated tsMuxeR for Linux to 2.1.6b, which:
+			Improves muxing speed
+			Improves stream standards compatibility
+			Fixes E-AC3 support
+			Adds support for DTS-express audio
+			Reduces bandwidth
+		Updated tsMuxeR for Windows to 2.1.6b, which:
+			Reduces bandwidth
 
 3.0.0 - 2013-11-01 - Changes since 2.6.5
 
