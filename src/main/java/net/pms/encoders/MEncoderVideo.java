@@ -760,6 +760,7 @@ public class MEncoderVideo extends Player {
 			defaultMaxBitrates[0] = defaultMaxBitrates[0] / 2;
 
 			int bufSize = 1835;
+			boolean bitrateLevel41Limited = false;
 
 			/**
 			 * Although the maximum bitrate for H.264 Level 4.1 is
@@ -775,6 +776,7 @@ public class MEncoderVideo extends Player {
 					defaultMaxBitrates[0] > 31250
 				) {
 					defaultMaxBitrates[0] = 31250;
+					bitrateLevel41Limited = true;
 				}
 				bufSize = defaultMaxBitrates[0];
 			} else {
@@ -795,21 +797,23 @@ public class MEncoderVideo extends Player {
 				}
 			}
 
-			// Make room for audio
-			switch (audioType) {
-				case "pcm":
-					defaultMaxBitrates[0] = defaultMaxBitrates[0] - 4600;
-					break;
-				case "dts":
-					defaultMaxBitrates[0] = defaultMaxBitrates[0] - 1510;
-					break;
-				case "ac3":
-					defaultMaxBitrates[0] = defaultMaxBitrates[0] - configuration.getAudioBitrate();
-					break;
-			}
+			if (!bitrateLevel41Limited) {
+				// Make room for audio
+				switch (audioType) {
+					case "pcm":
+						defaultMaxBitrates[0] = defaultMaxBitrates[0] - 4600;
+						break;
+					case "dts":
+						defaultMaxBitrates[0] = defaultMaxBitrates[0] - 1510;
+						break;
+					case "ac3":
+						defaultMaxBitrates[0] = defaultMaxBitrates[0] - configuration.getAudioBitrate();
+						break;
+				}
 
-			// Round down to the nearest Mb
-			defaultMaxBitrates[0] = defaultMaxBitrates[0] / 1000 * 1000;
+				// Round down to the nearest Mb
+				defaultMaxBitrates[0] = defaultMaxBitrates[0] / 1000 * 1000;
+			}
 
 			encodeSettings += ":vrc_maxrate=" + defaultMaxBitrates[0] + ":vrc_buf_size=" + bufSize;
 		}

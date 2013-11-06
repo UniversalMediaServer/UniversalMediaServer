@@ -372,6 +372,7 @@ public class FFMpegVideo extends Player {
 			defaultMaxBitrates[0] = defaultMaxBitrates[0] / 2;
 
 			int bufSize = 1835;
+			boolean bitrateLevel41Limited = false;
 
 			/**
 			 * Although the maximum bitrate for H.264 Level 4.1 is
@@ -387,6 +388,7 @@ public class FFMpegVideo extends Player {
 					defaultMaxBitrates[0] > 31250
 				) {
 					defaultMaxBitrates[0] = 31250;
+					bitrateLevel41Limited = true;
 				}
 				bufSize = defaultMaxBitrates[0];
 			} else {
@@ -407,15 +409,17 @@ public class FFMpegVideo extends Player {
 				}
 			}
 
-			// Make room for audio
-			if (dtsRemux) {
-				defaultMaxBitrates[0] = defaultMaxBitrates[0] - 1510;
-			} else {
-				defaultMaxBitrates[0] = defaultMaxBitrates[0] - configuration.getAudioBitrate();
-			}
+			if (!bitrateLevel41Limited) {
+				// Make room for audio
+				if (dtsRemux) {
+					defaultMaxBitrates[0] = defaultMaxBitrates[0] - 1510;
+				} else {
+					defaultMaxBitrates[0] = defaultMaxBitrates[0] - configuration.getAudioBitrate();
+				}
 
-			// Round down to the nearest Mb
-			defaultMaxBitrates[0] = defaultMaxBitrates[0] / 1000 * 1000;
+				// Round down to the nearest Mb
+				defaultMaxBitrates[0] = defaultMaxBitrates[0] / 1000 * 1000;
+			}
 
 			// FFmpeg uses bytes for inputs instead of kbytes like MEncoder
 			bufSize = bufSize * 1000;
