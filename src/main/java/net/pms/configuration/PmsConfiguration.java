@@ -2087,6 +2087,7 @@ public class PmsConfiguration {
 	 * <li>2: Sort by modified date, oldest first</li>
 	 * <li>3: Case-insensitive ASCIIbetical sort</li>
 	 * <li>4: Locale-sensitive natural sort</li>
+	 * <li>5: Random</li>
 	 * </ul>
 	 * Default value is 4.
 	 * @return The sort method
@@ -2104,6 +2105,7 @@ public class PmsConfiguration {
 	 * <li>2: Sort by modified date, oldest first</li>
 	 * <li>3: Case-insensitive ASCIIbetical sort</li>
 	 * <li>4: Locale-sensitive natural sort</li>
+	 * <li>5: Random</li>
 	 * </ul>
 	 * @param value The sort method to use
 	 */

@@ -536,14 +536,16 @@ public class NavigationShareTab {
 				"4", // natural sort
 				"3", // ASCIIbetical
 				"1", // newest first
-				"2"  // oldest first
+				"2", // oldest first
+				"5"  // random
 			},
 			new Object[]{
 				Messages.getString("FoldTab.15"),
 				Messages.getString("FoldTab.22"),
 				Messages.getString("FoldTab.20"),
 				Messages.getString("FoldTab.16"),
-				Messages.getString("FoldTab.17")
+				Messages.getString("FoldTab.17"),
+				Messages.getString("FoldTab.58")
 			}
 		);
 		sortmethod = new JComboBox(kcbm);
