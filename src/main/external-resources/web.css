@@ -1,0 +1,900 @@
+html {
+	background:#000 url('../img/background.jpg');
+	color: #FFF;
+	overflow-y: scroll;
+}
+
+/********************************************************
+	GENERAL SETTINGS / CLASSES
+********************************************************/
+
+a:link {
+	color:#B0B0B0;
+	text-decoration:none;
+}
+a:visited {
+	color:#B0B0B0;
+	text-decoration:none;
+}
+a:active {
+	color:#B0B0B0;
+	text-decoration:none;
+}
+a:hover {
+	color:#3f6599;
+	text-decoration:none;
+}
+
+.ssg {
+	color:#007EE9;
+}
+.dxs {
+	color:#F89200;
+}
+a.dxs {
+	color:#F89200;
+}
+a.ssg {
+	color:#007EE9;
+}
+a.dxs:hover {
+	color:#3f6599;
+}
+a.ssg:hover {
+	color:#3f6599;
+}
+
+.border-radius-5 {
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	border-radius: 10px;
+}
+
+.border-radius-10 {
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	border-radius: 10px;
+}
+
+.smalltext {
+	font-size:88%;
+}
+
+.display-none {
+	display:none;
+}
+
+.inactive {
+	background: #640000;
+	background: rgba(100,0,0,0.3);
+	display:none;
+}
+
+.inactive-mysubs {
+	background: #640000;
+	background: rgba(100,0,0,0.3);
+}
+
+img.border {
+	border: 1px solid #000;
+	width:108px;
+	height:160px;
+}
+
+.checkbox {
+	margin:5px;
+}
+
+.input,.input:focus {
+	background: #101010;
+	border: 1px solid #000;
+	color: #FFF;
+	padding :5px;
+	margin: 0 0 3px 0;
+}
+
+.input:focus {
+	border:1px solid #8e8e8e;
+	outline:none;
+}
+
+.button {
+	background:#101010;
+	border:2px solid #000;
+	color:#FFF;
+	padding:5px 7px;
+	_padding:3px 2px;
+	cursor:pointer;
+}
+
+input:hover.button {
+	border:2px solid #8e8e8e;
+}
+
+table {
+	width:590px;
+}
+
+td {
+	border:none;
+	font-size: 90%;
+}
+
+td.top {
+	vertical-align:top;
+}
+
+td.left {
+	width:110px;
+}
+
+td.border {
+	border-top:1px solid #3c3c3c;
+}
+
+.icon {
+	width:80px;
+	height:40px;
+	text-align:right;
+	margin: 0 10px 0 0;
+}
+
+.movieName {
+	font-size: 170%;
+	margin: 0 100px 5px 0;
+	padding: 0;
+}
+
+.facebook-like {
+	height: 40px;
+}
+
+td .input {
+	width:95%;
+}
+
+h1 .smalltext {
+	font-size:60%;
+	font-weight:normal;
+}
+
+td h1 {
+	font-size:170%;
+	width:100%;
+}
+
+.float-left {
+	float:left;
+}
+.float-right {
+	float:right;
+}
+
+.transparent {
+	width: 100%; 
+	-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=70)";
+	filter: alpha(opacity=70);
+	-moz-opacity:0.7;
+	-khtml-opacity: 0.7;
+	opacity: 0.7;
+}
+
+#reverse, #inactive, .edit, .movie {
+	background: url('../img/icon/icons.png') no-repeat;
+	padding:0 0 0 20px;
+	margin:0 0 5px 0;
+	display:block;
+	height:16px;
+}
+
+#reverse {
+	background-position:0 -32px;
+}
+
+#inactive {
+	background-position:0 0;
+}
+
+.edit {
+	background-position:0 -64px;
+	margin: 0 0 5px 5px;
+}
+
+.movie {
+	background-position:0 -80px;
+}
+
+/********************************************************
+	FACEBOOK
+********************************************************/
+
+.fb_edge_widget_with_comment {
+	color: #FFF;
+}
+
+/********************************************************
+	NAVBAR
+********************************************************/
+
+#navbar {
+	border-top:7px solid #680000;
+	position:absolute;
+	width:100%;
+	left:0;
+}
+
+#navbar:after {
+	border-top:1px solid #171717;
+	position:absolute;
+	width:100%;
+	left:0;
+	content: '';
+}
+
+/********************************************************
+	BORDER
+********************************************************/
+
+#border {
+	border-top:7px solid #680000;
+	position:absolute;
+	width:100%;
+	left:0;
+}
+
+#border:after {
+	border-top:1px solid #171717;
+	position:absolute;
+	width:100%;
+	left:0;
+	content: '';
+}
+
+/********************************************************
+	CONTAINER WRAPPER
+********************************************************/
+
+#container {
+	width:890px;
+	margin:0 auto;
+}
+
+/********************************************************
+	HEADER WRAPPER
+********************************************************/
+
+#header {
+	position:relative;
+	height:120px;
+	z-index:1;
+}
+
+/********************************************************
+	LOGOTYPE
+********************************************************/
+
+#logo {
+	position:absolute;
+	top:0;
+	left:0;
+}
+
+#logo h1 {
+	background: url('../img/swesub-logotype.png') no-repeat 0 15px;
+	width:200px;
+	height:120px;
+	margin:0;
+	text-indent:-9999px;
+}
+
+/********************************************************
+	MAIN MENU
+********************************************************/
+
+#menu {
+	color:#CCC;
+	font-size:90%;
+	position:absolute;
+	top:0;
+	right:0;
+	margin:0;
+	z-index:1;
+}
+
+#menu li {
+	list-style:none;
+	margin:0;
+	float:left;
+	display:block;
+	position:relative;
+}
+
+#menu li a {
+	border-bottom:3px solid #212121;
+	text-decoration:none;
+	text-transform: uppercase;
+	display:block;
+	outline:0;
+	padding:1.5em 1.5em 0.5em;
+}
+
+#menu a:hover {
+	color:#B0B0B0;
+	border-bottom:3px solid #8e8e8e;
+}
+
+#menu .current {
+	border-bottom:3px solid #680000;
+}
+
+/********************************************************
+	SUB MENU
+********************************************************/
+
+.dropdown_fluid,
+.dropdown_1column,
+.dropdown_2columns,
+.dropdown_3columns,
+.dropdown_4columns,
+.dropdown_5columns {
+	position:absolute;
+	left:-999em; /* Hides the drop down */
+	text-align:left;
+	border:1px solid #8e8e8e;
+	border-top:none;
+	
+	border-top:3px solid #8e8e8e;
+	margin: -3px 0 0 0;
+
+	/* Gradient background */
+	background: #171717;
+
+	/* Rounded Corners */
+	-moz-border-radius: 0px 0 5px 5px;
+	-webkit-border-radius: 0px 0 5px 5px;
+	border-radius: 0px 0 5px 5px;
+	z-index:2;
+}
+.dropdown_1column,
+.dropdown_2columns,
+.dropdown_3columns,
+.dropdown_4columns,
+.dropdown_5columns {
+	padding:10px 5px 10px 5px;	
+}
+
+.dropdown_1column .input,
+.dropdown_2columns .input,
+.dropdown_3columns .input,
+.dropdown_4columns .input,
+.dropdown_5columns .input {
+	background: #1e1e1e;
+}
+
+.dropdown_fluid {width: 99%;}
+.dropdown_1column {width: 140px;}
+.dropdown_2columns {width: 280px;}
+.dropdown_3columns {width: 420px;}
+.dropdown_4columns {width: 560px;}
+.dropdown_5columns {width: 700px;}
+
+#menu li:hover .dropdown_fluid,
+#menu li:hover .dropdown_1column,
+#menu li:hover .dropdown_2columns,
+#menu li:hover .dropdown_3columns,
+#menu li:hover .dropdown_4columns,
+#menu li:hover .dropdown_5columns {
+	left:0px;top:auto;
+}
+
+.col_1,
+.col_2,
+.col_3,
+.col_4,
+.col_5 {
+	display:inline;
+	float: left;
+	position: relative;
+	margin-left: 5px;
+	margin-right: 5px;
+}
+.col_1 {width:130px;}
+.col_2 {width:270px;}
+.col_3 {width:410px;}
+.col_4 {width:550px;}
+.col_5 {width:690px;}
+
+#menu .menu_right {
+	float:right;
+	margin-right:0px;
+}
+
+#menu li:hover .align_right {
+	left:auto;
+	right:0px;
+	top:auto;
+}
+
+/********************************************************
+	SUB MENU STYLES
+********************************************************/
+
+#menu li ul {
+	list-style:none;
+	padding:0.5em 0 0 0;
+	margin:0;
+}
+
+#menu li ul li {
+	position:relative;
+	padding:0;
+	margin:0;
+	float:none;
+	text-align:left;
+}
+
+#menu li ul a {
+	padding:0 1.5em 0.5em;
+	display:block;
+	text-transform: none;
+	border: none;
+}
+
+#menu li ul a:hover {
+	border: none;
+	text-decoration: underline;
+}
+
+#menu dl {
+	font-size:98%;
+	margin: 0 0 5px 0;
+}
+
+#menu li dl a {
+	text-decoration: none;
+	text-transform: none;
+	border: none;
+	padding: 0;
+}
+
+#menu li dl a:hover {
+	color:#3f6599;
+	border: none;
+}
+
+/********************************************************
+	SEARCH FORM
+********************************************************/
+
+#search {
+	position: absolute;
+	top: 66px;
+	right: 0;
+	height: 28px;
+	width: 263px;
+	border: 1px solid #000;
+	background: #101010;
+	padding: 0;
+	margin: 0;
+}
+
+input#search-input {
+	background: #101010;
+	color: #FFF;
+	border: none;
+	padding: 5px 10px;
+	width: 207px;
+	height: 18px;
+}
+
+input#search-input:focus {
+	outline: none;
+}
+
+input.search-button {
+	background: transparent url('../img/icon/magnifying.glass.png') no-repeat 0px 0px;
+	width: 36px;
+	height: 30px;
+	position:absolute;
+	right: -1px;
+	top: -1px;
+	border: none;
+	text-indent: -9999px;
+	letter-spacing: -5px;
+	color: white;
+	padding: 0;
+	margin: 0;
+	display: block;
+	cursor: pointer;
+}
+
+input:hover.search-button {
+	background: transparent url('../img/icon/magnifying.glass.png') no-repeat 0px -30px;;
+}
+
+/********************************************************
+	LOGIN FORM
+********************************************************/
+
+#login {
+	position:absolute;
+	top:90px;
+	right:0;
+	margin:1em 0 0 0;
+}
+
+#login .input {
+	width:200px;
+	margin:0 1em 0 0;
+	float:left;
+}
+
+#login span.input {
+	width:19px;
+	height:16px;
+	_padding:1px 5px 5px 0;
+}
+
+#login span.input input {
+	margin:1px 0 0 3px;
+}
+
+fieldset {
+	margin:0;
+}
+
+fieldset dl {
+	margin:0;
+}
+
+fieldset dt {
+	width:80px;
+	float: left;
+	text-align: left;
+	display: block;
+	margin: 5px 0 0 0;	
+}
+
+fieldset dd {
+	margin-left: 90px;
+	vertical-align: top;
+	margin-bottom: 3px;
+}
+
+fieldset dd input {
+	margin:0 4px 0 0;
+}
+
+/********************************************************
+	LEFT COLUMN
+********************************************************/
+
+#left-column {
+	background: #171717;
+	background: rgba(23,23,23,0.7);
+	border: 1px solid #101010;
+	position:relative;
+	width:600px;
+	padding:10px 0 0 10px;
+	float:left;
+}
+
+/********************************************************
+	RIGHT COLUMN
+********************************************************/
+
+.right-column {
+	background: #171717;
+	background: rgba(23,23,23,0.7);
+	border: 1px solid #101010;
+	width:245px;
+	padding:10px 10px 10px 10px;
+	float:right;
+	margin:0 0 10px 0;
+	position:relative;
+	overflow:hidden;
+	clear:right;
+}
+
+.right-column ul {
+	margin: 0 0 10px 16px;
+}
+
+.right-column li{
+	margin:0;
+}
+
+/********************************************************
+	SUBTITLES NAVIGATION
+********************************************************/
+
+.subtitle-nav {
+	width:590px;
+	height:40px;
+	position:relative;
+	overflow:hidden;
+	margin:0 10px 0 0;
+	padding:0;
+	border-bottom:1px solid #3C3C3C;
+}
+
+.subtitle-nav li {
+	list-style:none;
+	float:left;
+	margin: 0;
+	overflow:hidden;
+	padding: 8px 10px 12px 5px;
+}
+
+.subtitle-nav a {
+	color:#FFF;
+}
+
+.subtitle-nav a:hover {
+	border:2px solid #8e8e8e;
+}
+.subtitle-nav a.current {
+	border:2px solid #680000;
+}
+
+/********************************************************
+	SUBTITLES / SUBTITLES SEARCH
+********************************************************/
+
+#subtitles-search {
+	overflow:hidden;
+	margin:0;
+	padding:0;
+}
+
+.subtitles {
+	padding: 10px 0 0 0;
+}
+
+.subtitles.left {
+	float:left;
+	width:294px;
+	border-right:1px solid #3C3C3C;
+}
+.subtitles.right {
+	float:right;
+	width:295px;
+}
+
+.subtitles ul {
+	margin:0;
+	padding:0;
+	overflow: hidden;
+}
+
+.subtitles.left li, .subtitles.right li {
+	list-style:none;
+	width:279px;
+	float:left;
+	margin: 0 10px 8px 0;
+	height:19px;
+	overflow:hidden;
+}
+.subtitles.cover {
+	overflow:hidden;
+}
+.subtitles.cover .new {
+	background: url('../img/ny.png') no-repeat;
+	display:block;
+	height:67px;
+	width:67px;
+	position:absolute;
+	top:1px;
+	left:1px;
+}
+.subtitles.cover .ep {
+	display:block;
+	font-size:88%;
+	position:absolute;
+	bottom:0px;
+	left:0px;
+	background: #171717;
+	color: #B0B0B0;
+	padding:0 5px 0 5px;
+	width:98px;
+	text-align:right;
+	border:1px solid #000;
+}
+.subtitles.cover li  {
+	height:162px;
+}
+.subtitles.cover li , #subtitles-search li {
+	list-style:none;
+	margin: 0 10px 10px 0;
+	float:left;
+	width:110px;
+	position:relative;
+}
+.subtitles.cover img.cover, #subtitles-search img {
+	border:1px solid #000;
+	width:108px;
+	height:160px;
+}
+
+.subtitles.cover a:hover img {
+	-ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
+	filter: alpha(opacity=50);
+	-moz-opacity:0.5;
+	-khtml-opacity: 0.5;
+	opacity: 0.5;
+}
+.subtitles.cover.left, .subtitles.cover.right {
+	padding: 10px 0 0 27px;
+	width:267px;
+}
+
+.subtitles h2, #subtitles-search h2 {
+	font-size:90%;
+	text-align:center;
+	height:1.8em;
+	overflow:hidden;
+	margin:0;
+}
+
+.subtitles.cover h2 {
+	padding: 0 27px 0 0;
+}
+
+#subtitles-search li {
+	width:600px;
+}
+
+#subtitles-search img {
+	width:50px;
+	height:74px;
+	float:left;
+}
+
+#subtitles-search h2 {
+	font-size: 120%;
+	text-align:left;
+	height:auto;
+	margin:0 0 0 4em;
+}
+
+/********************************************************
+	SUBTITLE BROWSE
+********************************************************/
+
+#subtitle-browse {
+	height:23px;
+	padding:0;
+	margin:5px 0 0 5px;
+	overflow:hidden;
+	border-left:1px solid #3C3C3C;
+}
+
+#subtitle-browse li {
+	list-style: none;
+	margin:0;
+	float:left;
+}
+
+#subtitle-browse a {
+	display:block;
+	padding:2px 4px;
+	border-right:1px solid #3C3C3C;
+}
+
+/********************************************************
+	SUBTITLE LIST
+********************************************************/
+
+#subtitle-list {
+	
+}
+
+/********************************************************
+	LATEST ARTICLE CLASS
+********************************************************/
+
+.latest-article {
+	position:relative;
+	overflow:hidden;
+}
+
+.latest-article h3 {
+	background:#101010;
+	border-top:1px solid #000;
+	position:relative;
+	width:225px;
+	_width:226px;
+	padding:2px 10px;
+	_padding:3px 10px;
+	margin:0 0 -20px 0;
+	bottom:32px;
+}
+
+.latest-article span {
+	border-bottom:1px solid #000;
+	text-transform:uppercase;
+	text-align:right;
+	font-size:80%;
+	font-weight:bold;
+	position:absolute;
+	display:block;
+	top:1px;
+	width:208px;
+	padding:0.2em 25px 0.2em 10px;
+	margin: 0 0 6px 1px;
+}
+
+.latest-article .review {
+	background: #680000 url('../img/icon/ikon-recension.png') no-repeat 225px 2px;
+}
+
+.latest-article .focus {
+	background: #680000 url('../img/icon/ikon-i_fokus.png') no-repeat 225px 3px;
+}
+
+.latest-article img {
+	border:1px solid #000;
+	width:243px;
+}
+
+/********************************************************
+	CLEARFIX
+********************************************************/
+
+.clearfix:after {
+	content: ".";
+	display: block;
+	clear: both;
+	visibility: hidden;
+	line-height: 0;
+	height: 0;
+}
+ 
+.clearfix {
+	display: inline-block;
+}
+ 
+html[xmlns] .clearfix {
+	display: block;
+}
+ 
+* html .clearfix {
+	height: 1%;
+}
+
+/********************************************************
+	Sticky Footer Solution
+	by Steve Hatcher 
+	http://stever.ca
+	http://www.cssstickyfooter.com
+********************************************************/
+
+html, body {height: 100%;}
+
+#container {min-height: 100%;}
+
+#columns {
+	overflow:auto;
+	width:890px;
+	min-height:290px;
+	padding-bottom: 55px; /* must be same height as the footer */
+}
+
+#footer {
+	background: transparent url('../img/shaddow.png') repeat-x;
+	position: relative;
+	margin-top: -50px; /* negative value of footer height */
+	height: 50px;
+	clear:both;
+	text-align:center;
+	font-size:80%;
+}
+
+/*Opera Fix*/
+body:before { /* thanks to Maleika (Kohoutec)*/
+	content:"";
+	height:100%;
+	float:left;
+	width:0;
+	margin-top:-32767px;/* thank you Erik J - negate effect of float*/
+}

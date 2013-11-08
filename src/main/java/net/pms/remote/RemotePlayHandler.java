@@ -46,7 +46,7 @@ public class RemotePlayHandler implements HttpHandler {
 
 		if (res.get(0).getFormat().isVideo()) {
 			mediaType = "video";
-			mime = "video/mp4";
+			mime = "video/ogg";
 		}
 
 		sb.append("<").append(mediaType).append(" width=\"720\" height=\"404\" controls=\"controls\" autoplay=\"autoplay\"");
@@ -62,7 +62,7 @@ public class RemotePlayHandler implements HttpHandler {
 
 	@Override
 	public void handle(HttpExchange t) throws IOException {
-		LOGGER.debug("got a play equest " + t.getRequestURI());
+		LOGGER.debug("got a play request " + t.getRequestURI());
 		if (RemoteUtil.deny(t)) {
 			throw new IOException("Access denied");
 		}

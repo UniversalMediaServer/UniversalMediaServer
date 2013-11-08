@@ -56,8 +56,8 @@ public class RemoteMediaHandler implements HttpHandler {
 		long len = res.get(0).length();
 		Range range = RemoteUtil.parseRange(t.getRequestHeaders(), len);
 		String mime = root.getDefaultRenderer().getMimeType(res.get(0).mimeType());
-		if (res.get(0).getFormat().isVideo() && !mime.equals("video/mp4")) {
-			mime = "video/mp4";
+		if (res.get(0).getFormat().isVideo() && !mime.equals("video/ogg")) {
+			mime = "video/ogg";
 			res.get(0).setPlayer(new WebPlayer());
 		}
 		LOGGER.debug("dumping media " + mime + " " + res);

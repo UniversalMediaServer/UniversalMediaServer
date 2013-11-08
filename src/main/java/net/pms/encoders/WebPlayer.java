@@ -48,25 +48,19 @@ public class WebPlayer extends Player {
 
 		params.input_pipes[0] = pipe;
 
-		// FFMPEG version
+		// FFmpeg with Theora and Vorbis inside OGG
 		String[] cmdArray = new String[]{
 			PMS.getConfiguration().getFfmpegPath(),
 			"-y",
-			"-re",
 			"-loglevel", "warning",
 			"-threads", "" + nThreads,
 			"-i", fileName,
 			"-threads", "" + nThreads,
-			"-f", "mp4",
-			"-c:v", "libx264",
-			"-ab", "128k",
-			"-strict", "experimental",
-			"-acodec", "aac",
-			"-cutoff", "15000",
-			"-crf", "20",
-			"-vf", "scale=720:-1",
-			"-movflags", "faststart+frag_keyframe+empty_moov",
-			"-profile:v", "main",
+			"-c:v", "libtheora",
+			"-qscale:v", "8",
+			"-acodec", "libvorbis",
+			"-qscale:a", "6",
+			"-f", "ogg",
 			pipe.getInputPipe()
 		};
 
