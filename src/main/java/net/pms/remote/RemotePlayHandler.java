@@ -48,6 +48,7 @@ public class RemotePlayHandler implements HttpHandler {
 			sb.append("<head>");
 				sb.append("<link rel=\"stylesheet\" href=\"/file/web.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
 				sb.append("<link rel=\"icon\" href=\"http://www.universalmediaserver.com/favicon.ico\" type=\"image/x-icon\">");
+				sb.append("<title>Universal Media Server</title>").append(CRLF);
 			sb.append("</head>");
 			sb.append("<body>");
 				sb.append(coverImage);
