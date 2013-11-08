@@ -27,13 +27,13 @@ public class RemoteBrowseHandler implements HttpHandler {
 		RootFolder root = parent.getRoot(p.getUsername(), true);
 		List<DLNAResource> res = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), null);
 		StringBuilder sb = new StringBuilder();
-		sb.append("<html xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:og=\"http://opengraphprotocol.org/schema/\">");
-		sb.append(CRLF);
-		sb.append("<link rel=\"stylesheet\" href=\"/file/web.css\">");
+		sb.append("<!DOCTYPE html>");
 		sb.append(CRLF);
 		sb.append("<head>");
 		sb.append(CRLF);
 		sb.append("<meta charset=\"utf-8\">");
+		sb.append(CRLF);
+		sb.append("<link rel=\"stylesheet\" href=\"/file/web.css\">");
 		sb.append(CRLF);
 		sb.append("<title>");
 		sb.append(PropertiesUtil.getProjectProperties().get("project.name")).append(" ").append(PMS.getVersion());

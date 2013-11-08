@@ -278,7 +278,7 @@ public class RemoteWeb {
 				return;
 			}
 			StringBuilder sb = new StringBuilder();
-			sb.append("<html xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:og=\"http://opengraphprotocol.org/schema/\">");
+			sb.append("<!DOCTYPE html>");
 			sb.append(CRLF);
 			sb.append("<head><title>Universal Media Server</title></head><body>");
 			sb.append(CRLF);
@@ -286,9 +286,9 @@ public class RemoteWeb {
 			sb.append(CRLF);
 			sb.append("<a href=\"/browse/0\"><img src=\"/thumb/logo\"/></a><br><br>");
 			sb.append(CRLF);
-			sb.append("<h2><b>");
+			sb.append("<h2><strong>");
 			sb.append(PMS.getConfiguration().getProfileName());
-			sb.append("</h2></b><br>");
+			sb.append("</h2></strong><br>");
 			sb.append("</body></html>");
 			String response = sb.toString();
 			t.sendResponseHeaders(200, response.length());
