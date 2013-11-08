@@ -72,7 +72,7 @@ public class RemoteWeb {
 			addCtx("/media", new RemoteMediaHandler(this));
 			addCtx("/thumb", new RemoteThumbHandler(this));
 			addCtx("/raw", new RemoteRawHandler(this));
-			addCtx("/js", new RemoteFileHandler());
+			addCtx("/file", new RemoteFileHandler());
 			server.setExecutor(null);
 			server.start();
 		} catch (Exception e) {
@@ -274,6 +274,10 @@ public class RemoteWeb {
 				hdr.add("Server", PMS.get().getServerName());
 				RemoteUtil.dumpFile("jwplayer.js", t);
 			}
+            if (t.getRequestURI().getPath().contains("web.css")) {
+                RemoteUtil.dumpFile("web.css", t);
+                return;
+            }
 		}
 	}
 

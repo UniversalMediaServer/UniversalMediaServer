@@ -32,7 +32,7 @@ public class RemotePlayHandler implements HttpHandler {
 		sb.append(CRLF);
 		sb.append("<head>");
 		sb.append("<link rel=\"stylesheet\" href=\"");
-		sb.append("http://swesub.nu/css/style.css");
+		sb.append("/file/web.css");
 		sb.append("\">");
 		sb.append("</head>");
 		sb.append("<body>");
