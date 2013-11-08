@@ -29,9 +29,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 		StringBuilder sb = new StringBuilder();
 		sb.append("<html xmlns=\"http://www.w3.org/1999/xhtml\" xmlns:og=\"http://opengraphprotocol.org/schema/\">");
 		sb.append(CRLF);
-		sb.append("<link rel=\"stylesheet\" href=\"");
-		sb.append("/file/web.css");
-		sb.append("\">");
+		sb.append("<link rel=\"stylesheet\" href=\"/file/web.css\">");
 		sb.append(CRLF);
 		sb.append("<head>");
 		sb.append(CRLF);
