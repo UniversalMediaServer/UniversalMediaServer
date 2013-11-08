@@ -257,27 +257,9 @@ public class RemoteWeb {
 				}
 				return;
 			}
-			if (t.getRequestURI().getPath().contains("player.swf")) {
-				LOGGER.debug("fetch player.swf");
-				Headers hdr = t.getResponseHeaders();
-				hdr.add("Accept-Ranges", "bytes");
-				hdr.add("Server", PMS.get().getServerName());
-				//hdr.add("Content-Type", "application/javascript; charset=utf-8");
-				RemoteUtil.dumpFile("player.swf", t);
-				return;
+			if (t.getRequestURI().getPath().contains("web.css")) {
+				RemoteUtil.dumpFile("web.css", t);
 			}
-			if (t.getRequestURI().getPath().contains("jwplayer.js")) {
-				LOGGER.debug("fetch jwplayer.js");
-				Headers hdr = t.getResponseHeaders();
-				hdr.add("Content-Type", "application/x-javascript");
-				hdr.add("Accept-Ranges", "bytes");
-				hdr.add("Server", PMS.get().getServerName());
-				RemoteUtil.dumpFile("jwplayer.js", t);
-			}
-            if (t.getRequestURI().getPath().contains("web.css")) {
-                RemoteUtil.dumpFile("web.css", t);
-                return;
-            }
 		}
 	}
 
