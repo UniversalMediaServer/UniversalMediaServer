@@ -282,7 +282,7 @@ public class RemoteWeb {
 			sb.append(CRLF);
 			sb.append("<head>");
 			sb.append(CRLF);
-			sb.append("<link rel=\"stylesheet\" href=\"/file/web.css\">");
+			sb.append("<link rel=\"stylesheet\" href=\"/file/web.css\" type=\"text/css\" media=\"screen\">");
 			sb.append(CRLF);
 			sb.append("<title>Universal Media Server</title>");
 			sb.append(CRLF);

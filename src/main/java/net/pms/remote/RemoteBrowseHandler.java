@@ -33,7 +33,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 		sb.append(CRLF);
 		sb.append("<meta charset=\"utf-8\">");
 		sb.append(CRLF);
-		sb.append("<link rel=\"stylesheet\" href=\"/file/web.css\">");
+		sb.append("<link rel=\"stylesheet\" href=\"/file/web.css\" type=\"text/css\" media=\"screen\">");
 		sb.append(CRLF);
 		sb.append("<title>");
 		sb.append(PropertiesUtil.getProjectProperties().get("project.name")).append(" ").append(PMS.getVersion());

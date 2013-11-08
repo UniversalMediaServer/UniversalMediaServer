@@ -31,7 +31,7 @@ public class RemotePlayHandler implements HttpHandler {
 		sb.append("<!DOCTYPE html>");
 		sb.append(CRLF);
 		sb.append("<head>");
-		sb.append("<link rel=\"stylesheet\" href=\"/file/web.css\">");
+		sb.append("<link rel=\"stylesheet\" href=\"/file/web.css\" type=\"text/css\" media=\"screen\">");
 		sb.append("</head>");
 		sb.append("<body>");
 		String mime = root.getDefaultRenderer().getMimeType(res.get(0).mimeType());
