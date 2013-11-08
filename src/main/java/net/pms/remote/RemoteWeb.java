@@ -280,7 +280,13 @@ public class RemoteWeb {
 			StringBuilder sb = new StringBuilder();
 			sb.append("<!DOCTYPE html>");
 			sb.append(CRLF);
-			sb.append("<head><title>Universal Media Server</title></head><body>");
+			sb.append("<head>");
+			sb.append(CRLF);
+			sb.append("<link rel=\"stylesheet\" href=\"/file/web.css\">");
+			sb.append(CRLF);
+			sb.append("<title>Universal Media Server</title>");
+			sb.append(CRLF);
+			sb.append("</head><body>");
 			sb.append(CRLF);
 			sb.append("<h2><b>Universal Media Server</b></h2><br><br>");
 			sb.append(CRLF);
