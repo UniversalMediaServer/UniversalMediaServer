@@ -35,6 +35,8 @@ public class RemoteBrowseHandler implements HttpHandler {
 		sb.append(CRLF);
 		sb.append("<link rel=\"stylesheet\" href=\"/file/web.css\" type=\"text/css\" media=\"screen\">");
 		sb.append(CRLF);
+		sb.append("<link rel=\"icon\" href=\"http://www.universalmediaserver.com/favicon.ico\" type=\"image/x-icon\">");
+		sb.append(CRLF);
 		sb.append("<title>");
 		sb.append(PropertiesUtil.getProjectProperties().get("project.name")).append(" ").append(PMS.getVersion());
 		sb.append("</title></head><body>");

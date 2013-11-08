@@ -32,6 +32,8 @@ public class RemotePlayHandler implements HttpHandler {
 		sb.append(CRLF);
 		sb.append("<head>");
 		sb.append("<link rel=\"stylesheet\" href=\"/file/web.css\" type=\"text/css\" media=\"screen\">");
+		sb.append(CRLF);
+		sb.append("<link rel=\"icon\" href=\"http://www.universalmediaserver.com/favicon.ico\" type=\"image/x-icon\">");
 		sb.append("</head>");
 		sb.append("<body>");
 		String mime = root.getDefaultRenderer().getMimeType(res.get(0).mimeType());
