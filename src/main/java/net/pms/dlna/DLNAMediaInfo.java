@@ -55,7 +55,7 @@ import net.pms.util.CoverUtil;
 import net.pms.util.FileUtil;
 import net.pms.util.MpegUtil;
 import net.pms.util.ProcessUtil;
-import net.pms.util.StringUtil;
+import static net.pms.util.StringUtil.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.sanselan.ImageInfo;
 import org.apache.sanselan.ImageReadException;
@@ -1063,25 +1063,18 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	public String getDurationString() {
-		return durationSec != null ? StringUtil.convertTimeToString(durationSec, StringUtil.DURATION_TIME_FORMAT) : null;
+		return durationSec != null ? convertTimeToString(durationSec, DURATION_TIME_FORMAT) : null;
 	}
 
 	/**
 	 * @deprecated Use {@link #StringUtil.convertTimeToString(durationSec, StringUtil.DURATION_TIME_FORMAT)} instead.
 	 */
 	public static String getDurationString(double d) {
-		int s = ((int) d) % 60;
-		int h = (int) (d / 3600);
-		int m = ((int) (d / 60)) % 60;
-		return String.format("%02d:%02d:%02d.00", h, m, s);
+		return convertTimeToString(d, DURATION_TIME_FORMAT);
 	}
 
 	public static Double parseDurationString(String duration) {
-		if (duration == null) {
-			return null;
-		}
-
-		return StringUtil.convertStringToTime(duration);
+		return duration != null ? convertStringToTime(duration) : null;
 	}
 
 	public void finalize(int type, InputFile f) {

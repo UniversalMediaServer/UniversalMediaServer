@@ -367,6 +367,11 @@ public class MapFile extends DLNAResource {
 			}
 		}
 
+		// For random sorting, we only randomize file entries
+		if (configuration.getSortMethod() == 5) {
+			Collections.shuffle(files);
+		}
+
 		for (File f : files) {
 			if (f.isFile()) {
 				if (str == null || f.getName().toLowerCase().contains(str)) {
@@ -454,9 +459,10 @@ public class MapFile extends DLNAResource {
 	}
 
 	private boolean foundInList(List<File> files, DLNAResource dlna) {
-		for (File file: files) {
+		for (Iterator<File> it = files.iterator(); it.hasNext();) {
+			File file = it.next();
 			if (!file.isHidden() && isNameMatch(dlna, file) && (isRealFolder(dlna) || isSameLastModified(dlna, file))) {
-				files.remove(file);
+				it.remove();
 				return true;
 			}
 		}
