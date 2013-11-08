@@ -277,19 +277,24 @@ public class RemoteWeb {
 				RemoteUtil.sendLogo(t);
 				return;
 			}
+
+			// Front page HTML
 			StringBuilder sb = new StringBuilder();
 			sb.append("<!DOCTYPE html>").append(CRLF);
-			sb.append("<head>").append(CRLF);
-			sb.append("<link rel=\"stylesheet\" href=\"/file/web.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
-			sb.append("<link rel=\"icon\" href=\"http://www.universalmediaserver.com/favicon.ico\" type=\"image/x-icon\">").append(CRLF);
-			sb.append("<title>Universal Media Server</title>").append(CRLF);
-			sb.append("</head><body>").append(CRLF);
-			sb.append("<h2><b>Universal Media Server</b></h2><br><br>").append(CRLF);
-			sb.append("<a href=\"/browse/0\"><img src=\"/thumb/logo\"/></a><br><br>").append(CRLF);
-			sb.append("<h2><strong>");
-			sb.append(PMS.getConfiguration().getProfileName());
-			sb.append("</h2></strong><br>");
-			sb.append("</body></html>");
+				sb.append("<head>").append(CRLF);
+					sb.append("<link rel=\"stylesheet\" href=\"/file/web.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
+					sb.append("<link rel=\"icon\" href=\"http://www.universalmediaserver.com/favicon.ico\" type=\"image/x-icon\">").append(CRLF);
+					sb.append("<title>Universal Media Server</title>").append(CRLF);
+				sb.append("</head>").append(CRLF);
+				sb.append("<body id=\"FrontPage\">").append(CRLF);
+					sb.append("<h2><b>Universal Media Server</b></h2><br><br>").append(CRLF);
+					sb.append("<a href=\"/browse/0\"><img src=\"/thumb/logo\"/></a><br><br>").append(CRLF);
+					sb.append("<h2><strong>");
+					sb.append(PMS.getConfiguration().getProfileName());
+					sb.append("</strong></h2><br>");
+				sb.append("</body>");
+			sb.append("</html>");
+
 			String response = sb.toString();
 			t.sendResponseHeaders(200, response.length());
 			try (OutputStream os = t.getResponseBody()) {

@@ -26,34 +26,39 @@ public class RemotePlayHandler implements HttpHandler {
 			throw new IOException("Unknown root");
 		}
 		String id1 = id;
-		StringBuilder sb = new StringBuilder();
 		List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, root.getDefaultRenderer());
-		sb.append("<!DOCTYPE html>").append(CRLF);
-		sb.append("<head>");
-		sb.append("<link rel=\"stylesheet\" href=\"/file/web.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
-		sb.append("<link rel=\"icon\" href=\"http://www.universalmediaserver.com/favicon.ico\" type=\"image/x-icon\">");
-		sb.append("</head>");
-		sb.append("<body>");
+		String rawId = id;
+
 		String mime = root.getDefaultRenderer().getMimeType(res.get(0).mimeType());
 		String mediaType = "";
+		String coverImage = "";
 		if (res.get(0).getFormat().isAudio()) {
 			mediaType = "audio";
 			String thumb = "/thumb/" + id1;
-			sb.append("<img class=\"cover\" src=\"").append(thumb).append("\" alt=\"\" /><br>");
+			coverImage = "<img class=\"cover\" src=\"" + thumb + "\" alt=\"\" /><br>";
 		}
-
 		if (res.get(0).getFormat().isVideo()) {
 			mediaType = "video";
 			mime = "video/ogg";
 		}
 
-		sb.append("<").append(mediaType).append(" width=\"720\" height=\"404\" controls=\"controls\" autoplay=\"autoplay\"");
-		sb.append(" src=\"/media/").append(id1).append("\" type=\"").append(mime).append("\">");
-		sb.append("Your browser doesn't appear to support the HTML5 video tag");
-		sb.append("</").append(mediaType).append("><br><br>");
-		String rawId = id;
-		sb.append("<a href=\"/raw/").append(rawId).append("\" target=\"_blank\">Download</a>").append(CRLF);
-		sb.append("</body></html>");
+		// Media player HTML
+		StringBuilder sb = new StringBuilder();
+		sb.append("<!DOCTYPE html>").append(CRLF);
+			sb.append("<head>");
+				sb.append("<link rel=\"stylesheet\" href=\"/file/web.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
+				sb.append("<link rel=\"icon\" href=\"http://www.universalmediaserver.com/favicon.ico\" type=\"image/x-icon\">");
+			sb.append("</head>");
+			sb.append("<body>");
+				sb.append(coverImage);
+				sb.append("<").append(mediaType).append(" width=\"720\" height=\"404\" controls=\"controls\" autoplay=\"autoplay\"");
+				sb.append(" src=\"/media/").append(id1).append("\" type=\"").append(mime).append("\">");
+				sb.append("Your browser doesn't appear to support the HTML5 video tag");
+				sb.append("</").append(mediaType).append("><br><br>");
+				sb.append("<a href=\"/raw/").append(rawId).append("\" target=\"_blank\">Download</a>").append(CRLF);
+			sb.append("</body>");
+		sb.append("</html>");
+
 		return sb.toString();
 	}
 
