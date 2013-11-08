@@ -28,11 +28,9 @@ public class RemotePlayHandler implements HttpHandler {
 		String id1 = id;
 		StringBuilder sb = new StringBuilder();
 		List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, root.getDefaultRenderer());
-		sb.append("<!DOCTYPE html>");
-		sb.append(CRLF);
+		sb.append("<!DOCTYPE html>").append(CRLF);
 		sb.append("<head>");
-		sb.append("<link rel=\"stylesheet\" href=\"/file/web.css\" type=\"text/css\" media=\"screen\">");
-		sb.append(CRLF);
+		sb.append("<link rel=\"stylesheet\" href=\"/file/web.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
 		sb.append("<link rel=\"icon\" href=\"http://www.universalmediaserver.com/favicon.ico\" type=\"image/x-icon\">");
 		sb.append("</head>");
 		sb.append("<body>");
@@ -54,8 +52,7 @@ public class RemotePlayHandler implements HttpHandler {
 		sb.append("Your browser doesn't appear to support the HTML5 video tag");
 		sb.append("</").append(mediaType).append("><br><br>");
 		String rawId = id;
-		sb.append("<a href=\"/raw/").append(rawId).append("\" target=\"_blank\">Download</a>");
-		sb.append(CRLF);
+		sb.append("<a href=\"/raw/").append(rawId).append("\" target=\"_blank\">Download</a>").append(CRLF);
 		sb.append("</body></html>");
 		return sb.toString();
 	}

@@ -27,23 +27,16 @@ public class RemoteBrowseHandler implements HttpHandler {
 		RootFolder root = parent.getRoot(p.getUsername(), true);
 		List<DLNAResource> res = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), null);
 		StringBuilder sb = new StringBuilder();
-		sb.append("<!DOCTYPE html>");
-		sb.append(CRLF);
-		sb.append("<head>");
-		sb.append(CRLF);
-		sb.append("<meta charset=\"utf-8\">");
-		sb.append(CRLF);
-		sb.append("<link rel=\"stylesheet\" href=\"/file/web.css\" type=\"text/css\" media=\"screen\">");
-		sb.append(CRLF);
-		sb.append("<link rel=\"icon\" href=\"http://www.universalmediaserver.com/favicon.ico\" type=\"image/x-icon\">");
-		sb.append(CRLF);
+		sb.append("<!DOCTYPE html>").append(CRLF);
+		sb.append("<head>").append(CRLF);
+		sb.append("<meta charset=\"utf-8\">").append(CRLF);
+		sb.append("<link rel=\"stylesheet\" href=\"/file/web.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
+		sb.append("<link rel=\"icon\" href=\"http://www.universalmediaserver.com/favicon.ico\" type=\"image/x-icon\">").append(CRLF);
 		sb.append("<title>");
 		sb.append(PropertiesUtil.getProjectProperties().get("project.name")).append(" ").append(PMS.getVersion());
-		sb.append("</title></head><body>");
-		sb.append(CRLF);
+		sb.append("</title></head><body>").append(CRLF);
 		sb.append("<div class=\"subtitles cover left\">");
-		sb.append("<ul>");
-		sb.append(CRLF);
+		sb.append("<ul>").append(CRLF);
 		for (DLNAResource r : res) {
 			String newId = r.getResourceId();
 			String thumb = "/thumb/" + newId;
@@ -59,11 +52,9 @@ public class RemoteBrowseHandler implements HttpHandler {
 			sb.append("<br><span class=\"ep\">");
 			sb.append(r.getDisplayName());
 			sb.append("</span>");
-			sb.append("</a></li>");
-			sb.append(CRLF);
+			sb.append("</a></li>").append(CRLF);
 		}
 		sb.append("</ul></div></body></html>");
-		sb.append(CRLF);
 		return sb.toString();
 	}
 
