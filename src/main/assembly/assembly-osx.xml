@@ -87,6 +87,7 @@
 				<include>documentation/**</include>
 				<include>plugins/**</include>
 				<include>renderers/*</include>
+				<include>web.css</include>
 			</includes>
 		</fileSet>
 
