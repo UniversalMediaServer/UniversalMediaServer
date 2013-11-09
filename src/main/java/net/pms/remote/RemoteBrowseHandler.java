@@ -52,12 +52,13 @@ public class RemoteBrowseHandler implements HttpHandler {
 				path = "/play/";
 				//newId = newId + "." + r.getFormat().getMatchedId();
 			}
+            String name = r.resumeName();
 			sb.append("<li>");
 			sb.append("<a href=\"").append(path).append(newId).append("\"");
-			sb.append(" title=\"").append(r.getDisplayName()).append("\">");
+			sb.append(" title=\"").append(name).append("\">");
 			sb.append("<img class=\"cover\" src=\"").append(thumb).append("\" alt=\"\" />");
 			sb.append("<br><span class=\"ep\">");
-			sb.append(r.getDisplayName());
+			sb.append(name);
 			sb.append("</span>");
 			sb.append("</a></li>");
 			sb.append(CRLF);

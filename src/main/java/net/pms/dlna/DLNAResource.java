@@ -3240,6 +3240,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 	}
 
+    public String resumeName() {
+        return resumeStr(getDisplayName());
+    }
+
 	/**
 	 * Handle last played stuff
 	 *
