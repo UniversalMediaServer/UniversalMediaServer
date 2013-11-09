@@ -119,6 +119,13 @@ public class VirtualFolder extends DLNAResource {
 	 */
 	@Override
 	public InputStream getThumbnailInputStream() {
+        if (thumbnailIcon == null) {
+            try {
+                return super.getThumbnailInputStream();
+            } catch (IOException e) {
+                return null;
+            }
+        }
 		return getResourceInputStream(thumbnailIcon);
 	}
 
