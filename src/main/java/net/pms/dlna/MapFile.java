@@ -367,6 +367,11 @@ public class MapFile extends DLNAResource {
 			}
 		}
 
+		// For random sorting, we only randomize file entries
+		if (configuration.getSortMethod() == 5) {
+			Collections.shuffle(files);
+		}
+
 		for (File f : files) {
 			if (f.isFile()) {
 				if (str == null || f.getName().toLowerCase().contains(str)) {

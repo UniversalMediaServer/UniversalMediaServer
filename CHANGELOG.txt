@@ -1,4 +1,36 @@
-3.0.0 - 2013-11-?? - Changes since 2.6.5
+3.0.1 - 2013-11-??
+
+	General:
+		Improved video compatibility when transcoding to H.264 via MEncoder or FFmpeg
+		Disabled AviSynth/MEncoder by default
+	External Components:
+		Updated MPlayer/MEncoder for Windows to SB53, which:
+			Adds support for HEVC (H.265)
+			Adds support for 4k AVC (H.264)
+			Supports seeking to non-keyframes in Matroska files
+			Improves seeking accuracy
+			Improves H.264 encoding quality in fade-heavy clips
+			Improves bitrate calculation
+			Improves ASS/SSA subtitle support
+			Improves support for some DVDs
+			Improves support for 60FPS videos
+			Improves DTS support
+			Improves AVI support
+			Increases speed
+			Fixes a crash when trying to play a DVD from different region than currently set in the DVD drive
+			Fixes memory leaks
+			Fixes multithreaded decoding
+			Fixes bugs
+		Updated tsMuxeR for Linux to 2.1.6b, which:
+			Improves muxing speed
+			Improves stream standards compatibility
+			Fixes E-AC3 support
+			Adds support for DTS-express audio
+			Reduces bandwidth
+		Updated tsMuxeR for Windows to 2.1.6b, which:
+			Reduces bandwidth
+
+3.0.0 - 2013-11-01 - Changes since 2.6.5
 
 	General:
 		Transcoding quality automatically adjusts for content and network speed by default, allowing wireless users an easier experience
@@ -72,6 +104,7 @@
 		Improved support for KalemSoft Media Player on BlackBerry PlayBook
 		Updated support for Bravia W series TVs (thanks, flux131)
 		Updated Samsung AllShare logo
+		Updated notes on Philips PFL (thanks, ler0y!)
 		Xbox 360 supports 5.1 audio
 		Faster transcoding on Xbox 360
 		Improved DirecTV support
@@ -144,7 +177,7 @@
 			Adds support for DTS-express audio
 		Updated xmlwise to 1.2.11
 
-3.0.0 - 2013-11-?? - Changes since 3.0.0-b1
+3.0.0 - 2013-11-01 - Changes since 3.0.0-b1
 
 	General:
 		Added support for muxing (losslessly streaming) more files with tsMuxeR by default
@@ -160,11 +193,15 @@
 		Made the use of acodec in CustomMencoderOptions safer
 		Videos work when tsMuxeR is the only engine enabled
 		Fixed a bug where VLC would include unwanted subtitles
+		Fixed MIME types in some situations
+		Fixed (hopefully) a duration/seeking bug
+		Fixed the video resuming feature
 		Code optimizations to run faster
 	Renderers:
 		Added support for LG 42LA644V TVs (thanks, khmelnov.roman)
 		Added support for Samsung mobiles (Galaxy S3, S4, Note, Note 2, and Note 3)
 		Added support for Panasonic TX-L32V10E TVs
+		Updated notes on Philips PFL (thanks, ler0y!)
 		Updated support for Bravia W series TVs (thanks, flux131)
 		Updated Samsung AllShare logo
 	Languages:

@@ -51,10 +51,8 @@ import net.pms.util.ImagesUtil;
 import net.pms.util.Iso639;
 import net.pms.util.MpegUtil;
 import net.pms.util.OpenSubtitle;
-import net.pms.util.StringUtil;
 import static net.pms.util.StringUtil.*;
 import org.apache.commons.lang3.StringUtils;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -500,7 +498,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 				child.resHash = Math.abs(child.getSystemName().hashCode() + resumeHash());
 
-				DLNAResource resumeRes;
+				DLNAResource resumeRes = null;
 
 				ResumeObj r = ResumeObj.create(child);
 				if (r != null) {
@@ -614,7 +612,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	
 							if (!configuration.isDisableSubtitles()) {
 								// FIXME: Why transcode if the renderer can handle embedded subs?
-								hasSubsToTranscode = (configuration.isAutoloadExternalSubtitles() && child.isSubsFile()) || hasEmbeddedSubs;
+								if (configuration.isAutoloadExternalSubtitles() && child.isSubsFile()) {
+									hasSubsToTranscode = child.getDefaultRenderer() != null && StringUtils.isBlank(child.getDefaultRenderer().getSupportedSubtitles());
+								} else {
+									hasSubsToTranscode = hasEmbeddedSubs;
+								}
 
 								if (hasSubsToTranscode) {
 									LOGGER.trace("File \"{}\" has subs that need transcoding", child.getName());
@@ -638,6 +640,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							// 2) transcoding is preferred and not prevented by configuration
 							if (forceTranscode || (preferTranscode && !isSkipTranscode())) {
 								child.setPlayer(player);
+
+								if (resumeRes != null) {
+									resumeRes.setPlayer(player);
+								}
 
 								if (parserV2) {
 									LOGGER.trace("Final verdict: \"{}\" will be transcoded with player \"{}\" with mime type \"{}\"", child.getName(), player.toString(), child.getMedia().getMimeType());
@@ -693,7 +699,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						}
 					}
 
-					if (child.getFormat().getSecondaryFormat() != null &&
+					if (resumeRes != null) {
+						resumeRes.setMedia(child.getMedia());
+					}
+
+					if (
+						child.getFormat().getSecondaryFormat() != null &&
 						child.getMedia() != null &&
 						getDefaultRenderer() != null &&
 						getDefaultRenderer().supportsFormat(child.getFormat().getSecondaryFormat())
@@ -1158,7 +1169,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (isNoName()) {
 				displayName = "[No encoding]";
 				isNamedNoEncoding = true;
-				if (mediaRenderer != null && mediaRenderer.getSupportedSubtitles() != null) {
+				if (mediaRenderer != null && StringUtils.isNotBlank(mediaRenderer.getSupportedSubtitles())) {
 					isNamedNoEncoding = false;
 				}
 			} else if (nametruncate > 0) {
@@ -1214,7 +1225,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		if (getSplitRange().isEndLimitAvailable()) {
-			displayName = ">> " + StringUtil.convertTimeToString(getSplitRange().getStart(), StringUtil.DURATION_TIME_FORMAT);
+			displayName = ">> " + convertTimeToString(getSplitRange().getStart(), DURATION_TIME_FORMAT);
 		}
 
 		return displayName;
@@ -1394,7 +1405,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		StringBuilder wireshark = new StringBuilder();
 		final DLNAMediaAudio firstAudioTrack = getMedia() != null ? getMedia().getFirstAudioTrack() : null;
-		if (firstAudioTrack != null && isNotBlank(firstAudioTrack.getSongname())) {
+		if (firstAudioTrack != null && StringUtils.isNotBlank(firstAudioTrack.getSongname())) {
 			wireshark.append(firstAudioTrack.getSongname() + (getPlayer() != null && !configuration.isHideEngineNames() ? (" [" + getPlayer().name() + "]") : ""));
 			addXMLTagAndAttribute(
 				sb,
@@ -1413,16 +1424,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		if (firstAudioTrack != null) {
-			if (isNotBlank(firstAudioTrack.getAlbum())) {
+			if (StringUtils.isNotBlank(firstAudioTrack.getAlbum())) {
 				addXMLTagAndAttribute(sb, "upnp:album", encodeXML(firstAudioTrack.getAlbum()));
 			}
 
-			if (isNotBlank(firstAudioTrack.getArtist())) {
+			if (StringUtils.isNotBlank(firstAudioTrack.getArtist())) {
 				addXMLTagAndAttribute(sb, "upnp:artist", encodeXML(firstAudioTrack.getArtist()));
 				addXMLTagAndAttribute(sb, "dc:creator", encodeXML(firstAudioTrack.getArtist()));
 			}
 
-			if (isNotBlank(firstAudioTrack.getGenre())) {
+			if (StringUtils.isNotBlank(firstAudioTrack.getGenre())) {
 				addXMLTagAndAttribute(sb, "upnp:genre", encodeXML(firstAudioTrack.getGenre()));
 			}
 
@@ -1833,7 +1844,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				wireshark.append(" ").append(tempString);
 				addAttribute(sb, "protocolInfo", tempString);
 
-				if (subsAreValid) {
+				if (subsAreValid && !mediaRenderer.useClosedCaption()) {
 					addAttribute(sb, "pv:subtitleFileType", getMediaSubtitle().getType().getExtension().toUpperCase());
 					wireshark.append(" pv:subtitleFileType=").append(getMediaSubtitle().getType().getExtension().toUpperCase());
 					addAttribute(sb, "pv:subtitleFileUri", getSubsURL(getMediaSubtitle()));
@@ -1853,8 +1864,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 					if (getMedia().getDuration() != null) {
 						if (getSplitRange().isEndLimitAvailable()) {
-							wireshark.append(" duration=").append(StringUtil.convertTimeToString(getSplitRange().getDuration(), StringUtil.DURATION_TIME_FORMAT));
-							addAttribute(sb, "duration", StringUtil.convertTimeToString(getSplitRange().getDuration(), StringUtil.DURATION_TIME_FORMAT));
+							wireshark.append(" duration=").append(convertTimeToString(getSplitRange().getDuration(), DURATION_TIME_FORMAT));
+							addAttribute(sb, "duration", convertTimeToString(getSplitRange().getDuration(), DURATION_TIME_FORMAT));
 						} else {
 							wireshark.append(" duration=").append(getMedia().getDurationString());
 							addAttribute(sb, "duration", getMedia().getDurationString());
@@ -1887,8 +1898,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					if (getMedia() != null && getMedia().isMediaparsed()) {
 						addAttribute(sb, "bitrate", getMedia().getBitrate());
 						if (getMedia().getDuration() != null) {
-							wireshark.append(" duration=").append(StringUtil.convertTimeToString(getMedia().getDuration(), StringUtil.DURATION_TIME_FORMAT));
-							addAttribute(sb, "duration", StringUtil.convertTimeToString(getMedia().getDuration(), StringUtil.DURATION_TIME_FORMAT));
+							wireshark.append(" duration=").append(convertTimeToString(getMedia().getDuration(), DURATION_TIME_FORMAT));
+							addAttribute(sb, "duration", convertTimeToString(getMedia().getDuration(), DURATION_TIME_FORMAT));
 						}
 						if (firstAudioTrack != null && firstAudioTrack.getSampleFrequency() != null) {
 							addAttribute(sb, "sampleFrequency", firstAudioTrack.getSampleFrequency());
@@ -1942,17 +1953,26 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		if (subsAreValid) {
-			openTag(sb, "res");
-			String format = getMediaSubtitle().getType().getExtension();
-			if (StringUtils.isBlank(format)) {
-				format = "plain";
-			}
-			addAttribute(sb, "protocolInfo", "http-get:*:text/" + format + ":*");
-			endTag(sb);
 			String subsURL = getSubsURL(getMediaSubtitle());
-			sb.append(subsURL);
-			closeTag(sb, "res");
-			LOGGER.trace("Network debugger: http-get:*:text/" + format + ":*" + subsURL);
+			if (mediaRenderer.useClosedCaption()) {
+				openTag(sb, "sec:CaptionInfoEx");
+				addAttribute(sb, "sec:type", "srt");
+				endTag(sb);
+				sb.append(subsURL);
+				closeTag(sb, "sec:CaptionInfoEx");
+				LOGGER.trace("Network debugger: sec:CaptionInfoEx: sec:type=srt " + subsURL);
+			} else {
+				openTag(sb, "res");
+				String format = getMediaSubtitle().getType().getExtension();
+				if (StringUtils.isBlank(format)) {
+					format = "plain";
+				}
+				addAttribute(sb, "protocolInfo", "http-get:*:text/" + format + ":*");
+				endTag(sb);
+				sb.append(subsURL);
+				closeTag(sb, "res");
+				LOGGER.trace("Network debugger: http-get:*:text/" + format + ":*" + subsURL);
+			}
 		}
 
 		appendThumbnail(mediaRenderer, sb);
@@ -2007,7 +2027,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private void appendThumbnail(RendererConfiguration mediaRenderer, StringBuilder sb) {
 		final String thumbURL = getThumbnailURL();
 
-		if (isNotBlank(thumbURL)) {
+		if (StringUtils.isNotBlank(thumbURL)) {
 			if (mediaRenderer.getThumbNailAsResource()) {
 				// Samsung 2012 (ES and EH) models do not recognize the "albumArtURI" element. Instead,
 				// the "res" element should be used.
