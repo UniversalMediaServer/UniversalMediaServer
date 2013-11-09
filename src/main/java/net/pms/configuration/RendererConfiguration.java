@@ -1238,7 +1238,7 @@ public class RendererConfiguration {
 		return getString(SUPPORTED_SUBTITLES_TYPE, null);
 	}
 
-	public boolean useCC() {
+	public boolean useClosedCaption() {
 		return getBoolean(USE_CLOSED_CAPTION, false);
 	}	
 }

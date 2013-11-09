@@ -1844,7 +1844,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				wireshark.append(" ").append(tempString);
 				addAttribute(sb, "protocolInfo", tempString);
 
-				if (subsAreValid && !mediaRenderer.useCC()) {
+				if (subsAreValid && !mediaRenderer.useClosedCaption()) {
 					addAttribute(sb, "pv:subtitleFileType", getMediaSubtitle().getType().getExtension().toUpperCase());
 					wireshark.append(" pv:subtitleFileType=").append(getMediaSubtitle().getType().getExtension().toUpperCase());
 					addAttribute(sb, "pv:subtitleFileUri", getSubsURL(getMediaSubtitle()));
@@ -1954,14 +1954,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		if (subsAreValid) {
 			String subsURL = getSubsURL(getMediaSubtitle());
-			if (mediaRenderer.useCC()) {
+			if (mediaRenderer.useClosedCaption()) {
 				openTag(sb, "sec:CaptionInfoEx");
 				addAttribute(sb, "sec:type", "srt");
 				endTag(sb);
 				sb.append(subsURL);
 				closeTag(sb, "sec:CaptionInfoEx");
-				LOGGER.trace("Network debugger: sec:CaptionInfoEx: sec:type=srt " + subsURL);	
-			}else {
+				LOGGER.trace("Network debugger: sec:CaptionInfoEx: sec:type=srt " + subsURL);
+			} else {
 				openTag(sb, "res");
 				String format = getMediaSubtitle().getType().getExtension();
 				if (StringUtils.isBlank(format)) {
