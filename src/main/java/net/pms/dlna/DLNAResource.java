@@ -2504,7 +2504,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		// Or none of the above
 		String defaultThumbnailImage = "images/thumbnail-video-256.png";
-		if (getDefaultRenderer() != null && getDefaultRenderer().isForceJPGThumbnails()) {
+		if (isFolder()) {
+			defaultThumbnailImage = "images/thumbnail-folder-256.png";
+			if (getDefaultRenderer() != null && getDefaultRenderer().isForceJPGThumbnails()) {
+				defaultThumbnailImage = "images/thumbnail-folder-120.jpg";
+			}
+		} else if (getDefaultRenderer() != null && getDefaultRenderer().isForceJPGThumbnails()) {
 			defaultThumbnailImage = "images/thumbnail-video-120.jpg";
 		}
 		return getResourceInputStream(defaultThumbnailImage);
