@@ -5,6 +5,7 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpPrincipal;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URLEncoder;
 import java.util.List;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
@@ -43,7 +44,8 @@ public class RemoteBrowseHandler implements HttpHandler {
 					sb.append("<ul>").append(CRLF);
 						for (DLNAResource r : res) {
 							String newId = r.getResourceId();
-							String thumb = "/thumb/" + newId;
+							String idForWeb = URLEncoder.encode(newId, "UTF-8");
+							String thumb = "/thumb/" + idForWeb;
 							String path = "/browse/";
 							if (!r.isFolder()) {
 								path = "/play/";
@@ -51,7 +53,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 							}
 							String name = r.resumeName();
 							sb.append("<li>");
-								sb.append("<a href=\"").append(path).append(newId).append("\" title=\"").append(name).append("\">");
+								sb.append("<a href=\"").append(path).append(idForWeb).append("\" title=\"").append(name).append("\">");
 									sb.append("<img src=\"").append(thumb).append("\" alt=\"").append(name).append("\" /><br>");
 									sb.append("<span>");
 										sb.append(name);

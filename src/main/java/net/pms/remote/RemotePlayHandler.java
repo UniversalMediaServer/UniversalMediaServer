@@ -4,6 +4,7 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URLEncoder;
 import java.util.List;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
@@ -61,7 +62,7 @@ public class RemotePlayHandler implements HttpHandler {
 					sb.append("</div>");
 					sb.append(coverImage);
 					sb.append("<").append(mediaType).append(" width=\"720\" height=\"404\" controls=\"controls\" autoplay=\"autoplay\"");
-					sb.append(" src=\"/media/").append(id1).append("\" type=\"").append(mime).append("\">");
+					sb.append(" src=\"/media/").append(URLEncoder.encode(id1, "UTF-8")).append("\" type=\"").append(mime).append("\">");
 					sb.append("Your browser doesn't appear to support the HTML5 video tag");
 					sb.append("</").append(mediaType).append("><br><br>");
 					sb.append("<a href=\"/raw/").append(rawId).append("\" target=\"_blank\">Download</a>").append(CRLF);
