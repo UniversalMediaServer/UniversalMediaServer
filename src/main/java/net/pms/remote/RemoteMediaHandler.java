@@ -56,12 +56,15 @@ public class RemoteMediaHandler implements HttpHandler {
 		long len = res.get(0).length();
 		Range range = RemoteUtil.parseRange(t.getRequestHeaders(), len);
 		String mime = root.getDefaultRenderer().getMimeType(res.get(0).mimeType());
-		if (res.get(0).getFormat().isVideo() && !mime.equals("video/ogg")) {
-			mime = "video/ogg";
-			res.get(0).setPlayer(new WebPlayer());
+        DLNAResource dlna = res.get(0);
+		if (dlna.getFormat().isVideo()) {
+            if (!RemoteUtil.directmime(mime) || (dlna.getMediaSubtitle() != null)) {
+			    mime = "video/ogg";
+			    dlna.setPlayer(new WebPlayer());
+            }
 		}
 		LOGGER.debug("dumping media " + mime + " " + res);
-		InputStream in = res.get(0).getInputStream(range, root.getDefaultRenderer());
+		InputStream in = dlna.getInputStream(range, root.getDefaultRenderer());
 		Headers hdr = t.getResponseHeaders();
 		hdr.add("Content-Type", mime);
 		hdr.add("Accept-Ranges", "bytes");

@@ -1,6 +1,8 @@
 package net.pms.encoders;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JComponent;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
@@ -14,7 +16,7 @@ import net.pms.io.ProcessWrapperImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class WebPlayer extends Player {
+public class WebPlayer extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebPlayer.class);
 
 	@Override
@@ -25,14 +27,15 @@ public class WebPlayer extends Player {
 	) throws IOException {
 		LOGGER.debug("web player wrapper called");
 		params.waitbeforestart = 2000;
+        final String filename = dlna.getSystemName();
+        setAudioAndSubs(filename, media, params);
 
 		String fifoName = String.format(
-			"ffmpegwebvideo_%d_%d",
+			"webplayer_%d_%d",
 			Thread.currentThread().getId(),
 			System.currentTimeMillis()
 		);
 		int nThreads = configuration.getNumberOfCpuCores();
-		String fileName = dlna.getSystemName();
 
 		// This process wraps the command that creates the named pipe
 		PipeProcess pipe = new PipeProcess(fifoName);
@@ -48,13 +51,47 @@ public class WebPlayer extends Player {
 
 		params.input_pipes[0] = pipe;
 
-		// FFmpeg with Theora and Vorbis inside OGG
-		String[] cmdArray = new String[]{
+        List<String> cmdList = new ArrayList<>();
+        cmdList.add(executable());
+
+        // XXX squashed bug - without this, ffmpeg hangs waiting for a confirmation
+        // that it can write to a file that already exists i.e. the named pipe
+        cmdList.add("-y");
+
+        cmdList.add("-loglevel");
+
+        if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
+            cmdList.add("info"); // Could be changed to "verbose" or "debug" if "info" level is not enough
+        } else {
+            cmdList.add("warning");
+        }
+
+
+        // Decoder threads
+        cmdList.add("-threads");
+        cmdList.add("" + nThreads);
+
+        if (params.timeseek > 0) {
+            cmdList.add("-ss");
+            cmdList.add("" + (int) params.timeseek);
+        }
+
+        cmdList.add("-i");
+        cmdList.add(filename);
+
+        cmdList.addAll(getVideoFilterOptions(dlna, media, params));
+
+        // Encoder threads
+        cmdList.add("-threads");
+        cmdList.add("" + nThreads);
+
+        // FFmpeg with Theora and Vorbis inside OGG
+		/*String[] cmdArray = new String[]{
 			PMS.getConfiguration().getFfmpegPath(),
 			"-y",
 			"-loglevel", "warning",
 			"-threads", "" + nThreads,
-			"-i", fileName,
+			"-i", filename,
 			"-threads", "" + nThreads,
 			"-c:v", "libtheora",
 			"-qscale:v", "8",
@@ -62,7 +99,35 @@ public class WebPlayer extends Player {
 			"-qscale:a", "6",
 			"-f", "ogg",
 			pipe.getInputPipe()
-		};
+		};*/
+
+        // Add the output options (-f, -c:a, -c:v, etc.)
+        cmdList.add("-c:v");
+        cmdList.add("libtheora");
+        cmdList.add("-qscale:v");
+        cmdList.add("8");
+        cmdList.add("-acodec");
+        cmdList.add("libvorbis");
+        cmdList.add("-qscale:a");
+        cmdList.add("6");
+        cmdList.add("-f");
+        cmdList.add("ogg");
+
+        // Output file
+        cmdList.add(pipe.getInputPipe());
+
+        // Convert the command list to an array
+        String[] cmdArray = new String[cmdList.size()];
+        cmdList.toArray(cmdArray);
+
+        // Hook to allow plugins to customize this command line
+        cmdArray = finalizeTranscoderArgs(
+                filename,
+                dlna,
+                media,
+                params,
+                cmdArray
+        );
 
 		// Now launch FFmpeg
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
@@ -85,17 +150,6 @@ public class WebPlayer extends Player {
 		}
 
 		return pw;
-
-		/*		String[] cmdArray = new String[] {
-		 PMS.getConfiguration().getMencoderPath(),
-		 fileName,
-		 "-quiet",
-		 "-oac", "copy",
-		 "-ovc", "x264",
-		 "-lavcopts", "vcodec=mpeg4:threads="+nThreads,
-		 "-of", "mp4",
-		 "-o", pipe.getInputPipe()
-		 };*/
 	}
 
 	@Override
@@ -140,6 +194,6 @@ public class WebPlayer extends Player {
 
 	@Override
 	public String executable() {
-		return null;
+		return super.executable();
 	}
 }

@@ -2,11 +2,20 @@ package net.pms.remote;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
+
+import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
+import net.pms.encoders.FFMpegVideo;
+import net.pms.formats.Format;
+import net.pms.io.OutputParams;
+import net.pms.util.OpenSubtitle;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,17 +38,20 @@ public class RemotePlayHandler implements HttpHandler {
 		List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, root.getDefaultRenderer());
 		String rawId = id;
 
-		String mime = root.getDefaultRenderer().getMimeType(res.get(0).mimeType());
+        DLNAResource r = res.get(0);
+		String mime = root.getDefaultRenderer().getMimeType(r.mimeType());
 		String mediaType = "";
 		String coverImage = "";
-		if (res.get(0).getFormat().isAudio()) {
+		if (r.getFormat().isAudio()) {
 			mediaType = "audio";
 			String thumb = "/thumb/" + id1;
 			coverImage = "<img class=\"cover\" src=\"" + thumb + "\" alt=\"\" /><br>";
 		}
-		if (res.get(0).getFormat().isVideo()) {
+		if (r.getFormat().isVideo()) {
 			mediaType = "video";
-			mime = "video/ogg";
+            if(!RemoteUtil.directmime(mime)) {
+                mime = "video/ogg";
+            }
 		}
 
 		// Media player HTML
