@@ -10,6 +10,10 @@ body {
 	color:			#333;
 }
 
+body#ContentPage {
+	background:		url('http://www.universalmediaserver.com/images/background-blank.jpg');
+}
+
 /* Scaffolding */
 
 #FrontPage #Container {
@@ -24,6 +28,18 @@ body {
 
 #FrontPage #Menu {
 	position:		relative;
+}
+
+#ContentPage #Menu {
+	background:		url('http://www.universalmediaserver.com/images/menu-background-content.png');
+	background-repeat:	repeat-x;
+	height:			95px;
+}
+
+#ContentPage #Menu #HomeButton {
+	background:		url('http://www.universalmediaserver.com/images/menu-left-content.png');
+	width:			125px;
+	height:			93px;
 }
 
 /* Menu */

@@ -30,12 +30,16 @@ public class RemoteBrowseHandler implements HttpHandler {
 		sb.append("<!DOCTYPE html>").append(CRLF);
 			sb.append("<head>").append(CRLF);
 				sb.append("<meta charset=\"utf-8\">").append(CRLF);
+				sb.append("<link rel=\"stylesheet\" href=\"http://www.universalmediaserver.com/css/reset.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
 				sb.append("<link rel=\"stylesheet\" href=\"/file/web.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
 				sb.append("<link rel=\"icon\" href=\"http://www.universalmediaserver.com/favicon.ico\" type=\"image/x-icon\">").append(CRLF);
 				sb.append("<title>Universal Media Server</title>").append(CRLF);
 			sb.append("</head>").append(CRLF);
-			sb.append("<body>").append(CRLF);
-				sb.append("<div class=\"subtitles cover left\">");
+			sb.append("<body id=\"ContentPage\">").append(CRLF);
+				sb.append("<div id=\"Container\">");
+					sb.append("<div id=\"Menu\">");
+						sb.append("<a href=\"/\" id=\"HomeButton\"></a>");
+					sb.append("</div>");
 					sb.append("<ul>").append(CRLF);
 						for (DLNAResource r : res) {
 							String newId = r.getResourceId();
@@ -48,8 +52,8 @@ public class RemoteBrowseHandler implements HttpHandler {
 							String name = r.resumeName();
 							sb.append("<li>");
 								sb.append("<a href=\"").append(path).append(newId).append("\" title=\"").append(name).append("\">");
-									sb.append("<img class=\"cover\" src=\"").append(thumb).append("\" alt=\"\" /><br>");
-									sb.append("<span class=\"ep\">");
+									sb.append("<img src=\"").append(thumb).append("\" alt=\"").append(name).append("\" /><br>");
+									sb.append("<span>");
 										sb.append(name);
 									sb.append("</span>");
 								sb.append("</a>").append(CRLF);
