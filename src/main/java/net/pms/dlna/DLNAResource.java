@@ -1844,7 +1844,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				wireshark.append(" ").append(tempString);
 				addAttribute(sb, "protocolInfo", tempString);
 
-				if (subsAreValid) {
+				if (subsAreValid && !mediaRenderer.useCC()) {
 					addAttribute(sb, "pv:subtitleFileType", getMediaSubtitle().getType().getExtension().toUpperCase());
 					wireshark.append(" pv:subtitleFileType=").append(getMediaSubtitle().getType().getExtension().toUpperCase());
 					addAttribute(sb, "pv:subtitleFileUri", getSubsURL(getMediaSubtitle()));
@@ -1953,17 +1953,26 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		if (subsAreValid) {
-			openTag(sb, "res");
-			String format = getMediaSubtitle().getType().getExtension();
-			if (StringUtils.isBlank(format)) {
-				format = "plain";
-			}
-			addAttribute(sb, "protocolInfo", "http-get:*:text/" + format + ":*");
-			endTag(sb);
 			String subsURL = getSubsURL(getMediaSubtitle());
-			sb.append(subsURL);
-			closeTag(sb, "res");
-			LOGGER.trace("Network debugger: http-get:*:text/" + format + ":*" + subsURL);
+			if (mediaRenderer.useCC()) {
+				openTag(sb, "sec:CaptionInfoEx");
+				addAttribute(sb, "sec:type", "srt");
+				endTag(sb);
+				sb.append(subsURL);
+				closeTag(sb, "sec:CaptionInfoEx");
+				LOGGER.trace("Network debugger: sec:CaptionInfoEx: sec:type=srt " + subsURL);	
+			}else {
+				openTag(sb, "res");
+				String format = getMediaSubtitle().getType().getExtension();
+				if (StringUtils.isBlank(format)) {
+					format = "plain";
+				}
+				addAttribute(sb, "protocolInfo", "http-get:*:text/" + format + ":*");
+				endTag(sb);
+				sb.append(subsURL);
+				closeTag(sb, "res");
+				LOGGER.trace("Network debugger: http-get:*:text/" + format + ":*" + subsURL);
+			}
 		}
 
 		appendThumbnail(mediaRenderer, sb);
