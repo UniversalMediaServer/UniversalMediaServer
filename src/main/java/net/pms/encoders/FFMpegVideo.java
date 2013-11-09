@@ -1042,7 +1042,7 @@ public class FFMpegVideo extends Player {
 		if (applyFontConfig || isEmbeddedSource) {
 			convertedSubs = new File(subsPath.getAbsolutePath() + File.separator + basename + "_ID" + params.sid.getId() + "_" + modId + ".ass");
 		} else {
-            String tmp =  params.sid.getExternalFile().getName().replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
+			String tmp = params.sid.getExternalFile().getName().replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
 			convertedSubs = new File(subsPath.getAbsolutePath() + File.separator + modId + "_" + tmp);
 		}
 
