@@ -209,7 +209,13 @@ public class VLCVideo extends Player {
 		args.put("vcodec", codecConfig.videoCodec);
 		args.put("acodec", codecConfig.audioCodec);
 
-		// Bitrate in kbit/s
+		/**
+		 * Bitrate in kbit/s
+		 *
+		 * TODO: Make this engine smarter with bitrates, see 
+		 * FFMpegVideo.getVideoBitrateOptions() for our best
+		 * implementation of this.
+		 */
 		if (!videoRemux) {
 			args.put("vb", "4096");
 		}
@@ -282,6 +288,8 @@ public class VLCVideo extends Player {
 		cmdList.add("dummy");
 
 		// Disable hardware acceleration which is enabled by default
+		// It seems this no longer works on newer versions so we should
+		// find which command it was replaced with, if any.
 		if (!configuration.isGPUAcceleration()) {
 			cmdList.add("--no-ffmpeg-hw");
 		}
@@ -346,9 +354,6 @@ public class VLCVideo extends Player {
 			} else { // VLC doesn't understand "und", but does understand a nonexistent track
 				cmdList.add("--sub-" + disableSuffix);
 			}
-		} else if (!configuration.isDisableSubtitles()) { // Not specified, use language from GUI if enabled
-			// FIXME: VLC does not understand "loc" or "und".
-			cmdList.add("--sub-language=" + configuration.getSubtitlesLanguages());
 		} else {
 			cmdList.add("--sub-" + disableSuffix);
 		}
@@ -358,8 +363,25 @@ public class VLCVideo extends Player {
 			cmdList.add("--sout-x264-preset");
 			cmdList.add("superfast");
 
+			String x264CRF = configuration.getx264ConstantRateFactor();
+
+			// Remove comment from the value
+			if (x264CRF.contains("/*")) {
+				x264CRF = x264CRF.substring(x264CRF.indexOf("/*"));
+			}
+
+			// Determine a good quality setting based on video attributes
+			if (x264CRF.contains("Automatic")) {
+				x264CRF = "16";
+
+				// Lower CRF for 720p+ content
+				if (media.getWidth() > 720) {
+					x264CRF = "19";
+				}
+			}
+
 			cmdList.add("--sout-x264-crf");
-			cmdList.add("20");
+			cmdList.add(x264CRF);
 		}
 
 		// Skip forward if necessary

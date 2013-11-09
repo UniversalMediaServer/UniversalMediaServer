@@ -372,7 +372,26 @@ public class FFMpegVideo extends Player {
 			defaultMaxBitrates[0] = defaultMaxBitrates[0] / 2;
 
 			int bufSize = 1835;
-			if (!params.mediaRenderer.isTranscodeToH264TSAC3()) {
+			boolean bitrateLevel41Limited = false;
+
+			/**
+			 * Although the maximum bitrate for H.264 Level 4.1 is
+			 * officially 50,000 kbit/s, some 4.1-capable renderers
+			 * like the PS3 stutter when video exceeds roughly 31,250
+			 * kbit/s.
+			 *
+			 * We also apply the correct buffer size in this section.
+			 */
+			if (params.mediaRenderer.isTranscodeToH264TSAC3() || videoRemux) {
+				if (
+					params.mediaRenderer.isH264Level41Limited() &&
+					defaultMaxBitrates[0] > 31250
+				) {
+					defaultMaxBitrates[0] = 31250;
+					bitrateLevel41Limited = true;
+				}
+				bufSize = defaultMaxBitrates[0];
+			} else {
 				if (media.isHDVideo()) {
 					bufSize = defaultMaxBitrates[0] / 3;
 				}
@@ -390,33 +409,21 @@ public class FFMpegVideo extends Player {
 				}
 			}
 
-			// Make room for audio
-			if (dtsRemux) {
-				defaultMaxBitrates[0] = defaultMaxBitrates[0] - 1510;
-			} else {
-				defaultMaxBitrates[0] = defaultMaxBitrates[0] - configuration.getAudioBitrate();
-			}
+			if (!bitrateLevel41Limited) {
+				// Make room for audio
+				if (dtsRemux) {
+					defaultMaxBitrates[0] = defaultMaxBitrates[0] - 1510;
+				} else {
+					defaultMaxBitrates[0] = defaultMaxBitrates[0] - configuration.getAudioBitrate();
+				}
 
-			// Round down to the nearest Mb
-			defaultMaxBitrates[0] = defaultMaxBitrates[0] / 1000 * 1000;
+				// Round down to the nearest Mb
+				defaultMaxBitrates[0] = defaultMaxBitrates[0] / 1000 * 1000;
+			}
 
 			// FFmpeg uses bytes for inputs instead of kbytes like MEncoder
 			bufSize = bufSize * 1000;
 			defaultMaxBitrates[0] = defaultMaxBitrates[0] * 1000;
-
-			/**
-			 * Level 4.1-limited renderers like the PS3 can stutter when H.264 video exceeds
-			 * this bitrate
-			 */
-			if (params.mediaRenderer.isTranscodeToH264TSAC3() || videoRemux) {
-				if (
-					params.mediaRenderer.isH264Level41Limited() &&
-					defaultMaxBitrates[0] > 31250000
-				) {
-					defaultMaxBitrates[0] = 31250000;
-				}
-				bufSize = defaultMaxBitrates[0];
-			}
 
 			videoBitrateOptions.add("-bufsize");
 			videoBitrateOptions.add(String.valueOf(bufSize));
@@ -456,16 +463,22 @@ public class FFMpegVideo extends Player {
 			} else {
 				// Add x264 quality settings
 				String x264CRF = configuration.getx264ConstantRateFactor();
+
+				// Remove comment from the value
+				if (x264CRF.contains("/*")) {
+					x264CRF = x264CRF.substring(x264CRF.indexOf("/*"));
+				}
+
 				if (x264CRF.contains("Automatic")) {
-					x264CRF = "-crf 16";
+					x264CRF = "16";
 
 					// Lower CRF for 720p+ content
 					if (media.getWidth() > 720) {
-						x264CRF = "-crf 19";
+						x264CRF = "19";
 					}
 				}
-				String[] customOptions = StringUtils.split(x264CRF);
-				videoBitrateOptions.addAll(new ArrayList<>(Arrays.asList(customOptions)));
+				videoBitrateOptions.add("-crf");
+				videoBitrateOptions.add(x264CRF);
 			}
 		}
 

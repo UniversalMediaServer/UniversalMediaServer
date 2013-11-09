@@ -108,7 +108,7 @@ public class PlaySub extends DLNAResource {
 	}
 
 	@Override
-	public boolean isSrtFile() {
+	public boolean isSubsFile() {
 		return true;
 	}
 }

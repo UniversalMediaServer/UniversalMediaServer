@@ -3,14 +3,15 @@ package net.pms.util;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public class StringUtil {
-	private static final int[] MULTIPLIER = new int[] {1, 60, 3600, 24*3600};
-	public static final String ASS_TIME_FORMAT = "%01d:%02d:%02.2f";
-	public static final String SRT_TIME_FORMAT = "%02d:%02d:%02.3f";
+	private static final int[] MULTIPLIER = new int[] {3600, 60, 1};
+	public static final String ASS_TIME_FORMAT = "%01d:%02d:%05.2f";
+	public static final String SRT_TIME_FORMAT = "%02d:%02d:%06.3f";
 	public static final String SEC_TIME_FORMAT = "%02d:%02d:%02d";
-	public static final String DURATION_TIME_FORMAT = "%02d:%02d:%02.2f";
-	
+	public static final String DURATION_TIME_FORMAT = "%02d:%02d:%05.2f";
+
 	/**
 	 * Appends "&lt;<u>tag</u> " to the StringBuilder. This is a typical HTML/DIDL/XML tag opening.
+	 *
 	 * @param sb String to append the tag beginning to.
 	 * @param tag String that represents the tag
 	 */
@@ -21,6 +22,7 @@ public class StringUtil {
 
 	/**
 	 * Appends the closing symbol &gt; to the StringBuilder. This is a typical HTML/DIDL/XML tag closing.
+	 *
 	 * @param sb String to append the ending character of a tag.
 	 */
 	public static void endTag(StringBuilder sb) {
@@ -29,6 +31,7 @@ public class StringUtil {
 
 	/**
 	 * Appends "&lt;/<u>tag</u>&gt;" to the StringBuilder. This is a typical closing HTML/DIDL/XML tag.
+	 *
 	 * @param sb
 	 * @param tag
 	 */
@@ -58,6 +61,7 @@ public class StringUtil {
 
 	/**
 	 * Does basic transformations between characters and their HTML representation with ampersands.
+	 *
 	 * @param s String to be encoded
 	 * @return Encoded String
 	 */
@@ -74,6 +78,7 @@ public class StringUtil {
 
 	/**
 	 * Converts a URL string to a more canonical form
+	 *
 	 * @param url String to be converted
 	 * @return Converted String.
 	 */
@@ -103,16 +108,16 @@ public class StringUtil {
 		try {
 			return Double.parseDouble(time);
 		} catch (NumberFormatException e) {
-			String[] arrs = time.split(":");
-			double value, sum = 0;
-			for (int i = 0; i < arrs.length; i++) {
-				String tmp = arrs[arrs.length - i - 1];
-				value = Double.parseDouble(tmp.replace(",", "."));
-				sum += value * MULTIPLIER[i];
+			String[] arguments = time.split(":");
+			double sum = 0;
+			int i = 0;
+			for (String argument : arguments) {
+				sum += Double.parseDouble(argument.replace(",", ".")) * MULTIPLIER[i];
+				i++;
 			}
+
 			return sum;
 		}
-
 	}
 
 	/**
