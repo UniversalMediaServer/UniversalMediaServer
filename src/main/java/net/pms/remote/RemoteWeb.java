@@ -287,11 +287,15 @@ public class RemoteWeb {
 					sb.append("<title>Universal Media Server</title>").append(CRLF);
 				sb.append("</head>").append(CRLF);
 				sb.append("<body id=\"FrontPage\">").append(CRLF);
-					sb.append("<h2><b>Universal Media Server</b></h2><br><br>").append(CRLF);
-					sb.append("<a href=\"/browse/0\"><img src=\"/thumb/logo\"/></a><br><br>").append(CRLF);
-					sb.append("<h2><strong>");
-					sb.append(PMS.getConfiguration().getProfileName());
-					sb.append("</strong></h2><br>");
+					sb.append("<div id=\"Container\">").append(CRLF);
+						sb.append("<div id=\"Menu\">").append(CRLF);
+							sb.append("<a href=\"/browse/0\" id=\"Logo\" title=\"Browse Media\">").append(CRLF);
+								sb.append("<h3>");
+									sb.append("Browse the media on ").append(PMS.getConfiguration().getProfileName());
+								sb.append("</h3>");
+							sb.append("</a>").append(CRLF);
+						sb.append("</div>").append(CRLF);
+					sb.append("</div>");
 				sb.append("</body>");
 			sb.append("</html>");
 
