@@ -125,7 +125,7 @@ public class FFMpegVideo extends Player {
 		File tempSubs = null;
 		final RendererConfiguration renderer = params.mediaRenderer;
 		if (!isDisableSubtitles(params)) {
-			tempSubs = getSubtitles(dlna, media, params);
+			tempSubs = getSubtitles(dlna, media, params, configuration);
 		}
 
 		boolean isMediaValid = media != null && media.isMediaparsed() && media.getHeight() != 0;
@@ -995,7 +995,8 @@ public class FFMpegVideo extends Player {
 	 * @return Converted subtitle file
 	 * @throws IOException
 	 */
-	public File getSubtitles(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
+	public static File getSubtitles(DLNAResource dlna, DLNAMediaInfo media, OutputParams params,
+                                    PmsConfiguration configuration) throws IOException {
 		if (media == null || params.sid.getId() == -1) {
 			return null;
 		}
@@ -1006,7 +1007,7 @@ public class FFMpegVideo extends Player {
 			subsPath.mkdirs();
 		}
 
-		boolean applyFontConfig = configuration.isFFmpegFontConfig();
+        boolean applyFontConfig = configuration.isFFmpegFontConfig();
 		boolean isEmbeddedSource = params.sid.getId() < 100;
 
 		String filename = isEmbeddedSource ?
@@ -1021,20 +1022,20 @@ public class FFMpegVideo extends Player {
 		} else {
 			// It's something else, e.g. a url or psuedo-url without meaningful
 			// lastmodified and (maybe) basename characteristics.
-			basename = dlna.getName().replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r]", "").trim();
+			basename = dlna.getName().replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
 			modId = filename.hashCode();
 		}
-
 		File convertedSubs;
+
 		if (applyFontConfig || isEmbeddedSource) {
 			convertedSubs = new File(subsPath.getAbsolutePath() + File.separator + basename + "_ID" + params.sid.getId() + "_" + modId + ".ass");
 		} else {
-			convertedSubs = new File(subsPath.getAbsolutePath() + File.separator + modId + "_" + params.sid.getExternalFile().getName());
+            String tmp =  params.sid.getExternalFile().getName().replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
+			convertedSubs = new File(subsPath.getAbsolutePath() + File.separator + modId + "_" + tmp);
 		}
-
 		if (convertedSubs.canRead()) {
 			// subs are already converted
-			return convertedSubs; 
+			return convertedSubs;
 		}
 
 		boolean isExternalAss = false;
@@ -1045,7 +1046,6 @@ public class FFMpegVideo extends Player {
 		) {
 			isExternalAss = true;
 		}
-
 		File tempSubs;
 		if (
 			isExternalAss ||
@@ -1057,7 +1057,7 @@ public class FFMpegVideo extends Player {
 		) {
 			tempSubs = params.sid.getExternalFile();
 		} else {
-			tempSubs = convertSubsToAss(filename, media, params);
+			tempSubs = convertSubsToAss(filename, media, params, configuration);
 		}
 
 		if (tempSubs == null) {
@@ -1074,20 +1074,19 @@ public class FFMpegVideo extends Player {
 		// Now we're sure we actually have our own modifiable file
 		if (applyFontConfig) {
 			try {
-				tempSubs = applyFontconfigToASSTempSubsFile(tempSubs, media);
+				tempSubs = applyFontconfigToASSTempSubsFile(tempSubs, media, configuration);
 			} catch (IOException e) {
 				LOGGER.debug("Applying subs setting ends with error: " + e);
 				return null;
 			}
 		}
 
-		if (isEmbeddedSource) {
+        if (isEmbeddedSource) {
 			params.sid.setExternalFile(tempSubs);
 			params.sid.setType(SubtitleType.ASS);
 		}
 
 		PMS.get().addTempFile(tempSubs, 30 * 24 * 3600 * 1000);
-
 		return tempSubs;
 	}
 
@@ -1098,7 +1097,8 @@ public class FFMpegVideo extends Player {
 	 * @param params output parameters
 	 * @return Converted subtitles file in SSA/ASS format
 	 */
-	public static File convertSubsToAss(String fileName, DLNAMediaInfo media, OutputParams params) {
+	public static File convertSubsToAss(String fileName, DLNAMediaInfo media, OutputParams params,
+                                        PmsConfiguration configuration) {
 		List<String> cmdList = new ArrayList<>();
 		File tempSubsFile;
 		cmdList.add(configuration.getFfmpegPath());
@@ -1160,7 +1160,8 @@ public class FFMpegVideo extends Player {
 		return tempSubsFile;
 	}
 
-	public File applyFontconfigToASSTempSubsFile(File tempSubs, DLNAMediaInfo media) throws IOException {
+	public static File applyFontconfigToASSTempSubsFile(File tempSubs, DLNAMediaInfo media,
+                                                 PmsConfiguration configuration) throws IOException {
 		File outputSubs = tempSubs;
 		StringBuilder outputString = new StringBuilder();
 		File temp = new File(configuration.getTempFolder(), tempSubs.getName() + ".tmp");

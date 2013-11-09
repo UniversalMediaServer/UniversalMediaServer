@@ -2,11 +2,20 @@ package net.pms.remote;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
+
+import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
+import net.pms.encoders.FFMpegVideo;
+import net.pms.formats.Format;
+import net.pms.io.OutputParams;
+import net.pms.util.OpenSubtitle;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,28 +40,37 @@ public class RemotePlayHandler implements HttpHandler {
 		sb.append("<!DOCTYPE html>");
 		sb.append(CRLF);
 		sb.append("<head>");
+        /*sb.append("<script src=\"//ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js\"></script>");
+        sb.append("<script src=\"//releases.flowplayer.org/5.4.4/flowplayer.min.js\"></script>");
+        sb.append("<link rel=\"stylesheet\" href=\"//releases.flowplayer.org/5.4.4/skin/minimalist.css\">");*/
 		sb.append("<link rel=\"stylesheet\" href=\"");
 		sb.append("/file/web.css");
 		sb.append("\">");
 		sb.append("</head>");
 		sb.append("<body>");
-		String mime = root.getDefaultRenderer().getMimeType(res.get(0).mimeType());
+        DLNAResource r = res.get(0);
+		String mime = root.getDefaultRenderer().getMimeType(r.mimeType());
 		String mediaType = "";
-		if (res.get(0).getFormat().isAudio()) {
+		if (r.getFormat().isAudio()) {
 			mediaType = "audio";
 			String thumb = "/thumb/" + id1;
 			sb.append("<img class=\"cover\" src=\"").append(thumb).append("\" alt=\"\" /><br>");
 		}
 
-		if (res.get(0).getFormat().isVideo()) {
+		if (r.getFormat().isVideo()) {
 			mediaType = "video";
-			mime = "video/ogg";
+            if(!RemoteUtil.directmime(mime)) {
+                mime = "video/ogg";
+            }
 		}
 
+        //sb.append("<div class=\"flowplayer\">");
 		sb.append("<").append(mediaType).append(" width=\"720\" height=\"404\" controls=\"controls\" autoplay=\"autoplay\"");
 		sb.append(" src=\"/media/").append(id1).append("\" type=\"").append(mime).append("\">");
 		sb.append("Your browser doesn't appear to support the HTML5 video tag");
-		sb.append("</").append(mediaType).append("><br><br>");
+		sb.append("</").append(mediaType).append(">");
+        //sb.append("</div>");
+        sb.append("<br><br>");
 		String rawId = id;
 		sb.append("<a href=\"/raw/").append(rawId).append("\" target=\"_blank\">Download</a>");
 		sb.append(CRLF);
