@@ -27,8 +27,8 @@ public class WebPlayer extends FFMpegVideo {
 	) throws IOException {
 		LOGGER.debug("web player wrapper called");
 		params.waitbeforestart = 2000;
-        final String filename = dlna.getSystemName();
-        setAudioAndSubs(filename, media, params);
+		final String filename = dlna.getSystemName();
+		setAudioAndSubs(filename, media, params);
 
 		String fifoName = String.format(
 			"webplayer_%d_%d",
@@ -51,41 +51,40 @@ public class WebPlayer extends FFMpegVideo {
 
 		params.input_pipes[0] = pipe;
 
-        List<String> cmdList = new ArrayList<>();
-        cmdList.add(executable());
+		List<String> cmdList = new ArrayList<>();
+		cmdList.add(executable());
 
-        // XXX squashed bug - without this, ffmpeg hangs waiting for a confirmation
-        // that it can write to a file that already exists i.e. the named pipe
-        cmdList.add("-y");
+		// XXX squashed bug - without this, ffmpeg hangs waiting for a confirmation
+		// that it can write to a file that already exists i.e. the named pipe
+		cmdList.add("-y");
 
-        cmdList.add("-loglevel");
+		cmdList.add("-loglevel");
 
-        if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
-            cmdList.add("info"); // Could be changed to "verbose" or "debug" if "info" level is not enough
-        } else {
-            cmdList.add("warning");
-        }
+		if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
+			cmdList.add("info"); // Could be changed to "verbose" or "debug" if "info" level is not enough
+		} else {
+			cmdList.add("warning");
+		}
 
+		// Decoder threads
+		cmdList.add("-threads");
+		cmdList.add("" + nThreads);
 
-        // Decoder threads
-        cmdList.add("-threads");
-        cmdList.add("" + nThreads);
+		if (params.timeseek > 0) {
+			cmdList.add("-ss");
+			cmdList.add("" + (int) params.timeseek);
+		}
 
-        if (params.timeseek > 0) {
-            cmdList.add("-ss");
-            cmdList.add("" + (int) params.timeseek);
-        }
+		cmdList.add("-i");
+		cmdList.add(filename);
 
-        cmdList.add("-i");
-        cmdList.add(filename);
+		cmdList.addAll(getVideoFilterOptions(dlna, media, params));
 
-        cmdList.addAll(getVideoFilterOptions(dlna, media, params));
+		// Encoder threads
+		cmdList.add("-threads");
+		cmdList.add("" + nThreads);
 
-        // Encoder threads
-        cmdList.add("-threads");
-        cmdList.add("" + nThreads);
-
-        // FFmpeg with Theora and Vorbis inside OGG
+		// FFmpeg with Theora and Vorbis inside OGG
 		/*String[] cmdArray = new String[]{
 			PMS.getConfiguration().getFfmpegPath(),
 			"-y",
@@ -100,34 +99,33 @@ public class WebPlayer extends FFMpegVideo {
 			"-f", "ogg",
 			pipe.getInputPipe()
 		};*/
+		// Add the output options (-f, -c:a, -c:v, etc.)
+		cmdList.add("-c:v");
+		cmdList.add("libtheora");
+		cmdList.add("-qscale:v");
+		cmdList.add("8");
+		cmdList.add("-acodec");
+		cmdList.add("libvorbis");
+		cmdList.add("-qscale:a");
+		cmdList.add("6");
+		cmdList.add("-f");
+		cmdList.add("ogg");
 
-        // Add the output options (-f, -c:a, -c:v, etc.)
-        cmdList.add("-c:v");
-        cmdList.add("libtheora");
-        cmdList.add("-qscale:v");
-        cmdList.add("8");
-        cmdList.add("-acodec");
-        cmdList.add("libvorbis");
-        cmdList.add("-qscale:a");
-        cmdList.add("6");
-        cmdList.add("-f");
-        cmdList.add("ogg");
+		// Output file
+		cmdList.add(pipe.getInputPipe());
 
-        // Output file
-        cmdList.add(pipe.getInputPipe());
+		// Convert the command list to an array
+		String[] cmdArray = new String[cmdList.size()];
+		cmdList.toArray(cmdArray);
 
-        // Convert the command list to an array
-        String[] cmdArray = new String[cmdList.size()];
-        cmdList.toArray(cmdArray);
-
-        // Hook to allow plugins to customize this command line
-        cmdArray = finalizeTranscoderArgs(
-                filename,
-                dlna,
-                media,
-                params,
-                cmdArray
-        );
+		// Hook to allow plugins to customize this command line
+		cmdArray = finalizeTranscoderArgs(
+			filename,
+			dlna,
+			media,
+			params,
+			cmdArray
+		);
 
 		// Now launch FFmpeg
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);

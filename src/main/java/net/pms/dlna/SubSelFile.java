@@ -20,14 +20,14 @@ public class SubSelFile extends VirtualFolder {
 		orig = r;
 	}
 
-    @Override
-    public InputStream getThumbnailInputStream() {
-        try {
-            return orig.getThumbnailInputStream();
-        } catch (Exception e) {
-            return super.getThumbnailInputStream();
-        }
-    }
+	@Override
+	public InputStream getThumbnailInputStream() {
+		try {
+			return orig.getThumbnailInputStream();
+		} catch (Exception e) {
+			return super.getThumbnailInputStream();
+		}
+	}
 
 	@Override
 	public void discoverChildren() {

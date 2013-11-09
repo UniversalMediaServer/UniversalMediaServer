@@ -107,7 +107,7 @@ public class RemoteUtil {
 		dump(in, os);
 	}
 
-    public static boolean directmime(String mime) {
-        return (mime.equals("video/mp4") || mime.equals("video/webm") || mime.equals("video/ogg"));
-    }
+	public static boolean directmime(String mime) {
+		return (mime.equals("video/mp4") || mime.equals("video/webm") || mime.equals("video/ogg"));
+	}
 }
