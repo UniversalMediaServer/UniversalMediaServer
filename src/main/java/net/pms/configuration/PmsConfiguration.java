@@ -229,6 +229,7 @@ public class PmsConfiguration {
 	private static final String KEY_VLC_SAMPLE_RATE_OVERRIDE = "vlc_sample_rate_override";
 	private static final String KEY_VLC_SAMPLE_RATE = "vlc_sample_rate";
 	private static final String KEY_WEB_CONF_PATH = "web_conf";
+    private static final String KEY_WEB_PATH = "web_path";
 	private static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
 
 	// The name of the subdirectory under which UMS config files are stored for this build (default: UMS).
@@ -2894,4 +2895,16 @@ public class PmsConfiguration {
 	public boolean getWebHttps() {
 		return getBoolean(KEY_WEB_HTTPS, false);
 	}
+
+    public File getWebPath() {
+        File path = new File(getString(KEY_WEB_PATH, "web"));
+        if (!path.exists()) {
+           path.mkdirs();
+        }
+        return path;
+    }
+
+    public File getWebFile(String file) {
+        return new File(getWebPath().getAbsolutePath() + File.separator + file);
+    }
 }

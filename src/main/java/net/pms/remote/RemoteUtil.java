@@ -17,15 +17,19 @@ import org.slf4j.LoggerFactory;
 public class RemoteUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RemoteUtil.class);
 
-	public static void dumpFile(String file, HttpExchange t) throws IOException {
-		File f = new File(file);
+    public static void dumpFile(String file, HttpExchange t) throws IOException {
+        File f = new File(file);
+        dumpFile(f, t);
+    }
+
+	public static void dumpFile(File f, HttpExchange t) throws IOException {
 		LOGGER.debug("file " + f + " " + f.length());
 		if (!f.exists()) {
 			throw new IOException("no file");
 		}
 		t.sendResponseHeaders(200, f.length());
 		dump(new FileInputStream(f), t.getResponseBody());
-		LOGGER.debug("dump of " + file + " done");
+		LOGGER.debug("dump of " + f.getName() + " done");
 	}
 
 	public static void dump(final InputStream in, final OutputStream os) throws IOException {

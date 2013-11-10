@@ -72,7 +72,7 @@ public class RemoteWeb {
 			addCtx("/media", new RemoteMediaHandler(this));
 			addCtx("/thumb", new RemoteThumbHandler(this));
 			addCtx("/raw", new RemoteRawHandler(this));
-			addCtx("/file", new RemoteFileHandler());
+			addCtx("/files", new RemoteFileHandler());
 			server.setExecutor(null);
 			server.start();
 		} catch (Exception e) {
@@ -257,8 +257,9 @@ public class RemoteWeb {
 				}
 				return;
 			}
-			if (t.getRequestURI().getPath().contains("web.css")) {
-				RemoteUtil.dumpFile("web.css", t);
+			if (t.getRequestURI().getPath().startsWith("/files/")) {
+                File f = PMS.getConfiguration().getWebFile(t.getRequestURI().getPath().substring(7));
+				RemoteUtil.dumpFile(f, t);
 			}
 		}
 	}
@@ -283,7 +284,7 @@ public class RemoteWeb {
 			sb.append("<!DOCTYPE html>").append(CRLF);
 				sb.append("<head>").append(CRLF);
 					sb.append("<link rel=\"stylesheet\" href=\"http://www.universalmediaserver.com/css/reset.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
-					sb.append("<link rel=\"stylesheet\" href=\"/file/web.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
+					sb.append("<link rel=\"stylesheet\" href=\"/files/web.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
 					sb.append("<link rel=\"icon\" href=\"http://www.universalmediaserver.com/favicon.ico\" type=\"image/x-icon\">").append(CRLF);
 					sb.append("<title>Universal Media Server</title>").append(CRLF);
 				sb.append("</head>").append(CRLF);
