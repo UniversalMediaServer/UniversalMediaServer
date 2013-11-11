@@ -70,6 +70,7 @@ public class RemoteWeb {
 			addCtx("/browse", new RemoteBrowseHandler(this));
 			addCtx("/play", new RemotePlayHandler(this));
 			addCtx("/media", new RemoteMediaHandler(this));
+            addCtx("/fmedia", new RemoteMediaHandler(this, true));
 			addCtx("/thumb", new RemoteThumbHandler(this));
 			addCtx("/raw", new RemoteRawHandler(this));
 			addCtx("/files", new RemoteFileHandler());

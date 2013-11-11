@@ -18,6 +18,18 @@ import org.slf4j.LoggerFactory;
 
 public class WebPlayer extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebPlayer.class);
+    private boolean flash;
+
+    public WebPlayer() {
+        super();
+        flash = false;
+    }
+
+    public WebPlayer(boolean f) {
+        this();
+        flash = f;
+    }
+
 
 	@Override
 	public ProcessWrapper launchTranscode(
@@ -26,7 +38,7 @@ public class WebPlayer extends FFMpegVideo {
 		OutputParams params
 	) throws IOException {
 		LOGGER.debug("web player wrapper called");
-		params.waitbeforestart = 2000;
+		params.waitbeforestart = 1000;
 		final String filename = dlna.getSystemName();
 		setAudioAndSubs(filename, media, params);
 
@@ -100,16 +112,26 @@ public class WebPlayer extends FFMpegVideo {
 			pipe.getInputPipe()
 		};*/
 		// Add the output options (-f, -c:a, -c:v, etc.)
-		cmdList.add("-c:v");
-		cmdList.add("libtheora");
-		cmdList.add("-qscale:v");
-		cmdList.add("8");
-		cmdList.add("-acodec");
-		cmdList.add("libvorbis");
-		cmdList.add("-qscale:a");
-		cmdList.add("6");
-		cmdList.add("-f");
-		cmdList.add("ogg");
+        if (!flash) {
+            cmdList.add("-c:v");
+            cmdList.add("libtheora");
+            cmdList.add("-qscale:v");
+            cmdList.add("8");
+            cmdList.add("-acodec");
+            cmdList.add("libvorbis");
+            cmdList.add("-qscale:a");
+            cmdList.add("6");
+            cmdList.add("-f");
+            cmdList.add("ogg");
+        }
+        else {
+            cmdList.add("-c:v");
+            cmdList.add("flv");
+            cmdList.add("-ar");
+            cmdList.add("44100");
+            cmdList.add("-f");
+            cmdList.add("flv");
+        }
 
 		// Output file
 		cmdList.add(pipe.getInputPipe());

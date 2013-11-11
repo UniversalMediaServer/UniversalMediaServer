@@ -54,6 +54,11 @@ public class RemotePlayHandler implements HttpHandler {
 				sb.append("<link rel=\"stylesheet\" href=\"/files/web.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
 				sb.append("<link rel=\"icon\" href=\"http://www.universalmediaserver.com/favicon.ico\" type=\"image/x-icon\">");
 				sb.append("<title>Universal Media Server</title>").append(CRLF);
+                // FLOWPLAYER
+                sb.append("<script src=\"//ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js\"></script>");
+                sb.append("<script src=\"//releases.flowplayer.org/5.4.4/flowplayer.min.js\"></script>");
+                sb.append("<link rel=\"stylesheet\" href=\"//releases.flowplayer.org/5.4.4/skin/minimalist.css\">");
+                // FLOWPLAYER END
 			sb.append("</head>");
 			sb.append("<body id=\"ContentPage\">");
 				sb.append("<div id=\"Container\">");
@@ -61,10 +66,27 @@ public class RemotePlayHandler implements HttpHandler {
 						sb.append("<a href=\"/\" id=\"HomeButton\"></a>");
 					sb.append("</div>");
 					sb.append(coverImage);
-					sb.append("<").append(mediaType).append(" width=\"720\" height=\"404\" controls=\"controls\" autoplay=\"autoplay\"");
+                    // FLOWPLAYER
+                    sb.append("<div class=\"flowplayer\">");
+					sb.append("<").append(mediaType);
+                    // FLOWPLAYER
+                    sb.append(" autoplay>");
+                    // NON FLOWPLAYER
+                    //sb.append(" width=\"720\" height=\"404\" controls=\"controls\" autoplay=\"autoplay\"");
+                    // FLOWPLAYER
+                    sb.append("<source");
 					sb.append(" src=\"/media/").append(URLEncoder.encode(id1, "UTF-8")).append("\" type=\"").append(mime).append("\">");
-					sb.append("Your browser doesn't appear to support the HTML5 video tag");
-					sb.append("</").append(mediaType).append("><br><br>");
+                    // FLOWPLAYER
+                    sb.append("</source>");
+                    sb.append("<source");
+                    sb.append(" src=\"/fmedia/").append(URLEncoder.encode(id1, "UTF-8")).append("\" type=\"").append("video/flash").append("\">");
+                    sb.append("</source>");
+                    // FLOWPLAYER END
+					//sb.append("Your browser doesn't appear to support the HTML5 video tag");
+					sb.append("</").append(mediaType).append(">");
+                    // FLOWPLAYER
+                    sb.append("</div>");
+                    sb.append("<br><br>");
 					sb.append("<a href=\"/raw/").append(rawId).append("\" target=\"_blank\">Download</a>").append(CRLF);
 				sb.append("</div>");
 			sb.append("</body>");

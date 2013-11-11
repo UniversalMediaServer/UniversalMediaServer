@@ -21,12 +21,19 @@ public class RemoteMediaHandler implements HttpHandler {
 	private RemoteWeb parent;
 	private String path;
 	private RendererConfiguration render;
+    private boolean flash;
 
 	public RemoteMediaHandler(RemoteWeb parent) {
 		this(parent, "media/", null);
 	}
 
+    public RemoteMediaHandler(RemoteWeb parent, boolean flash) {
+        this(parent, "fmedia/", null);
+        this.flash = flash;
+    }
+
 	public RemoteMediaHandler(RemoteWeb parent, String path, RendererConfiguration render) {
+        this.flash = false;
 		this.parent = parent;
 		this.path = path;
 		this.render = render;
@@ -58,7 +65,11 @@ public class RemoteMediaHandler implements HttpHandler {
 		String mime = root.getDefaultRenderer().getMimeType(res.get(0).mimeType());
 		DLNAResource dlna = res.get(0);
 		if (dlna.getFormat().isVideo()) {
-			if (!RemoteUtil.directmime(mime) || (dlna.getMediaSubtitle() != null)) {
+            if(flash) {
+                mime = "video/flash";
+                dlna.setPlayer(new WebPlayer(true));
+            }
+			else if (!RemoteUtil.directmime(mime) || (dlna.getMediaSubtitle() != null)) {
 				mime = "video/ogg";
 				dlna.setPlayer(new WebPlayer());
 			}
