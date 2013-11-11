@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import net.pms.dlna.DLNAResource;
 import net.pms.network.HTTPResource;
-import org.apache.commons.lang3.StringUtils;
+import org.codehaus.plexus.util.StringUtils;
 
 /**
  * Represents a container (folder). This is widely used by the UPNP ContentBrowser service. Child objects are expected in this folder.
@@ -120,14 +120,14 @@ public class VirtualFolder extends DLNAResource {
 	 */
 	@Override
 	public InputStream getThumbnailInputStream() {
-		if (StringUtils.isEmpty(thumbnailIcon)) {
-			try {
-				return super.getThumbnailInputStream();
-			} catch (IOException e) {
-				return null;
-			}
-		}
-		return getResourceInputStream(thumbnailIcon);
+        if (StringUtils.isEmpty(thumbnailIcon)) {
+            try {
+                return super.getThumbnailInputStream();
+            } catch (IOException e) {
+                return null;
+            }
+        }
+        return getResourceInputStream(thumbnailIcon);
 	}
 
 	/**
