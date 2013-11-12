@@ -38,6 +38,7 @@ public class RemoteWeb {
 	private HashMap<String, String> users;
 	private HashMap<String, String> tags;
 	private HashMap<String, RootFolder> roots;
+    private RendererConfiguration fakeConf;
 
 	public RemoteWeb() {
 		this(DEFAULT_PORT);
@@ -74,8 +75,10 @@ public class RemoteWeb {
 			addCtx("/thumb", new RemoteThumbHandler(this));
 			addCtx("/raw", new RemoteRawHandler(this));
 			addCtx("/files", new RemoteFileHandler());
+            addCtx("/subs", new RemoteFileHandler());
 			server.setExecutor(null);
 			server.start();
+            fakeConf = new RendererConfiguration("Web Client");
 		} catch (Exception e) {
 			LOGGER.debug("Couldn't start RemoteWEB " + e);
 		}
@@ -132,6 +135,10 @@ public class RemoteWeb {
 		return tag;
 	}
 
+    public RendererConfiguration getWebRender() {
+        return fakeConf;
+    }
+
 	public RootFolder getRoot(String name) {
 		return getRoot(name, false);
 	}
@@ -142,7 +149,7 @@ public class RemoteWeb {
 			return root;
 		}
 		root = new RootFolder();
-		root.setDefaultRenderer(RendererConfiguration.getDefaultConf());
+		root.setDefaultRenderer(fakeConf);
 		//root.setDefaultRenderer(RendererConfiguration.getRendererConfigurationByName("web"));
 		root.discoverChildren();
 		roots.put(name, root);
@@ -261,7 +268,13 @@ public class RemoteWeb {
 			if (t.getRequestURI().getPath().startsWith("/files/")) {
                 File f = PMS.getConfiguration().getWebFile(t.getRequestURI().getPath().substring(7));
 				RemoteUtil.dumpFile(f, t);
+                return;
 			}
+            if (t.getRequestURI().getPath().startsWith("/subs/")) {
+                File f = new File(t.getRequestURI().getPath().substring(6));
+                RemoteUtil.dumpFile(f, t);
+                return;
+            }
 		}
 	}
 

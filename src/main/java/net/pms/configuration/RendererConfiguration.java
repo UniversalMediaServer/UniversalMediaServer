@@ -447,8 +447,13 @@ public class RendererConfiguration {
 	}
 
 	RendererConfiguration() throws ConfigurationException {
-		this(null);
+		this((File) null);
 	}
+
+    public RendererConfiguration(String name) throws ConfigurationException {
+        this((File) null);
+        configuration.setProperty(RENDERER_NAME, name);
+    }
 
 	public RendererConfiguration(File f) throws ConfigurationException {
 		configuration = new PropertiesConfiguration();

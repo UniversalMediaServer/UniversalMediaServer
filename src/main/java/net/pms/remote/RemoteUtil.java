@@ -9,13 +9,20 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import net.pms.PMS;
+import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
+import net.pms.external.StartStopListenerDelegate;
 import net.pms.newgui.LooksFrame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RemoteUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RemoteUtil.class);
+
+    public static final String MIME_MP4 = "video/mp4";
+    public static final String MIME_OGG = "video/ogg";
+    public static final String MIME_TRANS = MIME_MP4;
+    //public static final String MIME_TRANS = MIME_OGG;
 
     public static void dumpFile(String file, HttpExchange t) throws IOException {
         File f = new File(file);
@@ -28,11 +35,16 @@ public class RemoteUtil {
 			throw new IOException("no file");
 		}
 		t.sendResponseHeaders(200, f.length());
-		dump(new FileInputStream(f), t.getResponseBody());
+		dump(new FileInputStream(f), t.getResponseBody(), null);
 		LOGGER.debug("dump of " + f.getName() + " done");
 	}
 
-	public static void dump(final InputStream in, final OutputStream os) throws IOException {
+    public static void dump(InputStream in, OutputStream os) throws IOException {
+        dump(in, os, null);
+    }
+
+	public static void dump(final InputStream in, final OutputStream os,
+                            final StartStopListenerDelegate start) throws IOException {
 		Runnable r = new Runnable() {
 			@Override
 			public void run() {
@@ -58,6 +70,9 @@ public class RemoteUtil {
 					os.close();
 				} catch (IOException e) {
 				}
+                if (start != null) {
+                   start.stop();
+                }
 			}
 		};
 		new Thread(r).start();
@@ -108,7 +123,7 @@ public class RemoteUtil {
 		InputStream in = LooksFrame.class.getResourceAsStream("/resources/images/logo.png");
 		t.sendResponseHeaders(200, 0);
 		OutputStream os = t.getResponseBody();
-		dump(in, os);
+		dump(in, os, null);
 	}
 
 	public static boolean directmime(String mime) {

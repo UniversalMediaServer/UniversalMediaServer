@@ -13,6 +13,7 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
 import net.pms.dlna.RootFolder;
 import net.pms.encoders.WebPlayer;
+import net.pms.external.StartStopListenerDelegate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,10 +71,11 @@ public class RemoteMediaHandler implements HttpHandler {
                 dlna.setPlayer(new WebPlayer(true));
             }
 			else if (!RemoteUtil.directmime(mime) || (dlna.getMediaSubtitle() != null)) {
-				mime = "video/ogg";
+				mime = RemoteUtil.MIME_TRANS;
 				dlna.setPlayer(new WebPlayer());
 			}
 		}
+        dlna.setDefaultRenderer(parent.getWebRender());
 		LOGGER.debug("dumping media " + mime + " " + res);
 		InputStream in = dlna.getInputStream(range, root.getDefaultRenderer());
 		Headers hdr = t.getResponseHeaders();
@@ -83,6 +85,10 @@ public class RemoteMediaHandler implements HttpHandler {
 		hdr.add("Connection", "keep-alive");
 		t.sendResponseHeaders(200, 0);
 		OutputStream os = t.getResponseBody();
-		RemoteUtil.dump(in, os);
+        StartStopListenerDelegate startStop = new StartStopListenerDelegate(t.getRemoteAddress().getHostString());
+        PMS.get().getFrame().setStatusLine("Serving " + dlna.getName());
+        startStop.start(dlna);
+		RemoteUtil.dump(in, os, startStop);
+        PMS.get().getFrame().setStatusLine("");
 	}
 }

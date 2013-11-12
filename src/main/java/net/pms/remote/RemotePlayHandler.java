@@ -2,12 +2,19 @@ package net.pms.remote;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.util.List;
+
+import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
+import net.pms.encoders.FFMpegVideo;
+import net.pms.encoders.Player;
+import net.pms.io.OutputParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +49,7 @@ public class RemotePlayHandler implements HttpHandler {
 		if (r.getFormat().isVideo()) {
 			mediaType = "video";
 			if (!RemoteUtil.directmime(mime)) {
-				mime = "video/ogg";
+				mime = RemoteUtil.MIME_TRANS;
 			}
 		}
 
@@ -81,6 +88,19 @@ public class RemotePlayHandler implements HttpHandler {
                     sb.append("<source");
                     sb.append(" src=\"/fmedia/").append(URLEncoder.encode(id1, "UTF-8")).append("\" type=\"").append("video/flash").append("\">");
                     sb.append("</source>");
+                    OutputParams p = new OutputParams(PMS.getConfiguration());
+                    p.sid = r.getMediaSubtitle();
+                    Player.setAudioAndSubs(r.getName(), r.getMedia(), p);
+                    try {
+                        File subFile = FFMpegVideo.getSubtitles(r, r.getMedia(), p, PMS.getConfiguration());
+                        LOGGER.debug("subFile "+subFile);
+                        if (subFile != null) {
+                            sb.append("<track src=\"/subs/" + subFile.getAbsolutePath() + "\">");
+
+                        }
+                    } catch (Exception e) {
+                        LOGGER.debug("error when doing sub file "+e);
+                    }
                     // FLOWPLAYER END
 					//sb.append("Your browser doesn't appear to support the HTML5 video tag");
 					sb.append("</").append(mediaType).append(">");
