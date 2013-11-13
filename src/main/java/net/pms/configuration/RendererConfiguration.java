@@ -450,11 +450,6 @@ public class RendererConfiguration {
 		this((File) null);
 	}
 
-    public RendererConfiguration(String name) throws ConfigurationException {
-        this((File) null);
-        configuration.setProperty(RENDERER_NAME, name);
-    }
-
 	public RendererConfiguration(File f) throws ConfigurationException {
 		configuration = new PropertiesConfiguration();
 

@@ -24,6 +24,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 	private String mkBrowsePage(String id, HttpExchange t) throws IOException {
 		HttpPrincipal p = t.getPrincipal();
 		RootFolder root = parent.getRoot(p.getUsername(), true);
+        parent.associate(t, root.getDefaultRenderer());
 		List<DLNAResource> res = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), null);
 
 		// Media browser HTML

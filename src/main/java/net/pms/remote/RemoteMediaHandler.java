@@ -75,7 +75,7 @@ public class RemoteMediaHandler implements HttpHandler {
 				dlna.setPlayer(new WebPlayer());
 			}
 		}
-        dlna.setDefaultRenderer(parent.getWebRender());
+
 		LOGGER.debug("dumping media " + mime + " " + res);
 		InputStream in = dlna.getInputStream(range, root.getDefaultRenderer());
 		Headers hdr = t.getResponseHeaders();

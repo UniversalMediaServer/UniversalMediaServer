@@ -69,7 +69,7 @@ public class WebPlayer extends FFMpegVideo {
 		// XXX squashed bug - without this, ffmpeg hangs waiting for a confirmation
 		// that it can write to a file that already exists i.e. the named pipe
 		cmdList.add("-y");
-        //cmdList.add("-re");
+        cmdList.add("-re");
 
 		cmdList.add("-loglevel");
 
@@ -126,16 +126,10 @@ public class WebPlayer extends FFMpegVideo {
             cmdList.add("ogg");
             /*cmdList.add("-c:v");
             cmdList.add("libx264");
-            cmdList.add("-ab:v");
-            cmdList.add("128k");
+            cmdList.add("-ab");
+            cmdList.add("56k");
             cmdList.add("-acodec");
-            cmdList.add("aac");
-            cmdList.add("-strict");
-            cmdList.add("experimental");
-            cmdList.add("-crf");
-            cmdList.add("20");
-            cmdList.add("-vf");
-            cmdList.add("scale=720:-1");
+            cmdList.add("libvo_aacenc");
             cmdList.add("-movflags");
             cmdList.add("faststart+frag_keyframe+empty_moov");
             cmdList.add("-g");

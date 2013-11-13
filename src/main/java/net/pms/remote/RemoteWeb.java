@@ -21,8 +21,10 @@ import javax.net.ssl.SSLParameters;
 import javax.net.ssl.TrustManagerFactory;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +40,6 @@ public class RemoteWeb {
 	private HashMap<String, String> users;
 	private HashMap<String, String> tags;
 	private HashMap<String, RootFolder> roots;
-    private RendererConfiguration fakeConf;
 
 	public RemoteWeb() {
 		this(DEFAULT_PORT);
@@ -78,7 +79,6 @@ public class RemoteWeb {
             addCtx("/subs", new RemoteFileHandler());
 			server.setExecutor(null);
 			server.start();
-            fakeConf = new RendererConfiguration("Web Client");
 		} catch (Exception e) {
 			LOGGER.debug("Couldn't start RemoteWEB " + e);
 		}
@@ -135,10 +135,6 @@ public class RemoteWeb {
 		return tag;
 	}
 
-    public RendererConfiguration getWebRender() {
-        return fakeConf;
-    }
-
 	public RootFolder getRoot(String name) {
 		return getRoot(name, false);
 	}
@@ -149,19 +145,30 @@ public class RemoteWeb {
 			return root;
 		}
 		root = new RootFolder();
-		root.setDefaultRenderer(fakeConf);
+        try {
+            WebRender render = new WebRender(name);
+            root.setDefaultRenderer(render);
+        } catch (ConfigurationException e) {
+            root.setDefaultRenderer(RendererConfiguration.getDefaultConf());
+        }
 		//root.setDefaultRenderer(RendererConfiguration.getRendererConfigurationByName("web"));
 		root.discoverChildren();
 		roots.put(name, root);
 		return root;
 	}
 
+    public void associate(HttpExchange t, RendererConfiguration r) {
+        WebRender wr = (WebRender)r;
+        wr.associateIP(t.getRemoteAddress().getAddress());
+        wr.associatePort(t.getRemoteAddress().getPort());
+    }
+
 	private void addCtx(String path, HttpHandler h) {
 		HttpContext ctx = server.createContext(path, h);
 		ctx.setAuthenticator(new BasicAuthenticator("") {
 			@Override
 			public boolean checkCredentials(String user, String pwd) {
-				LOGGER.debug("authenticate " + user + " pwd " + pwd);
+				LOGGER.debug("authenticate " + user);
 				//return pwd.equals(users.get(user));
 				return true;
 			}

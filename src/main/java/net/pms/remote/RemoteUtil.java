@@ -21,8 +21,8 @@ public class RemoteUtil {
 
     public static final String MIME_MP4 = "video/mp4";
     public static final String MIME_OGG = "video/ogg";
-    public static final String MIME_TRANS = MIME_MP4;
-    //public static final String MIME_TRANS = MIME_OGG;
+    //public static final String MIME_TRANS = MIME_MP4;
+    public static final String MIME_TRANS = MIME_OGG;
 
     public static void dumpFile(String file, HttpExchange t) throws IOException {
         File f = new File(file);
