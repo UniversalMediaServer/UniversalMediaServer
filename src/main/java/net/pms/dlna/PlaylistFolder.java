@@ -2,6 +2,8 @@ package net.pms.dlna;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.PMS;
 import net.pms.formats.Format;
 import org.slf4j.Logger;
@@ -9,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 public class PlaylistFolder extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlaylistFolder.class);
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private File playlistfile;
 	private boolean valid = true;
 
@@ -152,6 +155,11 @@ public class PlaylistFolder extends DLNAResource {
 				}
 			}
 			PMS.get().storeFileInCache(playlistfile, Format.PLAYLIST);
+
+			if (configuration.getSortMethod() == 5) {
+				Collections.shuffle(getChildren());
+			}
+
 			for (DLNAResource r : getChildren()) {
 				r.resolve();
 			}
