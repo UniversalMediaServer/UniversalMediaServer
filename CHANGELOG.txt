@@ -1,8 +1,20 @@
 3.0.1 - 2013-11-??
 
 	General:
+		Added new "Random" sorting option (thanks, etrunko!)
+		Added support for sending subtitles (losslessly) to renderers via closed captioning
+		Added option to clear all monitored files
 		Improved video compatibility when transcoding to H.264 via MEncoder or FFmpeg
 		Disabled AviSynth/MEncoder by default
+		Fixed subtitle character conversion in FFmpeg
+	Renderers:
+		Added support for Sony STR-DA5800ES (thanks, AYColumbia!)
+		Added support for sending SubRip and MicroDVD subtitles to Panasonic TVs
+		Added support for sending SubRip subtitles to WD TV Live
+		Added support for sending SubRip subtitles to Xbox Media Center
+	Languages:
+		Updated Italian translation (thanks, nocciola82!)
+		Updated Spanish translation (thanks, AlfredoRamos!)
 	External Components:
 		Updated MPlayer/MEncoder for Windows to SB53, which:
 			Adds support for HEVC (H.265)
