@@ -529,7 +529,7 @@ public class FFMpegVideo extends Player {
 	}
 
 	public String initialString() {
-		String threads = "";
+		String threads = " -threads 1";
 		if (configuration.isFfmpegMultithreading()) {
 			threads = " -threads " + configuration.getNumberOfCpuCores();
 		}
@@ -607,7 +607,11 @@ public class FFMpegVideo extends Player {
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
-		int nThreads = configuration.getNumberOfCpuCores();
+		int nThreads = 1;
+		if (configuration.isFfmpegMultithreading()) {
+			nThreads = configuration.getNumberOfCpuCores();
+		}
+
 		List<String> cmdList = new ArrayList<>();
 		RendererConfiguration renderer = params.mediaRenderer;
 		final String filename = dlna.getSystemName();
@@ -636,7 +640,7 @@ public class FFMpegVideo extends Player {
 			cmdList.add(String.valueOf((int) params.timeseek));
 		}
 
-		// decoder threads
+		// Decoder threads
 		cmdList.add("-threads");
 		cmdList.add(String.valueOf(nThreads));
 
