@@ -93,10 +93,10 @@ public class FFMpegVideo extends Player {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FFMpegVideo.class);
 	private static final String DEFAULT_QSCALE = "3";
 	private static final String SUB_DIR = "subs";
-	
+
 	public FFMpegVideo() {
 	}
-	
+
 	@Deprecated
 	public FFMpegVideo(PmsConfiguration configuration) {
 		FFMpegVideo.configuration = configuration;
@@ -114,7 +114,7 @@ public class FFMpegVideo extends Player {
 	 *
 	 * @param dlna
 	 * @param media metadata for the DLNA resource which is being transcoded
-	 * @param params 
+	 * @param params
 	 * @return a {@link List} of <code>String</code>s representing the rescale options for this video,
 	 * or an empty list if the video doesn't need to be resized.
 	 * @throws java.io.IOException
@@ -133,7 +133,7 @@ public class FFMpegVideo extends Player {
 			);
 
 		if (!isDisableSubtitles(params)) {
-			StringBuilder subsFilter= new StringBuilder();
+			StringBuilder subsFilter = new StringBuilder();
 
 			if (params.sid.getType().isText()) {
 				File tempSubs = getSubtitles(dlna, media, params);
@@ -193,8 +193,8 @@ public class FFMpegVideo extends Player {
 					videoFilterOptions.add("-avoid_negative_ts");
 					videoFilterOptions.add("1");
 					videoFilterOptions.add("-af");
-					videoFilterOptions.add("asetpts=PTS-" + (int)params.timeseek + "/TB");
-					filterChain.add("setpts=PTS-" + (int)params.timeseek + "/TB");
+					videoFilterOptions.add("asetpts=PTS-" + (int) params.timeseek + "/TB");
+					filterChain.add("setpts=PTS-" + (int) params.timeseek + "/TB");
 				}
 			}
 		}
@@ -1078,7 +1078,7 @@ public class FFMpegVideo extends Player {
 
 		if (convertedSubs.canRead()) {
 			// subs are already converted
-			return convertedSubs; 
+			return convertedSubs;
 		}
 
 		boolean isExternalAss = false;
@@ -1137,13 +1137,14 @@ public class FFMpegVideo extends Player {
 
 	/**
 	 * Converts external subtitles file in SRT format or extract embedded subs to default SSA/ASS format
+	 *
 	 * @param fileName Subtitles file in SRT format or video file with embedded subs
-	 * @param media 
+	 * @param media
 	 * @param params output parameters
 	 * @return Converted subtitles file in SSA/ASS format
 	 */
 	public static File convertSubsToAss(String fileName, DLNAMediaInfo media, OutputParams params) {
-		if (! params.sid.getType().isText()) {
+		if (!params.sid.getType().isText()) {
 			return null;
 		}
 		List<String> cmdList = new ArrayList<>();
@@ -1218,17 +1219,17 @@ public class FFMpegVideo extends Player {
 			String line;
 			String[] format = null;
 			int i;
-			while (( line = input.readLine()) != null) {
+			while ((line = input.readLine()) != null) {
 				outputString.setLength(0);
 				if (line.startsWith("[Script Info]")) {
 					outputString.append(line).append("\n");
 					output.write(outputString.toString());
-					while (( line = input.readLine()) != null) {
+					while ((line = input.readLine()) != null) {
 						outputString.setLength(0);
 						if (!line.isEmpty()) {
 							outputString.append(line).append("\n");
 							output.write(outputString.toString());
-						} else  {
+						} else {
 							outputString.append("PlayResY: ").append(media.getHeight()).append("\n");
 							outputString.append("PlayResX: ").append(media.getWidth()).append("\n");
 							break;
@@ -1257,7 +1258,7 @@ public class FFMpegVideo extends Player {
 						}
 
 						if (format[i].contains("Fontsize")) {
-							params[i] = Integer.toString((int) ((Integer.parseInt(params[i]) * media.getHeight()/288 * Double.parseDouble(configuration.getAssScale()))));
+							params[i] = Integer.toString((int) ((Integer.parseInt(params[i]) * media.getHeight() / 288 * Double.parseDouble(configuration.getAssScale()))));
 							continue;
 						}
 
@@ -1296,7 +1297,7 @@ public class FFMpegVideo extends Player {
 		temp.deleteOnExit();
 		return outputSubs;
 	}
-	
+
 	/**
 	 * Collapse the multiple internal ways of saying "subtitles are disabled" into a single method
 	 * which returns true if any of the following are true:
@@ -1305,7 +1306,7 @@ public class FFMpegVideo extends Player {
 	 *     2) params.sid == null
 	 *     3) avisynth()
 	 * @param params
-	 * @return 
+	 * @return
 	 */
 	public boolean isDisableSubtitles(OutputParams params) {
 		return configuration.isDisableSubtitles() || (params.sid == null) || avisynth();
@@ -1313,7 +1314,8 @@ public class FFMpegVideo extends Player {
 
 	/**
 	 * {@inheritDoc}
-	 * @return 
+	 *
+	 * @return
 	 */
 	@Override
 	public boolean isCompatible(DLNAResource resource) {

@@ -932,16 +932,26 @@ public class DLNAMediaInfo implements Cloneable {
 								// D.S... webvtt               WebVTT subtitle
 								// DES... xsub                 XSUB
 
-								lang.setType(
-									(line.contains("srt") || line.contains("subrip")) ? SubtitleType.SUBRIP :
-									line.contains(" text") ? SubtitleType.TEXT : // excludes dvb_teletext, mov_text, realtext
-									line.contains("microdvd") ? SubtitleType.MICRODVD :
-									line.contains("sami") ? SubtitleType.SAMI :
-									(line.contains("ass") || line.contains("ssa")) ? SubtitleType.ASS :
-									line.contains("dvd_subtitle") ? SubtitleType.VOBSUB :
-									line.contains("xsub") ? SubtitleType.DIVX :
-									line.contains("mov_text") ? SubtitleType.TX3G :
-									SubtitleType.UNKNOWN);
+								if (line.contains("srt") || line.contains("subrip")) {
+									lang.setType(SubtitleType.SUBRIP);
+								} else if (line.contains(" text")) {
+									// excludes dvb_teletext, mov_text, realtext
+									lang.setType(SubtitleType.TEXT);
+								} else if (line.contains("microdvd")) {
+									lang.setType(SubtitleType.MICRODVD);
+								} else if (line.contains("sami")) {
+									lang.setType(SubtitleType.SAMI);
+								} else if (line.contains("ass") || line.contains("ssa")) {
+									lang.setType(SubtitleType.ASS);
+								} else if (line.contains("dvd_subtitle")) {
+									lang.setType(SubtitleType.VOBSUB);
+								} else if (line.contains("xsub")) {
+									lang.setType(SubtitleType.DIVX);
+								} else if (line.contains("mov_text")) {
+									lang.setType(SubtitleType.TX3G);
+								} else {
+									lang.setType(SubtitleType.UNKNOWN);
+								}
 
 								int a = line.indexOf("(");
 								int b = line.indexOf("):", a);
