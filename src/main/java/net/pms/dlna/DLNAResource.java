@@ -630,6 +630,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							if (!child.getFormat().isCompatible(child.getMedia(), getDefaultRenderer())) {
 								isIncompatible = true;
 								LOGGER.trace("File \"{}\" is not supported by the renderer", child.getName());
+							} else if (
+								configuration.isEncodedAudioPassthrough() &&
+								child.getMediaAudio() != null &&
+								(
+									"AC3".equals(child.getMediaAudio().getAudioCodec()) ||
+									"DTS".equals(child.getMediaAudio().getAudioCodec())
+								)
+							) {
+								isIncompatible = true;
+								LOGGER.trace("File \"{}\" will not be streamed because the audio will use the encoded audio passthrough feature", child.getName());
 							}
 
 							// Prefer transcoding over streaming if:
