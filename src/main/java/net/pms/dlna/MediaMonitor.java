@@ -65,29 +65,29 @@ public class MediaMonitor extends VirtualFolder {
 	}
 
 	public void scanDir(File[] files, DLNAResource res) {
-        final DLNAResource start = res;
-        res.addChild(new VirtualVideoAction(Messages.getString("PMS.139"), true) {
-            @Override
-            public boolean enable() {
-                for(DLNAResource r : start.getChildren()) {
-                    if (!(r instanceof RealFile)) {
-                        continue;
-                    }
-                    RealFile rf =(RealFile) r;
-                    if (old(rf.getFile().getAbsolutePath())) { // no duplicates!
-                        continue;
-                    }
-                    oldEntries.add(rf.getFile().getAbsolutePath());
-                }
-                start.setDiscovered(false);
-                start.getChildren().clear();
-                try {
-                    dumpFile();
-                } catch (IOException e) {
-                }
-                return true;
-            }
-        });
+		final DLNAResource start = res;
+		res.addChild(new VirtualVideoAction(Messages.getString("PMS.139"), true) {
+			@Override
+			public boolean enable() {
+				for (DLNAResource r : start.getChildren()) {
+					if (!(r instanceof RealFile)) {
+						continue;
+					}
+					RealFile rf = (RealFile) r;
+					if (old(rf.getFile().getAbsolutePath())) { // no duplicates!
+						continue;
+					}
+					oldEntries.add(rf.getFile().getAbsolutePath());
+				}
+				start.setDiscovered(false);
+				start.getChildren().clear();
+				try {
+					dumpFile();
+				} catch (IOException e) {
+				}
+				return true;
+			}
+		});
 
 		for (File f : files) {
 			if (f.isFile()) {
