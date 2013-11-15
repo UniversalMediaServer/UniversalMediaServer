@@ -529,9 +529,13 @@ public class FFMpegVideo extends Player {
 	}
 
 	public String initialString() {
-		String threads = "";
+		String threads = " -threads 1";
 		if (configuration.isFfmpegMultithreading()) {
-			threads = " -threads " + configuration.getNumberOfCpuCores();
+			if (Runtime.getRuntime().availableProcessors() == configuration.getNumberOfCpuCores()) {
+				threads = "";
+			} else {
+				threads = " -threads " + configuration.getNumberOfCpuCores();
+			}
 		}
 		return threads;
 	}
@@ -607,7 +611,21 @@ public class FFMpegVideo extends Player {
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
-		int nThreads = configuration.getNumberOfCpuCores();
+		/*
+		 * FFmpeg uses multithreading by default, so provided that the
+		 * user has not disabled FFmpeg multithreading and has not
+		 * chosen to use more or less threads than are available, do not
+		 * specify how many cores to use.
+		 */
+		int nThreads = 1;
+		if (configuration.isFfmpegMultithreading()) {
+			if (Runtime.getRuntime().availableProcessors() == configuration.getNumberOfCpuCores()) {
+				nThreads = 0;
+			} else {
+				nThreads = configuration.getNumberOfCpuCores();
+			}
+		}
+
 		List<String> cmdList = new ArrayList<>();
 		RendererConfiguration renderer = params.mediaRenderer;
 		final String filename = dlna.getSystemName();
@@ -636,9 +654,11 @@ public class FFMpegVideo extends Player {
 			cmdList.add(String.valueOf((int) params.timeseek));
 		}
 
-		// decoder threads
-		cmdList.add("-threads");
-		cmdList.add(String.valueOf(nThreads));
+		// Decoder threads
+		if (nThreads > 0) {
+			cmdList.add("-threads");
+			cmdList.add(String.valueOf(nThreads));
+		}
 
 		final boolean isTsMuxeRVideoEngineEnabled = configuration.getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
 
@@ -681,8 +701,10 @@ public class FFMpegVideo extends Player {
 		}
 
 		// Encoder threads
-		cmdList.add("-threads");
-		cmdList.add(String.valueOf(nThreads));
+		if (nThreads > 0) {
+			cmdList.add("-threads");
+			cmdList.add(String.valueOf(nThreads));
+		}
 
 		if (params.timeend > 0) {
 			cmdList.add("-t");
@@ -1034,7 +1056,7 @@ public class FFMpegVideo extends Player {
 		} else {
 			// It's something else, e.g. a url or psuedo-url without meaningful
 			// lastmodified and (maybe) basename characteristics.
-			basename = dlna.getName().replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r]", "").trim();
+			basename = dlna.getName().replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
 			modId = filename.hashCode();
 		}
 
@@ -1042,7 +1064,8 @@ public class FFMpegVideo extends Player {
 		if (applyFontConfig || isEmbeddedSource) {
 			convertedSubs = new File(subsPath.getAbsolutePath() + File.separator + basename + "_ID" + params.sid.getId() + "_" + modId + ".ass");
 		} else {
-			convertedSubs = new File(subsPath.getAbsolutePath() + File.separator + modId + "_" + params.sid.getExternalFile().getName());
+			String tmp = params.sid.getExternalFile().getName().replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
+			convertedSubs = new File(subsPath.getAbsolutePath() + File.separator + modId + "_" + tmp);
 		}
 
 		if (convertedSubs.canRead()) {
