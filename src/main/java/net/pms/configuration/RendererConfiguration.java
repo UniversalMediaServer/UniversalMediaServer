@@ -1235,10 +1235,10 @@ public class RendererConfiguration {
 		}
 	}
 
-    public ArrayList<String> tags() {
-        if(rootFolder != null) {
-            return rootFolder.getTags();
-        }
-        return null;
-    }
+	public ArrayList<String> tags() {
+		if (rootFolder != null) {
+			return rootFolder.getTags();
+		}
+		return null;
+	}
 }

@@ -1353,7 +1353,7 @@ public class RootFolder extends DLNAResource {
 		return true;
 	}
 
-    public ArrayList<String> getTags() {
-        return tags;
-    }
+	public ArrayList<String> getTags() {
+		return tags;
+	}
 }
