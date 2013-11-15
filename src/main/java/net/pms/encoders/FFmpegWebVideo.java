@@ -224,7 +224,10 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			cmdList.add("warning");
 		}
 
-		int nThreads = configuration.getNumberOfCpuCores();
+		int nThreads = 1;
+		if (configuration.isFfmpegMultithreading()) {
+			nThreads = configuration.getNumberOfCpuCores();
+		}
 
 		// Decoder threads
 		cmdList.add("-threads");

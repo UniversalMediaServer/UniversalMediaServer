@@ -141,7 +141,11 @@ public class FFmpegAudio extends FFMpegVideo {
 		params.waitbeforestart = 2000;
 		params.manageFastStart();
 
-		int nThreads = configuration.getNumberOfCpuCores();
+		int nThreads = 1;
+		if (configuration.isFfmpegMultithreading()) {
+			nThreads = configuration.getNumberOfCpuCores();
+		}
+
 		List<String> cmdList = new ArrayList<>();
 
 		cmdList.add(executable());
@@ -159,14 +163,14 @@ public class FFmpegAudio extends FFMpegVideo {
 			cmdList.add("" + params.timeseek);
 		}
 
-		// decoder threads
+		// Decoder threads
 		cmdList.add("-threads");
 		cmdList.add("" + nThreads);
 
 		cmdList.add("-i");
 		cmdList.add(filename);
 
-		// encoder threads
+		// Encoder threads
 		cmdList.add("-threads");
 		cmdList.add("" + nThreads);
 
