@@ -3,6 +3,7 @@ package net.pms.util;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
@@ -421,9 +422,24 @@ public class FileUtil {
 			cache = new HashMap<>();
 		}
 
+		final Set<String> supported = SubtitleType.getSupportedFileExtensions();
+
 		File[] allSubs = cache.get(subFolder);
 		if (allSubs == null) {
-			allSubs = subFolder.listFiles();
+			allSubs = subFolder.listFiles(
+				new FilenameFilter() {
+					@Override
+					public boolean accept(File dir, String name) {
+						String ext = FilenameUtils.getExtension(name).toLowerCase();
+						if ("sub".equals(ext)) {
+							// Avoid microdvd/vobsub confusion by ignoring sub+idx pairs here since
+							// they'll come in unambiguously as vobsub via the idx file anyway
+							return isFileExists(new File(dir, name), "idx") == null ? true : false;
+						}
+						return supported.contains(ext);
+					}
+				}
+			);
 
 			if (allSubs != null) {
 				cache.put(subFolder, allSubs);
@@ -435,7 +451,7 @@ public class FileUtil {
 			for (File f : allSubs) {
 				if (f.isFile() && !f.isHidden()) {
 					String fName = f.getName().toLowerCase();
-					for (String ext : SubtitleType.getSupportedFileExtensions()) {
+					for (String ext : supported) {
 						if (fName.length() > ext.length() && fName.startsWith(fileName) && endsWithIgnoreCase(fName, "." + ext)) {
 							int a = fileName.length();
 							int b = fName.length() - ext.length() - 1;

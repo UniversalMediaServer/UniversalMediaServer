@@ -760,37 +760,60 @@ public class MEncoderVideo extends Player {
 			defaultMaxBitrates[0] = defaultMaxBitrates[0] / 2;
 
 			int bufSize = 1835;
-			if (media.isHDVideo()) {
-				bufSize = defaultMaxBitrates[0] / 3;
+			boolean bitrateLevel41Limited = false;
+
+			/**
+			 * Although the maximum bitrate for H.264 Level 4.1 is
+			 * officially 50,000 kbit/s, some 4.1-capable renderers
+			 * like the PS3 stutter when video exceeds roughly 31,250
+			 * kbit/s.
+			 *
+			 * We also apply the correct buffer size in this section.
+			 */
+			if (mediaRenderer.isTranscodeToH264TSAC3()) {
+				if (
+					mediaRenderer.isH264Level41Limited() &&
+					defaultMaxBitrates[0] > 31250
+				) {
+					defaultMaxBitrates[0] = 31250;
+					bitrateLevel41Limited = true;
+				}
+				bufSize = defaultMaxBitrates[0];
+			} else {
+				if (media.isHDVideo()) {
+					bufSize = defaultMaxBitrates[0] / 3;
+				}
+
+				if (bufSize > 7000) {
+					bufSize = 7000;
+				}
+
+				if (defaultMaxBitrates[1] > 0) {
+					bufSize = defaultMaxBitrates[1];
+				}
+
+				if (mediaRenderer.isDefaultVBVSize() && rendererMaxBitrates[1] == 0) {
+					bufSize = 1835;
+				}
 			}
 
-			if (bufSize > 7000) {
-				bufSize = 7000;
-			}
+			if (!bitrateLevel41Limited) {
+				// Make room for audio
+				switch (audioType) {
+					case "pcm":
+						defaultMaxBitrates[0] = defaultMaxBitrates[0] - 4600;
+						break;
+					case "dts":
+						defaultMaxBitrates[0] = defaultMaxBitrates[0] - 1510;
+						break;
+					case "ac3":
+						defaultMaxBitrates[0] = defaultMaxBitrates[0] - configuration.getAudioBitrate();
+						break;
+				}
 
-			if (defaultMaxBitrates[1] > 0) {
-				bufSize = defaultMaxBitrates[1];
+				// Round down to the nearest Mb
+				defaultMaxBitrates[0] = defaultMaxBitrates[0] / 1000 * 1000;
 			}
-
-			if (mediaRenderer.isDefaultVBVSize() && rendererMaxBitrates[1] == 0) {
-				bufSize = 1835;
-			}
-
-			// Make room for audio
-			switch (audioType) {
-				case "pcm":
-					defaultMaxBitrates[0] = defaultMaxBitrates[0] - 4600;
-					break;
-				case "dts":
-					defaultMaxBitrates[0] = defaultMaxBitrates[0] - 1510;
-					break;
-				case "ac3":
-					defaultMaxBitrates[0] = defaultMaxBitrates[0] - configuration.getAudioBitrate();
-					break;
-			}
-
-			// Round down to the nearest Mb
-			defaultMaxBitrates[0] = defaultMaxBitrates[0] / 1000 * 1000;
 
 			encodeSettings += ":vrc_maxrate=" + defaultMaxBitrates[0] + ":vrc_buf_size=" + bufSize;
 		}
@@ -900,7 +923,7 @@ public class MEncoderVideo extends Player {
 		 * - The resource is incompatible with tsMuxeR
 		 * - The user has disabled the "switch to tsMuxeR" option
 		 * - The user has specified overscan correction
-		 * - The filename specifies the resource as WEB-DL
+		 * - The filename specifies the resource as WEB-DL and the OS is not Windows
 		 * - The aspect ratio of the video needs to be changed
 		 */
 		if (
@@ -919,7 +942,10 @@ public class MEncoderVideo extends Player {
 				intOCW == 0 &&
 				intOCH == 0
 			) &&
-			!filename.contains("WEB-DL") &&
+			!(
+				filename.contains("WEB-DL") &&
+				!Platform.isWindows()
+			) &&
 			aspectRatiosMatch
 		) {
 			String expertOptions[] = getSpecificCodecOptions(
@@ -1276,21 +1302,19 @@ public class MEncoderVideo extends Player {
 
 			// Determine a good quality setting based on video attributes
 			if (x264CRF.contains("Automatic")) {
-				x264CRF = "crf=16,";
+				x264CRF = "16";
 
-				// Lower CRF for 720p+ content
+				// Higher CRF for 720p+ content
 				if (media.getWidth() > 720) {
-					x264CRF = "crf=19,";
+					x264CRF = "19";
 				}
-			} else {
-				x264CRF = "crf=" + x264CRF + ",";
 			}
 
 			String encodeSettings = "-lavcopts autoaspect=1" + vcodecString +
 				":acodec=" + (configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3") +
 				":abitrate=" + CodecUtil.getAC3Bitrate(configuration, params.aid) +
 				":threads=" + configuration.getMencoderMaxThreads() +
-				":o=preset=superfast," + x264CRF + "g=250,i_qfactor=0.71,qcomp=0.6,level=4.1,weightp=0,8x8dct=0,aq-strength=0";
+				":o=preset=superfast,crf=" + x264CRF + ",g=250,i_qfactor=0.71,qcomp=0.6,level=4.1,weightp=0,8x8dct=0,aq-strength=0";
 
 			String audioType = "ac3";
 			if (dtsRemux) {
@@ -1299,7 +1323,7 @@ public class MEncoderVideo extends Player {
 				audioType = "pcm";
 			}
 
-			encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, x264CRF, params.mediaRenderer, audioType);
+			encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, "", params.mediaRenderer, audioType);
 			st = new StringTokenizer(encodeSettings, " ");
 
 			{
@@ -1665,12 +1689,16 @@ public class MEncoderVideo extends Player {
 		boolean deinterlace = configuration.isMencoderYadif();
 
 		// Check if the media renderer supports this resolution
-		boolean isResolutionTooHighForRenderer = params.mediaRenderer.isVideoRescale()
-			&& (
-				(media.getWidth() > params.mediaRenderer.getMaxVideoWidth())
-				||
-				(media.getHeight() > params.mediaRenderer.getMaxVideoHeight())
-			);
+		boolean isResolutionTooHighForRenderer = false;
+		if (
+			params.mediaRenderer.isVideoRescale() &&
+			(
+				media.getWidth() > params.mediaRenderer.getMaxVideoWidth() ||
+				media.getHeight() > params.mediaRenderer.getMaxVideoHeight()
+			)
+		) {
+			isResolutionTooHighForRenderer = true;
+		}
 
 		// Video scaler and overscan compensation
 		boolean scaleBool = false;
@@ -1777,18 +1805,9 @@ public class MEncoderVideo extends Player {
 				LOGGER.info("Setting video resolution to: " + scaleWidth + "x" + scaleHeight + ", your Video Scaler setting");
 
 				vfValueVS.append("scale=").append(scaleWidth).append(":").append(scaleHeight);
+			} else if (isResolutionTooHighForRenderer) {
+				// The video resolution is too big for the renderer so we need to scale it down
 
-			/*
-			 * The video resolution is too big for the renderer so we need to scale it down
-			 */
-			} else if (
-				media.getWidth() > 0 &&
-				media.getHeight() > 0 &&
-				(
-					media.getWidth()  > params.mediaRenderer.getMaxVideoWidth() || 
-					media.getHeight() > params.mediaRenderer.getMaxVideoHeight()
-				)
-			) {
 				double videoAspectRatio = (double) media.getWidth() / (double) media.getHeight();
 				rendererAspectRatio = (double) params.mediaRenderer.getMaxVideoWidth() / (double) params.mediaRenderer.getMaxVideoHeight();
 
