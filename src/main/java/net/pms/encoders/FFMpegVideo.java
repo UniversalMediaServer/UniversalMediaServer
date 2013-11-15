@@ -108,7 +108,7 @@ public class FFMpegVideo extends Player {
 
 	/**
 	 * Returns a list of strings representing the rescale options for this transcode i.e. the ffmpeg -vf
-	 * options used to show subtitles in SSA/ASS format and resize a video that's too wide and/or high for the specified renderer.
+	 * options used to show subtitles in either SSA/ASS or picture-based format and resize a video that's too wide and/or high for the specified renderer.
 	 * If the renderer has no size limits, or there's no media metadata, or the video is within the renderer's
 	 * size limits, an empty list is returned.
 	 *
@@ -121,12 +121,9 @@ public class FFMpegVideo extends Player {
 	 */
 	public List<String> getVideoFilterOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
 		List<String> videoFilterOptions = new ArrayList<>();
-		StringBuilder subsOption = new StringBuilder();
-		File tempSubs = null;
+		String filterOption = "-vf";
+		ArrayList filterChain = new ArrayList<String>();
 		final RendererConfiguration renderer = params.mediaRenderer;
-		if (!isDisableSubtitles(params)) {
-			tempSubs = getSubtitles(dlna, media, params);
-		}
 
 		boolean isMediaValid = media != null && media.isMediaparsed() && media.getHeight() != 0;
 		boolean isResolutionTooHighForRenderer = renderer.isVideoRescale() && isMediaValid && // renderer defines a max width/height
@@ -135,93 +132,102 @@ public class FFMpegVideo extends Player {
 				media.getHeight() > renderer.getMaxVideoHeight()
 			);
 
-		if (tempSubs != null) {
-			StringBuilder s = new StringBuilder();
-			CharacterIterator it = new StringCharacterIterator(tempSubs.getAbsolutePath());
+		if (!isDisableSubtitles(params)) {
+			StringBuilder subsFilter= new StringBuilder();
 
-			for (char ch = it.first(); ch != CharacterIterator.DONE; ch = it.next()) {
-				switch (ch) {
-					case ':':
-						s.append("\\\\:");
-						break;
-					case '\\':
-						s.append("/");
-						break;
-					case ']':
-					case '[':
-						s.append("\\");
-					default:
-						s.append(ch);
-						break;
+			if (params.sid.getType().isText()) {
+				File tempSubs = getSubtitles(dlna, media, params);
+				if (tempSubs != null) {
+					StringBuilder s = new StringBuilder();
+					CharacterIterator it = new StringCharacterIterator(tempSubs.getAbsolutePath());
+
+					for (char ch = it.first(); ch != CharacterIterator.DONE; ch = it.next()) {
+						switch (ch) {
+							case ':':
+								s.append("\\\\:");
+								break;
+							case '\\':
+								s.append("/");
+								break;
+							case ']':
+							case '[':
+								s.append("\\");
+							default:
+								s.append(ch);
+								break;
+						}
+					}
+
+					String subsFile = s.toString();
+					subsFile = subsFile.replace(",", "\\,");
+
+					if (params.sid.isEmbedded() || (params.sid.isExternal() && params.sid.getType() == SubtitleType.ASS)) {
+						subsFilter.append("ass=");
+						subsFilter.append(subsFile);
+					} else if (params.sid.isExternal() && params.sid.getType() == SubtitleType.SUBRIP) {
+						subsFilter.append("subtitles=");
+						subsFilter.append(subsFile);
+					}
+				}
+
+			} else if (params.sid.getType().isPicture()) {
+				filterOption = "-filter_complex";
+				if (params.sid.getId() < 100) {
+					// Embedded
+					subsFilter.append("[0:v][0:s:" + media.getSubtitleTracksList().indexOf(params.sid) + "]overlay");
+				} else {
+					// External
+					videoFilterOptions.add("-i");
+					videoFilterOptions.add(params.sid.getExternalFile().getAbsolutePath());
+					subsFilter.append("[0:v][1:s]overlay"); // this assumes the sub file is single-language
 				}
 			}
 
-			String subsFile = s.toString();
-			subsFile = subsFile.replace(",", "\\,");
-
-			if (params.sid.isEmbedded() || (params.sid.isExternal() && params.sid.getType() == SubtitleType.ASS)) {
-				subsOption.append("ass=");
-				subsOption.append(subsFile);
-			} else if (params.sid.isExternal() && params.sid.getType() == SubtitleType.SUBRIP) {
-				subsOption.append("subtitles=");
-				subsOption.append(subsFile);
-			}
-
-			// based on https://trac.ffmpeg.org/ticket/2067
-			if (params.timeseek > 0) {
-				videoFilterOptions.add("-copyts");
-				videoFilterOptions.add("-copypriorss");
-				videoFilterOptions.add("0");
-				videoFilterOptions.add("-avoid_negative_ts");
-				videoFilterOptions.add("1");
-				videoFilterOptions.add("-af");
-				videoFilterOptions.add("asetpts=PTS-" + (int) params.timeseek + "/TB");
-				subsOption.append(",setpts=PTS-").append((int) params.timeseek).append("/TB");
-			}
-		}
-
-		String rescaleOrPadding = null;
-
-		if (isResolutionTooHighForRenderer || (renderer.isKeepAspectRatio() && !renderer.isRescaleByRenderer() && media.getWidth() < 720)) { // Do not rescale for SD video and higher
-			rescaleOrPadding = String.format(
-				// http://stackoverflow.com/a/8351875
-				"scale=iw*min(%1$d/iw\\,%2$d/ih):ih*min(%1$d/iw\\,%2$d/ih),pad=%1$d:%2$d:(%1$d-iw)/2:(%2$d-ih)/2",
-				renderer.getMaxVideoWidth(),
-				renderer.getMaxVideoHeight()
-			);
-		} else if (renderer.isKeepAspectRatio() && isMediaValid) {
-			if ((media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
-				rescaleOrPadding = "pad=iw:iw/(16/9):0:(oh-ih)/2";
-			} else {
-				rescaleOrPadding = "pad=ih*(16/9):ih:(ow-iw)/2:0";
+			if (isNotBlank(subsFilter)) {
+				filterChain.add(subsFilter.toString());
+				// based on https://trac.ffmpeg.org/ticket/2067
+				if (params.timeseek > 0) {
+					videoFilterOptions.add("-copyts");
+					videoFilterOptions.add("-copypriorss");
+					videoFilterOptions.add("0");
+					videoFilterOptions.add("-avoid_negative_ts");
+					videoFilterOptions.add("1");
+					videoFilterOptions.add("-af");
+					videoFilterOptions.add("asetpts=PTS-" + (int)params.timeseek + "/TB");
+					filterChain.add("setpts=PTS-" + (int)params.timeseek + "/TB");
+				}
 			}
 		}
 
 		String overrideVF = renderer.getFFmpegVideoFilterOverride();
 
-		if (rescaleOrPadding != null || overrideVF != null || isNotBlank(subsOption)) {
-			videoFilterOptions.add("-vf");
-			StringBuilder filterParams = new StringBuilder();
+		if (overrideVF != null) {
+			filterChain.add(overrideVF);
+		} else {
+			String rescaleOrPadding = null;
 
-			if (overrideVF != null) {
-				filterParams.append(overrideVF);
-				if (isNotBlank(subsOption)) {
-					filterParams.append(", ");
-				}
-			} else {
-				if (rescaleOrPadding != null) {
-					filterParams.append(rescaleOrPadding);
-					if (isNotBlank(subsOption)) {
-						filterParams.append(", ");
-					}
+			if (isResolutionTooHighForRenderer || (renderer.isKeepAspectRatio() && !renderer.isRescaleByRenderer() && media.getWidth() < 720)) { // Do not rescale for SD video and higher
+				rescaleOrPadding = String.format(
+					// http://stackoverflow.com/a/8351875
+					"scale=iw*min(%1$d/iw\\,%2$d/ih):ih*min(%1$d/iw\\,%2$d/ih),pad=%1$d:%2$d:(%1$d-iw)/2:(%2$d-ih)/2",
+					renderer.getMaxVideoWidth(),
+					renderer.getMaxVideoHeight()
+				);
+			} else if (renderer.isKeepAspectRatio() && isMediaValid) {
+				if ((media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
+					rescaleOrPadding = "pad=iw:iw/(16/9):0:(oh-ih)/2";
+				} else {
+					rescaleOrPadding = "pad=ih*(16/9):ih:(ow-iw)/2:0";
 				}
 			}
-
-			if (isNotBlank(subsOption)) {
-				filterParams.append(subsOption);
+			if (isNotBlank(rescaleOrPadding)) {
+				filterChain.add(rescaleOrPadding);
 			}
+		}
 
-			videoFilterOptions.add(filterParams.toString());
+		if (filterChain.size() > 0) {
+			videoFilterOptions.add(filterOption);
+			videoFilterOptions.add(StringUtils.join(filterChain, ", "));
 		}
 
 		return videoFilterOptions;
@@ -688,17 +694,24 @@ public class FFMpegVideo extends Player {
 			cmdList.add(ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath()));
 		} else {
 			cmdList.add(filename);
-
-			if (media.getAudioTracksList().size() > 1) {
-				// Set the video stream
-				cmdList.add("-map");
-				cmdList.add("0:v");
-
-				// Set the proper audio stream
-				cmdList.add("-map");
-				cmdList.add("0:a:" + (media.getAudioTracksList().indexOf(params.aid)));
-			}
 		}
+
+		// Apply any video filters and associated options. These should go
+		// after video input is specified and before output streams are mapped.
+		cmdList.addAll(getVideoFilterOptions(dlna, media, params));
+
+		// Map the output streams if necessary
+		if (media.getAudioTracksList().size() > 1) {
+			// Set the video stream
+			cmdList.add("-map");
+			cmdList.add("0:v");
+
+			// Set the proper audio stream
+			cmdList.add("-map");
+			cmdList.add("0:a:" + (media.getAudioTracksList().indexOf(params.aid)));
+		}
+
+		// Now configure the output streams
 
 		// Encoder threads
 		if (nThreads > 0) {
@@ -718,11 +731,6 @@ public class FFMpegVideo extends Player {
 		// from PMS to make keeping synchronised easier.
 		// Until then, leave the following line commented out.
 		// cmdList.addAll(getAudioBitrateOptions(dlna, media, params));
-
-		// if the source is too large for the renderer, resize it
-		// and/or add subtitles to video filter
-		// FFmpeg must be compiled with --enable-libass parameter
-		cmdList.addAll(getVideoFilterOptions(dlna, media, params));
 
 		// Audio bitrate
 		if (!ac3Remux && !dtsRemux && !(type() == Format.AUDIO)) {
@@ -1031,7 +1039,7 @@ public class FFMpegVideo extends Player {
 	 * @throws IOException
 	 */
 	public File getSubtitles(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
-		if (media == null || params.sid.getId() == -1) {
+		if (media == null || params.sid.getId() == -1 || !params.sid.getType().isText()) {
 			return null;
 		}
 
@@ -1135,6 +1143,9 @@ public class FFMpegVideo extends Player {
 	 * @return Converted subtitles file in SSA/ASS format
 	 */
 	public static File convertSubsToAss(String fileName, DLNAMediaInfo media, OutputParams params) {
+		if (! params.sid.getType().isText()) {
+			return null;
+		}
 		List<String> cmdList = new ArrayList<>();
 		File tempSubsFile;
 		cmdList.add(configuration.getFfmpegPath());

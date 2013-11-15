@@ -887,7 +887,7 @@ public class DLNAMediaInfo implements Cloneable {
 										setFrameRate(token.substring(0, token.indexOf("tb")).trim());
 									} else if ((token.indexOf("fps") > -1 || token.indexOf("fps(r)") > -1) && getFrameRate() == null) { // dvr-ms ?
 										setFrameRate(token.substring(0, token.indexOf("fps")).trim());
-									} else if (token.indexOf("x") > -1) {
+									} else if (token.indexOf("x") > -1 && !token.contains("max")) {
 										String resolution = token.trim();
 										if (resolution.indexOf(" [") > -1) {
 											resolution = resolution.substring(0, resolution.indexOf(" ["));
@@ -904,9 +904,45 @@ public class DLNAMediaInfo implements Cloneable {
 										}
 									}
 								}
-							} else if (line.indexOf("Subtitle:") > -1 && !line.contains("tx3g")) {
+							} else if (line.indexOf("Subtitle:") > -1) {
 								DLNAMediaSubtitle lang = new DLNAMediaSubtitle();
-								lang.setType((line.contains("dvdsub") && Platform.isWindows() ? SubtitleType.VOBSUB : SubtitleType.UNKNOWN));
+
+								// $ ffmpeg -codecs | grep "^...S"
+								// ..S... = Subtitle codec
+								// DES... ass                  ASS (Advanced SSA) subtitle
+								// DES... dvb_subtitle         DVB subtitles (decoders: dvbsub ) (encoders: dvbsub )
+								// ..S... dvb_teletext         DVB teletext
+								// DES... dvd_subtitle         DVD subtitles (decoders: dvdsub ) (encoders: dvdsub )
+								// ..S... eia_608              EIA-608 closed captions
+								// D.S... hdmv_pgs_subtitle    HDMV Presentation Graphic Stream subtitles (decoders: pgssub )
+								// D.S... jacosub              JACOsub subtitle
+								// D.S... microdvd             MicroDVD subtitle
+								// DES... mov_text             MOV text
+								// D.S... mpl2                 MPL2 subtitle
+								// D.S... pjs                  PJS (Phoenix Japanimation Society) subtitle
+								// D.S... realtext             RealText subtitle
+								// D.S... sami                 SAMI subtitle
+								// DES... srt                  SubRip subtitle with embedded timing
+								// DES... ssa                  SSA (SubStation Alpha) subtitle
+								// DES... subrip               SubRip subtitle
+								// D.S... subviewer            SubViewer subtitle
+								// D.S... subviewer1           SubViewer v1 subtitle
+								// D.S... text                 raw UTF-8 text
+								// D.S... vplayer              VPlayer subtitle
+								// D.S... webvtt               WebVTT subtitle
+								// DES... xsub                 XSUB
+
+								lang.setType(
+									(line.contains("srt") || line.contains("subrip")) ? SubtitleType.SUBRIP :
+									line.contains(" text") ? SubtitleType.TEXT : // excludes dvb_teletext, mov_text, realtext
+									line.contains("microdvd") ? SubtitleType.MICRODVD :
+									line.contains("sami") ? SubtitleType.SAMI :
+									(line.contains("ass") || line.contains("ssa")) ? SubtitleType.ASS :
+									line.contains("dvd_subtitle") ? SubtitleType.VOBSUB :
+									line.contains("xsub") ? SubtitleType.DIVX :
+									line.contains("mov_text") ? SubtitleType.TX3G :
+									SubtitleType.UNKNOWN);
+
 								int a = line.indexOf("(");
 								int b = line.indexOf("):", a);
 								if (a > -1 && b > a) {
