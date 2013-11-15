@@ -29,9 +29,11 @@ import java.util.Map.Entry;
 import java.util.logging.LogManager;
 import javax.swing.*;
 import net.pms.configuration.Build;
+import net.pms.configuration.NameFilter;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaDatabase;
+import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.encoders.Player;
@@ -98,6 +100,8 @@ public class PMS {
 	 * directory.
 	 */
 	private static String helpPage = "index.html";
+
+	private NameFilter filter;
 
 	/**
 	 * Returns a pointer to the PMS GUI's main window.
@@ -414,6 +418,12 @@ public class PMS {
 
 		dbgPack = new DbgPacker();
 		tfm = new TempFileMgr();
+
+		try {
+			filter = new NameFilter();
+		} catch (ConfigurationException e) {
+			filter = null;
+		}
 
 		// This should be removed soon
 		OpenSubtitle.convert();
@@ -861,12 +871,16 @@ public class PMS {
 	 * @return {@link java.io.File}[] Array of directories.
 	 */
 	public File[] getSharedFoldersArray(boolean monitored) {
+		return getSharedFoldersArray(monitored, null);
+	}
+
+	public File[] getSharedFoldersArray(boolean monitored, ArrayList<String> tags) {
 		String folders;
 
 		if (monitored) {
 			folders = getConfiguration().getFoldersMonitored();
 		} else {
-			folders = getConfiguration().getFolders();
+			folders = getConfiguration().getFolders(tags);
 		}
 
 		if (folders == null || folders.length() == 0) {
@@ -1449,5 +1463,25 @@ public class PMS {
 	@Deprecated
 	public boolean isWindows() {
 		return Platform.isWindows();
+	}
+
+	public static boolean filter(RendererConfiguration render, DLNAResource res) {
+		NameFilter nf = instance.filter;
+		if (nf == null || render == null) {
+			return false;
+		}
+
+		ArrayList<String> tags = render.tags();
+		if (tags == null) {
+			return false;
+		}
+
+		for (String tag : tags) {
+			if (nf.filter(tag, res)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }

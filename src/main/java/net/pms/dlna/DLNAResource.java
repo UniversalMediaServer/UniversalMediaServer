@@ -490,6 +490,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			setDefaultRenderer(getParent().getDefaultRenderer());
 		}
 
+		if (PMS.filter(getDefaultRenderer(), child)) {
+			LOGGER.debug("Resource " + child.getName() + " is filtered out for render " + getDefaultRenderer().getRendererName());
+			return;
+		}
+
 		try {
 			if (child.isValid()) {
 				LOGGER.trace("Adding new child \"{}\" with class \"{}\"", child.getName(), child.getClass().getName());
@@ -561,7 +566,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						// is preferred.
 						String name = getName();
 
-						if (!configuration.isHideRecentlyPlayedFolder()) {
+						if (!configuration.isHideRecentlyPlayedFolder(null)) {
 							player = child.getPlayer();
 						} else {
 							for (Player p : PlayerFactory.getPlayers()) {
