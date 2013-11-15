@@ -141,9 +141,19 @@ public class FFmpegAudio extends FFMpegVideo {
 		params.waitbeforestart = 2000;
 		params.manageFastStart();
 
+		/*
+		 * FFmpeg uses multithreading by default, so provided that the
+		 * user has not disabled FFmpeg multithreading and has not
+		 * chosen to use more or less threads than are available, do not
+		 * specify how many cores to use.
+		 */
 		int nThreads = 1;
 		if (configuration.isFfmpegMultithreading()) {
-			nThreads = configuration.getNumberOfCpuCores();
+			if (Runtime.getRuntime().availableProcessors() == configuration.getNumberOfCpuCores()) {
+				nThreads = 0;
+			} else {
+				nThreads = configuration.getNumberOfCpuCores();
+			}
 		}
 
 		List<String> cmdList = new ArrayList<>();
@@ -164,15 +174,19 @@ public class FFmpegAudio extends FFMpegVideo {
 		}
 
 		// Decoder threads
-		cmdList.add("-threads");
-		cmdList.add("" + nThreads);
+		if (nThreads > 0) {
+			cmdList.add("-threads");
+			cmdList.add("" + nThreads);
+		}
 
 		cmdList.add("-i");
 		cmdList.add(filename);
 
 		// Encoder threads
-		cmdList.add("-threads");
-		cmdList.add("" + nThreads);
+		if (nThreads > 0) {
+			cmdList.add("-threads");
+			cmdList.add("" + nThreads);
+		}
 
 		if (params.timeend > 0) {
 			cmdList.add("-t");

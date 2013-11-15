@@ -531,7 +531,11 @@ public class FFMpegVideo extends Player {
 	public String initialString() {
 		String threads = " -threads 1";
 		if (configuration.isFfmpegMultithreading()) {
-			threads = " -threads " + configuration.getNumberOfCpuCores();
+			if (Runtime.getRuntime().availableProcessors() == configuration.getNumberOfCpuCores()) {
+				threads = "";
+			} else {
+				threads = " -threads " + configuration.getNumberOfCpuCores();
+			}
 		}
 		return threads;
 	}
@@ -607,9 +611,19 @@ public class FFMpegVideo extends Player {
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
+		/*
+		 * FFmpeg uses multithreading by default, so provided that the
+		 * user has not disabled FFmpeg multithreading and has not
+		 * chosen to use more or less threads than are available, do not
+		 * specify how many cores to use.
+		 */
 		int nThreads = 1;
 		if (configuration.isFfmpegMultithreading()) {
-			nThreads = configuration.getNumberOfCpuCores();
+			if (Runtime.getRuntime().availableProcessors() == configuration.getNumberOfCpuCores()) {
+				nThreads = 0;
+			} else {
+				nThreads = configuration.getNumberOfCpuCores();
+			}
 		}
 
 		List<String> cmdList = new ArrayList<>();
@@ -641,8 +655,10 @@ public class FFMpegVideo extends Player {
 		}
 
 		// Decoder threads
-		cmdList.add("-threads");
-		cmdList.add(String.valueOf(nThreads));
+		if (nThreads > 0) {
+			cmdList.add("-threads");
+			cmdList.add(String.valueOf(nThreads));
+		}
 
 		final boolean isTsMuxeRVideoEngineEnabled = configuration.getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
 
@@ -685,8 +701,10 @@ public class FFMpegVideo extends Player {
 		}
 
 		// Encoder threads
-		cmdList.add("-threads");
-		cmdList.add(String.valueOf(nThreads));
+		if (nThreads > 0) {
+			cmdList.add("-threads");
+			cmdList.add(String.valueOf(nThreads));
+		}
 
 		if (params.timeend > 0) {
 			cmdList.add("-t");
