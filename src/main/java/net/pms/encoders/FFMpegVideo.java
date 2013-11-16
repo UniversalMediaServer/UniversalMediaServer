@@ -22,6 +22,7 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+import com.sun.jna.Platform;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -45,7 +46,9 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.FileTranscodeVirtualFolder;
 import net.pms.dlna.InputFile;
+import static net.pms.encoders.Player.configuration;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.formats.v2.SubtitleUtils;
@@ -617,6 +620,79 @@ public class FFMpegVideo extends Player {
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
+		final String filename = dlna.getSystemName();
+		InputFile newInput = new InputFile();
+		newInput.setFilename(filename);
+		newInput.setPush(params.stdin);
+
+		// Don't honour "Remux videos with tsMuxeR..." if the resource is being streamed via a FFmpeg entry in
+		// the #--TRANSCODE--# folder, or it is a file that tsMuxeR does not support.
+		boolean forceFfmpeg = false;
+		if (
+			!configuration.getHideTranscodeEnabled() &&
+			dlna.isNoName() && // XXX remove this? http://www.ps3mediaserver.org/forum/viewtopic.php?f=11&t=12149
+			(
+				dlna.getParent() instanceof FileTranscodeVirtualFolder
+			)
+		) {
+			forceFfmpeg = true;
+		}
+
+		/*
+		 * Check if the video track and the container report different aspect ratios
+		 */
+		boolean aspectRatiosMatch = true;
+		if (
+			media.getAspectRatioContainer() != null &&
+			media.getAspectRatioVideoTrack() != null &&
+			!media.getAspectRatioContainer().equals(media.getAspectRatioVideoTrack())
+		) {
+			aspectRatiosMatch = false;
+		}
+
+		/**
+		 * Do not use tsMuxeR if:
+		 * - The resource is being streamed via a FFmpeg entry in the transcode folder
+		 * - There is a subtitle that matches the user preferences
+		 * - We are using AviSynth
+		 * - The resource is incompatible with tsMuxeR
+		 * - The user has disabled the "switch to tsMuxeR" option
+		 * - The filename specifies the resource as WEB-DL and it is OS X
+		 * - The aspect ratio of the video needs to be changed
+		 */
+		if (
+			!forceFfmpeg &&
+			params.sid == null &&
+			!avisynth() &&
+			(
+				media.isVideoWithinH264LevelLimits(newInput, params.mediaRenderer) ||
+				!params.mediaRenderer.isH264Level41Limited()
+			) &&
+			media.isMuxable(params.mediaRenderer) &&
+			configuration.isFFmpegMuxWithTsMuxerWhenCompatible() &&
+			params.mediaRenderer.isMuxH264MpegTS() &&
+			!(
+				filename.contains("WEB-DL") &&
+				Platform.isMac()
+			) &&
+			aspectRatiosMatch
+		) {
+			TsMuxeRVideo tv = new TsMuxeRVideo();
+			params.forceFps = media.getValidFps(false);
+
+			if (media.getCodecV() != null) {
+				if (media.getCodecV().equals("h264")) {
+					params.forceType = "V_MPEG4/ISO/AVC";
+				} else if (media.getCodecV().startsWith("mpeg2")) {
+					params.forceType = "V_MPEG-2";
+				} else if (media.getCodecV().equals("vc1")) {
+					params.forceType = "V_MS/VFW/WVC1";
+				}
+			}
+
+			return tv.launchTranscode(dlna, media, params);
+		}
+
 		/*
 		 * FFmpeg uses multithreading by default, so provided that the
 		 * user has not disabled FFmpeg multithreading and has not
@@ -634,7 +710,6 @@ public class FFMpegVideo extends Player {
 
 		List<String> cmdList = new ArrayList<>();
 		RendererConfiguration renderer = params.mediaRenderer;
-		final String filename = dlna.getSystemName();
 		boolean avisynth = avisynth();
 		if (params.timeseek > 0) {
 			params.waitbeforestart = 200;
@@ -934,6 +1009,7 @@ public class FFMpegVideo extends Player {
 
 	private JCheckBox multithreading;
 	private JCheckBox videoremux;
+	private JCheckBox videoRemuxTsMuxer;
 	private JCheckBox fc;
 
 	@Override
@@ -944,7 +1020,7 @@ public class FFMpegVideo extends Player {
 	protected JComponent config(String languageLabel) {
 		FormLayout layout = new FormLayout(
 			"left:pref, 0:grow",
-			"p, 3dlu, p, 3dlu, p, 3dlu, p"
+			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p"
 		);
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.border(Borders.EMPTY);
@@ -982,6 +1058,19 @@ public class FFMpegVideo extends Player {
 		});
 		builder.add(videoremux, cc.xy(2, 5));
 
+		videoRemuxTsMuxer = new JCheckBox(Messages.getString("MEncoderVideo.38"));
+		videoRemuxTsMuxer.setContentAreaFilled(false);
+		if (configuration.isFFmpegMuxWithTsMuxerWhenCompatible()) {
+			videoRemuxTsMuxer.setSelected(true);
+		}
+		videoRemuxTsMuxer.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setFFmpegMuxWithTsMuxerWhenCompatible(e.getStateChange() == ItemEvent.SELECTED);
+			}
+		});
+		builder.add(videoRemuxTsMuxer, cc.xy(2, 7));
+
 		fc = new JCheckBox(Messages.getString("MEncoderVideo.21"));
 		fc.setContentAreaFilled(false);
 		fc.addItemListener(new ItemListener() {
@@ -990,7 +1079,7 @@ public class FFMpegVideo extends Player {
 				configuration.setFFmpegFontConfig(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(fc, cc.xy(2, 7));
+		builder.add(fc, cc.xy(2, 9));
 		fc.setSelected(configuration.isFFmpegFontConfig());
 
 		return builder.getPanel();

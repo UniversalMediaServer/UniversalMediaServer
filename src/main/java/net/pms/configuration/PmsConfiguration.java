@@ -107,6 +107,7 @@ public class PmsConfiguration {
 	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
 	private static final String KEY_FFMPEG_FONT_CONFIG = "ffmpeg_font_config";
 	private static final String KEY_FFMPEG_MUX_COMPATIBLE = "ffmpeg_mux_compatible";
+	private static final String KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE = "ffmpeg_mux_tsmuxer_compatible";
 	private static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
 	private static final String KEY_FOLDERS = "folders";
 	private static final String KEY_FOLDERS_MONITORED = "folders_monitored";
@@ -2167,6 +2168,14 @@ public class PmsConfiguration {
 
 	public boolean isFFmpegMuxWhenCompatible() {
 		return getBoolean(KEY_FFMPEG_MUX_COMPATIBLE, false);
+	}
+
+	public void setFFmpegMuxWithTsMuxerWhenCompatible(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE, value);
+	}
+
+	public boolean isFFmpegMuxWithTsMuxerWhenCompatible() {
+		return getBoolean(KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE, true);
 	}
 
 	public void setFFmpegFontConfig(boolean value) {
