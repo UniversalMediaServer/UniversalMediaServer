@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.security.KeyStore;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import javax.net.ssl.KeyManagerFactory;
@@ -136,24 +137,36 @@ public class RemoteWeb {
 	}
 
 	public RootFolder getRoot(String name) {
-		return getRoot(name, false);
+		return getRoot(name, false, null);
 	}
 
-	public RootFolder getRoot(String name, boolean create) {
-		RootFolder root = roots.get(name);
+	public RootFolder getRoot(String name, boolean create, HttpExchange t) {
+        String groupTag = getTag(name);
+		RootFolder root = roots.get(groupTag);
 		if (!create || (root != null)) {
 			return root;
 		}
-		root = new RootFolder();
+        ArrayList<String> tag = new ArrayList<String>();
+        tag.add(name);
+        if (!groupTag.equals(name)) {
+            tag.add(groupTag);
+        }
+        if(t != null) {
+            tag.add(t.getRemoteAddress().getHostString());
+        }
+        tag.add("web");
+		root = new RootFolder(tag);
         try {
             WebRender render = new WebRender(name);
             root.setDefaultRenderer(render);
+            render.associateIP(t.getRemoteAddress().getAddress());
+            render.associatePort(t.getRemoteAddress().getPort());
         } catch (ConfigurationException e) {
             root.setDefaultRenderer(RendererConfiguration.getDefaultConf());
         }
 		//root.setDefaultRenderer(RendererConfiguration.getRendererConfigurationByName("web"));
 		root.discoverChildren();
-		roots.put(name, root);
+		roots.put(groupTag, root);
 		return root;
 	}
 

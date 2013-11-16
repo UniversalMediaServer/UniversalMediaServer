@@ -4,14 +4,19 @@
 		Added new "Random" sorting option (thanks, etrunko!)
 		Added support for sending subtitles (losslessly) to renderers via closed captioning
 		Added option to clear all monitored files
+		Added support for picture-based subtitles (like VobSub) in FFmpeg
+		Added whitelist option for advanced users
 		Improved video compatibility when transcoding to H.264 via MEncoder or FFmpeg
+		Increased speed of FFmpeg transcoding by default by ~25% in some cases
 		Disabled AviSynth/MEncoder by default
 		Fixed subtitle character conversion in FFmpeg
+		Fixed the configuration option to disable multithreading with FFmpeg engines
 	Renderers:
 		Added support for Sony STR-DA5800ES (thanks, AYColumbia!)
 		Added support for sending SubRip and MicroDVD subtitles to Panasonic TVs
 		Added support for sending SubRip subtitles to WD TV Live
 		Added support for sending SubRip subtitles to Xbox Media Center
+		Improved thumbnail support on Sony Bravia TVs
 	Languages:
 		Updated Italian translation (thanks, nocciola82!)
 		Updated Spanish translation (thanks, AlfredoRamos!)
