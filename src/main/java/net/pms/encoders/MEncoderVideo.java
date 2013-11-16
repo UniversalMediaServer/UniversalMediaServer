@@ -944,7 +944,8 @@ public class MEncoderVideo extends Player {
 			) &&
 			!(
 				filename.contains("WEB-DL") &&
-				!Platform.isWindows()
+				!Platform.isWindows() &&
+				!Platform.isLinux()
 			) &&
 			aspectRatiosMatch
 		) {
