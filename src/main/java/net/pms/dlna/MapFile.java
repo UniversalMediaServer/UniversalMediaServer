@@ -30,6 +30,7 @@ import net.pms.dlna.virtual.TranscodeVirtualFolder;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.formats.FormatFactory;
 import net.pms.network.HTTPResource;
+import net.pms.util.FileUtil;
 import net.pms.util.NaturalComparator;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -86,45 +87,6 @@ public class MapFile extends DLNAResource {
 		forcedName = null;
 	}
 
-	private boolean isFileRelevant(File f) {
-		String fileName = f.getName().toLowerCase();
-		return (configuration.isArchiveBrowsing() && (fileName.endsWith(".zip") || fileName.endsWith(".cbz")
-			|| fileName.endsWith(".rar") || fileName.endsWith(".cbr")))
-			|| fileName.endsWith(".iso") || fileName.endsWith(".img")
-			|| fileName.endsWith(".m3u") || fileName.endsWith(".m3u8") || fileName.endsWith(".pls") || fileName.endsWith(".cue");
-	}
-
-	private boolean isFolderRelevant(File f) {
-		boolean isRelevant = false;
-
-		if (f.isDirectory() && configuration.isHideEmptyFolders()) {
-			File[] children = f.listFiles();
-
-			// listFiles() returns null if "this abstract pathname does not denote a directory, or if an I/O error occurs".
-			// in this case (since we've already confirmed that it's a directory), this seems to mean the directory is non-readable
-			// http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=15135
-			// http://stackoverflow.com/questions/3228147/retrieving-the-underlying-error-when-file-listfiles-return-null
-			if (children == null) {
-				LOGGER.warn("Can't list files in non-readable directory: {}", f.getAbsolutePath());
-			} else {
-				for (File child : children) {
-					if (child.isFile()) {
-						if (FormatFactory.getAssociatedFormat(child.getName()) != null || isFileRelevant(child)) {
-							isRelevant = true;
-							break;
-						}
-					} else {
-						if (isFolderRelevant(child)) {
-							isRelevant = true;
-							break;
-						}
-					}
-				}
-			}
-		}
-		return isRelevant;
-	}
-
 	private void manageFile(File f, String str) {
 		if (f.isFile() || f.isDirectory()) {
 			String lcFilename = f.getName().toLowerCase();
@@ -148,7 +110,7 @@ public class MapFile extends DLNAResource {
 					addChild(new CueFolder(f));
 				} else {
 					/* Optionally ignore empty directories */
-					if (f.isDirectory() && configuration.isHideEmptyFolders() && !isFolderRelevant(f)) {
+					if (f.isDirectory() && configuration.isHideEmptyFolders() && !FileUtil.isFolderRelevant(f, configuration)) {
 						LOGGER.debug("Ignoring empty/non-relevant directory: " + f.getName());
 					} else { // Otherwise add the file
 						addChild(new RealFile(f));
@@ -323,7 +285,7 @@ public class MapFile extends DLNAResource {
 					// skip these
 					continue;
 				}
-				if (f.isDirectory() && configuration.isHideEmptyFolders() && !isFolderRelevant(f)) {
+				if (f.isDirectory() && configuration.isHideEmptyFolders() && !FileUtil.isFolderRelevant(f, configuration)) {
 					LOGGER.debug("Ignoring empty/non-relevant directory: " + f.getName());
 					continue;
 				}

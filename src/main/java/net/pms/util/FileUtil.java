@@ -5,8 +5,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
+import net.pms.formats.FormatFactory;
 import net.pms.formats.v2.SubtitleType;
 import org.apache.commons.io.FilenameUtils;
 import static org.apache.commons.lang.StringUtils.isBlank;
@@ -819,4 +821,43 @@ public class FileUtil {
 
 		return isWritable;
 	}
+
+    public static boolean isFileRelevant(File f, PmsConfiguration configuration) {
+        String fileName = f.getName().toLowerCase();
+        return (configuration.isArchiveBrowsing() && (fileName.endsWith(".zip") || fileName.endsWith(".cbz")
+                || fileName.endsWith(".rar") || fileName.endsWith(".cbr")))
+                || fileName.endsWith(".iso") || fileName.endsWith(".img")
+                || fileName.endsWith(".m3u") || fileName.endsWith(".m3u8") || fileName.endsWith(".pls") || fileName.endsWith(".cue");
+    }
+
+    public static boolean isFolderRelevant(File f, PmsConfiguration configuration) {
+        boolean isRelevant = false;
+
+        if (f.isDirectory() && configuration.isHideEmptyFolders()) {
+            File[] children = f.listFiles();
+
+            // listFiles() returns null if "this abstract pathname does not denote a directory, or if an I/O error occurs".
+            // in this case (since we've already confirmed that it's a directory), this seems to mean the directory is non-readable
+            // http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=15135
+            // http://stackoverflow.com/questions/3228147/retrieving-the-underlying-error-when-file-listfiles-return-null
+            if (children == null) {
+                LOGGER.warn("Can't list files in non-readable directory: {}", f.getAbsolutePath());
+            } else {
+                for (File child : children) {
+                    if (child.isFile()) {
+                        if (FormatFactory.getAssociatedFormat(child.getName()) != null || isFileRelevant(child, configuration)) {
+                            isRelevant = true;
+                            break;
+                        }
+                    } else {
+                        if (isFolderRelevant(child, configuration)) {
+                            isRelevant = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        return isRelevant;
+    }
 }
