@@ -122,7 +122,7 @@ public class FFMpegVideo extends Player {
 	public List<String> getVideoFilterOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
 		List<String> videoFilterOptions = new ArrayList<>();
 		String filterOption = "-vf";
-		ArrayList filterChain = new ArrayList<String>();
+		ArrayList filterChain = new ArrayList<>();
 		final RendererConfiguration renderer = params.mediaRenderer;
 
 		boolean isMediaValid = media != null && media.isMediaparsed() && media.getHeight() != 0;
@@ -174,7 +174,7 @@ public class FFMpegVideo extends Player {
 				filterOption = "-filter_complex";
 				if (params.sid.getId() < 100) {
 					// Embedded
-					subsFilter.append("[0:v][0:s:" + media.getSubtitleTracksList().indexOf(params.sid) + "]overlay");
+					subsFilter.append("[0:v][0:s:").append(media.getSubtitleTracksList().indexOf(params.sid)).append("]overlay");
 				} else {
 					// External
 					videoFilterOptions.add("-i");
