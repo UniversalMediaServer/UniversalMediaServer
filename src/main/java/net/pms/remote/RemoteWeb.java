@@ -161,6 +161,8 @@ public class RemoteWeb {
             root.setDefaultRenderer(render);
             render.associateIP(t.getRemoteAddress().getAddress());
             render.associatePort(t.getRemoteAddress().getPort());
+            render.setUA(t.getRequestHeaders().getFirst("User-agent"));
+            PMS.get().setRendererFound(render);
         } catch (ConfigurationException e) {
             root.setDefaultRenderer(RendererConfiguration.getDefaultConf());
         }
