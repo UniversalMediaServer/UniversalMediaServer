@@ -6,11 +6,14 @@
 		Added option to clear all monitored files
 		Added support for picture-based subtitles (like VobSub) in FFmpeg
 		Added whitelist option for advanced users
+		Added support for automatically muxing WEB-DL files on Linux by default
+		Added automatic tsMuxeR muxing via FFmpeg
 		Improved video compatibility when transcoding to H.264 via MEncoder or FFmpeg
 		Increased speed of FFmpeg transcoding by default by ~25% in some cases
 		Disabled AviSynth/MEncoder by default
 		Fixed subtitle character conversion in FFmpeg
 		Fixed the configuration option to disable multithreading with FFmpeg engines
+		Fixed the New Media folder not adhering to the empty folder setting
 	Renderers:
 		Added support for Sony STR-DA5800ES (thanks, AYColumbia!)
 		Added support for sending SubRip and MicroDVD subtitles to Panasonic TVs
