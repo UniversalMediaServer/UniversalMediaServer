@@ -87,28 +87,18 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 	@Deprecated
 	public FFmpegWebVideo(PmsConfiguration configuration) {
-		super(configuration);
-		
-		if (!init) {
-			readWebFilters(configuration.getProfileDirectory() + File.separator + "ffmpeg.webfilters");
-
-			protocols = FFmpegOptions.getSupportedProtocols(configuration);
-			// see XXX workaround below
-			protocols.add("mms");
-			protocols.add("https");
-			LOGGER.debug("FFmpeg supported protocols: " + protocols);
-			init = true;
-		}
+		this();
+		FFMpegVideo.configuration = configuration;
 	}
 	
 	public FFmpegWebVideo() {
 		if (!init) {
 			readWebFilters(configuration.getProfileDirectory() + File.separator + "ffmpeg.webfilters");
-
 			protocols = FFmpegOptions.getSupportedProtocols(configuration);
-			// see XXX workaround below
-			protocols.add("mms");
-			protocols.add("https");
+			if (protocols.contains("mmsh")) {
+				// see XXX workaround below
+				protocols.add("mms");
+			}
 			LOGGER.debug("FFmpeg supported protocols: " + protocols);
 			init = true;
 		}
