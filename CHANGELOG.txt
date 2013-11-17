@@ -1,3 +1,55 @@
+3.1.0 - 2013-11-??
+
+	General:
+		Added new "Random" sorting option (thanks, etrunko!)
+		Added support for sending subtitles (losslessly) to renderers via closed captioning
+		Added option to clear all monitored files
+		Added support for picture-based subtitles (like VobSub) in FFmpeg
+		Added whitelist option for advanced users
+		Added support for automatically muxing WEB-DL files on all operating systems by default
+		Added automatic tsMuxeR muxing via FFmpeg
+		Improved video compatibility when transcoding to H.264 via MEncoder or FFmpeg
+		Increased speed of FFmpeg transcoding by default by ~25% in some cases
+		Disabled AviSynth/MEncoder by default
+		Fixed subtitle character conversion in FFmpeg
+		Fixed the configuration option to disable multithreading with FFmpeg engines
+		Fixed the New Media folder not adhering to the empty folder setting
+	Renderers:
+		Added support for Sony STR-DA5800ES (thanks, AYColumbia!)
+		Added support for sending SubRip and MicroDVD subtitles to Panasonic TVs
+		Added support for sending SubRip subtitles to WD TV Live
+		Added support for sending SubRip subtitles to Xbox Media Center
+		Improved thumbnail support on Sony Bravia TVs
+	Languages:
+		Updated Italian translation (thanks, nocciola82!)
+		Updated Spanish translation (thanks, AlfredoRamos!)
+	External Components:
+		Updated MPlayer/MEncoder for Windows to SB53, which:
+			Adds support for HEVC (H.265)
+			Adds support for 4k AVC (H.264)
+			Supports seeking to non-keyframes in Matroska files
+			Improves seeking accuracy
+			Improves H.264 encoding quality in fade-heavy clips
+			Improves bitrate calculation
+			Improves ASS/SSA subtitle support
+			Improves support for some DVDs
+			Improves support for 60FPS videos
+			Improves DTS support
+			Improves AVI support
+			Increases speed
+			Fixes a crash when trying to play a DVD from different region than currently set in the DVD drive
+			Fixes memory leaks
+			Fixes multithreaded decoding
+			Fixes bugs
+		Updated tsMuxeR for Linux and OS X to 2.1.8b, which:
+			Improves muxing speed
+			Improves stream standards compatibility
+			Fixes E-AC3 support
+			Adds support for DTS-express audio
+			Reduces bandwidth
+		Updated tsMuxeR for Windows to 2.1.8b, which:
+			Reduces bandwidth
+
 3.0.0 - 2013-11-01 - Changes since 2.6.5
 
 	General:

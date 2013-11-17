@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import net.pms.dlna.DLNAResource;
 import net.pms.network.HTTPResource;
+import org.codehaus.plexus.util.StringUtils;
 
 /**
  * Represents a container (folder). This is widely used by the UPNP ContentBrowser service. Child objects are expected in this folder.
@@ -35,7 +36,7 @@ public class VirtualFolder extends DLNAResource {
 	 * Constructor for this class. The constructor does not add any child to
 	 * the container. This is the only chance to set the name of this container.
 	 *
-	 * @param name String to be shown in the ContentBrowser service 
+	 * @param name String to be shown in the ContentBrowser service
 	 * @param thumbnailIcon Represents a thumbnail to be shown. The String
 	 *                      represents an absolute path. Use null if none is
 	 *                      available or desired.
@@ -55,7 +56,7 @@ public class VirtualFolder extends DLNAResource {
 	/**
 	 * Because a container cannot be streamed, this function always returns null.
 	 *
-	 * @return null 
+	 * @return null
 	 * @see net.pms.dlna.DLNAResource#getInputStream()
 	 */
 	@Override
@@ -119,6 +120,13 @@ public class VirtualFolder extends DLNAResource {
 	 */
 	@Override
 	public InputStream getThumbnailInputStream() {
+		if (StringUtils.isEmpty(thumbnailIcon)) {
+			try {
+				return super.getThumbnailInputStream();
+			} catch (IOException e) {
+				return null;
+			}
+		}
 		return getResourceInputStream(thumbnailIcon);
 	}
 
@@ -147,12 +155,12 @@ public class VirtualFolder extends DLNAResource {
 
 	public void setThumbnail(String thumbnailIcon) {
 		this.thumbnailIcon = thumbnailIcon;
-		
+
 		if (thumbnailIcon != null && thumbnailIcon.toLowerCase().endsWith(".png")) {
 			thumbnailContentType = HTTPResource.PNG_TYPEMIME;
 		} else {
 			thumbnailContentType = HTTPResource.JPEG_TYPEMIME;
 		}
-		
+
 	}
 }

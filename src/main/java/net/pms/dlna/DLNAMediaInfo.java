@@ -55,7 +55,7 @@ import net.pms.util.CoverUtil;
 import net.pms.util.FileUtil;
 import net.pms.util.MpegUtil;
 import net.pms.util.ProcessUtil;
-import net.pms.util.StringUtil;
+import static net.pms.util.StringUtil.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.sanselan.ImageInfo;
 import org.apache.sanselan.ImageReadException;
@@ -886,7 +886,7 @@ public class DLNAMediaInfo implements Cloneable {
 										setFrameRate(token.substring(0, token.indexOf("tb")).trim());
 									} else if ((token.indexOf("fps") > -1 || token.indexOf("fps(r)") > -1) && getFrameRate() == null) { // dvr-ms ?
 										setFrameRate(token.substring(0, token.indexOf("fps")).trim());
-									} else if (token.indexOf("x") > -1) {
+									} else if (token.indexOf("x") > -1 && !token.contains("max")) {
 										String resolution = token.trim();
 										if (resolution.indexOf(" [") > -1) {
 											resolution = resolution.substring(0, resolution.indexOf(" ["));
@@ -903,9 +903,55 @@ public class DLNAMediaInfo implements Cloneable {
 										}
 									}
 								}
-							} else if (line.indexOf("Subtitle:") > -1 && !line.contains("tx3g")) {
+							} else if (line.indexOf("Subtitle:") > -1) {
 								DLNAMediaSubtitle lang = new DLNAMediaSubtitle();
-								lang.setType((line.contains("dvdsub") && Platform.isWindows() ? SubtitleType.VOBSUB : SubtitleType.UNKNOWN));
+
+								// $ ffmpeg -codecs | grep "^...S"
+								// ..S... = Subtitle codec
+								// DES... ass                  ASS (Advanced SSA) subtitle
+								// DES... dvb_subtitle         DVB subtitles (decoders: dvbsub ) (encoders: dvbsub )
+								// ..S... dvb_teletext         DVB teletext
+								// DES... dvd_subtitle         DVD subtitles (decoders: dvdsub ) (encoders: dvdsub )
+								// ..S... eia_608              EIA-608 closed captions
+								// D.S... hdmv_pgs_subtitle    HDMV Presentation Graphic Stream subtitles (decoders: pgssub )
+								// D.S... jacosub              JACOsub subtitle
+								// D.S... microdvd             MicroDVD subtitle
+								// DES... mov_text             MOV text
+								// D.S... mpl2                 MPL2 subtitle
+								// D.S... pjs                  PJS (Phoenix Japanimation Society) subtitle
+								// D.S... realtext             RealText subtitle
+								// D.S... sami                 SAMI subtitle
+								// DES... srt                  SubRip subtitle with embedded timing
+								// DES... ssa                  SSA (SubStation Alpha) subtitle
+								// DES... subrip               SubRip subtitle
+								// D.S... subviewer            SubViewer subtitle
+								// D.S... subviewer1           SubViewer v1 subtitle
+								// D.S... text                 raw UTF-8 text
+								// D.S... vplayer              VPlayer subtitle
+								// D.S... webvtt               WebVTT subtitle
+								// DES... xsub                 XSUB
+
+								if (line.contains("srt") || line.contains("subrip")) {
+									lang.setType(SubtitleType.SUBRIP);
+								} else if (line.contains(" text")) {
+									// excludes dvb_teletext, mov_text, realtext
+									lang.setType(SubtitleType.TEXT);
+								} else if (line.contains("microdvd")) {
+									lang.setType(SubtitleType.MICRODVD);
+								} else if (line.contains("sami")) {
+									lang.setType(SubtitleType.SAMI);
+								} else if (line.contains("ass") || line.contains("ssa")) {
+									lang.setType(SubtitleType.ASS);
+								} else if (line.contains("dvd_subtitle")) {
+									lang.setType(SubtitleType.VOBSUB);
+								} else if (line.contains("xsub")) {
+									lang.setType(SubtitleType.DIVX);
+								} else if (line.contains("mov_text")) {
+									lang.setType(SubtitleType.TX3G);
+								} else {
+									lang.setType(SubtitleType.UNKNOWN);
+								}
+
 								int a = line.indexOf("(");
 								int b = line.indexOf("):", a);
 								if (a > -1 && b > a) {
@@ -1061,25 +1107,18 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	public String getDurationString() {
-		return durationSec != null ? getDurationString(durationSec) : null;
+		return durationSec != null ? convertTimeToString(durationSec, DURATION_TIME_FORMAT) : null;
 	}
 
 	/**
 	 * @deprecated Use {@link #StringUtil.convertTimeToString(durationSec, StringUtil.DURATION_TIME_FORMAT)} instead.
 	 */
 	public static String getDurationString(double d) {
-		int s = ((int) d) % 60;
-		int h = (int) (d / 3600);
-		int m = ((int) (d / 60)) % 60;
-		return String.format("%02d:%02d:%02d.00", h, m, s);
+		return convertTimeToString(d, DURATION_TIME_FORMAT);
 	}
 
 	public static Double parseDurationString(String duration) {
-		if (duration == null) {
-			return null;
-		}
-
-		return StringUtil.convertStringToTime(duration);
+		return duration != null ? convertStringToTime(duration) : null;
 	}
 
 	public void finalize(int type, InputFile f) {

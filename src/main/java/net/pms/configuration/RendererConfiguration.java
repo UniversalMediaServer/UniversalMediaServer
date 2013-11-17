@@ -116,6 +116,7 @@ public class RendererConfiguration {
 	private static final String USER_AGENT_ADDITIONAL_HEADER = "UserAgentAdditionalHeader";
 	private static final String USER_AGENT_ADDITIONAL_SEARCH = "UserAgentAdditionalHeaderSearch";
 	private static final String USER_AGENT = "UserAgentSearch";
+	private static final String USE_CLOSED_CAPTION = "UseClosedCaption";
 	private static final String USE_SAME_EXTENSION = "UseSameExtension";
 	private static final String VIDEO = "Video";
 	private static final String WRAP_DTS_INTO_PCM = "WrapDTSIntoPCM";
@@ -273,7 +274,15 @@ public class RendererConfiguration {
 
 	public RootFolder getRootFolder() {
 		if (rootFolder == null) {
-			rootFolder = new RootFolder();
+			ArrayList<String> tags = new ArrayList();
+			tags.add(getRendererName());
+			for (InetAddress sa : addressAssociation.keySet()) {
+				if (addressAssociation.get(sa) == this) {
+					tags.add(sa.getHostAddress());
+				}
+			}
+
+			rootFolder = new RootFolder(tags);
 			if (pmsConfiguration.getUseCache()) {
 				rootFolder.discoverChildren();
 			}
@@ -1230,5 +1239,16 @@ public class RendererConfiguration {
 
 	public String getSupportedSubtitles() {
 		return getString(SUPPORTED_SUBTITLES_TYPE, null);
+	}
+
+	public boolean useClosedCaption() {
+		return getBoolean(USE_CLOSED_CAPTION, false);
+	}	
+
+	public ArrayList<String> tags() {
+		if (rootFolder != null) {
+			return rootFolder.getTags();
+		}
+		return null;
 	}
 }

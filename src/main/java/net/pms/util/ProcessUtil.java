@@ -159,8 +159,14 @@ public class ProcessUtil {
 			while ((line = br.readLine()) != null) {
 				output.append(line).append("\n");
 			}
+			p.waitFor();
+			if (p.exitValue() != 0) {
+				LOGGER.debug("Warning: command {} returned {}", cmd, p.exitValue());
+			}
 			return output.toString();
-		} catch (Exception e) {}
+		} catch (Exception e) {
+			LOGGER.error("Error running command " + cmd, e);
+		}
 		return "";
 	}
 }

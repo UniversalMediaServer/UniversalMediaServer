@@ -87,28 +87,18 @@ public class FFmpegWebVideo extends FFMpegVideo {
 
 	@Deprecated
 	public FFmpegWebVideo(PmsConfiguration configuration) {
-		super(configuration);
-		
-		if (!init) {
-			readWebFilters(configuration.getProfileDirectory() + File.separator + "ffmpeg.webfilters");
-
-			protocols = FFmpegOptions.getSupportedProtocols(configuration);
-			// see XXX workaround below
-			protocols.add("mms");
-			protocols.add("https");
-			LOGGER.debug("FFmpeg supported protocols: " + protocols);
-			init = true;
-		}
+		this();
+		FFMpegVideo.configuration = configuration;
 	}
 	
 	public FFmpegWebVideo() {
 		if (!init) {
 			readWebFilters(configuration.getProfileDirectory() + File.separator + "ffmpeg.webfilters");
-
 			protocols = FFmpegOptions.getSupportedProtocols(configuration);
-			// see XXX workaround below
-			protocols.add("mms");
-			protocols.add("https");
+			if (protocols.contains("mmsh")) {
+				// see XXX workaround below
+				protocols.add("mms");
+			}
 			LOGGER.debug("FFmpeg supported protocols: " + protocols);
 			init = true;
 		}
@@ -224,11 +214,26 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			cmdList.add("warning");
 		}
 
-		int nThreads = configuration.getNumberOfCpuCores();
+		/*
+		 * FFmpeg uses multithreading by default, so provided that the
+		 * user has not disabled FFmpeg multithreading and has not
+		 * chosen to use more or less threads than are available, do not
+		 * specify how many cores to use.
+		 */
+		int nThreads = 1;
+		if (configuration.isFfmpegMultithreading()) {
+			if (Runtime.getRuntime().availableProcessors() == configuration.getNumberOfCpuCores()) {
+				nThreads = 0;
+			} else {
+				nThreads = configuration.getNumberOfCpuCores();
+			}
+		}
 
 		// Decoder threads
-		cmdList.add("-threads");
-		cmdList.add("" + nThreads);
+		if (nThreads > 0) {
+			cmdList.add("-threads");
+			cmdList.add("" + nThreads);
+		}
 
 		// Add global and input-file custom options, if any
 		if (!customOptions.isEmpty()) {
@@ -247,8 +252,10 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		cmdList.addAll(getVideoFilterOptions(dlna, media, params));
 
 		// Encoder threads
-		cmdList.add("-threads");
-		cmdList.add("" + nThreads);
+		if (nThreads > 0) {
+			cmdList.add("-threads");
+			cmdList.add("" + nThreads);
+		}
 
 		// Add the output options (-f, -c:a, -c:v, etc.)
 		cmdList.addAll(getVideoTranscodeOptions(dlna, media, params));

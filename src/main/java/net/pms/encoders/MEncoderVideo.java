@@ -760,36 +760,59 @@ public class MEncoderVideo extends Player {
 			defaultMaxBitrates[0] = defaultMaxBitrates[0] / 2;
 
 			int bufSize = 1835;
-			if (media.isHDVideo()) {
-				bufSize = defaultMaxBitrates[0] / 3;
+			boolean bitrateLevel41Limited = false;
+
+			/**
+			 * Although the maximum bitrate for H.264 Level 4.1 is
+			 * officially 50,000 kbit/s, some 4.1-capable renderers
+			 * like the PS3 stutter when video exceeds roughly 31,250
+			 * kbit/s.
+			 *
+			 * We also apply the correct buffer size in this section.
+			 */
+			if (mediaRenderer.isTranscodeToH264TSAC3()) {
+				if (
+					mediaRenderer.isH264Level41Limited() &&
+					defaultMaxBitrates[0] > 31250
+				) {
+					defaultMaxBitrates[0] = 31250;
+					bitrateLevel41Limited = true;
+				}
+				bufSize = defaultMaxBitrates[0];
+			} else {
+				if (media.isHDVideo()) {
+					bufSize = defaultMaxBitrates[0] / 3;
+				}
+
+				if (bufSize > 7000) {
+					bufSize = 7000;
+				}
+
+				if (defaultMaxBitrates[1] > 0) {
+					bufSize = defaultMaxBitrates[1];
+				}
+
+				if (mediaRenderer.isDefaultVBVSize() && rendererMaxBitrates[1] == 0) {
+					bufSize = 1835;
+				}
 			}
 
-			if (bufSize > 7000) {
-				bufSize = 7000;
-			}
+			if (!bitrateLevel41Limited) {
+				// Make room for audio
+				if ("pcm".equals(audioType)) {
+					// If audio is PCM, subtract 4600kb/s
+					defaultMaxBitrates[0] = defaultMaxBitrates[0] - 4600;
+				} else if ("dts".equals(audioType)) {
+					// If audio is DTS, subtract 1510kb/s
+					defaultMaxBitrates[0] = defaultMaxBitrates[0] - 1510;
+				} else if ("ac3".equals(audioType)) {
+					// If audio is AC3, subtract the configured amount (usually 640)
+					defaultMaxBitrates[0] = defaultMaxBitrates[0] - configuration.getAudioBitrate();
+				}
 
-			if (defaultMaxBitrates[1] > 0) {
-				bufSize = defaultMaxBitrates[1];
+				// Round down to the nearest Mb
+				defaultMaxBitrates[0] = defaultMaxBitrates[0] / 1000 * 1000;
 			}
-
-			if (mediaRenderer.isDefaultVBVSize() && rendererMaxBitrates[1] == 0) {
-				bufSize = 1835;
-			}
-
-			// Make room for audio
-			if ("pcm".equals(audioType)) {
-				// If audio is PCM, subtract 4600kb/s
-				defaultMaxBitrates[0] = defaultMaxBitrates[0] - 4600;
-			} else if ("dts".equals(audioType)) {
-				// If audio is DTS, subtract 1510kb/s
-				defaultMaxBitrates[0] = defaultMaxBitrates[0] - 1510;
-			} else if ("ac3".equals(audioType)) {
-				// If audio is AC3, subtract the configured amount (usually 640)
-				defaultMaxBitrates[0] = defaultMaxBitrates[0] - configuration.getAudioBitrate();
-			}
-
-			// Round down to the nearest Mb
-			defaultMaxBitrates[0] = defaultMaxBitrates[0] / 1000 * 1000;
 
 			encodeSettings += ":vrc_maxrate=" + defaultMaxBitrates[0] + ":vrc_buf_size=" + bufSize;
 		}
@@ -899,7 +922,6 @@ public class MEncoderVideo extends Player {
 		 * - The resource is incompatible with tsMuxeR
 		 * - The user has disabled the "switch to tsMuxeR" option
 		 * - The user has specified overscan correction
-		 * - The filename specifies the resource as WEB-DL and the OS is not Windows
 		 * - The aspect ratio of the video needs to be changed
 		 */
 		if (
@@ -917,10 +939,6 @@ public class MEncoderVideo extends Player {
 			(
 				intOCW == 0 &&
 				intOCH == 0
-			) &&
-			!(
-				filename.contains("WEB-DL") &&
-				!Platform.isWindows()
 			) &&
 			aspectRatiosMatch
 		) {

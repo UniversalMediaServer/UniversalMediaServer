@@ -354,7 +354,7 @@ public class NavigationShareTab {
 		// Hide Server Settings folder
 		hidevideosettings = new JCheckBox(Messages.getString("FoldTab.38"));
 		hidevideosettings.setContentAreaFilled(false);
-		if (configuration.getHideVideoSettings()) {
+		if (configuration.getHideVideoSettings(null)) {
 			hidevideosettings.setSelected(true);
 		}
 		hidevideosettings.addItemListener(new ItemListener() {
@@ -536,14 +536,16 @@ public class NavigationShareTab {
 				"4", // natural sort
 				"3", // ASCIIbetical
 				"1", // newest first
-				"2"  // oldest first
+				"2", // oldest first
+				"5"  // random
 			},
 			new Object[]{
 				Messages.getString("FoldTab.15"),
 				Messages.getString("FoldTab.22"),
 				Messages.getString("FoldTab.20"),
 				Messages.getString("FoldTab.16"),
-				Messages.getString("FoldTab.17")
+				Messages.getString("FoldTab.17"),
+				Messages.getString("FoldTab.58")
 			}
 		);
 		sortmethod = new JComboBox(kcbm);
@@ -622,7 +624,7 @@ public class NavigationShareTab {
 
 		newmediafolder = new JCheckBox(Messages.getString("FoldTab.54"));
 		newmediafolder.setContentAreaFilled(false);
-		if (configuration.isHideNewMediaFolder()) {
+		if (configuration.isHideNewMediaFolder(null)) {
 			newmediafolder.setSelected(true);
 		}
 		newmediafolder.addItemListener(new ItemListener() {
@@ -634,7 +636,7 @@ public class NavigationShareTab {
 
 		recentlyplayedfolder = new JCheckBox(Messages.getString("FoldTab.55"));
 		recentlyplayedfolder.setContentAreaFilled(false);
-		if (configuration.isHideRecentlyPlayedFolder()) {
+		if (configuration.isHideRecentlyPlayedFolder(null)) {
 			recentlyplayedfolder.setSelected(true);
 		}
 		recentlyplayedfolder.addItemListener(new ItemListener() {
