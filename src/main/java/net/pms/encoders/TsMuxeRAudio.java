@@ -33,7 +33,7 @@ public class TsMuxeRAudio extends TsMuxeRVideo {
 
 	@Deprecated
 	public TsMuxeRAudio(PmsConfiguration configuration) {
-		super(configuration);
+		this();
 	}
 
 	public TsMuxeRAudio() {

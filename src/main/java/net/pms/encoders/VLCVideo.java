@@ -80,7 +80,7 @@ public class VLCVideo extends Player {
 
 	@Deprecated
 	public VLCVideo(PmsConfiguration configuration) {
-		this.configuration = configuration;
+		this();
 	}
 
 	public VLCVideo() {
@@ -265,7 +265,7 @@ public class VLCVideo extends Player {
 	public ProcessWrapper launchTranscode(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
 		final String filename = dlna.getSystemName();
 		boolean isWindows = Platform.isWindows();
-		setAudioAndSubs(filename, media, params, configuration);
+		setAudioAndSubs(filename, media, params);
 
 		// Make sure we can play this
 		CodecConfig config = genConfig(params.mediaRenderer);

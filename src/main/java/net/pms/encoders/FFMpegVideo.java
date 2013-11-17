@@ -22,7 +22,6 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-import com.sun.jna.Platform;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -48,7 +47,6 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.FileTranscodeVirtualFolder;
 import net.pms.dlna.InputFile;
-import static net.pms.encoders.Player.configuration;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.formats.v2.SubtitleUtils;
@@ -102,7 +100,7 @@ public class FFMpegVideo extends Player {
 
 	@Deprecated
 	public FFMpegVideo(PmsConfiguration configuration) {
-		FFMpegVideo.configuration = configuration;
+		this();
 	}
 
 	// FIXME we have an id() accessor for this; no need for the field to be public

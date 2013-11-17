@@ -39,7 +39,7 @@ public class VideoLanVideoStreaming extends Player {
 
 	@Deprecated
 	public VideoLanVideoStreaming(PmsConfiguration configuration) {
-		this.configuration = configuration;
+		this();
 	}
 
 	public VideoLanVideoStreaming() {

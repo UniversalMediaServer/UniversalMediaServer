@@ -29,7 +29,7 @@ public class VideoLanAudioStreaming extends VideoLanVideoStreaming {
 
 	@Deprecated
 	public VideoLanAudioStreaming(PmsConfiguration configuration) {
-		super(configuration);
+		this();
 	}
 
 	public VideoLanAudioStreaming() {
