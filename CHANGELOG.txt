@@ -6,7 +6,7 @@
 		Added option to clear all monitored files
 		Added support for picture-based subtitles (like VobSub) in FFmpeg
 		Added whitelist option for advanced users
-		Added support for automatically muxing WEB-DL files on Linux by default
+		Added support for automatically muxing WEB-DL files on all operating systems by default
 		Added automatic tsMuxeR muxing via FFmpeg
 		Improved video compatibility when transcoding to H.264 via MEncoder or FFmpeg
 		Increased speed of FFmpeg transcoding by default by ~25% in some cases
@@ -41,13 +41,13 @@
 			Fixes memory leaks
 			Fixes multithreaded decoding
 			Fixes bugs
-		Updated tsMuxeR for Linux to 2.1.6b, which:
+		Updated tsMuxeR for Linux and OS X to 2.1.8b, which:
 			Improves muxing speed
 			Improves stream standards compatibility
 			Fixes E-AC3 support
 			Adds support for DTS-express audio
 			Reduces bandwidth
-		Updated tsMuxeR for Windows to 2.1.6b, which:
+		Updated tsMuxeR for Windows to 2.1.8b, which:
 			Reduces bandwidth
 
 3.0.0 - 2013-11-01 - Changes since 2.6.5
