@@ -657,7 +657,6 @@ public class FFMpegVideo extends Player {
 		 * - We are using AviSynth
 		 * - The resource is incompatible with tsMuxeR
 		 * - The user has disabled the "switch to tsMuxeR" option
-		 * - The filename specifies the resource as WEB-DL and it is OS X
 		 * - The aspect ratio of the video needs to be changed
 		 */
 		if (
@@ -671,10 +670,6 @@ public class FFMpegVideo extends Player {
 			media.isMuxable(params.mediaRenderer) &&
 			configuration.isFFmpegMuxWithTsMuxerWhenCompatible() &&
 			params.mediaRenderer.isMuxH264MpegTS() &&
-			!(
-				filename.contains("WEB-DL") &&
-				Platform.isMac()
-			) &&
 			aspectRatiosMatch
 		) {
 			TsMuxeRVideo tv = new TsMuxeRVideo();

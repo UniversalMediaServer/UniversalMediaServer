@@ -923,7 +923,6 @@ public class MEncoderVideo extends Player {
 		 * - The resource is incompatible with tsMuxeR
 		 * - The user has disabled the "switch to tsMuxeR" option
 		 * - The user has specified overscan correction
-		 * - The filename specifies the resource as WEB-DL and it is OS X
 		 * - The aspect ratio of the video needs to be changed
 		 */
 		if (
@@ -941,10 +940,6 @@ public class MEncoderVideo extends Player {
 			(
 				intOCW == 0 &&
 				intOCH == 0
-			) &&
-			!(
-				filename.contains("WEB-DL") &&
-				Platform.isMac()
 			) &&
 			aspectRatiosMatch
 		) {
