@@ -156,8 +156,6 @@ public class FFmpegAudio extends FFMpegVideo {
 			}
 		}
 
-		List<String> cmdList = new ArrayList<>();
-
 		List<String> cmdList = new ArrayList<String>();
 
 		cmdList.add(executable());
