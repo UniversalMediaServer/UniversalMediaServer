@@ -8,12 +8,14 @@
 		Added whitelist option for advanced users
 		Added support for automatically muxing WEB-DL files on all operating systems by default
 		Added automatic tsMuxeR muxing via FFmpeg
+		Added tooltips to more settings
 		Improved video compatibility when transcoding to H.264 via MEncoder or FFmpeg
 		Increased speed of FFmpeg transcoding by default by ~25% in some cases
 		Disabled AviSynth/MEncoder by default
 		Fixed subtitle character conversion in FFmpeg
 		Fixed the configuration option to disable multithreading with FFmpeg engines
 		Fixed the New Media folder not adhering to the empty folder setting
+		Fixed the broken FFmpeg binary on Linux
 	Renderers:
 		Added support for Sony STR-DA5800ES (thanks, AYColumbia!)
 		Added support for sending SubRip and MicroDVD subtitles to Panasonic TVs
@@ -41,13 +43,15 @@
 			Fixes memory leaks
 			Fixes multithreaded decoding
 			Fixes bugs
-		Updated tsMuxeR for Linux and OS X to 2.1.8b, which:
+		Updated tsMuxeR for Linux and OS X to 2.2.3b, which:
+			Adds support for DTS-HD elementary stream with extra DTSHD headers
 			Improves muxing speed
 			Improves stream standards compatibility
 			Fixes E-AC3 support
 			Adds support for DTS-express audio
 			Reduces bandwidth
-		Updated tsMuxeR for Windows to 2.1.8b, which:
+		Updated tsMuxeR for Windows to 2.2.3b, which:
+			Adds support for DTS-HD elementary stream with extra DTSHD headers
 			Reduces bandwidth
 
 3.0.0 - 2013-11-01 - Changes since 2.6.5
