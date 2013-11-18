@@ -88,7 +88,6 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	@Deprecated
 	public FFmpegWebVideo(PmsConfiguration configuration) {
 		this();
-		FFMpegVideo.configuration = configuration;
 	}
 	
 	public FFmpegWebVideo() {

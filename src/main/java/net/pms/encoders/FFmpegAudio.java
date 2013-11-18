@@ -52,7 +52,7 @@ public class FFmpegAudio extends FFMpegVideo {
 
 	@Deprecated
 	public FFmpegAudio(PmsConfiguration configuration) {
-		super(configuration);
+		this();
 	}
 
 	public FFmpegAudio() {
@@ -155,6 +155,8 @@ public class FFmpegAudio extends FFMpegVideo {
 				nThreads = configuration.getNumberOfCpuCores();
 			}
 		}
+
+		List<String> cmdList = new ArrayList<>();
 
 		List<String> cmdList = new ArrayList<String>();
 

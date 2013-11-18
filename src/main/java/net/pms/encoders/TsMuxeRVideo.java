@@ -69,7 +69,7 @@ public class TsMuxeRVideo extends Player {
 
 	@Deprecated
 	public TsMuxeRVideo(PmsConfiguration configuration) {
-		this.configuration = configuration;
+		this();
 	}
 
 	public TsMuxeRVideo() {

@@ -28,6 +28,7 @@ public class MediaMonitor extends VirtualFolder {
 		this.dirs = dirs;
 		oldEntries = new ArrayList<String>();
 		config = PMS.getConfiguration();
+		config = PMS.getConfiguration();
 		parseMonitorFile();
 	}
 

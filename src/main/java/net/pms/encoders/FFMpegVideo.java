@@ -102,7 +102,7 @@ public class FFMpegVideo extends Player {
 
 	@Deprecated
 	public FFMpegVideo(PmsConfiguration configuration) {
-		FFMpegVideo.configuration = configuration;
+		this();
 	}
 
 	// FIXME we have an id() accessor for this; no need for the field to be public
@@ -1307,12 +1307,12 @@ public class FFMpegVideo extends Player {
 		String line;
 		String[] format = null;
 		int i;
-		while (( line = input.readLine()) != null) {
+		while ((line = input.readLine()) != null) {
 			outputString.setLength(0);
 			if (line.startsWith("[Script Info]")) {
 				outputString.append(line).append("\n");
 				output.write(outputString.toString());
-				while (( line = input.readLine()) != null) {
+				while ((line = input.readLine()) != null) {
 					outputString.setLength(0);
 					if (!line.isEmpty()) {
 						outputString.append(line).append("\n");
