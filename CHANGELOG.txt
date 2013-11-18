@@ -1,4 +1,4 @@
-3.1.0 - 2013-11-??
+3.1.0 - 2013-11-18
 
 	General:
 		Added new "Random" sorting option (thanks, etrunko!)
