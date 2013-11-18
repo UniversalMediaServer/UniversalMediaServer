@@ -53,7 +53,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 
 	@Deprecated
 	public AviSynthMEncoder(PmsConfiguration configuration) {
-		super(configuration);
+		this();
 	}
 
 	public AviSynthMEncoder() {

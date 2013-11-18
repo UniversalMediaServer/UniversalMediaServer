@@ -28,7 +28,7 @@ public class VLCWebVideo extends VLCVideo {
 
 	@Deprecated
 	public VLCWebVideo(PmsConfiguration configuration) {
-		super(configuration);
+		this();
 	}
 
 	public VLCWebVideo() {

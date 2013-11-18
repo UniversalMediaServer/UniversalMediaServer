@@ -149,7 +149,7 @@ public class MEncoderVideo extends Player {
 
 	@Deprecated
 	public MEncoderVideo(PmsConfiguration configuration) {
-		this.configuration = configuration;
+		this();
 	}
 
 	public MEncoderVideo() {

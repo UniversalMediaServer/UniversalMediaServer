@@ -47,7 +47,6 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.FileTranscodeVirtualFolder;
 import net.pms.dlna.InputFile;
-import static net.pms.encoders.Player.configuration;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.formats.v2.SubtitleUtils;
@@ -101,7 +100,7 @@ public class FFMpegVideo extends Player {
 
 	@Deprecated
 	public FFMpegVideo(PmsConfiguration configuration) {
-		FFMpegVideo.configuration = configuration;
+		this();
 	}
 
 	// FIXME we have an id() accessor for this; no need for the field to be public
