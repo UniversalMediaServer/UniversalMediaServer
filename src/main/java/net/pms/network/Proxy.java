@@ -106,7 +106,7 @@ public class Proxy extends Thread {
 			directoryResource = getWritableFileName(directoryResource);
 			String fileResource = askedResource.substring(askedResource.lastIndexOf('/') + 1);
 			fileResource = getWritableFileName(fileResource);
-			fileResource = fileResource + ".cached";
+			fileResource += ".cached";
 			String fileN = "proxycache/" + target + "/" + directoryResource;
 			File directoryResourceFile = new File(fileN);
 

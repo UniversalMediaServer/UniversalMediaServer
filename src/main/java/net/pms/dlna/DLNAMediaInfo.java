@@ -765,7 +765,7 @@ public class DLNAMediaInfo implements Cloneable {
 										String durationStr = token.substring(10);
 										int l = durationStr.substring(durationStr.indexOf('.') + 1).length();
 										if (l < 4) {
-											durationStr = durationStr + "00".substring(0, 3 - l);
+											durationStr += "00".substring(0, 3 - l);
 										}
 										if (durationStr.indexOf("N/A") > -1) {
 											setDuration(null);
@@ -845,7 +845,7 @@ public class DLNAMediaInfo implements Cloneable {
 								}
 
 								if (line.indexOf("Metadata:") > -1) {
-									FFmpegMetaDataNr = FFmpegMetaDataNr + 1;
+									FFmpegMetaDataNr += 1;
 									line = lines.get(FFmpegMetaDataNr);
 									while (line.indexOf("      ") == 0) {
 										if (line.toLowerCase().indexOf("title           :") > -1) {
@@ -856,7 +856,7 @@ public class DLNAMediaInfo implements Cloneable {
 												break;
 											}
 										} else {
-											FFmpegMetaDataNr = FFmpegMetaDataNr + 1;
+											FFmpegMetaDataNr += 1;
 											line = lines.get(FFmpegMetaDataNr);
 										}
 									}
@@ -969,7 +969,7 @@ public class DLNAMediaInfo implements Cloneable {
 								}
 
 								if (line.indexOf("Metadata:") > -1) {
-									FFmpegMetaDataNr = FFmpegMetaDataNr + 1;
+									FFmpegMetaDataNr += 1;
 									line = lines.get(FFmpegMetaDataNr);
 
 									while (line.indexOf("      ") == 0) {
@@ -981,7 +981,7 @@ public class DLNAMediaInfo implements Cloneable {
 												break;
 											}
 										} else {
-											FFmpegMetaDataNr = FFmpegMetaDataNr + 1;
+											FFmpegMetaDataNr += 1;
 											line = lines.get(FFmpegMetaDataNr);
 										}
 									}

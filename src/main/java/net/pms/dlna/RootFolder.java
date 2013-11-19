@@ -695,7 +695,7 @@ public class RootFolder extends DLNAResource {
 
 			if (location != null) {
 				// Add the iTunes folder to the end
-				location = location + "\\iTunes\\iTunes Music Library.xml";
+				location += "\\iTunes\\iTunes Music Library.xml";
 				iTunesFile = location;
 			} else {
 				LOGGER.info("Could not find the My Music folder");

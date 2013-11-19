@@ -45,7 +45,7 @@ public class H264AnnexBInputStream extends InputStream {
 				off += 4;
 
 			}
-			nextTarget = nextTarget - 3;
+			nextTarget -= 3;
 		}
 
 		if (nextTarget == -1) {
@@ -97,7 +97,7 @@ public class H264AnnexBInputStream extends InputStream {
 			}
 			System.arraycopy(h, 0, b, off, (len - off));
 			//LOGGER.info("Frame copied: " + (len - off));
-			nextTarget = nextTarget - (len - off);
+			nextTarget -= (len - off);
 			off = len;
 
 		}

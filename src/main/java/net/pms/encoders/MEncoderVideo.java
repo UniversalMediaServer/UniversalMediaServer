@@ -757,7 +757,7 @@ public class MEncoderVideo extends Player {
 			defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
 
 			// Halve it since it seems to send up to 1 second of video in advance
-			defaultMaxBitrates[0] = defaultMaxBitrates[0] / 2;
+			defaultMaxBitrates[0] /= 2;
 
 			int bufSize = 1835;
 			boolean bitrateLevel41Limited = false;
@@ -801,13 +801,13 @@ public class MEncoderVideo extends Player {
 				// Make room for audio
 				switch (audioType) {
 					case "pcm":
-						defaultMaxBitrates[0] = defaultMaxBitrates[0] - 4600;
+						defaultMaxBitrates[0] -= 4600;
 						break;
 					case "dts":
-						defaultMaxBitrates[0] = defaultMaxBitrates[0] - 1510;
+						defaultMaxBitrates[0] -= 1510;
 						break;
 					case "ac3":
-						defaultMaxBitrates[0] = defaultMaxBitrates[0] - configuration.getAudioBitrate();
+						defaultMaxBitrates[0] -= configuration.getAudioBitrate();
 						break;
 				}
 
@@ -1412,7 +1412,7 @@ public class MEncoderVideo extends Player {
 					 */
 					if (intOCH > 0) {
 						subtitleMargin = (media.getHeight() / 100) * intOCH;
-						subtitleMargin = subtitleMargin / 2;
+						subtitleMargin /= 2;
 					}
 
 					sb.append("Outline=").append(configuration.getAssOutline()).append(",Shadow=").append(configuration.getAssShadow());
@@ -1423,7 +1423,7 @@ public class MEncoderVideo extends Player {
 						LOGGER.debug("Could not parse SSA margin from \"" + configuration.getAssMargin() + "\"");
 					}
 
-					subtitleMargin = subtitleMargin + userMargin;
+					subtitleMargin += userMargin;
 
 					sb.append(",MarginV=").append(subtitleMargin).append(" ");
 				} else if (intOCH > 0) {
@@ -1432,7 +1432,7 @@ public class MEncoderVideo extends Player {
 					 * This keeps the subtitle text inside the frame instead of in the border
 					 */
 					subtitleMargin = (media.getHeight() / 100) * intOCH;
-					subtitleMargin = subtitleMargin / 2;
+					subtitleMargin /= 2;
 
 					sb.append("-ass-force-style MarginV=").append(subtitleMargin).append(" ");
 				}
@@ -1479,7 +1479,7 @@ public class MEncoderVideo extends Player {
 					LOGGER.debug("Could not parse subpos from \"" + configuration.getMencoderNoAssSubPos() + "\"");
 				}
 
-				subtitleMargin = subtitleMargin + userMargin;
+				subtitleMargin += userMargin;
 
 				sb.append(" -subpos ").append(100 - subtitleMargin).append(" ");
 			}
@@ -1741,8 +1741,8 @@ public class MEncoderVideo extends Player {
 				int intOCWPixels = (media.getWidth()  / 100) * intOCW;
 				int intOCHPixels = (media.getHeight() / 100) * intOCH;
 
-				scaleWidth  = scaleWidth  + intOCWPixels;
-				scaleHeight = scaleHeight + intOCHPixels;
+				scaleWidth  += intOCWPixels;
+				scaleHeight += intOCHPixels;
 
 				// See if the video needs to be scaled down
 				if (
@@ -2585,7 +2585,7 @@ public class MEncoderVideo extends Player {
 
 	public int convertToMod4(int number) {
 		if (number % 4 != 0) {
-			number = number - (number % 4);
+			number -= (number % 4);
 		}
 
 		return number;

@@ -299,7 +299,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 			// True Motion
 			if (configuration.getAvisynthInterFrame()) {
 				String GPU = "";
-				movieLine = movieLine + ".ConvertToYV12()";
+				movieLine += ".ConvertToYV12()";
 
 				// Enable GPU to assist with CPU
 				if (configuration.getAvisynthInterFrameGPU() && interframegpu.isEnabled()){

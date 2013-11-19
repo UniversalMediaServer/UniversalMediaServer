@@ -376,7 +376,7 @@ public class FFMpegVideo extends Player {
 			defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
 
 			// Halve it since it seems to send up to 1 second of video in advance
-			defaultMaxBitrates[0] = defaultMaxBitrates[0] / 2;
+			defaultMaxBitrates[0] /= 2;
 
 			int bufSize = 1835;
 			boolean bitrateLevel41Limited = false;
@@ -419,9 +419,9 @@ public class FFMpegVideo extends Player {
 			if (!bitrateLevel41Limited) {
 				// Make room for audio
 				if (dtsRemux) {
-					defaultMaxBitrates[0] = defaultMaxBitrates[0] - 1510;
+					defaultMaxBitrates[0] -= 1510;
 				} else {
-					defaultMaxBitrates[0] = defaultMaxBitrates[0] - configuration.getAudioBitrate();
+					defaultMaxBitrates[0] -= configuration.getAudioBitrate();
 				}
 
 				// Round down to the nearest Mb
@@ -429,8 +429,8 @@ public class FFMpegVideo extends Player {
 			}
 
 			// FFmpeg uses bytes for inputs instead of kbytes like MEncoder
-			bufSize = bufSize * 1000;
-			defaultMaxBitrates[0] = defaultMaxBitrates[0] * 1000;
+			bufSize *= 1000;
+			defaultMaxBitrates[0] *= 1000;
 
 			videoBitrateOptions.add("-bufsize");
 			videoBitrateOptions.add(String.valueOf(bufSize));

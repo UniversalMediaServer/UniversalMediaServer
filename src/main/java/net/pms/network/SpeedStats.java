@@ -166,7 +166,7 @@ public class SpeedStats {
 			}
 
 			if (c > 0) {
-				time = time / c;
+				time /= c;
 			}
 
 			if (time > 0) {
