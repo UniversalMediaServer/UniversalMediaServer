@@ -1131,7 +1131,7 @@ public class PMS {
 				headless = false;
 			}
 		} catch (Throwable t) {
-			System.err.println("Toolkit error: " + t.getClass().getName() + ": " + t.getMessage());
+			LOGGER.error("Toolkit error: " + t.getClass().getName() + ": " + t.getMessage());
 
 			if (System.getProperty(NOCONSOLE) == null) {
 				System.setProperty(CONSOLE, Boolean.toString(true));
@@ -1176,12 +1176,11 @@ public class PMS {
 				t.getMessage()
 			);
 
-			System.err.println(errorMessage);
-			t.printStackTrace();
+			LOGGER.error(errorMessage);
 
 			if (!headless && instance != null) {
 				JOptionPane.showMessageDialog(
-					((JFrame) (SwingUtilities.getWindowAncestor((Component) instance.getFrame()))),
+					(SwingUtilities.getWindowAncestor((Component) instance.getFrame())),
 					errorMessage,
 					Messages.getString("PMS.42"),
 					JOptionPane.ERROR_MESSAGE
