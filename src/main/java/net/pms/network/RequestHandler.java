@@ -109,7 +109,7 @@ public class RequestHandler implements Runnable {
 				}
 
 				if (renderer == null && headerLine.toUpperCase().startsWith("USER-AGENT") && request != null) {
-					userAgentString = headerLine.substring(headerLine.indexOf(":") + 1).trim();
+					userAgentString = headerLine.substring(headerLine.indexOf(':') + 1).trim();
 
 					// Attempt 2: try to recognize the renderer by matching the "User-Agent" header
 					renderer = RendererConfiguration.getRendererConfigurationByUA(userAgentString);
@@ -165,16 +165,16 @@ public class RequestHandler implements Runnable {
 						String timeseek = headerLine.substring(headerLine.toUpperCase().indexOf("TIMESEEKRANGE.DLNA.ORG: NPT=") + 28);
 						if (timeseek.endsWith("-")) {
 							timeseek = timeseek.substring(0, timeseek.length() - 1);
-						} else if (timeseek.indexOf("-") > -1) {
-							timeseek = timeseek.substring(0, timeseek.indexOf("-"));
+						} else if (timeseek.indexOf('-') > -1) {
+							timeseek = timeseek.substring(0, timeseek.indexOf('-'));
 						}
 						request.setTimeseek(convertStringToTime(timeseek));
 					} else if (headerLine.toUpperCase().indexOf("TIMESEEKRANGE.DLNA.ORG : NPT=") > -1) { // firmware 2.40
 						String timeseek = headerLine.substring(headerLine.toUpperCase().indexOf("TIMESEEKRANGE.DLNA.ORG : NPT=") + 29);
 						if (timeseek.endsWith("-")) {
 							timeseek = timeseek.substring(0, timeseek.length() - 1);
-						} else if (timeseek.indexOf("-") > -1) {
-							timeseek = timeseek.substring(0, timeseek.indexOf("-"));
+						} else if (timeseek.indexOf('-') > -1) {
+							timeseek = timeseek.substring(0, timeseek.indexOf('-'));
 						}
 						request.setTimeseek(convertStringToTime(timeseek));
 					} else {

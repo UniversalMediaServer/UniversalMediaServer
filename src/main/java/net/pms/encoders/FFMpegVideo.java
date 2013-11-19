@@ -575,11 +575,11 @@ public class FFMpegVideo extends Player {
 		int bitrates[] = new int[2];
 
 		if (bitrate.contains("(") && bitrate.contains(")")) {
-			bitrates[1] = Integer.parseInt(bitrate.substring(bitrate.indexOf("(") + 1, bitrate.indexOf(")")));
+			bitrates[1] = Integer.parseInt(bitrate.substring(bitrate.indexOf('(') + 1, bitrate.indexOf(')')));
 		}
 
 		if (bitrate.contains("(")) {
-			bitrate = bitrate.substring(0, bitrate.indexOf("(")).trim();
+			bitrate = bitrate.substring(0, bitrate.indexOf('(')).trim();
 		}
 
 		if (isBlank(bitrate)) {
@@ -1085,7 +1085,7 @@ public class FFMpegVideo extends Player {
 	protected static List<String> parseOptions(String str, List<String> cmdList) {
 		while (str.length() > 0) {
 			if (str.charAt(0) == '\"') {
-				int pos = str.indexOf("\"", 1);
+				int pos = str.indexOf('"', 1);
 				if (pos == -1) {
 					// No ", error
 					break;
@@ -1095,7 +1095,7 @@ public class FFMpegVideo extends Player {
 				str = str.substring(pos + 1);
 			} else {
 				// New arg, find space
-				int pos = str.indexOf(" ");
+				int pos = str.indexOf(' ');
 				if (pos == -1) {
 					// No space, we're done
 					cmdList.add(str);

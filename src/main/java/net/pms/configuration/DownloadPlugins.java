@@ -271,7 +271,7 @@ public class DownloadPlugins {
 		if (!StringUtils.isEmpty(name)) {
 			return name;
 		}
-		int pos = str.lastIndexOf("/");
+		int pos = str.lastIndexOf('/');
 		if (pos == -1) {
 			return name;
 		}
@@ -361,7 +361,7 @@ public class DownloadPlugins {
 	}
 
 	private void doExec(String args) throws IOException, InterruptedException, ConfigurationException {
-		int pos = args.indexOf(",");
+		int pos = args.indexOf(',');
 		if (pos == -1) { // weird stuff
 			return;
 		}

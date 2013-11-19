@@ -752,7 +752,7 @@ public class DLNAMediaInfo implements Cloneable {
 						} else if (line.startsWith("Input")) {
 							if (line.indexOf(input) > -1) {
 								matchs = true;
-								setContainer(line.substring(10, line.indexOf(",", 11)).trim());
+								setContainer(line.substring(10, line.indexOf(',', 11)).trim());
 							} else {
 								matchs = false;
 							}
@@ -763,7 +763,7 @@ public class DLNAMediaInfo implements Cloneable {
 									String token = st.nextToken().trim();
 									if (token.startsWith("Duration: ")) {
 										String durationStr = token.substring(10);
-										int l = durationStr.substring(durationStr.indexOf(".") + 1).length();
+										int l = durationStr.substring(durationStr.indexOf('.') + 1).length();
 										if (l < 4) {
 											durationStr = durationStr + "00".substring(0, 3 - l);
 										}
@@ -774,7 +774,7 @@ public class DLNAMediaInfo implements Cloneable {
 										}
 									} else if (token.startsWith("bitrate: ")) {
 										String bitr = token.substring(9);
-										int spacepos = bitr.indexOf(" ");
+										int spacepos = bitr.indexOf(' ');
 										if (spacepos > -1) {
 											String value = bitr.substring(0, spacepos);
 											String unit = bitr.substring(spacepos + 1);
@@ -790,7 +790,7 @@ public class DLNAMediaInfo implements Cloneable {
 								}
 							} else if (line.indexOf("Audio:") > -1) {
 								StringTokenizer st = new StringTokenizer(line, ",");
-								int a = line.indexOf("(");
+								int a = line.indexOf('(');
 								int b = line.indexOf("):", a);
 								DLNAMediaAudio audio = new DLNAMediaAudio();
 								audio.setId(langId++);
@@ -802,7 +802,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 								// Get TS IDs
 								a = line.indexOf("[0x");
-								b = line.indexOf("]", a);
+								b = line.indexOf(']', a);
 								if (a > -1 && b > a + 3) {
 									String idString = line.substring(a + 3, b);
 									try {
@@ -887,20 +887,20 @@ public class DLNAMediaInfo implements Cloneable {
 										setFrameRate(token.substring(0, token.indexOf("tb")).trim());
 									} else if ((token.indexOf("fps") > -1 || token.indexOf("fps(r)") > -1) && getFrameRate() == null) { // dvr-ms ?
 										setFrameRate(token.substring(0, token.indexOf("fps")).trim());
-									} else if (token.indexOf("x") > -1 && !token.contains("max")) {
+									} else if (token.indexOf('x') > -1 && !token.contains("max")) {
 										String resolution = token.trim();
 										if (resolution.indexOf(" [") > -1) {
 											resolution = resolution.substring(0, resolution.indexOf(" ["));
 										}
 										try {
-											setWidth(Integer.parseInt(resolution.substring(0, resolution.indexOf("x"))));
+											setWidth(Integer.parseInt(resolution.substring(0, resolution.indexOf('x'))));
 										} catch (NumberFormatException nfe) {
-											LOGGER.debug("Could not parse width from \"" + resolution.substring(0, resolution.indexOf("x")) + "\"");
+											LOGGER.debug("Could not parse width from \"" + resolution.substring(0, resolution.indexOf('x')) + "\"");
 										}
 										try {
-											setHeight(Integer.parseInt(resolution.substring(resolution.indexOf("x") + 1)));
+											setHeight(Integer.parseInt(resolution.substring(resolution.indexOf('x') + 1)));
 										} catch (NumberFormatException nfe) {
-											LOGGER.debug("Could not parse height from \"" + resolution.substring(resolution.indexOf("x") + 1) + "\"");
+											LOGGER.debug("Could not parse height from \"" + resolution.substring(resolution.indexOf('x') + 1) + "\"");
 										}
 									}
 								}
@@ -953,7 +953,7 @@ public class DLNAMediaInfo implements Cloneable {
 									lang.setType(SubtitleType.UNKNOWN);
 								}
 
-								int a = line.indexOf("(");
+								int a = line.indexOf('(');
 								int b = line.indexOf("):", a);
 								if (a > -1 && b > a) {
 									lang.setLang(line.substring(a + 1, b));

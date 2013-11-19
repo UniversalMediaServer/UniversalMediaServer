@@ -173,13 +173,13 @@ public class RecentlyPlayed extends VirtualFolder {
 						continue;
 					}
 					str = str.substring(7);
-					int pos = str.indexOf(";");
+					int pos = str.indexOf(';');
 					if (pos == -1) {
 						continue;
 					}
 					String master = str.substring(0, pos);
 					str = str.substring(pos + 1);
-					pos = str.indexOf(";");
+					pos = str.indexOf(';');
 					String subData = null;
 					String resData = null;
 					DLNAResource res = null;
@@ -198,7 +198,7 @@ public class RecentlyPlayed extends VirtualFolder {
 							subData = str.substring(3, pos);
 						}
 						str = str.substring(pos + 1);
-						pos = str.indexOf(";");
+						pos = str.indexOf(';');
 					}
 					LOGGER.debug("master is " + master + " str " + str);
 					ExternalListener lpp;

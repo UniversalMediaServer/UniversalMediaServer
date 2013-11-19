@@ -637,7 +637,7 @@ public class MEncoderVideo extends Player {
 	 * @return The string, optionally in quotes. 
 	 */
 	private String quoteArg(String arg) {
-		if (arg != null && arg.indexOf(" ") > -1) {
+		if (arg != null && arg.indexOf(' ') > -1) {
 			return "\"" + arg + "\"";
 		}
 
@@ -712,14 +712,14 @@ public class MEncoderVideo extends Player {
 
 		if (bitrate.contains("(") && bitrate.contains(")")) {
 			try {
-				bitrates[1] = Integer.parseInt(bitrate.substring(bitrate.indexOf("(") + 1, bitrate.indexOf(")")));
+				bitrates[1] = Integer.parseInt(bitrate.substring(bitrate.indexOf('(') + 1, bitrate.indexOf(')')));
 			} catch (NumberFormatException e) {
 				bitrates[1] = 0;
 			}
 		}
 
 		if (bitrate.contains("(")) {
-			bitrate = bitrate.substring(0, bitrate.indexOf("(")).trim();
+			bitrate = bitrate.substring(0, bitrate.indexOf('(')).trim();
 		}
 
 		if (isBlank(bitrate)) {

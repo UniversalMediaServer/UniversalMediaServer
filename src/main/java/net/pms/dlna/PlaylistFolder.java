@@ -79,7 +79,7 @@ public class PlaylistFolder extends DLNAResource {
 						line = line.trim();
 						if (pls) {
 							if (line.length() > 0 && !line.startsWith("#")) {
-								int eq = line.indexOf("=");
+								int eq = line.indexOf('=');
 								if (eq != -1) {
 									String value = line.substring(eq + 1);
 									String var = line.substring(0, eq).toLowerCase();
@@ -115,7 +115,7 @@ public class PlaylistFolder extends DLNAResource {
 							if (line.startsWith("#EXTINF:")) {
 								line = line.substring(8).trim();
 								if (line.matches("^-?\\d+,.+")) {
-									title = line.substring(line.indexOf(",") + 1).trim();
+									title = line.substring(line.indexOf(',') + 1).trim();
 								} else {
 									title = line;
 								}

@@ -487,8 +487,8 @@ public class FormatConfiguration {
 					supportSpec.miExtras = new HashMap<>();
 				}
 
-				String key = token.substring(0, token.indexOf(":"));
-				String value = token.substring(token.indexOf(":") + 1);
+				String key = token.substring(0, token.indexOf(':'));
+				String value = token.substring(token.indexOf(':') + 1);
 				supportSpec.miExtras.put(key, Pattern.compile(value));
 			}
 		}

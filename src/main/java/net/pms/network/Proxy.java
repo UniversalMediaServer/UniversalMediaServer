@@ -73,7 +73,7 @@ public class Proxy extends Thread {
 				} else if (str.startsWith("DESCRIBE")) {
 					targetPort = 554;
 					targetHost = str.substring(str.indexOf("//") + 2);
-					targetHost = targetHost.substring(0, targetHost.indexOf("/"));
+					targetHost = targetHost.substring(0, targetHost.indexOf('/'));
 				}
 
 				if (str.length() == 0) {
@@ -82,13 +82,13 @@ public class Proxy extends Thread {
 			}
 
 			String target = targetHost;
-			if (targetHost.indexOf(":") > -1) {
+			if (targetHost.indexOf(':') > -1) {
 				try {
-					targetPort = Integer.parseInt(targetHost.substring(targetHost.indexOf(":") + 1));
+					targetPort = Integer.parseInt(targetHost.substring(targetHost.indexOf(':') + 1));
 				} catch (NumberFormatException nfe) {
-					LOGGER.debug("Could not parse port from \"" + targetHost.substring(targetHost.indexOf(":") + 1) + "\"");
+					LOGGER.debug("Could not parse port from \"" + targetHost.substring(targetHost.indexOf(':') + 1) + "\"");
 				}
-				target = targetHost.substring(0, targetHost.indexOf(":"));
+				target = targetHost.substring(0, targetHost.indexOf(':'));
 			}
 			LOGGER.trace("[PROXY] Connect to: " + target + " and port: " + targetPort);
 			socketToWeb = new Socket(InetAddress.getByName(target), targetPort);
@@ -102,9 +102,9 @@ public class Proxy extends Thread {
 			askedResource = askedResource.substring(askedResource.indexOf(targetHost) + targetHost.length());
 			LOGGER.trace("[PROXY] Asked resource: " + askedResource);
 
-			String directoryResource = askedResource.substring(0, askedResource.lastIndexOf("/"));
+			String directoryResource = askedResource.substring(0, askedResource.lastIndexOf('/'));
 			directoryResource = getWritableFileName(directoryResource);
-			String fileResource = askedResource.substring(askedResource.lastIndexOf("/") + 1);
+			String fileResource = askedResource.substring(askedResource.lastIndexOf('/') + 1);
 			fileResource = getWritableFileName(fileResource);
 			fileResource = fileResource + ".cached";
 			String fileN = "proxycache/" + target + "/" + directoryResource;
@@ -155,7 +155,7 @@ public class Proxy extends Thread {
 						int clPos = s.indexOf("Content-Length: ");
 
 						if (clPos > -1) {
-							CL = Integer.parseInt(s.substring(clPos + 16, s.indexOf("\n", clPos)).trim());
+							CL = Integer.parseInt(s.substring(clPos + 16, s.indexOf('\n', clPos)).trim());
 							LOGGER.trace("Found Content Length: " + CL);
 						}
 					}
