@@ -397,8 +397,8 @@ public class DownloadPlugins {
 				// skip non jar files
 				continue;
 			}
-			for (int j = 0; j < oldJar.length; j++) {
-				if (f.getAbsolutePath().equals(oldJar[j].getAbsolutePath())) {
+			for (File oldJar1 : oldJar) {
+				if (f.getAbsolutePath().equals(oldJar1.getAbsolutePath())) {
 					// old jar file break out, and set f to null to skip adding it
 					f = null;
 					break;

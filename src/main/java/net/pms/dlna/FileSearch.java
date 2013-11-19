@@ -34,8 +34,7 @@ public class FileSearch implements SearchObj {
 		if (files == null) {
 			return;
 		}
-		for (int i=0;i<files.length;i++) {
-			File f = files[i];
+		for (File f : files) {
 			String name = f.getName().toLowerCase();
 			if (name.contains(str)) {
 				searcher.addChild(new RealFile(f));
