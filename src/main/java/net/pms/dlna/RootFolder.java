@@ -705,15 +705,6 @@ public class RootFolder extends DLNAResource {
 		return iTunesFile;
 	}
 
-	private String renameForSorting(String name) {
-		if (configuration.isIgnoreTheWordThe()) {
-			// Remove "The" from the beginning of files
-			name = name.replaceAll("^(?i)The[ .]", "");
-		}
-
-		return name;
-	}
-
 	private static boolean areNamesEqual(String aThis, String aThat) {
 		Collator collator = Collator.getInstance(Locale.getDefault());
 		collator.setStrength(Collator.PRIMARY);
