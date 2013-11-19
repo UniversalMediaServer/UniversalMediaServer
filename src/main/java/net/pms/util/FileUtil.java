@@ -436,7 +436,7 @@ public class FileUtil {
 						if ("sub".equals(ext)) {
 							// Avoid microdvd/vobsub confusion by ignoring sub+idx pairs here since
 							// they'll come in unambiguously as vobsub via the idx file anyway
-							return isFileExists(new File(dir, name), "idx") == null ? true : false;
+							return isFileExists(new File(dir, name), "idx") == null;
 						}
 						return supported.contains(ext);
 					}
