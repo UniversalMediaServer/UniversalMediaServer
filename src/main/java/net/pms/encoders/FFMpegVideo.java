@@ -123,7 +123,7 @@ public class FFMpegVideo extends Player {
 	public List<String> getVideoFilterOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
 		List<String> videoFilterOptions = new ArrayList<>();
 		String filterOption = "-vf";
-		ArrayList filterChain = new ArrayList<>();
+		ArrayList<String> filterChain = new ArrayList<>();
 		final RendererConfiguration renderer = params.mediaRenderer;
 
 		boolean isMediaValid = media != null && media.isMediaparsed() && media.getHeight() != 0;
