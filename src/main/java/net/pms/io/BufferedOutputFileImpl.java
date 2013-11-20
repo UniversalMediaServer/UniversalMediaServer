@@ -318,10 +318,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 		//LOGGER.trace("write(" + b.length + ", " + off + ", " + len + "), writeCount = " + writeCount + ", readCount = " + (input != null ? input.getReadCount() : "null"));
 
 		while ((input != null && (writeCount - input.getReadCount() > bufferOverflowWarning)) || (input == null && writeCount > bufferOverflowWarning)) {
-			if (input != null) {
-				input.close();	
-			}
-
+			input.close();
 			try {
 				Thread.sleep(CHECK_INTERVAL);
 			} catch (InterruptedException e) {
@@ -418,10 +415,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 		boolean bb = b % 100000 == 0;
 		WaitBufferedInputStream input = getCurrentInputStream();
 		while (bb && ((input != null && (writeCount - input.getReadCount() > bufferOverflowWarning)) || (input == null && writeCount == bufferOverflowWarning))) {
-			if (input != null) {
-				input.close();	
-			}
-
+			input.close();
 			try {
 				Thread.sleep(CHECK_INTERVAL);
 				//LOGGER.trace("BufferedOutputFile Full");
