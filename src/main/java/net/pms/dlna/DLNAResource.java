@@ -2275,9 +2275,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					fis.skip(low);
 				}
 				// http://www.ps3mediaserver.org/forum/viewtopic.php?f=11&t=12035
-				fis = wrap(fis, high, low);
 
-				return fis;
+				return wrap(fis, high, low);
 			}
 
 			InputStream fis;
