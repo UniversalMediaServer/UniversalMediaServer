@@ -82,7 +82,7 @@ public abstract class FlowParserOutputStream extends OutputStream {
 						out.write(buffer.array(), internalMark, streamableByteNumber);
 					}
 					internalMark += streamableByteNumber;
-					remains = remains - streamableByteNumber;
+					remains -= streamableByteNumber;
 					streamableByteNumber = 0;
 					if (!discard) {
 						afterChunkSend();
@@ -98,7 +98,7 @@ public abstract class FlowParserOutputStream extends OutputStream {
 					if (!discard) {
 						out.write(buffer.array(), internalMark, remains);
 					}
-					streamableByteNumber = streamableByteNumber - remains;
+					streamableByteNumber -= remains;
 					buffer.position(0);
 					internalMark = 0;
 					remains = 0;

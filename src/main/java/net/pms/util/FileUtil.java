@@ -3,9 +3,12 @@ package net.pms.util;
 import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
+import net.pms.formats.FormatFactory;
 import net.pms.formats.v2.SubtitleType;
 import org.apache.commons.io.FilenameUtils;
 import static org.apache.commons.lang.StringUtils.isBlank;
@@ -139,7 +142,7 @@ public class FileUtil {
 	}
 
 	public static String getExtension(String f) {
-		int point = f.lastIndexOf(".");
+		int point = f.lastIndexOf('.');
 
 		if (point == -1) {
 			return null;
@@ -149,7 +152,7 @@ public class FileUtil {
 	}
 
 	public static String getFileNameWithoutExtension(String f) {
-		int point = f.lastIndexOf(".");
+		int point = f.lastIndexOf('.');
 
 		if (point == -1) {
 			point = f.length();
@@ -160,7 +163,7 @@ public class FileUtil {
 
 	public static String getFileNameWithRewriting(String f) {
 		String formattedName;
-		int point = f.lastIndexOf(".");
+		int point = f.lastIndexOf('.');
 
 		if (point == -1) {
 			point = f.length();
@@ -279,7 +282,7 @@ public class FileUtil {
 
 			// Remove group name from the beginning of the filename
 			if (formattedName.substring(0, 1).matches("\\[")) {
-				int closingBracketIndex = formattedName.indexOf("]");
+				int closingBracketIndex = formattedName.indexOf(']');
 				if (closingBracketIndex != -1) {
 					formattedName = formattedName.substring(closingBracketIndex + 1);
 				}
@@ -299,7 +302,7 @@ public class FileUtil {
 
 			// Remove group name from the beginning of the filename
 			if (formattedName.substring(0, 1).matches("\\[")) {
-				int closingBracketIndex = formattedName.indexOf("]");
+				int closingBracketIndex = formattedName.indexOf(']');
 				if (closingBracketIndex != -1) {
 					formattedName = formattedName.substring(closingBracketIndex + 1);
 				}
@@ -344,7 +347,7 @@ public class FileUtil {
 	}
 
 	public static File isFileExists(File f, String ext) {
-		int point = f.getName().lastIndexOf(".");
+		int point = f.getName().lastIndexOf('.');
 
 		if (point == -1) {
 			point = f.getName().length();
@@ -421,9 +424,24 @@ public class FileUtil {
 			cache = new HashMap<>();
 		}
 
+		final Set<String> supported = SubtitleType.getSupportedFileExtensions();
+
 		File[] allSubs = cache.get(subFolder);
 		if (allSubs == null) {
-			allSubs = subFolder.listFiles();
+			allSubs = subFolder.listFiles(
+				new FilenameFilter() {
+					@Override
+					public boolean accept(File dir, String name) {
+						String ext = FilenameUtils.getExtension(name).toLowerCase();
+						if ("sub".equals(ext)) {
+							// Avoid microdvd/vobsub confusion by ignoring sub+idx pairs here since
+							// they'll come in unambiguously as vobsub via the idx file anyway
+							return isFileExists(new File(dir, name), "idx") == null;
+						}
+						return supported.contains(ext);
+					}
+				}
+			);
 
 			if (allSubs != null) {
 				cache.put(subFolder, allSubs);
@@ -435,7 +453,7 @@ public class FileUtil {
 			for (File f : allSubs) {
 				if (f.isFile() && !f.isHidden()) {
 					String fName = f.getName().toLowerCase();
-					for (String ext : SubtitleType.getSupportedFileExtensions()) {
+					for (String ext : supported) {
 						if (fName.length() > ext.length() && fName.startsWith(fileName) && endsWithIgnoreCase(fName, "." + ext)) {
 							int a = fileName.length();
 							int b = fName.length() - ext.length() - 1;
@@ -478,8 +496,8 @@ public class FileUtil {
 									if (code.length() > 0) {
 										sub.setFlavor(code);
 										if (sub.getFlavor().contains("-")) {
-											String flavorLang = sub.getFlavor().substring(0, sub.getFlavor().indexOf("-"));
-											String flavorTitle = sub.getFlavor().substring(sub.getFlavor().indexOf("-") + 1);
+											String flavorLang = sub.getFlavor().substring(0, sub.getFlavor().indexOf('-'));
+											String flavorTitle = sub.getFlavor().substring(sub.getFlavor().indexOf('-') + 1);
 											if (Iso639.getCodeList().contains(flavorLang)) {
 												sub.setLang(flavorLang);
 												sub.setFlavor(flavorTitle);
@@ -802,5 +820,44 @@ public class FileUtil {
 		}
 
 		return isWritable;
+	}
+
+	public static boolean isFileRelevant(File f, PmsConfiguration configuration) {
+		String fileName = f.getName().toLowerCase();
+		return (configuration.isArchiveBrowsing() && (fileName.endsWith(".zip") || fileName.endsWith(".cbz")
+			|| fileName.endsWith(".rar") || fileName.endsWith(".cbr")))
+			|| fileName.endsWith(".iso") || fileName.endsWith(".img")
+			|| fileName.endsWith(".m3u") || fileName.endsWith(".m3u8") || fileName.endsWith(".pls") || fileName.endsWith(".cue");
+	}
+
+	public static boolean isFolderRelevant(File f, PmsConfiguration configuration) {
+		boolean isRelevant = false;
+
+		if (f.isDirectory() && configuration.isHideEmptyFolders()) {
+			File[] children = f.listFiles();
+
+			// listFiles() returns null if "this abstract pathname does not denote a directory, or if an I/O error occurs".
+			// in this case (since we've already confirmed that it's a directory), this seems to mean the directory is non-readable
+			// http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=15135
+			// http://stackoverflow.com/questions/3228147/retrieving-the-underlying-error-when-file-listfiles-return-null
+			if (children == null) {
+				LOGGER.warn("Can't list files in non-readable directory: {}", f.getAbsolutePath());
+			} else {
+				for (File child : children) {
+					if (child.isFile()) {
+						if (FormatFactory.getAssociatedFormat(child.getName()) != null || isFileRelevant(child, configuration)) {
+							isRelevant = true;
+							break;
+						}
+					} else {
+						if (isFolderRelevant(child, configuration)) {
+							isRelevant = true;
+							break;
+						}
+					}
+				}
+			}
+		}
+		return isRelevant;
 	}
 }

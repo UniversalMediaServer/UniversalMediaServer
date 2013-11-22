@@ -268,7 +268,7 @@ public class RequestV2 extends HTTPResource {
 			 */
 			String id = argument.substring(4);
 			if (argument.substring(4).contains("/")) {
-				id = argument.substring(4, argument.lastIndexOf("/"));
+				id = argument.substring(4, argument.lastIndexOf('/'));
 			}
 
 			// Some clients escape the separators in their request: unescape them.
@@ -284,7 +284,7 @@ public class RequestV2 extends HTTPResource {
 			if (files.size() == 1) {
 				// DLNAresource was found.
 				dlna = files.get(0);
-				String fileName = argument.substring(argument.lastIndexOf("/") + 1);
+				String fileName = argument.substring(argument.lastIndexOf('/') + 1);
 
 				if (fileName.startsWith("thumbnail0000")) {
 					// This is a request for a thumbnail file.

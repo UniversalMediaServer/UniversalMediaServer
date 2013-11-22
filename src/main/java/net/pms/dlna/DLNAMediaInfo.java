@@ -752,7 +752,7 @@ public class DLNAMediaInfo implements Cloneable {
 						} else if (line.startsWith("Input")) {
 							if (line.indexOf(input) > -1) {
 								matchs = true;
-								setContainer(line.substring(10, line.indexOf(",", 11)).trim());
+								setContainer(line.substring(10, line.indexOf(',', 11)).trim());
 							} else {
 								matchs = false;
 							}
@@ -763,9 +763,9 @@ public class DLNAMediaInfo implements Cloneable {
 									String token = st.nextToken().trim();
 									if (token.startsWith("Duration: ")) {
 										String durationStr = token.substring(10);
-										int l = durationStr.substring(durationStr.indexOf(".") + 1).length();
+										int l = durationStr.substring(durationStr.indexOf('.') + 1).length();
 										if (l < 4) {
-											durationStr = durationStr + "00".substring(0, 3 - l);
+											durationStr += "00".substring(0, 3 - l);
 										}
 										if (durationStr.indexOf("N/A") > -1) {
 											setDuration(null);
@@ -774,7 +774,7 @@ public class DLNAMediaInfo implements Cloneable {
 										}
 									} else if (token.startsWith("bitrate: ")) {
 										String bitr = token.substring(9);
-										int spacepos = bitr.indexOf(" ");
+										int spacepos = bitr.indexOf(' ');
 										if (spacepos > -1) {
 											String value = bitr.substring(0, spacepos);
 											String unit = bitr.substring(spacepos + 1);
@@ -790,7 +790,7 @@ public class DLNAMediaInfo implements Cloneable {
 								}
 							} else if (line.indexOf("Audio:") > -1) {
 								StringTokenizer st = new StringTokenizer(line, ",");
-								int a = line.indexOf("(");
+								int a = line.indexOf('(');
 								int b = line.indexOf("):", a);
 								DLNAMediaAudio audio = new DLNAMediaAudio();
 								audio.setId(langId++);
@@ -802,7 +802,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 								// Get TS IDs
 								a = line.indexOf("[0x");
-								b = line.indexOf("]", a);
+								b = line.indexOf(']', a);
 								if (a > -1 && b > a + 3) {
 									String idString = line.substring(a + 3, b);
 									try {
@@ -845,7 +845,7 @@ public class DLNAMediaInfo implements Cloneable {
 								}
 
 								if (line.indexOf("Metadata:") > -1) {
-									FFmpegMetaDataNr = FFmpegMetaDataNr + 1;
+									FFmpegMetaDataNr += 1;
 									line = lines.get(FFmpegMetaDataNr);
 									while (line.indexOf("      ") == 0) {
 										if (line.toLowerCase().indexOf("title           :") > -1) {
@@ -856,7 +856,7 @@ public class DLNAMediaInfo implements Cloneable {
 												break;
 											}
 										} else {
-											FFmpegMetaDataNr = FFmpegMetaDataNr + 1;
+											FFmpegMetaDataNr += 1;
 											line = lines.get(FFmpegMetaDataNr);
 										}
 									}
@@ -887,27 +887,73 @@ public class DLNAMediaInfo implements Cloneable {
 										setFrameRate(token.substring(0, token.indexOf("tb")).trim());
 									} else if ((token.indexOf("fps") > -1 || token.indexOf("fps(r)") > -1) && getFrameRate() == null) { // dvr-ms ?
 										setFrameRate(token.substring(0, token.indexOf("fps")).trim());
-									} else if (token.indexOf("x") > -1) {
+									} else if (token.indexOf('x') > -1 && !token.contains("max")) {
 										String resolution = token.trim();
 										if (resolution.indexOf(" [") > -1) {
 											resolution = resolution.substring(0, resolution.indexOf(" ["));
 										}
 										try {
-											setWidth(Integer.parseInt(resolution.substring(0, resolution.indexOf("x"))));
+											setWidth(Integer.parseInt(resolution.substring(0, resolution.indexOf('x'))));
 										} catch (NumberFormatException nfe) {
-											LOGGER.debug("Could not parse width from \"" + resolution.substring(0, resolution.indexOf("x")) + "\"");
+											LOGGER.debug("Could not parse width from \"" + resolution.substring(0, resolution.indexOf('x')) + "\"");
 										}
 										try {
-											setHeight(Integer.parseInt(resolution.substring(resolution.indexOf("x") + 1)));
+											setHeight(Integer.parseInt(resolution.substring(resolution.indexOf('x') + 1)));
 										} catch (NumberFormatException nfe) {
-											LOGGER.debug("Could not parse height from \"" + resolution.substring(resolution.indexOf("x") + 1) + "\"");
+											LOGGER.debug("Could not parse height from \"" + resolution.substring(resolution.indexOf('x') + 1) + "\"");
 										}
 									}
 								}
-							} else if (line.indexOf("Subtitle:") > -1 && !line.contains("tx3g")) {
+							} else if (line.indexOf("Subtitle:") > -1) {
 								DLNAMediaSubtitle lang = new DLNAMediaSubtitle();
-								lang.setType((line.contains("dvdsub") && Platform.isWindows() ? SubtitleType.VOBSUB : SubtitleType.UNKNOWN));
-								int a = line.indexOf("(");
+
+								// $ ffmpeg -codecs | grep "^...S"
+								// ..S... = Subtitle codec
+								// DES... ass                  ASS (Advanced SSA) subtitle
+								// DES... dvb_subtitle         DVB subtitles (decoders: dvbsub ) (encoders: dvbsub )
+								// ..S... dvb_teletext         DVB teletext
+								// DES... dvd_subtitle         DVD subtitles (decoders: dvdsub ) (encoders: dvdsub )
+								// ..S... eia_608              EIA-608 closed captions
+								// D.S... hdmv_pgs_subtitle    HDMV Presentation Graphic Stream subtitles (decoders: pgssub )
+								// D.S... jacosub              JACOsub subtitle
+								// D.S... microdvd             MicroDVD subtitle
+								// DES... mov_text             MOV text
+								// D.S... mpl2                 MPL2 subtitle
+								// D.S... pjs                  PJS (Phoenix Japanimation Society) subtitle
+								// D.S... realtext             RealText subtitle
+								// D.S... sami                 SAMI subtitle
+								// DES... srt                  SubRip subtitle with embedded timing
+								// DES... ssa                  SSA (SubStation Alpha) subtitle
+								// DES... subrip               SubRip subtitle
+								// D.S... subviewer            SubViewer subtitle
+								// D.S... subviewer1           SubViewer v1 subtitle
+								// D.S... text                 raw UTF-8 text
+								// D.S... vplayer              VPlayer subtitle
+								// D.S... webvtt               WebVTT subtitle
+								// DES... xsub                 XSUB
+
+								if (line.contains("srt") || line.contains("subrip")) {
+									lang.setType(SubtitleType.SUBRIP);
+								} else if (line.contains(" text")) {
+									// excludes dvb_teletext, mov_text, realtext
+									lang.setType(SubtitleType.TEXT);
+								} else if (line.contains("microdvd")) {
+									lang.setType(SubtitleType.MICRODVD);
+								} else if (line.contains("sami")) {
+									lang.setType(SubtitleType.SAMI);
+								} else if (line.contains("ass") || line.contains("ssa")) {
+									lang.setType(SubtitleType.ASS);
+								} else if (line.contains("dvd_subtitle")) {
+									lang.setType(SubtitleType.VOBSUB);
+								} else if (line.contains("xsub")) {
+									lang.setType(SubtitleType.DIVX);
+								} else if (line.contains("mov_text")) {
+									lang.setType(SubtitleType.TX3G);
+								} else {
+									lang.setType(SubtitleType.UNKNOWN);
+								}
+
+								int a = line.indexOf('(');
 								int b = line.indexOf("):", a);
 								if (a > -1 && b > a) {
 									lang.setLang(line.substring(a + 1, b));
@@ -923,7 +969,7 @@ public class DLNAMediaInfo implements Cloneable {
 								}
 
 								if (line.indexOf("Metadata:") > -1) {
-									FFmpegMetaDataNr = FFmpegMetaDataNr + 1;
+									FFmpegMetaDataNr += 1;
 									line = lines.get(FFmpegMetaDataNr);
 
 									while (line.indexOf("      ") == 0) {
@@ -935,7 +981,7 @@ public class DLNAMediaInfo implements Cloneable {
 												break;
 											}
 										} else {
-											FFmpegMetaDataNr = FFmpegMetaDataNr + 1;
+											FFmpegMetaDataNr += 1;
 											line = lines.get(FFmpegMetaDataNr);
 										}
 									}

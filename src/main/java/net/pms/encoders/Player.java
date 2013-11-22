@@ -298,8 +298,8 @@ public abstract class Player {
 		while (st.hasMoreTokens()) {
 			String pair = st.nextToken();
 			if (pair.contains(",")) {
-				String audio = pair.substring(0, pair.indexOf(","));
-				String sub = pair.substring(pair.indexOf(",") + 1);
+				String audio = pair.substring(0, pair.indexOf(','));
+				String sub = pair.substring(pair.indexOf(',') + 1);
 				audio = audio.trim();
 				sub = sub.trim();
 				LOGGER.trace("Searching for a match for: " + currentLang + " with " + audio + " and " + sub);

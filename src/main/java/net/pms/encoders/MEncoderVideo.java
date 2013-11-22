@@ -149,7 +149,7 @@ public class MEncoderVideo extends Player {
 
 	@Deprecated
 	public MEncoderVideo(PmsConfiguration configuration) {
-		this.configuration = configuration;
+		this();
 	}
 
 	public MEncoderVideo() {
@@ -637,7 +637,7 @@ public class MEncoderVideo extends Player {
 	 * @return The string, optionally in quotes. 
 	 */
 	private String quoteArg(String arg) {
-		if (arg != null && arg.indexOf(" ") > -1) {
+		if (arg != null && arg.indexOf(' ') > -1) {
 			return "\"" + arg + "\"";
 		}
 
@@ -712,14 +712,14 @@ public class MEncoderVideo extends Player {
 
 		if (bitrate.contains("(") && bitrate.contains(")")) {
 			try {
-				bitrates[1] = Integer.parseInt(bitrate.substring(bitrate.indexOf("(") + 1, bitrate.indexOf(")")));
+				bitrates[1] = Integer.parseInt(bitrate.substring(bitrate.indexOf('(') + 1, bitrate.indexOf(')')));
 			} catch (NumberFormatException e) {
 				bitrates[1] = 0;
 			}
 		}
 
 		if (bitrate.contains("(")) {
-			bitrate = bitrate.substring(0, bitrate.indexOf("(")).trim();
+			bitrate = bitrate.substring(0, bitrate.indexOf('(')).trim();
 		}
 
 		if (isBlank(bitrate)) {
@@ -757,7 +757,7 @@ public class MEncoderVideo extends Player {
 			defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
 
 			// Halve it since it seems to send up to 1 second of video in advance
-			defaultMaxBitrates[0] = defaultMaxBitrates[0] / 2;
+			defaultMaxBitrates[0] /= 2;
 
 			int bufSize = 1835;
 			boolean bitrateLevel41Limited = false;
@@ -801,13 +801,13 @@ public class MEncoderVideo extends Player {
 				// Make room for audio
 				switch (audioType) {
 					case "pcm":
-						defaultMaxBitrates[0] = defaultMaxBitrates[0] - 4600;
+						defaultMaxBitrates[0] -= 4600;
 						break;
 					case "dts":
-						defaultMaxBitrates[0] = defaultMaxBitrates[0] - 1510;
+						defaultMaxBitrates[0] -= 1510;
 						break;
 					case "ac3":
-						defaultMaxBitrates[0] = defaultMaxBitrates[0] - configuration.getAudioBitrate();
+						defaultMaxBitrates[0] -= configuration.getAudioBitrate();
 						break;
 				}
 
@@ -923,7 +923,6 @@ public class MEncoderVideo extends Player {
 		 * - The resource is incompatible with tsMuxeR
 		 * - The user has disabled the "switch to tsMuxeR" option
 		 * - The user has specified overscan correction
-		 * - The filename specifies the resource as WEB-DL and the OS is not Windows
 		 * - The aspect ratio of the video needs to be changed
 		 */
 		if (
@@ -941,10 +940,6 @@ public class MEncoderVideo extends Player {
 			(
 				intOCW == 0 &&
 				intOCH == 0
-			) &&
-			!(
-				filename.contains("WEB-DL") &&
-				!Platform.isWindows()
 			) &&
 			aspectRatiosMatch
 		) {
@@ -1417,7 +1412,7 @@ public class MEncoderVideo extends Player {
 					 */
 					if (intOCH > 0) {
 						subtitleMargin = (media.getHeight() / 100) * intOCH;
-						subtitleMargin = subtitleMargin / 2;
+						subtitleMargin /= 2;
 					}
 
 					sb.append("Outline=").append(configuration.getAssOutline()).append(",Shadow=").append(configuration.getAssShadow());
@@ -1428,7 +1423,7 @@ public class MEncoderVideo extends Player {
 						LOGGER.debug("Could not parse SSA margin from \"" + configuration.getAssMargin() + "\"");
 					}
 
-					subtitleMargin = subtitleMargin + userMargin;
+					subtitleMargin += userMargin;
 
 					sb.append(",MarginV=").append(subtitleMargin).append(" ");
 				} else if (intOCH > 0) {
@@ -1437,7 +1432,7 @@ public class MEncoderVideo extends Player {
 					 * This keeps the subtitle text inside the frame instead of in the border
 					 */
 					subtitleMargin = (media.getHeight() / 100) * intOCH;
-					subtitleMargin = subtitleMargin / 2;
+					subtitleMargin /= 2;
 
 					sb.append("-ass-force-style MarginV=").append(subtitleMargin).append(" ");
 				}
@@ -1484,7 +1479,7 @@ public class MEncoderVideo extends Player {
 					LOGGER.debug("Could not parse subpos from \"" + configuration.getMencoderNoAssSubPos() + "\"");
 				}
 
-				subtitleMargin = subtitleMargin + userMargin;
+				subtitleMargin += userMargin;
 
 				sb.append(" -subpos ").append(100 - subtitleMargin).append(" ");
 			}
@@ -1746,8 +1741,8 @@ public class MEncoderVideo extends Player {
 				int intOCWPixels = (media.getWidth()  / 100) * intOCW;
 				int intOCHPixels = (media.getHeight() / 100) * intOCH;
 
-				scaleWidth  = scaleWidth  + intOCWPixels;
-				scaleHeight = scaleHeight + intOCHPixels;
+				scaleWidth  += intOCWPixels;
+				scaleHeight += intOCHPixels;
 
 				// See if the video needs to be scaled down
 				if (
@@ -2590,7 +2585,7 @@ public class MEncoderVideo extends Player {
 
 	public int convertToMod4(int number) {
 		if (number % 4 != 0) {
-			number = number - (number % 4);
+			number -= (number % 4);
 		}
 
 		return number;

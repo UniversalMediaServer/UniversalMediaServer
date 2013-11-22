@@ -31,7 +31,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>3.1.0</version>
+	<version>3.1.1</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -69,7 +69,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>3.1.0</project.version.short>
+		<project.version.short>3.1.1</project.version.short>
 
 		<!--
 			XXX we currently need to use an old version of JNA
@@ -230,7 +230,7 @@
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<version>1.3.173</version>
+			<version>1.3.174</version>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>

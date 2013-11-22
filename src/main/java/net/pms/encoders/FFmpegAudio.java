@@ -52,7 +52,7 @@ public class FFmpegAudio extends FFMpegVideo {
 
 	@Deprecated
 	public FFmpegAudio(PmsConfiguration configuration) {
-		super(configuration);
+		this();
 	}
 
 	public FFmpegAudio() {

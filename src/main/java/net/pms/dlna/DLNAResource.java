@@ -490,6 +490,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			setDefaultRenderer(getParent().getDefaultRenderer());
 		}
 
+		if (PMS.filter(getDefaultRenderer(), child)) {
+			LOGGER.debug("Resource " + child.getName() + " is filtered out for render " + getDefaultRenderer().getRendererName());
+			return;
+		}
+
 		try {
 			if (child.isValid()) {
 				LOGGER.trace("Adding new child \"{}\" with class \"{}\"", child.getName(), child.getClass().getName());
@@ -561,7 +566,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						// is preferred.
 						String name = getName();
 
-						if (!configuration.isHideRecentlyPlayedFolder()) {
+						if (!configuration.isHideRecentlyPlayedFolder(null)) {
 							player = child.getPlayer();
 						} else {
 							for (Player p : PlayerFactory.getPlayers()) {
@@ -1412,7 +1417,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		StringBuilder wireshark = new StringBuilder();
 		final DLNAMediaAudio firstAudioTrack = getMedia() != null ? getMedia().getFirstAudioTrack() : null;
 		if (firstAudioTrack != null && StringUtils.isNotBlank(firstAudioTrack.getSongname())) {
-			wireshark.append(firstAudioTrack.getSongname() + (getPlayer() != null && !configuration.isHideEngineNames() ? (" [" + getPlayer().name() + "]") : ""));
+			wireshark.append(firstAudioTrack.getSongname()).append(getPlayer() != null && !configuration.isHideEngineNames() ? (" [" + getPlayer().name() + "]") : "");
 			addXMLTagAndAttribute(
 				sb,
 				"dc:title",
@@ -1654,8 +1659,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 											while (st1.hasMoreTokens()) {
 												String pair = st1.nextToken();
 												if (pair.contains(",")) {
-													String audio = pair.substring(0, pair.indexOf(","));
-													String sub = pair.substring(pair.indexOf(",") + 1);
+													String audio = pair.substring(0, pair.indexOf(','));
+													String sub = pair.substring(pair.indexOf(',') + 1);
 													audio = audio.trim();
 													sub = sub.trim();
 													LOGGER.trace("Searching for a match for: " + currentLang + " with " + audio + " and " + sub);
@@ -2270,9 +2275,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					fis.skip(low);
 				}
 				// http://www.ps3mediaserver.org/forum/viewtopic.php?f=11&t=12035
-				fis = wrap(fis, high, low);
 
-				return fis;
+				return wrap(fis, high, low);
 			}
 
 			InputStream fis;

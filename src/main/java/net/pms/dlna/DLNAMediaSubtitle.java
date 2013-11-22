@@ -162,7 +162,7 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	}
 
 	private void setExternalFileCharacterSet() {
-		if (type == VOBSUB || type == BMP || type == DIVX || type == PGS) {
+		if (type.isPicture()) {
 			externalFileCharacterSet = null;
 		} else {
 			try {

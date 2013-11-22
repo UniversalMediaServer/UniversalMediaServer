@@ -9,8 +9,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
+import net.pms.util.FileUtil;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,11 +21,13 @@ public class MediaMonitor extends VirtualFolder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaMonitor.class);
 	private File[] dirs;
 	private ArrayList<String> oldEntries;
+	private PmsConfiguration config;
 
 	public MediaMonitor(File[] dirs) {
 		super(Messages.getString("VirtualFolder.2"), "images/thumbnail-video-256.png");
 		this.dirs = dirs;
 		oldEntries = new ArrayList<>();
+		config = PMS.getConfiguration();
 		parseMonitorFile();
 	}
 
@@ -99,7 +103,13 @@ public class MediaMonitor extends VirtualFolder {
 				res.addChild(new RealFile(f));
 			}
 			if (f.isDirectory()) {
-				res.addChild(new MonitorEntry(f, this));
+				boolean add = true;
+				if (config.isHideEmptyFolders()) {
+					add = FileUtil.isFolderRelevant(f, PMS.getConfiguration());
+				}
+				if (add) {
+					res.addChild(new MonitorEntry(f, this));
+				}
 			}
 		}
 	}
