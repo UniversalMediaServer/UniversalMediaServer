@@ -618,10 +618,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							boolean hasSubsToTranscode = false;
 
 							if (!configuration.isDisableSubtitles()) {
-								// FIXME: Why transcode if the renderer can handle embedded subs?
-								if (configuration.isAutoloadExternalSubtitles() && child.isSubsFile()) {
-									hasSubsToTranscode = child.getDefaultRenderer() != null && StringUtils.isBlank(child.getDefaultRenderer().getSupportedSubtitles());
+								if (child.isSubsFile()) {
+									hasSubsToTranscode = getDefaultRenderer() != null && StringUtils.isBlank(getDefaultRenderer().getSupportedSubtitles());
 								} else {
+									// FIXME: Why transcode if the renderer can handle embedded subs?
 									hasSubsToTranscode = hasEmbeddedSubs;
 								}
 
