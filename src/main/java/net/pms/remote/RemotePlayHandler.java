@@ -57,14 +57,14 @@ public class RemotePlayHandler implements HttpHandler {
 		StringBuilder sb = new StringBuilder();
 		sb.append("<!DOCTYPE html>").append(CRLF);
 			sb.append("<head>");
-				sb.append("<link rel=\"stylesheet\" href=\"http://www.universalmediaserver.com/css/reset.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
+				sb.append("<link rel=\"stylesheet\" href=\"/files/reset.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
 				sb.append("<link rel=\"stylesheet\" href=\"/files/web.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
-				sb.append("<link rel=\"icon\" href=\"http://www.universalmediaserver.com/favicon.ico\" type=\"image/x-icon\">");
+				sb.append("<link rel=\"icon\" href=\"/files/favicon.ico\" type=\"image/x-icon\">");
 				sb.append("<title>Universal Media Server</title>").append(CRLF);
                 // FLOWPLAYER
-                sb.append("<script src=\"//ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js\"></script>");
-                sb.append("<script src=\"//releases.flowplayer.org/5.4.4/flowplayer.min.js\"></script>");
-                sb.append("<link rel=\"stylesheet\" href=\"//releases.flowplayer.org/5.4.4/skin/minimalist.css\">");
+                sb.append("<script src=\"/files/jquery.min.js\"></script>");
+                sb.append("<script src=\"/files/flowplayer.min.js\"></script>");
+                sb.append("<link rel=\"stylesheet\" href=\"/files/minimalist.css\">");
                 // FLOWPLAYER END
 			sb.append("</head>");
 			sb.append("<body id=\"ContentPage\">");

@@ -319,9 +319,9 @@ public class RemoteWeb {
 			StringBuilder sb = new StringBuilder();
 			sb.append("<!DOCTYPE html>").append(CRLF);
 				sb.append("<head>").append(CRLF);
-					sb.append("<link rel=\"stylesheet\" href=\"http://www.universalmediaserver.com/css/reset.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
+					sb.append("<link rel=\"stylesheet\" href=\"/files/reset.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
 					sb.append("<link rel=\"stylesheet\" href=\"/files/web.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
-					sb.append("<link rel=\"icon\" href=\"http://www.universalmediaserver.com/favicon.ico\" type=\"image/x-icon\">").append(CRLF);
+					sb.append("<link rel=\"icon\" href=\"/files/favicon.ico\" type=\"image/x-icon\">").append(CRLF);
 					sb.append("<title>Universal Media Server</title>").append(CRLF);
 				sb.append("</head>").append(CRLF);
 				sb.append("<body id=\"FrontPage\">").append(CRLF);
