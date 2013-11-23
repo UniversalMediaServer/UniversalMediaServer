@@ -665,19 +665,6 @@ public class TranscodingTab {
 		});
 		builder.add(ac3remux, FormLayoutUtil.flip(cc.xyw(1, 6, 3), colSpec, orientation));
 
-		encodedAudioPassthrough = new JCheckBox(Messages.getString("TrTab2.53"), configuration.isEncodedAudioPassthrough());
-		encodedAudioPassthrough.setToolTipText(Messages.getString("TrTab2.86") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
-		encodedAudioPassthrough.setContentAreaFilled(false);
-		encodedAudioPassthrough.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setEncodedAudioPassthrough((e.getStateChange() == ItemEvent.SELECTED));
-				ac3remux.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
-				forceDTSinPCM.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
-			}
-		});
-		builder.add(encodedAudioPassthrough, cc.xyw(1, 8, 3));
-
 		forceDTSinPCM = new JCheckBox(Messages.getString("TrTab2.28"), configuration.isAudioEmbedDtsInPcm());
 		forceDTSinPCM.setToolTipText(Messages.getString("TrTab2.85") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
 		if (configuration.isEncodedAudioPassthrough()) {
@@ -697,7 +684,20 @@ public class TranscodingTab {
 				}
 			}
 		});
-		builder.add(forceDTSinPCM, FormLayoutUtil.flip(cc.xyw(1, 10, 3), colSpec, orientation));
+		builder.add(forceDTSinPCM, FormLayoutUtil.flip(cc.xyw(1, 8, 3), colSpec, orientation));
+
+		encodedAudioPassthrough = new JCheckBox(Messages.getString("TrTab2.53"), configuration.isEncodedAudioPassthrough());
+		encodedAudioPassthrough.setToolTipText(Messages.getString("TrTab2.86") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
+		encodedAudioPassthrough.setContentAreaFilled(false);
+		encodedAudioPassthrough.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setEncodedAudioPassthrough((e.getStateChange() == ItemEvent.SELECTED));
+				ac3remux.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
+				forceDTSinPCM.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
+			}
+		});
+		builder.add(encodedAudioPassthrough, cc.xyw(1, 10, 3));
 
 		builder.addLabel(Messages.getString("TrTab2.29"), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
 		abitrate = new JTextField("" + configuration.getAudioBitrate());
