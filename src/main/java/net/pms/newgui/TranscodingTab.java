@@ -675,13 +675,6 @@ public class TranscodingTab {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				configuration.setAudioEmbedDtsInPcm(forceDTSinPCM.isSelected());
-				if (configuration.isAudioEmbedDtsInPcm()) {
-					JOptionPane.showMessageDialog(
-						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-						Messages.getString("TrTab2.10"),
-						Messages.getString("Dialog.Information"),
-						JOptionPane.INFORMATION_MESSAGE);
-				}
 			}
 		});
 		builder.add(forceDTSinPCM, FormLayoutUtil.flip(cc.xyw(1, 8, 3), colSpec, orientation));
