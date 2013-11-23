@@ -153,7 +153,7 @@ public class FormatConfiguration {
 			if (maxVideoWidth != null) {
 				try {
 					iMaxVideoWidth = Integer.parseInt(maxVideoWidth);
-				} catch (Exception nfe) {
+				} catch (NumberFormatException nfe) {
 					LOGGER.error("Error parsing maximum video width: " + maxVideoWidth, nfe);
 					return false;
 				}
@@ -201,17 +201,16 @@ public class FormatConfiguration {
 		 * 			match, true otherwise.
 		 */
 		public boolean match(
-				String format,
-				String videoCodec,
-				String audioCodec,
-				int nbAudioChannels,
-				int frequency,
-				int bitrate,
-				int videoWidth,
-				int videoHeight,
-				Map<String, String> extras
-			) {
-
+			String format,
+			String videoCodec,
+			String audioCodec,
+			int nbAudioChannels,
+			int frequency,
+			int bitrate,
+			int videoWidth,
+			int videoHeight,
+			Map<String, String> extras
+		) {
 			// Assume a match, until proven otherwise
 			if (format != null && !pFormat.matcher(format).matches()) {
 				LOGGER.trace("Format \"{}\" failed to match supported line {}", format, supportLine);
