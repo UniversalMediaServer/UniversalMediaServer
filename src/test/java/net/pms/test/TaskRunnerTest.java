@@ -16,7 +16,6 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
 package net.pms.test;
 
 import ch.qos.logback.classic.LoggerContext;
@@ -29,10 +28,10 @@ import org.slf4j.LoggerFactory;
 
 public class TaskRunnerTest {
 	@Before
-    public void setUp() {
-        // Silence all log messages from the PMS code that is being tested
-        LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
-        context.reset(); 
+	public void setUp() {
+		// Silence all log messages from the PMS code that is being tested
+		LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
+		context.reset();
 	}
 
 	class Counter {

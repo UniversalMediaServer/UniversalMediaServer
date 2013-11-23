@@ -150,10 +150,10 @@ public class SpeedStats {
 				int msPos = line.indexOf("ms");
 
 				if (msPos > -1) {
-					if (line.lastIndexOf("<", msPos) > -1){
+					if (line.lastIndexOf('<', msPos) > -1){
 						timeString = "0.5";
 					} else {
-						timeString = line.substring(line.lastIndexOf("=", msPos) + 1, msPos).trim();
+						timeString = line.substring(line.lastIndexOf('=', msPos) + 1, msPos).trim();
 					}
 					try {
 						time += Double.parseDouble(timeString);
@@ -166,7 +166,7 @@ public class SpeedStats {
 			}
 
 			if (c > 0) {
-				time = time / c;
+				time /= c;
 			}
 
 			if (time > 0) {

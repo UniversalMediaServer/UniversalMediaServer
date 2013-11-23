@@ -78,7 +78,7 @@ public class MEncoderWebVideo extends Player {
 
 	@Deprecated
 	public MEncoderWebVideo(PmsConfiguration configuration) {
-		this.configuration = configuration;
+		this();
 	}
 
 	public MEncoderWebVideo() {

@@ -55,6 +55,7 @@ public class WEB extends Format {
 	 * @param filename the filename to match against
 	 * @return <code>true</code> if the filename matches, <code>false</code> otherwise.
 	 */
+	@Override
 	public boolean match(String filename) {
 		String protocol = FileUtil.getProtocol(filename);
 

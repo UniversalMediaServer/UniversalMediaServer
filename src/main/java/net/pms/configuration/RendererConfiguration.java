@@ -274,7 +274,15 @@ public class RendererConfiguration {
 
 	public RootFolder getRootFolder() {
 		if (rootFolder == null) {
-			rootFolder = new RootFolder();
+			ArrayList<String> tags = new ArrayList();
+			tags.add(getRendererName());
+			for (InetAddress sa : addressAssociation.keySet()) {
+				if (addressAssociation.get(sa) == this) {
+					tags.add(sa.getHostAddress());
+				}
+			}
+
+			rootFolder = new RootFolder(tags);
 			if (pmsConfiguration.getUseCache()) {
 				rootFolder.discoverChildren();
 			}
@@ -367,7 +375,7 @@ public class RendererConfiguration {
 			// Try to find a match
 			for (RendererConfiguration r : enabledRendererConfs) {
 				if (StringUtils.isNotBlank(r.getUserAgentAdditionalHttpHeader()) && header.startsWith(r.getUserAgentAdditionalHttpHeader())) {
-					String value = header.substring(header.indexOf(":", r.getUserAgentAdditionalHttpHeader().length()) + 1);
+					String value = header.substring(header.indexOf(':', r.getUserAgentAdditionalHttpHeader().length()) + 1);
 					if (r.matchAdditionalUserAgent(value)) {
 						return manageRendererMatch(r);
 					}
@@ -471,7 +479,7 @@ public class RendererConfiguration {
 
 			while (st.hasMoreTokens()) {
 				String mime_change = st.nextToken().trim();
-				int equals = mime_change.indexOf("=");
+				int equals = mime_change.indexOf('=');
 
 				if (equals > -1) {
 					String old = mime_change.substring(0, equals).trim().toLowerCase();
@@ -523,7 +531,7 @@ public class RendererConfiguration {
 			StringTokenizer st = new StringTokenizer(DLNAPNchanges, "|");
 			while (st.hasMoreTokens()) {
 				String DLNAPN_change = st.nextToken().trim();
-				int equals = DLNAPN_change.indexOf("=");
+				int equals = DLNAPN_change.indexOf('=');
 				if (equals > -1) {
 					String old = DLNAPN_change.substring(0, equals).trim().toUpperCase();
 					String nw = DLNAPN_change.substring(equals + 1).trim().toUpperCase();
@@ -1241,4 +1249,11 @@ public class RendererConfiguration {
 	public boolean useClosedCaption() {
 		return getBoolean(USE_CLOSED_CAPTION, false);
 	}	
+
+	public ArrayList<String> tags() {
+		if (rootFolder != null) {
+			return rootFolder.getTags();
+		}
+		return null;
+	}
 }

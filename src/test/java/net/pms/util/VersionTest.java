@@ -29,6 +29,10 @@ public class VersionTest {
 	}
 
 	private void assertVersionEquals(Version v1, Version v2) {
+		// non-nullity
+		assertFalse(v1 == null);
+		assertFalse(v2 == null);
+
 		// symmetry (and equality)
 		assertTrue(v1.equals(v2));
 		assertTrue(v2.equals(v1));
@@ -40,10 +44,6 @@ public class VersionTest {
 		// consistency
 		assertTrue(v1.equals(v2));
 		assertTrue(v2.equals(v1));
-
-		// non-nullity
-		assertFalse(v1.equals(null));
-		assertFalse(v2.equals(null));
 
 		assertThat(v1.hashCode()).isEqualTo(v1.hashCode());
 		assertThat(v2.hashCode()).isEqualTo(v2.hashCode());

@@ -27,6 +27,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import javax.swing.*;
@@ -265,6 +267,7 @@ public class GeneralTab {
 		nameValues.add(Messages.getString("NetworkTab.37"));
 
 		if (allConfs != null) {
+			sortRendererConfiurationsByName(allConfs);			
 			for (RendererConfiguration renderer : allConfs) {
 				if (renderer != null) {
 					keyValues.add(renderer.getRendererName());
@@ -509,6 +512,7 @@ public class GeneralTab {
 		nameValues.add(Messages.getString("NetworkTab.37"));
 
 		if (allConfs != null) {
+			sortRendererConfiurationsByName(allConfs);
 			for (RendererConfiguration renderer : allConfs) {
 				if (renderer != null) {
 					keyValues.add(renderer.getRendererName());
@@ -537,6 +541,28 @@ public class GeneralTab {
 					LOGGER.info("Setting renderer default: \"" + renderersKcbm.getSelectedKey() + "\"");
 					configuration.setRendererDefault((String) renderersKcbm.getSelectedKey());
 				}
+			}
+		});
+	}
+	
+	private void sortRendererConfiurationsByName(ArrayList<RendererConfiguration> rendererConfigurations){
+		Collections.sort(rendererConfigurations , new Comparator<RendererConfiguration>() {
+
+			@Override
+			public int compare(RendererConfiguration o1, RendererConfiguration o2) {
+				if(o1 == null && o2 == null){
+					return 0;
+				}
+				
+				if(o1 == null) {
+					return 1;
+				}
+				
+				if(o2 == null) {
+					return -1;
+				}
+				
+				return o1.getRendererName().toLowerCase().compareTo(o2.getRendererName().toLowerCase());
 			}
 		});
 	}

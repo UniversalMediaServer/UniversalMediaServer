@@ -74,7 +74,7 @@ public abstract class Range implements Cloneable {
 		public void rewindStart(double amount) {
 			if (this.start != null) {
 				if (this.start > amount) {
-					this.start = this.start - amount;
+					this.start -= amount;
 				} else {
 					this.start = 0d;
 				}

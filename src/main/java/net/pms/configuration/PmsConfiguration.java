@@ -108,6 +108,7 @@ public class PmsConfiguration {
 	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
 	private static final String KEY_FFMPEG_FONT_CONFIG = "ffmpeg_font_config";
 	private static final String KEY_FFMPEG_MUX_COMPATIBLE = "ffmpeg_mux_compatible";
+	private static final String KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE = "ffmpeg_mux_tsmuxer_compatible";
 	private static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
 	private static final String KEY_FOLDERS = "folders";
 	private static final String KEY_FOLDERS_MONITORED = "folders_monitored";
@@ -165,12 +166,12 @@ public class PmsConfiguration {
 	private static final String KEY_MENCODER_USE_PCM_FOR_HQ_AUDIO_ONLY = "mencoder_usepcm_for_hq_audio_only";
 	private static final String KEY_MENCODER_VOBSUB_SUBTITLE_QUALITY = "mencoder_vobsub_subtitle_quality";
 	private static final String KEY_MENCODER_YADIF = "mencoder_yadif";
+	private static final String KEY_MIN_MEMORY_BUFFER_SIZE = "minimum_video_buffer_size";
 	private static final String KEY_MIN_PLAY_TIME = "min_playtime";
 	private static final String KEY_MIN_PLAY_TIME_WEB = "min_playtime_web";
 	private static final String KEY_MIN_PLAY_TIME_FILE = "min_playtime_file";
-	private static final String KEY_MINIMIZED = "minimized";
-	private static final String KEY_MIN_MEMORY_BUFFER_SIZE = "minimum_video_buffer_size";
 	private static final String KEY_MIN_STREAM_BUFFER = "minimum_web_buffer_size";
+	private static final String KEY_MINIMIZED = "minimized";
 	private static final String KEY_MPEG2_MAIN_SETTINGS = "mpeg2_main_settings";
 	private static final String KEY_MUX_ALLAUDIOTRACKS = "tsmuxer_mux_all_audiotracks";
 	private static final String KEY_NETWORK_INTERFACE = "network_interface";
@@ -218,7 +219,6 @@ public class PmsConfiguration {
 	private static final String KEY_USE_MPLAYER_FOR_THUMBS = "use_mplayer_for_video_thumbs";
 	private static final String KEY_AUDIO_USE_PCM = "audio_use_pcm";
 	private static final String KEY_UUID = "uuid";
-	private static final String KEY_VIDEO_HW_ACCELERATION = "video_hardware_acceleration";
 	private static final String KEY_VIDEOTRANSCODE_START_DELAY = "videotranscode_start_delay";
 	private static final String KEY_VIRTUAL_FOLDERS = "virtual_folders";
 	private static final String KEY_VIRTUAL_FOLDERS_FILE = "virtual_folders_file";
@@ -258,31 +258,31 @@ public class PmsConfiguration {
 		Arrays.asList(
 			KEY_ALTERNATE_THUMB_FOLDER,
 			KEY_ATZ_LIMIT,
-			KEY_NETWORK_INTERFACE,
-			KEY_IP_FILTER,
-			KEY_SORT_METHOD,
-			KEY_HIDE_EMPTY_FOLDERS,
-			KEY_HIDE_TRANSCODE_FOLDER,
-			KEY_HIDE_MEDIA_LIBRARY_FOLDER,
-			KEY_OPEN_ARCHIVES,
-			KEY_USE_CACHE,
-			KEY_HIDE_ENGINENAMES,
-			KEY_HIDE_LIVE_SUBTITLES_FOLDER,
-			KEY_SHOW_ITUNES_LIBRARY,
-			KEY_SHOW_IPHOTO_LIBRARY,
-			KEY_SHOW_APERTURE_LIBRARY,
+			KEY_AUDIO_THUMBNAILS_METHOD,
+			KEY_CHAPTER_SUPPORT,
+			KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS,
 			KEY_ENGINES,
 			KEY_FOLDERS,
-			KEY_HIDE_VIDEO_SETTINGS,
-			KEY_AUDIO_THUMBNAILS_METHOD,
-			KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS,
 			KEY_FORCE_TRANSCODE_FOR_EXTENSIONS,
-			KEY_SERVER_PORT,
-			KEY_SERVER_HOSTNAME,
-			KEY_CHAPTER_SUPPORT,
+			KEY_HIDE_EMPTY_FOLDERS,
+			KEY_HIDE_ENGINENAMES,
 			KEY_HIDE_EXTENSIONS,
+			KEY_HIDE_LIVE_SUBTITLES_FOLDER,
+			KEY_HIDE_MEDIA_LIBRARY_FOLDER,
+			KEY_HIDE_TRANSCODE_FOLDER,
+			KEY_HIDE_VIDEO_SETTINGS,
 			KEY_IGNORE_THE_WORD_THE,
-			KEY_PRETTIFY_FILENAMES
+			KEY_IP_FILTER,
+			KEY_NETWORK_INTERFACE,
+			KEY_OPEN_ARCHIVES,
+			KEY_PRETTIFY_FILENAMES,
+			KEY_SERVER_HOSTNAME,
+			KEY_SERVER_PORT,
+			KEY_SHOW_APERTURE_LIBRARY,
+			KEY_SHOW_IPHOTO_LIBRARY,
+			KEY_SHOW_ITUNES_LIBRARY,
+			KEY_SORT_METHOD,
+			KEY_USE_CACHE
 		)
 	);
 
@@ -1558,8 +1558,8 @@ public class PmsConfiguration {
 	 *
 	 * @return True if PMS should hide the folder, false othewise.
 	 */
-	public boolean getHideVideoSettings() {
-		return getBoolean(KEY_HIDE_VIDEO_SETTINGS, true);
+	public boolean getHideVideoSettings(ArrayList<String> tags) {
+		return tagLoopBool(tags, ".hide_set", KEY_HIDE_VIDEO_SETTINGS, true);
 	}
 
 	/**
@@ -1966,8 +1966,8 @@ public class PmsConfiguration {
 		LOGGER.info("Configuration saved to: " + PROFILE_PATH);
 	}
 
-	public String getFolders() {
-		return getString(KEY_FOLDERS, "");
+	public String getFolders(ArrayList<String> tags) {
+		return tagLoop(tags, ".folders", KEY_FOLDERS);
 	}
 
 	public void setFolders(String value) {
@@ -2178,6 +2178,14 @@ public class PmsConfiguration {
 		return getBoolean(KEY_FFMPEG_MUX_COMPATIBLE, false);
 	}
 
+	public void setFFmpegMuxWithTsMuxerWhenCompatible(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE, value);
+	}
+
+	public boolean isFFmpegMuxWithTsMuxerWhenCompatible() {
+		return getBoolean(KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE, true);
+	}
+
 	public void setFFmpegFontConfig(boolean value) {
 		configuration.setProperty(KEY_FFMPEG_FONT_CONFIG, value);
 	}
@@ -2379,16 +2387,16 @@ public class PmsConfiguration {
 		configuration.setProperty(KEY_RUN_WIZARD, value);
 	}
 
-	public boolean isHideNewMediaFolder() {
-		return getBoolean(KEY_HIDE_NEW_MEDIA_FOLDER, false);
+	public boolean isHideNewMediaFolder(ArrayList<String> tags) {
+		return tagLoopBool(tags, ".new_media", KEY_HIDE_NEW_MEDIA_FOLDER, false);
 	}
 
 	public void setHideNewMediaFolder(final boolean value) {
 		this.configuration.setProperty(KEY_HIDE_NEW_MEDIA_FOLDER, value);
 	}
 
-	public boolean isHideRecentlyPlayedFolder() {
-		return getBoolean(PmsConfiguration.KEY_HIDE_RECENTLY_PLAYED_FOLDER, false);
+	public boolean isHideRecentlyPlayedFolder(ArrayList<String> tags) {
+		return tagLoopBool(tags, ".recent", KEY_HIDE_RECENTLY_PLAYED_FOLDER, false);
 	}
 
 	public void setHideRecentlyPlayedFolder(final boolean value) {
@@ -2449,12 +2457,12 @@ public class PmsConfiguration {
 		configuration.setProperty(KEY_RENDERER_FORCE_DEFAULT, value);
 	}
 
-	public String getVirtualFolders() {
-		return getString(KEY_VIRTUAL_FOLDERS, "");
+	public String getVirtualFolders(ArrayList<String> tags) {
+		return tagLoop(tags, ".vfolders", KEY_VIRTUAL_FOLDERS);
 	}
 
-	public String getVirtualFoldersFile() {
-		return getString(KEY_VIRTUAL_FOLDERS_FILE, "");
+	public String getVirtualFoldersFile(ArrayList<String> tags) {
+		return tagLoop(tags, ".vfolders.file", KEY_VIRTUAL_FOLDERS_FILE);
 	}
 
 	public String getProfilePath() {
@@ -2848,5 +2856,42 @@ public class PmsConfiguration {
 
 	public boolean hideSubInfo() {
 		return getBoolean(KEY_HIDE_SUBS_INFO, false);
+	}
+
+	public String getPlugins(ArrayList<String> tags) {
+		return tagLoop(tags, ".plugins", "dummy");
+	}
+
+	public boolean isHideWebFolder(ArrayList<String> tags) {
+		return tagLoopBool(tags, ".web", "dummy", false);
+	}
+
+	private String tagLoop(ArrayList<String> tags, String suff, String fallback) {
+		if (tags == null || tags.isEmpty()) {
+			// no tags use fallback
+			return getString(fallback, "");
+		}
+
+		for (String tag : tags) {
+			String x = (tag.toLowerCase() + suff).replaceAll(" ", "_");
+			String res = getString(x, "");
+			if (StringUtils.isNotBlank(res)) {
+				// use first tag found
+				return res;
+			}
+		}
+
+		// down here no matching tag was found
+		// return fallback
+		return getString(fallback, "");
+	}
+
+	private boolean tagLoopBool(ArrayList<String> tags, String suff, String fallback, boolean def) {
+		String b = tagLoop(tags, suff, fallback);
+		if (StringUtils.isBlank(b)) {
+			return def;
+		}
+
+		return b.trim().equalsIgnoreCase("true");
 	}
 }
