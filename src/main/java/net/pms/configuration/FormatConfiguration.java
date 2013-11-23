@@ -1,16 +1,13 @@
 package net.pms.configuration;
 
 import java.util.*;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
-
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.InputFile;
 import net.pms.dlna.LibMediaInfoParser;
 import net.pms.formats.Format;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -273,7 +270,7 @@ public class FormatConfiguration {
 					}
 					
 					if (key.equals(MI_GOP) && miExtras.get(MI_GOP) != null && miExtras.get(MI_GOP).matcher("static").matches() && value.equals("variable")) {
-						LOGGER.trace("GOP value \"{}\" failed to match support line {}", miExtras.get(MI_GOP), supportLine);
+						LOGGER.trace("GOP value \"{}\" failed to match support line {}", value, supportLine);
 						return false;
 					}
 				}
