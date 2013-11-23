@@ -38,6 +38,7 @@ public class FormatConfiguration {
 	public static final String LPCM = "lpcm";
 	public static final String MATROSKA = "mkv";
 	public static final String MI_GMC = "gmc";
+	public static final String MI_GOP = "gop";
 	public static final String MI_QPEL = "qpel";
 	public static final String MJPEG = "mjpeg";
 	public static final String MLP = "mlp";
@@ -265,6 +266,11 @@ public class FormatConfiguration {
 
 					if (key.equals(MI_GMC) && miExtras.get(MI_GMC) != null && !miExtras.get(MI_GMC).matcher(value).matches()) {
 						LOGGER.trace("Gmc value \"{}\" failed to match support line {}", miExtras.get(MI_GMC), supportLine);
+						return false;
+					}
+					
+					if (key.equals(MI_GOP) && miExtras.get(MI_GOP) != null && miExtras.get(MI_GOP).matcher("static").matches() && value.equals("variable")) {
+						LOGGER.trace("GOP value \"{}\" failed to match support line {}", value, supportLine);
 						return false;
 					}
 				}
