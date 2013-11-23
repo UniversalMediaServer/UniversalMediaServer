@@ -64,7 +64,7 @@ public class PipeIPCProcess extends Thread implements ProcessWrapper {
 			if (modifier != null && modifier.isH264AnnexB()) {
 				in = new H264AnnexBInputStream(in, modifier.getHeader());
 			} else if (modifier != null && modifier.isEncodedAudioPassthrough()) {
-				out = new IEC61937AudioOutputStream(new PCMAudioOutputStream(out, modifier.getNbchannels(), modifier.getSampleFrequency(), modifier.getBitspersample()));
+				out = new IEC61937AudioOutputStream(new PCMAudioOutputStream(out, modifier.getNbChannels(), modifier.getSampleFrequency(), modifier.getBitsPerSample()));
 			} else if (modifier != null && modifier.isDtsEmbed()) {
 				out = new DTSAudioOutputStream(new PCMAudioOutputStream(out, modifier.getNbChannels(), modifier.getSampleFrequency(), modifier.getBitsPerSample()));
 			} else if (modifier != null && modifier.isPcm()) {
