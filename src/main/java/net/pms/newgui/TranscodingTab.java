@@ -654,6 +654,9 @@ public class TranscodingTab {
 
 		ac3remux = new JCheckBox(Messages.getString("TrTab2.26"), configuration.isAudioRemuxAC3());
 		ac3remux.setToolTipText(Messages.getString("TrTab2.84") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
+		if (configuration.isEncodedAudioPassthrough()) {
+			ac3remux.setEnabled(false);
+		}
 		ac3remux.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -669,12 +672,17 @@ public class TranscodingTab {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setEncodedAudioPassthrough((e.getStateChange() == ItemEvent.SELECTED));
+				ac3remux.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
+				forceDTSinPCM.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
 			}
 		});
 		builder.add(encodedAudioPassthrough, cc.xyw(1, 8, 3));
 
 		forceDTSinPCM = new JCheckBox(Messages.getString("TrTab2.28"), configuration.isAudioEmbedDtsInPcm());
 		forceDTSinPCM.setToolTipText(Messages.getString("TrTab2.85") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
+		if (configuration.isEncodedAudioPassthrough()) {
+			forceDTSinPCM.setEnabled(false);
+		}
 		forceDTSinPCM.setContentAreaFilled(false);
 		forceDTSinPCM.addActionListener(new ActionListener() {
 			@Override
