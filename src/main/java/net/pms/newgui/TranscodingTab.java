@@ -662,7 +662,8 @@ public class TranscodingTab {
 		});
 		builder.add(ac3remux, FormLayoutUtil.flip(cc.xyw(1, 6, 3), colSpec, orientation));
 
-		encodedAudioPassthrough = new JCheckBox(Messages.getString("TrTab2.53") + " " + (Platform.isWindows() ? Messages.getString("TrTab2.21") : ""), configuration.isEncodedAudioPassthrough());
+		encodedAudioPassthrough = new JCheckBox(Messages.getString("TrTab2.53"), configuration.isEncodedAudioPassthrough());
+		encodedAudioPassthrough.setToolTipText(Messages.getString("TrTab2.86") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
 		encodedAudioPassthrough.setContentAreaFilled(false);
 		encodedAudioPassthrough.addItemListener(new ItemListener() {
 			@Override
