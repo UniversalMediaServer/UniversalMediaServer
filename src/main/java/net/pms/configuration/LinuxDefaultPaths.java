@@ -64,7 +64,7 @@ class LinuxDefaultPaths implements ProgramPaths {
 				return path + "/";
 			}
 		} else {
-			return "";
+			return "linux/";
 		}
 	}
 
