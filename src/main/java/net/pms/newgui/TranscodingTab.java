@@ -662,26 +662,14 @@ public class TranscodingTab {
 		});
 		builder.add(ac3remux, FormLayoutUtil.flip(cc.xyw(1, 6, 3), colSpec, orientation));
 
-		encodedAudioPassthrough = new JCheckBox(Messages.getString("TrTab2.53") + " " + (Platform.isWindows() ? Messages.getString("TrTab2.21") : ""));
+		encodedAudioPassthrough = new JCheckBox(Messages.getString("TrTab2.53") + " " + (Platform.isWindows() ? Messages.getString("TrTab2.21") : ""), configuration.isEncodedAudioPassthrough());
 		encodedAudioPassthrough.setContentAreaFilled(false);
-		if (configuration.isEncodedAudioPassthrough()) {
-			encodedAudioPassthrough.setSelected(true);
-		}
-		encodedAudioPassthrough.addActionListener(new ActionListener() {
+		encodedAudioPassthrough.addItemListener(new ItemListener() {
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				configuration.setEncodedAudioPassthrough(encodedAudioPassthrough.isSelected());
-				if (configuration.isEncodedAudioPassthrough()) {
-					JOptionPane.showMessageDialog(
-						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-						Messages.getString("TrTab2.10"),
-						"Information",
-						JOptionPane.INFORMATION_MESSAGE
-					);
-				}
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setEncodedAudioPassthrough((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
-
 		builder.add(encodedAudioPassthrough, cc.xyw(1, 8, 3));
 
 		forceDTSinPCM = new JCheckBox(Messages.getString("TrTab2.28"), configuration.isAudioEmbedDtsInPcm());
