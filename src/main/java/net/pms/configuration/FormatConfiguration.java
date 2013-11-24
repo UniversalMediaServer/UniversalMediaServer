@@ -211,6 +211,14 @@ public class FormatConfiguration {
 			int videoHeight,
 			Map<String, String> extras
 		) {
+
+			// Satisfy a minimum threshold
+			if (format == null && videoCodec == null && audioCodec == null) {
+				// We have no matchable info. This can happen with unparsed
+				// mediainfo objects (e.g. from WEB.conf or plugins).
+				return false;
+			}
+
 			// Assume a match, until proven otherwise
 			if (format != null && !pFormat.matcher(format).matches()) {
 				LOGGER.trace("Format \"{}\" failed to match supported line {}", format, supportLine);
