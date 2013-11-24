@@ -1025,11 +1025,8 @@ public class FFMpegVideo extends Player {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		multithreading = new JCheckBox(Messages.getString("MEncoderVideo.35"));
+		multithreading = new JCheckBox(Messages.getString("MEncoderVideo.35"), configuration.isFfmpegMultithreading());
 		multithreading.setContentAreaFilled(false);
-		if (configuration.isFfmpegMultithreading()) {
-			multithreading.setSelected(true);
-		}
 		multithreading.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -1038,11 +1035,8 @@ public class FFMpegVideo extends Player {
 		});
 		builder.add(multithreading, cc.xy(2, 3));
 
-		videoremux = new JCheckBox(Messages.getString("FFmpeg.0"));
+		videoremux = new JCheckBox(Messages.getString("FFmpeg.0"), configuration.isFFmpegMuxWhenCompatible());
 		videoremux.setContentAreaFilled(false);
-		if (configuration.isFFmpegMuxWhenCompatible()) {
-			videoremux.setSelected(true);
-		}
 		videoremux.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -1051,11 +1045,8 @@ public class FFMpegVideo extends Player {
 		});
 		builder.add(videoremux, cc.xy(2, 5));
 
-		videoRemuxTsMuxer = new JCheckBox(Messages.getString("MEncoderVideo.38"));
+		videoRemuxTsMuxer = new JCheckBox(Messages.getString("MEncoderVideo.38"), configuration.isFFmpegMuxWithTsMuxerWhenCompatible());
 		videoRemuxTsMuxer.setContentAreaFilled(false);
-		if (configuration.isFFmpegMuxWithTsMuxerWhenCompatible()) {
-			videoRemuxTsMuxer.setSelected(true);
-		}
 		videoRemuxTsMuxer.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
