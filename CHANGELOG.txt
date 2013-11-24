@@ -8,6 +8,7 @@
 		Fixed memory leaks
 		Optimized code
 	Renderers:
+		Improved video support on Panasonic TX-L32V10E TVs
 		Improved video support on PS3
 	Languages:
 		Updated Dutch translation (thanks, leroy!)
