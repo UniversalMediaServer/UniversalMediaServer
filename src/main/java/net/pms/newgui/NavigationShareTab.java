@@ -183,7 +183,7 @@ public class NavigationShareTab {
 
 			builder.add(hideextensions, FormLayoutUtil.flip(cc.xyw(1, 17, 3), colSpec, orientation));
 			builder.add(hideengines, FormLayoutUtil.flip(cc.xyw(4, 17, 3), colSpec, orientation));
-			builder.add(hideemptyfolders, FormLayoutUtil.flip(cc.xyw(9, 17, 2), colSpec, orientation));
+			builder.add(hideemptyfolders, FormLayoutUtil.flip(cc.xy(9, 17), colSpec, orientation));
 
 			builder.add(itunes, FormLayoutUtil.flip(cc.xy(1, 19), colSpec, orientation));
 			builder.add(iphoto, FormLayoutUtil.flip(cc.xyw(4, 19, 3), colSpec, orientation));
@@ -469,6 +469,7 @@ public class NavigationShareTab {
 
 		// Hide empty folders
 		hideemptyfolders = new JCheckBox(Messages.getString("FoldTab.31"));
+		hideemptyfolders.setToolTipText(Messages.getString("FoldTab.59"));
 		hideemptyfolders.setContentAreaFilled(false);
 		if (configuration.isHideEmptyFolders()) {
 			hideemptyfolders.setSelected(true);
