@@ -624,6 +624,7 @@ public class NavigationShareTab {
 		});
 
 		newmediafolder = new JCheckBox(Messages.getString("FoldTab.54"));
+		newmediafolder.setToolTipText(Messages.getString("FoldTab.60"));
 		newmediafolder.setContentAreaFilled(false);
 		if (configuration.isHideNewMediaFolder(null)) {
 			newmediafolder.setSelected(true);
