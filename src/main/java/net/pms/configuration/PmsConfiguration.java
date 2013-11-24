@@ -165,12 +165,12 @@ public class PmsConfiguration {
 	private static final String KEY_MENCODER_USE_PCM_FOR_HQ_AUDIO_ONLY = "mencoder_usepcm_for_hq_audio_only";
 	private static final String KEY_MENCODER_VOBSUB_SUBTITLE_QUALITY = "mencoder_vobsub_subtitle_quality";
 	private static final String KEY_MENCODER_YADIF = "mencoder_yadif";
+	private static final String KEY_MIN_MEMORY_BUFFER_SIZE = "minimum_video_buffer_size";
 	private static final String KEY_MIN_PLAY_TIME = "min_playtime";
 	private static final String KEY_MIN_PLAY_TIME_WEB = "min_playtime_web";
 	private static final String KEY_MIN_PLAY_TIME_FILE = "min_playtime_file";
-	private static final String KEY_MINIMIZED = "minimized";
-	private static final String KEY_MIN_MEMORY_BUFFER_SIZE = "minimum_video_buffer_size";
 	private static final String KEY_MIN_STREAM_BUFFER = "minimum_web_buffer_size";
+	private static final String KEY_MINIMIZED = "minimized";
 	private static final String KEY_MPEG2_MAIN_SETTINGS = "mpeg2_main_settings";
 	private static final String KEY_MUX_ALLAUDIOTRACKS = "tsmuxer_mux_all_audiotracks";
 	private static final String KEY_NETWORK_INTERFACE = "network_interface";
@@ -218,7 +218,6 @@ public class PmsConfiguration {
 	private static final String KEY_USE_MPLAYER_FOR_THUMBS = "use_mplayer_for_video_thumbs";
 	private static final String KEY_AUDIO_USE_PCM = "audio_use_pcm";
 	private static final String KEY_UUID = "uuid";
-	private static final String KEY_VIDEO_HW_ACCELERATION = "video_hardware_acceleration";
 	private static final String KEY_VIDEOTRANSCODE_START_DELAY = "videotranscode_start_delay";
 	private static final String KEY_VIRTUAL_FOLDERS = "virtual_folders";
 	private static final String KEY_VIRTUAL_FOLDERS_FILE = "virtual_folders_file";
@@ -258,31 +257,31 @@ public class PmsConfiguration {
 		Arrays.asList(
 			KEY_ALTERNATE_THUMB_FOLDER,
 			KEY_ATZ_LIMIT,
-			KEY_NETWORK_INTERFACE,
-			KEY_IP_FILTER,
-			KEY_SORT_METHOD,
-			KEY_HIDE_EMPTY_FOLDERS,
-			KEY_HIDE_TRANSCODE_FOLDER,
-			KEY_HIDE_MEDIA_LIBRARY_FOLDER,
-			KEY_OPEN_ARCHIVES,
-			KEY_USE_CACHE,
-			KEY_HIDE_ENGINENAMES,
-			KEY_HIDE_LIVE_SUBTITLES_FOLDER,
-			KEY_SHOW_ITUNES_LIBRARY,
-			KEY_SHOW_IPHOTO_LIBRARY,
-			KEY_SHOW_APERTURE_LIBRARY,
+			KEY_AUDIO_THUMBNAILS_METHOD,
+			KEY_CHAPTER_SUPPORT,
+			KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS,
 			KEY_ENGINES,
 			KEY_FOLDERS,
-			KEY_HIDE_VIDEO_SETTINGS,
-			KEY_AUDIO_THUMBNAILS_METHOD,
-			KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS,
 			KEY_FORCE_TRANSCODE_FOR_EXTENSIONS,
-			KEY_SERVER_PORT,
-			KEY_SERVER_HOSTNAME,
-			KEY_CHAPTER_SUPPORT,
+			KEY_HIDE_EMPTY_FOLDERS,
+			KEY_HIDE_ENGINENAMES,
 			KEY_HIDE_EXTENSIONS,
+			KEY_HIDE_LIVE_SUBTITLES_FOLDER,
+			KEY_HIDE_MEDIA_LIBRARY_FOLDER,
+			KEY_HIDE_TRANSCODE_FOLDER,
+			KEY_HIDE_VIDEO_SETTINGS,
 			KEY_IGNORE_THE_WORD_THE,
-			KEY_PRETTIFY_FILENAMES
+			KEY_IP_FILTER,
+			KEY_NETWORK_INTERFACE,
+			KEY_OPEN_ARCHIVES,
+			KEY_PRETTIFY_FILENAMES,
+			KEY_SERVER_HOSTNAME,
+			KEY_SERVER_PORT,
+			KEY_SHOW_APERTURE_LIBRARY,
+			KEY_SHOW_IPHOTO_LIBRARY,
+			KEY_SHOW_ITUNES_LIBRARY,
+			KEY_SORT_METHOD,
+			KEY_USE_CACHE
 		)
 	);
 

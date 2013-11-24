@@ -331,6 +331,7 @@ public class ExternalFactory {
 					FileUtils.moveFileToDirectory(f, new File("backup"), true);
 					f.delete();
 				}
+				in.close();
 			}
 
 			fis.close();

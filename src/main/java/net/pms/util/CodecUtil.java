@@ -49,7 +49,7 @@ public class CodecUtil {
 		try {
 			while ((line = br.readLine()) != null) {
 				if (line.contains(" ")) {
-					codecs.add(line.substring(0, line.indexOf(" ")));
+					codecs.add(line.substring(0, line.indexOf(' ')));
 				} else {
 					codecs.add(line);
 				}

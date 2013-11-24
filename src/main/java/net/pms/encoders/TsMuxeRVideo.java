@@ -750,7 +750,7 @@ public class TsMuxeRVideo extends Player {
 	 * @return The filename of the file on disk.
 	 */
 	private String writeResourceToFile(String resourceName) {
-		String outputFileName = resourceName.substring(resourceName.lastIndexOf("/") + 1);
+		String outputFileName = resourceName.substring(resourceName.lastIndexOf('/') + 1);
 
 		try {
 			outputFileName = configuration.getTempFolder() + "/" + outputFileName;

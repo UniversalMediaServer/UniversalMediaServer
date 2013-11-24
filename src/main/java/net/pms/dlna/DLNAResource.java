@@ -618,10 +618,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							boolean hasSubsToTranscode = false;
 
 							if (!configuration.isDisableSubtitles()) {
-								// FIXME: Why transcode if the renderer can handle embedded subs?
-								if (configuration.isAutoloadExternalSubtitles() && child.isSubsFile()) {
-									hasSubsToTranscode = child.getDefaultRenderer() != null && StringUtils.isBlank(child.getDefaultRenderer().getSupportedSubtitles());
+								if (child.isSubsFile()) {
+									hasSubsToTranscode = getDefaultRenderer() != null && StringUtils.isBlank(getDefaultRenderer().getSupportedSubtitles());
 								} else {
+									// FIXME: Why transcode if the renderer can handle embedded subs?
 									hasSubsToTranscode = hasEmbeddedSubs;
 								}
 
@@ -1417,7 +1417,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		StringBuilder wireshark = new StringBuilder();
 		final DLNAMediaAudio firstAudioTrack = getMedia() != null ? getMedia().getFirstAudioTrack() : null;
 		if (firstAudioTrack != null && StringUtils.isNotBlank(firstAudioTrack.getSongname())) {
-			wireshark.append(firstAudioTrack.getSongname() + (getPlayer() != null && !configuration.isHideEngineNames() ? (" [" + getPlayer().name() + "]") : ""));
+			wireshark.append(firstAudioTrack.getSongname()).append(getPlayer() != null && !configuration.isHideEngineNames() ? (" [" + getPlayer().name() + "]") : "");
 			addXMLTagAndAttribute(
 				sb,
 				"dc:title",
@@ -1659,8 +1659,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 											while (st1.hasMoreTokens()) {
 												String pair = st1.nextToken();
 												if (pair.contains(",")) {
-													String audio = pair.substring(0, pair.indexOf(","));
-													String sub = pair.substring(pair.indexOf(",") + 1);
+													String audio = pair.substring(0, pair.indexOf(','));
+													String sub = pair.substring(pair.indexOf(',') + 1);
 													audio = audio.trim();
 													sub = sub.trim();
 													LOGGER.trace("Searching for a match for: " + currentLang + " with " + audio + " and " + sub);
@@ -2275,9 +2275,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					fis.skip(low);
 				}
 				// http://www.ps3mediaserver.org/forum/viewtopic.php?f=11&t=12035
-				fis = wrap(fis, high, low);
 
-				return fis;
+				return wrap(fis, high, low);
 			}
 
 			InputStream fis;

@@ -178,7 +178,7 @@ public class MapFile extends DLNAResource {
 			int squareBracketIndex;
 			if (filename.substring(0, 1).matches("\\[")) {
 				filename = filename.replaceAll("_", " ");
-				squareBracketIndex = filename.indexOf("]");
+				squareBracketIndex = filename.indexOf(']');
 				if (squareBracketIndex != -1) {
 					filename = filename.substring(squareBracketIndex + 1);
 					if (filename.substring(0, 1).matches("\\s")) {

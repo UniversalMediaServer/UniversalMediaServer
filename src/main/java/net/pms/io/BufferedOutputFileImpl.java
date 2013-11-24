@@ -383,7 +383,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 					if (streamPos != -1) {
 						mb = packetposMB + streamPos + 18;
 						if (!shiftVideo(mb, true)) {
-							mb = mb - 5;
+							mb -= 5;
 							shiftAudio(mb, true);
 						}
 					}

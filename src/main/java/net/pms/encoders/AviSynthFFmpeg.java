@@ -102,7 +102,7 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 	 * Generate the AviSynth script based on the user's settings
 	 */
 	public static File getAVSScript(String filename, DLNAMediaSubtitle subTrack, int fromFrame, int toFrame, String frameRateRatio, String frameRateNumber) throws IOException {
-		String onlyFileName = filename.substring(1 + filename.lastIndexOf("\\"));
+		String onlyFileName = filename.substring(1 + filename.lastIndexOf('\\'));
 		File file = new File(configuration.getTempFolder(), "pms-avs-" + onlyFileName + ".avs");
 		PrintWriter pw = new PrintWriter(new FileOutputStream(file));
 
@@ -160,10 +160,10 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			mtLine2 = "SetMTMode(2)";
 		}
 
-		// True Motion
-		if (configuration.getFfmpegAvisynthInterFrame()) {
-			String GPU = "";
-			movieLine = movieLine + ".ConvertToYV12()";
+			// True Motion
+			if (configuration.getFfmpegAvisynthInterFrame()) {
+				String GPU = "";
+				movieLine += ".ConvertToYV12()";
 
 				// Enable GPU to assist with CPU
 				if (configuration.getFfmpegAvisynthInterFrameGPU() && interframegpu.isEnabled()){

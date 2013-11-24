@@ -1,3 +1,25 @@
+3.1.1 - 2013-11-24
+
+	General:
+		Sort renderers by name in the "Default renderer" option
+		Fixed a bug that caused unnecessary transcoding/muxing
+		Fixed subtitles not being transcoded when they should be
+		Fixed parsing of FFmpeg protocols
+		Fixed memory leaks
+		Optimized code
+	Renderers:
+		Improved video support on Panasonic TX-L32V10E TVs
+		Improved video support on PS3
+	Languages:
+		Updated Dutch translation (thanks, leroy!)
+		Updated Spanish translation (thanks, AlfredoRamos!)
+	External Components:
+		Updated h2database to 1.3.174, which:
+			Improves speed
+			Improves stability
+		Updated MediaInfo for Windows to 0.7.65, which:
+			Improves stability
+
 3.1.0 - 2013-11-18
 
 	General:

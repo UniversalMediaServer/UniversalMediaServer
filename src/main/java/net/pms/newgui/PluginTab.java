@@ -338,6 +338,7 @@ public class PluginTab {
 					while ((line = in.readLine()) != null) {
 						sb.append(line);
 						sb.append("\n");
+						in.close();
 					}
 					textArea.setText(sb.toString());
 					fis.close();

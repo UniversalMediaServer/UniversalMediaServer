@@ -89,13 +89,21 @@ public class FFmpegOptions extends optionsHashMap {
 		ArrayList<String> protocols = new ArrayList<String>();
 		String output = ProcessUtil.run(configuration.getFfmpegPath(), "-protocols");
 		boolean add = false;
+		boolean old = false;
 		for (String line : output.split("\n")) {
+			// new style
 			if (line.equals("Input:")) {
 				add = true;
 			} else if (line.equals("Output:")) {
 				break;
 			} else if (add) {
 				protocols.add(line);
+
+			// old style - see http://git.videolan.org/?p=ffmpeg.git;a=commitdiff;h=cdc6a87f193b1bf99a640a44374d4f2597118959
+			} else if (line.startsWith("I.. = Input")) {
+				old = true;
+			} else if (old && line.startsWith("I")) {
+				protocols.add(line.split("\\s+")[1]);
 			}
 		}
 		return protocols;

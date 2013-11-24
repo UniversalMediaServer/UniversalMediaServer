@@ -295,10 +295,10 @@ public class RootFolder extends DLNAResource {
 				while ((line = br.readLine()) != null) {
 					line = line.trim();
 
-					if (line.length() > 0 && !line.startsWith("#") && line.indexOf("=") > -1) {
-						String key = line.substring(0, line.indexOf("="));
-						String value = line.substring(line.indexOf("=") + 1);
-						String[] keys = parseFeedKey(key);
+						if (line.length() > 0 && !line.startsWith("#") && line.indexOf('=') > -1) {
+							String key = line.substring(0, line.indexOf('='));
+							String value = line.substring(line.indexOf('=') + 1);
+							String[] keys = parseFeedKey(key);
 
 						try {
 							if (
@@ -512,9 +512,9 @@ public class RootFolder extends DLNAResource {
 						continue;
 					}
 
-					line = line.trim(); // remove extra spaces
-					line = line.substring(1, line.lastIndexOf("\"")); // remove quotes and spaces
-					VirtualFolder apertureLibrary = createApertureDlnaLibrary(line);
+						line = line.trim(); // remove extra spaces
+						line = line.substring(1, line.lastIndexOf('"')); // remove quotes and spaces
+						VirtualFolder apertureLibrary = createApertureDlnaLibrary(line);
 
 					if (apertureLibrary != null) {
 						res.addChild(apertureLibrary);
@@ -579,8 +579,8 @@ public class RootFolder extends DLNAResource {
 			if (mediaPath != null) {
 				mediaName = mediaPath.toString();
 
-				if (mediaName != null && mediaName.lastIndexOf("/") != -1 && mediaName.lastIndexOf(".aplibrary") != -1) {
-					mediaName = mediaName.substring(mediaName.lastIndexOf("/"), mediaName.lastIndexOf(".aplibrary"));
+				if (mediaName != null && mediaName.lastIndexOf('/') != -1 && mediaName.lastIndexOf(".aplibrary") != -1) {
+					mediaName = mediaName.substring(mediaName.lastIndexOf('/'), mediaName.lastIndexOf(".aplibrary"));
 				} else {
 					mediaName = "unknown library";
 				}
@@ -697,7 +697,7 @@ public class RootFolder extends DLNAResource {
 
 			if (location != null) {
 				// Add the iTunes folder to the end
-				location = location + "\\iTunes\\iTunes Music Library.xml";
+				location += "\\iTunes\\iTunes Music Library.xml";
 				iTunesFile = location;
 			} else {
 				LOGGER.info("Could not find the My Music folder");
@@ -705,15 +705,6 @@ public class RootFolder extends DLNAResource {
 		}
 
 		return iTunesFile;
-	}
-
-	private String renameForSorting(String name) {
-		if (configuration.isIgnoreTheWordThe()) {
-			// Remove "The" from the beginning of files
-			name = name.replaceAll("^(?i)The[ .]", "");
-		}
-
-		return name;
 	}
 
 	private static boolean areNamesEqual(String aThis, String aThat) {
@@ -1041,7 +1032,7 @@ public class RootFolder extends DLNAResource {
 						File[] files = scriptDir.listFiles();
 						for (File file : files) {
 							String name = file.getName().replaceAll("_", " ");
-							int pos = name.lastIndexOf(".");
+							int pos = name.lastIndexOf('.');
 
 							if (pos != -1) {
 								name = name.substring(0, pos);

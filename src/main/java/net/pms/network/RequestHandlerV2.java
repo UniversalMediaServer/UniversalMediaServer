@@ -132,7 +132,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				renderer == null && headerLine != null &&
 				headerLine.toUpperCase().startsWith("USER-AGENT")
 			) {
-				userAgentString = headerLine.substring(headerLine.indexOf(":") + 1).trim();
+				userAgentString = headerLine.substring(headerLine.indexOf(':') + 1).trim();
 
 				// Attempt 2: try to recognize the renderer by matching the "User-Agent" header
 				renderer = RendererConfiguration.getRendererConfigurationByUA(userAgentString);

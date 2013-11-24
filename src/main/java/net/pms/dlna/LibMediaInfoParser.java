@@ -92,7 +92,7 @@ public class LibMediaInfoParser {
 							streamType = MediaInfo.StreamType.Chapters;
 						}
 
-						int point = line.indexOf(":");
+						int point = line.indexOf(':');
 
 						if (point > -1) {
 							String key = line.substring(0, point).trim();
@@ -114,6 +114,8 @@ public class LibMediaInfoParser {
 								media.putExtra(FormatConfiguration.MI_QPEL, value);
 							} else if (key.equals("Format_Settings_GMC") && streamType == MediaInfo.StreamType.Video) {
 								media.putExtra(FormatConfiguration.MI_GMC, value);
+							} else if (key.equals("Format_Settings_GOP") && streamType == MediaInfo.StreamType.Video) {
+								media.putExtra(FormatConfiguration.MI_GOP, value);
 							} else if (key.equals("MuxingMode") && streamType == MediaInfo.StreamType.Video) {
 								media.setMuxingMode(ovalue);
 							} else if (key.equals("CodecID")) {
@@ -445,7 +447,7 @@ public class LibMediaInfoParser {
 
 		// Value can look like "512 / 512" at this point
 		if (value.contains("/")) {
-			value = value.substring(0, value.indexOf("/")).trim();
+			value = value.substring(0, value.indexOf('/')).trim();
 		}
 
 		int pixels = Integer.parseInt(value);
@@ -488,7 +490,7 @@ public class LibMediaInfoParser {
 
 	public static int getBitrate(String value) {
 		if (value.contains("/")) {
-			value = value.substring(0, value.indexOf("/")).trim();
+			value = value.substring(0, value.indexOf('/')).trim();
 		}
 		try {
 			return Integer.parseInt(value);
@@ -505,7 +507,7 @@ public class LibMediaInfoParser {
 		// For example in vob audio ID can be '189 (0xBD)-32 (0x80)' and text ID '189 (0xBD)-128 (0x20)'
 		int end = value.lastIndexOf("(0x");
 		if (end > -1) {
-			int start = value.lastIndexOf("-") + 1;
+			int start = value.lastIndexOf('-') + 1;
 			value = value.substring(start > end ? 0 : start, end);
 		}
 
@@ -519,8 +521,8 @@ public class LibMediaInfoParser {
 		 * Some tracks show several values, e.g. "48000 / 48000 / 24000" for HE-AAC
 		 * We store only the first value
 		 */
-		if (value.indexOf("/") > -1) {
-			value = value.substring(0, value.indexOf("/"));
+		if (value.indexOf('/') > -1) {
+			value = value.substring(0, value.indexOf('/'));
 		}
 
 		if (value.indexOf("khz") > -1) {
@@ -541,8 +543,8 @@ public class LibMediaInfoParser {
 	}
 
 	public static String getFrameRateModeValue(String value) {
-		if (value.indexOf("/") > -1) {
-			value = value.substring(0, value.indexOf("/"));
+		if (value.indexOf('/') > -1) {
+			value = value.substring(0, value.indexOf('/'));
 		}
 
 		value = value.trim();
@@ -550,12 +552,12 @@ public class LibMediaInfoParser {
 	}
 
 	public static String getLang(String value) {
-		if (value.indexOf("(") > -1) {
-			value = value.substring(0, value.indexOf("("));
+		if (value.indexOf('(') > -1) {
+			value = value.substring(0, value.indexOf('('));
 		}
 
-		if (value.indexOf("/") > -1) {
-			value = value.substring(0, value.indexOf("/"));
+		if (value.indexOf('/') > -1) {
+			value = value.substring(0, value.indexOf('/'));
 		}
 
 		value = value.trim();
@@ -573,7 +575,7 @@ public class LibMediaInfoParser {
 
 		while (st.hasMoreTokens()) {
 			String token = st.nextToken();
-			int hl = token.indexOf("h");
+			int hl = token.indexOf('h');
 
 			if (hl > -1) {
 				h = Integer.parseInt(token.substring(0, hl).trim());
@@ -589,7 +591,7 @@ public class LibMediaInfoParser {
 
 			if (msl == -1) {
 				// Only check if ms was not found
-				int sl = token.indexOf("s");
+				int sl = token.indexOf('s');
 
 				if (sl > -1) {
 					s = Integer.parseInt(token.substring(0, sl).trim());

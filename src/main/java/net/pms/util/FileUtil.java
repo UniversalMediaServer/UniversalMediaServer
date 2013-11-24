@@ -142,7 +142,7 @@ public class FileUtil {
 	}
 
 	public static String getExtension(String f) {
-		int point = f.lastIndexOf(".");
+		int point = f.lastIndexOf('.');
 
 		if (point == -1) {
 			return null;
@@ -152,7 +152,7 @@ public class FileUtil {
 	}
 
 	public static String getFileNameWithoutExtension(String f) {
-		int point = f.lastIndexOf(".");
+		int point = f.lastIndexOf('.');
 
 		if (point == -1) {
 			point = f.length();
@@ -163,7 +163,7 @@ public class FileUtil {
 
 	public static String getFileNameWithRewriting(String f) {
 		String formattedName;
-		int point = f.lastIndexOf(".");
+		int point = f.lastIndexOf('.');
 
 		if (point == -1) {
 			point = f.length();
@@ -282,7 +282,7 @@ public class FileUtil {
 
 			// Remove group name from the beginning of the filename
 			if (formattedName.substring(0, 1).matches("\\[")) {
-				int closingBracketIndex = formattedName.indexOf("]");
+				int closingBracketIndex = formattedName.indexOf(']');
 				if (closingBracketIndex != -1) {
 					formattedName = formattedName.substring(closingBracketIndex + 1);
 				}
@@ -302,7 +302,7 @@ public class FileUtil {
 
 			// Remove group name from the beginning of the filename
 			if (formattedName.substring(0, 1).matches("\\[")) {
-				int closingBracketIndex = formattedName.indexOf("]");
+				int closingBracketIndex = formattedName.indexOf(']');
 				if (closingBracketIndex != -1) {
 					formattedName = formattedName.substring(closingBracketIndex + 1);
 				}
@@ -347,7 +347,7 @@ public class FileUtil {
 	}
 
 	public static File isFileExists(File f, String ext) {
-		int point = f.getName().lastIndexOf(".");
+		int point = f.getName().lastIndexOf('.');
 
 		if (point == -1) {
 			point = f.getName().length();
@@ -436,7 +436,7 @@ public class FileUtil {
 						if ("sub".equals(ext)) {
 							// Avoid microdvd/vobsub confusion by ignoring sub+idx pairs here since
 							// they'll come in unambiguously as vobsub via the idx file anyway
-							return isFileExists(new File(dir, name), "idx") == null ? true : false;
+							return isFileExists(new File(dir, name), "idx") == null;
 						}
 						return supported.contains(ext);
 					}
@@ -496,8 +496,8 @@ public class FileUtil {
 									if (code.length() > 0) {
 										sub.setFlavor(code);
 										if (sub.getFlavor().contains("-")) {
-											String flavorLang = sub.getFlavor().substring(0, sub.getFlavor().indexOf("-"));
-											String flavorTitle = sub.getFlavor().substring(sub.getFlavor().indexOf("-") + 1);
+											String flavorLang = sub.getFlavor().substring(0, sub.getFlavor().indexOf('-'));
+											String flavorTitle = sub.getFlavor().substring(sub.getFlavor().indexOf('-') + 1);
 											if (Iso639.getCodeList().contains(flavorLang)) {
 												sub.setLang(flavorLang);
 												sub.setFlavor(flavorTitle);

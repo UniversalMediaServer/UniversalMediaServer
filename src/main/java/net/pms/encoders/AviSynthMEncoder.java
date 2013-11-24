@@ -236,7 +236,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 	 * Generate the AviSynth script based on the user's settings
 	 */
 	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack, int fromFrame, int toFrame, String frameRateRatio, String frameRateNumber) throws IOException {
-		String onlyFileName = fileName.substring(1 + fileName.lastIndexOf("\\"));
+		String onlyFileName = fileName.substring(1 + fileName.lastIndexOf('\\'));
 		File file = new File(configuration.getTempFolder(), "pms-avs-" + onlyFileName + ".avs");
 		PrintWriter pw = new PrintWriter(new FileOutputStream(file));
 
@@ -298,10 +298,10 @@ public class AviSynthMEncoder extends MEncoderVideo {
 			mtLine3 = "SetMTMode(1)\nGetMTMode(false) > 0 ? distributor() : last";
 		}
 
-		// True Motion
-		if (configuration.getAvisynthInterFrame()) {
-			String GPU = "";
-			movieLine = movieLine + ".ConvertToYV12()";
+			// True Motion
+			if (configuration.getAvisynthInterFrame()) {
+				String GPU = "";
+				movieLine += ".ConvertToYV12()";
 
 			// Enable GPU to assist with CPU
 			if (configuration.getAvisynthInterFrameGPU() && interframegpu.isEnabled()){

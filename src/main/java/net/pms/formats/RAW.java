@@ -116,8 +116,8 @@ public class RAW extends JPG {
 			for (String s : list) {
 				if (s.startsWith("Thumb size:  ")) {
 					String sz = s.substring(13);
-					media.setWidth(Integer.parseInt(sz.substring(0, sz.indexOf("x")).trim()));
-					media.setHeight(Integer.parseInt(sz.substring(sz.indexOf("x") + 1).trim()));
+					media.setWidth(Integer.parseInt(sz.substring(0, sz.indexOf('x')).trim()));
+					media.setHeight(Integer.parseInt(sz.substring(sz.indexOf('x') + 1).trim()));
 				}
 			}
 
