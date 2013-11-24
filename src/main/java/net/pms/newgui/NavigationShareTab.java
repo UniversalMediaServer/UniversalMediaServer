@@ -173,7 +173,7 @@ public class NavigationShareTab {
 
 			builder.addLabel(Messages.getString("FoldTab.18"), FormLayoutUtil.flip(cc.xyw(1, 11, 3), colSpec, orientation));
 			builder.add(sortmethod, FormLayoutUtil.flip(cc.xyw(4, 11, 3), colSpec, orientation));
-			builder.add(ignorethewordthe, FormLayoutUtil.flip(cc.xyw(9, 11, 2), colSpec, orientation));
+			builder.add(ignorethewordthe, FormLayoutUtil.flip(cc.xy(9, 11), colSpec, orientation));
 
 			builder.add(prettifyfilenames, FormLayoutUtil.flip(cc.xyw(1, 13, 5), colSpec, orientation));
 
@@ -185,7 +185,7 @@ public class NavigationShareTab {
 			builder.add(hideengines, FormLayoutUtil.flip(cc.xyw(4, 17, 3), colSpec, orientation));
 			builder.add(hideemptyfolders, FormLayoutUtil.flip(cc.xyw(9, 17, 2), colSpec, orientation));
 
-			builder.add(itunes, FormLayoutUtil.flip(cc.xyw(1, 19, 3), colSpec, orientation));
+			builder.add(itunes, FormLayoutUtil.flip(cc.xy(1, 19), colSpec, orientation));
 			builder.add(iphoto, FormLayoutUtil.flip(cc.xyw(4, 19, 3), colSpec, orientation));
 			builder.add(aperture, FormLayoutUtil.flip(cc.xyw(9, 19, 2), colSpec, orientation));
 
