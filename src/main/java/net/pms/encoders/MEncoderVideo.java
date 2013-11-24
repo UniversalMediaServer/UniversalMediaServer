@@ -1047,6 +1047,18 @@ public class MEncoderVideo extends Player {
 
 		final boolean isTsMuxeRVideoEngineEnabled = configuration.getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
 		final boolean mencoderAC3RemuxAudioDelayBug = (params.aid != null) && (params.aid.getAudioProperties().getAudioDelay() != 0) && (params.timeseek == 0);
+
+		encodedAudioPassthrough = isTsMuxeRVideoEngineEnabled &&
+			configuration.isEncodedAudioPassthrough() && 
+			(
+				!dvd ||
+				configuration.isMencoderRemuxMPEG2()
+			) &&
+			params.aid != null && 
+			params.aid.isNonPCMEncodedAudio() && 
+			!avisynth() && 
+			params.mediaRenderer.isMuxLPCMToMpeg();
+
 		if (
 			configuration.isAudioRemuxAC3() &&
 			params.aid != null &&
@@ -1054,21 +1066,12 @@ public class MEncoderVideo extends Player {
 			!avisynth() &&
 			params.mediaRenderer.isTranscodeToAC3() &&
 			!configuration.isMEncoderNormalizeVolume() &&
-			!combinedCustomOptions.contains("acodec=")
+			!combinedCustomOptions.contains("acodec=") &&
+			!encodedAudioPassthrough
 		) {
-			// AC-3 remux takes priority
 			ac3Remux = true;
 		} else {
-			// Now check for DTS remux, LPCM streaming and encoded audio passthrough
-			encodedAudioPassthrough = isTsMuxeRVideoEngineEnabled &&
-				configuration.isEncodedAudioPassthrough() && 
-				(
-					!dvd ||
-					configuration.isMencoderRemuxMPEG2()
-				) && params.aid != null && 
-				params.aid.isNonPCMEncodedAudio() && 
-				!avisynth() && 
-				params.mediaRenderer.isMuxLPCMToMpeg();
+			// Now check for DTS remux and LPCM streaming
 			dtsRemux = isTsMuxeRVideoEngineEnabled &&
 				configuration.isAudioEmbedDtsInPcm() &&
 				(
