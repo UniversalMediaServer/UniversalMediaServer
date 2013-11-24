@@ -79,7 +79,7 @@
 				<include>linux/*.txt</include>
 				<include>plugins/**</include>
 				<include>renderers/*</include>
-				<include>web.css</include>
+				<include>web/*</include>
 			</includes>
 		</fileSet>
 
