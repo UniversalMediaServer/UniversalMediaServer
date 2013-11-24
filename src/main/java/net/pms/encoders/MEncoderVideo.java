@@ -924,6 +924,7 @@ public class MEncoderVideo extends Player {
 		 * - The user has disabled the "switch to tsMuxeR" option
 		 * - The user has specified overscan correction
 		 * - The aspect ratio of the video needs to be changed
+		 * - The filename specifies the resource as WEB-DL and the renderer is not PS3
 		 */
 		if (
 			!forceMencoder &&
@@ -941,7 +942,11 @@ public class MEncoderVideo extends Player {
 				intOCW == 0 &&
 				intOCH == 0
 			) &&
-			aspectRatiosMatch
+			aspectRatiosMatch &&
+			!(
+				filename.contains("WEB-DL") &&
+				!params.mediaRenderer.isPS3()
+			)
 		) {
 			String expertOptions[] = getSpecificCodecOptions(
 				configuration.getMencoderCodecSpecificConfig(),

@@ -3,14 +3,15 @@ package net.pms.configuration;
 import org.apache.commons.configuration.Configuration;
 
 class ConfigurationProgramPaths implements ProgramPaths {
-	private static final String KEY_VLC_PATH        = "vlc_path";
-	private static final String KEY_MENCODER_PATH   = "mencoder_path";
-	private static final String KEY_FFMPEG_PATH     = "ffmpeg_path";
-	private static final String KEY_MPLAYER_PATH    = "mplayer_path";
-	private static final String KEY_TSMUXER_PATH    = "tsmuxer_path";
-	private static final String KEY_FLAC_PATH       = "flac_path";
-	private static final String KEY_DCRAW           = "dcraw_path";
-	private static final String KEY_INTERFRAME_PATH = "interframe_path";
+	private static final String KEY_VLC_PATH         = "vlc_path";
+	private static final String KEY_MENCODER_PATH    = "mencoder_path";
+	private static final String KEY_FFMPEG_PATH      = "ffmpeg_path";
+	private static final String KEY_MPLAYER_PATH     = "mplayer_path";
+	private static final String KEY_TSMUXER_PATH     = "tsmuxer_path";
+	private static final String KEY_TSMUXER_NEW_PATH = "tsmuxer_new_path";
+	private static final String KEY_FLAC_PATH        = "flac_path";
+	private static final String KEY_DCRAW            = "dcraw_path";
+	private static final String KEY_INTERFRAME_PATH  = "interframe_path";
 
 	private final ConfigurationReader configurationReader;
 	private final ProgramPaths defaults;
@@ -43,6 +44,11 @@ class ConfigurationProgramPaths implements ProgramPaths {
 	@Override
 	public String getTsmuxerPath() {
 		return getString(KEY_TSMUXER_PATH, defaults.getTsmuxerPath());
+	}
+
+	@Override
+	public String getTsmuxerNewPath() {
+		return getString(KEY_TSMUXER_NEW_PATH, defaults.getTsmuxerNewPath());
 	}
 
 	@Override

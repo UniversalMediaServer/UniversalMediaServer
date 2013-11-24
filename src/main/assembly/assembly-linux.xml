@@ -31,9 +31,15 @@
 			<lineEnding>keep</lineEnding>
 		</file>
 
-		<!-- Include the tsMuxeR binary -->
+		<!-- Include the tsMuxeR binaries -->
 		<file>
 			<source>${project.binaries}/tsMuxeR</source>
+			<outputDirectory>./linux</outputDirectory>
+			<fileMode>0755</fileMode>
+			<lineEnding>keep</lineEnding>
+		</file>
+		<file>
+			<source>${project.binaries}/tsMuxeR-new</source>
 			<outputDirectory>./linux</outputDirectory>
 			<fileMode>0755</fileMode>
 			<lineEnding>keep</lineEnding>

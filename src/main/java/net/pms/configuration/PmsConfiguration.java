@@ -575,6 +575,10 @@ public class PmsConfiguration {
 		return programPaths.getTsmuxerPath();
 	}
 
+	public String getTsmuxerNewPath() {
+		return programPaths.getTsmuxerNewPath();
+	}
+
 	public String getFlacPath() {
 		return programPaths.getFlacPath();
 	}
