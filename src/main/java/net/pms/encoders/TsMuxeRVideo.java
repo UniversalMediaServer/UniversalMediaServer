@@ -320,9 +320,9 @@ public class TsMuxeRVideo extends Player {
 						(params.aid.getBitRate() > 370000 && params.aid.getBitRate() < 400000);
 					 */
 
-					ac3Remux = (params.aid.isAC3() && configuration.isAudioRemuxAC3());
-					dtsRemux = configuration.isAudioEmbedDtsInPcm() && params.aid.isDTS() && params.mediaRenderer.isDTSPlayable();
 					encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && params.aid.isNonPCMEncodedAudio();
+					ac3Remux = params.aid.isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough;
+					dtsRemux = configuration.isAudioEmbedDtsInPcm() && params.aid.isDTS() && params.mediaRenderer.isDTSPlayable() && !encodedAudioPassthrough;
 
 					pcm = configuration.isAudioUsePCM() &&
 						!mp4_with_non_h264 &&
@@ -439,9 +439,9 @@ public class TsMuxeRVideo extends Player {
 							(params.aid.getBitRate() > 370000 && params.aid.getBitRate() < 400000);
 						 */
 
-						ac3Remux = audio.isAC3() && configuration.isAudioRemuxAC3();
-						dtsRemux = configuration.isAudioEmbedDtsInPcm() && audio.isDTS() && params.mediaRenderer.isDTSPlayable();
 						encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && params.aid.isNonPCMEncodedAudio();
+						ac3Remux = audio.isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough;
+						dtsRemux = configuration.isAudioEmbedDtsInPcm() && audio.isDTS() && params.mediaRenderer.isDTSPlayable() && !encodedAudioPassthrough;
 
 						pcm = configuration.isAudioUsePCM() &&
 							!mp4_with_non_h264 &&
@@ -579,9 +579,9 @@ public class TsMuxeRVideo extends Player {
 					(params.aid.getBitRate() > 370000 && params.aid.getBitRate() < 400000);
 				 */
 
-				ac3Remux = params.aid.isAC3() && configuration.isAudioRemuxAC3();
-				dtsRemux = configuration.isAudioEmbedDtsInPcm() && params.aid.isDTS() && params.mediaRenderer.isDTSPlayable();
 				encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && params.aid.isNonPCMEncodedAudio();
+				ac3Remux = params.aid.isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough;
+				dtsRemux = configuration.isAudioEmbedDtsInPcm() && params.aid.isDTS() && params.mediaRenderer.isDTSPlayable() && !encodedAudioPassthrough;
 
 				pcm = configuration.isAudioUsePCM() &&
 					!mp4_with_non_h264 &&
@@ -642,9 +642,9 @@ public class TsMuxeRVideo extends Player {
 						(params.aid.getBitRate() > 370000 && params.aid.getBitRate() < 400000);
 					 */
 
-					ac3Remux = lang.isAC3() && configuration.isAudioRemuxAC3();
-					dtsRemux = configuration.isAudioEmbedDtsInPcm() && lang.isDTS() && params.mediaRenderer.isDTSPlayable();
 					encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && params.aid.isNonPCMEncodedAudio();
+					ac3Remux = lang.isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough;
+					dtsRemux = configuration.isAudioEmbedDtsInPcm() && lang.isDTS() && params.mediaRenderer.isDTSPlayable() && !encodedAudioPassthrough;
 
 					pcm = configuration.isAudioUsePCM() &&
 						!mp4_with_non_h264 &&
