@@ -1041,6 +1041,9 @@ public class FFMpegVideo extends Player {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setFFmpegMuxWhenCompatible(e.getStateChange() == ItemEvent.SELECTED);
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					videoRemuxTsMuxer.setSelected(false);
+				}
 			}
 		});
 		builder.add(videoremux, cc.xy(2, 5));
@@ -1051,6 +1054,9 @@ public class FFMpegVideo extends Player {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setFFmpegMuxWithTsMuxerWhenCompatible(e.getStateChange() == ItemEvent.SELECTED);
+				if (e.getStateChange() == ItemEvent.SELECTED) {
+					videoremux.setSelected(false);
+				}
 			}
 		});
 		builder.add(videoRemuxTsMuxer, cc.xy(2, 7));
