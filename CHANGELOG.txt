@@ -1,4 +1,4 @@
-3.1.2 - 2013-11-??
+3.1.2 - 2013-11-25
 
 	General:
 		Added tooltips to more options
