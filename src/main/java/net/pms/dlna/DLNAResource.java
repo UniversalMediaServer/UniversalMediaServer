@@ -2322,7 +2322,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (resume != null) {
 				params.timeseek += (long) (resume.getTimeOffset() / 1000);
 				if (getPlayer() == null) {
-					setPlayer(new ResumePlayer());
+					setPlayer(new FFMpegVideo());
 				}
 			}
 
