@@ -1,7 +1,13 @@
 3.1.2 - 2013-11-??
 
 	General:
-		
+		Added tooltips to more options
+		Changed the appearance of tooltips
+		Removed the ability to set both FFmpeg muxing options at the same time in the GUI
+		Minor GUI improvements
+		Made the resume feature more stable
+		Fixed video compatibility bugs
+		Fixed FFmpeg on Linux systems which do not have FFmpeg installed
 
 3.1.1 - 2013-11-24
 
