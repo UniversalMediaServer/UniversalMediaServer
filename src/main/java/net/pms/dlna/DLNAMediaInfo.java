@@ -50,10 +50,7 @@ import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.network.HTTPResource;
-import net.pms.util.CoverUtil;
-import net.pms.util.FileUtil;
-import net.pms.util.MpegUtil;
-import net.pms.util.ProcessUtil;
+import net.pms.util.*;
 import static net.pms.util.StringUtil.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.sanselan.ImageInfo;
@@ -1108,7 +1105,7 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	public String getDurationString() {
-		return durationSec != null ? convertTimeToString(durationSec, DURATION_TIME_FORMAT) : null;
+		return durationSec != null ? StringUtil.convertTimeToString(durationSec, StringUtil.DURATION_TIME_FORMAT) : null;
 	}
 
 	/**
