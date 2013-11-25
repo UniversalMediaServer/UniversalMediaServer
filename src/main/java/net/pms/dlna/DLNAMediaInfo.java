@@ -1115,7 +1115,10 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @deprecated Use {@link #StringUtil.convertTimeToString(durationSec, StringUtil.DURATION_TIME_FORMAT)} instead.
 	 */
 	public static String getDurationString(double d) {
-		return convertTimeToString(d, DURATION_TIME_FORMAT);
+		int s = ((int) d) % 60;
+		int h = (int) (d / 3600);
+		int m = ((int) (d / 60)) % 60;
+		return String.format("%02d:%02d:%02d.00", h, m, s);
 	}
 
 	public static Double parseDurationString(String duration) {
