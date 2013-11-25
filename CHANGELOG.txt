@@ -1,7 +1,7 @@
 3.1.2.1 - 2013-11-??
 
 	General:
-		
+		Fixed a video compatibility bug affecting some users
 
 3.1.2 - 2013-11-25
 
