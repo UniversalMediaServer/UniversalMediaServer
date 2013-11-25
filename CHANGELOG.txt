@@ -1,4 +1,4 @@
-3.1.2.1 - 2013-11-??
+3.1.2.1 - 2013-11-26
 
 	General:
 		Fixed a video compatibility bug affecting some users
