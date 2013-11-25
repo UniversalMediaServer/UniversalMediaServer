@@ -30,6 +30,11 @@ class MacDefaultPaths implements ProgramPaths {
 	}
 
 	@Override
+	public String getTsmuxerNewPath() {
+		return getBinariesPath() + "osx/tsMuxeR-new";
+	}
+
+	@Override
 	public String getVlcPath() {
 		return "/Applications/VLC.app/Contents/MacOS/VLC";
 	}

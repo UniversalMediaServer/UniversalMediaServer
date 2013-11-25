@@ -198,7 +198,7 @@ public class RecentlyPlayed extends VirtualFolder {
 						subData = str.substring(3, pos);
 					}
 					str = str.substring(pos + 1);
-					pos = str.indexOf(";");
+					pos = str.indexOf(';');
 				}
 				LOGGER.debug("master is " + master + " str " + str);
 				ExternalListener lpp;

@@ -33,6 +33,11 @@ class LinuxDefaultPaths implements ProgramPaths {
 	}
 
 	@Override
+	public String getTsmuxerNewPath() {
+		return getBinaryPath("tsMuxeR-new");
+	}
+
+	@Override
 	public String getVlcPath() {
 		return getBinaryPath("vlc");
 	}
@@ -64,7 +69,7 @@ class LinuxDefaultPaths implements ProgramPaths {
 				return path + "/";
 			}
 		} else {
-			return "";
+			return "linux/";
 		}
 	}
 

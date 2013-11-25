@@ -1265,6 +1265,11 @@ public class RootFolder extends DLNAResource {
 		if (StringUtils.isNotBlank(tmp)) {
 			legalPlugs = tmp.split(",");
 		}
+		String[] legalPlugs = null;
+		String tmp = configuration.getPlugins(tags);
+		if (StringUtils.isNotBlank(tmp)) {
+			legalPlugs = tmp.split(",");
+		}
 
 		for (ExternalListener listener : ExternalFactory.getExternalListeners()) {
 			if (illegalPlugin(legalPlugs, listener.name())) {

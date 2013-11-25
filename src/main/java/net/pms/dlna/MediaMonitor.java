@@ -30,6 +30,7 @@ public class MediaMonitor extends VirtualFolder {
 		config = PMS.getConfiguration();
 		config = PMS.getConfiguration();
 		config = PMS.getConfiguration();
+		config = PMS.getConfiguration();
 		parseMonitorFile();
 	}
 

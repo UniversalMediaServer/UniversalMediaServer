@@ -3,6 +3,7 @@ package net.pms.util;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.lang.reflect.Field;
 import net.pms.PMS;
 import net.pms.io.Gob;
@@ -161,11 +162,11 @@ public class ProcessUtil {
 			}
 			p.waitFor();
 			if (p.exitValue() != 0) {
-				LOGGER.debug("Warning: command {} returned {}", cmd, p.exitValue());
+				LOGGER.debug("Warning: command {} returned {}", Arrays.toString(cmd), p.exitValue());
 			}
 			return output.toString();
 		} catch (Exception e) {
-			LOGGER.error("Error running command " + cmd, e);
+			LOGGER.error("Error running command " + Arrays.toString(cmd), e);
 		}
 		return "";
 	}

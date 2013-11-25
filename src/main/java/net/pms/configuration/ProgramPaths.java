@@ -6,6 +6,7 @@ interface ProgramPaths {
 	String getVlcPath();
 	String getMencoderPath();
 	String getTsmuxerPath();
+	String getTsmuxerNewPath();
 	String getFlacPath();
 	String getDCRaw();
 	String getInterFramePath();
