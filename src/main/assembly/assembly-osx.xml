@@ -31,6 +31,16 @@
 			</excludes>
 		</fileSet>
 
+		<!-- Include the dummy input video -->
+		<fileSet>
+			<directory>${project.basedir}</directory>
+			<outputDirectory>${project.name}.app/Contents/Resources/Java</outputDirectory>
+			<fileMode>0644</fileMode>
+			<includes>
+				<include>DummyInput.mkv</include>
+			</includes>
+		</fileSet>
+
 		<!-- Include unzipped libmediainfo.dylib -->
 		<fileSet>
 			<directory>${project.binaries}</directory>

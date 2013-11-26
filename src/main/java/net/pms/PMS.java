@@ -217,7 +217,8 @@ public class PMS {
 
 	/**
 	 * Executes a new Process and creates a fork that waits for its results.
-	 * TODO Extend explanation on where this is being used.
+	 * This is used to generate fontconfig caches for MPlayer and FFmpeg.
+	 *
 	 * @param name Symbolic name for the process to be launched, only used in the trace log
 	 * @param error (boolean) Set to true if you want PMS to add error messages to the trace pane
 	 * @param workDir (File) optional working directory to run the process in
@@ -226,7 +227,7 @@ public class PMS {
 	 * @throws Exception TODO: Check which exceptions to use
 	 */
 	private boolean checkProcessExistence(String name, boolean error, File workDir, String... params) throws Exception {
-		LOGGER.debug("Launching: " + params[0]);
+		LOGGER.debug("Launching: " + Arrays.toString(params));
 
 		try {
 			ProcessBuilder pb = new ProcessBuilder(params);
@@ -620,6 +621,17 @@ public class PMS {
 		}
 
 		LOGGER.info("Finished checking the MPlayer font cache.");
+		LOGGER.info("Please wait while we check the FFmpeg font cache, this can take a minute or so.");
+		frame.setStatusCode(0, Messages.getString("PMS.140"), "icon-status-connecting.png");
+
+		String cwd = new File("").getAbsolutePath();
+		checkProcessExistence("FFmpeg", true, null, configuration.getFfmpegPath(), "-y", "-i", "\"" + cwd + "\\DummyInput.mkv\"", "-vf", "ass=DoesNotExist.ass", "-c:a", "ac3", "-c:v", "mpeg2video", "DummyOutput.mpeg");
+
+		if (Platform.isWindows()) {
+			checkProcessExistence("FFmpeg", true, configuration.getTempFolder(), configuration.getFfmpegPath(), "-y", "-i", "\"" + cwd + "\\DummyInput.mkv\"", "-vf", "ass=DoesNotExist.ass", "-c:a", "ac3", "-c:v", "mpeg2video", "DummyOutput.mpeg");
+		}
+
+		LOGGER.info("Finished checking the FFmpeg font cache.");
 
 		frame.setStatusCode(0, Messages.getString("PMS.130"), "icon-status-connecting.png");
 
