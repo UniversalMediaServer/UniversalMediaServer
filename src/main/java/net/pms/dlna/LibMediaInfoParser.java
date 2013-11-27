@@ -114,6 +114,8 @@ public class LibMediaInfoParser {
 								media.putExtra(FormatConfiguration.MI_QPEL, value);
 							} else if (key.equals("Format_Settings_GMC") && streamType == MediaInfo.StreamType.Video) {
 								media.putExtra(FormatConfiguration.MI_GMC, value);
+							} else if (key.equals("Format_Settings_GOP") && streamType == MediaInfo.StreamType.Video) {
+								media.putExtra(FormatConfiguration.MI_GOP, value);
 							} else if (key.equals("MuxingMode") && streamType == MediaInfo.StreamType.Video) {
 								media.setMuxingMode(ovalue);
 							} else if (key.equals("CodecID")) {

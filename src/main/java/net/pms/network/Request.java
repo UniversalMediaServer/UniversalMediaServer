@@ -438,6 +438,7 @@ public class Request extends HTTPResource {
 			inputStream = getResourceInputStream(argument);
 		} else if ((method.equals("GET") || method.equals("HEAD")) && (argument.equals("description/fetch") || argument.endsWith("1.0.xml"))) {
 			String profileName = configuration.getProfileName();
+			String serverName = configuration.getServerName();
 			output(output, CONTENT_TYPE);
 			output(output, "Cache-Control: no-cache");
 			output(output, "Expires: 0");
@@ -458,7 +459,7 @@ public class Request extends HTTPResource {
 
 				if (xbox) {
 					LOGGER.debug("DLNA changes for Xbox 360");
-					s = s.replace("Universal Media Server", "Universal Media Server [" + profileName + "] : Windows Media Connect");
+					s = s.replace("Universal Media Server", serverName + " [" + profileName + "] : Windows Media Connect");
 					s = s.replace("<modelName>UMS</modelName>", "<modelName>Windows Media Connect</modelName>");
 					s = s.replace("<serviceList>", "<serviceList>" + CRLF + "<service>" + CRLF +
 						"<serviceType>urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1</serviceType>" + CRLF +
@@ -467,7 +468,7 @@ public class Request extends HTTPResource {
 						"<controlURL>/upnp/mrr/control</controlURL>" + CRLF +
 						"</service>" + CRLF);
 				} else {
-					s = s.replace("Universal Media Server", "Universal Media Server [" + profileName + "]");
+					s = s.replace("Universal Media Server", serverName + " [" + profileName + "]");
 				}
 
 				inputStream = new ByteArrayInputStream(s.getBytes());
@@ -815,7 +816,7 @@ public class Request extends HTTPResource {
 
 			if (timeseek > 0 && dlna != null) {
 				// Add timeseek information headers.
-				String timeseekValue = StringUtil.convertTimeToString(timeseek, StringUtil.DURATION_TIME_FORMAT);
+				String timeseekValue = DLNAMediaInfo.getDurationString(timeseek);
 				String timetotalValue = dlna.getMedia().getDurationString();
 				output(output, "TimeSeekRange.dlna.org: npt=" + timeseekValue + "-" + timetotalValue + "/" + timetotalValue);
 				output(output, "X-Seek-Range: npt=" + timeseekValue + "-" + timetotalValue + "/" + timetotalValue);

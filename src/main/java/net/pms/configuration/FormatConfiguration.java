@@ -38,6 +38,7 @@ public class FormatConfiguration {
 	public static final String LPCM = "lpcm";
 	public static final String MATROSKA = "mkv";
 	public static final String MI_GMC = "gmc";
+	public static final String MI_GOP = "gop";
 	public static final String MI_QPEL = "qpel";
 	public static final String MJPEG = "mjpeg";
 	public static final String MLP = "mlp";
@@ -152,7 +153,7 @@ public class FormatConfiguration {
 			if (maxVideoWidth != null) {
 				try {
 					iMaxVideoWidth = Integer.parseInt(maxVideoWidth);
-				} catch (Exception nfe) {
+				} catch (NumberFormatException nfe) {
 					LOGGER.error("Error parsing maximum video width: " + maxVideoWidth, nfe);
 					return false;
 				}
@@ -200,16 +201,23 @@ public class FormatConfiguration {
 		 * 			match, true otherwise.
 		 */
 		public boolean match(
-				String format,
-				String videoCodec,
-				String audioCodec,
-				int nbAudioChannels,
-				int frequency,
-				int bitrate,
-				int videoWidth,
-				int videoHeight,
-				Map<String, String> extras
-			) {
+			String format,
+			String videoCodec,
+			String audioCodec,
+			int nbAudioChannels,
+			int frequency,
+			int bitrate,
+			int videoWidth,
+			int videoHeight,
+			Map<String, String> extras
+		) {
+
+			// Satisfy a minimum threshold
+			if (format == null && videoCodec == null && audioCodec == null) {
+				// We have no matchable info. This can happen with unparsed
+				// mediainfo objects (e.g. from WEB.conf or plugins).
+				return false;
+			}
 
 			// Assume a match, until proven otherwise
 			if (format != null && !pFormat.matcher(format).matches()) {
@@ -265,6 +273,11 @@ public class FormatConfiguration {
 
 					if (key.equals(MI_GMC) && miExtras.get(MI_GMC) != null && !miExtras.get(MI_GMC).matcher(value).matches()) {
 						LOGGER.trace("Gmc value \"{}\" failed to match support line {}", miExtras.get(MI_GMC), supportLine);
+						return false;
+					}
+					
+					if (key.equals(MI_GOP) && miExtras.get(MI_GOP) != null && miExtras.get(MI_GOP).matcher("static").matches() && value.equals("variable")) {
+						LOGGER.trace("GOP value \"{}\" failed to match support line {}", value, supportLine);
 						return false;
 					}
 				}

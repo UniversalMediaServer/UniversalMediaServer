@@ -35,6 +35,11 @@ class WindowsDefaultPaths implements ProgramPaths {
 	}
 
 	@Override
+	public String getTsmuxerNewPath() {
+		return getBinariesPath() + "win32/tsMuxeR-new.exe";
+	}
+
+	@Override
 	public String getVlcPath() {
 		return getBinariesPath() +  "videolan/vlc.exe";
 	}
