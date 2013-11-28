@@ -1582,7 +1582,7 @@ public class PmsConfiguration {
 	 * @return True if PMS should hide the folder, false othewise.
 	 */
 	public boolean getHideVideoSettings(ArrayList<String> tags) {
-		return tagLoopBool(tags, ".hide_set", KEY_HIDE_VIDEO_SETTINGS, true);
+		return getBoolean(KEY_HIDE_VIDEO_SETTINGS, true);
 	}
 
 	/**
@@ -2403,7 +2403,7 @@ public class PmsConfiguration {
 	}
 
 	public boolean isHideNewMediaFolder(ArrayList<String> tags) {
-		return tagLoopBool(tags, ".new_media", KEY_HIDE_NEW_MEDIA_FOLDER, false);
+		return getBoolean(KEY_HIDE_NEW_MEDIA_FOLDER, false);
 	}
 
 	public void setHideNewMediaFolder(final boolean value) {
@@ -2411,7 +2411,7 @@ public class PmsConfiguration {
 	}
 
 	public boolean isHideRecentlyPlayedFolder(ArrayList<String> tags) {
-		return tagLoopBool(tags, ".recent", KEY_HIDE_RECENTLY_PLAYED_FOLDER, false);
+		return getBoolean(PmsConfiguration.KEY_HIDE_RECENTLY_PLAYED_FOLDER, false);
 	}
 
 	public void setHideRecentlyPlayedFolder(final boolean value) {
