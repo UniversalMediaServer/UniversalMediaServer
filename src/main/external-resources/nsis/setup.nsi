@@ -204,6 +204,7 @@ Section "Program Files"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\UMS.conf"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\WEB.conf"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\ffmpeg.webfilters"
+	File "${PROJECT_BASEDIR}\src\main\external-resources\VirtualFolders.conf"
 
 	; Store install folder
 	WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "" $INSTDIR
@@ -234,6 +235,7 @@ Section "Program Files"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\UMS.conf"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\WEB.conf"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\ffmpeg.webfilters"
+	File "${PROJECT_BASEDIR}\src\main\external-resources\VirtualFolders.conf"
 SectionEnd
 
 Section "Start Menu Shortcuts"

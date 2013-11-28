@@ -198,6 +198,7 @@ public class PmsConfiguration {
 	private static final String KEY_SEARCH_FOLDER = "search_folder";
 	private static final String KEY_SEARCH_RECURSE = "search_recurse";
 	private static final String KEY_SERVER_HOSTNAME = "hostname";
+	private static final String KEY_SERVER_NAME = "server_name";
 	private static final String KEY_SERVER_PORT = "port";
 	private static final String KEY_SHARES = "shares";
 	private static final String KEY_SKIP_LOOP_FILTER_ENABLED = "mencoder_skip_loop_filter";
@@ -276,6 +277,7 @@ public class PmsConfiguration {
 			KEY_OPEN_ARCHIVES,
 			KEY_PRETTIFY_FILENAMES,
 			KEY_SERVER_HOSTNAME,
+			KEY_SERVER_NAME,
 			KEY_SERVER_PORT,
 			KEY_SHOW_APERTURE_LIBRARY,
 			KEY_SHOW_IPHOTO_LIBRARY,
@@ -644,6 +646,24 @@ public class PmsConfiguration {
 	 */
 	public void setHostname(String value) {
 		configuration.setProperty(KEY_SERVER_HOSTNAME, value);
+	}
+
+	/**
+	 * The name of the server.
+	 *
+	 * @return The name of the server.
+	 */
+	public String getServerName() {
+		return getString(KEY_SERVER_NAME, "Universal Media Server");
+	}
+
+	/**
+	 * Set the name of the server.
+	 *
+	 * @param value The name.
+	 */
+	public void setServerName(String value) {
+		configuration.setProperty(KEY_SERVER_NAME, value);
 	}
 
 	/**
