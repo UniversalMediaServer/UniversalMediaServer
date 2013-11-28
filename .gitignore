@@ -8,6 +8,7 @@ libmediainfo.dylib
 MediaInfo.dll
 MediaInfo64.dll
 MediaInfo-License.html
+DummyInput.mkv
 pms.iml
 .project
 .settings

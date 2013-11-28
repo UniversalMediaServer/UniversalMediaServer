@@ -88,6 +88,7 @@
 				<include>plugins/**</include>
 				<include>renderers/*</include>
 				<include>VirtualFolders.conf</include>
+				<include>DummyInput.ass</include>
 			</includes>
 		</fileSet>
 

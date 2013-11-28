@@ -194,8 +194,8 @@ public class FFMpegVideo extends Player {
 					videoFilterOptions.add("-avoid_negative_ts");
 					videoFilterOptions.add("1");
 					videoFilterOptions.add("-af");
-					videoFilterOptions.add("asetpts=PTS-" + (int) params.timeseek + "/TB");
-					filterChain.add("setpts=PTS-" + (int) params.timeseek + "/TB");
+					videoFilterOptions.add("asetpts=PTS-" + params.timeseek + "/TB");
+					filterChain.add("setpts=PTS-" + params.timeseek + "/TB");
 				}
 			}
 		}
