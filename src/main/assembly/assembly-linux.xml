@@ -52,14 +52,6 @@
 			<fileMode>0755</fileMode>
 			<lineEnding>unix</lineEnding>
 		</file>
-
-		<!-- Include the dummy input video -->
-		<file>
-			<source>${project.basedir}/DummyInput.mkv</source>
-			<outputDirectory>.</outputDirectory>
-			<fileMode>0755</fileMode>
-			<lineEnding>keep</lineEnding>
-		</file>
 	</files>
 	<fileSets>
 
@@ -94,6 +86,7 @@
 				<include>plugins/**</include>
 				<include>renderers/*</include>
 				<include>VirtualFolders.conf</include>
+				<include>DummyInput.ass</include>
 			</includes>
 		</fileSet>
 
