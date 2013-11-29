@@ -845,13 +845,8 @@ public class TranscodingTab {
 		subtitleCodePage.setEditable(true);
 		builder.add(subtitleCodePage, FormLayoutUtil.flip(cc.xyw(3, 8, 7), colSpec, orientation));
 
-		fribidi = new JCheckBox(Messages.getString("MEncoderVideo.23"));
+		fribidi = new JCheckBox(Messages.getString("MEncoderVideo.23"), configuration.isMencoderSubFribidi());
 		fribidi.setContentAreaFilled(false);
-
-		if (configuration.isMencoderSubFribidi()) {
-			fribidi.setSelected(true);
-		}
-
 		fribidi.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {

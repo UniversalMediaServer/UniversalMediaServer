@@ -847,11 +847,8 @@ public class TsMuxeRVideo extends Player {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		tsmuxerforcefps = new JCheckBox(Messages.getString("TsMuxeRVideo.2"));
+		tsmuxerforcefps = new JCheckBox(Messages.getString("TsMuxeRVideo.2"), configuration.isTsmuxerForceFps());
 		tsmuxerforcefps.setContentAreaFilled(false);
-		if (configuration.isTsmuxerForceFps()) {
-			tsmuxerforcefps.setSelected(true);
-		}
 		tsmuxerforcefps.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -860,12 +857,8 @@ public class TsMuxeRVideo extends Player {
 		});
 		builder.add(tsmuxerforcefps, FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
 
-		muxallaudiotracks = new JCheckBox(Messages.getString("TsMuxeRVideo.19"));
+		muxallaudiotracks = new JCheckBox(Messages.getString("TsMuxeRVideo.19"), configuration.isMuxAllAudioTracks());
 		muxallaudiotracks.setContentAreaFilled(false);
-		if (configuration.isMuxAllAudioTracks()) {
-			muxallaudiotracks.setSelected(true);
-		}
-
 		muxallaudiotracks.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {

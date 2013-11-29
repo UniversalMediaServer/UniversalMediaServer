@@ -1061,7 +1061,7 @@ public class FFMpegVideo extends Player {
 		});
 		builder.add(videoRemuxTsMuxer, cc.xy(2, 7));
 
-		fc = new JCheckBox(Messages.getString("MEncoderVideo.21"));
+		fc = new JCheckBox(Messages.getString("MEncoderVideo.21"), configuration.isFFmpegFontConfig());
 		fc.setContentAreaFilled(false);
 		fc.addItemListener(new ItemListener() {
 			@Override
@@ -1070,7 +1070,6 @@ public class FFMpegVideo extends Player {
 			}
 		});
 		builder.add(fc, cc.xy(2, 9));
-		fc.setSelected(configuration.isFFmpegFontConfig());
 
 		return builder.getPanel();
 	}
