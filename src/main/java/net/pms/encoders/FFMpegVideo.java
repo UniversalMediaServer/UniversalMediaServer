@@ -1157,6 +1157,10 @@ public class FFMpegVideo extends Player {
 
 		if (convertedSubs.canRead()) {
 			// subs are already converted
+			if (applyFontConfig || isEmbeddedSource) {
+				params.sid.setType(SubtitleType.ASS);
+			}
+
 			return convertedSubs;
 		}
 
