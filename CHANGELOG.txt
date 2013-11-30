@@ -6,8 +6,15 @@
 		Added example virtual folders file in the profile directory
 		The virtual folders file is now loaded from the profile directory instead of the installation directory
 		Made seeking more accurate with FFmpeg
+		When FFmpeg muxes, it always uses tsMuxeR
+		Improved compatibility with videos with unusual colorspaces
+		Improved compatibility when transcoding to H.264 via FFmpeg
+		Improved compatibility with video with HE-AAC audio
+		Improved compatibility when using tsMuxeR via FFmpeg
+		Improved compatibility with high-resolution videos such as 3D-SBS and 3D-OU
 		Fixed resume files causing a startup crash
 		Fixed some settings causing a crash
+		Fixed bug with FFmpeg subtitles
 	Languages:
 		Updated Spanish translation (thanks, AlfredoRamos!)
 	External Components:
