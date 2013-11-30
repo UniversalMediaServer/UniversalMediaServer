@@ -23,14 +23,11 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-
 import javax.swing.*;
-
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-
 import org.apache.commons.configuration.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,7 +88,7 @@ public class SelectRenderers extends JPanel implements ItemListener, ActionListe
 					checkBox.setSelected(false);
 				}
 			}
-	    }
+		}
 	}
 
 	/**
@@ -122,7 +119,10 @@ public class SelectRenderers extends JPanel implements ItemListener, ActionListe
 			Messages.getString("GeneralTab.5"),
 			JOptionPane.OK_CANCEL_OPTION,
 			JOptionPane.PLAIN_MESSAGE,
-			null, null, null);
+			null,
+			null,
+			null
+		);
 		if (selectRenderers == JOptionPane.YES_OPTION) {
 			try {
 				configuration.save();
