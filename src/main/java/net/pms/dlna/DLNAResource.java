@@ -1564,7 +1564,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 											MEncoderVideo.ID.equals(getPlayer().id())
 										) ||
 										(
-											configuration.isFFmpegMuxWhenCompatible() &&
+											(
+												configuration.isFFmpegMuxWhenCompatible() ||
+												configuration.isFFmpegMuxWithTsMuxerWhenCompatible()
+											) &&
 											FFMpegVideo.ID.equals(getPlayer().id())
 										)
 									)
