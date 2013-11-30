@@ -266,6 +266,12 @@ public class DLNAMediaInfo implements Cloneable {
 	public boolean encrypted;
 
 	/**
+	 * @deprecated Use standard getter and setter to access this variable.
+	 */
+	@Deprecated
+	public String matrixCoefficients;
+
+	/**
 	 * Used to determine whether tsMuxeR can mux the file instead of transcoding.
 	 * Also used by DLNAResource to help determine the DLNA.ORG_PN (file type)
 	 * value to send to the renderer, which is confusing.
@@ -1712,6 +1718,14 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public void setMimeType(String mimeType) {
 		this.mimeType = mimeType;
+	}
+
+	public String getMatrixCoefficients() {
+		return matrixCoefficients;
+	}
+
+	public void setMatrixCoefficients(String matrixCoefficients) {
+		this.matrixCoefficients = matrixCoefficients;
 	}
 
 	/**

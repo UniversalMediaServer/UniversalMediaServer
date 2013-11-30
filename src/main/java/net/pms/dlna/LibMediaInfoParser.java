@@ -221,6 +221,8 @@ public class LibMediaInfoParser {
 								} catch (NumberFormatException nfe) {
 									LOGGER.debug("Could not parse delay \"" + value + "\"");
 								}
+							} else if (key.equals("matrix_coefficients") && streamType == MediaInfo.StreamType.Video) {
+								media.setMatrixCoefficients(value);
 							}
 						}
 					}

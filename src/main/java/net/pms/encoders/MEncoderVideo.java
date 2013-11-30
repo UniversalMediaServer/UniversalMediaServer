@@ -890,6 +890,7 @@ public class MEncoderVideo extends Player {
 		 * - The user has specified overscan correction
 		 * - The aspect ratio of the video needs to be changed
 		 * - The filename specifies the resource as WEB-DL and the renderer is not PS3
+		 * - The video matrix coefficients are likely to be unsupported
 		 */
 		if (
 			!forceMencoder &&
@@ -911,7 +912,8 @@ public class MEncoderVideo extends Player {
 			!(
 				filename.contains("WEB-DL") &&
 				!params.mediaRenderer.isPS3()
-			)
+			) &&
+			!"bt.601".equals(media.getMatrixCoefficients())
 		) {
 			String expertOptions[] = getSpecificCodecOptions(
 				configuration.getMencoderCodecSpecificConfig(),

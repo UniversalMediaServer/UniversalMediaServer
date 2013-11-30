@@ -309,7 +309,8 @@ public class FFMpegVideo extends Player {
 				) &&
 				media.isMuxable(params.mediaRenderer) &&
 				configuration.isFFmpegMuxWhenCompatible() &&
-				params.mediaRenderer.isMuxH264MpegTS()
+				params.mediaRenderer.isMuxH264MpegTS() &&
+				!"bt.601".equals(media.getMatrixCoefficients())
 			) {
 				transcodeOptions.add("-c:v");
 				transcodeOptions.add("copy");
@@ -656,6 +657,7 @@ public class FFMpegVideo extends Player {
 		 * - The resource is incompatible with tsMuxeR
 		 * - The user has disabled the "switch to tsMuxeR" option
 		 * - The aspect ratio of the video needs to be changed
+		 * - The video matrix coefficients are likely to be unsupported
 		 */
 		if (
 			!forceFfmpeg &&
@@ -668,7 +670,8 @@ public class FFMpegVideo extends Player {
 			media.isMuxable(params.mediaRenderer) &&
 			configuration.isFFmpegMuxWithTsMuxerWhenCompatible() &&
 			params.mediaRenderer.isMuxH264MpegTS() &&
-			aspectRatiosMatch
+			aspectRatiosMatch &&
+			!"bt.601".equals(media.getMatrixCoefficients())
 		) {
 			TsMuxeRVideo tv = new TsMuxeRVideo();
 			params.forceFps = media.getValidFps(false);
