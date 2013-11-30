@@ -312,6 +312,17 @@ public class DLNAMediaInfo implements Cloneable {
 			}
 		}
 
+		// Check if the renderer supports the resolution of the video
+		if (
+			mediaRenderer.isVideoRescale() &&
+			(
+				getWidth() > mediaRenderer.getMaxVideoWidth() ||
+				getHeight() > mediaRenderer.getMaxVideoHeight()
+			)
+		) {
+			muxable = false;
+		}
+
 		// Temporary fix: MediaInfo support will take care of this in the future
 		// For now, http://ps3mediaserver.org/forum/viewtopic.php?f=11&t=6361&start=0
 		// Bravia does not support AVC video at less than 288px high
