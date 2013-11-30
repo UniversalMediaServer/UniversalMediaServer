@@ -881,18 +881,19 @@ public class MEncoderVideo extends Player {
 
 		/**
 		 * Do not use tsMuxeR if:
+		 * - The user has disabled the "Remux videos with tsMuxeR" option
 		 * - The resource is being streamed via a MEncoder entry in the transcode folder
 		 * - There is a subtitle that matches the user preferences
 		 * - The resource is a DVD
 		 * - We are using AviSynth
 		 * - The resource is incompatible with tsMuxeR
-		 * - The user has disabled the "switch to tsMuxeR" option
 		 * - The user has specified overscan correction
 		 * - The aspect ratio of the video needs to be changed
 		 * - The filename specifies the resource as WEB-DL and the renderer is not PS3
 		 * - The video matrix coefficients are likely to be unsupported
 		 */
 		if (
+			configuration.isMencoderMuxWhenCompatible() &&
 			!forceMencoder &&
 			params.sid == null &&
 			!dvd &&
@@ -902,7 +903,6 @@ public class MEncoderVideo extends Player {
 				!params.mediaRenderer.isH264Level41Limited()
 			) &&
 			media.isMuxable(params.mediaRenderer) &&
-			configuration.isMencoderMuxWhenCompatible() &&
 			params.mediaRenderer.isMuxH264MpegTS() &&
 			(
 				intOCW == 0 &&

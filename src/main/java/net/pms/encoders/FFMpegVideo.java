@@ -296,7 +296,18 @@ public class FFMpegVideo extends Player {
 			}
 
 			// Output video codec
+
+			/**
+			 * Do not mux the video with FFmpeg if:
+			 * - The user has disabled the "Remux videos with FFmpeg" option
+			 * - There is a subtitle that matches the user preferences
+			 * - We are using AviSynth
+			 * - The video is not within 4.1 level limits
+			 * - The renderer does not support it
+			 * - The video matrix coefficients are likely to be unsupported
+			 */
 			if (
+				configuration.isFFmpegMuxWhenCompatible() &&
 				media.isMediaparsed() &&
 				params.sid == null &&
 				!avisynth() &&
@@ -308,7 +319,6 @@ public class FFMpegVideo extends Player {
 					!params.mediaRenderer.isH264Level41Limited()
 				) &&
 				media.isMuxable(params.mediaRenderer) &&
-				configuration.isFFmpegMuxWhenCompatible() &&
 				params.mediaRenderer.isMuxH264MpegTS() &&
 				!"bt.601".equals(media.getMatrixCoefficients())
 			) {
@@ -657,9 +667,11 @@ public class FFMpegVideo extends Player {
 		 * - The resource is incompatible with tsMuxeR
 		 * - The user has disabled the "switch to tsMuxeR" option
 		 * - The aspect ratio of the video needs to be changed
+		 * - The renderer does not support it
 		 * - The video matrix coefficients are likely to be unsupported
 		 */
 		if (
+			configuration.isFFmpegMuxWithTsMuxerWhenCompatible() &&
 			!forceFfmpeg &&
 			params.sid == null &&
 			!avisynth() &&
@@ -668,7 +680,6 @@ public class FFMpegVideo extends Player {
 				!params.mediaRenderer.isH264Level41Limited()
 			) &&
 			media.isMuxable(params.mediaRenderer) &&
-			configuration.isFFmpegMuxWithTsMuxerWhenCompatible() &&
 			params.mediaRenderer.isMuxH264MpegTS() &&
 			aspectRatiosMatch &&
 			!"bt.601".equals(media.getMatrixCoefficients())
