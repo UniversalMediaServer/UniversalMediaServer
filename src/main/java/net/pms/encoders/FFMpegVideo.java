@@ -335,6 +335,8 @@ public class FFMpegVideo extends Player {
 				transcodeOptions.add("libx264");
 				transcodeOptions.add("-preset");
 				transcodeOptions.add("superfast");
+				transcodeOptions.add("-level");
+				transcodeOptions.add("31");
 			} else if (!dtsRemux) {
 				transcodeOptions.add("-c:v");
 				transcodeOptions.add("mpeg2video");
