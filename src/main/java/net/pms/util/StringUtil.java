@@ -1,5 +1,7 @@
 package net.pms.util;
 
+import java.util.Formatter;
+import java.util.Locale;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public class StringUtil {
@@ -128,10 +130,14 @@ public class StringUtil {
 	 * @return Converted String.
 	 */
 	public static String convertTimeToString(double d, String timeFormat) {
-		double s = d % 60;
-		int h = (int) (d / 3600);
-		int m = ((int) (d / 60)) % 60;
+		StringBuilder sb = new StringBuilder();
+		try (Formatter formatter = new Formatter(sb, Locale.US)) {
+			double s = d % 60;
+			int h = (int) (d / 3600);
+			int m = ((int) (d / 60)) % 60;
+			formatter.format(timeFormat, h, m, s);
+		}
 
-		return String.format(timeFormat, h, m, s);
+		return sb.toString();
 	}
 }
