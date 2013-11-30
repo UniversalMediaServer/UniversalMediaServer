@@ -62,16 +62,11 @@ public class SelectRenderers extends JPanel implements ItemListener {
 		checkPanel.add(new JLabel("____________________________"));
 
 		checkBoxes = new ArrayList<>();
+		String ignoredRenderers = configuration.getIgnoredRenderers();
 
 		for (int i = 0; i < allRenderersNames.size(); i++) {
 			rendererName = allRenderersNames.get(i);
-			JCheckBox checkbox = new JCheckBox(rendererName);
-			if (configuration.getIgnoredRenderers().contains(rendererName)) {
-				checkbox.setSelected(false);
-			} else {
-				checkbox.setSelected(true);
-			}
-
+			JCheckBox checkbox = new JCheckBox(rendererName, !ignoredRenderers.contains(rendererName));
 			checkbox.addItemListener(this);
 			checkBoxes.add(checkbox);
 			checkPanel.add(checkBoxes.get(i));
