@@ -957,7 +957,7 @@ public class FFMpegVideo extends Player {
 				pwMux.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
 				String videoType = "V_MPEG-2";
 
-				if (videoRemux) {
+				if (videoRemux || renderer.isTranscodeToH264TSAC3()) {
 					videoType = "V_MPEG4/ISO/AVC";
 				}
 
