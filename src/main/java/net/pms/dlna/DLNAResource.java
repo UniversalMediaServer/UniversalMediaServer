@@ -1541,6 +1541,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 				dlnaspec = null;
 
+				/**
+				 * In this code block, we determine the DLNA.ORG_PN to send.
+				 * DLNA.ORG_PN is a string that tells the renderer what type of file to expect, like its
+				 * container, framerate, codecs and resolution.
+				 * Some renderers will not play a file if it has the wrong DLNA.ORG_PN string, while others
+				 * are fine with any string or even nothing.
+				 */
 				if (mediaRenderer.isDLNAOrgPNUsed()) {
 					if (mediaRenderer.isPS3()) {
 						if (mime.equals("video/x-divx")) {
