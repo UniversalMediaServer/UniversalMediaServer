@@ -275,16 +275,22 @@ public class DLNAMediaInfo implements Cloneable {
 	public String matrixCoefficients;
 
 	/**
-	 * Used to determine whether tsMuxeR can mux the file instead of transcoding.
+	 * Used to determine whether tsMuxeR can mux the file to the renderer
+	 * instead of transcoding.
 	 * Also used by DLNAResource to help determine the DLNA.ORG_PN (file type)
-	 * value to send to the renderer, which is confusing.
+	 * value to send to the renderer.
 	 *
 	 * Some of this code is repeated in isVideoWithinH264LevelLimits(), and since
 	 * both functions are sometimes (but not always) used together, this is
 	 * not an efficient use of code.
+	 *
 	 * TODO: Fix the above situation.
 	 * TODO: Now that FFmpeg is muxing without tsMuxeR, we should make a separate
 	 *       function for that, or even better, re-think this whole approach.
+	 *
+	 * @param mediaRenderer The renderer we might mux to
+	 *
+	 * @return
 	 */
 	public boolean isMuxable(RendererConfiguration mediaRenderer) {
 		// Make sure the file is H.264 video with AC-3/DTS audio
