@@ -625,7 +625,7 @@ public class FFMpegVideo extends Player {
 		 * - The resource is being streamed via a FFmpeg entry in the transcode folder
 		 * - There is a subtitle that matches the user preferences
 		 * - We are using AviSynth
-		 * - The resource is incompatible with tsMuxeR
+		 * - The video stream is incompatible with tsMuxeR or the renderer (audio doesn't matter)
 		 * - The user has disabled the "switch to tsMuxeR" option
 		 * - The aspect ratio of the video needs to be changed
 		 * - The renderer does not support it

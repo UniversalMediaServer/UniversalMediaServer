@@ -886,7 +886,7 @@ public class MEncoderVideo extends Player {
 		 * - There is a subtitle that matches the user preferences
 		 * - The resource is a DVD
 		 * - We are using AviSynth
-		 * - The resource is incompatible with tsMuxeR
+		 * - The video stream is incompatible with tsMuxeR or the renderer (audio doesn't matter)
 		 * - The user has specified overscan correction
 		 * - The aspect ratio of the video needs to be changed
 		 * - The filename specifies the resource as WEB-DL and the renderer is not PS3

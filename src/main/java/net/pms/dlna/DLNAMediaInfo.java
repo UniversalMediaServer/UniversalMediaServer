@@ -293,23 +293,9 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @return
 	 */
 	public boolean isMuxable(RendererConfiguration mediaRenderer) {
-		// Make sure the file is H.264 video with AC-3/DTS audio
+		// Make sure the file is H.264 video
 		if (getCodecV() != null && getCodecV().equals("h264")) {
-			if (getFirstAudioTrack() != null) {
-				String codecA;
-				codecA = getFirstAudioTrack().getCodecA();
-				if (
-					codecA != null &&
-					(
-						codecA.equals("ac3") ||
-						codecA.equals("dca") ||
-						codecA.equals("dts") ||
-						codecA.equals("eac3")
-					)
-				) {
-					muxable = true;
-				}
-			}
+			muxable = true;
 		}
 
 		// Check if the renderer supports the resolution of the video
