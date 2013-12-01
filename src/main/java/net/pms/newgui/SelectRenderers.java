@@ -32,28 +32,23 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SelectRenderers extends JPanel implements ItemListener {
+public class SelectRenderers extends JPanel implements ItemListener, ActionListener {
 	private static final long serialVersionUID = -2724796596060834064L;
 	private final static PmsConfiguration configuration = PMS.getConfiguration();
-	Locale locale = new Locale(configuration.getLanguage());
-	ComponentOrientation orientation = ComponentOrientation.getOrientation(locale);
-	private final List<JCheckBox> checkBoxes;
-	private JCheckBox selectAll = new JCheckBox(Messages.getString("GeneralTab.7"));
-	private JCheckBox deselectAll = new JCheckBox(Messages.getString("GeneralTab.8"));
+	private final List<JCheckBox> checkBoxes = new ArrayList<JCheckBox>();
+	private JButton selectAll = new JButton(Messages.getString("GeneralTab.7"));
+	private JButton deselectAll = new JButton(Messages.getString("GeneralTab.8"));
 	private static ArrayList<String> allRenderersNames;
 	private static final Logger LOGGER = LoggerFactory.getLogger(SelectRenderers.class);
 
 	public SelectRenderers() {
 		super(new BorderLayout());
-		String rendererName;
 		JPanel checkPanel = new JPanel(new GridLayout(0, 3));
 
-		selectAll.setSelected(false);
-		selectAll.addItemListener(this);
+		selectAll.addActionListener(this);
 		checkPanel.add(selectAll);
 
-		deselectAll.setSelected(false);
-		deselectAll.addItemListener(this);
+		deselectAll.addActionListener(this);
 		checkPanel.add(deselectAll);
 
 		checkPanel.add(new JLabel(""));
@@ -61,25 +56,39 @@ public class SelectRenderers extends JPanel implements ItemListener {
 		checkPanel.add(new JLabel("____________________________"));
 		checkPanel.add(new JLabel("____________________________"));
 
-		checkBoxes = new ArrayList<JCheckBox>();
+		String ignoredRenderers = configuration.getIgnoredRenderers();
 
-		for (int i = 0; i < allRenderersNames.size(); i++) {
-			rendererName = allRenderersNames.get(i);
-			JCheckBox checkbox = new JCheckBox(rendererName);
-			if (configuration.getIgnoredRenderers().contains(rendererName)) {
-				checkbox.setSelected(false);
-			} else {
-				checkbox.setSelected(true);
-			}
-
+		for (String rendererName : allRenderersNames) {
+			JCheckBox checkbox = new JCheckBox(rendererName, !ignoredRenderers.contains(rendererName));
 			checkbox.addItemListener(this);
 			checkBoxes.add(checkbox);
-			checkPanel.add(checkBoxes.get(i));
+			checkPanel.add(checkbox);
 		}
 
-		checkPanel.applyComponentOrientation(orientation);
+		checkPanel.applyComponentOrientation(ComponentOrientation.getOrientation(new Locale(configuration.getLanguage())));
 		add(checkPanel, BorderLayout.LINE_START);
 		setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+	}
+
+	/**
+	 * Listens to the buttons.
+	 */
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		Object source = e.getSource();
+		if (source instanceof JButton) {
+			if (source == selectAll) {
+				deselectAll.setSelected(false);
+				for (JCheckBox checkBox : checkBoxes) {
+					checkBox.setSelected(true);
+				}
+			} else if (source == deselectAll) {
+				selectAll.setSelected(false);
+				for (JCheckBox checkBox : checkBoxes) {
+					checkBox.setSelected(false);
+				}
+			}
+		}
 	}
 
 	/**
@@ -87,30 +96,16 @@ public class SelectRenderers extends JPanel implements ItemListener {
 	 */
 	@Override
 	public void itemStateChanged(ItemEvent e) {
-		Object source = e.getItemSelectable();
-		StringBuilder ignoredRenders = new StringBuilder();
-		if (source == selectAll) {
-			deselectAll.setSelected(false);
-			for (int i = 0; i < checkBoxes.size(); i++) {
-				checkBoxes.get(i).setSelected(true);
+		if (e.getSource() instanceof JCheckBox) {
+			StringBuilder ignoredRenders = new StringBuilder();
+			for (int i = 0; i < allRenderersNames.size(); i++) {
+				if (!checkBoxes.get(i).isSelected()) {
+					ignoredRenders.append(allRenderersNames.get(i)).append(",");
+				}
 			}
-		} else if (source == deselectAll) {
-			selectAll.setSelected(false);
-			for (int i = 0; i < checkBoxes.size(); i++) {
-				checkBoxes.get(i).setSelected(false);
-			}
-		} else {
-			selectAll.setSelected(false);
-			deselectAll.setSelected(false);
-		}
 
-		for (int i = 0; i < allRenderersNames.size(); i++) {
-			if (!checkBoxes.get(i).isSelected()) {
-				ignoredRenders.append(allRenderersNames.get(i)).append(",");
-			}
+			configuration.setIgnoredRenderers(ignoredRenders.toString());
 		}
-
-		configuration.setIgnoredRenderers(ignoredRenders.toString());
 	}
 
 	/**
@@ -124,7 +119,10 @@ public class SelectRenderers extends JPanel implements ItemListener {
 			Messages.getString("GeneralTab.5"),
 			JOptionPane.OK_CANCEL_OPTION,
 			JOptionPane.PLAIN_MESSAGE,
-			null, null, null);
+			null,
+			null,
+			null
+		);
 		if (selectRenderers == JOptionPane.YES_OPTION) {
 			try {
 				configuration.save();

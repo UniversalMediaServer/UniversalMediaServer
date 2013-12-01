@@ -668,13 +668,6 @@ public class TranscodingTab {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				configuration.setAudioEmbedDtsInPcm(forceDTSinPCM.isSelected());
-				if (configuration.isAudioEmbedDtsInPcm()) {
-					JOptionPane.showMessageDialog(
-						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-						Messages.getString("TrTab2.10"),
-						Messages.getString("Dialog.Information"),
-						JOptionPane.INFORMATION_MESSAGE);
-				}
 			}
 		});
 		builder.add(forceDTSinPCM, FormLayoutUtil.flip(cc.xy(1, 8), colSpec, orientation));
@@ -852,13 +845,8 @@ public class TranscodingTab {
 		subtitleCodePage.setEditable(true);
 		builder.add(subtitleCodePage, FormLayoutUtil.flip(cc.xyw(3, 8, 7), colSpec, orientation));
 
-		fribidi = new JCheckBox(Messages.getString("MEncoderVideo.23"));
+		fribidi = new JCheckBox(Messages.getString("MEncoderVideo.23"), configuration.isMencoderSubFribidi());
 		fribidi.setContentAreaFilled(false);
-
-		if (configuration.isMencoderSubFribidi()) {
-			fribidi.setSelected(true);
-		}
-
 		fribidi.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {

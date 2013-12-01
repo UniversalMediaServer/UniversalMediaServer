@@ -196,8 +196,8 @@ public class FFMpegVideo extends Player {
 					videoFilterOptions.add("-avoid_negative_ts");
 					videoFilterOptions.add("1");
 					videoFilterOptions.add("-af");
-					videoFilterOptions.add("asetpts=PTS-" + (int) params.timeseek + "/TB");
-					filterChain.add("setpts=PTS-" + (int) params.timeseek + "/TB");
+					videoFilterOptions.add("asetpts=PTS-" + params.timeseek + "/TB");
+					filterChain.add("setpts=PTS-" + params.timeseek + "/TB");
 				}
 			}
 		}
@@ -298,34 +298,13 @@ public class FFMpegVideo extends Player {
 			}
 
 			// Output video codec
-			if (
-				media.isMediaparsed() &&
-				params.sid == null &&
-				!avisynth() &&
-				(
-					(
-						newInput != null &&
-						media.isVideoWithinH264LevelLimits(newInput, params.mediaRenderer)
-					) ||
-					!params.mediaRenderer.isH264Level41Limited()
-				) &&
-				media.isMuxable(params.mediaRenderer) &&
-				configuration.isFFmpegMuxWhenCompatible() &&
-				params.mediaRenderer.isMuxH264MpegTS()
-			) {
-				transcodeOptions.add("-c:v");
-				transcodeOptions.add("copy");
-				transcodeOptions.add("-bsf");
-				transcodeOptions.add("h264_mp4toannexb");
-				transcodeOptions.add("-fflags");
-				transcodeOptions.add("+genpts");
-
-				videoRemux = true;
-			} else if (renderer.isTranscodeToH264TSAC3()) {
+			if (renderer.isTranscodeToH264TSAC3()) {
 				transcodeOptions.add("-c:v");
 				transcodeOptions.add("libx264");
 				transcodeOptions.add("-preset");
 				transcodeOptions.add("superfast");
+				transcodeOptions.add("-level");
+				transcodeOptions.add("31");
 			} else if (!dtsRemux) {
 				transcodeOptions.add("-c:v");
 				transcodeOptions.add("mpeg2video");
@@ -334,12 +313,8 @@ public class FFMpegVideo extends Player {
 			// Output file format
 			transcodeOptions.add("-f");
 			if (dtsRemux) {
-				if (videoRemux) {
-					transcodeOptions.add("rawvideo");
-				} else {
-					transcodeOptions.add("mpeg2video");
-				}
-			} else if (renderer.isTranscodeToMPEGTSAC3() || renderer.isTranscodeToH264TSAC3() || videoRemux) { // MPEGTSAC3
+				transcodeOptions.add("mpeg2video");
+			} else if (renderer.isTranscodeToMPEGTSAC3() || renderer.isTranscodeToH264TSAC3()) { // MPEGTSAC3
 				transcodeOptions.add("mpegts");
 			} else { // default: MPEGPSAC3
 				transcodeOptions.add("vob");
@@ -391,7 +366,7 @@ public class FFMpegVideo extends Player {
 			 *
 			 * We also apply the correct buffer size in this section.
 			 */
-			if (params.mediaRenderer.isTranscodeToH264TSAC3() || videoRemux) {
+			if (params.mediaRenderer.isTranscodeToH264TSAC3()) {
 				if (
 					params.mediaRenderer.isH264Level41Limited() &&
 					defaultMaxBitrates[0] > 31250
@@ -441,54 +416,52 @@ public class FFMpegVideo extends Player {
 			videoBitrateOptions.add(String.valueOf(defaultMaxBitrates[0]));
 		}
 
-		if (!videoRemux) {
-			if (!params.mediaRenderer.isTranscodeToH264TSAC3()) {
-				// Add MPEG-2 quality settings
-				String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
-				String mpeg2OptionsRenderer = params.mediaRenderer.getCustomFFmpegMPEG2Options();
+		if (!params.mediaRenderer.isTranscodeToH264TSAC3()) {
+			// Add MPEG-2 quality settings
+			String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
+			String mpeg2OptionsRenderer = params.mediaRenderer.getCustomFFmpegMPEG2Options();
 
-				// Renderer settings take priority over user settings
-				if (isNotBlank(mpeg2OptionsRenderer)) {
-					mpeg2Options = mpeg2OptionsRenderer;
-				} else if (mpeg2Options.contains("Automatic")) {
-					mpeg2Options = "-g 5 -q:v 1 -qmin 2 -qmax 3";
+			// Renderer settings take priority over user settings
+			if (isNotBlank(mpeg2OptionsRenderer)) {
+				mpeg2Options = mpeg2OptionsRenderer;
+			} else if (mpeg2Options.contains("Automatic")) {
+				mpeg2Options = "-g 5 -q:v 1 -qmin 2 -qmax 3";
 
-					// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
-					if (params.mediaRenderer.isPS3()) {
-						mpeg2Options = "-g 25 -q:v 1 -qmin 2 -qmax 3";
-					}
-
-					if (mpeg2Options.contains("Wireless") || defaultMaxBitrates[0] < 70) {
-						// Lower quality for 720p+ content
-						if (media.getWidth() > 1280) {
-							mpeg2Options = "-g 25 -qmax 7 -qmin 2";
-						} else if (media.getWidth() > 720) {
-							mpeg2Options = "-g 25 -qmax 5 -qmin 2";
-						}
-					}
-				}
-				String[] customOptions = StringUtils.split(mpeg2Options);
-				videoBitrateOptions.addAll(new ArrayList<String>(Arrays.asList(customOptions)));
-			} else {
-				// Add x264 quality settings
-				String x264CRF = configuration.getx264ConstantRateFactor();
-
-				// Remove comment from the value
-				if (x264CRF.contains("/*")) {
-					x264CRF = x264CRF.substring(x264CRF.indexOf("/*"));
+				// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
+				if (params.mediaRenderer.isPS3()) {
+					mpeg2Options = "-g 25 -q:v 1 -qmin 2 -qmax 3";
 				}
 
-				if (x264CRF.contains("Automatic")) {
-					x264CRF = "16";
-
-					// Lower CRF for 720p+ content
-					if (media.getWidth() > 720) {
-						x264CRF = "19";
+				if (mpeg2Options.contains("Wireless") || defaultMaxBitrates[0] < 70) {
+					// Lower quality for 720p+ content
+					if (media.getWidth() > 1280) {
+						mpeg2Options = "-g 25 -qmax 7 -qmin 2";
+					} else if (media.getWidth() > 720) {
+						mpeg2Options = "-g 25 -qmax 5 -qmin 2";
 					}
 				}
-				videoBitrateOptions.add("-crf");
-				videoBitrateOptions.add(x264CRF);
 			}
+			String[] customOptions = StringUtils.split(mpeg2Options);
+			videoBitrateOptions.addAll(new ArrayList<String>(Arrays.asList(customOptions)));
+		} else {
+			// Add x264 quality settings
+			String x264CRF = configuration.getx264ConstantRateFactor();
+
+			// Remove comment from the value
+			if (x264CRF.contains("/*")) {
+				x264CRF = x264CRF.substring(x264CRF.indexOf("/*"));
+			}
+
+			if (x264CRF.contains("Automatic")) {
+				x264CRF = "16";
+
+				// Lower CRF for 720p+ content
+				if (media.getWidth() > 720) {
+					x264CRF = "19";
+				}
+			}
+			videoBitrateOptions.add("-crf");
+			videoBitrateOptions.add(x264CRF);
 		}
 
 		return videoBitrateOptions;
@@ -514,7 +487,6 @@ public class FFMpegVideo extends Player {
 
 	protected boolean dtsRemux;
 	protected boolean ac3Remux;
-	protected boolean videoRemux;
 
 	@Override
 	public int purpose() {
@@ -658,8 +630,11 @@ public class FFMpegVideo extends Player {
 		 * - The resource is incompatible with tsMuxeR
 		 * - The user has disabled the "switch to tsMuxeR" option
 		 * - The aspect ratio of the video needs to be changed
+		 * - The renderer does not support it
+		 * - The video matrix coefficients are likely to be unsupported
 		 */
 		if (
+			configuration.isFFmpegMuxWithTsMuxerWhenCompatible() &&
 			!forceFfmpeg &&
 			params.sid == null &&
 			!avisynth() &&
@@ -668,9 +643,9 @@ public class FFMpegVideo extends Player {
 				!params.mediaRenderer.isH264Level41Limited()
 			) &&
 			media.isMuxable(params.mediaRenderer) &&
-			configuration.isFFmpegMuxWithTsMuxerWhenCompatible() &&
 			params.mediaRenderer.isMuxH264MpegTS() &&
-			aspectRatiosMatch
+			aspectRatiosMatch &&
+			!"bt.601".equals(media.getMatrixCoefficients())
 		) {
 			TsMuxeRVideo tv = new TsMuxeRVideo();
 			params.forceFps = media.getValidFps(false);
@@ -943,9 +918,9 @@ public class FFMpegVideo extends Player {
 			pwMux.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
 			String videoType = "V_MPEG-2";
 
-			if (videoRemux) {
-				videoType = "V_MPEG4/ISO/AVC";
-			}
+				if (renderer.isTranscodeToH264TSAC3()) {
+					videoType = "V_MPEG4/ISO/AVC";
+				}
 
 			if (params.no_videoencode && params.forceType != null) {
 				videoType = params.forceType;
@@ -1003,7 +978,6 @@ public class FFMpegVideo extends Player {
 	}
 
 	private JCheckBox multithreading;
-	private JCheckBox videoremux;
 	private JCheckBox videoRemuxTsMuxer;
 	private JCheckBox fc;
 
@@ -1015,7 +989,7 @@ public class FFMpegVideo extends Player {
 	protected JComponent config(String languageLabel) {
 		FormLayout layout = new FormLayout(
 			"left:pref, 0:grow",
-			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p"
+			"p, 3dlu, p, 3dlu, p, 3dlu, p"
 		);
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.border(Borders.EMPTY);
@@ -1037,33 +1011,17 @@ public class FFMpegVideo extends Player {
 		});
 		builder.add(multithreading, cc.xy(2, 3));
 
-		videoremux = new JCheckBox(Messages.getString("FFmpeg.0"), configuration.isFFmpegMuxWhenCompatible());
-		videoremux.setContentAreaFilled(false);
-		videoremux.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setFFmpegMuxWhenCompatible(e.getStateChange() == ItemEvent.SELECTED);
-				if (e.getStateChange() == ItemEvent.SELECTED) {
-					videoRemuxTsMuxer.setSelected(false);
-				}
-			}
-		});
-		builder.add(videoremux, cc.xy(2, 5));
-
 		videoRemuxTsMuxer = new JCheckBox(Messages.getString("MEncoderVideo.38"), configuration.isFFmpegMuxWithTsMuxerWhenCompatible());
 		videoRemuxTsMuxer.setContentAreaFilled(false);
 		videoRemuxTsMuxer.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setFFmpegMuxWithTsMuxerWhenCompatible(e.getStateChange() == ItemEvent.SELECTED);
-				if (e.getStateChange() == ItemEvent.SELECTED) {
-					videoremux.setSelected(false);
-				}
 			}
 		});
-		builder.add(videoRemuxTsMuxer, cc.xy(2, 7));
+		builder.add(videoRemuxTsMuxer, cc.xy(2, 5));
 
-		fc = new JCheckBox(Messages.getString("MEncoderVideo.21"));
+		fc = new JCheckBox(Messages.getString("MEncoderVideo.21"), configuration.isFFmpegFontConfig());
 		fc.setContentAreaFilled(false);
 		fc.addItemListener(new ItemListener() {
 			@Override
@@ -1071,8 +1029,7 @@ public class FFMpegVideo extends Player {
 				configuration.setFFmpegFontConfig(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		builder.add(fc, cc.xy(2, 9));
-		fc.setSelected(configuration.isFFmpegFontConfig());
+		builder.add(fc, cc.xy(2, 7));
 
 		return builder.getPanel();
 	}
@@ -1159,6 +1116,10 @@ public class FFMpegVideo extends Player {
 
 		if (convertedSubs.canRead()) {
 			// subs are already converted
+			if (applyFontConfig || isEmbeddedSource) {
+				params.sid.setType(SubtitleType.ASS);
+			}
+
 			return convertedSubs;
 		}
 

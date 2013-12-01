@@ -1,3 +1,37 @@
+3.2.0 - 2013-12-??
+
+	General:
+		Added font cache generation for FFmpeg on startup
+		Added the ability for users to set their own server name
+		Added example virtual folders file in the profile directory
+		The virtual folders file is now loaded from the profile directory instead of the installation directory
+		Made seeking more accurate with FFmpeg
+		When FFmpeg muxes, it always uses tsMuxeR
+		Improved compatibility with videos with unusual colorspaces
+		Improved compatibility when transcoding to H.264 via FFmpeg
+		Improved compatibility with video with HE-AAC audio
+		Improved compatibility when using tsMuxeR via FFmpeg
+		Improved compatibility with high-resolution videos such as 3D-SBS and 3D-OU
+		Fixed resume files causing a startup crash
+		Fixed some settings causing a crash
+		Fixed bug with FFmpeg subtitles
+	Languages:
+		Updated Spanish translation (thanks, AlfredoRamos!)
+	External Components:
+		Updated FFmpeg to builds from 2013-11-27, which:
+			Adds support for HEVC (H.265)
+			Improves seeking accuracy
+			Improves AV sync
+			Fixes memory leaks
+			Optimizes AC-3 decoding
+			Improves support for 60FPS videos
+			Improves AVI support
+			Silences meaningless errors
+			Improves DTS support
+			Supports seeking to non-keyframes in Matroska files
+			Improves AC-3 support
+			Fixes support for rare MP4 videos
+
 3.1.2.1 - 2013-11-26
 
 	General:

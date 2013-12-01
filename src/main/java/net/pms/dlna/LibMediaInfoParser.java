@@ -221,6 +221,8 @@ public class LibMediaInfoParser {
 								} catch (NumberFormatException nfe) {
 									LOGGER.debug("Could not parse delay \"" + value + "\"");
 								}
+							} else if (key.equals("matrix_coefficients") && streamType == MediaInfo.StreamType.Video) {
+								media.setMatrixCoefficients(value);
 							}
 						}
 					}
@@ -379,8 +381,10 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.TRUEHD;
 		} else if (value.equals("55") || value.equals("a_mpeg/l3")) {
 			format = FormatConfiguration.MP3;
-		} else if (value.equals("m4a") || value.equals("40") || value.equals("a_aac") || value.equals("aac")) {
+		} else if (value.equals("lc")) {
 			format = FormatConfiguration.AAC;
+		} else if (value.contains("he-aac")) {
+			format = FormatConfiguration.AAC_HE;
 		} else if (value.equals("pcm") || (value.equals("1") && (audio.getCodecA() == null || !audio.getCodecA().equals(FormatConfiguration.DTS)))) {
 			format = FormatConfiguration.LPCM;
 		} else if (value.equals("alac")) {

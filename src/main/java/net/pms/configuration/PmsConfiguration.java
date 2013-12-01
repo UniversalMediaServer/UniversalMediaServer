@@ -106,7 +106,6 @@ public class PmsConfiguration {
 	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME = "ffmpeg_avisynth_interframe";
 	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
 	private static final String KEY_FFMPEG_FONT_CONFIG = "ffmpeg_font_config";
-	private static final String KEY_FFMPEG_MUX_COMPATIBLE = "ffmpeg_mux_compatible";
 	private static final String KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE = "ffmpeg_mux_tsmuxer_compatible";
 	private static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
 	private static final String KEY_FOLDERS = "folders";
@@ -198,6 +197,7 @@ public class PmsConfiguration {
 	private static final String KEY_SEARCH_FOLDER = "search_folder";
 	private static final String KEY_SEARCH_RECURSE = "search_recurse";
 	private static final String KEY_SERVER_HOSTNAME = "hostname";
+	private static final String KEY_SERVER_NAME = "server_name";
 	private static final String KEY_SERVER_PORT = "port";
 	private static final String KEY_SHARES = "shares";
 	private static final String KEY_SKIP_LOOP_FILTER_ENABLED = "mencoder_skip_loop_filter";
@@ -276,6 +276,7 @@ public class PmsConfiguration {
 			KEY_OPEN_ARCHIVES,
 			KEY_PRETTIFY_FILENAMES,
 			KEY_SERVER_HOSTNAME,
+			KEY_SERVER_NAME,
 			KEY_SERVER_PORT,
 			KEY_SHOW_APERTURE_LIBRARY,
 			KEY_SHOW_IPHOTO_LIBRARY,
@@ -644,6 +645,24 @@ public class PmsConfiguration {
 	 */
 	public void setHostname(String value) {
 		configuration.setProperty(KEY_SERVER_HOSTNAME, value);
+	}
+
+	/**
+	 * The name of the server.
+	 *
+	 * @return The name of the server.
+	 */
+	public String getServerName() {
+		return getString(KEY_SERVER_NAME, "Universal Media Server");
+	}
+
+	/**
+	 * Set the name of the server.
+	 *
+	 * @param value The name.
+	 */
+	public void setServerName(String value) {
+		configuration.setProperty(KEY_SERVER_NAME, value);
 	}
 
 	/**
@@ -1562,7 +1581,7 @@ public class PmsConfiguration {
 	 * @return True if PMS should hide the folder, false othewise.
 	 */
 	public boolean getHideVideoSettings(ArrayList<String> tags) {
-		return tagLoopBool(tags, ".hide_set", KEY_HIDE_VIDEO_SETTINGS, true);
+		return getBoolean(KEY_HIDE_VIDEO_SETTINGS, true);
 	}
 
 	/**
@@ -2160,14 +2179,6 @@ public class PmsConfiguration {
 		return getBoolean(KEY_MENCODER_NORMALIZE_VOLUME, false);
 	}
 
-	public void setFFmpegMuxWhenCompatible(boolean value) {
-		configuration.setProperty(KEY_FFMPEG_MUX_COMPATIBLE, value);
-	}
-
-	public boolean isFFmpegMuxWhenCompatible() {
-		return getBoolean(KEY_FFMPEG_MUX_COMPATIBLE, false);
-	}
-
 	public void setFFmpegMuxWithTsMuxerWhenCompatible(boolean value) {
 		configuration.setProperty(KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE, value);
 	}
@@ -2378,7 +2389,7 @@ public class PmsConfiguration {
 	}
 
 	public boolean isHideNewMediaFolder(ArrayList<String> tags) {
-		return tagLoopBool(tags, ".new_media", KEY_HIDE_NEW_MEDIA_FOLDER, false);
+		return getBoolean(KEY_HIDE_NEW_MEDIA_FOLDER, false);
 	}
 
 	public void setHideNewMediaFolder(final boolean value) {
@@ -2386,7 +2397,7 @@ public class PmsConfiguration {
 	}
 
 	public boolean isHideRecentlyPlayedFolder(ArrayList<String> tags) {
-		return tagLoopBool(tags, ".recent", KEY_HIDE_RECENTLY_PLAYED_FOLDER, false);
+		return getBoolean(PmsConfiguration.KEY_HIDE_RECENTLY_PLAYED_FOLDER, false);
 	}
 
 	public void setHideRecentlyPlayedFolder(final boolean value) {
