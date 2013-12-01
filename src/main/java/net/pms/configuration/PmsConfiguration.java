@@ -71,6 +71,7 @@ public class PmsConfiguration {
 
 	private static final String KEY_ALTERNATE_SUBTITLES_FOLDER = "alternate_subtitles_folder";
 	private static final String KEY_ALTERNATE_THUMB_FOLDER = "alternate_thumb_folder";
+	private static final String KEY_APPEND_PROFILE_NAME = "append_profile_name";
 	private static final String KEY_SHOW_APERTURE_LIBRARY = "show_aperture_library";
 	private static final String KEY_ATZ_LIMIT = "atz_limit";
 	private static final String KEY_AUDIO_BITRATE = "audio_bitrate";
@@ -2899,5 +2900,25 @@ public class PmsConfiguration {
 		}
 
 		return b.trim().equalsIgnoreCase("true");
+	}
+
+	/**
+	 * Whether the profile name should be appended to the server name when
+	 * displayed on the renderer
+	 *
+	 * @return True if the profile name should be appended.
+	 */
+	public boolean isAppendProfileName() {
+		return getBoolean(KEY_APPEND_PROFILE_NAME, false);
+	}
+
+	/**
+	 * Set whether the profile name should be appended to the server name
+	 * when displayed on the renderer
+	 *
+	 * @param value Set to true if the profile name should be appended.
+	 */
+	public void setAppendProfileName(boolean value) {
+		configuration.setProperty(KEY_APPEND_PROFILE_NAME, value);
 	}
 }
