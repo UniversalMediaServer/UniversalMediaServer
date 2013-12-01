@@ -598,9 +598,9 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * The AC3 audio bitrate determines the quality of digital audio sound. An AV-receiver
+	 * The AC-3 audio bitrate determines the quality of digital audio sound. An AV-receiver
 	 * or amplifier has to be capable of playing this quality. Default value is 640.
-	 * @return The AC3 audio bitrate.
+	 * @return The AC-3 audio bitrate.
 	 */
 	public int getAudioBitrate() {
 		return getInt(KEY_AUDIO_BITRATE, 640);
