@@ -125,14 +125,14 @@ public class HTTPServer implements Runnable {
 
 			try {
 				channel = bootstrap.bind(address);
+
+				group.add(channel);
 			} catch (Exception e) {
 				LOGGER.error("Another program is using port " + port + ", which UMS needs.");
 				LOGGER.error("You can change the port UMS uses on the General Configuration tab.");
 				LOGGER.trace("The error was: " + e);
 				PMS.get().getFrame().setStatusCode(0, Messages.getString("PMS.141"), "icon-status-warning.png");
 			}
-
-			group.add(channel);
 
 			if (hostname == null && iafinal != null) {
 				hostname = iafinal.getHostAddress();
