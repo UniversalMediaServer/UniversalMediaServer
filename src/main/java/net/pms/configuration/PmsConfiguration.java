@@ -174,7 +174,7 @@ public class PmsConfiguration {
 	private static final String KEY_MPEG2_MAIN_SETTINGS = "mpeg2_main_settings";
 	private static final String KEY_MUX_ALLAUDIOTRACKS = "tsmuxer_mux_all_audiotracks";
 	private static final String KEY_NETWORK_INTERFACE = "network_interface";
-	private static final String KEY_HIDE_NEW_MEDIA_FOLDER = "hide_new_media";
+	private static final String KEY_HIDE_NEW_MEDIA_FOLDER = "hide_new_media_folder";
 	private static final String KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS = "disable_transcode_for_extensions";
 	private static final String KEY_NUMBER_OF_CPU_CORES = "number_of_cpu_cores";
 	private static final String KEY_OPEN_ARCHIVES = "enable_archive_browsing";
