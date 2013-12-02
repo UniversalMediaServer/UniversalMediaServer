@@ -106,7 +106,7 @@ public class PmsConfiguration {
 	private static final String KEY_FFMPEG_AVISYNTH_CONVERT_FPS = "ffmpeg_avisynth_convertfps";
 	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME = "ffmpeg_avisynth_interframe";
 	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
-	private static final String KEY_FFMPEG_FONT_CONFIG = "ffmpeg_font_config";
+	private static final String KEY_FFMPEG_FONTCONFIG = "ffmpeg_fontconfig";
 	private static final String KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE = "ffmpeg_mux_tsmuxer_compatible";
 	private static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
 	private static final String KEY_FOLDERS = "folders";
@@ -2194,11 +2194,11 @@ public class PmsConfiguration {
 	}
 
 	public void setFFmpegFontConfig(boolean value) {
-		configuration.setProperty(KEY_FFMPEG_FONT_CONFIG, value);
+		configuration.setProperty(KEY_FFMPEG_FONTCONFIG, value);
 	}
 
 	public boolean isFFmpegFontConfig() {
-		return getBoolean(KEY_FFMPEG_FONT_CONFIG, false);
+		return getBoolean(KEY_FFMPEG_FONTCONFIG, false);
 	}
 
 	public void setMuxAllAudioTracks(boolean value) {
