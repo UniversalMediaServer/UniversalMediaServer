@@ -1049,7 +1049,8 @@ public class MEncoderVideo extends Player {
 		final boolean mencoderAC3RemuxAudioDelayBug = (params.aid != null) && (params.aid.getAudioProperties().getAudioDelay() != 0) && (params.timeseek == 0);
 
 		encodedAudioPassthrough = isTsMuxeRVideoEngineEnabled &&
-			configuration.isEncodedAudioPassthrough() && 
+			configuration.isEncodedAudioPassthrough() &&
+			params.mediaRenderer.isWrapEncodedAudioIntoPCM() &&
 			(
 				!dvd ||
 				configuration.isMencoderRemuxMPEG2()
