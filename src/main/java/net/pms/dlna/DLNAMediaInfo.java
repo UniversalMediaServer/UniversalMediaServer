@@ -304,7 +304,8 @@ public class DLNAMediaInfo implements Cloneable {
 			(
 				getWidth() > mediaRenderer.getMaxVideoWidth() ||
 				getHeight() > mediaRenderer.getMaxVideoHeight()
-			)
+			) &&
+			isMod4()
 		) {
 			muxable = false;
 		}
@@ -2084,5 +2085,16 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public void setEncrypted(boolean encrypted) {
 		this.encrypted = encrypted;
+	}
+
+	public boolean isMod4() {
+		if (
+			getHeight() % 4 != 0 ||
+			getWidth() % 4 != 0
+		) {
+			return false;
+		}
+
+		return true;
 	}
 }
