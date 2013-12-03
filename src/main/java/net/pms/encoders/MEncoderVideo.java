@@ -833,19 +833,6 @@ public class MEncoderVideo extends Player {
 			dvd = true;
 		}
 
-		// Don't honour "Remux videos with tsMuxeR..." if the resource is being streamed via a MEncoder entry in
-		// the #--TRANSCODE--# folder, or it is a file that tsMuxeR does not support.
-		boolean forceMencoder = false;
-		if (
-			!configuration.getHideTranscodeEnabled() &&
-			dlna.isNoName() && // XXX remove this? http://www.ps3mediaserver.org/forum/viewtopic.php?f=11&t=12149
-			(
-				dlna.getParent() instanceof FileTranscodeVirtualFolder
-			)
-		) {
-			forceMencoder = true;
-		}
-
 		ovccopy  = false;
 		pcm      = false;
 		ac3Remux = false;
@@ -886,7 +873,7 @@ public class MEncoderVideo extends Player {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the user setting is disabled");
 		}
-		if (deferToTsmuxer == true && forceMencoder) {
+		if (deferToTsmuxer == true && !configuration.getHideTranscodeEnabled() && dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder)) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the file is being played via a MEncoder entry in the transcode folder.");
 		}
