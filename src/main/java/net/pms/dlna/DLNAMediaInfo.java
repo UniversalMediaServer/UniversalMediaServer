@@ -300,12 +300,14 @@ public class DLNAMediaInfo implements Cloneable {
 
 		// Check if the renderer supports the resolution of the video
 		if (
-			mediaRenderer.isVideoRescale() &&
 			(
-				getWidth() > mediaRenderer.getMaxVideoWidth() ||
-				getHeight() > mediaRenderer.getMaxVideoHeight()
-			) &&
-			isMod4()
+				mediaRenderer.isVideoRescale() &&
+				(
+					getWidth() > mediaRenderer.getMaxVideoWidth() ||
+					getHeight() > mediaRenderer.getMaxVideoHeight()
+				)
+			) ||
+			!isMod4()
 		) {
 			muxable = false;
 		}
