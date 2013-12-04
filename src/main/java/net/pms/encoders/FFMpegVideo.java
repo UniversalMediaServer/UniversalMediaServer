@@ -308,6 +308,68 @@ public class FFMpegVideo extends Player {
 				transcodeOptions.add("mpeg2video");
 			}
 
+			// Check if the media renderer supports this resolution
+			boolean isResolutionTooHighForRenderer = false;
+			if (
+				params.mediaRenderer.isVideoRescale() &&
+				(
+					media.getWidth() > params.mediaRenderer.getMaxVideoWidth() ||
+					media.getHeight() > params.mediaRenderer.getMaxVideoHeight()
+				)
+			) {
+				isResolutionTooHighForRenderer = true;
+			}
+
+			if (isResolutionTooHighForRenderer) {
+				int scaleWidth;
+				int scaleHeight;
+
+				// The video resolution is too big for the renderer so we need to scale it down
+				double videoAspectRatio = (double) media.getWidth() / (double) media.getHeight();
+				double rendererAspectRatio = (double) params.mediaRenderer.getMaxVideoWidth() / (double) params.mediaRenderer.getMaxVideoHeight();
+
+				/*
+				 * First we deal with some exceptions, then if they are not matched we will
+				 * let the renderer limits work.
+				 * 
+				 * This is so, for example, we can still define a maximum resolution of
+				 * 1920x1080 in the renderer config file but still support 1920x1088 when
+				 * it's needed, otherwise we would either resize 1088 to 1080, meaning the
+				 * ugly (unused) bottom 8 pixels would be displayed, or we would limit all
+				 * videos to 1088 causing the bottom 8 meaningful pixels to be cut off.
+				 */
+				if (media.getWidth() == 3840 && media.getHeight() <= 1080) {
+					// Full-SBS
+					scaleWidth  = 1920;
+					scaleHeight = media.getHeight();
+				} else if (media.getWidth() == 1920 && media.getHeight() == 2160) {
+					// Full-OU
+					scaleWidth  = 1920;
+					scaleHeight = 1080;
+				} else if (media.getWidth() == 1920 && media.getHeight() == 1088) {
+					// SAT capture
+					scaleWidth  = 1920;
+					scaleHeight = 1088;
+				} else {
+					// Passed the exceptions, now we allow the renderer to define the limits
+					if (videoAspectRatio > rendererAspectRatio) {
+						scaleWidth  = params.mediaRenderer.getMaxVideoWidth();
+						scaleHeight = (int) Math.round(params.mediaRenderer.getMaxVideoWidth() / videoAspectRatio);
+					} else {
+						scaleWidth  = (int) Math.round(params.mediaRenderer.getMaxVideoHeight() * videoAspectRatio);
+						scaleHeight = params.mediaRenderer.getMaxVideoHeight();
+					}
+				}
+
+				scaleWidth  = convertToMod4(scaleWidth);
+				scaleHeight = convertToMod4(scaleHeight);
+
+				LOGGER.info("Setting video resolution to: " + scaleWidth + "x" + scaleHeight + ", the maximum your renderer supports");
+
+				transcodeOptions.add("-vf");
+				transcodeOptions.add("scale=" + scaleWidth + ":" + scaleHeight);
+			}
+
 			// Output file format
 			transcodeOptions.add("-f");
 			if (dtsRemux) {
@@ -1356,6 +1418,14 @@ public class FFMpegVideo extends Player {
 	 */
 	public boolean isDisableSubtitles(OutputParams params) {
 		return configuration.isDisableSubtitles() || (params.sid == null) || avisynth();
+	}
+
+	public int convertToMod4(int number) {
+		if (number % 4 != 0) {
+			number -= (number % 4);
+		}
+
+		return number;
 	}
 
 	/**
