@@ -21,6 +21,7 @@ import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.TrustManagerFactory;
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
@@ -41,6 +42,7 @@ public class RemoteWeb {
 	private HashMap<String, String> users;
 	private HashMap<String, String> tags;
 	private HashMap<String, RootFolder> roots;
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	public RemoteWeb() {
 		this(DEFAULT_PORT);
@@ -180,14 +182,16 @@ public class RemoteWeb {
 
 	private void addCtx(String path, HttpHandler h) {
 		HttpContext ctx = server.createContext(path, h);
-		ctx.setAuthenticator(new BasicAuthenticator("") {
-			@Override
-			public boolean checkCredentials(String user, String pwd) {
-				LOGGER.debug("authenticate " + user);
-				//return pwd.equals(users.get(user));
-				return true;
-			}
-		});
+		if (configuration.isWebAuthenticate()) {
+			ctx.setAuthenticator(new BasicAuthenticator("") {
+				@Override
+				public boolean checkCredentials(String user, String pwd) {
+					LOGGER.debug("authenticate " + user);
+					//return pwd.equals(users.get(user));
+					return true;
+				}
+			});
+		}
 	}
 
 	private void readCred() throws IOException {
