@@ -73,11 +73,11 @@ public class RemoteWeb {
 			addCtx("/browse", new RemoteBrowseHandler(this));
 			addCtx("/play", new RemotePlayHandler(this));
 			addCtx("/media", new RemoteMediaHandler(this));
-            addCtx("/fmedia", new RemoteMediaHandler(this, true));
+			addCtx("/fmedia", new RemoteMediaHandler(this, true));
 			addCtx("/thumb", new RemoteThumbHandler(this));
 			addCtx("/raw", new RemoteRawHandler(this));
 			addCtx("/files", new RemoteFileHandler());
-            addCtx("/subs", new RemoteFileHandler());
+			addCtx("/subs", new RemoteFileHandler());
 			server.setExecutor(null);
 			server.start();
 		} catch (Exception e) {
@@ -141,42 +141,42 @@ public class RemoteWeb {
 	}
 
 	public RootFolder getRoot(String name, boolean create, HttpExchange t) {
-        String groupTag = getTag(name);
+		String groupTag = getTag(name);
 		RootFolder root = roots.get(groupTag);
 		if (!create || (root != null)) {
 			return root;
 		}
-        ArrayList<String> tag = new ArrayList<String>();
-        tag.add(name);
-        if (!groupTag.equals(name)) {
-            tag.add(groupTag);
-        }
-        if(t != null) {
-            tag.add(t.getRemoteAddress().getHostString());
-        }
-        tag.add("web");
+		ArrayList<String> tag = new ArrayList<>();
+		tag.add(name);
+		if (!groupTag.equals(name)) {
+			tag.add(groupTag);
+		}
+		if (t != null) {
+			tag.add(t.getRemoteAddress().getHostString());
+		}
+		tag.add("web");
 		root = new RootFolder(tag);
-        try {
-            WebRender render = new WebRender(name);
-            root.setDefaultRenderer(render);
-            render.associateIP(t.getRemoteAddress().getAddress());
-            render.associatePort(t.getRemoteAddress().getPort());
-            render.setUA(t.getRequestHeaders().getFirst("User-agent"));
-            PMS.get().setRendererFound(render);
-        } catch (ConfigurationException e) {
-            root.setDefaultRenderer(RendererConfiguration.getDefaultConf());
-        }
+		try {
+			WebRender render = new WebRender(name);
+			root.setDefaultRenderer(render);
+			render.associateIP(t.getRemoteAddress().getAddress());
+			render.associatePort(t.getRemoteAddress().getPort());
+			render.setUA(t.getRequestHeaders().getFirst("User-agent"));
+			PMS.get().setRendererFound(render);
+		} catch (ConfigurationException e) {
+			root.setDefaultRenderer(RendererConfiguration.getDefaultConf());
+		}
 		//root.setDefaultRenderer(RendererConfiguration.getRendererConfigurationByName("web"));
 		root.discoverChildren();
 		roots.put(groupTag, root);
 		return root;
 	}
 
-    public void associate(HttpExchange t, RendererConfiguration r) {
-        WebRender wr = (WebRender)r;
-        wr.associateIP(t.getRemoteAddress().getAddress());
-        wr.associatePort(t.getRemoteAddress().getPort());
-    }
+	public void associate(HttpExchange t, RendererConfiguration r) {
+		WebRender wr = (WebRender) r;
+		wr.associateIP(t.getRemoteAddress().getAddress());
+		wr.associatePort(t.getRemoteAddress().getPort());
+	}
 
 	private void addCtx(String path, HttpHandler h) {
 		HttpContext ctx = server.createContext(path, h);
@@ -288,15 +288,14 @@ public class RemoteWeb {
 				return;
 			}
 			if (t.getRequestURI().getPath().startsWith("/files/")) {
-                File f = PMS.getConfiguration().getWebFile(t.getRequestURI().getPath().substring(7));
+				File f = PMS.getConfiguration().getWebFile(t.getRequestURI().getPath().substring(7));
 				RemoteUtil.dumpFile(f, t);
-                return;
+				return;
 			}
-            if (t.getRequestURI().getPath().startsWith("/subs/")) {
-                File f = new File(t.getRequestURI().getPath().substring(6));
-                RemoteUtil.dumpFile(f, t);
-                return;
-            }
+			if (t.getRequestURI().getPath().startsWith("/subs/")) {
+				File f = new File(t.getRequestURI().getPath().substring(6));
+				RemoteUtil.dumpFile(f, t);
+			}
 		}
 	}
 
