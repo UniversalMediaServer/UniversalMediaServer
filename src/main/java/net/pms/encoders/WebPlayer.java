@@ -18,18 +18,17 @@ import org.slf4j.LoggerFactory;
 
 public class WebPlayer extends FFMpegVideo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebPlayer.class);
-    private boolean flash;
+	private boolean flash;
 
-    public WebPlayer() {
-        super();
-        flash = false;
-    }
+	public WebPlayer() {
+		super();
+		flash = false;
+	}
 
-    public WebPlayer(boolean f) {
-        this();
-        flash = f;
-    }
-
+	public WebPlayer(boolean f) {
+		this();
+		flash = f;
+	}
 
 	@Override
 	public ProcessWrapper launchTranscode(
@@ -69,7 +68,7 @@ public class WebPlayer extends FFMpegVideo {
 		// XXX squashed bug - without this, ffmpeg hangs waiting for a confirmation
 		// that it can write to a file that already exists i.e. the named pipe
 		cmdList.add("-y");
-        cmdList.add("-re");
+		cmdList.add("-re");
 
 		cmdList.add("-loglevel");
 
@@ -92,61 +91,59 @@ public class WebPlayer extends FFMpegVideo {
 		cmdList.add(filename);
 
 		//cmdList.addAll(getVideoFilterOptions(dlna, media, params));
-
 		// Encoder threads
 		cmdList.add("-threads");
 		cmdList.add("" + nThreads);
 
 		// FFmpeg with Theora and Vorbis inside OGG
 		/*String[] cmdArray = new String[]{
-			PMS.getConfiguration().getFfmpegPath(),
-			"-y",
-			"-loglevel", "warning",
-			"-threads", "" + nThreads,
-			"-i", filename,
-			"-threads", "" + nThreads,
-			"-c:v", "libtheora",
-			"-qscale:v", "8",
-			"-acodec", "libvorbis",
-			"-qscale:a", "6",
-			"-f", "ogg",
-			pipe.getInputPipe()
-		};*/
+		 PMS.getConfiguration().getFfmpegPath(),
+		 "-y",
+		 "-loglevel", "warning",
+		 "-threads", "" + nThreads,
+		 "-i", filename,
+		 "-threads", "" + nThreads,
+		 "-c:v", "libtheora",
+		 "-qscale:v", "8",
+		 "-acodec", "libvorbis",
+		 "-qscale:a", "6",
+		 "-f", "ogg",
+		 pipe.getInputPipe()
+		 };*/
 		// Add the output options (-f, -c:a, -c:v, etc.)
-        if (!flash) {
-            cmdList.add("-c:v");
-            cmdList.add("libtheora");
-            cmdList.add("-qscale:v");
-            cmdList.add("8");
-            cmdList.add("-acodec");
-            cmdList.add("libvorbis");
-            cmdList.add("-qscale:a");
-            cmdList.add("6");
-            cmdList.add("-f");
-            cmdList.add("ogg");
-            /*cmdList.add("-c:v");
-            cmdList.add("libx264");
-            cmdList.add("-ab");
-            cmdList.add("56k");
-            cmdList.add("-acodec");
-            cmdList.add("libvo_aacenc");
-            cmdList.add("-movflags");
-            cmdList.add("faststart+frag_keyframe+empty_moov");
-            cmdList.add("-g");
-            cmdList.add("30");
-            cmdList.add("-r");
-            cmdList.add("25");
-            cmdList.add("-f");
-            cmdList.add("mp4");*/
-        }
-        else {
-            cmdList.add("-c:v");
-            cmdList.add("flv");
-            cmdList.add("-ar");
-            cmdList.add("44100");
-            cmdList.add("-f");
-            cmdList.add("flv");
-        }
+		if (!flash) {
+			cmdList.add("-c:v");
+			cmdList.add("libtheora");
+			cmdList.add("-qscale:v");
+			cmdList.add("8");
+			cmdList.add("-acodec");
+			cmdList.add("libvorbis");
+			cmdList.add("-qscale:a");
+			cmdList.add("6");
+			cmdList.add("-f");
+			cmdList.add("ogg");
+			/*cmdList.add("-c:v");
+			 cmdList.add("libx264");
+			 cmdList.add("-ab");
+			 cmdList.add("56k");
+			 cmdList.add("-acodec");
+			 cmdList.add("libvo_aacenc");
+			 cmdList.add("-movflags");
+			 cmdList.add("faststart+frag_keyframe+empty_moov");
+			 cmdList.add("-g");
+			 cmdList.add("30");
+			 cmdList.add("-r");
+			 cmdList.add("25");
+			 cmdList.add("-f");
+			 cmdList.add("mp4");*/
+		} else {
+			cmdList.add("-c:v");
+			cmdList.add("flv");
+			cmdList.add("-ar");
+			cmdList.add("44100");
+			cmdList.add("-f");
+			cmdList.add("flv");
+		}
 
 		// Output file
 		cmdList.add(pipe.getInputPipe());
