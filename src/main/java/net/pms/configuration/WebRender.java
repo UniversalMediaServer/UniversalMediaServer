@@ -53,10 +53,10 @@ public class WebRender extends RendererConfiguration {
 			return "chrome.png";
 		}
 		if (ua.contains("msie")) {
-			return "ie.png";
+			return "internetexplorer.png";
 		}
 		if (ua.contains("firefox")) {
-			return "ff.png";
+			return "firefox.png";
 		}
 		return super.getRendererIcon();
 	}
