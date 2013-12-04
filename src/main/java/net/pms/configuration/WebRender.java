@@ -2,6 +2,7 @@ package net.pms.configuration;
 
 import java.net.InetAddress;
 import net.pms.Messages;
+import net.pms.PMS;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
 
@@ -10,6 +11,7 @@ public class WebRender extends RendererConfiguration {
 	private String ip;
 	private int port;
 	private String ua;
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	public WebRender(String name) throws ConfigurationException {
 		super(null);
@@ -21,19 +23,24 @@ public class WebRender extends RendererConfiguration {
 
 	@Override
 	public String getRendererName() {
-		String browserName = Messages.getString("PMS.142");
-
-		if (ua.contains("chrome")) {
-			browserName = "Chrome";
-		} else  if (ua.contains("msie")) {
-			browserName = "Internet Explorer";
-		} else if (ua.contains("firefox")) {
-			browserName = "Firefox";
-		} else if (ua.contains("safari")) {
-			browserName = "Safari";
+		String rendererName = "";
+		if (configuration.isWebAuthenticate()) {
+			rendererName = name + "@";
 		}
 
-		return browserName;
+		if (ua.contains("chrome")) {
+			rendererName += "Chrome";
+		} else  if (ua.contains("msie")) {
+			rendererName += "Internet Explorer";
+		} else if (ua.contains("firefox")) {
+			rendererName += "Firefox";
+		} else if (ua.contains("safari")) {
+			rendererName += "Safari";
+		} else {
+			rendererName += Messages.getString("PMS.142");
+		}
+
+		return rendererName;
 	}
 
 	@Override
