@@ -29,7 +29,7 @@ public class RemoteRawHandler implements HttpHandler {
 		if (RemoteUtil.deny(t)) {
 			throw new IOException("Access denied");
 		}
-		RootFolder root = parent.getRoot(t.getPrincipal().getUsername());
+		RootFolder root = parent.getRoot(RemoteUtil.userName(t));
 		if (root == null) {
 			throw new IOException("Unknown root");
 		}

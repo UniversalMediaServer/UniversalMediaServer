@@ -29,7 +29,7 @@ public class RemotePlayHandler implements HttpHandler {
 
 	private String mkPage(String id, HttpExchange t) throws IOException {
 		LOGGER.debug("make play page " + id);
-		RootFolder root = parent.getRoot(t.getPrincipal().getUsername());
+		RootFolder root = parent.getRoot(RemoteUtil.userName(t));
 		if (root == null) {
 			throw new IOException("Unknown root");
 		}

@@ -187,8 +187,8 @@ public class RemoteWeb {
 				@Override
 				public boolean checkCredentials(String user, String pwd) {
 					LOGGER.debug("authenticate " + user);
-					//return pwd.equals(users.get(user));
-					return true;
+					return pwd.equals(users.get(user));
+					//return true;
 				}
 			});
 		}
@@ -249,7 +249,7 @@ public class RemoteWeb {
 				RemoteUtil.sendLogo(t);
 				return;
 			}
-			RootFolder root = parent.getRoot(t.getPrincipal().getUsername());
+			RootFolder root = parent.getRoot(RemoteUtil.userName(t));
 			if (root == null) {
 				LOGGER.debug("weird root in thumb req");
 				throw new IOException("Unknown root");

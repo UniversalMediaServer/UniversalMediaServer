@@ -7,7 +7,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.Principal;
 import java.util.List;
+
+import com.sun.net.httpserver.HttpPrincipal;
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
@@ -129,4 +132,12 @@ public class RemoteUtil {
 	public static boolean directmime(String mime) {
 		return (mime.equals("video/mp4") || mime.equals("video/webm") || mime.equals("video/ogg"));
 	}
+
+    public static String userName(HttpExchange t) {
+        HttpPrincipal p = t.getPrincipal();
+        if(p == null) {
+            return "";
+        }
+        return p.getUsername();
+    }
 }
