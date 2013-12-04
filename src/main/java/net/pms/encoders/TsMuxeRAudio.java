@@ -33,7 +33,7 @@ public class TsMuxeRAudio extends TsMuxeRVideo {
 
 	@Deprecated
 	public TsMuxeRAudio(PmsConfiguration configuration) {
-		super(configuration);
+		this();
 	}
 
 	public TsMuxeRAudio() {
@@ -58,7 +58,8 @@ public class TsMuxeRAudio extends TsMuxeRVideo {
 	public ProcessWrapper launchTranscode(
 		DLNAResource dlna,
 		DLNAMediaInfo media,
-		OutputParams params) throws IOException {
+		OutputParams params
+	) throws IOException {
 		params.timeend = media.getDurationInSeconds();
 		params.waitbeforestart = 2500;
 		return super.launchTranscode(dlna, media, params);

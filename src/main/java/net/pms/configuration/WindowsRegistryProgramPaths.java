@@ -40,6 +40,11 @@ class WindowsRegistryProgramPaths implements ProgramPaths {
 	}
 
 	@Override
+	public String getTsmuxerNewPath() {
+		return defaults.getTsmuxerNewPath();
+	}
+
+	@Override
 	public String getVlcPath() {
 		SystemUtils registry = PMS.get().getRegistry();
 		if (registry.getVlcPath() != null) {

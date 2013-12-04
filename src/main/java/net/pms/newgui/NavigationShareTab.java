@@ -173,7 +173,7 @@ public class NavigationShareTab {
 
 			builder.addLabel(Messages.getString("FoldTab.18"), FormLayoutUtil.flip(cc.xyw(1, 11, 3), colSpec, orientation));
 			builder.add(sortmethod, FormLayoutUtil.flip(cc.xyw(4, 11, 3), colSpec, orientation));
-			builder.add(ignorethewordthe, FormLayoutUtil.flip(cc.xyw(9, 11, 2), colSpec, orientation));
+			builder.add(ignorethewordthe, FormLayoutUtil.flip(cc.xy(9, 11), colSpec, orientation));
 
 			builder.add(prettifyfilenames, FormLayoutUtil.flip(cc.xyw(1, 13, 5), colSpec, orientation));
 
@@ -183,9 +183,9 @@ public class NavigationShareTab {
 
 			builder.add(hideextensions, FormLayoutUtil.flip(cc.xyw(1, 17, 3), colSpec, orientation));
 			builder.add(hideengines, FormLayoutUtil.flip(cc.xyw(4, 17, 3), colSpec, orientation));
-			builder.add(hideemptyfolders, FormLayoutUtil.flip(cc.xyw(9, 17, 2), colSpec, orientation));
+			builder.add(hideemptyfolders, FormLayoutUtil.flip(cc.xy(9, 17), colSpec, orientation));
 
-			builder.add(itunes, FormLayoutUtil.flip(cc.xyw(1, 19, 3), colSpec, orientation));
+			builder.add(itunes, FormLayoutUtil.flip(cc.xy(1, 19), colSpec, orientation));
 			builder.add(iphoto, FormLayoutUtil.flip(cc.xyw(4, 19, 3), colSpec, orientation));
 			builder.add(aperture, FormLayoutUtil.flip(cc.xyw(9, 19, 2), colSpec, orientation));
 
@@ -248,7 +248,7 @@ public class NavigationShareTab {
 		}
 
 		// Generate thumbnails
-		thumbgenCheckBox = new JCheckBox(Messages.getString("NetworkTab.2"));
+		thumbgenCheckBox = new JCheckBox(Messages.getString("NetworkTab.2"), configuration.isThumbnailGenerationEnabled());
 		thumbgenCheckBox.setContentAreaFilled(false);
 		thumbgenCheckBox.addItemListener(new ItemListener() {
 			@Override
@@ -257,12 +257,9 @@ public class NavigationShareTab {
 				seekpos.setEnabled(configuration.isThumbnailGenerationEnabled());
 			}
 		});
-		if (configuration.isThumbnailGenerationEnabled()) {
-			thumbgenCheckBox.setSelected(true);
-		}
 
 		// Use MPlayer for video thumbnails
-		mplayer_thumb = new JCheckBox(Messages.getString("FoldTab.14"));
+		mplayer_thumb = new JCheckBox(Messages.getString("FoldTab.14"), configuration.isUseMplayerForVideoThumbs());
 		mplayer_thumb.setContentAreaFilled(false);
 		mplayer_thumb.addItemListener(new ItemListener() {
 			@Override
@@ -270,12 +267,9 @@ public class NavigationShareTab {
 				configuration.setUseMplayerForVideoThumbs((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
-		if (configuration.isUseMplayerForVideoThumbs()) {
-			mplayer_thumb.setSelected(true);
-		}
 
 		// DVD ISO thumbnails
-		dvdiso_thumb = new JCheckBox(Messages.getString("FoldTab.19"));
+		dvdiso_thumb = new JCheckBox(Messages.getString("FoldTab.19"), configuration.isDvdIsoThumbnails());
 		dvdiso_thumb.setContentAreaFilled(false);
 		dvdiso_thumb.addItemListener(new ItemListener() {
 			@Override
@@ -283,12 +277,9 @@ public class NavigationShareTab {
 				configuration.setDvdIsoThumbnails((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
-		if (configuration.isDvdIsoThumbnails()) {
-			dvdiso_thumb.setSelected(true);
-		}
 
 		// Image thumbnails
-		image_thumb = new JCheckBox(Messages.getString("FoldTab.21"));
+		image_thumb = new JCheckBox(Messages.getString("FoldTab.21"), configuration.getImageThumbnailsEnabled());
 		image_thumb.setContentAreaFilled(false);
 		image_thumb.addItemListener(new ItemListener() {
 			@Override
@@ -296,9 +287,6 @@ public class NavigationShareTab {
 				configuration.setImageThumbnailsEnabled((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
-		if (configuration.getImageThumbnailsEnabled()) {
-			image_thumb.setSelected(true);
-		}
 
 		// Audio thumbnails import
 		final KeyedComboBoxModel thumbKCBM = new KeyedComboBoxModel(new Object[]{"0", "1", "2"}, new Object[]{Messages.getString("FoldTab.35"), Messages.getString("FoldTab.23"), Messages.getString("FoldTab.24")});
@@ -352,11 +340,8 @@ public class NavigationShareTab {
 		});
 
 		// Hide Server Settings folder
-		hidevideosettings = new JCheckBox(Messages.getString("FoldTab.38"));
+		hidevideosettings = new JCheckBox(Messages.getString("FoldTab.38"), configuration.getHideVideoSettings(null));
 		hidevideosettings.setContentAreaFilled(false);
-		if (configuration.getHideVideoSettings(null)) {
-			hidevideosettings.setSelected(true);
-		}
 		hidevideosettings.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -365,11 +350,8 @@ public class NavigationShareTab {
 		});
 
 		// Hide #--TRANSCODE--# folder
-		hidetranscode = new JCheckBox(Messages.getString("FoldTab.33"));
+		hidetranscode = new JCheckBox(Messages.getString("FoldTab.33"), configuration.getHideTranscodeEnabled());
 		hidetranscode.setContentAreaFilled(false);
-		if (configuration.getHideTranscodeEnabled()) {
-			hidetranscode.setSelected(true);
-		}
 		hidetranscode.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -378,11 +360,8 @@ public class NavigationShareTab {
 		});
 
 		// Hide cache folder
-		hidemedialibraryfolder = new JCheckBox(Messages.getString("FoldTab.32"));
+		hidemedialibraryfolder = new JCheckBox(Messages.getString("FoldTab.32"), configuration.isHideMediaLibraryFolder());
 		hidemedialibraryfolder.setContentAreaFilled(false);
-		if (configuration.isHideMediaLibraryFolder()) {
-			hidemedialibraryfolder.setSelected(true);
-		}
 		hidemedialibraryfolder.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -391,7 +370,7 @@ public class NavigationShareTab {
 		});
 
 		// Browse compressed archives
-		archive = new JCheckBox(Messages.getString("NetworkTab.1"));
+		archive = new JCheckBox(Messages.getString("NetworkTab.1"), configuration.isArchiveBrowsing());
 		archive.setContentAreaFilled(false);
 		archive.addItemListener(new ItemListener() {
 			@Override
@@ -399,15 +378,11 @@ public class NavigationShareTab {
 				configuration.setArchiveBrowsing(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
-		if (configuration.isArchiveBrowsing()) {
-			archive.setSelected(true);
-		}
 
 		// Enable the cache
-		cacheenable = new JCheckBox(Messages.getString("NetworkTab.17"));
+		cacheenable = new JCheckBox(Messages.getString("NetworkTab.17"), configuration.getUseCache());
 		cacheenable.setToolTipText(Messages.getString("FoldTab.48"));
 		cacheenable.setContentAreaFilled(false);
-		cacheenable.setSelected(configuration.getUseCache());
 		cacheenable.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -438,11 +413,8 @@ public class NavigationShareTab {
 		cachereset.setEnabled(configuration.getUseCache());
 
 		// Hide file extensions
-		hideextensions = new JCheckBox(Messages.getString("FoldTab.5"));
+		hideextensions = new JCheckBox(Messages.getString("FoldTab.5"), configuration.isHideExtensions());
 		hideextensions.setContentAreaFilled(false);
-		if (configuration.isHideExtensions()) {
-			hideextensions.setSelected(true);
-		}
 		if (configuration.isPrettifyFilenames()) {
 			hideextensions.setEnabled(false);
 		}
@@ -454,12 +426,9 @@ public class NavigationShareTab {
 		});
 
 		// Hide transcoding engine names
-		hideengines = new JCheckBox(Messages.getString("FoldTab.8"));
+		hideengines = new JCheckBox(Messages.getString("FoldTab.8"), configuration.isHideEngineNames());
 		hideengines.setToolTipText(Messages.getString("FoldTab.46"));
 		hideengines.setContentAreaFilled(false);
-		if (configuration.isHideEngineNames()) {
-			hideengines.setSelected(true);
-		}
 		hideengines.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -468,11 +437,9 @@ public class NavigationShareTab {
 		});
 
 		// Hide empty folders
-		hideemptyfolders = new JCheckBox(Messages.getString("FoldTab.31"));
+		hideemptyfolders = new JCheckBox(Messages.getString("FoldTab.31"), configuration.isHideEmptyFolders());
+		hideemptyfolders.setToolTipText(Messages.getString("FoldTab.59"));
 		hideemptyfolders.setContentAreaFilled(false);
-		if (configuration.isHideEmptyFolders()) {
-			hideemptyfolders.setSelected(true);
-		}
 		hideemptyfolders.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -481,12 +448,9 @@ public class NavigationShareTab {
 		});
 
 		// Show iTunes library
-		itunes = new JCheckBox(Messages.getString("FoldTab.30"));
+		itunes = new JCheckBox(Messages.getString("FoldTab.30"), configuration.isShowItunesLibrary());
 		itunes.setToolTipText(Messages.getString("FoldTab.47"));
 		itunes.setContentAreaFilled(false);
-		if (configuration.isShowItunesLibrary()) {
-			itunes.setSelected(true);
-		}
 		if (!(Platform.isMac() || Platform.isWindows())) {
 			itunes.setEnabled(false);
 		}
@@ -498,11 +462,8 @@ public class NavigationShareTab {
 		});
 
 		// Show iPhoto library
-		iphoto = new JCheckBox(Messages.getString("FoldTab.29"));
+		iphoto = new JCheckBox(Messages.getString("FoldTab.29"), configuration.isShowIphotoLibrary());
 		iphoto.setContentAreaFilled(false);
-		if (configuration.isShowIphotoLibrary()) {
-			iphoto.setSelected(true);
-		}
 		if (!Platform.isMac()) {
 			iphoto.setEnabled(false);
 		}
@@ -514,11 +475,8 @@ public class NavigationShareTab {
 		});
 
 		// Show aperture library
-		aperture = new JCheckBox(Messages.getString("FoldTab.34"));
+		aperture = new JCheckBox(Messages.getString("FoldTab.34"), configuration.isShowApertureLibrary());
 		aperture.setContentAreaFilled(false);
-		if (configuration.isShowApertureLibrary()) {
-			aperture.setSelected(true);
-		}
 		if (!Platform.isMac()) {
 			aperture.setEnabled(false);
 		}
@@ -568,12 +526,9 @@ public class NavigationShareTab {
 		});
 
 		// Ignore the word "the" while sorting
-		ignorethewordthe = new JCheckBox(Messages.getString("FoldTab.39"));
+		ignorethewordthe = new JCheckBox(Messages.getString("FoldTab.39"), configuration.isIgnoreTheWordThe());
 		ignorethewordthe.setToolTipText(Messages.getString("FoldTab.44"));
 		ignorethewordthe.setContentAreaFilled(false);
-		if (configuration.isIgnoreTheWordThe()) {
-			ignorethewordthe.setSelected(true);
-		}
 		ignorethewordthe.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -596,11 +551,8 @@ public class NavigationShareTab {
 			}
 		});
 
-		liveSubtitles = new JCheckBox(Messages.getString("FoldTab.42"));
+		liveSubtitles = new JCheckBox(Messages.getString("FoldTab.42"), configuration.isHideLiveSubtitlesFolder());
 		liveSubtitles.setContentAreaFilled(false);
-		if (configuration.isHideLiveSubtitlesFolder()) {
-			liveSubtitles.setSelected(true);
-		}
 		liveSubtitles.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -608,12 +560,9 @@ public class NavigationShareTab {
 			}
 		});
 
-		prettifyfilenames = new JCheckBox(Messages.getString("FoldTab.43"));
+		prettifyfilenames = new JCheckBox(Messages.getString("FoldTab.43"), configuration.isPrettifyFilenames());
 		prettifyfilenames.setToolTipText(Messages.getString("FoldTab.45"));
 		prettifyfilenames.setContentAreaFilled(false);
-		if (configuration.isPrettifyFilenames()) {
-			prettifyfilenames.setSelected(true);
-		}
 		prettifyfilenames.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -622,11 +571,9 @@ public class NavigationShareTab {
 			}
 		});
 
-		newmediafolder = new JCheckBox(Messages.getString("FoldTab.54"));
+		newmediafolder = new JCheckBox(Messages.getString("FoldTab.54"), configuration.isHideNewMediaFolder(null));
+		newmediafolder.setToolTipText(Messages.getString("FoldTab.60"));
 		newmediafolder.setContentAreaFilled(false);
-		if (configuration.isHideNewMediaFolder(null)) {
-			newmediafolder.setSelected(true);
-		}
 		newmediafolder.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -634,11 +581,8 @@ public class NavigationShareTab {
 			}
 		});
 
-		recentlyplayedfolder = new JCheckBox(Messages.getString("FoldTab.55"));
+		recentlyplayedfolder = new JCheckBox(Messages.getString("FoldTab.55"), configuration.isHideRecentlyPlayedFolder(null));
 		recentlyplayedfolder.setContentAreaFilled(false);
-		if (configuration.isHideRecentlyPlayedFolder(null)) {
-			recentlyplayedfolder.setSelected(true);
-		}
 		recentlyplayedfolder.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -646,12 +590,9 @@ public class NavigationShareTab {
 			}
 		});
 
-		resume = new JCheckBox(Messages.getString("NetworkTab.68"));
+		resume = new JCheckBox(Messages.getString("NetworkTab.68"), configuration.isResumeEnabled());
 		resume.setToolTipText(Messages.getString("NetworkTab.69"));
 		resume.setContentAreaFilled(false);
-		if (configuration.isResumeEnabled()) {
-			resume.setSelected(true);
-		}
 		resume.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {

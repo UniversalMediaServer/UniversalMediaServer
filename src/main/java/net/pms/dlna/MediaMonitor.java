@@ -21,13 +21,13 @@ public class MediaMonitor extends VirtualFolder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaMonitor.class);
 	private File[] dirs;
 	private ArrayList<String> oldEntries;
-    private PmsConfiguration config;
+	private PmsConfiguration config;
 
 	public MediaMonitor(File[] dirs) {
 		super(Messages.getString("VirtualFolder.2"), "images/thumbnail-video-256.png");
 		this.dirs = dirs;
 		oldEntries = new ArrayList<>();
-        config = PMS.getConfiguration();
+		config = PMS.getConfiguration();
 		parseMonitorFile();
 	}
 
@@ -100,16 +100,16 @@ public class MediaMonitor extends VirtualFolder {
 				if (old(f.getAbsolutePath())) {
 					continue;
 				}
-                res.addChild(new RealFile(f));
+				res.addChild(new RealFile(f));
 			}
 			if (f.isDirectory()) {
-                boolean add = true;
-                if (config.isHideEmptyFolders()) {
-                   add = FileUtil.isFolderRelevant(f, PMS.getConfiguration());
-                }
-                if(add) {
-				    res.addChild(new MonitorEntry(f, this));
-                }
+				boolean add = true;
+				if (config.isHideEmptyFolders()) {
+					add = FileUtil.isFolderRelevant(f, PMS.getConfiguration());
+				}
+				if (add) {
+					res.addChild(new MonitorEntry(f, this));
+				}
 			}
 		}
 	}

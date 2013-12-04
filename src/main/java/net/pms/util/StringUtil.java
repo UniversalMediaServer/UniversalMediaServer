@@ -1,11 +1,11 @@
 package net.pms.util;
 
+import java.util.Formatter;
+import java.util.Locale;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public class StringUtil {
 	private static final int[] MULTIPLIER = new int[] {3600, 60, 1};
-	public static final String ASS_TIME_FORMAT = "%01d:%02d:%05.2f";
-	public static final String SRT_TIME_FORMAT = "%02d:%02d:%06.3f";
 	public static final String SEC_TIME_FORMAT = "%02d:%02d:%02d";
 	public static final String DURATION_TIME_FORMAT = "%02d:%02d:%05.2f";
 
@@ -125,19 +125,19 @@ public class StringUtil {
 	 *
 	 * @param d time in double.
 	 * @param timeFormat Format string e.g. "%02d:%02d:%02d" or use predefined constants
-	 * ASS_TIME_FORMAT, SRT_TIME_FORMAT, SEC_TIME_FORMAT, DURATION_TIME_FORMAT.
+	 * SEC_TIME_FORMAT, DURATION_TIME_FORMAT.
 	 *
 	 * @return Converted String.
 	 */
 	public static String convertTimeToString(double d, String timeFormat) {
-		double s = d % 60;
-		int h = (int) (d / 3600);
-		int m = ((int) (d / 60)) % 60;
-
-		if (timeFormat.equals(SRT_TIME_FORMAT)) {
-			return String.format(timeFormat, h, m, s).replaceAll("\\.", ",");
+		StringBuilder sb = new StringBuilder();
+		try (Formatter formatter = new Formatter(sb, Locale.US)) {
+			double s = d % 60;
+			int h = (int) (d / 3600);
+			int m = ((int) (d / 60)) % 60;
+			formatter.format(timeFormat, h, m, s);
 		}
 
-		return String.format(timeFormat, h, m, s);
+		return sb.toString();
 	}
 }

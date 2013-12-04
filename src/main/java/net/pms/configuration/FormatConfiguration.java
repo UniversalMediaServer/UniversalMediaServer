@@ -18,6 +18,7 @@ public class FormatConfiguration {
 	// Use old parser for JPEG files (MediaInfo does not support EXIF)
 	private static final String[] PARSER_V1_EXTENSIONS = new String[]{".jpg", ".jpe", ".jpeg"};
 	public static final String AAC = "aac";
+	public static final String AAC_HE = "aac-he";
 	public static final String AC3 = "ac3";
 	public static final String AIFF = "aiff";
 	public static final String ALAC = "alac";
@@ -38,6 +39,7 @@ public class FormatConfiguration {
 	public static final String LPCM = "lpcm";
 	public static final String MATROSKA = "mkv";
 	public static final String MI_GMC = "gmc";
+	public static final String MI_GOP = "gop";
 	public static final String MI_QPEL = "qpel";
 	public static final String MJPEG = "mjpeg";
 	public static final String MLP = "mlp";
@@ -152,7 +154,7 @@ public class FormatConfiguration {
 			if (maxVideoWidth != null) {
 				try {
 					iMaxVideoWidth = Integer.parseInt(maxVideoWidth);
-				} catch (Exception nfe) {
+				} catch (NumberFormatException nfe) {
 					LOGGER.error("Error parsing maximum video width: " + maxVideoWidth, nfe);
 					return false;
 				}
@@ -174,6 +176,31 @@ public class FormatConfiguration {
 			return match(container, videoCodec, audioCodec, 0, 0, 0, 0, 0, null);
 		}
 
+		/**
+		 * Determine whether or not the provided parameters match the
+		 * "Supported" lines for this configuration. If a parameter is null
+		 * or 0, its value is skipped for making the match. If any of the
+		 * non-null parameters does not match, false is returned. For example,
+		 * assume a configuration that contains only the following line:
+		 * 
+		 * Supported = f:mp4 n:2
+		 *  
+		 * match("mp4", null, null, 2, 0, 0, 0, 0, null) = true
+		 * match("mp4", null, null, 6, 0, 0, 0, 0, null) = false 
+		 * match("wav", null, null, 2, 0, 0, 0, 0, null) = false 
+		 *
+		 * @param format
+		 * @param videoCodec
+		 * @param audioCodec
+		 * @param nbAudioChannels
+		 * @param frequency
+		 * @param bitrate
+		 * @param videoWidth
+		 * @param videoHeight
+		 * @param extras
+		 * @return False if any of the provided non-null parameters is not a
+		 * 			match, true otherwise.
+		 */
 		public boolean match(
 			String format,
 			String videoCodec,
@@ -185,70 +212,80 @@ public class FormatConfiguration {
 			int videoHeight,
 			Map<String, String> extras
 		) {
-			boolean matched = false;
 
-			if (format != null && !(matched = pFormat.matcher(format).matches())) {
-				LOGGER.trace("Format \"{}\" failed to match support line {}", format, supportLine);
+			// Satisfy a minimum threshold
+			if (format == null && videoCodec == null && audioCodec == null) {
+				// We have no matchable info. This can happen with unparsed
+				// mediainfo objects (e.g. from WEB.conf or plugins).
 				return false;
 			}
 
-			if (matched && videoCodec != null && pVideoCodec != null && !(matched = pVideoCodec.matcher(videoCodec).matches())) {
+			// Assume a match, until proven otherwise
+			if (format != null && !pFormat.matcher(format).matches()) {
+				LOGGER.trace("Format \"{}\" failed to match supported line {}", format, supportLine);
+				return false;
+			}
+
+			if (videoCodec != null && pVideoCodec != null && !pVideoCodec.matcher(videoCodec).matches()) {
 				LOGGER.trace("Video codec \"{}\" failed to match support line {}", videoCodec, supportLine);
 				return false;
 			}
 
-			if (matched && audioCodec != null && pAudioCodec != null && !(matched = pAudioCodec.matcher(audioCodec).matches())) {
+			if (audioCodec != null && pAudioCodec != null && !pAudioCodec.matcher(audioCodec).matches()) {
 				LOGGER.trace("Audio codec \"{}\" failed to match support line {}", audioCodec, supportLine);
 				return false;
 			}
 
-			if (matched && nbAudioChannels > 0 && iMaxNbChannels > 0 && nbAudioChannels > iMaxNbChannels) {
+			if (nbAudioChannels > 0 && iMaxNbChannels > 0 && nbAudioChannels > iMaxNbChannels) {
 				LOGGER.trace("Number of channels \"{}\" failed to match support line {}", nbAudioChannels, supportLine);
 				return false;
 			}
 
-			if (matched && frequency > 0 && iMaxFrequency > 0 && frequency > iMaxFrequency) {
+			if (frequency > 0 && iMaxFrequency > 0 && frequency > iMaxFrequency) {
 				LOGGER.trace("Frequency \"{}\" failed to match support line {}", frequency, supportLine);
 				return false;
 			}
 
-			if (matched && bitrate > 0 && iMaxBitrate > 0 && bitrate > iMaxBitrate) {
-				LOGGER.trace("Bitrate \"{}\" failed to match support line {}", bitrate, supportLine);
+			if (bitrate > 0 && iMaxBitrate > 0 && bitrate > iMaxBitrate) {
+				LOGGER.trace("Bit rate \"{}\" failed to match support line {}", bitrate, supportLine);
 				return false;
 			}
 
-			if (matched && videoWidth > 0 && iMaxVideoWidth > 0 && videoWidth > iMaxVideoWidth) {
+			if (videoWidth > 0 && iMaxVideoWidth > 0 && videoWidth > iMaxVideoWidth) {
 				LOGGER.trace("Video width \"{}\" failed to match support line {}", videoWidth, supportLine);
 				return false;
 			}
 
-			if (matched && videoHeight > 0 && iMaxVideoHeight > 0 && videoHeight > iMaxVideoHeight) {
+			if (videoHeight > 0 && iMaxVideoHeight > 0 && videoHeight > iMaxVideoHeight) {
 				LOGGER.trace("Video height \"{}\" failed to match support line {}", videoHeight, supportLine);
 				return false;
 			}
 
-			if (matched && extras != null && miExtras != null) {
+			if (extras != null && miExtras != null) {
 				Iterator<String> keyIt = extras.keySet().iterator();
-
 				while (keyIt.hasNext()) {
 					String key = keyIt.next();
 					String value = extras.get(key);
 
-					if (matched && key.equals(MI_QPEL) && miExtras.get(MI_QPEL) != null) {
-						matched = miExtras.get(MI_QPEL).matcher(value).matches();
-					} else if (matched && key.equals(MI_GMC) && miExtras.get(MI_GMC) != null) {
-						matched = miExtras.get(MI_GMC).matcher(value).matches();
+					if (key.equals(MI_QPEL) && miExtras.get(MI_QPEL) != null && !miExtras.get(MI_QPEL).matcher(value).matches()) {
+						LOGGER.trace("Qpel value \"{}\" failed to match support line {}", miExtras.get(MI_QPEL), supportLine);
+						return false;
+					}
+
+					if (key.equals(MI_GMC) && miExtras.get(MI_GMC) != null && !miExtras.get(MI_GMC).matcher(value).matches()) {
+						LOGGER.trace("Gmc value \"{}\" failed to match support line {}", miExtras.get(MI_GMC), supportLine);
+						return false;
+					}
+					
+					if (key.equals(MI_GOP) && miExtras.get(MI_GOP) != null && miExtras.get(MI_GOP).matcher("static").matches() && value.equals("variable")) {
+						LOGGER.trace("GOP value \"{}\" failed to match support line {}", value, supportLine);
+						return false;
 					}
 				}
 			}
 
-			if (matched) {
-				LOGGER.trace("Matched support line {}", supportLine);
-			} else {
-				LOGGER.trace("Extras failed to match support line {}", supportLine);
-			}
-
-			return matched;
+			LOGGER.trace("Matched support line {}", supportLine);
+			return true;
 		}
 	}
 
@@ -487,8 +524,8 @@ public class FormatConfiguration {
 					supportSpec.miExtras = new HashMap<>();
 				}
 
-				String key = token.substring(0, token.indexOf(":"));
-				String value = token.substring(token.indexOf(":") + 1);
+				String key = token.substring(0, token.indexOf(':'));
+				String value = token.substring(token.indexOf(':') + 1);
 				supportSpec.miExtras.put(key, Pattern.compile(value));
 			}
 		}

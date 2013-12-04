@@ -26,15 +26,21 @@
 		<!-- Include the FFmpeg binary -->
 		<file>
 			<source>${project.binaries}/ffmpeg</source>
-			<outputDirectory>.</outputDirectory>
+			<outputDirectory>./linux</outputDirectory>
 			<fileMode>0755</fileMode>
 			<lineEnding>keep</lineEnding>
 		</file>
 
-		<!-- Include the tsMuxeR binary -->
+		<!-- Include the tsMuxeR binaries -->
 		<file>
 			<source>${project.binaries}/tsMuxeR</source>
-			<outputDirectory>.</outputDirectory>
+			<outputDirectory>./linux</outputDirectory>
+			<fileMode>0755</fileMode>
+			<lineEnding>keep</lineEnding>
+		</file>
+		<file>
+			<source>${project.binaries}/tsMuxeR-new</source>
+			<outputDirectory>./linux</outputDirectory>
 			<fileMode>0755</fileMode>
 			<lineEnding>keep</lineEnding>
 		</file>
@@ -79,6 +85,9 @@
 				<include>linux/*.txt</include>
 				<include>plugins/**</include>
 				<include>renderers/*</include>
+				<include>VirtualFolders.conf</include>
+				<include>DummyInput.ass</include>
+				<include>DummyInput.jpg</include>
 				<include>web/*</include>
 			</includes>
 		</fileSet>

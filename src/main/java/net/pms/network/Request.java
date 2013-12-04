@@ -274,7 +274,7 @@ public class Request extends HTTPResource {
 			 * "Http: Response, HTTP/1.1, Status: Internal server error, URL: /get/0$2$4$2$1$3"
 			 * This should fix it
 			 */
-			String id = argument.substring(argument.indexOf("get/") + 4, argument.lastIndexOf("/"));
+			String id = argument.substring(argument.indexOf("get/") + 4, argument.lastIndexOf('/'));
 
 			// Some clients escape the separators in their request: unescape them.
 			id = id.replace("%24", "$");
@@ -289,7 +289,7 @@ public class Request extends HTTPResource {
 			if (files.size() == 1) {
 				// DLNAresource was found.
 				dlna = files.get(0);
-				String fileName = argument.substring(argument.lastIndexOf("/") + 1);
+				String fileName = argument.substring(argument.lastIndexOf('/') + 1);
 
 				if (fileName.startsWith("thumbnail0000")) {
 					// This is a request for a thumbnail file.
@@ -437,7 +437,12 @@ public class Request extends HTTPResource {
 			output(output, "Expires: " + getFUTUREDATE() + " GMT");
 			inputStream = getResourceInputStream(argument);
 		} else if ((method.equals("GET") || method.equals("HEAD")) && (argument.equals("description/fetch") || argument.endsWith("1.0.xml"))) {
-			String profileName = configuration.getProfileName();
+			String profileName = "";
+			if (configuration.isAppendProfileName()) {
+				profileName = " [" + configuration.getProfileName() + "]";
+			}
+
+			String serverName = configuration.getServerName();
 			output(output, CONTENT_TYPE);
 			output(output, "Cache-Control: no-cache");
 			output(output, "Expires: 0");
@@ -458,7 +463,7 @@ public class Request extends HTTPResource {
 
 				if (xbox) {
 					LOGGER.debug("DLNA changes for Xbox 360");
-					s = s.replace("Universal Media Server", "Universal Media Server [" + profileName + "] : Windows Media Connect");
+					s = s.replace("Universal Media Server", serverName + profileName + " : Windows Media Connect");
 					s = s.replace("<modelName>UMS</modelName>", "<modelName>Windows Media Connect</modelName>");
 					s = s.replace("<serviceList>", "<serviceList>" + CRLF + "<service>" + CRLF +
 						"<serviceType>urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1</serviceType>" + CRLF +
@@ -467,7 +472,7 @@ public class Request extends HTTPResource {
 						"<controlURL>/upnp/mrr/control</controlURL>" + CRLF +
 						"</service>" + CRLF);
 				} else {
-					s = s.replace("Universal Media Server", "Universal Media Server [" + profileName + "]");
+					s = s.replace("Universal Media Server", serverName + profileName);
 				}
 
 				inputStream = new ByteArrayInputStream(s.getBytes());

@@ -31,7 +31,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>3.1.0</version>
+	<version>3.2.1</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -69,7 +69,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>3.1.0</project.version.short>
+		<project.version.short>3.2.1</project.version.short>
 
 		<!--
 			XXX we currently need to use an old version of JNA
@@ -230,7 +230,7 @@
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<version>1.3.173</version>
+			<version>1.3.174</version>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
@@ -996,6 +996,7 @@
 										<get src="${project.binaries-base}/win32/mencoder.exe" dest="${project.binaries}/win32/mencoder.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/mplayer.exe" dest="${project.binaries}/win32/mplayer.exe"  usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/tsMuxeR.exe" dest="${project.binaries}/win32/tsMuxeR.exe" usetimestamp="true" />
+										<get src="${project.binaries-base}/win32/tsMuxeR-new.exe" dest="${project.binaries}/win32/tsMuxeR-new.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/vcomp100.dll" dest="${project.binaries}/win32/vcomp100.dll" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/avisynth/avisynth.exe" dest="${project.binaries}/win32/avisynth/avisynth.exe" usetimestamp="true" />
 										<get src="${project.binaries-base}/win32/codecs/drv33260.dll" dest="${project.binaries}/win32/codecs/drv33260.dll" usetimestamp="true" />
@@ -1200,6 +1201,7 @@
 										<!-- Download binaries -->
 										<get src="${project.binaries-base}/linux/ffmpeg" dest="${project.binaries}/ffmpeg" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/tsMuxeR" dest="${project.binaries}/tsMuxeR" usetimestamp="true" />
+										<get src="${project.binaries-base}/linux/tsMuxeR-new" dest="${project.binaries}/tsMuxeR-new" usetimestamp="true" />
 										<get src="${project.binaries-base}/linux/tsMuxeR_licence.txt" dest="${project.binaries}/tsMuxeR_license.txt" usetimestamp="true" />
 									</target>
 								</configuration>
@@ -1276,6 +1278,7 @@
 										<get src="${project.binaries-base}/osx/mencoder" dest="${project.binaries}/osx/mencoder" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/mplayer" dest="${project.binaries}/osx/mplayer" usetimestamp="true" />
 										<get src="${project.binaries-base}/osx/tsMuxeR" dest="${project.binaries}/osx/tsMuxeR" usetimestamp="true" />
+										<get src="${project.binaries-base}/osx/tsMuxeR-new" dest="${project.binaries}/osx/tsMuxeR-new" usetimestamp="true" />
 
 										<!-- MediaInfo library needs to be in the standard library path to be found -->
 										<copy file="${project.binaries}/libmediainfo.dylib" todir="${project.basedir}" />

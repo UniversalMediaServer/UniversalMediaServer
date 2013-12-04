@@ -29,7 +29,7 @@ public class WebRender extends RendererConfiguration {
         else {
             ipStr = "";
         }
-        return name + "@\n" + Messages.getString("PMS.140") + ipStr;
+        return name + "@\n" + Messages.getString("PMS.142") + ipStr;
     }
 
     public void associateIP(InetAddress sa) {

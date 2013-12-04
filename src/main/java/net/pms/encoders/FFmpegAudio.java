@@ -52,7 +52,7 @@ public class FFmpegAudio extends FFMpegVideo {
 
 	@Deprecated
 	public FFmpegAudio(PmsConfiguration configuration) {
-		super(configuration);
+		this();
 	}
 
 	public FFmpegAudio() {
@@ -74,9 +74,8 @@ public class FFmpegAudio extends FFMpegVideo {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		noresample = new JCheckBox(Messages.getString("TrTab2.22"));
+		noresample = new JCheckBox(Messages.getString("TrTab2.22"), configuration.isAudioResample());
 		noresample.setContentAreaFilled(false);
-		noresample.setSelected(configuration.isAudioResample());
 		noresample.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {

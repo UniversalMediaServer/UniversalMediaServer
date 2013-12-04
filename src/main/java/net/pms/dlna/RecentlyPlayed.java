@@ -173,13 +173,13 @@ public class RecentlyPlayed extends VirtualFolder {
 						continue;
 					}
 					str = str.substring(7);
-					int pos = str.indexOf(";");
+					int pos = str.indexOf(';');
 					if (pos == -1) {
 						continue;
 					}
 					String master = str.substring(0, pos);
 					str = str.substring(pos + 1);
-					pos = str.indexOf(";");
+					pos = str.indexOf(';');
 					String subData = null;
 					String resData = null;
 					DLNAResource res = null;
@@ -198,7 +198,7 @@ public class RecentlyPlayed extends VirtualFolder {
 							subData = str.substring(3, pos);
 						}
 						str = str.substring(pos + 1);
-						pos = str.indexOf(";");
+						pos = str.indexOf(';');
 					}
 					LOGGER.debug("master is " + master + " str " + str);
 					ExternalListener lpp;
@@ -310,30 +310,50 @@ public class RecentlyPlayed extends VirtualFolder {
 	}
 
 	private DLNAResource parseInternal(String clazz, String data) {
+		boolean error = false;
 		if (clazz.contains("RealFile")) {
-			String[] tmp = data.split(">");
-			return new RealFile(new File(tmp[1]), tmp[0]);
+			if (data.contains(">")) {
+				String[] tmp = data.split(">");
+				return new RealFile(new File(tmp[1]), tmp[0]);
+			}
+			error = true;
 		}
 		if (clazz.contains("SevenZipEntry")) {
-			String[] tmp = data.split(">");
-			long len = Long.parseLong(tmp[2]);
-			return new SevenZipEntry(new File(tmp[1]), tmp[0], len);
+			if (data.contains(">")) {
+				String[] tmp = data.split(">");
+				long len = Long.parseLong(tmp[2]);
+				return new SevenZipEntry(new File(tmp[1]), tmp[0], len);
+			}
+			error = true;
 		}
 		if (clazz.contains("ZippedEntry")) {
-			String[] tmp = data.split(">");
-			long len = Long.parseLong(tmp[2]);
-			return new ZippedEntry(new File(tmp[1]), tmp[0], len);
+			if (data.contains(">")) {
+				String[] tmp = data.split(">");
+				long len = Long.parseLong(tmp[2]);
+				return new ZippedEntry(new File(tmp[1]), tmp[0], len);
+			}
+			error = true;
 		}
 		if (clazz.contains("WebStream")) {
-			String[] tmp = data.split(">");
-			int type;
-			try {
-				type = Integer.parseInt(tmp[3]);
-			} catch (NumberFormatException e) {
-				type = Format.UNKNOWN;
+			if (data.contains(">")) {
+				String[] tmp = data.split(">");
+				int type;
+				try {
+					type = Integer.parseInt(tmp[3]);
+				} catch (NumberFormatException e) {
+					type = Format.UNKNOWN;
+				}
+				return new WebStream(tmp[0], tmp[1], tmp[2], type);
 			}
-			return new WebStream(tmp[0], tmp[1], tmp[2], type);
+			error = true;
 		}
+
+		if (error) {
+			LOGGER.debug("parseInternal() received some bad data:");
+			LOGGER.debug("clazz: " + clazz);
+			LOGGER.debug("data:" + data);
+		}
+
 		return null;
 	}
 

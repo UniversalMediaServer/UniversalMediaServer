@@ -78,12 +78,12 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 		// use the command name, but remove its path first.
 		String threadName = cmdArray[0];
 
-		if (threadName.indexOf("/") >= 0) {
-			threadName = threadName.substring(threadName.lastIndexOf("/") + 1);
+		if (threadName.indexOf('/') >= 0) {
+			threadName = threadName.substring(threadName.lastIndexOf('/') + 1);
 		}
 
-		if (threadName.indexOf("\\") >= 0) {
-			threadName = threadName.substring(threadName.lastIndexOf("\\") + 1);
+		if (threadName.indexOf('\\') >= 0) {
+			threadName = threadName.substring(threadName.lastIndexOf('\\') + 1);
 		}
 
 		setName(threadName + "-" + getProcessCounter());
@@ -102,7 +102,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 				sb.append(" ");
 			}
 
-			if (cmdArray[i] != null && cmdArray[i].indexOf(" ") >= 0) {
+			if (cmdArray[i] != null && cmdArray[i].indexOf(' ') >= 0) {
 				sb.append("\"").append(cmdArray[i]).append("\"");
 			} else {
 				sb.append(cmdArray[i]);

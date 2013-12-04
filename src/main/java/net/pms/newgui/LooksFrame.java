@@ -21,10 +21,7 @@ package net.pms.newgui;
 import com.jgoodies.looks.Options;
 import com.jgoodies.looks.plastic.PlasticLookAndFeel;
 import com.sun.jna.Platform;
-import java.awt.BorderLayout;
-import java.awt.ComponentOrientation;
-import java.awt.Dimension;
-import java.awt.Font;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -34,9 +31,11 @@ import java.util.Observable;
 import java.util.Observer;
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.plaf.ColorUIResource;
 import javax.swing.plaf.metal.DefaultMetalTheme;
 import javax.swing.plaf.metal.MetalLookAndFeel;
 import net.pms.Messages;
@@ -288,7 +287,7 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		String title = projectName + " " + projectVersion;
 
 		// If the version contains a "-" (e.g. "1.50.1-SNAPSHOT" or "1.50.1-beta1"), add a warning message
-		if (projectVersion.indexOf("-") > -1) {
+		if (projectVersion.indexOf('-') > -1) {
 			title = title + " - " + Messages.getString("LooksFrame.26");
 		}
 
@@ -307,6 +306,12 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		} else {
 			setSize(PREFERRED_SIZE);
 		}
+
+		// Customize the colors used in tooltips
+		UIManager.put("ToolTip.background", new ColorUIResource(125, 184, 47));
+		Border border = BorderFactory.createLineBorder(new Color(125, 184, 47));
+		UIManager.put("ToolTip.border", border);
+		UIManager.put("ToolTip.foreground", new ColorUIResource(255, 255, 255));
 
 		// Display tooltips immediately and for a long time
 		ToolTipManager.sharedInstance().setInitialDelay(0);

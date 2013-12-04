@@ -68,8 +68,7 @@ public class DbgPacker implements ActionListener {
 			top.add(box, c);
 			CustomJButton open = exists ? new CustomJButton(MetalIconFactory.getTreeLeafIcon()) : new CustomJButton("+");
 			open.setActionCommand(file.getAbsolutePath());
-			open.setToolTipText((exists ? ""
-				: Messages.getString("DbgPacker.1") + " ") + file.getAbsolutePath());
+			open.setToolTipText((exists ? "" : Messages.getString("DbgPacker.1") + " ") + file.getAbsolutePath());
 			open.addActionListener(this);
 			c.gridx++;
 			c.weightx = 0.0;
@@ -125,7 +124,7 @@ public class DbgPacker implements ActionListener {
 		// add virtual folders file if it exists
 		String vfolders = configuration.getVirtualFoldersFile(null);
 		if (StringUtils.isNotEmpty(vfolders)) {
-			add(new File(vfolders.substring(1)));
+			add(new File(profileDirectory, vfolders.substring(1)));
 		}
 
 		add(new File(profileDirectory, "WEB.conf"));
@@ -229,7 +228,7 @@ public class DbgPacker implements ActionListener {
 		if (str.equals("pack")) {
 			packDbg();
 		} else {
-			// open
+			// Open
 			try {
 				File file = str.equals("showzip") ? new File(dbg_zip).getParentFile() : new File(str);
 				boolean exists = file.isFile() && file.exists();
@@ -247,11 +246,19 @@ public class DbgPacker implements ActionListener {
 	}
 
 	private void reload(JComponent c) {
-		// rebuild and restart
+		// Rebuild and restart
 		LOGGER.debug("reloading.");
 		init = true;
 		((Window) c.getTopLevelAncestor()).dispose();
-		JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-			config(), "Options", JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);
+		JOptionPane.showOptionDialog(
+			(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+			config(),
+			"Options",
+			JOptionPane.CLOSED_OPTION,
+			JOptionPane.PLAIN_MESSAGE,
+			null,
+			null,
+			null
+		);
 	}
 }

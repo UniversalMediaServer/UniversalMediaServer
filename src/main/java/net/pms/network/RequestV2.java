@@ -268,7 +268,7 @@ public class RequestV2 extends HTTPResource {
 			 */
 			String id = argument.substring(4);
 			if (argument.substring(4).contains("/")) {
-				id = argument.substring(4, argument.lastIndexOf("/"));
+				id = argument.substring(4, argument.lastIndexOf('/'));
 			}
 
 			// Some clients escape the separators in their request: unescape them.
@@ -284,7 +284,7 @@ public class RequestV2 extends HTTPResource {
 			if (files.size() == 1) {
 				// DLNAresource was found.
 				dlna = files.get(0);
-				String fileName = argument.substring(argument.lastIndexOf("/") + 1);
+				String fileName = argument.substring(argument.lastIndexOf('/') + 1);
 
 				if (fileName.startsWith("thumbnail0000")) {
 					// This is a request for a thumbnail file.
@@ -465,7 +465,13 @@ public class RequestV2 extends HTTPResource {
 				inputStream.read(b);
 				String s = new String(b);
 				s = s.replace("[uuid]", PMS.get().usn()); //.substring(0, PMS.get().usn().length()-2));
-				String profileName = configuration.getProfileName();
+
+				String profileName = "";
+				if (configuration.isAppendProfileName()) {
+					profileName = " [" + configuration.getProfileName() + "]";
+				}
+
+				String serverName = configuration.getServerName();
 
 				if (PMS.get().getServer().getHost() != null) {
 					s = s.replace("[host]", PMS.get().getServer().getHost());
@@ -474,7 +480,7 @@ public class RequestV2 extends HTTPResource {
 
 				if (xbox) {
 					LOGGER.debug("DLNA changes for Xbox 360");
-					s = s.replace("Universal Media Server", "Universal Media Server [" + profileName + "] : Windows Media Connect");
+					s = s.replace("Universal Media Server", serverName + profileName + " : Windows Media Connect");
 					s = s.replace("<modelName>UMS</modelName>", "<modelName>Windows Media Connect</modelName>");
 					s = s.replace("<serviceList>", "<serviceList>" + CRLF + "<service>" + CRLF +
 						"<serviceType>urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1</serviceType>" + CRLF +
@@ -483,7 +489,7 @@ public class RequestV2 extends HTTPResource {
 						"<controlURL>/upnp/mrr/control</controlURL>" + CRLF +
 						"</service>" + CRLF);
 				} else {
-					s = s.replace("Universal Media Server", "Universal Media Server [" + profileName + "]");
+					s = s.replace("Universal Media Server", serverName + profileName);
 				}
 
 				response.append(s);

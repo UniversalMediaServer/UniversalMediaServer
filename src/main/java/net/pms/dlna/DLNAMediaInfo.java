@@ -18,7 +18,6 @@
  */
 package net.pms.dlna;
 
-import com.sun.jna.Platform;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -270,35 +269,47 @@ public class DLNAMediaInfo implements Cloneable {
 	public boolean encrypted;
 
 	/**
-	 * Used to determine whether tsMuxeR can mux the file instead of transcoding.
+	 * @deprecated Use standard getter and setter to access this variable.
+	 */
+	@Deprecated
+	public String matrixCoefficients;
+
+	/**
+	 * Used to determine whether tsMuxeR can mux the file to the renderer
+	 * instead of transcoding.
 	 * Also used by DLNAResource to help determine the DLNA.ORG_PN (file type)
-	 * value to send to the renderer, which is confusing.
+	 * value to send to the renderer.
 	 *
 	 * Some of this code is repeated in isVideoWithinH264LevelLimits(), and since
 	 * both functions are sometimes (but not always) used together, this is
 	 * not an efficient use of code.
+	 *
 	 * TODO: Fix the above situation.
 	 * TODO: Now that FFmpeg is muxing without tsMuxeR, we should make a separate
 	 *       function for that, or even better, re-think this whole approach.
+	 *
+	 * @param mediaRenderer The renderer we might mux to
+	 *
+	 * @return
 	 */
 	public boolean isMuxable(RendererConfiguration mediaRenderer) {
-		// Make sure the file is H.264 video with AC-3/DTS audio
+		// Make sure the file is H.264 video
 		if (getCodecV() != null && getCodecV().equals("h264")) {
-			if (getFirstAudioTrack() != null) {
-				String codecA;
-				codecA = getFirstAudioTrack().getCodecA();
-				if (
-					codecA != null &&
-					(
-						codecA.equals("ac3") ||
-						codecA.equals("dca") ||
-						codecA.equals("dts") ||
-						codecA.equals("eac3")
-					)
-				) {
-					muxable = true;
-				}
-			}
+			muxable = true;
+		}
+
+		// Check if the renderer supports the resolution of the video
+		if (
+			(
+				mediaRenderer.isVideoRescale() &&
+				(
+					getWidth() > mediaRenderer.getMaxVideoWidth() ||
+					getHeight() > mediaRenderer.getMaxVideoHeight()
+				)
+			) ||
+			!isMod4()
+		) {
+			muxable = false;
 		}
 
 		// Temporary fix: MediaInfo support will take care of this in the future
@@ -752,7 +763,7 @@ public class DLNAMediaInfo implements Cloneable {
 						} else if (line.startsWith("Input")) {
 							if (line.indexOf(input) > -1) {
 								matchs = true;
-								setContainer(line.substring(10, line.indexOf(",", 11)).trim());
+								setContainer(line.substring(10, line.indexOf(',', 11)).trim());
 							} else {
 								matchs = false;
 							}
@@ -763,9 +774,9 @@ public class DLNAMediaInfo implements Cloneable {
 									String token = st.nextToken().trim();
 									if (token.startsWith("Duration: ")) {
 										String durationStr = token.substring(10);
-										int l = durationStr.substring(durationStr.indexOf(".") + 1).length();
+										int l = durationStr.substring(durationStr.indexOf('.') + 1).length();
 										if (l < 4) {
-											durationStr = durationStr + "00".substring(0, 3 - l);
+											durationStr += "00".substring(0, 3 - l);
 										}
 										if (durationStr.indexOf("N/A") > -1) {
 											setDuration(null);
@@ -774,7 +785,7 @@ public class DLNAMediaInfo implements Cloneable {
 										}
 									} else if (token.startsWith("bitrate: ")) {
 										String bitr = token.substring(9);
-										int spacepos = bitr.indexOf(" ");
+										int spacepos = bitr.indexOf(' ');
 										if (spacepos > -1) {
 											String value = bitr.substring(0, spacepos);
 											String unit = bitr.substring(spacepos + 1);
@@ -790,7 +801,7 @@ public class DLNAMediaInfo implements Cloneable {
 								}
 							} else if (line.indexOf("Audio:") > -1) {
 								StringTokenizer st = new StringTokenizer(line, ",");
-								int a = line.indexOf("(");
+								int a = line.indexOf('(');
 								int b = line.indexOf("):", a);
 								DLNAMediaAudio audio = new DLNAMediaAudio();
 								audio.setId(langId++);
@@ -802,7 +813,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 								// Get TS IDs
 								a = line.indexOf("[0x");
-								b = line.indexOf("]", a);
+								b = line.indexOf(']', a);
 								if (a > -1 && b > a + 3) {
 									String idString = line.substring(a + 3, b);
 									try {
@@ -845,7 +856,7 @@ public class DLNAMediaInfo implements Cloneable {
 								}
 
 								if (line.indexOf("Metadata:") > -1) {
-									FFmpegMetaDataNr = FFmpegMetaDataNr + 1;
+									FFmpegMetaDataNr += 1;
 									line = lines.get(FFmpegMetaDataNr);
 									while (line.indexOf("      ") == 0) {
 										if (line.toLowerCase().indexOf("title           :") > -1) {
@@ -856,7 +867,7 @@ public class DLNAMediaInfo implements Cloneable {
 												break;
 											}
 										} else {
-											FFmpegMetaDataNr = FFmpegMetaDataNr + 1;
+											FFmpegMetaDataNr += 1;
 											line = lines.get(FFmpegMetaDataNr);
 										}
 									}
@@ -887,20 +898,20 @@ public class DLNAMediaInfo implements Cloneable {
 										setFrameRate(token.substring(0, token.indexOf("tb")).trim());
 									} else if ((token.indexOf("fps") > -1 || token.indexOf("fps(r)") > -1) && getFrameRate() == null) { // dvr-ms ?
 										setFrameRate(token.substring(0, token.indexOf("fps")).trim());
-									} else if (token.indexOf("x") > -1 && !token.contains("max")) {
+									} else if (token.indexOf('x') > -1 && !token.contains("max")) {
 										String resolution = token.trim();
 										if (resolution.indexOf(" [") > -1) {
 											resolution = resolution.substring(0, resolution.indexOf(" ["));
 										}
 										try {
-											setWidth(Integer.parseInt(resolution.substring(0, resolution.indexOf("x"))));
+											setWidth(Integer.parseInt(resolution.substring(0, resolution.indexOf('x'))));
 										} catch (NumberFormatException nfe) {
-											LOGGER.debug("Could not parse width from \"" + resolution.substring(0, resolution.indexOf("x")) + "\"");
+											LOGGER.debug("Could not parse width from \"" + resolution.substring(0, resolution.indexOf('x')) + "\"");
 										}
 										try {
-											setHeight(Integer.parseInt(resolution.substring(resolution.indexOf("x") + 1)));
+											setHeight(Integer.parseInt(resolution.substring(resolution.indexOf('x') + 1)));
 										} catch (NumberFormatException nfe) {
-											LOGGER.debug("Could not parse height from \"" + resolution.substring(resolution.indexOf("x") + 1) + "\"");
+											LOGGER.debug("Could not parse height from \"" + resolution.substring(resolution.indexOf('x') + 1) + "\"");
 										}
 									}
 								}
@@ -953,7 +964,7 @@ public class DLNAMediaInfo implements Cloneable {
 									lang.setType(SubtitleType.UNKNOWN);
 								}
 
-								int a = line.indexOf("(");
+								int a = line.indexOf('(');
 								int b = line.indexOf("):", a);
 								if (a > -1 && b > a) {
 									lang.setLang(line.substring(a + 1, b));
@@ -969,7 +980,7 @@ public class DLNAMediaInfo implements Cloneable {
 								}
 
 								if (line.indexOf("Metadata:") > -1) {
-									FFmpegMetaDataNr = FFmpegMetaDataNr + 1;
+									FFmpegMetaDataNr += 1;
 									line = lines.get(FFmpegMetaDataNr);
 
 									while (line.indexOf("      ") == 0) {
@@ -981,7 +992,7 @@ public class DLNAMediaInfo implements Cloneable {
 												break;
 											}
 										} else {
-											FFmpegMetaDataNr = FFmpegMetaDataNr + 1;
+											FFmpegMetaDataNr += 1;
 											line = lines.get(FFmpegMetaDataNr);
 										}
 									}
@@ -1715,6 +1726,14 @@ public class DLNAMediaInfo implements Cloneable {
 		this.mimeType = mimeType;
 	}
 
+	public String getMatrixCoefficients() {
+		return matrixCoefficients;
+	}
+
+	public void setMatrixCoefficients(String matrixCoefficients) {
+		this.matrixCoefficients = matrixCoefficients;
+	}
+
 	/**
 	 * @return the bitsPerPixel
 	 * @since 1.50.0
@@ -2068,5 +2087,16 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public void setEncrypted(boolean encrypted) {
 		this.encrypted = encrypted;
+	}
+
+	public boolean isMod4() {
+		if (
+			getHeight() % 4 != 0 ||
+			getWidth() % 4 != 0
+		) {
+			return false;
+		}
+
+		return true;
 	}
 }

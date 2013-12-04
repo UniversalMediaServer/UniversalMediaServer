@@ -53,7 +53,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 
 	@Deprecated
 	public AviSynthMEncoder(PmsConfiguration configuration) {
-		super(configuration);
+		this();
 	}
 
 	public AviSynthMEncoder() {
@@ -83,11 +83,8 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		multithreading = new JCheckBox(Messages.getString("MEncoderVideo.35"));
+		multithreading = new JCheckBox(Messages.getString("MEncoderVideo.35"), configuration.getAvisynthMultiThreading());
 		multithreading.setContentAreaFilled(false);
-		if (configuration.getAvisynthMultiThreading()) {
-			multithreading.setSelected(true);
-		}
 		multithreading.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -96,11 +93,8 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		});
 		builder.add(multithreading, cc.xy(2, 3));
 
-		interframe = new JCheckBox(Messages.getString("AviSynthMEncoder.13"));
+		interframe = new JCheckBox(Messages.getString("AviSynthMEncoder.13"), configuration.getAvisynthInterFrame());
 		interframe.setContentAreaFilled(false);
-		if (configuration.getAvisynthInterFrame()) {
-			interframe.setSelected(true);
-		}
 		interframe.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -117,11 +111,8 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		});
 		builder.add(interframe, cc.xy(2, 5));
 
-		interframegpu = new JCheckBox(Messages.getString("AviSynthMEncoder.15"));
+		interframegpu = new JCheckBox(Messages.getString("AviSynthMEncoder.15"), configuration.getAvisynthInterFrameGPU());
 		interframegpu.setContentAreaFilled(false);
-		if (configuration.getAvisynthInterFrameGPU()) {
-			interframegpu.setSelected(true);
-		}
 		interframegpu.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -130,11 +121,8 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		});
 		builder.add(interframegpu, cc.xy(2, 7));
 
-		convertfps = new JCheckBox(Messages.getString("AviSynthMEncoder.3"));
+		convertfps = new JCheckBox(Messages.getString("AviSynthMEncoder.3"), configuration.getAvisynthConvertFps());
 		convertfps.setContentAreaFilled(false);
-		if (configuration.getAvisynthConvertFps()) {
-			convertfps.setSelected(true);
-		}
 		convertfps.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -235,7 +223,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 	 * Generate the AviSynth script based on the user's settings
 	 */
 	public static File getAVSScript(String fileName, DLNAMediaSubtitle subTrack, int fromFrame, int toFrame, String frameRateRatio, String frameRateNumber) throws IOException {
-		String onlyFileName = fileName.substring(1 + fileName.lastIndexOf("\\"));
+		String onlyFileName = fileName.substring(1 + fileName.lastIndexOf('\\'));
 		File file = new File(configuration.getTempFolder(), "pms-avs-" + onlyFileName + ".avs");
 		try (PrintWriter pw = new PrintWriter(new FileOutputStream(file))) {
 			String numerator;
@@ -299,7 +287,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 			// True Motion
 			if (configuration.getAvisynthInterFrame()) {
 				String GPU = "";
-				movieLine = movieLine + ".ConvertToYV12()";
+				movieLine += ".ConvertToYV12()";
 
 				// Enable GPU to assist with CPU
 				if (configuration.getAvisynthInterFrameGPU() && interframegpu.isEnabled()){

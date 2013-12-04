@@ -340,6 +340,7 @@ public class PluginTab {
 							sb.append("\n");
 						}
 						textArea.setText(sb.toString());
+						in.close();
 					}
 				} catch (Exception e1) {
 					return;
@@ -578,9 +579,8 @@ public class PluginTab {
 		final JLabel tag = new JLabel(Messages.getString("PluginTab.5"));
 		final JLabel usr = new JLabel(Messages.getString("PluginTab.6"));
 		final JLabel pwd = new JLabel(Messages.getString("PluginTab.7"));
-		final JCheckBox hidden = new JCheckBox(Messages.getString("PluginTab.14"));
+		final JCheckBox hidden = new JCheckBox(Messages.getString("PluginTab.14"), false);
 		JLabel empty = new JLabel(" ");
-		hidden.setSelected(false);
 		String o = "";
 		String t = "";
 		String u = "";

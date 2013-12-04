@@ -218,7 +218,8 @@ public class PMS {
 
 	/**
 	 * Executes a new Process and creates a fork that waits for its results.
-	 * TODO Extend explanation on where this is being used.
+	 * This is used to generate fontconfig caches for MPlayer and FFmpeg.
+	 *
 	 * @param name Symbolic name for the process to be launched, only used in the trace log
 	 * @param error (boolean) Set to true if you want PMS to add error messages to the trace pane
 	 * @param workDir (File) optional working directory to run the process in
@@ -227,7 +228,7 @@ public class PMS {
 	 * @throws Exception TODO: Check which exceptions to use
 	 */
 	private boolean checkProcessExistence(String name, boolean error, File workDir, String... params) throws Exception {
-		LOGGER.debug("Launching: " + params[0]);
+		LOGGER.debug("Launching: " + Arrays.toString(params));
 
 		try {
 			ProcessBuilder pb = new ProcessBuilder(params);
@@ -621,6 +622,12 @@ public class PMS {
 		}
 
 		LOGGER.info("Finished checking the MPlayer font cache.");
+		LOGGER.info("Please wait while we check the FFmpeg font cache, this can take a minute or so.");
+		frame.setStatusCode(0, Messages.getString("PMS.140"), "icon-status-connecting.png");
+
+		checkProcessExistence("FFmpeg", true, null, configuration.getFfmpegPath(), "-y", "-f", "lavfi", "-i", "nullsrc=s=720x480:d=1:r=1", "-vf", "ass=DummyInput.ass", "-target", "ntsc-dvd", "DummyOutput.mpeg");
+
+		LOGGER.info("Finished checking the FFmpeg font cache.");
 
 		frame.setStatusCode(0, Messages.getString("PMS.130"), "icon-status-connecting.png");
 
@@ -1135,7 +1142,7 @@ public class PMS {
 				headless = false;
 			}
 		} catch (Throwable t) {
-			System.err.println("Toolkit error: " + t.getClass().getName() + ": " + t.getMessage());
+			LOGGER.error("Toolkit error: " + t.getClass().getName() + ": " + t.getMessage());
 
 			if (System.getProperty(NOCONSOLE) == null) {
 				System.setProperty(CONSOLE, Boolean.toString(true));
@@ -1180,12 +1187,11 @@ public class PMS {
 				t.getMessage()
 			);
 
-			System.err.println(errorMessage);
-			t.printStackTrace();
+			LOGGER.error(errorMessage);
 
 			if (!headless && instance != null) {
 				JOptionPane.showMessageDialog(
-					((JFrame) (SwingUtilities.getWindowAncestor((Component) instance.getFrame()))),
+					(SwingUtilities.getWindowAncestor((Component) instance.getFrame())),
 					errorMessage,
 					Messages.getString("PMS.42"),
 					JOptionPane.ERROR_MESSAGE

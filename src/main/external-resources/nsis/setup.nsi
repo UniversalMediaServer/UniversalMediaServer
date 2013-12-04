@@ -147,7 +147,7 @@ Function AdvancedSettings
 	${NSD_CreateText} 3% 30% 10% 12u $MaximumMemoryJava
 	Pop $Text
 
-	${NSD_CreateLabel} 0 50% 100% 20u "This allows you to take advantage of improved defaults. It deletes the UMS configuration directory, the UMS program directory and MPlayer's font cache."
+	${NSD_CreateLabel} 0 50% 100% 20u "This allows you to take advantage of improved defaults. It deletes the UMS configuration directory, the UMS program directory and font caches."
 	Pop $DescCleanInstall
 
 	${NSD_CreateCheckbox} 3% 65% 100% 12u "Clean install"
@@ -198,12 +198,15 @@ Section "Program Files"
 	File "${PROJECT_BASEDIR}\LICENSE.txt"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\logback.xml"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\icon.ico"
+	File "${PROJECT_BASEDIR}\src\main\external-resources\DummyInput.ass"
+	File "${PROJECT_BASEDIR}\src\main\external-resources\DummyInput.jpg"
 
 	; The user may have set the installation dir as the profile dir, so we can't clobber this
 	SetOverwrite off
 	File "${PROJECT_BASEDIR}\src\main\external-resources\UMS.conf"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\WEB.conf"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\ffmpeg.webfilters"
+	File "${PROJECT_BASEDIR}\src\main\external-resources\VirtualFolders.conf"
 
 	; Store install folder
 	WriteRegStr HKCU "${REG_KEY_SOFTWARE}" "" $INSTDIR
@@ -234,6 +237,7 @@ Section "Program Files"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\UMS.conf"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\WEB.conf"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\ffmpeg.webfilters"
+	File "${PROJECT_BASEDIR}\src\main\external-resources\VirtualFolders.conf"
 SectionEnd
 
 Section "Start Menu Shortcuts"
@@ -274,6 +278,8 @@ Section "Uninstall"
 	Delete /REBOOTOK "$INSTDIR\debug.log"
 	Delete /REBOOTOK "$INSTDIR\logback.xml"
 	Delete /REBOOTOK "$INSTDIR\icon.ico"
+	Delete /REBOOTOK "$INSTDIR\DummyInput.ass"
+	Delete /REBOOTOK "$INSTDIR\DummyInput.jpg"
 	RMDir /REBOOTOK "$INSTDIR"
 
 	Delete /REBOOTOK "$DESKTOP\${PROJECT_NAME}.lnk"

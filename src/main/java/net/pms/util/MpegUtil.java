@@ -21,7 +21,7 @@ public class MpegUtil {
 							if (ptsEnd.get(id) != null) {
 								int dur = ptsEnd.get(id).intValue()
 									- ptsStart.get(id).intValue();
-								dur = dur / 90000;
+								dur /= 90000;
 								return dur;
 							}
 						}
