@@ -21,13 +21,19 @@ public class WebRender extends RendererConfiguration {
 
 	@Override
 	public String getRendererName() {
-		String ipStr;
-		if (StringUtils.isNotEmpty(ip)) {
-			ipStr = "\n(" + ip + (port != 0 ? ":" + port : "") + ")";
-		} else {
-			ipStr = "";
+		String browserName = Messages.getString("PMS.142");
+
+		if (ua.contains("chrome")) {
+			browserName = "Chrome";
+		} else  if (ua.contains("msie")) {
+			browserName = "Internet Explorer";
+		} else if (ua.contains("firefox")) {
+			browserName = "Firefox";
+		} else if (ua.contains("safari")) {
+			browserName = "Safari";
 		}
-		return name + "@\n" + Messages.getString("PMS.142") + ipStr;
+
+		return browserName;
 	}
 
 	@Override
