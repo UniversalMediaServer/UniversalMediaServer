@@ -93,12 +93,12 @@ public class RemotePlayHandler implements HttpHandler {
 					Player.setAudioAndSubs(r.getName(), r.getMedia(), p);
 					try {
 						File subFile = FFMpegVideo.getSubtitles(r, r.getMedia(), p, PMS.getConfiguration());
-						LOGGER.debug("subFile "+subFile);
+						LOGGER.debug("subFile " + subFile);
 						if (subFile != null) {
-							sb.append("<track src=\"/subs/" + subFile.getAbsolutePath() + "\">");
+							sb.append("<track src=\"/subs/").append(subFile.getAbsolutePath()).append("\">");
 						}
 					} catch (Exception e) {
-						LOGGER.debug("error when doing sub file "+e);
+						LOGGER.debug("error when doing sub file " + e);
 					}
 					// FLOWPLAYER END
 					//sb.append("Your browser doesn't appear to support the HTML5 video tag");
