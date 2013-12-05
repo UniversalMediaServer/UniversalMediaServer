@@ -22,19 +22,19 @@ public class RemoteMediaHandler implements HttpHandler {
 	private RemoteWeb parent;
 	private String path;
 	private RendererConfiguration render;
-    private boolean flash;
+	private boolean flash;
 
 	public RemoteMediaHandler(RemoteWeb parent) {
 		this(parent, "media/", null);
 	}
 
-    public RemoteMediaHandler(RemoteWeb parent, boolean flash) {
-        this(parent, "fmedia/", null);
-        this.flash = flash;
-    }
+	public RemoteMediaHandler(RemoteWeb parent, boolean flash) {
+		this(parent, "fmedia/", null);
+		this.flash = flash;
+	}
 
 	public RemoteMediaHandler(RemoteWeb parent, String path, RendererConfiguration render) {
-        this.flash = false;
+		this.flash = false;
 		this.parent = parent;
 		this.path = path;
 		this.render = render;
@@ -66,11 +66,10 @@ public class RemoteMediaHandler implements HttpHandler {
 		String mime = root.getDefaultRenderer().getMimeType(res.get(0).mimeType());
 		DLNAResource dlna = res.get(0);
 		if (dlna.getFormat().isVideo()) {
-            if(flash) {
-                mime = "video/flash";
-                dlna.setPlayer(new WebPlayer(true));
-            }
-			else if (!RemoteUtil.directmime(mime) || (dlna.getMediaSubtitle() != null)) {
+			if (flash) {
+				mime = "video/flash";
+				dlna.setPlayer(new WebPlayer(true));
+			} else if (!RemoteUtil.directmime(mime) || (dlna.getMediaSubtitle() != null)) {
 				mime = RemoteUtil.MIME_TRANS;
 				dlna.setPlayer(new WebPlayer());
 			}
@@ -85,10 +84,10 @@ public class RemoteMediaHandler implements HttpHandler {
 		hdr.add("Connection", "keep-alive");
 		t.sendResponseHeaders(200, 0);
 		OutputStream os = t.getResponseBody();
-        StartStopListenerDelegate startStop = new StartStopListenerDelegate(t.getRemoteAddress().getHostString());
-        PMS.get().getFrame().setStatusLine("Serving " + dlna.getName());
-        startStop.start(dlna);
+		StartStopListenerDelegate startStop = new StartStopListenerDelegate(t.getRemoteAddress().getHostString());
+		PMS.get().getFrame().setStatusLine("Serving " + dlna.getName());
+		startStop.start(dlna);
 		RemoteUtil.dump(in, os, startStop);
-        PMS.get().getFrame().setStatusLine("");
+		PMS.get().getFrame().setStatusLine("");
 	}
 }
