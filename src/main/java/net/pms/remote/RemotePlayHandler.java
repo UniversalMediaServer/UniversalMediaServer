@@ -70,7 +70,7 @@ public class RemotePlayHandler implements HttpHandler {
 			sb.append("<body id=\"ContentPage\">");
 				sb.append("<div id=\"Container\">");
 					sb.append("<div id=\"Menu\">");
-						sb.append("<a href=\"/\" id=\"HomeButton\"></a>");
+						sb.append("<a href=\"/browse/0\" id=\"HomeButton\"></a>");
 					sb.append("</div>");
 					sb.append(coverImage);
 					// FLOWPLAYER
