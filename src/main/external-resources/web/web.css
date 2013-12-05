@@ -8,6 +8,7 @@ body {
 	background:		url('http://www.universalmediaserver.com/images/background.jpg');
 	font-family:		"lucida grande",tahoma,verdana,arial,sans-serif;
 	color:			#333;
+	max-height: 100%;
 }
 
 body#ContentPage {
@@ -65,4 +66,81 @@ body#ContentPage {
 
 #FrontPage #Menu a {
 	text-decoration: none;
+}
+
+/* Content */
+
+ul {
+	padding: 20px;
+}
+
+ul#Folders {
+	position: fixed;
+	top: 94px;
+	left: 0;
+	width: 200px;
+	background-color: #444;
+	overflow-y: auto;
+	height: 100%;
+	display: block;
+}
+
+ul#Media {
+	margin-left: 240px;
+}
+
+ul li {
+	padding-right: 20px;
+}
+
+ul#Folders li {
+	text-align: center;
+}
+
+ul#Media li {
+	text-align: left;
+}
+
+ul#Media li {
+	float: left;
+}
+
+ul#Folders li a img {
+	max-width: 64px;
+	max-height: 64px;
+}
+
+ul#Media li a img {
+	max-width: 200px;
+	max-height: 112px;
+}
+
+ul#Folders li span {
+	display: block;
+	margin-bottom: 20px;
+}
+
+ul#Media li span {
+	display: block;
+	width: 200px;
+	height: 16px;
+	margin-bottom: 20px;
+	overflow: hidden;
+}
+
+ul li a {
+	text-decoration: none;
+}
+
+ul li a:hover {
+	text-decoration: underline;
+}
+
+ul#Folders li a {
+	color: #ff9600;
+}
+
+ul#Media li a {
+	font-size: 12px;
+	color: #444;
 }
