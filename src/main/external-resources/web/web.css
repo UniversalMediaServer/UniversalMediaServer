@@ -5,14 +5,14 @@ html {
 }
 
 body {
-	background:		url('http://www.universalmediaserver.com/images/background.jpg');
+	background:		url('/files/background.jpg');
 	font-family:		"lucida grande",tahoma,verdana,arial,sans-serif;
 	color:			#333;
 	max-height: 100%;
 }
 
 body#ContentPage {
-	background:		url('http://www.universalmediaserver.com/images/background-blank.jpg');
+	background:		url('/files/background-blank.jpg');
 }
 
 /* Scaffolding */
@@ -32,15 +32,20 @@ body#ContentPage {
 }
 
 #ContentPage #Menu {
-	background:		url('http://www.universalmediaserver.com/images/menu-background-content.png');
+	background:		url('/files/menu-background-content.png');
 	background-repeat:	repeat-x;
 	height:			95px;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
 }
 
 #ContentPage #Menu #HomeButton {
-	background:		url('http://www.universalmediaserver.com/images/menu-left-content.png');
+	background:		url('/files/menu-left-content.png');
 	width:			125px;
 	height:			93px;
+	display: block;
 }
 
 /* Menu */
@@ -49,7 +54,7 @@ body#ContentPage {
 	position: absolute;
 	left: 243px;
 	top: 29px;
-	background: url('http://www.universalmediaserver.com/images/logo.png') !important;
+	background: url('/files/logo.png') !important;
 	width: 217px;
 	height: 220px !important;
 	display: block;
@@ -70,10 +75,6 @@ body#ContentPage {
 
 /* Content */
 
-ul {
-	padding: 20px;
-}
-
 ul#Folders {
 	position: fixed;
 	top: 94px;
@@ -83,10 +84,12 @@ ul#Folders {
 	overflow-y: auto;
 	height: 100%;
 	display: block;
+	padding: 20px;
 }
 
 ul#Media {
-	margin-left: 240px;
+	margin: 95px 0 0 240px;
+	padding: 20px 0 20px 20px;
 }
 
 ul li {
@@ -111,8 +114,8 @@ ul#Folders li a img {
 }
 
 ul#Media li a img {
-	max-width: 200px;
-	max-height: 112px;
+	max-width: 214px;
+	max-height: 121px;
 }
 
 ul#Folders li span {
@@ -122,7 +125,7 @@ ul#Folders li span {
 
 ul#Media li span {
 	display: block;
-	width: 200px;
+	width: 214px;
 	height: 16px;
 	margin-bottom: 20px;
 	overflow: hidden;
