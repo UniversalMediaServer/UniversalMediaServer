@@ -46,7 +46,21 @@ public class WebPlayer extends FFMpegVideo {
 			Thread.currentThread().getId(),
 			System.currentTimeMillis()
 		);
-		int nThreads = configuration.getNumberOfCpuCores();
+
+		/*
+		 * FFmpeg uses multithreading by default, so provided that the
+		 * user has not disabled FFmpeg multithreading and has not
+		 * chosen to use more or less threads than are available, do not
+		 * specify how many cores to use.
+		 */
+		int nThreads = 1;
+		if (configuration.isFfmpegMultithreading()) {
+			if (Runtime.getRuntime().availableProcessors() == configuration.getNumberOfCpuCores()) {
+				nThreads = 0;
+			} else {
+				nThreads = configuration.getNumberOfCpuCores();
+			}
+		}
 
 		// This process wraps the command that creates the named pipe
 		PipeProcess pipe = new PipeProcess(fifoName);
@@ -79,8 +93,10 @@ public class WebPlayer extends FFMpegVideo {
 		}
 
 		// Decoder threads
-		cmdList.add("-threads");
-		cmdList.add("" + nThreads);
+		if (nThreads > 0) {
+			cmdList.add("-threads");
+			cmdList.add(String.valueOf(nThreads));
+		}
 
 		if (params.timeseek > 0) {
 			cmdList.add("-ss");
@@ -91,9 +107,12 @@ public class WebPlayer extends FFMpegVideo {
 		cmdList.add(filename);
 
 		//cmdList.addAll(getVideoFilterOptions(dlna, media, params));
+
 		// Encoder threads
-		cmdList.add("-threads");
-		cmdList.add("" + nThreads);
+		if (nThreads > 0) {
+			cmdList.add("-threads");
+			cmdList.add(String.valueOf(nThreads));
+		}
 
 		// FFmpeg with Theora and Vorbis inside OGG
 		/*String[] cmdArray = new String[]{
