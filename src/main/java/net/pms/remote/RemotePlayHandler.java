@@ -28,6 +28,8 @@ public class RemotePlayHandler implements HttpHandler {
 	}
 
 	private String mkPage(String id, HttpExchange t) throws IOException {
+		boolean flowplayer = true;
+
 		LOGGER.debug("make play page " + id);
 		RootFolder root = parent.getRoot(RemoteUtil.userName(t));
 		if (root == null) {
@@ -56,60 +58,59 @@ public class RemotePlayHandler implements HttpHandler {
 		// Media player HTML
 		StringBuilder sb = new StringBuilder();
 		sb.append("<!DOCTYPE html>").append(CRLF);
-			sb.append("<head>");
+			sb.append("<head>").append(CRLF);
 				sb.append("<link rel=\"stylesheet\" href=\"/files/reset.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
 				sb.append("<link rel=\"stylesheet\" href=\"/files/web.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
-				sb.append("<link rel=\"icon\" href=\"/files/favicon.ico\" type=\"image/x-icon\">");
+				sb.append("<link rel=\"icon\" href=\"/files/favicon.ico\" type=\"image/x-icon\">").append(CRLF);
 				sb.append("<title>Universal Media Server</title>").append(CRLF);
-				// FLOWPLAYER
-				sb.append("<script src=\"/files/jquery.min.js\"></script>");
-				sb.append("<script src=\"/files/flowplayer.min.js\"></script>");
-				sb.append("<link rel=\"stylesheet\" href=\"/files/minimalist.css\">");
-				// FLOWPLAYER END
-			sb.append("</head>");
-			sb.append("<body id=\"ContentPage\">");
-				sb.append("<div id=\"Container\">");
-					sb.append("<div id=\"Menu\">");
-						sb.append("<a href=\"/browse/0\" id=\"HomeButton\"></a>");
-					sb.append("</div>");
-					sb.append(coverImage);
-					// FLOWPLAYER
-					sb.append("<div class=\"flowplayer\">");
+				if (flowplayer) {
+					sb.append("<script src=\"/files/jquery.min.js\"></script>").append(CRLF);
+					sb.append("<script src=\"/files/flowplayer.min.js\"></script>").append(CRLF);
+					sb.append("<link rel=\"stylesheet\" href=\"/files/minimalist.css\">").append(CRLF);
+				}
+			sb.append("</head>").append(CRLF);
+			sb.append("<body id=\"ContentPage\">").append(CRLF);
+				sb.append("<div id=\"Container\">").append(CRLF);
+					sb.append("<div id=\"Menu\">").append(CRLF);
+						sb.append("<a href=\"/browse/0\" id=\"HomeButton\"></a>").append(CRLF);
+					sb.append("</div>").append(CRLF);
+					sb.append(coverImage).append(CRLF);
+					if (flowplayer) {
+						sb.append("<div class=\"flowplayer\">").append(CRLF);
+					}
 					sb.append("<").append(mediaType);
-					// FLOWPLAYER
-					sb.append(" autoplay>");
-					// NON FLOWPLAYER
-					//sb.append(" width=\"720\" height=\"404\" controls=\"controls\" autoplay=\"autoplay\"");
-					// FLOWPLAYER
+					if (flowplayer) {
+						sb.append(" autoplay>");
+					} else {
+						sb.append(" width=\"720\" height=\"404\" controls autoplay>").append(CRLF);
+					}
 					sb.append("<source");
 					sb.append(" src=\"/media/").append(URLEncoder.encode(id1, "UTF-8")).append("\" type=\"").append(mime).append("\">");
-					// FLOWPLAYER
-					sb.append("</source>");
 					sb.append("<source");
 					sb.append(" src=\"/fmedia/").append(URLEncoder.encode(id1, "UTF-8")).append("\" type=\"").append("video/flash").append("\">");
-					sb.append("</source>");
-					OutputParams p = new OutputParams(PMS.getConfiguration());
-					p.sid = r.getMediaSubtitle();
-					Player.setAudioAndSubs(r.getName(), r.getMedia(), p);
-					try {
-						File subFile = FFMpegVideo.getSubtitles(r, r.getMedia(), p, PMS.getConfiguration());
-						LOGGER.debug("subFile " + subFile);
-						if (subFile != null) {
-							sb.append("<track src=\"/subs/").append(subFile.getAbsolutePath()).append("\">");
+					if (flowplayer) {
+						OutputParams p = new OutputParams(PMS.getConfiguration());
+						p.sid = r.getMediaSubtitle();
+						Player.setAudioAndSubs(r.getName(), r.getMedia(), p);
+						try {
+							File subFile = FFMpegVideo.getSubtitles(r, r.getMedia(), p, PMS.getConfiguration());
+							LOGGER.debug("subFile " + subFile);
+							if (subFile != null) {
+								sb.append("<track src=\"/subs/").append(subFile.getAbsolutePath()).append("\">");
+							}
+						} catch (Exception e) {
+							LOGGER.debug("error when doing sub file " + e);
 						}
-					} catch (Exception e) {
-						LOGGER.debug("error when doing sub file " + e);
 					}
-					// FLOWPLAYER END
-					//sb.append("Your browser doesn't appear to support the HTML5 video tag");
-					sb.append("</").append(mediaType).append(">");
-					// FLOWPLAYER
-					sb.append("</div>");
+					sb.append("</").append(mediaType).append(">").append(CRLF);
+					if (flowplayer) {
+						sb.append("</div>").append(CRLF);
+					}
 					sb.append("<br><br>");
 					sb.append("<a href=\"/raw/").append(rawId).append("\" target=\"_blank\">Download</a>").append(CRLF);
-				sb.append("</div>");
-			sb.append("</body>");
-		sb.append("</html>");
+				sb.append("</div>").append(CRLF);
+			sb.append("</body>").append(CRLF);
+		sb.append("</html>").append(CRLF);
 
 		return sb.toString();
 	}
