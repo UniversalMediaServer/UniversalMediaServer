@@ -11,7 +11,7 @@
 		Fixed support for outputting 24-bit FLAC files as 24-bit by muxing them with video
 		Fixed audio playback if VLC is enabled
 		Made server restarts more reliable
-		Made sureFFmpeg outputs a compatible colorspace when transcoding to H.264
+		Made sure FFmpeg outputs a compatible colorspace when transcoding to H.264
 		Made sure the transcode folder appears before files instead of after (below)
 		Renamed config setting "ffmpeg_font_config" to "ffmpeg_fontconfig"
 		Renamed config setting "hide_new_media" to "hide_new_media_folder"
