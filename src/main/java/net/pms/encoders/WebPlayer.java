@@ -79,8 +79,6 @@ public class WebPlayer extends FFMpegVideo {
 		List<String> cmdList = new ArrayList<>();
 		cmdList.add(executable());
 
-		// XXX squashed bug - without this, ffmpeg hangs waiting for a confirmation
-		// that it can write to a file that already exists i.e. the named pipe
 		cmdList.add("-y");
 		cmdList.add("-re");
 
@@ -116,19 +114,19 @@ public class WebPlayer extends FFMpegVideo {
 
 		// FFmpeg with Theora and Vorbis inside OGG
 		/*String[] cmdArray = new String[]{
-		 PMS.getConfiguration().getFfmpegPath(),
-		 "-y",
-		 "-loglevel", "warning",
-		 "-threads", "" + nThreads,
-		 "-i", filename,
-		 "-threads", "" + nThreads,
-		 "-c:v", "libtheora",
-		 "-qscale:v", "8",
-		 "-acodec", "libvorbis",
-		 "-qscale:a", "6",
-		 "-f", "ogg",
-		 pipe.getInputPipe()
-		 };*/
+		PMS.getConfiguration().getFfmpegPath(),
+		"-y",
+		"-loglevel", "warning",
+		"-threads", "" + nThreads,
+		"-i", filename,
+		"-threads", "" + nThreads,
+		"-c:v", "libtheora",
+		"-qscale:v", "8",
+		"-acodec", "libvorbis",
+		"-qscale:a", "6",
+		"-f", "ogg",
+		pipe.getInputPipe()
+		};*/
 		// Add the output options (-f, -c:a, -c:v, etc.)
 		if (!flash) {
 			cmdList.add("-c:v");
@@ -142,19 +140,19 @@ public class WebPlayer extends FFMpegVideo {
 			cmdList.add("-f");
 			cmdList.add("ogg");
 			/*cmdList.add("-c:v");
-			 cmdList.add("libx264");
-			 cmdList.add("-ab");
-			 cmdList.add("56k");
-			 cmdList.add("-acodec");
-			 cmdList.add("libvo_aacenc");
-			 cmdList.add("-movflags");
-			 cmdList.add("faststart+frag_keyframe+empty_moov");
-			 cmdList.add("-g");
-			 cmdList.add("30");
-			 cmdList.add("-r");
-			 cmdList.add("25");
-			 cmdList.add("-f");
-			 cmdList.add("mp4");*/
+			cmdList.add("libx264");
+			cmdList.add("-ab");
+			cmdList.add("56k");
+			cmdList.add("-acodec");
+			cmdList.add("libvo_aacenc");
+			cmdList.add("-movflags");
+			cmdList.add("faststart+frag_keyframe+empty_moov");
+			cmdList.add("-g");
+			cmdList.add("30");
+			cmdList.add("-r");
+			cmdList.add("25");
+			cmdList.add("-f");
+			cmdList.add("mp4");*/
 		} else {
 			cmdList.add("-c:v");
 			cmdList.add("flv");
