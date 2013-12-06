@@ -83,11 +83,8 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		multithreading = new JCheckBox(Messages.getString("MEncoderVideo.35"));
+		multithreading = new JCheckBox(Messages.getString("MEncoderVideo.35"), configuration.getAvisynthMultiThreading());
 		multithreading.setContentAreaFilled(false);
-		if (configuration.getAvisynthMultiThreading()) {
-			multithreading.setSelected(true);
-		}
 		multithreading.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -96,11 +93,8 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		});
 		builder.add(multithreading, cc.xy(2, 3));
 
-		interframe = new JCheckBox(Messages.getString("AviSynthMEncoder.13"));
+		interframe = new JCheckBox(Messages.getString("AviSynthMEncoder.13"), configuration.getAvisynthInterFrame());
 		interframe.setContentAreaFilled(false);
-		if (configuration.getAvisynthInterFrame()) {
-			interframe.setSelected(true);
-		}
 		interframe.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -117,11 +111,8 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		});
 		builder.add(interframe, cc.xy(2, 5));
 
-		interframegpu = new JCheckBox(Messages.getString("AviSynthMEncoder.15"));
+		interframegpu = new JCheckBox(Messages.getString("AviSynthMEncoder.15"), configuration.getAvisynthInterFrameGPU());
 		interframegpu.setContentAreaFilled(false);
-		if (configuration.getAvisynthInterFrameGPU()) {
-			interframegpu.setSelected(true);
-		}
 		interframegpu.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -130,11 +121,8 @@ public class AviSynthMEncoder extends MEncoderVideo {
 		});
 		builder.add(interframegpu, cc.xy(2, 7));
 
-		convertfps = new JCheckBox(Messages.getString("AviSynthMEncoder.3"));
+		convertfps = new JCheckBox(Messages.getString("AviSynthMEncoder.3"), configuration.getAvisynthConvertFps());
 		convertfps.setContentAreaFilled(false);
-		if (configuration.getAvisynthConvertFps()) {
-			convertfps.setSelected(true);
-		}
 		convertfps.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {

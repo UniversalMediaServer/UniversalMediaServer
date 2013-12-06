@@ -71,6 +71,7 @@ public class PmsConfiguration {
 
 	private static final String KEY_ALTERNATE_SUBTITLES_FOLDER = "alternate_subtitles_folder";
 	private static final String KEY_ALTERNATE_THUMB_FOLDER = "alternate_thumb_folder";
+	private static final String KEY_APPEND_PROFILE_NAME = "append_profile_name";
 	private static final String KEY_SHOW_APERTURE_LIBRARY = "show_aperture_library";
 	private static final String KEY_ATZ_LIMIT = "atz_limit";
 	private static final String KEY_AUDIO_BITRATE = "audio_bitrate";
@@ -105,8 +106,7 @@ public class PmsConfiguration {
 	private static final String KEY_FFMPEG_AVISYNTH_CONVERT_FPS = "ffmpeg_avisynth_convertfps";
 	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME = "ffmpeg_avisynth_interframe";
 	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
-	private static final String KEY_FFMPEG_FONT_CONFIG = "ffmpeg_font_config";
-	private static final String KEY_FFMPEG_MUX_COMPATIBLE = "ffmpeg_mux_compatible";
+	private static final String KEY_FFMPEG_FONTCONFIG = "ffmpeg_fontconfig";
 	private static final String KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE = "ffmpeg_mux_tsmuxer_compatible";
 	private static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
 	private static final String KEY_FOLDERS = "folders";
@@ -174,7 +174,7 @@ public class PmsConfiguration {
 	private static final String KEY_MPEG2_MAIN_SETTINGS = "mpeg2_main_settings";
 	private static final String KEY_MUX_ALLAUDIOTRACKS = "tsmuxer_mux_all_audiotracks";
 	private static final String KEY_NETWORK_INTERFACE = "network_interface";
-	private static final String KEY_HIDE_NEW_MEDIA_FOLDER = "hide_new_media";
+	private static final String KEY_HIDE_NEW_MEDIA_FOLDER = "hide_new_media_folder";
 	private static final String KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS = "disable_transcode_for_extensions";
 	private static final String KEY_NUMBER_OF_CPU_CORES = "number_of_cpu_cores";
 	private static final String KEY_OPEN_ARCHIVES = "enable_archive_browsing";
@@ -599,9 +599,9 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * The AC3 audio bitrate determines the quality of digital audio sound. An AV-receiver
+	 * The AC-3 audio bitrate determines the quality of digital audio sound. An AV-receiver
 	 * or amplifier has to be capable of playing this quality. Default value is 640.
-	 * @return The AC3 audio bitrate.
+	 * @return The AC-3 audio bitrate.
 	 */
 	public int getAudioBitrate() {
 		return getInt(KEY_AUDIO_BITRATE, 640);
@@ -1582,7 +1582,7 @@ public class PmsConfiguration {
 	 * @return True if PMS should hide the folder, false othewise.
 	 */
 	public boolean getHideVideoSettings(ArrayList<String> tags) {
-		return tagLoopBool(tags, ".hide_set", KEY_HIDE_VIDEO_SETTINGS, true);
+		return getBoolean(KEY_HIDE_VIDEO_SETTINGS, true);
 	}
 
 	/**
@@ -2185,14 +2185,6 @@ public class PmsConfiguration {
 		return getBoolean(KEY_MENCODER_NORMALIZE_VOLUME, false);
 	}
 
-	public void setFFmpegMuxWhenCompatible(boolean value) {
-		configuration.setProperty(KEY_FFMPEG_MUX_COMPATIBLE, value);
-	}
-
-	public boolean isFFmpegMuxWhenCompatible() {
-		return getBoolean(KEY_FFMPEG_MUX_COMPATIBLE, false);
-	}
-
 	public void setFFmpegMuxWithTsMuxerWhenCompatible(boolean value) {
 		configuration.setProperty(KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE, value);
 	}
@@ -2202,11 +2194,11 @@ public class PmsConfiguration {
 	}
 
 	public void setFFmpegFontConfig(boolean value) {
-		configuration.setProperty(KEY_FFMPEG_FONT_CONFIG, value);
+		configuration.setProperty(KEY_FFMPEG_FONTCONFIG, value);
 	}
 
 	public boolean isFFmpegFontConfig() {
-		return getBoolean(KEY_FFMPEG_FONT_CONFIG, false);
+		return getBoolean(KEY_FFMPEG_FONTCONFIG, false);
 	}
 
 	public void setMuxAllAudioTracks(boolean value) {
@@ -2403,7 +2395,7 @@ public class PmsConfiguration {
 	}
 
 	public boolean isHideNewMediaFolder(ArrayList<String> tags) {
-		return tagLoopBool(tags, ".new_media", KEY_HIDE_NEW_MEDIA_FOLDER, false);
+		return getBoolean(KEY_HIDE_NEW_MEDIA_FOLDER, false);
 	}
 
 	public void setHideNewMediaFolder(final boolean value) {
@@ -2411,7 +2403,7 @@ public class PmsConfiguration {
 	}
 
 	public boolean isHideRecentlyPlayedFolder(ArrayList<String> tags) {
-		return tagLoopBool(tags, ".recent", KEY_HIDE_RECENTLY_PLAYED_FOLDER, false);
+		return getBoolean(PmsConfiguration.KEY_HIDE_RECENTLY_PLAYED_FOLDER, false);
 	}
 
 	public void setHideRecentlyPlayedFolder(final boolean value) {
@@ -2908,5 +2900,25 @@ public class PmsConfiguration {
 		}
 
 		return b.trim().equalsIgnoreCase("true");
+	}
+
+	/**
+	 * Whether the profile name should be appended to the server name when
+	 * displayed on the renderer
+	 *
+	 * @return True if the profile name should be appended.
+	 */
+	public boolean isAppendProfileName() {
+		return getBoolean(KEY_APPEND_PROFILE_NAME, false);
+	}
+
+	/**
+	 * Set whether the profile name should be appended to the server name
+	 * when displayed on the renderer
+	 *
+	 * @param value Set to true if the profile name should be appended.
+	 */
+	public void setAppendProfileName(boolean value) {
+		configuration.setProperty(KEY_APPEND_PROFILE_NAME, value);
 	}
 }
