@@ -507,15 +507,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 				DLNAResource resumeRes = null;
 
+				boolean addResumeFile = false;
 				ResumeObj r = ResumeObj.create(child);
 				if (r != null) {
 					resumeRes = child.clone();
 					resumeRes.resume = r;
 					resumeRes.resHash = child.resHash;
-					addChildInternal(resumeRes);
+					addResumeFile = true;
 				}
-
-				addChildInternal(child);
 
 				boolean parserV2 = child.getMedia() != null && getDefaultRenderer() != null && getDefaultRenderer().isMediaParserV2();
 				if (parserV2) {
@@ -736,6 +735,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						}
 					}
 				}
+
+				if (addResumeFile) {
+					addChildInternal(resumeRes);
+				}
+				addChildInternal(child);
 			}
 		} catch (Throwable t) {
 			LOGGER.error("Error adding child: \"{}\"", child.getName(), t);
