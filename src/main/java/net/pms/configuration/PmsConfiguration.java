@@ -132,6 +132,7 @@ public class PmsConfiguration {
 	private static final String KEY_IGNORED_RENDERERS = "ignored_renderers";
 	private static final String KEY_IMAGE_THUMBNAILS_ENABLED = "image_thumbnails";
 	private static final String KEY_IP_FILTER = "ip_filter";
+	private static final String KEY_ITUNES_LIBRARY_PATH = "itunes_library_path";
 	private static final String KEY_SHOW_IPHOTO_LIBRARY = "show_iphoto_library";
 	private static final String KEY_SHOW_ITUNES_LIBRARY = "show_itunes_library";
 	private static final String KEY_LANGUAGE = "language";
@@ -2264,6 +2265,10 @@ public class PmsConfiguration {
 
 	public boolean isShowItunesLibrary() {
 		return getBoolean(KEY_SHOW_ITUNES_LIBRARY, false);
+	}
+
+	public String getItunesLibraryPath() {
+		return getString(KEY_ITUNES_LIBRARY_PATH, "");
 	}
 
 	public void setShowItunesLibrary(boolean value) {
