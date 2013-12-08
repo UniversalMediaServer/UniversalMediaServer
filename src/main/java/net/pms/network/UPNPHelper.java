@@ -193,7 +193,21 @@ public class UPNPHelper {
 		NetworkInterface networkInterface = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
 
 		if (networkInterface == null) {
-			networkInterface = PMS.get().getServer().getNetworkInterface();
+			try {
+				networkInterface = PMS.get().getServer().getNetworkInterface();
+			} catch (NullPointerException e) {
+				LOGGER.debug("Couldn't get server network interface. Trying again in 5 seconds.");
+
+				try {
+					Thread.sleep(5000);
+				} catch (InterruptedException e2) { }
+
+				try {
+					networkInterface = PMS.get().getServer().getNetworkInterface();
+				} catch (NullPointerException e3) {
+					LOGGER.debug("Couldn't get server network interface.");
+				}
+			}
 		}
 
 		if (networkInterface == null) {

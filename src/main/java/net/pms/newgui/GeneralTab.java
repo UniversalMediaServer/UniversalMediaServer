@@ -67,6 +67,7 @@ public class GeneralTab {
 	private final PmsConfiguration configuration;
 	private JCheckBox fdCheckBox;
 	private JCheckBox extNetBox;
+	private JCheckBox appendProfileName;
 
 	GeneralTab(PmsConfiguration configuration) {
 		this.configuration = configuration;
@@ -156,7 +157,18 @@ public class GeneralTab {
 			}
 		});
 		builder.addLabel(Messages.getString("NetworkTab.71"), FormLayoutUtil.flip(cc.xy(1, 9), colSpec, orientation));
-		builder.add(serverName, FormLayoutUtil.flip(cc.xyw(3, 9, 7), colSpec, orientation));
+		builder.add(serverName, FormLayoutUtil.flip(cc.xyw(3, 9, 3), colSpec, orientation));
+
+		appendProfileName = new JCheckBox(Messages.getString("NetworkTab.72"), configuration.isAppendProfileName());
+		appendProfileName.setToolTipText(Messages.getString("NetworkTab.73"));
+		appendProfileName.setContentAreaFilled(false);
+		appendProfileName.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setAppendProfileName((e.getStateChange() == ItemEvent.SELECTED));
+			}
+		});
+		builder.add(appendProfileName, FormLayoutUtil.flip(cc.xy(7, 9), colSpec, orientation));
 
 		builder.add(smcheckBox, FormLayoutUtil.flip(cc.xy(1, 11), colSpec, orientation));
 

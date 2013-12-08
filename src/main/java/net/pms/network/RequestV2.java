@@ -465,7 +465,12 @@ public class RequestV2 extends HTTPResource {
 				inputStream.read(b);
 				String s = new String(b);
 				s = s.replace("[uuid]", PMS.get().usn()); //.substring(0, PMS.get().usn().length()-2));
-				String profileName = configuration.getProfileName();
+
+				String profileName = "";
+				if (configuration.isAppendProfileName()) {
+					profileName = " [" + configuration.getProfileName() + "]";
+				}
+
 				String serverName = configuration.getServerName();
 
 				if (PMS.get().getServer().getHost() != null) {
@@ -475,7 +480,7 @@ public class RequestV2 extends HTTPResource {
 
 				if (xbox) {
 					LOGGER.debug("DLNA changes for Xbox 360");
-					s = s.replace("Universal Media Server", serverName + " [" + profileName + "] : Windows Media Connect");
+					s = s.replace("Universal Media Server", serverName + profileName + " : Windows Media Connect");
 					s = s.replace("<modelName>UMS</modelName>", "<modelName>Windows Media Connect</modelName>");
 					s = s.replace("<serviceList>", "<serviceList>" + CRLF + "<service>" + CRLF +
 						"<serviceType>urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1</serviceType>" + CRLF +
@@ -484,7 +489,7 @@ public class RequestV2 extends HTTPResource {
 						"<controlURL>/upnp/mrr/control</controlURL>" + CRLF +
 						"</service>" + CRLF);
 				} else {
-					s = s.replace("Universal Media Server", serverName + " [" + profileName + "]");
+					s = s.replace("Universal Media Server", serverName + profileName);
 				}
 
 				response.append(s);

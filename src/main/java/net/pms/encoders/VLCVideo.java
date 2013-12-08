@@ -570,14 +570,11 @@ public class VLCVideo extends Player {
 			return false;
 		}
 
-		// VLC is unstable when transcoding from flac. It either crashes or sends video without audio. Confirmed with 2.0.6
-		DLNAMediaAudio audio = resource.getMediaAudio();
-		if (audio != null && audio.isFLAC() == true) {
-			return false;
-		}
-
-		// Only handle local video - web video is handled by VLCWebVideo
-		if (!PlayerUtil.isVideo(resource, Format.Identifier.WEB)) {
+		// Only handle local video - not web video or audio
+		if (
+			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
+			PlayerUtil.isVideo(resource, Format.Identifier.MPG)
+		) {
 			return true;
 		}
 

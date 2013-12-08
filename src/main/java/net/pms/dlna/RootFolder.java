@@ -668,6 +668,11 @@ public class RootFolder extends DLNAResource {
 	private String getiTunesFile() throws Exception {
 		String line;
 		String iTunesFile = null;
+		String customUserPath = configuration.getItunesLibraryPath();
+
+		if (!"".equals(customUserPath)) {
+			return customUserPath;
+		}
 
 		if (Platform.isMac()) {
 			// the second line should contain a quoted file URL e.g.:
