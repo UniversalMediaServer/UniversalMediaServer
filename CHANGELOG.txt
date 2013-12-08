@@ -6,6 +6,7 @@
 		Added some missing entries to UMS.conf
 		Added automatic video scaling to renderer resolution limits in FFmpeg
 		Added the ability to use asterisks for the "Force transcoding" and "Skip transcoding" options
+		Added config option "itunes_library_path"
 		Improved detection of which videos should be muxed automatically when using MEncoder or FFmpeg
 		Fixed files with compatible video but incompatible audio not muxing video
 		Fixed support for outputting 24-bit FLAC files as 24-bit by muxing them with video
@@ -16,7 +17,7 @@
 		Renamed config setting "ffmpeg_font_config" to "ffmpeg_fontconfig"
 		Renamed config setting "hide_new_media" to "hide_new_media_folder"
 	Renderers:
-		Transcode MPG/MPA files on Panasonic TVs
+		Improved video compatibility on Panasonic TVs
 		Updated the PS3 image
 		Updated the XBMC logo
 	Languages:
