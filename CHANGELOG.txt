@@ -1,4 +1,4 @@
-3.3.0 - 2013-12-??
+3.3.0 - 2013-12-08
 
 	General:
 		Added the option to toggle the display of the profile name after the server name on the renderer
