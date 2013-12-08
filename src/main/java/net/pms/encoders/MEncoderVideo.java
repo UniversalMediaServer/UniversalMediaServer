@@ -127,13 +127,13 @@ public class MEncoderVideo extends Player {
 		Messages.getString("MEncoderVideo.76") +
 		Messages.getString("MEncoderVideo.77") +
 		Messages.getString("MEncoderVideo.78") +
+		Messages.getString("MEncoderVideo.135") +
 		"\n" +
 		"container == iso :: -nosync\n" +
 		"(container == avi || container == matroska) && vcodec == mpeg4 && acodec == mp3 :: -mc 0.1\n" +
 		"container == flv :: -mc 0.1\n" +
 		"container == mov :: -mc 0.1\n" +
 		"container == rm  :: -mc 0.1\n" +
-		"container == matroska && framerate == 29.97  :: -nomux -mc 0\n" +
 		"container == mp4 && vcodec == h264 :: -mc 0.1\n" +
 		"\n" +
 		Messages.getString("MEncoderVideo.87") +
@@ -170,13 +170,8 @@ public class MEncoderVideo extends Player {
 
 		CellConstraints cc = new CellConstraints();
 
-		checkBox = new JCheckBox(Messages.getString("MEncoderVideo.0"));
+		checkBox = new JCheckBox(Messages.getString("MEncoderVideo.0"), configuration.getSkipLoopFilterEnabled());
 		checkBox.setContentAreaFilled(false);
-
-		if (configuration.getSkipLoopFilterEnabled()) {
-			checkBox.setSelected(true);
-		}
-
 		checkBox.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -188,13 +183,8 @@ public class MEncoderVideo extends Player {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		mencodermt = new JCheckBox(Messages.getString("MEncoderVideo.35"));
+		mencodermt = new JCheckBox(Messages.getString("MEncoderVideo.35"), configuration.getMencoderMT());
 		mencodermt.setContentAreaFilled(false);
-
-		if (configuration.getMencoderMT()) {
-			mencodermt.setSelected(true);
-		}
-
 		mencodermt.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -207,13 +197,8 @@ public class MEncoderVideo extends Player {
 		builder.add(mencodermt, FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 		builder.add(checkBox, FormLayoutUtil.flip(cc.xyw(3, 3, 12), colSpec, orientation));
 
-		noskip = new JCheckBox(Messages.getString("MEncoderVideo.2"));
+		noskip = new JCheckBox(Messages.getString("MEncoderVideo.2"), configuration.isMencoderNoOutOfSync());
 		noskip.setContentAreaFilled(false);
-
-		if (configuration.isMencoderNoOutOfSync()) {
-			noskip.setSelected(true);
-		}
-
 		noskip.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -244,13 +229,8 @@ public class MEncoderVideo extends Player {
 				scrollPaneDefault.setPreferredSize(new java.awt.Dimension(900, 450));
 
 				JPanel customPanel = new JPanel(new BorderLayout());
-				intelligentsync = new JCheckBox(Messages.getString("MEncoderVideo.3"));
+				intelligentsync = new JCheckBox(Messages.getString("MEncoderVideo.3"), configuration.isMencoderIntelligentSync());
 				intelligentsync.setContentAreaFilled(false);
-
-				if (configuration.isMencoderIntelligentSync()) {
-					intelligentsync.setSelected(true);
-				}
-
 				intelligentsync.addItemListener(new ItemListener() {
 					@Override
 					public void itemStateChanged(ItemEvent e) {
@@ -302,11 +282,8 @@ public class MEncoderVideo extends Player {
 		});
 		builder.add(button, FormLayoutUtil.flip(cc.xy(1, 11), colSpec, orientation));
 
-		forcefps = new JCheckBox(Messages.getString("MEncoderVideo.4"));
+		forcefps = new JCheckBox(Messages.getString("MEncoderVideo.4"), configuration.isMencoderForceFps());
 		forcefps.setContentAreaFilled(false);
-		if (configuration.isMencoderForceFps()) {
-			forcefps.setSelected(true);
-		}
 		forcefps.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -316,11 +293,8 @@ public class MEncoderVideo extends Player {
 
 		builder.add(forcefps, FormLayoutUtil.flip(cc.xyw(1, 7, 2), colSpec, orientation));
 
-		yadif = new JCheckBox(Messages.getString("MEncoderVideo.26"));
+		yadif = new JCheckBox(Messages.getString("MEncoderVideo.26"), configuration.isMencoderYadif());
 		yadif.setContentAreaFilled(false);
-		if (configuration.isMencoderYadif()) {
-			yadif.setSelected(true);
-		}
 		yadif.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -376,11 +350,8 @@ public class MEncoderVideo extends Player {
 			scaleY.setEnabled(false);
 		}
 
-		videoremux = new JCheckBox(Messages.getString("MEncoderVideo.38"));
+		videoremux = new JCheckBox(Messages.getString("MEncoderVideo.38"), configuration.isMencoderMuxWhenCompatible());
 		videoremux.setContentAreaFilled(false);
-		if (configuration.isMencoderMuxWhenCompatible()) {
-			videoremux.setSelected(true);
-		}
 		videoremux.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -389,11 +360,8 @@ public class MEncoderVideo extends Player {
 		});
 		builder.add(videoremux, FormLayoutUtil.flip(cc.xyw(1, 9, 13), colSpec, orientation));
 
-		normalizeaudio = new JCheckBox(Messages.getString("MEncoderVideo.134"));
+		normalizeaudio = new JCheckBox(Messages.getString("MEncoderVideo.134"), configuration.isMEncoderNormalizeVolume());
 		normalizeaudio.setContentAreaFilled(false);
-		if (configuration.isMEncoderNormalizeVolume()) {
-			normalizeaudio.setSelected(true);
-		}
 		normalizeaudio.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -484,7 +452,7 @@ public class MEncoderVideo extends Player {
 		builder.add(mencoder_noass_blur, FormLayoutUtil.flip(cc.xy(11, 27), colSpec, orientation));
 		builder.add(mencoder_noass_subpos, FormLayoutUtil.flip(cc.xy(15, 27), colSpec, orientation));
 
-		ass = new JCheckBox(Messages.getString("MEncoderVideo.20"));
+		ass = new JCheckBox(Messages.getString("MEncoderVideo.20"), configuration.isMencoderAss());
 		ass.setContentAreaFilled(false);
 		ass.addItemListener(new ItemListener() {
 			@Override
@@ -495,10 +463,9 @@ public class MEncoderVideo extends Player {
 			}
 		});
 		builder.add(ass, FormLayoutUtil.flip(cc.xy(1, 23), colSpec, orientation));
-		ass.setSelected(configuration.isMencoderAss());
 		ass.getItemListeners()[0].itemStateChanged(null);
 
-		fc = new JCheckBox(Messages.getString("MEncoderVideo.21"));
+		fc = new JCheckBox(Messages.getString("MEncoderVideo.21"), configuration.isMencoderFontConfig());
 		fc.setContentAreaFilled(false);
 		fc.addItemListener(new ItemListener() {
 			@Override
@@ -507,9 +474,8 @@ public class MEncoderVideo extends Player {
 			}
 		});
 		builder.add(fc, FormLayoutUtil.flip(cc.xyw(3, 23, 5), colSpec, orientation));
-		fc.setSelected(configuration.isMencoderFontConfig());
 
-		assdefaultstyle = new JCheckBox(Messages.getString("MEncoderVideo.36"));
+		assdefaultstyle = new JCheckBox(Messages.getString("MEncoderVideo.36"), configuration.isMencoderAssDefaultStyle());
 		assdefaultstyle.setContentAreaFilled(false);
 		assdefaultstyle.addItemListener(new ItemListener() {
 			@Override
@@ -518,7 +484,6 @@ public class MEncoderVideo extends Player {
 			}
 		});
 		builder.add(assdefaultstyle, FormLayoutUtil.flip(cc.xyw(8, 23, 4), colSpec, orientation));
-		assdefaultstyle.setSelected(configuration.isMencoderAssDefaultStyle());
 
 		builder.addLabel(Messages.getString("MEncoderVideo.92"), FormLayoutUtil.flip(cc.xy(1, 29), colSpec, orientation));
 		subq = new JTextField(configuration.getMencoderVobsubSubtitleQuality());
@@ -869,19 +834,6 @@ public class MEncoderVideo extends Player {
 			dvd = true;
 		}
 
-		// Don't honour "Remux videos with tsMuxeR..." if the resource is being streamed via a MEncoder entry in
-		// the #--TRANSCODE--# folder, or it is a file that tsMuxeR does not support.
-		boolean forceMencoder = false;
-		if (
-			!configuration.getHideTranscodeEnabled() &&
-			dlna.isNoName() && // XXX remove this? http://www.ps3mediaserver.org/forum/viewtopic.php?f=11&t=12149
-			(
-				dlna.getParent() instanceof FileTranscodeVirtualFolder
-			)
-		) {
-			forceMencoder = true;
-		}
-
 		ovccopy  = false;
 		pcm      = false;
 		ac3Remux = false;
@@ -915,35 +867,58 @@ public class MEncoderVideo extends Player {
 			aspectRatiosMatch = false;
 		}
 
-		/**
-		 * Do not use tsMuxeR if:
-		 * - The resource is being streamed via a MEncoder entry in the transcode folder
-		 * - There is a subtitle that matches the user preferences
-		 * - The resource is a DVD
-		 * - We are using AviSynth
-		 * - The resource is incompatible with tsMuxeR
-		 * - The user has disabled the "switch to tsMuxeR" option
-		 * - The user has specified overscan correction
-		 * - The aspect ratio of the video needs to be changed
-		 */
-		if (
-			!forceMencoder &&
-			params.sid == null &&
-			!dvd &&
-			!avisynth() &&
-			(
-				media.isVideoWithinH264LevelLimits(newInput, params.mediaRenderer) ||
-				!params.mediaRenderer.isH264Level41Limited()
-			) &&
-			media.isMuxable(params.mediaRenderer) &&
-			configuration.isMencoderMuxWhenCompatible() &&
-			params.mediaRenderer.isMuxH264MpegTS() &&
-			(
-				intOCW == 0 &&
-				intOCH == 0
-			) &&
-			aspectRatiosMatch
-		) {
+		// Decide whether to defer to tsMuxeR or continue to use MEncoder
+		boolean deferToTsmuxer = true;
+		String prependTraceReason = "Not muxing the video stream with tsMuxeR via MEncoder because ";
+		if (!configuration.isMencoderMuxWhenCompatible()) {
+			deferToTsmuxer = false;
+			LOGGER.trace(prependTraceReason + "the user setting is disabled");
+		}
+		if (deferToTsmuxer == true && !configuration.getHideTranscodeEnabled() && dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder)) {
+			deferToTsmuxer = false;
+			LOGGER.trace(prependTraceReason + "the file is being played via a MEncoder entry in the transcode folder.");
+		}
+		if (deferToTsmuxer == true && !params.mediaRenderer.isMuxH264MpegTS()) {
+			deferToTsmuxer = false;
+			LOGGER.trace(prependTraceReason + "the renderer does not support H.264 inside MPEG-TS.");
+		}
+		if (deferToTsmuxer == true && params.sid != null) {
+			deferToTsmuxer = false;
+			LOGGER.trace(prependTraceReason + "we need to burn subtitles.");
+		}
+		if (deferToTsmuxer == true && dvd) {
+			deferToTsmuxer = false;
+			LOGGER.trace(prependTraceReason + "this is a DVD track.");
+		}
+		if (deferToTsmuxer == true && avisynth()) {
+			deferToTsmuxer = false;
+			LOGGER.trace(prependTraceReason + "we are using AviSynth.");
+		}
+		if (deferToTsmuxer == true && params.mediaRenderer.isH264Level41Limited() && !media.isVideoWithinH264LevelLimits(newInput, params.mediaRenderer)) {
+			deferToTsmuxer = false;
+			LOGGER.trace(prependTraceReason + "the video stream is not within H.264 level limits for this renderer.");
+		}
+		if (deferToTsmuxer == true && !media.isMuxable(params.mediaRenderer)) {
+			deferToTsmuxer = false;
+			LOGGER.trace(prependTraceReason + "the video stream is not muxable to this renderer");
+		}
+		if (deferToTsmuxer == true && intOCW > 0 && intOCH > 0) {
+			deferToTsmuxer = false;
+			LOGGER.trace(prependTraceReason + "we need to transcode to apply overscan compensation.");
+		}
+		if (deferToTsmuxer == true && !aspectRatiosMatch) {
+			deferToTsmuxer = false;
+			LOGGER.trace(prependTraceReason + "we need to transcode to apply the correct aspect ratio.");
+		}
+		if (deferToTsmuxer == true && !params.mediaRenderer.isPS3() && filename.contains("WEB-DL")) {
+			deferToTsmuxer = false;
+			LOGGER.trace(prependTraceReason + "the version of tsMuxeR supported by this renderer does not support WEB-DL files.");
+		}
+		if (deferToTsmuxer == true && "bt.601".equals(media.getMatrixCoefficients())) {
+			deferToTsmuxer = false;
+			LOGGER.trace(prependTraceReason + "the colorspace probably isn't supported by the renderer.");
+		}
+		if (deferToTsmuxer) {
 			String expertOptions[] = getSpecificCodecOptions(
 				configuration.getMencoderCodecSpecificConfig(),
 				media,

@@ -507,15 +507,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 				DLNAResource resumeRes = null;
 
+				boolean addResumeFile = false;
 				ResumeObj r = ResumeObj.create(child);
 				if (r != null) {
 					resumeRes = child.clone();
 					resumeRes.resume = r;
 					resumeRes.resHash = child.resHash;
-					addChildInternal(resumeRes);
+					addResumeFile = true;
 				}
-
-				addChildInternal(child);
 
 				boolean parserV2 = child.getMedia() != null && getDefaultRenderer() != null && getDefaultRenderer().isMediaParserV2();
 				if (parserV2) {
@@ -746,6 +745,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						}
 					}
 				}
+
+				if (addResumeFile) {
+					addChildInternal(resumeRes);
+				}
+				addChildInternal(child);
 			}
 		} catch (Throwable t) {
 			LOGGER.error("Error adding child: \"{}\"", child.getName(), t);
@@ -1551,6 +1555,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 				dlnaspec = null;
 
+				/**
+				 * In this code block, we determine the DLNA.ORG_PN to send.
+				 * DLNA.ORG_PN is a string that tells the renderer what type of file to expect, like its
+				 * container, framerate, codecs and resolution.
+				 * Some renderers will not play a file if it has the wrong DLNA.ORG_PN string, while others
+				 * are fine with any string or even nothing.
+				 */
 				if (mediaRenderer.isDLNAOrgPNUsed()) {
 					if (mediaRenderer.isPS3()) {
 						if (mime.equals("video/x-divx")) {
@@ -1563,9 +1574,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							dlnaspec = "DLNA.ORG_PN=" + getMPEG_PS_PALLocalizedValue(c);
 
 							if (getPlayer() != null) {
+								// If the engine being is tsMuxeR or VLC, we are definitely outputting MPEG-TS so we can skip a lot of tests
 								boolean isFileMPEGTS = TsMuxeRVideo.ID.equals(getPlayer().id()) || VideoLanVideoStreaming.ID.equals(getPlayer().id());
+
 								boolean isMuxableResult = getMedia().isMuxable(mediaRenderer);
 								boolean isBravia = mediaRenderer.isBRAVIA();
+
+								// If the engine is MEncoder or FFmpeg, and the muxing settings are enabled, it may be MPEG-TS so we need to do more tests
 								if (
 									!isFileMPEGTS &&
 									(
@@ -1574,27 +1589,27 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 											MEncoderVideo.ID.equals(getPlayer().id())
 										) ||
 										(
-											configuration.isFFmpegMuxWhenCompatible() &&
+											configuration.isFFmpegMuxWithTsMuxerWhenCompatible() &&
 											FFMpegVideo.ID.equals(getPlayer().id())
 										)
 									)
 								) {
+									/**
+									 * Sony Bravia TVs (and possibly other renderers) need ORG_PN to be accurate.
+									 * If the value does not match the media, it won't play the media.
+									 * Often we can lazily predict the correct value to send, but due to
+									 * MEncoder needing to mux via tsMuxeR, we need to work it all out
+									 * before even sending the file list to these devices.
+									 * This is very time-consuming so we should a) avoid using this
+									 * chunk of code whenever possible, and b) design a better system.
+									 * Ideally we would just mux to MPEG-PS instead of MPEG-TS so we could
+									 * know it will always be PS, but most renderers will not accept H.264
+									 * inside MPEG-PS. Another option may be to always produce MPEG-TS
+									 * instead and we should check if that will be OK for all renderers.
+									 *
+									 * This code block comes from Player.setAudioAndSubs()
+									 */
 									if (isBravia) {
-										/**
-										 * Sony Bravia TVs (and possibly other renderers) need ORG_PN to be accurate.
-										 * If the value does not match the media, it won't play the media.
-										 * Often we can lazily predict the correct value to send, but due to
-										 * MEncoder needing to mux via tsMuxeR, we need to work it all out
-										 * before even sending the file list to these devices.
-										 * This is very time-consuming so we should a) avoid using this
-										 * chunk of code whenever possible, and b) design a better system.
-										 * Ideally we would just mux to MPEG-PS instead of MPEG-TS so we could
-										 * know it will always be PS, but most renderers will not accept H.264
-										 * inside MPEG-PS. Another option may be to always produce MPEG-TS
-										 * instead and we should check if that will be OK for all renderers.
-										 *
-										 * This code block comes from Player.setAudioAndSubs()
-										 */
 										boolean finishedMatchingPreferences = false;
 										OutputParams params = new OutputParams(configuration);
 										if (getMedia() != null) {
@@ -1810,6 +1825,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 										}
 									}
 
+									/**
+									 * If either we are transcoding to MPEG-TS, or:
+									 * - There are no subtitles
+									 * - This is not a DVD track
+									 * - The media is muxable
+									 * - The renderer accepts media muxed to MPEG-TS
+									 * then the file is MPEG-TS
+									 */
 									if (
 										(
 											getMediaSubtitle() == null &&
@@ -2332,7 +2355,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (resume != null) {
 				params.timeseek += (long) (resume.getTimeOffset() / 1000);
 				if (getPlayer() == null) {
-					setPlayer(new ResumePlayer());
+					setPlayer(new FFMpegVideo());
 				}
 			}
 

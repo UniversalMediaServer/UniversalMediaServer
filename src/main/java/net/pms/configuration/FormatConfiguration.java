@@ -18,6 +18,7 @@ public class FormatConfiguration {
 	// Use old parser for JPEG files (MediaInfo does not support EXIF)
 	private static final String[] PARSER_V1_EXTENSIONS = new String[]{".jpg", ".jpe", ".jpeg"};
 	public static final String AAC = "aac";
+	public static final String AAC_HE = "aac-he";
 	public static final String AC3 = "ac3";
 	public static final String AIFF = "aiff";
 	public static final String ALAC = "alac";
@@ -153,7 +154,7 @@ public class FormatConfiguration {
 			if (maxVideoWidth != null) {
 				try {
 					iMaxVideoWidth = Integer.parseInt(maxVideoWidth);
-				} catch (Exception nfe) {
+				} catch (NumberFormatException nfe) {
 					LOGGER.error("Error parsing maximum video width: " + maxVideoWidth, nfe);
 					return false;
 				}
@@ -201,16 +202,23 @@ public class FormatConfiguration {
 		 * 			match, true otherwise.
 		 */
 		public boolean match(
-				String format,
-				String videoCodec,
-				String audioCodec,
-				int nbAudioChannels,
-				int frequency,
-				int bitrate,
-				int videoWidth,
-				int videoHeight,
-				Map<String, String> extras
-			) {
+			String format,
+			String videoCodec,
+			String audioCodec,
+			int nbAudioChannels,
+			int frequency,
+			int bitrate,
+			int videoWidth,
+			int videoHeight,
+			Map<String, String> extras
+		) {
+
+			// Satisfy a minimum threshold
+			if (format == null && videoCodec == null && audioCodec == null) {
+				// We have no matchable info. This can happen with unparsed
+				// mediainfo objects (e.g. from WEB.conf or plugins).
+				return false;
+			}
 
 			// Assume a match, until proven otherwise
 			if (format != null && !pFormat.matcher(format).matches()) {

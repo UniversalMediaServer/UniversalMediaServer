@@ -149,7 +149,6 @@ public class TsMuxeRVideo extends Player {
 		}
 
 		if (this instanceof TsMuxeRAudio && media.getFirstAudioTrack() != null) {
-			String fakeFileName = writeResourceToFile("/resources/images/fake.jpg");
 			ffVideoPipe = new PipeIPCProcess(System.currentTimeMillis() + "fakevideo", System.currentTimeMillis() + "videoout", false, true);
 
 			String timeEndValue1 = "-t";
@@ -163,14 +162,11 @@ public class TsMuxeRVideo extends Player {
 				configuration.getFfmpegPath(),
 				timeEndValue1, timeEndValue2,
 				"-loop", "1",
-				"-i", fakeFileName,
-				"-qcomp", "0.6",
-				"-qmin", "10",
-				"-qmax", "51",
-				"-qdiff", "4",
-				"-me_range", "4",
+				"-i", "DummyInput.jpg",
 				"-f", "h264",
 				"-c:v", "libx264",
+				"-level", "31",
+				"-pix_fmt", "yuv420p",
 				"-an",
 				"-y",
 				ffVideoPipe.getInputPipe()
@@ -691,8 +687,18 @@ public class TsMuxeRVideo extends Player {
 		}
 
 		PipeProcess tsPipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
+
+		/**
+		 * Use the newer version of tsMuxeR on PS3 since other renderers
+		 * like Panasonic TVs don't always recognize the new output
+		 */
+		String executable = executable();
+		if (params.mediaRenderer.isPS3()) {
+			executable = configuration.getTsmuxerNewPath();
+		}
+
 		String[] cmdArray = new String[]{
-			executable(),
+			executable,
 			f.getAbsolutePath(),
 			tsPipe.getInputPipe()
 		};
@@ -759,63 +765,6 @@ public class TsMuxeRVideo extends Player {
 		return p;
 	}
 
-	/**
-	 * Write the resource "/resources/images/fake.jpg" to a physical file on disk.
-	 *
-	 * @return The filename of the file on disk.
-	 */
-	private String writeResourceToFile(String resourceName) {
-		String outputFileName = resourceName.substring(resourceName.lastIndexOf('/') + 1);
-
-		try {
-			outputFileName = configuration.getTempFolder() + "/" + outputFileName;
-		} catch (IOException e) {
-			LOGGER.warn("Failure to determine temporary folder.", e);
-		}
-
-		File outputFile = new File(outputFileName);
-
-		// Copy the resource file only once
-		if (!outputFile.exists()) {
-			final URL resourceUrl = getClass().getClassLoader().getResource(resourceName);
-			byte[] buffer = new byte[1024];
-			int byteCount;
-
-			InputStream inputStream = null;
-			OutputStream outputStream = null;
-
-			try {
-				inputStream = resourceUrl.openStream();
-				outputStream = new FileOutputStream(outputFileName);
-
-				while ((byteCount = inputStream.read(buffer)) >= 0) {
-					outputStream.write(buffer, 0, byteCount);
-				}
-			} catch (final IOException e) {
-				LOGGER.error("Failure on saving the embedded resource " + resourceName + " to the file " + outputFile.getAbsolutePath(), e);
-			} finally {
-				if (inputStream != null) {
-					try {
-						inputStream.close();
-					} catch (final IOException e) {
-						LOGGER.warn("Problem closing an input stream while reading data from the embedded resource " + resourceName, e);
-					}
-				}
-
-				if (outputStream != null) {
-					try {
-						outputStream.flush();
-						outputStream.close();
-					} catch (final IOException e) {
-						LOGGER.warn("Problem closing the output stream while writing the file " + outputFile.getAbsolutePath(), e);
-					}
-				}
-			}
-		}
-
-		return outputFileName;
-	}
-
 	@Override
 	public String mimeType() {
 		return "video/mpeg";
@@ -852,11 +801,8 @@ public class TsMuxeRVideo extends Player {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		tsmuxerforcefps = new JCheckBox(Messages.getString("TsMuxeRVideo.2"));
+		tsmuxerforcefps = new JCheckBox(Messages.getString("TsMuxeRVideo.2"), configuration.isTsmuxerForceFps());
 		tsmuxerforcefps.setContentAreaFilled(false);
-		if (configuration.isTsmuxerForceFps()) {
-			tsmuxerforcefps.setSelected(true);
-		}
 		tsmuxerforcefps.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -865,12 +811,8 @@ public class TsMuxeRVideo extends Player {
 		});
 		builder.add(tsmuxerforcefps, FormLayoutUtil.flip(cc.xy(2, 3), colSpec, orientation));
 
-		muxallaudiotracks = new JCheckBox(Messages.getString("TsMuxeRVideo.19"));
+		muxallaudiotracks = new JCheckBox(Messages.getString("TsMuxeRVideo.19"), configuration.isMuxAllAudioTracks());
 		muxallaudiotracks.setContentAreaFilled(false);
-		if (configuration.isMuxAllAudioTracks()) {
-			muxallaudiotracks.setSelected(true);
-		}
-
 		muxallaudiotracks.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {

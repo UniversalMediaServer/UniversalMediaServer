@@ -517,7 +517,7 @@ public class TranscodingTab {
 				configuration.setMencoderRemuxMPEG2((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
-		builder.add(mpeg2remux, FormLayoutUtil.flip(cc.xyw(1, 6, 3), colSpec, orientation));
+		builder.add(mpeg2remux, FormLayoutUtil.flip(cc.xy(1, 6), colSpec, orientation));
 
 		JComponent cmp = builder.addSeparator(Messages.getString("TrTab2.7"), FormLayoutUtil.flip(cc.xyw(1, 8, 3), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
@@ -663,7 +663,7 @@ public class TranscodingTab {
 				configuration.setAudioRemuxAC3((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
-		builder.add(ac3remux, FormLayoutUtil.flip(cc.xyw(1, 6, 3), colSpec, orientation));
+		builder.add(ac3remux, FormLayoutUtil.flip(cc.xy(1, 6), colSpec, orientation));
 
 		forceDTSinPCM = new JCheckBox(Messages.getString("TrTab2.28"), configuration.isAudioEmbedDtsInPcm());
 		forceDTSinPCM.setToolTipText(Messages.getString("TrTab2.85") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
@@ -677,7 +677,7 @@ public class TranscodingTab {
 				configuration.setAudioEmbedDtsInPcm(forceDTSinPCM.isSelected());
 			}
 		});
-		builder.add(forceDTSinPCM, FormLayoutUtil.flip(cc.xyw(1, 8, 3), colSpec, orientation));
+		builder.add(forceDTSinPCM, FormLayoutUtil.flip(cc.xy(1, 8), colSpec, orientation));
 
 		encodedAudioPassthrough = new JCheckBox(Messages.getString("TrTab2.53"), configuration.isEncodedAudioPassthrough());
 		encodedAudioPassthrough.setToolTipText(Messages.getString("TrTab2.86") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
@@ -865,13 +865,8 @@ public class TranscodingTab {
 		subtitleCodePage.setEditable(true);
 		builder.add(subtitleCodePage, FormLayoutUtil.flip(cc.xyw(3, 8, 7), colSpec, orientation));
 
-		fribidi = new JCheckBox(Messages.getString("MEncoderVideo.23"));
+		fribidi = new JCheckBox(Messages.getString("MEncoderVideo.23"), configuration.isMencoderSubFribidi());
 		fribidi.setContentAreaFilled(false);
-
-		if (configuration.isMencoderSubFribidi()) {
-			fribidi.setSelected(true);
-		}
-
 		fribidi.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {

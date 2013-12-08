@@ -284,6 +284,10 @@ public abstract class Format implements Cloneable {
 	 * @see #match(String)
 	 */
 	public boolean skip(String extensions, String moreExtensions) {
+		if ("*".equals(extensions)) {
+			return true;
+		}
+
 		if (extensions != null && extensions.length() > 0) {
 			StringTokenizer st = new StringTokenizer(extensions, ",");
 
