@@ -19,8 +19,8 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 	private JProgressBar downloadProgressBar = new JProgressBar();
 	private static AutoUpdateDialog instance;
 
-	public synchronized static void showIfNecessary(Window parent, AutoUpdater autoUpdater) {
-		if (autoUpdater.isUpdateAvailable()) {
+	public synchronized static void showIfNecessary(Window parent, AutoUpdater autoUpdater, boolean isStartup) {
+		if (autoUpdater.isUpdateAvailable() || !isStartup) {
 			if (instance == null) {
 				instance = new AutoUpdateDialog(parent, autoUpdater);
 			}
@@ -74,6 +74,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 		public void actionPerformed(ActionEvent event) {
 			switch (autoUpdater.getState()) {
 				case UPDATE_AVAILABLE:
+				case NO_UPDATE_AVAILABLE:
 				case ERROR:
 					AutoUpdateDialog.this.setVisible(false);
 					break;
@@ -140,6 +141,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 				cancelButton.setVisible(true);
 				break;
 			case ERROR:
+			case NO_UPDATE_AVAILABLE:
 				cancelButton.setText("Close");
 				cancelButton.setEnabled(true);
 				cancelButton.setVisible(true);
