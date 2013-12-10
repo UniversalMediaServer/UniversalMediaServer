@@ -64,7 +64,7 @@ public class RemoteWeb {
 			InetSocketAddress address = new InetSocketAddress(InetAddress.getByName("0.0.0.0"), port);
 
 			// initialise the HTTP(S) server
-			if (PMS.getConfiguration().getWebHttps()) {
+			if (configuration.getWebHttps()) {
 				server = httpsServer(address);
 			} else {
 				server = HttpServer.create(address, 0);
@@ -195,7 +195,7 @@ public class RemoteWeb {
 	}
 
 	private void readCred() throws IOException {
-		String cPath = (String) PMS.getConfiguration().getCustomProperty("cred.path");
+		String cPath = (String) configuration.getCustomProperty("cred.path");
 		if (StringUtils.isEmpty(cPath)) {
 			return;
 		}
@@ -230,6 +230,7 @@ public class RemoteWeb {
 				tags.put(s2[0], s1[1]);
 			}
 		}
+		in.close();
 	}
 
 	static class RemoteThumbHandler implements HttpHandler {
@@ -292,7 +293,7 @@ public class RemoteWeb {
 				return;
 			}
 			if (t.getRequestURI().getPath().startsWith("/files/")) {
-				File f = PMS.getConfiguration().getWebFile(t.getRequestURI().getPath().substring(7));
+				File f = configuration.getWebFile(t.getRequestURI().getPath().substring(7));
 				RemoteUtil.dumpFile(f, t);
 				return;
 			}
@@ -332,7 +333,7 @@ public class RemoteWeb {
 						sb.append("<div id=\"Menu\">").append(CRLF);
 							sb.append("<a href=\"/browse/0\" id=\"Logo\" title=\"Browse Media\">").append(CRLF);
 								sb.append("<h3>");
-									sb.append("Browse the media on ").append(PMS.getConfiguration().getProfileName());
+									sb.append("Browse the media on ").append(configuration.getProfileName());
 								sb.append("</h3>");
 							sb.append("</a>").append(CRLF);
 						sb.append("</div>").append(CRLF);
