@@ -269,35 +269,47 @@ public class DLNAMediaInfo implements Cloneable {
 	public boolean encrypted;
 
 	/**
-	 * Used to determine whether tsMuxeR can mux the file instead of transcoding.
+	 * @deprecated Use standard getter and setter to access this variable.
+	 */
+	@Deprecated
+	public String matrixCoefficients;
+
+	/**
+	 * Used to determine whether tsMuxeR can mux the file to the renderer
+	 * instead of transcoding.
 	 * Also used by DLNAResource to help determine the DLNA.ORG_PN (file type)
-	 * value to send to the renderer, which is confusing.
+	 * value to send to the renderer.
 	 *
 	 * Some of this code is repeated in isVideoWithinH264LevelLimits(), and since
 	 * both functions are sometimes (but not always) used together, this is
 	 * not an efficient use of code.
+	 *
 	 * TODO: Fix the above situation.
 	 * TODO: Now that FFmpeg is muxing without tsMuxeR, we should make a separate
 	 *       function for that, or even better, re-think this whole approach.
+	 *
+	 * @param mediaRenderer The renderer we might mux to
+	 *
+	 * @return
 	 */
 	public boolean isMuxable(RendererConfiguration mediaRenderer) {
-		// Make sure the file is H.264 video with AC-3/DTS audio
+		// Make sure the file is H.264 video
 		if (getCodecV() != null && getCodecV().equals("h264")) {
-			if (getFirstAudioTrack() != null) {
-				String codecA;
-				codecA = getFirstAudioTrack().getCodecA();
-				if (
-					codecA != null &&
-					(
-						codecA.equals("ac3") ||
-						codecA.equals("dca") ||
-						codecA.equals("dts") ||
-						codecA.equals("eac3")
-					)
-				) {
-					muxable = true;
-				}
-			}
+			muxable = true;
+		}
+
+		// Check if the renderer supports the resolution of the video
+		if (
+			(
+				mediaRenderer.isVideoRescale() &&
+				(
+					getWidth() > mediaRenderer.getMaxVideoWidth() ||
+					getHeight() > mediaRenderer.getMaxVideoHeight()
+				)
+			) ||
+			!isMod4()
+		) {
+			muxable = false;
 		}
 
 		// Temporary fix: MediaInfo support will take care of this in the future
@@ -1115,10 +1127,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @deprecated Use {@link #StringUtil.convertTimeToString(durationSec, StringUtil.DURATION_TIME_FORMAT)} instead.
 	 */
 	public static String getDurationString(double d) {
-		int s = ((int) d) % 60;
-		int h = (int) (d / 3600);
-		int m = ((int) (d / 60)) % 60;
-		return String.format("%02d:%02d:%02d.00", h, m, s);
+		return convertTimeToString(d, DURATION_TIME_FORMAT);
 	}
 
 	public static Double parseDurationString(String duration) {
@@ -1717,6 +1726,14 @@ public class DLNAMediaInfo implements Cloneable {
 		this.mimeType = mimeType;
 	}
 
+	public String getMatrixCoefficients() {
+		return matrixCoefficients;
+	}
+
+	public void setMatrixCoefficients(String matrixCoefficients) {
+		this.matrixCoefficients = matrixCoefficients;
+	}
+
 	/**
 	 * @return the bitsPerPixel
 	 * @since 1.50.0
@@ -2070,5 +2087,16 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public void setEncrypted(boolean encrypted) {
 		this.encrypted = encrypted;
+	}
+
+	public boolean isMod4() {
+		if (
+			getHeight() % 4 != 0 ||
+			getWidth() % 4 != 0
+		) {
+			return false;
+		}
+
+		return true;
 	}
 }
