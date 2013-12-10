@@ -53,6 +53,16 @@ public class StreamModifier {
 		return dtsEmbed;
 	}
 
+	private boolean spdifembed;
+
+	public boolean isEncodedAudioPassthrough() {
+		return spdifembed;
+	}
+
+	public void setEncodedAudioPassthrough(boolean spdifembed) {
+		this.spdifembed = spdifembed;
+	}
+
 	/**
 	 * @deprecated Use {@link #setDtsEmbed(boolean)}.
 	 */
