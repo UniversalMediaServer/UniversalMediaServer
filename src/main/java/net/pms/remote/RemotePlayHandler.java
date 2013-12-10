@@ -84,7 +84,7 @@ public class RemotePlayHandler implements HttpHandler {
 					} else {
 						sb.append(" width=\"720\" height=\"404\" controls autoplay>").append(CRLF);
 					}
-					sb.append("<source src=\"/media/").append(URLEncoder.encode(id1, "UTF-8")).append("\" type=\"").append(mime).append("\">");
+					//sb.append("<source src=\"/media/").append(URLEncoder.encode(id1, "UTF-8")).append("\" type=\"").append(mime).append("\">");
 					sb.append("<source src=\"/fmedia/").append(URLEncoder.encode(id1, "UTF-8")).append("\" type=\"video/x-flv\">");
 					if (flowplayer) {
 						OutputParams p = new OutputParams(PMS.getConfiguration());
