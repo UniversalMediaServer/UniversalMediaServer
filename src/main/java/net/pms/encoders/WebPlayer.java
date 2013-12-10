@@ -167,13 +167,22 @@ public class WebPlayer extends FFMpegVideo {
 			cmdList.add("separate_moof+frag_keyframe+empty_moov");*/
 		} else {
 			cmdList.add("-c:v");
-			cmdList.add("flv");
-			cmdList.add("-qmin");
-			cmdList.add("2");
-			cmdList.add("-qmax");
-			cmdList.add("6");
-			cmdList.add("-ar");
-			cmdList.add("44100");
+			if (media.getCodecV() != null && media.getCodecV().equals("h264")) {
+				cmdList.add("copy");
+			} else {
+				cmdList.add("flv");
+				cmdList.add("-qmin");
+				cmdList.add("2");
+				cmdList.add("-qmax");
+				cmdList.add("6");
+			}
+			if (media.getFirstAudioTrack() != null && media.getFirstAudioTrack().isAAC()) {
+				cmdList.add("-c:a");
+				cmdList.add("copy");
+			} else {
+				cmdList.add("-ar");
+				cmdList.add("44100");
+			}
 			cmdList.add("-f");
 			cmdList.add("flv");
 		}
