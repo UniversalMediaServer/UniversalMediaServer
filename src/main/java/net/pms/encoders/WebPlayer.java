@@ -168,6 +168,10 @@ public class WebPlayer extends FFMpegVideo {
 		} else {
 			cmdList.add("-c:v");
 			cmdList.add("flv");
+			cmdList.add("-qmin");
+			cmdList.add("2");
+			cmdList.add("-qmax");
+			cmdList.add("6");
 			cmdList.add("-ar");
 			cmdList.add("44100");
 			cmdList.add("-f");
