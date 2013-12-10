@@ -73,7 +73,6 @@ public class DLNAMediaDatabase implements Runnable {
 	private final int SIZE_MODEL = 128;
 	private final int SIZE_MUXINGMODE = 32;
 	private final int SIZE_FRAMERATE_MODE = 16;
-	private final int SIZE_STEREOSCOPY = 255;
 	private final int SIZE_LANG = 3;
 	private final int SIZE_FLAVOR = 128;
 	private final int SIZE_SAMPLEFREQ = 16;
@@ -219,7 +218,6 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", ISO               INT");
 				sb.append(", MUXINGMODE        VARCHAR2(").append(SIZE_MUXINGMODE).append(")");
 				sb.append(", FRAMERATEMODE     VARCHAR2(").append(SIZE_FRAMERATE_MODE).append(")");
-				sb.append(", STEREOSCOPY       VARCHAR2(").append(SIZE_STEREOSCOPY).append(")");
 				sb.append(", constraint PK1 primary key (FILENAME, MODIFIED, ID))");
 				executeUpdate(conn, sb.toString());
 				sb = new StringBuilder();
@@ -354,7 +352,6 @@ public class DLNAMediaDatabase implements Runnable {
 				media.setIso(rs.getInt("ISO"));
 				media.setMuxingMode(rs.getString("MUXINGMODE"));
 				media.setFrameRateMode(rs.getString("FRAMERATEMODE"));
-				media.setStereoscopy(rs.getString("STEREOSCOPY"));
 				media.setMediaparsed(true);
 				ResultSet subrs;
 				try (PreparedStatement audios = conn.prepareStatement("SELECT * FROM AUDIOTRACKS WHERE FILEID = ?")) {
@@ -422,7 +419,7 @@ public class DLNAMediaDatabase implements Runnable {
 		PreparedStatement ps = null;
 		try {
 			conn = getConnection();
-			ps = conn.prepareStatement("INSERT INTO FILES(FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, FRAMERATE, ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, BITSPERPIXEL, THUMB, CONTAINER, MODEL, EXPOSURE, ORIENTATION, ISO, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+			ps = conn.prepareStatement("INSERT INTO FILES(FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, FRAMERATE, ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, BITSPERPIXEL, THUMB, CONTAINER, MODEL, EXPOSURE, ORIENTATION, ISO, MUXINGMODE, FRAMERATEMODE) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 			ps.setString(1, name);
 			ps.setTimestamp(2, new Timestamp(modified));
 			ps.setInt(3, type);
@@ -465,7 +462,6 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setInt(22, media.getIso());
 				ps.setString(23, left(media.getMuxingModeAudio(), SIZE_MUXINGMODE));
 				ps.setString(24, left(media.getFrameRateMode(), SIZE_FRAMERATE_MODE));
-				ps.setString(25, left(media.getStereoscopy(), SIZE_STEREOSCOPY));
 			} else {
 				ps.setString(4, null);
 				ps.setInt(5, 0);
@@ -488,7 +484,6 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setInt(22, 0);
 				ps.setString(23, null);
 				ps.setString(24, null);
-				ps.setString(25, null);
 			}
 			ps.executeUpdate();
 			int id;

@@ -275,12 +275,6 @@ public class DLNAMediaInfo implements Cloneable {
 	public String matrixCoefficients;
 
 	/**
-	 * @deprecated Use standard getter and setter to access this variable.
-	 */
-	@Deprecated
-	public String stereoscopy;
-
-	/**
 	 * Used to determine whether tsMuxeR can mux the file to the renderer
 	 * instead of transcoding.
 	 * Also used by DLNAResource to help determine the DLNA.ORG_PN (file type)
@@ -2104,44 +2098,5 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 
 		return true;
-	}
-
-	/**
-	 * Note: This is based on a flag in Matroska files, and as such it is
-	 * unreliable; it will be unlikely to find a false-positive but there
-	 * will be false-negatives, similar to language flags.
-	 *
-	 * @return whether the video track is 3D
-	 */
-	public boolean is3d() {
-		if (!"".equals(stereoscopy)) {
-			return true;
-		}
-
-		return false;
-	}
-
-	/**
-	 * Note: This is based on a flag in Matroska files, and as such it is
-	 * unreliable; it will be unlikely to find a false-positive but there
-	 * will be false-negatives, similar to language flags.
-	 *
-	 * @return the type of stereoscopy (3D) of the video track
-	 */
-	public String getStereoscopy() {
-		return stereoscopy;
-	}
-
-	/**
-	 * Sets the type of stereoscopy (3D) of the video track.
-	 *
-	 * Note: This is based on a flag in Matroska files, and as such it is
-	 * unreliable; it will be unlikely to find a false-positive but there
-	 * will be false-negatives, similar to language flags.
-	 *
-	 * @param stereoscopy the type of stereoscopy (3D) of the video track
-	 */
-	public void setStereoscopy(String stereoscopy) {
-		this.stereoscopy = stereoscopy;
 	}
 }
