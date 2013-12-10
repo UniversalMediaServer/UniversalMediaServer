@@ -630,16 +630,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							}
 
 							boolean isIncompatible = false;
+							String audioTracksList = child.getName() + child.getMedia().getAudioTracksList().toString();
 
 							if (!child.getFormat().isCompatible(child.getMedia(), getDefaultRenderer())) {
 								isIncompatible = true;
 								LOGGER.trace("File \"{}\" is not supported by the renderer", child.getName());
 							} else if (
 								configuration.isEncodedAudioPassthrough() &&
-								child.getMediaAudio() != null &&
 								(
-									"AC3".equals(child.getMediaAudio().getAudioCodec()) ||
-									"DTS".equals(child.getMediaAudio().getAudioCodec())
+									audioTracksList.contains("audio codec: AC3") ||
+									audioTracksList.contains("audio codec: DTS")
 								)
 							) {
 								isIncompatible = true;
