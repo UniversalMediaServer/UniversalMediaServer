@@ -108,6 +108,8 @@ public class LibMediaInfoParser {
 								}
 							} else if (key.equals("Duration/String1") && streamType == MediaInfo.StreamType.General) {
 								media.setDuration(getDuration(value));
+							} else if (key.equals("MultiView_Layout")) {
+								media.setStereoscopy(value);
 							} else if (key.equals("Format_Settings_RefFrames/String") && streamType == MediaInfo.StreamType.Video) {
 								media.setReferenceFrameCount(getReferenceFrameCount(value));
 							} else if (key.equals("Format_Settings_QPel") && streamType == MediaInfo.StreamType.Video) {
