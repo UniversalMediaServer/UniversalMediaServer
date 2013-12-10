@@ -896,7 +896,7 @@ public class RendererConfiguration {
 	public boolean isWrapDTSIntoPCM() {
 		return getBoolean(WRAP_DTS_INTO_PCM, true);
 	}
-	
+
 	public boolean isWrapEncodedAudioIntoPCM() {
 		return getBoolean(WRAP_ENCODED_AUDIO_INTO_PCM, false);
 	}
@@ -1253,7 +1253,7 @@ public class RendererConfiguration {
 
 	public boolean useClosedCaption() {
 		return getBoolean(USE_CLOSED_CAPTION, false);
-	}	
+	}
 
 	public ArrayList<String> tags() {
 		if (rootFolder != null) {
