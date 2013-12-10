@@ -87,7 +87,7 @@ public class RemotePlayHandler implements HttpHandler {
 					sb.append("<source");
 					sb.append(" src=\"/media/").append(URLEncoder.encode(id1, "UTF-8")).append("\" type=\"").append(mime).append("\">");
 					sb.append("<source");
-					sb.append(" src=\"/fmedia/").append(URLEncoder.encode(id1, "UTF-8")).append("\" type=\"").append("video/flash").append("\">");
+					sb.append(" src=\"/fmedia/").append(URLEncoder.encode(id1, "UTF-8")).append("\" type=\"").append("video/x-flv").append("\">");
 					if (flowplayer) {
 						OutputParams p = new OutputParams(PMS.getConfiguration());
 						p.sid = r.getMediaSubtitle();
