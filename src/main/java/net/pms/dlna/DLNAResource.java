@@ -507,15 +507,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 				DLNAResource resumeRes = null;
 
+				boolean addResumeFile = false;
 				ResumeObj r = ResumeObj.create(child);
 				if (r != null) {
 					resumeRes = child.clone();
 					resumeRes.resume = r;
 					resumeRes.resHash = child.resHash;
-					addChildInternal(resumeRes);
+					addResumeFile = true;
 				}
-
-				addChildInternal(child);
 
 				boolean parserV2 = child.getMedia() != null && getDefaultRenderer() != null && getDefaultRenderer().isMediaParserV2();
 				if (parserV2) {
@@ -631,10 +630,20 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							}
 
 							boolean isIncompatible = false;
+							String audioTracksList = child.getName() + child.getMedia().getAudioTracksList().toString();
 
 							if (!child.getFormat().isCompatible(child.getMedia(), getDefaultRenderer())) {
 								isIncompatible = true;
 								LOGGER.trace("File \"{}\" is not supported by the renderer", child.getName());
+							} else if (
+								configuration.isEncodedAudioPassthrough() &&
+								(
+									audioTracksList.contains("audio codec: AC3") ||
+									audioTracksList.contains("audio codec: DTS")
+								)
+							) {
+								isIncompatible = true;
+								LOGGER.trace("File \"{}\" will not be streamed because the audio will use the encoded audio passthrough feature", child.getName());
 							}
 
 							// Prefer transcoding over streaming if:
@@ -736,6 +745,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						}
 					}
 				}
+
+				if (addResumeFile) {
+					addChildInternal(resumeRes);
+				}
+				addChildInternal(child);
 			}
 		} catch (Throwable t) {
 			LOGGER.error("Error adding child: \"{}\"", child.getName(), t);
@@ -783,7 +797,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Adds the supplied DNLA resource to the internal list of child nodes,
+	 * Adds the supplied DLNA resource to the internal list of child nodes,
 	 * and sets the parent to the current node. Avoids the side-effects
 	 * associated with the {@link #addChild(DLNAResource)} method.
 	 *
@@ -791,7 +805,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	protected synchronized void addChildInternal(DLNAResource child) {
 		if (child.getInternalId() != null) {
-			LOGGER.info(
+			LOGGER.debug(
 				"Node ({}) already has an ID ({}), which is overridden now. The previous parent node was: {}",
 				new Object[] {
 					child.getClass().getName(),

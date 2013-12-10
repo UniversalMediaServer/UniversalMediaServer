@@ -99,6 +99,7 @@ public class PmsConfiguration {
 	public static final String KEY_DISABLE_SUBTITLES = "disable_subtitles";
 	private static final String KEY_DVDISO_THUMBNAILS = "dvd_isos_thumbnails";
 	private static final String KEY_AUDIO_EMBED_DTS_IN_PCM = "audio_embed_dts_in_pcm";
+	private static final String KEY_ENCODED_AUDIO_PASSTHROUGH = "encoded_audio_passthrough";
 	private static final String KEY_ENGINES = "engines";
 	private static final String KEY_FFMPEG_ALTERNATIVE_PATH = "alternativeffmpegpath"; // TODO: FFmpegDVRMSRemux will be removed and DVR-MS will be transcoded
 	private static final String KEY_FFMPEG_MULTITHREADING = "ffmpeg_multithreading";
@@ -132,6 +133,7 @@ public class PmsConfiguration {
 	private static final String KEY_IGNORED_RENDERERS = "ignored_renderers";
 	private static final String KEY_IMAGE_THUMBNAILS_ENABLED = "image_thumbnails";
 	private static final String KEY_IP_FILTER = "ip_filter";
+	private static final String KEY_ITUNES_LIBRARY_PATH = "itunes_library_path";
 	private static final String KEY_SHOW_IPHOTO_LIBRARY = "show_iphoto_library";
 	private static final String KEY_SHOW_ITUNES_LIBRARY = "show_itunes_library";
 	private static final String KEY_LANGUAGE = "language";
@@ -2171,6 +2173,14 @@ public class PmsConfiguration {
 		return getBoolean(KEY_AUDIO_EMBED_DTS_IN_PCM, false);
 	}
 
+	public void setEncodedAudioPassthrough(boolean value) {
+		configuration.setProperty(KEY_ENCODED_AUDIO_PASSTHROUGH, value);
+	}
+
+	public boolean isEncodedAudioPassthrough() {
+		return getBoolean(KEY_ENCODED_AUDIO_PASSTHROUGH, false);
+	}
+
 	public void setMencoderMuxWhenCompatible(boolean value) {
 		configuration.setProperty(KEY_MENCODER_MUX_COMPATIBLE, value);
 	}
@@ -2266,6 +2276,10 @@ public class PmsConfiguration {
 
 	public boolean isShowItunesLibrary() {
 		return getBoolean(KEY_SHOW_ITUNES_LIBRARY, false);
+	}
+
+	public String getItunesLibraryPath() {
+		return getString(KEY_ITUNES_LIBRARY_PATH, "");
 	}
 
 	public void setShowItunesLibrary(boolean value) {
