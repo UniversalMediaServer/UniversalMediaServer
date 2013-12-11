@@ -6,7 +6,7 @@ html {
 
 body {
 	background:		url('/files/background.jpg');
-	font-family:		"lucida grande",tahoma,verdana,arial,sans-serif;
+	font-family:		"DejaVuSansCondensed", "Helvetica Neue", Helvetica, Arial, sans-serif;
 	color:			#333;
 	min-height: 100%;
 }
@@ -39,6 +39,7 @@ body#ContentPage {
 	top: 0;
 	left: 0;
 	width: 100%;
+	z-index: 2;
 }
 
 #ContentPage #Menu #HomeButton {
@@ -95,7 +96,7 @@ div#FoldersContainer div {
 
 ul#Folders {
 	width: 200px;
-	background-color: #444;
+	background-color: #222;
 	overflow: auto;
 	display: block;
 	padding: 20px;
@@ -103,6 +104,7 @@ ul#Folders {
 	top: 94px;
 	bottom: 0;
 	left: 0;
+	z-index: 1;
 }
 
 ul#Media {
@@ -129,7 +131,7 @@ ul#Media li a img {
 
 ul#Folders li span {
 	display: block;
-	margin-bottom: 10px;
+	margin-bottom: 5px;
 }
 
 ul#Media li span {
@@ -144,8 +146,12 @@ ul li a {
 	text-decoration: none;
 }
 
-ul li a:hover {
+ul#Folders li a:hover {
 	color: #fff !important;
+}
+
+ul#Media li a:hover {
+	color: #000 !important;
 }
 
 ul#Folders li a {
