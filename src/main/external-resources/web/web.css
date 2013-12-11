@@ -48,6 +48,11 @@ body#ContentPage {
 	display: block;
 }
 
+#VideoContainer {
+	max-width: 720px;
+	margin: 100px auto 0 auto;
+}
+
 /* Menu */
 
 #Logo {

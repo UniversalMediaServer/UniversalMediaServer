@@ -76,7 +76,8 @@ public class RemotePlayHandler implements HttpHandler {
 					sb.append("</div>").append(CRLF);
 					sb.append(coverImage).append(CRLF);
 					if (flowplayer) {
-						sb.append("<div class=\"flowplayer no-time no-volume no-mute\" data-ratio=\"0.416\" data-embed=\"false\">").append(CRLF);
+						sb.append("<div id=\"VideoContainer\">").append(CRLF);
+						sb.append("<div class=\"flowplayer no-time no-volume no-mute\" data-ratio=\"0.5625\" data-embed=\"false\" data-flashfit=\"true\">").append(CRLF);
 					}
 					sb.append("<").append(mediaType);
 					if (flowplayer) {
@@ -102,6 +103,7 @@ public class RemotePlayHandler implements HttpHandler {
 					}
 					sb.append("</").append(mediaType).append(">").append(CRLF);
 					if (flowplayer) {
+						sb.append("</div>").append(CRLF);
 						sb.append("</div>").append(CRLF);
 					}
 					sb.append("<br><br>");
