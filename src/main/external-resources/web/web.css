@@ -1,14 +1,14 @@
 /* General */
 
 html {
-	height:			100%;
+	height: 100%;
 }
 
 body {
 	background:		url('/files/background.jpg');
 	font-family:		"lucida grande",tahoma,verdana,arial,sans-serif;
 	color:			#333;
-	max-height: 100%;
+	min-height: 100%;
 }
 
 body#ContentPage {
@@ -80,42 +80,46 @@ body#ContentPage {
 
 /* Content */
 
-ul#Folders {
+div#FoldersContainer {
 	position: fixed;
-	top: 94px;
 	left: 0;
 	width: 200px;
-	background-color: #444;
-	overflow-y: auto;
 	height: 100%;
 	display: block;
+}
+
+div#FoldersContainer div {
+	height: 100%;
+	position: relative;
+}
+
+ul#Folders {
+	width: 200px;
+	background-color: #444;
+	overflow: auto;
+	display: block;
 	padding: 20px;
+	position: absolute;
+	top: 94px;
+	bottom: 0;
+	left: 0;
 }
 
 ul#Media {
-	margin: 95px 0 0 240px;
-	padding: 20px 0 20px 20px;
-}
-
-ul li {
-	margin-right: 20px;
-}
-
-ul#Folders li {
-	text-align: center;
+	margin: 0 0 0 240px;
+	padding: 115px 0 20px 20px;
 }
 
 ul#Media li {
+	margin-right: 20px;
+}
+
+ul li {
 	text-align: left;
 }
 
 ul#Media li {
 	float: left;
-}
-
-ul#Folders li a img {
-	max-width: 64px;
-	max-height: 64px;
 }
 
 ul#Media li a img {
@@ -125,7 +129,7 @@ ul#Media li a img {
 
 ul#Folders li span {
 	display: block;
-	margin-bottom: 20px;
+	margin-bottom: 10px;
 }
 
 ul#Media li span {
@@ -141,11 +145,12 @@ ul li a {
 }
 
 ul li a:hover {
-	text-decoration: underline;
+	color: #fff !important;
 }
 
 ul#Folders li a {
-	color: #ff9600;
+	color: #aaa;
+	font-size: 14px;
 }
 
 ul#Media li a {

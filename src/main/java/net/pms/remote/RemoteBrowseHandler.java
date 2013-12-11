@@ -55,7 +55,6 @@ public class RemoteBrowseHandler implements HttpHandler {
 							// The resource is a folder
 							foldersHtml.append("<li>");
 								foldersHtml.append("<a href=\"/browse/").append(idForWeb).append("\" title=\"").append(name).append("\">");
-									foldersHtml.append("<img src=\"").append(thumb).append("\" alt=\"").append(name).append("\" />");
 									foldersHtml.append("<span>").append(name).append("</span>");
 								foldersHtml.append("</a>").append(CRLF);
 							foldersHtml.append("</li>").append(CRLF);
@@ -69,7 +68,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 							mediaHtml.append("</li>").append(CRLF);
 						}
 					}
-					sb.append("<ul id=\"Folders\">").append(foldersHtml).append("</ul>");
+					sb.append("<div id=\"FoldersContainer\"><div><ul id=\"Folders\">").append(foldersHtml).append("</ul></div></div>");
 					if (mediaHtml.length() > 0) {
 						sb.append("<ul id=\"Media\">").append(mediaHtml).append("</ul>");
 					}
