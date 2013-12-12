@@ -106,8 +106,7 @@ public class RemotePlayHandler implements HttpHandler {
 						sb.append("</div>").append(CRLF);
 						sb.append("</div>").append(CRLF);
 					}
-					sb.append("<br><br>");
-					sb.append("<a href=\"/raw/").append(rawId).append("\" target=\"_blank\">Download</a>").append(CRLF);
+					sb.append("<a href=\"/raw/").append(rawId).append("\" target=\"_blank\" id=\"DownloadLink\" title=\"Download this video\"></a>").append(CRLF);
 				sb.append("</div>").append(CRLF);
 			sb.append("</body>").append(CRLF);
 		sb.append("</html>").append(CRLF);
