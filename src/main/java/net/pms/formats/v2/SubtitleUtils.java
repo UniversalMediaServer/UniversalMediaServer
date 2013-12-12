@@ -22,10 +22,7 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaSubtitle;
@@ -126,11 +123,9 @@ public class SubtitleUtils {
 	public static File convertSubripToWebVTT(File tempSubs) throws IOException {
 		File outputSubs = new File(FilenameUtils.getFullPath(tempSubs.getPath()), FilenameUtils.getBaseName(tempSubs.getName()) + ".vtt");
 		StringBuilder outputString = new StringBuilder();
-		File temp = new File(PMS.getConfiguration().getTempFolder(), tempSubs.getName() + ".tmp");
-		FileUtils.copyFile(tempSubs, temp);
-		String subsFileCharset = FileUtil.getFileCharset(temp);
+		String subsFileCharset = FileUtil.getFileCharset(tempSubs);
 		BufferedWriter output;
-		try (BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(temp), Charset.forName(subsFileCharset)))) {
+		try (BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(tempSubs), Charset.forName(subsFileCharset)))) {
 			output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), Charset.forName(CHARSET_UTF_8)));
 			String line;
 			outputString.append("WEBVTT FILE").append("\n").append("\n");
@@ -142,7 +137,7 @@ public class SubtitleUtils {
 					output.write(outputString.toString());
 					continue;
 				}
-
+				line = line.replace("&", "&amp;"); // TODO implement the rest of replacements
 				outputString.append(line).append("\n");
 				output.write(outputString.toString());
 			}
@@ -150,7 +145,6 @@ public class SubtitleUtils {
 
 		output.flush();
 		output.close();
-		temp.deleteOnExit();
 		return outputSubs;
 	}
 }
