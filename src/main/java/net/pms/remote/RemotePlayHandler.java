@@ -10,10 +10,12 @@ import java.net.URLEncoder;
 import java.util.List;
 
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
 import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.Player;
+import net.pms.formats.v2.SubtitleUtils;
 import net.pms.io.OutputParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,11 +90,17 @@ public class RemotePlayHandler implements HttpHandler {
 					//sb.append("<source src=\"/media/").append(URLEncoder.encode(id1, "UTF-8")).append("\" type=\"").append(mime).append("\">");
 					sb.append("<source src=\"/fmedia/").append(URLEncoder.encode(id1, "UTF-8")).append("\" type=\"video/x-flv\">");
 					if (flowplayer) {
-						OutputParams p = new OutputParams(PMS.getConfiguration());
-						p.sid = r.getMediaSubtitle();
+						PmsConfiguration configuration = PMS.getConfiguration();
+						boolean isFFmpegFontConfig = configuration.isFFmpegFontConfig();
+						if (isFFmpegFontConfig) { // do not apply fontconfig to flowplayer subs
+							configuration.setFFmpegFontConfig(false);
+						}
+
+						OutputParams p = new OutputParams(configuration);
 						Player.setAudioAndSubs(r.getName(), r.getMedia(), p);
 						try {
-							File subFile = FFMpegVideo.getSubtitles(r, r.getMedia(), p, PMS.getConfiguration());
+							File subFile = FFMpegVideo.getSubtitles(r, r.getMedia(), p, configuration);
+							subFile = SubtitleUtils.convertSubripToWebVTT(subFile);
 							LOGGER.debug("subFile " + subFile);
 							if (subFile != null) {
 								sb.append("<track src=\"/subs/").append(subFile.getAbsolutePath()).append("\">");
@@ -100,6 +108,8 @@ public class RemotePlayHandler implements HttpHandler {
 						} catch (Exception e) {
 							LOGGER.debug("error when doing sub file " + e);
 						}
+						
+						configuration.setFFmpegFontConfig(isFFmpegFontConfig); // return back original fontconfig value
 					}
 					sb.append("</").append(mediaType).append(">").append(CRLF);
 					if (flowplayer) {
