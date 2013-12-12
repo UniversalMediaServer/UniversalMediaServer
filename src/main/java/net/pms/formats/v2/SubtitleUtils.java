@@ -33,7 +33,7 @@ import static org.mozilla.universalchardet.Constants.*;
 public class SubtitleUtils {
 	private final static PmsConfiguration configuration = PMS.getConfiguration();
 	private final static Map<String, String> fileCharsetToMencoderSubcpOptionMap = new HashMap<String, String>() {
-		private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
 		{
 			// Cyrillic / Russian
@@ -106,7 +106,7 @@ public class SubtitleUtils {
 		} else {
 			reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileToConvert)));
 		}
-		
+
 		try (BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), Charset.forName(CHARSET_UTF_8)))) {
 			while ((line = reader.readLine()) != null) {
 				output.write(line + "\n");
@@ -119,7 +119,14 @@ public class SubtitleUtils {
 		reader.close();
 		return outputSubs;
 	}
-	
+
+	/**
+	 * Converts subtitles from the SUBRIP format to the WebVTT format 
+	 *
+	 * @param tempSubs Subtitles file to convert
+	 * @return Converted subtitles file
+	 * @throws IOException
+	 */
 	public static File convertSubripToWebVTT(File tempSubs) throws IOException {
 		File outputSubs = new File(FilenameUtils.getFullPath(tempSubs.getPath()), FilenameUtils.getBaseName(tempSubs.getName()) + ".vtt");
 		StringBuilder outputString = new StringBuilder();
@@ -128,7 +135,7 @@ public class SubtitleUtils {
 		try (BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(tempSubs), Charset.forName(subsFileCharset)))) {
 			output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), Charset.forName(CHARSET_UTF_8)));
 			String line;
-			outputString.append("WEBVTT FILE").append("\n").append("\n");
+			outputString.append("WEBVTT").append("\n").append("\n");
 			output.write(outputString.toString());
 			while ((line = input.readLine()) != null) {
 				outputString.setLength(0);
