@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.util.List;
+import net.pms.Messages;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
 import org.slf4j.Logger;
@@ -52,12 +53,15 @@ public class RemoteBrowseHandler implements HttpHandler {
 						String name = r.resumeName();
 
 						if (r.isFolder()) {
-							// The resource is a folder
-							foldersHtml.append("<li>");
-								foldersHtml.append("<a href=\"/browse/").append(idForWeb).append("\" title=\"").append(name).append("\">");
-									foldersHtml.append("<span>").append(name).append("</span>");
-								foldersHtml.append("</a>").append(CRLF);
-							foldersHtml.append("</li>").append(CRLF);
+							// Do not display the transcode folder in the web interface
+							if (!name.equals(Messages.getString("TranscodeVirtualFolder.0"))) {
+								// The resource is a folder
+								foldersHtml.append("<li>");
+									foldersHtml.append("<a href=\"/browse/").append(idForWeb).append("\" title=\"").append(name).append("\">");
+										foldersHtml.append("<span>").append(name).append("</span>");
+									foldersHtml.append("</a>").append(CRLF);
+								foldersHtml.append("</li>").append(CRLF);
+							}
 						} else {
 							// The resource is a media file
 							mediaHtml.append("<li>");
