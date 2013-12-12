@@ -22,7 +22,11 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.commons.io.FilenameUtils;
+
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaSubtitle;
@@ -132,19 +136,34 @@ public class SubtitleUtils {
 		StringBuilder outputString = new StringBuilder();
 		String subsFileCharset = FileUtil.getFileCharset(tempSubs);
 		BufferedWriter output;
-		try (BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(tempSubs), Charset.forName(subsFileCharset)))) {
+        Pattern timePattern = Pattern.compile("([0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}) --> ([0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3})");
+        try (BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(tempSubs), Charset.forName(subsFileCharset)))) {
 			output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), Charset.forName(CHARSET_UTF_8)));
 			String line;
 			outputString.append("WEBVTT").append("\n").append("\n");
 			output.write(outputString.toString());
 			while ((line = input.readLine()) != null) {
 				outputString.setLength(0);
-				if (line.contains("-->")) {
-					outputString.append(line.replace(",", ".")).append("\n");
+				Matcher timeMatcher = timePattern.matcher(line);
+				if (timeMatcher.find()) {
+					outputString.append(timeMatcher.group().replace(",", ".")).append("\n");
 					output.write(outputString.toString());
 					continue;
 				}
-				line = line.replace("&", "&amp;"); // TODO implement the rest of replacements
+
+				line = line.replace("&", "&amp;");
+				if (countMatches(line, "<") == 1) {
+					line = line.replace("<", "&lt;");
+				}
+
+				if (countMatches(line, ">") == 1) {
+					line = line.replace(">", "&gt;");
+				}
+				
+				if (line.startsWith("{") && line.contains("}")) {
+					line = line.substring(line.indexOf("}") + 1);
+				}
+
 				outputString.append(line).append("\n");
 				output.write(outputString.toString());
 			}
