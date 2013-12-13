@@ -136,7 +136,7 @@ ul#Folders li span {
 
 ul#Media li span {
 	display: block;
-	width: 214px;
+	max-width: 214px;
 	height: 16px;
 	margin-bottom: 20px;
 	overflow: hidden;
