@@ -161,6 +161,17 @@ public class FileUtil {
 		return f.substring(0, point);
 	}
 
+	/**
+	 * Returns the filename after being "prettified", which involves
+	 * attempting to strip away certain things like information about the
+	 * quality, resolution, codecs, release groups, fansubbers, etc.,
+	 * replacing periods with spaces, and various other things to produce a
+	 * more "pretty" and standardized filename.
+	 *
+	 * @param f The filename
+	 *
+	 * @return The prettified filename
+	 */
 	public static String getFileNameWithRewriting(String f) {
 		String formattedName;
 		int point = f.lastIndexOf('.');
