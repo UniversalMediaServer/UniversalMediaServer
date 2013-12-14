@@ -22,6 +22,9 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.apache.commons.io.FilenameUtils;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaSubtitle;
@@ -32,7 +35,7 @@ import static org.mozilla.universalchardet.Constants.*;
 public class SubtitleUtils {
 	private final static PmsConfiguration configuration = PMS.getConfiguration();
 	private final static Map<String, String> fileCharsetToMencoderSubcpOptionMap = new HashMap<String, String>() {
-		private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
 		{
 			// Cyrillic / Russian
@@ -65,6 +68,14 @@ public class SubtitleUtils {
 			put(CHARSET_SHIFT_JIS, "shift-jis");
 		}
 	};
+	
+	private static int SBS_MIDDLE_LEFT_1920 = 480;
+	private static int SBS_MIDDLE_LEFT_3840 = SBS_MIDDLE_LEFT_1920 * 2;
+	private static int SBS_MIDDLE_RIGHT_1920 = 1440;
+	private static int SBS_MIDDLE_RIGHT_3840 = SBS_MIDDLE_RIGHT_1920 * 2;
+	private static int TB_MIDDLE_1920 = 960;
+	private static int TB_MIDDLE_3840 = TB_MIDDLE_1920 * 2;
+	public enum Mode3D {SBS, TB};
 
 	/**
 	 * Returns value for -subcp option for non UTF-8 external subtitles based on
@@ -105,7 +116,7 @@ public class SubtitleUtils {
 		} else {
 			reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileToConvert)));
 		}
-		
+
 		try (BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), Charset.forName(CHARSET_UTF_8)))) {
 			while ((line = reader.readLine()) != null) {
 				output.write(line + "\n");
@@ -116,6 +127,130 @@ public class SubtitleUtils {
 		}
 
 		reader.close();
+		return outputSubs;
+	}
+
+	/**
+	 * Converts subtitles from the SUBRIP format to the WebVTT format 
+	 *
+	 * @param tempSubs Subtitles file to convert
+	 * @return Converted subtitles file
+	 * @throws IOException
+	 */
+	public static File convertSubripToWebVTT(File tempSubs) throws IOException {
+		File outputSubs = new File(FilenameUtils.getFullPath(tempSubs.getPath()), FilenameUtils.getBaseName(tempSubs.getName()) + ".vtt");
+		StringBuilder outputString = new StringBuilder();
+		String subsFileCharset = FileUtil.getFileCharset(tempSubs);
+		BufferedWriter output;
+		Pattern timePattern = Pattern.compile("([0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}) --> ([0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3})");
+		try (BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(tempSubs), Charset.forName(subsFileCharset)))) {
+			output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), Charset.forName(CHARSET_UTF_8)));
+			String line;
+			outputString.append("WEBVTT\n\n");
+			output.write(outputString.toString());
+			while ((line = input.readLine()) != null) {
+				outputString.setLength(0);
+				Matcher timeMatcher = timePattern.matcher(line);
+				if (timeMatcher.find()) {
+					outputString.append(timeMatcher.group().replace(",", ".")).append("\n");
+					output.write(outputString.toString());
+					continue;
+				}
+
+				line = line.replace("&", "&amp;");
+				if (countMatches(line, "<") == 1) {
+					line = line.replace("<", "&lt;");
+				}
+
+				if (countMatches(line, ">") == 1) {
+					line = line.replace(">", "&gt;");
+				}
+				
+				if (line.startsWith("{") && line.contains("}")) {
+					line = line.substring(line.indexOf("}") + 1);
+				}
+
+				outputString.append(line).append("\n");
+				output.write(outputString.toString());
+			}
+		}
+
+		output.flush();
+		output.close();
+		return outputSubs;
+	}
+
+	/**
+	 * Converts ASS/SSA subtitles to 3D ASS/SSA subtitles 
+	 *
+	 * @param tempSubs Subtitles file to convert
+	 * @param mode3D
+	 * @param depth3D
+	 * @param fullres 
+	 * @return Converted subtitles file
+	 * @throws IOException
+	 */
+	public static File convertASSToASS3D(File tempSubs, Mode3D mode3D , int depth3D, boolean fullres) throws IOException {
+		File outputSubs = new File(FilenameUtils.getFullPath(tempSubs.getPath()), FilenameUtils.getBaseName(tempSubs.getName()) + ".ass3D");
+		StringBuilder outputString = new StringBuilder();
+		String subsFileCharset = FileUtil.getFileCharset(tempSubs);
+		BufferedWriter output;
+		Pattern timePattern = Pattern.compile("Dialogue: [0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3},[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3},");
+		try (BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(tempSubs), Charset.forName(subsFileCharset)))) {
+			output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), Charset.forName(CHARSET_UTF_8)));
+			String line;
+			while ((line = input.readLine()) != null) {
+				outputString.setLength(0);
+				if (line.startsWith("[Script Info]")) {
+					outputString.append(line).append("\n");
+					output.write(outputString.toString());
+					while ((line = input.readLine()) != null) {
+						outputString.setLength(0);
+						if (!line.isEmpty()) {
+							outputString.append(line).append("\n");
+							output.write(outputString.toString());
+						} else {
+							if (!fullres) {
+								outputString.append("PlayResX: 1920\n");
+								outputString.append("PlayResY: 1080\n");
+								output.write(outputString.toString());
+							} else {
+								if (mode3D != Mode3D.TB) {
+									outputString.append("PlayResX: 3840\n");
+									outputString.append("PlayResY: 1080\n");
+								} else {
+									outputString.append("PlayResX: 1920\n");
+									outputString.append("PlayResY: 2160\n");
+								}
+								output.write(outputString.toString());
+							}
+							break;
+						}
+					}
+				}
+				
+				Matcher timeMatcher = timePattern.matcher(line);
+				if (timeMatcher.find()) {
+					if (mode3D != Mode3D.TB) {
+						outputString.append(timeMatcher.group(1)).append(timeMatcher.group(2)).append("{\\pos(").append(fullres ? SBS_MIDDLE_LEFT_1920 : SBS_MIDDLE_LEFT_3840 - depth3D).append("1060)}");
+						outputString.append(timeMatcher.group(1)).append(timeMatcher.group(2)).append("{\\pos(").append(fullres ? SBS_MIDDLE_RIGHT_1920 : SBS_MIDDLE_RIGHT_3840 + depth3D).append("1060)}");
+					} else {
+						outputString.append(timeMatcher.group(1)).append(timeMatcher.group(2)).append("{\\pos(").append(fullres ? TB_MIDDLE_1920 : TB_MIDDLE_3840 - depth3D).append("1070)}");
+						outputString.append(timeMatcher.group(1)).append(timeMatcher.group(2)).append("{\\pos(").append(fullres ? TB_MIDDLE_1920 : TB_MIDDLE_3840 + depth3D).append("530)}");
+					}
+
+					outputString.append("\n"); // continue
+					output.write(outputString.toString());
+					continue;
+				}
+
+				outputString.append(line).append("\n");
+				output.write(outputString.toString());
+			}
+		}
+
+		output.flush();
+		output.close();
 		return outputSubs;
 	}
 }
