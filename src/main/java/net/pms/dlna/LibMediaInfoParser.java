@@ -108,7 +108,7 @@ public class LibMediaInfoParser {
 								}
 							} else if (key.equals("Duration/String1") && streamType == MediaInfo.StreamType.General) {
 								media.setDuration(getDuration(value));
-							} else if (key.equals("MultiView_Layout")) {
+							} else if (key.equals("MultiView_Layout") || key.equals("StereoscopicLayout")) {
 								media.setStereoscopy(value);
 							} else if (key.equals("Format_Settings_RefFrames/String") && streamType == MediaInfo.StreamType.Video) {
 								media.setReferenceFrameCount(getReferenceFrameCount(value));

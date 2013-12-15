@@ -24,9 +24,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.util.FileUtil;
 import static org.apache.commons.lang3.StringUtils.*;
@@ -68,14 +72,6 @@ public class SubtitleUtils {
 			put(CHARSET_SHIFT_JIS, "shift-jis");
 		}
 	};
-	
-	private static int SBS_MIDDLE_LEFT_1920 = 480;
-	private static int SBS_MIDDLE_LEFT_3840 = SBS_MIDDLE_LEFT_1920 * 2;
-	private static int SBS_MIDDLE_RIGHT_1920 = 1440;
-	private static int SBS_MIDDLE_RIGHT_3840 = SBS_MIDDLE_RIGHT_1920 * 2;
-	private static int TB_MIDDLE_1920 = 960;
-	private static int TB_MIDDLE_3840 = TB_MIDDLE_1920 * 2;
-	public enum Mode3D {SBS, TB};
 
 	/**
 	 * Returns value for -subcp option for non UTF-8 external subtitles based on
@@ -180,72 +176,86 @@ public class SubtitleUtils {
 		return outputSubs;
 	}
 
+	public enum Mode3D {SBS, TB};
+
 	/**
-	 * Converts ASS/SSA subtitles to 3D ASS/SSA subtitles 
+	 * Converts ASS/SSA subtitles to 3D ASS/SSA subtitles.
+	 * Based on https://bitbucket.org/r3pek/srt2ass3d
 	 *
 	 * @param tempSubs Subtitles file to convert
-	 * @param mode3D
-	 * @param depth3D
-	 * @param fullres 
+	 * @param media Information about video
 	 * @return Converted subtitles file
 	 * @throws IOException
 	 */
-	public static File convertASSToASS3D(File tempSubs, Mode3D mode3D , int depth3D, boolean fullres) throws IOException {
-		File outputSubs = new File(FilenameUtils.getFullPath(tempSubs.getPath()), FilenameUtils.getBaseName(tempSubs.getName()) + ".ass3D");
+	public static File convertASSToASS3D(File tempSubs, DLNAMediaInfo media) throws IOException {
+		File outputSubs = new File(FilenameUtils.getFullPath(tempSubs.getPath()), FilenameUtils.getBaseName(tempSubs.getName()) + "_3D.ass");
 		StringBuilder outputString = new StringBuilder();
 		String subsFileCharset = FileUtil.getFileCharset(tempSubs);
 		BufferedWriter output;
-		Pattern timePattern = Pattern.compile("Dialogue: [0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3},[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3},");
+		int depth3D = 3; // TODO: make it configurable in renderer.conf
+		Mode3D mode3D = Mode3D.SBS;
+		if (media.getStereoscopy().equals("overunderrt")) { // TODO: move it to the DLNAMediaInfo and make it also for the MKV 3D video
+			mode3D = Mode3D.TB;
+		}
+
+		Pattern timePattern = Pattern.compile("[0-9]:[0-9]{2}:[0-9]{2}.[0-9]{2},[0-9]:[0-9]{2}:[0-9]{2}.[0-9]{2},");
 		try (BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(tempSubs), Charset.forName(subsFileCharset)))) {
 			output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), Charset.forName(CHARSET_UTF_8)));
 			String line;
+			outputString.append("[Script Info]\n");
+			outputString.append("ScriptType: v4.00+\n");
+			outputString.append("WrapStyle: 0\n");
+			outputString.append("PlayResX: ").append(media.getWidth()).append("\n");
+			outputString.append("PlayResY: ").append(media.getHeight()).append("\n");
+			outputString.append("ScaledBorderAndShadow: yes\n\n");
+			outputString.append("[V4+ Styles]\n");
+			outputString.append("Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n");
+			if (mode3D == Mode3D.SBS) { // TODO: recalculate font size accordingly to the video size
+				outputString.append("Style: Default,Cube Modern Rounded Thin,32,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,0,2,0,0,0,1\n\n");
+			} else {
+				outputString.append("Style: Default,Cube Modern Rounded Short,32,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,0,2,0,0,0,1\n\n");
+			}
+
+			outputString.append("[Events]\n");
+			outputString.append("Format: Layer, Start, End, Style, Name, ScaleX, ScaleY, MarginL, MarginR, MarginV, Effect, Text\n\n");
+			output.write(outputString.toString());
+			int textPosition = 0;
 			while ((line = input.readLine()) != null) {
-				outputString.setLength(0);
-				if (line.startsWith("[Script Info]")) {
-					outputString.append(line).append("\n");
-					output.write(outputString.toString());
-					while ((line = input.readLine()) != null) {
-						outputString.setLength(0);
-						if (!line.isEmpty()) {
-							outputString.append(line).append("\n");
-							output.write(outputString.toString());
-						} else {
-							if (!fullres) {
-								outputString.append("PlayResX: 1920\n");
-								outputString.append("PlayResY: 1080\n");
-								output.write(outputString.toString());
-							} else {
-								if (mode3D != Mode3D.TB) {
-									outputString.append("PlayResX: 3840\n");
-									outputString.append("PlayResY: 1080\n");
-								} else {
-									outputString.append("PlayResX: 1920\n");
-									outputString.append("PlayResY: 2160\n");
-								}
-								output.write(outputString.toString());
+				if (line.startsWith("[Events]")) {
+					line = input.readLine();
+					if (line.startsWith("Format:")) {
+						String[] formatPattern = line.split(",");
+						int i = 0;
+						for (String component : formatPattern) {
+							if (component.trim().equals("Text")) {
+								textPosition = i;
 							}
-							break;
+							i++;
 						}
 					}
 				}
-				
-				Matcher timeMatcher = timePattern.matcher(line);
-				if (timeMatcher.find()) {
-					if (mode3D != Mode3D.TB) {
-						outputString.append(timeMatcher.group(1)).append(timeMatcher.group(2)).append("{\\pos(").append(fullres ? SBS_MIDDLE_LEFT_1920 : SBS_MIDDLE_LEFT_3840 - depth3D).append("1060)}");
-						outputString.append(timeMatcher.group(1)).append(timeMatcher.group(2)).append("{\\pos(").append(fullres ? SBS_MIDDLE_RIGHT_1920 : SBS_MIDDLE_RIGHT_3840 + depth3D).append("1060)}");
-					} else {
-						outputString.append(timeMatcher.group(1)).append(timeMatcher.group(2)).append("{\\pos(").append(fullres ? TB_MIDDLE_1920 : TB_MIDDLE_3840 - depth3D).append("1070)}");
-						outputString.append(timeMatcher.group(1)).append(timeMatcher.group(2)).append("{\\pos(").append(fullres ? TB_MIDDLE_1920 : TB_MIDDLE_3840 + depth3D).append("530)}");
+
+				outputString.setLength(0);
+				if (line.startsWith("Dialogue:") && line.contains("Default")) { // TODO: For now convert only Default style. For other styles must be position and font size recalculated
+					String[] dialogPattern = line.split(",");
+					String text = StringUtils.join(dialogPattern, ",", textPosition, dialogPattern.length);
+					Matcher timeMatcher = timePattern.matcher(line);
+					if (timeMatcher.find()) {
+						if (mode3D == Mode3D.TB) {
+							int posLow = 100;
+							int posHigh = (media.getHeight() / 2) + posLow;
+							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("Default,,100,100,0000,0000,").append(String.format("%04d", posHigh)).append(",,").append(text).append("\n");
+							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("Default,,100,100,").append(String.format("%04d", depth3D)).append(",0000,").append(String.format("%04d", posLow)).append(",,").append(text).append("\n");
+						} else {
+							int posLeft = 0;
+							int posRight = (media.getWidth() / 2) + depth3D;
+							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("Default,,100,100,").append(String.format("%04d", posLeft)).append(",0000,0000,,").append(text).append("\n");
+							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("Default,,100,100,").append(String.format("%04d", posRight)).append(",0000,0000,,").append(text).append("\n");
+						}
+
+						output.write(outputString.toString());
 					}
-
-					outputString.append("\n"); // continue
-					output.write(outputString.toString());
-					continue;
 				}
-
-				outputString.append(line).append("\n");
-				output.write(outputString.toString());
 			}
 		}
 
