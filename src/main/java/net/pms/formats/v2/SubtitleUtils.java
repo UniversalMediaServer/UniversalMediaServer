@@ -249,7 +249,8 @@ public class SubtitleUtils {
 						} else {
 							int posLeft = 0;
 							int posRight = (media.getWidth() / 2) + depth3D;
-							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("Default,,100,100,").append(String.format("%04d", posLeft)).append(",0000,0000,,").append(text).append("\n");
+							int marginR = media.getWidth() / 2;
+							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("Default,,100,100,").append(String.format("%04d", posLeft)).append(String.format("%04d", marginR)).append(",0000,,").append(text).append("\n");
 							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("Default,,100,100,").append(String.format("%04d", posRight)).append(",0000,0000,,").append(text).append("\n");
 						}
 
