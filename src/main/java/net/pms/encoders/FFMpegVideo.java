@@ -1188,7 +1188,12 @@ public class FFMpegVideo extends Player {
 			if (applyFontConfig || isEmbeddedSource || is3D) {
 				params.sid.setType(SubtitleType.ASS);
 				if (is3D) {
-					convertedSubs = SubtitleUtils.convertASSToASS3D(convertedSubs, media);
+					try {
+						convertedSubs = SubtitleUtils.convertASSToASS3D(convertedSubs, media);
+					} catch (IOException | NullPointerException e) {
+						LOGGER.debug("Converting to ASS3D format ends with error: " + e);
+						return null;
+					}
 				}
 			}
 
@@ -1241,7 +1246,12 @@ public class FFMpegVideo extends Player {
 		}
 		
 		if (is3D) {
-			tempSubs = SubtitleUtils.convertASSToASS3D(tempSubs, media);
+			try {
+				tempSubs = SubtitleUtils.convertASSToASS3D(tempSubs, media);
+			} catch (IOException | NullPointerException e) {
+				LOGGER.debug("Converting to ASS3D format ends with error: " + e);
+				return null;
+			}
 		}
 		
 

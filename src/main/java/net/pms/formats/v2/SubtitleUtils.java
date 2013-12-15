@@ -24,13 +24,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaInfo.Mode3D;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.util.FileUtil;
 import static org.apache.commons.lang3.StringUtils.*;
@@ -38,6 +39,7 @@ import static org.mozilla.universalchardet.Constants.*;
 
 public class SubtitleUtils {
 	private final static PmsConfiguration configuration = PMS.getConfiguration();
+	private static final Logger LOGGER = LoggerFactory.getLogger(SubtitleUtils.class);
 	private final static Map<String, String> fileCharsetToMencoderSubcpOptionMap = new HashMap<String, String>() {
 	private static final long serialVersionUID = 1L;
 
@@ -176,8 +178,6 @@ public class SubtitleUtils {
 		return outputSubs;
 	}
 
-	public enum Mode3D {SBS, TB};
-
 	/**
 	 * Converts ASS/SSA subtitles to 3D ASS/SSA subtitles.
 	 * Based on https://bitbucket.org/r3pek/srt2ass3d
@@ -187,17 +187,18 @@ public class SubtitleUtils {
 	 * @return Converted subtitles file
 	 * @throws IOException
 	 */
-	public static File convertASSToASS3D(File tempSubs, DLNAMediaInfo media) throws IOException {
+	public static File convertASSToASS3D(File tempSubs, DLNAMediaInfo media) throws IOException, NullPointerException {
 		File outputSubs = new File(FilenameUtils.getFullPath(tempSubs.getPath()), FilenameUtils.getBaseName(tempSubs.getName()) + "_3D.ass");
 		StringBuilder outputString = new StringBuilder();
 		String subsFileCharset = FileUtil.getFileCharset(tempSubs);
 		BufferedWriter output;
-		int depth3D = 3; // TODO: make it configurable in renderer.conf
-		Mode3D mode3D = Mode3D.SBS;
-		if (media.getStereoscopy().equals("overunderrt")) { // TODO: move it to the DLNAMediaInfo and make it also for the MKV 3D video
-			mode3D = Mode3D.TB;
+		int depth3D = 3; // TODO: move it configurable in renderer.conf or GUI
+		int bottomSubsPosition = 50; // TODO: move it configurable in renderer.conf or GUI
+		Mode3D mode3D = media.get3DLayout();
+		if (mode3D == null) {
+			LOGGER.debug("The 3D layout not recognized for the 3D video");
+			throw new NullPointerException("The 3D layout not recognized for the 3D video");
 		}
-
 		Pattern timePattern = Pattern.compile("[0-9]:[0-9]{2}:[0-9]{2}.[0-9]{2},[0-9]:[0-9]{2}:[0-9]{2}.[0-9]{2},");
 		try (BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(tempSubs), Charset.forName(subsFileCharset)))) {
 			output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), Charset.forName(CHARSET_UTF_8)));
@@ -210,7 +211,7 @@ public class SubtitleUtils {
 			outputString.append("ScaledBorderAndShadow: yes\n\n");
 			outputString.append("[V4+ Styles]\n");
 			outputString.append("Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n");
-			if (mode3D == Mode3D.SBS) { // TODO: recalculate font size accordingly to the video size
+			if (mode3D == Mode3D.SBSLF || mode3D == Mode3D.SBSRF) { // TODO: recalculate font size accordingly to the video size
 				outputString.append("Style: 3D1,Cube Modern Rounded Thin,32,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,0,2,0,0,0,1\n");
 				outputString.append("Style: 3D2,Cube Modern Rounded Thin,32,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,0,2,0,0,0,1\n\n");
 			} else {
@@ -243,16 +244,24 @@ public class SubtitleUtils {
 					String text = StringUtils.join(dialogPattern, ",", textPosition, dialogPattern.length);
 					Matcher timeMatcher = timePattern.matcher(line);
 					if (timeMatcher.find()) {
-						if (mode3D == Mode3D.TB) {
-							int posLow = 50; // TODO: move it to the renderer.conf or GUI
-							int posHigh = (media.getHeight() / 2) + posLow;
-							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D1,,100,100,0000,").append(String.format("%04d,", depth3D)).append(String.format("%04d,,", posHigh)).append(text).append("\n");
-							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D2,,100,100,").append(String.format("%04d", depth3D)).append(",0000,").append(String.format("%04d,,", posLow)).append(text).append("\n");
-						} else {
-							int margin1R = (media.getWidth() / 2) - depth3D;
-							int margin2L = (media.getWidth() / 2) + depth3D;
-							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D1,,100,100,0000,").append(String.format("%04d", margin1R)).append(",0000,,").append(text).append("\n");
-							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D2,,100,100,").append(String.format("%04d", margin2L)).append(",0000,0000,,").append(text).append("\n");
+						if (mode3D == Mode3D.TBLF) {
+							int topSubsPosition = (media.getHeight() / 2) + bottomSubsPosition;
+							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D1,,100,100,0000,").append(String.format("%04d,", depth3D)).append(String.format("%04d,,", topSubsPosition)).append(text).append("\n");
+							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D2,,100,100,").append(String.format("%04d,", depth3D)).append("0000,").append(String.format("%04d,,", bottomSubsPosition)).append(text).append("\n");
+						} else if (mode3D == Mode3D.TBRF) {
+							int topSubsPosition = (media.getHeight() / 2) + bottomSubsPosition;
+							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D1,,100,100,0000,").append(String.format("%04d,", depth3D)).append(String.format("%04d,,", topSubsPosition)).append(text).append("\n");
+							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D2,,100,100,").append(String.format("%04d,", depth3D)).append("0000,").append(String.format("%04d,,", bottomSubsPosition)).append(text).append("\n");
+						} else if (mode3D == Mode3D.SBSLF) {
+							int marginR1 = (media.getWidth() / 2) - depth3D;
+							int marginL2 = (media.getWidth() / 2) + depth3D;
+							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D1,,100,100,0000,").append(String.format("%04d,", marginR1)).append(String.format("%04d,,", bottomSubsPosition)).append(text).append("\n");
+							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D2,,100,100,").append(String.format("%04d,", marginL2)).append("0000,").append(String.format("%04d,,", bottomSubsPosition)).append(text).append("\n");
+						} else if (mode3D == Mode3D.SBSRF) {
+							int marginR1 = (media.getWidth() / 2) - depth3D;
+							int marginL2 = (media.getWidth() / 2) + depth3D;
+							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D1,,100,100,0000,").append(String.format("%04d,", marginR1)).append(String.format("%04d,,", bottomSubsPosition)).append(text).append("\n");
+							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D2,,100,100,").append(String.format("%04d,", marginL2)).append("0000,").append(String.format("%04d,,", bottomSubsPosition)).append(text).append("\n");
 						}
 
 						output.write(outputString.toString());

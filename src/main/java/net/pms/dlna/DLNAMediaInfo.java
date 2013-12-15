@@ -36,8 +36,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
+
 import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
+
 import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.Thumbnails.Builder;
 import net.coobird.thumbnailator.tasks.UnsupportedFormatException;
@@ -55,6 +57,7 @@ import net.pms.util.FileUtil;
 import net.pms.util.MpegUtil;
 import net.pms.util.ProcessUtil;
 import static net.pms.util.StringUtil.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.sanselan.ImageInfo;
 import org.apache.sanselan.ImageReadException;
@@ -2139,5 +2142,23 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public void setStereoscopy(String stereoscopy) {
 		this.stereoscopy = stereoscopy;
+	}
+	
+	public enum Mode3D {SBSLF, SBSRF, TBLF, TBRF};
+	
+	public Mode3D get3DLayout() {
+		if (!is3d()) {
+			return null;
+		}
+		if (stereoscopy.equals("overunderrt") || stereoscopy.equals("TBLF") || stereoscopy.equals("top-bottom (left eye first)")) {
+			return Mode3D.TBLF;
+		} else if (stereoscopy.equals("TBRF") || stereoscopy.equals("top-bottom (right eye first)")) {
+			return Mode3D.TBRF;	
+		} else if (stereoscopy.equals("SBSLF") || stereoscopy.equals("side by side (left eye first)")) {
+			return Mode3D.SBSLF;
+		} else if (stereoscopy.equals("SBSRF") || stereoscopy.equals("side by side (right eye first)")) {
+			return Mode3D.SBSRF;
+		}
+		return null;
 	}
 }
