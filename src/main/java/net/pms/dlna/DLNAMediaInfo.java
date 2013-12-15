@@ -1418,10 +1418,6 @@ public class DLNAMediaInfo implements Cloneable {
 	public boolean isHDVideo() {
 		return (getWidth() > 1200 || getHeight() > 700);
 	}
-	
-	public boolean isFullResolution3DVideo() {
-		return (getWidth() == 3840 && getHeight() == 1080 || getWidth() == 1920 && getHeight() == 2160);
-	}
 
 	public boolean isMpegTS() {
 		return getContainer() != null && getContainer().equals("mpegts");
@@ -2118,11 +2114,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @return whether the video track is 3D
 	 */
 	public boolean is3d() {
-		if (StringUtils.isNotBlank(stereoscopy)) {
-			return true;
-		}
-
-		return false;
+		return StringUtils.isNotBlank(stereoscopy);
 	}
 
 	/**
