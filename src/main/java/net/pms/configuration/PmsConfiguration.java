@@ -19,6 +19,7 @@
 package net.pms.configuration;
 
 import com.sun.jna.Platform;
+
 import java.awt.Component;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -26,9 +27,11 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
+
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.io.SystemUtils;
@@ -36,6 +39,7 @@ import net.pms.util.FileUtil;
 import net.pms.util.FileUtil.FileLocation;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.WindowsRegistry;
+
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -69,6 +73,9 @@ public class PmsConfiguration {
 	// TODO: Get this out of here
 	private static boolean avsHackLogged = false;
 
+	private static final String KEY_3D_FONT_SIZE = "3D_font_size";
+	private static final String KEY_3D_SUBTITLES_DEPTH = "3D_subtitles_depth";
+	private static final String KEY_3D_SUBTITLES_BOTTOM_POSITION = "3D_subtitles_bottom_position";
 	private static final String KEY_ALTERNATE_SUBTITLES_FOLDER = "alternate_subtitles_folder";
 	private static final String KEY_ALTERNATE_THUMB_FOLDER = "alternate_thumb_folder";
 	private static final String KEY_APPEND_PROFILE_NAME = "append_profile_name";
@@ -2934,5 +2941,29 @@ public class PmsConfiguration {
 	 */
 	public void setAppendProfileName(boolean value) {
 		configuration.setProperty(KEY_APPEND_PROFILE_NAME, value);
+	}
+
+	public String getDepth3D() {
+		return getString(KEY_3D_SUBTITLES_DEPTH, "0");
+	}
+
+	public void setDepth3D(String value) {
+		configuration.setProperty(KEY_3D_SUBTITLES_DEPTH, value);
+	}
+
+	public String get3DbottomSubsPosition() {
+		return getString(KEY_3D_SUBTITLES_BOTTOM_POSITION, "0");
+	}
+
+	public void set3DbottomSubsPosition(String value) {
+		configuration.setProperty(KEY_3D_SUBTITLES_BOTTOM_POSITION, value);
+	}
+	
+	public String getFontSize3D() {
+		return getString(KEY_3D_FONT_SIZE, "0");
+	}
+
+	public void setFontSize3D(String value) {
+		configuration.setProperty(KEY_3D_FONT_SIZE, value);
 	}
 }

@@ -823,6 +823,10 @@ public class MEncoderVideo extends Player {
 				externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getAbsolutePath());
 			}
 		}
+		
+		if (media.is3d()) { // If video is 3D convert external subs to ASS3D format
+			externalSubtitlesFileName = FFMpegVideo.getSubtitles(dlna, media, params).getAbsolutePath();
+		}
 
 		InputFile newInput = new InputFile();
 		newInput.setFilename(filename);
