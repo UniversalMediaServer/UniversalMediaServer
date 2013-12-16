@@ -104,6 +104,7 @@ public class TranscodingTab {
 	private JButton subColor;
 	private JTextField depth3D;
 	private JTextField bottomPos3DSubs;
+	private JTextField fontSize3D;
 
 	/*
 	 * 16 cores is the maximum allowed by MEncoder as of MPlayer r34863.
@@ -982,25 +983,35 @@ public class TranscodingTab {
 
 		builder.addLabel(Messages.getString("TrTab2.87"), FormLayoutUtil.flip(cc.xy(1, 16), colSpec, orientation));
 		builder.addLabel(Messages.getString("TrTab2.88"), FormLayoutUtil.flip(cc.xy(1, 16, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
-		depth3D = new JTextField(String.valueOf(configuration.getDepth3D()));
+		depth3D = new JTextField(configuration.getDepth3D());
+		depth3D.setToolTipText(Messages.getString("TrTab2.91"));
 		depth3D.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				configuration.setDepth3D(Integer.valueOf(depth3D.getText()));
+				configuration.setDepth3D(depth3D.getText());
 			}
 		});
 		builder.add(depth3D, FormLayoutUtil.flip(cc.xy(3, 16), colSpec, orientation));
 		
 		builder.addLabel(Messages.getString("TrTab2.89"), FormLayoutUtil.flip(cc.xy(5, 16), colSpec, orientation));
-
-		bottomPos3DSubs = new JTextField(String.valueOf(configuration.get3DbottomSubsPosition()));
+		bottomPos3DSubs = new JTextField(configuration.get3DbottomSubsPosition());
 		bottomPos3DSubs.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyReleased(KeyEvent e) {
-				configuration.set3DbottomSubsPosition(Integer.valueOf(bottomPos3DSubs.getText()));
+				configuration.set3DbottomSubsPosition(bottomPos3DSubs.getText());
 			}
 		});
 		builder.add(bottomPos3DSubs, FormLayoutUtil.flip(cc.xy(7, 16), colSpec, orientation));
+		
+		builder.addLabel(Messages.getString("TrTab2.90"), FormLayoutUtil.flip(cc.xy(9, 16), colSpec, orientation));
+		fontSize3D = new JTextField(configuration.getFontSize3D());
+		fontSize3D.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				configuration.setFontSize3D(fontSize3D.getText());
+			}
+		});
+		builder.add(fontSize3D, FormLayoutUtil.flip(cc.xy(11, 16), colSpec, orientation));
 
 		final JPanel panel = builder.getPanel();
 

@@ -24,10 +24,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -193,10 +195,11 @@ public class SubtitleUtils {
 		String subsFileCharset = FileUtil.getFileCharset(tempSubs);
 		BufferedWriter output;
 		// First try to calculate subtitles position and depth
-		int depth3Dsbs = (int) ((media.getWidth() / 2) / 100 * Double.valueOf(configuration.getDepth3D())); 
-		int depth3Dtb = (int) (media.getWidth() / 100 * Double.valueOf(configuration.getDepth3D()));
-		int mdsbs = (media.getWidth() / 2) / 10; // Max depth - 10% ... + 10%
-		int mdtb = media.getWidth() / 10; // Max depth - 10% ... + 10%
+		int depth3Dsbs = (int) (((media.getWidth() / 2) / 100) * Double.valueOf(configuration.getDepth3D())); 
+		int depth3Dtb = (int) ((media.getWidth() / 100) * Double.valueOf(configuration.getDepth3D()));
+		// Max depth - 5% ... + 5%
+		int sbsOffset = ((media.getWidth() / 2) / 100) * 5;
+		int tbOffset = (media.getWidth() / 100) * 5;
 		int bottomSubsPositionSbs = (int) (media.getHeight() / 100 * Double.valueOf(configuration.get3DbottomSubsPosition()));
 		int bottomSubsPositionTb = (int) ((media.getHeight() / 2) / 100 * Double.valueOf(configuration.get3DbottomSubsPosition()));
 		int topSubsPosition = (media.getHeight() / 2) + bottomSubsPositionTb;
@@ -218,12 +221,19 @@ public class SubtitleUtils {
 			outputString.append("ScaledBorderAndShadow: yes\n\n");
 			outputString.append("[V4+ Styles]\n");
 			outputString.append("Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n");
-			if (mode3D == Mode3D.SBSLF || mode3D == Mode3D.SBSRF) { // TODO: recalculate font size accordingly to the video size
-				outputString.append("Style: 3D1,Cube Modern Rounded Thin,32,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,0,2,0,0,0,1\n");
-				outputString.append("Style: 3D2,Cube Modern Rounded Thin,32,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,0,2,0,0,0,1\n\n");
+			String fontSize = "16";
+			if (mode3D == Mode3D.SBSLF || mode3D == Mode3D.SBSRF) {
+				fontSize = Integer.toString((int) ((16 * media.getHeight() / 288 * Double.parseDouble(configuration.getFontSize3D()))));
 			} else {
-				outputString.append("Style: 3D1,Cube Modern Rounded Short,32,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,0,2,0,0,0,1\n");
-				outputString.append("Style: 3D2,Cube Modern Rounded Short,32,&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,0,2,0,0,0,1\n\n");
+				fontSize = Integer.toString((int) ((16 * ((media.getHeight() / 2) / 288) * Double.parseDouble(configuration.getFontSize3D()))));
+			}
+
+			if (mode3D == Mode3D.SBSLF || mode3D == Mode3D.SBSRF) { // TODO: recalculate font size accordingly to the video size
+				outputString.append("Style: 3D1,Cube Modern Rounded Thin,").append(fontSize).append(",&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,0,2,0,0,0,1\n");
+				outputString.append("Style: 3D2,Cube Modern Rounded Thin,").append(fontSize).append(",&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,0,2,0,0,0,1\n\n");
+			} else {
+				outputString.append("Style: 3D1,Cube Modern Rounded Short,").append(fontSize).append(",&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,0,2,0,0,0,1\n");
+				outputString.append("Style: 3D2,Cube Modern Rounded Short,").append(fontSize).append(",&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,0,2,0,0,0,1\n\n");
 			}
 
 			outputString.append("[Events]\n");
@@ -252,19 +262,19 @@ public class SubtitleUtils {
 					Matcher timeMatcher = timePattern.matcher(line);
 					if (timeMatcher.find()) {
 						if (mode3D == Mode3D.TBLF) {
-							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D1,,100,100,0000,").append(String.format("%04d,", mdtb + depth3Dtb)).append(String.format("%04d,,", topSubsPosition)).append(text).append("\n");
-							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D2,,100,100,").append(String.format("%04d,", mdtb + depth3Dtb)).append("0000,").append(String.format("%04d,,", bottomSubsPositionTb)).append(text).append("\n");
+							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D1,,100,100,").append(String.format("%04d,", tbOffset - depth3Dtb)).append(String.format("%04d,", tbOffset + depth3Dtb)).append(String.format("%04d,,", topSubsPosition)).append(text).append("\n");
+							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D2,,100,100,").append(String.format("%04d,", tbOffset + depth3Dtb)).append(String.format("%04d,", tbOffset - depth3Dtb)).append(String.format("%04d,,", bottomSubsPositionTb)).append(text).append("\n");
 						} else if (mode3D == Mode3D.TBRF) {
-							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D1,,100,100,0000,").append(String.format("%04d,", mdtb + depth3Dtb)).append(String.format("%04d,,", bottomSubsPositionTb)).append(text).append("\n");
-							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D2,,100,100,").append(String.format("%04d,", mdtb + depth3Dtb)).append("0000,").append(String.format("%04d,,", topSubsPosition)).append(text).append("\n");
+							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D1,,100,100,").append(String.format("%04d,", tbOffset + depth3Dtb)).append(String.format("%04d,", tbOffset - depth3Dtb)).append(String.format("%04d,,", topSubsPosition)).append(text).append("\n");
+							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D2,,100,100,").append(String.format("%04d,", tbOffset - depth3Dtb)).append(String.format("%04d,", tbOffset + depth3Dtb)).append(String.format("%04d,,", bottomSubsPositionTb)).append(text).append("\n");
 						} else if (mode3D == Mode3D.SBSLF) {
-							int marginR1 = (media.getWidth() / 2) + mdsbs + depth3Dsbs;
-							int marginL2 = (media.getWidth() / 2) + mdsbs + depth3Dsbs;
-							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D1,,100,100,0000,").append(String.format("%04d,", marginR1)).append(String.format("%04d,,", bottomSubsPositionSbs)).append(text).append("\n");
-							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D2,,100,100,").append(String.format("%04d,", marginL2)).append("0000,").append(String.format("%04d,,", bottomSubsPositionSbs)).append(text).append("\n");
+							int marginR1 = (media.getWidth() / 2) + sbsOffset + depth3Dsbs;
+							int marginL2 = (media.getWidth() / 2) + sbsOffset + depth3Dsbs;
+							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D1,,100,100,").append(String.format("%04d,", sbsOffset - depth3Dsbs)).append(String.format("%04d,", marginR1)).append(String.format("%04d,,", bottomSubsPositionSbs)).append(text).append("\n");
+							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D2,,100,100,").append(String.format("%04d,", marginL2)).append(String.format("%04d,", sbsOffset - depth3Dsbs)).append(String.format("%04d,,", bottomSubsPositionSbs)).append(text).append("\n");
 						} else if (mode3D == Mode3D.SBSRF) {
-							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D1,,100,100,").append(String.format("%04d,", mdsbs + depth3Dsbs)).append(String.format("%04d,", middle)).append(String.format("%04d,,", bottomSubsPositionSbs)).append(text).append("\n");
-							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D2,,100,100,").append(String.format("%04d,", middle)).append(String.format("%04d,", mdsbs + depth3Dsbs)).append(String.format("%04d,,", bottomSubsPositionSbs)).append(text).append("\n");
+							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D1,,100,100,").append(String.format("%04d,", sbsOffset - depth3Dsbs)).append(String.format("%04d,", middle - sbsOffset + depth3Dsbs)).append(String.format("%04d,,", bottomSubsPositionSbs)).append(text).append("\n");
+							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D2,,100,100,").append(String.format("%04d,", middle - sbsOffset + depth3Dsbs)).append(String.format("%04d,", sbsOffset - depth3Dsbs)).append(String.format("%04d,,", bottomSubsPositionSbs)).append(text).append("\n");
 						}
 
 						output.write(outputString.toString());

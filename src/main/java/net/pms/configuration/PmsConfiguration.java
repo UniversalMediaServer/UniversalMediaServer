@@ -73,6 +73,7 @@ public class PmsConfiguration {
 	// TODO: Get this out of here
 	private static boolean avsHackLogged = false;
 
+	private static final String KEY_3D_FONT_SIZE = "3D_font_size";
 	private static final String KEY_3D_SUBTITLES_DEPTH = "3D_subtitles_depth";
 	private static final String KEY_3D_SUBTITLES_BOTTOM_POSITION = "3D_subtitles_bottom_position";
 	private static final String KEY_ALTERNATE_SUBTITLES_FOLDER = "alternate_subtitles_folder";
@@ -2946,7 +2947,7 @@ public class PmsConfiguration {
 		return getString(KEY_3D_SUBTITLES_DEPTH, "0");
 	}
 
-	public void setDepth3D(int value) {
+	public void setDepth3D(String value) {
 		configuration.setProperty(KEY_3D_SUBTITLES_DEPTH, value);
 	}
 
@@ -2954,8 +2955,15 @@ public class PmsConfiguration {
 		return getString(KEY_3D_SUBTITLES_BOTTOM_POSITION, "0");
 	}
 
-	public void set3DbottomSubsPosition(int value) {
+	public void set3DbottomSubsPosition(String value) {
 		configuration.setProperty(KEY_3D_SUBTITLES_BOTTOM_POSITION, value);
 	}
 	
+	public String getFontSize3D() {
+		return getString(KEY_3D_FONT_SIZE, "0");
+	}
+
+	public void setFontSize3D(String value) {
+		configuration.setProperty(KEY_3D_FONT_SIZE, value);
+	}
 }
