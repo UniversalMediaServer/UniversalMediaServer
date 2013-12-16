@@ -194,6 +194,8 @@ public class SubtitleUtils {
 		BufferedWriter output;
 		int depth3D = 3; // TODO: move it configurable in renderer.conf or GUI
 		int bottomSubsPosition = 50; // TODO: move it configurable in renderer.conf or GUI
+		int topSubsPosition = (media.getHeight() / 2) + bottomSubsPosition;
+		int middle = media.getWidth() / 2;
 		Mode3D mode3D = media.get3DLayout();
 		if (mode3D == null) {
 			LOGGER.debug("The 3D layout not recognized for the 3D video");
@@ -245,23 +247,19 @@ public class SubtitleUtils {
 					Matcher timeMatcher = timePattern.matcher(line);
 					if (timeMatcher.find()) {
 						if (mode3D == Mode3D.TBLF) {
-							int topSubsPosition = (media.getHeight() / 2) + bottomSubsPosition;
 							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D1,,100,100,0000,").append(String.format("%04d,", depth3D)).append(String.format("%04d,,", topSubsPosition)).append(text).append("\n");
 							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D2,,100,100,").append(String.format("%04d,", depth3D)).append("0000,").append(String.format("%04d,,", bottomSubsPosition)).append(text).append("\n");
 						} else if (mode3D == Mode3D.TBRF) {
-							int topSubsPosition = (media.getHeight() / 2) + bottomSubsPosition;
-							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D1,,100,100,0000,").append(String.format("%04d,", depth3D)).append(String.format("%04d,,", topSubsPosition)).append(text).append("\n");
-							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D2,,100,100,").append(String.format("%04d,", depth3D)).append("0000,").append(String.format("%04d,,", bottomSubsPosition)).append(text).append("\n");
+							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D1,,100,100,0000,").append(String.format("%04d,", depth3D)).append(String.format("%04d,,", bottomSubsPosition)).append(text).append("\n");
+							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D2,,100,100,").append(String.format("%04d,", depth3D)).append("0000,").append(String.format("%04d,,", topSubsPosition)).append(text).append("\n");
 						} else if (mode3D == Mode3D.SBSLF) {
 							int marginR1 = (media.getWidth() / 2) - depth3D;
 							int marginL2 = (media.getWidth() / 2) + depth3D;
 							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D1,,100,100,0000,").append(String.format("%04d,", marginR1)).append(String.format("%04d,,", bottomSubsPosition)).append(text).append("\n");
 							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D2,,100,100,").append(String.format("%04d,", marginL2)).append("0000,").append(String.format("%04d,,", bottomSubsPosition)).append(text).append("\n");
 						} else if (mode3D == Mode3D.SBSRF) {
-							int marginR1 = (media.getWidth() / 2) - depth3D;
-							int marginL2 = (media.getWidth() / 2) + depth3D;
-							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D1,,100,100,0000,").append(String.format("%04d,", marginR1)).append(String.format("%04d,,", bottomSubsPosition)).append(text).append("\n");
-							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D2,,100,100,").append(String.format("%04d,", marginL2)).append("0000,").append(String.format("%04d,,", bottomSubsPosition)).append(text).append("\n");
+							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D1,,100,100,").append(String.format("%04d,", depth3D)).append(String.format("%04d,", middle)).append(String.format("%04d,,", bottomSubsPosition)).append(text).append("\n");
+							outputString.append("Dialogue: 0,").append(timeMatcher.group()).append("3D2,,100,100,").append(String.format("%04d,", middle)).append(String.format("%04d,", depth3D)).append(String.format("%04d,,", bottomSubsPosition)).append(text).append("\n");
 						}
 
 						output.write(outputString.toString());
