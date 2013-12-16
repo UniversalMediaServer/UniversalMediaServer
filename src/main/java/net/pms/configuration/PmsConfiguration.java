@@ -19,6 +19,7 @@
 package net.pms.configuration;
 
 import com.sun.jna.Platform;
+
 import java.awt.Component;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -26,9 +27,11 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
+
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.io.SystemUtils;
@@ -36,6 +39,7 @@ import net.pms.util.FileUtil;
 import net.pms.util.FileUtil.FileLocation;
 import net.pms.util.PropertiesUtil;
 import net.pms.util.WindowsRegistry;
+
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
@@ -2938,16 +2942,16 @@ public class PmsConfiguration {
 		configuration.setProperty(KEY_APPEND_PROFILE_NAME, value);
 	}
 
-	public int getDepth3D() {
-		return getInt(KEY_3D_SUBTITLES_DEPTH, 0);
+	public String getDepth3D() {
+		return getString(KEY_3D_SUBTITLES_DEPTH, "0");
 	}
 
 	public void setDepth3D(int value) {
 		configuration.setProperty(KEY_3D_SUBTITLES_DEPTH, value);
 	}
 
-	public int get3DbottomSubsPosition() {
-		return getInt(KEY_3D_SUBTITLES_BOTTOM_POSITION, 0);
+	public String get3DbottomSubsPosition() {
+		return getString(KEY_3D_SUBTITLES_BOTTOM_POSITION, "0");
 	}
 
 	public void set3DbottomSubsPosition(int value) {
