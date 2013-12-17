@@ -266,16 +266,24 @@ public class LibMediaInfoParser {
 					media.setContainer(FormatConfiguration.AAC);
 				}
 
-				/*
-				 * Workaround to recognize 3D layout from the filename. Filename has to start with "3DSBSLF" or "3DSBSRF" for side-by-side layout
+				/**
+				 * Recognize 3D layout from the filename.
+				 *
+				 * First we check for our custom naming convention, for which the filename
+				 * either has to start with "3DSBSLF" or "3DSBSRF" for side-by-side layout
 				 * or "3DTBLF" or "3DTBRF" for top-bottom layout.
+				 * Next we check for common naming conventions.
 				 */
 				if (!media.is3d()) {
 					if (file.getName().startsWith("3DSBS")) {
 						media.setStereoscopy(file.getName().substring(2, 7));
 					} else if (file.getName().startsWith("3DTB")) {
 						media.setStereoscopy(file.getName().substring(2, 6));
-					}	
+					} else if (file.getName().matches(".*[\\s\\.-H]SBS[\\s\\.].*")) {
+						media.setStereoscopy("side by side (left eye first)");
+					} else if (file.getName().matches(".*[\\s\\.-H](OU|TB)[\\s\\.].*")) {
+						media.setStereoscopy("top-bottom (left eye first)");
+					}
 				}
 				
 
