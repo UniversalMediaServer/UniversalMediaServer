@@ -440,10 +440,6 @@ public class RendererConfiguration {
 		return getRendererName().toUpperCase().contains("FDSSDP");
 	}
 
-	public boolean isSamsung() {
-		return getRendererName().toUpperCase().contains("SAMSUNG");
-	}
-
 	// Ditlew
 	public int getByteToTimeseekRewindSeconds() {
 		return getInt(BYTE_TO_TIMESEEK_REWIND_SECONDS, 0);
@@ -1224,10 +1220,6 @@ public class RendererConfiguration {
 	}
 
 	public String getDcTitle(String name, DLNAResource dlna) {
-		if (isSamsung()) {
-			name = name.replaceAll("/", "-");
-		}
-
 		// Wrap text if applicable
 		if (line_w > 0 && name.length() > line_w) {
 			int i = dlna.isFolder() ? 0 : indent;
