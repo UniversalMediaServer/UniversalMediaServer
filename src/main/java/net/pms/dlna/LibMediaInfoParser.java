@@ -285,7 +285,6 @@ public class LibMediaInfoParser {
 						media.setStereoscopy("top-bottom (left eye first)");
 					}
 				}
-				
 
 				media.finalize(type, inputFile);
 			} catch (Exception e) {

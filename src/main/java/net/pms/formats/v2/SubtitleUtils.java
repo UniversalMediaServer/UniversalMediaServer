@@ -24,26 +24,24 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaInfo.Mode3D;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.util.FileUtil;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.*;
 import static org.mozilla.universalchardet.Constants.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SubtitleUtils {
 	private final static PmsConfiguration configuration = PMS.getConfiguration();
 	private static final Logger LOGGER = LoggerFactory.getLogger(SubtitleUtils.class);
 	private final static Map<String, String> fileCharsetToMencoderSubcpOptionMap = new HashMap<String, String>() {
-	private static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = 1L;
 
 		{
 			// Cyrillic / Russian
@@ -131,7 +129,7 @@ public class SubtitleUtils {
 	}
 
 	/**
-	 * Converts subtitles from the SUBRIP format to the WebVTT format 
+	 * Converts subtitles from the SUBRIP format to the WebVTT format
 	 *
 	 * @param tempSubs Subtitles file to convert
 	 * @return Converted subtitles file
@@ -165,7 +163,7 @@ public class SubtitleUtils {
 				if (countMatches(line, ">") == 1) {
 					line = line.replace(">", "&gt;");
 				}
-				
+
 				if (line.startsWith("{") && line.contains("}")) {
 					line = line.substring(line.indexOf("}") + 1);
 				}
@@ -195,7 +193,7 @@ public class SubtitleUtils {
 		String subsFileCharset = FileUtil.getFileCharset(tempSubs);
 		BufferedWriter output;
 		// First try to calculate subtitles position and depth
-		int depth3Dsbs = (int) (((media.getWidth() / 2) / 100) * Double.valueOf(configuration.getDepth3D())); 
+		int depth3Dsbs = (int) (((media.getWidth() / 2) / 100) * Double.valueOf(configuration.getDepth3D()));
 		int depth3Dtb = (int) ((media.getWidth() / 100) * Double.valueOf(configuration.getDepth3D()));
 		// Max depth - 5% ... + 5%
 		int sbsOffset = ((media.getWidth() / 2) / 100) * 5;
@@ -221,7 +219,8 @@ public class SubtitleUtils {
 			outputString.append("ScaledBorderAndShadow: yes\n\n");
 			outputString.append("[V4+ Styles]\n");
 			outputString.append("Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n");
-			String fontSize = "16";
+			String fontSize;
+
 			if (mode3D == Mode3D.SBSLF || mode3D == Mode3D.SBSRF) {
 				fontSize = Integer.toString((int) ((16 * media.getHeight() / 288 * Double.parseDouble(configuration.getFontSize3D()))));
 			} else {

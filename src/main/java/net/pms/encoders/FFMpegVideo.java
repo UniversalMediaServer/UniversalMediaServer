@@ -1244,7 +1244,7 @@ public class FFMpegVideo extends Player {
 				return null;
 			}
 		}
-		
+
 		if (is3D) {
 			try {
 				tempSubs = SubtitleUtils.convertASSToASS3D(tempSubs, media);
@@ -1253,7 +1253,6 @@ public class FFMpegVideo extends Player {
 				return null;
 			}
 		}
-		
 
 		if (isEmbeddedSource) {
 			params.sid.setExternalFile(tempSubs);

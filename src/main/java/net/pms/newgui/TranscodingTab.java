@@ -983,6 +983,7 @@ public class TranscodingTab {
 
 		builder.addLabel(Messages.getString("TrTab2.87"), FormLayoutUtil.flip(cc.xy(1, 16), colSpec, orientation));
 		builder.addLabel(Messages.getString("TrTab2.88"), FormLayoutUtil.flip(cc.xy(1, 16, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+
 		depth3D = new JTextField(configuration.getDepth3D());
 		depth3D.setToolTipText(Messages.getString("TrTab2.91"));
 		depth3D.addKeyListener(new KeyAdapter() {
@@ -992,7 +993,7 @@ public class TranscodingTab {
 			}
 		});
 		builder.add(depth3D, FormLayoutUtil.flip(cc.xy(3, 16), colSpec, orientation));
-		
+
 		builder.addLabel(Messages.getString("TrTab2.89"), FormLayoutUtil.flip(cc.xy(5, 16), colSpec, orientation));
 		bottomPos3DSubs = new JTextField(configuration.get3DbottomSubsPosition());
 		bottomPos3DSubs.addKeyListener(new KeyAdapter() {
@@ -1002,7 +1003,7 @@ public class TranscodingTab {
 			}
 		});
 		builder.add(bottomPos3DSubs, FormLayoutUtil.flip(cc.xy(7, 16), colSpec, orientation));
-		
+
 		builder.addLabel(Messages.getString("TrTab2.90"), FormLayoutUtil.flip(cc.xy(9, 16), colSpec, orientation));
 		fontSize3D = new JTextField(configuration.getFontSize3D());
 		fontSize3D.addKeyListener(new KeyAdapter() {
