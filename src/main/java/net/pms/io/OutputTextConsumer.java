@@ -58,6 +58,9 @@ public class OutputTextConsumer extends OutputConsumer {
 				if (log) {
 					LOGGER.debug(line);
 				}
+				if (filtered) {
+					filtered = filter(line);
+				}
 			}
 		} catch (IOException ioe) {
 			LOGGER.debug("Error consuming input stream: {}", ioe.getMessage());

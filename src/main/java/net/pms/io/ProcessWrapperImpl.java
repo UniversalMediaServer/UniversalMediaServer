@@ -25,8 +25,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import net.pms.PMS;
 import net.pms.encoders.AviDemuxerInputStream;
 import net.pms.util.ProcessUtil;
@@ -181,9 +179,13 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			process = pb.start();
 			PMS.get().currentProcesses.add(process);
 
-			stderrConsumer = keepStderr
-				? new OutputTextConsumer(process.getErrorStream(), true)
-				: new OutputTextLogger(process.getErrorStream(), this);
+			if (stderrConsumer == null) {
+				stderrConsumer = keepStderr
+					? new OutputTextConsumer(process.getErrorStream(), true)
+					: new OutputTextLogger(process.getErrorStream(), this);
+			} else {
+				stderrConsumer.setInputStream(process.getErrorStream());
+			}
 			stderrConsumer.start();
 			stdoutConsumer = null;
 
@@ -371,18 +373,9 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 		this.nullable = nullable;
 	}
 
-	private String duration;
+	// TODO: implement setStdoutConsumer() ?
 
-	public void pubackDuration(String s) {
-		// match 'Duration: 00:17:17.00' but not 'Duration: N/A'
-		Pattern re = Pattern.compile("Duration:\\s+([\\d:.]+),");
-		Matcher m = re.matcher(s);
-		if (m.find()) {
-			duration = m.group(1);
-		}
-	}
-
-	public String getDuration() {
-		return duration;
+	public void setStderrConsumer(OutputConsumer consumer) {
+		this.stderrConsumer = consumer;
 	}
 }
