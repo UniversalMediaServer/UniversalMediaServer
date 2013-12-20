@@ -1004,16 +1004,6 @@ public class TranscodingTab {
 		});
 		builder.add(bottomPos3DSubs, FormLayoutUtil.flip(cc.xy(7, 16), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("TrTab2.90"), FormLayoutUtil.flip(cc.xy(9, 16), colSpec, orientation));
-		fontSize3D = new JTextField(configuration.getFontSize3D());
-		fontSize3D.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setFontSize3D(fontSize3D.getText());
-			}
-		});
-		builder.add(fontSize3D, FormLayoutUtil.flip(cc.xy(11, 16), colSpec, orientation));
-
 		final JPanel panel = builder.getPanel();
 
 		boolean enable = !configuration.isDisableSubtitles();
