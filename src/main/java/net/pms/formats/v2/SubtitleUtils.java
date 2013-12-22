@@ -211,8 +211,7 @@ public class SubtitleUtils {
 		// First try to calculate subtitles position and depth
 		// Max depth - 5% ... + 5%
 		int depth3D = (int) (((double) playResX /(double) 100) * Double.valueOf(configuration.getDepth3D()));
-		int sbsOffset = (playResX / 100) * 5;
-		int tbOffset = (playResX / 100) * 5;
+		int offset = (playResX / 100) * 5;
 		int bottomSubsPosition = (int) ((playResY / 100) * Double.valueOf(configuration.get3DbottomSubsPosition()));
 		int topSubsPositionTb = playResY + bottomSubsPosition;
 		int middleSbs = media.getWidth() / 2;
@@ -272,39 +271,39 @@ public class SubtitleUtils {
 							outputString.append("Dialogue: 0,")
 							.append(timeMatcher.group())
 							.append("3D1,,100,100,")
-							.append(String.format("%04d,", tbOffset - depth3D))
-							.append(String.format("%04d,", tbOffset + depth3D))
+							.append(String.format("%04d,", offset - depth3D))
+							.append(String.format("%04d,", offset + depth3D))
 							.append(String.format("%04d,,", topSubsPositionTb))
 							.append(text).append("\n");
 							outputString.append("Dialogue: 0,")
 							.append(timeMatcher.group())
 							.append("3D2,,100,100,")
-							.append(String.format("%04d,", tbOffset + depth3D))
-							.append(String.format("%04d,", tbOffset - depth3D))
+							.append(String.format("%04d,", offset + depth3D))
+							.append(String.format("%04d,", offset - depth3D))
 							.append(String.format("%04d,,", bottomSubsPosition))
 							.append(text).append("\n");
 						} else if (mode3D == Mode3D.TBRF) {
 							outputString.append("Dialogue: 0,")
 							.append(timeMatcher.group())
 							.append("3D1,,100,100,")
-							.append(String.format("%04d,", tbOffset + depth3D))
-							.append(String.format("%04d,", tbOffset - depth3D))
+							.append(String.format("%04d,", offset + depth3D))
+							.append(String.format("%04d,", offset - depth3D))
 							.append(String.format("%04d,,", topSubsPositionTb))
 							.append(text).append("\n");
 							outputString.append("Dialogue: 0,")
 							.append(timeMatcher.group())
 							.append("3D2,,100,100,")
-							.append(String.format("%04d,", tbOffset - depth3D))
-							.append(String.format("%04d,", tbOffset + depth3D))
+							.append(String.format("%04d,", offset - depth3D))
+							.append(String.format("%04d,", offset + depth3D))
 							.append(String.format("%04d,,", bottomSubsPosition))
 							.append(text).append("\n");
 						} else if (mode3D == Mode3D.SBSLF) {
-							int marginR1 = playResX + sbsOffset + depth3D;
-							int marginL2 = playResX + sbsOffset + depth3D;
+							int marginR1 = playResX + offset + depth3D;
+							int marginL2 = playResX + offset + depth3D;
 							outputString.append("Dialogue: 0,")
 							.append(timeMatcher.group())
 							.append("3D1,,100,100,")
-							.append(String.format("%04d,", sbsOffset - depth3D))
+							.append(String.format("%04d,", offset - depth3D))
 							.append(String.format("%04d,", marginR1))
 							.append(String.format("%04d,,", bottomSubsPosition))
 							.append(text).append("\n");
@@ -312,22 +311,22 @@ public class SubtitleUtils {
 							.append(timeMatcher.group())
 							.append("3D2,,100,100,")
 							.append(String.format("%04d,", marginL2))
-							.append(String.format("%04d,", sbsOffset - depth3D))
+							.append(String.format("%04d,", offset - depth3D))
 							.append(String.format("%04d,,", bottomSubsPosition))
 							.append(text).append("\n");
 						} else if (mode3D == Mode3D.SBSRF) {
 							outputString.append("Dialogue: 0,")
 							.append(timeMatcher.group())
 							.append("3D1,,100,100,")
-							.append(String.format("%04d,", sbsOffset - depth3D))
-							.append(String.format("%04d,", middleSbs - sbsOffset + depth3D))
+							.append(String.format("%04d,", offset - depth3D))
+							.append(String.format("%04d,", middleSbs - offset + depth3D))
 							.append(String.format("%04d,,", bottomSubsPosition))
 							.append(text).append("\n");
 							outputString.append("Dialogue: 0,")
 							.append(timeMatcher.group())
 							.append("3D2,,100,100,")
-							.append(String.format("%04d,", middleSbs - sbsOffset + depth3D))
-							.append(String.format("%04d,", sbsOffset - depth3D))
+							.append(String.format("%04d,", middleSbs - offset + depth3D))
+							.append(String.format("%04d,", offset - depth3D))
 							.append(String.format("%04d,,", bottomSubsPosition))
 							.append(text).append("\n");
 						}
