@@ -234,14 +234,8 @@ public class SubtitleUtils {
 				fontSize = Integer.toString((int) (16 * Double.parseDouble(configuration.getAssScale())));
 			}
 
-			if (mode3D == Mode3D.SBSLF || mode3D == Mode3D.SBSRF) { 
-				outputString.append("Style: 3D1,Verdana,").append(fontSize).append(",&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,0,2,0,0,0,1\n");
-				outputString.append("Style: 3D2,Verdana,").append(fontSize).append(",&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,0,2,0,0,0,1\n\n");
-			} else {
-				outputString.append("Style: 3D1,Verdana,").append(fontSize).append(",&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,0,2,0,0,0,1\n");
-				outputString.append("Style: 3D2,Verdana,").append(fontSize).append(",&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,0,2,0,0,0,1\n\n");
-			}
-
+			outputString.append("Style: 3D1,Verdana,").append(fontSize).append(",&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,0,2,0,0,0,1\n");
+			outputString.append("Style: 3D2,Verdana,").append(fontSize).append(",&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,0,2,0,0,0,1\n\n");
 			outputString.append("[Events]\n");
 			outputString.append("Format: Layer, Start, End, Style, Name, ScaleX, ScaleY, MarginL, MarginR, MarginV, Effect, Text\n\n");
 			output.write(outputString.toString());
