@@ -1,7 +1,16 @@
 3.3.1 - 2013-12-??
 
 	General:
-		
+		Added "Encoded Audio Passthrough" option for DTS and AC-3 audio
+		Added support for 3D MKV files (mk3d)
+		Expanded filename prettifying
+		Clicking "Check for updates" tells you when there are no updates
+	External Components:
+		Updated tsMuxeR to 2.6.9, which:
+			Improves compatibility of output
+			Fixes muxing for 96Khz TrueHD tracks
+			Fixes file duration detection for some files
+			Several minor bugfixes
 
 3.3.0 - 2013-12-08
 
