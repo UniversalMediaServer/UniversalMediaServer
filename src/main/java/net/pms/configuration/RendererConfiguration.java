@@ -92,6 +92,7 @@ public class RendererConfiguration {
 	private static final String MUX_DTS_TO_MPEG = "MuxDTSToMpeg";
 	private static final String MUX_H264_WITH_MPEGTS = "MuxH264ToMpegTS";
 	private static final String MUX_LPCM_TO_MPEG = "MuxLPCMToMpeg";
+	private static final String OUTPUT_3D_FORMAT = "Output3DFormat";
 	private static final String OVERRIDE_VF = "OverrideVideoFilter";
 	private static final String RENDERER_ICON = "RendererIcon";
 	private static final String RENDERER_NAME = "RendererName";
@@ -1261,4 +1262,8 @@ public class RendererConfiguration {
 		}
 		return null;
 	}
+
+	public String getOutput3DFormat() {
+		return getString(OUTPUT_3D_FORMAT, "");
+	}	
 }

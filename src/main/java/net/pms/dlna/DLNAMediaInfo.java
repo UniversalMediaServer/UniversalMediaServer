@@ -2142,7 +2142,7 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	public enum Mode3D {
-		SBSLF, SBSRF, TBLF, TBRF
+		SBSL, SBSR, ABL, ABR, DA // Used FFMpeg/MEncoder 3D video format naming
 	};
 
 	public Mode3D get3DLayout() {
@@ -2154,16 +2154,18 @@ public class DLNAMediaInfo implements Cloneable {
 			case "overunderrt":
 			case "TBLF":
 			case "top-bottom (left eye first)":
-				return Mode3D.TBLF;
+				return Mode3D.ABL;
 			case "TBRF":
 			case "top-bottom (right eye first)":
-				return Mode3D.TBRF;
+				return Mode3D.ABR;
 			case "SBSLF":
 			case "side by side (left eye first)":
-				return Mode3D.SBSLF;
+				return Mode3D.SBSL;
 			case "SBSRF":
 			case "side by side (right eye first)":
-				return Mode3D.SBSRF;
+				return Mode3D.SBSR;
+			case "3DA":
+				return Mode3D.DA;
 		}
 
 		return null;

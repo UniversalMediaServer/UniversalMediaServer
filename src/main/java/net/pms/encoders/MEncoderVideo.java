@@ -20,11 +20,13 @@ package net.pms.encoders;
 
 import bsh.EvalError;
 import bsh.Interpreter;
+
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import com.sun.jna.Platform;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
@@ -32,13 +34,16 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
 import java.util.List;
+
 import javax.swing.*;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.*;
+import net.pms.dlna.DLNAMediaInfo.Mode3D;
 import net.pms.formats.Format;
 import static net.pms.formats.v2.AudioUtils.getLPCMChannelMappingForMencoder;
 import net.pms.formats.v2.SubtitleType;
@@ -51,10 +56,14 @@ import net.pms.util.FileUtil;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
+
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
+import org.apache.commons.lang3.StringUtils;
+
 import static org.apache.commons.lang.BooleanUtils.isTrue;
 import static org.apache.commons.lang3.StringUtils.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -824,7 +833,7 @@ public class MEncoderVideo extends Player {
 			}
 		}
 
-		if (media.is3d()) { // If video is 3D convert external subs to ASS3D format
+		if (media.is3d() && params.sid != null) { // If video is 3D convert external subs to ASS3D format
 			externalSubtitlesFileName = FFMpegVideo.getSubtitles(dlna, media, params).getAbsolutePath();
 		}
 
@@ -1894,6 +1903,15 @@ public class MEncoderVideo extends Player {
 			}
 
 			vfValue = vfValuePrepend + vfValue;
+		}
+
+		// Convert 3D video to the output format
+		if (media.is3d() && (media.get3DLayout() != null) && isNotBlank(params.mediaRenderer.getOutput3DFormat())) {
+			if (isNotBlank(vfValue)) {
+				vfValue += ",";
+			}
+
+			vfValue += "stereo3d=" + media.get3DLayout().toString().toLowerCase() + ":" + params.mediaRenderer.getOutput3DFormat().trim() + ",scale";
 		}
 
 		if (isNotBlank(vfValue)) {
