@@ -22,7 +22,6 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -38,10 +37,8 @@ import java.text.StringCharacterIterator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
-
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -50,7 +47,6 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.FileTranscodeVirtualFolder;
 import net.pms.dlna.InputFile;
-import net.pms.dlna.DLNAMediaInfo.Mode3D;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.formats.v2.SubtitleUtils;
@@ -64,14 +60,11 @@ import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -234,8 +227,12 @@ public class FFMpegVideo extends Player {
 		}
 
 		// Convert 3D video to the output format
-		if (media.is3d() && (media.get3DLayout() != null) && isNotBlank(params.mediaRenderer.getOutput3DFormat())) {
-			filterChain.add("stereo3d=" + media.get3DLayout().toString().toLowerCase() + ":" + params.mediaRenderer.getOutput3DFormat().trim());
+		if (media.is3d() &&
+				(media.get3DLayout() != null) &&
+				isNotBlank(params.mediaRenderer.getOutput3DFormat()) &&
+				!media.get3DLayout().toString().toLowerCase().equals(params.mediaRenderer.getOutput3DFormat().trim()))
+		{
+			filterChain.add("stereo3d=" + media.get3DLayout().toString().toLowerCase() + ":" + params.mediaRenderer.getOutput3DFormat().trim().toLowerCase());
 		}
 
 		if (filterChain.size() > 0) {

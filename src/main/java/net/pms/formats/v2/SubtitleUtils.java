@@ -18,13 +18,13 @@
  */
 package net.pms.formats.v2;
 
+import java.awt.Color;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -32,13 +32,10 @@ import net.pms.dlna.DLNAMediaInfo.Mode3D;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.io.OutputParams;
 import net.pms.util.FileUtil;
-
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-
 import static org.apache.commons.lang3.StringUtils.*;
 import static org.mozilla.universalchardet.Constants.*;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -203,6 +200,7 @@ public class SubtitleUtils {
 			throw new NullPointerException("The 3D layout not recognized for the 3D video");
 		}
 
+		boolean isAnaglyph = mode3D.toString().startsWith("AR") || mode3D.toString().startsWith("AG") || mode3D.toString().startsWith("AY");
 		int playResX;
 		int playResY;
 		if (mode3D == Mode3D.ABL || mode3D == Mode3D.ABR) {
@@ -239,9 +237,16 @@ public class SubtitleUtils {
 				fontSize = Integer.toString((int) (16 * Double.parseDouble(configuration.getAssScale())));
 			}
 
-			outputString.append("Style: Default,Verdana,").append(fontSize).append(",&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,0,2,0,0,0,1\n");
-			outputString.append("Style: 3D1,Verdana,").append(fontSize).append(",&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,0,2,0,0,0,1\n");
-			outputString.append("Style: 3D2,Verdana,").append(fontSize).append(",&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,0,2,0,0,0,1\n\n");
+/*			if (isAnaglyph) {
+				String red = convertColorToAssHexFormat(Color.RED);
+				String cyan = convertColorToAssHexFormat(Color.CYAN);
+				outputString.append("Style: 3D1,Verdana,").append(fontSize).append(",").append(red).append(",&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,0,2,0,0,0,1\n");
+				outputString.append("Style: 3D2,Verdana,").append(fontSize).append(",").append(cyan).append(",&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,0,2,0,0,0,1\n\n");
+			} else { */
+				outputString.append("Style: 3D1,Verdana,").append(fontSize).append(",&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,0,2,0,0,0,1\n");
+				outputString.append("Style: 3D2,Verdana,").append(fontSize).append(",&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,0,2,0,0,0,1\n\n");
+//			}
+
 			outputString.append("[Events]\n");
 			outputString.append("Format: Layer, Start, End, Style, Name, ScaleX, ScaleY, MarginL, MarginR, MarginV, Effect, Text\n\n");
 			output.write(outputString.toString());
@@ -266,82 +271,89 @@ public class SubtitleUtils {
 					String[] dialogPattern = line.split(",");
 					String text = StringUtils.join(dialogPattern, ",", textPosition, dialogPattern.length);
 					Matcher timeMatcher = timePattern.matcher(line);
-					if (timeMatcher.find()) {
-//						if (isNotBlank(params.mediaRenderer.getOutput3DFormat())) {
+					if (timeMatcher.find()) {	
+						if (isAnaglyph) {
+							outputString.append("Dialogue: 0,")
+							.append(timeMatcher.group())
+							.append("3D1,,100,100,")
+							.append(String.format("%04d,", 0))
+							.append(String.format("%04d,", 0))
+							.append(String.format("%04d,,", bottomSubsPosition))
+							.append(text).append("\n");
 //							outputString.append("Dialogue: 0,")
 //							.append(timeMatcher.group())
-//							.append("Default,,100,100,0000,0000,")
+//							.append("3D2,,100,100,")
+//							.append(String.format("%04d,", offset + depth3D))
+//							.append(String.format("%04d,", offset - depth3D))
 //							.append(String.format("%04d,,", bottomSubsPosition))
 //							.append(text).append("\n");
-//						} else {	
-							if (mode3D == Mode3D.ABL) {
-								outputString.append("Dialogue: 0,")
-								.append(timeMatcher.group())
-								.append("3D1,,100,100,")
-								.append(String.format("%04d,", offset - depth3D))
-								.append(String.format("%04d,", offset + depth3D))
-								.append(String.format("%04d,,", topSubsPositionTb))
-								.append(text).append("\n");
-								outputString.append("Dialogue: 0,")
-								.append(timeMatcher.group())
-								.append("3D2,,100,100,")
-								.append(String.format("%04d,", offset + depth3D))
-								.append(String.format("%04d,", offset - depth3D))
-								.append(String.format("%04d,,", bottomSubsPosition))
-								.append(text).append("\n");
-							} else if (mode3D == Mode3D.ABR) {
-								outputString.append("Dialogue: 0,")
-								.append(timeMatcher.group())
-								.append("3D1,,100,100,")
-								.append(String.format("%04d,", offset + depth3D))
-								.append(String.format("%04d,", offset - depth3D))
-								.append(String.format("%04d,,", topSubsPositionTb))
-								.append(text).append("\n");
-								outputString.append("Dialogue: 0,")
-								.append(timeMatcher.group())
-								.append("3D2,,100,100,")
-								.append(String.format("%04d,", offset - depth3D))
-								.append(String.format("%04d,", offset + depth3D))
-								.append(String.format("%04d,,", bottomSubsPosition))
-								.append(text).append("\n");
-							} else if (mode3D == Mode3D.SBSL) {
-								int marginR1 = playResX + offset + depth3D;
-								int marginL2 = playResX + offset + depth3D;
-								outputString.append("Dialogue: 0,")
-								.append(timeMatcher.group())
-								.append("3D1,,100,100,")
-								.append(String.format("%04d,", offset - depth3D))
-								.append(String.format("%04d,", marginR1))
-								.append(String.format("%04d,,", bottomSubsPosition))
-								.append(text).append("\n");
-								outputString.append("Dialogue: 0,")
-								.append(timeMatcher.group())
-								.append("3D2,,100,100,")
-								.append(String.format("%04d,", marginL2))
-								.append(String.format("%04d,", offset - depth3D))
-								.append(String.format("%04d,,", bottomSubsPosition))
-								.append(text).append("\n");
-							} else if (mode3D == Mode3D.SBSR) {
-								outputString.append("Dialogue: 0,")
-								.append(timeMatcher.group())
-								.append("3D1,,100,100,")
-								.append(String.format("%04d,", offset - depth3D))
-								.append(String.format("%04d,", middleSbs - offset + depth3D))
-								.append(String.format("%04d,,", bottomSubsPosition))
-								.append(text).append("\n");
-								outputString.append("Dialogue: 0,")
-								.append(timeMatcher.group())
-								.append("3D2,,100,100,")
-								.append(String.format("%04d,", middleSbs - offset + depth3D))
-								.append(String.format("%04d,", offset - depth3D))
-								.append(String.format("%04d,,", bottomSubsPosition))
-								.append(text).append("\n");
-							}
+						} else if (mode3D == Mode3D.ABL) {
+							outputString.append("Dialogue: 0,")
+							.append(timeMatcher.group())
+							.append("3D1,,100,100,")
+							.append(String.format("%04d,", offset - depth3D))
+							.append(String.format("%04d,", offset + depth3D))
+							.append(String.format("%04d,,", topSubsPositionTb))
+							.append(text).append("\n");
+							outputString.append("Dialogue: 0,")
+							.append(timeMatcher.group())
+							.append("3D2,,100,100,")
+							.append(String.format("%04d,", offset + depth3D))
+							.append(String.format("%04d,", offset - depth3D))
+							.append(String.format("%04d,,", bottomSubsPosition))
+							.append(text).append("\n");
+						} else if (mode3D == Mode3D.ABR) {
+							outputString.append("Dialogue: 0,")
+							.append(timeMatcher.group())
+							.append("3D1,,100,100,")
+							.append(String.format("%04d,", offset + depth3D))
+							.append(String.format("%04d,", offset - depth3D))
+							.append(String.format("%04d,,", topSubsPositionTb))
+							.append(text).append("\n");
+							outputString.append("Dialogue: 0,")
+							.append(timeMatcher.group())
+							.append("3D2,,100,100,")
+							.append(String.format("%04d,", offset - depth3D))
+							.append(String.format("%04d,", offset + depth3D))
+							.append(String.format("%04d,,", bottomSubsPosition))
+							.append(text).append("\n");
+						} else if (mode3D == Mode3D.SBSL) {
+							int marginR1 = playResX + offset + depth3D;
+							int marginL2 = playResX + offset + depth3D;
+							outputString.append("Dialogue: 0,")
+							.append(timeMatcher.group())
+							.append("3D1,,100,100,")
+							.append(String.format("%04d,", offset - depth3D))
+							.append(String.format("%04d,", marginR1))
+							.append(String.format("%04d,,", bottomSubsPosition))
+							.append(text).append("\n");
+							outputString.append("Dialogue: 0,")
+							.append(timeMatcher.group())
+							.append("3D2,,100,100,")
+							.append(String.format("%04d,", marginL2))
+							.append(String.format("%04d,", offset - depth3D))
+							.append(String.format("%04d,,", bottomSubsPosition))
+							.append(text).append("\n");
+						} else if (mode3D == Mode3D.SBSR) {
+							outputString.append("Dialogue: 0,")
+							.append(timeMatcher.group())
+							.append("3D1,,100,100,")
+							.append(String.format("%04d,", offset - depth3D))
+							.append(String.format("%04d,", middleSbs - offset + depth3D))
+							.append(String.format("%04d,,", bottomSubsPosition))
+							.append(text).append("\n");
+							outputString.append("Dialogue: 0,")
+							.append(timeMatcher.group())
+							.append("3D2,,100,100,")
+							.append(String.format("%04d,", middleSbs - offset + depth3D))
+							.append(String.format("%04d,", offset - depth3D))
+							.append(String.format("%04d,,", bottomSubsPosition))
+							.append(text).append("\n");
 						}
-						
-						output.write(outputString.toString());
 					}
-//				}
+						
+					output.write(outputString.toString());
+				}
 			}
 		}
 
@@ -349,4 +361,12 @@ public class SubtitleUtils {
 		output.close();
 		return outputSubs;
 	}
+
+	public static String convertColorToAssHexFormat(Color color) {
+		String primaryColour = Integer.toHexString(color.getRGB());
+		return "&H" + primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4);
+	}
 }
+
+
+
