@@ -232,19 +232,22 @@ public class SubtitleUtils {
 			outputString.append("[V4+ Styles]\n");
 			outputString.append("Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n");
 			if (mode3D == Mode3D.SBSL || mode3D == Mode3D.SBSR) { // TODO: recalculate font size accordingly to the video size
-				fontSize = Integer.toString((int) (16 * Double.parseDouble(configuration.getAssScale())));
+				fontSize = Double.toString(16 * Double.parseDouble(configuration.getAssScale()));
 			} else {
-				fontSize = Integer.toString((int) (16 * Double.parseDouble(configuration.getAssScale())));
+				fontSize = Double.toString(16 * Double.parseDouble(configuration.getAssScale()));
 			}
 
+			String primaryColour = convertColorToAssHexFormat(new Color(configuration.getSubsColor()));
+			String outline = configuration.getAssOutline();
+			String shadow = configuration.getAssShadow();
 /*			if (isAnaglyph) {
 				String red = convertColorToAssHexFormat(Color.RED);
 				String cyan = convertColorToAssHexFormat(Color.CYAN);
 				outputString.append("Style: 3D1,Verdana,").append(fontSize).append(",").append(red).append(",&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,0,2,0,0,0,1\n");
 				outputString.append("Style: 3D2,Verdana,").append(fontSize).append(",").append(cyan).append(",&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,0,2,0,0,0,1\n\n");
 			} else { */
-				outputString.append("Style: 3D1,Verdana,").append(fontSize).append(",&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,0,2,0,0,0,1\n");
-				outputString.append("Style: 3D2,Verdana,").append(fontSize).append(",&H00FFFFFF,&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,0,2,0,0,0,1\n\n");
+				outputString.append("Style: 3D1,Arial,").append(fontSize).append(",").append(primaryColour).append(",&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,").append(outline).append(",").append(shadow).append(",2,0,0,0,1\n");
+				outputString.append("Style: 3D2,Arial,").append(fontSize).append(",").append(primaryColour).append(",&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,").append(outline).append(",").append(shadow).append(",2,0,0,0,1\n\n");
 //			}
 
 			outputString.append("[Events]\n");
@@ -357,14 +360,15 @@ public class SubtitleUtils {
 			}
 		}
 
+		LOGGER.debug("Subtitles converted to 3DASS format and stored in the file: " + outputSubs.getName());
 		output.flush();
 		output.close();
 		return outputSubs;
 	}
 
 	public static String convertColorToAssHexFormat(Color color) {
-		String primaryColour = Integer.toHexString(color.getRGB());
-		return "&H" + primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4);
+		String colour = Integer.toHexString(color.getRGB());
+		return "&H" + colour.substring(6, 8) + colour.substring(4, 6) + colour.substring(2, 4);
 	}
 }
 
