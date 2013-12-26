@@ -1,37 +1,32 @@
-![Picture] (http://1-ps.googleusercontent.com/h/www.universalmediaserver.com/images/logo.jpg.pagespeed.ce.o-DB4XgL9M.jpg)
-Universal Media Server
-======================
+![Picture](http://1-ps.googleusercontent.com/h/www.universalmediaserver.com/images/logo.jpg.pagespeed.ce.o-DB4XgL9M.jpg)
+![Picture](https://dl.dropboxusercontent.com/u/2669244/UMS/UMS_PRESS_KIT/UMS.png "Universal Media Server")
+
+# Universal Media Server
 
 Based on PS3 Media Server by shagrath, all files copyright shagrath unless otherwise specified.
 
-
-Current Developers
-------------------
+## Current Developers
 
 * SubJunk
 * SharkHunter
 * valib
 * skeptical
 
-Current Forum Moderators
-------------------------
+## Current Forum Moderators
 
 * Optimus_prime
 * DeFlanko
 
+## Links
+* [Website](http://www.universalmediaserver.com/)
+* [Forum](http://www.universalmediaserver.com/forum)
+* [Source code](https://github.com/UniversalMediaServer/UniversalMediaServer)
+* [Issue tracker](https://github.com/UniversalMediaServer/UniversalMediaServer/issues?state=open)
 
-Links
------
-
-* Website:       http://www.universalmediaserver.com/
-* Source code:   https://github.com/UniversalMediaServer/UniversalMediaServer
-* Issue tracker: http://code.google.com/p/universal-media-server/issues/list
+## Thanks
 
 
-Thanks
-------
-
-Thanks to:
+##### Thanks for major code contributions:
 
 * Redlum
 * tcox
@@ -43,21 +38,17 @@ Thanks to:
 * renszarv
 * happy.neko
 
-for major code contributions.
-
-Thanks to:
+##### Thanks to for documentation and contributions to the community:
 
 * meskibob
 * otmanix
 
-for documentation and contributions to the community.
-
-Thanks to:
+##### Thanks to for significant/frequent language translations:
 
 * AlfredoRamos
 * Tianuchka
 
-for significant/frequent language translations.
+##### Special Thanks: 
 
 * boblinds and snoots for the network test cases :)
 * sarraken, bleuecinephile, bd.azerty, fabounnet for the support and feedback
