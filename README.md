@@ -1,21 +1,27 @@
-![Picture](http://1-ps.googleusercontent.com/h/www.universalmediaserver.com/images/logo.jpg.pagespeed.ce.o-DB4XgL9M.jpg)
-![Picture](https://dl.dropboxusercontent.com/u/2669244/UMS/UMS_PRESS_KIT/UMS.png "Universal Media Server")
+<img src="https://dl.dropboxusercontent.com/u/2669244/UMS/UMS_PRESS_KIT/UMS.png" alt="Universal Media Server" width="128" height="128"/>
+# Universal Media Server 
 
-# Universal Media Server
+Universal Media Server is a DLNA-compliant UPnP Media Server.
+It was originally based on PS3 Media Server by shagrath.
+UMS was started by SubJunk, an official developer of PMS, in order to ensure greater stability and file-compatibility.
 
-Based on PS3 Media Server by shagrath, all files copyright shagrath unless otherwise specified.
+To see a comparison of popular media servers, [click here](http://www.universalmediaserver.com/comparison/)
 
-## Current Developers
+Universal Media Server supports all major operating systems, with versions for Windows, Linux and Mac OS X.
+The program streams or transcodes many different media formats with little or no configuration.
+It is powered by MEncoder, FFmpeg, tsMuxeR, AviSynth, MediaInfo, VLC and more, which combine to offer support for a wide range of media formats.
 
-* SubJunk
-* SharkHunter
-* valib
-* skeptical
+## Current Project Developers
+
+* [SubJunk](http://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=2)
+* [SharkHunter](http://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=62)
+* [valib](http://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=683)
+* [infidel](http://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=171)
 
 ## Current Forum Moderators
 
-* Optimus_prime
-* DeFlanko
+* [Optimus_prime](http://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=61)
+* [DeFlanko](http://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=134) 
 
 ## Links
 * [Website](http://www.universalmediaserver.com/)
@@ -25,18 +31,19 @@ Based on PS3 Media Server by shagrath, all files copyright shagrath unless other
 
 ## Thanks
 
-
 ##### Thanks for major code contributions:
-
-* Redlum
-* tcox
-* taconaut
-* tomeko
+*(in alphabetical order)*
 * chocolateboy
 * ditlew
-* Raptor399
-* renszarv
 * happy.neko
+* Raptor399
+* Redlum
+* renszarv
+* skeptical
+* taconaut
+* tcox
+* tomeko
+
 
 ##### Thanks to for documentation and contributions to the community:
 
@@ -52,3 +59,4 @@ Based on PS3 Media Server by shagrath, all files copyright shagrath unless other
 
 * boblinds and snoots for the network test cases :)
 * sarraken, bleuecinephile, bd.azerty, fabounnet for the support and feedback
+* ...And you!
