@@ -8,8 +8,8 @@ UMS was started by SubJunk, an official developer of PMS, in order to ensure gre
 To see a comparison of popular media servers, [click here](http://www.universalmediaserver.com/comparison/)
 
 Universal Media Server supports all major operating systems, with versions for Windows, Linux and Mac OS X.
-The program streams or transcodes many different media formats with little or no configuration.
-It is powered by MEncoder, FFmpeg, tsMuxeR, AviSynth, MediaInfo, VLC and more, which combine to offer support for a wide range of media formats.
+The program streams or transcodes many different types of media formats with little or no configuration.
+It is powered by MEncoder, FFmpeg, tsMuxeR, AviSynth, MediaInfo, VLC and more.
 
 ## Current Project Developers
 
@@ -28,6 +28,7 @@ It is powered by MEncoder, FFmpeg, tsMuxeR, AviSynth, MediaInfo, VLC and more, w
 * [Forum](http://www.universalmediaserver.com/forum)
 * [Source code](https://github.com/UniversalMediaServer/UniversalMediaServer)
 * [Issue tracker](https://github.com/UniversalMediaServer/UniversalMediaServer/issues?state=open)
+* [Plugins](http://www.universalmediaserver.com/plugins/)
 
 ## Thanks
 
