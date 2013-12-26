@@ -238,6 +238,8 @@ public class SubtitleUtils {
 			}
 
 			String primaryColour = convertColorToAssHexFormat(new Color(configuration.getSubsColor()));
+			String red = convertColorToAssHexFormat(Color.RED);
+			String cyan = convertColorToAssHexFormat(Color.CYAN);
 			String outline = configuration.getAssOutline();
 			String shadow = configuration.getAssShadow();
 /*			if (isAnaglyph) {

@@ -222,7 +222,7 @@ public class FFMpegVideo extends Player {
 					rescaleOrPadding = "pad=ih*(16/9):ih:(ow-iw)/2:0";
 				}
 			}
-			if (isNotBlank(rescaleOrPadding)) {
+			if (isNotBlank(rescaleOrPadding) && !media.is3d()) { // do not rescale or pad for 3D video
 				filterChain.add(rescaleOrPadding);
 			}
 		}
@@ -323,7 +323,7 @@ public class FFMpegVideo extends Player {
 			// Check if the media renderer supports this resolution
 			boolean isResolutionTooHighForRenderer = false;
 			if (
-				params.mediaRenderer.isVideoRescale() &&
+				params.mediaRenderer.isVideoRescale() && !media.is3d() && // do not scale down for 3D video
 				(
 					media.getWidth() > params.mediaRenderer.getMaxVideoWidth() ||
 					media.getHeight() > params.mediaRenderer.getMaxVideoHeight()

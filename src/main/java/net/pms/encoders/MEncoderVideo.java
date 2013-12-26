@@ -1715,7 +1715,7 @@ public class MEncoderVideo extends Player {
 			scaleHeight = media.getHeight();
 		}
 
-		if ((deinterlace || scaleBool) && !avisynth()) {
+		if ((deinterlace || scaleBool) && !avisynth() && !media.is3d()) {
 			StringBuilder vfValueOverscanPrepend = new StringBuilder();
 			StringBuilder vfValueOverscanMiddle  = new StringBuilder();
 			StringBuilder vfValueVS              = new StringBuilder();
@@ -1872,7 +1872,8 @@ public class MEncoderVideo extends Player {
 				(scaleHeight % 4 != 0) ||
 				params.mediaRenderer.isKeepAspectRatio()
 			) &&
-			!configuration.isMencoderScaler()
+			!configuration.isMencoderScaler() &&
+			!media.is3d()
 		) {
 			int expandBorderWidth;
 			int expandBorderHeight;
