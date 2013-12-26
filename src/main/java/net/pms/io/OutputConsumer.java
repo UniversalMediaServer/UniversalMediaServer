@@ -24,15 +24,29 @@ import org.apache.commons.io.IOUtils;
 
 public abstract class OutputConsumer extends Thread {
 	protected InputStream inputStream;
+	protected boolean filtered;
 
 	public OutputConsumer(InputStream inputStream) {
 		this.inputStream = inputStream;
+		this.filtered = false;
 	}
 
 	@Deprecated
 	@Override
 	public void destroy() {
 		IOUtils.closeQuietly(inputStream);
+	}
+
+	public void setInputStream(InputStream inputStream) {
+		this.inputStream = inputStream;
+	}
+
+	public void setFiltered(boolean filtered) {
+		this.filtered = filtered;
+	}
+
+	public boolean filter(String line) {
+		return false;
 	}
 
 	public abstract BufferedOutputFile getBuffer();
