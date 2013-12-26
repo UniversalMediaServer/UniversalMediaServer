@@ -1,7 +1,33 @@
-3.2.1 - 2013-12-??
+3.3.1 - 2013-12-??
 
 	General:
 		
+
+3.3.0 - 2013-12-08
+
+	General:
+		Added the option to toggle the display of the profile name after the server name on the renderer
+		Added a warning on the Status tab if the UMS port is being blocked
+		Added some missing entries to UMS.conf
+		Added automatic video scaling to renderer resolution limits in FFmpeg
+		Added the ability to use asterisks for the "Force transcoding" and "Skip transcoding" options
+		Added config option "itunes_library_path"
+		Improved detection of which videos should be muxed automatically when using MEncoder or FFmpeg
+		Fixed files with compatible video but incompatible audio not muxing video
+		Fixed support for outputting 24-bit FLAC files as 24-bit by muxing them with video
+		Fixed audio playback if VLC is enabled
+		Made server restarts more reliable
+		Made sure FFmpeg outputs a compatible colorspace when transcoding to H.264
+		Made sure the transcode folder appears before files instead of after (below)
+		Renamed config setting "ffmpeg_font_config" to "ffmpeg_fontconfig"
+		Renamed config setting "hide_new_media" to "hide_new_media_folder"
+	Renderers:
+		Improved video compatibility on Panasonic TVs
+		Updated the PS3 image
+		Updated the XBMC logo
+	Languages:
+		Minor language tweaks
+		Renamed "Advanced Monitoring" to "Include in New Media folder"
 
 3.2.0 - 2013-12-01
 

@@ -37,6 +37,8 @@ import java.text.StringCharacterIterator;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import net.pms.Messages;
@@ -56,11 +58,13 @@ import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.StreamModifier;
+import net.pms.io.OutputTextLogger;
 import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.io.FileUtils;
+import static net.pms.util.StringUtil.*;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -303,6 +307,8 @@ public class FFMpegVideo extends Player {
 				transcodeOptions.add("superfast");
 				transcodeOptions.add("-level");
 				transcodeOptions.add("31");
+				transcodeOptions.add("-pix_fmt");
+				transcodeOptions.add("yuv420p");
 			} else if (!dtsRemux) {
 				transcodeOptions.add("-c:v");
 				transcodeOptions.add("mpeg2video");
@@ -885,6 +891,8 @@ public class FFMpegVideo extends Player {
 
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 
+		setOutputParsing(dlna, pw, false);
+
 		if (dtsRemux) {
 			PipeProcess pipe;
 			pipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
@@ -1443,5 +1451,34 @@ public class FFMpegVideo extends Player {
 		}
 
 		return false;
+	}
+
+	// matches 'Duration: 00:17:17.00' but not 'Duration: N/A'
+	static final Matcher reDuration = Pattern.compile("Duration:\\s+([\\d:.]+),").matcher("");
+
+	/**
+	 * Set up a filter to parse ffmpeg's stderr output for info
+	 * (e.g. duration) if required.
+	 */
+	public void setOutputParsing(final DLNAResource dlna, ProcessWrapperImpl pw, boolean force) {
+		if (configuration.isResumeEnabled() && dlna.getMedia() != null) {
+			long duration = force ? 0 : (long) dlna.getMedia().getDurationInSeconds();
+			if (duration == 0 || duration == DLNAMediaInfo.TRANS_SIZE) {
+				OutputTextLogger ffParser = new OutputTextLogger(null, pw) {
+					@Override
+					public boolean filter(String line) {
+						if (reDuration.reset(line).find()) {
+							String d = reDuration.group(1);
+							LOGGER.trace("[{}] setting duration: {}", ID, d);
+							dlna.getMedia().setDuration(convertStringToTime(d));
+							return false; // done, stop filtering
+						}
+						return true; // keep filtering
+					}
+				};
+				ffParser.setFiltered(true);
+				pw.setStderrConsumer(ffParser);
+			}
+		}
 	}
 }

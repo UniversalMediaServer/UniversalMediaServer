@@ -231,7 +231,7 @@ public class GeneralTab {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				LooksFrame frame = (LooksFrame) PMS.get().getFrame();
-				frame.checkForUpdates();
+				frame.checkForUpdates(false);
 			}
 		});
 		if (configuration.isHideAdvancedOptions()) {
