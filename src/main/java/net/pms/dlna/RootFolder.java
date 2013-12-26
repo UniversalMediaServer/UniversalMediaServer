@@ -1013,8 +1013,24 @@ public class RootFolder extends DLNAResource {
 		DLNAResource res;
 
 		res = new RealFile(new File("DoesNotExist.mpg"));
-		res.isValid();
+		res.setDefaultRenderer(getDefaultRenderer());
 		res.setPlayer(new FFmpegScreencastVideo());
+
+		DLNAMediaInfo fakemedia = new DLNAMediaInfo();
+		DLNAMediaAudio audio = new DLNAMediaAudio();
+		fakemedia.setCodecV("mpeg2video");
+		fakemedia.setContainer("mpegps");
+		fakemedia.setDuration(45d*60);
+		fakemedia.setWidth(1920);
+		fakemedia.setHeight(1080);
+		fakemedia.setFrameRate("23.976");
+		fakemedia.getAudioTracksList().add(audio);
+		audio.setCodecA("ac3");
+		audio.setSampleFrequency("48000");
+		audio.getAudioProperties().setNumberOfChannels(6);
+
+		res.setMedia(fakemedia);
+		res.setMediaAudio(audio);
 
 		return res;
 	}
