@@ -27,8 +27,10 @@ It is powered by MEncoder, FFmpeg, tsMuxeR, AviSynth, MediaInfo, VLC and more, w
 * [Website](http://www.universalmediaserver.com/)
 * [Forum](http://www.universalmediaserver.com/forum)
 * [Source code](https://github.com/UniversalMediaServer/UniversalMediaServer)
+* [Offical Releases](http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/)
 * [Issue tracker](https://github.com/UniversalMediaServer/UniversalMediaServer/issues?state=open)
 * [FAQ](http://www.universalmediaserver.com/faq/)
+
 
 ## Thanks
 
