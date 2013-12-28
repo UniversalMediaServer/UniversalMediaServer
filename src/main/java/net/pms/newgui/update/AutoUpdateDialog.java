@@ -7,6 +7,8 @@ import java.awt.event.ActionListener;
 import java.util.Observable;
 import java.util.Observer;
 import javax.swing.*;
+import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.update.AutoUpdater;
 import net.pms.update.AutoUpdater.State;
 
@@ -18,6 +20,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 	private JButton cancelButton = new CancelButton();
 	private JProgressBar downloadProgressBar = new JProgressBar();
 	private static AutoUpdateDialog instance;
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	public synchronized static void showIfNecessary(Window parent, AutoUpdater autoUpdater, boolean isStartup) {
 		if (autoUpdater.isUpdateAvailable() || !isStartup) {
@@ -131,18 +134,14 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 	private void updateCancelButton(State state) {
 		switch (state) {
 			case UPDATE_AVAILABLE:
-				cancelButton.setText("Not Now");
+			case ERROR:
+			case NO_UPDATE_AVAILABLE:
+				cancelButton.setText("Close");
 				cancelButton.setEnabled(true);
 				cancelButton.setVisible(true);
 				break;
 			case DOWNLOAD_IN_PROGRESS:
 				cancelButton.setText("Cancel");
-				cancelButton.setEnabled(true);
-				cancelButton.setVisible(true);
-				break;
-			case ERROR:
-			case NO_UPDATE_AVAILABLE:
-				cancelButton.setText("Close");
 				cancelButton.setEnabled(true);
 				cancelButton.setVisible(true);
 				break;
@@ -170,12 +169,11 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 			case UPDATE_AVAILABLE:
 				String permissionsReminder = "";
 
-				if (
-					"Windows 8".equals(System.getProperty("os.name")) ||
-					"Windows 7".equals(System.getProperty("os.name")) ||
-					"Windows Vista".equals(System.getProperty("os.name"))
-				) {
-					permissionsReminder = ". Make sure UMS is running as administrator before proceeding";
+				if (!configuration.isAdmin()) {
+					permissionsReminder = ", but UMS must be run as administrator before updating.";
+					cancelButton.setText("Close");
+					okButton.setEnabled(false);
+					okButton.setVisible(false);
 				}
 
 				return "An update is available" + permissionsReminder;
