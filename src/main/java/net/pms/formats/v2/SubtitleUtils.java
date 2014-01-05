@@ -25,17 +25,23 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaInfo.Mode3D;
 import net.pms.dlna.DLNAMediaSubtitle;
+import net.pms.encoders.FFMpegVideo;
+import net.pms.encoders.Player;
 import net.pms.io.OutputParams;
 import net.pms.util.FileUtil;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+
 import static org.apache.commons.lang3.StringUtils.*;
 import static org.mozilla.universalchardet.Constants.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -189,7 +195,7 @@ public class SubtitleUtils {
 	 * @return Converted subtitles file
 	 * @throws IOException
 	 */
-	public static File convertASSToASS3D(File tempSubs, DLNAMediaInfo media, OutputParams params) throws IOException, NullPointerException {
+	public static File convertASSToASS3D(File tempSubs, DLNAMediaInfo media, OutputParams params, String player) throws IOException, NullPointerException {
 		File outputSubs = new File(FilenameUtils.getFullPath(tempSubs.getPath()), FilenameUtils.getBaseName(tempSubs.getName()) + "_3D.ass");
 		StringBuilder outputString = new StringBuilder();
 		String subsFileCharset = FileUtil.getFileCharset(tempSubs);
@@ -231,10 +237,9 @@ public class SubtitleUtils {
 			outputString.append("ScaledBorderAndShadow: yes\n\n");
 			outputString.append("[V4+ Styles]\n");
 			outputString.append("Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n");
-			if (mode3D == Mode3D.SBSL || mode3D == Mode3D.SBSR) { // TODO: recalculate font size accordingly to the video size
-				fontSize = Double.toString(16 * Double.parseDouble(configuration.getAssScale()));
-			} else {
-				fontSize = Double.toString(16 * Double.parseDouble(configuration.getAssScale()));
+			String fontScale = "100" ;
+			if (player.equals("FFmpeg")) {
+				fontScale = Double.toString(100 * Double.parseDouble(configuration.getAssScale()));
 			}
 
 			String primaryColour = convertColorToAssHexFormat(new Color(configuration.getSubsColor()));
@@ -245,11 +250,11 @@ public class SubtitleUtils {
 /*			if (isAnaglyph) {
 				String red = convertColorToAssHexFormat(Color.RED);
 				String cyan = convertColorToAssHexFormat(Color.CYAN);
-				outputString.append("Style: 3D1,Verdana,").append(fontSize).append(",").append(red).append(",&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,0,2,0,0,0,1\n");
-				outputString.append("Style: 3D2,Verdana,").append(fontSize).append(",").append(cyan).append(",&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,6,0,2,0,0,0,1\n\n");
+				outputString.append("Style: 3D1,Verdana,16,").append(red).append(",&H000000FF,&H00000000,&H00000000,0,0,0,0,").append(fontScale).append(",").append(fontScale).append(",0,0,1,6,0,2,0,0,0,1\n");
+				outputString.append("Style: 3D2,Verdana,16,").append(cyan).append(",&H000000FF,&H00000000,&H00000000,0,0,0,0,").append(fontScale).append(",").append(fontScale).append(",0,0,1,6,0,2,0,0,0,1\n\n");
 			} else { */
-				outputString.append("Style: 3D1,Arial,").append(fontSize).append(",").append(primaryColour).append(",&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,").append(outline).append(",").append(shadow).append(",2,0,0,0,1\n");
-				outputString.append("Style: 3D2,Arial,").append(fontSize).append(",").append(primaryColour).append(",&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,").append(outline).append(",").append(shadow).append(",2,0,0,0,1\n\n");
+				outputString.append("Style: 3D1,Arial,16,").append(primaryColour).append(",&H000000FF,&H00000000,&H00000000,0,0,0,0,").append(fontScale).append(",").append(fontScale).append(",0,0,1,").append(outline).append(",").append(shadow).append(",2,0,0,0,1\n");
+				outputString.append("Style: 3D2,Arial,16,").append(primaryColour).append(",&H000000FF,&H00000000,&H00000000,0,0,0,0,").append(fontScale).append(",").append(fontScale).append(",0,0,1,").append(outline).append(",").append(shadow).append(",2,0,0,0,1\n\n");
 //			}
 
 			outputString.append("[Events]\n");

@@ -825,7 +825,7 @@ public class MEncoderVideo extends Player {
 		}
 
 		if (media.is3d() && params.sid != null) { // If video is 3D convert external subs to ASS3D format
-			externalSubtitlesFileName = FFMpegVideo.getSubtitles(dlna, media, params).getAbsolutePath();
+			externalSubtitlesFileName = FFMpegVideo.getSubtitles(dlna, media, params, this.name()).getAbsolutePath();
 		}
 
 		InputFile newInput = new InputFile();
