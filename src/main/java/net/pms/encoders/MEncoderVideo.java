@@ -825,7 +825,7 @@ public class MEncoderVideo extends Player {
 		}
 
 		if (media.is3d() && params.sid != null) { // If video is 3D convert external subs to ASS3D format
-			externalSubtitlesFileName = FFMpegVideo.getSubtitles(dlna, media, params, this.name()).getAbsolutePath();
+			externalSubtitlesFileName = FFMpegVideo.getSubtitles(dlna, media, params).getAbsolutePath();
 		}
 
 		InputFile newInput = new InputFile();
@@ -1372,8 +1372,10 @@ public class MEncoderVideo extends Player {
 						}
 					}
 
-					sb.append("-ass-color ").append(assSubColor).append(" -ass-border-color 00000000 -ass-font-scale ").append(configuration.getAssScale());
-
+					sb.append("-ass-color ").append(assSubColor).append(" -ass-border-color 00000000");
+					if (!media.is3d()) {
+						sb.append(" -ass-font-scale ").append(configuration.getAssScale());
+					}
 					// Set subtitles font
 					if (configuration.getFont() != null && configuration.getFont().length() > 0) {
 						/* Set font with -font option, workaround for the bug:
@@ -1403,7 +1405,7 @@ public class MEncoderVideo extends Player {
 					 * Add to the subtitle margin if overscan compensation is being used
 					 * This keeps the subtitle text inside the frame instead of in the border
 					 */
-					if (intOCH > 0) {
+					if (intOCH > 0 && !media.is3d()) {
 						subtitleMargin = (media.getHeight() / 100) * intOCH;
 						subtitleMargin /= 2;
 					}
@@ -1416,10 +1418,12 @@ public class MEncoderVideo extends Player {
 						LOGGER.debug("Could not parse SSA margin from \"" + configuration.getAssMargin() + "\"");
 					}
 
-					subtitleMargin += userMargin;
-
-					sb.append(",MarginV=").append(subtitleMargin).append(" ");
-				} else if (intOCH > 0) {
+					if (!media.is3d()) {
+						subtitleMargin += userMargin;
+						sb.append(",MarginV=").append(subtitleMargin).append(" ");
+					}
+					
+				} else if (intOCH > 0 && !media.is3d()) {
 					/*
 					 * Add to the subtitle margin
 					 * This keeps the subtitle text inside the frame instead of in the border

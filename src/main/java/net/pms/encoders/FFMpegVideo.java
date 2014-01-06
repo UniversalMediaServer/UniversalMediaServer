@@ -138,7 +138,7 @@ public class FFMpegVideo extends Player {
 			StringBuilder subsFilter = new StringBuilder();
 
 			if (params.sid.getType().isText()) {
-				File tempSubs = getSubtitles(dlna, media, params, this.name());
+				File tempSubs = getSubtitles(dlna, media, params);
 				if (tempSubs != null) {
 					StringBuilder s = new StringBuilder();
 					CharacterIterator it = new StringCharacterIterator(tempSubs.getAbsolutePath());
@@ -1154,7 +1154,7 @@ public class FFMpegVideo extends Player {
 	 * @return Converted subtitle file
 	 * @throws IOException
 	 */
-	public static File getSubtitles(DLNAResource dlna, DLNAMediaInfo media, OutputParams params, String player) throws IOException {
+	public static File getSubtitles(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
 		if (media == null || params.sid.getId() == -1 || !params.sid.getType().isText()) {
 			return null;
 		}
@@ -1199,7 +1199,7 @@ public class FFMpegVideo extends Player {
 				params.sid.setType(SubtitleType.ASS);
 				if (is3D) {
 					try {
-						convertedSubs = SubtitleUtils.convertASSToASS3D(convertedSubs, media, params, player);
+						convertedSubs = SubtitleUtils.convertASSToASS3D(convertedSubs, media, params);
 					} catch (IOException | NullPointerException e) {
 						LOGGER.debug("Converting to ASS3D format ends with error: " + e);
 						return null;
@@ -1257,7 +1257,7 @@ public class FFMpegVideo extends Player {
 
 		if (is3D) {
 			try {
-				tempSubs = SubtitleUtils.convertASSToASS3D(tempSubs, media, params, player);
+				tempSubs = SubtitleUtils.convertASSToASS3D(tempSubs, media, params);
 			} catch (IOException | NullPointerException e) {
 				LOGGER.debug("Converting to ASS3D format ends with error: " + e);
 				return null;
