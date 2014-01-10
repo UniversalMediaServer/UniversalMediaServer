@@ -82,6 +82,7 @@ public class RendererConfiguration {
 	private static final String FORCE_JPG_THUMBNAILS = "ForceJPGThumbnails"; // Sony devices require JPG thumbnails
 	private static final String H264_L41_LIMITED = "H264Level41Limited";
 	private static final String IMAGE = "Image";
+	private static final String IGNORE_TRANSCODE_BYTE_RANGE_REQUEST = "IgnoreTranscodeByteRangeRequests";
 	private static final String KEEP_ASPECT_RATIO = "KeepAspectRatio";
 	private static final String MAX_VIDEO_BITRATE = "MaxVideoBitrateMbps";
 	private static final String MAX_VIDEO_HEIGHT = "MaxVideoHeight";
@@ -1260,5 +1261,9 @@ public class RendererConfiguration {
 			return rootFolder.getTags();
 		}
 		return null;
+	}
+
+	public boolean ignoreTranscodeByteRangeRequests() {
+		return getBoolean(IGNORE_TRANSCODE_BYTE_RANGE_REQUEST, false);
 	}
 }
