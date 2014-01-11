@@ -81,8 +81,8 @@
 		<jna-version-windows>4.0.0</jna-version-windows>
 
 		<cuelib-version>1.2.1-2008-06-13</cuelib-version>
-		<jgoodies-forms-version>1.6.0</jgoodies-forms-version>
-		<jgoodies-looks-version>2.5.2</jgoodies-looks-version>
+		<jgoodies-forms-version>1.7.2</jgoodies-forms-version>
+		<jgoodies-looks-version>2.5.3</jgoodies-looks-version>
 		<junrar-version>0.7</junrar-version>
 		<mediautil-version>1.0</mediautil-version>
 		<xmlwise-version>1.2.11</xmlwise-version>
@@ -186,7 +186,7 @@
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
-			<version>1.8</version>
+			<version>1.9</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-collections</groupId>
@@ -196,7 +196,7 @@
 		<dependency>
 			<groupId>commons-configuration</groupId>
 			<artifactId>commons-configuration</artifactId>
-			<version>1.9</version>
+			<version>1.10</version>
 			<exclusions>
 				<!--  no need for commons-logging, as jcl-over-slf4j provides the impl -->
 				<exclusion>
@@ -265,7 +265,7 @@
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty</artifactId> <!-- Use 'netty-all' for 4.0 or above -->
-			<version>3.6.6.Final</version>
+			<version>3.7.0.Final</version>
 			<scope>compile</scope>
 		</dependency>
 
@@ -283,7 +283,7 @@
 		<dependency>
 			<groupId>net.coobird</groupId>
 			<artifactId>thumbnailator</artifactId>
-			<version>0.4.5</version>
+			<version>0.4.7</version>
 		</dependency>
 
 		<!--
