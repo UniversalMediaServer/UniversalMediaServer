@@ -370,7 +370,7 @@ public class PMS {
 		File javaTmpdir = new File(System.getProperty("java.io.tmpdir"));
 
 		if (!FileUtil.isDirectoryWritable(javaTmpdir)) {
-			LOGGER.error("The Java temp directory \"" + javaTmpdir.getAbsolutePath() + "\" is not writable for PMS!");
+			LOGGER.error("The Java temp directory \"" + javaTmpdir.getAbsolutePath() + "\" is not writable by UMS");
 			LOGGER.error("Please make sure the directory is writable for user \"" + System.getProperty("user.name") + "\"");
 			throw new IOException("Cannot write to Java temp directory");
 		}
