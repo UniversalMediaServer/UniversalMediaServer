@@ -336,9 +336,17 @@ public class RequestV2 extends HTTPResource {
 
 					long totalsize = dlna.length(mediaRenderer);
 					boolean ignoreTranscodeByteRangeRequests = mediaRenderer.ignoreTranscodeByteRangeRequests();
-					if (!ignoreTranscodeByteRangeRequests || // Ignore ByteRangeRequests while media is transcoded
-							totalsize != DLNAMediaInfo.TRANS_SIZE ||
-							(ignoreTranscodeByteRangeRequests && lowRange == 0 && totalsize == DLNAMediaInfo.TRANS_SIZE)) { 
+
+					// Ignore ByteRangeRequests while media is transcoded
+					if (
+						!ignoreTranscodeByteRangeRequests ||
+						totalsize != DLNAMediaInfo.TRANS_SIZE ||
+						(
+							ignoreTranscodeByteRangeRequests &&
+							lowRange == 0 &&
+							totalsize == DLNAMediaInfo.TRANS_SIZE
+						)
+					) { 
 						inputStream = dlna.getInputStream(Range.create(lowRange, highRange, range.getStart(), range.getEnd()), mediaRenderer);
 					} 
 
@@ -399,8 +407,6 @@ public class RequestV2 extends HTTPResource {
 
 						// Determine the total size. Note: when transcoding the length is
 						// not known in advance, so DLNAMediaInfo.TRANS_SIZE will be returned instead.
-
-						
 
 						if (chunked && totalsize == DLNAMediaInfo.TRANS_SIZE) {
 							// In chunked mode we try to avoid arbitrary values.
