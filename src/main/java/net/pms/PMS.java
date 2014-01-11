@@ -344,7 +344,7 @@ public class PMS {
 
 	private void displayBanner() throws IOException {
 		LOGGER.info("Starting " + PropertiesUtil.getProjectProperties().get("project.name") + " " + getVersion());
-		LOGGER.info("Based on PS3 Media Server by shagrath, copyright 2008-2013");
+		LOGGER.info("Based on PS3 Media Server by shagrath, copyright 2008-2014");
 		LOGGER.info("http://www.universalmediaserver.com");
 		LOGGER.info("");
 
