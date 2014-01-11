@@ -335,9 +335,10 @@ public class RequestV2 extends HTTPResource {
 					}
 
 					long totalsize = dlna.length(mediaRenderer);
-					if (!mediaRenderer.ignoreTranscodeByteRangeRequests() || // Ignore ByteRangeRequests while media is transcoded
+					boolean ignoreTranscodeByteRangeRequests = mediaRenderer.ignoreTranscodeByteRangeRequests();
+					if (!ignoreTranscodeByteRangeRequests || // Ignore ByteRangeRequests while media is transcoded
 							totalsize != DLNAMediaInfo.TRANS_SIZE ||
-							(mediaRenderer.ignoreTranscodeByteRangeRequests() && lowRange == 0 && totalsize == DLNAMediaInfo.TRANS_SIZE)) { 
+							(ignoreTranscodeByteRangeRequests && lowRange == 0 && totalsize == DLNAMediaInfo.TRANS_SIZE)) { 
 						inputStream = dlna.getInputStream(Range.create(lowRange, highRange, range.getStart(), range.getEnd()), mediaRenderer);
 					} 
 
@@ -373,7 +374,7 @@ public class RequestV2 extends HTTPResource {
 					}
 
 					if (inputStream == null) {
-						if (!mediaRenderer.ignoreTranscodeByteRangeRequests()) {
+						if (!ignoreTranscodeByteRangeRequests) {
 							// No inputStream indicates that transcoding / remuxing probably crashed.
 							LOGGER.error("There is no inputstream to return for " + name);
 						}
