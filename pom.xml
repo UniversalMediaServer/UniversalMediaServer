@@ -78,7 +78,7 @@
 			https://code.google.com/p/ps3mediaserver/issues/detail?id=1152
 		-->
 		<jna-version-posix>3.4.0</jna-version-posix>
-		<jna-version-windows>3.2.5</jna-version-windows>
+		<jna-version-windows>4.0.0</jna-version-windows>
 
 		<cuelib-version>1.2.1-2008-06-13</cuelib-version>
 		<jgoodies-forms-version>1.6.0</jgoodies-forms-version>

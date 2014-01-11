@@ -62,13 +62,13 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 
 		Kernel32 SYNC_INSTANCE = (Kernel32) Native.synchronizedLibrary(INSTANCE);
 
-		class SECURITY_ATTRIBUTES extends Structure {
+		abstract class SECURITY_ATTRIBUTES extends Structure {
 			public int nLength = size();
 			public Pointer lpSecurityDescriptor;
 			public boolean bInheritHandle;
 		}
 
-		public static class LPOVERLAPPED extends Structure { }
+		public static abstract class LPOVERLAPPED extends Structure { }
 
 		Pointer CreateNamedPipeA(String lpName, int dwOpenMode, int dwPipeMode,
 			int nMaxInstances, int nOutBufferSize, int nInBufferSize,
