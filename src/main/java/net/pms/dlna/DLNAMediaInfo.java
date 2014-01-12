@@ -381,7 +381,7 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	private ProcessWrapperImpl getFFMpegThumbnail(InputFile media) {
-		String args[] = new String[14];
+		String args[] = new String[16];
 		args[0] = getFfmpegPath();
 		boolean dvrms = media.getFile() != null && media.getFile().getAbsolutePath().toLowerCase().endsWith("dvr-ms");
 
@@ -389,30 +389,37 @@ public class DLNAMediaInfo implements Cloneable {
 			args[0] = configuration.getFfmpegAlternativePath();
 		}
 
-		args[1] = "-ss";
-		args[2] = "" + configuration.getThumbnailSeekPos();
-		args[3] = "-i";
-
-		if (media.getFile() != null) {
-			args[4] = ProcessUtil.getShortFileNameIfWideChars(media.getFile().getAbsolutePath());
+		args[1] = "-loglevel";
+		if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
+			args[2] = "info"; // Could be changed to "verbose" or "debug" if "info" level is not enough
 		} else {
-			args[4] = "-";
+			args[2] = "fatal";
 		}
 
-		args[5] = "-an";
-		args[6] = "-an";
-		args[7] = "-s";
-		args[8] = "320x180";
-		args[9] = "-vframes";
-		args[10] = "1";
-		args[11] = "-f";
-		args[12] = "image2";
-		args[13] = "pipe:";
+		args[3] = "-ss";
+		args[4] = "" + configuration.getThumbnailSeekPos();
+		args[5] = "-i";
+
+		if (media.getFile() != null) {
+			args[6] = ProcessUtil.getShortFileNameIfWideChars(media.getFile().getAbsolutePath());
+		} else {
+			args[6] = "-";
+		}
+
+		args[7] = "-an";
+		args[8] = "-an";
+		args[9] = "-s";
+		args[10] = "320x180";
+		args[11] = "-vframes";
+		args[12] = "1";
+		args[13] = "-f";
+		args[14] = "image2";
+		args[15] = "pipe:";
 
 		// FIXME MPlayer should not be used if thumbnail generation is disabled (and it should be disabled in the GUI)
 		if (!configuration.isThumbnailGenerationEnabled() || (configuration.isUseMplayerForVideoThumbs() && !dvrms)) {
-			args[2] = "0";
-			for (int i = 5; i <= 13; i++) {
+			args[4] = "0";
+			for (int i = 7; i <= 15; i++) {
 				args[i] = "-an";
 			}
 		}
