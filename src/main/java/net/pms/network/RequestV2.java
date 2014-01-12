@@ -334,7 +334,21 @@ public class RequestV2 extends HTTPResource {
 						range.setEnd(splitRange.getEnd());
 					}
 
-					inputStream = dlna.getInputStream(Range.create(lowRange, highRange, range.getStart(), range.getEnd()), mediaRenderer);
+					long totalsize = dlna.length(mediaRenderer);
+					boolean ignoreTranscodeByteRangeRequests = mediaRenderer.ignoreTranscodeByteRangeRequests();
+
+					// Ignore ByteRangeRequests while media is transcoded
+					if (
+						!ignoreTranscodeByteRangeRequests ||
+						totalsize != DLNAMediaInfo.TRANS_SIZE ||
+						(
+							ignoreTranscodeByteRangeRequests &&
+							lowRange == 0 &&
+							totalsize == DLNAMediaInfo.TRANS_SIZE
+						)
+					) { 
+						inputStream = dlna.getInputStream(Range.create(lowRange, highRange, range.getStart(), range.getEnd()), mediaRenderer);
+					} 
 
 					if (!configuration.isDisableSubtitles()) {
 						// Some renderers (like Samsung devices) allow a custom header for a subtitle URL
@@ -368,8 +382,10 @@ public class RequestV2 extends HTTPResource {
 					}
 
 					if (inputStream == null) {
-						// No inputStream indicates that transcoding / remuxing probably crashed.
-						LOGGER.error("There is no inputstream to return for " + name);
+						if (!ignoreTranscodeByteRangeRequests) {
+							// No inputStream indicates that transcoding / remuxing probably crashed.
+							LOGGER.error("There is no inputstream to return for " + name);
+						}
 					} else {
 						// Notify plugins that the DLNAresource is about to start playing
 						startStopListenerDelegate.start(dlna);
@@ -391,8 +407,6 @@ public class RequestV2 extends HTTPResource {
 
 						// Determine the total size. Note: when transcoding the length is
 						// not known in advance, so DLNAMediaInfo.TRANS_SIZE will be returned instead.
-
-						long totalsize = dlna.length(mediaRenderer);
 
 						if (chunked && totalsize == DLNAMediaInfo.TRANS_SIZE) {
 							// In chunked mode we try to avoid arbitrary values.
