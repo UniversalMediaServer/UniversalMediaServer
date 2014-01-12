@@ -703,11 +703,10 @@ public class DLNAMediaInfo implements Cloneable {
 						LOGGER.trace("Creating (temporary) thumbnail: {}", thumbFilename);
 
 						// Create the thumbnail image using the Thumbnailator library
-						final Builder<File> thumbnail = Thumbnails.of(inputFile.getFile());
-						thumbnail.size(320, 180);
-						thumbnail.outputFormat("jpg");
-						thumbnail.outputQuality(1.0f);
-
+						final Builder<File> thumbnail = Thumbnails.of(inputFile.getFile())
+								.size(320, 180)
+								.outputFormat("jpg")
+								.outputQuality(1.0f);
 						try {
 							thumbnail.toFile(thumbFilename);
 						} catch (IIOException e) {
