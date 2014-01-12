@@ -36,11 +36,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
-import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
 import net.coobird.thumbnailator.Thumbnails;
-import net.coobird.thumbnailator.Thumbnails.Builder;
-import net.coobird.thumbnailator.tasks.UnsupportedFormatException;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -87,7 +84,6 @@ import org.slf4j.LoggerFactory;
  */
 public class DLNAMediaInfo implements Cloneable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAMediaInfo.class);
-	private static final String THUMBNAIL_DIRECTORY_NAME = "thumbs";
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	public static final long ENDFILE_POS = 99999475712L;
@@ -686,56 +682,26 @@ public class DLNAMediaInfo implements Cloneable {
 				} catch (ImageReadException | IOException e) {
 					LOGGER.info("Error parsing image ({}) with Sanselan, switching to FFmpeg.", inputFile.getFile().getAbsolutePath());
 				}
-			}
 
-			if (configuration.getImageThumbnailsEnabled() && type != Format.VIDEO && type != Format.AUDIO) {
-				try {
-					File thumbDir = new File(configuration.getTempFolder(), THUMBNAIL_DIRECTORY_NAME);
+				if (configuration.getImageThumbnailsEnabled()) {
+					LOGGER.trace("Creating (temporary) thumbnail: {}", inputFile.getFile().getName());
 
-					LOGGER.trace("Generating thumbnail for: {}", inputFile.getFile().getAbsolutePath());
-
-					if (!thumbDir.exists() && !thumbDir.mkdirs()) {
-						LOGGER.warn("Could not create thumbnail directory: {}", thumbDir.getAbsolutePath());
-					} else {
-						File thumbFile = new File(thumbDir, inputFile.getFile().getName() + ".jpg");
-						String thumbFilename = thumbFile.getAbsolutePath();
-
-						LOGGER.trace("Creating (temporary) thumbnail: {}", thumbFilename);
-
-						// Create the thumbnail image using the Thumbnailator library
-						final Builder<File> thumbnail = Thumbnails.of(inputFile.getFile())
+					// Create the thumbnail image using the Thumbnailator library
+					try {
+						ByteArrayOutputStream out = new ByteArrayOutputStream();	
+						Thumbnails.of(inputFile.getFile())
 								.size(320, 180)
-								.outputFormat("jpg")
-								.outputQuality(1.0f);
-						try {
-							thumbnail.toFile(thumbFilename);
-						} catch (IIOException e) {
-							LOGGER.debug("Error generating thumbnail for: " + inputFile.getFile().getName());
-							LOGGER.debug("The full error was: " + e);
-						}
+								.outputFormat("JPEG")
+								.outputQuality(1.0f)
+								.toOutputStream(out);;
 
-						File jpg = new File(thumbFilename);
-
-						if (jpg.exists()) {
-							try (InputStream is = new FileInputStream(jpg)) {
-								int sz = is.available();
-
-								if (sz > 0) {
-									setThumb(new byte[sz]);
-									is.read(getThumb());
-								}
-							}
-
-							if (!jpg.delete()) {
-								jpg.deleteOnExit();
-							}
-						}
+								setThumb(out.toByteArray());
+					} catch (IOException | IllegalArgumentException | IllegalStateException e) {
+						LOGGER.debug("Error generating thumbnail for: " + inputFile.getFile().getName());
+						LOGGER.debug("The full error was: " + e);
 					}
-				} catch (UnsupportedFormatException ufe) {
-					LOGGER.debug("Thumbnailator does not support the format of {}: {}", inputFile.getFile().getAbsolutePath(), ufe.getMessage());
-				} catch (Exception e) {
-					LOGGER.debug("Thumbnailator could not generate a thumbnail for: {}", inputFile.getFile().getAbsolutePath(), e);
 				}
+
 			}
 
 			if (ffmpeg_parsing) {
@@ -743,7 +709,6 @@ public class DLNAMediaInfo implements Cloneable {
 					pw = getFFMpegThumbnail(inputFile);
 				}
 
-				String input = "-";
 				parseFFmpeg((ArrayList<String>) pw.getResults(), pw, inputFile, type, thumbOnly, ffmpeg_failure, "-");
 			}
  
