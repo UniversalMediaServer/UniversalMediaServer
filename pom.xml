@@ -70,16 +70,6 @@
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
 		<project.version.short>3.4.0</project.version.short>
-
-		<!--
-			XXX we currently need to use an old version of JNA
-			for Windows builds to work around a bug in
-			JNA > 3.2.5. See here for more details:
-			https://code.google.com/p/ps3mediaserver/issues/detail?id=1152
-		-->
-		<jna-version-posix>3.4.0</jna-version-posix>
-		<jna-version-windows>4.0.0</jna-version-windows>
-
 		<cuelib-version>1.2.1-2008-06-13</cuelib-version>
 		<jgoodies-forms-version>1.7.2</jgoodies-forms-version>
 		<jgoodies-looks-version>2.5.3</jgoodies-looks-version>
@@ -175,8 +165,6 @@
 		</repository>
 	</repositories>
 	<dependencies>
-		<!-- XXX note: the JNA dependency is declared at the profile level -->
-
 		<!-- TODO this can be removed when MEncoder is removed -->
 		<dependency>
 			<groupId>org.beanshell</groupId>
@@ -374,6 +362,11 @@
 			<artifactId>fest-assert</artifactId>
 			<version>1.4</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>net.java.dev.jna</groupId>
+			<artifactId>jna</artifactId>
+			<version>4.0.0</version>
 		</dependency>
 	</dependencies>
 	<build>
@@ -907,14 +900,6 @@
 				</pluginRepository>
 			</pluginRepositories>
 
-			<dependencies>
-				<dependency>
-					<groupId>net.java.dev.jna</groupId>
-					<artifactId>jna</artifactId>
-					<version>${jna-version-windows}</version>
-				</dependency>
-			</dependencies>
-
 			<build>
 				<plugins>
 					<!-- Plugin to assemble a jar with dependencies -->
@@ -1121,14 +1106,6 @@
 				<activeByDefault>true</activeByDefault>
 			</activation>
 
-			<dependencies>
-				<dependency>
-					<groupId>net.java.dev.jna</groupId>
-					<artifactId>jna</artifactId>
-					<version>${jna-version-posix}</version>
-				</dependency>
-			</dependencies>
-
 			<build>
 				<plugins>
 					<plugin>
@@ -1236,14 +1213,6 @@
 					<family>mac</family>
 				</os>
 			</activation>
-
-			<dependencies>
-				<dependency>
-					<groupId>net.java.dev.jna</groupId>
-					<artifactId>jna</artifactId>
-					<version>${jna-version-posix}</version>
-				</dependency>
-			</dependencies>
 
 			<build>
 				<plugins>
@@ -1426,14 +1395,6 @@
 					<name>env.HUDSON_URL</name>
 				</property>
 			</activation>
-
-			<dependencies>
-				<dependency>
-					<groupId>net.java.dev.jna</groupId>
-					<artifactId>jna</artifactId>
-					<version>${jna-version-windows}</version>
-				</dependency>
-			</dependencies>
 
 			<build>
 				<plugins>
