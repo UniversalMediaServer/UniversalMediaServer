@@ -124,8 +124,8 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on address " + ia);
 		}
 		
-		for (String name : nettyRequest.getHeaderNames()) {
-			String headerLine = name + ": " + nettyRequest.getHeader(name);
+		for (String name : nettyRequest.headers().names()) {
+			String headerLine = name + ": " + nettyRequest.headers().get(name);
 			LOGGER.trace("Received on socket: " + headerLine);
 
 			if (
@@ -241,12 +241,13 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			LOGGER.trace("Recognized media renderer: " + request.getMediaRenderer().getRendererName());
 		}
 
-		if (HttpHeaders.getContentLength(nettyRequest) > 0) {
+		try {
 			byte data[] = new byte[(int) HttpHeaders.getContentLength(nettyRequest)];
 			ChannelBuffer content = nettyRequest.getContent();
 			content.readBytes(data);
 			request.setTextContent(new String(data, "UTF-8"));
-		}
+		} catch (NumberFormatException nfe) { }
+
 
 		LOGGER.trace("HTTP: " + request.getArgument() + " / " + request.getLowRange() + "-" + request.getHighRange());
 
@@ -267,9 +268,9 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 	private void writeResponse(MessageEvent e, RequestV2 request, InetAddress ia) {
 		// Decide whether to close the connection or not.
-		boolean close = HttpHeaders.Values.CLOSE.equalsIgnoreCase(nettyRequest.getHeader(HttpHeaders.Names.CONNECTION)) ||
+		boolean close = HttpHeaders.Values.CLOSE.equalsIgnoreCase(nettyRequest.headers().get(HttpHeaders.Names.CONNECTION)) ||
 			nettyRequest.getProtocolVersion().equals(HttpVersion.HTTP_1_0) &&
-			!HttpHeaders.Values.KEEP_ALIVE.equalsIgnoreCase(nettyRequest.getHeader(HttpHeaders.Names.CONNECTION));
+			!HttpHeaders.Values.KEEP_ALIVE.equalsIgnoreCase(nettyRequest.headers().get(HttpHeaders.Names.CONNECTION));
 
 		// Build the response object.
 		HttpResponse response;
@@ -279,7 +280,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				HttpResponseStatus.PARTIAL_CONTENT
 			);
 		} else {
-			String soapAction = nettyRequest.getHeader("SOAPACTION");
+			String soapAction = nettyRequest.headers().get("SOAPACTION");
 
 			if (soapAction != null && soapAction.contains("X_GetFeatureList")) {
 				LOGGER.debug("Invalid action in SOAPACTION: " + soapAction);
@@ -324,7 +325,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 	private void sendError(ChannelHandlerContext ctx, HttpResponseStatus status) {
 		HttpResponse response = new DefaultHttpResponse(
 			HttpVersion.HTTP_1_1, status);
-		response.setHeader(
+		response.headers().set(
 			HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8");
 		response.setContent(ChannelBuffers.copiedBuffer(
 			"Failure: " + status.toString() + "\r\n", Charset.forName("UTF-8")));
