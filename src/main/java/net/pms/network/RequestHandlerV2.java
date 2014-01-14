@@ -248,7 +248,6 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			request.setTextContent(new String(data, "UTF-8"));
 		} catch (NumberFormatException nfe) { }
 
-
 		LOGGER.trace("HTTP: " + request.getArgument() + " / " + request.getLowRange() + "-" + request.getHighRange());
 
 		writeResponse(e, request, ia);

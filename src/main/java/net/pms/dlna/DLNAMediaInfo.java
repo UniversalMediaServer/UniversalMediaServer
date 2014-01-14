@@ -708,7 +708,6 @@ public class DLNAMediaInfo implements Cloneable {
 						LOGGER.debug("The full error was: " + e);
 					}
 				}
-
 			}
 
 			if (ffmpeg_parsing) {
