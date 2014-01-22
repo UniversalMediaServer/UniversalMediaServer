@@ -624,7 +624,7 @@ public class PMS {
 		LOGGER.info("Please wait while we check the FFmpeg font cache, this can take a minute or so.");
 		frame.setStatusCode(0, Messages.getString("PMS.140"), "icon-status-connecting.png");
 
-		checkProcessExistence("FFmpeg", true, null, configuration.getFfmpegPath(), "-y", "-f", "lavfi", "-i", "nullsrc=s=720x480:d=1:r=1", "-vf", "ass=DummyInput.ass", "-target", "ntsc-dvd", "DummyOutput.mpeg");
+		checkProcessExistence("FFmpeg", true, configuration.getTempFolder(), configuration.getFfmpegPath(), "-y", "-f", "lavfi", "-i", "nullsrc=s=720x480:d=1:r=1", "-vf", "ass=DummyInput.ass", "-target", "ntsc-dvd", "DummyOutput.mpeg");
 
 		LOGGER.info("Finished checking the FFmpeg font cache.");
 
