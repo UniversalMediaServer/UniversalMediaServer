@@ -741,7 +741,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						if (!newChild.getFormat().isCompatible(newChild.getMedia(), getDefaultRenderer())) {
 							Player player = PlayerFactory.getPlayer(newChild);
 							newChild.setPlayer(player);
-							LOGGER.trace("Secondary format \"{}\" will use player \"{}\" for \"{}\"", newChild.getFormat().toString(), child.getPlayer().name(), newChild.getName());
+							LOGGER.trace("Secondary format \"{}\" will use player \"{}\" for \"{}\"", newChild.getFormat().toString(), newChild.getPlayer().name(), newChild.getName());
 						}
 
 						if (child.getMedia() != null && child.getMedia().isSecondaryFormatValid()) {
