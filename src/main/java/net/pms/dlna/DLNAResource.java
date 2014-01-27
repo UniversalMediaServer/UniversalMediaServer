@@ -1249,7 +1249,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				getPlayer() == null ||
 				getPlayer().isExternalSubtitlesSupported()
 			)
-			
+
 		) {
 			displayName += " {External Subtitles}";
 		}
@@ -1400,7 +1400,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private String getDlnaOrgOpFlags() {
 		return "DLNA.ORG_OP=" + dlnaOrgOpFlags;
 	}
-	
+
 	/**
 	 * @deprecated Use {@link #getDidlString(RendererConfiguration)} instead.
 	 *
