@@ -71,6 +71,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAResource.class);
 	private final SimpleDateFormat SDF_DATE = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	private boolean subsAreValid = false;
 
 	protected static final int MAX_ARCHIVE_ENTRY_SIZE = 10000000;
 	protected static final int MAX_ARCHIVE_SIZE_SEEK = 800000000;
@@ -1230,7 +1231,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (isNoName()) {
 				displayName = "[No encoding]";
 				isNamedNoEncoding = true;
-				if (mediaRenderer != null && StringUtils.isNotBlank(mediaRenderer.getSupportedSubtitles())) {
+				if (subsAreValid) {
 					isNamedNoEncoding = false;
 				}
 			} else if (nametruncate > 0) {
@@ -1241,15 +1242,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (
 			isSubsFile() &&
 			!isNamedNoEncoding &&
-			(
-				getMediaAudio() == null &&
-				getMediaSubtitle() == null
-			) && 
+			getMediaAudio() == null &&
+			getMediaSubtitle() == null &&
+			!configuration.hideSubsInfo() &&
 			(
 				getPlayer() == null ||
 				getPlayer().isExternalSubtitlesSupported()
-			) &&
-			!configuration.hideSubInfo()
+			)
+			
 		) {
 			displayName += " {External Subtitles}";
 		}
@@ -1266,7 +1266,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (
 			getMediaSubtitle() != null &&
 			getMediaSubtitle().getId() != -1 &&
-			!configuration.hideSubInfo()
+			!configuration.hideSubsInfo()
 		) {
 			subtitleFormat = getMediaSubtitle().getType().getDescription();
 			if ("(Advanced) SubStation Alpha".equals(subtitleFormat)) {
@@ -1400,7 +1400,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private String getDlnaOrgOpFlags() {
 		return "DLNA.ORG_OP=" + dlnaOrgOpFlags;
 	}
-
+	
 	/**
 	 * @deprecated Use {@link #getDidlString(RendererConfiguration)} instead.
 	 *
@@ -1424,7 +1424,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *         {@code <container id="0$1" childCount="1" parentID="0" restricted="true">}
 	 */
 	public final String getDidlString(RendererConfiguration mediaRenderer) {
-		boolean subsAreValid = false;
 		StringBuilder sb = new StringBuilder();
 		if (!configuration.isDisableSubtitles() && StringUtils.isNotBlank(mediaRenderer.getSupportedSubtitles()) && getMedia() != null && getPlayer() == null) {
 			OutputParams params = new OutputParams(configuration);
