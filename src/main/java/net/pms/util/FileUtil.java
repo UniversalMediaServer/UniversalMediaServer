@@ -1,9 +1,9 @@
 package net.pms.util;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.text.Collator;
+import java.util.*;
+
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -25,6 +25,13 @@ public class FileUtil {
 	private static Map<File, File[]> cache;
 	// signal an invalid parameter in getFileLocation() without raising an exception or returning null
 	private static final String DEFAULT_BASENAME = "NO_DEFAULT_BASENAME_SUPPLIED.conf";
+
+    private static final Collator collator;
+
+    static {
+        collator = Collator.getInstance();
+        collator.setStrength(Collator.PRIMARY);
+    }
 
 	// this class is not instantiable
 	private FileUtil() { }
@@ -904,4 +911,98 @@ public class FileUtil {
 		}
 		return isRelevant;
 	}
+
+    public static String renameForSorting(String filename) {
+        PmsConfiguration configuration = PMS.getConfiguration();
+        if (configuration.isPrettifyFilenames()) {
+            // This chunk makes anime sort properly
+            int squareBracketIndex;
+            if (filename.substring(0, 1).matches("\\[")) {
+                filename = filename.replaceAll("_", " ");
+                squareBracketIndex = filename.indexOf(']');
+                if (squareBracketIndex != -1) {
+                    filename = filename.substring(squareBracketIndex + 1);
+                    if (filename.substring(0, 1).matches("\\s")) {
+                        filename = filename.substring(1);
+                    }
+                }
+            }
+
+            // Replace periods with spaces
+            filename = filename.replaceAll("\\.", " ");
+        }
+
+        if (configuration.isIgnoreTheWordThe()) {
+            // Remove "The" from the beginning of files
+            filename = filename.replaceAll("^(?i)The[ .]", "");
+        }
+
+        return filename;
+    }
+
+    public static void sort(List<File> files) {
+        PmsConfiguration configuration = PMS.getConfiguration();
+        switch (configuration.getSortMethod()) {
+            case 4: // Locale-sensitive natural sort
+                Collections.sort(files, new Comparator<File>() {
+                    @Override
+                    public int compare(File f1, File f2) {
+                        String filename1ToSort = renameForSorting(f1.getName());
+                        String filename2ToSort = renameForSorting(f2.getName());
+
+                        return NaturalComparator.compareNatural(collator, filename1ToSort, filename2ToSort);
+                    }
+                });
+                break;
+            case 3: // Case-insensitive ASCIIbetical sort
+                Collections.sort(files, new Comparator<File>() {
+                    @Override
+                    public int compare(File f1, File f2) {
+                        String filename1ToSort = renameForSorting(f1.getName());
+                        String filename2ToSort = renameForSorting(f2.getName());
+
+                        return filename1ToSort.compareToIgnoreCase(filename2ToSort);
+                    }
+                });
+                break;
+            case 2: // Sort by modified date, oldest first
+                Collections.sort(files, new Comparator<File>() {
+                    @Override
+                    public int compare(File f1, File f2) {
+                        return Long.compare(f1.lastModified(), f2.lastModified());
+                    }
+                });
+                break;
+            case 1: // Sort by modified date, newest first
+                Collections.sort(files, new Comparator<File>() {
+                    @Override
+                    public int compare(File f1, File f2) {
+                        return Long.compare(f2.lastModified(), f1.lastModified());
+                    }
+                });
+                break;
+            default: // Locale-sensitive A-Z
+                Collections.sort(files, new Comparator<File>() {
+                    @Override
+                    public int compare(File f1, File f2) {
+                        String filename1ToSort = renameForSorting(f1.getName());
+                        String filename2ToSort = renameForSorting(f2.getName());
+
+                        return collator.compare(filename1ToSort, filename2ToSort);
+                    }
+                });
+                break;
+        }
+    }
+
+    public static long getMaxLastModified(List<File> files) {
+        long modified = 0;
+
+        for (File f : files) {
+            if (f != null) {
+                modified = Math.max(modified, f.lastModified());
+            }
+        }
+        return modified;
+    }
 }
