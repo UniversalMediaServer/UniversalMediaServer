@@ -3131,7 +3131,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *
 	 * @return The timestamp.
 	 */
-	long getLastRefreshTime() {
+    protected long getLastRefreshTime() {
 		return lastRefreshTime;
 	}
 

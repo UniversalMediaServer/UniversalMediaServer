@@ -31,7 +31,7 @@ public class MediaMonitor extends VirtualFolder {
     @Override
     public boolean isRefreshNeeded() {
         return getLastModified() < FileUtil.getMaxLastModified(monitoredFolders) ||
-               !LocalDate.now().isEqual(new LocalDate(getLastModified()));
+               !LocalDate.now().isEqual(new LocalDate(getLastRefreshTime()));
     }
 
     @Override
@@ -51,6 +51,7 @@ public class MediaMonitor extends VirtualFolder {
 
         addNewMedia(newMedia);
         setLastModified(FileUtil.getMaxLastModified(monitoredFolders));
+        notifyRefresh();
     }
 
     private List<File> scanDir(File[] files) {
