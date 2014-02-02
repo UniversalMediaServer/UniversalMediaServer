@@ -186,6 +186,9 @@ public class MapFile extends DLNAResource {
 					}
 				}
 			}
+
+			// Replace periods with spaces
+			filename = filename.replaceAll("\\.", " ");
 		}
 
 		if (configuration.isIgnoreTheWordThe()) {
