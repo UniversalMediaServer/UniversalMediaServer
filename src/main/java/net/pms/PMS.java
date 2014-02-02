@@ -226,7 +226,7 @@ public class PMS {
 	 * @return Returns true if the command exited as expected
 	 * @throws Exception TODO: Check which exceptions to use
 	 */
-	private boolean checkProcessExistence(String name, boolean error, File workDir, String... params) throws Exception {
+	private boolean checkProcessExecution(String name, boolean error, File workDir, long interruptAfterMillis, String... params) throws Exception {
 		LOGGER.debug("Launching: " + Arrays.toString(params));
 
 		try {
@@ -253,15 +253,15 @@ public class PMS {
 
 			Thread checkThread = new Thread(r, "PMS Checker");
 			checkThread.start();
-			checkThread.join(60000);
+			checkThread.join(interruptAfterMillis);
 			checkThread.interrupt();
 			checkThread = null;
 
 			try {
 				int exit = process.exitValue();
-				if (exit != 0) {
+				if (exit != 0 && (exit == 1 && name != "FFMpeg")) {
 					if (error) {
-						LOGGER.info("[" + exit + "] Cannot launch " + name + ". Check the presence of " + params[0]);
+						LOGGER.info("Warning: process returned an exit code of " + exit);
 					}
 					return false;
 				}
@@ -273,7 +273,7 @@ public class PMS {
 			return true;
 		} catch (IOException | InterruptedException e) {
 			if (error) {
-				LOGGER.error("Cannot launch " + name + ". Check the presence of " + params[0], e);
+				LOGGER.error("Cannot launch " + name + ". Check the presence of " + params[0]);
 			}
 			return false;
 		}
@@ -614,13 +614,13 @@ public class PMS {
 
 		LOGGER.info("Please wait while we check the MPlayer font cache, this can take a minute or so.");
 
-		checkProcessExistence("MPlayer", true, configuration.getTempFolder(), configuration.getMplayerPath(), "dummy");
+		checkProcessExecution("MPlayer", true, configuration.getTempFolder(), 60000, configuration.getMplayerPath(), "dummy");
 
 		LOGGER.info("Finished checking the MPlayer font cache.");
-		LOGGER.info("Please wait while we check the FFmpeg font cache, this can take a minute or so.");
+		LOGGER.info("Please wait while we check the FFmpeg font cache, this can take two minutes or so.");
 		frame.setStatusCode(0, Messages.getString("PMS.140"), "icon-status-connecting.png");
 
-		checkProcessExistence("FFmpeg", true, configuration.getTempFolder(), configuration.getFfmpegPath(), "-y", "-f", "lavfi", "-i", "nullsrc=s=720x480:d=1:r=1", "-vf", "ass=DummyInput.ass", "-target", "ntsc-dvd", "DummyOutput.mpeg");
+		checkProcessExecution("FFMpeg", true, null, 120000, configuration.getFfmpegPath(), "-y", "-f", "lavfi", "-i", "nullsrc=s=720x480:d=1:r=1", "-vf", "ass=DummyInput.ass", "-target", "ntsc-dvd", "-");
 
 		LOGGER.info("Finished checking the FFmpeg font cache.");
 
