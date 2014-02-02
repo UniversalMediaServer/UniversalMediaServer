@@ -20,14 +20,18 @@
 package net.pms;
 
 import com.sun.jna.Platform;
+
 import java.awt.*;
 import java.io.*;
 import java.net.BindException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Timer;
 import java.util.Map.Entry;
 import java.util.logging.LogManager;
+
 import javax.swing.*;
+
 import net.pms.configuration.Build;
 import net.pms.configuration.NameFilter;
 import net.pms.configuration.PmsConfiguration;
@@ -62,6 +66,7 @@ import net.pms.util.SystemErrWrapper;
 import net.pms.util.TaskRunner;
 import net.pms.util.TempFileMgr;
 import net.pms.util.Version;
+
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
@@ -226,7 +231,7 @@ public class PMS {
 	 * @return Returns true if the command exited as expected
 	 * @throws Exception TODO: Check which exceptions to use
 	 */
-	private boolean checkProcessExecution(String name, boolean error, File workDir, long interruptAfterMillis, String... params) throws Exception {
+	private boolean checkProcessExecution(String name, boolean error, File workDir, final long interruptAfterMillis, final String message, final String icon, String... params) throws Exception {
 		LOGGER.debug("Launching: " + Arrays.toString(params));
 
 		try {
@@ -251,6 +256,15 @@ public class PMS {
 				}
 			};
 
+			final long endTime = System.currentTimeMillis() + interruptAfterMillis;
+			Timer timer = new Timer();
+			timer.schedule(new TimerTask() {
+				@Override
+				public void run() {
+					frame.setStatusCode(0, message + " " + (endTime - System.currentTimeMillis()) / 1000 + " " + Messages.getString("PMS.142") , icon);
+				}
+			}, 1000, 1000);
+
 			Thread checkThread = new Thread(r, "PMS Checker");
 			checkThread.start();
 			checkThread.join(interruptAfterMillis);
@@ -270,6 +284,7 @@ public class PMS {
 				ProcessUtil.destroy(process);
 			}
 
+			timer.cancel();
 			return true;
 		} catch (IOException | InterruptedException e) {
 			if (error) {
@@ -609,18 +624,16 @@ public class PMS {
 			}
 		});
 
-		frame.setStatusCode(0, Messages.getString("PMS.138"), "icon-status-connecting.png");
 		RendererConfiguration.loadRendererConfigurations(configuration);
 
 		LOGGER.info("Please wait while we check the MPlayer font cache, this can take a minute or so.");
 
-		checkProcessExecution("MPlayer", true, configuration.getTempFolder(), 60000, configuration.getMplayerPath(), "dummy");
+		checkProcessExecution("MPlayer", true, configuration.getTempFolder(), 60000, Messages.getString("PMS.138"), "icon-status-connecting.png", configuration.getMplayerPath(), "dummy");
 
 		LOGGER.info("Finished checking the MPlayer font cache.");
 		LOGGER.info("Please wait while we check the FFmpeg font cache, this can take two minutes or so.");
-		frame.setStatusCode(0, Messages.getString("PMS.140"), "icon-status-connecting.png");
 
-		checkProcessExecution("FFMpeg", true, null, 120000, configuration.getFfmpegPath(), "-y", "-f", "lavfi", "-i", "nullsrc=s=720x480:d=1:r=1", "-vf", "ass=DummyInput.ass", "-target", "ntsc-dvd", "-");
+		checkProcessExecution("FFMpeg", true, null, 100000, Messages.getString("PMS.140"), "icon-status-connecting.png", configuration.getFfmpegPath(), "-y", "-f", "lavfi", "-i", "nullsrc=s=720x480:d=1:r=1", "-vf", "ass=DummyInput.ass", "-target", "ntsc-dvd", "-");
 
 		LOGGER.info("Finished checking the FFmpeg font cache.");
 
