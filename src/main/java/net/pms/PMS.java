@@ -259,7 +259,7 @@ public class PMS {
 
 			try {
 				int exit = process.exitValue();
-				if (exit != 0 && (exit == 1 && name != "FFMpeg")) {
+				if (exit != 0) {
 					if (error) {
 						LOGGER.info("Warning: process returned an exit code of " + exit);
 					}
