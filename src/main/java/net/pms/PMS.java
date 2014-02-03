@@ -20,6 +20,7 @@
 package net.pms;
 
 import com.sun.jna.Platform;
+
 import java.awt.*;
 import java.io.*;
 import java.net.BindException;
@@ -28,7 +29,9 @@ import java.util.*;
 import java.util.Timer;
 import java.util.Map.Entry;
 import java.util.logging.LogManager;
+
 import javax.swing.*;
+
 import net.pms.configuration.Build;
 import net.pms.configuration.NameFilter;
 import net.pms.configuration.PmsConfiguration;
@@ -63,6 +66,7 @@ import net.pms.util.SystemErrWrapper;
 import net.pms.util.TaskRunner;
 import net.pms.util.TempFileMgr;
 import net.pms.util.Version;
+
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
@@ -227,6 +231,8 @@ public class PMS {
 	 * @return Returns true if the command exited as expected
 	 * @throws Exception TODO: Check which exceptions to use
 	 */
+	@SuppressWarnings("unused")
+	@Deprecated
 	private boolean checkProcessExecution(String name, boolean error, File workDir, final long interruptAfterMillis, final String message, final String icon, String... params) throws Exception {
 		LOGGER.debug("Launching: " + Arrays.toString(params));
 
@@ -622,16 +628,14 @@ public class PMS {
 
 		RendererConfiguration.loadRendererConfigurations(configuration);
 
-		LOGGER.info("Please wait while we check the MPlayer font cache, this can take a minute or so.");
+		LOGGER.info("Checking the MPlayer and FFmpeg font cache, this can take two minutes or so.");
 
-		checkProcessExecution("MPlayer", true, configuration.getTempFolder(), 60000, Messages.getString("PMS.138"), "icon-status-connecting.png", configuration.getMplayerPath(), "dummy");
-
-		LOGGER.info("Finished checking the MPlayer font cache.");
-		LOGGER.info("Please wait while we check the FFmpeg font cache, this can take two minutes or so.");
-
-		checkProcessExecution("FFMpeg", true, null, 100000, Messages.getString("PMS.140"), "icon-status-connecting.png", configuration.getFfmpegPath(), "-y", "-f", "lavfi", "-i", "nullsrc=s=720x480:d=1:r=1", "-vf", "ass=DummyInput.ass", "-target", "ntsc-dvd", "-");
-
-		LOGGER.info("Finished checking the FFmpeg font cache.");
+		OutputParams outputParams = new OutputParams(configuration);
+		ProcessWrapperImpl mplayer = new ProcessWrapperImpl(new String[]{configuration.getMplayerPath(), "dummy"}, outputParams);
+		mplayer.runInNewThread();
+		
+		ProcessWrapperImpl ffmpeg = new ProcessWrapperImpl(new String[]{configuration.getFfmpegPath(), "-y", "-f", "lavfi", "-i", "nullsrc=s=720x480:d=1:r=1", "-vf", "ass=DummyInput.ass", "-target", "ntsc-dvd", "-"}, outputParams);
+		ffmpeg.runInNewThread();
 
 		frame.setStatusCode(0, Messages.getString("PMS.130"), "icon-status-connecting.png");
 
