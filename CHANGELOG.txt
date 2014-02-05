@@ -37,9 +37,9 @@
 			Speed improvements
 			Fixes memory leaks
 			Fixes a fontconfig bug
-			Improves support for the following containers: Matroska, AVI, MPEG-TS
-			Improves support for the following video codecs: H.265, VC-1, H.264, MPEG-1, MPEG-2, VP8
-			Improves support for the following audio codecs: AC-3, AAC
+			Improves support for the following containers: AVI, Matroska, MPEG-TS
+			Improves support for the following video codecs: H.264, H.265, MPEG-1, MPEG-2, VC-1, VP8
+			Improves support for the following audio codecs: AAC, AC-3
 			Improves detection of 60FPS
 		Updated MediaInfo for Windows to 0.7.67, which:
 			Fixes bugs
