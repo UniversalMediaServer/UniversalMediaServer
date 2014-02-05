@@ -25,7 +25,6 @@ import java.io.*;
 import java.net.BindException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.Timer;
 import java.util.Map.Entry;
 import java.util.logging.LogManager;
 import javax.swing.*;
@@ -214,82 +213,6 @@ public class PMS {
 	 */
 	public SystemUtils getRegistry() {
 		return registry;
-	}
-
-	/**
-	 * Executes a new Process and creates a fork that waits for its results.
-	 * This is used to generate fontconfig caches for MPlayer and FFmpeg.
-	 *
-	 * @param name Symbolic name for the process to be launched, only used in the trace log
-	 * @param error (boolean) Set to true if you want PMS to add error messages to the trace pane
-	 * @param workDir (File) optional working directory to run the process in
-	 * @param params (array of Strings) array containing the command to call and its arguments
-	 * @return Returns true if the command exited as expected
-	 * @throws Exception TODO: Check which exceptions to use
-	 */
-	@SuppressWarnings("unused")
-	@Deprecated
-	private boolean checkProcessExecution(String name, boolean error, File workDir, final long interruptAfterMillis, final String message, final String icon, String... params) throws Exception {
-		LOGGER.debug("Launching: " + Arrays.toString(params));
-
-		try {
-			ProcessBuilder pb = new ProcessBuilder(params);
-
-			if (workDir != null) {
-				pb.directory(workDir);
-			}
-
-			final Process process = pb.start();
-
-			OutputTextConsumer stderrConsumer = new OutputTextConsumer(process.getErrorStream(), false);
-			stderrConsumer.start();
-
-			OutputTextConsumer outConsumer = new OutputTextConsumer(process.getInputStream(), false);
-			outConsumer.start();
-
-			Runnable r = new Runnable() {
-				@Override
-				public void run() {
-					ProcessUtil.waitFor(process);
-				}
-			};
-
-			final long endTime = System.currentTimeMillis() + interruptAfterMillis;
-			Timer timer = new Timer();
-			timer.schedule(new TimerTask() {
-				@Override
-				public void run() {
-					frame.setStatusCode(0, message + " " + (endTime - System.currentTimeMillis()) / 1000 + " " + Messages.getString("PMS.142") , icon);
-				}
-			}, 1000, 1000);
-
-			Thread checkThread = new Thread(r, "PMS Checker");
-			checkThread.start();
-			checkThread.join(interruptAfterMillis);
-			checkThread.interrupt();
-			checkThread = null;
-
-			try {
-				int exit = process.exitValue();
-				if (exit != 0) {
-					if (error) {
-						LOGGER.info("Warning: process returned an exit code of " + exit);
-					}
-					return false;
-				}
-			} catch (IllegalThreadStateException ise) {
-				LOGGER.trace("Forcing shutdown of process: " + process);
-				ProcessUtil.destroy(process);
-			}
-
-			timer.cancel();
-			return true;
-		} catch (IOException | InterruptedException e) {
-			if (error) {
-				LOGGER.error("Cannot launch " + name + ". Check the presence of " + params[0]);
-			}
-			return false;
-		}
 	}
 
 	/**
