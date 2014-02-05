@@ -43,7 +43,6 @@ import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
-import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.SizeLimitInputStream;
 import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
@@ -72,6 +71,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAResource.class);
 	private final SimpleDateFormat SDF_DATE = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	private boolean subsAreValid = false;
 
 	protected static final int MAX_ARCHIVE_ENTRY_SIZE = 10000000;
 	protected static final int MAX_ARCHIVE_SIZE_SEEK = 800000000;
@@ -475,7 +475,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param child
 	 *            DLNAResource to add to a container type.
 	 */
+
 	public void addChild(DLNAResource child) {
+		addChild(child, true);
+	}
+
+	public void addChild(DLNAResource child, boolean isNew) {
 		// child may be null (spotted - via rootFolder.addChild() - in a misbehaving plugin
 		if (child == null) {
 			LOGGER.error("A plugin has attempted to add a null child to \"{}\"", getName());
@@ -497,7 +502,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		try {
 			if (child.isValid()) {
-				LOGGER.trace("Adding new child \"{}\" with class \"{}\"", child.getName(), child.getClass().getName());
+				LOGGER.trace("{} child \"{}\" with class \"{}\"", isNew ? "Adding new" : "Updating", child.getName(), child.getClass().getName());
 
 				if (allChildrenAreFolders && !child.isFolder()) {
 					allChildrenAreFolders = false;
@@ -552,8 +557,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						LOGGER.trace("File \"{}\" will be forced to skip transcoding by configuration", child.getName());
 					}
 
-					if (parserV2 || (child.getFormat().transcodable() && child.getMedia() == null)) {
-						if (!parserV2) {
+					// Determine transcoding possibilities if either
+					//    - the format is known to be transcodable
+					//    - we have media info (via parserV2, playback info, or a plugin)
+					if (child.getFormat().transcodable() || child.getMedia() != null) {
+						if (child.getMedia() == null) {
 							child.setMedia(new DLNAMediaInfo());
 						}
 
@@ -630,10 +638,20 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							}
 
 							boolean isIncompatible = false;
+							String audioTracksList = child.getName() + child.getMedia().getAudioTracksList().toString();
 
 							if (!child.getFormat().isCompatible(child.getMedia(), getDefaultRenderer())) {
 								isIncompatible = true;
 								LOGGER.trace("File \"{}\" is not supported by the renderer", child.getName());
+							} else if (
+								configuration.isEncodedAudioPassthrough() &&
+								(
+									audioTracksList.contains("audio codec: AC3") ||
+									audioTracksList.contains("audio codec: DTS")
+								)
+							) {
+								isIncompatible = true;
+								LOGGER.trace("File \"{}\" will not be streamed because the audio will use the encoded audio passthrough feature", child.getName());
 							}
 
 							// Prefer transcoding over streaming if:
@@ -673,8 +691,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									newChild.setMedia(child.getMedia());
 									fileTranscodeFolder.addChildInternal(newChild);
 									LOGGER.trace("Adding \"{}\" to transcode folder for player: \"{}\"", child.getName(), player.toString());
-
-									transcodeFolder.addChild(fileTranscodeFolder);
+	
+									transcodeFolder.updateChild(fileTranscodeFolder);
 								}
 							}
 
@@ -724,7 +742,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						if (!newChild.getFormat().isCompatible(newChild.getMedia(), getDefaultRenderer())) {
 							Player player = PlayerFactory.getPlayer(newChild);
 							newChild.setPlayer(player);
-							LOGGER.trace("Secondary format \"{}\" will use player \"{}\" for \"{}\"", newChild.getFormat().toString(), child.getPlayer().name(), newChild.getName());
+							LOGGER.trace("Secondary format \"{}\" will use player \"{}\" for \"{}\"", newChild.getFormat().toString(), newChild.getPlayer().name(), newChild.getName());
 						}
 
 						if (child.getMedia() != null && child.getMedia().isSecondaryFormatValid()) {
@@ -739,7 +757,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				if (addResumeFile) {
 					addChildInternal(resumeRes);
 				}
-				addChildInternal(child);
+				if (isNew) {
+					addChildInternal(child);
+				}
 			}
 		} catch (Throwable t) {
 			LOGGER.error("Error adding child: \"{}\"", child.getName(), t);
@@ -787,15 +807,43 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	/**
-	 * Adds the supplied DNLA resource to the internal list of child nodes,
+	 * (Re)sets the given DNLA resource as follows:
+	 *    - if it's already one of our children, renew it
+	 *    - or if we have another child with the same name, replace it
+	 *    - otherwise add it as a new child.
+	 *
+	 * @param child the DLNA resource to update
+	 */
+
+	public void updateChild(DLNAResource child) {
+		DLNAResource found = getChildren().contains(child) ?
+			child : searchByName(child.getName());
+		if (found != null) {
+			if (child != found) {
+				// Replace
+				child.setParent(this);
+				child.setIndexId(Integer.parseInt(found.getInternalId()));
+				getChildren().set(getChildren().indexOf(found), child);
+			}
+			// Renew
+			addChild(child, false);
+		} else {
+			// Not found, it's new
+			addChild(child, true);
+		}
+	}
+
+	/**
+	 * Adds the supplied DNLA resource in the internal list of child nodes,
 	 * and sets the parent to the current node. Avoids the side-effects
 	 * associated with the {@link #addChild(DLNAResource)} method.
 	 *
 	 * @param child the DLNA resource to add to this node's list of children
 	 */
+
 	protected synchronized void addChildInternal(DLNAResource child) {
 		if (child.getInternalId() != null) {
-			LOGGER.info(
+			LOGGER.debug(
 				"Node ({}) already has an ID ({}), which is overridden now. The previous parent node was: {}",
 				new Object[] {
 					child.getClass().getName(),
@@ -1183,7 +1231,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (isNoName()) {
 				displayName = "[No encoding]";
 				isNamedNoEncoding = true;
-				if (mediaRenderer != null && StringUtils.isNotBlank(mediaRenderer.getSupportedSubtitles())) {
+				if (subsAreValid) {
 					isNamedNoEncoding = false;
 				}
 			} else if (nametruncate > 0) {
@@ -1194,15 +1242,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (
 			isSubsFile() &&
 			!isNamedNoEncoding &&
-			(
-				getMediaAudio() == null &&
-				getMediaSubtitle() == null
-			) && 
+			getMediaAudio() == null &&
+			getMediaSubtitle() == null &&
+			!configuration.hideSubsInfo() &&
 			(
 				getPlayer() == null ||
 				getPlayer().isExternalSubtitlesSupported()
-			) &&
-			!configuration.hideSubInfo()
+			)
+
 		) {
 			displayName += " {External Subtitles}";
 		}
@@ -1219,7 +1266,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (
 			getMediaSubtitle() != null &&
 			getMediaSubtitle().getId() != -1 &&
-			!configuration.hideSubInfo()
+			!configuration.hideSubsInfo()
 		) {
 			subtitleFormat = getMediaSubtitle().getType().getDescription();
 			if ("(Advanced) SubStation Alpha".equals(subtitleFormat)) {
@@ -1377,7 +1424,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *         {@code <container id="0$1" childCount="1" parentID="0" restricted="true">}
 	 */
 	public final String getDidlString(RendererConfiguration mediaRenderer) {
-		boolean subsAreValid = false;
 		StringBuilder sb = new StringBuilder();
 		if (!configuration.isDisableSubtitles() && StringUtils.isNotBlank(mediaRenderer.getSupportedSubtitles()) && getMedia() != null && getPlayer() == null) {
 			OutputParams params = new OutputParams(configuration);
@@ -2200,18 +2246,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									LOGGER.debug("" + ex);
 								}
 
-								// Initiate the code that figures out whether to create a resume item
-								if (getMedia() != null) {
-									long durSec = (long) getMedia().getDurationInSeconds();
-									if (externalProcess != null && (durSec == 0 || durSec == DLNAMediaInfo.TRANS_SIZE)) {
-										ProcessWrapperImpl pw = (ProcessWrapperImpl) externalProcess;
-										String dur = pw.getDuration();
-										if (StringUtils.isNotEmpty(dur)) {
-											getMedia().setDuration(convertStringToTime(dur));
-										}
-									}
-								}
-
 								PMS.get().getFrame().setStatusLine("");
 
 								internalStop();
@@ -2694,7 +2728,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param media The object containing detailed information.
 	 * @since 1.50
 	 */
-	protected void setMedia(DLNAMediaInfo media) {
+	public void setMedia(DLNAMediaInfo media) {
 		this.media = media;
 	}
 

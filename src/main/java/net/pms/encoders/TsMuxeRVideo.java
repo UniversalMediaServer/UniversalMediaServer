@@ -27,12 +27,8 @@ import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PrintWriter;
-import java.net.URL;
 import java.util.Locale;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
@@ -296,6 +292,7 @@ public class TsMuxeRVideo extends Player {
 			if (params.aid != null) {
 				boolean ac3Remux;
 				boolean dtsRemux;
+				boolean encodedAudioPassthrough;
 				boolean pcm;
 
 				// Disable LPCM transcoding for MP4 container with non-H264 video as workaround for MEncoder's A/V sync bug
@@ -315,8 +312,9 @@ public class TsMuxeRVideo extends Player {
 						(params.aid.getBitRate() > 370000 && params.aid.getBitRate() < 400000);
 					 */
 
-					ac3Remux = (params.aid.isAC3() && configuration.isAudioRemuxAC3());
-					dtsRemux = configuration.isAudioEmbedDtsInPcm() && params.aid.isDTS() && params.mediaRenderer.isDTSPlayable();
+					encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && params.aid.isNonPCMEncodedAudio() && params.mediaRenderer.isWrapEncodedAudioIntoPCM();
+					ac3Remux = params.aid.isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough;
+					dtsRemux = configuration.isAudioEmbedDtsInPcm() && params.aid.isDTS() && params.mediaRenderer.isDTSPlayable() && !encodedAudioPassthrough;
 
 					pcm = configuration.isAudioUsePCM() &&
 						!mp4_with_non_h264 &&
@@ -340,7 +338,7 @@ public class TsMuxeRVideo extends Player {
 					int channels;
 					if (ac3Remux) {
 						channels = params.aid.getAudioProperties().getNumberOfChannels(); // AC-3 remux
-					} else if (dtsRemux) {
+					} else if (dtsRemux || encodedAudioPassthrough) {
 						channels = 2;
 					} else if (pcm) {
 						channels = params.aid.getAudioProperties().getNumberOfChannels();
@@ -348,18 +346,19 @@ public class TsMuxeRVideo extends Player {
 						channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
 					}
 
-					if (!ac3Remux && (dtsRemux || pcm)) {
+					if (!ac3Remux && (dtsRemux || pcm || encodedAudioPassthrough)) {
 						// DTS remux or LPCM
 						StreamModifier sm = new StreamModifier();
 						sm.setPcm(pcm);
 						sm.setDtsEmbed(dtsRemux);
+						sm.setEncodedAudioPassthrough(encodedAudioPassthrough);
 						sm.setNbChannels(channels);
 						sm.setSampleFrequency(params.aid.getSampleRate() < 48000 ? 48000 : params.aid.getSampleRate());
 						sm.setBitsPerSample(16);
 
 						String mixer = null;
 
-						if (pcm && !dtsRemux) {
+						if (pcm && !dtsRemux && !encodedAudioPassthrough) {
 							mixer = getLPCMChannelMappingForMencoder(params.aid);
 						}
 
@@ -373,9 +372,9 @@ public class TsMuxeRVideo extends Player {
 							"-channels", "" + sm.getNbChannels(),
 							"-ovc", "copy",
 							"-of", "rawaudio",
-							"-mc", sm.isDtsEmbed() ? "0.1" : "0",
+							"-mc", sm.isDtsEmbed() || sm.isEncodedAudioPassthrough() ? "0.1" : "0",
 							"-noskip",
-							"-oac", sm.isDtsEmbed() ? "copy" : "pcm",
+							"-oac", sm.isDtsEmbed() || sm.isEncodedAudioPassthrough() ? "copy" : "pcm",
 							isNotBlank(mixer) ? "-af" : "-quiet", isNotBlank(mixer) ? mixer : "-quiet",
 							singleMediaAudio ? "-quiet" : "-aid", singleMediaAudio ? "-quiet" : ("" + params.aid.getId()),
 							"-srate", "48000",
@@ -432,8 +431,9 @@ public class TsMuxeRVideo extends Player {
 							(params.aid.getBitRate() > 370000 && params.aid.getBitRate() < 400000);
 						 */
 
-						ac3Remux = audio.isAC3() && configuration.isAudioRemuxAC3();
-						dtsRemux = configuration.isAudioEmbedDtsInPcm() && audio.isDTS() && params.mediaRenderer.isDTSPlayable();
+						encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && params.aid.isNonPCMEncodedAudio() && params.mediaRenderer.isWrapEncodedAudioIntoPCM();
+						ac3Remux = audio.isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough;
+						dtsRemux = configuration.isAudioEmbedDtsInPcm() && audio.isDTS() && params.mediaRenderer.isDTSPlayable() && !encodedAudioPassthrough;
 
 						pcm = configuration.isAudioUsePCM() &&
 							!mp4_with_non_h264 &&
@@ -457,7 +457,7 @@ public class TsMuxeRVideo extends Player {
 						int channels;
 						if (ac3Remux) {
 							channels = audio.getAudioProperties().getNumberOfChannels(); // AC-3 remux
-						} else if (dtsRemux) {
+						} else if (dtsRemux || encodedAudioPassthrough) {
 							channels = 2;
 						} else if (pcm) {
 							channels = audio.getAudioProperties().getNumberOfChannels();
@@ -465,11 +465,12 @@ public class TsMuxeRVideo extends Player {
 							channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
 						}
 
-						if (!ac3Remux && (dtsRemux || pcm)) {
+						if (!ac3Remux && (dtsRemux || pcm || encodedAudioPassthrough)) {
 							// DTS remux or LPCM
 							StreamModifier sm = new StreamModifier();
 							sm.setPcm(pcm);
 							sm.setDtsEmbed(dtsRemux);
+							sm.setEncodedAudioPassthrough(encodedAudioPassthrough);
 							sm.setNbChannels(channels);
 							sm.setSampleFrequency(audio.getSampleRate() < 48000 ? 48000 : audio.getSampleRate());
 							sm.setBitsPerSample(16);
@@ -478,7 +479,7 @@ public class TsMuxeRVideo extends Player {
 							}
 
 							String mixer = null;
-							if (pcm && !dtsRemux) {
+							if (pcm && !dtsRemux && !encodedAudioPassthrough) {
 								mixer = getLPCMChannelMappingForMencoder(audio);
 							}
 
@@ -492,9 +493,9 @@ public class TsMuxeRVideo extends Player {
 								"-channels", "" + sm.getNbChannels(),
 								"-ovc", "copy",
 								"-of", "rawaudio",
-								"-mc", sm.isDtsEmbed() ? "0.1" : "0",
+								"-mc", sm.isDtsEmbed() || sm.isEncodedAudioPassthrough() ? "0.1" : "0",
 								"-noskip",
-								"-oac", sm.isDtsEmbed() ? "copy" : "pcm",
+								"-oac", sm.isDtsEmbed() || sm.isEncodedAudioPassthrough() ? "copy" : "pcm",
 								isNotBlank(mixer) ? "-af" : "-quiet", isNotBlank(mixer) ? mixer : "-quiet",
 								singleMediaAudio ? "-quiet" : "-aid", singleMediaAudio ? "-quiet" : ("" + audio.getId()),
 								"-srate", "48000",
@@ -615,6 +616,7 @@ public class TsMuxeRVideo extends Player {
 				String timeshift = "";
 				boolean ac3Remux;
 				boolean dtsRemux;
+				boolean encodedAudioPassthrough;
 				boolean pcm;
 
 				/**
@@ -627,8 +629,9 @@ public class TsMuxeRVideo extends Player {
 					(params.aid.getBitRate() > 370000 && params.aid.getBitRate() < 400000);
 				 */
 
-				ac3Remux = lang.isAC3() && configuration.isAudioRemuxAC3();
-				dtsRemux = configuration.isAudioEmbedDtsInPcm() && lang.isDTS() && params.mediaRenderer.isDTSPlayable();
+				encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && params.aid.isNonPCMEncodedAudio() && params.mediaRenderer.isWrapEncodedAudioIntoPCM();
+				ac3Remux = params.aid.isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough;
+				dtsRemux = configuration.isAudioEmbedDtsInPcm() && params.aid.isDTS() && params.mediaRenderer.isDTSPlayable() && !encodedAudioPassthrough;
 
 				pcm = configuration.isAudioUsePCM() &&
 					!mp4_with_non_h264 &&
@@ -656,7 +659,10 @@ public class TsMuxeRVideo extends Player {
 					if (pcm) {
 						type = "A_LPCM";
 					}
-					if (dtsRemux) {
+					if (encodedAudioPassthrough || this instanceof TsMuxeRAudio) {
+						type = "A_LPCM";
+					}
+					if (dtsRemux || this instanceof TsMuxeRAudio) {
 						type = "A_LPCM";
 						if (params.mediaRenderer.isMuxDTSToMpeg()) {
 							type = "A_DTS";
@@ -666,7 +672,71 @@ public class TsMuxeRVideo extends Player {
 				if (lang.getAudioProperties().getAudioDelay() != 0 && params.timeseek == 0) {
 					timeshift = "timeshift=" + lang.getAudioProperties().getAudioDelay() + "ms, ";
 				}
-				pw.println(type + ", \"" + ffAudioPipe[i].getOutputPipe() + "\", " + timeshift + "track=" + (2 + i));
+				pw.println(type + ", \"" + ffAudioPipe[0].getOutputPipe() + "\", " + timeshift + "track=2");
+			} else if (ffAudioPipe != null) {
+				for (int i = 0; i < media.getAudioTracksList().size(); i++) {
+					DLNAMediaAudio lang = media.getAudioTracksList().get(i);
+					String timeshift = "";
+					boolean ac3Remux;
+					boolean dtsRemux;
+					boolean encodedAudioPassthrough;
+					boolean pcm;
+
+					/**
+					 * Disable AC3 remux for stereo tracks with 384 kbits bitrate and PS3 renderer (PS3 FW bug?)
+					 *
+					 * Commented out until we can find a way to detect when a video has an audio track that switches from 2 to 6 channels
+					 * because MEncoder can't handle those files, which are very common these days.
+					boolean ps3_and_stereo_and_384_kbits = params.aid != null &&
+						(params.mediaRenderer.isPS3() && params.aid.getAudioProperties().getNumberOfChannels() == 2) &&
+						(params.aid.getBitRate() > 370000 && params.aid.getBitRate() < 400000);
+					 */
+
+					encodedAudioPassthrough = configuration.isEncodedAudioPassthrough() && params.aid.isNonPCMEncodedAudio() && params.mediaRenderer.isWrapEncodedAudioIntoPCM();
+					ac3Remux = lang.isAC3() && configuration.isAudioRemuxAC3() && !encodedAudioPassthrough;
+					dtsRemux = configuration.isAudioEmbedDtsInPcm() && lang.isDTS() && params.mediaRenderer.isDTSPlayable() && !encodedAudioPassthrough;
+
+					pcm = configuration.isAudioUsePCM() &&
+						!mp4_with_non_h264 &&
+						(
+							lang.isLossless() ||
+							(lang.isDTS() && lang.getAudioProperties().getNumberOfChannels() <= 6) ||
+							lang.isTrueHD() ||
+							(
+								!configuration.isMencoderUsePcmForHQAudioOnly() &&
+								(
+									params.aid.isAC3() ||
+									params.aid.isMP3() ||
+									params.aid.isAAC() ||
+									params.aid.isVorbis() ||
+									// params.aid.isWMA() ||
+									params.aid.isMpegAudio()
+								)
+							)
+						) && params.mediaRenderer.isLPCMPlayable();
+					String type = "A_AC3";
+					if (ac3Remux) {
+						// AC-3 remux takes priority
+						type = "A_AC3";
+					} else {
+						if (pcm) {
+							type = "A_LPCM";
+						}
+						if (encodedAudioPassthrough) {
+							type = "A_LPCM";
+						}
+						if (dtsRemux) {
+							type = "A_LPCM";
+							if (params.mediaRenderer.isMuxDTSToMpeg()) {
+								type = "A_DTS";
+							}
+						}
+					}
+					if (lang.getAudioProperties().getAudioDelay() != 0 && params.timeseek == 0) {
+						timeshift = "timeshift=" + lang.getAudioProperties().getAudioDelay() + "ms, ";
+					}
+					pw.println(type + ", \"" + ffAudioPipe[i].getOutputPipe() + "\", " + timeshift + "track=" + (2 + i));
+				}
 			}
 		}
 		pw.close();

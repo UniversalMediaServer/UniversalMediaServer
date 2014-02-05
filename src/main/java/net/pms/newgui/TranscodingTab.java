@@ -75,6 +75,7 @@ public class TranscodingTab {
 	private JTextField abitrate;
 	private JTree tree;
 	private JCheckBox forcePCM;
+	private JCheckBox encodedAudioPassthrough;
 	public static JCheckBox forceDTSinPCM;
 	private JComboBox channels;
 	private JComboBox vq;
@@ -618,7 +619,7 @@ public class TranscodingTab {
 
 	private JComponent buildAudioSetupPanel() {
 		String colSpec = FormLayoutUtil.getColSpec("left:pref, 3dlu, pref:grow", orientation);
-		FormLayout layout = new FormLayout(colSpec, "$lgap, pref, 3dlu, 4*(pref, 3dlu), pref, 12dlu, 3*(pref, 3dlu), pref:grow");
+		FormLayout layout = new FormLayout(colSpec, "$lgap, pref, 3dlu, 5*(pref, 3dlu), pref, 12dlu, 3*(pref, 3dlu), pref:grow");
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.border(Borders.DLU4);
 		CellConstraints cc = new CellConstraints();
@@ -653,6 +654,9 @@ public class TranscodingTab {
 
 		ac3remux = new JCheckBox(Messages.getString("TrTab2.26"), configuration.isAudioRemuxAC3());
 		ac3remux.setToolTipText(Messages.getString("TrTab2.84") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
+		if (configuration.isEncodedAudioPassthrough()) {
+			ac3remux.setEnabled(false);
+		}
 		ac3remux.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -663,6 +667,9 @@ public class TranscodingTab {
 
 		forceDTSinPCM = new JCheckBox(Messages.getString("TrTab2.28"), configuration.isAudioEmbedDtsInPcm());
 		forceDTSinPCM.setToolTipText(Messages.getString("TrTab2.85") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
+		if (configuration.isEncodedAudioPassthrough()) {
+			forceDTSinPCM.setEnabled(false);
+		}
 		forceDTSinPCM.setContentAreaFilled(false);
 		forceDTSinPCM.addActionListener(new ActionListener() {
 			@Override
@@ -672,7 +679,20 @@ public class TranscodingTab {
 		});
 		builder.add(forceDTSinPCM, FormLayoutUtil.flip(cc.xy(1, 8), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("TrTab2.29"), FormLayoutUtil.flip(cc.xy(1, 10), colSpec, orientation));
+		encodedAudioPassthrough = new JCheckBox(Messages.getString("TrTab2.53"), configuration.isEncodedAudioPassthrough());
+		encodedAudioPassthrough.setToolTipText(Messages.getString("TrTab2.86") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
+		encodedAudioPassthrough.setContentAreaFilled(false);
+		encodedAudioPassthrough.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setEncodedAudioPassthrough((e.getStateChange() == ItemEvent.SELECTED));
+				ac3remux.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
+				forceDTSinPCM.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
+			}
+		});
+		builder.add(encodedAudioPassthrough, cc.xyw(1, 10, 3));
+
+		builder.addLabel(Messages.getString("TrTab2.29"), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
 		abitrate = new JTextField("" + configuration.getAudioBitrate());
 		abitrate.addKeyListener(new KeyAdapter() {
 			@Override
@@ -685,9 +705,9 @@ public class TranscodingTab {
 				}
 			}
 		});
-		builder.add(abitrate, FormLayoutUtil.flip(cc.xy(3, 10), colSpec, orientation));
+		builder.add(abitrate, FormLayoutUtil.flip(cc.xy(3, 12), colSpec, orientation));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.7"), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.7"), FormLayoutUtil.flip(cc.xy(1, 14), colSpec, orientation));
 		langs = new JTextField(configuration.getAudioLanguages());
 		langs.setToolTipText(Messages.getString("TrTab2.75"));
 		langs.addKeyListener(new KeyAdapter() {
@@ -696,7 +716,7 @@ public class TranscodingTab {
 				configuration.setAudioLanguages(langs.getText());
 			}
 		});
-		builder.add(langs, FormLayoutUtil.flip(cc.xy(3, 12), colSpec, orientation));
+		builder.add(langs, FormLayoutUtil.flip(cc.xy(3, 14), colSpec, orientation));
 
 		JPanel panel = builder.getPanel();
 		panel.applyComponentOrientation(orientation);

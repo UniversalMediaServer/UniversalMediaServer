@@ -31,7 +31,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>3.3.0</version>
+	<version>3.4.0</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -69,19 +69,10 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>3.3.0</project.version.short>
-
-		<!--
-			JNA 3.4.0 solves issue #1152, but causes a bug in Windows.
-			The version is therefore overruled in the Windows profile.
-			This property should be removed when Windows can use the
-			same version.
-		-->
-		<jna-version>3.4.0</jna-version>
-
+		<project.version.short>3.4.0</project.version.short>
 		<cuelib-version>1.2.1-2008-06-13</cuelib-version>
-		<jgoodies-forms-version>1.6.0</jgoodies-forms-version>
-		<jgoodies-looks-version>2.5.2</jgoodies-looks-version>
+		<jgoodies-forms-version>1.7.2</jgoodies-forms-version>
+		<jgoodies-looks-version>2.5.3</jgoodies-looks-version>
 		<junrar-version>0.7</junrar-version>
 		<mediautil-version>1.0</mediautil-version>
 		<xmlwise-version>1.2.11</xmlwise-version>
@@ -176,7 +167,7 @@
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
-			<version>1.8</version>
+			<version>1.9</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-collections</groupId>
@@ -186,7 +177,7 @@
 		<dependency>
 			<groupId>commons-configuration</groupId>
 			<artifactId>commons-configuration</artifactId>
-			<version>1.9</version>
+			<version>1.10</version>
 			<exclusions>
 				<!--  no need for commons-logging, as jcl-over-slf4j provides the impl -->
 				<exclusion>
@@ -255,7 +246,7 @@
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty</artifactId> <!-- Use 'netty-all' for 4.0 or above -->
-			<version>3.6.6.Final</version>
+			<version>3.9.0.Final</version>
 			<scope>compile</scope>
 		</dependency>
 
@@ -273,7 +264,7 @@
 		<dependency>
 			<groupId>net.coobird</groupId>
 			<artifactId>thumbnailator</artifactId>
-			<version>0.4.5</version>
+			<version>[0.4, 0.5)</version>
 		</dependency>
 
 		<!--
@@ -369,6 +360,11 @@
 			<artifactId>fest-assert</artifactId>
 			<version>1.4</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>net.java.dev.jna</groupId>
+			<artifactId>jna</artifactId>
+			<version>4.0.0</version>
 		</dependency>
 	</dependencies>
 	<build>
@@ -1099,6 +1095,7 @@
 			<activation>
 				<activeByDefault>false</activeByDefault>
 			</activation>
+
 			<build>
 				<plugins>
 					<plugin>
@@ -1206,6 +1203,7 @@
 					<family>mac</family>
 				</os>
 			</activation>
+
 			<build>
 				<plugins>
 
@@ -1366,6 +1364,81 @@
 							</execution>
 						</executions>
 					</plugin>
+				</plugins>
+			</build>
+		</profile>
+
+		<!--
+			Hudson (windows-jar): minimal profile that builds pms.jar with the
+			Windows JNA. The POSIX JNA causes snapshot builds to crash the JVM on
+			Windows, whereas the Windows JNA only disables MediaInfo for Ubuntu
+			users, who can still use ffmpeg.
+
+			Another difference from the other profiles is that we don't download the
+			binaries or build the tarball.
+		-->
+		<profile>
+			<id>windows-jar</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+				<property>
+					<name>env.HUDSON_URL</name>
+				</property>
+			</activation>
+
+			<build>
+				<plugins>
+					<!-- Plugin to assemble a jar with dependencies -->
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>2.4</version>
+						<executions>
+							<execution>
+								<id>make-jar-with-dependencies-win</id>
+								<phase>prepare-package</phase>
+								<goals>
+									<goal>single</goal>
+								</goals>
+								<configuration>
+									<descriptors>
+										<descriptor>${project.basedir}/src/main/assembly/jar-with-dependencies.xml</descriptor>
+									</descriptors>
+									<archive>
+										<manifest>
+											<mainClass>net.pms.PMS</mainClass>
+											<addDefaultImplementationEntries>true</addDefaultImplementationEntries> <!-- see above for documentation -->
+										</manifest>
+									</archive>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+
+					<!--
+						Use the antrun plugin to: copy the
+						pms-x.x.x-jar-with-dependencies.jar to pms.jar
+					-->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-antrun-plugin</artifactId>
+						<version>1.7</version>
+						<executions>
+							<execution>
+								<id>copy-jar-with-dependencies-linux</id>
+								<phase>package</phase>
+								<goals>
+									<goal>run</goal>
+								</goals>
+								<configuration>
+									<target>
+										<copy file="${project.basedir}/target/${project.artifactId}-${project.version}-jar-with-dependencies.jar"
+										      tofile="${project.basedir}/target/pms.jar" overwrite="true" />
+									</target>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+
 				</plugins>
 			</build>
 		</profile>
