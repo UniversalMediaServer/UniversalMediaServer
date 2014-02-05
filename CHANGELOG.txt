@@ -1,39 +1,46 @@
-3.4.0 - 2014-01-??
+3.4.0 - 2014-02-??
 
 	General:
 		Added "Encoded Audio Passthrough" option for DTS and AC-3 audio
 		Added support for 3D MKV files (mk3d)
+		Made font cache creation over 50% faster on Windows
+		Font cache creation is done in the background
 		Expanded filename prettifying
 		Clicking "Check for updates" tells you when there are no updates
 		Image thumbnails are generated faster
 		Fixed FLAC support on some players
 		Removed broken entry from WEB.conf
+		Minor English language improvements
 	Renderers:
 		Improved support for the Vizio renderer
 	External Components:
 		Updated Commons Codec to 1.9
 		Updated Commons Configuration to 1.10
 		Updated FFmpeg to builds from 2014-01-05+, which:
-			Adds support for reading and setting stereoscopic metadata for MPEG-2, H.264 and H.265 streams
-			Improves AV sync
-			Improves AC-3 support
-			Improves DTS support
-			Improves VP9 support
-			Improves H.264 support
-			Improves H.265 support
+			Adds support for reading and setting stereoscopic (3D) metadata for MPEG-2, H.264 and H.265 streams
+			Improves AV sync, especially when outputting MPEG-TS
+			Improves support for the following audio codecs: AC-3, DTS
+			Improves support for the following video codecs: VP9, H.264, H.265
 			Improves AviSynth support
 			Improves Matroska support
-			Fixes dts/pts bugs when outputting MPEG-TS
+		Updated InterFrame to 2.5.1, which:
+			Improves quality
+			Improves GPU support
+			Fixes bugs
 		Updated JGoodies Forms to 1.7.2
 		Updated JGoodies Looks to 2.5.3
 		Updated JNA to 4.0.0, which:
 			Fixes bugs
-		Updated MPlayer/MEncoder for Windows to SB54, which:
+		Updated MPlayer/MEncoder for Windows to SB55, which:
 			Adds Google VP9 support
 			Improves support for some DVDs
-			Improves AAC support
 			Speed improvements
 			Fixes memory leaks
+			Fixes a fontconfig bug
+			Improves support for the following containers: Matroska, AVI, MPEG-TS
+			Improves support for the following video codecs: H.265, VC-1, H.264, MPEG-1, MPEG-2, VP8
+			Improves support for the following audio codecs: AC-3, AAC
+			Improves detection of 60FPS
 		Updated MediaInfo for Windows to 0.7.67, which:
 			Fixes bugs
 		Updated Netty to 3.9.0, which:
