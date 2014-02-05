@@ -624,14 +624,22 @@ public class PMS {
 
 		RendererConfiguration.loadRendererConfigurations(configuration);
 
-		LOGGER.info("Checking the MPlayer and FFmpeg font cache, this can take two minutes or so.");
+		LOGGER.info("Checking the fontconfig cache, this can take two minutes or so.");
 
 		OutputParams outputParams = new OutputParams(configuration);
 		ProcessWrapperImpl mplayer = new ProcessWrapperImpl(new String[]{configuration.getMplayerPath(), "dummy"}, outputParams);
 		mplayer.runInNewThread();
-		
-		ProcessWrapperImpl ffmpeg = new ProcessWrapperImpl(new String[]{configuration.getFfmpegPath(), "-y", "-f", "lavfi", "-i", "nullsrc=s=720x480:d=1:r=1", "-vf", "ass=DummyInput.ass", "-target", "ntsc-dvd", "-"}, outputParams);
-		ffmpeg.runInNewThread();
+
+		/**
+		 * Note: This can be needed in case MPlayer and FFmpeg have been
+		 * compiled with a different version of fontconfig.
+		 * Since it's unpredictable on Linux we should always run this
+		 * on Linux, but it may be possible to sync versions on OS X.
+		 */
+		if (!Platform.isWindows()) {
+			ProcessWrapperImpl ffmpeg = new ProcessWrapperImpl(new String[]{configuration.getFfmpegPath(), "-y", "-f", "lavfi", "-i", "nullsrc=s=720x480:d=1:r=1", "-vf", "ass=DummyInput.ass", "-target", "ntsc-dvd", "-"}, outputParams);
+			ffmpeg.runInNewThread();
+		}
 
 		frame.setStatusCode(0, Messages.getString("PMS.130"), "icon-status-connecting.png");
 
