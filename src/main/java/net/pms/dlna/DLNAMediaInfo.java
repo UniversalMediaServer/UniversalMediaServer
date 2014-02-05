@@ -700,7 +700,7 @@ public class DLNAMediaInfo implements Cloneable {
 								.toOutputStream(out);;
 
 								setThumb(out.toByteArray());
-					} catch (IOException | IllegalArgumentException | IllegalStateException e) {
+					} catch (Exception e) {
 						LOGGER.debug("Error generating thumbnail for: " + inputFile.getFile().getName());
 						LOGGER.debug("The full error was: " + e);
 					}
@@ -1015,14 +1015,14 @@ public class DLNAMediaInfo implements Cloneable {
 				File jpg = new File(frameName);
 
 				if (jpg.exists()) {
-					try (InputStream is = new FileInputStream(jpg)) {
-						int sz = is.available();
+					InputStream is = new FileInputStream(jpg);
+					int sz = is.available();
 
-						if (sz > 0) {
-							setThumb(new byte[sz]);
-							is.read(getThumb());
-						}
+					if (sz > 0) {
+						setThumb(new byte[sz]);
+						is.read(getThumb());
 					}
+					is.close();
 
 					if (!jpg.delete()) {
 						jpg.deleteOnExit();
