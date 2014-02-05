@@ -20,6 +20,7 @@ package net.pms.io;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Map;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
@@ -32,6 +33,7 @@ public class OutputParams {
 
 	// TODO: Refactor all public variables to private with public getters and setters.
 	public File workDir;
+	public Map<String,String> env;
 	public double minFileSize;
 	public double minBufferSize;
 	public double maxBufferSize;
@@ -77,6 +79,7 @@ public class OutputParams {
 			maxBufferSize = 100;
 		}
 		timeseek = 0;
+		env = null;
 	}
 
 	/**
@@ -117,6 +120,7 @@ public class OutputParams {
 			", timeseek=" + timeseek +
 			", toFrame=" + toFrame +
 			", waitbeforestart=" + waitbeforestart +
-			", workDir=" + workDir + "]";
+			", workDir=" + workDir +
+			", env=" + env + "]";
 	}
 }

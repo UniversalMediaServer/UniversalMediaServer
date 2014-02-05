@@ -1353,14 +1353,14 @@ public class FFMpegVideo extends Player {
 					}
 				}
 
-				if (line != null && line.startsWith("Format:")) {
+				if (line.startsWith("Format:")) {
 					format = line.split(",");
 					outputString.append(line).append("\n");
 					output.write(outputString.toString());
 					continue;
 				}
 
-				if (line != null && line.startsWith("Style: Default")) {
+				if (line.startsWith("Style: Default")) {
 					String[] params = line.split(",");
 
 					for (i = 0; i < format.length; i++) {

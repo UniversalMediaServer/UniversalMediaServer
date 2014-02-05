@@ -138,13 +138,13 @@ public class PMS {
 	 * @deprecated This field is not used and will be removed in the future.
 	 */
 	@Deprecated
-	public final SimpleDateFormat sdfDate = new SimpleDateFormat("HH:mm:ss.SSS", Locale.US);
+	public final static SimpleDateFormat sdfDate = new SimpleDateFormat("HH:mm:ss.SSS", Locale.US);
 
 	/**
 	 * @deprecated This field is not used and will be removed in the future.
 	 */
 	@Deprecated
-	public final SimpleDateFormat sdfHour = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
+	public final static SimpleDateFormat sdfHour = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
 
 	/**
 	 * Array of {@link net.pms.configuration.RendererConfiguration} that have been found by PMS.

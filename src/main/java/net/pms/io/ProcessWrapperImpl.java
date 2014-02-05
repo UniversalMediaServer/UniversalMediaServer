@@ -135,6 +135,26 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			// Retrieve all environment variables of the process
 			Map<String,String> environment = pb.environment();
 
+			// The variable params.env is initialized to null in the OutputParams
+			// constructor and never set to another value in PMS code. Plugins
+			// might use it?
+			if (params.env != null && !params.env.isEmpty()) {
+				// Actual name of system path var is case-sensitive
+
+				String sysPathKey = Platform.isWindows() ? "Path" : "PATH";
+				// As is Map
+				String PATH = params.env.containsKey("PATH") ? params.env.get("PATH") :
+					params.env.containsKey("path") ? params.env.get("path") :
+					params.env.containsKey("Path") ? params.env.get("Path") : null;
+				if (PATH != null) {
+					PATH += (File.pathSeparator + environment.get(sysPathKey));
+				}
+				environment.putAll(params.env);
+				if (PATH != null) {
+					environment.put(sysPathKey, PATH);
+				}
+			}
+
 			// Fontconfig on Mac OS X may have problems locating fonts. As a result
 			// subtitles may be rendered invisible. Force feed fontconfig the
 			// FONTCONFIG_PATH environment variable to the prepackaged fontconfig
