@@ -100,7 +100,7 @@ public class MapFileConfiguration {
 			String arrayLevel1[] = conf.split("\\|");
 			int i = 0;
 			boolean firstLoop = true;
-			StringBuffer jsonStringFromConf = new StringBuffer();
+			StringBuilder jsonStringFromConf = new StringBuilder();
 			for (String value : arrayLevel1) {
 				if (!firstLoop) {
 					jsonStringFromConf.append(",");
