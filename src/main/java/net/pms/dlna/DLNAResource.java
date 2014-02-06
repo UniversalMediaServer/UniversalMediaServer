@@ -2300,7 +2300,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		Range.Time timeRange = range.createTimeRange();
 
 		if (getPlayer() != null && low > 0 && cbr_video_bitrate > 0) {
-			int used_bit_rated = (int) ((cbr_video_bitrate + 256) * 1024 / 8 * 1.04); // 1.04 = container overhead
+			int used_bit_rated = (int) ((cbr_video_bitrate + 256) * 1024 / (double) 8 * 1.04); // 1.04 = container overhead
 			if (low > used_bit_rated) {
 				timeRange.setStart((double) (low / (used_bit_rated)));
 				low = 0;
