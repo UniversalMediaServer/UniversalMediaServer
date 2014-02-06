@@ -95,7 +95,6 @@ public class MapFileConfiguration {
 		} else if (configuration.getVirtualFolders(tags).trim().length() > 0) {
 			// Get the virtual folder info from the config string
 			conf = configuration.getVirtualFolders(tags).trim().replaceAll("&comma;", ",");
-//			String jsonStringFromConf = "";
 
 			// Convert our syntax into JSON syntax
 			String arrayLevel1[] = conf.split("\\|");
