@@ -347,6 +347,8 @@ public class RootFolder extends DLNAResource {
 										case "videostream":
 											parent.addChild(new WebVideoStream(values[0], values[1], values[2]));
 											break;
+										default:
+											break;
 									}
 								}
 							} catch (ArrayIndexOutOfBoundsException e) {

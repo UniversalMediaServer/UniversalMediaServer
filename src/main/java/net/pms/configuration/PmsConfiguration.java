@@ -1750,6 +1750,8 @@ public class PmsConfiguration {
 				case "vqmax":
 					returnString.append("-qmax ").append(pairArray[1]).append(" ");
 					break;
+				default:
+					break;
 			}
 		}
 

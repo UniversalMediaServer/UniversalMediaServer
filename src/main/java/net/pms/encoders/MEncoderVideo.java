@@ -775,6 +775,8 @@ public class MEncoderVideo extends Player {
 					case "ac3":
 						defaultMaxBitrates[0] -= configuration.getAudioBitrate();
 						break;
+					default:
+						break;
 				}
 
 				// Round down to the nearest Mb
@@ -2020,6 +2022,8 @@ public class MEncoderVideo extends Player {
 						break;
 					case "-mc":
 						disableMc0AndNoskip = true;
+						break;
+					default:
 						break;
 				}
 			}

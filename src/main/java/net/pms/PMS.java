@@ -227,7 +227,7 @@ public class PMS {
 	 */
 	private DLNAMediaDatabase database;
 
-	private void initializeDatabase() {
+	private synchronized void initializeDatabase() {
 		database = new DLNAMediaDatabase("medias"); // TODO: rename "medias" -> "cache"
 		database.init(false);
 	}
@@ -1058,6 +1058,8 @@ public class PMS {
 						break;
 					case PROFILES:
 						displayProfileChooser = true;
+						break;
+					default:
 						break;
 				}
 			}

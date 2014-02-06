@@ -95,27 +95,28 @@ public class MapFileConfiguration {
 		} else if (configuration.getVirtualFolders(tags).trim().length() > 0) {
 			// Get the virtual folder info from the config string
 			conf = configuration.getVirtualFolders(tags).trim().replaceAll("&comma;", ",");
-			String jsonStringFromConf = "";
+//			String jsonStringFromConf = "";
 
 			// Convert our syntax into JSON syntax
 			String arrayLevel1[] = conf.split("\\|");
 			int i = 0;
 			boolean firstLoop = true;
+			StringBuffer jsonStringFromConf = new StringBuffer();
 			for (String value : arrayLevel1) {
 				if (!firstLoop) {
-					jsonStringFromConf += ",";
+					jsonStringFromConf.append(",");
 				}
 
 				if (i == 0) {
-					jsonStringFromConf += "[{\"name\":\"" + value + "\",files:[";
+					jsonStringFromConf.append("[{\"name\":\"").append(value).append("\",files:[");
 					i++;
 				} else {
 					String arrayLevel2[] = value.split(",");
 					for (String value2 : arrayLevel2) {
-						jsonStringFromConf += "\"" + value2 + "\",";
+						jsonStringFromConf.append("\"").append(value2).append("\",");
 					}
 
-					jsonStringFromConf += "]}]";
+					jsonStringFromConf.append("]}]");
 					firstLoop = false;
 					i = 0;
 				}
@@ -125,7 +126,7 @@ public class MapFileConfiguration {
 			gsonBuilder.registerTypeAdapter(File.class, new FileSerializer());
 			Gson gson = gsonBuilder.create();
 			Type listType = (new TypeToken<ArrayList<MapFileConfiguration>>() { }).getType();
-			List<MapFileConfiguration> out = gson.fromJson(jsonStringFromConf.replaceAll("\\\\","\\\\\\\\"), listType);
+			List<MapFileConfiguration> out = gson.fromJson(jsonStringFromConf.toString().replaceAll("\\\\","\\\\\\\\"), listType);
 
 			return out;
 		}

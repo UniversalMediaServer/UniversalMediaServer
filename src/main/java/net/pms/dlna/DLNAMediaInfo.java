@@ -1223,14 +1223,14 @@ public class DLNAMediaInfo implements Cloneable {
 									 *    - 11 for 1280x720
 									 * Meaning this math is correct
 									 */
-									maxref = (int) Math.floor(10252743 / (getWidth() * getHeight()));
+									maxref = (int) Math.floor(10252743 / (double) (getWidth() * getHeight()));
 								} else {
 									/**
 									 * This is the math for level 4.1, which results in:
 									 *    - 4 for 1920x1080
 									 *    - 9 for 1280x720
 									 */
-									maxref = (int) Math.floor(8388608 / (getWidth() * getHeight()));
+									maxref = (int) Math.floor(8388608 / (double) (getWidth() * getHeight()));
 								}
 
 								if (getReferenceFrameCount() > maxref) {
