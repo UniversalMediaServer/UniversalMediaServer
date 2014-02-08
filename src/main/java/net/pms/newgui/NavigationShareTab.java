@@ -156,16 +156,16 @@ public class NavigationShareTab {
 			builder.add(thumbgenCheckBox, FormLayoutUtil.flip(cc.xyw(1, 3, 3), colSpec, orientation));
 			builder.addLabel(Messages.getString("NetworkTab.16"), FormLayoutUtil.flip(cc.xyw(4, 3, 2), colSpec, orientation));
 			builder.add(seekpos, FormLayoutUtil.flip(cc.xy(6, 3), colSpec, orientation));
-			builder.add(image_thumb, FormLayoutUtil.flip(cc.xyw(9, 3, 2), colSpec, orientation));
+			builder.add(image_thumb, FormLayoutUtil.flip(cc.xy(9, 3), colSpec, orientation));
 
 			builder.addLabel(Messages.getString("FoldTab.26"), FormLayoutUtil.flip(cc.xyw(1, 5, 3), colSpec, orientation));
 			builder.add(audiothumbnail, FormLayoutUtil.flip(cc.xyw(4, 5, 3), colSpec, orientation));
-			builder.add(mplayer_thumb, FormLayoutUtil.flip(cc.xyw(9, 5, 2), colSpec, orientation));
+			builder.add(mplayer_thumb, FormLayoutUtil.flip(cc.xy(9, 5), colSpec, orientation));
 
 			builder.addLabel(Messages.getString("FoldTab.27"), FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
 			builder.add(defaultThumbFolder, FormLayoutUtil.flip(cc.xyw(4, 7, 2), colSpec, orientation));
 			builder.add(select, FormLayoutUtil.flip(cc.xy(6, 7), colSpec, orientation));
-			builder.add(dvdiso_thumb, FormLayoutUtil.flip(cc.xyw(9, 7, 2), colSpec, orientation));
+			builder.add(dvdiso_thumb, FormLayoutUtil.flip(cc.xy(9, 7), colSpec, orientation));
 
 			cmp = builder.addSeparator(Messages.getString("NetworkTab.59"), FormLayoutUtil.flip(cc.xyw(1, 9, 10), colSpec, orientation));
 			cmp = (JComponent) cmp.getComponent(0);
@@ -187,20 +187,20 @@ public class NavigationShareTab {
 
 			builder.add(itunes, FormLayoutUtil.flip(cc.xy(1, 19), colSpec, orientation));
 			builder.add(iphoto, FormLayoutUtil.flip(cc.xyw(4, 19, 3), colSpec, orientation));
-			builder.add(aperture, FormLayoutUtil.flip(cc.xyw(9, 19, 2), colSpec, orientation));
+			builder.add(aperture, FormLayoutUtil.flip(cc.xy(9, 19), colSpec, orientation));
 
 			builder.add(cacheenable, FormLayoutUtil.flip(cc.xy(1, 21), colSpec, orientation));
 			builder.add(cachereset, FormLayoutUtil.flip(cc.xyw(4, 21, 3), colSpec, orientation));
-			builder.add(hidemedialibraryfolder, FormLayoutUtil.flip(cc.xyw(9, 21, 2), colSpec, orientation));
+			builder.add(hidemedialibraryfolder, FormLayoutUtil.flip(cc.xy(9, 21), colSpec, orientation));
 
 			builder.add(archive, FormLayoutUtil.flip(cc.xyw(1, 23, 3), colSpec, orientation));
 			builder.add(hidevideosettings, FormLayoutUtil.flip(cc.xyw(4, 23, 3), colSpec, orientation));
-			builder.add(hidetranscode, FormLayoutUtil.flip(cc.xyw(9, 23, 2), colSpec, orientation));
+			builder.add(hidetranscode, FormLayoutUtil.flip(cc.xy(9, 23), colSpec, orientation));
 
 			builder.add(liveSubtitles, FormLayoutUtil.flip(cc.xyw(1, 25, 3), colSpec, orientation));
 			builder.addLabel(Messages.getString("FoldTab.37"), FormLayoutUtil.flip(cc.xyw(4, 25, 2), colSpec, orientation));
 			builder.add(atzLimit, FormLayoutUtil.flip(cc.xy(6, 25), colSpec, orientation));
-			builder.add(newmediafolder, FormLayoutUtil.flip(cc.xyw(9, 25, 2), colSpec, orientation));
+			builder.add(newmediafolder, FormLayoutUtil.flip(cc.xy(9, 25), colSpec, orientation));
 
 			builder.add(builderSharedFolder.getPanel(), FormLayoutUtil.flip(cc.xyw(1, 27, 10), colSpec, orientation));
 		} else {
@@ -260,6 +260,7 @@ public class NavigationShareTab {
 
 		// Use MPlayer for video thumbnails
 		mplayer_thumb = new JCheckBox(Messages.getString("FoldTab.14"), configuration.isUseMplayerForVideoThumbs());
+		mplayer_thumb.setToolTipText(Messages.getString("FoldTab.61"));
 		mplayer_thumb.setContentAreaFilled(false);
 		mplayer_thumb.addItemListener(new ItemListener() {
 			@Override
