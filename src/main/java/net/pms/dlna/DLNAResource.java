@@ -2447,7 +2447,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// not producing output after params.waitbeforestart milliseconds + 5 seconds
 			// this cleans up lingering MEncoder web video transcode processes that hang
 			// instead of exiting
-			if (is == null && externalProcess != null && !externalProcess.isDestroyed()) {
+			if (is == null && !externalProcess.isDestroyed()) {
 				Runnable r = new Runnable() {
 					@Override
 					public void run() {
