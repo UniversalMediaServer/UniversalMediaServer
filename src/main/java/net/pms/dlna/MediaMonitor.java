@@ -19,12 +19,14 @@ public class MediaMonitor extends VirtualFolder {
     private final PmsConfiguration configuration;
 	private final List<File> monitoredFolders;
 	private final HashSet<String> oldEntries;
+    private final Map<LocalDate, VirtualFolder> ageFolders;
 
     public MediaMonitor(List<File> monitoredFolders) {
 		super(Messages.getString("VirtualFolder.2"), "images/thumbnail-video-256.png");
         configuration = PMS.getConfiguration();
 		this.monitoredFolders = monitoredFolders;
 		oldEntries = new HashSet<>();
+        ageFolders = new LinkedHashMap<>(); // LinkedHashMap iterates in insertion order
         parseMonitorFile();
 	}
 
@@ -77,14 +79,14 @@ public class MediaMonitor extends VirtualFolder {
 	}
 
     private void addNewMedia(List<File> newMedia) {
-        Map<LocalDate, VirtualFolder> dateFolders = createDateFoldersMap();
+        resetAgeFolders();
 
         for (File f : newMedia) {
             LocalDate lastModifiedDate = new LocalDate(f.lastModified());
 
             VirtualFolder dateFolder = null;
 
-            for (Map.Entry<LocalDate, VirtualFolder> entry : dateFolders.entrySet()) {
+            for (Map.Entry<LocalDate, VirtualFolder> entry : ageFolders.entrySet()) {
                 LocalDate date = entry.getKey();
                 if(date == null || date.isEqual(lastModifiedDate) || date.isBefore(lastModifiedDate)) {
                     dateFolder = entry.getValue();
@@ -100,7 +102,7 @@ public class MediaMonitor extends VirtualFolder {
         getChildren().clear();
 
         // add date folders to New Media folder
-        for (VirtualFolder dateFolder : dateFolders.values()) {
+        for (VirtualFolder dateFolder : ageFolders.values()) {
             if(!configuration.isHideEmptyFolders() || dateFolder.getChildren().size() > 0) {
                 addClearAll(dateFolder);
                 addChild(dateFolder);
@@ -116,16 +118,13 @@ public class MediaMonitor extends VirtualFolder {
         }
     }
 
-    private Map<LocalDate, VirtualFolder> createDateFoldersMap() {
-        Map<LocalDate, VirtualFolder> dateFolders = new LinkedHashMap<>(); // LinkedHashMap iterates in insertion order
-
-        dateFolders.put(LocalDate.now(), new VirtualFolder(Messages.getString("DateFolder.today"), "images/thumbnail-video-256.png"));
-        dateFolders.put(LocalDate.now().minusWeeks(1), new VirtualFolder(Messages.getString("DateFolder.week"), "images/thumbnail-video-256.png"));
-        dateFolders.put(LocalDate.now().minusMonths(1), new VirtualFolder(Messages.getString("DateFolder.month"), "images/thumbnail-video-256.png"));
-        dateFolders.put(LocalDate.now().minusYears(1), new VirtualFolder(Messages.getString("DateFolder.year"), "images/thumbnail-video-256.png"));
-        dateFolders.put(null, new VirtualFolder(Messages.getString("DateFolder.older"), "images/thumbnail-video-256.png"));
-
-        return dateFolders;
+    private void resetAgeFolders() {
+        ageFolders.clear();
+        ageFolders.put(LocalDate.now(), new VirtualFolder(Messages.getString("DateFolder.today"), "images/thumbnail-video-256.png"));
+        ageFolders.put(LocalDate.now().minusWeeks(1), new VirtualFolder(Messages.getString("DateFolder.week"), "images/thumbnail-video-256.png"));
+        ageFolders.put(LocalDate.now().minusMonths(1), new VirtualFolder(Messages.getString("DateFolder.month"), "images/thumbnail-video-256.png"));
+        ageFolders.put(LocalDate.now().minusYears(1), new VirtualFolder(Messages.getString("DateFolder.year"), "images/thumbnail-video-256.png"));
+        ageFolders.put(null, new VirtualFolder(Messages.getString("DateFolder.older"), "images/thumbnail-video-256.png"));
     }
 
     private void addClearAll(final VirtualFolder folder) {
@@ -145,7 +144,14 @@ public class MediaMonitor extends VirtualFolder {
     public void stopped(DLNAResource res) {
         addToOld(res);
         dumpFile();
-        setDiscovered(false);
+        boolean inNewMedia = getChildren().remove(res);
+        for (VirtualFolder ageFolder : ageFolders.values()) {
+            inNewMedia = inNewMedia || ageFolder.getChildren().remove(res);
+        }
+
+        if(!inNewMedia) {
+            setDiscovered(false);
+        }
 	}
 
     private void addToOld(DLNAResource r) {
