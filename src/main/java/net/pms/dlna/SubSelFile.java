@@ -60,7 +60,7 @@ public class SubSelFile extends VirtualFolder {
 		}
 	}
 
-	private class SubSort implements Comparator<String> {
+	private static class SubSort implements Comparator<String> {
 		private List<String> langs;
 
 		SubSort(PmsConfiguration configuration) {
