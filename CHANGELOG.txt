@@ -1,7 +1,14 @@
 3.4.1 - 2014-02-??
 
 	General:
-		
+		Improved math accuracy
+		Improved thread-safety
+	External Components:
+		Updated Maven Checkstyle plugin to 2.11
+		Updated Maven Doxia Docbook Simple plugin to 1.5
+		Updated Maven FindBugs Plugin to 2.5.3
+		Updated Maven Site plugin to 3.3
+		Updated Maven Surefire Report plugin to 2.16
 
 3.4.0 - 2014-02-06
 
