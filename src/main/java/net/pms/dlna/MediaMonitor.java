@@ -132,42 +132,68 @@ public class MediaMonitor extends VirtualFolder {
             @Override
             public boolean enable() {
                 for (DLNAResource res : folder.getChildren()) {
-                    addToOld(res);
+                    addToOld(getAbsolutePathFromResource(res));
                 }
                 dumpFile();
-                setDiscovered(false);
+                MediaMonitor.this.setDiscovered(false);
                 return true;
             }
         });
     }
 
     public void stopped(DLNAResource res) {
-        addToOld(res);
+        String path = getAbsolutePathFromResource(res);
+
+        if(path == null)
+            return;
+
+        addToOld(path);
         dumpFile();
-        boolean inNewMedia = getChildren().remove(res);
-        for (VirtualFolder ageFolder : ageFolders.values()) {
-            inNewMedia = inNewMedia || ageFolder.getChildren().remove(res);
-        }
 
-        if(!inNewMedia) {
-            setDiscovered(false);
-        }
-	}
-
-    private void addToOld(DLNAResource r) {
-        if (!(r instanceof RealFile)) {
+        if (removeMediaFromFolder(this, path)) {
             return;
         }
 
-        String path = ((RealFile) r).getFile().getAbsolutePath();
-        if (old(path)) { // no duplicates!
+        for (VirtualFolder ageFolder : ageFolders.values()) {
+            if (removeMediaFromFolder(ageFolder, path)) {
+                return;
+            }
+        }
+	}
+
+    private boolean removeMediaFromFolder(VirtualFolder folder, String path) {
+        List<DLNAResource> children;
+        children = folder.getChildren();
+        for (DLNAResource child : children) {
+            String childPath = getAbsolutePathFromResource(child);
+            if (childPath != null && childPath.equals(path)) {
+                children.remove(child);
+                if(children.size() <= 1) {
+                    setDiscovered(false);
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String getAbsolutePathFromResource(DLNAResource r) {
+        if (!(r instanceof RealFile)) {
+            return null;
+        }
+
+        return ((RealFile) r).getFile().getAbsolutePath();
+    }
+
+    private void addToOld(String path) {
+        if (path == null || old(path)) { // no duplicates!
             return;
         }
 
         oldEntries.add(path);
     }
 
-	private boolean old(String str) {
+    private boolean old(String str) {
 		return oldEntries.contains(str);
 	}
 
