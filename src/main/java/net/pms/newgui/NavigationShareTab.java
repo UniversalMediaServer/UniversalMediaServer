@@ -799,6 +799,8 @@ public class NavigationShareTab {
 				case 1:
 					clazz = Boolean.class;
 					break;
+				default:
+					break;
 			}
 			return clazz;
 		}

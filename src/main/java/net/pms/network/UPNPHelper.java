@@ -324,6 +324,8 @@ public class UPNPHelper {
 					case 20000:
 						delay = 180000;
 						break;
+					default:
+						break;
 					}
 				}
 			}
