@@ -260,6 +260,7 @@ public class NavigationShareTab {
 
 		// Use MPlayer for video thumbnails
 		mplayer_thumb = new JCheckBox(Messages.getString("FoldTab.14"), configuration.isUseMplayerForVideoThumbs());
+		mplayer_thumb.setToolTipText(Messages.getString("FoldTab.61"));
 		mplayer_thumb.setContentAreaFilled(false);
 		mplayer_thumb.addItemListener(new ItemListener() {
 			@Override
