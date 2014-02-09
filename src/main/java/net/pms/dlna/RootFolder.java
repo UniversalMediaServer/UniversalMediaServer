@@ -192,7 +192,7 @@ public class RootFolder extends DLNAResource {
 		}
 	}
 
-	public void scan() {
+	public synchronized void scan() {
 		running = true;
 
 		if (!isDiscovered()) {
@@ -215,7 +215,7 @@ public class RootFolder extends DLNAResource {
 		stopScan();
 	}
 
-	public void stopScan() {
+	public synchronized void stopScan() {
 		running = false;
 	}
 
