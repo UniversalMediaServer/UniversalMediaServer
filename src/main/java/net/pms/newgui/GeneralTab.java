@@ -324,7 +324,7 @@ public class GeneralTab {
 							}
 							textArea.setText(sb.toString());
 						}
-					} catch (Exception e1) {
+					} catch (IOException e1) {
 						return;
 					}
 

@@ -230,7 +230,7 @@ public class MediaMonitor extends VirtualFolder {
                 }
             }
             dumpFile();
-        } catch (Exception e) {
+		} catch (IOException e) {
             LOGGER.error("Unable to parse in UMS.mon");
         }
     }

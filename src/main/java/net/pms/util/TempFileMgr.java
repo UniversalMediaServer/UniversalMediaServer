@@ -98,7 +98,7 @@ public class TempFileMgr {
 					}
 				}
 			}
-		} catch (Exception e) {
+		} catch (IOException e) {
 		}
 	}
 
