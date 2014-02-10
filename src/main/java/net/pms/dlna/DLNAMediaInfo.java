@@ -715,7 +715,7 @@ public class DLNAMediaInfo implements Cloneable {
 					pw = getFFMpegThumbnail(inputFile);
 				}
 
-				parseFFmpeg((ArrayList<String>) pw.getResults(), pw, inputFile, type, thumbOnly, ffmpeg_failure, "-");
+				parseFFmpeg(pw, inputFile, type, thumbOnly, ffmpeg_failure, "-");
 			}
  
 			finalize(type, inputFile);
@@ -723,7 +723,7 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 	}
 
-	public void parseFFmpeg(ArrayList<String> lines, ProcessWrapperImpl pw, InputFile inputFile, int type, boolean thumbOnly, boolean failure, String input) {
+	public void parseFFmpeg(ProcessWrapperImpl pw, InputFile inputFile, int type, boolean thumbOnly, boolean failure, String input) {
 		boolean dvrms = false;
 
 		if (inputFile != null && inputFile.getFile() != null) {
@@ -731,7 +731,7 @@ public class DLNAMediaInfo implements Cloneable {
 			dvrms = inputFile.getFile().getAbsolutePath().toLowerCase().endsWith("dvr-ms");
 		}
 
-		if (!ffmpeg_failure && !thumbOnly) {
+		if (pw != null && !ffmpeg_failure && !thumbOnly) {
 			if (input.equals("-")) {
 				input = "pipe:";
 			}
@@ -739,6 +739,7 @@ public class DLNAMediaInfo implements Cloneable {
 			boolean matchs = false;
 			int langId = 0;
 			int subId = 0;
+			ArrayList<String> lines = pw.getResults();
 			ListIterator<String> FFmpegMetaData = lines.listIterator();
 
 			for (String line : lines) {
