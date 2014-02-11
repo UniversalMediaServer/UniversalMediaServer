@@ -39,16 +39,16 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 
 	private String cmdLine;
 	private Process process;
-	private OutputConsumer stdoutConsumer;
-	private OutputConsumer stderrConsumer;
+	private OutputConsumer standardOutputConsumer;
+	private OutputConsumer standardTextConsumer;
 	private OutputParams params;
 	private boolean destroyed;
 	private String[] cmdArray;
 	private boolean nullable;
 	private ArrayList<ProcessWrapper> attachedProcesses;
 	private BufferedOutputFile bo = null;
-	private boolean keepStdout;
-	private boolean keepStderr;
+	private boolean keepStandardOutput;
+	private boolean keepTextOutput;
 	private static int processCounter = 0;
 	private boolean success;
 
@@ -69,7 +69,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 		this(cmdArray, params, keepOutput, keepOutput);
 	}
 
-	public ProcessWrapperImpl(String cmdArray[], OutputParams params, boolean keepStdout, boolean keepStderr) {
+	public ProcessWrapperImpl(String cmdArray[], OutputParams params, boolean keepStandardOutput, boolean keepTextOutput) {
 		super();
 
 		// Determine a suitable thread name for this process:
@@ -109,8 +109,8 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 
 		cmdLine = sb.toString();
 		this.params = params;
-		this.keepStdout = keepStdout;
-		this.keepStderr = keepStderr;
+		this.keepStandardOutput = keepStandardOutput;
+		this.keepTextOutput = keepTextOutput;
 		attachedProcesses = new ArrayList<>();
 	}
 
@@ -173,21 +173,21 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			// XXX A cleaner way to execute short-running commands (e.g. vlc -version)
 			// is being developed. When that's done, this class can be used solely
 			// for the long-running tasks i.e. transcodes. At that point, we won't need
-			// separate stdout and stderr and can merge them by uncommenting the
+			// separate keepStandardOutput and stderr and can merge them by uncommenting the
 			// following line:
 			// pb.redirectErrorStream(true);
 			process = pb.start();
 			PMS.get().currentProcesses.add(process);
 
-			if (stderrConsumer == null) {
-				stderrConsumer = keepStderr
+			if (standardTextConsumer == null) {
+				standardTextConsumer = keepTextOutput
 					? new OutputTextConsumer(process.getErrorStream(), true)
 					: new OutputTextLogger(process.getErrorStream(), this);
 			} else {
-				stderrConsumer.setInputStream(process.getErrorStream());
+				standardTextConsumer.setInputStream(process.getErrorStream());
 			}
-			stderrConsumer.start();
-			stdoutConsumer = null;
+			standardTextConsumer.start();
+			standardOutputConsumer = null;
 
 			if (params.input_pipes[0] != null) {
 				LOGGER.debug("Reading pipe: " + params.input_pipes[0].getInputPipe());
@@ -199,23 +199,23 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 						is = new AviDemuxerInputStream(is, params, attachedProcesses);
 					}
 
-					stdoutConsumer = new OutputBufferConsumer(is, params);
-					bo = stdoutConsumer.getBuffer();
+					standardOutputConsumer = new OutputBufferConsumer(is, params);
+					bo = standardOutputConsumer.getBuffer();
 				}
 				bo.attachThread(this);
 				new OutputTextLogger(process.getInputStream(), this).start();
 			} else if (params.log) {
-				stdoutConsumer = keepStdout
+				standardOutputConsumer = keepStandardOutput
 					? new OutputTextConsumer(process.getInputStream(), true)
 					: new OutputTextLogger(process.getInputStream(), this);
 			} else {
-				stdoutConsumer = new OutputBufferConsumer(process.getInputStream(), params);
-				bo = stdoutConsumer.getBuffer();
+				standardOutputConsumer = new OutputBufferConsumer(process.getInputStream(), params);
+				bo = standardOutputConsumer.getBuffer();
 				bo.attachThread(this);
 			}
 
-			if (stdoutConsumer != null) {
-				stdoutConsumer.start();
+			if (standardOutputConsumer != null) {
+				standardOutputConsumer.start();
 			}
 
 			if (params.stdin != null) {
@@ -232,16 +232,16 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 
 			// Wait up to a second for the stderr consumer thread to finish
 			try {
-				if (stderrConsumer != null) {
-					stderrConsumer.join(1000);
+				if (standardTextConsumer != null) {
+					standardTextConsumer.join(1000);
 				}
 			} catch (InterruptedException e) {
 			}
 
-			// wait up to a second for the stdout consumer thread to finish
+			// wait up to a second for the keepStandardOutput consumer thread to finish
 			try {
-				if (stdoutConsumer != null) {
-					stdoutConsumer.join(1000);
+				if (standardOutputConsumer != null) {
+					standardOutputConsumer.join(1000);
 				}
 			} catch (InterruptedException e) { }
 		} catch (IOException e) {
@@ -302,30 +302,30 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 	public InputStream getInputStream(long seek) throws IOException {
 		if (bo != null) {
 			return bo.getInputStream(seek);
-		} else if (stdoutConsumer != null && stdoutConsumer.getBuffer() != null) {
-			return stdoutConsumer.getBuffer().getInputStream(seek);
+		} else if (standardOutputConsumer != null && standardOutputConsumer.getBuffer() != null) {
+			return standardOutputConsumer.getBuffer().getInputStream(seek);
 		}
 		return null;
 	}
 
 	public List<String> getOtherResults() {
-		if (stdoutConsumer == null) {
+		if (standardOutputConsumer == null) {
 			return null;
 		}
 		try {
-			stdoutConsumer.join(1000);
+			standardOutputConsumer.join(1000);
 		} catch (InterruptedException e) {
 		}
-		return stdoutConsumer.getResults();
+		return standardOutputConsumer.getResults();
 	}
 
 	@Override
 	public List<String> getResults() {
 		try {
-			stderrConsumer.join(1000);
+			standardTextConsumer.join(1000);
 		} catch (InterruptedException e) {
 		}
-		return stderrConsumer.getResults();
+		return standardTextConsumer.getResults();
 	}
 
 	@Override
@@ -349,8 +349,8 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 					}
 				}
 			}
-			if (stdoutConsumer != null && stdoutConsumer.getBuffer() != null) {
-				stdoutConsumer.getBuffer().reset();
+			if (standardOutputConsumer != null && standardOutputConsumer.getBuffer() != null) {
+				standardOutputConsumer.getBuffer().reset();
 			}
 		}
 	}
@@ -373,9 +373,9 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 		this.nullable = nullable;
 	}
 
-	// TODO: implement setStdoutConsumer() ?
+	// TODO: implement setstandardOutputConsumer() ?
 
-	public void setStderrConsumer(OutputConsumer consumer) {
-		this.stderrConsumer = consumer;
+	public void setStandardTextConsumer(OutputConsumer consumer) {
+		this.standardTextConsumer = consumer;
 	}
 }
