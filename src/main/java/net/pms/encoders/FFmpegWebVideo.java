@@ -376,7 +376,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	public void parseMediaInfo(String filename, final DLNAResource dlna, final ProcessWrapperImpl pw) {
 		if (dlna.getMedia() == null) {
 			dlna.setMedia(new DLNAMediaInfo());
-		} else if (dlna.getMedia().isFFmegparsed()) {
+		} else if (dlna.getMedia().isFFmpegparsed()) {
 			return;
 		}
 		final ArrayList<String> lines = new ArrayList<String>();
@@ -385,7 +385,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			@Override
 			public boolean filter(String line) {
 				if (endOfHeader.reset(line).find()) {
-					dlna.getMedia().parseFFmpeg(lines, input);
+					dlna.getMedia().parseFFmpegInfo(lines, input);
 					LOGGER.trace("[{}] parsed media from headers: {}", ID, dlna.getMedia());
 					dlna.getParent().updateChild(dlna);
 					return false; // done, stop filtering

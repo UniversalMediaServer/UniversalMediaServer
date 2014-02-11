@@ -227,7 +227,7 @@ public class DLNAMediaInfo implements Cloneable {
 	@Deprecated
 	public boolean mediaparsed;
 
-	public boolean ffmegparsed;
+	public boolean ffmpegparsed;
 
 	/**
 	 * isMediaParserV2 related, used to manage thumbnail management separated
@@ -725,7 +725,7 @@ public class DLNAMediaInfo implements Cloneable {
 				}
 
 				if (pw != null && !ffmpeg_failure && !thumbOnly) {
-					parseFFmpeg(pw.getResults(), input);
+					parseFFmpegInfo(pw.getResults(), input);
 				}
 
 				if (
@@ -824,7 +824,13 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 	}
 
-	public void parseFFmpeg(List<String> lines, String input) {
+	/**
+	 * Parses media info from ffmpeg's stderr output
+	 *
+	 * @param lines The stderr output
+	 * @param input The ffmpeg input (-i) argument used
+	 */
+	public void parseFFmpegInfo(List<String> lines, String input) {
 
 		if (lines != null) {
 			if ("-".equals(input)) {
@@ -1083,7 +1089,7 @@ public class DLNAMediaInfo implements Cloneable {
 				}
 			}
 		}
-		ffmegparsed = true;
+		ffmpegparsed = true;
 	}
 
 	public boolean isH264() {
@@ -2000,8 +2006,8 @@ public class DLNAMediaInfo implements Cloneable {
 		this.mediaparsed = mediaparsed;
 	}
 
-	public boolean isFFmegparsed() {
-		return ffmegparsed;
+	public boolean isFFmpegparsed() {
+		return ffmpegparsed;
 	}
 
 	/**
