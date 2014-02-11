@@ -690,7 +690,7 @@ public class DLNAMediaInfo implements Cloneable {
 					LOGGER.info("Error parsing image ({}) with Sanselan, switching to FFmpeg.", inputFile.getFile().getAbsolutePath());
 				}
 
-				if (configuration.getImageThumbnailsEnabled()) {
+				if (configuration.getImageThumbnailsEnabled() && inputFile.getFile() != null) {
 					LOGGER.trace("Creating (temporary) thumbnail: {}", inputFile.getFile().getName());
 
 					// Create the thumbnail image using the Thumbnailator library
@@ -718,7 +718,7 @@ public class DLNAMediaInfo implements Cloneable {
 				boolean dvrms = false;
 				String input = "-";
 
-				if (inputFile != null && inputFile.getFile() != null) {
+				if (inputFile.getFile() != null) {
 					input = ProcessUtil.getShortFileNameIfWideChars(inputFile.getFile().getAbsolutePath());
 					dvrms = inputFile.getFile().getAbsolutePath().toLowerCase().endsWith("dvr-ms");
 				}
@@ -730,7 +730,6 @@ public class DLNAMediaInfo implements Cloneable {
 				if (
 					!thumbOnly &&
 					getContainer() != null &&
-					inputFile != null &&
 					inputFile.getFile() != null &&
 					getContainer().equals("mpegts") &&
 					isH264() &&
@@ -747,7 +746,7 @@ public class DLNAMediaInfo implements Cloneable {
 					}
 				}
 
-				if (inputFile != null && configuration.isUseMplayerForVideoThumbs() && type == Format.VIDEO && !dvrms) {
+				if (configuration.isUseMplayerForVideoThumbs() && type == Format.VIDEO && !dvrms) {
 					try {
 						getMplayerThumbnail(inputFile);
 						String frameName = "" + inputFile.hashCode();
