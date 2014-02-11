@@ -385,7 +385,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			@Override
 			public boolean filter(String line) {
 				if (endOfHeader.reset(line).find()) {
-					dlna.getMedia().parseFFmpeg(lines, pw, null, Format.VIDEO, false, false, input);
+					dlna.getMedia().parseFFmpeg(lines, input);
 					LOGGER.trace("[{}] parsed media from headers: {}", ID, dlna.getMedia());
 					dlna.getParent().updateChild(dlna);
 					return false; // done, stop filtering
