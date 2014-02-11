@@ -717,7 +717,7 @@ public class DLNAMediaInfo implements Cloneable {
 				}
 
 				boolean dvrms = false;
-				String input;
+				String input = "-";
 
 				if (inputFile != null && inputFile.getFile() != null) {
 					input = ProcessUtil.getShortFileNameIfWideChars(inputFile.getFile().getAbsolutePath());
@@ -725,7 +725,7 @@ public class DLNAMediaInfo implements Cloneable {
 				}
 
 				if (pw != null && !ffmpeg_failure && !thumbOnly) {
-					parseFFmpeg(pw.getResults(), "-");
+					parseFFmpeg(pw.getResults(), input);
 				}
 
 				if (
