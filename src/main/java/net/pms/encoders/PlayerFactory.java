@@ -127,6 +127,8 @@ public final class PlayerFactory {
 		registerPlayer(new FFMpegVideo());
 		registerPlayer(new VLCVideo());
 		registerPlayer(new FFmpegWebVideo());
+		registerPlayer(new FFmpegWebAudio());
+		
 		registerPlayer(new MEncoderWebVideo());
 		registerPlayer(new VLCWebVideo());
 		registerPlayer(new TsMuxeRVideo());
