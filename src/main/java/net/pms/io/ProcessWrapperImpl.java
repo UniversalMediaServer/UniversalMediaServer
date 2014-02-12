@@ -173,7 +173,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			// XXX A cleaner way to execute short-running commands (e.g. vlc -version)
 			// is being developed. When that's done, this class can be used solely
 			// for the long-running tasks i.e. transcodes. At that point, we won't need
-			// separate keepStandardOutput and standardTextConsumer and can merge them by uncommenting the
+			// separate keepStandardOutput and stderr and can merge them by uncommenting the
 			// following line:
 			// pb.redirectErrorStream(true);
 			process = pb.start();
@@ -230,7 +230,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 
 			ProcessUtil.waitFor(process);
 
-			// Wait up to a second for the standardTextConsumer consumer thread to finish
+			// Wait up to a second for the stderr consumer thread to finish
 			try {
 				if (standardTextConsumer != null) {
 					standardTextConsumer.join(1000);
