@@ -47,7 +47,7 @@ public class FFmpegWebAudio extends FFmpegAudio {
 
 	// FIXME we have an id() accessor for this; no need for the field to be public
 	@Deprecated
-	public static final String ID = "ffmpegweaudio";
+	public static final String ID = "ffmpegwebaudio";
 
 	@Override
 	public JComponent config() {
