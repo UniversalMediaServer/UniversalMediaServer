@@ -71,7 +71,10 @@
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
 		<project.version.short>3.4.1</project.version.short>
 		<cuelib-version>1.2.1-2008-06-13</cuelib-version>
-		<jgoodies-forms-version>1.7.2</jgoodies-forms-version>
+
+		<!-- In versions after 1.6.0, they removed code that the MovieInfo plugin relies on -->
+		<jgoodies-forms-version>1.6.0</jgoodies-forms-version>
+
 		<jgoodies-looks-version>2.5.3</jgoodies-looks-version>
 		<junrar-version>0.7</junrar-version>
 		<mediautil-version>1.0</mediautil-version>
