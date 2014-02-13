@@ -18,6 +18,9 @@
  */
 package net.pms.encoders;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -36,6 +39,7 @@ import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.util.PlayerUtil;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -109,39 +113,6 @@ public class FFmpegWebAudio extends FFmpegAudio {
 			filename = "mmsh:" + filename.substring(4);
 		}
 		
-		
-		// Simple .pls parser
-		// XXX ffmpeg doesn't support streaming from *.pls files (Shoutcast default)
-		// select random entry (stream url) form playlist url
-		if(filename.startsWith("http") && filename.endsWith("pls") )
-		{
-			// http get playlist file
-			@SuppressWarnings("resource")
-			String pls = new Scanner(new URL(filename).openStream(), "UTF-8").useDelimiter("\\A").next();
-
-			String[] lines = pls.split("[\\r\\n]+");
-
-			List<String> urls = new ArrayList<String>();
-			
-			for( String line : lines) {
-				if (line.contains("File")) {
-					urls.add(line.substring(line.indexOf("=")+1) );
-				}
-			}
-			
-			if( urls.size() > 0 ) {
-				int index = new Random().nextInt(urls.size()-1);
-				
-				LOGGER.info("[PLS Parser] Stream: "+urls.get(index)+" selected from Playlist: "+filename);	
-				filename = urls.get(index);
-				
-				//little clean up
-				lines=null;
-				urls=null;			
-			}
-		}
-
-
 		// basename of the named pipe:
 		String fifoName = String.format(
 			"ffmpegwebaudio_%d_%d",
@@ -164,6 +135,7 @@ public class FFmpegWebAudio extends FFmpegAudio {
 
 		cmdList.add(executable());
 		cmdList.add("-y");
+		
 		cmdList.add("-loglevel");
 		
 		if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
@@ -173,6 +145,94 @@ public class FFmpegWebAudio extends FFmpegAudio {
 		}
 
 		//XXX nThread removed because audio transcoding doesn't produce high CPU load...
+		
+		
+		// Simple (.pls|.m3u) parser
+		// XXX ffmpeg doesn't support streaming from (*.pls|*.m3u) files (Shoutcast default)
+		// select random entry (stream url) form playlist url
+		if (filename.startsWith("http") && (filename.endsWith("pls") || filename.endsWith("m3u"))) {
+
+			final int PLAYLIST_TYPE_PLS = 0;
+			final int PLAYLIST_TYPE_M3U = 1;
+
+			int type = filename.endsWith("pls") ? PLAYLIST_TYPE_PLS : PLAYLIST_TYPE_M3U;
+
+			// http get playlist file
+			@SuppressWarnings("resource")
+			String pls = new Scanner(new URL(filename).openStream(), "UTF-8").useDelimiter("\\A").next();
+
+			String[] lines = pls.split("[\\r\\n]+");
+
+			try {
+				File tmp = File.createTempFile(fifoName, ".tmp");
+				BufferedWriter tmpWriter = new BufferedWriter(new FileWriter(tmp));
+
+				// XXX I don't know if it is optimal loop (switch in loop or
+				// loop i switch?)
+				for (String line : lines) {
+					switch (type) {
+					case PLAYLIST_TYPE_PLS:// .pls
+						if (line.contains("File")) {
+							tmpWriter.write("file '" + line.substring(line.indexOf("=") + 1).trim() + "'\n");
+						}
+						break;
+
+					case PLAYLIST_TYPE_M3U:// .m3u
+						if (!line.startsWith("#")) {
+							tmpWriter.write("file '" + line.trim() + "'\n");
+						}
+						break;
+					}
+				}
+
+				tmpWriter.close();
+				lines = null;
+
+				cmdList.add("-f");
+				cmdList.add("concat");
+
+				filename = tmp.getAbsolutePath();
+
+			} catch (IOException e) {
+				LOGGER.error("Playlist file writing error", e);
+			}
+			
+			/*
+			List<String> urls = new ArrayList<String>();
+			
+			for( String line : lines) {
+				switch(type)
+				{
+					case 0:// .pls
+						if ( line.contains("File") ) {
+							urls.add( line.substring( line.indexOf("=")+1 ).trim() );
+						}
+					break;
+					
+					case 1:// .m3u
+						if ( !line.startsWith("#") ) {
+							urls.add( line.trim() );
+						}
+					break;
+				}
+			}
+
+			
+			if( urls.size() > 0 ) {
+				
+				int index = new Random().nextInt(urls.size()-1);
+				
+				LOGGER.info("[PLS Parser] Stream: "+urls.get(index)+" selected from Playlist: "+filename);	
+				filename = urls.get(index);
+
+				//little clean up
+				lines=null;
+				urls=null;			
+			}
+			*/
+		}
+		
+		
 
 		cmdList.add("-i");
 		cmdList.add(filename);
