@@ -1477,7 +1477,7 @@ public class FFMpegVideo extends Player {
 					}
 				};
 				ffParser.setFiltered(true);
-				pw.setStandardTextConsumer(ffParser);
+				pw.setStderrConsumer(ffParser);
 			}
 		}
 	}

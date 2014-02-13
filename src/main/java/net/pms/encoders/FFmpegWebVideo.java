@@ -395,7 +395,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			}
 		};
 		ffParser.setFiltered(true);
-		pw.setStandardTextConsumer(ffParser);
+		pw.setStderrConsumer(ffParser);
 	}
 }
 
