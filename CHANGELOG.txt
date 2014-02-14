@@ -1,4 +1,4 @@
-3.4.1 - 2014-02-??
+3.4.1 - 2014-02-14
 
 	General:
 		Fixed MPlayer thumbnail generation
