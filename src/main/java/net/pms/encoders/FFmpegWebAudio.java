@@ -18,14 +18,11 @@
  */
 package net.pms.encoders;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.Scanner;
 
 import javax.swing.JComponent;
@@ -33,13 +30,13 @@ import javax.swing.JComponent;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.IPushOutput;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.ProcessWrapperImpl;
 import net.pms.util.PlayerUtil;
 
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,7 +102,6 @@ public class FFmpegWebAudio extends FFmpegAudio {
 		params.waitbeforestart = 5000;
 		params.manageFastStart();
 
-
 		String filename = dlna.getSystemName();
 
 		// XXX work around an ffmpeg bug: http://ffmpeg.org/trac/ffmpeg/ticket/998
@@ -155,83 +151,51 @@ public class FFmpegWebAudio extends FFmpegAudio {
 			final int PLAYLIST_TYPE_PLS = 0;
 			final int PLAYLIST_TYPE_M3U = 1;
 
-			int type = filename.endsWith("pls") ? PLAYLIST_TYPE_PLS : PLAYLIST_TYPE_M3U;
+			final int type = filename.endsWith("pls") ? PLAYLIST_TYPE_PLS : PLAYLIST_TYPE_M3U;
 
 			// http get playlist file
 			@SuppressWarnings("resource")
 			String pls = new Scanner(new URL(filename).openStream(), "UTF-8").useDelimiter("\\A").next();
 
-			String[] lines = pls.split("[\\r\\n]+");
+			final String[] lines = pls.split("[\\r\\n]+");
+			
+			if (lines.length > 0) {
 
-			try {
-				File tmp = File.createTempFile(fifoName, ".tmp");
-				BufferedWriter tmpWriter = new BufferedWriter(new FileWriter(tmp));
+				// push the newline-containing input arg via stdin
+				params.stdin = new IPushOutput() {
+					@Override
+					public void push(OutputStream out) throws IOException {
+						for (String line : lines) {
+							switch (type) {
+							case PLAYLIST_TYPE_PLS:// .pls
+								if (line.contains("File")) {
+									out.write(("file '" + line.substring(line.indexOf("=") + 1) + "'\n").getBytes());
+								}
+								break;
 
-				// XXX I don't know if it is optimal loop (switch in loop or
-				// loop i switch?)
-				for (String line : lines) {
-					switch (type) {
-					case PLAYLIST_TYPE_PLS:// .pls
-						if (line.contains("File")) {
-							tmpWriter.write("file '" + line.substring(line.indexOf("=") + 1).trim() + "'\n");
+							case PLAYLIST_TYPE_M3U:// .m3u
+								if (!line.startsWith("#")) {
+									out.write(("file '" + line + "'\n").getBytes());
+								}
+								break;
+							}
 						}
-						break;
 
-					case PLAYLIST_TYPE_M3U:// .m3u
-						if (!line.startsWith("#")) {
-							tmpWriter.write("file '" + line.trim() + "'\n");
-						}
-						break;
+						out.close();
 					}
-				}
 
-				tmpWriter.close();
-				lines = null;
+					@Override
+					public boolean isUnderlyingSeekSupported() {
+						return false;
+					}
+				};
 
 				cmdList.add("-f");
 				cmdList.add("concat");
-
-				filename = tmp.getAbsolutePath();
-
-			} catch (IOException e) {
-				LOGGER.error("Playlist file writing error", e);
-			}
-			
-			/*
-			List<String> urls = new ArrayList<String>();
-			
-			for( String line : lines) {
-				switch(type)
-				{
-					case 0:// .pls
-						if ( line.contains("File") ) {
-							urls.add( line.substring( line.indexOf("=")+1 ).trim() );
-						}
-					break;
-					
-					case 1:// .m3u
-						if ( !line.startsWith("#") ) {
-							urls.add( line.trim() );
-						}
-					break;
-				}
-			}
-
-			
-			if( urls.size() > 0 ) {
 				
-				int index = new Random().nextInt(urls.size()-1);
-				
-				LOGGER.info("[PLS Parser] Stream: "+urls.get(index)+" selected from Playlist: "+filename);	
-				filename = urls.get(index);
-
-				//little clean up
-				lines=null;
-				urls=null;			
+				filename = "-";
 			}
-			*/
 		}
-		
 		
 
 		cmdList.add("-i");
