@@ -1,9 +1,14 @@
 3.4.1 - 2014-02-??
 
 	General:
+		Fixed MPlayer thumbnail generation
+		Fixed support for the MovieInfo and LastFMScrobbler plugins
 		Improved math accuracy
 		Improved thread-safety
+		Improved code speed
+		Minor GUI improvements
 	External Components:
+		Updated JGoodies Forms to 1.6.0
 		Updated Maven Checkstyle plugin to 2.11
 		Updated Maven Doxia Docbook Simple plugin to 1.5
 		Updated Maven FindBugs Plugin to 2.5.3
