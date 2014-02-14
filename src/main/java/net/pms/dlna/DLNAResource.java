@@ -2300,9 +2300,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		Range.Time timeRange = range.createTimeRange();
 
 		if (getPlayer() != null && low > 0 && cbr_video_bitrate > 0) {
-			int used_bit_rated = (int) ((cbr_video_bitrate + 256) * 1024 / 8 * 1.04); // 1.04 = container overhead
+			int used_bit_rated = (int) ((cbr_video_bitrate + 256) * 1024 / (double) 8 * 1.04); // 1.04 = container overhead
 			if (low > used_bit_rated) {
-				timeRange.setStart((double) (low / (used_bit_rated)));
+				timeRange.setStart(low / (double) (used_bit_rated));
 				low = 0;
 
 				// WDTV Live - if set to TS it asks multiple times and ends by
@@ -2447,7 +2447,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// not producing output after params.waitbeforestart milliseconds + 5 seconds
 			// this cleans up lingering MEncoder web video transcode processes that hang
 			// instead of exiting
-			if (is == null && externalProcess != null && !externalProcess.isDestroyed()) {
+			if (is == null && !externalProcess.isDestroyed()) {
 				Runnable r = new Runnable() {
 					@Override
 					public void run() {

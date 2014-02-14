@@ -71,7 +71,7 @@ public class DownloadPlugins {
 				in = new BufferedReader(new InputStreamReader(new FileInputStream(test)));
 				parse_list(res, in, true);
 			}
-		} catch (Exception e) {
+		} catch (IOException e) {
 		}
 		return res;
 	}

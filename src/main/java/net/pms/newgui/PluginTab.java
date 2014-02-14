@@ -343,7 +343,7 @@ public class PluginTab {
 					}
 					textArea.setText(sb.toString());
 					fis.close();
-				} catch (Exception e1) {
+				} catch (IOException e1) {
 					return;
 				}
 

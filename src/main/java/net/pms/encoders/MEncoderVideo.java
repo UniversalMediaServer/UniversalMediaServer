@@ -1736,8 +1736,8 @@ public class MEncoderVideo extends Player {
 						(scaleHeight > params.mediaRenderer.getMaxVideoHeight())
 					)
 				) {
-					double overscannedAspectRatio = scaleWidth / scaleHeight;
-					rendererAspectRatio = params.mediaRenderer.getMaxVideoWidth() / params.mediaRenderer.getMaxVideoHeight();
+					double overscannedAspectRatio = scaleWidth / (double) scaleHeight;
+					rendererAspectRatio = params.mediaRenderer.getMaxVideoWidth() / (double) params.mediaRenderer.getMaxVideoHeight();
 
 					if (overscannedAspectRatio > rendererAspectRatio) {
 						// Limit video by width

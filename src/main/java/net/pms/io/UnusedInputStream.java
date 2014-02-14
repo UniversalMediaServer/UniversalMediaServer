@@ -58,9 +58,7 @@ public abstract class UnusedInputStream extends InputStream {
 				}
 				if (processToTerminate != null && processToTerminate.isReadyToStop()) {
 					LOGGER.debug("Destroying / Stopping attached process: " + processToTerminate);
-					if (processToTerminate != null) {
-						processToTerminate.stopProcess();
-					}
+					processToTerminate.stopProcess();
 					processToTerminate = null;
 					unusedStreamSignal();
 				}

@@ -31,7 +31,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>3.4.0</version>
+	<version>3.4.1</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -69,9 +69,12 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>3.4.0</project.version.short>
+		<project.version.short>3.4.1</project.version.short>
 		<cuelib-version>1.2.1-2008-06-13</cuelib-version>
-		<jgoodies-forms-version>1.7.2</jgoodies-forms-version>
+
+		<!-- In versions after 1.6.0, they removed code that the MovieInfo plugin relies on -->
+		<jgoodies-forms-version>1.6.0</jgoodies-forms-version>
+
 		<jgoodies-looks-version>2.5.3</jgoodies-looks-version>
 		<junrar-version>0.7</junrar-version>
 		<mediautil-version>1.0</mediautil-version>
@@ -697,12 +700,12 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
-				<version>3.1</version>
+				<version>3.3</version>
 				<dependencies>
 					<dependency>
 						<groupId>org.apache.maven.doxia</groupId>
 						<artifactId>doxia-module-docbook-simple</artifactId>
-						<version>1.4</version>
+						<version>1.5</version>
 					</dependency>
 				</dependencies>
 				<configuration>
@@ -724,7 +727,7 @@
 						<plugin>
 							<groupId>org.apache.maven.plugins</groupId>
 							<artifactId>maven-surefire-report-plugin</artifactId>
-							<version>2.15</version>
+							<version>2.16</version>
 							<configuration>
 								<showSuccess>false</showSuccess>
 							</configuration>
@@ -779,16 +782,15 @@
 						<plugin>
 							<groupId>org.codehaus.mojo</groupId>
 							<artifactId>findbugs-maven-plugin</artifactId>
-							<version>2.5.2</version>
+							<version>2.5.3</version>
 						</plugin>
 
 						<!-- Checkstyle report will go out of memory because of the huge amount of issues it finds(!)
 						<plugin>
 							<groupId>org.apache.maven.plugins</groupId>
 							<artifactId>maven-checkstyle-plugin</artifactId>
-							<version>2.10</version>
-						</plugin>
-						-->
+							<version>2.11</version>
+						</plugin> -->
 
 						<!-- Cobertura Test Coverage report -->
 						<plugin>
@@ -797,7 +799,7 @@
 							<version>2.6</version>
 						</plugin>
 
-						<!-- PMD and CPD code analysis report -->
+						<!-- PMD and CPD code analysis report is not working with the latest maven site version
 						<plugin>
 							<groupId>org.apache.maven.plugins</groupId>
 							<artifactId>maven-pmd-plugin</artifactId>
@@ -808,9 +810,9 @@
 								<minimumTokens>100</minimumTokens>
 								<targetJdk>1.6</targetJdk>
 							</configuration>
-						</plugin>
+						</plugin>-->
 
-						<!-- L10n internationalization report -->
+						<!-- L10n internationalization report is not working with the latest maven site version
 						<plugin>
 							<groupId>org.codehaus.mojo</groupId>
 							<artifactId>l10n-maven-plugin</artifactId>
@@ -844,7 +846,7 @@
 									<locale>zht</locale>
 								</locales>
 							</configuration>
-						</plugin>
+						</plugin> -->
 					</reportPlugins>
 				</configuration>
 			</plugin>

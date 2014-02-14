@@ -238,7 +238,7 @@ class ConfigurationReader {
 		} else if (def != null) {
 			value = def.trim();
 		} else {
-			value = def;
+			value = null;
 		}
 
 		log(key, value, def);

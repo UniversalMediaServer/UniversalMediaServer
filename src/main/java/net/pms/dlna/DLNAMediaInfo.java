@@ -224,7 +224,7 @@ public class DLNAMediaInfo implements Cloneable {
 	@Deprecated
 	public boolean mediaparsed;
 
-	public boolean ffmegparsed;
+	public boolean ffmpegparsed;
 
 	/**
 	 * isMediaParserV2 related, used to manage thumbnail management separated
@@ -687,7 +687,7 @@ public class DLNAMediaInfo implements Cloneable {
 					LOGGER.info("Error parsing image ({}) with Sanselan, switching to FFmpeg.", inputFile.getFile().getAbsolutePath());
 				}
 
-				if (configuration.getImageThumbnailsEnabled()) {
+				if (configuration.getImageThumbnailsEnabled() && inputFile.getFile() != null) {
 					LOGGER.trace("Creating (temporary) thumbnail: {}", inputFile.getFile().getName());
 
 					// Create the thumbnail image using the Thumbnailator library
@@ -712,7 +712,106 @@ public class DLNAMediaInfo implements Cloneable {
 					pw = getFFMpegThumbnail(inputFile);
 				}
 
-				parseFFmpeg((ArrayList<String>) pw.getResults(), pw, inputFile, type, thumbOnly, ffmpeg_failure, "-");
+				boolean dvrms = false;
+				String input = "-";
+
+				if (inputFile.getFile() != null) {
+					input = ProcessUtil.getShortFileNameIfWideChars(inputFile.getFile().getAbsolutePath());
+					dvrms = inputFile.getFile().getAbsolutePath().toLowerCase().endsWith("dvr-ms");
+				}
+
+				if (pw != null && !ffmpeg_failure && !thumbOnly) {
+					parseFFmpegInfo(pw.getResults(), input);
+				}
+
+				if (
+					!thumbOnly &&
+					getContainer() != null &&
+					inputFile.getFile() != null &&
+					getContainer().equals("mpegts") &&
+					isH264() &&
+					getDurationInSeconds() == 0
+				) {
+					// Parse the duration
+					try {
+						int length = MpegUtil.getDurationFromMpeg(inputFile.getFile());
+						if (length > 0) {
+							setDuration((double) length);
+						}
+					} catch (IOException e) {
+						LOGGER.trace("Error retrieving length: " + e.getMessage());
+					}
+				}
+
+				if (configuration.isUseMplayerForVideoThumbs() && type == Format.VIDEO && !dvrms) {
+					try {
+						getMplayerThumbnail(inputFile);
+						String frameName = "" + inputFile.hashCode();
+						frameName = configuration.getTempFolder() + "/mplayer_thumbs/" + frameName + "00000001/00000001.jpg";
+						frameName = frameName.replace(',', '_');
+						File jpg = new File(frameName);
+
+						if (jpg.exists()) {
+							InputStream is = new FileInputStream(jpg);
+							int sz = is.available();
+
+							if (sz > 0) {
+								setThumb(new byte[sz]);
+								is.read(getThumb());
+							}
+							is.close();
+
+							if (!jpg.delete()) {
+								jpg.deleteOnExit();
+							}
+
+							// Try and retry
+							if (!jpg.getParentFile().delete() && !jpg.getParentFile().delete()) {
+								LOGGER.debug("Failed to delete \"" + jpg.getParentFile().getAbsolutePath() + "\"");
+							}
+						}
+					} catch (IOException e) {
+						LOGGER.debug("Caught exception", e);
+					}
+				}
+
+				if (type == Format.VIDEO && pw != null && getThumb() == null) {
+					InputStream is;
+					try {
+						int sz = 0;
+						is = pw.getInputStream(0);
+						if (is != null) {
+							sz = is.available();
+							if (sz > 0) {
+								setThumb(new byte[sz]);
+								is.read(getThumb());
+							}
+							is.close();
+						}
+
+						if (sz > 0 && !net.pms.PMS.isHeadless()) {
+							BufferedImage image = ImageIO.read(new ByteArrayInputStream(getThumb()));
+							if (image != null) {
+								Graphics g = image.getGraphics();
+								g.setColor(Color.WHITE);
+								g.setFont(new Font("Arial", Font.PLAIN, 14));
+								int low = 0;
+								if (getWidth() > 0) {
+									if (getWidth() == 1920 || getWidth() == 1440) {
+										g.drawString("1080p", 0, low += 18);
+									} else if (getWidth() == 1280) {
+										g.drawString("720p", 0, low += 18);
+									}
+								}
+								ByteArrayOutputStream out = new ByteArrayOutputStream();
+								ImageIO.write(image, "jpeg", out);
+								setThumb(out.toByteArray());
+							}
+						}
+					} catch (IOException e) {
+						LOGGER.debug("Error while decoding thumbnail: " + e.getMessage());
+					}
+				}
 			}
  
 			finalize(type, inputFile);
@@ -720,16 +819,16 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 	}
 
-	public void parseFFmpeg(ArrayList<String> lines, ProcessWrapperImpl pw, InputFile inputFile, int type, boolean thumbOnly, boolean failure, String input) {
-		boolean dvrms = false;
+	/**
+	 * Parses media info from ffmpeg's stderr output
+	 *
+	 * @param lines The stderr output
+	 * @param input The ffmpeg input (-i) argument used
+	 */
+	public void parseFFmpegInfo(List<String> lines, String input) {
 
-		if (inputFile != null && inputFile.getFile() != null) {
-			input = ProcessUtil.getShortFileNameIfWideChars(inputFile.getFile().getAbsolutePath());
-			dvrms = inputFile.getFile().getAbsolutePath().toLowerCase().endsWith("dvr-ms");
-		}
-
-		if (!ffmpeg_failure && !thumbOnly) {
-			if (input.equals("-")) {
+		if (lines != null) {
+			if ("-".equals(input)) {
 				input = "pipe:";
 			}
 
@@ -985,97 +1084,7 @@ public class DLNAMediaInfo implements Cloneable {
 				}
 			}
 		}
-
-		if (
-			!thumbOnly &&
-			getContainer() != null &&
-			inputFile != null &&
-			inputFile.getFile() != null &&
-			getContainer().equals("mpegts") &&
-			isH264() &&
-			getDurationInSeconds() == 0
-		) {
-			// Parse the duration
-			try {
-				int length = MpegUtil.getDurationFromMpeg(inputFile.getFile());
-				if (length > 0) {
-					setDuration((double) length);
-				}
-			} catch (IOException e) {
-				LOGGER.trace("Error retrieving length: " + e.getMessage());
-			}
-		}
-
-		if (inputFile != null && configuration.isUseMplayerForVideoThumbs() && type == Format.VIDEO && !dvrms) {
-			try {
-				getMplayerThumbnail(inputFile);
-				String frameName = "" + inputFile.hashCode();
-				frameName = configuration.getTempFolder() + "/mplayer_thumbs/" + frameName + "00000001/00000001.jpg";
-				frameName = frameName.replace(',', '_');
-				File jpg = new File(frameName);
-
-				if (jpg.exists()) {
-					InputStream is = new FileInputStream(jpg);
-					int sz = is.available();
-
-					if (sz > 0) {
-						setThumb(new byte[sz]);
-						is.read(getThumb());
-					}
-					is.close();
-
-					if (!jpg.delete()) {
-						jpg.deleteOnExit();
-					}
-
-					// Try and retry
-					if (!jpg.getParentFile().delete() && !jpg.getParentFile().delete()) {
-						LOGGER.debug("Failed to delete \"" + jpg.getParentFile().getAbsolutePath() + "\"");
-					}
-				}
-			} catch (IOException e) {
-				LOGGER.debug("Caught exception", e);
-			}
-		}
-
-		if (type == Format.VIDEO && pw != null && getThumb() == null) {
-			InputStream is;
-			try {
-				int sz = 0;
-				is = pw.getInputStream(0);
-				if (is != null) {
-					sz = is.available();
-					if (sz > 0) {
-						setThumb(new byte[sz]);
-						is.read(getThumb());
-					}
-					is.close();
-				}
-
-				if (sz > 0 && !net.pms.PMS.isHeadless()) {
-					BufferedImage image = ImageIO.read(new ByteArrayInputStream(getThumb()));
-					if (image != null) {
-						Graphics g = image.getGraphics();
-						g.setColor(Color.WHITE);
-						g.setFont(new Font("Arial", Font.PLAIN, 14));
-						int low = 0;
-						if (getWidth() > 0) {
-							if (getWidth() == 1920 || getWidth() == 1440) {
-								g.drawString("1080p", 0, low += 18);
-							} else if (getWidth() == 1280) {
-								g.drawString("720p", 0, low += 18);
-							}
-						}
-						ByteArrayOutputStream out = new ByteArrayOutputStream();
-						ImageIO.write(image, "jpeg", out);
-						setThumb(out.toByteArray());
-					}
-				}
-			} catch (IOException e) {
-				LOGGER.debug("Error while decoding thumbnail: " + e.getMessage());
-			}
-		}
-		ffmegparsed = true;
+		ffmpegparsed = true;
 	}
 
 	public boolean isH264() {
@@ -1220,14 +1229,14 @@ public class DLNAMediaInfo implements Cloneable {
 									 *    - 11 for 1280x720
 									 * Meaning this math is correct
 									 */
-									maxref = (int) Math.floor(10252743 / (getWidth() * getHeight()));
+									maxref = (int) Math.floor(10252743 / (double) (getWidth() * getHeight()));
 								} else {
 									/**
 									 * This is the math for level 4.1, which results in:
 									 *    - 4 for 1920x1080
 									 *    - 9 for 1280x720
 									 */
-									maxref = (int) Math.floor(8388608 / (getWidth() * getHeight()));
+									maxref = (int) Math.floor(8388608 / (double) (getWidth() * getHeight()));
 								}
 
 								if (getReferenceFrameCount() > maxref) {
@@ -1992,8 +2001,8 @@ public class DLNAMediaInfo implements Cloneable {
 		this.mediaparsed = mediaparsed;
 	}
 
-	public boolean isFFmegparsed() {
-		return ffmegparsed;
+	public boolean isFFmpegparsed() {
+		return ffmpegparsed;
 	}
 
 	/**
