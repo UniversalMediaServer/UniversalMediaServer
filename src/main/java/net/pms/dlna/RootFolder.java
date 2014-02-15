@@ -1056,6 +1056,8 @@ public class RootFolder extends DLNAResource {
 										BufferedReader br = new BufferedReader(isr);
 										while (br.readLine() != null) {
 										}
+										isr.close();
+										br.close();
 										pid.waitFor();
 									} catch (IOException | InterruptedException e) {
 									}
