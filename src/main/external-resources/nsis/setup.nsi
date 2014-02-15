@@ -199,7 +199,6 @@ Section "Program Files"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\logback.xml"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\icon.ico"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\DummyInput.ass"
-	File "${PROJECT_BASEDIR}\src\main\external-resources\DummyInput.jpg"
 
 	; The user may have set the installation dir as the profile dir, so we can't clobber this
 	SetOverwrite off

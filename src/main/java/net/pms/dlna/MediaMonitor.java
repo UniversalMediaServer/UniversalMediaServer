@@ -64,7 +64,7 @@ public class MediaMonitor extends VirtualFolder {
 				}
 			}
 			dumpFile();
-		} catch (Exception e) {
+		} catch (IOException e) {
 		}
 	}
 

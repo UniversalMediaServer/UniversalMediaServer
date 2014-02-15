@@ -36,11 +36,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
-import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
 import net.coobird.thumbnailator.Thumbnails;
-import net.coobird.thumbnailator.Thumbnails.Builder;
-import net.coobird.thumbnailator.tasks.UnsupportedFormatException;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -87,7 +84,6 @@ import org.slf4j.LoggerFactory;
  */
 public class DLNAMediaInfo implements Cloneable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAMediaInfo.class);
-	private static final String THUMBNAIL_DIRECTORY_NAME = "thumbs";
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	public static final long ENDFILE_POS = 99999475712L;
@@ -231,6 +227,8 @@ public class DLNAMediaInfo implements Cloneable {
 	@Deprecated
 	public boolean mediaparsed;
 
+	public boolean ffmpegparsed;
+
 	/**
 	 * isMediaParserV2 related, used to manage thumbnail management separated
 	 * from the main parsing process.
@@ -273,6 +271,12 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	@Deprecated
 	public String matrixCoefficients;
+
+	/**
+	 * @deprecated Use standard getter and setter to access this variable.
+	 */
+	@Deprecated
+	public String stereoscopy;
 
 	/**
 	 * Used to determine whether tsMuxeR can mux the file to the renderer
@@ -377,7 +381,7 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	private ProcessWrapperImpl getFFMpegThumbnail(InputFile media) {
-		String args[] = new String[14];
+		String args[] = new String[16];
 		args[0] = getFfmpegPath();
 		boolean dvrms = media.getFile() != null && media.getFile().getAbsolutePath().toLowerCase().endsWith("dvr-ms");
 
@@ -385,30 +389,37 @@ public class DLNAMediaInfo implements Cloneable {
 			args[0] = configuration.getFfmpegAlternativePath();
 		}
 
-		args[1] = "-ss";
-		args[2] = "" + configuration.getThumbnailSeekPos();
-		args[3] = "-i";
-
-		if (media.getFile() != null) {
-			args[4] = ProcessUtil.getShortFileNameIfWideChars(media.getFile().getAbsolutePath());
+		args[1] = "-loglevel";
+		if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
+			args[2] = "info"; // Could be changed to "verbose" or "debug" if "info" level is not enough
 		} else {
-			args[4] = "-";
+			args[2] = "fatal";
 		}
 
-		args[5] = "-an";
-		args[6] = "-an";
-		args[7] = "-s";
-		args[8] = "320x180";
-		args[9] = "-vframes";
-		args[10] = "1";
-		args[11] = "-f";
-		args[12] = "image2";
-		args[13] = "pipe:";
+		args[3] = "-ss";
+		args[4] = "" + configuration.getThumbnailSeekPos();
+		args[5] = "-i";
+
+		if (media.getFile() != null) {
+			args[6] = ProcessUtil.getShortFileNameIfWideChars(media.getFile().getAbsolutePath());
+		} else {
+			args[6] = "-";
+		}
+
+		args[7] = "-an";
+		args[8] = "-an";
+		args[9] = "-s";
+		args[10] = "320x180";
+		args[11] = "-vframes";
+		args[12] = "1";
+		args[13] = "-f";
+		args[14] = "image2";
+		args[15] = "pipe:";
 
 		// FIXME MPlayer should not be used if thumbnail generation is disabled (and it should be disabled in the GUI)
 		if (!configuration.isThumbnailGenerationEnabled() || (configuration.isUseMplayerForVideoThumbs() && !dvrms)) {
-			args[2] = "0";
-			for (int i = 5; i <= 13; i++) {
+			args[4] = "0";
+			for (int i = 7; i <= 15; i++) {
 				args[i] = "-an";
 			}
 		}
@@ -678,56 +689,24 @@ public class DLNAMediaInfo implements Cloneable {
 				} catch (ImageReadException | IOException e) {
 					LOGGER.info("Error parsing image ({}) with Sanselan, switching to FFmpeg.", inputFile.getFile().getAbsolutePath());
 				}
-			}
 
-			if (configuration.getImageThumbnailsEnabled() && type != Format.VIDEO && type != Format.AUDIO) {
-				try {
-					File thumbDir = new File(configuration.getTempFolder(), THUMBNAIL_DIRECTORY_NAME);
+				if (configuration.getImageThumbnailsEnabled() && inputFile.getFile() != null) {
+					LOGGER.trace("Creating (temporary) thumbnail: {}", inputFile.getFile().getName());
 
-					LOGGER.trace("Generating thumbnail for: {}", inputFile.getFile().getAbsolutePath());
+					// Create the thumbnail image using the Thumbnailator library
+					try {
+						ByteArrayOutputStream out = new ByteArrayOutputStream();	
+						Thumbnails.of(inputFile.getFile())
+								.size(320, 180)
+								.outputFormat("JPEG")
+								.outputQuality(1.0f)
+								.toOutputStream(out);;
 
-					if (!thumbDir.exists() && !thumbDir.mkdirs()) {
-						LOGGER.warn("Could not create thumbnail directory: {}", thumbDir.getAbsolutePath());
-					} else {
-						File thumbFile = new File(thumbDir, inputFile.getFile().getName() + ".jpg");
-						String thumbFilename = thumbFile.getAbsolutePath();
-
-						LOGGER.trace("Creating (temporary) thumbnail: {}", thumbFilename);
-
-						// Create the thumbnail image using the Thumbnailator library
-						final Builder<File> thumbnail = Thumbnails.of(inputFile.getFile());
-						thumbnail.size(320, 180);
-						thumbnail.outputFormat("jpg");
-						thumbnail.outputQuality(1.0f);
-
-						try {
-							thumbnail.toFile(thumbFilename);
-						} catch (IIOException e) {
-							LOGGER.debug("Error generating thumbnail for: " + inputFile.getFile().getName());
-							LOGGER.debug("The full error was: " + e);
-						}
-
-						File jpg = new File(thumbFilename);
-
-						if (jpg.exists()) {
-							try (InputStream is = new FileInputStream(jpg)) {
-								int sz = is.available();
-
-								if (sz > 0) {
-									setThumb(new byte[sz]);
-									is.read(getThumb());
-								}
-							}
-
-							if (!jpg.delete()) {
-								jpg.deleteOnExit();
-							}
-						}
+								setThumb(out.toByteArray());
+					} catch (IOException | IllegalArgumentException | IllegalStateException e) {
+						LOGGER.debug("Error generating thumbnail for: " + inputFile.getFile().getName());
+						LOGGER.debug("The full error was: " + e);
 					}
-				} catch (UnsupportedFormatException ufe) {
-					LOGGER.debug("Thumbnailator does not support the format of {}: {}", inputFile.getFile().getAbsolutePath(), ufe.getMessage());
-				} catch (Exception e) {
-					LOGGER.debug("Thumbnailator could not generate a thumbnail for: {}", inputFile.getFile().getAbsolutePath(), e);
 				}
 			}
 
@@ -736,271 +715,16 @@ public class DLNAMediaInfo implements Cloneable {
 					pw = getFFMpegThumbnail(inputFile);
 				}
 
-				String input = "-";
 				boolean dvrms = false;
+				String input = "-";
 
 				if (inputFile.getFile() != null) {
 					input = ProcessUtil.getShortFileNameIfWideChars(inputFile.getFile().getAbsolutePath());
 					dvrms = inputFile.getFile().getAbsolutePath().toLowerCase().endsWith("dvr-ms");
 				}
 
-				if (!ffmpeg_failure && !thumbOnly) {
-					if (input.equals("-")) {
-						input = "pipe:";
-					}
-
-					boolean matchs = false;
-					ArrayList<String> lines = (ArrayList<String>) pw.getResults();
-					int langId = 0;
-					int subId = 0;
-					ListIterator<String> FFmpegMetaData = lines.listIterator();
-
-					for (String line : lines) {
-						FFmpegMetaData.next();
-						line = line.trim();
-						if (line.startsWith("Output")) {
-							matchs = false;
-						} else if (line.startsWith("Input")) {
-							if (line.indexOf(input) > -1) {
-								matchs = true;
-								setContainer(line.substring(10, line.indexOf(',', 11)).trim());
-							} else {
-								matchs = false;
-							}
-						} else if (matchs) {
-							if (line.indexOf("Duration") > -1) {
-								StringTokenizer st = new StringTokenizer(line, ",");
-								while (st.hasMoreTokens()) {
-									String token = st.nextToken().trim();
-									if (token.startsWith("Duration: ")) {
-										String durationStr = token.substring(10);
-										int l = durationStr.substring(durationStr.indexOf('.') + 1).length();
-										if (l < 4) {
-											durationStr += "00".substring(0, 3 - l);
-										}
-										if (durationStr.indexOf("N/A") > -1) {
-											setDuration(null);
-										} else {
-											setDuration(parseDurationString(durationStr));
-										}
-									} else if (token.startsWith("bitrate: ")) {
-										String bitr = token.substring(9);
-										int spacepos = bitr.indexOf(' ');
-										if (spacepos > -1) {
-											String value = bitr.substring(0, spacepos);
-											String unit = bitr.substring(spacepos + 1);
-											setBitrate(Integer.parseInt(value));
-											if (unit.equals("kb/s")) {
-												setBitrate(1024 * getBitrate());
-											}
-											if (unit.equals("mb/s")) {
-												setBitrate(1048576 * getBitrate());
-											}
-										}
-									}
-								}
-							} else if (line.indexOf("Audio:") > -1) {
-								StringTokenizer st = new StringTokenizer(line, ",");
-								int a = line.indexOf('(');
-								int b = line.indexOf("):", a);
-								DLNAMediaAudio audio = new DLNAMediaAudio();
-								audio.setId(langId++);
-								if (a > -1 && b > a) {
-									audio.setLang(line.substring(a + 1, b));
-								} else {
-									audio.setLang(DLNAMediaLang.UND);
-								}
-
-								// Get TS IDs
-								a = line.indexOf("[0x");
-								b = line.indexOf(']', a);
-								if (a > -1 && b > a + 3) {
-									String idString = line.substring(a + 3, b);
-									try {
-										audio.setId(Integer.parseInt(idString, 16));
-									} catch (NumberFormatException nfe) {
-										LOGGER.debug("Error parsing Stream ID: " + idString);
-									}
-								}
-
-								while (st.hasMoreTokens()) {
-									String token = st.nextToken().trim();
-									if (token.startsWith("Stream")) {
-										audio.setCodecA(token.substring(token.indexOf("Audio: ") + 7));
-									} else if (token.endsWith("Hz")) {
-										audio.setSampleFrequency(token.substring(0, token.indexOf("Hz")).trim());
-									} else if (token.equals("mono")) {
-										audio.getAudioProperties().setNumberOfChannels(1);
-									} else if (token.equals("stereo")) {
-										audio.getAudioProperties().setNumberOfChannels(2);
-									} else if (token.equals("5:1") || token.equals("5.1") || token.equals("6 channels")) {
-										audio.getAudioProperties().setNumberOfChannels(6);
-									} else if (token.equals("5 channels")) {
-										audio.getAudioProperties().setNumberOfChannels(5);
-									} else if (token.equals("4 channels")) {
-										audio.getAudioProperties().setNumberOfChannels(4);
-									} else if (token.equals("2 channels")) {
-										audio.getAudioProperties().setNumberOfChannels(2);
-									} else if (token.equals("s32")) {
-										audio.setBitsperSample(32);
-									} else if (token.equals("s24")) {
-										audio.setBitsperSample(24);
-									} else if (token.equals("s16")) {
-										audio.setBitsperSample(16);
-									}
-								}
-								int FFmpegMetaDataNr = FFmpegMetaData.nextIndex();
-
-								if (FFmpegMetaDataNr > -1) {
-									line = lines.get(FFmpegMetaDataNr);
-								}
-
-								if (line.indexOf("Metadata:") > -1) {
-									FFmpegMetaDataNr += 1;
-									line = lines.get(FFmpegMetaDataNr);
-									while (line.indexOf("      ") == 0) {
-										if (line.toLowerCase().indexOf("title           :") > -1) {
-											int aa = line.indexOf(": ");
-											int bb = line.length();
-											if (aa > -1 && bb > aa) {
-												audio.setFlavor(line.substring(aa+2, bb));
-												break;
-											}
-										} else {
-											FFmpegMetaDataNr += 1;
-											line = lines.get(FFmpegMetaDataNr);
-										}
-									}
-								}
-
-								getAudioTracksList().add(audio);
-							} else if (line.indexOf("Video:") > -1) {
-								StringTokenizer st = new StringTokenizer(line, ",");
-								while (st.hasMoreTokens()) {
-									String token = st.nextToken().trim();
-									if (token.startsWith("Stream")) {
-										setCodecV(token.substring(token.indexOf("Video: ") + 7));
-									} else if ((token.indexOf("tbc") > -1 || token.indexOf("tb(c)") > -1)) {
-										// A/V sync issues with newest FFmpeg, due to the new tbr/tbn/tbc outputs
-										// Priority to tb(c)
-										String frameRateDoubleString = token.substring(0, token.indexOf("tb")).trim();
-										try {
-											if (!frameRateDoubleString.equals(getFrameRate())) {// tbc taken into account only if different than tbr
-												Double frameRateDouble = Double.parseDouble(frameRateDoubleString);
-												setFrameRate(String.format(Locale.ENGLISH, "%.2f", frameRateDouble / 2));
-											}
-										} catch (NumberFormatException nfe) {
-											// Could happen if tbc is "1k" or something like that, no big deal
-											LOGGER.debug("Could not parse frame rate \"" + frameRateDoubleString + "\"");
-										}
-
-									} else if ((token.indexOf("tbr") > -1 || token.indexOf("tb(r)") > -1) && getFrameRate() == null) {
-										setFrameRate(token.substring(0, token.indexOf("tb")).trim());
-									} else if ((token.indexOf("fps") > -1 || token.indexOf("fps(r)") > -1) && getFrameRate() == null) { // dvr-ms ?
-										setFrameRate(token.substring(0, token.indexOf("fps")).trim());
-									} else if (token.indexOf('x') > -1 && !token.contains("max")) {
-										String resolution = token.trim();
-										if (resolution.indexOf(" [") > -1) {
-											resolution = resolution.substring(0, resolution.indexOf(" ["));
-										}
-										try {
-											setWidth(Integer.parseInt(resolution.substring(0, resolution.indexOf('x'))));
-										} catch (NumberFormatException nfe) {
-											LOGGER.debug("Could not parse width from \"" + resolution.substring(0, resolution.indexOf('x')) + "\"");
-										}
-										try {
-											setHeight(Integer.parseInt(resolution.substring(resolution.indexOf('x') + 1)));
-										} catch (NumberFormatException nfe) {
-											LOGGER.debug("Could not parse height from \"" + resolution.substring(resolution.indexOf('x') + 1) + "\"");
-										}
-									}
-								}
-							} else if (line.indexOf("Subtitle:") > -1) {
-								DLNAMediaSubtitle lang = new DLNAMediaSubtitle();
-
-								// $ ffmpeg -codecs | grep "^...S"
-								// ..S... = Subtitle codec
-								// DES... ass                  ASS (Advanced SSA) subtitle
-								// DES... dvb_subtitle         DVB subtitles (decoders: dvbsub ) (encoders: dvbsub )
-								// ..S... dvb_teletext         DVB teletext
-								// DES... dvd_subtitle         DVD subtitles (decoders: dvdsub ) (encoders: dvdsub )
-								// ..S... eia_608              EIA-608 closed captions
-								// D.S... hdmv_pgs_subtitle    HDMV Presentation Graphic Stream subtitles (decoders: pgssub )
-								// D.S... jacosub              JACOsub subtitle
-								// D.S... microdvd             MicroDVD subtitle
-								// DES... mov_text             MOV text
-								// D.S... mpl2                 MPL2 subtitle
-								// D.S... pjs                  PJS (Phoenix Japanimation Society) subtitle
-								// D.S... realtext             RealText subtitle
-								// D.S... sami                 SAMI subtitle
-								// DES... srt                  SubRip subtitle with embedded timing
-								// DES... ssa                  SSA (SubStation Alpha) subtitle
-								// DES... subrip               SubRip subtitle
-								// D.S... subviewer            SubViewer subtitle
-								// D.S... subviewer1           SubViewer v1 subtitle
-								// D.S... text                 raw UTF-8 text
-								// D.S... vplayer              VPlayer subtitle
-								// D.S... webvtt               WebVTT subtitle
-								// DES... xsub                 XSUB
-
-								if (line.contains("srt") || line.contains("subrip")) {
-									lang.setType(SubtitleType.SUBRIP);
-								} else if (line.contains(" text")) {
-									// excludes dvb_teletext, mov_text, realtext
-									lang.setType(SubtitleType.TEXT);
-								} else if (line.contains("microdvd")) {
-									lang.setType(SubtitleType.MICRODVD);
-								} else if (line.contains("sami")) {
-									lang.setType(SubtitleType.SAMI);
-								} else if (line.contains("ass") || line.contains("ssa")) {
-									lang.setType(SubtitleType.ASS);
-								} else if (line.contains("dvd_subtitle")) {
-									lang.setType(SubtitleType.VOBSUB);
-								} else if (line.contains("xsub")) {
-									lang.setType(SubtitleType.DIVX);
-								} else if (line.contains("mov_text")) {
-									lang.setType(SubtitleType.TX3G);
-								} else {
-									lang.setType(SubtitleType.UNKNOWN);
-								}
-
-								int a = line.indexOf('(');
-								int b = line.indexOf("):", a);
-								if (a > -1 && b > a) {
-									lang.setLang(line.substring(a + 1, b));
-								} else {
-									lang.setLang(DLNAMediaLang.UND);
-								}
-
-								lang.setId(subId++);
-								int FFmpegMetaDataNr = FFmpegMetaData.nextIndex();
-
-								if (FFmpegMetaDataNr > -1) {
-									line = lines.get(FFmpegMetaDataNr);
-								}
-
-								if (line.indexOf("Metadata:") > -1) {
-									FFmpegMetaDataNr += 1;
-									line = lines.get(FFmpegMetaDataNr);
-
-									while (line.indexOf("      ") == 0) {
-										if (line.toLowerCase().indexOf("title           :") > -1) {
-											int aa = line.indexOf(": ");
-											int bb = line.length();
-											if (aa > -1 && bb > aa) {
-												lang.setFlavor(line.substring(aa+2, bb));
-												break;
-											}
-										} else {
-											FFmpegMetaDataNr += 1;
-											line = lines.get(FFmpegMetaDataNr);
-										}
-									}
-								}
-								getSubtitleTracksList().add(lang);
-							}
-						}
-					}
+				if (pw != null && !ffmpeg_failure && !thumbOnly) {
+					parseFFmpegInfo(pw.getResults(), input);
 				}
 
 				if (
@@ -1057,13 +781,16 @@ public class DLNAMediaInfo implements Cloneable {
 				if (type == Format.VIDEO && pw != null && getThumb() == null) {
 					InputStream is;
 					try {
+						int sz = 0;
 						is = pw.getInputStream(0);
-						int sz = is.available();
-						if (sz > 0) {
-							setThumb(new byte[sz]);
-							is.read(getThumb());
+						if (is != null) {
+							sz = is.available();
+							if (sz > 0) {
+								setThumb(new byte[sz]);
+								is.read(getThumb());
+							}
+							is.close();
 						}
-						is.close();
 
 						if (sz > 0 && !net.pms.PMS.isHeadless()) {
 							BufferedImage image = ImageIO.read(new ByteArrayInputStream(getThumb()));
@@ -1089,10 +816,278 @@ public class DLNAMediaInfo implements Cloneable {
 					}
 				}
 			}
-
+ 
 			finalize(type, inputFile);
 			setMediaparsed(true);
 		}
+	}
+
+	/**
+	 * Parses media info from ffmpeg's stderr output
+	 *
+	 * @param lines The stderr output
+	 * @param input The ffmpeg input (-i) argument used
+	 */
+	public void parseFFmpegInfo(List<String> lines, String input) {
+
+		if (lines != null) {
+			if ("-".equals(input)) {
+				input = "pipe:";
+			}
+
+			boolean matchs = false;
+			int langId = 0;
+			int subId = 0;
+			ListIterator<String> FFmpegMetaData = lines.listIterator();
+
+			for (String line : lines) {
+				FFmpegMetaData.next();
+				line = line.trim();
+				if (line.startsWith("Output")) {
+					matchs = false;
+				} else if (line.startsWith("Input")) {
+					if (line.indexOf(input) > -1) {
+						matchs = true;
+						setContainer(line.substring(10, line.indexOf(',', 11)).trim());
+					} else {
+						matchs = false;
+					}
+				} else if (matchs) {
+					if (line.indexOf("Duration") > -1) {
+						StringTokenizer st = new StringTokenizer(line, ",");
+						while (st.hasMoreTokens()) {
+							String token = st.nextToken().trim();
+							if (token.startsWith("Duration: ")) {
+								String durationStr = token.substring(10);
+								int l = durationStr.substring(durationStr.indexOf('.') + 1).length();
+								if (l < 4) {
+									durationStr += "00".substring(0, 3 - l);
+								}
+								if (durationStr.indexOf("N/A") > -1) {
+									setDuration(null);
+								} else {
+									setDuration(parseDurationString(durationStr));
+								}
+							} else if (token.startsWith("bitrate: ")) {
+								String bitr = token.substring(9);
+								int spacepos = bitr.indexOf(' ');
+								if (spacepos > -1) {
+									String value = bitr.substring(0, spacepos);
+									String unit = bitr.substring(spacepos + 1);
+									setBitrate(Integer.parseInt(value));
+									if (unit.equals("kb/s")) {
+										setBitrate(1024 * getBitrate());
+									}
+									if (unit.equals("mb/s")) {
+										setBitrate(1048576 * getBitrate());
+									}
+								}
+							}
+						}
+					} else if (line.indexOf("Audio:") > -1) {
+						StringTokenizer st = new StringTokenizer(line, ",");
+						int a = line.indexOf('(');
+						int b = line.indexOf("):", a);
+						DLNAMediaAudio audio = new DLNAMediaAudio();
+						audio.setId(langId++);
+						if (a > -1 && b > a) {
+							audio.setLang(line.substring(a + 1, b));
+						} else {
+							audio.setLang(DLNAMediaLang.UND);
+						}
+
+						// Get TS IDs
+						a = line.indexOf("[0x");
+						b = line.indexOf(']', a);
+						if (a > -1 && b > a + 3) {
+							String idString = line.substring(a + 3, b);
+							try {
+								audio.setId(Integer.parseInt(idString, 16));
+							} catch (NumberFormatException nfe) {
+								LOGGER.debug("Error parsing Stream ID: " + idString);
+							}
+						}
+
+						while (st.hasMoreTokens()) {
+							String token = st.nextToken().trim();
+							if (token.startsWith("Stream")) {
+								audio.setCodecA(token.substring(token.indexOf("Audio: ") + 7));
+							} else if (token.endsWith("Hz")) {
+								audio.setSampleFrequency(token.substring(0, token.indexOf("Hz")).trim());
+							} else if (token.equals("mono")) {
+								audio.getAudioProperties().setNumberOfChannels(1);
+							} else if (token.equals("stereo")) {
+								audio.getAudioProperties().setNumberOfChannels(2);
+							} else if (token.equals("5:1") || token.equals("5.1") || token.equals("6 channels")) {
+								audio.getAudioProperties().setNumberOfChannels(6);
+							} else if (token.equals("5 channels")) {
+								audio.getAudioProperties().setNumberOfChannels(5);
+							} else if (token.equals("4 channels")) {
+								audio.getAudioProperties().setNumberOfChannels(4);
+							} else if (token.equals("2 channels")) {
+								audio.getAudioProperties().setNumberOfChannels(2);
+							} else if (token.equals("s32")) {
+								audio.setBitsperSample(32);
+							} else if (token.equals("s24")) {
+								audio.setBitsperSample(24);
+							} else if (token.equals("s16")) {
+								audio.setBitsperSample(16);
+							}
+						}
+						int FFmpegMetaDataNr = FFmpegMetaData.nextIndex();
+
+						if (FFmpegMetaDataNr > -1) {
+							line = lines.get(FFmpegMetaDataNr);
+						}
+
+						if (line.indexOf("Metadata:") > -1) {
+							FFmpegMetaDataNr += 1;
+							line = lines.get(FFmpegMetaDataNr);
+							while (line.indexOf("      ") == 0) {
+								if (line.toLowerCase().indexOf("title           :") > -1) {
+									int aa = line.indexOf(": ");
+									int bb = line.length();
+									if (aa > -1 && bb > aa) {
+										audio.setFlavor(line.substring(aa+2, bb));
+										break;
+									}
+								} else {
+									FFmpegMetaDataNr += 1;
+									line = lines.get(FFmpegMetaDataNr);
+								}
+							}
+						}
+
+						getAudioTracksList().add(audio);
+					} else if (line.indexOf("Video:") > -1) {
+						StringTokenizer st = new StringTokenizer(line, ",");
+						while (st.hasMoreTokens()) {
+							String token = st.nextToken().trim();
+							if (token.startsWith("Stream")) {
+								setCodecV(token.substring(token.indexOf("Video: ") + 7));
+							} else if ((token.indexOf("tbc") > -1 || token.indexOf("tb(c)") > -1)) {
+								// A/V sync issues with newest FFmpeg, due to the new tbr/tbn/tbc outputs
+								// Priority to tb(c)
+								String frameRateDoubleString = token.substring(0, token.indexOf("tb")).trim();
+								try {
+									if (!frameRateDoubleString.equals(getFrameRate())) {// tbc taken into account only if different than tbr
+										Double frameRateDouble = Double.parseDouble(frameRateDoubleString);
+										setFrameRate(String.format(Locale.ENGLISH, "%.2f", frameRateDouble / 2));
+									}
+								} catch (NumberFormatException nfe) {
+									// Could happen if tbc is "1k" or something like that, no big deal
+									LOGGER.debug("Could not parse frame rate \"" + frameRateDoubleString + "\"");
+								}
+
+							} else if ((token.indexOf("tbr") > -1 || token.indexOf("tb(r)") > -1) && getFrameRate() == null) {
+								setFrameRate(token.substring(0, token.indexOf("tb")).trim());
+							} else if ((token.indexOf("fps") > -1 || token.indexOf("fps(r)") > -1) && getFrameRate() == null) { // dvr-ms ?
+								setFrameRate(token.substring(0, token.indexOf("fps")).trim());
+							} else if (token.indexOf('x') > -1 && !token.contains("max")) {
+								String resolution = token.trim();
+								if (resolution.indexOf(" [") > -1) {
+									resolution = resolution.substring(0, resolution.indexOf(" ["));
+								}
+								try {
+									setWidth(Integer.parseInt(resolution.substring(0, resolution.indexOf('x'))));
+								} catch (NumberFormatException nfe) {
+									LOGGER.debug("Could not parse width from \"" + resolution.substring(0, resolution.indexOf('x')) + "\"");
+								}
+								try {
+									setHeight(Integer.parseInt(resolution.substring(resolution.indexOf('x') + 1)));
+								} catch (NumberFormatException nfe) {
+									LOGGER.debug("Could not parse height from \"" + resolution.substring(resolution.indexOf('x') + 1) + "\"");
+								}
+							}
+						}
+					} else if (line.indexOf("Subtitle:") > -1) {
+						DLNAMediaSubtitle lang = new DLNAMediaSubtitle();
+
+						// $ ffmpeg -codecs | grep "^...S"
+						// ..S... = Subtitle codec
+						// DES... ass                  ASS (Advanced SSA) subtitle
+						// DES... dvb_subtitle         DVB subtitles (decoders: dvbsub ) (encoders: dvbsub )
+						// ..S... dvb_teletext         DVB teletext
+						// DES... dvd_subtitle         DVD subtitles (decoders: dvdsub ) (encoders: dvdsub )
+						// ..S... eia_608              EIA-608 closed captions
+						// D.S... hdmv_pgs_subtitle    HDMV Presentation Graphic Stream subtitles (decoders: pgssub )
+						// D.S... jacosub              JACOsub subtitle
+						// D.S... microdvd             MicroDVD subtitle
+						// DES... mov_text             MOV text
+						// D.S... mpl2                 MPL2 subtitle
+						// D.S... pjs                  PJS (Phoenix Japanimation Society) subtitle
+						// D.S... realtext             RealText subtitle
+						// D.S... sami                 SAMI subtitle
+						// DES... srt                  SubRip subtitle with embedded timing
+						// DES... ssa                  SSA (SubStation Alpha) subtitle
+						// DES... subrip               SubRip subtitle
+						// D.S... subviewer            SubViewer subtitle
+						// D.S... subviewer1           SubViewer v1 subtitle
+						// D.S... text                 raw UTF-8 text
+						// D.S... vplayer              VPlayer subtitle
+						// D.S... webvtt               WebVTT subtitle
+						// DES... xsub                 XSUB
+
+						if (line.contains("srt") || line.contains("subrip")) {
+							lang.setType(SubtitleType.SUBRIP);
+						} else if (line.contains(" text")) {
+							// excludes dvb_teletext, mov_text, realtext
+							lang.setType(SubtitleType.TEXT);
+						} else if (line.contains("microdvd")) {
+							lang.setType(SubtitleType.MICRODVD);
+						} else if (line.contains("sami")) {
+							lang.setType(SubtitleType.SAMI);
+						} else if (line.contains("ass") || line.contains("ssa")) {
+							lang.setType(SubtitleType.ASS);
+						} else if (line.contains("dvd_subtitle")) {
+							lang.setType(SubtitleType.VOBSUB);
+						} else if (line.contains("xsub")) {
+							lang.setType(SubtitleType.DIVX);
+						} else if (line.contains("mov_text")) {
+							lang.setType(SubtitleType.TX3G);
+						} else {
+							lang.setType(SubtitleType.UNKNOWN);
+						}
+
+						int a = line.indexOf('(');
+						int b = line.indexOf("):", a);
+						if (a > -1 && b > a) {
+							lang.setLang(line.substring(a + 1, b));
+						} else {
+							lang.setLang(DLNAMediaLang.UND);
+						}
+
+						lang.setId(subId++);
+						int FFmpegMetaDataNr = FFmpegMetaData.nextIndex();
+
+						if (FFmpegMetaDataNr > -1) {
+							line = lines.get(FFmpegMetaDataNr);
+						}
+
+						if (line.indexOf("Metadata:") > -1) {
+							FFmpegMetaDataNr += 1;
+							line = lines.get(FFmpegMetaDataNr);
+
+							while (line.indexOf("      ") == 0) {
+								if (line.toLowerCase().indexOf("title           :") > -1) {
+									int aa = line.indexOf(": ");
+									int bb = line.length();
+									if (aa > -1 && bb > aa) {
+										lang.setFlavor(line.substring(aa+2, bb));
+										break;
+									}
+								} else {
+									FFmpegMetaDataNr += 1;
+									line = lines.get(FFmpegMetaDataNr);
+								}
+							}
+						}
+						getSubtitleTracksList().add(lang);
+					}
+				}
+			}
+		}
+		ffmpegparsed = true;
 	}
 
 	public boolean isH264() {
@@ -1237,14 +1232,14 @@ public class DLNAMediaInfo implements Cloneable {
 									 *    - 11 for 1280x720
 									 * Meaning this math is correct
 									 */
-									maxref = (int) Math.floor(10252743 / (getWidth() * getHeight()));
+									maxref = (int) Math.floor(10252743 / (double) (getWidth() * getHeight()));
 								} else {
 									/**
 									 * This is the math for level 4.1, which results in:
 									 *    - 4 for 1920x1080
 									 *    - 9 for 1280x720
 									 */
-									maxref = (int) Math.floor(8388608 / (getWidth() * getHeight()));
+									maxref = (int) Math.floor(8388608 / (double) (getWidth() * getHeight()));
 								}
 
 								if (getReferenceFrameCount() > maxref) {
@@ -2009,6 +2004,10 @@ public class DLNAMediaInfo implements Cloneable {
 		this.mediaparsed = mediaparsed;
 	}
 
+	public boolean isFFmpegparsed() {
+		return ffmpegparsed;
+	}
+
 	/**
 	 * @return the thumbready
 	 * @since 1.50.0
@@ -2098,5 +2097,44 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Note: This is based on a flag in Matroska files, and as such it is
+	 * unreliable; it will be unlikely to find a false-positive but there
+	 * will be false-negatives, similar to language flags.
+	 *
+	 * @return whether the video track is 3D
+	 */
+	public boolean is3d() {
+		if (!"".equals(stereoscopy)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Note: This is based on a flag in Matroska files, and as such it is
+	 * unreliable; it will be unlikely to find a false-positive but there
+	 * will be false-negatives, similar to language flags.
+	 *
+	 * @return the type of stereoscopy (3D) of the video track
+	 */
+	public String getStereoscopy() {
+		return stereoscopy;
+	}
+
+	/**
+	 * Sets the type of stereoscopy (3D) of the video track.
+	 *
+	 * Note: This is based on a flag in Matroska files, and as such it is
+	 * unreliable; it will be unlikely to find a false-positive but there
+	 * will be false-negatives, similar to language flags.
+	 *
+	 * @param stereoscopy the type of stereoscopy (3D) of the video track
+	 */
+	public void setStereoscopy(String stereoscopy) {
+		this.stereoscopy = stereoscopy;
 	}
 }

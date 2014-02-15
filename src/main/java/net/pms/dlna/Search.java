@@ -50,7 +50,7 @@ public class Search extends VirtualFolder {
 	}
 
 	@Override
-	public void discoverChildren() {
+	public synchronized void discoverChildren() {
 		if (searched) {
 			getChildren().clear();
 		}

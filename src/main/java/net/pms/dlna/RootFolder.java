@@ -192,7 +192,7 @@ public class RootFolder extends DLNAResource {
 		}
 	}
 
-	public void scan() {
+	public synchronized void scan() {
 		running = true;
 
 		if (!isDiscovered()) {
@@ -215,7 +215,7 @@ public class RootFolder extends DLNAResource {
 		stopScan();
 	}
 
-	public void stopScan() {
+	public synchronized void stopScan() {
 		running = false;
 	}
 
@@ -346,6 +346,8 @@ public class RootFolder extends DLNAResource {
 											break;
 										case "videostream":
 											parent.addChild(new WebVideoStream(values[0], values[1], values[2]));
+											break;
+										default:
 											break;
 									}
 								}
