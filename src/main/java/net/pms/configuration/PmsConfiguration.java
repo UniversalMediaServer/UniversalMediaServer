@@ -1750,6 +1750,8 @@ public class PmsConfiguration {
 				case "vqmax":
 					returnString.append("-qmax ").append(pairArray[1]).append(" ");
 					break;
+				default:
+					break;
 			}
 		}
 
@@ -2875,7 +2877,7 @@ public class PmsConfiguration {
 		return getInt(KEY_RESUME_KEEP_TIME, 0);
 	}
 
-	public boolean hideSubInfo() {
+	public boolean hideSubsInfo() {
 		return getBoolean(KEY_HIDE_SUBS_INFO, false);
 	}
 

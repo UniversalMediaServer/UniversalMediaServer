@@ -342,7 +342,7 @@ public class PluginTab {
 						textArea.setText(sb.toString());
 						in.close();
 					}
-				} catch (Exception e1) {
+				} catch (IOException e1) {
 					return;
 				}
 

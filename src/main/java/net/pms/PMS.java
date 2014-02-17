@@ -216,70 +216,6 @@ public class PMS {
 	}
 
 	/**
-	 * Executes a new Process and creates a fork that waits for its results.
-	 * This is used to generate fontconfig caches for MPlayer and FFmpeg.
-	 *
-	 * @param name Symbolic name for the process to be launched, only used in the trace log
-	 * @param error (boolean) Set to true if you want PMS to add error messages to the trace pane
-	 * @param workDir (File) optional working directory to run the process in
-	 * @param params (array of Strings) array containing the command to call and its arguments
-	 * @return Returns true if the command exited as expected
-	 * @throws Exception TODO: Check which exceptions to use
-	 */
-	private boolean checkProcessExistence(String name, boolean error, File workDir, String... params) throws Exception {
-		LOGGER.debug("Launching: " + Arrays.toString(params));
-
-		try {
-			ProcessBuilder pb = new ProcessBuilder(params);
-
-			if (workDir != null) {
-				pb.directory(workDir);
-			}
-
-			final Process process = pb.start();
-
-			OutputTextConsumer stderrConsumer = new OutputTextConsumer(process.getErrorStream(), false);
-			stderrConsumer.start();
-
-			OutputTextConsumer outConsumer = new OutputTextConsumer(process.getInputStream(), false);
-			outConsumer.start();
-
-			Runnable r = new Runnable() {
-				@Override
-				public void run() {
-					ProcessUtil.waitFor(process);
-				}
-			};
-
-			Thread checkThread = new Thread(r, "PMS Checker");
-			checkThread.start();
-			checkThread.join(60000);
-			checkThread.interrupt();
-			checkThread = null;
-
-			try {
-				int exit = process.exitValue();
-				if (exit != 0) {
-					if (error) {
-						LOGGER.info("[" + exit + "] Cannot launch " + name + ". Check the presence of " + params[0]);
-					}
-					return false;
-				}
-			} catch (IllegalThreadStateException ise) {
-				LOGGER.trace("Forcing shutdown of process: " + process);
-				ProcessUtil.destroy(process);
-			}
-
-			return true;
-		} catch (IOException | InterruptedException e) {
-			if (error) {
-				LOGGER.error("Cannot launch " + name + ". Check the presence of " + params[0], e);
-			}
-			return false;
-		}
-	}
-
-	/**
 	 * @see System#err
 	 */
 	@SuppressWarnings("unused")
@@ -291,7 +227,7 @@ public class PMS {
 	 */
 	private DLNAMediaDatabase database;
 
-	private void initializeDatabase() {
+	private synchronized void initializeDatabase() {
 		database = new DLNAMediaDatabase("medias"); // TODO: rename "medias" -> "cache"
 		database.init(false);
 	}
@@ -344,7 +280,7 @@ public class PMS {
 
 	private void displayBanner() throws IOException {
 		LOGGER.info("Starting " + PropertiesUtil.getProjectProperties().get("project.name") + " " + getVersion());
-		LOGGER.info("Based on PS3 Media Server by shagrath, copyright 2008-2013");
+		LOGGER.info("Based on PS3 Media Server by shagrath, copyright 2008-2014");
 		LOGGER.info("http://www.universalmediaserver.com");
 		LOGGER.info("");
 
@@ -370,7 +306,7 @@ public class PMS {
 		File javaTmpdir = new File(System.getProperty("java.io.tmpdir"));
 
 		if (!FileUtil.isDirectoryWritable(javaTmpdir)) {
-			LOGGER.error("The Java temp directory \"" + javaTmpdir.getAbsolutePath() + "\" is not writable for PMS!");
+			LOGGER.error("The Java temp directory \"" + javaTmpdir.getAbsolutePath() + "\" is not writable by UMS");
 			LOGGER.error("Please make sure the directory is writable for user \"" + System.getProperty("user.name") + "\"");
 			throw new IOException("Cannot write to Java temp directory");
 		}
@@ -609,24 +545,24 @@ public class PMS {
 			}
 		});
 
-		frame.setStatusCode(0, Messages.getString("PMS.138"), "icon-status-connecting.png");
 		RendererConfiguration.loadRendererConfigurations(configuration);
 
-		LOGGER.info("Please wait while we check the MPlayer font cache, this can take a minute or so.");
+		LOGGER.info("Checking the fontconfig cache, this can take two minutes or so.");
 
-		checkProcessExistence("MPlayer", true, null, configuration.getMplayerPath(), "dummy");
+		OutputParams outputParams = new OutputParams(configuration);
+		ProcessWrapperImpl mplayer = new ProcessWrapperImpl(new String[]{configuration.getMplayerPath(), "dummy"}, outputParams);
+		mplayer.runInNewThread();
 
-		if (Platform.isWindows()) {
-			checkProcessExistence("MPlayer", true, configuration.getTempFolder(), configuration.getMplayerPath(), "dummy");
+		/**
+		 * Note: This can be needed in case MPlayer and FFmpeg have been
+		 * compiled with a different version of fontconfig.
+		 * Since it's unpredictable on Linux we should always run this
+		 * on Linux, but it may be possible to sync versions on OS X.
+		 */
+		if (!Platform.isWindows()) {
+			ProcessWrapperImpl ffmpeg = new ProcessWrapperImpl(new String[]{configuration.getFfmpegPath(), "-y", "-f", "lavfi", "-i", "nullsrc=s=720x480:d=1:r=1", "-vf", "ass=DummyInput.ass", "-target", "ntsc-dvd", "-"}, outputParams);
+			ffmpeg.runInNewThread();
 		}
-
-		LOGGER.info("Finished checking the MPlayer font cache.");
-		LOGGER.info("Please wait while we check the FFmpeg font cache, this can take a minute or so.");
-		frame.setStatusCode(0, Messages.getString("PMS.140"), "icon-status-connecting.png");
-
-		checkProcessExistence("FFmpeg", true, null, configuration.getFfmpegPath(), "-y", "-f", "lavfi", "-i", "nullsrc=s=720x480:d=1:r=1", "-vf", "ass=DummyInput.ass", "-target", "ntsc-dvd", "DummyOutput.mpeg");
-
-		LOGGER.info("Finished checking the FFmpeg font cache.");
 
 		frame.setStatusCode(0, Messages.getString("PMS.130"), "icon-status-connecting.png");
 
@@ -1122,6 +1058,8 @@ public class PMS {
 						break;
 					case PROFILES:
 						displayProfileChooser = true;
+						break;
+					default:
 						break;
 				}
 			}

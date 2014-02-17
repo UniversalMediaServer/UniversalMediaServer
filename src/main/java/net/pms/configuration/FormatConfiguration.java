@@ -68,7 +68,7 @@ public class FormatConfiguration {
 	public static final String MIMETYPE_AUTO = "MIMETYPE_AUTO";
 	public static final String und = "und";
 
-	private class SupportSpec {
+	private static class SupportSpec {
 		private int iMaxBitrate = Integer.MAX_VALUE;
 		private int iMaxFrequency = Integer.MAX_VALUE;
 		private int iMaxNbChannels = Integer.MAX_VALUE;

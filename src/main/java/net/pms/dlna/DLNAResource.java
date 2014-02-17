@@ -43,7 +43,6 @@ import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
-import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.SizeLimitInputStream;
 import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
@@ -72,6 +71,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAResource.class);
 	private final SimpleDateFormat SDF_DATE = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	private boolean subsAreValid = false;
 
 	protected static final int MAX_ARCHIVE_ENTRY_SIZE = 10000000;
 	protected static final int MAX_ARCHIVE_SIZE_SEEK = 800000000;
@@ -742,7 +742,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						if (!newChild.getFormat().isCompatible(newChild.getMedia(), getDefaultRenderer())) {
 							Player player = PlayerFactory.getPlayer(newChild);
 							newChild.setPlayer(player);
-							LOGGER.trace("Secondary format \"{}\" will use player \"{}\" for \"{}\"", newChild.getFormat().toString(), child.getPlayer().name(), newChild.getName());
+							LOGGER.trace("Secondary format \"{}\" will use player \"{}\" for \"{}\"", newChild.getFormat().toString(), newChild.getPlayer().name(), newChild.getName());
 						}
 
 						if (child.getMedia() != null && child.getMedia().isSecondaryFormatValid()) {
@@ -1231,7 +1231,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (isNoName()) {
 				displayName = "[No encoding]";
 				isNamedNoEncoding = true;
-				if (mediaRenderer != null && StringUtils.isNotBlank(mediaRenderer.getSupportedSubtitles())) {
+				if (subsAreValid) {
 					isNamedNoEncoding = false;
 				}
 			} else if (nametruncate > 0) {
@@ -1242,15 +1242,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (
 			isSubsFile() &&
 			!isNamedNoEncoding &&
-			(
-				getMediaAudio() == null &&
-				getMediaSubtitle() == null
-			) && 
+			getMediaAudio() == null &&
+			getMediaSubtitle() == null &&
+			!configuration.hideSubsInfo() &&
 			(
 				getPlayer() == null ||
 				getPlayer().isExternalSubtitlesSupported()
-			) &&
-			!configuration.hideSubInfo()
+			)
+
 		) {
 			displayName += " {External Subtitles}";
 		}
@@ -1267,7 +1266,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (
 			getMediaSubtitle() != null &&
 			getMediaSubtitle().getId() != -1 &&
-			!configuration.hideSubInfo()
+			!configuration.hideSubsInfo()
 		) {
 			subtitleFormat = getMediaSubtitle().getType().getDescription();
 			if ("(Advanced) SubStation Alpha".equals(subtitleFormat)) {
@@ -1425,7 +1424,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *         {@code <container id="0$1" childCount="1" parentID="0" restricted="true">}
 	 */
 	public final String getDidlString(RendererConfiguration mediaRenderer) {
-		boolean subsAreValid = false;
 		StringBuilder sb = new StringBuilder();
 		if (!configuration.isDisableSubtitles() && StringUtils.isNotBlank(mediaRenderer.getSupportedSubtitles()) && getMedia() != null && getPlayer() == null) {
 			OutputParams params = new OutputParams(configuration);
@@ -2302,9 +2300,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		Range.Time timeRange = range.createTimeRange();
 
 		if (getPlayer() != null && low > 0 && cbr_video_bitrate > 0) {
-			int used_bit_rated = (int) ((cbr_video_bitrate + 256) * 1024 / 8 * 1.04); // 1.04 = container overhead
+			int used_bit_rated = (int) ((cbr_video_bitrate + 256) * 1024 / (double) 8 * 1.04); // 1.04 = container overhead
 			if (low > used_bit_rated) {
-				timeRange.setStart((double) (low / (used_bit_rated)));
+				timeRange.setStart(low / (double) (used_bit_rated));
 				low = 0;
 
 				// WDTV Live - if set to TS it asks multiple times and ends by
@@ -2449,7 +2447,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// not producing output after params.waitbeforestart milliseconds + 5 seconds
 			// this cleans up lingering MEncoder web video transcode processes that hang
 			// instead of exiting
-			if (is == null && externalProcess != null && !externalProcess.isDestroyed()) {
+			if (is == null && !externalProcess.isDestroyed()) {
 				Runnable r = new Runnable() {
 					@Override
 					public void run() {

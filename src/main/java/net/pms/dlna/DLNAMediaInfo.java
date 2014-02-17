@@ -36,11 +36,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
-import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
 import net.coobird.thumbnailator.Thumbnails;
-import net.coobird.thumbnailator.Thumbnails.Builder;
-import net.coobird.thumbnailator.tasks.UnsupportedFormatException;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -87,7 +84,6 @@ import org.slf4j.LoggerFactory;
  */
 public class DLNAMediaInfo implements Cloneable {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAMediaInfo.class);
-	private static final String THUMBNAIL_DIRECTORY_NAME = "thumbs";
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	public static final long ENDFILE_POS = 99999475712L;
@@ -231,7 +227,7 @@ public class DLNAMediaInfo implements Cloneable {
 	@Deprecated
 	public boolean mediaparsed;
 
-	public boolean ffmegparsed;
+	public boolean ffmpegparsed;
 
 	/**
 	 * isMediaParserV2 related, used to manage thumbnail management separated
@@ -385,7 +381,7 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	private ProcessWrapperImpl getFFMpegThumbnail(InputFile media) {
-		String args[] = new String[14];
+		String args[] = new String[16];
 		args[0] = getFfmpegPath();
 		boolean dvrms = media.getFile() != null && media.getFile().getAbsolutePath().toLowerCase().endsWith("dvr-ms");
 
@@ -393,30 +389,37 @@ public class DLNAMediaInfo implements Cloneable {
 			args[0] = configuration.getFfmpegAlternativePath();
 		}
 
-		args[1] = "-ss";
-		args[2] = "" + configuration.getThumbnailSeekPos();
-		args[3] = "-i";
-
-		if (media.getFile() != null) {
-			args[4] = ProcessUtil.getShortFileNameIfWideChars(media.getFile().getAbsolutePath());
+		args[1] = "-loglevel";
+		if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
+			args[2] = "info"; // Could be changed to "verbose" or "debug" if "info" level is not enough
 		} else {
-			args[4] = "-";
+			args[2] = "fatal";
 		}
 
-		args[5] = "-an";
-		args[6] = "-an";
-		args[7] = "-s";
-		args[8] = "320x180";
-		args[9] = "-vframes";
-		args[10] = "1";
-		args[11] = "-f";
-		args[12] = "image2";
-		args[13] = "pipe:";
+		args[3] = "-ss";
+		args[4] = "" + configuration.getThumbnailSeekPos();
+		args[5] = "-i";
+
+		if (media.getFile() != null) {
+			args[6] = ProcessUtil.getShortFileNameIfWideChars(media.getFile().getAbsolutePath());
+		} else {
+			args[6] = "-";
+		}
+
+		args[7] = "-an";
+		args[8] = "-an";
+		args[9] = "-s";
+		args[10] = "320x180";
+		args[11] = "-vframes";
+		args[12] = "1";
+		args[13] = "-f";
+		args[14] = "image2";
+		args[15] = "pipe:";
 
 		// FIXME MPlayer should not be used if thumbnail generation is disabled (and it should be disabled in the GUI)
 		if (!configuration.isThumbnailGenerationEnabled() || (configuration.isUseMplayerForVideoThumbs() && !dvrms)) {
-			args[2] = "0";
-			for (int i = 5; i <= 13; i++) {
+			args[4] = "0";
+			for (int i = 7; i <= 15; i++) {
 				args[i] = "-an";
 			}
 		}
@@ -686,36 +689,70 @@ public class DLNAMediaInfo implements Cloneable {
 				} catch (ImageReadException | IOException e) {
 					LOGGER.info("Error parsing image ({}) with Sanselan, switching to FFmpeg.", inputFile.getFile().getAbsolutePath());
 				}
+
+				if (configuration.getImageThumbnailsEnabled() && inputFile.getFile() != null) {
+					LOGGER.trace("Creating (temporary) thumbnail: {}", inputFile.getFile().getName());
+
+					// Create the thumbnail image using the Thumbnailator library
+					try {
+						ByteArrayOutputStream out = new ByteArrayOutputStream();	
+						Thumbnails.of(inputFile.getFile())
+								.size(320, 180)
+								.outputFormat("JPEG")
+								.outputQuality(1.0f)
+								.toOutputStream(out);;
+
+								setThumb(out.toByteArray());
+					} catch (IOException | IllegalArgumentException | IllegalStateException e) {
+						LOGGER.debug("Error generating thumbnail for: " + inputFile.getFile().getName());
+						LOGGER.debug("The full error was: " + e);
+					}
+				}
 			}
 
-			if (configuration.getImageThumbnailsEnabled() && type != Format.VIDEO && type != Format.AUDIO) {
-				try {
-					File thumbDir = new File(configuration.getTempFolder(), THUMBNAIL_DIRECTORY_NAME);
+			if (ffmpeg_parsing) {
+				if (!thumbOnly || !configuration.isUseMplayerForVideoThumbs()) {
+					pw = getFFMpegThumbnail(inputFile);
+				}
 
-					LOGGER.trace("Generating thumbnail for: {}", inputFile.getFile().getAbsolutePath());
+				boolean dvrms = false;
+				String input = "-";
 
-					if (!thumbDir.exists() && !thumbDir.mkdirs()) {
-						LOGGER.warn("Could not create thumbnail directory: {}", thumbDir.getAbsolutePath());
-					} else {
-						File thumbFile = new File(thumbDir, inputFile.getFile().getName() + ".jpg");
-						String thumbFilename = thumbFile.getAbsolutePath();
+				if (inputFile.getFile() != null) {
+					input = ProcessUtil.getShortFileNameIfWideChars(inputFile.getFile().getAbsolutePath());
+					dvrms = inputFile.getFile().getAbsolutePath().toLowerCase().endsWith("dvr-ms");
+				}
 
-						LOGGER.trace("Creating (temporary) thumbnail: {}", thumbFilename);
+				if (pw != null && !ffmpeg_failure && !thumbOnly) {
+					parseFFmpegInfo(pw.getResults(), input);
+				}
 
-						// Create the thumbnail image using the Thumbnailator library
-						final Builder<File> thumbnail = Thumbnails.of(inputFile.getFile());
-						thumbnail.size(320, 180);
-						thumbnail.outputFormat("jpg");
-						thumbnail.outputQuality(1.0f);
-
-						try {
-							thumbnail.toFile(thumbFilename);
-						} catch (IIOException e) {
-							LOGGER.debug("Error generating thumbnail for: " + inputFile.getFile().getName());
-							LOGGER.debug("The full error was: " + e);
+				if (
+					!thumbOnly &&
+					getContainer() != null &&
+					inputFile.getFile() != null &&
+					getContainer().equals("mpegts") &&
+					isH264() &&
+					getDurationInSeconds() == 0
+				) {
+					// Parse the duration
+					try {
+						int length = MpegUtil.getDurationFromMpeg(inputFile.getFile());
+						if (length > 0) {
+							setDuration((double) length);
 						}
+					} catch (IOException e) {
+						LOGGER.trace("Error retrieving length: " + e.getMessage());
+					}
+				}
 
-						File jpg = new File(thumbFilename);
+				if (configuration.isUseMplayerForVideoThumbs() && type == Format.VIDEO && !dvrms) {
+					try {
+						getMplayerThumbnail(inputFile);
+						String frameName = "" + inputFile.hashCode();
+						frameName = configuration.getTempFolder() + "/mplayer_thumbs/" + frameName + "00000001/00000001.jpg";
+						frameName = frameName.replace(',', '_');
+						File jpg = new File(frameName);
 
 						if (jpg.exists()) {
 							try (InputStream is = new FileInputStream(jpg)) {
@@ -730,22 +767,54 @@ public class DLNAMediaInfo implements Cloneable {
 							if (!jpg.delete()) {
 								jpg.deleteOnExit();
 							}
+
+							// Try and retry
+							if (!jpg.getParentFile().delete() && !jpg.getParentFile().delete()) {
+								LOGGER.debug("Failed to delete \"" + jpg.getParentFile().getAbsolutePath() + "\"");
+							}
 						}
+					} catch (IOException e) {
+						LOGGER.debug("Caught exception", e);
 					}
-				} catch (UnsupportedFormatException ufe) {
-					LOGGER.debug("Thumbnailator does not support the format of {}: {}", inputFile.getFile().getAbsolutePath(), ufe.getMessage());
-				} catch (Exception e) {
-					LOGGER.debug("Thumbnailator could not generate a thumbnail for: {}", inputFile.getFile().getAbsolutePath(), e);
-				}
-			}
-
-			if (ffmpeg_parsing) {
-				if (!thumbOnly || !configuration.isUseMplayerForVideoThumbs()) {
-					pw = getFFMpegThumbnail(inputFile);
 				}
 
-				String input = "-";
-				parseFFmpeg((ArrayList<String>) pw.getResults(), pw, inputFile, type, thumbOnly, ffmpeg_failure, "-");
+				if (type == Format.VIDEO && pw != null && getThumb() == null) {
+					InputStream is;
+					try {
+						int sz = 0;
+						is = pw.getInputStream(0);
+						if (is != null) {
+							sz = is.available();
+							if (sz > 0) {
+								setThumb(new byte[sz]);
+								is.read(getThumb());
+							}
+							is.close();
+						}
+
+						if (sz > 0 && !net.pms.PMS.isHeadless()) {
+							BufferedImage image = ImageIO.read(new ByteArrayInputStream(getThumb()));
+							if (image != null) {
+								Graphics g = image.getGraphics();
+								g.setColor(Color.WHITE);
+								g.setFont(new Font("Arial", Font.PLAIN, 14));
+								int low = 0;
+								if (getWidth() > 0) {
+									if (getWidth() == 1920 || getWidth() == 1440) {
+										g.drawString("1080p", 0, low += 18);
+									} else if (getWidth() == 1280) {
+										g.drawString("720p", 0, low += 18);
+									}
+								}
+								ByteArrayOutputStream out = new ByteArrayOutputStream();
+								ImageIO.write(image, "jpeg", out);
+								setThumb(out.toByteArray());
+							}
+						}
+					} catch (IOException e) {
+						LOGGER.debug("Error while decoding thumbnail: " + e.getMessage());
+					}
+				}
 			}
  
 			finalize(type, inputFile);
@@ -753,16 +822,16 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 	}
 
-	public void parseFFmpeg(ArrayList<String> lines, ProcessWrapperImpl pw, InputFile inputFile, int type, boolean thumbOnly, boolean failure, String input) {
-		boolean dvrms = false;
+	/**
+	 * Parses media info from ffmpeg's stderr output
+	 *
+	 * @param lines The stderr output
+	 * @param input The ffmpeg input (-i) argument used
+	 */
+	public void parseFFmpegInfo(List<String> lines, String input) {
 
-		if (inputFile != null && inputFile.getFile() != null) {
-			input = ProcessUtil.getShortFileNameIfWideChars(inputFile.getFile().getAbsolutePath());
-			dvrms = inputFile.getFile().getAbsolutePath().toLowerCase().endsWith("dvr-ms");
-		}
-
-		if (!ffmpeg_failure && !thumbOnly) {
-			if (input.equals("-")) {
+		if (lines != null) {
+			if ("-".equals(input)) {
 				input = "pipe:";
 			}
 
@@ -1018,97 +1087,7 @@ public class DLNAMediaInfo implements Cloneable {
 				}
 			}
 		}
-
-		if (
-			!thumbOnly &&
-			getContainer() != null &&
-			inputFile != null &&
-			inputFile.getFile() != null &&
-			getContainer().equals("mpegts") &&
-			isH264() &&
-			getDurationInSeconds() == 0
-		) {
-			// Parse the duration
-			try {
-				int length = MpegUtil.getDurationFromMpeg(inputFile.getFile());
-				if (length > 0) {
-					setDuration((double) length);
-				}
-			} catch (IOException e) {
-				LOGGER.trace("Error retrieving length: " + e.getMessage());
-			}
-		}
-
-		if (inputFile != null && configuration.isUseMplayerForVideoThumbs() && type == Format.VIDEO && !dvrms) {
-			try {
-				getMplayerThumbnail(inputFile);
-				String frameName = "" + inputFile.hashCode();
-				frameName = configuration.getTempFolder() + "/mplayer_thumbs/" + frameName + "00000001/00000001.jpg";
-				frameName = frameName.replace(',', '_');
-				File jpg = new File(frameName);
-
-				if (jpg.exists()) {
-					try (InputStream is = new FileInputStream(jpg)) {
-						int sz = is.available();
-
-						if (sz > 0) {
-							setThumb(new byte[sz]);
-							is.read(getThumb());
-						}
-					}
-
-					if (!jpg.delete()) {
-						jpg.deleteOnExit();
-					}
-
-					// Try and retry
-					if (!jpg.getParentFile().delete() && !jpg.getParentFile().delete()) {
-						LOGGER.debug("Failed to delete \"" + jpg.getParentFile().getAbsolutePath() + "\"");
-					}
-				}
-			} catch (IOException e) {
-				LOGGER.debug("Caught exception", e);
-			}
-		}
-
-		if (type == Format.VIDEO && pw != null && getThumb() == null) {
-			InputStream is;
-			try {
-				int sz = 0;
-				is = pw.getInputStream(0);
-				if (is != null) {
-					sz = is.available();
-					if (sz > 0) {
-						setThumb(new byte[sz]);
-						is.read(getThumb());
-					}
-					is.close();
-				}
-
-				if (sz > 0 && !net.pms.PMS.isHeadless()) {
-					BufferedImage image = ImageIO.read(new ByteArrayInputStream(getThumb()));
-					if (image != null) {
-						Graphics g = image.getGraphics();
-						g.setColor(Color.WHITE);
-						g.setFont(new Font("Arial", Font.PLAIN, 14));
-						int low = 0;
-						if (getWidth() > 0) {
-							if (getWidth() == 1920 || getWidth() == 1440) {
-								g.drawString("1080p", 0, low += 18);
-							} else if (getWidth() == 1280) {
-								g.drawString("720p", 0, low += 18);
-							}
-						}
-						ByteArrayOutputStream out = new ByteArrayOutputStream();
-						ImageIO.write(image, "jpeg", out);
-						setThumb(out.toByteArray());
-					}
-				}
-			} catch (IOException e) {
-				LOGGER.debug("Error while decoding thumbnail: " + e.getMessage());
-			}
-		}
-		ffmegparsed = true;
+		ffmpegparsed = true;
 	}
 
 	public boolean isH264() {
@@ -1253,14 +1232,14 @@ public class DLNAMediaInfo implements Cloneable {
 									 *    - 11 for 1280x720
 									 * Meaning this math is correct
 									 */
-									maxref = (int) Math.floor(10252743 / (getWidth() * getHeight()));
+									maxref = (int) Math.floor(10252743 / (double) (getWidth() * getHeight()));
 								} else {
 									/**
 									 * This is the math for level 4.1, which results in:
 									 *    - 4 for 1920x1080
 									 *    - 9 for 1280x720
 									 */
-									maxref = (int) Math.floor(8388608 / (getWidth() * getHeight()));
+									maxref = (int) Math.floor(8388608 / (double) (getWidth() * getHeight()));
 								}
 
 								if (getReferenceFrameCount() > maxref) {
@@ -2025,8 +2004,8 @@ public class DLNAMediaInfo implements Cloneable {
 		this.mediaparsed = mediaparsed;
 	}
 
-	public boolean isFFmegparsed() {
-		return ffmegparsed;
+	public boolean isFFmpegparsed() {
+		return ffmpegparsed;
 	}
 
 	/**
