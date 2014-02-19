@@ -111,14 +111,14 @@ public class RootFolder extends DLNAResource {
 		}
 
 		if (!configuration.isHideNewMediaFolder(tags)) {
-			String m = (String) configuration.getFoldersMonitored();
+			String m = configuration.getFoldersMonitored();
 			if (!StringUtils.isEmpty(m)) {
-				String[] tmp = m.split(",");
-				File[] dirs = new File[tmp.length];
-				for (int i = 0; i < tmp.length; i++) {
-					dirs[i] = new File(tmp[i]);
-				}
-				mon = new MediaMonitor(dirs);
+				String[] monitoredPaths = m.split(",");
+                List<File> monitoredFolders = new ArrayList<>();
+                for (String monitoredPath : monitoredPaths) {
+                    monitoredFolders.add(new File(monitoredPath));
+                }
+				mon = new MediaMonitor(monitoredFolders);
 				addChild(mon);
 			}
 		}

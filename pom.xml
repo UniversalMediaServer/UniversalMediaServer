@@ -84,6 +84,8 @@
 		<!-- Skip 4.65-1.05-RC because it doesn't work, author is working on fixing it -->
 		<sevenzip-version>4.65-1.04-RC</sevenzip-version>
 
+        <joda-time-version>2.3</joda-time-version>
+
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.external-resources>${project.basedir}/src/main/external-resources</project.external-resources>
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
@@ -371,6 +373,11 @@
 			<artifactId>jna</artifactId>
 			<version>4.0.0</version>
 		</dependency>
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>${joda-time-version}</version>
+        </dependency>
 	</dependencies>
 	<build>
 		<defaultGoal>assembly:assembly</defaultGoal>
