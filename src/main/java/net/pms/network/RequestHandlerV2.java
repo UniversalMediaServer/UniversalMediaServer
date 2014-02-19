@@ -188,8 +188,9 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 						boolean isKnown = false;
 
 						// Try to match known headers.
+						String lowerCaseHeaderLine = headerLine.toLowerCase();
 						for (Field knownHeader : HttpHeaders.Names.class.getDeclaredFields()) {
-							if (headerLine.toLowerCase().startsWith(((String) knownHeader.get(knownHeader)).toLowerCase())) {
+							if (lowerCaseHeaderLine.startsWith(((String) knownHeader.get(knownHeader)).toLowerCase())) {
 								isKnown = true;
 								break;
 							}
