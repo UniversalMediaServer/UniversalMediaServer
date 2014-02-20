@@ -230,7 +230,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 					}
 
 					long space = (writeCount - rc);
-					LOGGER.trace("buffered: " + formatter.format(space) + " bytes / inputs: " + inputStreams.size());
+					LOGGER.trace(attachedThread + " buffer: " + formatter.format(space) + " bytes / inputs: " + inputStreams.size());
 
 					// There are 1048576 bytes in a megabyte
 					long bufferInMBs = space / 1048576;
