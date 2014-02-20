@@ -551,6 +551,11 @@ public class PMS {
 		LOGGER.info("Checking the fontconfig cache, this can take two minutes or so.");
 
 		OutputParams outputParams = new OutputParams(configuration);
+		// Prevent unwanted gui buffer artifacts (and runaway timers)
+		outputParams.hidebuffer = true;
+		// make sure buffer is destroyed
+		outputParams.cleanup = true;
+
 		ProcessWrapperImpl mplayer = new ProcessWrapperImpl(new String[]{configuration.getMplayerPath(), "dummy"}, outputParams);
 		mplayer.runInNewThread();
 

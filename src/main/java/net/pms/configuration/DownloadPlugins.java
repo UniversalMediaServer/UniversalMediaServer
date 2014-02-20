@@ -72,7 +72,6 @@ public class DownloadPlugins {
 				parse_list(res, in, true);
 			}
 		} catch (IOException e) {
-			LOGGER.debug("Error while downloading the list of plugins: " + e);
 		}
 		return res;
 	}
