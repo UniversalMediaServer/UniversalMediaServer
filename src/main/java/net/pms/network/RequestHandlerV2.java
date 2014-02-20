@@ -19,10 +19,13 @@
 package net.pms.network;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.channels.ClosedChannelException;
 import java.nio.charset.Charset;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -49,23 +52,6 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 	private volatile HttpRequest nettyRequest;
 	private final ChannelGroup group;
 
-	// Used to filter out known headers when the renderer is not recognized
-	private final static String[] KNOWN_HEADERS = {
-		"Accept",
-		"Accept-Language",
-		"Accept-Encoding",
-		"Callback",
-		"Connection",
-		"Content-Length",
-		"Content-Type",
-		"Date",
-		"Host",
-		"Nt",
-		"Sid",
-		"Timeout",
-		"User-Agent"
-	};
-	
 	public RequestHandlerV2(ChannelGroup group) {
 		this.group = group;
 	}
@@ -124,7 +110,10 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on address " + ia);
 		}
 		
-		for (String name : nettyRequest.headers().names()) {
+		Set<String> headerNames = nettyRequest.headers().names();
+		Iterator<String> iterator = headerNames.iterator();
+		while(iterator.hasNext()) {
+			String name = iterator.next();
 			String headerLine = name + ": " + nettyRequest.headers().get(name);
 			LOGGER.trace("Received on socket: " + headerLine);
 
@@ -198,9 +187,10 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 						 // the media renderer, so keep track of the truly unknown ones.
 						boolean isKnown = false;
 
-						// Try to match possible known headers.
-						for (String knownHeaderString : KNOWN_HEADERS) {
-							if (headerLine.toLowerCase().startsWith(knownHeaderString.toLowerCase())) {
+						// Try to match known headers.
+						String lowerCaseHeaderLine = headerLine.toLowerCase();
+						for (Field knownHeader : HttpHeaders.Names.class.getDeclaredFields()) {
+							if (lowerCaseHeaderLine.startsWith(((String) knownHeader.get(knownHeader)).toLowerCase())) {
 								isKnown = true;
 								break;
 							}
