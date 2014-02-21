@@ -67,17 +67,17 @@ $(function(){
 				}
 
 				if (imageList.length >= imagesPerRow) {
-					for(i = 0; i < imageList.length; i++) {
+					for (i = 0; i < imageList.length; i++) {
 						if (correctWidth === null) {
 							totalSpaceMinusMargins = totalWidth - (20 * (imagesPerRow - 1));
 							correctWidth = (totalSpaceMinusMargins / imagesPerRow) - 0.1;
 						}
 						correctHeight = correctWidth / 1.78;
 
-						spanList[i].style.width      = correctWidth+"px";
-						spanList[i].style.maxWidth   = correctWidth+"px";
-						imageList[i].style.maxWidth  = correctWidth+"px";
-						imageList[i].style.maxHeight = correctHeight+"px";
+						spanList[i].style.width      = correctWidth  + "px";
+						spanList[i].style.maxWidth   = correctWidth  + "px";
+						imageList[i].style.maxWidth  = correctWidth  + "px";
+						imageList[i].style.maxHeight = correctHeight + "px";
 
 						if (!((i + 1) % imagesPerRow === 0)) {
 							thumbnailContainerList[i].style.marginRight = "20px";
