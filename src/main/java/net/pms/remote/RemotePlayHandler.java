@@ -48,7 +48,7 @@ public class RemotePlayHandler implements HttpHandler {
 		if (r.getFormat().isAudio()) {
 			mediaType = "audio";
 			String thumb = "/thumb/" + id1;
-			coverImage = "<img class=\"cover\" src=\"" + thumb + "\" alt=\"\" /><br>";
+			coverImage = "<img class=\"cover\" src=\"" + thumb + "\" alt=\"\"><br>";
 		}
 		if (r.getFormat().isVideo()) {
 			mediaType = "video";
