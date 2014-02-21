@@ -13,7 +13,7 @@ $(function(){
 
 			// Do the main margins
 			container = document.getElementById("Media");
-			if (container != null) {
+			if (container !== null) {
 				imageList = container.getElementsByTagName("img");
 				thumbnailContainerList = container.getElementsByTagName("li");
 				spanList = container.getElementsByTagName("span");
@@ -66,7 +66,7 @@ $(function(){
 
 				if (imageList.length >= imagesPerRow) {
 					for(i = 0; i < imageList.length; i++) {
-						if (correctWidth == null) {
+						if (correctWidth === null) {
 							totalSpaceMinusMargins = totalWidth - (20 * (imagesPerRow - 1));
 							correctWidth = (totalSpaceMinusMargins / imagesPerRow) - 0.1;
 						}
