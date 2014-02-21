@@ -97,6 +97,7 @@ public class OutputParams {
 	public String toString() {
 		return "OutputParams [aid=" + aid +
 			", avidemux=" + avidemux +
+			", cleanup=" + cleanup +
 			", forceFps=" + forceFps +
 			", forceType=" + forceType +
 			", fromFrame=" + fromFrame +

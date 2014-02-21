@@ -552,7 +552,7 @@ public class PMS {
 		OutputParams outputParams = new OutputParams(configuration);
 		// Prevent unwanted gui buffer artifacts (and runaway timers)
 		outputParams.hidebuffer = true;
-		// make sure buffer is destroyed
+		// Make sure buffer is destroyed
 		outputParams.cleanup = true;
 
 		ProcessWrapperImpl mplayer = new ProcessWrapperImpl(new String[]{configuration.getMplayerPath(), "dummy"}, outputParams);
