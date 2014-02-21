@@ -9,6 +9,7 @@ $(function(){
 			var imagesPerRow           = null;
 			var totalSpaceMinusMargins = null;
 			var correctWidth           = null;
+			var correctHeight          = null;
 			var totalWidth             = null;
 
 			// Do the main margins
@@ -19,7 +20,8 @@ $(function(){
 				spanList = container.getElementsByTagName("span");
 				imagesPerRow = "";
 				totalSpaceMinusMargins = "";
-				correctWidth = null;
+				correctWidth  = null;
+				correctHeight = null;
 
 				totalWidth = container.offsetWidth;
 				totalWidth = totalWidth - 40;
@@ -70,9 +72,12 @@ $(function(){
 							totalSpaceMinusMargins = totalWidth - (20 * (imagesPerRow - 1));
 							correctWidth = (totalSpaceMinusMargins / imagesPerRow) - 0.1;
 						}
+						correctHeight = correctWidth / 1.78;
 
-						spanList[i].style.maxWidth    = correctWidth+"px";
-						imageList[i].style.maxWidth = correctWidth+"px";
+						spanList[i].style.width      = correctWidth+"px";
+						spanList[i].style.maxWidth   = correctWidth+"px";
+						imageList[i].style.maxWidth  = correctWidth+"px";
+						imageList[i].style.maxHeight = correctHeight+"px";
 
 						if (!((i + 1) % imagesPerRow === 0)) {
 							thumbnailContainerList[i].style.marginRight = "20px";
