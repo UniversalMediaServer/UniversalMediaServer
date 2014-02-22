@@ -56,6 +56,23 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		this.group = group;
 	}
 
+	// Used to filter out known headers when the renderer is not recognized
+	private final static String[] KNOWN_HEADERS = {
+		"accept",
+		"accept-language",
+		"accept-encoding",
+		"callback",
+		"connection",
+		"content-length",
+		"content-type",
+		"date",
+		"host",
+		"nt",
+		"sid",
+		"timeout",
+		"user-agent"
+	};
+
 	@Override
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
 		throws Exception {
@@ -79,17 +96,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 		LOGGER.trace("Opened request handler on socket " + remoteAddress);
 		PMS.get().getRegistry().disableGoToSleep();
-
-		if (HttpMethod.GET.equals(nettyRequest.getMethod())) {
-			request = new RequestV2("GET", nettyRequest.getUri().substring(1));
-		} else if (HttpMethod.POST.equals(nettyRequest.getMethod())) {
-			request = new RequestV2("POST", nettyRequest.getUri().substring(1));
-		} else if (HttpMethod.HEAD.equals(nettyRequest.getMethod())) {
-			request = new RequestV2("HEAD", nettyRequest.getUri().substring(1));
-		} else {
-			request = new RequestV2(nettyRequest.getMethod().getName(), nettyRequest.getUri().substring(1));
-		}
-
+		request = new RequestV2(nettyRequest.getMethod().getName(), nettyRequest.getUri().substring(1));
 		LOGGER.trace("Request: " + nettyRequest.getProtocolVersion().getText() + " : " + request.getMethod() + " : " + request.getArgument());
 
 		if (nettyRequest.getProtocolVersion().getMinorVersion() == 0) {
@@ -189,8 +196,8 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 						// Try to match known headers.
 						String lowerCaseHeaderLine = headerLine.toLowerCase();
-						for (Field knownHeader : HttpHeaders.Names.class.getDeclaredFields()) {
-							if (lowerCaseHeaderLine.startsWith(((String) knownHeader.get(knownHeader)).toLowerCase())) {
+						for (String knownHeaderString : KNOWN_HEADERS) {
+							if (lowerCaseHeaderLine.startsWith(knownHeaderString)) {
 								isKnown = true;
 								break;
 							}
