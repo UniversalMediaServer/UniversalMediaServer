@@ -816,7 +816,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 
 	@Override
 	public void detachInputStream() {
-		if (! hidebuffer) {
+		if (!hidebuffer) {
 			PMS.get().getFrame().setReadValue(0, "");
 		}
 
@@ -866,7 +866,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 
 		buffered = false;
 
-		if (! hidebuffer && maxMemorySize != 1048576) {
+		if (!hidebuffer && maxMemorySize != 1048576) {
 			PMS.get().getFrame().setValue(0, Messages.getString("StatusTab.5"));
 		}
 	}
