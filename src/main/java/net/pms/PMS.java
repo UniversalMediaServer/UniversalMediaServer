@@ -839,8 +839,7 @@ public class PMS {
 		String[] foldersArray = folders.split(",");
 
 		for (String folder : foldersArray) {
-
-      folder = folder.trim();
+			folder = folder.trim();
 
 			// unescape embedded commas. note: backslashing isn't safe as it conflicts with
 			// Windows path separators:
