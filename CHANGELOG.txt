@@ -1,4 +1,4 @@
-3.4.2 - 2014-02-??
+3.4.2 - 2014-02-25
 
 	General:
 		Improved fontconfig cache creation
