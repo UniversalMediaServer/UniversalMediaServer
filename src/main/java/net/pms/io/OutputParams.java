@@ -60,6 +60,7 @@ public class OutputParams {
 	public IPushOutput stdin;
 	public boolean avidemux;
 	public boolean shift_scr;
+	public boolean cleanup;
 
 	public OutputParams(PmsConfiguration configuration) {
 		if (configuration != null) {
@@ -96,6 +97,7 @@ public class OutputParams {
 	public String toString() {
 		return "OutputParams [aid=" + aid +
 			", avidemux=" + avidemux +
+			", cleanup=" + cleanup +
 			", forceFps=" + forceFps +
 			", forceType=" + forceType +
 			", fromFrame=" + fromFrame +

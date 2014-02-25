@@ -364,7 +364,7 @@ public class PMS {
 
 		// This should be removed soon
 		OpenSubtitle.convert();
-		
+
 		// Start this here to let the converison work
 		tfm.schedule();
 
@@ -550,6 +550,13 @@ public class PMS {
 		LOGGER.info("Checking the fontconfig cache, this can take two minutes or so.");
 
 		OutputParams outputParams = new OutputParams(configuration);
+
+		// Prevent unwanted GUI buffer artifacts (and runaway timers)
+		outputParams.hidebuffer = true;
+
+		// Make sure buffer is destroyed
+		outputParams.cleanup = true;
+
 		ProcessWrapperImpl mplayer = new ProcessWrapperImpl(new String[]{configuration.getMplayerPath(), "dummy"}, outputParams);
 		mplayer.runInNewThread();
 
@@ -643,7 +650,7 @@ public class PMS {
 
 		// Any plugin-defined players are now registered, create the gui view.
 		frame.addEngines();
-		
+
 		// To make the cred stuff work cross plugins
 		// read cred file AFTER plugins are started
 		if (System.getProperty(CONSOLE) == null) {
@@ -834,6 +841,8 @@ public class PMS {
 		String[] foldersArray = folders.split(",");
 
 		for (String folder : foldersArray) {
+			folder = folder.trim();
+
 			// unescape embedded commas. note: backslashing isn't safe as it conflicts with
 			// Windows path separators:
 			// http://ps3mediaserver.org/forum/viewtopic.php?f=14&t=8883&start=250#p43520
