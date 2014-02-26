@@ -86,10 +86,17 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		InetSocketAddress remoteAddress = (InetSocketAddress) e.getChannel().getRemoteAddress();
 		InetAddress ia = remoteAddress.getAddress();
 
-		// Apply the IP filter
-		if (filterIp(ia)) {
+		// FIXME: this would also block an external cling-based client running on the same host
+		boolean isSelf = ia.getHostAddress().equals(PMS.get().getServer().getHost()) &&
+			nettyRequest.getHeader("User-Agent") != null &&
+			nettyRequest.getHeader("User-Agent").contains("Cling/");
+
+		// Filter if required
+		if (isSelf || filterIp(ia)) {
 			e.getChannel().close();
-			LOGGER.trace("Access denied for address " + ia + " based on IP filter");
+			LOGGER.trace(isSelf ?
+				("Ignoring self-originating request from " + ia + ":" + remoteAddress.getPort()) :
+				("Access denied for address " + ia + " based on IP filter"));
 			return;
 		}
 
@@ -123,29 +130,11 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			String headerLine = name + ": " + nettyRequest.headers().get(name);
 			LOGGER.trace("Received on socket: " + headerLine);
 
-			if (renderer == null && headerLine.toUpperCase().startsWith("USER-AGENT")) {
-				userAgentString = headerLine.substring(headerLine.indexOf(':') + 1).trim();
-
-				// Attempt 2: try to recognize the renderer by matching the "User-Agent" header
-				renderer = RendererConfiguration.getRendererConfigurationByUA(userAgentString);
-
-				if (renderer != null) {
-					request.setMediaRenderer(renderer);
-					renderer.associateIP(ia);	// Associate IP address for later requests
-					PMS.get().setRendererFound(renderer);
-					LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLine + "\"");
-				}
-			}
-
 			if (renderer == null) {
-				// Attempt 3: try to recognize the renderer by matching an additional header
-				renderer = RendererConfiguration.getRendererConfigurationByUAAHH(headerLine);
-
+				// Attempt 2: try to recognize the renderer by individual headers
+				renderer = RendererConfiguration.getRendererConfigurationByHeaderLine(headerLine, ia);
 				if (renderer != null) {
 					request.setMediaRenderer(renderer);
-					renderer.associateIP(ia);	// Associate IP address for later requests
-					PMS.get().setRendererFound(renderer);
-					LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLine + "\"");
 				}
 			}
 
@@ -214,10 +203,15 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		// Still no media renderer recognized?
 		if (request.getMediaRenderer() == null) {
 
-			// Attempt 4: Not really an attempt; all other attempts to recognize
+			// Attempt 3: Not really an attempt; all other attempts to recognize
 			// the renderer have failed. The only option left is to assume the
 			// default renderer.
-			request.setMediaRenderer(RendererConfiguration.getDefaultConf());
+//			request.setMediaRenderer(RendererConfiguration.getDefaultConf());
+
+			RendererConfiguration r = new RendererConfiguration(null); // FIXME: should copy defaultConf here instead
+			r.associateIP(ia);
+			request.setMediaRenderer(r);
+
 			LOGGER.trace("Using default media renderer: " + request.getMediaRenderer().getRendererName());
 
 			if (userAgentString != null && !userAgentString.equals("FDSSDP")) {
@@ -281,7 +275,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
 			}
 		}
-		
+
 		StartStopListenerDelegate startStopListenerDelegate = new StartStopListenerDelegate(ia.getHostAddress());
 
 		try {
