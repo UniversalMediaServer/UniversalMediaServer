@@ -32,6 +32,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
+import static net.pms.dlna.DLNAResource.Temp;
 import net.pms.util.BasicPlayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -563,7 +564,7 @@ public class UPNPHelper extends UPNPControl {
 
 		@Override
 		public void setURI(String uri) {
-			UPNPControl.setAVTransportURI(dev, instanceID, uri, null);
+			UPNPControl.setAVTransportURI(dev, instanceID, Temp.add(uri), null);
 		}
 
 		@Override
