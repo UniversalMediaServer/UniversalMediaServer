@@ -41,6 +41,7 @@ import javax.swing.plaf.metal.MetalLookAndFeel;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.io.WindowsNamedPipe;
 import net.pms.newgui.update.AutoUpdateDialog;
 import net.pms.update.AutoUpdater;
@@ -555,6 +556,11 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		}
 
 		status.setText(line);
+	}
+
+	@Override
+	public void addRenderer(RendererConfiguration renderer) {
+		st.addRenderer(renderer);
 	}
 
 	@Override
