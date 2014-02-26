@@ -546,6 +546,8 @@ public class PMS {
 		});
 
 		RendererConfiguration.loadRendererConfigurations(configuration);
+		// Now that renderer confs are all loaded, we can start searching for renderers
+		UPNPHelper.getInstance().init();
 
 		LOGGER.info("Checking the fontconfig cache, this can take two minutes or so.");
 
