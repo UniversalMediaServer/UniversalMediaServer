@@ -201,20 +201,19 @@ public class StatusTab {
 
 	public void addRenderer(final RendererConfiguration renderer) {
 		addRendererIcon(renderer.getRank(), renderer.getRendererName(), renderer.getRendererIcon());
+		renderer.setImagePanel(renderers[numRenderers]);
 		renderers[numRenderers].setAction(new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				SwingUtilities.invokeLater(new Runnable() {
 					public void run() {
-						if(renderer.isActive()) {
-							JOptionPane.showOptionDialog(
-								(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-								new RendererPanel(renderer),
-								renderer.getRendererName(),
-								JOptionPane.CLOSED_OPTION,
-								JOptionPane.PLAIN_MESSAGE, null, null, null
-							);
-						}
+						JOptionPane.showOptionDialog(
+							(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+							new RendererPanel(renderer),
+							renderer.getRendererName() + (renderer.isActive() ? "" : "  [offline]"),
+							JOptionPane.CLOSED_OPTION,
+							JOptionPane.PLAIN_MESSAGE, null, null, null
+						);
 					}
 				});
 			}
