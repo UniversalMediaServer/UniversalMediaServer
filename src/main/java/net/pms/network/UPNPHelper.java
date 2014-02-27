@@ -535,6 +535,10 @@ public class UPNPHelper extends UPNPControl {
 		}
 	}
 
+	public static void connect(String uuid, String instanceID, ActionListener listener) {
+		deviceMap.get(uuid, instanceID).connect(listener);
+	}
+
 	public static Map<String, String> getData(String uuid, String instanceID) {
 		return deviceMap.get(uuid, instanceID).data;
 	}
