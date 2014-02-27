@@ -49,20 +49,22 @@ public class RendererPanel extends JPanel {
 
 		builder.appendRow(rspec);
 		builder.add(editButton(), cc.xyw(1, ++y, 2));
-		builder.appendRow(rspec);
-		builder.addLabel(" ", cc.xy(1, ++y));
-
-		y = addMap(renderer.getUpnpDetails(), builder, y);
-		y = addStrings("Services", WordUtils.wrap(StringUtils.join(renderer.getUpnpServices(), ", "), 60).split("\n"),
-			builder, y);
-
-		if (renderer.isUpnpControllable()) {
+		if (renderer.isActive()) {
 			builder.appendRow(rspec);
 			builder.addLabel(" ", cc.xy(1, ++y));
-			builder.appendRow(rspec);
-			builder.addSeparator("UPNP Controls", cc.xyw(1, ++y, 2));
-			builder.appendRow(rspec);
-			builder.add(new PlayerControlPanel(new UPNPHelper.Player(renderer)), cc.xyw(1, ++y, 2));
+
+			y = addMap(renderer.getUpnpDetails(), builder, y);
+			y = addStrings("Services", WordUtils.wrap(StringUtils.join(renderer.getUpnpServices(), ", "), 60).split("\n"),
+				builder, y);
+
+			if (renderer.isUpnpControllable()) {
+				builder.appendRow(rspec);
+				builder.addLabel(" ", cc.xy(1, ++y));
+				builder.appendRow(rspec);
+				builder.addSeparator("UPNP Controls", cc.xyw(1, ++y, 2));
+				builder.appendRow(rspec);
+				builder.add(new PlayerControlPanel(new UPNPHelper.Player(renderer)), cc.xyw(1, ++y, 2));
+			}
 		}
 
 		add(builder.getPanel());

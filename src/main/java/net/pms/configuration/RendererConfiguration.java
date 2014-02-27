@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
@@ -24,6 +26,7 @@ import net.pms.network.HTTPResource;
 import net.pms.network.SpeedStats;
 import net.pms.network.UPNPHelper;
 import net.pms.util.PropertiesUtil;
+import net.pms.newgui.ImagePanel;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang.WordUtils;
@@ -33,7 +36,7 @@ import org.apache.commons.io.Charsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RendererConfiguration {
+public class RendererConfiguration implements ActionListener {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
 	private static ArrayList<RendererConfiguration> enabledRendererConfs;
 	private static ArrayList<String> allRenderersNames = new ArrayList<>();
@@ -49,6 +52,7 @@ public class RendererConfiguration {
 
 	private String uuid;
 	private String instanceID = "0"; // FIXME: we're fudging this as single-instance
+	private ImagePanel imagePanel;
 
 	// Holds MIME type aliases
 	private final Map<String, String> mimes;
@@ -340,6 +344,7 @@ public class RendererConfiguration {
 		}
 		if (uuid != null) {
 			addressAssociation.put(sa, this);
+			UPNPHelper.connect(uuid, instanceID, this);
 			SpeedStats.getInstance().getSpeedInMBits(sa, getRendererName());
 			return true;
 		}
@@ -1068,6 +1073,18 @@ public class RendererConfiguration {
 	 */
 	public boolean isUpnpControllable() {
 		return UPNPHelper.isUpnpControllable(uuid);
+	}
+
+
+	@Override
+	public void actionPerformed(final ActionEvent e) {
+		if (imagePanel != null) {
+			imagePanel.setGrey(! isActive());
+		}
+	}
+
+	public void setImagePanel(ImagePanel panel) {
+		imagePanel = panel;
 	}
 
 	/**

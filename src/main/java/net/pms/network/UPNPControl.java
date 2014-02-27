@@ -89,8 +89,13 @@ public class UPNPControl {
 		public void mark(String uuid, int property, boolean value) {
 			for (deviceItem i : get(uuid).values()) {
 				switch (property) {
-					case ACTIVE: i.active = value; break;
-					case CONTROLLABLE: i.controllable = value; break;
+					case ACTIVE:
+						i.active = value;
+						i.alert();
+						break;
+					case CONTROLLABLE:
+						i.controllable = value;
+						break;
 				}
 			}
 		}
