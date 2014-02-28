@@ -543,6 +543,21 @@ public class UPNPHelper extends UPNPControl {
 		return deviceMap.get(uuid, instanceID).data;
 	}
 
+	public static void play(String uri, RendererConfiguration r) {
+		Device dev = getDevice(r.getUUID());
+		String id = r.getInstanceID();
+		setAVTransportURI(dev, id, Temp.add(uri), null);
+		play(dev, id);
+	}
+
+	public static void play(DLNAResource d, RendererConfiguration r) {
+		Device dev = getDevice(r.getUUID());
+		String id = r.getInstanceID();
+		String uri = d.getParent() == null ? Temp.add(d) : d.getURL("");
+		setAVTransportURI(dev, id, uri, null);
+		play(dev, id);
+	}
+
 	// A player to manage upnp playback
 
 	public static class Player implements BasicPlayer {
