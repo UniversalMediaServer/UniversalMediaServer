@@ -19,15 +19,24 @@
  */
 package net.pms.network;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import org.apache.commons.lang3.StringUtils;
+import org.fourthline.cling.model.meta.Device;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
-import org.apache.commons.lang3.StringUtils;
+import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.DLNAResource;
+import static net.pms.dlna.DLNAResource.Temp;
+import net.pms.util.BasicPlayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 /**
  * Helper class to handle the UPnP traffic that makes PMS discoverable by
@@ -36,7 +45,7 @@ import org.slf4j.LoggerFactory;
  * and http://upnp.org/specs/arch/UPnP-arch-DeviceArchitecture-v1.1-AnnexA.pdf
  * for the specifications.
  */
-public class UPNPHelper {
+public class UPNPHelper extends UPNPControl {
 	// Logger instance to write messages to the logs.
 	private static final Logger LOGGER = LoggerFactory.getLogger(UPNPHelper.class);
 
@@ -69,10 +78,18 @@ public class UPNPHelper {
 
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
+	private static final UPNPHelper instance = new UPNPHelper();
+
 	/**
 	 * This utility class is not meant to be instantiated.
 	 */
-	private UPNPHelper() { }
+	private UPNPHelper() {
+		super();
+	}
+
+	public static UPNPHelper getInstance() {
+		return instance;
+	}
 
 	/**
 	 * Send UPnP discovery search message to discover devices of interest on
@@ -236,7 +253,7 @@ public class UPNPHelper {
 			multicastSocket = getNewMulticastSocket();
 			InetAddress upnpAddress = getUPNPAddress();
 			multicastSocket.joinGroup(upnpAddress);
-	
+
 			sendMessage(multicastSocket, "upnp:rootdevice", BYEBYE);
 			sendMessage(multicastSocket, "urn:schemas-upnp-org:device:MediaServer:1", BYEBYE);
 			sendMessage(multicastSocket, "urn:schemas-upnp-org:service:ContentDirectory:1", BYEBYE);
@@ -264,7 +281,7 @@ public class UPNPHelper {
 	 *
 	 * @param delay the delay
 	 */
-	private static void sleep(int delay) {
+	public static void sleep(int delay) {
 		try {
 			Thread.sleep(delay);
 		} catch (InterruptedException e) { }
@@ -300,7 +317,7 @@ public class UPNPHelper {
 
 	/**
 	 * Starts up two threads: one to broadcast UPnP ALIVE messages and another
-	 * to listen for responses. 
+	 * to listen for responses.
 	 *
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
@@ -378,7 +395,7 @@ public class UPNPHelper {
 							DatagramPacket receivePacket = new DatagramPacket(buf, buf.length);
 							multicastSocket.receive(receivePacket);
 
-							String s = new String(receivePacket.getData());
+							String s = new String(receivePacket.getData(), 0, receivePacket.getLength());
 
 							InetAddress address = receivePacket.getAddress();
 
@@ -507,4 +524,152 @@ public class UPNPHelper {
 	private static InetAddress getUPNPAddress() throws IOException {
 		return InetAddress.getByName(IPV4_UPNP_HOST);
 	}
+
+	@Override
+	protected void rendererFound(Device d) {
+		try {
+			InetAddress socket = InetAddress.getByName(getURL(d).getHost());
+			RendererConfiguration r = RendererConfiguration.getRendererConfigurationByUPNPDetails(getDeviceDetailsString(d), socket, getUUID(d));
+			LOGGER.debug("New renderer found: " + (r == null ? "unknown" : r.getRendererName()) + ": " + getDeviceDetails(d));
+		} catch(Exception e) {
+		}
+	}
+
+	public static void connect(String uuid, String instanceID, ActionListener listener) {
+		deviceMap.get(uuid, instanceID).connect(listener);
+	}
+
+	public static Map<String, String> getData(String uuid, String instanceID) {
+		return deviceMap.get(uuid, instanceID).data;
+	}
+
+	public static void play(String uri, RendererConfiguration r) {
+		Device dev = getDevice(r.getUUID());
+		String id = r.getInstanceID();
+		setAVTransportURI(dev, id, Temp.add(uri), null);
+		play(dev, id);
+	}
+
+	public static void play(DLNAResource d, RendererConfiguration r) {
+		Device dev = getDevice(r.getUUID());
+		String id = r.getInstanceID();
+		String uri = d.getParent() == null ? Temp.add(d) : d.getURL("");
+		setAVTransportURI(dev, id, uri, null);
+		play(dev, id);
+	}
+
+	// A player to manage upnp playback
+
+	public static class Player implements BasicPlayer {
+		private Device dev;
+		private String uuid;
+		private String instanceID;
+		public RendererConfiguration renderer;
+		private Map<String,String> map;
+		private ArrayList<ActionListener> listeners;
+		private BasicPlayer.State state;
+
+		public Player(RendererConfiguration renderer) {
+			uuid = renderer.getUUID();
+			instanceID = renderer.getInstanceID();
+			this.renderer = renderer;
+			dev = getDevice(uuid);
+			map = deviceMap.get(uuid, instanceID).connect(this);
+			state = new State();
+			listeners = new ArrayList();
+			LOGGER.debug("Created upnp player for " + renderer.getRendererName());
+			refresh();
+		}
+
+		@Override
+		public void setURI(String uri) {
+			UPNPControl.setAVTransportURI(dev, instanceID, Temp.add(uri), null);
+		}
+
+		@Override
+		public void play() {
+			UPNPControl.play(dev, instanceID);
+		}
+
+		@Override
+		public void pause() {
+			UPNPControl.pause(dev, instanceID);
+		}
+
+		@Override
+		public void stop() {
+			UPNPControl.stop(dev, instanceID);
+		}
+
+		@Override
+		public void next() {
+			UPNPControl.next(dev, instanceID);
+		}
+
+		@Override
+		public void prev() {
+			UPNPControl.previous(dev, instanceID);
+		}
+
+		@Override
+		public void forward() {
+			//TODO
+		}
+
+		@Override
+		public void rewind() {
+			//TODO
+		}
+
+		@Override
+		public void mute(boolean on) {
+			UPNPControl.setMute(dev, instanceID, on);
+		}
+
+		public void setVolume(int volume) {
+			UPNPControl.setVolume(dev, instanceID, volume);
+		}
+
+		@Override
+		public void connect(ActionListener listener) {
+			listeners.add(listener);
+		}
+
+		@Override
+		public void disconnect(ActionListener listener) {
+			listeners.remove(listener);
+		}
+
+		@Override
+		public void actionPerformed(final ActionEvent e) {
+			refresh();
+		}
+
+		@Override
+		public void refresh() {
+			String s = map.get("TransportState");
+			state.playback = "STOPPED".equals(s) ? BasicPlayer.STOPPED :
+				"PLAYING".equals(s) ? BasicPlayer.PLAYING :
+				"PAUSED_PLAYBACK".equals(s) ? BasicPlayer.PAUSED: -1;
+			state.mute = "0".equals(map.get("Mute")) ? false : true;
+			s = map.get("Volume");
+			state.volume = s == null ? 0 : Integer.valueOf(s);
+			state.position = map.get("RelTime");
+			state.duration = map.get("CurrentMediaDuration");
+			state.uri = map.get("AVTransportURI");
+			alert();
+		}
+
+		public void alert() {
+			for (ActionListener l : listeners) {
+				l.actionPerformed(new ActionEvent(this, 0, null));
+			}
+		}
+
+		@Override
+		public BasicPlayer.State getState() {
+			return state;
+		}
+	}
+
 }
