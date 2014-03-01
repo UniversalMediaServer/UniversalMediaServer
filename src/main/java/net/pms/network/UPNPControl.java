@@ -179,6 +179,10 @@ public class UPNPControl {
 				}
 				item.data.put("InstanceID", id);
 				for (int n=0; n < c.getLength(); n++) {
+                    if(c.item(n).getNodeType() != Node.ELEMENT_NODE) {
+                        LOGGER.debug("skip this "+c.item(n));
+                        continue;
+                    }
 					Element e = (Element)c.item(n);
 					String name = e.getTagName();
 					String val = e.getAttribute("val");
@@ -320,7 +324,9 @@ public class UPNPControl {
 		details.put("modelNumber", model.getModelNumber());
 		details.put("modelDescription", model.getModelDescription());
 		details.put("manufacturerURL", man.getManufacturerURI().toString());
-		details.put("modelURL", model.getModelURI().toString());
+        if(model.getModelURI() != null) {
+		    details.put("modelURL", model.getModelURI().toString());
+        }
 		return details;
 	}
 
