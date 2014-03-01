@@ -878,10 +878,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	public synchronized List<DLNAResource> getDLNAResources(String objectId, boolean returnChildren, int start, int count, RendererConfiguration renderer, String searchStr) throws IOException {
-		if (objectId.startsWith("Temp$")) {
-			return Temp.asList(objectId);
-		}
-
 		ArrayList<DLNAResource> resources = new ArrayList<>();
 		DLNAResource dlna = search(objectId, count, renderer, searchStr);
 
@@ -1317,7 +1313,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param prefix
 	 * @return Returns a URL for a given media item. Not used for container types.
 	 */
-	public String getURL(String prefix) {
+	protected String getURL(String prefix) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(PMS.get().getServer().getURL());
 		sb.append("/get/");
@@ -2688,7 +2684,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *
 	 * @param format The format to set.
 	 */
-	public void setFormat(Format format) {
+	protected void setFormat(Format format) {
 		this.format = format;
 
 		// Set deprecated variable for backwards compatibility
@@ -3341,64 +3337,4 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public ExternalListener getMasterParent() {
 		return masterParent;
 	}
-
-	// Returns the index of the given child resource id, or -1 if not found
-
-	public int indexOf(String resourceId) {
-		for (int i=0; i < children.size(); i++) {
-			if (children.get(i).getResourceId().equals(resourceId)) {
-				return i;
-			}
-		}
-		return -1;
-	}
-
-	// Attempts to automatically create the appropriate container for
-	// the given uri. Defaults to mpeg video for indeterminate local uris.
-
-	public static DLNAResource autoMatch(String uri) {
-		boolean isweb = uri.matches(".*\\S+://.*");
-		Format f = FormatFactory.getAssociatedFormat(isweb ? uri.split("://")[1] : uri);
-		int type = f == null ? Format.VIDEO : f.getType();
-		DLNAResource d = isweb ?
-			type == Format.VIDEO ? new WebVideoStream(uri, uri, null) :
-			type == Format.AUDIO ? new WebAudioStream(uri, uri, null) :
-			type == Format.IMAGE ? new FeedItem(uri, uri, null, null, Format.IMAGE) : null
-			:
-			new RealFile(new File(uri));
-		if (f == null && !isweb) {
-			d.setFormat(FormatFactory.getAssociatedExtension(".mpg"));
-		}
-		LOGGER.debug(d == null ?
-			("Could not auto-match " + uri) :
-			("Created auto-matched container: "+ d));
-		return d;
-	}
-
-	// A general-purpose free-floating folder
-
-	public static class unattachedFolder extends VirtualFolder {
-		public unattachedFolder(String name) {
-			super(name, null);
-			setId(name);
-		}
-		public String add(DLNAResource d) {
-			if (d != null) {
-				addChild(d);
-				return d.getURL("");
-			}
-			return null;
-		}
-		public String add(String uri) {
-			return add(autoMatch(uri));
-		}
-		public List<DLNAResource> asList(String objectId) {
-			int index = indexOf(objectId);
-			return index > -1 ? getChildren().subList(index, index+1) : null;
-		}
-	}
-
-	// A temp folder for non-xmb items
-
-	public static unattachedFolder Temp = new unattachedFolder("Temp");
 }

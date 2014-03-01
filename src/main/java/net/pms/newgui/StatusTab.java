@@ -23,12 +23,10 @@ import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.image.BufferedImage;
-import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -37,12 +35,9 @@ import java.text.DecimalFormat;
 import java.util.Locale;
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import net.pms.PMS;
 import net.pms.Messages;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.configuration.RendererConfiguration;
 import net.pms.util.FormLayoutUtil;
-import net.pms.network.UPNPHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -148,7 +143,6 @@ public class StatusTab {
 		rendererBuilder.opaque(true);
 		for (int i = 0; i < MAX_RENDERERS; i++) {
 			renderers[i] = buildImagePanel(null);
-			renderers[i].enableRollover();
 			rendererBuilder.add(renderers[i], cc.xy(2 + i, 1));
 			rendererLabels[i] = new JLabel("");
 			rendererBuilder.add(rendererLabels[i], cc.xy(2 + i, 3, CellConstraints.CENTER, CellConstraints.DEFAULT));
@@ -197,28 +191,6 @@ public class StatusTab {
 		}
 
 		return new ImagePanel(bi);
-	}
-
-	public void addRenderer(final RendererConfiguration renderer) {
-		addRendererIcon(renderer.getRank(), renderer.getRendererName(), renderer.getRendererIcon());
-		renderer.setImagePanel(renderers[numRenderers]);
-		renderers[numRenderers].setAction(new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				SwingUtilities.invokeLater(new Runnable() {
-					public void run() {
-						JOptionPane.showOptionDialog(
-							(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-							new RendererPanel(renderer),
-							renderer.getRendererName() + (renderer.isActive() ? "" : "  [offline]"),
-							JOptionPane.CLOSED_OPTION,
-							JOptionPane.PLAIN_MESSAGE, null, null, null
-						);
-					}
-				});
-			}
-		});
-		numRenderers++;
 	}
 
 	public void addRendererIcon(int code, String msg, String icon) {
@@ -274,5 +246,6 @@ public class StatusTab {
 		}
 
 		rendererLabels[numRenderers].setText(msg);
+		numRenderers++;
 	}
 }
