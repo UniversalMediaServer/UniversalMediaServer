@@ -180,6 +180,7 @@ public class UPNPControl {
 				item.data.put("InstanceID", id);
 				for (int n=0; n < c.getLength(); n++) {
                     if(c.item(n).getNodeType() != Node.ELEMENT_NODE) {
+                        LOGGER.debug("skip this "+c.item(n));
                         continue;
                     }
 					Element e = (Element)c.item(n);
