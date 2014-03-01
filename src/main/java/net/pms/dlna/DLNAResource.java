@@ -3435,14 +3435,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			super(name, null);
 			setId(name);
 		}
-		public String add(DLNAResource d) {
+		public DLNAResource add(DLNAResource d) {
 			if (d != null) {
 				addChild(d);
-				return d.getURL("");
+				return d;
 			}
 			return null;
 		}
-		public String add(String uri) {
+		public DLNAResource add(String uri) {
 			return add(autoMatch(uri));
 		}
 		public List<DLNAResource> asList(String objectId) {

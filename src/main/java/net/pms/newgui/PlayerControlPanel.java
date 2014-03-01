@@ -30,6 +30,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	private JLabel position;
 	private JSlider volumeSlider;
 	private JTextField uri;
+    private JTextField currentUri;
 	private File pwd;
 
 	private static ImageIcon playIcon, pauseIcon, stopIcon, fwdIcon, rewIcon,
@@ -59,6 +60,9 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		add(playbackPanel(), c);
 		c.gridx++;
 		add(statusPanel(), c);
+        c.gridx = 0; c.gridy++;
+        c.gridwidth=3;
+        add(currPanel(), c);
 		c.gridx = 0; c.gridy++;
 		c.gridwidth=3;
 		add(uriPanel(), c);
@@ -99,6 +103,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 					player.pause();
 				} else {
 					String u = uri.getText();
+                    LOGGER.debug("play pressed "+u);
 					if (u != null && ! u.equals(player.getState().uri)) {
 						player.setURI(u);
 					}
@@ -173,40 +178,57 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		return volume;
 	}
 
-	public JComponent uriPanel() {
+	public JComponent currPanel() {
 		JToolBar u = new JToolBar(SwingConstants.HORIZONTAL);
 		u.setFloatable(false);
 		u.setRollover(true);
 		u.setOpaque(false);
 		u.setBorderPainted(false);
 
-		JLabel uriLabel = new JLabel("URI:");
+		JLabel uriLabel = new JLabel("Current URI: ");
 		u.add(uriLabel);
-		uri = new JTextField("", 20);
-		uri.getDocument().addDocumentListener(new DocumentListener() {
-			public void changedUpdate(DocumentEvent e) {
-				if (e.getDocument().getLength() > 0) {
-					play.setEnabled(true);
-				}
-			}
-			public void insertUpdate(DocumentEvent e) {changedUpdate(e);}
-			public void removeUpdate(DocumentEvent e) {changedUpdate(e);}
-		});
-		u.add(uri);
-		u.add(new JButton(new AbstractAction("", MetalIconFactory.getTreeFolderIcon()) {
-			public void actionPerformed(ActionEvent e) {
-				JFileChooser fc = new JFileChooser(pwd);
-				fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-				if (fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-					uri.setText(fc.getSelectedFile().getPath());
-					play.setEnabled(true);
-				}
-				pwd = fc.getCurrentDirectory();
-			}
-		}));
+		currentUri = new JTextField("", 20);
+        currentUri.setEditable(false);
+		u.add(currentUri);
 
 		return u;
 	}
+
+    public JComponent uriPanel() {
+        JToolBar u = new JToolBar(SwingConstants.HORIZONTAL);
+        u.setFloatable(false);
+        u.setRollover(true);
+        u.setOpaque(false);
+        u.setBorderPainted(false);
+
+        JLabel uriLabel = new JLabel("URI: ");
+        u.add(uriLabel);
+        uri = new JTextField("", 20);
+        uri.getDocument().addDocumentListener(new DocumentListener() {
+            public void changedUpdate(DocumentEvent e) {
+                if (e.getDocument().getLength() > 0) {
+                    play.setEnabled(true);
+                }
+            }
+            public void insertUpdate(DocumentEvent e) {changedUpdate(e);}
+            public void removeUpdate(DocumentEvent e) {changedUpdate(e);}
+        });
+        u.add(uri);
+        u.add(new JButton(new AbstractAction("", MetalIconFactory.getTreeFolderIcon()) {
+            public void actionPerformed(ActionEvent e) {
+                JFileChooser fc = new JFileChooser(pwd);
+                fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                if (fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+                    uri.setText(fc.getSelectedFile().getPath());
+                    play.setEnabled(true);
+                }
+                pwd = fc.getCurrentDirectory();
+            }
+        }));
+
+        return u;
+    }
+
 
 	public static Window getEnclosingWindow(Component c) {
 		return c == null ? JOptionPane.getRootFrame() :
@@ -239,9 +261,9 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 			pos += ((pos == "" ? "" : " / ") + state.duration);
 		}
 		position.setText(pos);
-		// update uri if changed
-		if (! uri.getText().equals(state.uri)) {
-			uri.setText(state.uri);
+		// update uri if changed, but only if we're playing
+		if (! currentUri.getText().equals(state.uri)) {
+			currentUri.setText(state.uri);
 		}
 	}
 
