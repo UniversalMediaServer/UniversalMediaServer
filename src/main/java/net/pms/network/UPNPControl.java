@@ -179,10 +179,10 @@ public class UPNPControl {
 				}
 				item.data.put("InstanceID", id);
 				for (int n=0; n < c.getLength(); n++) {
-                    if(c.item(n).getNodeType() != Node.ELEMENT_NODE) {
-                        LOGGER.debug("skip this "+c.item(n));
-                        continue;
-                    }
+					if(c.item(n).getNodeType() != Node.ELEMENT_NODE) {
+						LOGGER.debug("skip this " + c.item(n));
+						continue;
+					}
 					Element e = (Element)c.item(n);
 					String name = e.getTagName();
 					String val = e.getAttribute("val");
@@ -319,14 +319,25 @@ public class UPNPControl {
 		details.put("friendlyName", dev.getFriendlyName());
 		details.put("address", getURL(d).getHost());
 		details.put("udn", getUUID(d));
-		details.put("manufacturer", man.getManufacturer());
-		details.put("modelName", model.getModelName());
-		details.put("modelNumber", model.getModelNumber());
-		details.put("modelDescription", model.getModelDescription());
-		details.put("manufacturerURL", man.getManufacturerURI().toString());
-        if(model.getModelURI() != null) {
-		    details.put("modelURL", model.getModelURI().toString());
-        }
+		Object detail;
+		if((detail = man.getManufacturer()) != null) {
+			details.put("manufacturer", (String)detail);
+		}
+		if((detail = model.getModelName()) != null) {
+			details.put("modelName", (String)detail);
+		}
+		if((detail = model.getModelNumber()) != null) {
+			details.put("modelNumber", (String)detail);
+		}
+		if((detail = model.getModelDescription()) != null) {
+			details.put("modelDescription", (String)detail);
+		}
+		if((detail = man.getManufacturerURI()) != null) {
+			details.put("manufacturerURL", detail.toString());
+		}
+		if((detail = model.getModelURI()) != null) {
+			details.put("modelURL", detail.toString());
+		}
 		return details;
 	}
 
