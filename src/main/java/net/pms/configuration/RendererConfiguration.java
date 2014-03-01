@@ -3,6 +3,7 @@ package net.pms.configuration;
 import com.sun.jna.Platform;
 import java.io.File;
 import java.net.InetAddress;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -10,7 +11,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
@@ -20,15 +24,19 @@ import net.pms.dlna.RootFolder;
 import net.pms.formats.Format;
 import net.pms.network.HTTPResource;
 import net.pms.network.SpeedStats;
+import net.pms.network.UPNPHelper;
 import net.pms.util.PropertiesUtil;
+import net.pms.newgui.ImagePanel;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang.WordUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.Charsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RendererConfiguration {
+public class RendererConfiguration implements ActionListener {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
 	private static ArrayList<RendererConfiguration> enabledRendererConfs;
 	private static ArrayList<String> allRenderersNames = new ArrayList<>();
@@ -41,6 +49,10 @@ public class RendererConfiguration {
 	private final ConfigurationReader configurationReader;
 	private FormatConfiguration formatConfiguration;
 	private int rank;
+
+	private String uuid;
+	private String instanceID = "0"; // FIXME: we're fudging this as single-instance
+	private ImagePanel imagePanel;
 
 	// Holds MIME type aliases
 	private final Map<String, String> mimes;
@@ -117,6 +129,7 @@ public class RendererConfiguration {
 	private static final String USER_AGENT_ADDITIONAL_HEADER = "UserAgentAdditionalHeader";
 	private static final String USER_AGENT_ADDITIONAL_SEARCH = "UserAgentAdditionalHeaderSearch";
 	private static final String USER_AGENT = "UserAgentSearch";
+	private static final String UPNP_DETAILS = "UpnpDetailsSearch";
 	private static final String USE_CLOSED_CAPTION = "UseClosedCaption";
 	private static final String USE_SAME_EXTENSION = "UseSameExtension";
 	private static final String VIDEO = "Video";
@@ -307,9 +320,18 @@ public class RendererConfiguration {
 	 * @param sa The IP address to associate.
 	 * @see #getRendererConfigurationBySocketAddress(InetAddress)
 	 */
-	public void associateIP(InetAddress sa) {
-		addressAssociation.put(sa, this);
-		SpeedStats.getInstance().getSpeedInMBits(sa, getRendererName());
+	public boolean associateIP(InetAddress sa) {
+		if (uuid == null) {
+			// Make sure it's a MediaRenderer and not a MediaServer, e.g. WMP
+			setUUID(UPNPHelper.getUUID(sa));
+		}
+		if (uuid != null) {
+			addressAssociation.put(sa, this);
+			UPNPHelper.connect(uuid, instanceID, this);
+			SpeedStats.getInstance().getSpeedInMBits(sa, getRendererName());
+			return true;
+		}
+		return false;
 	}
 
 	public static RendererConfiguration getRendererConfigurationBySocketAddress(InetAddress sa) {
@@ -409,12 +431,129 @@ public class RendererConfiguration {
 		return null;
 	}
 
+	public static RendererConfiguration getRendererConfigurationByUUID(String uuid) {
+		for (RendererConfiguration conf : enabledRendererConfs) {
+			if (conf.getUUID().equals(uuid)) {
+				return conf;
+			}
+		}
+
+		return null;
+	}
+
+	public static RendererConfiguration getRendererConfigurationByHeaders(String[] headers, InetAddress ia) {
+		RendererConfiguration renderer = null;
+		String uuid = null;
+		for (String header : headers) {
+			if (renderer == null) {
+				renderer = getRendererConfigurationByHeaderLine(header, ia);
+			}
+			if (uuid == null && header.toUpperCase().startsWith("USN")) {
+				uuid = header.substring(header.indexOf(':') + 1).split("::")[0].trim();
+			}
+		}
+		if (uuid != null && renderer != null && renderer.getUUID() == null) {
+			renderer.setUUID(uuid);
+		}
+		return renderer;
+	}
+
+	public static RendererConfiguration getRendererConfigurationByUPNPDetails(String details, InetAddress ia, String uuid) {
+		for (RendererConfiguration r : enabledRendererConfs) {
+			if (r.matchUPNPDetails(details)) {
+				r.setUUID(uuid);
+				r.associateIP(ia);	// Associate IP address for later requests
+				PMS.get().setRendererFound(r);
+				LOGGER.trace("Matched media renderer \"" + r.getRendererName() + "\" based on dlna details \"" + details + "\"");
+				return manageRendererMatch(r);
+			}
+		}
+		return null;
+	}
+
+	public static RendererConfiguration getRendererConfigurationByHeaderLine(String header, InetAddress ia) {
+		String userAgentString;
+		RendererConfiguration renderer = null;
+
+		if (
+			header.toUpperCase().startsWith("USER-AGENT") ||
+			header.toUpperCase().startsWith("SERVER")
+		) {
+			userAgentString = header.substring(header.indexOf(':') + 1).trim();
+			renderer = getRendererConfigurationByUA(userAgentString);
+		}
+
+		if (renderer == null && header != null) {
+			renderer = getRendererConfigurationByUAAHH(header);
+		}
+
+		if (renderer != null && renderer.associateIP(ia)) {
+			PMS.get().setRendererFound(renderer);
+			LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on header \"" + header + "\"");
+		}
+
+		return renderer;
+	}
+
 	public FormatConfiguration getFormatConfiguration() {
 		return formatConfiguration;
 	}
 
 	public File getFile() {
-		return configuration.getFile();
+		return getFile(false);
+	}
+
+	public File getFile(boolean force) {
+		return configuration.getFile() != null ? configuration.getFile() :
+			force ? new File(getRenderersDir(), getRendererName().split("\\(")[0].trim().replace(" ", "") + ".conf") : null;
+	}
+
+	public void createNewFile(File file, boolean load, RendererConfiguration ref) {
+		try {
+			ArrayList<String> conf = new ArrayList();
+			Map details = getUpnpDetails();
+			String name = getRendererName().split("\\(")[0].trim();
+
+			// Add the header and identifiers
+			conf.add("#----------------------------------------------------------------------------");
+			conf.add("# Auto-generated profile for " + name);
+			conf.add("#" + (ref == null ? "" : " Based on " + ref.getRendererName()));
+			conf.add("# See PS3.conf for a description of all possible configuration options.");
+			conf.add("#");
+			conf.add("");
+			conf.add(RENDERER_NAME + " = " + name);
+			conf.add(UPNP_DETAILS + " = " + details.get("manufacturer") + " , " + details.get("modelName"));
+			conf.add("");
+			// TODO: Set more properties automatically from UPNP info
+
+			if (ref != null) {
+				// Copy the reference file, skipping its header and identifiers
+				Matcher skip = Pattern.compile(".*(" + RENDERER_ICON + "|" + RENDERER_NAME + "|" +
+					UPNP_DETAILS + "|" + USER_AGENT + "|" + USER_AGENT_ADDITIONAL_HEADER + "|" +
+					USER_AGENT_ADDITIONAL_SEARCH + ").*").matcher("");
+				boolean header = true;
+				for (String line : FileUtils.readLines(ref.getFile(), Charsets.UTF_8)) {
+					if (skip.reset(line).matches() ||
+							(header && (line.startsWith("#") || StringUtils.isBlank(line)))) {
+						continue;
+					}
+					header = false;
+					conf.add(line);
+				}
+			}
+
+			FileUtils.writeLines(file, "utf-8", conf, "\r\n");
+
+			if (load) {
+				try {
+					init(file);
+				} catch (Exception ex) {
+					LOGGER.debug("Error initializing renderer configuration: " + ex);
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.debug("Error creating renderer configuration file: " + e);
+		}
 	}
 
 	public int getRank() {
@@ -469,11 +608,22 @@ public class RendererConfiguration {
 
 		configuration.setListDelimiter((char) 0);
 
+		mimes = new HashMap<>();
+		charMap = new HashMap<>();
+		DLNAPN = new HashMap<>();
+
+		init(f);
+	}
+
+	public void init(File f) throws ConfigurationException {
+
+		configuration.clear();
+
 		if (f != null) {
 			configuration.load(f);
 		}
 
-		mimes = new HashMap<>();
+		mimes.clear();
 		String mimeTypes = getString(MIME_TYPES_CHANGES, null);
 
 		if (StringUtils.isNotBlank(mimeTypes)) {
@@ -501,7 +651,7 @@ public class RendererConfiguration {
 			inset = new String(new byte[indent]).replaceAll(".", Character.toString((char) ws));
 		}
 
-		charMap = new HashMap<>();
+		charMap.clear();
 		String ch = getString(CHARMAP, null);
 		if (StringUtils.isNotBlank(ch)) {
 			StringTokenizer st = new StringTokenizer(ch, " ");
@@ -522,7 +672,7 @@ public class RendererConfiguration {
 			}
 		}
 
-		DLNAPN = new HashMap<>();
+		DLNAPN.clear();
 		String DLNAPNchanges = getString(DLNA_PN_CHANGES, null);
 
 		if (DLNAPNchanges != null) {
@@ -783,6 +933,19 @@ public class RendererConfiguration {
 		}
 	}
 
+	public boolean matchUPNPDetails(String details) {
+		String upnpDetails = getUpnpDetailsString();
+		Pattern pattern;
+
+		if (StringUtils.isNotBlank(upnpDetails)) {
+			String p = StringUtils.join(upnpDetails.split(" , "), ".*");
+			pattern = Pattern.compile(p, Pattern.CASE_INSENSITIVE);
+			return pattern.matcher(details.replace("\n", " ")).find();
+		} else {
+			return false;
+		}
+	}
+
 	/**
 	 * Returns the pattern to match the User-Agent header to as defined in the
 	 * renderer configuration. Default value is "".
@@ -794,6 +957,111 @@ public class RendererConfiguration {
 	}
 
 	/**
+	 * Returns the unique upnp details of this renderer as defined in the
+	 * renderer configuration. Default value is "".
+	 *
+	 * @return The detail string.
+	 */
+	public String getUpnpDetailsString() {
+		return getString(UPNP_DETAILS, "");
+	}
+
+	/**
+	 * Returns the upnp details of this renderer as broadcast by itself, if known.
+	 * Default value is null.
+	 *
+	 * @return The detail map.
+	 */
+	public Map getUpnpDetails() {
+		return UPNPHelper.getDeviceDetails(UPNPHelper.getDevice(uuid));
+	}
+
+	/**
+	 * Returns the current upnp state variables of this renderer, if known. Default value is null.
+	 *
+	 * @return The data.
+	 */
+	public Map getUPNPData() {
+		return UPNPHelper.getData(uuid, instanceID);
+	}
+
+	/**
+	 * Returns the upnp services of this renderer.
+	 * Default value is null.
+	 *
+	 * @return The list of service names.
+	 */
+	public List getUpnpServices() {
+		return UPNPHelper.getServiceNames(UPNPHelper.getDevice(uuid));
+	}
+
+	/**
+	 * Returns the uuid of this renderer, if known. Default value is null.
+	 *
+	 * @return The uuid.
+	 */
+	public String getUUID() {
+		return uuid;
+	}
+
+	/**
+	 * Sets the uuid of this renderer.
+	 *
+	 * @param uuid The uuid.
+	 */
+	public void setUUID(String uuid) {
+		this.uuid = uuid;
+	}
+
+	/**
+	 * Returns the upnp instance id of this renderer, if known. Default value is null.
+	 *
+	 * @return The instance id.
+	 */
+	public String getInstanceID() {
+		return instanceID;
+	}
+
+	/**
+	 * Sets the upnp instance id of this renderer.
+	 *
+	 * @param id The instance id.
+	 */
+	public void setInstanceID(String id) {
+		instanceID = id;
+	}
+
+	/**
+	 * Returns whether this renderer is currently active, i.e. online.
+	 *
+	 * @return Whether online.
+	 */
+	public boolean isActive() {
+		return UPNPHelper.isActive(uuid, instanceID);
+	}
+
+	/**
+	 * Returns whether this renderer provides upnp control services.
+	 *
+	 * @return Whether controllable.
+	 */
+	public boolean isUpnpControllable() {
+		return UPNPHelper.isUpnpControllable(uuid);
+	}
+
+
+	@Override
+	public void actionPerformed(final ActionEvent e) {
+		if (imagePanel != null) {
+			imagePanel.setGrey(! isActive());
+		}
+	}
+
+	public void setImagePanel(ImagePanel panel) {
+		imagePanel = panel;
+	}
+
+	/**
 	 * RendererName: Determines the name that is displayed in the PMS user
 	 * interface when this renderer connects. Default value is "Unknown
 	 * renderer".
@@ -801,7 +1069,11 @@ public class RendererConfiguration {
 	 * @return The renderer name.
 	 */
 	public String getRendererName() {
-		return getString(RENDERER_NAME, Messages.getString("PMS.17"));
+		try {
+			return UPNPHelper.getFriendlyName(uuid);
+		} catch (Exception e) {
+			return getString(RENDERER_NAME, Messages.getString("PMS.17"));
+		}
 	}
 
 	/**
