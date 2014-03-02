@@ -1,7 +1,9 @@
 package net.pms.configuration;
 
 import com.sun.jna.Platform;
+
 import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.util.List;
 import java.util.ArrayList;
@@ -15,6 +17,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
@@ -27,6 +30,7 @@ import net.pms.network.SpeedStats;
 import net.pms.network.UPNPHelper;
 import net.pms.util.PropertiesUtil;
 import net.pms.newgui.ImagePanel;
+
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang.WordUtils;
@@ -564,13 +568,13 @@ public class RendererConfiguration implements ActionListener {
 
 			if (load) {
 				try {
-					init(file);
-				} catch (Exception ex) {
-					LOGGER.debug("Error initializing renderer configuration: " + ex);
+					init(file); 
+				} catch (ConfigurationException ce) {
+					LOGGER.debug("Error initializing renderer configuration: " + ce);
 				}
 			}
-		} catch (Exception e) {
-			LOGGER.debug("Error creating renderer configuration file: " + e);
+		} catch (IOException ie) {
+			LOGGER.debug("Error creating renderer configuration file: " + ie);
 		}
 	}
 
