@@ -21,6 +21,7 @@ package net.pms.network;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.nio.channels.ClosedChannelException;
 import java.nio.charset.Charset;
 import java.util.Iterator;
 import java.util.Set;
@@ -307,7 +308,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			sendError(ctx, HttpResponseStatus.BAD_REQUEST);
 			return;
 		}
-		if (cause != null && !cause.getClass().equals(ChannelException.class) && !cause.getClass().equals(IOException.class)) {
+		if (cause != null && !cause.getClass().equals(ClosedChannelException.class) && !cause.getClass().equals(IOException.class)) {
 			LOGGER.debug("Caught exception", cause);
 		}
 		if (ch.isConnected()) {
