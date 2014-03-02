@@ -3,6 +3,7 @@ package net.pms.newgui;
 import java.io.File;
 import java.net.URL;
 //import java.util.Hashtable;
+import org.apache.commons.lang.StringUtils;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -29,7 +30,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	private JLabel position;
 	private JSlider volumeSlider;
 	private JTextField uri;
-    private JTextField currentUri;
+	private String lasturi;
 	private File pwd;
 
 	private static ImageIcon playIcon, pauseIcon, stopIcon, fwdIcon, rewIcon,
@@ -59,9 +60,6 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		add(playbackPanel(), c);
 		c.gridx++;
 		add(statusPanel(), c);
-        c.gridx = 0; c.gridy++;
-        c.gridwidth=3;
-        add(currPanel(), c);
 		c.gridx = 0; c.gridy++;
 		c.gridwidth=3;
 		add(uriPanel(), c);
@@ -108,7 +106,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 					player.pause();
 				} else {
 					String u = uri.getText();
-                    LOGGER.debug("play pressed "+u);
+					LOGGER.debug("play pressed "+u);
 					if (u != null && ! u.equals(player.getState().uri)) {
 						player.setURI(u);
 					}
@@ -191,58 +189,42 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		return volume;
 	}
 
-	public JComponent currPanel() {
+	public JComponent uriPanel() {
 		JToolBar u = new JToolBar(SwingConstants.HORIZONTAL);
 		u.setFloatable(false);
 		u.setRollover(true);
 		u.setOpaque(false);
 		u.setBorderPainted(false);
 
-		JLabel uriLabel = new JLabel("Current URI: ");
+		JLabel uriLabel = new JLabel("URI: ");
 		u.add(uriLabel);
-		currentUri = new JTextField("", 20);
-        currentUri.setEditable(false);
-		u.add(currentUri);
-
-		return u;
-	}
-
-    public JComponent uriPanel() {
-        JToolBar u = new JToolBar(SwingConstants.HORIZONTAL);
-        u.setFloatable(false);
-        u.setRollover(true);
-        u.setOpaque(false);
-        u.setBorderPainted(false);
-
-        JLabel uriLabel = new JLabel("URI: ");
-        u.add(uriLabel);
-        uri = new JTextField("", 20);
-        uri.getDocument().addDocumentListener(new DocumentListener() {
-            public void changedUpdate(DocumentEvent e) {
-                if (e.getDocument().getLength() > 0) {
-                    play.setEnabled(true);
-                }
-            }
-            public void insertUpdate(DocumentEvent e) {changedUpdate(e);}
-            public void removeUpdate(DocumentEvent e) {changedUpdate(e);}
-        });
-        u.add(uri);
-        u.add(new JButton(new AbstractAction("", MetalIconFactory.getTreeFolderIcon()) {
+		uri = new JTextField("", 20);
+		uri.getDocument().addDocumentListener(new DocumentListener() {
+			public void changedUpdate(DocumentEvent e) {
+				if (e.getDocument().getLength() > 0) {
+					play.setEnabled(true);
+				}
+			}
+			public void insertUpdate(DocumentEvent e) {changedUpdate(e);}
+			public void removeUpdate(DocumentEvent e) {changedUpdate(e);}
+		});
+		u.add(uri);
+		u.add(new JButton(new AbstractAction("", MetalIconFactory.getTreeFolderIcon()) {
 			private static final long serialVersionUID = -2826057503405341316L;
 
 			public void actionPerformed(ActionEvent e) {
-                JFileChooser fc = new JFileChooser(pwd);
-                fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                if (fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-                    uri.setText(fc.getSelectedFile().getPath());
-                    play.setEnabled(true);
-                }
-                pwd = fc.getCurrentDirectory();
-            }
-        }));
+				JFileChooser fc = new JFileChooser(pwd);
+				fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+				if (fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+					uri.setText(fc.getSelectedFile().getPath());
+					play.setEnabled(true);
+				}
+				pwd = fc.getCurrentDirectory();
+			}
+		}));
 
-        return u;
-    }
+		return u;
+	}
 
 
 	public static Window getEnclosingWindow(Component c) {
@@ -276,9 +258,14 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 			pos += ((pos == "" ? "" : " / ") + state.duration);
 		}
 		position.setText(pos);
-		// update uri if changed, but only if we're playing
-		if (! currentUri.getText().equals(state.uri)) {
-			currentUri.setText(state.uri);
+		// update uri only if meaningfully new
+		boolean isNew = ! StringUtils.isBlank(state.uri)
+			&& ! state.uri.equals(lasturi)
+			&& ! state.uri.equals(uri.getText());
+		lasturi = state.uri;
+		if (isNew) {
+			// TODO: push current text to combobox
+			uri.setText(state.uri);
 		}
 	}
 
