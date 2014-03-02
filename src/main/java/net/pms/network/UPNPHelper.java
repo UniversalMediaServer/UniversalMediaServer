@@ -547,7 +547,10 @@ public class UPNPHelper extends UPNPControl {
 		Device dev = getDevice(r.getUUID());
 		String id = r.getInstanceID();
         DLNAResource d = Temp.add(uri);
-		setAVTransportURI(dev, id, d.getURL(""), d.mimeType());
+        if(d == null) {
+            return;
+        }
+		setAVTransportURI(dev, id, d.getURL(""), d.getDidlString(r));
 		play(dev, id);
 	}
 
@@ -555,7 +558,10 @@ public class UPNPHelper extends UPNPControl {
 		Device dev = getDevice(r.getUUID());
 		String id = r.getInstanceID();
 		DLNAResource d1 = d.getParent() == null ? Temp.add(d) : d;
-		setAVTransportURI(dev, id, d1.getURL(""), d1.mimeType());
+        if(d1 == null) {
+            return;
+        }
+		setAVTransportURI(dev, id, d1.getURL(""), d1.getDidlString(r));
 		play(dev, id);
 	}
 
