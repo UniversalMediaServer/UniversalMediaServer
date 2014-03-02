@@ -561,7 +561,7 @@ public class UPNPControl {
 	public final static String RF = "RF";
 
 	public static String getMute(Device dev, String instanceID) {
-		return getMute(dev, MASTER);
+		return getMute(dev, instanceID, MASTER);
 	}
 
 	public static String getMute(Device dev, String instanceID, String channel) {
@@ -570,7 +570,7 @@ public class UPNPControl {
 	}
 
 	public static String getVolume(Device dev, String instanceID) {
-		return getVolume(dev, MASTER);
+		return getVolume(dev, instanceID, MASTER);
 	}
 
 	public static String getVolume(Device dev, String instanceID, String channel) {
