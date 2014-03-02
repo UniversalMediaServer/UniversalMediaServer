@@ -337,18 +337,18 @@ public class RendererConfiguration implements ActionListener {
 	 * @param sa The IP address to associate.
 	 * @see #getRendererConfigurationBySocketAddress(InetAddress)
 	 */
-	public boolean associateIP(InetAddress sa) {
+	public void associateIP(InetAddress sa) {
 		if (uuid == null) {
 			// Make sure it's a MediaRenderer and not a MediaServer, e.g. WMP
 			setUUID(UPNPHelper.getUUID(sa));
 		}
+
 		if (uuid != null) {
-			addressAssociation.put(sa, this);
 			UPNPHelper.connect(uuid, instanceID, this);
-			SpeedStats.getInstance().getSpeedInMBits(sa, getRendererName());
-			return true;
 		}
-		return false;
+
+		addressAssociation.put(sa, this);
+		SpeedStats.getInstance().getSpeedInMBits(sa, getRendererName());
 	}
 
 	public static RendererConfiguration getRendererConfigurationBySocketAddress(InetAddress sa) {
@@ -504,7 +504,8 @@ public class RendererConfiguration implements ActionListener {
 			renderer = getRendererConfigurationByUAAHH(header);
 		}
 
-		if (renderer != null && renderer.associateIP(ia)) {
+		if (renderer != null) {
+			renderer.associateIP(ia);
 			PMS.get().setRendererFound(renderer);
 			LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on header \"" + header + "\"");
 		}
