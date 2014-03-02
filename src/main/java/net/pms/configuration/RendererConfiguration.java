@@ -289,7 +289,7 @@ public class RendererConfiguration implements ActionListener {
 
 	public RootFolder getRootFolder() {
 		if (rootFolder == null) {
-			ArrayList<String> tags = new ArrayList();
+			ArrayList<String> tags = new ArrayList<String>();
 			tags.add(getRendererName());
 			for (InetAddress sa : addressAssociation.keySet()) {
 				if (addressAssociation.get(sa) == this) {
@@ -510,8 +510,8 @@ public class RendererConfiguration implements ActionListener {
 
 	public void createNewFile(File file, boolean load, RendererConfiguration ref) {
 		try {
-			ArrayList<String> conf = new ArrayList();
-			Map details = getUpnpDetails();
+			ArrayList<String> conf = new ArrayList<String>();
+			Map<?, ?> details = getUpnpDetails();
 			String name = getRendererName().split("\\(")[0].trim();
 
 			// Add the header and identifiers
@@ -972,7 +972,7 @@ public class RendererConfiguration implements ActionListener {
 	 *
 	 * @return The detail map.
 	 */
-	public Map getUpnpDetails() {
+	public Map<String, String> getUpnpDetails() {
 		return UPNPHelper.getDeviceDetails(UPNPHelper.getDevice(uuid));
 	}
 
@@ -981,7 +981,7 @@ public class RendererConfiguration implements ActionListener {
 	 *
 	 * @return The data.
 	 */
-	public Map getUPNPData() {
+	public Map<String, String> getUPNPData() {
 		return UPNPHelper.getData(uuid, instanceID);
 	}
 
@@ -991,7 +991,7 @@ public class RendererConfiguration implements ActionListener {
 	 *
 	 * @return The list of service names.
 	 */
-	public List getUpnpServices() {
+	public List<String> getUpnpServices() {
 		return UPNPHelper.getServiceNames(UPNPHelper.getDevice(uuid));
 	}
 

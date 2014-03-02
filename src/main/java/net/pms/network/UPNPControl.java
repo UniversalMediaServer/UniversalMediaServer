@@ -10,9 +10,12 @@ import java.net.URL;
 import java.net.InetAddress;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+
 import org.apache.commons.lang.StringUtils;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -56,6 +59,8 @@ public class UPNPControl {
 	private static final boolean DEBUG = true; // log upnp state vars
 
 	public static class DeviceMap extends HashMap<String,HashMap<String,deviceItem>> {
+		private static final long serialVersionUID = 1510675619549915489L;
+
 		public deviceItem get(String uuid, String id) {
 			if (!containsKey(uuid)) {
 				put(uuid, new HashMap<String,deviceItem>());
@@ -96,6 +101,8 @@ public class UPNPControl {
 					case CONTROLLABLE:
 						i.controllable = value;
 						break;
+				default:
+					break;
 				}
 			}
 		}
@@ -112,8 +119,8 @@ public class UPNPControl {
 
 		public deviceItem(String uuid) {
 			this.uuid = uuid;
-			data = new HashMap();
-			listeners = new ArrayList();
+			data = new HashMap<String, String>();
+			listeners = new ArrayList<ActionListener>();
 			event = new ActionEvent(this, 0, null);
 			monitor = null;
 			data.put("TransportState", "STOPPED");
@@ -304,7 +311,7 @@ public class UPNPControl {
 	}
 
 	public static List<String> getServiceNames(Device d) {
-		ArrayList<String> services = new ArrayList();
+		ArrayList<String> services = new ArrayList<String>();
 		for (Service s : d.getServices()) {
 			services.add(s.getServiceId().getId());
 		}
@@ -315,7 +322,7 @@ public class UPNPControl {
 		DeviceDetails dev = d.getDetails();
 		ManufacturerDetails man = dev.getManufacturerDetails();
 		ModelDetails model = dev.getModelDetails();
-		LinkedHashMap<String,String> details = new LinkedHashMap();
+		LinkedHashMap<String,String> details = new LinkedHashMap<String, String>();
 		details.put("friendlyName", dev.getFriendlyName());
 		details.put("address", getURL(d).getHost());
 		details.put("udn", getUUID(d));
