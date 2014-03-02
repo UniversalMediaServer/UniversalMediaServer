@@ -241,7 +241,6 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		// update playback status
 		play.putValue(Action.SMALL_ICON,
 			state.playback == BasicPlayer.PLAYING ? pauseIcon : playIcon);
-		play.setEnabled(state.uri != null && state.uri != "");
 		stop.setEnabled(isPlaying);
 		forward.setEnabled(isPlaying);
 		rewind.setEnabled(isPlaying);
@@ -267,6 +266,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 			// TODO: push current text to combobox
 			uri.setText(state.uri);
 		}
+		play.setEnabled(! StringUtils.isBlank(uri.getText()));
 	}
 
 	@Override
