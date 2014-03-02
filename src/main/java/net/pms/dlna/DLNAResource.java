@@ -3367,7 +3367,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			:
 			new RealFile(new File(uri));
 		if (f == null && !isweb) {
-			d.setFormat(FormatFactory.getAssociatedExtension(".mpg"));
+			d.setFormat(FormatFactory.getAssociatedFormat(".mpg"));
 		}
 		LOGGER.debug(d == null ?
 			("Could not auto-match " + uri) :
