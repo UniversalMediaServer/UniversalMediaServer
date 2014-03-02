@@ -42,7 +42,6 @@ import net.pms.Messages;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.util.FormLayoutUtil;
-import net.pms.network.UPNPHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -203,6 +202,8 @@ public class StatusTab {
 		addRendererIcon(renderer.getRank(), renderer.getRendererName(), renderer.getRendererIcon());
 		renderer.setImagePanel(renderers[numRenderers]);
 		renderers[numRenderers].setAction(new AbstractAction() {
+			private static final long serialVersionUID = -6316055325551243347L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				SwingUtilities.invokeLater(new Runnable() {

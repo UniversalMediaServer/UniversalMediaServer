@@ -2,7 +2,6 @@ package net.pms.newgui;
 
 import java.io.File;
 import java.net.URL;
-import java.util.ArrayList;
 //import java.util.Hashtable;
 import java.awt.*;
 import java.awt.event.ActionListener;
@@ -14,15 +13,15 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.text.Document;
 import javax.swing.plaf.metal.MetalIconFactory;
-import javax.imageio.ImageIO;
 import net.pms.util.BasicPlayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
 public class PlayerControlPanel extends JPanel implements ActionListener {
+	private static final long serialVersionUID = 8972730138916895247L;
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererPanel.class);
 
 	private BasicPlayer player;
@@ -88,16 +87,22 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		playback.setBorderPainted(false);
 
 		playback.add(new JButton(prev = new AbstractAction("", prevIcon) {
+			private static final long serialVersionUID = 7558487023838124078L;
+
 			public void actionPerformed(ActionEvent e) {
 				player.prev();
 			}
 		}));
 		playback.add(new JButton(rewind = new AbstractAction("", rewIcon) {
+			private static final long serialVersionUID = -1520355550308740828L;
+
 			public void actionPerformed(ActionEvent e) {
 				player.rewind();
 			}
 		}));
 		playback.add(new JButton(play = new AbstractAction("", playIcon) {
+			private static final long serialVersionUID = -5492279549624322429L;
+
 			public void actionPerformed(ActionEvent e) {
 				if (player.getState().playback == BasicPlayer.PLAYING) {
 					player.pause();
@@ -112,16 +117,22 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 			}
 		}));
 		playback.add(new JButton(stop = new AbstractAction("", stopIcon) {
+			private static final long serialVersionUID = 8389133040373106061L;
+
 			public void actionPerformed(ActionEvent e) {
 				player.stop();
 			}
 		}));
 		playback.add(new JButton(forward = new AbstractAction("", fwdIcon) {
+			private static final long serialVersionUID = 9017731678937164070L;
+
 			public void actionPerformed(ActionEvent e) {
 				player.forward();
 			}
 		}));
 		playback.add(new JButton(next = new AbstractAction("", nextIcon) {
+			private static final long serialVersionUID = -2100492235066666555L;
+
 			public void actionPerformed(ActionEvent e) {
 				player.next();
 			}
@@ -165,6 +176,8 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		defaults.put("Slider.trackBorder", tb);
 
 		JToggleButton muteButton = new JToggleButton(mute = new AbstractAction("", volumeIcon) {
+			private static final long serialVersionUID = 4263195311825852854L;
+
 			public void actionPerformed(ActionEvent e) {
 				player.mute(! player.getState().mute);
 			}
@@ -215,7 +228,9 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
         });
         u.add(uri);
         u.add(new JButton(new AbstractAction("", MetalIconFactory.getTreeFolderIcon()) {
-            public void actionPerformed(ActionEvent e) {
+			private static final long serialVersionUID = -2826057503405341316L;
+
+			public void actionPerformed(ActionEvent e) {
                 JFileChooser fc = new JFileChooser(pwd);
                 fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
                 if (fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {

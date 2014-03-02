@@ -3,36 +3,28 @@ package net.pms.newgui;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Arrays;
-
 import java.io.File;
 import java.io.IOException;
-
 import java.awt.*;
-import java.awt.event.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-
 import javax.swing.*;
-import javax.swing.event.*;
 import javax.swing.plaf.metal.MetalIconFactory;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
-
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.RowSpec;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
-
 import net.pms.configuration.RendererConfiguration;
 import net.pms.network.UPNPHelper;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RendererPanel extends JPanel {
+	private static final long serialVersionUID = 5130146620433713605L;
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererPanel.class);
 
 	private RendererConfiguration renderer;
@@ -81,7 +73,7 @@ public class RendererPanel extends JPanel {
 				if (!exists) {
 					// TODO: implement a reference conf chooser here (eg adapt "Select Renderer")
 					renderer.createNewFile(file, true, null);
-					open.setLabel(file.getName());
+					open.setText(file.getName());
 				}
 				try {
 					java.awt.Desktop.getDesktop().open(file);
