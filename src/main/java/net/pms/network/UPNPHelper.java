@@ -544,25 +544,20 @@ public class UPNPHelper extends UPNPControl {
 	}
 
 	public static void play(String uri, RendererConfiguration r) {
-		Device dev = getDevice(r.getUUID());
-		String id = r.getInstanceID();
-        DLNAResource d = Temp.add(uri);
-        if(d == null) {
-            return;
-        }
-		setAVTransportURI(dev, id, d.getURL(""), d.getDidlString(r));
-		play(dev, id);
+		DLNAResource d = DLNAResource.getValidResource(uri, r);
+		if (d != null) {
+			play(d, r);
+		}
 	}
 
 	public static void play(DLNAResource d, RendererConfiguration r) {
-		Device dev = getDevice(r.getUUID());
-		String id = r.getInstanceID();
 		DLNAResource d1 = d.getParent() == null ? Temp.add(d) : d;
-        if(d1 == null) {
-            return;
-        }
-		setAVTransportURI(dev, id, d1.getURL(""), d1.getDidlString(r));
-		play(dev, id);
+		if(d1 != null) {
+			Device dev = getDevice(r.getUUID());
+			String id = r.getInstanceID();
+			setAVTransportURI(dev, id, d1.getURL(""), d1.getDidlString(r));
+			play(dev, id);
+		}
 	}
 
 	// A player to manage upnp playback
@@ -589,13 +584,17 @@ public class UPNPHelper extends UPNPControl {
 		}
 
 		@Override
-		public void setURI(String uri) {
-            DLNAResource d = Temp.add(uri);
-            if(d == null) {
-                // paranoia
-                return;
-            }
-			UPNPControl.setAVTransportURI(dev, instanceID, d.getURL(""), d.getDidlString(renderer));
+		public void setURI(String uri, String metadata) {
+			if (!DLNAResource.isResourceUrl(uri) || metadata == null) {
+				DLNAResource d = DLNAResource.getValidResource(uri, renderer);
+				if (d != null) {
+					uri = d.getURL("");
+					metadata = d.getDidlString(renderer);
+				}
+			}
+			if (uri != null) {
+				UPNPControl.setAVTransportURI(dev, instanceID, uri, metadata);
+			}
 		}
 
 		@Override
@@ -669,6 +668,7 @@ public class UPNPHelper extends UPNPControl {
 			state.position = map.get("RelTime");
 			state.duration = map.get("CurrentMediaDuration");
 			state.uri = map.get("AVTransportURI");
+			state.metadata = map.get("AVTransportURIMetaData");
 			alert();
 		}
 

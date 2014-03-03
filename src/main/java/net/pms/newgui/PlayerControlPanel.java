@@ -30,6 +30,8 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	private JLabel position;
 	private JSlider volumeSlider;
 	private JTextField uri;
+	private JComboBox uris;
+	private boolean edited, playing;
 	private String lasturi;
 	private File pwd;
 
@@ -104,11 +106,13 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 			public void actionPerformed(ActionEvent e) {
 				if (player.getState().playback == BasicPlayer.PLAYING) {
 					player.pause();
-				} else {
+				} else if (! StringUtils.isBlank(uri.getText())) {
+					store(true);
 					String u = uri.getText();
 					LOGGER.debug("play pressed "+u);
 					if (u != null && ! u.equals(player.getState().uri)) {
-						player.setURI(u);
+						// TODO: support passing metadata if available
+						player.setURI(u, null);
 					}
 					player.play();
 				}
@@ -198,17 +202,24 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 
 		JLabel uriLabel = new JLabel("URI: ");
 		u.add(uriLabel);
-		uri = new JTextField("", 20);
+		uris = new JComboBox();
+		uris.setMaximumRowCount(20);
+		uris.setEditable(true);
+		// limit width to available space
+		uris.setPrototypeDisplayValue("");
+		uri = (JTextField)uris.getEditor().getEditorComponent();
 		uri.getDocument().addDocumentListener(new DocumentListener() {
 			public void changedUpdate(DocumentEvent e) {
-				if (e.getDocument().getLength() > 0) {
-					play.setEnabled(true);
+				edited = true;
+				if (! playing) {
+					play.setEnabled(! StringUtils.isBlank(uri.getText()));
 				}
 			}
 			public void insertUpdate(DocumentEvent e) {changedUpdate(e);}
 			public void removeUpdate(DocumentEvent e) {changedUpdate(e);}
 		});
-		u.add(uri);
+
+		u.add(uris);
 		u.add(new JButton(new AbstractAction("", MetalIconFactory.getTreeFolderIcon()) {
 			private static final long serialVersionUID = -2826057503405341316L;
 
@@ -217,7 +228,6 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 				fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 				if (fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
 					uri.setText(fc.getSelectedFile().getPath());
-					play.setEnabled(true);
 				}
 				pwd = fc.getCurrentDirectory();
 			}
@@ -226,6 +236,25 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		return u;
 	}
 
+	public void store(boolean select) {
+		store(select, null);
+	}
+
+	public void store(boolean select, String metadata) {
+		// TODO: implement metadata storage
+		String u = uri.getText();
+		if (edited && ! StringUtils.isBlank(u)) {
+			int index = ((DefaultComboBoxModel)uris.getModel()).getIndexOf(u);
+			if (index == -1) {
+				uris.insertItemAt(uri.getText(), 0);
+				index = 0;
+			}
+			if (select) {
+				uris.setSelectedIndex(index);
+			}
+		}
+		edited = false;
+	}
 
 	public static Window getEnclosingWindow(Component c) {
 		return c == null ? JOptionPane.getRootFrame() :
@@ -237,15 +266,15 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	}
 
 	public void refresh(BasicPlayer.State state) {
-		boolean isPlaying = state.playback != BasicPlayer.STOPPED;
+		playing = state.playback != BasicPlayer.STOPPED;
 		// update playback status
 		play.putValue(Action.SMALL_ICON,
 			state.playback == BasicPlayer.PLAYING ? pauseIcon : playIcon);
-		stop.setEnabled(isPlaying);
-		forward.setEnabled(isPlaying);
-		rewind.setEnabled(isPlaying);
-		next.setEnabled(isPlaying);
-		prev.setEnabled(isPlaying);
+		stop.setEnabled(playing);
+		forward.setEnabled(playing);
+		rewind.setEnabled(playing);
+		next.setEnabled(playing);
+		prev.setEnabled(playing);
 		// update rendering status
 		mute.putValue(Action.SMALL_ICON, state.mute ? muteIcon : volumeIcon);
 //		volumeSlider.setVisible(! state.mute);
@@ -257,16 +286,17 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 			pos += ((pos == "" ? "" : " / ") + state.duration);
 		}
 		position.setText(pos);
-		// update uri only if meaningfully new
+		// update uris only if meaningfully new
 		boolean isNew = ! StringUtils.isBlank(state.uri)
 			&& ! state.uri.equals(lasturi)
 			&& ! state.uri.equals(uri.getText());
 		lasturi = state.uri;
 		if (isNew) {
-			// TODO: push current text to combobox
+			store(false);
 			uri.setText(state.uri);
+			store(true, state.metadata);
 		}
-		play.setEnabled(! StringUtils.isBlank(uri.getText()));
+		play.setEnabled(playing || ! StringUtils.isBlank(uri.getText()));
 	}
 
 	@Override

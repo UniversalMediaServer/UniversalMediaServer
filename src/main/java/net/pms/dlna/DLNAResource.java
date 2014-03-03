@@ -3454,4 +3454,57 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	// A temp folder for non-xmb items
 
 	public static unattachedFolder Temp = new unattachedFolder("Temp");
+
+	// Returns whether the url appears to be ours
+
+	public static boolean isResourceUrl(String url) {
+		return url.startsWith(PMS.get().getServer().getURL() + "/get/");
+	}
+
+	// Returns the url's resourceId substring if any or null
+
+	public static String parseResourceId(String url) {
+		if (isResourceUrl(url)) {
+			try {
+				return url.split("/get/")[1].split("/")[0];
+			} catch (Exception e) {
+			}
+		}
+		return null;
+	}
+
+	// Returns the DLNAResource pointed to by the uri if it exists
+	// or else a new Temp item (or null)
+
+	public static DLNAResource getValidResource(String uri, RendererConfiguration r) {
+		String objectId = parseResourceId(uri);
+		if (objectId != null) {
+			if (objectId.startsWith("Temp$")) {
+				int index = Temp.indexOf(objectId);
+				return index > -1 ? Temp.getChildren().get(index) : null;
+			} else {
+				if (r == null) {
+					r = RendererConfiguration.getDefaultConf();
+				}
+				return PMS.get().getRootFolder(r).search(objectId, 1, r, null);
+			}
+		} else {
+			return Temp.add(uri);
+		}
+	}
+
+	// Returns the uri if it appears to be ours or else the url of new Temp item (or null)
+
+	public static String getValidResourceURL(String uri) {
+		if (isResourceUrl(uri)) {
+			// we assume it's ok
+			return uri;
+		} else {
+			DLNAResource d = Temp.add(uri);
+			if(d != null) {
+				return d.getURL("");
+			}
+		}
+		return null;
+	}
 }

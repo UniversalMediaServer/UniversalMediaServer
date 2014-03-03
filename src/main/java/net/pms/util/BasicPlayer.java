@@ -9,14 +9,14 @@ public interface BasicPlayer extends ActionListener {
 		public boolean mute;
 		public int volume;
 		public String position, duration;
-		public String uri;
+		public String uri, metadata;
 	}
 
 	final static int STOPPED = 0;
 	final static int PLAYING = 1;
 	final static int PAUSED = 2;
 
-	public void setURI(String uri);
+	public void setURI(String uri, String metadata);
 	public void play();
 	public void pause();
 	public void stop();
