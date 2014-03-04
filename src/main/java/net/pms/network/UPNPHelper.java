@@ -585,11 +585,15 @@ public class UPNPHelper extends UPNPControl {
 
 		@Override
 		public void setURI(String uri, String metadata) {
-			if (!DLNAResource.isResourceUrl(uri) || metadata == null) {
-				DLNAResource d = DLNAResource.getValidResource(uri, renderer);
-				if (d != null) {
-					uri = d.getURL("");
-					metadata = d.getDidlString(renderer);
+			// If metadata is present assume it's valid
+			if (metadata == null) {
+				LOGGER.debug("Validating uri " + uri);
+				if (!DLNAResource.isResourceUrl(uri)) {
+					DLNAResource d = DLNAResource.getValidResource(uri, renderer);
+					if (d != null) {
+						uri = d.getURL("");
+						metadata = d.getDidlString(renderer);
+					}
 				}
 			}
 			if (uri != null) {
