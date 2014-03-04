@@ -1,7 +1,29 @@
-3.4.2 - 2014-02-??
+3.4.3 - 2014-03-??
 
 	General:
 		
+
+3.4.2 - 2014-02-25
+
+	General:
+		Improved fontconfig cache creation
+		The shared directory setting in the config is read more safely
+		Fixed video playback on some renderers including OPPO devices
+		Fixed a crash with certain files
+		Fixed a buffer display error
+	Languages:
+		Updated Spanish translation (thanks, AlfredoRamos!)
+	External Components:
+		Updated FFmpeg to builds from 2014-02-12, which:
+			Improves support for the following video codecs: H.264, H.265, MPEG-1, MPEG-2, VC-1, VP8, VP9
+			Improves support for the following audio codecs: AC-3, DTS, WMA
+			Improves support for the following containers: AVI, Matroska, MPEG-TS
+			Fixes memory leaks
+			Improves detection of 60FPS
+			Improves audio sync
+		Updated MediaInfo for Windows to 0.7.64, which:
+			Fixes crashes
+		Updated Netty to 3.7.0
 
 3.4.1 - 2014-02-14
 

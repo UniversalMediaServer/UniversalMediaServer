@@ -244,14 +244,14 @@ public class OpenSubtitle {
 	
 	private static String iso639(String s) {
 		String[] tmp = s.split(",");
-		String res = "";
+		StringBuilder res = new StringBuilder();
 		String sep = "";
 		for (String tmp1 : tmp) {
-			res = res + sep + Iso639.getISO639_2Code(tmp1);
+			res.append(sep).append(Iso639.getISO639_2Code(tmp1));
 			sep = ",";
 		}
 		if (StringUtils.isNotEmpty(res)) {
-			return res;
+			return res.toString();
 		}
 		return s;
 	}

@@ -23,6 +23,8 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.channels.ClosedChannelException;
 import java.nio.charset.Charset;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -49,26 +51,26 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 	private volatile HttpRequest nettyRequest;
 	private final ChannelGroup group;
 
-	// Used to filter out known headers when the renderer is not recognized
-	private final static String[] KNOWN_HEADERS = {
-		"Accept",
-		"Accept-Language",
-		"Accept-Encoding",
-		"Callback",
-		"Connection",
-		"Content-Length",
-		"Content-Type",
-		"Date",
-		"Host",
-		"Nt",
-		"Sid",
-		"Timeout",
-		"User-Agent"
-	};
-	
 	public RequestHandlerV2(ChannelGroup group) {
 		this.group = group;
 	}
+
+	// Used to filter out known headers when the renderer is not recognized
+	private final static String[] KNOWN_HEADERS = {
+		"accept",
+		"accept-language",
+		"accept-encoding",
+		"callback",
+		"connection",
+		"content-length",
+		"content-type",
+		"date",
+		"host",
+		"nt",
+		"sid",
+		"timeout",
+		"user-agent"
+	};
 
 	@Override
 	public void messageReceived(ChannelHandlerContext ctx, MessageEvent e)
@@ -93,17 +95,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 		LOGGER.trace("Opened request handler on socket " + remoteAddress);
 		PMS.get().getRegistry().disableGoToSleep();
-
-		if (HttpMethod.GET.equals(nettyRequest.getMethod())) {
-			request = new RequestV2("GET", nettyRequest.getUri().substring(1));
-		} else if (HttpMethod.POST.equals(nettyRequest.getMethod())) {
-			request = new RequestV2("POST", nettyRequest.getUri().substring(1));
-		} else if (HttpMethod.HEAD.equals(nettyRequest.getMethod())) {
-			request = new RequestV2("HEAD", nettyRequest.getUri().substring(1));
-		} else {
-			request = new RequestV2(nettyRequest.getMethod().getName(), nettyRequest.getUri().substring(1));
-		}
-
+		request = new RequestV2(nettyRequest.getMethod().getName(), nettyRequest.getUri().substring(1));
 		LOGGER.trace("Request: " + nettyRequest.getProtocolVersion().getText() + " : " + request.getMethod() + " : " + request.getArgument());
 
 		if (nettyRequest.getProtocolVersion().getMinorVersion() == 0) {
@@ -124,7 +116,10 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on address " + ia);
 		}
 		
-		for (String name : nettyRequest.headers().names()) {
+		Set<String> headerNames = nettyRequest.headers().names();
+		Iterator<String> iterator = headerNames.iterator();
+		while(iterator.hasNext()) {
+			String name = iterator.next();
 			String headerLine = name + ": " + nettyRequest.headers().get(name);
 			LOGGER.trace("Received on socket: " + headerLine);
 
@@ -198,9 +193,10 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 						 // the media renderer, so keep track of the truly unknown ones.
 						boolean isKnown = false;
 
-						// Try to match possible known headers.
+						// Try to match known headers.
+						String lowerCaseHeaderLine = headerLine.toLowerCase();
 						for (String knownHeaderString : KNOWN_HEADERS) {
-							if (headerLine.toLowerCase().startsWith(knownHeaderString.toLowerCase())) {
+							if (lowerCaseHeaderLine.startsWith(knownHeaderString)) {
 								isKnown = true;
 								break;
 							}
@@ -241,12 +237,12 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			LOGGER.trace("Recognized media renderer: " + request.getMediaRenderer().getRendererName());
 		}
 
-		try {
+		if (nettyRequest.headers().contains(HttpHeaders.Names.CONTENT_LENGTH)) {
 			byte data[] = new byte[(int) HttpHeaders.getContentLength(nettyRequest)];
 			ChannelBuffer content = nettyRequest.getContent();
 			content.readBytes(data);
 			request.setTextContent(new String(data, "UTF-8"));
-		} catch (NumberFormatException nfe) { }
+		}
 
 		LOGGER.trace("HTTP: " + request.getArgument() + " / " + request.getLowRange() + "-" + request.getHighRange());
 

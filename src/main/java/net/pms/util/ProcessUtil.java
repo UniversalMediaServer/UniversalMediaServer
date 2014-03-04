@@ -160,6 +160,7 @@ public class ProcessUtil {
 			while ((line = br.readLine()) != null) {
 				output.append(line).append("\n");
 			}
+			br.close();
 			p.waitFor();
 			if (p.exitValue() != 0) {
 				LOGGER.debug("Warning: command {} returned {}", Arrays.toString(cmd), p.exitValue());

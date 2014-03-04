@@ -389,6 +389,7 @@ public class DownloadPlugins {
 
 		// Reload the config in case we have new settings
 		configuration.reload();
+		br.close();
 		pid.waitFor();
 
 		File[] newJar = new File(configuration.getPluginDirectory()).listFiles();
@@ -498,6 +499,7 @@ public class DownloadPlugins {
 			res &= downloadFile(tmp[0], dir, filename);
 		}
 
+		in.close();
 		return res;
 	}
 
