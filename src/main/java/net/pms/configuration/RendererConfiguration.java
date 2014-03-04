@@ -321,9 +321,12 @@ public class RendererConfiguration implements ActionListener {
 	 * @param sa The IP address to associate.
 	 * @see #getRendererConfigurationBySocketAddress(InetAddress)
 	 */
-	public void associateIP(InetAddress sa) {
+	public boolean associateIP(InetAddress sa) {
+		if (UPNPHelper.isNonRenderer(sa)) {
+			return false;
+		}
+
 		if (uuid == null) {
-			// Make sure it's a MediaRenderer and not a MediaServer, e.g. WMP
 			setUUID(UPNPHelper.getUUID(sa));
 		}
 
@@ -333,6 +336,7 @@ public class RendererConfiguration implements ActionListener {
 
 		addressAssociation.put(sa, this);
 		SpeedStats.getInstance().getSpeedInMBits(sa, getRendererName());
+		return true;
 	}
 
 	public static RendererConfiguration getRendererConfigurationBySocketAddress(InetAddress sa) {
@@ -488,8 +492,7 @@ public class RendererConfiguration implements ActionListener {
 			renderer = getRendererConfigurationByUAAHH(header);
 		}
 
-		if (renderer != null) {
-			renderer.associateIP(ia);
+		if (renderer != null && renderer.associateIP(ia)) {
 			PMS.get().setRendererFound(renderer);
 			LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on header \"" + header + "\"");
 		}
@@ -1034,12 +1037,13 @@ public class RendererConfiguration implements ActionListener {
 	}
 
 	/**
-	 * Returns whether this renderer is currently active, i.e. online.
+	 * Returns whether this renderer is currently online, if known,
+	 * or otherwise whether it has an address (i.e. been online).
 	 *
 	 * @return Whether online.
 	 */
 	public boolean isActive() {
-		return UPNPHelper.isActive(uuid, instanceID);
+		return uuid != null ? UPNPHelper.isActive(uuid, instanceID) : addressAssociation.values().contains(this);
 	}
 
 	/**
