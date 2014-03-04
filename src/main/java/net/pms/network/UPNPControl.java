@@ -266,6 +266,7 @@ public class UPNPControl {
 
 	public void shutdown() {
 		if (upnpService != null) {
+			LOGGER.debug("Stopping UPNP Services...");
 			upnpService.shutdown();
 		}
 	}

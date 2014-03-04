@@ -41,7 +41,7 @@ public class RendererPanel extends JPanel {
 
 		builder.appendRow(rspec);
 		builder.add(editButton(), cc.xyw(1, ++y, 2));
-		if (renderer.isActive()) {
+		if (renderer.isUpnpConnected()) {
 			builder.appendRow(rspec);
 			builder.addLabel(" ", cc.xy(1, ++y));
 
