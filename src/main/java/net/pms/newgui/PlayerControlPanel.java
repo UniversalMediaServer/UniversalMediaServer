@@ -2,6 +2,7 @@ package net.pms.newgui;
 
 import java.io.File;
 import java.net.URL;
+import java.util.HashMap;
 //import java.util.Hashtable;
 import org.apache.commons.lang.StringUtils;
 import java.awt.*;
@@ -34,6 +35,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	private boolean edited, playing;
 	private String lasturi;
 	private File pwd;
+	private HashMap<String, String> metaData = new HashMap();
 
 	private static ImageIcon playIcon, pauseIcon, stopIcon, fwdIcon, rewIcon,
 		nextIcon, prevIcon, volumeIcon, muteIcon, sliderIcon;
@@ -111,8 +113,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 					String u = uri.getText();
 					LOGGER.debug("play pressed "+u);
 					if (u != null && ! u.equals(player.getState().uri)) {
-						// TODO: support passing metadata if available
-						player.setURI(u, null);
+						player.setURI(u, metaData.get(u));
 					}
 					player.play();
 				}
@@ -241,8 +242,10 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	}
 
 	public void store(boolean select, String metadata) {
-		// TODO: implement metadata storage
 		String u = uri.getText();
+		if (metadata != null) {
+			metaData.put(u, metadata);
+		}
 		if (edited && ! StringUtils.isBlank(u)) {
 			int index = ((DefaultComboBoxModel)uris.getModel()).getIndexOf(u);
 			if (index == -1) {
