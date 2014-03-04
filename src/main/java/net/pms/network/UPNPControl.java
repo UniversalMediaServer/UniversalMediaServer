@@ -390,15 +390,32 @@ public class UPNPControl {
 	}
 
 	public static String getUUID(InetAddress socket) {
+		Device d = getDevice(socket);
+		if (d != null && checkDevice(d)) {
+			return getUUID(d);
+		}
+		return null;
+	}
+
+	public static Device getDevice(InetAddress socket) {
 		for (Device d : upnpService.getRegistry().getDevices()) {
 			try {
 				InetAddress devsocket = InetAddress.getByName(getURL(d).getHost());
-				if (devsocket.equals(socket) && checkDevice(d)) {
-					return getUUID(d);
+				if (devsocket.equals(socket)) {
+					return d;
 				}
 			} catch(Exception e) {}
 		}
 		return null;
+	}
+
+	public static boolean isNonRenderer(InetAddress socket) {
+		Device d = getDevice(socket);
+		boolean b = (d != null && ! deviceMap.containsKey(getUUID(d)));
+		if (b) {
+			LOGGER.debug("Non-renderer " + getFriendlyName(d) + " found at " + socket);
+		}
+		return b;
 	}
 
 	public UpnpService getService() {
