@@ -31,6 +31,7 @@ public interface BasicPlayer extends ActionListener {
 	public void connect(ActionListener listener);
 	public void disconnect(ActionListener listener);
 	public void refresh();
+	public void close();
 }
 
 
