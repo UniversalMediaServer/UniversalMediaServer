@@ -211,7 +211,7 @@ public class StatusTab {
 						JOptionPane.showOptionDialog(
 							(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 							new RendererPanel(renderer),
-							renderer.getRendererName() + (renderer.isActive() ? "" : "  [offline]"),
+							renderer.getRendererName() + (renderer.isOffline() ? "  [offline]" : ""),
 							JOptionPane.CLOSED_OPTION,
 							JOptionPane.PLAIN_MESSAGE, null, null, null
 						);

@@ -1037,13 +1037,30 @@ public class RendererConfiguration implements ActionListener {
 	}
 
 	/**
-	 * Returns whether this renderer is currently online, if known,
-	 * or otherwise whether it has an address (i.e. been online).
+	 * Returns whether this renderer is known to be offline.
 	 *
-	 * @return Whether online.
+	 * @return Whether offline.
 	 */
-	public boolean isActive() {
-		return uuid != null ? UPNPHelper.isActive(uuid, instanceID) : addressAssociation.values().contains(this);
+	public boolean isOffline() {
+		return ! hasAddress() || (uuid != null && ! UPNPHelper.isActive(uuid, instanceID));
+	}
+
+	/**
+	 * Returns whether this renderer is currently connected via upnp.
+	 *
+	 * @return Whether connected.
+	 */
+	public boolean isUpnpConnected() {
+		return uuid != null ? UPNPHelper.isActive(uuid, instanceID) : false;
+	}
+
+	/**
+	 * Returns whether this renderer has an associated address.
+	 *
+	 * @return Has address.
+	 */
+	public boolean hasAddress() {
+		return addressAssociation.values().contains(this);
 	}
 
 	/**
@@ -1059,7 +1076,7 @@ public class RendererConfiguration implements ActionListener {
 	@Override
 	public void actionPerformed(final ActionEvent e) {
 		if (imagePanel != null) {
-			imagePanel.setGrey(! isActive());
+			imagePanel.setGrey(! isUpnpConnected());
 		}
 	}
 
