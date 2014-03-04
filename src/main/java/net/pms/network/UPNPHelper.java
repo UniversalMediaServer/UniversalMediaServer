@@ -472,6 +472,7 @@ public class UPNPHelper extends UPNPControl {
 	 * Shut down the threads that send ALIVE messages and listen to responses.
 	 */
 	public static void shutDownListener() {
+		instance.shutdown();
 		listenerThread.interrupt();
 		aliveThread.interrupt();
 	}
@@ -568,7 +569,7 @@ public class UPNPHelper extends UPNPControl {
 		private String instanceID;
 		public RendererConfiguration renderer;
 		private Map<String,String> map;
-		private ArrayList<ActionListener> listeners;
+		private LinkedHashSet<ActionListener> listeners;
 		private BasicPlayer.State state;
 
 		public Player(RendererConfiguration renderer) {
@@ -578,7 +579,7 @@ public class UPNPHelper extends UPNPControl {
 			dev = getDevice(uuid);
 			map = deviceMap.get(uuid, instanceID).connect(this);
 			state = new State();
-			listeners = new ArrayList();
+			listeners = new LinkedHashSet();
 			LOGGER.debug("Created upnp player for " + renderer.getRendererName());
 			refresh();
 		}
@@ -686,6 +687,12 @@ public class UPNPHelper extends UPNPControl {
 		public BasicPlayer.State getState() {
 			return state;
 		}
-	}
 
+		@Override
+		public void close() {
+			listeners.clear();
+			deviceMap.get(uuid, instanceID).disconnect(this);
+		}
+	}
 }
+

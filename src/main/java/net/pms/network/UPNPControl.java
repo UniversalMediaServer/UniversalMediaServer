@@ -3,6 +3,7 @@ package net.pms.network;
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -113,14 +114,14 @@ public class UPNPControl {
 		protected ActionEvent event;
 		public String uuid;
 		public HashMap<String,String> data;
-		public ArrayList<ActionListener> listeners;
+		public LinkedHashSet<ActionListener> listeners;
 		private Thread monitor;
 		public boolean active, controllable;
 
 		public deviceItem(String uuid) {
 			this.uuid = uuid;
 			data = new HashMap<String, String>();
-			listeners = new ArrayList<ActionListener>();
+			listeners = new LinkedHashSet<ActionListener>();
 			event = new ActionEvent(this, 0, null);
 			monitor = null;
 			data.put("TransportState", "STOPPED");
@@ -248,16 +249,6 @@ public class UPNPControl {
 				upnpService.getControlPoint().search(new DeviceTypeHeader(t));
 			}
 
-			// add shutdown hook to shutdown the server
-			Thread t = new Thread() {
-				@Override
-				public void run() {
-					shutdown();
-				}
-			};
-			t.setDaemon(true);
-			Runtime.getRuntime().addShutdownHook(t);
-
 			LOGGER.debug("UPNP Services are online, listening for media renderers");
 		} catch (Exception ex) {
 			LOGGER.debug("UPNP startup Error", ex);
@@ -265,10 +256,15 @@ public class UPNPControl {
 	}
 
 	public void shutdown() {
-		if (upnpService != null) {
-			LOGGER.debug("Stopping UPNP Services...");
-			upnpService.shutdown();
-		}
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				if (upnpService != null) {
+					LOGGER.debug("Stopping UPNP Services...");
+					upnpService.shutdown();
+				}
+			}
+		}).start();
 	}
 
 	public static boolean isMediaRenderer(DeviceType t) {
