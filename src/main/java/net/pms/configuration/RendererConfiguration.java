@@ -340,7 +340,7 @@ public class RendererConfiguration implements ActionListener {
 	 */
 	public boolean associateIP(InetAddress sa) {
 		if (UPNPHelper.isNonRenderer(sa)) {
-			return false;
+//			return false;
 		}
 
 		if (uuid == null) {
@@ -533,8 +533,10 @@ public class RendererConfiguration implements ActionListener {
 	public void createNewFile(File file, boolean load, RendererConfiguration ref) {
 		try {
 			ArrayList<String> conf = new ArrayList<String>();
-			Map<String, String> details = getUpnpDetails();
 			String name = getRendererName().split("\\(")[0].trim();
+			Map<String, String> details = getUpnpDetails();
+			String detailmatcher = details == null ? "" :
+				(details.get("manufacturer") + " , " + details.get("modelName"));
 
 			// Add the header and identifiers
 			conf.add("#----------------------------------------------------------------------------");
@@ -544,7 +546,7 @@ public class RendererConfiguration implements ActionListener {
 			conf.add("#");
 			conf.add("");
 			conf.add(RENDERER_NAME + " = " + name);
-			conf.add(UPNP_DETAILS + " = " + details.get("manufacturer") + " , " + details.get("modelName"));
+			conf.add(UPNP_DETAILS + " = " + detailmatcher);
 			conf.add("");
 			// TODO: Set more properties automatically from UPNP info
 
@@ -1087,6 +1089,20 @@ public class RendererConfiguration implements ActionListener {
 	 */
 	public boolean hasAddress() {
 		return addressAssociation.values().contains(this);
+	}
+
+	/**
+	 * Returns this renderer's associated address.
+	 *
+	 * @return The address.
+	 */
+	public InetAddress getAddress() {
+		for (InetAddress sa : addressAssociation.keySet()) {
+			if (addressAssociation.get(sa) == this) {
+				return sa;
+			}
+		}
+		return null;
 	}
 
 	/**
