@@ -505,7 +505,7 @@ public class RendererConfiguration implements ActionListener {
 			renderer = getRendererConfigurationByUA(userAgentString);
 		}
 
-		if (renderer == null && header != null) {
+		if (renderer == null) {
 			renderer = getRendererConfigurationByUAAHH(header);
 		}
 
