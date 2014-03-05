@@ -41,10 +41,9 @@ public class RendererPanel extends JPanel {
 
 		builder.appendRow(rspec);
 		builder.add(editButton(), cc.xyw(1, ++y, 2));
+		builder.appendRow(rspec);
+		builder.addLabel(" ", cc.xy(1, ++y));
 		if (renderer.isUpnpConnected()) {
-			builder.appendRow(rspec);
-			builder.addLabel(" ", cc.xy(1, ++y));
-
 			y = addMap(renderer.getUpnpDetails(), builder, y);
 			y = addStrings("Services", WordUtils.wrap(StringUtils.join(renderer.getUpnpServices(), ", "), 60).split("\n"),
 				builder, y);
@@ -57,6 +56,9 @@ public class RendererPanel extends JPanel {
 				builder.appendRow(rspec);
 				builder.add(new PlayerControlPanel(new UPNPHelper.Player(renderer)), cc.xyw(1, ++y, 2));
 			}
+		} else {
+			y = addItem("name", renderer.getRendererName(), builder, y);
+			y = addItem("address", renderer.getAddress().toString().substring(1), builder, y);
 		}
 
 		add(builder.getPanel());
@@ -64,7 +66,7 @@ public class RendererPanel extends JPanel {
 
 	public JButton editButton() {
 		final File file  = renderer.getFile(true);
-		final CustomJButton open = new CustomJButton((file .exists() ? "" : "Create a preliminary configuration file: ") + file.getName(), MetalIconFactory.getTreeLeafIcon());
+		final CustomJButton open = new CustomJButton((file .exists() ? "" : "Start a new configuration file: ") + file.getName(), MetalIconFactory.getTreeLeafIcon());
 		open.setToolTipText(file .getAbsolutePath());
 		open.addActionListener(new ActionListener() {
 			@Override

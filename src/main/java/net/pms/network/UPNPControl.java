@@ -167,10 +167,7 @@ public class UPNPControl {
 	}
 
 	public static Device getDevice(String uuid) {
-		return upnpService.getRegistry().getDevice(UDN.valueOf(uuid), false);
-	}
-
-	public static void node2d(String uuid, String xml, deviceItem item) {
+		return uuid != null ? upnpService.getRegistry().getDevice(UDN.valueOf(uuid), false) : null;
 	}
 
 	public static synchronized void xml2d(String uuid, String xml, deviceItem item) {
@@ -200,7 +197,7 @@ public class UPNPControl {
 				item.alert();
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOGGER.debug("Error parsing xml: " + e);
 		}
 	}
 
@@ -219,7 +216,7 @@ public class UPNPControl {
 					if (addRenderer(d)) {
 						rendererFound(d);
 					} else {
-						LOGGER.debug("Non-renderer "+ getFriendlyName(d) +" found: " + d.toString());
+						LOGGER.debug(d.getType().getType() + " found: " + d.toString());
 					}
 				}
 				@Override
@@ -410,7 +407,7 @@ public class UPNPControl {
 		Device d = getDevice(socket);
 		boolean b = (d != null && ! deviceMap.containsKey(getUUID(d)));
 		if (b) {
-			LOGGER.debug("Non-renderer " + getFriendlyName(d) + " found at " + socket);
+			LOGGER.debug("Device at " + socket + " is a " + d.getType().getType() + ": " + d.toString());
 		}
 		return b;
 	}
