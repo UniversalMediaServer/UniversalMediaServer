@@ -340,7 +340,7 @@ public class RendererConfiguration implements ActionListener {
 	 */
 	public boolean associateIP(InetAddress sa) {
 		if (UPNPHelper.isNonRenderer(sa)) {
-//			return false;
+			return false;
 		}
 
 		if (uuid == null) {

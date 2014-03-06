@@ -89,7 +89,7 @@ public class RendererPanel extends JPanel {
 
 	public int addItem(String key, String value, PanelBuilder builder, int y) {
 		builder.appendRow(rspec);
-		builder.addLabel(key.length() > 0 ? key + ":" : "", cc.xy(1, ++y));
+		builder.addLabel(key.length() > 0 ? key + ":  " : "", cc.xy(1, ++y));
 		JTextField val = new JTextField(value);
 		val.setEditable(false);
 		val.setBackground(Color.white);
