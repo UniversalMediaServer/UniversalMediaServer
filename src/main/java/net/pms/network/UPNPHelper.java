@@ -531,6 +531,12 @@ public class UPNPHelper extends UPNPControl {
 		try {
 			InetAddress socket = InetAddress.getByName(getURL(d).getHost());
 			RendererConfiguration r = RendererConfiguration.getRendererConfigurationByUPNPDetails(getDeviceDetailsString(d), socket, getUUID(d));
+			if (r == null) {
+				r = RendererConfiguration.getRendererConfigurationBySocketAddress(socket);
+				if (r != null && r.getUUID() == null) {
+					r.setUUID(getUUID(d));
+				}
+			}
 			LOGGER.debug("New renderer found: " + (r == null ? "unknown" : r.getRendererName()) + ": " + getDeviceDetails(d));
 		} catch(Exception e) {
 		}
