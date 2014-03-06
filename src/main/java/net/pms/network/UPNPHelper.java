@@ -19,7 +19,6 @@
  */
 package net.pms.network;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.*;
 import java.text.SimpleDateFormat;

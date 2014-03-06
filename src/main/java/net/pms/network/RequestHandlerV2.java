@@ -88,8 +88,8 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 		// FIXME: this would also block an external cling-based client running on the same host
 		boolean isSelf = ia.getHostAddress().equals(PMS.get().getServer().getHost()) &&
-			nettyRequest.getHeader("User-Agent") != null &&
-			nettyRequest.getHeader("User-Agent").contains("Cling/");
+			nettyRequest.headers().get(HttpHeaders.Names.USER_AGENT) != null &&
+			nettyRequest.headers().get(HttpHeaders.Names.USER_AGENT).contains("Cling/");
 
 		// Filter if required
 		if (isSelf || filterIp(ia)) {
