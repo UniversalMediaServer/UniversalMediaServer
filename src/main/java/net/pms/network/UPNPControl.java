@@ -227,7 +227,10 @@ public class UPNPControl {
 		DeviceDetails details =
 				new DeviceDetails(
 						"MediaServer",
-						new ManufacturerDetails("UMS"),
+						new ManufacturerDetails("UMS", "http://www.universalmediaserver.com"),
+						new ModelDetails("UMS","UPnP/AV 1.0 Compliant Media Server","01",
+								"http://www.universalmediaserver.com"),
+						"","","http://192.168.100.2:5001/console/index.html",
 						doc,
 						null
 				);
