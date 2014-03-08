@@ -1,6 +1,9 @@
 package net.pms.network;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.LinkedHashSet;
@@ -14,9 +17,16 @@ import java.awt.event.ActionEvent;
 
 import org.apache.commons.lang.StringUtils;
 
+import javax.xml.bind.ValidationException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.fourthline.cling.binding.LocalServiceBindingException;
+import org.fourthline.cling.binding.annotations.AnnotationLocalServiceBinder;
+import org.fourthline.cling.model.DefaultServiceManager;
+import org.fourthline.cling.model.ValidationError;
+import org.fourthline.cling.model.types.*;
+import org.fourthline.cling.support.connectionmanager.ConnectionManagerService;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -26,10 +36,6 @@ import org.fourthline.cling.UpnpServiceImpl;
 import org.fourthline.cling.controlpoint.ActionCallback;
 import org.fourthline.cling.controlpoint.SubscriptionCallback;
 import org.fourthline.cling.model.meta.*;
-import org.fourthline.cling.model.types.DeviceType;
-import org.fourthline.cling.model.types.UDADeviceType;
-import org.fourthline.cling.model.types.UDN;
-import org.fourthline.cling.model.types.ServiceId;
 import org.fourthline.cling.model.message.UpnpResponse;
 import org.fourthline.cling.model.message.header.DeviceTypeHeader;
 import org.fourthline.cling.model.action.*;
@@ -39,7 +45,6 @@ import org.fourthline.cling.registry.RegistryListener;
 import org.fourthline.cling.model.gena.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 public class UPNPControl {
 	// Logger ids to write messages to the logs.
@@ -204,6 +209,83 @@ public class UPNPControl {
 	public UPNPControl() {
 	}
 
+	private LocalDevice createDevice()
+			throws ValidationException, LocalServiceBindingException, IOException {
+
+		DeviceIdentity identity =
+				new DeviceIdentity(
+						UDN.uniqueSystemIdentifier("XXXX")
+				);
+
+		DeviceType type =
+				new UDADeviceType("MediaServer", 1);
+
+		DLNADoc doc[] = new DLNADoc[2];
+		doc[0] = new DLNADoc("DMS", "1.50");
+		doc[1] = new DLNADoc("M-DMS", "1.50");
+
+		DeviceDetails details =
+				new DeviceDetails(
+						"MediaServer",
+						new ManufacturerDetails("UMS"),
+						doc,
+						null
+				);
+		ClassLoader cll = this.getClass().getClassLoader();
+		URL u = cll.getResource("resources/images/icon-48.png");
+		LOGGER.debug("icon url "+u);
+		Icon icon=null;
+		    try {
+			 icon =
+				new Icon(
+						"image/png", 48, 48, 8,
+						"myicon",
+						cll.getResourceAsStream("resources/images/icon-48.png")
+				);
+			} catch (Exception e) {
+				LOGGER.debug("icon err "+e);
+			}
+
+		LocalService<ConnectionManagerService> connMgr =
+				new AnnotationLocalServiceBinder().read(ConnectionManagerService.class);
+		connMgr.setManager(
+				new DefaultServiceManager<ConnectionManagerService>(connMgr, null) {
+					                  @Override
+					                  protected ConnectionManagerService createServiceInstance() throws Exception {
+										  	LOGGER.debug("this cool stuff occured");
+						                      return new ConnectionManagerService(null, null);
+						                  }
+					              }
+			          );
+
+		LocalService<SwitchPower> cont =
+				new AnnotationLocalServiceBinder().read(SwitchPower.class);
+
+		cont.setManager(
+				new DefaultServiceManager(cont, SwitchPower.class)
+		);
+
+		try {
+			LOGGER.debug("return local dev");
+			return new LocalDevice(identity, type, details, icon, new LocalService[] {cont, connMgr});
+		} catch (org.fourthline.cling.model.ValidationException ve) {
+			for(ValidationError e : ve.getErrors())
+				LOGGER.debug("local dev vlid err "+e);
+			return null;
+		} catch (Exception e) {
+			LOGGER.debug("local dev err "+e);
+			return null;
+		}
+
+    /* Several services can be bound to the same device:
+    return new LocalDevice(
+            identity, type, details, icon,
+            new LocalService[] {switchPowerService, myOtherService}
+    );
+    */
+
+	}
+
 	public void init() {
 
 		try {
@@ -213,6 +295,10 @@ public class UPNPControl {
 				@Override
 				public void remoteDeviceAdded(Registry registry, RemoteDevice d) {
 					super.remoteDeviceAdded(registry, d);
+					LOGGER.debug(d.getType().getType() + " found: " + d.toString());
+					for(Device d1 : registry.getDevices()) {
+						LOGGER.debug("dev "+d1.getDisplayString());
+					}
 					if (addRenderer(d)) {
 						rendererFound(d);
 					} else {
@@ -231,6 +317,7 @@ public class UPNPControl {
 				@Override
 				public void remoteDeviceUpdated(Registry registry, RemoteDevice d) {
 					super.remoteDeviceUpdated(registry, d);
+					LOGGER.debug(d.getType().getType() + " update: " + d.toString());
 					String uuid = getUUID(d);
 					if (deviceMap.containsKey(uuid)) {
 						deviceMap.mark(uuid, ACTIVE, true);
@@ -240,6 +327,7 @@ public class UPNPControl {
 
 			};
 			upnpService = new UpnpServiceImpl(rl);
+			upnpService.getRegistry().addDevice(createDevice());
 
 			// find all media renderers on the network
 			for (DeviceType t : mediaRendererTypes) {
