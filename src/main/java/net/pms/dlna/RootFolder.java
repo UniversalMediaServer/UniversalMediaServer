@@ -262,16 +262,34 @@ public class RootFolder extends DLNAResource {
 	private List<RealFile> getConfiguredFolders(ArrayList<String> tags) {
 		List<RealFile> res = new ArrayList<>();
 		File[] files = PMS.get().getSharedFoldersArray(false, tags);
+		String s = PMS.getConfiguration().getIgnoreFolders(tags);
+		String[] skips = null;
+
+		if(s != null) {
+			skips = s.split(",");
+		}
 
 		if (files == null || files.length == 0) {
 			files = File.listRoots();
 		}
 
 		for (File f : files) {
+			if(skipPath(skips, f.getAbsolutePath().toLowerCase())) {
+				continue;
+			}
 			res.add(new RealFile(f));
 		}
 
 		return res;
+	}
+
+	private boolean skipPath(String[] skips, String path) {
+		for(String s : skips) {
+			if (path.contains(s.toLowerCase())) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private List<DLNAResource> getVirtualFolders(ArrayList<String> tags) {
