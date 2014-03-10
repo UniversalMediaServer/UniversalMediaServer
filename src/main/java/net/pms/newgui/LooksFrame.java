@@ -564,8 +564,9 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	}
 
 	@Override
-	public void addRendererIcon(int code, String msg, String icon) {
-		st.addRendererIcon(code, msg, icon);
+	public ImagePanel addRendererIcon(String icon) {
+//	public void addRendererIcon(int code, String msg, String icon) {
+		return st.addRendererIcon(icon);
 	}
 
 	@Override

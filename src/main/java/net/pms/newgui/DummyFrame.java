@@ -50,7 +50,8 @@ public class DummyFrame implements IFrame {
 	}
 
 	@Override
-	public void addRendererIcon(int code, String msg, String icon) {
+	public ImagePanel addRendererIcon(String icon) {
+		return null;
 	}
 
 	@Override

@@ -26,7 +26,7 @@ public interface IFrame {
 	public void setReadValue(long v, String msg);
 	public void setStatusCode(int code, String msg, String icon);
 	public void addRenderer(RendererConfiguration renderer);
-	public void addRendererIcon(int code, String msg, String icon);
+	public ImagePanel addRendererIcon(String icon);
 	public void setReloadable(boolean reload);
 	public void addEngines();
 	public void setStatusLine(String line);
