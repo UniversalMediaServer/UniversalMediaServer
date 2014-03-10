@@ -285,6 +285,10 @@ public class RootFolder extends DLNAResource {
 
 	private boolean skipPath(String[] skips, String path) {
 		for(String s : skips) {
+			if(StringUtils.isBlank(s)) {
+				continue;
+			}
+	
 			if (path.contains(s.toLowerCase())) {
 				return true;
 			}
