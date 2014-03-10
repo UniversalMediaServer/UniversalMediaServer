@@ -105,12 +105,12 @@ public class RootFolder extends DLNAResource {
 			return;
 		}
 
-		if (!configuration.isHideRecentlyPlayedFolder(tags)) {
+		if (!configuration.isHideRecentlyPlayedFolder()) {
 			last = new RecentlyPlayed();
 			addChild(last);
 		}
 
-		if (!configuration.isHideNewMediaFolder(tags)) {
+		if (!configuration.isHideNewMediaFolder()) {
 			String m = (String) configuration.getFoldersMonitored();
 			if (!StringUtils.isEmpty(m)) {
 				String[] tmp = m.split(",");
@@ -179,7 +179,7 @@ public class RootFolder extends DLNAResource {
 			addChild(r);
 		}
 
-		if (!configuration.getHideVideoSettings(tags)) {
+		if (!configuration.getHideVideoSettings()) {
 			addAdminFolder();
 		}
 
@@ -1166,7 +1166,7 @@ public class RootFolder extends DLNAResource {
 	private DLNAResource getVideoSettingsFolder() {
 		DLNAResource res = null;
 
-		if (!configuration.getHideVideoSettings(tags)) {
+		if (!configuration.getHideVideoSettings()) {
 			res = new VirtualFolder(Messages.getString("PMS.37"), null);
 			VirtualFolder vfSub = new VirtualFolder(Messages.getString("PMS.8"), null);
 			res.addChild(vfSub);
