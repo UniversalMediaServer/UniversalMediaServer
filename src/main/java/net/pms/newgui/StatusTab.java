@@ -20,8 +20,7 @@ package net.pms.newgui;
 
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
-import com.jgoodies.forms.layout.CellConstraints;
-import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.*;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
@@ -35,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.util.Locale;
+import java.util.ArrayList;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import net.pms.PMS;
@@ -47,13 +47,17 @@ import org.slf4j.LoggerFactory;
 
 public class StatusTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StatusTab.class);
+	
+	static class rendererItem {
+		ImagePanel icon;
+		JLabel label;
+	}
 
-	private static final int MAX_RENDERERS = 10;
+	private PanelBuilder rendererBuilder;
+	private FormLayout layoutRenderer;
 	private ImagePanel imagePanel;
 	private PmsConfiguration configuration;
-	private ImagePanel renderers[] = new ImagePanel[MAX_RENDERERS];
-	private JLabel rendererLabels[] = new JLabel[MAX_RENDERERS];
-	private int numRenderers;
+	private ArrayList<rendererItem> renderers;
 	private JLabel jl;
 	private JProgressBar jpb;
 	private JLabel currentBitrate;
@@ -66,6 +70,7 @@ public class StatusTab {
 
 	StatusTab(PmsConfiguration configuration) {
 		this.configuration = configuration;
+		renderers = new ArrayList<rendererItem>();
 	}
 
 	public JProgressBar getJpb() {
@@ -139,21 +144,25 @@ public class StatusTab {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		FormLayout layoutRenderer = new FormLayout(
-			"0:grow, pref, pref, pref, pref, pref, pref, pref, pref, pref, pref, 0:grow",
+//		FormLayout layoutRenderer = new FormLayout(
+//			"0:grow, pref, pref, pref, pref, pref, pref, pref, pref, pref, pref, 0:grow",
+//			"pref, 3dlu, pref"
+//		);
+		layoutRenderer = new FormLayout(
+			"pref",
 			"pref, 3dlu, pref"
 		);
-		PanelBuilder rendererBuilder = new PanelBuilder(layoutRenderer);
+		rendererBuilder = new PanelBuilder(layoutRenderer);
 		rendererBuilder.opaque(true);
-		for (int i = 0; i < MAX_RENDERERS; i++) {
-			renderers[i] = buildImagePanel(null);
-			renderers[i].enableRollover();
-			rendererBuilder.add(renderers[i], cc.xy(3 + i, 1));
-			rendererLabels[i] = new JLabel("");
-			rendererBuilder.add(rendererLabels[i], cc.xy(3 + i, 3, CellConstraints.CENTER, CellConstraints.DEFAULT));
-		}
 
-		builder.add(rendererBuilder.getPanel(), cc.xyw(1, 19, 5));
+		JScrollPane rsp = new JScrollPane(
+			rendererBuilder.getPanel(),
+			JScrollPane.VERTICAL_SCROLLBAR_NEVER,
+			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		rsp.setBorder(BorderFactory.createEmptyBorder());
+		rsp.setPreferredSize(new Dimension(0,200));
+
+		builder.add(rsp, cc.xyw(1, 19, 5));
 
 		JPanel panel = builder.getPanel();
 
@@ -199,9 +208,21 @@ public class StatusTab {
 	}
 
 	public void addRenderer(final RendererConfiguration renderer) {
-		addRendererIcon(renderer.getRank(), renderer.getRendererName(), renderer.getRendererIcon());
-		renderer.setImagePanel(renderers[numRenderers]);
-		renderers[numRenderers].setAction(new AbstractAction() {
+
+		layoutRenderer.appendColumn(ColumnSpec.decode("center:pref"));
+		
+		rendererItem r = new rendererItem();
+		r.icon = addRendererIcon(renderer.getRendererIcon());
+		r.icon.enableRollover();
+		CellConstraints cc = new CellConstraints();
+		int i = renderers.size() - 1;
+		rendererBuilder.add(r.icon, cc.xy(i + 2, 1));
+		r.label = new JLabel(renderer.getRendererName());
+		rendererBuilder.add(r.label, cc.xy(i + 2, 3, CellConstraints.CENTER, CellConstraints.DEFAULT));
+		renderers.add(r);
+
+		renderer.setImagePanel(r.icon);
+		r.icon.setAction(new AbstractAction() {
 			private static final long serialVersionUID = -6316055325551243347L;
 
 			@Override
@@ -219,10 +240,9 @@ public class StatusTab {
 				});
 			}
 		});
-		numRenderers++;
 	}
 
-	public void addRendererIcon(int code, String msg, String icon) {
+	public ImagePanel addRendererIcon(String icon) {
 		BufferedImage bi = null;
 
 		if (icon != null) {
@@ -269,14 +289,6 @@ public class StatusTab {
 				LOGGER.debug("Caught exception", e);
 			}
 		}
-
-		if (bi != null) {
-			renderers[numRenderers].set(bi);
-		}
-
-        if (msg.contains("\n")) {
-            msg = "<html>" + msg.replaceAll("\n", "<br>") + "</html>";
-        }
-		rendererLabels[numRenderers].setText(msg);
+		return bi != null ? new ImagePanel(bi) : null;
 	}
 }
