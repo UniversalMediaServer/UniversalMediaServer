@@ -50,18 +50,17 @@ public class DummyFrame implements IFrame {
 	}
 
 	@Override
-	public ImagePanel addRendererIcon(String icon) {
-		return null;
+	public void addRenderer(RendererConfiguration renderer) {
 	}
 
 	@Override
-	public void addRenderer(RendererConfiguration renderer) {
+	public void updateRenderer(RendererConfiguration renderer) {
 	}
 
 	@Override
 	public void serverReady() {
 	}
-	
+
 	@Override
 	public void setScanLibraryEnabled(boolean flag) {
 	}

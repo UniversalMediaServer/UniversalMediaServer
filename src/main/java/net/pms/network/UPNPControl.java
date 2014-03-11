@@ -59,16 +59,30 @@ public class UPNPControl {
 
 	private static final boolean DEBUG = true; // log upnp state vars
 
-	public static class DeviceMap extends HashMap<String,HashMap<String,deviceItem>> {
+	protected static Map<String, Renderer> socketMap = new HashMap<>();
+
+	public static class DeviceMap<T extends Renderer> extends HashMap<String,HashMap<String,T>> {
 		private static final long serialVersionUID = 1510675619549915489L;
 
-		public deviceItem get(String uuid, String id) {
-			if (!containsKey(uuid)) {
-				put(uuid, new HashMap<String,deviceItem>());
+		private Class<T> TClass;
+
+		public DeviceMap(Class<T> t) {
+			TClass = t;
+		}
+
+		public T get(String uuid, String id) {
+			if (! containsKey(uuid)) {
+				put(uuid, new HashMap<String,T>());
 			}
-			HashMap<String,deviceItem> m = get(uuid);
+			HashMap<String,T> m = get(uuid);
 			if (!m.containsKey(id)) {
-				m.put(id, new deviceItem(uuid));
+				try {
+					T newitem = TClass.newInstance();
+					newitem.uuid = uuid;
+					m.put(id, newitem);
+				} catch (Exception e) {
+					LOGGER.debug("Error instantiating item " + uuid + "[" + id + "]: " + e);
+				}
 			}
 			return m.get(id);
 		}
@@ -88,12 +102,20 @@ public class UPNPControl {
 			return null;
 		}
 
+		public T put(String uuid, String id, T item) {
+			item.uuid = uuid;
+			if (! containsKey(uuid)) {
+				get(uuid, "0");
+			}
+			return get(uuid).put(id, item);
+		}
+
 		public String put(String uuid, String id, String key, String value) {
 			return get(uuid, id).data.put(key, value);
 		}
 
 		public void mark(String uuid, int property, boolean value) {
-			for (deviceItem i : get(uuid).values()) {
+			for (T i : get(uuid).values()) {
 				switch (property) {
 					case ACTIVE:
 						i.active = value;
@@ -108,18 +130,23 @@ public class UPNPControl {
 			}
 		}
 	}
-	protected static final DeviceMap deviceMap = new DeviceMap();
+	protected static DeviceMap rendererMap;
 
-	public static class deviceItem {
+	public static class Renderer {
 		protected ActionEvent event;
 		public String uuid;
+		public String instanceID = "0"; // FIXME: unclear in what precise context a media renderer's instanceID != 0
 		public HashMap<String,String> data;
 		public LinkedHashSet<ActionListener> listeners;
 		private Thread monitor;
 		public boolean active, controllable;
 
-		public deviceItem(String uuid) {
+		public Renderer(String uuid) {
+			this();
 			this.uuid = uuid;
+		}
+
+		public Renderer() {
 			data = new HashMap<String, String>();
 			listeners = new LinkedHashSet<ActionListener>();
 			event = new ActionEvent(this, 0, null);
@@ -170,7 +197,7 @@ public class UPNPControl {
 		return uuid != null ? upnpService.getRegistry().getDevice(UDN.valueOf(uuid), false) : null;
 	}
 
-	public static synchronized void xml2d(String uuid, String xml, deviceItem item) {
+	public static synchronized void xml2d(String uuid, String xml, Renderer item) {
 		try {
 			Document doc = db.parse(new ByteArrayInputStream(xml.getBytes()));
 //			doc.getDocumentElement().normalize();
@@ -180,7 +207,7 @@ public class UPNPControl {
 				String id = ((Element)ids.item(i)).getAttribute("val");
 				if (DEBUG) LOGGER.debug("InstanceID: " + id);
 				if (item == null) {
-					item = deviceMap.get(uuid, id);
+					item = rendererMap.get(uuid, id);
 				}
 				item.data.put("InstanceID", id);
 				for (int n=0; n < c.getLength(); n++) {
@@ -202,6 +229,7 @@ public class UPNPControl {
 	}
 
 	public UPNPControl() {
+		rendererMap = new DeviceMap<Renderer>(Renderer.class);
 	}
 
 	public void init() {
@@ -213,9 +241,7 @@ public class UPNPControl {
 				@Override
 				public void remoteDeviceAdded(Registry registry, RemoteDevice d) {
 					super.remoteDeviceAdded(registry, d);
-					if (addRenderer(d)) {
-						rendererFound(d);
-					} else {
+					if (! addRenderer(d)) {
 						LOGGER.debug(d.getType().getType() + " found: " + d.toString());
 					}
 				}
@@ -223,8 +249,8 @@ public class UPNPControl {
 				public void remoteDeviceRemoved(Registry registry, RemoteDevice d) {
 					super.remoteDeviceRemoved(registry, d);
 					String uuid = getUUID(d);
-					if (deviceMap.containsKey(uuid)) {
-						deviceMap.mark(uuid, ACTIVE, false);
+					if (rendererMap.containsKey(uuid)) {
+						rendererMap.mark(uuid, ACTIVE, false);
 						rendererRemoved(d);
 					}
 				}
@@ -232,8 +258,8 @@ public class UPNPControl {
 				public void remoteDeviceUpdated(Registry registry, RemoteDevice d) {
 					super.remoteDeviceUpdated(registry, d);
 					String uuid = getUUID(d);
-					if (deviceMap.containsKey(uuid)) {
-						deviceMap.mark(uuid, ACTIVE, true);
+					if (rendererMap.containsKey(uuid)) {
+						rendererMap.mark(uuid, ACTIVE, true);
 						rendererUpdated(d);
 					}
 				}
@@ -274,15 +300,15 @@ public class UPNPControl {
 	}
 
 	public static boolean isActive(String uuid, String id) {
-		if (deviceMap.containsKey(uuid, id)) {
-			return deviceMap.get(uuid, id).active;
+		if (rendererMap.containsKey(uuid, id)) {
+			return rendererMap.get(uuid, id).active;
 		}
 		return false;
 	}
 
 	public static boolean isUpnpControllable(String uuid) {
-		if (deviceMap.containsKey(uuid)) {
-			return deviceMap.get(uuid, "0").controllable;
+		if (rendererMap.containsKey(uuid)) {
+			return rendererMap.get(uuid, "0").controllable;
 		}
 		return false;
 	}
@@ -346,7 +372,7 @@ public class UPNPControl {
 		return StringUtils.join(getDeviceDetails(d).values(), " ");
 	}
 
-	protected static synchronized boolean addRenderer(Device d) {
+	protected synchronized boolean addRenderer(Device d) {
 		if (d != null) {
 			String uuid = getUUID(d);
 			String name = getFriendlyName(d);
@@ -360,32 +386,29 @@ public class UPNPControl {
 					}
 					upnpService.getControlPoint().execute(new SubscriptionCB(s));
 				}
-				// create an instance
-				deviceMap.get(uuid, "0");
-				deviceMap.mark(uuid, ACTIVE, true);
-				deviceMap.mark(uuid, CONTROLLABLE, ctrl);
+				rendererFound(d, uuid, ctrl);
 				return true;
 			}
 		}
 		return false;
 	}
 
-	public static boolean checkDevice(Device d) {
-		return d != null && (deviceMap.containsKey(getUUID(d)) ? true : addRenderer(d));
-	}
-
-	protected void rendererFound(Device d) {
+	protected void rendererFound(Device d, String uuid, boolean controllable) {
+		Renderer item = rendererMap.get(uuid, "0");
+		rendererMap.mark(uuid, ACTIVE, true);
+		rendererMap.mark(uuid, CONTROLLABLE, controllable);
 	}
 
 	protected void rendererUpdated(Device d) {
 	}
 
 	protected void rendererRemoved(Device d) {
+		LOGGER.debug(getFriendlyName(d) + " is now offline.");
 	}
 
 	public static String getUUID(InetAddress socket) {
 		Device d = getDevice(socket);
-		if (d != null && checkDevice(d)) {
+		if (d != null) {
 			return getUUID(d);
 		}
 		return null;
@@ -405,11 +428,19 @@ public class UPNPControl {
 
 	public static boolean isNonRenderer(InetAddress socket) {
 		Device d = getDevice(socket);
-		boolean b = (d != null && ! deviceMap.containsKey(getUUID(d)));
+		boolean b = (d != null && ! rendererMap.containsKey(getUUID(d)));
 		if (b) {
 			LOGGER.debug("Device at " + socket + " is a " + d.getType().getType() + ": " + d.toString());
 		}
 		return b;
+	}
+
+	public static void connect(String uuid, String instanceID, ActionListener listener) {
+		rendererMap.get(uuid, instanceID).connect(listener);
+	}
+
+	public static Map<String, String> getData(String uuid, String instanceID) {
+		return rendererMap.get(uuid, instanceID).data;
 	}
 
 	public UpnpService getService() {

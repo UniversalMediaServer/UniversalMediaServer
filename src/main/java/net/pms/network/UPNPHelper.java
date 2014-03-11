@@ -83,7 +83,7 @@ public class UPNPHelper extends UPNPControl {
 	 * This utility class is not meant to be instantiated.
 	 */
 	private UPNPHelper() {
-		super();
+		rendererMap = new DeviceMap<RendererConfiguration>(RendererConfiguration.class);
 	}
 
 	public static UPNPHelper getInstance() {
@@ -526,27 +526,33 @@ public class UPNPHelper extends UPNPControl {
 	}
 
 	@Override
-	protected void rendererFound(Device d) {
+	protected void rendererFound(Device d, String uuid, boolean controllable) {
 		try {
 			InetAddress socket = InetAddress.getByName(getURL(d).getHost());
-			RendererConfiguration r = RendererConfiguration.getRendererConfigurationByUPNPDetails(getDeviceDetailsString(d), socket, getUUID(d));
-			if (r == null) {
-				r = RendererConfiguration.getRendererConfigurationBySocketAddress(socket);
-				if (r != null && r.getUUID() == null) {
-					r.setUUID(getUUID(d));
+			RendererConfiguration r = RendererConfiguration.getRendererConfigurationBySocketAddress(socket);
+			if (r != null) {
+				// Already seen, make sure it's mapped
+				rendererMap.put(uuid, "0", r);
+				// update gui
+				PMS.get().updateRenderer(r);
+				LOGGER.debug("Found upnp service for " + r.getRendererName() + ": " + getDeviceDetails(d));
+			} else {
+				// It's brand new
+				r = (RendererConfiguration)rendererMap.get(uuid, "0");
+				RendererConfiguration ref = RendererConfiguration.getRendererConfigurationByUPNPDetails(getDeviceDetailsString(d));
+				if (ref != null) {
+					r.init(ref.getFile());
+				}
+				if (r.associateIP(socket)) {
+					PMS.get().setRendererFound(r);
+					LOGGER.debug("New renderer found: " + r.getRendererName() + ": " + getDeviceDetails(d));
 				}
 			}
-			LOGGER.debug("New renderer found: " + (r == null ? "unknown" : r.getRendererName()) + ": " + getDeviceDetails(d));
+			rendererMap.mark(uuid, ACTIVE, true);
+			rendererMap.mark(uuid, CONTROLLABLE, controllable);
 		} catch(Exception e) {
+			LOGGER.debug("Error initializing device " + getFriendlyName(d) + ": " + e);
 		}
-	}
-
-	public static void connect(String uuid, String instanceID, ActionListener listener) {
-		deviceMap.get(uuid, instanceID).connect(listener);
-	}
-
-	public static Map<String, String> getData(String uuid, String instanceID) {
-		return deviceMap.get(uuid, instanceID).data;
 	}
 
 	public static void play(String uri, RendererConfiguration r) {
@@ -573,7 +579,7 @@ public class UPNPHelper extends UPNPControl {
 		private String uuid;
 		private String instanceID;
 		public RendererConfiguration renderer;
-		private Map<String,String> map;
+		private Map<String,String> data;
 		private LinkedHashSet<ActionListener> listeners;
 		private BasicPlayer.State state;
 
@@ -582,7 +588,7 @@ public class UPNPHelper extends UPNPControl {
 			instanceID = renderer.getInstanceID();
 			this.renderer = renderer;
 			dev = getDevice(uuid);
-			map = deviceMap.get(uuid, instanceID).connect(this);
+			data = rendererMap.get(uuid, instanceID).connect(this);
 			state = new State();
 			listeners = new LinkedHashSet();
 			LOGGER.debug("Created upnp player for " + renderer.getRendererName());
@@ -668,17 +674,17 @@ public class UPNPHelper extends UPNPControl {
 
 		@Override
 		public void refresh() {
-			String s = map.get("TransportState");
+			String s = data.get("TransportState");
 			state.playback = "STOPPED".equals(s) ? BasicPlayer.STOPPED :
 				"PLAYING".equals(s) ? BasicPlayer.PLAYING :
 				"PAUSED_PLAYBACK".equals(s) ? BasicPlayer.PAUSED: -1;
-			state.mute = "0".equals(map.get("Mute")) ? false : true;
-			s = map.get("Volume");
+			state.mute = "0".equals(data.get("Mute")) ? false : true;
+			s = data.get("Volume");
 			state.volume = s == null ? 0 : Integer.valueOf(s);
-			state.position = map.get("RelTime");
-			state.duration = map.get("CurrentMediaDuration");
-			state.uri = map.get("AVTransportURI");
-			state.metadata = map.get("AVTransportURIMetaData");
+			state.position = data.get("RelTime");
+			state.duration = data.get("CurrentMediaDuration");
+			state.uri = data.get("AVTransportURI");
+			state.metadata = data.get("AVTransportURIMetaData");
 			alert();
 		}
 
@@ -696,7 +702,7 @@ public class UPNPHelper extends UPNPControl {
 		@Override
 		public void close() {
 			listeners.clear();
-			deviceMap.get(uuid, instanceID).disconnect(this);
+			rendererMap.get(uuid, instanceID).disconnect(this);
 		}
 	}
 }
