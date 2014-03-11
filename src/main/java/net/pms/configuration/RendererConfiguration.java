@@ -27,7 +27,7 @@ import net.pms.network.HTTPResource;
 import net.pms.network.SpeedStats;
 import net.pms.network.UPNPHelper;
 import net.pms.util.PropertiesUtil;
-import net.pms.newgui.ImagePanel;
+import net.pms.newgui.StatusTab;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang.WordUtils;
@@ -37,7 +37,7 @@ import org.apache.commons.io.Charsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RendererConfiguration implements ActionListener {
+public class RendererConfiguration extends UPNPHelper.Renderer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
 	private static ArrayList<RendererConfiguration> enabledRendererConfs;
 	private static ArrayList<String> allRenderersNames = new ArrayList<>();
@@ -51,9 +51,8 @@ public class RendererConfiguration implements ActionListener {
 	private FormatConfiguration formatConfiguration;
 	private int rank;
 
-	private String uuid;
-	private String instanceID = "0"; // FIXME: we're fudging this as single-instance
-	private ImagePanel imagePanel;
+	public StatusTab.rendererItem statusIcon;
+	public boolean loaded;
 
 	// Holds MIME type aliases
 	private final Map<String, String> mimes;
@@ -323,24 +322,27 @@ public class RendererConfiguration implements ActionListener {
 	 */
 	public boolean associateIP(InetAddress sa) {
 		if (UPNPHelper.isNonRenderer(sa)) {
+			// TODO: remove it if already added unknowingly
 			return false;
 		}
-
-		if (uuid == null) {
-			setUUID(UPNPHelper.getUUID(sa));
-		}
-
-		if (uuid != null) {
-			UPNPHelper.connect(uuid, instanceID, this);
-		}
-
+//		RendererConfiguration prev = addressAssociation.get(sa);
+//		if (prev != null && prev != this) {
+//			if (prev.getRendererName().equals(getRendererName())) {
+//				LOGGER.debug("Preventing duplicate association " + sa + " for renderer " + getRendererName());
+//				return false;
+//			} else {
+//				// FIXME: handle multiple clients with same ip
+//				LOGGER.debug("Replacing previous association " + sa + " for renderer " + prev.getRendererName());
+//			}
+//		}
 		addressAssociation.put(sa, this);
 		SpeedStats.getInstance().getSpeedInMBits(sa, getRendererName());
 		return true;
 	}
 
 	public static RendererConfiguration getRendererConfigurationBySocketAddress(InetAddress sa) {
-		return addressAssociation.get(sa);
+		RendererConfiguration r = addressAssociation.get(sa);
+		return (r != null && r.loaded) ? r : null;
 	}
 
 	/**
@@ -463,14 +465,11 @@ public class RendererConfiguration implements ActionListener {
 		return renderer;
 	}
 
-	public static RendererConfiguration getRendererConfigurationByUPNPDetails(String details, InetAddress ia, String uuid) {
+	public static RendererConfiguration getRendererConfigurationByUPNPDetails(String details/*, InetAddress ia, String uuid*/) {
 		for (RendererConfiguration r : enabledRendererConfs) {
 			if (r.matchUPNPDetails(details)) {
-				r.setUUID(uuid);
-				r.associateIP(ia);	// Associate IP address for later requests
-				PMS.get().setRendererFound(r);
 				LOGGER.trace("Matched media renderer \"" + r.getRendererName() + "\" based on dlna details \"" + details + "\"");
-				return manageRendererMatch(r);
+				return r;
 			}
 		}
 		return null;
@@ -478,26 +477,44 @@ public class RendererConfiguration implements ActionListener {
 
 	public static RendererConfiguration getRendererConfigurationByHeaderLine(String header, InetAddress ia) {
 		String userAgentString;
-		RendererConfiguration renderer = null;
+		RendererConfiguration r = null, ref = null;
+		boolean isNew = false;
 
-		if (
-			header.toUpperCase().startsWith("USER-AGENT") ||
-			header.toUpperCase().startsWith("SERVER")
-		) {
+		if (header.toUpperCase().startsWith("USER-AGENT")) {
 			userAgentString = header.substring(header.indexOf(':') + 1).trim();
-			renderer = getRendererConfigurationByUA(userAgentString);
+			ref = getRendererConfigurationByUA(userAgentString);
 		}
 
-		if (renderer == null) {
-			renderer = getRendererConfigurationByUAAHH(header);
+		if (ref == null) {
+			ref = getRendererConfigurationByUAAHH(header);
 		}
 
-		if (renderer != null && renderer.associateIP(ia)) {
-			PMS.get().setRendererFound(renderer);
-			LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on header \"" + header + "\"");
+		if (ref != null) {
+			try {
+				if (addressAssociation.containsKey(ia)) {
+					// Already seen, finish configuration if required
+					r = addressAssociation.get(ia);
+					if (! r.loaded) {
+						r.init(ref.getFile());
+						// update gui
+						PMS.get().updateRenderer(r);
+					}
+				} else if (! UPNPHelper.isNonRenderer(ia)) {
+					// It's brand new
+					r = new RendererConfiguration(ref.getFile());
+					if (r.associateIP(ia)) {
+						PMS.get().setRendererFound(r);
+						isNew = true;
+					}
+				}
+			} catch (Exception e) {
+			}
+			if (r != null) {
+				LOGGER.trace("Matched " + (isNew ? "new " : "") + "media renderer \"" + r.getRendererName() + "\" based on header \"" + header + "\"");
+			}
 		}
 
-		return renderer;
+		return r;
 	}
 
 	public FormatConfiguration getFormatConfiguration() {
@@ -553,7 +570,7 @@ public class RendererConfiguration implements ActionListener {
 
 			if (load) {
 				try {
-					init(file); 
+					init(file);
 				} catch (ConfigurationException ce) {
 					LOGGER.debug("Error initializing renderer configuration: " + ce);
 				}
@@ -602,11 +619,20 @@ public class RendererConfiguration implements ActionListener {
 		return getBoolean(SHOW_DVD_TITLE_DURATION, false);
 	}
 
-	RendererConfiguration() throws ConfigurationException {
-		this(null);
+	public RendererConfiguration() throws ConfigurationException {
+		this(null, null);
+	}
+
+	public RendererConfiguration(String uuid) throws ConfigurationException {
+		this(null, uuid);
 	}
 
 	public RendererConfiguration(File f) throws ConfigurationException {
+		this(f, null);
+	}
+
+	public RendererConfiguration(File f, String uuid) throws ConfigurationException {
+		super(uuid);
 		configuration = new PropertiesConfiguration();
 
 		// false: don't log overrides (every renderer conf
@@ -628,6 +654,7 @@ public class RendererConfiguration implements ActionListener {
 
 		if (f != null) {
 			configuration.load(f);
+			loaded = true;
 		}
 
 		mimes.clear();
@@ -1090,14 +1117,15 @@ public class RendererConfiguration implements ActionListener {
 
 
 	@Override
-	public void actionPerformed(final ActionEvent e) {
-		if (imagePanel != null) {
-			imagePanel.setGrey(! isUpnpConnected());
+	public void alert() {
+		if (statusIcon != null) {
+			statusIcon.icon.setGrey(! isUpnpConnected());
 		}
+		super.alert();
 	}
 
-	public void setImagePanel(ImagePanel panel) {
-		imagePanel = panel;
+	public void setStatusIcon(StatusTab.rendererItem item) {
+		statusIcon = item;
 	}
 
 	/**

@@ -47,10 +47,10 @@ import org.slf4j.LoggerFactory;
 
 public class StatusTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StatusTab.class);
-	
-	static class rendererItem {
-		ImagePanel icon;
-		JLabel label;
+
+	public static class rendererItem {
+		public ImagePanel icon;
+		public JLabel label;
 	}
 
 	private PanelBuilder rendererBuilder;
@@ -210,7 +210,7 @@ public class StatusTab {
 	public void addRenderer(final RendererConfiguration renderer) {
 
 		layoutRenderer.appendColumn(ColumnSpec.decode("center:pref"));
-		
+
 		rendererItem r = new rendererItem();
 		r.icon = addRendererIcon(renderer.getRendererIcon());
 		r.icon.enableRollover();
@@ -221,7 +221,7 @@ public class StatusTab {
 		rendererBuilder.add(r.label, cc.xy(i + 2, 3, CellConstraints.CENTER, CellConstraints.DEFAULT));
 		renderers.add(r);
 
-		renderer.setImagePanel(r.icon);
+		renderer.setStatusIcon(r);
 		r.icon.setAction(new AbstractAction() {
 			private static final long serialVersionUID = -6316055325551243347L;
 
@@ -242,7 +242,17 @@ public class StatusTab {
 		});
 	}
 
-	public ImagePanel addRendererIcon(String icon) {
+	public static void updateRenderer(RendererConfiguration renderer) {
+		renderer.statusIcon.icon.set(getRendererIcon(renderer.getRendererIcon()));
+		renderer.statusIcon.label.setText(renderer.getRendererName());
+	}
+
+	public static ImagePanel addRendererIcon(String icon) {
+		BufferedImage bi = getRendererIcon(icon);
+		return bi != null ? new ImagePanel(bi) : null;
+	}
+
+	public static BufferedImage getRendererIcon(String icon) {
 		BufferedImage bi = null;
 
 		if (icon != null) {
@@ -289,6 +299,6 @@ public class StatusTab {
 				LOGGER.debug("Caught exception", e);
 			}
 		}
-		return bi != null ? new ImagePanel(bi) : null;
+		return bi;
 	}
 }

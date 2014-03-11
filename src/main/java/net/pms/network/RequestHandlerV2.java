@@ -118,7 +118,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
 
 		if (renderer != null) {
-			PMS.get().setRendererFound(renderer);
+//			PMS.get().setRendererFound(renderer);
 			request.setMediaRenderer(renderer);
 			LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on address " + ia);
 		}
@@ -206,12 +206,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			// Attempt 3: Not really an attempt; all other attempts to recognize
 			// the renderer have failed. The only option left is to assume the
 			// default renderer.
-//			request.setMediaRenderer(RendererConfiguration.getDefaultConf());
-
-			RendererConfiguration r = new RendererConfiguration(null); // FIXME: should copy defaultConf here instead
-			r.associateIP(ia);
-			request.setMediaRenderer(r);
-
+			request.setMediaRenderer(RendererConfiguration.getDefaultConf());
 			LOGGER.trace("Using default media renderer: " + request.getMediaRenderer().getRendererName());
 
 			if (userAgentString != null && !userAgentString.equals("FDSSDP")) {
