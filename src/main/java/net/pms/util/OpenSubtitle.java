@@ -25,6 +25,7 @@ import net.pms.PMS;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.net.www.protocol.http.HttpURLConnection;
 
 public class OpenSubtitle {
 	private static final Logger LOGGER = LoggerFactory.getLogger(OpenSubtitle.class);
@@ -93,6 +94,7 @@ public class OpenSubtitle {
 		connection.setDefaultUseCaches(false);
 		connection.setRequestProperty("Content-Type", "text/xml");
 		connection.setRequestProperty("Content-Length", "" + query.length());
+		((HttpURLConnection)connection).setRequestMethod("POST");
 		//LOGGER.debug("opensub query "+query);
 		// open up the output stream of the connection
 		if (!StringUtils.isEmpty(query)) {
