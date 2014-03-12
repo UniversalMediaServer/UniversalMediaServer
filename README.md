@@ -10,17 +10,14 @@ Universal Media Server supports all major operating systems, with versions for W
 The program streams or transcodes many different media formats with little or no configuration.
 It is powered by MEncoder, FFmpeg, tsMuxeR, AviSynth, MediaInfo, VLC and more, which combine to offer support for a wide range of media formats.
 
-## Current Project Developers
+## Current Active Project Members
 
-* [SubJunk][3]
-* [SharkHunter][4]
-* [valib][5]
-* [infidel][6]
+Owner | Developers | Moderators
+:--- |:--- | :---
+[SubJunk][3]  | [SharkHunter][4]  | [Optimus_prime][7]
+  | [valib][5]  | [DeFlanko][8] 
+  | [infidel][6]  |
 
-## Current Forum Moderators
-
-* [Optimus_prime][7]
-* [DeFlanko][8] 
 
 ## Links
 * [Website][1]
@@ -32,9 +29,9 @@ It is powered by MEncoder, FFmpeg, tsMuxeR, AviSynth, MediaInfo, VLC and more, w
 * [Wiki][14]
 
 
-## Thanks
+## Thanks...
 
-##### Thanks for major code contributions:
+##### ...for major code contributions:
 *(in alphabetical order)*
 * chocolateboy
 * ditlew
@@ -48,25 +45,26 @@ It is powered by MEncoder, FFmpeg, tsMuxeR, AviSynth, MediaInfo, VLC and more, w
 * tomeko
 
 
-##### Thanks to for documentation and contributions to the community:
-
-* meskibob
-* otmanix
-
-##### Thanks to for significant/frequent language translations:
+##### ...for contributions to the community:
 
 * AlfredoRamos
+* bd.azerty
+* bleuecinephile
+* boblinds
+* fabounnet 
+* meskibob
+* otmanix
+* sarraken
+* snoots
 * Tianuchka
 
-##### Special Thanks: 
-
-* boblinds and snoots for the network test cases :)
-* sarraken, bleuecinephile, bd.azerty, fabounnet for the support and feedback
-* ...And you!
+#### ...And you!
+* [All those who contributed to the Project][15]
+* [All those on our forum][16]
 
 
   [1]: http://www.universalmediaserver.com
-  [2]: http://www.universalmediaserver.com/comparison/
+  [2]: https://github.com/UniversalMediaServer/UniversalMediaServer/wiki/Comparison-of-Media-Servers
   [3]: http://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=2
   [4]: http://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=62
   [5]: http://www.universalmediaserver.com/forum/memberlist.php?mode=viewprofile&u=683
@@ -77,5 +75,7 @@ It is powered by MEncoder, FFmpeg, tsMuxeR, AviSynth, MediaInfo, VLC and more, w
   [10]: https://github.com/UniversalMediaServer/UniversalMediaServer
   [11]: http://sourceforge.net/projects/unimediaserver/files/Official%20Releases/
   [12]: https://github.com/UniversalMediaServer/UniversalMediaServer/issues?state=open
-  [13]: http://www.universalmediaserver.com/faq/
+  [13]: https://github.com/UniversalMediaServer/UniversalMediaServer/wiki/FAQ
   [14]: https://github.com/UniversalMediaServer/UniversalMediaServer/wiki
+  [15]: https://github.com/UniversalMediaServer/UniversalMediaServer/network/members
+  [16]: http://www.universalmediaserver.com/forum/memberlist.php
