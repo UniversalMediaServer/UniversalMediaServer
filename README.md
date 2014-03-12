@@ -27,41 +27,9 @@ Owner | Developers | Moderators
 * [Issue tracker][12]
 * [FAQ][13]
 * [Wiki][14]
+* [How to Build][15]
 
-
-## Thanks...
-
-##### ...for major code contributions:
-*(in alphabetical order)*
-* chocolateboy
-* ditlew
-* happy.neko
-* Raptor399
-* Redlum
-* renszarv
-* skeptical
-* taconaut
-* tcox
-* tomeko
-
-
-##### ...for contributions to the community:
-
-* AlfredoRamos
-* bd.azerty
-* bleuecinephile
-* boblinds
-* fabounnet 
-* meskibob
-* otmanix
-* sarraken
-* snoots
-* Tianuchka
-
-#### ...And you!
-* [All those who contributed to the Project][15]
-* [All those on our forum][16]
-
+## [Thanks...][16]
 
   [1]: http://www.universalmediaserver.com
   [2]: https://github.com/UniversalMediaServer/UniversalMediaServer/wiki/Comparison-of-Media-Servers
@@ -77,5 +45,5 @@ Owner | Developers | Moderators
   [12]: https://github.com/UniversalMediaServer/UniversalMediaServer/issues?state=open
   [13]: https://github.com/UniversalMediaServer/UniversalMediaServer/wiki/FAQ
   [14]: https://github.com/UniversalMediaServer/UniversalMediaServer/wiki
-  [15]: https://github.com/UniversalMediaServer/UniversalMediaServer/network/members
-  [16]: http://www.universalmediaserver.com/forum/memberlist.php
+  [15]: https://github.com/UniversalMediaServer/UniversalMediaServer/wiki/How-to-Build-UMS-(Advanced)
+  [16]: https://github.com/UniversalMediaServer/UniversalMediaServer/wiki/Thanks
