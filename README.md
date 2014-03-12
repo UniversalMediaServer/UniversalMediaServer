@@ -12,22 +12,19 @@ It is powered by MEncoder, FFmpeg, tsMuxeR, AviSynth, MediaInfo, VLC and more, w
 
 ## Current Active Project Members
 
-Owner | Developers | Moderators
-:--- |:--- | :---
+Owner         | Developers        | Moderators
+:---          |:---               | :---
 [SubJunk][3]  | [SharkHunter][4]  | [Optimus_prime][7]
-  | [valib][5]  | [DeFlanko][8] 
-  | [infidel][6]  |
-
+              | [valib][5]        | [DeFlanko][8] 
+              | [infidel][6]      |
 
 ## Links
-* [Website][1]
-* [Forum][9]
-* [Source code][10]
-* [Offical Releases][11]
-* [Issue tracker][12]
-* [FAQ][13]
-* [Wiki][14]
-* [How to Build][15]
+
+Sites               | Code                    | Knowledgebase
+:---                | :---                    | :---
+[Website][1]        | [Source code][10]       | [Wiki][14]
+[Forum][9]          | [How to Build][15]      | [FAQ][13]
+[Issue tracker][12] | [Offical Releases][11]  |
 
 ## [Thanks...][16]
 
