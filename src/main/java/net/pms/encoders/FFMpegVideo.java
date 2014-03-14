@@ -1275,7 +1275,7 @@ public class FFMpegVideo extends Player {
 		}
 
 		// Try to specify input encoding if we have a non utf-8 external sub
-		if (params.sid.getId() == 100 && !params.sid.isExternalFileUtf8()) {
+		if (params.sid.getId() >= 100 && !params.sid.isExternalFileUtf8()) {
 			String encoding = isNotBlank(configuration.getSubtitlesCodepage()) ?
 					// Prefer the global user-specified encoding if we have one.
 					// Note: likely wrong if the file isn't supplied by the user.
@@ -1290,7 +1290,7 @@ public class FFMpegVideo extends Player {
 				cmdList.add(encoding);
 			}
 		}
-
+		
 		cmdList.add("-i");
 		cmdList.add(fileName);
 
@@ -1309,7 +1309,7 @@ public class FFMpegVideo extends Player {
 
 		String[] cmdArray = new String[cmdList.size()];
 		cmdList.toArray(cmdArray);
-
+		
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 		pw.runInNewThread();
 
