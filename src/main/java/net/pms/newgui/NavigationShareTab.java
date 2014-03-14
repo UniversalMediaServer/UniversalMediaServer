@@ -341,7 +341,7 @@ public class NavigationShareTab {
 		});
 
 		// Hide Server Settings folder
-		hidevideosettings = new JCheckBox(Messages.getString("FoldTab.38"), configuration.getHideVideoSettings(null));
+		hidevideosettings = new JCheckBox(Messages.getString("FoldTab.38"), configuration.getHideVideoSettings());
 		hidevideosettings.setContentAreaFilled(false);
 		hidevideosettings.addItemListener(new ItemListener() {
 			@Override
@@ -572,7 +572,7 @@ public class NavigationShareTab {
 			}
 		});
 
-		newmediafolder = new JCheckBox(Messages.getString("FoldTab.54"), configuration.isHideNewMediaFolder(null));
+		newmediafolder = new JCheckBox(Messages.getString("FoldTab.54"), configuration.isHideNewMediaFolder());
 		newmediafolder.setToolTipText(Messages.getString("FoldTab.60"));
 		newmediafolder.setContentAreaFilled(false);
 		newmediafolder.addItemListener(new ItemListener() {
@@ -582,7 +582,7 @@ public class NavigationShareTab {
 			}
 		});
 
-		recentlyplayedfolder = new JCheckBox(Messages.getString("FoldTab.55"), configuration.isHideRecentlyPlayedFolder(null));
+		recentlyplayedfolder = new JCheckBox(Messages.getString("FoldTab.55"), configuration.isHideRecentlyPlayedFolder());
 		recentlyplayedfolder.setContentAreaFilled(false);
 		recentlyplayedfolder.addItemListener(new ItemListener() {
 			@Override
