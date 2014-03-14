@@ -303,6 +303,7 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 
 		// Check if the renderer supports the resolution of the video
+		// Bravia TVs should be able to play videos which resolution is not divisible by 4
 		if (
 			(
 				mediaRenderer.isVideoRescale() &&
@@ -310,8 +311,10 @@ public class DLNAMediaInfo implements Cloneable {
 					getWidth() > mediaRenderer.getMaxVideoWidth() ||
 					getHeight() > mediaRenderer.getMaxVideoHeight()
 				)
-			) ||
-			!isMod4()
+			) || (
+				!mediaRenderer.isBRAVIA() &&
+				!isMod4()
+			)
 		) {
 			muxable = false;
 		}
