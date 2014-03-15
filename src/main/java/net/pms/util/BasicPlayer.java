@@ -15,6 +15,8 @@ public interface BasicPlayer extends ActionListener {
 	final static int STOPPED = 0;
 	final static int PLAYING = 1;
 	final static int PAUSED = 2;
+	final static int PLAYCONTROL = 1;
+	final static int VOLUMECONTROL = 2;
 
 	public void setURI(String uri, String metadata);
 	public void play();
@@ -28,6 +30,7 @@ public interface BasicPlayer extends ActionListener {
 	public void setVolume(int volume);
 
 	public State getState();
+	public int getControls();
 	public void connect(ActionListener listener);
 	public void disconnect(ActionListener listener);
 	public void refresh();

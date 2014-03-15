@@ -36,6 +36,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	private String lasturi;
 	private File pwd;
 	private HashMap<String, String> metaData = new HashMap();
+	private boolean playControl, volumeControl;
 
 	private static ImageIcon playIcon, pauseIcon, stopIcon, fwdIcon, rewIcon,
 		nextIcon, prevIcon, volumeIcon, muteIcon, sliderIcon;
@@ -46,6 +47,9 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		}
 		this.player = player;
 		player.connect(this);
+		int controls = player.getControls();
+		playControl = (controls & BasicPlayer.PLAYCONTROL) != 0;
+		volumeControl = (controls & BasicPlayer.VOLUMECONTROL) != 0;
 
 		try {
 			pwd = new File(player.getState().uri).getParentFile();
@@ -59,14 +63,18 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		c.insets = new Insets(5, 5, 5, 5);
 
 		c.gridx = 0; c.gridy = 0;
-		add(volumePanel(), c);
-		c.gridx++;
-		add(playbackPanel(), c);
-		c.gridx++;
-		add(statusPanel(), c);
-		c.gridx = 0; c.gridy++;
-		c.gridwidth=3;
-		add(uriPanel(), c);
+		if (volumeControl) {
+			add(volumePanel(), c);
+			c.gridx++;
+		}
+		if (playControl) {
+			add(playbackPanel(), c);
+			c.gridx++;
+			add(statusPanel(), c);
+			c.gridx = 0; c.gridy++;
+			c.gridwidth = volumeControl ? 3 : 2;
+			add(uriPanel(), c);
+		}
 
 		player.refresh();
 
@@ -154,7 +162,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 
 	public JComponent volumePanel() {
 		JPanel volume = new JPanel(new FlowLayout(FlowLayout.LEFT));
-		volume.setPreferredSize(new Dimension(150,20));
+		volume.setPreferredSize(new Dimension(150,30));
 
 		UIDefaults defaults = UIManager.getDefaults();
 		Object hti = defaults.put("Slider.horizontalThumbIcon", sliderIcon);
@@ -269,37 +277,41 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	}
 
 	public void refresh(BasicPlayer.State state) {
-		playing = state.playback != BasicPlayer.STOPPED;
-		// update playback status
-		play.putValue(Action.SMALL_ICON,
-			state.playback == BasicPlayer.PLAYING ? pauseIcon : playIcon);
-		stop.setEnabled(playing);
-		forward.setEnabled(playing);
-		rewind.setEnabled(playing);
-		next.setEnabled(playing);
-		prev.setEnabled(playing);
-		// update rendering status
-		mute.putValue(Action.SMALL_ICON, state.mute ? muteIcon : volumeIcon);
-//		volumeSlider.setVisible(! state.mute);
-		volumeSlider.setEnabled(! state.mute);
-		volumeSlider.setValue((int)state.volume);
-		// update position
-		String pos = state.position != null ? state.position : "00:00:00";
-		if (state.duration != null && ! state.duration.equals(pos)) {
-			pos += ((pos == "" ? "" : " / ") + state.duration);
+		if (playControl) {
+			playing = state.playback != BasicPlayer.STOPPED;
+			// update playback status
+			play.putValue(Action.SMALL_ICON,
+				state.playback == BasicPlayer.PLAYING ? pauseIcon : playIcon);
+			stop.setEnabled(playing);
+			forward.setEnabled(playing);
+			rewind.setEnabled(playing);
+			next.setEnabled(playing);
+			prev.setEnabled(playing);
+			// update position
+			String pos = state.position != null ? state.position : "00:00:00";
+			if (state.duration != null && ! state.duration.equals(pos)) {
+				pos += ((pos == "" ? "" : " / ") + state.duration);
+			}
+			position.setText(pos);
+			// update uris only if meaningfully new
+			boolean isNew = ! StringUtils.isBlank(state.uri)
+				&& ! state.uri.equals(lasturi)
+				&& ! state.uri.equals(uri.getText());
+			lasturi = state.uri;
+			if (isNew) {
+				store(false);
+				uri.setText(state.uri);
+				store(true, state.metadata);
+			}
+			play.setEnabled(playing || ! StringUtils.isBlank(uri.getText()));
 		}
-		position.setText(pos);
-		// update uris only if meaningfully new
-		boolean isNew = ! StringUtils.isBlank(state.uri)
-			&& ! state.uri.equals(lasturi)
-			&& ! state.uri.equals(uri.getText());
-		lasturi = state.uri;
-		if (isNew) {
-			store(false);
-			uri.setText(state.uri);
-			store(true, state.metadata);
+		if (volumeControl) {
+			// update rendering status
+			mute.putValue(Action.SMALL_ICON, state.mute ? muteIcon : volumeIcon);
+//			volumeSlider.setVisible(! state.mute);
+			volumeSlider.setEnabled(! state.mute);
+			volumeSlider.setValue((int)state.volume);
 		}
-		play.setEnabled(playing || ! StringUtils.isBlank(uri.getText()));
 	}
 
 	@Override
