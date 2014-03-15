@@ -21,6 +21,7 @@ package net.pms.newgui;
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.*;
+import java.net.URL;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.ComponentOrientation;
@@ -160,7 +161,7 @@ public class StatusTab {
 			JScrollPane.VERTICAL_SCROLLBAR_NEVER,
 			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		rsp.setBorder(BorderFactory.createEmptyBorder());
-		rsp.setPreferredSize(new Dimension(0,200));
+		rsp.setPreferredSize(new Dimension(0,160));
 
 		builder.add(rsp, cc.xyw(1, 19, 5));
 
@@ -256,6 +257,15 @@ public class StatusTab {
 		BufferedImage bi = null;
 
 		if (icon != null) {
+
+			if (icon.matches(".*\\S+://.*")) {
+				try {
+					return ImageIO.read(new URL(icon));
+				} catch (Exception e) {
+					LOGGER.debug("Failed to read icon url: " + e);
+				}
+			}
+
 			try {
 				InputStream is = null;
 
