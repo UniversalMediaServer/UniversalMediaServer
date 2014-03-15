@@ -375,6 +375,32 @@ public class UPNPControl {
 		return StringUtils.join(getDeviceDetails(d).values(), " ");
 	}
 
+	public static String getDeviceIcon(Renderer r, int maxHeight) {
+		if (r.uuid != null) {
+			return getDeviceIcon(getDevice(r.uuid), maxHeight);
+		}
+		return null;
+	}
+
+	public static String getDeviceIcon(Device d, int maxHeight) {
+		URL base = getURL(d);
+		Icon icon = null;
+		String url = null;
+		int maxH = maxHeight == 0 ? 99999 : maxHeight, height = 0;
+		for (Icon i : d.getIcons()) {
+			int h = i.getHeight();
+			if (h < maxH && h > height) {
+				icon = i;
+				height = h;
+			}
+		}
+		try {
+			url = icon != null ? new URL(base, icon.getUri().toString()).toString() : null;
+		} catch (Exception e) {}
+		LOGGER.debug("Device icon: " + url);
+		return url;
+	}
+
 	protected synchronized boolean addRenderer(Device d) {
 		if (d != null) {
 			String uuid = getUUID(d);
