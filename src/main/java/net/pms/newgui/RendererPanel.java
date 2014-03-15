@@ -9,6 +9,7 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.plaf.metal.MetalIconFactory;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
@@ -66,15 +67,17 @@ public class RendererPanel extends JPanel {
 
 	public JButton editButton() {
 		final File file  = renderer.getFile(true);
-		final CustomJButton open = new CustomJButton((file .exists() ? "" : "Start a new configuration file: ") + file.getName(), MetalIconFactory.getTreeLeafIcon());
+		final CustomJButton open = new CustomJButton((file.exists() ? "<html>" :
+			"<html><font color=blue>Start a new configuration file:</font> ") + file.getName() + "</html>",
+			MetalIconFactory.getTreeLeafIcon());
 		open.setToolTipText(file .getAbsolutePath());
 		open.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent e) {
 				boolean exists = file.isFile() && file.exists();
 				if (!exists) {
-					// TODO: implement a reference conf chooser here (eg adapt "Select Renderer")
-					renderer.createNewFile(file, true, null);
+					File ref = chooseReferenceConf();
+					renderer.createNewFile(renderer, file, true, ref);
 					open.setText(file.getName());
 				}
 				try {
@@ -85,6 +88,19 @@ public class RendererPanel extends JPanel {
 			}
 		});
 		return open;
+	}
+
+	public File chooseReferenceConf() {
+		JFileChooser fc = new JFileChooser(RendererConfiguration.getRenderersDir());
+		fc.setAcceptAllFileFilterUsed(false);
+		FileNameExtensionFilter filter = new FileNameExtensionFilter("Conf Files", "conf");
+		fc.addChoosableFileFilter(filter);
+		fc.setAcceptAllFileFilterUsed(true);
+		fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+		if (fc.showDialog(this, "Select a reference file") == JFileChooser.APPROVE_OPTION) {
+			return fc.getSelectedFile();
+		}
+		return null;
 	}
 
 	public int addItem(String key, String value, PanelBuilder builder, int y) {
