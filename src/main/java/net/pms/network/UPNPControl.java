@@ -40,6 +40,7 @@ import org.fourthline.cling.model.gena.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import net.pms.util.BasicPlayer;
 
 public class UPNPControl {
 	// Logger ids to write messages to the logs.
@@ -55,7 +56,7 @@ public class UPNPControl {
 	private static DocumentBuilder db;
 
 	public static final int ACTIVE = 0;
-	public static final int CONTROLLABLE = 1;
+	public static final int CONTROLS = 1;
 
 	private static final boolean DEBUG = true; // log upnp state vars
 
@@ -114,15 +115,15 @@ public class UPNPControl {
 			return get(uuid, id).data.put(key, value);
 		}
 
-		public void mark(String uuid, int property, boolean value) {
+		public void mark(String uuid, int property, Object value) {
 			for (T i : get(uuid).values()) {
 				switch (property) {
 					case ACTIVE:
-						i.active = value;
+						i.active = (boolean)value;
 						i.alert();
 						break;
-					case CONTROLLABLE:
-						i.controllable = value;
+					case CONTROLS:
+						i.controls = (int)value;
 						break;
 				default:
 					break;
@@ -133,17 +134,19 @@ public class UPNPControl {
 	protected static DeviceMap rendererMap;
 
 	public static class Renderer {
+		public int controls;
 		protected ActionEvent event;
 		public String uuid;
 		public String instanceID = "0"; // FIXME: unclear in what precise context a media renderer's instanceID != 0
 		public HashMap<String,String> data;
 		public LinkedHashSet<ActionListener> listeners;
 		private Thread monitor;
-		public boolean active, controllable;
+		public boolean active;
 
 		public Renderer(String uuid) {
 			this();
 			this.uuid = uuid;
+			controls = 0;
 		}
 
 		public Renderer() {
@@ -308,7 +311,7 @@ public class UPNPControl {
 
 	public static boolean isUpnpControllable(String uuid) {
 		if (rendererMap.containsKey(uuid)) {
-			return rendererMap.get(uuid, "0").controllable;
+			return rendererMap.get(uuid, "0").controls != 0;
 		}
 		return false;
 	}
@@ -377,12 +380,14 @@ public class UPNPControl {
 			String uuid = getUUID(d);
 			String name = getFriendlyName(d);
 			if (isMediaRenderer(d.getType())) {
-				boolean ctrl = false;
+				int ctrl = 0;
 				for (Service s : d.getServices()) {
 					String sid = s.getServiceId().getId();
 					LOGGER.debug("Subscribing to " + sid + " service on " + name);
-					if (sid.contains("AVTransport") || sid.contains("RenderingControl")) {
-						ctrl = true;
+					if (sid.contains("AVTransport")) {
+						ctrl |= BasicPlayer.PLAYCONTROL;
+					} else if (sid.contains("RenderingControl")) {
+						ctrl |= BasicPlayer.VOLUMECONTROL;
 					}
 					upnpService.getControlPoint().execute(new SubscriptionCB(s));
 				}
@@ -393,10 +398,10 @@ public class UPNPControl {
 		return false;
 	}
 
-	protected void rendererFound(Device d, String uuid, boolean controllable) {
+	protected void rendererFound(Device d, String uuid, int controls) {
 		Renderer item = rendererMap.get(uuid, "0");
 		rendererMap.mark(uuid, ACTIVE, true);
-		rendererMap.mark(uuid, CONTROLLABLE, controllable);
+		rendererMap.mark(uuid, CONTROLS, controls);
 	}
 
 	protected void rendererUpdated(Device d) {
