@@ -278,7 +278,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return addressAssociation.values();
 	}
 
-	protected static File getRenderersDir() {
+	public static File getRenderersDir() {
 		final String[] pathList = PropertiesUtil.getProjectProperties().get("project.renderers.dir").split(",");
 
 		for (String path : pathList) {
@@ -547,18 +547,18 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			force ? new File(getRenderersDir(), getRendererName().split("\\(")[0].trim().replace(" ", "") + ".conf") : null;
 	}
 
-	public void createNewFile(File file, boolean load, RendererConfiguration ref) {
+	public static void createNewFile(RendererConfiguration r, File file, boolean load, File ref) {
 		try {
 			ArrayList<String> conf = new ArrayList<String>();
-			String name = getRendererName().split("\\(")[0].trim();
-			Map<String, String> details = getUpnpDetails();
+			String name = r.getRendererName().split("\\(")[0].trim();
+			Map<String, String> details = r.getUpnpDetails();
 			String detailmatcher = details == null ? "" :
 				(details.get("manufacturer") + " , " + details.get("modelName"));
 
 			// Add the header and identifiers
 			conf.add("#----------------------------------------------------------------------------");
 			conf.add("# Auto-generated profile for " + name);
-			conf.add("#" + (ref == null ? "" : " Based on " + ref.getRendererName()));
+			conf.add("#" + (ref == null ? "" : " Based on " + ref.getName()));
 			conf.add("# See PS3.conf for a description of all possible configuration options.");
 			conf.add("#");
 			conf.add("");
@@ -573,7 +573,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					UPNP_DETAILS + "|" + USER_AGENT + "|" + USER_AGENT_ADDITIONAL_HEADER + "|" +
 					USER_AGENT_ADDITIONAL_SEARCH + ").*").matcher("");
 				boolean header = true;
-				for (String line : FileUtils.readLines(ref.getFile(), Charsets.UTF_8)) {
+				for (String line : FileUtils.readLines(ref, Charsets.UTF_8)) {
 					if (skip.reset(line).matches() ||
 							(header && (line.startsWith("#") || StringUtils.isBlank(line)))) {
 						continue;
@@ -587,7 +587,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 			if (load) {
 				try {
-					init(file);
+					r.init(file);
 				} catch (ConfigurationException ce) {
 					LOGGER.debug("Error initializing renderer configuration: " + ce);
 				}
