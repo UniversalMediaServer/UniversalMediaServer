@@ -406,6 +406,7 @@ public class UPNPControl {
 			String uuid = getUUID(d);
 			String name = getFriendlyName(d);
 			if (isMediaRenderer(d.getType())) {
+				rendererFound(d, uuid);
 				int ctrl = 0;
 				for (Service s : d.getServices()) {
 					String sid = s.getServiceId().getId();
@@ -417,17 +418,17 @@ public class UPNPControl {
 					}
 					upnpService.getControlPoint().execute(new SubscriptionCB(s));
 				}
-				rendererFound(d, uuid, ctrl);
+				rendererMap.mark(uuid, ACTIVE, true);
+				rendererMap.mark(uuid, CONTROLS, ctrl);
 				return true;
 			}
 		}
 		return false;
 	}
 
-	protected void rendererFound(Device d, String uuid, int controls) {
-		Renderer item = rendererMap.get(uuid, "0");
-		rendererMap.mark(uuid, ACTIVE, true);
-		rendererMap.mark(uuid, CONTROLS, controls);
+	protected Renderer rendererFound(Device d, String uuid) {
+		// Create an instance
+		return rendererMap.get(uuid, "0");
 	}
 
 	protected void rendererUpdated(Device d) {
@@ -493,22 +494,30 @@ public class UPNPControl {
 		}
 
 		public void established(GENASubscription sub) {
+			LOGGER.debug("Subscription established: " + sub.getService().getServiceId().getId() + 
+				" on " + getFriendlyName(uuid));
 		}
 
 		public void failed(GENASubscription sub, UpnpResponse response, Exception ex, String defaultMsg) {
-			LOGGER.debug(defaultMsg);
+			LOGGER.debug("Subscription failed: " + sub.getService().getServiceId().getId() +
+				" on " + getFriendlyName(uuid) + ": " + defaultMsg.split(": ", 2)[1]);
 		}
 
 		public void failed(GENASubscription sub, UpnpResponse response, Exception ex) {
-			LOGGER.debug(createDefaultFailureMessage(response, ex));
+			LOGGER.debug("Subscription failed: " + sub.getService().getServiceId().getId() +
+				" on " + getFriendlyName(uuid) + ": " + createDefaultFailureMessage(response, ex).split(": ", 2)[1]);
 		}
 
 		public void ended(GENASubscription sub, CancelReason reason, UpnpResponse response) {
 			// Reason should be null, or it didn't end regularly
+			if (reason != null) {
+				LOGGER.debug("Subscription cancelled: " + sub.getService().getServiceId().getId() +
+					" on " + getFriendlyName(uuid) + ": " + reason);
+			}
 		}
 
 		public void eventsMissed(GENASubscription sub, int numberOfMissedEvents) {
-			LOGGER.debug("Missed events: " + numberOfMissedEvents);
+			LOGGER.debug("Missed events: " + numberOfMissedEvents + " for subscription " + sub.getService().getServiceId().getId() + " on " + getFriendlyName(uuid));
 		}
 	}
 
