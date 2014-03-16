@@ -526,7 +526,8 @@ public class UPNPHelper extends UPNPControl {
 	}
 
 	@Override
-	protected void rendererFound(Device d, String uuid, int controls) {
+	protected Renderer rendererFound(Device d, String uuid) {
+		// Create or retrieve an instance
 		try {
 			InetAddress socket = InetAddress.getByName(getURL(d).getHost());
 			RendererConfiguration r = RendererConfiguration.getRendererConfigurationBySocketAddress(socket);
@@ -548,11 +549,11 @@ public class UPNPHelper extends UPNPControl {
 					LOGGER.debug("New renderer found: " + r.getRendererName() + ": " + getDeviceDetails(d));
 				}
 			}
-			rendererMap.mark(uuid, ACTIVE, true);
-			rendererMap.mark(uuid, CONTROLS, controls);
+			return r;
 		} catch(Exception e) {
 			LOGGER.debug("Error initializing device " + getFriendlyName(d) + ": " + e);
 		}
+		return null;
 	}
 
 	public static void play(String uri, RendererConfiguration r) {
