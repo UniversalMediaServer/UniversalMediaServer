@@ -512,7 +512,7 @@ public class UPNPControl {
 			// Reason should be null, or it didn't end regularly
 			if (reason != null) {
 				LOGGER.debug("Subscription cancelled: " + sub.getService().getServiceId().getId() +
-					" on " + getFriendlyName(uuid) + ": " + reason);
+					" on " + uuid + ": " + reason);
 			}
 		}
 
