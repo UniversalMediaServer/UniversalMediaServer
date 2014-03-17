@@ -489,6 +489,13 @@ public class PMS {
 					save();
 				}
 
+				JOptionPane.showMessageDialog(
+					(Component) PMS.get().getFrame(),
+					Messages.getString("Wizard.13"),
+					Messages.getString("Wizard.12"),
+					JOptionPane.INFORMATION_MESSAGE
+				);
+
 				configuration.setRunWizard(false);
 				save();
 			} else if (whetherToRunWizard == JOptionPane.NO_OPTION) {
