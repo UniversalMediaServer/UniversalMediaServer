@@ -11,6 +11,7 @@ import java.awt.event.ActionEvent;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.plaf.metal.MetalIconFactory;
+import javax.swing.border.EmptyBorder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
 import com.jgoodies.forms.builder.PanelBuilder;
@@ -37,7 +38,7 @@ public class RendererPanel extends JPanel {
 
 		FormLayout layout = new FormLayout("left:pref, 400:grow");
 		PanelBuilder builder = new PanelBuilder(layout);
-		builder.border(Borders.EMPTY);
+		builder.border(new EmptyBorder(10,10,10,10));
 		int y=0;
 
 		builder.appendRow(rspec);
@@ -71,6 +72,7 @@ public class RendererPanel extends JPanel {
 			"<html><font color=blue>Start a new configuration file:</font> ") + file.getName() + "</html>",
 			MetalIconFactory.getTreeLeafIcon());
 		open.setToolTipText(file .getAbsolutePath());
+		open.setFocusPainted(false);
 		open.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent e) {

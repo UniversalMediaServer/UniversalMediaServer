@@ -29,6 +29,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.image.BufferedImage;
 import java.awt.event.ActionEvent;
+import java.awt.Dialog;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -52,6 +53,7 @@ public class StatusTab {
 	public static class rendererItem {
 		public ImagePanel icon;
 		public JLabel label;
+		public JDialog dialog;
 	}
 
 	private PanelBuilder rendererBuilder;
@@ -212,7 +214,7 @@ public class StatusTab {
 
 		layoutRenderer.appendColumn(ColumnSpec.decode("center:pref"));
 
-		rendererItem r = new rendererItem();
+		final rendererItem r = new rendererItem();
 		r.icon = addRendererIcon(renderer.getRendererIcon());
 		r.icon.enableRollover();
 		CellConstraints cc = new CellConstraints();
@@ -230,13 +232,20 @@ public class StatusTab {
 			public void actionPerformed(ActionEvent e) {
 				SwingUtilities.invokeLater(new Runnable() {
 					public void run() {
-						JOptionPane.showOptionDialog(
-							(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-							new RendererPanel(renderer),
-							renderer.getRendererName() + (renderer.isOffline() ? "  [offline]" : ""),
-							JOptionPane.CLOSED_OPTION,
-							JOptionPane.PLAIN_MESSAGE, null, null, null
-						);
+						if (r.dialog == null) {
+							JFrame top = (JFrame) SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame());
+							r.dialog = new JDialog(top,
+								renderer.getRendererName() + (renderer.isOffline() ? "  [offline]" : ""),
+								Dialog.ModalityType.DOCUMENT_MODAL);
+							r.dialog.add(new RendererPanel(renderer));
+							r.dialog.setIconImage(((JFrame)PMS.get().getFrame()).getIconImage());
+							r.dialog.pack();
+							r.dialog.setLocationRelativeTo(top);
+							r.dialog.setVisible(true);
+						} else {
+							r.dialog.setVisible(true);
+							r.dialog.toFront();
+						}
 					}
 				});
 			}
