@@ -36,10 +36,13 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
+import net.pms.encoders.FFmpegScreencastVideo;
 import net.pms.external.AdditionalFolderAtRoot;
 import net.pms.external.AdditionalFoldersAtRoot;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
+import net.pms.formats.Format;
+import net.pms.formats.MPG;
 import net.pms.newgui.IFrame;
 import net.pms.util.FileUtil;
 import org.apache.commons.configuration.ConfigurationException;
@@ -166,6 +169,11 @@ public class RootFolder extends DLNAResource {
 			if (iTunesRes != null) {
 				addChild(iTunesRes);
 			}
+		}
+
+		DLNAResource screencastRes = getScreencastFile();
+		if (screencastRes != null) {
+			addChild(screencastRes);
 		}
 
 		if (!configuration.isHideMediaLibraryFolder()) {
@@ -1017,6 +1025,36 @@ public class RootFolder extends DLNAResource {
 				LOGGER.error("Something went wrong with the iTunes Library scan: ", e);
 			}
 		}
+
+		return res;
+	}
+
+	/**
+	 * Returns the screencast file. Used by manageRoot, so it is usually
+	 * used as a folder at the root folder. Only works on Mac OS X or Windows.
+	 */
+	private DLNAResource getScreencastFile() {
+		DLNAResource res;
+
+		res = new RealFile(new File("DoesNotExist.mpg"));
+		res.setDefaultRenderer(getDefaultRenderer());
+		res.setPlayer(new FFmpegScreencastVideo());
+
+		DLNAMediaInfo fakemedia = new DLNAMediaInfo();
+		DLNAMediaAudio audio = new DLNAMediaAudio();
+		fakemedia.setCodecV("mpeg2video");
+		fakemedia.setContainer("mpegps");
+		fakemedia.setDuration(45d*60);
+		fakemedia.setWidth(1920);
+		fakemedia.setHeight(1080);
+		fakemedia.setFrameRate("23.976");
+		fakemedia.getAudioTracksList().add(audio);
+		audio.setCodecA("ac3");
+		audio.setSampleFrequency("48000");
+		audio.getAudioProperties().setNumberOfChannels(6);
+
+		res.setMedia(fakemedia);
+		res.setMediaAudio(audio);
 
 		return res;
 	}
