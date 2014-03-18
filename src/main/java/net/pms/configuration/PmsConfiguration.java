@@ -1931,9 +1931,9 @@ public class PmsConfiguration {
 	public List<String> getEnginesAsList(SystemUtils registry) {
 		String defaultEngines = StringUtils.join(
 			new String[] {
+				"ffmpegvideo",
 				"mencoder",
 				"tsmuxer",
-				"ffmpegvideo",
 				"ffmpegaudio",
 				"tsmuxeraudio",
 				"ffmpegwebvideo",
