@@ -3,6 +3,7 @@
 	General:
 		Added a reminder at the end of the configuration wizard about optionally setting shared folders
 		Added an option to run the configuration wizard on the next program start
+		Added the ability to specify folders to ignore (folders_ignored in UMS.conf)
 		Made the program icon look better in some situations (added more resolutions)
 		Expanded filename prettifying
 		Fixed OpenSubtitles support
