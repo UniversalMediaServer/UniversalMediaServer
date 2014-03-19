@@ -262,7 +262,7 @@ public class RootFolder extends DLNAResource {
 	private List<RealFile> getConfiguredFolders(ArrayList<String> tags) {
 		List<RealFile> res = new ArrayList<>();
 		File[] files = PMS.get().getSharedFoldersArray(false, tags);
-		String s = PMS.getConfiguration().getIgnoreFolders(tags);
+		String s = PMS.getConfiguration().getFoldersIgnored(tags);
 		String[] skips = null;
 
 		if (s != null) {
