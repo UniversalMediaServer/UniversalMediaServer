@@ -383,16 +383,15 @@ public class DownloadPlugins {
 		Process pid = pb.start();
 		InputStream is = pid.getInputStream();
 		InputStreamReader isr = new InputStreamReader(is);
-		try (BufferedReader br = new BufferedReader(isr)) {
-			String line;
-			StringBuilder sb = new StringBuilder();
-			while ((line = br.readLine()) != null) {
-				sb.append(line);
-			}
-
-			// Reload the config in case we have new settings
-			configuration.reload();
+		BufferedReader br = new BufferedReader(isr);
+		String line;
+		StringBuilder sb = new StringBuilder();
+		while ((line = br.readLine()) != null) {
+			sb.append(line);
 		}
+
+		// Reload the config in case we have new settings
+		configuration.reload();
 		pid.waitFor();
 
 		File[] newJar = new File(configuration.getPluginDirectory()).listFiles();
@@ -470,42 +469,42 @@ public class DownloadPlugins {
 		URL u = new URL(url);
 		URLConnection connection = u.openConnection();
 		boolean res;
-		try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
-			String str;
-			res = true;
+		BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+		String str;
+		res = true;
 
-			while ((str = in.readLine()) != null) {
-				str = str.trim();
-				
-				if (StringUtils.isEmpty(str)) {
-					continue;
-				}
-				
-				String[] tmp = str.split(",", 3);
-				String dir = configuration.getPluginDirectory();
-				String filename = "";
-				
-				if (command(tmp[0], str)) {
-					// a command take the next line
-					continue;
-				}
-				
-				if (tmp.length > 1) {
-					String rootDir = new File("").getAbsolutePath();
-					if (tmp[1].equalsIgnoreCase("root")) {
-						dir = rootDir;
-					} else {
-						dir = rootDir + File.separator + tmp[1];
-					}
-					if (tmp.length > 2) {
-						filename = tmp[2];
-					}
-				}
-				
-				res &= downloadFile(tmp[0], dir, filename);
+		while ((str = in.readLine()) != null) {
+			str = str.trim();
+
+			if (StringUtils.isEmpty(str)) {
+				continue;
 			}
+
+			String[] tmp = str.split(",", 3);
+			String dir = configuration.getPluginDirectory();
+			String filename = "";
+
+			if (command(tmp[0], str)) {
+				// a command take the next line
+				continue;
+			}
+
+			if (tmp.length > 1) {
+				String rootDir = new File("").getAbsolutePath();
+				if (tmp[1].equalsIgnoreCase("root")) {
+					dir = rootDir;
+				} else {
+					dir = rootDir + File.separator + tmp[1];
+				}
+				if (tmp.length > 2) {
+					filename = tmp[2];
+				}
+			}
+
+			res &= downloadFile(tmp[0], dir, filename);
 		}
 
+		in.close();
 		return res;
 	}
 

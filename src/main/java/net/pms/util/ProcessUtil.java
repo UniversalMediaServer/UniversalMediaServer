@@ -155,13 +155,13 @@ public class ProcessUtil {
 			pb.redirectErrorStream(true);
 			Process p = pb.start();
 			StringBuilder output;
-			try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
-				String line;
-				output = new StringBuilder();
-				while ((line = br.readLine()) != null) {
-					output.append(line).append("\n");
-				}
+			BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			String line;
+			output = new StringBuilder();
+			while ((line = br.readLine()) != null) {
+				output.append(line).append("\n");
 			}
+			br.close();
 			p.waitFor();
 			if (p.exitValue() != 0) {
 				LOGGER.debug("Warning: command {} returned {}", Arrays.toString(cmd), p.exitValue());
