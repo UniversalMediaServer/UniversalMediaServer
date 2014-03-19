@@ -51,8 +51,9 @@ public class Proxy extends Thread {
 
 		try {
 			String getter = null;
-			String str, targetHost = "", httpHeader = "";
+			String str, targetHost = "";
 			int targetPort = 80;
+			StringBuilder httpHeader = new StringBuilder();
 			while (true) {
 				str = fromBrowser.readLine();
 				if (str == null) {
@@ -66,7 +67,7 @@ public class Proxy extends Thread {
 					str = "Accept-Encoding: identity";
 				}
 
-				httpHeader += str + "\r\n";
+				httpHeader.append(str).append("\r\n");
 
 				if (str.startsWith("Host: ")) {
 					targetHost = str.substring(6);
@@ -94,7 +95,7 @@ public class Proxy extends Thread {
 			socketToWeb = new Socket(InetAddress.getByName(target), targetPort);
 			InputStream sockWebInputStream = socketToWeb.getInputStream();
 			toWeb = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socketToWeb.getOutputStream())), true);
-			toWeb.println(httpHeader);
+			toWeb.println(httpHeader.toString());
 			toWeb.flush();
 			StringTokenizer st = new StringTokenizer(getter, " ");
 			st.nextToken();

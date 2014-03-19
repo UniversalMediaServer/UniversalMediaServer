@@ -216,29 +216,6 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 		}
 
 		inputStreams = new ArrayList<>();
-		timer = new Timer();
-
-		if (!hidebuffer && params.maxBufferSize > 15) {
-			timer.schedule(new TimerTask() {
-				@Override
-				public void run() {
-					long rc = 0;
-
-					if (getCurrentInputStream() != null) {
-						rc = getCurrentInputStream().getReadCount();
-						PMS.get().getFrame().setReadValue(rc, "");
-					}
-
-					long space = (writeCount - rc);
-					LOGGER.trace(attachedThread + " buffer: " + formatter.format(space) + " bytes / inputs: " + inputStreams.size());
-
-					// There are 1048576 bytes in a megabyte
-					long bufferInMBs = space / 1048576;
-
-					PMS.get().getFrame().setValue((int) (100 * space / maxMemorySize), formatter.format(bufferInMBs) + " " + Messages.getString("StatusTab.12"));
-				}
-			}, 0, 2000);
-		}
 	}
 
 	@Override
@@ -804,6 +781,32 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 
 		LOGGER.debug("Attaching thread: " + thread);
 		attachedThread = thread;
+		startTimer();
+	}
+
+	private void startTimer() {
+		if (!hidebuffer && maxMemorySize > (15 * 1048576)) {
+			timer = new Timer(attachedThread + "-Timer");
+			timer.schedule(new TimerTask() {
+				@Override
+				public void run() {
+					long rc = 0;
+
+					if (getCurrentInputStream() != null) {
+						rc = getCurrentInputStream().getReadCount();
+						PMS.get().getFrame().setReadValue(rc, "");
+					}
+
+					long space = (writeCount - rc);
+					LOGGER.trace("buffered: " + formatter.format(space) + " bytes / inputs: " + inputStreams.size());
+
+					// There are 1048576 bytes in a megabyte
+					long bufferInMBs = space / 1048576;
+
+					PMS.get().getFrame().setValue((int) (100 * space / maxMemorySize), formatter.format(bufferInMBs) + " " + Messages.getString("StatusTab.12"));
+				}
+			}, 0, 2000);
+		}
 	}
 
 	@Override
@@ -813,7 +816,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 
 	@Override
 	public void detachInputStream() {
-		if (! hidebuffer) {
+		if (!hidebuffer) {
 			PMS.get().getFrame().setReadValue(0, "");
 		}
 
@@ -839,7 +842,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 				}
 			}
 		};
-		new Thread(checkEnd, "Buffered IO End Checker").start();
+		new Thread(checkEnd, attachedThread + "-Cleanup").start();
 	}
 
 	@Override
@@ -852,7 +855,9 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			}
 		}
 
-		timer.cancel();
+		if (timer != null) {
+			timer.cancel();
+		}
 
 		if (buffer != null) {
 			LOGGER.trace("Destroying buffer");
@@ -861,7 +866,7 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 
 		buffered = false;
 
-		if (! hidebuffer && maxMemorySize != 1048576) {
+		if (!hidebuffer && maxMemorySize != 1048576) {
 			PMS.get().getFrame().setValue(0, Messages.getString("StatusTab.5"));
 		}
 	}

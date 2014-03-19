@@ -111,6 +111,7 @@ public class PmsConfiguration {
 	private static final String KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE = "ffmpeg_mux_tsmuxer_compatible";
 	private static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
 	private static final String KEY_FOLDERS = "folders";
+	private static final String KEY_FOLDERS_IGNORED = "folders_ignored";
 	private static final String KEY_FOLDERS_MONITORED = "folders_monitored";
 	private static final String KEY_FONT = "subtitles_font";
 	private static final String KEY_FORCED_SUBTITLE_LANGUAGE = "forced_subtitle_language";
@@ -1585,7 +1586,7 @@ public class PmsConfiguration {
 	 *
 	 * @return True if PMS should hide the folder, false othewise.
 	 */
-	public boolean getHideVideoSettings(ArrayList<String> tags) {
+	public boolean getHideVideoSettings() {
 		return getBoolean(KEY_HIDE_VIDEO_SETTINGS, true);
 	}
 
@@ -1997,6 +1998,10 @@ public class PmsConfiguration {
 
 	public String getFolders(ArrayList<String> tags) {
 		return tagLoop(tags, ".folders", KEY_FOLDERS);
+	}
+
+	public String getFoldersIgnored(ArrayList<String> tags) {
+		return tagLoop(tags, ".ignore", KEY_FOLDERS_IGNORED);
 	}
 
 	public void setFolders(String value) {
@@ -2412,7 +2417,7 @@ public class PmsConfiguration {
 		configuration.setProperty(KEY_RUN_WIZARD, value);
 	}
 
-	public boolean isHideNewMediaFolder(ArrayList<String> tags) {
+	public boolean isHideNewMediaFolder() {
 		return getBoolean(KEY_HIDE_NEW_MEDIA_FOLDER, false);
 	}
 
@@ -2420,7 +2425,7 @@ public class PmsConfiguration {
 		this.configuration.setProperty(KEY_HIDE_NEW_MEDIA_FOLDER, value);
 	}
 
-	public boolean isHideRecentlyPlayedFolder(ArrayList<String> tags) {
+	public boolean isHideRecentlyPlayedFolder() {
 		return getBoolean(PmsConfiguration.KEY_HIDE_RECENTLY_PLAYED_FOLDER, false);
 	}
 

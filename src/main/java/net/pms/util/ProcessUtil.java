@@ -154,11 +154,13 @@ public class ProcessUtil {
 			ProcessBuilder pb = new ProcessBuilder(cmd);
 			pb.redirectErrorStream(true);
 			Process p = pb.start();
-			BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-			String line;
-			StringBuilder output = new StringBuilder();
-			while ((line = br.readLine()) != null) {
-				output.append(line).append("\n");
+			StringBuilder output;
+			try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+				String line;
+				output = new StringBuilder();
+				while ((line = br.readLine()) != null) {
+					output.append(line).append("\n");
+				}
 			}
 			p.waitFor();
 			if (p.exitValue() != 0) {
