@@ -255,13 +255,16 @@ public class FFMpegVideo extends Player {
 		List<String> transcodeOptions = new ArrayList<>();
 		final String filename = dlna.getSystemName();
 		final RendererConfiguration renderer = params.mediaRenderer;
+		String customFFmpegOptions = renderer.getCustomFFmpegOptions();
 
 		if (renderer.isTranscodeToWMV() && !renderer.isXBOX()) { // WMV
 			transcodeOptions.add("-c:v");
 			transcodeOptions.add("wmv2");
 
-			transcodeOptions.add("-c:a");
-			transcodeOptions.add("wmav2");
+			if (!customFFmpegOptions.contains("-c:a ")) {
+				transcodeOptions.add("-c:a");
+				transcodeOptions.add("wmav2");
+			}
 
 			transcodeOptions.add("-f");
 			transcodeOptions.add("asf");
@@ -278,8 +281,10 @@ public class FFMpegVideo extends Player {
 
 			if (configuration.isAudioRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && renderer.isTranscodeToAC3()) {
 				// AC-3 remux
-				transcodeOptions.add("-c:a");
-				transcodeOptions.add("copy");
+				if (!customFFmpegOptions.contains("-c:a ")) {
+					transcodeOptions.add("-c:a");
+					transcodeOptions.add("copy");
+				}
 			} else {
 				if (dtsRemux) {
 					// Audio is added in a separate process later
@@ -287,8 +292,10 @@ public class FFMpegVideo extends Player {
 				} else if (type() == Format.AUDIO) {
 					// Skip
 				} else {
-					transcodeOptions.add("-c:a");
-					transcodeOptions.add("ac3");
+					if (!customFFmpegOptions.contains("-c:a ")) {
+						transcodeOptions.add("-c:a");
+						transcodeOptions.add("ac3");
+					}
 				}
 			}
 
@@ -849,6 +856,8 @@ public class FFMpegVideo extends Player {
 		// Until then, leave the following line commented out.
 		// cmdList.addAll(getAudioBitrateOptions(dlna, media, params));
 
+		String customFFmpegOptions = renderer.getCustomFFmpegOptions();
+
 		// Audio bitrate
 		if (!ac3Remux && !dtsRemux && !(type() == Format.AUDIO)) {
 			int channels;
@@ -859,19 +868,24 @@ public class FFMpegVideo extends Player {
 			} else {
 				channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
 			}
-			cmdList.add("-ac");
-			cmdList.add(String.valueOf(channels));
 
-			cmdList.add("-ab");
-			cmdList.add(configuration.getAudioBitrate() + "k");
+			if (!customFFmpegOptions.contains("-ac ")) {
+				cmdList.add("-ac");
+				cmdList.add(String.valueOf(channels));
+			}
+
+			if (!customFFmpegOptions.contains("-ab ")) {
+				cmdList.add("-ab");
+				cmdList.add(configuration.getAudioBitrate() + "k");
+			}
 		}
 
 		// Add the output options (-f, -c:a, -c:v, etc.)
 		cmdList.addAll(getVideoTranscodeOptions(dlna, media, params));
 
 		// Add custom options
-		if (StringUtils.isNotEmpty(renderer.getCustomFFmpegOptions())) {
-			parseOptions(renderer.getCustomFFmpegOptions(), cmdList);
+		if (StringUtils.isNotEmpty(customFFmpegOptions)) {
+			parseOptions(customFFmpegOptions, cmdList);
 		}
 
 		if (!dtsRemux) {
