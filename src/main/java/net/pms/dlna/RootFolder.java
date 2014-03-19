@@ -288,7 +288,7 @@ public class RootFolder extends DLNAResource {
 			if (StringUtils.isBlank(s)) {
 				continue;
 			}
-	
+
 			if (path.contains(s.toLowerCase())) {
 				return true;
 			}
