@@ -1074,11 +1074,12 @@ public class RootFolder extends DLNAResource {
 										ProcessBuilder pb = new ProcessBuilder(f.getAbsolutePath());
 										Process pid = pb.start();
 										InputStream is = pid.getInputStream();
-										InputStreamReader isr = new InputStreamReader(is);
-										BufferedReader br = new BufferedReader(isr);
-										while (br.readLine() != null) {
+										BufferedReader br;
+										try (InputStreamReader isr = new InputStreamReader(is)) {
+											br = new BufferedReader(isr);
+											while (br.readLine() != null) {
+											}
 										}
-										isr.close();
 										br.close();
 										pid.waitFor();
 									} catch (IOException | InterruptedException e) {
