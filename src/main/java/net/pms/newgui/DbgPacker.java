@@ -115,7 +115,9 @@ public class DbgPacker implements ActionListener {
 
 		// add confs of connected renderers
 		for (RendererConfiguration r : RendererConfiguration.getConnectedRenderersConfigurations()) {
-			add(r.getFile());
+			if (r.getFile() != null) {
+				add(r.getFile());
+			}
 		}
 
 		// add core items with debug.log last (LinkedHashMap preserves insertion order)

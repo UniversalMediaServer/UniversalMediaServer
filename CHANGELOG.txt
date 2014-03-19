@@ -1,3 +1,41 @@
+3.5.0 - 2014-03-19
+
+	General:
+		Added a reminder at the end of the configuration wizard about optionally setting shared folders
+		Added an option to run the configuration wizard on the next program start
+		Added the ability to specify folders to ignore (folders_ignored in UMS.conf)
+		Made the program icon look better in some situations (added more resolutions)
+		Expanded filename prettifying
+		Fixed OpenSubtitles support
+		Improved stability of packing debug files
+		Improved readme file
+		Improved speed
+		Cleaned some renderer configs
+		Increased the safety of using -ac, -ab and -c:a in the CustomFFmpegOptions string in renderer configs
+	Renderers:
+		Improved support for DirecTV and Samsung phones when using FFmpeg
+	Languages:
+		Updated English
+	External Components:
+		Updated h2database to 1.3.175, which:
+			Improves stability
+		Updated Logback to 1.1.1
+		Updated MPlayer/MEncoder for Windows to SB56, which:
+			Improves DVD support
+			Fixes encoding sometimes finishing too soon
+			Improves stability
+			Improves support for the following video codecs: MPEG-1, MPEG-2, H.264, H.265, VP8, VP9
+			Improves support for the following audio codecs: DTS
+			Improves support for the following containers: Matroska, MOV, OGG
+			Adds x265 encoding support
+			Improves audio sync
+			MPEG-4 adheres more strictly to spec limits
+		Updated Netty to 3.9.0, which:
+			Improves speed
+			Fixes bugs
+		Updated slf4j to 1.7.6, which:
+			Improves stability
+
 3.4.2 - 2014-02-25
 
 	General:
