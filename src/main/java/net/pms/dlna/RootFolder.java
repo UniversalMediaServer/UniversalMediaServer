@@ -265,7 +265,7 @@ public class RootFolder extends DLNAResource {
 		String s = PMS.getConfiguration().getIgnoreFolders(tags);
 		String[] skips = null;
 
-		if(s != null) {
+		if (s != null) {
 			skips = s.split(",");
 		}
 
@@ -274,7 +274,7 @@ public class RootFolder extends DLNAResource {
 		}
 
 		for (File f : files) {
-			if(skipPath(skips, f.getAbsolutePath().toLowerCase())) {
+			if (skipPath(skips, f.getAbsolutePath().toLowerCase())) {
 				continue;
 			}
 			res.add(new RealFile(f));
@@ -284,8 +284,8 @@ public class RootFolder extends DLNAResource {
 	}
 
 	private boolean skipPath(String[] skips, String path) {
-		for(String s : skips) {
-			if(StringUtils.isBlank(s)) {
+		for (String s : skips) {
+			if (StringUtils.isBlank(s)) {
 				continue;
 			}
 	
@@ -293,6 +293,7 @@ public class RootFolder extends DLNAResource {
 				return true;
 			}
 		}
+
 		return false;
 	}
 
