@@ -1,4 +1,4 @@
-3.5.0 - 2014-03-??
+3.5.0 - 2014-03-19
 
 	General:
 		Added a reminder at the end of the configuration wizard about optionally setting shared folders
