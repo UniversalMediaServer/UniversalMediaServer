@@ -417,7 +417,7 @@ public class DLNAMediaInfo implements Cloneable {
 		args[14] = "image2";
 		args[15] = "pipe:";
 
-		// FIXME MPlayer should not be used if thumbnail generation is disabled (and it should be disabled in the GUI)
+		// FIXME MPlayer should not be used if thumbnail generation is disabled
 		if (!configuration.isThumbnailGenerationEnabled() || (configuration.isUseMplayerForVideoThumbs() && !dvrms)) {
 			args[4] = "0";
 			for (int i = 7; i <= 15; i++) {

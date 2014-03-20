@@ -255,6 +255,7 @@ public class NavigationShareTab {
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setThumbnailGenerationEnabled((e.getStateChange() == ItemEvent.SELECTED));
 				seekpos.setEnabled(configuration.isThumbnailGenerationEnabled());
+				mplayer_thumb.setEnabled(configuration.isThumbnailGenerationEnabled());
 			}
 		});
 
@@ -268,6 +269,11 @@ public class NavigationShareTab {
 				configuration.setUseMplayerForVideoThumbs((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
+		if (configuration.isThumbnailGenerationEnabled()) {
+			mplayer_thumb.setEnabled(true);
+		} else {
+			mplayer_thumb.setEnabled(false);
+		}
 
 		// DVD ISO thumbnails
 		dvdiso_thumb = new JCheckBox(Messages.getString("FoldTab.19"), configuration.isDvdIsoThumbnails());
