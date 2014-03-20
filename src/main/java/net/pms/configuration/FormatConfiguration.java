@@ -265,7 +265,7 @@ public class FormatConfiguration {
 			if (extras != null && miExtras != null) {
 				Iterator<Entry<String, String>> keyIt = extras.entrySet().iterator();
 				while (keyIt.hasNext()) {
-					Entry<String, String> key = keyIt.next();
+					String key = keyIt.next().getKey();
 					String value = extras.get(key);
 
 					if (key.equals(MI_QPEL) && miExtras.get(MI_QPEL) != null && !miExtras.get(MI_QPEL).matcher(value).matches()) {
