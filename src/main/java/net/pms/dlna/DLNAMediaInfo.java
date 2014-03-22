@@ -703,7 +703,7 @@ public class DLNAMediaInfo implements Cloneable {
 								.size(320, 180)
 								.outputFormat("JPEG")
 								.outputQuality(1.0f)
-								.toOutputStream(out);;
+								.toOutputStream(out);
 
 								setThumb(out.toByteArray());
 					} catch (IOException | IllegalArgumentException | IllegalStateException e) {
