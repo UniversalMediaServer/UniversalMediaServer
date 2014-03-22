@@ -502,67 +502,67 @@ public class DLNAMediaDatabase implements Runnable {
 				PreparedStatement insert = null;
 				if (media.getAudioTracksList().size() > 0) {
 					insert = conn.prepareStatement("INSERT INTO AUDIOTRACKS VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-				}
-
-				for (DLNAMediaAudio audio : media.getAudioTracksList()) {
-					insert.clearParameters();
-					insert.setInt(1, id);
-					insert.setInt(2, audio.getId());
-					insert.setString(3, left(audio.getLang(), SIZE_LANG));
-					insert.setString(4, left(audio.getFlavor(), SIZE_FLAVOR));
-					insert.setInt(5, audio.getAudioProperties().getNumberOfChannels());
-					insert.setString(6, left(audio.getSampleFrequency(), SIZE_SAMPLEFREQ));
-					insert.setString(7, left(audio.getCodecA(), SIZE_CODECA));
-					insert.setInt(8, audio.getBitsperSample());
-					insert.setString(9, left(trimToEmpty(audio.getAlbum()), SIZE_ALBUM));
-					insert.setString(10, left(trimToEmpty(audio.getArtist()), SIZE_ARTIST));
-					insert.setString(11, left(trimToEmpty(audio.getSongname()), SIZE_SONGNAME));
-					insert.setString(12, left(trimToEmpty(audio.getGenre()), SIZE_GENRE));
-					insert.setInt(13, audio.getYear());
-					insert.setInt(14, audio.getTrack());
-					insert.setInt(15, audio.getAudioProperties().getAudioDelay());
-					insert.setString(16, left(trimToEmpty(audio.getMuxingModeAudio()), SIZE_MUXINGMODE));
-					insert.setInt(17, audio.getBitRate());
-
-					try {
-						insert.executeUpdate();
-					} catch (JdbcSQLException e) {
-						if (e.getErrorCode() == 23505) {
-							LOGGER.debug("A duplicate key error occurred while trying to store the following file's audio information in the database: " + name);
-						} else {
-							LOGGER.debug("An error occurred while trying to store the following file's audio information in the database: " + name);
-						}
-						LOGGER.debug("The error given by jdbc was: " + e);
-					}
-				}
-
-				if (media.getSubtitleTracksList().size() > 0) {
-					insert = conn.prepareStatement("INSERT INTO SUBTRACKS VALUES (?, ?, ?, ?, ?)");
-				}
-				for (DLNAMediaSubtitle sub : media.getSubtitleTracksList()) {
-					if (sub.getExternalFile() == null) { // no save of external subtitles
+					for (DLNAMediaAudio audio : media.getAudioTracksList()) {
 						insert.clearParameters();
 						insert.setInt(1, id);
-						insert.setInt(2, sub.getId());
-						insert.setString(3, left(sub.getLang(), SIZE_LANG));
-						insert.setString(4, left(sub.getFlavor(), SIZE_FLAVOR));
-						insert.setInt(5, sub.getType().getStableIndex());
+						insert.setInt(2, audio.getId());
+						insert.setString(3, left(audio.getLang(), SIZE_LANG));
+						insert.setString(4, left(audio.getFlavor(), SIZE_FLAVOR));
+						insert.setInt(5, audio.getAudioProperties().getNumberOfChannels());
+						insert.setString(6, left(audio.getSampleFrequency(), SIZE_SAMPLEFREQ));
+						insert.setString(7, left(audio.getCodecA(), SIZE_CODECA));
+						insert.setInt(8, audio.getBitsperSample());
+						insert.setString(9, left(trimToEmpty(audio.getAlbum()), SIZE_ALBUM));
+						insert.setString(10, left(trimToEmpty(audio.getArtist()), SIZE_ARTIST));
+						insert.setString(11, left(trimToEmpty(audio.getSongname()), SIZE_SONGNAME));
+						insert.setString(12, left(trimToEmpty(audio.getGenre()), SIZE_GENRE));
+						insert.setInt(13, audio.getYear());
+						insert.setInt(14, audio.getTrack());
+						insert.setInt(15, audio.getAudioProperties().getAudioDelay());
+						insert.setString(16, left(trimToEmpty(audio.getMuxingModeAudio()), SIZE_MUXINGMODE));
+						insert.setInt(17, audio.getBitRate());
+
 						try {
 							insert.executeUpdate();
-						} catch (JdbcSQLException e) {
+						} catch (SQLException e) {
 							if (e.getErrorCode() == 23505) {
-								LOGGER.debug("A duplicate key error occurred while trying to store the following file's subtitle information in the database: " + name);
+								LOGGER.debug("A duplicate key error occurred while trying to store the following file's audio information in the database: " + name);
 							} else {
-								LOGGER.debug("An error occurred while trying to store the following file's subtitle information in the database: " + name);
+								LOGGER.debug("An error occurred while trying to store the following file's audio information in the database: " + name);
 							}
 							LOGGER.debug("The error given by jdbc was: " + e);
 						}
 					}
 				}
+
+				if (media.getSubtitleTracksList().size() > 0) {
+					insert = conn.prepareStatement("INSERT INTO SUBTRACKS VALUES (?, ?, ?, ?, ?)");
+					for (DLNAMediaSubtitle sub : media.getSubtitleTracksList()) {
+						if (sub.getExternalFile() == null) { // no save of external subtitles
+							insert.clearParameters();
+							insert.setInt(1, id);
+							insert.setInt(2, sub.getId());
+							insert.setString(3, left(sub.getLang(), SIZE_LANG));
+							insert.setString(4, left(sub.getFlavor(), SIZE_FLAVOR));
+							insert.setInt(5, sub.getType().getStableIndex());
+							try {
+								insert.executeUpdate();
+							} catch (SQLException e) {
+								if (e.getErrorCode() == 23505) {
+									LOGGER.debug("A duplicate key error occurred while trying to store the following file's subtitle information in the database: " + name);
+								} else {
+									LOGGER.debug("An error occurred while trying to store the following file's subtitle information in the database: " + name);
+								}
+								LOGGER.debug("The error given by jdbc was: " + e);
+							}
+						}
+					}
+				}
+				
 				close(insert);
 			}
 		} catch (SQLException se) {
-			if (se.getErrorCode() == 23001) {
+			if (se.getErrorCode() == 23505) {
 				LOGGER.debug("Duplicate key while inserting this entry: " + name + " into the database: " + se.getMessage());
 			} else {
 				LOGGER.error(null, se);
