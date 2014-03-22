@@ -83,7 +83,7 @@ public class NavigationShareTab {
 	private JCheckBox newmediafolder;
 	private JCheckBox recentlyplayedfolder;
 	private JCheckBox resume;
-	
+
 	final IFrame umsFrame = PMS.get().getFrame();
 
 	public SharedFoldersTableModel getDf() {
