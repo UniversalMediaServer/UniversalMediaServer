@@ -163,7 +163,7 @@ public class StatusTab {
 			JScrollPane.VERTICAL_SCROLLBAR_NEVER,
 			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		rsp.setBorder(BorderFactory.createEmptyBorder());
-		rsp.setPreferredSize(new Dimension(0,160));
+		rsp.setPreferredSize(new Dimension(0,200));
 
 		builder.add(rsp, cc.xyw(1, 19, 5));
 
