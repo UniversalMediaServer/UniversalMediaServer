@@ -3357,7 +3357,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	// the given uri. Defaults to mpeg video for indeterminate local uris.
 
 	public static DLNAResource autoMatch(String uri) {
-		boolean isweb = uri.matches(".*\\S+://.*");
+		boolean isweb = uri.matches("\\S+://.+");
 		Format f = FormatFactory.getAssociatedFormat(isweb ? uri.split("://")[1] : uri);
 		int type = f == null ? Format.VIDEO : f.getType();
 		DLNAResource d = isweb ?
