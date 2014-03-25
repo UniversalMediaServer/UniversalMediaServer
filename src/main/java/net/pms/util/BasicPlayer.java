@@ -19,6 +19,7 @@ public interface BasicPlayer extends ActionListener {
 	final static int VOLUMECONTROL = 2;
 
 	public void setURI(String uri, String metadata);
+	public void pressPlay(String uri, String metadata);
 	public void play();
 	public void pause();
 	public void stop();
