@@ -581,6 +581,7 @@ public class UPNPHelper extends UPNPControl {
 		private String instanceID;
 		public RendererConfiguration renderer;
 		private Map<String,String> data;
+		private HashMap<String, String> metaData = new HashMap();
 		private LinkedHashSet<ActionListener> listeners;
 		private BasicPlayer.State state;
 
@@ -598,19 +599,37 @@ public class UPNPHelper extends UPNPControl {
 
 		@Override
 		public void setURI(String uri, String metadata) {
-			// If metadata is present assume it's valid
-			if (metadata == null) {
-				LOGGER.debug("Validating uri " + uri);
-				if (!DLNAResource.isResourceUrl(uri)) {
+			if (uri != null) {
+				if (metadata != null) {
+					// If metadata is given assume it's valid
+					metaData.put(uri, metadata);
+				} else if (metaData.containsKey(uri)) {
+					// We've played it before
+					metadata = metaData.get(uri);
+				} else {
+					// Build new resource/metadata as required
+					LOGGER.debug("Validating uri " + uri);
 					DLNAResource d = DLNAResource.getValidResource(uri, renderer);
 					if (d != null) {
 						uri = d.getURL("");
 						metadata = d.getDidlString(renderer);
+						metaData.put(uri, metadata);
 					}
 				}
-			}
-			if (uri != null) {
 				UPNPControl.setAVTransportURI(dev, instanceID, uri, metadata);
+			}
+		}
+
+		public void pressPlay(String uri, String metadata) {
+			if (state.playback == PLAYING) {
+				pause();
+			} else {
+				if (state.playback == STOPPED && ! StringUtils.isBlank(uri)) {
+					if (! uri.equals(state.uri)) {
+						setURI(uri, metadata);
+					}
+				}
+				play();
 			}
 		}
 
@@ -686,6 +705,9 @@ public class UPNPHelper extends UPNPControl {
 			state.duration = data.get("CurrentMediaDuration");
 			state.uri = data.get("AVTransportURI");
 			state.metadata = data.get("AVTransportURIMetaData");
+			if (! StringUtils.isEmpty(state.metadata)) {
+				metaData.put(state.uri, state.metadata);
+			}
 			alert();
 		}
 

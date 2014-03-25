@@ -35,7 +35,6 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	private boolean edited, playing;
 	private String lasturi;
 	private File pwd;
-	private HashMap<String, String> metaData = new HashMap();
 	private boolean playControl, volumeControl;
 
 	private static ImageIcon playIcon, pauseIcon, stopIcon, fwdIcon, rewIcon,
@@ -113,16 +112,9 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 			private static final long serialVersionUID = -5492279549624322429L;
 
 			public void actionPerformed(ActionEvent e) {
-				if (player.getState().playback == BasicPlayer.PLAYING) {
-					player.pause();
-				} else if (! StringUtils.isBlank(uri.getText())) {
+				if (! StringUtils.isBlank(uri.getText())) {
 					store(true);
-					String u = uri.getText();
-					LOGGER.debug("play pressed "+u);
-					if (u != null && ! u.equals(player.getState().uri)) {
-						player.setURI(u, metaData.get(u));
-					}
-					player.play();
+					player.pressPlay(uri.getText(), null);
 				}
 			}
 		}));
@@ -246,14 +238,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	}
 
 	public void store(boolean select) {
-		store(select, null);
-	}
-
-	public void store(boolean select, String metadata) {
 		String u = uri.getText();
-		if (metadata != null) {
-			metaData.put(u, metadata);
-		}
 		if (edited && ! StringUtils.isBlank(u)) {
 			int index = ((DefaultComboBoxModel)uris.getModel()).getIndexOf(u);
 			if (index == -1) {
@@ -301,7 +286,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 			if (isNew) {
 				store(false);
 				uri.setText(state.uri);
-				store(true, state.metadata);
+				store(true);
 			}
 			play.setEnabled(playing || ! StringUtils.isBlank(uri.getText()));
 		}
