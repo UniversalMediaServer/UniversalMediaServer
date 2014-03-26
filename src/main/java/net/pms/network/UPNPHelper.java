@@ -685,6 +685,9 @@ public class UPNPHelper extends UPNPControl {
 		@Override
 		public void disconnect(ActionListener listener) {
 			listeners.remove(listener);
+			if (listeners.isEmpty()) {
+				close();
+			}
 		}
 
 		@Override
@@ -731,6 +734,7 @@ public class UPNPHelper extends UPNPControl {
 		public void close() {
 			listeners.clear();
 			rendererMap.get(uuid, instanceID).disconnect(this);
+			renderer.setPlayer(null);
 		}
 	}
 }
