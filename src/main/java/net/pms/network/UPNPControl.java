@@ -194,6 +194,14 @@ public class UPNPControl {
 			}, "UPNP-" + d.getDetails().getFriendlyName());
 			monitor.start();
 		}
+		
+		public boolean hasPlayControls() {
+			return (controls & BasicPlayer.PLAYCONTROL) != 0;
+		}
+		
+		public boolean hasVolumeControls() {
+			return (controls & BasicPlayer.VOLUMECONTROL) != 0;
+		}
 	}
 
 	public static Device getDevice(String uuid) {

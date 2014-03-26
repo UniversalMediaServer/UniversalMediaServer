@@ -56,7 +56,7 @@ public class RendererPanel extends JPanel {
 				builder.appendRow(rspec);
 				builder.addSeparator("UPNP Controls", cc.xyw(1, ++y, 2));
 				builder.appendRow(rspec);
-				builder.add(new PlayerControlPanel(new UPNPHelper.Player(renderer)), cc.xyw(1, ++y, 2));
+				builder.add(new PlayerControlPanel(renderer.getPlayer()), cc.xyw(1, ++y, 2));
 			}
 		} else {
 			y = addItem("name", renderer.getRendererName(), builder, y);

@@ -77,9 +77,10 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 
 		player.refresh();
 
+		final ActionListener self = this;
 		getEnclosingWindow(this).addWindowListener(new WindowAdapter() {
 			public void windowClosing(WindowEvent e) {
-				player.close();
+				player.disconnect(self);
 			}
 		});
 

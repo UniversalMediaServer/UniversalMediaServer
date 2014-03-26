@@ -53,6 +53,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public StatusTab.rendererItem statusIcon;
 	public boolean loaded;
+	private UPNPHelper.Player player;
 
 	// Holds MIME type aliases
 	private final Map<String, String> mimes;
@@ -259,6 +260,16 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public static Collection<RendererConfiguration> getConnectedRenderersConfigurations() {
 		return addressAssociation.values();
+	}
+
+	public static List<RendererConfiguration> getConnectedControlPlayers() {
+		ArrayList<RendererConfiguration> controlPlayers = new ArrayList();
+		for (RendererConfiguration r : addressAssociation.values()) {
+			if (r.hasPlayControls()) {
+				controlPlayers.add(r);
+			}
+		}
+		return controlPlayers;
 	}
 
 	public static File getRenderersDir() {
@@ -644,6 +655,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		mimes = new HashMap<>();
 		charMap = new HashMap<>();
 		DLNAPN = new HashMap<>();
+		player = null;
 
 		init(f);
 	}
@@ -1115,6 +1127,26 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return UPNPHelper.isUpnpControllable(uuid);
 	}
 
+	/**
+	 * Returns a upnp player for this renderer if upnp control is supported.
+	 *
+	 * @return a player or null.
+	 */
+	public UPNPHelper.Player getPlayer() {
+		if (player == null && isUpnpControllable()) {
+			player = new UPNPHelper.Player(this);
+		}
+		return player;
+	}
+
+	/**
+	 * Sets the upnp player.
+	 *
+	 * @param the player.
+	 */
+	public void setPlayer(UPNPHelper.Player player) {
+		this.player = player;
+	}
 
 	@Override
 	public void alert() {
