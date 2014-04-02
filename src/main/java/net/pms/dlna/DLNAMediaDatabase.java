@@ -35,7 +35,6 @@ import net.pms.formats.v2.SubtitleType;
 import org.apache.commons.io.FileUtils;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.h2.engine.Constants;
-import org.h2.jdbc.JdbcSQLException;
 import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.jdbcx.JdbcDataSource;
 import org.h2.tools.DeleteDbFiles;
