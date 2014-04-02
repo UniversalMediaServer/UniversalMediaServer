@@ -1,0 +1,149 @@
+<html><head><title>bump</title>
+<script>
+server_ip = '127.0.0.1';
+
+function set_ip(new_ip) {
+	IP = document.getElementById('ip');
+	ip = IP.innerHTML;
+	b = document.getElementById('bookmarklet');
+	b.href = b.href.replace(ip, new_ip);
+	IP.innerHTML = new_ip;
+	js = document.getElementById('jstext');
+	js.readOnly = false;
+	js.innerHTML = unescape(b.href);
+	js.readOnly = true;
+}
+
+function get_ip() {
+	ip = document.getElementById('ip').innerHTML;
+	new_ip = prompt('Enter the server\'s LAN IP', ip);
+	if (new_ip != null && new_ip !== ip) {
+		set_ip(new_ip);
+	}
+}
+
+function show(device) {
+	other = device == 'touch' ? 'desktop' : 'touch';
+	document.getElementById(other).style.display = 'none';
+	s = document.getElementById(other + 'label').style;
+	s.fontWeight = 'normal';
+	s.fontSize = '';
+	document.getElementById(device).style.display = '';
+	s = document.getElementById(device + 'label').style;
+	s.fontWeight = 'bold';
+	s.fontSize = 'large';
+}
+
+isTouchDevice = window.screenX == 0 && ('ontouchstart' in window || 'onmsgesturechange' in window);
+
+function init() {
+	set_ip(server_ip);
+	show(isTouchDevice ? 'touch' : 'desktop');
+	e = document.getElementById(isTouchDevice ? 'touchradio' : 'desktopradio');
+	e.checked=true;
+	e.focus();
+}
+
+</script>
+<meta name="viewport" content="width=device-width"/>
+</head>
+<body onload="init()" style="margin:2em;max-width:40em;font-family:sans-serif;">
+<br/>
+<center>
+<a id="bookmarklet" title="press to test the bookmarklet"
+style="text-align:center;font-weight:bold;color:#fff;background-color:#729fcf;text-decoration:none;
+border-color:#729fcf;padding:4px 8px;border:1px;border-radius:4px;-moz-border-radius:4px;-webkit-border-radius:4px;
+-moz-box-shadow: 4px 4px 2px #bbb;-webkit-box-shadow: 4px 4px 2px #bbb;box-shadow: 4px 4px 2px #bbb;"
+onMouseDown="this.style.backgroundColor='orange';" onMouseUp="this.style.backgroundColor='#729fcf';"
+onMouseOver="this.style.backgroundColor='#4580bf';" onMouseOut="this.style.backgroundColor='#729fcf';"
+ontouchstart="this.style.backgroundColor='orange';" ontouchend="this.style.backgroundColor='#729fcf';"
+href="javascript:(function(){
+
+var addr='127.0.0.1:9009';
+if(typeof bump !== 'undefined' && bump.enabled()){return;}
+loadjs('https://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js',function(){
+loadjs('http://'+addr+'/bump/bump.js',function(){
+	bump.start(addr);
+});
+});
+
+function loadjs(url,done){
+	var head=document.getElementsByTagName('head')[0];
+	var script=document.createElement('script');
+	script.src=url;
+	var loaded=false;
+	script.onload=script.onreadystatechange=function(){
+		if(!loaded&&(!this.readyState||this.readyState=='loaded'||this.readyState=='complete')){
+			loaded=true;
+			done();
+			script.onload=script.onreadystatechange=null;
+			head.removeChild(script);
+		}
+	};
+	head.appendChild(script);
+}
+})();">bump</a>
+</center>
+<br/><br/>
+<div class="bump">
+Bump is a browser remote control widget to play media from your current page on any upnp-controllable renderer connected to UMS.
+Some things to know:
+<ul>
+<li>Your renderer is upnp-controllable if playback controls are showing on its UMS gui popup panel.</li>
+<li>To designate a default playback renderer set <code style="color:#0000BB;"><b>bump</b></code> to its IP in <i>UMS.conf</i>
+(e.g. <code style="color:#0000BB"><b>bump</b>=<i>192.168.1.3</i></code>)
+<li>To disable this service entirely set <code style="color:#0000BB"><b>bump</b>=<i>false</i></code> in <i>UMS.conf</i>.
+<li>Either the <i>jumpy</i> or <i>channels</i> plugin must be installed to act as a url resolver.</li>
+<li>The current page must contain resolvable media, for example youtube, vimeo, and so on.</li>
+</ul>
+</div>
+<h2>Setup</h2>
+
+<table width="100%">
+<tr align="justify">
+<td align="center">
+<input id="desktopradio" type="radio" name="device" onclick="show('desktop')">
+<label id="desktoplabel" for="desktopradio">Desktop Browsers</label>
+</td>
+<td align="center">
+<input id="touchradio" type="radio" name="device" onclick="show('touch')">
+<label id="touchlabel" for="touchradio" title="Browsers without a bookmarks toolbar">Touch/Mobile Browsers</label>
+</td>
+</tr></table>
+
+<div id="desktop" class="desktop" style="display:block;">
+<ul>
+<b>Install</b>
+<ul>Drag the button above to your bookmarks toolbar.
+</ul>
+<br/>
+<b>Usage</b>
+<ul>Press it anytime to open the player.
+</ul>
+</ul>
+</div>
+
+<div id="touch" class="touch" style="display:block;">
+<ul>
+<b>Install</b>
+<ol>
+<li>Copy the code below:<br/>
+<textarea id="jstext" cols="50" rows="4" onfocus="this.select()" onmouseup="return false" readonly></textarea>
+</li>
+<li>Bookmark this page and open the bookmark for editing.</li>
+<li>Paste the copied code as the bookmark URL.</li>
+<li>Name the bookmark '<span class="mode">bump</span>'.</li>
+</ol>
+<br/>
+<b>Usage</b>
+<div class="touch" display="none">
+<ul>Type '<span class="mode">bump</span>' in the address bar and select the
+bookmark from the drop-down list.</ul>
+</ul>
+</div>
+</div>
+<br/>
+The button is currently configured for bump server IP at <i><b><span id="ip">127.0.0.1</span></b></i>
+(<a href="javascript:get_ip()" title="Click to set the LAN address of UMS/PMS' host machine">change...</a>
+then repeat setup).
+</body></html>

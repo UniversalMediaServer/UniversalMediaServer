@@ -234,6 +234,7 @@ public class PmsConfiguration {
 	private static final String KEY_VLC_SAMPLE_RATE = "vlc_sample_rate";
 	private static final String KEY_WEB_CONF_PATH = "web_conf";
 	private static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
+	private static final String KEY_BUMP_ADDRESS = "bump";
 
 	// The name of the subdirectory under which UMS config files are stored for this build (default: UMS).
 	// See Build for more details
@@ -2941,5 +2942,13 @@ public class PmsConfiguration {
 	 */
 	public void setAppendProfileName(boolean value) {
 		configuration.setProperty(KEY_APPEND_PROFILE_NAME, value);
+	}
+
+	public String getBumpAddress() {
+		return getString(KEY_BUMP_ADDRESS, "");
+	}
+
+	public void setBumpAddress(String value) {
+		configuration.setProperty(KEY_BUMP_ADDRESS, value);
 	}
 }
