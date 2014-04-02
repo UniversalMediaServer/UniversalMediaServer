@@ -428,6 +428,7 @@ public class UPNPControl {
 				}
 				rendererMap.mark(uuid, ACTIVE, true);
 				rendererMap.mark(uuid, CONTROLS, ctrl);
+				rendererReady(uuid);
 				return true;
 			}
 		}
@@ -437,6 +438,9 @@ public class UPNPControl {
 	protected Renderer rendererFound(Device d, String uuid) {
 		// Create an instance
 		return rendererMap.get(uuid, "0");
+	}
+
+	protected void rendererReady(String uuid) {
 	}
 
 	protected void rendererUpdated(Device d) {

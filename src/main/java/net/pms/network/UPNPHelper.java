@@ -78,6 +78,7 @@ public class UPNPHelper extends UPNPControl {
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	private static final UPNPHelper instance = new UPNPHelper();
+	private static PlayerControlHandler httpControlHandler;
 
 	/**
 	 * This utility class is not meant to be instantiated.
@@ -88,6 +89,14 @@ public class UPNPHelper extends UPNPControl {
 
 	public static UPNPHelper getInstance() {
 		return instance;
+	}
+
+	public static PlayerControlHandler getHttpControlHandler() {
+		if (httpControlHandler == null && ! "false".equals(configuration.getBumpAddress().toLowerCase())) {
+			httpControlHandler = new PlayerControlHandler(null);
+			LOGGER.debug("Started http player control handler on port " + httpControlHandler.getAddress().split(":")[1]);
+		}
+		return httpControlHandler;
 	}
 
 	/**
@@ -554,6 +563,14 @@ public class UPNPHelper extends UPNPControl {
 			LOGGER.debug("Error initializing device " + getFriendlyName(d) + ": " + e);
 		}
 		return null;
+	}
+
+	@Override
+	protected void rendererReady(String uuid) {
+		Renderer r = rendererMap.get(uuid, "0");
+		if (r.hasPlayControls()) {
+			getHttpControlHandler();
+		}
 	}
 
 	public static void play(String uri, RendererConfiguration r) {
