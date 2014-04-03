@@ -84,8 +84,6 @@ public class NavigationShareTab {
 	private JCheckBox recentlyplayedfolder;
 	private JCheckBox resume;
 
-	final IFrame umsFrame = PMS.get().getFrame();
-
 	public SharedFoldersTableModel getDf() {
 		return folderTableModel;
 	}
@@ -397,8 +395,8 @@ public class NavigationShareTab {
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setUseCache((e.getStateChange() == ItemEvent.SELECTED));
 				cachereset.setEnabled(configuration.getUseCache());
-				if ((LooksFrame) umsFrame != null) {
-					((LooksFrame) umsFrame).getNt().setScanLibraryEnabled(configuration.getUseCache());
+				if ((LooksFrame) PMS.get().getFrame() != null) {
+					((LooksFrame) PMS.get().getFrame()).getNt().setScanLibraryEnabled(configuration.getUseCache());
 				}
 			}
 		});
@@ -409,7 +407,7 @@ public class NavigationShareTab {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				int option = JOptionPane.showConfirmDialog(
-					(Component) umsFrame,
+					(Component) PMS.get().getFrame(),
 					Messages.getString("NetworkTab.13") + Messages.getString("NetworkTab.19"),
 					Messages.getString("Dialog.Question"),
 					JOptionPane.YES_NO_OPTION);
@@ -731,7 +729,7 @@ public class NavigationShareTab {
 					if (database != null) {
 						if (!database.isScanLibraryRunning()) {
 							int option = JOptionPane.showConfirmDialog(
-								(Component) umsFrame,
+								(Component) PMS.get().getFrame(),
 								Messages.getString("FoldTab.3") + Messages.getString("FoldTab.4"),
 								Messages.getString("Dialog.Question"),
 								JOptionPane.YES_NO_OPTION);
@@ -743,15 +741,15 @@ public class NavigationShareTab {
 							}
 						} else {
 							int option = JOptionPane.showConfirmDialog(
-								(Component) umsFrame,
+								(Component) PMS.get().getFrame(),
 								Messages.getString("FoldTab.10"),
 								Messages.getString("Dialog.Question"),
 								JOptionPane.YES_NO_OPTION);
 							if (option == JOptionPane.YES_OPTION) {
 								database.stopScanLibrary();
-								umsFrame.setStatusLine(null);
-								if ((LooksFrame) umsFrame != null) {
-									((LooksFrame) umsFrame).getNt().setScanLibraryEnabled(false);
+								PMS.get().getFrame().setStatusLine(null);
+								if ((LooksFrame) PMS.get().getFrame() != null) {
+									((LooksFrame) PMS.get().getFrame()).getNt().setScanLibraryEnabled(false);
 								}
 								but5.setToolTipText(Messages.getString("FoldTab.41"));
 							}

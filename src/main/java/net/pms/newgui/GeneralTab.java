@@ -70,8 +70,6 @@ public class GeneralTab {
 	private JCheckBox appendProfileName;
 	private JCheckBox runWizardOnProgramStartup;
 
-	final IFrame umsFrame = PMS.get().getFrame();
-
 	GeneralTab(PmsConfiguration configuration) {
 		this.configuration = configuration;
 	}
@@ -188,7 +186,7 @@ public class GeneralTab {
 					if (PMS.get().installWin32Service()) {
 						LOGGER.info(Messages.getString("PMS.41"));
 						JOptionPane.showMessageDialog(
-							(JFrame) (SwingUtilities.getWindowAncestor((Component) umsFrame)),
+							(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 							Messages.getString("NetworkTab.11") +
 							Messages.getString("NetworkTab.12"),
 							Messages.getString("Dialog.Information"),
@@ -196,7 +194,7 @@ public class GeneralTab {
 						);
 					} else {
 						JOptionPane.showMessageDialog(
-							(JFrame) (SwingUtilities.getWindowAncestor((Component) umsFrame)),
+							(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 							Messages.getString("NetworkTab.14"),
 							Messages.getString("Dialog.Error"),
 							JOptionPane.ERROR_MESSAGE
@@ -216,7 +214,7 @@ public class GeneralTab {
 					PMS.get().uninstallWin32Service();
 					LOGGER.info(Messages.getString("GeneralTab.3"));
 					JOptionPane.showMessageDialog(
-						(JFrame) (SwingUtilities.getWindowAncestor((Component) umsFrame)),
+						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 						Messages.getString("GeneralTab.3"),
 						Messages.getString("Dialog.Information"),
 						JOptionPane.INFORMATION_MESSAGE
@@ -233,7 +231,7 @@ public class GeneralTab {
 		checkForUpdates.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				LooksFrame frame = (LooksFrame) umsFrame;
+				LooksFrame frame = (LooksFrame) PMS.get().getFrame();
 				frame.checkForUpdates(false);
 			}
 		});
@@ -348,7 +346,7 @@ public class GeneralTab {
 					tPanel.add(scrollPane, BorderLayout.NORTH);
 					Object[] options = {Messages.getString("LooksFrame.9"), Messages.getString("NetworkTab.45")};
 
-					if (JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) umsFrame)),
+					if (JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 						tPanel, Messages.getString("NetworkTab.51"),
 						JOptionPane.OK_CANCEL_OPTION,
 						JOptionPane.PLAIN_MESSAGE, null, options, null) == JOptionPane.OK_OPTION) {
@@ -361,7 +359,7 @@ public class GeneralTab {
 							}
 							configuration.reload();
 						} catch (Exception e1) {
-							JOptionPane.showMessageDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) umsFrame)),
+							JOptionPane.showMessageDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
 								Messages.getString("NetworkTab.52") + e1.toString());
 						}
 					}

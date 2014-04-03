@@ -382,7 +382,7 @@ public class PMS {
 		if (configuration.isRunWizard() && !isHeadless()) {
 			// Ask the user if they want to run the wizard
 			int whetherToRunWizard = JOptionPane.showConfirmDialog(
-				(Component) frame,
+				null,
 				Messages.getString("Wizard.1"),
 				Messages.getString("Dialog.Question"),
 				JOptionPane.YES_NO_OPTION
@@ -398,7 +398,7 @@ public class PMS {
 
 				// Ask if they want UMS to start minimized
 				int whetherToStartMinimized = JOptionPane.showConfirmDialog(
-					(Component) frame,
+					null,
 					Messages.getString("Wizard.3"),
 					Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
 					JOptionPane.YES_NO_OPTION
@@ -418,7 +418,7 @@ public class PMS {
 					UIManager.getString("OptionPane.noButtonText")
 				};
 				int whetherToSendDTS = JOptionPane.showOptionDialog(
-					(Component) frame,
+					null,
 					Messages.getString("Wizard.5"),
 					Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
 					JOptionPane.YES_NO_OPTION,
@@ -442,7 +442,7 @@ public class PMS {
 					Messages.getString("Wizard.10")
 				};
 				int networkType = JOptionPane.showOptionDialog(
-					(Component) frame,
+					null,
 					Messages.getString("Wizard.7"),
 					Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
 					JOptionPane.YES_NO_CANCEL_OPTION,
@@ -470,7 +470,7 @@ public class PMS {
 
 				// Ask if they want to hide advanced options
 				int whetherToHideAdvancedOptions = JOptionPane.showConfirmDialog(
-					(Component) frame,
+					null,
 					Messages.getString("Wizard.11"),
 					Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
 					JOptionPane.YES_NO_OPTION
@@ -484,7 +484,7 @@ public class PMS {
 				}
 
 				JOptionPane.showMessageDialog(
-					(Component) frame,
+					null,
 					Messages.getString("Wizard.13"),
 					Messages.getString("Wizard.12"),
 					JOptionPane.INFORMATION_MESSAGE
