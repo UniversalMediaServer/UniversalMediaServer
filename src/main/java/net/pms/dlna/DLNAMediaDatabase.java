@@ -433,7 +433,7 @@ public class DLNAMediaDatabase implements Runnable {
 				}
 
 				int databaseBitrate = 0;
-				if (type != Format.IMAGE){
+				if (type != Format.IMAGE) {
 					databaseBitrate = media.getBitrate();
 					if (databaseBitrate == 0) {
 						LOGGER.debug("Could not parse the bitrate from: " + name);
@@ -557,7 +557,7 @@ public class DLNAMediaDatabase implements Runnable {
 						}
 					}
 				}
-				
+
 				close(insert);
 			}
 		} catch (SQLException se) {
