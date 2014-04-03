@@ -1615,7 +1615,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 								boolean isMuxableResult = getMedia().isMuxable(mediaRenderer);
 								boolean isBravia = mediaRenderer.isBRAVIA();
-
+								
 								// If the engine is MEncoder or FFmpeg, and the muxing settings are enabled, it may be MPEG-TS so we need to do more tests
 								if (
 									!isFileMPEGTS &&
@@ -1878,12 +1878,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 											isMuxableResult &&
 											mediaRenderer.isMuxH264MpegTS()
 										) ||
-										mediaRenderer.isTranscodeToMPEGTSAC3()
+										mediaRenderer.isTranscodeToMPEGTSAC3() ||
+										mediaRenderer.isTranscodeToH264TSAC3()
 									) {
 										isFileMPEGTS = true;
 									}
 								}
-
+								
 								if (isFileMPEGTS) {
 									dlnaspec = "DLNA.ORG_PN=" + getMPEG_TS_SD_EU_ISOLocalizedValue(c);
 									if (

@@ -1304,7 +1304,7 @@ public class FFMpegVideo extends Player {
 				cmdList.add(encoding);
 			}
 		}
-
+		
 		cmdList.add("-i");
 		cmdList.add(fileName);
 
@@ -1323,7 +1323,7 @@ public class FFMpegVideo extends Player {
 
 		String[] cmdArray = new String[cmdList.size()];
 		cmdList.toArray(cmdArray);
-
+		
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 		pw.runInNewThread();
 
