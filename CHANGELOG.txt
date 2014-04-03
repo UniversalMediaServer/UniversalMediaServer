@@ -1,7 +1,17 @@
-3.5.1 - 2014-03-??
+3.5.1 - 2014-04-??
 
 	General:
-		
+		Use the Entertainment application category on OS X instead of Other
+		MPlayer thumbnail generation is disabled in the GUI if "Generate thumbnails" is unticked
+		Made Matroska container detection more reliable
+		Fixed FFmpeg subtitles conversion (thanks, tdcosta100!)
+		Improved support for transcoding to H.264 (thanks, tdcosta100!)
+		Improved speed
+	Renderers:
+		Added support for Cambridge Audio Azur BD players (thanks, Triplefun!)
+		Allow muxing of non-mod4 videos to Bravia TVs (thanks, tdcosta100!)
+	Languages:
+		Updated Czech translation
 
 3.5.0 - 2014-03-19
 
