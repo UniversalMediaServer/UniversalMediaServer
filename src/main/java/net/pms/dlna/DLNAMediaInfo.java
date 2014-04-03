@@ -311,7 +311,10 @@ public class DLNAMediaInfo implements Cloneable {
 					getHeight() > mediaRenderer.getMaxVideoHeight()
 				)
 			) ||
-			!isMod4()
+			(
+				!mediaRenderer.isBRAVIA() &&
+				!isMod4()
+			)
 		) {
 			muxable = false;
 		}
