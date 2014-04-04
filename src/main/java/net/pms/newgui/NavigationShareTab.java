@@ -89,9 +89,11 @@ public class NavigationShareTab {
 	}
 
 	private final PmsConfiguration configuration;
+	private LooksFrame looksFrame;
 
-	NavigationShareTab(PmsConfiguration configuration) {
+	NavigationShareTab(PmsConfiguration configuration, LooksFrame looksFrame) {
 		this.configuration = configuration;
+		this.looksFrame = looksFrame;
 	}
 
 	private void updateModel() {
@@ -395,8 +397,8 @@ public class NavigationShareTab {
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setUseCache((e.getStateChange() == ItemEvent.SELECTED));
 				cachereset.setEnabled(configuration.getUseCache());
-				if ((LooksFrame) PMS.get().getFrame() != null) {
-					((LooksFrame) PMS.get().getFrame()).getNt().setScanLibraryEnabled(configuration.getUseCache());
+				if (looksFrame != null) {
+					looksFrame.getNt().setScanLibraryEnabled(configuration.getUseCache());
 				}
 			}
 		});
@@ -407,7 +409,7 @@ public class NavigationShareTab {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				int option = JOptionPane.showConfirmDialog(
-					(Component) PMS.get().getFrame(),
+					looksFrame,
 					Messages.getString("NetworkTab.13") + Messages.getString("NetworkTab.19"),
 					Messages.getString("Dialog.Question"),
 					JOptionPane.YES_NO_OPTION);
@@ -729,7 +731,7 @@ public class NavigationShareTab {
 					if (database != null) {
 						if (!database.isScanLibraryRunning()) {
 							int option = JOptionPane.showConfirmDialog(
-								(Component) PMS.get().getFrame(),
+								looksFrame,
 								Messages.getString("FoldTab.3") + Messages.getString("FoldTab.4"),
 								Messages.getString("Dialog.Question"),
 								JOptionPane.YES_NO_OPTION);
@@ -741,15 +743,15 @@ public class NavigationShareTab {
 							}
 						} else {
 							int option = JOptionPane.showConfirmDialog(
-								(Component) PMS.get().getFrame(),
+								looksFrame,
 								Messages.getString("FoldTab.10"),
 								Messages.getString("Dialog.Question"),
 								JOptionPane.YES_NO_OPTION);
 							if (option == JOptionPane.YES_OPTION) {
 								database.stopScanLibrary();
-								PMS.get().getFrame().setStatusLine(null);
-								if ((LooksFrame) PMS.get().getFrame() != null) {
-									((LooksFrame) PMS.get().getFrame()).getNt().setScanLibraryEnabled(false);
+								looksFrame.setStatusLine(null);
+								if (looksFrame != null) {
+									looksFrame.getNt().setScanLibraryEnabled(false);
 								}
 								but5.setToolTipText(Messages.getString("FoldTab.41"));
 							}

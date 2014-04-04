@@ -23,10 +23,12 @@ import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import com.sun.jna.Platform;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.Locale;
+
 import javax.swing.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
@@ -34,12 +36,14 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
 import net.pms.util.FormLayoutUtil;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,9 +60,11 @@ public class TranscodingTab {
 
 	private final PmsConfiguration configuration;
 	private ComponentOrientation orientation;
+	private LooksFrame looksFrame;
 
-	TranscodingTab(PmsConfiguration configuration) {
+	TranscodingTab(PmsConfiguration configuration, LooksFrame looksFrame) {
 		this.configuration = configuration;
+		this.looksFrame = looksFrame;
 		// Apply the orientation for the locale
 		Locale locale = new Locale(configuration.getLanguage());
 		orientation = ComponentOrientation.getOrientation(locale);
@@ -965,7 +971,7 @@ public class TranscodingTab {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Color newColor = JColorChooser.showDialog(
-					SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
+					looksFrame,
 					Messages.getString("MEncoderVideo.125"),
 					subColor.getBackground()
 				);
