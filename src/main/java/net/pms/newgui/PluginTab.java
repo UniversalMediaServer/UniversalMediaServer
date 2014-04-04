@@ -571,7 +571,6 @@ public class PluginTab {
 		tableModel.fireTableDataChanged();
 	}
 
-	// TODO make the dialog centred in looksFrame
 	private void addEditDialog(final JTable table,int row) {
 		JPanel panel = new JPanel();
 		GridLayout layout = new GridLayout(0, 2);
@@ -664,7 +663,7 @@ public class PluginTab {
 		frame.add(panel);
 
 		// Center the installation progress window
-		frame.setLocationRelativeTo(null);
+		frame.setLocationRelativeTo(looksFrame);
 		frame.setVisible(true);
 	}
 
