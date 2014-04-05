@@ -192,7 +192,7 @@ public class RootFolder extends DLNAResource {
 		}
 	}
 
-	public synchronized void scan() {
+	public void scan() {
 		running = true;
 
 		if (!isDiscovered()) {
@@ -215,11 +215,11 @@ public class RootFolder extends DLNAResource {
 		stopScan();
 	}
 
-	public synchronized void stopScan() {
+	public void stopScan() {
 		running = false;
 	}
 
-	private synchronized void scan(DLNAResource resource) {
+	private void scan(DLNAResource resource) {
 		if (running) {
 			for (DLNAResource child : resource.getChildren()) {
 				if (running && child.allowScan()) {

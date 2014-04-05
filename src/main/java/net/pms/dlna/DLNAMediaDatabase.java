@@ -734,11 +734,11 @@ public class DLNAMediaDatabase implements Runnable {
 		}
 	}
 
-	public synchronized boolean isScanLibraryRunning() {
+	public boolean isScanLibraryRunning() {
 		return scanner != null && scanner.isAlive();
 	}
 
-	public synchronized void scanLibrary() {
+	public void scanLibrary() {
 		if (isScanLibraryRunning()) {
 			LOGGER.info(Messages.getString("NetworkTab.70"));
 		} else {
@@ -747,7 +747,7 @@ public class DLNAMediaDatabase implements Runnable {
 		}
 	}
 
-	public synchronized void stopScanLibrary() {
+	public void stopScanLibrary() {
 		if (isScanLibraryRunning()) {
 			PMS.get().getRootFolder(null).stopScan();
 		}
