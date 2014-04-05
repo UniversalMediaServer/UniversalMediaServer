@@ -397,9 +397,7 @@ public class NavigationShareTab {
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setUseCache((e.getStateChange() == ItemEvent.SELECTED));
 				cachereset.setEnabled(configuration.getUseCache());
-				if (looksFrame != null) {
-					looksFrame.getNt().setScanLibraryEnabled(configuration.getUseCache());
-				}
+				setScanLibraryEnabled(configuration.getUseCache());
 			}
 		});
 
@@ -750,9 +748,7 @@ public class NavigationShareTab {
 							if (option == JOptionPane.YES_OPTION) {
 								database.stopScanLibrary();
 								looksFrame.setStatusLine(null);
-								if (looksFrame != null) {
-									looksFrame.getNt().setScanLibraryEnabled(false);
-								}
+								setScanLibraryEnabled(false);
 								but5.setToolTipText(Messages.getString("FoldTab.41"));
 							}
 						}
