@@ -279,7 +279,7 @@ public class FFMpegVideo extends Player {
 				!avisynth() &&
 				renderer.isDTSPlayable();
 			
-			boolean isSubtitlesAndTimeseek = !isDisableSubtitles(params) && params.sid != null && params.timeseek > 0;
+			boolean isSubtitlesAndTimeseek = !isDisableSubtitles(params) && params.timeseek > 0;
 
 			if (configuration.isAudioRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && renderer.isTranscodeToAC3() && !isSubtitlesAndTimeseek) {
 				// AC-3 remux
