@@ -278,8 +278,10 @@ public class FFMpegVideo extends Player {
 				params.aid.isDTS() &&
 				!avisynth() &&
 				renderer.isDTSPlayable();
+			
+			boolean isSubtitlesAndTimeseek = !isDisableSubtitles(params) && params.sid != null && params.timeseek > 0;
 
-			if (configuration.isAudioRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && renderer.isTranscodeToAC3()) {
+			if (configuration.isAudioRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && renderer.isTranscodeToAC3() && !isSubtitlesAndTimeseek) {
 				// AC-3 remux
 				if (!customFFmpegOptions.contains("-c:a ")) {
 					transcodeOptions.add("-c:a");
