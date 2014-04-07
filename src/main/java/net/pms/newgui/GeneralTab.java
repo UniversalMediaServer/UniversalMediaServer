@@ -469,12 +469,14 @@ public class GeneralTab {
 				}
 			});
 
+			final SelectRenderers selectRenderers = new SelectRenderers();
+			
 			builder.addLabel(Messages.getString("NetworkTab.62"), FormLayoutUtil.flip(cc.xy(1, 41), colSpec, orientation));
 			final CustomJButton setRenderers = new CustomJButton(Messages.getString("GeneralTab.5"));
 			setRenderers.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					SelectRenderers.showDialog();
+					selectRenderers.showDialog();
 				}
 			});
 

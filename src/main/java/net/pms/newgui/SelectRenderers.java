@@ -1,21 +1,3 @@
-/*
- * PS3 Media Server, for streaming any medias to your PS3.
- * Copyright (C) 2008  A.Brochard
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; version 2
- * of the License only.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
- */
 package net.pms.newgui;
 
 import java.awt.*;
@@ -32,13 +14,14 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SelectRenderers extends JPanel implements ItemListener, ActionListener {
+public class SelectRenderers extends JPanel implements ActionListener {
 	private static final long serialVersionUID = -2724796596060834064L;
-	private final static PmsConfiguration configuration = PMS.getConfiguration();
-	private final List<JCheckBox> checkBoxes = new ArrayList<>();
+	private static PmsConfiguration configuration = PMS.getConfiguration();
+	private final static List<JCheckBox> checkBoxes = new ArrayList<>();
 	private JButton selectAll = new JButton(Messages.getString("GeneralTab.7"));
 	private JButton deselectAll = new JButton(Messages.getString("GeneralTab.8"));
-	private static ArrayList<String> allRenderersNames;
+	private static ArrayList<String> allRenderersNames = RendererConfiguration.getAllRenderersNames();
+	private static String ignoredRenderers = configuration.getIgnoredRenderers();
 	private static final Logger LOGGER = LoggerFactory.getLogger(SelectRenderers.class);
 
 	public SelectRenderers() {
@@ -56,11 +39,8 @@ public class SelectRenderers extends JPanel implements ItemListener, ActionListe
 		checkPanel.add(new JLabel("____________________________"));
 		checkPanel.add(new JLabel("____________________________"));
 
-		String ignoredRenderers = configuration.getIgnoredRenderers();
-
 		for (String rendererName : allRenderersNames) {
 			JCheckBox checkbox = new JCheckBox(rendererName, !ignoredRenderers.contains(rendererName));
-			checkbox.addItemListener(this);
 			checkBoxes.add(checkbox);
 			checkPanel.add(checkbox);
 		}
@@ -77,12 +57,12 @@ public class SelectRenderers extends JPanel implements ItemListener, ActionListe
 	public void actionPerformed(ActionEvent e) {
 		Object source = e.getSource();
 		if (source instanceof JButton) {
-			if (source == selectAll) {
+			if (source.equals(selectAll)) {
 				deselectAll.setSelected(false);
 				for (JCheckBox checkBox : checkBoxes) {
 					checkBox.setSelected(true);
 				}
-			} else if (source == deselectAll) {
+			} else if (source.equals(deselectAll)) {
 				selectAll.setSelected(false);
 				for (JCheckBox checkBox : checkBoxes) {
 					checkBox.setSelected(false);
@@ -92,30 +72,22 @@ public class SelectRenderers extends JPanel implements ItemListener, ActionListe
 	}
 
 	/**
-	 * Listens to the check boxes.
-	 */
-	@Override
-	public void itemStateChanged(ItemEvent e) {
-		if (e.getSource() instanceof JCheckBox) {
-			StringBuilder ignoredRenders = new StringBuilder();
-			for (int i = 0; i < allRenderersNames.size(); i++) {
-				if (!checkBoxes.get(i).isSelected()) {
-					ignoredRenders.append(allRenderersNames.get(i)).append(",");
-				}
-			}
-
-			configuration.setIgnoredRenderers(ignoredRenders.toString());
-		}
-	}
-
-	/**
 	 * Create the GUI and show it.
 	 */
-	public static void showDialog() {
-		allRenderersNames = RendererConfiguration.getAllRenderersNames();
+	public void showDialog() {
+		// Refresh setting if modified
+		ignoredRenderers = configuration.getIgnoredRenderers();
+		for (JCheckBox checkBox : checkBoxes) {
+			if (ignoredRenderers.contains(checkBox.getText())) {
+				checkBox.setSelected(false);
+			} else {
+				checkBox.setSelected(true);
+			}
+		}
+
 		int selectRenderers = JOptionPane.showOptionDialog(
-			null,
-			new SelectRenderers(),
+			(Component) PMS.get().getFrame(),
+			this,
 			Messages.getString("GeneralTab.5"),
 			JOptionPane.OK_CANCEL_OPTION,
 			JOptionPane.PLAIN_MESSAGE,
@@ -123,12 +95,21 @@ public class SelectRenderers extends JPanel implements ItemListener, ActionListe
 			null,
 			null
 		);
-		if (selectRenderers == JOptionPane.YES_OPTION) {
+		if (selectRenderers == JOptionPane.OK_OPTION) {
+			StringBuilder buildIgnoredRenders = new StringBuilder();
+			for (JCheckBox checkBox : checkBoxes) {
+				if (!checkBox.isSelected()) {
+					buildIgnoredRenders.append(checkBox.getText()).append(",");
+				}
+			}
+
+			configuration.setIgnoredRenderers(buildIgnoredRenders.toString());
 			try {
 				configuration.save();
 			} catch (ConfigurationException e) {
 				LOGGER.error("Could not save configuration", e);
 			}
+			
 		}
 	}
 }
