@@ -35,12 +35,11 @@ import org.slf4j.LoggerFactory;
 public class SelectRenderers extends JPanel implements ItemListener, ActionListener {
 	private static final long serialVersionUID = -2724796596060834064L;
 	private final static PmsConfiguration configuration = PMS.getConfiguration();
-	private final static List<JCheckBox> checkBoxes = new ArrayList<>();
+	private final List<JCheckBox> checkBoxes = new ArrayList<>();
 	private JButton selectAll = new JButton(Messages.getString("GeneralTab.7"));
 	private JButton deselectAll = new JButton(Messages.getString("GeneralTab.8"));
 	private static ArrayList<String> allRenderersNames;
 	private static final Logger LOGGER = LoggerFactory.getLogger(SelectRenderers.class);
-	private static String ignoredRenderers = configuration.getIgnoredRenderers();
 
 	public SelectRenderers() {
 		super(new BorderLayout());
@@ -56,6 +55,8 @@ public class SelectRenderers extends JPanel implements ItemListener, ActionListe
 		checkPanel.add(new JLabel("____________________________"));
 		checkPanel.add(new JLabel("____________________________"));
 		checkPanel.add(new JLabel("____________________________"));
+
+		String ignoredRenderers = configuration.getIgnoredRenderers();
 
 		for (String rendererName : allRenderersNames) {
 			JCheckBox checkbox = new JCheckBox(rendererName, !ignoredRenderers.contains(rendererName));
@@ -111,7 +112,6 @@ public class SelectRenderers extends JPanel implements ItemListener, ActionListe
 	 * Create the GUI and show it.
 	 */
 	public static void showDialog() {
-		boolean init = true;
 		allRenderersNames = RendererConfiguration.getAllRenderersNames();
 		int selectRenderers = JOptionPane.showOptionDialog(
 			null,
@@ -129,16 +129,6 @@ public class SelectRenderers extends JPanel implements ItemListener, ActionListe
 			} catch (ConfigurationException e) {
 				LOGGER.error("Could not save configuration", e);
 			}
-		} else { // restore original setting
-			if (!init) {
-				for (JCheckBox checkBox : checkBoxes) {
-					if (ignoredRenderers.contains(checkBox.getName())) {
-						checkBox.setSelected(false);
-					}
-				}
-			}
-			
 		}
-		init = false;
 	}
 }
