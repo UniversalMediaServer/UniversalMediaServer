@@ -298,7 +298,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public boolean isMuxable(RendererConfiguration mediaRenderer) {
 		// Make sure the file is H.264 video
-		if (getCodecV() != null && getCodecV().equals("h264")) {
+		if (getCodecV() != null && getCodecV().startsWith("h264")) {
 			muxable = true;
 		}
 
