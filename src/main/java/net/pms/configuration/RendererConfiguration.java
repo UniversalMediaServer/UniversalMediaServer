@@ -1152,7 +1152,7 @@ public class RendererConfiguration {
 	 * value is false.
 	 * <p>
 	 * Some renderers are particular about the "Content-Length" headers in
-	 * requests (e.g. Sony blu-ray players). By default, PMS will send a
+	 * requests (e.g. Sony Blu-ray Disc players). By default, UMS will send a
 	 * "Content-Length" that refers to the total media size, even if the exact
 	 * length is unknown.
 	 *

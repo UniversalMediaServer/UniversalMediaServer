@@ -311,7 +311,8 @@ public class DLNAMediaInfo implements Cloneable {
 					getWidth() > mediaRenderer.getMaxVideoWidth() ||
 					getHeight() > mediaRenderer.getMaxVideoHeight()
 				)
-			) || (
+			) ||
+			(
 				!mediaRenderer.isBRAVIA() &&
 				!isMod4()
 			)
@@ -386,7 +387,8 @@ public class DLNAMediaInfo implements Cloneable {
 	private ProcessWrapperImpl getFFMpegThumbnail(InputFile media) {
 		String args[] = new String[16];
 		args[0] = getFfmpegPath();
-		boolean dvrms = media.getFile() != null && media.getFile().getAbsolutePath().toLowerCase().endsWith("dvr-ms");
+		File file = media.getFile();
+		boolean dvrms = file != null && file.getAbsolutePath().toLowerCase().endsWith("dvr-ms");
 
 		if (dvrms && StringUtils.isNotBlank(configuration.getFfmpegAlternativePath())) {
 			args[0] = configuration.getFfmpegAlternativePath();
@@ -403,8 +405,8 @@ public class DLNAMediaInfo implements Cloneable {
 		args[4] = "" + configuration.getThumbnailSeekPos();
 		args[5] = "-i";
 
-		if (media.getFile() != null) {
-			args[6] = ProcessUtil.getShortFileNameIfWideChars(media.getFile().getAbsolutePath());
+		if (file != null) {
+			args[6] = ProcessUtil.getShortFileNameIfWideChars(file.getAbsolutePath());
 		} else {
 			args[6] = "-";
 		}
@@ -419,7 +421,7 @@ public class DLNAMediaInfo implements Cloneable {
 		args[14] = "image2";
 		args[15] = "pipe:";
 
-		// FIXME MPlayer should not be used if thumbnail generation is disabled (and it should be disabled in the GUI)
+		// FIXME MPlayer should not be used if thumbnail generation is disabled
 		if (!configuration.isThumbnailGenerationEnabled() || (configuration.isUseMplayerForVideoThumbs() && !dvrms)) {
 			args[4] = "0";
 			for (int i = 7; i <= 15; i++) {
@@ -458,6 +460,7 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	private ProcessWrapperImpl getMplayerThumbnail(InputFile media) throws IOException {
+		File file = media.getFile();
 		String args[] = new String[14];
 		args[0] = configuration.getMplayerPath();
 		args[1] = "-ss";
@@ -465,8 +468,8 @@ public class DLNAMediaInfo implements Cloneable {
 		args[2] = "" + (toolong ? (getDurationInSeconds() / 2) : configuration.getThumbnailSeekPos());
 		args[3] = "-quiet";
 
-		if (media.getFile() != null) {
-			args[4] = ProcessUtil.getShortFileNameIfWideChars(media.getFile().getAbsolutePath());
+		if (file != null) {
+			args[4] = ProcessUtil.getShortFileNameIfWideChars(file.getAbsolutePath());
 		} else {
 			args[4] = "-";
 		}
@@ -544,8 +547,9 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 
 		if (inputFile != null) {
-			if (inputFile.getFile() != null) {
-				setSize(inputFile.getFile().length());
+			File file = inputFile.getFile();
+			if (file != null) {
+				setSize(file.length());
 			} else {
 				setSize(inputFile.getSize());
 			}
@@ -557,9 +561,9 @@ public class DLNAMediaInfo implements Cloneable {
 				ffmpeg_parsing = false;
 				DLNAMediaAudio audio = new DLNAMediaAudio();
 
-				if (inputFile.getFile() != null) {
+				if (file != null) {
 					try {
-						AudioFile af = AudioFileIO.read(inputFile.getFile());
+						AudioFile af = AudioFileIO.read(file);
 						AudioHeader ah = af.getAudioHeader();
 
 						if (ah != null && !thumbOnly) {
@@ -633,7 +637,7 @@ public class DLNAMediaInfo implements Cloneable {
 					}
 
 					if (audio.getSongname() == null || audio.getSongname().length() == 0) {
-						audio.setSongname(inputFile.getFile().getName());
+						audio.setSongname(file.getName());
 					}
 
 					if (!ffmpeg_parsing) {
@@ -642,10 +646,10 @@ public class DLNAMediaInfo implements Cloneable {
 				}
 			}
 
-			if (type == Format.IMAGE && inputFile.getFile() != null) {
+			if (type == Format.IMAGE && file != null) {
 				try {
 					ffmpeg_parsing = false;
-					ImageInfo info = Sanselan.getImageInfo(inputFile.getFile());
+					ImageInfo info = Sanselan.getImageInfo(file);
 					setWidth(info.getWidth());
 					setHeight(info.getHeight());
 					setBitsPerPixel(info.getBitsPerPixel());
@@ -653,7 +657,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 					if (formatName.startsWith("JPEG")) {
 						setCodecV("jpg");
-						IImageMetadata meta = Sanselan.getMetadata(inputFile.getFile());
+						IImageMetadata meta = Sanselan.getMetadata(file);
 
 						if (meta != null && meta instanceof JpegImageMetadata) {
 							JpegImageMetadata jpegmeta = (JpegImageMetadata) meta;
@@ -690,24 +694,24 @@ public class DLNAMediaInfo implements Cloneable {
 
 					setContainer(getCodecV());
 				} catch (ImageReadException | IOException e) {
-					LOGGER.info("Error parsing image ({}) with Sanselan, switching to FFmpeg.", inputFile.getFile().getAbsolutePath());
+					LOGGER.info("Error parsing image ({}) with Sanselan, switching to FFmpeg.", file.getAbsolutePath());
 				}
 
-				if (configuration.getImageThumbnailsEnabled() && inputFile.getFile() != null) {
-					LOGGER.trace("Creating (temporary) thumbnail: {}", inputFile.getFile().getName());
+				if (configuration.getImageThumbnailsEnabled()) {
+					LOGGER.trace("Creating (temporary) thumbnail: {}", file.getName());
 
 					// Create the thumbnail image using the Thumbnailator library
 					try {
 						ByteArrayOutputStream out = new ByteArrayOutputStream();	
-						Thumbnails.of(inputFile.getFile())
+						Thumbnails.of(file)
 								.size(320, 180)
 								.outputFormat("JPEG")
 								.outputQuality(1.0f)
-								.toOutputStream(out);;
+								.toOutputStream(out);
 
 								setThumb(out.toByteArray());
 					} catch (IOException | IllegalArgumentException | IllegalStateException e) {
-						LOGGER.debug("Error generating thumbnail for: " + inputFile.getFile().getName());
+						LOGGER.debug("Error generating thumbnail for: " + file.getName());
 						LOGGER.debug("The full error was: " + e);
 					}
 				}
@@ -721,9 +725,9 @@ public class DLNAMediaInfo implements Cloneable {
 				boolean dvrms = false;
 				String input = "-";
 
-				if (inputFile.getFile() != null) {
-					input = ProcessUtil.getShortFileNameIfWideChars(inputFile.getFile().getAbsolutePath());
-					dvrms = inputFile.getFile().getAbsolutePath().toLowerCase().endsWith("dvr-ms");
+				if (file != null) {
+					input = ProcessUtil.getShortFileNameIfWideChars(file.getAbsolutePath());
+					dvrms = file.getAbsolutePath().toLowerCase().endsWith("dvr-ms");
 				}
 
 				if (pw != null && !ffmpeg_failure && !thumbOnly) {
@@ -733,14 +737,14 @@ public class DLNAMediaInfo implements Cloneable {
 				if (
 					!thumbOnly &&
 					getContainer() != null &&
-					inputFile.getFile() != null &&
+					file != null &&
 					getContainer().equals("mpegts") &&
 					isH264() &&
 					getDurationInSeconds() == 0
 				) {
 					// Parse the duration
 					try {
-						int length = MpegUtil.getDurationFromMpeg(inputFile.getFile());
+						int length = MpegUtil.getDurationFromMpeg(file);
 						if (length > 0) {
 							setDuration((double) length);
 						}

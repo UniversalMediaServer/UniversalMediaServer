@@ -23,7 +23,6 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.ComponentOrientation;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
@@ -84,8 +83,11 @@ public class TracesTab {
 		}
 	}
 
-	TracesTab(PmsConfiguration configuration) {
+	private LooksFrame looksFrame;
+
+	TracesTab(PmsConfiguration configuration, LooksFrame looksFrame) {
 		this.configuration = configuration;
+		this.looksFrame = looksFrame;
 	}
 
 	public JTextArea getList() {
@@ -220,7 +222,7 @@ public class TracesTab {
 			public void mouseClicked(MouseEvent e) {
 				JComponent comp = PMS.get().dbgPack().config();
 				String[] cancelStr = {Messages.getString("Dialog.Close")};
-				JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+				JOptionPane.showOptionDialog(looksFrame,
 					comp, "Options", JOptionPane.CLOSED_OPTION, JOptionPane.PLAIN_MESSAGE, null, cancelStr, null);
 			}
 		});

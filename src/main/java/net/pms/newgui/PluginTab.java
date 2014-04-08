@@ -66,9 +66,11 @@ public class PluginTab {
 	private static final String ROW_SPEC = "p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
 	private JPanel pPlugins;
 	private ArrayList<DownloadPlugins> plugins;
+	private LooksFrame looksFrame;
 
-	PluginTab(PmsConfiguration configuration) {
+	PluginTab(PmsConfiguration configuration, LooksFrame looksFrame) {
 		this.configuration = configuration;
+		this.looksFrame = looksFrame;
 		pPlugins = null;
 		plugins = null;
 		setupCred();
@@ -146,7 +148,7 @@ public class PluginTab {
 			public void actionPerformed(ActionEvent e) {
 				if (!ExternalFactory.localPluginsInstalled()) {
 					JOptionPane.showMessageDialog(
-						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+						looksFrame,
 						Messages.getString("NetworkTab.40")
 					);
 					return;
@@ -154,7 +156,7 @@ public class PluginTab {
 
 				if (!configuration.isAdmin()) {
 					JOptionPane.showMessageDialog(
-						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+						looksFrame,
 						Messages.getString("PluginTab.15"),
 						Messages.getString("Dialog.PermissionsError"),
 						JOptionPane.ERROR_MESSAGE
@@ -189,7 +191,7 @@ public class PluginTab {
 								// This plugin requires newer UMS
 								// display error and skip it.
 								JOptionPane.showMessageDialog(
-										(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+										looksFrame,
 										"Plugin " + plugin.getName() + " requires a newer version of UMS. Please upgrade.",
 										"Version Error",
 										JOptionPane.ERROR_MESSAGE
@@ -282,7 +284,7 @@ public class PluginTab {
 				int[] rows = credTable.getSelectedRows();
 				if (rows.length > 0) {
 					int n = JOptionPane.showConfirmDialog(
-						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+						looksFrame,
 						Messages.getString("PluginTab.13"),
 						"",
 						JOptionPane.YES_NO_OPTION
@@ -351,7 +353,7 @@ public class PluginTab {
 				Object[] options = {Messages.getString("LooksFrame.9"), Messages.getString("NetworkTab.45")};
 				if (
 					JOptionPane.showOptionDialog(
-						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+						looksFrame,
 						tPanel,
 						Messages.getString("NetworkTab.54"),
 						JOptionPane.OK_CANCEL_OPTION,
@@ -369,7 +371,7 @@ public class PluginTab {
 						}
 						PMS.getConfiguration().reload();
 					} catch (Exception e1) {
-						JOptionPane.showMessageDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())), Messages.getString("NetworkTab.55") + e1.toString());
+						JOptionPane.showMessageDialog(looksFrame, Messages.getString("NetworkTab.55") + e1.toString());
 					}
 				}
 			}
@@ -428,7 +430,7 @@ public class PluginTab {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				JOptionPane.showOptionDialog(
-					(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+					looksFrame,
 					comp,
 					Messages.getString("Dialog.Options"),
 					JOptionPane.CLOSED_OPTION,
@@ -661,7 +663,7 @@ public class PluginTab {
 		frame.add(panel);
 
 		// Center the installation progress window
-		frame.setLocationRelativeTo(null);
+		frame.setLocationRelativeTo(looksFrame);
 		frame.setVisible(true);
 	}
 
