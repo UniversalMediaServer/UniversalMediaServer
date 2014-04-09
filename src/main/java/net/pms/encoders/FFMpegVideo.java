@@ -732,7 +732,7 @@ public class FFMpegVideo extends Player {
 			params.forceFps = media.getValidFps(false);
 
 			if (media.getCodecV() != null) {
-				if (media.getCodecV().equals("h264")) {
+				if (media.isH264()) {
 					params.forceType = "V_MPEG4/ISO/AVC";
 				} else if (media.getCodecV().startsWith("mpeg2")) {
 					params.forceType = "V_MPEG-2";
