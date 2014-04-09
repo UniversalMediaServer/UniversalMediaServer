@@ -944,7 +944,7 @@ public class MEncoderVideo extends Player {
 				params.forceFps = media.getValidFps(false);
 
 				if (media.getCodecV() != null) {
-					if (media.getCodecV().equals("h264")) {
+					if (media.getCodecV().startsWith("h264")) {
 						params.forceType = "V_MPEG4/ISO/AVC";
 					} else if (media.getCodecV().startsWith("mpeg2")) {
 						params.forceType = "V_MPEG-2";
@@ -1067,7 +1067,7 @@ public class MEncoderVideo extends Player {
 					configuration.isMencoderRemuxMPEG2()
 				)
 				// Disable LPCM transcoding for MP4 container with non-H.264 video as workaround for MEncoder's A/V sync bug
-				&& !(media.getContainer().equals("mp4") && !media.getCodecV().equals("h264"))
+				&& !(media.getContainer().equals("mp4") && !media.isH264())
 				&& params.aid != null &&
 				(
 					(params.aid.isDTS() && params.aid.getAudioProperties().getNumberOfChannels() <= 6) || // disable 7.1 DTS-HD => LPCM because of channels mapping bug

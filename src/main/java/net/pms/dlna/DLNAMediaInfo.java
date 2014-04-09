@@ -298,7 +298,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public boolean isMuxable(RendererConfiguration mediaRenderer) {
 		// Make sure the file is H.264 video
-		if (getCodecV() != null && getCodecV().equals("h264")) {
+		if (isH264()) {
 			muxable = true;
 		}
 
@@ -1097,7 +1097,7 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	public boolean isH264() {
-		return getCodecV() != null && getCodecV().contains("264");
+		return getCodecV() != null && getCodecV().startsWith("h264");
 	}
 
 	public int getFrameNumbers() {
@@ -1156,7 +1156,7 @@ public class DLNAMediaInfo implements Cloneable {
 			setMimeType(HTTPResource.PNG_TYPEMIME);
 		} else if ("gif".equals(codecV) || "gif".equals(container)) {
 			setMimeType(HTTPResource.GIF_TYPEMIME);
-		} else if (codecV != null && (codecV.equals("h264") || codecV.equals("h263") || codecV.toLowerCase().equals("mpeg4") || codecV.toLowerCase().equals("mp4"))) {
+		} else if (codecV != null && (codecV.startsWith("h264") || codecV.equals("h263") || codecV.toLowerCase().equals("mpeg4") || codecV.toLowerCase().equals("mp4"))) {
 			setMimeType(HTTPResource.MP4_TYPEMIME);
 		} else if (codecV != null && (codecV.indexOf("mpeg") > -1 || codecV.indexOf("mpg") > -1)) {
 			setMimeType(HTTPResource.MPEG_TYPEMIME);
@@ -1192,7 +1192,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public synchronized boolean isVideoWithinH264LevelLimits(InputFile f, RendererConfiguration mediaRenderer) {
 		if (!h264_parsed) {
-			if ("h264".equals(getCodecV())) {
+			if (isH264()) {
 				if (
 					getContainer() != null &&
 					(

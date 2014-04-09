@@ -343,7 +343,7 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.WMV;
 		} else if (value.contains("mjpg") || value.contains("m-jpeg")) {
 			format = FormatConfiguration.MJPEG;
-		} else if (value.startsWith("avc") || value.contains("h264")) {
+		} else if (value.startsWith("avc") || value.startsWith("h264")) {
 			format = FormatConfiguration.H264;
 		} else if (value.contains("xvid")) {
 			format = FormatConfiguration.MP4;
