@@ -298,7 +298,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public boolean isMuxable(RendererConfiguration mediaRenderer) {
 		// Make sure the file is H.264 video
-		if (getCodecV() != null && getCodecV().equals("h264")) {
+		if (isH264()) {
 			muxable = true;
 		}
 
@@ -1097,7 +1097,7 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	public boolean isH264() {
-		return getCodecV() != null && getCodecV().contains("264");
+		return getCodecV() != null && getCodecV().contains("h264");
 	}
 
 	public int getFrameNumbers() {
@@ -1192,7 +1192,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public synchronized boolean isVideoWithinH264LevelLimits(InputFile f, RendererConfiguration mediaRenderer) {
 		if (!h264_parsed) {
-			if ("h264".equals(getCodecV())) {
+			if (isH264()) {
 				if (
 					getContainer() != null &&
 					(
