@@ -50,9 +50,9 @@ var bump = (function() {
 		borderRadius:'3px',
 		'-moz-border-radius':'3px',
 		'-webkit-border-radius':'3px',
-		boxShadow:' 4px 4px 2px #bbb',
-		'-moz-box-shadow':'4px 4px 2px #bbb',
-		'-webkit-box-shadow':'4px 4px 2px #bbb',
+		boxShadow:' 4px 4px 2px rgba(136,136,136,0.5)',
+		'-moz-box-shadow':'4px 4px 2px rgba(136,136,136,0.5)',
+		'-webkit-box-shadow':'4px 4px 2px rgba(136,136,136,0.5)',
 	});
 
 	$('#bumpctrl').append('<div style="float:left;width:16px"/>');
@@ -80,6 +80,10 @@ var bump = (function() {
 		'-webkit-border-radius':'2px',
 	});
 
+	$('.bumpbtn:disabled').css({
+		backgroundColor:'green',
+	});
+
 
 	function start(data) {
 		if (! enabled) {
@@ -90,6 +94,14 @@ var bump = (function() {
 		} else {
 			var renderers = $.parseJSON(data);
 			$('#bumpsettings').html('<select id="brenderers" onChange="bump.setRenderer()">');
+			$('#bumpsettings').css({
+				display:'inline-block',
+				outline:'none',
+				border:'0',
+				appearance:'none',
+				'-moz-appearance':'none',
+				'-webkit-appearance':'none',
+			});
 			for (r in renderers) {
 				var address = renderers[r][0];
 				var sel = renderers[r][1] == 1 ? ' selected="selected" ' : '';
