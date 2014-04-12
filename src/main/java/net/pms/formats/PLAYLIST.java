@@ -20,7 +20,6 @@ package net.pms.formats;
 
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
-import net.pms.util.FileUtil;
 
 public class PLAYLIST extends Format {
 	public static final String[] PLAYLIST_EXTENSIONS = new String[] {
@@ -54,7 +53,9 @@ public class PLAYLIST extends Format {
 	@Deprecated
 	@Override
 	public boolean ps3compatible() {
-		return false;
+		// FIXME: untested, but ps3 reportedly supports m3u.
+		// See http://www.ps3mediaserver.org/forum/viewtopic.php?f=2&t=2102
+		return getMatchedExtension() != null && getMatchedExtension().startsWith("m3u");
 	}
 
 	@Override
@@ -67,7 +68,7 @@ public class PLAYLIST extends Format {
 	 */
 	@Override
 	public boolean isCompatible(DLNAMediaInfo media, RendererConfiguration renderer) {
-		// Emulating ps3compatible()
+		// TODO: manage via renderer conf setting
 		return false;
 	}
 
