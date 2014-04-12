@@ -219,8 +219,7 @@ public class PlaylistFolder extends DLNAResource {
 	}
 
 	public static DLNAResource getPlaylist(String name, String uri, int type) {
-		boolean isweb = FileUtil.isUrl(uri);
-		Format f =  FormatFactory.getAssociatedFormat(isweb ? uri.split("://")[1] : uri);
+		Format f = FormatFactory.getAssociatedFormat("." + FileUtil.getUrlExtension(uri));
 		if (f != null && f.getType() == Format.PLAYLIST) {
 			switch (f.getMatchedExtension()) {
 				case "m3u":
@@ -228,7 +227,7 @@ public class PlaylistFolder extends DLNAResource {
 				case "pls":
 					return new PlaylistFolder(name, uri, type);
 				case "cue":
-					return isweb ? null : new CueFolder(new File(uri));
+					return FileUtil.isUrl(uri) ? null : new CueFolder(new File(uri));
 			}
 		}
 		return null;
