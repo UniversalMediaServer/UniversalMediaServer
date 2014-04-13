@@ -1099,6 +1099,10 @@ public class DLNAMediaInfo implements Cloneable {
 	public boolean isH264() {
 		return getCodecV() != null && getCodecV().startsWith("h264");
 	}
+	
+	public boolean isMp4WithH264() {
+		return getContainer() != null && getContainer().equals("mp4") && isH264();
+	}
 
 	public int getFrameNumbers() {
 		double fr = Double.parseDouble(getFrameRate());
