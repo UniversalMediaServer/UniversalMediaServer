@@ -314,7 +314,7 @@ public class TsMuxeRVideo extends Player {
 					dtsRemux = configuration.isAudioEmbedDtsInPcm() && params.aid.isDTS() && params.mediaRenderer.isDTSPlayable() && !encodedAudioPassthrough;
 
 					pcm = configuration.isAudioUsePCM() &&
-						media.isMp4WithH264() && // Disable LPCM transcoding for MP4 container with non-H264 video as workaround for MEncoder's A/V sync bug
+						media.isValidForLPCMTranscoding() &&
 						(
 							params.aid.isLossless() ||
 							(params.aid.isDTS() && params.aid.getAudioProperties().getNumberOfChannels() <= 6) ||
@@ -433,7 +433,7 @@ public class TsMuxeRVideo extends Player {
 						dtsRemux = configuration.isAudioEmbedDtsInPcm() && audio.isDTS() && params.mediaRenderer.isDTSPlayable() && !encodedAudioPassthrough;
 
 						pcm = configuration.isAudioUsePCM() &&
-							media.isMp4WithH264() && // Disable LPCM transcoding for MP4 container with non-H264 video as workaround for MEncoder's A/V sync bug
+							media.isValidForLPCMTranscoding() &&
 							(
 								audio.isLossless() ||
 								(audio.isDTS() && audio.getAudioProperties().getNumberOfChannels() <= 6) ||
@@ -571,11 +571,12 @@ public class TsMuxeRVideo extends Player {
 				dtsRemux = configuration.isAudioEmbedDtsInPcm() && params.aid.isDTS() && params.mediaRenderer.isDTSPlayable() && !encodedAudioPassthrough;
 
 				pcm = configuration.isAudioUsePCM() &&
-					media.isMp4WithH264() && // Disable LPCM transcoding for MP4 container with non-H264 video as workaround for MEncoder's A/V sync bug
+					media.isValidForLPCMTranscoding() &&
 					(
 						params.aid.isLossless() ||
 						(params.aid.isDTS() && params.aid.getAudioProperties().getNumberOfChannels() <= 6) ||
 						params.aid.isTrueHD() ||
+						
 						(
 							!configuration.isMencoderUsePcmForHQAudioOnly() &&
 							(
@@ -634,7 +635,7 @@ public class TsMuxeRVideo extends Player {
 					dtsRemux = configuration.isAudioEmbedDtsInPcm() && lang.isDTS() && params.mediaRenderer.isDTSPlayable() && !encodedAudioPassthrough;
 
 					pcm = configuration.isAudioUsePCM() &&
-						media.isMp4WithH264() && // Disable LPCM transcoding for MP4 container with non-H264 video as workaround for MEncoder's A/V sync bug
+						media.isValidForLPCMTranscoding() &&
 						(
 							lang.isLossless() ||
 							(lang.isDTS() && lang.getAudioProperties().getNumberOfChannels() <= 6) ||

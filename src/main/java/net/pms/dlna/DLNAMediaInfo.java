@@ -1099,9 +1099,20 @@ public class DLNAMediaInfo implements Cloneable {
 	public boolean isH264() {
 		return getCodecV() != null && getCodecV().startsWith("h264");
 	}
-	
-	public boolean isMp4WithH264() {
-		return getContainer() != null && getContainer().equals("mp4") && isH264();
+
+	/**
+	 * Disable LPCM transcoding for MP4 container with non-H264 video as workaround for MEncoder's A/V sync bug
+	 */
+	public boolean isValidForLPCMTranscoding() {
+		if (getContainer() != null) {
+			if (getContainer().equals("mp4")) {
+				return isH264();
+			} else {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public int getFrameNumbers() {

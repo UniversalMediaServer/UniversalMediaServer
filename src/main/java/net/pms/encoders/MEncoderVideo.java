@@ -1066,8 +1066,7 @@ public class MEncoderVideo extends Player {
 					!dvd ||
 					configuration.isMencoderRemuxMPEG2()
 				)
-				// Disable LPCM transcoding for MP4 container with non-H.264 video as workaround for MEncoder's A/V sync bug
-				&& media.isMp4WithH264()
+				&& media.isValidForLPCMTranscoding()
 				&& params.aid != null &&
 				(
 					(params.aid.isDTS() && params.aid.getAudioProperties().getNumberOfChannels() <= 6) || // disable 7.1 DTS-HD => LPCM because of channels mapping bug
