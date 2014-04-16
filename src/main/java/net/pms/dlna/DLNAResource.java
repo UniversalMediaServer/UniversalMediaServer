@@ -1878,7 +1878,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 											isMuxableResult &&
 											mediaRenderer.isMuxH264MpegTS()
 										) ||
-										mediaRenderer.isTranscodeToMPEGTSAC3()
+										mediaRenderer.isTranscodeToMPEGTSAC3() ||
+										mediaRenderer.isTranscodeToH264TSAC3()
 									) {
 										isFileMPEGTS = true;
 									}

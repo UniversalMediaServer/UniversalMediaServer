@@ -669,7 +669,9 @@ public class RendererConfiguration {
 		if (isMediaParserV2()) {
 			// Use the supported information in the configuration to determine the transcoding mime type.
 			if (HTTPResource.VIDEO_TRANSCODE.equals(mimeType)) {
-				if (isTranscodeToMPEGTSAC3()) {
+				if (isTranscodeToH264TSAC3()) {
+					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.H264, FormatConfiguration.AC3);
+				} else if (isTranscodeToMPEGTSAC3()) {
 					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.MPEG2, FormatConfiguration.AC3);
 				} else if (isTranscodeToWMV()) {
 					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.WMV, FormatConfiguration.WMV, FormatConfiguration.WMA);
@@ -1150,7 +1152,7 @@ public class RendererConfiguration {
 	 * value is false.
 	 * <p>
 	 * Some renderers are particular about the "Content-Length" headers in
-	 * requests (e.g. Sony blu-ray players). By default, PMS will send a
+	 * requests (e.g. Sony Blu-ray Disc players). By default, UMS will send a
 	 * "Content-Length" that refers to the total media size, even if the exact
 	 * length is unknown.
 	 *
