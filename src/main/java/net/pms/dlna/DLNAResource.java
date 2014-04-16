@@ -1606,7 +1606,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							dlnaspec = "DLNA.ORG_PN=WMVHIGH_PRO";
 						}
 					} else {
-						if (mime.equals("video/mpeg")) {
+						if (mime.equals("video/mpeg") || mime.equals("video/mp4")) {
 							dlnaspec = "DLNA.ORG_PN=" + getMPEG_PS_PALLocalizedValue(c);
 
 							if (getPlayer() != null) {
@@ -1627,6 +1627,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 										(
 											configuration.isFFmpegMuxWithTsMuxerWhenCompatible() &&
 											FFMpegVideo.ID.equals(getPlayer().id())
+										) ||
+										(
+											VLCVideo.ID.equals(getPlayer().id())
 										)
 									)
 								) {
@@ -1879,7 +1882,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 											mediaRenderer.isMuxH264MpegTS()
 										) ||
 										mediaRenderer.isTranscodeToMPEGTSAC3() ||
-										mediaRenderer.isTranscodeToH264TSAC3()
+										mediaRenderer.isTranscodeToH264TSAC3() ||
+										mediaRenderer.isTranscodeToH264TSAAC()
 									) {
 										isFileMPEGTS = true;
 									}
@@ -1892,14 +1896,22 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 										!VideoLanVideoStreaming.ID.equals(getPlayer().id()) &&
 										isMuxableResult
 									) {
-										dlnaspec = "DLNA.ORG_PN=AVC_TS_HD_24_AC3_ISO";
+										if(mediaRenderer.isTranscodeToH264TSAC3()) {
+											dlnaspec = "DLNA.ORG_PN=AVC_TS_HD_24_AC3_ISO";
+										} else if(mediaRenderer.isTranscodeToH264TSAAC()) {
+											dlnaspec = "DLNA.ORG_PN=AVC_TS_HP_HD_AAC";
+										}
 									}
 								}
 							} else if (getMedia() != null) {
 								if (getMedia().isMpegTS()) {
 									dlnaspec = "DLNA.ORG_PN=" + getMPEG_TS_SD_EULocalizedValue(c);
 									if (getMedia().isH264()) {
-										dlnaspec = "DLNA.ORG_PN=AVC_TS_HD_50_AC3";
+										if(mediaRenderer.isTranscodeToH264TSAC3()) {
+											dlnaspec = "DLNA.ORG_PN=AVC_TS_HD_50_AC3";
+										} else if(mediaRenderer.isTranscodeToH264TSAAC()) {
+											dlnaspec = "DLNA.ORG_PN=AVC_TS_HP_HD_AAC";
+										}
 									}
 								}
 							}
