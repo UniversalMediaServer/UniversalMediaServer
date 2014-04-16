@@ -774,7 +774,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * If UMS is configured to hide transcode folders, null is returned.
 	 * If no folder exists and the create argument is false, null is returned.
 	 * If no folder exists and the create argument is true, a new transcode folder is created.
-	 * This method is called on the parent frolder each time a child is added to that parent
+	 * This method is called on the parent folder each time a child is added to that parent
 	 * (via {@link addChild(DLNAResource)}.
 	 *
 	 * @param create
@@ -2378,7 +2378,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 
 			if (resume != null) {
-				params.timeseek += (long) (resume.getTimeOffset() / 1000);
 				if (getPlayer() == null) {
 					setPlayer(new FFMpegVideo());
 				}

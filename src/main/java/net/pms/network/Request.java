@@ -818,10 +818,19 @@ public class Request extends HTTPResource {
 				output(output, "Content-Length: " + cl);
 			}
 
-			if (timeseek > 0 && dlna != null) {
+			if (dlna != null && (timeseek > 0 || dlna.isResume())) {
 				// Add timeseek information headers.
 				String timeseekValue = StringUtil.convertTimeToString(timeseek, StringUtil.DURATION_TIME_FORMAT);
 				String timetotalValue = dlna.getMedia().getDurationString();
+
+				if(dlna.isResume()) {
+					if (timeseek > 0.0) {
+						dlna.getResume().stop(System.currentTimeMillis() + dlna.getResume().getTimeOffset() - (long) (timeseek * 1000), (long) (dlna.getMedia().getDuration() * 1000));
+					} else {
+						timeseekValue = StringUtil.convertTimeToString(new Long(dlna.getResume().getTimeOffset()).doubleValue() / 1000, StringUtil.DURATION_TIME_FORMAT);
+					}
+				}
+
 				output(output, "TimeSeekRange.dlna.org: npt=" + timeseekValue + "-" + timetotalValue + "/" + timetotalValue);
 				output(output, "X-Seek-Range: npt=" + timeseekValue + "-" + timetotalValue + "/" + timetotalValue);
 			}
