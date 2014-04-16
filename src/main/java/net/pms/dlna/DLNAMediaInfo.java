@@ -376,9 +376,16 @@ public class DLNAMediaInfo implements Cloneable {
 		setThumbready(true); // this class manages thumbnails by default with the parser_v1 method
 	}
 
-	public void generateThumbnail(InputFile input, Format ext, int type) {
+	public void generateThumbnail(InputFile input, Format ext, int type, Double seekPosition) {
 		DLNAMediaInfo forThumbnail = new DLNAMediaInfo();
-		forThumbnail.durationSec = durationSec;
+		forThumbnail.durationSec = getDurationInSeconds();
+
+		if(seekPosition <= forThumbnail.durationSec) {
+			forThumbnail.durationSec = seekPosition;
+		} else {
+			forThumbnail.durationSec = forThumbnail.durationSec / 2;
+		}
+
 		forThumbnail.parse(input, ext, type, true);
 		setThumb(forThumbnail.getThumb());
 	}
@@ -401,7 +408,7 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 
 		args[3] = "-ss";
-		args[4] = "" + configuration.getThumbnailSeekPos();
+		args[4] = "" + new Double(getDurationInSeconds()).intValue();
 		args[5] = "-i";
 
 		if (file != null) {
@@ -463,8 +470,7 @@ public class DLNAMediaInfo implements Cloneable {
 		String args[] = new String[14];
 		args[0] = configuration.getMplayerPath();
 		args[1] = "-ss";
-		boolean toolong = getDurationInSeconds() < configuration.getThumbnailSeekPos();
-		args[2] = "" + (toolong ? (getDurationInSeconds() / 2) : configuration.getThumbnailSeekPos());
+		args[2] = "" + new Double(getDurationInSeconds()).intValue();
 		args[3] = "-quiet";
 
 		if (file != null) {

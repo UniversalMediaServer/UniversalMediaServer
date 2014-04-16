@@ -724,7 +724,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 
 					if (resumeRes != null) {
-						resumeRes.setMedia(child.getMedia());
+						resumeRes.getMedia().setThumbready(false);
 					}
 
 					if (
@@ -1383,6 +1383,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// Make sure clones (typically #--TRANSCODE--# folder files)
 			// have the option to respond to resolve events
 			o.resolved = false;
+			
+			if (media != null) {
+				o.media = (DLNAMediaInfo) media.clone();
+			}
 		} catch (CloneNotSupportedException e) {
 			LOGGER.error(null, e);
 		}
@@ -2519,7 +2523,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	protected void checkThumbnail(InputFile inputFile) {
 		if (getMedia() != null && !getMedia().isThumbready() && configuration.isThumbnailGenerationEnabled()) {
 			getMedia().setThumbready(true);
-			getMedia().generateThumbnail(inputFile, getFormat(), getType());
+
+			Double seekPosition = ((Integer)configuration.getThumbnailSeekPos()).doubleValue();
+
+			if(isResume()) {
+				Double resumePosition = ((Long)getResume().getTimeOffset()).doubleValue() / 1000;
+
+				if(getMedia().getDurationInSeconds() > 0 && resumePosition < getMedia().getDurationInSeconds()) {
+					seekPosition = resumePosition;
+				}
+			}
+
+			getMedia().generateThumbnail(inputFile, getFormat(), getType(), seekPosition);
+
 			if (getMedia().getThumb() != null && configuration.getUseCache() && inputFile.getFile() != null) {
 				PMS.get().getDatabase().updateThumbnail(inputFile.getFile().getAbsolutePath(), inputFile.getFile().lastModified(), getType(), getMedia());
 			}
@@ -3266,12 +3282,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (!configuration.isResumeEnabled() || !isResumeable()) {
 			return null;
 		}
+
+		notifyRefresh();
+
 		if (resume != null) {
 			resume.stop(startTime, (long) (getMedia().getDurationInSeconds() * 1000));
 			if (resume.isDone()) {
 				getParent().getChildren().remove(this);
+			} else {
+				getMedia().setThumbready(false);
 			}
-			notifyRefresh();
 		} else {
 			for (DLNAResource res : getParent().getChildren()) {
 				if (res.isResume() && res.getName().equals(getName())) {
@@ -3280,6 +3300,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						getParent().getChildren().remove(res);
 						return null;
 					}
+					res.getMedia().setThumbready(false);
 					return res;
 				}
 			}
@@ -3288,7 +3309,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				DLNAResource clone = this.clone();
 				clone.resume = r;
 				clone.resHash = resHash;
-				clone.setMedia(getMedia());
+				clone.getMedia().setThumbready(false);
 				clone.setPlayer(getPlayer());
 				getParent().addChildInternal(clone);
 				return clone;
