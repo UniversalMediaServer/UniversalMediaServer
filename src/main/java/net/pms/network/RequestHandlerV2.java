@@ -123,10 +123,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			String headerLine = name + ": " + nettyRequest.headers().get(name);
 			LOGGER.trace("Received on socket: " + headerLine);
 
-			if (
-				renderer == null && headerLine != null &&
-				headerLine.toUpperCase().startsWith("USER-AGENT")
-			) {
+			if (renderer == null && headerLine.toUpperCase().startsWith("USER-AGENT")) {
 				userAgentString = headerLine.substring(headerLine.indexOf(':') + 1).trim();
 
 				// Attempt 2: try to recognize the renderer by matching the "User-Agent" header
@@ -140,7 +137,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				}
 			}
 
-			if (renderer == null && headerLine != null) {
+			if (renderer == null) {
 				// Attempt 3: try to recognize the renderer by matching an additional header
 				renderer = RendererConfiguration.getRendererConfigurationByUAAHH(headerLine);
 

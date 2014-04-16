@@ -192,7 +192,7 @@ public class RootFolder extends DLNAResource {
 		}
 	}
 
-	public synchronized void scan() {
+	public void scan() {
 		running = true;
 
 		if (!isDiscovered()) {
@@ -215,11 +215,11 @@ public class RootFolder extends DLNAResource {
 		stopScan();
 	}
 
-	public synchronized void stopScan() {
+	public void stopScan() {
 		running = false;
 	}
 
-	private synchronized void scan(DLNAResource resource) {
+	private void scan(DLNAResource resource) {
 		if (running) {
 			for (DLNAResource child : resource.getChildren()) {
 				if (running && child.allowScan()) {
@@ -262,10 +262,10 @@ public class RootFolder extends DLNAResource {
 	private List<RealFile> getConfiguredFolders(ArrayList<String> tags) {
 		List<RealFile> res = new ArrayList<>();
 		File[] files = PMS.get().getSharedFoldersArray(false, tags);
-		String s = PMS.getConfiguration().getIgnoreFolders(tags);
+		String s = PMS.getConfiguration().getFoldersIgnored(tags);
 		String[] skips = null;
 
-		if(s != null) {
+		if (s != null) {
 			skips = s.split(",");
 		}
 
@@ -274,7 +274,7 @@ public class RootFolder extends DLNAResource {
 		}
 
 		for (File f : files) {
-			if(skipPath(skips, f.getAbsolutePath().toLowerCase())) {
+			if (skipPath(skips, f.getAbsolutePath().toLowerCase())) {
 				continue;
 			}
 			res.add(new RealFile(f));
@@ -284,15 +284,16 @@ public class RootFolder extends DLNAResource {
 	}
 
 	private boolean skipPath(String[] skips, String path) {
-		for(String s : skips) {
-			if(StringUtils.isBlank(s)) {
+		for (String s : skips) {
+			if (StringUtils.isBlank(s)) {
 				continue;
 			}
-	
+
 			if (path.contains(s.toLowerCase())) {
 				return true;
 			}
 		}
+
 		return false;
 	}
 
@@ -1074,11 +1075,12 @@ public class RootFolder extends DLNAResource {
 										ProcessBuilder pb = new ProcessBuilder(f.getAbsolutePath());
 										Process pid = pb.start();
 										InputStream is = pid.getInputStream();
-										InputStreamReader isr = new InputStreamReader(is);
-										BufferedReader br = new BufferedReader(isr);
-										while (br.readLine() != null) {
+										BufferedReader br;
+										try (InputStreamReader isr = new InputStreamReader(is)) {
+											br = new BufferedReader(isr);
+											while (br.readLine() != null) {
+											}
 										}
-										isr.close();
 										br.close();
 										pid.waitFor();
 									} catch (IOException | InterruptedException e) {
