@@ -365,7 +365,7 @@ public class FormatConfiguration {
 				return MPEGPS;
 			}
 
-			if (supportSpec.match(MPEGTS, MPEG2, AC3)) {
+			if (supportSpec.match(MPEGTS, MPEG2, AC3) || supportSpec.match(MPEGTS, MPEG2, AAC)) {
 				return MPEGTS;
 			}
 
