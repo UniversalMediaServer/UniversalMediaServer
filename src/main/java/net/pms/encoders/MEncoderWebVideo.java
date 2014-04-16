@@ -167,4 +167,12 @@ public class MEncoderWebVideo extends Player {
 	public boolean isCompatible(DLNAResource resource) {
 		return PlayerUtil.isWebVideo(resource);
 	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean isGPUAccelerationReady() {
+		return true;
+	}
 }

@@ -549,6 +549,11 @@ public class MEncoderVideo extends Player {
 		return true;
 	}
 
+	@Override
+	public boolean isGPUAccelerationReady() {
+		return true;
+	}
+
 	protected String[] getDefaultArgs() {
 		List<String> defaultArgsList = new ArrayList<>();
 
