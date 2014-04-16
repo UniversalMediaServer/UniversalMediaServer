@@ -64,6 +64,7 @@ public class RendererConfiguration {
 	private static final String WMV = "WMV";
 
 	// property names
+	private static final String ACCURATE_DLNA_ORGPN = "AccurateDLNAOrgPN";
 	private static final String AUDIO = "Audio";
 	private static final String AUTO_EXIF_ROTATE = "AutoExifRotate";
 	private static final String BYTE_TO_TIMESEEK_REWIND_SECONDS = "ByteToTimeseekRewindSeconds"; // Ditlew
@@ -1061,6 +1062,10 @@ public class RendererConfiguration {
 
 	public boolean isDLNAOrgPNUsed() {
 		return getBoolean(DLNA_ORGPN_USE, true);
+	}
+
+	public boolean isAccurateDLNAOrgPN() {
+		return getBoolean(ACCURATE_DLNA_ORGPN, false);
 	}
 
 	/**

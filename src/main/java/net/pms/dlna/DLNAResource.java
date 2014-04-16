@@ -1614,7 +1614,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								boolean isFileMPEGTS = TsMuxeRVideo.ID.equals(getPlayer().id()) || VideoLanVideoStreaming.ID.equals(getPlayer().id());
 
 								boolean isMuxableResult = getMedia().isMuxable(mediaRenderer);
-								boolean isBravia = mediaRenderer.isBRAVIA();
 
 								// If the engine is MEncoder or FFmpeg, and the muxing settings are enabled, it may be MPEG-TS so we need to do more tests
 								if (
@@ -1631,7 +1630,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									)
 								) {
 									/**
-									 * Sony Bravia TVs (and possibly other renderers) need ORG_PN to be accurate.
+									 * Media renderer needs ORG_PN to be accurate.
 									 * If the value does not match the media, it won't play the media.
 									 * Often we can lazily predict the correct value to send, but due to
 									 * MEncoder needing to mux via tsMuxeR, we need to work it all out
@@ -1645,7 +1644,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									 *
 									 * This code block comes from Player.setAudioAndSubs()
 									 */
-									if (isBravia) {
+									if (mediaRenderer.isAccurateDLNAOrgPN()) {
 										boolean finishedMatchingPreferences = false;
 										OutputParams params = new OutputParams(configuration);
 										if (getMedia() != null) {
