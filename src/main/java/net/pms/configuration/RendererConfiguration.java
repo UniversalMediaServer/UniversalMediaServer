@@ -93,6 +93,7 @@ public class RendererConfiguration {
 	private static final String MUX_DTS_TO_MPEG = "MuxDTSToMpeg";
 	private static final String MUX_H264_WITH_MPEGTS = "MuxH264ToMpegTS";
 	private static final String MUX_LPCM_TO_MPEG = "MuxLPCMToMpeg";
+	private static final String MUX_NON_MOD4_RESOLUTION = "MuxNonMod4Resolution";
 	private static final String OVERRIDE_VF = "OverrideVideoFilter";
 	private static final String RENDERER_ICON = "RendererIcon";
 	private static final String RENDERER_NAME = "RendererName";
@@ -914,6 +915,10 @@ public class RendererConfiguration {
 		}
 
 		return getBoolean(MUX_LPCM_TO_MPEG, true);
+	}
+
+	public boolean isMuxNonMod4Resolution() {
+		return getBoolean(MUX_NON_MOD4_RESOLUTION, false);
 	}
 
 	public boolean isMpeg2Supported() {

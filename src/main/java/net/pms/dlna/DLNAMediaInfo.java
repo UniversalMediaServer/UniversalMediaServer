@@ -312,7 +312,7 @@ public class DLNAMediaInfo implements Cloneable {
 				)
 			) ||
 			(
-				!mediaRenderer.isBRAVIA() &&
+				!mediaRenderer.isMuxNonMod4Resolution() &&
 				!isMod4()
 			)
 		) {
