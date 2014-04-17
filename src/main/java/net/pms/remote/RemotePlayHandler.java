@@ -51,6 +51,7 @@ public class RemotePlayHandler implements HttpHandler {
 			mediaType = "audio";
 			String thumb = "/thumb/" + id1;
 			coverImage = "<img class=\"cover\" src=\"" + thumb + "\" alt=\"\"><br>";
+			flowplayer = false;
 		}
 		if (r.getFormat().isVideo()) {
 			mediaType = "video";
@@ -78,9 +79,10 @@ public class RemotePlayHandler implements HttpHandler {
 					sb.append("<div id=\"Menu\">").append(CRLF);
 						sb.append("<a href=\"/browse/0\" id=\"HomeButton\"></a>").append(CRLF);
 					sb.append("</div>").append(CRLF);
+					sb.append("<div id=\"VideoContainer\">").append(CRLF);
+					// for video this gives just an empty line
 					sb.append(coverImage).append(CRLF);
 					if (flowplayer) {
-						sb.append("<div id=\"VideoContainer\">").append(CRLF);
 						sb.append("<div class=\"flowplayer no-time no-volume no-mute\" data-ratio=\"0.5625\" data-embed=\"false\" data-flashfit=\"true\">").append(CRLF);
 					}
 					sb.append("<").append(mediaType);
@@ -127,8 +129,8 @@ public class RemotePlayHandler implements HttpHandler {
 
 					if (flowplayer) {
 						sb.append("</div>").append(CRLF);
-						sb.append("</div>").append(CRLF);
 					}
+					sb.append("</div>").append(CRLF);
 					sb.append("<a href=\"/raw/").append(rawId).append("\" target=\"_blank\" id=\"DownloadLink\" title=\"Download this video\"></a>").append(CRLF);
 				sb.append("</div>").append(CRLF);
 			sb.append("</body>").append(CRLF);
