@@ -8,7 +8,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 import net.pms.PMS;
+import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
 import net.pms.dlna.RootFolder;
@@ -65,13 +67,20 @@ public class RemoteMediaHandler implements HttpHandler {
 		Range range = RemoteUtil.parseRange(t.getRequestHeaders(), len);
 		String mime = root.getDefaultRenderer().getMimeType(res.get(0).mimeType());
 		DLNAResource dlna = res.get(0);
+		DLNAMediaInfo m = dlna.getMedia();
+		if(mime.equals(FormatConfiguration.MIMETYPE_AUTO) && m != null) {
+			mime = m.getMimeType();
+		}
 		if (dlna.getFormat().isVideo()) {
 			if (flash) {
 				mime = "video/flash";
 				dlna.setPlayer(new WebPlayer(true));
-			} else if (!RemoteUtil.directmime(mime) || (dlna.getMediaSubtitle() != null)) {
+			} else if (!RemoteUtil.directmime(mime)) {
 				mime = RemoteUtil.MIME_TRANS;
 				dlna.setPlayer(new WebPlayer());
+			}
+			else {
+				dlna.setPlayer(null);
 			}
 		}
 

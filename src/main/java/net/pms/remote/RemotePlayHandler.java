@@ -10,6 +10,7 @@ import java.net.URLEncoder;
 import java.util.List;
 
 import net.pms.PMS;
+import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
@@ -45,6 +46,7 @@ public class RemotePlayHandler implements HttpHandler {
 		String mime = root.getDefaultRenderer().getMimeType(r.mimeType());
 		String mediaType = "";
 		String coverImage = "";
+		LOGGER.debug("form "+r.getFormat().toString());
 		if (r.getFormat().isAudio()) {
 			mediaType = "audio";
 			String thumb = "/thumb/" + id1;
@@ -52,8 +54,8 @@ public class RemotePlayHandler implements HttpHandler {
 		}
 		if (r.getFormat().isVideo()) {
 			mediaType = "video";
-			if (!RemoteUtil.directmime(mime)) {
-				mime = RemoteUtil.MIME_TRANS;
+			if(mime.equals(FormatConfiguration.MIMETYPE_AUTO)) {
+				mime = r.getMedia().getMimeType();
 			}
 		}
 
@@ -83,12 +85,19 @@ public class RemotePlayHandler implements HttpHandler {
 					}
 					sb.append("<").append(mediaType);
 					if (flowplayer) {
-						sb.append(" autoplay>");
+						sb.append(" controls autoplay>");
+						if(RemoteUtil.directmime(mime)) {
+							sb.append("<source src=\"/media/").append(URLEncoder.encode(id1, "UTF-8")).append("\" type=\"").append(mime).append("\">");
+						}
+						else {
+							sb.append("<source src=\"/fmedia/").append(URLEncoder.encode(id1, "UTF-8")).append("\" type=\"video/x-flv\">");
+						}
 					} else {
 						sb.append(" width=\"720\" height=\"404\" controls autoplay>").append(CRLF);
+						sb.append("<source src=\"/media/").append(URLEncoder.encode(id1, "UTF-8")).append("\" type=\"").append(mime).append("\">");
 					}
-					//sb.append("<source src=\"/media/").append(URLEncoder.encode(id1, "UTF-8")).append("\" type=\"").append(mime).append("\">");
-					sb.append("<source src=\"/fmedia/").append(URLEncoder.encode(id1, "UTF-8")).append("\" type=\"video/x-flv\">");
+					sb.append(CRLF);
+
 					if (flowplayer) {
 						PmsConfiguration configuration = PMS.getConfiguration();
 						boolean isFFmpegFontConfig = configuration.isFFmpegFontConfig();
@@ -97,11 +106,14 @@ public class RemotePlayHandler implements HttpHandler {
 						}
 
 						OutputParams p = new OutputParams(configuration);
+						p.aid = r.getMediaAudio();
+						p.sid = r.getMediaSubtitle();
+						p.header = r.getHeaders();
 						Player.setAudioAndSubs(r.getName(), r.getMedia(), p);
 						try {
 							File subFile = FFMpegVideo.getSubtitles(r, r.getMedia(), p, configuration);
-							subFile = SubtitleUtils.convertSubripToWebVTT(subFile);
 							LOGGER.debug("subFile " + subFile);
+							subFile = SubtitleUtils.convertSubripToWebVTT(subFile);
 							if (subFile != null) {
 								sb.append("<track src=\"/subs/").append(subFile.getAbsolutePath()).append("\">");
 							}
@@ -112,6 +124,7 @@ public class RemotePlayHandler implements HttpHandler {
 						configuration.setFFmpegFontConfig(isFFmpegFontConfig); // return back original fontconfig value
 					}
 					sb.append("</").append(mediaType).append(">").append(CRLF);
+
 					if (flowplayer) {
 						sb.append("</div>").append(CRLF);
 						sb.append("</div>").append(CRLF);

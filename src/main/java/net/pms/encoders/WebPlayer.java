@@ -139,32 +139,25 @@ public class WebPlayer extends FFMpegVideo {
 			cmdList.add("ogg");
 			/*cmdList.add("-c:v");
 			cmdList.add("libx264");
-			cmdList.add("-profile:v");
-			cmdList.add("baseline");
-			cmdList.add("-level");
-			cmdList.add("31");
+			cmdList.add("-preset");
+			cmdList.add("fast");
 			cmdList.add("-tune");
 			cmdList.add("zerolatency");
+			cmdList.add("-c:a");
+			cmdList.add("aac");
 			cmdList.add("-ab");
-			cmdList.add("56k");
+			cmdList.add("16k");
+			cmdList.add("-ar");
+			cmdList.add("44100");
 			cmdList.add("-strict");
 			cmdList.add("experimental");
-			cmdList.add("-acodec");
-			cmdList.add("aac");
-			cmdList.add("-cutoff");
-			cmdList.add("15000");
-			cmdList.add("-g");
-			cmdList.add("30");
-			cmdList.add("-r");
-			cmdList.add("24");
 			cmdList.add("-pix_fmt");
 			cmdList.add("yuv420p");
+			cmdList.add("-movflags");
+			cmdList.add("faststart");
 			cmdList.add("-f");
 			cmdList.add("mp4");
-			cmdList.add("-flags");
-			cmdList.add("global_header");
-			cmdList.add("-movflags");
-			cmdList.add("separate_moof+frag_keyframe+empty_moov");*/
+			//cmdList.add("separate_moof+frag_keyframe+empty_moov"); */
 		} else {
 			cmdList.add("-c:v");
 			if (media.getCodecV() != null && media.getCodecV().equals("h264")) {
