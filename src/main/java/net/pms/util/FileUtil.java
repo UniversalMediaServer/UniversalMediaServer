@@ -1,6 +1,8 @@
 package net.pms.util;
 
 import java.io.*;
+import java.net.URL;
+import java.net.MalformedURLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -123,22 +125,34 @@ public class FileUtil {
 		return isFileExists(new File(f), ext);
 	}
 
-	/**
-	 * Returns the protocol of the supplied filename if any,
-	 * or <code>null</code> if none.
-	 *
-	 * @param filename the filename whose protocol is to be determined
-	 * @return the filename's protocol if any, or <code>null</code>
-	 * if none.
-	 */
+	public static boolean isUrl(String filename) {
+		// We're intentionally avoiding stricter URI() methods, which can throw
+		// URISyntaxException for psuedo-urls (e.g. librtmp-style urls containing spaces)
+		return filename != null && filename.matches("\\S+://.*");
+	}
+
 	public static String getProtocol(String filename) {
-		// we use a lax validate/parse here instead of URI.getScheme()
-		// so psuedo-urls (e.g. librtmp-style urls containing spaces)
-		// will pass without throwing URISyntaxException.
-		if (filename != null && filename.matches("\\S+://.*")) {
+		// Intentionally avoids URI.getScheme(), see above
+		if (isUrl(filename)) {
 			return filename.split("://")[0].toLowerCase();
 		}
 		return null;
+	}
+
+	public static String urlJoin(String base, String filename) {
+		if (isUrl(filename)) {
+			return filename;
+		}
+		try {
+			return new URL(new URL(base), filename).toString();
+		} catch (MalformedURLException e) {
+			return filename;
+		}
+	}
+
+	public static String getUrlExtension(String u) {
+		// Omit the query string, if any
+		return getExtension(u.split("\\?")[0]);
 	}
 
 	public static String getExtension(String f) {

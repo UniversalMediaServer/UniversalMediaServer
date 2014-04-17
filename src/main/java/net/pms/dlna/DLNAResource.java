@@ -1584,9 +1584,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				// not guaranteed to return a match for another renderer.
 				String mime = mediaRenderer.getMimeType(mimeType());
 
-				if (mime == null) {
-					// FIXME: Setting the default to "video/mpeg" leaves a lot of audio files in the cold.
-					mime = "video/mpeg";
+				// Use our best guess if we have no valid mime type
+				if (mime == null || mime.contains("/transcode")) {
+					mime = HTTPResource.getDefaultMimeType(getType());
 				}
 
 				dlnaspec = null;
