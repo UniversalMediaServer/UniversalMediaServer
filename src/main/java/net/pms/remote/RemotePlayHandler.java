@@ -30,6 +30,13 @@ public class RemotePlayHandler implements HttpHandler {
 		this.parent = parent;
 	}
 
+	private void endPage(StringBuilder sb) {
+		sb.append("</div>").append(CRLF);
+		sb.append("</div>").append(CRLF);
+		sb.append("</body>").append(CRLF);
+		sb.append("</html>").append(CRLF);
+	}
+
 	private String mkPage(String id, HttpExchange t) throws IOException {
 		boolean flowplayer = true;
 
@@ -46,11 +53,14 @@ public class RemotePlayHandler implements HttpHandler {
 		String mime = root.getDefaultRenderer().getMimeType(r.mimeType());
 		String mediaType = "";
 		String coverImage = "";
-		LOGGER.debug("form "+r.getFormat().toString());
+		if(r.getFormat().isImage()) {
+			flowplayer = false;
+			coverImage = "<img src=\"/raw/" + rawId + "\" alt=\"\"><br>";
+		}
 		if (r.getFormat().isAudio()) {
 			mediaType = "audio";
 			String thumb = "/thumb/" + id1;
-			coverImage = "<img class=\"cover\" src=\"" + thumb + "\" alt=\"\"><br>";
+			coverImage = "<img src=\"" + thumb + "\" alt=\"\"><br>";
 			flowplayer = false;
 		}
 		if (r.getFormat().isVideo()) {
@@ -82,6 +92,12 @@ public class RemotePlayHandler implements HttpHandler {
 					sb.append("<div id=\"VideoContainer\">").append(CRLF);
 					// for video this gives just an empty line
 					sb.append(coverImage).append(CRLF);
+					if(r.getFormat().isImage()) {
+						// do this like this to simplify the code
+						// skip all player crap since img tag works well
+						endPage(sb);
+						return sb.toString();
+					}
 					if (flowplayer) {
 						sb.append("<div class=\"flowplayer no-time no-volume no-mute\" data-ratio=\"0.5625\" data-embed=\"false\" data-flashfit=\"true\">").append(CRLF);
 					}
@@ -130,11 +146,9 @@ public class RemotePlayHandler implements HttpHandler {
 					if (flowplayer) {
 						sb.append("</div>").append(CRLF);
 					}
-					sb.append("</div>").append(CRLF);
-					sb.append("<a href=\"/raw/").append(rawId).append("\" target=\"_blank\" id=\"DownloadLink\" title=\"Download this video\"></a>").append(CRLF);
-				sb.append("</div>").append(CRLF);
-			sb.append("</body>").append(CRLF);
-		sb.append("</html>").append(CRLF);
+		sb.append("</div>").append(CRLF);
+		sb.append("<a href=\"/raw/").append(rawId).append("\" target=\"_blank\" id=\"DownloadLink\" title=\"Download this video\"></a>").append(CRLF);
+		endPage(sb);
 
 		return sb.toString();
 	}
