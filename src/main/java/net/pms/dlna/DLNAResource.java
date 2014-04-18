@@ -2517,8 +2517,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	protected void checkThumbnail(InputFile inputFile) {
 		if (getMedia() != null && !getMedia().isThumbready() && configuration.isThumbnailGenerationEnabled()) {
-			getMedia().setThumbready(true);
 			getMedia().generateThumbnail(inputFile, getFormat(), getType());
+			getMedia().setThumbready(true);
 			if (getMedia().getThumb() != null && configuration.getUseCache() && inputFile.getFile() != null) {
 				PMS.get().getDatabase().updateThumbnail(inputFile.getFile().getAbsolutePath(), inputFile.getFile().lastModified(), getType(), getMedia());
 			}

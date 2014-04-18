@@ -15,6 +15,7 @@ import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.Executors;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
@@ -70,6 +71,8 @@ public class RemoteWeb {
 				server = HttpServer.create(address, 0);
 			}
 
+			int threads = configuration.getWebThreads();
+
 			// Add context handlers
 			addCtx("/", new RemoteStartHandler());
 			addCtx("/browse", new RemoteBrowseHandler(this));
@@ -80,7 +83,7 @@ public class RemoteWeb {
 			addCtx("/raw", new RemoteRawHandler(this));
 			addCtx("/files", new RemoteFileHandler());
 			addCtx("/subs", new RemoteFileHandler());
-			server.setExecutor(null);
+			server.setExecutor(Executors.newFixedThreadPool(threads));
 			server.start();
 		} catch (Exception e) {
 			LOGGER.debug("Couldn't start RemoteWEB " + e);
@@ -238,6 +241,7 @@ public class RemoteWeb {
 
 		public RemoteThumbHandler(RemoteWeb parent) {
 			this.parent = parent;
+
 		}
 
 		@Override
@@ -246,6 +250,7 @@ public class RemoteWeb {
 				throw new IOException("Access denied");
 			}
 			String id = RemoteUtil.getId("thumb/", t);
+			LOGGER.trace("web thumb req " + id);
 			if (id.contains("logo")) {
 				RemoteUtil.sendLogo(t);
 				return;
@@ -255,23 +260,22 @@ public class RemoteWeb {
 				LOGGER.debug("weird root in thumb req");
 				throw new IOException("Unknown root");
 			}
-			List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, root.getDefaultRenderer());
+			final List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, root.getDefaultRenderer());
 			if (res.size() != 1) {
 				// another error
 				LOGGER.debug("media unkonwn");
 				throw new IOException("Bad id");
 			}
+			DLNAResource r = res.get(0);
+			r.checkThumbnail();
 			Headers hdr = t.getResponseHeaders();
-			hdr.add("Content-Type", res.get(0).getThumbnailContentType());
+			hdr.add("Content-Type", r.getThumbnailContentType());
 			hdr.add("Accept-Ranges", "bytes");
 			hdr.add("Connection", "keep-alive");
-			InputStream in = res.get(0).getThumbnailInputStream();
+			InputStream in = r.getThumbnailInputStream();
 			t.sendResponseHeaders(200, in.available());
 			OutputStream os = t.getResponseBody();
 			LOGGER.debug("input is " + in + " out " + os);
-			if (root.getDefaultRenderer().isMediaParserV2()) {
-				res.get(0).checkThumbnail();
-			}
 			RemoteUtil.dump(in, os);
 		}
 	}

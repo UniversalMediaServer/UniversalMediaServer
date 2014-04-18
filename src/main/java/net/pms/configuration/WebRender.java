@@ -78,4 +78,9 @@ public class WebRender extends RendererConfiguration {
 	public String toString() {
 		return getRendererName();
 	}
+
+	@Override
+	public boolean isMediaParserV2ThumbnailGeneration() {
+		return false;
+	}
 }

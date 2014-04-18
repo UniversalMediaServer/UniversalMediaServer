@@ -278,6 +278,8 @@ public class DLNAMediaInfo implements Cloneable {
 	@Deprecated
 	public String stereoscopy;
 
+	private boolean gen_thumb;
+
 	/**
 	 * Used to determine whether tsMuxeR can mux the file to the renderer
 	 * instead of transcoding.
@@ -371,10 +373,12 @@ public class DLNAMediaInfo implements Cloneable {
 
 	public DLNAMediaInfo() {
 		setThumbready(true); // this class manages thumbnails by default with the parser_v1 method
+		gen_thumb = false;
 	}
 
 	public void generateThumbnail(InputFile input, Format ext, int type) {
 		DLNAMediaInfo forThumbnail = new DLNAMediaInfo();
+		forThumbnail.gen_thumb = true;
 		forThumbnail.durationSec = durationSec;
 		forThumbnail.parse(input, ext, type, true);
 		setThumb(forThumbnail.getThumb());
@@ -692,8 +696,7 @@ public class DLNAMediaInfo implements Cloneable {
 				} catch (ImageReadException | IOException e) {
 					LOGGER.info("Error parsing image ({}) with Sanselan, switching to FFmpeg.", file.getAbsolutePath());
 				}
-
-				if (configuration.getImageThumbnailsEnabled() && file != null) {
+				if (configuration.getImageThumbnailsEnabled() && file != null && gen_thumb) {
 					LOGGER.trace("Creating (temporary) thumbnail: {}", file.getName());
 
 					// Create the thumbnail image using the Thumbnailator library
