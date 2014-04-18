@@ -16,6 +16,9 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
 import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.Player;
+import net.pms.formats.Format;
+import net.pms.formats.FormatFactory;
+import net.pms.formats.WEB;
 import net.pms.formats.v2.SubtitleUtils;
 import net.pms.io.OutputParams;
 import org.slf4j.Logger;
@@ -66,7 +69,9 @@ public class RemotePlayHandler implements HttpHandler {
 		if (r.getFormat().isVideo()) {
 			mediaType = "video";
 			if(mime.equals(FormatConfiguration.MIMETYPE_AUTO)) {
-				mime = r.getMedia().getMimeType();
+				if (r.getMedia() != null && r.getMedia().getMimeType() != null) {
+					mime = r.getMedia().getMimeType();
+				}
 			}
 		}
 
@@ -98,6 +103,7 @@ public class RemotePlayHandler implements HttpHandler {
 						endPage(sb);
 						return sb.toString();
 					}
+
 					if (flowplayer) {
 						sb.append("<div class=\"flowplayer no-time no-volume no-mute\" data-ratio=\"0.5625\" data-embed=\"false\" data-flashfit=\"true\">").append(CRLF);
 					}
@@ -105,11 +111,14 @@ public class RemotePlayHandler implements HttpHandler {
 					if (flowplayer) {
 						sb.append(" controls autoplay>");
 						if(RemoteUtil.directmime(mime)) {
-							sb.append("<source src=\"/media/").append(URLEncoder.encode(id1, "UTF-8")).append("\" type=\"").append(mime).append("\">");
+							sb.append("<source src=\"/media/").append(URLEncoder.encode(id1, "UTF-8")).
+							   append("\" type=\"").append(mime).append("\">");
 						}
 						else {
-							sb.append("<source src=\"/fmedia/").append(URLEncoder.encode(id1, "UTF-8")).append("\" type=\"video/x-flv\">");
+							sb.append("<source src=\"/fmedia/").append(URLEncoder.encode(id1, "UTF-8")).
+							   append("\" type=\"video/x-flv\">");
 						}
+
 					} else {
 						sb.append(" width=\"720\" height=\"404\" controls autoplay>").append(CRLF);
 						sb.append("<source src=\"/media/").append(URLEncoder.encode(id1, "UTF-8")).append("\" type=\"").append(mime).append("\">");

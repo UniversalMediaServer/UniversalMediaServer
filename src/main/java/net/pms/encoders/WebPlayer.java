@@ -35,7 +35,7 @@ public class WebPlayer extends FFMpegVideo {
 		OutputParams params
 	) throws IOException {
 		LOGGER.debug("web player wrapper called");
-		params.waitbeforestart = 1000;
+		params.waitbeforestart = 4000;
 		final String filename = dlna.getSystemName();
 		setAudioAndSubs(filename, media, params);
 
@@ -102,7 +102,7 @@ public class WebPlayer extends FFMpegVideo {
 		cmdList.add("-i");
 		cmdList.add(filename);
 
-		//cmdList.addAll(getVideoFilterOptions(dlna, media, params));
+		cmdList.addAll(getVideoFilterOptions(dlna, media, params));
 
 		// Encoder threads
 		if (nThreads > 0) {

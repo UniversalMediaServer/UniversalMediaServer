@@ -68,7 +68,7 @@ public class RemoteMediaHandler implements HttpHandler {
 		String mime = root.getDefaultRenderer().getMimeType(res.get(0).mimeType());
 		DLNAResource dlna = res.get(0);
 		DLNAMediaInfo m = dlna.getMedia();
-		if(mime.equals(FormatConfiguration.MIMETYPE_AUTO) && m != null) {
+		if(mime.equals(FormatConfiguration.MIMETYPE_AUTO) && m != null && m.getMimeType() != null) {
 			mime = m.getMimeType();
 		}
 		if (dlna.getFormat().isVideo()) {

@@ -297,6 +297,16 @@ public class RemoteWeb {
 				return;
 			}
 			if (t.getRequestURI().getPath().startsWith("/files/")) {
+				// Add content type headers for IE
+				// Thx to speedy8754
+				if( t.getRequestURI().getPath().endsWith(".css") ) {
+					Headers hdr = t.getResponseHeaders();
+					hdr.add("Content-Type", "text/css");
+				}
+				else if( t.getRequestURI().getPath().endsWith(".js") ) {
+					Headers hdr = t.getResponseHeaders();
+					hdr.add("Content-Type", "text/javascript");
+				}
 				File f = configuration.getWebFile(t.getRequestURI().getPath().substring(7));
 				RemoteUtil.dumpFile(f, t);
 				return;
