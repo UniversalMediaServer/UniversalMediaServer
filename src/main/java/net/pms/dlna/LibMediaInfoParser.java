@@ -429,7 +429,7 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.BMP;
 		} else if (value.equals("tiff")) {
 			format = FormatConfiguration.TIFF;
-		} else if (StringUtils.contains(value, "@l") && streamType == MediaInfo.StreamType.Video) {
+		} else if (StringUtils.containsIgnoreCase(value, "@l") && streamType == MediaInfo.StreamType.Video) {
 			media.setAvcLevel(getAvcLevel(value));
 		}
 

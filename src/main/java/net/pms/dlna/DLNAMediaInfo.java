@@ -1786,6 +1786,14 @@ public class DLNAMediaInfo implements Cloneable {
 		this.avcLevel = avcLevel;
 	}
 
+	public synchronized int getAvcAsInt() {
+		try {
+			return Integer.parseInt(getAvcLevel().replaceAll("\\.", ""));
+		} catch (Exception e) {
+			return 0;
+		}
+	}
+
 	/**
 	 * @return the audioTracks
 	 * @since 1.60.0

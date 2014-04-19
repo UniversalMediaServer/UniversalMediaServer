@@ -12,6 +12,7 @@ import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
 import net.pms.encoders.FFMpegVideo;
@@ -112,7 +113,7 @@ public class RemotePlayHandler implements HttpHandler {
 					sb.append("<").append(mediaType);
 					if (flowplayer) {
 						sb.append(" controls autoplay>").append(CRLF);
-						if(RemoteUtil.directmime(mime) && !transMp4(mime)) {
+						if(RemoteUtil.directmime(mime) && !transMp4(mime, r.getMedia())) {
 							sb.append("<source src=\"/media/").append(URLEncoder.encode(id1, "UTF-8")).
 							   append("\" type=\"").append(mime).append("\">").append(CRLF);
 						}
@@ -161,8 +162,9 @@ public class RemotePlayHandler implements HttpHandler {
 		return sb.toString();
 	}
 
-	private boolean transMp4(String mime) {
-		return mime.equals("video/mp4") && configuration.isWebMp4Trans();
+	private boolean transMp4(String mime, DLNAMediaInfo media) {
+		return mime.equals("video/mp4") && (configuration.isWebMp4Trans() ||
+			   								media.getAvcAsInt() >= 40);
 	}
 
 	@Override
