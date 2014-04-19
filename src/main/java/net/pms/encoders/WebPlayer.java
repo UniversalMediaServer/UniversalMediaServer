@@ -69,9 +69,13 @@ public class WebPlayer extends FFMpegVideo {
 		cmdList.add("-c:v");
 		cmdList.add("libx264");
 		cmdList.add("-preset");
-		cmdList.add("fast");
+		cmdList.add("ultrafast");
 		cmdList.add("-tune");
 		cmdList.add("zerolatency");
+		cmdList.add("-profile:v");
+		cmdList.add("high");
+		cmdList.add("-level:v");
+		cmdList.add("3.1");
 		cmdList.add("-c:a");
 		cmdList.add("aac");
 		cmdList.add("-ab");
@@ -83,7 +87,7 @@ public class WebPlayer extends FFMpegVideo {
 		cmdList.add("-pix_fmt");
 		cmdList.add("yuv420p");
 		cmdList.add("-movflags");
-		cmdList.add("faststart");
+		cmdList.add("+faststart");
 		cmdList.add("-f");
 		cmdList.add("mp4");
 		//cmdList.add("separate_moof+frag_keyframe+empty_moov");
