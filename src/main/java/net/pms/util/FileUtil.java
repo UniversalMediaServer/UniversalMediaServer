@@ -1,11 +1,5 @@
 package net.pms.util;
 
-import java.io.*;
-import java.net.URL;
-import java.net.MalformedURLException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -13,14 +7,23 @@ import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.formats.FormatFactory;
 import net.pms.formats.v2.SubtitleType;
 import org.apache.commons.io.FilenameUtils;
+import org.mozilla.universalchardet.UniversalDetector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.endsWithIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 import static org.mozilla.universalchardet.Constants.*;
-import org.mozilla.universalchardet.UniversalDetector;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class FileUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileUtil.class);
@@ -888,9 +891,11 @@ public class FileUtil {
 			|| fileName.endsWith(".m3u") || fileName.endsWith(".m3u8") || fileName.endsWith(".pls") || fileName.endsWith(".cue");
 	}
 
-	public static boolean isFolderRelevant(File f, PmsConfiguration configuration) {
-		boolean isRelevant = false;
+    public static boolean isFolderRelevant(File f, PmsConfiguration configuration) {
+        return isFolderRelevant(f, configuration, Collections.<String>emptySet());
+    }
 
+	public static boolean isFolderRelevant(File f, PmsConfiguration configuration, Set<String> ignoreFiles) {
 		if (f.isDirectory() && configuration.isHideEmptyFolders()) {
 			File[] children = f.listFiles();
 
@@ -902,20 +907,21 @@ public class FileUtil {
 				LOGGER.warn("Can't list files in non-readable directory: {}", f.getAbsolutePath());
 			} else {
 				for (File child : children) {
+                    if(ignoreFiles.contains(child.getAbsolutePath()))
+                        continue;
+
 					if (child.isFile()) {
 						if (FormatFactory.getAssociatedFormat(child.getName()) != null || isFileRelevant(child, configuration)) {
-							isRelevant = true;
-							break;
+							return true;
 						}
 					} else {
-						if (isFolderRelevant(child, configuration)) {
-							isRelevant = true;
-							break;
+						if (isFolderRelevant(child, configuration, ignoreFiles)) {
+                            return true;
 						}
 					}
 				}
 			}
 		}
-		return isRelevant;
+		return false;
 	}
 }
