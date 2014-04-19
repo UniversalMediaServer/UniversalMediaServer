@@ -168,6 +168,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 	private byte referenceFrameCount = -1;
 	private String avcLevel = null;
+	private String h264Profile = null;
 
 	private List<DLNAMediaAudio> audioTracks = new ArrayList<>();
 	private List<DLNAMediaSubtitle> subtitleTracks = new ArrayList<>();
@@ -1817,6 +1818,10 @@ public class DLNAMediaInfo implements Cloneable {
 			return 0;
 		}
 	}
+
+	public synchronized String getH264Profile() { return h264Profile; }
+
+	public synchronized void setH264Profile(String s) { h264Profile = s; }
 
 	/**
 	 * @return the audioTracks

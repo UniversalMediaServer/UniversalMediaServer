@@ -163,6 +163,7 @@ public class RemotePlayHandler implements HttpHandler {
 	}
 
 	private boolean transMp4(String mime, DLNAMediaInfo media) {
+		LOGGER.debug("mp4 profile "+media.getH264Profile());
 		return mime.equals("video/mp4") && (configuration.isWebMp4Trans() ||
 			   								media.getAvcAsInt() >= 40);
 	}

@@ -431,6 +431,7 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.TIFF;
 		} else if (StringUtils.containsIgnoreCase(value, "@l") && streamType == MediaInfo.StreamType.Video) {
 			media.setAvcLevel(getAvcLevel(value));
+			media.setH264Profile(getAvcProfile(value));
 		}
 
 		if (format != null) {
@@ -490,6 +491,16 @@ public class LibMediaInfoParser {
 			return avcLevel;
 		} else {
 			LOGGER.warn("Could not parse AvcLevel value {}." , value);
+			return null;
+		}
+	}
+
+	public static String getAvcProfile(String value) {
+		String profile = StringUtils.substringBefore(lowerCase(value), "@l");
+		if (isNotBlank(profile)) {
+			return profile;
+		} else {
+			LOGGER.warn("Could not parse AvcProfile value {}." , value);
 			return null;
 		}
 	}
