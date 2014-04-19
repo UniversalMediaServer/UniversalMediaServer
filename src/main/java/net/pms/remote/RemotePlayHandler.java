@@ -28,6 +28,7 @@ public class RemotePlayHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RemotePlayHandler.class);
 	private final static String CRLF = "\r\n";
 	private RemoteWeb parent;
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	public RemotePlayHandler(RemoteWeb parent) {
 		this.parent = parent;
@@ -85,7 +86,8 @@ public class RemotePlayHandler implements HttpHandler {
 				sb.append("<title>Universal Media Server</title>").append(CRLF);
 				if (flowplayer) {
 					sb.append("<script src=\"/files/jquery.min.js\"></script>").append(CRLF);
-					sb.append("<script src=\"/files/flowplayer.min.js\"></script>").append(CRLF);
+					//sb.append("<script src=\"/files/flowplayer.min.js\"></script>").append(CRLF);
+					sb.append("<script src=\"//releases.flowplayer.org/5.4.6/flowplayer.min.js\"></script>").append(CRLF);
 					sb.append("<link rel=\"stylesheet\" href=\"/files/functional.css\">").append(CRLF);
 				}
 			sb.append("</head>").append(CRLF);
@@ -109,16 +111,13 @@ public class RemotePlayHandler implements HttpHandler {
 					}
 					sb.append("<").append(mediaType);
 					if (flowplayer) {
-						sb.append(" controls autoplay>");
-						if(RemoteUtil.directmime(mime)) {
+						sb.append(" controls autoplay>").append(CRLF);
+						if(RemoteUtil.directmime(mime) && !transMp4(mime)) {
 							sb.append("<source src=\"/media/").append(URLEncoder.encode(id1, "UTF-8")).
-							   append("\" type=\"").append(mime).append("\">");
+							   append("\" type=\"").append(mime).append("\">").append(CRLF);
 						}
-						else {
-							sb.append("<source src=\"/fmedia/").append(URLEncoder.encode(id1, "UTF-8")).
-							   append("\" type=\"video/x-flv\">");
-						}
-
+						sb.append("<source src=\"/fmedia/").append(URLEncoder.encode(id1, "UTF-8")).
+					 	   append("\" type=\"video/flash\">");
 					} else {
 						sb.append(" width=\"720\" height=\"404\" controls autoplay>").append(CRLF);
 						sb.append("<source src=\"/media/").append(URLEncoder.encode(id1, "UTF-8")).append("\" type=\"").append(mime).append("\">");
@@ -160,6 +159,10 @@ public class RemotePlayHandler implements HttpHandler {
 		endPage(sb);
 
 		return sb.toString();
+	}
+
+	private boolean transMp4(String mime) {
+		return mime.equals("video/mp4") && configuration.isWebMp4Trans();
 	}
 
 	@Override

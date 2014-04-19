@@ -234,6 +234,7 @@ public class PmsConfiguration {
 	private static final String KEY_VLC_SAMPLE_RATE = "vlc_sample_rate";
 	private static final String KEY_WEB_AUTHENTICATE = "web_authenticate";
 	private static final String KEY_WEB_CONF_PATH = "web_conf";
+	private static final String KEY_WEB_MP4_TRANS = "web_mp4_trans";
 	private static final String KEY_WEB_THREADS = "web_threads";
 	private static final String KEY_WEB_PATH = "web_path";
 	private static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
@@ -2984,5 +2985,9 @@ public class PmsConfiguration {
 	public int getWebThreads() {
 		int x = getInt(KEY_WEB_THREADS, 30);
 		return (x > WEB_MAX_THREADS ? WEB_MAX_THREADS : x);
+	}
+
+	public boolean isWebMp4Trans() {
+		return getBoolean(KEY_WEB_MP4_TRANS, false);
 	}
 }
