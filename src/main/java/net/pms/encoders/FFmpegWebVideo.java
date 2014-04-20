@@ -112,7 +112,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		OutputParams params
 	) throws IOException {
 		if (dlna.getDefaultRenderer() instanceof WebRender) {
-			WebPlayer wp = new WebPlayer(true);
+			WebPlayer wp = new WebPlayer(WebPlayer.FLASH);
 			return wp.launchTranscode(dlna, media, params);
 		}
 		params.minBufferSize = params.minFileSize;

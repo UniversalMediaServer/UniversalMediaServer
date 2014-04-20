@@ -74,10 +74,10 @@ public class RemoteMediaHandler implements HttpHandler {
 		if (dlna.getFormat().isVideo()) {
 			if (flash) {
 				mime = "video/flash";
-				dlna.setPlayer(new WebPlayer(true));
+				dlna.setPlayer(new WebPlayer(WebPlayer.FLASH));
 			} else if (!RemoteUtil.directmime(mime)) {
 				mime = RemoteUtil.MIME_TRANS;
-				dlna.setPlayer(new WebPlayer());
+				dlna.setPlayer(new WebPlayer(WebPlayer.TRANS));
 			}
 			else {
 				dlna.setPlayer(null);

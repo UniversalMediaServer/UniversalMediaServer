@@ -1317,7 +1317,8 @@ public class PMS {
 			return false;
 		}
 
-		return tmp[0].equals("javaw.exe") && tmp[8].contains("universal media server");
+		// check first and last, update since taskkill changed
+		return tmp[0].equals("javaw.exe") && tmp[tmp.length - 1].contains("universal media server");
 	}
 
 	private static String pidFile() {
