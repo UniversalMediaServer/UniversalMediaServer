@@ -123,6 +123,7 @@ public class RemotePlayHandler implements HttpHandler {
 					sb.append(CRLF);
 
 					if (flowplayer) {
+						PmsConfiguration configuration = PMS.getConfiguration();
 						boolean isFFmpegFontConfig = configuration.isFFmpegFontConfig();
 						if (isFFmpegFontConfig) { // do not apply fontconfig to flowplayer subs
 							configuration.setFFmpegFontConfig(false);
@@ -132,6 +133,18 @@ public class RemotePlayHandler implements HttpHandler {
 						p.aid = r.getMediaAudio();
 						p.sid = r.getMediaSubtitle();
 						p.header = r.getHeaders();
+						Player.setAudioAndSubs(r.getName(), r.getMedia(), p);
+						try {
+							File subFile = FFMpegVideo.getSubtitles(r, r.getMedia(), p, configuration);
+							LOGGER.debug("subFile " + subFile);
+							subFile = SubtitleUtils.convertSubripToWebVTT(subFile);
+							if (subFile != null) {
+								sb.append("<track src=\"/subs/").append(subFile.getAbsolutePath()).append("\">");
+							}
+						} catch (Exception e) {
+							LOGGER.debug("error when doing sub file " + e);
+						}
+						
 						configuration.setFFmpegFontConfig(isFFmpegFontConfig); // return back original fontconfig value
 					}
 					sb.append("</").append(mediaType).append(">").append(CRLF);
