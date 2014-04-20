@@ -17,6 +17,7 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
 import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.Player;
+import net.pms.encoders.WebPlayer;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.formats.WEB;
@@ -87,8 +88,7 @@ public class RemotePlayHandler implements HttpHandler {
 				sb.append("<title>Universal Media Server</title>").append(CRLF);
 				if (flowplayer) {
 					sb.append("<script src=\"/files/jquery.min.js\"></script>").append(CRLF);
-					//sb.append("<script src=\"/files/flowplayer.min.js\"></script>").append(CRLF);
-					sb.append("<script src=\"//releases.flowplayer.org/5.4.6/flowplayer.min.js\"></script>").append(CRLF);
+					sb.append("<script src=\"/files/flowplayer.min.js\"></script>").append(CRLF);
 					sb.append("<link rel=\"stylesheet\" href=\"/files/functional.css\">").append(CRLF);
 				}
 			sb.append("</head>").append(CRLF);
@@ -108,12 +108,15 @@ public class RemotePlayHandler implements HttpHandler {
 					}
 
 					if (flowplayer) {
-						sb.append("<div class=\"flowplayer no-time no-volume no-mute\" data-ratio=\"0.5625\" data-embed=\"false\" data-flashfit=\"true\">").append(CRLF);
+						//sb.append("<div class=\"flowplayer no-time no-volume no-mute\" data-ratio=\"0.5625\" data-embed=\"false\" data-flashfit=\"true\">").append(CRLF);
+						sb.append("<div class=\"player\">").append(CRLF);
 					}
 					sb.append("<").append(mediaType);
 					if (flowplayer) {
 						sb.append(" controls autoplay>").append(CRLF);
-						if(RemoteUtil.directmime(mime) && !transMp4(mime, r.getMedia())) {
+						if(RemoteUtil.directmime(mime) &&
+						   !transMp4(mime, r.getMedia()) &&
+						   !r.isResume()) {
 							sb.append("<source src=\"/media/").append(URLEncoder.encode(id1, "UTF-8")).
 							   append("\" type=\"").append(mime).append("\">").append(CRLF);
 						}
@@ -157,6 +160,21 @@ public class RemotePlayHandler implements HttpHandler {
 					}
 		sb.append("</div>").append(CRLF);
 		sb.append("<a href=\"/raw/").append(rawId).append("\" target=\"_blank\" id=\"DownloadLink\" title=\"Download this video\"></a>").append(CRLF);
+		if(flowplayer) {
+		   	sb.append("<script>").append(CRLF);
+			sb.append("$(function() {").append(CRLF);
+			sb.append("$(\".player\").flowplayer({").append(CRLF);
+			sb.append("ratio: 25/47").append(CRLF);
+			sb.append(",flashfit: true").append(CRLF);
+			sb.append("});});").append(CRLF);
+			if(r.isResume()) {
+				sb.append("var api = flowplayer();").append(CRLF);
+				sb.append("api.seek(");
+				sb.append(r.getResume().getTimeOffset() / 1000);
+				sb.append(");").append(CRLF);
+			}
+			sb.append("</script>").append(CRLF);
+		}
 		endPage(sb);
 
 		return sb.toString();

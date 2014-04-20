@@ -1,31 +1,35 @@
 package net.pms.encoders;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JComponent;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.RealFile;
 import net.pms.formats.Format;
-import net.pms.io.OutputParams;
-import net.pms.io.PipeProcess;
-import net.pms.io.ProcessWrapper;
-import net.pms.io.ProcessWrapperImpl;
+import net.pms.io.*;
+import net.pms.util.MpegUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class WebPlayer extends FFMpegVideo {
+	public static final int STREAM = 0;
+	public static final int TRANS = 1;
+	public static final int FLASH = 2;
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebPlayer.class);
-	private boolean flash;
+	private int method;
 
 	public WebPlayer() {
 		super();
-		flash = false;
+		method = STREAM;
 	}
 
-	public WebPlayer(boolean f) {
+	public WebPlayer(int m) {
 		this();
-		flash = f;
+		method = m;
 	}
 
 	private void flashCmds(List<String> cmdList, DLNAMediaInfo media) {
@@ -213,9 +217,9 @@ public class WebPlayer extends FFMpegVideo {
 		pipe.getInputPipe()
 		};*/
 		// Add the output options (-f, -c:a, -c:v, etc.)
-		if (!flash) {
+		if (method == TRANS) {
 			oggCmd(cmdList);
-		} else {
+		} else if (method == FLASH) {
 			flashCmds(cmdList, media);
 		}
 
@@ -301,5 +305,20 @@ public class WebPlayer extends FFMpegVideo {
 	@Override
 	public String executable() {
 		return super.executable();
+	}
+
+	private class WebProcessWrapper extends ProcessWrapperLiteImpl {
+		private DLNAResource res;
+
+		public WebProcessWrapper(DLNAResource res) {
+			super(null);
+			this.res = res;
+		}
+
+		@Override
+		public InputStream getInputStream(long seek) throws IOException {
+			InputStream fis = res.getInputStream();
+			return fis;
+		}
 	}
 }
