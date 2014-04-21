@@ -45,7 +45,6 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.FileTranscodeVirtualFolder;
@@ -138,7 +137,7 @@ public class FFMpegVideo extends Player {
 				media.getHeight() > renderer.getMaxVideoHeight()
 			);
 
-		if (!isDisableSubtitles(params) && !(dlna.getDefaultRenderer() instanceof WebRender)) {
+		if (!isDisableSubtitles(params) && !(dlna.getPlayer() instanceof WebPlayer)) {
 			StringBuilder subsFilter = new StringBuilder();
 
 			if (params.sid.getType().isText()) {
