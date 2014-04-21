@@ -137,7 +137,7 @@ public class RemotePlayHandler implements HttpHandler {
 
 						OutputParams p = new OutputParams(configuration);
 						Player.setAudioAndSubs(r.getName(), r.getMedia(), p);
-						if (p.sid.getType().isText()) {
+						if (p.sid !=null && p.sid.getType().isText()) {
 							try {
 								File subFile = FFMpegVideo.getSubtitles(r, r.getMedia(), p, configuration);
 								LOGGER.debug("subFile " + subFile);
