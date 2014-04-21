@@ -72,6 +72,10 @@ public class RemotePlayHandler implements HttpHandler {
 					mime = r.getMedia().getMimeType();
 				}
 			}
+			/*if(!RemoteUtil.directmime(mime)) {
+				mime = RemoteUtil.MIME_TRANS;
+				flowplayer = false;
+			} */
 		}
 
 		// Media player HTML

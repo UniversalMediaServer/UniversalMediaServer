@@ -10,6 +10,7 @@ import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RealFile;
 import net.pms.formats.Format;
 import net.pms.io.*;
+import net.pms.remote.RemoteUtil;
 import net.pms.util.MpegUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,6 +91,12 @@ public class WebPlayer extends FFMpegVideo {
 		cmdList.add("experimental");
 		cmdList.add("-pix_fmt");
 		cmdList.add("yuv420p");
+		cmdList.add("-frag_duration");
+		cmdList.add("300");
+		cmdList.add("-frag_size");
+		cmdList.add("100");
+		cmdList.add("-flags");
+		cmdList.add("+aic+mv4");
 		cmdList.add("-movflags");
 		cmdList.add("+faststart");
 		cmdList.add("-f");
@@ -218,7 +225,15 @@ public class WebPlayer extends FFMpegVideo {
 		};*/
 		// Add the output options (-f, -c:a, -c:v, etc.)
 		if (method == TRANS) {
-			oggCmd(cmdList);
+			if(RemoteUtil.MIME_TRANS.equals(RemoteUtil.MIME_OGG))  {
+				oggCmd(cmdList);
+			}
+			else if (RemoteUtil.MIME_TRANS.equals(RemoteUtil.MIME_MP4)) {
+				mp4Cmd(cmdList);
+			}
+			else if (RemoteUtil.MIME_TRANS.equals(RemoteUtil.MIME_WEBM)) {
+				// nothing here   yet
+			}
 		} else if (method == FLASH) {
 			flashCmds(cmdList, media);
 		}

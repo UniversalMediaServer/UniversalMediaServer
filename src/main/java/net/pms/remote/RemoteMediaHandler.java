@@ -51,6 +51,10 @@ public class RemoteMediaHandler implements HttpHandler {
 		if (root == null) {
 			throw new IOException("Unknown root");
 		}
+		Headers h = t.getRequestHeaders();
+		for(String h1: h.keySet())  {
+			LOGGER.debug("key "+h1+"="+h.get(h1));
+		}
 		String id = RemoteUtil.getId(path, t);
 		id = RemoteUtil.strip(id);
 		RendererConfiguration r = render;
