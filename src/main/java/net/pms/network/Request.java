@@ -329,6 +329,14 @@ public class Request extends HTTPResource {
 						name = dlna.getName() + " " + dlna.getDisplayName(mediaRenderer);
 					}
 
+					if(dlna.isResume()) {
+						if (timeseek > 0.0) {
+							dlna.getResume().stop(System.currentTimeMillis() + dlna.getResume().getTimeOffset() - (long) (timeseek * 1000), (long) (dlna.getMedia().getDuration() * 1000));
+						} else {
+							timeseek = new Long(dlna.getResume().getTimeOffset()).doubleValue() / 1000;
+						}
+					}
+
 					inputStream = dlna.getInputStream(Range.create(lowRange, highRange, timeseek, timeRangeEnd), mediaRenderer);
 					if (inputStream == null) {
 						// No inputStream indicates that transcoding / remuxing probably crashed.
@@ -818,18 +826,10 @@ public class Request extends HTTPResource {
 				output(output, "Content-Length: " + cl);
 			}
 
-			if (dlna != null && (timeseek > 0 || dlna.isResume())) {
+			if (dlna != null && timeseek > 0) {
 				// Add timeseek information headers.
 				String timeseekValue = StringUtil.convertTimeToString(timeseek, StringUtil.DURATION_TIME_FORMAT);
 				String timetotalValue = dlna.getMedia().getDurationString();
-
-				if(dlna.isResume()) {
-					if (timeseek > 0.0) {
-						dlna.getResume().stop(System.currentTimeMillis() + dlna.getResume().getTimeOffset() - (long) (timeseek * 1000), (long) (dlna.getMedia().getDuration() * 1000));
-					} else {
-						timeseekValue = StringUtil.convertTimeToString(new Long(dlna.getResume().getTimeOffset()).doubleValue() / 1000, StringUtil.DURATION_TIME_FORMAT);
-					}
-				}
 
 				output(output, "TimeSeekRange.dlna.org: npt=" + timeseekValue + "-" + timetotalValue + "/" + timetotalValue);
 				output(output, "X-Seek-Range: npt=" + timeseekValue + "-" + timetotalValue + "/" + timetotalValue);

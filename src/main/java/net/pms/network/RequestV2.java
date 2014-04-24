@@ -347,6 +347,14 @@ public class RequestV2 extends HTTPResource {
 							totalsize == DLNAMediaInfo.TRANS_SIZE
 						)
 					) { 
+						if(dlna.isResume()) {
+							if (range.isStartOffsetAvailable() && range.getStartOrZero() > 0.0) {
+								dlna.getResume().stop(System.currentTimeMillis() + dlna.getResume().getTimeOffset() - (long) (range.getStart() * 1000), (long) (dlna.getMedia().getDuration() * 1000));
+							} else {
+								range.setStart(new Long(dlna.getResume().getTimeOffset()).doubleValue() / 1000);
+							}
+						}
+
 						inputStream = dlna.getInputStream(Range.create(lowRange, highRange, range.getStart(), range.getEnd()), mediaRenderer);
 					} 
 
@@ -874,19 +882,11 @@ public class RequestV2 extends HTTPResource {
 				output.headers().set(HttpHeaders.Names.CONTENT_LENGTH, "" + cl);
 			}
 
-			if (dlna != null && (range.isStartOffsetAvailable() || dlna.isResume())) {
+			if (dlna != null && range.isStartOffsetAvailable()) {
 				// Add timeseek information headers.
 				String timeseekValue = StringUtil.convertTimeToString(range.getStartOrZero(), StringUtil.DURATION_TIME_FORMAT);
 				String timetotalValue = dlna.getMedia().getDurationString();
 				String timeEndValue = range.isEndLimitAvailable() ? StringUtil.convertTimeToString(range.getEnd(), StringUtil.DURATION_TIME_FORMAT) : timetotalValue;
-
-				if(dlna.isResume()) {
-					if (range.isStartOffsetAvailable() && range.getStartOrZero() > 0.0) {
-						dlna.getResume().stop(System.currentTimeMillis() + dlna.getResume().getTimeOffset() - (long) (range.getStart() * 1000), (long) (dlna.getMedia().getDuration() * 1000));
-					} else {
-						timeseekValue = StringUtil.convertTimeToString(new Long(dlna.getResume().getTimeOffset()).doubleValue() / 1000, StringUtil.DURATION_TIME_FORMAT);
-					}
-				}
 
 				output.headers().set("TimeSeekRange.dlna.org", "npt=" + timeseekValue + "-" + timeEndValue + "/" + timetotalValue);
 				output.headers().set("X-Seek-Range", "npt=" + timeseekValue + "-" + timeEndValue + "/" + timetotalValue);
