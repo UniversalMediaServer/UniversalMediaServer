@@ -380,7 +380,7 @@ public class DLNAMediaInfo implements Cloneable {
 		DLNAMediaInfo forThumbnail = new DLNAMediaInfo();
 		forThumbnail.durationSec = getDurationInSeconds();
 
-		if(seekPosition <= forThumbnail.durationSec) {
+		if (seekPosition <= forThumbnail.durationSec) {
 			forThumbnail.durationSec = seekPosition;
 		} else {
 			forThumbnail.durationSec = forThumbnail.durationSec / 2;
@@ -714,7 +714,7 @@ public class DLNAMediaInfo implements Cloneable {
 								.outputQuality(1.0f)
 								.toOutputStream(out);
 
-								setThumb(out.toByteArray());
+						setThumb(out.toByteArray());
 					} catch (IOException | IllegalArgumentException | IllegalStateException e) {
 						LOGGER.debug("Error generating thumbnail for: " + file.getName());
 						LOGGER.debug("The full error was: " + e);
@@ -828,17 +828,17 @@ public class DLNAMediaInfo implements Cloneable {
 					}
 				}
 			}
- 
+
 			finalize(type, inputFile);
 			setMediaparsed(true);
 		}
 	}
 
 	/**
-	 * Parses media info from ffmpeg's stderr output
+	 * Parses media info from FFmpeg's stderr output
 	 *
 	 * @param lines The stderr output
-	 * @param input The ffmpeg input (-i) argument used
+	 * @param input The FFmpeg input (-i) argument used
 	 */
 	public void parseFFmpegInfo(List<String> lines, String input) {
 
@@ -960,7 +960,7 @@ public class DLNAMediaInfo implements Cloneable {
 									int aa = line.indexOf(": ");
 									int bb = line.length();
 									if (aa > -1 && bb > aa) {
-										audio.setFlavor(line.substring(aa+2, bb));
+										audio.setFlavor(line.substring(aa + 2, bb));
 										break;
 									}
 								} else {
@@ -1085,7 +1085,7 @@ public class DLNAMediaInfo implements Cloneable {
 									int aa = line.indexOf(": ");
 									int bb = line.length();
 									if (aa > -1 && bb > aa) {
-										lang.setFlavor(line.substring(aa+2, bb));
+										lang.setFlavor(line.substring(aa + 2, bb));
 										break;
 									}
 								} else {

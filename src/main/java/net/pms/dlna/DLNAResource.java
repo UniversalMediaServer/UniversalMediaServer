@@ -475,7 +475,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param child
 	 *            DLNAResource to add to a container type.
 	 */
-
 	public void addChild(DLNAResource child) {
 		addChild(child, true);
 	}
@@ -691,7 +690,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									newChild.setMedia(child.getMedia());
 									fileTranscodeFolder.addChildInternal(newChild);
 									LOGGER.trace("Adding \"{}\" to transcode folder for player: \"{}\"", child.getName(), player.toString());
-	
+
 									transcodeFolder.updateChild(fileTranscodeFolder);
 								}
 							}
@@ -814,7 +813,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *
 	 * @param child the DLNA resource to update
 	 */
-
 	public void updateChild(DLNAResource child) {
 		DLNAResource found = getChildren().contains(child) ?
 			child : searchByName(child.getName());
@@ -840,7 +838,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *
 	 * @param child the DLNA resource to add to this node's list of children
 	 */
-
 	protected synchronized void addChildInternal(DLNAResource child) {
 		if (child.getInternalId() != null) {
 			LOGGER.debug(
@@ -1383,7 +1380,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// Make sure clones (typically #--TRANSCODE--# folder files)
 			// have the option to respond to resolve events
 			o.resolved = false;
-			
+
 			if (media != null) {
 				o.media = (DLNAMediaInfo) media.clone();
 			}
@@ -2524,12 +2521,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (getMedia() != null && !getMedia().isThumbready() && configuration.isThumbnailGenerationEnabled()) {
 			getMedia().setThumbready(true);
 
-			Double seekPosition = ((Integer)configuration.getThumbnailSeekPos()).doubleValue();
+			Double seekPosition = ((Integer) configuration.getThumbnailSeekPos()).doubleValue();
 
-			if(isResume()) {
-				Double resumePosition = ((Long)getResume().getTimeOffset()).doubleValue() / 1000;
+			if (isResume()) {
+				Double resumePosition = ((Long) getResume().getTimeOffset()).doubleValue() / 1000;
 
-				if(getMedia().getDurationInSeconds() > 0 && resumePosition < getMedia().getDurationInSeconds()) {
+				if (getMedia().getDurationInSeconds() > 0 && resumePosition < getMedia().getDurationInSeconds()) {
 					seekPosition = resumePosition;
 				}
 			}
@@ -3342,7 +3339,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * By default it just returns null which means the resource is ignored
 	 * in the last played file.
 	 */
-
 	public String write() {
 		return null;
 	}
