@@ -376,9 +376,16 @@ public class DLNAMediaInfo implements Cloneable {
 		setThumbready(true); // this class manages thumbnails by default with the parser_v1 method
 	}
 
-	public void generateThumbnail(InputFile input, Format ext, int type) {
+	public void generateThumbnail(InputFile input, Format ext, int type, Double seekPosition) {
 		DLNAMediaInfo forThumbnail = new DLNAMediaInfo();
-		forThumbnail.durationSec = durationSec;
+		forThumbnail.durationSec = getDurationInSeconds();
+
+		if (seekPosition <= forThumbnail.durationSec) {
+			forThumbnail.durationSec = seekPosition;
+		} else {
+			forThumbnail.durationSec = forThumbnail.durationSec / 2;
+		}
+
 		forThumbnail.parse(input, ext, type, true);
 		setThumb(forThumbnail.getThumb());
 	}
@@ -401,7 +408,7 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 
 		args[3] = "-ss";
-		args[4] = "" + configuration.getThumbnailSeekPos();
+		args[4] = "" + new Double(getDurationInSeconds()).intValue();
 		args[5] = "-i";
 
 		if (file != null) {
@@ -463,8 +470,7 @@ public class DLNAMediaInfo implements Cloneable {
 		String args[] = new String[14];
 		args[0] = configuration.getMplayerPath();
 		args[1] = "-ss";
-		boolean toolong = getDurationInSeconds() < configuration.getThumbnailSeekPos();
-		args[2] = "" + (toolong ? (getDurationInSeconds() / 2) : configuration.getThumbnailSeekPos());
+		args[2] = "" + new Double(getDurationInSeconds()).intValue();
 		args[3] = "-quiet";
 
 		if (file != null) {
@@ -708,7 +714,7 @@ public class DLNAMediaInfo implements Cloneable {
 								.outputQuality(1.0f)
 								.toOutputStream(out);
 
-								setThumb(out.toByteArray());
+						setThumb(out.toByteArray());
 					} catch (IOException | IllegalArgumentException | IllegalStateException e) {
 						LOGGER.debug("Error generating thumbnail for: " + file.getName());
 						LOGGER.debug("The full error was: " + e);
@@ -822,17 +828,17 @@ public class DLNAMediaInfo implements Cloneable {
 					}
 				}
 			}
- 
+
 			finalize(type, inputFile);
 			setMediaparsed(true);
 		}
 	}
 
 	/**
-	 * Parses media info from ffmpeg's stderr output
+	 * Parses media info from FFmpeg's stderr output
 	 *
 	 * @param lines The stderr output
-	 * @param input The ffmpeg input (-i) argument used
+	 * @param input The FFmpeg input (-i) argument used
 	 */
 	public void parseFFmpegInfo(List<String> lines, String input) {
 
@@ -954,7 +960,7 @@ public class DLNAMediaInfo implements Cloneable {
 									int aa = line.indexOf(": ");
 									int bb = line.length();
 									if (aa > -1 && bb > aa) {
-										audio.setFlavor(line.substring(aa+2, bb));
+										audio.setFlavor(line.substring(aa + 2, bb));
 										break;
 									}
 								} else {
@@ -1079,7 +1085,7 @@ public class DLNAMediaInfo implements Cloneable {
 									int aa = line.indexOf(": ");
 									int bb = line.length();
 									if (aa > -1 && bb > aa) {
-										lang.setFlavor(line.substring(aa+2, bb));
+										lang.setFlavor(line.substring(aa + 2, bb));
 										break;
 									}
 								} else {

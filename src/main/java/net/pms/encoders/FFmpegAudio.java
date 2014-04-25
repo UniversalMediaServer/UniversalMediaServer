@@ -240,7 +240,8 @@ public class FFmpegAudio extends FFMpegVideo {
 			PlayerUtil.isAudio(resource, Format.Identifier.FLAC) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.M4A) ||
 			PlayerUtil.isAudio(resource, Format.Identifier.OGG) ||
-			PlayerUtil.isAudio(resource, Format.Identifier.WAV)
+			PlayerUtil.isAudio(resource, Format.Identifier.WAV) ||
+			PlayerUtil.isWebAudio(resource)
 		) {
 			return true;
 		}
