@@ -280,8 +280,10 @@ public class FFMpegVideo extends Player {
 				params.aid.isDTS() &&
 				!avisynth() &&
 				renderer.isDTSPlayable();
+			
+			boolean isSubtitlesAndTimeseek = !isDisableSubtitles(params) && params.timeseek > 0;
 
-			if (configuration.isAudioRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && renderer.isTranscodeToAC3()) {
+			if (configuration.isAudioRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && renderer.isTranscodeToAC3() && !isSubtitlesAndTimeseek) {
 				// AC-3 remux
 				if (!customFFmpegOptions.contains("-c:a ")) {
 					transcodeOptions.add("-c:a");
@@ -732,7 +734,7 @@ public class FFMpegVideo extends Player {
 			params.forceFps = media.getValidFps(false);
 
 			if (media.getCodecV() != null) {
-				if (media.getCodecV().equals("h264")) {
+				if (media.isH264()) {
 					params.forceType = "V_MPEG4/ISO/AVC";
 				} else if (media.getCodecV().startsWith("mpeg2")) {
 					params.forceType = "V_MPEG-2";
@@ -1291,7 +1293,7 @@ public class FFMpegVideo extends Player {
 		}
 
 		// Try to specify input encoding if we have a non utf-8 external sub
-		if (params.sid.getId() == 100 && !params.sid.isExternalFileUtf8()) {
+		if (params.sid.getId() >= 100 && !params.sid.isExternalFileUtf8()) {
 			String encoding = isNotBlank(configuration.getSubtitlesCodepage()) ?
 					// Prefer the global user-specified encoding if we have one.
 					// Note: likely wrong if the file isn't supplied by the user.
@@ -1373,15 +1375,15 @@ public class FFMpegVideo extends Player {
 				}
 			}
 
-			if (line.startsWith("Format:")) {
-				format = line.split(",");
-				outputString.append(line).append("\n");
-				output.write(outputString.toString());
-				continue;
-			}
+				if (line != null && line.startsWith("Format:")) {
+					format = line.split(",");
+					outputString.append(line).append("\n");
+					output.write(outputString.toString());
+					continue;
+				}
 
-			if (line.startsWith("Style: Default")) {
-				String[] params = line.split(",");
+				if (line != null && line.startsWith("Style: Default")) {
+					String[] params = line.split(",");
 
 				for (i = 0; i < format.length; i++) {
 					if (format[i].contains("Fontname")) {

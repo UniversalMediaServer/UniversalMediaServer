@@ -56,9 +56,11 @@ public class TranscodingTab {
 
 	private final PmsConfiguration configuration;
 	private ComponentOrientation orientation;
+	private LooksFrame looksFrame;
 
-	TranscodingTab(PmsConfiguration configuration) {
+	TranscodingTab(PmsConfiguration configuration, LooksFrame looksFrame) {
 		this.configuration = configuration;
+		this.looksFrame = looksFrame;
 		// Apply the orientation for the locale
 		Locale locale = new Locale(configuration.getLanguage());
 		orientation = ComponentOrientation.getOrientation(locale);
@@ -965,7 +967,7 @@ public class TranscodingTab {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Color newColor = JColorChooser.showDialog(
-					SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
+					looksFrame,
 					Messages.getString("MEncoderVideo.125"),
 					subColor.getBackground()
 				);

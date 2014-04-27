@@ -394,11 +394,11 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		tabbedPane.setUI(new CustomTabbedPaneUI());
 
 		st = new StatusTab(configuration);
-		tt = new TracesTab(configuration);
-		gt = new GeneralTab(configuration);
-		pt = new PluginTab(configuration);
-		nt = new NavigationShareTab(configuration);		
-		tr = new TranscodingTab(configuration);
+		tt = new TracesTab(configuration, this);
+		gt = new GeneralTab(configuration, this);
+		pt = new PluginTab(configuration, this);
+		nt = new NavigationShareTab(configuration, this);		
+		tr = new TranscodingTab(configuration, this);
 		ht = new HelpTab();
 
 		tabbedPane.addTab(Messages.getString("LooksFrame.18"), st.build());

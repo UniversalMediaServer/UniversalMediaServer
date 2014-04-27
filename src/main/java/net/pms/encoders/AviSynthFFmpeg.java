@@ -216,8 +216,9 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 						s = s.replace("<moviefilename>", filename);
 					}
 
-				if (movieLine != null) {
 					s = s.replace("<movie>", movieLine);
+					s = s.replace("<sub>", subLine != null ? subLine : "#");
+					pw.println(s);
 				}
 				s = s.replace("<sub>", subLine != null ? subLine : "#");
 				pw.println(s);

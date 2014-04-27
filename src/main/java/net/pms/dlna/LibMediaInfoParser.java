@@ -317,7 +317,7 @@ public class LibMediaInfoParser {
 	private static void getFormat(MediaInfo.StreamType streamType, DLNAMediaInfo media, DLNAMediaAudio audio, String value, File file) {
 		String format = null;
 
-		if (value.equals("matroska")) {
+		if (value.startsWith("matroska")) {
 			format = FormatConfiguration.MATROSKA;
 		} else if (value.equals("avi") || value.equals("opendml")) {
 			format = FormatConfiguration.AVI;
@@ -343,7 +343,7 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.WMV;
 		} else if (value.contains("mjpg") || value.contains("m-jpeg")) {
 			format = FormatConfiguration.MJPEG;
-		} else if (value.startsWith("avc") || value.contains("h264")) {
+		} else if (value.startsWith("avc") || value.startsWith("h264")) {
 			format = FormatConfiguration.H264;
 		} else if (value.contains("xvid")) {
 			format = FormatConfiguration.MP4;
@@ -357,7 +357,7 @@ public class LibMediaInfoParser {
 			format = FormatConfiguration.MPEG2;
 		} else if (value.equals("vc-1") || value.equals("vc1") || value.equals("wvc1") || value.equals("wmv3") || value.equals("wmv9") || value.equals("wmva")) {
 			format = FormatConfiguration.VC1;
-		} else if (value.equals("version 1")) {
+		} else if (value.startsWith("version 1")) {
 			if (media.getCodecV() != null && media.getCodecV().equals(FormatConfiguration.MPEG2) && audio.getCodecA() == null) {
 				format = FormatConfiguration.MPEG1;
 			}

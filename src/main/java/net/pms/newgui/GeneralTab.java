@@ -50,7 +50,7 @@ public class GeneralTab {
 	private static final String COL_SPEC = "left:pref, 3dlu, p, 3dlu , p, 3dlu, p, 3dlu, pref:grow";
 	private static final String ROW_SPEC = "p, 0dlu, p, 0dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
 
-	public static JCheckBox smcheckBox;
+	public JCheckBox smcheckBox;
 	private JCheckBox autoStart;
 	private JCheckBox autoUpdateCheckBox;
 	private JCheckBox hideAdvancedOptions;
@@ -62,16 +62,18 @@ public class GeneralTab {
 	private JTextField serverName;
 	private JComboBox networkinterfacesCBX;
 	private JTextField ip_filter;
-	public static JTextField maxbitrate;
+	public JTextField maxbitrate;
 	private JComboBox renderers;
 	private final PmsConfiguration configuration;
 	private JCheckBox fdCheckBox;
 	private JCheckBox extNetBox;
 	private JCheckBox appendProfileName;
 	private JCheckBox runWizardOnProgramStartup;
+	private LooksFrame looksFrame;
 
-	GeneralTab(PmsConfiguration configuration) {
+	GeneralTab(PmsConfiguration configuration, LooksFrame looksFrame) {
 		this.configuration = configuration;
+		this.looksFrame = looksFrame;
 	}
 
 	public JComponent build() {
@@ -186,7 +188,7 @@ public class GeneralTab {
 					if (PMS.get().installWin32Service()) {
 						LOGGER.info(Messages.getString("PMS.41"));
 						JOptionPane.showMessageDialog(
-							(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+							looksFrame,
 							Messages.getString("NetworkTab.11") +
 							Messages.getString("NetworkTab.12"),
 							Messages.getString("Dialog.Information"),
@@ -194,7 +196,7 @@ public class GeneralTab {
 						);
 					} else {
 						JOptionPane.showMessageDialog(
-							(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+							looksFrame,
 							Messages.getString("NetworkTab.14"),
 							Messages.getString("Dialog.Error"),
 							JOptionPane.ERROR_MESSAGE
@@ -214,7 +216,7 @@ public class GeneralTab {
 					PMS.get().uninstallWin32Service();
 					LOGGER.info(Messages.getString("GeneralTab.3"));
 					JOptionPane.showMessageDialog(
-						(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+						looksFrame,
 						Messages.getString("GeneralTab.3"),
 						Messages.getString("Dialog.Information"),
 						JOptionPane.INFORMATION_MESSAGE
@@ -231,8 +233,7 @@ public class GeneralTab {
 		checkForUpdates.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				LooksFrame frame = (LooksFrame) PMS.get().getFrame();
-				frame.checkForUpdates(false);
+				looksFrame.checkForUpdates(false);
 			}
 		});
 		if (configuration.isHideAdvancedOptions()) {
@@ -349,7 +350,7 @@ public class GeneralTab {
 					tPanel.add(scrollPane, BorderLayout.NORTH);
 					Object[] options = {Messages.getString("LooksFrame.9"), Messages.getString("NetworkTab.45")};
 
-					if (JOptionPane.showOptionDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
+					if (JOptionPane.showOptionDialog(looksFrame,
 						tPanel, Messages.getString("NetworkTab.51"),
 						JOptionPane.OK_CANCEL_OPTION,
 						JOptionPane.PLAIN_MESSAGE, null, options, null) == JOptionPane.OK_OPTION) {
@@ -362,8 +363,7 @@ public class GeneralTab {
 							fos.close();
 							configuration.reload();
 						} catch (Exception e1) {
-							JOptionPane.showMessageDialog((JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
-								Messages.getString("NetworkTab.52") + e1.toString());
+							JOptionPane.showMessageDialog(looksFrame, Messages.getString("NetworkTab.52") + e1.toString());
 						}
 					}
 				}
@@ -472,12 +472,14 @@ public class GeneralTab {
 				}
 			});
 
+			final SelectRenderers selectRenderers = new SelectRenderers();
+			
 			builder.addLabel(Messages.getString("NetworkTab.62"), FormLayoutUtil.flip(cc.xy(1, 41), colSpec, orientation));
 			final CustomJButton setRenderers = new CustomJButton(Messages.getString("GeneralTab.5"));
 			setRenderers.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					SelectRenderers.showDialog();
+					selectRenderers.showDialog();
 				}
 			});
 

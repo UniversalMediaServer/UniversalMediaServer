@@ -60,7 +60,8 @@ public abstract class Format implements Cloneable {
 		TIF,
 		WAV,
 		WEB,
-		CUSTOM
+		CUSTOM,
+		PLAYLIST
 	}
 
 	public static final int AUDIO    =  1;

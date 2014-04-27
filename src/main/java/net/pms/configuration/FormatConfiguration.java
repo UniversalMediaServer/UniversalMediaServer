@@ -1,6 +1,7 @@
 package net.pms.configuration;
 
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import net.pms.dlna.DLNAMediaAudio;
@@ -262,9 +263,9 @@ public class FormatConfiguration {
 			}
 
 			if (extras != null && miExtras != null) {
-				Iterator<String> keyIt = extras.keySet().iterator();
+				Iterator<Entry<String, String>> keyIt = extras.entrySet().iterator();
 				while (keyIt.hasNext()) {
-					String key = keyIt.next();
+					String key = keyIt.next().getKey();
 					String value = extras.get(key);
 
 					if (key.equals(MI_QPEL) && miExtras.get(MI_QPEL) != null && !miExtras.get(MI_QPEL).matcher(value).matches()) {

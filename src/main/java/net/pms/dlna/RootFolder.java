@@ -40,6 +40,7 @@ import net.pms.external.AdditionalFolderAtRoot;
 import net.pms.external.AdditionalFoldersAtRoot;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
+import net.pms.formats.Format;
 import net.pms.newgui.IFrame;
 import net.pms.util.FileUtil;
 import org.apache.commons.configuration.ConfigurationException;
@@ -192,7 +193,7 @@ public class RootFolder extends DLNAResource {
 		}
 	}
 
-	public synchronized void scan() {
+	public void scan() {
 		running = true;
 
 		if (!isDiscovered()) {
@@ -215,11 +216,11 @@ public class RootFolder extends DLNAResource {
 		stopScan();
 	}
 
-	public synchronized void stopScan() {
+	public void stopScan() {
 		running = false;
 	}
 
-	private synchronized void scan(DLNAResource resource) {
+	private void scan(DLNAResource resource) {
 		if (running) {
 			for (DLNAResource child : resource.getChildren()) {
 				if (running && child.allowScan()) {
