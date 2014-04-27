@@ -286,10 +286,10 @@ public class AviSynthMEncoder extends MEncoderVideo {
 			mtLine3 = "SetMTMode(1)\nGetMTMode(false) > 0 ? distributor() : last";
 		}
 
-			// True Motion
-			if (configuration.getAvisynthInterFrame()) {
-				String GPU = "";
-				movieLine += ".ConvertToYV12()";
+		// True Motion
+		if (configuration.getAvisynthInterFrame()) {
+			String GPU = "";
+			movieLine += ".ConvertToYV12()";
 
 			// Enable GPU to assist with CPU
 			if (configuration.getAvisynthInterFrameGPU() && interframegpu.isEnabled()){
@@ -345,10 +345,7 @@ public class AviSynthMEncoder extends MEncoderVideo {
 					s = s.replace("<moviefilename>", fileName);
 				}
 
-					s = s.replace("<movie>", movieLine);
-					s = s.replace("<sub>", subLine != null ? subLine : "#");
-					pw.println(s);
-				}
+				s = s.replace("<movie>", movieLine);
 				s = s.replace("<sub>", subLine != null ? subLine : "#");
 				pw.println(s);
 			}

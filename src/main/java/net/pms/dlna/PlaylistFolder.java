@@ -85,12 +85,12 @@ public class PlaylistFolder extends DLNAResource {
 
 	@Override
 	protected void resolveOnce() {
-		ArrayList<Entry> entries = new ArrayList<>();
+		ArrayList<Entry> entries = new ArrayList<Entry>();
 		boolean m3u = false;
 		boolean pls = false;
 		try {
 			try {
-				BufferedReader br = getBufferedReader()
+				BufferedReader br = getBufferedReader();
 				String line;
 				while (!m3u && !pls && (line = br.readLine()) != null) {
 					line = line.trim();
@@ -165,7 +165,7 @@ public class PlaylistFolder extends DLNAResource {
 			} catch (IOException e) {
 				LOGGER.error(null, e);
 			}
-		} catch (NumberFormatException | IOException e) {
+		} catch (Exception e) {
 			LOGGER.error(null, e);
 		}
 
@@ -227,13 +227,14 @@ public class PlaylistFolder extends DLNAResource {
 	public static DLNAResource getPlaylist(String name, String uri, int type) {
 		Format f = FormatFactory.getAssociatedFormat("." + FileUtil.getUrlExtension(uri));
 		if (f != null && f.getType() == Format.PLAYLIST) {
-			switch (f.getMatchedExtension()) {
-				case "m3u":
-				case "m3u8":
-				case "pls":
-					return new PlaylistFolder(name, uri, type);
-				case "cue":
-					return FileUtil.isUrl(uri) ? null : new CueFolder(new File(uri));
+			if (
+				"m3u".equals(f.getMatchedExtension()) ||
+				"m3u8".equals(f.getMatchedExtension()) ||
+				"pls".equals(f.getMatchedExtension())
+			) {
+				return new PlaylistFolder(name, uri, type);
+			} else if ("cue".equals(f.getMatchedExtension())) {
+				return FileUtil.isUrl(uri) ? null : new CueFolder(new File(uri));
 			}
 		}
 		return null;
