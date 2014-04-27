@@ -1,4 +1,4 @@
-3.6.0 - 2014-04-??
+3.6.0 - 2014-04-28
 
 	General:
 		Use the Entertainment application category on OS X instead of Other
