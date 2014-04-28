@@ -26,7 +26,7 @@ public class SearchAction extends VirtualFolder {
 	}
 
 	@Override
-	public void resolve() {
+	public synchronized void resolve() {
 		setDiscovered(false);  // we can't clear this enough
 	}
 
