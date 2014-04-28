@@ -26,6 +26,7 @@
 		Allow muxing of non-mod4 videos to Bravia TVs (thanks, tdcosta100!)
 	Languages:
 		Updated Czech translation
+		Updated Spanish translation (thanks, AlfredoRamos!)
 	External Components:
 		Updated Java Runtime Environment automatic downloader for Windows to 7u55, which:
 			Improves security
