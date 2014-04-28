@@ -1,7 +1,7 @@
 4.0.0-a1 - 2014-05-??
 
 	General:
-		
+		Added a web interface, available at localhost:9001
 
 3.6.1 - 2014-05-??
 
