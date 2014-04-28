@@ -457,7 +457,7 @@ public class RendererConfiguration {
 	}
 
 	RendererConfiguration() throws ConfigurationException {
-		this(null);
+		this((File) null);
 	}
 
 	public RendererConfiguration(File f) throws ConfigurationException {
