@@ -298,7 +298,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public boolean isMuxable(RendererConfiguration mediaRenderer) {
 		// Make sure the file is H.264 video
-		if (getCodecV() != null && getCodecV().equals("h264")) {
+		if (isH264()) {
 			muxable = true;
 		}
 
@@ -311,7 +311,10 @@ public class DLNAMediaInfo implements Cloneable {
 					getHeight() > mediaRenderer.getMaxVideoHeight()
 				)
 			) ||
-			!isMod4()
+			(
+				!mediaRenderer.isBRAVIA() &&
+				!isMod4()
+			)
 		) {
 			muxable = false;
 		}
@@ -373,9 +376,16 @@ public class DLNAMediaInfo implements Cloneable {
 		setThumbready(true); // this class manages thumbnails by default with the parser_v1 method
 	}
 
-	public void generateThumbnail(InputFile input, Format ext, int type) {
+	public void generateThumbnail(InputFile input, Format ext, int type, Double seekPosition) {
 		DLNAMediaInfo forThumbnail = new DLNAMediaInfo();
-		forThumbnail.durationSec = durationSec;
+		forThumbnail.durationSec = getDurationInSeconds();
+
+		if (seekPosition <= forThumbnail.durationSec) {
+			forThumbnail.durationSec = seekPosition;
+		} else {
+			forThumbnail.durationSec = forThumbnail.durationSec / 2;
+		}
+
 		forThumbnail.parse(input, ext, type, true);
 		setThumb(forThumbnail.getThumb());
 	}
@@ -398,7 +408,7 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 
 		args[3] = "-ss";
-		args[4] = "" + configuration.getThumbnailSeekPos();
+		args[4] = "" + new Double(getDurationInSeconds()).intValue();
 		args[5] = "-i";
 
 		if (file != null) {
@@ -417,7 +427,7 @@ public class DLNAMediaInfo implements Cloneable {
 		args[14] = "image2";
 		args[15] = "pipe:";
 
-		// FIXME MPlayer should not be used if thumbnail generation is disabled (and it should be disabled in the GUI)
+		// FIXME MPlayer should not be used if thumbnail generation is disabled
 		if (!configuration.isThumbnailGenerationEnabled() || (configuration.isUseMplayerForVideoThumbs() && !dvrms)) {
 			args[4] = "0";
 			for (int i = 7; i <= 15; i++) {
@@ -460,8 +470,7 @@ public class DLNAMediaInfo implements Cloneable {
 		String args[] = new String[14];
 		args[0] = configuration.getMplayerPath();
 		args[1] = "-ss";
-		boolean toolong = getDurationInSeconds() < configuration.getThumbnailSeekPos();
-		args[2] = "" + (toolong ? (getDurationInSeconds() / 2) : configuration.getThumbnailSeekPos());
+		args[2] = "" + new Double(getDurationInSeconds()).intValue();
 		args[3] = "-quiet";
 
 		if (file != null) {
@@ -693,7 +702,7 @@ public class DLNAMediaInfo implements Cloneable {
 					LOGGER.info("Error parsing image ({}) with Sanselan, switching to FFmpeg.", file.getAbsolutePath());
 				}
 
-				if (configuration.getImageThumbnailsEnabled() && file != null) {
+				if (configuration.getImageThumbnailsEnabled()) {
 					LOGGER.trace("Creating (temporary) thumbnail: {}", file.getName());
 
 					// Create the thumbnail image using the Thumbnailator library
@@ -703,9 +712,9 @@ public class DLNAMediaInfo implements Cloneable {
 								.size(320, 180)
 								.outputFormat("JPEG")
 								.outputQuality(1.0f)
-								.toOutputStream(out);;
+								.toOutputStream(out);
 
-								setThumb(out.toByteArray());
+						setThumb(out.toByteArray());
 					} catch (IOException | IllegalArgumentException | IllegalStateException e) {
 						LOGGER.debug("Error generating thumbnail for: " + file.getName());
 						LOGGER.debug("The full error was: " + e);
@@ -819,17 +828,17 @@ public class DLNAMediaInfo implements Cloneable {
 					}
 				}
 			}
- 
+
 			finalize(type, inputFile);
 			setMediaparsed(true);
 		}
 	}
 
 	/**
-	 * Parses media info from ffmpeg's stderr output
+	 * Parses media info from FFmpeg's stderr output
 	 *
 	 * @param lines The stderr output
-	 * @param input The ffmpeg input (-i) argument used
+	 * @param input The FFmpeg input (-i) argument used
 	 */
 	public void parseFFmpegInfo(List<String> lines, String input) {
 
@@ -951,7 +960,7 @@ public class DLNAMediaInfo implements Cloneable {
 									int aa = line.indexOf(": ");
 									int bb = line.length();
 									if (aa > -1 && bb > aa) {
-										audio.setFlavor(line.substring(aa+2, bb));
+										audio.setFlavor(line.substring(aa + 2, bb));
 										break;
 									}
 								} else {
@@ -1076,7 +1085,7 @@ public class DLNAMediaInfo implements Cloneable {
 									int aa = line.indexOf(": ");
 									int bb = line.length();
 									if (aa > -1 && bb > aa) {
-										lang.setFlavor(line.substring(aa+2, bb));
+										lang.setFlavor(line.substring(aa + 2, bb));
 										break;
 									}
 								} else {
@@ -1094,7 +1103,22 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	public boolean isH264() {
-		return getCodecV() != null && getCodecV().contains("264");
+		return getCodecV() != null && getCodecV().startsWith("h264");
+	}
+
+	/**
+	 * Disable LPCM transcoding for MP4 container with non-H264 video as workaround for MEncoder's A/V sync bug
+	 */
+	public boolean isValidForLPCMTranscoding() {
+		if (getContainer() != null) {
+			if (getContainer().equals("mp4")) {
+				return isH264();
+			} else {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public int getFrameNumbers() {
@@ -1153,7 +1177,7 @@ public class DLNAMediaInfo implements Cloneable {
 			setMimeType(HTTPResource.PNG_TYPEMIME);
 		} else if ("gif".equals(codecV) || "gif".equals(container)) {
 			setMimeType(HTTPResource.GIF_TYPEMIME);
-		} else if (codecV != null && (codecV.equals("h264") || codecV.equals("h263") || codecV.toLowerCase().equals("mpeg4") || codecV.toLowerCase().equals("mp4"))) {
+		} else if (codecV != null && (codecV.startsWith("h264") || codecV.equals("h263") || codecV.toLowerCase().equals("mpeg4") || codecV.toLowerCase().equals("mp4"))) {
 			setMimeType(HTTPResource.MP4_TYPEMIME);
 		} else if (codecV != null && (codecV.indexOf("mpeg") > -1 || codecV.indexOf("mpg") > -1)) {
 			setMimeType(HTTPResource.MPEG_TYPEMIME);
@@ -1189,7 +1213,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public synchronized boolean isVideoWithinH264LevelLimits(InputFile f, RendererConfiguration mediaRenderer) {
 		if (!h264_parsed) {
-			if ("h264".equals(getCodecV())) {
+			if (isH264()) {
 				if (
 					getContainer() != null &&
 					(

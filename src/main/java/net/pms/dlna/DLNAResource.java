@@ -475,7 +475,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param child
 	 *            DLNAResource to add to a container type.
 	 */
-
 	public void addChild(DLNAResource child) {
 		addChild(child, true);
 	}
@@ -691,7 +690,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									newChild.setMedia(child.getMedia());
 									fileTranscodeFolder.addChildInternal(newChild);
 									LOGGER.trace("Adding \"{}\" to transcode folder for player: \"{}\"", child.getName(), player.toString());
-	
+
 									transcodeFolder.updateChild(fileTranscodeFolder);
 								}
 							}
@@ -724,7 +723,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 
 					if (resumeRes != null) {
-						resumeRes.setMedia(child.getMedia());
+						resumeRes.getMedia().setThumbready(false);
 					}
 
 					if (
@@ -814,7 +813,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *
 	 * @param child the DLNA resource to update
 	 */
-
 	public void updateChild(DLNAResource child) {
 		DLNAResource found = getChildren().contains(child) ?
 			child : searchByName(child.getName());
@@ -840,7 +838,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *
 	 * @param child the DLNA resource to add to this node's list of children
 	 */
-
 	protected synchronized void addChildInternal(DLNAResource child) {
 		if (child.getInternalId() != null) {
 			LOGGER.debug(
@@ -1383,6 +1380,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// Make sure clones (typically #--TRANSCODE--# folder files)
 			// have the option to respond to resolve events
 			o.resolved = false;
+
+			if (media != null) {
+				o.media = (DLNAMediaInfo) media.clone();
+			}
 		} catch (CloneNotSupportedException e) {
 			LOGGER.error(null, e);
 		}
@@ -1584,9 +1585,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				// not guaranteed to return a match for another renderer.
 				String mime = mediaRenderer.getMimeType(mimeType());
 
-				if (mime == null) {
-					// FIXME: Setting the default to "video/mpeg" leaves a lot of audio files in the cold.
-					mime = "video/mpeg";
+				// Use our best guess if we have no valid mime type
+				if (mime == null || mime.contains("/transcode")) {
+					mime = HTTPResource.getDefaultMimeType(getType());
 				}
 
 				dlnaspec = null;
@@ -1878,7 +1879,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 											isMuxableResult &&
 											mediaRenderer.isMuxH264MpegTS()
 										) ||
-										mediaRenderer.isTranscodeToMPEGTSAC3()
+										mediaRenderer.isTranscodeToMPEGTSAC3() ||
+										mediaRenderer.isTranscodeToH264TSAC3()
 									) {
 										isFileMPEGTS = true;
 									}
@@ -2518,7 +2520,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	protected void checkThumbnail(InputFile inputFile) {
 		if (getMedia() != null && !getMedia().isThumbready() && configuration.isThumbnailGenerationEnabled()) {
 			getMedia().setThumbready(true);
-			getMedia().generateThumbnail(inputFile, getFormat(), getType());
+
+			Double seekPosition = ((Integer) configuration.getThumbnailSeekPos()).doubleValue();
+
+			if (isResume()) {
+				Double resumePosition = ((Long) getResume().getTimeOffset()).doubleValue() / 1000;
+
+				if (getMedia().getDurationInSeconds() > 0 && resumePosition < getMedia().getDurationInSeconds()) {
+					seekPosition = resumePosition;
+				}
+			}
+
+			getMedia().generateThumbnail(inputFile, getFormat(), getType(), seekPosition);
+
 			if (getMedia().getThumb() != null && configuration.getUseCache() && inputFile.getFile() != null) {
 				PMS.get().getDatabase().updateThumbnail(inputFile.getFile().getAbsolutePath(), inputFile.getFile().lastModified(), getType(), getMedia());
 			}
@@ -3270,12 +3284,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (!configuration.isResumeEnabled() || !isResumeable()) {
 			return null;
 		}
+
+		notifyRefresh();
+
 		if (resume != null) {
 			resume.stop(startTime, (long) (getMedia().getDurationInSeconds() * 1000));
 			if (resume.isDone()) {
 				getParent().getChildren().remove(this);
+			} else {
+				getMedia().setThumbready(false);
 			}
-			notifyRefresh();
 		} else {
 			for (DLNAResource res : getParent().getChildren()) {
 				if (res.isResume() && res.getName().equals(getName())) {
@@ -3284,6 +3302,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						getParent().getChildren().remove(res);
 						return null;
 					}
+					res.getMedia().setThumbready(false);
 					return res;
 				}
 			}
@@ -3292,7 +3311,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				DLNAResource clone = this.clone();
 				clone.resume = r;
 				clone.resHash = resHash;
-				clone.setMedia(getMedia());
+				clone.getMedia().setThumbready(false);
 				clone.setPlayer(getPlayer());
 				getParent().addChildInternal(clone);
 				return clone;
@@ -3329,7 +3348,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * By default it just returns null which means the resource is ignored
 	 * in the last played file.
 	 */
-
 	public String write() {
 		return null;
 	}

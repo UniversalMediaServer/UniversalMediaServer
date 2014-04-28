@@ -296,7 +296,7 @@ public class TsMuxeRVideo extends Player {
 				boolean pcm;
 
 				// Disable LPCM transcoding for MP4 container with non-H264 video as workaround for MEncoder's A/V sync bug
-				boolean mp4_with_non_h264 = (media.getContainer().equals("mp4") && !media.getCodecV().equals("h264"));
+				boolean mp4_with_non_h264 = (media.getContainer().equals("mp4") && !media.isH264());
 
 				if (numAudioTracks <= 1) {
 					ffAudioPipe = new PipeIPCProcess[numAudioTracks];
@@ -317,7 +317,7 @@ public class TsMuxeRVideo extends Player {
 					dtsRemux = configuration.isAudioEmbedDtsInPcm() && params.aid.isDTS() && params.mediaRenderer.isDTSPlayable() && !encodedAudioPassthrough;
 
 					pcm = configuration.isAudioUsePCM() &&
-						!mp4_with_non_h264 &&
+						media.isValidForLPCMTranscoding() &&
 						(
 							params.aid.isLossless() ||
 							(params.aid.isDTS() && params.aid.getAudioProperties().getNumberOfChannels() <= 6) ||
@@ -436,7 +436,7 @@ public class TsMuxeRVideo extends Player {
 						dtsRemux = configuration.isAudioEmbedDtsInPcm() && audio.isDTS() && params.mediaRenderer.isDTSPlayable() && !encodedAudioPassthrough;
 
 						pcm = configuration.isAudioUsePCM() &&
-							!mp4_with_non_h264 &&
+							media.isValidForLPCMTranscoding() &&
 							(
 								audio.isLossless() ||
 								(audio.isDTS() && audio.getAudioProperties().getNumberOfChannels() <= 6) ||
@@ -552,8 +552,6 @@ public class TsMuxeRVideo extends Player {
 			}
 			pw.println(videoType + ", \"" + ffVideoPipe.getOutputPipe() + "\", " + (fps != null ? ("fps=" + fps + ", ") : "") + (width != -1 ? ("video-width=" + width + ", ") : "") + (height != -1 ? ("video-height=" + height + ", ") : "") + videoparams);
 
-			// disable LPCM transcoding for MP4 container with non-H264 video as workaround for mencoder's A/V sync bug
-			boolean mp4_with_non_h264 = (media.getContainer().equals("mp4") && !media.getCodecV().equals("h264"));
 			if (ffAudioPipe != null && ffAudioPipe.length == 1) {
 				String timeshift = "";
 				boolean ac3Remux;
@@ -576,7 +574,7 @@ public class TsMuxeRVideo extends Player {
 				dtsRemux = configuration.isAudioEmbedDtsInPcm() && params.aid.isDTS() && params.mediaRenderer.isDTSPlayable() && !encodedAudioPassthrough;
 
 				pcm = configuration.isAudioUsePCM() &&
-					!mp4_with_non_h264 &&
+					media.isValidForLPCMTranscoding() &&
 					(
 						params.aid.isLossless() ||
 						(params.aid.isDTS() && params.aid.getAudioProperties().getNumberOfChannels() <= 6) ||
@@ -639,7 +637,7 @@ public class TsMuxeRVideo extends Player {
 					dtsRemux = configuration.isAudioEmbedDtsInPcm() && lang.isDTS() && params.mediaRenderer.isDTSPlayable() && !encodedAudioPassthrough;
 
 					pcm = configuration.isAudioUsePCM() &&
-						!mp4_with_non_h264 &&
+						media.isValidForLPCMTranscoding() &&
 						(
 							lang.isLossless() ||
 							(lang.isDTS() && lang.getAudioProperties().getNumberOfChannels() <= 6) ||

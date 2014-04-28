@@ -1,12 +1,9 @@
 package net.pms.dlna;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
+import java.io.*;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -20,19 +17,19 @@ import org.slf4j.LoggerFactory;
 public class MediaMonitor extends VirtualFolder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MediaMonitor.class);
 	private File[] dirs;
-	private ArrayList<String> oldEntries;
+	private Set<String> oldEntries;
 	private PmsConfiguration config;
 
 	public MediaMonitor(File[] dirs) {
 		super(Messages.getString("VirtualFolder.2"), "images/thumbnail-folder-256.png");
 		this.dirs = dirs;
-		oldEntries = new ArrayList<>();
+		oldEntries = new HashSet<>();
 		config = PMS.getConfiguration();
 		parseMonitorFile();
 	}
 
 	private File monitorFile() {
-		return new File(PMS.getConfiguration().getDataFile("UMS.mon"));
+		return new File(config.getDataFile("UMS.mon"));
 	}
 
 	private void parseMonitorFile() {
@@ -57,9 +54,7 @@ public class MediaMonitor extends VirtualFolder {
 						if (!new File(entry.trim()).exists()) {
 							continue;
 						}
-						if (!oldEntries.contains(entry.trim())) {
-							oldEntries.add(entry.trim());
-						}
+						oldEntries.add(entry.trim());
 					}
 				}
 			}
@@ -68,23 +63,20 @@ public class MediaMonitor extends VirtualFolder {
 		}
 	}
 
-	public void scanDir(File[] files, DLNAResource res) {
-		final DLNAResource start = res;
+	public void scanDir(File[] files, final DLNAResource res) {
+		final DLNAResource mm = this;
 		res.addChild(new VirtualVideoAction(Messages.getString("PMS.139"), true) {
 			@Override
 			public boolean enable() {
-				for (DLNAResource r : start.getChildren()) {
+				for (DLNAResource r : res.getChildren()) {
 					if (!(r instanceof RealFile)) {
 						continue;
 					}
 					RealFile rf = (RealFile) r;
-					if (old(rf.getFile().getAbsolutePath())) { // no duplicates!
-						continue;
-					}
 					oldEntries.add(rf.getFile().getAbsolutePath());
 				}
-				start.setDiscovered(false);
-				start.getChildren().clear();
+				mm.setDiscovered(false);
+				mm.getChildren().clear();
 				try {
 					dumpFile();
 				} catch (IOException e) {
@@ -105,7 +97,7 @@ public class MediaMonitor extends VirtualFolder {
 			if (f.isDirectory()) {
 				boolean add = true;
 				if (config.isHideEmptyFolders()) {
-					add = FileUtil.isFolderRelevant(f, PMS.getConfiguration());
+					add = FileUtil.isFolderRelevant(f, config, oldEntries);
 				}
 				if (add) {
 					res.addChild(new MonitorEntry(f, this));
