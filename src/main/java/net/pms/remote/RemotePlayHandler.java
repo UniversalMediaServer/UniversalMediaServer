@@ -10,7 +10,9 @@ import java.net.URLEncoder;
 import java.util.List;
 
 import net.pms.PMS;
+import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
 import net.pms.encoders.FFMpegVideo;
@@ -24,9 +26,17 @@ public class RemotePlayHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RemotePlayHandler.class);
 	private final static String CRLF = "\r\n";
 	private RemoteWeb parent;
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	public RemotePlayHandler(RemoteWeb parent) {
 		this.parent = parent;
+	}
+
+	private void endPage(StringBuilder sb) {
+		sb.append("</div>").append(CRLF);
+		sb.append("</div>").append(CRLF);
+		sb.append("</body>").append(CRLF);
+		sb.append("</html>").append(CRLF);
 	}
 
 	private String mkPage(String id, HttpExchange t) throws IOException {
@@ -45,16 +55,27 @@ public class RemotePlayHandler implements HttpHandler {
 		String mime = root.getDefaultRenderer().getMimeType(r.mimeType());
 		String mediaType = "";
 		String coverImage = "";
+		if(r.getFormat().isImage()) {
+			flowplayer = false;
+			coverImage = "<img src=\"/raw/" + rawId + "\" alt=\"\"><br>";
+		}
 		if (r.getFormat().isAudio()) {
 			mediaType = "audio";
 			String thumb = "/thumb/" + id1;
-			coverImage = "<img class=\"cover\" src=\"" + thumb + "\" alt=\"\"><br>";
+			coverImage = "<img src=\"" + thumb + "\" alt=\"\"><br>";
+			flowplayer = false;
 		}
 		if (r.getFormat().isVideo()) {
 			mediaType = "video";
-			if (!RemoteUtil.directmime(mime)) {
-				mime = RemoteUtil.MIME_TRANS;
+			if(mime.equals(FormatConfiguration.MIMETYPE_AUTO)) {
+				if (r.getMedia() != null && r.getMedia().getMimeType() != null) {
+					mime = r.getMedia().getMimeType();
+				}
 			}
+			/*if(!RemoteUtil.directmime(mime)) {
+				mime = RemoteUtil.MIME_TRANS;
+				flowplayer = false;
+			} */
 		}
 
 		// Media player HTML
@@ -76,19 +97,37 @@ public class RemotePlayHandler implements HttpHandler {
 					sb.append("<div id=\"Menu\">").append(CRLF);
 						sb.append("<a href=\"/browse/0\" id=\"HomeButton\"></a>").append(CRLF);
 					sb.append("</div>").append(CRLF);
+					sb.append("<div id=\"VideoContainer\">").append(CRLF);
+					// for video this gives just an empty line
 					sb.append(coverImage).append(CRLF);
+					if(r.getFormat().isImage()) {
+						// do this like this to simplify the code
+						// skip all player crap since img tag works well
+						endPage(sb);
+						return sb.toString();
+					}
+
 					if (flowplayer) {
-						sb.append("<div id=\"VideoContainer\">").append(CRLF);
-						sb.append("<div class=\"flowplayer no-time no-volume no-mute\" data-ratio=\"0.5625\" data-embed=\"false\" data-flashfit=\"true\">").append(CRLF);
+						//sb.append("<div class=\"flowplayer no-time no-volume no-mute\" data-ratio=\"0.5625\" data-embed=\"false\" data-flashfit=\"true\">").append(CRLF);
+						sb.append("<div class=\"player\">").append(CRLF);
 					}
 					sb.append("<").append(mediaType);
 					if (flowplayer) {
-						sb.append(" autoplay>");
+						sb.append(" controls autoplay>").append(CRLF);
+						if(RemoteUtil.directmime(mime) &&
+						   !transMp4(mime, r.getMedia()) &&
+						   !r.isResume()) {
+							sb.append("<source src=\"/media/").append(URLEncoder.encode(id1, "UTF-8")).
+							   append("\" type=\"").append(mime).append("\">").append(CRLF);
+						}
+						sb.append("<source src=\"/fmedia/").append(URLEncoder.encode(id1, "UTF-8")).
+					 	   append("\" type=\"video/flash\">");
 					} else {
 						sb.append(" width=\"720\" height=\"404\" controls autoplay>").append(CRLF);
+						sb.append("<source src=\"/media/").append(URLEncoder.encode(id1, "UTF-8")).append("\" type=\"").append(mime).append("\">");
 					}
-					//sb.append("<source src=\"/media/").append(URLEncoder.encode(id1, "UTF-8")).append("\" type=\"").append(mime).append("\">");
-					sb.append("<source src=\"/fmedia/").append(URLEncoder.encode(id1, "UTF-8")).append("\" type=\"video/x-flv\">");
+					sb.append(CRLF);
+
 					if (flowplayer) {
 						PmsConfiguration configuration = PMS.getConfiguration();
 						boolean isFFmpegFontConfig = configuration.isFFmpegFontConfig();
@@ -98,30 +137,52 @@ public class RemotePlayHandler implements HttpHandler {
 
 						OutputParams p = new OutputParams(configuration);
 						Player.setAudioAndSubs(r.getName(), r.getMedia(), p);
-						try {
-							File subFile = FFMpegVideo.getSubtitles(r, r.getMedia(), p, configuration);
-							subFile = SubtitleUtils.convertSubripToWebVTT(subFile);
-							LOGGER.debug("subFile " + subFile);
-							if (subFile != null) {
-								sb.append("<track src=\"/subs/").append(subFile.getAbsolutePath()).append("\">");
+						if (p.sid !=null && p.sid.getType().isText()) {
+							try {
+								File subFile = FFMpegVideo.getSubtitles(r, r.getMedia(), p, configuration);
+								LOGGER.debug("subFile " + subFile);
+								subFile = SubtitleUtils.convertSubripToWebVTT(subFile);
+								if (subFile != null) {
+									sb.append("<track src=\"/subs/").append(subFile.getAbsolutePath()).append("\">");
+								}
+							} catch (Exception e) {
+								LOGGER.debug("error when doing sub file " + e);
 							}
-						} catch (Exception e) {
-							LOGGER.debug("error when doing sub file " + e);
 						}
 						
 						configuration.setFFmpegFontConfig(isFFmpegFontConfig); // return back original fontconfig value
 					}
 					sb.append("</").append(mediaType).append(">").append(CRLF);
+
 					if (flowplayer) {
 						sb.append("</div>").append(CRLF);
-						sb.append("</div>").append(CRLF);
 					}
-					sb.append("<a href=\"/raw/").append(rawId).append("\" target=\"_blank\" id=\"DownloadLink\" title=\"Download this video\"></a>").append(CRLF);
-				sb.append("</div>").append(CRLF);
-			sb.append("</body>").append(CRLF);
-		sb.append("</html>").append(CRLF);
+		sb.append("</div>").append(CRLF);
+		sb.append("<a href=\"/raw/").append(rawId).append("\" target=\"_blank\" id=\"DownloadLink\" title=\"Download this video\"></a>").append(CRLF);
+		if(flowplayer) {
+		   	sb.append("<script>").append(CRLF);
+			sb.append("$(function() {").append(CRLF);
+			sb.append("$(\".player\").flowplayer({").append(CRLF);
+			sb.append("ratio: 25/47").append(CRLF);
+			sb.append(",flashfit: true").append(CRLF);
+			sb.append("});});").append(CRLF);
+			if(r.isResume()) {
+				sb.append("var api = flowplayer();").append(CRLF);
+				sb.append("api.seek(");
+				sb.append(r.getResume().getTimeOffset() / 1000);
+				sb.append(");").append(CRLF);
+			}
+			sb.append("</script>").append(CRLF);
+		}
+		endPage(sb);
 
 		return sb.toString();
+	}
+
+	private boolean transMp4(String mime, DLNAMediaInfo media) {
+		LOGGER.debug("mp4 profile "+media.getH264Profile());
+		return mime.equals("video/mp4") && (configuration.isWebMp4Trans() ||
+			   								media.getAvcAsInt() >= 40);
 	}
 
 	@Override

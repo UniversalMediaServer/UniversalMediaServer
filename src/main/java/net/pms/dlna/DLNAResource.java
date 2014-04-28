@@ -2289,6 +2289,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return The inputstream
 	 * @throws IOException
 	 */
+	private long lastStart;
 	public InputStream getInputStream(Range range, RendererConfiguration mediarenderer) throws IOException {
 		LOGGER.trace("Asked stream chunk : " + range + " of " + getName() + " and player " + getPlayer());
 
@@ -2385,11 +2386,20 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 			}
 
+			if(System.currentTimeMillis() - lastStart < 500) {
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException e) {
+					LOGGER.error(null, e);
+				}
+			}
+
 			// (Re)start transcoding process if necessary
 			if (externalProcess == null || externalProcess.isDestroyed()) {
 				// First playback attempt => start new transcoding process
 				LOGGER.debug("Starting transcode/remux of " + getName() + " with media info: " + getMedia().toString());
 
+				lastStart = System.currentTimeMillis();
 				externalProcess = getPlayer().launchTranscode(this, getMedia(), params);
 
 				if (params.waitbeforestart > 0) {
@@ -2417,6 +2427,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 				};
 				new Thread(r, "External Process Stopper").start();
+				lastStart = System.currentTimeMillis();
 				ProcessWrapper newExternalProcess = getPlayer().launchTranscode(this, getMedia(), params);
 				try {
 					Thread.sleep(1000);
@@ -2519,8 +2530,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	protected void checkThumbnail(InputFile inputFile) {
 		if (getMedia() != null && !getMedia().isThumbready() && configuration.isThumbnailGenerationEnabled()) {
-			getMedia().setThumbready(true);
-
 			Double seekPosition = ((Integer) configuration.getThumbnailSeekPos()).doubleValue();
 
 			if (isResume()) {
@@ -2532,6 +2541,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 
 			getMedia().generateThumbnail(inputFile, getFormat(), getType(), seekPosition);
+			getMedia().setThumbready(true);
 
 			if (getMedia().getThumb() != null && configuration.getUseCache() && inputFile.getFile() != null) {
 				PMS.get().getDatabase().updateThumbnail(inputFile.getFile().getAbsolutePath(), inputFile.getFile().lastModified(), getType(), getMedia());

@@ -1,41 +1,139 @@
 package net.pms.encoders;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JComponent;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.RealFile;
 import net.pms.formats.Format;
-import net.pms.io.OutputParams;
-import net.pms.io.PipeProcess;
-import net.pms.io.ProcessWrapper;
-import net.pms.io.ProcessWrapperImpl;
+import net.pms.io.*;
+import net.pms.remote.RemoteUtil;
+import net.pms.util.MpegUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class WebPlayer extends FFMpegVideo {
+	public static final int STREAM = 0;
+	public static final int TRANS = 1;
+	public static final int FLASH = 2;
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebPlayer.class);
-	private boolean flash;
+	private int method;
 
 	public WebPlayer() {
 		super();
-		flash = false;
+		method = STREAM;
 	}
 
-	public WebPlayer(boolean f) {
+	public WebPlayer(int m) {
 		this();
-		flash = f;
+		method = m;
+	}
+
+	private void flashCmds(List<String> cmdList, DLNAMediaInfo media) {
+		cmdList.add("-c:v");
+		if (media.getCodecV() != null && media.getCodecV().equals("h264")) {
+			cmdList.add("copy");
+		} else {
+			cmdList.add("flv");
+			cmdList.add("-qmin");
+			cmdList.add("2");
+			cmdList.add("-qmax");
+			cmdList.add("6");
+		}
+		if (media.getFirstAudioTrack() != null && media.getFirstAudioTrack().isAAC()) {
+			cmdList.add("-c:a");
+			cmdList.add("copy");
+		} else {
+			cmdList.add("-ar");
+			cmdList.add("44100");
+		}
+		cmdList.add("-f");
+		cmdList.add("flv");
+	}
+
+
+
+	private void oggCmd(List<String> cmdList) {
+		cmdList.add("-c:v");
+		cmdList.add("libtheora");
+		cmdList.add("-qscale:v");
+		cmdList.add("8");
+		cmdList.add("-acodec");
+		cmdList.add("libvorbis");
+		cmdList.add("-qscale:a");
+		cmdList.add("6");
+		cmdList.add("-f");
+		cmdList.add("ogg");
+	}
+
+	private void mp4Cmd(List<String> cmdList) {
+		cmdList.add("-c:v");
+		cmdList.add("libx264");
+		cmdList.add("-preset");
+		cmdList.add("ultrafast");
+		cmdList.add("-tune");
+		cmdList.add("zerolatency");
+		cmdList.add("-profile:v");
+		cmdList.add("high");
+		cmdList.add("-level:v");
+		cmdList.add("3.1");
+		cmdList.add("-c:a");
+		cmdList.add("aac");
+		cmdList.add("-ab");
+		cmdList.add("16k");
+		cmdList.add("-ar");
+		cmdList.add("44100");
+		cmdList.add("-strict");
+		cmdList.add("experimental");
+		cmdList.add("-pix_fmt");
+		cmdList.add("yuv420p");
+		cmdList.add("-frag_duration");
+		cmdList.add("300");
+		cmdList.add("-frag_size");
+		cmdList.add("100");
+		cmdList.add("-flags");
+		cmdList.add("+aic+mv4");
+		cmdList.add("-movflags");
+		cmdList.add("+faststart");
+		cmdList.add("-f");
+		cmdList.add("mp4");
+		//cmdList.add("separate_moof+frag_keyframe+empty_moov");
+	}
+
+	private void hlsCmd(List<String> cmdList, DLNAMediaInfo media) {
+		cmdList.add("-c:v");
+		if (media.getCodecV() != null && media.getCodecV().equals("h264")) {
+			cmdList.add("copy");
+		} else {
+			cmdList.add("flv");
+			cmdList.add("-qmin");
+			cmdList.add("2");
+			cmdList.add("-qmax");
+			cmdList.add("6");
+		}
+		if (media.getFirstAudioTrack() != null && media.getFirstAudioTrack().isAAC()) {
+			cmdList.add("-c:a");
+			cmdList.add("copy");
+		} else {
+			cmdList.add("-ar");
+			cmdList.add("44100");
+		}
+		cmdList.add("-f");
+		cmdList.add("HLS");
 	}
 
 	@Override
-	public ProcessWrapper launchTranscode(
+	public synchronized ProcessWrapper launchTranscode(
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
 		LOGGER.debug("web player wrapper called");
-		params.waitbeforestart = 1000;
+		params.waitbeforestart = 4000;
 		final String filename = dlna.getSystemName();
 		setAudioAndSubs(filename, media, params);
 
@@ -102,7 +200,7 @@ public class WebPlayer extends FFMpegVideo {
 		cmdList.add("-i");
 		cmdList.add(filename);
 
-		//cmdList.addAll(getVideoFilterOptions(dlna, media, params));
+		cmdList.addAll(getVideoFilterOptions(dlna, media, params));
 
 		// Encoder threads
 		if (nThreads > 0) {
@@ -126,65 +224,18 @@ public class WebPlayer extends FFMpegVideo {
 		pipe.getInputPipe()
 		};*/
 		// Add the output options (-f, -c:a, -c:v, etc.)
-		if (!flash) {
-			cmdList.add("-c:v");
-			cmdList.add("libtheora");
-			cmdList.add("-qscale:v");
-			cmdList.add("8");
-			cmdList.add("-acodec");
-			cmdList.add("libvorbis");
-			cmdList.add("-qscale:a");
-			cmdList.add("6");
-			cmdList.add("-f");
-			cmdList.add("ogg");
-			/*cmdList.add("-c:v");
-			cmdList.add("libx264");
-			cmdList.add("-profile:v");
-			cmdList.add("baseline");
-			cmdList.add("-level");
-			cmdList.add("31");
-			cmdList.add("-tune");
-			cmdList.add("zerolatency");
-			cmdList.add("-ab");
-			cmdList.add("56k");
-			cmdList.add("-strict");
-			cmdList.add("experimental");
-			cmdList.add("-acodec");
-			cmdList.add("aac");
-			cmdList.add("-cutoff");
-			cmdList.add("15000");
-			cmdList.add("-g");
-			cmdList.add("30");
-			cmdList.add("-r");
-			cmdList.add("24");
-			cmdList.add("-pix_fmt");
-			cmdList.add("yuv420p");
-			cmdList.add("-f");
-			cmdList.add("mp4");
-			cmdList.add("-flags");
-			cmdList.add("global_header");
-			cmdList.add("-movflags");
-			cmdList.add("separate_moof+frag_keyframe+empty_moov");*/
-		} else {
-			cmdList.add("-c:v");
-			if (media.getCodecV() != null && media.getCodecV().equals("h264")) {
-				cmdList.add("copy");
-			} else {
-				cmdList.add("flv");
-				cmdList.add("-qmin");
-				cmdList.add("2");
-				cmdList.add("-qmax");
-				cmdList.add("6");
+		if (method == TRANS) {
+			if(RemoteUtil.MIME_TRANS.equals(RemoteUtil.MIME_OGG))  {
+				oggCmd(cmdList);
 			}
-			if (media.getFirstAudioTrack() != null && media.getFirstAudioTrack().isAAC()) {
-				cmdList.add("-c:a");
-				cmdList.add("copy");
-			} else {
-				cmdList.add("-ar");
-				cmdList.add("44100");
+			else if (RemoteUtil.MIME_TRANS.equals(RemoteUtil.MIME_MP4)) {
+				mp4Cmd(cmdList);
 			}
-			cmdList.add("-f");
-			cmdList.add("flv");
+			else if (RemoteUtil.MIME_TRANS.equals(RemoteUtil.MIME_WEBM)) {
+				// nothing here   yet
+			}
+		} else if (method == FLASH) {
+			flashCmds(cmdList, media);
 		}
 
 		// Output file
@@ -269,5 +320,20 @@ public class WebPlayer extends FFMpegVideo {
 	@Override
 	public String executable() {
 		return super.executable();
+	}
+
+	private class WebProcessWrapper extends ProcessWrapperLiteImpl {
+		private DLNAResource res;
+
+		public WebProcessWrapper(DLNAResource res) {
+			super(null);
+			this.res = res;
+		}
+
+		@Override
+		public InputStream getInputStream(long seek) throws IOException {
+			InputStream fis = res.getInputStream();
+			return fis;
+		}
 	}
 }

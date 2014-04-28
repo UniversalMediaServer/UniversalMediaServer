@@ -9,6 +9,7 @@ import java.util.List;
 import net.pms.Messages;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,10 +48,11 @@ public class RemoteBrowseHandler implements HttpHandler {
 						sb.append("<a href=\"/browse/0\" id=\"HomeButton\"></a>");
 					sb.append("</div>");
 					for (DLNAResource r : res) {
+						LOGGER.debug("add res  "+r);
 						String newId = r.getResourceId();
 						String idForWeb = URLEncoder.encode(newId, "UTF-8");
 						String thumb = "/thumb/" + idForWeb;
-						String name = r.resumeName();
+						String name = StringEscapeUtils.escapeHtml(r.resumeName());
 
 						if (r.isFolder()) {
 							// Do not display the transcode folder in the web interface
