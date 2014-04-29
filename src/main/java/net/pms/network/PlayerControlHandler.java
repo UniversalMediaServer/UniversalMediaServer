@@ -1,6 +1,8 @@
 package net.pms.network;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -12,6 +14,7 @@ import java.util.Set;
 import java.util.Arrays;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
 import com.sun.net.httpserver.Headers;
@@ -30,6 +33,7 @@ import net.pms.util.BasicPlayer;
 public class PlayerControlHandler implements HttpHandler {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlayerControlHandler.class);
+	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	private int port;
 	private HashMap<String,BasicPlayer> players;
@@ -81,9 +85,11 @@ public class PlayerControlHandler implements HttpHandler {
 			}
 			response = getPlayerState(player);
 		} else if (p.length == 2) {
-			response = read("bump.html").replace("127.0.0.1", PMS.get().getServer().getHost());
+			response = read(configuration.getWebFile("bump.html"))
+				.replace("127.0.0.1", PMS.get().getServer().getHost())
+				.replace("9001", String.valueOf(port));
 		} else if (p[2].equals("bump.js")) {
-			response = read("bump.js");
+			response = read(configuration.getWebFile("bump.js"));
 			mime = "text/javascript";
 		} else if (p[2].equals("renderers")) {
 			response = getRenderers();
@@ -134,7 +140,7 @@ public class PlayerControlHandler implements HttpHandler {
 
 	public String getRenderers() {
 		ArrayList<String> renderers = new ArrayList();
-		String bumpAddress = PMS.get().getConfiguration().getBumpAddress();
+		String bumpAddress = configuration.getBumpAddress();
 		for (RendererConfiguration r : RendererConfiguration.getConnectedControlPlayers()) {
 			String address = r.getAddress().toString().substring(1);
 			renderers.add(String.format("\"%s\":[\"%s\",%d]", r, address, address.equals(bumpAddress) ? 1 : 0));
@@ -146,13 +152,21 @@ public class PlayerControlHandler implements HttpHandler {
 		try {
 			return IOUtils.toString(PlayerControlHandler.class.getResourceAsStream("/resources/web/" + resource), "UTF-8");
 		} catch (IOException e) {
+			LOGGER.debug("Error reading resource: " + e);
+		}
+		return null;
+	}
+
+	private static String read(File f) {
+		try {
+			return FileUtils.readFileToString(f, Charset.forName("UTF-8"));
+		} catch (IOException e) {
 			LOGGER.debug("Error reading file: " + e);
 		}
 		return null;
 	}
 
-	// This is just temporary. Presumably this handler will be
-	// attached to a grand unified server at some point.
+	// For standalone service, if required
 	private static HttpServer createServer(int socket) {
 		HttpServer server = null;
 		try {

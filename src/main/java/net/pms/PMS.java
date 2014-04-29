@@ -20,6 +20,7 @@
 package net.pms;
 
 import com.sun.jna.Platform;
+import com.sun.net.httpserver.HttpServer;
 import java.awt.*;
 import java.io.*;
 import java.net.BindException;
@@ -559,6 +560,9 @@ public class PMS {
 			}
 		});
 
+		// Web stuff
+		web = new RemoteWeb();
+
 		RendererConfiguration.loadRendererConfigurations(configuration);
 		// Now that renderer confs are all loaded, we can start searching for renderers
 		UPNPHelper.getInstance().init();
@@ -702,9 +706,6 @@ public class PMS {
 		if (!binding) {
 			return false;
 		}
-
-		// Web stuff
-		web = new RemoteWeb();
 
 		// initialize the cache
 		if (configuration.getUseCache()) {
@@ -1164,6 +1165,10 @@ public class PMS {
 
 	public HTTPServer getServer() {
 		return server;
+	}
+
+	public HttpServer getWebServer() {
+		return web.getServer();
 	}
 
 	public void save() {

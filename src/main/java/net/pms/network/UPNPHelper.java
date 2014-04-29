@@ -92,9 +92,10 @@ public class UPNPHelper extends UPNPControl {
 	}
 
 	public static PlayerControlHandler getHttpControlHandler() {
-		if (httpControlHandler == null && ! "false".equals(configuration.getBumpAddress().toLowerCase())) {
-			httpControlHandler = new PlayerControlHandler(null);
-			LOGGER.debug("Started http player control handler on port " + httpControlHandler.getAddress().split(":")[1]);
+		if (httpControlHandler == null && PMS.get().getWebServer() != null &&
+				! "false".equals(configuration.getBumpAddress().toLowerCase())) {
+			httpControlHandler = new PlayerControlHandler(PMS.get().getWebServer());
+			LOGGER.debug("Attached http player control handler to web server");
 		}
 		return httpControlHandler;
 	}

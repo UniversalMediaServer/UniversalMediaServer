@@ -27,6 +27,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
+import net.pms.network.PlayerControlHandler;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -234,6 +235,10 @@ public class RemoteWeb {
 			}
 		}
 		in.close();
+	}
+
+	public HttpServer getServer() {
+		return server;
 	}
 
 	static class RemoteThumbHandler implements HttpHandler {
