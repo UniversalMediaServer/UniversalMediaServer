@@ -89,7 +89,7 @@
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<!-- Snapshots should get their binaries from the trunk, releases from a tag -->
-		<project.binaries-base>http://universal-media-server-binaries.googlecode.com/svn/trunk</project.binaries-base>
+		<project.binaries-base>http://downloads.sourceforge.net/project/unimediaserver/Dependencies</project.binaries-base>
 		<!-- <project.binaries-base>http://ps3mediaserver.googlecode.com/svn/tags/1.40.0</project.binaries-base> -->
 
 		<maven-javadoc-plugin-version>2.9.1</maven-javadoc-plugin-version>
