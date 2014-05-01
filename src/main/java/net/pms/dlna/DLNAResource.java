@@ -1607,7 +1607,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							dlnaspec = "DLNA.ORG_PN=WMVHIGH_PRO";
 						}
 					} else {
-						if (mime.equals("video/mpeg")) {
+						if (mime.equals("video/mpeg") || mime.equals("video/mp4")) {
 							dlnaspec = "DLNA.ORG_PN=" + getMPEG_PS_PALLocalizedValue(c);
 
 							if (getPlayer() != null) {
@@ -1615,7 +1615,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								boolean isFileMPEGTS = TsMuxeRVideo.ID.equals(getPlayer().id()) || VideoLanVideoStreaming.ID.equals(getPlayer().id());
 
 								boolean isMuxableResult = getMedia().isMuxable(mediaRenderer);
-								boolean isBravia = mediaRenderer.isBRAVIA();
 
 								// If the engine is MEncoder or FFmpeg, and the muxing settings are enabled, it may be MPEG-TS so we need to do more tests
 								if (
@@ -1628,11 +1627,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 										(
 											configuration.isFFmpegMuxWithTsMuxerWhenCompatible() &&
 											FFMpegVideo.ID.equals(getPlayer().id())
+										) ||
+										(
+											VLCVideo.ID.equals(getPlayer().id())
 										)
 									)
 								) {
 									/**
-									 * Sony Bravia TVs (and possibly other renderers) need ORG_PN to be accurate.
+									 * Media renderer needs ORG_PN to be accurate.
 									 * If the value does not match the media, it won't play the media.
 									 * Often we can lazily predict the correct value to send, but due to
 									 * MEncoder needing to mux via tsMuxeR, we need to work it all out
@@ -1646,7 +1648,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									 *
 									 * This code block comes from Player.setAudioAndSubs()
 									 */
-									if (isBravia) {
+									if (mediaRenderer.isAccurateDLNAOrgPN()) {
 										boolean finishedMatchingPreferences = false;
 										OutputParams params = new OutputParams(configuration);
 										if (getMedia() != null) {
@@ -1880,7 +1882,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 											mediaRenderer.isMuxH264MpegTS()
 										) ||
 										mediaRenderer.isTranscodeToMPEGTSAC3() ||
-										mediaRenderer.isTranscodeToH264TSAC3()
+										mediaRenderer.isTranscodeToH264TSAC3() ||
+										mediaRenderer.isTranscodeToH264TSAAC()
 									) {
 										isFileMPEGTS = true;
 									}
@@ -1894,6 +1897,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 										isMuxableResult
 									) {
 										dlnaspec = "DLNA.ORG_PN=AVC_TS_HD_24_AC3_ISO";
+										if(mediaRenderer.isTranscodeToH264TSAAC()) {
+											dlnaspec = "DLNA.ORG_PN=AVC_TS_HP_HD_AAC";
+										}
 									}
 								}
 							} else if (getMedia() != null) {
@@ -1901,6 +1907,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									dlnaspec = "DLNA.ORG_PN=" + getMPEG_TS_SD_EULocalizedValue(c);
 									if (getMedia().isH264()) {
 										dlnaspec = "DLNA.ORG_PN=AVC_TS_HD_50_AC3";
+										if(mediaRenderer.isTranscodeToH264TSAAC()) {
+											dlnaspec = "DLNA.ORG_PN=AVC_TS_HP_HD_AAC";
+										}
 									}
 								}
 							}

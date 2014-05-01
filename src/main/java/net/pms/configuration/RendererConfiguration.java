@@ -60,10 +60,12 @@ public class RendererConfiguration {
 	private static final String MPEGPSAC3 = "MPEGPSAC3";
 	private static final String MPEGTSAC3 = "MPEGTSAC3";
 	private static final String H264TSAC3 = "H264TSAC3";
+	private static final String H264TSAAC = "H264TSAAC";
 	private static final String WAV = "WAV";
 	private static final String WMV = "WMV";
 
 	// property names
+	private static final String ACCURATE_DLNA_ORGPN = "AccurateDLNAOrgPN";
 	private static final String AUDIO = "Audio";
 	private static final String AUTO_EXIF_ROTATE = "AutoExifRotate";
 	private static final String BYTE_TO_TIMESEEK_REWIND_SECONDS = "ByteToTimeseekRewindSeconds"; // Ditlew
@@ -93,6 +95,7 @@ public class RendererConfiguration {
 	private static final String MUX_DTS_TO_MPEG = "MuxDTSToMpeg";
 	private static final String MUX_H264_WITH_MPEGTS = "MuxH264ToMpegTS";
 	private static final String MUX_LPCM_TO_MPEG = "MuxLPCMToMpeg";
+	private static final String MUX_NON_MOD4_RESOLUTION = "MuxNonMod4Resolution";
 	private static final String OVERRIDE_VF = "OverrideVideoFilter";
 	private static final String RENDERER_ICON = "RendererIcon";
 	private static final String RENDERER_NAME = "RendererName";
@@ -597,6 +600,10 @@ public class RendererConfiguration {
 		return isTranscodeToMPEGPSAC3() || isTranscodeToMPEGTSAC3() || isTranscodeToH264TSAC3();
 	}
 
+	public boolean isTranscodeToAAC() {
+		return isTranscodeToH264TSAAC();
+	}
+
 	public boolean isTranscodeToMPEGPSAC3() {
 		String videoTranscode = getVideoTranscode();
 		return videoTranscode.equals(MPEGPSAC3) || videoTranscode.equals(DEPRECATED_MPEGPSAC3);
@@ -608,6 +615,10 @@ public class RendererConfiguration {
 
 	public boolean isTranscodeToH264TSAC3() {
 		return getVideoTranscode().equals(H264TSAC3);
+	}
+
+	public boolean isTranscodeToH264TSAAC() {
+		return getVideoTranscode().equals(H264TSAAC);
 	}
 
 	public boolean isAutoRotateBasedOnExif() {
@@ -671,6 +682,8 @@ public class RendererConfiguration {
 			if (HTTPResource.VIDEO_TRANSCODE.equals(mimeType)) {
 				if (isTranscodeToH264TSAC3()) {
 					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.H264, FormatConfiguration.AC3);
+				} else if (isTranscodeToH264TSAAC()) {
+					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.H264, FormatConfiguration.AAC);
 				} else if (isTranscodeToMPEGTSAC3()) {
 					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.MPEG2, FormatConfiguration.AC3);
 				} else if (isTranscodeToWMV()) {
@@ -911,6 +924,10 @@ public class RendererConfiguration {
 		return getBoolean(MUX_LPCM_TO_MPEG, true);
 	}
 
+	public boolean isMuxNonMod4Resolution() {
+		return getBoolean(MUX_NON_MOD4_RESOLUTION, false);
+	}
+
 	public boolean isMpeg2Supported() {
 		if (isMediaParserV2()) {
 			return getFormatConfiguration().isMpeg2Supported();
@@ -1056,6 +1073,10 @@ public class RendererConfiguration {
 
 	public boolean isDLNAOrgPNUsed() {
 		return getBoolean(DLNA_ORGPN_USE, true);
+	}
+
+	public boolean isAccurateDLNAOrgPN() {
+		return getBoolean(ACCURATE_DLNA_ORGPN, false);
 	}
 
 	/**
