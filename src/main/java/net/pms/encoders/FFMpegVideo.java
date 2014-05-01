@@ -1332,6 +1332,7 @@ public class FFMpegVideo extends Player {
 
 		try {
 			pw.join(); // Wait until the conversion is finished
+			pw.stopProcess(); // Avoid creating a pipe for this process and messing up with buffer progress bar
 		} catch (InterruptedException e) {
 			LOGGER.debug("Subtitles conversion finished wih error: " + e);
 			return null;
