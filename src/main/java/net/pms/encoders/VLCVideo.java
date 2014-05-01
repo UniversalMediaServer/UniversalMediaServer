@@ -155,9 +155,9 @@ public class VLCVideo extends Player {
 			codecConfig.audioCodec = "wma";
 			codecConfig.container = "asf";
 		} else if (renderer.isTranscodeToH264TSAC3()) {
-			LOGGER.debug("Using H.264 and AC-3 with MPEG-TS container");
+			LOGGER.debug("Using H.264 and MP2 with MPEG-TS container");
 			codecConfig.videoCodec = "h264";
-			codecConfig.audioCodec = "a52";
+			codecConfig.audioCodec = "mp2a";
 			codecConfig.container = "ts";
 
 			videoRemux = true;
