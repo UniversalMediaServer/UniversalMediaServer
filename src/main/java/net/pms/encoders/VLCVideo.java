@@ -156,7 +156,7 @@ public class VLCVideo extends Player {
 			 * issue, so we use that as a workaround for now.
 			 * codecConfig.audioCodec = "a52";
 			 */
-			codecConfig.audioCodec = "mp2a";
+			codecConfig.audioCodec = "a52";
 
 			codecConfig.container = "ts";
 
