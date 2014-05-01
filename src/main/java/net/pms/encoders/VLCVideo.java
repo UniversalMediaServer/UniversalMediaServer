@@ -548,12 +548,6 @@ public class VLCVideo extends Player {
 
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		// Our implementation of VLC does not support external subtitles yet
-		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
-		if (subtitle != null && subtitle.getExternalFile() != null) {
-			return false;
-		}
-
 		// Only handle local video - not web video or audio
 		if (
 			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
