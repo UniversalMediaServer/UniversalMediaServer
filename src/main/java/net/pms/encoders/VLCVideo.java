@@ -238,16 +238,6 @@ public class VLCVideo extends Player {
 		// TODO: Does WMA still need a sample rate of 41000 for Xbox compatibility?
 		args.put("samplerate", "48000");
 
-		// Recommended on VLC DVD encoding page
-		//args.put("keyint", 16);
-
-		// Recommended on VLC DVD encoding page
-		//args.put("strict-rc", null);
-
-		// Stream subtitles to client
-		// args.add("scodec=dvbs");
-		// args.add("senc=dvbsub");
-
 		// Enable multi-threading
 		args.put("threads", "" + configuration.getNumberOfCpuCores());
 
