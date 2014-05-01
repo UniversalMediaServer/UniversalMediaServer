@@ -37,7 +37,6 @@ import net.pms.Messages;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
@@ -140,16 +139,8 @@ public class VLCVideo extends Player {
 	protected CodecConfig genConfig(RendererConfiguration renderer) {
 		CodecConfig codecConfig = new CodecConfig();
 
-		/**
-		 * XXX a52 (AC-3) causes the audio to cut out after
-		 * a while (5, 10, and 45 minutes have been spotted)
-		 * with versions as recent as 2.0.5. MP2 works without
-		 * issue, so we use that as a workaround for now.
-		 * codecConfig.audioCodec = "a52";
-		 */
-
 		if (renderer.isTranscodeToWMV()) {
-			// Assume WMV = XBox = all media renderers with this flag
+			// Assume WMV = Xbox = all media renderers with this flag
 			LOGGER.debug("Using XBox WMV codecs");
 			codecConfig.videoCodec = "wmv2";
 			codecConfig.audioCodec = "wma";
@@ -157,7 +148,16 @@ public class VLCVideo extends Player {
 		} else if (renderer.isTranscodeToH264TSAC3()) {
 			LOGGER.debug("Using H.264 and MP2 with MPEG-TS container");
 			codecConfig.videoCodec = "h264";
+
+			/**
+			 * XXX a52 (AC-3) causes the audio to cut out after
+			 * a while (5, 10, and 45 minutes have been spotted)
+			 * with versions as recent as 2.0.5. MP2 works without
+			 * issue, so we use that as a workaround for now.
+			 * codecConfig.audioCodec = "a52";
+			 */
 			codecConfig.audioCodec = "mp2a";
+
 			codecConfig.container = "ts";
 
 			videoRemux = true;
