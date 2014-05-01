@@ -60,6 +60,7 @@ public class RendererConfiguration {
 	private static final String MPEGPSAC3 = "MPEGPSAC3";
 	private static final String MPEGTSAC3 = "MPEGTSAC3";
 	private static final String H264TSAC3 = "H264TSAC3";
+	private static final String H264TSAAC = "H264TSAAC";
 	private static final String WAV = "WAV";
 	private static final String WMV = "WMV";
 
@@ -597,6 +598,10 @@ public class RendererConfiguration {
 		return isTranscodeToMPEGPSAC3() || isTranscodeToMPEGTSAC3() || isTranscodeToH264TSAC3();
 	}
 
+	public boolean isTranscodeToAAC() {
+		return isTranscodeToH264TSAAC();
+	}
+
 	public boolean isTranscodeToMPEGPSAC3() {
 		String videoTranscode = getVideoTranscode();
 		return videoTranscode.equals(MPEGPSAC3) || videoTranscode.equals(DEPRECATED_MPEGPSAC3);
@@ -608,6 +613,10 @@ public class RendererConfiguration {
 
 	public boolean isTranscodeToH264TSAC3() {
 		return getVideoTranscode().equals(H264TSAC3);
+	}
+
+	public boolean isTranscodeToH264TSAAC() {
+		return getVideoTranscode().equals(H264TSAAC);
 	}
 
 	public boolean isAutoRotateBasedOnExif() {
@@ -671,6 +680,8 @@ public class RendererConfiguration {
 			if (HTTPResource.VIDEO_TRANSCODE.equals(mimeType)) {
 				if (isTranscodeToH264TSAC3()) {
 					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.H264, FormatConfiguration.AC3);
+				} else if (isTranscodeToH264TSAAC()) {
+					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.H264, FormatConfiguration.AAC);
 				} else if (isTranscodeToMPEGTSAC3()) {
 					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.MPEG2, FormatConfiguration.AC3);
 				} else if (isTranscodeToWMV()) {
