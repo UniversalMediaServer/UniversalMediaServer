@@ -1,7 +1,8 @@
 3.6.1 - 2014-05-??
 
 	General:
-		
+		Fixed the aspect ratio of thumbnails by default (thanks, tdcosta100!)
+		Fixed the buffer going nuts after automatic subtitle conversion (thanks, tdcosta100!)
 
 3.6.0 - 2014-04-28
 
