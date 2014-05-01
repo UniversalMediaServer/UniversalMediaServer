@@ -6,14 +6,17 @@ import java.nio.charset.Charset;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.URLDecoder;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Set;
 import java.util.Arrays;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
@@ -28,7 +31,6 @@ import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.util.BasicPlayer;
 
 public class PlayerControlHandler implements HttpHandler {
 
@@ -36,8 +38,8 @@ public class PlayerControlHandler implements HttpHandler {
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	private int port;
-	private HashMap<String,BasicPlayer> players;
-	private String jsonState = "{\"playback\":%d,\"mute\":\"%s\",\"volume\":%d,\"position\":\"%s\",\"duration\":\"%s\",\"uri\":\"%s\"}";
+	private HashMap<String,UPNPHelper.Player> players;
+	private String jsonState = "\"state\":{\"playback\":%d,\"mute\":\"%s\",\"volume\":%d,\"position\":\"%s\",\"duration\":\"%s\",\"uri\":\"%s\"}";
 
 	public PlayerControlHandler(HttpServer server) {
 		if (server == null) {
@@ -52,20 +54,21 @@ public class PlayerControlHandler implements HttpHandler {
 	public void handle(HttpExchange x) throws IOException {
 
 		String[] p = x.getRequestURI().getPath().split("/");
-		String uri = x.getRequestURI().getQuery();
 		String response = "";
 		String mime = "text/html";
 		boolean log = true;
+		ArrayList<String> json = new ArrayList<>();
 
-		BasicPlayer player = p.length > 3 ? getPlayer(p[3]) : null;
+		UPNPHelper.Player player = p.length > 3 ? getPlayer(p[3]) : null;
 
 		if (player != null) {
-			 if (p[2].equals("status")) {
+			if (p[2].equals("status")) {
 				// limit status updates to one per second
 				UPNPHelper.sleep(1000);
 				log = false;
 			} else if (p[2].equals("play")) {
-				player.pressPlay(uri, null);
+				Map<String,String> q = parseQuery(x);
+				player.pressPlay(q.get("uri"), q.get("title"));
 			} else if (p[2].equals("stop")) {
 				player.stop();
 			} else if (p[2].equals("prev")) {
@@ -81,9 +84,11 @@ public class PlayerControlHandler implements HttpHandler {
 			} else if (p[2].equals("setvolume")) {
 				// TODO
 			} else if (p[2].equals("seturi")) {
-				// TODO
+				Map<String,String> q = parseQuery(x);
+				player.setURI(q.get("uri"), q.get("title"));
 			}
-			response = getPlayerState(player);
+			json.add(getPlayerState(player));
+			json.add(getPlaylist(player));
 		} else if (p.length == 2) {
 			response = read(configuration.getWebFile("bump.html"))
 				.replace("127.0.0.1", PMS.get().getServer().getHost())
@@ -92,7 +97,11 @@ public class PlayerControlHandler implements HttpHandler {
 			response = read(configuration.getWebFile("bump.js"));
 			mime = "text/javascript";
 		} else if (p[2].equals("renderers")) {
-			response = getRenderers();
+			json.add(getRenderers());
+		}
+
+		if (json.size() > 0) {
+			response = "{" + StringUtils.join(json, ",") + "}";
 		}
 
 		if (log) {
@@ -115,8 +124,8 @@ public class PlayerControlHandler implements HttpHandler {
 		return PMS.get().getServer().getHost() + ":" + port;
 	}
 
-	public BasicPlayer getPlayer(String address) {
-		BasicPlayer player = players.get(address);
+	public UPNPHelper.Player getPlayer(String address) {
+		UPNPHelper.Player player = players.get(address);
 		if (player == null) {
 			try {
 				InetAddress socket = InetAddress.getByName(address);
@@ -130,22 +139,35 @@ public class PlayerControlHandler implements HttpHandler {
 		return player;
 	}
 
-	public String getPlayerState(BasicPlayer player) {
+	public String getPlayerState(UPNPHelper.Player player) {
 		if (player != null) {
-			BasicPlayer.State state = player.getState();
+			UPNPHelper.Player.State state = player.getState();
 			return String.format(jsonState, state.playback, state.mute, state.volume, state.position, state.duration, state.uri/*, state.metadata*/);
 		}
 		return "";
 	}
 
 	public String getRenderers() {
-		ArrayList<String> renderers = new ArrayList();
+		ArrayList<String> json = new ArrayList();
 		String bumpAddress = configuration.getBumpAddress();
 		for (RendererConfiguration r : RendererConfiguration.getConnectedControlPlayers()) {
 			String address = r.getAddress().toString().substring(1);
-			renderers.add(String.format("\"%s\":[\"%s\",%d]", r, address, address.equals(bumpAddress) ? 1 : 0));
+			json.add(String.format("[\"%s\",%d,\"%s\"]", r, address.equals(bumpAddress) ? 1 : 0, address));
 		}
-		return "{" + StringUtils.join(renderers, ",") + "}";
+		return "\"renderers\":[" + StringUtils.join(json, ",") + "]";
+	}
+
+	public String getPlaylist(UPNPHelper.Player player) {
+		ArrayList<String> json = new ArrayList();
+		UPNPHelper.Player.Playlist playlist = player.playlist;
+		UPNPHelper.Player.Playlist.Item selected = (UPNPHelper.Player.Playlist.Item)playlist.getSelectedItem();
+		int i;
+		for (i=0; i < playlist.getSize(); i++) {
+			UPNPHelper.Player.Playlist.Item item = (UPNPHelper.Player.Playlist.Item)playlist.getElementAt(i);
+			json.add(String.format("[\"%s\",%d,\"%s\"]",
+				item.toString().replace("\"","\\\\\""), item == selected ? 1 : 0, "$i$" + i));
+		}
+		return "\"playlist\":[" + StringUtils.join(json, ",") + "]";
 	}
 
 	private static String read(String resource) {
@@ -164,6 +186,20 @@ public class PlayerControlHandler implements HttpHandler {
 			LOGGER.debug("Error reading file: " + e);
 		}
 		return null;
+	}
+
+	public static Map<String,String> parseQuery(HttpExchange x) {
+		Map<String,String> vars = new LinkedHashMap<String,String>();
+		try {
+			String[] q = x.getRequestURI().getRawQuery().split("&|=");
+			int i;
+			for (i=0; i < q.length; i+=2) {
+				vars.put(URLDecoder.decode(q[i], "UTF-8"), URLDecoder.decode(q[i+1], "UTF-8"));
+			}
+		} catch (Exception e) {
+			LOGGER.debug("Error parsing query string '" + x.getRequestURI().getQuery() + "' :" + e);
+		}
+		return vars;
 	}
 
 	// For standalone service, if required

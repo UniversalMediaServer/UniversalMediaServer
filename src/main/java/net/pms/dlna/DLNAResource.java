@@ -3409,14 +3409,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	// Attempts to automatically create the appropriate container for
 	// the given uri. Defaults to mpeg video for indeterminate local uris.
 
-	public static DLNAResource autoMatch(String uri) {
+	public static DLNAResource autoMatch(String uri, String name) {
 		boolean isweb = uri.matches("\\S+://.+");
 		Format f = FormatFactory.getAssociatedFormat(isweb ? uri.split("://")[1] : uri);
 		int type = f == null ? Format.VIDEO : f.getType();
+		if (name == null) {
+			name = new File(uri.split("\\?")[0]).getName();
+		}
 		DLNAResource d = isweb ?
-			type == Format.VIDEO ? new WebVideoStream(uri, uri, null) :
-			type == Format.AUDIO ? new WebAudioStream(uri, uri, null) :
-			type == Format.IMAGE ? new FeedItem(uri, uri, null, null, Format.IMAGE) : null
+			type == Format.VIDEO ? new WebVideoStream(name, uri, null) :
+			type == Format.AUDIO ? new WebAudioStream(name, uri, null) :
+			type == Format.IMAGE ? new FeedItem(name, uri, null, null, Format.IMAGE) : null
 			:
 			new RealFile(new File(uri));
 		if (f == null && !isweb) {
@@ -3442,8 +3445,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 			return null;
 		}
-		public DLNAResource add(String uri) {
-			return add(autoMatch(uri));
+		public DLNAResource add(String uri, String name) {
+			return add(autoMatch(uri, name));
 		}
 		public List<DLNAResource> asList(String objectId) {
 			int index = indexOf(objectId);
@@ -3476,7 +3479,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	// Returns the DLNAResource pointed to by the uri if it exists
 	// or else a new Temp item (or null)
 
-	public static DLNAResource getValidResource(String uri, RendererConfiguration r) {
+	public static DLNAResource getValidResource(String uri, String name, RendererConfiguration r) {
 		String objectId = parseResourceId(uri);
 		if (objectId != null) {
 			if (objectId.startsWith("Temp$")) {
@@ -3489,18 +3492,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				return PMS.get().getRootFolder(r).search(objectId, 1, r, null);
 			}
 		} else {
-			return Temp.add(uri);
+			return Temp.add(uri, name);
 		}
 	}
 
 	// Returns the uri if it appears to be ours or else the url of new Temp item (or null)
 
-	public static String getValidResourceURL(String uri) {
+	public static String getValidResourceURL(String uri, String name) {
 		if (isResourceUrl(uri)) {
 			// we assume it's ok
 			return uri;
 		} else {
-			DLNAResource d = Temp.add(uri);
+			DLNAResource d = Temp.add(uri, name);
 			if(d != null) {
 				return d.getURL("");
 			}

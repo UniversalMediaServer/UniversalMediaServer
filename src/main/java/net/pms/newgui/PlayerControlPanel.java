@@ -17,6 +17,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.plaf.metal.MetalIconFactory;
 import net.pms.util.BasicPlayer;
+import net.pms.network.UPNPHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,10 +114,8 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 			private static final long serialVersionUID = -5492279549624322429L;
 
 			public void actionPerformed(ActionEvent e) {
-				if (! StringUtils.isBlank(uri.getText())) {
-					store(true);
-					player.pressPlay(uri.getText(), null);
-				}
+				edited = false;
+				player.pressPlay(uri.getText(), null);
 			}
 		}));
 		playback.add(new JButton(stop = new AbstractAction("", stopIcon) {
@@ -204,7 +203,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 
 		JLabel uriLabel = new JLabel("URI: ");
 		u.add(uriLabel);
-		uris = new JComboBox();
+		uris = new JComboBox(player.getPlaylist());
 		uris.setMaximumRowCount(20);
 		uris.setEditable(true);
 		// limit width to available space
@@ -230,27 +229,13 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 				fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 				if (fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
 					uri.setText(fc.getSelectedFile().getPath());
+					edited = true;
 				}
 				pwd = fc.getCurrentDirectory();
 			}
 		}));
 
 		return u;
-	}
-
-	public void store(boolean select) {
-		String u = uri.getText();
-		if (edited && ! StringUtils.isBlank(u)) {
-			int index = ((DefaultComboBoxModel)uris.getModel()).getIndexOf(u);
-			if (index == -1) {
-				uris.insertItemAt(uri.getText(), 0);
-				index = 0;
-			}
-			if (select) {
-				uris.setSelectedIndex(index);
-			}
-		}
-		edited = false;
 	}
 
 	public static Window getEnclosingWindow(Component c) {
@@ -281,13 +266,14 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 			position.setText(pos);
 			// update uris only if meaningfully new
 			boolean isNew = ! StringUtils.isBlank(state.uri)
-				&& ! state.uri.equals(lasturi)
-				&& ! state.uri.equals(uri.getText());
+				&& ! state.uri.equals(lasturi);
 			lasturi = state.uri;
 			if (isNew) {
-				store(false);
+				if (edited) {
+					player.add(-1, uri.getText(), null, null, false);
+					edited = false;
+				}
 				uri.setText(state.uri);
-				store(true);
 			}
 			play.setEnabled(playing || ! StringUtils.isBlank(uri.getText()));
 		}

@@ -1,6 +1,7 @@
 package net.pms.util;
 
 import java.awt.event.ActionListener;
+import javax.swing.DefaultComboBoxModel;
 
 public interface BasicPlayer extends ActionListener {
 
@@ -29,9 +30,11 @@ public interface BasicPlayer extends ActionListener {
 	public void rewind();
 	public void mute(boolean on);
 	public void setVolume(int volume);
+	public void add(int index, String uri, String name, String metadata, boolean select);
 
 	public State getState();
 	public int getControls();
+	public DefaultComboBoxModel getPlaylist();
 	public void connect(ActionListener listener);
 	public void disconnect(ActionListener listener);
 	public void refresh();

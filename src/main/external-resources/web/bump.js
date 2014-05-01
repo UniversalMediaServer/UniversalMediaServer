@@ -1,4 +1,5 @@
 var bump = (function() {
+//	console.log('jquery ' + $.fn.jquery);
 	var STOPPED = 0;
 	var PLAYING = 1;
 	var PAUSED = 2;
@@ -22,94 +23,98 @@ var bump = (function() {
 	var renderer = null;
 	var addr = null;
 	var state = {'playback':STOPPED};
+	var edited = false;
+	var uri = null;
+	var title = null;
 
-	$('body').append('<div class="bumpcontainer"><div class="bumppanel"><div class="bumpplayer">'
-		+ '<div id="bumpctrl"/>'
-		+ '<div id="bumppos" onclick="bump.settings()">00:00:00</div>'
-		+ '<div id="bumpsettings"/>'
-		+ '</div></div></div>');
-
-	$('.bumpcontainer').css({
-		position:'fixed',
-		zIndex:'99999',
-		right:'12px',
-		top:'50px',
-	});
-
-	$('.bumppanel').css({
-		font: 'normal sans-serif ' + (isTouchDevice?'12px':'10px'),
-		fontWeight: '500',
-		textDecoration:'none',
-		textAlign:'center',
-		color:'#fff',
-		backgroundColor:'#729fcf',
-		margin:'0 0 6px 0',
-		padding:'4px 8px',
-		border:'1px',
-		borderColor:'#729fcf',
-		borderRadius:'3px',
-		'-moz-border-radius':'3px',
-		'-webkit-border-radius':'3px',
-		boxShadow:' 4px 4px 2px rgba(136,136,136,0.5)',
-		'-moz-box-shadow':'4px 4px 2px rgba(136,136,136,0.5)',
-		'-webkit-box-shadow':'4px 4px 2px rgba(136,136,136,0.5)',
-	});
-
-	$('#bumpctrl').append('<div style="float:left;width:16px"/>');
-	addButton('prev', '#bumpctrl');
-	addButton('rew', '#bumpctrl');
-	addButton('play', '#bumpctrl');
-	addButton('stop', '#bumpctrl');
-	addButton('fwd', '#bumpctrl');
-	addButton('next', '#bumpctrl');
-	$('#bumpctrl').append('<div id="bexit" style="float:right;width:10px;cursor:pointer" onclick="bump.exit()"><div style="float:right;margin-top:-5px;margin-right:-5px;color:#fff"><b>x</b></div></div>');
-
-	$('.bumpbtn').css({
-		display: 'inline-block',
-		verticalAlign: 'middle',
-		width: isTouchDevice?'32px':'24px',
-		height: isTouchDevice?'32px':'24px',
-		cursor:'pointer',
-		backgroundColor:'#lightgrey',
-		margin:'2px',
-		/* padding:'4px 8px',*/
-		borderColor:'#729fcf',
-		border:'2px',
-		borderRadius:'2px',
-		'-moz-border-radius':'2px',
-		'-webkit-border-radius':'2px',
-	});
-
-	$('.bumpbtn:disabled').css({
-		backgroundColor:'green',
-	});
-
-
-	function start(data) {
+	function start(address, u, t) {
 		if (! enabled) {
 			enabled = true;
-			setButtons();
-			addr='http://'+data+'/bump/';
-			$.get(addr+'renderers', start);
-		} else {
-			var renderers = $.parseJSON(data);
-			$('#bumpsettings').html('<select id="brenderers" onChange="bump.setRenderer()">');
-			$('#bumpsettings').css({
-				display:'inline-block',
-				outline:'none',
-				border:'0',
-				appearance:'none',
-				'-moz-appearance':'none',
-				'-webkit-appearance':'none',
-			});
-			for (r in renderers) {
-				var address = renderers[r][0];
-				var sel = renderers[r][1] == 1 ? ' selected="selected" ' : '';
-				$('#brenderers').append($('<option id="'+r+'" value="'+address+'" '+sel+'>'+r+'</option>'));
-			}
-			setRenderer();
+			build();
+//			setButtons();
+			addr='http://'+address+'/bump/';
+			getRenderers();
 			status();
 		}
+		uri = u !== undefined ? u : null;
+		title = t !== undefined ? t : null;
+	}
+
+	function build() {
+		$('body').append('<div class="bumpcontainer"><div class="bumppanel"><div class="bumpplayer">'
+			+ '<div id="bumptop"/>'
+			+ '<div id="bumpctrl" style="float:left"/>'
+			+ '<div id="bumppos" style="float:left" onclick="bump.settings()">00:00:00</div>'
+			+ '<div id="bexit" style="float:right;width:10px;cursor:pointer" onclick="bump.exit()"><div style="float:right;margin-top:-5px;margin-right:-5px;color:#fff"><b>x</b></div></div>'
+			+ '</div>'
+			+ '<div id="bumpsettings">'
+			+ '<select id="bplaylist" onmousedown="bump.getPlaylist()" onChange="bump.edited()"/>'
+			+ '<select id="brenderers" onChange="bump.setRenderer()"/>'
+			+ '</div></div></div>');
+
+		$('.bumpcontainer').css({
+			position:'fixed',
+			zIndex:'99999',
+			right:'12px',
+			top:'50px',
+		});
+
+		$('.bumppanel').css({
+			font: 'normal sans-serif ' + (isTouchDevice?'12px':'10px'),
+			fontWeight: '500',
+			textDecoration:'none',
+			textAlign:'center',
+			color:'#fff',
+			backgroundColor:'#729fcf',
+			margin:'0 0 6px 0',
+			padding:'4px 8px',
+			border:'1px',
+			borderColor:'#729fcf',
+			borderRadius:'3px',
+			'-moz-border-radius':'3px',
+			'-webkit-border-radius':'3px',
+			boxShadow:' 4px 4px 2px rgba(136,136,136,0.5)',
+			'-moz-box-shadow':'4px 4px 2px rgba(136,136,136,0.5)',
+			'-webkit-box-shadow':'4px 4px 2px rgba(136,136,136,0.5)',
+		});
+
+//		$('#bumpctrl').append('<div style="float:left;width:16px"/>');
+		addButton('prev', '#bumpctrl');
+		addButton('rew', '#bumpctrl');
+		addButton('play', '#bumpctrl');
+		addButton('stop', '#bumpctrl');
+		addButton('fwd', '#bumpctrl');
+		addButton('next', '#bumpctrl');
+//		$('#bumpctrl').append('<div id="bexit" style="float:right;width:10px;cursor:pointer" onclick="bump.exit()"><div style="float:right;margin-top:-5px;margin-right:-5px;color:#fff"><b>x</b></div></div>');
+
+		$('.bumpbtn').css({
+			display: 'inline-block',
+			verticalAlign: 'middle',
+			width: isTouchDevice?'32px':'24px',
+			height: isTouchDevice?'32px':'24px',
+			cursor:'pointer',
+			backgroundColor:'#lightgrey',
+			margin:'2px',
+			/* padding:'4px 8px',*/
+			borderColor:'#729fcf',
+			border:'2px',
+			borderRadius:'2px',
+			'-moz-border-radius':'2px',
+			'-webkit-border-radius':'2px',
+		});
+
+		$('.bumpbtn:disabled').css({
+			backgroundColor:'green',
+		});
+
+		$('#bumpsettings').css({
+			display:'inline-block',
+			outline:'none',
+			border:'0',
+			appearance:'none',
+			'-moz-appearance':'none',
+			'-webkit-appearance':'none',
+		});
 	}
 
 	function settings() {
@@ -118,10 +123,21 @@ var bump = (function() {
 
 	function setRenderer() {
 		renderer = $("#brenderers option:selected").attr('value');
+//		getPlaylist();
+	}
+
+	function getRenderers() {
+		$.get(addr+'renderers', refresh);
+	}
+
+	function getPlaylist() {
+		$.get(addr+'playlist/'+renderer, refresh);
 	}
 
 	function press(b) {
-		$.get(addr+b+'/'+renderer+'?'+escape(location), refresh);
+		var uri = $("#bplaylist option:selected").attr('value');
+		$.get(addr+b+'/'+renderer+'?uri='+escape(uri)+'&title='+encodeURIComponent(document.title), refresh);
+		edited = false;
 	}
 
 	function status() {
@@ -131,13 +147,43 @@ var bump = (function() {
 	}
 
 	function refresh(data) {
+		var vars = $.parseJSON(data);
+		if ('state' in vars) {
+			setState(vars['state']);
+		}
+		if ('renderers' in vars) {
+			setSelect('#brenderers', vars['renderers']);
+			setRenderer();
+		}
+		if (!edited && 'playlist' in vars) {
+			var here = [title == null ? document.title:title,0,uri == null ? location:uri];
+			edited = uri == null;
+			vars['playlist'].splice(0, 0, here);
+			setSelect('#bplaylist', vars['playlist']);
+		}
+	}
+
+	function setState(newstate) {
 		var last = state.playback;
-		state = $.parseJSON(data);
+		state = newstate;
 		if (state.playback != last) {
 			setButtons();
 		}
-		$('#bumppos').html(state.position+' / '+state.duration);
+		$('#bumppos').html(state.position.replace('00:','')+' / '+state.duration.replace('00:',''));
 		status();
+	}
+
+	function setSelect(select, opts) {
+		$(select).html('');
+		for (var i=0; i<opts.length; i++) {
+			var name = opts[i][0];
+			var sel = opts[i][1] == 1 ? ' selected="selected" ' : '';
+			var val = opts[i][2];
+			$(select).append($('<option value="'+val+'" '+sel+'>'+name+'</option>'));
+		}
+		if (!$(select+' option:selected')) {
+			$(select+' option[0]').attr('selected', 'selected');
+		}
 	}
 
 	function setButtons() {
@@ -169,8 +215,8 @@ var bump = (function() {
 	}
 
 	return {
-		start: function (addr) {
-			start(addr);
+		start: function (addr, uri, title) {
+			start(addr, uri, title);
 		},
 		press: function (b) {
 			press(b);
@@ -181,12 +227,18 @@ var bump = (function() {
 		setRenderer: function () {
 			setRenderer();
 		},
+		getPlaylist: function () {
+			getPlaylist();
+		},
 		enabled: function () {
 			return enabled;
 		},
+		edited: function () {
+			edited = true;
+		},
 		exit: function () {
 			exit();
-		}
+		},
 	}
 }());
 
