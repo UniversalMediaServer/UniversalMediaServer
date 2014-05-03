@@ -168,6 +168,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 	private byte referenceFrameCount = -1;
 	private String avcLevel = null;
+	private String h264Profile = null;
 
 	private List<DLNAMediaAudio> audioTracks = new ArrayList<>();
 	private List<DLNAMediaSubtitle> subtitleTracks = new ArrayList<>();
@@ -278,6 +279,8 @@ public class DLNAMediaInfo implements Cloneable {
 	@Deprecated
 	public String stereoscopy;
 
+	private boolean gen_thumb;
+
 	/**
 	 * Used to determine whether tsMuxeR can mux the file to the renderer
 	 * instead of transcoding.
@@ -374,11 +377,20 @@ public class DLNAMediaInfo implements Cloneable {
 
 	public DLNAMediaInfo() {
 		setThumbready(true); // this class manages thumbnails by default with the parser_v1 method
+		gen_thumb = false;
 	}
 
-	public void generateThumbnail(InputFile input, Format ext, int type) {
+	public void generateThumbnail(InputFile input, Format ext, int type, Double seekPosition) {
 		DLNAMediaInfo forThumbnail = new DLNAMediaInfo();
-		forThumbnail.durationSec = durationSec;
+		forThumbnail.gen_thumb = true;
+		forThumbnail.durationSec = getDurationInSeconds();
+
+		if (seekPosition <= forThumbnail.durationSec) {
+			forThumbnail.durationSec = seekPosition;
+		} else {
+			forThumbnail.durationSec = forThumbnail.durationSec / 2;
+		}
+
 		forThumbnail.parse(input, ext, type, true);
 		setThumb(forThumbnail.getThumb());
 	}
@@ -401,7 +413,7 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 
 		args[3] = "-ss";
-		args[4] = "" + configuration.getThumbnailSeekPos();
+		args[4] = "" + new Double(getDurationInSeconds()).intValue();
 		args[5] = "-i";
 
 		if (file != null) {
@@ -412,8 +424,8 @@ public class DLNAMediaInfo implements Cloneable {
 
 		args[7] = "-an";
 		args[8] = "-an";
-		args[9] = "-s";
-		args[10] = "320x180";
+		args[9] = "-vf";
+		args[10] = "\"scale='if(gt(a,16/9),320,-1)':'if(gt(a,16/9),-1,180)', pad=320:180:(320-iw)/2:(180-ih)/2\"";
 		args[11] = "-vframes";
 		args[12] = "1";
 		args[13] = "-f";
@@ -463,8 +475,7 @@ public class DLNAMediaInfo implements Cloneable {
 		String args[] = new String[14];
 		args[0] = configuration.getMplayerPath();
 		args[1] = "-ss";
-		boolean toolong = getDurationInSeconds() < configuration.getThumbnailSeekPos();
-		args[2] = "" + (toolong ? (getDurationInSeconds() / 2) : configuration.getThumbnailSeekPos());
+		args[2] = "" + new Double(getDurationInSeconds()).intValue();
 		args[3] = "-quiet";
 
 		if (file != null) {
@@ -695,8 +706,7 @@ public class DLNAMediaInfo implements Cloneable {
 				} catch (ImageReadException | IOException e) {
 					LOGGER.info("Error parsing image ({}) with Sanselan, switching to FFmpeg.", file.getAbsolutePath());
 				}
-
-				if (configuration.getImageThumbnailsEnabled()) {
+				if (configuration.getImageThumbnailsEnabled() && file != null && gen_thumb) {
 					LOGGER.trace("Creating (temporary) thumbnail: {}", file.getName());
 
 					// Create the thumbnail image using the Thumbnailator library
@@ -708,7 +718,7 @@ public class DLNAMediaInfo implements Cloneable {
 								.outputQuality(1.0f)
 								.toOutputStream(out);
 
-								setThumb(out.toByteArray());
+						setThumb(out.toByteArray());
 					} catch (IOException | IllegalArgumentException | IllegalStateException e) {
 						LOGGER.debug("Error generating thumbnail for: " + file.getName());
 						LOGGER.debug("The full error was: " + e);
@@ -822,17 +832,17 @@ public class DLNAMediaInfo implements Cloneable {
 					}
 				}
 			}
- 
+
 			finalize(type, inputFile);
 			setMediaparsed(true);
 		}
 	}
 
 	/**
-	 * Parses media info from ffmpeg's stderr output
+	 * Parses media info from FFmpeg's stderr output
 	 *
 	 * @param lines The stderr output
-	 * @param input The ffmpeg input (-i) argument used
+	 * @param input The FFmpeg input (-i) argument used
 	 */
 	public void parseFFmpegInfo(List<String> lines, String input) {
 
@@ -954,7 +964,7 @@ public class DLNAMediaInfo implements Cloneable {
 									int aa = line.indexOf(": ");
 									int bb = line.length();
 									if (aa > -1 && bb > aa) {
-										audio.setFlavor(line.substring(aa+2, bb));
+										audio.setFlavor(line.substring(aa + 2, bb));
 										break;
 									}
 								} else {
@@ -1079,7 +1089,7 @@ public class DLNAMediaInfo implements Cloneable {
 									int aa = line.indexOf(": ");
 									int bb = line.length();
 									if (aa > -1 && bb > aa) {
-										lang.setFlavor(line.substring(aa+2, bb));
+										lang.setFlavor(line.substring(aa + 2, bb));
 										break;
 									}
 								} else {
@@ -1098,6 +1108,21 @@ public class DLNAMediaInfo implements Cloneable {
 
 	public boolean isH264() {
 		return getCodecV() != null && getCodecV().startsWith("h264");
+	}
+
+	/**
+	 * Disable LPCM transcoding for MP4 container with non-H264 video as workaround for MEncoder's A/V sync bug
+	 */
+	public boolean isValidForLPCMTranscoding() {
+		if (getContainer() != null) {
+			if (getContainer().equals("mp4")) {
+				return isH264();
+			} else {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	public int getFrameNumbers() {
@@ -1785,6 +1810,18 @@ public class DLNAMediaInfo implements Cloneable {
 	public synchronized void setAvcLevel(String avcLevel) {
 		this.avcLevel = avcLevel;
 	}
+
+	public synchronized int getAvcAsInt() {
+		try {
+			return Integer.parseInt(getAvcLevel().replaceAll("\\.", ""));
+		} catch (Exception e) {
+			return 0;
+		}
+	}
+
+	public synchronized String getH264Profile() { return h264Profile; }
+
+	public synchronized void setH264Profile(String s) { h264Profile = s; }
 
 	/**
 	 * @return the audioTracks

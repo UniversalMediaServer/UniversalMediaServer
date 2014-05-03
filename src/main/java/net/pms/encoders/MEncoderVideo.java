@@ -947,7 +947,7 @@ public class MEncoderVideo extends Player {
 				params.forceFps = media.getValidFps(false);
 
 				if (media.getCodecV() != null) {
-					if (media.getCodecV().startsWith("h264")) {
+					if (media.isH264()) {
 						params.forceType = "V_MPEG4/ISO/AVC";
 					} else if (media.getCodecV().startsWith("mpeg2")) {
 						params.forceType = "V_MPEG-2";

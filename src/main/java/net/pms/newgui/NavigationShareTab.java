@@ -793,6 +793,8 @@ public class NavigationShareTab {
 	}
 
 	public class SharedFoldersTableModel extends DefaultTableModel {
+		private static final long serialVersionUID = -4247839506937958655L;
+
 		public SharedFoldersTableModel() {
 			super(new String[]{Messages.getString("FoldTab.56"), Messages.getString("FoldTab.57")}, 0);
 		}
