@@ -21,6 +21,7 @@ package net.pms.encoders;
 import java.io.IOException;
 import javax.swing.JComponent;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
@@ -158,6 +159,18 @@ public class MEncoderWebVideo extends Player {
 	@Override
 	public int type() {
 		return Format.VIDEO;
+	}
+
+	/**
+	 * Unfortunately, the MEncoder version that comes with UMS does not include
+	 * AAC decoding, like FFmpeg and VLC. As soon as the situation changes, this
+	 * method will not be necessary anymore in this class
+	 * @param mediaRenderer
+	 * @return 
+	 */
+	@Override
+	public boolean isPlayerCompatible(RendererConfiguration mediaRenderer) {
+		return !mediaRenderer.isTranscodeToH264TSAAC();
 	}
 
 	/**

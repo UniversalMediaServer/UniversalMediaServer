@@ -1607,7 +1607,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							dlnaspec = "DLNA.ORG_PN=WMVHIGH_PRO";
 						}
 					} else {
-						if (mime.equals("video/mpeg")) {
+						if (mime.equals("video/mpeg") || mime.equals("video/mp4")) {
 							dlnaspec = "DLNA.ORG_PN=" + getMPEG_PS_PALLocalizedValue(c);
 
 							if (getPlayer() != null) {
@@ -1628,6 +1628,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 										(
 											configuration.isFFmpegMuxWithTsMuxerWhenCompatible() &&
 											FFMpegVideo.ID.equals(getPlayer().id())
+										) ||
+										(
+											VLCVideo.ID.equals(getPlayer().id())
 										)
 									)
 								) {
@@ -1880,7 +1883,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 											mediaRenderer.isMuxH264MpegTS()
 										) ||
 										mediaRenderer.isTranscodeToMPEGTSAC3() ||
-										mediaRenderer.isTranscodeToH264TSAC3()
+										mediaRenderer.isTranscodeToH264TSAC3() ||
+										mediaRenderer.isTranscodeToH264TSAAC()
 									) {
 										isFileMPEGTS = true;
 									}
@@ -1894,6 +1898,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 										isMuxableResult
 									) {
 										dlnaspec = "DLNA.ORG_PN=AVC_TS_HD_24_AC3_ISO";
+										if(mediaRenderer.isTranscodeToH264TSAAC()) {
+											dlnaspec = "DLNA.ORG_PN=AVC_TS_HP_HD_AAC";
+										}
 									}
 								}
 							} else if (getMedia() != null) {
@@ -1901,6 +1908,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									dlnaspec = "DLNA.ORG_PN=" + getMPEG_TS_SD_EULocalizedValue(c);
 									if (getMedia().isH264()) {
 										dlnaspec = "DLNA.ORG_PN=AVC_TS_HD_50_AC3";
+										if(mediaRenderer.isTranscodeToH264TSAAC()) {
+											dlnaspec = "DLNA.ORG_PN=AVC_TS_HP_HD_AAC";
+										}
 									}
 								}
 							}
@@ -2172,7 +2182,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							RendererConfiguration renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(rendererIp);
 							String rendererName = "unknown renderer";
 							try {
-								rendererName = renderer.getRendererName();
+								rendererName = renderer.getRendererName().replaceAll("\n", "");
 							} catch (NullPointerException e) { }
 							LOGGER.info("Started playing " + getName() + " on your " + rendererName);
 							LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
@@ -2289,6 +2299,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return The inputstream
 	 * @throws IOException
 	 */
+	private long lastStart;
 	public InputStream getInputStream(Range range, RendererConfiguration mediarenderer) throws IOException {
 		LOGGER.trace("Asked stream chunk : " + range + " of " + getName() + " and player " + getPlayer());
 
@@ -2385,11 +2396,20 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 			}
 
+			if(System.currentTimeMillis() - lastStart < 500) {
+				try {
+					Thread.sleep(500);
+				} catch (InterruptedException e) {
+					LOGGER.error(null, e);
+				}
+			}
+
 			// (Re)start transcoding process if necessary
 			if (externalProcess == null || externalProcess.isDestroyed()) {
 				// First playback attempt => start new transcoding process
 				LOGGER.debug("Starting transcode/remux of " + getName() + " with media info: " + getMedia().toString());
 
+				lastStart = System.currentTimeMillis();
 				externalProcess = getPlayer().launchTranscode(this, getMedia(), params);
 
 				if (params.waitbeforestart > 0) {
@@ -2417,6 +2437,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 				};
 				new Thread(r, "External Process Stopper").start();
+				lastStart = System.currentTimeMillis();
 				ProcessWrapper newExternalProcess = getPlayer().launchTranscode(this, getMedia(), params);
 				try {
 					Thread.sleep(1000);
@@ -2519,8 +2540,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	protected void checkThumbnail(InputFile inputFile) {
 		if (getMedia() != null && !getMedia().isThumbready() && configuration.isThumbnailGenerationEnabled()) {
-			getMedia().setThumbready(true);
-
 			Double seekPosition = ((Integer) configuration.getThumbnailSeekPos()).doubleValue();
 
 			if (isResume()) {
@@ -2532,6 +2551,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 
 			getMedia().generateThumbnail(inputFile, getFormat(), getType(), seekPosition);
+			getMedia().setThumbready(true);
 
 			if (getMedia().getThumb() != null && configuration.getUseCache() && inputFile.getFile() != null) {
 				PMS.get().getDatabase().updateThumbnail(inputFile.getFile().getAbsolutePath(), inputFile.getFile().lastModified(), getType(), getMedia());
@@ -2579,7 +2599,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		// Or none of the above
 		String defaultThumbnailImage = "images/thumbnail-video-256.png";
-		if (getDefaultRenderer() != null && getDefaultRenderer().isForceJPGThumbnails()) {
+		if (isFolder()) {
+			defaultThumbnailImage = "images/thumbnail-folder-256.png";
+			if (getDefaultRenderer() != null && getDefaultRenderer().isForceJPGThumbnails()) {
+				defaultThumbnailImage = "images/thumbnail-folder-120.jpg";
+			}
+		} else if (getDefaultRenderer() != null && getDefaultRenderer().isForceJPGThumbnails()) {
 			defaultThumbnailImage = "images/thumbnail-video-120.jpg";
 		}
 		return getResourceInputStream(defaultThumbnailImage);
@@ -2856,7 +2881,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param player The player object to set.
 	 * @since 1.50
 	 */
-	protected void setPlayer(Player player) {
+	public void setPlayer(Player player) {
 		this.player = player;
 	}
 
@@ -3030,7 +3055,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @return The default renderer configuration.
 	 * @since 1.50
 	 */
-	protected RendererConfiguration getDefaultRenderer() {
+	public RendererConfiguration getDefaultRenderer() {
 		return defaultRenderer;
 	}
 
@@ -3040,7 +3065,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param defaultRenderer The default renderer configuration to set.
 	 * @since 1.50
 	 */
-	protected void setDefaultRenderer(RendererConfiguration defaultRenderer) {
+	public void setDefaultRenderer(RendererConfiguration defaultRenderer) {
 		this.defaultRenderer = defaultRenderer;
 	}
 
@@ -3329,6 +3354,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		} else {
 			return s;
 		}
+	}
+
+	public String resumeName() {
+		return resumeStr(getDisplayName());
 	}
 
 	/**

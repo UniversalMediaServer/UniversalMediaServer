@@ -168,6 +168,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 	private byte referenceFrameCount = -1;
 	private String avcLevel = null;
+	private String h264Profile = null;
 
 	private List<DLNAMediaAudio> audioTracks = new ArrayList<>();
 	private List<DLNAMediaSubtitle> subtitleTracks = new ArrayList<>();
@@ -278,6 +279,8 @@ public class DLNAMediaInfo implements Cloneable {
 	@Deprecated
 	public String stereoscopy;
 
+	private boolean gen_thumb;
+
 	/**
 	 * Used to determine whether tsMuxeR can mux the file to the renderer
 	 * instead of transcoding.
@@ -374,10 +377,12 @@ public class DLNAMediaInfo implements Cloneable {
 
 	public DLNAMediaInfo() {
 		setThumbready(true); // this class manages thumbnails by default with the parser_v1 method
+		gen_thumb = false;
 	}
 
 	public void generateThumbnail(InputFile input, Format ext, int type, Double seekPosition) {
 		DLNAMediaInfo forThumbnail = new DLNAMediaInfo();
+		forThumbnail.gen_thumb = true;
 		forThumbnail.durationSec = getDurationInSeconds();
 
 		if (seekPosition <= forThumbnail.durationSec) {
@@ -701,8 +706,7 @@ public class DLNAMediaInfo implements Cloneable {
 				} catch (ImageReadException | IOException e) {
 					LOGGER.info("Error parsing image ({}) with Sanselan, switching to FFmpeg.", file.getAbsolutePath());
 				}
-
-				if (configuration.getImageThumbnailsEnabled()) {
+				if (configuration.getImageThumbnailsEnabled() && file != null && gen_thumb) {
 					LOGGER.trace("Creating (temporary) thumbnail: {}", file.getName());
 
 					// Create the thumbnail image using the Thumbnailator library
@@ -1806,6 +1810,18 @@ public class DLNAMediaInfo implements Cloneable {
 	public synchronized void setAvcLevel(String avcLevel) {
 		this.avcLevel = avcLevel;
 	}
+
+	public synchronized int getAvcAsInt() {
+		try {
+			return Integer.parseInt(getAvcLevel().replaceAll("\\.", ""));
+		} catch (Exception e) {
+			return 0;
+		}
+	}
+
+	public synchronized String getH264Profile() { return h264Profile; }
+
+	public synchronized void setH264Profile(String s) { h264Profile = s; }
 
 	/**
 	 * @return the audioTracks
