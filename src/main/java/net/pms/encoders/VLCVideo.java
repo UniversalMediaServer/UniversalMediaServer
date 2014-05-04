@@ -38,6 +38,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
+import static net.pms.encoders.Player.configuration;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeProcess;
@@ -49,6 +50,8 @@ import net.pms.util.FormLayoutUtil;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -161,6 +164,13 @@ public class VLCVideo extends Player {
 			codecConfig.container = "ts";
 
 			videoRemux = true;
+		} else if (renderer.isTranscodeToH264TSAAC()) {
+			LOGGER.debug("Using H.264 and AAC with MPEG-TS container");
+			codecConfig.videoCodec = "h264";
+			codecConfig.audioCodec = "mp4a";
+			codecConfig.container = "ts";
+
+			videoRemux = true;
 		} else {
 			codecConfig.videoCodec = "mp2v";
 			codecConfig.audioCodec = "mp2a";
@@ -218,7 +228,12 @@ public class VLCVideo extends Player {
 		if (!videoRemux) {
 			args.put("vb", "4096");
 		}
-		args.put("ab", configuration.getAudioBitrate());
+		
+		if (codecConfig.audioCodec.equals("mp4a")) {
+			args.put("ab", Math.min(configuration.getAudioBitrate(), 320));
+		} else {
+			args.put("ab", configuration.getAudioBitrate());
+		}
 
 		// Video scaling
 		args.put("scale", "1.0");
@@ -234,6 +249,16 @@ public class VLCVideo extends Player {
 		// TODO: Does WMA still need a sample rate of 41000 for Xbox compatibility?
 		args.put("samplerate", "48000");
 
+		// Recommended on VLC DVD encoding page
+		//args.put("keyint", 16);
+
+		// Recommended on VLC DVD encoding page
+		args.put("strict-rc", null);
+
+		// Stream subtitles to client
+		// args.add("scodec=dvbs");
+		// args.add("senc=dvbsub");
+
 		// Enable multi-threading
 		args.put("threads", "" + configuration.getNumberOfCpuCores());
 
@@ -245,6 +270,167 @@ public class VLCVideo extends Player {
 
 		return args;
 	}
+
+	private int[] getVideoBitrateConfig(String bitrate) {
+		int bitrates[] = new int[2];
+
+		if (bitrate.contains("(") && bitrate.contains(")")) {
+			bitrates[1] = Integer.parseInt(bitrate.substring(bitrate.indexOf('(') + 1, bitrate.indexOf(')')));
+		}
+
+		if (bitrate.contains("(")) {
+			bitrate = bitrate.substring(0, bitrate.indexOf('(')).trim();
+		}
+
+		if (isBlank(bitrate)) {
+			bitrate = "0";
+		}
+
+		bitrates[0] = (int) Double.parseDouble(bitrate);
+
+		return bitrates;
+	}
+
+	/**
+	 * Returns the video bitrate spec for the current transcode according
+	 * to the limits/requirements of the renderer and the user's settings.
+	 *
+	 * @param dlna
+	 * @param media the media metadata for the video being streamed. May contain unset/null values (e.g. for web videos).
+	 * @param params
+	 * @return a {@link List} of <code>String</code>s representing the video bitrate options for this transcode
+	 */
+	public List<String> getVideoBitrateOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) {
+		List<String> videoBitrateOptions = new ArrayList<>();
+
+		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
+		int rendererMaxBitrates[] = new int[2];
+
+		if (params.mediaRenderer.getMaxVideoBitrate() != null) {
+			rendererMaxBitrates = getVideoBitrateConfig(params.mediaRenderer.getMaxVideoBitrate());
+		}
+
+		// Give priority to the renderer's maximum bitrate setting over the user's setting
+		if (rendererMaxBitrates[0] > 0 && rendererMaxBitrates[0] < defaultMaxBitrates[0]) {
+			defaultMaxBitrates = rendererMaxBitrates;
+		}
+
+		if (params.mediaRenderer.getCBRVideoBitrate() == 0 && params.timeend == 0) {
+			// Convert value from Mb to Kb
+			defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
+
+			// Halve it since it seems to send up to 1 second of video in advance
+			defaultMaxBitrates[0] /= 2;
+
+			int bufSize = 1835;
+			boolean bitrateLevel41Limited = false;
+
+			/**
+			 * Although the maximum bitrate for H.264 Level 4.1 is
+			 * officially 50,000 kbit/s, some 4.1-capable renderers
+			 * like the PS3 stutter when video exceeds roughly 31,250
+			 * kbit/s.
+			 *
+			 * We also apply the correct buffer size in this section.
+			 */
+			if (params.mediaRenderer.isTranscodeToH264TSAC3() || params.mediaRenderer.isTranscodeToH264TSAAC()) {
+				if (
+					params.mediaRenderer.isH264Level41Limited() &&
+					defaultMaxBitrates[0] > 31250
+				) {
+					defaultMaxBitrates[0] = 31250;
+					bitrateLevel41Limited = true;
+				}
+				bufSize = defaultMaxBitrates[0];
+			} else {
+				if (media.isHDVideo()) {
+					bufSize = defaultMaxBitrates[0] / 3;
+				}
+
+				if (bufSize > 7000) {
+					bufSize = 7000;
+				}
+
+				if (defaultMaxBitrates[1] > 0) {
+					bufSize = defaultMaxBitrates[1];
+				}
+
+				if (params.mediaRenderer.isDefaultVBVSize() && rendererMaxBitrates[1] == 0) {
+					bufSize = 1835;
+				}
+			}
+
+			if (!bitrateLevel41Limited) {
+				// Make room for audio
+				// TODO: set correct bitrate when remuxing DTS, like in FFMpegVideo
+				if (params.mediaRenderer.isTranscodeToAAC()) {
+					defaultMaxBitrates[0] -= Math.min(configuration.getAudioBitrate(), 320);
+				} else {
+					defaultMaxBitrates[0] -= configuration.getAudioBitrate();
+				}
+
+				// Round down to the nearest Mb
+				defaultMaxBitrates[0] = defaultMaxBitrates[0] / 1000 * 1000;
+			}
+
+			videoBitrateOptions.add("--sout-x264-vbv-bufsize");
+			videoBitrateOptions.add(String.valueOf(bufSize));
+
+			videoBitrateOptions.add("--sout-x264-vbv-maxrate");
+			videoBitrateOptions.add(String.valueOf(defaultMaxBitrates[0]));
+		}
+
+		if (!params.mediaRenderer.isTranscodeToH264TSAC3() && !params.mediaRenderer.isTranscodeToH264TSAAC()) {
+			// Add MPEG-2 quality settings
+			String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
+			String mpeg2OptionsRenderer = params.mediaRenderer.getCustomFFmpegMPEG2Options();
+
+			// Renderer settings take priority over user settings
+			if (isNotBlank(mpeg2OptionsRenderer)) {
+				mpeg2Options = mpeg2OptionsRenderer;
+			} else if (mpeg2Options.contains("Automatic")) {
+				mpeg2Options = "--sout-x264-keyint 5 --sout-avcodec-qscale 1 --sout-avcodec-qmin 2 --sout-avcodec-qmax 3";
+
+				// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
+				if (params.mediaRenderer.isPS3()) {
+					mpeg2Options = "--sout-x264-keyint 25 --sout-avcodec-qscale 1 --sout-avcodec-qmin 2 --sout-avcodec-qmax 3";
+				}
+
+				if (mpeg2Options.contains("Wireless") || defaultMaxBitrates[0] < 70) {
+					// Lower quality for 720p+ content
+					if (media.getWidth() > 1280) {
+						mpeg2Options = "--sout-x264-keyint 25 --sout-avcodec-qmin 2 --sout-avcodec-qmax 7";
+					} else if (media.getWidth() > 720) {
+						mpeg2Options = "--sout-x264-keyint 25 --sout-avcodec-qmin 2 --sout-avcodec-qmax 5";
+					}
+				}
+			}
+			String[] customOptions = StringUtils.split(mpeg2Options);
+			videoBitrateOptions.addAll(new ArrayList<>(Arrays.asList(customOptions)));
+		} else {
+			// Add x264 quality settings
+			String x264CRF = configuration.getx264ConstantRateFactor();
+
+			// Remove comment from the value
+			if (x264CRF.contains("/*")) {
+				x264CRF = x264CRF.substring(x264CRF.indexOf("/*"));
+			}
+
+			if (x264CRF.contains("Automatic")) {
+				x264CRF = "16";
+
+				// Lower CRF for 720p+ content
+				if (media.getWidth() > 720) {
+					x264CRF = "19";
+				}
+			}
+			videoBitrateOptions.add("--sout-x264-crf");
+			videoBitrateOptions.add(x264CRF);
+		}
+		
+		return videoBitrateOptions;
+	}
+
 
 	@Override
 	public ProcessWrapper launchTranscode(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
@@ -346,26 +532,10 @@ public class VLCVideo extends Player {
 		if (videoRemux) {
 			cmdList.add("--sout-x264-preset");
 			cmdList.add("superfast");
-
-			String x264CRF = configuration.getx264ConstantRateFactor();
-
-			// Remove comment from the value
-			if (x264CRF.contains("/*")) {
-				x264CRF = x264CRF.substring(x264CRF.indexOf("/*"));
-			}
-
-			// Determine a good quality setting based on video attributes
-			if (x264CRF.contains("Automatic")) {
-				x264CRF = "16";
-
-				// Lower CRF for 720p+ content
-				if (media.getWidth() > 720) {
-					x264CRF = "19";
-				}
-			}
-
-			cmdList.add("--sout-x264-crf");
-			cmdList.add(x264CRF);
+			
+			cmdList.add("--no-sout-avcodec-hurry-up");
+			
+			cmdList.addAll(getVideoBitrateOptions(dlna, media, params));
 		}
 
 		// Skip forward if necessary
