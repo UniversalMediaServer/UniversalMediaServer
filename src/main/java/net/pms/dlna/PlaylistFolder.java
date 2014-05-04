@@ -171,7 +171,7 @@ public class PlaylistFolder extends DLNAResource {
 				entry.title = new File(entry.fileName).getName();
 			}
 			LOGGER.debug("Adding " + (pls ? "PLS " : (m3u ? "M3U " : "")) + "entry: " + entry);
-			if (! FileUtil.isUrl(entry.fileName)) {
+			if (! isweb && ! FileUtil.isUrl(entry.fileName)) {
 				File en1 = new File(getPlaylistfile().getParentFile(), entry.fileName);
 				File en2 = new File(entry.fileName);
 				if (en1.exists()) {
