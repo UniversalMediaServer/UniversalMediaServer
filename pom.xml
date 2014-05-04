@@ -955,7 +955,7 @@
 									<goal>run</goal>
 								</goals>
 								<configuration>
-									<target>
+									<target unless="offline">
 										<!-- Make sure the download folders exist -->
 										<mkdir dir="${project.binaries}" />
 										<mkdir dir="${project.binaries}/win32" />
@@ -1173,7 +1173,7 @@
 									<goal>run</goal>
 								</goals>
 								<configuration>
-									<target>
+									<target unless="offline">
 										<!-- Make sure the binaries folder exists -->
 										<mkdir dir="${project.binaries}" />
 
@@ -1235,7 +1235,7 @@
 								</goals>
 
 								<configuration>
-									<target>
+									<target unless="offline">
 										<!-- Make sure the binaries folder exists -->
 										<mkdir dir="${project.binaries}" />
 										<mkdir dir="${project.binaries}/osx" />

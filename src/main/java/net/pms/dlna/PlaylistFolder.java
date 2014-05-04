@@ -167,11 +167,13 @@ public class PlaylistFolder extends DLNAResource {
 			if (entry == null) {
 				continue;
 			}
-			String fileName = entry.fileName;
+			if (entry.title == null) {
+				entry.title = new File(entry.fileName).getName();
+			}
 			LOGGER.debug("Adding " + (pls ? "PLS " : (m3u ? "M3U " : "")) + "entry: " + entry);
-			if (!isweb) {
-				File en1 = new File(getPlaylistfile().getParentFile(), fileName);
-				File en2 = new File(fileName);
+			if (! isweb && ! FileUtil.isUrl(entry.fileName)) {
+				File en1 = new File(getPlaylistfile().getParentFile(), entry.fileName);
+				File en2 = new File(entry.fileName);
 				if (en1.exists()) {
 					addChild(new RealFile(en1, entry.title));
 					valid = true;
@@ -182,7 +184,7 @@ public class PlaylistFolder extends DLNAResource {
 					}
 				}
 			} else {
-				Format f = FormatFactory.getAssociatedFormat("." + FileUtil.getUrlExtension(fileName));
+				Format f = FormatFactory.getAssociatedFormat("." + FileUtil.getUrlExtension(entry.fileName));
 				int type = f == null ? defaultContent : f.getType();
 				String u = FileUtil.urlJoin(uri, entry.fileName);
 				DLNAResource d =
