@@ -218,7 +218,7 @@ public class FFMpegVideo extends Player {
 					renderer.getMaxVideoWidth(),
 					renderer.getMaxVideoHeight()
 				);
-			} else if (renderer.isKeepAspectRatio() && isMediaValid) {
+			} else if (renderer.isKeepAspectRatio() && isMediaValid && !media.isDVDResolution()) {
 				if ((media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
 					rescaleOrPadding = "pad=iw:iw/(16/9):0:(oh-ih)/2";
 				} else {

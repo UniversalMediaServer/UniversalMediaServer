@@ -2180,4 +2180,8 @@ public class DLNAMediaInfo implements Cloneable {
 	public void setStereoscopy(String stereoscopy) {
 		this.stereoscopy = stereoscopy;
 	}
+
+	public boolean isDVDResolution() {
+		return (getWidth() == 720 && getHeight() == 576) || (getWidth() == 720 && getHeight() == 480);
+	}
 }
