@@ -268,7 +268,7 @@ public class FFMpegVideo extends Player {
 
 			transcodeOptions.add("-f");
 			transcodeOptions.add("asf");
-		} else { // MPEGPSAC3, MPEGTSAC3 or H264TSAC3
+		} else { // MPEGPSAC3, MPEGTSAC3, H264TSAC3 or H264TSAAC
 			final boolean isTsMuxeRVideoEngineEnabled = configuration.getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
 
 			// Output audio codec
@@ -293,6 +293,12 @@ public class FFMpegVideo extends Player {
 					transcodeOptions.add("-an");
 				} else if (type() == Format.AUDIO) {
 					// Skip
+				} else if (renderer.isTranscodeToH264TSAAC()) {
+					transcodeOptions.add("-c:a");
+					transcodeOptions.add("aac");
+
+					transcodeOptions.add("-strict");
+					transcodeOptions.add("experimental");
 				} else {
 					if (!customFFmpegOptions.contains("-c:a ")) {
 						transcodeOptions.add("-c:a");
@@ -309,7 +315,7 @@ public class FFMpegVideo extends Player {
 			}
 
 			// Output video codec
-			if (renderer.isTranscodeToH264TSAC3()) {
+			if (renderer.isTranscodeToH264TSAC3() || renderer.isTranscodeToH264TSAAC()) {
 				transcodeOptions.add("-c:v");
 				transcodeOptions.add("libx264");
 				transcodeOptions.add("-preset");
@@ -389,7 +395,7 @@ public class FFMpegVideo extends Player {
 			transcodeOptions.add("-f");
 			if (dtsRemux) {
 				transcodeOptions.add("mpeg2video");
-			} else if (renderer.isTranscodeToMPEGTSAC3() || renderer.isTranscodeToH264TSAC3()) { // MPEGTSAC3
+			} else if (renderer.isTranscodeToMPEGTSAC3() || renderer.isTranscodeToH264TSAC3() || renderer.isTranscodeToH264TSAAC()) { // MPEGTSAC3, H264TSAC3 or H264TSAAC
 				transcodeOptions.add("mpegts");
 			} else { // default: MPEGPSAC3
 				transcodeOptions.add("vob");
@@ -441,7 +447,7 @@ public class FFMpegVideo extends Player {
 			 *
 			 * We also apply the correct buffer size in this section.
 			 */
-			if (params.mediaRenderer.isTranscodeToH264TSAC3()) {
+			if (params.mediaRenderer.isTranscodeToH264TSAC3() || params.mediaRenderer.isTranscodeToH264TSAAC()) {
 				if (
 					params.mediaRenderer.isH264Level41Limited() &&
 					defaultMaxBitrates[0] > 31250
@@ -491,7 +497,7 @@ public class FFMpegVideo extends Player {
 			videoBitrateOptions.add(String.valueOf(defaultMaxBitrates[0]));
 		}
 
-		if (!params.mediaRenderer.isTranscodeToH264TSAC3()) {
+		if (!params.mediaRenderer.isTranscodeToH264TSAC3() && !params.mediaRenderer.isTranscodeToH264TSAAC()) {
 			// Add MPEG-2 quality settings
 			String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
 			String mpeg2OptionsRenderer = params.mediaRenderer.getCustomFFmpegMPEG2Options();
@@ -878,7 +884,11 @@ public class FFMpegVideo extends Player {
 
 			if (!customFFmpegOptions.contains("-ab ")) {
 				cmdList.add("-ab");
-				cmdList.add(configuration.getAudioBitrate() + "k");
+				if(renderer.isTranscodeToH264TSAAC()) {
+					cmdList.add(Math.min(configuration.getAudioBitrate(), 320) + "k");
+				} else {
+					cmdList.add(configuration.getAudioBitrate() + "k");
+				}
 			}
 		}
 
@@ -1008,7 +1018,7 @@ public class FFMpegVideo extends Player {
 				pwMux.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
 				String videoType = "V_MPEG-2";
 
-				if (renderer.isTranscodeToH264TSAC3()) {
+				if (renderer.isTranscodeToH264TSAC3() || renderer.isTranscodeToH264TSAAC()) {
 					videoType = "V_MPEG4/ISO/AVC";
 				}
 
