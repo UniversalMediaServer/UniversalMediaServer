@@ -540,7 +540,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 				}
 
-				if (child.getFormat() != null) {
+				if (child.format != null) {
 					String configurationSkipExtensions = configuration.getDisableTranscodeForExtensions();
 					String rendererSkipExtensions = null;
 
@@ -549,7 +549,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 
 					// Should transcoding be skipped for this format?
-					boolean skip = child.getFormat().skip(configurationSkipExtensions, rendererSkipExtensions);
+					boolean skip = child.format.skip(configurationSkipExtensions, rendererSkipExtensions);
 					skipTranscode = skip;
 
 					if (skip) {
@@ -559,9 +559,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					// Determine transcoding possibilities if either
 					//    - the format is known to be transcodable
 					//    - we have media info (via parserV2, playback info, or a plugin)
-					if (child.getFormat().transcodable() || child.media != null) {
+					if (child.format.transcodable() || child.media != null) {
 						if (child.media == null) {
-							child.setMedia(new DLNAMediaInfo());
+							child.media = new DLNAMediaInfo();
 						}
 
 						// Try to determine a player to use for transcoding.
@@ -573,7 +573,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						String name = getName();
 
 						if (!configuration.isHideRecentlyPlayedFolder()) {
-							player = child.getPlayer();
+							player = child.player;
 						} else {
 							for (Player p : PlayerFactory.getPlayers()) {
 								String end = "[" + p.id() + "]";
@@ -607,7 +607,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							}
 
 							// Should transcoding be forced for this format?
-							boolean forceTranscode = child.getFormat().skip(configurationForceExtensions, rendererForceExtensions);
+							boolean forceTranscode = child.format.skip(configurationForceExtensions, rendererForceExtensions);
 
 							if (forceTranscode) {
 								LOGGER.trace("File \"{}\" will be forced to be transcoded by configuration", child.getName());
@@ -639,7 +639,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							boolean isIncompatible = false;
 							String audioTracksList = child.getName() + child.media.getAudioTracksList().toString();
 
-							if (!child.getFormat().isCompatible(child.media, defaultRenderer)) {
+							if (!child.format.isCompatible(child.media, defaultRenderer)) {
 								isIncompatible = true;
 								LOGGER.trace("File \"{}\" is not supported by the renderer", child.getName());
 							} else if (
@@ -662,10 +662,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							// 1) transcoding is forced by configuration, or
 							// 2) transcoding is preferred and not prevented by configuration
 							if (forceTranscode || (preferTranscode && !isSkipTranscode())) {
-								child.setPlayer(player);
+								child.player = player;
 
 								if (resumeRes != null) {
-									resumeRes.setPlayer(player);
+									resumeRes.player = player;
 								}
 
 								if (parserV2) {
@@ -678,7 +678,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							}
 
 							// Should the child be added to the #--TRANSCODE--# folder?
-							if ((child.getFormat().isVideo() || child.getFormat().isAudio()) && child.isTranscodeFolderAvailable()) {
+							if ((child.format.isVideo() || child.format.isAudio()) && child.isTranscodeFolderAvailable()) {
 								// true: create (and append) the #--TRANSCODE--# folder to this
 								// folder if supported/enabled and if it doesn't already exist
 								VirtualFolder transcodeFolder = getTranscodeFolder(true);
@@ -686,8 +686,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									VirtualFolder fileTranscodeFolder = new FileTranscodeVirtualFolder(child.getDisplayName(), null);
 
 									DLNAResource newChild = child.clone();
-									newChild.setPlayer(player);
-									newChild.setMedia(child.media);
+									newChild.player = player;
+									newChild.media = child.media;
 									fileTranscodeFolder.addChildInternal(newChild);
 									LOGGER.trace("Adding \"{}\" to transcode folder for player: \"{}\"", child.getName(), player.toString());
 
@@ -695,7 +695,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								}
 							}
 
-							if (child.getFormat().isVideo() && child.isSubSelectable() && !(this instanceof SubSelFile)) {
+							if (child.format.isVideo() && child.isSubSelectable() && !(this instanceof SubSelFile)) {
 								VirtualFolder vf = getSubSelector(true);
 								if (vf != null) {
 									DLNAResource newChild = child.clone();
@@ -716,7 +716,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									}
 								}
 							}
-						} else if (!child.getFormat().isCompatible(child.media, defaultRenderer) && !child.isFolder()) {
+						} else if (!child.format.isCompatible(child.media, defaultRenderer) && !child.isFolder()) {
 							LOGGER.trace("Ignoring file \"{}\" because it is not compatible with renderer \"{}\"", child.getName(), defaultRenderer.getRendererName());
 							children.remove(child);
 						}
@@ -727,28 +727,28 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					}
 
 					if (
-						child.getFormat().getSecondaryFormat() != null &&
+						child.format.getSecondaryFormat() != null &&
 						child.media != null &&
 						defaultRenderer != null &&
-						defaultRenderer.supportsFormat(child.getFormat().getSecondaryFormat())
+						defaultRenderer.supportsFormat(child.format.getSecondaryFormat())
 					) {
 						DLNAResource newChild = child.clone();
-						newChild.setFormat(newChild.getFormat().getSecondaryFormat());
-						LOGGER.trace("Detected secondary format \"{}\" for \"{}\"", newChild.getFormat().toString(), newChild.getName());
+						newChild.setFormat(newChild.format.getSecondaryFormat());
+						LOGGER.trace("Detected secondary format \"{}\" for \"{}\"", newChild.format.toString(), newChild.getName());
 						newChild.first = child;
 						child.second = newChild;
 
-						if (!newChild.getFormat().isCompatible(newChild.media, defaultRenderer)) {
+						if (!newChild.format.isCompatible(newChild.media, defaultRenderer)) {
 							Player player = PlayerFactory.getPlayer(newChild);
 							newChild.setPlayer(player);
-							LOGGER.trace("Secondary format \"{}\" will use player \"{}\" for \"{}\"", newChild.getFormat().toString(), newChild.getPlayer().name(), newChild.getName());
+							LOGGER.trace("Secondary format \"{}\" will use player \"{}\" for \"{}\"", newChild.format.toString(), newChild.getPlayer().name(), newChild.getName());
 						}
 
 						if (child.media != null && child.media.isSecondaryFormatValid()) {
 							addChild(newChild);
-							LOGGER.trace("Adding secondary format \"{}\" for \"{}\"", newChild.getFormat().toString(), newChild.getName());
+							LOGGER.trace("Adding secondary format \"{}\" for \"{}\"", newChild.format.toString(), newChild.getName());
 						} else {
-							LOGGER.trace("Ignoring secondary format \"{}\" for \"{}\": invalid format", newChild.getFormat().toString(), newChild.getName());
+							LOGGER.trace("Ignoring secondary format \"{}\" for \"{}\": invalid format", newChild.format.toString(), newChild.getName());
 						}
 					}
 				}
