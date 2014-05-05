@@ -148,7 +148,7 @@ public class VLCVideo extends Player {
 			codecConfig.videoCodec = "wmv2";
 			codecConfig.audioCodec = "wma";
 			codecConfig.container = "asf";
-		} else if (renderer.isTranscodeToH264TSAC3()) {
+		} else if (renderer.isTranscodeToMPEGTSH264AC3()) {
 			LOGGER.debug("Using H.264 and MP2 with MPEG-TS container");
 			codecConfig.videoCodec = "h264";
 
@@ -164,7 +164,7 @@ public class VLCVideo extends Player {
 			codecConfig.container = "ts";
 
 			videoRemux = true;
-		} else if (renderer.isTranscodeToH264TSAAC()) {
+		} else if (renderer.isTranscodeToMPEGTSH264AAC()) {
 			LOGGER.debug("Using H.264 and AAC with MPEG-TS container");
 			codecConfig.videoCodec = "h264";
 			codecConfig.audioCodec = "mp4a";
@@ -175,7 +175,7 @@ public class VLCVideo extends Player {
 			codecConfig.videoCodec = "mp2v";
 			codecConfig.audioCodec = "mp2a";
 
-			if (renderer.isTranscodeToMPEGTSAC3()) {
+			if (renderer.isTranscodeToMPEGTSMPEG2AC3()) {
 				LOGGER.debug("Using standard DLNA codecs with an MPEG-TS container");
 				codecConfig.container = "ts";
 			} else {
@@ -333,7 +333,7 @@ public class VLCVideo extends Player {
 			 *
 			 * We also apply the correct buffer size in this section.
 			 */
-			if (params.mediaRenderer.isTranscodeToH264TSAC3() || params.mediaRenderer.isTranscodeToH264TSAAC()) {
+			if (params.mediaRenderer.isTranscodeToMPEGTSH264AC3() || params.mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
 				if (
 					params.mediaRenderer.isH264Level41Limited() &&
 					defaultMaxBitrates[0] > 31250
@@ -380,7 +380,7 @@ public class VLCVideo extends Player {
 			videoBitrateOptions.add(String.valueOf(defaultMaxBitrates[0]));
 		}
 
-		if (!params.mediaRenderer.isTranscodeToH264TSAC3() && !params.mediaRenderer.isTranscodeToH264TSAAC()) {
+		if (!params.mediaRenderer.isTranscodeToMPEGTSH264AC3() && !params.mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
 			// Add MPEG-2 quality settings
 			String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
 			String mpeg2OptionsRenderer = params.mediaRenderer.getCustomFFmpegMPEG2Options();
