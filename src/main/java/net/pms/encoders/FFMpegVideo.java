@@ -884,7 +884,7 @@ public class FFMpegVideo extends Player {
 
 			if (!customFFmpegOptions.contains("-ab ")) {
 				cmdList.add("-ab");
-				if(renderer.isTranscodeToMPEGTSH264AAC()) {
+				if (renderer.isTranscodeToMPEGTSH264AAC()) {
 					cmdList.add(Math.min(configuration.getAudioBitrate(), 320) + "k");
 				} else {
 					cmdList.add(configuration.getAudioBitrate() + "k");

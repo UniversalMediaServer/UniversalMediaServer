@@ -228,7 +228,7 @@ public class VLCVideo extends Player {
 		if (!videoRemux) {
 			args.put("vb", "4096");
 		}
-		
+
 		if (codecConfig.audioCodec.equals("mp4a")) {
 			args.put("ab", Math.min(configuration.getAudioBitrate(), 320));
 		} else {
@@ -250,14 +250,7 @@ public class VLCVideo extends Player {
 		args.put("samplerate", "48000");
 
 		// Recommended on VLC DVD encoding page
-		//args.put("keyint", 16);
-
-		// Recommended on VLC DVD encoding page
 		args.put("strict-rc", null);
-
-		// Stream subtitles to client
-		// args.add("scodec=dvbs");
-		// args.add("senc=dvbsub");
 
 		// Enable multi-threading
 		args.put("threads", "" + configuration.getNumberOfCpuCores());
@@ -431,7 +424,6 @@ public class VLCVideo extends Player {
 		return videoBitrateOptions;
 	}
 
-
 	@Override
 	public ProcessWrapper launchTranscode(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
 		final String filename = dlna.getSystemName();
@@ -532,9 +524,9 @@ public class VLCVideo extends Player {
 		if (videoRemux) {
 			cmdList.add("--sout-x264-preset");
 			cmdList.add("superfast");
-			
+
 			cmdList.add("--no-sout-avcodec-hurry-up");
-			
+
 			cmdList.addAll(getVideoBitrateOptions(dlna, media, params));
 		}
 

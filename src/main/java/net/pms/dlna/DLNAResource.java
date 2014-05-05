@@ -1898,7 +1898,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 										isMuxableResult
 									) {
 										dlnaspec = "DLNA.ORG_PN=AVC_TS_HD_24_AC3_ISO";
-										if(mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
+										if (mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
 											dlnaspec = "DLNA.ORG_PN=AVC_TS_HP_HD_AAC";
 										}
 									}
@@ -1908,7 +1908,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									dlnaspec = "DLNA.ORG_PN=" + getMPEG_TS_SD_EULocalizedValue(c);
 									if (getMedia().isH264()) {
 										dlnaspec = "DLNA.ORG_PN=AVC_TS_HD_50_AC3";
-										if(mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
+										if (mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
 											dlnaspec = "DLNA.ORG_PN=AVC_TS_HP_HD_AAC";
 										}
 									}
