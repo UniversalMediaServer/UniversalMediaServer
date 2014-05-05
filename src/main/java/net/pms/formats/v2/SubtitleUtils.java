@@ -212,9 +212,9 @@ public class SubtitleUtils {
 		}
 
 		// First try to calculate subtitles position and depth
-		// Max depth - 5% ... + 5%
-		int depth3D = (int) (((double) playResX /(double) 100) * Double.valueOf(configuration.getDepth3D()));
-		int offset = (playResX / 100) * 5;
+		// Max depth - 2% ... + 2%
+		int depth3D = (int) - (((double) playResX /(double) 100) * Double.valueOf(configuration.getDepth3D()));
+		int offset = (playResX / 100) * 2;
 		int bottomSubsPosition = (int) ((playResY / 100) * Double.valueOf(configuration.getAssMargin()));
 		int topSubsPositionTb = playResY + bottomSubsPosition;
 		int middleSbs = media.getWidth() / 2;
