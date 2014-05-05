@@ -3332,7 +3332,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				clone.resume = r;
 				clone.resHash = resHash;
 				clone.media.setThumbready(false);
-				clone.setPlayer(player);
+				clone.player = player;
 				parent.addChildInternal(clone);
 				return clone;
 			}
