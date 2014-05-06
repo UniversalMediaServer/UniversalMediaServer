@@ -1,7 +1,46 @@
-3.5.1 - 2014-03-??
+4.0.0-a1 - 2014-05-??
 
 	General:
-		
+		Added a web interface, available at localhost:9001
+
+3.6.1 - 2014-05-??
+
+	General:
+		Fixed the aspect ratio of thumbnails by default (thanks, tdcosta100!)
+		Fixed the buffer going nuts after automatic subtitle conversion (thanks, tdcosta100!)
+
+3.6.0 - 2014-04-28
+
+	General:
+		Use the Entertainment application category on OS X instead of Other
+		MPlayer thumbnail generation is disabled in the GUI if "Generate thumbnails" is unticked
+		Made Matroska container detection more reliable
+		Message dialogs display in the center of the program instead of the screen
+		The FFmpegAudio engine supports web audio
+		Valid MIME types are always sent to the renderer
+		Thumbnails of resume files are taken from the correct time (thanks, tdcosta100!)
+		The "Hide empty folders" option works for New Media folders (thanks, jpeyper!)
+		Improved support for transcoding to H.264 (thanks, tdcosta100!)
+		Improved detection of H.264 (thanks, tdcosta100!)
+		Improved speed
+		Fixed FFmpeg subtitles conversion (thanks, tdcosta100!)
+		Fixed the ability to stop scanning the library
+		Fixed the ability to resume videos with external subtitles
+		Fixed LPCM transcoding
+		Fixed renderer selection
+		Fixed timeseek detection (thanks, tdcosta100!)
+	Renderers:
+		Added support for Cambridge Audio Azur BD players (thanks, Triplefun!)
+		Added support for LG LA6200 TVs (thanks, douglasanpa!)
+		Added support for Sony Bravia BX305 TVs (thanks, douglasanpa!)
+		Added support for more sizes of LG LA644V TVs
+		Allow muxing of non-mod4 videos to Bravia TVs (thanks, tdcosta100!)
+	Languages:
+		Updated Czech translation
+		Updated Spanish translation (thanks, AlfredoRamos!)
+	External Components:
+		Updated Java Runtime Environment automatic downloader for Windows to 7u55, which:
+			Improves security
 
 3.5.0 - 2014-03-19
 

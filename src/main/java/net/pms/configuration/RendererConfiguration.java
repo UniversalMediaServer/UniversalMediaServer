@@ -54,14 +54,29 @@ public class RendererConfiguration {
 	protected boolean dc_date = true;
 
 	// property values
-	private static final String DEPRECATED_MPEGPSAC3 = "MPEGAC3"; // XXX deprecated: old name with missing container
 	private static final String LPCM = "LPCM";
 	private static final String MP3 = "MP3";
-	private static final String MPEGPSAC3 = "MPEGPSAC3";
-	private static final String MPEGTSAC3 = "MPEGTSAC3";
-	private static final String H264TSAC3 = "H264TSAC3";
 	private static final String WAV = "WAV";
 	private static final String WMV = "WMV";
+
+	// Old video transcoding options
+	@Deprecated
+	private static final String DEPRECATED_MPEGAC3 = "MPEGAC3";
+
+	@Deprecated
+	private static final String DEPRECATED_MPEGPSAC3 = "MPEGPSAC3";
+
+	@Deprecated
+	private static final String DEPRECATED_MPEGTSAC3 = "MPEGTSAC3";
+
+	@Deprecated
+	private static final String DEPRECATED_H264TSAC3 = "H264TSAC3";
+
+	// Current video transcoding options
+	private static final String MPEGTSH264AAC = "MPEGTS-H264-AAC";
+	private static final String MPEGTSH264AC3 = "MPEGTS-H264-AC3";
+	private static final String MPEGPSMPEG2AC3 = "MPEGPS-MPEG2-AC3";
+	private static final String MPEGTSMPEG2AC3 = "MPEGTS-MPEG2-AC3";
 
 	// property names
 	private static final String ACCURATE_DLNA_ORGPN = "AccurateDLNAOrgPN";
@@ -94,6 +109,7 @@ public class RendererConfiguration {
 	private static final String MUX_DTS_TO_MPEG = "MuxDTSToMpeg";
 	private static final String MUX_H264_WITH_MPEGTS = "MuxH264ToMpegTS";
 	private static final String MUX_LPCM_TO_MPEG = "MuxLPCMToMpeg";
+	private static final String MUX_NON_MOD4_RESOLUTION = "MuxNonMod4Resolution";
 	private static final String OVERRIDE_VF = "OverrideVideoFilter";
 	private static final String RENDERER_ICON = "RendererIcon";
 	private static final String RENDERER_NAME = "RendererName";
@@ -458,7 +474,7 @@ public class RendererConfiguration {
 	}
 
 	RendererConfiguration() throws ConfigurationException {
-		this(null);
+		this((File) null);
 	}
 
 	public RendererConfiguration(File f) throws ConfigurationException {
@@ -595,20 +611,30 @@ public class RendererConfiguration {
 	}
 
 	public boolean isTranscodeToAC3() {
-		return isTranscodeToMPEGPSAC3() || isTranscodeToMPEGTSAC3() || isTranscodeToH264TSAC3();
+		return isTranscodeToMPEGPSMPEG2AC3() || isTranscodeToMPEGTSMPEG2AC3() || isTranscodeToMPEGTSH264AC3();
 	}
 
-	public boolean isTranscodeToMPEGPSAC3() {
+	public boolean isTranscodeToAAC() {
+		return isTranscodeToMPEGTSH264AAC();
+	}
+
+	public boolean isTranscodeToMPEGPSMPEG2AC3() {
 		String videoTranscode = getVideoTranscode();
-		return videoTranscode.equals(MPEGPSAC3) || videoTranscode.equals(DEPRECATED_MPEGPSAC3);
+		return videoTranscode.equals(MPEGPSMPEG2AC3) || videoTranscode.equals(DEPRECATED_MPEGAC3) || videoTranscode.equals(DEPRECATED_MPEGPSAC3);
 	}
 
-	public boolean isTranscodeToMPEGTSAC3() {
-		return getVideoTranscode().equals(MPEGTSAC3);
+	public boolean isTranscodeToMPEGTSMPEG2AC3() {
+		String videoTranscode = getVideoTranscode();
+		return videoTranscode.equals(MPEGTSMPEG2AC3) || videoTranscode.equals(DEPRECATED_MPEGTSAC3);
 	}
 
-	public boolean isTranscodeToH264TSAC3() {
-		return getVideoTranscode().equals(H264TSAC3);
+	public boolean isTranscodeToMPEGTSH264AC3() {
+		String videoTranscode = getVideoTranscode();
+		return videoTranscode.equals(MPEGTSH264AC3) || videoTranscode.equals(DEPRECATED_H264TSAC3);
+	}
+
+	public boolean isTranscodeToMPEGTSH264AAC() {
+		return getVideoTranscode().equals(MPEGTSH264AAC);
 	}
 
 	public boolean isAutoRotateBasedOnExif() {
@@ -670,9 +696,11 @@ public class RendererConfiguration {
 		if (isMediaParserV2()) {
 			// Use the supported information in the configuration to determine the transcoding mime type.
 			if (HTTPResource.VIDEO_TRANSCODE.equals(mimeType)) {
-				if (isTranscodeToH264TSAC3()) {
+				if (isTranscodeToMPEGTSH264AC3()) {
 					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.H264, FormatConfiguration.AC3);
-				} else if (isTranscodeToMPEGTSAC3()) {
+				} else if (isTranscodeToMPEGTSH264AAC()) {
+					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.H264, FormatConfiguration.AAC);
+				} else if (isTranscodeToMPEGTSMPEG2AC3()) {
 					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.MPEG2, FormatConfiguration.AC3);
 				} else if (isTranscodeToWMV()) {
 					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.WMV, FormatConfiguration.WMV, FormatConfiguration.WMA);
@@ -698,36 +726,31 @@ public class RendererConfiguration {
 					}
 				}
 			}
-
-			if (matchedMimeType != null) {
-				return matchedMimeType;
-			} else {
-				// Return the mime type as it was determined by MediaParserV2.
-				return mimeType;
-			}
 		}
 
-		// No match found, try without media parser v2
-		if (HTTPResource.VIDEO_TRANSCODE.equals(mimeType)) {
-			if (isTranscodeToWMV()) {
-				matchedMimeType = HTTPResource.WMV_TYPEMIME;
-			} else {
-				// Default video transcoding mime type
-				matchedMimeType = HTTPResource.MPEG_TYPEMIME;
-			}
-		} else if (HTTPResource.AUDIO_TRANSCODE.equals(mimeType)) {
-			if (isTranscodeToWAV()) {
-				matchedMimeType = HTTPResource.AUDIO_WAV_TYPEMIME;
-			} else if (isTranscodeToMP3()) {
-				matchedMimeType = HTTPResource.AUDIO_MP3_TYPEMIME;
-			} else {
-				// Default audio transcoding mime type
-				matchedMimeType = HTTPResource.AUDIO_LPCM_TYPEMIME;
-
-				if (isTranscodeAudioTo441()) {
-					matchedMimeType += ";rate=44100;channels=2";
+		if (matchedMimeType == null) {
+			// No match found, try without media parser v2
+			if (HTTPResource.VIDEO_TRANSCODE.equals(mimeType)) {
+				if (isTranscodeToWMV()) {
+					matchedMimeType = HTTPResource.WMV_TYPEMIME;
 				} else {
-					matchedMimeType += ";rate=48000;channels=2";
+					// Default video transcoding mime type
+					matchedMimeType = HTTPResource.MPEG_TYPEMIME;
+				}
+			} else if (HTTPResource.AUDIO_TRANSCODE.equals(mimeType)) {
+				if (isTranscodeToWAV()) {
+					matchedMimeType = HTTPResource.AUDIO_WAV_TYPEMIME;
+				} else if (isTranscodeToMP3()) {
+					matchedMimeType = HTTPResource.AUDIO_MP3_TYPEMIME;
+				} else {
+					// Default audio transcoding mime type
+					matchedMimeType = HTTPResource.AUDIO_LPCM_TYPEMIME;
+
+					if (isTranscodeAudioTo441()) {
+						matchedMimeType += ";rate=44100;channels=2";
+					} else {
+						matchedMimeType += ";rate=48000;channels=2";
+					}
 				}
 			}
 		}
@@ -917,6 +940,10 @@ public class RendererConfiguration {
 		return getBoolean(MUX_LPCM_TO_MPEG, true);
 	}
 
+	public boolean isMuxNonMod4Resolution() {
+		return getBoolean(MUX_NON_MOD4_RESOLUTION, false);
+	}
+
 	public boolean isMpeg2Supported() {
 		if (isMediaParserV2()) {
 			return getFormatConfiguration().isMpeg2Supported();
@@ -927,12 +954,12 @@ public class RendererConfiguration {
 
 	/**
 	 * Returns the codec to use for video transcoding for this renderer as
-	 * defined in the renderer configuration. Default value is "MPEGPSAC3".
+	 * defined in the renderer configuration. Default value is "MPEGPSMPEG2AC3".
 	 *
 	 * @return The codec name.
 	 */
 	public String getVideoTranscode() {
-		return getString(TRANSCODE_VIDEO, MPEGPSAC3);
+		return getString(TRANSCODE_VIDEO, MPEGPSMPEG2AC3);
 	}
 
 	/**

@@ -576,7 +576,6 @@ public class TsMuxeRVideo extends Player {
 						params.aid.isLossless() ||
 						(params.aid.isDTS() && params.aid.getAudioProperties().getNumberOfChannels() <= 6) ||
 						params.aid.isTrueHD() ||
-						
 						(
 							!configuration.isMencoderUsePcmForHQAudioOnly() &&
 							(
