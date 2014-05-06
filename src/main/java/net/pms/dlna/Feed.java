@@ -99,8 +99,8 @@ public class Feed extends DLNAResource {
 
 	public Feed(String name, String url, int type) {
 		super(type);
-		setUrl(url);
-		setName(name);
+		this.url = url;
+		this.name = name;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -109,17 +109,17 @@ public class Feed extends DLNAResource {
 		byte b[] = downloadAndSendBinary(url);
 		if (b != null) {
 			SyndFeed feed = input.build(new XmlReader(new ByteArrayInputStream(b)));
-			setName(feed.getTitle());
+			name = feed.getTitle();
 			if (feed.getCategories() != null && feed.getCategories().size() > 0) {
 				SyndCategory category = (SyndCategory) feed.getCategories().get(0);
-				setTempCategory(category.getName());
+				tempCategory = category.getName();
 			}
 			List<SyndEntry> entries = feed.getEntries();
 			for (SyndEntry entry : entries) {
-				setTempItemTitle(entry.getTitle());
-				setTempItemLink(entry.getLink());
-				setTempFeedLink(entry.getUri());
-				setTempItemThumbURL(null);
+				tempItemTitle = entry.getTitle();
+				tempItemLink = entry.getLink();
+				tempFeedLink = entry.getUri();
+				tempItemThumbURL = null;
 
 				ArrayList<Element> elements = (ArrayList<Element>) entry.getForeignMarkup();
 				for (Element elt : elements) {
@@ -136,7 +136,7 @@ public class Feed extends DLNAResource {
 				List<SyndEnclosure> enclosures = entry.getEnclosures();
 				for (SyndEnclosure enc : enclosures) {
 					if (StringUtils.isNotBlank(enc.getUrl())) {
-						setTempItemLink(enc.getUrl());
+						tempItemLink = enc.getUrl();
 					}
 				}
 				manageItem();
@@ -149,7 +149,7 @@ public class Feed extends DLNAResource {
 	private void parseElement(Element elt, boolean parseLink) {
 		if ("content".equals(elt.getName()) && "media".equals(elt.getNamespacePrefix())) {
 			if (parseLink) {
-				setTempItemLink(elt.getAttribute("url").getValue());
+				tempItemLink = elt.getAttribute("url").getValue();
 			}
 			List<Content> subElts = elt.getContent();
 			for (Content subelt : subElts) {
@@ -159,12 +159,12 @@ public class Feed extends DLNAResource {
 			}
 		}
 		if ("thumbnail".equals(elt.getName()) && "media".equals(elt.getNamespacePrefix())
-				&& getTempItemThumbURL() == null) {
-			setTempItemThumbURL(elt.getAttribute("url").getValue());
+				&& tempItemThumbURL == null) {
+			tempItemThumbURL = elt.getAttribute("url").getValue();
 		}
 		if ("image".equals(elt.getName()) && "exInfo".equals(elt.getNamespacePrefix())
-				&& getTempItemThumbURL() == null) {
-			setTempItemThumbURL(elt.getValue());
+				&& tempItemThumbURL == null) {
+			tempItemThumbURL = elt.getValue();
 		}
 	}
 
@@ -205,7 +205,7 @@ public class Feed extends DLNAResource {
 	}
 
 	protected void manageItem() {
-		FeedItem fi = new FeedItem(getTempItemTitle(), getTempItemLink(), getTempItemThumbURL(), null, getSpecificType());
+		FeedItem fi = new FeedItem(tempItemTitle, tempItemLink, tempItemThumbURL, null, getSpecificType());
 		addChild(fi);
 	}
 

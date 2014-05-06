@@ -31,7 +31,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>3.5.1</version>
+	<version>4.0.0-a1</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -69,7 +69,7 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>3.5.1</project.version.short>
+		<project.version.short>4.0.0</project.version.short>
 		<cuelib-version>1.2.1-2008-06-13</cuelib-version>
 
 		<!-- In versions after 1.6.0, they removed code that the MovieInfo plugin relies on -->
@@ -89,7 +89,7 @@
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<!-- Snapshots should get their binaries from the trunk, releases from a tag -->
-		<project.binaries-base>http://universal-media-server-binaries.googlecode.com/svn/trunk</project.binaries-base>
+		<project.binaries-base>http://downloads.sourceforge.net/project/unimediaserver/Dependencies</project.binaries-base>
 		<!-- <project.binaries-base>http://ps3mediaserver.googlecode.com/svn/tags/1.40.0</project.binaries-base> -->
 
 		<maven-javadoc-plugin-version>2.9.1</maven-javadoc-plugin-version>
@@ -115,7 +115,7 @@
 		<repository>
 			<id>java.net</id>
 			<name>Java.net Repository</name>
-			<url>http://download.java.net/maven/2/</url>
+			<url>https://maven.java.net/content/groups/public/</url>
 			<snapshots>
 				<enabled>false</enabled>
 			</snapshots>
@@ -955,7 +955,7 @@
 									<goal>run</goal>
 								</goals>
 								<configuration>
-									<target>
+									<target unless="offline">
 										<!-- Make sure the download folders exist -->
 										<mkdir dir="${project.binaries}" />
 										<mkdir dir="${project.binaries}/win32" />
@@ -1173,7 +1173,7 @@
 									<goal>run</goal>
 								</goals>
 								<configuration>
-									<target>
+									<target unless="offline">
 										<!-- Make sure the binaries folder exists -->
 										<mkdir dir="${project.binaries}" />
 
@@ -1235,7 +1235,7 @@
 								</goals>
 
 								<configuration>
-									<target>
+									<target unless="offline">
 										<!-- Make sure the binaries folder exists -->
 										<mkdir dir="${project.binaries}" />
 										<mkdir dir="${project.binaries}/osx" />

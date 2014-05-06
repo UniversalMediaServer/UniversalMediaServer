@@ -170,7 +170,7 @@ public class MEncoderWebVideo extends Player {
 	 */
 	@Override
 	public boolean isPlayerCompatible(RendererConfiguration mediaRenderer) {
-		return !mediaRenderer.isTranscodeToH264TSAAC();
+		return !mediaRenderer.isTranscodeToMPEGTSH264AAC();
 	}
 
 	/**

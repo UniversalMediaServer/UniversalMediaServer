@@ -736,7 +736,7 @@ public class MEncoderVideo extends Player {
 			 *
 			 * We also apply the correct buffer size in this section.
 			 */
-			if (mediaRenderer.isTranscodeToH264TSAC3() || mediaRenderer.isTranscodeToH264TSAAC()) {
+			if (mediaRenderer.isTranscodeToMPEGTSH264AC3() || mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
 				if (
 					mediaRenderer.isH264Level41Limited() &&
 					defaultMaxBitrates[0] > 31250
@@ -947,7 +947,7 @@ public class MEncoderVideo extends Player {
 				params.forceFps = media.getValidFps(false);
 
 				if (media.getCodecV() != null) {
-					if (media.getCodecV().startsWith("h264")) {
+					if (media.isH264()) {
 						params.forceType = "V_MPEG4/ISO/AVC";
 					} else if (media.getCodecV().startsWith("mpeg2")) {
 						params.forceType = "V_MPEG-2";
@@ -982,8 +982,8 @@ public class MEncoderVideo extends Player {
 			}
 		}
 
-		mpegts = params.mediaRenderer.isTranscodeToMPEGTSAC3();
-		h264ts = params.mediaRenderer.isTranscodeToH264TSAC3() || params.mediaRenderer.isTranscodeToH264TSAAC();
+		mpegts = params.mediaRenderer.isTranscodeToMPEGTSMPEG2AC3();
+		h264ts = params.mediaRenderer.isTranscodeToMPEGTSH264AC3() || params.mediaRenderer.isTranscodeToMPEGTSH264AAC();
 
 		String vcodec = "mpeg2video";
 
@@ -1069,7 +1069,8 @@ public class MEncoderVideo extends Player {
 					!dvd ||
 					configuration.isMencoderRemuxMPEG2()
 				)
-				&& media.isValidForLPCMTranscoding()
+				// Disable LPCM transcoding for MP4 container with non-H.264 video as workaround for MEncoder's A/V sync bug
+				&& !(media.getContainer().equals("mp4") && !media.isH264())
 				&& params.aid != null &&
 				(
 					(params.aid.isDTS() && params.aid.getAudioProperties().getNumberOfChannels() <= 6) || // disable 7.1 DTS-HD => LPCM because of channels mapping bug
@@ -1313,7 +1314,7 @@ public class MEncoderVideo extends Player {
 				audioType = "dts";
 			} else if (pcm || encodedAudioPassthrough) {
 				audioType = "pcm";
-			} else if (params.mediaRenderer.isTranscodeToH264TSAAC()) {
+			} else if (params.mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
 				audioType = "aac";
 			}
 
@@ -2578,7 +2579,7 @@ public class MEncoderVideo extends Player {
 	 */
 	@Override
 	public boolean isPlayerCompatible(RendererConfiguration mediaRenderer) {
-		return !mediaRenderer.isTranscodeToH264TSAAC();
+		return !mediaRenderer.isTranscodeToMPEGTSH264AAC();
 	}
 
 	/**

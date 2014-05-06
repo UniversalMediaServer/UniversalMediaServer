@@ -99,6 +99,7 @@ public class DownloadPlugins {
 					LOGGER.trace("An invalid plugin was ignored (1)");
 				}
 				plugin = new DownloadPlugins(test);
+				continue;
 			}
 			String[] keyval = str.split("=", 2);
 			if (keyval.length < 2) {

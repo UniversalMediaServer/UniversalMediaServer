@@ -37,7 +37,6 @@ import net.pms.Messages;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import static net.pms.encoders.Player.configuration;
 import net.pms.formats.Format;
@@ -143,28 +142,29 @@ public class VLCVideo extends Player {
 	protected CodecConfig genConfig(RendererConfiguration renderer) {
 		CodecConfig codecConfig = new CodecConfig();
 
-		/**
-		 * XXX a52 (AC-3) causes the audio to cut out after
-		 * a while (5, 10, and 45 minutes have been spotted)
-		 * with versions as recent as 2.0.5. MP2 works without
-		 * issue, so we use that as a workaround for now.
-		 * codecConfig.audioCodec = "a52";
-		 */
-
 		if (renderer.isTranscodeToWMV()) {
-			// Assume WMV = XBox = all media renderers with this flag
+			// Assume WMV = Xbox = all media renderers with this flag
 			LOGGER.debug("Using XBox WMV codecs");
 			codecConfig.videoCodec = "wmv2";
 			codecConfig.audioCodec = "wma";
 			codecConfig.container = "asf";
-		} else if (renderer.isTranscodeToH264TSAC3()) {
-			LOGGER.debug("Using H.264 and AC-3 with ts container");
+		} else if (renderer.isTranscodeToMPEGTSH264AC3()) {
+			LOGGER.debug("Using H.264 and MP2 with MPEG-TS container");
 			codecConfig.videoCodec = "h264";
-			codecConfig.audioCodec = "mp2a";
+
+			/**
+			 * XXX a52 (AC-3) causes the audio to cut out after
+			 * a while (5, 10, and 45 minutes have been spotted)
+			 * with versions as recent as 2.0.5. MP2 works without
+			 * issue, so we use that as a workaround for now.
+			 * codecConfig.audioCodec = "a52";
+			 */
+			codecConfig.audioCodec = "a52";
+
 			codecConfig.container = "ts";
 
 			videoRemux = true;
-		} else if (renderer.isTranscodeToH264TSAAC()) {
+		} else if (renderer.isTranscodeToMPEGTSH264AAC()) {
 			LOGGER.debug("Using H.264 and AAC with MPEG-TS container");
 			codecConfig.videoCodec = "h264";
 			codecConfig.audioCodec = "mp4a";
@@ -175,7 +175,7 @@ public class VLCVideo extends Player {
 			codecConfig.videoCodec = "mp2v";
 			codecConfig.audioCodec = "mp2a";
 
-			if (renderer.isTranscodeToMPEGTSAC3()) {
+			if (renderer.isTranscodeToMPEGTSMPEG2AC3()) {
 				LOGGER.debug("Using standard DLNA codecs with an MPEG-TS container");
 				codecConfig.container = "ts";
 			} else {
@@ -228,7 +228,7 @@ public class VLCVideo extends Player {
 		if (!videoRemux) {
 			args.put("vb", "4096");
 		}
-		
+
 		if (codecConfig.audioCodec.equals("mp4a")) {
 			args.put("ab", Math.min(configuration.getAudioBitrate(), 320));
 		} else {
@@ -240,13 +240,9 @@ public class VLCVideo extends Player {
 
 		// Audio Channels
 		int channels = 2;
-
-		/**
-		 * Uncomment this block when we use a52 instead of mp2a
 		if (params.aid.getAudioProperties().getNumberOfChannels() > 2 && configuration.getAudioChannelCount() == 6) {
 			channels = 6;
 		}
-		 */
 		args.put("channels", channels);
 
 		// Static sample rate
@@ -254,14 +250,7 @@ public class VLCVideo extends Player {
 		args.put("samplerate", "48000");
 
 		// Recommended on VLC DVD encoding page
-		//args.put("keyint", 16);
-
-		// Recommended on VLC DVD encoding page
 		args.put("strict-rc", null);
-
-		// Stream subtitles to client
-		// args.add("scodec=dvbs");
-		// args.add("senc=dvbsub");
 
 		// Enable multi-threading
 		args.put("threads", "" + configuration.getNumberOfCpuCores());
@@ -337,7 +326,7 @@ public class VLCVideo extends Player {
 			 *
 			 * We also apply the correct buffer size in this section.
 			 */
-			if (params.mediaRenderer.isTranscodeToH264TSAC3() || params.mediaRenderer.isTranscodeToH264TSAAC()) {
+			if (params.mediaRenderer.isTranscodeToMPEGTSH264AC3() || params.mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
 				if (
 					params.mediaRenderer.isH264Level41Limited() &&
 					defaultMaxBitrates[0] > 31250
@@ -384,7 +373,7 @@ public class VLCVideo extends Player {
 			videoBitrateOptions.add(String.valueOf(defaultMaxBitrates[0]));
 		}
 
-		if (!params.mediaRenderer.isTranscodeToH264TSAC3() && !params.mediaRenderer.isTranscodeToH264TSAAC()) {
+		if (!params.mediaRenderer.isTranscodeToMPEGTSH264AC3() && !params.mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
 			// Add MPEG-2 quality settings
 			String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
 			String mpeg2OptionsRenderer = params.mediaRenderer.getCustomFFmpegMPEG2Options();
@@ -435,7 +424,6 @@ public class VLCVideo extends Player {
 		return videoBitrateOptions;
 	}
 
-
 	@Override
 	public ProcessWrapper launchTranscode(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
 		final String filename = dlna.getSystemName();
@@ -462,16 +450,16 @@ public class VLCVideo extends Player {
 		cmdList.add("-I");
 		cmdList.add("dummy");
 
-		// Disable hardware acceleration which is enabled by default
-		// It seems this no longer works on newer versions so we should
-		// find which command it was replaced with, if any.
+		// Disable hardware acceleration which is enabled by default,
+		// but for hardware acceleration, user must enable it in "VLC Preferences",
+		// until they release documentation for new functionalities introduced in 2.1.4+
 		if (!configuration.isGPUAcceleration()) {
-			cmdList.add("--no-ffmpeg-hw");
+			cmdList.add("--avcodec-hw=disabled");
 		}
 
 		// Useful for the more esoteric codecs people use
 		if (experimentalCodecs.isSelected()) {
-			cmdList.add("--sout-ffmpeg-strict=-2");
+			cmdList.add("--sout-avcodec-strict=-2");
 		}
 
 		// Stop the DOS box from appearing on windows
@@ -482,8 +470,7 @@ public class VLCVideo extends Player {
 		// File needs to be given before sout, otherwise vlc complains
 		cmdList.add(filename);
 
-		// Huge fake track id that shouldn't conflict with any real subtitle or audio id. Hopefully.
-		String disableSuffix = "track=214748361";
+		String disableSuffix = "track=-1";
 
 		// Handle audio language
 		if (params.aid != null) {
@@ -537,9 +524,9 @@ public class VLCVideo extends Player {
 		if (videoRemux) {
 			cmdList.add("--sout-x264-preset");
 			cmdList.add("superfast");
-			
+
 			cmdList.add("--no-sout-avcodec-hurry-up");
-			
+
 			cmdList.addAll(getVideoBitrateOptions(dlna, media, params));
 		}
 
@@ -723,12 +710,6 @@ public class VLCVideo extends Player {
 
 	@Override
 	public boolean isCompatible(DLNAResource resource) {
-		// Our implementation of VLC does not support external subtitles yet
-		DLNAMediaSubtitle subtitle = resource.getMediaSubtitle();
-		if (subtitle != null && subtitle.getExternalFile() != null) {
-			return false;
-		}
-
 		// Only handle local video - not web video or audio
 		if (
 			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
