@@ -22,6 +22,7 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -137,11 +138,11 @@ public class FFMpegVideo extends Player {
 				media.getHeight() > renderer.getMaxVideoHeight()
 			);
 
-		if (!isDisableSubtitles(params)) {
+		if (!isDisableSubtitles(params) && !(dlna.getPlayer() instanceof WebPlayer)) {
 			StringBuilder subsFilter = new StringBuilder();
 
 			if (params.sid.getType().isText()) {
-				File tempSubs = getSubtitles(dlna, media, params);
+				File tempSubs = getSubtitles(dlna, media, params, configuration);
 				if (tempSubs != null) {
 					StringBuilder s = new StringBuilder();
 					CharacterIterator it = new StringCharacterIterator(tempSubs.getAbsolutePath());
@@ -218,16 +219,25 @@ public class FFMpegVideo extends Player {
 					renderer.getMaxVideoWidth(),
 					renderer.getMaxVideoHeight()
 				);
-			} else if (renderer.isKeepAspectRatio() && isMediaValid) {
+			} else if (renderer.isKeepAspectRatio() && isMediaValid && !media.isDVDResolution()) {
 				if ((media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
 					rescaleOrPadding = "pad=iw:iw/(16/9):0:(oh-ih)/2";
 				} else {
 					rescaleOrPadding = "pad=ih*(16/9):ih:(ow-iw)/2:0";
 				}
 			}
-			if (isNotBlank(rescaleOrPadding)) {
+			if (isNotBlank(rescaleOrPadding) && !media.is3d()) { // do not rescale or pad for 3D video
 				filterChain.add(rescaleOrPadding);
 			}
+		}
+
+		// Convert 3D video to the output format
+		if (media.is3d() &&
+				(media.get3DLayout() != null) &&
+				isNotBlank(params.mediaRenderer.getOutput3DFormat()) &&
+				!media.get3DLayout().toString().toLowerCase().equals(params.mediaRenderer.getOutput3DFormat().trim()))
+		{
+			filterChain.add("stereo3d=" + media.get3DLayout().toString().toLowerCase() + ":" + params.mediaRenderer.getOutput3DFormat().trim().toLowerCase());
 		}
 
 		if (filterChain.size() > 0) {
@@ -268,7 +278,7 @@ public class FFMpegVideo extends Player {
 
 			transcodeOptions.add("-f");
 			transcodeOptions.add("asf");
-		} else { // MPEGPSAC3, MPEGTSAC3 or H264TSAC3
+		} else { // MPEGPSMPEG2AC3, MPEGTSMPEG2AC3, MPEGTSH264AC3 or MPEGTSH264AAC
 			final boolean isTsMuxeRVideoEngineEnabled = configuration.getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
 
 			// Output audio codec
@@ -293,6 +303,12 @@ public class FFMpegVideo extends Player {
 					transcodeOptions.add("-an");
 				} else if (type() == Format.AUDIO) {
 					// Skip
+				} else if (renderer.isTranscodeToMPEGTSH264AAC()) {
+					transcodeOptions.add("-c:a");
+					transcodeOptions.add("aac");
+
+					transcodeOptions.add("-strict");
+					transcodeOptions.add("experimental");
 				} else {
 					if (!customFFmpegOptions.contains("-c:a ")) {
 						transcodeOptions.add("-c:a");
@@ -309,7 +325,7 @@ public class FFMpegVideo extends Player {
 			}
 
 			// Output video codec
-			if (renderer.isTranscodeToH264TSAC3()) {
+			if (renderer.isTranscodeToMPEGTSH264AC3() || renderer.isTranscodeToMPEGTSH264AAC()) {
 				transcodeOptions.add("-c:v");
 				transcodeOptions.add("libx264");
 				transcodeOptions.add("-preset");
@@ -326,7 +342,7 @@ public class FFMpegVideo extends Player {
 			// Check if the media renderer supports this resolution
 			boolean isResolutionTooHighForRenderer = false;
 			if (
-				params.mediaRenderer.isVideoRescale() &&
+				params.mediaRenderer.isVideoRescale() && !media.is3d() && // do not scale down for 3D video
 				(
 					media.getWidth() > params.mediaRenderer.getMaxVideoWidth() ||
 					media.getHeight() > params.mediaRenderer.getMaxVideoHeight()
@@ -389,9 +405,9 @@ public class FFMpegVideo extends Player {
 			transcodeOptions.add("-f");
 			if (dtsRemux) {
 				transcodeOptions.add("mpeg2video");
-			} else if (renderer.isTranscodeToMPEGTSAC3() || renderer.isTranscodeToH264TSAC3()) { // MPEGTSAC3
+			} else if (renderer.isTranscodeToMPEGTSMPEG2AC3() || renderer.isTranscodeToMPEGTSH264AC3() || renderer.isTranscodeToMPEGTSH264AAC()) { // MPEGTSMPEG2AC3, MPEGTSH264AC3 or MPEGTSH264AAC
 				transcodeOptions.add("mpegts");
-			} else { // default: MPEGPSAC3
+			} else { // default: MPEGPSMPEG2AC3
 				transcodeOptions.add("vob");
 			}
 		}
@@ -446,7 +462,7 @@ public class FFMpegVideo extends Player {
 			 *
 			 * We also apply the correct buffer size in this section.
 			 */
-			if (params.mediaRenderer.isTranscodeToH264TSAC3()) {
+			if (params.mediaRenderer.isTranscodeToMPEGTSH264AC3() || params.mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
 				if (
 					params.mediaRenderer.isH264Level41Limited() &&
 					defaultMaxBitrates[0] > 31250
@@ -499,7 +515,7 @@ public class FFMpegVideo extends Player {
 			videoBitrateOptions.add(String.valueOf(defaultMaxBitrates[0]));
 		}
 
-		if (!params.mediaRenderer.isTranscodeToH264TSAC3()) {
+		if (!params.mediaRenderer.isTranscodeToMPEGTSH264AC3() && !params.mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
 			// Add MPEG-2 quality settings
 			String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
 			String mpeg2OptionsRenderer = params.mediaRenderer.getCustomFFmpegMPEG2Options();
@@ -886,7 +902,11 @@ public class FFMpegVideo extends Player {
 
 			if (!customFFmpegOptions.contains("-ab ")) {
 				cmdList.add("-ab");
-				cmdList.add(configuration.getAudioBitrate() + "k");
+				if (renderer.isTranscodeToMPEGTSH264AAC()) {
+					cmdList.add(Math.min(configuration.getAudioBitrate(), 320) + "k");
+				} else {
+					cmdList.add(configuration.getAudioBitrate() + "k");
+				}
 			}
 		}
 
@@ -1016,7 +1036,7 @@ public class FFMpegVideo extends Player {
 				pwMux.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
 				String videoType = "V_MPEG-2";
 
-				if (renderer.isTranscodeToH264TSAC3()) {
+				if (renderer.isTranscodeToMPEGTSH264AC3() || renderer.isTranscodeToMPEGTSH264AAC()) {
 					videoType = "V_MPEG4/ISO/AVC";
 				}
 
@@ -1171,10 +1191,11 @@ public class FFMpegVideo extends Player {
 	 * @param dlna DLNAResource
 	 * @param media DLNAMediaInfo
 	 * @param params Output parameters
+	 * @param configuration
 	 * @return Converted subtitle file
 	 * @throws IOException
 	 */
-	public File getSubtitles(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
+	public static File getSubtitles(DLNAResource dlna, DLNAMediaInfo media, OutputParams params, PmsConfiguration configuration) throws IOException {
 		if (media == null || params.sid.getId() == -1 || !params.sid.getType().isText()) {
 			return null;
 		}
@@ -1187,6 +1208,7 @@ public class FFMpegVideo extends Player {
 
 		boolean applyFontConfig = configuration.isFFmpegFontConfig();
 		boolean isEmbeddedSource = params.sid.getId() < 100;
+		boolean is3D = media.is3d();
 
 		String filename = isEmbeddedSource ?
 			dlna.getSystemName() : params.sid.getExternalFile().getAbsolutePath();
@@ -1205,7 +1227,7 @@ public class FFMpegVideo extends Player {
 		}
 
 		File convertedSubs;
-		if (applyFontConfig || isEmbeddedSource) {
+		if (applyFontConfig || isEmbeddedSource || is3D) {
 			convertedSubs = new File(subsPath.getAbsolutePath() + File.separator + basename + "_ID" + params.sid.getId() + "_" + modId + ".ass");
 		} else {
 			String tmp = params.sid.getExternalFile().getName().replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
@@ -1214,8 +1236,16 @@ public class FFMpegVideo extends Player {
 
 		if (convertedSubs.canRead()) {
 			// subs are already converted
-			if (applyFontConfig || isEmbeddedSource) {
+			if (applyFontConfig || isEmbeddedSource || is3D) {
 				params.sid.setType(SubtitleType.ASS);
+				if (is3D) {
+					try {
+						convertedSubs = SubtitleUtils.convertASSToASS3D(convertedSubs, media, params);
+					} catch (IOException | NullPointerException e) {
+						LOGGER.debug("Converting to ASS3D format ends with error: " + e);
+						return null;
+					}
+				}
 			}
 
 			return convertedSubs;
@@ -1236,12 +1266,13 @@ public class FFMpegVideo extends Player {
 			(
 				!applyFontConfig &&
 				!isEmbeddedSource &&
-				params.sid.getType() == SubtitleType.SUBRIP
+				params.sid.getType() == SubtitleType.SUBRIP  &&
+				!is3D
 			)
 		) {
 			tempSubs = params.sid.getExternalFile();
 		} else {
-			tempSubs = convertSubsToAss(filename, media, params);
+			tempSubs = convertSubsToAss(filename, media, params, configuration);
 		}
 
 		if (tempSubs == null) {
@@ -1258,9 +1289,18 @@ public class FFMpegVideo extends Player {
 		// Now we're sure we actually have our own modifiable file
 		if (applyFontConfig) {
 			try {
-				tempSubs = applyFontconfigToASSTempSubsFile(tempSubs, media);
+				tempSubs = applyFontconfigToASSTempSubsFile(tempSubs, media, configuration);
 			} catch (IOException e) {
 				LOGGER.debug("Applying subs setting ends with error: " + e);
+				return null;
+			}
+		}
+
+		if (is3D) {
+			try {
+				tempSubs = SubtitleUtils.convertASSToASS3D(tempSubs, media, params);
+			} catch (IOException | NullPointerException e) {
+				LOGGER.debug("Converting to ASS3D format ends with error: " + e);
 				return null;
 			}
 		}
@@ -1271,7 +1311,6 @@ public class FFMpegVideo extends Player {
 		}
 
 		PMS.get().addTempFile(tempSubs, 30 * 24 * 3600 * 1000);
-
 		return tempSubs;
 	}
 
@@ -1281,9 +1320,10 @@ public class FFMpegVideo extends Player {
 	 * @param fileName Subtitles file in SRT format or video file with embedded subs
 	 * @param media
 	 * @param params output parameters
+	 * @param configuration
 	 * @return Converted subtitles file in SSA/ASS format
 	 */
-	public static File convertSubsToAss(String fileName, DLNAMediaInfo media, OutputParams params) {
+	public static File convertSubsToAss(String fileName, DLNAMediaInfo media, OutputParams params, PmsConfiguration configuration) {
 		if (!params.sid.getType().isText()) {
 			return null;
 		}
@@ -1349,7 +1389,7 @@ public class FFMpegVideo extends Player {
 		return tempSubsFile;
 	}
 
-	public File applyFontconfigToASSTempSubsFile(File tempSubs, DLNAMediaInfo media) throws IOException {
+	public static File applyFontconfigToASSTempSubsFile(File tempSubs, DLNAMediaInfo media, PmsConfiguration configuration) throws IOException {
 		File outputSubs = tempSubs;
 		StringBuilder outputString = new StringBuilder();
 		File temp = new File(configuration.getTempFolder(), tempSubs.getName() + ".tmp");
@@ -1404,8 +1444,7 @@ public class FFMpegVideo extends Player {
 						}
 
 						if (format[i].contains("PrimaryColour")) {
-							String primaryColour = Integer.toHexString(configuration.getSubsColor());
-							params[i] = "&H" + primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4);
+							params[i] = SubtitleUtils.convertColorToAssHexFormat(new Color(configuration.getSubsColor()));
 							continue;
 						}
 

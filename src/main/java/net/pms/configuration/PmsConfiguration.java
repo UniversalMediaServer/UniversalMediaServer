@@ -69,6 +69,7 @@ public class PmsConfiguration {
 	// TODO: Get this out of here
 	private static boolean avsHackLogged = false;
 
+	private static final String KEY_3D_SUBTITLES_DEPTH = "3D_subtitles_depth";
 	private static final String KEY_ALTERNATE_SUBTITLES_FOLDER = "alternate_subtitles_folder";
 	private static final String KEY_ALTERNATE_THUMB_FOLDER = "alternate_thumb_folder";
 	private static final String KEY_APPEND_PROFILE_NAME = "append_profile_name";
@@ -232,7 +233,11 @@ public class PmsConfiguration {
 	private static final String KEY_VLC_SCALE = "vlc_scale";
 	private static final String KEY_VLC_SAMPLE_RATE_OVERRIDE = "vlc_sample_rate_override";
 	private static final String KEY_VLC_SAMPLE_RATE = "vlc_sample_rate";
+	private static final String KEY_WEB_AUTHENTICATE = "web_authenticate";
 	private static final String KEY_WEB_CONF_PATH = "web_conf";
+	private static final String KEY_WEB_MP4_TRANS = "web_mp4_trans";
+	private static final String KEY_WEB_THREADS = "web_threads";
+	private static final String KEY_WEB_PATH = "web_path";
 	private static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
 
 	// The name of the subdirectory under which UMS config files are stored for this build (default: UMS).
@@ -2941,5 +2946,57 @@ public class PmsConfiguration {
 	 */
 	public void setAppendProfileName(boolean value) {
 		configuration.setProperty(KEY_APPEND_PROFILE_NAME, value);
+	}
+
+	public String getDepth3D() {
+		return getString(KEY_3D_SUBTITLES_DEPTH, "0");
+	}
+
+	public void setDepth3D(String value) {
+		configuration.setProperty(KEY_3D_SUBTITLES_DEPTH, value);
+	}
+
+	/**
+	 * Web stuff
+	 */
+	private static final String KEY_NO_FOLDERS = "no_shared";
+	private static final String KEY_WEB_HTTPS = "use_https";
+	private static final int WEB_MAX_THREADS = 100;
+
+	public boolean getNoFolders(String tag) {
+		if (tag == null) {
+			return getBoolean(KEY_NO_FOLDERS, false);
+		}
+		String x = (tag.toLowerCase() + ".no_shared").replaceAll(" ", "_");
+		return getBoolean(x, false);
+	}
+
+	public boolean getWebHttps() {
+		return getBoolean(KEY_WEB_HTTPS, false);
+	}
+
+	public File getWebPath() {
+		File path = new File(getString(KEY_WEB_PATH, "web"));
+		if (!path.exists()) {
+			path.mkdirs();
+		}
+		return path;
+	}
+
+	public File getWebFile(String file) {
+		return new File(getWebPath().getAbsolutePath() + File.separator + file);
+	}
+
+	public boolean isWebAuthenticate() {
+		return getBoolean(KEY_WEB_AUTHENTICATE, false);
+	}
+
+	public int getWebThreads() {
+		int x = getInt(KEY_WEB_THREADS, 30);
+		return (x > WEB_MAX_THREADS ? WEB_MAX_THREADS : x);
+	}
+
+	public boolean isWebMp4Trans() {
+		return getBoolean(KEY_WEB_MP4_TRANS, false);
 	}
 }

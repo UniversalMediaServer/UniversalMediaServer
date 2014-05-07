@@ -21,7 +21,7 @@ public class MediaMonitor extends VirtualFolder {
 	private PmsConfiguration config;
 
 	public MediaMonitor(File[] dirs) {
-		super(Messages.getString("VirtualFolder.2"), "images/thumbnail-video-256.png");
+		super(Messages.getString("VirtualFolder.2"), "images/thumbnail-folder-256.png");
 		this.dirs = dirs;
 		oldEntries = new HashSet<>();
 		config = PMS.getConfiguration();

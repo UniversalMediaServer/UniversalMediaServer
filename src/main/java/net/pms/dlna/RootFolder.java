@@ -905,7 +905,7 @@ public class RootFolder extends DLNAResource {
 										// Put the track into its album folder
 										{
 											if (!isCompilation) {
-												albumName += " – " + artistName;
+												albumName += " - " + artistName;
 											}
 
 											VirtualFolder individualAlbumFolder = null;

@@ -741,7 +741,7 @@ public class MEncoderVideo extends Player {
 			 *
 			 * We also apply the correct buffer size in this section.
 			 */
-			if (mediaRenderer.isTranscodeToH264TSAC3()) {
+			if (mediaRenderer.isTranscodeToMPEGTSH264AC3() || mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
 				if (
 					mediaRenderer.isH264Level41Limited() &&
 					defaultMaxBitrates[0] > 31250
@@ -777,6 +777,9 @@ public class MEncoderVideo extends Player {
 						break;
 					case "dts":
 						defaultMaxBitrates[0] -= 1510;
+						break;
+					case "aac":
+						defaultMaxBitrates[0] -= configuration.getAudioBitrate();
 						break;
 					case "ac3":
 						defaultMaxBitrates[0] -= configuration.getAudioBitrate();
@@ -832,6 +835,10 @@ public class MEncoderVideo extends Player {
 			} else {
 				externalSubtitlesFileName = ProcessUtil.getShortFileNameIfWideChars(params.sid.getExternalFile().getAbsolutePath());
 			}
+		}
+
+		if (media.is3d() && params.sid != null) { // If video is 3D convert external subs to ASS3D format
+			externalSubtitlesFileName = FFMpegVideo.getSubtitles(dlna, media, params, configuration).getAbsolutePath();
 		}
 
 		InputFile newInput = new InputFile();
@@ -987,8 +994,8 @@ public class MEncoderVideo extends Player {
 			}
 		}
 
-		mpegts = params.mediaRenderer.isTranscodeToMPEGTSAC3();
-		h264ts = params.mediaRenderer.isTranscodeToH264TSAC3();
+		mpegts = params.mediaRenderer.isTranscodeToMPEGTSMPEG2AC3();
+		h264ts = params.mediaRenderer.isTranscodeToMPEGTSH264AC3() || params.mediaRenderer.isTranscodeToMPEGTSH264AAC();
 
 		String vcodec = "mpeg2video";
 
@@ -1245,7 +1252,9 @@ public class MEncoderVideo extends Player {
 					acodec += "wmav2";
 				} else {
 					acodec = cbr_settings + acodec;
-					if (configuration.isMencoderAc3Fixed()) {
+					if (params.mediaRenderer.isTranscodeToAAC()) {
+						acodec += "libfaac";
+					} else if (configuration.isMencoderAc3Fixed()) {
 						acodec += "ac3_fixed";
 					} else {
 						acodec += "ac3";
@@ -1273,6 +1282,8 @@ public class MEncoderVideo extends Player {
 				audioType = "dts";
 			} else if (pcm || encodedAudioPassthrough) {
 				audioType = "pcm";
+			} else if (params.mediaRenderer.isTranscodeToAAC()) {
+				audioType = "aac";
 			}
 
 			encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, mpeg2Options, params.mediaRenderer, audioType);
@@ -1305,7 +1316,7 @@ public class MEncoderVideo extends Player {
 			}
 
 			String encodeSettings = "-lavcopts autoaspect=1" + vcodecString +
-				":acodec=" + (configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3") +
+				":acodec=" + (params.mediaRenderer.isTranscodeToAAC() ? "libfaac" : configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3") +
 				":abitrate=" + CodecUtil.getAC3Bitrate(configuration, params.aid) +
 				":threads=" + configuration.getMencoderMaxThreads() +
 				":o=preset=superfast,crf=" + x264CRF + ",g=250,i_qfactor=0.71,qcomp=0.6,level=4.1,weightp=0,8x8dct=0,aq-strength=0";
@@ -1315,6 +1326,8 @@ public class MEncoderVideo extends Player {
 				audioType = "dts";
 			} else if (pcm || encodedAudioPassthrough) {
 				audioType = "pcm";
+			} else if (params.mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
+				audioType = "aac";
 			}
 
 			encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, "", params.mediaRenderer, audioType);
@@ -1378,8 +1391,10 @@ public class MEncoderVideo extends Player {
 						}
 					}
 
-					sb.append("-ass-color ").append(assSubColor).append(" -ass-border-color 00000000 -ass-font-scale ").append(configuration.getAssScale());
-
+					sb.append("-ass-color ").append(assSubColor).append(" -ass-border-color 00000000");
+					if (!media.is3d()) {
+						sb.append(" -ass-font-scale ").append(configuration.getAssScale());
+					}
 					// Set subtitles font
 					if (configuration.getFont() != null && configuration.getFont().length() > 0) {
 						/* Set font with -font option, workaround for the bug:
@@ -1409,7 +1424,7 @@ public class MEncoderVideo extends Player {
 					 * Add to the subtitle margin if overscan compensation is being used
 					 * This keeps the subtitle text inside the frame instead of in the border
 					 */
-					if (intOCH > 0) {
+					if (intOCH > 0 && !media.is3d()) {
 						subtitleMargin = (media.getHeight() / 100) * intOCH;
 						subtitleMargin /= 2;
 					}
@@ -1422,10 +1437,12 @@ public class MEncoderVideo extends Player {
 						LOGGER.debug("Could not parse SSA margin from \"" + configuration.getAssMargin() + "\"");
 					}
 
-					subtitleMargin += userMargin;
-
-					sb.append(",MarginV=").append(subtitleMargin).append(" ");
-				} else if (intOCH > 0) {
+					if (!media.is3d()) {
+						subtitleMargin += userMargin;
+						sb.append(",MarginV=").append(subtitleMargin).append(" ");
+					}
+					
+				} else if (intOCH > 0 && !media.is3d()) {
 					/*
 					 * Add to the subtitle margin
 					 * This keeps the subtitle text inside the frame instead of in the border
@@ -1721,7 +1738,7 @@ public class MEncoderVideo extends Player {
 			scaleHeight = media.getHeight();
 		}
 
-		if ((deinterlace || scaleBool) && !avisynth()) {
+		if ((deinterlace || scaleBool) && !avisynth() && !media.is3d()) {
 			StringBuilder vfValueOverscanPrepend = new StringBuilder();
 			StringBuilder vfValueOverscanMiddle  = new StringBuilder();
 			StringBuilder vfValueVS              = new StringBuilder();
@@ -1878,7 +1895,8 @@ public class MEncoderVideo extends Player {
 				(scaleHeight % 4 != 0) ||
 				params.mediaRenderer.isKeepAspectRatio()
 			) &&
-			!configuration.isMencoderScaler()
+			!configuration.isMencoderScaler() &&
+			!media.is3d()
 		) {
 			int expandBorderWidth;
 			int expandBorderHeight;
@@ -1900,6 +1918,19 @@ public class MEncoderVideo extends Player {
 			}
 
 			vfValue = vfValuePrepend + vfValue;
+		}
+
+		// Convert 3D video to the output format
+		if (media.is3d() &&
+				(media.get3DLayout() != null) &&
+				isNotBlank(params.mediaRenderer.getOutput3DFormat()) &&
+				!media.get3DLayout().toString().toLowerCase().equals(params.mediaRenderer.getOutput3DFormat().trim()))
+		{
+			if (isNotBlank(vfValue)) {
+				vfValue += ",";
+			}
+
+			vfValue += "stereo3d=" + media.get3DLayout().toString().toLowerCase() + ":" + params.mediaRenderer.getOutput3DFormat().trim().toLowerCase() + ",scale";
 		}
 
 		if (isNotBlank(vfValue)) {
@@ -2567,6 +2598,18 @@ public class MEncoderVideo extends Player {
 		args.toArray(definitiveArgs);
 
 		return definitiveArgs;
+	}
+
+	/**
+	 * Unfortunately, the MEncoder version that comes with UMS does not include
+	 * AAC decoding, like FFmpeg and VLC. As soon as the situation changes, this
+	 * method will not be necessary anymore in this class
+	 * @param mediaRenderer
+	 * @return 
+	 */
+	@Override
+	public boolean isPlayerCompatible(RendererConfiguration mediaRenderer) {
+		return !mediaRenderer.isTranscodeToMPEGTSH264AAC();
 	}
 
 	/**
