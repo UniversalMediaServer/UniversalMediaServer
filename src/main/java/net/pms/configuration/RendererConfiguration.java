@@ -79,6 +79,7 @@ public class RendererConfiguration {
 	private static final String MPEGTSMPEG2AC3 = "MPEGTS-MPEG2-AC3";
 
 	// property names
+	private static final String ACCURATE_DLNA_ORGPN = "AccurateDLNAOrgPN";
 	private static final String AUDIO = "Audio";
 	private static final String AUTO_EXIF_ROTATE = "AutoExifRotate";
 	private static final String BYTE_TO_TIMESEEK_REWIND_SECONDS = "ByteToTimeseekRewindSeconds"; // Ditlew
@@ -108,6 +109,7 @@ public class RendererConfiguration {
 	private static final String MUX_DTS_TO_MPEG = "MuxDTSToMpeg";
 	private static final String MUX_H264_WITH_MPEGTS = "MuxH264ToMpegTS";
 	private static final String MUX_LPCM_TO_MPEG = "MuxLPCMToMpeg";
+	private static final String MUX_NON_MOD4_RESOLUTION = "MuxNonMod4Resolution";
 	private static final String OVERRIDE_VF = "OverrideVideoFilter";
 	private static final String RENDERER_ICON = "RendererIcon";
 	private static final String RENDERER_NAME = "RendererName";
@@ -938,6 +940,10 @@ public class RendererConfiguration {
 		return getBoolean(MUX_LPCM_TO_MPEG, true);
 	}
 
+	public boolean isMuxNonMod4Resolution() {
+		return getBoolean(MUX_NON_MOD4_RESOLUTION, false);
+	}
+
 	public boolean isMpeg2Supported() {
 		if (isMediaParserV2()) {
 			return getFormatConfiguration().isMpeg2Supported();
@@ -1083,6 +1089,10 @@ public class RendererConfiguration {
 
 	public boolean isDLNAOrgPNUsed() {
 		return getBoolean(DLNA_ORGPN_USE, true);
+	}
+
+	public boolean isAccurateDLNAOrgPN() {
+		return getBoolean(ACCURATE_DLNA_ORGPN, false);
 	}
 
 	/**
