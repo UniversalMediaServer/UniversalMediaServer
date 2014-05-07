@@ -2182,6 +2182,7 @@ public class DLNAMediaInfo implements Cloneable {
 			return null;
 		}
 
+		isAnaglyph = true;
 		switch (stereoscopy) {
 			case "overunderrt":
 			case "TBLF":
@@ -2201,40 +2202,28 @@ public class DLNAMediaInfo implements Cloneable {
 				isAnaglyph = false;
 				return Mode3D.SBSR;
 			case "ARCG":
-				isAnaglyph = true;
 				return Mode3D.ARCG;
 			case "ARCH":
-				isAnaglyph = true;
 				return Mode3D.ARCH;
 			case "ARCC":
-				isAnaglyph = true;
 				return Mode3D.ARCC;
 			case "ARCD":
-				isAnaglyph = true;
 				return Mode3D.ARCD;
 			case "AGMG":
-				isAnaglyph = true;
 				return Mode3D.AGMG;
 			case "AGMH":
-				isAnaglyph = true;
 				return Mode3D.AGMH;
 			case "AGMC":
-				isAnaglyph = true;
 				return Mode3D.AGMC;
 			case "AGMD":
-				isAnaglyph = true;
 				return Mode3D.AGMD;
 			case "AYBG":
-				isAnaglyph = true;
 				return Mode3D.AYBG;
 			case "AYBH":
-				isAnaglyph = true;
 				return Mode3D.AYBH;
 			case "AYBC":
-				isAnaglyph = true;
 				return Mode3D.AYBC;
 			case "AYBD":
-				isAnaglyph = true;
 				return Mode3D.AYBD;
 		}
 
