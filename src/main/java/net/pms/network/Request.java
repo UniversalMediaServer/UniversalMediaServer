@@ -329,6 +329,14 @@ public class Request extends HTTPResource {
 						name = dlna.getName() + " " + dlna.getDisplayName(mediaRenderer);
 					}
 
+					if(dlna.isResume()) {
+						if (timeseek > 0.0) {
+							dlna.getResume().stop(System.currentTimeMillis() + dlna.getResume().getTimeOffset() - (long) (timeseek * 1000), (long) (dlna.getMedia().getDuration() * 1000));
+						} else {
+							timeseek = new Long(dlna.getResume().getTimeOffset()).doubleValue() / 1000;
+						}
+					}
+
 					inputStream = dlna.getInputStream(Range.create(lowRange, highRange, timeseek, timeRangeEnd), mediaRenderer);
 					if (inputStream == null) {
 						// No inputStream indicates that transcoding / remuxing probably crashed.
