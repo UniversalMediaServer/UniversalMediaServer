@@ -2186,43 +2186,65 @@ public class DLNAMediaInfo implements Cloneable {
 			case "overunderrt":
 			case "TBLF":
 			case "top-bottom (left eye first)":
+				isAnaglyph = false;
 				return Mode3D.ABL;
 			case "TBRF":
 			case "top-bottom (right eye first)":
+				isAnaglyph = false;
 				return Mode3D.ABR;
 			case "SBSLF":
 			case "side by side (left eye first)":
+				isAnaglyph = false;
 				return Mode3D.SBSL;
 			case "SBSRF":
 			case "side by side (right eye first)":
+				isAnaglyph = false;
 				return Mode3D.SBSR;
 			case "ARCG":
+				isAnaglyph = true;
 				return Mode3D.ARCG;
 			case "ARCH":
+				isAnaglyph = true;
 				return Mode3D.ARCH;
 			case "ARCC":
+				isAnaglyph = true;
 				return Mode3D.ARCC;
 			case "ARCD":
+				isAnaglyph = true;
 				return Mode3D.ARCD;
 			case "AGMG":
+				isAnaglyph = true;
 				return Mode3D.AGMG;
 			case "AGMH":
+				isAnaglyph = true;
 				return Mode3D.AGMH;
 			case "AGMC":
+				isAnaglyph = true;
 				return Mode3D.AGMC;
 			case "AGMD":
+				isAnaglyph = true;
 				return Mode3D.AGMD;
 			case "AYBG":
+				isAnaglyph = true;
 				return Mode3D.AYBG;
 			case "AYBH":
+				isAnaglyph = true;
 				return Mode3D.AYBH;
 			case "AYBC":
+				isAnaglyph = true;
 				return Mode3D.AYBC;
 			case "AYBD":
+				isAnaglyph = true;
 				return Mode3D.AYBD;
 		}
 
 		return null;
+	}
+	
+	private boolean isAnaglyph;
+	
+	public boolean stereoscopyIsAnaglyph() {
+		return isAnaglyph;
 	}
 
 	public boolean isDVDResolution() {

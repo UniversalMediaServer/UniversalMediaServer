@@ -234,6 +234,7 @@ public class FFMpegVideo extends Player {
 		// Convert 3D video to the output format
 		if (media.is3d() &&
 				(media.get3DLayout() != null) &&
+				!media.stereoscopyIsAnaglyph() &&
 				isNotBlank(params.mediaRenderer.getOutput3DFormat()) &&
 				!media.get3DLayout().toString().toLowerCase().equals(params.mediaRenderer.getOutput3DFormat().trim()))
 		{
