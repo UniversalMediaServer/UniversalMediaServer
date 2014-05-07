@@ -347,7 +347,7 @@ public class RequestV2 extends HTTPResource {
 							totalsize == DLNAMediaInfo.TRANS_SIZE
 						)
 					) { 
-						if(dlna.isResume()) {
+						if (dlna.isResume()) {
 							if (range.isStartOffsetAvailable() && range.getStartOrZero() > 0.0) {
 								dlna.getResume().stop(System.currentTimeMillis() + dlna.getResume().getTimeOffset() - (long) (range.getStart() * 1000), (long) (dlna.getMedia().getDuration() * 1000));
 							} else {

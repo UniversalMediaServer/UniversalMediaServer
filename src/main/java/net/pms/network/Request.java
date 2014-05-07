@@ -329,7 +329,7 @@ public class Request extends HTTPResource {
 						name = dlna.getName() + " " + dlna.getDisplayName(mediaRenderer);
 					}
 
-					if(dlna.isResume()) {
+					if (dlna.isResume()) {
 						if (timeseek > 0.0) {
 							dlna.getResume().stop(System.currentTimeMillis() + dlna.getResume().getTimeOffset() - (long) (timeseek * 1000), (long) (dlna.getMedia().getDuration() * 1000));
 						} else {
