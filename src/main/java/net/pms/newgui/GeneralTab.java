@@ -152,26 +152,28 @@ public class GeneralTab {
 
 		builder.add(langs, FormLayoutUtil.flip(cc.xyw(3, 7, 7), colSpec, orientation));
 
-		serverName = new JTextField(configuration.getServerName());
-		serverName.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.setServerName(serverName.getText());
-			}
-		});
-		builder.addLabel(Messages.getString("NetworkTab.71"), FormLayoutUtil.flip(cc.xy(1, 9), colSpec, orientation));
-		builder.add(serverName, FormLayoutUtil.flip(cc.xyw(3, 9, 3), colSpec, orientation));
+		if (!configuration.isHideAdvancedOptions()) {
+			serverName = new JTextField(configuration.getServerName());
+			serverName.addKeyListener(new KeyAdapter() {
+				@Override
+				public void keyReleased(KeyEvent e) {
+					configuration.setServerName(serverName.getText());
+				}
+			});
+			builder.addLabel(Messages.getString("NetworkTab.71"), FormLayoutUtil.flip(cc.xy(1, 9), colSpec, orientation));
+			builder.add(serverName, FormLayoutUtil.flip(cc.xyw(3, 9, 3), colSpec, orientation));
 
-		appendProfileName = new JCheckBox(Messages.getString("NetworkTab.72"), configuration.isAppendProfileName());
-		appendProfileName.setToolTipText(Messages.getString("NetworkTab.73"));
-		appendProfileName.setContentAreaFilled(false);
-		appendProfileName.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setAppendProfileName((e.getStateChange() == ItemEvent.SELECTED));
-			}
-		});
-		builder.add(appendProfileName, FormLayoutUtil.flip(cc.xy(7, 9), colSpec, orientation));
+			appendProfileName = new JCheckBox(Messages.getString("NetworkTab.72"), configuration.isAppendProfileName());
+			appendProfileName.setToolTipText(Messages.getString("NetworkTab.73"));
+			appendProfileName.setContentAreaFilled(false);
+			appendProfileName.addItemListener(new ItemListener() {
+				@Override
+				public void itemStateChanged(ItemEvent e) {
+					configuration.setAppendProfileName((e.getStateChange() == ItemEvent.SELECTED));
+				}
+			});
+			builder.add(appendProfileName, FormLayoutUtil.flip(cc.xy(7, 9), colSpec, orientation));
+		}
 
 		builder.add(smcheckBox, FormLayoutUtil.flip(cc.xy(1, 11), colSpec, orientation));
 
