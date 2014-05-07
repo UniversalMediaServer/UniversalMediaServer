@@ -3311,7 +3311,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			resume.stop(startTime, (long) (getMedia().getDurationInSeconds() * 1000));
 			if (resume.isDone()) {
 				getParent().getChildren().remove(this);
-			} else {
+			} else if (getMedia() != null) {
 				getMedia().setThumbready(false);
 			}
 		} else {
@@ -3322,7 +3322,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						getParent().getChildren().remove(res);
 						return null;
 					}
-					res.getMedia().setThumbready(false);
+					if (res.getMedia() != null) {
+						res.getMedia().setThumbready(false);
+					}
 					return res;
 				}
 			}
@@ -3331,7 +3333,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				DLNAResource clone = this.clone();
 				clone.resume = r;
 				clone.resHash = resHash;
-				clone.getMedia().setThumbready(false);
+				if (clone.getMedia() != null) {
+					clone.getMedia().setThumbready(false);
+				}
 				clone.setPlayer(getPlayer());
 				getParent().addChildInternal(clone);
 				return clone;
