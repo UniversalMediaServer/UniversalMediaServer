@@ -188,6 +188,7 @@ Section "Program Files"
 	File /r "${PROJECT_BASEDIR}\target\bin\win32"
 	File "${PROJECT_BUILD_DIR}\UMS.exe"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\UMS.bat"
+	File /r "${PROJECT_BASEDIR}\src\main\external-resources\web"
 	File "${PROJECT_BUILD_DIR}\ums.jar"
 	File "${PROJECT_BASEDIR}\MediaInfo.dll"
 	File "${PROJECT_BASEDIR}\MediaInfo64.dll"
@@ -198,7 +199,6 @@ Section "Program Files"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\logback.xml"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\icon.ico"
 	File "${PROJECT_BASEDIR}\src\main\external-resources\DummyInput.ass"
-	File "${PROJECT_BASEDIR}\src\main\external-resources\DummyInput.jpg"
 
 	; The user may have set the installation dir as the profile dir, so we can't clobber this
 	SetOverwrite off

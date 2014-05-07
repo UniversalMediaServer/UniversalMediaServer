@@ -50,6 +50,8 @@ public class PCMAudioOutputStream extends FlowParserOutputStream {
 				case 8:
 					payload[2] = -79;
 					break;
+				default:
+					break;
 			}
 			payload[0] = (byte) ((blocksize >> 8) & 0xff);
 			payload[1] = (byte) ((blocksize + 256) % 256);

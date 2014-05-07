@@ -29,11 +29,11 @@ import java.util.regex.Pattern;
 import javax.swing.JComponent;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.external.ExternalFactory;
 import net.pms.external.URLResolver.URLResult;
-import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeProcess;
 import net.pms.io.ProcessWrapper;
@@ -111,6 +111,10 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
+		if (dlna.getDefaultRenderer() instanceof WebRender) {
+			WebPlayer wp = new WebPlayer(WebPlayer.FLASH);
+			return wp.launchTranscode(dlna, media, params);
+		}
 		params.minBufferSize = params.minFileSize;
 		params.secondread_minsize = 100000;
 		RendererConfiguration renderer = params.mediaRenderer;
@@ -376,7 +380,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	public void parseMediaInfo(String filename, final DLNAResource dlna, final ProcessWrapperImpl pw) {
 		if (dlna.getMedia() == null) {
 			dlna.setMedia(new DLNAMediaInfo());
-		} else if (dlna.getMedia().isFFmegparsed()) {
+		} else if (dlna.getMedia().isFFmpegparsed()) {
 			return;
 		}
 		final ArrayList<String> lines = new ArrayList<String>();
@@ -385,7 +389,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			@Override
 			public boolean filter(String line) {
 				if (endOfHeader.reset(line).find()) {
-					dlna.getMedia().parseFFmpeg(lines, pw, null, Format.VIDEO, false, false, input);
+					dlna.getMedia().parseFFmpegInfo(lines, input);
 					LOGGER.trace("[{}] parsed media from headers: {}", ID, dlna.getMedia());
 					dlna.getParent().updateChild(dlna);
 					return false; // done, stop filtering
@@ -427,11 +431,11 @@ class PatternMap<T> extends modAwareHashMap<String, T> {
 	}
 
 	void compile() {
-		String joined = "";
+		StringBuilder joined = new StringBuilder();
 		groupmap.clear();
 		for (String regex : this.keySet()) {
 			// add each regex as a capture group
-			joined += "|(" + regex + ")";
+			joined.append("|(").append(regex).append(")");
 			// map all subgroups to the parent
 			for (int i = 0; i < Pattern.compile(regex).matcher("").groupCount() + 1; i++) {
 				groupmap.add(regex);

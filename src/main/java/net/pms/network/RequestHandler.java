@@ -199,7 +199,7 @@ public class RequestHandler implements Runnable {
 							separator = ", ";
 						}
 					}
-				} catch (Exception e) {
+				} catch (IllegalArgumentException e) {
 					LOGGER.error("Error in parsing HTTP headers", e);
 				}
 

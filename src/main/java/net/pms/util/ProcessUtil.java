@@ -3,8 +3,8 @@ package net.pms.util;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Arrays;
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import net.pms.PMS;
 import net.pms.io.Gob;
 import org.slf4j.Logger;
@@ -154,11 +154,13 @@ public class ProcessUtil {
 			ProcessBuilder pb = new ProcessBuilder(cmd);
 			pb.redirectErrorStream(true);
 			Process p = pb.start();
-			BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-			String line;
-			StringBuilder output = new StringBuilder();
-			while ((line = br.readLine()) != null) {
-				output.append(line).append("\n");
+			StringBuilder output;
+			try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+				String line;
+				output = new StringBuilder();
+				while ((line = br.readLine()) != null) {
+					output.append(line).append("\n");
+				}
 			}
 			p.waitFor();
 			if (p.exitValue() != 0) {

@@ -117,6 +117,8 @@ public class IEC61937AudioOutputStream extends FlowParserOutputStream {
 							case 2048 >> 5:
 								preamble[5] = 13;
 								break;
+							default:
+								break;
 						}
 					}
 					if (dtsHD) {
@@ -140,6 +142,8 @@ public class IEC61937AudioOutputStream extends FlowParserOutputStream {
 								break;
 							case 16384:
 								subtype = 0x5;
+								break;
+							default:
 								break;
 						}
 						preamble[4] = subtype;

@@ -69,19 +69,19 @@ public class MapFile extends DLNAResource {
 	}
 
 	public MapFile() {
-		setConf(new MapFileConfiguration());
+		this.conf = new MapFileConfiguration();
 		setLastModified(0);
 		forcedName = null;
 	}
 
 	public MapFile(MapFileConfiguration conf) {
-		setConf(conf);
+		this.conf = conf;
 		setLastModified(0);
 		forcedName = null;
 	}
 
 	public MapFile(MapFileConfiguration conf, List<File> list) {
-		setConf(conf);
+		this.conf = conf;
 		setLastModified(0);
 		this.discoverable = list;
 		forcedName = null;
@@ -121,7 +121,7 @@ public class MapFile extends DLNAResource {
 			// FIXME this causes folder thumbnails to take precedence over file thumbnails
 			if (f.isFile()) {
 				if (lcFilename.equals("folder.jpg") || lcFilename.equals("folder.png") || (lcFilename.contains("albumart") && lcFilename.endsWith(".jpg"))) {
-					setPotentialCover(f);
+					potentialCover = f;
 				}
 			}
 		}
@@ -186,6 +186,9 @@ public class MapFile extends DLNAResource {
 					}
 				}
 			}
+
+			// Replace periods with spaces
+			filename = filename.replaceAll("\\.", " ");
 		}
 
 		if (configuration.isIgnoreTheWordThe()) {

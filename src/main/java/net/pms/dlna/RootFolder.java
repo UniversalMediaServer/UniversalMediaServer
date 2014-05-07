@@ -40,6 +40,7 @@ import net.pms.external.AdditionalFolderAtRoot;
 import net.pms.external.AdditionalFoldersAtRoot;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
+import net.pms.formats.Format;
 import net.pms.newgui.IFrame;
 import net.pms.util.FileUtil;
 import org.apache.commons.configuration.ConfigurationException;
@@ -105,12 +106,12 @@ public class RootFolder extends DLNAResource {
 			return;
 		}
 
-		if (!configuration.isHideRecentlyPlayedFolder(tags)) {
+		if (!configuration.isHideRecentlyPlayedFolder()) {
 			last = new RecentlyPlayed();
 			addChild(last);
 		}
 
-		if (!configuration.isHideNewMediaFolder(tags)) {
+		if (!configuration.isHideNewMediaFolder()) {
 			String m = (String) configuration.getFoldersMonitored();
 			if (!StringUtils.isEmpty(m)) {
 				String[] tmp = m.split(",");
@@ -179,7 +180,7 @@ public class RootFolder extends DLNAResource {
 			addChild(r);
 		}
 
-		if (!configuration.getHideVideoSettings(tags)) {
+		if (!configuration.getHideVideoSettings()) {
 			addAdminFolder();
 		}
 
@@ -219,7 +220,7 @@ public class RootFolder extends DLNAResource {
 		running = false;
 	}
 
-	private synchronized void scan(DLNAResource resource) {
+	private void scan(DLNAResource resource) {
 		if (running) {
 			for (DLNAResource child : resource.getChildren()) {
 				if (running && child.allowScan()) {
@@ -262,16 +263,39 @@ public class RootFolder extends DLNAResource {
 	private List<RealFile> getConfiguredFolders(ArrayList<String> tags) {
 		List<RealFile> res = new ArrayList<>();
 		File[] files = PMS.get().getSharedFoldersArray(false, tags);
+		String s = PMS.getConfiguration().getFoldersIgnored(tags);
+		String[] skips = null;
+
+		if (s != null) {
+			skips = s.split(",");
+		}
 
 		if (files == null || files.length == 0) {
 			files = File.listRoots();
 		}
 
 		for (File f : files) {
+			if (skipPath(skips, f.getAbsolutePath().toLowerCase())) {
+				continue;
+			}
 			res.add(new RealFile(f));
 		}
 
 		return res;
+	}
+
+	private boolean skipPath(String[] skips, String path) {
+		for (String s : skips) {
+			if (StringUtils.isBlank(s)) {
+				continue;
+			}
+
+			if (path.contains(s.toLowerCase())) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private List<DLNAResource> getVirtualFolders(ArrayList<String> tags) {
@@ -331,6 +355,14 @@ public class RootFolder extends DLNAResource {
 									if (parent == null) {
 										parent = this;
 									}
+									if (keys[0].endsWith("stream")) {
+										int type = keys[0].startsWith("audio") ? Format.AUDIO : Format.VIDEO;
+										DLNAResource playlist = PlaylistFolder.getPlaylist(values[0], values[1], type);
+										if (playlist != null) {
+											parent.addChild(playlist);
+											continue;
+										}
+									}
 									switch (keys[0]) {
 										case "imagefeed":
 											parent.addChild(new ImagesFeed(values[0]));
@@ -346,6 +378,8 @@ public class RootFolder extends DLNAResource {
 											break;
 										case "videostream":
 											parent.addChild(new WebVideoStream(values[0], values[1], values[2]));
+											break;
+										default:
 											break;
 									}
 								}
@@ -871,7 +905,7 @@ public class RootFolder extends DLNAResource {
 										// Put the track into its album folder
 										{
 											if (!isCompilation) {
-												albumName += " – " + artistName;
+												albumName += " - " + artistName;
 											}
 
 											VirtualFolder individualAlbumFolder = null;
@@ -1050,10 +1084,13 @@ public class RootFolder extends DLNAResource {
 										ProcessBuilder pb = new ProcessBuilder(f.getAbsolutePath());
 										Process pid = pb.start();
 										InputStream is = pid.getInputStream();
-										InputStreamReader isr = new InputStreamReader(is);
-										BufferedReader br = new BufferedReader(isr);
-										while (br.readLine() != null) {
+										BufferedReader br;
+										try (InputStreamReader isr = new InputStreamReader(is)) {
+											br = new BufferedReader(isr);
+											while (br.readLine() != null) {
+											}
 										}
+										br.close();
 										pid.waitFor();
 									} catch (IOException | InterruptedException e) {
 									}
@@ -1140,7 +1177,7 @@ public class RootFolder extends DLNAResource {
 	private DLNAResource getVideoSettingsFolder() {
 		DLNAResource res = null;
 
-		if (!configuration.getHideVideoSettings(tags)) {
+		if (!configuration.getHideVideoSettings()) {
 			res = new VirtualFolder(Messages.getString("PMS.37"), null);
 			VirtualFolder vfSub = new VirtualFolder(Messages.getString("PMS.8"), null);
 			res.addChild(vfSub);
