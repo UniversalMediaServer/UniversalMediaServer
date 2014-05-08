@@ -53,6 +53,7 @@ import net.pms.newgui.DummyFrame;
 import net.pms.newgui.IFrame;
 import net.pms.newgui.LooksFrame;
 import net.pms.newgui.ProfileChooser;
+import net.pms.remote.RemoteWeb;
 import net.pms.update.AutoUpdater;
 import net.pms.util.FileUtil;
 import net.pms.util.OpenSubtitle;
@@ -216,70 +217,6 @@ public class PMS {
 	}
 
 	/**
-	 * Executes a new Process and creates a fork that waits for its results.
-	 * This is used to generate fontconfig caches for MPlayer and FFmpeg.
-	 *
-	 * @param name Symbolic name for the process to be launched, only used in the trace log
-	 * @param error (boolean) Set to true if you want PMS to add error messages to the trace pane
-	 * @param workDir (File) optional working directory to run the process in
-	 * @param params (array of Strings) array containing the command to call and its arguments
-	 * @return Returns true if the command exited as expected
-	 * @throws Exception TODO: Check which exceptions to use
-	 */
-	private boolean checkProcessExistence(String name, boolean error, File workDir, String... params) throws Exception {
-		LOGGER.debug("Launching: " + Arrays.toString(params));
-
-		try {
-			ProcessBuilder pb = new ProcessBuilder(params);
-
-			if (workDir != null) {
-				pb.directory(workDir);
-			}
-
-			final Process process = pb.start();
-
-			OutputTextConsumer stderrConsumer = new OutputTextConsumer(process.getErrorStream(), false);
-			stderrConsumer.start();
-
-			OutputTextConsumer outConsumer = new OutputTextConsumer(process.getInputStream(), false);
-			outConsumer.start();
-
-			Runnable r = new Runnable() {
-				@Override
-				public void run() {
-					ProcessUtil.waitFor(process);
-				}
-			};
-
-			Thread checkThread = new Thread(r, "PMS Checker");
-			checkThread.start();
-			checkThread.join(60000);
-			checkThread.interrupt();
-			checkThread = null;
-
-			try {
-				int exit = process.exitValue();
-				if (exit != 0) {
-					if (error) {
-						LOGGER.info("[" + exit + "] Cannot launch " + name + ". Check the presence of " + params[0]);
-					}
-					return false;
-				}
-			} catch (IllegalThreadStateException ise) {
-				LOGGER.trace("Forcing shutdown of process: " + process);
-				ProcessUtil.destroy(process);
-			}
-
-			return true;
-		} catch (IOException | InterruptedException e) {
-			if (error) {
-				LOGGER.error("Cannot launch " + name + ". Check the presence of " + params[0], e);
-			}
-			return false;
-		}
-	}
-
-	/**
 	 * @see System#err
 	 */
 	@SuppressWarnings("unused")
@@ -291,7 +228,7 @@ public class PMS {
 	 */
 	private DLNAMediaDatabase database;
 
-	private void initializeDatabase() {
+	private synchronized void initializeDatabase() {
 		database = new DLNAMediaDatabase("medias"); // TODO: rename "medias" -> "cache"
 		database.init(false);
 	}
@@ -344,7 +281,7 @@ public class PMS {
 
 	private void displayBanner() throws IOException {
 		LOGGER.info("Starting " + PropertiesUtil.getProjectProperties().get("project.name") + " " + getVersion());
-		LOGGER.info("Based on PS3 Media Server by shagrath, copyright 2008-2013");
+		LOGGER.info("Based on PS3 Media Server by shagrath, copyright 2008-2014");
 		LOGGER.info("http://www.universalmediaserver.com");
 		LOGGER.info("");
 
@@ -370,7 +307,7 @@ public class PMS {
 		File javaTmpdir = new File(System.getProperty("java.io.tmpdir"));
 
 		if (!FileUtil.isDirectoryWritable(javaTmpdir)) {
-			LOGGER.error("The Java temp directory \"" + javaTmpdir.getAbsolutePath() + "\" is not writable for PMS!");
+			LOGGER.error("The Java temp directory \"" + javaTmpdir.getAbsolutePath() + "\" is not writable by UMS");
 			LOGGER.error("Please make sure the directory is writable for user \"" + System.getProperty("user.name") + "\"");
 			throw new IOException("Cannot write to Java temp directory");
 		}
@@ -428,7 +365,7 @@ public class PMS {
 
 		// This should be removed soon
 		OpenSubtitle.convert();
-		
+
 		// Start this here to let the converison work
 		tfm.schedule();
 
@@ -446,7 +383,7 @@ public class PMS {
 		if (configuration.isRunWizard() && !isHeadless()) {
 			// Ask the user if they want to run the wizard
 			int whetherToRunWizard = JOptionPane.showConfirmDialog(
-				(Component) PMS.get().getFrame(),
+				null,
 				Messages.getString("Wizard.1"),
 				Messages.getString("Dialog.Question"),
 				JOptionPane.YES_NO_OPTION
@@ -462,7 +399,7 @@ public class PMS {
 
 				// Ask if they want UMS to start minimized
 				int whetherToStartMinimized = JOptionPane.showConfirmDialog(
-					(Component) PMS.get().getFrame(),
+					null,
 					Messages.getString("Wizard.3"),
 					Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
 					JOptionPane.YES_NO_OPTION
@@ -482,7 +419,7 @@ public class PMS {
 					UIManager.getString("OptionPane.noButtonText")
 				};
 				int whetherToSendDTS = JOptionPane.showOptionDialog(
-					(Component) PMS.get().getFrame(),
+					null,
 					Messages.getString("Wizard.5"),
 					Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
 					JOptionPane.YES_NO_OPTION,
@@ -506,7 +443,7 @@ public class PMS {
 					Messages.getString("Wizard.10")
 				};
 				int networkType = JOptionPane.showOptionDialog(
-					(Component) PMS.get().getFrame(),
+					null,
 					Messages.getString("Wizard.7"),
 					Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
 					JOptionPane.YES_NO_CANCEL_OPTION,
@@ -534,7 +471,7 @@ public class PMS {
 
 				// Ask if they want to hide advanced options
 				int whetherToHideAdvancedOptions = JOptionPane.showConfirmDialog(
-					(Component) PMS.get().getFrame(),
+					null,
 					Messages.getString("Wizard.11"),
 					Messages.getString("Wizard.2") + " " + (currentQuestionNumber++) + " " + Messages.getString("Wizard.4") + " " + numberOfQuestions,
 					JOptionPane.YES_NO_OPTION
@@ -546,6 +483,13 @@ public class PMS {
 					configuration.setHideAdvancedOptions(false);
 					save();
 				}
+
+				JOptionPane.showMessageDialog(
+					null,
+					Messages.getString("Wizard.13"),
+					Messages.getString("Wizard.12"),
+					JOptionPane.INFORMATION_MESSAGE
+				);
 
 				configuration.setRunWizard(false);
 				save();
@@ -609,24 +553,31 @@ public class PMS {
 			}
 		});
 
-		frame.setStatusCode(0, Messages.getString("PMS.138"), "icon-status-connecting.png");
 		RendererConfiguration.loadRendererConfigurations(configuration);
 
-		LOGGER.info("Please wait while we check the MPlayer font cache, this can take a minute or so.");
+		LOGGER.info("Checking the fontconfig cache, this can take two minutes or so.");
 
-		checkProcessExistence("MPlayer", true, null, configuration.getMplayerPath(), "dummy");
+		OutputParams outputParams = new OutputParams(configuration);
 
-		if (Platform.isWindows()) {
-			checkProcessExistence("MPlayer", true, configuration.getTempFolder(), configuration.getMplayerPath(), "dummy");
+		// Prevent unwanted GUI buffer artifacts (and runaway timers)
+		outputParams.hidebuffer = true;
+
+		// Make sure buffer is destroyed
+		outputParams.cleanup = true;
+
+		ProcessWrapperImpl mplayer = new ProcessWrapperImpl(new String[]{configuration.getMplayerPath(), "dummy"}, outputParams);
+		mplayer.runInNewThread();
+
+		/**
+		 * Note: This can be needed in case MPlayer and FFmpeg have been
+		 * compiled with a different version of fontconfig.
+		 * Since it's unpredictable on Linux we should always run this
+		 * on Linux, but it may be possible to sync versions on OS X.
+		 */
+		if (!Platform.isWindows()) {
+			ProcessWrapperImpl ffmpeg = new ProcessWrapperImpl(new String[]{configuration.getFfmpegPath(), "-y", "-f", "lavfi", "-i", "nullsrc=s=720x480:d=1:r=1", "-vf", "ass=DummyInput.ass", "-target", "ntsc-dvd", "-"}, outputParams);
+			ffmpeg.runInNewThread();
 		}
-
-		LOGGER.info("Finished checking the MPlayer font cache.");
-		LOGGER.info("Please wait while we check the FFmpeg font cache, this can take a minute or so.");
-		frame.setStatusCode(0, Messages.getString("PMS.140"), "icon-status-connecting.png");
-
-		checkProcessExistence("FFmpeg", true, null, configuration.getFfmpegPath(), "-y", "-f", "lavfi", "-i", "nullsrc=s=720x480:d=1:r=1", "-vf", "ass=DummyInput.ass", "-target", "ntsc-dvd", "DummyOutput.mpeg");
-
-		LOGGER.info("Finished checking the FFmpeg font cache.");
 
 		frame.setStatusCode(0, Messages.getString("PMS.130"), "icon-status-connecting.png");
 
@@ -707,7 +658,7 @@ public class PMS {
 
 		// Any plugin-defined players are now registered, create the gui view.
 		frame.addEngines();
-		
+
 		// To make the cred stuff work cross plugins
 		// read cred file AFTER plugins are started
 		if (System.getProperty(CONSOLE) == null) {
@@ -743,6 +694,9 @@ public class PMS {
 		if (!binding) {
 			return false;
 		}
+
+		// Web stuff
+		web = new RemoteWeb();
 
 		// initialize the cache
 		if (configuration.getUseCache()) {
@@ -898,6 +852,8 @@ public class PMS {
 		String[] foldersArray = folders.split(",");
 
 		for (String folder : foldersArray) {
+			folder = folder.trim();
+
 			// unescape embedded commas. note: backslashing isn't safe as it conflicts with
 			// Windows path separators:
 			// http://ps3mediaserver.org/forum/viewtopic.php?f=14&t=8883&start=250#p43520
@@ -1122,6 +1078,8 @@ public class PMS {
 						break;
 					case PROFILES:
 						displayProfileChooser = true;
+						break;
+					default:
 						break;
 				}
 			}
@@ -1359,7 +1317,8 @@ public class PMS {
 			return false;
 		}
 
-		return tmp[0].equals("javaw.exe") && tmp[8].contains("universal media server");
+		// check first and last, update since taskkill changed
+		return tmp[0].equals("javaw.exe") && tmp[tmp.length - 1].contains("universal media server");
 	}
 
 	private static String pidFile() {
@@ -1442,6 +1401,8 @@ public class PMS {
 			return true;
 		}
 	}
+
+	private RemoteWeb web;
 
 	/**
 	 * Sets the relative URL of a context sensitive help page located in the

@@ -186,6 +186,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			} else {
 				stderrConsumer.setInputStream(process.getErrorStream());
 			}
+			stderrConsumer.setName(getName() + "-2");
 			stderrConsumer.start();
 			stdoutConsumer = null;
 
@@ -215,6 +216,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 			}
 
 			if (stdoutConsumer != null) {
+				stdoutConsumer.setName(getName() + "-1");
 				stdoutConsumer.start();
 			}
 
@@ -244,7 +246,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 					stdoutConsumer.join(1000);
 				}
 			} catch (InterruptedException e) { }
-		} catch (Exception e) {
+		} catch (IOException e) {
 			LOGGER.error("Error initializing process: ", e);
 			stopProcess();
 		} finally {

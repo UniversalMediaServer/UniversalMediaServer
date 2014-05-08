@@ -62,31 +62,31 @@ public class WebStream extends DLNAResource {
 		try {
 			URL tmpUrl = new URL(url);
 			tmpUrl = HTTPResourceAuthenticator.concatenateUserInfo(tmpUrl);
-			setUrl(tmpUrl.toString());
+			this.url = tmpUrl.toString();
 		} catch (MalformedURLException e) {
-			setUrl(url);
+			this.url = url;
 		}
 
 		try {
 			URL tmpUrl = new URL(thumbURL);
 			tmpUrl = HTTPResourceAuthenticator.concatenateUserInfo(tmpUrl);
-			setThumbURL(tmpUrl.toString());
+			this.thumbURL = tmpUrl.toString();
 		} catch (MalformedURLException e) {
-			setThumbURL(thumbURL);
+			this.thumbURL = thumbURL;
 		}
 
-		setFluxName(fluxName);
+		this.fluxName = fluxName;
 	}
 
 	@Override
 	public String write() {
-		return getFluxName() + ">" + getUrl() + ">" + getThumbURL() + ">" + getSpecificType();
+		return fluxName + ">" + url + ">" + thumbURL + ">" + getSpecificType();
 	}
 
 	@Override
 	public InputStream getThumbnailInputStream() throws IOException {
-		if (getThumbURL() != null) {
-			return downloadAndSend(getThumbURL(), true);
+		if (thumbURL != null) {
+			return downloadAndSend(thumbURL, true);
 		} else {
 			return super.getThumbnailInputStream();
 		}

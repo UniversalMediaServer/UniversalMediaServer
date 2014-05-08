@@ -88,6 +88,7 @@
 				<include>VirtualFolders.conf</include>
 				<include>DummyInput.ass</include>
 				<include>DummyInput.jpg</include>
+				<include>web/*</include>
 			</includes>
 		</fileSet>
 

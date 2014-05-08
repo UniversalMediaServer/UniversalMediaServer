@@ -1,6 +1,7 @@
 package net.pms.configuration;
 
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import net.pms.dlna.DLNAMediaAudio;
@@ -68,7 +69,7 @@ public class FormatConfiguration {
 	public static final String MIMETYPE_AUTO = "MIMETYPE_AUTO";
 	public static final String und = "und";
 
-	private class SupportSpec {
+	private static class SupportSpec {
 		private int iMaxBitrate = Integer.MAX_VALUE;
 		private int iMaxFrequency = Integer.MAX_VALUE;
 		private int iMaxNbChannels = Integer.MAX_VALUE;
@@ -262,9 +263,9 @@ public class FormatConfiguration {
 			}
 
 			if (extras != null && miExtras != null) {
-				Iterator<String> keyIt = extras.keySet().iterator();
+				Iterator<Entry<String, String>> keyIt = extras.entrySet().iterator();
 				while (keyIt.hasNext()) {
-					String key = keyIt.next();
+					String key = keyIt.next().getKey();
 					String value = extras.get(key);
 
 					if (key.equals(MI_QPEL) && miExtras.get(MI_QPEL) != null && !miExtras.get(MI_QPEL).matcher(value).matches()) {
@@ -364,7 +365,7 @@ public class FormatConfiguration {
 				return MPEGPS;
 			}
 
-			if (supportSpec.match(MPEGTS, MPEG2, AC3)) {
+			if (supportSpec.match(MPEGTS, MPEG2, AC3) || supportSpec.match(MPEGTS, H264, AAC)) {
 				return MPEGTS;
 			}
 

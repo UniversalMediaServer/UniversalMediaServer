@@ -56,9 +56,11 @@ public class TranscodingTab {
 
 	private final PmsConfiguration configuration;
 	private ComponentOrientation orientation;
+	private LooksFrame looksFrame;
 
-	TranscodingTab(PmsConfiguration configuration) {
+	TranscodingTab(PmsConfiguration configuration, LooksFrame looksFrame) {
 		this.configuration = configuration;
+		this.looksFrame = looksFrame;
 		// Apply the orientation for the locale
 		Locale locale = new Locale(configuration.getLanguage());
 		orientation = ComponentOrientation.getOrientation(locale);
@@ -103,9 +105,6 @@ public class TranscodingTab {
 	private JTextField ass_margin;
 	private JButton subColor;
 	private JTextField depth3D;
-	private JTextField bottomPos3DSubs;
-	private JTextField fontSize3D;
-
 	/*
 	 * 16 cores is the maximum allowed by MEncoder as of MPlayer r34863.
 	 * Revisions before that allowed only 8.
@@ -968,7 +967,7 @@ public class TranscodingTab {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				Color newColor = JColorChooser.showDialog(
-					SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
+					looksFrame,
 					Messages.getString("MEncoderVideo.125"),
 					subColor.getBackground()
 				);
@@ -993,16 +992,6 @@ public class TranscodingTab {
 			}
 		});
 		builder.add(depth3D, FormLayoutUtil.flip(cc.xy(3, 16), colSpec, orientation));
-
-		builder.addLabel(Messages.getString("TrTab2.89"), FormLayoutUtil.flip(cc.xy(5, 16), colSpec, orientation));
-		bottomPos3DSubs = new JTextField(configuration.get3DbottomSubsPosition());
-		bottomPos3DSubs.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyReleased(KeyEvent e) {
-				configuration.set3DbottomSubsPosition(bottomPos3DSubs.getText());
-			}
-		});
-		builder.add(bottomPos3DSubs, FormLayoutUtil.flip(cc.xy(7, 16), colSpec, orientation));
 
 		final JPanel panel = builder.getPanel();
 

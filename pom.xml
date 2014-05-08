@@ -31,7 +31,7 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>3.3.1</version>
+	<version>4.0.0-a1</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
@@ -69,24 +69,17 @@
 	</issueManagement>
 	<properties>
 		<!-- NSIS needs a version without "-SNAPSHOT" or "-b1" -->
-		<project.version.short>3.3.1</project.version.short>
-
-		<!--
-			XXX we currently need to use an old version of JNA
-			for Windows builds to work around a bug in
-			JNA > 3.2.5. See here for more details:
-			https://code.google.com/p/ps3mediaserver/issues/detail?id=1152
-		-->
-		<jna-version-posix>3.4.0</jna-version-posix>
-		<jna-version-windows>3.2.5</jna-version-windows>
-
+		<project.version.short>4.0.0</project.version.short>
 		<cuelib-version>1.2.1-2008-06-13</cuelib-version>
+
+		<!-- In versions after 1.6.0, they removed code that the MovieInfo plugin relies on -->
 		<jgoodies-forms-version>1.6.0</jgoodies-forms-version>
-		<jgoodies-looks-version>2.5.2</jgoodies-looks-version>
+
+		<jgoodies-looks-version>2.5.3</jgoodies-looks-version>
 		<junrar-version>0.7</junrar-version>
 		<mediautil-version>1.0</mediautil-version>
 		<xmlwise-version>1.2.11</xmlwise-version>
-		<slf4j-version>1.7.5</slf4j-version>
+		<slf4j-version>1.7.6</slf4j-version>
 
 		<!-- Skip 4.65-1.05-RC because it doesn't work, author is working on fixing it -->
 		<sevenzip-version>4.65-1.04-RC</sevenzip-version>
@@ -96,7 +89,7 @@
 		<project.binaries>${project.basedir}/target/bin</project.binaries>
 
 		<!-- Snapshots should get their binaries from the trunk, releases from a tag -->
-		<project.binaries-base>http://universal-media-server-binaries.googlecode.com/svn/trunk</project.binaries-base>
+		<project.binaries-base>http://downloads.sourceforge.net/project/unimediaserver/Dependencies</project.binaries-base>
 		<!-- <project.binaries-base>http://ps3mediaserver.googlecode.com/svn/tags/1.40.0</project.binaries-base> -->
 
 		<maven-javadoc-plugin-version>2.9.1</maven-javadoc-plugin-version>
@@ -122,7 +115,7 @@
 		<repository>
 			<id>java.net</id>
 			<name>Java.net Repository</name>
-			<url>http://download.java.net/maven/2/</url>
+			<url>https://maven.java.net/content/groups/public/</url>
 			<snapshots>
 				<enabled>false</enabled>
 			</snapshots>
@@ -175,8 +168,6 @@
 		</repository>
 	</repositories>
 	<dependencies>
-		<!-- XXX note: the JNA dependency is declared at the profile level -->
-
 		<!-- TODO this can be removed when MEncoder is removed -->
 		<dependency>
 			<groupId>org.beanshell</groupId>
@@ -186,7 +177,7 @@
 		<dependency>
 			<groupId>commons-codec</groupId>
 			<artifactId>commons-codec</artifactId>
-			<version>1.8</version>
+			<version>1.9</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-collections</groupId>
@@ -196,7 +187,7 @@
 		<dependency>
 			<groupId>commons-configuration</groupId>
 			<artifactId>commons-configuration</artifactId>
-			<version>1.9</version>
+			<version>1.10</version>
 			<exclusions>
 				<!--  no need for commons-logging, as jcl-over-slf4j provides the impl -->
 				<exclusion>
@@ -230,17 +221,17 @@
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
-			<version>1.3.174</version>
+			<version>1.3.175</version>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
-			<version>1.0.13</version>
+			<version>1.1.1</version>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-core</artifactId>
-			<version>1.0.13</version>
+			<version>1.1.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.sanselan</groupId>
@@ -265,7 +256,7 @@
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty</artifactId> <!-- Use 'netty-all' for 4.0 or above -->
-			<version>3.6.6.Final</version>
+			<version>3.9.0.Final</version>
 			<scope>compile</scope>
 		</dependency>
 
@@ -283,7 +274,7 @@
 		<dependency>
 			<groupId>net.coobird</groupId>
 			<artifactId>thumbnailator</artifactId>
-			<version>0.4.5</version>
+			<version>[0.4, 0.5)</version>
 		</dependency>
 
 		<!--
@@ -374,6 +365,11 @@
 			<artifactId>fest-assert</artifactId>
 			<version>1.4</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>net.java.dev.jna</groupId>
+			<artifactId>jna</artifactId>
+			<version>4.0.0</version>
 		</dependency>
 	</dependencies>
 	<build>
@@ -706,12 +702,12 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
-				<version>3.1</version>
+				<version>3.3</version>
 				<dependencies>
 					<dependency>
 						<groupId>org.apache.maven.doxia</groupId>
 						<artifactId>doxia-module-docbook-simple</artifactId>
-						<version>1.4</version>
+						<version>1.5</version>
 					</dependency>
 				</dependencies>
 				<configuration>
@@ -733,7 +729,7 @@
 						<plugin>
 							<groupId>org.apache.maven.plugins</groupId>
 							<artifactId>maven-surefire-report-plugin</artifactId>
-							<version>2.15</version>
+							<version>2.16</version>
 							<configuration>
 								<showSuccess>false</showSuccess>
 							</configuration>
@@ -788,16 +784,15 @@
 						<plugin>
 							<groupId>org.codehaus.mojo</groupId>
 							<artifactId>findbugs-maven-plugin</artifactId>
-							<version>2.5.2</version>
+							<version>2.5.3</version>
 						</plugin>
 
 						<!-- Checkstyle report will go out of memory because of the huge amount of issues it finds(!)
 						<plugin>
 							<groupId>org.apache.maven.plugins</groupId>
 							<artifactId>maven-checkstyle-plugin</artifactId>
-							<version>2.10</version>
-						</plugin>
-						-->
+							<version>2.11</version>
+						</plugin> -->
 
 						<!-- Cobertura Test Coverage report -->
 						<plugin>
@@ -806,7 +801,7 @@
 							<version>2.6</version>
 						</plugin>
 
-						<!-- PMD and CPD code analysis report -->
+						<!-- PMD and CPD code analysis report is not working with the latest maven site version
 						<plugin>
 							<groupId>org.apache.maven.plugins</groupId>
 							<artifactId>maven-pmd-plugin</artifactId>
@@ -817,9 +812,9 @@
 								<minimumTokens>100</minimumTokens>
 								<targetJdk>1.7</targetJdk>
 							</configuration>
-						</plugin>
+						</plugin>-->
 
-						<!-- L10n internationalization report -->
+						<!-- L10n internationalization report is not working with the latest maven site version
 						<plugin>
 							<groupId>org.codehaus.mojo</groupId>
 							<artifactId>l10n-maven-plugin</artifactId>
@@ -853,7 +848,7 @@
 									<locale>zht</locale>
 								</locales>
 							</configuration>
-						</plugin>
+						</plugin> -->
 					</reportPlugins>
 				</configuration>
 			</plugin>
@@ -906,14 +901,6 @@
 					</releases>
 				</pluginRepository>
 			</pluginRepositories>
-
-			<dependencies>
-				<dependency>
-					<groupId>net.java.dev.jna</groupId>
-					<artifactId>jna</artifactId>
-					<version>${jna-version-windows}</version>
-				</dependency>
-			</dependencies>
 
 			<build>
 				<plugins>
@@ -968,7 +955,7 @@
 									<goal>run</goal>
 								</goals>
 								<configuration>
-									<target>
+									<target unless="offline">
 										<!-- Make sure the download folders exist -->
 										<mkdir dir="${project.binaries}" />
 										<mkdir dir="${project.binaries}/win32" />
@@ -1121,14 +1108,6 @@
 				<activeByDefault>true</activeByDefault>
 			</activation>
 
-			<dependencies>
-				<dependency>
-					<groupId>net.java.dev.jna</groupId>
-					<artifactId>jna</artifactId>
-					<version>${jna-version-posix}</version>
-				</dependency>
-			</dependencies>
-
 			<build>
 				<plugins>
 					<plugin>
@@ -1194,7 +1173,7 @@
 									<goal>run</goal>
 								</goals>
 								<configuration>
-									<target>
+									<target unless="offline">
 										<!-- Make sure the binaries folder exists -->
 										<mkdir dir="${project.binaries}" />
 
@@ -1237,14 +1216,6 @@
 				</os>
 			</activation>
 
-			<dependencies>
-				<dependency>
-					<groupId>net.java.dev.jna</groupId>
-					<artifactId>jna</artifactId>
-					<version>${jna-version-posix}</version>
-				</dependency>
-			</dependencies>
-
 			<build>
 				<plugins>
 
@@ -1264,7 +1235,7 @@
 								</goals>
 
 								<configuration>
-									<target>
+									<target unless="offline">
 										<!-- Make sure the binaries folder exists -->
 										<mkdir dir="${project.binaries}" />
 										<mkdir dir="${project.binaries}/osx" />
@@ -1426,14 +1397,6 @@
 					<name>env.HUDSON_URL</name>
 				</property>
 			</activation>
-
-			<dependencies>
-				<dependency>
-					<groupId>net.java.dev.jna</groupId>
-					<artifactId>jna</artifactId>
-					<version>${jna-version-windows}</version>
-				</dependency>
-			</dependencies>
 
 			<build>
 				<plugins>

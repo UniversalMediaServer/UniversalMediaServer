@@ -79,7 +79,7 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 	 * Helper class to take care of sorting the resources correctly. Resources
 	 * are sorted by player, then by audio track, then by subtitle.
 	 */
-	private class ResourceSort implements Comparator<DLNAResource> {
+	private static class ResourceSort implements Comparator<DLNAResource> {
 
 		private ArrayList<Player> players;
 

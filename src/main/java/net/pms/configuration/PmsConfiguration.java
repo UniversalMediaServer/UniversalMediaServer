@@ -70,7 +70,6 @@ public class PmsConfiguration {
 	private static boolean avsHackLogged = false;
 
 	private static final String KEY_3D_SUBTITLES_DEPTH = "3D_subtitles_depth";
-	private static final String KEY_3D_SUBTITLES_BOTTOM_POSITION = "3D_subtitles_bottom_position";
 	private static final String KEY_ALTERNATE_SUBTITLES_FOLDER = "alternate_subtitles_folder";
 	private static final String KEY_ALTERNATE_THUMB_FOLDER = "alternate_thumb_folder";
 	private static final String KEY_APPEND_PROFILE_NAME = "append_profile_name";
@@ -113,6 +112,7 @@ public class PmsConfiguration {
 	private static final String KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE = "ffmpeg_mux_tsmuxer_compatible";
 	private static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
 	private static final String KEY_FOLDERS = "folders";
+	private static final String KEY_FOLDERS_IGNORED = "folders_ignored";
 	private static final String KEY_FOLDERS_MONITORED = "folders_monitored";
 	private static final String KEY_FONT = "subtitles_font";
 	private static final String KEY_FORCED_SUBTITLE_LANGUAGE = "forced_subtitle_language";
@@ -233,7 +233,11 @@ public class PmsConfiguration {
 	private static final String KEY_VLC_SCALE = "vlc_scale";
 	private static final String KEY_VLC_SAMPLE_RATE_OVERRIDE = "vlc_sample_rate_override";
 	private static final String KEY_VLC_SAMPLE_RATE = "vlc_sample_rate";
+	private static final String KEY_WEB_AUTHENTICATE = "web_authenticate";
 	private static final String KEY_WEB_CONF_PATH = "web_conf";
+	private static final String KEY_WEB_MP4_TRANS = "web_mp4_trans";
+	private static final String KEY_WEB_THREADS = "web_threads";
+	private static final String KEY_WEB_PATH = "web_path";
 	private static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
 
 	// The name of the subdirectory under which UMS config files are stored for this build (default: UMS).
@@ -1585,7 +1589,7 @@ public class PmsConfiguration {
 	 *
 	 * @return True if PMS should hide the folder, false othewise.
 	 */
-	public boolean getHideVideoSettings(ArrayList<String> tags) {
+	public boolean getHideVideoSettings() {
 		return getBoolean(KEY_HIDE_VIDEO_SETTINGS, true);
 	}
 
@@ -1751,6 +1755,8 @@ public class PmsConfiguration {
 					break;
 				case "vqmax":
 					returnString.append("-qmax ").append(pairArray[1]).append(" ");
+					break;
+				default:
 					break;
 			}
 		}
@@ -1995,6 +2001,10 @@ public class PmsConfiguration {
 
 	public String getFolders(ArrayList<String> tags) {
 		return tagLoop(tags, ".folders", KEY_FOLDERS);
+	}
+
+	public String getFoldersIgnored(ArrayList<String> tags) {
+		return tagLoop(tags, ".ignore", KEY_FOLDERS_IGNORED);
 	}
 
 	public void setFolders(String value) {
@@ -2410,7 +2420,7 @@ public class PmsConfiguration {
 		configuration.setProperty(KEY_RUN_WIZARD, value);
 	}
 
-	public boolean isHideNewMediaFolder(ArrayList<String> tags) {
+	public boolean isHideNewMediaFolder() {
 		return getBoolean(KEY_HIDE_NEW_MEDIA_FOLDER, false);
 	}
 
@@ -2418,7 +2428,7 @@ public class PmsConfiguration {
 		this.configuration.setProperty(KEY_HIDE_NEW_MEDIA_FOLDER, value);
 	}
 
-	public boolean isHideRecentlyPlayedFolder(ArrayList<String> tags) {
+	public boolean isHideRecentlyPlayedFolder() {
 		return getBoolean(PmsConfiguration.KEY_HIDE_RECENTLY_PLAYED_FOLDER, false);
 	}
 
@@ -2877,7 +2887,7 @@ public class PmsConfiguration {
 		return getInt(KEY_RESUME_KEEP_TIME, 0);
 	}
 
-	public boolean hideSubInfo() {
+	public boolean hideSubsInfo() {
 		return getBoolean(KEY_HIDE_SUBS_INFO, false);
 	}
 
@@ -2946,11 +2956,47 @@ public class PmsConfiguration {
 		configuration.setProperty(KEY_3D_SUBTITLES_DEPTH, value);
 	}
 
-	public String get3DbottomSubsPosition() {
-		return getString(KEY_3D_SUBTITLES_BOTTOM_POSITION, "0");
+	/**
+	 * Web stuff
+	 */
+	private static final String KEY_NO_FOLDERS = "no_shared";
+	private static final String KEY_WEB_HTTPS = "use_https";
+	private static final int WEB_MAX_THREADS = 100;
+
+	public boolean getNoFolders(String tag) {
+		if (tag == null) {
+			return getBoolean(KEY_NO_FOLDERS, false);
+		}
+		String x = (tag.toLowerCase() + ".no_shared").replaceAll(" ", "_");
+		return getBoolean(x, false);
 	}
 
-	public void set3DbottomSubsPosition(String value) {
-		configuration.setProperty(KEY_3D_SUBTITLES_BOTTOM_POSITION, value);
+	public boolean getWebHttps() {
+		return getBoolean(KEY_WEB_HTTPS, false);
+	}
+
+	public File getWebPath() {
+		File path = new File(getString(KEY_WEB_PATH, "web"));
+		if (!path.exists()) {
+			path.mkdirs();
+		}
+		return path;
+	}
+
+	public File getWebFile(String file) {
+		return new File(getWebPath().getAbsolutePath() + File.separator + file);
+	}
+
+	public boolean isWebAuthenticate() {
+		return getBoolean(KEY_WEB_AUTHENTICATE, false);
+	}
+
+	public int getWebThreads() {
+		int x = getInt(KEY_WEB_THREADS, 30);
+		return (x > WEB_MAX_THREADS ? WEB_MAX_THREADS : x);
+	}
+
+	public boolean isWebMp4Trans() {
+		return getBoolean(KEY_WEB_MP4_TRANS, false);
 	}
 }
