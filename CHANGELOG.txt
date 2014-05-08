@@ -6,8 +6,22 @@
 3.6.1 - 2014-05-??
 
 	General:
+		Made resuming more intuitive
 		Fixed the aspect ratio of thumbnails by default (thanks, tdcosta100!)
 		Fixed the buffer going nuts after automatic subtitle conversion (thanks, tdcosta100!)
+		Fixed support for URLs in playlists
+		Fixed error with thumbnails of resume files (thanks, tdcosta100!)
+		Fixed the user interface when hiding advanced options
+	External Components:
+		Updated MPlayer/MEncoder for Windows to SB57, which:
+			Adds AAC encoding support
+			Improves H.265 support
+			Improves support for many containers and codecs
+			Improves speed
+			Fixes bugs
+		Updated FFmpeg to builds from 2014-05-05, which:
+			Improves support for many containers and codecs
+			Fixes bugs
 
 3.6.0 - 2014-04-28
 
