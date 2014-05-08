@@ -215,7 +215,7 @@ public class SubtitleUtils {
 		// Max depth - 2% ... + 2%
 		int depth3D = (int) - (((double) playResX /(double) 100) * Double.valueOf(configuration.getDepth3D()));
 		int offset = (playResX / 100) * 2;
-		int bottomSubsPosition = (int) ((playResY / 100) * Double.valueOf(configuration.getAssMargin()));
+		int bottomSubsPosition = (int) ((playResY /(double) 100) * Double.valueOf(configuration.getAssMargin()));
 		int topSubsPositionTb = playResY + bottomSubsPosition;
 		int middleSbs = media.getWidth() / 2;
 		Pattern timePattern = Pattern.compile("[0-9]:[0-9]{2}:[0-9]{2}.[0-9]{2},[0-9]:[0-9]{2}:[0-9]{2}.[0-9]{2},");
@@ -249,7 +249,7 @@ public class SubtitleUtils {
 			while ((line = input.readLine()) != null) {
 				if (line.startsWith("[Events]")) {
 					line = input.readLine();
-					if (line.startsWith("Format:")) {
+					if (line != null && line.startsWith("Format:")) {
 						String[] formatPattern = line.split(",");
 						int i = 0;
 						for (String component : formatPattern) {
