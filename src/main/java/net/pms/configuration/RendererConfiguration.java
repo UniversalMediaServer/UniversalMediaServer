@@ -279,23 +279,20 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return addressAssociation.values();
 	}
 
+	public static boolean hasConnectedAVTransportPlayers() {
+		return UPNPHelper.hasRenderer(UPNPHelper.AVT);
+	}
+
+	public static List<RendererConfiguration> getConnectedAVTransportPlayers() {
+		return UPNPHelper.getRenderers(UPNPHelper.AVT);
+	}
+
 	public static boolean hasConnectedControlPlayers() {
-		for (RendererConfiguration r : addressAssociation.values()) {
-			if (r.hasPlayControls()) {
-				return true;
-			}
-		}
-		return false;
+		return UPNPHelper.hasRenderer(UPNPHelper.ANY);
 	}
 
 	public static List<RendererConfiguration> getConnectedControlPlayers() {
-		ArrayList<RendererConfiguration> controlPlayers = new ArrayList();
-		for (RendererConfiguration r : addressAssociation.values()) {
-			if (r.hasPlayControls()) {
-				controlPlayers.add(r);
-			}
-		}
-		return controlPlayers;
+		return UPNPHelper.getRenderers(UPNPHelper.ANY);
 	}
 
 	public static File getRenderersDir() {
@@ -1118,7 +1115,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return Whether offline.
 	 */
 	public boolean isOffline() {
-		return ! hasAddress() || (uuid != null && ! UPNPHelper.isActive(uuid, instanceID));
+		return ! hasAssociatedAddress() || (uuid != null && ! UPNPHelper.isActive(uuid, instanceID));
 	}
 
 	/**
@@ -1135,7 +1132,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 *
 	 * @return Has address.
 	 */
-	public boolean hasAddress() {
+	public boolean hasAssociatedAddress() {
 		return addressAssociation.values().contains(this);
 	}
 
@@ -1145,6 +1142,15 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return The address.
 	 */
 	public InetAddress getAddress() {
+		// If we have a uuid look up the upnp device address, which is always
+		// correct even if another device has overwritten our association
+		if (uuid != null) {
+			InetAddress address = UPNPHelper.getAddress(uuid);
+			if (address != null) {
+				return address;
+			}
+		}
+		// Otherwise check the address association
 		for (InetAddress sa : addressAssociation.keySet()) {
 			if (addressAssociation.get(sa) == this) {
 				return sa;

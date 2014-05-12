@@ -572,6 +572,35 @@ public class UPNPHelper extends UPNPControl {
 		return null;
 	}
 
+	public static InetAddress getAddress(String uuid) {
+		try {
+			return InetAddress.getByName(getURL(getDevice(uuid)).getHost());
+		} catch (Exception e) {
+		}
+		return null;
+	}
+
+	public static boolean hasRenderer(int type) {
+		for (Map<String,Renderer> item : (Collection<Map<String,Renderer>>)rendererMap.values()) {
+			Renderer r = (Renderer)item.get("0");
+			if ((r.controls & type) != 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static List<RendererConfiguration> getRenderers(int type) {
+		ArrayList<RendererConfiguration> renderers = new ArrayList<>();
+		for (Map<String,Renderer> item : (Collection<Map<String,Renderer>>)rendererMap.values()) {
+			Renderer r = (Renderer)item.get("0");
+			if ((r.controls & type) != 0) {
+				renderers.add((RendererConfiguration)r);
+			}
+		}
+		return renderers;
+	}
+
 	@Override
 	protected void rendererReady(String uuid) {
 		Renderer r = rendererMap.get(uuid, "0");

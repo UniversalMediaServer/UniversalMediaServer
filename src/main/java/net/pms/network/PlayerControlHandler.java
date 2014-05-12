@@ -132,16 +132,15 @@ public class PlayerControlHandler implements HttpHandler {
 		return PMS.get().getServer().getHost() + ":" + port;
 	}
 
-	public UPNPHelper.Player getPlayer(String address) {
-		UPNPHelper.Player player = players.get(address);
+	public UPNPHelper.Player getPlayer(String uuid) {
+		UPNPHelper.Player player = players.get(uuid);
 		if (player == null) {
 			try {
-				InetAddress socket = InetAddress.getByName(address);
-				RendererConfiguration r = RendererConfiguration.getRendererConfigurationBySocketAddress(socket);
+				RendererConfiguration r = (RendererConfiguration)UPNPHelper.getRenderer(uuid);
 				player = r.getPlayer();
-				players.put(address, player);
+				players.put(uuid, player);
 			} catch (Exception e) {
-				LOGGER.debug("Error retrieving player: " + e);
+				LOGGER.debug("Error retrieving player " + uuid + ": " + e);
 			}
 		}
 		return player;
@@ -160,7 +159,7 @@ public class PlayerControlHandler implements HttpHandler {
 		String bumpAddress = configuration.getBumpAddress();
 		for (RendererConfiguration r : RendererConfiguration.getConnectedControlPlayers()) {
 			String address = r.getAddress().toString().substring(1);
-			json.add(String.format("[\"%s\",%d,\"%s\"]", r, address.equals(bumpAddress) ? 1 : 0, address));
+			json.add(String.format("[\"%s\",%d,\"%s\"]", r, address.equals(bumpAddress) ? 1 : 0, r.uuid));
 		}
 		return "\"renderers\":[" + StringUtils.join(json, ",") + "]";
 	}

@@ -57,6 +57,9 @@ public class UPNPControl {
 
 	public static final int ACTIVE = 0;
 	public static final int CONTROLS = 1;
+	public static final int AVT = BasicPlayer.PLAYCONTROL;
+	public static final int RC = BasicPlayer.VOLUMECONTROL;
+	public static final int ANY = 0xff;
 
 	private static final boolean DEBUG = true; // log upnp state vars
 
@@ -420,9 +423,9 @@ public class UPNPControl {
 					String sid = s.getServiceId().getId();
 					LOGGER.debug("Subscribing to " + sid + " service on " + name);
 					if (sid.contains("AVTransport")) {
-						ctrl |= BasicPlayer.PLAYCONTROL;
+						ctrl |= AVT;
 					} else if (sid.contains("RenderingControl")) {
-						ctrl |= BasicPlayer.VOLUMECONTROL;
+						ctrl |= RC;
 					}
 					upnpService.getControlPoint().execute(new SubscriptionCB(s));
 				}
@@ -466,6 +469,13 @@ public class UPNPControl {
 					return d;
 				}
 			} catch(Exception e) {}
+		}
+		return null;
+	}
+
+	public static Renderer getRenderer(String uuid) {
+		if (rendererMap.containsKey(uuid)) {
+			return rendererMap.get(uuid, "0");
 		}
 		return null;
 	}
