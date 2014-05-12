@@ -7,6 +7,7 @@ import java.awt.event.ActionListener;
 import java.util.Observable;
 import java.util.Observer;
 import javax.swing.*;
+import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.update.AutoUpdater;
@@ -134,12 +135,12 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 			case UPDATE_AVAILABLE:
 			case ERROR:
 			case NO_UPDATE_AVAILABLE:
-				cancelButton.setText("Close");
+				cancelButton.setText(Messages.getString("Dialog.Close"));
 				cancelButton.setEnabled(true);
 				cancelButton.setVisible(true);
 				break;
 			case DOWNLOAD_IN_PROGRESS:
-				cancelButton.setText("Cancel");
+				cancelButton.setText(Messages.getString("NetworkTab.45"));
 				cancelButton.setEnabled(true);
 				cancelButton.setVisible(true);
 				break;
@@ -169,7 +170,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 
 				if (!configuration.isAdmin()) {
 					permissionsReminder = ", but UMS must be run as administrator before updating.";
-					cancelButton.setText("Close");
+					cancelButton.setText(Messages.getString("Dialog.Close"));
 					okButton.setEnabled(false);
 					okButton.setVisible(false);
 				}
