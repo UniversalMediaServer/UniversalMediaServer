@@ -279,6 +279,15 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return addressAssociation.values();
 	}
 
+	public static boolean hasConnectedControlPlayers() {
+		for (RendererConfiguration r : addressAssociation.values()) {
+			if (r.hasPlayControls()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public static List<RendererConfiguration> getConnectedControlPlayers() {
 		ArrayList<RendererConfiguration> controlPlayers = new ArrayList();
 		for (RendererConfiguration r : addressAssociation.values()) {

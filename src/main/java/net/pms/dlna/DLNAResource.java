@@ -1037,6 +1037,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					for (DLNAResource file : children) {
 						DLNAResource found = file.search(indexPath[1], count, renderer, searchStr);
 						if (found != null) {
+							// Make sure it's ready
+							found.resolve();
 							return found;
 						}
 					}

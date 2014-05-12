@@ -28,9 +28,10 @@ public interface BasicPlayer extends ActionListener {
 	public void prev();
 	public void forward();
 	public void rewind();
-	public void mute(boolean on);
+	public void mute();
 	public void setVolume(int volume);
 	public void add(int index, String uri, String name, String metadata, boolean select);
+	public void remove(String uri);
 
 	public State getState();
 	public int getControls();

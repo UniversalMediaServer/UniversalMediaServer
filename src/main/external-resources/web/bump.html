@@ -1,4 +1,5 @@
 <html><head><title>bump</title>
+<link rel="stylesheet" href="/files/web.css" type="text/css"> 
 <script>
 server_ip = '127.0.0.1';
 
@@ -46,17 +47,19 @@ function init() {
 
 </script>
 <meta name="viewport" content="width=device-width"/>
+<!--<link rel="shortcut icon" type="image/png" href="files/img/bump16.png?v=2" />-->
 </head>
-<body onload="init()" style="margin:2em;max-width:40em;font-family:sans-serif;">
+<body id="ContentPage" style="margin:0 auto" onload="init()">
+<div id="Menu" style="position:relative"><a href="/browse/0" id="HomeButton"></a>
+
+<div style="margin:2em;max-width:40em;font-family:sans-serif;">
+<div id="Container">
 <br/>
 <center>
+<div style="background-color:white;display:inline-block;-moz-box-shadow: 4px 4px 2px #aaa;-webkit-box-shadow: 4px 4px 2px #aaa;box-shadow: 4px 4px 2px #aaa;"
+onMouseOver="this.style.backgroundColor='lightcyan';" onMouseOut="this.style.backgroundColor='white';">
+
 <a id="bookmarklet" title="press to test the bookmarklet"
-style="text-align:center;font-weight:bold;color:#fff;background-color:#729fcf;text-decoration:none;
-border-color:#729fcf;padding:4px 8px;border:1px;border-radius:4px;-moz-border-radius:4px;-webkit-border-radius:4px;
--moz-box-shadow: 4px 4px 2px #bbb;-webkit-box-shadow: 4px 4px 2px #bbb;box-shadow: 4px 4px 2px #bbb;"
-onMouseDown="this.style.backgroundColor='orange';" onMouseUp="this.style.backgroundColor='#729fcf';"
-onMouseOver="this.style.backgroundColor='#4580bf';" onMouseOut="this.style.backgroundColor='#729fcf';"
-ontouchstart="this.style.backgroundColor='orange';" ontouchend="this.style.backgroundColor='#729fcf';"
 href="javascript:(function(){
 
 var addr='127.0.0.1:9001';
@@ -82,19 +85,21 @@ function loadjs(url,done){
 	};
 	head.appendChild(script);
 }
-})();">bump</a>
+})();"><img src="files/img/bump32.png" alt="bump"/></a></div>
 </center>
 <br/><br/>
 <div class="bump">
-Bump is a browser remote control widget to play media from your current page on any upnp-controllable renderer connected to UMS.
+The <b>B</b>rowser-to-<b>U</b>MS <b>M</b>edia <b>P</b>layer (<i>bump</i>) is a remote control <a href="http://en.wikipedia.org/wiki/Bookmarklet">bookmarklet</a> to send media from your browser's current page to any upnp-controllable renderer connected to UMS.
 Some things to know:
 <ul>
+<li>Bump is already embedded in UMS pages, this bookmarklet is for general use anywhere else.</li>
 <li>Your renderer is upnp-controllable if playback controls are showing on its UMS gui popup panel.</li>
 <li>To designate a default playback renderer set <code style="color:#0000BB;"><b>bump</b></code> to its IP in <i>UMS.conf</i>
 (e.g. <code style="color:#0000BB"><b>bump</b>=<i>192.168.1.3</i></code>)
 <li>To disable this service entirely set <code style="color:#0000BB"><b>bump</b>=<i>false</i></code> in <i>UMS.conf</i>.
-<li>Either the <i>jumpy</i> or <i>channels</i> plugin must be installed to act as a url resolver.</li>
+<li>Either the <i><a href="http://skeptical.github.io/jumpy/readme.html">jumpy</a></i> or <i><a href="https://github.com/SharkHunter/Channel">channels</a></i> plugin must be installed to act as a url resolver.</li>
 <li>The current page must contain resolvable media, for example youtube, vimeo, and so on.</li>
+<li><u><i>https</i></u> protocol will block the bookmarklet, switch to <u><i>http</i></u> if possible (e.g. on youtube).</li>
 </ul>
 </div>
 <h2>Setup</h2>
@@ -146,4 +151,5 @@ bookmark from the drop-down list.</ul>
 The button is currently configured for bump server IP at <i><b><span id="ip">127.0.0.1</span></b></i>
 (<a href="javascript:get_ip()" title="Click to set the LAN address of UMS/PMS' host machine">change...</a>
 then repeat setup).
+</div></div></div>
 </body></html>

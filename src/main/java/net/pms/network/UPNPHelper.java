@@ -652,14 +652,16 @@ public class UPNPHelper extends UPNPControl {
 		public void pressPlay(String uri, String metadata) {
 			if (state.playback == PLAYING) {
 				pause();
-			} else if (state.playback == STOPPED) {
-				Playlist.Item item = playlist.resolve(uri);
-				if (item != null) {
-					uri = item.uri;
-					metadata = item.metadata;
-				}
-				if (uri != null && ! uri.equals(state.uri)) {
-					setURI(uri, metadata);
+			} else {
+				if (state.playback == STOPPED) {
+					Playlist.Item item = playlist.resolve(uri);
+					if (item != null) {
+						uri = item.uri;
+						metadata = item.metadata;
+					}
+					if (uri != null && ! uri.equals(state.uri)) {
+						setURI(uri, metadata);
+					}
 				}
 				play();
 			}
@@ -669,6 +671,13 @@ public class UPNPHelper extends UPNPControl {
 		public void add(int index, String uri, String name, String metadata, boolean select) {
 			if (! StringUtils.isBlank(uri)) {
 				playlist.add(index, uri, name, metadata, select);
+			}
+		}
+
+		@Override
+		public void remove(String uri) {
+			if (! StringUtils.isBlank(uri)) {
+				playlist.remove(uri);
 			}
 		}
 
@@ -689,12 +698,12 @@ public class UPNPHelper extends UPNPControl {
 
 		@Override
 		public void next() {
-			UPNPControl.next(dev, instanceID);
+			step(1);
 		}
 
 		@Override
 		public void prev() {
-			UPNPControl.previous(dev, instanceID);
+			step(-1);
 		}
 
 		@Override
@@ -708,8 +717,8 @@ public class UPNPHelper extends UPNPControl {
 		}
 
 		@Override
-		public void mute(boolean on) {
-			UPNPControl.setMute(dev, instanceID, on);
+		public void mute() {
+			UPNPControl.setMute(dev, instanceID, ! state.mute);
 		}
 
 		public void setVolume(int volume) {
@@ -782,6 +791,15 @@ public class UPNPHelper extends UPNPControl {
 			return playlist;
 		}
 
+		public void step(int n) {
+			if (state.playback != STOPPED) {
+				stop();
+			}
+			playlist.step(n);
+			state.playback = STOPPED;
+			pressPlay(null, null);
+		}
+
 		public static class Playlist extends DefaultComboBoxModel {
 
 			public Item get(String uri) {
@@ -833,6 +851,25 @@ public class UPNPHelper extends UPNPControl {
 				}
 			}
 
+			public void remove(final String uri) {
+				if (! StringUtils.isBlank(uri)) {
+					// TODO: check headless mode
+					SwingUtilities.invokeLater(new Runnable() {
+						public void run() {
+							Item item = resolve(uri);
+							if (item != null) {
+								removeElement(item);
+							}
+						}
+					});
+				}
+			}
+
+			public void step(int n) {
+				int i = (getIndexOf(getSelectedItem()) + getSize() + n) % getSize();
+				setSelectedItem(getElementAt(i));
+			}
+
 			public static class Item {
 
 				public String name, uri, metadata;
@@ -870,7 +907,7 @@ public class UPNPHelper extends UPNPControl {
 		}
 	}
 
-	private static String unescape(String s) {
+	public static String unescape(String s) {
 		return StringEscapeUtils.unescapeXml(StringEscapeUtils.unescapeHtml4(s));
 	}
 }

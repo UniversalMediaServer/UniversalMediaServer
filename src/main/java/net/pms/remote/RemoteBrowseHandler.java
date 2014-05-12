@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.util.List;
 import net.pms.Messages;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -26,6 +27,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 		String user = RemoteUtil.userName(t);
 		RootFolder root = parent.getRoot(user, true, t);
 		List<DLNAResource> res = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), null);
+		boolean upnpControl = RendererConfiguration.hasConnectedControlPlayers();
 
 		// Media browser HTML
 		StringBuilder sb          = new StringBuilder();
@@ -40,11 +42,14 @@ public class RemoteBrowseHandler implements HttpHandler {
 				sb.append("<link rel=\"icon\" href=\"/files/favicon.ico\" type=\"image/x-icon\">").append(CRLF);
 				sb.append("<script src=\"/files/jquery.min.js\"></script>");
 				sb.append("<script src=\"/files/jquery.ums.js\"></script>");
+				sb.append("<script src=\"/files/bump.js\"></script>");
 				sb.append("<title>Universal Media Server</title>").append(CRLF);
 			sb.append("</head>").append(CRLF);
 			sb.append("<body id=\"ContentPage\">").append(CRLF);
 				sb.append("<div id=\"Container\">");
 					sb.append("<div id=\"Menu\">");
+//						sb.append("<a href=\"/bump\" id=\"DocButton\"></a>");
+						sb.append("<a href=\"/doc\" id=\"DocButton\" title=\"Documentation\"></a>");
 						sb.append("<a href=\"/browse/0\" id=\"HomeButton\"></a>");
 					sb.append("</div>");
 					for (DLNAResource r : res) {
@@ -71,6 +76,12 @@ public class RemoteBrowseHandler implements HttpHandler {
 									mediaHtml.append("<img src=\"").append(thumb).append("\" alt=\"").append(name).append("\">");
 									mediaHtml.append("<span>").append(name).append("</span>");
 								mediaHtml.append("</a>").append(CRLF);
+								if (upnpControl) {
+									mediaHtml.append("<a href=\"javascript:bump.start('")
+										.append(parent.getAddress()).append("','/play/").append(idForWeb).append("','")
+										.append(name).append("')\" title=\"Play on another renderer\"><img src=\"/files/img/bump16.png\" alt=\"bump\"></a>")
+										.append(CRLF);
+								}
 							mediaHtml.append("</li>").append(CRLF);
 						}
 					}

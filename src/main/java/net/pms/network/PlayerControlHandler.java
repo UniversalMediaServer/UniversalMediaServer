@@ -54,12 +54,15 @@ public class PlayerControlHandler implements HttpHandler {
 	public void handle(HttpExchange x) throws IOException {
 
 		String[] p = x.getRequestURI().getPath().split("/");
+		Map<String,String> q = parseQuery(x);
+		
 		String response = "";
 		String mime = "text/html";
 		boolean log = true;
 		ArrayList<String> json = new ArrayList<>();
-
-		UPNPHelper.Player player = p.length > 3 ? getPlayer(p[3]) : null;
+		
+		String uuid = p.length > 3 ? p[3] : null;
+		UPNPHelper.Player player = uuid != null ? getPlayer(uuid) : null;
 
 		if (player != null) {
 			if (p[2].equals("status")) {
@@ -67,8 +70,7 @@ public class PlayerControlHandler implements HttpHandler {
 				UPNPHelper.sleep(1000);
 				log = false;
 			} else if (p[2].equals("play")) {
-				Map<String,String> q = parseQuery(x);
-				player.pressPlay(q.get("uri"), q.get("title"));
+				player.pressPlay(translate(q.get("uri")), q.get("title"));
 			} else if (p[2].equals("stop")) {
 				player.stop();
 			} else if (p[2].equals("prev")) {
@@ -80,12 +82,15 @@ public class PlayerControlHandler implements HttpHandler {
 			} else if (p[2].equals("rew")) {
 				player.rewind();
 			} else if (p[2].equals("mute")) {
-				// TODO
+				player.mute();
 			} else if (p[2].equals("setvolume")) {
-				// TODO
+				player.setVolume(Integer.valueOf(q.get("vol")));
+			} else if (p[2].equals("add")) {
+				player.add(-1, translate(q.get("uri")),q.get("title"), null, false);
+			} else if (p[2].equals("remove")) {
+				player.remove(translate(q.get("uri")));
 			} else if (p[2].equals("seturi")) {
-				Map<String,String> q = parseQuery(x);
-				player.setURI(q.get("uri"), q.get("title"));
+				player.setURI(translate(q.get("uri")), q.get("title"));
 			}
 			json.add(getPlayerState(player));
 			json.add(getPlaylist(player));
@@ -101,6 +106,9 @@ public class PlayerControlHandler implements HttpHandler {
 		}
 
 		if (json.size() > 0) {
+			if (player != null) {
+				json.add("\"uuid\":\"" + uuid + "\"");
+			}
 			response = "{" + StringUtils.join(json, ",") + "}";
 		}
 
@@ -165,7 +173,7 @@ public class PlayerControlHandler implements HttpHandler {
 		for (i=0; i < playlist.getSize(); i++) {
 			UPNPHelper.Player.Playlist.Item item = (UPNPHelper.Player.Playlist.Item)playlist.getElementAt(i);
 			json.add(String.format("[\"%s\",%d,\"%s\"]",
-				item.toString().replace("\"","\\\\\""), item == selected ? 1 : 0, "$i$" + i));
+				item.toString().replace("\"","\\\""), item == selected ? 1 : 0, "$i$" + i));
 		}
 		return "\"playlist\":[" + StringUtils.join(json, ",") + "]";
 	}
@@ -190,16 +198,26 @@ public class PlayerControlHandler implements HttpHandler {
 
 	public static Map<String,String> parseQuery(HttpExchange x) {
 		Map<String,String> vars = new LinkedHashMap<String,String>();
-		try {
-			String[] q = x.getRequestURI().getRawQuery().split("&|=");
-			int i;
-			for (i=0; i < q.length; i+=2) {
-				vars.put(URLDecoder.decode(q[i], "UTF-8"), URLDecoder.decode(q[i+1], "UTF-8"));
+		String raw = x.getRequestURI().getRawQuery();
+		if (! StringUtils.isBlank(raw)) {
+			try {
+				String[] q = raw.split("&|=");
+				int i;
+				for (i=0; i < q.length; i+=2) {
+					vars.put(URLDecoder.decode(q[i], "UTF-8"), UPNPHelper.unescape(URLDecoder.decode(q[i+1], "UTF-8")));
+				}
+			} catch (Exception e) {
+				LOGGER.debug("Error parsing query string '" + x.getRequestURI().getQuery() + "' :" + e);
 			}
-		} catch (Exception e) {
-			LOGGER.debug("Error parsing query string '" + x.getRequestURI().getQuery() + "' :" + e);
 		}
 		return vars;
+	}
+
+	public String translate(String uri) {
+		// FIXME: this assumes resourceIds are consistent across renderers
+		// which isn't necessarily true if their hidden items differ.
+		return uri.startsWith("/play/") ?
+			(PMS.get().getServer().getURL() + "/get/" + uri.substring(6).replace("%24", "$")) : uri;
 	}
 
 	// For standalone service, if required

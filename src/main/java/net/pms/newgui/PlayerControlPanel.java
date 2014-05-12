@@ -28,7 +28,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererPanel.class);
 
 	private BasicPlayer player;
-	private AbstractAction play, pause, stop, next, prev, forward, rewind, mute, volume, seturi;
+	private AbstractAction add, remove, play, pause, stop, next, prev, forward, rewind, mute, volume, seturi;
 	private JLabel position;
 	private JSlider volumeSlider;
 	private JTextField uri;
@@ -38,7 +38,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	private File pwd;
 	private boolean playControl, volumeControl;
 
-	private static ImageIcon playIcon, pauseIcon, stopIcon, fwdIcon, rewIcon,
+	private static ImageIcon addIcon, removeIcon, playIcon, pauseIcon, stopIcon, fwdIcon, rewIcon,
 		nextIcon, prevIcon, volumeIcon, muteIcon, sliderIcon;
 
 	public PlayerControlPanel(final BasicPlayer player) {
@@ -114,7 +114,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 			private static final long serialVersionUID = -5492279549624322429L;
 
 			public void actionPerformed(ActionEvent e) {
-				edited = false;
+				setEdited(false);
 				player.pressPlay(uri.getText(), null);
 			}
 		}));
@@ -181,7 +181,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 			private static final long serialVersionUID = 4263195311825852854L;
 
 			public void actionPerformed(ActionEvent e) {
-				player.mute(! player.getState().mute);
+				player.mute();
 			}
 		});
 		muteButton.setOpaque(false);
@@ -201,8 +201,6 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		u.setOpaque(false);
 		u.setBorderPainted(false);
 
-		JLabel uriLabel = new JLabel("URI: ");
-		u.add(uriLabel);
 		uris = new JComboBox(player.getPlaylist());
 		uris.setMaximumRowCount(20);
 		uris.setEditable(true);
@@ -211,7 +209,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		uri = (JTextField)uris.getEditor().getEditorComponent();
 		uri.getDocument().addDocumentListener(new DocumentListener() {
 			public void changedUpdate(DocumentEvent e) {
-				edited = true;
+				setEdited(true);
 				if (! playing) {
 					play.setEnabled(! StringUtils.isBlank(uri.getText()));
 				}
@@ -221,6 +219,22 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		});
 
 		u.add(uris);
+		u.add(new JButton(add = new AbstractAction("", addIcon) {
+//			private static final long serialVersionUID = FIXME;
+
+			public void actionPerformed(ActionEvent e) {
+				setEdited(false);
+				player.add(-1, uri.getText(), null, null, false);
+			}
+		}));
+		u.add(new JButton(remove = new AbstractAction("", removeIcon) {
+//			private static final long serialVersionUID = FIXME;
+
+			public void actionPerformed(ActionEvent e) {
+				setEdited(false);
+				player.remove(uri.getText());
+			}
+		}));
 		u.add(new JButton(new AbstractAction("", MetalIconFactory.getTreeFolderIcon()) {
 			private static final long serialVersionUID = -2826057503405341316L;
 
@@ -229,7 +243,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 				fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 				if (fc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
 					uri.setText(fc.getSelectedFile().getPath());
-					edited = true;
+					setEdited(true);
 				}
 				pwd = fc.getCurrentDirectory();
 			}
@@ -247,17 +261,29 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		return player;
 	}
 
+	public void setEdited(boolean b) {
+		edited = b;
+		update();
+	}
+
+	public void update() {
+		boolean notblank = ! StringUtils.isBlank(uri.getText());
+		add.setEnabled(edited && notblank);
+		remove.setEnabled(notblank);
+		boolean more = uris.getModel().getSize() > 1;
+		next.setEnabled(more);
+		prev.setEnabled(more);
+	}
+
 	public void refresh(BasicPlayer.State state) {
 		if (playControl) {
 			playing = state.playback != BasicPlayer.STOPPED;
 			// update playback status
-			play.putValue(Action.SMALL_ICON,
-				state.playback == BasicPlayer.PLAYING ? pauseIcon : playIcon);
+			play.putValue(Action.SMALL_ICON, state.playback == BasicPlayer.PLAYING ? pauseIcon : playIcon);
 			stop.setEnabled(playing);
 			forward.setEnabled(playing);
 			rewind.setEnabled(playing);
-			next.setEnabled(playing);
-			prev.setEnabled(playing);
+			update();
 			// update position
 			String pos = state.position != null ? state.position : "00:00:00";
 			if (state.duration != null && ! state.duration.equals(pos)) {
@@ -271,7 +297,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 			if (isNew) {
 				if (edited) {
 					player.add(-1, uri.getText(), null, null, false);
-					edited = false;
+					setEdited(false);
 				}
 				uri.setText(state.uri);
 			}
@@ -296,6 +322,8 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	}
 
 	private static void loadIcons() {
+		addIcon = loadIcon("/resources/images/player/add16.png");
+		removeIcon = loadIcon("/resources/images/player/remove16.png");
 		playIcon = loadIcon("/resources/images/player/play16.png");
 		pauseIcon = loadIcon("/resources/images/player/pause16.png");
 		stopIcon = loadIcon("/resources/images/player/stop16.png");
