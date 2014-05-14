@@ -425,7 +425,7 @@ public class DLNAMediaInfo implements Cloneable {
 		args[7] = "-an";
 		args[8] = "-an";
 		args[9] = "-vf";
-		args[10] = "\"scale='if(gt(a,16/9),320,-1)':'if(gt(a,16/9),-1,180)', pad=320:180:(320-iw)/2:(180-ih)/2\"";
+		args[10] = "scale='if(gt(a,16/9),320,-1)':'if(gt(a,16/9),-1,180)', pad=320:180:(320-iw)/2:(180-ih)/2";
 		args[11] = "-vframes";
 		args[12] = "1";
 		args[13] = "-f";
