@@ -1,4 +1,4 @@
-3.6.1 - 2014-05-??
+3.6.1 - 2014-05-15
 
 	General:
 		Made resuming more intuitive
