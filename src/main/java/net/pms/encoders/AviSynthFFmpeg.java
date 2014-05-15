@@ -210,10 +210,15 @@ public class AviSynthFFmpeg extends FFMpegVideo {
 			lines.add(interframeLines);
 		}
 
-		if (fullyManaged) {
-			for (String s : lines) {
-				if (s.contains("<moviefilename>")) {
-					s = s.replace("<moviefilename>", filename);
+			if (fullyManaged) {
+				for (String s : lines) {
+					if (s.contains("<moviefilename>")) {
+						s = s.replace("<moviefilename>", filename);
+					}
+
+					s = s.replace("<movie>", movieLine);
+					s = s.replace("<sub>", subLine != null ? subLine : "#");
+					pw.println(s);
 				}
 
 				s = s.replace("<movie>", movieLine);

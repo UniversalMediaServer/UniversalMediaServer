@@ -204,12 +204,13 @@ public class NavigationShareTab {
 			builder.add(atzLimit, FormLayoutUtil.flip(cc.xy(6, 25), colSpec, orientation));
 			builder.add(newmediafolder, FormLayoutUtil.flip(cc.xy(9, 25), colSpec, orientation));
 
+			builder.add(resume, FormLayoutUtil.flip(cc.xy(1, 27), colSpec, orientation));
+			builder.add(recentlyplayedfolder, FormLayoutUtil.flip(cc.xyw(4, 27, 3), colSpec, orientation));
+
 			builder.add(builderSharedFolder.getPanel(), FormLayoutUtil.flip(cc.xyw(1, 27, 10), colSpec, orientation));
 		} else {
 			builder.add(builderSharedFolder.getPanel(), FormLayoutUtil.flip(cc.xyw(1, 1, 10), colSpec, orientation));
 		}
-		builder.add(resume, FormLayoutUtil.flip(cc.xy(1, 27), colSpec, orientation));
-		builder.add(recentlyplayedfolder, FormLayoutUtil.flip(cc.xyw(4, 27, 3), colSpec, orientation));
 
 		builder.add(builderSharedFolder.getPanel(), FormLayoutUtil.flip(cc.xyw(1, 29, 10), colSpec, orientation));
 

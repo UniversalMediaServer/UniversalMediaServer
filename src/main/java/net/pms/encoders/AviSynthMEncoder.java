@@ -339,10 +339,15 @@ public class AviSynthMEncoder extends MEncoderVideo {
 
 		lines.add(mtLine3);
 
-		if (fullyManaged) {
-			for (String s : lines) {
-				if (s.contains("<moviefilename>")) {
-					s = s.replace("<moviefilename>", fileName);
+			if (fullyManaged) {
+				for (String s : lines) {
+					if (s.contains("<moviefilename>")) {
+						s = s.replace("<moviefilename>", fileName);
+					}
+
+					s = s.replace("<movie>", movieLine);
+					s = s.replace("<sub>", subLine != null ? subLine : "#");
+					pw.println(s);
 				}
 
 				s = s.replace("<movie>", movieLine);

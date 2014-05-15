@@ -7,6 +7,7 @@ import java.awt.event.ActionListener;
 import java.util.Observable;
 import java.util.Observer;
 import javax.swing.*;
+import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.update.AutoUpdater;
@@ -30,7 +31,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 	}
 
 	AutoUpdateDialog(Window parent, AutoUpdater autoUpdater) {
-		super(parent, "Universal Media Server Auto Update");
+		super(parent, Messages.getString("AutoUpdate.0"));
 		this.autoUpdater = autoUpdater;
 		autoUpdater.addObserver(this);
 		initComponents();
@@ -45,7 +46,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 		private static final long serialVersionUID = 4762020878159496712L;
 
 		DownloadButton() {
-			super("Download");
+			super(Messages.getString("AutoUpdate.10"));
 			setEnabled(false);
 			this.setRequestFocusEnabled(false);
 			addActionListener(this);
@@ -65,7 +66,7 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 		private static final long serialVersionUID = 4762020878159496713L;
 
 		CancelButton() {
-			super("Not Now");
+			super(Messages.getString("AutoUpdate.11"));
 			setEnabled(true);
 			this.setRequestFocusEnabled(false);
 			addActionListener(this);
@@ -134,12 +135,12 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 			case UPDATE_AVAILABLE:
 			case ERROR:
 			case NO_UPDATE_AVAILABLE:
-				cancelButton.setText("Close");
+				cancelButton.setText(Messages.getString("Dialog.Close"));
 				cancelButton.setEnabled(true);
 				cancelButton.setVisible(true);
 				break;
 			case DOWNLOAD_IN_PROGRESS:
-				cancelButton.setText("Cancel");
+				cancelButton.setText(Messages.getString("NetworkTab.45"));
 				cancelButton.setEnabled(true);
 				cancelButton.setVisible(true);
 				break;
@@ -153,46 +154,46 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 	private String getStateText() {
 		switch (autoUpdater.getState()) {
 			case NOTHING_KNOWN:
-				return "Check for updates not started";
+				return Messages.getString("AutoUpdate.1");
 			case DOWNLOAD_FINISHED:
-				return "Download finished";
+				return Messages.getString("AutoUpdate.2");
 			case DOWNLOAD_IN_PROGRESS:
-				return "Download in progress";
+				return Messages.getString("AutoUpdate.3");
 			case ERROR:
 				return getErrorStateText();
 			case NO_UPDATE_AVAILABLE:
-				return "No update available";
+				return Messages.getString("AutoUpdate.4");
 			case POLLING_SERVER:
-				return "Connecting to server";
+				return Messages.getString("AutoUpdate.5");
 			case UPDATE_AVAILABLE:
 				String permissionsReminder = "";
 
 				if (!configuration.isAdmin()) {
-					permissionsReminder = ", but UMS must be run as administrator before updating.";
-					cancelButton.setText("Close");
+					permissionsReminder = Messages.getString("AutoUpdate.6");
+					cancelButton.setText(Messages.getString("Dialog.Close"));
 					okButton.setEnabled(false);
 					okButton.setVisible(false);
 				}
 
-				return "An update is available" + permissionsReminder;
+				return Messages.getString("AutoUpdate.7") + permissionsReminder;
 			default:
-				return "Unknown state";
+				return Messages.getString("AutoUpdate.8");
 		}
 	}
 
 	private String getErrorStateText() {
 		if (autoUpdater == null) {
-			return "No auto updater";
+			return Messages.getString("AutoUpdate.9");
 		}
 
 		Throwable exception = autoUpdater.getErrorStateCause();
 		if (exception == null) {
-			return "Error";
+			return Messages.getString("Dialog.Error");
 		}
 
 		String message = exception.getMessage();
 		if (message == null) {
-			return "Error";
+			return Messages.getString("Dialog.Error");
 		}
 
 		return message;

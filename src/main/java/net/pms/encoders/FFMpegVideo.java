@@ -423,6 +423,9 @@ public class FFMpegVideo extends Player {
 		// Give priority to the renderer's maximum bitrate setting over the user's setting
 		if (rendererMaxBitrates[0] > 0 && rendererMaxBitrates[0] < defaultMaxBitrates[0]) {
 			defaultMaxBitrates = rendererMaxBitrates;
+			LOGGER.trace("Using the video bitrate limit from the renderer config (" + rendererMaxBitrates[0] + ") which is lower than the one from the program settings (" + defaultMaxBitrates[0] + ")");
+		} else {
+			LOGGER.trace("Using the video bitrate limit from the program settings (" + defaultMaxBitrates[0] + ")");
 		}
 
 		if (params.mediaRenderer.getCBRVideoBitrate() == 0 && params.timeend == 0) {
@@ -431,6 +434,8 @@ public class FFMpegVideo extends Player {
 
 			// Halve it since it seems to send up to 1 second of video in advance
 			defaultMaxBitrates[0] /= 2;
+
+			LOGGER.trace("Halving the video bitrate limit to " + defaultMaxBitrates[0]);
 
 			int bufSize = 1835;
 			boolean bitrateLevel41Limited = false;
@@ -450,6 +455,7 @@ public class FFMpegVideo extends Player {
 				) {
 					defaultMaxBitrates[0] = 31250;
 					bitrateLevel41Limited = true;
+					LOGGER.trace("Adjusting the video bitrate limit to the H.264 Level 4.1-safe value of 31250");
 				}
 				bufSize = defaultMaxBitrates[0];
 			} else {
@@ -480,6 +486,8 @@ public class FFMpegVideo extends Player {
 
 				// Round down to the nearest Mb
 				defaultMaxBitrates[0] = defaultMaxBitrates[0] / 1000 * 1000;
+
+				LOGGER.trace("Adjusting the video bitrate limit to " + defaultMaxBitrates[0] + " to make room for audio");
 			}
 
 			// FFmpeg uses bytes for inputs instead of kbytes like MEncoder
@@ -1333,6 +1341,7 @@ public class FFMpegVideo extends Player {
 
 		try {
 			pw.join(); // Wait until the conversion is finished
+			pw.stopProcess(); // Avoid creating a pipe for this process and messing up with buffer progress bar
 		} catch (InterruptedException e) {
 			LOGGER.debug("Subtitles conversion finished wih error: " + e);
 			return null;

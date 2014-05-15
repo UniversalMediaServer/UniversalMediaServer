@@ -188,7 +188,7 @@ public class PlaylistFolder extends DLNAResource {
 					}
 				}
 			} else {
-				Format f = FormatFactory.getAssociatedFormat("." + FileUtil.getUrlExtension(fileName));
+				Format f = FormatFactory.getAssociatedFormat("." + FileUtil.getUrlExtension(entry.fileName));
 				int type = f == null ? defaultContent : f.getType();
 				String u = FileUtil.urlJoin(uri, entry.fileName);
 				DLNAResource d =

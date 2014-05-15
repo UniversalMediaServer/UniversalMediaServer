@@ -722,7 +722,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						}
 					}
 
-					if (resumeRes != null) {
+					if (resumeRes != null && resumeRes.getMedia() != null) {
 						resumeRes.getMedia().setThumbready(false);
 					}
 
@@ -773,7 +773,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * If UMS is configured to hide transcode folders, null is returned.
 	 * If no folder exists and the create argument is false, null is returned.
 	 * If no folder exists and the create argument is true, a new transcode folder is created.
-	 * This method is called on the parent frolder each time a child is added to that parent
+	 * This method is called on the parent folder each time a child is added to that parent
 	 * (via {@link addChild(DLNAResource)}.
 	 *
 	 * @param create
@@ -2379,7 +2379,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 
 			if (resume != null) {
-				params.timeseek += (long) (resume.getTimeOffset() / 1000);
 				if (getPlayer() == null) {
 					setPlayer(new FFMpegVideo());
 				}
@@ -3286,7 +3285,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			resume.stop(startTime, (long) (getMedia().getDurationInSeconds() * 1000));
 			if (resume.isDone()) {
 				getParent().getChildren().remove(this);
-			} else {
+			} else if (getMedia() != null) {
 				getMedia().setThumbready(false);
 			}
 		} else {
@@ -3297,7 +3296,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						getParent().getChildren().remove(res);
 						return null;
 					}
-					res.getMedia().setThumbready(false);
+					if (res.getMedia() != null) {
+						res.getMedia().setThumbready(false);
+					}
 					return res;
 				}
 			}
@@ -3306,7 +3307,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				DLNAResource clone = this.clone();
 				clone.resume = r;
 				clone.resHash = resHash;
-				clone.getMedia().setThumbready(false);
+				if (clone.getMedia() != null) {
+					clone.getMedia().setThumbready(false);
+				}
 				clone.setPlayer(getPlayer());
 				getParent().addChildInternal(clone);
 				return clone;

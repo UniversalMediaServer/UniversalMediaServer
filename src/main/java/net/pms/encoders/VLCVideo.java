@@ -155,7 +155,7 @@ public class VLCVideo extends Player {
 			codecConfig.audioCodec = "wma";
 			codecConfig.container = "asf";
 		} else if (renderer.isTranscodeToH264TSAC3()) {
-			LOGGER.debug("Using H.264 and AC-3 with ts container");
+			LOGGER.debug("Using H.264 and MP2 with MPEG-TS container");
 			codecConfig.videoCodec = "h264";
 			codecConfig.audioCodec = "mp2a";
 			codecConfig.container = "ts";
@@ -239,10 +239,10 @@ public class VLCVideo extends Player {
 		args.put("samplerate", "48000");
 
 		// Recommended on VLC DVD encoding page
-		args.put("keyint", 16);
+		//args.put("keyint", 16);
 
 		// Recommended on VLC DVD encoding page
-		args.put("strict-rc", null);
+		//args.put("strict-rc", null);
 
 		// Stream subtitles to client
 		// args.add("scodec=dvbs");
@@ -286,16 +286,16 @@ public class VLCVideo extends Player {
 		cmdList.add("-I");
 		cmdList.add("dummy");
 
-		// Disable hardware acceleration which is enabled by default
-		// It seems this no longer works on newer versions so we should
-		// find which command it was replaced with, if any.
+		// Disable hardware acceleration which is enabled by default,
+		// but for hardware acceleration, user must enable it in "VLC Preferences",
+		// until they release documentation for new functionalities introduced in 2.1.4+
 		if (!configuration.isGPUAcceleration()) {
-			cmdList.add("--no-ffmpeg-hw");
+			cmdList.add("--avcodec-hw=disabled");
 		}
 
 		// Useful for the more esoteric codecs people use
 		if (experimentalCodecs.isSelected()) {
-			cmdList.add("--sout-ffmpeg-strict=-2");
+			cmdList.add("--sout-avcodec-strict=-2");
 		}
 
 		// Stop the DOS box from appearing on windows
@@ -306,8 +306,7 @@ public class VLCVideo extends Player {
 		// File needs to be given before sout, otherwise vlc complains
 		cmdList.add(filename);
 
-		// Huge fake track id that shouldn't conflict with any real subtitle or audio id. Hopefully.
-		String disableSuffix = "track=214748361";
+		String disableSuffix = "track=-1";
 
 		// Handle audio language
 		if (params.aid != null) {
