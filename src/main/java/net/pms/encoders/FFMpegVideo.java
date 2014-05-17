@@ -209,24 +209,23 @@ public class FFMpegVideo extends Player {
 		if (overrideVF != null) {
 			filterChain.add(overrideVF);
 		} else {
-			String rescaleOrPadding = null;
-
-			if (isResolutionTooHighForRenderer || (renderer.isKeepAspectRatio() && !renderer.isRescaleByRenderer() && media.getWidth() < 720)) { // Do not rescale for SD video and higher
-				rescaleOrPadding = String.format(
-					// http://stackoverflow.com/a/8351875
-					"scale=iw*min(%1$d/iw\\,%2$d/ih):ih*min(%1$d/iw\\,%2$d/ih),pad=%1$d:%2$d:(%1$d-iw)/2:(%2$d-ih)/2",
-					renderer.getMaxVideoWidth(),
-					renderer.getMaxVideoHeight()
-				);
-			} else if (renderer.isKeepAspectRatio() && isMediaValid) {
-				if ((media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
-					rescaleOrPadding = "pad=iw:iw/(16/9):0:(oh-ih)/2";
-				} else {
-					rescaleOrPadding = "pad=ih*(16/9):ih:(ow-iw)/2:0";
+			// disable keepAspectRatio for 3D SBS or TB video, use only rescale if needed
+			boolean keepAR = renderer.isKeepAspectRatio() &&
+					!(
+						media.getWidth() == 3840 && media.getHeight() <= 1080 ||
+						media.getWidth() == 1920 && media.getHeight() == 2160
+					);
+			if (isResolutionTooHighForRenderer || (!renderer.isRescaleByRenderer() && renderer.isVideoRescale() && media.getWidth() < 720)) { // Do not rescale for SD video and higher
+				filterChain.add(String.format("scale=iw*min(%1$d/iw\\,%2$d/ih):ih*min(%1$d/iw\\,%2$d/ih)", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
+				if (keepAR) {
+					filterChain.add(String.format("pad=%1$d:%2$d:(%1$d-iw)/2:(%2$d-ih)/2", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
 				}
-			}
-			if (isNotBlank(rescaleOrPadding)) {
-				filterChain.add(rescaleOrPadding);
+			} else if (keepAR && isMediaValid) {
+				if ((media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
+					filterChain.add("pad=iw:iw/(16/9):0:(oh-ih)/2");
+				} else {
+					filterChain.add("pad=ih*(16/9):ih:(ow-iw)/2:0");
+				}
 			}
 		}
 
