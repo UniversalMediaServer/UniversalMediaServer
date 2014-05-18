@@ -333,7 +333,7 @@ public class Request extends HTTPResource {
 						if (timeseek > 0.0) {
 							dlna.getResume().stop(System.currentTimeMillis() + dlna.getResume().getTimeOffset() - (long) (timeseek * 1000), (long) (dlna.getMedia().getDuration() * 1000));
 						} else {
-							timeseek = new Long(dlna.getResume().getTimeOffset()).doubleValue() / 1000;
+							timeseek = dlna.getResume().getTimeOffset() / (double) 1000;
 						}
 					}
 

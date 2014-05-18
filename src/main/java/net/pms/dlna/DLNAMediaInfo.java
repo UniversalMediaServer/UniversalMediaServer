@@ -408,7 +408,7 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 
 		args[3] = "-ss";
-		args[4] = "" + new Double(getDurationInSeconds()).intValue();
+		args[4] = "" + (int) getDurationInSeconds();
 		args[5] = "-i";
 
 		if (file != null) {
@@ -470,7 +470,7 @@ public class DLNAMediaInfo implements Cloneable {
 		String args[] = new String[14];
 		args[0] = configuration.getMplayerPath();
 		args[1] = "-ss";
-		args[2] = "" + new Double(getDurationInSeconds()).intValue();
+		args[2] = "" + (int) getDurationInSeconds();
 		args[3] = "-quiet";
 
 		if (file != null) {

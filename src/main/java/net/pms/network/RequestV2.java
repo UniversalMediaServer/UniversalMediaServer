@@ -351,7 +351,7 @@ public class RequestV2 extends HTTPResource {
 							if (range.isStartOffsetAvailable() && range.getStartOrZero() > 0.0) {
 								dlna.getResume().stop(System.currentTimeMillis() + dlna.getResume().getTimeOffset() - (long) (range.getStart() * 1000), (long) (dlna.getMedia().getDuration() * 1000));
 							} else {
-								range.setStart(new Long(dlna.getResume().getTimeOffset()).doubleValue() / 1000);
+								range.setStart(dlna.getResume().getTimeOffset() / (double) 1000);
 							}
 						}
 
