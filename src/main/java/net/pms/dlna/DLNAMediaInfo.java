@@ -391,7 +391,7 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	private ProcessWrapperImpl getFFMpegThumbnail(InputFile media) {
-		String args[] = new String[16];
+		String args[] = new String[14];
 		args[0] = getFfmpegPath();
 		File file = media.getFile();
 		boolean dvrms = file != null && file.getAbsolutePath().toLowerCase().endsWith("dvr-ms");
@@ -400,37 +400,30 @@ public class DLNAMediaInfo implements Cloneable {
 			args[0] = configuration.getFfmpegAlternativePath();
 		}
 
-		args[1] = "-loglevel";
-		if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
-			args[2] = "info"; // Could be changed to "verbose" or "debug" if "info" level is not enough
-		} else {
-			args[2] = "fatal";
-		}
-
-		args[3] = "-ss";
-		args[4] = "" + (int) getDurationInSeconds();
-		args[5] = "-i";
+		args[1] = "-ss";
+		args[2] = "" + (int) getDurationInSeconds();
+		args[3] = "-i";
 
 		if (file != null) {
-			args[6] = ProcessUtil.getShortFileNameIfWideChars(file.getAbsolutePath());
+			args[4] = ProcessUtil.getShortFileNameIfWideChars(file.getAbsolutePath());
 		} else {
-			args[6] = "-";
+			args[4] = "-";
 		}
 
-		args[7] = "-an";
-		args[8] = "-an";
-		args[9] = "-vf";
-		args[10] = "scale='if(gt(a,16/9),320,-1)':'if(gt(a,16/9),-1,180)', pad=320:180:(320-iw)/2:(180-ih)/2";
-		args[11] = "-vframes";
-		args[12] = "1";
-		args[13] = "-f";
-		args[14] = "image2";
-		args[15] = "pipe:";
+		args[5] = "-an";
+		args[6] = "-an";
+		args[7] = "-vf";
+		args[8] = "scale='if(gt(a,16/9),320,-1)':'if(gt(a,16/9),-1,180)', pad=320:180:(320-iw)/2:(180-ih)/2";
+		args[9] = "-vframes";
+		args[10] = "1";
+		args[11] = "-f";
+		args[12] = "image2";
+		args[13] = "pipe:";
 
 		// FIXME MPlayer should not be used if thumbnail generation is disabled
 		if (!configuration.isThumbnailGenerationEnabled() || (configuration.isUseMplayerForVideoThumbs() && !dvrms)) {
-			args[4] = "0";
-			for (int i = 7; i <= 15; i++) {
+			args[2] = "0";
+			for (int i = 5; i <= 13; i++) {
 				args[i] = "-an";
 			}
 		}
