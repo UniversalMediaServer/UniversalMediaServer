@@ -25,7 +25,9 @@ public class AutoUpdateDialog extends JDialog implements Observer {
 
 	public synchronized static void showIfNecessary(Window parent, AutoUpdater autoUpdater, boolean isStartup) {
 		if (autoUpdater.isUpdateAvailable() || !isStartup) {
-			instance = new AutoUpdateDialog(parent, autoUpdater);
+			if (instance == null) {
+				instance = new AutoUpdateDialog(parent, autoUpdater);
+			}
 			instance.setVisible(true);
 		}
 	}
