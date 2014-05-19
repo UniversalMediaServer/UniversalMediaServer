@@ -391,6 +391,11 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	private ProcessWrapperImpl getFFMpegThumbnail(InputFile media) {
+		/**
+		 * Note: The text output from FFmpeg is used by renderers that do
+		 * not use MediaInfo, so do not make any changes that remove or
+		 * minimize the amount of text given by FFmpeg here
+		 */
 		String args[] = new String[14];
 		args[0] = getFfmpegPath();
 		File file = media.getFile();
