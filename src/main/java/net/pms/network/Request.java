@@ -329,15 +329,13 @@ public class Request extends HTTPResource {
 						name = dlna.getName() + " " + dlna.getDisplayName(mediaRenderer);
 					}
 
-					if (dlna.isResume()) {
-						if (timeseek > 0.0) {
-							dlna.getResume().stop(System.currentTimeMillis() + dlna.getResume().getTimeOffset() - (long) (timeseek * 1000), (long) (dlna.getMedia().getDuration() * 1000));
-						} else {
-							timeseek = dlna.getResume().getTimeOffset() / (double) 1000;
-						}
+					Range range = Range.create(lowRange, highRange, timeseek, timeRangeEnd);
+					inputStream = dlna.getInputStream(range, mediaRenderer);
+					// Update timeseek to possibly adjusted resume time
+					if (timeseek > 0 && range.isTimeRange()) {
+						timeseek = ((Range.Time)range).getStartOrZero();
 					}
 
-					inputStream = dlna.getInputStream(Range.create(lowRange, highRange, timeseek, timeRangeEnd), mediaRenderer);
 					if (inputStream == null) {
 						// No inputStream indicates that transcoding / remuxing probably crashed.
 						LOGGER.error("There is no inputstream to return for " + name);
