@@ -1614,7 +1614,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								// If the engine being is tsMuxeR or VLC, we are definitely outputting MPEG-TS so we can skip a lot of tests
 								boolean isFileMPEGTS = TsMuxeRVideo.ID.equals(player.id()) || VideoLanVideoStreaming.ID.equals(player.id());
 
-								boolean isMuxableResult = getMedia().isMuxable(mediaRenderer);
+								boolean isMuxableResult = getMedia() != null && getMedia().isMuxable(mediaRenderer);
 
 								// If the engine is MEncoder or FFmpeg, and the muxing settings are enabled, it may be MPEG-TS so we need to do more tests
 								if (
@@ -1669,7 +1669,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 											}
 										}
 
-										if (params.aid == null && media.getAudioTracksList().size() > 0) {
+										if (params.aid == null && media != null && media.getAudioTracksList().size() > 0) {
 											// Take a default audio track, dts first if possible
 											for (DLNAMediaAudio audio : media.getAudioTracksList()) {
 												if (audio.isDTS()) {
@@ -1733,7 +1733,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 														if (sub.equals("off")) {
 															matchedSub = new DLNAMediaSubtitle();
 															matchedSub.setLang("off");
-														} else {
+														} else if (getMedia() != null) {
 															for (DLNAMediaSubtitle present_sub : media.getSubtitleTracksList()) {
 																if (present_sub.matchCode(sub) || sub.equals("*")) {
 																	if (present_sub.getExternalFile() != null) {

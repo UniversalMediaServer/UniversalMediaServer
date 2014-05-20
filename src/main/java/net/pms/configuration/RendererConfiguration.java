@@ -1060,9 +1060,8 @@ public class RendererConfiguration {
 	 * @return The maximum video width.
 	 */
 	public int getMaxVideoWidth() {
-		// FIXME why is this 1920 if the default value is 0 (unlimited)?
-		// XXX we should also require width and height to both be 0 or both be > 0
-		return getInt(MAX_VIDEO_WIDTH, 1920);
+		// XXX we should require width and height to both be 0 or both be > 0
+		return getInt(MAX_VIDEO_WIDTH, 0);
 	}
 
 	/**
@@ -1072,9 +1071,8 @@ public class RendererConfiguration {
 	 * @return The maximum video height.
 	 */
 	public int getMaxVideoHeight() {
-		// FIXME why is this 1080 if the default value is 0 (unlimited)?
-		// XXX we should also require width and height to both be 0 or both be > 0
-		return getInt(MAX_VIDEO_HEIGHT, 1080);
+		// XXX we should require width and height to both be 0 or both be > 0
+		return getInt(MAX_VIDEO_HEIGHT, 0);
 	}
 
 	/**
