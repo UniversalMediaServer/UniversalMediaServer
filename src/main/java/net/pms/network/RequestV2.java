@@ -347,15 +347,8 @@ public class RequestV2 extends HTTPResource {
 							totalsize == DLNAMediaInfo.TRANS_SIZE
 						)
 					) { 
-						if (dlna.isResume()) {
-							if (range.isStartOffsetAvailable() && range.getStartOrZero() > 0.0) {
-								dlna.getResume().stop(System.currentTimeMillis() + dlna.getResume().getTimeOffset() - (long) (range.getStart() * 1000), (long) (dlna.getMedia().getDuration() * 1000));
-							} else {
-								range.setStart(dlna.getResume().getTimeOffset() / (double) 1000);
-							}
-						}
-
-						inputStream = dlna.getInputStream(Range.create(lowRange, highRange, range.getStart(), range.getEnd()), mediaRenderer);
+						// Pass the range itself for possible resume adjustments
+						inputStream = dlna.getInputStream(range, mediaRenderer);
 					} 
 
 					if (dlna.getMedia() != null && !configuration.isDisableSubtitles()) {
