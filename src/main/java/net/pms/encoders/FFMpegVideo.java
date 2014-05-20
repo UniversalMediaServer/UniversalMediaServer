@@ -638,7 +638,7 @@ public class FFMpegVideo extends Player {
 		}
 		if (deferToTsmuxer == true && !configuration.getHideTranscodeEnabled() && dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder)) {
 			deferToTsmuxer = false;
-			LOGGER.trace(prependTraceReason + "the file is being played via a MEncoder entry in the transcode folder.");
+			LOGGER.trace(prependTraceReason + "the file is being played via a FFmpeg entry in the transcode folder.");
 		}
 		if (deferToTsmuxer == true && !params.mediaRenderer.isMuxH264MpegTS()) {
 			deferToTsmuxer = false;
