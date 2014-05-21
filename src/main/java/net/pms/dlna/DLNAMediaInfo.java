@@ -1055,6 +1055,8 @@ public class DLNAMediaInfo implements Cloneable {
 							lang.setType(SubtitleType.DIVX);
 						} else if (line.contains("mov_text")) {
 							lang.setType(SubtitleType.TX3G);
+						} else if (line.contains("webvtt")) {
+							lang.setType(SubtitleType.WEBVTT);
 						} else {
 							lang.setType(SubtitleType.UNKNOWN);
 						}

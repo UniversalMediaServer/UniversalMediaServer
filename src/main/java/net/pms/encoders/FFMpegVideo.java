@@ -169,7 +169,7 @@ public class FFMpegVideo extends Player {
 					if (params.sid.isEmbedded() || (params.sid.isExternal() && params.sid.getType() == SubtitleType.ASS)) {
 						subsFilter.append("ass=");
 						subsFilter.append(subsFile);
-					} else if (params.sid.isExternal() && params.sid.getType() == SubtitleType.SUBRIP) {
+					} else if (params.sid.isExternal() && (params.sid.getType() == SubtitleType.SUBRIP || params.sid.getType() == SubtitleType.WEBVTT)) {
 						subsFilter.append("subtitles=");
 						subsFilter.append(subsFile);
 					}
@@ -1173,7 +1173,7 @@ public class FFMpegVideo extends Player {
 			(
 				!applyFontConfig &&
 				!isEmbeddedSource &&
-				params.sid.getType() == SubtitleType.SUBRIP
+				(params.sid.getType() == SubtitleType.SUBRIP || params.sid.getType() == SubtitleType.WEBVTT)
 			)
 		) {
 			tempSubs = params.sid.getExternalFile();
