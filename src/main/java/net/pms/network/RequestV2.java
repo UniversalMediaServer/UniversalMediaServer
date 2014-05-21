@@ -346,7 +346,7 @@ public class RequestV2 extends HTTPResource {
 							lowRange == 0 &&
 							totalsize == DLNAMediaInfo.TRANS_SIZE
 						)
-					) { 
+					) {
 						// Pass the range itself for possible resume adjustments
 						inputStream = dlna.getInputStream(range, mediaRenderer);
 					} 
