@@ -52,8 +52,7 @@ public enum SubtitleType {
 	BMP (9, "BMP", list(), list("S_IMAGE/BMP"), type.PICTURE),
 	DIVX (10, "DIVX subtitles", list(), list("DXSB"), type.PICTURE),
 	TX3G (11, "Timed text (TX3G)", list(), list("tx3g"), type.TEXT),
-	PGS (12, "Blu-ray subtitles", list(), list("S_HDMV/PGS", "PGS", "144"), type.PICTURE),
-	WEBVTT (13, "WebVTT", list("vtt"), list("WebVTT"), type.TEXT);
+	PGS (12, "Blu-ray subtitles", list(), list("S_HDMV/PGS", "PGS", "144"), type.PICTURE);
 
 	public enum type {TEXT, PICTURE, UNDEF}
 	private final int index;
