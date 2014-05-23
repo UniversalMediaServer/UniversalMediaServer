@@ -60,7 +60,9 @@ public class RendererPanel extends JPanel {
 			}
 		} else {
 			y = addItem("name", renderer.getRendererName(), builder, y);
-			y = addItem("address", renderer.getAddress().toString().substring(1), builder, y);
+			if (!(renderer.getAddress() == null)) {
+				y = addItem("address", renderer.getAddress().toString().substring(1), builder, y);
+			}
 		}
 
 		add(builder.getPanel());

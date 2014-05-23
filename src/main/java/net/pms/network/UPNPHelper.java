@@ -547,8 +547,11 @@ public class UPNPHelper extends UPNPControl {
 		try {
 			InetAddress socket = InetAddress.getByName(getURL(d).getHost());
 			RendererConfiguration r = RendererConfiguration.getRendererConfigurationBySocketAddress(socket);
-			if (r != null) {
-				// Already seen, make sure it's mapped
+
+			// FIXME: when UpnpDetailsSearch is missing from the conf a upnp-advertising
+			// renderer could register twice if the http server sees it first
+			if (r != null && r.matchUPNPDetails(getDeviceDetailsString(d))) {
+				// Already seen by the http server, make sure it's mapped
 				rendererMap.put(uuid, "0", r);
 				// update gui
 				PMS.get().updateRenderer(r);

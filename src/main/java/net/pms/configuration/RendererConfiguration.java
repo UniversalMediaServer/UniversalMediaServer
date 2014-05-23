@@ -1115,7 +1115,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return Whether offline.
 	 */
 	public boolean isOffline() {
-		return ! hasAssociatedAddress() || (uuid != null && ! UPNPHelper.isActive(uuid, instanceID));
+		return ! (uuid == null ? hasAssociatedAddress() : UPNPHelper.isActive(uuid, instanceID));
 	}
 
 	/**
