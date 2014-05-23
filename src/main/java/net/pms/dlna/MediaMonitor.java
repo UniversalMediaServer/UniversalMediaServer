@@ -58,10 +58,6 @@ public class MediaMonitor extends VirtualFolder {
 						oldEntries.add(entry.trim());
 					}
 					if (str.startsWith("entry=")) {
-						String entry = str.substring(6);
-						if (!new File(entry.trim()).exists()) {
-							continue;
-						}
 						oldEntries.add(entry.trim());
 					}
 				}

@@ -1,3 +1,25 @@
+3.6.2 - 2014-05-24
+
+	General:
+		Tweaked the default Wi-Fi settings for smoother playback on slower networks
+		Fixed automatic updating on Windows
+		Fixed a memory leak
+		Fixed seeking in some situations
+		Optimized code
+		Improved logging
+	Renderers:
+		Improved support for Apple mobile devices (iPad, iPhone, iPod)
+		Improved support for DirecTV HR
+		Improved support for LG LA644V Smart TV
+		Improved support for Nokia N900
+		Improved support for Pioneer Kuro
+		Improved support for Samsung mobile devices
+		Improved support for Sony Bravia 4500
+		Improved support for Sony Bravia EX620
+		Improved support for Telstra T-Box
+	Languages:
+		Updated Spanish translation (thanks, AlfredoRamos!)
+
 3.6.1 - 2014-05-15
 
 	General:

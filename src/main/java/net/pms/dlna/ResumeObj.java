@@ -141,6 +141,14 @@ public class ResumeObj {
 		return !file.exists();
 	}
 
+	public void update(Range.Time range, DLNAResource r) {
+		if (range.isStartOffsetAvailable() && range.getStartOrZero() > 0.0) {
+			stop(System.currentTimeMillis() + getTimeOffset() - (long) (range.getStart() * 1000), (long) ((r.getMedia() != null ? r.getMedia().getDuration() : 0) * 1000));
+		} else {
+			range.setStart(getTimeOffset() / (double) 1000);
+		}
+	}
+
 	public void stop(long startTime, long expDuration) {
 		long now = System.currentTimeMillis();
 		long thisPlay = now - startTime;

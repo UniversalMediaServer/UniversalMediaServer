@@ -138,15 +138,12 @@ public class PlaylistFolder extends DLNAResource {
 										entry.title = title;
 									}
 								}
-							}
-						}
-					} else if (m3u) {
-						if (line.startsWith("#EXTINF:")) {
-							line = line.substring(8).trim();
-							if (line.matches("^-?\\d+,.+")) {
-								title = line.substring(line.indexOf(',') + 1).trim();
-							} else {
-								title = line;
+								if (fileName != null) {
+									entry.fileName = fileName;
+								}
+								if (title != null) {
+									entry.title = title;
+								}
 							}
 						} else if (!line.startsWith("#") && !line.matches("^\\s*$")) {
 							// Non-comment and non-empty line contains the filename
@@ -158,12 +155,25 @@ public class PlaylistFolder extends DLNAResource {
 							title = null;
 						}
 					}
+				} else if (m3u) {
+					if (line.startsWith("#EXTINF:")) {
+						line = line.substring(8).trim();
+						if (line.matches("^-?\\d+,.+")) {
+							title = line.substring(line.indexOf(',') + 1).trim();
+						} else {
+							title = line;
+						}
+					} else if (!line.startsWith("#") && !line.matches("^\\s*$")) {
+						// Non-comment and non-empty line contains the filename
+						fileName = line;
+						Entry entry = new Entry();
+						entry.fileName = fileName;
+						entry.title = title;
+						entries.add(entry);
+						title = null;
+					}
 				}
 				br.close();
-			} catch (NumberFormatException e) {
-				LOGGER.error(null, e);
-			} catch (IOException e) {
-				LOGGER.error(null, e);
 			}
 		} catch (Exception e) {
 			LOGGER.error(null, e);
@@ -173,11 +183,13 @@ public class PlaylistFolder extends DLNAResource {
 			if (entry == null) {
 				continue;
 			}
-			String fileName = entry.fileName;
+			if (entry.title == null) {
+				entry.title = new File(entry.fileName).getName();
+			}
 			LOGGER.debug("Adding " + (pls ? "PLS " : (m3u ? "M3U " : "")) + "entry: " + entry);
-			if (!isweb) {
-				File en1 = new File(getPlaylistfile().getParentFile(), fileName);
-				File en2 = new File(fileName);
+			if (! isweb && ! FileUtil.isUrl(entry.fileName)) {
+				File en1 = new File(getPlaylistfile().getParentFile(), entry.fileName);
+				File en2 = new File(entry.fileName);
 				if (en1.exists()) {
 					addChild(new RealFile(en1, entry.title));
 					valid = true;

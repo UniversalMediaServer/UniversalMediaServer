@@ -148,6 +148,8 @@ public class DLNAMediaDatabase implements Runnable {
 				configuration.setUseCache(false);
 				return;
 			}
+		} finally {
+			close(conn);
 		}
 
 		try {
