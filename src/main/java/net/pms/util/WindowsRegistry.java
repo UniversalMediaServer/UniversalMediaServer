@@ -37,7 +37,9 @@ public class WindowsRegistry {
 				return parsed;
 			}
 			
-		} catch (Exception e) {}
+		} catch (IOException e) {
+		} catch (InterruptedException e) {
+		}
 
 		return null;
 	}

@@ -54,24 +54,23 @@ public class OpenSubtitle {
 
 		// Buffer that will contain the head and the tail chunk, chunks will overlap if length is smaller than two chunks
 		byte[] chunkBytes = new byte[(int) Math.min(2 * HASH_CHUNK_SIZE, length)];
-
+		long head;
+		long tail;
 		DataInputStream in = new DataInputStream(stream);
+			// First chunk
+			in.readFully(chunkBytes, 0, chunkSizeForFile);
 
-		// First chunk
-		in.readFully(chunkBytes, 0, chunkSizeForFile);
+			long position = chunkSizeForFile;
+			long tailChunkPosition = length - chunkSizeForFile;
 
-		long position = chunkSizeForFile;
-		long tailChunkPosition = length - chunkSizeForFile;
+			// Seek to position of the tail chunk, or not at all if length is smaller than two chunks 
+			while (position < tailChunkPosition && (position += in.skip(tailChunkPosition - position)) >= 0);
 
-		// Seek to position of the tail chunk, or not at all if length is smaller than two chunks 
-		while (position < tailChunkPosition && (position += in.skip(tailChunkPosition - position)) >= 0);
+			// Second chunk, or the rest of the data if length is smaller than two chunks 
+			in.readFully(chunkBytes, chunkSizeForFile, chunkBytes.length - chunkSizeForFile);
 
-		// Second chunk, or the rest of the data if length is smaller than two chunks 
-		in.readFully(chunkBytes, chunkSizeForFile, chunkBytes.length - chunkSizeForFile);
-
-		long head = computeHashForChunk(ByteBuffer.wrap(chunkBytes, 0, chunkSizeForFile));
-		long tail = computeHashForChunk(ByteBuffer.wrap(chunkBytes, chunkBytes.length - chunkSizeForFile, chunkSizeForFile));
-
+			head = computeHashForChunk(ByteBuffer.wrap(chunkBytes, 0, chunkSizeForFile));
+			tail = computeHashForChunk(ByteBuffer.wrap(chunkBytes, chunkBytes.length - chunkSizeForFile, chunkSizeForFile));
 		in.close();
 		return String.format("%016x", length + head + tail);
 	}
@@ -100,18 +99,19 @@ public class OpenSubtitle {
 		// open up the output stream of the connection
 		if (!StringUtils.isEmpty(query)) {
 			DataOutputStream output = new DataOutputStream(connection.getOutputStream());
-			output.writeBytes(query);
-			output.flush();
+				output.writeBytes(query);
+				output.flush();
 			output.close();
 		}
 
+		StringBuilder page;
 		BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-		StringBuilder page = new StringBuilder();
-		String str;
-		while ((str = in.readLine()) != null) {
-			page.append(str.trim());
-			page.append("\n");
-		}
+			page = new StringBuilder();
+			String str;
+			while ((str = in.readLine()) != null) {
+				page.append(str.trim());
+				page.append("\n");
+			}
 		in.close();
 		//LOGGER.debug("opensubs result page "+page.toString());
 		return page.toString();
@@ -285,14 +285,14 @@ public class OpenSubtitle {
 		connection.setDoInput(true);
 		connection.setDoOutput(true);
 		InputStream in = connection.getInputStream();
-
+		OutputStream out;
 		GZIPInputStream gzipInputStream = new GZIPInputStream(in);
-		OutputStream out = new FileOutputStream(f);
-		byte[] buf = new byte[4096];
-		int len;
-		while ((len = gzipInputStream.read(buf)) > 0) {
-			out.write(buf, 0, len);
-		}
+			out = new FileOutputStream(f);
+			byte[] buf = new byte[4096];
+			int len;
+			while ((len = gzipInputStream.read(buf)) > 0) {
+				out.write(buf, 0, len);
+			}
 		gzipInputStream.close();
 		out.close();
 		if (!PMS.getConfiguration().isLiveSubtitlesKeep()) {

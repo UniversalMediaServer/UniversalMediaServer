@@ -19,8 +19,8 @@ public class PmsProperties {
 		try {
 			String utf = new String(data, ENCODING);
 			StringReader reader = new StringReader(utf);
-			properties.clear();
-			properties.load(reader);
+				properties.clear();
+				properties.load(reader);
 			reader.close();
 		} catch (UnsupportedEncodingException e) {
 			throw new IOException("Could not decode " + ENCODING);

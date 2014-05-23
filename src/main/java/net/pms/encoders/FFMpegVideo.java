@@ -22,7 +22,6 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-import com.sun.jna.Platform;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -50,7 +49,6 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.FileTranscodeVirtualFolder;
 import net.pms.dlna.InputFile;
-import static net.pms.encoders.Player.configuration;
 import net.pms.formats.Format;
 import net.pms.formats.v2.SubtitleType;
 import net.pms.formats.v2.SubtitleUtils;
@@ -952,36 +950,36 @@ public class FFMpegVideo extends Player {
 
 			params.stdin = null;
 			PrintWriter pwMux = new PrintWriter(f);
-			pwMux.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
-			String videoType = "V_MPEG-2";
+				pwMux.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
+				String videoType = "V_MPEG-2";
 
 				if (renderer.isTranscodeToH264TSAC3()) {
 					videoType = "V_MPEG4/ISO/AVC";
 				}
 
-			if (params.no_videoencode && params.forceType != null) {
-				videoType = params.forceType;
-			}
-
-			StringBuilder fps = new StringBuilder();
-			fps.append("");
-			if (params.forceFps != null) {
-				fps.append("fps=").append(params.forceFps).append(", ");
-			}
-
-			String audioType = "A_AC3";
-			if (dtsRemux) {
-				if (params.mediaRenderer.isMuxDTSToMpeg()) {
-					// Renderer can play proper DTS track
-					audioType = "A_DTS";
-				} else {
-					// DTS padded in LPCM trick
-					audioType = "A_LPCM";
+				if (params.no_videoencode && params.forceType != null) {
+					videoType = params.forceType;
 				}
-			}
 
-			pwMux.println(videoType + ", \"" + ffVideoPipe.getOutputPipe() + "\", " + fps + "level=4.1, insertSEI, contSPS, track=1");
-			pwMux.println(audioType + ", \"" + ffAudioPipe.getOutputPipe() + "\", track=2");
+				StringBuilder fps = new StringBuilder();
+				fps.append("");
+				if (params.forceFps != null) {
+					fps.append("fps=").append(params.forceFps).append(", ");
+				}
+
+				String audioType = "A_AC3";
+				if (dtsRemux) {
+					if (params.mediaRenderer.isMuxDTSToMpeg()) {
+						// Renderer can play proper DTS track
+						audioType = "A_DTS";
+					} else {
+						// DTS padded in LPCM trick
+						audioType = "A_LPCM";
+					}
+				}
+
+				pwMux.println(videoType + ", \"" + ffVideoPipe.getOutputPipe() + "\", " + fps + "level=4.1, insertSEI, contSPS, track=1");
+				pwMux.println(audioType + ", \"" + ffAudioPipe.getOutputPipe() + "\", track=2");
 			pwMux.close();
 
 			ProcessWrapper pipe_process = pipe.getPipeProcess();
@@ -1299,27 +1297,27 @@ public class FFMpegVideo extends Player {
 
 		BufferedWriter output;
 		BufferedReader input = new BufferedReader(new FileReader(temp));
-		output = new BufferedWriter(new FileWriter(outputSubs));
-		String line;
-		String[] format = null;
-		int i;
-		while ((line = input.readLine()) != null) {
-			outputString.setLength(0);
-			if (line.startsWith("[Script Info]")) {
-				outputString.append(line).append("\n");
-				output.write(outputString.toString());
-				while ((line = input.readLine()) != null) {
-					outputString.setLength(0);
-					if (!line.isEmpty()) {
-						outputString.append(line).append("\n");
-						output.write(outputString.toString());
-					} else  {
-						outputString.append("PlayResY: ").append(media.getHeight()).append("\n");
-						outputString.append("PlayResX: ").append(media.getWidth()).append("\n");
-						break;
+			output = new BufferedWriter(new FileWriter(outputSubs));
+			String line;
+			String[] format = null;
+			int i;
+			while ((line = input.readLine()) != null) {
+				outputString.setLength(0);
+				if (line.startsWith("[Script Info]")) {
+					outputString.append(line).append("\n");
+					output.write(outputString.toString());
+					while ((line = input.readLine()) != null) {
+						outputString.setLength(0);
+						if (!line.isEmpty()) {
+							outputString.append(line).append("\n");
+							output.write(outputString.toString());
+						} else {
+							outputString.append("PlayResY: ").append(media.getHeight()).append("\n");
+							outputString.append("PlayResX: ").append(media.getWidth()).append("\n");
+							break;
+						}
 					}
 				}
-			}
 
 				if (line != null && line.startsWith("Format:")) {
 					format = line.split(",");
@@ -1331,50 +1329,50 @@ public class FFMpegVideo extends Player {
 				if (line != null && line.startsWith("Style: Default")) {
 					String[] params = line.split(",");
 
-				for (i = 0; i < format.length; i++) {
-					if (format[i].contains("Fontname")) {
-						if (!configuration.getFont().isEmpty()) {
-							params[i] = configuration.getFont();
-						} else {
-							params[i] = "Arial";
+					for (i = 0; i < format.length; i++) {
+						if (format[i].contains("Fontname")) {
+							if (!configuration.getFont().isEmpty()) {
+								params[i] = configuration.getFont();
+							} else {
+								params[i] = "Arial";
+							}
+							continue;
 						}
-						continue;
-					}
 
 						if (format[i].contains("Fontsize")) {
 							params[i] = Integer.toString((int) ((Integer.parseInt(params[i]) * media.getHeight() / (double) 288 * Double.parseDouble(configuration.getAssScale()))));
 							continue;
 						}
 
-					if (format[i].contains("PrimaryColour")) {
-						String primaryColour = Integer.toHexString(configuration.getSubsColor());
-						params[i] = "&H" + primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4);
-						continue;
+						if (format[i].contains("PrimaryColour")) {
+							String primaryColour = Integer.toHexString(configuration.getSubsColor());
+							params[i] = "&H" + primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4);
+							continue;
+						}
+
+						if (format[i].contains("Outline")) {
+							params[i] = configuration.getAssOutline();
+							continue;
+						}
+
+						if (format[i].contains("Shadow")) {
+							params[i] = configuration.getAssShadow();
+							continue;
+						}
+
+						if (format[i].contains("MarginV")) {
+							params[i] = configuration.getAssMargin();
+						}
 					}
 
-					if (format[i].contains("Outline")) {
-						params[i] = configuration.getAssOutline();
-						continue;
-					}
-
-					if (format[i].contains("Shadow")) {
-						params[i] = configuration.getAssShadow();
-						continue;
-					}
-
-					if (format[i].contains("MarginV")) {
-						params[i] = configuration.getAssMargin();
-					}
+					outputString.append(StringUtils.join(params, ",")).append("\n");
+					output.write(outputString.toString());
+					continue;
 				}
 
-				outputString.append(StringUtils.join(params, ",")).append("\n");
+				outputString.append(line).append("\n");
 				output.write(outputString.toString());
-				continue;
 			}
-
-			outputString.append(line).append("\n");
-			output.write(outputString.toString());
-		}
 		input.close();
 		output.flush();
 		output.close();

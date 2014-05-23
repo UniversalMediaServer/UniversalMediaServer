@@ -69,21 +69,21 @@ public class AviDemuxerInputStream extends InputStream {
 			PipedOutputStream pout = new PipedOutputStream();
 			Runnable r;
 			final InputStream pin = new H264AnnexBInputStream(new PipedInputStream(pout), params.header);
-			final OutputStream out = params.output_pipes[0].getOutputStream();
-			r = new Runnable() {
-				@Override
-				public void run() {
-					try {
-						byte[] b = new byte[512 * 1024];
-						int n;
-						while ((n = pin.read(b)) > -1) {
-							out.write(b, 0, n);
+				final OutputStream out = params.output_pipes[0].getOutputStream();
+				r = new Runnable() {
+					@Override
+					public void run() {
+						try {
+							byte[] b = new byte[512 * 1024];
+							int n;
+							while ((n = pin.read(b)) > -1) {
+								out.write(b, 0, n);
+							}
+						} catch (Exception e) {
+							LOGGER.error(null, e);
 						}
-					} catch (Exception e) {
-						LOGGER.error(null, e);
 					}
-				}
-			};
+				};
 			pin.close();
 			vOut = pout;
 			new Thread(r, "Avi Demuxer").start();
@@ -99,27 +99,27 @@ public class AviDemuxerInputStream extends InputStream {
 					TsMuxeRVideo ts = new TsMuxeRVideo();
 					File f = new File(configuration.getTempFolder(), "pms-tsmuxer.meta");
 					PrintWriter pw = new PrintWriter(f);
-					pw.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
-					String videoType = "V_MPEG-2";
+						pw.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
+						String videoType = "V_MPEG-2";
 
-					if (params.no_videoencode && params.forceType != null) {
-						videoType = params.forceType;
-					}
+						if (params.no_videoencode && params.forceType != null) {
+							videoType = params.forceType;
+						}
 
-					String fps = "";
+						String fps = "";
 
-					if (params.forceFps != null) {
-						fps = "fps=" + params.forceFps + ", ";
-					}
+						if (params.forceFps != null) {
+							fps = "fps=" + params.forceFps + ", ";
+						}
 
-					String audioType = "A_LPCM";
+						String audioType = "A_LPCM";
 
-					if (params.lossyaudio) {
-						audioType = "A_AC3";
-					}
+						if (params.lossyaudio) {
+							audioType = "A_AC3";
+						}
 
-					pw.println(videoType + ", \"" + params.output_pipes[0].getOutputPipe() + "\", " + fps + "level=4.1, insertSEI, contSPS, track=1");
-					pw.println(audioType + ", \"" + params.output_pipes[1].getOutputPipe() + "\", track=2");
+						pw.println(videoType + ", \"" + params.output_pipes[0].getOutputPipe() + "\", " + fps + "level=4.1, insertSEI, contSPS, track=1");
+						pw.println(audioType + ", \"" + params.output_pipes[1].getOutputPipe() + "\", track=2");
 					pw.close();
 
 					PipeProcess tsPipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");

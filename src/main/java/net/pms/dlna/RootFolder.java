@@ -527,26 +527,30 @@ public class RootFolder extends DLNAResource {
 			try {
 				process = Runtime.getRuntime().exec("defaults read com.apple.iApps ApertureLibraries");
 				BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
-				// Every line entry is one aperture library. We want all of them as a dlna folder.
-				String line;
-				res = new VirtualFolder("Aperture libraries", null);
+					// Every line entry is one aperture library. We want all of them as a dlna folder.
+					String line;
+					res = new VirtualFolder("Aperture libraries", null);
 
-				while ((line = in.readLine()) != null) {
-					if (line.startsWith("(") || line.startsWith(")")) {
-						continue;
-					}
+					while ((line = in.readLine()) != null) {
+						if (line.startsWith("(") || line.startsWith(")")) {
+							continue;
+						}
 
 						line = line.trim(); // remove extra spaces
 						line = line.substring(1, line.lastIndexOf('"')); // remove quotes and spaces
 						VirtualFolder apertureLibrary = createApertureDlnaLibrary(line);
 
-					if (apertureLibrary != null) {
-						res.addChild(apertureLibrary);
+						if (apertureLibrary != null) {
+							res.addChild(apertureLibrary);
+						}
 					}
-				}
 
 				in.close();
-			} catch (Exception e) {
+			} catch (IOException e) {
+				LOGGER.error("Something went wrong with the aperture library scan: ", e);
+			} catch (XmlParseException e) {
+				LOGGER.error("Something went wrong with the aperture library scan: ", e);
+			} catch (URISyntaxException e) {
 				LOGGER.error("Something went wrong with the aperture library scan: ", e);
 			} finally {
 				// Avoid zombie processes, or open stream failures
@@ -703,25 +707,25 @@ public class RootFolder extends DLNAResource {
 			// "file://localhost/Users/MyUser/Music/iTunes/iTunes%20Music%20Library.xml"
 			Process process = Runtime.getRuntime().exec("defaults read com.apple.iApps iTunesRecentDatabases");
 			BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
-			// we want the 2nd line
-			if ((line = in.readLine()) != null && (line = in.readLine()) != null) {
-				line = line.trim(); // remove extra spaces
-				line = line.substring(1, line.length() - 1); // remove quotes and spaces
-				URI tURI = new URI(line);
-				iTunesFile = URLDecoder.decode(tURI.toURL().getFile(), "UTF8");
-			}
+				// we want the 2nd line
+				if ((line = in.readLine()) != null && (line = in.readLine()) != null) {
+					line = line.trim(); // remove extra spaces
+					line = line.substring(1, line.length() - 1); // remove quotes and spaces
+					URI tURI = new URI(line);
+					iTunesFile = URLDecoder.decode(tURI.toURL().getFile(), "UTF8");
+				}
 			in.close();
 		} else if (Platform.isWindows()) {
 			Process process = Runtime.getRuntime().exec("reg query \"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\" /v \"My Music\"");
 			String location;
 			BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
-			location = null;
-			while ((line = in.readLine()) != null) {
-				final String LOOK_FOR = "REG_SZ";
-				if (line.contains(LOOK_FOR)) {
-					location = line.substring(line.indexOf(LOOK_FOR) + LOOK_FOR.length()).trim();
+				location = null;
+				while ((line = in.readLine()) != null) {
+					final String LOOK_FOR = "REG_SZ";
+					if (line.contains(LOOK_FOR)) {
+						location = line.substring(line.indexOf(LOOK_FOR) + LOOK_FOR.length()).trim();
+					}
 				}
-			}
 			in.close();
 
 			if (location != null) {
@@ -1078,13 +1082,14 @@ public class RootFolder extends DLNAResource {
 										InputStream is = pid.getInputStream();
 										BufferedReader br;
 										InputStreamReader isr = new InputStreamReader(is);
-										br = new BufferedReader(isr);
-										while (br.readLine() != null) {
-										}
+											br = new BufferedReader(isr);
+											while (br.readLine() != null) {
+											}
 										isr.close();
 										br.close();
 										pid.waitFor();
-									} catch (Exception e) {
+									} catch (IOException e) {
+									} catch (InterruptedException e) {
 									}
 
 									return true;

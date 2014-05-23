@@ -20,22 +20,9 @@
 package net.pms.network;
 
 import java.io.IOException;
-import java.net.BindException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.MulticastSocket;
-import java.net.NetworkInterface;
-import java.net.SocketException;
+import java.net.*;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
+import java.util.*;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import org.apache.commons.lang3.StringUtils;

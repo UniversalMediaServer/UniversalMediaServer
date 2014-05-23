@@ -2271,46 +2271,46 @@ public class MEncoderVideo extends Player {
 				params.stdin = null;
 
 				PrintWriter pwMux = new PrintWriter(f);
-				pwMux.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
-				String videoType = "V_MPEG-2";
+					pwMux.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
+					String videoType = "V_MPEG-2";
 
-				if (params.no_videoencode && params.forceType != null) {
-					videoType = params.forceType;
-				}
+					if (params.no_videoencode && params.forceType != null) {
+						videoType = params.forceType;
+					}
 
-				String fps = "";
-				if (params.forceFps != null) {
-					fps = "fps=" + params.forceFps + ", ";
-				}
+					String fps = "";
+					if (params.forceFps != null) {
+						fps = "fps=" + params.forceFps + ", ";
+					}
 
-				String audioType;
-				if (ac3Remux) {
-					audioType = "A_AC3";
-				} else if (dtsRemux) {
-					if (params.mediaRenderer.isMuxDTSToMpeg()) {
-						// Renderer can play proper DTS track
-						audioType = "A_DTS";
+					String audioType;
+					if (ac3Remux) {
+						audioType = "A_AC3";
+					} else if (dtsRemux) {
+						if (params.mediaRenderer.isMuxDTSToMpeg()) {
+							// Renderer can play proper DTS track
+							audioType = "A_DTS";
+						} else {
+							// DTS padded in LPCM trick
+							audioType = "A_LPCM";
+						}
 					} else {
 						// DTS padded in LPCM trick
 						audioType = "A_LPCM";
 					}
-				} else {
-					// DTS padded in LPCM trick
-					audioType = "A_LPCM";
-				}
 
-				/*
-				 * MEncoder bug (confirmed with MEncoder r35003 + FFmpeg 0.11.1)
-				 * Audio delay is ignored when playing from file start (-ss 0)
-				 * Override with tsmuxer.meta setting
-				 */
-				String timeshift = "";
-				if (mencoderAC3RemuxAudioDelayBug) {
-					timeshift = "timeshift=" + params.aid.getAudioProperties().getAudioDelay() + "ms, ";
-				}
+					/*
+					 * MEncoder bug (confirmed with MEncoder r35003 + FFmpeg 0.11.1)
+					 * Audio delay is ignored when playing from file start (-ss 0)
+					 * Override with tsmuxer.meta setting
+					 */
+					String timeshift = "";
+					if (mencoderAC3RemuxAudioDelayBug) {
+						timeshift = "timeshift=" + params.aid.getAudioProperties().getAudioDelay() + "ms, ";
+					}
 
-				pwMux.println(videoType + ", \"" + ffVideoPipe.getOutputPipe() + "\", " + fps + "level=4.1, insertSEI, contSPS, track=1");
-				pwMux.println(audioType + ", \"" + ffAudioPipe.getOutputPipe() + "\", " + timeshift + "track=2");
+					pwMux.println(videoType + ", \"" + ffVideoPipe.getOutputPipe() + "\", " + fps + "level=4.1, insertSEI, contSPS, track=1");
+					pwMux.println(audioType + ", \"" + ffAudioPipe.getOutputPipe() + "\", " + timeshift + "track=2");
 				pwMux.close();
 
 				ProcessWrapper pipe_process = pipe.getPipeProcess();

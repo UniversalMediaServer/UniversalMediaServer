@@ -300,7 +300,15 @@ public class WinUtils extends BasicSystemUtils implements SystemUtils {
 					kerio = true;
 				}
 			}
-		} catch (Exception e) {
+		} catch (NoSuchMethodException e) {
+			LOGGER.debug("Caught exception", e);
+		} catch (SecurityException e) {
+			LOGGER.debug("Caught exception", e);
+		} catch (IllegalAccessException e) {
+			LOGGER.debug("Caught exception", e);
+		} catch (IllegalArgumentException e) {
+			LOGGER.debug("Caught exception", e);
+		} catch (InvocationTargetException e) {
 			LOGGER.debug("Caught exception", e);
 		}
 	}

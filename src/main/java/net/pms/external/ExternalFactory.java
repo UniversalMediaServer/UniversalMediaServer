@@ -129,13 +129,15 @@ public class ExternalFactory {
 
 			if (resources.hasMoreElements()) {
 				URL url = resources.nextElement();
+				char[] name;
 
 				// Determine the plugin main class name from the contents of
 				// the plugin file.
 				InputStreamReader in = new InputStreamReader(url.openStream());
-				char[] name = new char[512];
-				in.read(name);
+					name = new char[512];
+					in.read(name);
 				in.close();
+
 				return new String(name).trim();
 			}
 		} catch (IOException e) {
@@ -194,9 +196,10 @@ public class ExternalFactory {
 			try {
 				// Determine the plugin main class name from the contents of
 				// the plugin file.
+				char[] name;
 				InputStreamReader in = new InputStreamReader(url.openStream());
-				char[] name = new char[512];
-				in.read(name);
+					name = new char[512];
+					in.read(name);
 				in.close();
 				String pluginMainClassName = new String(name).trim();
 
@@ -300,8 +303,8 @@ public class ExternalFactory {
 	private static void addToPurgeFile(File f) {
 		try {
 			FileWriter out = new FileWriter("purge", true); 
-			out.write(f.getAbsolutePath() + "\r\n");
-			out.flush();
+				out.write(f.getAbsolutePath() + "\r\n");
+				out.flush();
 			out.close();
 		} catch (Exception e) {
 			LOGGER.debug("purge file error " + e);
@@ -319,21 +322,20 @@ public class ExternalFactory {
 
 		try {
 			FileInputStream fis = new FileInputStream(purge);
-			BufferedReader in = new BufferedReader(new InputStreamReader(fis)); 
-			String line;
+				BufferedReader in = new BufferedReader(new InputStreamReader(fis)); 
+				String line;
 
-			while ((line = in.readLine()) != null) {
-				File f = new File(line);
+				while ((line = in.readLine()) != null) {
+					File f = new File(line);
 
-				if (action.equalsIgnoreCase("delete")) {
-					f.delete();
-				} else if(action.equalsIgnoreCase("backup")) {
-					FileUtils.moveFileToDirectory(f, new File("backup"), true);
-					f.delete();
+					if (action.equalsIgnoreCase("delete")) {
+						f.delete();
+					} else if(action.equalsIgnoreCase("backup")) {
+						FileUtils.moveFileToDirectory(f, new File("backup"), true);
+						f.delete();
+					}
 				}
 				in.close();
-			}
-
 			fis.close();
 		} catch (IOException e) { }
 		purge.delete();

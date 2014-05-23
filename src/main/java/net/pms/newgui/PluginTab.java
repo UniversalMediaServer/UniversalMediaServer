@@ -334,16 +334,16 @@ public class PluginTab {
 
 				try {
 					FileInputStream fis = new FileInputStream(f);
-					BufferedReader in = new BufferedReader(new InputStreamReader(fis));
-					String line;
-					StringBuilder sb = new StringBuilder();
-					while ((line = in.readLine()) != null) {
-						sb.append(line);
-						sb.append("\n");
-						in.close();
+						BufferedReader in = new BufferedReader(new InputStreamReader(fis));
+						String line;
+						StringBuilder sb = new StringBuilder();
+						while ((line = in.readLine()) != null) {
+							sb.append(line);
+							sb.append("\n");
+						}
+						textArea.setText(sb.toString());
 						in.close();
 					}
-					textArea.setText(sb.toString());
 					fis.close();
 				} catch (IOException e1) {
 					return;
@@ -367,8 +367,8 @@ public class PluginTab {
 					String text = textArea.getText();
 					try {
 						FileOutputStream fos = new FileOutputStream(f);
-						fos.write(text.getBytes());
-						fos.flush();
+							fos.write(text.getBytes());
+							fos.flush();
 						fos.close();
 						PMS.getConfiguration().reload();
 					} catch (Exception e1) {

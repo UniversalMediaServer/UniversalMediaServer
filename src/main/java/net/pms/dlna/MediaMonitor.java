@@ -111,49 +111,49 @@ public class MediaMonitor extends VirtualFolder {
 		}
 	}
 
-    @Override
-    public void discoverChildren() {
-        for (File f : dirs) {
-            scanDir(f.listFiles(), this);
-        }
-    }
+	@Override
+	public void discoverChildren() {
+		for (File f : dirs) {
+			scanDir(f.listFiles(), this);
+		}
+	}
 
-    @Override
-    public boolean isRefreshNeeded() {
-        return true;
-    }
+	@Override
+	public boolean isRefreshNeeded() {
+		return true;
+	}
 
-    private boolean monitorClass(DLNAResource res) {
-        return (res instanceof MonitorEntry) || (res instanceof MediaMonitor);
-    }
+	private boolean monitorClass(DLNAResource res) {
+		return (res instanceof MonitorEntry) || (res instanceof MediaMonitor);
+	}
 
-    public void stopped(DLNAResource res) {
-        if (!(res instanceof RealFile)) {
-            return;
-        }
-        RealFile rf = (RealFile) res;
-        DLNAResource tmp = res.getParent();
-        while (tmp != null) {
-            if (monitorClass(tmp)) {
-                if (old(rf.getFile().getAbsolutePath())) { // no duplicates!
-                    return;
-                }
-                oldEntries.add(rf.getFile().getAbsolutePath());
-                setDiscovered(false);
-                getChildren().clear();
-                try {
-                    dumpFile();
-                } catch (IOException e) {
-                }
-                return;
-            }
-            tmp = tmp.getParent();
-        }
-    }
+	public void stopped(DLNAResource res) {
+		if (!(res instanceof RealFile)) {
+			return;
+		}
+		RealFile rf = (RealFile) res;
+		DLNAResource tmp = res.getParent();
+		while (tmp != null) {
+			if (monitorClass(tmp)) {
+				if (old(rf.getFile().getAbsolutePath())) { // no duplicates!
+					return;
+				}
+				oldEntries.add(rf.getFile().getAbsolutePath());
+				setDiscovered(false);
+				getChildren().clear();
+				try {
+					dumpFile();
+				} catch (IOException e) {
+				}
+				return;
+			}
+			tmp = tmp.getParent();
+		}
+	}
 
-    private boolean old(String str) {
-        return oldEntries.contains(str);
-    }
+	private boolean old(String str) {
+		return oldEntries.contains(str);
+	}
 
 	private void dumpFile() throws IOException {
 		File f = monitorFile();

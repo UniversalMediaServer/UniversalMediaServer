@@ -94,16 +94,16 @@ public class ResumeObj {
 	public void read() {
 		try {
 			BufferedReader in = new BufferedReader(new FileReader(file));
-			String str;
-			while ((str = in.readLine()) != null) {
-				String[] tmp = str.split(",");
-				offsetTime = Long.parseLong(tmp[0]);
-				if (tmp.length > 1) {
-					resDuration = Long.parseLong(tmp[1]);
+				String str;
+				while ((str = in.readLine()) != null) {
+					String[] tmp = str.split(",");
+					offsetTime = Long.parseLong(tmp[0]);
+					if (tmp.length > 1) {
+						resDuration = Long.parseLong(tmp[1]);
+					}
+					break;
 				}
-				break;
-			}
-			in.close();
+				in.close();
 		} catch (IOException e) {
 		}
 	}
@@ -111,12 +111,12 @@ public class ResumeObj {
 	private static void write(long time, long duration, File f) {
 		try {
 			BufferedWriter out = new BufferedWriter(new FileWriter(f));
-			out.write(time + "," + duration);
-			out.flush();
-			out.close();
-			if (configuration.getResumeKeepTime() > 0) {
-				PMS.get().addTempFile(f, configuration.getResumeKeepTime() * DAYS);
-			}
+				out.write(time + "," + duration);
+				out.flush();
+				out.close();
+				if (configuration.getResumeKeepTime() > 0) {
+					PMS.get().addTempFile(f, configuration.getResumeKeepTime() * DAYS);
+				}
 		} catch (IOException e) {
 		}
 	}

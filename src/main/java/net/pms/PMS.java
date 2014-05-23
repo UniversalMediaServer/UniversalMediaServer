@@ -1282,16 +1282,15 @@ public class PMS {
 		ProcessBuilder pb = new ProcessBuilder("tasklist", "/FI", "\"PID eq " + pid + "\"", "/V", "/NH", "/FO", "CSV");
 		pb.redirectErrorStream(true);
 		Process p = pb.start();
+		String line;
 		BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
-
-		try {
-			p.waitFor();
-		} catch (InterruptedException e) {
-			in.close();
-			return false;
-		}
-
-		String line = in.readLine();
+			try {
+				p.waitFor();
+			} catch (InterruptedException e) {
+				in.close();
+				return false;
+			}
+			line = in.readLine();
 		in.close();
 
 		if (line == null) {
@@ -1316,8 +1315,9 @@ public class PMS {
 
 	private static void killProc() throws IOException {
 		ProcessBuilder pb = null;
+		String pid;
 		BufferedReader in = new BufferedReader(new FileReader(pidFile()));
-		String pid = in.readLine();
+			pid = in.readLine();
 		in.close();
 
 		if (Platform.isWindows()) {
@@ -1335,7 +1335,9 @@ public class PMS {
 		try {
 			Process p = pb.start();
 			p.waitFor();
-		} catch (Exception e) {
+		} catch (IOException e) {
+			LOGGER.trace("Error killing process by PID " + e);
+		} catch (InterruptedException e) {
 			LOGGER.trace("Error killing process by PID " + e);
 		}
 	}
@@ -1347,11 +1349,11 @@ public class PMS {
 
 	private static void dumpPid() throws IOException {
 		FileOutputStream out = new FileOutputStream(pidFile());
-		long pid = getPID();
-		LOGGER.trace("PID: " + pid);
-		String data = String.valueOf(pid) + "\r\n";
-		out.write(data.getBytes());
-		out.flush();
+			long pid = getPID();
+			LOGGER.trace("PID: " + pid);
+			String data = String.valueOf(pid) + "\r\n";
+			out.write(data.getBytes());
+			out.flush();
 		out.close();
 	}
 

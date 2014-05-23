@@ -120,7 +120,11 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		if (Platform.isWindows()) {
 			try {
 				selectedLaf = (LookAndFeel) Class.forName("com.jgoodies.looks.windows.WindowsLookAndFeel").newInstance();
-			} catch (Exception e) {
+			} catch (ClassNotFoundException e) {
+				selectedLaf = new PlasticLookAndFeel();
+			} catch (InstantiationException e) {
+				selectedLaf = new PlasticLookAndFeel();
+			} catch (IllegalAccessException e) {
 				selectedLaf = new PlasticLookAndFeel();
 			}
 		} else if (System.getProperty("nativelook") == null && !Platform.isMac()) {
@@ -142,7 +146,16 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 				LOGGER.trace("Choosing Java look and feel: " + systemClassName);
 				UIManager.setLookAndFeel(systemClassName);
-			} catch (Exception e1) {
+			} catch (ClassNotFoundException e1) {
+				selectedLaf = new PlasticLookAndFeel();
+				LOGGER.error("Error while setting native look and feel: ", e1);
+			} catch (InstantiationException e1) {
+				selectedLaf = new PlasticLookAndFeel();
+				LOGGER.error("Error while setting native look and feel: ", e1);
+			} catch (IllegalAccessException e1) {
+				selectedLaf = new PlasticLookAndFeel();
+				LOGGER.error("Error while setting native look and feel: ", e1);
+			} catch (UnsupportedLookAndFeelException e1) {
 				selectedLaf = new PlasticLookAndFeel();
 				LOGGER.error("Error while setting native look and feel: ", e1);
 			}
@@ -259,23 +272,23 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		 * 3) otherwise (default): don't display them
 		 */
 		if ("true".equals(showScrollbars)) {
-			setContentPane(
-				new JScrollPane(
-					jp,
-					ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
-					ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS
-				)
-			);
+				setContentPane(
+					new JScrollPane(
+						jp,
+						ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
+						ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS
+					)
+				);
 		} else if ("optional".equals(showScrollbars)) {
-			setContentPane(
-				new JScrollPane(
-					jp,
-					ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-					ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
-				)
-			);
+				setContentPane(
+					new JScrollPane(
+						jp,
+						ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+						ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
+					)
+				);
 		} else {
-			setContentPane(jp);
+				setContentPane(jp);
 		}
 
 		String projectName = PropertiesUtil.getProjectProperties().get("project.name");

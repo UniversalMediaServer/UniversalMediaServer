@@ -603,11 +603,11 @@ public class FileUtil {
 		byte[] buf = new byte[4096];
 		final UniversalDetector universalDetector;
 		BufferedInputStream bufferedInputStream = new BufferedInputStream(new FileInputStream(file));
-		universalDetector = new UniversalDetector(null);
-		int numberOfBytesRead;
-		while ((numberOfBytesRead = bufferedInputStream.read(buf)) > 0 && !universalDetector.isDone()) {
-			universalDetector.handleData(buf, 0, numberOfBytesRead);
-		}
+			universalDetector = new UniversalDetector(null);
+			int numberOfBytesRead;
+			while ((numberOfBytesRead = bufferedInputStream.read(buf)) > 0 && !universalDetector.isDone()) {
+				universalDetector.handleData(buf, 0, numberOfBytesRead);
+			}
 		bufferedInputStream.close();
 		universalDetector.dataEnd();
 		String encoding = universalDetector.getDetectedCharset();

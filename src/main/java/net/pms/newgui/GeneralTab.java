@@ -334,16 +334,15 @@ public class GeneralTab {
 					try {
 						FileInputStream fis = new FileInputStream(conf);
 						BufferedReader in = new BufferedReader(new InputStreamReader(fis));
-						String line;
-						StringBuilder sb = new StringBuilder();
+							String line;
+							StringBuilder sb = new StringBuilder();
 
-						while ((line = in.readLine()) != null) {
-							sb.append(line);
-							sb.append("\n");
-						}
-
+							while ((line = in.readLine()) != null) {
+								sb.append(line);
+								sb.append("\n");
+							}
+							textArea.setText(sb.toString());
 						in.close();
-						textArea.setText(sb.toString());
 						fis.close();
 					} catch (IOException e1) {
 						return;
@@ -360,8 +359,8 @@ public class GeneralTab {
 
 						try {
 							FileOutputStream fos = new FileOutputStream(conf);
-							fos.write(text.getBytes());
-							fos.flush();
+								fos.write(text.getBytes());
+								fos.flush();
 							fos.close();
 							configuration.reload();
 						} catch (Exception e1) {

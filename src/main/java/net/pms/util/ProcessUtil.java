@@ -44,7 +44,13 @@ public class ProcessUtil {
 				Field f = p.getClass().getDeclaredField("pid");
 				f.setAccessible(true);
 				pid = f.getInt(p);
-			} catch (Throwable e) {
+			} catch (NoSuchFieldException e) {
+				LOGGER.debug("Can't determine the Unix process ID: " + e.getMessage());
+			} catch (SecurityException e) {
+				LOGGER.debug("Can't determine the Unix process ID: " + e.getMessage());
+			} catch (IllegalArgumentException e) {
+				LOGGER.debug("Can't determine the Unix process ID: " + e.getMessage());
+			} catch (IllegalAccessException e) {
 				LOGGER.debug("Can't determine the Unix process ID: " + e.getMessage());
 			}
 		}
@@ -156,11 +162,11 @@ public class ProcessUtil {
 			Process p = pb.start();
 			StringBuilder output;
 			BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-			String line;
-			output = new StringBuilder();
-			while ((line = br.readLine()) != null) {
-				output.append(line).append("\n");
-			}
+				String line;
+				output = new StringBuilder();
+				while ((line = br.readLine()) != null) {
+					output.append(line).append("\n");
+				}
 			br.close();
 			p.waitFor();
 			if (p.exitValue() != 0) {

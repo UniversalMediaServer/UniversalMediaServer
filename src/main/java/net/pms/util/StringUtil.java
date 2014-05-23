@@ -132,10 +132,10 @@ public class StringUtil {
 	public static String convertTimeToString(double d, String timeFormat) {
 		StringBuilder sb = new StringBuilder();
 		Formatter formatter = new Formatter(sb, Locale.US);
-		double s = d % 60;
-		int h = (int) (d / 3600);
-		int m = ((int) (d / 60)) % 60;
-		formatter.format(timeFormat, h, m, s);
+			double s = d % 60;
+			int h = (int) (d / 3600);
+			int m = ((int) (d / 60)) % 60;
+			formatter.format(timeFormat, h, m, s);
 		formatter.close();
 
 		return sb.toString();

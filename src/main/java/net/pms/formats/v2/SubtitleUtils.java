@@ -107,11 +107,12 @@ public class SubtitleUtils {
 		}
 
 		BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), Charset.forName(CHARSET_UTF_8)));
-		while ((line = reader.readLine()) != null) {
-			output.write(line + "\n");
-		}
+			while ((line = reader.readLine()) != null) {
+				output.write(line + "\n");
+			}
 
-		output.flush();
+			output.flush();
+			output.close();
 		output.close();
 
 		reader.close();

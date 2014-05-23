@@ -89,54 +89,46 @@ public class PlaylistFolder extends DLNAResource {
 		boolean m3u = false;
 		boolean pls = false;
 		try {
-			try {
-				BufferedReader br = getBufferedReader();
-				String line;
-				while (!m3u && !pls && (line = br.readLine()) != null) {
-					line = line.trim();
-					if (line.startsWith("#EXTM3U")) {
-						m3u = true;
-						LOGGER.debug("Reading m3u playlist: " + getName());
-					} else if (line.length() > 0 && line.equals("[playlist]")) {
-						pls = true;
-						LOGGER.debug("Reading PLS playlist: " + getName());
-					}
+			BufferedReader br = getBufferedReader();
+			String line;
+			while (!m3u && !pls && (line = br.readLine()) != null) {
+				line = line.trim();
+				if (line.startsWith("#EXTM3U")) {
+					m3u = true;
+					LOGGER.debug("Reading m3u playlist: " + getName());
+				} else if (line.length() > 0 && line.equals("[playlist]")) {
+					pls = true;
+					LOGGER.debug("Reading PLS playlist: " + getName());
 				}
-				String fileName;
-				String title = null;
-				while ((line = br.readLine()) != null) {
-					line = line.trim();
-					if (pls) {
-						if (line.length() > 0 && !line.startsWith("#")) {
-							int eq = line.indexOf('=');
-							if (eq != -1) {
-								String value = line.substring(eq + 1);
-								String var = line.substring(0, eq).toLowerCase();
-								fileName = null;
-								title = null;
-								int index = 0;
-								if (var.startsWith("file")) {
-									index = Integer.valueOf(var.substring(4));
-									fileName = value;
-								} else if (var.startsWith("title")) {
-									index = Integer.valueOf(var.substring(5));
-									title = value;
+			}
+			String fileName;
+			String title = null;
+			while ((line = br.readLine()) != null) {
+				line = line.trim();
+				if (pls) {
+					if (line.length() > 0 && !line.startsWith("#")) {
+						int eq = line.indexOf('=');
+						if (eq != -1) {
+							String value = line.substring(eq + 1);
+							String var = line.substring(0, eq).toLowerCase();
+							fileName = null;
+							title = null;
+							int index = 0;
+							if (var.startsWith("file")) {
+								index = Integer.valueOf(var.substring(4));
+								fileName = value;
+							} else if (var.startsWith("title")) {
+								index = Integer.valueOf(var.substring(5));
+								title = value;
+							}
+							if (index > 0) {
+								while (entries.size() < index) {
+									entries.add(null);
 								}
-								if (index > 0) {
-									while (entries.size() < index) {
-										entries.add(null);
-									}
-									Entry entry = entries.get(index - 1);
-									if (entry == null) {
-										entry = new Entry();
-										entries.set(index - 1, entry);
-									}
-									if (fileName != null) {
-										entry.fileName = fileName;
-									}
-									if (title != null) {
-										entry.title = title;
-									}
+								Entry entry = entries.get(index - 1);
+								if (entry == null) {
+									entry = new Entry();
+									entries.set(index - 1, entry);
 								}
 								if (fileName != null) {
 									entry.fileName = fileName;
@@ -145,14 +137,6 @@ public class PlaylistFolder extends DLNAResource {
 									entry.title = title;
 								}
 							}
-						} else if (!line.startsWith("#") && !line.matches("^\\s*$")) {
-							// Non-comment and non-empty line contains the filename
-							fileName = line;
-							Entry entry = new Entry();
-							entry.fileName = fileName;
-							entry.title = title;
-							entries.add(entry);
-							title = null;
 						}
 					}
 				} else if (m3u) {
@@ -173,9 +157,11 @@ public class PlaylistFolder extends DLNAResource {
 						title = null;
 					}
 				}
-				br.close();
 			}
-		} catch (Exception e) {
+			br.close();
+		} catch (IOException e) {
+			LOGGER.error(null, e);
+		} catch (NumberFormatException e) {
 			LOGGER.error(null, e);
 		}
 

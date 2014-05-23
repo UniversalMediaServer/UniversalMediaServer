@@ -161,11 +161,11 @@ public class DbgPacker implements ActionListener {
 			return;
 		}
 		FileInputStream in = new FileInputStream(f);
-		out.putNextEntry(new ZipEntry(f.getName()));
-		while ((len = in.read(buf)) > 0) {
-			out.write(buf, 0, len);
-		}
-		out.closeEntry();
+			out.putNextEntry(new ZipEntry(f.getName()));
+			while ((len = in.read(buf)) > 0) {
+				out.write(buf, 0, len);
+			}
+			out.closeEntry();
 		in.close();
 	}
 
@@ -211,13 +211,13 @@ public class DbgPacker implements ActionListener {
 		}
 		try {
 			ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(dbg_zip));
-			for (Map.Entry<File, JCheckBox> item : items.entrySet()) {
-				if (item.getValue().isSelected()) {
-					File file = item.getKey();
-					LOGGER.debug("packing " + file.getAbsolutePath());
-					writeToZip(zos, file);
+				for (Map.Entry<File, JCheckBox> item : items.entrySet()) {
+					if (item.getValue().isSelected()) {
+						File file = item.getKey();
+						LOGGER.debug("packing " + file.getAbsolutePath());
+						writeToZip(zos, file);
+					}
 				}
-			}
 			zos.close();
 		} catch (Exception e) {
 			LOGGER.debug("error packing zip file " + e);

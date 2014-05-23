@@ -119,7 +119,9 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 						LOGGER.trace("Starting the extraction of " + header.getFileNameString());
 						rarFile.extractFile(header, out);
 					}
-				} catch (Exception e) {
+				} catch (RarException e) {
+					LOGGER.debug("Unpack error, maybe it's normal, as backend can be terminated: " + e.getMessage());
+				} catch (IOException e) {
 					LOGGER.debug("Unpack error, maybe it's normal, as backend can be terminated: " + e.getMessage());
 				} finally {
 					try {
