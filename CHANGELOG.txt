@@ -1,4 +1,4 @@
-3.6.2 - 2014-05-??
+3.6.2 - 2014-05-24
 
 	General:
 		Tweaked the default Wi-Fi settings for smoother playback on slower networks
