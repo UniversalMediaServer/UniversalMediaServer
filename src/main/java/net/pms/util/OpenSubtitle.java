@@ -243,7 +243,7 @@ public class OpenSubtitle {
 		}
 		return res;
 	}
-	
+
 	private static String iso639(String s) {
 		String[] tmp = s.split(",");
 		StringBuilder res = new StringBuilder();

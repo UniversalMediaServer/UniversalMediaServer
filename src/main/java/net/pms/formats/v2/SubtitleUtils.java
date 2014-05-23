@@ -105,7 +105,7 @@ public class SubtitleUtils {
 		} else {
 			reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileToConvert)));
 		}
-		
+
 		try (BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), Charset.forName(CHARSET_UTF_8)))) {
 			while ((line = reader.readLine()) != null) {
 				output.write(line + "\n");

@@ -2707,6 +2707,8 @@ public class PmsConfiguration {
 		// Now we know cred path is set
 		File f = new File(cp);
 		if (!f.exists()) {
+			// Cred path is set but file isn't there
+			// Create empty file with some comments
 			try (FileOutputStream fos = new FileOutputStream(f)) {
 				StringBuilder sb = new StringBuilder();
 				sb.append("# Add credentials to the file");
