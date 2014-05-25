@@ -347,8 +347,11 @@ public class RequestV2 extends HTTPResource {
 							totalsize == DLNAMediaInfo.TRANS_SIZE
 						)
 					) {
-						// Pass the range itself for possible resume adjustments
-						inputStream = dlna.getInputStream(range, mediaRenderer);
+						inputStream = dlna.getInputStream(Range.create(lowRange, highRange, range.getStart(), range.getEnd()), mediaRenderer);
+						if (dlna.isResume()) {
+							// Update range to possibly adjusted resume time
+							range.setStart(dlna.getResume().getTimeOffset() / (double) 1000);
+						}
 					} 
 
 					if (dlna.getMedia() != null && !configuration.isDisableSubtitles()) {
