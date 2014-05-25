@@ -100,6 +100,7 @@ public class RendererConfiguration {
 	private static final String IMAGE = "Image";
 	private static final String IGNORE_TRANSCODE_BYTE_RANGE_REQUEST = "IgnoreTranscodeByteRangeRequests";
 	private static final String KEEP_ASPECT_RATIO = "KeepAspectRatio";
+	private static final String MAX_CHARACTERS_TO_BE_SHOWN = "MaxCharactersToBeShown";
 	private static final String MAX_VIDEO_BITRATE = "MaxVideoBitrateMbps";
 	private static final String MAX_VIDEO_HEIGHT = "MaxVideoHeight";
 	private static final String MAX_VIDEO_WIDTH = "MaxVideoWidth";
@@ -1299,5 +1300,15 @@ public class RendererConfiguration {
 
 	public boolean ignoreTranscodeByteRangeRequests() {
 		return getBoolean(IGNORE_TRANSCODE_BYTE_RANGE_REQUEST, false);
+	}
+
+	/**
+	 * Returns the number of characters which is the renderer capable to shown for browsing.
+	 * Default value is <code>0</code> which means unlimited.
+	 *
+	 * @return The number of maximum characters the renderer can show, 0 otherwise.
+	 */
+	public int getMaxCharacterToBeShown() {
+		return getInt(MAX_CHARACTERS_TO_BE_SHOWN, 0);
 	}
 }

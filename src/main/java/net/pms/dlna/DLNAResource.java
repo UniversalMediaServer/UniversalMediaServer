@@ -1248,7 +1248,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			)
 
 		) {
-			displayName += " {External Subtitles}";
+			displayName += " {Ext. Subs}";
 		}
 
 		if (getMediaAudio() != null) {
@@ -1284,6 +1284,28 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		if (getSplitRange().isEndLimitAvailable()) {
 			displayName = ">> " + convertTimeToString(getSplitRange().getStart(), DURATION_TIME_FORMAT);
+		}
+
+		return displayName;
+	}
+
+	/**
+	 * Shorten display filename to meet renderer capability of  max characters showing in the browsing line
+	 * 
+	 * @param displayName
+	 * @param mediaRenderer
+	 * @return The shortened display name
+	 */
+	private String shortenDisplayName(String displayName, RendererConfiguration mediaRenderer) {
+		if (mediaRenderer != null) {
+			int maxCharsToBeShown = mediaRenderer.getMaxCharacterToBeShown();
+			if (maxCharsToBeShown > 0 &&	displayName.length() > maxCharsToBeShown) {
+				int startInfo = displayName.indexOf("{");
+				int nameLength = maxCharsToBeShown - (displayName.length() - startInfo) - 2;
+				if (nameLength > 10) { // Do it only if the filename remains longer than 10 characters
+					displayName = displayName.substring(0, nameLength).trim() + "... "  + displayName.substring(startInfo).trim();
+				}
+			}
 		}
 
 		return displayName;
@@ -1476,8 +1498,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			);
 		} else { // Ditlew - org
 			// Ditlew
-			wireshark.append(((isFolder() || player == null && subsAreValid) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer))));
-			String tmp = (isFolder() || player == null && subsAreValid) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer));
+			wireshark.append(((isFolder() || player == null && subsAreValid) ? getDisplayName() : shortenDisplayName(mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer)), mediaRenderer)));
+			String tmp = (isFolder() || player == null && subsAreValid) ? getDisplayName() : shortenDisplayName(mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer)), mediaRenderer);
 			addXMLTagAndAttribute(
 				sb,
 				"dc:title",
