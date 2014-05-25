@@ -1,10 +1,10 @@
-3.6.2 - 2014-05-24
+3.6.2 - 2014-05-26
 
 	General:
 		Tweaked the default Wi-Fi settings for smoother playback on slower networks
 		Fixed automatic updating on Windows
 		Fixed a memory leak
-		Fixed seeking in some situations
+		Fixed several bugs on OS X
 		Optimized code
 		Improved logging
 	Renderers:
