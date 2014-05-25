@@ -329,11 +329,10 @@ public class Request extends HTTPResource {
 						name = dlna.getName() + " " + dlna.getDisplayName(mediaRenderer);
 					}
 
-					Range range = Range.create(lowRange, highRange, timeseek, timeRangeEnd);
-					inputStream = dlna.getInputStream(range, mediaRenderer);
-					// Update timeseek to possibly adjusted resume time
-					if (timeseek > 0 && range.isTimeRange()) {
-						timeseek = ((Range.Time)range).getStartOrZero();
+					inputStream = dlna.getInputStream(Range.create(lowRange, highRange, timeseek, timeRangeEnd), mediaRenderer);
+					if (dlna.isResume()) {
+						// Update timeseek to possibly adjusted resume time
+						timeseek = dlna.getResume().getTimeOffset() / (double) 1000;
 					}
 
 					if (inputStream == null) {
