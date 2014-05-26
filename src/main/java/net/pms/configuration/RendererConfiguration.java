@@ -1257,12 +1257,22 @@ public class RendererConfiguration {
 		return getInt(TRANSCODED_VIDEO_AUDIO_SAMPLE_RATE, 48000);
 	}
 
+	/**
+	 * Truncate or wrap the name to meet the max length and max lines renderer is capable to shown.
+	 * Values are set in the {@code TextWrap} parameters in the renderer.conf 
+	 * 
+	 * @param name to be changed
+	 * @param dlna actual DLNA resource
+	 * @return Truncated or wrapped name
+	 */
 	public String getDcTitle(String name, DLNAResource dlna) {
 		// Reformat text if applicable
 		if (line_w > 0 && name.length() > line_w) {
 			// Truncate
 			if (max_len > 0 && name.length() > max_len) {
-				name = name.substring(0, max_len).trim() + dots;
+				int startInfo = name.contains("{") ? name.indexOf("{") : name.length();
+				int nameLength = max_len - (name.length() - startInfo) - dots.length();
+				name = name.substring(0, nameLength).trim() + dots + name.substring(startInfo).trim();
 			}
 			// Wrap
 			if (name.length() > line_w) {
