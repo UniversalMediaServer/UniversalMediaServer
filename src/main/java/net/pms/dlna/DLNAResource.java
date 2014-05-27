@@ -82,6 +82,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private String displayName;
 
 	/**
+	 * The sufix added to the name. Contains additional info about audio and subtitles.
+	 */
+	private String nameSufix = "";
+
+	/**
 	 * @deprecated This field will be removed. Use {@link net.pms.configuration.PmsConfiguration#getTranscodeFolderName()} instead.
 	 */
 	@Deprecated
@@ -1248,7 +1253,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			)
 
 		) {
-			displayName += " {External Subtitles}";
+			nameSufix = " {External Subtitles}";
 		}
 
 		if (getMediaAudio() != null) {
@@ -1257,7 +1262,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				audioLanguage = "";
 			}
 
-			displayName = (player != null ? ("[" + player.name() + "]") : "") + " {Audio: " + getMediaAudio().getAudioCodec() + audioLanguage + ((getMediaAudio().getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowAudioMetadata()) ? (" (" + getMediaAudio().getFlavor() + ")") : "") + "}";
+			displayName = player != null ? ("[" + player.name() + "]") : ""; 
+			nameSufix = " {Audio: " + getMediaAudio().getAudioCodec() + audioLanguage + ((getMediaAudio().getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowAudioMetadata()) ? (" (" + getMediaAudio().getFlavor() + ")") : "") + "}";
 		}
 
 		if (
@@ -1275,7 +1281,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				subtitleLanguage = "";
 			}
 
-			displayName += " {Sub: " + subtitleFormat + subtitleLanguage + ((media_subtitle.getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowSubMetadata()) ? (" (" + media_subtitle.getFlavor() + ")") : "") + "}";
+			nameSufix += " {Sub: " + subtitleFormat + subtitleLanguage + ((media_subtitle.getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowSubMetadata()) ? (" (" + media_subtitle.getFlavor() + ")") : "") + "}";
 		}
 
 		if (isAvisynth()) {
@@ -1472,7 +1478,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			addXMLTagAndAttribute(
 				sb,
 				"dc:title",
-				encodeXML(mediaRenderer.getDcTitle(resumeStr(wireshark.toString()), this))
+				encodeXML(mediaRenderer.getDcTitle(resumeStr(wireshark.toString()), nameSufix, this))
 			);
 		} else { // Ditlew - org
 			// Ditlew
@@ -1481,7 +1487,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			addXMLTagAndAttribute(
 				sb,
 				"dc:title",
-				encodeXML(mediaRenderer.getDcTitle(resumeStr(tmp), this))
+				encodeXML(mediaRenderer.getDcTitle(resumeStr(tmp), nameSufix, this))
 			);
 		}
 

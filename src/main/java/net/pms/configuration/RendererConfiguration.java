@@ -1262,31 +1262,34 @@ public class RendererConfiguration {
 	 * Values are set in the {@code TextWrap} parameters in the renderer.conf 
 	 * 
 	 * @param name to be changed
+	 * @param sufix additional information to the media
 	 * @param dlna actual DLNA resource
 	 * @return Truncated or wrapped name
 	 */
-	public String getDcTitle(String name, DLNAResource dlna) {
-		// Reformat text if applicable
-		if (line_w > 0 && name.length() > line_w) {
-			// Truncate
-			if (max_len > 0 && name.length() > max_len) {
-				int startInfo = name.contains("{") ? name.indexOf("{") : name.length();
-				int nameLength = max_len - (name.length() - startInfo) - dots.length();
-				name = name.substring(0, nameLength).trim() + dots + name.substring(startInfo).trim();
-			}
-			// Wrap
-			if (name.length() > line_w) {
-				int i = dlna.isFolder() ? 0 : indent;
-				String head = name.substring(0, i + (Character.isWhitespace(name.charAt(i)) ? 1 : 0));
-				String tail = WordUtils.wrap(name.substring(i), line_w - i, "\n" + (dlna.isFolder() ? "" : inset), true);
-				if (line_h > 0) {
+	public String getDcTitle(String name, String sufix, DLNAResource dlna) {
+		if (line_w == 0) {
+			name = name + " " + sufix;
+		} else {
+			// Reformat text if applicable
+			if (line_w > 0 && name.length() + sufix.length() + 1 > line_w) {
+				// Truncate
+				if (line_h == 1) {
+					name = name.substring(0, line_w - sufix.length() - dots.length()).trim() + dots + sufix;
+				}
+				// Wrap
+				if (line_h > 1) {
+					int i = dlna.isFolder() ? 0 : indent;
+					String wholeName = name + " " + sufix;
+					String head = wholeName.substring(0, i + (Character.isWhitespace(wholeName.charAt(i)) ? 1 : 0));
+					String tail = WordUtils.wrap(wholeName.substring(i), line_w - i, "\n" + (dlna.isFolder() ? "" : inset), true);
 					String[] t = tail.split("\n", line_h);
 					if (t.length == line_h && t[line_h -1].length() > line_w) {
 						t[line_h -1] = t[line_h -1].substring(0, line_w - dots.length()).trim().replace("\n", " ") + dots;
 						tail = StringUtils.join(t, "\n");
 					}
+
+					name = head + tail;
 				}
-				name = head + tail;
 			}
 		}
 
