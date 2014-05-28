@@ -1262,24 +1262,24 @@ public class RendererConfiguration {
 	 * Values are set in the {@code TextWrap} parameters in the renderer.conf 
 	 * 
 	 * @param name to be changed
-	 * @param sufix additional information to the media
+	 * @param suffix additional information to the media
 	 * @param dlna actual DLNA resource
 	 * @return Truncated or wrapped name
 	 */
-	public String getDcTitle(String name, String sufix, DLNAResource dlna) {
+	public String getDcTitle(String name, String suffix, DLNAResource dlna) {
 		if (line_w == 0) {
-			name = name + " " + sufix;
+			name = name + " " + suffix;
 		} else {
 			// Reformat text if applicable
-			if (line_w > 0 && name.length() + sufix.length() + 1 > line_w) {
+			if (line_w > 0 && name.length() + suffix.length() + 1 > line_w) {
 				// Truncate
 				if (line_h == 1) {
-					name = name.substring(0, line_w - sufix.length() - dots.length()).trim() + dots + sufix;
+					name = name.substring(0, line_w - suffix.length() - dots.length()).trim() + dots + suffix;
 				}
 				// Wrap
 				if (line_h > 1) {
 					int i = dlna.isFolder() ? 0 : indent;
-					String wholeName = name + " " + sufix;
+					String wholeName = name + " " + suffix;
 					String head = wholeName.substring(0, i + (Character.isWhitespace(wholeName.charAt(i)) ? 1 : 0));
 					String tail = WordUtils.wrap(wholeName.substring(i), line_w - i, "\n" + (dlna.isFolder() ? "" : inset), true);
 					String[] t = tail.split("\n", line_h);

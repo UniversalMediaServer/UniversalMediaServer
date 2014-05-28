@@ -82,7 +82,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private String displayName;
 
 	/**
-	 * The sufix added to the name. Contains additional info about audio and subtitles.
+	 * The suffix added to the name. Contains additional info about audio and subtitles.
 	 */
 	private String nameSufix = "";
 
