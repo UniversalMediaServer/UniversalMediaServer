@@ -84,7 +84,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	/**
 	 * The suffix added to the name. Contains additional info about audio and subtitles.
 	 */
-	private String nameSufix = "";
+	private String nameSuffix = "";
 
 	/**
 	 * @deprecated This field will be removed. Use {@link net.pms.configuration.PmsConfiguration#getTranscodeFolderName()} instead.
@@ -1181,7 +1181,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @see #getDisplayName(RendererConfiguration)
 	 */
 	public String getDisplayName() {
-		return getDisplayName(null);
+		return getDisplayName(null, true);
 	}
 
 	/**
@@ -1190,11 +1190,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * This is based on {@link #getName()}.
 	 *
 	 * @param mediaRenderer Media Renderer for which to show information.
+	 * @param withSuffix Whether to include additional media info
 	 * @return String representing the item.
 	 */
 	public String getDisplayName(RendererConfiguration mediaRenderer) {
+		return getDisplayName(mediaRenderer, true);
+	}
+
+	private String getDisplayName(RendererConfiguration mediaRenderer, boolean withSuffix) {
 		if (displayName != null) { // cached
-			return displayName;
+			return withSuffix ? (displayName + nameSuffix) : displayName;
 		}
 
 		displayName = getName();
@@ -1222,11 +1227,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			} else {
 				// Ditlew - WDTV Live don't show durations otherwise, and this is useful for finding the main title
 				if (mediaRenderer != null && mediaRenderer.isShowDVDTitleDuration() && media != null && media.getDvdtrack() > 0) {
-					displayName += " - " + media.getDurationString();
+					nameSuffix += " - " + media.getDurationString();
 				}
 
 				if (!configuration.isHideEngineNames()) {
-					displayName += " [" + player.name() + "]";
+					nameSuffix += " [" + player.name() + "]";
 				}
 			}
 		} else {
@@ -1253,7 +1258,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			)
 
 		) {
-			nameSufix = " {External Subtitles}";
+			nameSuffix += " {External Subtitles}";
 		}
 
 		if (getMediaAudio() != null) {
@@ -1263,7 +1268,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 
 			displayName = player != null ? ("[" + player.name() + "]") : ""; 
-			nameSufix = " {Audio: " + getMediaAudio().getAudioCodec() + audioLanguage + ((getMediaAudio().getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowAudioMetadata()) ? (" (" + getMediaAudio().getFlavor() + ")") : "") + "}";
+			nameSuffix = " {Audio: " + getMediaAudio().getAudioCodec() + audioLanguage + ((getMediaAudio().getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowAudioMetadata()) ? (" (" + getMediaAudio().getFlavor() + ")") : "") + "}";
 		}
 
 		if (
@@ -1281,7 +1286,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				subtitleLanguage = "";
 			}
 
-			nameSufix += " {Sub: " + subtitleFormat + subtitleLanguage + ((media_subtitle.getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowSubMetadata()) ? (" (" + media_subtitle.getFlavor() + ")") : "") + "}";
+			nameSuffix += " {Sub: " + subtitleFormat + subtitleLanguage + ((media_subtitle.getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowSubMetadata()) ? (" (" + media_subtitle.getFlavor() + ")") : "") + "}";
 		}
 
 		if (isAvisynth()) {
@@ -1292,7 +1297,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			displayName = ">> " + convertTimeToString(getSplitRange().getStart(), DURATION_TIME_FORMAT);
 		}
 
-		return displayName;
+		return withSuffix ? (displayName + nameSuffix) : displayName;
 	}
 
 	/**
@@ -1381,8 +1386,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			o = (DLNAResource) super.clone();
 			o.setId(null);
 
-			// Clear the cached display name
+			// Clear the cached display name and suffix
 			o.displayName = null;
+			o.nameSuffix = "";
 			// Make sure clones (typically #--TRANSCODE--# folder files)
 			// have the option to respond to resolve events
 			o.resolved = false;
@@ -1478,16 +1484,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			addXMLTagAndAttribute(
 				sb,
 				"dc:title",
-				encodeXML(mediaRenderer.getDcTitle(resumeStr(wireshark.toString()), nameSufix, this))
+				encodeXML(mediaRenderer.getDcTitle(resumeStr(wireshark.toString()), nameSuffix, this))
 			);
 		} else { // Ditlew - org
 			// Ditlew
 			wireshark.append(((isFolder() || player == null && subsAreValid) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer))));
-			String tmp = (isFolder() || player == null && subsAreValid) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer));
+			String tmp = (isFolder() || player == null && subsAreValid) ? getDisplayName(null, false) : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer, false));
 			addXMLTagAndAttribute(
 				sb,
 				"dc:title",
-				encodeXML(mediaRenderer.getDcTitle(resumeStr(tmp), nameSufix, this))
+				encodeXML(mediaRenderer.getDcTitle(resumeStr(tmp), nameSuffix, this))
 			);
 		}
 

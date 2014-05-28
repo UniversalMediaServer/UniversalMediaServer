@@ -1258,41 +1258,40 @@ public class RendererConfiguration {
 	}
 
 	/**
-	 * Truncate or wrap the name to meet the max length and max lines renderer is capable to shown.
-	 * Values are set in the {@code TextWrap} parameters in the renderer.conf 
+	 * Perform renderer-specific name reformatting:
+	 *    Truncating and wrapping see {@code TextWrap}
+	 *    Character substitution see {@code CharMap}
 	 * 
-	 * @param name to be changed
-	 * @param suffix additional information to the media
-	 * @param dlna actual DLNA resource
-	 * @return Truncated or wrapped name
+	 * @param name Original name
+	 * @param suffix Additional media information
+	 * @param dlna The actual DLNA resource
+	 * @return Reformatted name
 	 */
 	public String getDcTitle(String name, String suffix, DLNAResource dlna) {
-		if (line_w == 0) {
-			name = name + " " + suffix;
-		} else {
-			// Reformat text if applicable
-			if (line_w > 0 && name.length() + suffix.length() + 1 > line_w) {
-				// Truncate
-				if (line_h == 1) {
-					name = name.substring(0, line_w - suffix.length() - dots.length()).trim() + dots + suffix;
-				}
-				// Wrap
-				if (line_h > 1) {
-					int i = dlna.isFolder() ? 0 : indent;
-					String wholeName = name + " " + suffix;
-					String head = wholeName.substring(0, i + (Character.isWhitespace(wholeName.charAt(i)) ? 1 : 0));
-					String tail = WordUtils.wrap(wholeName.substring(i), line_w - i, "\n" + (dlna.isFolder() ? "" : inset), true);
+		name += suffix;
+		// Reformat name if applicable
+		if (line_w > 0 && name.length() > line_w) {
+			// Truncate
+			if (max_len > 0 && name.length() > max_len) {
+				name = name.substring(0, max_len - suffix.length()).trim() + dots + suffix;
+			}
+			// Wrap
+			if (name.length() > line_w) {
+				int i = dlna.isFolder() ? 0 : indent;
+				String head = name.substring(0, i + (Character.isWhitespace(name.charAt(i)) ? 1 : 0));
+				String tail = WordUtils.wrap(name.substring(i), line_w - i, "\n" + (dlna.isFolder() ? "" : inset), true);
+				if (line_h > 0) {
 					String[] t = tail.split("\n", line_h);
 					if (t.length == line_h && t[line_h -1].length() > line_w) {
-						t[line_h -1] = t[line_h -1].substring(0, line_w - dots.length()).trim().replace("\n", " ") + dots;
+						t[line_h -1] = t[line_h -1].substring(0, line_w - dots.length() - suffix.length()).trim().replace("\n", " ") + dots + suffix;
 						tail = StringUtils.join(t, "\n");
 					}
-
-					name = head + tail;
 				}
+				name = head + tail;
 			}
 		}
 
+		// Substitute
 		for (String s : charMap.keySet()) {
 			name = name.replaceAll(s, charMap.get(s));
 		}
