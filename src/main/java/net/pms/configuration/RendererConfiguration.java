@@ -518,7 +518,7 @@ public class RendererConfiguration {
 			int dotct = getIntAt(s, "dots:", 0);
 			inset = new String(new byte[indent]).replaceAll(".", Character.toString((char) ws));
 			dots = new String(new byte[dotct]).replaceAll(".", ".");
-			max_len = line_h < 1 ? 0 : (line_w * line_h - (line_h - 1) * indent - dotct);
+			max_len = line_h < 1 ? 0 : (line_w * line_h - (line_h - 1) * indent);
 		}
 
 		charMap = new HashMap<>();
@@ -1268,12 +1268,13 @@ public class RendererConfiguration {
 	 * @return Reformatted name
 	 */
 	public String getDcTitle(String name, String suffix, DLNAResource dlna) {
-		name += suffix;
 		// Reformat name if applicable
-		if (line_w > 0 && name.length() > line_w) {
+		int len = name.length() + suffix.length();
+		if (line_w > 0 && len > line_w) {
 			// Truncate
-			if (max_len > 0 && name.length() > max_len) {
-				name = name.substring(0, max_len - suffix.length()).trim() + dots + suffix;
+			if (max_len > 0 && len > max_len) {
+				suffix = dots + suffix;
+				name = name.substring(0, max_len - suffix.length()).trim() + suffix;
 			}
 			// Wrap
 			if (name.length() > line_w) {
@@ -1283,12 +1284,14 @@ public class RendererConfiguration {
 				if (line_h > 0) {
 					String[] t = tail.split("\n", line_h);
 					if (t.length == line_h && t[line_h -1].length() > line_w) {
-						t[line_h -1] = t[line_h -1].substring(0, line_w - dots.length() - suffix.length()).trim().replace("\n", " ") + dots + suffix;
+						t[line_h -1] = t[line_h -1].substring(0, line_w - suffix.length()).trim().replace("\n", " ") + suffix;
 						tail = StringUtils.join(t, "\n");
 					}
 				}
 				name = head + tail;
 			}
+		} else {
+			name += suffix;
 		}
 
 		// Substitute
