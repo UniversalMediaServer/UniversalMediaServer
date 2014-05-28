@@ -69,6 +69,9 @@ public class ImagesUtil {
 		// for testing LLJTran.XFORM_TRIM and LLJTran.XFORM_ADJUST_EDGES
 		int options = LLJTran.OPT_DEFAULTS | LLJTran.OPT_XFORM_ORIENTATION;
 		llj.transform(op, options);
+
+		// 3. Save the Image which is already transformed as specified by the
+		//    input transformation in Step 2, along with the Exif header.
 		try (OutputStream out = new BufferedOutputStream(output)) {
 			llj.save(out, LLJTran.OPT_WRITE_ALL);
 		}
