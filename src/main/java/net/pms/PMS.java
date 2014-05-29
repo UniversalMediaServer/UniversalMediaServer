@@ -1126,7 +1126,9 @@ public class PMS {
 				LOGGER.debug("Error initializing plugin credentials: " + e);
 			}
 
-			killOld();
+			if(getConfiguration().getSingle()) {
+				killOld();
+			}
 
 			// Create the PMS instance returned by get()
 			createInstance(); // Calls new() then init()
