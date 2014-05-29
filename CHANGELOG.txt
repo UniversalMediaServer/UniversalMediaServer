@@ -5,6 +5,7 @@
 	Renderers:
 		Added support for nPlayer, skifta and TwonkyBeam on portable Apple devices (thanks, MattDetroit!)
 		Added support for LG LM620 TVs (thanks, michal-sapsa!)
+		Improved support for OPPO devices
 		Improved support for Panasonic TX-L32V10E TVs
 	External Components:
 		Updated Apache commons-lang to 3.3.2, which:
