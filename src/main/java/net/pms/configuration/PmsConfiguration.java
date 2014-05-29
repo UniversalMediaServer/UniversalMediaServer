@@ -205,6 +205,7 @@ public class PmsConfiguration {
 	private static final String KEY_SERVER_NAME = "server_name";
 	private static final String KEY_SERVER_PORT = "port";
 	private static final String KEY_SHARES = "shares";
+	private static final String KEY_SINGLE = "single_instance";
 	private static final String KEY_SKIP_LOOP_FILTER_ENABLED = "mencoder_skip_loop_filter";
 	private static final String KEY_SKIP_NETWORK_INTERFACES = "skip_network_interfaces";
 	private static final String KEY_SORT_METHOD = "sort_method";
@@ -3000,5 +3001,18 @@ public class PmsConfiguration {
 
 	public boolean isWebMp4Trans() {
 		return getBoolean(KEY_WEB_MP4_TRANS, false);
+	}
+
+	/**
+	 * Set whether UMS should kill an old running instance
+	 *
+	 * @param val Set to true it should kill the old instance
+	 */
+	public void setSingle(boolean val) {
+		configuration.setProperty(KEY_SINGLE, val);
+	}
+
+	public boolean getSingle() {
+		return getBoolean(KEY_SINGLE, true);
 	}
 }
