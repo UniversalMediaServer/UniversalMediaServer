@@ -130,10 +130,14 @@ public class ExternalFactory {
 			if (resources.hasMoreElements()) {
 				URL url = resources.nextElement();
 				char[] name;
+
+				// Determine the plugin main class name from the contents of
+				// the plugin file.
 				try (InputStreamReader in = new InputStreamReader(url.openStream())) {
 					name = new char[512];
 					in.read(name);
 				}
+
 				return new String(name).trim();
 			}
 		} catch (IOException e) {
@@ -190,6 +194,8 @@ public class ExternalFactory {
 			URL url = resources.nextElement();
 
 			try {
+				// Determine the plugin main class name from the contents of
+				// the plugin file.
 				char[] name;
 				try (InputStreamReader in = new InputStreamReader(url.openStream())) {
 					name = new char[512];

@@ -464,7 +464,7 @@ public class PMS {
 					save();
 				} else if (networkType == JOptionPane.CANCEL_OPTION) {
 					// Wireless
-					configuration.setMaximumBitrate("50");
+					configuration.setMaximumBitrate("30");
 					configuration.setMPEG2MainSettings("Automatic (Wireless)");
 					save();
 				}

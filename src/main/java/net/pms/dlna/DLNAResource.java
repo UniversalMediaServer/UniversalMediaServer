@@ -82,6 +82,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private String displayName;
 
 	/**
+	 * The suffix added to the name. Contains additional info about audio and subtitles.
+	 */
+	private String nameSuffix = "";
+
+	/**
 	 * @deprecated This field will be removed. Use {@link net.pms.configuration.PmsConfiguration#getTranscodeFolderName()} instead.
 	 */
 	@Deprecated
@@ -773,7 +778,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * If UMS is configured to hide transcode folders, null is returned.
 	 * If no folder exists and the create argument is false, null is returned.
 	 * If no folder exists and the create argument is true, a new transcode folder is created.
-	 * This method is called on the parent frolder each time a child is added to that parent
+	 * This method is called on the parent folder each time a child is added to that parent
 	 * (via {@link addChild(DLNAResource)}.
 	 *
 	 * @param create
@@ -1176,7 +1181,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @see #getDisplayName(RendererConfiguration)
 	 */
 	public String getDisplayName() {
-		return getDisplayName(null);
+		return getDisplayName(null, true);
 	}
 
 	/**
@@ -1185,11 +1190,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * This is based on {@link #getName()}.
 	 *
 	 * @param mediaRenderer Media Renderer for which to show information.
+	 * @param withSuffix Whether to include additional media info
 	 * @return String representing the item.
 	 */
 	public String getDisplayName(RendererConfiguration mediaRenderer) {
+		return getDisplayName(mediaRenderer, true);
+	}
+
+	private String getDisplayName(RendererConfiguration mediaRenderer, boolean withSuffix) {
 		if (displayName != null) { // cached
-			return displayName;
+			return withSuffix ? (displayName + nameSuffix) : displayName;
 		}
 
 		displayName = getName();
@@ -1217,11 +1227,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			} else {
 				// Ditlew - WDTV Live don't show durations otherwise, and this is useful for finding the main title
 				if (mediaRenderer != null && mediaRenderer.isShowDVDTitleDuration() && media != null && media.getDvdtrack() > 0) {
-					displayName += " - " + media.getDurationString();
+					nameSuffix += " - " + media.getDurationString();
 				}
 
 				if (!configuration.isHideEngineNames()) {
-					displayName += " [" + player.name() + "]";
+					nameSuffix += " [" + player.name() + "]";
 				}
 			}
 		} else {
@@ -1248,7 +1258,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			)
 
 		) {
-			displayName += " {External Subtitles}";
+			nameSuffix += " {External Subtitles}";
 		}
 
 		if (getMediaAudio() != null) {
@@ -1257,7 +1267,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				audioLanguage = "";
 			}
 
-			displayName = (player != null ? ("[" + player.name() + "]") : "") + " {Audio: " + getMediaAudio().getAudioCodec() + audioLanguage + ((getMediaAudio().getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowAudioMetadata()) ? (" (" + getMediaAudio().getFlavor() + ")") : "") + "}";
+			displayName = player != null ? ("[" + player.name() + "]") : ""; 
+			nameSuffix = " {Audio: " + getMediaAudio().getAudioCodec() + audioLanguage + ((getMediaAudio().getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowAudioMetadata()) ? (" (" + getMediaAudio().getFlavor() + ")") : "") + "}";
 		}
 
 		if (
@@ -1275,7 +1286,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				subtitleLanguage = "";
 			}
 
-			displayName += " {Sub: " + subtitleFormat + subtitleLanguage + ((media_subtitle.getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowSubMetadata()) ? (" (" + media_subtitle.getFlavor() + ")") : "") + "}";
+			nameSuffix += " {Sub: " + subtitleFormat + subtitleLanguage + ((media_subtitle.getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowSubMetadata()) ? (" (" + media_subtitle.getFlavor() + ")") : "") + "}";
 		}
 
 		if (isAvisynth()) {
@@ -1286,7 +1297,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			displayName = ">> " + convertTimeToString(getSplitRange().getStart(), DURATION_TIME_FORMAT);
 		}
 
-		return displayName;
+		return withSuffix ? (displayName + nameSuffix) : displayName;
 	}
 
 	/**
@@ -1375,8 +1386,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			o = (DLNAResource) super.clone();
 			o.setId(null);
 
-			// Clear the cached display name
+			// Clear the cached display name and suffix
 			o.displayName = null;
+			o.nameSuffix = "";
 			// Make sure clones (typically #--TRANSCODE--# folder files)
 			// have the option to respond to resolve events
 			o.resolved = false;
@@ -1472,16 +1484,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			addXMLTagAndAttribute(
 				sb,
 				"dc:title",
-				encodeXML(mediaRenderer.getDcTitle(resumeStr(wireshark.toString()), this))
+				encodeXML(mediaRenderer.getDcTitle(resumeStr(wireshark.toString()), nameSuffix, this))
 			);
 		} else { // Ditlew - org
 			// Ditlew
 			wireshark.append(((isFolder() || player == null && subsAreValid) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer))));
-			String tmp = (isFolder() || player == null && subsAreValid) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer));
+			String tmp = (isFolder() || player == null && subsAreValid) ? getDisplayName(null, false) : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer, false));
 			addXMLTagAndAttribute(
 				sb,
 				"dc:title",
-				encodeXML(mediaRenderer.getDcTitle(resumeStr(tmp), this))
+				encodeXML(mediaRenderer.getDcTitle(resumeStr(tmp), nameSuffix, this))
 			);
 		}
 
@@ -1614,7 +1626,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								// If the engine being is tsMuxeR or VLC, we are definitely outputting MPEG-TS so we can skip a lot of tests
 								boolean isFileMPEGTS = TsMuxeRVideo.ID.equals(player.id()) || VideoLanVideoStreaming.ID.equals(player.id());
 
-								boolean isMuxableResult = getMedia().isMuxable(mediaRenderer);
+								boolean isMuxableResult = getMedia() != null && getMedia().isMuxable(mediaRenderer);
 
 								// If the engine is MEncoder or FFmpeg, and the muxing settings are enabled, it may be MPEG-TS so we need to do more tests
 								if (
@@ -1669,7 +1681,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 											}
 										}
 
-										if (params.aid == null && media.getAudioTracksList().size() > 0) {
+										if (params.aid == null && media != null && media.getAudioTracksList().size() > 0) {
 											// Take a default audio track, dts first if possible
 											for (DLNAMediaAudio audio : media.getAudioTracksList()) {
 												if (audio.isDTS()) {
@@ -1733,7 +1745,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 														if (sub.equals("off")) {
 															matchedSub = new DLNAMediaSubtitle();
 															matchedSub.setLang("off");
-														} else {
+														} else if (getMedia() != null) {
 															for (DLNAMediaSubtitle present_sub : media.getSubtitleTracksList()) {
 																if (present_sub.matchCode(sub) || sub.equals("*")) {
 																	if (present_sub.getExternalFile() != null) {
@@ -2389,7 +2401,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 
 			if (resume != null) {
-				params.timeseek += (long) (resume.getTimeOffset() / 1000);
+				if (range.isTimeRange()) {
+					resume.update((Range.Time) range, this);
+				}
+				params.timeseek = (long) (resume.getTimeOffset() / 1000);
 				if (player == null) {
 					player = new FFMpegVideo();
 				}

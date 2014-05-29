@@ -49,8 +49,8 @@ public class RendererConfiguration {
 	private final Map<String, String> DLNAPN;
 
 	// TextWrap parameters
-	protected int line_w, line_h, indent;
-	protected String inset;
+	protected int line_w, line_h, indent, max_len;
+	protected String inset, dots;
 	protected boolean dc_date = true;
 
 	// property values
@@ -516,7 +516,10 @@ public class RendererConfiguration {
 			indent = getIntAt(s, "indent:", 0);
 			dc_date = getIntAt(s, "date:", 1) != 0;
 			int ws = getIntAt(s, "whitespace:", 9);
+			int dotct = getIntAt(s, "dots:", 0);
 			inset = new String(new byte[indent]).replaceAll(".", Character.toString((char) ws));
+			dots = new String(new byte[dotct]).replaceAll(".", ".");
+			max_len = line_h < 1 ? 0 : (line_w * line_h - (line_h - 1) * indent);
 		}
 
 		charMap = new HashMap<>();
@@ -1061,9 +1064,8 @@ public class RendererConfiguration {
 	 * @return The maximum video width.
 	 */
 	public int getMaxVideoWidth() {
-		// FIXME why is this 1920 if the default value is 0 (unlimited)?
-		// XXX we should also require width and height to both be 0 or both be > 0
-		return getInt(MAX_VIDEO_WIDTH, 1920);
+		// XXX we should require width and height to both be 0 or both be > 0
+		return getInt(MAX_VIDEO_WIDTH, 0);
 	}
 
 	/**
@@ -1073,9 +1075,8 @@ public class RendererConfiguration {
 	 * @return The maximum video height.
 	 */
 	public int getMaxVideoHeight() {
-		// FIXME why is this 1080 if the default value is 0 (unlimited)?
-		// XXX we should also require width and height to both be 0 or both be > 0
-		return getInt(MAX_VIDEO_HEIGHT, 1080);
+		// XXX we should require width and height to both be 0 or both be > 0
+		return getInt(MAX_VIDEO_HEIGHT, 0);
 	}
 
 	/**
@@ -1257,15 +1258,44 @@ public class RendererConfiguration {
 		return getInt(TRANSCODED_VIDEO_AUDIO_SAMPLE_RATE, 48000);
 	}
 
-	public String getDcTitle(String name, DLNAResource dlna) {
-		// Wrap text if applicable
-		if (line_w > 0 && name.length() > line_w) {
-			int i = dlna.isFolder() ? 0 : indent;
-			String head = name.substring(0, i + (Character.isWhitespace(name.charAt(i)) ? 1 : 0));
-			String tail = name.substring(i);
-			name = head + WordUtils.wrap(tail, line_w - i, "\n" + (dlna.isFolder() ? "" : inset), true);
+	/**
+	 * Perform renderer-specific name reformatting:
+	 *    Truncating and wrapping see {@code TextWrap}
+	 *    Character substitution see {@code CharMap}
+	 * 
+	 * @param name Original name
+	 * @param suffix Additional media information
+	 * @param dlna The actual DLNA resource
+	 * @return Reformatted name
+	 */
+	public String getDcTitle(String name, String suffix, DLNAResource dlna) {
+		// Reformat name if applicable
+		int len = name.length() + suffix.length();
+		if (line_w > 0 && len > line_w) {
+			// Truncate
+			if (max_len > 0 && len > max_len) {
+				suffix = dots + suffix;
+				name = name.substring(0, max_len - suffix.length()).trim() + suffix;
+			}
+			// Wrap
+			if (name.length() > line_w) {
+				int i = dlna.isFolder() ? 0 : indent;
+				String head = name.substring(0, i + (Character.isWhitespace(name.charAt(i)) ? 1 : 0));
+				String tail = WordUtils.wrap(name.substring(i), line_w - i, "\n" + (dlna.isFolder() ? "" : inset), true);
+				if (line_h > 0) {
+					String[] t = tail.split("\n", line_h);
+					if (t.length == line_h && t[line_h -1].length() > line_w) {
+						t[line_h -1] = t[line_h -1].substring(0, line_w - suffix.length()).trim().replace("\n", " ") + suffix;
+						tail = StringUtils.join(t, "\n");
+					}
+				}
+				name = head + tail;
+			}
+		} else {
+			name += suffix;
 		}
 
+		// Substitute
 		for (String s : charMap.keySet()) {
 			name = name.replaceAll(s, charMap.get(s));
 		}

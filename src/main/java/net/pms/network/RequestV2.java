@@ -298,7 +298,7 @@ public class RequestV2 extends HTTPResource {
 					}
 
 					inputStream = dlna.getThumbnailInputStream();
-				} else if (fileName.indexOf("subtitle0000") > -1) {
+				} else if (dlna.getMedia() != null && fileName.indexOf("subtitle0000") > -1) {
 					// This is a request for a subtitle file
 					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain");
 					output.headers().set(HttpHeaders.Names.EXPIRES, getFUTUREDATE() + " GMT");
@@ -346,11 +346,15 @@ public class RequestV2 extends HTTPResource {
 							lowRange == 0 &&
 							totalsize == DLNAMediaInfo.TRANS_SIZE
 						)
-					) { 
+					) {
 						inputStream = dlna.getInputStream(Range.create(lowRange, highRange, range.getStart(), range.getEnd()), mediaRenderer);
+						if (dlna.isResume()) {
+							// Update range to possibly adjusted resume time
+							range.setStart(dlna.getResume().getTimeOffset() / (double) 1000);
+						}
 					} 
 
-					if (!configuration.isDisableSubtitles()) {
+					if (dlna.getMedia() != null && !configuration.isDisableSubtitles()) {
 						// Some renderers (like Samsung devices) allow a custom header for a subtitle URL
 						String subtitleHttpHeader = mediaRenderer.getSubtitleHttpHeader();
 

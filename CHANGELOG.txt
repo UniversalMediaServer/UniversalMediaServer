@@ -2,12 +2,81 @@
 
 	General:
 		Added a web interface, available at localhost:9001
+		Added a new transcoding option to allow H.264 video with AAC audio
+		Changed the names of transcoding options in renderer config files for clarity
+		Output surround audio (AC-3) instead of stereo (MP2) when using VLC (needs testing)
+		Enabled subtitles in VLC (thanks, tdcosta100!)
+		Made FFmpeg the default transcoding engine
+		Improved the TextWrap function, which makes filenames fit better on certain renderers
+		Fixed padding in FFmpeg for DVD video resolution
+	Renderers:
+		Added support for Google Chromecast
+		Added support for Sony Bravia W7 series TVs (thanks, shtirlic!)
+		Improved support for OPPO devices
 
-3.6.1 - 2014-05-??
+3.6.3 - 2014-06-??
 
 	General:
+		Added documentation for more renderer options to PS3.conf (CustomFFmpegOptions and OverrideVideoFilter)
+	Renderers:
+		Improved support for Panasonic TX-L32V10E TVs
+	External Components:
+		Updated Apache commons-lang to 3.3.2, which:
+			Fixes bugs
+		Updated Logback to 1.1.2, which:
+			Fixes bugs
+		Updated Maven Git Commit ID Plugin to 2.1.9
+		Updated Netty to 3.9.1, which:
+			Fixes bugs
+		Updated slf4j to 1.7.7
+
+3.6.2 - 2014-05-26
+
+	General:
+		Tweaked the default Wi-Fi settings for smoother playback on slower networks
+		Fixed automatic updating on Windows
+		Fixed a memory leak
+		Fixed several bugs on OS X
+		Optimized code
+		Improved logging
+	Renderers:
+		Improved support for Apple mobile devices (iPad, iPhone, iPod)
+		Improved support for DirecTV HR
+		Improved support for LG LA644V Smart TV
+		Improved support for Nokia N900
+		Improved support for Pioneer Kuro
+		Improved support for Samsung mobile devices
+		Improved support for Sony Bravia 4500
+		Improved support for Sony Bravia EX620
+		Improved support for Telstra T-Box
+	Languages:
+		Updated Spanish translation (thanks, AlfredoRamos!)
+
+3.6.1 - 2014-05-15
+
+	General:
+		Made resuming more intuitive
 		Fixed the aspect ratio of thumbnails by default (thanks, tdcosta100!)
 		Fixed the buffer going nuts after automatic subtitle conversion (thanks, tdcosta100!)
+		Fixed support for URLs in playlists
+		Fixed error with thumbnails of resume files (thanks, tdcosta100!)
+		Fixed the user interface when hiding advanced options
+	Languages:
+		Made more strings translatable
+		Updated Czech translation
+		Updated Russian translation (thanks, Tianuchka!)
+	External Components:
+		Updated FFmpeg to builds from 2014-05-05, which:
+			Improves support for many containers and codecs
+			Fixes bugs
+		Updated h2database to 1.3.176, which:
+			Improves stability
+		Updated MPlayer/MEncoder for Windows to SB57, which:
+			Adds AAC encoding support
+			Improves H.265 support
+			Improves support for many containers and codecs
+			Improves speed
+			Fixes bugs
 
 3.6.0 - 2014-04-28
 
