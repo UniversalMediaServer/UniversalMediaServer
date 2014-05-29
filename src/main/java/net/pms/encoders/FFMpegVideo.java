@@ -228,13 +228,6 @@ public class FFMpegVideo extends Player {
 					filterChain.add("pad=ih*(16/9):ih:(ow-iw)/2:0");
 				}
 			}
-
-			// Do not rescale or pad for 3D video
-			if (filterChain.size() > 0 && !media.is3d()) {
-				
-				videoFilterOptions.add(filterOption);
-				videoFilterOptions.add(StringUtils.join(filterChain, ", "));
-			}
 		}
 
 		// Convert 3D video to the output format
