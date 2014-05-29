@@ -1314,7 +1314,10 @@ public class PMS {
 		}
 
 		// check first and last, update since taskkill changed
-		return tmp[0].equals("javaw.exe") && tmp[tmp.length - 1].contains("universal media server");
+		// also check 2nd last since we migh have ", POSSIBLY UNSTABLE" in there
+		boolean ums = tmp[tmp.length - 1].contains("universal media server") ||
+			  		  tmp[tmp.length - 2].contains("universal media server");
+		return tmp[0].equals("javaw.exe") && ums;
 	}
 
 	private static String pidFile() {
