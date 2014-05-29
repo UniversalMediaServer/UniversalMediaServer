@@ -1130,7 +1130,9 @@ public class PMS {
 				LOGGER.debug("Error initializing plugin credentials: " + e);
 			}
 
-			killOld();
+			if(getConfiguration().getSingle()) {
+				killOld();
+			}
 
 			// Create the PMS instance returned by get()
 			createInstance(); // Calls new() then init()
@@ -1319,7 +1321,7 @@ public class PMS {
 		// check first and last, update since taskkill changed
 		// also check 2nd last since we migh have ", POSSIBLY UNSTABLE" in there
 		boolean ums = tmp[tmp.length - 1].contains("universal media server") ||
-					  tmp[tmp.length - 2].contains("universal media server");
+			  		  tmp[tmp.length - 2].contains("universal media server");
 		return tmp[0].equals("javaw.exe") && ums;
 	}
 
