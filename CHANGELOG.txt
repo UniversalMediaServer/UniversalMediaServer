@@ -17,7 +17,18 @@
 3.6.3 - 2014-06-??
 
 	General:
-		
+		Added documentation for more renderer options to PS3.conf (CustomFFmpegOptions and OverrideVideoFilter)
+	Renderers:
+		Improved support for Panasonic TX-L32V10E TVs
+	External Components:
+		Updated Apache commons-lang to 3.3.2, which:
+			Fixes bugs
+		Updated Logback to 1.1.2, which:
+			Fixes bugs
+		Updated Maven Git Commit ID Plugin to 2.1.9
+		Updated Netty to 3.9.1, which:
+			Fixes bugs
+		Updated slf4j to 1.7.7
 
 3.6.2 - 2014-05-26
 
