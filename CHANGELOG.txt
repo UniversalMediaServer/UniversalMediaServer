@@ -6,8 +6,12 @@
 		Changed the names of transcoding options in renderer config files for clarity
 		Output surround audio (AC-3) instead of stereo (MP2) when using VLC (needs testing)
 		Enabled subtitles in VLC (thanks, tdcosta100!)
+		Made FFmpeg the default transcoding engine
+		Improved the TextWrap function, which makes filenames fit better on certain renderers
 		Fixed padding in FFmpeg for DVD video resolution
 	Renderers:
+		Added support for Google Chromecast
+		Added support for Sony Bravia W7 series TVs (thanks, shtirlic!)
 		Improved support for OPPO devices
 
 3.6.3 - 2014-06-??
