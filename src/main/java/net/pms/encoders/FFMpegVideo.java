@@ -228,8 +228,12 @@ public class FFMpegVideo extends Player {
 					filterChain.add("pad=ih*(16/9):ih:(ow-iw)/2:0");
 				}
 			}
-			if (isNotBlank(rescaleOrPadding) && !media.is3d()) { // do not rescale or pad for 3D video
-				filterChain.add(rescaleOrPadding);
+
+			// Do not rescale or pad for 3D video
+			if (filterChain.size() > 0 && !media.is3d()) {
+				
+				videoFilterOptions.add(filterOption);
+				videoFilterOptions.add(StringUtils.join(filterChain, ", "));
 			}
 		}
 
