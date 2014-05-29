@@ -1257,11 +1257,9 @@ public class RendererConfiguration {
 	}
 
 	/**
-	 * Perform renderer-specific name reformatting:
-	 * <pre>
-	 * Truncating and wrapping see {@code TextWrap}
+	 * Perform renderer-specific name reformatting:<p>
+	 * Truncating and wrapping see {@code TextWrap}<br>
 	 * Character substitution see {@code CharMap}
-	 * </pre>
 	 * 
 	 * @param name Original name
 	 * @param suffix Additional media information
