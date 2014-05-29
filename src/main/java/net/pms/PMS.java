@@ -1312,13 +1312,15 @@ public class PMS {
 		// remove all " and convert to common case before splitting result on ,
 		String[] tmp = line.toLowerCase().replaceAll("\"", "").split(",");
 		// if the line is too short we don't kill the process
-
 		if (tmp.length < 9) {
 			return false;
 		}
 
 		// check first and last, update since taskkill changed
-		return tmp[0].equals("javaw.exe") && tmp[tmp.length - 1].contains("universal media server");
+		// also check 2nd last since we migh have ", POSSIBLY UNSTABLE" in there
+		boolean ums = tmp[tmp.length - 1].contains("universal media server") ||
+					  tmp[tmp.length - 2].contains("universal media server");
+		return tmp[0].equals("javaw.exe") && ums;
 	}
 
 	private static String pidFile() {
