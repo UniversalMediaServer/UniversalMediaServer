@@ -63,7 +63,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	// TextWrap parameters
 	protected int line_w, line_h, indent;
-	protected String inset;
+	protected String inset, dots;
 	protected boolean dc_date = true;
 
 	// property values
@@ -717,7 +717,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			indent = getIntAt(s, "indent:", 0);
 			dc_date = getIntAt(s, "date:", 1) != 0;
 			int ws = getIntAt(s, "whitespace:", 9);
+			int dotct = getIntAt(s, "dots:", 0);
 			inset = new String(new byte[indent]).replaceAll(".", Character.toString((char) ws));
+			dots = new String(new byte[dotct]).replaceAll(".", ".");
 		}
 
 		charMap.clear();
@@ -1645,15 +1647,49 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getInt(TRANSCODED_VIDEO_AUDIO_SAMPLE_RATE, 48000);
 	}
 
-	public String getDcTitle(String name, DLNAResource dlna) {
-		// Wrap text if applicable
-		if (line_w > 0 && name.length() > line_w) {
-			int i = dlna.isFolder() ? 0 : indent;
-			String head = name.substring(0, i + (Character.isWhitespace(name.charAt(i)) ? 1 : 0));
-			String tail = name.substring(i);
-			name = head + WordUtils.wrap(tail, line_w - i, "\n" + (dlna.isFolder() ? "" : inset), true);
+	/**
+	 * Perform renderer-specific name reformatting:<p>
+	 * Truncating and wrapping see {@code TextWrap}<br>
+	 * Character substitution see {@code CharMap}
+	 * 
+	 * @param name Original name
+	 * @param suffix Additional media information
+	 * @param dlna The actual DLNA resource
+	 * @return Reformatted name
+	 */
+
+	public String getDcTitle(String name, String suffix, DLNAResource dlna) {
+		// Wrap + tuncate
+		int len = 0;
+		if (line_w > 0 && (name.length() + suffix.length()) > line_w) {
+			int suffix_len = dots.length() + suffix.length();
+			if (line_h == 1) {
+				len = line_w - suffix_len;
+			} else {
+				// Wrap
+				int i = dlna.isFolder() ? 0 : indent;
+				String newline = "\n" + (dlna.isFolder() ? "" : inset);
+				name = name.substring(0, i + (Character.isWhitespace(name.charAt(i)) ? 1 : 0))
+					+ WordUtils.wrap(name.substring(i) + suffix, line_w - i, newline, true);
+				len = line_w * line_h;
+				if (len != 0 && name.length() > len) {
+					len = name.substring(0, name.length() - line_w).lastIndexOf(newline) + newline.length();
+					name = name.substring(0, len) + name.substring(len, len + line_w).replace(newline, " ");
+					len += (line_w - suffix_len - i);
+				} else {
+					len = -1; // done
+				}
+			}
+			if (len > 0) {
+				// Truncate
+				name = name.substring(0, len).trim() + dots;
+			}
+		}
+		if (len > -1) {
+			name += suffix;
 		}
 
+		// Substitute
 		for (String s : charMap.keySet()) {
 			name = name.replaceAll(s, charMap.get(s));
 		}
