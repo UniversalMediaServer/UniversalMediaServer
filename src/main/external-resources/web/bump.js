@@ -34,7 +34,7 @@ var bump = (function() {
 			enabled = true;
 			build();
 			setButtons();
-			addr='http://'+address+'/bump/';
+			addr=address+'/bump/';
 			getRenderers();
 			status();
 		}

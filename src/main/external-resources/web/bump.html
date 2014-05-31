@@ -1,32 +1,32 @@
 <html><head><title>bump</title>
 <link rel="stylesheet" href="/files/web.css" type="text/css"> 
 <script>
-server_ip = '127.0.0.1';
+server_addr = 'http://127.0.0.1:9001';
 
-function set_ip(new_ip) {
-	IP = document.getElementById('ip');
-	ip = IP.innerHTML;
+function set_addr(new_addr) {
+	var u = document.getElementById('addr');
+	var addr = u.innerHTML;
 	b = document.getElementById('bookmarklet');
-	b.href = b.href.replace(ip, new_ip);
-	IP.innerHTML = new_ip;
+	b.href = b.href.replace(addr, new_addr);
+	u.innerHTML = new_addr;
 	js = document.getElementById('jstext');
 	js.readOnly = false;
 	js.innerHTML = unescape(b.href);
 	js.readOnly = true;
 }
 
-function get_ip() {
-	ip = document.getElementById('ip').innerHTML;
-	new_ip = prompt('Enter the server\'s LAN IP', ip);
-	if (new_ip != null && new_ip !== ip) {
-		set_ip(new_ip);
+function get_addr() {
+	var addr = document.getElementById('addr').innerHTML;
+	var new_addr = prompt('Enter the UMS web server\'s network address', addr);
+	if (new_addr != null && new_addr !== addr) {
+		set_addr(new_addr);
 	}
 }
 
 function show(device) {
-	other = device == 'touch' ? 'desktop' : 'touch';
+	var other = device == 'touch' ? 'desktop' : 'touch';
 	document.getElementById(other).style.display = 'none';
-	s = document.getElementById(other + 'label').style;
+	var s = document.getElementById(other + 'label').style;
 	s.fontWeight = 'normal';
 	s.fontSize = '';
 	document.getElementById(device).style.display = '';
@@ -38,9 +38,9 @@ function show(device) {
 isTouchDevice = window.screenX == 0 && ('ontouchstart' in window || 'onmsgesturechange' in window);
 
 function init() {
-	set_ip(server_ip);
+	set_addr(server_addr);
 	show(isTouchDevice ? 'touch' : 'desktop');
-	e = document.getElementById(isTouchDevice ? 'touchradio' : 'desktopradio');
+	var e = document.getElementById(isTouchDevice ? 'touchradio' : 'desktopradio');
 	e.checked=true;
 	e.focus();
 }
@@ -62,10 +62,10 @@ onMouseOver="this.style.backgroundColor='lightcyan';" onMouseOut="this.style.bac
 <a id="bookmarklet" title="press to test the bookmarklet"
 href="javascript:(function(){
 
-var addr='127.0.0.1:9001';
+var addr='http://127.0.0.1:9001';
 if(typeof bump !== 'undefined' && bump.enabled()){return;}
 loadjs('https://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js',function(){
-loadjs('http://'+addr+'/bump/bump.js',function(){
+loadjs(addr+'/bump/bump.js',function(){
 	bump.start(addr);
 });
 });
@@ -90,17 +90,6 @@ function loadjs(url,done){
 <br/><br/>
 <div class="bump">
 The <b>B</b>rowser-to-<b>U</b>MS <b>M</b>edia <b>P</b>layer (<i>bump</i>) is a remote control <a href="http://en.wikipedia.org/wiki/Bookmarklet">bookmarklet</a> to send media from your browser's current page to any upnp-controllable renderer connected to UMS.
-Some things to know:
-<ul>
-<li>Bump is already embedded in UMS pages, this bookmarklet is for general use anywhere else.</li>
-<li>Your renderer is upnp-controllable if playback controls are showing on its UMS gui popup panel.</li>
-<li>To designate a default playback renderer set <code style="color:#0000BB;"><b>bump</b></code> to its IP in <i>UMS.conf</i>
-(e.g. <code style="color:#0000BB"><b>bump</b>=<i>192.168.1.3</i></code>)
-<li>To disable this service entirely set <code style="color:#0000BB"><b>bump</b>=<i>false</i></code> in <i>UMS.conf</i>.
-<li>Either the <i><a href="http://skeptical.github.io/jumpy/readme.html">jumpy</a></i> or <i><a href="https://github.com/SharkHunter/Channel">channels</a></i> plugin must be installed to act as a url resolver.</li>
-<li>The current page must contain resolvable media, for example youtube, vimeo, and so on.</li>
-<li><u><i>https</i></u> protocol will block the bookmarklet, switch to <u><i>http</i></u> if possible (e.g. on youtube).</li>
-</ul>
 </div>
 <h2>Setup</h2>
 
@@ -147,9 +136,26 @@ bookmark from the drop-down list.</ul>
 </ul>
 </div>
 </div>
-<br/>
-The button is currently configured for bump server IP at <i><b><span id="ip">127.0.0.1</span></b></i>
-(<a href="javascript:get_ip()" title="Click to set the LAN address of UMS/PMS' host machine">change...</a>
-then repeat setup).
+<h2>Info</h2>
+<div class="bump">
+<ul>
+<li>Bump is already embedded in UMS pages (player popup buttons will show under media items if a upnp-controllable
+renderer is connected), this bookmarklet is for general use anywhere else.</li>
+<li>Your renderer is upnp-controllable if playback controls are showing on its UMS gui popup panel.</li>
+<li>To designate a default playback renderer set <code style="color:#0000BB;"><b>bump</b></code> to its IP in <i>UMS.conf</i>
+(e.g. <code style="color:#0000BB"><b>bump</b>=<i>192.168.1.3</i></code>)
+<li>To disable this service entirely set <code style="color:#0000BB"><b>bump</b>=<i>false</i></code> in <i>UMS.conf</i>.
+<li>Either the <i><a href="http://skeptical.github.io/jumpy/readme.html">jumpy</a></i> or <i><a href="https://github.com/SharkHunter/Channel">channels</a></i> plugin must be installed to act as a url resolver.</li>
+<li>The current page must contain resolvable media, for example youtube, vimeo, and so on.</li>
+<li><u><i>https</i></u> pages will work only if the UMS web server is also running in
+<i><a href="doc/https" title="TODO: doc/https">https mode</a></i> (and you'll need to reinstall the bookmarklet if you
+switch server modes). Alternatively you can also switch to the <u><i>http</i></u> version
+of the page if one is available (e.g. on youtube).</li>
+<li>The button is currently configured for UMS
+web server address at <i><b><code id="addr">http://127.0.0.1:9001</code></b></i>
+(<a href="javascript:get_addr()" title="Click to set the network address of UMS/PMS' host machine">change...</a>
+then repeat setup).</li>
+</ul>
+</div>
 </div></div></div>
 </body></html>

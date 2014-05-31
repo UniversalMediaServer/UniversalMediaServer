@@ -77,7 +77,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 									mediaHtml.append("<span>").append(name).append("</span>");
 								mediaHtml.append("</a>").append(CRLF);
 								if (upnpControl) {
-									mediaHtml.append("<a href=\"javascript:bump.start('")
+									mediaHtml.append("<a href=\"javascript:bump.start('//")
 										.append(parent.getAddress()).append("','/play/").append(idForWeb).append("','")
 										.append(name).append("')\" title=\"Play on another renderer\"><img src=\"/files/img/bump16.png\" alt=\"bump\"></a>")
 										.append(CRLF);

@@ -24,6 +24,7 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
+import com.sun.net.httpserver.HttpsServer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +39,7 @@ public class PlayerControlHandler implements HttpHandler {
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	private int port;
+	private String protocol;
 	private HashMap<String,UPNPHelper.Player> players;
 	private String jsonState = "\"state\":{\"playback\":%d,\"mute\":\"%s\",\"volume\":%d,\"position\":\"%s\",\"duration\":\"%s\",\"uri\":\"%s\"}";
 
@@ -47,6 +49,7 @@ public class PlayerControlHandler implements HttpHandler {
 		}
 		server.createContext("/bump", this);
 		port = server.getAddress().getPort();
+		protocol = server instanceof HttpsServer ? "https://" : "http://";
 		players = new HashMap();
 	}
 
@@ -96,8 +99,7 @@ public class PlayerControlHandler implements HttpHandler {
 			json.add(getPlaylist(player));
 		} else if (p.length == 2) {
 			response = read(configuration.getWebFile("bump.html"))
-				.replace("127.0.0.1", PMS.get().getServer().getHost())
-				.replace("9001", String.valueOf(port));
+				.replace("http://127.0.0.1:9001", protocol + PMS.get().getServer().getHost() + ":" + port);
 		} else if (p[2].equals("bump.js")) {
 			response = read(configuration.getWebFile("bump.js"));
 			mime = "text/javascript";
