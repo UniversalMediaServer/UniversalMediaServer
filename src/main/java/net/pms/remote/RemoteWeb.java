@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 
 public class RemoteWeb {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RemoteWeb.class);
-	private static final int DEFAULT_PORT = 9001;
+	public static final int DEFAULT_PORT = 9001;
 	private KeyStore ks;
 	private KeyManagerFactory kmf;
 	private TrustManagerFactory tmf;
@@ -83,6 +83,9 @@ public class RemoteWeb {
 			addCtx("/raw", new RemoteRawHandler(this));
 			addCtx("/files", new RemoteFileHandler());
 			addCtx("/subs", new RemoteFileHandler());
+			if (configuration.isRemoteServer()) {
+				addCtx("/srv", new RemoteServerHandler(this));
+			}
 			server.setExecutor(Executors.newFixedThreadPool(threads));
 			server.start();
 		} catch (Exception e) {

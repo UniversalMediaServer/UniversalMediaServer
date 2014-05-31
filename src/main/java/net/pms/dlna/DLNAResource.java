@@ -2737,7 +2737,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *
 	 * @param format The format to set.
 	 */
-	protected void setFormat(Format format) {
+	public void setFormat(Format format) {
 		this.format = format;
 
 		// Set deprecated variable for backwards compatibility

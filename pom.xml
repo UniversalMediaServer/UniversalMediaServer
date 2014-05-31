@@ -169,6 +169,11 @@
 	</repositories>
 	<dependencies>
 		<!-- TODO this can be removed when MEncoder is removed -->
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20131018</version>
+        </dependency>
 		<dependency>
 			<groupId>org.beanshell</groupId>
 			<artifactId>bsh-core</artifactId>

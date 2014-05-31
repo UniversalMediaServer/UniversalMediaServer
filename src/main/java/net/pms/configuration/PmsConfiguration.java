@@ -190,6 +190,7 @@ public class PmsConfiguration {
 	private static final String KEY_PRETTIFY_FILENAMES = "prettify_filenames";
 	private static final String KEY_PROFILE_NAME = "name";
 	private static final String KEY_PROXY_SERVER_PORT = "proxy";
+	private static final String KEY_REMOTE_SRV = "rem_srv";
 	private static final String KEY_RENDERER_DEFAULT = "renderer_default";
 	private static final String KEY_RENDERER_FORCE_DEFAULT = "renderer_force_default";
 	private static final String KEY_RESUME = "resume";
@@ -1019,8 +1020,8 @@ public class PmsConfiguration {
 	 */
 	public String getForcedSubtitleLanguage() {
 		return configurationReader.getPossiblyBlankConfigurationString(
-			KEY_FORCED_SUBTITLE_LANGUAGE,
-			getLanguage()
+				KEY_FORCED_SUBTITLE_LANGUAGE,
+				getLanguage()
 		);
 	}
 
@@ -1045,8 +1046,8 @@ public class PmsConfiguration {
 	 */
 	public String getAudioSubLanguages() {
 		return configurationReader.getPossiblyBlankConfigurationString(
-			KEY_AUDIO_SUB_LANGS,
-			Messages.getString("MEncoderVideo.128")
+				KEY_AUDIO_SUB_LANGS,
+				Messages.getString("MEncoderVideo.128")
 		);
 	}
 
@@ -3005,5 +3006,9 @@ public class PmsConfiguration {
 
 	public boolean isWebMp4Trans() {
 		return getBoolean(KEY_WEB_MP4_TRANS, false);
+	}
+
+	public boolean isRemoteServer() {
+		return getBoolean(KEY_REMOTE_SRV, true);
 	}
 }
