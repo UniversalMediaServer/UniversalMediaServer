@@ -187,16 +187,21 @@ public class RemoteWeb {
 
 	private void addCtx(String path, HttpHandler h) {
 		HttpContext ctx = server.createContext(path, h);
-		if (configuration.isWebAuthenticate()) {
-			ctx.setAuthenticator(new BasicAuthenticator("") {
-				@Override
-				public boolean checkCredentials(String user, String pwd) {
-					LOGGER.debug("authenticate " + user);
-					return pwd.equals(users.get(user));
-					//return true;
-				}
-			});
+		// this should be removed once ffmpeg can pass auth headers
+		if (!configuration.isWebAuthenticate()) {
+			return;
 		}
+		ctx.setAuthenticator(new BasicAuthenticator("") {
+			@Override
+			public boolean checkCredentials(String user, String pwd) {
+				LOGGER.debug("authenticate " + user);
+				if (!configuration.isWebAuthenticate()) {
+					return true;
+				}
+				return pwd.equals(users.get(user));
+				//return true;
+			}
+		});
 	}
 
 	private void readCred() throws IOException {

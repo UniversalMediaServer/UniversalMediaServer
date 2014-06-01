@@ -4,15 +4,15 @@ import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-
-
-import com.sun.net.httpserver.Headers;
-import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class RemoteSrvMedia extends DLNAResource{
+	private static final Logger LOGGER = LoggerFactory.getLogger(RemoteSrvMedia.class);
+
 	private String id;
 	private String name;
 	private String thumb;
@@ -49,6 +49,11 @@ public class RemoteSrvMedia extends DLNAResource{
 	public String getSystemName() {
 		return server.streamURL(id);
 		//return getName();
+	}
+
+	@Override
+	public byte[] getHeaders() {
+		return server.authHdr().getBytes();
 	}
 
 	@Override

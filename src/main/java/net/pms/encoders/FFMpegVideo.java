@@ -764,6 +764,12 @@ public class FFMpegVideo extends Player {
 		String frameRateRatio = media.getValidFps(true);
 		String frameRateNumber = media.getValidFps(false);
 
+		// - (http) header options
+		if (params.header != null && params.header.length > 0) {
+			String hdr = new String(params.header);
+			cmdList.addAll(parseOptions(hdr));
+		}
+
 		// Input filename
 		cmdList.add("-i");
 		if (avisynth && !filename.toLowerCase().endsWith(".iso")) {

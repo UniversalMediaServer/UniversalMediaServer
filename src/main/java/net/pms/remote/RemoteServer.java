@@ -2,6 +2,8 @@ package net.pms.remote;
 
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
+import net.pms.util.StringUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,6 +57,7 @@ public class RemoteServer {
 			if(str.startsWith("https"))
 				srv.useHTTPS();
 		}
+		in.close();
 		return res;
 	}
 
@@ -117,6 +120,9 @@ public class RemoteServer {
 		uc.setDoOutput(true);
 		uc.setDoInput(true);
 		uc.setRequestProperty("User-Agent", "UMS");
+		if(!StringUtils.isEmpty(usr) && !StringUtils.isEmpty(pwd)) {
+			uc.setRequestProperty ("Authorization", RemoteUtil.authStr(usr, pwd));
+		}
 		BufferedReader in = new BufferedReader(new InputStreamReader(uc.getInputStream()));
 		StringBuilder page=new StringBuilder();
 		String str;
@@ -132,11 +138,20 @@ public class RemoteServer {
 	}
 
 	public String streamURL(String id) {
-		return url("media/" + id);
+		return scheme+addr+":"+port+"/srv/media/"+id;
 	}
 
 	public String url(String id) {
 		return scheme+addr+":"+port+"/srv/"+id;
+	}
+
+	public String authHdr() {
+		String upwd = "";
+		if(!StringUtils.isEmpty(usr) && !StringUtils.isEmpty(pwd)) {
+			String b = RemoteUtil.authStr(usr, pwd);
+			upwd = "-headers \"Authorization: " + b + "\r\n\"";
+		}
+		return upwd;
 	}
 
 }

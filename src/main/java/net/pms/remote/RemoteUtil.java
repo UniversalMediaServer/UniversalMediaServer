@@ -11,6 +11,7 @@ import net.pms.dlna.Range;
 import net.pms.dlna.RootFolder;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.newgui.LooksFrame;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -183,5 +184,10 @@ public class RemoteUtil {
 
 	public static boolean ignoreLine(String str) {
 		return (str.charAt(0)=='#')||(StringUtils.isEmpty(str));
+	}
+
+	public static String authStr(String usr, String pwd) {
+		String userpass = usr + ":" + pwd;
+		return  "Basic " + new String(new Base64().encode(userpass.getBytes()));
 	}
 }
