@@ -767,7 +767,9 @@ public class FFMpegVideo extends Player {
 		// - (http) header options
 		if (params.header != null && params.header.length > 0) {
 			String hdr = new String(params.header);
-			cmdList.addAll(parseOptions(hdr));
+			FFmpegOptions opts = new FFmpegOptions();
+			opts.addAll(parseOptions(hdr));
+			opts.transferInputFileOptions(cmdList);
 		}
 
 		// Input filename

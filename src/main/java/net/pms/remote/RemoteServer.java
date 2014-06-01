@@ -149,7 +149,7 @@ public class RemoteServer {
 		String upwd = "";
 		if(!StringUtils.isEmpty(usr) && !StringUtils.isEmpty(pwd)) {
 			String b = RemoteUtil.authStr(usr, pwd);
-			upwd = "-headers \"Authorization: " + b + "\r\n\"";
+			upwd = "-headers \"Authorization: " + b + "\"";
 		}
 		return upwd;
 	}

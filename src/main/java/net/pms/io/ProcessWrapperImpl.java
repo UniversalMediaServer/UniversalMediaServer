@@ -126,7 +126,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 	public void run() {
 		ProcessBuilder pb = new ProcessBuilder(cmdArray);
 		try {
-			LOGGER.debug("Starting " + cmdLine);
+			LOGGER.debug("Starting " + ProcessUtil.dbgWashCmds(cmdLine));
 
 			if (params.workDir != null && params.workDir.isDirectory()) {
 				pb.directory(params.workDir);

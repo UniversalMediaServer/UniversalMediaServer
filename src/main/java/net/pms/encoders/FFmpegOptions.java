@@ -74,6 +74,7 @@ public class FFmpegOptions extends optionsHashMap {
 					.replace("Connection: ", "\r\nConnection: ")
 					.replace("Content-Length: ", "\r\nContent-Length: ")
 					.replace("Content-Type: ", "\r\nContent-Type: ")
+					.replace("Authorization: ", "\r\nAuthorization: ")
 					.trim() + "\r\n";
 				put("-headers", headers);
 			}
