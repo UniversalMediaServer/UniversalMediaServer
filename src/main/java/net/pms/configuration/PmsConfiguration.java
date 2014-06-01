@@ -2960,6 +2960,19 @@ public class PmsConfiguration {
 	}
 
 	/**
+	 * Set whether UMS should kill an old running instance
+	 *
+	 * @param val Set to true it should kill the old instance
+	 */
+	public void setSingle(boolean val) {
+		configuration.setProperty(KEY_SINGLE, val);
+	}
+
+	public boolean getSingle() {
+		return getBoolean(KEY_SINGLE, true);
+	}
+
+	/**
 	 * Web stuff
 	 */
 	private static final String KEY_NO_FOLDERS = "no_shared";
@@ -3001,18 +3014,5 @@ public class PmsConfiguration {
 
 	public boolean isWebMp4Trans() {
 		return getBoolean(KEY_WEB_MP4_TRANS, false);
-	}
-
-	/**
-	 * Set whether UMS should kill an old running instance
-	 *
-	 * @param val Set to true it should kill the old instance
-	 */
-	public void setSingle(boolean val) {
-		configuration.setProperty(KEY_SINGLE, val);
-	}
-
-	public boolean getSingle() {
-		return getBoolean(KEY_SINGLE, true);
 	}
 }

@@ -1314,7 +1314,6 @@ public class PMS {
 		// remove all " and convert to common case before splitting result on ,
 		String[] tmp = line.toLowerCase().replaceAll("\"", "").split(",");
 		// if the line is too short we don't kill the process
-
 		if (tmp.length < 9) {
 			return false;
 		}
