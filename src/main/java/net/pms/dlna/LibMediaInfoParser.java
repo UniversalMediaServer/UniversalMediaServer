@@ -271,7 +271,7 @@ public class LibMediaInfoParser {
 				 *
 				 * First we check for our custom naming convention, for which the filename
 				 * either has to start with "3DSBSLF" or "3DSBSRF" for side-by-side layout
-				 * or "3DTBLF" or "3DTBRF" for top-bottom layout.
+				 * or "3DOULF" or "3DOURF" for over-under layout.
 				 * For anaglyph 3D video can be used following combination:
 				 * 		3DARCG 	anaglyph_red_cyan_gray
 				 *		3DARCH 	anaglyph_red_cyan_half_color
@@ -291,7 +291,7 @@ public class LibMediaInfoParser {
 				if (!media.is3d()) {
 					if (file.getName().startsWith("3DSBS")) {
 						media.setStereoscopy(file.getName().substring(2, 7));
-					} else if (file.getName().startsWith("3DTB")) {
+					} else if (file.getName().startsWith("3DOU")) {
 						media.setStereoscopy(file.getName().substring(2, 6));
 					} else if (file.getName().startsWith("3DA")) {
 						media.setStereoscopy(file.getName().substring(2, 6));
