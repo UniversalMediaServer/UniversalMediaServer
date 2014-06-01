@@ -2174,7 +2174,7 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	public enum Mode3D {
-		SBSL, SBSR, ABL, ABR, ARCG, ARCH, ARCC, ARCD, AGMG, AGMH, AGMC, AGMD, AYBG, AYBH, AYBC, AYBD // Used FFMpeg/MEncoder 3D video format naming
+		SBSL, SBSR, ABL, ABR, ARCG, ARCH, ARCC, ARCD, AGMG, AGMH, AGMC, AGMD, AYBG, AYBH, AYBC, AYBD // Used FFmpeg/MEncoder 3D video format naming
 	};
 
 	public Mode3D get3DLayout() {
