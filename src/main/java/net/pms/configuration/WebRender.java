@@ -36,6 +36,8 @@ public class WebRender extends RendererConfiguration {
 			rendererName += "Firefox";
 		} else if (ua.contains("safari")) {
 			rendererName += "Safari";
+		} else if (ua.contains("ums")) {
+			rendererName += "UMS";
 		} else {
 			rendererName += Messages.getString("PMS.142");
 		}
@@ -70,6 +72,9 @@ public class WebRender extends RendererConfiguration {
 		}
 		if (ua.contains("firefox")) {
 			return "firefox.png";
+		}
+		if (ua.contains("ums")) {
+			return "icon-128.png";
 		}
 		return super.getRendererIcon();
 	}

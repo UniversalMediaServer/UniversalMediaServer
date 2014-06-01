@@ -174,7 +174,6 @@ public class RemoteWeb {
 		} catch (ConfigurationException e) {
 			root.setDefaultRenderer(RendererConfiguration.getDefaultConf());
 		}
-		//root.setDefaultRenderer(RendererConfiguration.getRendererConfigurationByName("web"));
 		root.discoverChildren();
 		roots.put(groupTag, root);
 		return root;
@@ -273,7 +272,7 @@ public class RemoteWeb {
 			r.checkThumbnail();
 			Headers hdr = t.getResponseHeaders();
 			hdr.add("Content-Type", r.getThumbnailContentType());
-			hdr.add("Accept-Ranges", "bytes");
+			//hdr.add("Accept-Ranges", "bytes");
 			hdr.add("Connection", "keep-alive");
 			InputStream in = r.getThumbnailInputStream();
 			t.sendResponseHeaders(200, in.available());

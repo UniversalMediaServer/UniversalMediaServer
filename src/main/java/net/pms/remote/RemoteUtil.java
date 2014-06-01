@@ -172,7 +172,7 @@ public class RemoteUtil {
 		r.checkThumbnail();
 		Headers hdr = t.getResponseHeaders();
 		hdr.add("Content-Type", r.getThumbnailContentType());
-		hdr.add("Accept-Ranges", "bytes");
+		//hdr.add("Accept-Ranges", "bytes");
 		hdr.add("Connection", "keep-alive");
 		InputStream in = r.getThumbnailInputStream();
 		t.sendResponseHeaders(200, in.available());

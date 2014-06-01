@@ -52,7 +52,7 @@ public class RemoteRawHandler implements HttpHandler {
 		Headers hdr = t.getResponseHeaders();
 		LOGGER.debug("dumping media " + mime + " " + dlna);
 		hdr.add("Content-Type", mime);
-		hdr.add("Accept-Ranges", "bytes");
+		//hdr.add("Accept-Ranges", "bytes");
 		hdr.add("Server", PMS.get().getServerName());
 		hdr.add("Connection", "keep-alive");
 		hdr.add("Transfer-Encoding", "chunked");

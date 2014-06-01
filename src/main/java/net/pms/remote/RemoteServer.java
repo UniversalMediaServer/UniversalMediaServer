@@ -116,6 +116,7 @@ public class RemoteServer {
 		URLConnection uc=u.openConnection();
 		uc.setDoOutput(true);
 		uc.setDoInput(true);
+		uc.setRequestProperty("User-Agent", "UMS");
 		BufferedReader in = new BufferedReader(new InputStreamReader(uc.getInputStream()));
 		StringBuilder page=new StringBuilder();
 		String str;

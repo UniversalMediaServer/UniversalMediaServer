@@ -92,7 +92,7 @@ public class RemoteMediaHandler implements HttpHandler {
 		InputStream in = dlna.getInputStream(range, root.getDefaultRenderer());
 		Headers hdr = t.getResponseHeaders();
 		hdr.add("Content-Type", mime);
-		hdr.add("Accept-Ranges", "bytes");
+		//hdr.add("Accept-Ranges", "bytes");
 		hdr.add("Server", PMS.get().getServerName());
 		hdr.add("Connection", "keep-alive");
 		t.sendResponseHeaders(200, 0);

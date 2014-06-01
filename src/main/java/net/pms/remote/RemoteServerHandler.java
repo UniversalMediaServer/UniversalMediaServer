@@ -10,6 +10,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
 import net.pms.dlna.RootFolder;
+import net.pms.util.FileUtil;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +62,7 @@ public class RemoteServerHandler implements HttpHandler {
 		Range.Byte rb = range.asByteRange();
 		InputStream in = dlna.getInputStream(range, render);
 		Headers hdr = t.getResponseHeaders();
-		hdr.add("Accept-Ranges", "bytes");
+		//hdr.add("Accept-Ranges", "bytes");
 		hdr.add("Server", PMS.get().getServerName());
 		hdr.add("Connection", "keep-alive");
 		hdr.add("Content-Type", dlna.mimeType());
@@ -87,7 +88,7 @@ public class RemoteServerHandler implements HttpHandler {
 		String user = RemoteUtil.userName(t);
 		RootFolder root = parent.getRoot(user, true, t);
 		if(id.startsWith("media/")) {
-			playMedia(id.substring(6),t, root);
+			playMedia(id.substring(6), t, root);
 			return;
 		}
 		List<DLNAResource> res = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), null);
