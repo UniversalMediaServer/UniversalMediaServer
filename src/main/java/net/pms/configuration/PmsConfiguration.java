@@ -3009,6 +3009,6 @@ public class PmsConfiguration {
 	}
 
 	public boolean isRemoteServer() {
-		return getBoolean(KEY_REMOTE_SRV, true);
+		return getBoolean(KEY_REMOTE_SRV, false);
 	}
 }
