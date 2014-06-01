@@ -48,7 +48,6 @@ public class RemoteBrowseHandler implements HttpHandler {
 			sb.append("<body id=\"ContentPage\">").append(CRLF);
 				sb.append("<div id=\"Container\">");
 					sb.append("<div id=\"Menu\">");
-//						sb.append("<a href=\"/bump\" id=\"DocButton\"></a>");
 						sb.append("<a href=\"/doc\" id=\"DocButton\" title=\"Documentation\"></a>");
 						sb.append("<a href=\"/browse/0\" id=\"HomeButton\"></a>");
 					sb.append("</div>");
@@ -79,8 +78,12 @@ public class RemoteBrowseHandler implements HttpHandler {
 								if (upnpControl) {
 									mediaHtml.append("<a href=\"javascript:bump.start('//")
 										.append(parent.getAddress()).append("','/play/").append(idForWeb).append("','")
-										.append(name).append("')\" title=\"Play on another renderer\"><img src=\"/files/img/bump16.png\" alt=\"bump\"></a>")
-										.append(CRLF);
+										.append(name).append("')\" title=\"").append("Play on another renderer")
+										.append("\"><img src=\"/files/img/bump16.png\" alt=\"bump\"></a>").append(CRLF);
+								} else {
+									mediaHtml.append("<a href=\"javascript:alert('").append("No upnp-controllable renderers suitable for receiving pushed media are available. Refresh this page if a new renderer may have recently connected.")
+										.append("')\" title=\"").append("No other renderers available")
+										.append("\"><img src=\"/files/img/bump16.png\" style=\"opacity:0.3;cursor:default\" alt=\"bump\"></a>").append(CRLF);
 								}
 							mediaHtml.append("</li>").append(CRLF);
 						}
