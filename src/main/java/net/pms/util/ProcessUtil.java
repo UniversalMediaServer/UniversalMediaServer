@@ -174,12 +174,12 @@ public class ProcessUtil {
 		return "";
 	}
 
-	// clean away any arguments not suitable to diaplay in dbg messages
-	// and make one singe printable string
+	// Whitewash any arguments not suitable to display in dbg messages
+	// and make one single printable string
 	public static String dbgWashCmds(String[] cmd) {
 		for(int i=0; i < cmd.length; i++) {
 			if(cmd[i].contains("headers")) {
-				cmd[i+1]= cmd[i+1].replaceAll("Authorization: [^\n]+\n", "");
+				cmd[i+1]= cmd[i+1].replaceAll("Authorization: [^\n]+\n", "Authorization: ****\n");
 				i++;
 				continue;
 			}
