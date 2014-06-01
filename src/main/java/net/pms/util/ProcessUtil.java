@@ -175,14 +175,15 @@ public class ProcessUtil {
 	}
 
 	// clean away any arguments not suitable to diaplay in dbg messages
-	public static String dbgWashCmds(String cmd) {
-		// 1st split on dash
-		String[] tmp = cmd.split("-");
-		for(int i=0; i < tmp.length; i++) {
-			if(tmp[i].startsWith("headers")) {
-				tmp[i]= tmp[i].replaceAll("Authorization: [^\n]+\n", "");
+	// and make one singe printable string
+	public static String dbgWashCmds(String[] cmd) {
+		for(int i=0; i < cmd.length; i++) {
+			if(cmd[i].contains("headers")) {
+				cmd[i+1]= cmd[i+1].replaceAll("Authorization: [^\n]+\n", "");
+				i++;
+				continue;
 			}
 		}
-		return StringUtils.join(tmp,"-");
+		return StringUtils.join(cmd," ");
 	}
 }

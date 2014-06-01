@@ -37,7 +37,6 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 	/** FONTCONFIG_PATH environment variable name */
 	private static final String FONTCONFIG_PATH = "FONTCONFIG_PATH";
 
-	private String cmdLine;
 	private Process process;
 	private OutputConsumer stdoutConsumer;
 	private OutputConsumer stderrConsumer;
@@ -93,21 +92,6 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 		}
 
 		this.cmdArray = cmdArray;
-		StringBuilder sb = new StringBuilder("");
-
-		for (int i = 0; i < cmdArray.length; i++) {
-			if (i > 0) {
-				sb.append(" ");
-			}
-
-			if (cmdArray[i] != null && cmdArray[i].indexOf(' ') >= 0) {
-				sb.append("\"").append(cmdArray[i]).append("\"");
-			} else {
-				sb.append(cmdArray[i]);
-			}
-		}
-
-		cmdLine = sb.toString();
 		this.params = params;
 		this.keepStdout = keepStdout;
 		this.keepStderr = keepStderr;
@@ -126,7 +110,7 @@ public class ProcessWrapperImpl extends Thread implements ProcessWrapper {
 	public void run() {
 		ProcessBuilder pb = new ProcessBuilder(cmdArray);
 		try {
-			LOGGER.debug("Starting " + ProcessUtil.dbgWashCmds(cmdLine));
+			LOGGER.debug("Starting " + ProcessUtil.dbgWashCmds(cmdArray));
 
 			if (params.workDir != null && params.workDir.isDirectory()) {
 				pb.directory(params.workDir);
