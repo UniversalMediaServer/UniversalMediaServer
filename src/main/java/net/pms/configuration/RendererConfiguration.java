@@ -49,7 +49,7 @@ public class RendererConfiguration {
 	private final Map<String, String> DLNAPN;
 
 	// TextWrap parameters
-	protected int line_w, line_h, indent, max_len;
+	protected int line_w, line_h, indent;
 	protected String inset, dots;
 	protected boolean dc_date = true;
 
@@ -518,7 +518,6 @@ public class RendererConfiguration {
 			int dotct = getIntAt(s, "dots:", 0);
 			inset = new String(new byte[indent]).replaceAll(".", Character.toString((char) ws));
 			dots = new String(new byte[dotct]).replaceAll(".", ".");
-			max_len = line_h < 1 ? 0 : (line_w * line_h - (line_h - 1) * indent);
 		}
 
 		charMap = new HashMap<>();
@@ -1258,39 +1257,44 @@ public class RendererConfiguration {
 	}
 
 	/**
-	 * Perform renderer-specific name reformatting:
-	 *    Truncating and wrapping see {@code TextWrap}
-	 *    Character substitution see {@code CharMap}
+	 * Perform renderer-specific name reformatting:<p>
+	 * Truncating and wrapping see {@code TextWrap}<br>
+	 * Character substitution see {@code CharMap}
 	 * 
 	 * @param name Original name
 	 * @param suffix Additional media information
 	 * @param dlna The actual DLNA resource
 	 * @return Reformatted name
 	 */
+
 	public String getDcTitle(String name, String suffix, DLNAResource dlna) {
-		// Reformat name if applicable
-		int len = name.length() + suffix.length();
-		if (line_w > 0 && len > line_w) {
-			// Truncate
-			if (max_len > 0 && len > max_len) {
-				suffix = dots + suffix;
-				name = name.substring(0, max_len - suffix.length()).trim() + suffix;
-			}
-			// Wrap
-			if (name.length() > line_w) {
+		// Wrap + tuncate
+		int len = 0;
+		if (line_w > 0 && (name.length() + suffix.length()) > line_w) {
+			int suffix_len = dots.length() + suffix.length();
+			if (line_h == 1) {
+				len = line_w - suffix_len;
+			} else {
+				// Wrap
 				int i = dlna.isFolder() ? 0 : indent;
-				String head = name.substring(0, i + (Character.isWhitespace(name.charAt(i)) ? 1 : 0));
-				String tail = WordUtils.wrap(name.substring(i), line_w - i, "\n" + (dlna.isFolder() ? "" : inset), true);
-				if (line_h > 0) {
-					String[] t = tail.split("\n", line_h);
-					if (t.length == line_h && t[line_h -1].length() > line_w) {
-						t[line_h -1] = t[line_h -1].substring(0, line_w - suffix.length()).trim().replace("\n", " ") + suffix;
-						tail = StringUtils.join(t, "\n");
-					}
+				String newline = "\n" + (dlna.isFolder() ? "" : inset);
+				name = name.substring(0, i + (Character.isWhitespace(name.charAt(i)) ? 1 : 0))
+					+ WordUtils.wrap(name.substring(i) + suffix, line_w - i, newline, true);
+				len = line_w * line_h;
+				if (len != 0 && name.length() > len) {
+					len = name.substring(0, name.length() - line_w).lastIndexOf(newline) + newline.length();
+					name = name.substring(0, len) + name.substring(len, len + line_w).replace(newline, " ");
+					len += (line_w - suffix_len - i);
+				} else {
+					len = -1; // done
 				}
-				name = head + tail;
 			}
-		} else {
+			if (len > 0) {
+				// Truncate
+				name = name.substring(0, len).trim() + dots;
+			}
+		}
+		if (len > -1) {
 			name += suffix;
 		}
 
