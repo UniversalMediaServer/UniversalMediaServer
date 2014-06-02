@@ -163,7 +163,7 @@ public class RemotePlayHandler implements HttpHandler {
 			sb.append("<script>").append(CRLF);
 			sb.append("$(function() {").append(CRLF);
 			sb.append("	$(\".player\").flowplayer({").append(CRLF);
-			sb.append("		ratio: 25/47,").append(CRLF);
+			sb.append("		ratio: 9/16,").append(CRLF);
 			sb.append("		flashfit: true").append(CRLF);
 			sb.append("	});").append(CRLF);
 			sb.append("});").append(CRLF);
