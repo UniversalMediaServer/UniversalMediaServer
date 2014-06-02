@@ -78,7 +78,7 @@ public class SpeedStats {
 
 		public MeasureSpeed(InetAddress addr, String rendererName) {
 			this.addr = addr;
-			this.rendererName = rendererName != null ? rendererName : "Unknown";
+			this.rendererName = rendererName != null ? rendererName.replaceAll("\n", "") : "Unknown";
 		}
 
 		@Override

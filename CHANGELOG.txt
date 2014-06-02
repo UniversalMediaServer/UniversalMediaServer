@@ -1,3 +1,55 @@
+4.0.0-a1 - 2014-06-02 - Changes since 3.6.2
+
+	General:
+		Added a web interface, available at localhost:9001
+		Added a new transcoding option to allow H.264 video with AAC audio
+		Added documentation for more renderer options to PS3.conf (CustomFFmpegOptions and OverrideVideoFilter)
+		Added support for configuring whether UMS can run just one or multiple instances
+		Changed the names of transcoding options in renderer config files for clarity
+		Output surround audio (AC-3) instead of stereo (MP2) when using VLC (needs testing)
+		Enabled subtitles in VLC (thanks, tdcosta100!)
+		Made FFmpeg the default transcoding engine
+		Improved the TextWrap function, which makes filenames fit better on certain renderers
+		Fixed padding in FFmpeg for DVD video resolution
+	Renderers:
+		Added support for Google Chromecast
+		Added support for nPlayer, skifta and TwonkyBeam on portable Apple devices (thanks, MattDetroit!)
+		Added support for LG LM620 TVs (thanks, michal-sapsa!)
+		Added support for Sony Bravia W7 series TVs (thanks, shtirlic!)
+		Improved support for OPPO devices
+		Improved support for Panasonic TX-L32V10E TVs
+	Languages:
+		Updated Spanish translation (thanks, AlfredoRamos!)
+	External Components:
+		Updated Apache commons-lang to 3.3.2, which:
+			Fixes bugs
+		Updated Logback to 1.1.2, which:
+			Fixes bugs
+		Updated Maven Git Commit ID Plugin to 2.1.9
+		Updated Netty to 3.9.1, which:
+			Fixes bugs
+		Updated slf4j to 1.7.7
+
+3.6.3 - 2014-06-??
+
+	General:
+		Added documentation for more renderer options to PS3.conf (CustomFFmpegOptions and OverrideVideoFilter)
+	Renderers:
+		Added support for nPlayer, skifta and TwonkyBeam on portable Apple devices (thanks, MattDetroit!)
+		Added support for LG LM620 TVs (thanks, michal-sapsa!)
+		Improved support for OPPO devices
+		Improved support for Panasonic TX-L32V10E TVs
+	External Components:
+		Updated Apache commons-lang to 3.3.2, which:
+			Fixes bugs
+		Updated Logback to 1.1.2, which:
+			Fixes bugs
+		Updated Maven FindBugs Plugin to 2.5.4
+		Updated Maven Git Commit ID Plugin to 2.1.9
+		Updated Netty to 3.9.1, which:
+			Fixes bugs
+		Updated slf4j to 1.7.7
+
 3.6.2 - 2014-05-26
 
 	General:

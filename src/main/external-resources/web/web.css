@@ -1,0 +1,179 @@
+/* General */
+
+html {
+	height: 100%;
+}
+
+body {
+	background:		url('/files/background.jpg');
+	font-family:		"DejaVuSansCondensed", "Helvetica Neue", Helvetica, Arial, sans-serif;
+	color:			#333;
+	min-height: 100%;
+}
+
+body#ContentPage {
+	background:		url('/files/background-blank.jpg');
+}
+
+/* Scaffolding */
+
+#FrontPage #Container {
+	width:			700px;
+	margin:			0 auto;
+	position: relative;
+}
+
+#ContentPage #Container {
+	position:		relative;
+}
+
+#FrontPage #Menu {
+	position:		relative;
+}
+
+#ContentPage #Menu {
+	background:		url('/files/menu-background-content.png');
+	background-repeat:	repeat-x;
+	height:			95px;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	z-index: 2;
+}
+
+#ContentPage #Menu #HomeButton {
+	background:		url('/files/menu-left-content.png');
+	width:			125px;
+	height:			93px;
+	display: block;
+}
+
+#VideoContainer {
+	max-width: 720px;
+	margin: 100px auto 0 auto;
+}
+
+/* Menu */
+
+#Logo {
+	position: absolute;
+	left: 243px;
+	top: 29px;
+	background: url('/files/logo.png') !important;
+	width: 217px;
+	height: 220px !important;
+	display: block;
+}
+
+#FrontPage #Menu a h3 {
+	margin-top: 240px;
+	text-align: center;
+	font-family: Arial, Verdana, Tahoma, sans-serif;
+	color: #5a5a5a;
+	font-size: 22px;
+	text-decoration: none;
+}
+
+#FrontPage #Menu a {
+	text-decoration: none;
+}
+
+/* Content */
+
+div#FoldersContainer {
+	position: fixed;
+	left: 0;
+	width: 200px;
+	height: 100%;
+	display: block;
+}
+
+div#FoldersContainer div {
+	height: 100%;
+	position: relative;
+}
+
+ul#Folders {
+	width: 200px;
+	background-color: #222;
+	overflow: auto;
+	display: block;
+	padding: 20px;
+	position: absolute;
+	top: 94px;
+	bottom: 0;
+	left: 0;
+	z-index: 1;
+}
+
+ul#Media {
+	margin: 0 0 0 240px;
+	padding: 115px 0 20px 20px;
+}
+
+ul#Media li {
+	margin-right: 20px;
+}
+
+ul li {
+	text-align: left;
+}
+
+ul#Media li {
+	float: left;
+}
+
+ul#Media li a img {
+	max-width: 214px;
+	max-height: 180px;
+	width: 214px;
+	height: 120px;
+}
+
+ul#Folders li span {
+	display: block;
+	margin-bottom: 5px;
+}
+
+ul#Media li span {
+	display: block;
+	max-width: 214px;
+	height: 16px;
+	margin-bottom: 20px;
+	overflow: hidden;
+}
+
+ul li a {
+	text-decoration: none;
+}
+
+ul#Folders li a:hover {
+	color: #fff !important;
+}
+
+ul#Media li a:hover {
+	color: #000 !important;
+}
+
+ul#Folders li a {
+	color: #aaa;
+	font-size: 14px;
+}
+
+ul#Media li a {
+	font-size: 12px;
+	color: #444;
+}
+
+#DownloadLink {
+	margin: 20px auto 0 auto;
+	background: url('/files/download.png');
+	display: block;
+	height: 48px;
+	width: 48px;
+}
+
+#DownloadLink:hover {
+	background-position: 0 -48px;
+}

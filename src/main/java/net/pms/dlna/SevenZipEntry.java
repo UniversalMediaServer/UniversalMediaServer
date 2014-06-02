@@ -164,7 +164,7 @@ public class SevenZipEntry extends DLNAResource implements IPushOutput {
 	}
 
 	@Override
-	public void resolve() {
+	public synchronized void resolve() {
 		if (getFormat() == null || !getFormat().isVideo()) {
 			return;
 		}

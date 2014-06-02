@@ -528,6 +528,7 @@ public class RootFolder extends DLNAResource {
 				process = Runtime.getRuntime().exec("defaults read com.apple.iApps ApertureLibraries");
 				BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
 					// Every line entry is one aperture library. We want all of them as a dlna folder.
+					// Every line entry is one aperture library. We want all of them as a dlna folder.
 					String line;
 					res = new VirtualFolder("Aperture libraries", null);
 
@@ -901,7 +902,7 @@ public class RootFolder extends DLNAResource {
 										// Put the track into its album folder
 										{
 											if (!isCompilation) {
-												albumName += " – " + artistName;
+												albumName += " - " + artistName;
 											}
 
 											VirtualFolder individualAlbumFolder = null;

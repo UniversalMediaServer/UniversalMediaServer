@@ -200,7 +200,7 @@ public class FFmpegDVRMSRemux extends Player {
 
 	@Override
 	public boolean isPlayerCompatible(RendererConfiguration mediaRenderer) {
-		return mediaRenderer.isTranscodeToMPEGPSAC3();
+		return mediaRenderer.isTranscodeToMPEGPSMPEG2AC3();
 	}
 
 	/**

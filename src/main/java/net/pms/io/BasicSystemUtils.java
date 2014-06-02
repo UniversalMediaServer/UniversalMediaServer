@@ -29,6 +29,7 @@ import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import net.pms.Messages;
+import net.pms.PMS;
 import net.pms.newgui.LooksFrame;
 import net.pms.util.PropertiesUtil;
 import org.slf4j.Logger;
@@ -144,6 +145,7 @@ public class BasicSystemUtils implements SystemUtils {
 			PopupMenu popup = new PopupMenu();
 			MenuItem defaultItem = new MenuItem(Messages.getString("LooksFrame.5"));
 			MenuItem traceItem = new MenuItem(Messages.getString("LooksFrame.6"));
+			MenuItem webInterfaceItem = new MenuItem(Messages.getString("LooksFrame.29"));
 
 			defaultItem.addActionListener(new ActionListener() {
 				@Override
@@ -159,6 +161,14 @@ public class BasicSystemUtils implements SystemUtils {
 				}
 			});
 
+			webInterfaceItem.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					browseURI("http://" + PMS.get().getServer().getHost() + ":9001");
+				}
+			});
+
+			popup.add(webInterfaceItem);
 			popup.add(traceItem);
 			popup.add(defaultItem);
 

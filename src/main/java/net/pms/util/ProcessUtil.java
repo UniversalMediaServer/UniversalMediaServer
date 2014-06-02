@@ -7,6 +7,7 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import net.pms.PMS;
 import net.pms.io.Gob;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -177,5 +178,18 @@ public class ProcessUtil {
 			LOGGER.error("Error running command " + Arrays.toString(cmd), e);
 		}
 		return "";
+	}
+
+	// Whitewash any arguments not suitable to display in dbg messages
+	// and make one single printable string
+	public static String dbgWashCmds(String[] cmd) {
+		for(int i=0; i < cmd.length; i++) {
+			if(cmd[i].contains("headers")) {
+				cmd[i+1]= cmd[i+1].replaceAll("Authorization: [^\n]+\n", "Authorization: ****\n");
+				i++;
+				continue;
+			}
+		}
+		return StringUtils.join(cmd, " ");
 	}
 }

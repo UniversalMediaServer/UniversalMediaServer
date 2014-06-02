@@ -295,9 +295,6 @@ public class TsMuxeRVideo extends Player {
 				boolean encodedAudioPassthrough;
 				boolean pcm;
 
-				// Disable LPCM transcoding for MP4 container with non-H264 video as workaround for MEncoder's A/V sync bug
-				boolean mp4_with_non_h264 = (media.getContainer().equals("mp4") && !media.isH264());
-
 				if (numAudioTracks <= 1) {
 					ffAudioPipe = new PipeIPCProcess[numAudioTracks];
 					ffAudioPipe[0] = new PipeIPCProcess(System.currentTimeMillis() + "ffmpegaudio01", System.currentTimeMillis() + "audioout", false, true);

@@ -53,6 +53,7 @@ import net.pms.newgui.DummyFrame;
 import net.pms.newgui.IFrame;
 import net.pms.newgui.LooksFrame;
 import net.pms.newgui.ProfileChooser;
+import net.pms.remote.RemoteWeb;
 import net.pms.update.AutoUpdater;
 import net.pms.util.FileUtil;
 import net.pms.util.OpenSubtitle;
@@ -694,6 +695,9 @@ public class PMS {
 			return false;
 		}
 
+		// Web stuff
+		web = new RemoteWeb();
+
 		// initialize the cache
 		if (configuration.getUseCache()) {
 			initializeDatabase(); // XXX: this must be done *before* new MediaLibrary -> new MediaLibraryFolder
@@ -1118,7 +1122,9 @@ public class PMS {
 				LOGGER.debug("Error initializing plugin credentials: " + e);
 			}
 
-			killOld();
+			if (getConfiguration().getSingle()) {
+				killOld();
+			}
 
 			// Create the PMS instance returned by get()
 			createInstance(); // Calls new() then init()
@@ -1300,13 +1306,15 @@ public class PMS {
 		// remove all " and convert to common case before splitting result on ,
 		String[] tmp = line.toLowerCase().replaceAll("\"", "").split(",");
 		// if the line is too short we don't kill the process
-
 		if (tmp.length < 9) {
 			return false;
 		}
 
 		// check first and last, update since taskkill changed
-		return tmp[0].equals("javaw.exe") && tmp[tmp.length - 1].contains("universal media server");
+		// also check 2nd last since we migh have ", POSSIBLY UNSTABLE" in there
+		boolean ums = tmp[tmp.length - 1].contains("universal media server") ||
+			  		  tmp[tmp.length - 2].contains("universal media server");
+		return tmp[0].equals("javaw.exe") && ums;
 	}
 
 	private static String pidFile() {
@@ -1395,6 +1403,8 @@ public class PMS {
 			return true;
 		}
 	}
+
+	private RemoteWeb web;
 
 	/**
 	 * Sets the relative URL of a context sensitive help page located in the

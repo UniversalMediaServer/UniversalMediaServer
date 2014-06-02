@@ -1,6 +1,7 @@
 package net.pms.dlna;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.*;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -17,6 +18,15 @@ public class SubSelFile extends VirtualFolder {
 	public SubSelFile(DLNAResource r) {
 		super(r.getDisplayName(), r.getThumbnailURL());
 		orig = r;
+	}
+
+	@Override
+	public InputStream getThumbnailInputStream() {
+		try {
+			return orig.getThumbnailInputStream();
+		} catch (Exception e) {
+			return super.getThumbnailInputStream();
+		}
 	}
 
 	@Override
