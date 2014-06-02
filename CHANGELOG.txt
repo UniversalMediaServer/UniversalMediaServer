@@ -1,4 +1,4 @@
-4.0.0-a1 - 2014-06-?? - Changes since 3.6.2
+4.0.0-a1 - 2014-06-02 - Changes since 3.6.2
 
 	General:
 		Added a web interface, available at localhost:9001
