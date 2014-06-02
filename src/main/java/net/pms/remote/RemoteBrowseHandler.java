@@ -42,7 +42,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 				sb.append("<link rel=\"icon\" href=\"/files/favicon.ico\" type=\"image/x-icon\">").append(CRLF);
 				sb.append("<script src=\"/files/jquery.min.js\"></script>");
 				sb.append("<script src=\"/files/jquery.ums.js\"></script>");
-				sb.append("<script src=\"/files/bump.js\"></script>");
+				sb.append("<script src=\"/bump/bump.js\"></script>");
 				sb.append("<title>Universal Media Server</title>").append(CRLF);
 			sb.append("</head>").append(CRLF);
 			sb.append("<body id=\"ContentPage\">").append(CRLF);

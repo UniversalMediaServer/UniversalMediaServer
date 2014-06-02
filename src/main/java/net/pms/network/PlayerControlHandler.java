@@ -98,10 +98,10 @@ public class PlayerControlHandler implements HttpHandler {
 			json.add(getPlayerState(player));
 			json.add(getPlaylist(player));
 		} else if (p.length == 2) {
-			response = read(configuration.getWebFile("bump.html"))
+			response = read(configuration.getWebFile("bump/bump.html"))
 				.replace("http://127.0.0.1:9001", protocol + PMS.get().getServer().getHost() + ":" + port);
 		} else if (p[2].equals("bump.js")) {
-			response = read(configuration.getWebFile("bump.js"));
+			response = read(configuration.getWebFile("bump/bump.js"));
 			mime = "text/javascript";
 		} else if (p[2].equals("renderers")) {
 			json.add(getRenderers());
