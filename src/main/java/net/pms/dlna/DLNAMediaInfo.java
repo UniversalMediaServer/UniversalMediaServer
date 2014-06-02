@@ -769,13 +769,12 @@ public class DLNAMediaInfo implements Cloneable {
 
 						if (jpg.exists()) {
 							InputStream is = new FileInputStream(jpg);
-							int sz = is.available();
+								int sz = is.available();
 
 								if (sz > 0) {
 									thumb = new byte[sz];
 									is.read(thumb);
 								}
-							}
 							is.close();
 
 							if (!jpg.delete()) {

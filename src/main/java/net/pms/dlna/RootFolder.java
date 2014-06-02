@@ -315,67 +315,73 @@ public class RootFolder extends DLNAResource {
 		if (webConf.exists()) {
 			try {
 				LineNumberReader br = new LineNumberReader(new InputStreamReader(new FileInputStream(webConf), "UTF-8"));
-				String line;
-				while ((line = br.readLine()) != null) {
-					line = line.trim();
+					String line;
+					while ((line = br.readLine()) != null) {
+						line = line.trim();
 
 						if (line.length() > 0 && !line.startsWith("#") && line.indexOf('=') > -1) {
 							String key = line.substring(0, line.indexOf('='));
 							String value = line.substring(line.indexOf('=') + 1);
 							String[] keys = parseFeedKey(key);
 
-						try {
-							if (
-								keys[0].equals("imagefeed") ||
-								keys[0].equals("audiofeed") ||
-								keys[0].equals("videofeed") ||
-								keys[0].equals("audiostream") ||
-								keys[0].equals("videostream")
-							) {
-								String[] values = parseFeedValue(value);
-								DLNAResource parent = null;
+							try {
+								if (
+									keys[0].equals("imagefeed") ||
+									keys[0].equals("audiofeed") ||
+									keys[0].equals("videofeed") ||
+									keys[0].equals("audiostream") ||
+									keys[0].equals("videostream")
+								) {
+									String[] values = parseFeedValue(value);
+									DLNAResource parent = null;
 
-								if (keys[1] != null) {
-									StringTokenizer st = new StringTokenizer(keys[1], ",");
-									DLNAResource currentRoot = this;
+									if (keys[1] != null) {
+										StringTokenizer st = new StringTokenizer(keys[1], ",");
+										DLNAResource currentRoot = this;
 
-									while (st.hasMoreTokens()) {
-										String folder = st.nextToken();
-										parent = currentRoot.searchByName(folder);
+										while (st.hasMoreTokens()) {
+											String folder = st.nextToken();
+											parent = currentRoot.searchByName(folder);
 
-										if (parent == null) {
-											parent = new VirtualFolder(folder, "");
-											currentRoot.addChild(parent);
+											if (parent == null) {
+												parent = new VirtualFolder(folder, "");
+												currentRoot.addChild(parent);
+											}
+
+											currentRoot = parent;
 										}
+									}
 
-										currentRoot = parent;
+									if (parent == null) {
+										parent = this;
+									}
+									if (keys[0].endsWith("stream")) {
+										int type = keys[0].startsWith("audio") ? Format.AUDIO : Format.VIDEO;
+										DLNAResource playlist = PlaylistFolder.getPlaylist(values[0], values[1], type);
+										if (playlist != null) {
+											parent.addChild(playlist);
+											continue;
+										}
+									}
+										if (keys[0].equals("imagefeed")) {
+											parent.addChild(new ImagesFeed(values[0]));
+										} else if (keys[0].equals("videofeed")) {
+											parent.addChild(new VideosFeed(values[0]));
+										} else if (keys[0].equals("audiofeed")) {
+											parent.addChild(new AudiosFeed(values[0]));
+										} else if (keys[0].equals("audiostream")) {
+											parent.addChild(new WebAudioStream(values[0], values[1], values[2]));
+										} else if (keys[0].equals("videostream")) {
+											parent.addChild(new WebVideoStream(values[0], values[1], values[2]));
 									}
 								}
-
-								if (parent == null) {
-									parent = this;
-								}
-
-								if (keys[0].equals("imagefeed")) {
-									parent.addChild(new ImagesFeed(values[0]));
-								} else if (keys[0].equals("videofeed")) {
-									parent.addChild(new VideosFeed(values[0]));
-								} else if (keys[0].equals("audiofeed")) {
-									parent.addChild(new AudiosFeed(values[0]));
-								} else if (keys[0].equals("audiostream")) {
-									parent.addChild(new WebAudioStream(values[0], values[1], values[2]));
-								} else if (keys[0].equals("videostream")) {
-									parent.addChild(new WebVideoStream(values[0], values[1], values[2]));
-								}
+							} catch (ArrayIndexOutOfBoundsException e) {
+								// catch exception here and go with parsing
+								LOGGER.info("Error at line " + br.getLineNumber() + " of WEB.conf: " + e.getMessage());
+								LOGGER.debug(null, e);
 							}
-						} catch (ArrayIndexOutOfBoundsException e) {
-							// catch exception here and go with parsing
-							LOGGER.info("Error at line " + br.getLineNumber() + " of WEB.conf: " + e.getMessage());
-							LOGGER.debug(null, e);
 						}
 					}
-				}
-
 				br.close();
 			} catch (IOException e) {
 				LOGGER.info("Unexpected error in WEB.conf" + e.getMessage());
@@ -528,7 +534,6 @@ public class RootFolder extends DLNAResource {
 				process = Runtime.getRuntime().exec("defaults read com.apple.iApps ApertureLibraries");
 				BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
 					// Every line entry is one aperture library. We want all of them as a dlna folder.
-					// Every line entry is one aperture library. We want all of them as a dlna folder.
 					String line;
 					res = new VirtualFolder("Aperture libraries", null);
 
@@ -545,7 +550,6 @@ public class RootFolder extends DLNAResource {
 							res.addChild(apertureLibrary);
 						}
 					}
-
 				in.close();
 			} catch (IOException e) {
 				LOGGER.error("Something went wrong with the aperture library scan: ", e);

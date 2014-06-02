@@ -1743,14 +1743,14 @@ public class PmsConfiguration {
 		StringBuilder returnString = new StringBuilder();
 		for (String pair : mpegSettingsArray) {
 			pairArray = pair.split("=");
-			if ("keyint".equals(pairArray[0])) {
-				returnString.append("-g ").append(pairArray[1]).append(" ");
-			} else if ("vqscale".equals(pairArray[0])) {
-				returnString.append("-q:v ").append(pairArray[1]).append(" ");
-			} else if ("vqmin".equals(pairArray[0])) {
-				returnString.append("-qmin ").append(pairArray[1]).append(" ");
-			} else if ("vqmax".equals(pairArray[0])) {
-				returnString.append("-qmax ").append(pairArray[1]).append(" ");
+				if ("keyint".equals(pairArray[0])) {
+					returnString.append("-g ").append(pairArray[1]).append(" ");
+				} else if ("vqscale".equals(pairArray[0])) {
+					returnString.append("-q:v ").append(pairArray[1]).append(" ");
+				} else if ("vqmin".equals(pairArray[0])) {
+					returnString.append("-qmin ").append(pairArray[1]).append(" ");
+				} else if ("vqmax".equals(pairArray[0])) {
+					returnString.append("-qmax ").append(pairArray[1]).append(" ");
 			}
 		}
 
@@ -2708,17 +2708,17 @@ public class PmsConfiguration {
 			// Cred path is set but file isn't there
 			// Create empty file with some comments
 			FileOutputStream fos = new FileOutputStream(f);
-			StringBuilder sb = new StringBuilder();
-			sb.append("# Add credentials to the file");
-			sb.append("\n");
-			sb.append("# on the format tag=user,pwd");
-			sb.append("\n");
-			sb.append("# For example:");
-			sb.append("\n");
-			sb.append("# channels.xxx=name,secret");
-			sb.append("\n");
-			fos.write(sb.toString().getBytes());
-			fos.flush();
+				StringBuilder sb = new StringBuilder();
+				sb.append("# Add credentials to the file");
+				sb.append("\n");
+				sb.append("# on the format tag=user,pwd");
+				sb.append("\n");
+				sb.append("# For example:");
+				sb.append("\n");
+				sb.append("# channels.xxx=name,secret");
+				sb.append("\n");
+				fos.write(sb.toString().getBytes());
+				fos.flush();
 			fos.close();
 		}
 	}

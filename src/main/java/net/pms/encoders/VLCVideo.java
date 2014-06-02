@@ -294,7 +294,7 @@ public class VLCVideo extends Player {
 	 * @return a {@link List} of <code>String</code>s representing the video bitrate options for this transcode
 	 */
 	public List<String> getVideoBitrateOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) {
-		List<String> videoBitrateOptions = new ArrayList<>();
+		List<String> videoBitrateOptions = new ArrayList<String>();
 
 		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
@@ -399,7 +399,7 @@ public class VLCVideo extends Player {
 				}
 			}
 			String[] customOptions = StringUtils.split(mpeg2Options);
-			videoBitrateOptions.addAll(new ArrayList<>(Arrays.asList(customOptions)));
+			videoBitrateOptions.addAll(new ArrayList<String>(Arrays.asList(customOptions)));
 		} else {
 			// Add x264 quality settings
 			String x264CRF = configuration.getx264ConstantRateFactor();

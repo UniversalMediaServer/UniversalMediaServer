@@ -1024,14 +1024,14 @@ public class RendererConfiguration {
 		StringBuilder returnString = new StringBuilder();
 		for (String pair : mpegSettingsArray) {
 			pairArray = pair.split("=");
-			if ("keyint".equals(pairArray[0])) {
-				returnString.append("-g ").append(pairArray[1]).append(" ");
-			} else if ("vqscale".equals(pairArray[0])) {
-				returnString.append("-q:v ").append(pairArray[1]).append(" ");
-			} else if ("vqmin".equals(pairArray[0])) {
-				returnString.append("-qmin ").append(pairArray[1]).append(" ");
-			} else if ("vqmax".equals(pairArray[0])) {
-				returnString.append("-qmax ").append(pairArray[1]).append(" ");
+				if ("keyint".equals(pairArray[0])) {
+					returnString.append("-g ").append(pairArray[1]).append(" ");
+				} else if ("vqscale".equals(pairArray[0])) {
+					returnString.append("-q:v ").append(pairArray[1]).append(" ");
+				} else if ("vqmin".equals(pairArray[0])) {
+					returnString.append("-qmin ").append(pairArray[1]).append(" ");
+				} else if ("vqmax".equals(pairArray[0])) {
+					returnString.append("-qmax ").append(pairArray[1]).append(" ");
 			}
 		}
 

@@ -97,7 +97,7 @@ public class RemoteMediaHandler implements HttpHandler {
 		hdr.add("Connection", "keep-alive");
 		t.sendResponseHeaders(200, 0);
 		OutputStream os = t.getResponseBody();
-		StartStopListenerDelegate startStop = new StartStopListenerDelegate(t.getRemoteAddress().getHostString());
+		StartStopListenerDelegate startStop = new StartStopListenerDelegate(t.getRemoteAddress().getHostName());
 		PMS.get().getFrame().setStatusLine("Serving " + dlna.getName());
 		startStop.start(dlna);
 		RemoteUtil.dump(in, os, startStop);

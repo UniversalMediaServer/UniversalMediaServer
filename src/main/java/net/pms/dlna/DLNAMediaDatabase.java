@@ -287,7 +287,7 @@ public class DLNAMediaDatabase implements Runnable {
 	private void executeUpdate(Connection conn, String sql) throws SQLException {
 		if (conn != null) {
 			Statement stmt = conn.createStatement();
-			stmt.executeUpdate(sql);
+				stmt.executeUpdate(sql);
 			stmt.close();
 		}
 	}
@@ -357,44 +357,44 @@ public class DLNAMediaDatabase implements Runnable {
 				media.setFrameRateMode(rs.getString("FRAMERATEMODE"));
 				media.setStereoscopy(rs.getString("STEREOSCOPY"));
 				media.setMediaparsed(true);
+				ResultSet subrs;
 				PreparedStatement audios = conn.prepareStatement("SELECT * FROM AUDIOTRACKS WHERE FILEID = ?");
-				audios.setInt(1, id);
-				ResultSet subrs = audios.executeQuery();
-				while (subrs.next()) {
-					DLNAMediaAudio audio = new DLNAMediaAudio();
-					audio.setId(subrs.getInt("ID"));
-					audio.setLang(subrs.getString("LANG"));
-					audio.setFlavor(subrs.getString("FLAVOR"));
-					audio.getAudioProperties().setNumberOfChannels(subrs.getInt("NRAUDIOCHANNELS"));
-					audio.setSampleFrequency(subrs.getString("SAMPLEFREQ"));
-					audio.setCodecA(subrs.getString("CODECA"));
-					audio.setBitsperSample(subrs.getInt("BITSPERSAMPLE"));
-					audio.setAlbum(subrs.getString("ALBUM"));
-					audio.setArtist(subrs.getString("ARTIST"));
-					audio.setSongname(subrs.getString("SONGNAME"));
-					audio.setGenre(subrs.getString("GENRE"));
-					audio.setYear(subrs.getInt("YEAR"));
-					audio.setTrack(subrs.getInt("TRACK"));
-					audio.getAudioProperties().setAudioDelay(subrs.getInt("DELAY"));
-					audio.setMuxingModeAudio(subrs.getString("MUXINGMODE"));
-					audio.setBitRate(subrs.getInt("BITRATE"));
-					media.getAudioTracksList().add(audio);
-				}
-				subrs.close();
+					audios.setInt(1, id);
+					subrs = audios.executeQuery();
+					while (subrs.next()) {
+						DLNAMediaAudio audio = new DLNAMediaAudio();
+						audio.setId(subrs.getInt("ID"));
+						audio.setLang(subrs.getString("LANG"));
+						audio.setFlavor(subrs.getString("FLAVOR"));
+						audio.getAudioProperties().setNumberOfChannels(subrs.getInt("NRAUDIOCHANNELS"));
+						audio.setSampleFrequency(subrs.getString("SAMPLEFREQ"));
+						audio.setCodecA(subrs.getString("CODECA"));
+						audio.setBitsperSample(subrs.getInt("BITSPERSAMPLE"));
+						audio.setAlbum(subrs.getString("ALBUM"));
+						audio.setArtist(subrs.getString("ARTIST"));
+						audio.setSongname(subrs.getString("SONGNAME"));
+						audio.setGenre(subrs.getString("GENRE"));
+						audio.setYear(subrs.getInt("YEAR"));
+						audio.setTrack(subrs.getInt("TRACK"));
+						audio.getAudioProperties().setAudioDelay(subrs.getInt("DELAY"));
+						audio.setMuxingModeAudio(subrs.getString("MUXINGMODE"));
+						audio.setBitRate(subrs.getInt("BITRATE"));
+						media.getAudioTracksList().add(audio);
+					}
+					subrs.close();
 				audios.close();
-
 				PreparedStatement subs = conn.prepareStatement("SELECT * FROM SUBTRACKS WHERE FILEID = ?");
-				subs.setInt(1, id);
-				subrs = subs.executeQuery();
-				while (subrs.next()) {
-					DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
-					sub.setId(subrs.getInt("ID"));
-					sub.setLang(subrs.getString("LANG"));
-					sub.setFlavor(subrs.getString("FLAVOR"));
-					sub.setType(SubtitleType.valueOfStableIndex(subrs.getInt("TYPE")));
-					media.getSubtitleTracksList().add(sub);
-				}
-				subrs.close();
+					subs.setInt(1, id);
+					subrs = subs.executeQuery();
+					while (subrs.next()) {
+						DLNAMediaSubtitle sub = new DLNAMediaSubtitle();
+						sub.setId(subrs.getInt("ID"));
+						sub.setLang(subrs.getString("LANG"));
+						sub.setFlavor(subrs.getString("FLAVOR"));
+						sub.setType(SubtitleType.valueOfStableIndex(subrs.getInt("TYPE")));
+						media.getSubtitleTracksList().add(sub);
+					}
+					subrs.close();
 				subs.close();
 
 				list.add(media);
@@ -492,11 +492,12 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setString(25, null);
 			}
 			ps.executeUpdate();
+			int id;
 			ResultSet rs = ps.getGeneratedKeys();
-			int id = -1;
-			while (rs.next()) {
-				id = rs.getInt(1);
-			}
+				id = -1;
+				while (rs.next()) {
+					id = rs.getInt(1);
+				}
 			rs.close();
 			if (media != null && id > -1) {
 				PreparedStatement insert = null;

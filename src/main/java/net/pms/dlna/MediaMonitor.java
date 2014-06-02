@@ -39,29 +39,24 @@ public class MediaMonitor extends VirtualFolder {
 		}
 		try {
 			BufferedReader in = new BufferedReader(new FileReader(f));
-			String str;
+				String str;
 
-			while ((str = in.readLine()) != null) {
-				if (StringUtils.isEmpty(str)) {
-					continue;
-				}
-				str = str.trim();
-				if (str.startsWith("#")) {
-					continue;
-				}
-				if (str.startsWith("entry=")) {
-					String entry = str.substring(6);
-					if (!new File(entry.trim()).exists()) {
+				while ((str = in.readLine()) != null) {
+					if (StringUtils.isEmpty(str)) {
 						continue;
 					}
-					if (!oldEntries.contains(entry.trim())) {
-						oldEntries.add(entry.trim());
+					str = str.trim();
+					if (str.startsWith("#")) {
+						continue;
 					}
 					if (str.startsWith("entry=")) {
+						String entry = str.substring(6);
+						if (!new File(entry.trim()).exists()) {
+							continue;
+						}
 						oldEntries.add(entry.trim());
 					}
 				}
-			}
 			in.close();
 			dumpFile();
 		} catch (IOException e) {
@@ -159,21 +154,21 @@ public class MediaMonitor extends VirtualFolder {
 		File f = monitorFile();
 		Date now = new Date();
 		FileWriter out = new FileWriter(f);
-		StringBuilder sb = new StringBuilder();
-		sb.append("######\n");
-		sb.append("## NOTE!!!!!\n");
-		sb.append("## This file is auto generated\n");
-		sb.append("## Edit with EXTREME care\n");
-		sb.append("## Generated: ");
-		sb.append(now.toString());
-		sb.append("\n");
-		for (String str : oldEntries) {
-			sb.append("entry=");
-			sb.append(str);
+			StringBuilder sb = new StringBuilder();
+			sb.append("######\n");
+			sb.append("## NOTE!!!!!\n");
+			sb.append("## This file is auto generated\n");
+			sb.append("## Edit with EXTREME care\n");
+			sb.append("## Generated: ");
+			sb.append(now.toString());
 			sb.append("\n");
-		}
-		out.write(sb.toString());
-		out.flush();
+			for (String str : oldEntries) {
+				sb.append("entry=");
+				sb.append(str);
+				sb.append("\n");
+			}
+			out.write(sb.toString());
+			out.flush();
 		out.close();
 	}
 }

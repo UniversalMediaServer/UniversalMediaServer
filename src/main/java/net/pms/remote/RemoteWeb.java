@@ -54,9 +54,9 @@ public class RemoteWeb {
 			port = DEFAULT_PORT;
 		}
 
-		users = new HashMap<>();
-		tags = new HashMap<>();
-		roots = new HashMap<>();
+		users = new HashMap<String, String>();
+		tags = new HashMap<String, String>();
+		roots = new HashMap<String, RootFolder>();
 
 		try {
 			readCred();
@@ -151,13 +151,13 @@ public class RemoteWeb {
 		if (!create || (root != null)) {
 			return root;
 		}
-		ArrayList<String> tag = new ArrayList<>();
+		ArrayList<String> tag = new ArrayList<String>();
 		tag.add(name);
 		if (!groupTag.equals(name)) {
 			tag.add(groupTag);
 		}
 		if (t != null) {
-			tag.add(t.getRemoteAddress().getHostString());
+			tag.add(t.getRemoteAddress().getHostName());
 		}
 		tag.add("web");
 		root = new RootFolder(tag);
@@ -291,9 +291,9 @@ public class RemoteWeb {
 					"<allow-access-from domain=\"*\" />" +
 					"</cross-domain-policy>";
 				t.sendResponseHeaders(200, data.length());
-				try (OutputStream os = t.getResponseBody()) {
+				OutputStream os = t.getResponseBody();
 					os.write(data.getBytes());
-				}
+				os.close();
 				return;
 			}
 			if (t.getRequestURI().getPath().startsWith("/files/")) {
@@ -357,9 +357,9 @@ public class RemoteWeb {
 
 			String response = sb.toString();
 			t.sendResponseHeaders(200, response.length());
-			try (OutputStream os = t.getResponseBody()) {
+			OutputStream os = t.getResponseBody();
 				os.write(response.getBytes());
-			}
+			os.close();
 		}
 	}
 }

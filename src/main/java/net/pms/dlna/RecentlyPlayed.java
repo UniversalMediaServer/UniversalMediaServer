@@ -159,92 +159,92 @@ public class RecentlyPlayed extends VirtualFolder {
 		}
 		try {
 			BufferedReader in = new BufferedReader(new FileReader(f));
-			String str;
+				String str;
 
-			while ((str = in.readLine()) != null) {
-				if (StringUtils.isEmpty(str)) {
-					continue;
-				}
-				if (str.startsWith("#")) {
-					continue;
-				}
-				str = str.trim();
-				if (!str.startsWith("master:")) {
-					continue;
-				}
-				str = str.substring(7);
-				int pos = str.indexOf(";");
-				if (pos == -1) {
-					continue;
-				}
-				String master = str.substring(0, pos);
-				str = str.substring(pos + 1);
-				pos = str.indexOf(";");
-				String subData = null;
-				String resData = null;
-				DLNAResource res = null;
-				Player player = null;
-				while (pos != -1) {
-					if (str.startsWith("player:")) {
-						// find last player
-						player = findLastPlayer(str.substring(7, pos));
+				while ((str = in.readLine()) != null) {
+					if (StringUtils.isEmpty(str)) {
+						continue;
 					}
-					if (str.startsWith("resume")) {
-						// resume data
-						resData = str.substring(6, pos);
+					if (str.startsWith("#")) {
+						continue;
 					}
-					if (str.startsWith("sub")) {
-						// subs data
-						subData = str.substring(3, pos);
+					str = str.trim();
+					if (!str.startsWith("master:")) {
+						continue;
 					}
+					str = str.substring(7);
+					int pos = str.indexOf(';');
+					if (pos == -1) {
+						continue;
+					}
+					String master = str.substring(0, pos);
 					str = str.substring(pos + 1);
 					pos = str.indexOf(';');
-				}
-				LOGGER.debug("master is " + master + " str " + str);
-				ExternalListener lpp;
-				if (master.startsWith("internal:")) {
-					res = parseInternal(master.substring(9), str);
-				} else {
-					lpp = findLastPlayedParent(master);
-					if (lpp != null) {
-						res = resolveCreateMethod(lpp, str);
-						if (res != null) {
-							LOGGER.debug("set masterparent for " + res + " to " + lpp);
-							res.setMasterParent(lpp);
+					String subData = null;
+					String resData = null;
+					DLNAResource res = null;
+					Player player = null;
+					while (pos != -1) {
+						if (str.startsWith("player:")) {
+							// find last player
+							player = findLastPlayer(str.substring(7, pos));
+						}
+						if (str.startsWith("resume")) {
+							// resume data
+							resData = str.substring(6, pos);
+						}
+						if (str.startsWith("sub")) {
+							// subs data
+							subData = str.substring(3, pos);
+						}
+						str = str.substring(pos + 1);
+						pos = str.indexOf(';');
+					}
+					LOGGER.debug("master is " + master + " str " + str);
+					ExternalListener lpp;
+					if (master.startsWith("internal:")) {
+						res = parseInternal(master.substring(9), str);
+					} else {
+						lpp = findLastPlayedParent(master);
+						if (lpp != null) {
+							res = resolveCreateMethod(lpp, str);
+							if (res != null) {
+								LOGGER.debug("set masterparent for " + res + " to " + lpp);
+								res.setMasterParent(lpp);
+							}
 						}
 					}
-				}
-				if (res != null) {
-					if (resData != null) {
-						ResumeObj r = new ResumeObj(new File(resData));
-						if (!r.isDone()) {
-							r.read();
-							res.setResume(r);
+					if (res != null) {
+						if (resData != null) {
+							ResumeObj r = new ResumeObj(new File(resData));
+							if (!r.isDone()) {
+								r.read();
+								res.setResume(r);
+							}
 						}
+						res.setPlayer(player);
+						if (subData != null) {
+							DLNAMediaSubtitle s = res.getMediaSubtitle();
+							if (s == null) {
+								s = new DLNAMediaSubtitle();
+								res.setMediaSubtitle(s);
+							}
+							String[] tmp = subData.split(",");
+							s.setLang(tmp[0]);
+							subData = tmp[1];
+							if (subData.startsWith("file:")) {
+								String sFile = subData.substring(5);
+								s.setExternalFile(new File(sFile));
+								s.setId(100);
+								SubtitleType t = SubtitleType.valueOfFileExtension(FileUtil.getExtension(sFile));
+								s.setType(t);
+							} else if (subData.startsWith("id:")) {
+								s.setId(Integer.parseInt(subData.substring(3)));
+							}
+						}
+						list.add(res);
 					}
-					res.setPlayer(player);
-					if (subData != null) {
-						DLNAMediaSubtitle s = res.getMediaSubtitle();
-						if (s == null) {
-							s = new DLNAMediaSubtitle();
-							res.setMediaSubtitle(s);
-						}
-						String[] tmp = subData.split(",");
-						s.setLang(tmp[0]);
-						subData = tmp[1];
-						if (subData.startsWith("file:")) {
-							String sFile = subData.substring(5);
-							s.setExternalFile(new File(sFile));
-							s.setId(100);
-							SubtitleType t = SubtitleType.valueOfFileExtension(FileUtil.getExtension(sFile));
-							s.setType(t);
-						} else if (subData.startsWith("id:")) {
-							s.setId(Integer.parseInt(subData.substring(3)));
-						}
-					}
-					list.add(res);
 				}
-			}
 			in.close();
 			dumpFile();
 		} catch (IOException e) {
@@ -256,57 +256,57 @@ public class RecentlyPlayed extends VirtualFolder {
 		File f = lastFile();
 		Date now = new Date();
 		FileWriter out = new FileWriter(f);
-		StringBuilder sb = new StringBuilder();
-		sb.append("######\n");
-		sb.append("## NOTE!!!!!\n");
-		sb.append("## This file is auto generated\n");
-		sb.append("## Edit with EXTREME care\n");
-		sb.append("## Generated: ");
-		sb.append(now.toString());
-		sb.append("\n");
-		for (DLNAResource r : list) {
-			String data = r.write();
-			if (!StringUtils.isEmpty(data)) {
-				ExternalListener parent = r.getMasterParent();
-				String id;
-				if (parent != null) {
-					id = parent.getClass().getName();
-				} else {
-					id = "internal:" + r.getClass().getName();
-				}
+			StringBuilder sb = new StringBuilder();
+			sb.append("######\n");
+			sb.append("## NOTE!!!!!\n");
+			sb.append("## This file is auto generated\n");
+			sb.append("## Edit with EXTREME care\n");
+			sb.append("## Generated: ");
+			sb.append(now.toString());
+			sb.append("\n");
+			for (DLNAResource r : list) {
+				String data = r.write();
+				if (!StringUtils.isEmpty(data)) {
+					ExternalListener parent = r.getMasterParent();
+					String id;
+					if (parent != null) {
+						id = parent.getClass().getName();
+					} else {
+						id = "internal:" + r.getClass().getName();
+					}
 
-				sb.append("master:").append(id).append(";");
-				if (r.getPlayer() != null) {
-					sb.append("player:").append(r.getPlayer().toString()).append(";");
-				}
-				if (r.isResume()) {
-					sb.append("resume");
-					sb.append(r.getResume().getResumeFile().getAbsolutePath());
-					sb.append(";");
-				}
-				if (r.getMediaSubtitle() != null) {
-					DLNAMediaSubtitle sub = r.getMediaSubtitle();
-					if (sub.getLang() != null
-						&& sub.getId() != -1) {
-						sb.append("sub");
-						sb.append(sub.getLang());
-						sb.append(",");
-						if (sub.isExternal()) {
-							sb.append("file:");
-							sb.append(sub.getExternalFile().getAbsolutePath());
-						} else {
-							sb.append("id:");
-							sb.append("").append(sub.getId());
-						}
+					sb.append("master:").append(id).append(";");
+					if (r.getPlayer() != null) {
+						sb.append("player:").append(r.getPlayer().toString()).append(";");
+					}
+					if (r.isResume()) {
+						sb.append("resume");
+						sb.append(r.getResume().getResumeFile().getAbsolutePath());
 						sb.append(";");
 					}
+					if (r.getMediaSubtitle() != null) {
+						DLNAMediaSubtitle sub = r.getMediaSubtitle();
+						if (sub.getLang() != null
+							&& sub.getId() != -1) {
+							sb.append("sub");
+							sb.append(sub.getLang());
+							sb.append(",");
+							if (sub.isExternal()) {
+								sb.append("file:");
+								sb.append(sub.getExternalFile().getAbsolutePath());
+							} else {
+								sb.append("id:");
+								sb.append("").append(sub.getId());
+							}
+							sb.append(";");
+						}
+					}
+					sb.append(data);
+					sb.append("\n");
 				}
-				sb.append(data);
-				sb.append("\n");
 			}
-		}
-		out.write(sb.toString());
-		out.flush();
+			out.write(sb.toString());
+			out.flush();
 		out.close();
 	}
 

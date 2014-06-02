@@ -300,14 +300,12 @@ public class DownloadPlugins {
 				int count;
 				byte data[] = new byte[4096];
 				FileOutputStream fos = new FileOutputStream(dst);
-
 				BufferedOutputStream dest = new BufferedOutputStream(fos, 4096);
-				while ((count = zis.read(data, 0, 4096)) != -1) {
-					dest.write(data, 0, count);
-				}
-				dest.flush();
+					while ((count = zis.read(data, 0, 4096)) != -1) {
+						dest.write(data, 0, count);
+					}
+					dest.flush();
 				dest.close();
-
 				if (dst.getAbsolutePath().endsWith(".jar")) {
 					jars.add(dst.toURI().toURL());
 				}
@@ -340,12 +338,14 @@ public class DownloadPlugins {
 
 		InputStream in = connection.getInputStream();
 		FileOutputStream out = new FileOutputStream(f);
-		byte[] buf = new byte[4096];
-		int len;
-		while ((len = in.read(buf)) != -1) {
-			out.write(buf, 0, len);
-		}
-		out.flush();
+			byte[] buf = new byte[4096];
+			int len;
+
+			while ((len = in.read(buf)) != -1) {
+				out.write(buf, 0, len);
+			}
+
+			out.flush();
 		out.close();
 		in.close();
 
@@ -385,14 +385,14 @@ public class DownloadPlugins {
 		InputStream is = pid.getInputStream();
 		InputStreamReader isr = new InputStreamReader(is);
 		BufferedReader br = new BufferedReader(isr);
-		String line;
-		StringBuilder sb = new StringBuilder();
-		while ((line = br.readLine()) != null) {
-			sb.append(line);
-		}
+			String line;
+			StringBuilder sb = new StringBuilder();
+			while ((line = br.readLine()) != null) {
+				sb.append(line);
+			}
 
-		// Reload the config in case we have new settings
-		configuration.reload();
+			// Reload the config in case we have new settings
+			configuration.reload();
 		br.close();
 		pid.waitFor();
 
@@ -472,39 +472,39 @@ public class DownloadPlugins {
 		URLConnection connection = u.openConnection();
 		boolean res;
 		BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-		String str;
-		res = true;
+			String str;
+			res = true;
 
-		while ((str = in.readLine()) != null) {
-			str = str.trim();
+			while ((str = in.readLine()) != null) {
+				str = str.trim();
 
-			if (StringUtils.isEmpty(str)) {
-				continue;
-			}
-
-			String[] tmp = str.split(",", 3);
-			String dir = configuration.getPluginDirectory();
-			String filename = "";
-
-			if (command(tmp[0], str)) {
-				// a command take the next line
-				continue;
-			}
-
-			if (tmp.length > 1) {
-				String rootDir = new File("").getAbsolutePath();
-				if (tmp[1].equalsIgnoreCase("root")) {
-					dir = rootDir;
-				} else {
-					dir = rootDir + File.separator + tmp[1];
+				if (StringUtils.isEmpty(str)) {
+					continue;
 				}
-				if (tmp.length > 2) {
-					filename = tmp[2];
-				}
-			}
 
-			res &= downloadFile(tmp[0], dir, filename);
-		}
+				String[] tmp = str.split(",", 3);
+				String dir = configuration.getPluginDirectory();
+				String filename = "";
+
+				if (command(tmp[0], str)) {
+					// a command take the next line
+					continue;
+				}
+
+				if (tmp.length > 1) {
+					String rootDir = new File("").getAbsolutePath();
+					if (tmp[1].equalsIgnoreCase("root")) {
+						dir = rootDir;
+					} else {
+						dir = rootDir + File.separator + tmp[1];
+					}
+					if (tmp.length > 2) {
+						filename = tmp[2];
+					}
+				}
+
+				res &= downloadFile(tmp[0], dir, filename);
+			}
 
 		in.close();
 		return res;

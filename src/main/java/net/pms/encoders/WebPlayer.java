@@ -172,7 +172,7 @@ public class WebPlayer extends FFMpegVideo {
 
 		params.input_pipes[0] = pipe;
 
-		List<String> cmdList = new ArrayList<>();
+		List<String> cmdList = new ArrayList<String>();
 		cmdList.add(executable());
 
 		cmdList.add("-y");

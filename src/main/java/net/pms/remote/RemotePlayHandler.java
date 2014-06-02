@@ -196,8 +196,8 @@ public class RemotePlayHandler implements HttpHandler {
 		String response = mkPage(id, t);
 		LOGGER.debug("play page " + response);
 		t.sendResponseHeaders(200, response.length());
-		try (OutputStream os = t.getResponseBody()) {
+		OutputStream os = t.getResponseBody();
 			os.write(response.getBytes());
-		}
+		os.close();
 	}
 }
