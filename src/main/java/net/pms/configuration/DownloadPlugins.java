@@ -472,20 +472,20 @@ public class DownloadPlugins {
 
 			while ((str = in.readLine()) != null) {
 				str = str.trim();
-				
+
 				if (StringUtils.isEmpty(str)) {
 					continue;
 				}
-				
+
 				String[] tmp = str.split(",", 3);
 				String dir = configuration.getPluginDirectory();
 				String filename = "";
-				
+
 				if (command(tmp[0], str)) {
 					// a command take the next line
 					continue;
 				}
-				
+
 				if (tmp.length > 1) {
 					String rootDir = new File("").getAbsolutePath();
 					if (tmp[1].equalsIgnoreCase("root")) {
@@ -497,7 +497,7 @@ public class DownloadPlugins {
 						filename = tmp[2];
 					}
 				}
-				
+
 				res &= downloadFile(tmp[0], dir, filename);
 			}
 		}
