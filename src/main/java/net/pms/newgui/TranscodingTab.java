@@ -104,7 +104,7 @@ public class TranscodingTab {
 	private JTextField ass_shadow;
 	private JTextField ass_margin;
 	private JButton subColor;
-
+	private JTextField depth3D;
 	/*
 	 * 16 cores is the maximum allowed by MEncoder as of MPlayer r34863.
 	 * Revisions before that allowed only 8.
@@ -979,6 +979,19 @@ public class TranscodingTab {
 			}
 		});
 		builder.add(subColor, FormLayoutUtil.flip(cc.xyw(13, 14, 3), colSpec, orientation));
+
+		builder.addLabel(Messages.getString("TrTab2.87"), FormLayoutUtil.flip(cc.xy(1, 16), colSpec, orientation));
+		builder.addLabel(Messages.getString("TrTab2.88"), FormLayoutUtil.flip(cc.xy(1, 16, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+
+		depth3D = new JTextField(configuration.getDepth3D());
+		depth3D.setToolTipText(Messages.getString("TrTab2.91"));
+		depth3D.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyReleased(KeyEvent e) {
+				configuration.setDepth3D(depth3D.getText());
+			}
+		});
+		builder.add(depth3D, FormLayoutUtil.flip(cc.xy(3, 16), colSpec, orientation));
 
 		final JPanel panel = builder.getPanel();
 

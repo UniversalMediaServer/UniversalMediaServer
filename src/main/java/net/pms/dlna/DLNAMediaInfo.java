@@ -2146,11 +2146,7 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @return whether the video track is 3D
 	 */
 	public boolean is3d() {
-		if (!"".equals(stereoscopy)) {
-			return true;
-		}
-
-		return false;
+		return StringUtils.isNotBlank(stereoscopy);
 	}
 
 	/**
@@ -2175,6 +2171,69 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public void setStereoscopy(String stereoscopy) {
 		this.stereoscopy = stereoscopy;
+	}
+
+	public enum Mode3D {
+		SBSL, SBSR, ABL, ABR, ARCG, ARCH, ARCC, ARCD, AGMG, AGMH, AGMC, AGMD, AYBG, AYBH, AYBC, AYBD // Used FFmpeg/MEncoder 3D video format naming
+	};
+
+	public Mode3D get3DLayout() {
+		if (!is3d()) {
+			return null;
+		}
+
+		isAnaglyph = true;
+		switch (stereoscopy) {
+			case "overunderrt":
+			case "TBLF":
+			case "top-bottom (left eye first)":
+				isAnaglyph = false;
+				return Mode3D.ABL;
+			case "TBRF":
+			case "top-bottom (right eye first)":
+				isAnaglyph = false;
+				return Mode3D.ABR;
+			case "SBSLF":
+			case "side by side (left eye first)":
+				isAnaglyph = false;
+				return Mode3D.SBSL;
+			case "SBSRF":
+			case "side by side (right eye first)":
+				isAnaglyph = false;
+				return Mode3D.SBSR;
+			case "ARCG":
+				return Mode3D.ARCG;
+			case "ARCH":
+				return Mode3D.ARCH;
+			case "ARCC":
+				return Mode3D.ARCC;
+			case "ARCD":
+				return Mode3D.ARCD;
+			case "AGMG":
+				return Mode3D.AGMG;
+			case "AGMH":
+				return Mode3D.AGMH;
+			case "AGMC":
+				return Mode3D.AGMC;
+			case "AGMD":
+				return Mode3D.AGMD;
+			case "AYBG":
+				return Mode3D.AYBG;
+			case "AYBH":
+				return Mode3D.AYBH;
+			case "AYBC":
+				return Mode3D.AYBC;
+			case "AYBD":
+				return Mode3D.AYBD;
+		}
+
+		return null;
+	}
+	
+	private boolean isAnaglyph;
+	
+	public boolean stereoscopyIsAnaglyph() {
+		return isAnaglyph;
 	}
 
 	public boolean isDVDResolution() {

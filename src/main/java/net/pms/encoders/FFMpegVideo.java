@@ -22,6 +22,7 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -227,6 +228,16 @@ public class FFMpegVideo extends Player {
 					filterChain.add("pad=ih*(16/9):ih:(ow-iw)/2:0");
 				}
 			}
+		}
+
+		// Convert 3D video to the output format
+		if (media.is3d() &&
+				(media.get3DLayout() != null) &&
+				!media.stereoscopyIsAnaglyph() &&
+				isNotBlank(params.mediaRenderer.getOutput3DFormat()) &&
+				!media.get3DLayout().toString().toLowerCase().equals(params.mediaRenderer.getOutput3DFormat().trim()))
+		{
+			filterChain.add("stereo3d=" + media.get3DLayout().toString().toLowerCase() + ":" + params.mediaRenderer.getOutput3DFormat().trim().toLowerCase());
 		}
 
 		if (filterChain.size() > 0) {
@@ -1135,6 +1146,7 @@ public class FFMpegVideo extends Player {
 
 		boolean applyFontConfig = configuration.isFFmpegFontConfig();
 		boolean isEmbeddedSource = params.sid.getId() < 100;
+		boolean is3D = media.is3d();
 
 		String filename = isEmbeddedSource ?
 			dlna.getSystemName() : params.sid.getExternalFile().getAbsolutePath();
@@ -1153,7 +1165,7 @@ public class FFMpegVideo extends Player {
 		}
 
 		File convertedSubs;
-		if (applyFontConfig || isEmbeddedSource) {
+		if (applyFontConfig || isEmbeddedSource || is3D) {
 			convertedSubs = new File(subsPath.getAbsolutePath() + File.separator + basename + "_ID" + params.sid.getId() + "_" + modId + ".ass");
 		} else {
 			String tmp = params.sid.getExternalFile().getName().replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
@@ -1162,8 +1174,16 @@ public class FFMpegVideo extends Player {
 
 		if (convertedSubs.canRead()) {
 			// subs are already converted
-			if (applyFontConfig || isEmbeddedSource) {
+			if (applyFontConfig || isEmbeddedSource || is3D) {
 				params.sid.setType(SubtitleType.ASS);
+				if (is3D) {
+					try {
+						convertedSubs = SubtitleUtils.convertASSToASS3D(convertedSubs, media, params);
+					} catch (IOException | NullPointerException e) {
+						LOGGER.debug("Converting to ASS3D format ends with error: " + e);
+						return null;
+					}
+				}
 			}
 
 			return convertedSubs;
@@ -1184,7 +1204,8 @@ public class FFMpegVideo extends Player {
 			(
 				!applyFontConfig &&
 				!isEmbeddedSource &&
-				(params.sid.getType() == SubtitleType.SUBRIP || params.sid.getType() == SubtitleType.WEBVTT)
+				(params.sid.getType() == SubtitleType.SUBRIP || params.sid.getType() == SubtitleType.WEBVTT) &&
+				!is3D
 			)
 		) {
 			tempSubs = params.sid.getExternalFile();
@@ -1209,6 +1230,15 @@ public class FFMpegVideo extends Player {
 				tempSubs = applyFontconfigToASSTempSubsFile(tempSubs, media, configuration);
 			} catch (IOException e) {
 				LOGGER.debug("Applying subs setting ends with error: " + e);
+				return null;
+			}
+		}
+
+		if (is3D) {
+			try {
+				tempSubs = SubtitleUtils.convertASSToASS3D(tempSubs, media, params);
+			} catch (IOException | NullPointerException e) {
+				LOGGER.debug("Converting to ASS3D format ends with error: " + e);
 				return null;
 			}
 		}
@@ -1352,8 +1382,7 @@ public class FFMpegVideo extends Player {
 						}
 
 						if (format[i].contains("PrimaryColour")) {
-							String primaryColour = Integer.toHexString(configuration.getSubsColor());
-							params[i] = "&H" + primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4);
+							params[i] = SubtitleUtils.convertColorToAssHexFormat(new Color(configuration.getSubsColor()));
 							continue;
 						}
 
