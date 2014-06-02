@@ -290,14 +290,19 @@ public class LibMediaInfoParser {
 				 */
 				if (!media.is3d()) {
 					if (file.getName().startsWith("3DSBS")) {
+						LOGGER.debug("3D format SBS detected for " + file.getName());
 						media.setStereoscopy(file.getName().substring(2, 7));
 					} else if (file.getName().startsWith("3DOU")) {
+						LOGGER.debug("3D format OU detected for " + file.getName());
 						media.setStereoscopy(file.getName().substring(2, 6));
 					} else if (file.getName().startsWith("3DA")) {
+						LOGGER.debug("3D format Anaglyph detected for " + file.getName());
 						media.setStereoscopy(file.getName().substring(2, 6));
 					} else if (file.getName().matches(".*[\\s\\.-H]SBS[\\s\\.].*")) {
+						LOGGER.debug("3D format SBS detected for " + file.getName());
 						media.setStereoscopy("side by side (left eye first)");
 					} else if (file.getName().matches(".*[\\s\\.-H](OU|TB)[\\s\\.].*")) {
+						LOGGER.debug("3D format OU detected for " + file.getName());
 						media.setStereoscopy("top-bottom (left eye first)");
 					}
 				}
