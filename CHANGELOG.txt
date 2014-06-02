@@ -4,6 +4,7 @@
 		Added a web interface, available at localhost:9001
 		Added a new transcoding option to allow H.264 video with AAC audio
 		Added documentation for more renderer options to PS3.conf (CustomFFmpegOptions and OverrideVideoFilter)
+		Added support for configuring whether UMS can run just one or multiple instances
 		Changed the names of transcoding options in renderer config files for clarity
 		Output surround audio (AC-3) instead of stereo (MP2) when using VLC (needs testing)
 		Enabled subtitles in VLC (thanks, tdcosta100!)
@@ -17,6 +18,8 @@
 		Added support for Sony Bravia W7 series TVs (thanks, shtirlic!)
 		Improved support for OPPO devices
 		Improved support for Panasonic TX-L32V10E TVs
+	Languages:
+		Updated Spanish translation (thanks, AlfredoRamos!)
 	External Components:
 		Updated Apache commons-lang to 3.3.2, which:
 			Fixes bugs
