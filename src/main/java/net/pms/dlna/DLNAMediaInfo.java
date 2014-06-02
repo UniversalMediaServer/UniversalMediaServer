@@ -2185,11 +2185,11 @@ public class DLNAMediaInfo implements Cloneable {
 		isAnaglyph = true;
 		switch (stereoscopy) {
 			case "overunderrt":
-			case "TBLF":
+			case "OULF":
 			case "top-bottom (left eye first)":
 				isAnaglyph = false;
 				return Mode3D.ABL;
-			case "TBRF":
+			case "OURF":
 			case "top-bottom (right eye first)":
 				isAnaglyph = false;
 				return Mode3D.ABR;
