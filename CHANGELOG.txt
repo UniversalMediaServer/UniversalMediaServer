@@ -41,6 +41,7 @@
 			Fixes bugs
 		Updated Logback to 1.1.2, which:
 			Fixes bugs
+		Updated Maven FindBugs Plugin to 2.5.4
 		Updated Maven Git Commit ID Plugin to 2.1.9
 		Updated Netty to 3.9.1, which:
 			Fixes bugs
