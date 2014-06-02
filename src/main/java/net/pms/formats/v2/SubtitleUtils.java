@@ -24,20 +24,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.apache.commons.io.FilenameUtils;
-
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.util.FileUtil;
+import org.apache.commons.io.FilenameUtils;
 import static org.apache.commons.lang3.StringUtils.*;
 import static org.mozilla.universalchardet.Constants.*;
 
 public class SubtitleUtils {
 	private final static PmsConfiguration configuration = PMS.getConfiguration();
 	private final static Map<String, String> fileCharsetToMencoderSubcpOptionMap = new HashMap<String, String>() {
-	private static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = 1L;
 
 		{
 			// Cyrillic / Russian
@@ -89,7 +87,7 @@ public class SubtitleUtils {
 	}
 
 	/**
-	 * Applies codepage conversion to subtitles file 
+	 * Applies codepage conversion to subtitles file
 	 *
 	 * @param fileToConvert Subtitles file to convert
 	 * @param outputSubs Converted subtitles file
@@ -125,7 +123,7 @@ public class SubtitleUtils {
 	}
 
 	/**
-	 * Converts subtitles from the SUBRIP format to the WebVTT format 
+	 * Converts subtitles from the SUBRIP format to the WebVTT format
 	 *
 	 * @param tempSubs Subtitles file to convert
 	 * @return Converted subtitles file
@@ -136,8 +134,8 @@ public class SubtitleUtils {
 		StringBuilder outputString = new StringBuilder();
 		String subsFileCharset = FileUtil.getFileCharset(tempSubs);
 		BufferedWriter output;
-        Pattern timePattern = Pattern.compile("([0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}) --> ([0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3})");
-        try (BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(tempSubs), Charset.forName(subsFileCharset)))) {
+		Pattern timePattern = Pattern.compile("([0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}) --> ([0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3})");
+		try (BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(tempSubs), Charset.forName(subsFileCharset)))) {
 			output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), Charset.forName(CHARSET_UTF_8)));
 			String line;
 			outputString.append("WEBVTT").append("\n").append("\n");
@@ -159,7 +157,7 @@ public class SubtitleUtils {
 				if (countMatches(line, ">") == 1) {
 					line = line.replace(">", "&gt;");
 				}
-				
+
 				if (line.startsWith("{") && line.contains("}")) {
 					line = line.substring(line.indexOf("}") + 1);
 				}
