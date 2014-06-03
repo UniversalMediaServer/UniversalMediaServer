@@ -18,6 +18,7 @@ import java.util.Arrays;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 
 import com.sun.net.httpserver.Headers;
@@ -32,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.remote.RemoteUtil;
 
 public class PlayerControlHandler implements HttpHandler {
 
@@ -42,6 +44,7 @@ public class PlayerControlHandler implements HttpHandler {
 	private String protocol;
 	private HashMap<String,UPNPHelper.Player> players;
 	private String jsonState = "\"state\":{\"playback\":%d,\"mute\":\"%s\",\"volume\":%d,\"position\":\"%s\",\"duration\":\"%s\",\"uri\":\"%s\"}";
+	private File bumpjs, skindir;
 
 	public PlayerControlHandler(HttpServer server) {
 		if (server == null) {
@@ -51,6 +54,9 @@ public class PlayerControlHandler implements HttpHandler {
 		port = server.getAddress().getPort();
 		protocol = server instanceof HttpsServer ? "https://" : "http://";
 		players = new HashMap();
+		String basepath = configuration.getWebPath().getPath();
+		bumpjs = new File(FilenameUtils.concat(basepath, configuration.getBumpJS("bump/bump.js")));
+		skindir = new File(FilenameUtils.concat(basepath, configuration.getBumpSkinDir("bump/skin")));
 	}
 
 	@Override
@@ -101,10 +107,13 @@ public class PlayerControlHandler implements HttpHandler {
 			response = read(configuration.getWebFile("bump/bump.html"))
 				.replace("http://127.0.0.1:9001", protocol + PMS.get().getServer().getHost() + ":" + port);
 		} else if (p[2].equals("bump.js")) {
-			response = read(configuration.getWebFile("bump/bump.js"));
+			response = getBumpJS();
 			mime = "text/javascript";
 		} else if (p[2].equals("renderers")) {
 			json.add(getRenderers());
+		} else if (p[2].startsWith("skin.")) {
+			RemoteUtil.dumpFile(new File(skindir, p[2].substring(5)), x);
+			return;
 		}
 
 		if (json.size() > 0) {
@@ -177,6 +186,13 @@ public class PlayerControlHandler implements HttpHandler {
 				item.toString().replace("\"","\\\""), item == selected ? 1 : 0, "$i$" + i));
 		}
 		return "\"playlist\":[" + StringUtils.join(json, ",") + "]";
+	}
+
+	public String getBumpJS() {
+		return read(bumpjs)
+			+ "\nvar bumpskin = function() {\n"
+			+    read(new File(skindir, "skin.js"))
+			+ "\n}";
 	}
 
 	private static String read(String resource) {
