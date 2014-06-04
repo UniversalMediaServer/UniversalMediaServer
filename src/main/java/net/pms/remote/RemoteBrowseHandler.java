@@ -72,7 +72,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 							// The resource is a media file
 							mediaHtml.append("<li>");
 								mediaHtml.append("<a href=\"/play/").append(idForWeb).append("\" title=\"").append(name).append("\">");
-									mediaHtml.append("<img src=\"").append(thumb).append("\" alt=\"").append(name).append("\">");
+									mediaHtml.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">");
 									mediaHtml.append("<span>").append(name).append("</span>");
 								mediaHtml.append("</a>").append(CRLF);
 								if (upnpControl) {

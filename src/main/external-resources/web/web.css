@@ -151,7 +151,7 @@ ul#Media li {
 	margin-bottom: 20px;
 }
 
-ul#Media li a img {
+ul#Media li a .thumb {
 	max-width: 214px;
 	max-height: 180px;
 	width: 214px;
