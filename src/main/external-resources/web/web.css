@@ -154,6 +154,8 @@ ul#Media li {
 ul#Media li a img {
 	max-width: 214px;
 	max-height: 180px;
+	width: 214px;
+	height: 120px;
 }
 
 ul#Folders li span {
