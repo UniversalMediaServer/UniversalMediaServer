@@ -42,10 +42,39 @@ body#ContentPage {
 	z-index: 2;
 }
 
+#ContentPage.Doc {
+	margin:0 auto;
+}
+
+#ContentPage.Doc #Menu {
+	position:		relative;
+}
+
+#ContentPage.Doc #Container {
+	margin:2em;
+	max-width:40em;
+	font-size: 22px;
+	text-decoration: none;
+}
+
+#ContentPage.Doc ul {
+	list-style: disc inside none;
+}
+
 #ContentPage #Menu #HomeButton {
 	background:		url('/files/menu-left-content.png');
 	width:			125px;
 	height:			93px;
+	display: block;
+}
+
+#ContentPage #Menu #DocButton {
+	background:		url('/files/settings.png') no-repeat;
+	width:			32px;
+	height:			32px;
+	position: fixed;
+	top: 3px;
+	right: 3px;
 	display: block;
 }
 
@@ -112,19 +141,17 @@ ul#Media {
 	padding: 115px 0 20px 20px;
 }
 
-ul#Media li {
-	margin-right: 20px;
-}
-
 ul li {
 	text-align: left;
 }
 
 ul#Media li {
 	float: left;
+	margin-right: 20px;
+	margin-bottom: 20px;
 }
 
-ul#Media li a img {
+ul#Media li a .thumb {
 	max-width: 214px;
 	max-height: 180px;
 	width: 214px;
@@ -140,7 +167,6 @@ ul#Media li span {
 	display: block;
 	max-width: 214px;
 	height: 16px;
-	margin-bottom: 20px;
 	overflow: hidden;
 }
 

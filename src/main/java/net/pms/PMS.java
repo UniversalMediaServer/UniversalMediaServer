@@ -20,6 +20,7 @@
 package net.pms;
 
 import com.sun.jna.Platform;
+import com.sun.net.httpserver.HttpServer;
 import java.awt.*;
 import java.io.*;
 import java.net.BindException;
@@ -170,10 +171,16 @@ public class PMS {
 	 */
 	public void setRendererFound(RendererConfiguration renderer) {
 		if (!foundRenderers.contains(renderer) && !renderer.isFDSSDP()) {
+			LOGGER.debug("Adding status button for " + renderer.getRendererName());
 			foundRenderers.add(renderer);
-			frame.addRendererIcon(renderer.getRank(), renderer.getRendererName(), renderer.getRendererIcon());
+			frame.addRenderer(renderer);
 			frame.setStatusCode(0, Messages.getString("PMS.18"), "icon-status-connected.png");
 		}
+	}
+
+	public void updateRenderer(RendererConfiguration renderer) {
+		LOGGER.debug("Updating status button for " + renderer.getRendererName());
+		frame.updateRenderer(renderer);
 	}
 
 	/**
@@ -553,7 +560,12 @@ public class PMS {
 			}
 		});
 
+		// Web stuff
+		web = new RemoteWeb();
+
 		RendererConfiguration.loadRendererConfigurations(configuration);
+		// Now that renderer confs are all loaded, we can start searching for renderers
+		UPNPHelper.getInstance().init();
 
 		LOGGER.info("Checking the fontconfig cache, this can take two minutes or so.");
 
@@ -694,9 +706,6 @@ public class PMS {
 		if (!binding) {
 			return false;
 		}
-
-		// Web stuff
-		web = new RemoteWeb();
 
 		// initialize the cache
 		if (configuration.getUseCache()) {
@@ -1158,6 +1167,10 @@ public class PMS {
 
 	public HTTPServer getServer() {
 		return server;
+	}
+
+	public HttpServer getWebServer() {
+		return web.getServer();
 	}
 
 	public void save() {
