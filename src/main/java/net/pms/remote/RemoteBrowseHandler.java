@@ -79,11 +79,11 @@ public class RemoteBrowseHandler implements HttpHandler {
 									mediaHtml.append("<a href=\"javascript:bump.start('//")
 										.append(parent.getAddress()).append("','/play/").append(idForWeb).append("','")
 										.append(name).append("')\" title=\"").append("Play on another renderer")
-										.append("\"><img src=\"/files/img/bump16.png\" alt=\"bump\"></a>").append(CRLF);
+										.append("\"><img src=\"/files/bump/bump16.png\" alt=\"bump\"></a>").append(CRLF);
 								} else {
 									mediaHtml.append("<a href=\"javascript:alert('").append("No upnp-controllable renderers suitable for receiving pushed media are available. Refresh this page if a new renderer may have recently connected.")
 										.append("')\" title=\"").append("No other renderers available")
-										.append("\"><img src=\"/files/img/bump16.png\" style=\"opacity:0.3;cursor:default\" alt=\"bump\"></a>").append(CRLF);
+										.append("\"><img src=\"/files/bump/bump16.png\" style=\"opacity:0.3;cursor:default\" alt=\"bump\"></a>").append(CRLF);
 								}
 							mediaHtml.append("</li>").append(CRLF);
 						}
