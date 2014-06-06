@@ -288,6 +288,7 @@ public class GeneralTab {
 		if (!configuration.isHideAdvancedOptions()) {
 			singleInstance = new JCheckBox(Messages.getString("GeneralTab.10"), configuration.getSingle());
 			singleInstance.setContentAreaFilled(false);
+			singleInstance.setToolTipText(Messages.getString("GeneralTab.11"));
 			singleInstance.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
