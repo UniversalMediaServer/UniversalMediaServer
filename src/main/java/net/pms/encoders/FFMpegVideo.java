@@ -1072,6 +1072,7 @@ public class FFMpegVideo extends Player {
 
 		fc = new JCheckBox(Messages.getString("MEncoderVideo.21"), configuration.isFFmpegFontConfig());
 		fc.setContentAreaFilled(false);
+		fc.setToolTipText(Messages.getString("FFmpeg.0"));
 		fc.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
