@@ -220,12 +220,11 @@ public class FFMpegVideo extends Player {
 				if (keepAR) {
 					filterChain.add(String.format("pad=%1$d:%2$d:(%1$d-iw)/2:(%2$d-ih)/2", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
 				}
+
+				filterChain.add("setdar=4/3");
 			} else if (keepAR && isMediaValid) {
-				if ((media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
-					filterChain.add("pad=iw:iw/(16/9):0:(oh-ih)/2");
-				} else {
-					filterChain.add("pad=ih*(16/9):ih:(ow-iw)/2:0");
-				}
+				filterChain.add("pad=max(iw\\,ih*(16/9)):max(ih\\,iw/(16*9)):(ow-iw)/2:(oh-ih)/2");
+				filterChain.add("setdar=4/3");
 			}
 		}
 
@@ -731,7 +730,7 @@ public class FFMpegVideo extends Player {
 
 		cmdList.add("-loglevel");
 		if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
-			cmdList.add("info"); // Could be changed to "verbose" or "debug" if "info" level is not enough
+			cmdList.add("verbose"); // Could be changed to "verbose" or "debug" if "info" level is not enough
 		} else {
 			cmdList.add("fatal");
 		}
