@@ -53,6 +53,7 @@ import net.pms.newgui.DummyFrame;
 import net.pms.newgui.IFrame;
 import net.pms.newgui.LooksFrame;
 import net.pms.newgui.ProfileChooser;
+import net.pms.remote.RemoteWeb;
 import net.pms.update.AutoUpdater;
 import net.pms.util.FileUtil;
 import net.pms.util.OpenSubtitle;
@@ -694,6 +695,9 @@ public class PMS {
 			return false;
 		}
 
+		// Web stuff
+		web = new RemoteWeb();
+
 		// initialize the cache
 		if (configuration.getUseCache()) {
 			initializeDatabase(); // XXX: this must be done *before* new MediaLibrary -> new MediaLibraryFolder
@@ -1310,7 +1314,6 @@ public class PMS {
 		// remove all " and convert to common case before splitting result on ,
 		String[] tmp = line.toLowerCase().replaceAll("\"", "").split(",");
 		// if the line is too short we don't kill the process
-
 		if (tmp.length < 9) {
 			return false;
 		}
@@ -1402,6 +1405,8 @@ public class PMS {
 			return true;
 		}
 	}
+
+	private RemoteWeb web;
 
 	/**
 	 * Sets the relative URL of a context sensitive help page located in the

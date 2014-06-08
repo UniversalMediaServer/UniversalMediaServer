@@ -42,6 +42,8 @@ import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.formats.Format;
 import net.pms.newgui.IFrame;
+import net.pms.remote.RemoteServer;
+import net.pms.remote.RemoteSrvFolder;
 import net.pms.util.FileUtil;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
@@ -182,6 +184,17 @@ public class RootFolder extends DLNAResource {
 
 		if (!configuration.getHideVideoSettings()) {
 			addAdminFolder();
+		}
+
+
+		try {
+			ArrayList<RemoteServer> srv = RemoteServer.parse();
+			for(int i = 0;i < srv.size();i++) {
+				RemoteServer s = srv.get(i);
+				addChild(new RemoteSrvFolder(s, "0", s.getDispName(), null));
+			}
+		} catch (Exception e) {
+			LOGGER.debug("RemoteServer error " + e);
 		}
 
 		setDiscovered(true);
@@ -906,7 +919,7 @@ public class RootFolder extends DLNAResource {
 										// Put the track into its album folder
 										{
 											if (!isCompilation) {
-												albumName += " – " + artistName;
+												albumName += " - " + artistName;
 											}
 
 											VirtualFolder individualAlbumFolder = null;

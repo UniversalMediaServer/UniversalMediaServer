@@ -190,6 +190,7 @@ public class PmsConfiguration {
 	private static final String KEY_PRETTIFY_FILENAMES = "prettify_filenames";
 	private static final String KEY_PROFILE_NAME = "name";
 	private static final String KEY_PROXY_SERVER_PORT = "proxy";
+	private static final String KEY_REMOTE_SRV = "rem_srv";
 	private static final String KEY_RENDERER_DEFAULT = "renderer_default";
 	private static final String KEY_RENDERER_FORCE_DEFAULT = "renderer_force_default";
 	private static final String KEY_RESUME = "resume";
@@ -233,7 +234,11 @@ public class PmsConfiguration {
 	private static final String KEY_VLC_SCALE = "vlc_scale";
 	private static final String KEY_VLC_SAMPLE_RATE_OVERRIDE = "vlc_sample_rate_override";
 	private static final String KEY_VLC_SAMPLE_RATE = "vlc_sample_rate";
+	private static final String KEY_WEB_AUTHENTICATE = "web_authenticate";
 	private static final String KEY_WEB_CONF_PATH = "web_conf";
+	private static final String KEY_WEB_MP4_TRANS = "web_mp4_trans";
+	private static final String KEY_WEB_THREADS = "web_threads";
+	private static final String KEY_WEB_PATH = "web_path";
 	private static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
 
 	// The name of the subdirectory under which UMS config files are stored for this build (default: UMS).
@@ -1015,8 +1020,8 @@ public class PmsConfiguration {
 	 */
 	public String getForcedSubtitleLanguage() {
 		return configurationReader.getPossiblyBlankConfigurationString(
-			KEY_FORCED_SUBTITLE_LANGUAGE,
-			getLanguage()
+				KEY_FORCED_SUBTITLE_LANGUAGE,
+				getLanguage()
 		);
 	}
 
@@ -1041,8 +1046,8 @@ public class PmsConfiguration {
 	 */
 	public String getAudioSubLanguages() {
 		return configurationReader.getPossiblyBlankConfigurationString(
-			KEY_AUDIO_SUB_LANGS,
-			Messages.getString("MEncoderVideo.128")
+				KEY_AUDIO_SUB_LANGS,
+				Messages.getString("MEncoderVideo.128")
 		);
 	}
 
@@ -1932,9 +1937,9 @@ public class PmsConfiguration {
 	public List<String> getEnginesAsList(SystemUtils registry) {
 		String defaultEngines = StringUtils.join(
 			new String[] {
+				"ffmpegvideo",
 				"mencoder",
 				"tsmuxer",
-				"ffmpegvideo",
 				"ffmpegaudio",
 				"tsmuxeraudio",
 				"ffmpegwebvideo",
@@ -2957,5 +2962,53 @@ public class PmsConfiguration {
 
 	public boolean getSingle() {
 		return getBoolean(KEY_SINGLE, true);
+	}
+
+	/**
+	 * Web stuff
+	 */
+	private static final String KEY_NO_FOLDERS = "no_shared";
+	private static final String KEY_WEB_HTTPS = "use_https";
+	private static final int WEB_MAX_THREADS = 100;
+
+	public boolean getNoFolders(String tag) {
+		if (tag == null) {
+			return getBoolean(KEY_NO_FOLDERS, false);
+		}
+		String x = (tag.toLowerCase() + ".no_shared").replaceAll(" ", "_");
+		return getBoolean(x, false);
+	}
+
+	public boolean getWebHttps() {
+		return getBoolean(KEY_WEB_HTTPS, false);
+	}
+
+	public File getWebPath() {
+		File path = new File(getString(KEY_WEB_PATH, "web"));
+		if (!path.exists()) {
+			path.mkdirs();
+		}
+		return path;
+	}
+
+	public File getWebFile(String file) {
+		return new File(getWebPath().getAbsolutePath() + File.separator + file);
+	}
+
+	public boolean isWebAuthenticate() {
+		return getBoolean(KEY_WEB_AUTHENTICATE, false);
+	}
+
+	public int getWebThreads() {
+		int x = getInt(KEY_WEB_THREADS, 30);
+		return (x > WEB_MAX_THREADS ? WEB_MAX_THREADS : x);
+	}
+
+	public boolean isWebMp4Trans() {
+		return getBoolean(KEY_WEB_MP4_TRANS, false);
+	}
+
+	public boolean isRemoteServer() {
+		return getBoolean(KEY_REMOTE_SRV, false);
 	}
 }

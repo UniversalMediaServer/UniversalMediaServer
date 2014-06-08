@@ -22,6 +22,11 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.io.FilenameUtils;
+
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaSubtitle;
@@ -32,7 +37,7 @@ import static org.mozilla.universalchardet.Constants.*;
 public class SubtitleUtils {
 	private final static PmsConfiguration configuration = PMS.getConfiguration();
 	private final static Map<String, String> fileCharsetToMencoderSubcpOptionMap = new HashMap<String, String>() {
-		private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
 		{
 			// Cyrillic / Russian
@@ -116,6 +121,56 @@ public class SubtitleUtils {
 		}
 
 		reader.close();
+		return outputSubs;
+	}
+
+	/**
+	 * Converts subtitles from the SUBRIP format to the WebVTT format 
+	 *
+	 * @param tempSubs Subtitles file to convert
+	 * @return Converted subtitles file
+	 * @throws IOException
+	 */
+	public static File convertSubripToWebVTT(File tempSubs) throws IOException {
+		File outputSubs = new File(FilenameUtils.getFullPath(tempSubs.getPath()), FilenameUtils.getBaseName(tempSubs.getName()) + ".vtt");
+		StringBuilder outputString = new StringBuilder();
+		String subsFileCharset = FileUtil.getFileCharset(tempSubs);
+		BufferedWriter output;
+        Pattern timePattern = Pattern.compile("([0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}) --> ([0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3})");
+        try (BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(tempSubs), Charset.forName(subsFileCharset)))) {
+			output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), Charset.forName(CHARSET_UTF_8)));
+			String line;
+			outputString.append("WEBVTT").append("\n").append("\n");
+			output.write(outputString.toString());
+			while ((line = input.readLine()) != null) {
+				outputString.setLength(0);
+				Matcher timeMatcher = timePattern.matcher(line);
+				if (timeMatcher.find()) {
+					outputString.append(timeMatcher.group().replace(",", ".")).append("\n");
+					output.write(outputString.toString());
+					continue;
+				}
+
+				line = line.replace("&", "&amp;");
+				if (countMatches(line, "<") == 1) {
+					line = line.replace("<", "&lt;");
+				}
+
+				if (countMatches(line, ">") == 1) {
+					line = line.replace(">", "&gt;");
+				}
+				
+				if (line.startsWith("{") && line.contains("}")) {
+					line = line.substring(line.indexOf("}") + 1);
+				}
+
+				outputString.append(line).append("\n");
+				output.write(outputString.toString());
+			}
+		}
+
+		output.flush();
+		output.close();
 		return outputSubs;
 	}
 }
