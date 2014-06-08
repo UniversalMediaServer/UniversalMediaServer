@@ -929,6 +929,10 @@ public class MEncoderVideo extends Player {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the colorspace probably isn't supported by the renderer.");
 		}
+		if (deferToTsmuxer == true && params.mediaRenderer.isKeepAspectRatio() && !"16/9".equals(media.getValidAspect(true))) {
+			deferToTsmuxer = false;
+			LOGGER.trace(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio.");
+		}
 		if (deferToTsmuxer) {
 			String expertOptions[] = getSpecificCodecOptions(
 				configuration.getMencoderCodecSpecificConfig(),
