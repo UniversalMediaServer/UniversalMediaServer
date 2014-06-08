@@ -1328,7 +1328,7 @@ public class FFMpegVideo extends Player {
 								outputString.append("PlayResY: ").append(media.getHeight()).append("\n");
 								outputString.append("PlayResX: ").append(media.getWidth()).append("\n");
 							}
-							
+
 							break;
 						}
 					}
