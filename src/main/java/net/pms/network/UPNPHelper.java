@@ -39,6 +39,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
 import static net.pms.dlna.DLNAResource.Temp;
 import net.pms.util.BasicPlayer;
+import net.pms.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -740,12 +741,12 @@ public class UPNPHelper extends UPNPControl {
 
 		@Override
 		public void forward() {
-			//TODO
+			UPNPControl.seek(dev, instanceID, REL_TIME, jump(60));
 		}
 
 		@Override
 		public void rewind() {
-			//TODO
+			UPNPControl.seek(dev, instanceID, REL_TIME, jump(-60));
 		}
 
 		@Override
@@ -821,6 +822,11 @@ public class UPNPHelper extends UPNPControl {
 
 		public DefaultComboBoxModel getPlaylist() {
 			return playlist;
+		}
+
+		public String jump(double seconds) {
+			double t = StringUtil.convertStringToTime(state.position) + seconds;
+			return t > 0 ? StringUtil.convertTimeToString(t, "%02d:%02d:%02.0f") : "00:00:00";
 		}
 
 		public void step(int n) {

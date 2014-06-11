@@ -603,7 +603,7 @@ public class UPNPControl {
 
 	public static void seek(Device dev, String instanceID, String mode, String target) {
 		// REL_TIME target format is "hh:mm:ss"
-		send(dev, instanceID, "AVTransport", "Seek", "SeekMode", mode, "SeekTarget", target);
+		send(dev, instanceID, "AVTransport", "Seek", "Unit", mode, "Target", target);
 	}
 
 	public static void stop(Device dev, String instanceID) {
