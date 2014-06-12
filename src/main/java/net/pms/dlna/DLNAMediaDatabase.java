@@ -449,8 +449,8 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setString(9, left(media.getCodecV(), SIZE_CODECV));
 				ps.setString(10, left(media.getFrameRate(), SIZE_FRAMERATE));
 				ps.setString(11, left(media.getAspect(), SIZE_ASPECT));
-				ps.setString(12, left(media.getAspect(), SIZE_ASPECTRATIO_CONTAINER));
-				ps.setString(13, left(media.getAspect(), SIZE_ASPECTRATIO_VIDEOTRACK));
+				ps.setString(12, left(media.getAspectRatioContainer(), SIZE_ASPECTRATIO_CONTAINER));
+				ps.setString(13, left(media.getAspectRatioVideoTrack(), SIZE_ASPECTRATIO_VIDEOTRACK));
 				ps.setByte(14, media.getReferenceFrameCount());
 				ps.setString(15, left(media.getAvcLevel(), SIZE_AVC_LEVEL));
 				ps.setInt(16, media.getBitsPerPixel());
