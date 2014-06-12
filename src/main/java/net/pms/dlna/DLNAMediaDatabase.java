@@ -64,7 +64,7 @@ public class DLNAMediaDatabase implements Runnable {
 	// Database column sizes
 	private final int SIZE_CODECV = 32;
 	private final int SIZE_FRAMERATE = 32;
-	private final int SIZE_ASPECT = 32;
+	private final int SIZE_ASPECTRATIO_DVDISO = 32;
 	private final int SIZE_ASPECTRATIO_CONTAINER = 5;
 	private final int SIZE_ASPECTRATIO_VIDEOTRACK = 5;
 	private final int SIZE_AVC_LEVEL = 3;
@@ -206,7 +206,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", SIZE              NUMERIC");
 				sb.append(", CODECV            VARCHAR2(").append(SIZE_CODECV).append(")");
 				sb.append(", FRAMERATE         VARCHAR2(").append(SIZE_FRAMERATE).append(")");
-				sb.append(", ASPECT            VARCHAR2(").append(SIZE_ASPECT).append(")");
+				sb.append(", ASPECT            VARCHAR2(").append(SIZE_ASPECTRATIO_DVDISO).append(")");
 				sb.append(", ASPECTRATIOCONTAINER    VARCHAR2(").append(SIZE_ASPECTRATIO_CONTAINER).append(")");
 				sb.append(", ASPECTRATIOVIDEOTRACK   VARCHAR2(").append(SIZE_ASPECTRATIO_VIDEOTRACK).append(")");
 				sb.append(", REFRAMES          TINYINT");
@@ -448,7 +448,7 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setLong(8, media.getSize());
 				ps.setString(9, left(media.getCodecV(), SIZE_CODECV));
 				ps.setString(10, left(media.getFrameRate(), SIZE_FRAMERATE));
-				ps.setString(11, left(media.getAspect(), SIZE_ASPECT));
+				ps.setString(11, left(media.getAspectRatioDvdIso(), SIZE_ASPECTRATIO_DVDISO));
 				ps.setString(12, left(media.getAspectRatioContainer(), SIZE_ASPECTRATIO_CONTAINER));
 				ps.setString(13, left(media.getAspectRatioVideoTrack(), SIZE_ASPECTRATIO_VIDEOTRACK));
 				ps.setByte(14, media.getReferenceFrameCount());
