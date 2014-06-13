@@ -377,7 +377,7 @@ public class DLNAMediaInfo implements Cloneable {
 		setThumbready(true); // this class manages thumbnails by default with the parser_v1 method
 	}
 
-	public void generateThumbnail(InputFile input, Format ext, int type, Double seekPosition) {
+	public void generateThumbnail(InputFile input, Format ext, int type, Double seekPosition, boolean resume) {
 		DLNAMediaInfo forThumbnail = new DLNAMediaInfo();
 		forThumbnail.durationSec = getDurationInSeconds();
 
@@ -387,11 +387,11 @@ public class DLNAMediaInfo implements Cloneable {
 			forThumbnail.durationSec = forThumbnail.durationSec / 2;
 		}
 
-		forThumbnail.parse(input, ext, type, true);
+		forThumbnail.parse(input, ext, type, true, resume);
 		setThumb(forThumbnail.getThumb());
 	}
 
-	private ProcessWrapperImpl getFFMpegThumbnail(InputFile media) {
+	private ProcessWrapperImpl getFFMpegThumbnail(InputFile media, boolean resume) {
 		/**
 		 * Note: The text output from FFmpeg is used by renderers that do
 		 * not use MediaInfo, so do not make any changes that remove or
@@ -407,7 +407,12 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 
 		args[1] = "-ss";
-		args[2] = "" + (int) getDurationInSeconds();
+		if (resume) {
+			args[2] = "" + (int) getDurationInSeconds();
+		} else {
+			args[2] = "" + configuration.getThumbnailSeekPos();
+		}
+
 		args[3] = "-i";
 
 		if (file != null) {
@@ -530,7 +535,7 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 	}
 
-	public void parse(InputFile inputFile, Format ext, int type, boolean thumbOnly) {
+	public void parse(InputFile inputFile, Format ext, int type, boolean thumbOnly, boolean resume) {
 		int i = 0;
 
 		while (isParsing()) {
@@ -723,7 +728,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 			if (ffmpeg_parsing) {
 				if (!thumbOnly || !configuration.isUseMplayerForVideoThumbs()) {
-					pw = getFFMpegThumbnail(inputFile);
+					pw = getFFMpegThumbnail(inputFile, resume);
 				}
 
 				boolean dvrms = false;

@@ -321,13 +321,13 @@ public class FormatConfiguration {
 
 			if (forceV1) {
 				// XXX this path generates thumbnails
-				media.parse(file, ext, type, false);
+				media.parse(file, ext, type, false, false);
 			} else {
 				// XXX this path doesn't generate thumbnails
 				LibMediaInfoParser.parse(media, file, type);
 			}
 		} else {
-			media.parse(file, ext, type, false);
+			media.parse(file, ext, type, false, false);
 		}
 	}
 
