@@ -1302,7 +1302,7 @@ public class FFMpegVideo extends Player {
 			String line;
 			String[] format = null;
 			int i;
-			boolean playResIsSet = false;
+			boolean playResIsSet = false; // do not apply font size change when video resolution is set
 			while ((line = input.readLine()) != null) {
 				outputString.setLength(0);
 				if (line.contains("[Script Info]")) {
@@ -1342,13 +1342,11 @@ public class FFMpegVideo extends Player {
 							case "Fontname":
 								if (!configuration.getFont().isEmpty()) {
 									params[i] = configuration.getFont();
-								} else {
-									params[i] = "Arial";
 								}
 
 								break;
 							case "Fontsize":
-								if (!playResIsSet) { // do not apply font size change when video resolution is set
+								if (!playResIsSet) {
 									params[i] = Integer.toString((int) ((Integer.parseInt(params[i]) * media.getHeight() / (double) 288 * Double.parseDouble(configuration.getAssScale()))));
 								}
 
