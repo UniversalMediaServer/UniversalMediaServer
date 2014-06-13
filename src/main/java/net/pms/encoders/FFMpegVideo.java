@@ -1302,67 +1302,72 @@ public class FFMpegVideo extends Player {
 			String line;
 			String[] format = null;
 			int i;
+			boolean playResIsSet = false;
 			while ((line = input.readLine()) != null) {
 				outputString.setLength(0);
-				if (line.startsWith("[Script Info]")) {
+				if (line.contains("[Script Info]")) {
 					outputString.append(line).append("\n");
 					output.write(outputString.toString());
 					while ((line = input.readLine()) != null) {
 						outputString.setLength(0);
 						if (!line.isEmpty()) {
+							if (line.contains("PlayResY:") || line.contains("PlayResX:")) {
+								playResIsSet = true;
+							}
 							outputString.append(line).append("\n");
 							output.write(outputString.toString());
 						} else {
-							outputString.append("PlayResY: ").append(media.getHeight()).append("\n");
-							outputString.append("PlayResX: ").append(media.getWidth()).append("\n");
+							if (!playResIsSet) {
+								outputString.append("PlayResY: ").append(media.getHeight()).append("\n");
+								outputString.append("PlayResX: ").append(media.getWidth()).append("\n");
+							}
 							break;
 						}
 					}
 				}
 
-				if (line != null && line.startsWith("Format:")) {
+				if (line != null && line.contains("Format:")) {
 					format = line.split(",");
 					outputString.append(line).append("\n");
 					output.write(outputString.toString());
 					continue;
 				}
 
-				if (line != null && line.startsWith("Style: Default")) {
+
+				if (line != null && line.contains("Style: Default")) {
 					String[] params = line.split(",");
 
 					for (i = 0; i < format.length; i++) {
-						if (format[i].contains("Fontname")) {
-							if (!configuration.getFont().isEmpty()) {
-								params[i] = configuration.getFont();
-							} else {
-								params[i] = "Arial";
-							}
-							continue;
-						}
+						switch (format[i].trim()) {
+							case "Fontname":
+								if (!configuration.getFont().isEmpty()) {
+									params[i] = configuration.getFont();
+								} else {
+									params[i] = "Arial";
+								}
 
-						if (format[i].contains("Fontsize")) {
-							params[i] = Integer.toString((int) ((Integer.parseInt(params[i]) * media.getHeight() / (double) 288 * Double.parseDouble(configuration.getAssScale()))));
-							continue;
-						}
+								break;
+							case "Fontsize":
+								if (!playResIsSet) { // do not apply font size change when video resolution is set
+									params[i] = Integer.toString((int) ((Integer.parseInt(params[i]) * media.getHeight() / (double) 288 * Double.parseDouble(configuration.getAssScale()))));
+								}
 
-						if (format[i].contains("PrimaryColour")) {
-							String primaryColour = Integer.toHexString(configuration.getSubsColor());
-							params[i] = "&H" + primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4);
-							continue;
-						}
-
-						if (format[i].contains("Outline")) {
-							params[i] = configuration.getAssOutline();
-							continue;
-						}
-
-						if (format[i].contains("Shadow")) {
-							params[i] = configuration.getAssShadow();
-							continue;
-						}
-
-						if (format[i].contains("MarginV")) {
-							params[i] = configuration.getAssMargin();
+								break;
+							case "PrimaryColour":
+								String primaryColour = Integer.toHexString(configuration.getSubsColor());
+								params[i] = "&H" + primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4);
+								break;
+							case "Outline":
+								params[i] = configuration.getAssOutline();
+								break;
+							case "Shadow":
+								params[i] = configuration.getAssShadow();
+								break;
+							case "MarginV":
+								params[i] = configuration.getAssMargin();
+								break;
+							default:
+								break;
 						}
 					}
 
