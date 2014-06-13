@@ -6,6 +6,8 @@
 		Made the renderer setting KeepAspectRatio more reliable
 		Renamed the renderer option OverrideVideoFilter to OverrideFFmpegVideoFilter
 		Fixed incorrect aspect ratios being cached
+		Fixed thumbnail seek position
+		Fixed bugs with FFmpeg subtitle styles
 	Renderers:
 		Added support for nPlayer, skifta and TwonkyBeam on portable Apple devices (thanks, MattDetroit!)
 		Added support for LG LM620 TVs (thanks, michal-sapsa!)
@@ -14,6 +16,7 @@
 		Improved support for Panasonic TVs
 		Improved support for Samsung mobile devices
 	Languages:
+		Updated Czech translation
 		Updated Spanish translation (thanks, AlfredoRamos!)
 	External Components:
 		Updated Apache commons-lang to 3.3.2, which:
@@ -39,6 +42,7 @@
 		Made FFmpeg the default transcoding engine
 		Improved the TextWrap function, which makes filenames fit better on certain renderers
 		Fixed padding in FFmpeg for DVD video resolution
+		Fixed thumbnail seek position
 	Renderers:
 		Added support for Google Chromecast
 		Added support for nPlayer, skifta and TwonkyBeam on portable Apple devices (thanks, MattDetroit!)
@@ -47,6 +51,7 @@
 		Improved support for OPPO devices
 		Improved support for Panasonic TX-L32V10E TVs
 	Languages:
+		Updated Czech translation
 		Updated Spanish translation (thanks, AlfredoRamos!)
 	External Components:
 		Updated Apache commons-lang to 3.3.2, which:
