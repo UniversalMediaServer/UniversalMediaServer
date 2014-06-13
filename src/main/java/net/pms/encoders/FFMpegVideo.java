@@ -1342,34 +1342,30 @@ public class FFMpegVideo extends Player {
 					String[] params = line.split(",");
 
 					for (i = 0; i < format.length; i++) {
-						switch (format[i].trim()) {
-							case "Fontname":
+						if ("Fontname".equals(format[i].trim())) {
 								if (!configuration.getFont().isEmpty()) {
 									params[i] = configuration.getFont();
 								}
 
 								break;
-							case "Fontsize":
+						} else if ("Fontsize".equals(format[i].trim())) {
 								if (!playResIsSet) {
 									params[i] = Integer.toString((int) ((Integer.parseInt(params[i]) * media.getHeight() / (double) 288 * Double.parseDouble(configuration.getAssScale()))));
 								}
 
 								break;
-							case "PrimaryColour":
+						} else if ("PrimaryColour".equals(format[i].trim())) {
 								String primaryColour = Integer.toHexString(configuration.getSubsColor());
 								params[i] = "&H" + primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4);
 								break;
-							case "Outline":
+						} else if ("Outline".equals(format[i].trim())) {
 								params[i] = configuration.getAssOutline();
 								break;
-							case "Shadow":
+						} else if ("Shadow".equals(format[i].trim())) {
 								params[i] = configuration.getAssShadow();
 								break;
-							case "MarginV":
+						} else if ("MarginV".equals(format[i].trim())) {
 								params[i] = configuration.getAssMargin();
-								break;
-							default:
-								break;
 						}
 					}
 
