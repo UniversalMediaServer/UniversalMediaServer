@@ -93,7 +93,8 @@ public class RendererConfiguration {
 	private static final String MUX_DTS_TO_MPEG = "MuxDTSToMpeg";
 	private static final String MUX_H264_WITH_MPEGTS = "MuxH264ToMpegTS";
 	private static final String MUX_LPCM_TO_MPEG = "MuxLPCMToMpeg";
-	private static final String OVERRIDE_VF = "OverrideVideoFilter";
+	private static final String MUX_NON_MOD4_RESOLUTION = "MuxNonMod4Resolution";
+	private static final String OVERRIDE_FFMPEG_VF = "OverrideFFmpegVideoFilter";
 	private static final String RENDERER_ICON = "RendererIcon";
 	private static final String RENDERER_NAME = "RendererName";
 	private static final String RESCALE_BY_RENDERER = "RescaleByRenderer";
@@ -1195,7 +1196,7 @@ public class RendererConfiguration {
 	}
 
 	public String getFFmpegVideoFilterOverride() {
-		return getString(OVERRIDE_VF, null);
+		return getString(OVERRIDE_FFMPEG_VF, null);
 	}
 
 	public static ArrayList<String> getAllRenderersNames() {

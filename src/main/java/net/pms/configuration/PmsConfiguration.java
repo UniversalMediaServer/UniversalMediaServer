@@ -204,6 +204,7 @@ public class PmsConfiguration {
 	private static final String KEY_SERVER_NAME = "server_name";
 	private static final String KEY_SERVER_PORT = "port";
 	private static final String KEY_SHARES = "shares";
+	private static final String KEY_SINGLE = "single_instance";
 	private static final String KEY_SKIP_LOOP_FILTER_ENABLED = "mencoder_skip_loop_filter";
 	private static final String KEY_SKIP_NETWORK_INTERFACES = "skip_network_interfaces";
 	private static final String KEY_SORT_METHOD = "sort_method";
@@ -2700,8 +2701,8 @@ public class PmsConfiguration {
 		// Now we know cred path is set
 		File f = new File(cp);
 		if (!f.exists()) {
-			// cred path is set but file isn't there
-			// create empty file with some comments
+			// Cred path is set but file isn't there
+			// Create empty file with some comments
 			FileOutputStream fos = new FileOutputStream(f);
 			StringBuilder sb = new StringBuilder();
 			sb.append("# Add credentials to the file");
@@ -2936,5 +2937,18 @@ public class PmsConfiguration {
 	 */
 	public void setAppendProfileName(boolean value) {
 		configuration.setProperty(KEY_APPEND_PROFILE_NAME, value);
+	}
+
+	/**
+	 * Set whether UMS should kill an old running instance
+	 *
+	 * @param val Set to true it should kill the old instance
+	 */
+	public void setSingle(boolean val) {
+		configuration.setProperty(KEY_SINGLE, val);
+	}
+
+	public boolean getSingle() {
+		return getBoolean(KEY_SINGLE, true);
 	}
 }
