@@ -929,9 +929,9 @@ public class MEncoderVideo extends Player {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the colorspace probably isn't supported by the renderer.");
 		}
-		if (deferToTsmuxer == true && params.mediaRenderer.isKeepAspectRatio() && !"16/9".equals(media.getValidAspect(true))) {
+		if (deferToTsmuxer == true && params.mediaRenderer.isKeepAspectRatio() && !"16:9".equals(media.getAspectRatioContainer())) {
 			deferToTsmuxer = false;
-			LOGGER.trace(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio.");
+			LOGGER.trace(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
 		}
 		if (deferToTsmuxer) {
 			String expertOptions[] = getSpecificCodecOptions(
@@ -1594,8 +1594,8 @@ public class MEncoderVideo extends Player {
 		}
 
 		for (String arg : args()) {
-			if (arg.contains("format=mpeg2") && media.getAspect() != null && media.getValidAspect(true) != null) {
-				cmdList.add(arg + ":vaspect=" + media.getValidAspect(true));
+			if (arg.contains("format=mpeg2") && media.getAspectRatioDvdIso() != null && media.getAspectRatioMencoderMpegopts(true) != null) {
+				cmdList.add(arg + ":vaspect=" + media.getAspectRatioMencoderMpegopts(true));
 			} else {
 				cmdList.add(arg);
 			}
