@@ -1,4 +1,4 @@
-3.6.3 - 2014-06-?? - Changes since 3.6.2
+3.6.3 - 2014-06-13 - Changes since 3.6.2
 
 	General:
 		Added and improved documentation for more renderer options to PS3.conf (CustomFFmpegOptions, OverrideFFmpegVideoFilter and KeepAspectRatio)
