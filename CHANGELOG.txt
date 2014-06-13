@@ -11,6 +11,7 @@
 	Renderers:
 		Added support for nPlayer, skifta and TwonkyBeam on portable Apple devices (thanks, MattDetroit!)
 		Added support for LG LM620 TVs (thanks, michal-sapsa!)
+		Added support for Sony Bravia W7 series TVs (thanks, shtirlic!)
 		Improved support for DirecTV HR
 		Improved support for OPPO devices
 		Improved support for Panasonic TVs
