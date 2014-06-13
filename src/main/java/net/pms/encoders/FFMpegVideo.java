@@ -1419,7 +1419,8 @@ public class FFMpegVideo extends Player {
 	public boolean isCompatible(DLNAResource resource) {
 		if (
 			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
-			PlayerUtil.isVideo(resource, Format.Identifier.MPG)
+			PlayerUtil.isVideo(resource, Format.Identifier.MPG) ||
+			"m3u8".equals(resource.getFormat().getMatchedExtension())
 		) {
 			return true;
 		}
