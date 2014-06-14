@@ -188,10 +188,12 @@ public class FileUtil {
 	 * @return The prettified filename
 	 */
 	public static String getFileNameWithRewriting(String f) {
+		String fileNameWithoutExtension;
 		String formattedName;
 
 		// Remove file extension
-		formattedName = getFileNameWithoutExtension(f);
+		fileNameWithoutExtension = getFileNameWithoutExtension(f);
+		formattedName = fileNameWithoutExtension;
 
 		String commonFileEnds = "[\\s\\.]AC3.*|[\\s\\.]REPACK.*|[\\s\\.]480p.*|[\\s\\.]720p.*|[\\s\\.]m-720p.*|[\\s\\.]900p.*|[\\s\\.]1080p.*|[\\s\\.]HDTV.*|[\\s\\.]DSR.*|[\\s\\.]PDTV.*|[\\s\\.]WS.*|[\\s\\.]HQ.*|[\\s\\.]DVDRip.*|[\\s\\.]TVRiP.*|[\\s\\.]BDRip.*|[\\s\\.]WEBRip.*|[\\s\\.]BluRay.*|[\\s\\.]Blu-ray.*|[\\s\\.]SUBBED.*|[\\s\\.]x264.*|[\\s\\.]Dual[\\s\\.]Audio.*|[\\s\\.]HSBS.*|[\\s\\.]H-SBS.*|[\\s\\.]RERiP.*|[\\s\\.]DIRFIX.*|[\\s\\.]READNFO.*";
 		String commonFileEndsMatch = ".*[\\s\\.]AC3.*|.*[\\s\\.]REPACK.*|.*[\\s\\.]480p.*|.*[\\s\\.]720p.*|.*[\\s\\.]m-720p.*|.*[\\s\\.]900p.*|.*[\\s\\.]1080p.*|.*[\\s\\.]HDTV.*|.*[\\s\\.]DSR.*|.*[\\s\\.]PDTV.*|.*[\\s\\.]WS.*|.*[\\s\\.]HQ.*|.*[\\s\\.]DVDRip.*|.*[\\s\\.]TVRiP.*|.*[\\s\\.]BDRip.*|.*[\\s\\.]WEBRip.*|.*[\\s\\.]BluRay.*|.*[\\s\\.]Blu-ray.*|.*[\\s\\.]SUBBED.*|.*[\\s\\.]x264.*|.*[\\s\\.]Dual[\\s\\.]Audio.*|.*[\\s\\.]HSBS.*|.*[\\s\\.]H-SBS.*|.*[\\s\\.]RERiP.*|.*[\\s\\.]DIRFIX.*|.*[\\s\\.]READNFO.*";
@@ -335,15 +337,19 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\[720p.*|\\[1080p.*|\\[480p.*|\\s\\(BD.*|\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*", "");
 
 			// Remove group name from the beginning of the filename
-			if (formattedName.substring(0, 1).matches("\\[")) {
-				int closingBracketIndex = formattedName.indexOf(']');
-				if (closingBracketIndex != -1) {
-					formattedName = formattedName.substring(closingBracketIndex + 1);
-				}
+			if (!"".equals(formattedName)) {
+				if (formattedName.substring(0, 1).matches("\\[")) {
+					int closingBracketIndex = formattedName.indexOf(']');
+					if (closingBracketIndex != -1) {
+						formattedName = formattedName.substring(closingBracketIndex + 1);
+					}
 
-				if (formattedName.substring(0, 1).matches("\\s")) {
-					formattedName = formattedName.substring(1);
+					if (formattedName.substring(0, 1).matches("\\s")) {
+						formattedName = formattedName.substring(1);
+					}
 				}
+			} else {
+				formattedName = fileNameWithoutExtension;
 			}
 		} else if (formattedName.matches(".*\\[BD\\].*|.*\\[720p\\].*|.*\\[1080p\\].*|.*\\[480p\\].*|.*\\[Blu-Ray.*|.*\\[h264.*")) {
 			// This matches anime without a hash in the name
@@ -355,15 +361,19 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("(?i)\\[BD\\].*|\\[720p.*|\\[1080p.*|\\[480p.*|\\[Blu-Ray.*\\[h264.*", "");
 
 			// Remove group name from the beginning of the filename
-			if (formattedName.substring(0, 1).matches("\\[")) {
-				int closingBracketIndex = formattedName.indexOf(']');
-				if (closingBracketIndex != -1) {
-					formattedName = formattedName.substring(closingBracketIndex + 1);
-				}
+			if (!"".equals(formattedName)) {
+				if (formattedName.substring(0, 1).matches("\\[")) {
+					int closingBracketIndex = formattedName.indexOf(']');
+					if (closingBracketIndex != -1) {
+						formattedName = formattedName.substring(closingBracketIndex + 1);
+					}
 
-				if (formattedName.substring(0, 1).matches("\\s")) {
-					formattedName = formattedName.substring(1);
+					if (formattedName.substring(0, 1).matches("\\s")) {
+						formattedName = formattedName.substring(1);
+					}
 				}
+			} else {
+				formattedName = fileNameWithoutExtension;
 			}
 		}
 
