@@ -1,16 +1,5 @@
 package net.pms.util;
 
-import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
-import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAMediaSubtitle;
-import net.pms.formats.FormatFactory;
-import net.pms.formats.v2.SubtitleType;
-import org.apache.commons.io.FilenameUtils;
-import org.mozilla.universalchardet.UniversalDetector;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -18,12 +7,21 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
+import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
+import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaSubtitle;
+import net.pms.formats.FormatFactory;
+import net.pms.formats.v2.SubtitleType;
+import org.apache.commons.io.FilenameUtils;
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.endsWithIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 import static org.mozilla.universalchardet.Constants.*;
+import org.mozilla.universalchardet.UniversalDetector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FileUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileUtil.class);
@@ -885,30 +883,50 @@ public class FileUtil {
 
 	public static boolean isFileRelevant(File f, PmsConfiguration configuration) {
 		String fileName = f.getName().toLowerCase();
-		return (configuration.isArchiveBrowsing() && (fileName.endsWith(".zip") || fileName.endsWith(".cbz")
-			|| fileName.endsWith(".rar") || fileName.endsWith(".cbr")))
-			|| fileName.endsWith(".iso") || fileName.endsWith(".img")
-			|| fileName.endsWith(".m3u") || fileName.endsWith(".m3u8") || fileName.endsWith(".pls") || fileName.endsWith(".cue");
+		if (
+			(
+				configuration.isArchiveBrowsing() &&
+				(
+					fileName.endsWith(".zip") ||
+					fileName.endsWith(".cbz") ||
+					fileName.endsWith(".rar") ||
+					fileName.endsWith(".cbr")
+				)
+			) ||
+			fileName.endsWith(".iso") ||
+			fileName.endsWith(".img") ||
+			fileName.endsWith(".m3u") ||
+			fileName.endsWith(".m3u8") ||
+			fileName.endsWith(".pls") ||
+			fileName.endsWith(".cue")
+		) {
+			return true;
+		}
+
+		return false;
 	}
 
-    public static boolean isFolderRelevant(File f, PmsConfiguration configuration) {
-        return isFolderRelevant(f, configuration, Collections.<String>emptySet());
-    }
+	public static boolean isFolderRelevant(File f, PmsConfiguration configuration) {
+		return isFolderRelevant(f, configuration, Collections.<String>emptySet());
+	}
 
 	public static boolean isFolderRelevant(File f, PmsConfiguration configuration, Set<String> ignoreFiles) {
 		if (f.isDirectory() && configuration.isHideEmptyFolders()) {
 			File[] children = f.listFiles();
 
-			// listFiles() returns null if "this abstract pathname does not denote a directory, or if an I/O error occurs".
-			// in this case (since we've already confirmed that it's a directory), this seems to mean the directory is non-readable
-			// http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=15135
-			// http://stackoverflow.com/questions/3228147/retrieving-the-underlying-error-when-file-listfiles-return-null
+			/**
+			 * listFiles() returns null if "this abstract pathname does not denote a directory, or if an I/O error occurs".
+			 * in this case (since we've already confirmed that it's a directory), this seems to mean the directory is non-readable
+			 * http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=15135
+			 * http://stackoverflow.com/questions/3228147/retrieving-the-underlying-error-when-file-listfiles-return-null
+			 */
 			if (children == null) {
 				LOGGER.warn("Can't list files in non-readable directory: {}", f.getAbsolutePath());
 			} else {
 				for (File child : children) {
-                    if(ignoreFiles.contains(child.getAbsolutePath()))
-                        continue;
+					if (ignoreFiles.contains(child.getAbsolutePath())) {
+						continue;
+					}
 
 					if (child.isFile()) {
 						if (FormatFactory.getAssociatedFormat(child.getName()) != null || isFileRelevant(child, configuration)) {
@@ -916,7 +934,7 @@ public class FileUtil {
 						}
 					} else {
 						if (isFolderRelevant(child, configuration, ignoreFiles)) {
-                            return true;
+							return true;
 						}
 					}
 				}
