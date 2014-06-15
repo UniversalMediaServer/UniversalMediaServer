@@ -26,6 +26,8 @@
 			Fixes bugs
 		Updated Maven FindBugs Plugin to 2.5.4
 		Updated Maven Git Commit ID Plugin to 2.1.9
+		Updated MPlayer/MEncoder for Windows to SB55, which:
+			Fixes DTS-ES to AC-3 transcoding
 		Updated Netty to 3.9.1, which:
 			Fixes bugs
 		Updated slf4j to 1.7.7
