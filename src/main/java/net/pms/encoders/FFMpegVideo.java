@@ -1443,4 +1443,8 @@ public class FFMpegVideo extends Player {
 			}
 		}
 	}
+
+	public static void deleteSubs() {
+		FileUtils.deleteQuietly(new File(configuration.getDataFile(SUB_DIR)));
+	}
 }
