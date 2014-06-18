@@ -1127,7 +1127,7 @@ public class FFMpegVideo extends Player {
 			subsPath.mkdirs();
 		}
 
-		boolean applyFontConfig = configuration.isFFmpegFontConfig() && params.sid.getType() != SubtitleType.ASS;
+		boolean applyFontConfig = configuration.isFFmpegFontConfig();
 		boolean isEmbeddedSource = params.sid.getId() < 100;
 
 		String filename = isEmbeddedSource ?
