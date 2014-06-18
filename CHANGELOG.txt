@@ -2,6 +2,15 @@
 
 	General:
 		Fixed a bug with filename prettifying
+		Fixed a bug with FFmpeg subtitles
+	External Components:
+		Updated MPlayer/MEncoder for Windows to SB58, which:
+			Improves H.265 support
+			Improves buffer allocation
+			Makes seeking more accurate
+			Improves support for many containers and codecs
+			Improves speed
+			Fixes bugs
 
 3.6.3 - 2014-06-13 - Changes since 3.6.2
 
