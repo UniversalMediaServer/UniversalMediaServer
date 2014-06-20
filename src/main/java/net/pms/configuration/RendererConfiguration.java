@@ -2,6 +2,7 @@ package net.pms.configuration;
 
 import com.sun.jna.Platform;
 import java.io.File;
+import java.io.Reader;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -463,6 +464,21 @@ public class RendererConfiguration {
 
 	public RendererConfiguration(File f) throws ConfigurationException {
 		configuration = new PropertiesConfiguration();
+
+		// Treat backslashes in the conf as literal while also supporting double-backslash syntax, i.e.
+		// ensure that typical raw regex strings (and unescaped Windows file paths) are read correctly.
+		configuration.setIOFactory(new PropertiesConfiguration.DefaultIOFactory() {
+			@Override
+			public PropertiesConfiguration.PropertiesReader createPropertiesReader(final Reader in, final char delimiter) {
+				return new PropertiesConfiguration.PropertiesReader(in, delimiter) {
+					@Override
+					protected void parseProperty(final String line) {
+						// Unescape any double-backslashes, then escape all backslashes before parsing
+						super.parseProperty(line.replace("\\\\", "\\").replace("\\", "\\\\"));
+					}
+				};
+			}
+		});
 
 		// false: don't log overrides (every renderer conf
 		// overrides multiple settings)
