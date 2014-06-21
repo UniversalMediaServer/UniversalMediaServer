@@ -4,6 +4,7 @@ import com.sun.jna.Platform;
 import java.io.File;
 import java.io.Reader;
 import java.net.InetAddress;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -152,13 +153,14 @@ public class RendererConfiguration {
 			File[] confs = renderersDir.listFiles();
 			Arrays.sort(confs);
 			int rank = 1;
+			List<String> ignoredRenderers = pmsConfiguration.getIgnoredRenderers();
 			for (File f : confs) {
 				if (f.getName().endsWith(".conf")) {
 					try {
 						RendererConfiguration r = new RendererConfiguration(f);
 						r.rank = rank++;
 						String rendererName = r.getRendererName();
-						if (!pmsConfiguration.getIgnoredRenderers().contains(rendererName)) {
+						if (!ignoredRenderers.contains(rendererName)) {
 							enabledRendererConfs.add(r);
 							LOGGER.info("Loaded configuration for renderer: " + rendererName);
 						} else {
