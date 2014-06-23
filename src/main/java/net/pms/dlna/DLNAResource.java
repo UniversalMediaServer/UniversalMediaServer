@@ -657,7 +657,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								isIncompatible = true;
 								LOGGER.trace("File \"{}\" will not be streamed because the audio will use the encoded audio passthrough feature", child.getName());
 							} else if (
-								getDefaultRenderer().isKeepAspectRatio() &&
+								defaultRenderer != null &&
+								defaultRenderer.isKeepAspectRatio() &&
 								!"16:9".equals(child.getMedia().getAspectRatioContainer())
 							) {
 								isIncompatible = true;
