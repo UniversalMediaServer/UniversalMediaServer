@@ -1314,7 +1314,7 @@ public class FFMpegVideo extends Player {
 			String line;
 			String[] format = null;
 			int i;
-			boolean playResIsSet = false; // do not apply font size change when video resolution is set in the original ASS subs
+			boolean playResIsSet = false; // do not apply font size change when video resolution is set
 			while ((line = input.readLine()) != null) {
 				outputString.setLength(0);
 				if (line.contains("[Script Info]")) {
@@ -1333,7 +1333,6 @@ public class FFMpegVideo extends Player {
 								outputString.append("PlayResY: ").append(media.getHeight()).append("\n");
 								outputString.append("PlayResX: ").append(media.getWidth()).append("\n");
 							}
-
 							break;
 						}
 					}
@@ -1455,5 +1454,9 @@ public class FFMpegVideo extends Player {
 				pw.setStderrConsumer(ffParser);
 			}
 		}
+	}
+
+	public static void deleteSubs() {
+		FileUtils.deleteQuietly(new File(configuration.getDataFile(SUB_DIR)));
 	}
 }

@@ -763,7 +763,7 @@ public class RootFolder extends DLNAResource {
 	 * This method does not support genius playlists and does not provide a
 	 * media library.
 	 *
-	 * @see RootFolder#getiTunesFile(boolean)
+	 * @see RootFolder#getiTunesFile()
 	 */
 	private DLNAResource getiTunesFolder() {
 		DLNAResource res = null;
