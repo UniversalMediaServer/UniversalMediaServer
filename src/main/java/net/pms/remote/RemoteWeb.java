@@ -362,4 +362,9 @@ public class RemoteWeb {
 			}
 		}
 	}
+
+	public String getUrl() {
+		return (server instanceof HttpsServer ? "https://" : "http://") +
+			PMS.get().getServer().getHost() + ":" + server.getAddress().getPort();
+	}
 }
