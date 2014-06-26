@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -992,6 +993,13 @@ public class RendererConfiguration {
 	 */
 	// TODO this should return an integer and the units should be bits-per-second
 	public String getMaxVideoBitrate() {
+		if (PMS.getConfiguration().useAdaptiveBitrate()) {
+			try {
+				return calculatedSpeed();
+			} catch (Exception e) {
+				// ignore this
+			}
+		}
 		return getString(MAX_VIDEO_BITRATE, null);
 	}
 
@@ -1335,5 +1343,15 @@ public class RendererConfiguration {
 
 	public boolean ignoreTranscodeByteRangeRequests() {
 		return getBoolean(IGNORE_TRANSCODE_BYTE_RANGE_REQUEST, false);
+	}
+
+	private String calculatedSpeed() throws Exception {
+		for (InetAddress sa : addressAssociation.keySet()) {
+			if (addressAssociation.get(sa) == this) {
+				Future<Integer> speed = SpeedStats.getInstance().getSpeedInMBits(sa, getRendererName());
+				return String.valueOf(speed.get());
+			}
+		}
+		return null;
 	}
 }

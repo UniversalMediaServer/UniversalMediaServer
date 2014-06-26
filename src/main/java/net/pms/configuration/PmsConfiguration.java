@@ -69,6 +69,7 @@ public class PmsConfiguration {
 	// TODO: Get this out of here
 	private static boolean avsHackLogged = false;
 
+	private static final String KEY_ADAPTIVE_RATE = "adaptive_rate";
 	private static final String KEY_ALTERNATE_SUBTITLES_FOLDER = "alternate_subtitles_folder";
 	private static final String KEY_ALTERNATE_THUMB_FOLDER = "alternate_thumb_folder";
 	private static final String KEY_APPEND_PROFILE_NAME = "append_profile_name";
@@ -990,8 +991,8 @@ public class PmsConfiguration {
 	 */
 	public String getAudioLanguages() {
 		return configurationReader.getPossiblyBlankConfigurationString(
-			KEY_AUDIO_LANGUAGES,
-			Messages.getString("MEncoderVideo.126")
+				KEY_AUDIO_LANGUAGES,
+				Messages.getString("MEncoderVideo.126")
 		);
 	}
 
@@ -1045,8 +1046,8 @@ public class PmsConfiguration {
 	 */
 	public String getAudioSubLanguages() {
 		return configurationReader.getPossiblyBlankConfigurationString(
-			KEY_AUDIO_SUB_LANGS,
-			Messages.getString("MEncoderVideo.128")
+				KEY_AUDIO_SUB_LANGS,
+				Messages.getString("MEncoderVideo.128")
 		);
 	}
 
@@ -3004,6 +3005,13 @@ public class PmsConfiguration {
 	}
 
 	public boolean isWebMp4Trans() {
-		return getBoolean(KEY_WEB_MP4_TRANS, false);
+		return getBoolean(KEY_WEB_MP4_TRANS, false);	}
+	
+	public boolean useAdaptiveBitrate() {
+		return getBoolean(KEY_ADAPTIVE_RATE, false);
+	}
+
+	public void setAdaptiveBitrate(boolean b) {
+		configuration.setProperty(KEY_ADAPTIVE_RATE, b);
 	}
 }

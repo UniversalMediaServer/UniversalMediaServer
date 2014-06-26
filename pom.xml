@@ -37,7 +37,7 @@
 
 	<!-- this is not required, but is recommended for plugin version checks -->
 	<prerequisites>
-		<maven>3.2.1</maven>
+		<maven>2.2.1</maven>
 	</prerequisites>
 
 	<organization>
@@ -106,7 +106,7 @@
 		<pluginRepository>
 			<id>ossrh</id>
 			<name>Sonatype OSS Repository</name>
-			<url>http://oss.sonatype.org/content/groups/public</url>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
 			<layout>default</layout>
 		</pluginRepository>
 	</pluginRepositories>
