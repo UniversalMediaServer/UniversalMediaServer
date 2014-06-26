@@ -801,18 +801,17 @@
 							<version>2.6</version>
 						</plugin>
 
-						<!-- PMD and CPD code analysis report is not working with the latest maven site version
 						<plugin>
 							<groupId>org.apache.maven.plugins</groupId>
 							<artifactId>maven-pmd-plugin</artifactId>
-							<version>3.0.1</version>
+							<version>3.1</version>
 							<configuration>
 								<linkXref>false</linkXref>
 								<sourceEncoding>utf-8</sourceEncoding>
 								<minimumTokens>100</minimumTokens>
 								<targetJdk>1.7</targetJdk>
 							</configuration>
-						</plugin>-->
+						</plugin>
 
 						<!-- L10n internationalization report is not working with the latest maven site version
 						<plugin>

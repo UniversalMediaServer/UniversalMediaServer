@@ -162,7 +162,7 @@ public class BasicSystemUtils implements SystemUtils {
 			webInterfaceItem.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					browseURI("http://" + PMS.get().getServer().getHost() + ":9001");
+					browseURI(PMS.get().getWebInterface().getUrl());
 				}
 			});
 

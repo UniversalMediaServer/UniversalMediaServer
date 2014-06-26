@@ -1408,6 +1408,10 @@ public class PMS {
 
 	private RemoteWeb web;
 
+	public RemoteWeb getWebInterface() {
+		return web;
+	}
+
 	/**
 	 * Sets the relative URL of a context sensitive help page located in the
 	 * documentation directory.
