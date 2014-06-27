@@ -21,7 +21,7 @@ public class SelectRenderers extends JPanel implements ActionListener {
 	private JButton selectAll = new JButton(Messages.getString("GeneralTab.7"));
 	private JButton deselectAll = new JButton(Messages.getString("GeneralTab.8"));
 	private static ArrayList<String> allRenderersNames = RendererConfiguration.getAllRenderersNames();
-	private static String ignoredRenderers = configuration.getIgnoredRenderers();
+	private static List<String> ignoredRenderers = configuration.getIgnoredRenderers();
 	private static final Logger LOGGER = LoggerFactory.getLogger(SelectRenderers.class);
 
 	public SelectRenderers() {

@@ -37,6 +37,7 @@ import javax.swing.tree.TreeSelectionModel;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
 import net.pms.util.FormLayoutUtil;
@@ -975,6 +976,7 @@ public class TranscodingTab {
 				if (newColor != null) {
 					subColor.setBackground(newColor);
 					configuration.setSubsColor(newColor.getRGB());
+					FFMpegVideo.deleteSubs(); // Color has been changed so all FFmpeg temporary subs will be deleted and make new
 				}
 			}
 		});

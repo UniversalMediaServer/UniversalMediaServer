@@ -1401,10 +1401,10 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * @return The comma-separated list of ignored renderers.
+	 * @return The ignored renderers as a list.
 	 */
-	public String getIgnoredRenderers() {
-		return getString(KEY_IGNORED_RENDERERS, "");
+	public List<String> getIgnoredRenderers() {
+		return getStringList(KEY_IGNORED_RENDERERS, "");
 	}
 
 	/**
@@ -2704,17 +2704,17 @@ public class PmsConfiguration {
 			// Cred path is set but file isn't there
 			// Create empty file with some comments
 			FileOutputStream fos = new FileOutputStream(f);
-			StringBuilder sb = new StringBuilder();
-			sb.append("# Add credentials to the file");
-			sb.append("\n");
-			sb.append("# on the format tag=user,pwd");
-			sb.append("\n");
-			sb.append("# For example:");
-			sb.append("\n");
-			sb.append("# channels.xxx=name,secret");
-			sb.append("\n");
-			fos.write(sb.toString().getBytes());
-			fos.flush();
+				StringBuilder sb = new StringBuilder();
+				sb.append("# Add credentials to the file");
+				sb.append("\n");
+				sb.append("# on the format tag=user,pwd");
+				sb.append("\n");
+				sb.append("# For example:");
+				sb.append("\n");
+				sb.append("# channels.xxx=name,secret");
+				sb.append("\n");
+				fos.write(sb.toString().getBytes());
+				fos.flush();
 			fos.close();
 		}
 	}

@@ -1,3 +1,21 @@
+3.6.4 - 2014-06-??
+
+	General:
+		Fixed a bug with filename prettifying
+		Fixed a bug with FFmpeg subtitles
+		Fixed a bug with adding files
+		Fixed ignored renderers
+	Renderers:
+		Improved support for Samsung devices
+	External Components:
+		Updated MPlayer/MEncoder for Windows to SB58, which:
+			Improves H.265 support
+			Improves buffer allocation
+			Makes seeking more accurate
+			Improves support for many containers and codecs
+			Improves speed
+			Fixes bugs
+
 3.6.3 - 2014-06-13 - Changes since 3.6.2
 
 	General:
@@ -26,6 +44,8 @@
 			Fixes bugs
 		Updated Maven FindBugs Plugin to 2.5.4
 		Updated Maven Git Commit ID Plugin to 2.1.9
+		Updated MPlayer/MEncoder for Windows to SB55, which:
+			Fixes DTS-ES to AC-3 transcoding
 		Updated Netty to 3.9.1, which:
 			Fixes bugs
 		Updated slf4j to 1.7.7
@@ -1589,10 +1609,10 @@
 	Added option to select and force the default renderer
 
 
-â†‘ ========================================================== â†‘
-â†‘      Universal Media Server changelog above this line      â†‘
-â†“ PS3 Media Server (SubJunk Build) changelog below this line â†“
-â†“ ========================================================== â†“
+Ã¢â€ â€˜ ========================================================== Ã¢â€ â€˜
+Ã¢â€ â€˜      Universal Media Server changelog above this line      Ã¢â€ â€˜
+Ã¢â€ â€œ PS3 Media Server (SubJunk Build) changelog below this line Ã¢â€ â€œ
+Ã¢â€ â€œ ========================================================== Ã¢â€ â€œ
 
 
 1.52.2-SB71:
