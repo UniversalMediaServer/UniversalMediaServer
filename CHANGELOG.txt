@@ -3,6 +3,10 @@
 	General:
 		Fixed a bug with filename prettifying
 		Fixed a bug with FFmpeg subtitles
+		Fixed a bug with adding files
+		Fixed ignored renderers
+	Renderers:
+		Improved support for Samsung devices
 	External Components:
 		Updated MPlayer/MEncoder for Windows to SB58, which:
 			Improves H.265 support
