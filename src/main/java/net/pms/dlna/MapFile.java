@@ -201,6 +201,9 @@ public class MapFile extends DLNAResource {
 
 	private void sort(List<File> files) {
 		switch (configuration.getSortMethod()) {
+			case 5: // Random
+				Collections.shuffle(files, new Random(System.currentTimeMillis()));
+				break;
 			case 4: // Locale-sensitive natural sort
 				Collections.sort(files, new Comparator<File>() {
 					@Override
