@@ -1,7 +1,7 @@
 3.6.5 - 2014-07-??
 
 	General:
-		
+		Added "Random" file sorting option
 
 3.6.4 - 2014-06-27
 
