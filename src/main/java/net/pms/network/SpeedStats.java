@@ -121,12 +121,30 @@ public class SpeedStats {
 				LOGGER.info("Renderer " + rendererName + " found on this address: " + ip);
 			}
 
+			int[] sizes = {1476, 9100,16000, 32000, 64000};
+			double bps = 0;
+
+			for(int i=0; i < sizes.length; i++) {
+				bps += doPing(sizes[i]);
+			}
+			int speedInMbits = (int)(bps  / (sizes.length * 1000000));
+			LOGGER.info("Address " + addr + " has an estimated network speed of: " + speedInMbits + " Mb/s");
+			synchronized(speedStats) {
+				CompletedFuture<Integer> result = new CompletedFuture<>(speedInMbits);
+				// update the statistics with a computed future value
+				speedStats.put(ip, result);
+				speedStats.put(hostname, result);
+			}
+			return speedInMbits;
+		}
+
+		private double doPing(int size) {
 			// let's get that speed
 			OutputParams op = new OutputParams(null);
 			op.log = true;
 			op.maxBufferSize = 1;
 			SystemUtils sysUtil = PMS.get().getRegistry();
-			final ProcessWrapperImpl pw = new ProcessWrapperImpl(sysUtil.getPingCommand(addr.getHostAddress(), 3, 64000), op, true, false);
+			final ProcessWrapperImpl pw = new ProcessWrapperImpl(sysUtil.getPingCommand(addr.getHostAddress(), 3, size), op, true, false);
 			Runnable r = new Runnable() {
 				@Override
 				public void run() {
@@ -167,22 +185,13 @@ public class SpeedStats {
 
 			if (c > 0) {
 				time /= c;
+				LOGGER.debug("est speed for " + size + " is "+((size + 40) * 8000)  / time);
+				return ((size + 40) * 8000)  / time ;
 			}
-
-			if (time > 0) {
-				int speedInMbits = (int)(512 / time);
-				LOGGER.info("Address " + addr + " has an estimated network speed of: " + speedInMbits + " Mb/s");
-				synchronized(speedStats) {
-					CompletedFuture<Integer> result = new CompletedFuture<>(speedInMbits);
-					// update the statistics with a computed future value
-					speedStats.put(ip, result);
-					speedStats.put(hostname, result);
-				}
-				return speedInMbits;
-			}
-			return -1;
+			return time;
 		}
 	}
+
 
 	static class CompletedFuture<X> implements Future<X> {
 		X value;

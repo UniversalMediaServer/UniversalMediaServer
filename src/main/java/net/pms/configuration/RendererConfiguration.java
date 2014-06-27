@@ -1346,12 +1346,23 @@ public class RendererConfiguration {
 	}
 
 	private String calculatedSpeed() throws Exception {
+		String max = getString(MAX_VIDEO_BITRATE, null);
 		for (InetAddress sa : addressAssociation.keySet()) {
 			if (addressAssociation.get(sa) == this) {
 				Future<Integer> speed = SpeedStats.getInstance().getSpeedInMBits(sa, getRendererName());
-				return String.valueOf(speed.get());
+				if (max == null)
+					return String.valueOf(speed.get());
+				try {
+					Integer i = Integer.parseInt(max);
+					if (speed.get() > i && i != 0)
+						return max;
+					else
+						return String.valueOf(speed.get());
+				} catch (NumberFormatException e) {
+					return String.valueOf(speed.get());
+				}
 			}
 		}
-		return getString(MAX_VIDEO_BITRATE, null);
+		return max;
 	}
 }
