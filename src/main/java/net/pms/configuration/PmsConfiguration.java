@@ -69,10 +69,10 @@ public class PmsConfiguration {
 	// TODO: Get this out of here
 	private static boolean avsHackLogged = false;
 
-	private static final String KEY_ADAPTIVE_RATE = "adaptive_rate";
 	private static final String KEY_ALTERNATE_SUBTITLES_FOLDER = "alternate_subtitles_folder";
 	private static final String KEY_ALTERNATE_THUMB_FOLDER = "alternate_thumb_folder";
 	private static final String KEY_APPEND_PROFILE_NAME = "append_profile_name";
+	private static final String KEY_AUTOMATIC_MAXIMUM_BITRATE = "automatic_maximum_bitrate";
 	private static final String KEY_SHOW_APERTURE_LIBRARY = "show_aperture_library";
 	private static final String KEY_ATZ_LIMIT = "atz_limit";
 	private static final String KEY_AUDIO_BITRATE = "audio_bitrate";
@@ -3008,11 +3008,11 @@ public class PmsConfiguration {
 		return getBoolean(KEY_WEB_MP4_TRANS, false);
 	}
 
-	public boolean useAdaptiveBitrate() {
-		return getBoolean(KEY_ADAPTIVE_RATE, false);
+	public boolean isAutomaticMaximumBitrate() {
+		return getBoolean(KEY_AUTOMATIC_MAXIMUM_BITRATE, false);
 	}
 
-	public void setAdaptiveBitrate(boolean b) {
-		configuration.setProperty(KEY_ADAPTIVE_RATE, b);
+	public void setAutomaticMaximumBitrate(boolean b) {
+		configuration.setProperty(KEY_AUTOMATIC_MAXIMUM_BITRATE, b);
 	}
 }

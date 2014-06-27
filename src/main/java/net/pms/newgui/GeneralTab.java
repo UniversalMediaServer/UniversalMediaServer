@@ -440,19 +440,19 @@ public class GeneralTab {
 					configuration.setMaximumBitrate(maxbitrate.getText());
 				}
 			});
-			if (configuration.useAdaptiveBitrate()) {
+			if (configuration.isAutomaticMaximumBitrate()) {
 				maxbitrate.setEnabled(false);
 			} else {
 				maxbitrate.setEnabled(true);
 			}
 
-			adaptBitrate = new JCheckBox(Messages.getString("GeneralTab.12"), configuration.useAdaptiveBitrate());
+			adaptBitrate = new JCheckBox(Messages.getString("GeneralTab.12"), configuration.isAutomaticMaximumBitrate());
 			adaptBitrate.setContentAreaFilled(false);
 			adaptBitrate.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					configuration.setAdaptiveBitrate(adaptBitrate.isSelected());
-					maxbitrate.setEnabled(configuration.useAdaptiveBitrate());
+					configuration.setAutomaticMaximumBitrate(adaptBitrate.isSelected());
+					maxbitrate.setEnabled(configuration.isAutomaticMaximumBitrate());
 				}
 			});
 

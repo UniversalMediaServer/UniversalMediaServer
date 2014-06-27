@@ -993,7 +993,7 @@ public class RendererConfiguration {
 	 */
 	// TODO this should return an integer and the units should be bits-per-second
 	public String getMaxVideoBitrate() {
-		if (PMS.getConfiguration().useAdaptiveBitrate()) {
+		if (PMS.getConfiguration().isAutomaticMaximumBitrate()) {
 			try {
 				return calculatedSpeed();
 			} catch (Exception e) {
