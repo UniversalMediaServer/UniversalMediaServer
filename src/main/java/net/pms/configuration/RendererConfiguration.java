@@ -327,7 +327,16 @@ public class RendererConfiguration {
 	 */
 	public void associateIP(InetAddress sa) {
 		addressAssociation.put(sa, this);
-		SpeedStats.getInstance().getSpeedInMBits(sa, getRendererName());
+		if (PMS.getConfiguration().isAutomaticMaximumBitrate()) {
+			SpeedStats.getInstance().getSpeedInMBits(sa, getRendererName());
+		}
+	}
+
+	public static void calculateAllSpeeds() {
+		for (InetAddress sa : addressAssociation.keySet()) {
+			RendererConfiguration r = addressAssociation.get(sa);
+			SpeedStats.getInstance().getSpeedInMBits(sa, r.getRendererName());
+		}
 	}
 
 	public static RendererConfiguration getRendererConfigurationBySocketAddress(InetAddress sa) {
@@ -1349,7 +1358,7 @@ public class RendererConfiguration {
 		String max = getString(MAX_VIDEO_BITRATE, null);
 		for (InetAddress sa : addressAssociation.keySet()) {
 			if (addressAssociation.get(sa) == this) {
-				Future<Integer> speed = SpeedStats.getInstance().getSpeedInMBits(sa, getRendererName());
+				Future<Integer> speed = SpeedStats.getInstance().getSpeedInMBitsStored(sa, getRendererName());
 				if (max == null)
 					return String.valueOf(speed.get());
 				try {

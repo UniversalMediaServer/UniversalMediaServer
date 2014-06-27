@@ -51,6 +51,14 @@ public class SpeedStats {
 
 	private final Map<String, Future<Integer>> speedStats = new HashMap<>();
 
+	public Future<Integer> getSpeedInMBitsStored(InetAddress addr, String rendererName) {
+		// only look in the store
+		// if no pings are done resort to conf values
+		synchronized(speedStats) {
+			return speedStats.get(addr.getHostAddress());
+		}
+	}
+
 	/**
 	 * Return the network throughput for the given IP address in MBits. It is calculated in the background, and cached,
 	 * so only a reference is given to the result, which can be retrieved by calling the get() method on it.
@@ -121,13 +129,18 @@ public class SpeedStats {
 				LOGGER.info("Renderer " + rendererName + " found on this address: " + ip);
 			}
 
-			int[] sizes = {1476, 9100,16000, 32000, 64000};
+			int[] sizes = {512, 1476, 9100, 32000, 64000};
 			double bps = 0;
+			int cnt = 0;
 
 			for(int i=0; i < sizes.length; i++) {
-				bps += doPing(sizes[i]);
+				double p = doPing(sizes[i]);
+				if (p != 0) {
+					bps += p;
+					cnt++;
+				}
 			}
-			int speedInMbits = (int)(bps  / (sizes.length * 1000000));
+			int speedInMbits = (int)(bps  / (cnt * 1000000));
 			LOGGER.info("Address " + addr + " has an estimated network speed of: " + speedInMbits + " Mb/s");
 			synchronized(speedStats) {
 				CompletedFuture<Integer> result = new CompletedFuture<>(speedInMbits);
@@ -149,7 +162,7 @@ public class SpeedStats {
 				@Override
 				public void run() {
 					try {
-						Thread.sleep(2000);
+						Thread.sleep(3000);
 					} catch (InterruptedException e) {
 					}
 					pw.stopProcess();
@@ -165,21 +178,16 @@ public class SpeedStats {
 			String timeString;
 
 			for (String line : ls) {
-				int msPos = line.indexOf("ms");
-
-				if (msPos > -1) {
-					if (line.lastIndexOf('<', msPos) > -1){
-						timeString = "0.5";
-					} else {
-						timeString = line.substring(line.lastIndexOf('=', msPos) + 1, msPos).trim();
-					}
-					try {
-						time += Double.parseDouble(timeString);
-						c++;
-					} catch (NumberFormatException e) {
-						// no big deal
-						LOGGER.debug("Could not estimate network speed from time: \"" + timeString + "\"");
-					}
+				timeString = sysUtil.parsePingLine(line);
+				if (timeString == null) {
+					continue;
+				}
+				try {
+					time += Double.parseDouble(timeString);
+					c++;
+				} catch (NumberFormatException e) {
+					// no big deal
+					LOGGER.debug("Could not estimate network speed from time: \"" + timeString + "\"");
 				}
 			}
 

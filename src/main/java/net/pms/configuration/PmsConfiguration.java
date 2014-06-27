@@ -185,6 +185,7 @@ public class PmsConfiguration {
 	private static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
 	private static final String KEY_LIVE_SUBTITLES_KEEP = "live_subtitles_keep";
 	private static final String KEY_OVERSCAN = "mencoder_overscan";
+	private static final String KEY_PING_PATH = "ping_path";
 	private static final String KEY_PLUGIN_DIRECTORY = "plugins";
 	private static final String KEY_PLUGIN_PURGE_ACTION = "plugin_purge";
 	private static final String KEY_PREVENTS_SLEEP = "prevents_sleep_mode";
@@ -3013,6 +3014,14 @@ public class PmsConfiguration {
 	}
 
 	public void setAutomaticMaximumBitrate(boolean b) {
+		if (!isAutomaticMaximumBitrate() && b) {
+			// get all bitrates from renders
+			RendererConfiguration.calculateAllSpeeds();
+		}
 		configuration.setProperty(KEY_AUTOMATIC_MAXIMUM_BITRATE, b);
+	}
+
+	public String pingPath() {
+		return getString(KEY_PING_PATH, null);
 	}
 }

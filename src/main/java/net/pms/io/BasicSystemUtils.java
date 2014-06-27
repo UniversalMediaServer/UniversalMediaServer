@@ -217,6 +217,20 @@ public class BasicSystemUtils implements SystemUtils {
 				"-s", Integer.toString(packetSize), hostAddress };
 	}
 
+	public String parsePingLine(String line) {
+		int msPos = line.indexOf("ms");
+		String timeString = null;
+
+		if (msPos > -1) {
+			if (line.lastIndexOf('<', msPos) > -1){
+				timeString = "0.5";
+			} else {
+				timeString = line.substring(line.lastIndexOf('=', msPos) + 1, msPos).trim();
+			}
+		}
+		return timeString;
+	}
+
 	/**
 	 * Return the proper tray icon for the operating system.
 	 *
