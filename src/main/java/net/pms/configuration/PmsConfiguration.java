@@ -991,8 +991,8 @@ public class PmsConfiguration {
 	 */
 	public String getAudioLanguages() {
 		return configurationReader.getPossiblyBlankConfigurationString(
-				KEY_AUDIO_LANGUAGES,
-				Messages.getString("MEncoderVideo.126")
+			KEY_AUDIO_LANGUAGES,
+			Messages.getString("MEncoderVideo.126")
 		);
 	}
 
@@ -1046,8 +1046,8 @@ public class PmsConfiguration {
 	 */
 	public String getAudioSubLanguages() {
 		return configurationReader.getPossiblyBlankConfigurationString(
-				KEY_AUDIO_SUB_LANGS,
-				Messages.getString("MEncoderVideo.128")
+			KEY_AUDIO_SUB_LANGS,
+			Messages.getString("MEncoderVideo.128")
 		);
 	}
 
@@ -3005,8 +3005,9 @@ public class PmsConfiguration {
 	}
 
 	public boolean isWebMp4Trans() {
-		return getBoolean(KEY_WEB_MP4_TRANS, false);	}
-	
+		return getBoolean(KEY_WEB_MP4_TRANS, false);
+	}
+
 	public boolean useAdaptiveBitrate() {
 		return getBoolean(KEY_ADAPTIVE_RATE, false);
 	}
