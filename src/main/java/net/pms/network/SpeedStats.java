@@ -194,8 +194,8 @@ public class SpeedStats {
 			if (c > 0) {
 				time /= c;
 				int frags = ((size + 8) / 1500) + 1;
-				LOGGER.debug("est speed for " + size + " "+frags +" is " + ((size + 8 + (frags * 32)) * 8000)  / time);
-				return ((size + 8 + (frags * 32)) * 8000)  / time ;
+				LOGGER.debug("est speed for " + size + " "+frags +" is " + ((size + 8 + (frags * 32)) * 8000 * 2)  / time);
+				return ((size + 8 + (frags * 32)) * 8000 * 2)  / time ;
 			}
 			return time;
 		}

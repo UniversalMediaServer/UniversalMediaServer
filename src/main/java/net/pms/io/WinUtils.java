@@ -329,7 +329,7 @@ public class WinUtils extends BasicSystemUtils implements SystemUtils {
 			return new String[] { "ping", /* count */ "-n" , Integer.toString(count), /* size */ "-l", Integer.toString(packetSize), hostAddress };
 		}
 		else {
-			return new String[] { cmd, /*warmup */ "-w", "0", /* count */ "-n" , Integer.toString(count), /* size */ "-l", Integer.toString(packetSize), hostAddress };
+			return new String[] { cmd, /*warmup */ "-w", "0", "-i", "0", /* count */ "-n" , Integer.toString(count), /* size */ "-l", Integer.toString(packetSize), hostAddress };
 		}
 
 	}
