@@ -62,8 +62,10 @@ $(function(){
 					imagesPerRow = 4;
 				} else if (totalWidth > 518) {
 					imagesPerRow = 3;
-				} else {
+				} else if (totalWidth > 320) {
 					imagesPerRow = 2;
+				} else {
+					imagesPerRow = 1;
 				}
 
 				if (imageList.length >= imagesPerRow) {
