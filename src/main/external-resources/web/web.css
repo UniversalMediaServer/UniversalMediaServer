@@ -31,17 +31,6 @@ body#ContentPage {
 	position:		relative;
 }
 
-#ContentPage #Menu {
-	background:		url('/files/menu-background-content.png');
-	background-repeat:	repeat-x;
-	height:			95px;
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100%;
-	z-index: 2;
-}
-
 #ContentPage #Menu #HomeButton {
 	background:		url('/files/menu-left-content.png');
 	width:			125px;
@@ -80,37 +69,6 @@ body#ContentPage {
 }
 
 /* Content */
-
-div#FoldersContainer {
-	position: fixed;
-	left: 0;
-	width: 200px;
-	height: 100%;
-	display: block;
-}
-
-div#FoldersContainer div {
-	height: 100%;
-	position: relative;
-}
-
-ul#Folders {
-	width: 200px;
-	background-color: #222;
-	overflow: auto;
-	display: block;
-	padding: 20px;
-	position: absolute;
-	top: 94px;
-	bottom: 0;
-	left: 0;
-	z-index: 1;
-}
-
-ul#Media {
-	margin: 0 0 0 240px;
-	padding: 115px 0 20px 20px;
-}
 
 ul#Media li {
 	margin-right: 20px;
@@ -176,4 +134,8 @@ ul#Media li a {
 
 #DownloadLink:hover {
 	background-position: 0 -48px;
+}
+
+div#FoldersContainer.noFolders {
+	display: none !important;
 }
