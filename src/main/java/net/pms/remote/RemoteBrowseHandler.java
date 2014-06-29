@@ -32,6 +32,8 @@ public class RemoteBrowseHandler implements HttpHandler {
 		StringBuilder foldersHtml = new StringBuilder();
 		StringBuilder mediaHtml   = new StringBuilder();
 
+		boolean showFolders = false;
+
 		sb.append("<!DOCTYPE html>").append(CRLF);
 			sb.append("<head>").append(CRLF);
 				sb.append("<meta charset=\"utf-8\">").append(CRLF);
@@ -65,6 +67,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 										foldersHtml.append("<span>").append(name).append("</span>");
 									foldersHtml.append("</a>").append(CRLF);
 								foldersHtml.append("</li>").append(CRLF);
+								showFolders = true;
 							}
 						} else {
 							// The resource is a media file
@@ -76,9 +79,13 @@ public class RemoteBrowseHandler implements HttpHandler {
 							mediaHtml.append("</li>").append(CRLF);
 						}
 					}
-					sb.append("<div id=\"FoldersContainer\"><div><ul id=\"Folders\">").append(foldersHtml).append("</ul></div></div>");
+					String noFoldersCSS = "";
+					if (!showFolders) {
+						noFoldersCSS = " class=\"noFolders\"";
+					}
+					sb.append("<div id=\"FoldersContainer\"").append(noFoldersCSS).append("><div><ul id=\"Folders\">").append(foldersHtml).append("</ul></div></div>");
 					if (mediaHtml.length() > 0) {
-						sb.append("<ul id=\"Media\">").append(mediaHtml).append("</ul>");
+						sb.append("<ul id=\"Media\"").append(noFoldersCSS).append(">").append(mediaHtml).append("</ul>");
 					}
 				sb.append("</div>");
 			sb.append("</body>");
