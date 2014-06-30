@@ -15,10 +15,12 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
+import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.Player;
 import net.pms.formats.v2.SubtitleUtils;
 import net.pms.io.OutputParams;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,6 +57,13 @@ public class RemotePlayHandler implements HttpHandler {
 		String mime = root.getDefaultRenderer().getMimeType(r.mimeType());
 		String mediaType = "";
 		String coverImage = "";
+		if(r instanceof VirtualVideoAction) {
+			// for VVA we just call the enable fun directly
+			// waste of resource to play dummy video
+			((VirtualVideoAction) r).enable();
+			// special page to return
+			return "<html><head><script>window.refresh=true;history.back()</script></head></html>";
+		}
 		if(r.getFormat().isImage()) {
 			flowplayer = false;
 			coverImage = "<img src=\"/raw/" + rawId + "\" alt=\"\"><br>";
