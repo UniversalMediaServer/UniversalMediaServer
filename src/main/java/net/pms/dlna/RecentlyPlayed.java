@@ -131,12 +131,17 @@ public class RecentlyPlayed extends VirtualFolder {
 	@Override
 	public void discoverChildren() {
 		for (DLNAResource r : list) {
+			// addchild might clear the masterparent
+			// so fetch it first and readd
+			ExternalListener master = r.getMasterParent();
 			addChild(r);
+			r.setMasterParent(master);
 			if (r.isResume()) {
 				// add this non resume after
 				DLNAResource clone = r.clone();
 				clone.setResume(null);
 				addChild(clone);
+				clone.setMasterParent(master);
 			}
 		}
 	}
