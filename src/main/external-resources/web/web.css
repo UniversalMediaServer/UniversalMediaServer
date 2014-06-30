@@ -116,8 +116,8 @@ ul#Media li {
 ul#Media li a .thumb {
 	max-width: 214px;
 	max-height: 180px;
-	width: 214px;
 	height: 120px;
+	/* Note: intentionally omitting width here so as to avoid distortion if the thumb is actually an icon. */
 }
 
 ul#Folders li span {
