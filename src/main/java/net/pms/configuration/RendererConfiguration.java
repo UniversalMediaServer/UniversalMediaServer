@@ -335,6 +335,10 @@ public class RendererConfiguration {
 	 */
 	public void associateIP(InetAddress sa) {
 		addressAssociation.put(sa, this);
+		if (sa.isLoopbackAddress() ||
+			sa.isAnyLocalAddress()) {
+			return;
+		}
 		if (PMS.getConfiguration().isAutomaticMaximumBitrate()) {
 			SpeedStats.getInstance().getSpeedInMBits(sa, getRendererName());
 		}
@@ -342,6 +346,10 @@ public class RendererConfiguration {
 
 	public static void calculateAllSpeeds() {
 		for (InetAddress sa : addressAssociation.keySet()) {
+			if (sa.isLoopbackAddress() ||
+				sa.isAnyLocalAddress()) {
+				continue;
+			}
 			RendererConfiguration r = addressAssociation.get(sa);
 			SpeedStats.getInstance().getSpeedInMBits(sa, r.getRendererName());
 		}
