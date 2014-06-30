@@ -54,6 +54,8 @@ public class RemotePlayHandler implements HttpHandler {
 		String rawId = id;
 
 		DLNAResource r = res.get(0);
+		// hack here to ensure we got a root folder to use for recently played etc.
+		root.getDefaultRenderer().setRootFolder(root);
 		String mime = root.getDefaultRenderer().getMimeType(r.mimeType());
 		String mediaType = "";
 		String coverImage = "";

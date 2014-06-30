@@ -321,6 +321,10 @@ public class RendererConfiguration {
 		}
 	}
 
+	public void setRootFolder(RootFolder r) {
+		rootFolder = r;
+	}
+
 	/**
 	 * Associate an IP address with this renderer. The association will
 	 * persist between requests, allowing the renderer to be recognized
