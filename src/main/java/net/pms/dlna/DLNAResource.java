@@ -656,6 +656,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							) {
 								isIncompatible = true;
 								LOGGER.trace("File \"{}\" will not be streamed because the audio will use the encoded audio passthrough feature", child.getName());
+							} else if (
+								defaultRenderer != null &&
+								defaultRenderer.isKeepAspectRatio() &&
+								!"16:9".equals(child.media.getAspectRatioContainer())
+							) {
+								isIncompatible = true;
+								LOGGER.trace("File \"{}\" will not be streamed because the renderer needs us to add borders so it displays the correct aspect ratio.", child.getName());
 							}
 
 							// Prefer transcoding over streaming if:
@@ -2560,18 +2567,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	protected void checkThumbnail(InputFile inputFile) {
 		if (media != null && !media.isThumbready() && configuration.isThumbnailGenerationEnabled()) {
-			Double seekPosition = ((Integer) configuration.getThumbnailSeekPos()).doubleValue();
+			Double seekPosition = (double) configuration.getThumbnailSeekPos();
 
 			if (isResume()) {
-				Double resumePosition = ((Long) resume.getTimeOffset()).doubleValue() / 1000;
+				Double resumePosition = (double) (resume.getTimeOffset() / 1000);
 
 				if (media.getDurationInSeconds() > 0 && resumePosition < media.getDurationInSeconds()) {
 					seekPosition = resumePosition;
 				}
 			}
 
-			media.generateThumbnail(inputFile, getFormat(), getType(), seekPosition);
-			media.setThumbready(true);
+			media.generateThumbnail(inputFile, getFormat(), getType(), seekPosition, isResume());
 
 			if (media.getThumb() != null && configuration.getUseCache() && inputFile.getFile() != null) {
 				PMS.get().getDatabase().updateThumbnail(inputFile.getFile().getAbsolutePath(), inputFile.getFile().lastModified(), getType(), media);

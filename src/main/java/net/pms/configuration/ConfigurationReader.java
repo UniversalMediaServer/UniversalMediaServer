@@ -184,25 +184,7 @@ class ConfigurationReader {
 	 * @return The list of value strings configured for the key.
 	 */
 	List<String> getStringList(String key, String def) {
-		List<String> value;
-		String stringValue = getString(key, def);
-
-		if (stringValue != null) {
-			String[] array = stringValue.split(",");
-			List<String> result = new ArrayList<>(array.length);
-
-			for (String s : array) {
-				if (s.trim().length() > 0) {
-					result.add(s.trim());
-				}
-			}
-			value = result;
-		} else {
-			value = Collections.emptyList();
-		}
-
-		log(key, stringValue, def);
-		return value;
+		return Arrays.asList(getString(key, def != null ? def : "").split("\\s*,\\s*"));
 	}
 
 	/**

@@ -1,0 +1,19 @@
+ul#Folders {
+	background-color: #222;
+	overflow: auto;
+	display: block;
+	padding: 20px;
+	z-index: 1;
+}
+
+ul#Media {
+	padding: 20px 0 20px 20px;
+}
+
+#ContentPage #Menu {
+	background: url('/files/menu-background-content.png');
+	background-repeat: repeat-x;
+	height: 95px;
+	width: 100%;
+	z-index: 2;
+}

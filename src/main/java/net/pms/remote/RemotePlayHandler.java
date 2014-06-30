@@ -15,10 +15,12 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
+import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.Player;
 import net.pms.formats.v2.SubtitleUtils;
 import net.pms.io.OutputParams;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,9 +54,18 @@ public class RemotePlayHandler implements HttpHandler {
 		String rawId = id;
 
 		DLNAResource r = res.get(0);
+		// hack here to ensure we got a root folder to use for recently played etc.
+		root.getDefaultRenderer().setRootFolder(root);
 		String mime = root.getDefaultRenderer().getMimeType(r.mimeType());
 		String mediaType = "";
 		String coverImage = "";
+		if(r instanceof VirtualVideoAction) {
+			// for VVA we just call the enable fun directly
+			// waste of resource to play dummy video
+			((VirtualVideoAction) r).enable();
+			// special page to return
+			return "<html><head><script>window.refresh=true;history.back()</script></head></html>";
+		}
 		if(r.getFormat().isImage()) {
 			flowplayer = false;
 			coverImage = "<img src=\"/raw/" + rawId + "\" alt=\"\"><br>";
@@ -84,6 +95,8 @@ public class RemotePlayHandler implements HttpHandler {
 			sb.append("<head>").append(CRLF);
 				sb.append("<link rel=\"stylesheet\" href=\"/files/reset.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
 				sb.append("<link rel=\"stylesheet\" href=\"/files/web.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
+				sb.append("<link rel=\"stylesheet\" href=\"/files/web-narrow.css\" type=\"text/css\" media=\"screen and (max-width: 1080px)\">").append(CRLF);
+				sb.append("<link rel=\"stylesheet\" href=\"/files/web-wide.css\" type=\"text/css\" media=\"screen and (min-width: 1081px)\">").append(CRLF);
 				sb.append("<link rel=\"icon\" href=\"/files/favicon.ico\" type=\"image/x-icon\">").append(CRLF);
 				sb.append("<title>Universal Media Server</title>").append(CRLF);
 				if (flowplayer) {
