@@ -1407,10 +1407,10 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * @return The comma-separated list of ignored renderers.
+	 * @return The ignored renderers as a list.
 	 */
-	public String getIgnoredRenderers() {
-		return getString(KEY_IGNORED_RENDERERS, "");
+	public List<String> getIgnoredRenderers() {
+		return getStringList(KEY_IGNORED_RENDERERS, "");
 	}
 
 	/**
