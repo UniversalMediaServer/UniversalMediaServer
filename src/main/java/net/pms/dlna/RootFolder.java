@@ -124,7 +124,8 @@ public class RootFolder extends DLNAResource {
 			}
 		}
 
-		if (configuration.getFolderLimit()) {
+		if (configuration.getFolderLimit() &&
+			getDefaultRenderer().folderLimit()) {
 			lim = new FolderLimit();
 			addChild(lim);
 		}

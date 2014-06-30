@@ -83,4 +83,10 @@ public class WebRender extends RendererConfiguration {
 	public boolean isMediaParserV2ThumbnailGeneration() {
 		return false;
 	}
+
+	@Override
+	public boolean folderLimit() {
+		// no folder limit on the web clients
+		return false;
+	}
 }

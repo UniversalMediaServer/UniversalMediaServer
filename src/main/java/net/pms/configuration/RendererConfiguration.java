@@ -98,6 +98,7 @@ public class RendererConfiguration {
 	private static final String DLNA_ORGPN_USE = "DLNAOrgPN";
 	private static final String DLNA_PN_CHANGES = "DLNAProfileChanges";
 	private static final String DLNA_TREE_HACK = "CreateDLNATreeFaster";
+	private static final String FOLDER_LIMIT = "FolderLimit"; // Sony devices require JPG thumbnails
 	private static final String FORCE_JPG_THUMBNAILS = "ForceJPGThumbnails"; // Sony devices require JPG thumbnails
 	private static final String H264_L41_LIMITED = "H264Level41Limited";
 	private static final String IMAGE = "Image";
@@ -1289,6 +1290,10 @@ public class RendererConfiguration {
 
 	public int getTranscodedVideoAudioSampleRate() {
 		return getInt(TRANSCODED_VIDEO_AUDIO_SAMPLE_RATE, 48000);
+	}
+
+	public boolean folderLimit() {
+		return getBoolean(FOLDER_LIMIT, true);
 	}
 
 	/**
