@@ -210,6 +210,7 @@ public class PmsConfiguration {
 	private static final String KEY_SKIP_LOOP_FILTER_ENABLED = "mencoder_skip_loop_filter";
 	private static final String KEY_SKIP_NETWORK_INTERFACES = "skip_network_interfaces";
 	private static final String KEY_SORT_METHOD = "sort_method";
+	private static final String KEY_SPEED_DBG = "speed_debug";
 	private static final String KEY_SUBS_COLOR = "subtitles_color";
 	private static final String KEY_SUBTITLES_CODEPAGE = "subtitles_codepage";
 	private static final String KEY_SUBTITLES_LANGUAGES = "subtitles_languages";
@@ -3042,5 +3043,9 @@ public class PmsConfiguration {
 
 	public String pingPath() {
 		return getString(KEY_PING_PATH, null);
+	}
+
+	public boolean isSpeedDbg() {
+		return getBoolean(KEY_SPEED_DBG, true);
 	}
 }

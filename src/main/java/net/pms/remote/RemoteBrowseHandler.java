@@ -11,6 +11,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,10 +24,27 @@ public class RemoteBrowseHandler implements HttpHandler {
 		this.parent = parent;
 	}
 
+	private String getSearchStr(String query) {
+		for(String p : query.split("&")) {
+			String[] pair = p.split("=");
+			if (pair[0].equalsIgnoreCase("str")) {
+				if (pair.length > 1 && StringUtils.isNotEmpty(pair[1])) {
+					return pair[1];
+				}
+			}
+		}
+		return null;
+	}
+
 	private String mkBrowsePage(String id, HttpExchange t) throws IOException {
 		String user = RemoteUtil.userName(t);
 		RootFolder root = parent.getRoot(user, true, t);
-		List<DLNAResource> res = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), null);
+		String vars = t.getRequestURI().getQuery();
+		String search = null;
+		if (StringUtils.isNotEmpty(vars)) {
+			search = getSearchStr(vars);
+		}
+		List<DLNAResource> res = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), search);
 		boolean upnpControl = RendererConfiguration.hasConnectedControlPlayers();
 
 		// Media browser HTML
@@ -51,6 +69,13 @@ public class RemoteBrowseHandler implements HttpHandler {
 				sb.append("<script src=\"/files/jquery.min.js\"></script>");
 				sb.append("<script src=\"/files/jquery.ums.js\"></script>");
 				sb.append("<script src=\"/bump/bump.js\"></script>");
+				// simple prompt script for search folders
+				sb.append("<script>function searchFun(url) {");
+		        sb.append("var str=prompt(\"Enter search string:\");").append(CRLF);
+				sb.append("if(str!=null){ window.location.replace(url+'?str='+str)}").append(CRLF);
+				sb.append("return false;");
+				sb.append("}</script>").append(CRLF);
+				// script ends here
 				sb.append("<title>Universal Media Server</title>").append(CRLF);
 			sb.append("</head>").append(CRLF);
 			sb.append("<body id=\"ContentPage\">").append(CRLF);
@@ -60,7 +85,6 @@ public class RemoteBrowseHandler implements HttpHandler {
 						sb.append("<a href=\"/browse/0\" id=\"HomeButton\"></a>");
 					sb.append("</div>");
 					for (DLNAResource r : res) {
-						LOGGER.debug("add res  "+r);
 						String newId = r.getResourceId();
 						String idForWeb = URLEncoder.encode(newId, "UTF-8");
 						String thumb = "/thumb/" + idForWeb;
@@ -71,7 +95,17 @@ public class RemoteBrowseHandler implements HttpHandler {
 							if (!name.equals(Messages.getString("TranscodeVirtualFolder.0"))) {
 								// The resource is a folder
 								foldersHtml.append("<li>");
-									foldersHtml.append("<a href=\"/browse/").append(idForWeb).append("\" title=\"").append(name).append("\">");
+									if (r.getClass().getName().contains("SearchFolder")) {
+										// search folder add a prompt
+										// NOTE!!!
+										// Yes doing getClass.getname is REALLY BAD, but this
+										// is to make legacy plugins utilize this function as well
+										String p = "/browse/" + idForWeb;
+										foldersHtml.append("<a href=\"#\" onclick=\"searchFun('").append(p).append("');\" title=\"").append(name).append("\">");
+									}
+									else {
+										foldersHtml.append("<a href=\"/browse/").append(idForWeb).append("\" title=\"").append(name).append("\">");
+									}
 										foldersHtml.append("<span>").append(name).append("</span>");
 									foldersHtml.append("</a>").append(CRLF);
 								foldersHtml.append("</li>").append(CRLF);

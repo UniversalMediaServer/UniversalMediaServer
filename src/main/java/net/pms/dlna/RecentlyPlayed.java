@@ -153,6 +153,8 @@ public class RecentlyPlayed extends VirtualFolder {
 	public void update() {
 		try {
 			dumpFile();
+			getChildren().clear();
+			setDiscovered(false);
 		} catch (IOException e) {
 		}
 	}
