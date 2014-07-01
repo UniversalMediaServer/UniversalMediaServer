@@ -152,6 +152,8 @@ public class RecentlyPlayed extends VirtualFolder {
 
 	public void update() {
 		try {
+			getChildren().clear();
+			setDiscovered(false);
 			dumpFile();
 		} catch (IOException e) {
 		}
