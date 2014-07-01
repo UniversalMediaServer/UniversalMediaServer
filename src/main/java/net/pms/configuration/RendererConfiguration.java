@@ -339,7 +339,7 @@ public class RendererConfiguration {
 			sa.isAnyLocalAddress()) {
 			return;
 		}
-		if (PMS.getConfiguration().isAutomaticMaximumBitrate()) {
+		if (pmsConfiguration.isAutomaticMaximumBitrate() || pmsConfiguration.isSpeedDbg()) {
 			SpeedStats.getInstance().getSpeedInMBits(sa, getRendererName());
 		}
 	}
