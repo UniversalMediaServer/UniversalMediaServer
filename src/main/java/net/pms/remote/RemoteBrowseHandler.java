@@ -24,7 +24,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 	}
 
 	private String getSearchStr(String query) {
-		for(String p : query.split("&")) {
+		for (String p : query.split("&")) {
 			String[] pair = p.split("=");
 			if (pair[0].equalsIgnoreCase("str")) {
 				if (pair.length > 1 && StringUtils.isNotEmpty(pair[1])) {
@@ -68,7 +68,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 				sb.append("<script src=\"/files/jquery.ums.js\"></script>");
 				// simple prompt script for search folders
 				sb.append("<script>function searchFun(url) {");
-		        sb.append("var str=prompt(\"Enter search string:\");").append(CRLF);
+				sb.append("var str=prompt(\"Enter search string:\");").append(CRLF);
 				sb.append("if(str!=null){ window.location.replace(url+'?str='+str)}").append(CRLF);
 				sb.append("return false;");
 				sb.append("}</script>").append(CRLF);
@@ -98,11 +98,10 @@ public class RemoteBrowseHandler implements HttpHandler {
 										// is to make legacy plugins utilize this function as well
 										String p = "/browse/" + idForWeb;
 										foldersHtml.append("<a href=\"#\" onclick=\"searchFun('").append(p).append("');\" title=\"").append(name).append("\">");
-									}
-									else {
+									} else {
 										foldersHtml.append("<a href=\"/browse/").append(idForWeb).append("\" title=\"").append(name).append("\">");
 									}
-										foldersHtml.append("<span>").append(name).append("</span>");
+									foldersHtml.append("<span>").append(name).append("</span>");
 									foldersHtml.append("</a>").append(CRLF);
 								foldersHtml.append("</li>").append(CRLF);
 								showFolders = true;

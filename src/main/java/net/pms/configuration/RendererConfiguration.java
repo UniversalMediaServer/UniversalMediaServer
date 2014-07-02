@@ -98,7 +98,7 @@ public class RendererConfiguration {
 	private static final String DLNA_ORGPN_USE = "DLNAOrgPN";
 	private static final String DLNA_PN_CHANGES = "DLNAProfileChanges";
 	private static final String DLNA_TREE_HACK = "CreateDLNATreeFaster";
-	private static final String FOLDER_LIMIT = "FolderLimit"; // Sony devices require JPG thumbnails
+	private static final String LIMIT_FOLDERS = "LimitFolders";
 	private static final String FORCE_JPG_THUMBNAILS = "ForceJPGThumbnails"; // Sony devices require JPG thumbnails
 	private static final String H264_L41_LIMITED = "H264Level41Limited";
 	private static final String IMAGE = "Image";
@@ -335,8 +335,7 @@ public class RendererConfiguration {
 	 */
 	public void associateIP(InetAddress sa) {
 		addressAssociation.put(sa, this);
-		if (sa.isLoopbackAddress() ||
-			sa.isAnyLocalAddress()) {
+		if (sa.isLoopbackAddress() || sa.isAnyLocalAddress()) {
 			return;
 		}
 		if (pmsConfiguration.isAutomaticMaximumBitrate() || pmsConfiguration.isSpeedDbg()) {
@@ -346,8 +345,7 @@ public class RendererConfiguration {
 
 	public static void calculateAllSpeeds() {
 		for (InetAddress sa : addressAssociation.keySet()) {
-			if (sa.isLoopbackAddress() ||
-				sa.isAnyLocalAddress()) {
+			if (sa.isLoopbackAddress() || sa.isAnyLocalAddress()) {
 				continue;
 			}
 			RendererConfiguration r = addressAssociation.get(sa);
@@ -1304,21 +1302,20 @@ public class RendererConfiguration {
 		return getInt(TRANSCODED_VIDEO_AUDIO_SAMPLE_RATE, 48000);
 	}
 
-	public boolean folderLimit() {
-		return getBoolean(FOLDER_LIMIT, true);
+	public boolean isLimitFolders() {
+		return getBoolean(LIMIT_FOLDERS, true);
 	}
 
 	/**
 	 * Perform renderer-specific name reformatting:<p>
 	 * Truncating and wrapping see {@code TextWrap}<br>
 	 * Character substitution see {@code CharMap}
-	 * 
+	 *
 	 * @param name Original name
 	 * @param suffix Additional media information
 	 * @param dlna The actual DLNA resource
 	 * @return Reformatted name
 	 */
-
 	public String getDcTitle(String name, String suffix, DLNAResource dlna) {
 		// Wrap + tuncate
 		int len = 0;
@@ -1394,14 +1391,16 @@ public class RendererConfiguration {
 		for (InetAddress sa : addressAssociation.keySet()) {
 			if (addressAssociation.get(sa) == this) {
 				Future<Integer> speed = SpeedStats.getInstance().getSpeedInMBitsStored(sa, getRendererName());
-				if (max == null)
+				if (max == null) {
 					return String.valueOf(speed.get());
+				}
 				try {
 					Integer i = Integer.parseInt(max);
-					if (speed.get() > i && i != 0)
+					if (speed.get() > i && i != 0) {
 						return max;
-					else
+					} else {
 						return String.valueOf(speed.get());
+					}
 				} catch (NumberFormatException e) {
 					return String.valueOf(speed.get());
 				}
