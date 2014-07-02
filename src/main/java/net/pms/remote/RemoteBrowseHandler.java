@@ -24,7 +24,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 	}
 
 	private String getSearchStr(String query) {
-		for(String p : query.split("&")) {
+		for (String p : query.split("&")) {
 			String[] pair = p.split("=");
 			if (pair[0].equalsIgnoreCase("str")) {
 				if (pair.length > 1 && StringUtils.isNotEmpty(pair[1])) {
