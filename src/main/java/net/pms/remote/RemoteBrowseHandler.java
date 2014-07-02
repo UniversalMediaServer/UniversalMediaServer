@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.util.List;
 import net.pms.Messages;
+import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
 import org.apache.commons.lang.StringEscapeUtils;
@@ -96,6 +97,11 @@ public class RemoteBrowseHandler implements HttpHandler {
 										// NOTE!!!
 										// Yes doing getClass.getname is REALLY BAD, but this
 										// is to make legacy plugins utilize this function as well
+										String p = "/browse/" + idForWeb;
+										foldersHtml.append("<a href=\"#\" onclick=\"searchFun('").append(p).append("');\" title=\"").append(name).append("\">");
+									} else if (PMS.getConfiguration().isWebAlwaysSearch()) {
+										// same as above but we do it on it's own else to make comment
+										// look nice
 										String p = "/browse/" + idForWeb;
 										foldersHtml.append("<a href=\"#\" onclick=\"searchFun('").append(p).append("');\" title=\"").append(name).append("\">");
 									} else {
