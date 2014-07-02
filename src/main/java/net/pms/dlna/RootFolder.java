@@ -139,7 +139,7 @@ public class RootFolder extends DLNAResource {
 		}
 
 		if (configuration.getSearchFolder()) {
-			SearchFolder sf = new SearchFolder("Search disc folders", new FileSearch(getConfiguredFolders(null)));
+			SearchFolder sf = new SearchFolder(Messages.getString("PMS.143"), new FileSearch(getConfiguredFolders(null)));
 			addChild(sf);
 		}
 
