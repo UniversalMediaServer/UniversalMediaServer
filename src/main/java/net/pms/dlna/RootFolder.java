@@ -137,11 +137,6 @@ public class RootFolder extends DLNAResource {
 			addChild(r);
 		}
 
-		if (configuration.getSearchFolder()) {
-			SearchFolder sf = new SearchFolder(Messages.getString("PMS.143"), new FileSearch(getConfiguredFolders(null)));
-			addChild(sf);
-		}
-
 		String webConfPath = configuration.getWebConfPath();
 		File webConf = new File(webConfPath);
 		if (webConf.exists() && configuration.getExternalNetwork() && !configuration.isHideWebFolder(tags)) {
@@ -279,6 +274,11 @@ public class RootFolder extends DLNAResource {
 				continue;
 			}
 			res.add(new RealFile(f));
+		}
+
+		if (configuration.getSearchFolder()) {
+			SearchFolder sf = new SearchFolder(Messages.getString("PMS.143"), new FileSearch(res));
+			addChild(sf);
 		}
 
 		return res;

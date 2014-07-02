@@ -201,6 +201,7 @@ public class PmsConfiguration {
 	private static final String KEY_RUN_WIZARD = "run_wizard";
 	private static final String KEY_SCRIPT_DIR = "script_dir";
 	private static final String KEY_SEARCH_FOLDER = "search_folder";
+	private static final String KEY_SEARCH_IN_FOLDER = "search_in_folder";
 	private static final String KEY_SEARCH_RECURSE = "search_recurse";
 	private static final String KEY_SERVER_HOSTNAME = "hostname";
 	private static final String KEY_SERVER_NAME = "server_name";
@@ -1022,8 +1023,8 @@ public class PmsConfiguration {
 	 */
 	public String getForcedSubtitleLanguage() {
 		return configurationReader.getPossiblyBlankConfigurationString(
-			KEY_FORCED_SUBTITLE_LANGUAGE,
-			getLanguage()
+				KEY_FORCED_SUBTITLE_LANGUAGE,
+				getLanguage()
 		);
 	}
 
@@ -1048,8 +1049,8 @@ public class PmsConfiguration {
 	 */
 	public String getAudioSubLanguages() {
 		return configurationReader.getPossiblyBlankConfigurationString(
-			KEY_AUDIO_SUB_LANGS,
-			Messages.getString("MEncoderVideo.128")
+				KEY_AUDIO_SUB_LANGS,
+				Messages.getString("MEncoderVideo.128")
 		);
 	}
 
@@ -2601,6 +2602,10 @@ public class PmsConfiguration {
 
 	public boolean getSearchFolder() {
 		return getBoolean(KEY_SEARCH_FOLDER, false);
+	}
+
+	public boolean getSearchInFolder() {
+		return getBoolean(KEY_SEARCH_IN_FOLDER, false) && getSearchFolder();
 	}
 
 	public int getSearchRecurse() {
