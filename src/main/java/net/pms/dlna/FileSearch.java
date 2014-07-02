@@ -48,7 +48,7 @@ public class FileSearch implements SearchObj {
 				continue;
 			}
 			if (f.isDirectory()) {
-				if (cnt >= PMS.getConfiguration().getSearchRecurse()) {
+				if (cnt >= PMS.getConfiguration().getSearchDepth()) {
 					// this is here to avoid endless looping
 					return;
 				}

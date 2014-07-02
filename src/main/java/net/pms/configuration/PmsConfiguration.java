@@ -202,7 +202,8 @@ public class PmsConfiguration {
 	private static final String KEY_SCRIPT_DIR = "script_dir";
 	private static final String KEY_SEARCH_FOLDER = "search_folder";
 	private static final String KEY_SEARCH_IN_FOLDER = "search_in_folder";
-	private static final String KEY_SEARCH_RECURSE = "search_recurse";
+	private static final String KEY_SEARCH_RECURSE = "search_recurse"; // old leagacy option
+	private static final String KEY_SEARCH_RECURSE_DEPTH = "search_recurse_depth";
 	private static final String KEY_SERVER_HOSTNAME = "hostname";
 	private static final String KEY_SERVER_NAME = "server_name";
 	private static final String KEY_SERVER_PORT = "port";
@@ -2608,12 +2609,9 @@ public class PmsConfiguration {
 		return getBoolean(KEY_SEARCH_IN_FOLDER, false) && getSearchFolder();
 	}
 
-	public int getSearchRecurse() {
-		if (getBoolean(KEY_SEARCH_RECURSE, true)) {
-			return 100;
-		} else {
-			return 0;
-		}
+	public int getSearchDepth() {
+		int ret = (getBoolean(KEY_SEARCH_RECURSE, true) ? 100 : 2);
+	   	return getInt(KEY_SEARCH_RECURSE_DEPTH, ret);
 	}
 
 	public void reload() {
