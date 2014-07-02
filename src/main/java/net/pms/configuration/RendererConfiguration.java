@@ -335,8 +335,7 @@ public class RendererConfiguration {
 	 */
 	public void associateIP(InetAddress sa) {
 		addressAssociation.put(sa, this);
-		if (sa.isLoopbackAddress() ||
-			sa.isAnyLocalAddress()) {
+		if (sa.isLoopbackAddress() || sa.isAnyLocalAddress()) {
 			return;
 		}
 		if (pmsConfiguration.isAutomaticMaximumBitrate() || pmsConfiguration.isSpeedDbg()) {
@@ -346,8 +345,7 @@ public class RendererConfiguration {
 
 	public static void calculateAllSpeeds() {
 		for (InetAddress sa : addressAssociation.keySet()) {
-			if (sa.isLoopbackAddress() ||
-				sa.isAnyLocalAddress()) {
+			if (sa.isLoopbackAddress() || sa.isAnyLocalAddress()) {
 				continue;
 			}
 			RendererConfiguration r = addressAssociation.get(sa);
@@ -1312,13 +1310,12 @@ public class RendererConfiguration {
 	 * Perform renderer-specific name reformatting:<p>
 	 * Truncating and wrapping see {@code TextWrap}<br>
 	 * Character substitution see {@code CharMap}
-	 * 
+	 *
 	 * @param name Original name
 	 * @param suffix Additional media information
 	 * @param dlna The actual DLNA resource
 	 * @return Reformatted name
 	 */
-
 	public String getDcTitle(String name, String suffix, DLNAResource dlna) {
 		// Wrap + tuncate
 		int len = 0;
@@ -1394,14 +1391,16 @@ public class RendererConfiguration {
 		for (InetAddress sa : addressAssociation.keySet()) {
 			if (addressAssociation.get(sa) == this) {
 				Future<Integer> speed = SpeedStats.getInstance().getSpeedInMBitsStored(sa, getRendererName());
-				if (max == null)
+				if (max == null) {
 					return String.valueOf(speed.get());
+				}
 				try {
 					Integer i = Integer.parseInt(max);
-					if (speed.get() > i && i != 0)
+					if (speed.get() > i && i != 0) {
 						return max;
-					else
+					} else {
 						return String.valueOf(speed.get());
+					}
 				} catch (NumberFormatException e) {
 					return String.valueOf(speed.get());
 				}
