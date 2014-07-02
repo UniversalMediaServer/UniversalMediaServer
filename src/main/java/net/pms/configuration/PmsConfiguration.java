@@ -3032,6 +3032,6 @@ public class PmsConfiguration {
 	}
 
 	public boolean isSpeedDbg() {
-		return getBoolean(KEY_SPEED_DBG, true);
+		return getBoolean(KEY_SPEED_DBG, false);
 	}
 }
