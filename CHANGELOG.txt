@@ -8,9 +8,11 @@
 		Added tooltips to more options in the GUI
 		Added option to use PsPing on Windows to make network speed estimates more accurate (ping_path)
 		Added renderer option LimitFolders to specify whether the renderer has a folder limit or not
+		Added searching to each folder
 		Improved web interface display, especially on mobile devices
 		Improved changing settings via web interface
 		Removed the folder limit from the web interface
+		Made more strings translatable
 		Fixed a bug with filename prettifying
 		Made the renderer setting KeepAspectRatio more reliable
 		Renamed the renderer option OverrideVideoFilter to OverrideFFmpegVideoFilter
