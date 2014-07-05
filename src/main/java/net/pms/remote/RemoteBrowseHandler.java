@@ -98,12 +98,12 @@ public class RemoteBrowseHandler implements HttpHandler {
 										// Yes doing getClass.getname is REALLY BAD, but this
 										// is to make legacy plugins utilize this function as well
 										String p = "/browse/" + idForWeb;
-										foldersHtml.append("<a href=\"#\" onclick=\"searchFun('").append(p).append("');\" title=\"").append(name).append("\">");
+										foldersHtml.append("<a href=\"javascript:void(0);\" onclick=\"searchFun('").append(p).append("');\" title=\"").append(name).append("\">");
 									} else if (PMS.getConfiguration().isWebAlwaysSearch()) {
 										// same as above but we do it on it's own else to make comment
 										// look nice
 										String p = "/browse/" + idForWeb;
-										foldersHtml.append("<a href=\"#\" onclick=\"searchFun('").append(p).append("');\" title=\"").append(name).append("\">");
+										foldersHtml.append("<a href=\"javascript:void(0);\" onclick=\"searchFun('").append(p).append("');\" title=\"").append(name).append("\">");
 									} else {
 										foldersHtml.append("<a href=\"/browse/").append(idForWeb).append("\" title=\"").append(name).append("\">");
 									}
