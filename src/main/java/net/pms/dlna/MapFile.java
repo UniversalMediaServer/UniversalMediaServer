@@ -23,8 +23,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.Collator;
 import java.util.*;
-
-import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.MapFileConfiguration;
 import net.pms.configuration.PmsConfiguration;

@@ -202,7 +202,7 @@ public class PmsConfiguration {
 	private static final String KEY_SCRIPT_DIR = "script_dir";
 	private static final String KEY_SEARCH_FOLDER = "search_folder";
 	private static final String KEY_SEARCH_IN_FOLDER = "search_in_folder";
-	private static final String KEY_SEARCH_RECURSE = "search_recurse"; // old leagacy option
+	private static final String KEY_SEARCH_RECURSE = "search_recurse"; // legacy option
 	private static final String KEY_SEARCH_RECURSE_DEPTH = "search_recurse_depth";
 	private static final String KEY_SERVER_HOSTNAME = "hostname";
 	private static final String KEY_SERVER_NAME = "server_name";

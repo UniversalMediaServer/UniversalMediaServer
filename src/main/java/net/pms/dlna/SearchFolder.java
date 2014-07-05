@@ -2,12 +2,8 @@ package net.pms.dlna;
 
 import net.pms.Messages;
 import net.pms.dlna.virtual.VirtualFolder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class SearchFolder extends VirtualFolder {
-	private static final Logger LOGGER = LoggerFactory.getLogger(SearchFolder.class);
-
 	private SearchObj sobj;
 
 	public SearchFolder(SearchObj sobj) {
