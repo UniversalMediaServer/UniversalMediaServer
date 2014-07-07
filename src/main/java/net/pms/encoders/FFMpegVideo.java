@@ -139,12 +139,11 @@ public class FFMpegVideo extends Player {
 
 		if (!isDisableSubtitles(params)) {
 			StringBuilder subsFilter = new StringBuilder();
-
 			if (params.sid.getType().isText()) {
-				File tempSubs = getSubtitles(dlna, media, params);
-				if (tempSubs != null) {
+				String subsFilename = params.sid.isEmbedded() ? dlna.getSystemName() : params.sid.getExternalFile().getAbsolutePath();
+				if (subsFilename != null) {
 					StringBuilder s = new StringBuilder();
-					CharacterIterator it = new StringCharacterIterator(tempSubs.getAbsolutePath());
+					CharacterIterator it = new StringCharacterIterator(subsFilename);
 
 					for (char ch = it.first(); ch != CharacterIterator.DONE; ch = it.next()) {
 						switch (ch) {
@@ -165,14 +164,13 @@ public class FFMpegVideo extends Player {
 
 					String subsFile = s.toString();
 					subsFile = subsFile.replace(",", "\\,");
-
-					if (params.sid.isEmbedded() || (params.sid.isExternal() && params.sid.getType() == SubtitleType.ASS)) {
-						subsFilter.append("ass=");
-						subsFilter.append(subsFile);
-					} else if (params.sid.isExternal() && params.sid.getType() == SubtitleType.SUBRIP) {
-						subsFilter.append("subtitles=");
-						subsFilter.append(subsFile);
+					subsFilter.append("subtitles=");
+					String subsID = "";
+					if (params.sid.isEmbedded()) {
+						subsID = ":si=" + media.getSubtitleTracksList().indexOf(params.sid);
 					}
+					subsFilter.append(subsFile + subsID);
+					
 				}
 
 			} else if (params.sid.getType().isPicture()) {
