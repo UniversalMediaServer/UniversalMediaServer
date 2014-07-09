@@ -19,6 +19,7 @@
 package net.pms.network;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -306,20 +307,17 @@ public class Request extends HTTPResource {
 					// This is a request for a subtitle file
 					output(output, "Content-Type: text/plain");
 					output(output, "Expires: " + getFUTUREDATE() + " GMT");
-					List<DLNAMediaSubtitle> subs = dlna.getMedia().getSubtitleTracksList();
+					DLNAMediaSubtitle subs = dlna.getMediaSubtitle();
 
-					if (subs != null && !subs.isEmpty()) {
-						// TODO: maybe loop subs to get the requested subtitle type instead of using the first one
-						DLNAMediaSubtitle sub = subs.get(0);
-
+					if (subs != null) {
 						try {
 							// XXX external file is null if the first subtitle track is embedded:
 							// http://www.ps3mediaserver.org/forum/viewtopic.php?f=3&t=15805&p=75534#p75534
-							if (sub.isExternal()) {
-								inputStream = new java.io.FileInputStream(sub.getExternalFile());
+							if (subs.isExternal()) {
+								inputStream = new FileInputStream(subs.getExternalFile());
 							}
 						} catch (NullPointerException npe) {
-							LOGGER.trace("Could not find external subtitles: " + sub);
+							LOGGER.trace("Could not find external subtitles: " + subs);
 						}
 					}
 				} else {
@@ -348,12 +346,11 @@ public class Request extends HTTPResource {
 
 							if (subtitleHttpHeader != null && !"".equals(subtitleHttpHeader)) {
 								// Device allows a custom subtitle HTTP header; construct it
-								List<DLNAMediaSubtitle> subs = dlna.getMedia().getSubtitleTracksList();
+								DLNAMediaSubtitle subs = dlna.getMediaSubtitle();
 
-								if (subs != null && !subs.isEmpty()) {
-									DLNAMediaSubtitle sub = subs.get(0);
+								if (subs != null) {
 									String subtitleUrl;
-									String subExtension = sub.getType().getExtension();
+									String subExtension = subs.getType().getExtension();
 
 									if (isNotBlank(subExtension)) {
 										subtitleUrl = "http://" + PMS.get().getServer().getHost() +
