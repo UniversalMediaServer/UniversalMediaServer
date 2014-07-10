@@ -49,6 +49,8 @@ public class MapFile extends DLNAResource {
 	private List<File> discoverable;
 	private String forcedName;
 
+	private ArrayList<RealFile> searchList;
+
 	/**
 	 * @deprecated Use standard getter and setter to access this variable.
 	 */
@@ -113,7 +115,11 @@ public class MapFile extends DLNAResource {
 					if (f.isDirectory() && configuration.isHideEmptyFolders() && !FileUtil.isFolderRelevant(f, configuration)) {
 						LOGGER.debug("Ignoring empty/non-relevant directory: " + f.getName());
 					} else { // Otherwise add the file
-						addChild(new RealFile(f));
+						RealFile rf = new RealFile(f);
+						if (searchList != null) {
+							searchList.add(rf);
+						}
+						addChild(rf);
 					}
 				}
 			}
@@ -158,6 +164,12 @@ public class MapFile extends DLNAResource {
 	public boolean analyzeChildren(int count) {
 		int currentChildrenCount = getChildren().size();
 		int vfolder = 0;
+		FileSearch fs = null;
+		if (!discoverable.isEmpty() && configuration.getSearchInFolder()) {
+			searchList = new ArrayList<RealFile>();
+			fs = new FileSearch(searchList);
+			addChild(new SearchFolder(fs));
+		}
 		while (((getChildren().size() - currentChildrenCount) < count) || (count == -1)) {
 			if (vfolder < getConf().getChildren().size()) {
 				addChild(new MapFile(getConf().getChildren().get(vfolder)));
@@ -168,6 +180,9 @@ public class MapFile extends DLNAResource {
 				}
 				manageFile(discoverable.remove(0), null);
 			}
+		}
+		if (fs != null) {
+			fs.update(searchList);
 		}
 		return discoverable.isEmpty();
 	}
@@ -201,6 +216,9 @@ public class MapFile extends DLNAResource {
 
 	private void sort(List<File> files) {
 		switch (configuration.getSortMethod()) {
+			case 5: // Random
+				Collections.shuffle(files, new Random(System.currentTimeMillis()));
+				break;
 			case 4: // Locale-sensitive natural sort
 				Collections.sort(files, new Comparator<File>() {
 					@Override

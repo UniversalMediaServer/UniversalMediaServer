@@ -193,7 +193,7 @@ public class RealFile extends MapFile {
 					getFormat().parse(getMedia(), input, getType(), getParent().getDefaultRenderer());
 				} else {
 					// Don't think that will ever happen
-					getMedia().parse(input, getFormat(), getType(), false);
+					getMedia().parse(input, getFormat(), getType(), false, isResume());
 				}
 
 				if (found && configuration.getUseCache()) {

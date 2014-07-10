@@ -88,13 +88,16 @@ public class RendererConfigurationTest {
 		testCases.put("User-Agent: RealtekVOD neon/0.27.2", "Realtek");
 
 		// SamsungAllShare:
-		testCases.put("User-Agent: SEC_HHP_[HT]D5500/1.0", "Samsung AllShare");
-		testCases.put("User-Agent: SEC_HHP_[TV]UE32D5000/1.0", "Samsung AllShare");
+		testCases.put("User-Agent: SEC_HHP_[HT]D5500/1.0", "Samsung AllShare C/D");
+		testCases.put("User-Agent: SEC_HHP_[TV]UE32D5000/1.0", "Samsung AllShare C/D");
+		testCases.put("User-Agent: SEC_HHP_[TV]PS51D6900/1.0", "Samsung AllShare C/D");
+		testCases.put("User-Agent: DLNADOC/1.50 SEC_HHP_[TV]UE32D5000/1.0", "Samsung AllShare C/D");
+		testCases.put("User-Agent: DLNADOC/1.50 SEC_HHP_[TV]UN55D6050/1.0", "Samsung AllShare C/D");
 		testCases.put("User-Agent: SEC_HHP_ Family TV/1.0", "Samsung AllShare");
-		testCases.put("User-Agent: SEC_HHP_[TV]PS51D6900/1.0", "Samsung AllShare");
-		testCases.put("User-Agent: DLNADOC/1.50 SEC_HHP_[TV]UE32D5000/1.0", "Samsung AllShare");
-		testCases.put("User-Agent: DLNADOC/1.50 SEC_HHP_[TV]UN55D6050/1.0", "Samsung AllShare");
 		testCases.put("User-Agent: DLNADOC/1.50 SEC_HHP_ Family TV/1.0", "Samsung AllShare");
+		testCases.put("User-Agent: SEC_HHP_[TV]UE46ES8000/1.0 DLNADOC/1.50", "Samsung AllShare");
+		testCases.put("User-Agent: SEC_HHP_[TV]Samsung LED40/1.0 DLNADOC/1.50", "Samsung AllShare");
+		testCases.put("User-Agent: SEC_HHP_[TV]UN55ES6100/1.0 DLNADOC/1.50", "Samsung AllShare");
 
 		// Samsung-SMT-G7400:
 		testCases.put("User-Agent: Linux/2.6.35 UPnP/1.0 NDS_MHF DLNADOC/1.50", "Samsung SMT-G7400");

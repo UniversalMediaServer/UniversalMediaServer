@@ -7,9 +7,11 @@ import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.util.List;
 import net.pms.Messages;
+import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
 import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,21 +24,47 @@ public class RemoteBrowseHandler implements HttpHandler {
 		this.parent = parent;
 	}
 
+	private String getSearchStr(String query) {
+		for (String p : query.split("&")) {
+			String[] pair = p.split("=");
+			if (pair[0].equalsIgnoreCase("str")) {
+				if (pair.length > 1 && StringUtils.isNotEmpty(pair[1])) {
+					return pair[1];
+				}
+			}
+		}
+		return null;
+	}
+
 	private String mkBrowsePage(String id, HttpExchange t) throws IOException {
 		String user = RemoteUtil.userName(t);
 		RootFolder root = parent.getRoot(user, true, t);
-		List<DLNAResource> res = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), null);
+		String vars = t.getRequestURI().getQuery();
+		String search = null;
+		if (StringUtils.isNotEmpty(vars)) {
+			search = getSearchStr(vars);
+		}
+		List<DLNAResource> res = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), search);
 
 		// Media browser HTML
 		StringBuilder sb          = new StringBuilder();
 		StringBuilder foldersHtml = new StringBuilder();
 		StringBuilder mediaHtml   = new StringBuilder();
 
+		boolean showFolders = false;
+		boolean hasFile     = false;
+
 		sb.append("<!DOCTYPE html>").append(CRLF);
 			sb.append("<head>").append(CRLF);
+				// this special (simple) script performs a reload
+				// if we have been sent back here after a VVA
+				sb.append("<script>if(typeof window.refresh!='undefined' && window.refresh){").append(CRLF);
+				sb.append("window.refresh=false;window.location.reload();}</script>").append(CRLF);
 				sb.append("<meta charset=\"utf-8\">").append(CRLF);
 				sb.append("<link rel=\"stylesheet\" href=\"/files/reset.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
 				sb.append("<link rel=\"stylesheet\" href=\"/files/web.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
+				sb.append("<link rel=\"stylesheet\" href=\"/files/web-narrow.css\" type=\"text/css\" media=\"screen and (max-width: 1080px)\">").append(CRLF);
+				sb.append("<link rel=\"stylesheet\" href=\"/files/web-wide.css\" type=\"text/css\" media=\"screen and (min-width: 1081px)\">").append(CRLF);
 				sb.append("<link rel=\"icon\" href=\"/files/favicon.ico\" type=\"image/x-icon\">").append(CRLF);
 				sb.append("<script src=\"/files/jquery.min.js\"></script>");
 				sb.append("<script src=\"/files/jquery.ums.js\"></script>");
@@ -48,7 +76,6 @@ public class RemoteBrowseHandler implements HttpHandler {
 						sb.append("<a href=\"/browse/0\" id=\"HomeButton\"></a>");
 					sb.append("</div>");
 					for (DLNAResource r : res) {
-						LOGGER.debug("add res  "+r);
 						String newId = r.getResourceId();
 						String idForWeb = URLEncoder.encode(newId, "UTF-8");
 						String thumb = "/thumb/" + idForWeb;
@@ -59,10 +86,20 @@ public class RemoteBrowseHandler implements HttpHandler {
 							if (!name.equals(Messages.getString("TranscodeVirtualFolder.0"))) {
 								// The resource is a folder
 								foldersHtml.append("<li>");
-									foldersHtml.append("<a href=\"/browse/").append(idForWeb).append("\" title=\"").append(name).append("\">");
-										foldersHtml.append("<span>").append(name).append("</span>");
+									if (r.getClass().getName().contains("SearchFolder")) {
+										// search folder add a prompt
+										// NOTE!!!
+										// Yes doing getClass.getname is REALLY BAD, but this
+										// is to make legacy plugins utilize this function as well
+										String p = "/browse/" + idForWeb;
+										foldersHtml.append("<a href=\"javascript:void(0);\" onclick=\"searchFun('").append(p).append("');\" title=\"").append(name).append("\">");
+									} else {
+										foldersHtml.append("<a href=\"/browse/").append(idForWeb).append("\" title=\"").append(name).append("\">");
+									}
+									foldersHtml.append("<span>").append(name).append("</span>");
 									foldersHtml.append("</a>").append(CRLF);
 								foldersHtml.append("</li>").append(CRLF);
+								showFolders = true;
 							}
 						} else {
 							// The resource is a media file
@@ -72,11 +109,27 @@ public class RemoteBrowseHandler implements HttpHandler {
 									mediaHtml.append("<span>").append(name).append("</span>");
 								mediaHtml.append("</a>").append(CRLF);
 							mediaHtml.append("</li>").append(CRLF);
+
+							hasFile = true;
 						}
 					}
-					sb.append("<div id=\"FoldersContainer\"><div><ul id=\"Folders\">").append(foldersHtml).append("</ul></div></div>");
+
+					// Display the search form if the folder is populated
+					if (hasFile) {
+						sb.append("<form id=\"SearchForm\" method=\"get\">");
+							sb.append("<input type=\"text\" id=\"SearchInput\" name=\"str\">");
+							sb.append("<input type=\"submit\" id=\"SearchSubmit\" value=\"&nbsp;\">");
+						sb.append("</form>");
+					}
+
+					String noFoldersCSS = "";
+					if (!showFolders) {
+						noFoldersCSS = " class=\"noFolders\"";
+					}
+					sb.append("<div id=\"FoldersContainer\"").append(noFoldersCSS).append("><div><ul id=\"Folders\">").append(foldersHtml).append("</ul></div></div>");
+
 					if (mediaHtml.length() > 0) {
-						sb.append("<ul id=\"Media\">").append(mediaHtml).append("</ul>");
+						sb.append("<ul id=\"Media\"").append(noFoldersCSS).append(">").append(mediaHtml).append("</ul>");
 					}
 				sb.append("</div>");
 			sb.append("</body>");

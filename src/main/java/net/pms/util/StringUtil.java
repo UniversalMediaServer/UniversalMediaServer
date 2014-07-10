@@ -6,7 +6,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 public class StringUtil {
 	private static final int[] MULTIPLIER = new int[] {3600, 60, 1};
-	public static final String SEC_TIME_FORMAT = "%02d:%02d:%02d";
+	public static final String SEC_TIME_FORMAT = "%02d:%02d:%02.0f";
 	public static final String DURATION_TIME_FORMAT = "%02d:%02d:%05.2f";
 
 	/**
@@ -124,7 +124,7 @@ public class StringUtil {
 	 * Converts time to string.
 	 *
 	 * @param d time in double.
-	 * @param timeFormat Format string e.g. "%02d:%02d:%02d" or use predefined constants
+	 * @param timeFormat Format string e.g. "%02d:%02d:%02f" or use predefined constants
 	 * SEC_TIME_FORMAT, DURATION_TIME_FORMAT.
 	 *
 	 * @return Converted String.

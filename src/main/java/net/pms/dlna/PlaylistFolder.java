@@ -10,6 +10,7 @@ import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,7 +73,7 @@ public class PlaylistFolder extends DLNAResource {
 	}
 
 	private BufferedReader getBufferedReader() throws IOException {
-		if (isweb) {
+		if (FileUtil.isUrl(uri)) {
 			return new BufferedReader(new InputStreamReader(new URL(uri).openStream()));
 		} else {
 			File playlistfile = new File(uri);
@@ -173,26 +174,30 @@ public class PlaylistFolder extends DLNAResource {
 				entry.title = new File(entry.fileName).getName();
 			}
 			LOGGER.debug("Adding " + (pls ? "PLS " : (m3u ? "M3U " : "")) + "entry: " + entry);
+
+			String ext = "." + FileUtil.getUrlExtension(entry.fileName);
+			Format f = FormatFactory.getAssociatedFormat(ext);
+			int type = f == null ? defaultContent : f.getType();
+
 			if (! isweb && ! FileUtil.isUrl(entry.fileName)) {
-				File en1 = new File(getPlaylistfile().getParentFile(), entry.fileName);
-				File en2 = new File(entry.fileName);
-				if (en1.exists()) {
-					addChild(new RealFile(en1, entry.title));
+				File en = new File(FilenameUtils.concat(getPlaylistfile().getParent(), entry.fileName));
+				if (en.exists()) {
+					addChild(type == Format.PLAYLIST ? new PlaylistFolder(en) : new RealFile(en, entry.title));
 					valid = true;
-				} else {
-					if (en2.exists()) {
-						addChild(new RealFile(en2, entry.title));
-						valid = true;
-					}
 				}
 			} else {
-				Format f = FormatFactory.getAssociatedFormat("." + FileUtil.getUrlExtension(entry.fileName));
-				int type = f == null ? defaultContent : f.getType();
 				String u = FileUtil.urlJoin(uri, entry.fileName);
+				if (type == Format.PLAYLIST && ! entry.fileName.endsWith(ext)) {
+					// If the filename continues past the "extension" (i.e. has a query string) it's
+					// likely not a nested playlist but a media item, for instance Twitch TV media urls:
+					//    'http://video10.iad02.hls.twitch.tv/.../index-live.m3u8?token=id=235...'
+					type = defaultContent;
+				}
 				DLNAResource d =
 					type == Format.VIDEO ? new WebVideoStream(entry.title, u, null) :
 					type == Format.AUDIO ? new WebAudioStream(entry.title, u, null) :
-					type == Format.IMAGE ? new FeedItem(entry.title, u, null, null, Format.IMAGE) : null;
+					type == Format.IMAGE ? new FeedItem(entry.title, u, null, null, Format.IMAGE) :
+					type == Format.PLAYLIST ? getPlaylist(entry.title, u, 0) : null;
 				if (d != null) {
 					addChild(d);
 					valid = true;

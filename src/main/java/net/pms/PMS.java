@@ -1280,7 +1280,7 @@ public class PMS {
 				LOGGER.debug("Error dumping PID " + e);
 			}
 		} else {
-			LOGGER.trace("UMS must be run as administrator in order to access the PID file");
+			LOGGER.info("UMS must be run as administrator in order to access the PID file");
 		}
 	}
 
@@ -1358,7 +1358,7 @@ public class PMS {
 	private static void dumpPid() throws IOException {
 		FileOutputStream out = new FileOutputStream(pidFile());
 			long pid = getPID();
-			LOGGER.trace("PID: " + pid);
+			LOGGER.debug("PID: " + pid);
 			String data = String.valueOf(pid) + "\r\n";
 			out.write(data.getBytes());
 			out.flush();
@@ -1405,6 +1405,10 @@ public class PMS {
 	}
 
 	private RemoteWeb web;
+
+	public RemoteWeb getWebInterface() {
+		return web;
+	}
 
 	/**
 	 * Sets the relative URL of a context sensitive help page located in the

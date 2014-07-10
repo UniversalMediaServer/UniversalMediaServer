@@ -31,13 +31,13 @@
 	<artifactId>ums</artifactId>
 	<name>Universal Media Server</name>
 	<packaging>jar</packaging>
-	<version>4.0.0-a1</version>
+	<version>4.0.0-b1</version>
 	<url>http://www.universalmediaserver.com/</url>
 	<inceptionYear>2012</inceptionYear>
 
 	<!-- this is not required, but is recommended for plugin version checks -->
 	<prerequisites>
-		<maven>3.2.1</maven>
+		<maven>2.2.1</maven>
 	</prerequisites>
 
 	<organization>
@@ -99,7 +99,7 @@
 		<pluginRepository>
 			<id>ossrh</id>
 			<name>Sonatype OSS Repository</name>
-			<url>http://oss.sonatype.org/content/groups/public</url>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
 			<layout>default</layout>
 		</pluginRepository>
 	</pluginRepositories>
@@ -799,18 +799,17 @@
 							<version>2.6</version>
 						</plugin>
 
-						<!-- PMD and CPD code analysis report is not working with the latest maven site version
 						<plugin>
 							<groupId>org.apache.maven.plugins</groupId>
 							<artifactId>maven-pmd-plugin</artifactId>
-							<version>3.0.1</version>
+							<version>3.1</version>
 							<configuration>
 								<linkXref>false</linkXref>
 								<sourceEncoding>utf-8</sourceEncoding>
 								<minimumTokens>100</minimumTokens>
 								<targetJdk>1.6</targetJdk>
 							</configuration>
-						</plugin>-->
+						</plugin>
 
 						<!-- L10n internationalization report is not working with the latest maven site version
 						<plugin>

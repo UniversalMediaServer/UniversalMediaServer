@@ -1,0 +1,51 @@
+ul#Folders {
+	width: 200px;
+	background-color: #222;
+	overflow: auto;
+	display: block;
+	padding: 20px;
+	position: absolute;
+	top: 94px;
+	bottom: 0;
+	left: 0;
+	z-index: 1;
+}
+
+ul#Media {
+	margin: 0 0 0 240px;
+	padding: 115px 0 20px 20px;
+}
+
+ul#Media.noFolders {
+	margin: 0 !important;
+}
+
+#ContentPage #Menu {
+	background: url('/files/menu-background-content.png');
+	background-repeat: repeat-x;
+	height: 95px;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	z-index: 2;
+}
+
+div#FoldersContainer {
+	position: fixed;
+	left: 0;
+	width: 200px;
+	height: 100%;
+	display: block;
+}
+
+div#FoldersContainer div {
+	height: 100%;
+	position: relative;
+}
+
+form#SearchForm {
+	position: fixed;
+	top: 27px;
+	right: 20px;
+}

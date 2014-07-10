@@ -145,6 +145,7 @@ public class DLNAMediaInfo implements Cloneable {
 	@Deprecated
 	public String aspect;
 
+	public String aspectRatioDvdIso;
 	public String aspectRatioContainer;
 	public String aspectRatioVideoTrack;
 
@@ -380,7 +381,7 @@ public class DLNAMediaInfo implements Cloneable {
 		gen_thumb = false;
 	}
 
-	public void generateThumbnail(InputFile input, Format ext, int type, Double seekPosition) {
+	public void generateThumbnail(InputFile input, Format ext, int type, Double seekPosition, boolean resume) {
 		DLNAMediaInfo forThumbnail = new DLNAMediaInfo();
 		forThumbnail.gen_thumb = true;
 		forThumbnail.durationSec = getDurationInSeconds();
@@ -391,11 +392,11 @@ public class DLNAMediaInfo implements Cloneable {
 			forThumbnail.durationSec = forThumbnail.durationSec / 2;
 		}
 
-		forThumbnail.parse(input, ext, type, true);
+		forThumbnail.parse(input, ext, type, true, resume);
 		thumb = forThumbnail.thumb;
 	}
 
-	private ProcessWrapperImpl getFFMpegThumbnail(InputFile media) {
+	private ProcessWrapperImpl getFFMpegThumbnail(InputFile media, boolean resume) {
 		/**
 		 * Note: The text output from FFmpeg is used by renderers that do
 		 * not use MediaInfo, so do not make any changes that remove or
@@ -411,7 +412,12 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 
 		args[1] = "-ss";
-		args[2] = "" + (int) getDurationInSeconds();
+		if (resume) {
+			args[2] = "" + (int) getDurationInSeconds();
+		} else {
+			args[2] = "" + configuration.getThumbnailSeekPos();
+		}
+		
 		args[3] = "-i";
 
 		if (file != null) {
@@ -468,12 +474,17 @@ public class DLNAMediaInfo implements Cloneable {
 		return pw;
 	}
 
-	private ProcessWrapperImpl getMplayerThumbnail(InputFile media) throws IOException {
+	private ProcessWrapperImpl getMplayerThumbnail(InputFile media, boolean resume) throws IOException {
 		File file = media.getFile();
 		String args[] = new String[14];
 		args[0] = configuration.getMplayerPath();
 		args[1] = "-ss";
-		args[2] = "" + (int) getDurationInSeconds();
+		if (resume) {
+			args[2] = "" + (int) getDurationInSeconds();
+		} else {
+			args[2] = "" + configuration.getThumbnailSeekPos();
+		}
+
 		args[3] = "-quiet";
 
 		if (file != null) {
@@ -534,7 +545,7 @@ public class DLNAMediaInfo implements Cloneable {
 		}
 	}
 
-	public void parse(InputFile inputFile, Format ext, int type, boolean thumbOnly) {
+	public void parse(InputFile inputFile, Format ext, int type, boolean thumbOnly, boolean resume) {
 		int i = 0;
 
 		while (isParsing()) {
@@ -725,7 +736,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 			if (ffmpeg_parsing) {
 				if (!thumbOnly || !configuration.isUseMplayerForVideoThumbs()) {
-					pw = getFFMpegThumbnail(inputFile);
+					pw = getFFMpegThumbnail(inputFile, resume);
 				}
 
 				boolean dvrms = false;
@@ -761,7 +772,7 @@ public class DLNAMediaInfo implements Cloneable {
 
 				if (configuration.isUseMplayerForVideoThumbs() && type == Format.VIDEO && !dvrms) {
 					try {
-						getMplayerThumbnail(inputFile);
+						getMplayerThumbnail(inputFile, resume);
 						String frameName = "" + inputFile.hashCode();
 						frameName = configuration.getTempFolder() + "/mplayer_thumbs/" + frameName + "00000001/00000001.jpg";
 						frameName = frameName.replace(',', '_');
@@ -1391,11 +1402,32 @@ public class DLNAMediaInfo implements Cloneable {
 		return null;
 	}
 
+	/**
+	 * @deprecated use getAspectRatioMencoderMpegopts() for the original
+	 * functionality of this method, or use getAspectRatioContainer() for a
+	 * better default method to get aspect ratios.
+	 */
+	@Deprecated
 	public String getValidAspect(boolean ratios) {
+		return getAspectRatioMencoderMpegopts(ratios);
+	}
+
+	/**
+	 * Converts the result of getAspectRatioDvdIso() to provide
+	 * MEncoderVideo with a valid value for the "vaspect" option in the
+	 * "-mpegopts" command.
+	 *
+	 * Note: Our code never uses a false value for "ratios", so unless any
+	 * plugins rely on it we can simplify things by removing that parameter.
+	 *
+	 * @param ratios
+	 * @return 
+	 */
+	public String getAspectRatioMencoderMpegopts(boolean ratios) {
 		String a = null;
 
-		if (aspect != null) {
-			double ar = Double.parseDouble(aspect);
+		if (aspectRatioDvdIso != null) {
+			double ar = Double.parseDouble(aspectRatioDvdIso);
 
 			if (ar > 1.7 && ar < 1.8) {
 				a = ratios ? "16/9" : "1.777777777777777";
@@ -1673,29 +1705,58 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
+	 * @deprecated use getAspectRatioDvdIso() for the original
+	 * functionality of this method, or use getAspectRatioContainer() for a
+	 * better default method to get aspect ratios.
+	 */
+	@Deprecated
+	public String getAspect() {
+		return getAspectRatioDvdIso();
+	}
+
+	/**
+	 * The aspect ratio for a DVD ISO video track
+	 *
 	 * @return the aspect
 	 * @since 1.50.0
 	 */
-	public String getAspect() {
-		return aspect;
+	public String getAspectRatioDvdIso() {
+		return aspectRatioDvdIso;
+	}
+
+	/**
+	 * @deprecated use setAspectRatioDvdIso() for the original
+	 * functionality of this method, or use setAspectRatioContainer() for a
+	 * better default method to set aspect ratios.
+	 */
+	@Deprecated
+	public void setAspect(String aspect) {
+		setAspectRatioDvdIso(aspect);
 	}
 
 	/**
 	 * @param aspect the aspect to set
 	 * @since 1.50.0
 	 */
-	public void setAspect(String aspect) {
-		this.aspect = aspect;
+	public void setAspectRatioDvdIso(String aspect) {
+		this.aspectRatioDvdIso = aspect;
 	}
 
 	/**
-	 * @return the aspect ratio reported by the container
+	 * Get the aspect ratio reported by the file/container.
+	 * This is the aspect ratio that the renderer should display the video
+	 * at, and is usually the same as the video track aspect ratio.
+	 *
+	 * @return the aspect ratio reported by the file/container
 	 */
 	public String getAspectRatioContainer() {
 		return aspectRatioContainer;
 	}
 
 	/**
+	 * Set the aspect ratio reported by the file/container.
+	 *
+	 * @see #getAspectRatioContainer()
 	 * @param aspect the aspect ratio to set
 	 */
 	public void setAspectRatioContainer(String aspect) {
@@ -1703,6 +1764,11 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
+	 * Get the aspect ratio of the video track.
+	 * This is the actual aspect ratio of the pixels, which is not
+	 * always the aspect ratio that the renderer should display or that we
+	 * should output; that is {@link #getAspectRatioContainer()}
+	 *
 	 * @return the aspect ratio of the video track
 	 */
 	public String getAspectRatioVideoTrack() {

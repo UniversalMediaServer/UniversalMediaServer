@@ -34,8 +34,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Contains the Windows specific native functionality. Do not try to instantiate on Linux/MacOS X !
- * @author zsombor
  *
+ * @author zsombor
  */
 public class WinUtils extends BasicSystemUtils implements SystemUtils {
 	private static final Logger LOGGER = LoggerFactory.getLogger(WinUtils.class);
@@ -332,6 +332,25 @@ public class WinUtils extends BasicSystemUtils implements SystemUtils {
 
 	@Override
 	public String[] getPingCommand(String hostAddress, int count, int packetSize) {
-		return new String[] { "ping", /* count */ "-n" , Integer.toString(count), /* size */ "-l", Integer.toString(packetSize), hostAddress };
+		String cmd = PMS.getConfiguration().pingPath();
+		if (cmd == null) {
+			return new String[]{"ping", /* count */ "-n", Integer.toString(count), /* size */ "-l", Integer.toString(packetSize), hostAddress};
+		} else {
+			return new String[]{cmd, /*warmup */ "-w", "0", "-i", "0", /* count */ "-n", Integer.toString(count), /* size */ "-l", Integer.toString(packetSize), hostAddress};
+		}
+
+	}
+
+	@Override
+	public String parsePingLine(String line) {
+		if (PMS.getConfiguration().pingPath() == null) {
+			return super.parsePingLine(line);
+		}
+		int msPos = line.indexOf("ms");
+
+		if (msPos == -1) {
+			return null;
+		}
+		return line.substring(line.lastIndexOf(':', msPos) + 1, msPos).trim();
 	}
 }

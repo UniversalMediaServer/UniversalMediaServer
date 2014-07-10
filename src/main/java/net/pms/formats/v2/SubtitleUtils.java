@@ -24,20 +24,18 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import org.apache.commons.io.FilenameUtils;
-
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.util.FileUtil;
+import org.apache.commons.io.FilenameUtils;
 import static org.apache.commons.lang3.StringUtils.*;
 import static org.mozilla.universalchardet.Constants.*;
 
 public class SubtitleUtils {
 	private final static PmsConfiguration configuration = PMS.getConfiguration();
 	private final static Map<String, String> fileCharsetToMencoderSubcpOptionMap = new HashMap<String, String>() {
-	private static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = 1L;
 
 		{
 			// Cyrillic / Russian
@@ -89,7 +87,7 @@ public class SubtitleUtils {
 	}
 
 	/**
-	 * Applies codepage conversion to subtitles file 
+	 * Applies codepage conversion to subtitles file
 	 *
 	 * @param fileToConvert Subtitles file to convert
 	 * @param outputSubs Converted subtitles file
@@ -125,7 +123,7 @@ public class SubtitleUtils {
 	}
 
 	/**
-	 * Converts subtitles from the SUBRIP format to the WebVTT format 
+	 * Converts subtitles from the SUBRIP format to the WebVTT format
 	 *
 	 * @param tempSubs Subtitles file to convert
 	 * @return Converted subtitles file
@@ -159,7 +157,7 @@ public class SubtitleUtils {
 				if (countMatches(line, ">") == 1) {
 					line = line.replace(">", "&gt;");
 				}
-				
+
 				if (line.startsWith("{") && line.contains("}")) {
 					line = line.substring(line.indexOf("}") + 1);
 				}
