@@ -1,4 +1,4 @@
-4.0.0-b1 - 2014-07-?? - Changes since 4.0.0-a1
+4.0.0-b1 - 2014-07-11 - Changes since 4.0.0-a1
 
 	General:
 		Added option to automatically adjust the maximum bandwidth by measuring the speed of the connection to the devices
