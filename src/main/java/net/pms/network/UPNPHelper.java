@@ -673,7 +673,7 @@ public class UPNPHelper extends UPNPControl {
 					LOGGER.debug("Validating uri " + uri);
 					DLNAResource d = DLNAResource.getValidResource(uri, metadata, renderer);
 					if (d != null) {
-						uri = d.getURL("");
+						uri = d.getURL("", true);
 						metadata = d.getDidlString(renderer);
 					}
 				}
@@ -924,7 +924,7 @@ public class UPNPHelper extends UPNPControl {
 					if (StringUtils.isBlank(name)) {
 						name = (! StringUtils.isEmpty(metadata) && dctitle.reset(unescape(metadata)).find()) ?
 							dctitle.group(1) :
-							new File(unescape(uri).split("\\?")[0]).getName();
+							new File(StringUtils.substringBefore(unescape(uri), "?")).getName();
 					}
 					return name;
 				}
@@ -946,7 +946,7 @@ public class UPNPHelper extends UPNPControl {
 	}
 
 	public static String unescape(String s) {
-		return StringEscapeUtils.unescapeXml(StringEscapeUtils.unescapeHtml4(s));
+		return StringEscapeUtils.unescapeXml(StringEscapeUtils.unescapeHtml4(URLDecoder.decode(s)));
 	}
 }
 
