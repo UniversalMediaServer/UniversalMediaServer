@@ -139,3 +139,37 @@ ul#Media li a {
 div#FoldersContainer.noFolders {
 	display: none !important;
 }
+
+form#SearchForm {
+	z-index: 3;
+}
+
+#SearchInput {
+	border-radius: 20px;
+	padding: 9px 12px 7px 30px;
+	border: solid 1px #ccc;
+	background-repeat: no-repeat;
+	background-image: url('/files/inputbackground-search.png');
+	background-position: 6px 8px;
+	color: #666;
+	width: 200px;
+	height: 22px;
+}
+
+#SearchSubmit {
+	cursor: pointer;
+	padding: 5px 10px;
+	color: #888;
+	width: 40px;
+	height: 40px;
+	background: none;
+	background-image: url('/files/button-search.png');
+	background-position: 0 -40px;
+	border: none;
+	position: relative;
+	top: -1px;
+}
+
+#SearchSubmit:hover {
+	background-position: 0 0;
+}

@@ -52,6 +52,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 		StringBuilder mediaHtml   = new StringBuilder();
 
 		boolean showFolders = false;
+		boolean hasFile     = false;
 
 		sb.append("<!DOCTYPE html>").append(CRLF);
 			sb.append("<head>").append(CRLF);
@@ -92,11 +93,6 @@ public class RemoteBrowseHandler implements HttpHandler {
 										// is to make legacy plugins utilize this function as well
 										String p = "/browse/" + idForWeb;
 										foldersHtml.append("<a href=\"javascript:void(0);\" onclick=\"searchFun('").append(p).append("');\" title=\"").append(name).append("\">");
-									} else if (PMS.getConfiguration().isWebAlwaysSearch()) {
-										// same as above but we do it on it's own else to make comment
-										// look nice
-										String p = "/browse/" + idForWeb;
-										foldersHtml.append("<a href=\"javascript:void(0);\" onclick=\"searchFun('").append(p).append("');\" title=\"").append(name).append("\">");
 									} else {
 										foldersHtml.append("<a href=\"/browse/").append(idForWeb).append("\" title=\"").append(name).append("\">");
 									}
@@ -113,13 +109,25 @@ public class RemoteBrowseHandler implements HttpHandler {
 									mediaHtml.append("<span>").append(name).append("</span>");
 								mediaHtml.append("</a>").append(CRLF);
 							mediaHtml.append("</li>").append(CRLF);
+
+							hasFile = true;
 						}
 					}
+
+					// Display the search form if the folder is populated
+					if (hasFile) {
+						sb.append("<form id=\"SearchForm\" method=\"get\">");
+							sb.append("<input type=\"text\" id=\"SearchInput\" name=\"str\">");
+							sb.append("<input type=\"submit\" id=\"SearchSubmit\" value=\"&nbsp;\">");
+						sb.append("</form>");
+					}
+
 					String noFoldersCSS = "";
 					if (!showFolders) {
 						noFoldersCSS = " class=\"noFolders\"";
 					}
 					sb.append("<div id=\"FoldersContainer\"").append(noFoldersCSS).append("><div><ul id=\"Folders\">").append(foldersHtml).append("</ul></div></div>");
+
 					if (mediaHtml.length() > 0) {
 						sb.append("<ul id=\"Media\"").append(noFoldersCSS).append(">").append(mediaHtml).append("</ul>");
 					}
