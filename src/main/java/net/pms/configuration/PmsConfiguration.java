@@ -238,7 +238,6 @@ public class PmsConfiguration {
 	private static final String KEY_VLC_SCALE = "vlc_scale";
 	private static final String KEY_VLC_SAMPLE_RATE_OVERRIDE = "vlc_sample_rate_override";
 	private static final String KEY_VLC_SAMPLE_RATE = "vlc_sample_rate";
-	private static final String KEY_WEB_ALWAYS_SEARCH = "web_always_search";
 	private static final String KEY_WEB_AUTHENTICATE = "web_authenticate";
 	private static final String KEY_WEB_CONF_PATH = "web_conf";
 	private static final String KEY_WEB_MP4_TRANS = "web_mp4_trans";
@@ -3012,10 +3011,6 @@ public class PmsConfiguration {
 
 	public boolean isWebMp4Trans() {
 		return getBoolean(KEY_WEB_MP4_TRANS, false);
-	}
-
-	public boolean isWebAlwaysSearch() {
-		return getBoolean(KEY_WEB_ALWAYS_SEARCH, false);
 	}
 
 	public boolean isAutomaticMaximumBitrate() {
