@@ -26,6 +26,7 @@
 		Improved support for DirecTV HR
 		Improved support for Panasonic TVs
 		Improved support for Samsung TVs, Blu-ray players and mobile devices
+		Improved aspect ratios on Sony Bravia EX TVs 
 	External Components:
 		Updated Apache commons-lang to 3.3.2, which:
 			Fixes bugs
