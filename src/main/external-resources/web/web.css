@@ -102,6 +102,10 @@ ul#Media li span {
 	overflow: hidden;
 }
 
+ul#Media li span:hover {
+	text-decoration: underline;
+}
+
 ul li a {
 	text-decoration: none;
 }
