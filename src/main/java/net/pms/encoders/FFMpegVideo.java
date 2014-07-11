@@ -22,16 +22,20 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.nio.charset.Charset;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.ArrayList;
@@ -39,8 +43,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -63,12 +69,17 @@ import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
+
 import org.apache.commons.io.FileUtils;
+
 import static net.pms.util.StringUtil.*;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -140,7 +151,13 @@ public class FFMpegVideo extends Player {
 		if (!isDisableSubtitles(params)) {
 			StringBuilder subsFilter = new StringBuilder();
 			if (params.sid.getType().isText()) {
-				String subsFilename = params.sid.isEmbedded() ? dlna.getSystemName() : params.sid.getExternalFile().getAbsolutePath();
+				String subsFilename = null;
+				if (configuration.isFFmpegFontConfig()) {
+					subsFilename = getSubtitles(dlna, media, params).getAbsolutePath();
+				} else {
+					subsFilename = params.sid.isEmbedded() ? dlna.getSystemName() : params.sid.getExternalFile().getAbsolutePath();
+				}
+				
 				if (subsFilename != null) {
 					StringBuilder s = new StringBuilder();
 					CharacterIterator it = new StringCharacterIterator(subsFilename);
@@ -163,13 +180,18 @@ public class FFMpegVideo extends Player {
 
 					String subsFile = s.toString();
 					subsFile = subsFile.replace(",", "\\,");
-					subsFilter.append("subtitles=");
-					subsFilter.append(subsFile);
-					if (params.sid.isExternal() && params.sid.getType() != SubtitleType.ASS) {// correct the font size
-						subsFilter.append(" ");
-						subsFilter.append(media.getWidth());
-						subsFilter.append("x");
-						subsFilter.append(media.getHeight());
+					subsFilter.append("subtitles=").append(subsFile);
+					if (params.sid.isExternal() && params.sid.getType() != SubtitleType.ASS) {
+						subsFilter.append(":").append(media.getWidth()).append("x").append(media.getHeight());
+						if (!params.sid.isExternalFileUtf8()) { // Set the input subtitles character encoding if not UTF-8
+							String encoding = isNotBlank(configuration.getSubtitlesCodepage()) ?
+									configuration.getSubtitlesCodepage() : params.sid.getExternalFileCharacterSet() != null ?
+									params.sid.getExternalFileCharacterSet() : null;
+							if (encoding != null) {
+								subsFilter.append(":").append(encoding);
+							}
+							
+						}
 					}
 
 					if (params.sid.isEmbedded()) {
@@ -1195,6 +1217,7 @@ public class FFMpegVideo extends Player {
 
 		if (!FileUtil.isFileUTF8(tempSubs)) {
 			tempSubs = SubtitleUtils.applyCodepageConversion(tempSubs, convertedSubs);
+			params.sid.setExternalFileCharacterSet(FileUtil.getFileCharset(tempSubs));
 		} else {
 			FileUtils.copyFile(tempSubs, convertedSubs);
 			tempSubs = convertedSubs;
@@ -1204,6 +1227,7 @@ public class FFMpegVideo extends Player {
 		if (applyFontConfig) {
 			try {
 				tempSubs = applyFontconfigToASSTempSubsFile(tempSubs, media);
+				params.sid.setExternalFileCharacterSet(FileUtil.getFileCharset(tempSubs));
 			} catch (IOException e) {
 				LOGGER.debug("Applying subs setting ends with error: " + e);
 				return null;
