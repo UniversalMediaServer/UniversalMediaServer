@@ -144,7 +144,6 @@ public class FFMpegVideo extends Player {
 				if (subsFilename != null) {
 					StringBuilder s = new StringBuilder();
 					CharacterIterator it = new StringCharacterIterator(subsFilename);
-
 					for (char ch = it.first(); ch != CharacterIterator.DONE; ch = it.next()) {
 						switch (ch) {
 							case ':':
@@ -165,11 +164,17 @@ public class FFMpegVideo extends Player {
 					String subsFile = s.toString();
 					subsFile = subsFile.replace(",", "\\,");
 					subsFilter.append("subtitles=");
-					String subsID = "";
-					if (params.sid.isEmbedded()) {
-						subsID = ":si=" + media.getSubtitleTracksList().indexOf(params.sid);
+					subsFilter.append(subsFile);
+					if (params.sid.isExternal() && params.sid.getType() != SubtitleType.ASS) {// correct the font size
+						subsFilter.append(" ");
+						subsFilter.append(media.getWidth());
+						subsFilter.append("x");
+						subsFilter.append(media.getHeight());
 					}
-					subsFilter.append(subsFile + subsID);
+
+					if (params.sid.isEmbedded()) {
+						subsFilter.append(":si=" + media.getSubtitleTracksList().indexOf(params.sid));
+					}
 					
 				}
 
@@ -723,7 +728,7 @@ public class FFMpegVideo extends Player {
 
 		cmdList.add("-loglevel");
 		if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
-			cmdList.add("info"); // Could be changed to "verbose" or "debug" if "info" level is not enough
+			cmdList.add("verbose"); // Could be changed to "verbose" or "debug" if "info" level is not enough
 		} else {
 			cmdList.add("fatal");
 		}
