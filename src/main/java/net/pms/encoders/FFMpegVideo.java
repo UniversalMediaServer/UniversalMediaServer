@@ -22,16 +22,22 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
+
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.nio.charset.Charset;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.ArrayList;
@@ -39,8 +45,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -63,12 +71,18 @@ import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
+
 import org.apache.commons.io.FileUtils;
+
 import static net.pms.util.StringUtil.*;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.mozilla.universalchardet.Constants.CHARSET_UTF_8;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -170,8 +184,8 @@ public class FFMpegVideo extends Player {
 					String subsFile = s.toString();
 					subsFile = subsFile.replace(",", "\\,");
 					subsFilter.append("subtitles=").append(subsFile);
-					if (params.sid.isExternal() && params.sid.getType() != SubtitleType.ASS) {
-						subsFilter.append(":").append(media.getWidth()).append("x").append(media.getHeight());
+					if (params.sid.isExternal() && params.sid.getType() != SubtitleType.ASS || configuration.isFFmpegFontConfig()) {
+						subsFilter.append(":384x288"); 
 						if (!params.sid.isExternalFileUtf8()) { // Set the input subtitles character encoding if not UTF-8
 							String encoding = isNotBlank(configuration.getSubtitlesCodepage()) ?
 									configuration.getSubtitlesCodepage() : params.sid.getExternalFileCharacterSet() != null ?
@@ -1172,6 +1186,7 @@ public class FFMpegVideo extends Player {
 			// subs are already converted
 			if (applyFontConfig || isEmbeddedSource) {
 				params.sid.setType(SubtitleType.ASS);
+				params.sid.setExternalFileCharacterSet(CHARSET_UTF_8);
 			}
 
 			return convertedSubs;
@@ -1205,8 +1220,14 @@ public class FFMpegVideo extends Player {
 		}
 
 		if (!FileUtil.isFileUTF8(tempSubs)) {
-			tempSubs = SubtitleUtils.applyCodepageConversion(tempSubs, convertedSubs);
-			params.sid.setExternalFileCharacterSet(FileUtil.getFileCharset(tempSubs));
+			try {
+				tempSubs = SubtitleUtils.applyCodepageConversion(tempSubs, convertedSubs);
+				params.sid.setExternalFileCharacterSet(CHARSET_UTF_8);
+			} catch (IOException ex) {
+				params.sid.setExternalFileCharacterSet(null);
+				LOGGER.warn("Exception during external file charset detection.", ex);
+			}
+			
 		} else {
 			FileUtils.copyFile(tempSubs, convertedSubs);
 			tempSubs = convertedSubs;
@@ -1216,7 +1237,7 @@ public class FFMpegVideo extends Player {
 		if (applyFontConfig) {
 			try {
 				tempSubs = applyFontconfigToASSTempSubsFile(tempSubs, media);
-				params.sid.setExternalFileCharacterSet(FileUtil.getFileCharset(tempSubs));
+				params.sid.setExternalFileCharacterSet(CHARSET_UTF_8);
 			} catch (IOException e) {
 				LOGGER.debug("Applying subs setting ends with error: " + e);
 				return null;
@@ -1312,9 +1333,17 @@ public class FFMpegVideo extends Player {
 		StringBuilder outputString = new StringBuilder();
 		File temp = new File(configuration.getTempFolder(), tempSubs.getName() + ".tmp");
 		FileUtils.copyFile(tempSubs, temp);
-		BufferedWriter output;
-		try (BufferedReader input = new BufferedReader(new FileReader(temp))) {
-			output = new BufferedWriter(new FileWriter(outputSubs));
+		String subsFileCharset = FileUtil.getFileCharset(temp);
+		BufferedReader input;
+		final boolean isSubtitlesCodepageAutoDetectedAndSupportedByJVM = isNotBlank(subsFileCharset) && Charset.isSupported(subsFileCharset);
+		if (isSubtitlesCodepageAutoDetectedAndSupportedByJVM) {
+			input = new BufferedReader(new InputStreamReader(new FileInputStream(temp), Charset.forName(subsFileCharset)));
+		} else {
+			input = new BufferedReader(new InputStreamReader(new FileInputStream(temp)));
+		}
+
+		BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), CHARSET_UTF_8));
+		try  {
 			String line;
 			String[] format = null;
 			int i;
@@ -1393,10 +1422,13 @@ public class FFMpegVideo extends Player {
 				outputString.append(line).append("\n");
 				output.write(outputString.toString());
 			}
+		} finally  {
+			input.close();
+			output.flush();
+			output.close();
+			temp.deleteOnExit();
 		}
-		output.flush();
-		output.close();
-		temp.deleteOnExit();
+		
 		return outputSubs;
 	}
 
