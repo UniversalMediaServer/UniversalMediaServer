@@ -86,7 +86,7 @@ public class WebRender extends RendererConfiguration {
 	}
 
 	@Override
-	public boolean folderLimit() {
+	public boolean isLimitFolders() {
 		// no folder limit on the web clients
 		return false;
 	}

@@ -1,14 +1,13 @@
 package net.pms.remote;
 
+import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.util.List;
-
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
@@ -59,7 +58,7 @@ public class RemotePlayHandler implements HttpHandler {
 		String mime = root.getDefaultRenderer().getMimeType(r.mimeType());
 		String mediaType = "";
 		String coverImage = "";
-		if(r instanceof VirtualVideoAction) {
+		if (r instanceof VirtualVideoAction) {
 			// for VVA we just call the enable fun directly
 			// waste of resource to play dummy video
 			((VirtualVideoAction) r).enable();
@@ -207,6 +206,8 @@ public class RemotePlayHandler implements HttpHandler {
 		String id;
 		id = RemoteUtil.getId("play/", t);
 		String response = mkPage(id, t);
+		Headers hdr = t.getResponseHeaders();
+		hdr.add("Content-Type", "text/html");
 		LOGGER.debug("play page " + response);
 		t.sendResponseHeaders(200, response.length());
 		try (OutputStream os = t.getResponseBody()) {

@@ -1016,9 +1016,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	private boolean shouldRefresh(String searchStr) {
-		return (searchStr == null && lastSearch != null) || 
-		(searchStr !=null && !searchStr.equals(lastSearch)) ||
-		isRefreshNeeded();
+		return isRefreshNeeded();
 	}
 
 	@Override
@@ -1048,10 +1046,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				if (indexPath.length == 1 || indexPath[1].length() == 0) {
 					return this;
 				} else {
-					discoverWithRenderer(renderer, count, false, searchStr);
+					discoverWithRenderer(renderer, count, false, null);
 
 					for (DLNAResource file : children) {
-						DLNAResource found = file.search(indexPath[1], count, renderer, searchStr);
+						DLNAResource found = file.search(indexPath[1], count, renderer, null);
 						if (found != null) {
 							// Make sure it's ready
 							found.resolve();

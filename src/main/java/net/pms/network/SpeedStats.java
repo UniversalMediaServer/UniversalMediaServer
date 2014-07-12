@@ -32,17 +32,18 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Network speed tester class. This can be used in an asynchronous way, as it returns Future objects.
- * 
+ *
  * Future<Integer> speed = SpeedStats.getInstance().getSpeedInMBits(addr);
- * 
- *  @see Future
- * 
+ *
+ * @see Future
+ *
  * @author zsombor <gzsombor@gmail.com>
  *
  */
 public class SpeedStats {
 	private static SpeedStats instance = new SpeedStats();
 	private static ExecutorService executor = Executors.newCachedThreadPool();
+
 	public static SpeedStats getInstance() {
 		return instance;
 	}
@@ -54,7 +55,7 @@ public class SpeedStats {
 	public Future<Integer> getSpeedInMBitsStored(InetAddress addr, String rendererName) {
 		// only look in the store
 		// if no pings are done resort to conf values
-		synchronized(speedStats) {
+		synchronized (speedStats) {
 			return speedStats.get(addr.getHostAddress());
 		}
 	}
@@ -66,10 +67,10 @@ public class SpeedStats {
 	 * @param addr
 	 * @param rendererName
 	 *
-	 * @return  The network throughput
+	 * @return The network throughput
 	 */
 	public Future<Integer> getSpeedInMBits(InetAddress addr, String rendererName) {
-		synchronized(speedStats) { 
+		synchronized (speedStats) {
 			Future<Integer> value = speedStats.get(addr.getHostAddress());
 			if (value != null) {
 				return value;
@@ -104,7 +105,7 @@ public class SpeedStats {
 			LOGGER.info("Checking IP: " + ip + " for " + rendererName);
 			// calling the canonical host name the first time is slow, so we call it in a separate thread
 			String hostname = addr.getCanonicalHostName();
-			synchronized(speedStats) {
+			synchronized (speedStats) {
 				Future<Integer> otherTask = speedStats.get(hostname);
 				if (otherTask != null) {
 					// wait a little bit
@@ -122,7 +123,6 @@ public class SpeedStats {
 				}
 			}
 
-			
 			if (!ip.equals(hostname)) {
 				LOGGER.info("Renderer " + rendererName + " found on this address: " + hostname + " (" + ip + ")");
 			} else {
@@ -133,16 +133,16 @@ public class SpeedStats {
 			double bps = 0;
 			int cnt = 0;
 
-			for(int i=0; i < sizes.length; i++) {
+			for (int i = 0; i < sizes.length; i++) {
 				double p = doPing(sizes[i]);
 				if (p != 0) {
 					bps += p;
 					cnt++;
 				}
 			}
-			int speedInMbits = (int)(bps  / (cnt * 1000000));
+			int speedInMbits = (int) (bps / (cnt * 1000000));
 			LOGGER.info("Address " + addr + " has an estimated network speed of: " + speedInMbits + " Mb/s");
-			synchronized(speedStats) {
+			synchronized (speedStats) {
 				CompletedFuture<Integer> result = new CompletedFuture<>(speedInMbits);
 				// update the statistics with a computed future value
 				speedStats.put(ip, result);
@@ -194,8 +194,8 @@ public class SpeedStats {
 			if (c > 0) {
 				time /= c;
 				int frags = ((size + 8) / 1500) + 1;
-				LOGGER.debug("est speed for " + size + " "+frags +" is " + ((size + 8 + (frags * 32)) * 8000 * 2)  / time);
-				return ((size + 8 + (frags * 32)) * 8000 * 2)  / time ;
+				LOGGER.debug("est speed for " + size + " " + frags + " is " + ((size + 8 + (frags * 32)) * 8000 * 2) / time);
+				return ((size + 8 + (frags * 32)) * 8000 * 2) / time;
 			}
 			return time;
 		}
@@ -204,7 +204,7 @@ public class SpeedStats {
 
 	static class CompletedFuture<X> implements Future<X> {
 		X value;
-		
+
 		public CompletedFuture(X value) {
 			this.value = value;
 		}

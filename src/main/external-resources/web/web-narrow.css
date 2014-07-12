@@ -17,3 +17,9 @@ ul#Media {
 	width: 100%;
 	z-index: 2;
 }
+
+form#SearchForm {
+	position: absolute;
+	top: 27px;
+	right: 20px;
+}

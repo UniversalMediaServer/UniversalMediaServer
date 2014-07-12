@@ -367,6 +367,8 @@ public class RemoteWeb {
 			sb.append("</html>");
 
 			String response = sb.toString();
+			Headers hdr = t.getResponseHeaders();
+			hdr.add("Content-Type", "text/html");
 			t.sendResponseHeaders(200, response.length());
 			try (OutputStream os = t.getResponseBody()) {
 				os.write(response.getBytes());
