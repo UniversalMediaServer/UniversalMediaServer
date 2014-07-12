@@ -61,7 +61,7 @@ body#ContentPage {
 	background:		url('/files/settings.png') no-repeat;
 	width:			32px;
 	height:			32px;
-	position: fixed;
+	position: absolute;
 	top: 3px;
 	right: 3px;
 	display: block;
