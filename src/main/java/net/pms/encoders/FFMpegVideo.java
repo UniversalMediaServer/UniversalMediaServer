@@ -22,7 +22,6 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -31,8 +30,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -45,10 +42,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
-
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -71,18 +66,13 @@ import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
-
 import org.apache.commons.io.FileUtils;
-
 import static net.pms.util.StringUtil.*;
-
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.mozilla.universalchardet.Constants.CHARSET_UTF_8;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -160,7 +150,7 @@ public class FFMpegVideo extends Player {
 				} else {
 					subsFilename = params.sid.isEmbedded() ? dlna.getSystemName() : params.sid.getExternalFile().getAbsolutePath();
 				}
-				
+
 				if (subsFilename != null) {
 					StringBuilder s = new StringBuilder();
 					CharacterIterator it = new StringCharacterIterator(subsFilename);
@@ -1378,7 +1368,6 @@ public class FFMpegVideo extends Player {
 					continue;
 				}
 
-
 				if (line != null && line.contains("Style: Default")) {
 					String[] params = line.split(",");
 
@@ -1428,7 +1417,7 @@ public class FFMpegVideo extends Player {
 			output.close();
 			temp.deleteOnExit();
 		}
-		
+
 		return outputSubs;
 	}
 
