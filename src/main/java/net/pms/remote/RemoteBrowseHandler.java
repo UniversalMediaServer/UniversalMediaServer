@@ -8,8 +8,11 @@ import java.net.URLEncoder;
 import java.util.List;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.dlna.DLNAMediaAudio;
+import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
+import net.pms.util.StringUtil;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -36,6 +39,32 @@ public class RemoteBrowseHandler implements HttpHandler {
 		return null;
 	}
 
+	private void postSearch(List<DLNAResource> files, String searchCriteria) {
+		for (int i = files.size() - 1; i >= 0; i--) {
+			DLNAResource res = files.get(i);
+
+			if (res.isSearched()) {
+				continue;
+			}
+
+			boolean keep = res.getName().toLowerCase().indexOf(searchCriteria) != -1;
+			final DLNAMediaInfo media = res.getMedia();
+
+			if (media!=null) {
+				for (int j = 0;j < media.getAudioTracksList().size(); j++) {
+					DLNAMediaAudio audio = media.getAudioTracksList().get(j);
+					keep |= audio.getAlbum().toLowerCase().indexOf(searchCriteria) != -1;
+					keep |= audio.getArtist().toLowerCase().indexOf(searchCriteria) != -1;
+					keep |= audio.getSongname().toLowerCase().indexOf(searchCriteria) != -1;
+				}
+			}
+
+			if (!keep) { // dump it
+				files.remove(i);
+			}
+		}
+	}
+
 	private String mkBrowsePage(String id, HttpExchange t) throws IOException {
 		String user = RemoteUtil.userName(t);
 		RootFolder root = parent.getRoot(user, true, t);
@@ -45,6 +74,9 @@ public class RemoteBrowseHandler implements HttpHandler {
 			search = getSearchStr(vars);
 		}
 		List<DLNAResource> res = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), search);
+		if (StringUtils.isNotEmpty(search)) {
+			postSearch(res, search);
+		}
 
 		// Media browser HTML
 		StringBuilder sb          = new StringBuilder();
