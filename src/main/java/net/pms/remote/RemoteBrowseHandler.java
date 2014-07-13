@@ -86,15 +86,15 @@ public class RemoteBrowseHandler implements HttpHandler {
 							if (!name.equals(Messages.getString("TranscodeVirtualFolder.0"))) {
 								// The resource is a folder
 								foldersHtml.append("<li>");
+								String p = "/browse/" + idForWeb;
 									if (r.getClass().getName().contains("SearchFolder")) {
 										// search folder add a prompt
 										// NOTE!!!
 										// Yes doing getClass.getname is REALLY BAD, but this
 										// is to make legacy plugins utilize this function as well
-										String p = "/browse/" + idForWeb;
 										foldersHtml.append("<a href=\"javascript:void(0);\" onclick=\"searchFun('").append(p).append("');\" title=\"").append(name).append("\">");
 									} else {
-										foldersHtml.append("<a href=\"/browse/").append(idForWeb).append("\" title=\"").append(name).append("\">");
+										foldersHtml.append("<a href=\"/browse/").append(idForWeb).append("\" oncontextmenu=\"searchFun('").append(p).append("');\"title=\"").append(name).append("\">");
 									}
 									foldersHtml.append("<span>").append(name).append("</span>");
 									foldersHtml.append("</a>").append(CRLF);
