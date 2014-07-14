@@ -98,6 +98,12 @@ public class UPNPHelper extends UPNPControl {
 		return instance;
 	}
 
+	@Override
+	public void init() {
+		super.init();
+		getHttpControlHandler();
+	}
+
 	public static PlayerControlHandler getHttpControlHandler() {
 		if (httpControlHandler == null && PMS.get().getWebServer() != null &&
 				! "false".equals(configuration.getBumpAddress().toLowerCase())) {
@@ -607,10 +613,6 @@ public class UPNPHelper extends UPNPControl {
 
 	@Override
 	protected void rendererReady(String uuid) {
-		Renderer r = rendererMap.get(uuid, "0");
-		if (r.hasPlayControls()) {
-			getHttpControlHandler();
-		}
 	}
 
 	public static void play(String uri, String name, RendererConfiguration r) {
