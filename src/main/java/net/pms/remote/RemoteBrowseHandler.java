@@ -90,10 +90,6 @@ public class RemoteBrowseHandler implements HttpHandler {
 			sb.append("</head>").append(CRLF);
 			sb.append("<body id=\"ContentPage\">").append(CRLF);
 				sb.append("<div id=\"Container\">");
-					sb.append("<div id=\"Menu\">");
-						sb.append("<a href=\"/doc\" id=\"DocButton\" title=\"Documentation\"></a>");
-						sb.append("<a href=\"/browse/0\" id=\"HomeButton\"></a>");
-					sb.append("</div>");
 					for (DLNAResource r : res) {
 						String newId = r.getResourceId();
 						String idForWeb = URLEncoder.encode(newId, "UTF-8");
@@ -128,14 +124,12 @@ public class RemoteBrowseHandler implements HttpHandler {
 									mediaHtml.append("<span>").append(name).append("</span>");
 								mediaHtml.append("</a>").append(CRLF);
 								if (upnpControl) {
-									mediaHtml.append("<a href=\"javascript:bump.start('//")
+									mediaHtml.append("<a id=\"bumpicon\" href=\"javascript:bump.start('//")
 										.append(parent.getAddress()).append("','/play/").append(idForWeb).append("','")
-										.append(name.replace("'", "\\'")).append("')\" title=\"").append("Play on another renderer")
-										.append("\"><img src=\"/files/bump/bump16.png\" alt=\"bump\"></a>").append(CRLF);
+										.append(name.replace("'", "\\'")).append("')\" title=\"").append("Play on another renderer").append("\"></a>").append(CRLF);
 								} else {
-									mediaHtml.append("<a href=\"javascript:alert('").append("No upnp-controllable renderers suitable for receiving pushed media are available. Refresh this page if a new renderer may have recently connected.")
-										.append("')\" title=\"").append("No other renderers available")
-										.append("\"><img src=\"/files/bump/bump16.png\" style=\"opacity:0.3;cursor:default\" alt=\"bump\"></a>").append(CRLF);
+									mediaHtml.append("<a id=\"bumpicon\" class=\"icondisabled\" href=\"javascript:alert('").append("No upnp-controllable renderers suitable for receiving pushed media are available. Refresh this page if a new renderer may have recently connected.")
+										.append("')\" title=\"No other renderers available\"></a>").append(CRLF);
 								}
 							mediaHtml.append("</li>").append(CRLF);
 
@@ -143,13 +137,17 @@ public class RemoteBrowseHandler implements HttpHandler {
 						}
 					}
 
-					// Display the search form if the folder is populated
-					if (hasFile) {
-						sb.append("<form id=\"SearchForm\" method=\"get\">");
-							sb.append("<input type=\"text\" id=\"SearchInput\" name=\"str\">");
-							sb.append("<input type=\"submit\" id=\"SearchSubmit\" value=\"&nbsp;\">");
-						sb.append("</form>");
-					}
+					sb.append("<div id=\"Menu\">");
+						sb.append("<a href=\"/browse/0\" id=\"HomeButton\"></a>");
+						// Display the search form if the folder is populated
+						if (hasFile) {
+							sb.append("<form id=\"SearchForm\" method=\"get\">");
+								sb.append("<input type=\"text\" id=\"SearchInput\" name=\"str\">");
+								sb.append("<input type=\"submit\" id=\"SearchSubmit\" title=\"Search\" value=\"&nbsp;\">");
+							sb.append("</form>");
+						}
+						sb.append("<a href=\"/doc\" id=\"DocButton\" title=\"Documentation\"></a>");
+					sb.append("</div>");
 
 					String noFoldersCSS = "";
 					if (!showFolders) {

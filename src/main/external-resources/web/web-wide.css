@@ -44,8 +44,3 @@ div#FoldersContainer div {
 	position: relative;
 }
 
-form#SearchForm {
-	position: fixed;
-	top: 27px;
-	right: 20px;
-}
