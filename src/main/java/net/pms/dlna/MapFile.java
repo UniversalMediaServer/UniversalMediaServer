@@ -251,9 +251,7 @@ public class MapFile extends DLNAResource {
 				});
 				break;
 			case 5: // Random
-				// in random we sort directories in the default fashion
-				// after this is done. we add the directories and then shuffle the
-				// remaining files
+				// Random sort is applied later to files only - see discoverChildren(String str) below
 			case 0:
 				// same as default
 			default: // Locale-sensitive A-Z

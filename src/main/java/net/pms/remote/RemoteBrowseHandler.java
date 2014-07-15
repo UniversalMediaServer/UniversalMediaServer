@@ -1,5 +1,6 @@
 package net.pms.remote;
 
+import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
@@ -162,6 +163,8 @@ public class RemoteBrowseHandler implements HttpHandler {
 		String id = RemoteUtil.getId("browse/", t);
 		LOGGER.debug("Found id " + id);
 		String response = mkBrowsePage(id, t);
+		Headers hdr = t.getResponseHeaders();
+		hdr.add("Content-Type", "text/html");
 		writePage(response, t);
 	}
 }
