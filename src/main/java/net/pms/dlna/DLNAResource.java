@@ -1008,9 +1008,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	private boolean shouldRefresh(String searchStr) {
-		return (searchStr == null && lastSearch != null) || 
-		(searchStr !=null && !searchStr.equals(lastSearch)) ||
-		isRefreshNeeded();
+		return isRefreshNeeded();
 	}
 
 	@Override

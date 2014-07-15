@@ -92,10 +92,6 @@ public class MapFile extends DLNAResource {
 	private void manageFile(File f, String str) {
 		if (f.isFile() || f.isDirectory()) {
 			String lcFilename = f.getName().toLowerCase();
-			if (str != null && !lcFilename.contains(str)) {
-				// this is not searched for
-				return;
-			}
 
 			if (!f.isHidden()) {
 				if (configuration.isArchiveBrowsing() && (lcFilename.endsWith(".zip") || lcFilename.endsWith(".cbz"))) {
@@ -217,7 +213,6 @@ public class MapFile extends DLNAResource {
 	private void sort(List<File> files) {
 		switch (configuration.getSortMethod()) {
 			case 5: // Random
-				Collections.shuffle(files, new Random(System.currentTimeMillis()));
 				break;
 			case 4: // Locale-sensitive natural sort
 				Collections.sort(files, new Comparator<File>() {
@@ -279,9 +274,6 @@ public class MapFile extends DLNAResource {
 	@Override
 	public void discoverChildren(String str) {
 		//super.discoverChildren(str);
-		if (str != null) {
-			str = str.toLowerCase();
-		}
 
 		if (discoverable == null) {
 			discoverable = new ArrayList<>();
@@ -344,9 +336,7 @@ public class MapFile extends DLNAResource {
 		
 		for (File f : files) {
 			if (f.isDirectory()) {
-				if (str == null || f.getName().toLowerCase().contains(str)) {
-					discoverable.add(f); // manageFile(f);
-				}
+				discoverable.add(f); // manageFile(f);
 			}
 		}
 
@@ -357,9 +347,7 @@ public class MapFile extends DLNAResource {
 
 		for (File f : files) {
 			if (f.isFile()) {
-				if (str == null || f.getName().toLowerCase().contains(str)) {
-					discoverable.add(f); // manageFile(f);
-				}
+				discoverable.add(f); // manageFile(f);
 			}
 		}
 	}
@@ -394,12 +382,6 @@ public class MapFile extends DLNAResource {
 
 			if (isNeedMatching && !found) {
 				removedFiles.add(d);
-			} else if (str != null && found) {
-				String s = d.getName().toLowerCase();
-				if (!s.contains(str)) {
-					// new search, this doesn't match
-					removedFiles.add(d);
-				}
 			}
 		}
 
@@ -562,8 +544,8 @@ public class MapFile extends DLNAResource {
 		this.potentialCover = potentialCover;
 	}
 
-	@Override
+	/*@Override
 	public boolean isSearched() {
 		return true;
-	}
+	} */
 }
