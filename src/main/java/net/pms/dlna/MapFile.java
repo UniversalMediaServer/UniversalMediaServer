@@ -212,8 +212,6 @@ public class MapFile extends DLNAResource {
 
 	private void sort(List<File> files) {
 		switch (configuration.getSortMethod()) {
-			case 5: // Random
-				break;
 			case 4: // Locale-sensitive natural sort
 				Collections.sort(files, new Comparator<File>() {
 					@Override
@@ -252,6 +250,12 @@ public class MapFile extends DLNAResource {
 					}
 				});
 				break;
+			case 5: // Random
+				// in random we sort directories in the default fashion
+				// after this is done. we add the directories and then shuffle the
+				// remaining files
+			case 0:
+				// same as default
 			default: // Locale-sensitive A-Z
 				Collections.sort(files, new Comparator<File>() {
 					@Override
