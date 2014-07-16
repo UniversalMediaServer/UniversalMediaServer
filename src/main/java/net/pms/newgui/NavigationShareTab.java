@@ -38,6 +38,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaDatabase;
+import net.pms.dlna.MapFile;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.KeyedComboBoxModel;
 import org.slf4j.Logger;
@@ -498,13 +499,13 @@ public class NavigationShareTab {
 		// File order
 		final KeyedComboBoxModel kcbm = new KeyedComboBoxModel(
 			new Object[]{
-				"0", // alphabetical
-				"4", // natural sort
-				"3", // ASCIIbetical
-				"1", // newest first
-				"2", // oldest first
-				"5",  // random
-				"6"   // no sorting
+				String.valueOf(MapFile.SORT_LOC_SENS), // alphabetical
+				String.valueOf(MapFile.SORT_LOC_NAT), // natural sort
+				String.valueOf(MapFile.SORT_INS_ASCII), // ASCIIbetical
+				String.valueOf(MapFile.SORT_MOD_NEW), // newest first
+				String.valueOf(MapFile.SORT_MOD_OLD), // oldest first
+				String.valueOf(MapFile.SORT_RANDOM),  // random
+				String.valueOf(MapFile.SORT_NO_SORT)   // no sorting
 			},
 			new Object[]{
 				Messages.getString("FoldTab.15"),
@@ -518,7 +519,7 @@ public class NavigationShareTab {
 		);
 		sortmethod = new JComboBox(kcbm);
 		sortmethod.setEditable(false);
-		kcbm.setSelectedKey("" + configuration.getSortMethod());
+		kcbm.setSelectedKey("" + configuration.getSortMethod(null));
 
 		sortmethod.addItemListener(new ItemListener() {
 			@Override

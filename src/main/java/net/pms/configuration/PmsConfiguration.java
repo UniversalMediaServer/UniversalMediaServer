@@ -31,6 +31,7 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.dlna.MapFile;
 import net.pms.io.SystemUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.FileUtil.FileLocation;
@@ -212,6 +213,7 @@ public class PmsConfiguration {
 	private static final String KEY_SKIP_LOOP_FILTER_ENABLED = "mencoder_skip_loop_filter";
 	private static final String KEY_SKIP_NETWORK_INTERFACES = "skip_network_interfaces";
 	private static final String KEY_SORT_METHOD = "sort_method";
+	private static final String KEY_SORT_PATHS = "sort_paths";
 	private static final String KEY_SPEED_DBG = "speed_debug";
 	private static final String KEY_SUBS_COLOR = "subtitles_color";
 	private static final String KEY_SUBTITLES_CODEPAGE = "subtitles_codepage";
@@ -261,6 +263,7 @@ public class PmsConfiguration {
 	private final ConfigurationReader configurationReader;
 	private final TempFolder tempFolder;
 	private final ProgramPaths programPaths;
+	private HashMap<String,Integer> sortMethods;
 
 	private final IpFilter filter = new IpFilter();
 
@@ -482,9 +485,30 @@ public class PmsConfiguration {
 		// Set DEFAULT_AVI_SYNTH_SCRIPT according to language
 		DEFAULT_AVI_SYNTH_SCRIPT = "<movie>\n<sub>\n";
 
+		setupSortMethods();
 		long usableMemory = (Runtime.getRuntime().maxMemory() / 1048576) - BUFFER_MEMORY_FACTOR;
 		if (usableMemory > MAX_MAX_MEMORY_DEFAULT_SIZE) {
 			MAX_MAX_MEMORY_BUFFER_SIZE = (int) usableMemory;
+		}
+	}
+
+	private void setupSortMethods() {
+		sortMethods = new HashMap<>();
+		String raw = getString(KEY_SORT_PATHS, null);
+		if (StringUtils.isEmpty(raw)) {
+			return;
+		}
+		String[] tmp = raw.split(" ");
+		for (int i = 0; i < tmp.length; i++) {
+			String[] kv = tmp[i].split(",");
+			if (kv.length < 2) {
+				continue;
+			}
+			try {
+				sortMethods.put(kv[0], Integer.parseInt(kv[1]));
+			} catch (NumberFormatException e) {
+				// just ignore this
+			}
 		}
 	}
 
@@ -2135,8 +2159,16 @@ public class PmsConfiguration {
 	 * Default value is 4.
 	 * @return The sort method
 	 */
-	public int getSortMethod() {
-		return getInt(KEY_SORT_METHOD, 4);
+	public int getSortMethod(File path) {
+		int ret = getInt(KEY_SORT_METHOD, MapFile.SORT_LOC_NAT);
+		while(path != null) {
+			if (sortMethods.get(path.getAbsolutePath()) != null) {
+				ret = sortMethods.get(path.getAbsolutePath());
+				break;
+			}
+			path = path.getParentFile();
+		}
+		return ret;
 	}
 
 	/**

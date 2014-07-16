@@ -204,7 +204,7 @@ public class PlaylistFolder extends DLNAResource {
 			PMS.get().storeFileInCache(getPlaylistfile(), Format.PLAYLIST);
 		}
 
-		if (configuration.getSortMethod() == 5) {
+		if (configuration.getSortMethod(getPlaylistfile()) == MapFile.SORT_RANDOM) {
 			Collections.shuffle(getChildren());
 		}
 

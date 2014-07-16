@@ -51,6 +51,15 @@ public class MapFile extends DLNAResource {
 
 	private ArrayList<RealFile> searchList;
 
+	// Sort constants
+	public static final int SORT_LOC_SENS =  0;
+	public static final int SORT_MOD_NEW =   1;
+	public static final int SORT_MOD_OLD =   2;
+	public static final int SORT_INS_ASCII = 3;
+	public static final int SORT_LOC_NAT =   4;
+	public static final int SORT_RANDOM =    5;
+	public static final int SORT_NO_SORT =   6;
+
 	/**
 	 * @deprecated Use standard getter and setter to access this variable.
 	 */
@@ -210,11 +219,11 @@ public class MapFile extends DLNAResource {
 		return filename;
 	}
 
-	private void sort(List<File> files) {
-		switch (configuration.getSortMethod()) {
-			case 6: // no sorting
+	private void sort(List<File> files, int method) {
+		switch (method) {
+			case SORT_NO_SORT: // no sorting
 				break;
-			case 4: // Locale-sensitive natural sort
+			case SORT_LOC_NAT: // Locale-sensitive natural sort
 				Collections.sort(files, new Comparator<File>() {
 					@Override
 					public int compare(File f1, File f2) {
@@ -225,7 +234,7 @@ public class MapFile extends DLNAResource {
 					}
 				});
 				break;
-			case 3: // Case-insensitive ASCIIbetical sort
+			case SORT_INS_ASCII: // Case-insensitive ASCIIbetical sort
 				Collections.sort(files, new Comparator<File>() {
 					@Override
 					public int compare(File f1, File f2) {
@@ -236,7 +245,7 @@ public class MapFile extends DLNAResource {
 					}
 				});
 				break;
-			case 2: // Sort by modified date, oldest first
+			case SORT_MOD_OLD: // Sort by modified date, oldest first
 				Collections.sort(files, new Comparator<File>() {
 					@Override
 					public int compare(File f1, File f2) {
@@ -244,7 +253,7 @@ public class MapFile extends DLNAResource {
 					}
 				});
 				break;
-			case 1: // Sort by modified date, newest first
+			case SORT_MOD_NEW: // Sort by modified date, newest first
 				Collections.sort(files, new Comparator<File>() {
 					@Override
 					public int compare(File f1, File f2) {
@@ -252,9 +261,10 @@ public class MapFile extends DLNAResource {
 					}
 				});
 				break;
-			case 5: // Random
-				// Random sort is applied later to files only - see discoverChildren(String str) below
-			case 0:
+			case SORT_RANDOM: // Random
+				Collections.shuffle(files, new Random(System.currentTimeMillis()));
+				break;
+			case SORT_LOC_SENS:
 				// same as default
 			default: // Locale-sensitive A-Z
 				Collections.sort(files, new Comparator<File>() {
@@ -284,6 +294,8 @@ public class MapFile extends DLNAResource {
 		} else {
 			return;
 		}
+
+		int sm = configuration.getSortMethod(getPath());
 
 		List<File> files = getFileList();
 
@@ -328,7 +340,7 @@ public class MapFile extends DLNAResource {
 				// loop over all letters, this avoids adding
 				// empty letters
 				ArrayList<File> l = map.get(letter);
-				sort(l);
+				sort(l, sm);
 				MapFile mf = new MapFile(getConf(), l);
 				mf.forcedName = letter;
 				addChild(mf);
@@ -336,7 +348,7 @@ public class MapFile extends DLNAResource {
 			return;
 		}
 		
-		sort(files);
+		sort(files, (sm == SORT_RANDOM ? SORT_LOC_NAT : sm));
 		
 		for (File f : files) {
 			if (f.isDirectory()) {
@@ -345,8 +357,8 @@ public class MapFile extends DLNAResource {
 		}
 
 		// For random sorting, we only randomize file entries
-		if (configuration.getSortMethod() == 5) {
-			Collections.shuffle(files);
+		if (sm == SORT_RANDOM) {
+			sort(files, sm);
 		}
 
 		for (File f : files) {
@@ -366,7 +378,8 @@ public class MapFile extends DLNAResource {
 			}
 		}
 
-		return getLastRefreshTime() < modified;
+
+		return (getLastRefreshTime() < modified);
 	}
 
 	@Override
@@ -548,8 +561,15 @@ public class MapFile extends DLNAResource {
 		this.potentialCover = potentialCover;
 	}
 
-	/*@Override
+	@Override
 	public boolean isSearched() {
-		return true;
-	} */
+		return (getParent() instanceof SearchFolder);
+	}
+
+	private File getPath() {
+		if (this instanceof RealFile) {
+			return ((RealFile)this).getFile();
+		}
+		return null;
+	}
 }
