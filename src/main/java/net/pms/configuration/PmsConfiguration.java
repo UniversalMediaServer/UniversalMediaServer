@@ -36,6 +36,7 @@ import net.pms.io.SystemUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.FileUtil.FileLocation;
 import net.pms.util.PropertiesUtil;
+import net.pms.util.UMSUtils;
 import net.pms.util.WindowsRegistry;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
@@ -2160,7 +2161,7 @@ public class PmsConfiguration {
 	 * @return The sort method
 	 */
 	public int getSortMethod(File path) {
-		int ret = getInt(KEY_SORT_METHOD, MapFile.SORT_LOC_NAT);
+		int ret = getInt(KEY_SORT_METHOD, UMSUtils.SORT_LOC_NAT);
 		while(path != null) {
 			if (sortMethods.get(path.getAbsolutePath()) != null) {
 				ret = sortMethods.get(path.getAbsolutePath());

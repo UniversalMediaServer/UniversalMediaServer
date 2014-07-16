@@ -32,6 +32,7 @@ import net.pms.formats.FormatFactory;
 import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
 import net.pms.util.NaturalComparator;
+import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,15 +52,6 @@ public class MapFile extends DLNAResource {
 
 	private ArrayList<RealFile> searchList;
 
-	// Sort constants
-	public static final int SORT_LOC_SENS =  0;
-	public static final int SORT_MOD_NEW =   1;
-	public static final int SORT_MOD_OLD =   2;
-	public static final int SORT_INS_ASCII = 3;
-	public static final int SORT_LOC_NAT =   4;
-	public static final int SORT_RANDOM =    5;
-	public static final int SORT_NO_SORT =   6;
-
 	/**
 	 * @deprecated Use standard getter and setter to access this variable.
 	 */
@@ -71,13 +63,6 @@ public class MapFile extends DLNAResource {
 	 */
 	@Deprecated
 	protected MapFileConfiguration conf;
-
-	private static final Collator collator;
-
-	static {
-		collator = Collator.getInstance();
-		collator.setStrength(Collator.PRIMARY);
-	}
 
 	public MapFile() {
 		this.conf = new MapFileConfiguration();
@@ -192,94 +177,6 @@ public class MapFile extends DLNAResource {
 		return discoverable.isEmpty();
 	}
 
-	private String renameForSorting(String filename) {
-		if (configuration.isPrettifyFilenames()) {
-			// This chunk makes anime sort properly
-			int squareBracketIndex;
-			if (filename.substring(0, 1).matches("\\[")) {
-				filename = filename.replaceAll("_", " ");
-				squareBracketIndex = filename.indexOf(']');
-				if (squareBracketIndex != -1) {
-					filename = filename.substring(squareBracketIndex + 1);
-					if (filename.substring(0, 1).matches("\\s")) {
-						filename = filename.substring(1);
-					}
-				}
-			}
-
-			// Replace periods with spaces
-			filename = filename.replaceAll("\\.", " ");
-		}
-
-		if (configuration.isIgnoreTheWordThe()) {
-			// Remove "The" from the beginning of files
-			filename = filename.replaceAll("^(?i)The[ .]", "");
-		}
-
-		return filename;
-	}
-
-	private void sort(List<File> files, int method) {
-		switch (method) {
-			case SORT_NO_SORT: // no sorting
-				break;
-			case SORT_LOC_NAT: // Locale-sensitive natural sort
-				Collections.sort(files, new Comparator<File>() {
-					@Override
-					public int compare(File f1, File f2) {
-						String filename1ToSort = renameForSorting(f1.getName());
-						String filename2ToSort = renameForSorting(f2.getName());
-
-						return NaturalComparator.compareNatural(collator, filename1ToSort, filename2ToSort);
-					}
-				});
-				break;
-			case SORT_INS_ASCII: // Case-insensitive ASCIIbetical sort
-				Collections.sort(files, new Comparator<File>() {
-					@Override
-					public int compare(File f1, File f2) {
-						String filename1ToSort = renameForSorting(f1.getName());
-						String filename2ToSort = renameForSorting(f2.getName());
-
-						return filename1ToSort.compareToIgnoreCase(filename2ToSort);
-					}
-				});
-				break;
-			case SORT_MOD_OLD: // Sort by modified date, oldest first
-				Collections.sort(files, new Comparator<File>() {
-					@Override
-					public int compare(File f1, File f2) {
-						return Long.valueOf(f1.lastModified()).compareTo(Long.valueOf(f2.lastModified()));
-					}
-				});
-				break;
-			case SORT_MOD_NEW: // Sort by modified date, newest first
-				Collections.sort(files, new Comparator<File>() {
-					@Override
-					public int compare(File f1, File f2) {
-						return Long.valueOf(f2.lastModified()).compareTo(Long.valueOf(f1.lastModified()));
-					}
-				});
-				break;
-			case SORT_RANDOM: // Random
-				Collections.shuffle(files, new Random(System.currentTimeMillis()));
-				break;
-			case SORT_LOC_SENS:
-				// same as default
-			default: // Locale-sensitive A-Z
-				Collections.sort(files, new Comparator<File>() {
-					@Override
-					public int compare(File f1, File f2) {
-						String filename1ToSort = renameForSorting(f1.getName());
-						String filename2ToSort = renameForSorting(f2.getName());
-
-						return collator.compare(filename1ToSort, filename2ToSort);
-					}
-				});
-				break;
-		}
-	}
-
 	@Override
 	public void discoverChildren() {
 		discoverChildren(null);
@@ -319,7 +216,7 @@ public class MapFile extends DLNAResource {
 					continue;
 				}
 
-				String filenameToSort = renameForSorting(f.getName());
+				String filenameToSort = FileUtil.renameForSorting(f.getName());
 
 				char c = filenameToSort.toUpperCase().charAt(0);
 
@@ -340,7 +237,7 @@ public class MapFile extends DLNAResource {
 				// loop over all letters, this avoids adding
 				// empty letters
 				ArrayList<File> l = map.get(letter);
-				sort(l, sm);
+				UMSUtils.sort(l, sm);
 				MapFile mf = new MapFile(getConf(), l);
 				mf.forcedName = letter;
 				addChild(mf);
@@ -348,7 +245,7 @@ public class MapFile extends DLNAResource {
 			return;
 		}
 		
-		sort(files, (sm == SORT_RANDOM ? SORT_LOC_NAT : sm));
+		UMSUtils.sort(files, (sm == UMSUtils.SORT_RANDOM ? UMSUtils.SORT_LOC_NAT : sm));
 		
 		for (File f : files) {
 			if (f.isDirectory()) {
@@ -357,8 +254,8 @@ public class MapFile extends DLNAResource {
 		}
 
 		// For random sorting, we only randomize file entries
-		if (sm == SORT_RANDOM) {
-			sort(files, sm);
+		if (sm == UMSUtils.SORT_RANDOM) {
+			UMSUtils.sort(files, sm);
 		}
 
 		for (File f : files) {

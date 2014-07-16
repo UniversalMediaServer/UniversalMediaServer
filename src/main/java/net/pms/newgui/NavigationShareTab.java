@@ -41,6 +41,7 @@ import net.pms.dlna.DLNAMediaDatabase;
 import net.pms.dlna.MapFile;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.KeyedComboBoxModel;
+import net.pms.util.UMSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -499,13 +500,13 @@ public class NavigationShareTab {
 		// File order
 		final KeyedComboBoxModel kcbm = new KeyedComboBoxModel(
 			new Object[]{
-				String.valueOf(MapFile.SORT_LOC_SENS), // alphabetical
-				String.valueOf(MapFile.SORT_LOC_NAT), // natural sort
-				String.valueOf(MapFile.SORT_INS_ASCII), // ASCIIbetical
-				String.valueOf(MapFile.SORT_MOD_NEW), // newest first
-				String.valueOf(MapFile.SORT_MOD_OLD), // oldest first
-				String.valueOf(MapFile.SORT_RANDOM),  // random
-				String.valueOf(MapFile.SORT_NO_SORT)   // no sorting
+				String.valueOf(UMSUtils.SORT_LOC_SENS), // alphabetical
+				String.valueOf(UMSUtils.SORT_LOC_NAT), // natural sort
+				String.valueOf(UMSUtils.SORT_INS_ASCII), // ASCIIbetical
+				String.valueOf(UMSUtils.SORT_MOD_NEW), // newest first
+				String.valueOf(UMSUtils.SORT_MOD_OLD), // oldest first
+				String.valueOf(UMSUtils.SORT_RANDOM),  // random
+				String.valueOf(UMSUtils.SORT_NO_SORT)   // no sorting
 			},
 			new Object[]{
 				Messages.getString("FoldTab.15"),
