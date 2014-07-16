@@ -503,7 +503,8 @@ public class NavigationShareTab {
 				"3", // ASCIIbetical
 				"1", // newest first
 				"2", // oldest first
-				"5"  // random
+				"5",  // random
+				"6"   // no sorting
 			},
 			new Object[]{
 				Messages.getString("FoldTab.15"),
@@ -511,7 +512,8 @@ public class NavigationShareTab {
 				Messages.getString("FoldTab.20"),
 				Messages.getString("FoldTab.16"),
 				Messages.getString("FoldTab.17"),
-				Messages.getString("FoldTab.58")
+				Messages.getString("FoldTab.58"),
+				Messages.getString("FoldTab.62")
 			}
 		);
 		sortmethod = new JComboBox(kcbm);
