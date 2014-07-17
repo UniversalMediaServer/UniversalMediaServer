@@ -31,10 +31,12 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.dlna.MapFile;
 import net.pms.io.SystemUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.FileUtil.FileLocation;
 import net.pms.util.PropertiesUtil;
+import net.pms.util.UMSUtils;
 import net.pms.util.WindowsRegistry;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
@@ -72,6 +74,7 @@ public class PmsConfiguration {
 	private static final String KEY_ALTERNATE_SUBTITLES_FOLDER = "alternate_subtitles_folder";
 	private static final String KEY_ALTERNATE_THUMB_FOLDER = "alternate_thumb_folder";
 	private static final String KEY_APPEND_PROFILE_NAME = "append_profile_name";
+	private static final String KEY_AUTOMATIC_MAXIMUM_BITRATE = "automatic_maximum_bitrate";
 	private static final String KEY_SHOW_APERTURE_LIBRARY = "show_aperture_library";
 	private static final String KEY_ATZ_LIMIT = "atz_limit";
 	private static final String KEY_AUDIO_BITRATE = "audio_bitrate";
@@ -184,6 +187,7 @@ public class PmsConfiguration {
 	private static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
 	private static final String KEY_LIVE_SUBTITLES_KEEP = "live_subtitles_keep";
 	private static final String KEY_OVERSCAN = "mencoder_overscan";
+	private static final String KEY_PING_PATH = "ping_path";
 	private static final String KEY_PLUGIN_DIRECTORY = "plugins";
 	private static final String KEY_PLUGIN_PURGE_ACTION = "plugin_purge";
 	private static final String KEY_PREVENTS_SLEEP = "prevents_sleep_mode";
@@ -199,7 +203,9 @@ public class PmsConfiguration {
 	private static final String KEY_RUN_WIZARD = "run_wizard";
 	private static final String KEY_SCRIPT_DIR = "script_dir";
 	private static final String KEY_SEARCH_FOLDER = "search_folder";
-	private static final String KEY_SEARCH_RECURSE = "search_recurse";
+	private static final String KEY_SEARCH_IN_FOLDER = "search_in_folder";
+	private static final String KEY_SEARCH_RECURSE = "search_recurse"; // legacy option
+	private static final String KEY_SEARCH_RECURSE_DEPTH = "search_recurse_depth";
 	private static final String KEY_SERVER_HOSTNAME = "hostname";
 	private static final String KEY_SERVER_NAME = "server_name";
 	private static final String KEY_SERVER_PORT = "port";
@@ -208,6 +214,8 @@ public class PmsConfiguration {
 	private static final String KEY_SKIP_LOOP_FILTER_ENABLED = "mencoder_skip_loop_filter";
 	private static final String KEY_SKIP_NETWORK_INTERFACES = "skip_network_interfaces";
 	private static final String KEY_SORT_METHOD = "sort_method";
+	private static final String KEY_SORT_PATHS = "sort_paths";
+	private static final String KEY_SPEED_DBG = "speed_debug";
 	private static final String KEY_SUBS_COLOR = "subtitles_color";
 	private static final String KEY_SUBTITLES_CODEPAGE = "subtitles_codepage";
 	private static final String KEY_SUBTITLES_LANGUAGES = "subtitles_languages";
@@ -233,8 +241,15 @@ public class PmsConfiguration {
 	private static final String KEY_VLC_SCALE = "vlc_scale";
 	private static final String KEY_VLC_SAMPLE_RATE_OVERRIDE = "vlc_sample_rate_override";
 	private static final String KEY_VLC_SAMPLE_RATE = "vlc_sample_rate";
+	private static final String KEY_WEB_AUTHENTICATE = "web_authenticate";
 	private static final String KEY_WEB_CONF_PATH = "web_conf";
+	private static final String KEY_WEB_MP4_TRANS = "web_mp4_trans";
+	private static final String KEY_WEB_THREADS = "web_threads";
+	private static final String KEY_WEB_PATH = "web_path";
 	private static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
+	private static final String KEY_BUMP_ADDRESS = "bump";
+	private static final String KEY_BUMP_JS = "bump.js";
+	private static final String KEY_BUMP_SKIN_DIR = "bump.skin";
 
 	// The name of the subdirectory under which UMS config files are stored for this build (default: UMS).
 	// See Build for more details
@@ -252,6 +267,7 @@ public class PmsConfiguration {
 	private final ConfigurationReader configurationReader;
 	private final TempFolder tempFolder;
 	private final ProgramPaths programPaths;
+	private HashMap<String,Integer> sortMethods;
 
 	private final IpFilter filter = new IpFilter();
 
@@ -473,9 +489,34 @@ public class PmsConfiguration {
 		// Set DEFAULT_AVI_SYNTH_SCRIPT according to language
 		DEFAULT_AVI_SYNTH_SCRIPT = "<movie>\n<sub>\n";
 
+		setupSortMethods();
 		long usableMemory = (Runtime.getRuntime().maxMemory() / 1048576) - BUFFER_MEMORY_FACTOR;
 		if (usableMemory > MAX_MAX_MEMORY_DEFAULT_SIZE) {
 			MAX_MAX_MEMORY_BUFFER_SIZE = (int) usableMemory;
+		}
+	}
+
+	private void setupSortMethods() {
+		sortMethods = new HashMap<>();
+		String raw = getString(KEY_SORT_PATHS, null);
+		if (StringUtils.isEmpty(raw)) {
+			return;
+		}
+		if (Platform.isWindows()) {
+			// windows is crap
+			raw = raw.toLowerCase();
+		}
+		String[] tmp = raw.split(" ");
+		for (int i = 0; i < tmp.length; i++) {
+			String[] kv = tmp[i].split(",");
+			if (kv.length < 2) {
+				continue;
+			}
+			try {
+				sortMethods.put(kv[0], Integer.parseInt(kv[1]));
+			} catch (NumberFormatException e) {
+				// just ignore this
+			}
 		}
 	}
 
@@ -1015,8 +1056,8 @@ public class PmsConfiguration {
 	 */
 	public String getForcedSubtitleLanguage() {
 		return configurationReader.getPossiblyBlankConfigurationString(
-			KEY_FORCED_SUBTITLE_LANGUAGE,
-			getLanguage()
+				KEY_FORCED_SUBTITLE_LANGUAGE,
+				getLanguage()
 		);
 	}
 
@@ -1041,8 +1082,8 @@ public class PmsConfiguration {
 	 */
 	public String getAudioSubLanguages() {
 		return configurationReader.getPossiblyBlankConfigurationString(
-			KEY_AUDIO_SUB_LANGS,
-			Messages.getString("MEncoderVideo.128")
+				KEY_AUDIO_SUB_LANGS,
+				Messages.getString("MEncoderVideo.128")
 		);
 	}
 
@@ -1932,9 +1973,9 @@ public class PmsConfiguration {
 	public List<String> getEnginesAsList(SystemUtils registry) {
 		String defaultEngines = StringUtils.join(
 			new String[] {
+				"ffmpegvideo",
 				"mencoder",
 				"tsmuxer",
-				"ffmpegvideo",
 				"ffmpegaudio",
 				"tsmuxeraudio",
 				"ffmpegwebvideo",
@@ -2126,8 +2167,19 @@ public class PmsConfiguration {
 	 * Default value is 4.
 	 * @return The sort method
 	 */
-	public int getSortMethod() {
-		return getInt(KEY_SORT_METHOD, 4);
+	public int getSortMethod(File path) {
+		int cnt = 0;
+		while(path != null && (cnt++ < 100)) {
+			String key = path.getAbsolutePath();
+			if (Platform.isWindows()) {
+				key = key.toLowerCase();
+			}
+			if (sortMethods.get(key) != null) {
+				return sortMethods.get(key);
+			}
+			path = path.getParentFile();
+		}
+		return getInt(KEY_SORT_METHOD, UMSUtils.SORT_LOC_NAT);
 	}
 
 	/**
@@ -2596,12 +2648,13 @@ public class PmsConfiguration {
 		return getBoolean(KEY_SEARCH_FOLDER, false);
 	}
 
-	public int getSearchRecurse() {
-		if (getBoolean(KEY_SEARCH_RECURSE, true)) {
-			return 100;
-		} else {
-			return 0;
-		}
+	public boolean getSearchInFolder() {
+		return getBoolean(KEY_SEARCH_IN_FOLDER, false) && getSearchFolder();
+	}
+
+	public int getSearchDepth() {
+		int ret = (getBoolean(KEY_SEARCH_RECURSE, true) ? 100 : 2);
+	   	return getInt(KEY_SEARCH_RECURSE_DEPTH, ret);
 	}
 
 	public void reload() {
@@ -2957,5 +3010,85 @@ public class PmsConfiguration {
 
 	public boolean getSingle() {
 		return getBoolean(KEY_SINGLE, true);
+	}
+
+	/**
+	 * Web stuff
+	 */
+	private static final String KEY_NO_FOLDERS = "no_shared";
+	private static final String KEY_WEB_HTTPS = "use_https";
+	private static final int WEB_MAX_THREADS = 100;
+
+	public boolean getNoFolders(String tag) {
+		if (tag == null) {
+			return getBoolean(KEY_NO_FOLDERS, false);
+		}
+		String x = (tag.toLowerCase() + ".no_shared").replaceAll(" ", "_");
+		return getBoolean(x, false);
+	}
+
+	public boolean getWebHttps() {
+		return getBoolean(KEY_WEB_HTTPS, false);
+	}
+
+	public File getWebPath() {
+		File path = new File(getString(KEY_WEB_PATH, "web"));
+		if (!path.exists()) {
+			path.mkdirs();
+		}
+		return path;
+	}
+
+	public File getWebFile(String file) {
+		return new File(getWebPath().getAbsolutePath() + File.separator + file);
+	}
+
+	public boolean isWebAuthenticate() {
+		return getBoolean(KEY_WEB_AUTHENTICATE, false);
+	}
+
+	public int getWebThreads() {
+		int x = getInt(KEY_WEB_THREADS, 30);
+		return (x > WEB_MAX_THREADS ? WEB_MAX_THREADS : x);
+	}
+
+	public boolean isWebMp4Trans() {
+		return getBoolean(KEY_WEB_MP4_TRANS, false);
+	}
+
+	public String getBumpAddress() {
+		return getString(KEY_BUMP_ADDRESS, "");
+	}
+
+	public void setBumpAddress(String value) {
+		configuration.setProperty(KEY_BUMP_ADDRESS, value);
+	}
+
+	public String getBumpJS(String fallback) {
+		return getString(KEY_BUMP_JS, fallback);
+	}
+
+	public String getBumpSkinDir(String fallback) {
+		return getString(KEY_BUMP_SKIN_DIR, fallback);
+	}
+
+	public boolean isAutomaticMaximumBitrate() {
+		return getBoolean(KEY_AUTOMATIC_MAXIMUM_BITRATE, false);
+	}
+
+	public void setAutomaticMaximumBitrate(boolean b) {
+		if (!isAutomaticMaximumBitrate() && b) {
+			// get all bitrates from renders
+			RendererConfiguration.calculateAllSpeeds();
+		}
+		configuration.setProperty(KEY_AUTOMATIC_MAXIMUM_BITRATE, b);
+	}
+
+	public String pingPath() {
+		return getString(KEY_PING_PATH, null);
+	}
+
+	public boolean isSpeedDbg() {
+		return getBoolean(KEY_SPEED_DBG, false);
 	}
 }

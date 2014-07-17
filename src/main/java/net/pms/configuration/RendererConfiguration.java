@@ -2,6 +2,7 @@ package net.pms.configuration;
 
 import com.sun.jna.Platform;
 import java.io.File;
+import java.io.IOException;
 import java.io.Reader;
 import java.net.InetAddress;
 import java.util.List;
@@ -12,7 +13,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.concurrent.Future;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
@@ -22,15 +27,19 @@ import net.pms.dlna.RootFolder;
 import net.pms.formats.Format;
 import net.pms.network.HTTPResource;
 import net.pms.network.SpeedStats;
+import net.pms.network.UPNPHelper;
 import net.pms.util.PropertiesUtil;
+import net.pms.newgui.StatusTab;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang.WordUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.Charsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class RendererConfiguration {
+public class RendererConfiguration extends UPNPHelper.Renderer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
 	private static ArrayList<RendererConfiguration> enabledRendererConfs;
 	private static ArrayList<String> allRenderersNames = new ArrayList<>();
@@ -44,6 +53,10 @@ public class RendererConfiguration {
 	private FormatConfiguration formatConfiguration;
 	private int rank;
 
+	public StatusTab.rendererItem statusIcon;
+	public boolean loaded;
+	private UPNPHelper.Player player;
+
 	// Holds MIME type aliases
 	private final Map<String, String> mimes;
 
@@ -52,20 +65,36 @@ public class RendererConfiguration {
 
 	// TextWrap parameters
 	protected int line_w, line_h, indent;
-	protected String inset;
+	protected String inset, dots;
 	protected boolean dc_date = true;
 
 	// property values
-	private static final String DEPRECATED_MPEGPSAC3 = "MPEGAC3"; // XXX deprecated: old name with missing container
 	private static final String LPCM = "LPCM";
 	private static final String MP3 = "MP3";
-	private static final String MPEGPSAC3 = "MPEGPSAC3";
-	private static final String MPEGTSAC3 = "MPEGTSAC3";
-	private static final String H264TSAC3 = "H264TSAC3";
 	private static final String WAV = "WAV";
 	private static final String WMV = "WMV";
 
+	// Old video transcoding options
+	@Deprecated
+	private static final String DEPRECATED_MPEGAC3 = "MPEGAC3";
+
+	@Deprecated
+	private static final String DEPRECATED_MPEGPSAC3 = "MPEGPSAC3";
+
+	@Deprecated
+	private static final String DEPRECATED_MPEGTSAC3 = "MPEGTSAC3";
+
+	@Deprecated
+	private static final String DEPRECATED_H264TSAC3 = "H264TSAC3";
+
+	// Current video transcoding options
+	private static final String MPEGTSH264AAC = "MPEGTS-H264-AAC";
+	private static final String MPEGTSH264AC3 = "MPEGTS-H264-AC3";
+	private static final String MPEGPSMPEG2AC3 = "MPEGPS-MPEG2-AC3";
+	private static final String MPEGTSMPEG2AC3 = "MPEGTS-MPEG2-AC3";
+
 	// property names
+	private static final String ACCURATE_DLNA_ORGPN = "AccurateDLNAOrgPN";
 	private static final String AUDIO = "Audio";
 	private static final String AUTO_EXIF_ROTATE = "AutoExifRotate";
 	private static final String BYTE_TO_TIMESEEK_REWIND_SECONDS = "ByteToTimeseekRewindSeconds"; // Ditlew
@@ -81,6 +110,7 @@ public class RendererConfiguration {
 	private static final String DLNA_ORGPN_USE = "DLNAOrgPN";
 	private static final String DLNA_PN_CHANGES = "DLNAProfileChanges";
 	private static final String DLNA_TREE_HACK = "CreateDLNATreeFaster";
+	private static final String LIMIT_FOLDERS = "LimitFolders";
 	private static final String FORCE_JPG_THUMBNAILS = "ForceJPGThumbnails"; // Sony devices require JPG thumbnails
 	private static final String H264_L41_LIMITED = "H264Level41Limited";
 	private static final String IMAGE = "Image";
@@ -107,7 +137,7 @@ public class RendererConfiguration {
 	private static final String STREAM_EXT = "StreamExtensions";
 	private static final String SUBTITLE_HTTP_HEADER = "SubtitleHttpHeader";
 	private static final String SUPPORTED = "Supported";
-	private static final String SUPPORTED_SUBTITLES_TYPE = "SupportedSubtitlesType";
+	private static final String SUPPORTED_SUBTITLES_FORMATS = "SupportedSubtitlesFormats";
 	private static final String TEXTWRAP = "TextWrap";
 	private static final String THUMBNAIL_AS_RESOURCE = "ThumbnailAsResource";
 	private static final String TRANSCODE_AUDIO_441KHZ = "TranscodeAudioTo441kHz";
@@ -120,6 +150,7 @@ public class RendererConfiguration {
 	private static final String USER_AGENT_ADDITIONAL_HEADER = "UserAgentAdditionalHeader";
 	private static final String USER_AGENT_ADDITIONAL_SEARCH = "UserAgentAdditionalHeaderSearch";
 	private static final String USER_AGENT = "UserAgentSearch";
+	private static final String UPNP_DETAILS = "UpnpDetailsSearch";
 	private static final String USE_CLOSED_CAPTION = "UseClosedCaption";
 	private static final String USE_SAME_EXTENSION = "UseSameExtension";
 	private static final String VIDEO = "Video";
@@ -252,7 +283,23 @@ public class RendererConfiguration {
 		return addressAssociation.values();
 	}
 
-	protected static File getRenderersDir() {
+	public static boolean hasConnectedAVTransportPlayers() {
+		return UPNPHelper.hasRenderer(UPNPHelper.AVT);
+	}
+
+	public static List<RendererConfiguration> getConnectedAVTransportPlayers() {
+		return UPNPHelper.getRenderers(UPNPHelper.AVT);
+	}
+
+	public static boolean hasConnectedControlPlayers() {
+		return UPNPHelper.hasRenderer(UPNPHelper.ANY);
+	}
+
+	public static List<RendererConfiguration> getConnectedControlPlayers() {
+		return UPNPHelper.getRenderers(UPNPHelper.ANY);
+	}
+
+	public static File getRenderersDir() {
 		final String[] pathList = PropertiesUtil.getProjectProperties().get("project.renderers.dir").split(",");
 
 		for (String path : pathList) {
@@ -280,7 +327,7 @@ public class RendererConfiguration {
 
 	public RootFolder getRootFolder() {
 		if (rootFolder == null) {
-			ArrayList<String> tags = new ArrayList();
+			ArrayList<String> tags = new ArrayList<String>();
 			tags.add(getRendererName());
 			for (InetAddress sa : addressAssociation.keySet()) {
 				if (addressAssociation.get(sa) == this) {
@@ -303,6 +350,10 @@ public class RendererConfiguration {
 		}
 	}
 
+	public void setRootFolder(RootFolder r) {
+		rootFolder = r;
+	}
+
 	/**
 	 * Associate an IP address with this renderer. The association will
 	 * persist between requests, allowing the renderer to be recognized
@@ -311,13 +362,44 @@ public class RendererConfiguration {
 	 * @param sa The IP address to associate.
 	 * @see #getRendererConfigurationBySocketAddress(InetAddress)
 	 */
-	public void associateIP(InetAddress sa) {
+	public boolean associateIP(InetAddress sa) {
+		if (UPNPHelper.isNonRenderer(sa)) {
+			// TODO: remove it if already added unknowingly
+			return false;
+		}
+//		RendererConfiguration prev = addressAssociation.get(sa);
+//		if (prev != null && prev != this) {
+//			if (prev.getRendererName().equals(getRendererName())) {
+//				LOGGER.debug("Preventing duplicate association " + sa + " for renderer " + getRendererName());
+//				return false;
+//			} else {
+//				// FIXME: handle multiple clients with same ip
+//				LOGGER.debug("Replacing previous association " + sa + " for renderer " + prev.getRendererName());
+//			}
+//		}
 		addressAssociation.put(sa, this);
-		SpeedStats.getInstance().getSpeedInMBits(sa, getRendererName());
+		if (sa.isLoopbackAddress() || sa.isAnyLocalAddress()) {
+			return true;
+		}
+		if (pmsConfiguration.isAutomaticMaximumBitrate() || pmsConfiguration.isSpeedDbg()) {
+			SpeedStats.getInstance().getSpeedInMBits(sa, getRendererName());
+		}
+		return true;
+	}
+
+	public static void calculateAllSpeeds() {
+		for (InetAddress sa : addressAssociation.keySet()) {
+			if (sa.isLoopbackAddress() || sa.isAnyLocalAddress()) {
+				continue;
+			}
+			RendererConfiguration r = addressAssociation.get(sa);
+			SpeedStats.getInstance().getSpeedInMBits(sa, r.getRendererName());
+		}
 	}
 
 	public static RendererConfiguration getRendererConfigurationBySocketAddress(InetAddress sa) {
-		return addressAssociation.get(sa);
+		RendererConfiguration r = addressAssociation.get(sa);
+		return (r != null && r.loaded) ? r : null;
 	}
 
 	/**
@@ -413,12 +495,146 @@ public class RendererConfiguration {
 		return null;
 	}
 
+	public static RendererConfiguration getRendererConfigurationByUUID(String uuid) {
+		for (RendererConfiguration conf : enabledRendererConfs) {
+			if (conf.getUUID().equals(uuid)) {
+				return conf;
+			}
+		}
+
+		return null;
+	}
+
+	public static RendererConfiguration getRendererConfigurationByHeaders(String[] headers, InetAddress ia) {
+		RendererConfiguration renderer = null;
+		String uuid = null;
+		for (String header : headers) {
+			if (renderer == null) {
+				renderer = getRendererConfigurationByHeaderLine(header, ia);
+			}
+			if (uuid == null && header.toUpperCase().startsWith("USN")) {
+				uuid = header.substring(header.indexOf(':') + 1).split("::")[0].trim();
+			}
+		}
+		if (uuid != null && renderer != null && renderer.getUUID() == null) {
+			renderer.setUUID(uuid);
+		}
+		return renderer;
+	}
+
+	public static RendererConfiguration getRendererConfigurationByUPNPDetails(String details/*, InetAddress ia, String uuid*/) {
+		for (RendererConfiguration r : enabledRendererConfs) {
+			if (r.matchUPNPDetails(details)) {
+				LOGGER.trace("Matched media renderer \"" + r.getRendererName() + "\" based on dlna details \"" + details + "\"");
+				return r;
+			}
+		}
+		return null;
+	}
+
+	public static RendererConfiguration getRendererConfigurationByHeaderLine(String header, InetAddress ia) {
+		String userAgentString;
+		RendererConfiguration r = null, ref = null;
+		boolean isNew = false;
+
+		if (header.toUpperCase().startsWith("USER-AGENT")) {
+			userAgentString = header.substring(header.indexOf(':') + 1).trim();
+			ref = getRendererConfigurationByUA(userAgentString);
+		}
+
+		if (ref == null) {
+			ref = getRendererConfigurationByUAAHH(header);
+		}
+
+		if (ref != null) {
+			try {
+				if (addressAssociation.containsKey(ia)) {
+					// Already seen, finish configuration if required
+					r = addressAssociation.get(ia);
+					if (! r.loaded) {
+						r.init(ref.getFile());
+						// update gui
+						PMS.get().updateRenderer(r);
+					}
+				} else if (! UPNPHelper.isNonRenderer(ia)) {
+					// It's brand new
+					r = new RendererConfiguration(ref.getFile());
+					if (r.associateIP(ia)) {
+						PMS.get().setRendererFound(r);
+						isNew = true;
+					}
+				}
+			} catch (Exception e) {
+			}
+			if (r != null) {
+				LOGGER.trace("Matched " + (isNew ? "new " : "") + "media renderer \"" + r.getRendererName() + "\" based on header \"" + header + "\"");
+			}
+		}
+
+		return r;
+	}
+
 	public FormatConfiguration getFormatConfiguration() {
 		return formatConfiguration;
 	}
 
 	public File getFile() {
-		return configuration.getFile();
+		return getFile(false);
+	}
+
+	public File getFile(boolean force) {
+		return configuration.getFile() != null ? configuration.getFile() :
+			force ? new File(getRenderersDir(), getRendererName().split("\\(")[0].trim().replace(" ", "") + ".conf") : null;
+	}
+
+	public static void createNewFile(RendererConfiguration r, File file, boolean load, File ref) {
+		try {
+			ArrayList<String> conf = new ArrayList<String>();
+			String name = r.getRendererName().split("\\(")[0].trim();
+			Map<String, String> details = r.getUpnpDetails();
+			String detailmatcher = details == null ? "" :
+				(details.get("manufacturer") + " , " + details.get("modelName"));
+
+			// Add the header and identifiers
+			conf.add("#----------------------------------------------------------------------------");
+			conf.add("# Auto-generated profile for " + name);
+			conf.add("#" + (ref == null ? "" : " Based on " + ref.getName()));
+			conf.add("# See PS3.conf for a description of all possible configuration options.");
+			conf.add("#");
+			conf.add("");
+			conf.add(RENDERER_NAME + " = " + name);
+			conf.add(UPNP_DETAILS + " = " + detailmatcher);
+			conf.add("");
+			// TODO: Set more properties automatically from UPNP info
+
+			if (ref != null) {
+				// Copy the reference file, skipping its header and identifiers
+				Matcher skip = Pattern.compile(".*(" + RENDERER_ICON + "|" + RENDERER_NAME + "|" +
+					UPNP_DETAILS + "|" + USER_AGENT + "|" + USER_AGENT_ADDITIONAL_HEADER + "|" +
+					USER_AGENT_ADDITIONAL_SEARCH + ").*").matcher("");
+				boolean header = true;
+				for (String line : FileUtils.readLines(ref, Charsets.UTF_8)) {
+					if (skip.reset(line).matches() ||
+							(header && (line.startsWith("#") || StringUtils.isBlank(line)))) {
+						continue;
+					}
+					header = false;
+					conf.add(line);
+				}
+			}
+
+			FileUtils.writeLines(file, "utf-8", conf, "\r\n");
+
+			if (load) {
+				try {
+					r.init(file);
+				} catch (ConfigurationException ce) {
+					LOGGER.debug("Error initializing renderer configuration: " + ce);
+				}
+			}
+		} catch (IOException ie) {
+			LOGGER.debug("Error creating renderer configuration file: " + ie);
+		}
 	}
 
 	public int getRank() {
@@ -460,11 +676,20 @@ public class RendererConfiguration {
 		return getBoolean(SHOW_DVD_TITLE_DURATION, false);
 	}
 
-	RendererConfiguration() throws ConfigurationException {
-		this(null);
+	public RendererConfiguration() throws ConfigurationException {
+		this(null, null);
+	}
+
+	public RendererConfiguration(String uuid) throws ConfigurationException {
+		this(null, uuid);
 	}
 
 	public RendererConfiguration(File f) throws ConfigurationException {
+		this(f, null);
+	}
+
+	public RendererConfiguration(File f, String uuid) throws ConfigurationException {
+		super(uuid);
 		configuration = new PropertiesConfiguration();
 
 		// Treat backslashes in the conf as literal while also supporting double-backslash syntax, i.e.
@@ -488,11 +713,24 @@ public class RendererConfiguration {
 
 		configuration.setListDelimiter((char) 0);
 
+		mimes = new HashMap<>();
+		charMap = new HashMap<>();
+		DLNAPN = new HashMap<>();
+		player = null;
+
+		init(f);
+	}
+
+	public void init(File f) throws ConfigurationException {
+
+		configuration.clear();
+
 		if (f != null) {
 			configuration.load(f);
+			loaded = true;
 		}
 
-		mimes = new HashMap<>();
+		mimes.clear();
 		String mimeTypes = getString(MIME_TYPES_CHANGES, null);
 
 		if (StringUtils.isNotBlank(mimeTypes)) {
@@ -517,10 +755,12 @@ public class RendererConfiguration {
 			indent = getIntAt(s, "indent:", 0);
 			dc_date = getIntAt(s, "date:", 1) != 0;
 			int ws = getIntAt(s, "whitespace:", 9);
+			int dotct = getIntAt(s, "dots:", 0);
 			inset = new String(new byte[indent]).replaceAll(".", Character.toString((char) ws));
+			dots = new String(new byte[dotct]).replaceAll(".", ".");
 		}
 
-		charMap = new HashMap<>();
+		charMap.clear();
 		String ch = getString(CHARMAP, null);
 		if (StringUtils.isNotBlank(ch)) {
 			StringTokenizer st = new StringTokenizer(ch, " ");
@@ -541,7 +781,7 @@ public class RendererConfiguration {
 			}
 		}
 
-		DLNAPN = new HashMap<>();
+		DLNAPN.clear();
 		String DLNAPNchanges = getString(DLNA_PN_CHANGES, null);
 
 		if (DLNAPNchanges != null) {
@@ -613,20 +853,30 @@ public class RendererConfiguration {
 	}
 
 	public boolean isTranscodeToAC3() {
-		return isTranscodeToMPEGPSAC3() || isTranscodeToMPEGTSAC3() || isTranscodeToH264TSAC3();
+		return isTranscodeToMPEGPSMPEG2AC3() || isTranscodeToMPEGTSMPEG2AC3() || isTranscodeToMPEGTSH264AC3();
 	}
 
-	public boolean isTranscodeToMPEGPSAC3() {
+	public boolean isTranscodeToAAC() {
+		return isTranscodeToMPEGTSH264AAC();
+	}
+
+	public boolean isTranscodeToMPEGPSMPEG2AC3() {
 		String videoTranscode = getVideoTranscode();
-		return videoTranscode.equals(MPEGPSAC3) || videoTranscode.equals(DEPRECATED_MPEGPSAC3);
+		return videoTranscode.equals(MPEGPSMPEG2AC3) || videoTranscode.equals(DEPRECATED_MPEGAC3) || videoTranscode.equals(DEPRECATED_MPEGPSAC3);
 	}
 
-	public boolean isTranscodeToMPEGTSAC3() {
-		return getVideoTranscode().equals(MPEGTSAC3);
+	public boolean isTranscodeToMPEGTSMPEG2AC3() {
+		String videoTranscode = getVideoTranscode();
+		return videoTranscode.equals(MPEGTSMPEG2AC3) || videoTranscode.equals(DEPRECATED_MPEGTSAC3);
 	}
 
-	public boolean isTranscodeToH264TSAC3() {
-		return getVideoTranscode().equals(H264TSAC3);
+	public boolean isTranscodeToMPEGTSH264AC3() {
+		String videoTranscode = getVideoTranscode();
+		return videoTranscode.equals(MPEGTSH264AC3) || videoTranscode.equals(DEPRECATED_H264TSAC3);
+	}
+
+	public boolean isTranscodeToMPEGTSH264AAC() {
+		return getVideoTranscode().equals(MPEGTSH264AAC);
 	}
 
 	public boolean isAutoRotateBasedOnExif() {
@@ -688,9 +938,11 @@ public class RendererConfiguration {
 		if (isMediaParserV2()) {
 			// Use the supported information in the configuration to determine the transcoding mime type.
 			if (HTTPResource.VIDEO_TRANSCODE.equals(mimeType)) {
-				if (isTranscodeToH264TSAC3()) {
+				if (isTranscodeToMPEGTSH264AC3()) {
 					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.H264, FormatConfiguration.AC3);
-				} else if (isTranscodeToMPEGTSAC3()) {
+				} else if (isTranscodeToMPEGTSH264AAC()) {
+					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.H264, FormatConfiguration.AAC);
+				} else if (isTranscodeToMPEGTSMPEG2AC3()) {
 					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.MPEG2, FormatConfiguration.AC3);
 				} else if (isTranscodeToWMV()) {
 					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.WMV, FormatConfiguration.WMV, FormatConfiguration.WMA);
@@ -799,6 +1051,19 @@ public class RendererConfiguration {
 		}
 	}
 
+	public boolean matchUPNPDetails(String details) {
+		String upnpDetails = getUpnpDetailsString();
+		Pattern pattern;
+
+		if (StringUtils.isNotBlank(upnpDetails)) {
+			String p = StringUtils.join(upnpDetails.split(" , "), ".*");
+			pattern = Pattern.compile(p, Pattern.CASE_INSENSITIVE);
+			return pattern.matcher(details.replace("\n", " ")).find();
+		} else {
+			return false;
+		}
+	}
+
 	/**
 	 * Returns the pattern to match the User-Agent header to as defined in the
 	 * renderer configuration. Default value is "".
@@ -810,6 +1075,173 @@ public class RendererConfiguration {
 	}
 
 	/**
+	 * Returns the unique upnp details of this renderer as defined in the
+	 * renderer configuration. Default value is "".
+	 *
+	 * @return The detail string.
+	 */
+	public String getUpnpDetailsString() {
+		return getString(UPNP_DETAILS, "");
+	}
+
+	/**
+	 * Returns the upnp details of this renderer as broadcast by itself, if known.
+	 * Default value is null.
+	 *
+	 * @return The detail map.
+	 */
+	public Map<String, String> getUpnpDetails() {
+		return UPNPHelper.getDeviceDetails(UPNPHelper.getDevice(uuid));
+	}
+
+	/**
+	 * Returns the current upnp state variables of this renderer, if known. Default value is null.
+	 *
+	 * @return The data.
+	 */
+	public Map<String, String> getUPNPData() {
+		return UPNPHelper.getData(uuid, instanceID);
+	}
+
+	/**
+	 * Returns the upnp services of this renderer.
+	 * Default value is null.
+	 *
+	 * @return The list of service names.
+	 */
+	public List<String> getUpnpServices() {
+		return UPNPHelper.getServiceNames(UPNPHelper.getDevice(uuid));
+	}
+
+	/**
+	 * Returns the uuid of this renderer, if known. Default value is null.
+	 *
+	 * @return The uuid.
+	 */
+	public String getUUID() {
+		return uuid;
+	}
+
+	/**
+	 * Sets the uuid of this renderer.
+	 *
+	 * @param uuid The uuid.
+	 */
+	public void setUUID(String uuid) {
+		this.uuid = uuid;
+	}
+
+	/**
+	 * Returns the upnp instance id of this renderer, if known. Default value is null.
+	 *
+	 * @return The instance id.
+	 */
+	public String getInstanceID() {
+		return instanceID;
+	}
+
+	/**
+	 * Sets the upnp instance id of this renderer.
+	 *
+	 * @param id The instance id.
+	 */
+	public void setInstanceID(String id) {
+		instanceID = id;
+	}
+
+	/**
+	 * Returns whether this renderer is known to be offline.
+	 *
+	 * @return Whether offline.
+	 */
+	public boolean isOffline() {
+		return ! (uuid == null ? hasAssociatedAddress() : UPNPHelper.isActive(uuid, instanceID));
+	}
+
+	/**
+	 * Returns whether this renderer is currently connected via upnp.
+	 *
+	 * @return Whether connected.
+	 */
+	public boolean isUpnpConnected() {
+		return uuid != null ? UPNPHelper.isActive(uuid, instanceID) : false;
+	}
+
+	/**
+	 * Returns whether this renderer has an associated address.
+	 *
+	 * @return Has address.
+	 */
+	public boolean hasAssociatedAddress() {
+		return addressAssociation.values().contains(this);
+	}
+
+	/**
+	 * Returns this renderer's associated address.
+	 *
+	 * @return The address.
+	 */
+	public InetAddress getAddress() {
+		// If we have a uuid look up the upnp device address, which is always
+		// correct even if another device has overwritten our association
+		if (uuid != null) {
+			InetAddress address = UPNPHelper.getAddress(uuid);
+			if (address != null) {
+				return address;
+			}
+		}
+		// Otherwise check the address association
+		for (InetAddress sa : addressAssociation.keySet()) {
+			if (addressAssociation.get(sa) == this) {
+				return sa;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Returns whether this renderer provides upnp control services.
+	 *
+	 * @return Whether controllable.
+	 */
+	public boolean isUpnpControllable() {
+		return UPNPHelper.isUpnpControllable(uuid);
+	}
+
+	/**
+	 * Returns a upnp player for this renderer if upnp control is supported.
+	 *
+	 * @return a player or null.
+	 */
+	public UPNPHelper.Player getPlayer() {
+		if (player == null && isUpnpControllable()) {
+			player = new UPNPHelper.Player(this);
+		}
+		return player;
+	}
+
+	/**
+	 * Sets the upnp player.
+	 *
+	 * @param the player.
+	 */
+	public void setPlayer(UPNPHelper.Player player) {
+		this.player = player;
+	}
+
+	@Override
+	public void alert() {
+		if (statusIcon != null) {
+			statusIcon.icon.setGrey(! isUpnpConnected());
+		}
+		super.alert();
+	}
+
+	public void setStatusIcon(StatusTab.rendererItem item) {
+		statusIcon = item;
+	}
+
+	/**
 	 * RendererName: Determines the name that is displayed in the PMS user
 	 * interface when this renderer connects. Default value is "Unknown
 	 * renderer".
@@ -817,7 +1249,11 @@ public class RendererConfiguration {
 	 * @return The renderer name.
 	 */
 	public String getRendererName() {
-		return getString(RENDERER_NAME, Messages.getString("PMS.17"));
+		try {
+			return UPNPHelper.getFriendlyName(uuid);
+		} catch (Exception e) {
+			return getString(RENDERER_NAME, Messages.getString("PMS.17"));
+		}
 	}
 
 	/**
@@ -827,7 +1263,12 @@ public class RendererConfiguration {
 	 * @return The renderer icon.
 	 */
 	public String getRendererIcon() {
-		return getString(RENDERER_ICON, "unknown.png");
+		String icon = getString(RENDERER_ICON, "unknown.png");
+		String deviceIcon = null;
+		if (icon.equals("unknown.png")) {
+			deviceIcon = UPNPHelper.getDeviceIcon(this, 140);
+		}
+		return deviceIcon == null ? icon : deviceIcon;
 	}
 
 	/**
@@ -930,6 +1371,10 @@ public class RendererConfiguration {
 		return getBoolean(MUX_LPCM_TO_MPEG, true);
 	}
 
+	public boolean isMuxNonMod4Resolution() {
+		return getBoolean(MUX_NON_MOD4_RESOLUTION, false);
+	}
+
 	public boolean isMpeg2Supported() {
 		if (isMediaParserV2()) {
 			return getFormatConfiguration().isMpeg2Supported();
@@ -940,12 +1385,12 @@ public class RendererConfiguration {
 
 	/**
 	 * Returns the codec to use for video transcoding for this renderer as
-	 * defined in the renderer configuration. Default value is "MPEGPSAC3".
+	 * defined in the renderer configuration. Default value is "MPEGPSMPEG2AC3".
 	 *
 	 * @return The codec name.
 	 */
 	public String getVideoTranscode() {
-		return getString(TRANSCODE_VIDEO, MPEGPSAC3);
+		return getString(TRANSCODE_VIDEO, MPEGPSMPEG2AC3);
 	}
 
 	/**
@@ -976,6 +1421,13 @@ public class RendererConfiguration {
 	 */
 	// TODO this should return an integer and the units should be bits-per-second
 	public String getMaxVideoBitrate() {
+		if (PMS.getConfiguration().isAutomaticMaximumBitrate()) {
+			try {
+				return calculatedSpeed();
+			} catch (Exception e) {
+				// ignore this
+			}
+		}
 		return getString(MAX_VIDEO_BITRATE, null);
 	}
 
@@ -1073,6 +1525,10 @@ public class RendererConfiguration {
 
 	public boolean isDLNAOrgPNUsed() {
 		return getBoolean(DLNA_ORGPN_USE, true);
+	}
+
+	public boolean isAccurateDLNAOrgPN() {
+		return getBoolean(ACCURATE_DLNA_ORGPN, false);
 	}
 
 	/**
@@ -1236,15 +1692,52 @@ public class RendererConfiguration {
 		return getInt(TRANSCODED_VIDEO_AUDIO_SAMPLE_RATE, 48000);
 	}
 
-	public String getDcTitle(String name, DLNAResource dlna) {
-		// Wrap text if applicable
-		if (line_w > 0 && name.length() > line_w) {
-			int i = dlna.isFolder() ? 0 : indent;
-			String head = name.substring(0, i + (Character.isWhitespace(name.charAt(i)) ? 1 : 0));
-			String tail = name.substring(i);
-			name = head + WordUtils.wrap(tail, line_w - i, "\n" + (dlna.isFolder() ? "" : inset), true);
+	public boolean isLimitFolders() {
+		return getBoolean(LIMIT_FOLDERS, true);
+	}
+
+	/**
+	 * Perform renderer-specific name reformatting:<p>
+	 * Truncating and wrapping see {@code TextWrap}<br>
+	 * Character substitution see {@code CharMap}
+	 *
+	 * @param name Original name
+	 * @param suffix Additional media information
+	 * @param dlna The actual DLNA resource
+	 * @return Reformatted name
+	 */
+	public String getDcTitle(String name, String suffix, DLNAResource dlna) {
+		// Wrap + tuncate
+		int len = 0;
+		if (line_w > 0 && (name.length() + suffix.length()) > line_w) {
+			int suffix_len = dots.length() + suffix.length();
+			if (line_h == 1) {
+				len = line_w - suffix_len;
+			} else {
+				// Wrap
+				int i = dlna.isFolder() ? 0 : indent;
+				String newline = "\n" + (dlna.isFolder() ? "" : inset);
+				name = name.substring(0, i + (Character.isWhitespace(name.charAt(i)) ? 1 : 0))
+					+ WordUtils.wrap(name.substring(i) + suffix, line_w - i, newline, true);
+				len = line_w * line_h;
+				if (len != 0 && name.length() > len) {
+					len = name.substring(0, name.length() - line_w).lastIndexOf(newline) + newline.length();
+					name = name.substring(0, len) + name.substring(len, len + line_w).replace(newline, " ");
+					len += (line_w - suffix_len - i);
+				} else {
+					len = -1; // done
+				}
+			}
+			if (len > 0) {
+				// Truncate
+				name = name.substring(0, len).trim() + dots;
+			}
+		}
+		if (len > -1) {
+			name += suffix;
 		}
 
+		// Substitute
 		for (String s : charMap.keySet()) {
 			name = name.replaceAll(s, charMap.get(s));
 		}
@@ -1265,7 +1758,7 @@ public class RendererConfiguration {
 	}
 
 	public String getSupportedSubtitles() {
-		return getString(SUPPORTED_SUBTITLES_TYPE, null);
+		return getString(SUPPORTED_SUBTITLES_FORMATS, null);
 	}
 
 	public boolean useClosedCaption() {
@@ -1281,5 +1774,28 @@ public class RendererConfiguration {
 
 	public boolean ignoreTranscodeByteRangeRequests() {
 		return getBoolean(IGNORE_TRANSCODE_BYTE_RANGE_REQUEST, false);
+	}
+
+	private String calculatedSpeed() throws Exception {
+		String max = getString(MAX_VIDEO_BITRATE, null);
+		for (InetAddress sa : addressAssociation.keySet()) {
+			if (addressAssociation.get(sa) == this) {
+				Future<Integer> speed = SpeedStats.getInstance().getSpeedInMBitsStored(sa, getRendererName());
+				if (max == null) {
+					return String.valueOf(speed.get());
+				}
+				try {
+					Integer i = Integer.parseInt(max);
+					if (speed.get() > i && i != 0) {
+						return max;
+					} else {
+						return String.valueOf(speed.get());
+					}
+				} catch (NumberFormatException e) {
+					return String.valueOf(speed.get());
+				}
+			}
+		}
+		return max;
 	}
 }

@@ -38,8 +38,10 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaDatabase;
+import net.pms.dlna.MapFile;
 import net.pms.util.FormLayoutUtil;
 import net.pms.util.KeyedComboBoxModel;
+import net.pms.util.UMSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -498,12 +500,13 @@ public class NavigationShareTab {
 		// File order
 		final KeyedComboBoxModel kcbm = new KeyedComboBoxModel(
 			new Object[]{
-				"0", // alphabetical
-				"4", // natural sort
-				"3", // ASCIIbetical
-				"1", // newest first
-				"2", // oldest first
-				"5"  // random
+				String.valueOf(UMSUtils.SORT_LOC_SENS), // alphabetical
+				String.valueOf(UMSUtils.SORT_LOC_NAT), // natural sort
+				String.valueOf(UMSUtils.SORT_INS_ASCII), // ASCIIbetical
+				String.valueOf(UMSUtils.SORT_MOD_NEW), // newest first
+				String.valueOf(UMSUtils.SORT_MOD_OLD), // oldest first
+				String.valueOf(UMSUtils.SORT_RANDOM),  // random
+				String.valueOf(UMSUtils.SORT_NO_SORT)   // no sorting
 			},
 			new Object[]{
 				Messages.getString("FoldTab.15"),
@@ -511,12 +514,13 @@ public class NavigationShareTab {
 				Messages.getString("FoldTab.20"),
 				Messages.getString("FoldTab.16"),
 				Messages.getString("FoldTab.17"),
-				Messages.getString("FoldTab.58")
+				Messages.getString("FoldTab.58"),
+				Messages.getString("FoldTab.62")
 			}
 		);
 		sortmethod = new JComboBox(kcbm);
 		sortmethod.setEditable(false);
-		kcbm.setSelectedKey("" + configuration.getSortMethod());
+		kcbm.setSelectedKey("" + configuration.getSortMethod(null));
 
 		sortmethod.addItemListener(new ItemListener() {
 			@Override
@@ -794,6 +798,8 @@ public class NavigationShareTab {
 	}
 
 	public class SharedFoldersTableModel extends DefaultTableModel {
+		private static final long serialVersionUID = -4247839506937958655L;
+
 		public SharedFoldersTableModel() {
 			super(new String[]{Messages.getString("FoldTab.56"), Messages.getString("FoldTab.57")}, 0);
 		}

@@ -1,0 +1,205 @@
+/* General */
+
+html {
+	height: 100%;
+}
+
+body {
+	background:		url('/files/background.jpg');
+	font-family:		"DejaVuSansCondensed", "Helvetica Neue", Helvetica, Arial, sans-serif;
+	color:			#333;
+	min-height: 100%;
+}
+
+body#ContentPage {
+	background:		url('/files/background-blank.jpg');
+}
+
+/* Scaffolding */
+
+#FrontPage #Container {
+	width:			700px;
+	margin:			0 auto;
+	position: relative;
+}
+
+#ContentPage #Container {
+	position:		relative;
+}
+
+#FrontPage #Menu {
+	position:		relative;
+}
+
+#ContentPage.Doc #Menu {
+	position:		relative;
+}
+
+#ContentPage.Doc #Container {
+	margin:2em;
+	max-width:40em;
+	font-size: 22px;
+	text-decoration: none;
+}
+
+#ContentPage.Doc ul {
+	list-style: disc inside none;
+}
+
+#ContentPage #Menu #HomeButton {
+	background:		url('/files/menu-left-content.png');
+	width:			125px;
+	height:			93px;
+	display: block;
+}
+
+#ContentPage #Menu #DocButton {
+	background:		url('/files/settings.png') no-repeat;
+	width:			32px;
+	height:			32px;
+	position: fixed;
+	top: 3px;
+	right: 3px;
+	display: block;
+}
+
+#VideoContainer {
+	max-width: 720px;
+	margin: 100px auto 0 auto;
+}
+
+/* Menu */
+
+#Logo {
+	position: absolute;
+	left: 243px;
+	top: 29px;
+	background: url('/files/logo.png') !important;
+	width: 217px;
+	height: 220px !important;
+	display: block;
+}
+
+#FrontPage #Menu a h3 {
+	margin-top: 240px;
+	text-align: center;
+	font-family: Arial, Verdana, Tahoma, sans-serif;
+	color: #5a5a5a;
+	font-size: 22px;
+	text-decoration: none;
+}
+
+#FrontPage #Menu a {
+	text-decoration: none;
+}
+
+/* Content */
+
+ul#Media li {
+	margin-right: 20px;
+}
+
+ul li {
+	text-align: left;
+}
+
+ul#Media li {
+	float: left;
+	margin-right: 20px;
+	margin-bottom: 20px;
+}
+
+ul#Media li a .thumb {
+	max-width: 214px;
+	max-height: 180px;
+	width: 214px;
+	height: 120px;
+}
+
+ul#Folders li span {
+	display: block;
+	margin-bottom: 5px;
+}
+
+ul#Media li span {
+	display: block;
+	max-width: 214px;
+	height: 16px;
+	overflow: hidden;
+}
+
+ul#Media li span:hover {
+	text-decoration: underline;
+}
+
+ul li a {
+	text-decoration: none;
+}
+
+ul#Folders li a:hover {
+	color: #fff !important;
+}
+
+ul#Media li a:hover {
+	color: #000 !important;
+}
+
+ul#Folders li a {
+	color: #aaa;
+	font-size: 14px;
+}
+
+ul#Media li a {
+	font-size: 12px;
+	color: #444;
+}
+
+#DownloadLink {
+	margin: 20px auto 0 auto;
+	background: url('/files/download.png');
+	display: block;
+	height: 48px;
+	width: 48px;
+}
+
+#DownloadLink:hover {
+	background-position: 0 -48px;
+}
+
+div#FoldersContainer.noFolders {
+	display: none !important;
+}
+
+form#SearchForm {
+	z-index: 3;
+}
+
+#SearchInput {
+	border-radius: 20px;
+	padding: 9px 12px 7px 30px;
+	border: solid 1px #ccc;
+	background-repeat: no-repeat;
+	background-image: url('/files/inputbackground-search.png');
+	background-position: 6px 8px;
+	color: #666;
+	width: 200px;
+	height: 22px;
+}
+
+#SearchSubmit {
+	cursor: pointer;
+	padding: 5px 10px;
+	color: #888;
+	width: 40px;
+	height: 40px;
+	background: none;
+	background-image: url('/files/button-search.png');
+	background-position: 0 -40px;
+	border: none;
+	position: relative;
+	top: -1px;
+}
+
+#SearchSubmit:hover {
+	background-position: 0 0;
+}

@@ -18,6 +18,8 @@
  */
 package net.pms.newgui;
 
+import net.pms.configuration.RendererConfiguration;
+
 public class DummyFrame implements IFrame {
 	@Override
 	public void append(String msg) {
@@ -48,13 +50,17 @@ public class DummyFrame implements IFrame {
 	}
 
 	@Override
-	public void addRendererIcon(int code, String msg, String icon) {
+	public void addRenderer(RendererConfiguration renderer) {
+	}
+
+	@Override
+	public void updateRenderer(RendererConfiguration renderer) {
 	}
 
 	@Override
 	public void serverReady() {
 	}
-	
+
 	@Override
 	public void setScanLibraryEnabled(boolean flag) {
 	}

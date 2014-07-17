@@ -20,17 +20,20 @@ package net.pms.newgui;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
-import java.awt.image.RenderedImage;
-import javax.swing.JPanel;
+import java.awt.image.*;
+import javax.swing.*;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ChangeEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class ImagePanel extends JPanel {
+public class ImagePanel extends JButton {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ImagePanel.class);
 	private static final long serialVersionUID = -6709086531128513425L;
-	protected RenderedImage source;
+	protected RenderedImage source, grey;
 	protected int originX;
 	protected int originY;
+	protected boolean isGrey;
 
 	public ImagePanel() {
 		this(null);
@@ -52,6 +55,10 @@ class ImagePanel extends JPanel {
 				j + insets.top + insets.bottom);
 			setPreferredSize(dimension);
 		}
+		setOpaque(false);
+		setContentAreaFilled(false);
+		setBorderPainted(false);
+		setFocusPainted(false);
 	}
 
 	public void setOrigin(int i, int j) {
@@ -117,10 +124,65 @@ class ImagePanel extends JPanel {
 		int j = insets.top + originY;
 		try {
 			graphics2d.drawRenderedImage(
-				source,
+				getCurrentSource(),
 				AffineTransform.getTranslateInstance(i, j));
 		} catch (OutOfMemoryError e) {
 			LOGGER.debug("Caught exception", e);
 		}
+	}
+	
+	static final Color background = (Color)UIManager.getLookAndFeelDefaults().get("Button.background");
+	static final Color highlight = (Color)UIManager.getLookAndFeelDefaults().get("Button.highlight");
+	
+	public void enableRollover() {
+		setRolloverEnabled(true);
+		getModel().addChangeListener(new ChangeListener() {
+			@Override
+			public void stateChanged(ChangeEvent e) {
+				if (getSource() != null) {
+					ButtonModel model = (ButtonModel)e.getSource();
+					setBackground(model.isRollover() ? highlight : background);
+					//setBorderPainted(model.isRollover()); // some lafs ignore borderPainted
+					//setCursor(model.isRollover() ? new Cursor(Cursor.HAND_CURSOR) : new Cursor(Cursor.DEFAULT_CURSOR));
+				}
+			 }
+		});
+	}
+
+	public void setGrey(boolean b) {
+		isGrey = b;
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				repaint();
+			}
+		});
+	}
+
+	public boolean isGrey() {
+		return isGrey;
+	}
+
+	public RenderedImage getCurrentSource() {
+		if (isGrey && grey == null && source != null) {
+			grey = greyed((BufferedImage)source, 60);
+		}
+		return isGrey ? grey : source;
+	}
+
+	public BufferedImage greyed(BufferedImage bi, int pct) {
+		ImageFilter filter = new GrayFilter(true, pct);
+		ImageProducer producer = new FilteredImageSource(bi.getSource(), filter);
+		return toBufferedImage(createImage(producer));
+	}
+
+	public static BufferedImage toBufferedImage(Image img) {
+		if (img instanceof BufferedImage) {
+			return (BufferedImage) img;
+		}
+		BufferedImage bi = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g = bi.createGraphics();
+		g.drawImage(img, 0, 0, null);
+		g.dispose();
+		return bi;
 	}
 }

@@ -33,7 +33,7 @@ public class RecentlyPlayed extends VirtualFolder {
 	private List<DLNAResource> list;
 
 	public RecentlyPlayed() {
-		super(Messages.getString("VirtualFolder.1"), "images/thumbnail-video-256.png");
+		super(Messages.getString("VirtualFolder.1"), "images/thumbnail-folder-256.png");
 		list = Collections.synchronizedList(new ArrayList<DLNAResource>());
 		parseLastFile();
 	}
@@ -155,6 +155,8 @@ public class RecentlyPlayed extends VirtualFolder {
 			getChildren().clear();
 			setDiscovered(false);
 			dumpFile();
+			getChildren().clear();
+			setDiscovered(false);
 		} catch (IOException e) {
 		}
 	}

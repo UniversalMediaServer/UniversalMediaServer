@@ -223,7 +223,7 @@ public class SizeLimitInputStream extends InputStream {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void mark(int readlimit) {
+	public synchronized void mark(int readlimit) {
 		if (in.markSupported()) {
 			markReadLimitBytes = readlimit;
 			bytesReadSinceMark = 0;
@@ -235,7 +235,7 @@ public class SizeLimitInputStream extends InputStream {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void reset() throws IOException {
+	public synchronized void reset() throws IOException {
 		if (in.markSupported() && bytesReadSinceMark <= markReadLimitBytes) {
 			bytesRead -= bytesReadSinceMark;
 			in.reset();
