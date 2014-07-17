@@ -101,7 +101,7 @@
 			<includes>
 				<include>documentation/**</include>
 				<include>DummyInput.jpg</include>
-				<include>web/*</include>
+				<include>web/**</include>
 			</includes>
 		</fileSet>
 
