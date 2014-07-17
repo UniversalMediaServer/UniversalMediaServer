@@ -264,7 +264,6 @@ public class PmsConfiguration {
 	private final ConfigurationReader configurationReader;
 	private final TempFolder tempFolder;
 	private final ProgramPaths programPaths;
-	private HashMap<String,Integer> sortMethods;
 
 	private final IpFilter filter = new IpFilter();
 
