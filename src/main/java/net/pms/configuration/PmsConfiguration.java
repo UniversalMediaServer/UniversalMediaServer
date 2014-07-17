@@ -2161,15 +2161,14 @@ public class PmsConfiguration {
 	 * @return The sort method
 	 */
 	public int getSortMethod(File path) {
-		int ret = getInt(KEY_SORT_METHOD, UMSUtils.SORT_LOC_NAT);
-		while(path != null) {
+		int cnt = 0;
+		while(path != null && (cnt++ < 100)) {
 			if (sortMethods.get(path.getAbsolutePath()) != null) {
-				ret = sortMethods.get(path.getAbsolutePath());
-				break;
+				return sortMethods.get(path.getAbsolutePath());
 			}
 			path = path.getParentFile();
 		}
-		return ret;
+		return getInt(KEY_SORT_METHOD, UMSUtils.SORT_LOC_NAT);
 	}
 
 	/**
