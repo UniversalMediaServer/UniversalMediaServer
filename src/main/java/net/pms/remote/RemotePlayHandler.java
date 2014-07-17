@@ -19,6 +19,7 @@ import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.Player;
 import net.pms.formats.v2.SubtitleUtils;
 import net.pms.io.OutputParams;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -14,11 +14,12 @@ public class WebRender extends RendererConfiguration {
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	public WebRender(String name) throws ConfigurationException {
-		super(null);
+		super(null, null);
 		this.name = name;
 		ip = "";
 		port = 0;
 		ua = "";
+		loaded = true;
 	}
 
 	@Override
@@ -44,9 +45,9 @@ public class WebRender extends RendererConfiguration {
 	}
 
 	@Override
-	public void associateIP(InetAddress sa) {
-		super.associateIP(sa);
+	public boolean associateIP(InetAddress sa) {
 		ip = sa.getHostAddress();
+		return super.associateIP(sa);
 	}
 
 	public void associatePort(int port) {

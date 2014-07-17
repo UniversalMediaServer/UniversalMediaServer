@@ -1,0 +1,180 @@
+<html><head><title>bump</title>
+<link rel="stylesheet" href="/files/web.css" type="text/css"> 
+<link rel="stylesheet" href="/files/web-narrow.css" type="text/css">
+<link rel="stylesheet" href="/files/web-wide.css" type="text/css">
+<script>
+server_addr = 'http://127.0.0.1:9001';
+
+function set_addr(new_addr) {
+	var u = document.getElementById('addr');
+	var addr = u.innerHTML;
+	b = document.getElementById('bookmarklet');
+	b.href = b.href.replace(addr, new_addr);
+	u.innerHTML = new_addr;
+	js = document.getElementById('jstext');
+	js.readOnly = false;
+	js.innerHTML = unescape(b.href);
+	js.readOnly = true;
+}
+
+function get_addr() {
+	var addr = document.getElementById('addr').innerHTML;
+	var new_addr = prompt('Enter the UMS web server\'s network address', addr);
+	if (new_addr != null && new_addr !== addr) {
+		set_addr(new_addr);
+	}
+}
+
+function show(device) {
+	var other = device == 'touch' ? 'desktop' : 'touch';
+	document.getElementById(other).style.display = 'none';
+	var s = document.getElementById(other + 'label').style;
+	s.fontWeight = 'normal';
+	s.fontSize = '';
+	document.getElementById(device).style.display = '';
+	s = document.getElementById(device + 'label').style;
+	s.fontWeight = 'bold';
+	s.fontSize = 'large';
+}
+
+isTouchDevice = window.screenX == 0 && ('ontouchstart' in window || 'onmsgesturechange' in window);
+
+function init() {
+	set_addr(server_addr);
+	show(isTouchDevice ? 'touch' : 'desktop');
+	var e = document.getElementById(isTouchDevice ? 'touchradio' : 'desktopradio');
+	e.checked=true;
+	e.focus();
+}
+
+</script>
+<meta name="viewport" content="width=device-width"/>
+<!--<link rel="shortcut icon" type="image/png" href="files/img/bump16.png?v=2" />-->
+</head>
+<body id="ContentPage" style="margin:0 auto" onload="init()">
+<div id="Menu" style="position:relative"><a href="/browse/0" id="HomeButton"></a>
+
+<div style="margin:2em;max-width:40em;font-family:sans-serif;">
+<div id="Container">
+<br/>
+<center>
+<div style="background-color:#f2f2f2;display:inline-block;-moz-box-shadow: 4px 4px 2px #aaa;-webkit-box-shadow: 4px 4px 2px #aaa;box-shadow: 4px 4px 2px #aaa;"
+onMouseOver="this.style.backgroundColor='white';" onMouseOut="this.style.backgroundColor='#f2f2f2';">
+
+<a id="bookmarklet" title="press to test the bookmarklet"
+href="javascript:(function(){
+
+var addr='http://127.0.0.1:9001';
+if(typeof bump !== 'undefined' && bump.enabled()){return;}
+loadjs('https://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js',function(){
+loadjs(addr+'/bump/bump.js',function(){
+	bump.start(addr);
+});
+});
+
+function loadjs(url,done){
+	var head=document.getElementsByTagName('head')[0];
+	var script=document.createElement('script');
+	script.src=url;
+	var loaded=false;
+	script.onload=script.onreadystatechange=function(){
+		if(!loaded&&(!this.readyState||this.readyState=='loaded'||this.readyState=='complete')){
+			loaded=true;
+			done();
+			script.onload=script.onreadystatechange=null;
+			head.removeChild(script);
+		}
+	};
+	head.appendChild(script);
+}
+})();"><img src="files/bump/bump32.png" alt="bump"/></a></div>
+</center>
+<br/><br/>
+<div class="bump">
+The <b>B</b>rowser-to-<b>U</b>MS <b>M</b>edia <b>P</b>layer (<i>bump</i>) is a remote control <a href="http://en.wikipedia.org/wiki/Bookmarklet">bookmarklet</a> to send media from your browser's current page to any upnp-controllable renderer connected to UMS.
+</div>
+<h2>Setup</h2>
+
+<table width="100%">
+<tr align="justify">
+<td align="center">
+<input id="desktopradio" type="radio" name="device" onclick="show('desktop')">
+<label id="desktoplabel" for="desktopradio">Desktop Browsers</label>
+</td>
+<td align="center">
+<input id="touchradio" type="radio" name="device" onclick="show('touch')">
+<label id="touchlabel" for="touchradio" title="Browsers without a bookmarks toolbar">Touch/Mobile Browsers</label>
+</td>
+</tr></table>
+
+<div id="desktop" class="desktop" style="display:block;">
+<ul>
+<b>Install</b>
+<ul>Drag the button above to your bookmarks toolbar.
+</ul>
+<br/>
+<b>Usage</b>
+<ul>Press it anytime to open the player.
+</ul>
+</ul>
+</div>
+
+<div id="touch" class="touch" style="display:block;">
+<ul>
+<b>Install</b>
+<ol>
+<li>Copy the code below:<br/>
+<textarea id="jstext" cols="50" rows="4" onfocus="this.select()" onmouseup="return false" readonly></textarea>
+</li>
+<li>Bookmark this page and open the bookmark for editing.</li>
+<li>Paste the copied code as the bookmark URL.</li>
+<li>Name the bookmark '<span class="mode">bump</span>'.</li>
+</ol>
+<br/>
+<b>Usage</b>
+<div class="touch" display="none">
+<ul>Type '<span class="mode">bump</span>' in the address bar and select the
+bookmark from the drop-down list.</ul>
+</ul>
+</div>
+</div>
+<h2>Info</h2>
+<div class="bump">
+<ul>
+<li>Bump is already embedded in UMS pages via player popup buttons under the media items,
+this bookmarklet is for general use anywhere else.</li>
+<br/>
+<li>Your renderer is upnp-controllable if playback controls are showing on its UMS gui popup panel.</li>
+<br/>
+<li>To designate a default playback renderer set <code style="color:#0000BB;"><b>bump</b></code> to its IP in <i>UMS.conf</i>
+(e.g. <code style="color:#0000BB"><b>bump</b>=<i>192.168.1.3</i></code>).</li>
+<br/>
+<li>To disable this service entirely set <code style="color:#0000BB"><b>bump</b>=<i>false</i></code> in <i>UMS.conf</i>.</li>
+<br/>
+<li>Either the <i><a href="http://skeptical.github.io/jumpy/readme.html">jumpy</a></i> or <i><a href="https://github.com/SharkHunter/Channel">channels</a></i> plugin must be installed to act as a url resolver.</li>
+<br/>
+<li>The current page must contain resolvable media, for example youtube, vimeo, and so on.</li>
+<br/>
+<li><u><i>https</i></u> pages will work only if the UMS web server is also running in
+<br/>
+<i><a href="doc/https" title="TODO: doc/https">https mode</a></i> (and you'll need to reinstall the bookmarklet if you
+switch server modes). Alternatively you can also switch to the <u><i>http</i></u> version
+of the page if one is available (e.g. on youtube).</li>
+<br/>
+<li>The button is currently configured for UMS
+web server address at <i><b><code id="addr">http://127.0.0.1:9001</code></b></i>
+(<a href="javascript:get_addr()" title="Click to set the network address of UMS/PMS' host machine">change...</a>
+then repeat setup).</li>
+<br/>
+<li>You can create a new skin for the player as follows:
+<ul>
+<li>Copy the UMS program subfolder <code><i><b>web/bump/skin</b></i></code> anywhere and maybe rename it, e.g. <code><i><b>mySkin</b></i></code>.</li>
+<li>Set <code style="color:#0000BB"><b>bump.skin</b>=<i>c:\\path\\to\\mySkin</i></code> in <i>UMS.conf</i>.</li>
+<li>Replace images and edit the embedded css and html in <code><i><b>mySkin\skin.js</b></i></code></li> as desired,
+preserving the enclosing jquery/javascript syntax. See also comments in <code><i><b>skin.js</b>.
+</ul>
+</li>
+</ul>
+</div>
+</div></div></div>
+</body></html>

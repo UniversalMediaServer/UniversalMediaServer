@@ -31,6 +31,25 @@ body#ContentPage {
 	position:		relative;
 }
 
+#ContentPage.Doc {
+	margin:0 auto;
+}
+
+#ContentPage.Doc #Menu {
+	position:		relative;
+}
+
+#ContentPage.Doc #Container {
+	margin:2em;
+	max-width:40em;
+	font-size: 22px;
+	text-decoration: none;
+}
+
+#ContentPage.Doc ul {
+	list-style: disc inside none;
+}
+
 #ContentPage #Menu #HomeButton {
 	background:		url('/files/menu-left-content.png');
 	width:			125px;
@@ -80,13 +99,15 @@ ul li {
 
 ul#Media li {
 	float: left;
+	margin-right: 20px;
+	margin-bottom: 20px;
 }
 
-ul#Media li a img {
+ul#Media li a .thumb {
 	max-width: 214px;
 	max-height: 180px;
-	width: 214px;
 	height: 120px;
+	/* Note: intentionally omitting width here so as to avoid distortion if the thumb is actually an icon. */
 }
 
 ul#Folders li span {
@@ -98,7 +119,6 @@ ul#Media li span {
 	display: block;
 	max-width: 214px;
 	height: 16px;
-	margin-bottom: 20px;
 	overflow: hidden;
 }
 
@@ -144,36 +164,64 @@ div#FoldersContainer.noFolders {
 	display: none !important;
 }
 
+#DocButton {
+	background: url('/files/settings32.png') no-repeat;
+	position: absolute;
+	top: 10px;
+	right: 10px;
+}
+
 form#SearchForm {
 	z-index: 3;
+	position: absolute;
+	top: 10px;
+	right: 50px;
 }
 
 #SearchInput {
-	border-radius: 20px;
-	padding: 9px 12px 7px 30px;
+	border-radius: 10px;
+	padding: 4px 28px 4px 9px;
 	border: solid 1px #ccc;
-	background-repeat: no-repeat;
-	background-image: url('/files/inputbackground-search.png');
-	background-position: 6px 8px;
 	color: #666;
-	width: 200px;
-	height: 22px;
+	width: 160px;
+	position: absolute;
+	top: 3px;
+	right: 10px;
 }
 
 #SearchSubmit {
-	cursor: pointer;
-	padding: 5px 10px;
-	color: #888;
-	width: 40px;
-	height: 40px;
-	background: none;
-	background-image: url('/files/button-search.png');
-	background-position: 0 -40px;
-	border: none;
-	position: relative;
-	top: -1px;
+	background: url('/files/search32.png') no-repeat;
+	position: absolute;
+	top: 3px;
+	right: 5px;
 }
 
-#SearchSubmit:hover {
-	background-position: 0 0;
+#SearchSubmit, #DocButton {
+	cursor: pointer;
+	border: none;
+	width: 32px;
+	height: 32px;
+	display: block;
 }
+
+#SearchSubmit:hover, #DocButton:hover {
+	background-position: 0 -32px;
+}
+
+.icondisabled {
+	opacity:0.3;
+	cursor:default;
+}
+
+#bumpicon {
+	background: url('/files/bump/bump16-2.png') no-repeat;
+	width: 28px;
+	height: 16px;
+	display: block;
+}
+
+#bumpicon:hover {
+	background-position: 0 -16px;
+}
+
+

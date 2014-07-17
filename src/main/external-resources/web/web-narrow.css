@@ -18,8 +18,3 @@ ul#Media {
 	z-index: 2;
 }
 
-form#SearchForm {
-	position: absolute;
-	top: 27px;
-	right: 20px;
-}

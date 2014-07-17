@@ -37,7 +37,7 @@
 
 	<!-- this is not required, but is recommended for plugin version checks -->
 	<prerequisites>
-		<maven>2.2.1</maven>
+		<maven>3.2.1</maven>
 	</prerequisites>
 
 	<organization>
@@ -165,6 +165,13 @@
 			<id>mygrid-repository</id>
 			<name>myGrid Repository</name>
 			<url>http://www.mygrid.org.uk/maven/repository</url>
+		</repository>
+		<repository>
+			<id>4thline-repo</id>
+			<url>http://4thline.org/m2</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
 		</repository>
 	</repositories>
 	<dependencies>
@@ -370,6 +377,31 @@
 			<groupId>net.java.dev.jna</groupId>
 			<artifactId>jna</artifactId>
 			<version>4.0.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.fourthline.cling</groupId>
+			<artifactId>cling-core</artifactId>
+			<version>2.0-alpha3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.fourthline.cling</groupId>
+			<artifactId>cling-support</artifactId>
+			<version>2.0-alpha3</version>
+		</dependency>
+		<dependency>
+			<groupId>org.seamless</groupId>
+			<artifactId>seamless-http</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.seamless</groupId>
+			<artifactId>seamless-util</artifactId>
+			<version>1.0-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.seamless</groupId>
+			<artifactId>seamless-xml</artifactId>
+			<version>1.0-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 	<build>

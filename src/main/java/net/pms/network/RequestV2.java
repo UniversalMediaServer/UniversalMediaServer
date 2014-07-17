@@ -261,17 +261,14 @@ public class RequestV2 extends HTTPResource {
 			// Request to retrieve a file
 
 			/**
-			 * Skip the leading "get/" and extract the resource ID from the first path element
-			 * e.g. "get/0$1$5$3$4/Foo.mp4" -> "0$1$5$3$4"
+			 * Skip the leading "get/"
+			 * e.g. "get/0$1$5$3$4/Foo.mp4" -> "0$1$5$3$4/Foo.mp4"
 			 *
 			 * ExSport: I spotted on Android it is asking for "/get/0$2$4$2$1$3" which generates exception with response:
 			 * "Http: Response, HTTP/1.1, Status: Internal server error, URL: /get/0$2$4$2$1$3"
 			 * This should fix it
 			 */
-			String id = argument.substring(4);
-			if (argument.substring(4).contains("/")) {
-				id = argument.substring(4, argument.lastIndexOf('/'));
-			}
+			String id = argument.substring(argument.indexOf("get/") + 4);
 
 			// Some clients escape the separators in their request: unescape them.
 			id = id.replace("%24", "$");
@@ -286,7 +283,7 @@ public class RequestV2 extends HTTPResource {
 			if (files.size() == 1) {
 				// DLNAresource was found.
 				dlna = files.get(0);
-				String fileName = argument.substring(argument.lastIndexOf('/') + 1);
+				String fileName = id.substring(id.indexOf('/') + 1);
 
 				if (fileName.startsWith("thumbnail0000")) {
 					// This is a request for a thumbnail file.

@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.util.List;
 import net.pms.Messages;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
@@ -50,6 +51,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 			search = getSearchStr(vars);
 		}
 		List<DLNAResource> res = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), search);
+		boolean upnpControl = RendererConfiguration.hasConnectedControlPlayers();
 		if (StringUtils.isNotEmpty(search)) {
 			UMSUtils.postSearch(res, search);
 		}
@@ -76,13 +78,18 @@ public class RemoteBrowseHandler implements HttpHandler {
 				sb.append("<link rel=\"icon\" href=\"/files/favicon.ico\" type=\"image/x-icon\">").append(CRLF);
 				sb.append("<script src=\"/files/jquery.min.js\"></script>");
 				sb.append("<script src=\"/files/jquery.ums.js\"></script>");
+				sb.append("<script src=\"/bump/bump.js\"></script>");
+				// simple prompt script for search folders
+				sb.append("<script>function searchFun(url) {");
+		        sb.append("var str=prompt(\"Enter search string:\");").append(CRLF);
+				sb.append("if(str!=null){ window.location.replace(url+'?str='+str)}").append(CRLF);
+				sb.append("return false;");
+				sb.append("}</script>").append(CRLF);
+				// script ends here
 				sb.append("<title>Universal Media Server</title>").append(CRLF);
 			sb.append("</head>").append(CRLF);
 			sb.append("<body id=\"ContentPage\">").append(CRLF);
 				sb.append("<div id=\"Container\">");
-					sb.append("<div id=\"Menu\">");
-						sb.append("<a href=\"/browse/0\" id=\"HomeButton\"></a>");
-					sb.append("</div>");
 					for (DLNAResource r : res) {
 						String newId = r.getResourceId();
 						String idForWeb = URLEncoder.encode(newId, "UTF-8");
@@ -113,22 +120,34 @@ public class RemoteBrowseHandler implements HttpHandler {
 							// The resource is a media file
 							mediaHtml.append("<li>");
 								mediaHtml.append("<a href=\"/play/").append(idForWeb).append("\" title=\"").append(name).append("\">");
-									mediaHtml.append("<img src=\"").append(thumb).append("\" alt=\"").append(name).append("\">");
+									mediaHtml.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">");
 									mediaHtml.append("<span>").append(name).append("</span>");
 								mediaHtml.append("</a>").append(CRLF);
+								if (upnpControl) {
+									mediaHtml.append("<a id=\"bumpicon\" href=\"javascript:bump.start('//")
+										.append(parent.getAddress()).append("','/play/").append(idForWeb).append("','")
+										.append(name.replace("'", "\\'")).append("')\" title=\"").append("Play on another renderer").append("\"></a>").append(CRLF);
+								} else {
+									mediaHtml.append("<a id=\"bumpicon\" class=\"icondisabled\" href=\"javascript:alert('").append("No upnp-controllable renderers suitable for receiving pushed media are available. Refresh this page if a new renderer may have recently connected.")
+										.append("')\" title=\"No other renderers available\"></a>").append(CRLF);
+								}
 							mediaHtml.append("</li>").append(CRLF);
 
 							hasFile = true;
 						}
 					}
 
-					// Display the search form if the folder is populated
-					if (hasFile) {
-						sb.append("<form id=\"SearchForm\" method=\"get\">");
-							sb.append("<input type=\"text\" id=\"SearchInput\" name=\"str\">");
-							sb.append("<input type=\"submit\" id=\"SearchSubmit\" value=\"&nbsp;\">");
-						sb.append("</form>");
-					}
+					sb.append("<div id=\"Menu\">");
+						sb.append("<a href=\"/browse/0\" id=\"HomeButton\"></a>");
+						// Display the search form if the folder is populated
+						if (hasFile) {
+							sb.append("<form id=\"SearchForm\" method=\"get\">");
+								sb.append("<input type=\"text\" id=\"SearchInput\" name=\"str\">");
+								sb.append("<input type=\"submit\" id=\"SearchSubmit\" title=\"Search\" value=\"&nbsp;\">");
+							sb.append("</form>");
+						}
+						sb.append("<a href=\"/doc\" id=\"DocButton\" title=\"Documentation\"></a>");
+					sb.append("</div>");
 
 					String noFoldersCSS = "";
 					if (!showFolders) {

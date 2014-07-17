@@ -247,6 +247,9 @@ public class PmsConfiguration {
 	private static final String KEY_WEB_THREADS = "web_threads";
 	private static final String KEY_WEB_PATH = "web_path";
 	private static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
+	private static final String KEY_BUMP_ADDRESS = "bump";
+	private static final String KEY_BUMP_JS = "bump.js";
+	private static final String KEY_BUMP_SKIN_DIR = "bump.skin";
 
 	// The name of the subdirectory under which UMS config files are stored for this build (default: UMS).
 	// See Build for more details
@@ -3053,6 +3056,22 @@ public class PmsConfiguration {
 
 	public boolean isWebMp4Trans() {
 		return getBoolean(KEY_WEB_MP4_TRANS, false);
+	}
+
+	public String getBumpAddress() {
+		return getString(KEY_BUMP_ADDRESS, "");
+	}
+
+	public void setBumpAddress(String value) {
+		configuration.setProperty(KEY_BUMP_ADDRESS, value);
+	}
+
+	public String getBumpJS(String fallback) {
+		return getString(KEY_BUMP_JS, fallback);
+	}
+
+	public String getBumpSkinDir(String fallback) {
+		return getString(KEY_BUMP_SKIN_DIR, fallback);
 	}
 
 	public boolean isAutomaticMaximumBitrate() {
