@@ -37,7 +37,7 @@
 
 	<!-- this is not required, but is recommended for plugin version checks -->
 	<prerequisites>
-		<maven>3.2.1</maven>
+		<maven>2.2.1</maven>
 	</prerequisites>
 
 	<organization>
