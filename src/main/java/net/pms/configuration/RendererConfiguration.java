@@ -2,7 +2,6 @@ package net.pms.configuration;
 
 import com.sun.jna.Platform;
 import java.io.File;
-import java.io.IOException;
 import java.io.Reader;
 import java.net.InetAddress;
 import java.util.List;
@@ -13,7 +12,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
-import java.util.regex.Matcher;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 import java.awt.event.ActionListener;
@@ -110,7 +108,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	private static final String DLNA_ORGPN_USE = "DLNAOrgPN";
 	private static final String DLNA_PN_CHANGES = "DLNAProfileChanges";
 	private static final String DLNA_TREE_HACK = "CreateDLNATreeFaster";
-	private static final String FOLDER_LIMIT = "FolderLimit"; // Sony devices require JPG thumbnails
+	private static final String LIMIT_FOLDERS = "LimitFolders";
 	private static final String FORCE_JPG_THUMBNAILS = "ForceJPGThumbnails"; // Sony devices require JPG thumbnails
 	private static final String H264_L41_LIMITED = "H264Level41Limited";
 	private static final String IMAGE = "Image";
@@ -378,17 +376,17 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 //			}
 //		}
 		addressAssociation.put(sa, this);
-		if (PMS.getConfiguration().isAutomaticMaximumBitrate() &&
-				!(sa.isLoopbackAddress() || sa.isAnyLocalAddress())) {
+		if (sa.isLoopbackAddress() || sa.isAnyLocalAddress()) {
+			return;
+		}
+		if (pmsConfiguration.isAutomaticMaximumBitrate() || pmsConfiguration.isSpeedDbg()) {
 			SpeedStats.getInstance().getSpeedInMBits(sa, getRendererName());
 		}
-		return true;
 	}
 
 	public static void calculateAllSpeeds() {
 		for (InetAddress sa : addressAssociation.keySet()) {
-			if (sa.isLoopbackAddress() ||
-				sa.isAnyLocalAddress()) {
+			if (sa.isLoopbackAddress() || sa.isAnyLocalAddress()) {
 				continue;
 			}
 			RendererConfiguration r = addressAssociation.get(sa);
@@ -1691,21 +1689,20 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getInt(TRANSCODED_VIDEO_AUDIO_SAMPLE_RATE, 48000);
 	}
 
-	public boolean folderLimit() {
-		return getBoolean(FOLDER_LIMIT, true);
+	public boolean isLimitFolders() {
+		return getBoolean(LIMIT_FOLDERS, true);
 	}
 
 	/**
 	 * Perform renderer-specific name reformatting:<p>
 	 * Truncating and wrapping see {@code TextWrap}<br>
 	 * Character substitution see {@code CharMap}
-	 * 
+	 *
 	 * @param name Original name
 	 * @param suffix Additional media information
 	 * @param dlna The actual DLNA resource
 	 * @return Reformatted name
 	 */
-
 	public String getDcTitle(String name, String suffix, DLNAResource dlna) {
 		// Wrap + tuncate
 		int len = 0;
@@ -1781,14 +1778,16 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		for (InetAddress sa : addressAssociation.keySet()) {
 			if (addressAssociation.get(sa) == this) {
 				Future<Integer> speed = SpeedStats.getInstance().getSpeedInMBitsStored(sa, getRendererName());
-				if (max == null)
+				if (max == null) {
 					return String.valueOf(speed.get());
+				}
 				try {
 					Integer i = Integer.parseInt(max);
-					if (speed.get() > i && i != 0)
+					if (speed.get() > i && i != 0) {
 						return max;
-					else
+					} else {
 						return String.valueOf(speed.get());
+					}
 				} catch (NumberFormatException e) {
 					return String.valueOf(speed.get());
 				}

@@ -31,10 +31,12 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.dlna.MapFile;
 import net.pms.io.SystemUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.FileUtil.FileLocation;
 import net.pms.util.PropertiesUtil;
+import net.pms.util.UMSUtils;
 import net.pms.util.WindowsRegistry;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
@@ -201,7 +203,9 @@ public class PmsConfiguration {
 	private static final String KEY_RUN_WIZARD = "run_wizard";
 	private static final String KEY_SCRIPT_DIR = "script_dir";
 	private static final String KEY_SEARCH_FOLDER = "search_folder";
-	private static final String KEY_SEARCH_RECURSE = "search_recurse";
+	private static final String KEY_SEARCH_IN_FOLDER = "search_in_folder";
+	private static final String KEY_SEARCH_RECURSE = "search_recurse"; // legacy option
+	private static final String KEY_SEARCH_RECURSE_DEPTH = "search_recurse_depth";
 	private static final String KEY_SERVER_HOSTNAME = "hostname";
 	private static final String KEY_SERVER_NAME = "server_name";
 	private static final String KEY_SERVER_PORT = "port";
@@ -210,6 +214,7 @@ public class PmsConfiguration {
 	private static final String KEY_SKIP_LOOP_FILTER_ENABLED = "mencoder_skip_loop_filter";
 	private static final String KEY_SKIP_NETWORK_INTERFACES = "skip_network_interfaces";
 	private static final String KEY_SORT_METHOD = "sort_method";
+	private static final String KEY_SORT_PATHS = "sort_paths";
 	private static final String KEY_SPEED_DBG = "speed_debug";
 	private static final String KEY_SUBS_COLOR = "subtitles_color";
 	private static final String KEY_SUBTITLES_CODEPAGE = "subtitles_codepage";
@@ -262,6 +267,7 @@ public class PmsConfiguration {
 	private final ConfigurationReader configurationReader;
 	private final TempFolder tempFolder;
 	private final ProgramPaths programPaths;
+	private HashMap<String,Integer> sortMethods;
 
 	private final IpFilter filter = new IpFilter();
 
@@ -483,9 +489,30 @@ public class PmsConfiguration {
 		// Set DEFAULT_AVI_SYNTH_SCRIPT according to language
 		DEFAULT_AVI_SYNTH_SCRIPT = "<movie>\n<sub>\n";
 
+		setupSortMethods();
 		long usableMemory = (Runtime.getRuntime().maxMemory() / 1048576) - BUFFER_MEMORY_FACTOR;
 		if (usableMemory > MAX_MAX_MEMORY_DEFAULT_SIZE) {
 			MAX_MAX_MEMORY_BUFFER_SIZE = (int) usableMemory;
+		}
+	}
+
+	private void setupSortMethods() {
+		sortMethods = new HashMap<>();
+		String raw = getString(KEY_SORT_PATHS, null);
+		if (StringUtils.isEmpty(raw)) {
+			return;
+		}
+		String[] tmp = raw.split(" ");
+		for (int i = 0; i < tmp.length; i++) {
+			String[] kv = tmp[i].split(",");
+			if (kv.length < 2) {
+				continue;
+			}
+			try {
+				sortMethods.put(kv[0], Integer.parseInt(kv[1]));
+			} catch (NumberFormatException e) {
+				// just ignore this
+			}
 		}
 	}
 
@@ -1025,8 +1052,8 @@ public class PmsConfiguration {
 	 */
 	public String getForcedSubtitleLanguage() {
 		return configurationReader.getPossiblyBlankConfigurationString(
-			KEY_FORCED_SUBTITLE_LANGUAGE,
-			getLanguage()
+				KEY_FORCED_SUBTITLE_LANGUAGE,
+				getLanguage()
 		);
 	}
 
@@ -1051,8 +1078,8 @@ public class PmsConfiguration {
 	 */
 	public String getAudioSubLanguages() {
 		return configurationReader.getPossiblyBlankConfigurationString(
-			KEY_AUDIO_SUB_LANGS,
-			Messages.getString("MEncoderVideo.128")
+				KEY_AUDIO_SUB_LANGS,
+				Messages.getString("MEncoderVideo.128")
 		);
 	}
 
@@ -2136,8 +2163,15 @@ public class PmsConfiguration {
 	 * Default value is 4.
 	 * @return The sort method
 	 */
-	public int getSortMethod() {
-		return getInt(KEY_SORT_METHOD, 4);
+	public int getSortMethod(File path) {
+		int cnt = 0;
+		while(path != null && (cnt++ < 100)) {
+			if (sortMethods.get(path.getAbsolutePath()) != null) {
+				return sortMethods.get(path.getAbsolutePath());
+			}
+			path = path.getParentFile();
+		}
+		return getInt(KEY_SORT_METHOD, UMSUtils.SORT_LOC_NAT);
 	}
 
 	/**
@@ -2606,12 +2640,13 @@ public class PmsConfiguration {
 		return getBoolean(KEY_SEARCH_FOLDER, false);
 	}
 
-	public int getSearchRecurse() {
-		if (getBoolean(KEY_SEARCH_RECURSE, true)) {
-			return 100;
-		} else {
-			return 0;
-		}
+	public boolean getSearchInFolder() {
+		return getBoolean(KEY_SEARCH_IN_FOLDER, false) && getSearchFolder();
+	}
+
+	public int getSearchDepth() {
+		int ret = (getBoolean(KEY_SEARCH_RECURSE, true) ? 100 : 2);
+	   	return getInt(KEY_SEARCH_RECURSE_DEPTH, ret);
 	}
 
 	public void reload() {
@@ -3013,22 +3048,6 @@ public class PmsConfiguration {
 		return getBoolean(KEY_WEB_MP4_TRANS, false);
 	}
 
-	public String getBumpAddress() {
-		return getString(KEY_BUMP_ADDRESS, "");
-	}
-
-	public void setBumpAddress(String value) {
-		configuration.setProperty(KEY_BUMP_ADDRESS, value);
-	}
-
-	public String getBumpJS(String fallback) {
-		return getString(KEY_BUMP_JS, fallback);
-	}
-
-	public String getBumpSkinDir(String fallback) {
-		return getString(KEY_BUMP_SKIN_DIR, fallback);
-	}
-
 	public boolean isAutomaticMaximumBitrate() {
 		return getBoolean(KEY_AUTOMATIC_MAXIMUM_BITRATE, false);
 	}
@@ -3046,6 +3065,6 @@ public class PmsConfiguration {
 	}
 
 	public boolean isSpeedDbg() {
-		return getBoolean(KEY_SPEED_DBG, true);
+		return getBoolean(KEY_SPEED_DBG, false);
 	}
 }

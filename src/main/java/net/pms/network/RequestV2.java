@@ -34,6 +34,8 @@ import net.pms.external.StartStopListenerDelegate;
 import net.pms.util.StringUtil;
 import static net.pms.util.StringUtil.convertStringToTime;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
+import net.pms.util.UMSUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelFuture;
@@ -665,32 +667,7 @@ public class RequestV2 extends HTTPResource {
 				);
 
 				if (searchCriteria != null && files != null) {
-					searchCriteria = searchCriteria.toLowerCase();
-
-					for (int i = files.size() - 1; i >= 0; i--) {
-						DLNAResource res = files.get(i);
-
-						if (res.isSearched()) {
-							continue;
-						}
-
-						boolean keep = res.getName().toLowerCase().indexOf(searchCriteria) != -1;
-						final DLNAMediaInfo media = res.getMedia();
-
-						if (media!=null) {
-							for (int j = 0;j < media.getAudioTracksList().size(); j++) {
-								DLNAMediaAudio audio = media.getAudioTracksList().get(j);
-								keep |= audio.getAlbum().toLowerCase().indexOf(searchCriteria) != -1;
-								keep |= audio.getArtist().toLowerCase().indexOf(searchCriteria) != -1;
-								keep |= audio.getSongname().toLowerCase().indexOf(searchCriteria) != -1;
-							}
-						}
-
-						if (!keep) { // dump it
-							files.remove(i);
-						}
-					}
-
+					UMSUtils.postSearch(files, searchCriteria);
 					if (xbox) {
 						if (files.size() > 0) {
 							files = files.get(0).getChildren();

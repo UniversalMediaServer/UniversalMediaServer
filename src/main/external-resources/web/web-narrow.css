@@ -16,4 +16,13 @@ ul#Media {
 	height: 95px;
 	width: 100%;
 	z-index: 2;
+<<<<<<< HEAD
+=======
+}
+
+form#SearchForm {
+	position: absolute;
+	top: 27px;
+	right: 20px;
+>>>>>>> 4.0.0
 }

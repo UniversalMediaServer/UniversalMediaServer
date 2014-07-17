@@ -367,11 +367,18 @@ public class RemoteWeb {
 			sb.append("</html>");
 
 			String response = sb.toString();
+			Headers hdr = t.getResponseHeaders();
+			hdr.add("Content-Type", "text/html");
 			t.sendResponseHeaders(200, response.length());
 			try (OutputStream os = t.getResponseBody()) {
 				os.write(response.getBytes());
 			}
 		}
+	}
+
+	public String getUrl() {
+		return (server instanceof HttpsServer ? "https://" : "http://") +
+			PMS.get().getServer().getHost() + ":" + server.getAddress().getPort();
 	}
 
 	static class RemoteDocHandler implements HttpHandler {

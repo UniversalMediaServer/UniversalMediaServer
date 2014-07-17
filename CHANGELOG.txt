@@ -1,11 +1,19 @@
-4.0.0-b1 - 2014-07-?? - Changes since 4.0.0-a1
-
+<<<<<<< .mine4.0.0-b1 - 2014-07-?? - Changes since 4.0.0-a1
+=======4.0.0-b1 - 2014-07-11 - Changes since 4.0.0-a1
+>>>>>>> .theirs
 	General:
 		Added option to automatically adjust the maximum bandwidth by measuring the speed of the connection to the devices
+		Added searching to the web interface
 		Added and improved documentation for more renderer options to PS3.conf (CustomFFmpegOptions, OverrideFFmpegVideoFilter and KeepAspectRatio)
 		Added "Random" file sorting option
 		Added tooltips to more options in the GUI
+		Added option to use PsPing on Windows to make network speed estimates more accurate (ping_path)
+		Added renderer option LimitFolders to specify whether the renderer has a folder limit or not
+		Added searching to each folder
 		Improved web interface display, especially on mobile devices
+		Improved changing settings via web interface
+		Removed the folder limit from the web interface
+		Made more strings translatable
 		Fixed a bug with filename prettifying
 		Made the renderer setting KeepAspectRatio more reliable
 		Renamed the renderer option OverrideVideoFilter to OverrideFFmpegVideoFilter
@@ -13,10 +21,13 @@
 		Fixed bugs with FFmpeg subtitles
 		Fixed a bug with adding files
 		Fixed ignored renderers
+		Fixed performing unnecessary speed checks
+		Fixed a bug with the Recently Played folder
 	Renderers:
 		Improved support for DirecTV HR
 		Improved support for Panasonic TVs
 		Improved support for Samsung TVs, Blu-ray players and mobile devices
+		Improved aspect ratios on Sony Bravia EX TVs 
 	External Components:
 		Updated Apache commons-lang to 3.3.2, which:
 			Fixes bugs
