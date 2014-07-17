@@ -9,6 +9,7 @@ import java.net.URLEncoder;
 import java.util.List;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
@@ -50,6 +51,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 			search = getSearchStr(vars);
 		}
 		List<DLNAResource> res = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), search);
+		boolean upnpControl = RendererConfiguration.hasConnectedControlPlayers();
 		if (StringUtils.isNotEmpty(search)) {
 			UMSUtils.postSearch(res, search);
 		}

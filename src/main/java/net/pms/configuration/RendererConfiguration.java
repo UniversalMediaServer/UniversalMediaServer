@@ -2,6 +2,7 @@ package net.pms.configuration;
 
 import com.sun.jna.Platform;
 import java.io.File;
+import java.io.IOException;
 import java.io.Reader;
 import java.net.InetAddress;
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.concurrent.Future;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -377,11 +379,12 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 //		}
 		addressAssociation.put(sa, this);
 		if (sa.isLoopbackAddress() || sa.isAnyLocalAddress()) {
-			return;
+			return true;
 		}
 		if (pmsConfiguration.isAutomaticMaximumBitrate() || pmsConfiguration.isSpeedDbg()) {
 			SpeedStats.getInstance().getSpeedInMBits(sa, getRendererName());
 		}
+		return true;
 	}
 
 	public static void calculateAllSpeeds() {

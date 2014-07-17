@@ -3056,6 +3056,22 @@ public class PmsConfiguration {
 		return getBoolean(KEY_WEB_MP4_TRANS, false);
 	}
 
+	public String getBumpAddress() {
+		return getString(KEY_BUMP_ADDRESS, "");
+	}
+
+	public void setBumpAddress(String value) {
+		configuration.setProperty(KEY_BUMP_ADDRESS, value);
+	}
+
+	public String getBumpJS(String fallback) {
+		return getString(KEY_BUMP_JS, fallback);
+	}
+
+	public String getBumpSkinDir(String fallback) {
+		return getString(KEY_BUMP_SKIN_DIR, fallback);
+	}
+
 	public boolean isAutomaticMaximumBitrate() {
 		return getBoolean(KEY_AUTOMATIC_MAXIMUM_BITRATE, false);
 	}

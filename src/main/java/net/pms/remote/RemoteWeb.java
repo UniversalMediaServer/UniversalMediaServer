@@ -376,11 +376,6 @@ public class RemoteWeb {
 		}
 	}
 
-	public String getUrl() {
-		return (server instanceof HttpsServer ? "https://" : "http://") +
-			PMS.get().getServer().getHost() + ":" + server.getAddress().getPort();
-	}
-
 	static class RemoteDocHandler implements HttpHandler {
 		private static final Logger LOGGER = LoggerFactory.getLogger(RemoteStartHandler.class);
 		private final static String CRLF = "\r\n";
