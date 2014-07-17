@@ -499,6 +499,10 @@ public class PmsConfiguration {
 		if (StringUtils.isEmpty(raw)) {
 			return;
 		}
+		if (Platform.isWindows()) {
+			// windows is crap
+			raw = raw.toLowerCase();
+		}
 		String[] tmp = raw.split(" ");
 		for (int i = 0; i < tmp.length; i++) {
 			String[] kv = tmp[i].split(",");
@@ -2163,8 +2167,12 @@ public class PmsConfiguration {
 	public int getSortMethod(File path) {
 		int cnt = 0;
 		while(path != null && (cnt++ < 100)) {
-			if (sortMethods.get(path.getAbsolutePath()) != null) {
-				return sortMethods.get(path.getAbsolutePath());
+			String key = path.getAbsolutePath();
+			if (Platform.isWindows()) {
+				key = key.toLowerCase();
+			}
+			if (sortMethods.get(key) != null) {
+				return sortMethods.get(key);
 			}
 			path = path.getParentFile();
 		}
