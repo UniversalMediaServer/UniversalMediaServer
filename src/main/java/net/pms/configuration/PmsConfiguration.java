@@ -264,7 +264,6 @@ public class PmsConfiguration {
 	private final ConfigurationReader configurationReader;
 	private final TempFolder tempFolder;
 	private final ProgramPaths programPaths;
-	private HashMap<String,Integer> sortMethods;
 
 	private final IpFilter filter = new IpFilter();
 
@@ -486,30 +485,9 @@ public class PmsConfiguration {
 		// Set DEFAULT_AVI_SYNTH_SCRIPT according to language
 		DEFAULT_AVI_SYNTH_SCRIPT = "<movie>\n<sub>\n";
 
-		setupSortMethods();
 		long usableMemory = (Runtime.getRuntime().maxMemory() / 1048576) - BUFFER_MEMORY_FACTOR;
 		if (usableMemory > MAX_MAX_MEMORY_DEFAULT_SIZE) {
 			MAX_MAX_MEMORY_BUFFER_SIZE = (int) usableMemory;
-		}
-	}
-
-	private void setupSortMethods() {
-		sortMethods = new HashMap<>();
-		String raw = getString(KEY_SORT_PATHS, null);
-		if (StringUtils.isEmpty(raw)) {
-			return;
-		}
-		String[] tmp = raw.split(" ");
-		for (int i = 0; i < tmp.length; i++) {
-			String[] kv = tmp[i].split(",");
-			if (kv.length < 2) {
-				continue;
-			}
-			try {
-				sortMethods.put(kv[0], Integer.parseInt(kv[1]));
-			} catch (NumberFormatException e) {
-				// just ignore this
-			}
 		}
 	}
 
@@ -1020,8 +998,8 @@ public class PmsConfiguration {
 	 */
 	public String getAudioLanguages() {
 		return configurationReader.getPossiblyBlankConfigurationString(
-			KEY_AUDIO_LANGUAGES,
-			Messages.getString("MEncoderVideo.126")
+				KEY_AUDIO_LANGUAGES,
+				Messages.getString("MEncoderVideo.126")
 		);
 	}
 
@@ -1036,8 +1014,8 @@ public class PmsConfiguration {
 	 */
 	public String getSubtitlesLanguages() {
 		return configurationReader.getPossiblyBlankConfigurationString(
-			KEY_SUBTITLES_LANGUAGES,
-			Messages.getString("MEncoderVideo.127")
+				KEY_SUBTITLES_LANGUAGES,
+				Messages.getString("MEncoderVideo.127")
 		);
 	}
 
@@ -2160,11 +2138,43 @@ public class PmsConfiguration {
 	 * Default value is 4.
 	 * @return The sort method
 	 */
+	private int findPathSort(String[] paths, String path) throws NumberFormatException{
+		for (int i = 0; i < paths.length; i++) {
+			String[] kv = paths[i].split(",");
+			if (kv.length < 2) {
+				continue;
+			}
+			if (kv[0].equals(path)) {
+				return Integer.parseInt(kv[1]);
+			}
+		}
+		return -1;
+	}
+
 	public int getSortMethod(File path) {
 		int cnt = 0;
+		String raw = getString(KEY_SORT_PATHS, null);
+		if (StringUtils.isEmpty(raw)) {
+			return getInt(KEY_SORT_METHOD, UMSUtils.SORT_LOC_NAT);
+		}
+		if (Platform.isWindows()) {
+			// windows is crap
+			raw = raw.toLowerCase();
+		}
+		String[] paths = raw.split(" ");
+
 		while(path != null && (cnt++ < 100)) {
-			if (sortMethods.get(path.getAbsolutePath()) != null) {
-				return sortMethods.get(path.getAbsolutePath());
+			String key = path.getAbsolutePath();
+			if (Platform.isWindows()) {
+				key = key.toLowerCase();
+			}
+			try {
+				int ret = findPathSort(paths, key);
+				if (ret != -1) {
+					return ret;
+				}
+			} catch (NumberFormatException e) {
+				// just ignore
 			}
 			path = path.getParentFile();
 		}
@@ -3006,6 +3016,7 @@ public class PmsConfiguration {
 	 */
 	private static final String KEY_NO_FOLDERS = "no_shared";
 	private static final String KEY_WEB_HTTPS = "use_https";
+	private static final String KEY_WEB_PORT = "web_port";
 	private static final int WEB_MAX_THREADS = 100;
 
 	public boolean getNoFolders(String tag) {
@@ -3043,6 +3054,10 @@ public class PmsConfiguration {
 
 	public boolean isWebMp4Trans() {
 		return getBoolean(KEY_WEB_MP4_TRANS, false);
+	}
+
+	public int getWebPort() {
+		return getInt(KEY_WEB_PORT, 0);
 	}
 
 	public boolean isAutomaticMaximumBitrate() {
