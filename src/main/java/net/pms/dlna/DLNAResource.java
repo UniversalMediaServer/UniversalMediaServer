@@ -1001,7 +1001,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		} else {
 			// if forced, then call the old 'refreshChildren' method
 			LOGGER.trace("discover {} refresh forced: {}", getResourceId(), forced);
-			if (forced) {
+			if (forced && shouldRefresh(searchStr)) {
+				doRefreshChildren(searchStr);
+				notifyRefresh();
+			}
+			/*if (forced) {
 				if (refreshChildren(searchStr)) {
 					notifyRefresh();
 				}
@@ -1011,7 +1015,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					doRefreshChildren(searchStr);
 					notifyRefresh();
 				}
-			}
+			}*/
 		}
 	}
 
