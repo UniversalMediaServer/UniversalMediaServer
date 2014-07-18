@@ -143,9 +143,9 @@ public class StatusTab {
 		rendererBuilder.opaque(true);
 		for (int i = 0; i < MAX_RENDERERS; i++) {
 			renderers[i] = buildImagePanel(null);
-			rendererBuilder.add(renderers[i], cc.xy(2 + i, 1));
+			rendererBuilder.add(renderers[i], cc.xy(3 + i, 1));
 			rendererLabels[i] = new JLabel("");
-			rendererBuilder.add(rendererLabels[i], cc.xy(2 + i, 3, CellConstraints.CENTER, CellConstraints.DEFAULT));
+			rendererBuilder.add(rendererLabels[i], cc.xy(3 + i, 3, CellConstraints.CENTER, CellConstraints.DEFAULT));
 		}
 
 		builder.add(rendererBuilder.getPanel(), cc.xyw(1, 19, 5));
@@ -245,6 +245,9 @@ public class StatusTab {
 			renderers[numRenderers].set(bi);
 		}
 
+        if (msg.contains("\n")) {
+            msg = "<html>" + msg.replaceAll("\n", "<br>") + "</html>";
+        }
 		rendererLabels[numRenderers].setText(msg);
 		numRenderers++;
 	}

@@ -741,7 +741,7 @@ public class MEncoderVideo extends Player {
 			 *
 			 * We also apply the correct buffer size in this section.
 			 */
-			if (mediaRenderer.isTranscodeToH264TSAC3()) {
+			if (mediaRenderer.isTranscodeToMPEGTSH264AC3() || mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
 				if (
 					mediaRenderer.isH264Level41Limited() &&
 					defaultMaxBitrates[0] > 31250
@@ -778,6 +778,7 @@ public class MEncoderVideo extends Player {
 					case "dts":
 						defaultMaxBitrates[0] -= 1510;
 						break;
+					case "aac":
 					case "ac3":
 						defaultMaxBitrates[0] -= configuration.getAudioBitrate();
 						break;
@@ -991,8 +992,8 @@ public class MEncoderVideo extends Player {
 			}
 		}
 
-		mpegts = params.mediaRenderer.isTranscodeToMPEGTSAC3();
-		h264ts = params.mediaRenderer.isTranscodeToH264TSAC3();
+		mpegts = params.mediaRenderer.isTranscodeToMPEGTSMPEG2AC3();
+		h264ts = params.mediaRenderer.isTranscodeToMPEGTSH264AC3() || params.mediaRenderer.isTranscodeToMPEGTSH264AAC();
 
 		String vcodec = "mpeg2video";
 
@@ -1249,7 +1250,9 @@ public class MEncoderVideo extends Player {
 					acodec += "wmav2";
 				} else {
 					acodec = cbr_settings + acodec;
-					if (configuration.isMencoderAc3Fixed()) {
+					if (params.mediaRenderer.isTranscodeToAAC()) {
+						acodec += "libfaac";
+					} else if (configuration.isMencoderAc3Fixed()) {
 						acodec += "ac3_fixed";
 					} else {
 						acodec += "ac3";
@@ -1277,6 +1280,8 @@ public class MEncoderVideo extends Player {
 				audioType = "dts";
 			} else if (pcm || encodedAudioPassthrough) {
 				audioType = "pcm";
+			} else if (params.mediaRenderer.isTranscodeToAAC()) {
+				audioType = "aac";
 			}
 
 			encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, mpeg2Options, params.mediaRenderer, audioType);
@@ -1309,7 +1314,7 @@ public class MEncoderVideo extends Player {
 			}
 
 			String encodeSettings = "-lavcopts autoaspect=1" + vcodecString +
-				":acodec=" + (configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3") +
+				":acodec=" + (params.mediaRenderer.isTranscodeToAAC() ? "libfaac" : configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3") +
 				":abitrate=" + CodecUtil.getAC3Bitrate(configuration, params.aid) +
 				":threads=" + configuration.getMencoderMaxThreads() +
 				":o=preset=superfast,crf=" + x264CRF + ",g=250,i_qfactor=0.71,qcomp=0.6,level=4.1,weightp=0,8x8dct=0,aq-strength=0";
@@ -1319,6 +1324,8 @@ public class MEncoderVideo extends Player {
 				audioType = "dts";
 			} else if (pcm || encodedAudioPassthrough) {
 				audioType = "pcm";
+			} else if (params.mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
+				audioType = "aac";
 			}
 
 			encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, "", params.mediaRenderer, audioType);

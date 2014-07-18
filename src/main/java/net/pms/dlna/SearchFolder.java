@@ -1,9 +1,14 @@
 package net.pms.dlna;
 
+import net.pms.Messages;
 import net.pms.dlna.virtual.VirtualFolder;
 
 public class SearchFolder extends VirtualFolder {
 	private SearchObj sobj;
+
+	public SearchFolder(SearchObj sobj) {
+		this(Messages.getString("PMS.144"), sobj);
+	}
 
 	public SearchFolder(String name, SearchObj sobj) {
 		super(name, null);
@@ -26,7 +31,7 @@ public class SearchFolder extends VirtualFolder {
 	}
 
 	@Override
-	public void resolve() {
+	public synchronized void resolve() {
 	}
 
 	@Override

@@ -35,6 +35,7 @@ public class SubtitleTypeTest {
 		assertThat(valueOfFileExtension("ssa")).isEqualTo(ASS);
 		assertThat(valueOfFileExtension("ass")).isEqualTo(ASS);
 		assertThat(valueOfFileExtension("idx")).isEqualTo(VOBSUB);
+		assertThat(valueOfFileExtension("vtt")).isEqualTo(WEBVTT);
 	}
 
 	@Test
@@ -60,6 +61,7 @@ public class SubtitleTypeTest {
 		assertThat(valueOfLibMediaInfoCodec("pgs")).isEqualTo(PGS);
 		assertThat(valueOfLibMediaInfoCodec("S_HDMV/PGS")).isEqualTo(PGS);
 		assertThat(valueOfLibMediaInfoCodec("144")).isEqualTo(PGS);
+		assertThat(valueOfLibMediaInfoCodec("WebVTT")).isEqualTo(WEBVTT);
 	}
 
 	@Test
@@ -89,6 +91,7 @@ public class SubtitleTypeTest {
 		assertThat(ASS.getExtension()).isEqualTo("ass");
 		assertThat(VOBSUB.getExtension()).isEqualTo("idx");
 		assertThat(UNSUPPORTED.getExtension()).isEqualTo("");
+		assertThat(WEBVTT.getExtension()).isEqualTo("vtt");
 	}
 
 	@Test
@@ -140,7 +143,7 @@ public class SubtitleTypeTest {
 
 	@Test
 	public void getSupportedFileExtensions() {
-		Set<String> expectedExtensionsSet = new HashSet<>(Arrays.asList("srt", "txt", "sub", "smi", "ssa", "ass", "idx"));
+		Set<String> expectedExtensionsSet = new HashSet<>(Arrays.asList("srt", "txt", "sub", "smi", "ssa", "ass", "idx", "vtt"));
 		assertThat(SubtitleType.getSupportedFileExtensions()).isEqualTo(expectedExtensionsSet);
 	}
 
@@ -159,6 +162,7 @@ public class SubtitleTypeTest {
 		assertThat(DIVX.getStableIndex()).isEqualTo(10);
 		assertThat(TX3G.getStableIndex()).isEqualTo(11);
 		assertThat(PGS.getStableIndex()).isEqualTo(12);
+		assertThat(WEBVTT.getStableIndex()).isEqualTo(13);
 	}
 
 	@Test
@@ -185,6 +189,7 @@ public class SubtitleTypeTest {
 		assertThat(valueOfStableIndex(10)).isEqualTo(DIVX);
 		assertThat(valueOfStableIndex(11)).isEqualTo(TX3G);
 		assertThat(valueOfStableIndex(12)).isEqualTo(PGS);
+		assertThat(valueOfStableIndex(13)).isEqualTo(WEBVTT);
 	}
 
 	@Test

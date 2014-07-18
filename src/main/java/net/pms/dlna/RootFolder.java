@@ -124,7 +124,7 @@ public class RootFolder extends DLNAResource {
 			}
 		}
 
-		if (configuration.getFolderLimit()) {
+		if (configuration.getFolderLimit() && getDefaultRenderer().isLimitFolders()) {
 			lim = new FolderLimit();
 			addChild(lim);
 		}
@@ -135,11 +135,6 @@ public class RootFolder extends DLNAResource {
 
 		for (DLNAResource r : getVirtualFolders(tags)) {
 			addChild(r);
-		}
-
-		if (configuration.getSearchFolder()) {
-			SearchFolder sf = new SearchFolder("Search disc folders", new FileSearch(getConfiguredFolders(null)));
-			addChild(sf);
 		}
 
 		String webConfPath = configuration.getWebConfPath();
@@ -279,6 +274,11 @@ public class RootFolder extends DLNAResource {
 				continue;
 			}
 			res.add(new RealFile(f));
+		}
+
+		if (configuration.getSearchFolder()) {
+			SearchFolder sf = new SearchFolder(Messages.getString("PMS.143"), new FileSearch(res));
+			addChild(sf);
 		}
 
 		return res;
@@ -906,7 +906,7 @@ public class RootFolder extends DLNAResource {
 										// Put the track into its album folder
 										{
 											if (!isCompilation) {
-												albumName += " – " + artistName;
+												albumName += " - " + artistName;
 											}
 
 											VirtualFolder individualAlbumFolder = null;

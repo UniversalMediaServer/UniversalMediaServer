@@ -63,6 +63,7 @@ public class GeneralTab {
 	private JComboBox networkinterfacesCBX;
 	private JTextField ip_filter;
 	public JTextField maxbitrate;
+	private JCheckBox adaptBitrate;
 	private JComboBox renderers;
 	private final PmsConfiguration configuration;
 	private JCheckBox fdCheckBox;
@@ -288,6 +289,7 @@ public class GeneralTab {
 		if (!configuration.isHideAdvancedOptions()) {
 			singleInstance = new JCheckBox(Messages.getString("GeneralTab.10"), configuration.getSingle());
 			singleInstance.setContentAreaFilled(false);
+			singleInstance.setToolTipText(Messages.getString("GeneralTab.11"));
 			singleInstance.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
@@ -438,6 +440,21 @@ public class GeneralTab {
 					configuration.setMaximumBitrate(maxbitrate.getText());
 				}
 			});
+			if (configuration.isAutomaticMaximumBitrate()) {
+				maxbitrate.setEnabled(false);
+			} else {
+				maxbitrate.setEnabled(true);
+			}
+
+			adaptBitrate = new JCheckBox(Messages.getString("GeneralTab.12"), configuration.isAutomaticMaximumBitrate());
+			adaptBitrate.setContentAreaFilled(false);
+			adaptBitrate.addActionListener(new ActionListener() {
+				@Override
+				public void actionPerformed(ActionEvent e) {
+					configuration.setAutomaticMaximumBitrate(adaptBitrate.isSelected());
+					maxbitrate.setEnabled(configuration.isAutomaticMaximumBitrate());
+				}
+			});
 
 			builder.addLabel(Messages.getString("NetworkTab.20"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 			builder.add(networkinterfacesCBX, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
@@ -452,7 +469,8 @@ public class GeneralTab {
 			builder.add(ip_filter, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
 			ypos += 2;
 			builder.addLabel(Messages.getString("NetworkTab.35"), FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
-			builder.add(maxbitrate, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
+			builder.add(maxbitrate, FormLayoutUtil.flip(cc.xyw(3, ypos, 3), colSpec, orientation));
+			builder.add(adaptBitrate, FormLayoutUtil.flip(cc.xy(7, ypos), colSpec, orientation));
 			ypos += 2;
 
 			cmp = builder.addSeparator(Messages.getString("NetworkTab.31"), FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
