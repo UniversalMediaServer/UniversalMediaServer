@@ -84,6 +84,8 @@ public class PMS {
 	@Deprecated
 	public static String VERSION;
 
+	private boolean ready = false;
+
 	public static final String AVS_SEPARATOR = "\1";
 
 	// (innot): The logger used for all logging.
@@ -720,6 +722,8 @@ public class PMS {
 		getRootFolder(RendererConfiguration.getDefaultConf());
 
 		frame.serverReady();
+
+		ready = true;
 
 		// UPNPHelper.sendByeBye();
 		Runtime.getRuntime().addShutdownHook(new Thread("PMS Listeners Stopper") {
@@ -1471,5 +1475,9 @@ public class PMS {
 		}
 
 		return false;
+	}
+
+	public static boolean isReady() {
+		return get().ready;
 	}
 }
