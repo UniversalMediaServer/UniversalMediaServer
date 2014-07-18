@@ -561,7 +561,7 @@ public class PMS {
 		});
 
 		// Web stuff
-		web = new RemoteWeb();
+		web = new RemoteWeb(configuration.getWebPort());
 
 		RendererConfiguration.loadRendererConfigurations(configuration);
 		// Now that renderer confs are all loaded, we can start searching for renderers

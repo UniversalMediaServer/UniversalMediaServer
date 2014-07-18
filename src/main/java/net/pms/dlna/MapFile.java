@@ -21,7 +21,6 @@ package net.pms.dlna;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.Collator;
 import java.util.*;
 import net.pms.PMS;
 import net.pms.configuration.MapFileConfiguration;
@@ -31,7 +30,6 @@ import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.formats.FormatFactory;
 import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
-import net.pms.util.NaturalComparator;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -244,9 +242,9 @@ public class MapFile extends DLNAResource {
 			}
 			return;
 		}
-		
+
 		UMSUtils.sort(files, (sm == UMSUtils.SORT_RANDOM ? UMSUtils.SORT_LOC_NAT : sm));
-		
+
 		for (File f : files) {
 			if (f.isDirectory()) {
 				discoverable.add(f); // manageFile(f);
@@ -274,7 +272,6 @@ public class MapFile extends DLNAResource {
 				modified = Math.max(modified, f.lastModified());
 			}
 		}
-
 
 		return (getLastRefreshTime() < modified);
 	}
@@ -465,7 +462,7 @@ public class MapFile extends DLNAResource {
 
 	private File getPath() {
 		if (this instanceof RealFile) {
-			return ((RealFile)this).getFile();
+			return ((RealFile) this).getFile();
 		}
 		return null;
 	}

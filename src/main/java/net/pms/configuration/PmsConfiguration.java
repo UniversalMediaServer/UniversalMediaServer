@@ -2142,8 +2142,8 @@ public class PmsConfiguration {
 	 * @return The sort method
 	 */
 	private int findPathSort(String[] paths, String path) throws NumberFormatException{
-		for (int i = 0; i < paths.length; i++) {
-			String[] kv = paths[i].split(",");
+		for (String path1 : paths) {
+			String[] kv = path1.split(",");
 			if (kv.length < 2) {
 				continue;
 			}
@@ -2166,7 +2166,7 @@ public class PmsConfiguration {
 		}
 		String[] paths = raw.split(" ");
 
-		while(path != null && (cnt++ < 100)) {
+		while (path != null && (cnt++ < 100)) {
 			String key = path.getAbsolutePath();
 			if (Platform.isWindows()) {
 				key = key.toLowerCase();
@@ -3019,6 +3019,7 @@ public class PmsConfiguration {
 	 */
 	private static final String KEY_NO_FOLDERS = "no_shared";
 	private static final String KEY_WEB_HTTPS = "use_https";
+	private static final String KEY_WEB_PORT = "web_port";
 	private static final int WEB_MAX_THREADS = 100;
 
 	public boolean getNoFolders(String tag) {
@@ -3072,6 +3073,11 @@ public class PmsConfiguration {
 
 	public String getBumpSkinDir(String fallback) {
 		return getString(KEY_BUMP_SKIN_DIR, fallback);
+	}
+
+	public int getWebPort() {
+		return getInt(KEY_WEB_PORT, 0);
+
 	}
 
 	public boolean isAutomaticMaximumBitrate() {

@@ -69,7 +69,7 @@
 			</includes>
 		</fileSet>
 
-		<!-- Include configuration files -->
+		<!-- Include text-only resources and adjust line endings -->
 		<fileSet>
 			<directory>${project.external-resources}</directory>
 			<outputDirectory>.</outputDirectory>
@@ -81,14 +81,27 @@
 				<include>WEB.conf</include>
 				<include>logback.headless.xml</include>
 				<include>logback.xml</include>
-				<include>documentation/**</include>
 				<include>linux/*.txt</include>
 				<include>plugins/**</include>
 				<include>renderers/*</include>
 				<include>VirtualFolders.conf</include>
 				<include>DummyInput.ass</include>
+			</includes>
+		</fileSet>
+
+		<!--
+			Include binary and mixed text/binary resources without
+			adjusting line endings as this will corrupt binaries.
+		-->
+		<fileSet>
+			<directory>${project.external-resources}</directory>
+			<outputDirectory>.</outputDirectory>
+			<fileMode>0644</fileMode>
+			<directoryMode>0755</directoryMode>
+			<includes>
+				<include>documentation/**</include>
 				<include>DummyInput.jpg</include>
-				<include>web/*</include>
+				<include>web/**</include>
 			</includes>
 		</fileSet>
 
