@@ -31,7 +31,6 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import net.pms.Messages;
 import net.pms.PMS;
-import net.pms.dlna.MapFile;
 import net.pms.io.SystemUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.FileUtil.FileLocation;
@@ -2142,8 +2141,8 @@ public class PmsConfiguration {
 	 * @return The sort method
 	 */
 	private int findPathSort(String[] paths, String path) throws NumberFormatException{
-		for (int i = 0; i < paths.length; i++) {
-			String[] kv = paths[i].split(",");
+		for (String path1 : paths) {
+			String[] kv = path1.split(",");
 			if (kv.length < 2) {
 				continue;
 			}
@@ -2166,7 +2165,7 @@ public class PmsConfiguration {
 		}
 		String[] paths = raw.split(" ");
 
-		while(path != null && (cnt++ < 100)) {
+		while (path != null && (cnt++ < 100)) {
 			String key = path.getAbsolutePath();
 			if (Platform.isWindows()) {
 				key = key.toLowerCase();

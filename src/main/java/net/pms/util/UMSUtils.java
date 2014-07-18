@@ -1,18 +1,16 @@
 package net.pms.util;
 
-import net.pms.dlna.DLNAMediaAudio;
-import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAResource;
-
 import java.io.File;
 import java.text.Collator;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
+import net.pms.dlna.DLNAMediaAudio;
+import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAResource;
 
 public class UMSUtils {
-
 	private static final Collator collator;
 
 	static {
@@ -21,7 +19,7 @@ public class UMSUtils {
 	}
 
 	public static void postSearch(List<DLNAResource> files, String searchCriteria) {
-		if(files == null || searchCriteria == null)   {
+		if (files == null || searchCriteria == null) {
 			return;
 		}
 		searchCriteria = searchCriteria.toLowerCase();
@@ -35,8 +33,8 @@ public class UMSUtils {
 			boolean keep = res.getName().toLowerCase().indexOf(searchCriteria) != -1;
 			final DLNAMediaInfo media = res.getMedia();
 
-			if (!keep && media!=null && media.getAudioTracksList() != null) {
-				for (int j = 0;j < media.getAudioTracksList().size(); j++) {
+			if (!keep && media != null && media.getAudioTracksList() != null) {
+				for (int j = 0; j < media.getAudioTracksList().size(); j++) {
 					DLNAMediaAudio audio = media.getAudioTracksList().get(j);
 					if (audio.getAlbum() != null) {
 						keep |= audio.getAlbum().toLowerCase().indexOf(searchCriteria) != -1;
@@ -110,8 +108,7 @@ public class UMSUtils {
 			case SORT_RANDOM: // Random
 				Collections.shuffle(files, new Random(System.currentTimeMillis()));
 				break;
-			case SORT_LOC_SENS:
-				// same as default
+			case SORT_LOC_SENS: // Same as default
 			default: // Locale-sensitive A-Z
 				Collections.sort(files, new Comparator<File>() {
 					@Override

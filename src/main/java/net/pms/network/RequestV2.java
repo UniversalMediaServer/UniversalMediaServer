@@ -33,9 +33,8 @@ import net.pms.dlna.*;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.util.StringUtil;
 import static net.pms.util.StringUtil.convertStringToTime;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
 import net.pms.util.UMSUtils;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelFuture;
