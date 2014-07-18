@@ -3019,6 +3019,7 @@ public class PmsConfiguration {
 	 */
 	private static final String KEY_NO_FOLDERS = "no_shared";
 	private static final String KEY_WEB_HTTPS = "use_https";
+	private static final String KEY_WEB_PORT = "web_port";
 	private static final int WEB_MAX_THREADS = 100;
 
 	public boolean getNoFolders(String tag) {
@@ -3072,6 +3073,10 @@ public class PmsConfiguration {
 
 	public String getBumpSkinDir(String fallback) {
 		return getString(KEY_BUMP_SKIN_DIR, fallback);
+	}
+
+	public int getWebPort() {
+		return getInt(KEY_WEB_PORT, 0);
 	}
 
 	public boolean isAutomaticMaximumBitrate() {
