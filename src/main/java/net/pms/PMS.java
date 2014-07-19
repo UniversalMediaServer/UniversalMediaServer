@@ -563,7 +563,9 @@ public class PMS {
 		});
 
 		// Web stuff
-		web = new RemoteWeb(configuration.getWebPort());
+		if (configuration.useWebInterface()) {
+			web = new RemoteWeb(configuration.getWebPort());
+		}
 
 		RendererConfiguration.loadRendererConfigurations(configuration);
 		// Now that renderer confs are all loaded, we can start searching for renderers
@@ -707,11 +709,6 @@ public class PMS {
 
 		if (!binding) {
 			return false;
-		}
-
-		// Web stuff
-		if (configuration.useWebInterface()) {
-			web = new RemoteWeb(configuration.getWebPort());
 		}
 
 		// initialize the cache
