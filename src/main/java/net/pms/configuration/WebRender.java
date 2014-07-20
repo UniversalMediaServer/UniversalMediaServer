@@ -236,4 +236,10 @@ public class WebRender extends RendererConfiguration implements RendererConfigur
 		cmdList.add("-f");
 		cmdList.add("HLS");
 	}
+
+	public static boolean supports(DLNAResource dlna) {
+		DLNAMediaInfo m = dlna.getMedia();
+		return (m != null && RemoteUtil.directmime(m.getMimeType())) ||
+			(dlna.getPlayer() instanceof FFMpegVideo);
+	}
 }

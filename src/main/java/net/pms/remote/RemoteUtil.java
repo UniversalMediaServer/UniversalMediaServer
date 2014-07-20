@@ -127,7 +127,7 @@ public class RemoteUtil {
 	}
 
 	public static boolean directmime(String mime) {
-		return (mime.equals(MIME_MP4) || mime.equals(MIME_WEBM) || mime.equals(MIME_OGG) ||
+		return mime != null && (mime.equals(MIME_MP4) || mime.equals(MIME_WEBM) || mime.equals(MIME_OGG) ||
 			mime.equals(MIME_MP3) /*|| mime.equals(MIME_WAV)*/);
 	}
 

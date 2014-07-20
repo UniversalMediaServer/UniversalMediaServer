@@ -224,4 +224,8 @@ form#SearchForm {
 	background-position: 0 -16px;
 }
 
+.webdisabled {
+	opacity:0.5;
+	cursor: not-allowed;
+}
 
