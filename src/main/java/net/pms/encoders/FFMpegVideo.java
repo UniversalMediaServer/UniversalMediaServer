@@ -28,13 +28,10 @@ import java.awt.event.ItemListener;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.nio.charset.Charset;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.ArrayList;
@@ -1323,15 +1320,7 @@ public class FFMpegVideo extends Player {
 		StringBuilder outputString = new StringBuilder();
 		File temp = new File(configuration.getTempFolder(), tempSubs.getName() + ".tmp");
 		FileUtils.copyFile(tempSubs, temp);
-		String subsFileCharset = FileUtil.getFileCharset(temp);
-		BufferedReader input;
-		final boolean isSubtitlesCodepageAutoDetectedAndSupportedByJVM = isNotBlank(subsFileCharset) && Charset.isSupported(subsFileCharset);
-		if (isSubtitlesCodepageAutoDetectedAndSupportedByJVM) {
-			input = new BufferedReader(new InputStreamReader(new FileInputStream(temp), Charset.forName(subsFileCharset)));
-		} else {
-			input = new BufferedReader(new InputStreamReader(new FileInputStream(temp)));
-		}
-
+		BufferedReader input = FileUtil.bufferedReaderWithCorrectCharset(temp);
 		BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), CHARSET_UTF_8));
 		try  {
 			String line;
