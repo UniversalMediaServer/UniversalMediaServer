@@ -577,10 +577,10 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.0</version>
 				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
-					<testSource>1.7</testSource>
-					<testTarget>1.7</testTarget>
+					<source>1.8</source>
+					<target>1.8</target>
+					<testSource>1.8</testSource>
+					<testTarget>1.8</testTarget>
 				</configuration>
 			</plugin>
 
@@ -809,7 +809,7 @@
 								<linkXref>false</linkXref>
 								<sourceEncoding>utf-8</sourceEncoding>
 								<minimumTokens>100</minimumTokens>
-								<targetJdk>1.7</targetJdk>
+								<targetJdk>1.8</targetJdk>
 							</configuration>
 						</plugin>
 
