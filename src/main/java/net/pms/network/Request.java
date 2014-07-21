@@ -327,7 +327,7 @@ public class Request extends HTTPResource {
 				} else {
 					// This is a request for a regular file.
 					RendererConfiguration orig = dlna.getDefaultRenderer();
-					if (!orig.equals(mediaRenderer)) {
+					if (!mediaRenderer.equals(orig)) {
 						// change render and update player details
 						dlna.updateRender(mediaRenderer);
 					}
