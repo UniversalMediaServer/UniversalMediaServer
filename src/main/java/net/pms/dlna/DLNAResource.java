@@ -1666,6 +1666,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									if (mediaRenderer.isAccurateDLNAOrgPN()) {
 										OutputParams params = new OutputParams(configuration);
 										Player.setAudioAndSubs(getSystemName(), media, params);
+										media_audio = params.aid;
+										media_subtitle = params.sid;
 										if (media_subtitle == null) {
 											LOGGER.trace("We do not want a subtitle for " + getName());
 										} else {
