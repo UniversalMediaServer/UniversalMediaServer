@@ -70,18 +70,15 @@ public class AviDemuxerInputStream extends InputStream {
 			Runnable r;
 			try (InputStream pin = new H264AnnexBInputStream(new PipedInputStream(pout), params.header)) {
 				final OutputStream out = params.output_pipes[0].getOutputStream();
-				r = new Runnable() {
-					@Override
-					public void run() {
-						try {
-							byte[] b = new byte[512 * 1024];
-							int n;
-							while ((n = pin.read(b)) > -1) {
-								out.write(b, 0, n);
-							}
-						} catch (Exception e) {
-							LOGGER.error(null, e);
+				r = () -> {
+					try {
+						byte[] b = new byte[512 * 1024];
+						int n;
+						while ((n = pin.read(b)) > -1) {
+							out.write(b, 0, n);
 						}
+					} catch (Exception e) {
+						LOGGER.error(null, e);
 					}
 				};
 			}
@@ -91,72 +88,66 @@ public class AviDemuxerInputStream extends InputStream {
 			vOut = params.output_pipes[0].getOutputStream();
 		}
 
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				try {
-					// TODO(tcox): Is this used anymore?
-					TsMuxeRVideo ts = new TsMuxeRVideo();
-					File f = new File(configuration.getTempFolder(), "pms-tsmuxer.meta");
-					try (PrintWriter pw = new PrintWriter(f)) {
-						pw.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
-						String videoType = "V_MPEG-2";
+		Runnable r = () -> {
+			try {
+				// TODO(tcox): Is this used anymore?
+				TsMuxeRVideo ts = new TsMuxeRVideo();
+				File f = new File(configuration.getTempFolder(), "pms-tsmuxer.meta");
+				try (PrintWriter pw = new PrintWriter(f)) {
+					pw.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
+					String videoType = "V_MPEG-2";
 
-						if (params.no_videoencode && params.forceType != null) {
-							videoType = params.forceType;
-						}
-
-						String fps = "";
-
-						if (params.forceFps != null) {
-							fps = "fps=" + params.forceFps + ", ";
-						}
-
-						String audioType = "A_LPCM";
-
-						if (params.lossyaudio) {
-							audioType = "A_AC3";
-						}
-
-						pw.println(videoType + ", \"" + params.output_pipes[0].getOutputPipe() + "\", " + fps + "level=4.1, insertSEI, contSPS, track=1");
-						pw.println(audioType + ", \"" + params.output_pipes[1].getOutputPipe() + "\", track=2");
+					if (params.no_videoencode && params.forceType != null) {
+						videoType = params.forceType;
 					}
 
-					PipeProcess tsPipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
-					ProcessWrapper pipe_process = tsPipe.getPipeProcess();
-					attachedProcesses.add(pipe_process);
-					pipe_process.runInNewThread();
-					tsPipe.deleteLater();
+					String fps = "";
 
-					String[] cmd = new String[]{ts.executable(), f.getAbsolutePath(), tsPipe.getInputPipe()};
-					ProcessBuilder pb = new ProcessBuilder(cmd);
-					process = pb.start();
-					ProcessWrapper pwi = new ProcessWrapperLiteImpl(process);
-					attachedProcesses.add(pwi);
+					if (params.forceFps != null) {
+						fps = "fps=" + params.forceFps + ", ";
+					}
 
-					// "Gob": a cryptic name for (e.g.) StreamGobbler - i.e. a stream
-					// consumer that reads and discards the stream
-					new Gob(process.getErrorStream()).start();
-					new Gob(process.getInputStream()).start();
+					String audioType = "A_LPCM";
 
-					realIS = tsPipe.getInputStream();
-					ProcessUtil.waitFor(process);
-					LOGGER.trace("tsMuxeR muxing finished");
-				} catch (IOException e) {
-					LOGGER.error(null, e);
+					if (params.lossyaudio) {
+						audioType = "A_AC3";
+					}
+
+					pw.println(videoType + ", \"" + params.output_pipes[0].getOutputPipe() + "\", " + fps + "level=4.1, insertSEI, contSPS, track=1");
+					pw.println(audioType + ", \"" + params.output_pipes[1].getOutputPipe() + "\", track=2");
 				}
+
+				PipeProcess tsPipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
+				ProcessWrapper pipe_process = tsPipe.getPipeProcess();
+				attachedProcesses.add(pipe_process);
+				pipe_process.runInNewThread();
+				tsPipe.deleteLater();
+
+				String[] cmd = new String[]{ts.executable(), f.getAbsolutePath(), tsPipe.getInputPipe()};
+				ProcessBuilder pb = new ProcessBuilder(cmd);
+				process = pb.start();
+				ProcessWrapper pwi = new ProcessWrapperLiteImpl(process);
+				attachedProcesses.add(pwi);
+
+				// "Gob": a cryptic name for (e.g.) StreamGobbler - i.e. a stream
+				// consumer that reads and discards the stream
+				new Gob(process.getErrorStream()).start();
+				new Gob(process.getInputStream()).start();
+
+				realIS = tsPipe.getInputStream();
+				ProcessUtil.waitFor(process);
+				LOGGER.trace("tsMuxeR muxing finished");
+			} catch (IOException e) {
+				LOGGER.error(null, e);
 			}
 		};
 
-		Runnable r2 = new Runnable() {
-			@Override
-			public void run() {
-				try {
-					//Thread.sleep(500);
-					parseHeader();
-				} catch (IOException e) {
-					LOGGER.debug("Parsing error", e);
-				}
+		Runnable r2 = () -> {
+			try {
+				//Thread.sleep(500);
+				parseHeader();
+			} catch (IOException e) {
+				LOGGER.debug("Parsing error", e);
 			}
 		};
 

@@ -68,57 +68,38 @@ public class UMSUtils {
 			case SORT_NO_SORT: // no sorting
 				break;
 			case SORT_LOC_NAT: // Locale-sensitive natural sort
-				Collections.sort(files, new Comparator<File>() {
-					@Override
-					public int compare(File f1, File f2) {
-						String filename1ToSort = FileUtil.renameForSorting(f1.getName());
-						String filename2ToSort = FileUtil.renameForSorting(f2.getName());
+				Collections.sort(files, (File f1, File f2) -> {
+					String filename1ToSort = FileUtil.renameForSorting(f1.getName());
+					String filename2ToSort = FileUtil.renameForSorting(f2.getName());
 
-						return NaturalComparator.compareNatural(collator, filename1ToSort, filename2ToSort);
-					}
-				});
+					return NaturalComparator.compareNatural(collator, filename1ToSort, filename2ToSort);
+		});
 				break;
 			case SORT_INS_ASCII: // Case-insensitive ASCIIbetical sort
-				Collections.sort(files, new Comparator<File>() {
-					@Override
-					public int compare(File f1, File f2) {
-						String filename1ToSort = FileUtil.renameForSorting(f1.getName());
-						String filename2ToSort = FileUtil.renameForSorting(f2.getName());
+				Collections.sort(files, (File f1, File f2) -> {
+					String filename1ToSort = FileUtil.renameForSorting(f1.getName());
+					String filename2ToSort = FileUtil.renameForSorting(f2.getName());
 
-						return filename1ToSort.compareToIgnoreCase(filename2ToSort);
-					}
-				});
+					return filename1ToSort.compareToIgnoreCase(filename2ToSort);
+		});
 				break;
 			case SORT_MOD_OLD: // Sort by modified date, oldest first
-				Collections.sort(files, new Comparator<File>() {
-					@Override
-					public int compare(File f1, File f2) {
-						return Long.valueOf(f1.lastModified()).compareTo(Long.valueOf(f2.lastModified()));
-					}
-				});
+				Collections.sort(files, (File f1, File f2) -> Long.valueOf(f1.lastModified()).compareTo(Long.valueOf(f2.lastModified())));
 				break;
 			case SORT_MOD_NEW: // Sort by modified date, newest first
-				Collections.sort(files, new Comparator<File>() {
-					@Override
-					public int compare(File f1, File f2) {
-						return Long.valueOf(f2.lastModified()).compareTo(Long.valueOf(f1.lastModified()));
-					}
-				});
+				Collections.sort(files, (File f1, File f2) -> Long.valueOf(f2.lastModified()).compareTo(Long.valueOf(f1.lastModified())));
 				break;
 			case SORT_RANDOM: // Random
 				Collections.shuffle(files, new Random(System.currentTimeMillis()));
 				break;
 			case SORT_LOC_SENS: // Same as default
 			default: // Locale-sensitive A-Z
-				Collections.sort(files, new Comparator<File>() {
-					@Override
-					public int compare(File f1, File f2) {
-						String filename1ToSort = FileUtil.renameForSorting(f1.getName());
-						String filename2ToSort = FileUtil.renameForSorting(f2.getName());
+				Collections.sort(files, (File f1, File f2) -> {
+					String filename1ToSort = FileUtil.renameForSorting(f1.getName());
+					String filename2ToSort = FileUtil.renameForSorting(f2.getName());
 
-						return collator.compare(filename1ToSort, filename2ToSort);
-					}
-				});
+					return collator.compare(filename1ToSort, filename2ToSort);
+		});
 				break;
 		}
 	}

@@ -607,21 +607,15 @@ public class VLCVideo extends Player {
 
 		experimentalCodecs = new JCheckBox(Messages.getString("VlcTrans.3"), configuration.isVlcExperimentalCodecs());
 		experimentalCodecs.setContentAreaFilled(false);
-		experimentalCodecs.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setVlcExperimentalCodecs(e.getStateChange() == ItemEvent.SELECTED);
-			}
+		experimentalCodecs.addItemListener((ItemEvent e) -> {
+			configuration.setVlcExperimentalCodecs(e.getStateChange() == ItemEvent.SELECTED);
 		});
 		builder.add(experimentalCodecs, FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
 
 		audioSyncEnabled = new JCheckBox(Messages.getString("MEncoderVideo.2"), configuration.isVlcAudioSyncEnabled());
 		audioSyncEnabled.setContentAreaFilled(false);
-		audioSyncEnabled.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setVlcAudioSyncEnabled(e.getStateChange() == ItemEvent.SELECTED);
-			}
+		audioSyncEnabled.addItemListener((ItemEvent e) -> {
+			configuration.setVlcAudioSyncEnabled(e.getStateChange() == ItemEvent.SELECTED);
 		});
 		builder.add(audioSyncEnabled, FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
 

@@ -84,34 +84,31 @@ public class TaskRunner {
 	 * @param singletonTask
 	 */
 	public void submitNamed(final String name, final boolean singletonTask, final Runnable runnable) {
-		submit(new Runnable() {
-			@Override
-			public void run() {
-				String prevName = Thread.currentThread().getName();
-				boolean locked = false;
+		submit(() -> {
+			String prevName = Thread.currentThread().getName();
+			boolean locked = false;
 
-				try {
-					if (singletonTask) {
-						if (getLock(name).tryLock()) {
-							locked = true;
-							LOGGER.debug("singleton task " + name + " started");
-						} else {
-							locked = false;
-							LOGGER.debug("singleton task '" + name + "' already running, exiting");
-							return;
-						}
+			try {
+				if (singletonTask) {
+					if (getLock(name).tryLock()) {
+						locked = true;
+						LOGGER.debug("singleton task " + name + " started");
+					} else {
+						locked = false;
+						LOGGER.debug("singleton task '" + name + "' already running, exiting");
+						return;
 					}
-					Thread.currentThread().setName(prevName + '-' + name + '(' + getAndIncr(name) + ')');
-					LOGGER.debug("task started");
-					runnable.run();
-					LOGGER.debug("task ended");
-				} finally {
-					if (locked) {
-						getLock(name).unlock();
-					}
-
-					Thread.currentThread().setName(prevName);
 				}
+				Thread.currentThread().setName(prevName + '-' + name + '(' + getAndIncr(name) + ')');
+				LOGGER.debug("task started");
+				runnable.run();
+				LOGGER.debug("task ended");
+			} finally {
+				if (locked) {
+					getLock(name).unlock();
+				}
+
+				Thread.currentThread().setName(prevName);
 			}
 		});
 		

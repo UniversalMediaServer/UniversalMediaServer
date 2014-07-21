@@ -871,21 +871,18 @@ public class RequestV2 extends HTTPResource {
 				ChannelFuture chunkWriteFuture = e.getChannel().write(new ChunkedStream(inputStream, BUFFER_SIZE));
 
 				// Add a listener to clean up after sending the entire response body.
-				chunkWriteFuture.addListener(new ChannelFutureListener() {
-					@Override
-					public void operationComplete(ChannelFuture future) {
-						try {
-							PMS.get().getRegistry().reenableGoToSleep();
-							inputStream.close();
-						} catch (IOException e) {
-							LOGGER.debug("Caught exception", e);
-						}
-
-						// Always close the channel after the response is sent because of
-						// a freeze at the end of video when the channel is not closed.
-						future.getChannel().close();
-						startStopListenerDelegate.stop();
+				chunkWriteFuture.addListener((ChannelFuture future1) -> {
+					try {
+						PMS.get().getRegistry().reenableGoToSleep();
+						inputStream.close();
+					} catch (IOException e1) {
+						LOGGER.debug("Caught exception", e1);
 					}
+
+					// Always close the channel after the response is sent because of
+					// a freeze at the end of video when the channel is not closed.
+					future1.getChannel().close();
+					startStopListenerDelegate.stop();
 				});
 			} else {
 				// HEAD method is being used, so simply clean up after the response was sent.

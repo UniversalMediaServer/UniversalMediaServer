@@ -951,31 +951,22 @@ public class RootFolder extends DLNAResource {
 							musicFolder.addChild(virtualFolderAllTracks);
 
 							// Sort the virtual folders alphabetically
-							Collections.sort(virtualFolderArtists.getChildren(), new Comparator<DLNAResource>() {
-								@Override
-								public int compare(DLNAResource o1, DLNAResource o2) {
-									VirtualFolder a = (VirtualFolder) o1;
-									VirtualFolder b = (VirtualFolder) o2;
-									return a.getName().compareToIgnoreCase(b.getName());
-								}
+							Collections.sort(virtualFolderArtists.getChildren(), (DLNAResource o1, DLNAResource o2) -> {
+								VirtualFolder a = (VirtualFolder) o1;
+								VirtualFolder b = (VirtualFolder) o2;
+								return a.getName().compareToIgnoreCase(b.getName());
 							});
 
-							Collections.sort(virtualFolderAlbums.getChildren(), new Comparator<DLNAResource>() {
-								@Override
-								public int compare(DLNAResource o1, DLNAResource o2) {
-									VirtualFolder a = (VirtualFolder) o1;
-									VirtualFolder b = (VirtualFolder) o2;
-									return a.getName().compareToIgnoreCase(b.getName());
-								}
+							Collections.sort(virtualFolderAlbums.getChildren(), (DLNAResource o1, DLNAResource o2) -> {
+								VirtualFolder a = (VirtualFolder) o1;
+								VirtualFolder b = (VirtualFolder) o2;
+								return a.getName().compareToIgnoreCase(b.getName());
 							});
 
-							Collections.sort(virtualFolderGenres.getChildren(), new Comparator<DLNAResource>() {
-								@Override
-								public int compare(DLNAResource o1, DLNAResource o2) {
-									VirtualFolder a = (VirtualFolder) o1;
-									VirtualFolder b = (VirtualFolder) o2;
-									return a.getName().compareToIgnoreCase(b.getName());
-								}
+							Collections.sort(virtualFolderGenres.getChildren(), (DLNAResource o1, DLNAResource o2) -> {
+								VirtualFolder a = (VirtualFolder) o1;
+								VirtualFolder b = (VirtualFolder) o2;
+								return a.getName().compareToIgnoreCase(b.getName());
 							});
 						} else {
 							// Add all playlists

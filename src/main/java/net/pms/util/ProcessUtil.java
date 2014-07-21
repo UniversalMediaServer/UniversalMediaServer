@@ -111,28 +111,25 @@ public class ProcessUtil {
 
 			if (pid != null) { // Unix only
 				LOGGER.trace("Killing the Unix process: " + pid);
-				Runnable r = new Runnable() {
-					@Override
-					public void run() {
-						try {
-							Thread.sleep(TERM_TIMEOUT);
-						} catch (InterruptedException e) {
-						}
+				Runnable r = () -> {
+					try {
+						Thread.sleep(TERM_TIMEOUT);
+					} catch (InterruptedException e) {
+					}
 
-						try {
-							p.exitValue();
-						} catch (IllegalThreadStateException itse) { // still running: nuke it
-							// kill -14 (ALRM) works (for MEncoder) and is less dangerous than kill -9
-							// so try that first 
-							if (!kill(pid, 14)) {
-								try {
-									// This is a last resort, so let's not be too eager
-									Thread.sleep(ALRM_TIMEOUT);
-								} catch (InterruptedException ie) {
-								}
-
-								kill(pid, 9);
+					try {
+						p.exitValue();
+					} catch (IllegalThreadStateException itse) { // still running: nuke it
+						// kill -14 (ALRM) works (for MEncoder) and is less dangerous than kill -9
+						// so try that first
+						if (!kill(pid, 14)) {
+							try {
+								// This is a last resort, so let's not be too eager
+								Thread.sleep(ALRM_TIMEOUT);
+							} catch (InterruptedException ie) {
 							}
+
+							kill(pid, 9);
 						}
 					}
 				};

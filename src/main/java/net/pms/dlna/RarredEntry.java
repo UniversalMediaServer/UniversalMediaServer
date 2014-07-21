@@ -102,32 +102,29 @@ public class RarredEntry extends DLNAResource implements IPushOutput {
 
 	@Override
 	public void push(final OutputStream out) throws IOException {
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				Archive rarFile = null;
+		Runnable r = () -> {
+			Archive rarFile = null;
+			try {
+				rarFile = new Archive(file);
+				FileHeader header = null;
+				for (FileHeader fh : rarFile.getFileHeaders()) {
+					if (fh.getFileNameString().equals(fileHeaderName)) {
+						header = fh;
+						break;
+					}
+				}
+				if (header != null) {
+					LOGGER.trace("Starting the extraction of " + header.getFileNameString());
+					rarFile.extractFile(header, out);
+				}
+			} catch (RarException | IOException e) {
+				LOGGER.debug("Unpack error, maybe it's normal, as backend can be terminated: " + e.getMessage());
+			} finally {
 				try {
-					rarFile = new Archive(file);
-					FileHeader header = null;
-					for (FileHeader fh : rarFile.getFileHeaders()) {
-						if (fh.getFileNameString().equals(fileHeaderName)) {
-							header = fh;
-							break;
-						}
-					}
-					if (header != null) {
-						LOGGER.trace("Starting the extraction of " + header.getFileNameString());
-						rarFile.extractFile(header, out);
-					}
-				} catch (RarException | IOException e) {
-					LOGGER.debug("Unpack error, maybe it's normal, as backend can be terminated: " + e.getMessage());
-				} finally {
-					try {
-						rarFile.close();
-						out.close();
-					} catch (IOException e) {
-						LOGGER.debug("Caught exception", e);
-					}
+					rarFile.close();
+					out.close();
+				} catch (IOException e) {
+					LOGGER.debug("Caught exception", e);
 				}
 			}
 		};

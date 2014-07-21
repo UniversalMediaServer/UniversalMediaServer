@@ -142,85 +142,72 @@ public class PluginTab {
 
 		CustomJButton install = new CustomJButton(Messages.getString("NetworkTab.39"));
 		builder.add(install, FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
-		install.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (!ExternalFactory.localPluginsInstalled()) {
-					JOptionPane.showMessageDialog(
-						looksFrame,
-						Messages.getString("NetworkTab.40")
-					);
-					return;
-				}
-
-				if (!configuration.isAdmin()) {
-					JOptionPane.showMessageDialog(
-						looksFrame,
-						Messages.getString("PluginTab.15"),
-						Messages.getString("Dialog.PermissionsError"),
-						JOptionPane.ERROR_MESSAGE
-					);
-
-					return;
-				}
-
-				final int[] rows = table.getSelectedRows();
-				JPanel panel = new JPanel();
-				GridLayout layout = new GridLayout(3, 1);
-				panel.setLayout(layout);
-				final JFrame frame = new JFrame(Messages.getString("NetworkTab.46"));
-				frame.setSize(250, 110);
-				JProgressBar progressBar = new JProgressBar();
-				progressBar.setIndeterminate(true);
-				panel.add(progressBar);
-				final JLabel label = new JLabel("");
-				final JLabel inst = new JLabel("");
-				panel.add(inst);
-				panel.add(label);
-				frame.add(panel);
-
-				// Center the installation progress window
-				frame.setLocationRelativeTo(null);
-				Runnable r = new Runnable() {
-					@Override
-					public void run() {
-						for (int i = 0; i < rows.length; i++) {
-							DownloadPlugins plugin = plugins.get(rows[i]);
-							if (plugin.isOld()) {
-								// This plugin requires newer UMS
-								// display error and skip it.
-								JOptionPane.showMessageDialog(
-										looksFrame,
-										"Plugin " + plugin.getName() + " requires a newer version of UMS. Please upgrade.",
-										"Version Error",
-										JOptionPane.ERROR_MESSAGE
-									);
-									frame.setVisible(false);
-									continue;
-							}
-							frame.setVisible(true);
-							inst.setText(Messages.getString("NetworkTab.50") + ": " + plugin.getName());
-							try {
-								plugin.install(label);
-							} catch (Exception e) {
-								LOGGER.debug("An error occurred when trying to install the plugin: " + plugin.getName());
-								LOGGER.debug("Full error: " + e);
-							}
-						}
-						frame.setVisible(false);
-					}
-				};
-				new Thread(r).start();
+		install.addActionListener((ActionEvent e) -> {
+			if (!ExternalFactory.localPluginsInstalled()) {
+				JOptionPane.showMessageDialog(
+					looksFrame,
+					Messages.getString("NetworkTab.40")
+				);
+				return;
 			}
+			if (!configuration.isAdmin()) {
+				JOptionPane.showMessageDialog(
+					looksFrame,
+					Messages.getString("PluginTab.15"),
+					Messages.getString("Dialog.PermissionsError"),
+					JOptionPane.ERROR_MESSAGE
+				);
+
+				return;
+			}
+			final int[] rows = table.getSelectedRows();
+			JPanel panel = new JPanel();
+			GridLayout layout1 = new GridLayout(3, 1);
+			panel.setLayout(layout1);
+			final JFrame frame = new JFrame(Messages.getString("NetworkTab.46"));
+			frame.setSize(250, 110);
+			JProgressBar progressBar = new JProgressBar();
+			progressBar.setIndeterminate(true);
+			panel.add(progressBar);
+			final JLabel label = new JLabel("");
+			final JLabel inst = new JLabel("");
+			panel.add(inst);
+			panel.add(label);
+			frame.add(panel);
+			frame.setLocationRelativeTo(null);
+			Runnable r = () -> {
+				for (int i = 0; i < rows.length; i++) {
+					DownloadPlugins plugin = plugins.get(rows[i]);
+					if (plugin.isOld()) {
+						// This plugin requires newer UMS
+						// display error and skip it.
+						JOptionPane.showMessageDialog(
+							looksFrame,
+							"Plugin " + plugin.getName() + " requires a newer version of UMS. Please upgrade.",
+							"Version Error",
+							JOptionPane.ERROR_MESSAGE
+						);
+						frame.setVisible(false);
+						continue;
+					}
+					frame.setVisible(true);
+					inst.setText(Messages.getString("NetworkTab.50") + ": " + plugin.getName());
+					try {
+						plugin.install(label);
+					} catch (Exception e1) {
+						LOGGER.debug("An error occurred when trying to install the plugin: " + plugin.getName());
+						LOGGER.debug("Full error: " + e1);
+					}
+				}
+				frame.setVisible(false);
+			};
+			new Thread(r).start();
 		});
 
 		CustomJButton refresh = new CustomJButton(Messages.getString("PluginTab.2") + " " + Messages.getString("PluginTab.1"));
 		builder.add(refresh, FormLayoutUtil.flip(cc.xy(3, 5), colSpec, orientation));
-		refresh.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				refresh(table, cols);
-			}
+		refresh.addActionListener((ActionEvent e) -> {
+			refresh(table, cols);
 		});
 
 		// Installed Plugins section
@@ -257,121 +244,109 @@ public class PluginTab {
 		// Add button
 		CustomJButton add = new CustomJButton(Messages.getString("PluginTab.9"));
 		builder.add(add, FormLayoutUtil.flip(cc.xy(1, 15), colSpec, orientation));
-		add.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				addEditDialog(credTable, -1);
-			}				
+		add.addActionListener((ActionEvent e) -> {
+			addEditDialog(credTable, -1);				
 		});
 
 		// Edit button
 		CustomJButton edit = new CustomJButton(Messages.getString("PluginTab.11"));
 		builder.add(edit, FormLayoutUtil.flip(cc.xy(3, 15), colSpec, orientation));
-		edit.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				addEditDialog(credTable, credTable.getSelectedRow());
-			}
+		edit.addActionListener((ActionEvent e) -> {
+			addEditDialog(credTable, credTable.getSelectedRow());
 		});
 
 		// Delete button
 		CustomJButton del = new CustomJButton(Messages.getString("PluginTab.12"));
 		builder.add(del, FormLayoutUtil.flip(cc.xy(5, 15), colSpec, orientation));
-		del.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				int[] rows = credTable.getSelectedRows();
-				if (rows.length > 0) {
-					int n = JOptionPane.showConfirmDialog(
-						looksFrame,
-						Messages.getString("PluginTab.13"),
-						"",
-						JOptionPane.YES_NO_OPTION
-					);
+		del.addActionListener((ActionEvent e) -> {
+			int[] rows = credTable.getSelectedRows();
+			if (rows.length > 0) {
+				int n = JOptionPane.showConfirmDialog(
+					looksFrame,
+					Messages.getString("PluginTab.13"),
+					"",
+					JOptionPane.YES_NO_OPTION
+				);
 
-					if (n == JOptionPane.YES_OPTION) {
-						for (int i=0; i < rows.length; i++) {
-							String key = (String) credTable.getValueAt(rows[i], 0);
-							if (StringUtils.isNotEmpty((String) credTable.getValueAt(rows[i], 1))) {
-								key = key + "." + (String) credTable.getValueAt(rows[i], 1);
-							}
-							cred.clearProperty(key);
+				if (n == JOptionPane.YES_OPTION) {
+					for (int i=0; i < rows.length; i++) {
+						String key = (String) credTable.getValueAt(rows[i], 0);
+						if (StringUtils.isNotEmpty((String) credTable.getValueAt(rows[i], 1))) {
+							key = key + "." + (String) credTable.getValueAt(rows[i], 1);
 						}
+						cred.clearProperty(key);
 					}
-
-					try {
-						cred.save();
-					} catch (ConfigurationException e1) {
-						LOGGER.warn("Couldn't save cred file " + e1);
-					}
-
-					refreshCred(credTable);
 				}
+
+				try {
+					cred.save();
+				} catch (ConfigurationException e1) {
+					LOGGER.warn("Couldn't save cred file " + e1);
+				}
+
+				refreshCred(credTable);
 			}
 		});
 
 		// Edit Plugin Credential File button
 		CustomJButton credEdit = new CustomJButton(Messages.getString("NetworkTab.54"));
-		credEdit.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JPanel tPanel = new JPanel(new BorderLayout());
+		credEdit.addActionListener((ActionEvent e) -> {
+			JPanel tPanel = new JPanel(new BorderLayout());
 
-				final JTextArea textArea = new JTextArea();
-				textArea.setFont(new Font("Courier", Font.PLAIN, 12));
-				JScrollPane scrollPane = new JScrollPane(textArea);
-				scrollPane.setPreferredSize(new java.awt.Dimension(900, 450));
+			final JTextArea textArea = new JTextArea();
+			textArea.setFont(new Font("Courier", Font.PLAIN, 12));
+			JScrollPane scrollPane = new JScrollPane(textArea);
+			scrollPane.setPreferredSize(new java.awt.Dimension(900, 450));
 
-				try {
-					configuration.initCred();
-				} catch (IOException e2) {
-					LOGGER.debug("error creating cred file");
-					return;
-				}
+			try {
+				configuration.initCred();
+			} catch (IOException e2) {
+				LOGGER.debug("error creating cred file");
+				return;
+			}
 
-				File f = configuration.getCredFile();
+			File f = configuration.getCredFile();
 
-				try {
-					try (FileInputStream fis = new FileInputStream(f)) {
-						BufferedReader in = new BufferedReader(new InputStreamReader(fis));
-						String line;
-						StringBuilder sb = new StringBuilder();
-						while ((line = in.readLine()) != null) {
-							sb.append(line);
-							sb.append("\n");
-						}
-						textArea.setText(sb.toString());
-						in.close();
+			try {
+				try (FileInputStream fis = new FileInputStream(f)) {
+					BufferedReader in = new BufferedReader(new InputStreamReader(fis));
+					String line;
+					StringBuilder sb = new StringBuilder();
+					while ((line = in.readLine()) != null) {
+						sb.append(line);
+						sb.append("\n");
 					}
-				} catch (IOException e1) {
-					return;
+					textArea.setText(sb.toString());
+					in.close();
 				}
+			} catch (IOException e1) {
+				return;
+			}
 
-				tPanel.add(scrollPane, BorderLayout.NORTH);
+			tPanel.add(scrollPane, BorderLayout.NORTH);
 
-				Object[] options = {Messages.getString("LooksFrame.9"), Messages.getString("NetworkTab.45")};
-				if (
-					JOptionPane.showOptionDialog(
-						looksFrame,
-						tPanel,
-						Messages.getString("NetworkTab.54"),
-						JOptionPane.OK_CANCEL_OPTION,
-						JOptionPane.PLAIN_MESSAGE,
-						null,
-						options,
-						null
-					) == JOptionPane.OK_OPTION
+			Object[] options = {Messages.getString("LooksFrame.9"), Messages.getString("NetworkTab.45")};
+			if (
+				JOptionPane.showOptionDialog(
+					looksFrame,
+					tPanel,
+					Messages.getString("NetworkTab.54"),
+					JOptionPane.OK_CANCEL_OPTION,
+					JOptionPane.PLAIN_MESSAGE,
+					null,
+					options,
+					null
+				) == JOptionPane.OK_OPTION
 				) {
-					String text = textArea.getText();
-					try {
-						try (FileOutputStream fos = new FileOutputStream(f)) {
-							fos.write(text.getBytes());
-							fos.flush();
-						}
-						PMS.getConfiguration().reload();
-					} catch (Exception e1) {
-						JOptionPane.showMessageDialog(looksFrame, Messages.getString("NetworkTab.55") + e1.toString());
+				String text = textArea.getText();
+				try {
+					try (FileOutputStream fos = new FileOutputStream(f)) {
+						fos.write(text.getBytes());
+						fos.flush();
 					}
+					PMS.getConfiguration().reload();
+				} catch (Exception e1) {
+					JOptionPane.showMessageDialog(looksFrame, Messages.getString("NetworkTab.55") + e1.toString());
 				}
 			}
 		});
@@ -425,17 +400,14 @@ public class PluginTab {
 		CellConstraints cc = new CellConstraints();
 		CustomJButton bPlugin = new CustomJButton(listener.name());
 		// Listener to show option screen
-		bPlugin.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JOptionPane.showOptionDialog(
-					looksFrame,
-					comp,
-					Messages.getString("Dialog.Options"),
-					JOptionPane.CLOSED_OPTION,
-					JOptionPane.PLAIN_MESSAGE, null, null, null
-				);
-			}
+		bPlugin.addActionListener((ActionEvent e) -> {
+			JOptionPane.showOptionDialog(
+				looksFrame,
+				comp,
+				Messages.getString("Dialog.Options"),
+				JOptionPane.CLOSED_OPTION,
+				JOptionPane.PLAIN_MESSAGE, null, null, null
+			);
 		});
 		int y = pPlugins.getComponentCount() + 1;
 		if (y > 30) {
@@ -599,51 +571,37 @@ public class PluginTab {
 		final char defEchoChar = pText.getEchoChar();
 
 		JButton ok = new JButton(Messages.getString("Dialog.OK"));
-		ok.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				frame.setVisible(false);
-				String key = oText.getText();
-				String pwd = new String(pText.getPassword());
-				if (
-					StringUtils.isEmpty(key) || 
-					StringUtils.isEmpty(uText.getText()) ||
-					StringUtils.isEmpty(pwd)
-				) {
-					// ignore this
-					return;
-				}
-
-				if (StringUtils.isNotEmpty(tText.getText())) {
-					key = key + "." + tText.getText();
-				}
-				String val = uText.getText() + "," + pwd;
-				cred.addProperty(key, val);
-				try {
-					cred.save();
-				} catch (ConfigurationException e1) {
-					LOGGER.warn("Error saving cred file "+e1);
-				}
-				refreshCred(table);
+		ok.addActionListener((ActionEvent e) -> {
+			frame.setVisible(false);
+			String key = oText.getText();
+			String pwd1 = new String(pText.getPassword());
+			if (StringUtils.isEmpty(key) || 
+				StringUtils.isEmpty(uText.getText()) || StringUtils.isEmpty(pwd1)) {
+				return;
 			}
+			if (StringUtils.isNotEmpty(tText.getText())) {
+				key = key + "." + tText.getText();
+			}
+			String val = uText.getText() + "," + pwd1;
+			cred.addProperty(key, val);
+			try {
+				cred.save();
+			} catch (ConfigurationException e1) {
+				LOGGER.warn("Error saving cred file "+e1);
+			}
+			refreshCred(table);
 		});
 
 		JButton cancel = new JButton(Messages.getString("NetworkTab.45"));
-		cancel.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				frame.setVisible(false);
-			}
+		cancel.addActionListener((ActionEvent e) -> {
+			frame.setVisible(false);
 		});
 
-		hidden.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				if (e.getStateChange() == ItemEvent.SELECTED) {
-					pText.setEchoChar((char) 0);
-				} else {
-					pText.setEchoChar(defEchoChar);
-				}
+		hidden.addItemListener((ItemEvent e) -> {
+			if (e.getStateChange() == ItemEvent.SELECTED) {
+				pText.setEchoChar((char) 0);
+			} else {
+				pText.setEchoChar(defEchoChar);
 			}
 		});
 

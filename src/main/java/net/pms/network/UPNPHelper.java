@@ -305,19 +305,17 @@ public class UPNPHelper {
 	 * @throws IOException Signals that an I/O exception has occurred.
 	 */
 	public static void listen() throws IOException {
-		Runnable rAlive = new Runnable() {
-			@Override
-			public void run() {
-				int delay = 10000;
+		Runnable rAlive = () -> {
+			int delay = 10000;
 
-				while (true) {
-					sleep(delay);
-					sendAlive();
+			while (true) {
+				sleep(delay);
+				sendAlive();
 
-					// The first delay for sending an ALIVE message is 10 seconds,
-					// the second delay is for 20 seconds. From then on, all other
-					// delays are for 180 seconds.
-					switch (delay) {
+				// The first delay for sending an ALIVE message is 10 seconds,
+				// the second delay is for 20 seconds. From then on, all other
+				// delays are for 180 seconds.
+				switch (delay) {
 					case 10000:
 						delay = 20000;
 						break;
@@ -326,7 +324,6 @@ public class UPNPHelper {
 						break;
 					default:
 						break;
-					}
 				}
 			}
 		};
@@ -334,114 +331,111 @@ public class UPNPHelper {
 		aliveThread = new Thread(rAlive, "UPNP-AliveMessageSender");
 		aliveThread.start();
 
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				boolean bindErrorReported = false;
+		Runnable r = () -> {
+			boolean bindErrorReported = false;
 
-				while (true) {
-					MulticastSocket multicastSocket = null;
+			while (true) {
+				MulticastSocket multicastSocket = null;
+
+				try {
+					// Use configurable source port as per http://code.google.com/p/ps3mediaserver/issues/detail?id=1166
+					multicastSocket = new MulticastSocket(configuration.getUpnpPort());
+
+					if (bindErrorReported) {
+						LOGGER.warn("Finally, acquiring port " + configuration.getUpnpPort() + " was successful!");
+					}
+
+					NetworkInterface ni = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
 
 					try {
-						// Use configurable source port as per http://code.google.com/p/ps3mediaserver/issues/detail?id=1166
-						multicastSocket = new MulticastSocket(configuration.getUpnpPort());
-
-						if (bindErrorReported) {
-							LOGGER.warn("Finally, acquiring port " + configuration.getUpnpPort() + " was successful!");
+						/**
+						 * Setting the network interface will throw a SocketException on Mac OS X
+						 * with Java 1.6.0_45 or higher, but if we don't do it some Windows
+						 * configurations will not listen at all.
+						 */
+						if (ni != null) {
+							multicastSocket.setNetworkInterface(ni);
+						} else if (PMS.get().getServer().getNetworkInterface() != null) {
+							multicastSocket.setNetworkInterface(PMS.get().getServer().getNetworkInterface());
+							LOGGER.trace("Setting multicast network interface: " + PMS.get().getServer().getNetworkInterface());
 						}
+					} catch (SocketException e) {
+						// Not setting the network interface will work just fine on Mac OS X.
+					}
 
-						NetworkInterface ni = NetworkConfiguration.getInstance().getNetworkInterfaceByServerName();
+					multicastSocket.setTimeToLive(4);
+					multicastSocket.setReuseAddress(true);
+					InetAddress upnpAddress = getUPNPAddress();
+					multicastSocket.joinGroup(upnpAddress);
 
-						try {
-							/**
-							 * Setting the network interface will throw a SocketException on Mac OS X
-							 * with Java 1.6.0_45 or higher, but if we don't do it some Windows
-							 * configurations will not listen at all.
-							 */
-							if (ni != null) {
-									multicastSocket.setNetworkInterface(ni);
-							} else if (PMS.get().getServer().getNetworkInterface() != null) {
-									multicastSocket.setNetworkInterface(PMS.get().getServer().getNetworkInterface());
-									LOGGER.trace("Setting multicast network interface: " + PMS.get().getServer().getNetworkInterface());
-							}
-						} catch (SocketException e) {
-							// Not setting the network interface will work just fine on Mac OS X.
-						}
+					while (true) {
+						byte[] buf = new byte[1024];
+						DatagramPacket receivePacket = new DatagramPacket(buf, buf.length);
+						multicastSocket.receive(receivePacket);
 
-						multicastSocket.setTimeToLive(4);
-						multicastSocket.setReuseAddress(true);
-						InetAddress upnpAddress = getUPNPAddress();
-						multicastSocket.joinGroup(upnpAddress);
+						String s = new String(receivePacket.getData());
 
-						while (true) {
-							byte[] buf = new byte[1024];
-							DatagramPacket receivePacket = new DatagramPacket(buf, buf.length);
-							multicastSocket.receive(receivePacket);
+						InetAddress address = receivePacket.getAddress();
 
-							String s = new String(receivePacket.getData());
+						if (s.startsWith("M-SEARCH")) {
+							String remoteAddr = address.getHostAddress();
+							int remotePort = receivePacket.getPort();
 
-							InetAddress address = receivePacket.getAddress();
+							if (configuration.getIpFiltering().allowed(address)) {
+								LOGGER.trace("Receiving a M-SEARCH from [" + remoteAddr + ":" + remotePort + "]");
 
-							if (s.startsWith("M-SEARCH")) {
-								String remoteAddr = address.getHostAddress();
-								int remotePort = receivePacket.getPort();
-
-								if (configuration.getIpFiltering().allowed(address)) {
-									LOGGER.trace("Receiving a M-SEARCH from [" + remoteAddr + ":" + remotePort + "]");
-
-									if (StringUtils.indexOf(s, "urn:schemas-upnp-org:service:ContentDirectory:1") > 0) {
-										sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:service:ContentDirectory:1");
-									}
-
-									if (StringUtils.indexOf(s, "upnp:rootdevice") > 0) {
-										sendDiscover(remoteAddr, remotePort, "upnp:rootdevice");
-									}
-
-									if (StringUtils.indexOf(s, "urn:schemas-upnp-org:device:MediaServer:1") > 0) {
-										sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:device:MediaServer:1");
-									}
-
-									if (StringUtils.indexOf(s, "ssdp:all") > 0) {
-										sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:device:MediaServer:1");
-									}
-
-									if (StringUtils.indexOf(s, PMS.get().usn()) > 0) {
-										sendDiscover(remoteAddr, remotePort, PMS.get().usn());
-									}
+								if (StringUtils.indexOf(s, "urn:schemas-upnp-org:service:ContentDirectory:1") > 0) {
+									sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:service:ContentDirectory:1");
 								}
-							} else if (s.startsWith("NOTIFY")) {
-								String remoteAddr = address.getHostAddress();
-								int remotePort = receivePacket.getPort();
 
-								LOGGER.trace("Receiving a NOTIFY from [" + remoteAddr + ":" + remotePort + "]");
+								if (StringUtils.indexOf(s, "upnp:rootdevice") > 0) {
+									sendDiscover(remoteAddr, remotePort, "upnp:rootdevice");
+								}
+
+								if (StringUtils.indexOf(s, "urn:schemas-upnp-org:device:MediaServer:1") > 0) {
+									sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:device:MediaServer:1");
+								}
+
+								if (StringUtils.indexOf(s, "ssdp:all") > 0) {
+									sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:device:MediaServer:1");
+								}
+
+								if (StringUtils.indexOf(s, PMS.get().usn()) > 0) {
+									sendDiscover(remoteAddr, remotePort, PMS.get().usn());
+								}
 							}
+						} else if (s.startsWith("NOTIFY")) {
+							String remoteAddr = address.getHostAddress();
+							int remotePort = receivePacket.getPort();
+
+							LOGGER.trace("Receiving a NOTIFY from [" + remoteAddr + ":" + remotePort + "]");
 						}
-					} catch (BindException e) {
-						if (!bindErrorReported) {
-							LOGGER.error("Unable to bind to " + configuration.getUpnpPort()
+					}
+				} catch (BindException e) {
+					if (!bindErrorReported) {
+						LOGGER.error("Unable to bind to " + configuration.getUpnpPort()
 							+ ", which means that PMS will not automatically appear on your renderer! "
 							+ "This usually means that another program occupies the port. Please "
 							+ "stop the other program and free up the port. "
 							+ "PMS will keep trying to bind to it...[" + e.getMessage() + "]");
+					}
+
+					bindErrorReported = true;
+					sleep(5000);
+				} catch (IOException e) {
+					LOGGER.error("UPNP network exception", e);
+					sleep(1000);
+				} finally {
+					if (multicastSocket != null) {
+						// Clean up the multicast socket nicely
+						try {
+							InetAddress upnpAddress = getUPNPAddress();
+							multicastSocket.leaveGroup(upnpAddress);
+						} catch (IOException e) {
 						}
 
-						bindErrorReported = true;
-						sleep(5000);
-					} catch (IOException e) {
-						LOGGER.error("UPNP network exception", e);
-						sleep(1000);
-					} finally {
-						if (multicastSocket != null) {
-							// Clean up the multicast socket nicely
-							try {
-								InetAddress upnpAddress = getUPNPAddress();
-								multicastSocket.leaveGroup(upnpAddress);
-							} catch (IOException e) {
-							}
-
-							multicastSocket.disconnect();
-							multicastSocket.close();
-						}
+						multicastSocket.disconnect();
+						multicastSocket.close();
 					}
 				}
 			}

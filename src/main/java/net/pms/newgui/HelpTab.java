@@ -76,25 +76,22 @@ public class HelpTab {
 		updateContents();
 
 		// Enable internal anchor links
-		editorPane.addHyperlinkListener(new HyperlinkListener() {
-			@Override
-			public void hyperlinkUpdate(HyperlinkEvent event) {
-				try {
-					if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
-						String urlString = event.getURL().toExternalForm();
+		editorPane.addHyperlinkListener((HyperlinkEvent event) -> {
+			try {
+				if (event.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+					String urlString = event.getURL().toExternalForm();
 
-						if (urlString.startsWith("http://") || urlString.startsWith("https://") || urlString.startsWith("ftp://")) {
-							// Open external links in the desktop web browser
-							URI uri = new URI(urlString);
-							Desktop.getDesktop().browse(uri);
-						} else {
-							// Open anchor links in the editorPane
-							editorPane.setPage(event.getURL());
-						}
+					if (urlString.startsWith("http://") || urlString.startsWith("https://") || urlString.startsWith("ftp://")) {
+						// Open external links in the desktop web browser
+						URI uri = new URI(urlString);
+						Desktop.getDesktop().browse(uri);
+					} else {
+						// Open anchor links in the editorPane
+						editorPane.setPage(event.getURL());
 					}
-				} catch (IOException | URISyntaxException e) {
-					LOGGER.debug("Caught exception", e);
 				}
+			} catch (IOException | URISyntaxException e) {
+				LOGGER.debug("Caught exception", e);
 			}
 		});
 

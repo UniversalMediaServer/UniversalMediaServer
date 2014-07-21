@@ -145,25 +145,16 @@ public class BasicSystemUtils implements SystemUtils {
 			MenuItem traceItem = new MenuItem(Messages.getString("LooksFrame.6"));
 			MenuItem webInterfaceItem = new MenuItem(Messages.getString("LooksFrame.29"));
 
-			defaultItem.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					frame.quit();
-				}
+			defaultItem.addActionListener((ActionEvent e) -> {
+				frame.quit();
 			});
 
-			traceItem.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					frame.setVisible(true);
-				}
+			traceItem.addActionListener((ActionEvent e) -> {
+				frame.setVisible(true);
 			});
 
-			webInterfaceItem.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					browseURI(PMS.get().getWebInterface().getUrl());
-				}
+			webInterfaceItem.addActionListener((ActionEvent e) -> {
+				browseURI(PMS.get().getWebInterface().getUrl());
 			});
 
 			popup.add(webInterfaceItem);
@@ -173,12 +164,9 @@ public class BasicSystemUtils implements SystemUtils {
 			final TrayIcon trayIcon = new TrayIcon(trayIconImage, PropertiesUtil.getProjectProperties().get("project.name"), popup);
 
 			trayIcon.setImageAutoSize(true);
-			trayIcon.addActionListener(new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					frame.setVisible(true);
-					frame.setFocusable(true);
-				}
+			trayIcon.addActionListener((ActionEvent e) -> {
+				frame.setVisible(true);
+				frame.setFocusable(true);
 			});
 			try {
 				tray.add(trayIcon);

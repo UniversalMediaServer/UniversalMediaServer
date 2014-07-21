@@ -67,14 +67,7 @@ public class MediaInfo {
 		MediaInfoDLL_Internal INSTANCE = (MediaInfoDLL_Internal) Native.loadLibrary(
 			libraryName,
 			MediaInfoDLL_Internal.class,
-			singletonMap(OPTION_FUNCTION_MAPPER, new FunctionMapper() {
-
-			@Override
-			public String getFunctionName(NativeLibrary lib, Method method) {
-				// e.g. MediaInfo_New(), MediaInfo_Open() ...
-				return "MediaInfo_" + method.getName();
-			}
-		}));
+			singletonMap(OPTION_FUNCTION_MAPPER, (FunctionMapper) (NativeLibrary lib, Method method) -> "MediaInfo_" + method.getName()));
 
 		// Constructor/Destructor
 		Pointer New();

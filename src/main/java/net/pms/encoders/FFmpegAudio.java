@@ -76,11 +76,8 @@ public class FFmpegAudio extends FFMpegVideo {
 
 		noresample = new JCheckBox(Messages.getString("TrTab2.22"), configuration.isAudioResample());
 		noresample.setContentAreaFilled(false);
-		noresample.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setAudioResample(e.getStateChange() == ItemEvent.SELECTED);
-			}
+		noresample.addItemListener((ItemEvent e) -> {
+			configuration.setAudioResample(e.getStateChange() == ItemEvent.SELECTED);
 		});
 		builder.add(noresample, cc.xy(2, 3));
 

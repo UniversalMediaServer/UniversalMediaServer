@@ -2189,40 +2189,34 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			requestIdToRefcount.put(requestId, refCount + 1);
 			if (refCount == 0) {
 				final DLNAResource self = this;
-				Runnable r = new Runnable() {
-					@Override
-					public void run() {
-						InetAddress rendererIp;
+				Runnable r = () -> {
+					InetAddress rendererIp;
+					try {
+						rendererIp = InetAddress.getByName(rendererId);
+						RendererConfiguration renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(rendererIp);
+						String rendererName = "unknown renderer";
 						try {
-							rendererIp = InetAddress.getByName(rendererId);
-							RendererConfiguration renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(rendererIp);
-							String rendererName = "unknown renderer";
-							try {
-								rendererName = renderer.getRendererName().replaceAll("\n", "");
-							} catch (NullPointerException e) { }
-							LOGGER.info("Started playing " + getName() + " on your " + rendererName);
-							LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
-						} catch (UnknownHostException ex) {
-							LOGGER.debug("" + ex);
-						}
+							rendererName = renderer.getRendererName().replaceAll("\n", "");
+						} catch (NullPointerException e) { }
+						LOGGER.info("Started playing " + getName() + " on your " + rendererName);
+						LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
+					} catch (UnknownHostException ex) {
+						LOGGER.debug("" + ex);
+					}
 
-						startTime = System.currentTimeMillis();
+					startTime = System.currentTimeMillis();
 
-						for (final ExternalListener listener : ExternalFactory.getExternalListeners()) {
-							if (listener instanceof StartStopListener) {
-								// run these asynchronously for slow handlers (e.g. logging, scrobbling)
-								Runnable fireStartStopEvent = new Runnable() {
-									@Override
-									public void run() {
-										try {
-											((StartStopListener) listener).nowPlaying(media, self);
-										} catch (Throwable t) {
-											LOGGER.error("Notification of startPlaying event failed for StartStopListener {}", listener.getClass(), t);
-										}
-									}
-								};
-								new Thread(fireStartStopEvent, "StartPlaying Event for " + listener.name()).start();
-							}
+					for (final ExternalListener listener : ExternalFactory.getExternalListeners()) {
+						if (listener instanceof StartStopListener) {
+							// run these asynchronously for slow handlers (e.g. logging, scrobbling)
+							Runnable fireStartStopEvent = () -> {
+								try {
+									((StartStopListener) listener).nowPlaying(media, self);
+								} catch (Throwable t) {
+									LOGGER.error("Notification of startPlaying event failed for StartStopListener {}", listener.getClass(), t);
+								}
+							};
+							new Thread(fireStartStopEvent, "StartPlaying Event for " + listener.name()).start();
 						}
 					}
 				};
@@ -2256,44 +2250,38 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					assert refCount > 0;
 					requestIdToRefcount.put(requestId, refCount - 1);
 
-					Runnable r = new Runnable() {
-						@Override
-						public void run() {
-							if (refCount == 1) {
-								InetAddress rendererIp;
+					Runnable r = () -> {
+						if (refCount == 1) {
+							InetAddress rendererIp;
+							try {
+								rendererIp = InetAddress.getByName(rendererId);
+								RendererConfiguration renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(rendererIp);
+								String rendererName = "unknown renderer";
 								try {
-									rendererIp = InetAddress.getByName(rendererId);
-									RendererConfiguration renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(rendererIp);
-									String rendererName = "unknown renderer";
-									try {
-										rendererName = renderer.getRendererName();
-									} catch (NullPointerException e) { }
-									LOGGER.info("Stopped playing " + getName() + " on your " + rendererName);
-									LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
-								} catch (UnknownHostException ex) {
-									LOGGER.debug("" + ex);
-								}
+									rendererName = renderer.getRendererName();
+								} catch (NullPointerException e) { }
+								LOGGER.info("Stopped playing " + getName() + " on your " + rendererName);
+								LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
+							} catch (UnknownHostException ex) {
+								LOGGER.debug("" + ex);
+							}
 
-								PMS.get().getFrame().setStatusLine("");
+							PMS.get().getFrame().setStatusLine("");
 
-								internalStop();
+							internalStop();
 
-								for (final ExternalListener listener : ExternalFactory.getExternalListeners()) {
-									if (listener instanceof StartStopListener) {
-										// run these asynchronously for slow handlers (e.g. logging, scrobbling)
-										Runnable fireStartStopEvent = new Runnable() {
-											@Override
-											public void run() {
-												try {
-													((StartStopListener) listener).donePlaying(media, self);
-												} catch (Throwable t) {
-													LOGGER.error("Notification of donePlaying event failed for StartStopListener {}", listener.getClass(), t);
-												}
-											}
-										};
+							for (final ExternalListener listener : ExternalFactory.getExternalListeners()) {
+								if (listener instanceof StartStopListener) {
+									// run these asynchronously for slow handlers (e.g. logging, scrobbling)
+									Runnable fireStartStopEvent = () -> {
+										try {
+											((StartStopListener) listener).donePlaying(media, self);
+										} catch (Throwable t) {
+											LOGGER.error("Notification of donePlaying event failed for StartStopListener {}", listener.getClass(), t);
+										}
+									};
 
-										new Thread(fireStartStopEvent, "StopPlaying Event for " + listener.name()).start();
-									}
+									new Thread(fireStartStopEvent, "StopPlaying Event for " + listener.name()).start();
 								}
 							}
 						}
@@ -2449,12 +2437,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				// Time seek request => stop running transcode process and start a new one
 				LOGGER.debug("Requesting time seek: " + params.timeseek + " seconds");
 				params.minBufferSize = 1;
-				Runnable r = new Runnable() {
-					@Override
-					public void run() {
-						externalProcess.stopProcess();
-					}
-				};
+				Runnable r = externalProcess::stopProcess;
 				new Thread(r, "External Process Stopper").start();
 				lastStart = System.currentTimeMillis();
 				ProcessWrapper newExternalProcess = player.launchTranscode(this, media, params);
@@ -2490,12 +2473,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// this cleans up lingering MEncoder web video transcode processes that hang
 			// instead of exiting
 			if (is == null && !externalProcess.isDestroyed()) {
-				Runnable r = new Runnable() {
-					@Override
-					public void run() {
-						LOGGER.error("External input stream instance is null... stopping process");
-						externalProcess.stopProcess();
-					}
+				Runnable r = () -> {
+					LOGGER.error("External input stream instance is null... stopping process");
+					externalProcess.stopProcess();
 				};
 				new Thread(r, "Hanging External Process Stopper").start();
 			}

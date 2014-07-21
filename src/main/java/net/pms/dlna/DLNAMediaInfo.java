@@ -454,17 +454,14 @@ public class DLNAMediaInfo implements Cloneable {
 
 		// FAILSAFE
 		parsing = true;
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Thread.sleep(10000);
-					ffmpeg_failure = true;
-				} catch (InterruptedException e) { }
-
-				pw.stopProcess();
-				parsing = false;
-			}
+		Runnable r = () -> {
+			try {
+				Thread.sleep(10000);
+				ffmpeg_failure = true;
+			} catch (InterruptedException e) { }
+			
+			pw.stopProcess();
+			parsing = false;
 		};
 
 		Thread failsafe = new Thread(r, "FFmpeg Thumbnail Failsafe");
@@ -515,16 +512,13 @@ public class DLNAMediaInfo implements Cloneable {
 
 		// FAILSAFE
 		parsing = true;
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Thread.sleep(3000);
-				} catch (InterruptedException e) { }
-
-				pw.stopProcess();
-				parsing = false;
-			}
+		Runnable r = () -> {
+			try {
+				Thread.sleep(3000);
+			} catch (InterruptedException e) { }
+			
+			pw.stopProcess();
+			parsing = false;
 		};
 
 		Thread failsafe = new Thread(r, "MPlayer Thumbnail Failsafe");
@@ -1501,15 +1495,12 @@ public class DLNAMediaInfo implements Cloneable {
 
 		final ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 
-		Runnable r = new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Thread.sleep(3000);
-					ffmpeg_annexb_failure = true;
-				} catch (InterruptedException e) { }
-				pw.stopProcess();
-			}
+		Runnable r = () -> {
+			try {
+				Thread.sleep(3000);
+				ffmpeg_annexb_failure = true;
+			} catch (InterruptedException e) { }
+			pw.stopProcess();
 		};
 
 		Thread failsafe = new Thread(r, "FFMpeg AnnexB Frame Header Failsafe");

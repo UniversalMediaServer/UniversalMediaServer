@@ -493,19 +493,15 @@ public class FileUtil {
 		File[] allSubs = cache.get(subFolder);
 		if (allSubs == null) {
 			allSubs = subFolder.listFiles(
-				new FilenameFilter() {
-					@Override
-					public boolean accept(File dir, String name) {
-						String ext = FilenameUtils.getExtension(name).toLowerCase();
-						if ("sub".equals(ext)) {
-							// Avoid microdvd/vobsub confusion by ignoring sub+idx pairs here since
-							// they'll come in unambiguously as vobsub via the idx file anyway
-							return isFileExists(new File(dir, name), "idx") == null;
-						}
-						return supported.contains(ext);
+				(File dir, String name) -> {
+					String ext = FilenameUtils.getExtension(name).toLowerCase();
+					if ("sub".equals(ext)) {
+						// Avoid microdvd/vobsub confusion by ignoring sub+idx pairs here since
+						// they'll come in unambiguously as vobsub via the idx file anyway
+						return isFileExists(new File(dir, name), "idx") == null;
 					}
-				}
-			);
+					return supported.contains(ext);
+			});
 
 			if (allSubs != null) {
 				cache.put(subFolder, allSubs);

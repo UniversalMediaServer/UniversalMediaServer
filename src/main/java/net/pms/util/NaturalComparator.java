@@ -37,24 +37,14 @@ public final class NaturalComparator {
 	 * app might ever run on any locale that uses more than 7-bit ascii
 	 * characters.</p>
 	 */
-	private static final Comparator<String> NATURAL_COMPARATOR_ASCII = new Comparator<String>() {
-		@Override
-		public int compare(String o1, String o2) {
-			return compareNaturalAscii(o1, o2);
-		}
-	};
+	private static final Comparator<String> NATURAL_COMPARATOR_ASCII = (String o1, String o2) -> compareNaturalAscii(o1, o2);
 	/**
 	 * <p>A string comparator that does case insensitive comparisons and
 	 * handles embedded numbers correctly.</p> <p><b>Do not use</b> if your
 	 * app might ever run on any locale that uses more than 7-bit ascii
 	 * characters.</p>
 	 */
-	private static final Comparator<String> IGNORE_CASE_NATURAL_COMPARATOR_ASCII = new Comparator<String>() {
-		@Override
-		public int compare(String o1, String o2) {
-			return compareNaturalIgnoreCaseAscii(o1, o2);
-		}
-	};
+	private static final Comparator<String> IGNORE_CASE_NATURAL_COMPARATOR_ASCII = (String o1, String o2) -> compareNaturalIgnoreCaseAscii(o1, o2);
 
 	/**
 	 * This is a utility class (static methods only), don't instantiate.
@@ -94,12 +84,7 @@ public final class NaturalComparator {
 			// unrelated code that tries to use the comparator
 			throw new NullPointerException("collator must not be null");
 		}
-		return new Comparator<String>() {
-			@Override
-			public int compare(String o1, String o2) {
-				return compareNatural(collator, o1, o2);
-			}
-		};
+		return (String o1, String o2) -> compareNatural(collator, o1, o2);
 	}
 
 	/**

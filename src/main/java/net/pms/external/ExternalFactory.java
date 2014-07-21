@@ -369,13 +369,7 @@ public class ExternalFactory {
 
 		// Find all .jar files in the plugin directory
 		File[] jarFiles = pluginDirectory.listFiles(
-			new FileFilter() {
-				@Override
-				public boolean accept(File file) {
-					return file.isFile() && file.getName().toLowerCase().endsWith(".jar");
-				}
-			}
-		);
+			(File file) -> file.isFile() && file.getName().toLowerCase().endsWith(".jar"));
 
 		int nJars = (jarFiles == null) ? 0 : jarFiles.length;
 

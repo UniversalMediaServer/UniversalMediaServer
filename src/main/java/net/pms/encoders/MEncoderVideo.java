@@ -172,11 +172,8 @@ public class MEncoderVideo extends Player {
 
 		checkBox = new JCheckBox(Messages.getString("MEncoderVideo.0"), configuration.getSkipLoopFilterEnabled());
 		checkBox.setContentAreaFilled(false);
-		checkBox.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setSkipLoopFilterEnabled((e.getStateChange() == ItemEvent.SELECTED));
-			}
+		checkBox.addItemListener((ItemEvent e) -> {
+			configuration.setSkipLoopFilterEnabled((e.getStateChange() == ItemEvent.SELECTED));
 		});
 
 		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), FormLayoutUtil.flip(cc.xyw(1, 1, 15), colSpec, orientation));
@@ -185,11 +182,8 @@ public class MEncoderVideo extends Player {
 
 		mencodermt = new JCheckBox(Messages.getString("MEncoderVideo.35"), configuration.getMencoderMT());
 		mencodermt.setContentAreaFilled(false);
-		mencodermt.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				configuration.setMencoderMT(mencodermt.isSelected());
-			}
+		mencodermt.addActionListener((ActionEvent e) -> {
+			configuration.setMencoderMT(mencodermt.isSelected());
 		});
 
 		mencodermt.setEnabled(Platform.isWindows() || Platform.isMac());
@@ -199,84 +193,74 @@ public class MEncoderVideo extends Player {
 
 		noskip = new JCheckBox(Messages.getString("MEncoderVideo.2"), configuration.isMencoderNoOutOfSync());
 		noskip.setContentAreaFilled(false);
-		noskip.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setMencoderNoOutOfSync((e.getStateChange() == ItemEvent.SELECTED));
-			}
+		noskip.addItemListener((ItemEvent e) -> {
+			configuration.setMencoderNoOutOfSync((e.getStateChange() == ItemEvent.SELECTED));
 		});
 
 		builder.add(noskip, FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
 
 		CustomJButton button = new CustomJButton(Messages.getString("MEncoderVideo.29"));
-		button.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JPanel codecPanel = new JPanel(new BorderLayout());
-				final JTextArea textArea = new JTextArea();
-				textArea.setText(configuration.getMencoderCodecSpecificConfig());
-				textArea.setFont(new Font("Courier", Font.PLAIN, 12));
-				JScrollPane scrollPane = new JScrollPane(textArea);
-				scrollPane.setPreferredSize(new java.awt.Dimension(900, 100));
+		button.addActionListener((ActionEvent e) -> {
+			JPanel codecPanel = new JPanel(new BorderLayout());
+			final JTextArea textArea = new JTextArea();
+			textArea.setText(configuration.getMencoderCodecSpecificConfig());
+			textArea.setFont(new Font("Courier", Font.PLAIN, 12));
+			JScrollPane scrollPane = new JScrollPane(textArea);
+			scrollPane.setPreferredSize(new java.awt.Dimension(900, 100));
 
-				final JTextArea textAreaDefault = new JTextArea();
-				textAreaDefault.setText(DEFAULT_CODEC_CONF_SCRIPT);
-				textAreaDefault.setBackground(Color.WHITE);
-				textAreaDefault.setFont(new Font("Courier", Font.PLAIN, 12));
-				textAreaDefault.setEditable(false);
+			final JTextArea textAreaDefault = new JTextArea();
+			textAreaDefault.setText(DEFAULT_CODEC_CONF_SCRIPT);
+			textAreaDefault.setBackground(Color.WHITE);
+			textAreaDefault.setFont(new Font("Courier", Font.PLAIN, 12));
+			textAreaDefault.setEditable(false);
+			textAreaDefault.setEnabled(configuration.isMencoderIntelligentSync());
+			JScrollPane scrollPaneDefault = new JScrollPane(textAreaDefault);
+			scrollPaneDefault.setPreferredSize(new java.awt.Dimension(900, 450));
+
+			JPanel customPanel = new JPanel(new BorderLayout());
+			intelligentsync = new JCheckBox(Messages.getString("MEncoderVideo.3"), configuration.isMencoderIntelligentSync());
+			intelligentsync.setContentAreaFilled(false);
+			intelligentsync.addItemListener((ItemEvent e1) -> {
+				configuration.setMencoderIntelligentSync(e1.getStateChange() == ItemEvent.SELECTED);
 				textAreaDefault.setEnabled(configuration.isMencoderIntelligentSync());
-				JScrollPane scrollPaneDefault = new JScrollPane(textAreaDefault);
-				scrollPaneDefault.setPreferredSize(new java.awt.Dimension(900, 450));
+			});
 
-				JPanel customPanel = new JPanel(new BorderLayout());
-				intelligentsync = new JCheckBox(Messages.getString("MEncoderVideo.3"), configuration.isMencoderIntelligentSync());
-				intelligentsync.setContentAreaFilled(false);
-				intelligentsync.addItemListener(new ItemListener() {
-					@Override
-					public void itemStateChanged(ItemEvent e) {
-						configuration.setMencoderIntelligentSync((e.getStateChange() == ItemEvent.SELECTED));
-						textAreaDefault.setEnabled(configuration.isMencoderIntelligentSync());
+			JLabel label = new JLabel(Messages.getString("MEncoderVideo.33"));
+			customPanel.add(label, BorderLayout.NORTH);
+			customPanel.add(scrollPane, BorderLayout.SOUTH);
 
-					}
-				});
+			codecPanel.add(intelligentsync, BorderLayout.NORTH);
+			codecPanel.add(scrollPaneDefault, BorderLayout.CENTER);
+			codecPanel.add(customPanel, BorderLayout.SOUTH);
 
-				JLabel label = new JLabel(Messages.getString("MEncoderVideo.33"));
-				customPanel.add(label, BorderLayout.NORTH);
-				customPanel.add(scrollPane, BorderLayout.SOUTH);
+			while (JOptionPane.showOptionDialog(SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
+				codecPanel, Messages.getString("MEncoderVideo.34"), JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null) == JOptionPane.OK_OPTION) {
+				String newCodecparam = textArea.getText();
+				DLNAMediaInfo fakemedia = new DLNAMediaInfo();
+				DLNAMediaAudio audio = new DLNAMediaAudio();
+				audio.setCodecA("ac3");
+				fakemedia.setCodecV("mpeg4");
+				fakemedia.setContainer("matroska");
+				fakemedia.setDuration(45d*60);
+				audio.getAudioProperties().setNumberOfChannels(2);
+				fakemedia.setWidth(1280);
+				fakemedia.setHeight(720);
+				audio.setSampleFrequency("48000");
+				fakemedia.setFrameRate("23.976");
+				fakemedia.getAudioTracksList().add(audio);
+				String result[] = getSpecificCodecOptions(newCodecparam, fakemedia, new OutputParams(configuration), "dummy.mpg", "dummy.srt", false, true);
 
-				codecPanel.add(intelligentsync, BorderLayout.NORTH);
-				codecPanel.add(scrollPaneDefault, BorderLayout.CENTER);
-				codecPanel.add(customPanel, BorderLayout.SOUTH);
-
-				while (JOptionPane.showOptionDialog(SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
-					codecPanel, Messages.getString("MEncoderVideo.34"), JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null) == JOptionPane.OK_OPTION) {
-					String newCodecparam = textArea.getText();
-					DLNAMediaInfo fakemedia = new DLNAMediaInfo();
-					DLNAMediaAudio audio = new DLNAMediaAudio();
-					audio.setCodecA("ac3");
-					fakemedia.setCodecV("mpeg4");
-					fakemedia.setContainer("matroska");
-					fakemedia.setDuration(45d*60);
-					audio.getAudioProperties().setNumberOfChannels(2);
-					fakemedia.setWidth(1280);
-					fakemedia.setHeight(720);
-					audio.setSampleFrequency("48000");
-					fakemedia.setFrameRate("23.976");
-					fakemedia.getAudioTracksList().add(audio);
-					String result[] = getSpecificCodecOptions(newCodecparam, fakemedia, new OutputParams(configuration), "dummy.mpg", "dummy.srt", false, true);
-
-					if (result.length > 0 && result[0].startsWith("@@")) {
-						String errorMessage = result[0].substring(2);
-						JOptionPane.showMessageDialog(
-							SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
-							errorMessage,
-							Messages.getString("Dialog.Error"),
-							JOptionPane.ERROR_MESSAGE
-						);
-					} else {
-						configuration.setMencoderCodecSpecificConfig(newCodecparam);
-						break;
-					}
+				if (result.length > 0 && result[0].startsWith("@@")) {
+					String errorMessage = result[0].substring(2);
+					JOptionPane.showMessageDialog(
+						SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame()),
+						errorMessage,
+						Messages.getString("Dialog.Error"),
+						JOptionPane.ERROR_MESSAGE
+					);
+				} else {
+					configuration.setMencoderCodecSpecificConfig(newCodecparam);
+					break;
 				}
 			}
 		});
@@ -284,34 +268,25 @@ public class MEncoderVideo extends Player {
 
 		forcefps = new JCheckBox(Messages.getString("MEncoderVideo.4"), configuration.isMencoderForceFps());
 		forcefps.setContentAreaFilled(false);
-		forcefps.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setMencoderForceFps(e.getStateChange() == ItemEvent.SELECTED);
-			}
+		forcefps.addItemListener((ItemEvent e) -> {
+			configuration.setMencoderForceFps(e.getStateChange() == ItemEvent.SELECTED);
 		});
 
 		builder.add(forcefps, FormLayoutUtil.flip(cc.xyw(1, 7, 2), colSpec, orientation));
 
 		yadif = new JCheckBox(Messages.getString("MEncoderVideo.26"), configuration.isMencoderYadif());
 		yadif.setContentAreaFilled(false);
-		yadif.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setMencoderYadif(e.getStateChange() == ItemEvent.SELECTED);
-			}
+		yadif.addItemListener((ItemEvent e) -> {
+			configuration.setMencoderYadif(e.getStateChange() == ItemEvent.SELECTED);
 		});
 		builder.add(yadif, FormLayoutUtil.flip(cc.xyw(3, 7, 7), colSpec, orientation));
 
 		scaler = new JCheckBox(Messages.getString("MEncoderVideo.27"));
 		scaler.setContentAreaFilled(false);
-		scaler.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setMencoderScaler(e.getStateChange() == ItemEvent.SELECTED);
-				scaleX.setEnabled(configuration.isMencoderScaler());
-				scaleY.setEnabled(configuration.isMencoderScaler());
-			}
+		scaler.addItemListener((ItemEvent e) -> {
+			configuration.setMencoderScaler(e.getStateChange() == ItemEvent.SELECTED);
+			scaleX.setEnabled(configuration.isMencoderScaler());
+			scaleY.setEnabled(configuration.isMencoderScaler());
 		});
 		builder.add(scaler, FormLayoutUtil.flip(cc.xyw(3, 5, 7), colSpec, orientation));
 
@@ -352,21 +327,15 @@ public class MEncoderVideo extends Player {
 
 		videoremux = new JCheckBox(Messages.getString("MEncoderVideo.38"), configuration.isMencoderMuxWhenCompatible());
 		videoremux.setContentAreaFilled(false);
-		videoremux.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setMencoderMuxWhenCompatible((e.getStateChange() == ItemEvent.SELECTED));
-			}
+		videoremux.addItemListener((ItemEvent e) -> {
+			configuration.setMencoderMuxWhenCompatible((e.getStateChange() == ItemEvent.SELECTED));
 		});
 		builder.add(videoremux, FormLayoutUtil.flip(cc.xyw(1, 9, 13), colSpec, orientation));
 
 		normalizeaudio = new JCheckBox(Messages.getString("MEncoderVideo.134"), configuration.isMEncoderNormalizeVolume());
 		normalizeaudio.setContentAreaFilled(false);
-		normalizeaudio.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setMEncoderNormalizeVolume((e.getStateChange() == ItemEvent.SELECTED));
-			}
+		normalizeaudio.addItemListener((ItemEvent e) -> {
+			configuration.setMEncoderNormalizeVolume((e.getStateChange() == ItemEvent.SELECTED));
 		});
 		// Uncomment this if volume normalizing in MEncoder is ever fixed.
 		// builder.add(normalizeaudio, FormLayoutUtil.flip(cc.xyw(1, 13, 13), colSpec, orientation));
@@ -454,12 +423,9 @@ public class MEncoderVideo extends Player {
 
 		ass = new JCheckBox(Messages.getString("MEncoderVideo.20"), configuration.isMencoderAss());
 		ass.setContentAreaFilled(false);
-		ass.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				if (e != null) {
-					configuration.setMencoderAss(e.getStateChange() == ItemEvent.SELECTED);
-				}
+		ass.addItemListener((ItemEvent e) -> {
+			if (e != null) {
+				configuration.setMencoderAss(e.getStateChange() == ItemEvent.SELECTED);
 			}
 		});
 		builder.add(ass, FormLayoutUtil.flip(cc.xy(1, 23), colSpec, orientation));
@@ -467,21 +433,15 @@ public class MEncoderVideo extends Player {
 
 		fc = new JCheckBox(Messages.getString("MEncoderVideo.21"), configuration.isMencoderFontConfig());
 		fc.setContentAreaFilled(false);
-		fc.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setMencoderFontConfig(e.getStateChange() == ItemEvent.SELECTED);
-			}
+		fc.addItemListener((ItemEvent e) -> {
+			configuration.setMencoderFontConfig(e.getStateChange() == ItemEvent.SELECTED);
 		});
 		builder.add(fc, FormLayoutUtil.flip(cc.xyw(3, 23, 5), colSpec, orientation));
 
 		assdefaultstyle = new JCheckBox(Messages.getString("MEncoderVideo.36"), configuration.isMencoderAssDefaultStyle());
 		assdefaultstyle.setContentAreaFilled(false);
-		assdefaultstyle.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setMencoderAssDefaultStyle(e.getStateChange() == ItemEvent.SELECTED);
-			}
+		assdefaultstyle.addItemListener((ItemEvent e) -> {
+			configuration.setMencoderAssDefaultStyle(e.getStateChange() == ItemEvent.SELECTED);
 		});
 		builder.add(assdefaultstyle, FormLayoutUtil.flip(cc.xyw(8, 23, 4), colSpec, orientation));
 
@@ -495,28 +455,25 @@ public class MEncoderVideo extends Player {
 		});
 		builder.add(subq, FormLayoutUtil.flip(cc.xyw(3, 29, 1), colSpec, orientation));
 
-		configuration.addConfigurationListener(new ConfigurationListener() {
-			@Override
-			public void configurationChanged(ConfigurationEvent event) {
-				if (event.getPropertyName() == null) {
-					return;
-				}
-				if ((!event.isBeforeUpdate()) && event.getPropertyName().equals(PmsConfiguration.KEY_DISABLE_SUBTITLES)) {
-					boolean enabled = !configuration.isDisableSubtitles();
-					ass.setEnabled(enabled);
-					assdefaultstyle.setEnabled(enabled);
-					fc.setEnabled(enabled);
-					mencoder_noass_scale.setEnabled(enabled);
-					mencoder_noass_outline.setEnabled(enabled);
-					mencoder_noass_blur.setEnabled(enabled);
-					mencoder_noass_subpos.setEnabled(enabled);
-					ocw.setEnabled(enabled);
-					och.setEnabled(enabled);
-					subq.setEnabled(enabled);
+		configuration.addConfigurationListener((ConfigurationEvent event) -> {
+			if (event.getPropertyName() == null) {
+				return;
+			}
+			if ((!event.isBeforeUpdate()) && event.getPropertyName().equals(PmsConfiguration.KEY_DISABLE_SUBTITLES)) {
+				boolean enabled = !configuration.isDisableSubtitles();
+				ass.setEnabled(enabled);
+				assdefaultstyle.setEnabled(enabled);
+				fc.setEnabled(enabled);
+				mencoder_noass_scale.setEnabled(enabled);
+				mencoder_noass_outline.setEnabled(enabled);
+				mencoder_noass_blur.setEnabled(enabled);
+				mencoder_noass_subpos.setEnabled(enabled);
+				ocw.setEnabled(enabled);
+				och.setEnabled(enabled);
+				subq.setEnabled(enabled);
 
-					if (enabled) {
-						ass.getItemListeners()[0].itemStateChanged(null);
-					}
+				if (enabled) {
+					ass.getItemListeners()[0].itemStateChanged(null);
 				}
 			}
 		});

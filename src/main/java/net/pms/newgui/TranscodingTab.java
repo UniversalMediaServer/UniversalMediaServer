@@ -185,26 +185,23 @@ public class TranscodingTab {
 
 		CustomJButton but = new CustomJButton(LooksFrame.readImageIcon("button-arrow-down.png"));
 		but.setToolTipText(Messages.getString("TrTab2.6"));
-		but.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				TreePath path = tree.getSelectionModel().getSelectionPath();
-				if (path != null && path.getLastPathComponent() instanceof TreeNodeSettings) {
-					TreeNodeSettings node = ((TreeNodeSettings) path.getLastPathComponent());
-					if (node.getPlayer() != null) {
-						DefaultTreeModel dtm = (DefaultTreeModel) tree.getModel();   // get the tree model
-						//now get the index of the selected node in the DefaultTreeModel
-						int index = dtm.getIndexOfChild(node.getParent(), node);
-						// if selected node is first, return (can't move it up)
-						if (index < node.getParent().getChildCount() - 1) {
-							dtm.insertNodeInto(node, (DefaultMutableTreeNode) node.getParent(), index + 1);   // move the node
-							dtm.reload();
-							for (int i = 0; i < tree.getRowCount(); i++) {
-								tree.expandRow(i);
-							}
-							tree.getSelectionModel().setSelectionPath(new TreePath(node.getPath()));
-							updateEngineModel();
+		but.addActionListener((ActionEvent e) -> {
+			TreePath path = tree.getSelectionModel().getSelectionPath();
+			if (path != null && path.getLastPathComponent() instanceof TreeNodeSettings) {
+				TreeNodeSettings node = ((TreeNodeSettings) path.getLastPathComponent());
+				if (node.getPlayer() != null) {
+					DefaultTreeModel dtm = (DefaultTreeModel) tree.getModel();   // get the tree model
+					//now get the index of the selected node in the DefaultTreeModel
+					int index = dtm.getIndexOfChild(node.getParent(), node);
+					// if selected node is first, return (can't move it up)
+					if (index < node.getParent().getChildCount() - 1) {
+						dtm.insertNodeInto(node, (DefaultMutableTreeNode) node.getParent(), index + 1);   // move the node
+						dtm.reload();
+						for (int i = 0; i < tree.getRowCount(); i++) {
+							tree.expandRow(i);
 						}
+						tree.getSelectionModel().setSelectionPath(new TreePath(node.getPath()));
+						updateEngineModel();
 					}
 				}
 			}
@@ -213,26 +210,23 @@ public class TranscodingTab {
 
 		CustomJButton but2 = new CustomJButton(LooksFrame.readImageIcon("button-arrow-up.png"));
 		but2.setToolTipText(Messages.getString("TrTab2.6"));
-		but2.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				TreePath path = tree.getSelectionModel().getSelectionPath();
-				if (path != null && path.getLastPathComponent() instanceof TreeNodeSettings) {
-					TreeNodeSettings node = ((TreeNodeSettings) path.getLastPathComponent());
-					if (node.getPlayer() != null) {
-						DefaultTreeModel dtm = (DefaultTreeModel) tree.getModel();   // get the tree model
-						//now get the index of the selected node in the DefaultTreeModel
-						int index = dtm.getIndexOfChild(node.getParent(), node);
-						// if selected node is first, return (can't move it up)
-						if (index != 0) {
-							dtm.insertNodeInto(node, (DefaultMutableTreeNode) node.getParent(), index - 1);   // move the node
-							dtm.reload();
-							for (int i = 0; i < tree.getRowCount(); i++) {
-								tree.expandRow(i);
-							}
-							tree.getSelectionModel().setSelectionPath(new TreePath(node.getPath()));
-							updateEngineModel();
+		but2.addActionListener((ActionEvent e) -> {
+			TreePath path = tree.getSelectionModel().getSelectionPath();
+			if (path != null && path.getLastPathComponent() instanceof TreeNodeSettings) {
+				TreeNodeSettings node = ((TreeNodeSettings) path.getLastPathComponent());
+				if (node.getPlayer() != null) {
+					DefaultTreeModel dtm = (DefaultTreeModel) tree.getModel();   // get the tree model
+					//now get the index of the selected node in the DefaultTreeModel
+					int index = dtm.getIndexOfChild(node.getParent(), node);
+					// if selected node is first, return (can't move it up)
+					if (index != 0) {
+						dtm.insertNodeInto(node, (DefaultMutableTreeNode) node.getParent(), index - 1);   // move the node
+						dtm.reload();
+						for (int i = 0; i < tree.getRowCount(); i++) {
+							tree.expandRow(i);
 						}
+						tree.getSelectionModel().setSelectionPath(new TreePath(node.getPath()));
+						updateEngineModel();
 					}
 				}
 			}
@@ -241,15 +235,12 @@ public class TranscodingTab {
 
 		CustomJButton but3 = new CustomJButton(LooksFrame.readImageIcon("button-toggleengine.png"));
 		but3.setToolTipText(Messages.getString("TrTab2.0"));
-		but3.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				TreePath path = tree.getSelectionModel().getSelectionPath();
-				if (path != null && path.getLastPathComponent() instanceof TreeNodeSettings && ((TreeNodeSettings) path.getLastPathComponent()).getPlayer() != null) {
-					((TreeNodeSettings) path.getLastPathComponent()).setEnable(!((TreeNodeSettings) path.getLastPathComponent()).isEnable());
-					updateEngineModel();
-					tree.updateUI();
-				}
+		but3.addActionListener((ActionEvent e) -> {
+			TreePath path = tree.getSelectionModel().getSelectionPath();
+			if (path != null && path.getLastPathComponent() instanceof TreeNodeSettings && ((TreeNodeSettings) path.getLastPathComponent()).getPlayer() != null) {
+				((TreeNodeSettings) path.getLastPathComponent()).setEnable(!((TreeNodeSettings) path.getLastPathComponent()).isEnable());
+				updateEngineModel();
+				tree.updateUI();
 			}
 		});
 		builder.add(but3, FormLayoutUtil.flip(cc.xy(4, 3), colSpec, orientation));
@@ -282,13 +273,10 @@ public class TranscodingTab {
 		};
 		tree.setRootVisible(false);
 		tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-		tree.addTreeSelectionListener(new TreeSelectionListener() {
-			@Override
-			public void valueChanged(TreeSelectionEvent e) {
-				if (e.getNewLeadSelectionPath() != null && e.getNewLeadSelectionPath().getLastPathComponent() instanceof TreeNodeSettings) {
-					TreeNodeSettings tns = (TreeNodeSettings) e.getNewLeadSelectionPath().getLastPathComponent();
-					cl.show(tabbedPanel, tns.id());
-				}
+		tree.addTreeSelectionListener((TreeSelectionEvent e) -> {
+			if (e.getNewLeadSelectionPath() != null && e.getNewLeadSelectionPath().getLastPathComponent() instanceof TreeNodeSettings) {
+				TreeNodeSettings tns = (TreeNodeSettings) e.getNewLeadSelectionPath().getLastPathComponent();
+				cl.show(tabbedPanel, tns.id());
 			}
 		});
 
@@ -399,11 +387,8 @@ public class TranscodingTab {
 
 		disableSubs = new JCheckBox(Messages.getString("TrTab2.51"), configuration.isDisableSubtitles());
 		disableSubs.setContentAreaFilled(false);
- 		disableSubs.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setDisableSubtitles((e.getStateChange() == ItemEvent.SELECTED));
-			}
+ 		disableSubs.addItemListener((ItemEvent e) -> {
+			configuration.setDisableSubtitles((e.getStateChange() == ItemEvent.SELECTED));
 		});
 
 		if (!configuration.isHideAdvancedOptions()) {
@@ -439,22 +424,16 @@ public class TranscodingTab {
 				nbcores.setSelectedIndex(0);
 			}
 
-			nbcores.addItemListener(new ItemListener() {
-				@Override
-				public void itemStateChanged(ItemEvent e) {
-					configuration.setNumberOfCpuCores(Integer.parseInt(e.getItem().toString()));
-				}
+			nbcores.addItemListener((ItemEvent e) -> {
+				configuration.setNumberOfCpuCores(Integer.parseInt(e.getItem().toString()));
 			});
 			builder.add(nbcores, FormLayoutUtil.flip(cc.xy(3, 5), colSpec, orientation));
 
 			chapter_support = new JCheckBox(Messages.getString("TrTab2.52"), configuration.isChapterSupport());
 			chapter_support.setContentAreaFilled(false);
-			chapter_support.addItemListener(new ItemListener() {
-				@Override
-				public void itemStateChanged(ItemEvent e) {
-					configuration.setChapterSupport((e.getStateChange() == ItemEvent.SELECTED));
-					chapter_interval.setEnabled(configuration.isChapterSupport());
-				}
+			chapter_support.addItemListener((ItemEvent e) -> {
+				configuration.setChapterSupport((e.getStateChange() == ItemEvent.SELECTED));
+				chapter_interval.setEnabled(configuration.isChapterSupport());
 			});
 			builder.add(chapter_support, FormLayoutUtil.flip(cc.xy(1, 7), colSpec, orientation));
 
@@ -502,11 +481,8 @@ public class TranscodingTab {
 		CellConstraints cc = new CellConstraints();
 
 		videoHWacceleration = new JCheckBox(Messages.getString("TrTab2.70"), configuration.isGPUAcceleration());
-		videoHWacceleration.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setGPUAcceleration((e.getStateChange() == ItemEvent.SELECTED));
-			}
+		videoHWacceleration.addItemListener((ItemEvent e) -> {
+			configuration.setGPUAcceleration((e.getStateChange() == ItemEvent.SELECTED));
 		});
 		builder.add(videoHWacceleration, FormLayoutUtil.flip(cc.xy(1, 2), colSpec, orientation));
 		videoHWacceleration.setEnabled(false);
@@ -514,11 +490,8 @@ public class TranscodingTab {
 		mpeg2remux = new JCheckBox(Messages.getString("MEncoderVideo.39"), configuration.isMencoderRemuxMPEG2());
 		mpeg2remux.setToolTipText(Messages.getString("TrTab2.82") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
 		mpeg2remux.setContentAreaFilled(false);
-		mpeg2remux.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setMencoderRemuxMPEG2((e.getStateChange() == ItemEvent.SELECTED));
-			}
+		mpeg2remux.addItemListener((ItemEvent e) -> {
+			configuration.setMencoderRemuxMPEG2((e.getStateChange() == ItemEvent.SELECTED));
 		});
 		builder.add(mpeg2remux, FormLayoutUtil.flip(cc.xy(1, 6), colSpec, orientation));
 
@@ -542,16 +515,13 @@ public class TranscodingTab {
 		MyComboBoxModel cbm = new MyComboBoxModel(data);
 		vq = new JComboBox(cbm);
 		vq.setToolTipText(Messages.getString("TrTab2.74"));
-		vq.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				if (e.getStateChange() == ItemEvent.SELECTED) {
-					String s = (String) e.getItem();
-					if (s.indexOf("/*") > -1) {
-						s = s.substring(0, s.indexOf("/*")).trim();
-					}
-					configuration.setMPEG2MainSettings(s);
+		vq.addItemListener((ItemEvent e) -> {
+			if (e.getStateChange() == ItemEvent.SELECTED) {
+				String s = (String) e.getItem();
+				if (s.indexOf("/*") > -1) {
+					s = s.substring(0, s.indexOf("/*")).trim();
 				}
+				configuration.setMPEG2MainSettings(s);
 			}
 		});
 		vq.getEditor().getEditorComponent().addKeyListener(new KeyAdapter() {
@@ -573,16 +543,13 @@ public class TranscodingTab {
 		MyComboBoxModel cbm2 = new MyComboBoxModel(x264QualityOptions);
 		x264Quality = new JComboBox(cbm2);
 		x264Quality.setToolTipText(Messages.getString("TrTab2.81"));
-		x264Quality.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				if (e.getStateChange() == ItemEvent.SELECTED) {
-					String s = (String) e.getItem();
-					if (s.indexOf("/*") > -1) {
-						s = s.substring(0, s.indexOf("/*")).trim();
-					}
-					configuration.setx264ConstantRateFactor(s);
+		x264Quality.addItemListener((ItemEvent e) -> {
+			if (e.getStateChange() == ItemEvent.SELECTED) {
+				String s = (String) e.getItem();
+				if (s.indexOf("/*") > -1) {
+					s = s.substring(0, s.indexOf("/*")).trim();
 				}
+				configuration.setx264ConstantRateFactor(s);
 			}
 		});
 		x264Quality.getEditor().getEditorComponent().addKeyListener(new KeyAdapter() {
@@ -636,22 +603,16 @@ public class TranscodingTab {
 		} else {
 			channels.setSelectedIndex(1);
 		}
-		channels.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setAudioChannelCount(Integer.parseInt(e.getItem().toString().substring(0, 1)));
-			}
+		channels.addItemListener((ItemEvent e) -> {
+			configuration.setAudioChannelCount(Integer.parseInt(e.getItem().toString().substring(0, 1)));
 		});
 		builder.add(channels, FormLayoutUtil.flip(cc.xy(3, 2), colSpec, orientation));
 
 		forcePCM = new JCheckBox(Messages.getString("TrTab2.27"), configuration.isAudioUsePCM());
 		forcePCM.setToolTipText(Messages.getString("TrTab2.83"));
 		forcePCM.setContentAreaFilled(false);
-		forcePCM.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setAudioUsePCM(e.getStateChange() == ItemEvent.SELECTED);
-			}
+		forcePCM.addItemListener((ItemEvent e) -> {
+			configuration.setAudioUsePCM(e.getStateChange() == ItemEvent.SELECTED);
 		});
 		builder.add(forcePCM, FormLayoutUtil.flip(cc.xy(1, 4), colSpec, orientation));
 
@@ -660,11 +621,8 @@ public class TranscodingTab {
 		if (configuration.isEncodedAudioPassthrough()) {
 			ac3remux.setEnabled(false);
 		}
-		ac3remux.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setAudioRemuxAC3((e.getStateChange() == ItemEvent.SELECTED));
-			}
+		ac3remux.addItemListener((ItemEvent e) -> {
+			configuration.setAudioRemuxAC3((e.getStateChange() == ItemEvent.SELECTED));
 		});
 		builder.add(ac3remux, FormLayoutUtil.flip(cc.xy(1, 6), colSpec, orientation));
 
@@ -674,24 +632,18 @@ public class TranscodingTab {
 			forceDTSinPCM.setEnabled(false);
 		}
 		forceDTSinPCM.setContentAreaFilled(false);
-		forceDTSinPCM.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				configuration.setAudioEmbedDtsInPcm(forceDTSinPCM.isSelected());
-			}
+		forceDTSinPCM.addActionListener((ActionEvent e) -> {
+			configuration.setAudioEmbedDtsInPcm(forceDTSinPCM.isSelected());
 		});
 		builder.add(forceDTSinPCM, FormLayoutUtil.flip(cc.xy(1, 8), colSpec, orientation));
 
 		encodedAudioPassthrough = new JCheckBox(Messages.getString("TrTab2.53"), configuration.isEncodedAudioPassthrough());
 		encodedAudioPassthrough.setToolTipText(Messages.getString("TrTab2.86") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
 		encodedAudioPassthrough.setContentAreaFilled(false);
-		encodedAudioPassthrough.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setEncodedAudioPassthrough((e.getStateChange() == ItemEvent.SELECTED));
-				ac3remux.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
-				forceDTSinPCM.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
-			}
+		encodedAudioPassthrough.addItemListener((ItemEvent e) -> {
+			configuration.setEncodedAudioPassthrough((e.getStateChange() == ItemEvent.SELECTED));
+			ac3remux.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
+			forceDTSinPCM.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
 		});
 		builder.add(encodedAudioPassthrough, cc.xyw(1, 10, 3));
 
@@ -787,21 +739,18 @@ public class TranscodingTab {
 		builder.add(alternateSubFolder, FormLayoutUtil.flip(cc.xyw(3, 6, 12), colSpec, orientation));
 
 		folderSelectButton = new JButton("...");
-		folderSelectButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JFileChooser chooser;
-				try {
-					chooser = new JFileChooser();
-				} catch (Exception ee) {
-					chooser = new JFileChooser(new RestrictedFileSystemView());
-				}
-				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-				int returnVal = chooser.showDialog((Component) e.getSource(), Messages.getString("FoldTab.28"));
-				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					alternateSubFolder.setText(chooser.getSelectedFile().getAbsolutePath());
-					configuration.setAlternateSubtitlesFolder(chooser.getSelectedFile().getAbsolutePath());
-				}
+		folderSelectButton.addActionListener((ActionEvent e) -> {
+			JFileChooser chooser;
+			try {
+				chooser = new JFileChooser();
+			} catch (Exception ee) {
+				chooser = new JFileChooser(new RestrictedFileSystemView());
+			}
+			chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			int returnVal = chooser.showDialog((Component) e.getSource(), Messages.getString("FoldTab.28"));
+			if (returnVal == JFileChooser.APPROVE_OPTION) {
+				alternateSubFolder.setText(chooser.getSelectedFile().getAbsolutePath());
+				configuration.setAlternateSubtitlesFolder(chooser.getSelectedFile().getAbsolutePath());
 			}
 		});
 		builder.add(folderSelectButton, FormLayoutUtil.flip(cc.xy(15, 6), colSpec, orientation));
@@ -842,19 +791,16 @@ public class TranscodingTab {
 
 		MyComboBoxModel cbm = new MyComboBoxModel(data);
 		subtitleCodePage = new JComboBox(cbm);
-		subtitleCodePage.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				if (e.getStateChange() == ItemEvent.SELECTED) {
-					String s = (String) e.getItem();
-					int offset = s.indexOf("/*");
+		subtitleCodePage.addItemListener((ItemEvent e) -> {
+			if (e.getStateChange() == ItemEvent.SELECTED) {
+				String s = (String) e.getItem();
+				int offset = s.indexOf("/*");
 
-					if (offset > -1) {
-						s = s.substring(0, offset).trim();
-					}
-
-					configuration.setSubtitlesCodepage(s);
+				if (offset > -1) {
+					s = s.substring(0, offset).trim();
 				}
+
+				configuration.setSubtitlesCodepage(s);
 			}
 		});
 
@@ -870,11 +816,8 @@ public class TranscodingTab {
 
 		fribidi = new JCheckBox(Messages.getString("MEncoderVideo.23"), configuration.isMencoderSubFribidi());
 		fribidi.setContentAreaFilled(false);
-		fribidi.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setMencoderSubFribidi(e.getStateChange() == ItemEvent.SELECTED);
-			}
+		fribidi.addItemListener((ItemEvent e) -> {
+			configuration.setMencoderSubFribidi(e.getStateChange() == ItemEvent.SELECTED);
 		});
 
 		builder.add(fribidi, FormLayoutUtil.flip(cc.xyw(11, 8, 4), colSpec, orientation));
@@ -890,16 +833,13 @@ public class TranscodingTab {
 		builder.add(defaultfont, FormLayoutUtil.flip(cc.xyw(3, 10, 12), colSpec, orientation));
 
 		fontselect = new CustomJButton("...");
-		fontselect.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JFileChooser chooser = new JFileChooser();
-				chooser.setFileFilter(new FontFileFilter());
-				int returnVal = chooser.showDialog((Component) e.getSource(), Messages.getString("MEncoderVideo.25"));
-				if (returnVal == JFileChooser.APPROVE_OPTION) {
-					defaultfont.setText(chooser.getSelectedFile().getAbsolutePath());
-					configuration.setFont(chooser.getSelectedFile().getAbsolutePath());
-				}
+		fontselect.addActionListener((ActionEvent e) -> {
+			JFileChooser chooser = new JFileChooser();
+			chooser.setFileFilter(new FontFileFilter());
+			int returnVal = chooser.showDialog((Component) e.getSource(), Messages.getString("MEncoderVideo.25"));
+			if (returnVal == JFileChooser.APPROVE_OPTION) {
+				defaultfont.setText(chooser.getSelectedFile().getAbsolutePath());
+				configuration.setFont(chooser.getSelectedFile().getAbsolutePath());
 			}
 		});
 
@@ -953,31 +893,25 @@ public class TranscodingTab {
 		subs = new JCheckBox(Messages.getString("MEncoderVideo.22"), configuration.isAutoloadExternalSubtitles());
 		subs.setToolTipText(Messages.getString("TrTab2.78"));
 		subs.setContentAreaFilled(false);
-		subs.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setAutoloadExternalSubtitles((e.getStateChange() == ItemEvent.SELECTED));
-			}
+		subs.addItemListener((ItemEvent e) -> {
+			configuration.setAutoloadExternalSubtitles((e.getStateChange() == ItemEvent.SELECTED));
 		});
 		builder.add(subs, FormLayoutUtil.flip(cc.xyw(1, 14, 11), colSpec, orientation));
 
 		subColor = new JButton();
 		subColor.setText(Messages.getString("MEncoderVideo.31"));
 		subColor.setBackground(new Color(configuration.getSubsColor()));
-		subColor.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				Color newColor = JColorChooser.showDialog(
-					looksFrame,
-					Messages.getString("MEncoderVideo.125"),
-					subColor.getBackground()
-				);
+		subColor.addActionListener((ActionEvent e) -> {
+			Color newColor = JColorChooser.showDialog(
+				looksFrame,
+				Messages.getString("MEncoderVideo.125"),
+				subColor.getBackground()
+			);
 
-				if (newColor != null) {
-					subColor.setBackground(newColor);
-					configuration.setSubsColor(newColor.getRGB());
-					FFMpegVideo.deleteSubs(); // Color has been changed so all FFmpeg temporary subs will be deleted and make new
-				}
+			if (newColor != null) {
+				subColor.setBackground(newColor);
+				configuration.setSubsColor(newColor.getRGB());
+				FFMpegVideo.deleteSubs(); // Color has been changed so all FFmpeg temporary subs will be deleted and make new
 			}
 		});
 		builder.add(subColor, FormLayoutUtil.flip(cc.xyw(13, 14, 3), colSpec, orientation));
@@ -989,14 +923,11 @@ public class TranscodingTab {
 			component.setEnabled(enable);
 		}
 
-		disableSubs.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				// If "Disable Subtitles" is not selected, subtitles are enabled
-				boolean enabled = e.getStateChange() != ItemEvent.SELECTED;
-				for (Component component : panel.getComponents()) {
-					component.setEnabled(enabled);
-				}
+		disableSubs.addItemListener((ItemEvent e) -> {
+			boolean enabled = e.getStateChange() != ItemEvent.SELECTED;
+			// If "Disable Subtitles" is not selected, subtitles are enabled
+			for (Component component : panel.getComponents()) {
+				component.setEnabled(enabled);
 			}
 		});
 

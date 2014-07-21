@@ -849,22 +849,19 @@ public class BufferedOutputFileImpl extends OutputStream implements BufferedOutp
 			attachedThread.setReadyToStop(true);
 		}
 
-		Runnable checkEnd = new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Thread.sleep(CHECK_END_OF_PROCESS);
-				} catch (InterruptedException e) {
-					LOGGER.error(null, e);
+		Runnable checkEnd = () -> {
+			try {
+				Thread.sleep(CHECK_END_OF_PROCESS);
+			} catch (InterruptedException e) {
+				LOGGER.error(null, e);
+			}
+
+			if (attachedThread != null && attachedThread.isReadyToStop()) {
+				if (!attachedThread.isDestroyed()) {
+					attachedThread.stopProcess();
 				}
 
-				if (attachedThread != null && attachedThread.isReadyToStop()) {
-					if (!attachedThread.isDestroyed()) {
-						attachedThread.stopProcess();
-					}
-
-					reset();
-				}
+				reset();
 			}
 		};
 		new Thread(checkEnd, attachedThread + "-Cleanup").start();

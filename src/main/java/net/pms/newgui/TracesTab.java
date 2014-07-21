@@ -105,11 +105,8 @@ public class TracesTab {
 		// If scrollbar was already at the bottom we schedule a new
 		// scroll event to scroll to the bottom again
 		if (vbar.getMaximum() == vbar.getValue() + vbar.getVisibleAmount()) {
-			EventQueue.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					vbar.setValue(vbar.getMaximum());
-				}
+			EventQueue.invokeLater(() -> {
+				vbar.setValue(vbar.getMaximum());
 			});
 		}
 	}
@@ -139,11 +136,8 @@ public class TracesTab {
 		final JPopupMenu popup = new JPopupMenu();
 		JMenuItem defaultItem = new JMenuItem(Messages.getString("TracesTab.3"));
 
-		defaultItem.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				jList.setText("");
-			}
+		defaultItem.addActionListener((ActionEvent e) -> {
+			jList.setText("");
 		});
 
 		popup.add(defaultItem);
@@ -203,14 +197,11 @@ public class TracesTab {
 			}
 		}
 
-		level.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				JComboBox cb = (JComboBox)e.getSource();
-				int newLevel = cb.getSelectedIndex();
-				l.setLevel(Level.toLevel(realLevel[newLevel]));
-				LOGGER.info("Changed debug level to " + l.getLevel().toString());
-			}
+		level.addActionListener((ActionEvent e) -> {
+			JComboBox cb = (JComboBox)e.getSource();
+			int newLevel = cb.getSelectedIndex();
+			l.setLevel(Level.toLevel(realLevel[newLevel]));
+			LOGGER.info("Changed debug level to " + l.getLevel().toString());
 		});
 		JLabel label = new JLabel(Messages.getString("TracesTab.11") + ": ");
 		builder.add(label, cc.xy(3, 2));

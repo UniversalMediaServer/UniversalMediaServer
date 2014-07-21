@@ -46,14 +46,11 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 
 	public void pollServer() {
 		if (serverUrl != null) { // don't poll if the server URL is null
-			executor.execute(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						doPollServer();
-					} catch (UpdateException e) {
-						setErrorState(e);
-					}
+			executor.execute(() -> {
+				try {
+					doPollServer();
+				} catch (UpdateException e) {
+					setErrorState(e);
 				}
 			});
 		}
@@ -75,27 +72,21 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 	}
 
 	public void getUpdateFromNetwork() {
-		executor.execute(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					doGetUpdateFromNetwork();
-				} catch (UpdateException e) {
-					setErrorState(e);
-				}
+		executor.execute(() -> {
+			try {
+				doGetUpdateFromNetwork();
+			} catch (UpdateException e) {
+				setErrorState(e);
 			}
 		});
 	}
 
 	public void runUpdateAndExit() {
-		executor.execute(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					doRunUpdateAndExit();
-				} catch (UpdateException e) {
-					setErrorState(e);
-				}
+		executor.execute(() -> {
+			try {
+				doRunUpdateAndExit();
+			} catch (UpdateException e) {
+				setErrorState(e);
 			}
 		});
 	}

@@ -1052,32 +1052,23 @@ public class FFMpegVideo extends Player {
 
 		multithreading = new JCheckBox(Messages.getString("MEncoderVideo.35"), configuration.isFfmpegMultithreading());
 		multithreading.setContentAreaFilled(false);
-		multithreading.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setFfmpegMultithreading(e.getStateChange() == ItemEvent.SELECTED);
-			}
+		multithreading.addItemListener((ItemEvent e) -> {
+			configuration.setFfmpegMultithreading(e.getStateChange() == ItemEvent.SELECTED);
 		});
 		builder.add(multithreading, cc.xy(2, 3));
 
 		videoRemuxTsMuxer = new JCheckBox(Messages.getString("MEncoderVideo.38"), configuration.isFFmpegMuxWithTsMuxerWhenCompatible());
 		videoRemuxTsMuxer.setContentAreaFilled(false);
-		videoRemuxTsMuxer.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setFFmpegMuxWithTsMuxerWhenCompatible(e.getStateChange() == ItemEvent.SELECTED);
-			}
+		videoRemuxTsMuxer.addItemListener((ItemEvent e) -> {
+			configuration.setFFmpegMuxWithTsMuxerWhenCompatible(e.getStateChange() == ItemEvent.SELECTED);
 		});
 		builder.add(videoRemuxTsMuxer, cc.xy(2, 5));
 
 		fc = new JCheckBox(Messages.getString("MEncoderVideo.21"), configuration.isFFmpegFontConfig());
 		fc.setContentAreaFilled(false);
 		fc.setToolTipText(Messages.getString("FFmpeg.0"));
-		fc.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setFFmpegFontConfig(e.getStateChange() == ItemEvent.SELECTED);
-			}
+		fc.addItemListener((ItemEvent e) -> {
+			configuration.setFFmpegFontConfig(e.getStateChange() == ItemEvent.SELECTED);
 		});
 		builder.add(fc, cc.xy(2, 7));
 

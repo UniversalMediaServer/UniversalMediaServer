@@ -342,30 +342,21 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 
 		toolBar.add(new JPanel());
 		AbstractButton save = createToolBarButton(Messages.getString("LooksFrame.9"), "button-save.png");
-		save.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				PMS.get().save();
-			}
+		save.addActionListener((ActionEvent e) -> {
+			PMS.get().save();
 		});
 		toolBar.add(save);
 		toolBar.addSeparator();
 		reload = createToolBarButton(Messages.getString("LooksFrame.12"), "button-restart.png");
-		reload.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				PMS.get().reset();
-			}
+		reload.addActionListener((ActionEvent e) -> {
+			PMS.get().reset();
 		});
 		reload.setToolTipText(Messages.getString("LooksFrame.28"));
 		toolBar.add(reload);
 		toolBar.addSeparator();
 		AbstractButton quit = createToolBarButton(Messages.getString("LooksFrame.5"), "button-quit.png");
-		quit.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				quit();
-			}
+		quit.addActionListener((ActionEvent e) -> {
+			quit();
 		});
 		toolBar.add(quit);
 		if (System.getProperty(START_SERVICE) != null) {
@@ -414,17 +405,14 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 		tabbedPane.addTab(Messages.getString("LooksFrame.24"), new HelpTab().build());
 		tabbedPane.addTab(Messages.getString("LooksFrame.25"), new AboutTab().build());
 
-		tabbedPane.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				int selectedIndex = tabbedPane.getSelectedIndex();
+		tabbedPane.addChangeListener((ChangeEvent e) -> {
+			int selectedIndex = tabbedPane.getSelectedIndex();
 
-				if (HELP_PAGES[selectedIndex] != null) {
-					PMS.setHelpPage(HELP_PAGES[selectedIndex]);
+			if (HELP_PAGES[selectedIndex] != null) {
+				PMS.setHelpPage(HELP_PAGES[selectedIndex]);
 
-					// Update the contents of the help tab itself
-					ht.updateContents();
-				}
+				// Update the contents of the help tab itself
+				ht.updateContents();
 			}
 		});
 

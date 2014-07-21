@@ -200,11 +200,8 @@ public class WindowsNamedPipe extends Thread implements ProcessWrapper {
 
 				if (forceReconnect) {
 					forced = new Thread(
-						new Runnable() {
-							@Override
-							public void run() {
-								b2 = Kernel32.INSTANCE.ConnectNamedPipe(handle2, null);
-							}
+						() -> {
+							b2 = Kernel32.INSTANCE.ConnectNamedPipe(handle2, null);
 						},
 						"Forced Reconnector"
 					);
