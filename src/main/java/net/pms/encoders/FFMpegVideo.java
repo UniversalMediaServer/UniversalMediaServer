@@ -137,7 +137,7 @@ public class FFMpegVideo extends Player {
 				media.getHeight() > renderer.getMaxVideoHeight()
 			);
 
-		if (!isDisableSubtitles(params) && !(renderer instanceof RendererConfiguration.OutputOverride)) {
+		if (!isDisableSubtitles(params)) {
 			StringBuilder subsFilter = new StringBuilder();
 
 			if (params.sid.getType().isText()) {
