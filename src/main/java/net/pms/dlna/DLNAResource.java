@@ -877,7 +877,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public synchronized DLNAResource getDLNAResource(String objectId, RendererConfiguration renderer) throws IOException {
 		// this method returns exactly ONE (1) DLNAResource
 		// it's used when someone requests playback of media. The media must
-		// first have been discovered by someone first
+		// first have been discovered by someone first (unless it's a Temp item)
+
+		// Get/create/reconstruct it if it's a Temp item
+		if (objectId.startsWith("Temp$")) {
+			return Temp.get(objectId);
+		}
+		// Now strip off the filename
+		objectId = StringUtils.substringBefore(objectId, "/");
+
 		DLNAResource dlna = renderer.cacheGet(objectId);
 		if (dlna == null) {
 			// nothing found. Try again
@@ -918,10 +926,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public synchronized List<DLNAResource> getDLNAResources(String objectId, boolean returnChildren, int start, int count, RendererConfiguration renderer, String searchStr) throws IOException {
 		ArrayList<DLNAResource> resources = new ArrayList<>();
 
+		// Get/create/reconstruct it if it's a Temp item
 		if (objectId.startsWith("Temp$")) {
 			List<DLNAResource> items = Temp.asList(objectId);
 			return items != null ? items : resources;
 		}
+		// Now strip off the filename
 		objectId = StringUtils.substringBefore(objectId, "/");
 
 		DLNAResource dlna = renderer.cacheGet(objectId);
@@ -3535,11 +3545,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		public DLNAResource add(String uri, String name) {
 			return add(autoMatch(uri, name));
 		}
-		public List<DLNAResource> asList(String objectId) {
+		public int getIndex(String objectId) {
 			int index = indexOf(objectId);
 			if (index == -1) {
 				index = indexOf(recreate(objectId, null).getResourceId());
 			}
+			return index;
+		}
+		public DLNAResource get(String objectId) {
+			int index = getIndex(objectId);
+			return index > -1 ? getChildren().get(index) : null;
+		}
+		public List<DLNAResource> asList(String objectId) {
+			int index = getIndex(objectId);
 			return index > -1 ? getChildren().subList(index, index+1) : null;
 		}
 		// Try to recreate a lost item from a previous session
@@ -3563,17 +3581,23 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return url.startsWith(PMS.get().getServer().getURL() + "/get/");
 	}
 
-	// Returns the url's resourceId substring if any or null
+	// Returns the url's resourceId (i.e. index without trailing filename) if any or null
 
 	public static String parseResourceId(String url) {
-		return isResourceUrl(url) ? StringUtils.substringBetween(url, "get/", "/") : null;
+		return isResourceUrl(url) ? StringUtils.substringBetween(url + "/", "get/", "/") : null;
+	}
+
+	// Returns the url's objectId (i.e. index including trailing filename) if any or null
+
+	public static String parseObjectId(String url) {
+		return isResourceUrl(url) ? StringUtils.substringAfter(url, "get/") : null;
 	}
 
 	// Returns the DLNAResource pointed to by the uri if it exists
 	// or else a new Temp item (or null)
 
 	public static DLNAResource getValidResource(String uri, String name, RendererConfiguration r) {
-		String objectId = parseResourceId(uri + "/");
+		String objectId = parseObjectId(uri);
 		if (objectId != null) {
 			if (objectId.startsWith("Temp$")) {
 				int index = Temp.indexOf(objectId);

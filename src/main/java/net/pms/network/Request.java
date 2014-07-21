@@ -274,8 +274,10 @@ public class Request extends HTTPResource {
 			 * "Http: Response, HTTP/1.1, Status: Internal server error, URL: /get/0$2$4$2$1$3"
 			 * This should fix it
 			 */
-			int end = (argument.lastIndexOf("/") == -1 ? argument.length() - 1 : argument.lastIndexOf("/"));
-			String id = argument.substring(argument.indexOf("get/") + 4, end);
+
+			// Note: we intentionally include the trailing filename here because it may
+			// be used to reconstruct lost Temp items.
+			String id = argument.substring(argument.indexOf("get/") + 4);
 
 			// Some clients escape the separators in their request: unescape them.
 			id = id.replace("%24", "$");
@@ -289,7 +291,7 @@ public class Request extends HTTPResource {
 
 			if (dlna != null) {
 				// DLNAresource was found.
-				String fileName = argument.substring(argument.lastIndexOf("/") + 1);
+				String fileName = id.substring(id.indexOf('/') + 1);
 
 				if (fileName.startsWith("thumbnail0000")) {
 					// This is a request for a thumbnail file.
