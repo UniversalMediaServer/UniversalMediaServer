@@ -869,18 +869,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		setLastChildId(getLastChildId() + 1);
 		child.setIndexId(getLastChildId());
+		if(defaultRenderer != null) {
+			defaultRenderer.cachePut(child);
+		}
 	}
 
 	public synchronized DLNAResource getDLNAResource(String objectId, RendererConfiguration renderer) throws IOException {
-		return getDLNAResource(objectId, renderer, true);
-	}
-
-	public synchronized DLNAResource getDLNAResource(String objectId, RendererConfiguration renderer, boolean searchOther) throws IOException {
 		// this method returns exactly ONE (1) DLNAResource
 		// it's used when someone requests playback of media. The media must
 		// first have been discovered by someone first
-		DLNAResource dlna = search(objectId);
-		if (dlna == null && searchOther) {
+		DLNAResource dlna = renderer.cacheGet(objectId);
+		if (dlna == null) {
 			// nothing found. Try again
 			LOGGER.debug("requested media ({}) not discovered by me try other render",objectId);
 			for (RendererConfiguration r : PMS.get().getRenders()) {
@@ -888,7 +887,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					// no need to search ourself again
 					continue;
 				}
-				DLNAResource res = r.getRootFolder().getDLNAResource(objectId, r, false);
+				DLNAResource res = r.cacheGet(objectId);
 				if (res != null && !res.isFolder()) {
 					// only non-folders can be found this way
 					LOGGER.debug("render " + r +" had found media " + res);
@@ -925,7 +924,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 		objectId = StringUtils.substringBefore(objectId, "/");
 
-		DLNAResource dlna = search(objectId, count, renderer, searchStr);
+		DLNAResource dlna = renderer.cacheGet(objectId);
+		if (dlna == null) {
+			// nothing in the cache do a traditional search
+			dlna = search(objectId, count, renderer, searchStr);
+		}
 
 		if (dlna != null) {
 			String systemName = dlna.getSystemName();

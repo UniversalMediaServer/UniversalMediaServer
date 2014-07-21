@@ -63,6 +63,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	private final Map<String, String> charMap;
 	private final Map<String, String> DLNAPN;
 
+	// Cache for the tree
+	private final Map<String, DLNAResource> renderCache;
+
 	// TextWrap parameters
 	protected int line_w, line_h, indent;
 	protected String inset, dots;
@@ -707,6 +710,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		mimes = new HashMap<>();
 		charMap = new HashMap<>();
 		DLNAPN = new HashMap<>();
+		renderCache = new HashMap<>();
 		player = null;
 
 		init(f);
@@ -1788,5 +1792,13 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			}
 		}
 		return max;
+	}
+
+	public void cachePut(DLNAResource res) {
+		renderCache.put(res.getResourceId(), res);
+	}
+
+	public DLNAResource cacheGet(String id) {
+		return renderCache.get(id);
 	}
 }
