@@ -416,7 +416,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	public DLNAResource() {
 		this.specificType = Format.UNKNOWN;
-		this.children = new ArrayList<DLNAResource>();
+		this.children = new ArrayList<>();
 		this.updateId = 1;
 		lastSearch = null;
 		resHash = 0;
