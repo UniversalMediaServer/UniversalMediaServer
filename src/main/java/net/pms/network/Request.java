@@ -652,16 +652,13 @@ public class Request extends HTTPResource {
 						if (xbox && containerID != null) {
 							uf.setFakeParentId(containerID);
 						}
-						LOGGER.debug("result "+uf+" "+uf.isCompatible(mediaRenderer)+" "+uf.getPlayer());
 						if (uf.isCompatible(mediaRenderer) && (uf.getPlayer() == null || uf.getPlayer().isPlayerCompatible(mediaRenderer))) {
-							LOGGER.debug("xxxx");
 							response.append(uf.getDidlString(mediaRenderer));
 						} else {
 							minus++;
 						}
 					}
 				}
-				LOGGER.debug("minus "+minus);
 
 				response.append(HTTPXMLHelper.DIDL_FOOTER);
 				response.append(HTTPXMLHelper.RESULT_FOOTER);
