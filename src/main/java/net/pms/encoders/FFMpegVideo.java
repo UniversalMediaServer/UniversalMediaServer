@@ -137,7 +137,7 @@ public class FFMpegVideo extends Player {
 				media.getHeight() > renderer.getMaxVideoHeight()
 			);
 
-		if (!isDisableSubtitles(params) && !(dlna.getPlayer() instanceof WebPlayer)) {
+		if (!isDisableSubtitles(params) && !(renderer instanceof RendererConfiguration.OutputOverride)) {
 			StringBuilder subsFilter = new StringBuilder();
 
 			if (params.sid.getType().isText()) {
@@ -622,6 +622,7 @@ public class FFMpegVideo extends Player {
 		InputFile newInput = new InputFile();
 		newInput.setFilename(filename);
 		newInput.setPush(params.stdin);
+		RendererConfiguration renderer = params.mediaRenderer;
 
 		/*
 		 * Check if the video track and the container report different aspect ratios
@@ -635,68 +636,66 @@ public class FFMpegVideo extends Player {
 			aspectRatiosMatch = false;
 		}
 
-		// Decide whether to defer to tsMuxeR or continue to use FFmpeg
-		boolean deferToTsmuxer = true;
-		String prependTraceReason = "Not muxing the video stream with tsMuxeR via FFmpeg because ";
-		if (!configuration.isFFmpegMuxWithTsMuxerWhenCompatible()) {
-			deferToTsmuxer = false;
-			LOGGER.trace(prependTraceReason + "the user setting is disabled");
-		}
-		if (deferToTsmuxer == true && !configuration.getHideTranscodeEnabled() && dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder)) {
-			deferToTsmuxer = false;
-			LOGGER.trace(prependTraceReason + "the file is being played via a FFmpeg entry in the transcode folder.");
-		}
-		if (deferToTsmuxer == true && !params.mediaRenderer.isMuxH264MpegTS()) {
-			deferToTsmuxer = false;
-			LOGGER.trace(prependTraceReason + "the renderer does not support H.264 inside MPEG-TS.");
-		}
-		if (deferToTsmuxer == true && params.sid != null) {
-			deferToTsmuxer = false;
-			LOGGER.trace(prependTraceReason + "we need to burn subtitles.");
-		}
-		if (deferToTsmuxer == true && avisynth()) {
-			deferToTsmuxer = false;
-			LOGGER.trace(prependTraceReason + "we are using AviSynth.");
-		}
-		if (deferToTsmuxer == true && params.mediaRenderer.isH264Level41Limited() && !media.isVideoWithinH264LevelLimits(newInput, params.mediaRenderer)) {
-			deferToTsmuxer = false;
-			LOGGER.trace(prependTraceReason + "the video stream is not within H.264 level limits for this renderer.");
-		}
-		if (deferToTsmuxer == true && !media.isMuxable(params.mediaRenderer)) {
-			deferToTsmuxer = false;
-			LOGGER.trace(prependTraceReason + "the video stream is not muxable to this renderer");
-		}
-		if (deferToTsmuxer == true && !aspectRatiosMatch) {
-			deferToTsmuxer = false;
-			LOGGER.trace(prependTraceReason + "we need to transcode to apply the correct aspect ratio.");
-		}
-		if (deferToTsmuxer == true && !params.mediaRenderer.isPS3() && filename.contains("WEB-DL")) {
-			deferToTsmuxer = false;
-			LOGGER.trace(prependTraceReason + "the version of tsMuxeR supported by this renderer does not support WEB-DL files.");
-		}
-		if (deferToTsmuxer == true && "bt.601".equals(media.getMatrixCoefficients())) {
-			deferToTsmuxer = false;
-			LOGGER.trace(prependTraceReason + "the colorspace probably isn't supported by the renderer.");
-		}
-		if (deferToTsmuxer == true && params.mediaRenderer.isKeepAspectRatio() && !"16:9".equals(media.getAspectRatioContainer())) {
-			deferToTsmuxer = false;
-			LOGGER.trace(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
-		}
-		if (deferToTsmuxer) {
-			TsMuxeRVideo tv = new TsMuxeRVideo();
-			params.forceFps = media.getValidFps(false);
-
-			if (media.getCodecV() != null) {
-				if (media.isH264()) {
-					params.forceType = "V_MPEG4/ISO/AVC";
-				} else if (media.getCodecV().startsWith("mpeg2")) {
-					params.forceType = "V_MPEG-2";
-				} else if (media.getCodecV().equals("vc1")) {
-					params.forceType = "V_MS/VFW/WVC1";
-				}
+		if (configuration.isFFmpegMuxWithTsMuxerWhenCompatible() && ! (renderer instanceof RendererConfiguration.OutputOverride)) {
+			// Decide whether to defer to tsMuxeR or continue to use FFmpeg
+			boolean deferToTsmuxer = true;
+			String prependTraceReason = "Not muxing the video stream with tsMuxeR via FFmpeg because ";
+			if (deferToTsmuxer == true && !configuration.getHideTranscodeEnabled() && dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder)) {
+				deferToTsmuxer = false;
+				LOGGER.trace(prependTraceReason + "the file is being played via a FFmpeg entry in the transcode folder.");
 			}
+			if (deferToTsmuxer == true && !params.mediaRenderer.isMuxH264MpegTS()) {
+				deferToTsmuxer = false;
+				LOGGER.trace(prependTraceReason + "the renderer does not support H.264 inside MPEG-TS.");
+			}
+			if (deferToTsmuxer == true && params.sid != null) {
+				deferToTsmuxer = false;
+				LOGGER.trace(prependTraceReason + "we need to burn subtitles.");
+			}
+			if (deferToTsmuxer == true && avisynth()) {
+				deferToTsmuxer = false;
+				LOGGER.trace(prependTraceReason + "we are using AviSynth.");
+			}
+			if (deferToTsmuxer == true && params.mediaRenderer.isH264Level41Limited() && !media.isVideoWithinH264LevelLimits(newInput, params.mediaRenderer)) {
+				deferToTsmuxer = false;
+				LOGGER.trace(prependTraceReason + "the video stream is not within H.264 level limits for this renderer.");
+			}
+			if (deferToTsmuxer == true && !media.isMuxable(params.mediaRenderer)) {
+				deferToTsmuxer = false;
+				LOGGER.trace(prependTraceReason + "the video stream is not muxable to this renderer");
+			}
+			if (deferToTsmuxer == true && !aspectRatiosMatch) {
+				deferToTsmuxer = false;
+				LOGGER.trace(prependTraceReason + "we need to transcode to apply the correct aspect ratio.");
+			}
+			if (deferToTsmuxer == true && !params.mediaRenderer.isPS3() && filename.contains("WEB-DL")) {
+				deferToTsmuxer = false;
+				LOGGER.trace(prependTraceReason + "the version of tsMuxeR supported by this renderer does not support WEB-DL files.");
+			}
+			if (deferToTsmuxer == true && "bt.601".equals(media.getMatrixCoefficients())) {
+				deferToTsmuxer = false;
+				LOGGER.trace(prependTraceReason + "the colorspace probably isn't supported by the renderer.");
+			}
+			if (deferToTsmuxer == true && params.mediaRenderer.isKeepAspectRatio() && !"16:9".equals(media.getAspectRatioContainer())) {
+				deferToTsmuxer = false;
+				LOGGER.trace(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
+			}
+			if (deferToTsmuxer) {
+				TsMuxeRVideo tv = new TsMuxeRVideo();
+				params.forceFps = media.getValidFps(false);
 
-			return tv.launchTranscode(dlna, media, params);
+				if (media.getCodecV() != null) {
+					if (media.isH264()) {
+						params.forceType = "V_MPEG4/ISO/AVC";
+					} else if (media.getCodecV().startsWith("mpeg2")) {
+						params.forceType = "V_MPEG-2";
+					} else if (media.getCodecV().equals("vc1")) {
+						params.forceType = "V_MS/VFW/WVC1";
+					}
+				}
+
+				return tv.launchTranscode(dlna, media, params);
+			}
 		}
 
 		/*
@@ -715,7 +714,6 @@ public class FFMpegVideo extends Player {
 		}
 
 		List<String> cmdList = new ArrayList<>();
-		RendererConfiguration renderer = params.mediaRenderer;
 		boolean avisynth = avisynth();
 		if (params.timeseek > 0) {
 			params.waitbeforestart = 200;
@@ -805,48 +803,58 @@ public class FFMpegVideo extends Player {
 			cmdList.add(String.valueOf(params.timeend));
 		}
 
-		cmdList.addAll(getVideoBitrateOptions(dlna, media, params));
+		// Add the output options (-f, -c:a, -c:v, etc.)
 
-		// add audio bitrate options
-		// TODO: Integrate our (more comprehensive) code with this function
-		// from PMS to make keeping synchronised easier.
-		// Until then, leave the following line commented out.
-		// cmdList.addAll(getAudioBitrateOptions(dlna, media, params));
-
-		String customFFmpegOptions = renderer.getCustomFFmpegOptions();
-
-		// Audio bitrate
-		if (!ac3Remux && !dtsRemux && !(type() == Format.AUDIO)) {
-			int channels;
-			if (renderer.isTranscodeToWMV() && !renderer.isXBOX()) {
-				channels = 2;
-			} else if (ac3Remux) {
-				channels = params.aid.getAudioProperties().getNumberOfChannels(); // AC-3 remux
-			} else {
-				channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
-			}
-
-			if (!customFFmpegOptions.contains("-ac ")) {
-				cmdList.add("-ac");
-				cmdList.add(String.valueOf(channels));
-			}
-
-			if (!customFFmpegOptions.contains("-ab ")) {
-				cmdList.add("-ab");
-				if (renderer.isTranscodeToMPEGTSH264AAC()) {
-					cmdList.add(Math.min(configuration.getAudioBitrate(), 320) + "k");
-				} else {
-					cmdList.add(configuration.getAudioBitrate() + "k");
-				}
-			}
+		// Now that inputs and filtering are complete, see if we should
+		// give the renderer the final say on the command
+		boolean override = false;
+		if (renderer instanceof RendererConfiguration.OutputOverride) {
+			override = ((RendererConfiguration.OutputOverride)renderer).getOutputOptions(dlna, this, cmdList);
 		}
 
-		// Add the output options (-f, -c:a, -c:v, etc.)
-		cmdList.addAll(getVideoTranscodeOptions(dlna, media, params));
+		if (! override) {
+			String customFFmpegOptions = renderer.getCustomFFmpegOptions();
 
-		// Add custom options
-		if (StringUtils.isNotEmpty(customFFmpegOptions)) {
-			parseOptions(customFFmpegOptions, cmdList);
+			cmdList.addAll(getVideoBitrateOptions(dlna, media, params));
+
+			// add audio bitrate options
+			// TODO: Integrate our (more comprehensive) code with this function
+			// from PMS to make keeping synchronised easier.
+			// Until then, leave the following line commented out.
+			// cmdList.addAll(getAudioBitrateOptions(dlna, media, params));
+
+			// Audio bitrate
+			if (!ac3Remux && !dtsRemux && !(type() == Format.AUDIO)) {
+				int channels;
+				if (renderer.isTranscodeToWMV() && !renderer.isXBOX()) {
+					channels = 2;
+				} else if (ac3Remux) {
+					channels = params.aid.getAudioProperties().getNumberOfChannels(); // AC-3 remux
+				} else {
+					channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
+				}
+
+				if (!customFFmpegOptions.contains("-ac ")) {
+					cmdList.add("-ac");
+					cmdList.add(String.valueOf(channels));
+				}
+
+				if (!customFFmpegOptions.contains("-ab ")) {
+					cmdList.add("-ab");
+					if (renderer.isTranscodeToMPEGTSH264AAC()) {
+						cmdList.add(Math.min(configuration.getAudioBitrate(), 320) + "k");
+					} else {
+						cmdList.add(configuration.getAudioBitrate() + "k");
+					}
+				}
+			}
+
+			cmdList.addAll(getVideoTranscodeOptions(dlna, media, params));
+
+			// Add custom options
+			if (StringUtils.isNotEmpty(customFFmpegOptions)) {
+				parseOptions(customFFmpegOptions, cmdList);
+			}
 		}
 
 		if (!dtsRemux) {

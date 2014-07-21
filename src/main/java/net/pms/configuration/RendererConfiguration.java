@@ -24,6 +24,7 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.LibMediaInfoParser;
 import net.pms.dlna.RootFolder;
+import net.pms.encoders.Player;
 import net.pms.formats.Format;
 import net.pms.network.HTTPResource;
 import net.pms.network.SpeedStats;
@@ -58,6 +59,21 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	private UPNPHelper.Player player;
 
 	public static File NOFILE = new File("NOFILE");
+
+	public interface OutputOverride {
+		/**
+		 * Override a player's default output formatting.
+		 * To be invoked by the player after input and filter options are complete.
+		 *
+		 * @param dlna the media item
+		 * @param player the player
+		 * @param cmdList the command so far
+		 *
+		 * @return whether the options have been finalized
+		 */
+		public boolean getOutputOptions(DLNAResource dlna, Player player, List<String> cmdList);
+	}
+
 
 	// Holds MIME type aliases
 	private final Map<String, String> mimes;
