@@ -889,7 +889,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		DLNAResource dlna = renderer.cacheGet(objectId);
 		if (dlna == null) {
 			// nothing found. Try again
-			LOGGER.debug("requested media ({}) not discovered by me try other render",objectId);
+			LOGGER.debug("requested media ({}) not discovered by {}, trying other renderers", objectId, renderer);
 			for (RendererConfiguration r : PMS.get().getRenders()) {
 				if (r.equals(renderer)) {
 					// no need to search ourself again
@@ -902,6 +902,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					return res;
 				}
 			}
+		}
+		if (dlna == null) {
+			// nothing in the cache do a 'safe' traditional search
+			dlna = search(objectId);
 		}
 		return dlna;
 	}
