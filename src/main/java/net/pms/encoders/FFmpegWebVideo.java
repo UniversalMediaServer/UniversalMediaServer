@@ -29,6 +29,7 @@ import java.util.regex.Pattern;
 import javax.swing.JComponent;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.external.ExternalFactory;
@@ -110,6 +111,10 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
+		if (dlna.getDefaultRenderer() instanceof WebRender) {
+			WebPlayer wp = new WebPlayer(WebPlayer.FLASH);
+			return wp.launchTranscode(dlna, media, params);
+		}
 		params.minBufferSize = params.minFileSize;
 		params.secondread_minsize = 100000;
 		RendererConfiguration renderer = params.mediaRenderer;
@@ -378,7 +383,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		} else if (dlna.getMedia().isFFmpegparsed()) {
 			return;
 		}
-		final ArrayList<String> lines = new ArrayList<String>();
+		final ArrayList<String> lines = new ArrayList<>();
 		final String input = filename.length() > 200 ? filename.substring(0, 199) : filename;
 		OutputTextLogger ffParser = new OutputTextLogger(null, pw) {
 			@Override

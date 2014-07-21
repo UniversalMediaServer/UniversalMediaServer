@@ -954,6 +954,33 @@ public class FileUtil {
 		return false;
 	}
 
+	public static String renameForSorting(String filename) {
+		if (PMS.getConfiguration().isPrettifyFilenames()) {
+			// This chunk makes anime sort properly
+			int squareBracketIndex;
+			if (filename.substring(0, 1).matches("\\[")) {
+				filename = filename.replaceAll("_", " ");
+				squareBracketIndex = filename.indexOf(']');
+				if (squareBracketIndex != -1) {
+					filename = filename.substring(squareBracketIndex + 1);
+					if (filename.substring(0, 1).matches("\\s")) {
+						filename = filename.substring(1);
+					}
+				}
+			}
+
+			// Replace periods with spaces
+			filename = filename.replaceAll("\\.", " ");
+		}
+
+		if (PMS.getConfiguration().isIgnoreTheWordThe()) {
+			// Remove "The" from the beginning of files
+			filename = filename.replaceAll("^(?i)The[ .]", "");
+		}
+
+		return filename;
+	}
+
 	public static BufferedReader bufferedReaderWithCorrectCharset(File file) throws IOException {
 		BufferedReader reader;
 		String fileCharset = getFileCharset(file);

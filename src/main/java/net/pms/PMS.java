@@ -53,6 +53,7 @@ import net.pms.newgui.DummyFrame;
 import net.pms.newgui.IFrame;
 import net.pms.newgui.LooksFrame;
 import net.pms.newgui.ProfileChooser;
+import net.pms.remote.RemoteWeb;
 import net.pms.update.AutoUpdater;
 import net.pms.util.FileUtil;
 import net.pms.util.OpenSubtitle;
@@ -81,6 +82,8 @@ public class PMS {
 	 */
 	@Deprecated
 	public static String VERSION;
+
+	private boolean ready = false;
 
 	public static final String AVS_SEPARATOR = "\1";
 
@@ -694,6 +697,11 @@ public class PMS {
 			return false;
 		}
 
+		// Web stuff
+		if (configuration.useWebInterface()) {
+			web = new RemoteWeb(configuration.getWebPort());
+		}
+
 		// initialize the cache
 		if (configuration.getUseCache()) {
 			initializeDatabase(); // XXX: this must be done *before* new MediaLibrary -> new MediaLibraryFolder
@@ -707,6 +715,8 @@ public class PMS {
 		getRootFolder(RendererConfiguration.getDefaultConf());
 
 		frame.serverReady();
+
+		ready = true;
 
 		// UPNPHelper.sendByeBye();
 		Runtime.getRuntime().addShutdownHook(new Thread("PMS Listeners Stopper") {
@@ -1284,7 +1294,7 @@ public class PMS {
 				LOGGER.debug("Error dumping PID " + e);
 			}
 		} else {
-			LOGGER.trace("UMS must be run as administrator in order to access the PID file");
+			LOGGER.info("UMS must be run as administrator in order to access the PID file");
 		}
 	}
 
@@ -1310,7 +1320,6 @@ public class PMS {
 		// remove all " and convert to common case before splitting result on ,
 		String[] tmp = line.toLowerCase().replaceAll("\"", "").split(",");
 		// if the line is too short we don't kill the process
-
 		if (tmp.length < 9) {
 			return false;
 		}
@@ -1361,7 +1370,7 @@ public class PMS {
 	private static void dumpPid() throws IOException {
 		try (FileOutputStream out = new FileOutputStream(pidFile())) {
 			long pid = getPID();
-			LOGGER.trace("PID: " + pid);
+			LOGGER.debug("PID: " + pid);
 			String data = String.valueOf(pid) + "\r\n";
 			out.write(data.getBytes());
 			out.flush();
@@ -1401,6 +1410,12 @@ public class PMS {
 		} catch (java.lang.NoClassDefFoundError | java.awt.HeadlessException | java.lang.InternalError e) {
 			return true;
 		}
+	}
+
+	private RemoteWeb web;
+
+	public RemoteWeb getWebInterface() {
+		return web;
 	}
 
 	/**
@@ -1449,5 +1464,9 @@ public class PMS {
 		}
 
 		return false;
+	}
+
+	public static boolean isReady() {
+		return get().ready;
 	}
 }

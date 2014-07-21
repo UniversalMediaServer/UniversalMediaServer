@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -52,20 +53,36 @@ public class RendererConfiguration {
 
 	// TextWrap parameters
 	protected int line_w, line_h, indent;
-	protected String inset;
+	protected String inset, dots;
 	protected boolean dc_date = true;
 
 	// property values
-	private static final String DEPRECATED_MPEGPSAC3 = "MPEGAC3"; // XXX deprecated: old name with missing container
 	private static final String LPCM = "LPCM";
 	private static final String MP3 = "MP3";
-	private static final String MPEGPSAC3 = "MPEGPSAC3";
-	private static final String MPEGTSAC3 = "MPEGTSAC3";
-	private static final String H264TSAC3 = "H264TSAC3";
 	private static final String WAV = "WAV";
 	private static final String WMV = "WMV";
 
+	// Old video transcoding options
+	@Deprecated
+	private static final String DEPRECATED_MPEGAC3 = "MPEGAC3";
+
+	@Deprecated
+	private static final String DEPRECATED_MPEGPSAC3 = "MPEGPSAC3";
+
+	@Deprecated
+	private static final String DEPRECATED_MPEGTSAC3 = "MPEGTSAC3";
+
+	@Deprecated
+	private static final String DEPRECATED_H264TSAC3 = "H264TSAC3";
+
+	// Current video transcoding options
+	private static final String MPEGTSH264AAC = "MPEGTS-H264-AAC";
+	private static final String MPEGTSH264AC3 = "MPEGTS-H264-AC3";
+	private static final String MPEGPSMPEG2AC3 = "MPEGPS-MPEG2-AC3";
+	private static final String MPEGTSMPEG2AC3 = "MPEGTS-MPEG2-AC3";
+
 	// property names
+	private static final String ACCURATE_DLNA_ORGPN = "AccurateDLNAOrgPN";
 	private static final String AUDIO = "Audio";
 	private static final String AUTO_EXIF_ROTATE = "AutoExifRotate";
 	private static final String BYTE_TO_TIMESEEK_REWIND_SECONDS = "ByteToTimeseekRewindSeconds"; // Ditlew
@@ -81,6 +98,7 @@ public class RendererConfiguration {
 	private static final String DLNA_ORGPN_USE = "DLNAOrgPN";
 	private static final String DLNA_PN_CHANGES = "DLNAProfileChanges";
 	private static final String DLNA_TREE_HACK = "CreateDLNATreeFaster";
+	private static final String LIMIT_FOLDERS = "LimitFolders";
 	private static final String FORCE_JPG_THUMBNAILS = "ForceJPGThumbnails"; // Sony devices require JPG thumbnails
 	private static final String H264_L41_LIMITED = "H264Level41Limited";
 	private static final String IMAGE = "Image";
@@ -107,7 +125,7 @@ public class RendererConfiguration {
 	private static final String STREAM_EXT = "StreamExtensions";
 	private static final String SUBTITLE_HTTP_HEADER = "SubtitleHttpHeader";
 	private static final String SUPPORTED = "Supported";
-	private static final String SUPPORTED_SUBTITLES_TYPE = "SupportedSubtitlesType";
+	private static final String SUPPORTED_SUBTITLES_FORMATS = "SupportedSubtitlesFormats";
 	private static final String TEXTWRAP = "TextWrap";
 	private static final String THUMBNAIL_AS_RESOURCE = "ThumbnailAsResource";
 	private static final String TRANSCODE_AUDIO_441KHZ = "TranscodeAudioTo441kHz";
@@ -303,6 +321,10 @@ public class RendererConfiguration {
 		}
 	}
 
+	public void setRootFolder(RootFolder r) {
+		rootFolder = r;
+	}
+
 	/**
 	 * Associate an IP address with this renderer. The association will
 	 * persist between requests, allowing the renderer to be recognized
@@ -313,7 +335,22 @@ public class RendererConfiguration {
 	 */
 	public void associateIP(InetAddress sa) {
 		addressAssociation.put(sa, this);
-		SpeedStats.getInstance().getSpeedInMBits(sa, getRendererName());
+		if (sa.isLoopbackAddress() || sa.isAnyLocalAddress()) {
+			return;
+		}
+		if (pmsConfiguration.isAutomaticMaximumBitrate() || pmsConfiguration.isSpeedDbg()) {
+			SpeedStats.getInstance().getSpeedInMBits(sa, getRendererName());
+		}
+	}
+
+	public static void calculateAllSpeeds() {
+		for (InetAddress sa : addressAssociation.keySet()) {
+			if (sa.isLoopbackAddress() || sa.isAnyLocalAddress()) {
+				continue;
+			}
+			RendererConfiguration r = addressAssociation.get(sa);
+			SpeedStats.getInstance().getSpeedInMBits(sa, r.getRendererName());
+		}
 	}
 
 	public static RendererConfiguration getRendererConfigurationBySocketAddress(InetAddress sa) {
@@ -461,7 +498,7 @@ public class RendererConfiguration {
 	}
 
 	RendererConfiguration() throws ConfigurationException {
-		this(null);
+		this((File) null);
 	}
 
 	public RendererConfiguration(File f) throws ConfigurationException {
@@ -517,7 +554,9 @@ public class RendererConfiguration {
 			indent = getIntAt(s, "indent:", 0);
 			dc_date = getIntAt(s, "date:", 1) != 0;
 			int ws = getIntAt(s, "whitespace:", 9);
+			int dotct = getIntAt(s, "dots:", 0);
 			inset = new String(new byte[indent]).replaceAll(".", Character.toString((char) ws));
+			dots = new String(new byte[dotct]).replaceAll(".", ".");
 		}
 
 		charMap = new HashMap<>();
@@ -613,20 +652,30 @@ public class RendererConfiguration {
 	}
 
 	public boolean isTranscodeToAC3() {
-		return isTranscodeToMPEGPSAC3() || isTranscodeToMPEGTSAC3() || isTranscodeToH264TSAC3();
+		return isTranscodeToMPEGPSMPEG2AC3() || isTranscodeToMPEGTSMPEG2AC3() || isTranscodeToMPEGTSH264AC3();
 	}
 
-	public boolean isTranscodeToMPEGPSAC3() {
+	public boolean isTranscodeToAAC() {
+		return isTranscodeToMPEGTSH264AAC();
+	}
+
+	public boolean isTranscodeToMPEGPSMPEG2AC3() {
 		String videoTranscode = getVideoTranscode();
-		return videoTranscode.equals(MPEGPSAC3) || videoTranscode.equals(DEPRECATED_MPEGPSAC3);
+		return videoTranscode.equals(MPEGPSMPEG2AC3) || videoTranscode.equals(DEPRECATED_MPEGAC3) || videoTranscode.equals(DEPRECATED_MPEGPSAC3);
 	}
 
-	public boolean isTranscodeToMPEGTSAC3() {
-		return getVideoTranscode().equals(MPEGTSAC3);
+	public boolean isTranscodeToMPEGTSMPEG2AC3() {
+		String videoTranscode = getVideoTranscode();
+		return videoTranscode.equals(MPEGTSMPEG2AC3) || videoTranscode.equals(DEPRECATED_MPEGTSAC3);
 	}
 
-	public boolean isTranscodeToH264TSAC3() {
-		return getVideoTranscode().equals(H264TSAC3);
+	public boolean isTranscodeToMPEGTSH264AC3() {
+		String videoTranscode = getVideoTranscode();
+		return videoTranscode.equals(MPEGTSH264AC3) || videoTranscode.equals(DEPRECATED_H264TSAC3);
+	}
+
+	public boolean isTranscodeToMPEGTSH264AAC() {
+		return getVideoTranscode().equals(MPEGTSH264AAC);
 	}
 
 	public boolean isAutoRotateBasedOnExif() {
@@ -688,9 +737,11 @@ public class RendererConfiguration {
 		if (isMediaParserV2()) {
 			// Use the supported information in the configuration to determine the transcoding mime type.
 			if (HTTPResource.VIDEO_TRANSCODE.equals(mimeType)) {
-				if (isTranscodeToH264TSAC3()) {
+				if (isTranscodeToMPEGTSH264AC3()) {
 					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.H264, FormatConfiguration.AC3);
-				} else if (isTranscodeToMPEGTSAC3()) {
+				} else if (isTranscodeToMPEGTSH264AAC()) {
+					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.H264, FormatConfiguration.AAC);
+				} else if (isTranscodeToMPEGTSMPEG2AC3()) {
 					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.MPEGTS, FormatConfiguration.MPEG2, FormatConfiguration.AC3);
 				} else if (isTranscodeToWMV()) {
 					matchedMimeType = getFormatConfiguration().match(FormatConfiguration.WMV, FormatConfiguration.WMV, FormatConfiguration.WMA);
@@ -930,6 +981,10 @@ public class RendererConfiguration {
 		return getBoolean(MUX_LPCM_TO_MPEG, true);
 	}
 
+	public boolean isMuxNonMod4Resolution() {
+		return getBoolean(MUX_NON_MOD4_RESOLUTION, false);
+	}
+
 	public boolean isMpeg2Supported() {
 		if (isMediaParserV2()) {
 			return getFormatConfiguration().isMpeg2Supported();
@@ -940,12 +995,12 @@ public class RendererConfiguration {
 
 	/**
 	 * Returns the codec to use for video transcoding for this renderer as
-	 * defined in the renderer configuration. Default value is "MPEGPSAC3".
+	 * defined in the renderer configuration. Default value is "MPEGPSMPEG2AC3".
 	 *
 	 * @return The codec name.
 	 */
 	public String getVideoTranscode() {
-		return getString(TRANSCODE_VIDEO, MPEGPSAC3);
+		return getString(TRANSCODE_VIDEO, MPEGPSMPEG2AC3);
 	}
 
 	/**
@@ -976,6 +1031,13 @@ public class RendererConfiguration {
 	 */
 	// TODO this should return an integer and the units should be bits-per-second
 	public String getMaxVideoBitrate() {
+		if (PMS.getConfiguration().isAutomaticMaximumBitrate()) {
+			try {
+				return calculatedSpeed();
+			} catch (Exception e) {
+				// ignore this
+			}
+		}
 		return getString(MAX_VIDEO_BITRATE, null);
 	}
 
@@ -1073,6 +1135,10 @@ public class RendererConfiguration {
 
 	public boolean isDLNAOrgPNUsed() {
 		return getBoolean(DLNA_ORGPN_USE, true);
+	}
+
+	public boolean isAccurateDLNAOrgPN() {
+		return getBoolean(ACCURATE_DLNA_ORGPN, false);
 	}
 
 	/**
@@ -1236,15 +1302,52 @@ public class RendererConfiguration {
 		return getInt(TRANSCODED_VIDEO_AUDIO_SAMPLE_RATE, 48000);
 	}
 
-	public String getDcTitle(String name, DLNAResource dlna) {
-		// Wrap text if applicable
-		if (line_w > 0 && name.length() > line_w) {
-			int i = dlna.isFolder() ? 0 : indent;
-			String head = name.substring(0, i + (Character.isWhitespace(name.charAt(i)) ? 1 : 0));
-			String tail = name.substring(i);
-			name = head + WordUtils.wrap(tail, line_w - i, "\n" + (dlna.isFolder() ? "" : inset), true);
+	public boolean isLimitFolders() {
+		return getBoolean(LIMIT_FOLDERS, true);
+	}
+
+	/**
+	 * Perform renderer-specific name reformatting:<p>
+	 * Truncating and wrapping see {@code TextWrap}<br>
+	 * Character substitution see {@code CharMap}
+	 *
+	 * @param name Original name
+	 * @param suffix Additional media information
+	 * @param dlna The actual DLNA resource
+	 * @return Reformatted name
+	 */
+	public String getDcTitle(String name, String suffix, DLNAResource dlna) {
+		// Wrap + tuncate
+		int len = 0;
+		if (line_w > 0 && (name.length() + suffix.length()) > line_w) {
+			int suffix_len = dots.length() + suffix.length();
+			if (line_h == 1) {
+				len = line_w - suffix_len;
+			} else {
+				// Wrap
+				int i = dlna.isFolder() ? 0 : indent;
+				String newline = "\n" + (dlna.isFolder() ? "" : inset);
+				name = name.substring(0, i + (Character.isWhitespace(name.charAt(i)) ? 1 : 0))
+					+ WordUtils.wrap(name.substring(i) + suffix, line_w - i, newline, true);
+				len = line_w * line_h;
+				if (len != 0 && name.length() > len) {
+					len = name.substring(0, name.length() - line_w).lastIndexOf(newline) + newline.length();
+					name = name.substring(0, len) + name.substring(len, len + line_w).replace(newline, " ");
+					len += (line_w - suffix_len - i);
+				} else {
+					len = -1; // done
+				}
+			}
+			if (len > 0) {
+				// Truncate
+				name = name.substring(0, len).trim() + dots;
+			}
+		}
+		if (len > -1) {
+			name += suffix;
 		}
 
+		// Substitute
 		for (String s : charMap.keySet()) {
 			name = name.replaceAll(s, charMap.get(s));
 		}
@@ -1265,7 +1368,7 @@ public class RendererConfiguration {
 	}
 
 	public String getSupportedSubtitles() {
-		return getString(SUPPORTED_SUBTITLES_TYPE, null);
+		return getString(SUPPORTED_SUBTITLES_FORMATS, null);
 	}
 
 	public boolean useClosedCaption() {
@@ -1281,5 +1384,28 @@ public class RendererConfiguration {
 
 	public boolean ignoreTranscodeByteRangeRequests() {
 		return getBoolean(IGNORE_TRANSCODE_BYTE_RANGE_REQUEST, false);
+	}
+
+	private String calculatedSpeed() throws Exception {
+		String max = getString(MAX_VIDEO_BITRATE, null);
+		for (InetAddress sa : addressAssociation.keySet()) {
+			if (addressAssociation.get(sa) == this) {
+				Future<Integer> speed = SpeedStats.getInstance().getSpeedInMBitsStored(sa, getRendererName());
+				if (max == null) {
+					return String.valueOf(speed.get());
+				}
+				try {
+					Integer i = Integer.parseInt(max);
+					if (speed.get() > i && i != 0) {
+						return max;
+					} else {
+						return String.valueOf(speed.get());
+					}
+				} catch (NumberFormatException e) {
+					return String.valueOf(speed.get());
+				}
+			}
+		}
+		return max;
 	}
 }

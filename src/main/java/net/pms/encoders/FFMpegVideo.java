@@ -138,7 +138,7 @@ public class FFMpegVideo extends Player {
 				media.getHeight() > renderer.getMaxVideoHeight()
 			);
 
-		if (!isDisableSubtitles(params)) {
+		if (!isDisableSubtitles(params) && !(dlna.getPlayer() instanceof WebPlayer)) {
 			StringBuilder subsFilter = new StringBuilder();
 			if (params.sid.getType().isText()) {
 				String subsFilename = null;
@@ -148,7 +148,9 @@ public class FFMpegVideo extends Player {
 					subsFilename = params.sid.isEmbedded() ? dlna.getSystemName() : params.sid.getExternalFile().getAbsolutePath();
 				}
 
-				if (subsFilename != null) {
+			if (params.sid.getType().isText()) {
+				File tempSubs = getSubtitles(dlna, media, params, configuration);
+				if (tempSubs != null) {
 					StringBuilder s = new StringBuilder();
 					CharacterIterator it = new StringCharacterIterator(subsFilename);
 					for (char ch = it.first(); ch != CharacterIterator.DONE; ch = it.next()) {
@@ -184,8 +186,12 @@ public class FFMpegVideo extends Player {
 						}
 					}
 
-					if (params.sid.isEmbedded()) {
-						subsFilter.append(":si=" + media.getSubtitleTracksList().indexOf(params.sid));
+					if (params.sid.isEmbedded() || (params.sid.isExternal() && params.sid.getType() == SubtitleType.ASS)) {
+						subsFilter.append("ass=");
+						subsFilter.append(subsFile);
+					} else if (params.sid.isExternal() && (params.sid.getType() == SubtitleType.SUBRIP || params.sid.getType() == SubtitleType.WEBVTT)) {
+						subsFilter.append("subtitles=");
+						subsFilter.append(subsFile);
 					}
 					
 				}
@@ -282,7 +288,7 @@ public class FFMpegVideo extends Player {
 
 			transcodeOptions.add("-f");
 			transcodeOptions.add("asf");
-		} else { // MPEGPSAC3, MPEGTSAC3 or H264TSAC3
+		} else { // MPEGPSMPEG2AC3, MPEGTSMPEG2AC3, MPEGTSH264AC3 or MPEGTSH264AAC
 			final boolean isTsMuxeRVideoEngineEnabled = configuration.getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
 
 			// Output audio codec
@@ -307,6 +313,12 @@ public class FFMpegVideo extends Player {
 					transcodeOptions.add("-an");
 				} else if (type() == Format.AUDIO) {
 					// Skip
+				} else if (renderer.isTranscodeToMPEGTSH264AAC()) {
+					transcodeOptions.add("-c:a");
+					transcodeOptions.add("aac");
+
+					transcodeOptions.add("-strict");
+					transcodeOptions.add("experimental");
 				} else {
 					if (!customFFmpegOptions.contains("-c:a ")) {
 						transcodeOptions.add("-c:a");
@@ -323,7 +335,7 @@ public class FFMpegVideo extends Player {
 			}
 
 			// Output video codec
-			if (renderer.isTranscodeToH264TSAC3()) {
+			if (renderer.isTranscodeToMPEGTSH264AC3() || renderer.isTranscodeToMPEGTSH264AAC()) {
 				transcodeOptions.add("-c:v");
 				transcodeOptions.add("libx264");
 				transcodeOptions.add("-preset");
@@ -341,9 +353,9 @@ public class FFMpegVideo extends Player {
 			transcodeOptions.add("-f");
 			if (dtsRemux) {
 				transcodeOptions.add("mpeg2video");
-			} else if (renderer.isTranscodeToMPEGTSAC3() || renderer.isTranscodeToH264TSAC3()) { // MPEGTSAC3
+			} else if (renderer.isTranscodeToMPEGTSMPEG2AC3() || renderer.isTranscodeToMPEGTSH264AC3() || renderer.isTranscodeToMPEGTSH264AAC()) { // MPEGTSMPEG2AC3, MPEGTSH264AC3 or MPEGTSH264AAC
 				transcodeOptions.add("mpegts");
-			} else { // default: MPEGPSAC3
+			} else { // default: MPEGPSMPEG2AC3
 				transcodeOptions.add("vob");
 			}
 		}
@@ -398,7 +410,7 @@ public class FFMpegVideo extends Player {
 			 *
 			 * We also apply the correct buffer size in this section.
 			 */
-			if (params.mediaRenderer.isTranscodeToH264TSAC3()) {
+			if (params.mediaRenderer.isTranscodeToMPEGTSH264AC3() || params.mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
 				if (
 					params.mediaRenderer.isH264Level41Limited() &&
 					defaultMaxBitrates[0] > 31250
@@ -451,7 +463,7 @@ public class FFMpegVideo extends Player {
 			videoBitrateOptions.add(String.valueOf(defaultMaxBitrates[0]));
 		}
 
-		if (!params.mediaRenderer.isTranscodeToH264TSAC3()) {
+		if (!params.mediaRenderer.isTranscodeToMPEGTSH264AC3() && !params.mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
 			// Add MPEG-2 quality settings
 			String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
 			String mpeg2OptionsRenderer = params.mediaRenderer.getCustomFFmpegMPEG2Options();
@@ -842,7 +854,11 @@ public class FFMpegVideo extends Player {
 
 			if (!customFFmpegOptions.contains("-ab ")) {
 				cmdList.add("-ab");
-				cmdList.add(configuration.getAudioBitrate() + "k");
+				if (renderer.isTranscodeToMPEGTSH264AAC()) {
+					cmdList.add(Math.min(configuration.getAudioBitrate(), 320) + "k");
+				} else {
+					cmdList.add(configuration.getAudioBitrate() + "k");
+				}
 			}
 		}
 
@@ -972,7 +988,7 @@ public class FFMpegVideo extends Player {
 				pwMux.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
 				String videoType = "V_MPEG-2";
 
-				if (renderer.isTranscodeToH264TSAC3()) {
+				if (renderer.isTranscodeToMPEGTSH264AC3() || renderer.isTranscodeToMPEGTSH264AAC()) {
 					videoType = "V_MPEG4/ISO/AVC";
 				}
 
@@ -1128,10 +1144,11 @@ public class FFMpegVideo extends Player {
 	 * @param dlna DLNAResource
 	 * @param media DLNAMediaInfo
 	 * @param params Output parameters
+	 * @param configuration
 	 * @return Converted subtitle file
 	 * @throws IOException
 	 */
-	public File getSubtitles(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
+	public static File getSubtitles(DLNAResource dlna, DLNAMediaInfo media, OutputParams params, PmsConfiguration configuration) throws IOException {
 		if (media == null || params.sid.getId() == -1 || !params.sid.getType().isText()) {
 			return null;
 		}
@@ -1194,12 +1211,12 @@ public class FFMpegVideo extends Player {
 			(
 				!applyFontConfig &&
 				!isEmbeddedSource &&
-				params.sid.getType() == SubtitleType.SUBRIP
+				(params.sid.getType() == SubtitleType.SUBRIP || params.sid.getType() == SubtitleType.WEBVTT)
 			)
 		) {
 			tempSubs = params.sid.getExternalFile();
 		} else {
-			tempSubs = convertSubsToAss(filename, media, params);
+			tempSubs = convertSubsToAss(filename, media, params, configuration);
 		}
 
 		if (tempSubs == null) {
@@ -1223,7 +1240,7 @@ public class FFMpegVideo extends Player {
 		// Now we're sure we actually have our own modifiable file
 		if (applyFontConfig) {
 			try {
-				tempSubs = applyFontconfigToASSTempSubsFile(tempSubs, media);
+				tempSubs = applyFontconfigToASSTempSubsFile(tempSubs, media, configuration);
 				params.sid.setExternalFileCharacterSet(CHARSET_UTF_8);
 			} catch (IOException e) {
 				LOGGER.debug("Applying subs setting ends with error: " + e);
@@ -1237,7 +1254,6 @@ public class FFMpegVideo extends Player {
 		}
 
 		PMS.get().addTempFile(tempSubs, 30 * 24 * 3600 * 1000);
-
 		return tempSubs;
 	}
 
@@ -1247,9 +1263,10 @@ public class FFMpegVideo extends Player {
 	 * @param fileName Subtitles file in SRT format or video file with embedded subs
 	 * @param media
 	 * @param params output parameters
+	 * @param configuration
 	 * @return Converted subtitles file in SSA/ASS format
 	 */
-	public static File convertSubsToAss(String fileName, DLNAMediaInfo media, OutputParams params) {
+	public static File convertSubsToAss(String fileName, DLNAMediaInfo media, OutputParams params, PmsConfiguration configuration) {
 		if (!params.sid.getType().isText()) {
 			return null;
 		}
@@ -1315,7 +1332,8 @@ public class FFMpegVideo extends Player {
 		return tempSubsFile;
 	}
 
-	public File applyFontconfigToASSTempSubsFile(File tempSubs, DLNAMediaInfo media) throws IOException {
+	public static File applyFontconfigToASSTempSubsFile(File tempSubs, DLNAMediaInfo media, PmsConfiguration configuration) throws IOException {
+		LOGGER.debug("Applying fontconfig to subtitles " + tempSubs.getName());
 		File outputSubs = tempSubs;
 		StringBuilder outputString = new StringBuilder();
 		File temp = new File(configuration.getTempFolder(), tempSubs.getName() + ".tmp");
@@ -1433,7 +1451,8 @@ public class FFMpegVideo extends Player {
 	public boolean isCompatible(DLNAResource resource) {
 		if (
 			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
-			PlayerUtil.isVideo(resource, Format.Identifier.MPG)
+			PlayerUtil.isVideo(resource, Format.Identifier.MPG) ||
+			"m3u8".equals(resource.getFormat().getMatchedExtension())
 		) {
 			return true;
 		}
