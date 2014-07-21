@@ -389,7 +389,7 @@ public class DLNAMediaInfo implements Cloneable {
 		if (seekPosition <= forThumbnail.durationSec) {
 			forThumbnail.durationSec = seekPosition;
 		} else {
-			forThumbnail.durationSec = forThumbnail.durationSec / 2;
+			forThumbnail.durationSec /= 2;
 		}
 
 		forThumbnail.parse(input, ext, type, true, resume);

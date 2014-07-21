@@ -959,8 +959,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	protected void notifyRefresh() {
 		lastRefreshTime = System.currentTimeMillis();
-		updateId = updateId + 1;
-		systemUpdateId = systemUpdateId + 1;
+		updateId += 1;
+		systemUpdateId += 1;
 	}
 
 	final protected void discoverWithRenderer(RendererConfiguration renderer, int count, boolean forced, String searchStr) {

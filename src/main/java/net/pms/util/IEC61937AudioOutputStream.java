@@ -164,7 +164,7 @@ public class IEC61937AudioOutputStream extends FlowParserOutputStream {
 					pcm_wrapped_frame_size = period * 4;
 				}
 				if (framesize > pcm_wrapped_frame_size) {
-					framesize = framesize - framesize_sup;
+					framesize -= framesize_sup;
 				}
 				streamableByteNumber = framesize;
 				if (dtshdpreamble != null) {
