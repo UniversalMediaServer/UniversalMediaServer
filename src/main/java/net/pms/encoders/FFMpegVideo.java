@@ -140,13 +140,14 @@ public class FFMpegVideo extends Player {
 
 		if (!isDisableSubtitles(params) && !(dlna.getPlayer() instanceof WebPlayer)) {
 			StringBuilder subsFilter = new StringBuilder();
+			String subsFilename = null;
 			if (params.sid.getType().isText()) {
-				String subsFilename = null;
 				if (configuration.isFFmpegFontConfig()) {
-					subsFilename = getSubtitles(dlna, media, params).getAbsolutePath();
+					subsFilename = getSubtitles(dlna, media, params, configuration).getAbsolutePath();
 				} else {
 					subsFilename = params.sid.isEmbedded() ? dlna.getSystemName() : params.sid.getExternalFile().getAbsolutePath();
 				}
+			}
 
 			if (params.sid.getType().isText()) {
 				File tempSubs = getSubtitles(dlna, media, params, configuration);
