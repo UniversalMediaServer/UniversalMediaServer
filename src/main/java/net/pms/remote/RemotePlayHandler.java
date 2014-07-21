@@ -46,13 +46,19 @@ public class RemotePlayHandler implements HttpHandler {
 		LOGGER.debug("make play page " + id);
 		RootFolder root = parent.getRoot(RemoteUtil.userName(t));
 		if (root == null) {
+			LOGGER.debug("root not found");
 			throw new IOException("Unknown root");
 		}
 		String id1 = id;
-		List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, root.getDefaultRenderer());
+		//List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, root.getDefaultRenderer());
+		DLNAResource r = root.getDLNAResource(id, root.getDefaultRenderer());
+		if (r == null) {
+			LOGGER.debug("bad id");
+			throw new IOException("Bad Id");
+		}
 		String rawId = id;
 
-		DLNAResource r = res.get(0);
+		//DLNAResource r = res.get(0);
 		// hack here to ensure we got a root folder to use for recently played etc.
 		root.getDefaultRenderer().setRootFolder(root);
 		String mime = root.getDefaultRenderer().getMimeType(r.mimeType());

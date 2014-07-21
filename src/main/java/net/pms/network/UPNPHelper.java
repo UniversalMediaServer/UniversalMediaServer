@@ -685,6 +685,10 @@ public class UPNPHelper extends UPNPControl {
 
 		@Override
 		public void pressPlay(String uri, String metadata) {
+			if (state.playback == -1) {
+				// unknown state, we assume it's stopped
+				state.playback = STOPPED;
+			}
 			if (state.playback == PLAYING) {
 				pause();
 			} else {

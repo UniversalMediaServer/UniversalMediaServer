@@ -158,6 +158,7 @@ public class RemoteWeb {
 		try {
 			WebRender render = new WebRender(name);
 			root.setDefaultRenderer(render);
+			render.setRootFolder(root);
 			render.associateIP(t.getRemoteAddress().getAddress());
 			render.associatePort(t.getRemoteAddress().getPort());
 			render.setUA(t.getRequestHeaders().getFirst("User-agent"));
@@ -258,13 +259,12 @@ public class RemoteWeb {
 				LOGGER.debug("weird root in thumb req");
 				throw new IOException("Unknown root");
 			}
-			final List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, root.getDefaultRenderer());
-			if (res.size() != 1) {
+			final DLNAResource r = root.getDLNAResource(id, root.getDefaultRenderer());
+			if (r == null) {
 				// another error
-				LOGGER.debug("media unkonwn");
+				LOGGER.debug("media unknown");
 				throw new IOException("Bad id");
 			}
-			DLNAResource r = res.get(0);
 			r.checkThumbnail();
 			Headers hdr = t.getResponseHeaders();
 			hdr.add("Content-Type", r.getThumbnailContentType());

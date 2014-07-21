@@ -26,6 +26,7 @@ import java.io.*;
 import java.net.BindException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.LogManager;
 import javax.swing.*;
@@ -1481,5 +1482,9 @@ public class PMS {
 
 	public static boolean isReady() {
 		return get().ready;
+	}
+
+	public List<RendererConfiguration> getRenders() {
+		return foundRenderers;
 	}
 }

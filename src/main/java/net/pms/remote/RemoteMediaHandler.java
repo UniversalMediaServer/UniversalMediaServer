@@ -61,16 +61,16 @@ public class RemoteMediaHandler implements HttpHandler {
 		if (render == null) {
 			r = root.getDefaultRenderer();
 		}
-		List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, r);
-		if (res.size() != 1) {
+		DLNAResource dlna = root.getDLNAResource(id, r);
+		if (dlna == null) {
 			// another error
 			LOGGER.debug("media unkonwn");
 			throw new IOException("Bad id");
 		}
-		long len = res.get(0).length();
+		long len = dlna.length();
 		Range range = RemoteUtil.parseRange(t.getRequestHeaders(), len);
-		String mime = root.getDefaultRenderer().getMimeType(res.get(0).mimeType());
-		DLNAResource dlna = res.get(0);
+		String mime = root.getDefaultRenderer().getMimeType(dlna.mimeType());
+		//DLNAResource dlna = res.get(0);
 		DLNAMediaInfo m = dlna.getMedia();
 		if(mime.equals(FormatConfiguration.MIMETYPE_AUTO) && m != null && m.getMimeType() != null) {
 			mime = m.getMimeType();
@@ -88,7 +88,7 @@ public class RemoteMediaHandler implements HttpHandler {
 			}
 		}
 
-		LOGGER.debug("dumping media " + mime + " " + res);
+		LOGGER.debug("dumping media " + mime + " " + dlna);
 		InputStream in = dlna.getInputStream(range, root.getDefaultRenderer());
 		Headers hdr = t.getResponseHeaders();
 		hdr.add("Content-Type", mime);

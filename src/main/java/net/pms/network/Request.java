@@ -274,22 +274,22 @@ public class Request extends HTTPResource {
 			 * "Http: Response, HTTP/1.1, Status: Internal server error, URL: /get/0$2$4$2$1$3"
 			 * This should fix it
 			 */
-			String id = argument.substring(argument.indexOf("get/") + 4);
+			int end = (argument.lastIndexOf("/") == -1 ? argument.length() - 1 : argument.lastIndexOf("/"));
+			String id = argument.substring(argument.indexOf("get/") + 4, end);
 
 			// Some clients escape the separators in their request: unescape them.
 			id = id.replace("%24", "$");
 
 			// Retrieve the DLNAresource itself.
-			List<DLNAResource> files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(id, false, 0, 0, mediaRenderer);
+			dlna = PMS.get().getRootFolder(mediaRenderer).getDLNAResource(id, mediaRenderer);
 
 			if (transferMode != null) {
 				output(output, "TransferMode.DLNA.ORG: " + transferMode);
 			}
 
-			if (files.size() == 1) {
+			if (dlna != null) {
 				// DLNAresource was found.
-				dlna = files.get(0);
-				String fileName = id.substring(id.indexOf('/') + 1);
+				String fileName = argument.substring(argument.lastIndexOf("/") + 1);
 
 				if (fileName.startsWith("thumbnail0000")) {
 					// This is a request for a thumbnail file.
@@ -324,6 +324,11 @@ public class Request extends HTTPResource {
 					}
 				} else {
 					// This is a request for a regular file.
+					RendererConfiguration orig = dlna.getDefaultRenderer();
+					if (!orig.equals(mediaRenderer)) {
+						// change render and update player details
+						dlna.updateRender(mediaRenderer);
+					}
 					String name = dlna.getDisplayName(mediaRenderer);
 					if (dlna.isNoName()) {
 						name = dlna.getName() + " " + dlna.getDisplayName(mediaRenderer);
@@ -428,6 +433,8 @@ public class Request extends HTTPResource {
 
 						output(output, "Connection: keep-alive");
 					}
+					// put the orig render back
+					dlna.updateRender(orig);
 				}
 			}
 		} else if ((method.equals("GET") || method.equals("HEAD")) && (argument.toLowerCase().endsWith(".png") || argument.toLowerCase().endsWith(".jpg") || argument.toLowerCase().endsWith(".jpeg"))) {
@@ -645,14 +652,16 @@ public class Request extends HTTPResource {
 						if (xbox && containerID != null) {
 							uf.setFakeParentId(containerID);
 						}
-
+						LOGGER.debug("result "+uf+" "+uf.isCompatible(mediaRenderer)+" "+uf.getPlayer());
 						if (uf.isCompatible(mediaRenderer) && (uf.getPlayer() == null || uf.getPlayer().isPlayerCompatible(mediaRenderer))) {
+							LOGGER.debug("xxxx");
 							response.append(uf.getDidlString(mediaRenderer));
 						} else {
 							minus++;
 						}
 					}
 				}
+				LOGGER.debug("minus "+minus);
 
 				response.append(HTTPXMLHelper.DIDL_FOOTER);
 				response.append(HTTPXMLHelper.RESULT_FOOTER);
