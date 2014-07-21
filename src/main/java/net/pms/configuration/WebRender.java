@@ -2,14 +2,21 @@ package net.pms.configuration;
 
 import java.net.InetAddress;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAResource;
+import net.pms.encoders.FFMpegVideo;
+import net.pms.encoders.Player;
+import net.pms.remote.RemoteUtil;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class WebRender extends RendererConfiguration {
+public class WebRender extends RendererConfiguration implements RendererConfiguration.OutputOverride {
 	private String name;
 	private String ip;
 	private int port;
@@ -104,5 +111,125 @@ public class WebRender extends RendererConfiguration {
 	public boolean isLimitFolders() {
 		// no folder limit on the web clients
 		return false;
+	}
+
+	@Override
+	public boolean getOutputOptions(DLNAResource dlna, Player player, List<String> cmdList) {
+		if (player instanceof FFMpegVideo) {
+			if (dlna.getFormat().isVideo()) {
+				DLNAMediaInfo media = dlna.getMedia();
+				boolean flash = media != null && "video/flash".equals(media.getMimeType());
+				if (flash) {
+					fflashCmds(cmdList, media);
+				} else {
+					if(RemoteUtil.MIME_TRANS.equals(RemoteUtil.MIME_OGG))  {
+						ffoggCmd(cmdList);
+					}
+					else if (RemoteUtil.MIME_TRANS.equals(RemoteUtil.MIME_MP4)) {
+						ffmp4Cmd(cmdList);
+					}
+					else if (RemoteUtil.MIME_TRANS.equals(RemoteUtil.MIME_WEBM)) {
+						// nothing here yet
+					}
+				}
+			} else {
+				// nothing here yet
+			}
+			return true;
+//		} else if (player instanceof MEncoderVideo) {
+//			// nothing here yet
+		}
+		return false;
+	}
+
+	private void fflashCmds(List<String> cmdList, DLNAMediaInfo media) {
+		cmdList.add("-c:v");
+		if (media != null && media.getCodecV() != null && media.getCodecV().equals("h264")) {
+			cmdList.add("copy");
+		} else {
+			cmdList.add("flv");
+			cmdList.add("-qmin");
+			cmdList.add("2");
+			cmdList.add("-qmax");
+			cmdList.add("6");
+		}
+		if (media != null && media.getFirstAudioTrack() != null && media.getFirstAudioTrack().isAAC()) {
+			cmdList.add("-c:a");
+			cmdList.add("copy");
+		} else {
+			cmdList.add("-ar");
+			cmdList.add("44100");
+		}
+		cmdList.add("-f");
+		cmdList.add("flv");
+	}
+
+	private void ffoggCmd(List<String> cmdList) {
+		cmdList.add("-c:v");
+		cmdList.add("libtheora");
+		cmdList.add("-qscale:v");
+		cmdList.add("8");
+		cmdList.add("-acodec");
+		cmdList.add("libvorbis");
+		cmdList.add("-qscale:a");
+		cmdList.add("6");
+		cmdList.add("-f");
+		cmdList.add("ogg");
+	}
+
+	private void ffmp4Cmd(List<String> cmdList) {
+		cmdList.add("-c:v");
+		cmdList.add("libx264");
+		cmdList.add("-preset");
+		cmdList.add("ultrafast");
+		cmdList.add("-tune");
+		cmdList.add("zerolatency");
+		cmdList.add("-profile:v");
+		cmdList.add("high");
+		cmdList.add("-level:v");
+		cmdList.add("3.1");
+		cmdList.add("-c:a");
+		cmdList.add("aac");
+		cmdList.add("-ab");
+		cmdList.add("16k");
+		cmdList.add("-ar");
+		cmdList.add("44100");
+		cmdList.add("-strict");
+		cmdList.add("experimental");
+		cmdList.add("-pix_fmt");
+		cmdList.add("yuv420p");
+		cmdList.add("-frag_duration");
+		cmdList.add("300");
+		cmdList.add("-frag_size");
+		cmdList.add("100");
+		cmdList.add("-flags");
+		cmdList.add("+aic+mv4");
+		cmdList.add("-movflags");
+		cmdList.add("+faststart");
+		cmdList.add("-f");
+		cmdList.add("mp4");
+		//cmdList.add("separate_moof+frag_keyframe+empty_moov");
+	}
+
+	private void ffhlsCmd(List<String> cmdList, DLNAMediaInfo media) {
+		cmdList.add("-c:v");
+		if (media != null && media.getCodecV() != null && media.getCodecV().equals("h264")) {
+			cmdList.add("copy");
+		} else {
+			cmdList.add("flv");
+			cmdList.add("-qmin");
+			cmdList.add("2");
+			cmdList.add("-qmax");
+			cmdList.add("6");
+		}
+		if (media != null && media.getFirstAudioTrack() != null && media.getFirstAudioTrack().isAAC()) {
+			cmdList.add("-c:a");
+			cmdList.add("copy");
+		} else {
+			cmdList.add("-ar");
+			cmdList.add("44100");
+		}
+		cmdList.add("-f");
+		cmdList.add("HLS");
 	}
 }
