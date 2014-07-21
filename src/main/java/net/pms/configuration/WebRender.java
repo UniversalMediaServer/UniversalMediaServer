@@ -143,8 +143,10 @@ public class WebRender extends RendererConfiguration implements RendererConfigur
 	}
 
 	private void fflashCmds(List<String> cmdList, DLNAMediaInfo media) {
+		// Can't streamcopy if filters are present
+		boolean canCopy = !(cmdList.contains("-vf") || cmdList.contains("-filter_complex"));
 		cmdList.add("-c:v");
-		if (media != null && media.getCodecV() != null && media.getCodecV().equals("h264")) {
+		if (canCopy && media != null && media.getCodecV() != null && media.getCodecV().equals("h264")) {
 			cmdList.add("copy");
 		} else {
 			cmdList.add("flv");
@@ -153,7 +155,7 @@ public class WebRender extends RendererConfiguration implements RendererConfigur
 			cmdList.add("-qmax");
 			cmdList.add("6");
 		}
-		if (media != null && media.getFirstAudioTrack() != null && media.getFirstAudioTrack().isAAC()) {
+		if (canCopy && media != null && media.getFirstAudioTrack() != null && media.getFirstAudioTrack().isAAC()) {
 			cmdList.add("-c:a");
 			cmdList.add("copy");
 		} else {
@@ -212,8 +214,10 @@ public class WebRender extends RendererConfiguration implements RendererConfigur
 	}
 
 	private void ffhlsCmd(List<String> cmdList, DLNAMediaInfo media) {
+		// Can't streamcopy if filters are present
+		boolean canCopy = !(cmdList.contains("-vf") || cmdList.contains("-filter_complex"));
 		cmdList.add("-c:v");
-		if (media != null && media.getCodecV() != null && media.getCodecV().equals("h264")) {
+		if (canCopy && media != null && media.getCodecV() != null && media.getCodecV().equals("h264")) {
 			cmdList.add("copy");
 		} else {
 			cmdList.add("flv");
@@ -222,7 +226,7 @@ public class WebRender extends RendererConfiguration implements RendererConfigur
 			cmdList.add("-qmax");
 			cmdList.add("6");
 		}
-		if (media != null && media.getFirstAudioTrack() != null && media.getFirstAudioTrack().isAAC()) {
+		if (canCopy && media != null && media.getFirstAudioTrack() != null && media.getFirstAudioTrack().isAAC()) {
 			cmdList.add("-c:a");
 			cmdList.add("copy");
 		} else {
