@@ -156,7 +156,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 					request.setSoapaction(s.nextToken());
 				} else if (temp.toUpperCase().equals("CALLBACK:")) {
 					request.setSoapaction(s.nextToken());
-				} else if (headerLine.toUpperCase().indexOf("RANGE: BYTES=") > -1) {
+				} else if (headerLine.toUpperCase().contains("RANGE: BYTES=")) {
 					String nums = headerLine.substring(
 						headerLine.toUpperCase().indexOf(
 						"RANGE: BYTES=") + 13).trim();
@@ -169,9 +169,9 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 					} else {
 						request.setHighRange(-1);
 					}
-				} else if (headerLine.toLowerCase().indexOf("transfermode.dlna.org:") > -1) {
+				} else if (headerLine.toLowerCase().contains("transfermode.dlna.org:")) {
 					request.setTransferMode(headerLine.substring(headerLine.toLowerCase().indexOf("transfermode.dlna.org:") + 22).trim());
-				} else if (headerLine.toLowerCase().indexOf("getcontentfeatures.dlna.org:") > -1) {
+				} else if (headerLine.toLowerCase().contains("getcontentfeatures.dlna.org:")) {
 					request.setContentFeatures(headerLine.substring(headerLine.toLowerCase().indexOf("getcontentfeatures.dlna.org:") + 28).trim());
 				} else {
 					Matcher matcher = TIMERANGE_PATTERN.matcher(headerLine);

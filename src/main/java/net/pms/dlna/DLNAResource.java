@@ -1811,7 +1811,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 																forcedTags = forcedTags.trim();
 
 																if (
-																	sub.getFlavor().toLowerCase().indexOf(forcedTags) > -1 &&
+																	sub.getFlavor().toLowerCase().contains(forcedTags) &&
 																	Iso639.isCodesMatching(sub.getLang(), configuration.getForcedSubtitleLanguage())
 																) {
 																	LOGGER.trace("Forcing preferred subtitles : " + sub.getLang() + "/" + sub.getFlavor());
