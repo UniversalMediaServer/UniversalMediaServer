@@ -36,6 +36,10 @@ public class WebRender extends RendererConfiguration {
 			rendererName += "Firefox";
 		} else if (ua.contains("safari")) {
 			rendererName += "Safari";
+		} else if (ua.contains("playstation 4")) {
+			rendererName += "PlayStation 4";
+		} else if (ua.contains("xbox one")) {
+			rendererName += "Xbox One";
 		} else {
 			rendererName += Messages.getString("PMS.142");
 		}
@@ -70,6 +74,12 @@ public class WebRender extends RendererConfiguration {
 		}
 		if (ua.contains("firefox")) {
 			return "firefox.png";
+		}
+		if (ua.contains("playstation 4")) {
+			return "ps4.png";
+		}
+		if (ua.contains("xbox one")) {
+			return "xbox-one.png";
 		}
 		return super.getRendererIcon();
 	}
