@@ -111,10 +111,6 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
-		if (dlna.getDefaultRenderer() instanceof WebRender) {
-			WebPlayer wp = new WebPlayer(WebPlayer.FLASH);
-			return wp.launchTranscode(dlna, media, params);
-		}
 		params.minBufferSize = params.minFileSize;
 		params.secondread_minsize = 100000;
 		RendererConfiguration renderer = params.mediaRenderer;
@@ -155,33 +151,13 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			customOptions.addAll(parseOptions(attached));
 		}
 		// - renderer options
-		if (StringUtils.isNotEmpty(renderer.getCustomFFmpegOptions())) {
-			customOptions.addAll(parseOptions(renderer.getCustomFFmpegOptions()));
+		String ffmpegOptions = renderer.getCustomFFmpegOptions();
+		if (StringUtils.isNotEmpty(ffmpegOptions)) {
+			customOptions.addAll(parseOptions(ffmpegOptions));
 		}
 
-		// basename of the named pipe:
-		// ffmpeg -loglevel warning -threads nThreads -i URL -threads nThreads -transcode-video-options /path/to/fifoName
-		String fifoName = String.format(
-			"ffmpegwebvideo_%d_%d",
-			Thread.currentThread().getId(),
-			System.currentTimeMillis()
-		);
-
-		// This process wraps the command that creates the named pipe
-		PipeProcess pipe = new PipeProcess(fifoName);
-		pipe.deleteLater(); // delete the named pipe later; harmless if it isn't created
-		ProcessWrapper mkfifo_process = pipe.getPipeProcess();
-
-		/**
-		 * It can take a long time for Windows to create a named pipe (and
-		 * mkfifo can be slow if /tmp isn't memory-mapped), so run this in
-		 * the current thread.
-		 */
-		mkfifo_process.runInSameThread();
-
-		params.input_pipes[0] = pipe;
-
 		// Build the command line
+
 		List<String> cmdList = new ArrayList<>();
 		if (!dlna.isURLResolved()) {
 			URLResult r1 = ExternalFactory.resolveURL(filename);
@@ -263,18 +239,51 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		}
 
 		// Add the output options (-f, -c:a, -c:v, etc.)
-		cmdList.addAll(getVideoTranscodeOptions(dlna, media, params));
 
-		// Add video bitrate options
-		cmdList.addAll(getVideoBitrateOptions(dlna, media, params));
-
-		// Add audio bitrate options
-		cmdList.addAll(getAudioBitrateOptions(dlna, media, params));
-
-		// Add any remaining custom options
-		if (!customOptions.isEmpty()) {
-			customOptions.transferAll(cmdList);
+		// Now that inputs and filtering are complete, see if we should
+		// give the renderer the final say on the command
+		boolean override = false;
+		if (renderer instanceof RendererConfiguration.OutputOverride) {
+			override = ((RendererConfiguration.OutputOverride)renderer).getOutputOptions(dlna, this, cmdList);
 		}
+
+		if (! override) {
+			cmdList.addAll(getVideoTranscodeOptions(dlna, media, params));
+
+			// Add video bitrate options
+			cmdList.addAll(getVideoBitrateOptions(dlna, media, params));
+
+			// Add audio bitrate options
+			cmdList.addAll(getAudioBitrateOptions(dlna, media, params));
+
+			// Add any remaining custom options
+			if (!customOptions.isEmpty()) {
+				customOptions.transferAll(cmdList);
+			}
+		}
+
+		// Set up the process
+
+		// basename of the named pipe:
+		String fifoName = String.format(
+			"ffmpegwebvideo_%d_%d",
+			Thread.currentThread().getId(),
+			System.currentTimeMillis()
+		);
+
+		// This process wraps the command that creates the named pipe
+		PipeProcess pipe = new PipeProcess(fifoName);
+		pipe.deleteLater(); // delete the named pipe later; harmless if it isn't created
+		ProcessWrapper mkfifo_process = pipe.getPipeProcess();
+
+		/**
+		 * It can take a long time for Windows to create a named pipe (and
+		 * mkfifo can be slow if /tmp isn't memory-mapped), so run this in
+		 * the current thread.
+		 */
+		mkfifo_process.runInSameThread();
+
+		params.input_pipes[0] = pipe;
 
 		// Output file
 		cmdList.add(pipe.getInputPipe());

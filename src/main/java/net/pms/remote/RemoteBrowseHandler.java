@@ -9,6 +9,7 @@ import java.net.URLEncoder;
 import java.util.List;
 import net.pms.Messages;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
 import net.pms.util.UMSUtils;
@@ -93,31 +94,37 @@ public class RemoteBrowseHandler implements HttpHandler {
 						String name = StringEscapeUtils.escapeHtml(r.resumeName());
 
 						if (r.isFolder()) {
-							// Do not display the transcode folder in the web interface
-							if (!name.equals(Messages.getString("TranscodeVirtualFolder.0"))) {
-								// The resource is a folder
-								foldersHtml.append("<li>");
-								String p = "/browse/" + idForWeb;
-									if (r.getClass().getName().contains("SearchFolder")) {
-										// search folder add a prompt
-										// NOTE!!!
-										// Yes doing getClass.getname is REALLY BAD, but this
-										// is to make legacy plugins utilize this function as well
-										foldersHtml.append("<a href=\"javascript:void(0);\" onclick=\"searchFun('").append(p).append("');\" title=\"").append(name).append("\">");
-									} else {
-										foldersHtml.append("<a href=\"/browse/").append(idForWeb).append("\" oncontextmenu=\"searchFun('").append(p).append("');\"title=\"").append(name).append("\">");
-									}
-									foldersHtml.append("<span>").append(name).append("</span>");
-									foldersHtml.append("</a>").append(CRLF);
-								foldersHtml.append("</li>").append(CRLF);
-								showFolders = true;
-							}
+							// The resource is a folder
+							foldersHtml.append("<li>");
+							String p = "/browse/" + idForWeb;
+								if (r.getClass().getName().contains("SearchFolder")) {
+									// search folder add a prompt
+									// NOTE!!!
+									// Yes doing getClass.getname is REALLY BAD, but this
+									// is to make legacy plugins utilize this function as well
+									foldersHtml.append("<a href=\"javascript:void(0);\" onclick=\"searchFun('").append(p).append("');\" title=\"").append(name).append("\">");
+								} else {
+									foldersHtml.append("<a href=\"/browse/").append(idForWeb).append("\" oncontextmenu=\"searchFun('").append(p).append("');\"title=\"").append(name).append("\">");
+								}
+								foldersHtml.append("<span>").append(name).append("</span>");
+								foldersHtml.append("</a>").append(CRLF);
+							foldersHtml.append("</li>").append(CRLF);
+							showFolders = true;
 						} else {
 							// The resource is a media file
 							mediaHtml.append("<li>");
-								mediaHtml.append("<a href=\"/play/").append(idForWeb).append("\" title=\"").append(name).append("\">");
+								if (WebRender.supports(r)) {
+									mediaHtml.append("<a href=\"/play/").append(idForWeb);
+									mediaHtml.append("\" title=\"").append(name).append("\">");
 									mediaHtml.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">");
 									mediaHtml.append("<span>").append(name).append("</span>");
+								} else if (upnpControl) {
+									// Include it as a web-disabled item so it can be thrown via upnp
+									mediaHtml.append("<a class=\"webdisabled\" href=\"javascript:alert('This item not playable via browser but can be sent to other renderers.')\"");
+									mediaHtml.append("\" title=\"").append(name).append(" ** NOT PLAYABLE IN BROWSER - for other renderers only **\">");
+									mediaHtml.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">");
+									mediaHtml.append("<span>").append(name).append("</span>");
+								}
 								mediaHtml.append("</a>").append(CRLF);
 								if (upnpControl) {
 									mediaHtml.append("<a id=\"bumpicon\" href=\"javascript:bump.start('//")
