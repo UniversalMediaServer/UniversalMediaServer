@@ -325,7 +325,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @since 1.50
 	 */
 	public String getResourceId() {
-		if (getId() == null) {
+		/*if (getId() == null) {
 			return null;
 		}
 
@@ -333,7 +333,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return parent.getResourceId() + '$' + getId();
 		} else {
 			return getId();
-		}
+		}*/
+		return getId();
 	}
 
 	/**
@@ -867,8 +868,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		children.add(child);
 		child.parent = this;
 
-		setLastChildId(getLastChildId() + 1);
-		child.setIndexId(getLastChildId());
+		/*setLastChildId(getLastChildId() + 1);
+		child.setIndexId(getLastChildId());*/
+		PMS.getGlobalRepo().add(child);
 		if(defaultRenderer != null) {
 			defaultRenderer.cachePut(child);
 		}
@@ -886,7 +888,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// Now strip off the filename
 		objectId = StringUtils.substringBefore(objectId, "/");
 
-		DLNAResource dlna = renderer.cacheGet(objectId);
+		/*DLNAResource dlna = renderer.cacheGet(objectId);
 		if (dlna == null) {
 			// nothing found. Try again
 			LOGGER.debug("requested media ({}) not discovered by me try other render",objectId);
@@ -903,7 +905,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 			}
 		}
-		return dlna;
+		return dlna;*/
+		DLNAResource dlna = PMS.getGlobalRepo().get(objectId);
+		if(dlna.isFolder()) {
+			return null;
+		} else {
+			return dlna;
+		}
 	}
 
 	/**
@@ -934,7 +942,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// Now strip off the filename
 		objectId = StringUtils.substringBefore(objectId, "/");
 
-		DLNAResource dlna = renderer.cacheGet(objectId);
+		DLNAResource dlna;
+		if (objectId.equals("0")) {
+			dlna = renderer.getRootFolder();
+		} else {
+			dlna = PMS.getGlobalRepo().get(objectId);//renderer.cacheGet(objectId);
+		}
 		if (dlna == null) {
 			// nothing in the cache do a traditional search
 			dlna = search(objectId, count, renderer, searchStr);

@@ -36,6 +36,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaDatabase;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.GlobalIdRepo;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.encoders.Player;
@@ -86,6 +87,8 @@ public class PMS {
 	public static String VERSION;
 
 	private boolean ready = false;
+
+	private GlobalIdRepo globalRepo;
 
 	public static final String AVS_SEPARATOR = "\1";
 
@@ -514,6 +517,8 @@ public class PMS {
 		// The public VERSION field is deprecated.
 		// This is a temporary fix for backwards compatibility
 		VERSION = getVersion();
+
+		globalRepo = new GlobalIdRepo();
 
 		// call this as early as possible
 		displayBanner();
@@ -1486,5 +1491,9 @@ public class PMS {
 
 	public List<RendererConfiguration> getRenders() {
 		return foundRenderers;
+	}
+
+	public static GlobalIdRepo getGlobalRepo() {
+		return get().globalRepo;
 	}
 }
