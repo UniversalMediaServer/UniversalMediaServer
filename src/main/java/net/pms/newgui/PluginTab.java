@@ -307,19 +307,14 @@ public class PluginTab {
 
 			File f = configuration.getCredFile();
 
-				try {
-					try (FileInputStream fis = new FileInputStream(f); BufferedReader in = new BufferedReader(new InputStreamReader(fis))) {
-						String line;
-						StringBuilder sb = new StringBuilder();
-						while ((line = in.readLine()) != null) {
-							sb.append(line);
-							sb.append("\n");
-						}
-						textArea.setText(sb.toString());
-					}
-					textArea.setText(sb.toString());
-					in.close();
+			try (FileInputStream fis = new FileInputStream(f); BufferedReader in = new BufferedReader(new InputStreamReader(fis))) {
+				String line;
+				StringBuilder sb = new StringBuilder();
+				while ((line = in.readLine()) != null) {
+					sb.append(line);
+					sb.append("\n");
 				}
+				textArea.setText(sb.toString());
 			} catch (IOException e1) {
 				return;
 			}
