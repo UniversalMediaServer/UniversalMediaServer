@@ -146,7 +146,7 @@ public class RequestHandler implements Runnable {
 						request.setSoapaction(s.nextToken());
 					} else if (headerLine.toUpperCase().contains("CONTENT-LENGTH:")) {
 						receivedContentLength = Integer.parseInt(headerLine.substring(headerLine.toUpperCase().indexOf("CONTENT-LENGTH: ") + 16));
-					} else if (headerLine.toUpperCase().indexOf("RANGE: BYTES=") > -1) {
+					} else if (headerLine.toUpperCase().contains("RANGE: BYTES=")) {
 						String nums = headerLine.substring(headerLine.toUpperCase().indexOf("RANGE: BYTES=") + 13).trim();
 						StringTokenizer st = new StringTokenizer(nums, "-");
 						if (!nums.startsWith("-")) {
@@ -157,11 +157,11 @@ public class RequestHandler implements Runnable {
 						} else {
 							request.setHighRange(-1);
 						}
-					} else if (headerLine.toLowerCase().indexOf("transfermode.dlna.org:") > -1) {
+					} else if (headerLine.toLowerCase().contains("transfermode.dlna.org:")) {
 						request.setTransferMode(headerLine.substring(headerLine.toLowerCase().indexOf("transfermode.dlna.org:") + 22).trim());
-					} else if (headerLine.toLowerCase().indexOf("getcontentfeatures.dlna.org:") > -1) {
+					} else if (headerLine.toLowerCase().contains("getcontentfeatures.dlna.org:")) {
 						request.setContentFeatures(headerLine.substring(headerLine.toLowerCase().indexOf("getcontentfeatures.dlna.org:") + 28).trim());
-					} else if (headerLine.toUpperCase().indexOf("TIMESEEKRANGE.DLNA.ORG: NPT=") > -1) { // firmware 2.50+
+					} else if (headerLine.toUpperCase().contains("TIMESEEKRANGE.DLNA.ORG: NPT=")) { // firmware 2.50+
 						String timeseek = headerLine.substring(headerLine.toUpperCase().indexOf("TIMESEEKRANGE.DLNA.ORG: NPT=") + 28);
 						if (timeseek.endsWith("-")) {
 							timeseek = timeseek.substring(0, timeseek.length() - 1);
@@ -169,7 +169,7 @@ public class RequestHandler implements Runnable {
 							timeseek = timeseek.substring(0, timeseek.indexOf('-'));
 						}
 						request.setTimeseek(convertStringToTime(timeseek));
-					} else if (headerLine.toUpperCase().indexOf("TIMESEEKRANGE.DLNA.ORG : NPT=") > -1) { // firmware 2.40
+					} else if (headerLine.toUpperCase().contains("TIMESEEKRANGE.DLNA.ORG : NPT=")) { // firmware 2.40
 						String timeseek = headerLine.substring(headerLine.toUpperCase().indexOf("TIMESEEKRANGE.DLNA.ORG : NPT=") + 29);
 						if (timeseek.endsWith("-")) {
 							timeseek = timeseek.substring(0, timeseek.length() - 1);

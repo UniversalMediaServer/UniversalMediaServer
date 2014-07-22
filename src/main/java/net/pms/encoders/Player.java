@@ -368,7 +368,7 @@ public abstract class Player {
 							forcedTags = forcedTags.trim();
 
 							if (
-								sub.getFlavor().toLowerCase().indexOf(forcedTags) > -1 &&
+								sub.getFlavor().toLowerCase().contains(forcedTags) &&
 								Iso639.isCodesMatching(sub.getLang(), configuration.getForcedSubtitleLanguage())
 							) {
 								LOGGER.trace("Forcing preferred subtitles : " + sub.getLang() + "/" + sub.getFlavor());

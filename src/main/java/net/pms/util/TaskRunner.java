@@ -130,7 +130,7 @@ public class TaskRunner {
 	protected int getAndIncr(String name) {
 		synchronized(counters) {
 			Integer val = counters.get(name);
-			int newVal = (val == null) ? 0 : val.intValue() + 1;
+			int newVal = (val == null) ? 0 : val + 1;
 			counters.put(name, newVal);
 			return newVal;
 		}

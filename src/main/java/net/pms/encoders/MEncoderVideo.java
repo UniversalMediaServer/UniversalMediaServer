@@ -1406,7 +1406,7 @@ public class MEncoderVideo extends Player {
 
 				// MEncoder is not compiled with fontconfig on Mac OS X, therefore
 				// use of the "-ass" option also requires the "-font" option.
-				if (Platform.isMac() && sb.toString().indexOf(" -font ") < 0) {
+				if (Platform.isMac() && !sb.toString().contains(" -font ")) {
 					String font = CodecUtil.getDefaultFontPath();
 
 					if (isNotBlank(font)) {

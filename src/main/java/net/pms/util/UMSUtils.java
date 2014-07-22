@@ -30,20 +30,20 @@ public class UMSUtils {
 				continue;
 			}
 
-			boolean keep = res.getName().toLowerCase().indexOf(searchCriteria) != -1;
+			boolean keep = res.getName().toLowerCase().contains(searchCriteria);
 			final DLNAMediaInfo media = res.getMedia();
 
 			if (!keep && media != null && media.getAudioTracksList() != null) {
 				for (int j = 0; j < media.getAudioTracksList().size(); j++) {
 					DLNAMediaAudio audio = media.getAudioTracksList().get(j);
 					if (audio.getAlbum() != null) {
-						keep |= audio.getAlbum().toLowerCase().indexOf(searchCriteria) != -1;
+						keep |= audio.getAlbum().toLowerCase().contains(searchCriteria);
 					}
 					if (audio.getArtist() != null) {
-						keep |= audio.getArtist().toLowerCase().indexOf(searchCriteria) != -1;
+						keep |= audio.getArtist().toLowerCase().contains(searchCriteria);
 					}
 					if (audio.getSongname() != null) {
-						keep |= audio.getSongname().toLowerCase().indexOf(searchCriteria) != -1;
+						keep |= audio.getSongname().toLowerCase().contains(searchCriteria);
 					}
 				}
 			}

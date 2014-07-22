@@ -383,7 +383,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		} else if (dlna.getMedia().isFFmpegparsed()) {
 			return;
 		}
-		final ArrayList<String> lines = new ArrayList<String>();
+		final ArrayList<String> lines = new ArrayList<>();
 		final String input = filename.length() > 200 ? filename.substring(0, 199) : filename;
 		OutputTextLogger ffParser = new OutputTextLogger(null, pw) {
 			@Override
