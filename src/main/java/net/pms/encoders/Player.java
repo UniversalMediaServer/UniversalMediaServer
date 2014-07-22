@@ -297,6 +297,7 @@ public abstract class Player {
 		StringTokenizer st = new StringTokenizer(configuration.getAudioSubLanguages(), ";");
 
 		boolean matchedEmbeddedSubtitle = false;
+		boolean matchedExternalSubtitles = false;
 		while (st.hasMoreTokens()) {
 			String pair = st.nextToken();
 			if (pair.contains(",")) {
@@ -316,11 +317,13 @@ public abstract class Player {
 							for (DLNAMediaSubtitle present_sub : media.getSubtitleTracksList()) {
 								if (present_sub.getExternalFile() != null) {
 									matchedSub = present_sub;
+									matchedExternalSubtitles = true;
 									LOGGER.trace("Ignoring the \"off\" language because there are external subtitles");
 									break;
 								}
 							}
-						} else {
+						}
+						if (!matchedExternalSubtitles) {
 							matchedSub = new DLNAMediaSubtitle();
 							matchedSub.setLang("off");
 						}
