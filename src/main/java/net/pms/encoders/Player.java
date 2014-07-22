@@ -296,7 +296,7 @@ public abstract class Player {
 
 		StringTokenizer st = new StringTokenizer(configuration.getAudioSubLanguages(), ";");
 
-		boolean matchedEmbeddedSubtitle = false;
+		boolean matchedInternalSubtitles = false;
 		boolean matchedExternalSubtitles = false;
 		while (st.hasMoreTokens()) {
 			String pair = st.nextToken();
@@ -345,7 +345,7 @@ public abstract class Player {
 									LOGGER.trace("Found a match: " + matchedSub);
 									if (configuration.isAutoloadExternalSubtitles()) {
 										// Subtitle is internal and we will wait to see if an external one is available instead
-										matchedEmbeddedSubtitle = true;
+										matchedInternalSubtitles = true;
 									} else {
 										// Subtitle is internal and we will use it
 										break;
@@ -355,7 +355,7 @@ public abstract class Player {
 						}
 					}
 
-					if (matchedSub != null && !matchedEmbeddedSubtitle) {
+					if (matchedSub != null && !matchedInternalSubtitles) {
 						break;
 					}
 				}
