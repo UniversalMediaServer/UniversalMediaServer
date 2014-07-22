@@ -308,8 +308,22 @@ public abstract class Player {
 
 				if (Iso639.isCodesMatching(audio, currentLang) || (currentLang != null && audio.equals("*"))) {
 					if (sub.equals("off")) {
-						matchedSub = new DLNAMediaSubtitle();
-						matchedSub.setLang("off");
+						/**
+						 * Ignore the "off" language for external subtitles if the user setting is enabled
+						 * TODO: Prioritize multiple external subtitles properly instead of just taking the first one we load
+						 */
+						if (configuration.isAutoloadExternalSubtitles()) {
+							for (DLNAMediaSubtitle present_sub : media.getSubtitleTracksList()) {
+								if (present_sub.getExternalFile() != null) {
+									matchedSub = present_sub;
+									LOGGER.trace("Ignoring the \"off\" language because there are external subtitles");
+									break;
+								}
+							}
+						} else {
+							matchedSub = new DLNAMediaSubtitle();
+							matchedSub.setLang("off");
+						}
 					} else {
 						for (DLNAMediaSubtitle present_sub : media.getSubtitleTracksList()) {
 							if (present_sub.matchCode(sub) || sub.equals("*")) {
@@ -321,7 +335,7 @@ public abstract class Player {
 										break;
 									} else {
 										// Subtitle is external but we do not want external subtitles, keep searching
-										LOGGER.trace("External subtitle ignored because of user setting: " + present_sub);
+										LOGGER.trace("External subtitles ignored because of user setting: " + present_sub);
 									}
 								} else {
 									matchedSub = present_sub;
@@ -373,11 +387,11 @@ public abstract class Player {
 								sub.getFlavor().toLowerCase().contains(forcedTags) &&
 								Iso639.isCodesMatching(sub.getLang(), configuration.getForcedSubtitleLanguage())
 							) {
-								LOGGER.trace("Forcing preferred subtitles : " + sub.getLang() + "/" + sub.getFlavor());
-								LOGGER.trace("Forced subtitles track : " + sub);
+								LOGGER.trace("Forcing preferred subtitles: " + sub.getLang() + "/" + sub.getFlavor());
+								LOGGER.trace("Forced subtitles track: " + sub);
 
 								if (sub.getExternalFile() != null) {
-									LOGGER.trace("Found external forced file : " + sub.getExternalFile().getAbsolutePath());
+									LOGGER.trace("Found external forced file: " + sub.getExternalFile().getAbsolutePath());
 								}
 								params.sid = sub;
 								forcedSubsFound = true;
