@@ -255,6 +255,8 @@ public abstract class Player {
 	 * This method populates the supplied {@link OutputParams} object with the correct subtitles (sid)
 	 * based on the given filename, its MediaInfo metadata and PMS configuration settings.
 	 *
+	 * TODO: Rewrite this crazy method to be more concise and logical.
+	 *
 	 * @param fileName
 	 * The file name used to determine the availability of subtitles.
 	 * @param media
