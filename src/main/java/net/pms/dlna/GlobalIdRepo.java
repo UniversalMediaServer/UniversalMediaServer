@@ -32,4 +32,14 @@ public class GlobalIdRepo {
 			return null;
 		}
 	}
+
+	public void remove(int id) {
+		revMap.remove(get(id));
+		map.remove(id);
+	}
+
+	public void remove(DLNAResource res) {
+		revMap.remove(res);
+		map.remove(res.getId());
+	}
 }

@@ -46,11 +46,8 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.SizeLimitInputStream;
 import net.pms.network.HTTPResource;
-import net.pms.util.FileUtil;
-import net.pms.util.ImagesUtil;
-import net.pms.util.Iso639;
-import net.pms.util.MpegUtil;
-import net.pms.util.OpenSubtitle;
+import net.pms.util.*;
+
 import static net.pms.util.StringUtil.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -242,7 +239,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * List of children objects associated with this DLNAResource. This is only valid when the DLNAResource is of the container type.
 	 */
 	@Deprecated
-	protected List<DLNAResource> children;
+	protected DLNAList children;
+	//protected List<DLNAResource> children;
 
 	/**
 	 * @deprecated Use standard getter and setter to access this field.
@@ -418,7 +416,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	public DLNAResource() {
 		this.specificType = Format.UNKNOWN;
-		this.children = new ArrayList<DLNAResource>();
+		//this.children = new ArrayList<DLNAResource>();
+		this.children = new DLNAList();
 		this.updateId = 1;
 		lastSearch = null;
 		resHash = 0;
@@ -3031,7 +3030,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @since 1.50
 	 */
 	protected void setChildren(List<DLNAResource> children) {
-		this.children = children;
+		this.children = (DLNAList)children;
 	}
 
 	/**
