@@ -21,14 +21,7 @@ public class GlobalIdRepo {
 	public GlobalIdRepo() {
 		globalId = 1;
 		map = new HashMap<Integer, WeakReference<DLNAResource>>();
-		revMap = new WeakHashMap<DLNAResource, Integer>() {
-			@Override
-			public Integer remove(Object key) {
-				int id = super.remove(key);
-				map.remove(id);
-				return id;
-			}		
-		};
+		revMap = new WeakHashMap<DLNAResource, Integer>();
 	}
 
 	public synchronized void add(DLNAResource res) {
