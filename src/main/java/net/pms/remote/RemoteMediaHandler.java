@@ -14,8 +14,11 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
 import net.pms.dlna.RootFolder;
-import net.pms.encoders.WebPlayer;
+import net.pms.encoders.FFMpegVideo;
+import net.pms.encoders.FFmpegWebVideo;
+import net.pms.encoders.FFmpegAudio;
 import net.pms.external.StartStopListenerDelegate;
+import net.pms.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,34 +64,43 @@ public class RemoteMediaHandler implements HttpHandler {
 		if (render == null) {
 			r = root.getDefaultRenderer();
 		}
-		List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, r);
-		if (res.size() != 1) {
+		DLNAResource dlna = root.getDLNAResource(id, r);
+		if (dlna == null) {
 			// another error
 			LOGGER.debug("media unkonwn");
 			throw new IOException("Bad id");
 		}
-		long len = res.get(0).length();
+		long len = dlna.length();
 		Range range = RemoteUtil.parseRange(t.getRequestHeaders(), len);
-		String mime = root.getDefaultRenderer().getMimeType(res.get(0).mimeType());
-		DLNAResource dlna = res.get(0);
+		String mime = root.getDefaultRenderer().getMimeType(dlna.mimeType());
+		//DLNAResource dlna = res.get(0);
 		DLNAMediaInfo m = dlna.getMedia();
-		if(mime.equals(FormatConfiguration.MIMETYPE_AUTO) && m != null && m.getMimeType() != null) {
+		if (m == null) {
+			m = new DLNAMediaInfo();
+			dlna.setMedia(m);
+		}
+		if(mime.equals(FormatConfiguration.MIMETYPE_AUTO) && m.getMimeType() != null) {
 			mime = m.getMimeType();
 		}
 		if (dlna.getFormat().isVideo()) {
 			if (flash) {
 				mime = "video/flash";
-				dlna.setPlayer(new WebPlayer(WebPlayer.FLASH));
 			} else if (!RemoteUtil.directmime(mime)) {
 				mime = RemoteUtil.MIME_TRANS;
-				dlna.setPlayer(new WebPlayer(WebPlayer.TRANS));
-			}
-			else {
-				dlna.setPlayer(null);
 			}
 		}
 
-		LOGGER.debug("dumping media " + mime + " " + res);
+		dlna.setDefaultRenderer(r);
+		m.setMimeType(mime);
+		if (!RemoteUtil.directmime(mime)) {
+			dlna.setPlayer(
+				dlna.getFormat().isAudio() ? new FFmpegAudio() :
+				FileUtil.isUrl(dlna.getSystemName()) ? new FFmpegWebVideo() :
+				new FFMpegVideo()
+			);
+		}
+
+		LOGGER.debug("dumping media " + mime + " " + dlna);
 		InputStream in = dlna.getInputStream(range, root.getDefaultRenderer());
 		Headers hdr = t.getResponseHeaders();
 		hdr.add("Content-Type", mime);

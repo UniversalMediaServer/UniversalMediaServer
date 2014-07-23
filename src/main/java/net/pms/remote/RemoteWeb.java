@@ -72,6 +72,7 @@ public class RemoteWeb {
 			addCtx("/raw", new RemoteRawHandler(this));
 			addCtx("/files", new RemoteFileHandler());
 			addCtx("/subs", new RemoteFileHandler());
+			addCtx("/doc", new RemoteDocHandler());
 			server.setExecutor(Executors.newFixedThreadPool(threads));
 			server.start();
 		} catch (Exception e) {
@@ -130,6 +131,10 @@ public class RemoteWeb {
 		return tag;
 	}
 
+	public String getAddress() {
+		return PMS.get().getServer().getHost() + ":" + server.getAddress().getPort();
+	}
+
 	public RootFolder getRoot(String name) {
 		return getRoot(name, false, null);
 	}
@@ -153,6 +158,7 @@ public class RemoteWeb {
 		try {
 			WebRender render = new WebRender(name);
 			root.setDefaultRenderer(render);
+			render.setRootFolder(root);
 			render.associateIP(t.getRemoteAddress().getAddress());
 			render.associatePort(t.getRemoteAddress().getPort());
 			render.setUA(t.getRequestHeaders().getFirst("User-agent"));
@@ -225,6 +231,10 @@ public class RemoteWeb {
 		in.close();
 	}
 
+	public HttpServer getServer() {
+		return server;
+	}
+
 	static class RemoteThumbHandler implements HttpHandler {
 		private RemoteWeb parent;
 
@@ -249,13 +259,12 @@ public class RemoteWeb {
 				LOGGER.debug("weird root in thumb req");
 				throw new IOException("Unknown root");
 			}
-			final List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, root.getDefaultRenderer());
-			if (res.size() != 1) {
+			final DLNAResource r = root.getDLNAResource(id, root.getDefaultRenderer());
+			if (r == null) {
 				// another error
-				LOGGER.debug("media unkonwn");
+				LOGGER.debug("media unknown");
 				throw new IOException("Bad id");
 			}
-			DLNAResource r = res.get(0);
 			r.checkThumbnail();
 			Headers hdr = t.getResponseHeaders();
 			hdr.add("Content-Type", r.getThumbnailContentType());
@@ -349,6 +358,53 @@ public class RemoteWeb {
 			String response = sb.toString();
 			Headers hdr = t.getResponseHeaders();
 			hdr.add("Content-Type", "text/html");
+			t.sendResponseHeaders(200, response.length());
+			try (OutputStream os = t.getResponseBody()) {
+				os.write(response.getBytes());
+			}
+		}
+	}
+
+	static class RemoteDocHandler implements HttpHandler {
+		private static final Logger LOGGER = LoggerFactory.getLogger(RemoteStartHandler.class);
+		private final static String CRLF = "\r\n";
+
+		@Override
+		public void handle(HttpExchange t) throws IOException {
+			LOGGER.debug("root req " + t.getRequestURI());
+			if (RemoteUtil.deny(t)) {
+				throw new IOException("Access denied");
+			}
+			if (t.getRequestURI().getPath().contains("favicon")) {
+				RemoteUtil.sendLogo(t);
+				return;
+			}
+
+			StringBuilder sb = new StringBuilder();
+			sb.append("<!DOCTYPE html>").append(CRLF);
+				sb.append("<head>").append(CRLF);
+					sb.append("<link rel=\"stylesheet\" href=\"/files/reset.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
+					sb.append("<link rel=\"stylesheet\" href=\"/files/web.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
+					sb.append("<link rel=\"stylesheet\" href=\"/files/web-narrow.css\" type=\"text/css\" media=\"screen and (max-width: 1080px)\">").append(CRLF);
+					sb.append("<link rel=\"stylesheet\" href=\"/files/web-wide.css\" type=\"text/css\" media=\"screen and (min-width: 1081px)\">").append(CRLF);
+					sb.append("<link rel=\"icon\" href=\"/files/favicon.ico\" type=\"image/x-icon\">").append(CRLF);
+					sb.append("<title>Universal Media Server</title>").append(CRLF);
+				sb.append("</head>").append(CRLF);
+				sb.append("<body id=\"ContentPage\" class=\"Doc\">").append(CRLF);
+					sb.append("<div id=\"Menu\">").append(CRLF);
+						sb.append("<a href=\"/browse/0\" id=\"HomeButton\"></a>").append(CRLF);
+					sb.append("</div>").append(CRLF);
+					sb.append("<div id=\"Container\">").append(CRLF);
+						sb.append("<h1>Documentation</h1>").append(CRLF);
+						sb.append("<br/>").append(CRLF);
+						sb.append("<ul>").append(CRLF);
+						sb.append("<li><a href=\"/bump\">Browser-to-UMS Media Player Setup.</a></li>").append(CRLF);
+						sb.append("</ul>").append(CRLF);
+					sb.append("</div>");
+				sb.append("</body>");
+			sb.append("</html>");
+
+			String response = sb.toString();
 			t.sendResponseHeaders(200, response.length());
 			try (OutputStream os = t.getResponseBody()) {
 				os.write(response.getBytes());

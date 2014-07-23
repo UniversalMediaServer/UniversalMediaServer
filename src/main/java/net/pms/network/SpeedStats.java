@@ -201,6 +201,7 @@ public class SpeedStats {
 		}
 	}
 
+
 	static class CompletedFuture<X> implements Future<X> {
 		X value;
 

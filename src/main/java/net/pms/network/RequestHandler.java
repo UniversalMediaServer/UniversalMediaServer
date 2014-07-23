@@ -80,6 +80,8 @@ public class RequestHandler implements Runnable {
 			InetSocketAddress remoteAddress = (InetSocketAddress) socket.getRemoteSocketAddress();
 			InetAddress ia = remoteAddress.getAddress();
 
+			boolean isSelf = ia.getHostAddress().equals(PMS.get().getServer().getHost());
+
 			// Apply the IP filter
 			if (filterIp(ia)) {
 				throw new IOException("Access denied for address " + ia + " based on IP filter");
@@ -102,36 +104,26 @@ public class RequestHandler implements Runnable {
 					renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
 
 					if (renderer != null) {
-						PMS.get().setRendererFound(renderer);
+//						PMS.get().setRendererFound(renderer);
 						request.setMediaRenderer(renderer);
 						LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on address " + ia);
 					}
 				}
 
-				if (renderer == null && headerLine.toUpperCase().startsWith("USER-AGENT") && request != null) {
-					userAgentString = headerLine.substring(headerLine.indexOf(':') + 1).trim();
+				// FIXME: this would also block an external cling-based client running on the same host
+				if (isSelf && headerLine.toUpperCase().startsWith("USER-AGENT") && headerLine.contains("Cling/")) {
+					LOGGER.trace("Ignoring self-originating request from " + ia + ":" + remoteAddress.getPort());
+					return;
+				}
 
-					// Attempt 2: try to recognize the renderer by matching the "User-Agent" header
-					renderer = RendererConfiguration.getRendererConfigurationByUA(userAgentString);
-
+				if (request != null && request.getMediaRenderer() == null) {
+					// Attempt 2: try to recognize the renderer by individual headers
+					renderer = RendererConfiguration.getRendererConfigurationByHeaderLine(headerLine, ia);
 					if (renderer != null) {
-						PMS.get().setRendererFound(renderer);
 						request.setMediaRenderer(renderer);
-						renderer.associateIP(ia);	// Associate IP address for later requests
-						LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLine + "\"");
 					}
 				}
-				if (renderer == null && request != null) {
-					// Attempt 3: try to recognize the renderer by matching an additional header
-					renderer = RendererConfiguration.getRendererConfigurationByUAAHH(headerLine);
 
-					if (renderer != null) {
-						PMS.get().setRendererFound(renderer);
-						request.setMediaRenderer(renderer);
-						renderer.associateIP(ia);	// Associate IP address for later requests
-						LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLine + "\"");
-					}
-				}
 				try {
 					StringTokenizer s = new StringTokenizer(headerLine);
 					String temp = s.nextToken();
@@ -209,7 +201,7 @@ public class RequestHandler implements Runnable {
 			if (request != null) {
 				// Still no media renderer recognized?
 				if (request.getMediaRenderer() == null) {
-					// Attempt 4: Not really an attempt; all other attempts to recognize
+					// Attempt 3: Not really an attempt; all other attempts to recognize
 					// the renderer have failed. The only option left is to assume the
 					// default renderer.
 					request.setMediaRenderer(RendererConfiguration.getDefaultConf());

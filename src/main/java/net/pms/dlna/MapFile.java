@@ -273,7 +273,7 @@ public class MapFile extends DLNAResource {
 			}
 		}
 
-		return (getLastRefreshTime() < modified);
+		return (getLastRefreshTime() < modified) || (configuration.getSortMethod(getPath()) == UMSUtils.SORT_RANDOM);
 	}
 
 	@Override
@@ -283,7 +283,7 @@ public class MapFile extends DLNAResource {
 
 	@Override
 	public void doRefreshChildren(String str) {
-		List<File> files = getFileList();
+		/*List<File> files = getFileList();
 		List<File> addedFiles = new ArrayList<>();
 		List<DLNAResource> removedFiles = new ArrayList<>();
 
@@ -331,7 +331,11 @@ public class MapFile extends DLNAResource {
 
 		for (MapFileConfiguration f : this.getConf().getChildren()) {
 			addChild(new MapFile(f));
-		}
+		} */
+		getChildren().clear();
+		discoverable = null;
+		discoverChildren(str);
+		analyzeChildren(-1);
 	}
 
 	private boolean foundInList(List<File> files, DLNAResource dlna) {

@@ -15,7 +15,7 @@ $(function(){
 			// Do the main margins
 			container = document.getElementById("Media");
 			if (container !== null) {
-				imageList = container.getElementsByTagName("img");
+				imageList = container.getElementsByClassName("thumb");
 				thumbnailContainerList = container.getElementsByTagName("li");
 				spanList = container.getElementsByTagName("span");
 				imagesPerRow = "";

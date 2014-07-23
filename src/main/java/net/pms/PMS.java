@@ -20,11 +20,13 @@
 package net.pms;
 
 import com.sun.jna.Platform;
+import com.sun.net.httpserver.HttpServer;
 import java.awt.*;
 import java.io.*;
 import java.net.BindException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.LogManager;
 import javax.swing.*;
@@ -34,6 +36,7 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaDatabase;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.GlobalIdRepo;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.encoders.Player;
@@ -84,6 +87,8 @@ public class PMS {
 	public static String VERSION;
 
 	private boolean ready = false;
+
+	private GlobalIdRepo globalRepo;
 
 	public static final String AVS_SEPARATOR = "\1";
 
@@ -172,10 +177,16 @@ public class PMS {
 	 */
 	public void setRendererFound(RendererConfiguration renderer) {
 		if (!foundRenderers.contains(renderer) && !renderer.isFDSSDP()) {
+			LOGGER.debug("Adding status button for " + renderer.getRendererName());
 			foundRenderers.add(renderer);
-			frame.addRendererIcon(renderer.getRank(), renderer.getRendererName(), renderer.getRendererIcon());
+			frame.addRenderer(renderer);
 			frame.setStatusCode(0, Messages.getString("PMS.18"), "icon-status-connected.png");
 		}
+	}
+
+	public void updateRenderer(RendererConfiguration renderer) {
+		LOGGER.debug("Updating status button for " + renderer.getRendererName());
+		frame.updateRenderer(renderer);
 	}
 
 	/**
@@ -507,6 +518,8 @@ public class PMS {
 		// This is a temporary fix for backwards compatibility
 		VERSION = getVersion();
 
+		globalRepo = new GlobalIdRepo();
+
 		// call this as early as possible
 		displayBanner();
 
@@ -555,7 +568,14 @@ public class PMS {
 			}
 		});
 
+		// Web stuff
+		if (configuration.useWebInterface()) {
+			web = new RemoteWeb(configuration.getWebPort());
+		}
+
 		RendererConfiguration.loadRendererConfigurations(configuration);
+		// Now that renderer confs are all loaded, we can start searching for renderers
+		UPNPHelper.getInstance().init();
 
 		LOGGER.info("Checking the fontconfig cache, this can take two minutes or so.");
 
@@ -695,11 +715,6 @@ public class PMS {
 
 		if (!binding) {
 			return false;
-		}
-
-		// Web stuff
-		if (configuration.useWebInterface()) {
-			web = new RemoteWeb(configuration.getWebPort());
 		}
 
 		// initialize the cache
@@ -1166,6 +1181,10 @@ public class PMS {
 		return server;
 	}
 
+	public HttpServer getWebServer() {
+		return web.getServer();
+	}
+
 	public void save() {
 		try {
 			configuration.save();
@@ -1468,5 +1487,13 @@ public class PMS {
 
 	public static boolean isReady() {
 		return get().ready;
+	}
+
+	public List<RendererConfiguration> getRenders() {
+		return foundRenderers;
+	}
+
+	public static GlobalIdRepo getGlobalRepo() {
+		return get().globalRepo;
 	}
 }

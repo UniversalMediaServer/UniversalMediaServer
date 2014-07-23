@@ -21,6 +21,7 @@ package net.pms.dlna;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.URLEncoder;
+import java.net.URLDecoder;
 import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -324,7 +325,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @since 1.50
 	 */
 	public String getResourceId() {
-		if (getId() == null) {
+		/*if (getId() == null) {
 			return null;
 		}
 
@@ -332,7 +333,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return parent.getResourceId() + '$' + getId();
 		} else {
 			return getId();
-		}
+		}*/
+		return getId();
 	}
 
 	/**
@@ -688,6 +690,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							} else {
 								LOGGER.trace("Final verdict: \"{}\" will be streamed", child.getName());
 							}
+							child.setDefaultRenderer(defaultRenderer);
 
 							// Should the child be added to the #--TRANSCODE--# folder?
 							if ((child.format.isVideo() || child.format.isAudio()) && child.isTranscodeFolderAvailable()) {
@@ -865,8 +868,50 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		children.add(child);
 		child.parent = this;
 
-		setLastChildId(getLastChildId() + 1);
-		child.setIndexId(getLastChildId());
+		/*setLastChildId(getLastChildId() + 1);
+		child.setIndexId(getLastChildId());*/
+		PMS.getGlobalRepo().add(child);
+		if(defaultRenderer != null) {
+			defaultRenderer.cachePut(child);
+		}
+	}
+
+	public synchronized DLNAResource getDLNAResource(String objectId, RendererConfiguration renderer) throws IOException {
+		// this method returns exactly ONE (1) DLNAResource
+		// it's used when someone requests playback of media. The media must
+		// first have been discovered by someone first (unless it's a Temp item)
+
+		// Get/create/reconstruct it if it's a Temp item
+		if (objectId.startsWith("Temp$")) {
+			return Temp.get(objectId);
+		}
+		// Now strip off the filename
+		objectId = StringUtils.substringBefore(objectId, "/");
+
+		/*DLNAResource dlna = renderer.cacheGet(objectId);
+		if (dlna == null) {
+			// nothing found. Try again
+			LOGGER.debug("requested media ({}) not discovered by {}, trying other renderers", objectId, renderer);
+			for (RendererConfiguration r : PMS.get().getRenders()) {
+				if (r.equals(renderer)) {
+					// no need to search ourself again
+					continue;
+				}
+				DLNAResource res = r.cacheGet(objectId);
+				if (res != null && !res.isFolder()) {
+					// only non-folders can be found this way
+					LOGGER.debug("render " + r +" had found media " + res);
+					return res;
+				}
+			}
+		}
+		return dlna;*/
+		DLNAResource dlna = PMS.getGlobalRepo().get(objectId);
+		if(dlna.isFolder()) {
+			return null;
+		} else {
+			return dlna;
+		}
 	}
 
 	/**
@@ -888,7 +933,25 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	public synchronized List<DLNAResource> getDLNAResources(String objectId, boolean returnChildren, int start, int count, RendererConfiguration renderer, String searchStr) throws IOException {
 		ArrayList<DLNAResource> resources = new ArrayList<>();
-		DLNAResource dlna = search(objectId, count, renderer, searchStr);
+
+		// Get/create/reconstruct it if it's a Temp item
+		if (objectId.startsWith("Temp$")) {
+			List<DLNAResource> items = Temp.asList(objectId);
+			return items != null ? items : resources;
+		}
+		// Now strip off the filename
+		objectId = StringUtils.substringBefore(objectId, "/");
+
+		DLNAResource dlna;
+		if (objectId.equals("0")) {
+			dlna = renderer.getRootFolder();
+		} else {
+			dlna = PMS.getGlobalRepo().get(objectId);//renderer.cacheGet(objectId);
+		}
+		if (dlna == null) {
+			// nothing in the cache do a traditional search
+			dlna = search(objectId, count, renderer, searchStr);
+		}
 
 		if (dlna != null) {
 			String systemName = dlna.getSystemName();
@@ -993,7 +1056,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		} else {
 			// if forced, then call the old 'refreshChildren' method
 			LOGGER.trace("discover {} refresh forced: {}", getResourceId(), forced);
-			if (forced) {
+			if (forced && shouldRefresh(searchStr)) {
+				doRefreshChildren(searchStr);
+				notifyRefresh();
+			}
+			/*if (forced) {
 				if (refreshChildren(searchStr)) {
 					notifyRefresh();
 				}
@@ -1003,7 +1070,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					doRefreshChildren(searchStr);
 					notifyRefresh();
 				}
-			}
+			}*/
 		}
 	}
 
@@ -1043,12 +1110,32 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					for (DLNAResource file : children) {
 						DLNAResource found = file.search(indexPath[1], count, renderer, null);
 						if (found != null) {
+							// Make sure it's ready
+							//found.resolve();
 							return found;
 						}
 					}
 				}
 			} else {
 				return null;
+			}
+		}
+		return null;
+	}
+
+	public DLNAResource search(String searchId) {
+		if (id != null && searchId != null) {
+			if (getResourceId().equals(searchId)) {
+				return this;
+			} else {
+				for (DLNAResource file : children) {
+					DLNAResource found = file.search(searchId);
+					if (found != null) {
+						// Make sure it's ready
+						//found.resolve();
+						return found;
+					}
+				}
 			}
 		}
 		return null;
@@ -1326,14 +1413,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param prefix
 	 * @return Returns a URL for a given media item. Not used for container types.
 	 */
-	protected String getURL(String prefix) {
+	public String getURL(String prefix) {
+		return getURL(prefix, false);
+	}
+
+	public String getURL(String prefix, boolean useSystemName) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(PMS.get().getServer().getURL());
 		sb.append("/get/");
 		sb.append(getResourceId()); //id
 		sb.append("/");
 		sb.append(prefix);
-		sb.append(encode(getName()));
+		sb.append(encode(useSystemName ? getSystemName() : getName()));
 		return sb.toString();
 	}
 
@@ -1481,7 +1572,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		addAttribute(sb, "parentID", getParentId());
 		addAttribute(sb, "restricted", "true");
 		endTag(sb);
-
 		StringBuilder wireshark = new StringBuilder();
 		final DLNAMediaAudio firstAudioTrack = media != null ? media.getFirstAudioTrack() : null;
 		if (firstAudioTrack != null && StringUtils.isNotBlank(firstAudioTrack.getSongname())) {
@@ -1501,7 +1591,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				encodeXML(mediaRenderer.getDcTitle(resumeStr(tmp), nameSuffix, this))
 			);
 		}
-
 		if (firstAudioTrack != null) {
 			if (StringUtils.isNotBlank(firstAudioTrack.getAlbum())) {
 				addXMLTagAndAttribute(sb, "upnp:album", encodeXML(firstAudioTrack.getAlbum()));
@@ -1876,7 +1965,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				LOGGER.trace("Network debugger: http-get:*:text/" + format + ":*" + subsURL);
 			}
 		}
-
 		appendThumbnail(mediaRenderer, sb);
 
 		if (getLastModified() > 0 && !mediaRenderer.isOmitDcDate()) {
@@ -2038,10 +2126,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		Runnable defer = new Runnable() {
 			@Override
 			public void run() {
+				long start = startTime;
 				try {
 					Thread.sleep(STOP_PLAYING_DELAY);
 				} catch (InterruptedException e) {
 					LOGGER.error("stopPlaying sleep interrupted", e);
+				}
+
+				if (start != startTime) {
+					return;
 				}
 
 				synchronized (requestIdToRefcount) {
@@ -2220,7 +2313,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			// (Re)start transcoding process if necessary
 			if (externalProcess == null || externalProcess.isDestroyed()) {
 				// First playback attempt => start new transcoding process
-				LOGGER.debug("Starting transcode/remux of " + getName() + " with media info: " + media.toString());
+				LOGGER.debug("Starting transcode/remux of " + getName() + " with media info: " + media);
 
 				lastStart = System.currentTimeMillis();
 				externalProcess = player.launchTranscode(this, media, params);
@@ -2535,7 +2628,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *
 	 * @param format The format to set.
 	 */
-	protected void setFormat(Format format) {
+	public void setFormat(Format format) {
 		this.format = format;
 
 		// Set deprecated variable for backwards compatibility
@@ -3199,5 +3292,176 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 	public ExternalListener getMasterParent() {
 		return masterParent;
+	}
+
+	// Returns the index of the given child resource id, or -1 if not found
+
+	public int indexOf(String objectId) {
+		// Use the index id string only, omitting any trailing filename
+		String resourceId = StringUtils.substringBefore(objectId, "/");
+		if (resourceId != null) {
+			for (int i=0; i < children.size(); i++) {
+				if (resourceId.equals(children.get(i).getResourceId())) {
+					return i;
+				}
+			}
+		}
+		return -1;
+	}
+
+	// Attempts to automatically create the appropriate container for
+	// the given uri. Defaults to mpeg video for indeterminate local uris.
+
+	public static DLNAResource autoMatch(String uri, String name) {
+		uri = URLDecoder.decode(uri);
+		boolean isweb = uri.matches("\\S+://.+");
+		Format f = FormatFactory.getAssociatedFormat(isweb ? StringUtils.substringAfter(uri, "://") : uri);
+		int type = f == null ? Format.VIDEO : f.getType();
+		if (name == null) {
+			name = new File(StringUtils.substringBefore(uri, "?")).getName();
+		}
+		DLNAResource d = isweb ?
+			type == Format.VIDEO ? new WebVideoStream(name, uri, null) :
+			type == Format.AUDIO ? new WebAudioStream(name, uri, null) :
+			type == Format.IMAGE ? new FeedItem(name, uri, null, null, Format.IMAGE) : null
+			:
+			new RealFile(new File(uri));
+		if (f == null && !isweb) {
+			d.setFormat(FormatFactory.getAssociatedFormat(".mpg"));
+		}
+		LOGGER.debug(d == null ?
+			("Could not auto-match " + uri) :
+			("Created auto-matched container: "+ d));
+		return d;
+	}
+
+	// A general-purpose free-floating folder
+
+	public static class unattachedFolder extends VirtualFolder {
+		public unattachedFolder(String name) {
+			super(name, null);
+			setId(name);
+		}
+		public DLNAResource add(DLNAResource d) {
+			if (d != null) {
+				addChild(d);
+				return d;
+			}
+			return null;
+		}
+		public DLNAResource add(String uri, String name) {
+			return add(autoMatch(uri, name));
+		}
+		public int getIndex(String objectId) {
+			int index = indexOf(objectId);
+			if (index == -1) {
+				index = indexOf(recreate(objectId, null).getResourceId());
+			}
+			return index;
+		}
+		public DLNAResource get(String objectId) {
+			int index = getIndex(objectId);
+			return index > -1 ? getChildren().get(index) : null;
+		}
+		public List<DLNAResource> asList(String objectId) {
+			int index = getIndex(objectId);
+			return index > -1 ? getChildren().subList(index, index+1) : null;
+		}
+		// Try to recreate a lost item from a previous session
+		// using its objectId's trailing uri, if any
+		public DLNAResource recreate(String objectId, String name) {
+			try {
+				return add(StringUtils.substringAfter(objectId, "/"), name);
+			} catch (Exception e) {
+				return null;
+			}
+		}
+	}
+
+	// A temp folder for non-xmb items
+
+	public static unattachedFolder Temp = new unattachedFolder("Temp");
+
+	// Returns whether the url appears to be ours
+
+	public static boolean isResourceUrl(String url) {
+		return url.startsWith(PMS.get().getServer().getURL() + "/get/");
+	}
+
+	// Returns the url's resourceId (i.e. index without trailing filename) if any or null
+
+	public static String parseResourceId(String url) {
+		return isResourceUrl(url) ? StringUtils.substringBetween(url + "/", "get/", "/") : null;
+	}
+
+	// Returns the url's objectId (i.e. index including trailing filename) if any or null
+
+	public static String parseObjectId(String url) {
+		return isResourceUrl(url) ? StringUtils.substringAfter(url, "get/") : null;
+	}
+
+	// Returns the DLNAResource pointed to by the uri if it exists
+	// or else a new Temp item (or null)
+
+	public static DLNAResource getValidResource(String uri, String name, RendererConfiguration r) {
+		String objectId = parseObjectId(uri);
+		if (objectId != null) {
+			if (objectId.startsWith("Temp$")) {
+				int index = Temp.indexOf(objectId);
+				return index > -1 ? Temp.getChildren().get(index) : Temp.recreate(objectId, name);
+			} else {
+				if (r == null) {
+					r = RendererConfiguration.getDefaultConf();
+				}
+				try {
+					return PMS.get().getRootFolder(r).getDLNAResource(objectId, r);
+				} catch (IOException e) {
+					return null;
+				}
+
+			}
+		} else {
+			return Temp.add(uri, name);
+		}
+	}
+
+	// Returns the uri if it appears to be ours or else the url of new Temp item (or null)
+
+	public static String getValidResourceURL(String uri, String name) {
+		if (isResourceUrl(uri)) {
+			// we assume it's ok
+			return uri;
+		} else {
+			DLNAResource d = Temp.add(uri, name);
+			if(d != null) {
+				return d.getURL("", true);
+			}
+		}
+		return null;
+	}
+
+	public void updateRender(RendererConfiguration r) {
+		Player pl=null;
+		String name = getName();
+
+		for (Player p : PlayerFactory.getPlayers()) {
+			String end = "[" + p.id() + "]";
+
+			if (name.endsWith(end)) {
+				//nametruncate = name.lastIndexOf(end);
+				pl = p;
+				break;
+			} else if (getParent() != null && getParent().getName().endsWith(end)) {
+				//getParent().nametruncate = getParent().getName().lastIndexOf(end);
+				pl = p;
+				break;
+			}
+		}
+
+		if (pl == null) {
+			setDefaultRenderer(r);
+			pl = PlayerFactory.getPlayer(this);
+		}
+		setPlayer(pl);
 	}
 }

@@ -260,32 +260,31 @@ public class RequestV2 extends HTTPResource {
 			// Request to retrieve a file
 
 			/**
-			 * Skip the leading "get/" and extract the resource ID from the first path element
-			 * e.g. "get/0$1$5$3$4/Foo.mp4" -> "0$1$5$3$4"
+			 * Skip the leading "get/"
+			 * e.g. "get/0$1$5$3$4/Foo.mp4" -> "0$1$5$3$4/Foo.mp4"
 			 *
 			 * ExSport: I spotted on Android it is asking for "/get/0$2$4$2$1$3" which generates exception with response:
 			 * "Http: Response, HTTP/1.1, Status: Internal server error, URL: /get/0$2$4$2$1$3"
 			 * This should fix it
 			 */
-			String id = argument.substring(4);
-			if (argument.substring(4).contains("/")) {
-				id = argument.substring(4, argument.lastIndexOf('/'));
-			}
+
+			// Note: we intentionally include the trailing filename here because it may
+			// be used to reconstruct lost Temp items.
+			String id = argument.substring(argument.indexOf("get/") + 4);
 
 			// Some clients escape the separators in their request: unescape them.
 			id = id.replace("%24", "$");
 
 			// Retrieve the DLNAresource itself.
-			List<DLNAResource> files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(id, false, 0, 0, mediaRenderer);
+			dlna = PMS.get().getRootFolder(mediaRenderer).getDLNAResource(id, mediaRenderer);
 
 			if (transferMode != null) {
 				output.headers().set("TransferMode.DLNA.ORG", transferMode);
 			}
 
-			if (files.size() == 1) {
+			if (dlna != null) {
 				// DLNAresource was found.
-				dlna = files.get(0);
-				String fileName = argument.substring(argument.lastIndexOf('/') + 1);
+				String fileName = id.substring(id.indexOf('/') + 1);
 
 				if (fileName.startsWith("thumbnail0000")) {
 					// This is a request for a thumbnail file.
@@ -321,7 +320,11 @@ public class RequestV2 extends HTTPResource {
 					}
 				} else {
 					// This is a request for a regular file.
-
+					RendererConfiguration orig = dlna.getDefaultRenderer();
+					if (!mediaRenderer.equals(orig)) {
+						// change render and update player details
+						dlna.updateRender(mediaRenderer);
+					}
 					// If range has not been initialized yet and the DLNAResource has its
 					// own start and end defined, initialize range with those values before
 					// requesting the input stream.
@@ -458,6 +461,8 @@ public class RequestV2 extends HTTPResource {
 						output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
 						output.headers().set(HttpHeaders.Names.CONNECTION, "keep-alive");
 					}
+					// put the orig render back
+					dlna.updateRender(orig);
 				}
 			}
 		} else if ((method.equals("GET") || method.equals("HEAD")) && (argument.toLowerCase().endsWith(".png") || argument.toLowerCase().endsWith(".jpg") || argument.toLowerCase().endsWith(".jpeg"))) {
