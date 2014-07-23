@@ -10,6 +10,7 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.Player;
+import net.pms.formats.*;
 import net.pms.remote.RemoteUtil;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
@@ -23,6 +24,12 @@ public class WebRender extends RendererConfiguration implements RendererConfigur
 	private String ua;
 	private static final PmsConfiguration pmsconfiguration = PMS.getConfiguration();
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebRender.class);
+	private static final Format[] supportedFormats ={
+			new GIF(),
+			new JPG(),
+			new MP3(),
+			new PNG()
+	};
 
 	public WebRender(String name) throws ConfigurationException {
 		super(NOFILE, null);
@@ -38,6 +45,7 @@ public class WebRender extends RendererConfiguration implements RendererConfigur
 		configuration.addProperty(MEDIAPARSERV2, true);
 		configuration.addProperty(MEDIAPARSERV2_THUMB, true);
 		configuration.addProperty(SUPPORTED, "f:flv v:h264|hls a:aac m:video/flash");
+		configuration.addProperty(SUPPORTED, "f:mp4 m:video/mp4");
 		configuration.addProperty(SUPPORTED, "f:mp3 n:2 m:audio/mpeg");
 //		configuration.addProperty(SUPPORTED, "f:wav n:2 m:audio/wav");
 		configuration.addProperty(TRANSCODE_AUDIO, MP3);
@@ -237,9 +245,19 @@ public class WebRender extends RendererConfiguration implements RendererConfigur
 		cmdList.add("HLS");
 	}
 
+	public static boolean supportedFormat(Format f) {
+	   	for(Format f1 : supportedFormats) {
+			if(f.getIdentifier() == f1.getIdentifier()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public static boolean supports(DLNAResource dlna) {
 		DLNAMediaInfo m = dlna.getMedia();
 		return (m != null && RemoteUtil.directmime(m.getMimeType())) ||
+				(supportedFormat(dlna.getFormat())) ||
 			(dlna.getPlayer() instanceof FFMpegVideo);
 	}
 }
