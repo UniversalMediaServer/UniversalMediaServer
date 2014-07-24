@@ -9,7 +9,7 @@
 		Added option to use PsPing on Windows to make network speed estimates more accurate (ping_path)
 		Added renderer option LimitFolders to specify whether the renderer has a folder limit or not
 		Added searching to each folder
-		Added a new web_port setting to UMS.conf
+		Added web_port and web_enable settings to UMS.conf
 		Added support for 4k videos by automatically scaling them to a resolution that the renderer supports
 		Made FFmpeg the default transcoding engine
 		Made the buffer more animated
