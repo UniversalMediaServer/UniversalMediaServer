@@ -1739,7 +1739,10 @@ public class MEncoderVideo extends Player {
 			StringBuilder vfValueComplete        = new StringBuilder();
 
 			String deinterlaceComma = "";
-			double rendererAspectRatio;
+			double rendererAspectRatio = (double) params.mediaRenderer.getMaxVideoWidth() / (double) params.mediaRenderer.getMaxVideoHeight();
+			if (rendererAspectRatio == 0) {
+				rendererAspectRatio = 1.777777777777778;
+			}
 
 			/*
 			 * Implement overscan compensation settings
@@ -1763,7 +1766,6 @@ public class MEncoderVideo extends Player {
 					)
 				) {
 					double overscannedAspectRatio = scaleWidth / (double) scaleHeight;
-					rendererAspectRatio = params.mediaRenderer.getMaxVideoWidth() / (double) params.mediaRenderer.getMaxVideoHeight();
 
 					if (overscannedAspectRatio > rendererAspectRatio) {
 						// Limit video by width
@@ -1814,12 +1816,11 @@ public class MEncoderVideo extends Player {
 				// The video resolution is too big for the renderer so we need to scale it down
 
 				double videoAspectRatio = (double) media.getWidth() / (double) media.getHeight();
-				rendererAspectRatio = (double) params.mediaRenderer.getMaxVideoWidth() / (double) params.mediaRenderer.getMaxVideoHeight();
 
 				/*
 				 * First we deal with some exceptions, then if they are not matched we will
 				 * let the renderer limits work.
-				 * 
+				 *
 				 * This is so, for example, we can still define a maximum resolution of
 				 * 1920x1080 in the renderer config file but still support 1920x1088 when
 				 * it's needed, otherwise we would either resize 1088 to 1080, meaning the
