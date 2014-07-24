@@ -663,6 +663,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							) {
 								isIncompatible = true;
 								LOGGER.trace("File \"{}\" will not be streamed because the renderer needs us to add borders so it displays the correct aspect ratio.", child.getName());
+							} else if (
+								defaultRenderer != null &&
+								child.media.getWidth()  > defaultRenderer.getMaxVideoWidth() ||
+								child.media.getHeight() > defaultRenderer.getMaxVideoHeight()
+							) {
+								isIncompatible = true;
+								LOGGER.trace("File \"{}\" will not be streamed because the resolution is too high for the renderer.", child.getName());
 							}
 
 							// Prefer transcoding over streaming if:
