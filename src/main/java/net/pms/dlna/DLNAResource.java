@@ -1659,7 +1659,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 								boolean isMuxableResult = getMedia() != null && getMedia().isMuxable(mediaRenderer);
 
-								// If the engine is MEncoder or FFmpeg, and the muxing settings are enabled, it may be MPEG-TS so we need to do more tests
+								// If the engine is capable of automatically muxing to MPEG-TS and the setting is enabled, it might be MPEG-TS
 								if (
 									!isFileMPEGTS &&
 									(
@@ -1670,9 +1670,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 										(
 											configuration.isFFmpegMuxWithTsMuxerWhenCompatible() &&
 											FFMpegVideo.ID.equals(player.id())
-										) ||
-										(
-											VLCVideo.ID.equals(player.id())
 										)
 									)
 								) {
