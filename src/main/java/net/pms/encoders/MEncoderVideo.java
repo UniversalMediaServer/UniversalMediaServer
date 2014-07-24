@@ -1696,7 +1696,7 @@ public class MEncoderVideo extends Player {
 		// Check if the media renderer supports this resolution
 		boolean isResolutionTooHighForRenderer = false;
 		if (
-			params.mediaRenderer.isVideoRescale() &&
+			params.mediaRenderer.isMaximumResolutionSpecified() &&
 			(
 				media.getWidth() > params.mediaRenderer.getMaxVideoWidth() ||
 				media.getHeight() > params.mediaRenderer.getMaxVideoHeight()
@@ -1759,7 +1759,7 @@ public class MEncoderVideo extends Player {
 
 				// See if the video needs to be scaled down
 				if (
-					params.mediaRenderer.isVideoRescale() &&
+					params.mediaRenderer.isMaximumResolutionSpecified() &&
 					(
 						(scaleWidth > params.mediaRenderer.getMaxVideoWidth()) ||
 						(scaleHeight > params.mediaRenderer.getMaxVideoHeight())

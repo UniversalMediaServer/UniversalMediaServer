@@ -1124,12 +1124,20 @@ public class RendererConfiguration {
 	}
 
 	/**
-	 * Returns <code>true</code> if the renderer has a maximum supported width
-	 * or height, <code>false</code> otherwise.
-	 *
-	 * @return boolean indicating whether the renderer may need videos to be resized.
+	 * @Deprecated use isMaximumResolutionSpecified() instead
 	 */
+	@Deprecated
 	public boolean isVideoRescale() {
+		return getMaxVideoWidth() > 0 && getMaxVideoHeight() > 0;
+	}
+
+	/**
+	 * Returns <code>true</code> if the renderer has a maximum supported width
+	 * and height, <code>false</code> otherwise.
+	 *
+	 * @return whether the renderer has specified a maximum width and height
+	 */
+	public boolean isMaximumResolutionSpecified() {
 		return getMaxVideoWidth() > 0 && getMaxVideoHeight() > 0;
 	}
 
