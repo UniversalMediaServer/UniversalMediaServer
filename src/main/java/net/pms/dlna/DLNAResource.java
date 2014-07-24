@@ -1641,7 +1641,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								// VLC Web Video (Legacy) and tsMuxeR always output MPEG-TS
 								boolean isFileMPEGTS = TsMuxeRVideo.ID.equals(player.id()) || VideoLanVideoStreaming.ID.equals(player.id());
 
-								// Check if the engine is transcoding to MPEG-TS
+								// Check if the renderer settings make the current engine always output MPEG-TS
 								if (
 									!isFileMPEGTS &&
 									(
