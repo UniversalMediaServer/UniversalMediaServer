@@ -209,12 +209,15 @@ public class FFMpegVideo extends Player {
 		if (overrideVF != null) {
 			filterChain.add(overrideVF);
 		} else {
-			// disable keepAspectRatio for 3D SBS or TB video, use only rescale if needed
+			/**
+			 * Make sure the aspect ratio is 16/9 if the renderer needs it.
+			 */
 			boolean keepAR = renderer.isKeepAspectRatio() &&
 					!(
 						media.getWidth() == 3840 && media.getHeight() <= 1080 ||
 						media.getWidth() == 1920 && media.getHeight() == 2160
-					);
+					) &&
+					!"16:9".equals(media.getAspectRatioContainer());
 			if (isResolutionTooHighForRenderer || (!renderer.isRescaleByRenderer() && renderer.isVideoRescale() && media.getWidth() < 720)) { // Do not rescale for SD video and higher
 				filterChain.add(String.format("scale=iw*min(%1$d/iw\\,%2$d/ih):ih*min(%1$d/iw\\,%2$d/ih)", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
 				if (keepAR) {
