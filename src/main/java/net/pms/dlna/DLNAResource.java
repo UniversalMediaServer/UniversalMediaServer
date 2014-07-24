@@ -1294,6 +1294,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			subtitleFormat = media_subtitle.getType().getDescription();
 			if ("(Advanced) SubStation Alpha".equals(subtitleFormat)) {
 				subtitleFormat = "SSA";
+			} else if ("Blu-ray subtitles".equals(subtitleFormat)) {
+				subtitleFormat = "PGS";
 			}
 
 			subtitleLanguage = "/" + media_subtitle.getLangFullName();
