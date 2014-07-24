@@ -881,7 +881,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// first have been discovered by someone first (unless it's a Temp item)
 
 		// Get/create/reconstruct it if it's a Temp item
-		if (objectId.startsWith("Temp$")) {
+		if (objectId.contains("$Temp/")) {
 			return Temp.get(objectId);
 		}
 		// Now strip off the filename
@@ -934,7 +934,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		ArrayList<DLNAResource> resources = new ArrayList<>();
 
 		// Get/create/reconstruct it if it's a Temp item
-		if (objectId.startsWith("Temp$")) {
+		if (objectId.contains("$Temp/")) {
 			List<DLNAResource> items = Temp.asList(objectId);
 			return items != null ? items : resources;
 		}
@@ -3344,6 +3344,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		public DLNAResource add(DLNAResource d) {
 			if (d != null) {
 				addChild(d);
+				d.setId(d.getId() + "$" + getId());
 				return d;
 			}
 			return null;
