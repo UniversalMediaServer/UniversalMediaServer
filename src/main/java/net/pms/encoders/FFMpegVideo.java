@@ -857,8 +857,29 @@ public class FFMpegVideo extends Player {
 			}
 		}
 
+
+		// Set up the process
+
+		PipeProcess pipe = null;
+		
 		if (!dtsRemux) {
-			cmdList.add("pipe:");
+//			cmdList.add("pipe:");
+
+			// basename of the named pipe:
+			String fifoName = String.format(
+				"ffmpegvideo_%d_%d",
+				Thread.currentThread().getId(),
+				System.currentTimeMillis()
+			);
+
+			// This process wraps the command that creates the named pipe
+			pipe = new PipeProcess(fifoName);
+			pipe.deleteLater(); // delete the named pipe later; harmless if it isn't created
+
+			params.input_pipes[0] = pipe;
+
+			// Output file
+			cmdList.add(pipe.getInputPipe());
 		}
 
 		String[] cmdArray = new String[cmdList.size()];
@@ -876,8 +897,17 @@ public class FFMpegVideo extends Player {
 
 		setOutputParsing(dlna, pw, false);
 
-		if (dtsRemux) {
-			PipeProcess pipe;
+		if (! dtsRemux) {
+			ProcessWrapper mkfifo_process = pipe.getPipeProcess();
+
+			/**
+			 * It can take a long time for Windows to create a named pipe (and
+			 * mkfifo can be slow if /tmp isn't memory-mapped), so run this in
+			 * the current thread.
+			 */
+			mkfifo_process.runInSameThread();
+			pw.attachProcess(mkfifo_process); // Clean up the mkfifo process when the transcode ends
+		} else {
 			pipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
 			TsMuxeRVideo ts = new TsMuxeRVideo();
