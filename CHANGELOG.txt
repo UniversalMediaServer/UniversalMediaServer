@@ -10,32 +10,102 @@
 		Added renderer option LimitFolders to specify whether the renderer has a folder limit or not
 		Added searching to each folder
 		Added a new web_port setting to UMS.conf
+		Added support for 4k videos by automatically scaling them to a resolution that the renderer supports
 		Made FFmpeg the default transcoding engine
 		Made the buffer more animated
 		Changed the names of transcoding options in renderer config files for clarity
 		Output surround audio (AC-3) instead of stereo (MP2) when using VLC (needs testing)
 		Enabled subtitles in VLC (thanks, tdcosta100!)
 		Improved the TextWrap function, which makes filenames fit better on certain renderers
+		Improved detection of which videos are automatically muxable
 		Made more strings translatable
 		Fixed performing unnecessary speed checks
 		Fixed a bug with the Recently Played folder
 		Fixed padding in FFmpeg for DVD video resolution
 		Fixed documentation images on Linux
+		Fixed external subtitles sometimes not loading
+		Fixed files with resolutions that are too high for the renderer streaming if they are otherwise supported
+		Fixed the VLC Web Video legacy engine only outputting 25fps
+		Fixed UMS occasionally telling renderers to expect a different video format than they get
+		General speed improvements
+		Updated several descriptions and formatted UMS.conf (user config) and PS3.conf (reference renderer config)
 	Renderers:
 		Added support for Google Chromecast
-		Improved support for Panasonic TX-L32V10E TVs
-		Improved support for Samsung TVs, Blu-ray players and mobile devices
+		Added support for Sony Bravia XBR TVs
 		Improved aspect ratios on Sony Bravia EX TVs
-
+		Improved support for Apple mobile devices (iPad, iPhone, iPod)
+		Improved support for AirPlayer
+		Improved support for Android
+		Improved support for BlackBerry
+		Improved support for Cambridge Audio Blu-ray players
+		Improved support for D-Link DSM-510
+		Improved support for Freebox HD
+		Improved support for Freecom Music Pal
+		Improved support for LG Smart TV Upgrader
+		Improved support for OPPO Blu-ray players
+		Improved support for Panasonic TX-L32V10E TVs
+		Improved support for Popcorn Hour
+		Improved support for Pioneer Kuro
+		Improved support for Realtek media players
+		Improved support for Samsung TVs, Blu-ray players and mobile devices
+		Improved support for Showtime
+		Improved support for Sony Bravia TVs, media players, Blu-ray players and Xperia devices
+		Improved support for Streamium
+		Improved support for Telstra T-Box
+		Improved support for VideoWeb TV
+		Improved support for Vizio TVs
+		Improved support for WDTV Live
+		Improved support for XBMC
+		Improved support for Xbox 360
+	Languages:
+		Updated Dutch translation (thanks, leroy!)
 4.0.0 - 2014-07-?? - Changes since 4.0.0-b1
 
 	General:
 		Made the buffer more animated
-		Added a new web_port setting to UMS.conf
+		Added web_port and web_enable settings to UMS.conf
+		Added support for 4k videos by automatically scaling them to a resolution that the renderer supports
+		Improved detection of which videos are automatically muxable
 		Fixed and improved web interface search
 		Fixed web interface content-type
 		Fixed images on web interface on Linux and OS X
 		Fixed documentation images on Linux
+		Fixed occasional error on Linux when packing debug files
+		Fixed external subtitles sometimes not loading
+		Fixed files with resolutions that are too high for the renderer streaming if they are otherwise supported
+		Fixed the VLC Web Video legacy engine only outputting 25fps
+		Fixed UMS occasionally telling renderers to expect a different video format than they get
+		General speed improvements
+		Updated several descriptions and formatted UMS.conf
+	Renderers:
+		Added support for Sony Bravia XBR TVs
+		Improved support for Apple mobile devices (iPad, iPhone, iPod)
+		Improved support for AirPlayer
+		Improved support for Android
+		Improved support for BlackBerry
+		Improved support for Cambridge Audio Blu-ray players
+		Improved support for Chromecast
+		Improved support for D-Link DSM-510
+		Improved support for Freebox HD
+		Improved support for Freecom Music Pal
+		Improved support for LG Smart TV Upgrader
+		Improved support for OPPO Blu-ray players
+		Improved support for Popcorn Hour
+		Improved support for Pioneer Kuro
+		Improved support for Realtek media players
+		Improved support for Samsung TVs, Blu-ray players and mobile devices
+		Improved support for Showtime
+		Improved support for Sony Bravia TVs, media players, Blu-ray players and Xperia devices
+		Improved support for Streamium
+		Improved support for Telstra T-Box
+		Improved support for VideoWeb TV
+		Improved support for Vizio TVs
+		Improved support for WDTV Live
+		Improved support for XBMC
+		Improved support for Xbox 360
+		Recognize Xbox One and PlayStation 4 when they connect to the web interface
+	Languages:
+		Updated Dutch translation (thanks, leroy!)
 
 4.0.0-b1 - 2014-07-11 - Changes since 4.0.0-a1
 
