@@ -1873,11 +1873,12 @@ public class MEncoderVideo extends Player {
 		}
 
 		/*
-		 * The PS3 and possibly other renderers display videos incorrectly
-		 * if the dimensions aren't divisible by 4, so if that is the
-		 * case we add borders until it is divisible by 4.
-		 * This fixes the long-time bug of videos displaying in black and
-		 * white with diagonal strips of colour, weird one.
+		 * Make sure the video is mod4 unless the renderer has specified
+		 * that it doesn't care, and make sure the aspect ratio is 16/9
+		 * if the renderer needs it.
+		 *
+		 * The PS3 and possibly other renderers sometimes display mod2
+		 * videos in black and white with diagonal strips of color.
 		 *
 		 * TODO: Integrate this with the other stuff so that "expand" only
 		 * ever appears once in the MEncoder CMD.
@@ -1885,9 +1886,17 @@ public class MEncoderVideo extends Player {
 		if (
 			!dvd &&
 			(
-				(scaleWidth % 4 != 0) ||
-				(scaleHeight % 4 != 0) ||
-				params.mediaRenderer.isKeepAspectRatio()
+				(
+					(
+						(scaleWidth % 4 != 0) ||
+						(scaleHeight % 4 != 0)
+					) &&
+					!params.mediaRenderer.isMuxNonMod4Resolution()
+				) ||
+				(
+					params.mediaRenderer.isKeepAspectRatio() &&
+					!"16:9".equals(media.getAspectRatioContainer())
+				)
 			) &&
 			!configuration.isMencoderScaler()
 		) {
