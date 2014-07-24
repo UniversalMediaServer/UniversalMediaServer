@@ -1641,6 +1641,22 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								// VLC Web Video (Legacy) and tsMuxeR always output MPEG-TS
 								boolean isFileMPEGTS = TsMuxeRVideo.ID.equals(player.id()) || VideoLanVideoStreaming.ID.equals(player.id());
 
+								// Check if the engine is transcoding to MPEG-TS
+								if (
+									!isFileMPEGTS &&
+									(
+										mediaRenderer.isTranscodeToMPEGTSMPEG2AC3() ||
+										mediaRenderer.isTranscodeToMPEGTSH264AC3() ||
+										mediaRenderer.isTranscodeToMPEGTSH264AAC()
+									) && (
+										MEncoderVideo.ID.equals(player.id()) ||
+										FFMpegVideo.ID.equals(player.id()) ||
+										VLCVideo.ID.equals(player.id())
+									)
+								) {
+									isFileMPEGTS = true;
+								}
+
 								boolean isMuxableResult = getMedia() != null && getMedia().isMuxable(mediaRenderer);
 
 								// If the engine is MEncoder or FFmpeg, and the muxing settings are enabled, it may be MPEG-TS so we need to do more tests
@@ -1694,17 +1710,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									 * then the file is MPEG-TS
 									 */
 									if (
-										(
-											media_subtitle == null &&
-											!isSubsFile() &&
-											media != null &&
-											media.getDvdtrack() == 0 &&
-											isMuxableResult &&
-											mediaRenderer.isMuxH264MpegTS()
-										) ||
-										mediaRenderer.isTranscodeToMPEGTSMPEG2AC3() ||
-										mediaRenderer.isTranscodeToMPEGTSH264AC3() ||
-										mediaRenderer.isTranscodeToMPEGTSH264AAC()
+										media_subtitle == null &&
+										!isSubsFile() &&
+										media != null &&
+										media.getDvdtrack() == 0 &&
+										isMuxableResult &&
+										mediaRenderer.isMuxH264MpegTS()
 									) {
 										isFileMPEGTS = true;
 									}
