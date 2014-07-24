@@ -1638,7 +1638,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							dlnaspec = "DLNA.ORG_PN=" + getMPEG_PS_PALLocalizedValue(c);
 
 							if (player != null) {
-								// If the engine being is tsMuxeR or VLC, we are definitely outputting MPEG-TS so we can skip a lot of tests
+								// VLC Web Video (Legacy) and tsMuxeR always output MPEG-TS
 								boolean isFileMPEGTS = TsMuxeRVideo.ID.equals(player.id()) || VideoLanVideoStreaming.ID.equals(player.id());
 
 								boolean isMuxableResult = getMedia() != null && getMedia().isMuxable(mediaRenderer);
