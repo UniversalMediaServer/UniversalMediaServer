@@ -1699,7 +1699,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									}
 
 									/**
-									 * If either we are transcoding to MPEG-TS, or:
+									 * If:
 									 * - There are no subtitles
 									 * - This is not a DVD track
 									 * - The media is muxable
