@@ -1739,9 +1739,9 @@ public class MEncoderVideo extends Player {
 			StringBuilder vfValueComplete        = new StringBuilder();
 
 			String deinterlaceComma = "";
-			double rendererAspectRatio = (double) params.mediaRenderer.getMaxVideoWidth() / (double) params.mediaRenderer.getMaxVideoHeight();
-			if (rendererAspectRatio == 0) {
-				rendererAspectRatio = 1.777777777777778;
+			double rendererAspectRatio = 1.777777777777778;
+			if (params.mediaRenderer.isMaximumResolutionSpecified()) {
+				rendererAspectRatio = (double) params.mediaRenderer.getMaxVideoWidth() / (double) params.mediaRenderer.getMaxVideoHeight();
 			}
 
 			/*

@@ -1105,10 +1105,11 @@ public class RendererConfiguration {
 	 * Returns the maximum video width supported by the renderer as defined in
 	 * the renderer configuration. The default value 0 means unlimited.
 	 *
+	 * @see #isMaximumResolutionSpecified()
+	 *
 	 * @return The maximum video width.
 	 */
 	public int getMaxVideoWidth() {
-		// XXX we should require width and height to both be 0 or both be > 0
 		return getInt(MAX_VIDEO_WIDTH, 0);
 	}
 
@@ -1116,10 +1117,11 @@ public class RendererConfiguration {
 	 * Returns the maximum video height supported by the renderer as defined
 	 * in the renderer configuration. The default value 0 means unlimited.
 	 *
+	 * @see #isMaximumResolutionSpecified()
+	 *
 	 * @return The maximum video height.
 	 */
 	public int getMaxVideoHeight() {
-		// XXX we should require width and height to both be 0 or both be > 0
 		return getInt(MAX_VIDEO_HEIGHT, 0);
 	}
 
