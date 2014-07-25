@@ -1193,19 +1193,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * Returns the display name for the default renderer.
 	 *
 	 * @return The display name.
-	 * @see #getDisplayName(RendererConfiguration)
+	 * @see #getDisplayName(RendererConfiguration, boolean)
 	 */
 	public String getDisplayName() {
 		return getDisplayName(null, true);
 	}
 
 	/**
-	 * Returns the DisplayName that is shown to the Renderer.
-	 * Extra info might be appended depending on the settings, like item duration.
-	 * This is based on {@link #getName()}.
-	 *
 	 * @param mediaRenderer Media Renderer for which to show information.
 	 * @return String representing the item.
+	 * @see #getDisplayName(RendererConfiguration, boolean)
 	 */
 	public String getDisplayName(RendererConfiguration mediaRenderer) {
 		return getDisplayName(mediaRenderer, true);
