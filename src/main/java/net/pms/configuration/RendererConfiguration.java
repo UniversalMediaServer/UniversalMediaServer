@@ -54,7 +54,6 @@ public class RendererConfiguration {
 	// TextWrap parameters
 	protected int line_w, line_h, indent;
 	protected String inset, dots;
-	protected boolean dc_date = true;
 
 	// property values
 	private static final String LPCM = "LPCM";
@@ -119,6 +118,7 @@ public class RendererConfiguration {
 	private static final String RENDERER_NAME = "RendererName";
 	private static final String RESCALE_BY_RENDERER = "RescaleByRenderer";
 	private static final String SEEK_BY_TIME = "SeekByTime";
+	private static final String SEND_DATE_METADATA = "SendDateMetadata";
 	private static final String SHOW_AUDIO_METADATA = "ShowAudioMetadata";
 	private static final String SHOW_DVD_TITLE_DURATION = "ShowDVDTitleDuration"; // Ditlew
 	private static final String SHOW_SUB_METADATA = "ShowSubMetadata";
@@ -552,7 +552,6 @@ public class RendererConfiguration {
 		if (line_w > 0) {
 			line_h = getIntAt(s, "height:", 0);
 			indent = getIntAt(s, "indent:", 0);
-			dc_date = getIntAt(s, "date:", 1) != 0;
 			int ws = getIntAt(s, "whitespace:", 9);
 			int dotct = getIntAt(s, "dots:", 0);
 			inset = new String(new byte[indent]).replaceAll(".", Character.toString((char) ws));
@@ -1230,6 +1229,16 @@ public class RendererConfiguration {
 		return getBoolean(SHOW_SUB_METADATA, true);
 	}
 
+	/**
+	 * Whether to send the last modified date metadata for files and
+	 * folders, which can take up screen space on some renderers.
+	 *
+	 * @return whether to send the metadata
+	 */
+	public boolean isSendDateMetadata() {
+		return getBoolean(SEND_DATE_METADATA, true);
+	}
+
 	public boolean isDLNATreeHack() {
 		return getBoolean(DLNA_TREE_HACK, false) && LibMediaInfoParser.isValid();
 	}
@@ -1365,8 +1374,13 @@ public class RendererConfiguration {
 		return name;
 	}
 
+	/**
+	 * @see #isSendDateMetadata()
+	 * @deprecated
+	 */
+	@Deprecated
 	public boolean isOmitDcDate() {
-		return !dc_date;
+		return !isSendDateMetadata();
 	}
 
 	public static int getIntAt(String s, String key, int fallback) {
