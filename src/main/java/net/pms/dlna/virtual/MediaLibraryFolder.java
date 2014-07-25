@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import net.pms.PMS;
 import net.pms.dlna.*;
+import net.pms.util.UMSUtils;
 
 public class MediaLibraryFolder extends VirtualFolder {
 	public static final int FILES = 0;
@@ -38,6 +39,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 				if (expectedOutput == FILES) {
 					ArrayList<File> list = database.getFiles(sql);
 					if (list != null) {
+						UMSUtils.sort(list, PMS.getConfiguration().mediaLibrarySort());
 						for (File f : list) {
 							addChild(new RealFile(f));
 						}
@@ -45,6 +47,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 				} else if (expectedOutput == PLAYLISTS) {
 					ArrayList<File> list = database.getFiles(sql);
 					if (list != null) {
+						UMSUtils.sort(list, PMS.getConfiguration().mediaLibrarySort());
 						for (File f : list) {
 							addChild(new PlaylistFolder(f));
 						}
@@ -52,6 +55,7 @@ public class MediaLibraryFolder extends VirtualFolder {
 				} else if (expectedOutput == ISOS) {
 					ArrayList<File> list = database.getFiles(sql);
 					if (list != null) {
+						UMSUtils.sort(list, PMS.getConfiguration().mediaLibrarySort());
 						for (File f : list) {
 							addChild(new DVDISOFile(f));
 						}
