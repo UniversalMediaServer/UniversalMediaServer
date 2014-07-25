@@ -1205,13 +1205,21 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * This is based on {@link #getName()}.
 	 *
 	 * @param mediaRenderer Media Renderer for which to show information.
-	 * @param withSuffix Whether to include additional media info
 	 * @return String representing the item.
 	 */
 	public String getDisplayName(RendererConfiguration mediaRenderer) {
 		return getDisplayName(mediaRenderer, true);
 	}
 
+	/**
+	 * Returns the DisplayName that is shown to the Renderer.
+	 * Extra info might be appended depending on the settings, like item duration.
+	 * This is based on {@link #getName()}.
+	 *
+	 * @param mediaRenderer Media Renderer for which to show information.
+	 * @param withSuffix Whether to include additional media info
+	 * @return String representing the item.
+	 */
 	private String getDisplayName(RendererConfiguration mediaRenderer, boolean withSuffix) {
 		if (displayName != null) { // cached
 			return withSuffix ? (displayName + nameSuffix) : displayName;
