@@ -1415,18 +1415,23 @@ public class RendererConfiguration {
 		for (InetAddress sa : addressAssociation.keySet()) {
 			if (addressAssociation.get(sa) == this) {
 				Future<Integer> speed = SpeedStats.getInstance().getSpeedInMBitsStored(sa, getRendererName());
+				String speedString = String.valueOf(speed.get());
 				if (max == null) {
-					return String.valueOf(speed.get());
+					LOGGER.trace("Network speed estimate: " + speedString);
+					return speedString;
 				}
 				try {
 					Integer i = Integer.parseInt(max);
 					if (speed.get() > i && i != 0) {
+						LOGGER.trace("Network speed estimate is greater than the maximum set by UMS");
 						return max;
 					} else {
-						return String.valueOf(speed.get());
+						LOGGER.trace("Network speed estimate: " + speedString);
+						return speedString;
 					}
 				} catch (NumberFormatException e) {
-					return String.valueOf(speed.get());
+					LOGGER.trace("Network speed estimate: " + String.valueOf(speed.get()));
+					return speedString;
 				}
 			}
 		}
