@@ -1093,6 +1093,10 @@
 		-->
 		<profile>
 			<id>linux</id>
+			<!--
+				 this setting does the right thing on Linux
+				 and is needed for the Hudson profile to work
+			 -->
 			<activation>
 				<activeByDefault>false</activeByDefault>
 			</activation>

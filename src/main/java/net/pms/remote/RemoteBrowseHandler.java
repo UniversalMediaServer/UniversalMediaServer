@@ -8,7 +8,6 @@ import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.util.List;
 import net.pms.Messages;
-import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
 import net.pms.util.UMSUtils;

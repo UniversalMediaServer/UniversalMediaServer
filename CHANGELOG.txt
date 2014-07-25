@@ -31,6 +31,7 @@
 		General speed improvements
 		Updated several descriptions and formatted UMS.conf (user config) and PS3.conf (reference renderer config)
 	Renderers:
+		Added support for Google Chromecast
 		Added support for Sony Bravia XBR TVs
 		Improved aspect ratios on Sony Bravia EX TVs
 		Improved support for Apple mobile devices (iPad, iPhone, iPod)
