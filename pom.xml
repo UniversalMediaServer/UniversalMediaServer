@@ -886,7 +886,7 @@
 				<os>
 					<family>windows</family>
 				</os>
-			</activation>		
+			</activation>
 
 			<pluginRepositories>
 				<pluginRepository>
