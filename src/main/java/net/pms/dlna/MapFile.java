@@ -21,7 +21,6 @@ package net.pms.dlna;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.text.Collator;
 import java.util.*;
 import net.pms.PMS;
 import net.pms.configuration.MapFileConfiguration;
@@ -31,7 +30,7 @@ import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.formats.FormatFactory;
 import net.pms.network.HTTPResource;
 import net.pms.util.FileUtil;
-import net.pms.util.NaturalComparator;
+import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,13 +62,6 @@ public class MapFile extends DLNAResource {
 	@Deprecated
 	protected MapFileConfiguration conf;
 
-	private static final Collator collator;
-
-	static {
-		collator = Collator.getInstance();
-		collator.setStrength(Collator.PRIMARY);
-	}
-
 	public MapFile() {
 		this.conf = new MapFileConfiguration();
 		setLastModified(0);
@@ -92,10 +84,6 @@ public class MapFile extends DLNAResource {
 	private void manageFile(File f, String str) {
 		if (f.isFile() || f.isDirectory()) {
 			String lcFilename = f.getName().toLowerCase();
-			if (str != null && !lcFilename.contains(str)) {
-				// this is not searched for
-				return;
-			}
 
 			if (!f.isHidden()) {
 				if (configuration.isArchiveBrowsing() && (lcFilename.endsWith(".zip") || lcFilename.endsWith(".cbz"))) {
@@ -187,90 +175,6 @@ public class MapFile extends DLNAResource {
 		return discoverable.isEmpty();
 	}
 
-	private String renameForSorting(String filename) {
-		if (configuration.isPrettifyFilenames()) {
-			// This chunk makes anime sort properly
-			int squareBracketIndex;
-			if (filename.substring(0, 1).matches("\\[")) {
-				filename = filename.replaceAll("_", " ");
-				squareBracketIndex = filename.indexOf(']');
-				if (squareBracketIndex != -1) {
-					filename = filename.substring(squareBracketIndex + 1);
-					if (filename.substring(0, 1).matches("\\s")) {
-						filename = filename.substring(1);
-					}
-				}
-			}
-
-			// Replace periods with spaces
-			filename = filename.replaceAll("\\.", " ");
-		}
-
-		if (configuration.isIgnoreTheWordThe()) {
-			// Remove "The" from the beginning of files
-			filename = filename.replaceAll("^(?i)The[ .]", "");
-		}
-
-		return filename;
-	}
-
-	private void sort(List<File> files) {
-		switch (configuration.getSortMethod()) {
-			case 5: // Random
-				Collections.shuffle(files, new Random(System.currentTimeMillis()));
-				break;
-			case 4: // Locale-sensitive natural sort
-				Collections.sort(files, new Comparator<File>() {
-					@Override
-					public int compare(File f1, File f2) {
-						String filename1ToSort = renameForSorting(f1.getName());
-						String filename2ToSort = renameForSorting(f2.getName());
-
-						return NaturalComparator.compareNatural(collator, filename1ToSort, filename2ToSort);
-					}
-				});
-				break;
-			case 3: // Case-insensitive ASCIIbetical sort
-				Collections.sort(files, new Comparator<File>() {
-					@Override
-					public int compare(File f1, File f2) {
-						String filename1ToSort = renameForSorting(f1.getName());
-						String filename2ToSort = renameForSorting(f2.getName());
-
-						return filename1ToSort.compareToIgnoreCase(filename2ToSort);
-					}
-				});
-				break;
-			case 2: // Sort by modified date, oldest first
-				Collections.sort(files, new Comparator<File>() {
-					@Override
-					public int compare(File f1, File f2) {
-						return Long.valueOf(f1.lastModified()).compareTo(Long.valueOf(f2.lastModified()));
-					}
-				});
-				break;
-			case 1: // Sort by modified date, newest first
-				Collections.sort(files, new Comparator<File>() {
-					@Override
-					public int compare(File f1, File f2) {
-						return Long.valueOf(f2.lastModified()).compareTo(Long.valueOf(f1.lastModified()));
-					}
-				});
-				break;
-			default: // Locale-sensitive A-Z
-				Collections.sort(files, new Comparator<File>() {
-					@Override
-					public int compare(File f1, File f2) {
-						String filename1ToSort = renameForSorting(f1.getName());
-						String filename2ToSort = renameForSorting(f2.getName());
-
-						return collator.compare(filename1ToSort, filename2ToSort);
-					}
-				});
-				break;
-		}
-	}
-
 	@Override
 	public void discoverChildren() {
 		discoverChildren(null);
@@ -279,15 +183,14 @@ public class MapFile extends DLNAResource {
 	@Override
 	public void discoverChildren(String str) {
 		//super.discoverChildren(str);
-		if (str != null) {
-			str = str.toLowerCase();
-		}
 
 		if (discoverable == null) {
 			discoverable = new ArrayList<File>();
 		} else {
 			return;
 		}
+
+		int sm = configuration.getSortMethod(getPath());
 
 		List<File> files = getFileList();
 
@@ -311,7 +214,7 @@ public class MapFile extends DLNAResource {
 					continue;
 				}
 
-				String filenameToSort = renameForSorting(f.getName());
+				String filenameToSort = FileUtil.renameForSorting(f.getName());
 
 				char c = filenameToSort.toUpperCase().charAt(0);
 
@@ -332,34 +235,30 @@ public class MapFile extends DLNAResource {
 				// loop over all letters, this avoids adding
 				// empty letters
 				ArrayList<File> l = map.get(letter);
-				sort(l);
+				UMSUtils.sort(l, sm);
 				MapFile mf = new MapFile(getConf(), l);
 				mf.forcedName = letter;
 				addChild(mf);
 			}
 			return;
 		}
-		
-		sort(files);
-		
+
+		UMSUtils.sort(files, (sm == UMSUtils.SORT_RANDOM ? UMSUtils.SORT_LOC_NAT : sm));
+
 		for (File f : files) {
 			if (f.isDirectory()) {
-				if (str == null || f.getName().toLowerCase().contains(str)) {
-					discoverable.add(f); // manageFile(f);
-				}
+				discoverable.add(f); // manageFile(f);
 			}
 		}
 
 		// For random sorting, we only randomize file entries
-		if (configuration.getSortMethod() == 5) {
-			Collections.shuffle(files);
+		if (sm == UMSUtils.SORT_RANDOM) {
+			UMSUtils.sort(files, sm);
 		}
 
 		for (File f : files) {
 			if (f.isFile()) {
-				if (str == null || f.getName().toLowerCase().contains(str)) {
-					discoverable.add(f); // manageFile(f);
-				}
+				discoverable.add(f); // manageFile(f);
 			}
 		}
 	}
@@ -374,7 +273,7 @@ public class MapFile extends DLNAResource {
 			}
 		}
 
-		return getLastRefreshTime() < modified;
+		return (getLastRefreshTime() < modified);
 	}
 
 	@Override
@@ -394,12 +293,6 @@ public class MapFile extends DLNAResource {
 
 			if (isNeedMatching && !found) {
 				removedFiles.add(d);
-			} else if (str != null && found) {
-				String s = d.getName().toLowerCase();
-				if (!s.contains(str)) {
-					// new search, this doesn't match
-					removedFiles.add(d);
-				}
 			}
 		}
 
@@ -564,6 +457,13 @@ public class MapFile extends DLNAResource {
 
 	@Override
 	public boolean isSearched() {
-		return true;
+		return (getParent() instanceof SearchFolder);
+	}
+
+	private File getPath() {
+		if (this instanceof RealFile) {
+			return ((RealFile) this).getFile();
+		}
+		return null;
 	}
 }

@@ -336,7 +336,6 @@ public class ExternalFactory {
 						f.delete();
 					}
 				}
-				in.close();
 			fis.close();
 		} catch (IOException e) { }
 		purge.delete();

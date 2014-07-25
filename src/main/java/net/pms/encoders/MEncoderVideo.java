@@ -1445,7 +1445,7 @@ public class MEncoderVideo extends Player {
 
 				// MEncoder is not compiled with fontconfig on Mac OS X, therefore
 				// use of the "-ass" option also requires the "-font" option.
-				if (Platform.isMac() && sb.toString().indexOf(" -font ") < 0) {
+				if (Platform.isMac() && !sb.toString().contains(" -font ")) {
 					String font = CodecUtil.getDefaultFontPath();
 
 					if (isNotBlank(font)) {
@@ -1688,7 +1688,7 @@ public class MEncoderVideo extends Player {
 		// Check if the media renderer supports this resolution
 		boolean isResolutionTooHighForRenderer = false;
 		if (
-			params.mediaRenderer.isVideoRescale() &&
+			params.mediaRenderer.isMaximumResolutionSpecified() &&
 			(
 				media.getWidth() > params.mediaRenderer.getMaxVideoWidth() ||
 				media.getHeight() > params.mediaRenderer.getMaxVideoHeight()
@@ -1731,7 +1731,10 @@ public class MEncoderVideo extends Player {
 			StringBuilder vfValueComplete        = new StringBuilder();
 
 			String deinterlaceComma = "";
-			double rendererAspectRatio;
+			double rendererAspectRatio = 1.777777777777778;
+			if (params.mediaRenderer.isMaximumResolutionSpecified()) {
+				rendererAspectRatio = (double) params.mediaRenderer.getMaxVideoWidth() / (double) params.mediaRenderer.getMaxVideoHeight();
+			}
 
 			/*
 			 * Implement overscan compensation settings
@@ -1748,14 +1751,13 @@ public class MEncoderVideo extends Player {
 
 				// See if the video needs to be scaled down
 				if (
-					params.mediaRenderer.isVideoRescale() &&
+					params.mediaRenderer.isMaximumResolutionSpecified() &&
 					(
 						(scaleWidth > params.mediaRenderer.getMaxVideoWidth()) ||
 						(scaleHeight > params.mediaRenderer.getMaxVideoHeight())
 					)
 				) {
 					double overscannedAspectRatio = scaleWidth / (double) scaleHeight;
-					rendererAspectRatio = params.mediaRenderer.getMaxVideoWidth() / (double) params.mediaRenderer.getMaxVideoHeight();
 
 					if (overscannedAspectRatio > rendererAspectRatio) {
 						// Limit video by width
@@ -1806,12 +1808,11 @@ public class MEncoderVideo extends Player {
 				// The video resolution is too big for the renderer so we need to scale it down
 
 				double videoAspectRatio = (double) media.getWidth() / (double) media.getHeight();
-				rendererAspectRatio = (double) params.mediaRenderer.getMaxVideoWidth() / (double) params.mediaRenderer.getMaxVideoHeight();
 
 				/*
 				 * First we deal with some exceptions, then if they are not matched we will
 				 * let the renderer limits work.
-				 * 
+				 *
 				 * This is so, for example, we can still define a maximum resolution of
 				 * 1920x1080 in the renderer config file but still support 1920x1088 when
 				 * it's needed, otherwise we would either resize 1088 to 1080, meaning the
@@ -1865,11 +1866,12 @@ public class MEncoderVideo extends Player {
 		}
 
 		/*
-		 * The PS3 and possibly other renderers display videos incorrectly
-		 * if the dimensions aren't divisible by 4, so if that is the
-		 * case we add borders until it is divisible by 4.
-		 * This fixes the long-time bug of videos displaying in black and
-		 * white with diagonal strips of colour, weird one.
+		 * Make sure the video is mod4 unless the renderer has specified
+		 * that it doesn't care, and make sure the aspect ratio is 16/9
+		 * if the renderer needs it.
+		 *
+		 * The PS3 and possibly other renderers sometimes display mod2
+		 * videos in black and white with diagonal strips of color.
 		 *
 		 * TODO: Integrate this with the other stuff so that "expand" only
 		 * ever appears once in the MEncoder CMD.
@@ -1877,9 +1879,17 @@ public class MEncoderVideo extends Player {
 		if (
 			!dvd &&
 			(
-				(scaleWidth % 4 != 0) ||
-				(scaleHeight % 4 != 0) ||
-				params.mediaRenderer.isKeepAspectRatio()
+				(
+					(
+						(scaleWidth % 4 != 0) ||
+						(scaleHeight % 4 != 0)
+					) &&
+					!params.mediaRenderer.isMuxNonMod4Resolution()
+				) ||
+				(
+					params.mediaRenderer.isKeepAspectRatio() &&
+					!"16:9".equals(media.getAspectRatioContainer())
+				)
 			) &&
 			!configuration.isMencoderScaler()
 		) {

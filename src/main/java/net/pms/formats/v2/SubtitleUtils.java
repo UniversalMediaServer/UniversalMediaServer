@@ -159,7 +159,7 @@ public class SubtitleUtils {
 				}
 
 				if (line.startsWith("{") && line.contains("}")) {
-					line = line.substring(line.indexOf("}") + 1);
+					line = line.substring(line.indexOf('}') + 1);
 				}
 
 				outputString.append(line).append("\n");

@@ -97,10 +97,16 @@ $(function(){
 	$(window).bind('load resize', $.ImageMargins.changeMargins);
 });
 
+$(document).ready(function() {
+	document.oncontextmenu = function() {
+		return false;
+	};
+});
+
 function searchFun(url) {
 	var str = prompt("Enter search string:");
 	if (str !== null) {
-		window.location.replace(url+'?str='+str)
+		window.location.assign(url+'?str='+str)
 	}
 	return false;
 }

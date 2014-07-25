@@ -33,13 +33,13 @@ import java.util.TimeZone;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.util.StringUtil;
+import net.pms.util.UMSUtils;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -302,7 +302,7 @@ public class Request extends HTTPResource {
 					}
 
 					inputStream = dlna.getThumbnailInputStream();
-				} else if (dlna.getMedia() != null && fileName.indexOf("subtitle0000") > -1) {
+				} else if (dlna.getMedia() != null && fileName.contains("subtitle0000")) {
 					// This is a request for a subtitle file
 					output(output, "Content-Type: text/plain");
 					output(output, "Expires: " + getFUTUREDATE() + " GMT");
@@ -501,7 +501,7 @@ public class Request extends HTTPResource {
 			response.append(CRLF);
 		} else if (method.equals("POST") && argument.endsWith("upnp/control/connection_manager")) {
 			output(output, CONTENT_TYPE_UTF8);
-			if (soapaction != null && soapaction.indexOf("ConnectionManager:1#GetProtocolInfo") > -1) {
+			if (soapaction != null && soapaction.contains("ConnectionManager:1#GetProtocolInfo")) {
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
@@ -514,7 +514,7 @@ public class Request extends HTTPResource {
 		} else if (method.equals("POST") && argument.endsWith("upnp/control/content_directory")) {
 			output(output, CONTENT_TYPE_UTF8);
 
-			if (soapaction != null && soapaction.indexOf("ContentDirectory:1#GetSystemUpdateID") > -1) {
+			if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSystemUpdateID")) {
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
@@ -527,7 +527,7 @@ public class Request extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
-			} else if (soapaction != null && soapaction.indexOf("ContentDirectory:1#GetSortCapabilities") > -1) {
+			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSortCapabilities")) {
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
@@ -536,7 +536,7 @@ public class Request extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
-			} else if (soapaction != null && soapaction.indexOf("ContentDirectory:1#X_GetFeatureList") > -1) { // Added for Samsung 2012 TVs
+			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#X_GetFeatureList")) { // Added for Samsung 2012 TVs
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
@@ -545,7 +545,7 @@ public class Request extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
-			} else if (soapaction != null && soapaction.indexOf("ContentDirectory:1#GetSearchCapabilities") > -1) {
+			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSearchCapabilities")) {
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
@@ -631,32 +631,7 @@ public class Request extends HTTPResource {
 				);
 
 				if (searchCriteria != null && files != null) {
-					searchCriteria = searchCriteria.toLowerCase();
-
-					for (int i = files.size() - 1; i >= 0; i--) {
-						DLNAResource res = files.get(i);
-
-						if (res.isSearched()) {
-							continue;
-						}
-
-						boolean keep = res.getName().toLowerCase().indexOf(searchCriteria) != -1;
-						final DLNAMediaInfo media = res.getMedia();
-
-						if (media!=null) {
-							for (int j = 0;j < media.getAudioTracksList().size(); j++) {
-								DLNAMediaAudio audio = media.getAudioTracksList().get(j);
-								keep |= audio.getAlbum().toLowerCase().indexOf(searchCriteria) != -1;
-								keep |= audio.getArtist().toLowerCase().indexOf(searchCriteria) != -1;
-								keep |= audio.getSongname().toLowerCase().indexOf(searchCriteria) != -1;
-							}
-						}
-
-						if (!keep) { // dump it
-							files.remove(i);
-						}
-					}
-
+					UMSUtils.postSearch(files, searchCriteria);
 					if (xbox) {
 						if (files.size() > 0) {
 							files = files.get(0).getChildren();

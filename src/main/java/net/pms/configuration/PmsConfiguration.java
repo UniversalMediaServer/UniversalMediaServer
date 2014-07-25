@@ -35,6 +35,7 @@ import net.pms.io.SystemUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.FileUtil.FileLocation;
 import net.pms.util.PropertiesUtil;
+import net.pms.util.UMSUtils;
 import net.pms.util.WindowsRegistry;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
@@ -212,6 +213,7 @@ public class PmsConfiguration {
 	private static final String KEY_SKIP_LOOP_FILTER_ENABLED = "mencoder_skip_loop_filter";
 	private static final String KEY_SKIP_NETWORK_INTERFACES = "skip_network_interfaces";
 	private static final String KEY_SORT_METHOD = "sort_method";
+	private static final String KEY_SORT_PATHS = "sort_paths";
 	private static final String KEY_SPEED_DBG = "speed_debug";
 	private static final String KEY_SUBS_COLOR = "subtitles_color";
 	private static final String KEY_SUBTITLES_CODEPAGE = "subtitles_codepage";
@@ -240,6 +242,7 @@ public class PmsConfiguration {
 	private static final String KEY_VLC_SAMPLE_RATE = "vlc_sample_rate";
 	private static final String KEY_WEB_AUTHENTICATE = "web_authenticate";
 	private static final String KEY_WEB_CONF_PATH = "web_conf";
+	private static final String KEY_WEB_ENABLE = "web_enable";
 	private static final String KEY_WEB_MP4_TRANS = "web_mp4_trans";
 	private static final String KEY_WEB_THREADS = "web_threads";
 	private static final String KEY_WEB_PATH = "web_path";
@@ -995,8 +998,8 @@ public class PmsConfiguration {
 	 */
 	public String getAudioLanguages() {
 		return configurationReader.getPossiblyBlankConfigurationString(
-			KEY_AUDIO_LANGUAGES,
-			Messages.getString("MEncoderVideo.126")
+				KEY_AUDIO_LANGUAGES,
+				Messages.getString("MEncoderVideo.126")
 		);
 	}
 
@@ -1011,8 +1014,8 @@ public class PmsConfiguration {
 	 */
 	public String getSubtitlesLanguages() {
 		return configurationReader.getPossiblyBlankConfigurationString(
-			KEY_SUBTITLES_LANGUAGES,
-			Messages.getString("MEncoderVideo.127")
+				KEY_SUBTITLES_LANGUAGES,
+				Messages.getString("MEncoderVideo.127")
 		);
 	}
 
@@ -2128,8 +2131,47 @@ public class PmsConfiguration {
 	 * Default value is 4.
 	 * @return The sort method
 	 */
-	public int getSortMethod() {
-		return getInt(KEY_SORT_METHOD, 4);
+	private int findPathSort(String[] paths, String path) throws NumberFormatException{
+		for (String path1 : paths) {
+			String[] kv = path1.split(",");
+			if (kv.length < 2) {
+				continue;
+			}
+			if (kv[0].equals(path)) {
+				return Integer.parseInt(kv[1]);
+			}
+		}
+		return -1;
+	}
+
+	public int getSortMethod(File path) {
+		int cnt = 0;
+		String raw = getString(KEY_SORT_PATHS, null);
+		if (StringUtils.isEmpty(raw)) {
+			return getInt(KEY_SORT_METHOD, UMSUtils.SORT_LOC_NAT);
+		}
+		if (Platform.isWindows()) {
+			// windows is crap
+			raw = raw.toLowerCase();
+		}
+		String[] paths = raw.split(" ");
+
+		while (path != null && (cnt++ < 100)) {
+			String key = path.getAbsolutePath();
+			if (Platform.isWindows()) {
+				key = key.toLowerCase();
+			}
+			try {
+				int ret = findPathSort(paths, key);
+				if (ret != -1) {
+					return ret;
+				}
+			} catch (NumberFormatException e) {
+				// just ignore
+			}
+			path = path.getParentFile();
+		}
+		return getInt(KEY_SORT_METHOD, UMSUtils.SORT_LOC_NAT);
 	}
 
 	/**
@@ -2967,6 +3009,7 @@ public class PmsConfiguration {
 	 */
 	private static final String KEY_NO_FOLDERS = "no_shared";
 	private static final String KEY_WEB_HTTPS = "use_https";
+	private static final String KEY_WEB_PORT = "web_port";
 	private static final int WEB_MAX_THREADS = 100;
 
 	public boolean getNoFolders(String tag) {
@@ -3006,13 +3049,21 @@ public class PmsConfiguration {
 		return getBoolean(KEY_WEB_MP4_TRANS, false);
 	}
 
+	public int getWebPort() {
+		return getInt(KEY_WEB_PORT, 0);
+	}
+
+	public boolean useWebInterface() {
+		return getBoolean(KEY_WEB_ENABLE, true);
+	}
+
 	public boolean isAutomaticMaximumBitrate() {
 		return getBoolean(KEY_AUTOMATIC_MAXIMUM_BITRATE, false);
 	}
 
 	public void setAutomaticMaximumBitrate(boolean b) {
 		if (!isAutomaticMaximumBitrate() && b) {
-			// get all bitrates from renders
+			// get all bitrates from renderers
 			RendererConfiguration.calculateAllSpeeds();
 		}
 		configuration.setProperty(KEY_AUTOMATIC_MAXIMUM_BITRATE, b);

@@ -83,6 +83,8 @@ public class PMS {
 	@Deprecated
 	public static String VERSION;
 
+	private boolean ready = false;
+
 	public static final String AVS_SEPARATOR = "\1";
 
 	// (innot): The logger used for all logging.
@@ -696,7 +698,9 @@ public class PMS {
 		}
 
 		// Web stuff
-		web = new RemoteWeb();
+		if (configuration.useWebInterface()) {
+			web = new RemoteWeb(configuration.getWebPort());
+		}
 
 		// initialize the cache
 		if (configuration.getUseCache()) {
@@ -711,6 +715,8 @@ public class PMS {
 		getRootFolder(RendererConfiguration.getDefaultConf());
 
 		frame.serverReady();
+
+		ready = true;
 
 		// UPNPHelper.sendByeBye();
 		Runtime.getRuntime().addShutdownHook(new Thread("PMS Listeners Stopper") {
@@ -1211,7 +1217,7 @@ public class PMS {
 
 		if (
 			(System.getProperty("os.name").contains("Windows") && System.getenv("ProgramFiles(x86)") != null) ||
-			System.getProperty("os.arch").indexOf("64") != -1
+			System.getProperty("os.arch").contains("64")
 		) {
 			bitness = 64;
 		}
@@ -1456,5 +1462,9 @@ public class PMS {
 		}
 
 		return false;
+	}
+
+	public static boolean isReady() {
+		return get().ready;
 	}
 }

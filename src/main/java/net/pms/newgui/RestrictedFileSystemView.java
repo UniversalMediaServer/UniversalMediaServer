@@ -84,7 +84,7 @@ public class RestrictedFileSystemView extends FileSystemView {
 	 */
 	@Override
 	public Boolean isTraversable(File f) {
-		return Boolean.valueOf(f.isDirectory());
+		return f.isDirectory();
 	}
 
 	/**
@@ -397,7 +397,7 @@ public class RestrictedFileSystemView extends FileSystemView {
 		int i = 2;
 		while (newFolder.exists() && (i < 100)) {
 			newFolder = createFileObject(containingDir, MessageFormat.format(newFolderString,
-				new Object[] { Integer.valueOf(i) }));
+				new Object[]{i}));
 			i++;
 		}
 

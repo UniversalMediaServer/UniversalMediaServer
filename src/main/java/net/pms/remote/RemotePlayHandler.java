@@ -1,5 +1,6 @@
 package net.pms.remote;
 
+import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.File;
@@ -204,6 +205,8 @@ public class RemotePlayHandler implements HttpHandler {
 		String id;
 		id = RemoteUtil.getId("play/", t);
 		String response = mkPage(id, t);
+		Headers hdr = t.getResponseHeaders();
+		hdr.add("Content-Type", "text/html");
 		LOGGER.debug("play page " + response);
 		t.sendResponseHeaders(200, response.length());
 		OutputStream os = t.getResponseBody();

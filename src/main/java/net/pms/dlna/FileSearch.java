@@ -18,6 +18,10 @@ public class FileSearch implements SearchObj {
 	public void update(List<RealFile> folders) {
 		this.folders = (ArrayList<RealFile>) folders;
 	}
+
+	public void update(List<RealFile> folders) {
+		this.folders = (ArrayList<RealFile>) folders;
+	}
 	
 	@Override
 	public void search(String searchString, DLNAResource searcher) {

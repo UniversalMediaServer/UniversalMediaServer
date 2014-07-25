@@ -19,8 +19,8 @@ public class MpegUtil {
 						while (iterator.hasNext()) {
 							Integer id = iterator.next();
 							if (ptsEnd.get(id) != null) {
-								int dur = ptsEnd.get(id).intValue()
-									- ptsStart.get(id).intValue();
+								int dur = ptsEnd.get(id)
+									- ptsStart.get(id);
 								dur /= 90000;
 								return dur;
 							}
@@ -68,7 +68,7 @@ public class MpegUtil {
 				// check pts
 				if ((buffer[diff] & 128) == 128 && (buffer[diff + 2] & 32) == 32
 						&& (pts.get(id) == null || (pts.get(id) != null && end))) {
-					pts.put(id, Integer.valueOf(getTS(buffer, diff + 3)));
+					pts.put(id, getTS(buffer, diff + 3));
 				}
 			}
 		}
@@ -118,7 +118,7 @@ public class MpegUtil {
 					while (iterator.hasNext()) {
 						Integer id = iterator.next();
 						if (ptsEnd.get(id) != null) {
-							int time = (ptsEnd.get(id).intValue() - ptsStart.get(id).intValue()) / 90000;
+							int time = (ptsEnd.get(id) - ptsStart.get(id)) / 90000;
 
 							if (time == timeS) // found it
 							{

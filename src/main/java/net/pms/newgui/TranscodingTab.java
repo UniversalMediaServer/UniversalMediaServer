@@ -547,7 +547,7 @@ public class TranscodingTab {
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
 					String s = (String) e.getItem();
-					if (s.indexOf("/*") > -1) {
+					if (s.contains("/*")) {
 						s = s.substring(0, s.indexOf("/*")).trim();
 					}
 					configuration.setMPEG2MainSettings(s);
@@ -578,7 +578,7 @@ public class TranscodingTab {
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.SELECTED) {
 					String s = (String) e.getItem();
-					if (s.indexOf("/*") > -1) {
+					if (s.contains("/*")) {
 						s = s.substring(0, s.indexOf("/*")).trim();
 					}
 					configuration.setx264ConstantRateFactor(s);

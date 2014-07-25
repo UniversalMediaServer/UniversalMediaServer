@@ -341,7 +341,6 @@ public class PluginTab {
 							sb.append("\n");
 						}
 						textArea.setText(sb.toString());
-						in.close();
 					fis.close();
 				} catch (IOException e1) {
 					return;
