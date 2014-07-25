@@ -2054,60 +2054,57 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public void stopPlaying(final String rendererId) {
 		final DLNAResource self = this;
 		final String requestId = getRequestId(rendererId);
-		Runnable defer = new Runnable() {
-			@Override
-			public void run() {
-				try {
-					Thread.sleep(STOP_PLAYING_DELAY);
-				} catch (InterruptedException e) {
-					LOGGER.error("stopPlaying sleep interrupted", e);
-				}
-
-				synchronized (requestIdToRefcount) {
-					final Integer refCount = requestIdToRefcount.get(requestId);
-					assert refCount != null;
-					assert refCount > 0;
-					requestIdToRefcount.put(requestId, refCount - 1);
-
-					Runnable r = () -> {
-						if (refCount == 1) {
-							InetAddress rendererIp;
+		Runnable defer = () -> {
+			try {
+				Thread.sleep(STOP_PLAYING_DELAY);
+			} catch (InterruptedException e) {
+				LOGGER.error("stopPlaying sleep interrupted", e);
+			}
+			
+			synchronized (requestIdToRefcount) {
+				final Integer refCount = requestIdToRefcount.get(requestId);
+				assert refCount != null;
+				assert refCount > 0;
+				requestIdToRefcount.put(requestId, refCount - 1);
+				
+				Runnable r = () -> {
+					if (refCount == 1) {
+						InetAddress rendererIp;
+						try {
+							rendererIp = InetAddress.getByName(rendererId);
+							RendererConfiguration renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(rendererIp);
+							String rendererName = "unknown renderer";
 							try {
-								rendererIp = InetAddress.getByName(rendererId);
-								RendererConfiguration renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(rendererIp);
-								String rendererName = "unknown renderer";
-								try {
-									rendererName = renderer.getRendererName();
-								} catch (NullPointerException e) { }
-								LOGGER.info("Stopped playing " + getName() + " on your " + rendererName);
-								LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
-							} catch (UnknownHostException ex) {
-								LOGGER.debug("" + ex);
-							}
-
-							PMS.get().getFrame().setStatusLine("");
-
-							internalStop();
-
-							for (final ExternalListener listener : ExternalFactory.getExternalListeners()) {
-								if (listener instanceof StartStopListener) {
-									// run these asynchronously for slow handlers (e.g. logging, scrobbling)
-									Runnable fireStartStopEvent = () -> {
-										try {
-											((StartStopListener) listener).donePlaying(media, self);
-										} catch (Throwable t) {
-											LOGGER.error("Notification of donePlaying event failed for StartStopListener {}", listener.getClass(), t);
-										}
-									};
-
-									new Thread(fireStartStopEvent, "StopPlaying Event for " + listener.name()).start();
-								}
+								rendererName = renderer.getRendererName();
+							} catch (NullPointerException e) { }
+							LOGGER.info("Stopped playing " + getName() + " on your " + rendererName);
+							LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
+						} catch (UnknownHostException ex) {
+							LOGGER.debug("" + ex);
+						}
+						
+						PMS.get().getFrame().setStatusLine("");
+						
+						internalStop();
+						
+						for (final ExternalListener listener : ExternalFactory.getExternalListeners()) {
+							if (listener instanceof StartStopListener) {
+								// run these asynchronously for slow handlers (e.g. logging, scrobbling)
+								Runnable fireStartStopEvent = () -> {
+									try {
+										((StartStopListener) listener).donePlaying(media, self);
+									} catch (Throwable t) {
+										LOGGER.error("Notification of donePlaying event failed for StartStopListener {}", listener.getClass(), t);
+									}
+								};
+								
+								new Thread(fireStartStopEvent, "StopPlaying Event for " + listener.name()).start();
 							}
 						}
-					};
-
-					new Thread(r, "StopPlaying Event").start();
-				}
+					}
+				};
+				
+				new Thread(r, "StopPlaying Event").start();
 			}
 		};
 

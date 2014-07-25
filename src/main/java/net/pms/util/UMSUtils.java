@@ -84,10 +84,10 @@ public class UMSUtils {
 		});
 				break;
 			case SORT_MOD_OLD: // Sort by modified date, oldest first
-				Collections.sort(files, (File f1, File f2) -> Long.valueOf(f1.lastModified()).compareTo(Long.valueOf(f2.lastModified())));
+				Collections.sort(files, (File f1, File f2) -> Long.valueOf(f1.lastModified()).compareTo(f2.lastModified()));
 				break;
 			case SORT_MOD_NEW: // Sort by modified date, newest first
-				Collections.sort(files, (File f1, File f2) -> Long.valueOf(f2.lastModified()).compareTo(Long.valueOf(f1.lastModified())));
+				Collections.sort(files, (File f1, File f2) -> Long.valueOf(f2.lastModified()).compareTo(f1.lastModified()));
 				break;
 			case SORT_RANDOM: // Random
 				Collections.shuffle(files, new Random(System.currentTimeMillis()));
