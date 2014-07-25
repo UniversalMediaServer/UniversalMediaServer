@@ -7,7 +7,8 @@
 		Added "Random" file sorting option
 		Added tooltips to more options in the GUI
 		Added option to use PsPing on Windows to make network speed estimates more accurate (ping_path)
-		Added renderer option LimitFolders to specify whether the renderer has a folder limit or not
+		Added renderer option LimitFolders to specify whether the renderer has a folder limit
+		Added renderer option SendDateMetadata to specify whether to send last modified date metadata to the renderer
 		Added searching to each folder
 		Added web_port and web_enable settings to UMS.conf
 		Added support for 4k videos by automatically scaling them to a resolution that the renderer supports
@@ -19,7 +20,7 @@
 		Improved the TextWrap function, which makes filenames fit better on certain renderers
 		Improved detection of which videos are automatically muxable
 		Made more strings translatable
-		Fixed performing unnecessary speed checks
+		Fixed performing unnecessary network speed checks
 		Fixed a bug with the Recently Played folder
 		Fixed padding in FFmpeg for DVD video resolution
 		Fixed documentation images on Linux
@@ -65,6 +66,7 @@
 		Made the buffer more animated
 		Added web_port and web_enable settings to UMS.conf
 		Added support for 4k videos by automatically scaling them to a resolution that the renderer supports
+		Added renderer option SendDateMetadata to specify whether to send last modified date metadata to the renderer
 		Improved detection of which videos are automatically muxable
 		Fixed and improved web interface search
 		Fixed web interface content-type
