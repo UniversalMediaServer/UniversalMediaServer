@@ -1,4 +1,4 @@
-4.0.0 - 2014-07-?? - Changes since 3.6.4
+4.0.0 - 2014-07-25 - Changes since 3.6.4
 
 	General:
 		Added a web interface, available at localhost:9001
@@ -60,7 +60,7 @@
 		Improved support for Xbox 360
 	Languages:
 		Updated Dutch translation (thanks, leroy!)
-4.0.0 - 2014-07-?? - Changes since 4.0.0-b1
+4.0.0 - 2014-07-25 - Changes since 4.0.0-b1
 
 	General:
 		Made the buffer more animated
