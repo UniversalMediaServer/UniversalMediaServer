@@ -92,12 +92,14 @@ public class RemoteMediaHandler implements HttpHandler {
 
 		dlna.setDefaultRenderer(r);
 		m.setMimeType(mime);
+		int code = 200;
 		if (!RemoteUtil.directmime(mime)) {
 			dlna.setPlayer(
 				dlna.getFormat().isAudio() ? new FFmpegAudio() :
 				FileUtil.isUrl(dlna.getSystemName()) ? new FFmpegWebVideo() :
 				new FFMpegVideo()
 			);
+			code = 206;
 		}
 
 		LOGGER.debug("dumping media " + mime + " " + dlna);
@@ -107,7 +109,7 @@ public class RemoteMediaHandler implements HttpHandler {
 		hdr.add("Accept-Ranges", "bytes");
 		hdr.add("Server", PMS.get().getServerName());
 		hdr.add("Connection", "keep-alive");
-		t.sendResponseHeaders(200, 0);
+		t.sendResponseHeaders(code, 0);
 		OutputStream os = t.getResponseBody();
 		StartStopListenerDelegate startStop = new StartStopListenerDelegate(t.getRemoteAddress().getHostString());
 		PMS.get().getFrame().setStatusLine("Serving " + dlna.getName());
