@@ -3070,7 +3070,7 @@ public class PmsConfiguration {
 
 	public void setAutomaticMaximumBitrate(boolean b) {
 		if (!isAutomaticMaximumBitrate() && b) {
-			// get all bitrates from renders
+			// get all bitrates from renderers
 			RendererConfiguration.calculateAllSpeeds();
 		}
 		configuration.setProperty(KEY_AUTOMATIC_MAXIMUM_BITRATE, b);
