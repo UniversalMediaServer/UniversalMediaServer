@@ -907,6 +907,13 @@ public class FFMpegVideo extends Player {
 			 */
 			mkfifo_process.runInSameThread();
 			pw.attachProcess(mkfifo_process); // Clean up the mkfifo process when the transcode ends
+
+			// Give the mkfifo process a little time
+			try {
+				Thread.sleep(300);
+			} catch (InterruptedException e) {
+				LOGGER.error("Thread interrupted while waiting for named pipe to be created", e);
+			}
 		} else {
 			pipe = new PipeProcess(System.currentTimeMillis() + "tsmuxerout.ts");
 
@@ -1060,7 +1067,14 @@ public class FFMpegVideo extends Player {
 			ffAudio.runInNewThread();
 		}
 
+		// Launch the transcode command...
 		pw.runInNewThread();
+		// ...and wait briefly to allow it to start
+		try {
+			Thread.sleep(200);
+		} catch (InterruptedException e) {
+			LOGGER.error("Thread interrupted while waiting for transcode to start", e);
+		}
 		return pw;
 	}
 
