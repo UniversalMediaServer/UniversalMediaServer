@@ -1363,28 +1363,29 @@ public class FFMpegVideo extends Player {
 							continue;
 						}
 
-								break;
-							case "Fontsize":
-								if (!playResIsSet) {
-									params[i] = Integer.toString((int) ((Integer.parseInt(params[i]) * media.getHeight() / (double) 288 * Double.parseDouble(configuration.getAssScale()))));
-								}
+						if (format[i].contains("Fontsize")) {
+							params[i] = Integer.toString((int) ((Integer.parseInt(params[i]) * media.getHeight() / (double) 288 * Double.parseDouble(configuration.getAssScale()))));
+							continue;
+						}
 
-								break;
-							case "PrimaryColour":
-								String primaryColour = Integer.toHexString(configuration.getSubsColor());
-								params[i] = "&H" + primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4);
-								break;
-							case "Outline":
-								params[i] = configuration.getAssOutline();
-								break;
-							case "Shadow":
-								params[i] = configuration.getAssShadow();
-								break;
-							case "MarginV":
-								params[i] = configuration.getAssMargin();
-								break;
-							default:
-								break;
+						if (format[i].contains("PrimaryColour")) {
+							String primaryColour = Integer.toHexString(configuration.getSubsColor());
+							params[i] = "&H" + primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4);
+							continue;
+						}
+
+						if (format[i].contains("Outline")) {
+							params[i] = configuration.getAssOutline();
+							continue;
+						}
+
+						if (format[i].contains("Shadow")) {
+							params[i] = configuration.getAssShadow();
+							continue;
+						}
+
+						if (format[i].contains("MarginV")) {
+							params[i] = configuration.getAssMargin();
 						}
 					}
 
