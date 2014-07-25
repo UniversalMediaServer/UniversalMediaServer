@@ -663,6 +663,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							) {
 								isIncompatible = true;
 								LOGGER.trace("File \"{}\" will not be streamed because the renderer needs us to add borders so it displays the correct aspect ratio.", child.getName());
+							} else if (
+								defaultRenderer != null &&
+								defaultRenderer.isMaximumResolutionSpecified() &&
+								(
+									child.media.getWidth()  > defaultRenderer.getMaxVideoWidth() ||
+									child.media.getHeight() > defaultRenderer.getMaxVideoHeight()
+								)
+							) {
+								isIncompatible = true;
+								LOGGER.trace("File \"{}\" will not be streamed because the resolution is too high for the renderer.", child.getName());
 							}
 
 							// Prefer transcoding over streaming if:
@@ -1183,10 +1193,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * Returns the display name for the default renderer.
 	 *
 	 * @return The display name.
-	 * @see #getDisplayName(RendererConfiguration)
+	 * @see #getDisplayName(RendererConfiguration, boolean)
 	 */
 	public String getDisplayName() {
 		return getDisplayName(null, true);
+	}
+
+	/**
+	 * @param mediaRenderer Media Renderer for which to show information.
+	 * @return String representing the item.
+	 * @see #getDisplayName(RendererConfiguration, boolean)
+	 */
+	public String getDisplayName(RendererConfiguration mediaRenderer) {
+		return getDisplayName(mediaRenderer, true);
 	}
 
 	/**
@@ -1198,10 +1217,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param withSuffix Whether to include additional media info
 	 * @return String representing the item.
 	 */
-	public String getDisplayName(RendererConfiguration mediaRenderer) {
-		return getDisplayName(mediaRenderer, true);
-	}
-
 	private String getDisplayName(RendererConfiguration mediaRenderer, boolean withSuffix) {
 		if (displayName != null) { // cached
 			return withSuffix ? (displayName + nameSuffix) : displayName;
@@ -1284,6 +1299,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			subtitleFormat = media_subtitle.getType().getDescription();
 			if ("(Advanced) SubStation Alpha".equals(subtitleFormat)) {
 				subtitleFormat = "SSA";
+			} else if ("Blu-ray subtitles".equals(subtitleFormat)) {
+				subtitleFormat = "PGS";
 			}
 
 			subtitleLanguage = "/" + media_subtitle.getLangFullName();
@@ -1628,12 +1645,28 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							dlnaspec = "DLNA.ORG_PN=" + getMPEG_PS_PALLocalizedValue(c);
 
 							if (player != null) {
-								// If the engine being is tsMuxeR or VLC, we are definitely outputting MPEG-TS so we can skip a lot of tests
+								// VLC Web Video (Legacy) and tsMuxeR always output MPEG-TS
 								boolean isFileMPEGTS = TsMuxeRVideo.ID.equals(player.id()) || VideoLanVideoStreaming.ID.equals(player.id());
+
+								// Check if the renderer settings make the current engine always output MPEG-TS
+								if (
+									!isFileMPEGTS &&
+									(
+										mediaRenderer.isTranscodeToMPEGTSMPEG2AC3() ||
+										mediaRenderer.isTranscodeToMPEGTSH264AC3() ||
+										mediaRenderer.isTranscodeToMPEGTSH264AAC()
+									) && (
+										MEncoderVideo.ID.equals(player.id()) ||
+										FFMpegVideo.ID.equals(player.id()) ||
+										VLCVideo.ID.equals(player.id())
+									)
+								) {
+									isFileMPEGTS = true;
+								}
 
 								boolean isMuxableResult = getMedia() != null && getMedia().isMuxable(mediaRenderer);
 
-								// If the engine is MEncoder or FFmpeg, and the muxing settings are enabled, it may be MPEG-TS so we need to do more tests
+								// If the engine is capable of automatically muxing to MPEG-TS and the setting is enabled, it might be MPEG-TS
 								if (
 									!isFileMPEGTS &&
 									(
@@ -1644,9 +1677,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 										(
 											configuration.isFFmpegMuxWithTsMuxerWhenCompatible() &&
 											FFMpegVideo.ID.equals(player.id())
-										) ||
-										(
-											VLCVideo.ID.equals(player.id())
 										)
 									)
 								) {
@@ -1676,7 +1706,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									}
 
 									/**
-									 * If either we are transcoding to MPEG-TS, or:
+									 * If:
 									 * - There are no subtitles
 									 * - This is not a DVD track
 									 * - The media is muxable
@@ -1684,17 +1714,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									 * then the file is MPEG-TS
 									 */
 									if (
-										(
-											media_subtitle == null &&
-											!isSubsFile() &&
-											media != null &&
-											media.getDvdtrack() == 0 &&
-											isMuxableResult &&
-											mediaRenderer.isMuxH264MpegTS()
-										) ||
-										mediaRenderer.isTranscodeToMPEGTSMPEG2AC3() ||
-										mediaRenderer.isTranscodeToMPEGTSH264AC3() ||
-										mediaRenderer.isTranscodeToMPEGTSH264AAC()
+										media_subtitle == null &&
+										!isSubsFile() &&
+										media != null &&
+										media.getDvdtrack() == 0 &&
+										isMuxableResult &&
+										mediaRenderer.isMuxH264MpegTS()
 									) {
 										isFileMPEGTS = true;
 									}
@@ -1879,7 +1904,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 		appendThumbnail(mediaRenderer, sb);
 
-		if (getLastModified() > 0 && !mediaRenderer.isOmitDcDate()) {
+		if (getLastModified() > 0 && mediaRenderer.isSendDateMetadata()) {
 			addXMLTagAndAttribute(sb, "dc:date", SDF_DATE.format(new Date(getLastModified())));
 		}
 
@@ -2098,7 +2123,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @throws IOException
 	 */
 	private long lastStart;
-	public InputStream getInputStream(Range range, RendererConfiguration mediarenderer) throws IOException {
+	public synchronized InputStream getInputStream(Range range, RendererConfiguration mediarenderer) throws IOException {
 		LOGGER.trace("Asked stream chunk : " + range + " of " + getName() + " and player " + player);
 
 		// shagrath: small fix, regression on chapters

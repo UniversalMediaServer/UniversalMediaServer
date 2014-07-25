@@ -131,7 +131,7 @@ public class FFMpegVideo extends Player {
 		final RendererConfiguration renderer = params.mediaRenderer;
 
 		boolean isMediaValid = media != null && media.isMediaparsed() && media.getHeight() != 0;
-		boolean isResolutionTooHighForRenderer = renderer.isVideoRescale() && isMediaValid && // renderer defines a max width/height
+		boolean isResolutionTooHighForRenderer = renderer.isMaximumResolutionSpecified() && isMediaValid && // renderer defines a max width/height
 			(
 				media.getWidth() > renderer.getMaxVideoWidth() ||
 				media.getHeight() > renderer.getMaxVideoHeight()
@@ -209,13 +209,16 @@ public class FFMpegVideo extends Player {
 		if (overrideVF != null) {
 			filterChain.add(overrideVF);
 		} else {
-			// disable keepAspectRatio for 3D SBS or TB video, use only rescale if needed
+			/**
+			 * Make sure the aspect ratio is 16/9 if the renderer needs it.
+			 */
 			boolean keepAR = renderer.isKeepAspectRatio() &&
 					!(
 						media.getWidth() == 3840 && media.getHeight() <= 1080 ||
 						media.getWidth() == 1920 && media.getHeight() == 2160
-					);
-			if (isResolutionTooHighForRenderer || (!renderer.isRescaleByRenderer() && renderer.isVideoRescale() && media.getWidth() < 720)) { // Do not rescale for SD video and higher
+					) &&
+					!"16:9".equals(media.getAspectRatioContainer());
+			if (isResolutionTooHighForRenderer || (!renderer.isRescaleByRenderer() && renderer.isMaximumResolutionSpecified() && media.getWidth() < 720)) { // Do not rescale for SD video and higher
 				filterChain.add(String.format("scale=iw*min(%1$d/iw\\,%2$d/ih):ih*min(%1$d/iw\\,%2$d/ih)", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
 				if (keepAR) {
 					filterChain.add(String.format("pad=%1$d:%2$d:(%1$d-iw)/2:(%2$d-ih)/2", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
