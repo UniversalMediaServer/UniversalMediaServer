@@ -8,13 +8,13 @@ import org.slf4j.LoggerFactory;
 public class GlobalIdRepo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GlobalIdRepo.class);
 
-	private int globalId = 0;
+	private int globalId = 0, deletions = 0;
 
 	class ID {
 		int id;
 		DLNAResource dlna;
 		ID(DLNAResource d) {
-			id = ++globalId;
+			id = globalId++;
 			d.setIndexId(id);
 			dlna = d;
 		}
@@ -54,6 +54,7 @@ public class GlobalIdRepo {
 		if (index > -1) {
 			LOGGER.debug("GlobalIdRepo: removing id {} - {}", id, ids.get(index).dlna.getName());
 			ids.remove(index);
+			deletions++;
 		}
 	}
 
@@ -67,17 +68,25 @@ public class GlobalIdRepo {
 	}
 
 	private int indexOf(int id) {
-		// We're in sequence by definition, so binary search is quickest
-		int lo = 0, hi = ids.size() - 1;
-		while (lo <= hi) {
-			int mid = lo + (hi - lo) / 2;
-			int idm = ids.get(mid).id;
-			if (id < idm) {
-				hi = mid - 1;
-			} else if (id > idm) {
-				lo = mid + 1;
-			} else {
-				return mid;
+		if (id < globalId) {
+			// We're in sequence by definition, so binary search is quickest
+
+			// Exclude any areas where the id can't possibly be
+			int ceil = ids.size() - 1;
+			int hi = id < ceil ? id : ceil;
+			int floor = hi - deletions;
+			int lo = floor > 0 ? floor : 0;
+
+			while (lo <= hi) {
+				int mid = lo + (hi - lo) / 2;
+				int idm = ids.get(mid).id;
+				if (id < idm) {
+					hi = mid - 1;
+				} else if (id > idm) {
+					lo = mid + 1;
+				} else {
+					return mid;
+				}
 			}
 		}
 		return -1;

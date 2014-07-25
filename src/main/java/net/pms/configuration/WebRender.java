@@ -49,6 +49,7 @@ public class WebRender extends RendererConfiguration implements RendererConfigur
 		configuration.addProperty(SUPPORTED, "f:mp3 n:2 m:audio/mpeg");
 //		configuration.addProperty(SUPPORTED, "f:wav n:2 m:audio/wav");
 		configuration.addProperty(TRANSCODE_AUDIO, MP3);
+		configuration.addProperty(CHUNKED_TRANSFER, "true");
 		return true;
 	}
 
