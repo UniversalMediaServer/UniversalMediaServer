@@ -19,6 +19,7 @@
 package net.pms.network;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -30,6 +31,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
+
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -41,6 +43,7 @@ import net.pms.external.StartStopListenerDelegate;
 import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -312,7 +315,7 @@ public class Request extends HTTPResource {
 							// XXX external file is null if the first subtitle track is embedded:
 							// http://www.ps3mediaserver.org/forum/viewtopic.php?f=3&t=15805&p=75534#p75534
 							if (sub.isExternal()) {
-								inputStream = new java.io.FileInputStream(sub.getExternalFile());
+								inputStream = new FileInputStream(sub.getExternalFile());
 							}
 						} catch (NullPointerException npe) {
 							LOGGER.trace("Could not find external subtitles: " + sub);
@@ -341,13 +344,10 @@ public class Request extends HTTPResource {
 						if (dlna.getMedia() != null && !configuration.isDisableSubtitles()) {
 							// Some renderers (like Samsung devices) allow a custom header for a subtitle URL
 							String subtitleHttpHeader = mediaRenderer.getSubtitleHttpHeader();
-
 							if (subtitleHttpHeader != null && !"".equals(subtitleHttpHeader)) {
 								// Device allows a custom subtitle HTTP header; construct it
-								List<DLNAMediaSubtitle> subs = dlna.getMedia().getSubtitleTracksList();
-
-								if (subs != null && !subs.isEmpty()) {
-									DLNAMediaSubtitle sub = subs.get(0);
+								DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
+								if (sub != null) {
 									String subtitleUrl;
 									String subExtension = sub.getType().getExtension();
 
