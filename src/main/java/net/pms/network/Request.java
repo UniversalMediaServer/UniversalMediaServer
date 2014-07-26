@@ -31,7 +31,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
-
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
@@ -43,7 +42,6 @@ import net.pms.external.StartStopListenerDelegate;
 import net.pms.util.StringUtil;
 import net.pms.util.UMSUtils;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

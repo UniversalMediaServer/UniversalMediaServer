@@ -18,6 +18,7 @@
  */
 package net.pms.network;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -309,7 +310,7 @@ public class RequestV2 extends HTTPResource {
 							// XXX external file is null if the first subtitle track is embedded:
 							// http://www.ps3mediaserver.org/forum/viewtopic.php?f=3&t=15805&p=75534#p75534
 							if (sub.isExternal()) {
-								inputStream = new java.io.FileInputStream(sub.getExternalFile());
+								inputStream = new FileInputStream(sub.getExternalFile());
 							}
 						} catch (NullPointerException npe) {
 							LOGGER.trace("Could not find external subtitles: " + sub);
