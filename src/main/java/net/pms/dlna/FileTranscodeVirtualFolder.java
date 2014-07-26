@@ -22,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -30,7 +29,6 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -299,7 +297,7 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 			}
 
 			// Sort the list of combinations
-			Collections.sort(entries, new ResourceSort(PlayerFactory.getAllPlayers()));
+			Collections.sort(entries, new ResourceSort(PlayerFactory.getPlayers()));
 
 			// Now add the sorted list of combinations to the folder
 			for (DLNAResource dlna : entries) {
