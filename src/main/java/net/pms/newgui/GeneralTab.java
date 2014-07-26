@@ -452,7 +452,7 @@ public class GeneralTab {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					configuration.setAutomaticMaximumBitrate(adaptBitrate.isSelected());
-					maxbitrate.setEnabled(configuration.isAutomaticMaximumBitrate());
+					maxbitrate.setEnabled(!configuration.isAutomaticMaximumBitrate());
 				}
 			});
 
