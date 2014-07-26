@@ -1149,10 +1149,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				dlna = PMS.getGlobalRepo().get(id);
 			}
 			if (dlna == null) {
-				LOGGER.debug("Bad id {} found in path");
+				LOGGER.debug("Bad id {} found in path", id);
 				return null;
 			}
-			dlna.discoverChildren();
+			dlna.discoverWithRenderer(r, 0, false, null);
 		}
 		return PMS.getGlobalRepo().get(ids[ids.length - 1]);
 	}
