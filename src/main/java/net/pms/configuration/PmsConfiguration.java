@@ -74,6 +74,7 @@ public class PmsConfiguration {
 	private static final String KEY_ALTERNATE_THUMB_FOLDER = "alternate_thumb_folder";
 	private static final String KEY_APPEND_PROFILE_NAME = "append_profile_name";
 	private static final String KEY_AUTOMATIC_MAXIMUM_BITRATE = "automatic_maximum_bitrate";
+	private static final String KEY_AUTOMATIC_DISCOVER = "automatic_discover";
 	private static final String KEY_SHOW_APERTURE_LIBRARY = "show_aperture_library";
 	private static final String KEY_ATZ_LIMIT = "atz_limit";
 	private static final String KEY_AUDIO_BITRATE = "audio_bitrate";
@@ -3101,5 +3102,9 @@ public class PmsConfiguration {
 
 	public boolean isSpeedDbg() {
 		return getBoolean(KEY_SPEED_DBG, false);
+	}
+
+	public boolean getAutoDiscover() {
+		return getBoolean(KEY_AUTOMATIC_DISCOVER, false);
 	}
 }

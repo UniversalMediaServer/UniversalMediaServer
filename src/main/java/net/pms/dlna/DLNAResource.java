@@ -101,6 +101,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	@Deprecated
 	protected String id;
+	protected String pathId;
 
 	/**
 	 * @deprecated Use standard getter and setter to access this field.
@@ -308,6 +309,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	protected void setId(String id) {
 		this.id = id;
+		if (configuration.getAutoDiscover()) {
+			if (getParent() != null) {
+				pathId = getParent().pathId + "." + id;
+			} else {
+				pathId = id;
+			}
+		}
+	}
+
+	public String getPathId() {
+		return pathId;
 	}
 
 	/**
@@ -332,6 +344,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		} else {
 			return getId();
 		}*/
+		if (isFolder() && configuration.getAutoDiscover()) {
+			return getPathId();
+		}
 		return getId();
 	}
 
@@ -942,14 +957,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		objectId = StringUtils.substringBefore(objectId, "/");
 
 		DLNAResource dlna;
+		String[] ids = objectId.split("\\.");
 		if (objectId.equals("0")) {
 			dlna = renderer.getRootFolder();
 		} else {
-			dlna = PMS.getGlobalRepo().get(objectId);//renderer.cacheGet(objectId);
+			dlna = PMS.getGlobalRepo().get(ids[ids.length - 1]);//renderer.cacheGet(objectId);
 		}
 		if (dlna == null) {
 			// nothing in the cache do a traditional search
-			dlna = search(objectId, count, renderer, searchStr);
+			dlna = search(ids, renderer);
+			//dlna = search(objectId, count, renderer, searchStr);
 		}
 
 		if (dlna != null) {
@@ -1120,6 +1137,24 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 		return null;
+	}
+
+
+	private DLNAResource search(String[] ids, RendererConfiguration r) {
+		DLNAResource dlna;
+		for(String id : ids) {
+			if (id.equals("0")) {
+				dlna = r.getRootFolder();
+			} else {
+				dlna = PMS.getGlobalRepo().get(id);
+			}
+			if (dlna == null) {
+				LOGGER.debug("Bad id {} found in path");
+				return null;
+			}
+			dlna.discoverChildren();
+		}
+		return PMS.getGlobalRepo().get(ids[ids.length - 1]);
 	}
 
 	public DLNAResource search(String searchId) {
@@ -1554,7 +1589,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			openTag(sb, "item");
 		}
 
-		addAttribute(sb, "id", getResourceId());
+		addAttribute(sb, "id",  getResourceId());
 
 		if (isFolder()) {
 			if (!isDiscovered() && childrenNumber() == 0) {
