@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
@@ -29,6 +30,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -189,6 +191,14 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 				renderer = this.getParent().getDefaultRenderer();
 			}
 
+			// create copies of the audio/subtitle track lists as we're making (local)
+			// modifications to them
+			List<DLNAMediaAudio> audioTracks = new ArrayList<>(child.getMedia().getAudioTracksList());
+			List<DLNAMediaSubtitle> subtitleTracks = new ArrayList<>(child.getMedia().getSubtitleTracksList());
+
+			// assemble copies for each combination of audio, subtitle and player
+			ArrayList<DLNAResource> entries = new ArrayList<>();
+
 			// First, add the option to simply stream the resource.
 			// Only add the option if the renderer is compatible with the format
 			if (child.getFormat() != null
@@ -204,15 +214,22 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 				DLNAResource noTranscode = createResourceWithAudioSubtitlePlayer(child, null, null, null);
 				addChildInternal(noTranscode);
 				addChapterFolder(noTranscode);
+
+				// add options for renderer capable to handle streamed subtitles
+				if (renderer != null && renderer.isSubtitlesStreamingSupported()) {
+					for (DLNAMediaSubtitle subtitle : subtitleTracks) {
+						// only add the option if the renderer supports the given format
+						if (subtitle.isExternal() && renderer.isSubtitlesFormatSupported(subtitle)) {
+							DLNAResource copy = createResourceWithAudioSubtitlePlayer(child, null, subtitle, null);
+							entries.add(copy);
+							LOGGER.trace(
+									"Duplicating {} for direct streaming subtitles {}",
+									child.getName(),
+									subtitle.toString());
+						}
+					}
+				}
 			}
-
-			// assemble copies for each combination of audio, subtitle and player
-			ArrayList<DLNAResource> entries = new ArrayList<>();
-
-			// create copies of the audio/subtitle track lists as we're making (local)
-			// modifications to them
-			List<DLNAMediaAudio> audioTracks = new ArrayList<>(child.getMedia().getAudioTracksList());
-			List<DLNAMediaSubtitle> subtitleTracks = new ArrayList<>(child.getMedia().getSubtitleTracksList());
 
 			/*
 			 we add (or may add) a null entry to the audio list and/or subtitle list

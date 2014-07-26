@@ -1,6 +1,7 @@
 package net.pms.configuration;
 
 import com.sun.jna.Platform;
+
 import java.io.File;
 import java.io.Reader;
 import java.net.InetAddress;
@@ -14,9 +15,11 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.LibMediaInfoParser;
 import net.pms.dlna.RootFolder;
@@ -24,6 +27,7 @@ import net.pms.formats.Format;
 import net.pms.network.HTTPResource;
 import net.pms.network.SpeedStats;
 import net.pms.util.PropertiesUtil;
+
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang.WordUtils;
@@ -1397,6 +1401,30 @@ public class RendererConfiguration {
 
 	public boolean useClosedCaption() {
 		return getBoolean(USE_CLOSED_CAPTION, false);
+	}
+
+	public boolean isSubtitlesStreamingSupported() {
+		return (getSupportedSubtitles() != null);
+	}
+
+	/**
+	 * Check if the given subtitle is supported by renderer for streaming.
+	 *
+	 * @param subtitle Subtitles for checking
+	 * @return True if subtitles format is supported by renderer for streaming, False if 
+	 * subtitles format is not supported or supported formats are not set in the renderer.conf
+	 */
+	public boolean isSubtitlesFormatSupported(DLNAMediaSubtitle subtitle) {
+		if (isSubtitlesStreamingSupported()) {
+			String[] supportedSubs = getSupportedSubtitles().split(",");
+			for (String supportedSub : supportedSubs) {
+				if (subtitle.getType().toString().equals(supportedSub.trim().toUpperCase())) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	public ArrayList<String> tags() {

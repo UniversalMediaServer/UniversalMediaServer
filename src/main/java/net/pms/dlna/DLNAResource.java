@@ -70,7 +70,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAResource.class);
 	private final SimpleDateFormat SDF_DATE = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
-	private boolean subsAreValid = false;
+	private boolean subsAreValidForStreaming = false;
 
 	protected static final int MAX_ARCHIVE_ENTRY_SIZE = 10000000;
 	protected static final int MAX_ARCHIVE_SIZE_SEEK = 800000000;
@@ -1257,7 +1257,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (isNoName()) {
 				displayName = "[No encoding]";
 				isNamedNoEncoding = true;
-				if (subsAreValid) {
+				if (subsAreValidForStreaming) {
 					isNamedNoEncoding = false;
 				}
 			} else if (nametruncate > 0) {
@@ -1459,19 +1459,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	public final String getDidlString(RendererConfiguration mediaRenderer) {
 		StringBuilder sb = new StringBuilder();
-		if (!configuration.isDisableSubtitles() && StringUtils.isNotBlank(mediaRenderer.getSupportedSubtitles()) && media != null && player == null) {
-			OutputParams params = new OutputParams(configuration);
-			Player.setAudioAndSubs(getSystemName(), media, params);
-			if (params.sid != null) {
-				String[] supportedSubs = mediaRenderer.getSupportedSubtitles().split(",");
-				for (String supportedSub : supportedSubs) {
-					if (params.sid.getType().toString().equals(supportedSub.trim().toUpperCase())) {
-						media_subtitle = params.sid;
-						subsAreValid = true;
-						break;
-					}
-				}
-			}
+		if (!configuration.isDisableSubtitles() &&
+				media != null &&
+				media_subtitle != null &&
+				player == null &&
+				mediaRenderer.isSubtitlesFormatSupported(media_subtitle)
+			) {
+				subsAreValidForStreaming = true;
 		}
 
 		if (isFolder()) {
@@ -1509,8 +1503,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			);
 		} else { // Ditlew - org
 			// Ditlew
-			wireshark.append(((isFolder() || player == null && subsAreValid) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer))));
-			String tmp = (isFolder() || player == null && subsAreValid) ? getDisplayName(null, false) : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer, false));
+			wireshark.append(((isFolder() || player == null && subsAreValidForStreaming) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer))));
+			String tmp = (isFolder() || player == null && subsAreValidForStreaming) ? getDisplayName(null, false) : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer, false));
 			addXMLTagAndAttribute(
 				sb,
 				"dc:title",
@@ -1770,7 +1764,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				wireshark.append(" ").append(tempString);
 				addAttribute(sb, "protocolInfo", tempString);
 
-				if (subsAreValid && !mediaRenderer.useClosedCaption()) {
+				if (subsAreValidForStreaming && !mediaRenderer.useClosedCaption()) {
 					addAttribute(sb, "pv:subtitleFileType", media_subtitle.getType().getExtension().toUpperCase());
 					wireshark.append(" pv:subtitleFileType=").append(media_subtitle.getType().getExtension().toUpperCase());
 					addAttribute(sb, "pv:subtitleFileUri", getSubsURL(media_subtitle));
@@ -1878,7 +1872,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
-		if (subsAreValid) {
+		if (subsAreValidForStreaming) {
 			String subsURL = getSubsURL(media_subtitle);
 			if (mediaRenderer.useClosedCaption()) {
 				openTag(sb, "sec:CaptionInfoEx");
