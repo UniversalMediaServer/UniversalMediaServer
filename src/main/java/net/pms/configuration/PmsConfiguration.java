@@ -142,6 +142,7 @@ public class PmsConfiguration {
 	private static final String KEY_LANGUAGE = "language";
 	private static final String KEY_MAX_AUDIO_BUFFER = "maximum_audio_buffer_size";
 	private static final String KEY_MAX_BITRATE = "maximum_bitrate";
+	private static final String KEY_MEDIA_LIB_SORT = "media_lib_sort";
 	private static final String KEY_MAX_MEMORY_BUFFER_SIZE = "maximum_video_buffer_size";
 	private static final String KEY_MENCODER_ASS = "mencoder_ass";
 	private static final String KEY_MENCODER_AC3_FIXED = "mencoder_ac3_fixed";
@@ -3082,5 +3083,9 @@ public class PmsConfiguration {
 
 	public boolean isSpeedDbg() {
 		return getBoolean(KEY_SPEED_DBG, false);
+	}
+
+	public int mediaLibrarySort() {
+		return getInt(KEY_MEDIA_LIB_SORT, UMSUtils.SORT_NO_SORT);
 	}
 }
