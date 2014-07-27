@@ -214,10 +214,10 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 				addChapterFolder(noTranscode);
 
 				// add options for renderer capable to handle streamed subtitles
-				if (renderer != null && renderer.isSubtitlesStreamingSupported()) {
+				if (!configuration.isDisableSubtitles() && renderer != null && renderer.isSubtitlesStreamingSupported()) {
 					for (DLNAMediaSubtitle subtitle : subtitleTracks) {
 						// only add the option if the renderer supports the given format
-						if (subtitle.isExternal()) { // do not check if subs are embedded
+						if (subtitle.isExternal()) { // do not check for embedded subs
 							if (renderer.isSubtitlesFormatSupported(subtitle)) {
 								DLNAResource copy = createResourceWithAudioSubtitlePlayer(child, null, subtitle, null);
 								entries.add(copy);
