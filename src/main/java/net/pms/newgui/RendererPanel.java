@@ -41,10 +41,12 @@ public class RendererPanel extends JPanel {
 		builder.border(new EmptyBorder(10,10,10,10));
 		int y=0;
 
-		builder.appendRow(rspec);
-		builder.add(editButton(), cc.xyw(1, ++y, 2));
-		builder.appendRow(rspec);
-		builder.addLabel(" ", cc.xy(1, ++y));
+		if (! renderer.isFileless()) {
+			builder.appendRow(rspec);
+			builder.add(editButton(), cc.xyw(1, ++y, 2));
+			builder.appendRow(rspec);
+			builder.addLabel(" ", cc.xy(1, ++y));
+		}
 		if (renderer.isUpnpConnected()) {
 			y = addMap(renderer.getUpnpDetails(), builder, y);
 			y = addStrings("Services", WordUtils.wrap(StringUtils.join(renderer.getUpnpServices(), ", "), 60).split("\n"),

@@ -649,6 +649,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		}
 	}
 
+	public boolean isFileless() {
+		return loaded && getFile() == null;
+	}
+
 	public int getRank() {
 		return rank;
 	}
