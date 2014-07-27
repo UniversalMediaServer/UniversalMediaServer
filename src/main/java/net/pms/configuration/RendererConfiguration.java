@@ -99,6 +99,7 @@ public class RendererConfiguration {
 	private static final String DLNA_PN_CHANGES = "DLNAProfileChanges";
 	private static final String DLNA_TREE_HACK = "CreateDLNATreeFaster";
 	private static final String LIMIT_FOLDERS = "LimitFolders";
+	private static final String EMBEDDED_SUBS_SUPPORTED = "InternalSubtitlesSupported";
 	private static final String FORCE_JPG_THUMBNAILS = "ForceJPGThumbnails"; // Sony devices require JPG thumbnails
 	private static final String H264_L41_LIMITED = "H264Level41Limited";
 	private static final String IMAGE = "Image";
@@ -1412,6 +1413,10 @@ public class RendererConfiguration {
 	 * subtitles format is not supported or supported formats are not set in the renderer.conf
 	 */
 	public boolean isSubtitlesFormatSupported(DLNAMediaSubtitle subtitle) {
+		if (subtitle == null) {
+			return false;
+		}
+
 		if (isSubtitlesStreamingSupported()) {
 			String[] supportedSubs = getSupportedSubtitles().split(",");
 			for (String supportedSub : supportedSubs) {
@@ -1422,6 +1427,10 @@ public class RendererConfiguration {
 		}
 
 		return false;
+	}
+
+	public boolean isEmbeddedSubtitlesSupported() {
+		return getBoolean(EMBEDDED_SUBS_SUPPORTED, false);
 	}
 
 	public ArrayList<String> tags() {

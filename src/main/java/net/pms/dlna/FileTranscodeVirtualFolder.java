@@ -217,13 +217,15 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 				if (renderer != null && renderer.isSubtitlesStreamingSupported()) {
 					for (DLNAMediaSubtitle subtitle : subtitleTracks) {
 						// only add the option if the renderer supports the given format
-						if (subtitle.isExternal() && renderer.isSubtitlesFormatSupported(subtitle)) {
-							DLNAResource copy = createResourceWithAudioSubtitlePlayer(child, null, subtitle, null);
-							entries.add(copy);
-							LOGGER.trace(
-									"Duplicating {} for direct streaming subtitles {}",
-									child.getName(),
-									subtitle.toString());
+						if (subtitle.isExternal()) { // do not check if subs are embedded
+							if (renderer.isSubtitlesFormatSupported(subtitle)) {
+								DLNAResource copy = createResourceWithAudioSubtitlePlayer(child, null, subtitle, null);
+								entries.add(copy);
+								LOGGER.trace(
+										"Duplicating {} for direct streaming subtitles {}",
+										child.getName(),
+										subtitle.toString());
+							}
 						}
 					}
 				}

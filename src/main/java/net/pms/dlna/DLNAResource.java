@@ -530,6 +530,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					String mimeType = defaultRenderer.getFormatConfiguration().match(child.media);
 					if (mimeType != null) {
 						// Media is streamable
+						if (!configuration.isDisableSubtitles() && child.isSubsFile() && defaultRenderer.isSubtitlesStreamingSupported()) {
+							OutputParams params = new OutputParams(configuration);
+							Player.setAudioAndSubs(child.getSystemName(), child.media, params); // set proper subtitles in accordance with user setting
+							if (defaultRenderer.isSubtitlesFormatSupported(params.sid)) {
+								child.media_subtitle = params.sid;
+							}
+						}
+
 						if (!FormatConfiguration.MIMETYPE_AUTO.equals(mimeType)) {
 							// Override with the preferred mime type of the renderer
 							LOGGER.trace("Overriding detected mime type \"{}\" for file \"{}\" with renderer preferred mime type \"{}\"",
@@ -629,10 +637,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 							if (!configuration.isDisableSubtitles()) {
 								if (child.isSubsFile()) {
-									hasSubsToTranscode = defaultRenderer != null && StringUtils.isBlank(defaultRenderer.getSupportedSubtitles());
+									hasSubsToTranscode = (child.media_subtitle == null); // subtitles are not set for streaming
 								} else {
-									// FIXME: Why transcode if the renderer can handle embedded subs?
-									hasSubsToTranscode = hasEmbeddedSubs;
+									hasSubsToTranscode = hasEmbeddedSubs && defaultRenderer != null && !defaultRenderer.isEmbeddedSubtitlesSupported();
 								}
 
 								if (hasSubsToTranscode) {
@@ -2404,8 +2411,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	public InputStream getGenericThumbnailInputStream(String fallback) throws IOException {
 		String thumb = fallback;
-		if (getFormat() != null && getFormat().getIcon() != null) {
-			thumb = getFormat().getIcon();
+		if (format != null && format.getIcon() != null) {
+			thumb = format.getIcon();
 		}
 
 		// Thumb could be:
@@ -2451,15 +2458,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public InputStream getThumbnailInputStream() throws IOException {
 		String id = null;
 
-		if (getMediaAudio() != null) {
-			id = getMediaAudio().getLang();
+		if (media_audio != null) {
+			id = media_audio.getLang();
 		}
 
 		if (media_subtitle != null && media_subtitle.getId() != -1) {
 			id = media_subtitle.getLang();
 		}
 
-		if ((media_subtitle != null || getMediaAudio() != null) && StringUtils.isBlank(id)) {
+		if ((media_subtitle != null || media_audio != null) && StringUtils.isBlank(id)) {
 			id = DLNAMediaLang.UND;
 		}
 
