@@ -1,3 +1,10 @@
+4.0.1 - 2014-08-??
+
+	General:
+		Added option InternalSubtitlesSupported to renderer configs for greater control over file compatibility
+		Fixed a bug with the adaptive bitrate setting GUI
+		Fixed bugs with external subtitle support
+
 4.0.0 - 2014-07-25 - Changes since 3.6.4
 
 	General:
