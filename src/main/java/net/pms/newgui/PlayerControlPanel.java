@@ -8,6 +8,8 @@ import org.apache.commons.lang.StringUtils;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import javax.swing.*;
@@ -28,7 +30,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererPanel.class);
 
 	private BasicPlayer player;
-	private AbstractAction add, remove, play, pause, stop, next, prev, forward, rewind, mute, volume, seturi;
+	private AbstractAction add, remove, play, pause, stop, next, prev, forward, rewind, mute, volume, seturi, excl;
 	private JLabel position;
 	private JSlider volumeSlider;
 	private JTextField uri;
@@ -36,7 +38,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 	private boolean edited, playing;
 	private String lasturi;
 	private File pwd;
-	private boolean playControl, volumeControl;
+	private boolean playControl, volumeControl, expanded;
 
 	private static ImageIcon addIcon, removeIcon, playIcon, pauseIcon, stopIcon, fwdIcon, rewIcon,
 		nextIcon, prevIcon, volumeIcon, muteIcon, sliderIcon;
@@ -50,6 +52,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		int controls = player.getControls();
 		playControl = (controls & BasicPlayer.PLAYCONTROL) != 0;
 		volumeControl = (controls & BasicPlayer.VOLUMECONTROL) != 0;
+		expanded = true;
 
 		try {
 			pwd = new File(player.getState().uri).getParentFile();
@@ -149,6 +152,12 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		status.setLayout(new BoxLayout(status, BoxLayout.X_AXIS));
 		status.add(Box.createHorizontalGlue());
 		status.add(position = new JLabel());
+		position.addMouseListener(new MouseAdapter() {
+			public void mouseClicked(MouseEvent e) {
+				toggleView();
+			}
+		});
+		position.setToolTipText("Show/hide details");
 		return status;
 	}
 
@@ -342,6 +351,24 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 			return new ImageIcon(url);
 		}
 		throw new RuntimeException("icon not found: " + path);
+	}
+
+	public void toggleView() {
+		// Toggle sibling visibility
+		expanded = ! expanded;
+		for (Component c : getParent().getComponents()) {
+			if (c != this) {
+				c.setVisible(expanded);
+			}
+		}
+		// Redraw without moving the player panel (if possible)
+		int y = (int)getLocation().getY();
+		JDialog top = (JDialog) SwingUtilities.getWindowAncestor(this);
+		top.setVisible(false);
+		top.pack();
+		Point p = top.getLocation();
+		top.setLocation((int)p.getX(), y - (int)getLocation().getY() + (int)p.getY());
+		top.setVisible(true);
 	}
 }
 
