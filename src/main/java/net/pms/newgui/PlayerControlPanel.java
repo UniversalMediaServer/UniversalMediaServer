@@ -229,22 +229,26 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		});
 
 		u.add(uris);
-		u.add(new JButton(add = new AbstractAction("", addIcon) {
+		JButton a = new JButton(add = new AbstractAction("", addIcon) {
 //			private static final long serialVersionUID = FIXME;
 
 			public void actionPerformed(ActionEvent e) {
 				setEdited(false);
 				player.add(-1, uri.getText(), null, null, false);
 			}
-		}));
-		u.add(new JButton(remove = new AbstractAction("", removeIcon) {
+		});
+		a.setToolTipText("Add to playlist");
+		u.add(a);
+		JButton r = new JButton(remove = new AbstractAction("", removeIcon) {
 //			private static final long serialVersionUID = FIXME;
 
 			public void actionPerformed(ActionEvent e) {
 				setEdited(false);
 				player.remove(uri.getText());
 			}
-		}));
+		});
+		r.setToolTipText("Remove from playlist");
+		u.add(r);
 		u.add(new JButton(new AbstractAction("", MetalIconFactory.getTreeFolderIcon()) {
 			private static final long serialVersionUID = -2826057503405341316L;
 
