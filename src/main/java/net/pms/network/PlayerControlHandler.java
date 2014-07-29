@@ -34,6 +34,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.remote.RemoteUtil;
+import net.pms.util.StringUtil;
 
 public class PlayerControlHandler implements HttpHandler {
 
@@ -160,7 +161,7 @@ public class PlayerControlHandler implements HttpHandler {
 	public String getPlayerState(UPNPHelper.Player player) {
 		if (player != null) {
 			UPNPHelper.Player.State state = player.getState();
-			return String.format(jsonState, state.playback, state.mute, state.volume, state.position, state.duration, state.uri/*, state.metadata*/);
+			return String.format(jsonState, state.playback, state.mute, state.volume, StringUtil.shortTime(state.position, 4), StringUtil.shortTime(state.duration, 4), state.uri/*, state.metadata*/);
 		}
 		return "";
 	}

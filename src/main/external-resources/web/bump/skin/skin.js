@@ -103,6 +103,9 @@ $('#bumpvol').css({
 
 $('#bumppos').css({
 	cursor:'pointer',
+	minWidth:'80px',
+	textAlign:'right',
+	padding:'0 3px 0 3px',
 });
 
 $('#bexit').css({

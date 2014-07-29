@@ -19,6 +19,7 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.plaf.metal.MetalIconFactory;
 import net.pms.util.BasicPlayer;
+import net.pms.util.StringUtil;
 import net.pms.network.UPNPHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -148,7 +149,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 
 	public JComponent statusPanel() {
 		JPanel status = new JPanel();
-		status.setPreferredSize(new Dimension(150,20));
+		status.setPreferredSize(new Dimension(120,20));
 		status.setLayout(new BoxLayout(status, BoxLayout.X_AXIS));
 		status.add(Box.createHorizontalGlue());
 		status.add(position = new JLabel());
@@ -294,11 +295,9 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 			rewind.setEnabled(playing);
 			update();
 			// update position
-			String pos = state.position != null ? state.position : "00:00:00";
-			if (state.duration != null && ! state.duration.equals(pos)) {
-				pos += ((pos == "" ? "" : " / ") + state.duration);
-			}
-			position.setText(pos);
+			String pos = StringUtil.shortTime(state.position, 4);
+			String dur = StringUtil.shortTime(state.duration, 4);
+			position.setText(pos + (dur.equals("0:00") ? "" : (" / " + dur)));
 			// update uris only if meaningfully new
 			boolean isNew = ! StringUtils.isBlank(state.uri)
 				&& ! state.uri.equals(lasturi);

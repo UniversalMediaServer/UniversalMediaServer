@@ -140,4 +140,26 @@ public class StringUtil {
 
 		return sb.toString();
 	}
+
+	/**
+	 * Removes leading zeros up to the nth char of an hh:mm:ss time string.
+	 *
+	 * @param t time string.
+	 * @param n position to stop checking
+	 *
+	 * @return the Shortened String.
+	 */
+	public static String shortTime(String t, int n) {
+		n = n < 8 ? n : 8;
+		if (! isBlank(t)) {
+			int i = 0;
+			for (; i < n; i++) {
+				if (t.charAt(i) != "00:00:00".charAt(i)) {
+					break;
+				}
+			}
+			return t.substring(i);
+		}
+		return "00:00:00".substring(n);
+	}
 }

@@ -126,7 +126,7 @@ var bump = (function() {
 		}
 		$('#bumpvol').val(state.volume);
 		$('#bumpvol').attr('disabled', state.mute === 'true');
-		$('#bumppos').html((state.position === 'null' ? "00:00" : state.position.replace('00:',''))+' / '+state.duration.replace('00:',''));
+		$('#bumppos').html(state.position+(state.duration == '0:00' ? "" : (' / '+state.duration)));
 		status();
 	}
 
