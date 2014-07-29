@@ -3,7 +3,7 @@
 	General:
 		Added option InternalSubtitlesSupported to renderer configs for greater control over file compatibility
 		Fixed a bug with the adaptive bitrate setting GUI
-		Fixed bugs with external subtitle support
+		Fixed bugs with subtitles not being loaded
 	Languages:
 		Updated Spanish translation (thanks, AlfredoRamos!)
 	External Components:
