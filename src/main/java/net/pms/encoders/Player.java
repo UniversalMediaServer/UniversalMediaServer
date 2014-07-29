@@ -334,15 +334,15 @@ public abstract class Player {
 									if (configuration.isAutoloadExternalSubtitles()) {
 										// Subtitle is external and we want external subtitles, look no further
 										matchedSub = present_sub;
-										LOGGER.trace("Matched subtitles track: " + matchedSub);
+										LOGGER.trace("Matched external subtitles track: " + matchedSub);
 										break;
 									} else {
 										// Subtitle is external but we do not want external subtitles, keep searching
 										LOGGER.trace("External subtitles ignored because of user setting: " + present_sub);
 									}
-								} else {
+								} else if (!matchedInternalSubtitles) {
 									matchedSub = present_sub;
-									LOGGER.trace("Matched subtitles track: " + matchedSub);
+									LOGGER.trace("Matched internal subtitles track: " + matchedSub);
 									if (configuration.isAutoloadExternalSubtitles()) {
 										// Subtitle is internal and we will wait to see if an external one is available instead
 										matchedInternalSubtitles = true;
