@@ -870,7 +870,21 @@ public class UPNPHelper extends UPNPControl {
 						get(uri));
 				} catch (Exception e) {
 				}
-				return item;
+				return (item != null && isValid(item)) ? item : null;
+			}
+
+			public static boolean isValid(Item item) {
+				// Check existence for resource uris, otherwise assume it's valid
+				return DLNAResource.isResourceUrl(item.uri) ?
+					PMS.get().getGlobalRepo().exists(DLNAResource.parseResourceId(item.uri)) : true;
+			}
+
+			public void validate() {
+				for (int i = getSize()-1; i > -1; i--) {
+					if (! isValid((Item)getElementAt(i))) {
+						removeElementAt(i);
+					}
+				}
 			}
 
 			public void set(String uri, String name, String metadata) {

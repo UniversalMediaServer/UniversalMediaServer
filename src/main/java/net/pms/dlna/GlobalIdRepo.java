@@ -67,6 +67,10 @@ public class GlobalIdRepo {
 		}
 	}
 
+	public boolean exists(String id) {
+		return indexOf(parseIndex(id)) != -1;
+	}
+
 	private int indexOf(int id) {
 		if (id < globalId) {
 			// We're in sequence by definition, so binary search is quickest
@@ -89,6 +93,7 @@ public class GlobalIdRepo {
 				}
 			}
 		}
+		LOGGER.debug("GlobalIdRepo: id not found: {}", id);
 		return -1;
 	}
 }

@@ -179,6 +179,7 @@ public class PlayerControlHandler implements HttpHandler {
 	public String getPlaylist(UPNPHelper.Player player) {
 		ArrayList<String> json = new ArrayList();
 		UPNPHelper.Player.Playlist playlist = player.playlist;
+		playlist.validate();
 		UPNPHelper.Player.Playlist.Item selected = (UPNPHelper.Player.Playlist.Item)playlist.getSelectedItem();
 		int i;
 		for (i=0; i < playlist.getSize(); i++) {

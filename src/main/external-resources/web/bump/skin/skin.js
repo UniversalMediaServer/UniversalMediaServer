@@ -39,7 +39,7 @@ $('body').append([
 	'<td><input id="bumpvol"/></td>',
 	'<td id="bumpmute"/>',
 	'<td id="bumpctrl"/>',
-	'<td id="bumppos" title="show/hide playlist">00:00</td>',
+	'<td id="bumppos" title="show/hide playlist">0:00</td>',
 	'<td><div id="bexit"><img id="bclose"/></div></td>',
 	'</tr></table></div>'
 ].join(''));
