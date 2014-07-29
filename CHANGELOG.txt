@@ -4,6 +4,12 @@
 		Added option InternalSubtitlesSupported to renderer configs for greater control over file compatibility
 		Fixed a bug with the adaptive bitrate setting GUI
 		Fixed bugs with external subtitle support
+	Languages:
+		Updated Spanish translation (thanks, AlfredoRamos!)
+	External Components:
+		Updated FFmpeg to builds from 2014-07-16, which:
+			Improves support for many containers and codecs
+			Fixes bugs
 
 4.0.0 - 2014-07-25 - Changes since 3.6.4
 
