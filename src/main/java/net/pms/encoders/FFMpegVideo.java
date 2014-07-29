@@ -638,70 +638,6 @@ public class FFMpegVideo extends Player {
 			aspectRatiosMatch = false;
 		}
 
-		// Decide whether to defer to tsMuxeR or continue to use FFmpeg
-		boolean deferToTsmuxer = true;
-		String prependTraceReason = "Not muxing the video stream with tsMuxeR via FFmpeg because ";
-		if (!configuration.isFFmpegMuxWithTsMuxerWhenCompatible()) {
-			deferToTsmuxer = false;
-			LOGGER.trace(prependTraceReason + "the user setting is disabled");
-		}
-		if (deferToTsmuxer == true && !configuration.getHideTranscodeEnabled() && dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder)) {
-			deferToTsmuxer = false;
-			LOGGER.trace(prependTraceReason + "the file is being played via a FFmpeg entry in the transcode folder.");
-		}
-		if (deferToTsmuxer == true && !params.mediaRenderer.isMuxH264MpegTS()) {
-			deferToTsmuxer = false;
-			LOGGER.trace(prependTraceReason + "the renderer does not support H.264 inside MPEG-TS.");
-		}
-		if (deferToTsmuxer == true && params.sid != null) {
-			deferToTsmuxer = false;
-			LOGGER.trace(prependTraceReason + "we need to burn subtitles.");
-		}
-		if (deferToTsmuxer == true && avisynth()) {
-			deferToTsmuxer = false;
-			LOGGER.trace(prependTraceReason + "we are using AviSynth.");
-		}
-		if (deferToTsmuxer == true && params.mediaRenderer.isH264Level41Limited() && !media.isVideoWithinH264LevelLimits(newInput, params.mediaRenderer)) {
-			deferToTsmuxer = false;
-			LOGGER.trace(prependTraceReason + "the video stream is not within H.264 level limits for this renderer.");
-		}
-		if (deferToTsmuxer == true && !media.isMuxable(params.mediaRenderer)) {
-			deferToTsmuxer = false;
-			LOGGER.trace(prependTraceReason + "the video stream is not muxable to this renderer");
-		}
-		if (deferToTsmuxer == true && !aspectRatiosMatch) {
-			deferToTsmuxer = false;
-			LOGGER.trace(prependTraceReason + "we need to transcode to apply the correct aspect ratio.");
-		}
-		if (deferToTsmuxer == true && !params.mediaRenderer.isPS3() && filename.contains("WEB-DL")) {
-			deferToTsmuxer = false;
-			LOGGER.trace(prependTraceReason + "the version of tsMuxeR supported by this renderer does not support WEB-DL files.");
-		}
-		if (deferToTsmuxer == true && "bt.601".equals(media.getMatrixCoefficients())) {
-			deferToTsmuxer = false;
-			LOGGER.trace(prependTraceReason + "the colorspace probably isn't supported by the renderer.");
-		}
-		if (deferToTsmuxer == true && params.mediaRenderer.isKeepAspectRatio() && !"16:9".equals(media.getAspectRatioContainer())) {
-			deferToTsmuxer = false;
-			LOGGER.trace(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
-		}
-		if (deferToTsmuxer) {
-			TsMuxeRVideo tv = new TsMuxeRVideo();
-			params.forceFps = media.getValidFps(false);
-
-			if (media.getCodecV() != null) {
-				if (media.isH264()) {
-					params.forceType = "V_MPEG4/ISO/AVC";
-				} else if (media.getCodecV().startsWith("mpeg2")) {
-					params.forceType = "V_MPEG-2";
-				} else if (media.getCodecV().equals("vc1")) {
-					params.forceType = "V_MS/VFW/WVC1";
-				}
-			}
-
-			return tv.launchTranscode(dlna, media, params);
-		}
-
 		/*
 		 * FFmpeg uses multithreading by default, so provided that the
 		 * user has not disabled FFmpeg multithreading and has not
@@ -783,6 +719,70 @@ public class FFMpegVideo extends Player {
 		// Apply any video filters and associated options. These should go
 		// after video input is specified and before output streams are mapped.
 		cmdList.addAll(getVideoFilterOptions(dlna, media, params));
+
+		// Decide whether to defer to tsMuxeR or continue to use FFmpeg
+		boolean deferToTsmuxer = true;
+		String prependTraceReason = "Not muxing the video stream with tsMuxeR via FFmpeg because ";
+		if (!configuration.isFFmpegMuxWithTsMuxerWhenCompatible()) {
+			deferToTsmuxer = false;
+			LOGGER.trace(prependTraceReason + "the user setting is disabled");
+		}
+		if (deferToTsmuxer == true && !configuration.getHideTranscodeEnabled() && dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder)) {
+			deferToTsmuxer = false;
+			LOGGER.trace(prependTraceReason + "the file is being played via a FFmpeg entry in the transcode folder.");
+		}
+		if (deferToTsmuxer == true && !params.mediaRenderer.isMuxH264MpegTS()) {
+			deferToTsmuxer = false;
+			LOGGER.trace(prependTraceReason + "the renderer does not support H.264 inside MPEG-TS.");
+		}
+		if (deferToTsmuxer == true && params.sid != null) {
+			deferToTsmuxer = false;
+			LOGGER.trace(prependTraceReason + "we need to burn subtitles.");
+		}
+		if (deferToTsmuxer == true && avisynth()) {
+			deferToTsmuxer = false;
+			LOGGER.trace(prependTraceReason + "we are using AviSynth.");
+		}
+		if (deferToTsmuxer == true && params.mediaRenderer.isH264Level41Limited() && !media.isVideoWithinH264LevelLimits(newInput, params.mediaRenderer)) {
+			deferToTsmuxer = false;
+			LOGGER.trace(prependTraceReason + "the video stream is not within H.264 level limits for this renderer.");
+		}
+		if (deferToTsmuxer == true && !media.isMuxable(params.mediaRenderer)) {
+			deferToTsmuxer = false;
+			LOGGER.trace(prependTraceReason + "the video stream is not muxable to this renderer");
+		}
+		if (deferToTsmuxer == true && !aspectRatiosMatch) {
+			deferToTsmuxer = false;
+			LOGGER.trace(prependTraceReason + "we need to transcode to apply the correct aspect ratio.");
+		}
+		if (deferToTsmuxer == true && !params.mediaRenderer.isPS3() && filename.contains("WEB-DL")) {
+			deferToTsmuxer = false;
+			LOGGER.trace(prependTraceReason + "the version of tsMuxeR supported by this renderer does not support WEB-DL files.");
+		}
+		if (deferToTsmuxer == true && "bt.601".equals(media.getMatrixCoefficients())) {
+			deferToTsmuxer = false;
+			LOGGER.trace(prependTraceReason + "the colorspace probably isn't supported by the renderer.");
+		}
+		if (deferToTsmuxer == true && params.mediaRenderer.isKeepAspectRatio() && !"16:9".equals(media.getAspectRatioContainer())) {
+			deferToTsmuxer = false;
+			LOGGER.trace(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
+		}
+		if (deferToTsmuxer) {
+			TsMuxeRVideo tv = new TsMuxeRVideo();
+			params.forceFps = media.getValidFps(false);
+
+			if (media.getCodecV() != null) {
+				if (media.isH264()) {
+					params.forceType = "V_MPEG4/ISO/AVC";
+				} else if (media.getCodecV().startsWith("mpeg2")) {
+					params.forceType = "V_MPEG-2";
+				} else if (media.getCodecV().equals("vc1")) {
+					params.forceType = "V_MS/VFW/WVC1";
+				}
+			}
+
+			return tv.launchTranscode(dlna, media, params);
+		}
 
 		// Map the output streams if necessary
 		if (media.getAudioTracksList().size() > 1) {
