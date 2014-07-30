@@ -278,6 +278,9 @@ public abstract class Player {
 			return;
 		}
 
+		/**
+		 * Check for live subtitles
+		 */
 		if (params.sid != null && !StringUtils.isEmpty(params.sid.getLiveSubURL())) {
 			LOGGER.debug("Live subtitles " + params.sid.getLiveSubURL());
 			try {
@@ -294,6 +297,10 @@ public abstract class Player {
 
 		StringTokenizer st = new StringTokenizer(configuration.getAudioSubLanguages(), ";");
 
+		/**
+		 * Check for external and internal subtitles matching the user's language
+		 * preferences
+		 */
 		boolean matchedInternalSubtitles = false;
 		boolean matchedExternalSubtitles = false;
 		while (st.hasMoreTokens()) {
@@ -375,6 +382,13 @@ public abstract class Player {
 			}
 		}
 
+		/**
+		 * Disable chosen subtitles if the user has disabled all subtitles or
+		 * if the language preferences have specified the "off" language.
+		 *
+		 * TODO: Can't we save a bunch of looping by checking for isDisableSubtitles
+		 * just after the Live Subtitles check above?
+		 */
 		if (matchedSub != null && params.sid == null) {
 			if (configuration.isDisableSubtitles() || (matchedSub.getLang() != null && matchedSub.getLang().equals("off"))) {
 				LOGGER.trace("Disabled the subtitles: " + matchedSub);
@@ -383,6 +397,9 @@ public abstract class Player {
 			}
 		}
 
+		/**
+		 * Check for forced subtitles.
+		 */
 		if (!configuration.isDisableSubtitles() && params.sid == null && media != null) {
 			// Check for subtitles again
 			File video = new File(fileName);
