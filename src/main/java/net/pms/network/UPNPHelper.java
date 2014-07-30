@@ -604,7 +604,7 @@ public class UPNPHelper extends UPNPControl {
 		ArrayList<RendererConfiguration> renderers = new ArrayList<>();
 		for (Map<String,Renderer> item : (Collection<Map<String,Renderer>>)rendererMap.values()) {
 			Renderer r = (Renderer)item.get("0");
-			if ((r.controls & type) != 0) {
+			if (r.active && (r.controls & type) != 0) {
 				renderers.add((RendererConfiguration)r);
 			}
 		}

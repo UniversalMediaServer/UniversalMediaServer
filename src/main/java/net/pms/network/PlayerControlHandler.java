@@ -165,6 +165,14 @@ public class PlayerControlHandler implements HttpHandler {
 		return player;
 	}
 
+	public String getPlayerState(UPNPHelper.Player player) {
+		if (player != null) {
+			UPNPHelper.Player.State state = player.getState();
+			return String.format(jsonState, state.playback, state.mute, state.volume, StringUtil.shortTime(state.position, 4), StringUtil.shortTime(state.duration, 4), state.uri/*, state.metadata*/);
+		}
+		return "";
+	}
+
 	public RendererConfiguration getDefaultRenderer() {
 		if (defaultRenderer == null && bumpAddress != null) {
 			UPNPHelper.Player player = getPlayer(UPNPHelper.getUUID(bumpAddress));
@@ -172,15 +180,7 @@ public class PlayerControlHandler implements HttpHandler {
 				defaultRenderer = player.renderer;
 			}
 		}
-		return defaultRenderer;
-	}
-
-	public String getPlayerState(UPNPHelper.Player player) {
-		if (player != null) {
-			UPNPHelper.Player.State state = player.getState();
-			return String.format(jsonState, state.playback, state.mute, state.volume, StringUtil.shortTime(state.position, 4), StringUtil.shortTime(state.duration, 4), state.uri/*, state.metadata*/);
-		}
-		return "";
+		return (defaultRenderer != null && ! defaultRenderer.isOffline()) ? defaultRenderer : null;
 	}
 
 	public String getRenderers(InetAddress client) {
