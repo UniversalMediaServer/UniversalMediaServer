@@ -119,7 +119,13 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		params.secondread_minsize = 100000;
 		RendererConfiguration renderer = params.mediaRenderer;
 		String filename = dlna.getSystemName();
-		setAudioAndSubs(filename, media, params);
+		if (params.aid == null) {
+			setAudioOutputParameters(media, params);
+		}
+
+		if (params.sid == null) {
+			setSubtitleOutputParameters(filename, media, params);
+		}
 
 		// XXX work around an ffmpeg bug: http://ffmpeg.org/trac/ffmpeg/ticket/998
 		if (filename.startsWith("mms:")) {
