@@ -105,6 +105,7 @@ public class TranscodingTab {
 	private JTextField ass_shadow;
 	private JTextField ass_margin;
 	private JButton subColor;
+	private JCheckBox forceExternalSubtitles;
 
 	/*
 	 * 16 cores is the maximum allowed by MEncoder as of MPlayer r34863.
@@ -959,6 +960,11 @@ public class TranscodingTab {
 				configuration.setAutoloadExternalSubtitles((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
+		if (configuration.isForceExternalSubtitles()) {
+			subs.setEnabled(false);
+		} else {
+			subs.setEnabled(true);
+		}
 		builder.add(subs, FormLayoutUtil.flip(cc.xyw(1, 14, 11), colSpec, orientation));
 
 		subColor = new JButton();
@@ -981,6 +987,21 @@ public class TranscodingTab {
 			}
 		});
 		builder.add(subColor, FormLayoutUtil.flip(cc.xyw(13, 14, 3), colSpec, orientation));
+
+		forceExternalSubtitles = new JCheckBox(Messages.getString("TrTab2.87"), configuration.isForceExternalSubtitles());
+		forceExternalSubtitles.setToolTipText(Messages.getString("TrTab2.88"));
+		forceExternalSubtitles.setContentAreaFilled(false);
+		forceExternalSubtitles.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setForceExternalSubtitles((e.getStateChange() == ItemEvent.SELECTED));
+				if (configuration.isForceExternalSubtitles()) {
+					subs.setSelected(true);
+				}
+				subs.setEnabled(!configuration.isForceExternalSubtitles());
+			}
+		});
+		builder.add(forceExternalSubtitles, FormLayoutUtil.flip(cc.xyw(1, 16, 11), colSpec, orientation));
 
 		final JPanel panel = builder.getPanel();
 

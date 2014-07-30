@@ -118,6 +118,7 @@ public class PmsConfiguration {
 	private static final String KEY_FONT = "subtitles_font";
 	private static final String KEY_FORCED_SUBTITLE_LANGUAGE = "forced_subtitle_language";
 	private static final String KEY_FORCED_SUBTITLE_TAGS = "forced_subtitle_tags";
+	private static final String KEY_FORCE_EXTERNAL_SUBTITLES = "force_external_subtitles";
 	private static final String KEY_FORCE_TRANSCODE_FOR_EXTENSIONS = "force_transcode_for_extensions";
 	private static final String KEY_FOLDER_LIMIT = "folder_limit";
 	public static final String KEY_GPU_ACCELERATION = "gpu_acceleration";
@@ -1571,25 +1572,48 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Returns true when PMS should check for external subtitle files with the
-	 * same name as the media (*.srt, *.sub, *.ass, etc.). The default value is
-	 * true.
+	 * Whether we should check for external subtitle files with the same
+	 * name as the media (*.srt, *.sub, *.ass, etc.).
 	 *
-	 * @return True if PMS should check for external subtitle files, false if
-	 * 		they should be ignored.
+	 * Note: This will return true if either the autoload external subtitles
+	 * setting is enabled or the force external subtitles setting is enabled
+	 *
+	 * @return Whether we should check for external subtitle files.
 	 */
 	public boolean isAutoloadExternalSubtitles() {
-		return getBoolean(KEY_AUTOLOAD_SUBTITLES, true);
+		return getBoolean(KEY_AUTOLOAD_SUBTITLES, true) || isForceExternalSubtitles();
 	}
 
 	/**
-	 * Set to true if PMS should check for external subtitle files with the
-	 * same name as the media (*.srt, *.sub, *.ass etc.).
+	 * Whether we should check for external subtitle files with the same
+	 * name as the media (*.srt, *.sub, *.ass etc.).
 	 *
-	 * @param value True if PMS should check for external subtitle files.
+	 * @param value Whether we should check for external subtitle files.
 	 */
 	public void setAutoloadExternalSubtitles(boolean value) {
 		configuration.setProperty(KEY_AUTOLOAD_SUBTITLES, value);
+	}
+
+	/**
+	 * Whether we should force external subtitles with the same name as the
+	 * media (*.srt, *.sub, *.ass, etc.) to display, regardless of whether
+	 * language preferences disable them.
+	 *
+	 * @return Whether we should force external subtitle files.
+	 */
+	public boolean isForceExternalSubtitles() {
+		return getBoolean(KEY_FORCE_EXTERNAL_SUBTITLES, true);
+	}
+
+	/**
+	 * Whether we should force external subtitles with the same name as the
+	 * media (*.srt, *.sub, *.ass, etc.) to display, regardless of whether
+	 * language preferences disable them.
+	 *
+	 * @param value Whether we should force external subtitle files.
+	 */
+	public void setForceExternalSubtitles(boolean value) {
+		configuration.setProperty(KEY_FORCE_EXTERNAL_SUBTITLES, value);
 	}
 
 	/**

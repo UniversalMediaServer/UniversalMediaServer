@@ -313,7 +313,7 @@ public abstract class Player {
 						 * Ignore the "off" language for external subtitles if the user setting is enabled
 						 * TODO: Prioritize multiple external subtitles properly instead of just taking the first one we load
 						 */
-						if (configuration.isAutoloadExternalSubtitles()) {
+						if (configuration.isForceExternalSubtitles()) {
 							for (DLNAMediaSubtitle present_sub : media.getSubtitleTracksList()) {
 								if (present_sub.getExternalFile() != null) {
 									matchedSub = present_sub;
