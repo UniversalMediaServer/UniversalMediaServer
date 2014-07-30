@@ -453,6 +453,14 @@ public class UPNPControl {
 		LOGGER.debug(getFriendlyName(d) + " is now offline.");
 	}
 
+	public static String getUUID(String addr) {
+		try {
+			return getUUID(InetAddress.getByName(addr));
+		} catch(Exception e) {
+			return null;
+		}
+	}
+
 	public static String getUUID(InetAddress socket) {
 		Device d = getDevice(socket);
 		if (d != null) {

@@ -44,6 +44,9 @@ public class PlayerControlHandler implements HttpHandler {
 	private int port;
 	private String protocol;
 	private HashMap<String,UPNPHelper.Player> players;
+	private HashMap<InetAddress,UPNPHelper.Player> selectedPlayers;
+	private String bumpAddress;
+	private RendererConfiguration defaultRenderer;
 	private String jsonState = "\"state\":{\"playback\":%d,\"mute\":\"%s\",\"volume\":%d,\"position\":\"%s\",\"duration\":\"%s\",\"uri\":\"%s\"}";
 	private File bumpjs, skindir;
 
@@ -54,10 +57,13 @@ public class PlayerControlHandler implements HttpHandler {
 		server.createContext("/bump", this);
 		port = server.getAddress().getPort();
 		protocol = server instanceof HttpsServer ? "https://" : "http://";
-		players = new HashMap();
+		players = new HashMap<>();
+		selectedPlayers = new HashMap<>();
 		String basepath = configuration.getWebPath().getPath();
 		bumpjs = new File(FilenameUtils.concat(basepath, configuration.getBumpJS("bump/bump.js")));
 		skindir = new File(FilenameUtils.concat(basepath, configuration.getBumpSkinDir("bump/skin")));
+		bumpAddress = configuration.getBumpAddress();
+		defaultRenderer = null;
 	}
 
 	@Override
@@ -104,6 +110,7 @@ public class PlayerControlHandler implements HttpHandler {
 			}
 			json.add(getPlayerState(player));
 			json.add(getPlaylist(player));
+			selectedPlayers.put(x.getRemoteAddress().getAddress(), player);
 		} else if (p.length == 2) {
 			response = read(configuration.getWebFile("bump/bump.html"))
 				.replace("http://127.0.0.1:9001", protocol + PMS.get().getServer().getHost() + ":" + port);
@@ -111,7 +118,7 @@ public class PlayerControlHandler implements HttpHandler {
 			response = getBumpJS();
 			mime = "text/javascript";
 		} else if (p[2].equals("renderers")) {
-			json.add(getRenderers());
+			json.add(getRenderers(x.getRemoteAddress().getAddress()));
 		} else if (p[2].startsWith("skin.")) {
 			RemoteUtil.dumpFile(new File(skindir, p[2].substring(5)), x);
 			return;
@@ -158,6 +165,16 @@ public class PlayerControlHandler implements HttpHandler {
 		return player;
 	}
 
+	public RendererConfiguration getDefaultRenderer() {
+		if (defaultRenderer == null && bumpAddress != null) {
+			UPNPHelper.Player player = getPlayer(UPNPHelper.getUUID(bumpAddress));
+			if (player != null) {
+				defaultRenderer = player.renderer;
+			}
+		}
+		return defaultRenderer;
+	}
+
 	public String getPlayerState(UPNPHelper.Player player) {
 		if (player != null) {
 			UPNPHelper.Player.State state = player.getState();
@@ -166,12 +183,12 @@ public class PlayerControlHandler implements HttpHandler {
 		return "";
 	}
 
-	public String getRenderers() {
+	public String getRenderers(InetAddress client) {
+		UPNPHelper.Player player = selectedPlayers.get(client);
+		RendererConfiguration selected = player != null ? player.renderer : getDefaultRenderer();
 		ArrayList<String> json = new ArrayList();
-		String bumpAddress = configuration.getBumpAddress();
 		for (RendererConfiguration r : RendererConfiguration.getConnectedControlPlayers()) {
-			String address = r.getAddress().toString().substring(1);
-			json.add(String.format("[\"%s\",%d,\"%s\"]", r, address.equals(bumpAddress) ? 1 : 0, r.uuid));
+			json.add(String.format("[\"%s\",%d,\"%s\"]", r, r == selected ? 1 : 0, r.uuid));
 		}
 		return "\"renderers\":[" + StringUtils.join(json, ",") + "]";
 	}
@@ -221,8 +238,7 @@ public class PlayerControlHandler implements HttpHandler {
 		if (! StringUtils.isBlank(raw)) {
 			try {
 				String[] q = raw.split("&|=");
-				int i;
-				for (i=0; i < q.length; i+=2) {
+				for (int i=0; i < q.length; i+=2) {
 					vars.put(URLDecoder.decode(q[i], "UTF-8"), UPNPHelper.unescape(URLDecoder.decode(q[i+1], "UTF-8")));
 				}
 			} catch (Exception e) {
@@ -233,8 +249,6 @@ public class PlayerControlHandler implements HttpHandler {
 	}
 
 	public String translate(String uri) {
-		// FIXME: this assumes resourceIds are consistent across renderers
-		// which isn't necessarily true if their hidden items differ.
 		return uri.startsWith("/play/") ?
 			(PMS.get().getServer().getURL() + "/get/" + uri.substring(6).replace("%24", "$")) : uri;
 	}
