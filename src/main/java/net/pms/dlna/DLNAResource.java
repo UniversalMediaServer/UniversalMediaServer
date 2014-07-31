@@ -309,16 +309,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	protected void setId(String id) {
 		this.id = id;
-		if (configuration.getAutoDiscover()) {
-			if (getParent() != null) {
-				pathId = getParent().pathId + "." + id;
-			} else {
-				pathId = id;
-			}
-		}
 	}
 
 	public String getPathId() {
+		DLNAResource tmp = getParent();
+		ArrayList<String> res = new ArrayList<>();
+		res.add(getId());
+		while (tmp != null) {
+			res.add(0, tmp.getId());
+			tmp = tmp.getParent();
+		}
+		pathId = StringUtils.join(res,'.');
 		return pathId;
 	}
 
@@ -921,7 +922,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 		return dlna;*/
 		DLNAResource dlna = PMS.getGlobalRepo().get(objectId);
-		if(dlna.isFolder()) {
+		if(dlna != null && dlna.isFolder()) {
 			return null;
 		} else {
 			return dlna;
