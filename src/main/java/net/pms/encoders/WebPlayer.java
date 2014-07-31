@@ -7,11 +7,9 @@ import java.util.List;
 import javax.swing.JComponent;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
-import net.pms.dlna.RealFile;
 import net.pms.formats.Format;
 import net.pms.io.*;
 import net.pms.remote.RemoteUtil;
-import net.pms.util.MpegUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

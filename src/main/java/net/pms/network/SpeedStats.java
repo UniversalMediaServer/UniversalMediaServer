@@ -141,7 +141,7 @@ public class SpeedStats {
 				}
 			}
 			int speedInMbits = (int) (bps / (cnt * 1000000));
-			LOGGER.info("Address " + addr + " has an estimated network speed of: " + speedInMbits + " Mb/s");
+			LOGGER.info("Renderer " + rendererName + " has an estimated network speed of " + speedInMbits + " Mb/s");
 			synchronized (speedStats) {
 				CompletedFuture<Integer> result = new CompletedFuture<Integer>(speedInMbits);
 				// update the statistics with a computed future value

@@ -103,7 +103,6 @@ public class ResumeObj {
 					}
 					break;
 				}
-				in.close();
 		} catch (IOException e) {
 		}
 	}
