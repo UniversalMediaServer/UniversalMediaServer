@@ -828,24 +828,14 @@ public class FFMpegVideo extends Player {
 
 		// Audio bitrate
 		if (!ac3Remux && !dtsRemux && !(type() == Format.AUDIO)) {
-			int channels;
+			int channels = 0;
 			if (renderer.isTranscodeToWMV() && !renderer.isXBOX()) {
 				channels = 2;
-			} else if (ac3Remux) {
-				channels = params.aid.getAudioProperties().getNumberOfChannels(); // AC-3 remux
-			} else {
-				/**
-				 * Output the original number of audio channels as long as there aren't more
-				 * than the "maximum number of audio channels" user setting specifies
-				 */
-				if (params.aid.getAudioProperties().getNumberOfChannels() > configuration.getAudioChannelCount()) {
-					channels = configuration.getAudioChannelCount();
-				} else {
-					channels = params.aid.getAudioProperties().getNumberOfChannels();
-				}
+			} else if (params.aid.getAudioProperties().getNumberOfChannels() > configuration.getAudioChannelCount()) {
+				channels = configuration.getAudioChannelCount();
 			}
 
-			if (!customFFmpegOptions.contains("-ac ")) {
+			if (!customFFmpegOptions.contains("-ac ") && channels > 0) {
 				cmdList.add("-ac");
 				cmdList.add(String.valueOf(channels));
 			}
