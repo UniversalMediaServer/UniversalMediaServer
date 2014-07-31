@@ -1005,6 +1005,7 @@ public class TranscodingTab {
 		builder.add(forceExternalSubtitles, FormLayoutUtil.flip(cc.xyw(1, 16, 11), colSpec, orientation));
 
 		useEmbeddedSubtitlesStyle = new JCheckBox(Messages.getString("MEncoderVideo.36"), configuration.isUseEmbeddedSubtitlesStyle());
+		useEmbeddedSubtitlesStyle.setToolTipText(Messages.getString("TrTab2.89"));
 		useEmbeddedSubtitlesStyle.setContentAreaFilled(false);
 		useEmbeddedSubtitlesStyle.addItemListener(new ItemListener() {
 			@Override
