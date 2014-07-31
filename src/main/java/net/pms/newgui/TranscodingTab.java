@@ -106,6 +106,7 @@ public class TranscodingTab {
 	private JTextField ass_margin;
 	private JButton subColor;
 	private JCheckBox forceExternalSubtitles;
+	private JCheckBox useEmbeddedSubtitlesStyle;
 
 	/*
 	 * 16 cores is the maximum allowed by MEncoder as of MPlayer r34863.
@@ -730,7 +731,7 @@ public class TranscodingTab {
 
 	private JComponent buildSubtitlesSetupPanel() {
 		String colSpec = FormLayoutUtil.getColSpec("left:pref, 3dlu, p:grow, 3dlu, right:p:grow, 3dlu, p:grow, 3dlu, right:p:grow,3dlu, p:grow, 3dlu, right:p:grow,3dlu, pref:grow", orientation);
-		FormLayout layout = new FormLayout(colSpec, "$lgap, 7*(pref, 3dlu), pref");
+		FormLayout layout = new FormLayout(colSpec, "$lgap, 9*(pref, 3dlu), pref");
 		final PanelBuilder builder = new PanelBuilder(layout);
 		builder.border(Borders.DLU4);
 		CellConstraints cc = new CellConstraints();
@@ -1002,6 +1003,16 @@ public class TranscodingTab {
 			}
 		});
 		builder.add(forceExternalSubtitles, FormLayoutUtil.flip(cc.xyw(1, 16, 11), colSpec, orientation));
+
+		useEmbeddedSubtitlesStyle = new JCheckBox(Messages.getString("MEncoderVideo.36"), configuration.isUseEmbeddedSubtitlesStyle());
+		useEmbeddedSubtitlesStyle.setContentAreaFilled(false);
+		useEmbeddedSubtitlesStyle.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setUseEmbeddedSubtitlesStyle(e.getStateChange() == ItemEvent.SELECTED);
+			}
+		});
+		builder.add(useEmbeddedSubtitlesStyle, FormLayoutUtil.flip(cc.xyw(1, 18, 11), colSpec, orientation));
 
 		final JPanel panel = builder.getPanel();
 

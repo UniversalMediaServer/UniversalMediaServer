@@ -1219,7 +1219,13 @@ public class FFMpegVideo extends Player {
 		}
 
 		// Now we're sure we actually have our own modifiable file
-		if (applyFontConfig) {
+		if (
+			applyFontConfig &&
+			!(
+				configuration.isUseEmbeddedSubtitlesStyle() &&
+				params.sid.getType() == SubtitleType.ASS
+			)
+		) {
 			try {
 				tempSubs = applyFontconfigToASSTempSubsFile(tempSubs, media, configuration);
 			} catch (IOException e) {

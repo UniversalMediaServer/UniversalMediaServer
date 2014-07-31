@@ -147,7 +147,6 @@ public class PmsConfiguration {
 	private static final String KEY_MAX_MEMORY_BUFFER_SIZE = "maximum_video_buffer_size";
 	private static final String KEY_MENCODER_ASS = "mencoder_ass";
 	private static final String KEY_MENCODER_AC3_FIXED = "mencoder_ac3_fixed";
-	private static final String KEY_MENCODER_ASS_DEFAULTSTYLE = "mencoder_ass_defaultstyle";
 	private static final String KEY_MENCODER_CUSTOM_OPTIONS = "mencoder_custom_options";
 	private static final String KEY_MENCODER_FONT_CONFIG = "mencoder_fontconfig";
 	private static final String KEY_MENCODER_FORCE_FPS = "mencoder_forcefps";
@@ -218,6 +217,7 @@ public class PmsConfiguration {
 	private static final String KEY_SORT_PATHS = "sort_paths";
 	private static final String KEY_SPEED_DBG = "speed_debug";
 	private static final String KEY_SUBS_COLOR = "subtitles_color";
+	private static final String KEY_USE_EMBEDDED_SUBTITLES_STYLE = "use_embedded_subtitles_style";
 	private static final String KEY_SUBTITLES_CODEPAGE = "subtitles_codepage";
 	private static final String KEY_SUBTITLES_LANGUAGES = "subtitles_languages";
 	private static final String KEY_TEMP_FOLDER_PATH = "temp_directory";
@@ -249,6 +249,10 @@ public class PmsConfiguration {
 	private static final String KEY_WEB_THREADS = "web_threads";
 	private static final String KEY_WEB_PATH = "web_path";
 	private static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
+
+	// Deprecated settings
+	@Deprecated
+	private static final String KEY_MENCODER_ASS_DEFAULTSTYLE = "mencoder_ass_defaultstyle";
 
 	// The name of the subdirectory under which UMS config files are stored for this build (default: UMS).
 	// See Build for more details
@@ -2133,12 +2137,52 @@ public class PmsConfiguration {
 		return getBoolean(KEY_DISABLE_FAKESIZE, false);
 	}
 
+	/**
+	 * Whether the style rules defined by styled subtitles (ASS/SSA) should
+	 * be followed (true) or overridden by our style rules (false) when
+	 * using MEncoder.
+	 *
+	 * @see #setUseEmbeddedSubtitlesStyle(boolean)
+	 * @param value whether to use the embedded styles or ours
+	 * @deprecated
+	 */
+	@Deprecated
 	public void setMencoderAssDefaultStyle(boolean value) {
 		configuration.setProperty(KEY_MENCODER_ASS_DEFAULTSTYLE, value);
 	}
 
+	/**
+	 * Whether the style rules defined by styled subtitles (ASS/SSA) should
+	 * be followed (true) or overridden by our style rules (false) when
+	 * using MEncoder.
+	 *
+	 * @see #isUseEmbeddedSubtitlesStyle()
+	 * @return whether to use the embedded styles or ours
+	 * @deprecated
+	 */
+	@Deprecated
 	public boolean isMencoderAssDefaultStyle() {
 		return getBoolean(KEY_MENCODER_ASS_DEFAULTSTYLE, true);
+	}
+
+	/**
+	 * Whether the style rules defined by styled subtitles (ASS/SSA) should
+	 * be followed (true) or overridden by our style rules (false).
+	 *
+	 * @param value whether to use the embedded styles or ours
+	 */
+	public void setUseEmbeddedSubtitlesStyle(boolean value) {
+		configuration.setProperty(KEY_USE_EMBEDDED_SUBTITLES_STYLE, value);
+	}
+
+	/**
+	 * Whether the style rules defined by styled subtitles (ASS/SSA) should
+	 * be followed (true) or overridden by our style rules (false).
+	 *
+	 * @return whether to use the embedded styles or ours
+	 */
+	public boolean isUseEmbeddedSubtitlesStyle() {
+		return getBoolean(KEY_USE_EMBEDDED_SUBTITLES_STYLE, true) || getBoolean(KEY_MENCODER_ASS_DEFAULTSTYLE, true);
 	}
 
 	public int getMEncoderOverscan() {

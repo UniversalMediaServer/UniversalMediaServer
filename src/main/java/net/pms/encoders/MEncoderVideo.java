@@ -75,7 +75,6 @@ public class MEncoderVideo extends Player {
 	private JCheckBox scaler;
 	private JTextField scaleX;
 	private JTextField scaleY;
-	private JCheckBox assdefaultstyle;
 	private JCheckBox fc;
 	private JCheckBox ass;
 	private JCheckBox checkBox;
@@ -475,16 +474,6 @@ public class MEncoderVideo extends Player {
 		});
 		builder.add(fc, FormLayoutUtil.flip(cc.xyw(3, 23, 5), colSpec, orientation));
 
-		assdefaultstyle = new JCheckBox(Messages.getString("MEncoderVideo.36"), configuration.isMencoderAssDefaultStyle());
-		assdefaultstyle.setContentAreaFilled(false);
-		assdefaultstyle.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setMencoderAssDefaultStyle(e.getStateChange() == ItemEvent.SELECTED);
-			}
-		});
-		builder.add(assdefaultstyle, FormLayoutUtil.flip(cc.xyw(8, 23, 4), colSpec, orientation));
-
 		builder.addLabel(Messages.getString("MEncoderVideo.92"), FormLayoutUtil.flip(cc.xy(1, 29), colSpec, orientation));
 		subq = new JTextField(configuration.getMencoderVobsubSubtitleQuality());
 		subq.addKeyListener(new KeyAdapter() {
@@ -504,7 +493,6 @@ public class MEncoderVideo extends Player {
 				if ((!event.isBeforeUpdate()) && event.getPropertyName().equals(PmsConfiguration.KEY_DISABLE_SUBTITLES)) {
 					boolean enabled = !configuration.isDisableSubtitles();
 					ass.setEnabled(enabled);
-					assdefaultstyle.setEnabled(enabled);
 					fc.setEnabled(enabled);
 					mencoder_noass_scale.setEnabled(enabled);
 					mencoder_noass_outline.setEnabled(enabled);
@@ -1383,7 +1371,7 @@ public class MEncoderVideo extends Player {
 				sb.append("-ass ");
 
 				// GUI: Override ASS subtitles style if requested (always for SRT and TX3G subtitles)
-				boolean override_ass_style = !configuration.isMencoderAssDefaultStyle() ||
+				boolean override_ass_style = !configuration.isUseEmbeddedSubtitlesStyle() ||
 					params.sid.getType() == SubtitleType.SUBRIP ||
 					params.sid.getType() == SubtitleType.TX3G;
 
