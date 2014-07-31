@@ -2,8 +2,13 @@
 
 	General:
 		Added option InternalSubtitlesSupported to renderer configs for greater control over file compatibility
+		Added option "Force external subtitles"
+		Added the option "Use embedded style" to FFmpeg instead of just MEncoder
 		Fixed a bug with the adaptive bitrate setting GUI
 		Fixed bugs with subtitles not being loaded
+		Fixed displaying the Windows-specific "prevent operating system from sleeping" option on other operating systems
+		Fixed FFmpeg sometimes sending too many audio channels
+		Fixed FFmpeg using a bitrate too high for audio transcoding
 	Languages:
 		Updated Spanish translation (thanks, AlfredoRamos!)
 	External Components:
