@@ -1,4 +1,4 @@
-4.0.1 - 2014-08-??
+4.0.1 - 2014-08-01
 
 	General:
 		Added option InternalSubtitlesSupported to renderer configs for greater control over file compatibility
