@@ -834,7 +834,15 @@ public class FFMpegVideo extends Player {
 			} else if (ac3Remux) {
 				channels = params.aid.getAudioProperties().getNumberOfChannels(); // AC-3 remux
 			} else {
-				channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
+				/**
+				 * Output the original number of audio channels as long as there aren't more
+				 * than the "maximum number of audio channels" user setting specifies
+				 */
+				if (params.aid.getAudioProperties().getNumberOfChannels() > configuration.getAudioChannelCount()) {
+					channels = configuration.getAudioChannelCount();
+				} else {
+					channels = params.aid.getAudioProperties().getNumberOfChannels();
+				}
 			}
 
 			if (!customFFmpegOptions.contains("-ac ")) {

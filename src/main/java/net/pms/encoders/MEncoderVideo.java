@@ -1124,6 +1124,10 @@ public class MEncoderVideo extends Player {
 		} else if (pcm) {
 			channels = params.aid.getAudioProperties().getNumberOfChannels();
 		} else {
+			/**
+			 * Note: MEncoder will output 2 audio channels if the input video had 2 channels
+			 * regardless of us telling it to output 6 (unlike FFmpeg which will output 6).
+			 */
 			channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
 		}
 		String channelsString = "-channels " + channels;
