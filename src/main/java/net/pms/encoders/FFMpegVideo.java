@@ -60,6 +60,7 @@ import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.StreamModifier;
 import net.pms.io.OutputTextLogger;
 import net.pms.network.HTTPResource;
+import net.pms.util.CodecUtil;
 import net.pms.util.FileUtil;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
@@ -846,7 +847,7 @@ public class FFMpegVideo extends Player {
 				if (renderer.isTranscodeToMPEGTSH264AAC()) {
 					cmdList.add(Math.min(configuration.getAudioBitrate(), 320) + "k");
 				} else {
-					cmdList.add(configuration.getAudioBitrate() + "k");
+					cmdList.add(String.valueOf(CodecUtil.getAC3Bitrate(configuration, params.aid)) + "k");
 				}
 			}
 		}
