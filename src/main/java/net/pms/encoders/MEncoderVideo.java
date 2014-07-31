@@ -75,7 +75,6 @@ public class MEncoderVideo extends Player {
 	private JCheckBox scaler;
 	private JTextField scaleX;
 	private JTextField scaleY;
-	private JCheckBox assdefaultstyle;
 	private JCheckBox fc;
 	private JCheckBox ass;
 	private JCheckBox checkBox;
@@ -438,13 +437,6 @@ public class MEncoderVideo extends Player {
 		});
 		builder.add(fc, FormLayoutUtil.flip(cc.xyw(3, 23, 5), colSpec, orientation));
 
-		assdefaultstyle = new JCheckBox(Messages.getString("MEncoderVideo.36"), configuration.isMencoderAssDefaultStyle());
-		assdefaultstyle.setContentAreaFilled(false);
-		assdefaultstyle.addItemListener((ItemEvent e) -> {
-			configuration.setMencoderAssDefaultStyle(e.getStateChange() == ItemEvent.SELECTED);
-		});
-		builder.add(assdefaultstyle, FormLayoutUtil.flip(cc.xyw(8, 23, 4), colSpec, orientation));
-
 		builder.addLabel(Messages.getString("MEncoderVideo.92"), FormLayoutUtil.flip(cc.xy(1, 29), colSpec, orientation));
 		subq = new JTextField(configuration.getMencoderVobsubSubtitleQuality());
 		subq.addKeyListener(new KeyAdapter() {
@@ -462,7 +454,6 @@ public class MEncoderVideo extends Player {
 			if ((!event.isBeforeUpdate()) && event.getPropertyName().equals(PmsConfiguration.KEY_DISABLE_SUBTITLES)) {
 				boolean enabled = !configuration.isDisableSubtitles();
 				ass.setEnabled(enabled);
-				assdefaultstyle.setEnabled(enabled);
 				fc.setEnabled(enabled);
 				mencoder_noass_scale.setEnabled(enabled);
 				mencoder_noass_outline.setEnabled(enabled);
@@ -778,7 +769,14 @@ public class MEncoderVideo extends Player {
 		boolean avisynth = avisynth();
 
 		final String filename = dlna.getSystemName();
-		setAudioAndSubs(filename, media, params);
+		if (params.aid == null) {
+			setAudioOutputParameters(media, params);
+		}
+
+		if (params.sid == null) {
+			setSubtitleOutputParameters(filename, media, params);
+		}
+
 		String externalSubtitlesFileName = null;
 
 		if (params.sid != null && params.sid.isExternal()) {
@@ -1086,6 +1084,10 @@ public class MEncoderVideo extends Player {
 		} else if (pcm) {
 			channels = params.aid.getAudioProperties().getNumberOfChannels();
 		} else {
+			/**
+			 * Note: MEncoder will output 2 audio channels if the input video had 2 channels
+			 * regardless of us telling it to output 6 (unlike FFmpeg which will output 6).
+			 */
 			channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
 		}
 		String channelsString = "-channels " + channels;
@@ -1333,7 +1335,7 @@ public class MEncoderVideo extends Player {
 				sb.append("-ass ");
 
 				// GUI: Override ASS subtitles style if requested (always for SRT and TX3G subtitles)
-				boolean override_ass_style = !configuration.isMencoderAssDefaultStyle() ||
+				boolean override_ass_style = !configuration.isUseEmbeddedSubtitlesStyle() ||
 					params.sid.getType() == SubtitleType.SUBRIP ||
 					params.sid.getType() == SubtitleType.TX3G;
 

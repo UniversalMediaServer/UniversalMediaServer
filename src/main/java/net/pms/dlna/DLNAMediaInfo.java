@@ -1567,13 +1567,13 @@ public class DLNAMediaInfo implements Cloneable {
 
 		if (cloned instanceof DLNAMediaInfo) {
 			DLNAMediaInfo mediaCloned = ((DLNAMediaInfo) cloned);
-			mediaCloned.setAudioTracksList(new ArrayList<DLNAMediaAudio>());
+			mediaCloned.setAudioTracksList(new ArrayList<>());
 
 			for (DLNAMediaAudio audio : audioTracks) {
 				mediaCloned.getAudioTracksList().add((DLNAMediaAudio) audio.clone());
 			}
 
-			mediaCloned.setSubtitleTracksList(new ArrayList<DLNAMediaSubtitle>());
+			mediaCloned.setSubtitleTracksList(new ArrayList<>());
 
 			for (DLNAMediaSubtitle sub : subtitleTracks) {
 				mediaCloned.getSubtitleTracksList().add((DLNAMediaSubtitle) sub.clone());

@@ -37,11 +37,7 @@ public class DbgPacker implements ActionListener {
 		init = true;
 		items = new LinkedHashMap<>();
 		debug_log = LoggingConfigFileLoader.getLogFilePaths().get("debug.log");
-
-		dbg_zip = "/tmp/ums_dbg.zip";
-		if (debug_log != null) {
-			dbg_zip = debug_log.replace("debug.log", "ums_dbg.zip");
-		}
+		dbg_zip = debug_log.replace("debug.log", "ums_dbg.zip");
 	}
 
 	public JComponent config() {

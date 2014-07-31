@@ -60,6 +60,7 @@ import net.pms.io.ProcessWrapperImpl;
 import net.pms.io.StreamModifier;
 import net.pms.io.OutputTextLogger;
 import net.pms.network.HTTPResource;
+import net.pms.util.CodecUtil;
 import net.pms.util.FileUtil;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
@@ -638,6 +639,95 @@ public class FFMpegVideo extends Player {
 			aspectRatiosMatch = false;
 		}
 
+		/*
+		 * FFmpeg uses multithreading by default, so provided that the
+		 * user has not disabled FFmpeg multithreading and has not
+		 * chosen to use more or less threads than are available, do not
+		 * specify how many cores to use.
+		 */
+		int nThreads = 1;
+		if (configuration.isFfmpegMultithreading()) {
+			if (Runtime.getRuntime().availableProcessors() == configuration.getNumberOfCpuCores()) {
+				nThreads = 0;
+			} else {
+				nThreads = configuration.getNumberOfCpuCores();
+			}
+		}
+
+		List<String> cmdList = new ArrayList<>();
+		RendererConfiguration renderer = params.mediaRenderer;
+		boolean avisynth = avisynth();
+		if (params.timeseek > 0) {
+			params.waitbeforestart = 200;
+		} else {
+			params.waitbeforestart = 2500;
+		}
+
+		if (params.aid == null) {
+			setAudioOutputParameters(media, params);
+		}
+
+		if (params.sid == null) {
+			setSubtitleOutputParameters(filename, media, params);
+		}
+
+		cmdList.add(executable());
+
+		// Prevent FFmpeg timeout
+		cmdList.add("-y");
+
+		cmdList.add("-loglevel");
+		if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
+			cmdList.add("info"); // Could be changed to "verbose" or "debug" if "info" level is not enough
+		} else {
+			cmdList.add("fatal");
+		}
+
+		if (params.timeseek > 0) {
+			cmdList.add("-ss");
+			cmdList.add(String.valueOf((int) params.timeseek));
+		}
+
+		// Decoder threads
+		if (nThreads > 0) {
+			cmdList.add("-threads");
+			cmdList.add(String.valueOf(nThreads));
+		}
+
+		final boolean isTsMuxeRVideoEngineEnabled = configuration.getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
+
+		ac3Remux = false;
+		dtsRemux = false;
+
+		if (configuration.isAudioRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && renderer.isTranscodeToAC3()) {
+			// AC-3 remux takes priority
+			ac3Remux = true;
+		} else {
+			// Now check for DTS remux and LPCM streaming
+			dtsRemux = isTsMuxeRVideoEngineEnabled &&
+				configuration.isAudioEmbedDtsInPcm() &&
+				params.aid != null &&
+				params.aid.isDTS() &&
+				!avisynth() &&
+				params.mediaRenderer.isDTSPlayable();
+		}
+
+		String frameRateRatio = media.getValidFps(true);
+		String frameRateNumber = media.getValidFps(false);
+
+		// Input filename
+		cmdList.add("-i");
+		if (avisynth && !filename.toLowerCase().endsWith(".iso")) {
+			File avsFile = AviSynthFFmpeg.getAVSScript(filename, params.sid, params.fromFrame, params.toFrame, frameRateRatio, frameRateNumber);
+			cmdList.add(ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath()));
+		} else {
+			cmdList.add(filename);
+		}
+
+		// Apply any video filters and associated options. These should go
+		// after video input is specified and before output streams are mapped.
+		cmdList.addAll(getVideoFilterOptions(dlna, media, params));
+
 		// Decide whether to defer to tsMuxeR or continue to use FFmpeg
 		boolean deferToTsmuxer = true;
 		String prependTraceReason = "Not muxing the video stream with tsMuxeR via FFmpeg because ";
@@ -702,88 +792,6 @@ public class FFMpegVideo extends Player {
 			return tv.launchTranscode(dlna, media, params);
 		}
 
-		/*
-		 * FFmpeg uses multithreading by default, so provided that the
-		 * user has not disabled FFmpeg multithreading and has not
-		 * chosen to use more or less threads than are available, do not
-		 * specify how many cores to use.
-		 */
-		int nThreads = 1;
-		if (configuration.isFfmpegMultithreading()) {
-			if (Runtime.getRuntime().availableProcessors() == configuration.getNumberOfCpuCores()) {
-				nThreads = 0;
-			} else {
-				nThreads = configuration.getNumberOfCpuCores();
-			}
-		}
-
-		List<String> cmdList = new ArrayList<>();
-		RendererConfiguration renderer = params.mediaRenderer;
-		boolean avisynth = avisynth();
-		if (params.timeseek > 0) {
-			params.waitbeforestart = 200;
-		} else {
-			params.waitbeforestart = 2500;
-		}
-
-		setAudioAndSubs(filename, media, params);
-		cmdList.add(executable());
-
-		// Prevent FFmpeg timeout
-		cmdList.add("-y");
-
-		cmdList.add("-loglevel");
-		if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
-			cmdList.add("info"); // Could be changed to "verbose" or "debug" if "info" level is not enough
-		} else {
-			cmdList.add("fatal");
-		}
-
-		if (params.timeseek > 0) {
-			cmdList.add("-ss");
-			cmdList.add(String.valueOf((int) params.timeseek));
-		}
-
-		// Decoder threads
-		if (nThreads > 0) {
-			cmdList.add("-threads");
-			cmdList.add(String.valueOf(nThreads));
-		}
-
-		final boolean isTsMuxeRVideoEngineEnabled = configuration.getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
-
-		ac3Remux = false;
-		dtsRemux = false;
-
-		if (configuration.isAudioRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && renderer.isTranscodeToAC3()) {
-			// AC-3 remux takes priority
-			ac3Remux = true;
-		} else {
-			// Now check for DTS remux and LPCM streaming
-			dtsRemux = isTsMuxeRVideoEngineEnabled &&
-				configuration.isAudioEmbedDtsInPcm() &&
-				params.aid != null &&
-				params.aid.isDTS() &&
-				!avisynth() &&
-				params.mediaRenderer.isDTSPlayable();
-		}
-
-		String frameRateRatio = media.getValidFps(true);
-		String frameRateNumber = media.getValidFps(false);
-
-		// Input filename
-		cmdList.add("-i");
-		if (avisynth && !filename.toLowerCase().endsWith(".iso")) {
-			File avsFile = AviSynthFFmpeg.getAVSScript(filename, params.sid, params.fromFrame, params.toFrame, frameRateRatio, frameRateNumber);
-			cmdList.add(ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath()));
-		} else {
-			cmdList.add(filename);
-		}
-
-		// Apply any video filters and associated options. These should go
-		// after video input is specified and before output streams are mapped.
-		cmdList.addAll(getVideoFilterOptions(dlna, media, params));
-
 		// Map the output streams if necessary
 		if (media.getAudioTracksList().size() > 1) {
 			// Set the video stream
@@ -820,16 +828,14 @@ public class FFMpegVideo extends Player {
 
 		// Audio bitrate
 		if (!ac3Remux && !dtsRemux && !(type() == Format.AUDIO)) {
-			int channels;
+			int channels = 0;
 			if (renderer.isTranscodeToWMV() && !renderer.isXBOX()) {
 				channels = 2;
-			} else if (ac3Remux) {
-				channels = params.aid.getAudioProperties().getNumberOfChannels(); // AC-3 remux
-			} else {
-				channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
+			} else if (params.aid.getAudioProperties().getNumberOfChannels() > configuration.getAudioChannelCount()) {
+				channels = configuration.getAudioChannelCount();
 			}
 
-			if (!customFFmpegOptions.contains("-ac ")) {
+			if (!customFFmpegOptions.contains("-ac ") && channels > 0) {
 				cmdList.add("-ac");
 				cmdList.add(String.valueOf(channels));
 			}
@@ -839,7 +845,7 @@ public class FFMpegVideo extends Player {
 				if (renderer.isTranscodeToMPEGTSH264AAC()) {
 					cmdList.add(Math.min(configuration.getAudioBitrate(), 320) + "k");
 				} else {
-					cmdList.add(configuration.getAudioBitrate() + "k");
+					cmdList.add(String.valueOf(CodecUtil.getAC3Bitrate(configuration, params.aid)) + "k");
 				}
 			}
 		}
@@ -1079,7 +1085,7 @@ public class FFMpegVideo extends Player {
 	}
 
 	protected static List<String> parseOptions(String str) {
-		return str == null ? null : parseOptions(str, new ArrayList<String>());
+		return str == null ? null : parseOptions(str, new ArrayList<>());
 	}
 
 	protected static List<String> parseOptions(String str, List<String> cmdList) {
@@ -1203,7 +1209,13 @@ public class FFMpegVideo extends Player {
 		}
 
 		// Now we're sure we actually have our own modifiable file
-		if (applyFontConfig) {
+		if (
+			applyFontConfig &&
+			!(
+				configuration.isUseEmbeddedSubtitlesStyle() &&
+				params.sid.getType() == SubtitleType.ASS
+			)
+		) {
 			try {
 				tempSubs = applyFontconfigToASSTempSubsFile(tempSubs, media, configuration);
 			} catch (IOException e) {

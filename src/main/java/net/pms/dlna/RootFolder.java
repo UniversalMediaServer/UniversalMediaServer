@@ -1229,12 +1229,12 @@ public class RootFolder extends DLNAResource {
 				}
 			});
 
-			vfSub.addChild(new VirtualVideoAction(Messages.getString("MEncoderVideo.36"), configuration.isMencoderAssDefaultStyle()) {
+			vfSub.addChild(new VirtualVideoAction(Messages.getString("MEncoderVideo.36"), configuration.isUseEmbeddedSubtitlesStyle()) {
 				@Override
 				public boolean enable() {
-					boolean oldValue = configuration.isMencoderAssDefaultStyle();
+					boolean oldValue = configuration.isUseEmbeddedSubtitlesStyle();
 					boolean newValue = !oldValue;
-					configuration.setMencoderAssDefaultStyle(newValue);
+					configuration.setUseEmbeddedSubtitlesStyle(newValue);
 					return newValue;
 				}
 			});

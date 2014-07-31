@@ -17,6 +17,7 @@ import java.util.regex.Pattern;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.LibMediaInfoParser;
 import net.pms.dlna.RootFolder;
@@ -98,6 +99,7 @@ public class RendererConfiguration {
 	private static final String DLNA_PN_CHANGES = "DLNAProfileChanges";
 	private static final String DLNA_TREE_HACK = "CreateDLNATreeFaster";
 	private static final String LIMIT_FOLDERS = "LimitFolders";
+	private static final String EMBEDDED_SUBS_SUPPORTED = "InternalSubtitlesSupported";
 	private static final String FORCE_JPG_THUMBNAILS = "ForceJPGThumbnails"; // Sony devices require JPG thumbnails
 	private static final String H264_L41_LIMITED = "H264Level41Limited";
 	private static final String IMAGE = "Image";
@@ -1399,6 +1401,38 @@ public class RendererConfiguration {
 		return getBoolean(USE_CLOSED_CAPTION, false);
 	}
 
+	public boolean isSubtitlesStreamingSupported() {
+		return (getSupportedSubtitles() != null);
+	}
+
+	/**
+	 * Check if the given subtitle is supported by renderer for streaming.
+	 *
+	 * @param subtitle Subtitles for checking
+	 * @return True if subtitles format is supported by renderer for streaming, False if 
+	 * subtitles format is not supported or supported formats are not set in the renderer.conf
+	 */
+	public boolean isSubtitlesFormatSupported(DLNAMediaSubtitle subtitle) {
+		if (subtitle == null) {
+			return false;
+		}
+
+		if (isSubtitlesStreamingSupported()) {
+			String[] supportedSubs = getSupportedSubtitles().split(",");
+			for (String supportedSub : supportedSubs) {
+				if (subtitle.getType().toString().equals(supportedSub.trim().toUpperCase())) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	public boolean isEmbeddedSubtitlesSupported() {
+		return getBoolean(EMBEDDED_SUBS_SUPPORTED, false);
+	}
+
 	public ArrayList<String> tags() {
 		if (rootFolder != null) {
 			return rootFolder.getTags();
@@ -1415,23 +1449,18 @@ public class RendererConfiguration {
 		for (InetAddress sa : addressAssociation.keySet()) {
 			if (addressAssociation.get(sa) == this) {
 				Future<Integer> speed = SpeedStats.getInstance().getSpeedInMBitsStored(sa, getRendererName());
-				String speedString = String.valueOf(speed.get());
 				if (max == null) {
-					LOGGER.trace("Network speed estimate: " + speedString);
-					return speedString;
+					return String.valueOf(speed.get());
 				}
 				try {
 					Integer i = Integer.parseInt(max);
 					if (speed.get() > i && i != 0) {
-						LOGGER.trace("Network speed estimate is greater than the maximum set by UMS");
 						return max;
 					} else {
-						LOGGER.trace("Network speed estimate: " + speedString);
-						return speedString;
+						return String.valueOf(speed.get());
 					}
 				} catch (NumberFormatException e) {
-					LOGGER.trace("Network speed estimate: " + String.valueOf(speed.get()));
-					return speedString;
+					return String.valueOf(speed.get());
 				}
 			}
 		}
