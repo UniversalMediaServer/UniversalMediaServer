@@ -26,8 +26,8 @@ VIProductVersion "${PROJECT_VERSION_SHORT}.0"
 
 ; Definitions for Java
 !define JRE7_VERSION "7.0"
-!define JRE_URL "http://universal-media-server-binaries.googlecode.com/svn/trunk/win32/jre-x86.exe"
-!define JRE64_URL "http://universal-media-server-binaries.googlecode.com/svn/trunk/win32/jre-x64.exe"
+!define JRE_URL "http://downloads.sourceforge.net/project/unimediaserver/Dependencies/win32/jre-x86.exe"
+!define JRE64_URL "http://downloads.sourceforge.net/project/unimediaserver/Dependencies/jre-x64.exe"
 
 ; use javaw.exe to avoid dosbox.
 ; use java.exe to keep stdout/stderr
@@ -146,7 +146,7 @@ Function GetJRE
 
 	DownloadJRE:
 		Call ElevateToAdmin
-		MessageBox MB_ICONINFORMATION "${PRODUCT_NAME} uses Java Runtime Environment ${JRE7_VERSION}, it will now be downloaded and installed."
+		MessageBox MB_ICONINFORMATION "${PRODUCT_NAME} uses Java Runtime Environment ${JRE7_VERSION}+, it will now be downloaded and installed."
 		StrCpy $2 "$TEMP\Java Runtime Environment.exe"
 		nsisdl::download /TIMEOUT=30000 ${JRE_URL} $2
 		Pop $R0 ;Get the return value
