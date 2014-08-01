@@ -25,7 +25,7 @@ VIProductVersion "${PROJECT_VERSION_SHORT}.0"
 !define REG_KEY_SOFTWARE "SOFTWARE\${PROJECT_NAME}"
 
 ; Definitions for Java
-!define JRE7_VERSION "7.0"
+!define JRE7_VERSION "8.0"
 !define JRE_URL "http://downloads.sourceforge.net/project/unimediaserver/Dependencies/win32/jre-x86.exe"
 !define JRE64_URL "http://downloads.sourceforge.net/project/unimediaserver/Dependencies/jre-x64.exe"
 
