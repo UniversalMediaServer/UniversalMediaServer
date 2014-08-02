@@ -36,6 +36,7 @@ import org.fourthline.cling.model.meta.Device;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.DeviceConfiguration;
 import net.pms.dlna.DLNAResource;
 import static net.pms.dlna.DLNAResource.Temp;
 import net.pms.util.BasicPlayer;
@@ -91,7 +92,7 @@ public class UPNPHelper extends UPNPControl {
 	 * This utility class is not meant to be instantiated.
 	 */
 	private UPNPHelper() {
-		rendererMap = new DeviceMap<RendererConfiguration>(RendererConfiguration.class);
+		rendererMap = new DeviceMap<DeviceConfiguration>(DeviceConfiguration.class);
 	}
 
 	public static UPNPHelper getInstance() {
@@ -553,7 +554,7 @@ public class UPNPHelper extends UPNPControl {
 		// Create or retrieve an instance
 		try {
 			InetAddress socket = InetAddress.getByName(getURL(d).getHost());
-			RendererConfiguration r = RendererConfiguration.getRendererConfigurationBySocketAddress(socket);
+			DeviceConfiguration r = (DeviceConfiguration)RendererConfiguration.getRendererConfigurationBySocketAddress(socket);
 
 			// FIXME: when UpnpDetailsSearch is missing from the conf a upnp-advertising
 			// renderer could register twice if the http server sees it first
@@ -565,10 +566,10 @@ public class UPNPHelper extends UPNPControl {
 				LOGGER.debug("Found upnp service for " + r.getRendererName() + ": " + getDeviceDetails(d));
 			} else {
 				// It's brand new
-				r = (RendererConfiguration)rendererMap.get(uuid, "0");
+				r = (DeviceConfiguration)rendererMap.get(uuid, "0");
 				RendererConfiguration ref = RendererConfiguration.getRendererConfigurationByUPNPDetails(getDeviceDetailsString(d));
 				if (ref != null) {
-					r.init(ref.getFile());
+					r.inherit(ref);
 				}
 				if (r.associateIP(socket)) {
 					PMS.get().setRendererFound(r);
