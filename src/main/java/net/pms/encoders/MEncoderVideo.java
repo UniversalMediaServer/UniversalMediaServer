@@ -809,14 +809,7 @@ public class MEncoderVideo extends Player {
 		boolean avisynth = avisynth();
 
 		final String filename = dlna.getSystemName();
-		if (params.aid == null) {
-			setAudioOutputParameters(media, params);
-		}
-
-		if (params.sid == null) {
-			setSubtitleOutputParameters(filename, media, params);
-		}
-
+		setAudioAndSubs(filename, media, params);
 		String externalSubtitlesFileName = null;
 
 		if (params.sid != null && params.sid.isExternal()) {
