@@ -348,16 +348,12 @@ public class Request extends HTTPResource {
 								if (sub != null) {
 									String subtitleUrl;
 									String subExtension = sub.getType().getExtension();
-
 									if (isNotBlank(subExtension)) {
-										subtitleUrl = "http://" + PMS.get().getServer().getHost() +
-											':' + PMS.get().getServer().getPort() + "/get/" +
-											id + "/subtitle0000." + subExtension;
-									} else {
-										subtitleUrl = "http://" + PMS.get().getServer().getHost() +
-												':' + PMS.get().getServer().getPort() + "/get/" +
-												id + "/subtitle0000";
+										subExtension = "." + subExtension;
 									}
+									subtitleUrl = "http://" + PMS.get().getServer().getHost() +
+										':' + PMS.get().getServer().getPort() + "/get/" +
+										id + "/subtitle0000" + subExtension;
 
 									output(output, subtitleHttpHeader + ": " + subtitleUrl);
 								}

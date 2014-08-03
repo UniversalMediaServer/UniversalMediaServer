@@ -1466,12 +1466,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	public final String getDidlString(RendererConfiguration mediaRenderer) {
 		StringBuilder sb = new StringBuilder();
-		if (!configuration.isDisableSubtitles() &&
-				media != null &&
-				media_subtitle != null &&
-				player == null &&
-				mediaRenderer.isSubtitlesFormatSupported(media_subtitle)
-			) {
+		if (
+			!configuration.isDisableSubtitles() &&
+			media != null &&
+			media_subtitle != null &&
+			player == null &&
+			mediaRenderer.isSubtitlesFormatSupported(media_subtitle)
+		) {
 				subsAreValidForStreaming = true;
 		}
 

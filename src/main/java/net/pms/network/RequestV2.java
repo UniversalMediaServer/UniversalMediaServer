@@ -362,14 +362,11 @@ public class RequestV2 extends HTTPResource {
 								String subtitleUrl;
 								String subExtension = sub.getType().getExtension();
 								if (isNotBlank(subExtension)) {
-									subtitleUrl = "http://" + PMS.get().getServer().getHost() +
-										':' + PMS.get().getServer().getPort() + "/get/" +
-										id + "/subtitle0000." + subExtension;
-								} else {
-									subtitleUrl = "http://" + PMS.get().getServer().getHost() +
-										':' + PMS.get().getServer().getPort() + "/get/" +
-										id + "/subtitle0000";
+									subExtension = "." + subExtension;
 								}
+								subtitleUrl = "http://" + PMS.get().getServer().getHost() +
+									':' + PMS.get().getServer().getPort() + "/get/" +
+									id + "/subtitle0000" + subExtension;
 
 								output.headers().set(subtitleHttpHeader, subtitleUrl);
 							}
