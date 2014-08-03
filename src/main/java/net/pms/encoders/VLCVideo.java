@@ -38,7 +38,6 @@ import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
-import static net.pms.encoders.Player.configuration;
 import net.pms.formats.Format;
 import net.pms.io.OutputParams;
 import net.pms.io.PipeProcess;
@@ -432,7 +431,7 @@ public class VLCVideo extends Player {
 			setAudioOutputParameters(media, params);
 		}
 
-		if (params.sid == null) {
+		if (params.sid == null || (params.sid != null && StringUtils.isNotEmpty(params.sid.getLiveSubURL()))) {
 			setSubtitleOutputParameters(filename, media, params);
 		}
 

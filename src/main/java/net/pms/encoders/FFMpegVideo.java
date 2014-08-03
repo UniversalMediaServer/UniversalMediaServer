@@ -666,8 +666,8 @@ public class FFMpegVideo extends Player {
 		if (params.aid == null) {
 			setAudioOutputParameters(media, params);
 		}
-
-		if (params.sid == null) {
+ 
+		if (params.sid == null || (params.sid != null && StringUtils.isNotEmpty(params.sid.getLiveSubURL()))) {
 			setSubtitleOutputParameters(filename, media, params);
 		}
 
