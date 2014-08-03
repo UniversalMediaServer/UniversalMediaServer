@@ -653,7 +653,7 @@ public class UPNPHelper extends UPNPControl {
 			dev = getDevice(uuid);
 			data = rendererMap.get(uuid, instanceID).connect(this);
 			state = new State();
-			playlist = new Playlist();
+			playlist = new Playlist(this);
 			listeners = new LinkedHashSet();
 			lasturi = null;
 			LOGGER.debug("Created upnp player for " + renderer.getRendererName());
@@ -846,6 +846,12 @@ public class UPNPHelper extends UPNPControl {
 
 		public static class Playlist extends DefaultComboBoxModel {
 
+			Player player;
+
+			public Playlist(Player p) {
+				player = p;
+			}
+
 			public Item get(String uri) {
 				int index = getIndexOf(new Item(uri, null, null));
 				if (index > -1) {
@@ -870,18 +876,31 @@ public class UPNPHelper extends UPNPControl {
 						get(uri));
 				} catch (Exception e) {
 				}
-				return (item != null && isValid(item)) ? item : null;
+				return (item != null && isValid(item, player.renderer)) ? item : null;
 			}
 
-			public static boolean isValid(Item item) {
-				// Check existence for resource uris, otherwise assume it's valid
-				return DLNAResource.isResourceUrl(item.uri) ?
-					PMS.get().getGlobalRepo().exists(DLNAResource.parseResourceId(item.uri)) : true;
+			public static boolean isValid(Item item, RendererConfiguration renderer) {
+				if (DLNAResource.isResourceUrl(item.uri)) {
+					// Check existence for resource uris
+					if (PMS.get().getGlobalRepo().exists(DLNAResource.parseResourceId(item.uri))) {
+						return true;
+					}
+					// Repair the item if possible
+					DLNAResource d = DLNAResource.getValidResource(item.uri, item.name, renderer);
+					if (d != null) {
+						item.uri = d.getURL("", true);
+						item.metadata = d.getDidlString(renderer);
+						return true;
+					}
+					return false;
+				}
+				// Assume non-resource uris are valid
+				return true;
 			}
 
 			public void validate() {
 				for (int i = getSize()-1; i > -1; i--) {
-					if (! isValid((Item)getElementAt(i))) {
+					if (! isValid((Item)getElementAt(i), player.renderer)) {
 						removeElementAt(i);
 					}
 				}

@@ -3461,15 +3461,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 	}
 
-	// Returns the uri if it appears to be ours or else the url of new Temp item (or null)
+	// Returns the uri if it's ours and exists or else the url of new Temp item (or null)
 
 	public static String getValidResourceURL(String uri, String name) {
 		if (isResourceUrl(uri)) {
-			// we assume it's ok
-			return uri;
+			// Check existence
+			return PMS.get().getGlobalRepo().exists(parseResourceId(uri)) ? uri : null; // TODO: attempt repair
 		} else {
 			DLNAResource d = Temp.add(uri, name);
-			if(d != null) {
+			if (d != null) {
 				return d.getURL("", true);
 			}
 		}
