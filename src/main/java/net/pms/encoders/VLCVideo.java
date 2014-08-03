@@ -428,7 +428,13 @@ public class VLCVideo extends Player {
 	public ProcessWrapper launchTranscode(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
 		final String filename = dlna.getSystemName();
 		boolean isWindows = Platform.isWindows();
-		setAudioAndSubs(filename, media, params);
+		if (params.aid == null) {
+			setAudioOutputParameters(media, params);
+		}
+
+		if (params.sid == null) {
+			setSubtitleOutputParameters(filename, media, params);
+		}
 
 		// Make sure we can play this
 		CodecConfig config = genConfig(params.mediaRenderer);
