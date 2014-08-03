@@ -3,22 +3,28 @@ package net.pms.util;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.formats.FormatFactory;
 import net.pms.formats.v2.SubtitleType;
+
 import org.apache.commons.io.FilenameUtils;
+
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.endsWithIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.mozilla.universalchardet.Constants.*;
+
 import org.mozilla.universalchardet.UniversalDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -973,5 +979,18 @@ public class FileUtil {
 		}
 
 		return filename;
+	}
+
+	public static BufferedReader bufferedReaderWithCorrectCharset(File file) throws IOException {
+		BufferedReader reader;
+		String fileCharset = getFileCharset(file);
+		final boolean iscodepageAutoDetectedAndSupportedByJVM = isNotBlank(fileCharset) && Charset.isSupported(fileCharset);
+		if (iscodepageAutoDetectedAndSupportedByJVM) {
+			reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), Charset.forName(fileCharset)));
+		} else {
+			reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
+		}
+		return reader;
+		
 	}
 }
