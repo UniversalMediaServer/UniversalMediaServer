@@ -668,7 +668,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								!"16:9".equals(child.media.getAspectRatioContainer())
 							) {
 								isIncompatible = true;
-								LOGGER.trace("File \"{}\" will not be streamed because the renderer needs us to add borders so it displays the correct aspect ratio.", child.getName());
+								LOGGER.trace("File \"{}\" will not be streamed because the renderer needs us to add borders to change the aspect ratio from {} to 16/9.", child.getName(), child.media.getAspectRatioContainer());
 							} else if (
 								defaultRenderer != null &&
 								defaultRenderer.isMaximumResolutionSpecified() &&

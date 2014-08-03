@@ -1760,7 +1760,13 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @param aspect the aspect ratio to set
 	 */
 	public void setAspectRatioContainer(String aspect) {
-		this.aspectRatioContainer = aspect;
+		double exactAspectRatio = Double.parseDouble(aspect);
+
+		if (exactAspectRatio > 1.7 && exactAspectRatio <= 1.8) {
+			this.aspectRatioContainer = "16:9";
+		} else if (exactAspectRatio > 1.3 && exactAspectRatio < 1.4) {
+			this.aspectRatioContainer = "4:3";
+		}
 	}
 
 	/**
