@@ -141,18 +141,15 @@ public class FFMpegVideo extends Player {
 
 		if (!isDisableSubtitles(params) && !(dlna.getPlayer() instanceof WebPlayer)) {
 			StringBuilder subsFilter = new StringBuilder();
-			String subsFilename = null;
 			if (params.sid.getType().isText()) {
+				String subsFilename = null;
 				if (configuration.isFFmpegFontConfig()) {
 					subsFilename = getSubtitles(dlna, media, params, configuration).getAbsolutePath();
 				} else {
 					subsFilename = params.sid.isEmbedded() ? dlna.getSystemName() : params.sid.getExternalFile().getAbsolutePath();
 				}
-			}
 
-			if (params.sid.getType().isText()) {
-				File tempSubs = getSubtitles(dlna, media, params, configuration);
-				if (tempSubs != null) {
+				if (subsFilename != null) {
 					StringBuilder s = new StringBuilder();
 					CharacterIterator it = new StringCharacterIterator(subsFilename);
 					for (char ch = it.first(); ch != CharacterIterator.DONE; ch = it.next()) {
@@ -172,9 +169,9 @@ public class FFMpegVideo extends Player {
 						}
 					}
 
-					String subsFile = s.toString();
-					subsFile = subsFile.replace(",", "\\,");
-					subsFilter.append("subtitles=").append(subsFile);
+					subsFilename = s.toString();
+					subsFilename = subsFilename.replace(",", "\\,");
+					subsFilter.append("subtitles=").append(subsFilename);
 					if (params.sid.isExternal() && params.sid.getType() != SubtitleType.ASS || configuration.isFFmpegFontConfig()) {
 						subsFilter.append(":384x288"); 
 						if (!params.sid.isExternalFileUtf8()) { // Set the input subtitles character encoding if not UTF-8
@@ -186,9 +183,7 @@ public class FFMpegVideo extends Player {
 							}
 							
 						}
-					}
-
-					if (params.sid.isEmbedded()) {
+					} else if (params.sid.isEmbedded()) {
 						subsFilter.append(":si=" + media.getSubtitleTracksList().indexOf(params.sid));
  					}
 					
