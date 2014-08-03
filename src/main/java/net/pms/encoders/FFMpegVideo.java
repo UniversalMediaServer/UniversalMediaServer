@@ -173,7 +173,7 @@ public class FFMpegVideo extends Player {
 					subsFilename = subsFilename.replace(",", "\\,");
 					subsFilter.append("subtitles=").append(subsFilename);
 					if (params.sid.isExternal() && params.sid.getType() != SubtitleType.ASS || configuration.isFFmpegFontConfig()) {
-						subsFilter.append(":384x288"); 
+						subsFilter.append(":384x288");
 						if (!params.sid.isExternalFileUtf8()) { // Set the input subtitles character encoding if not UTF-8
 							String encoding = isNotBlank(configuration.getSubtitlesCodepage()) ?
 									configuration.getSubtitlesCodepage() : params.sid.getExternalFileCharacterSet() != null ?
@@ -181,12 +181,10 @@ public class FFMpegVideo extends Player {
 							if (encoding != null) {
 								subsFilter.append(":").append(encoding);
 							}
-							
 						}
 					} else if (params.sid.isEmbedded()) {
 						subsFilter.append(":si=" + media.getSubtitleTracksList().indexOf(params.sid));
- 					}
-					
+					}
 				}
 
 			} else if (params.sid.getType().isPicture()) {
@@ -679,7 +677,7 @@ public class FFMpegVideo extends Player {
 		if (params.aid == null) {
 			setAudioOutputParameters(media, params);
 		}
- 
+
 		if (params.sid == null || (params.sid != null && StringUtils.isNotEmpty(params.sid.getLiveSubURL()))) {
 			setSubtitleOutputParameters(filename, media, params);
 		}
@@ -1232,7 +1230,6 @@ public class FFMpegVideo extends Player {
 				params.sid.setExternalFileCharacterSet(null);
 				LOGGER.warn("Exception during external file charset detection.", ex);
 			}
-			
 		} else {
 			FileUtils.copyFile(tempSubs, convertedSubs);
 			tempSubs = convertedSubs;
@@ -1347,7 +1344,7 @@ public class FFMpegVideo extends Player {
 		FileUtils.copyFile(tempSubs, temp);
 		BufferedReader input = FileUtil.bufferedReaderWithCorrectCharset(temp);
 		BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), CHARSET_UTF_8));
-		try  {
+		try {
 			String line;
 			String[] format = null;
 			int i;
@@ -1425,7 +1422,7 @@ public class FFMpegVideo extends Player {
 				outputString.append(line).append("\n");
 				output.write(outputString.toString());
 			}
-		} finally  {
+		} finally {
 			input.close();
 			output.flush();
 			output.close();
