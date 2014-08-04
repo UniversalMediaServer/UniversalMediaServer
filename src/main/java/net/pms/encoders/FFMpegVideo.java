@@ -183,7 +183,7 @@ public class FFMpegVideo extends Player {
 							}
 						}
 					} else if (params.sid.isEmbedded()) {
-						subsFilter.append(":si=" + media.getSubtitleTracksList().indexOf(params.sid));
+						subsFilter.append(":si=").append(media.getSubtitleTracksList().indexOf(params.sid));
 					}
 				}
 
