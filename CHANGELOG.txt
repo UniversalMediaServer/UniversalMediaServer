@@ -1,12 +1,14 @@
 4.0.2 - 2014-08-??
 
 	General:
+		The Java 8 build on Windows offers to update Java 7
 		Fixed automatic Java download/installation on Windows for users without it
 		Fixed the Live Subtitles feature
+		Fixed external subtitle support
 	Renderers:
 		Improved support for DirecTV HR
 		Improved support for Panasonic TVs
-		Improved support for Samsung mobile devices
+		Improved support for Samsung devices
 	External Components:
 		Updated Java Runtime Environment automatic downloader for Windows to 8u11, which:
 			Improves security
