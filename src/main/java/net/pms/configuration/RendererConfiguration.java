@@ -582,7 +582,7 @@ public class RendererConfiguration {
 		}
 
 		DLNAPN = new HashMap<>();
-		String DLNAPNchanges = getString(DLNA_PN_CHANGES, null);
+		String DLNAPNchanges = getString(DLNA_PN_CHANGES, "");
 
 		if (DLNAPNchanges != null) {
 			LOGGER.trace("Config DLNAPNchanges: " + DLNAPNchanges);
