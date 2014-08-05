@@ -532,7 +532,7 @@ public class RendererConfiguration {
 		}
 
 		mimes = new HashMap<>();
-		String mimeTypes = getString(MIME_TYPES_CHANGES, null);
+		String mimeTypes = getString(MIME_TYPES_CHANGES, "");
 
 		if (StringUtils.isNotBlank(mimeTypes)) {
 			StringTokenizer st = new StringTokenizer(mimeTypes, "|");
@@ -1029,8 +1029,9 @@ public class RendererConfiguration {
 	}
 
 	/**
-	 * Returns the maximum bitrate (in megabits-per-second) supported by the media renderer as defined
-	 * in the renderer configuration. The default value is <code>null</code>.
+	 * Returns the maximum bitrate (in megabits-per-second) supported by the
+	 * media renderer as defined in the renderer configuration. The default
+	 * value is "0" (unlimited).
 	 *
 	 * @return The bitrate.
 	 */
@@ -1043,7 +1044,7 @@ public class RendererConfiguration {
 				// ignore this
 			}
 		}
-		return getString(MAX_VIDEO_BITRATE, null);
+		return getString(MAX_VIDEO_BITRATE, "0");
 	}
 
 	@Deprecated
@@ -1449,7 +1450,7 @@ public class RendererConfiguration {
 	}
 
 	private String calculatedSpeed() throws Exception {
-		String max = getString(MAX_VIDEO_BITRATE, null);
+		String max = getString(MAX_VIDEO_BITRATE, "");
 		for (InetAddress sa : addressAssociation.keySet()) {
 			if (addressAssociation.get(sa) == this) {
 				Future<Integer> speed = SpeedStats.getInstance().getSpeedInMBitsStored(sa, getRendererName());
