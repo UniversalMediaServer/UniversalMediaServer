@@ -1220,7 +1220,7 @@ public class RendererConfiguration {
 	}
 
 	public boolean isForceJPGThumbnails() {
-		return (getBoolean(FORCE_JPG_THUMBNAILS, false) && LibMediaInfoParser.isValid()) || isBRAVIA();
+		return getBoolean(FORCE_JPG_THUMBNAILS, false) && LibMediaInfoParser.isValid();
 	}
 
 	public boolean isShowAudioMetadata() {
