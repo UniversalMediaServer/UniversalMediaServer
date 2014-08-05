@@ -904,16 +904,20 @@ public class RendererConfiguration {
 		return getString(USER_AGENT_ADDITIONAL_SEARCH, "");
 	}
 
+	/**
+	 * May append a custom file extension to the file path.
+	 * Returns the original path if the renderer didn't define an extension.
+	 *
+	 * @param file the original file path
+	 * @return
+	 */
 	public String getUseSameExtension(String file) {
-		String s = getString(USE_SAME_EXTENSION, null);
-
-		if (s != null) {
-			s = file + "." + s;
-		} else {
-			s = file;
+		String extension = getString(USE_SAME_EXTENSION, "");
+		if (StringUtils.isNotEmpty(extension)) {
+			file += "." + extension;
 		}
 
-		return s;
+		return file;
 	}
 
 	/**
