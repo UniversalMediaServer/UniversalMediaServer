@@ -218,7 +218,7 @@ public class FFMpegVideo extends Player {
 
 		String overrideVF = renderer.getFFmpegVideoFilterOverride();
 
-		if (overrideVF != null) {
+		if (StringUtils.isNotEmpty(overrideVF)) {
 			filterChain.add(overrideVF);
 		} else {
 			/**

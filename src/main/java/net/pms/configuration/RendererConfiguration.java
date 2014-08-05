@@ -1312,7 +1312,7 @@ public class RendererConfiguration {
 	}
 
 	public String getFFmpegVideoFilterOverride() {
-		return getString(OVERRIDE_FFMPEG_VF, null);
+		return getString(OVERRIDE_FFMPEG_VF, "");
 	}
 
 	public static ArrayList<String> getAllRenderersNames() {
@@ -1398,7 +1398,7 @@ public class RendererConfiguration {
 	}
 
 	public String getSupportedSubtitles() {
-		return getString(SUPPORTED_SUBTITLES_FORMATS, null);
+		return getString(SUPPORTED_SUBTITLES_FORMATS, "");
 	}
 
 	public boolean useClosedCaption() {
@@ -1406,7 +1406,7 @@ public class RendererConfiguration {
 	}
 
 	public boolean isSubtitlesStreamingSupported() {
-		return (getSupportedSubtitles() != null);
+		return StringUtils.isNotBlank(getSupportedSubtitles());
 	}
 
 	/**
