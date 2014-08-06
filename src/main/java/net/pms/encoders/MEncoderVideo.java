@@ -53,6 +53,7 @@ import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
+import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang.BooleanUtils.isTrue;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.slf4j.Logger;
@@ -658,7 +659,7 @@ public class MEncoderVideo extends Player {
 		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
 
-		if (mediaRenderer.getMaxVideoBitrate() != null) {
+		if (StringUtils.isNotEmpty(mediaRenderer.getMaxVideoBitrate())) {
 			rendererMaxBitrates = getVideoBitrateConfig(mediaRenderer.getMaxVideoBitrate());
 		}
 
@@ -773,7 +774,7 @@ public class MEncoderVideo extends Player {
 			setAudioOutputParameters(media, params);
 		}
 
-		if (params.sid == null) {
+		if (params.sid == null || (params.sid != null && StringUtils.isNotEmpty(params.sid.getLiveSubURL()))) {
 			setSubtitleOutputParameters(filename, media, params);
 		}
 
@@ -1165,7 +1166,7 @@ public class MEncoderVideo extends Player {
 				int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 				int rendererMaxBitrates[] = new int[2];
 
-				if (params.mediaRenderer.getMaxVideoBitrate() != null) {
+				if (StringUtils.isNotEmpty(params.mediaRenderer.getMaxVideoBitrate())) {
 					rendererMaxBitrates = getVideoBitrateConfig(params.mediaRenderer.getMaxVideoBitrate());
 				}
 

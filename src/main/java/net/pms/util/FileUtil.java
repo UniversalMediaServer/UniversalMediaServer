@@ -3,6 +3,7 @@ package net.pms.util;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -645,6 +646,7 @@ public class FileUtil {
 
 	/**
 	 * Tests if file is UTF-16 encoded LE or BE.
+	 *
 	 * @param file File to test
 	 * @return true if file is UTF-16 encoded LE or BE, false otherwise.
 	 * @throws IOException
@@ -655,6 +657,7 @@ public class FileUtil {
 
 	/**
 	 * Tests if charset is UTF-16 encoded LE or BE.
+	 *
 	 * @param charset Charset to test
 	 * @return true if charset is UTF-16 encoded LE or BE, false otherwise.
 	 */
@@ -664,6 +667,7 @@ public class FileUtil {
 
 	/**
 	 * Tests if charset is UTF-32 encoded LE or BE.
+	 *
 	 * @param charset Charset to test
 	 * @return true if charset is UTF-32 encoded LE or BE, false otherwise.
 	 */
@@ -673,6 +677,7 @@ public class FileUtil {
 
 	/**
 	 * Converts UTF-16 inputFile to UTF-8 outputFile. Does not overwrite existing outputFile file.
+	 *
 	 * @param inputFile UTF-16 file
 	 * @param outputFile UTF-8 file after conversion
 	 * @throws IOException
@@ -969,5 +974,17 @@ public class FileUtil {
 		}
 
 		return filename;
+	}
+
+	public static BufferedReader bufferedReaderWithCorrectCharset(File file) throws IOException {
+		BufferedReader reader;
+		String fileCharset = getFileCharset(file);
+		final boolean iscodepageAutoDetectedAndSupportedByJVM = isNotBlank(fileCharset) && Charset.isSupported(fileCharset);
+		if (iscodepageAutoDetectedAndSupportedByJVM) {
+			reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), Charset.forName(fileCharset)));
+		} else {
+			reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
+		}
+		return reader;
 	}
 }

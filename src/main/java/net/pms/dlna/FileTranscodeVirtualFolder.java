@@ -199,14 +199,19 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 
 			// First, add the option to simply stream the resource.
 			// Only add the option if the renderer is compatible with the format
-			if (child.getFormat() != null
-				&& (child.getFormat().isCompatible(child.getMedia(), renderer)
-				|| child.isSkipTranscode())) {
+			if (
+				child.getFormat() != null &&
+				(
+					child.getFormat().isCompatible(child.getMedia(), renderer) ||
+					child.isSkipTranscode()
+				)
+			) {
 				if (renderer != null) {
 					LOGGER.trace(
 						"Duplicating {} for direct streaming to renderer: {}",
 						child.getName(),
-						renderer.getRendererName());
+						renderer.getRendererName()
+					);
 				}
 
 				DLNAResource noTranscode = createResourceWithAudioSubtitlePlayer(child, null, null, null);
@@ -222,9 +227,10 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 								DLNAResource copy = createResourceWithAudioSubtitlePlayer(child, null, subtitle, null);
 								entries.add(copy);
 								LOGGER.trace(
-										"Duplicating {} for direct streaming subtitles {}",
-										child.getName(),
-										subtitle.toString());
+									"Duplicating {} for direct streaming subtitles {}",
+									child.getName(),
+									subtitle.toString()
+								);
 							}
 						}
 					}

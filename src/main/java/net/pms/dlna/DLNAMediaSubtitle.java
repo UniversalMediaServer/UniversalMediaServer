@@ -174,6 +174,10 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 		}
 	}
 
+	public void setExternalFileCharacterSet(String charSet) {
+		externalFileCharacterSet = charSet;
+	}
+
 	public String getExternalFileCharacterSet() {
 		return externalFileCharacterSet;
 	}
