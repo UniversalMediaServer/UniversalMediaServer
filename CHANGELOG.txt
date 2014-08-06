@@ -2,6 +2,8 @@
 
 	General:
 		The Java 8 build on Windows offers to update Java 7
+		Added all default renderer values to PS3.conf to make it easier to support new renderers
+		Added documentation and formatting to PS3.conf
 		Fixed automatic Java download/installation on Windows for users without it
 		Fixed the Live Subtitles feature
 		Fixed external subtitle support
