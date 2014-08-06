@@ -94,6 +94,13 @@
 
 		<maven-javadoc-plugin-version>2.9.1</maven-javadoc-plugin-version>
 		<git-commit-id-plugin-version>2.1.9</git-commit-id-plugin-version>
+
+		<!--
+			 use the Windows makensis.exe for Windows builds unless
+			 the system makensis is explicitly selected via the
+			 system-makensis profile
+		 -->
+		<makensis-bin>${project.external-resources}/third-party/nsis/makensis.exe</makensis-bin>
 	</properties>
 	<pluginRepositories>
 		<pluginRepository>
@@ -293,11 +300,6 @@
 			<groupId>org</groupId>
 			<artifactId>jaudiotagger</artifactId>
 			<version>2.0.3</version>
-		</dependency>
-		<dependency>
-			<groupId>net.java.dev.jna</groupId>
-			<artifactId>jna</artifactId>
-			<version>${jna-version}</version>
 		</dependency>
 
 		<dependency>
@@ -573,7 +575,7 @@
 
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.5.1</version>
+				<version>3.1</version>
 				<configuration>
 					<source>1.6</source>
 					<target>1.6</target>
@@ -862,6 +864,18 @@
 		</plugins>
 	</build>
 	<profiles>
+		<profile>
+			<id>system-makensis</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+
+			<properties>
+				<!-- if selected, use the system makensis on Linux, Mac OS X &c. -->
+				<makensis-bin>makensis</makensis-bin>
+			</properties>
+		</profile>
+
 		<!--
 			Windows profile: takes care of building the final package for Microsoft Windows
 		-->
@@ -873,14 +887,6 @@
 					<family>windows</family>
 				</os>
 			</activation>
-
-			<properties>
-				<!--
-					Last known JNA version known not to cause a Java crash
-					when browsing folders with files in them on Windows.
-				-->
-				<jna-version>3.2.5</jna-version>
-			</properties>
 
 			<pluginRepositories>
 				<pluginRepository>
@@ -1058,7 +1064,7 @@
 							<execution>
 								<id>build-pms-windows</id>
 								<configuration>
-									<makensisBin>${project.external-resources}/third-party/nsis/makensis.exe</makensisBin>
+									<makensisBin>${makensis-bin}</makensisBin>
 									<outputFile>${project.build.directory}/UMS.exe</outputFile>
 									<setupScript>${project.external-resources}/nsis/pms.nsi</setupScript>
 								</configuration>
@@ -1072,7 +1078,7 @@
 							<execution>
 								<id>build-setup-windows</id>
 								<configuration>
-									<makensisBin>${project.external-resources}/third-party/nsis/makensis.exe</makensisBin>
+									<makensisBin>${makensis-bin}</makensisBin>
 									<outputFile>${project.build.directory}/UMS-setup.exe</outputFile>
 									<setupScript>${project.external-resources}/nsis/setup.nsi</setupScript>
 								</configuration>
@@ -1098,7 +1104,7 @@
 				 and is needed for the Hudson profile to work
 			 -->
 			<activation>
-				<activeByDefault>false</activeByDefault>
+				<activeByDefault>true</activeByDefault>
 			</activation>
 
 			<build>
