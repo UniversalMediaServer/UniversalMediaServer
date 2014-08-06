@@ -28,9 +28,9 @@ import java.awt.event.ItemListener;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
@@ -70,6 +70,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.mozilla.universalchardet.Constants.CHARSET_UTF_8;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -140,13 +141,17 @@ public class FFMpegVideo extends Player {
 
 		if (!isDisableSubtitles(params) && !(dlna.getPlayer() instanceof WebPlayer)) {
 			StringBuilder subsFilter = new StringBuilder();
-
 			if (params.sid.getType().isText()) {
-				File tempSubs = getSubtitles(dlna, media, params, configuration);
-				if (tempSubs != null) {
-					StringBuilder s = new StringBuilder();
-					CharacterIterator it = new StringCharacterIterator(tempSubs.getAbsolutePath());
+				String subsFilename = null;
+				if (configuration.isFFmpegFontConfig()) {
+					subsFilename = getSubtitles(dlna, media, params, configuration).getAbsolutePath();
+				} else {
+					subsFilename = params.sid.isEmbedded() ? dlna.getSystemName() : params.sid.getExternalFile().getAbsolutePath();
+				}
 
+				if (subsFilename != null) {
+					StringBuilder s = new StringBuilder();
+					CharacterIterator it = new StringCharacterIterator(subsFilename);
 					for (char ch = it.first(); ch != CharacterIterator.DONE; ch = it.next()) {
 						switch (ch) {
 							case ':':
@@ -164,15 +169,21 @@ public class FFMpegVideo extends Player {
 						}
 					}
 
-					String subsFile = s.toString();
-					subsFile = subsFile.replace(",", "\\,");
-
-					if (params.sid.isEmbedded() || (params.sid.isExternal() && params.sid.getType() == SubtitleType.ASS)) {
-						subsFilter.append("ass=");
-						subsFilter.append(subsFile);
-					} else if (params.sid.isExternal() && (params.sid.getType() == SubtitleType.SUBRIP || params.sid.getType() == SubtitleType.WEBVTT)) {
-						subsFilter.append("subtitles=");
-						subsFilter.append(subsFile);
+					subsFilename = s.toString();
+					subsFilename = subsFilename.replace(",", "\\,");
+					subsFilter.append("subtitles=").append(subsFilename);
+					if (params.sid.isExternal() && params.sid.getType() != SubtitleType.ASS || configuration.isFFmpegFontConfig()) {
+						subsFilter.append(":384x288");
+						if (!params.sid.isExternalFileUtf8()) { // Set the input subtitles character encoding if not UTF-8
+							String encoding = isNotBlank(configuration.getSubtitlesCodepage()) ?
+									configuration.getSubtitlesCodepage() : params.sid.getExternalFileCharacterSet() != null ?
+									params.sid.getExternalFileCharacterSet() : null;
+							if (encoding != null) {
+								subsFilter.append(":").append(encoding);
+							}
+						}
+					} else if (params.sid.isEmbedded()) {
+						subsFilter.append(":si=").append(media.getSubtitleTracksList().indexOf(params.sid));
 					}
 				}
 
@@ -207,7 +218,7 @@ public class FFMpegVideo extends Player {
 
 		String overrideVF = renderer.getFFmpegVideoFilterOverride();
 
-		if (overrideVF != null) {
+		if (StringUtils.isNotEmpty(overrideVF)) {
 			filterChain.add(overrideVF);
 		} else {
 			/**
@@ -361,7 +372,7 @@ public class FFMpegVideo extends Player {
 		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
 
-		if (params.mediaRenderer.getMaxVideoBitrate() != null) {
+		if (StringUtils.isNotEmpty(params.mediaRenderer.getMaxVideoBitrate())) {
 			rendererMaxBitrates = getVideoBitrateConfig(params.mediaRenderer.getMaxVideoBitrate());
 		}
 
@@ -667,7 +678,7 @@ public class FFMpegVideo extends Player {
 			setAudioOutputParameters(media, params);
 		}
 
-		if (params.sid == null) {
+		if (params.sid == null || (params.sid != null && StringUtils.isNotEmpty(params.sid.getLiveSubURL()))) {
 			setSubtitleOutputParameters(filename, media, params);
 		}
 
@@ -1178,6 +1189,7 @@ public class FFMpegVideo extends Player {
 			// subs are already converted
 			if (applyFontConfig || isEmbeddedSource) {
 				params.sid.setType(SubtitleType.ASS);
+				params.sid.setExternalFileCharacterSet(CHARSET_UTF_8);
 			}
 
 			return convertedSubs;
@@ -1211,7 +1223,13 @@ public class FFMpegVideo extends Player {
 		}
 
 		if (!FileUtil.isFileUTF8(tempSubs)) {
-			tempSubs = SubtitleUtils.applyCodepageConversion(tempSubs, convertedSubs);
+			try {
+				tempSubs = SubtitleUtils.applyCodepageConversion(tempSubs, convertedSubs);
+				params.sid.setExternalFileCharacterSet(CHARSET_UTF_8);
+			} catch (IOException ex) {
+				params.sid.setExternalFileCharacterSet(null);
+				LOGGER.warn("Exception during external file charset detection.", ex);
+			}
 		} else {
 			FileUtils.copyFile(tempSubs, convertedSubs);
 			tempSubs = convertedSubs;
@@ -1227,6 +1245,7 @@ public class FFMpegVideo extends Player {
 		) {
 			try {
 				tempSubs = applyFontconfigToASSTempSubsFile(tempSubs, media, configuration);
+				params.sid.setExternalFileCharacterSet(CHARSET_UTF_8);
 			} catch (IOException e) {
 				LOGGER.debug("Applying subs setting ends with error: " + e);
 				return null;
@@ -1327,9 +1346,9 @@ public class FFMpegVideo extends Player {
 		File destinationFile = new File(temp.toString());
 		FileUtils.copyFile(sourceFile, destinationFile);
 
-		BufferedWriter output;
-		BufferedReader input = new BufferedReader(new FileReader(temp));
-			output = new BufferedWriter(new FileWriter(outputSubs));
+		BufferedReader input = FileUtil.bufferedReaderWithCorrectCharset(temp);
+		BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), CHARSET_UTF_8));
+		try {
 			String line;
 			String[] format = null;
 			int i;
@@ -1409,10 +1428,13 @@ public class FFMpegVideo extends Player {
 				outputString.append(line).append("\n");
 				output.write(outputString.toString());
 			}
-		input.close();
-		output.flush();
-		output.close();
-		temp.deleteOnExit();
+		} finally {
+			input.close();
+			output.flush();
+			output.close();
+			temp.deleteOnExit();
+		}
+
 		return outputSubs;
 	}
 

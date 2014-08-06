@@ -1,3 +1,21 @@
+4.0.2 - 2014-08-06
+
+	General:
+		The Java 8 build on Windows offers to update Java 7
+		Added all default renderer values to PS3.conf to make it easier to support new renderers
+		Added documentation and formatting to PS3.conf
+		Fixed automatic Java download/installation on Windows for users without it
+		Fixed the Live Subtitles feature
+		Fixed external subtitle support
+	Renderers:
+		Improved support for DirecTV HR
+		Improved support for Panasonic TVs
+		Improved support for Samsung devices
+	External Components:
+		Updated Java Runtime Environment automatic downloader for Windows to 8u11, which:
+			Improves security
+		Updated Maven Compiler Plugin to 3.1
+
 4.0.1 - 2014-08-01
 
 	General:

@@ -357,19 +357,17 @@ public class RequestV2 extends HTTPResource {
 						String subtitleHttpHeader = mediaRenderer.getSubtitleHttpHeader();
 						if (subtitleHttpHeader != null && !"".equals(subtitleHttpHeader)) {
 							// Device allows a custom subtitle HTTP header; construct it
-							DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
-							if (sub != null) {
+							List<DLNAMediaSubtitle> subs = dlna.getMedia().getSubtitleTracksList();
+							if (subs != null && !subs.isEmpty()) {
+								DLNAMediaSubtitle sub = subs.get(0);
 								String subtitleUrl;
 								String subExtension = sub.getType().getExtension();
 								if (isNotBlank(subExtension)) {
-									subtitleUrl = "http://" + PMS.get().getServer().getHost() +
-										':' + PMS.get().getServer().getPort() + "/get/" +
-										id + "/subtitle0000." + subExtension;
-								} else {
-									subtitleUrl = "http://" + PMS.get().getServer().getHost() +
-										':' + PMS.get().getServer().getPort() + "/get/" +
-										id + "/subtitle0000";
+									subExtension = "." + subExtension;
 								}
+								subtitleUrl = "http://" + PMS.get().getServer().getHost() +
+									':' + PMS.get().getServer().getPort() + "/get/" +
+									id + "/subtitle0000" + subExtension;
 
 								output.headers().set(subtitleHttpHeader, subtitleUrl);
 							}
