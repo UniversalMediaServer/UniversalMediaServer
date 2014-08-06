@@ -1,4 +1,4 @@
-4.0.2 - 2014-08-??
+4.0.2 - 2014-08-06
 
 	General:
 		The Java 8 build on Windows offers to update Java 7
