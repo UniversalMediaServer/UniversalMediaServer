@@ -529,66 +529,6 @@ public class PmsConfiguration extends RendererConfiguration {
 		);
 	}
 
-	/**
-	 * Return the <code>int</code> value for a given configuration key. First, the key
-	 * is looked up in the current configuration settings. If it exists and contains a
-	 * valid value, that value is returned. If the key contains an invalid value or
-	 * cannot be found, the specified default value is returned.
-	 * @param key The key to look up.
-	 * @param def The default value to return when no valid key value can be found.
-	 * @return The value configured for the key.
-	 */
-	private int getInt(String key, int def) {
-		return configurationReader.getInt(key, def);
-	}
-
-	/**
-	 * Return the <code>boolean</code> value for a given configuration key. First, the
-	 * key is looked up in the current configuration settings. If it exists and contains
-	 * a valid value, that value is returned. If the key contains an invalid value or
-	 * cannot be found, the specified default value is returned.
-	 * @param key The key to look up.
-	 * @param def The default value to return when no valid key value can be found.
-	 * @return The value configured for the key.
-	 */
-	private boolean getBoolean(String key, boolean def) {
-		return configurationReader.getBoolean(key, def);
-	}
-
-	/**
-	 * Return the <code>String</code> value for a given configuration key if the
-	 * value is non-blank (i.e. not null, not an empty string, not all whitespace).
-	 * Otherwise return the supplied default value.
-	 * The value is returned with leading and trailing whitespace removed in both cases.
-	 * @param key The key to look up.
-	 * @param def The default value to return when no valid key value can be found.
-	 * @return The value configured for the key.
-	 */
-	private String getString(String key, String def) {
-		return configurationReader.getNonBlankConfigurationString(key, def);
-	}
-
-	/**
-	 * Return a <code>List</code> of <code>String</code> values for a given configuration
-	 * key. First, the key is looked up in the current configuration settings. If it
-	 * exists and contains a valid value, that value is returned. If the key contains an
-	 * invalid value or cannot be found, a list with the specified default values is
-	 * returned.
-	 * @param key The key to look up.
-	 * @param def The default values to return when no valid key value can be found.
-	 *            These values should be entered as a comma-separated string. Whitespace
-	 *            will be trimmed. For example: <code>"gnu,    gnat  ,moo "</code> will be
-	 *            returned as <code>{ "gnu", "gnat", "moo" }</code>.
-	 * @return The list of value strings configured for the key.
-	 */
-	private List<String> getStringList(String key, String def) {
-		return configurationReader.getStringList(key, def);
-	}
-
-	public Configuration getConfiguration() {
-		return configuration;
-	}
-
 	public File getTempFolder() throws IOException {
 		return tempFolder.getTempFolder();
 	}

@@ -264,30 +264,24 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		}
 	}
 
-	private int getInt(String key, int def) {
+	public int getInt(String key, int def) {
 		return configurationReader.getInt(key, def);
 	}
 
-	private long getLong(String key, int def) {
+	public long getLong(String key, int def) {
 		return configurationReader.getLong(key, def);
 	}
 
-	private boolean getBoolean(String key, boolean def) {
+	public boolean getBoolean(String key, boolean def) {
 		return configurationReader.getBoolean(key, def);
 	}
 
-	/**
-	 * Return the <code>String</code> value for a given configuration key if the
-	 * value is non-blank (i.e. not null, not an empty string, not all whitespace).
-	 * Otherwise return the supplied default value.
-	 * The value is returned with leading and trailing whitespace removed in both cases.
-	 *
-	 * @param key The key to look up.
-	 * @param def The default value to return when no valid key value can be found.
-	 * @return The value configured for the key.
-	 */
-	private String getString(String key, String def) {
-		return configurationReader.getString(key, def);
+	public String getString(String key, String def) {
+		return configurationReader.getNonBlankConfigurationString(key, def);
+	}
+
+	public List<String> getStringList(String key, String def) {
+		return configurationReader.getStringList(key, def);
 	}
 
 	@Deprecated
