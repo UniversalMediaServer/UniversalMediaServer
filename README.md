@@ -56,6 +56,7 @@ It is powered by MEncoder, FFmpeg, tsMuxeR, AviSynth, MediaInfo, VLC and more, w
 ##### Thanks to for significant/frequent language translations:
 
 * AlfredoRamos
+* leroy
 * Tianuchka
 
 ##### Special Thanks: 
