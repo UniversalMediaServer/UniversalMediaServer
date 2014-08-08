@@ -114,14 +114,14 @@ public class RemotePlayHandler implements HttpHandler {
 					sb.append("<").append(mediaType);
 					if (flowplayer) {
 						sb.append(" controls autoplay>").append(CRLF);
-						if(RemoteUtil.directmime(mime) &&
-						   !transMp4(mime, r.getMedia()) &&
-						   !r.isResume()) {
-							sb.append("<source src=\"/media/").append(URLEncoder.encode(id1, "UTF-8")).
-							   append("\" type=\"").append(mime).append("\">").append(CRLF);
+						if (
+							RemoteUtil.directmime(mime) &&
+							!transMp4(mime, r.getMedia()) &&
+							!r.isResume()
+						) {
+							sb.append("<source src=\"/media/").append(URLEncoder.encode(id1, "UTF-8")).append("\" type=\"").append(mime).append("\">").append(CRLF);
 						}
-						sb.append("<source src=\"/fmedia/").append(URLEncoder.encode(id1, "UTF-8")).
-					 	   append("\" type=\"video/flash\">");
+						sb.append("<source src=\"/fmedia/").append(URLEncoder.encode(id1, "UTF-8")).append("\" type=\"video/flash\">");
 					} else {
 						sb.append(" width=\"720\" height=\"404\" controls autoplay>").append(CRLF);
 						sb.append("<source src=\"/media/").append(URLEncoder.encode(id1, "UTF-8")).append("\" type=\"").append(mime).append("\">");
@@ -159,14 +159,15 @@ public class RemotePlayHandler implements HttpHandler {
 					}
 		sb.append("</div>").append(CRLF);
 		sb.append("<a href=\"/raw/").append(rawId).append("\" target=\"_blank\" id=\"DownloadLink\" title=\"Download this video\"></a>").append(CRLF);
-		if(flowplayer) {
-		   	sb.append("<script>").append(CRLF);
+		if (flowplayer) {
+			sb.append("<script>").append(CRLF);
 			sb.append("$(function() {").append(CRLF);
-			sb.append("$(\".player\").flowplayer({").append(CRLF);
-			sb.append("ratio: 25/47").append(CRLF);
-			sb.append(",flashfit: true").append(CRLF);
-			sb.append("});});").append(CRLF);
-			if(r.isResume()) {
+			sb.append("	$(\".player\").flowplayer({").append(CRLF);
+			sb.append("		ratio: 9/16,").append(CRLF);
+			sb.append("		flashfit: true").append(CRLF);
+			sb.append("	});").append(CRLF);
+			sb.append("});").append(CRLF);
+			if (r.isResume()) {
 				sb.append("var api = flowplayer();").append(CRLF);
 				sb.append("api.seek(");
 				sb.append(r.getResume().getTimeOffset() / 1000);
@@ -181,8 +182,7 @@ public class RemotePlayHandler implements HttpHandler {
 
 	private boolean transMp4(String mime, DLNAMediaInfo media) {
 		LOGGER.debug("mp4 profile "+media.getH264Profile());
-		return mime.equals("video/mp4") && (configuration.isWebMp4Trans() ||
-			   								media.getAvcAsInt() >= 40);
+		return mime.equals("video/mp4") && (configuration.isWebMp4Trans() || media.getAvcAsInt() >= 40);
 	}
 
 	@Override

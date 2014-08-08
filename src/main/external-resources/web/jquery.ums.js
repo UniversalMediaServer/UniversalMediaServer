@@ -78,6 +78,8 @@ $(function(){
 						spanList[i].style.maxWidth   = correctWidth  + "px";
 						imageList[i].style.maxWidth  = correctWidth  + "px";
 						imageList[i].style.maxHeight = correctHeight + "px";
+						imageList[i].style.width     = "auto";
+						imageList[i].style.height    = "auto";
 
 						if (!((i + 1) % imagesPerRow === 0)) {
 							thumbnailContainerList[i].style.marginRight = "20px";
