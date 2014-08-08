@@ -689,6 +689,10 @@ public class FFMpegVideo extends Player {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the colorspace probably isn't supported by the renderer.");
 		}
+		if (deferToTsmuxer == true && params.mediaRenderer.isKeepAspectRatio() && !"16:9".equals(media.getAspectRatioContainer())) {
+			deferToTsmuxer = false;
+			LOGGER.trace(prependTraceReason + "the renderer needs us to add borders so it displays the correct aspect ratio of " + media.getAspectRatioContainer() + ".");
+		}
 		if (deferToTsmuxer) {
 			TsMuxeRVideo tv = new TsMuxeRVideo();
 			params.forceFps = media.getValidFps(false);
@@ -1079,6 +1083,7 @@ public class FFMpegVideo extends Player {
 
 		fc = new JCheckBox(Messages.getString("MEncoderVideo.21"), configuration.isFFmpegFontConfig());
 		fc.setContentAreaFilled(false);
+		fc.setToolTipText(Messages.getString("FFmpeg.0"));
 		fc.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -1339,7 +1344,7 @@ public class FFMpegVideo extends Player {
 			String line;
 			String[] format = null;
 			int i;
-			boolean playResIsSet = false; // do not apply font size change when video resolution is set in the original ASS subs
+			boolean playResIsSet = false; // do not apply font size change when video resolution is set
 			while ((line = input.readLine()) != null) {
 				outputString.setLength(0);
 				if (line.contains("[Script Info]")) {
@@ -1358,7 +1363,6 @@ public class FFMpegVideo extends Player {
 								outputString.append("PlayResY: ").append(media.getHeight()).append("\n");
 								outputString.append("PlayResX: ").append(media.getWidth()).append("\n");
 							}
-
 							break;
 						}
 					}
@@ -1444,7 +1448,8 @@ public class FFMpegVideo extends Player {
 	public boolean isCompatible(DLNAResource resource) {
 		if (
 			PlayerUtil.isVideo(resource, Format.Identifier.MKV) ||
-			PlayerUtil.isVideo(resource, Format.Identifier.MPG)
+			PlayerUtil.isVideo(resource, Format.Identifier.MPG) ||
+			"m3u8".equals(resource.getFormat().getMatchedExtension())
 		) {
 			return true;
 		}
@@ -1479,5 +1484,9 @@ public class FFMpegVideo extends Player {
 				pw.setStderrConsumer(ffParser);
 			}
 		}
+	}
+
+	public static void deleteSubs() {
+		FileUtils.deleteQuietly(new File(configuration.getDataFile(SUB_DIR)));
 	}
 }

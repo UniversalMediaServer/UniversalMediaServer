@@ -73,6 +73,7 @@ public class PmsConfiguration {
 	private static final String KEY_ALTERNATE_SUBTITLES_FOLDER = "alternate_subtitles_folder";
 	private static final String KEY_ALTERNATE_THUMB_FOLDER = "alternate_thumb_folder";
 	private static final String KEY_APPEND_PROFILE_NAME = "append_profile_name";
+	private static final String KEY_AUTOMATIC_MAXIMUM_BITRATE = "automatic_maximum_bitrate";
 	private static final String KEY_SHOW_APERTURE_LIBRARY = "show_aperture_library";
 	private static final String KEY_ATZ_LIMIT = "atz_limit";
 	private static final String KEY_AUDIO_BITRATE = "audio_bitrate";
@@ -185,6 +186,7 @@ public class PmsConfiguration {
 	private static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
 	private static final String KEY_LIVE_SUBTITLES_KEEP = "live_subtitles_keep";
 	private static final String KEY_OVERSCAN = "mencoder_overscan";
+	private static final String KEY_PING_PATH = "ping_path";
 	private static final String KEY_PLUGIN_DIRECTORY = "plugins";
 	private static final String KEY_PLUGIN_PURGE_ACTION = "plugin_purge";
 	private static final String KEY_PREVENTS_SLEEP = "prevents_sleep_mode";
@@ -200,7 +202,9 @@ public class PmsConfiguration {
 	private static final String KEY_RUN_WIZARD = "run_wizard";
 	private static final String KEY_SCRIPT_DIR = "script_dir";
 	private static final String KEY_SEARCH_FOLDER = "search_folder";
-	private static final String KEY_SEARCH_RECURSE = "search_recurse";
+	private static final String KEY_SEARCH_IN_FOLDER = "search_in_folder";
+	private static final String KEY_SEARCH_RECURSE = "search_recurse"; // legacy option
+	private static final String KEY_SEARCH_RECURSE_DEPTH = "search_recurse_depth";
 	private static final String KEY_SERVER_HOSTNAME = "hostname";
 	private static final String KEY_SERVER_NAME = "server_name";
 	private static final String KEY_SERVER_PORT = "port";
@@ -209,6 +213,7 @@ public class PmsConfiguration {
 	private static final String KEY_SKIP_LOOP_FILTER_ENABLED = "mencoder_skip_loop_filter";
 	private static final String KEY_SKIP_NETWORK_INTERFACES = "skip_network_interfaces";
 	private static final String KEY_SORT_METHOD = "sort_method";
+	private static final String KEY_SPEED_DBG = "speed_debug";
 	private static final String KEY_SUBS_COLOR = "subtitles_color";
 	private static final String KEY_SUBTITLES_CODEPAGE = "subtitles_codepage";
 	private static final String KEY_SUBTITLES_LANGUAGES = "subtitles_languages";
@@ -1020,8 +1025,8 @@ public class PmsConfiguration {
 	 */
 	public String getForcedSubtitleLanguage() {
 		return configurationReader.getPossiblyBlankConfigurationString(
-			KEY_FORCED_SUBTITLE_LANGUAGE,
-			getLanguage()
+				KEY_FORCED_SUBTITLE_LANGUAGE,
+				getLanguage()
 		);
 	}
 
@@ -1046,8 +1051,8 @@ public class PmsConfiguration {
 	 */
 	public String getAudioSubLanguages() {
 		return configurationReader.getPossiblyBlankConfigurationString(
-			KEY_AUDIO_SUB_LANGS,
-			Messages.getString("MEncoderVideo.128")
+				KEY_AUDIO_SUB_LANGS,
+				Messages.getString("MEncoderVideo.128")
 		);
 	}
 
@@ -1406,10 +1411,10 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * @return The comma-separated list of ignored renderers.
+	 * @return The ignored renderers as a list.
 	 */
-	public String getIgnoredRenderers() {
-		return getString(KEY_IGNORED_RENDERERS, "");
+	public List<String> getIgnoredRenderers() {
+		return getStringList(KEY_IGNORED_RENDERERS, "");
 	}
 
 	/**
@@ -2601,12 +2606,13 @@ public class PmsConfiguration {
 		return getBoolean(KEY_SEARCH_FOLDER, false);
 	}
 
-	public int getSearchRecurse() {
-		if (getBoolean(KEY_SEARCH_RECURSE, true)) {
-			return 100;
-		} else {
-			return 0;
-		}
+	public boolean getSearchInFolder() {
+		return getBoolean(KEY_SEARCH_IN_FOLDER, false) && getSearchFolder();
+	}
+
+	public int getSearchDepth() {
+		int ret = (getBoolean(KEY_SEARCH_RECURSE, true) ? 100 : 2);
+	   	return getInt(KEY_SEARCH_RECURSE_DEPTH, ret);
 	}
 
 	public void reload() {
@@ -3014,5 +3020,25 @@ public class PmsConfiguration {
 
 	public boolean isWebMp4Trans() {
 		return getBoolean(KEY_WEB_MP4_TRANS, false);
+	}
+
+	public boolean isAutomaticMaximumBitrate() {
+		return getBoolean(KEY_AUTOMATIC_MAXIMUM_BITRATE, false);
+	}
+
+	public void setAutomaticMaximumBitrate(boolean b) {
+		if (!isAutomaticMaximumBitrate() && b) {
+			// get all bitrates from renders
+			RendererConfiguration.calculateAllSpeeds();
+		}
+		configuration.setProperty(KEY_AUTOMATIC_MAXIMUM_BITRATE, b);
+	}
+
+	public String pingPath() {
+		return getString(KEY_PING_PATH, null);
+	}
+
+	public boolean isSpeedDbg() {
+		return getBoolean(KEY_SPEED_DBG, false);
 	}
 }

@@ -2,7 +2,9 @@ package net.pms.configuration;
 
 import com.sun.jna.Platform;
 import java.io.File;
+import java.io.Reader;
 import java.net.InetAddress;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -10,6 +12,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -95,6 +98,7 @@ public class RendererConfiguration {
 	private static final String DLNA_ORGPN_USE = "DLNAOrgPN";
 	private static final String DLNA_PN_CHANGES = "DLNAProfileChanges";
 	private static final String DLNA_TREE_HACK = "CreateDLNATreeFaster";
+	private static final String LIMIT_FOLDERS = "LimitFolders";
 	private static final String FORCE_JPG_THUMBNAILS = "ForceJPGThumbnails"; // Sony devices require JPG thumbnails
 	private static final String H264_L41_LIMITED = "H264Level41Limited";
 	private static final String IMAGE = "Image";
@@ -112,6 +116,7 @@ public class RendererConfiguration {
 	private static final String MUX_NON_MOD4_RESOLUTION = "MuxNonMod4Resolution";
 	private static final String OUTPUT_3D_FORMAT = "Output3DFormat";
 	private static final String OVERRIDE_VF = "OverrideVideoFilter";
+	private static final String OVERRIDE_FFMPEG_VF = "OverrideFFmpegVideoFilter";
 	private static final String RENDERER_ICON = "RendererIcon";
 	private static final String RENDERER_NAME = "RendererName";
 	private static final String RESCALE_BY_RENDERER = "RescaleByRenderer";
@@ -122,7 +127,7 @@ public class RendererConfiguration {
 	private static final String STREAM_EXT = "StreamExtensions";
 	private static final String SUBTITLE_HTTP_HEADER = "SubtitleHttpHeader";
 	private static final String SUPPORTED = "Supported";
-	private static final String SUPPORTED_SUBTITLES_TYPE = "SupportedSubtitlesType";
+	private static final String SUPPORTED_SUBTITLES_FORMATS = "SupportedSubtitlesFormats";
 	private static final String TEXTWRAP = "TextWrap";
 	private static final String THUMBNAIL_AS_RESOURCE = "ThumbnailAsResource";
 	private static final String TRANSCODE_AUDIO_441KHZ = "TranscodeAudioTo441kHz";
@@ -168,13 +173,14 @@ public class RendererConfiguration {
 			File[] confs = renderersDir.listFiles();
 			Arrays.sort(confs);
 			int rank = 1;
+			List<String> ignoredRenderers = pmsConfiguration.getIgnoredRenderers();
 			for (File f : confs) {
 				if (f.getName().endsWith(".conf")) {
 					try {
 						RendererConfiguration r = new RendererConfiguration(f);
 						r.rank = rank++;
 						String rendererName = r.getRendererName();
-						if (!pmsConfiguration.getIgnoredRenderers().contains(rendererName)) {
+						if (!ignoredRenderers.contains(rendererName)) {
 							enabledRendererConfs.add(r);
 							LOGGER.info("Loaded configuration for renderer: " + rendererName);
 						} else {
@@ -317,6 +323,10 @@ public class RendererConfiguration {
 		}
 	}
 
+	public void setRootFolder(RootFolder r) {
+		rootFolder = r;
+	}
+
 	/**
 	 * Associate an IP address with this renderer. The association will
 	 * persist between requests, allowing the renderer to be recognized
@@ -327,7 +337,22 @@ public class RendererConfiguration {
 	 */
 	public void associateIP(InetAddress sa) {
 		addressAssociation.put(sa, this);
-		SpeedStats.getInstance().getSpeedInMBits(sa, getRendererName());
+		if (sa.isLoopbackAddress() || sa.isAnyLocalAddress()) {
+			return;
+		}
+		if (pmsConfiguration.isAutomaticMaximumBitrate() || pmsConfiguration.isSpeedDbg()) {
+			SpeedStats.getInstance().getSpeedInMBits(sa, getRendererName());
+		}
+	}
+
+	public static void calculateAllSpeeds() {
+		for (InetAddress sa : addressAssociation.keySet()) {
+			if (sa.isLoopbackAddress() || sa.isAnyLocalAddress()) {
+				continue;
+			}
+			RendererConfiguration r = addressAssociation.get(sa);
+			SpeedStats.getInstance().getSpeedInMBits(sa, r.getRendererName());
+		}
 	}
 
 	public static RendererConfiguration getRendererConfigurationBySocketAddress(InetAddress sa) {
@@ -480,6 +505,21 @@ public class RendererConfiguration {
 
 	public RendererConfiguration(File f) throws ConfigurationException {
 		configuration = new PropertiesConfiguration();
+
+		// Treat backslashes in the conf as literal while also supporting double-backslash syntax, i.e.
+		// ensure that typical raw regex strings (and unescaped Windows file paths) are read correctly.
+		configuration.setIOFactory(new PropertiesConfiguration.DefaultIOFactory() {
+			@Override
+			public PropertiesConfiguration.PropertiesReader createPropertiesReader(final Reader in, final char delimiter) {
+				return new PropertiesConfiguration.PropertiesReader(in, delimiter) {
+					@Override
+					protected void parseProperty(final String line) {
+						// Unescape any double-backslashes, then escape all backslashes before parsing
+						super.parseProperty(line.replace("\\\\", "\\").replace("\\", "\\\\"));
+					}
+				};
+			}
+		});
 
 		// false: don't log overrides (every renderer conf
 		// overrides multiple settings)
@@ -993,6 +1033,13 @@ public class RendererConfiguration {
 	 */
 	// TODO this should return an integer and the units should be bits-per-second
 	public String getMaxVideoBitrate() {
+		if (PMS.getConfiguration().isAutomaticMaximumBitrate()) {
+			try {
+				return calculatedSpeed();
+			} catch (Exception e) {
+				// ignore this
+			}
+		}
 		return getString(MAX_VIDEO_BITRATE, null);
 	}
 
@@ -1242,7 +1289,7 @@ public class RendererConfiguration {
 	}
 
 	public String getFFmpegVideoFilterOverride() {
-		return getString(OVERRIDE_VF, null);
+		return getString(OVERRIDE_FFMPEG_VF, null);
 	}
 
 	public static ArrayList<String> getAllRenderersNames() {
@@ -1257,17 +1304,20 @@ public class RendererConfiguration {
 		return getInt(TRANSCODED_VIDEO_AUDIO_SAMPLE_RATE, 48000);
 	}
 
+	public boolean isLimitFolders() {
+		return getBoolean(LIMIT_FOLDERS, true);
+	}
+
 	/**
 	 * Perform renderer-specific name reformatting:<p>
 	 * Truncating and wrapping see {@code TextWrap}<br>
 	 * Character substitution see {@code CharMap}
-	 * 
+	 *
 	 * @param name Original name
 	 * @param suffix Additional media information
 	 * @param dlna The actual DLNA resource
 	 * @return Reformatted name
 	 */
-
 	public String getDcTitle(String name, String suffix, DLNAResource dlna) {
 		// Wrap + tuncate
 		int len = 0;
@@ -1320,7 +1370,7 @@ public class RendererConfiguration {
 	}
 
 	public String getSupportedSubtitles() {
-		return getString(SUPPORTED_SUBTITLES_TYPE, null);
+		return getString(SUPPORTED_SUBTITLES_FORMATS, null);
 	}
 
 	public boolean useClosedCaption() {
@@ -1340,5 +1390,28 @@ public class RendererConfiguration {
 
 	public boolean ignoreTranscodeByteRangeRequests() {
 		return getBoolean(IGNORE_TRANSCODE_BYTE_RANGE_REQUEST, false);
+	}
+
+	private String calculatedSpeed() throws Exception {
+		String max = getString(MAX_VIDEO_BITRATE, null);
+		for (InetAddress sa : addressAssociation.keySet()) {
+			if (addressAssociation.get(sa) == this) {
+				Future<Integer> speed = SpeedStats.getInstance().getSpeedInMBitsStored(sa, getRendererName());
+				if (max == null) {
+					return String.valueOf(speed.get());
+				}
+				try {
+					Integer i = Integer.parseInt(max);
+					if (speed.get() > i && i != 0) {
+						return max;
+					} else {
+						return String.valueOf(speed.get());
+					}
+				} catch (NumberFormatException e) {
+					return String.valueOf(speed.get());
+				}
+			}
+		}
+		return max;
 	}
 }

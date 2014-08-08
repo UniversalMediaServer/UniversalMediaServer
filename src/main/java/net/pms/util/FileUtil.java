@@ -1,16 +1,5 @@
 package net.pms.util;
 
-import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
-import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAMediaSubtitle;
-import net.pms.formats.FormatFactory;
-import net.pms.formats.v2.SubtitleType;
-import org.apache.commons.io.FilenameUtils;
-import org.mozilla.universalchardet.UniversalDetector;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -18,12 +7,21 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
+import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
+import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaSubtitle;
+import net.pms.formats.FormatFactory;
+import net.pms.formats.v2.SubtitleType;
+import org.apache.commons.io.FilenameUtils;
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.endsWithIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 import static org.mozilla.universalchardet.Constants.*;
+import org.mozilla.universalchardet.UniversalDetector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FileUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileUtil.class);
@@ -190,15 +188,12 @@ public class FileUtil {
 	 * @return The prettified filename
 	 */
 	public static String getFileNameWithRewriting(String f) {
+		String fileNameWithoutExtension;
 		String formattedName;
-		int point = f.lastIndexOf('.');
-
-		if (point == -1) {
-			point = f.length();
-		}
 
 		// Remove file extension
-		formattedName = f.substring(0, point);
+		fileNameWithoutExtension = getFileNameWithoutExtension(f);
+		formattedName = fileNameWithoutExtension;
 
 		String commonFileEnds = "[\\s\\.]AC3.*|[\\s\\.]REPACK.*|[\\s\\.]480p.*|[\\s\\.]720p.*|[\\s\\.]m-720p.*|[\\s\\.]900p.*|[\\s\\.]1080p.*|[\\s\\.]HDTV.*|[\\s\\.]DSR.*|[\\s\\.]PDTV.*|[\\s\\.]WS.*|[\\s\\.]HQ.*|[\\s\\.]DVDRip.*|[\\s\\.]TVRiP.*|[\\s\\.]BDRip.*|[\\s\\.]WEBRip.*|[\\s\\.]BluRay.*|[\\s\\.]Blu-ray.*|[\\s\\.]SUBBED.*|[\\s\\.]x264.*|[\\s\\.]Dual[\\s\\.]Audio.*|[\\s\\.]HSBS.*|[\\s\\.]H-SBS.*|[\\s\\.]RERiP.*|[\\s\\.]DIRFIX.*|[\\s\\.]READNFO.*";
 		String commonFileEndsMatch = ".*[\\s\\.]AC3.*|.*[\\s\\.]REPACK.*|.*[\\s\\.]480p.*|.*[\\s\\.]720p.*|.*[\\s\\.]m-720p.*|.*[\\s\\.]900p.*|.*[\\s\\.]1080p.*|.*[\\s\\.]HDTV.*|.*[\\s\\.]DSR.*|.*[\\s\\.]PDTV.*|.*[\\s\\.]WS.*|.*[\\s\\.]HQ.*|.*[\\s\\.]DVDRip.*|.*[\\s\\.]TVRiP.*|.*[\\s\\.]BDRip.*|.*[\\s\\.]WEBRip.*|.*[\\s\\.]BluRay.*|.*[\\s\\.]Blu-ray.*|.*[\\s\\.]SUBBED.*|.*[\\s\\.]x264.*|.*[\\s\\.]Dual[\\s\\.]Audio.*|.*[\\s\\.]HSBS.*|.*[\\s\\.]H-SBS.*|.*[\\s\\.]RERiP.*|.*[\\s\\.]DIRFIX.*|.*[\\s\\.]READNFO.*";
@@ -342,15 +337,19 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("(?i)\\s\\(1280x720.*|\\s\\(1920x1080.*|\\s\\(720x400.*|\\[720p.*|\\[1080p.*|\\[480p.*|\\s\\(BD.*|\\s\\[Blu-Ray.*|\\s\\[DVD.*|\\.DVD.*|\\[[0-9a-zA-Z]{8}\\]$|\\[h264.*|R1DVD.*|\\[BD.*", "");
 
 			// Remove group name from the beginning of the filename
-			if (formattedName.substring(0, 1).matches("\\[")) {
-				int closingBracketIndex = formattedName.indexOf(']');
-				if (closingBracketIndex != -1) {
-					formattedName = formattedName.substring(closingBracketIndex + 1);
-				}
+			if (!"".equals(formattedName)) {
+				if (formattedName.substring(0, 1).matches("\\[")) {
+					int closingBracketIndex = formattedName.indexOf(']');
+					if (closingBracketIndex != -1) {
+						formattedName = formattedName.substring(closingBracketIndex + 1);
+					}
 
-				if (formattedName.substring(0, 1).matches("\\s")) {
-					formattedName = formattedName.substring(1);
+					if (formattedName.substring(0, 1).matches("\\s")) {
+						formattedName = formattedName.substring(1);
+					}
 				}
+			} else {
+				formattedName = fileNameWithoutExtension;
 			}
 		} else if (formattedName.matches(".*\\[BD\\].*|.*\\[720p\\].*|.*\\[1080p\\].*|.*\\[480p\\].*|.*\\[Blu-Ray.*|.*\\[h264.*")) {
 			// This matches anime without a hash in the name
@@ -362,15 +361,19 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("(?i)\\[BD\\].*|\\[720p.*|\\[1080p.*|\\[480p.*|\\[Blu-Ray.*\\[h264.*", "");
 
 			// Remove group name from the beginning of the filename
-			if (formattedName.substring(0, 1).matches("\\[")) {
-				int closingBracketIndex = formattedName.indexOf(']');
-				if (closingBracketIndex != -1) {
-					formattedName = formattedName.substring(closingBracketIndex + 1);
-				}
+			if (!"".equals(formattedName)) {
+				if (formattedName.substring(0, 1).matches("\\[")) {
+					int closingBracketIndex = formattedName.indexOf(']');
+					if (closingBracketIndex != -1) {
+						formattedName = formattedName.substring(closingBracketIndex + 1);
+					}
 
-				if (formattedName.substring(0, 1).matches("\\s")) {
-					formattedName = formattedName.substring(1);
+					if (formattedName.substring(0, 1).matches("\\s")) {
+						formattedName = formattedName.substring(1);
+					}
 				}
+			} else {
+				formattedName = fileNameWithoutExtension;
 			}
 		}
 
@@ -885,30 +888,50 @@ public class FileUtil {
 
 	public static boolean isFileRelevant(File f, PmsConfiguration configuration) {
 		String fileName = f.getName().toLowerCase();
-		return (configuration.isArchiveBrowsing() && (fileName.endsWith(".zip") || fileName.endsWith(".cbz")
-			|| fileName.endsWith(".rar") || fileName.endsWith(".cbr")))
-			|| fileName.endsWith(".iso") || fileName.endsWith(".img")
-			|| fileName.endsWith(".m3u") || fileName.endsWith(".m3u8") || fileName.endsWith(".pls") || fileName.endsWith(".cue");
+		if (
+			(
+				configuration.isArchiveBrowsing() &&
+				(
+					fileName.endsWith(".zip") ||
+					fileName.endsWith(".cbz") ||
+					fileName.endsWith(".rar") ||
+					fileName.endsWith(".cbr")
+				)
+			) ||
+			fileName.endsWith(".iso") ||
+			fileName.endsWith(".img") ||
+			fileName.endsWith(".m3u") ||
+			fileName.endsWith(".m3u8") ||
+			fileName.endsWith(".pls") ||
+			fileName.endsWith(".cue")
+		) {
+			return true;
+		}
+
+		return false;
 	}
 
-    public static boolean isFolderRelevant(File f, PmsConfiguration configuration) {
-        return isFolderRelevant(f, configuration, Collections.<String>emptySet());
-    }
+	public static boolean isFolderRelevant(File f, PmsConfiguration configuration) {
+		return isFolderRelevant(f, configuration, Collections.<String>emptySet());
+	}
 
 	public static boolean isFolderRelevant(File f, PmsConfiguration configuration, Set<String> ignoreFiles) {
 		if (f.isDirectory() && configuration.isHideEmptyFolders()) {
 			File[] children = f.listFiles();
 
-			// listFiles() returns null if "this abstract pathname does not denote a directory, or if an I/O error occurs".
-			// in this case (since we've already confirmed that it's a directory), this seems to mean the directory is non-readable
-			// http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=15135
-			// http://stackoverflow.com/questions/3228147/retrieving-the-underlying-error-when-file-listfiles-return-null
+			/**
+			 * listFiles() returns null if "this abstract pathname does not denote a directory, or if an I/O error occurs".
+			 * in this case (since we've already confirmed that it's a directory), this seems to mean the directory is non-readable
+			 * http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=15135
+			 * http://stackoverflow.com/questions/3228147/retrieving-the-underlying-error-when-file-listfiles-return-null
+			 */
 			if (children == null) {
 				LOGGER.warn("Can't list files in non-readable directory: {}", f.getAbsolutePath());
 			} else {
 				for (File child : children) {
-                    if(ignoreFiles.contains(child.getAbsolutePath()))
-                        continue;
+					if (ignoreFiles.contains(child.getAbsolutePath())) {
+						continue;
+					}
 
 					if (child.isFile()) {
 						if (FormatFactory.getAssociatedFormat(child.getName()) != null || isFileRelevant(child, configuration)) {
@@ -916,7 +939,7 @@ public class FileUtil {
 						}
 					} else {
 						if (isFolderRelevant(child, configuration, ignoreFiles)) {
-                            return true;
+							return true;
 						}
 					}
 				}

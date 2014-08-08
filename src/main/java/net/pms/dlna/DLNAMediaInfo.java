@@ -145,6 +145,7 @@ public class DLNAMediaInfo implements Cloneable {
 	@Deprecated
 	public String aspect;
 
+	public String aspectRatioDvdIso;
 	public String aspectRatioContainer;
 	public String aspectRatioVideoTrack;
 
@@ -1401,11 +1402,32 @@ public class DLNAMediaInfo implements Cloneable {
 		return null;
 	}
 
+	/**
+	 * @deprecated use getAspectRatioMencoderMpegopts() for the original
+	 * functionality of this method, or use getAspectRatioContainer() for a
+	 * better default method to get aspect ratios.
+	 */
+	@Deprecated
 	public String getValidAspect(boolean ratios) {
+		return getAspectRatioMencoderMpegopts(ratios);
+	}
+
+	/**
+	 * Converts the result of getAspectRatioDvdIso() to provide
+	 * MEncoderVideo with a valid value for the "vaspect" option in the
+	 * "-mpegopts" command.
+	 *
+	 * Note: Our code never uses a false value for "ratios", so unless any
+	 * plugins rely on it we can simplify things by removing that parameter.
+	 *
+	 * @param ratios
+	 * @return 
+	 */
+	public String getAspectRatioMencoderMpegopts(boolean ratios) {
 		String a = null;
 
-		if (aspect != null) {
-			double ar = Double.parseDouble(aspect);
+		if (aspectRatioDvdIso != null) {
+			double ar = Double.parseDouble(aspectRatioDvdIso);
 
 			if (ar > 1.7 && ar < 1.8) {
 				a = ratios ? "16/9" : "1.777777777777777";
@@ -1683,29 +1705,58 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
+	 * @deprecated use getAspectRatioDvdIso() for the original
+	 * functionality of this method, or use getAspectRatioContainer() for a
+	 * better default method to get aspect ratios.
+	 */
+	@Deprecated
+	public String getAspect() {
+		return getAspectRatioDvdIso();
+	}
+
+	/**
+	 * The aspect ratio for a DVD ISO video track
+	 *
 	 * @return the aspect
 	 * @since 1.50.0
 	 */
-	public String getAspect() {
-		return aspect;
+	public String getAspectRatioDvdIso() {
+		return aspectRatioDvdIso;
+	}
+
+	/**
+	 * @deprecated use setAspectRatioDvdIso() for the original
+	 * functionality of this method, or use setAspectRatioContainer() for a
+	 * better default method to set aspect ratios.
+	 */
+	@Deprecated
+	public void setAspect(String aspect) {
+		setAspectRatioDvdIso(aspect);
 	}
 
 	/**
 	 * @param aspect the aspect to set
 	 * @since 1.50.0
 	 */
-	public void setAspect(String aspect) {
-		this.aspect = aspect;
+	public void setAspectRatioDvdIso(String aspect) {
+		this.aspectRatioDvdIso = aspect;
 	}
 
 	/**
-	 * @return the aspect ratio reported by the container
+	 * Get the aspect ratio reported by the file/container.
+	 * This is the aspect ratio that the renderer should display the video
+	 * at, and is usually the same as the video track aspect ratio.
+	 *
+	 * @return the aspect ratio reported by the file/container
 	 */
 	public String getAspectRatioContainer() {
 		return aspectRatioContainer;
 	}
 
 	/**
+	 * Set the aspect ratio reported by the file/container.
+	 *
+	 * @see #getAspectRatioContainer()
 	 * @param aspect the aspect ratio to set
 	 */
 	public void setAspectRatioContainer(String aspect) {
@@ -1713,6 +1764,11 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
+	 * Get the aspect ratio of the video track.
+	 * This is the actual aspect ratio of the pixels, which is not
+	 * always the aspect ratio that the renderer should display or that we
+	 * should output; that is {@link #getAspectRatioContainer()}
+	 *
 	 * @return the aspect ratio of the video track
 	 */
 	public String getAspectRatioVideoTrack() {

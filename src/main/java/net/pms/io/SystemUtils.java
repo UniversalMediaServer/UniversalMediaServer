@@ -72,4 +72,6 @@ public interface SystemUtils {
 	 * @return The ping command.
 	 */
 	String[] getPingCommand(String hostAddress, int count, int packetSize);
+
+	String parsePingLine(String line);
 }

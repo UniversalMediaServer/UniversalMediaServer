@@ -124,7 +124,7 @@ public class RootFolder extends DLNAResource {
 			}
 		}
 
-		if (configuration.getFolderLimit()) {
+		if (configuration.getFolderLimit() && getDefaultRenderer().isLimitFolders()) {
 			lim = new FolderLimit();
 			addChild(lim);
 		}
@@ -135,11 +135,6 @@ public class RootFolder extends DLNAResource {
 
 		for (DLNAResource r : getVirtualFolders(tags)) {
 			addChild(r);
-		}
-
-		if (configuration.getSearchFolder()) {
-			SearchFolder sf = new SearchFolder("Search disc folders", new FileSearch(getConfiguredFolders(null)));
-			addChild(sf);
 		}
 
 		String webConfPath = configuration.getWebConfPath();
@@ -279,6 +274,11 @@ public class RootFolder extends DLNAResource {
 				continue;
 			}
 			res.add(new RealFile(f));
+		}
+
+		if (configuration.getSearchFolder()) {
+			SearchFolder sf = new SearchFolder(Messages.getString("PMS.143"), new FileSearch(res));
+			addChild(sf);
 		}
 
 		return res;
@@ -763,7 +763,7 @@ public class RootFolder extends DLNAResource {
 	 * This method does not support genius playlists and does not provide a
 	 * media library.
 	 *
-	 * @see RootFolder#getiTunesFile(boolean)
+	 * @see RootFolder#getiTunesFile()
 	 */
 	private DLNAResource getiTunesFolder() {
 		DLNAResource res = null;

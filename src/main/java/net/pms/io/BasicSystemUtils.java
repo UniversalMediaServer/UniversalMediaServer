@@ -162,7 +162,7 @@ public class BasicSystemUtils implements SystemUtils {
 			webInterfaceItem.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					browseURI("http://" + PMS.get().getServer().getHost() + ":9001");
+					browseURI(PMS.get().getWebInterface().getUrl());
 				}
 			});
 
@@ -215,6 +215,20 @@ public class BasicSystemUtils implements SystemUtils {
 	public String[] getPingCommand(String hostAddress, int count, int packetSize) {
 		return new String[] { "ping", /* count */"-c", Integer.toString(count), /* size */
 				"-s", Integer.toString(packetSize), hostAddress };
+	}
+
+	public String parsePingLine(String line) {
+		int msPos = line.indexOf("ms");
+		String timeString = null;
+
+		if (msPos > -1) {
+			if (line.lastIndexOf('<', msPos) > -1){
+				timeString = "0.5";
+			} else {
+				timeString = line.substring(line.lastIndexOf('=', msPos) + 1, msPos).trim();
+			}
+		}
+		return timeString;
 	}
 
 	/**
