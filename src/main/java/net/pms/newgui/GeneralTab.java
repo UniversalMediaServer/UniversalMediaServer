@@ -48,7 +48,7 @@ public class GeneralTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GeneralTab.class);
 
 	private static final String COL_SPEC = "left:pref, 3dlu, p, 3dlu , p, 3dlu, p, 3dlu, pref:grow";
-	private static final String ROW_SPEC = "p, 0dlu, p, 0dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
+	private static final String ROW_SPEC = "p, 0dlu, p, 0dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 15dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p";
 
 	public JCheckBox smcheckBox;
 	private JCheckBox autoStart;
@@ -468,7 +468,6 @@ public class GeneralTab {
 				}
 			});
 			builder.add(newHTTPEngine, FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
-			ypos += 2;
 
 			preventSleep = new JCheckBox(Messages.getString("NetworkTab.33"), configuration.isPreventsSleep());
 			preventSleep.addItemListener(new ItemListener() {
@@ -477,7 +476,7 @@ public class GeneralTab {
 					configuration.setPreventsSleep((e.getStateChange() == ItemEvent.SELECTED));
 				}
 			});
-			builder.add(preventSleep, FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
+			builder.add(preventSleep, FormLayoutUtil.flip(cc.xy(3, ypos), colSpec, orientation));
 			ypos += 2;
 
 			fdCheckBox = new JCheckBox(Messages.getString("NetworkTab.38"), configuration.isRendererForceDefault());
