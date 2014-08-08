@@ -660,9 +660,7 @@ public class TranscodingTab {
 
 		ac3remux = new JCheckBox(Messages.getString("TrTab2.26"), configuration.isAudioRemuxAC3());
 		ac3remux.setToolTipText(Messages.getString("TrTab2.84") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
-		if (configuration.isEncodedAudioPassthrough()) {
-			ac3remux.setEnabled(false);
-		}
+		ac3remux.setEnabled(!configuration.isEncodedAudioPassthrough());
 		ac3remux.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
@@ -673,9 +671,7 @@ public class TranscodingTab {
 
 		forceDTSinPCM = new JCheckBox(Messages.getString("TrTab2.28"), configuration.isAudioEmbedDtsInPcm());
 		forceDTSinPCM.setToolTipText(Messages.getString("TrTab2.85") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
-		if (configuration.isEncodedAudioPassthrough()) {
-			forceDTSinPCM.setEnabled(false);
-		}
+		forceDTSinPCM.setEnabled(!configuration.isEncodedAudioPassthrough());
 		forceDTSinPCM.setContentAreaFilled(false);
 		forceDTSinPCM.addActionListener(new ActionListener() {
 			@Override
@@ -956,17 +952,13 @@ public class TranscodingTab {
 		subs = new JCheckBox(Messages.getString("MEncoderVideo.22"), configuration.isAutoloadExternalSubtitles());
 		subs.setToolTipText(Messages.getString("TrTab2.78"));
 		subs.setContentAreaFilled(false);
+		subs.setEnabled(!configuration.isForceExternalSubtitles());
 		subs.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setAutoloadExternalSubtitles((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
-		if (configuration.isForceExternalSubtitles()) {
-			subs.setEnabled(false);
-		} else {
-			subs.setEnabled(true);
-		}
 		builder.add(subs, FormLayoutUtil.flip(cc.xyw(1, 14, 11), colSpec, orientation));
 
 		subColor = new JButton();

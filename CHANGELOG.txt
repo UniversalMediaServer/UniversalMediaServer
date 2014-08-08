@@ -1,3 +1,17 @@
+4.0.3 - 2014-08-??
+
+	General:
+		
+	Renderers:
+		Fixed audio support on WDTV Live (thanks, DualC!)
+		Fixed MP4 support on Panasonic VT60 TVs
+	External Components:
+		Updated MediaInfo for Windows to 0.7.69, which:
+			Improves folder population times by 300%+
+			Improves stability
+			Improves detection of HEVC streams
+			Fixes bugs
+
 4.0.2 - 2014-08-06
 
 	General:

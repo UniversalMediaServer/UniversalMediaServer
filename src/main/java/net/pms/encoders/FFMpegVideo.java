@@ -853,7 +853,7 @@ public class FFMpegVideo extends Player {
 			int channels = 0;
 			if (renderer.isTranscodeToWMV() && !renderer.isXBOX()) {
 				channels = 2;
-			} else if (params.aid.getAudioProperties().getNumberOfChannels() > configuration.getAudioChannelCount()) {
+			} else if (params.aid != null && params.aid.getAudioProperties().getNumberOfChannels() > configuration.getAudioChannelCount()) {
 				channels = configuration.getAudioChannelCount();
 			}
 
