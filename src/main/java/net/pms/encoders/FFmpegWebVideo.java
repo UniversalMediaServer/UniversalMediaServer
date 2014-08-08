@@ -123,7 +123,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			setAudioOutputParameters(media, params);
 		}
 
-		if (params.sid == null) {
+		if (params.sid == null || (params.sid != null && StringUtils.isNotEmpty(params.sid.getLiveSubURL()))) {
 			setSubtitleOutputParameters(filename, media, params);
 		}
 

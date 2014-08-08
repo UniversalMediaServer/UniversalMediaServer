@@ -534,7 +534,7 @@ public class RendererConfiguration {
 		}
 
 		mimes = new HashMap<>();
-		String mimeTypes = getString(MIME_TYPES_CHANGES, null);
+		String mimeTypes = getString(MIME_TYPES_CHANGES, "");
 
 		if (StringUtils.isNotBlank(mimeTypes)) {
 			StringTokenizer st = new StringTokenizer(mimeTypes, "|");
@@ -584,7 +584,7 @@ public class RendererConfiguration {
 		}
 
 		DLNAPN = new HashMap<>();
-		String DLNAPNchanges = getString(DLNA_PN_CHANGES, null);
+		String DLNAPNchanges = getString(DLNA_PN_CHANGES, "");
 
 		if (DLNAPNchanges != null) {
 			LOGGER.trace("Config DLNAPNchanges: " + DLNAPNchanges);
@@ -906,16 +906,20 @@ public class RendererConfiguration {
 		return getString(USER_AGENT_ADDITIONAL_SEARCH, "");
 	}
 
+	/**
+	 * May append a custom file extension to the file path.
+	 * Returns the original path if the renderer didn't define an extension.
+	 *
+	 * @param file the original file path
+	 * @return
+	 */
 	public String getUseSameExtension(String file) {
-		String s = getString(USE_SAME_EXTENSION, null);
-
-		if (s != null) {
-			s = file + "." + s;
-		} else {
-			s = file;
+		String extension = getString(USE_SAME_EXTENSION, "");
+		if (StringUtils.isNotEmpty(extension)) {
+			file += "." + extension;
 		}
 
-		return s;
+		return file;
 	}
 
 	/**
@@ -1027,8 +1031,9 @@ public class RendererConfiguration {
 	}
 
 	/**
-	 * Returns the maximum bitrate (in megabits-per-second) supported by the media renderer as defined
-	 * in the renderer configuration. The default value is <code>null</code>.
+	 * Returns the maximum bitrate (in megabits-per-second) supported by the
+	 * media renderer as defined in the renderer configuration. The default
+	 * value is "0" (unlimited).
 	 *
 	 * @return The bitrate.
 	 */
@@ -1041,7 +1046,7 @@ public class RendererConfiguration {
 				// ignore this
 			}
 		}
-		return getString(MAX_VIDEO_BITRATE, null);
+		return getString(MAX_VIDEO_BITRATE, "0");
 	}
 
 	@Deprecated
@@ -1222,7 +1227,7 @@ public class RendererConfiguration {
 	}
 
 	public boolean isForceJPGThumbnails() {
-		return (getBoolean(FORCE_JPG_THUMBNAILS, false) && LibMediaInfoParser.isValid()) || isBRAVIA();
+		return getBoolean(FORCE_JPG_THUMBNAILS, false) && LibMediaInfoParser.isValid();
 	}
 
 	public boolean isShowAudioMetadata() {
@@ -1310,7 +1315,7 @@ public class RendererConfiguration {
 	}
 
 	public String getFFmpegVideoFilterOverride() {
-		return getString(OVERRIDE_FFMPEG_VF, null);
+		return getString(OVERRIDE_FFMPEG_VF, "");
 	}
 
 	public static ArrayList<String> getAllRenderersNames() {
@@ -1396,7 +1401,7 @@ public class RendererConfiguration {
 	}
 
 	public String getSupportedSubtitles() {
-		return getString(SUPPORTED_SUBTITLES_FORMATS, null);
+		return getString(SUPPORTED_SUBTITLES_FORMATS, "");
 	}
 
 	public boolean useClosedCaption() {
@@ -1404,7 +1409,7 @@ public class RendererConfiguration {
 	}
 
 	public boolean isSubtitlesStreamingSupported() {
-		return (getSupportedSubtitles() != null);
+		return StringUtils.isNotBlank(getSupportedSubtitles());
 	}
 
 	/**
@@ -1451,7 +1456,7 @@ public class RendererConfiguration {
 	}
 
 	private String calculatedSpeed() throws Exception {
-		String max = getString(MAX_VIDEO_BITRATE, null);
+		String max = getString(MAX_VIDEO_BITRATE, "");
 		for (InetAddress sa : addressAssociation.keySet()) {
 			if (addressAssociation.get(sa) == this) {
 				Future<Integer> speed = SpeedStats.getInstance().getSpeedInMBitsStored(sa, getRendererName());
