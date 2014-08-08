@@ -452,7 +452,7 @@ public class GeneralTab {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					configuration.setAutomaticMaximumBitrate(adaptBitrate.isSelected());
-					maxbitrate.setEnabled(configuration.isAutomaticMaximumBitrate());
+					maxbitrate.setEnabled(!configuration.isAutomaticMaximumBitrate());
 				}
 			});
 
@@ -487,14 +487,16 @@ public class GeneralTab {
 			});
 			builder.add(newHTTPEngine, FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 
-			preventSleep = new JCheckBox(Messages.getString("NetworkTab.33"), configuration.isPreventsSleep());
-			preventSleep.addItemListener(new ItemListener() {
-				@Override
-				public void itemStateChanged(ItemEvent e) {
-					configuration.setPreventsSleep((e.getStateChange() == ItemEvent.SELECTED));
-				}
-			});
-			builder.add(preventSleep, FormLayoutUtil.flip(cc.xy(3, ypos), colSpec, orientation));
+			if (Platform.isWindows()) {
+				preventSleep = new JCheckBox(Messages.getString("NetworkTab.33"), configuration.isPreventsSleep());
+				preventSleep.addItemListener(new ItemListener() {
+					@Override
+					public void itemStateChanged(ItemEvent e) {
+						configuration.setPreventsSleep((e.getStateChange() == ItemEvent.SELECTED));
+					}
+				});
+				builder.add(preventSleep, FormLayoutUtil.flip(cc.xy(3, ypos), colSpec, orientation));
+			}
 			ypos += 2;
 
 			fdCheckBox = new JCheckBox(Messages.getString("NetworkTab.38"), configuration.isRendererForceDefault());

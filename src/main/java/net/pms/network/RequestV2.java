@@ -18,6 +18,7 @@
  */
 package net.pms.network;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -303,17 +304,13 @@ public class RequestV2 extends HTTPResource {
 					// This is a request for a subtitle file
 					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain");
 					output.headers().set(HttpHeaders.Names.EXPIRES, getFUTUREDATE() + " GMT");
-					List<DLNAMediaSubtitle> subs = dlna.getMedia().getSubtitleTracksList();
-
-					if (subs != null && !subs.isEmpty()) {
-						// TODO: maybe loop subs to get the requested subtitle type instead of using the first one
-						DLNAMediaSubtitle sub = subs.get(0);
-
+					DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
+					if (sub != null) {
 						try {
 							// XXX external file is null if the first subtitle track is embedded:
 							// http://www.ps3mediaserver.org/forum/viewtopic.php?f=3&t=15805&p=75534#p75534
 							if (sub.isExternal()) {
-								inputStream = new java.io.FileInputStream(sub.getExternalFile());
+								inputStream = new FileInputStream(sub.getExternalFile());
 							}
 						} catch (NullPointerException npe) {
 							LOGGER.trace("Could not find external subtitles: " + sub);
@@ -358,13 +355,10 @@ public class RequestV2 extends HTTPResource {
 					if (dlna.getMedia() != null && !configuration.isDisableSubtitles()) {
 						// Some renderers (like Samsung devices) allow a custom header for a subtitle URL
 						String subtitleHttpHeader = mediaRenderer.getSubtitleHttpHeader();
-
 						if (subtitleHttpHeader != null && !"".equals(subtitleHttpHeader)) {
 							// Device allows a custom subtitle HTTP header; construct it
-							List<DLNAMediaSubtitle> subs = dlna.getMedia().getSubtitleTracksList();
-
-							if (subs != null && !subs.isEmpty()) {
-								DLNAMediaSubtitle sub = subs.get(0);
+							DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
+							if (sub != null) {
 								String subtitleUrl;
 								String subExtension = sub.getType().getExtension();
 								if (isNotBlank(subExtension)) {
@@ -376,6 +370,7 @@ public class RequestV2 extends HTTPResource {
 										':' + PMS.get().getServer().getPort() + "/get/" +
 										id + "/subtitle0000";
 								}
+
 								output.headers().set(subtitleHttpHeader, subtitleUrl);
 							}
 						}

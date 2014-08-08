@@ -4,13 +4,10 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import net.pms.PMS;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class FileSearch implements SearchObj {
-	private static final Logger LOGGER = LoggerFactory.getLogger(FileSearch.class);
 	private ArrayList<RealFile> folders;
-	
+
 	public FileSearch(List<RealFile> folders) {
 		this.folders = new ArrayList<>(folders);
 	}
@@ -18,7 +15,7 @@ public class FileSearch implements SearchObj {
 	public void update(List<RealFile> folders) {
 		this.folders = (ArrayList<RealFile>) folders;
 	}
-	
+
 	@Override
 	public void search(String searchString, DLNAResource searcher) {
 		searchString = searchString.toLowerCase();
@@ -32,12 +29,12 @@ public class FileSearch implements SearchObj {
 			if (res.getFile().isDirectory()) {
 				// tricky case, recursive in to folders
 				File f = res.getFile();
-				searchFiles(f.listFiles(),searchString,searcher,0);
+				searchFiles(f.listFiles(), searchString, searcher, 0);
 			}
 		}
 	}
-	
-	private void searchFiles(File[] files,String str,DLNAResource searcher,int cnt) {
+
+	private void searchFiles(File[] files, String str, DLNAResource searcher, int cnt) {
 		if (files == null) {
 			return;
 		}
@@ -52,7 +49,7 @@ public class FileSearch implements SearchObj {
 					// this is here to avoid endless looping
 					return;
 				}
-				searchFiles(f.listFiles(),str,searcher,cnt + 1);
+				searchFiles(f.listFiles(), str, searcher, cnt + 1);
 			}
 		}
 	}

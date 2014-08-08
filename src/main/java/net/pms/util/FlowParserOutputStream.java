@@ -52,7 +52,6 @@ public abstract class FlowParserOutputStream extends OutputStream {
 		int remains = buffer.position() - internalMark;
 
 		while (remains > streamableByteNumber || remains > neededByteNumber) {
-
 			if (streamableByteNumber == 0) {
 				// time to analyze
 				if (remains > neededByteNumber) {
