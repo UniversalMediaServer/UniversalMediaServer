@@ -1910,15 +1910,9 @@ public class MEncoderVideo extends Player {
 					scaleWidth  = (int) Math.round(scaleHeight * rendererAspectRatio);
 				}
 
-				if (params.mediaRenderer.isMuxNonMod4Resolution()) {
-					// Make sure the new dimensions are mod2
-					scaleWidth  = 2*((int) Math.floor(Math.abs(scaleWidth/2)));
-					scaleHeight = 2*((int) Math.floor(Math.abs(scaleHeight/2)));
-				} else {
-					// Make sure the new dimensions are mod4
-					scaleWidth  = 4*((int) Math.floor(Math.abs(scaleWidth/4)));
-					scaleHeight = 4*((int) Math.floor(Math.abs(scaleHeight/4)));
-				}
+				scaleWidth  = convertToMod4(scaleWidth);
+				scaleHeight = convertToMod4(scaleHeight);
+
 				vfValuePrepend += ":::0:16/9,scale=" + scaleWidth + ":" + scaleHeight;
 			} else {
 				vfValuePrepend += "-" + (scaleWidth % 4) + ":-" + (scaleHeight % 4);
