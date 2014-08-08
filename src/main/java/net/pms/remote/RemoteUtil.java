@@ -85,7 +85,7 @@ public class RemoteUtil {
 	}
 
 	public static String strip(String id) {
-		int pos = id.lastIndexOf(".");
+		int pos = id.lastIndexOf('.');
 		if (pos != -1) {
 			return id.substring(0, pos);
 		}
@@ -93,7 +93,8 @@ public class RemoteUtil {
 	}
 
 	public static boolean deny(HttpExchange t) {
-		return !PMS.getConfiguration().getIpFiltering().allowed(t.getRemoteAddress().getAddress());
+		return !PMS.getConfiguration().getIpFiltering().allowed(t.getRemoteAddress().getAddress()) ||
+			   !PMS.isReady();
 	}
 
 	private static Range nullRange(long len) {

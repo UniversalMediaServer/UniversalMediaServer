@@ -309,7 +309,7 @@ public class DLNAMediaInfo implements Cloneable {
 		// Check if the renderer supports the resolution of the video
 		if (
 			(
-				mediaRenderer.isVideoRescale() &&
+				mediaRenderer.isMaximumResolutionSpecified() &&
 				(
 					width > mediaRenderer.getMaxVideoWidth() ||
 					height > mediaRenderer.getMaxVideoHeight()
@@ -389,7 +389,7 @@ public class DLNAMediaInfo implements Cloneable {
 		if (seekPosition <= forThumbnail.durationSec) {
 			forThumbnail.durationSec = seekPosition;
 		} else {
-			forThumbnail.durationSec = forThumbnail.durationSec / 2;
+			forThumbnail.durationSec /= 2;
 		}
 
 		forThumbnail.parse(input, ext, type, true, resume);
@@ -870,14 +870,14 @@ public class DLNAMediaInfo implements Cloneable {
 				if (line.startsWith("Output")) {
 					matchs = false;
 				} else if (line.startsWith("Input")) {
-					if (line.indexOf(input) > -1) {
+					if (line.contains(input)) {
 						matchs = true;
 						container = line.substring(10, line.indexOf(',', 11)).trim();
 					} else {
 						matchs = false;
 					}
 				} else if (matchs) {
-					if (line.indexOf("Duration") > -1) {
+					if (line.contains("Duration")) {
 						StringTokenizer st = new StringTokenizer(line, ",");
 						while (st.hasMoreTokens()) {
 							String token = st.nextToken().trim();
@@ -887,7 +887,7 @@ public class DLNAMediaInfo implements Cloneable {
 								if (l < 4) {
 									durationStr += "00".substring(0, 3 - l);
 								}
-								if (durationStr.indexOf("N/A") > -1) {
+								if (durationStr.contains("N/A")) {
 									durationSec = null;
 								} else {
 									durationSec = parseDurationString(durationStr);
@@ -908,7 +908,7 @@ public class DLNAMediaInfo implements Cloneable {
 								}
 							}
 						}
-					} else if (line.indexOf("Audio:") > -1) {
+					} else if (line.contains("Audio:")) {
 						StringTokenizer st = new StringTokenizer(line, ",");
 						int a = line.indexOf('(');
 						int b = line.indexOf("):", a);
@@ -964,11 +964,11 @@ public class DLNAMediaInfo implements Cloneable {
 							line = lines.get(FFmpegMetaDataNr);
 						}
 
-						if (line.indexOf("Metadata:") > -1) {
+						if (line.contains("Metadata:")) {
 							FFmpegMetaDataNr += 1;
 							line = lines.get(FFmpegMetaDataNr);
 							while (line.indexOf("      ") == 0) {
-								if (line.toLowerCase().indexOf("title           :") > -1) {
+								if (line.toLowerCase().contains("title           :")) {
 									int aa = line.indexOf(": ");
 									int bb = line.length();
 									if (aa > -1 && bb > aa) {
@@ -983,13 +983,13 @@ public class DLNAMediaInfo implements Cloneable {
 						}
 
 						audioTracks.add(audio);
-					} else if (line.indexOf("Video:") > -1) {
+					} else if (line.contains("Video:")) {
 						StringTokenizer st = new StringTokenizer(line, ",");
 						while (st.hasMoreTokens()) {
 							String token = st.nextToken().trim();
 							if (token.startsWith("Stream")) {
 								codecV = token.substring(token.indexOf("Video: ") + 7);
-							} else if ((token.indexOf("tbc") > -1 || token.indexOf("tb(c)") > -1)) {
+							} else if ((token.contains("tbc") || token.contains("tb(c)"))) {
 								// A/V sync issues with newest FFmpeg, due to the new tbr/tbn/tbc outputs
 								// Priority to tb(c)
 								String frameRateDoubleString = token.substring(0, token.indexOf("tb")).trim();
@@ -1003,13 +1003,13 @@ public class DLNAMediaInfo implements Cloneable {
 									LOGGER.debug("Could not parse frame rate \"" + frameRateDoubleString + "\"");
 								}
 
-							} else if ((token.indexOf("tbr") > -1 || token.indexOf("tb(r)") > -1) && frameRate == null) {
+							} else if ((token.contains("tbr") || token.contains("tb(r)")) && frameRate == null) {
 								frameRate = token.substring(0, token.indexOf("tb")).trim();
-							} else if ((token.indexOf("fps") > -1 || token.indexOf("fps(r)") > -1) && frameRate == null) { // dvr-ms ?
+							} else if ((token.contains("fps") || token.contains("fps(r)")) && frameRate == null) { // dvr-ms ?
 								frameRate = token.substring(0, token.indexOf("fps")).trim();
 							} else if (token.indexOf('x') > -1 && !token.contains("max")) {
 								String resolution = token.trim();
-								if (resolution.indexOf(" [") > -1) {
+								if (resolution.contains(" [")) {
 									resolution = resolution.substring(0, resolution.indexOf(" ["));
 								}
 								try {
@@ -1024,7 +1024,7 @@ public class DLNAMediaInfo implements Cloneable {
 								}
 							}
 						}
-					} else if (line.indexOf("Subtitle:") > -1) {
+					} else if (line.contains("Subtitle:")) {
 						DLNAMediaSubtitle lang = new DLNAMediaSubtitle();
 
 						// $ ffmpeg -codecs | grep "^...S"
@@ -1090,12 +1090,12 @@ public class DLNAMediaInfo implements Cloneable {
 							line = lines.get(FFmpegMetaDataNr);
 						}
 
-						if (line.indexOf("Metadata:") > -1) {
+						if (line.contains("Metadata:")) {
 							FFmpegMetaDataNr += 1;
 							line = lines.get(FFmpegMetaDataNr);
 
 							while (line.indexOf("      ") == 0) {
-								if (line.toLowerCase().indexOf("title           :") > -1) {
+								if (line.toLowerCase().contains("title           :")) {
 									int aa = line.indexOf(": ");
 									int bb = line.length();
 									if (aa > -1 && bb > aa) {
@@ -1190,7 +1190,7 @@ public class DLNAMediaInfo implements Cloneable {
 			mimeType = HTTPResource.GIF_TYPEMIME;
 		} else if (codecV != null && (codecV.startsWith("h264") || codecV.equals("h263") || codecV.toLowerCase().equals("mpeg4") || codecV.toLowerCase().equals("mp4"))) {
 			mimeType = HTTPResource.MP4_TYPEMIME;
-		} else if (codecV != null && (codecV.indexOf("mpeg") > -1 || codecV.indexOf("mpg") > -1)) {
+		} else if (codecV != null && (codecV.contains("mpeg") || codecV.contains("mpg"))) {
 			mimeType = HTTPResource.MPEG_TYPEMIME;
 		} else if (codecV == null && codecA != null && codecA.contains("mp3")) {
 			mimeType = HTTPResource.AUDIO_MP3_TYPEMIME;

@@ -54,7 +54,6 @@ public class RendererConfiguration {
 	// TextWrap parameters
 	protected int line_w, line_h, indent;
 	protected String inset, dots;
-	protected boolean dc_date = true;
 
 	// property values
 	private static final String LPCM = "LPCM";
@@ -121,6 +120,7 @@ public class RendererConfiguration {
 	private static final String RENDERER_NAME = "RendererName";
 	private static final String RESCALE_BY_RENDERER = "RescaleByRenderer";
 	private static final String SEEK_BY_TIME = "SeekByTime";
+	private static final String SEND_DATE_METADATA = "SendDateMetadata";
 	private static final String SHOW_AUDIO_METADATA = "ShowAudioMetadata";
 	private static final String SHOW_DVD_TITLE_DURATION = "ShowDVDTitleDuration"; // Ditlew
 	private static final String SHOW_SUB_METADATA = "ShowSubMetadata";
@@ -554,7 +554,6 @@ public class RendererConfiguration {
 		if (line_w > 0) {
 			line_h = getIntAt(s, "height:", 0);
 			indent = getIntAt(s, "indent:", 0);
-			dc_date = getIntAt(s, "date:", 1) != 0;
 			int ws = getIntAt(s, "whitespace:", 9);
 			int dotct = getIntAt(s, "dots:", 0);
 			inset = new String(new byte[indent]).replaceAll(".", Character.toString((char) ws));
@@ -1107,10 +1106,11 @@ public class RendererConfiguration {
 	 * Returns the maximum video width supported by the renderer as defined in
 	 * the renderer configuration. The default value 0 means unlimited.
 	 *
+	 * @see #isMaximumResolutionSpecified()
+	 *
 	 * @return The maximum video width.
 	 */
 	public int getMaxVideoWidth() {
-		// XXX we should require width and height to both be 0 or both be > 0
 		return getInt(MAX_VIDEO_WIDTH, 0);
 	}
 
@@ -1118,20 +1118,29 @@ public class RendererConfiguration {
 	 * Returns the maximum video height supported by the renderer as defined
 	 * in the renderer configuration. The default value 0 means unlimited.
 	 *
+	 * @see #isMaximumResolutionSpecified()
+	 *
 	 * @return The maximum video height.
 	 */
 	public int getMaxVideoHeight() {
-		// XXX we should require width and height to both be 0 or both be > 0
 		return getInt(MAX_VIDEO_HEIGHT, 0);
 	}
 
 	/**
-	 * Returns <code>true</code> if the renderer has a maximum supported width
-	 * or height, <code>false</code> otherwise.
-	 *
-	 * @return boolean indicating whether the renderer may need videos to be resized.
+	 * @Deprecated use isMaximumResolutionSpecified() instead
 	 */
+	@Deprecated
 	public boolean isVideoRescale() {
+		return getMaxVideoWidth() > 0 && getMaxVideoHeight() > 0;
+	}
+
+	/**
+	 * Returns <code>true</code> if the renderer has a maximum supported width
+	 * and height, <code>false</code> otherwise.
+	 *
+	 * @return whether the renderer has specified a maximum width and height
+	 */
+	public boolean isMaximumResolutionSpecified() {
 		return getMaxVideoWidth() > 0 && getMaxVideoHeight() > 0;
 	}
 
@@ -1220,6 +1229,16 @@ public class RendererConfiguration {
 
 	public boolean isShowSubMetadata() {
 		return getBoolean(SHOW_SUB_METADATA, true);
+	}
+
+	/**
+	 * Whether to send the last modified date metadata for files and
+	 * folders, which can take up screen space on some renderers.
+	 *
+	 * @return whether to send the metadata
+	 */
+	public boolean isSendDateMetadata() {
+		return getBoolean(SEND_DATE_METADATA, true);
 	}
 
 	public boolean isDLNATreeHack() {
@@ -1357,8 +1376,13 @@ public class RendererConfiguration {
 		return name;
 	}
 
+	/**
+	 * @see #isSendDateMetadata()
+	 * @deprecated
+	 */
+	@Deprecated
 	public boolean isOmitDcDate() {
-		return !dc_date;
+		return !isSendDateMetadata();
 	}
 
 	public static int getIntAt(String s, String key, int fallback) {
@@ -1397,18 +1421,23 @@ public class RendererConfiguration {
 		for (InetAddress sa : addressAssociation.keySet()) {
 			if (addressAssociation.get(sa) == this) {
 				Future<Integer> speed = SpeedStats.getInstance().getSpeedInMBitsStored(sa, getRendererName());
+				String speedString = String.valueOf(speed.get());
 				if (max == null) {
-					return String.valueOf(speed.get());
+					LOGGER.trace("Network speed estimate: " + speedString);
+					return speedString;
 				}
 				try {
 					Integer i = Integer.parseInt(max);
 					if (speed.get() > i && i != 0) {
+						LOGGER.trace("Network speed estimate is greater than the maximum set by UMS");
 						return max;
 					} else {
-						return String.valueOf(speed.get());
+						LOGGER.trace("Network speed estimate: " + speedString);
+						return speedString;
 					}
 				} catch (NumberFormatException e) {
-					return String.valueOf(speed.get());
+					LOGGER.trace("Network speed estimate: " + String.valueOf(speed.get()));
+					return speedString;
 				}
 			}
 		}

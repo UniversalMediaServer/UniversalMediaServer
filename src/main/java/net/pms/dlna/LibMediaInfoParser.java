@@ -487,7 +487,7 @@ public class LibMediaInfoParser {
 	}
 
 	public static int getPixelValue(String value) {
-		if (value.indexOf("pixel") > -1) {
+		if (value.contains("pixel")) {
 			value = value.substring(0, value.indexOf("pixel"));
 		}
 
@@ -583,7 +583,7 @@ public class LibMediaInfoParser {
 			value = value.substring(0, value.indexOf('/'));
 		}
 
-		if (value.indexOf("khz") > -1) {
+		if (value.contains("khz")) {
 			value = value.substring(0, value.indexOf("khz"));
 		}
 
@@ -592,7 +592,7 @@ public class LibMediaInfoParser {
 	}
 
 	public static String getFPSValue(String value) {
-		if (value.indexOf("fps") > -1) {
+		if (value.contains("fps")) {
 			value = value.substring(0, value.indexOf("fps"));
 		}
 
