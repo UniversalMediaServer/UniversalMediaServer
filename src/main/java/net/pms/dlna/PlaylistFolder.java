@@ -10,6 +10,7 @@ import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.util.FileUtil;
 import net.pms.util.ProcessUtil;
+import net.pms.util.UMSUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -204,7 +205,7 @@ public class PlaylistFolder extends DLNAResource {
 			PMS.get().storeFileInCache(getPlaylistfile(), Format.PLAYLIST);
 		}
 
-		if (configuration.getSortMethod() == 5) {
+		if (configuration.getSortMethod(getPlaylistfile()) == UMSUtils.SORT_RANDOM) {
 			Collections.shuffle(getChildren());
 		}
 

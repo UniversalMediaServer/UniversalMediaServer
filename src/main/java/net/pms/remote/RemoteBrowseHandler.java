@@ -1,5 +1,6 @@
 package net.pms.remote;
 
+import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
@@ -7,9 +8,9 @@ import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.util.List;
 import net.pms.Messages;
-import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
+import net.pms.util.UMSUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -45,6 +46,9 @@ public class RemoteBrowseHandler implements HttpHandler {
 			search = getSearchStr(vars);
 		}
 		List<DLNAResource> res = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), search);
+		if (StringUtils.isNotEmpty(search)) {
+			UMSUtils.postSearch(res, search);
+		}
 
 		// Media browser HTML
 		StringBuilder sb          = new StringBuilder();
@@ -86,15 +90,15 @@ public class RemoteBrowseHandler implements HttpHandler {
 							if (!name.equals(Messages.getString("TranscodeVirtualFolder.0"))) {
 								// The resource is a folder
 								foldersHtml.append("<li>");
+								String p = "/browse/" + idForWeb;
 									if (r.getClass().getName().contains("SearchFolder")) {
 										// search folder add a prompt
 										// NOTE!!!
 										// Yes doing getClass.getname is REALLY BAD, but this
 										// is to make legacy plugins utilize this function as well
-										String p = "/browse/" + idForWeb;
 										foldersHtml.append("<a href=\"javascript:void(0);\" onclick=\"searchFun('").append(p).append("');\" title=\"").append(name).append("\">");
 									} else {
-										foldersHtml.append("<a href=\"/browse/").append(idForWeb).append("\" title=\"").append(name).append("\">");
+										foldersHtml.append("<a href=\"/browse/").append(idForWeb).append("\" oncontextmenu=\"searchFun('").append(p).append("');\"title=\"").append(name).append("\">");
 									}
 									foldersHtml.append("<span>").append(name).append("</span>");
 									foldersHtml.append("</a>").append(CRLF);
@@ -155,6 +159,8 @@ public class RemoteBrowseHandler implements HttpHandler {
 		String id = RemoteUtil.getId("browse/", t);
 		LOGGER.debug("Found id " + id);
 		String response = mkBrowsePage(id, t);
+		Headers hdr = t.getResponseHeaders();
+		hdr.add("Content-Type", "text/html");
 		writePage(response, t);
 	}
 }

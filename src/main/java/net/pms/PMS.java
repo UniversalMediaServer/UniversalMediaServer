@@ -696,7 +696,7 @@ public class PMS {
 		}
 
 		// Web stuff
-		web = new RemoteWeb();
+		web = new RemoteWeb(configuration.getWebPort());
 
 		// initialize the cache
 		if (configuration.getUseCache()) {
