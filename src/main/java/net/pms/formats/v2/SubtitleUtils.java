@@ -43,7 +43,7 @@ public class SubtitleUtils {
 	private final static PmsConfiguration configuration = PMS.getConfiguration();
 	private static final Logger LOGGER = LoggerFactory.getLogger(SubtitleUtils.class);
 	private final static Map<String, String> fileCharsetToMencoderSubcpOptionMap = new HashMap<String, String>() {
-	private static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = 1L;
 
 		{
 			// Cyrillic / Russian
@@ -95,7 +95,7 @@ public class SubtitleUtils {
 	}
 
 	/**
-	 * Applies codepage conversion to subtitles file 
+	 * Applies codepage conversion to subtitles file
 	 *
 	 * @param fileToConvert Subtitles file to convert
 	 * @param outputSubs Converted subtitles file

@@ -779,8 +779,6 @@ public class MEncoderVideo extends Player {
 						defaultMaxBitrates[0] -= 1510;
 						break;
 					case "aac":
-						defaultMaxBitrates[0] -= configuration.getAudioBitrate();
-						break;
 					case "ac3":
 						defaultMaxBitrates[0] -= configuration.getAudioBitrate();
 						break;
