@@ -1913,7 +1913,7 @@ public class MEncoderVideo extends Player {
 				scaleWidth  = convertToMod4(scaleWidth);
 				scaleHeight = convertToMod4(scaleHeight);
 
-				vfValuePrepend += ":::0:16/9,scale=" + scaleWidth + ":" + scaleHeight;
+				vfValuePrepend += "::::0:16/9,scale=" + scaleWidth + ":" + scaleHeight;
 			} else {
 				vfValuePrepend += "-" + (scaleWidth % 4) + ":-" + (scaleHeight % 4);
 			}
