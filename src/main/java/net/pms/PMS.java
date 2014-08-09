@@ -836,7 +836,7 @@ public class PMS {
 	 */
 	@Deprecated
 	public File[] getFoldersConf(boolean log) {
-		return getSharedFoldersArray(false);
+		return getSharedFoldersArray(false, getConfiguration());
 	}
 
 	/**
@@ -844,7 +844,7 @@ public class PMS {
 	 */
 	@Deprecated
 	public File[] getFoldersConf() {
-		return getSharedFoldersArray(false);
+		return getSharedFoldersArray(false, getConfiguration());
 	}
 
 	/**
@@ -854,16 +854,20 @@ public class PMS {
 	 * @return {@link java.io.File}[] Array of directories.
 	 */
 	public File[] getSharedFoldersArray(boolean monitored) {
-		return getSharedFoldersArray(monitored, null);
+		return getSharedFoldersArray(monitored, null, getConfiguration());
 	}
 
-	public File[] getSharedFoldersArray(boolean monitored, ArrayList<String> tags) {
+	public File[] getSharedFoldersArray(boolean monitored, PmsConfiguration configuration) {
+		return getSharedFoldersArray(monitored, null, configuration);
+	}
+
+	public File[] getSharedFoldersArray(boolean monitored, ArrayList<String> tags, PmsConfiguration configuration) {
 		String folders;
 
 		if (monitored) {
-			folders = getConfiguration().getFoldersMonitored();
+			folders = configuration.getFoldersMonitored();
 		} else {
-			folders = getConfiguration().getFolders(tags);
+			folders = configuration.getFolders(tags);
 		}
 
 		if (folders == null || folders.length() == 0) {
