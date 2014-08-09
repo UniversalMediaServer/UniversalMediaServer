@@ -2541,7 +2541,7 @@ public class PmsConfiguration extends RendererConfiguration {
 			).getFilePath();
 		}
 
-		return WEB_CONF_PATH;
+		return getString(KEY_WEB_CONF_PATH, WEB_CONF_PATH);
 	}
 
 	public String getPluginDirectory() {
