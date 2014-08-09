@@ -1636,13 +1636,13 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				 */
 				if (mediaRenderer.isDLNAOrgPNUsed()) {
 					if (mediaRenderer.isPS3()) {
-						if (mime.equals("video/x-divx")) {
+						if (mime.equals(DIVX_TYPEMIME)) {
 							dlnaspec = "DLNA.ORG_PN=AVI";
-						} else if (mime.equals("video/x-ms-wmv") && media != null && media.getHeight() > 700) {
+						} else if (mime.equals(WMV_TYPEMIME) && media != null && media.getHeight() > 700) {
 							dlnaspec = "DLNA.ORG_PN=WMVHIGH_PRO";
 						}
 					} else {
-						if (mime.equals("video/mpeg") || mime.equals("video/mp4")) {
+						if (mime.equals(MPEG_TYPEMIME)) {
 							dlnaspec = "DLNA.ORG_PN=" + getMPEG_PS_PALLocalizedValue(c);
 
 							if (player != null) {
@@ -1753,11 +1753,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						} else if (mime.equals("video/vnd.dlna.mpeg-tts")) {
 							// patters - on Sony BDP m2ts clips aren't listed without this
 							dlnaspec = "DLNA.ORG_PN=" + getMPEG_TS_SD_EULocalizedValue(c);
-						} else if (mime.equals("image/jpeg")) {
+						} else if (mime.equals(JPEG_TYPEMIME)) {
 							dlnaspec = "DLNA.ORG_PN=JPEG_LRG";
-						} else if (mime.equals("audio/mpeg")) {
+						} else if (mime.equals(AUDIO_MP3_TYPEMIME)) {
 							dlnaspec = "DLNA.ORG_PN=MP3";
-						} else if (mime.substring(0, 9).equals("audio/L16") || mime.equals("audio/wav")) {
+						} else if (mime.substring(0, 9).equals(AUDIO_LPCM_TYPEMIME) || mime.equals(AUDIO_WAV_TYPEMIME)) {
 							dlnaspec = "DLNA.ORG_PN=LPCM";
 						}
 					}
