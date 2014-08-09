@@ -310,7 +310,7 @@ public class MapFile extends DLNAResource {
 		}
 
 		// false: don't create the folder if it doesn't exist i.e. find the folder
-		TranscodeVirtualFolder transcodeFolder = getTranscodeFolder(false);
+		TranscodeVirtualFolder transcodeFolder = getTranscodeFolder(false, configuration);
 
 		for (DLNAResource f : removedFiles) {
 			getChildren().remove(f);

@@ -827,7 +827,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		if (create) {
-			TranscodeVirtualFolder transcodeFolder = new TranscodeVirtualFolder(null);
+			TranscodeVirtualFolder transcodeFolder = new TranscodeVirtualFolder(null, configuration);
 			addChildInternal(transcodeFolder);
 			return transcodeFolder;
 		}
