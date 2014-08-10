@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 
 public class RealFile extends MapFile {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RealFile.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	private boolean useSuperThumb;
 

@@ -41,7 +41,7 @@ public class ResumeObj {
 	}
 
 	public static ResumeObj create(DLNAResource r) {
-		if (!configuration.isResumeEnabled()) {
+		if (!r.configuration.isResumeEnabled()) {
 			// resume is off bail early
 			return null;
 		}

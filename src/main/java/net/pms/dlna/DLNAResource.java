@@ -68,7 +68,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private static final int STOP_PLAYING_DELAY = 4000;
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAResource.class);
 	private final SimpleDateFormat SDF_DATE = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	protected PmsConfiguration configuration = PMS.getConfiguration();
 	private boolean subsAreValid = false;
 
 	protected static final int MAX_ARCHIVE_ENTRY_SIZE = 10000000;
@@ -1044,6 +1044,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	final protected void discoverWithRenderer(RendererConfiguration renderer, int count, boolean forced, String searchStr) {
+		PmsConfiguration configuration = PMS.getConfiguration(renderer);
 		// Discover children if it hasn't been done already
 		if (!isDiscovered()) {
 			if (configuration.getFolderLimit() && depthLimit()) {
@@ -1325,9 +1326,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	}
 
 	private String getDisplayName(RendererConfiguration mediaRenderer, boolean withSuffix) {
-		if (displayName != null) { // cached
-			return withSuffix ? (displayName + nameSuffix) : displayName;
-		}
+		PmsConfiguration configuration = PMS.getConfiguration(mediaRenderer);
+		// displayName shouldn't be cached, since device configurations may differ
+//		if (displayName != null) { // cached
+//			return withSuffix ? (displayName + nameSuffix) : displayName;
+//		}
 
 		displayName = getName();
 		String subtitleFormat;
@@ -1568,6 +1571,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 *         {@code <container id="0$1" childCount="1" parentID="0" restricted="true">}
 	 */
 	public final String getDidlString(RendererConfiguration mediaRenderer) {
+		PmsConfiguration configuration = PMS.getConfiguration(mediaRenderer);
 		StringBuilder sb = new StringBuilder();
 		if (!configuration.isDisableSubtitles() && StringUtils.isNotBlank(mediaRenderer.getSupportedSubtitles()) && media != null && player == null) {
 			OutputParams params = new OutputParams(configuration);
@@ -2239,6 +2243,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	private long lastStart;
 	public InputStream getInputStream(Range range, RendererConfiguration mediarenderer) throws IOException {
+		PmsConfiguration configuration = PMS.getConfiguration(mediarenderer);
 		LOGGER.trace("Asked stream chunk : " + range + " of " + getName() + " and player " + player);
 
 		// shagrath: small fix, regression on chapters
@@ -3007,6 +3012,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	public void setDefaultRenderer(RendererConfiguration defaultRenderer) {
 		this.defaultRenderer = defaultRenderer;
+		configuration = PMS.getConfiguration(defaultRenderer);
 	}
 
 	/**
