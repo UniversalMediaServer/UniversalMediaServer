@@ -32,13 +32,14 @@ import org.slf4j.LoggerFactory;
  */
 public class PipeProcess {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PipeProcess.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	private PmsConfiguration configuration;
 
 	private String linuxPipeName;
 	private WindowsNamedPipe mk;
 	private boolean forcereconnect;
 
 	public PipeProcess(String pipeName, OutputParams params, String... extras) {
+		configuration = PMS.getConfiguration(params);
 		forcereconnect = false;
 		boolean in = true;
 
@@ -67,7 +68,7 @@ public class PipeProcess {
 
 	private static String getPipeName(String pipeName) {
 		try {
-			return configuration.getTempFolder() + "/" + pipeName;
+			return  PMS.getConfiguration().getTempFolder() + "/" + pipeName;
 		} catch (IOException e) {
 			LOGGER.error("Pipe may not be in temporary directory", e);
 			return pipeName;
