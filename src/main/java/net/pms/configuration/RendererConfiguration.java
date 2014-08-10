@@ -45,7 +45,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
 	protected static ArrayList<RendererConfiguration> enabledRendererConfs;
 	protected static ArrayList<String> allRenderersNames = new ArrayList<>();
-	protected static PmsConfiguration pmsConfiguration;
+	protected static PmsConfiguration _pmsConfiguration;
 	protected static RendererConfiguration defaultConf;
 	protected static Map<InetAddress, RendererConfiguration> addressAssociation = new HashMap<>();
 
@@ -53,6 +53,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected File file;
 	protected Configuration configuration;
 	protected ConfigurationReader configurationReader;
+	protected PmsConfiguration pmsConfiguration;
 	protected FormatConfiguration formatConfiguration;
 	protected int rank;
 
@@ -190,7 +191,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @param pmsConf
 	 */
 	public static void loadRendererConfigurations(PmsConfiguration pmsConf) {
-		pmsConfiguration = pmsConf;
+		_pmsConfiguration = pmsConf;
 		enabledRendererConfs = new ArrayList<>();
 
 		try {
@@ -207,7 +208,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			File[] confs = renderersDir.listFiles();
 			Arrays.sort(confs);
 			int rank = 1;
-			List<String> ignoredRenderers = pmsConfiguration.getIgnoredRenderers();
+			List<String> ignoredRenderers = pmsConf.getIgnoredRenderers();
 			for (File f : confs) {
 				if (f.getName().endsWith(".conf")) {
 					try {
@@ -229,7 +230,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 		if (enabledRendererConfs.size() > 0) {
 			// See if a different default configuration was configured
-			String rendererFallback = pmsConfiguration.getRendererDefault();
+			String rendererFallback = pmsConf.getRendererDefault();
 
 			if (StringUtils.isNotBlank(rendererFallback)) {
 				RendererConfiguration fallbackConf = getRendererConfigurationByName(rendererFallback);
@@ -428,7 +429,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return The matching renderer configuration or <code>null</code>.
 	 */
 	public static RendererConfiguration getRendererConfigurationByUA(String userAgentString) {
-		if (pmsConfiguration.isRendererForceDefault()) {
+		if (_pmsConfiguration.isRendererForceDefault()) {
 			// Force default renderer
 			LOGGER.trace("Forcing renderer match to \"" + defaultConf.getRendererName() + "\"");
 			return manageRendererMatch(defaultConf);
@@ -470,7 +471,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return The matching renderer configuration or <code>null</code>.
 	 */
 	public static RendererConfiguration getRendererConfigurationByUAAHH(String header) {
-		if (pmsConfiguration.isRendererForceDefault()) {
+		if (_pmsConfiguration.isRendererForceDefault()) {
 			// Force default renderer
 			LOGGER.trace("Forcing renderer match to \"" + defaultConf.getRendererName() + "\"");
 			return manageRendererMatch(defaultConf);
@@ -598,6 +599,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return configuration;
 	}
 
+	public PmsConfiguration getPmsConfiguration() {
+		return pmsConfiguration;
+	}
+
 	public File getFile() {
 		return getFile(false);
 	}
@@ -708,7 +713,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		this(null, uuid);
 	}
 
-	public RendererConfiguration(boolean ignored) {
+	public RendererConfiguration(int ignored) {
 		// Just instantiate, initialization will happen later
 	}
 
@@ -724,6 +729,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		// false: don't log overrides (every renderer conf
 		// overrides multiple settings)
 		configurationReader = new ConfigurationReader(configuration, false);
+		pmsConfiguration = _pmsConfiguration;
 
 		mimes = new HashMap<>();
 		charMap = new HashMap<>();
@@ -1253,7 +1259,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public UPNPHelper.Player getPlayer() {
 		if (player == null && isUpnpControllable()) {
-			player = new UPNPHelper.Player(this);
+			player = new UPNPHelper.Player((DeviceConfiguration)this);
 		}
 		return player;
 	}
@@ -1690,8 +1696,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		if (format != null) {
 			String noTranscode = "";
 
-			if (PMS.getConfiguration() != null) {
-				noTranscode = PMS.getConfiguration().getDisableTranscodeForExtensions();
+			if (PMS.getConfiguration(this) != null) {
+				noTranscode = PMS.getConfiguration(this).getDisableTranscodeForExtensions();
 			}
 
 			// Is the format among the ones to be streamed?

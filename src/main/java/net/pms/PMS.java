@@ -33,6 +33,7 @@ import javax.swing.*;
 import net.pms.configuration.Build;
 import net.pms.configuration.NameFilter;
 import net.pms.configuration.PmsConfiguration;
+import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaDatabase;
 import net.pms.dlna.DLNAResource;
@@ -1208,6 +1209,28 @@ public class PMS {
 	 */
 	public static PmsConfiguration getConfiguration() {
 		return configuration;
+	}
+
+	/**
+	 * Retrieves the composite {@link net.pms.configuration.DeviceConfiguration DeviceConfiguration} object
+	 * that applies to this device, which acts as its {@link net.pms.configuration.PmsConfiguration PmsConfiguration}.
+	 *
+	 * This function should be used to resolve the relevant PmsConfiguration wherever the renderer
+	 * is known or can be determined.
+	 *
+	 * @return The DeviceConfiguration object, if any, or the global PmsConfiguration.
+	 */
+	public static PmsConfiguration getConfiguration(RendererConfiguration r) {
+		return (r != null && (r instanceof DeviceConfiguration)) ? (DeviceConfiguration)r : configuration;
+	}
+
+	public static PmsConfiguration getConfiguration(OutputParams params) {
+		return getConfiguration(params != null ? params.mediaRenderer : null);
+	}
+
+	// Note: this should be used only when no RendererConfiguration or OutputParams is available
+	public static PmsConfiguration getConfiguration(DLNAResource dlna) {
+		return getConfiguration(dlna != null ? dlna.getDefaultRenderer() : null);
 	}
 
 	/**

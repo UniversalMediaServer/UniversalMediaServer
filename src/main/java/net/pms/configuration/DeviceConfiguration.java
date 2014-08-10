@@ -13,21 +13,23 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import net.pms.PMS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DeviceConfiguration extends RendererConfiguration {
+public class DeviceConfiguration extends PmsConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DeviceConfiguration.class);
 
 	public static final int DEVICE = 0;
 	public static final int RENDERER = 1;
+	public static final int PMSCONF = 2;
 
 	private PropertiesConfiguration deviceConf = null;
 	private static HashMap<String, PropertiesConfiguration> deviceConfs;
 	private static File deviceDir;
 
 	public DeviceConfiguration() throws ConfigurationException {
-		super(false);
+		super(0);
 	}
 
 	public DeviceConfiguration(File f, String uuid) throws ConfigurationException {
@@ -36,19 +38,20 @@ public class DeviceConfiguration extends RendererConfiguration {
 	}
 
 	public DeviceConfiguration(RendererConfiguration ref) throws ConfigurationException {
-		super(false);
+		super(0);
 		inherit(ref);
 	}
 
 	public DeviceConfiguration(RendererConfiguration ref, InetAddress ia) throws ConfigurationException {
-		super(false);
-		deviceConf =  initConfiguration(ia);
+		super(0);
+		deviceConf = initConfiguration(ia);
 		inherit(ref);
 	}
 
 	/**
 	 * Creates a composite configuration for this device consisting of a dedicated device
-	 * configuration plus the given reference renderer configuration for fallback lookup.
+	 * configuration plus the given reference renderer configuration and the default pms
+	 * configuration for fallback lookup.
 	 *
 	 * @param ref The reference renderer configuration.
 	 */
@@ -61,10 +64,21 @@ public class DeviceConfiguration extends RendererConfiguration {
 		cconf.addConfiguration(deviceConf != null ? deviceConf : initConfiguration(null), true);
 		// 2. The reference renderer configuration (read-only)
 		cconf.addConfiguration(ref.getConfiguration());
+		// 3. The default pms configuration (read-only)
+		PmsConfiguration baseConf = PMS.getConfiguration();
+		cconf.addConfiguration(baseConf.getConfiguration());
 
-		// Set up
+		// Handle all queries (external and internal) via the composite configuration
 		configuration = cconf;
-		configurationReader = new ConfigurationReader(configuration, false);
+		pmsConfiguration = this;
+
+		configurationReader = new ConfigurationReader(configuration, true);
+
+		// Sync our internal PmsConfiguration vars
+		// TODO: create new objects here instead?
+		tempFolder = baseConf.tempFolder;
+		programPaths = baseConf.programPaths;
+		filter = baseConf.filter;
 
 		// Initialize our internal RendererConfiguration vars
 		mimes = new HashMap<>();
@@ -188,7 +202,8 @@ public class DeviceConfiguration extends RendererConfiguration {
 			// Add the header and device id
 			conf.add("#----------------------------------------------------------------------------");
 			conf.add("# Custom Device profile");
-			conf.add("# See PS3.conf for a description of all possible configuration options.");
+			conf.add("# See PS3.conf for descriptions of all possible renderer options");
+			conf.add("# and UMS.conf for program options.");
 			conf.add("");
 			conf.add("# Options in this file override the default settings for the specific " + r.getName() + " device(s) listed below.");
 			conf.add("# Specify devices by uuid (or address if no uuid), separated by commas if more than one.");

@@ -616,14 +616,14 @@ public class UPNPHelper extends UPNPControl {
 	protected void rendererReady(String uuid) {
 	}
 
-	public static void play(String uri, String name, RendererConfiguration r) {
+	public static void play(String uri, String name, DeviceConfiguration r) {
 		DLNAResource d = DLNAResource.getValidResource(uri, name, r);
 		if (d != null) {
 			play(d, r);
 		}
 	}
 
-	public static void play(DLNAResource d, RendererConfiguration r) {
+	public static void play(DLNAResource d, DeviceConfiguration r) {
 		DLNAResource d1 = d.getParent() == null ? Temp.add(d) : d;
 		if(d1 != null) {
 			Device dev = getDevice(r.getUUID());
@@ -639,7 +639,7 @@ public class UPNPHelper extends UPNPControl {
 		private Device dev;
 		private String uuid;
 		private String instanceID;
-		public RendererConfiguration renderer;
+		public DeviceConfiguration renderer;
 		private Map<String,String> data;
 		private LinkedHashSet<ActionListener> listeners;
 		private BasicPlayer.State state;
@@ -647,7 +647,7 @@ public class UPNPHelper extends UPNPControl {
 		String lasturi;
 
 
-		public Player(RendererConfiguration renderer) {
+		public Player(DeviceConfiguration renderer) {
 			uuid = renderer.getUUID();
 			instanceID = renderer.getInstanceID();
 			this.renderer = renderer;
@@ -880,7 +880,7 @@ public class UPNPHelper extends UPNPControl {
 				return (item != null && isValid(item, player.renderer)) ? item : null;
 			}
 
-			public static boolean isValid(Item item, RendererConfiguration renderer) {
+			public static boolean isValid(Item item, DeviceConfiguration renderer) {
 				if (DLNAResource.isResourceUrl(item.uri)) {
 					// Check existence for resource uris
 					if (PMS.get().getGlobalRepo().exists(DLNAResource.parseResourceId(item.uri))) {
