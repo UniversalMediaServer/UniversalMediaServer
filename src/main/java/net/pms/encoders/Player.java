@@ -69,7 +69,8 @@ public abstract class Player {
 
 	public abstract String mimeType();
 	public abstract String executable();
-	protected static PmsConfiguration configuration = PMS.getConfiguration();
+	protected static PmsConfiguration _configuration = PMS.getConfiguration();
+	protected PmsConfiguration configuration = _configuration;
 	private static List<FinalizeTranscoderArgsListener> finalizeTranscoderArgsListeners = new ArrayList<>();
 
 	public static void initializeFinalizeTranscoderArgsListeners() {
@@ -220,6 +221,7 @@ public abstract class Player {
 	 * The parameters to populate.
 	 */
 	public static void setAudioOutputParameters(DLNAMediaInfo media, OutputParams params) {
+		PmsConfiguration configuration = PMS.getConfiguration(params);
 		if (params.aid == null && media != null && media.getFirstAudioTrack() != null) {
 			// check for preferred audio
 			DLNAMediaAudio dtsTrack = null;
@@ -263,6 +265,7 @@ public abstract class Player {
 	 * The parameters to populate.
 	 */
 	public static void setSubtitleOutputParameters(String fileName, DLNAMediaInfo media, OutputParams params) {
+		PmsConfiguration configuration = PMS.getConfiguration(params);
 		String currentLang = null;
 		DLNAMediaSubtitle matchedSub = null;
 

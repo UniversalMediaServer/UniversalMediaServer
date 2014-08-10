@@ -5,6 +5,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import javax.swing.JComponent;
+import net.pms.PMS;
+import net.pms.configuration.DeviceConfiguration;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.formats.Format;
@@ -50,6 +53,8 @@ public class RAWThumbnailer extends Player {
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
+		PmsConfiguration prev = configuration;
+		configuration = (DeviceConfiguration)params.mediaRenderer;
 		params.waitbeforestart = 1;
 		params.minBufferSize = 1;
 		params.maxBufferSize = 5;
@@ -74,6 +79,7 @@ public class RAWThumbnailer extends Player {
 		media.setThumb(new byte[0]);
 
 		ProcessWrapper pw = new InternalJavaProcessImpl(new ByteArrayInputStream(copy));
+		configuration = prev;
 		return pw;
 	}
 
@@ -100,6 +106,7 @@ public class RAWThumbnailer extends Player {
 	// Called from net.pms.formats.RAW.parse XXX even if the engine is disabled
 	// May also be called from launchTranscode
 	public static byte[] getThumbnail(OutputParams params, String fileName) throws Exception {
+		PmsConfiguration configuration = PMS.getConfiguration(params);
 		params.log = false;
 
 		String cmdArray[] = new String[4];

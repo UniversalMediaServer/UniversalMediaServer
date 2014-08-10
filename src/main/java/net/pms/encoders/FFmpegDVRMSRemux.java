@@ -32,6 +32,8 @@ import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
 import net.pms.Messages;
+import net.pms.configuration.DeviceConfiguration;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
@@ -123,6 +125,8 @@ public class FFmpegDVRMSRemux extends Player {
 		DLNAMediaInfo media,
 		OutputParams params
 	) throws IOException {
+		PmsConfiguration prev = configuration;
+		configuration = (DeviceConfiguration)params.mediaRenderer;
 		String ffmpegAlternativePath = configuration.getFfmpegAlternativePath();
 		List<String> cmdList = new ArrayList<>();
 		final String filename = dlna.getSystemName();
@@ -166,6 +170,7 @@ public class FFmpegDVRMSRemux extends Player {
 		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
 		pw.runInNewThread();
 
+		configuration = prev;
 		return pw;
 	}
 
