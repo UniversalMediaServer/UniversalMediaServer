@@ -88,7 +88,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 		player = null;
 		loaded = true;
 
-		init(null);
+		init(NOFILE);
 	}
 
 	public String getName() {
