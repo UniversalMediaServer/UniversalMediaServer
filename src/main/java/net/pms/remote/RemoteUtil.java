@@ -64,7 +64,9 @@ public class RemoteUtil {
 					LOGGER.trace("Sending stream with premature end: " + sendBytes + " bytes. Reason: " + e.getMessage());
 				} finally {
 					try {
-						in.close();
+						if (in != null) {
+							in.close();
+						}
 					} catch (IOException e) {
 					}
 				}

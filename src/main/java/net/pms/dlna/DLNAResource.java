@@ -3421,7 +3421,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	// Returns whether the url appears to be ours
 
 	public static boolean isResourceUrl(String url) {
-		return url.startsWith(PMS.get().getServer().getURL() + "/get/");
+		return url != null && url.startsWith(PMS.get().getServer().getURL() + "/get/");
 	}
 
 	// Returns the url's resourceId (i.e. index without trailing filename) if any or null
