@@ -13,7 +13,7 @@
 		Updated Dutch translation (thanks, leroy!)
 	External Components:
 		Updated MediaInfo for Windows to 0.7.69, which:
-			Improves folder population times by 300%+
+			Improves folder population times
 			Improves stability
 			Improves detection of HEVC streams
 			Fixes bugs
