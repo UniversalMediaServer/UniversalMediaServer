@@ -94,7 +94,7 @@ public class TranscodingTab {
 	private JTextField forcedtags;
 	private JTextField alternateSubFolder;
 	private JButton folderSelectButton;
-	private JCheckBox subs;
+	private JCheckBox autoloadExternalSubtitles;
 	private JTextField defaultaudiosubs;
 	private JComboBox subtitleCodePage;
 	private JTextField defaultfont;
@@ -948,17 +948,17 @@ public class TranscodingTab {
 		builder.add(ass_shadow, FormLayoutUtil.flip(cc.xy(11, 12), colSpec, orientation));
 		builder.add(ass_margin, FormLayoutUtil.flip(cc.xy(15, 12), colSpec, orientation));
 		
-		subs = new JCheckBox(Messages.getString("MEncoderVideo.22"), configuration.isAutoloadExternalSubtitles());
-		subs.setToolTipText(Messages.getString("TrTab2.78"));
-		subs.setContentAreaFilled(false);
-		subs.setEnabled(!configuration.isForceExternalSubtitles());
-		subs.addItemListener(new ItemListener() {
+		autoloadExternalSubtitles = new JCheckBox(Messages.getString("MEncoderVideo.22"), configuration.isAutoloadExternalSubtitles());
+		autoloadExternalSubtitles.setToolTipText(Messages.getString("TrTab2.78"));
+		autoloadExternalSubtitles.setContentAreaFilled(false);
+		autoloadExternalSubtitles.setEnabled(!configuration.isForceExternalSubtitles());
+		autoloadExternalSubtitles.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setAutoloadExternalSubtitles((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
-		builder.add(subs, FormLayoutUtil.flip(cc.xyw(1, 14, 11), colSpec, orientation));
+		builder.add(autoloadExternalSubtitles, FormLayoutUtil.flip(cc.xyw(1, 14, 11), colSpec, orientation));
 
 		subColor = new JButton();
 		subColor.setText(Messages.getString("MEncoderVideo.31"));
@@ -989,9 +989,9 @@ public class TranscodingTab {
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setForceExternalSubtitles((e.getStateChange() == ItemEvent.SELECTED));
 				if (configuration.isForceExternalSubtitles()) {
-					subs.setSelected(true);
+					autoloadExternalSubtitles.setSelected(true);
 				}
-				subs.setEnabled(!configuration.isForceExternalSubtitles());
+				autoloadExternalSubtitles.setEnabled(!configuration.isForceExternalSubtitles());
 			}
 		});
 		builder.add(forceExternalSubtitles, FormLayoutUtil.flip(cc.xyw(1, 16, 11), colSpec, orientation));
