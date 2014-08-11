@@ -535,7 +535,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							Player.setAudioAndSubs(child.getSystemName(), child.media, params); // set proper subtitles in accordance with user setting
 							if (defaultRenderer.isSubtitlesFormatSupported(params.sid)) {
 								child.media_subtitle = params.sid;
+								LOGGER.trace("Set media_subtitle");
+							} else {
+								LOGGER.trace("Did not set media_subtitle because the subtitle format is not supported by this renderer");
 							}
+						} else {
+							LOGGER.trace("Did not set media_subtitle because configuration.isDisableSubtitles is true, this is not a subtitle, or the renderer does not support streaming subtitles");
 						}
 
 						if (!FormatConfiguration.MIMETYPE_AUTO.equals(mimeType)) {
@@ -637,13 +642,20 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 							if (!configuration.isDisableSubtitles()) {
 								if (child.isSubsFile()) {
+									if (child.media_subtitle == null) {
+										hasSubsToTranscode = true;
+										LOGGER.trace("Subtitles for \"{}\" need to be transcoded because media_subtitle is null", child.getName());
+									} else {
+										LOGGER.trace("Subtitles for \"{}\" will not be transcoded because media_subtitle is not null", child.getName());
+									}
 									hasSubsToTranscode = (child.media_subtitle == null); // subtitles are not set for streaming
 								} else {
-									hasSubsToTranscode = hasEmbeddedSubs && defaultRenderer != null && !defaultRenderer.isEmbeddedSubtitlesSupported();
-								}
-
-								if (hasSubsToTranscode) {
-									LOGGER.trace("File \"{}\" has subs that need transcoding", child.getName());
+									if (hasEmbeddedSubs && defaultRenderer != null && !defaultRenderer.isEmbeddedSubtitlesSupported()) {
+										hasSubsToTranscode = true;
+										LOGGER.trace("Subtitles for \"{}\" need to be transcoded because the renderer does not support internal subtitles", child.getName());
+									} else {
+										LOGGER.trace("Subtitles for \"{}\" will not be transcoded because the renderer supports internal subtitles", child.getName());
+									}
 								}
 							}
 
@@ -1474,6 +1486,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			mediaRenderer.isSubtitlesFormatSupported(media_subtitle)
 		) {
 			subsAreValidForStreaming = true;
+			LOGGER.trace("Setting subsAreValidForStreaming to true");
+		} else if (subsAreValidForStreaming) {
+			LOGGER.trace("Not setting subsAreValidForStreaming and it is true");
+		} else {
+			LOGGER.trace("Not setting subsAreValidForStreaming and it is false");
 		}
 
 		if (isFolder()) {
