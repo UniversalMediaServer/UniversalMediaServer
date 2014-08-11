@@ -1,10 +1,16 @@
 4.0.3 - 2014-08-??
 
 	General:
-		
+		Fixed MP4 support on some renderers
+		Fixed MEncoder sometimes producing video resolutions with odd numbers
+		Fixed error when retrieving audio channels
+		Updated descriptions in UMS.conf
 	Renderers:
 		Fixed audio support on WDTV Live (thanks, DualC!)
-		Fixed MP4 support on Panasonic VT60 TVs
+	Languages:
+		Fixed Spanish translation
+		Updated most translations in minor ways
+		Updated Dutch translation (thanks, leroy!)
 	External Components:
 		Updated MediaInfo for Windows to 0.7.69, which:
 			Improves folder population times by 300%+
