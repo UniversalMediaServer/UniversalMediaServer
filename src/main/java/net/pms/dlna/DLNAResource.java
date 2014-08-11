@@ -1473,7 +1473,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			player == null &&
 			mediaRenderer.isSubtitlesFormatSupported(media_subtitle)
 		) {
-				subsAreValidForStreaming = true;
+			subsAreValidForStreaming = true;
 		}
 
 		if (isFolder()) {
