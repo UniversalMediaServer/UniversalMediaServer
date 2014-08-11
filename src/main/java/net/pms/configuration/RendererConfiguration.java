@@ -886,12 +886,12 @@ public class RendererConfiguration {
 	 * Returns the the name of an additional HTTP header whose value should
 	 * be matched with the additional header search pattern. The header name
 	 * must be an exact match (read: the header has to start with the exact
-	 * same case sensitive string). The default value is <code>null</code>.
+	 * same case sensitive string). The default value is "".
 	 *
 	 * @return The additional HTTP header name.
 	 */
 	public String getUserAgentAdditionalHttpHeader() {
-		return getString(USER_AGENT_ADDITIONAL_HEADER, null);
+		return getString(USER_AGENT_ADDITIONAL_HEADER, "");
 	}
 
 	/**
