@@ -2609,12 +2609,4 @@ public class MEncoderVideo extends Player {
 
 		return false;
 	}
-
-	public int convertToMod4(int number) {
-		if (number % 4 != 0) {
-			number -= (number % 4);
-		}
-
-		return number;
-	}
 }
