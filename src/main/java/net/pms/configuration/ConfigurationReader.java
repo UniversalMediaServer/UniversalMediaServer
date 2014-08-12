@@ -18,8 +18,11 @@
  */
 package net.pms.configuration;
 
+import java.io.File;
 import java.util.*;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.CompositeConfiguration;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.ConversionException;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -35,6 +38,8 @@ class ConfigurationReader {
 	private Map<String, Object> logMap = new HashMap<>();
 	private final Configuration configuration;
 	private final boolean logOverrides;
+	private Configuration dConf;
+	private String dTag;
 
 	ConfigurationReader(Configuration configuration) {
 		this(configuration, false); // don't log by default: just provide the getters
@@ -43,6 +48,10 @@ class ConfigurationReader {
 	ConfigurationReader(Configuration configuration, boolean logOverrides) {
 		this.configuration = configuration;
 		this.logOverrides = logOverrides;
+		dConf = (configuration instanceof CompositeConfiguration) ?
+			((CompositeConfiguration)configuration).getConfiguration(0) : null;
+		File f = dConf != null ? ((PropertiesConfiguration)dConf).getFile() : null;
+		dTag = f != null ? ("[" + f.getName() + "] ") : null;
 	}
 
 	// quote strings
@@ -77,10 +86,13 @@ class ConfigurationReader {
 		if (ObjectUtils.notEqual(oldValue, value)) {
 			logMap.put(key, value);
 
+			// Do an independant lookup to determine if the value's source was the device conf,
+			// and if so log it as a device override by explicitly identifying the source.
+			String src = (dConf != null && value != null && value.equals((T)dConf.getProperty(key))) ? dTag : "";
 			if (initialised) {
-				LOGGER.debug("Reading {}: default: {}, current: {}", key, quote(oldValue), quote(value));
+				LOGGER.debug("{}Reading {}: default: {}, current: {}", src, key, quote(oldValue), quote(value));
 			} else {
-				LOGGER.debug("Reading {}: default: {}, previous: {}, current: {}", key, quote(def), quote(oldValue), quote(value));
+				LOGGER.debug("{}Reading {}: default: {}, previous: {}, current: {}", src, key, quote(def), quote(oldValue), quote(value));
 			}
 		}
 	}

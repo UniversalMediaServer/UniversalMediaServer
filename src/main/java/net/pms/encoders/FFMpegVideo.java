@@ -43,6 +43,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
@@ -622,6 +623,8 @@ public class FFMpegVideo extends Player {
 		InputFile newInput = new InputFile();
 		newInput.setFilename(filename);
 		newInput.setPush(params.stdin);
+		PmsConfiguration prev = configuration;
+		configuration = (DeviceConfiguration)params.mediaRenderer;
 		RendererConfiguration renderer = params.mediaRenderer;
 
 		/*
@@ -769,7 +772,7 @@ public class FFMpegVideo extends Player {
 		// Input filename
 		cmdList.add("-i");
 		if (avisynth && !filename.toLowerCase().endsWith(".iso")) {
-			File avsFile = AviSynthFFmpeg.getAVSScript(filename, params.sid, params.fromFrame, params.toFrame, frameRateRatio, frameRateNumber);
+			File avsFile = AviSynthFFmpeg.getAVSScript(filename, params.sid, params.fromFrame, params.toFrame, frameRateRatio, frameRateNumber, configuration);
 			cmdList.add(ProcessUtil.getShortFileNameIfWideChars(avsFile.getAbsolutePath()));
 		} else {
 			cmdList.add(filename);
@@ -1075,6 +1078,7 @@ public class FFMpegVideo extends Player {
 		} catch (InterruptedException e) {
 			LOGGER.error("Thread interrupted while waiting for transcode to start", e);
 		}
+		configuration = prev;
 		return pw;
 	}
 
@@ -1509,6 +1513,6 @@ public class FFMpegVideo extends Player {
 	}
 
 	public static void deleteSubs() {
-		FileUtils.deleteQuietly(new File(configuration.getDataFile(SUB_DIR)));
+		FileUtils.deleteQuietly(new File(_configuration.getDataFile(SUB_DIR)));
 	}
 }

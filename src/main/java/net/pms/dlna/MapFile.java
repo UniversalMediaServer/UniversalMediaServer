@@ -44,7 +44,6 @@ import org.slf4j.LoggerFactory;
  */
 public class MapFile extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(MapFile.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private List<File> discoverable;
 	private String forcedName;
 
@@ -311,7 +310,7 @@ public class MapFile extends DLNAResource {
 		}
 
 		// false: don't create the folder if it doesn't exist i.e. find the folder
-		TranscodeVirtualFolder transcodeFolder = getTranscodeFolder(false);
+		TranscodeVirtualFolder transcodeFolder = getTranscodeFolder(false, configuration);
 
 		for (DLNAResource f : removedFiles) {
 			getChildren().remove(f);

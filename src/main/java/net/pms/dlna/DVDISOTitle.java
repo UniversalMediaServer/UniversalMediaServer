@@ -40,7 +40,6 @@ import org.slf4j.LoggerFactory;
 
 public class DVDISOTitle extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(DVDISOTitle.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private File file;
 	private int title;
 	private long length;

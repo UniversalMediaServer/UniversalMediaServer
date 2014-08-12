@@ -31,6 +31,7 @@ import net.pms.network.SpeedStats;
 import net.pms.network.UPNPHelper;
 import net.pms.util.PropertiesUtil;
 import net.pms.newgui.StatusTab;
+import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang.WordUtils;
@@ -42,21 +43,23 @@ import org.slf4j.LoggerFactory;
 
 public class RendererConfiguration extends UPNPHelper.Renderer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
-	private static ArrayList<RendererConfiguration> enabledRendererConfs;
-	private static ArrayList<String> allRenderersNames = new ArrayList<>();
-	private static PmsConfiguration pmsConfiguration;
-	private static RendererConfiguration defaultConf;
-	private static Map<InetAddress, RendererConfiguration> addressAssociation = new HashMap<>();
+	protected static ArrayList<RendererConfiguration> enabledRendererConfs;
+	protected static ArrayList<String> allRenderersNames = new ArrayList<>();
+	protected static PmsConfiguration _pmsConfiguration;
+	protected static RendererConfiguration defaultConf;
+	protected static Map<InetAddress, RendererConfiguration> addressAssociation = new HashMap<>();
 
-	private RootFolder rootFolder;
-	protected  final PropertiesConfiguration configuration;
-	private final ConfigurationReader configurationReader;
+	protected RootFolder rootFolder;
+	protected File file;
+	protected Configuration configuration;
+	protected ConfigurationReader configurationReader;
+	protected PmsConfiguration pmsConfiguration;
 	protected FormatConfiguration formatConfiguration;
-	private int rank;
+	protected int rank;
 
 	public StatusTab.rendererItem statusIcon;
 	public boolean loaded;
-	private UPNPHelper.Player player;
+	protected UPNPHelper.Player player;
 
 	public static File NOFILE = new File("NOFILE");
 
@@ -76,13 +79,13 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 
 	// Holds MIME type aliases
-	private final Map<String, String> mimes;
+	protected Map<String, String> mimes;
 
-	private final Map<String, String> charMap;
-	private final Map<String, String> DLNAPN;
+	protected Map<String, String> charMap;
+	protected Map<String, String> DLNAPN;
 
 	// Cache for the tree
-	private final Map<String, DLNAResource> renderCache;
+	protected Map<String, DLNAResource> renderCache;
 
 	// TextWrap parameters
 	protected int line_w, line_h, indent;
@@ -188,7 +191,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @param pmsConf
 	 */
 	public static void loadRendererConfigurations(PmsConfiguration pmsConf) {
-		pmsConfiguration = pmsConf;
+		_pmsConfiguration = pmsConf;
 		enabledRendererConfs = new ArrayList<>();
 
 		try {
@@ -205,7 +208,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			File[] confs = renderersDir.listFiles();
 			Arrays.sort(confs);
 			int rank = 1;
-			List<String> ignoredRenderers = pmsConfiguration.getIgnoredRenderers();
+			List<String> ignoredRenderers = pmsConf.getIgnoredRenderers();
 			for (File f : confs) {
 				if (f.getName().endsWith(".conf")) {
 					try {
@@ -227,7 +230,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 		if (enabledRendererConfs.size() > 0) {
 			// See if a different default configuration was configured
-			String rendererFallback = pmsConfiguration.getRendererDefault();
+			String rendererFallback = pmsConf.getRendererDefault();
 
 			if (StringUtils.isNotBlank(rendererFallback)) {
 				RendererConfiguration fallbackConf = getRendererConfigurationByName(rendererFallback);
@@ -238,6 +241,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				}
 			}
 		}
+		DeviceConfiguration.loadDeviceConfigurations(pmsConf);
 	}
 
 	private static void loadRenderersNames() {
@@ -260,30 +264,24 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		}
 	}
 
-	private int getInt(String key, int def) {
+	public int getInt(String key, int def) {
 		return configurationReader.getInt(key, def);
 	}
 
-	private long getLong(String key, int def) {
+	public long getLong(String key, int def) {
 		return configurationReader.getLong(key, def);
 	}
 
-	private boolean getBoolean(String key, boolean def) {
+	public boolean getBoolean(String key, boolean def) {
 		return configurationReader.getBoolean(key, def);
 	}
 
-	/**
-	 * Return the <code>String</code> value for a given configuration key if the
-	 * value is non-blank (i.e. not null, not an empty string, not all whitespace).
-	 * Otherwise return the supplied default value.
-	 * The value is returned with leading and trailing whitespace removed in both cases.
-	 *
-	 * @param key The key to look up.
-	 * @param def The default value to return when no valid key value can be found.
-	 * @return The value configured for the key.
-	 */
-	private String getString(String key, String def) {
-		return configurationReader.getString(key, def);
+	public String getString(String key, String def) {
+		return configurationReader.getNonBlankConfigurationString(key, def);
+	}
+
+	public List<String> getStringList(String key, String def) {
+		return configurationReader.getStringList(key, def);
 	}
 
 	@Deprecated
@@ -425,7 +423,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return The matching renderer configuration or <code>null</code>.
 	 */
 	public static RendererConfiguration getRendererConfigurationByUA(String userAgentString) {
-		if (pmsConfiguration.isRendererForceDefault()) {
+		if (_pmsConfiguration.isRendererForceDefault()) {
 			// Force default renderer
 			LOGGER.trace("Forcing renderer match to \"" + defaultConf.getRendererName() + "\"");
 			return manageRendererMatch(defaultConf);
@@ -467,7 +465,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return The matching renderer configuration or <code>null</code>.
 	 */
 	public static RendererConfiguration getRendererConfigurationByUAAHH(String header) {
-		if (pmsConfiguration.isRendererForceDefault()) {
+		if (_pmsConfiguration.isRendererForceDefault()) {
 			// Force default renderer
 			LOGGER.trace("Forcing renderer match to \"" + defaultConf.getRendererName() + "\"");
 			return manageRendererMatch(defaultConf);
@@ -546,7 +544,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public static RendererConfiguration getRendererConfigurationByHeaderLine(String header, InetAddress ia) {
 		String userAgentString;
-		RendererConfiguration r = null, ref = null;
+		RendererConfiguration ref = null;
+		DeviceConfiguration r = null;
 		boolean isNew = false;
 
 		if (header.toUpperCase().startsWith("USER-AGENT")) {
@@ -562,15 +561,15 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			try {
 				if (addressAssociation.containsKey(ia)) {
 					// Already seen, finish configuration if required
-					r = addressAssociation.get(ia);
+					r = (DeviceConfiguration)addressAssociation.get(ia);
 					if (! r.loaded) {
-						r.init(ref.getFile());
+						r.inherit(ref);
 						// update gui
 						PMS.get().updateRenderer(r);
 					}
 				} else if (! UPNPHelper.isNonRenderer(ia)) {
 					// It's brand new
-					r = new RendererConfiguration(ref.getFile());
+					r = new DeviceConfiguration(ref, ia);
 					if (r.associateIP(ia)) {
 						PMS.get().setRendererFound(r);
 						isNew = true;
@@ -590,12 +589,20 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return formatConfiguration;
 	}
 
+	public Configuration getConfiguration() {
+		return configuration;
+	}
+
+	public PmsConfiguration getPmsConfiguration() {
+		return pmsConfiguration;
+	}
+
 	public File getFile() {
 		return getFile(false);
 	}
 
 	public File getFile(boolean force) {
-		return configuration.getFile() != null ? configuration.getFile() :
+		return file != null ? file :
 			force ? new File(getRenderersDir(), getRendererName().split("\\(")[0].trim().replace(" ", "") + ".conf") : null;
 	}
 
@@ -700,17 +707,39 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		this(null, uuid);
 	}
 
+	public RendererConfiguration(int ignored) {
+		// Just instantiate, initialization will happen later
+	}
+
 	public RendererConfiguration(File f) throws ConfigurationException {
 		this(f, null);
 	}
 
 	public RendererConfiguration(File f, String uuid) throws ConfigurationException {
 		super(uuid);
-		configuration = new PropertiesConfiguration();
 
+		configuration = createPropertiesConfiguration();
+
+		// false: don't log overrides (every renderer conf
+		// overrides multiple settings)
+		configurationReader = new ConfigurationReader(configuration, false);
+		pmsConfiguration = _pmsConfiguration;
+
+		mimes = new HashMap<>();
+		charMap = new HashMap<>();
+		DLNAPN = new HashMap<>();
+		renderCache = new HashMap<>();
+		player = null;
+
+		init(f);
+	}
+
+	public static PropertiesConfiguration createPropertiesConfiguration() {
+		PropertiesConfiguration conf = new PropertiesConfiguration();
+		conf.setListDelimiter((char) 0);
 		// Treat backslashes in the conf as literal while also supporting double-backslash syntax, i.e.
 		// ensure that typical raw regex strings (and unescaped Windows file paths) are read correctly.
-		configuration.setIOFactory(new PropertiesConfiguration.DefaultIOFactory() {
+		conf.setIOFactory(new PropertiesConfiguration.DefaultIOFactory() {
 			@Override
 			public PropertiesConfiguration.PropertiesReader createPropertiesReader(final Reader in, final char delimiter) {
 				return new PropertiesConfiguration.PropertiesReader(in, delimiter) {
@@ -722,35 +751,23 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				};
 			}
 		});
-
-		// false: don't log overrides (every renderer conf
-		// overrides multiple settings)
-		configurationReader = new ConfigurationReader(configuration, false);
-
-		configuration.setListDelimiter((char) 0);
-
-		mimes = new HashMap<>();
-		charMap = new HashMap<>();
-		DLNAPN = new HashMap<>();
-		renderCache = new HashMap<>();
-		player = null;
-
-		init(f);
+		return conf;
 	}
 
 	public boolean load(File f) throws ConfigurationException {
-		if (f != null && f != NOFILE) {
-			configuration.load(f);
+		if (f != null && f != NOFILE && (configuration instanceof PropertiesConfiguration)) {
+			((PropertiesConfiguration)configuration).load(f);
+			file = f;
 			return true;
 		}
 		return false;
 	}
 
 	public void init(File f) throws ConfigurationException {
-
-		configuration.clear();
-
-		loaded = load(f);
+		if (! loaded) {
+			configuration.clear();
+			loaded = load(f);
+		}
 		mimes.clear();
 		String mimeTypes = getString(MIME_TYPES_CHANGES, null);
 
@@ -1236,7 +1253,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public UPNPHelper.Player getPlayer() {
 		if (player == null && isUpnpControllable()) {
-			player = new UPNPHelper.Player(this);
+			player = new UPNPHelper.Player((DeviceConfiguration)this);
 		}
 		return player;
 	}
@@ -1673,8 +1690,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		if (format != null) {
 			String noTranscode = "";
 
-			if (PMS.getConfiguration() != null) {
-				noTranscode = PMS.getConfiguration().getDisableTranscodeForExtensions();
+			if (PMS.getConfiguration(this) != null) {
+				noTranscode = PMS.getConfiguration(this).getDisableTranscodeForExtensions();
 			}
 
 			// Is the format among the ones to be streamed?

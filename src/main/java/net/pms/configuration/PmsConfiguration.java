@@ -55,10 +55,10 @@ import org.slf4j.LoggerFactory;
  * return a default value. Setters only store a value, they do not permanently save it to
  * file.
  */
-public class PmsConfiguration {
+public class PmsConfiguration extends RendererConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PmsConfiguration.class);
-	private static final int DEFAULT_PROXY_SERVER_PORT = -1;
-	private static final int DEFAULT_SERVER_PORT = 5001;
+	protected static final int DEFAULT_PROXY_SERVER_PORT = -1;
+	protected static final int DEFAULT_SERVER_PORT = 5001;
 
 	/*
 	 * MEncoder has a hardwired maximum of 8 threads for -lavcopts and 16
@@ -66,62 +66,62 @@ public class PmsConfiguration {
 	 * The Windows SubJunk Builds can take 16 for both, but we keep it at 8
 	 * for compatibility with other operating systems.
 	 */
-	private static final int MENCODER_MAX_THREADS = 8;
+	protected static final int MENCODER_MAX_THREADS = 8;
 
 	// TODO: Get this out of here
-	private static boolean avsHackLogged = false;
+	protected static boolean avsHackLogged = false;
 
-	private static final String KEY_ALTERNATE_SUBTITLES_FOLDER = "alternate_subtitles_folder";
-	private static final String KEY_ALTERNATE_THUMB_FOLDER = "alternate_thumb_folder";
-	private static final String KEY_APPEND_PROFILE_NAME = "append_profile_name";
-	private static final String KEY_AUTOMATIC_MAXIMUM_BITRATE = "automatic_maximum_bitrate";
-	private static final String KEY_AUTOMATIC_DISCOVER = "automatic_discover";
-	private static final String KEY_SHOW_APERTURE_LIBRARY = "show_aperture_library";
-	private static final String KEY_ATZ_LIMIT = "atz_limit";
-	private static final String KEY_AUDIO_BITRATE = "audio_bitrate";
-	private static final String KEY_AUDIO_CHANNEL_COUNT = "audio_channels";
-	private static final String KEY_AUDIO_LANGUAGES = "audio_languages";
-	private static final String KEY_AUDIO_RESAMPLE = "audio_resample";
-	private static final String KEY_AUDIO_SUB_LANGS = "audio_subtitles_languages";
-	private static final String KEY_AUDIO_THUMBNAILS_METHOD = "audio_thumbnails_method";
-	private static final String KEY_AUTO_UPDATE = "auto_update";
-	private static final String KEY_AUTOLOAD_SUBTITLES = "autoload_external_subtitles";
-	private static final String KEY_AVISYNTH_CONVERT_FPS = "avisynth_convert_fps";
-	private static final String KEY_AVISYNTH_INTERFRAME = "avisynth_interframe";
-	private static final String KEY_AVISYNTH_INTERFRAME_GPU = "avisynth_interframegpu";
-	private static final String KEY_AVISYNTH_MULTITHREADING = "avisynth_multithreading";
-	private static final String KEY_AVISYNTH_SCRIPT = "avisynth_script";
-	private static final String KEY_ASS_MARGIN = "subtitles_ass_margin";
-	private static final String KEY_ASS_OUTLINE = "subtitles_ass_outline";
-	private static final String KEY_ASS_SCALE = "subtitles_ass_scale";
-	private static final String KEY_ASS_SHADOW = "subtitles_ass_shadow";
-	private static final String KEY_BUFFER_MAX = "buffer_max";
-	private static final String KEY_CHAPTER_INTERVAL = "chapter_interval";
-	private static final String KEY_CHAPTER_SUPPORT = "chapter_support";
-	private static final String KEY_MENCODER_CODEC_SPECIFIC_SCRIPT = "mencoder_codec_specific_script";
-	private static final String KEY_DISABLE_FAKESIZE = "disable_fakesize";
+	protected static final String KEY_ALTERNATE_SUBTITLES_FOLDER = "alternate_subtitles_folder";
+	protected static final String KEY_ALTERNATE_THUMB_FOLDER = "alternate_thumb_folder";
+	protected static final String KEY_APPEND_PROFILE_NAME = "append_profile_name";
+	protected static final String KEY_AUTOMATIC_MAXIMUM_BITRATE = "automatic_maximum_bitrate";
+	protected static final String KEY_AUTOMATIC_DISCOVER = "automatic_discover";
+	protected static final String KEY_SHOW_APERTURE_LIBRARY = "show_aperture_library";
+	protected static final String KEY_ATZ_LIMIT = "atz_limit";
+	protected static final String KEY_AUDIO_BITRATE = "audio_bitrate";
+	protected static final String KEY_AUDIO_CHANNEL_COUNT = "audio_channels";
+	protected static final String KEY_AUDIO_LANGUAGES = "audio_languages";
+	protected static final String KEY_AUDIO_RESAMPLE = "audio_resample";
+	protected static final String KEY_AUDIO_SUB_LANGS = "audio_subtitles_languages";
+	protected static final String KEY_AUDIO_THUMBNAILS_METHOD = "audio_thumbnails_method";
+	protected static final String KEY_AUTO_UPDATE = "auto_update";
+	protected static final String KEY_AUTOLOAD_SUBTITLES = "autoload_external_subtitles";
+	protected static final String KEY_AVISYNTH_CONVERT_FPS = "avisynth_convert_fps";
+	protected static final String KEY_AVISYNTH_INTERFRAME = "avisynth_interframe";
+	protected static final String KEY_AVISYNTH_INTERFRAME_GPU = "avisynth_interframegpu";
+	protected static final String KEY_AVISYNTH_MULTITHREADING = "avisynth_multithreading";
+	protected static final String KEY_AVISYNTH_SCRIPT = "avisynth_script";
+	protected static final String KEY_ASS_MARGIN = "subtitles_ass_margin";
+	protected static final String KEY_ASS_OUTLINE = "subtitles_ass_outline";
+	protected static final String KEY_ASS_SCALE = "subtitles_ass_scale";
+	protected static final String KEY_ASS_SHADOW = "subtitles_ass_shadow";
+	protected static final String KEY_BUFFER_MAX = "buffer_max";
+	protected static final String KEY_CHAPTER_INTERVAL = "chapter_interval";
+	protected static final String KEY_CHAPTER_SUPPORT = "chapter_support";
+	protected static final String KEY_MENCODER_CODEC_SPECIFIC_SCRIPT = "mencoder_codec_specific_script";
+	protected static final String KEY_DISABLE_FAKESIZE = "disable_fakesize";
 	public static final String KEY_DISABLE_SUBTITLES = "disable_subtitles";
-	private static final String KEY_DVDISO_THUMBNAILS = "dvd_isos_thumbnails";
-	private static final String KEY_AUDIO_EMBED_DTS_IN_PCM = "audio_embed_dts_in_pcm";
-	private static final String KEY_ENCODED_AUDIO_PASSTHROUGH = "encoded_audio_passthrough";
-	private static final String KEY_ENGINES = "engines";
-	private static final String KEY_FFMPEG_ALTERNATIVE_PATH = "alternativeffmpegpath"; // TODO: FFmpegDVRMSRemux will be removed and DVR-MS will be transcoded
-	private static final String KEY_FFMPEG_MULTITHREADING = "ffmpeg_multithreading";
-	private static final String KEY_FFMPEG_AVISYNTH_MULTITHREADING = "ffmpeg_avisynth_multithreading";
-	private static final String KEY_FFMPEG_AVISYNTH_CONVERT_FPS = "ffmpeg_avisynth_convertfps";
-	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME = "ffmpeg_avisynth_interframe";
-	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
-	private static final String KEY_FFMPEG_FONTCONFIG = "ffmpeg_fontconfig";
-	private static final String KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE = "ffmpeg_mux_tsmuxer_compatible";
-	private static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
-	private static final String KEY_FOLDERS = "folders";
-	private static final String KEY_FOLDERS_IGNORED = "folders_ignored";
-	private static final String KEY_FOLDERS_MONITORED = "folders_monitored";
-	private static final String KEY_FONT = "subtitles_font";
-	private static final String KEY_FORCED_SUBTITLE_LANGUAGE = "forced_subtitle_language";
-	private static final String KEY_FORCED_SUBTITLE_TAGS = "forced_subtitle_tags";
-	private static final String KEY_FORCE_TRANSCODE_FOR_EXTENSIONS = "force_transcode_for_extensions";
-	private static final String KEY_FOLDER_LIMIT = "folder_limit";
+	protected static final String KEY_DVDISO_THUMBNAILS = "dvd_isos_thumbnails";
+	protected static final String KEY_AUDIO_EMBED_DTS_IN_PCM = "audio_embed_dts_in_pcm";
+	protected static final String KEY_ENCODED_AUDIO_PASSTHROUGH = "encoded_audio_passthrough";
+	protected static final String KEY_ENGINES = "engines";
+	protected static final String KEY_FFMPEG_ALTERNATIVE_PATH = "alternativeffmpegpath"; // TODO: FFmpegDVRMSRemux will be removed and DVR-MS will be transcoded
+	protected static final String KEY_FFMPEG_MULTITHREADING = "ffmpeg_multithreading";
+	protected static final String KEY_FFMPEG_AVISYNTH_MULTITHREADING = "ffmpeg_avisynth_multithreading";
+	protected static final String KEY_FFMPEG_AVISYNTH_CONVERT_FPS = "ffmpeg_avisynth_convertfps";
+	protected static final String KEY_FFMPEG_AVISYNTH_INTERFRAME = "ffmpeg_avisynth_interframe";
+	protected static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
+	protected static final String KEY_FFMPEG_FONTCONFIG = "ffmpeg_fontconfig";
+	protected static final String KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE = "ffmpeg_mux_tsmuxer_compatible";
+	protected static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
+	protected static final String KEY_FOLDERS = "folders";
+	protected static final String KEY_FOLDERS_IGNORED = "folders_ignored";
+	protected static final String KEY_FOLDERS_MONITORED = "folders_monitored";
+	protected static final String KEY_FONT = "subtitles_font";
+	protected static final String KEY_FORCED_SUBTITLE_LANGUAGE = "forced_subtitle_language";
+	protected static final String KEY_FORCED_SUBTITLE_TAGS = "forced_subtitle_tags";
+	protected static final String KEY_FORCE_TRANSCODE_FOR_EXTENSIONS = "force_transcode_for_extensions";
+	protected static final String KEY_FOLDER_LIMIT = "folder_limit";
 	public static final String KEY_GPU_ACCELERATION = "gpu_acceleration";
 	private static final String KEY_HIDE_ADVANCED_OPTIONS = "hide_advanced_options";
 	private static final String KEY_HIDE_EMPTY_FOLDERS = "hide_empty_folders";
@@ -262,22 +262,20 @@ public class PmsConfiguration {
 
 	// The name of the subdirectory under which UMS config files are stored for this build (default: UMS).
 	// See Build for more details
-	private static final String PROFILE_DIRECTORY_NAME = Build.getProfileDirectoryName();
+	protected static final String PROFILE_DIRECTORY_NAME = Build.getProfileDirectoryName();
 
 	// The default profile name displayed on the renderer
-	private static String HOSTNAME;
+	protected static String HOSTNAME;
 
-	private static String DEFAULT_AVI_SYNTH_SCRIPT;
-	private static final int MAX_MAX_MEMORY_DEFAULT_SIZE = 400;
-	private static final int BUFFER_MEMORY_FACTOR = 368;
-	private static int MAX_MAX_MEMORY_BUFFER_SIZE = MAX_MAX_MEMORY_DEFAULT_SIZE;
-	private static final char LIST_SEPARATOR = ',';
-	private final PropertiesConfiguration configuration;
-	private final ConfigurationReader configurationReader;
-	private final TempFolder tempFolder;
-	private final ProgramPaths programPaths;
+	protected static String DEFAULT_AVI_SYNTH_SCRIPT;
+	protected static final int MAX_MAX_MEMORY_DEFAULT_SIZE = 400;
+	protected static final int BUFFER_MEMORY_FACTOR = 368;
+	protected static int MAX_MAX_MEMORY_BUFFER_SIZE = MAX_MAX_MEMORY_DEFAULT_SIZE;
+	protected static final char LIST_SEPARATOR = ',';
 
-	private final IpFilter filter = new IpFilter();
+	public TempFolder tempFolder;
+	public ProgramPaths programPaths;
+	public IpFilter filter;
 
 	/**
 	 * The set of keys defining when the HTTP server has to restarted due to a configuration change
@@ -359,25 +357,25 @@ public class PmsConfiguration {
 			UMS_PROFILE = folder/dev.conf     # profile dir = folder
 			UMS_PROFILE = /path/to/some.file  # profile dir = /path/to/
 	 */
-	private static final String DEFAULT_PROFILE_FILENAME = "UMS.conf";
-	private static final String ENV_PROFILE_PATH = "UMS_PROFILE";
-	private static final String DEFAULT_WEB_CONF_FILENAME = "WEB.conf";
+	protected static final String DEFAULT_PROFILE_FILENAME = "UMS.conf";
+	protected static final String ENV_PROFILE_PATH = "UMS_PROFILE";
+	protected static final String DEFAULT_WEB_CONF_FILENAME = "WEB.conf";
 
 	// Path to directory containing UMS config files
-	private static final String PROFILE_DIRECTORY;
+	protected static final String PROFILE_DIRECTORY;
 
 	// Absolute path to profile file e.g. /path/to/UMS.conf
-	private static final String PROFILE_PATH;
+	protected static final String PROFILE_PATH;
 
 	// Absolute path to WEB.conf file e.g. /path/to/WEB.conf
-	private static String WEB_CONF_PATH;
+	protected static String WEB_CONF_PATH;
 
 	// Absolute path to skel (default) profile file e.g. /etc/skel/.config/universalmediaserver/UMS.conf
 	// "project.skelprofile.dir" project property
-	private static final String SKEL_PROFILE_PATH; 
+	protected static final String SKEL_PROFILE_PATH;
 
-	private static final String PROPERTY_PROFILE_PATH = "ums.profile.path";
-	private static final String SYSTEM_PROFILE_DIRECTORY;
+	protected static final String PROPERTY_PROFILE_PATH = "ums.profile.path";
+	protected static final String SYSTEM_PROFILE_DIRECTORY;
 
 	static {
 		// first of all, set up the path to the default system profile directory
@@ -460,16 +458,16 @@ public class PmsConfiguration {
 	 * @throws org.apache.commons.configuration.ConfigurationException
 	 */
 	public PmsConfiguration(boolean loadFile) throws ConfigurationException {
-		configuration = new PropertiesConfiguration();
+		super(0);
+		configuration = createPropertiesConfiguration();
 		configurationReader = new ConfigurationReader(configuration, true); // true: log
-		configuration.setListDelimiter((char) 0);
 
 		if (loadFile) {
 			File pmsConfFile = new File(PROFILE_PATH);
 
 			if (pmsConfFile.isFile()) {
 				if (FileUtil.isFileReadable(pmsConfFile)) {
-					configuration.load(PROFILE_PATH);
+					((PropertiesConfiguration)configuration).load(PROFILE_PATH);
 				} else {
 					LOGGER.warn("Can't load {}", PROFILE_PATH);
 				}
@@ -479,7 +477,7 @@ public class PmsConfiguration {
 				if (pmsSkelConfFile.isFile()) {
 					if (FileUtil.isFileReadable(pmsSkelConfFile)) {
 						// Load defaults from skel file, save them later to PROFILE_PATH
-						configuration.load(pmsSkelConfFile);
+						((PropertiesConfiguration)configuration).load(pmsSkelConfFile);
 						LOGGER.info("Default configuration loaded from " + SKEL_PROFILE_PATH);
 					} else {
 						LOGGER.warn("Can't load {}", SKEL_PROFILE_PATH);
@@ -488,10 +486,11 @@ public class PmsConfiguration {
 			}
 		}
 
-		configuration.setPath(PROFILE_PATH);
+		((PropertiesConfiguration)configuration).setPath(PROFILE_PATH);
 
 		tempFolder = new TempFolder(getString(KEY_TEMP_FOLDER_PATH, null));
 		programPaths = createProgramPathsChain(configuration);
+		filter = new IpFilter();
 		Locale.setDefault(new Locale(getLanguage()));
 
 		// Set DEFAULT_AVI_SYNTH_SCRIPT according to language
@@ -504,73 +503,38 @@ public class PmsConfiguration {
 	}
 
 	/**
+	 * The following 2 constructors are for minimal instantiation in the context of subclasses
+	 * (i.e. DeviceConfiguration) that use our getters and setters on another Configuration object.
+	 * Here our main purpose is to initialize RendererConfiguration as required.
+	 */
+	protected PmsConfiguration(int ignored) {
+		// Just instantiate
+		super(0);
+		tempFolder = null;
+		programPaths = null;
+		filter = null;
+	}
+
+	protected PmsConfiguration(File f, String uuid) throws ConfigurationException {
+		// Just initialize super
+		super(f, uuid);
+		tempFolder = null;
+		programPaths = null;
+		filter = null;
+	}
+
+	/**
 	 * Check if we have disabled something first, then check the config file,
 	 * then the Windows registry, then check for a platform-specific
 	 * default.
 	 */
-	private static ProgramPaths createProgramPathsChain(Configuration configuration) {
+	protected static ProgramPaths createProgramPathsChain(Configuration configuration) {
 		return new ConfigurationProgramPaths(
 			configuration,
 			new WindowsRegistryProgramPaths(
 				new PlatformSpecificDefaultPathsFactory().get()
 			)
 		);
-	}
-
-	/**
-	 * Return the <code>int</code> value for a given configuration key. First, the key
-	 * is looked up in the current configuration settings. If it exists and contains a
-	 * valid value, that value is returned. If the key contains an invalid value or
-	 * cannot be found, the specified default value is returned.
-	 * @param key The key to look up.
-	 * @param def The default value to return when no valid key value can be found.
-	 * @return The value configured for the key.
-	 */
-	private int getInt(String key, int def) {
-		return configurationReader.getInt(key, def);
-	}
-
-	/**
-	 * Return the <code>boolean</code> value for a given configuration key. First, the
-	 * key is looked up in the current configuration settings. If it exists and contains
-	 * a valid value, that value is returned. If the key contains an invalid value or
-	 * cannot be found, the specified default value is returned.
-	 * @param key The key to look up.
-	 * @param def The default value to return when no valid key value can be found.
-	 * @return The value configured for the key.
-	 */
-	private boolean getBoolean(String key, boolean def) {
-		return configurationReader.getBoolean(key, def);
-	}
-
-	/**
-	 * Return the <code>String</code> value for a given configuration key if the
-	 * value is non-blank (i.e. not null, not an empty string, not all whitespace).
-	 * Otherwise return the supplied default value.
-	 * The value is returned with leading and trailing whitespace removed in both cases.
-	 * @param key The key to look up.
-	 * @param def The default value to return when no valid key value can be found.
-	 * @return The value configured for the key.
-	 */
-	private String getString(String key, String def) {
-		return configurationReader.getNonBlankConfigurationString(key, def);
-	}
-
-	/**
-	 * Return a <code>List</code> of <code>String</code> values for a given configuration
-	 * key. First, the key is looked up in the current configuration settings. If it
-	 * exists and contains a valid value, that value is returned. If the key contains an
-	 * invalid value or cannot be found, a list with the specified default values is
-	 * returned.
-	 * @param key The key to look up.
-	 * @param def The default values to return when no valid key value can be found.
-	 *            These values should be entered as a comma-separated string. Whitespace
-	 *            will be trimmed. For example: <code>"gnu,    gnat  ,moo "</code> will be
-	 *            returned as <code>{ "gnu", "gnat", "moo" }</code>.
-	 * @return The list of value strings configured for the key.
-	 */
-	private List<String> getStringList(String key, String def) {
-		return configurationReader.getStringList(key, def);
 	}
 
 	public File getTempFolder() throws IOException {
@@ -2015,7 +1979,7 @@ public class PmsConfiguration {
 	}
 
 	public void save() throws ConfigurationException {
-		configuration.save();
+		((PropertiesConfiguration)configuration).save();
 		LOGGER.info("Configuration saved to: " + PROFILE_PATH);
 	}
 
@@ -2585,7 +2549,7 @@ public class PmsConfiguration {
 			).getFilePath();
 		}
 
-		return WEB_CONF_PATH;
+		return getString(KEY_WEB_CONF_PATH, WEB_CONF_PATH);
 	}
 
 	public String getPluginDirectory() {
@@ -2630,11 +2594,11 @@ public class PmsConfiguration {
 	}
 
 	public void addConfigurationListener(ConfigurationListener l) {
-		configuration.addConfigurationListener(l);
+		((PropertiesConfiguration)configuration).addConfigurationListener(l);
 	}
 
 	public void removeConfigurationListener(ConfigurationListener l) {
-		configuration.removeConfigurationListener(l);
+		((PropertiesConfiguration)configuration).removeConfigurationListener(l);
 	}
 
 	public boolean getFolderLimit() {
@@ -2670,7 +2634,7 @@ public class PmsConfiguration {
 
 	public void reload() {
 		try {
-			configuration.refresh();
+			((PropertiesConfiguration)configuration).refresh();
 		} catch (ConfigurationException e) {
 			LOGGER.error(null, e);
 		}
@@ -2764,7 +2728,7 @@ public class PmsConfiguration {
 			cp = new File(getProfileDirectory() + File.separator + "UMS.cred").getAbsolutePath();
 			configuration.setProperty(KEY_CRED_PATH, cp);
 			try {
-				configuration.save();
+				((PropertiesConfiguration)configuration).save();
 			} catch (ConfigurationException e) {
 			}
 		}

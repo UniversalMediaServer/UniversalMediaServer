@@ -31,7 +31,6 @@ import net.pms.util.ProcessUtil;
 
 public class DVDISOFile extends VirtualFolder {
 	private static final String NAME = "[DVD ISO] %s";
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private File file;
 	private boolean isVideoTS;
 

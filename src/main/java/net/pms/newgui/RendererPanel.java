@@ -20,6 +20,7 @@ import com.jgoodies.forms.layout.RowSpec;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.DeviceConfiguration;
 import net.pms.network.UPNPHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,8 @@ public class RendererPanel extends JPanel {
 	private RendererConfiguration renderer;
 	private CellConstraints cc = new CellConstraints();
 	private static RowSpec rspec = RowSpec.decode("center:pref");
+	private JPanel editBar;
+	private boolean changed;
 
 	public RendererPanel(final RendererConfiguration renderer) {
 		this.renderer = renderer;
@@ -43,7 +46,10 @@ public class RendererPanel extends JPanel {
 
 		if (! renderer.isFileless()) {
 			builder.appendRow(rspec);
-			builder.add(editButton(), cc.xyw(1, ++y, 2));
+			editBar = new JPanel();
+			editBar.setLayout(new BoxLayout(editBar, BoxLayout.X_AXIS));
+			buildEditBar(false);
+			builder.add(editBar,  cc.xyw(1, ++y, 2));
 			builder.appendRow(rspec);
 			builder.addLabel(" ", cc.xy(1, ++y));
 		}
@@ -70,30 +76,126 @@ public class RendererPanel extends JPanel {
 		add(builder.getPanel());
 	}
 
-	public JButton editButton() {
-		final File file  = renderer.getFile(true);
-		final CustomJButton open = new CustomJButton((file.exists() ? "<html>" :
-			"<html><font color=blue>Start a new configuration file:</font> ") + file.getName() + "</html>",
-			MetalIconFactory.getTreeLeafIcon());
-		open.setToolTipText(file .getAbsolutePath());
+	public void buildEditBar(boolean updateUI) {
+		boolean customized = ((DeviceConfiguration)renderer).isCustomized();
+		editBar.removeAll();
+		editBar.add(customized ? referenceButton() : editButton(true));
+		editBar.add(Box.createHorizontalGlue());
+		editBar.add(customized ? editButton(false) : customizeButton());
+		if (updateUI) {
+			editBar.updateUI();
+		}
+	}
+
+	public JButton customizeButton() {
+		final CustomJButton open = new CustomJButton("+", MetalIconFactory.getTreeLeafIcon());
+		open.setHorizontalTextPosition(JButton.CENTER);
+		open.setForeground(Color.lightGray);
+		open.setToolTipText("Customize this device");
 		open.setFocusPainted(false);
 		open.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent e) {
-				boolean exists = file.isFile() && file.exists();
-				if (!exists) {
-					File ref = chooseReferenceConf();
-					renderer.createNewFile(renderer, file, true, ref);
-					open.setText(file.getName());
+				DeviceConfiguration d = (DeviceConfiguration)renderer;
+				String filename = chooseConfName(d.getDeviceDir(), d.getDefaultFilename(d));
+				if (filename != null) {
+					File file = DeviceConfiguration.createDeviceFile(d, filename, true);
+					buildEditBar(true);
+					try {
+						java.awt.Desktop.getDesktop().open(file);
+					} catch (IOException ioe) {
+						LOGGER.debug("Failed to open default desktop application: " + ioe);
+					}
 				}
+			}
+		});
+		return open;
+	}
+
+	public JButton referenceButton() {
+		final File ref = ((DeviceConfiguration)renderer).getConfiguration(DeviceConfiguration.RENDERER).getFile();
+		final CustomJButton open = new CustomJButton(MetalIconFactory.getTreeLeafIcon());
+		open.setToolTipText("Open the parent configuration: " + ref);
+		open.setFocusPainted(false);
+		open.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent e) {
 				try {
-					java.awt.Desktop.getDesktop().open(file);
+					java.awt.Desktop.getDesktop().open(ref);
 				} catch (IOException ioe) {
 					LOGGER.debug("Failed to open default desktop application: " + ioe);
 				}
 			}
 		});
 		return open;
+	}
+
+	public JButton editButton(final boolean create) {
+		final File file  = renderer.getFile(create);
+		final CustomJButton open = new CustomJButton(((file.exists() || !create) ? "<html>" :
+			"<html><font color=blue>Start a new configuration file:</font> ") + file.getName() + "</html>",
+			MetalIconFactory.getTreeLeafIcon());
+		open.setToolTipText(file.getAbsolutePath());
+		open.setFocusPainted(false);
+		open.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				boolean exists = file.isFile() && file.exists();
+				if (!exists && create) {
+					File ref = chooseReferenceConf();
+					if (ref != null) {
+						renderer.createNewFile(renderer, file, true, ref);
+						open.setText(file.getName());
+						exists = true;
+					}
+				}
+				if (exists) {
+					try {
+						java.awt.Desktop.getDesktop().open(file);
+					} catch (IOException ioe) {
+						LOGGER.debug("Failed to open default desktop application: " + ioe);
+					}
+				} else {
+					// Conf no longer exists, repair the edit bar
+					buildEditBar(true);
+				}
+			}
+		});
+		return open;
+	}
+
+	public String chooseConfName(final File dir, final String filename) {
+		final File file = new File(filename);
+		JFileChooser fc = new JFileChooser(dir) {
+			@Override
+			public boolean isTraversable(File d) {
+				return dir.equals(d); // Disable navigation
+			}
+			@Override
+			public void approveSelection() {
+				if(getSelectedFile().exists()){
+					switch(JOptionPane.showConfirmDialog(this, "Overwrite existing file?", "File Exists", JOptionPane.YES_NO_CANCEL_OPTION)){
+						case JOptionPane.CANCEL_OPTION:
+						case JOptionPane.NO_OPTION:
+							setSelectedFile(file);
+						case JOptionPane.CLOSED_OPTION:
+							return;
+					}
+				}
+				super.approveSelection();
+			}
+		};
+		fc.setAcceptAllFileFilterUsed(false);
+		FileNameExtensionFilter filter = new FileNameExtensionFilter("Conf Files", "conf");
+		fc.addChoosableFileFilter(filter);
+		fc.setAcceptAllFileFilterUsed(false);
+		fc.setSelectedFile(file);
+		fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+		fc.setDialogTitle("Specify A File Name");
+		if (fc.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+			return fc.getSelectedFile().getName();
+		}
+		return null;
 	}
 
 	public File chooseReferenceConf() {

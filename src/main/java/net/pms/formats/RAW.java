@@ -93,6 +93,7 @@ public class RAW extends JPG {
 
 	@Override
 	public void parse(DLNAMediaInfo media, InputFile file, int type, RendererConfiguration renderer) {
+		PmsConfiguration configuration = PMS.getConfiguration(renderer);
 		try {
 			OutputParams params = new OutputParams(configuration);
 			params.waitbeforestart = 1;

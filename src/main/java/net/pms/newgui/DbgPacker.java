@@ -18,6 +18,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.DeviceConfiguration;
 import net.pms.external.DebugPacker;
 import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
@@ -117,6 +118,9 @@ public class DbgPacker implements ActionListener {
 		for (RendererConfiguration r : RendererConfiguration.getConnectedRenderersConfigurations()) {
 			if (r.getFile() != null) {
 				add(r.getFile());
+			}
+			if (((DeviceConfiguration)r).isCustomized()) {
+				add(((DeviceConfiguration)r).getParentFile());
 			}
 		}
 

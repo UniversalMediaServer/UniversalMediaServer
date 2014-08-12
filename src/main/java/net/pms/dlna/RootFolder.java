@@ -54,7 +54,6 @@ import xmlwise.XmlParseException;
 
 public class RootFolder extends DLNAResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RootFolder.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private boolean running;
 	private FolderLimit lim;
 	private MediaMonitor mon;
@@ -257,8 +256,8 @@ public class RootFolder extends DLNAResource {
 
 	private List<RealFile> getConfiguredFolders(ArrayList<String> tags) {
 		List<RealFile> res = new ArrayList<>();
-		File[] files = PMS.get().getSharedFoldersArray(false, tags);
-		String s = PMS.getConfiguration().getFoldersIgnored(tags);
+		File[] files = PMS.get().getSharedFoldersArray(false, tags, configuration);
+		String s = configuration.getFoldersIgnored(tags);
 		String[] skips = null;
 
 		if (s != null) {

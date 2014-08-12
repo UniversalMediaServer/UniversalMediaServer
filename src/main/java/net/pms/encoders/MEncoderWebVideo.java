@@ -20,6 +20,7 @@ package net.pms.encoders;
 
 import java.io.IOException;
 import javax.swing.JComponent;
+import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
@@ -89,6 +90,8 @@ public class MEncoderWebVideo extends Player {
 		DLNAResource dlna,
 		DLNAMediaInfo media,
 		OutputParams params) throws IOException {
+		PmsConfiguration prev = configuration;
+		configuration = (DeviceConfiguration)params.mediaRenderer;
 		params.minBufferSize = params.minFileSize;
 		params.secondread_minsize = 100000;
 
@@ -132,6 +135,7 @@ public class MEncoderWebVideo extends Player {
 			Thread.sleep(50);
 		} catch (InterruptedException e) {
 		}
+		configuration = prev;
 		return pw;
 	}
 

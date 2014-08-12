@@ -37,7 +37,6 @@ import org.slf4j.LoggerFactory;
  */
 public class FileTranscodeVirtualFolder extends VirtualFolder {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileTranscodeVirtualFolder.class);
-	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	// FIXME unused
 	@Deprecated

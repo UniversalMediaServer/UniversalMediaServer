@@ -36,6 +36,7 @@ import org.fourthline.cling.model.meta.Device;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.DeviceConfiguration;
 import net.pms.dlna.DLNAResource;
 import static net.pms.dlna.DLNAResource.Temp;
 import net.pms.util.BasicPlayer;
@@ -91,7 +92,7 @@ public class UPNPHelper extends UPNPControl {
 	 * This utility class is not meant to be instantiated.
 	 */
 	private UPNPHelper() {
-		rendererMap = new DeviceMap<RendererConfiguration>(RendererConfiguration.class);
+		rendererMap = new DeviceMap<DeviceConfiguration>(DeviceConfiguration.class);
 	}
 
 	public static UPNPHelper getInstance() {
@@ -553,7 +554,7 @@ public class UPNPHelper extends UPNPControl {
 		// Create or retrieve an instance
 		try {
 			InetAddress socket = InetAddress.getByName(getURL(d).getHost());
-			RendererConfiguration r = RendererConfiguration.getRendererConfigurationBySocketAddress(socket);
+			DeviceConfiguration r = (DeviceConfiguration)RendererConfiguration.getRendererConfigurationBySocketAddress(socket);
 
 			// FIXME: when UpnpDetailsSearch is missing from the conf a upnp-advertising
 			// renderer could register twice if the http server sees it first
@@ -565,10 +566,10 @@ public class UPNPHelper extends UPNPControl {
 				LOGGER.debug("Found upnp service for " + r.getRendererName() + ": " + getDeviceDetails(d));
 			} else {
 				// It's brand new
-				r = (RendererConfiguration)rendererMap.get(uuid, "0");
+				r = (DeviceConfiguration)rendererMap.get(uuid, "0");
 				RendererConfiguration ref = RendererConfiguration.getRendererConfigurationByUPNPDetails(getDeviceDetailsString(d));
 				if (ref != null) {
-					r.init(ref.getFile());
+					r.inherit(ref);
 				}
 				if (r.associateIP(socket)) {
 					PMS.get().setRendererFound(r);
@@ -615,14 +616,14 @@ public class UPNPHelper extends UPNPControl {
 	protected void rendererReady(String uuid) {
 	}
 
-	public static void play(String uri, String name, RendererConfiguration r) {
+	public static void play(String uri, String name, DeviceConfiguration r) {
 		DLNAResource d = DLNAResource.getValidResource(uri, name, r);
 		if (d != null) {
 			play(d, r);
 		}
 	}
 
-	public static void play(DLNAResource d, RendererConfiguration r) {
+	public static void play(DLNAResource d, DeviceConfiguration r) {
 		DLNAResource d1 = d.getParent() == null ? Temp.add(d) : d;
 		if(d1 != null) {
 			Device dev = getDevice(r.getUUID());
@@ -638,7 +639,7 @@ public class UPNPHelper extends UPNPControl {
 		private Device dev;
 		private String uuid;
 		private String instanceID;
-		public RendererConfiguration renderer;
+		public DeviceConfiguration renderer;
 		private Map<String,String> data;
 		private LinkedHashSet<ActionListener> listeners;
 		private BasicPlayer.State state;
@@ -646,14 +647,14 @@ public class UPNPHelper extends UPNPControl {
 		String lasturi;
 
 
-		public Player(RendererConfiguration renderer) {
+		public Player(DeviceConfiguration renderer) {
 			uuid = renderer.getUUID();
 			instanceID = renderer.getInstanceID();
 			this.renderer = renderer;
 			dev = getDevice(uuid);
 			data = rendererMap.get(uuid, instanceID).connect(this);
 			state = new State();
-			playlist = new Playlist();
+			playlist = new Playlist(this);
 			listeners = new LinkedHashSet();
 			lasturi = null;
 			LOGGER.debug("Created upnp player for " + renderer.getRendererName());
@@ -846,6 +847,12 @@ public class UPNPHelper extends UPNPControl {
 
 		public static class Playlist extends DefaultComboBoxModel {
 
+			Player player;
+
+			public Playlist(Player p) {
+				player = p;
+			}
+
 			public Item get(String uri) {
 				int index = getIndexOf(new Item(uri, null, null));
 				if (index > -1) {
@@ -870,18 +877,31 @@ public class UPNPHelper extends UPNPControl {
 						get(uri));
 				} catch (Exception e) {
 				}
-				return (item != null && isValid(item)) ? item : null;
+				return (item != null && isValid(item, player.renderer)) ? item : null;
 			}
 
-			public static boolean isValid(Item item) {
-				// Check existence for resource uris, otherwise assume it's valid
-				return DLNAResource.isResourceUrl(item.uri) ?
-					PMS.get().getGlobalRepo().exists(DLNAResource.parseResourceId(item.uri)) : true;
+			public static boolean isValid(Item item, DeviceConfiguration renderer) {
+				if (DLNAResource.isResourceUrl(item.uri)) {
+					// Check existence for resource uris
+					if (PMS.get().getGlobalRepo().exists(DLNAResource.parseResourceId(item.uri))) {
+						return true;
+					}
+					// Repair the item if possible
+					DLNAResource d = DLNAResource.getValidResource(item.uri, item.name, renderer);
+					if (d != null) {
+						item.uri = d.getURL("", true);
+						item.metadata = d.getDidlString(renderer);
+						return true;
+					}
+					return false;
+				}
+				// Assume non-resource uris are valid
+				return true;
 			}
 
 			public void validate() {
 				for (int i = getSize()-1; i > -1; i--) {
-					if (! isValid((Item)getElementAt(i))) {
+					if (! isValid((Item)getElementAt(i), player.renderer)) {
 						removeElementAt(i);
 					}
 				}
