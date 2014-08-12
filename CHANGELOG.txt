@@ -2,11 +2,12 @@
 
 	General:
 		Fixed MP4 support on some renderers
-		Fixed MEncoder sometimes producing video resolutions with odd numbers
+		Fixed transcoded video resolutions with odd numbers on some renderers
 		Fixed error when retrieving audio channels
 		Updated descriptions in UMS.conf
 	Renderers:
 		Fixed audio support on WDTV Live (thanks, DualC!)
+		Fixed external subtitle support on Samsung devices
 	Languages:
 		Fixed Spanish translation
 		Updated most translations in minor ways
