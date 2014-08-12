@@ -555,6 +555,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						// Media is transcodable
 						LOGGER.trace("File \"{}\" can be transcoded", child.getName());
 					}
+				} else {
+					LOGGER.trace("Did not check for media_subtitle for \"{}\" because this renderer does not use MediaInfo, we will check for it soon", child.getName());
 				}
 
 				if (child.format != null) {
@@ -1486,11 +1488,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			mediaRenderer.isSubtitlesFormatSupported(media_subtitle)
 		) {
 			subsAreValidForStreaming = true;
-			LOGGER.trace("Setting subsAreValidForStreaming to true");
+			LOGGER.trace("Setting subsAreValidForStreaming to true for " + getName());
 		} else if (subsAreValidForStreaming) {
-			LOGGER.trace("Not setting subsAreValidForStreaming and it is true");
+			LOGGER.trace("Not setting subsAreValidForStreaming and it is true for " + getName());
 		} else {
-			LOGGER.trace("Not setting subsAreValidForStreaming and it is false");
+			LOGGER.trace("Not setting subsAreValidForStreaming and it is false for " + getName());
 		}
 
 		if (isFolder()) {
