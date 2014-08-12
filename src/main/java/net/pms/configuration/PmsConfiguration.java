@@ -459,8 +459,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	 */
 	public PmsConfiguration(boolean loadFile) throws ConfigurationException {
 		super(0);
-		configuration = createPropertiesConfiguration();
-		configurationReader = new ConfigurationReader(configuration, true); // true: log
 
 		if (loadFile) {
 			File pmsConfFile = new File(PROFILE_PATH);

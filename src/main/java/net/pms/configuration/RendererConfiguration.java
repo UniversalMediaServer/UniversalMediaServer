@@ -45,15 +45,15 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
 	protected static ArrayList<RendererConfiguration> enabledRendererConfs;
 	protected static ArrayList<String> allRenderersNames = new ArrayList<>();
-	protected static PmsConfiguration _pmsConfiguration;
+	protected static PmsConfiguration _pmsConfiguration = PMS.getConfiguration();
 	protected static RendererConfiguration defaultConf;
 	protected static Map<InetAddress, RendererConfiguration> addressAssociation = new HashMap<>();
 
 	protected RootFolder rootFolder;
 	protected File file;
 	protected Configuration configuration;
+	protected PmsConfiguration pmsConfiguration = _pmsConfiguration;
 	protected ConfigurationReader configurationReader;
-	protected PmsConfiguration pmsConfiguration;
 	protected FormatConfiguration formatConfiguration;
 	protected int rank;
 
@@ -708,7 +708,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public RendererConfiguration(int ignored) {
-		// Just instantiate, initialization will happen later
+		// Just instantiate minimally, full initialization will happen later
+		configuration = createPropertiesConfiguration();
+		configurationReader = new ConfigurationReader(configuration, true); // true: log
 	}
 
 	public RendererConfiguration(File f) throws ConfigurationException {
