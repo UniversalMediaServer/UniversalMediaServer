@@ -8,6 +8,7 @@
 	Renderers:
 		Fixed audio support on WDTV Live (thanks, DualC!)
 		Fixed external subtitle support on Samsung devices
+		Improved support for Panasonic VT60 TVs
 	Languages:
 		Fixed Spanish translation
 		Updated most translations in minor ways
