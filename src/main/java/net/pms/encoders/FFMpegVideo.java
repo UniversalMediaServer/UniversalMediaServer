@@ -224,6 +224,14 @@ public class FFMpegVideo extends Player {
 			/**
 			 * Make sure the aspect ratio is 16/9 if the renderer needs it.
 			 */
+
+			int scaleWidth = 0;
+			int scaleHeight = 0;
+			if (media.getWidth() > 0 && media.getHeight() > 0) {
+				scaleWidth = media.getWidth();
+				scaleHeight = media.getHeight();
+			}
+
 			boolean keepAR = renderer.isKeepAspectRatio() &&
 					!(
 						media.getWidth() == 3840 && media.getHeight() <= 1080 ||
@@ -238,9 +246,15 @@ public class FFMpegVideo extends Player {
 			} else if (keepAR && isMediaValid) {
 				if ((media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
 					filterChain.add("pad=iw:iw/(16/9):0:(oh-ih)/2");
+					scaleHeight = (int) Math.round(scaleWidth / (16 / (double) 9));
 				} else {
 					filterChain.add("pad=ih*(16/9):ih:(ow-iw)/2:0");
+					scaleWidth  = (int) Math.round(scaleHeight * (16 / (double) 9));
 				}
+
+				scaleWidth  = convertToMod4(scaleWidth);
+				scaleHeight = convertToMod4(scaleHeight);
+				filterChain.add("scale=" + scaleWidth + ":" + scaleHeight);
 			}
 		}
 
@@ -842,7 +856,7 @@ public class FFMpegVideo extends Player {
 			int channels = 0;
 			if (renderer.isTranscodeToWMV() && !renderer.isXBOX()) {
 				channels = 2;
-			} else if (params.aid.getAudioProperties().getNumberOfChannels() > configuration.getAudioChannelCount()) {
+			} else if (params.aid != null && params.aid.getAudioProperties().getNumberOfChannels() > configuration.getAudioChannelCount()) {
 				channels = configuration.getAudioChannelCount();
 			}
 
