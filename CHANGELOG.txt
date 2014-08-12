@@ -1,4 +1,4 @@
-4.0.3 - 2014-08-??
+4.0.3 - 2014-08-12
 
 	General:
 		Fixed MP4 support on some renderers
