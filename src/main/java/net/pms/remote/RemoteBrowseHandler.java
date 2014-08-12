@@ -51,7 +51,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 				// this special (simple) script performs a reload
 				// if we have been sent back here after a VVA
 				sb.append("<script>if(typeof window.refresh!='undefined' && window.refresh){").append(CRLF);
-				sb.append("console.log(\"shit\");window.refresh=false;window.location.reload();}</script>").append(CRLF);
+				sb.append("window.refresh=false;window.location.reload();}</script>").append(CRLF);
 				sb.append("<meta charset=\"utf-8\">").append(CRLF);
 				sb.append("<link rel=\"stylesheet\" href=\"/files/reset.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
 				sb.append("<link rel=\"stylesheet\" href=\"/files/web.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
