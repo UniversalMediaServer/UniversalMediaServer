@@ -19,6 +19,7 @@ import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.Player;
 import net.pms.formats.v2.SubtitleUtils;
 import net.pms.io.OutputParams;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,11 +48,42 @@ public class RemotePlayHandler implements HttpHandler {
 		if (root == null) {
 			throw new IOException("Unknown root");
 		}
-		String id1 = id;
 		List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, root.getDefaultRenderer());
+		if (res == null || res.isEmpty()) {
+			LOGGER.debug("Bad id in web if "+id);
+			throw new IOException("Bad Id");
+		}
+		DLNAResource r = res.get(0);
+		String auto = " autoplay>";
+		if (configuration.getWebAutoCont(r.getFormat())) {   // can't hurt to check again
+			// auto play next handling
+			if(StringUtils.isNotEmpty(RemoteUtil.getQueryVars(t.getRequestURI().getQuery(), "nxt"))) {
+				// if the "nxt" field is set we should calculate the next media
+				// 1st fetch or own index in the child list
+				int i = r.getParent().getChildren().indexOf(r);
+				DLNAResource n = null;
+				if (i+1 < r.getParent().getChildren().size()) {
+					// if we're not last in list just pick next from child list
+					n = r.getParent().getChildren().get(i + 1);
+				}
+				if (n == null && configuration.getWebAutoLoop(r.getFormat())) {
+					// we were last so if we loop pick first in list
+					n = r.getParent().getChildren().get(0);
+				}
+				if (n != null) {
+					// all done, change the id
+					id = n.getResourceId();
+					r = n;
+				} else {
+					// trick here to stop continuing if loop is off
+					auto = ">";
+				}
+			}
+		}
+		String id1 = URLEncoder.encode(id, "UTF-8");
 		String rawId = id;
 
-		DLNAResource r = res.get(0);
+		String nxtJs = "window.location.replace('/play/" + id1 + "?nxt=true');";
 		// hack here to ensure we got a root folder to use for recently played etc.
 		root.getDefaultRenderer().setRootFolder(root);
 		String mime = root.getDefaultRenderer().getMimeType(r.mimeType());
@@ -114,6 +146,12 @@ public class RemotePlayHandler implements HttpHandler {
 					if(r.getFormat().isImage()) {
 						// do this like this to simplify the code
 						// skip all player crap since img tag works well
+						int delay = configuration.getWebImgSlideDelay() * 1000;
+						if (delay > 0 && configuration.getWebAutoCont(r.getFormat())) {
+							sb.append("<script>").append(CRLF);
+							sb.append("setTimeout(\"").append(nxtJs).append("\",").append(delay).append(");").append(CRLF);
+							sb.append("</script>").append(CRLF);
+						}
 						endPage(sb);
 						return sb.toString();
 					}
@@ -124,18 +162,18 @@ public class RemotePlayHandler implements HttpHandler {
 					}
 					sb.append("<").append(mediaType);
 					if (flowplayer) {
-						sb.append(" controls autoplay>").append(CRLF);
+						sb.append(" controls").append(auto).append(CRLF);
 						if (
 							RemoteUtil.directmime(mime) &&
 							!transMp4(mime, r.getMedia()) &&
 							!r.isResume()
 						) {
-							sb.append("<source src=\"/media/").append(URLEncoder.encode(id1, "UTF-8")).append("\" type=\"").append(mime).append("\">").append(CRLF);
+							sb.append("<source src=\"/media/").append(id1).append("\" type=\"").append(mime).append("\">").append(CRLF);
 						}
-						sb.append("<source src=\"/fmedia/").append(URLEncoder.encode(id1, "UTF-8")).append("\" type=\"video/flash\">");
+						sb.append("<source src=\"/fmedia/").append(id1).append("\" type=\"video/flash\">");
 					} else {
-						sb.append(" width=\"720\" height=\"404\" controls autoplay>").append(CRLF);
-						sb.append("<source src=\"/media/").append(URLEncoder.encode(id1, "UTF-8")).append("\" type=\"").append(mime).append("\">");
+						sb.append(" id=\"player\" width=\"720\" height=\"404\" controls").append(auto).append(CRLF);
+						sb.append("<source src=\"/media/").append(id1).append("\" type=\"").append(mime).append("\">");
 					}
 					sb.append(CRLF);
 
@@ -173,18 +211,31 @@ public class RemotePlayHandler implements HttpHandler {
 		if (flowplayer) {
 			sb.append("<script>").append(CRLF);
 			sb.append("$(function() {").append(CRLF);
+			if (configuration.getWebAutoCont(r.getFormat())) {
+				// auto continue for flowplayer
+				sb.append("var api = $(\".player\").flowplayer();").append(CRLF);
+				sb.append("               api.bind(\"finish\",function() {").append(CRLF);
+				sb.append(nxtJs).append(CRLF);
+				sb.append("               });").append(CRLF);
+			}
 			sb.append("	$(\".player\").flowplayer({").append(CRLF);
 			sb.append("		ratio: 9/16,").append(CRLF);
 			sb.append("		flashfit: true").append(CRLF);
 			sb.append("	});").append(CRLF);
 			sb.append("});").append(CRLF);
-			if (r.isResume()) {
-				sb.append("var api = flowplayer();").append(CRLF);
-				sb.append("api.seek(");
-				sb.append(r.getResume().getTimeOffset() / 1000);
-				sb.append(");").append(CRLF);
-			}
 			sb.append("</script>").append(CRLF);
+		} else {
+			if (configuration.getWebAutoCont(r.getFormat())) {
+				// logic here use our own id (for example 123)
+				// once we're done ask for /play/123?nxt=true
+				// the nxt will cause us to pick next (most likely 124) from list.
+				sb.append("<script>").append(CRLF);
+				sb.append("var player = document.getElementById(\"player\");").append(CRLF);
+				sb.append("player.addEventListener(\"ended\", function() {").append(CRLF);
+				sb.append(nxtJs).append(CRLF);
+				sb.append("});").append(CRLF);
+				sb.append("</script>").append(CRLF);
+			}
 		}
 		endPage(sb);
 
