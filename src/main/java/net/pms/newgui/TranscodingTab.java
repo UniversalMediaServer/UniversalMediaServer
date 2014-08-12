@@ -94,7 +94,7 @@ public class TranscodingTab {
 	private JTextField forcedtags;
 	private JTextField alternateSubFolder;
 	private JButton folderSelectButton;
-	private JCheckBox subs;
+	private JCheckBox autoloadExternalSubtitles;
 	private JTextField defaultaudiosubs;
 	private JComboBox subtitleCodePage;
 	private JTextField defaultfont;
@@ -620,9 +620,7 @@ public class TranscodingTab {
 
 		ac3remux = new JCheckBox(Messages.getString("TrTab2.26"), configuration.isAudioRemuxAC3());
 		ac3remux.setToolTipText(Messages.getString("TrTab2.84") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
-		if (configuration.isEncodedAudioPassthrough()) {
-			ac3remux.setEnabled(false);
-		}
+		ac3remux.setEnabled(!configuration.isEncodedAudioPassthrough());
 		ac3remux.addItemListener((ItemEvent e) -> {
 			configuration.setAudioRemuxAC3((e.getStateChange() == ItemEvent.SELECTED));
 		});
@@ -630,9 +628,7 @@ public class TranscodingTab {
 
 		forceDTSinPCM = new JCheckBox(Messages.getString("TrTab2.28"), configuration.isAudioEmbedDtsInPcm());
 		forceDTSinPCM.setToolTipText(Messages.getString("TrTab2.85") + (Platform.isWindows() ? " " + Messages.getString("TrTab2.21") : "") + "</html>");
-		if (configuration.isEncodedAudioPassthrough()) {
-			forceDTSinPCM.setEnabled(false);
-		}
+		forceDTSinPCM.setEnabled(!configuration.isEncodedAudioPassthrough());
 		forceDTSinPCM.setContentAreaFilled(false);
 		forceDTSinPCM.addActionListener((ActionEvent e) -> {
 			configuration.setAudioEmbedDtsInPcm(forceDTSinPCM.isSelected());
@@ -892,18 +888,17 @@ public class TranscodingTab {
 		builder.add(ass_shadow, FormLayoutUtil.flip(cc.xy(11, 12), colSpec, orientation));
 		builder.add(ass_margin, FormLayoutUtil.flip(cc.xy(15, 12), colSpec, orientation));
 		
-		subs = new JCheckBox(Messages.getString("MEncoderVideo.22"), configuration.isAutoloadExternalSubtitles());
-		subs.setToolTipText(Messages.getString("TrTab2.78"));
-		subs.setContentAreaFilled(false);
-		subs.addItemListener((ItemEvent e) -> {
-			configuration.setAutoloadExternalSubtitles((e.getStateChange() == ItemEvent.SELECTED));
+		autoloadExternalSubtitles = new JCheckBox(Messages.getString("MEncoderVideo.22"), configuration.isAutoloadExternalSubtitles());
+		autoloadExternalSubtitles.setToolTipText(Messages.getString("TrTab2.78"));
+		autoloadExternalSubtitles.setContentAreaFilled(false);
+		autoloadExternalSubtitles.setEnabled(!configuration.isForceExternalSubtitles());
+		autoloadExternalSubtitles.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setAutoloadExternalSubtitles((e.getStateChange() == ItemEvent.SELECTED));
+			}
 		});
-		if (configuration.isForceExternalSubtitles()) {
-			subs.setEnabled(false);
-		} else {
-			subs.setEnabled(true);
-		}
-		builder.add(subs, FormLayoutUtil.flip(cc.xyw(1, 14, 11), colSpec, orientation));
+		builder.add(autoloadExternalSubtitles, FormLayoutUtil.flip(cc.xyw(1, 14, 11), colSpec, orientation));
 
 		subColor = new JButton();
 		subColor.setText(Messages.getString("MEncoderVideo.31"));
@@ -929,9 +924,9 @@ public class TranscodingTab {
 		forceExternalSubtitles.addItemListener((ItemEvent e) -> {
 			configuration.setForceExternalSubtitles((e.getStateChange() == ItemEvent.SELECTED));
 			if (configuration.isForceExternalSubtitles()) {
-				subs.setSelected(true);
+				autoloadExternalSubtitles.setSelected(true);
 			}
-			subs.setEnabled(!configuration.isForceExternalSubtitles());
+			autoloadExternalSubtitles.setEnabled(!configuration.isForceExternalSubtitles());
 		});
 		builder.add(forceExternalSubtitles, FormLayoutUtil.flip(cc.xyw(1, 16, 11), colSpec, orientation));
 

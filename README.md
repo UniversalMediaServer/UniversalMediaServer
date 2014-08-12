@@ -48,14 +48,15 @@ It is powered by MEncoder, FFmpeg, tsMuxeR, AviSynth, MediaInfo, VLC and more, w
 * tomeko
 
 
-##### Thanks to for documentation and contributions to the community:
+##### Thanks for documentation and contributions to the community:
 
 * meskibob
 * otmanix
 
-##### Thanks to for significant/frequent language translations:
+##### Thanks for significant/frequent language translations:
 
 * AlfredoRamos
+* leroy
 * Tianuchka
 
 ##### Special Thanks: 
