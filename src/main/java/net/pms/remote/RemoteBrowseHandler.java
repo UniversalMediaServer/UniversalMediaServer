@@ -27,26 +27,11 @@ public class RemoteBrowseHandler implements HttpHandler {
 		this.parent = parent;
 	}
 
-	private String getSearchStr(String query) {
-		for (String p : query.split("&")) {
-			String[] pair = p.split("=");
-			if (pair[0].equalsIgnoreCase("str")) {
-				if (pair.length > 1 && StringUtils.isNotEmpty(pair[1])) {
-					return pair[1];
-				}
-			}
-		}
-		return null;
-	}
-
 	private String mkBrowsePage(String id, HttpExchange t) throws IOException {
 		String user = RemoteUtil.userName(t);
 		RootFolder root = parent.getRoot(user, true, t);
-		String vars = t.getRequestURI().getQuery();
-		String search = null;
-		if (StringUtils.isNotEmpty(vars)) {
-			search = getSearchStr(vars);
-		}
+		String search = RemoteUtil.getQueryVars(t.getRequestURI().getQuery(), "str");
+
 		List<DLNAResource> res = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), search);
 		boolean upnpControl = RendererConfiguration.hasConnectedControlPlayers();
 		if (StringUtils.isNotEmpty(search)) {
@@ -66,7 +51,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 				// this special (simple) script performs a reload
 				// if we have been sent back here after a VVA
 				sb.append("<script>if(typeof window.refresh!='undefined' && window.refresh){").append(CRLF);
-				sb.append("window.refresh=false;window.location.reload();}</script>").append(CRLF);
+				sb.append("console.log(\"shit\");window.refresh=false;window.location.reload();}</script>").append(CRLF);
 				sb.append("<meta charset=\"utf-8\">").append(CRLF);
 				sb.append("<link rel=\"stylesheet\" href=\"/files/reset.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
 				sb.append("<link rel=\"stylesheet\" href=\"/files/web.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
@@ -115,7 +100,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 							mediaHtml.append("<li>");
 								if (WebRender.supports(r)) {
 									mediaHtml.append("<a href=\"/play/").append(idForWeb);
-									mediaHtml.append("\" title=\"").append(name).append("\">");
+									mediaHtml.append("\" title=\"").append(name).append("\" id=\"").append(idForWeb).append("\">");
 									mediaHtml.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">");
 									mediaHtml.append("<span>").append(name).append("</span>");
 								} else if (upnpControl) {

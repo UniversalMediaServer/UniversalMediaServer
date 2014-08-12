@@ -9,6 +9,8 @@ import net.pms.PMS;
 import net.pms.dlna.Range;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.newgui.LooksFrame;
+import net.pms.util.StringUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -140,5 +142,20 @@ public class RemoteUtil {
 			return "";
 		}
 		return p.getUsername();
+	}
+
+	public static String getQueryVars(String query, String var) {
+		if (StringUtils.isEmpty(query)) {
+			return null;
+		}
+		for (String p : query.split("&")) {
+			String[] pair = p.split("=");
+			if (pair[0].equalsIgnoreCase(var)) {
+				if (pair.length > 1 && StringUtils.isNotEmpty(pair[1])) {
+					return pair[1];
+				}
+			}
+		}
+		return null;
 	}
 }
