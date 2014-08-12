@@ -29,8 +29,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -1362,9 +1360,9 @@ public class FFMpegVideo extends Player {
 		File destinationFile = new File(temp.toString());
 		FileUtils.copyFile(sourceFile, destinationFile);
 
-		BufferedWriter output;
-		BufferedReader input = new BufferedReader(new FileReader(temp));
-			output = new BufferedWriter(new FileWriter(outputSubs));
+		BufferedReader input = FileUtil.bufferedReaderWithCorrectCharset(temp);
+		BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), CHARSET_UTF_8));
+		try {
 			String line;
 			String[] format = null;
 			int i;
@@ -1444,7 +1442,12 @@ public class FFMpegVideo extends Player {
 				outputString.append(line).append("\n");
 				output.write(outputString.toString());
 			}
-		input.close();
+		} finally {
+			input.close();
+			output.flush();
+			output.close();
+			temp.deleteOnExit();
+		}
 
 		return outputSubs;
 	}
