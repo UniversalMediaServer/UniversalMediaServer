@@ -53,6 +53,7 @@ import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
+import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang.BooleanUtils.isTrue;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.slf4j.Logger;
@@ -698,7 +699,7 @@ public class MEncoderVideo extends Player {
 		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
 
-		if (mediaRenderer.getMaxVideoBitrate() != null) {
+		if (StringUtils.isNotEmpty(mediaRenderer.getMaxVideoBitrate())) {
 			rendererMaxBitrates = getVideoBitrateConfig(mediaRenderer.getMaxVideoBitrate());
 		}
 
@@ -809,7 +810,7 @@ public class MEncoderVideo extends Player {
 			setAudioOutputParameters(media, params);
 		}
 
-		if (params.sid == null) {
+		if (params.sid == null || (params.sid != null && StringUtils.isNotEmpty(params.sid.getLiveSubURL()))) {
 			setSubtitleOutputParameters(filename, media, params);
 		}
 
@@ -1201,7 +1202,7 @@ public class MEncoderVideo extends Player {
 				int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 				int rendererMaxBitrates[] = new int[2];
 
-				if (params.mediaRenderer.getMaxVideoBitrate() != null) {
+				if (StringUtils.isNotEmpty(params.mediaRenderer.getMaxVideoBitrate())) {
 					rendererMaxBitrates = getVideoBitrateConfig(params.mediaRenderer.getMaxVideoBitrate());
 				}
 
@@ -1723,6 +1724,12 @@ public class MEncoderVideo extends Player {
 			scaleHeight = media.getHeight();
 		}
 
+		double videoAspectRatio = (double) media.getWidth() / (double) media.getHeight();
+		double rendererAspectRatio = 1.777777777777778;
+		if (params.mediaRenderer.isMaximumResolutionSpecified()) {
+			rendererAspectRatio = (double) params.mediaRenderer.getMaxVideoWidth() / (double) params.mediaRenderer.getMaxVideoHeight();
+		}
+
 		if ((deinterlace || scaleBool) && !avisynth()) {
 			StringBuilder vfValueOverscanPrepend = new StringBuilder();
 			StringBuilder vfValueOverscanMiddle  = new StringBuilder();
@@ -1730,10 +1737,6 @@ public class MEncoderVideo extends Player {
 			StringBuilder vfValueComplete        = new StringBuilder();
 
 			String deinterlaceComma = "";
-			double rendererAspectRatio = 1.777777777777778;
-			if (params.mediaRenderer.isMaximumResolutionSpecified()) {
-				rendererAspectRatio = (double) params.mediaRenderer.getMaxVideoWidth() / (double) params.mediaRenderer.getMaxVideoHeight();
-			}
 
 			/*
 			 * Implement overscan compensation settings
@@ -1805,8 +1808,6 @@ public class MEncoderVideo extends Player {
 				vfValueVS.append("scale=").append(scaleWidth).append(":").append(scaleHeight);
 			} else if (isResolutionTooHighForRenderer) {
 				// The video resolution is too big for the renderer so we need to scale it down
-
-				double videoAspectRatio = (double) media.getWidth() / (double) media.getHeight();
 
 				/*
 				 * First we deal with some exceptions, then if they are not matched we will
@@ -1892,17 +1893,21 @@ public class MEncoderVideo extends Player {
 			) &&
 			!configuration.isMencoderScaler()
 		) {
-			int expandBorderWidth;
-			int expandBorderHeight;
-
-			expandBorderWidth  = scaleWidth % 4;
-			expandBorderHeight = scaleHeight % 4;
-
-			String vfValuePrepend = "";
-			vfValuePrepend += "expand=-" + expandBorderWidth + ":-" + expandBorderHeight;
+			String vfValuePrepend = "expand=";
 
 			if (params.mediaRenderer.isKeepAspectRatio()) {
-				vfValuePrepend += ":::0:16/9";
+				if (videoAspectRatio > rendererAspectRatio) {
+					scaleHeight = (int) Math.round(scaleWidth / rendererAspectRatio);
+				} else {
+					scaleWidth  = (int) Math.round(scaleHeight * rendererAspectRatio);
+				}
+
+				scaleWidth  = convertToMod4(scaleWidth);
+				scaleHeight = convertToMod4(scaleHeight);
+
+				vfValuePrepend += "::::0:16/9,scale=" + scaleWidth + ":" + scaleHeight;
+			} else {
+				vfValuePrepend += "-" + (scaleWidth % 4) + ":-" + (scaleHeight % 4);
 			}
 
 			vfValuePrepend += ",softskip";
@@ -2579,13 +2584,5 @@ public class MEncoderVideo extends Player {
 		}
 
 		return false;
-	}
-
-	public int convertToMod4(int number) {
-		if (number % 4 != 0) {
-			number -= (number % 4);
-		}
-
-		return number;
 	}
 }

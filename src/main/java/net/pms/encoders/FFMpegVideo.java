@@ -28,9 +28,9 @@ import java.awt.event.ItemListener;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
@@ -70,6 +70,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.mozilla.universalchardet.Constants.CHARSET_UTF_8;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -140,13 +141,17 @@ public class FFMpegVideo extends Player {
 
 		if (!isDisableSubtitles(params) && !(dlna.getPlayer() instanceof WebPlayer)) {
 			StringBuilder subsFilter = new StringBuilder();
-
 			if (params.sid.getType().isText()) {
-				File tempSubs = getSubtitles(dlna, media, params, configuration);
-				if (tempSubs != null) {
-					StringBuilder s = new StringBuilder();
-					CharacterIterator it = new StringCharacterIterator(tempSubs.getAbsolutePath());
+				String subsFilename = null;
+				if (configuration.isFFmpegFontConfig()) {
+					subsFilename = getSubtitles(dlna, media, params, configuration).getAbsolutePath();
+				} else {
+					subsFilename = params.sid.isEmbedded() ? dlna.getSystemName() : params.sid.getExternalFile().getAbsolutePath();
+				}
 
+				if (subsFilename != null) {
+					StringBuilder s = new StringBuilder();
+					CharacterIterator it = new StringCharacterIterator(subsFilename);
 					for (char ch = it.first(); ch != CharacterIterator.DONE; ch = it.next()) {
 						switch (ch) {
 							case ':':
@@ -164,15 +169,21 @@ public class FFMpegVideo extends Player {
 						}
 					}
 
-					String subsFile = s.toString();
-					subsFile = subsFile.replace(",", "\\,");
-
-					if (params.sid.isEmbedded() || (params.sid.isExternal() && params.sid.getType() == SubtitleType.ASS)) {
-						subsFilter.append("ass=");
-						subsFilter.append(subsFile);
-					} else if (params.sid.isExternal() && (params.sid.getType() == SubtitleType.SUBRIP || params.sid.getType() == SubtitleType.WEBVTT)) {
-						subsFilter.append("subtitles=");
-						subsFilter.append(subsFile);
+					subsFilename = s.toString();
+					subsFilename = subsFilename.replace(",", "\\,");
+					subsFilter.append("subtitles=").append(subsFilename);
+					if (params.sid.isExternal() && params.sid.getType() != SubtitleType.ASS || configuration.isFFmpegFontConfig()) {
+						subsFilter.append(":384x288");
+						if (!params.sid.isExternalFileUtf8()) { // Set the input subtitles character encoding if not UTF-8
+							String encoding = isNotBlank(configuration.getSubtitlesCodepage()) ?
+									configuration.getSubtitlesCodepage() : params.sid.getExternalFileCharacterSet() != null ?
+									params.sid.getExternalFileCharacterSet() : null;
+							if (encoding != null) {
+								subsFilter.append(":").append(encoding);
+							}
+						}
+					} else if (params.sid.isEmbedded()) {
+						subsFilter.append(":si=").append(media.getSubtitleTracksList().indexOf(params.sid));
 					}
 				}
 
@@ -207,12 +218,20 @@ public class FFMpegVideo extends Player {
 
 		String overrideVF = renderer.getFFmpegVideoFilterOverride();
 
-		if (overrideVF != null) {
+		if (StringUtils.isNotEmpty(overrideVF)) {
 			filterChain.add(overrideVF);
 		} else {
 			/**
 			 * Make sure the aspect ratio is 16/9 if the renderer needs it.
 			 */
+
+			int scaleWidth = 0;
+			int scaleHeight = 0;
+			if (media.getWidth() > 0 && media.getHeight() > 0) {
+				scaleWidth = media.getWidth();
+				scaleHeight = media.getHeight();
+			}
+
 			boolean keepAR = renderer.isKeepAspectRatio() &&
 					!(
 						media.getWidth() == 3840 && media.getHeight() <= 1080 ||
@@ -227,9 +246,15 @@ public class FFMpegVideo extends Player {
 			} else if (keepAR && isMediaValid) {
 				if ((media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
 					filterChain.add("pad=iw:iw/(16/9):0:(oh-ih)/2");
+					scaleHeight = (int) Math.round(scaleWidth / (16 / (double) 9));
 				} else {
 					filterChain.add("pad=ih*(16/9):ih:(ow-iw)/2:0");
+					scaleWidth  = (int) Math.round(scaleHeight * (16 / (double) 9));
 				}
+
+				scaleWidth  = convertToMod4(scaleWidth);
+				scaleHeight = convertToMod4(scaleHeight);
+				filterChain.add("scale=" + scaleWidth + ":" + scaleHeight);
 			}
 		}
 
@@ -361,7 +386,7 @@ public class FFMpegVideo extends Player {
 		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
 
-		if (params.mediaRenderer.getMaxVideoBitrate() != null) {
+		if (StringUtils.isNotEmpty(params.mediaRenderer.getMaxVideoBitrate())) {
 			rendererMaxBitrates = getVideoBitrateConfig(params.mediaRenderer.getMaxVideoBitrate());
 		}
 
@@ -667,7 +692,7 @@ public class FFMpegVideo extends Player {
 			setAudioOutputParameters(media, params);
 		}
 
-		if (params.sid == null) {
+		if (params.sid == null || (params.sid != null && StringUtils.isNotEmpty(params.sid.getLiveSubURL()))) {
 			setSubtitleOutputParameters(filename, media, params);
 		}
 
@@ -831,7 +856,7 @@ public class FFMpegVideo extends Player {
 			int channels = 0;
 			if (renderer.isTranscodeToWMV() && !renderer.isXBOX()) {
 				channels = 2;
-			} else if (params.aid.getAudioProperties().getNumberOfChannels() > configuration.getAudioChannelCount()) {
+			} else if (params.aid != null && params.aid.getAudioProperties().getNumberOfChannels() > configuration.getAudioChannelCount()) {
 				channels = configuration.getAudioChannelCount();
 			}
 
@@ -1178,6 +1203,7 @@ public class FFMpegVideo extends Player {
 			// subs are already converted
 			if (applyFontConfig || isEmbeddedSource) {
 				params.sid.setType(SubtitleType.ASS);
+				params.sid.setExternalFileCharacterSet(CHARSET_UTF_8);
 			}
 
 			return convertedSubs;
@@ -1211,7 +1237,13 @@ public class FFMpegVideo extends Player {
 		}
 
 		if (!FileUtil.isFileUTF8(tempSubs)) {
-			tempSubs = SubtitleUtils.applyCodepageConversion(tempSubs, convertedSubs);
+			try {
+				tempSubs = SubtitleUtils.applyCodepageConversion(tempSubs, convertedSubs);
+				params.sid.setExternalFileCharacterSet(CHARSET_UTF_8);
+			} catch (IOException ex) {
+				params.sid.setExternalFileCharacterSet(null);
+				LOGGER.warn("Exception during external file charset detection.", ex);
+			}
 		} else {
 			FileUtils.copyFile(tempSubs, convertedSubs);
 			tempSubs = convertedSubs;
@@ -1227,6 +1259,7 @@ public class FFMpegVideo extends Player {
 		) {
 			try {
 				tempSubs = applyFontconfigToASSTempSubsFile(tempSubs, media, configuration);
+				params.sid.setExternalFileCharacterSet(CHARSET_UTF_8);
 			} catch (IOException e) {
 				LOGGER.debug("Applying subs setting ends with error: " + e);
 				return null;
@@ -1375,29 +1408,28 @@ public class FFMpegVideo extends Player {
 							continue;
 						}
 
-						if (format[i].contains("Fontsize")) {
-							params[i] = Integer.toString((int) ((Integer.parseInt(params[i]) * media.getHeight() / (double) 288 * Double.parseDouble(configuration.getAssScale()))));
-							continue;
-						}
+								break;
+							case "Fontsize":
+								if (!playResIsSet) {
+									params[i] = Integer.toString((int) ((Integer.parseInt(params[i]) * media.getHeight() / (double) 288 * Double.parseDouble(configuration.getAssScale()))));
+								}
 
-						if (format[i].contains("PrimaryColour")) {
-							String primaryColour = Integer.toHexString(configuration.getSubsColor());
-							params[i] = "&H" + primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4);
-							continue;
-						}
-
-						if (format[i].contains("Outline")) {
-							params[i] = configuration.getAssOutline();
-							continue;
-						}
-
-						if (format[i].contains("Shadow")) {
-							params[i] = configuration.getAssShadow();
-							continue;
-						}
-
-						if (format[i].contains("MarginV")) {
-							params[i] = configuration.getAssMargin();
+								break;
+							case "PrimaryColour":
+								String primaryColour = Integer.toHexString(configuration.getSubsColor());
+								params[i] = "&H" + primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4);
+								break;
+							case "Outline":
+								params[i] = configuration.getAssOutline();
+								break;
+							case "Shadow":
+								params[i] = configuration.getAssShadow();
+								break;
+							case "MarginV":
+								params[i] = configuration.getAssMargin();
+								break;
+							default:
+								break;
 						}
 					}
 
@@ -1410,9 +1442,7 @@ public class FFMpegVideo extends Player {
 				output.write(outputString.toString());
 			}
 		input.close();
-		output.flush();
-		output.close();
-		temp.deleteOnExit();
+
 		return outputSubs;
 	}
 

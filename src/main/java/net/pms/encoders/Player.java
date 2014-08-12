@@ -477,6 +477,14 @@ public abstract class Player {
 		}
 	}
 
+	public int convertToMod4(int number) {
+		if (number % 4 != 0) {
+			number -= (number % 4);
+		}
+
+		return number;
+	}
+
 	/**
 	 * Returns whether or not the player can handle a given resource.
 	 * If the resource is <code>null</code> compatibility cannot be

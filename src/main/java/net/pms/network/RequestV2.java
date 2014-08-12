@@ -311,10 +311,15 @@ public class RequestV2 extends HTTPResource {
 							// http://www.ps3mediaserver.org/forum/viewtopic.php?f=3&t=15805&p=75534#p75534
 							if (sub.isExternal()) {
 								inputStream = new FileInputStream(sub.getExternalFile());
+								LOGGER.trace("Loading external subtitles: " + sub);
+							} else {
+								LOGGER.trace("Not loading external subtitles because they are not external: " + sub);
 							}
 						} catch (NullPointerException npe) {
-							LOGGER.trace("Could not find external subtitles: " + sub);
+							LOGGER.trace("Not loading external subtitles because we could not find them at " + sub);
 						}
+					} else {
+						LOGGER.trace("Not loading external subtitles because dlna.getMediaSubtitle returned null");
 					}
 				} else {
 					// This is a request for a regular file.
@@ -362,18 +367,21 @@ public class RequestV2 extends HTTPResource {
 								String subtitleUrl;
 								String subExtension = sub.getType().getExtension();
 								if (isNotBlank(subExtension)) {
-									subtitleUrl = "http://" + PMS.get().getServer().getHost() +
-										':' + PMS.get().getServer().getPort() + "/get/" +
-										id + "/subtitle0000." + subExtension;
-								} else {
-									subtitleUrl = "http://" + PMS.get().getServer().getHost() +
-										':' + PMS.get().getServer().getPort() + "/get/" +
-										id + "/subtitle0000";
+									subExtension = "." + subExtension;
 								}
+								subtitleUrl = "http://" + PMS.get().getServer().getHost() +
+									':' + PMS.get().getServer().getPort() + "/get/" +
+									id + "/subtitle0000" + subExtension;
 
 								output.headers().set(subtitleHttpHeader, subtitleUrl);
+							} else {
+								LOGGER.trace("Did not send subtitle headers because dlna.getMediaSubtitle returned null");
 							}
+						} else {
+							LOGGER.trace("Did not send subtitle headers because mediaRenderer.getSubtitleHttpHeader returned either null or blank");
 						}
+					} else {
+						LOGGER.trace("Did not send subtitle headers because dlna.getMedia returned null or configuration.isDisableSubtitles was true");
 					}
 
 					String name = dlna.getDisplayName(mediaRenderer);

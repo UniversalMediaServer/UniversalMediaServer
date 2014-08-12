@@ -98,15 +98,11 @@ public class SubtitleUtils {
 		String line;
 		BufferedReader reader;
 		String cp = configuration.getSubtitlesCodepage();
-		String subsFileCharset = FileUtil.getFileCharset(fileToConvert);
 		final boolean isSubtitlesCodepageForcedInConfigurationAndSupportedByJVM = isNotBlank(cp) && Charset.isSupported(cp);
-		final boolean isSubtitlesCodepageAutoDetectedAndSupportedByJVM = isNotBlank(subsFileCharset) && Charset.isSupported(subsFileCharset);
 		if (isSubtitlesCodepageForcedInConfigurationAndSupportedByJVM) {
 			reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileToConvert), Charset.forName(cp)));
-		} else if (isSubtitlesCodepageAutoDetectedAndSupportedByJVM) {
-			reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileToConvert), Charset.forName(subsFileCharset)));
 		} else {
-			reader = new BufferedReader(new InputStreamReader(new FileInputStream(fileToConvert)));
+			reader = FileUtil.bufferedReaderWithCorrectCharset(fileToConvert);
 		}
 
 		BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), Charset.forName(CHARSET_UTF_8)));

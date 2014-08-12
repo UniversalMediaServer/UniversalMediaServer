@@ -123,7 +123,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 			setAudioOutputParameters(media, params);
 		}
 
-		if (params.sid == null) {
+		if (params.sid == null || (params.sid != null && StringUtils.isNotEmpty(params.sid.getLiveSubURL()))) {
 			setSubtitleOutputParameters(filename, media, params);
 		}
 
@@ -389,7 +389,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		} else if (dlna.getMedia().isFFmpegparsed()) {
 			return;
 		}
-		final ArrayList<String> lines = new ArrayList<String>();
+		final ArrayList<String> lines = new ArrayList<>();
 		final String input = filename.length() > 200 ? filename.substring(0, 199) : filename;
 		OutputTextLogger ffParser = new OutputTextLogger(null, pw) {
 			@Override
