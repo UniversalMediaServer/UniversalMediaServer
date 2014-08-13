@@ -57,20 +57,31 @@ public class RemotePlayHandler implements HttpHandler {
 		String auto = " autoplay>";
 		if (configuration.getWebAutoCont(r.getFormat())) {   // can't hurt to check again
 			// auto play next handling
-			if(StringUtils.isNotEmpty(RemoteUtil.getQueryVars(t.getRequestURI().getQuery(), "nxt"))) {
+			String dir = RemoteUtil.getQueryVars(t.getRequestURI().getQuery(), "nxt");
+			if(StringUtils.isNotEmpty(dir)) {
 				// if the "nxt" field is set we should calculate the next media
 				// 1st fetch or own index in the child list
-				int i = r.getParent().getChildren().indexOf(r);
+				List<DLNAResource> children = r.getParent().getChildren();
+				int i = children.indexOf(r);
 				DLNAResource n = null;
-				if (i+1 < r.getParent().getChildren().size()) {
-					// if we're not last in list just pick next from child list
-					n = r.getParent().getChildren().get(i + 1);
+				int nxtPos;
+				int loopPos;
+				if (dir.equals("true")) {
+					nxtPos = i + 1;
+					loopPos = 0;
+				} else {
+					nxtPos = i - 1;
+					loopPos = children.size() - 1;
+				}
+				if ((nxtPos < children.size()) && (nxtPos >= 0)) {
+					// if we're not last/first in list just pick next/prev from child list
+					n = children.get(nxtPos);
 				}
 				if (n == null && configuration.getWebAutoLoop(r.getFormat())) {
-					// we were last so if we loop pick first in list
-					n = r.getParent().getChildren().get(0);
+					// we were last/first so if we loop pick first/last in list
+					n = children.get(loopPos);
 				}
-				if (n != null) {
+				if (n != null && !n.isFolder()) {
 					// all done, change the id
 					id = n.getResourceId();
 					r = n;
@@ -84,6 +95,7 @@ public class RemotePlayHandler implements HttpHandler {
 		String rawId = id;
 
 		String nxtJs = "window.location.replace('/play/" + id1 + "?nxt=true');";
+		String prvJs = "window.location.replace('/play/" + id1 + "?nxt=false');";
 		// hack here to ensure we got a root folder to use for recently played etc.
 		root.getDefaultRenderer().setRootFolder(root);
 		String mime = root.getDefaultRenderer().getMimeType(r.mimeType());
@@ -103,7 +115,7 @@ public class RemotePlayHandler implements HttpHandler {
 		if (r.getFormat().isAudio()) {
 			mediaType = "audio";
 			String thumb = "/thumb/" + id1;
-			coverImage = "<img src=\"" + thumb + "\" alt=\"\"><br>";
+			coverImage = "<img src=\"" + thumb + "\" alt=\"\"><br><h2>" + r.resumeName() + "</h2><br>";
 			flowplayer = false;
 		}
 		if (r.getFormat().isVideo()) {
@@ -206,6 +218,11 @@ public class RemotePlayHandler implements HttpHandler {
 					if (flowplayer) {
 						sb.append("</div>").append(CRLF);
 					}
+		// nex and prev buttons
+		sb.append("<div>").append(CRLF);
+		sb.append("<button value=\"<<\" onclick=\"").append(prvJs).append("\"><<</button>").append(CRLF);
+		sb.append("<button value=\">>\" onclick=\"").append(nxtJs).append("\">>></button>").append(CRLF);
+		sb.append("</div>").append(CRLF);
 		sb.append("</div>").append(CRLF);
 		sb.append("<a href=\"/raw/").append(rawId).append("\" target=\"_blank\" id=\"DownloadLink\" title=\"Download this video\"></a>").append(CRLF);
 		if (flowplayer) {
