@@ -103,7 +103,9 @@ public class RequestHandler implements Runnable {
 					// Attempt 1: try to recognize the renderer by its socket address from previous requests
 					renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
 
-					if (renderer != null) {
+					// If the renderer exists but isn't marked as loaded it means it's unrecognized
+					// by upnp and we still need to attempt http recognition here.
+					if (renderer != null && renderer.loaded) {
 //						PMS.get().setRendererFound(renderer);
 						request.setMediaRenderer(renderer);
 						LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on address " + ia);
@@ -204,7 +206,7 @@ public class RequestHandler implements Runnable {
 					// Attempt 3: Not really an attempt; all other attempts to recognize
 					// the renderer have failed. The only option left is to assume the
 					// default renderer.
-					request.setMediaRenderer(RendererConfiguration.getDefaultConf());
+					request.setMediaRenderer(RendererConfiguration.resolve(ia, null));
 					LOGGER.trace("Using default media renderer: " + request.getMediaRenderer().getRendererName());
 
 					if (userAgentString != null && !userAgentString.equals("FDSSDP")) {

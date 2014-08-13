@@ -570,6 +570,12 @@ public class UPNPHelper extends UPNPControl {
 				RendererConfiguration ref = RendererConfiguration.getRendererConfigurationByUPNPDetails(getDeviceDetailsString(d));
 				if (ref != null) {
 					r.inherit(ref);
+				} else {
+					// It's unrecognized: temporarily assign the default renderer but mark it as unloaded
+					// so actual recognition can happen later once the http server receives a request.
+					// This is to allow initiation of upnp playback before http recognition has occurred.
+					r.inherit(r.getDefaultConf());
+					r.loaded = false;
 				}
 				if (r.associateIP(socket)) {
 					PMS.get().setRendererFound(r);

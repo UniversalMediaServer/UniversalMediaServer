@@ -545,7 +545,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public static RendererConfiguration getRendererConfigurationByHeaderLine(String header, InetAddress ia) {
 		String userAgentString;
 		RendererConfiguration ref = null;
-		DeviceConfiguration r = null;
+		RendererConfiguration r = null;
 		boolean isNew = false;
 
 		if (header.toUpperCase().startsWith("USER-AGENT")) {
@@ -558,30 +558,39 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		}
 
 		if (ref != null) {
-			try {
-				if (addressAssociation.containsKey(ia)) {
-					// Already seen, finish configuration if required
-					r = (DeviceConfiguration)addressAssociation.get(ia);
-					if (! r.loaded) {
-						r.inherit(ref);
-						// update gui
-						PMS.get().updateRenderer(r);
-					}
-				} else if (! UPNPHelper.isNonRenderer(ia)) {
-					// It's brand new
-					r = new DeviceConfiguration(ref, ia);
-					if (r.associateIP(ia)) {
-						PMS.get().setRendererFound(r);
-						isNew = true;
-					}
-				}
-			} catch (Exception e) {
-			}
+			isNew = ! addressAssociation.containsKey(ia);
+			r = resolve(ia, ref);
 			if (r != null) {
 				LOGGER.trace("Matched " + (isNew ? "new " : "") + "media renderer \"" + r.getRendererName() + "\" based on header \"" + header + "\"");
 			}
 		}
 
+		return r;
+	}
+
+	public static RendererConfiguration resolve(InetAddress ia, RendererConfiguration ref) {
+		DeviceConfiguration r = null;
+		if (ref == null) {
+		   ref = getDefaultConf();
+		}
+		try {
+			if (addressAssociation.containsKey(ia)) {
+				// Already seen, finish configuration if required
+				r = (DeviceConfiguration)addressAssociation.get(ia);
+				if (! r.loaded) {
+					r.inherit(ref);
+					// update gui
+					PMS.get().updateRenderer(r);
+				}
+			} else if (! UPNPHelper.isNonRenderer(ia)) {
+				// It's brand new
+				r = new DeviceConfiguration(ref, ia);
+				if (r.associateIP(ia)) {
+					PMS.get().setRendererFound(r);
+				}
+			}
+		} catch (Exception e) {
+		}
 		return r;
 	}
 
