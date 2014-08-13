@@ -37,6 +37,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		ip = "";
 		port = 0;
 		ua = "";
+		fileless = true;
 	}
 
 	@Override

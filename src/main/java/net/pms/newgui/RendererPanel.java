@@ -34,7 +34,7 @@ public class RendererPanel extends JPanel {
 	private CellConstraints cc = new CellConstraints();
 	private static RowSpec rspec = RowSpec.decode("center:pref");
 	private JPanel editBar;
-	private boolean changed;
+	private boolean ready = false;
 
 	public RendererPanel(final RendererConfiguration renderer) {
 		this.renderer = renderer;
@@ -44,15 +44,15 @@ public class RendererPanel extends JPanel {
 		builder.border(new EmptyBorder(10,10,10,10));
 		int y=0;
 
-		if (! renderer.isFileless()) {
-			builder.appendRow(rspec);
-			editBar = new JPanel();
-			editBar.setLayout(new BoxLayout(editBar, BoxLayout.X_AXIS));
+		builder.appendRow(rspec);
+		editBar = new JPanel();
+		editBar.setLayout(new BoxLayout(editBar, BoxLayout.X_AXIS));
+		builder.add(editBar,  cc.xyw(1, ++y, 2));
+		if (renderer.loaded && ! renderer.isFileless()) {
 			buildEditBar(false);
-			builder.add(editBar,  cc.xyw(1, ++y, 2));
-			builder.appendRow(rspec);
-			builder.addLabel(" ", cc.xy(1, ++y));
 		}
+		builder.appendRow(rspec);
+		builder.addLabel(" ", cc.xy(1, ++y));
 		if (renderer.isUpnpConnected()) {
 			y = addMap(renderer.getUpnpDetails(), builder, y);
 			y = addStrings("Services", WordUtils.wrap(StringUtils.join(renderer.getUpnpServices(), ", "), 60).split("\n"),
@@ -74,15 +74,21 @@ public class RendererPanel extends JPanel {
 		}
 
 		add(builder.getPanel());
+		ready = true;
 	}
 
 	public void buildEditBar(boolean updateUI) {
 		boolean customized = ((DeviceConfiguration)renderer).isCustomized();
+		boolean repack = ready && editBar.getComponentCount() == 0;
 		editBar.removeAll();
 		editBar.add(customized ? referenceButton() : editButton(true));
-		editBar.add(Box.createHorizontalGlue());
-		editBar.add(customized ? editButton(false) : customizeButton());
-		if (updateUI) {
+		if (renderer.getFile() != null) {
+			editBar.add(Box.createHorizontalGlue());
+			editBar.add(customized ? editButton(false) : customizeButton());
+		}
+		if (repack) {
+			SwingUtilities.getWindowAncestor(this).pack();
+		} else if (updateUI) {
 			editBar.updateUI();
 		}
 	}
@@ -115,7 +121,8 @@ public class RendererPanel extends JPanel {
 	public JButton referenceButton() {
 		final File ref = ((DeviceConfiguration)renderer).getConfiguration(DeviceConfiguration.RENDERER).getFile();
 		final CustomJButton open = new CustomJButton(MetalIconFactory.getTreeLeafIcon());
-		open.setToolTipText("Open the parent configuration: " + ref);
+		boolean exists = ref != null && ref.exists();
+		open.setToolTipText(exists ? ("Open the parent configuration: " + ref) : "No parent configuration");
 		open.setFocusPainted(false);
 		open.addActionListener(new ActionListener() {
 			@Override
@@ -127,12 +134,18 @@ public class RendererPanel extends JPanel {
 				}
 			}
 		});
+		if (! exists) {
+			open.setLabel("!");
+			open.setHorizontalTextPosition(JButton.CENTER);
+			open.setForeground(Color.lightGray);
+			open.setEnabled(false);
+		}
 		return open;
 	}
 
 	public JButton editButton(final boolean create) {
-		final File file  = renderer.getFile(create);
-		final CustomJButton open = new CustomJButton(((file.exists() || !create) ? "<html>" :
+		final File file  = create ? renderer.getUsableFile() : renderer.getFile();
+		final CustomJButton open = new CustomJButton(((file != null && file.exists() || !create) ? "<html>" :
 			"<html><font color=blue>Start a new configuration file:</font> ") + file.getName() + "</html>",
 			MetalIconFactory.getTreeLeafIcon());
 		open.setToolTipText(file.getAbsolutePath());
@@ -242,6 +255,10 @@ public class RendererPanel extends JPanel {
 			title = "";
 		}
 		return y;
+	}
+
+	public void update() {
+		buildEditBar(true);
 	}
 }
 

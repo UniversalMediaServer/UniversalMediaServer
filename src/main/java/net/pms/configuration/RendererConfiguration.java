@@ -57,8 +57,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected FormatConfiguration formatConfiguration;
 	protected int rank;
 
-	public StatusTab.rendererItem statusIcon;
-	public boolean loaded;
+	public StatusTab.RendererItem gui;
+	public boolean loaded, fileless = false;
 	protected UPNPHelper.Player player;
 
 	public static File NOFILE = new File("NOFILE");
@@ -598,12 +598,15 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public File getFile() {
-		return getFile(false);
+		return file;
 	}
 
-	public File getFile(boolean force) {
-		return file != null ? file :
-			force ? new File(getRenderersDir(), getRendererName().split("\\(")[0].trim().replace(" ", "") + ".conf") : null;
+	public File getUsableFile() {
+		File f = getFile();
+		if (f == null || f.equals(NOFILE)) {
+		   f = new File(getRenderersDir(), getRendererName().split("\\(")[0].trim().replace(" ", "") + ".conf");
+		}
+		return f;
 	}
 
 	public static void createNewFile(RendererConfiguration r, File file, boolean load, File ref) {
@@ -657,7 +660,11 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public boolean isFileless() {
-		return loaded && getFile() == null;
+		return fileless;
+	}
+
+	public void setFileless(boolean b) {
+		fileless = b;
 	}
 
 	public int getRank() {
@@ -1271,14 +1278,18 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	@Override
 	public void alert() {
-		if (statusIcon != null) {
-			statusIcon.icon.setGrey(! isUpnpConnected());
+		if (gui != null) {
+			gui.icon.setGrey(! isUpnpConnected());
 		}
 		super.alert();
 	}
 
-	public void setStatusIcon(StatusTab.rendererItem item) {
-		statusIcon = item;
+	public void setGuiComponents(StatusTab.RendererItem item) {
+		gui = item;
+	}
+
+	public StatusTab.RendererItem getGuiComponents() {
+		return gui;
 	}
 
 	/**

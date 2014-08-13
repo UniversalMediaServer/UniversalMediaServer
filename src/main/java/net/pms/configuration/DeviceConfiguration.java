@@ -116,10 +116,13 @@ public class DeviceConfiguration extends PmsConfiguration {
 	}
 
 	@Override
-	public File getFile(boolean force) {
-		CompositeConfiguration c = (CompositeConfiguration)configuration;
-		File f = getConfiguration(DEVICE).getFile();
-		return (f != null && !f.equals(NOFILE)) ? f : getConfiguration(RENDERER).getFile();
+	public File getFile() {
+		if (loaded) {
+			CompositeConfiguration c = (CompositeConfiguration)configuration;
+			File f = getConfiguration(DEVICE).getFile();
+			return (f != null && !f.equals(NOFILE)) ? f : getConfiguration(RENDERER).getFile();
+		}
+		return null;
 	}
 
 	public File getParentFile() {
@@ -128,17 +131,20 @@ public class DeviceConfiguration extends PmsConfiguration {
 	}
 
 	public boolean isValid() {
-		File f = getConfiguration(DEVICE).getFile();
-		if (f != null) {
-			if (! f.exists()) {
-				// Reset
-				getConfiguration(DEVICE).setFile(NOFILE);
-				getConfiguration(DEVICE).clear();
-				deviceConfs.remove(getId());
-				return false;
+		if (loaded) {
+			File f = getConfiguration(DEVICE).getFile();
+			if (f != null) {
+				if (! f.exists()) {
+					// Reset
+					getConfiguration(DEVICE).setFile(NOFILE);
+					getConfiguration(DEVICE).clear();
+					deviceConfs.remove(getId());
+					return false;
+				}
 			}
+			return true;
 		}
-		return true;
+		return false;
 	}
 
 	public boolean isCustomized() {
