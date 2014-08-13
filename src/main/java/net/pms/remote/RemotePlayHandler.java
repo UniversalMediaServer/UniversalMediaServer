@@ -19,6 +19,7 @@ import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.Player;
 import net.pms.formats.v2.SubtitleUtils;
 import net.pms.io.OutputParams;
+import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,7 +116,8 @@ public class RemotePlayHandler implements HttpHandler {
 		if (r.getFormat().isAudio()) {
 			mediaType = "audio";
 			String thumb = "/thumb/" + id1;
-			coverImage = "<img src=\"" + thumb + "\" alt=\"\"><br><h2>" + r.resumeName() + "</h2><br>";
+			String name = StringEscapeUtils.escapeHtml(r.resumeName());
+			coverImage = "<img src=\"" + thumb + "\" alt=\"\"><br><h2>" + name + "</h2><br>";
 			flowplayer = false;
 		}
 		if (r.getFormat().isVideo()) {
