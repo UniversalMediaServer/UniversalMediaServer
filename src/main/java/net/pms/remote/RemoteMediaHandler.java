@@ -50,7 +50,7 @@ public class RemoteMediaHandler implements HttpHandler {
 		if (RemoteUtil.deny(t)) {
 			throw new IOException("Access denied");
 		}
-		RootFolder root = parent.getRoot(RemoteUtil.userName(t));
+		RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
 		if (root == null) {
 			throw new IOException("Unknown root");
 		}

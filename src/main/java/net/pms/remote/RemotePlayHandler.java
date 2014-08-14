@@ -58,7 +58,7 @@ public class RemotePlayHandler implements HttpHandler {
 		boolean flowplayer = true;
 
 		LOGGER.debug("make play page " + id);
-		RootFolder root = parent.getRoot(RemoteUtil.userName(t));
+		RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
 		if (root == null) {
 			LOGGER.debug("root not found");
 			throw new IOException("Unknown root");

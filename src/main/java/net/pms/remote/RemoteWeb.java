@@ -8,6 +8,7 @@ import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.Executors;
 import javax.net.ssl.*;
 import net.pms.PMS;
@@ -135,14 +136,29 @@ public class RemoteWeb {
 		return PMS.get().getServer().getHost() + ":" + server.getAddress().getPort();
 	}
 
-	public RootFolder getRoot(String name) {
-		return getRoot(name, false, null);
+	private String getCookie(String cstr) {
+		if (StringUtils.isEmpty(cstr)) {
+			return null;
+		}
+		String[] tmp = cstr.split(";");
+		for (String str: tmp) {
+			if (str.trim().startsWith("UMS=")) {
+				return str.substring(4);
+			}
+		}
+		return null;
+	}
+
+	public RootFolder getRoot(String name, HttpExchange t) {
+		return getRoot(name, false, t);
 	}
 
 	public RootFolder getRoot(String name, boolean create, HttpExchange t) {
 		String groupTag = getTag(name);
-		RootFolder root = roots.get(groupTag);
+		String cookie = getCookie(t.getRequestHeaders().getFirst("Cookie"));
+		RootFolder root = roots.get(cookie);
 		if (!create || (root != null)) {
+			t.getResponseHeaders().add("Set-Cookie", "UMS=" + cookie + ";Path=/");
 			return root;
 		}
 		ArrayList<String> tag = new ArrayList<>();
@@ -168,7 +184,9 @@ public class RemoteWeb {
 		}
 		//root.setDefaultRenderer(RendererConfiguration.getRendererConfigurationByName("web"));
 		root.discoverChildren();
-		roots.put(groupTag, root);
+		cookie = UUID.randomUUID().toString();
+		t.getResponseHeaders().add("Set-Cookie", "UMS=" + cookie + ";Path=/");
+		roots.put(cookie, root);
 		return root;
 	}
 
@@ -216,7 +234,7 @@ public class RemoteWeb {
 			if (!s[0].startsWith("web")) {
 				continue;
 			}
-			String[] s1 = s[0].split(".", 2);
+			String[] s1 = s[0].split("\\.", 2);
 			String[] s2 = s[1].split(",", 2);
 			if (s2.length < 2) {
 				continue;
@@ -254,7 +272,7 @@ public class RemoteWeb {
 				RemoteUtil.sendLogo(t);
 				return;
 			}
-			RootFolder root = parent.getRoot(RemoteUtil.userName(t));
+			RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
 			if (root == null) {
 				LOGGER.debug("weird root in thumb req");
 				throw new IOException("Unknown root");
