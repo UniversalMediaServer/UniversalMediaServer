@@ -41,11 +41,24 @@ public class RemotePlayHandler implements HttpHandler {
 		sb.append("</html>").append(CRLF);
 	}
 
+	private DLNAResource findNext(int start, int inc, List<DLNAResource> list) {
+		int nxtPos = start;
+		while ((nxtPos < list.size()) && (nxtPos >= 0)) {
+			// if we're not last/first in list just pick next/prev from child list
+			DLNAResource n = list.get(nxtPos);
+			if(!n.isFolder()) {
+				return n;
+			}
+			nxtPos += inc;
+		}
+		return null;
+	}
+
 	private String mkPage(String id, HttpExchange t) throws IOException {
 		boolean flowplayer = true;
 
 		LOGGER.debug("make play page " + id);
-		RootFolder root = parent.getRoot(RemoteUtil.userName(t));
+		RootFolder root = parent.getRoot(RemoteUtil.userName(t), t);
 		if (root == null) {
 			throw new IOException("Unknown root");
 		}
@@ -56,47 +69,42 @@ public class RemotePlayHandler implements HttpHandler {
 		}
 		DLNAResource r = res.get(0);
 		String auto = " autoplay>";
-		if (configuration.getWebAutoCont(r.getFormat())) {   // can't hurt to check again
-			// auto play next handling
-			String dir = RemoteUtil.getQueryVars(t.getRequestURI().getQuery(), "nxt");
-			if(StringUtils.isNotEmpty(dir)) {
-				// if the "nxt" field is set we should calculate the next media
-				// 1st fetch or own index in the child list
-				List<DLNAResource> children = r.getParent().getChildren();
-				int i = children.indexOf(r);
-				DLNAResource n = null;
-				int nxtPos;
-				int loopPos;
-				if (dir.equals("true")) {
-					nxtPos = i + 1;
-					loopPos = 0;
-				} else {
-					nxtPos = i - 1;
-					loopPos = children.size() - 1;
-				}
-				if ((nxtPos < children.size()) && (nxtPos >= 0)) {
-					// if we're not last/first in list just pick next/prev from child list
-					n = children.get(nxtPos);
-				}
-				if (n == null && configuration.getWebAutoLoop(r.getFormat())) {
-					// we were last/first so if we loop pick first/last in list
-					n = children.get(loopPos);
-				}
-				if (n != null && !n.isFolder()) {
-					// all done, change the id
-					id = n.getResourceId();
-					r = n;
-				} else {
-					// trick here to stop continuing if loop is off
-					auto = ">";
-				}
+		// next/prev handling
+		String dir = RemoteUtil.getQueryVars(t.getRequestURI().getQuery(), "nxt");
+		if(StringUtils.isNotEmpty(dir)) {
+			// if the "nxt" field is set we should calculate the next media
+			// 1st fetch or own index in the child list
+			List<DLNAResource> children = r.getParent().getChildren();
+			int i = children.indexOf(r);
+			DLNAResource n = null;
+			int inc;
+			int loopPos;
+			if (dir.equals("next")) {
+				inc = 1;
+				loopPos = 0;
+			} else {
+				inc = -1;
+				loopPos = children.size() - 1;
+			}
+			n = findNext(i + inc, inc, children);
+			if (n == null && configuration.getWebAutoLoop(r.getFormat())) {
+				// we were last/first so if we loop pick first/last in list
+				n = findNext(loopPos, inc, children);
+			}
+			if (n != null) {
+				// all done, change the id
+				id = n.getResourceId();
+				r = n;
+			} else {
+				// trick here to stop continuing if loop is off
+				auto = ">";
 			}
 		}
 		String id1 = URLEncoder.encode(id, "UTF-8");
 		String rawId = id;
 
-		String nxtJs = "window.location.replace('/play/" + id1 + "?nxt=true');";
-		String prvJs = "window.location.replace('/play/" + id1 + "?nxt=false');";
+		String nxtJs = "window.location.replace('/play/" + id1 + "?nxt=next');";
+		String prvJs = "window.location.replace('/play/" + id1 + "?nxt=prev');";
 		// hack here to ensure we got a root folder to use for recently played etc.
 		root.getDefaultRenderer().setRootFolder(root);
 		String mime = root.getDefaultRenderer().getMimeType(r.mimeType());
