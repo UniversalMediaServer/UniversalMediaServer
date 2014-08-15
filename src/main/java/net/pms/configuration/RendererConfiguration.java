@@ -584,11 +584,8 @@ public class RendererConfiguration {
 		DLNAPN = new HashMap<>();
 		String DLNAPNchanges = getString(DLNA_PN_CHANGES, "");
 
-		if (DLNAPNchanges != null) {
-			LOGGER.trace("Config DLNAPNchanges: " + DLNAPNchanges);
-		}
-
 		if (StringUtils.isNotBlank(DLNAPNchanges)) {
+			LOGGER.trace("Config DLNAPNchanges: " + DLNAPNchanges);
 			StringTokenizer st = new StringTokenizer(DLNAPNchanges, "|");
 			while (st.hasMoreTokens()) {
 				String DLNAPN_change = st.nextToken().trim();
