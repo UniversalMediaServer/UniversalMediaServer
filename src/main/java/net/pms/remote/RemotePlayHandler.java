@@ -20,7 +20,7 @@ import net.pms.encoders.Player;
 import net.pms.formats.v2.SubtitleUtils;
 import net.pms.io.OutputParams;
 import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,7 +66,7 @@ public class RemotePlayHandler implements HttpHandler {
 		//List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, root.getDefaultRenderer());
 		DLNAResource r = root.getDLNAResource(id, root.getDefaultRenderer());
 		if (r == null) {
-			LOGGER.debug("bad id");
+			LOGGER.debug("Bad id in web if "+id);
 			throw new IOException("Bad Id");
 		}
 		String auto = " autoplay>";
@@ -87,7 +87,7 @@ public class RemotePlayHandler implements HttpHandler {
 				inc = -1;
 				loopPos = children.size() - 1;
 			}
-		    n = findNext(i + inc, inc, children);
+			n = findNext(i + inc, inc, children);
 			if (n == null && configuration.getWebAutoLoop(r.getFormat())) {
 				// we were last/first so if we loop pick first/last in list
 				n = findNext(loopPos, inc, children);
@@ -101,13 +101,11 @@ public class RemotePlayHandler implements HttpHandler {
 				auto = ">";
 			}
 		}
-
 		String id1 = URLEncoder.encode(id, "UTF-8");
 		String rawId = id;
 
 		String nxtJs = "window.location.replace('/play/" + id1 + "?nxt=next');";
 		String prvJs = "window.location.replace('/play/" + id1 + "?nxt=prev');";
-		//DLNAResource r = res.get(0);
 		// hack here to ensure we got a root folder to use for recently played etc.
 		root.getDefaultRenderer().setRootFolder(root);
 		String mime = root.getDefaultRenderer().getMimeType(r.mimeType());
@@ -126,7 +124,7 @@ public class RemotePlayHandler implements HttpHandler {
 		}
 		if (r.getFormat().isAudio()) {
 			mediaType = "audio";
-			String thumb = "/thumb/" + rawId;
+			String thumb = "/thumb/" + id1;
 			String name = StringEscapeUtils.escapeHtml(r.resumeName());
 			coverImage = "<img src=\"" + thumb + "\" alt=\"\"><br><h2>" + name + "</h2><br>";
 			flowplayer = false;
@@ -231,6 +229,7 @@ public class RemotePlayHandler implements HttpHandler {
 					if (flowplayer) {
 						sb.append("</div>").append(CRLF);
 					}
+		// nex and prev buttons
 		sb.append("<div>").append(CRLF);
 		sb.append("<button value=\"<<\" onclick=\"").append(prvJs).append("\"><<</button>").append(CRLF);
 		sb.append("<button value=\">>\" onclick=\"").append(nxtJs).append("\">>></button>").append(CRLF);

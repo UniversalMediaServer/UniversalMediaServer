@@ -9,7 +9,6 @@ import net.pms.PMS;
 import net.pms.dlna.Range;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.newgui.LooksFrame;
-import net.pms.util.StringUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,7 +93,7 @@ public class RemoteUtil {
 	}
 
 	public static String strip(String id) {
-		int pos = id.lastIndexOf(".");
+		int pos = id.lastIndexOf('.');
 		if (pos != -1) {
 			return id.substring(0, pos);
 		}

@@ -118,7 +118,13 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		configuration = (DeviceConfiguration)params.mediaRenderer;
 		RendererConfiguration renderer = params.mediaRenderer;
 		String filename = dlna.getSystemName();
-		setAudioAndSubs(filename, media, params);
+		if (params.aid == null) {
+			setAudioOutputParameters(media, params);
+		}
+
+		if (params.sid == null || (params.sid != null && StringUtils.isNotEmpty(params.sid.getLiveSubURL()))) {
+			setSubtitleOutputParameters(filename, media, params);
+		}
 
 		// XXX work around an ffmpeg bug: http://ffmpeg.org/trac/ffmpeg/ticket/998
 		if (filename.startsWith("mms:")) {
@@ -396,7 +402,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		} else if (dlna.getMedia().isFFmpegparsed()) {
 			return;
 		}
-		final ArrayList<String> lines = new ArrayList<String>();
+		final ArrayList<String> lines = new ArrayList<>();
 		final String input = filename.length() > 200 ? filename.substring(0, 199) : filename;
 		OutputTextLogger ffParser = new OutputTextLogger(null, pw) {
 			@Override

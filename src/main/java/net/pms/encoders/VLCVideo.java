@@ -299,7 +299,7 @@ public class VLCVideo extends Player {
 		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
 
-		if (params.mediaRenderer.getMaxVideoBitrate() != null) {
+		if (StringUtils.isNotEmpty(params.mediaRenderer.getMaxVideoBitrate())) {
 			rendererMaxBitrates = getVideoBitrateConfig(params.mediaRenderer.getMaxVideoBitrate());
 		}
 
@@ -430,7 +430,13 @@ public class VLCVideo extends Player {
 		configuration = (DeviceConfiguration)params.mediaRenderer;
 		final String filename = dlna.getSystemName();
 		boolean isWindows = Platform.isWindows();
-		setAudioAndSubs(filename, media, params);
+		if (params.aid == null) {
+			setAudioOutputParameters(media, params);
+		}
+
+		if (params.sid == null || (params.sid != null && StringUtils.isNotEmpty(params.sid.getLiveSubURL()))) {
+			setSubtitleOutputParameters(filename, media, params);
+		}
 
 		// Make sure we can play this
 		CodecConfig config = genConfig(params.mediaRenderer);

@@ -21,6 +21,7 @@ import java.awt.event.ActionEvent;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
+import net.pms.dlna.DLNAMediaSubtitle;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.LibMediaInfoParser;
 import net.pms.dlna.RootFolder;
@@ -90,7 +91,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	// TextWrap parameters
 	protected int line_w, line_h, indent;
 	protected String inset, dots;
-	protected boolean dc_date = true;
 
 	// property values
 	protected static final String LPCM = "LPCM";
@@ -135,6 +135,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String DLNA_PN_CHANGES = "DLNAProfileChanges";
 	protected static final String DLNA_TREE_HACK = "CreateDLNATreeFaster";
 	protected static final String LIMIT_FOLDERS = "LimitFolders";
+	protected static final String EMBEDDED_SUBS_SUPPORTED = "InternalSubtitlesSupported";
 	protected static final String FORCE_JPG_THUMBNAILS = "ForceJPGThumbnails"; // Sony devices require JPG thumbnails
 	protected static final String H264_L41_LIMITED = "H264Level41Limited";
 	protected static final String IMAGE = "Image";
@@ -155,6 +156,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String RENDERER_NAME = "RendererName";
 	protected static final String RESCALE_BY_RENDERER = "RescaleByRenderer";
 	protected static final String SEEK_BY_TIME = "SeekByTime";
+	protected static final String SEND_DATE_METADATA = "SendDateMetadata";
 	protected static final String SHOW_AUDIO_METADATA = "ShowAudioMetadata";
 	protected static final String SHOW_DVD_TITLE_DURATION = "ShowDVDTitleDuration"; // Ditlew
 	protected static final String SHOW_SUB_METADATA = "ShowSubMetadata";
@@ -743,9 +745,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		configurationReader = new ConfigurationReader(configuration, false);
 		pmsConfiguration = _pmsConfiguration;
 
-		mimes = new HashMap<>();
-		charMap = new HashMap<>();
-		DLNAPN = new HashMap<>();
 		renderCache = new HashMap<>();
 		player = null;
 
@@ -786,8 +785,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			configuration.clear();
 			loaded = load(f);
 		}
-		mimes.clear();
-		String mimeTypes = getString(MIME_TYPES_CHANGES, null);
+		mimes = new HashMap<>();
+		String mimeTypes = getString(MIME_TYPES_CHANGES, "");
 
 		if (StringUtils.isNotBlank(mimeTypes)) {
 			StringTokenizer st = new StringTokenizer(mimeTypes, "|");
@@ -809,14 +808,13 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		if (line_w > 0) {
 			line_h = getIntAt(s, "height:", 0);
 			indent = getIntAt(s, "indent:", 0);
-			dc_date = getIntAt(s, "date:", 1) != 0;
 			int ws = getIntAt(s, "whitespace:", 9);
 			int dotct = getIntAt(s, "dots:", 0);
 			inset = new String(new byte[indent]).replaceAll(".", Character.toString((char) ws));
 			dots = new String(new byte[dotct]).replaceAll(".", ".");
 		}
 
-		charMap.clear();
+		charMap = new HashMap<>();
 		String ch = getString(CHARMAP, null);
 		if (StringUtils.isNotBlank(ch)) {
 			StringTokenizer st = new StringTokenizer(ch, " ");
@@ -837,8 +835,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			}
 		}
 
-		DLNAPN.clear();
-		String DLNAPNchanges = getString(DLNA_PN_CHANGES, null);
+		DLNAPN = new HashMap<>();
+		String DLNAPNchanges = getString(DLNA_PN_CHANGES, "");
 
 		if (DLNAPNchanges != null) {
 			LOGGER.trace("Config DLNAPNchanges: " + DLNAPNchanges);
@@ -1353,16 +1351,20 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getString(USER_AGENT_ADDITIONAL_SEARCH, "");
 	}
 
+	/**
+	 * May append a custom file extension to the file path.
+	 * Returns the original path if the renderer didn't define an extension.
+	 *
+	 * @param file the original file path
+	 * @return
+	 */
 	public String getUseSameExtension(String file) {
-		String s = getString(USE_SAME_EXTENSION, null);
-
-		if (s != null) {
-			s = file + "." + s;
-		} else {
-			s = file;
+		String extension = getString(USE_SAME_EXTENSION, "");
+		if (StringUtils.isNotEmpty(extension)) {
+			file += "." + extension;
 		}
 
-		return s;
+		return file;
 	}
 
 	/**
@@ -1474,8 +1476,9 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	/**
-	 * Returns the maximum bitrate (in megabits-per-second) supported by the media renderer as defined
-	 * in the renderer configuration. The default value is <code>null</code>.
+	 * Returns the maximum bitrate (in megabits-per-second) supported by the
+	 * media renderer as defined in the renderer configuration. The default
+	 * value is "0" (unlimited).
 	 *
 	 * @return The bitrate.
 	 */
@@ -1488,7 +1491,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 				// ignore this
 			}
 		}
-		return getString(MAX_VIDEO_BITRATE, null);
+		return getString(MAX_VIDEO_BITRATE, "0");
 	}
 
 	@Deprecated
@@ -1555,10 +1558,11 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * Returns the maximum video width supported by the renderer as defined in
 	 * the renderer configuration. The default value 0 means unlimited.
 	 *
+	 * @see #isMaximumResolutionSpecified()
+	 *
 	 * @return The maximum video width.
 	 */
 	public int getMaxVideoWidth() {
-		// XXX we should require width and height to both be 0 or both be > 0
 		return getInt(MAX_VIDEO_WIDTH, 0);
 	}
 
@@ -1566,20 +1570,29 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * Returns the maximum video height supported by the renderer as defined
 	 * in the renderer configuration. The default value 0 means unlimited.
 	 *
+	 * @see #isMaximumResolutionSpecified()
+	 *
 	 * @return The maximum video height.
 	 */
 	public int getMaxVideoHeight() {
-		// XXX we should require width and height to both be 0 or both be > 0
 		return getInt(MAX_VIDEO_HEIGHT, 0);
 	}
 
 	/**
-	 * Returns <code>true</code> if the renderer has a maximum supported width
-	 * or height, <code>false</code> otherwise.
-	 *
-	 * @return boolean indicating whether the renderer may need videos to be resized.
+	 * @Deprecated use isMaximumResolutionSpecified() instead
 	 */
+	@Deprecated
 	public boolean isVideoRescale() {
+		return getMaxVideoWidth() > 0 && getMaxVideoHeight() > 0;
+	}
+
+	/**
+	 * Returns <code>true</code> if the renderer has a maximum supported width
+	 * and height, <code>false</code> otherwise.
+	 *
+	 * @return whether the renderer has specified a maximum width and height
+	 */
+	public boolean isMaximumResolutionSpecified() {
 		return getMaxVideoWidth() > 0 && getMaxVideoHeight() > 0;
 	}
 
@@ -1659,7 +1672,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public boolean isForceJPGThumbnails() {
-		return (getBoolean(FORCE_JPG_THUMBNAILS, false) && LibMediaInfoParser.isValid()) || isBRAVIA();
+		return getBoolean(FORCE_JPG_THUMBNAILS, false) && LibMediaInfoParser.isValid();
 	}
 
 	public boolean isShowAudioMetadata() {
@@ -1668,6 +1681,16 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public boolean isShowSubMetadata() {
 		return getBoolean(SHOW_SUB_METADATA, true);
+	}
+
+	/**
+	 * Whether to send the last modified date metadata for files and
+	 * folders, which can take up screen space on some renderers.
+	 *
+	 * @return whether to send the metadata
+	 */
+	public boolean isSendDateMetadata() {
+		return getBoolean(SEND_DATE_METADATA, true);
 	}
 
 	public boolean isDLNATreeHack() {
@@ -1737,7 +1760,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public String getFFmpegVideoFilterOverride() {
-		return getString(OVERRIDE_FFMPEG_VF, null);
+		return getString(OVERRIDE_FFMPEG_VF, "");
 	}
 
 	public static ArrayList<String> getAllRenderersNames() {
@@ -1805,8 +1828,13 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return name;
 	}
 
+	/**
+	 * @see #isSendDateMetadata()
+	 * @deprecated
+	 */
+	@Deprecated
 	public boolean isOmitDcDate() {
-		return !dc_date;
+		return !isSendDateMetadata();
 	}
 
 	public static int getIntAt(String s, String key, int fallback) {
@@ -1818,11 +1846,43 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public String getSupportedSubtitles() {
-		return getString(SUPPORTED_SUBTITLES_FORMATS, null);
+		return getString(SUPPORTED_SUBTITLES_FORMATS, "");
 	}
 
 	public boolean useClosedCaption() {
 		return getBoolean(USE_CLOSED_CAPTION, false);
+	}
+
+	public boolean isSubtitlesStreamingSupported() {
+		return StringUtils.isNotBlank(getSupportedSubtitles());
+	}
+
+	/**
+	 * Check if the given subtitle is supported by renderer for streaming.
+	 *
+	 * @param subtitle Subtitles for checking
+	 * @return True if subtitles format is supported by renderer for streaming, False if 
+	 * subtitles format is not supported or supported formats are not set in the renderer.conf
+	 */
+	public boolean isSubtitlesFormatSupported(DLNAMediaSubtitle subtitle) {
+		if (subtitle == null) {
+			return false;
+		}
+
+		if (isSubtitlesStreamingSupported()) {
+			String[] supportedSubs = getSupportedSubtitles().split(",");
+			for (String supportedSub : supportedSubs) {
+				if (subtitle.getType().toString().equals(supportedSub.trim().toUpperCase())) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	public boolean isEmbeddedSubtitlesSupported() {
+		return getBoolean(EMBEDDED_SUBS_SUPPORTED, false);
 	}
 
 	public ArrayList<String> tags() {
@@ -1837,7 +1897,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	private String calculatedSpeed() throws Exception {
-		String max = getString(MAX_VIDEO_BITRATE, null);
+		String max = getString(MAX_VIDEO_BITRATE, "");
 		for (InetAddress sa : addressAssociation.keySet()) {
 			if (addressAssociation.get(sa) == this) {
 				Future<Integer> speed = SpeedStats.getInstance().getSpeedInMBitsStored(sa, getRendererName());

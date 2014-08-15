@@ -81,9 +81,6 @@ public class DeviceConfiguration extends PmsConfiguration {
 		filter = baseConf.filter;
 
 		// Initialize our internal RendererConfiguration vars
-		mimes = new HashMap<>();
-		charMap = new HashMap<>();
-		DLNAPN = new HashMap<>();
 		renderCache = new HashMap<>();
 		player = null;
 		loaded = true;

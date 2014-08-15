@@ -1,4 +1,62 @@
-4.0.0 - 2014-07-?? - Changes since 3.6.4
+4.0.3 - 2014-08-12
+
+	General:
+		Fixed MP4 support on some renderers
+		Fixed transcoded video resolutions with odd numbers on some renderers
+		Fixed error when retrieving audio channels
+		Updated descriptions in UMS.conf
+	Renderers:
+		Fixed audio support on WDTV Live (thanks, DualC!)
+		Fixed external subtitle support on Samsung devices
+		Improved support for Panasonic VT60 TVs
+	Languages:
+		Fixed Spanish translation
+		Updated most translations in minor ways
+		Updated Dutch translation (thanks, leroy!)
+	External Components:
+		Updated MediaInfo for Windows to 0.7.69, which:
+			Improves folder population times
+			Improves stability
+			Improves detection of HEVC streams
+			Fixes bugs
+
+4.0.2 - 2014-08-06
+
+	General:
+		The Java 8 build on Windows offers to update Java 7
+		Added all default renderer values to PS3.conf to make it easier to support new renderers
+		Added documentation and formatting to PS3.conf
+		Fixed automatic Java download/installation on Windows for users without it
+		Fixed the Live Subtitles feature
+		Fixed external subtitle support
+	Renderers:
+		Improved support for DirecTV HR
+		Improved support for Panasonic TVs
+		Improved support for Samsung devices
+	External Components:
+		Updated Java Runtime Environment automatic downloader for Windows to 8u11, which:
+			Improves security
+		Updated Maven Compiler Plugin to 3.1
+
+4.0.1 - 2014-08-01
+
+	General:
+		Added option InternalSubtitlesSupported to renderer configs for greater control over file compatibility
+		Added option "Force external subtitles"
+		Added the option "Use embedded style" to FFmpeg instead of just MEncoder
+		Fixed a bug with the adaptive bitrate setting GUI
+		Fixed bugs with subtitles not being loaded
+		Fixed displaying the Windows-specific "prevent operating system from sleeping" option on other operating systems
+		Fixed FFmpeg sometimes sending too many audio channels
+		Fixed FFmpeg using a bitrate too high for audio transcoding
+	Languages:
+		Updated Spanish translation (thanks, AlfredoRamos!)
+	External Components:
+		Updated FFmpeg to builds from 2014-07-16, which:
+			Improves support for many containers and codecs
+			Fixes bugs
+
+4.0.0 - 2014-07-25 - Changes since 3.6.4
 
 	General:
 		Added a web interface, available at localhost:9001
@@ -7,35 +65,108 @@
 		Added "Random" file sorting option
 		Added tooltips to more options in the GUI
 		Added option to use PsPing on Windows to make network speed estimates more accurate (ping_path)
-		Added renderer option LimitFolders to specify whether the renderer has a folder limit or not
+		Added renderer option LimitFolders to specify whether the renderer has a folder limit
+		Added renderer option SendDateMetadata to specify whether to send last modified date metadata to the renderer
 		Added searching to each folder
-		Added a new web_port setting to UMS.conf
+		Added web_port and web_enable settings to UMS.conf
+		Added support for 4k videos by automatically scaling them to a resolution that the renderer supports
 		Made FFmpeg the default transcoding engine
 		Made the buffer more animated
 		Changed the names of transcoding options in renderer config files for clarity
 		Output surround audio (AC-3) instead of stereo (MP2) when using VLC (needs testing)
 		Enabled subtitles in VLC (thanks, tdcosta100!)
 		Improved the TextWrap function, which makes filenames fit better on certain renderers
+		Improved detection of which videos are automatically muxable
 		Made more strings translatable
-		Fixed performing unnecessary speed checks
+		Fixed performing unnecessary network speed checks
 		Fixed a bug with the Recently Played folder
 		Fixed padding in FFmpeg for DVD video resolution
 		Fixed documentation images on Linux
+		Fixed external subtitles sometimes not loading
+		Fixed files with resolutions that are too high for the renderer streaming if they are otherwise supported
+		Fixed the VLC Web Video legacy engine only outputting 25fps
+		Fixed UMS occasionally telling renderers to expect a different video format than they get
+		General speed improvements
+		Updated several descriptions and formatted UMS.conf (user config) and PS3.conf (reference renderer config)
 	Renderers:
 		Added support for Google Chromecast
-		Improved support for Panasonic TX-L32V10E TVs
-		Improved support for Samsung TVs, Blu-ray players and mobile devices
+		Added support for Sony Bravia XBR TVs
 		Improved aspect ratios on Sony Bravia EX TVs
+		Improved support for Apple mobile devices (iPad, iPhone, iPod)
+		Improved support for AirPlayer
+		Improved support for Android
+		Improved support for BlackBerry
+		Improved support for Cambridge Audio Blu-ray players
+		Improved support for D-Link DSM-510
+		Improved support for Freebox HD
+		Improved support for Freecom Music Pal
+		Improved support for LG Smart TV Upgrader
+		Improved support for OPPO Blu-ray players
+		Improved support for Panasonic TX-L32V10E TVs
+		Improved support for Popcorn Hour
+		Improved support for Pioneer Kuro
+		Improved support for Realtek media players
+		Improved support for Samsung TVs, Blu-ray players and mobile devices
+		Improved support for Showtime
+		Improved support for Sony Bravia TVs, media players, Blu-ray players and Xperia devices
+		Improved support for Streamium
+		Improved support for Telstra T-Box
+		Improved support for VideoWeb TV
+		Improved support for Vizio TVs
+		Improved support for WDTV Live
+		Improved support for XBMC
+		Improved support for Xbox 360
+	Languages:
+		Updated Dutch translation (thanks, leroy!)
 
-4.0.0 - 2014-07-?? - Changes since 4.0.0-b1
+4.0.0 - 2014-07-25 - Changes since 4.0.0-b1
 
 	General:
 		Made the buffer more animated
-		Added a new web_port setting to UMS.conf
+		Added web_port and web_enable settings to UMS.conf
+		Added support for 4k videos by automatically scaling them to a resolution that the renderer supports
+		Added renderer option SendDateMetadata to specify whether to send last modified date metadata to the renderer
+		Improved detection of which videos are automatically muxable
 		Fixed and improved web interface search
 		Fixed web interface content-type
 		Fixed images on web interface on Linux and OS X
 		Fixed documentation images on Linux
+		Fixed occasional error on Linux when packing debug files
+		Fixed external subtitles sometimes not loading
+		Fixed files with resolutions that are too high for the renderer streaming if they are otherwise supported
+		Fixed the VLC Web Video legacy engine only outputting 25fps
+		Fixed UMS occasionally telling renderers to expect a different video format than they get
+		General speed improvements
+		Updated several descriptions and formatted UMS.conf
+	Renderers:
+		Added support for Sony Bravia XBR TVs
+		Improved support for Apple mobile devices (iPad, iPhone, iPod)
+		Improved support for AirPlayer
+		Improved support for Android
+		Improved support for BlackBerry
+		Improved support for Cambridge Audio Blu-ray players
+		Improved support for Chromecast
+		Improved support for D-Link DSM-510
+		Improved support for Freebox HD
+		Improved support for Freecom Music Pal
+		Improved support for LG Smart TV Upgrader
+		Improved support for OPPO Blu-ray players
+		Improved support for Popcorn Hour
+		Improved support for Pioneer Kuro
+		Improved support for Realtek media players
+		Improved support for Samsung TVs, Blu-ray players and mobile devices
+		Improved support for Showtime
+		Improved support for Sony Bravia TVs, media players, Blu-ray players and Xperia devices
+		Improved support for Streamium
+		Improved support for Telstra T-Box
+		Improved support for VideoWeb TV
+		Improved support for Vizio TVs
+		Improved support for WDTV Live
+		Improved support for XBMC
+		Improved support for Xbox 360
+		Recognize Xbox One and PlayStation 4 when they connect to the web interface
+	Languages:
+		Updated Dutch translation (thanks, leroy!)
 
 4.0.0-b1 - 2014-07-11 - Changes since 4.0.0-a1
 

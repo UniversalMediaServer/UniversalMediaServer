@@ -120,6 +120,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_FONT = "subtitles_font";
 	protected static final String KEY_FORCED_SUBTITLE_LANGUAGE = "forced_subtitle_language";
 	protected static final String KEY_FORCED_SUBTITLE_TAGS = "forced_subtitle_tags";
+	protected static final String KEY_FORCE_EXTERNAL_SUBTITLES = "force_external_subtitles";
 	protected static final String KEY_FORCE_TRANSCODE_FOR_EXTENSIONS = "force_transcode_for_extensions";
 	protected static final String KEY_FOLDER_LIMIT = "folder_limit";
 	public static final String KEY_GPU_ACCELERATION = "gpu_acceleration";
@@ -144,10 +145,10 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_LANGUAGE = "language";
 	protected static final String KEY_MAX_AUDIO_BUFFER = "maximum_audio_buffer_size";
 	protected static final String KEY_MAX_BITRATE = "maximum_bitrate";
+	protected static final String KEY_MEDIA_LIB_SORT = "media_lib_sort";
 	protected static final String KEY_MAX_MEMORY_BUFFER_SIZE = "maximum_video_buffer_size";
 	protected static final String KEY_MENCODER_ASS = "mencoder_ass";
 	protected static final String KEY_MENCODER_AC3_FIXED = "mencoder_ac3_fixed";
-	protected static final String KEY_MENCODER_ASS_DEFAULTSTYLE = "mencoder_ass_defaultstyle";
 	protected static final String KEY_MENCODER_CUSTOM_OPTIONS = "mencoder_custom_options";
 	protected static final String KEY_MENCODER_FONT_CONFIG = "mencoder_fontconfig";
 	protected static final String KEY_MENCODER_FORCE_FPS = "mencoder_forcefps";
@@ -218,6 +219,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_SORT_PATHS = "sort_paths";
 	protected static final String KEY_SPEED_DBG = "speed_debug";
 	protected static final String KEY_SUBS_COLOR = "subtitles_color";
+	protected static final String KEY_USE_EMBEDDED_SUBTITLES_STYLE = "use_embedded_subtitles_style";
 	protected static final String KEY_SUBTITLES_CODEPAGE = "subtitles_codepage";
 	protected static final String KEY_SUBTITLES_LANGUAGES = "subtitles_languages";
 	protected static final String KEY_TEMP_FOLDER_PATH = "temp_directory";
@@ -259,6 +261,10 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_BUMP_ADDRESS = "bump";
 	protected static final String KEY_BUMP_JS = "bump.js";
 	protected static final String KEY_BUMP_SKIN_DIR = "bump.skin";
+
+	// Deprecated settings
+	@Deprecated
+	protected static final String KEY_MENCODER_ASS_DEFAULTSTYLE = "mencoder_ass_defaultstyle";
 
 	// The name of the subdirectory under which UMS config files are stored for this build (default: UMS).
 	// See Build for more details
@@ -1544,25 +1550,48 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Returns true when PMS should check for external subtitle files with the
-	 * same name as the media (*.srt, *.sub, *.ass, etc.). The default value is
-	 * true.
+	 * Whether we should check for external subtitle files with the same
+	 * name as the media (*.srt, *.sub, *.ass, etc.).
 	 *
-	 * @return True if PMS should check for external subtitle files, false if
-	 * 		they should be ignored.
+	 * Note: This will return true if either the autoload external subtitles
+	 * setting is enabled or the force external subtitles setting is enabled
+	 *
+	 * @return Whether we should check for external subtitle files.
 	 */
 	public boolean isAutoloadExternalSubtitles() {
-		return getBoolean(KEY_AUTOLOAD_SUBTITLES, true);
+		return getBoolean(KEY_AUTOLOAD_SUBTITLES, true) || isForceExternalSubtitles();
 	}
 
 	/**
-	 * Set to true if PMS should check for external subtitle files with the
-	 * same name as the media (*.srt, *.sub, *.ass etc.).
+	 * Whether we should check for external subtitle files with the same
+	 * name as the media (*.srt, *.sub, *.ass etc.).
 	 *
-	 * @param value True if PMS should check for external subtitle files.
+	 * @param value Whether we should check for external subtitle files.
 	 */
 	public void setAutoloadExternalSubtitles(boolean value) {
 		configuration.setProperty(KEY_AUTOLOAD_SUBTITLES, value);
+	}
+
+	/**
+	 * Whether we should force external subtitles with the same name as the
+	 * media (*.srt, *.sub, *.ass, etc.) to display, regardless of whether
+	 * language preferences disable them.
+	 *
+	 * @return Whether we should force external subtitle files.
+	 */
+	public boolean isForceExternalSubtitles() {
+		return getBoolean(KEY_FORCE_EXTERNAL_SUBTITLES, true);
+	}
+
+	/**
+	 * Whether we should force external subtitles with the same name as the
+	 * media (*.srt, *.sub, *.ass, etc.) to display, regardless of whether
+	 * language preferences disable them.
+	 *
+	 * @param value Whether we should force external subtitle files.
+	 */
+	public void setForceExternalSubtitles(boolean value) {
+		configuration.setProperty(KEY_FORCE_EXTERNAL_SUBTITLES, value);
 	}
 
 	/**
@@ -2082,12 +2111,52 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getBoolean(KEY_DISABLE_FAKESIZE, false);
 	}
 
+	/**
+	 * Whether the style rules defined by styled subtitles (ASS/SSA) should
+	 * be followed (true) or overridden by our style rules (false) when
+	 * using MEncoder.
+	 *
+	 * @see #setUseEmbeddedSubtitlesStyle(boolean)
+	 * @param value whether to use the embedded styles or ours
+	 * @deprecated
+	 */
+	@Deprecated
 	public void setMencoderAssDefaultStyle(boolean value) {
 		configuration.setProperty(KEY_MENCODER_ASS_DEFAULTSTYLE, value);
 	}
 
+	/**
+	 * Whether the style rules defined by styled subtitles (ASS/SSA) should
+	 * be followed (true) or overridden by our style rules (false) when
+	 * using MEncoder.
+	 *
+	 * @see #isUseEmbeddedSubtitlesStyle()
+	 * @return whether to use the embedded styles or ours
+	 * @deprecated
+	 */
+	@Deprecated
 	public boolean isMencoderAssDefaultStyle() {
 		return getBoolean(KEY_MENCODER_ASS_DEFAULTSTYLE, true);
+	}
+
+	/**
+	 * Whether the style rules defined by styled subtitles (ASS/SSA) should
+	 * be followed (true) or overridden by our style rules (false).
+	 *
+	 * @param value whether to use the embedded styles or ours
+	 */
+	public void setUseEmbeddedSubtitlesStyle(boolean value) {
+		configuration.setProperty(KEY_USE_EMBEDDED_SUBTITLES_STYLE, value);
+	}
+
+	/**
+	 * Whether the style rules defined by styled subtitles (ASS/SSA) should
+	 * be followed (true) or overridden by our style rules (false).
+	 *
+	 * @return whether to use the embedded styles or ours
+	 */
+	public boolean isUseEmbeddedSubtitlesStyle() {
+		return getBoolean(KEY_USE_EMBEDDED_SUBTITLES_STYLE, true) || getBoolean(KEY_MENCODER_ASS_DEFAULTSTYLE, true);
 	}
 
 	public int getMEncoderOverscan() {
@@ -3060,7 +3129,7 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public void setAutomaticMaximumBitrate(boolean b) {
 		if (!isAutomaticMaximumBitrate() && b) {
-			// get all bitrates from renders
+			// get all bitrates from renderers
 			RendererConfiguration.calculateAllSpeeds();
 		}
 		configuration.setProperty(KEY_AUTOMATIC_MAXIMUM_BITRATE, b);
@@ -3076,6 +3145,10 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public boolean getAutoDiscover() {
 		return getBoolean(KEY_AUTOMATIC_DISCOVER, false);
+	}
+
+	public int mediaLibrarySort() {
+		return getInt(KEY_MEDIA_LIB_SORT, UMSUtils.SORT_NO_SORT);
 	}
 
 	public boolean getWebAutoCont(Format f) {
@@ -3106,5 +3179,4 @@ public class PmsConfiguration extends RendererConfiguration {
 	public int getWebImgSlideDelay() {
 		return getInt(KEY_WEB_IMAGE_SLIDE, 0);
 	}
-
 }

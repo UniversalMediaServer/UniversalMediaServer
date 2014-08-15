@@ -59,7 +59,7 @@ public class ResumeObj {
 		if (r.getMedia() != null) {
 			double dur = r.getMedia().getDurationInSeconds();
 			if (dur == 0.0 || dur == DLNAMediaInfo.TRANS_SIZE) {
-				r.getMedia().setDuration(new Double(res.resDuration / 1000.0));
+				r.getMedia().setDuration(res.resDuration / 1000.0);
 			}
 		}
 		res.setMinDuration(r.minPlayTime());
@@ -92,18 +92,15 @@ public class ResumeObj {
 	}
 
 	public void read() {
-		try {
-			try (BufferedReader in = new BufferedReader(new FileReader(file))) {
-				String str;
-				while ((str = in.readLine()) != null) {
-					String[] tmp = str.split(",");
-					offsetTime = Long.parseLong(tmp[0]);
-					if (tmp.length > 1) {
-						resDuration = Long.parseLong(tmp[1]);
-					}
-					break;
+		try (BufferedReader in = new BufferedReader(new FileReader(file))) {
+			String str;
+			while ((str = in.readLine()) != null) {
+				String[] tmp = str.split(",");
+				offsetTime = Long.parseLong(tmp[0]);
+				if (tmp.length > 1) {
+					resDuration = Long.parseLong(tmp[1]);
 				}
-				in.close();
+				break;
 			}
 		} catch (IOException e) {
 		}

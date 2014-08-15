@@ -30,20 +30,20 @@ public class UMSUtils {
 				continue;
 			}
 
-			boolean keep = res.getName().toLowerCase().indexOf(searchCriteria) != -1;
+			boolean keep = res.getName().toLowerCase().contains(searchCriteria);
 			final DLNAMediaInfo media = res.getMedia();
 
 			if (!keep && media != null && media.getAudioTracksList() != null) {
 				for (int j = 0; j < media.getAudioTracksList().size(); j++) {
 					DLNAMediaAudio audio = media.getAudioTracksList().get(j);
 					if (audio.getAlbum() != null) {
-						keep |= audio.getAlbum().toLowerCase().indexOf(searchCriteria) != -1;
+						keep |= audio.getAlbum().toLowerCase().contains(searchCriteria);
 					}
 					if (audio.getArtist() != null) {
-						keep |= audio.getArtist().toLowerCase().indexOf(searchCriteria) != -1;
+						keep |= audio.getArtist().toLowerCase().contains(searchCriteria);
 					}
 					if (audio.getSongname() != null) {
-						keep |= audio.getSongname().toLowerCase().indexOf(searchCriteria) != -1;
+						keep |= audio.getSongname().toLowerCase().contains(searchCriteria);
 					}
 				}
 			}
@@ -93,7 +93,7 @@ public class UMSUtils {
 				Collections.sort(files, new Comparator<File>() {
 					@Override
 					public int compare(File f1, File f2) {
-						return Long.valueOf(f1.lastModified()).compareTo(Long.valueOf(f2.lastModified()));
+						return Long.valueOf(f1.lastModified()).compareTo(f2.lastModified());
 					}
 				});
 				break;
@@ -101,7 +101,7 @@ public class UMSUtils {
 				Collections.sort(files, new Comparator<File>() {
 					@Override
 					public int compare(File f1, File f2) {
-						return Long.valueOf(f2.lastModified()).compareTo(Long.valueOf(f1.lastModified()));
+						return Long.valueOf(f2.lastModified()).compareTo(f1.lastModified());
 					}
 				});
 				break;
