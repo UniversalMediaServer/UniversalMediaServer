@@ -115,10 +115,10 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			request.setMediaRenderer(renderer);
 			LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on address " + ia);
 		}
-		
+
 		Set<String> headerNames = nettyRequest.headers().names();
 		Iterator<String> iterator = headerNames.iterator();
-		while(iterator.hasNext()) {
+		while (iterator.hasNext()) {
 			String name = iterator.next();
 			String headerLine = name + ": " + nettyRequest.headers().get(name);
 			LOGGER.trace("Received on socket: " + headerLine);
@@ -185,9 +185,10 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 							request.setTimeRangeEndString(end);
 						}
 					} else {
-						 // If we made it to here, none of the previous header checks matched.
-						 // Unknown headers make interesting logging info when we cannot recognize
-						 // the media renderer, so keep track of the truly unknown ones.
+						/** If we made it to here, none of the previous header checks matched.
+						 * Unknown headers make interesting logging info when we cannot recognize
+						 * the media renderer, so keep track of the truly unknown ones.
+						 */
 						boolean isKnown = false;
 
 						// Try to match known headers.
@@ -281,7 +282,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
 			}
 		}
-		
+
 		StartStopListenerDelegate startStopListenerDelegate = new StartStopListenerDelegate(ia.getHostAddress());
 
 		try {

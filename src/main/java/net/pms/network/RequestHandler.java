@@ -57,7 +57,6 @@ public class RequestHandler implements Runnable {
 		"User-Agent"
 	};
 
-
 	public RequestHandler(Socket socket) throws IOException {
 		this.socket = socket;
 		this.output = socket.getOutputStream();
