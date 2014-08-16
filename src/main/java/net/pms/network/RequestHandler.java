@@ -75,6 +75,7 @@ public class RequestHandler implements Runnable {
 			StringBuilder unknownHeaders = new StringBuilder();
 			String separator = "";
 			RendererConfiguration renderer = null;
+			RendererConfiguration tempRenderer = null;
 
 			InetSocketAddress remoteAddress = (InetSocketAddress) socket.getRemoteSocketAddress();
 			InetAddress ia = remoteAddress.getAddress();
@@ -110,25 +111,52 @@ public class RequestHandler implements Runnable {
 				if (renderer == null && headerLine.toUpperCase().startsWith("USER-AGENT") && request != null) {
 					userAgentString = headerLine.substring(headerLine.indexOf(':') + 1).trim();
 
-					// Attempt 2: try to recognize the renderer by matching the "User-Agent" header
+					// Attempt 2: try to match a high-priority renderer by matching the "User-Agent" header
+					tempRenderer = RendererConfiguration.getRendererConfigurationByUA(userAgentString);
+
+					if (tempRenderer != null && tempRenderer.isPriorityLoading()) {
+						renderer = tempRenderer;
+						PMS.get().setRendererFound(renderer);
+						request.setMediaRenderer(renderer);
+						renderer.associateIP(ia);	// Associate IP address for later requests
+						LOGGER.trace("Matched high-priority media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLine + "\"");
+					}
+				}
+				if (renderer == null && request != null) {
+					// Attempt 3: try to match a high-priority renderer by matching an additional header
+					tempRenderer = RendererConfiguration.getRendererConfigurationByUAAHH(headerLine);
+
+					if (tempRenderer != null && tempRenderer.isPriorityLoading()) {
+						renderer = tempRenderer;
+						PMS.get().setRendererFound(renderer);
+						request.setMediaRenderer(renderer);
+						renderer.associateIP(ia);	// Associate IP address for later requests
+						LOGGER.trace("Matched high-priority media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLine + "\"");
+					}
+				}
+
+				if (renderer == null && headerLine.toUpperCase().startsWith("USER-AGENT") && request != null) {
+					userAgentString = headerLine.substring(headerLine.indexOf(':') + 1).trim();
+
+					// Attempt 4: try to recognize the renderer by matching the "User-Agent" header
 					renderer = RendererConfiguration.getRendererConfigurationByUA(userAgentString);
 
 					if (renderer != null) {
 						PMS.get().setRendererFound(renderer);
 						request.setMediaRenderer(renderer);
 						renderer.associateIP(ia);	// Associate IP address for later requests
-						LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLine + "\"");
+						LOGGER.trace("Matched normal-priority media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLine + "\"");
 					}
 				}
 				if (renderer == null && request != null) {
-					// Attempt 3: try to recognize the renderer by matching an additional header
+					// Attempt 5: try to recognize the renderer by matching an additional header
 					renderer = RendererConfiguration.getRendererConfigurationByUAAHH(headerLine);
 
 					if (renderer != null) {
 						PMS.get().setRendererFound(renderer);
 						request.setMediaRenderer(renderer);
 						renderer.associateIP(ia);	// Associate IP address for later requests
-						LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLine + "\"");
+						LOGGER.trace("Matched normal-priority media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLine + "\"");
 					}
 				}
 				try {
@@ -208,7 +236,7 @@ public class RequestHandler implements Runnable {
 			if (request != null) {
 				// Still no media renderer recognized?
 				if (request.getMediaRenderer() == null) {
-					// Attempt 4: Not really an attempt; all other attempts to recognize
+					// Attempt 6: Not really an attempt; all other attempts to recognize
 					// the renderer have failed. The only option left is to assume the
 					// default renderer.
 					request.setMediaRenderer(RendererConfiguration.getDefaultConf());

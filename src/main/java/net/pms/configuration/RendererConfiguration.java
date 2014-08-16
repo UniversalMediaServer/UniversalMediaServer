@@ -116,6 +116,7 @@ public class RendererConfiguration {
 	private static final String MUX_LPCM_TO_MPEG = "MuxLPCMToMpeg";
 	private static final String MUX_NON_MOD4_RESOLUTION = "MuxNonMod4Resolution";
 	private static final String OVERRIDE_FFMPEG_VF = "OverrideFFmpegVideoFilter";
+	private static final String PRIORITY_LOADING = "PriorityLoading";
 	private static final String RENDERER_ICON = "RendererIcon";
 	private static final String RENDERER_NAME = "RendererName";
 	private static final String RESCALE_BY_RENDERER = "RescaleByRenderer";
@@ -1467,5 +1468,20 @@ public class RendererConfiguration {
 			}
 		}
 		return max;
+	}
+
+	/**
+	 * Whether to load this renderer before the non-priority ones.
+	 * This should be used if this renderer config is a more specific
+	 * version of one we already have.
+	 * For example, we have a Panasonic TVs config that is used for all
+	 * Panasonic TVs, except the ones we have specific configs for, so the
+	 * specific ones enable this setting to ensure they are used when
+	 * applicable instead of the less-specific renderer config.
+	 *
+	 * @return whether this renderer should be loaded ahead of others
+	 */
+	public boolean isPriorityLoading() {
+		return getBoolean(PRIORITY_LOADING, false);
 	}
 }
