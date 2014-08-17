@@ -9,11 +9,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.StringTokenizer;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
@@ -45,6 +49,7 @@ public class RendererConfiguration {
 	private final ConfigurationReader configurationReader;
 	private FormatConfiguration formatConfiguration;
 	private int rank;
+	private Matcher headerMatcher;
 
 	// Holds MIME type aliases
 	private final Map<String, String> mimes;
@@ -356,78 +361,32 @@ public class RendererConfiguration {
 	}
 
 	public static RendererConfiguration getRendererConfigurationBySocketAddress(InetAddress sa) {
-		return addressAssociation.get(sa);
-	}
-
-	/**
-	 * Tries to find a matching renderer configuration based on a request
-	 * header line with a User-Agent header. These matches are made using
-	 * the "UserAgentSearch" configuration option in a renderer.conf.
-	 * Returns the matched configuration or <code>null</code> if no match
-	 * could be found.
-	 *
-	 * @param userAgentString The request header line.
-	 * @return The matching renderer configuration or <code>null</code>.
-	 */
-	public static RendererConfiguration getRendererConfigurationByUA(String userAgentString) {
-		if (pmsConfiguration.isRendererForceDefault()) {
-			// Force default renderer
-			LOGGER.trace("Forcing renderer match to \"" + defaultConf.getRendererName() + "\"");
-			return manageRendererMatch(defaultConf);
-		} else {
-			// Try to find a match
-			for (RendererConfiguration r : enabledRendererConfs) {
-				if (r.matchUserAgent(userAgentString)) {
-					return manageRendererMatch(r);
-				}
-			}
+		RendererConfiguration r = addressAssociation.get(sa);
+		if (r != null) {
+			LOGGER.trace("Matched media renderer \"" + r.getRendererName() + "\" based on address " + sa);
 		}
-
-		return null;
-	}
-
-	private static RendererConfiguration manageRendererMatch(RendererConfiguration r) {
-		if (addressAssociation.values().contains(r)) {
-			// FIXME: This cannot ever ever happen because of how renderer matching
-			// is implemented in RequestHandler and RequestHandlerV2. The first header
-			// match will associate the IP address with the renderer and from then on
-			// all other requests from the same IP address will be recognized based on
-			// that association. Headers will be ignored and unfortunately they happen
-			// to be the only way to get here.
-			LOGGER.info("Another renderer like " + r.getRendererName() + " was found!");
-		}
-
 		return r;
 	}
 
+
 	/**
-	 * Tries to find a matching renderer configuration based on a request
-	 * header line with an additional, non-User-Agent header. These matches
-	 * are made based on the "UserAgentAdditionalHeader" and
-	 * "UserAgentAdditionalHeaderSearch" configuration options in a
-	 * renderer.conf. Returns the matched configuration or <code>null</code>
-	 * if no match could be found.
+	 * Tries to find a matching renderer configuration based on the given collection of
+	 * request headers
 	 *
-	 * @param header The request header line.
-	 * @return The matching renderer configuration or <code>null</code>.
+	 * @param headers The headers.
+	 * @return The matching renderer configuration or <code>null</code>
 	 */
-	public static RendererConfiguration getRendererConfigurationByUAAHH(String header) {
-		if (pmsConfiguration.isRendererForceDefault()) {
-			// Force default renderer
-			LOGGER.trace("Forcing renderer match to \"" + defaultConf.getRendererName() + "\"");
-			return manageRendererMatch(defaultConf);
-		} else {
-			// Try to find a match
-			for (RendererConfiguration r : enabledRendererConfs) {
-				if (StringUtils.isNotBlank(r.getUserAgentAdditionalHttpHeader()) && header.startsWith(r.getUserAgentAdditionalHttpHeader())) {
-					String value = header.substring(header.indexOf(':', r.getUserAgentAdditionalHttpHeader().length()) + 1);
-					if (r.matchAdditionalUserAgent(value)) {
-						return manageRendererMatch(r);
-					}
-				}
+	public static RendererConfiguration getRendererConfigurationByHeaders(Collection<Map.Entry<String,String>> headers) {
+		return getRendererConfigurationByHeaders(new SortedHeaderMap(headers));
+	}
+
+	public static RendererConfiguration getRendererConfigurationByHeaders(SortedHeaderMap headers) {
+		for (RendererConfiguration r : enabledRendererConfs) {
+			if (headers.match(r)) {
+				LOGGER.trace("Matched media renderer \"" + r.getRendererName() + "\" based on headers " + headers);
+				return r;
 			}
 		}
-
 		return null;
 	}
 
@@ -530,6 +489,13 @@ public class RendererConfiguration {
 		if (f != null) {
 			configuration.load(f);
 		}
+
+		// Set up the user agent matcher
+		SortedHeaderMap searchMap = new SortedHeaderMap();
+		searchMap.put("User-Agent", getUserAgent());
+		searchMap.put(getUserAgentAdditionalHttpHeader(), getUserAgentAdditionalHttpHeaderSearch());
+		String re = searchMap.toRegex();
+		headerMatcher = StringUtils.isNotBlank(re) ? Pattern.compile(re, Pattern.CASE_INSENSITIVE).matcher("") : null;
 
 		mimes = new HashMap<>();
 		String mimeTypes = getString(MIME_TYPES_CHANGES, "");
@@ -804,48 +770,6 @@ public class RendererConfiguration {
 		}
 
 		return matchedMimeType;
-	}
-
-	/**
-	 * Pattern match a user agent header string to the "UserAgentSearch"
-	 * expression for this renderer. Will return false when the pattern is
-	 * empty or when no match can be made.
-	 *
-	 * @param header The header containing the user agent.
-	 * @return True if the pattern matches.
-	 */
-	public boolean matchUserAgent(String header) {
-		String userAgent = getUserAgent();
-		Pattern userAgentPattern;
-
-		if (StringUtils.isNotBlank(userAgent)) {
-			userAgentPattern = Pattern.compile(userAgent, Pattern.CASE_INSENSITIVE);
-
-			return userAgentPattern.matcher(header).find();
-		} else {
-			return false;
-		}
-	}
-
-	/**
-	 * Pattern match a header string to the "UserAgentAdditionalHeaderSearch"
-	 * expression for this renderer. Will return false when the pattern is
-	 * empty or when no match can be made.
-	 *
-	 * @param header The additional header string.
-	 * @return True if the pattern matches.
-	 */
-	public boolean matchAdditionalUserAgent(String header) {
-		String userAgentAdditionalHeader = getUserAgentAdditionalHttpHeaderSearch();
-		Pattern userAgentAddtionalPattern;
-
-		if (StringUtils.isNotBlank(userAgentAdditionalHeader)) {
-			userAgentAddtionalPattern = Pattern.compile(userAgentAdditionalHeader, Pattern.CASE_INSENSITIVE);
-
-			return userAgentAddtionalPattern.matcher(header).find();
-		} else {
-			return false;
-		}
 	}
 
 	/**
@@ -1467,5 +1391,66 @@ public class RendererConfiguration {
 			}
 		}
 		return max;
+	}
+
+	// A case-insensitive string comparator
+
+	public static final Comparator<String> CaseInsensitiveComparator = new Comparator<String>() {
+		public int compare(String s1, String s2) {
+			return s1.compareToIgnoreCase(s2);
+		}
+	};
+
+	// A case-insensitive key-sorted map of headers that can aggregate its values into a string
+	// or regex and self-test to see if it matches a given renderer.
+
+	public static class SortedHeaderMap extends TreeMap<String,String> {
+		String headers = null;
+
+		public SortedHeaderMap() {
+			super(CaseInsensitiveComparator);
+		}
+
+		public SortedHeaderMap(Collection<Map.Entry<String,String>> headers) {
+			this();
+			for (Map.Entry<String,String> h : headers) {
+			   put(h.getKey(), h.getValue());
+			}
+		}
+
+		@Override
+		public String put(String key, String value) {
+			if (StringUtils.isNotBlank(key) && StringUtils.isNotBlank(value)) {
+				headers = null; // i.e. mark as changed
+				return super.put(key.trim(), value.trim());
+			}
+			return null;
+		}
+
+		public String put(String raw) {
+			return put(StringUtils.substringBefore(raw, ":"), StringUtils.substringAfter(raw, ":"));
+		}
+
+		/**
+		 * Aggregate our headers if necessary and pattern match as a whole to the
+		 * given renderer's combined header matcher.
+		 *
+		 * @param r The renderer.
+		 * @return True if the pattern matches or false if no match or no header matcher.
+		 */
+		public boolean match(RendererConfiguration r) {
+			if (! isEmpty() && r.headerMatcher != null) {
+				if (headers == null) {
+					headers = StringUtils.join(values(), " ");
+				}
+				return r.headerMatcher.reset(headers).find();
+			}
+			return false;
+		}
+
+		public String toRegex() {
+			int size = size();
+			return (size > 1 ? "(" : "") + StringUtils.join(values(), ").*( ") + (size > 1 ? ")" : "");
+		}
 	}
 }
