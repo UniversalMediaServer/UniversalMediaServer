@@ -75,7 +75,8 @@ public class RequestHandler implements Runnable {
 			StringBuilder unknownHeaders = new StringBuilder();
 			String separator = "";
 			RendererConfiguration renderer = null;
-			RendererConfiguration tempRenderer = null;
+			RendererConfiguration priorityRenderer = null;
+			String headerLineMatch = "";
 
 			InetSocketAddress remoteAddress = (InetSocketAddress) socket.getRemoteSocketAddress();
 			InetAddress ia = remoteAddress.getAddress();
@@ -108,30 +109,31 @@ public class RequestHandler implements Runnable {
 					}
 				}
 
-				if (renderer == null && headerLine.toUpperCase().startsWith("USER-AGENT") && request != null) {
+				if (priorityRenderer == null && headerLine.toUpperCase().startsWith("USER-AGENT") && request != null) {
 					userAgentString = headerLine.substring(headerLine.indexOf(':') + 1).trim();
 
 					// Attempt 2: try to match a high-priority renderer by matching the "User-Agent" header
-					tempRenderer = RendererConfiguration.getRendererConfigurationByUA(userAgentString);
+					priorityRenderer = RendererConfiguration.getRendererConfigurationByUA(userAgentString);
 
-					if (tempRenderer != null && tempRenderer.isPriorityLoading()) {
-						renderer = tempRenderer;
-						PMS.get().setRendererFound(renderer);
-						request.setMediaRenderer(renderer);
-						renderer.associateIP(ia);	// Associate IP address for later requests
+					if (priorityRenderer != null && priorityRenderer.isPriorityLoading()) {
+						renderer = priorityRenderer;
+						headerLineMatch = headerLine;
 						LOGGER.trace("Matched high-priority media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLine + "\"");
+					} else {
+						priorityRenderer = null;
 					}
 				}
-				if (renderer == null && request != null) {
-					// Attempt 3: try to match a high-priority renderer by matching an additional header
-					tempRenderer = RendererConfiguration.getRendererConfigurationByUAAHH(headerLine);
 
-					if (tempRenderer != null && tempRenderer.isPriorityLoading()) {
-						renderer = tempRenderer;
-						PMS.get().setRendererFound(renderer);
-						request.setMediaRenderer(renderer);
-						renderer.associateIP(ia);	// Associate IP address for later requests
+				if (priorityRenderer == null && request != null) {
+					// Attempt 3: try to match a high-priority renderer by matching an additional header
+					priorityRenderer = RendererConfiguration.getRendererConfigurationByUAAHH(headerLine);
+
+					if (priorityRenderer != null && priorityRenderer.isPriorityLoading()) {
+						renderer = priorityRenderer;
+						headerLineMatch = headerLine;
 						LOGGER.trace("Matched high-priority media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLine + "\"");
+					} else {
+						priorityRenderer = null;
 					}
 				}
 
@@ -142,9 +144,7 @@ public class RequestHandler implements Runnable {
 					renderer = RendererConfiguration.getRendererConfigurationByUA(userAgentString);
 
 					if (renderer != null) {
-						PMS.get().setRendererFound(renderer);
-						request.setMediaRenderer(renderer);
-						renderer.associateIP(ia);	// Associate IP address for later requests
+						headerLineMatch = headerLine;
 						LOGGER.trace("Matched normal-priority media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLine + "\"");
 					}
 				}
@@ -153,9 +153,7 @@ public class RequestHandler implements Runnable {
 					renderer = RendererConfiguration.getRendererConfigurationByUAAHH(headerLine);
 
 					if (renderer != null) {
-						PMS.get().setRendererFound(renderer);
-						request.setMediaRenderer(renderer);
-						renderer.associateIP(ia);	// Associate IP address for later requests
+						headerLineMatch = headerLine;
 						LOGGER.trace("Matched normal-priority media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLine + "\"");
 					}
 				}
@@ -231,6 +229,13 @@ public class RequestHandler implements Runnable {
 				}
 
 				headerLine = br.readLine();
+			}
+
+			if (renderer != null && request != null) {
+				request.setMediaRenderer(renderer);
+				renderer.associateIP(ia);	// Associate IP address for later requests
+				PMS.get().setRendererFound(renderer);
+				LOGGER.trace("Finally matched media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLineMatch + "\"");
 			}
 
 			if (request != null) {

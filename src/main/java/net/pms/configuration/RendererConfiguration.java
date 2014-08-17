@@ -376,7 +376,13 @@ public class RendererConfiguration {
 			LOGGER.trace("Forcing renderer match to \"" + defaultConf.getRendererName() + "\"");
 			return manageRendererMatch(defaultConf);
 		} else {
-			// Try to find a match
+			// Try to find a high-priority match
+			for (RendererConfiguration r : enabledRendererConfs) {
+				if (r.matchUserAgent(userAgentString) && r.isPriorityLoading()) {
+					return manageRendererMatch(r);
+				}
+			}
+			// Try to find a normal-priority match
 			for (RendererConfiguration r : enabledRendererConfs) {
 				if (r.matchUserAgent(userAgentString)) {
 					return manageRendererMatch(r);
@@ -395,7 +401,7 @@ public class RendererConfiguration {
 			// all other requests from the same IP address will be recognized based on
 			// that association. Headers will be ignored and unfortunately they happen
 			// to be the only way to get here.
-			LOGGER.info("Another renderer like " + r.getRendererName() + " was found!");
+			LOGGER.trace("Another renderer like " + r.getRendererName() + " was found!");
 		}
 
 		return r;
@@ -418,7 +424,16 @@ public class RendererConfiguration {
 			LOGGER.trace("Forcing renderer match to \"" + defaultConf.getRendererName() + "\"");
 			return manageRendererMatch(defaultConf);
 		} else {
-			// Try to find a match
+			// Try to find a high-priority match
+			for (RendererConfiguration r : enabledRendererConfs) {
+				if (StringUtils.isNotBlank(r.getUserAgentAdditionalHttpHeader()) && header.startsWith(r.getUserAgentAdditionalHttpHeader()) && r.isPriorityLoading()) {
+					String value = header.substring(header.indexOf(':', r.getUserAgentAdditionalHttpHeader().length()) + 1);
+					if (r.matchAdditionalUserAgent(value)) {
+						return manageRendererMatch(r);
+					}
+				}
+			}
+			// Try to find a normal-priority match
 			for (RendererConfiguration r : enabledRendererConfs) {
 				if (StringUtils.isNotBlank(r.getUserAgentAdditionalHttpHeader()) && header.startsWith(r.getUserAgentAdditionalHttpHeader())) {
 					String value = header.substring(header.indexOf(':', r.getUserAgentAdditionalHttpHeader().length()) + 1);
