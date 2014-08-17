@@ -660,14 +660,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							if (!configuration.isDisableSubtitles()) {
 								if (child.isSubsFile()) {
 									if (child.media_subtitle == null) {
+										// Subtitles are not set for streaming
+										forceTranscode = true;
 										hasSubsToTranscode = true;
 										LOGGER.trace("Subtitles for \"{}\" need to be transcoded because media_subtitle is null", child.getName());
 									} else {
 										LOGGER.trace("Subtitles for \"{}\" will not be transcoded because media_subtitle is not null", child.getName());
 									}
-									hasSubsToTranscode = (child.media_subtitle == null); // subtitles are not set for streaming
 								} else {
 									if (hasEmbeddedSubs && defaultRenderer != null && !defaultRenderer.isEmbeddedSubtitlesSupported()) {
+										forceTranscode = true;
 										hasSubsToTranscode = true;
 										LOGGER.trace("Subtitles for \"{}\" need to be transcoded because the renderer does not support internal subtitles", child.getName());
 									} else {
