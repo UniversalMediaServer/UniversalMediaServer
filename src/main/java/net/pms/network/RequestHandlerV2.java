@@ -77,11 +77,9 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		throws Exception {
 		RequestV2 request = null;
 		RendererConfiguration renderer = null;
-		RendererConfiguration priorityRenderer = null;
 		String userAgentString = null;
 		StringBuilder unknownHeaders = new StringBuilder();
 		String separator = "";
-		String headerLineMatch = "";
 
 		HttpRequest nettyRequest = this.nettyRequest = (HttpRequest) e.getMessage();
 
@@ -125,53 +123,29 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			String headerLine = name + ": " + nettyRequest.headers().get(name);
 			LOGGER.trace("Received on socket: " + headerLine);
 
-			if (priorityRenderer == null && headerLine.toUpperCase().startsWith("USER-AGENT")) {
-				userAgentString = headerLine.substring(headerLine.indexOf(':') + 1).trim();
-
-				// Attempt 2: try to match a high-priority renderer by matching the "User-Agent" header
-				priorityRenderer = RendererConfiguration.getRendererConfigurationByUA(userAgentString);
-
-				if (priorityRenderer != null && priorityRenderer.isPriorityLoading()) {
-					renderer = priorityRenderer;
-					headerLineMatch = headerLine;
-					LOGGER.trace("Matched high-priority media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLine + "\"");
-				} else {
-					priorityRenderer = null;
-				}
-			}
-
-			if (priorityRenderer == null) {
-				// Attempt 3: try to match a high-priority renderer by matching an additional header
-				priorityRenderer = RendererConfiguration.getRendererConfigurationByUAAHH(headerLine);
-
-				if (priorityRenderer != null && priorityRenderer.isPriorityLoading()) {
-					renderer = priorityRenderer;
-					headerLineMatch = headerLine;
-					LOGGER.trace("Matched high-priority media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLine + "\"");
-				} else {
-					priorityRenderer = null;
-				}
-			}
-
 			if (renderer == null && headerLine.toUpperCase().startsWith("USER-AGENT")) {
 				userAgentString = headerLine.substring(headerLine.indexOf(':') + 1).trim();
 
-				// Attempt 4: try to match a normal-priority renderer by matching the "User-Agent" header
+				// Attempt 2: try to recognize the renderer by matching the "User-Agent" header
 				renderer = RendererConfiguration.getRendererConfigurationByUA(userAgentString);
 
 				if (renderer != null) {
-					headerLineMatch = headerLine;
-					LOGGER.trace("Matched normal-priority media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLine + "\"");
+					request.setMediaRenderer(renderer);
+					renderer.associateIP(ia);	// Associate IP address for later requests
+					PMS.get().setRendererFound(renderer);
+					LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLine + "\"");
 				}
 			}
 
 			if (renderer == null) {
-				// Attempt 5: try to match a normal-priority renderer by matching an additional header
+				// Attempt 3: try to recognize the renderer by matching an additional header
 				renderer = RendererConfiguration.getRendererConfigurationByUAAHH(headerLine);
 
 				if (renderer != null) {
-					headerLineMatch = headerLine;
-					LOGGER.trace("Matched normal-priority media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLine + "\"");
+					request.setMediaRenderer(renderer);
+					renderer.associateIP(ia);	// Associate IP address for later requests
+					PMS.get().setRendererFound(renderer);
+					LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLine + "\"");
 				}
 			}
 
@@ -238,17 +212,10 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			}
 		}
 
-		if (renderer != null) {
-			request.setMediaRenderer(renderer);
-			renderer.associateIP(ia);	// Associate IP address for later requests
-			PMS.get().setRendererFound(renderer);
-			LOGGER.trace("Finally matched media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLineMatch + "\"");
-		}
-
 		// Still no media renderer recognized?
 		if (request.getMediaRenderer() == null) {
 
-			// Attempt 6: Not really an attempt; all other attempts to recognize
+			// Attempt 4: Not really an attempt; all other attempts to recognize
 			// the renderer have failed. The only option left is to assume the
 			// default renderer.
 			request.setMediaRenderer(RendererConfiguration.getDefaultConf());
