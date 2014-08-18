@@ -173,7 +173,6 @@ public class FFMpegVideo extends Player {
 					subsFilename = subsFilename.replace(",", "\\,");
 					subsFilter.append("subtitles=").append(subsFilename);
 					if (params.sid.isExternal() && params.sid.getType() != SubtitleType.ASS || configuration.isFFmpegFontConfig()) {
-						subsFilter.append(":384x288");
 						if (!params.sid.isExternalFileUtf8()) { // Set the input subtitles character encoding if not UTF-8
 							String encoding = isNotBlank(configuration.getSubtitlesCodepage()) ?
 									configuration.getSubtitlesCodepage() : params.sid.getExternalFileCharacterSet() != null ?
@@ -224,6 +223,14 @@ public class FFMpegVideo extends Player {
 			/**
 			 * Make sure the aspect ratio is 16/9 if the renderer needs it.
 			 */
+
+			int scaleWidth = 0;
+			int scaleHeight = 0;
+			if (media.getWidth() > 0 && media.getHeight() > 0) {
+				scaleWidth = media.getWidth();
+				scaleHeight = media.getHeight();
+			}
+
 			boolean keepAR = renderer.isKeepAspectRatio() &&
 					!(
 						media.getWidth() == 3840 && media.getHeight() <= 1080 ||
@@ -238,9 +245,15 @@ public class FFMpegVideo extends Player {
 			} else if (keepAR && isMediaValid) {
 				if ((media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
 					filterChain.add("pad=iw:iw/(16/9):0:(oh-ih)/2");
+					scaleHeight = (int) Math.round(scaleWidth / (16 / (double) 9));
 				} else {
 					filterChain.add("pad=ih*(16/9):ih:(ow-iw)/2:0");
+					scaleWidth  = (int) Math.round(scaleHeight * (16 / (double) 9));
 				}
+
+				scaleWidth  = convertToMod4(scaleWidth);
+				scaleHeight = convertToMod4(scaleHeight);
+				filterChain.add("scale=" + scaleWidth + ":" + scaleHeight);
 			}
 		}
 

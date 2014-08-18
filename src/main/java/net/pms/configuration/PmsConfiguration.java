@@ -31,6 +31,7 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.formats.Format;
 import net.pms.io.SystemUtils;
 import net.pms.util.FileUtil;
 import net.pms.util.FileUtil.FileLocation;
@@ -244,7 +245,14 @@ public class PmsConfiguration {
 	private static final String KEY_VLC_SAMPLE_RATE = "vlc_sample_rate";
 	private static final String KEY_WEB_AUTHENTICATE = "web_authenticate";
 	private static final String KEY_WEB_CONF_PATH = "web_conf";
+	private static final String KEY_WEB_CONT_AUDIO = "web_continue_audio";
+	private static final String KEY_WEB_CONT_IMAGE = "web_continue_image";
+	private static final String KEY_WEB_CONT_VIDEO = "web_continue_video";
 	private static final String KEY_WEB_ENABLE = "web_enable";
+	private static final String KEY_WEB_IMAGE_SLIDE = "web_image_show_delay";
+	private static final String KEY_WEB_LOOP_AUDIO = "web_loop_audio";
+	private static final String KEY_WEB_LOOP_IMAGE = "web_loop_image";
+	private static final String KEY_WEB_LOOP_VIDEO = "web_loop_video";
 	private static final String KEY_WEB_MP4_TRANS = "web_mp4_trans";
 	private static final String KEY_WEB_THREADS = "web_threads";
 	private static final String KEY_WEB_PATH = "web_path";
@@ -1524,10 +1532,12 @@ public class PmsConfiguration {
 	 * @return True if UMS should start automatically, false otherwise.
 	 */
 	public boolean isAutoStart() {
-		File f = new File(WindowsRegistry.readRegistry("HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders", "Common Startup") + "\\Universal Media Server.lnk");
+		if (Platform.isWindows()) {
+			File f = new File(WindowsRegistry.readRegistry("HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders", "Common Startup") + "\\Universal Media Server.lnk");
 
-		if (f.exists()) {
-			return true;
+			if (f.exists()) {
+				return true;
+			}
 		}
 
 		return false;
@@ -3155,5 +3165,34 @@ public class PmsConfiguration {
 
 	public int mediaLibrarySort() {
 		return getInt(KEY_MEDIA_LIB_SORT, UMSUtils.SORT_NO_SORT);
+	}
+
+	public boolean getWebAutoCont(Format f) {
+		String key = KEY_WEB_CONT_VIDEO;
+		boolean def = false;
+		if (f.isAudio()) {
+			key = KEY_WEB_CONT_AUDIO;
+			def = true;
+		}
+		if (f.isImage()) {
+			key = KEY_WEB_CONT_IMAGE;
+			def = false;
+		}
+		return getBoolean(key, def);
+	}
+
+	public boolean getWebAutoLoop(Format f) {
+		String key = KEY_WEB_LOOP_VIDEO;
+		if (f.isAudio()) {
+			key = KEY_WEB_LOOP_AUDIO;
+		}
+		if (f.isImage()) {
+			key = KEY_WEB_LOOP_IMAGE;
+		}
+		return getBoolean(key, false);
+	}
+
+	public int getWebImgSlideDelay() {
+		return getInt(KEY_WEB_IMAGE_SLIDE, 0);
 	}
 }
