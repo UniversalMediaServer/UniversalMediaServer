@@ -18,6 +18,7 @@ import java.util.StringTokenizer;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.TreeSet;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
@@ -38,7 +39,7 @@ import org.slf4j.LoggerFactory;
 
 public class RendererConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
-	private static ArrayList<RendererConfiguration> enabledRendererConfs;
+	private static TreeSet<RendererConfiguration> enabledRendererConfs;
 	private static ArrayList<String> allRenderersNames = new ArrayList<>();
 	private static PmsConfiguration pmsConfiguration;
 	private static RendererConfiguration defaultConf;
@@ -121,6 +122,7 @@ public class RendererConfiguration {
 	private static final String MUX_LPCM_TO_MPEG = "MuxLPCMToMpeg";
 	private static final String MUX_NON_MOD4_RESOLUTION = "MuxNonMod4Resolution";
 	private static final String OVERRIDE_FFMPEG_VF = "OverrideFFmpegVideoFilter";
+	private static final String LOADING_PRIORITY = "LoadingPriority";
 	private static final String RENDERER_ICON = "RendererIcon";
 	private static final String RENDERER_NAME = "RendererName";
 	private static final String RESCALE_BY_RENDERER = "RescaleByRenderer";
@@ -162,7 +164,7 @@ public class RendererConfiguration {
 	 */
 	public static void loadRendererConfigurations(PmsConfiguration pmsConf) {
 		pmsConfiguration = pmsConf;
-		enabledRendererConfs = new ArrayList<>();
+		enabledRendererConfs = new TreeSet<>(rendererLoadingPriorityComparator);
 
 		try {
 			defaultConf = new RendererConfiguration();
@@ -187,7 +189,6 @@ public class RendererConfiguration {
 						String rendererName = r.getRendererName();
 						if (!ignoredRenderers.contains(rendererName)) {
 							enabledRendererConfs.add(r);
-							LOGGER.info("Loaded configuration for renderer: " + rendererName);
 						} else {
 							LOGGER.debug("Ignored " + rendererName + " configuration");
 						}
@@ -196,6 +197,11 @@ public class RendererConfiguration {
 					}
 				}
 			}
+		}
+
+		LOGGER.info("Enabled " + enabledRendererConfs.size() + " configurations, listed in order of loading priority:");
+		for (RendererConfiguration r : enabledRendererConfs) {
+			LOGGER.info(":   " + r);
 		}
 
 		if (enabledRendererConfs.size() > 0) {
@@ -270,7 +276,7 @@ public class RendererConfiguration {
 	 * @return The list of all configurations.
 	 */
 	public static ArrayList<RendererConfiguration> getEnabledRenderersConfigurations() {
-		return enabledRendererConfs;
+		return enabledRendererConfs != null ? new ArrayList(enabledRendererConfs) : null;
 	}
 
 	public static Collection<RendererConfiguration> getConnectedRenderersConfigurations() {
@@ -1457,4 +1463,32 @@ public class RendererConfiguration {
 		}
 		return false;
 	}
+
+	/**
+	 * The loading priority of this renderer. This should be set to 1 (or greater)
+	 * if this renderer config is a more specific version of one we already have.
+	 *
+	 * For example, we have a Panasonic TVs config that is used for all
+	 * Panasonic TVs, except the ones we have specific configs for, so the
+	 * specific ones have a greater priority to ensure they are used when
+	 * applicable instead of the less-specific renderer config.
+	 *
+	 * @return The loading priority of this renderer
+	 */
+	public int getLoadingPriority() {
+		return getInt(LOADING_PRIORITY, 0);
+	}
+
+	// A loading priority comparator
+
+	public static final Comparator<RendererConfiguration> rendererLoadingPriorityComparator = new Comparator<RendererConfiguration>() {
+		public int compare(RendererConfiguration r1, RendererConfiguration r2) {
+			if (r1 == null || r2 == null) {
+				return (r1 == null && r2 == null) ? 0 : r1 == null ? 1 : r2 == null ? -1 : 0;
+			}
+			int p1 = r1.getLoadingPriority();
+			int p2 = r2.getLoadingPriority();
+			return p1 > p2 ? -1 : p1 < p2 ? 1 : r1.getRendererName().compareToIgnoreCase(r2.getRendererName());
+		}
+	};
 }
