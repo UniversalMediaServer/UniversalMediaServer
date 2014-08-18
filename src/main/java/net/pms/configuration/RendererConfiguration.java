@@ -50,7 +50,7 @@ public class RendererConfiguration {
 	private final ConfigurationReader configurationReader;
 	private FormatConfiguration formatConfiguration;
 	private int rank;
-	private Matcher headerMatcher;
+	private Matcher sortedHeaderMatcher;
 
 	// Holds MIME type aliases
 	private final Map<String, String> mimes;
@@ -386,10 +386,10 @@ public class RendererConfiguration {
 		return getRendererConfigurationByHeaders(new SortedHeaderMap(headers));
 	}
 
-	public static RendererConfiguration getRendererConfigurationByHeaders(SortedHeaderMap headers) {
+	public static RendererConfiguration getRendererConfigurationByHeaders(SortedHeaderMap sortedHeaders) {
 		for (RendererConfiguration r : enabledRendererConfs) {
-			if (headers.match(r)) {
-				LOGGER.trace("Matched media renderer \"" + r.getRendererName() + "\" based on headers " + headers);
+			if (r.match(sortedHeaders)) {
+				LOGGER.trace("Matched media renderer \"" + r.getRendererName() + "\" based on headers " + sortedHeaders);
 				return r;
 			}
 		}
@@ -496,12 +496,12 @@ public class RendererConfiguration {
 			configuration.load(f);
 		}
 
-		// Set up the user agent matcher
+		// Set up the header matcher
 		SortedHeaderMap searchMap = new SortedHeaderMap();
 		searchMap.put("User-Agent", getUserAgent());
 		searchMap.put(getUserAgentAdditionalHttpHeader(), getUserAgentAdditionalHttpHeaderSearch());
 		String re = searchMap.toRegex();
-		headerMatcher = StringUtils.isNotBlank(re) ? Pattern.compile(re, Pattern.CASE_INSENSITIVE).matcher("") : null;
+		sortedHeaderMatcher = StringUtils.isNotBlank(re) ? Pattern.compile(re, Pattern.CASE_INSENSITIVE).matcher("") : null;
 
 		mimes = new HashMap<>();
 		String mimeTypes = getString(MIME_TYPES_CHANGES, "");
@@ -1407,8 +1407,8 @@ public class RendererConfiguration {
 		}
 	};
 
-	// A case-insensitive key-sorted map of headers that can aggregate its values into a string
-	// or regex and self-test to see if it matches a given renderer.
+	// A case-insensitive key-sorted map of headers that can join its values into a combined
+	// string or regex.
 
 	public static class SortedHeaderMap extends TreeMap<String,String> {
 		String headers = null;
@@ -1437,32 +1437,36 @@ public class RendererConfiguration {
 			return put(StringUtils.substringBefore(raw, ":"), StringUtils.substringAfter(raw, ":"));
 		}
 
-		/**
-		 * Aggregate our headers if necessary and pattern match as a whole to the
-		 * given renderer's combined header matcher.
-		 *
-		 * @param r The renderer.
-		 * @return True if the pattern matches or false if no match or no header matcher.
-		 */
-		public boolean match(RendererConfiguration r) {
-			if (! isEmpty() && r.headerMatcher != null) {
-				if (headers == null) {
-					headers = StringUtils.join(values(), " ");
-				}
-				return r.headerMatcher.reset(headers).find();
+		public String joined() {
+			if (headers == null) {
+				headers = StringUtils.join(values(), " ");
 			}
-			return false;
+			return headers;
 		}
 
 		public String toRegex() {
 			int size = size();
-			return (size > 1 ? "(" : "") + StringUtils.join(values(), ").*( ") + (size > 1 ? ")" : "");
+			return (size > 1 ? "(" : "") + StringUtils.join(values(), ").*(") + (size > 1 ? ")" : "");
 		}
 	}
 
 	/**
-	 * The loading priority of this renderer. This should be set to > 0 if this
-	 * renderer config is a more specific version of one we already have.
+	 * Pattern match our combined header matcher to the given collection of sorted request
+	 * headers as a whole.
+	 *
+	 * @param headers The headers.
+	 * @return True if the pattern matches or false if no match, no headers, or no matcher.
+	 */
+	public boolean match(SortedHeaderMap headers) {
+		if (! headers.isEmpty() && sortedHeaderMatcher != null) {
+			return sortedHeaderMatcher.reset(headers.joined()).find();
+		}
+		return false;
+	}
+
+	/**
+	 * The loading priority of this renderer. This should be set to 1 (or greater)
+	 * if this renderer config is a more specific version of one we already have.
 	 *
 	 * For example, we have a Panasonic TVs config that is used for all
 	 * Panasonic TVs, except the ones we have specific configs for, so the

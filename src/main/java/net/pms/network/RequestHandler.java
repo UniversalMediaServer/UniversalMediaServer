@@ -96,21 +96,21 @@ public class RequestHandler implements Runnable {
 			// Attempt 1: try to recognize the renderer by its socket address from previous requests
 			renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
 			ArrayList<String> headerLines = new ArrayList<>();
-			RendererConfiguration.SortedHeaderMap headerMap = renderer == null ? new RendererConfiguration.SortedHeaderMap() : null;
+			RendererConfiguration.SortedHeaderMap sortedHeaders = renderer == null ? new RendererConfiguration.SortedHeaderMap() : null;
 
 			// Gather all the headers
 			String line = br.readLine();
 			while (line != null && line.length() > 0) {
 				headerLines.add(line);
 				if (renderer == null) {
-					headerMap.put(line);
+					sortedHeaders.put(line);
 				}
 				line = br.readLine();
 			}
 
 			if (renderer == null) {
 				// Attempt 2: try to recognize the renderer by matching headers
-				renderer = RendererConfiguration.getRendererConfigurationByHeaders(headerMap);
+				renderer = RendererConfiguration.getRendererConfigurationByHeaders(sortedHeaders);
 			}
 
 			if (renderer != null) {
