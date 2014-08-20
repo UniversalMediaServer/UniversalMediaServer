@@ -1498,10 +1498,12 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return True if UMS should start automatically, false otherwise.
 	 */
 	public boolean isAutoStart() {
-		File f = new File(WindowsRegistry.readRegistry("HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders", "Common Startup") + "\\Universal Media Server.lnk");
+		if (Platform.isWindows()) {
+			File f = new File(WindowsRegistry.readRegistry("HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders", "Common Startup") + "\\Universal Media Server.lnk");
 
-		if (f.exists()) {
-			return true;
+			if (f.exists()) {
+				return true;
+			}
 		}
 
 		return false;

@@ -140,10 +140,50 @@ public class FFMpegVideo extends Player {
 				media.getHeight() > renderer.getMaxVideoHeight()
 			);
 
+		int scaleWidth = 0;
+		int scaleHeight = 0;
+		if (media.getWidth() > 0 && media.getHeight() > 0) {
+			scaleWidth = media.getWidth();
+			scaleHeight = media.getHeight();
+		}
+
+		String overrideVF = renderer.getFFmpegVideoFilterOverride();
+		if (StringUtils.isNotEmpty(overrideVF)) {
+			filterChain.add(overrideVF);
+		} else {
+			/**
+			 * Make sure the aspect ratio is 16/9 if the renderer needs it.
+			 */
+			boolean keepAR = renderer.isKeepAspectRatio() &&
+					!(
+						media.getWidth() == 3840 && media.getHeight() <= 1080 ||
+						media.getWidth() == 1920 && media.getHeight() == 2160
+					) &&
+					!"16:9".equals(media.getAspectRatioContainer());
+			if (isResolutionTooHighForRenderer || (!renderer.isRescaleByRenderer() && renderer.isMaximumResolutionSpecified() && media.getWidth() < 720)) { // Do not rescale for SD video and higher
+				filterChain.add(String.format("scale=iw*min(%1$d/iw\\,%2$d/ih):ih*min(%1$d/iw\\,%2$d/ih)", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
+				if (keepAR) {
+					filterChain.add(String.format("pad=%1$d:%2$d:(%1$d-iw)/2:(%2$d-ih)/2", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
+				}
+			} else if (keepAR && isMediaValid) {
+				if ((media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
+					filterChain.add("pad=iw:iw/(16/9):0:(oh-ih)/2");
+					scaleHeight = (int) Math.round(scaleWidth / (16 / (double) 9));
+				} else {
+					filterChain.add("pad=ih*(16/9):ih:(ow-iw)/2:0");
+					scaleWidth = (int) Math.round(scaleHeight * (16 / (double) 9));
+				}
+
+				scaleWidth  = convertToMod4(scaleWidth);
+				scaleHeight = convertToMod4(scaleHeight);
+				filterChain.add("scale=" + scaleWidth + ":" + scaleHeight);
+			}
+		}
+
 		if (!isDisableSubtitles(params)) {
 			StringBuilder subsFilter = new StringBuilder();
 			if (params.sid.getType().isText()) {
-				String subsFilename = null;
+				String subsFilename;
 				if (configuration.isFFmpegFontConfig()) {
 					subsFilename = getSubtitles(dlna, media, params, configuration).getAbsolutePath();
 				} else {
@@ -174,7 +214,11 @@ public class FFMpegVideo extends Player {
 					subsFilename = subsFilename.replace(",", "\\,");
 					subsFilter.append("subtitles=").append(subsFilename);
 					if (params.sid.isExternal() && params.sid.getType() != SubtitleType.ASS || configuration.isFFmpegFontConfig()) {
-						subsFilter.append(":384x288");
+						if (scaleWidth > 0 && scaleHeight > 0) {
+							subsFilter.append(":").append(scaleWidth).append("x").append(scaleHeight);
+						} else {
+							subsFilter.append(":384x288");
+						}
 						if (!params.sid.isExternalFileUtf8()) { // Set the input subtitles character encoding if not UTF-8
 							String encoding = isNotBlank(configuration.getSubtitlesCodepage()) ?
 									configuration.getSubtitlesCodepage() : params.sid.getExternalFileCharacterSet() != null ?
@@ -187,7 +231,6 @@ public class FFMpegVideo extends Player {
 						subsFilter.append(":si=").append(media.getSubtitleTracksList().indexOf(params.sid));
 					}
 				}
-
 			} else if (params.sid.getType().isPicture()) {
 				filterOption = "-filter_complex";
 				if (params.sid.getId() < 100) {
@@ -214,48 +257,6 @@ public class FFMpegVideo extends Player {
 					videoFilterOptions.add("asetpts=PTS-" + params.timeseek + "/TB");
 					filterChain.add("setpts=PTS-" + params.timeseek + "/TB");
 				}
-			}
-		}
-
-		String overrideVF = renderer.getFFmpegVideoFilterOverride();
-
-		if (StringUtils.isNotEmpty(overrideVF)) {
-			filterChain.add(overrideVF);
-		} else {
-			/**
-			 * Make sure the aspect ratio is 16/9 if the renderer needs it.
-			 */
-
-			int scaleWidth = 0;
-			int scaleHeight = 0;
-			if (media.getWidth() > 0 && media.getHeight() > 0) {
-				scaleWidth = media.getWidth();
-				scaleHeight = media.getHeight();
-			}
-
-			boolean keepAR = renderer.isKeepAspectRatio() &&
-					!(
-						media.getWidth() == 3840 && media.getHeight() <= 1080 ||
-						media.getWidth() == 1920 && media.getHeight() == 2160
-					) &&
-					!"16:9".equals(media.getAspectRatioContainer());
-			if (isResolutionTooHighForRenderer || (!renderer.isRescaleByRenderer() && renderer.isMaximumResolutionSpecified() && media.getWidth() < 720)) { // Do not rescale for SD video and higher
-				filterChain.add(String.format("scale=iw*min(%1$d/iw\\,%2$d/ih):ih*min(%1$d/iw\\,%2$d/ih)", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
-				if (keepAR) {
-					filterChain.add(String.format("pad=%1$d:%2$d:(%1$d-iw)/2:(%2$d-ih)/2", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
-				}
-			} else if (keepAR && isMediaValid) {
-				if ((media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
-					filterChain.add("pad=iw:iw/(16/9):0:(oh-ih)/2");
-					scaleHeight = (int) Math.round(scaleWidth / (16 / (double) 9));
-				} else {
-					filterChain.add("pad=ih*(16/9):ih:(ow-iw)/2:0");
-					scaleWidth  = (int) Math.round(scaleHeight * (16 / (double) 9));
-				}
-
-				scaleWidth  = convertToMod4(scaleWidth);
-				scaleHeight = convertToMod4(scaleHeight);
-				filterChain.add("scale=" + scaleWidth + ":" + scaleHeight);
 			}
 		}
 

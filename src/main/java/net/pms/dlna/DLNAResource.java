@@ -573,8 +573,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						// Media is transcodable
 						LOGGER.trace("File \"{}\" can be transcoded", child.getName());
 					}
-				} else {
-					LOGGER.trace("Did not check for media_subtitle for \"{}\" because this renderer does not use MediaInfo, we will check for it soon", child.getName());
+				} else if (child.media != null && defaultRenderer != null) {
+					LOGGER.trace("Did not check for media_subtitle for \"{}\" because {} does not use MediaInfo, we will check for it soon", child.getName(), defaultRenderer);
 				}
 
 				if (child.format != null) {
@@ -678,14 +678,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							if (!configuration.isDisableSubtitles()) {
 								if (child.isSubsFile()) {
 									if (child.media_subtitle == null) {
+										// Subtitles are not set for streaming
+										forceTranscode = true;
 										hasSubsToTranscode = true;
 										LOGGER.trace("Subtitles for \"{}\" need to be transcoded because media_subtitle is null", child.getName());
 									} else {
 										LOGGER.trace("Subtitles for \"{}\" will not be transcoded because media_subtitle is not null", child.getName());
 									}
-									hasSubsToTranscode = (child.media_subtitle == null); // subtitles are not set for streaming
 								} else {
 									if (hasEmbeddedSubs && defaultRenderer != null && !defaultRenderer.isEmbeddedSubtitlesSupported()) {
+										forceTranscode = true;
 										hasSubsToTranscode = true;
 										LOGGER.trace("Subtitles for \"{}\" need to be transcoded because the renderer does not support internal subtitles", child.getName());
 									} else {

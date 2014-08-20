@@ -30,6 +30,7 @@ import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.external.StartStopListenerDelegate;
 import static net.pms.util.StringUtil.convertStringToTime;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -180,10 +181,19 @@ public class RequestHandler implements Runnable {
 						boolean isKnown = false;
 
 						// Try to match possible known headers.
+						String lowerCaseHeaderLine = headerLine.toLowerCase();
 						for (String knownHeaderString : KNOWN_HEADERS) {
-							if (headerLine.toLowerCase().startsWith(knownHeaderString.toLowerCase())) {
+							if (lowerCaseHeaderLine.startsWith(knownHeaderString.toLowerCase())) {
 								isKnown = true;
 								break;
+							}
+						}
+
+						// It may be unusual but already known
+						if (renderer != null) {
+							String additionalHeader = renderer.getUserAgentAdditionalHttpHeader();
+							if (StringUtils.isNotBlank(additionalHeader) && lowerCaseHeaderLine.startsWith(additionalHeader)) {
+								isKnown = true;
 							}
 						}
 

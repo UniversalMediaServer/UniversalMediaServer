@@ -10,15 +10,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
+import java.util.regex.Matcher;
+import java.util.TreeSet;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
@@ -45,7 +48,7 @@ import org.slf4j.LoggerFactory;
 
 public class RendererConfiguration extends UPNPHelper.Renderer {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
-	protected static ArrayList<RendererConfiguration> enabledRendererConfs;
+	protected static TreeSet<RendererConfiguration> enabledRendererConfs;
 	protected static ArrayList<String> allRenderersNames = new ArrayList<>();
 	protected static PmsConfiguration _pmsConfiguration = PMS.getConfiguration();
 	protected static RendererConfiguration defaultConf;
@@ -78,7 +81,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		 */
 		public boolean getOutputOptions(DLNAResource dlna, Player player, List<String> cmdList);
 	}
-
 
 	// Holds MIME type aliases
 	protected Map<String, String> mimes;
@@ -153,6 +155,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String MUX_LPCM_TO_MPEG = "MuxLPCMToMpeg";
 	protected static final String MUX_NON_MOD4_RESOLUTION = "MuxNonMod4Resolution";
 	protected static final String OVERRIDE_FFMPEG_VF = "OverrideFFmpegVideoFilter";
+	protected static final String LOADING_PRIORITY = "LoadingPriority";
 	protected static final String RENDERER_ICON = "RendererIcon";
 	protected static final String RENDERER_NAME = "RendererName";
 	protected static final String RESCALE_BY_RENDERER = "RescaleByRenderer";
@@ -195,7 +198,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public static void loadRendererConfigurations(PmsConfiguration pmsConf) {
 		_pmsConfiguration = pmsConf;
-		enabledRendererConfs = new ArrayList<>();
+		enabledRendererConfs = new TreeSet<>(rendererLoadingPriorityComparator);
 
 		try {
 			defaultConf = new RendererConfiguration();
@@ -220,7 +223,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 						String rendererName = r.getRendererName();
 						if (!ignoredRenderers.contains(rendererName)) {
 							enabledRendererConfs.add(r);
-							LOGGER.info("Loaded configuration for renderer: " + rendererName);
 						} else {
 							LOGGER.debug("Ignored " + rendererName + " configuration");
 						}
@@ -229,6 +231,11 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 					}
 				}
 			}
+		}
+
+		LOGGER.info("Enabled " + enabledRendererConfs.size() + " configurations, listed in order of loading priority:");
+		for (RendererConfiguration r : enabledRendererConfs) {
+			LOGGER.info(":   " + r);
 		}
 
 		if (enabledRendererConfs.size() > 0) {
@@ -298,7 +305,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return The list of all configurations.
 	 */
 	public static ArrayList<RendererConfiguration> getEnabledRenderersConfigurations() {
-		return enabledRendererConfs;
+		return enabledRendererConfs != null ? new ArrayList(enabledRendererConfs) : null;
 	}
 
 	public static Collection<RendererConfiguration> getConnectedRenderersConfigurations() {
@@ -776,7 +783,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public boolean load(File f) throws ConfigurationException {
-		if (f != null && f != NOFILE && (configuration instanceof PropertiesConfiguration)) {
+		if (f != null && !f.equals(NOFILE) && (configuration instanceof PropertiesConfiguration)) {
 			((PropertiesConfiguration)configuration).load(f);
 			file = f;
 			return true;
@@ -789,6 +796,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			configuration.clear();
 			loaded = load(f);
 		}
+
 		mimes = new HashMap<>();
 		String mimeTypes = getString(MIME_TYPES_CHANGES, "");
 
@@ -842,11 +850,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		DLNAPN = new HashMap<>();
 		String DLNAPNchanges = getString(DLNA_PN_CHANGES, "");
 
-		if (DLNAPNchanges != null) {
-			LOGGER.trace("Config DLNAPNchanges: " + DLNAPNchanges);
-		}
-
 		if (StringUtils.isNotBlank(DLNAPNchanges)) {
+			LOGGER.trace("Config DLNAPNchanges: " + DLNAPNchanges);
 			StringTokenizer st = new StringTokenizer(DLNAPNchanges, "|");
 			while (st.hasMoreTokens()) {
 				String DLNAPN_change = st.nextToken().trim();
@@ -1930,4 +1935,83 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public DLNAResource cacheGet(String id) {
 		return renderCache.get(id);
 	}
+
+	// A case-insensitive string comparator
+
+	public static final Comparator<String> CaseInsensitiveComparator = new Comparator<String>() {
+		public int compare(String s1, String s2) {
+			return s1.compareToIgnoreCase(s2);
+		}
+	};
+
+	// A case-insensitive key-sorted map of headers that can join its values into a combined
+	// string or regex.
+
+	public static class SortedHeaderMap extends TreeMap<String,String> {
+		String headers = null;
+
+		public SortedHeaderMap() {
+			super(CaseInsensitiveComparator);
+		}
+
+		public SortedHeaderMap(Collection<Map.Entry<String,String>> headers) {
+			this();
+			for (Map.Entry<String,String> h : headers) {
+			   put(h.getKey(), h.getValue());
+			}
+		}
+
+		@Override
+		public String put(String key, String value) {
+			if (StringUtils.isNotBlank(key) && StringUtils.isNotBlank(value)) {
+				headers = null; // i.e. mark as changed
+				return super.put(key.trim(), value.trim());
+			}
+			return null;
+		}
+
+		public String put(String raw) {
+			return put(StringUtils.substringBefore(raw, ":"), StringUtils.substringAfter(raw, ":"));
+		}
+
+		public String joined() {
+			if (headers == null) {
+				headers = StringUtils.join(values(), " ");
+			}
+			return headers;
+		}
+
+		public String toRegex() {
+			int size = size();
+			return (size > 1 ? "(" : "") + StringUtils.join(values(), ").*(") + (size > 1 ? ")" : "");
+		}
+	}
+
+	/**
+	 * The loading priority of this renderer. This should be set to 1 (or greater)
+	 * if this renderer config is a more specific version of one we already have.
+	 *
+	 * For example, we have a Panasonic TVs config that is used for all
+	 * Panasonic TVs, except the ones we have specific configs for, so the
+	 * specific ones have a greater priority to ensure they are used when
+	 * applicable instead of the less-specific renderer config.
+	 *
+	 * @return The loading priority of this renderer
+	 */
+	public int getLoadingPriority() {
+		return getInt(LOADING_PRIORITY, 0);
+	}
+
+	// A loading priority comparator
+
+	public static final Comparator<RendererConfiguration> rendererLoadingPriorityComparator = new Comparator<RendererConfiguration>() {
+		public int compare(RendererConfiguration r1, RendererConfiguration r2) {
+			if (r1 == null || r2 == null) {
+				return (r1 == null && r2 == null) ? 0 : r1 == null ? 1 : r2 == null ? -1 : 0;
+			}
+			int p1 = r1.getLoadingPriority();
+			int p2 = r2.getLoadingPriority();
+			return p1 > p2 ? -1 : p1 < p2 ? 1 : r1.getRendererName().compareToIgnoreCase(r2.getRendererName());
+		}
+	};
 }

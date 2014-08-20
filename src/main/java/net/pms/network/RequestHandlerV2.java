@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.external.StartStopListenerDelegate;
+import org.apache.commons.lang3.StringUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.*;
@@ -176,9 +177,10 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 							request.setTimeRangeEndString(end);
 						}
 					} else {
-						 // If we made it to here, none of the previous header checks matched.
-						 // Unknown headers make interesting logging info when we cannot recognize
-						 // the media renderer, so keep track of the truly unknown ones.
+						/** If we made it to here, none of the previous header checks matched.
+						 * Unknown headers make interesting logging info when we cannot recognize
+						 * the media renderer, so keep track of the truly unknown ones.
+						 */
 						boolean isKnown = false;
 
 						// Try to match known headers.
@@ -187,6 +189,14 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 							if (lowerCaseHeaderLine.startsWith(knownHeaderString)) {
 								isKnown = true;
 								break;
+							}
+						}
+
+						// It may be unusual but already known
+						if (renderer != null) {
+							String additionalHeader = renderer.getUserAgentAdditionalHttpHeader();
+							if (StringUtils.isNotBlank(additionalHeader) && lowerCaseHeaderLine.startsWith(additionalHeader)) {
+								isKnown = true;
 							}
 						}
 
