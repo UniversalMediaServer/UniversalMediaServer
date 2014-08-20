@@ -25,6 +25,7 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.StringTokenizer;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
@@ -58,7 +59,6 @@ public class RequestHandler implements Runnable {
 		"User-Agent"
 	};
 
-
 	public RequestHandler(Socket socket) throws IOException {
 		this.socket = socket;
 		this.output = socket.getOutputStream();
@@ -72,7 +72,6 @@ public class RequestHandler implements Runnable {
 
 		try {
 			int receivedContentLength = -1;
-			String headerLine = br.readLine();
 			String userAgentString = null;
 			StringBuilder unknownHeaders = new StringBuilder();
 			String separator = "";
@@ -91,40 +90,47 @@ public class RequestHandler implements Runnable {
 			LOGGER.trace("Opened request handler on socket " + socket);
 			PMS.get().getRegistry().disableGoToSleep();
 
-			while (headerLine != null && headerLine.length() > 0) {
+			// The handler makes a couple of attempts to recognize a renderer from its requests.
+			// IP address matches from previous requests are preferred, when that fails request
+			// header matches are attempted and if those fail as well we're stuck with the
+			// default renderer.
+
+			// Attempt 1: try to recognize the renderer by its socket address from previous requests
+			renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
+			ArrayList<String> headerLines = new ArrayList<>();
+			RendererConfiguration.SortedHeaderMap sortedHeaders = renderer == null ? new RendererConfiguration.SortedHeaderMap() : null;
+
+			// Gather all the headers
+			String line = br.readLine();
+			while (line != null && line.length() > 0) {
+				headerLines.add(line);
+				if (renderer == null) {
+					sortedHeaders.put(line);
+				}
+				line = br.readLine();
+			}
+
+			// If the renderer exists but isn't marked as loaded it means it's unrecognized
+			// by upnp and we still need to attempt http recognition here.
+			if (renderer == null || (renderer != null && ! renderer.loaded)) {
+				// Attempt 2: try to recognize the renderer by matching headers
+				renderer = RendererConfiguration.getRendererConfigurationByHeaders(sortedHeaders, ia);
+			}
+
+			for (String headerLine : headerLines) {
 				LOGGER.trace("Received on socket: " + headerLine);
 
 				// The request object is created inside the while loop.
-				if (request != null && request.getMediaRenderer() == null) {
-					// The handler makes a couple of attempts to recognize a renderer from its requests.
-					// IP address matches from previous requests are preferred, when that fails request
-					// header matches are attempted and if those fail as well we're stuck with the
-					// default renderer.
-
-					// Attempt 1: try to recognize the renderer by its socket address from previous requests
-					renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
-
-					// If the renderer exists but isn't marked as loaded it means it's unrecognized
-					// by upnp and we still need to attempt http recognition here.
-					if (renderer != null && renderer.loaded) {
-//						PMS.get().setRendererFound(renderer);
-						request.setMediaRenderer(renderer);
-						LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on address " + ia);
-					}
+				if (request != null && request.getMediaRenderer() == null && renderer != null) {
+					request.setMediaRenderer(renderer);
 				}
-
-				// FIXME: this would also block an external cling-based client running on the same host
-				if (isSelf && headerLine.toUpperCase().startsWith("USER-AGENT") && headerLine.contains("Cling/")) {
-					LOGGER.trace("Ignoring self-originating request from " + ia + ":" + remoteAddress.getPort());
-					return;
-				}
-
-				if (request != null && request.getMediaRenderer() == null) {
-					// Attempt 2: try to recognize the renderer by individual headers
-					renderer = RendererConfiguration.getRendererConfigurationByHeaderLine(headerLine, ia);
-					if (renderer != null) {
-						request.setMediaRenderer(renderer);
+				if (headerLine.toUpperCase().startsWith("USER-AGENT")) {
+					// FIXME: this would also block an external cling-based client running on the same host
+					if (isSelf && headerLine.contains("Cling/")) {
+						LOGGER.trace("Ignoring self-originating request from " + ia + ":" + remoteAddress.getPort());
+						return;
 					}
+					userAgentString = headerLine.substring(headerLine.indexOf(':') + 1).trim();
 				}
 
 				try {
@@ -206,8 +212,6 @@ public class RequestHandler implements Runnable {
 				} catch (IllegalArgumentException e) {
 					LOGGER.error("Error in parsing HTTP headers", e);
 				}
-
-				headerLine = br.readLine();
 			}
 
 			if (request != null) {
@@ -223,7 +227,6 @@ public class RequestHandler implements Runnable {
 						// We have found an unknown renderer
 						LOGGER.info("Media renderer was not recognized. Possible identifying HTTP headers: User-Agent: " + userAgentString +
 								("".equals(unknownHeaders.toString()) ? "" : ", " + unknownHeaders.toString()));
-						PMS.get().setRendererFound(request.getMediaRenderer());
 					}
 				} else {
 					if (userAgentString != null) {

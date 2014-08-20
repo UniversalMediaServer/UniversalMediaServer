@@ -61,6 +61,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected ConfigurationReader configurationReader;
 	protected FormatConfiguration formatConfiguration;
 	protected int rank;
+	protected Matcher sortedHeaderMatcher;
 
 	public StatusTab.RendererItem gui;
 	public boolean loaded, fileless = false;
@@ -422,79 +423,45 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public static RendererConfiguration getRendererConfigurationBySocketAddress(InetAddress sa) {
 		RendererConfiguration r = addressAssociation.get(sa);
-		return (r != null && r.loaded) ? r : null;
-	}
-
-	/**
-	 * Tries to find a matching renderer configuration based on a request
-	 * header line with a User-Agent header. These matches are made using
-	 * the "UserAgentSearch" configuration option in a renderer.conf.
-	 * Returns the matched configuration or <code>null</code> if no match
-	 * could be found.
-	 *
-	 * @param userAgentString The request header line.
-	 * @return The matching renderer configuration or <code>null</code>.
-	 */
-	public static RendererConfiguration getRendererConfigurationByUA(String userAgentString) {
-		if (_pmsConfiguration.isRendererForceDefault()) {
-			// Force default renderer
-			LOGGER.trace("Forcing renderer match to \"" + defaultConf.getRendererName() + "\"");
-			return manageRendererMatch(defaultConf);
-		} else {
-			// Try to find a match
-			for (RendererConfiguration r : enabledRendererConfs) {
-				if (r.matchUserAgent(userAgentString)) {
-					return manageRendererMatch(r);
-				}
-			}
+		if (r != null) {
+			LOGGER.trace("Matched media renderer \"" + r.getRendererName() + "\" based on address " + sa);
 		}
-
-		return null;
-	}
-
-	private static RendererConfiguration manageRendererMatch(RendererConfiguration r) {
-		if (addressAssociation.values().contains(r)) {
-			// FIXME: This cannot ever ever happen because of how renderer matching
-			// is implemented in RequestHandler and RequestHandlerV2. The first header
-			// match will associate the IP address with the renderer and from then on
-			// all other requests from the same IP address will be recognized based on
-			// that association. Headers will be ignored and unfortunately they happen
-			// to be the only way to get here.
-			LOGGER.info("Another renderer like " + r.getRendererName() + " was found!");
-		}
-
 		return r;
 	}
 
+
 	/**
-	 * Tries to find a matching renderer configuration based on a request
-	 * header line with an additional, non-User-Agent header. These matches
-	 * are made based on the "UserAgentAdditionalHeader" and
-	 * "UserAgentAdditionalHeaderSearch" configuration options in a
-	 * renderer.conf. Returns the matched configuration or <code>null</code>
-	 * if no match could be found.
+	 * Tries to find a matching renderer configuration based on the given collection of
+	 * request headers
 	 *
-	 * @param header The request header line.
-	 * @return The matching renderer configuration or <code>null</code>.
+	 * @param headers The headers.
+	 * @param ia The request's origin address.
+	 * @return The matching renderer configuration or <code>null</code>
 	 */
-	public static RendererConfiguration getRendererConfigurationByUAAHH(String header) {
-		if (_pmsConfiguration.isRendererForceDefault()) {
-			// Force default renderer
-			LOGGER.trace("Forcing renderer match to \"" + defaultConf.getRendererName() + "\"");
-			return manageRendererMatch(defaultConf);
-		} else {
-			// Try to find a match
-			for (RendererConfiguration r : enabledRendererConfs) {
-				if (StringUtils.isNotBlank(r.getUserAgentAdditionalHttpHeader()) && header.startsWith(r.getUserAgentAdditionalHttpHeader())) {
-					String value = header.substring(header.indexOf(':', r.getUserAgentAdditionalHttpHeader().length()) + 1);
-					if (r.matchAdditionalUserAgent(value)) {
-						return manageRendererMatch(r);
-					}
-				}
+	public static RendererConfiguration getRendererConfigurationByHeaders(Collection<Map.Entry<String,String>> headers, InetAddress ia) {
+		return getRendererConfigurationByHeaders(new SortedHeaderMap(headers), ia);
+	}
+
+	public static RendererConfiguration getRendererConfigurationByHeaders(SortedHeaderMap sortedHeaders, InetAddress ia) {
+		RendererConfiguration ref = null;
+		RendererConfiguration r = null;
+		boolean isNew = false;
+
+		for (RendererConfiguration e : enabledRendererConfs) {
+			if (e.match(sortedHeaders)) {
+				ref = e;
+				break;
+			}
+		}
+		if (ref != null) {
+			isNew = ! addressAssociation.containsKey(ia);
+			r = resolve(ia, ref);
+			if (r != null) {
+				LOGGER.trace("Matched " + (isNew ? "new " : "") + "media renderer \"" + r.getRendererName() + "\" based on headers " + sortedHeaders);
 			}
 		}
 
-		return null;
+		return r;
 	}
 
 	/**
@@ -528,23 +495,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return null;
 	}
 
-	public static RendererConfiguration getRendererConfigurationByHeaders(String[] headers, InetAddress ia) {
-		RendererConfiguration renderer = null;
-		String uuid = null;
-		for (String header : headers) {
-			if (renderer == null) {
-				renderer = getRendererConfigurationByHeaderLine(header, ia);
-			}
-			if (uuid == null && header.toUpperCase().startsWith("USN")) {
-				uuid = header.substring(header.indexOf(':') + 1).split("::")[0].trim();
-			}
-		}
-		if (uuid != null && renderer != null && renderer.getUUID() == null) {
-			renderer.setUUID(uuid);
-		}
-		return renderer;
-	}
-
 	public static RendererConfiguration getRendererConfigurationByUPNPDetails(String details/*, InetAddress ia, String uuid*/) {
 		for (RendererConfiguration r : enabledRendererConfs) {
 			if (r.matchUPNPDetails(details)) {
@@ -553,32 +503,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			}
 		}
 		return null;
-	}
-
-	public static RendererConfiguration getRendererConfigurationByHeaderLine(String header, InetAddress ia) {
-		String userAgentString;
-		RendererConfiguration ref = null;
-		RendererConfiguration r = null;
-		boolean isNew = false;
-
-		if (header.toUpperCase().startsWith("USER-AGENT")) {
-			userAgentString = header.substring(header.indexOf(':') + 1).trim();
-			ref = getRendererConfigurationByUA(userAgentString);
-		}
-
-		if (ref == null) {
-			ref = getRendererConfigurationByUAAHH(header);
-		}
-
-		if (ref != null) {
-			isNew = ! addressAssociation.containsKey(ia);
-			r = resolve(ia, ref);
-			if (r != null) {
-				LOGGER.trace("Matched " + (isNew ? "new " : "") + "media renderer \"" + r.getRendererName() + "\" based on header \"" + header + "\"");
-			}
-		}
-
-		return r;
 	}
 
 	public static RendererConfiguration resolve(InetAddress ia, RendererConfiguration ref) {
@@ -785,6 +709,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	public boolean load(File f) throws ConfigurationException {
 		if (f != null && !f.equals(NOFILE) && (configuration instanceof PropertiesConfiguration)) {
 			((PropertiesConfiguration)configuration).load(f);
+
+			// Set up the header matcher
+			SortedHeaderMap searchMap = new SortedHeaderMap();
+			searchMap.put("User-Agent", getUserAgent());
+			searchMap.put(getUserAgentAdditionalHttpHeader(), getUserAgentAdditionalHttpHeaderSearch());
+			String re = searchMap.toRegex();
+			sortedHeaderMatcher = StringUtils.isNotBlank(re) ? Pattern.compile(re, Pattern.CASE_INSENSITIVE).matcher("") : null;
+
 			file = f;
 			return true;
 		}
@@ -1070,48 +1002,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		}
 
 		return matchedMimeType;
-	}
-
-	/**
-	 * Pattern match a user agent header string to the "UserAgentSearch"
-	 * expression for this renderer. Will return false when the pattern is
-	 * empty or when no match can be made.
-	 *
-	 * @param header The header containing the user agent.
-	 * @return True if the pattern matches.
-	 */
-	public boolean matchUserAgent(String header) {
-		String userAgent = getUserAgent();
-		Pattern userAgentPattern;
-
-		if (StringUtils.isNotBlank(userAgent)) {
-			userAgentPattern = Pattern.compile(userAgent, Pattern.CASE_INSENSITIVE);
-
-			return userAgentPattern.matcher(header).find();
-		} else {
-			return false;
-		}
-	}
-
-	/**
-	 * Pattern match a header string to the "UserAgentAdditionalHeaderSearch"
-	 * expression for this renderer. Will return false when the pattern is
-	 * empty or when no match can be made.
-	 *
-	 * @param header The additional header string.
-	 * @return True if the pattern matches.
-	 */
-	public boolean matchAdditionalUserAgent(String header) {
-		String userAgentAdditionalHeader = getUserAgentAdditionalHttpHeaderSearch();
-		Pattern userAgentAddtionalPattern;
-
-		if (StringUtils.isNotBlank(userAgentAdditionalHeader)) {
-			userAgentAddtionalPattern = Pattern.compile(userAgentAdditionalHeader, Pattern.CASE_INSENSITIVE);
-
-			return userAgentAddtionalPattern.matcher(header).find();
-		} else {
-			return false;
-		}
 	}
 
 	public boolean matchUPNPDetails(String details) {
@@ -1985,6 +1875,20 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			int size = size();
 			return (size > 1 ? "(" : "") + StringUtils.join(values(), ").*(") + (size > 1 ? ")" : "");
 		}
+	}
+
+	/**
+	 * Pattern match our combined header matcher to the given collection of sorted request
+	 * headers as a whole.
+	 *
+	 * @param headers The headers.
+	 * @return True if the pattern matches or false if no match, no headers, or no matcher.
+	 */
+	public boolean match(SortedHeaderMap headers) {
+		if (! headers.isEmpty() && sortedHeaderMatcher != null) {
+			return sortedHeaderMatcher.reset(headers.joined()).find();
+		}
+		return false;
 	}
 
 	/**

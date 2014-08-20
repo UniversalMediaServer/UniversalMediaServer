@@ -110,6 +110,8 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			request.setHttp10(true);
 		}
 
+		HttpHeaders headers = nettyRequest.headers();
+
 		// The handler makes a couple of attempts to recognize a renderer from its requests.
 		// IP address matches from previous requests are preferred, when that fails request
 		// header matches are attempted and if those fail as well we're stuck with the
@@ -120,25 +122,24 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 
 		// If the renderer exists but isn't marked as loaded it means it's unrecognized
 		// by upnp and we still need to attempt http recognition here.
-		if (renderer != null && renderer.loaded) {
-//			PMS.get().setRendererFound(renderer);
-			request.setMediaRenderer(renderer);
-			LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on address " + ia);
+		if (renderer == null || (renderer != null && ! renderer.loaded)) {
+			// Attempt 2: try to recognize the renderer by matching headers
+			renderer = RendererConfiguration.getRendererConfigurationByHeaders(headers.entries(), ia);
 		}
-		
-		Set<String> headerNames = nettyRequest.headers().names();
+
+		if (renderer != null) {
+			request.setMediaRenderer(renderer);
+		}
+
+		Set<String> headerNames = headers.names();
 		Iterator<String> iterator = headerNames.iterator();
-		while(iterator.hasNext()) {
+		while (iterator.hasNext()) {
 			String name = iterator.next();
-			String headerLine = name + ": " + nettyRequest.headers().get(name);
+			String headerLine = name + ": " + headers.get(name);
 			LOGGER.trace("Received on socket: " + headerLine);
 
-			if (renderer == null) {
-				// Attempt 2: try to recognize the renderer by individual headers
-				renderer = RendererConfiguration.getRendererConfigurationByHeaderLine(headerLine, ia);
-				if (renderer != null) {
-					request.setMediaRenderer(renderer);
-				}
+			if (headerLine.toUpperCase().startsWith("USER-AGENT")) {
+				userAgentString = headerLine.substring(headerLine.indexOf(':') + 1).trim();
 			}
 
 			try {
