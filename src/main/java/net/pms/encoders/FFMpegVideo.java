@@ -184,16 +184,17 @@ public class FFMpegVideo extends Player {
 		if (!isDisableSubtitles(params) && !(dlna.getPlayer() instanceof WebPlayer)) {
 			StringBuilder subsFilter = new StringBuilder();
 			if (params.sid.getType().isText()) {
+				String originalSubsFilename;
 				String subsFilename;
 				if (configuration.isFFmpegFontConfig()) {
-					subsFilename = getSubtitles(dlna, media, params, configuration).getAbsolutePath();
+					originalSubsFilename = getSubtitles(dlna, media, params, configuration).getAbsolutePath();
 				} else {
-					subsFilename = params.sid.isEmbedded() ? dlna.getSystemName() : params.sid.getExternalFile().getAbsolutePath();
+					originalSubsFilename = params.sid.isEmbedded() ? dlna.getSystemName() : params.sid.getExternalFile().getAbsolutePath();
 				}
 
-				if (subsFilename != null) {
+				if (originalSubsFilename != null) {
 					StringBuilder s = new StringBuilder();
-					CharacterIterator it = new StringCharacterIterator(subsFilename);
+					CharacterIterator it = new StringCharacterIterator(originalSubsFilename);
 					for (char ch = it.first(); ch != CharacterIterator.DONE; ch = it.next()) {
 						switch (ch) {
 							case ':':
@@ -217,7 +218,7 @@ public class FFMpegVideo extends Player {
 					int originalWidth = 384;
 					int originalHeight = 288;
 					if (params.sid.isExternal() && params.sid.getType() != SubtitleType.ASS || configuration.isFFmpegFontConfig()) {
-						getOriginalResolution(subsFilename, originalWidth, originalHeight);
+						getOriginalResolution(originalSubsFilename, originalWidth, originalHeight);
 						subsFilter.append(":").append(originalWidth).append("x").append(originalHeight);
 						if (!params.sid.isExternalFileUtf8()) { // Set the input subtitles character encoding if not UTF-8
 							String encoding = isNotBlank(configuration.getSubtitlesCodepage()) ?
@@ -1514,7 +1515,6 @@ public class FFMpegVideo extends Player {
 	}
 
 	private void getOriginalResolution(String subtitles, int originalWidth, int originalHeight) throws IOException {
-		subtitles = subtitles.replace("\\", "");
 		BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(new File(subtitles))));
 		String line;
 		boolean resolved = false;
