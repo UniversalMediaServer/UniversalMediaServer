@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
@@ -301,7 +302,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public static Collection<RendererConfiguration> getConnectedRenderersConfigurations() {
-		return addressAssociation.values();
+		// We need to check both upnp and http sides to ensure a complete list
+		HashSet<RendererConfiguration> renderers = new HashSet<>(UPNPHelper.getRenderers(UPNPHelper.ANY));
+		renderers.addAll(addressAssociation.values());
+		return renderers;
 	}
 
 	public static boolean hasConnectedAVTransportPlayers() {
@@ -508,7 +512,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public static RendererConfiguration getRendererConfigurationByUUID(String uuid) {
-		for (RendererConfiguration conf : enabledRendererConfs) {
+		for (RendererConfiguration conf : getConnectedRenderersConfigurations()) {
 			if (conf.getUUID().equals(uuid)) {
 				return conf;
 			}
