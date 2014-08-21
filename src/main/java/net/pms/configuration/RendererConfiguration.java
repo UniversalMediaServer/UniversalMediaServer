@@ -447,10 +447,16 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		RendererConfiguration r = null;
 		boolean isNew = false;
 
-		for (RendererConfiguration e : enabledRendererConfs) {
-			if (e.match(sortedHeaders)) {
-				ref = e;
-				break;
+		if (pmsConfiguration.isRendererForceDefault()) {
+			// Force default renderer
+			LOGGER.trace("Forcing renderer match to \"" + defaultConf.getRendererName() + "\"");
+			ref = defaultConf;
+		} else {
+			for (RendererConfiguration e : enabledRendererConfs) {
+				if (e.match(sortedHeaders)) {
+					ref = e;
+					break;
+				}
 			}
 		}
 		if (ref != null) {

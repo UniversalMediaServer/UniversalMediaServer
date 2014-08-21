@@ -567,7 +567,8 @@ public class UPNPHelper extends UPNPControl {
 			} else {
 				// It's brand new
 				r = (DeviceConfiguration)rendererMap.get(uuid, "0");
-				RendererConfiguration ref = RendererConfiguration.getRendererConfigurationByUPNPDetails(getDeviceDetailsString(d));
+				RendererConfiguration ref = configuration.isRendererForceDefault() ?
+					null : RendererConfiguration.getRendererConfigurationByUPNPDetails(getDeviceDetailsString(d));
 				if (ref != null) {
 					r.inherit(ref);
 				} else {
