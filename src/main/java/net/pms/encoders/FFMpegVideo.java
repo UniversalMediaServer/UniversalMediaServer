@@ -142,7 +142,7 @@ public class FFMpegVideo extends Player {
 		if (!isDisableSubtitles(params) && !(dlna.getPlayer() instanceof WebPlayer)) {
 			StringBuilder subsFilter = new StringBuilder();
 			if (params.sid.getType().isText()) {
-				String subsFilename = null;
+				String subsFilename;
 				if (configuration.isFFmpegFontConfig()) {
 					subsFilename = getSubtitles(dlna, media, params, configuration).getAbsolutePath();
 				} else {
@@ -186,7 +186,6 @@ public class FFMpegVideo extends Player {
 						subsFilter.append(":si=").append(media.getSubtitleTracksList().indexOf(params.sid));
 					}
 				}
-
 			} else if (params.sid.getType().isPicture()) {
 				filterOption = "-filter_complex";
 				if (params.sid.getId() < 100) {
@@ -249,7 +248,7 @@ public class FFMpegVideo extends Player {
 					scaleHeight = (int) Math.round(scaleWidth / (16 / (double) 9));
 				} else {
 					filterChain.add("pad=ih*(16/9):ih:(ow-iw)/2:0");
-					scaleWidth  = (int) Math.round(scaleHeight * (16 / (double) 9));
+					scaleWidth = (int) Math.round(scaleHeight * (16 / (double) 9));
 				}
 
 				scaleWidth  = convertToMod4(scaleWidth);
