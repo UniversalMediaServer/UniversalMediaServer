@@ -387,6 +387,11 @@ public class RendererConfiguration {
 	}
 
 	public static RendererConfiguration getRendererConfigurationByHeaders(SortedHeaderMap sortedHeaders) {
+		if (pmsConfiguration.isRendererForceDefault()) {
+			// Force default renderer
+			LOGGER.trace("Forcing renderer match to \"" + defaultConf.getRendererName() + "\"");
+			return defaultConf;
+		}
 		for (RendererConfiguration r : enabledRendererConfs) {
 			if (r.match(sortedHeaders)) {
 				LOGGER.trace("Matched media renderer \"" + r.getRendererName() + "\" based on headers " + sortedHeaders);
