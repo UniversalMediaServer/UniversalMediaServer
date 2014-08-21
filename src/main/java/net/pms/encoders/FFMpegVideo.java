@@ -1372,7 +1372,7 @@ public class FFMpegVideo extends Player {
 					output.write(outputString.toString());
 					while ((line = input.readLine()) != null) {
 						outputString.setLength(0);
-						if (!line.isEmpty()) {
+						if (isNotBlank(line)) {
 							if (line.contains("PlayResY:") || line.contains("PlayResX:")) {
 								playResIsSet = true;
 							}
@@ -1521,7 +1521,7 @@ public class FFMpegVideo extends Player {
 		while ((line = input.readLine()) != null) {
 			if (line.contains("[Script Info]")) {
 				while ((line = input.readLine()) != null) {
-					if (!line.isEmpty()) {
+					if (isNotBlank(line)) {
 						if (line.contains("PlayResX:")) {
 							originalWidth = Integer.parseInt(line.substring(9).trim());
 						} else if (line.contains("PlayResY:")) {
