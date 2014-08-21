@@ -28,8 +28,10 @@ import java.awt.event.ItemListener;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.text.CharacterIterator;
@@ -212,12 +214,11 @@ public class FFMpegVideo extends Player {
 					subsFilename = s.toString();
 					subsFilename = subsFilename.replace(",", "\\,");
 					subsFilter.append("subtitles=").append(subsFilename);
+					int originalWidth = 384;
+					int originalHeight = 288;
 					if (params.sid.isExternal() && params.sid.getType() != SubtitleType.ASS || configuration.isFFmpegFontConfig()) {
-						if (scaleWidth > 0 && scaleHeight > 0) {
-							subsFilter.append(":").append(scaleWidth).append("x").append(scaleHeight);
-						} else {
-							subsFilter.append(":384x288");
-						}
+						getOriginalResolution(subsFilename, originalWidth, originalHeight);
+						subsFilter.append(":").append(originalWidth).append("x").append(originalHeight);
 						if (!params.sid.isExternalFileUtf8()) { // Set the input subtitles character encoding if not UTF-8
 							String encoding = isNotBlank(configuration.getSubtitlesCodepage()) ?
 									configuration.getSubtitlesCodepage() : params.sid.getExternalFileCharacterSet() != null ?
@@ -1510,5 +1511,32 @@ public class FFMpegVideo extends Player {
 
 	public static void deleteSubs() {
 		FileUtils.deleteQuietly(new File(configuration.getDataFile(SUB_DIR)));
+	}
+
+	private void getOriginalResolution(String subtitles, int originalWidth, int originalHeight) throws IOException {
+		subtitles = subtitles.replace("\\", "");
+		BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(new File(subtitles))));
+		String line;
+		boolean resolved = false;
+		while ((line = input.readLine()) != null) {
+			if (line.contains("[Script Info]")) {
+				while ((line = input.readLine()) != null) {
+					if (!line.isEmpty()) {
+						if (line.contains("PlayResX:")) {
+							originalWidth = Integer.parseInt(line.substring(9).trim());
+						} else if (line.contains("PlayResY:")) {
+							originalHeight = Integer.parseInt(line.substring(9).trim());
+						}
+					} else {
+						resolved = true;
+						break;
+					}	
+				}
+			}
+			if (resolved) {
+				input.close();
+				break;
+			}
+		}
 	}
 }
