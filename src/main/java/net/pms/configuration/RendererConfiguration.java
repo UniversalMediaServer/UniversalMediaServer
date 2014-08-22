@@ -443,31 +443,30 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public static RendererConfiguration getRendererConfigurationByHeaders(SortedHeaderMap sortedHeaders, InetAddress ia) {
-		RendererConfiguration ref = null;
 		RendererConfiguration r = null;
-		boolean isNew = false;
-
-		if (_pmsConfiguration.isRendererForceDefault()) {
-			// Force default renderer
-			LOGGER.trace("Forcing renderer match to \"" + defaultConf.getRendererName() + "\"");
-			ref = defaultConf;
-		} else {
-			for (RendererConfiguration e : enabledRendererConfs) {
-				if (e.match(sortedHeaders)) {
-					ref = e;
-					break;
-				}
-			}
-		}
+		RendererConfiguration ref = getRendererConfigurationByHeaders(sortedHeaders);
 		if (ref != null) {
-			isNew = ! addressAssociation.containsKey(ia);
+			boolean isNew = ! addressAssociation.containsKey(ia);
 			r = resolve(ia, ref);
 			if (r != null) {
 				LOGGER.trace("Matched " + (isNew ? "new " : "") + "media renderer \"" + r.getRendererName() + "\" based on headers " + sortedHeaders);
 			}
 		}
-
 		return r;
+	}
+
+	public static RendererConfiguration getRendererConfigurationByHeaders(SortedHeaderMap sortedHeaders) {
+		if (_pmsConfiguration.isRendererForceDefault()) {
+			// Force default renderer
+			LOGGER.trace("Forcing renderer match to \"" + defaultConf.getRendererName() + "\"");
+			return defaultConf;
+		}
+		for (RendererConfiguration r : enabledRendererConfs) {
+			if (r.match(sortedHeaders)) {
+				return r;
+			}
+		}
+		return null;
 	}
 
 	/**
