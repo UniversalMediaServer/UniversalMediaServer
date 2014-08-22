@@ -447,7 +447,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		RendererConfiguration r = null;
 		boolean isNew = false;
 
-		if (pmsConfiguration.isRendererForceDefault()) {
+		if (_pmsConfiguration.isRendererForceDefault()) {
 			// Force default renderer
 			LOGGER.trace("Forcing renderer match to \"" + defaultConf.getRendererName() + "\"");
 			ref = defaultConf;
