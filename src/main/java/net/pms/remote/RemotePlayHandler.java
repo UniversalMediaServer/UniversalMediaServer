@@ -130,7 +130,7 @@ public class RemotePlayHandler implements HttpHandler {
 			mediaType = "audio";
 			String thumb = "/thumb/" + id1;
 			String name = StringEscapeUtils.escapeHtml(r.resumeName());
-			coverImage = "<img src=\"" + thumb + "\" alt=\"\"><br><h2>" + name + "</h2><br>";
+			coverImage = "<img height=256 width=256 src=\"" + thumb + "\" alt=\"\"><br><h2>" + name + "</h2><br>";
 			flowplayer = false;
 		}
 		if (r.getFormat().isVideo()) {
@@ -199,7 +199,8 @@ public class RemotePlayHandler implements HttpHandler {
 						if (
 							RemoteUtil.directmime(mime) &&
 							!RemoteUtil.transMp4(mime, r.getMedia()) &&
-							!r.isResume()
+							!r.isResume() &&
+							!forceFlash
 						) {
 							sb.append("<source src=\"/media/").append(id1).append("\" type=\"").append(mime).append("\">").append(CRLF);
 						}
@@ -244,7 +245,8 @@ public class RemotePlayHandler implements HttpHandler {
 		sb.append("<div>").append(CRLF);
 		sb.append("<button value=\"<<\" onclick=\"").append(prvJs).append("\"><<</button>").append(CRLF);
 		sb.append("<button value=\">>\" onclick=\"").append(nxtJs).append("\">>></button>").append(CRLF);
-		if(!forceFlash) {
+		if(!forceFlash && !flowplayer && r.getFormat().isVideo()) {
+			// only add flash button for videos (and we aren't playing flash already)
 			String flashStr = "window.location.replace('/play/" + id1 + "?flash=1');";
 			sb.append("<button value=\"flash\" onclick=\"").append(flashStr).append("\">Flash</button>").append(CRLF);
 		}
