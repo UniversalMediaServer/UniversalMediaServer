@@ -142,46 +142,6 @@ public class FFMpegVideo extends Player {
 				media.getHeight() > renderer.getMaxVideoHeight()
 			);
 
-		int scaleWidth = 0;
-		int scaleHeight = 0;
-		if (media.getWidth() > 0 && media.getHeight() > 0) {
-			scaleWidth = media.getWidth();
-			scaleHeight = media.getHeight();
-		}
-
-		String overrideVF = renderer.getFFmpegVideoFilterOverride();
-		if (StringUtils.isNotEmpty(overrideVF)) {
-			filterChain.add(overrideVF);
-		} else {
-			/**
-			 * Make sure the aspect ratio is 16/9 if the renderer needs it.
-			 */
-			boolean keepAR = renderer.isKeepAspectRatio() &&
-					!(
-						media.getWidth() == 3840 && media.getHeight() <= 1080 ||
-						media.getWidth() == 1920 && media.getHeight() == 2160
-					) &&
-					!"16:9".equals(media.getAspectRatioContainer());
-			if (isResolutionTooHighForRenderer || (!renderer.isRescaleByRenderer() && renderer.isMaximumResolutionSpecified() && media.getWidth() < 720)) { // Do not rescale for SD video and higher
-				filterChain.add(String.format("scale=iw*min(%1$d/iw\\,%2$d/ih):ih*min(%1$d/iw\\,%2$d/ih)", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
-				if (keepAR) {
-					filterChain.add(String.format("pad=%1$d:%2$d:(%1$d-iw)/2:(%2$d-ih)/2", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
-				}
-			} else if (keepAR && isMediaValid) {
-				if ((media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
-					filterChain.add("pad=iw:iw/(16/9):0:(oh-ih)/2");
-					scaleHeight = (int) Math.round(scaleWidth / (16 / (double) 9));
-				} else {
-					filterChain.add("pad=ih*(16/9):ih:(ow-iw)/2:0");
-					scaleWidth = (int) Math.round(scaleHeight * (16 / (double) 9));
-				}
-
-				scaleWidth  = convertToMod4(scaleWidth);
-				scaleHeight = convertToMod4(scaleHeight);
-				filterChain.add("scale=" + scaleWidth + ":" + scaleHeight);
-			}
-		}
-
 		if (!isDisableSubtitles(params)) {
 			StringBuilder subsFilter = new StringBuilder();
 			if (params.sid.getType().isText()) {
@@ -259,6 +219,46 @@ public class FFMpegVideo extends Player {
 					videoFilterOptions.add("asetpts=PTS-" + params.timeseek + "/TB");
 					filterChain.add("setpts=PTS-" + params.timeseek + "/TB");
 				}
+			}
+		}
+
+		int scaleWidth = 0;
+		int scaleHeight = 0;
+		if (media.getWidth() > 0 && media.getHeight() > 0) {
+			scaleWidth = media.getWidth();
+			scaleHeight = media.getHeight();
+		}
+
+		String overrideVF = renderer.getFFmpegVideoFilterOverride();
+		if (StringUtils.isNotEmpty(overrideVF)) {
+			filterChain.add(overrideVF);
+		} else {
+			/**
+			 * Make sure the aspect ratio is 16/9 if the renderer needs it.
+			 */
+			boolean keepAR = renderer.isKeepAspectRatio() &&
+					!(
+						media.getWidth() == 3840 && media.getHeight() <= 1080 ||
+						media.getWidth() == 1920 && media.getHeight() == 2160
+					) &&
+					!"16:9".equals(media.getAspectRatioContainer());
+			if (isResolutionTooHighForRenderer || (!renderer.isRescaleByRenderer() && renderer.isMaximumResolutionSpecified() && media.getWidth() < 720)) { // Do not rescale for SD video and higher
+				filterChain.add(String.format("scale=iw*min(%1$d/iw\\,%2$d/ih):ih*min(%1$d/iw\\,%2$d/ih)", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
+				if (keepAR) {
+					filterChain.add(String.format("pad=%1$d:%2$d:(%1$d-iw)/2:(%2$d-ih)/2", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
+				}
+			} else if (keepAR && isMediaValid) {
+				if ((media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
+					filterChain.add("pad=iw:iw/(16/9):0:(oh-ih)/2");
+					scaleHeight = (int) Math.round(scaleWidth / (16 / (double) 9));
+				} else {
+					filterChain.add("pad=ih*(16/9):ih:(ow-iw)/2:0");
+					scaleWidth = (int) Math.round(scaleHeight * (16 / (double) 9));
+				}
+
+				scaleWidth  = convertToMod4(scaleWidth);
+				scaleHeight = convertToMod4(scaleHeight);
+				filterChain.add("scale=" + scaleWidth + ":" + scaleHeight);
 			}
 		}
 
