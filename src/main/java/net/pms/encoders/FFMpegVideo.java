@@ -130,7 +130,6 @@ public class FFMpegVideo extends Player {
 	 */
 	public List<String> getVideoFilterOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
 		List<String> videoFilterOptions = new ArrayList<>();
-		String filterOption = "-vf";
 		ArrayList<String> filterChain = new ArrayList<>();
 		final RendererConfiguration renderer = params.mediaRenderer;
 
@@ -233,7 +232,6 @@ public class FFMpegVideo extends Player {
 					}
 				}
 			} else if (params.sid.getType().isPicture()) {
-				filterOption = "-filter_complex";
 				if (params.sid.getId() < 100) {
 					// Embedded
 					subsFilter.append("[0:v][0:s:").append(media.getSubtitleTracksList().indexOf(params.sid)).append("]overlay");
@@ -262,7 +260,7 @@ public class FFMpegVideo extends Player {
 		}
 
 		if (filterChain.size() > 0) {
-			videoFilterOptions.add(filterOption);
+			videoFilterOptions.add("-filter_complex");
 			videoFilterOptions.add(StringUtils.join(filterChain, ", "));
 		}
 
