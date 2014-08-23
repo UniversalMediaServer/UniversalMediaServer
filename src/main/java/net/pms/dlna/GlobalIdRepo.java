@@ -8,7 +8,8 @@ import org.slf4j.LoggerFactory;
 public class GlobalIdRepo {
 	private static final Logger LOGGER = LoggerFactory.getLogger(GlobalIdRepo.class);
 
-	private int globalId = 0, deletions = 0;
+	// Global ids start at 1, since id 0 is reserved as a pseudonym for 'renderer root'
+	private int globalId = 1, deletions = 0;
 
 	class ID {
 		int id;
@@ -72,12 +73,13 @@ public class GlobalIdRepo {
 	}
 
 	private int indexOf(int id) {
-		if (id < globalId) {
+		if (id > 0 && id < globalId) {
 			// We're in sequence by definition, so binary search is quickest
 
 			// Exclude any areas where the id can't possibly be
 			int ceil = ids.size() - 1;
-			int hi = id < ceil ? id : ceil;
+			int top = id - 1; // id 0 is reserved, so index is id-1 at most
+			int hi = top < ceil ? top : ceil;
 			int floor = hi - deletions;
 			int lo = floor > 0 ? floor : 0;
 
