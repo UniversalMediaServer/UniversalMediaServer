@@ -2,7 +2,6 @@ package net.pms.configuration;
 
 import java.net.InetAddress;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import net.pms.Messages;
 import net.pms.PMS;

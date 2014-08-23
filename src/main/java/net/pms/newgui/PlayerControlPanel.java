@@ -2,7 +2,6 @@ package net.pms.newgui;
 
 import java.io.File;
 import java.net.URL;
-import java.util.HashMap;
 //import java.util.Hashtable;
 import org.apache.commons.lang.StringUtils;
 import java.awt.*;
@@ -20,7 +19,6 @@ import javax.swing.event.DocumentListener;
 import javax.swing.plaf.metal.MetalIconFactory;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
-import net.pms.network.UPNPHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

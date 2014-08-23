@@ -18,7 +18,6 @@
  */
 package net.pms.dlna.virtual;
 
-import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 
 public class TranscodeVirtualFolder extends VirtualFolder {

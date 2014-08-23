@@ -36,7 +36,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.util.Locale;
-import java.util.ArrayList;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import net.pms.PMS;

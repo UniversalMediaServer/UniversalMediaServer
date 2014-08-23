@@ -4,7 +4,6 @@ import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.PMS;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
