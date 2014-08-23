@@ -98,13 +98,14 @@ public class RequestHandler implements Runnable {
 			// Attempt 1: try to recognize the renderer by its socket address from previous requests
 			renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
 			ArrayList<String> headerLines = new ArrayList<>();
-			RendererConfiguration.SortedHeaderMap sortedHeaders = renderer == null ? new RendererConfiguration.SortedHeaderMap() : null;
+			boolean unloaded = renderer == null || (renderer != null && ! renderer.loaded);
+			RendererConfiguration.SortedHeaderMap sortedHeaders = unloaded ? new RendererConfiguration.SortedHeaderMap() : null;
 
 			// Gather all the headers
 			String line = br.readLine();
 			while (line != null && line.length() > 0) {
 				headerLines.add(line);
-				if (renderer == null) {
+				if (unloaded) {
 					sortedHeaders.put(line);
 				}
 				line = br.readLine();
@@ -112,7 +113,7 @@ public class RequestHandler implements Runnable {
 
 			// If the renderer exists but isn't marked as loaded it means it's unrecognized
 			// by upnp and we still need to attempt http recognition here.
-			if (renderer == null || (renderer != null && ! renderer.loaded)) {
+			if (unloaded) {
 				// Attempt 2: try to recognize the renderer by matching headers
 				renderer = RendererConfiguration.getRendererConfigurationByHeaders(sortedHeaders, ia);
 			}

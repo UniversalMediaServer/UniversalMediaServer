@@ -1890,7 +1890,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * @return True if the pattern matches or false if no match, no headers, or no matcher.
 	 */
 	public boolean match(SortedHeaderMap headers) {
-		if (! headers.isEmpty() && sortedHeaderMatcher != null) {
+		if (headers !=null && ! headers.isEmpty() && sortedHeaderMatcher != null) {
 			return sortedHeaderMatcher.reset(headers.joined()).find();
 		}
 		return false;
