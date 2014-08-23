@@ -18,6 +18,7 @@
  */
 package net.pms.network;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -299,25 +300,26 @@ public class RequestV2 extends HTTPResource {
 					}
 
 					inputStream = dlna.getThumbnailInputStream();
-				} else if (dlna.getMedia() != null && fileName.indexOf("subtitle0000") > -1) {
+				} else if (dlna.getMedia() != null && fileName.contains("subtitle0000")) {
 					// This is a request for a subtitle file
 					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain");
 					output.headers().set(HttpHeaders.Names.EXPIRES, getFUTUREDATE() + " GMT");
-					List<DLNAMediaSubtitle> subs = dlna.getMedia().getSubtitleTracksList();
-
-					if (subs != null && !subs.isEmpty()) {
-						// TODO: maybe loop subs to get the requested subtitle type instead of using the first one
-						DLNAMediaSubtitle sub = subs.get(0);
-
+					DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
+					if (sub != null) {
 						try {
 							// XXX external file is null if the first subtitle track is embedded:
 							// http://www.ps3mediaserver.org/forum/viewtopic.php?f=3&t=15805&p=75534#p75534
 							if (sub.isExternal()) {
-								inputStream = new java.io.FileInputStream(sub.getExternalFile());
+								inputStream = new FileInputStream(sub.getExternalFile());
+								LOGGER.trace("Loading external subtitles: " + sub);
+							} else {
+								LOGGER.trace("Not loading external subtitles because they are not external: " + sub);
 							}
 						} catch (NullPointerException npe) {
-							LOGGER.trace("Could not find external subtitles: " + sub);
+							LOGGER.trace("Not loading external subtitles because we could not find them at " + sub);
 						}
+					} else {
+						LOGGER.trace("Not loading external subtitles because dlna.getMediaSubtitle returned null");
 					}
 				} else {
 					// This is a request for a regular file.
@@ -362,27 +364,28 @@ public class RequestV2 extends HTTPResource {
 					if (dlna.getMedia() != null && !configuration.isDisableSubtitles()) {
 						// Some renderers (like Samsung devices) allow a custom header for a subtitle URL
 						String subtitleHttpHeader = mediaRenderer.getSubtitleHttpHeader();
-
 						if (subtitleHttpHeader != null && !"".equals(subtitleHttpHeader)) {
 							// Device allows a custom subtitle HTTP header; construct it
-							List<DLNAMediaSubtitle> subs = dlna.getMedia().getSubtitleTracksList();
-
-							if (subs != null && !subs.isEmpty()) {
-								DLNAMediaSubtitle sub = subs.get(0);
+							DLNAMediaSubtitle sub = dlna.getMediaSubtitle();
+							if (sub != null) {
 								String subtitleUrl;
 								String subExtension = sub.getType().getExtension();
 								if (isNotBlank(subExtension)) {
-									subtitleUrl = "http://" + PMS.get().getServer().getHost() +
-										':' + PMS.get().getServer().getPort() + "/get/" +
-										id + "/subtitle0000." + subExtension;
-								} else {
-									subtitleUrl = "http://" + PMS.get().getServer().getHost() +
-										':' + PMS.get().getServer().getPort() + "/get/" +
-										id + "/subtitle0000";
+									subExtension = "." + subExtension;
 								}
+								subtitleUrl = "http://" + PMS.get().getServer().getHost() +
+									':' + PMS.get().getServer().getPort() + "/get/" +
+									id + "/subtitle0000" + subExtension;
+
 								output.headers().set(subtitleHttpHeader, subtitleUrl);
+							} else {
+								LOGGER.trace("Did not send subtitle headers because dlna.getMediaSubtitle returned null");
 							}
+						} else {
+							LOGGER.trace("Did not send subtitle headers because mediaRenderer.getSubtitleHttpHeader returned either null or blank");
 						}
+					} else {
+						LOGGER.trace("Did not send subtitle headers because dlna.getMedia returned null or configuration.isDisableSubtitles was true");
 					}
 
 					String name = dlna.getDisplayName(mediaRenderer);
@@ -542,7 +545,7 @@ public class RequestV2 extends HTTPResource {
 		} else if (method.equals("POST") && argument.endsWith("upnp/control/connection_manager")) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 
-			if (soapaction != null && soapaction.indexOf("ConnectionManager:1#GetProtocolInfo") > -1) {
+			if (soapaction != null && soapaction.contains("ConnectionManager:1#GetProtocolInfo")) {
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
@@ -555,7 +558,7 @@ public class RequestV2 extends HTTPResource {
 		} else if (method.equals("POST") && argument.endsWith("upnp/control/content_directory")) {
 			output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/xml; charset=\"utf-8\"");
 
-			if (soapaction != null && soapaction.indexOf("ContentDirectory:1#GetSystemUpdateID") > -1) {
+			if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSystemUpdateID")) {
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
@@ -568,7 +571,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
-			} else if (soapaction != null && soapaction.indexOf("ContentDirectory:1#X_GetFeatureList") > -1) { // Added for Samsung 2012 TVs
+			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#X_GetFeatureList")) { // Added for Samsung 2012 TVs
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
@@ -577,7 +580,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
-			} else if (soapaction != null && soapaction.indexOf("ContentDirectory:1#GetSortCapabilities") > -1) {
+			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSortCapabilities")) {
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);
@@ -586,7 +589,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
-			} else if (soapaction != null && soapaction.indexOf("ContentDirectory:1#GetSearchCapabilities") > -1) {
+			} else if (soapaction != null && soapaction.contains("ContentDirectory:1#GetSearchCapabilities")) {
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.SOAP_ENCODING_HEADER);

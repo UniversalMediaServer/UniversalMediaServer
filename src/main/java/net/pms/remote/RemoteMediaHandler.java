@@ -90,7 +90,8 @@ public class RemoteMediaHandler implements HttpHandler {
 				mime = "video/flash";
 			} else if (!RemoteUtil.directmime(mime) || RemoteUtil.transMp4(mime, m)) {
 				mime = RemoteUtil.MIME_TRANS;
-				if (((WebRender)r).isChrome()) {
+				WebRender render = (WebRender)r;
+				if (render != null && render.isChrome()) {
 					mime = RemoteUtil.MIME_WEBM;
 				}
 				dlna.setPlayer(FileUtil.isUrl(dlna.getSystemName()) ?

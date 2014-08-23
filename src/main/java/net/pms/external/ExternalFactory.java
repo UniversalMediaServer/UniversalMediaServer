@@ -246,9 +246,9 @@ public class ExternalFactory {
 			}
 		}
 
-		ArrayList<RendererConfiguration> renders = RendererConfiguration.getEnabledRenderersConfigurations();
+		ArrayList<RendererConfiguration> renderers = RendererConfiguration.getEnabledRenderersConfigurations();
 
-		for (RendererConfiguration r : renders) {
+		for (RendererConfiguration r : renderers) {
 			RootFolder rf = r.getRootFolder();
 			rf.reset();
 		}
@@ -319,8 +319,7 @@ public class ExternalFactory {
 		}
 
 		try {
-			try (FileInputStream fis = new FileInputStream(purge)) {
-				BufferedReader in = new BufferedReader(new InputStreamReader(fis)); 
+			try (FileInputStream fis = new FileInputStream(purge); BufferedReader in = new BufferedReader(new InputStreamReader(fis))) { 
 				String line;
 
 				while ((line = in.readLine()) != null) {
@@ -333,7 +332,6 @@ public class ExternalFactory {
 						f.delete();
 					}
 				}
-				in.close();
 			}
 		} catch (IOException e) { }
 		purge.delete();

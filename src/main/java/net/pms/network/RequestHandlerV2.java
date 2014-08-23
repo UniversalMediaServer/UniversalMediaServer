@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.external.StartStopListenerDelegate;
+import org.apache.commons.lang3.StringUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.*;
@@ -109,6 +110,8 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			request.setHttp10(true);
 		}
 
+		HttpHeaders headers = nettyRequest.headers();
+
 		// The handler makes a couple of attempts to recognize a renderer from its requests.
 		// IP address matches from previous requests are preferred, when that fails request
 		// header matches are attempted and if those fail as well we're stuck with the
@@ -117,25 +120,26 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		// Attempt 1: try to recognize the renderer by its socket address from previous requests
 		renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
 
-		if (renderer != null) {
-//			PMS.get().setRendererFound(renderer);
-			request.setMediaRenderer(renderer);
-			LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on address " + ia);
+		// If the renderer exists but isn't marked as loaded it means it's unrecognized
+		// by upnp and we still need to attempt http recognition here.
+		if (renderer == null || (renderer != null && ! renderer.loaded)) {
+			// Attempt 2: try to recognize the renderer by matching headers
+			renderer = RendererConfiguration.getRendererConfigurationByHeaders(headers.entries(), ia);
 		}
-		
-		Set<String> headerNames = nettyRequest.headers().names();
+
+		if (renderer != null) {
+			request.setMediaRenderer(renderer);
+		}
+
+		Set<String> headerNames = headers.names();
 		Iterator<String> iterator = headerNames.iterator();
-		while(iterator.hasNext()) {
+		while (iterator.hasNext()) {
 			String name = iterator.next();
-			String headerLine = name + ": " + nettyRequest.headers().get(name);
+			String headerLine = name + ": " + headers.get(name);
 			LOGGER.trace("Received on socket: " + headerLine);
 
-			if (renderer == null) {
-				// Attempt 2: try to recognize the renderer by individual headers
-				renderer = RendererConfiguration.getRendererConfigurationByHeaderLine(headerLine, ia);
-				if (renderer != null) {
-					request.setMediaRenderer(renderer);
-				}
+			if (headerLine.toUpperCase().startsWith("USER-AGENT")) {
+				userAgentString = headerLine.substring(headerLine.indexOf(':') + 1).trim();
 			}
 
 			try {
@@ -145,7 +149,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 					request.setSoapaction(s.nextToken());
 				} else if (temp.toUpperCase().equals("CALLBACK:")) {
 					request.setSoapaction(s.nextToken());
-				} else if (headerLine.toUpperCase().indexOf("RANGE: BYTES=") > -1) {
+				} else if (headerLine.toUpperCase().contains("RANGE: BYTES=")) {
 					String nums = headerLine.substring(
 						headerLine.toUpperCase().indexOf(
 						"RANGE: BYTES=") + 13).trim();
@@ -158,9 +162,9 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 					} else {
 						request.setHighRange(-1);
 					}
-				} else if (headerLine.toLowerCase().indexOf("transfermode.dlna.org:") > -1) {
+				} else if (headerLine.toLowerCase().contains("transfermode.dlna.org:")) {
 					request.setTransferMode(headerLine.substring(headerLine.toLowerCase().indexOf("transfermode.dlna.org:") + 22).trim());
-				} else if (headerLine.toLowerCase().indexOf("getcontentfeatures.dlna.org:") > -1) {
+				} else if (headerLine.toLowerCase().contains("getcontentfeatures.dlna.org:")) {
 					request.setContentFeatures(headerLine.substring(headerLine.toLowerCase().indexOf("getcontentfeatures.dlna.org:") + 28).trim());
 				} else {
 					Matcher matcher = TIMERANGE_PATTERN.matcher(headerLine);
@@ -174,9 +178,10 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 							request.setTimeRangeEndString(end);
 						}
 					} else {
-						 // If we made it to here, none of the previous header checks matched.
-						 // Unknown headers make interesting logging info when we cannot recognize
-						 // the media renderer, so keep track of the truly unknown ones.
+						/** If we made it to here, none of the previous header checks matched.
+						 * Unknown headers make interesting logging info when we cannot recognize
+						 * the media renderer, so keep track of the truly unknown ones.
+						 */
 						boolean isKnown = false;
 
 						// Try to match known headers.
@@ -185,6 +190,14 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 							if (lowerCaseHeaderLine.startsWith(knownHeaderString)) {
 								isKnown = true;
 								break;
+							}
+						}
+
+						// It may be unusual but already known
+						if (renderer != null) {
+							String additionalHeader = renderer.getUserAgentAdditionalHttpHeader();
+							if (StringUtils.isNotBlank(additionalHeader) && lowerCaseHeaderLine.startsWith(additionalHeader)) {
+								isKnown = true;
 							}
 						}
 
@@ -206,7 +219,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			// Attempt 3: Not really an attempt; all other attempts to recognize
 			// the renderer have failed. The only option left is to assume the
 			// default renderer.
-			request.setMediaRenderer(RendererConfiguration.getDefaultConf());
+			request.setMediaRenderer(RendererConfiguration.resolve(ia, null));
 			LOGGER.trace("Using default media renderer: " + request.getMediaRenderer().getRendererName());
 
 			if (userAgentString != null && !userAgentString.equals("FDSSDP")) {

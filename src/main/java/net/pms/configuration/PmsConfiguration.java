@@ -120,150 +120,156 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_FONT = "subtitles_font";
 	protected static final String KEY_FORCED_SUBTITLE_LANGUAGE = "forced_subtitle_language";
 	protected static final String KEY_FORCED_SUBTITLE_TAGS = "forced_subtitle_tags";
+	protected static final String KEY_FORCE_EXTERNAL_SUBTITLES = "force_external_subtitles";
 	protected static final String KEY_FORCE_TRANSCODE_FOR_EXTENSIONS = "force_transcode_for_extensions";
 	protected static final String KEY_FOLDER_LIMIT = "folder_limit";
 	public static final String KEY_GPU_ACCELERATION = "gpu_acceleration";
-	private static final String KEY_HIDE_ADVANCED_OPTIONS = "hide_advanced_options";
-	private static final String KEY_HIDE_EMPTY_FOLDERS = "hide_empty_folders";
-	private static final String KEY_HIDE_ENGINENAMES = "hide_enginenames";
-	private static final String KEY_HIDE_EXTENSIONS = "hide_extensions";
-	private static final String KEY_HIDE_RECENTLY_PLAYED_FOLDER = "hide_recently_played_folder";
-	private static final String KEY_HIDE_LIVE_SUBTITLES_FOLDER = "hide_live_subtitles_folder";
-	private static final String KEY_HIDE_MEDIA_LIBRARY_FOLDER = "hide_media_library_folder";
-	private static final String KEY_HIDE_SUBS_INFO = "hide_subs_info";
-	private static final String KEY_HIDE_TRANSCODE_FOLDER = "hide_transcode_folder";
-	private static final String KEY_HIDE_VIDEO_SETTINGS = "hide_video_settings";
-	private static final String KEY_HTTP_ENGINE_V2 = "http_engine_v2";
-	private static final String KEY_IGNORE_THE_WORD_THE = "ignore_the_word_the";
-	private static final String KEY_IGNORED_RENDERERS = "ignored_renderers";
-	private static final String KEY_IMAGE_THUMBNAILS_ENABLED = "image_thumbnails";
-	private static final String KEY_IP_FILTER = "ip_filter";
-	private static final String KEY_ITUNES_LIBRARY_PATH = "itunes_library_path";
-	private static final String KEY_SHOW_IPHOTO_LIBRARY = "show_iphoto_library";
-	private static final String KEY_SHOW_ITUNES_LIBRARY = "show_itunes_library";
-	private static final String KEY_LANGUAGE = "language";
-	private static final String KEY_MAX_AUDIO_BUFFER = "maximum_audio_buffer_size";
-	private static final String KEY_MAX_BITRATE = "maximum_bitrate";
-	private static final String KEY_MAX_MEMORY_BUFFER_SIZE = "maximum_video_buffer_size";
-	private static final String KEY_MENCODER_ASS = "mencoder_ass";
-	private static final String KEY_MENCODER_AC3_FIXED = "mencoder_ac3_fixed";
-	private static final String KEY_MENCODER_ASS_DEFAULTSTYLE = "mencoder_ass_defaultstyle";
-	private static final String KEY_MENCODER_CUSTOM_OPTIONS = "mencoder_custom_options";
-	private static final String KEY_MENCODER_FONT_CONFIG = "mencoder_fontconfig";
-	private static final String KEY_MENCODER_FORCE_FPS = "mencoder_forcefps";
-	private static final String KEY_MENCODER_INTELLIGENT_SYNC = "mencoder_intelligent_sync";
-	private static final String KEY_MENCODER_MAX_THREADS = "mencoder_max_threads";
-	private static final String KEY_MENCODER_MT = "mencoder_mt";
-	private static final String KEY_MENCODER_MUX_COMPATIBLE = "mencoder_mux_compatible";
-	private static final String KEY_MENCODER_NOASS_BLUR = "mencoder_noass_blur";
-	private static final String KEY_MENCODER_NOASS_OUTLINE = "mencoder_noass_outline";
-	private static final String KEY_MENCODER_NOASS_SCALE = "mencoder_noass_scale";
-	private static final String KEY_MENCODER_NOASS_SUBPOS = "mencoder_noass_subpos";
-	private static final String KEY_MENCODER_NO_OUT_OF_SYNC = "mencoder_nooutofsync";
-	private static final String KEY_MENCODER_NORMALIZE_VOLUME = "mencoder_normalize_volume";
-	private static final String KEY_MENCODER_OVERSCAN_COMPENSATION_HEIGHT = "mencoder_overscan_compensation_height";
-	private static final String KEY_MENCODER_OVERSCAN_COMPENSATION_WIDTH = "mencoder_overscan_compensation_width";
-	private static final String KEY_AUDIO_REMUX_AC3 = "audio_remux_ac3";
-	private static final String KEY_MENCODER_REMUX_MPEG2 = "mencoder_remux_mpeg2";
-	private static final String KEY_MENCODER_SCALER = "mencoder_scaler";
-	private static final String KEY_MENCODER_SCALEX = "mencoder_scalex";
-	private static final String KEY_MENCODER_SCALEY = "mencoder_scaley";
-	private static final String KEY_MENCODER_SUB_FRIBIDI = "mencoder_subfribidi";
-	private static final String KEY_MENCODER_USE_PCM_FOR_HQ_AUDIO_ONLY = "mencoder_usepcm_for_hq_audio_only";
-	private static final String KEY_MENCODER_VOBSUB_SUBTITLE_QUALITY = "mencoder_vobsub_subtitle_quality";
-	private static final String KEY_MENCODER_YADIF = "mencoder_yadif";
-	private static final String KEY_MIN_MEMORY_BUFFER_SIZE = "minimum_video_buffer_size";
-	private static final String KEY_MIN_PLAY_TIME = "min_playtime";
-	private static final String KEY_MIN_PLAY_TIME_WEB = "min_playtime_web";
-	private static final String KEY_MIN_PLAY_TIME_FILE = "min_playtime_file";
-	private static final String KEY_MIN_STREAM_BUFFER = "minimum_web_buffer_size";
-	private static final String KEY_MINIMIZED = "minimized";
-	private static final String KEY_MPEG2_MAIN_SETTINGS = "mpeg2_main_settings";
-	private static final String KEY_MUX_ALLAUDIOTRACKS = "tsmuxer_mux_all_audiotracks";
-	private static final String KEY_NETWORK_INTERFACE = "network_interface";
-	private static final String KEY_HIDE_NEW_MEDIA_FOLDER = "hide_new_media_folder";
-	private static final String KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS = "disable_transcode_for_extensions";
-	private static final String KEY_NUMBER_OF_CPU_CORES = "number_of_cpu_cores";
-	private static final String KEY_OPEN_ARCHIVES = "enable_archive_browsing";
-	private static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
-	private static final String KEY_LIVE_SUBTITLES_KEEP = "live_subtitles_keep";
-	private static final String KEY_OVERSCAN = "mencoder_overscan";
-	private static final String KEY_PING_PATH = "ping_path";
-	private static final String KEY_PLUGIN_DIRECTORY = "plugins";
-	private static final String KEY_PLUGIN_PURGE_ACTION = "plugin_purge";
-	private static final String KEY_PREVENTS_SLEEP = "prevents_sleep_mode";
-	private static final String KEY_PRETTIFY_FILENAMES = "prettify_filenames";
-	private static final String KEY_PROFILE_NAME = "name";
-	private static final String KEY_PROXY_SERVER_PORT = "proxy";
-	private static final String KEY_RENDERER_DEFAULT = "renderer_default";
-	private static final String KEY_RENDERER_FORCE_DEFAULT = "renderer_force_default";
-	private static final String KEY_RESUME = "resume";
-	private static final String KEY_RESUME_REWIND = "resume_rewind";
-	private static final String KEY_RESUME_BACK = "resume_back";
-	private static final String KEY_RESUME_KEEP_TIME = "resume_keep_time";
-	private static final String KEY_RUN_WIZARD = "run_wizard";
-	private static final String KEY_SCRIPT_DIR = "script_dir";
-	private static final String KEY_SEARCH_FOLDER = "search_folder";
-	private static final String KEY_SEARCH_IN_FOLDER = "search_in_folder";
-	private static final String KEY_SEARCH_RECURSE = "search_recurse"; // legacy option
-	private static final String KEY_SEARCH_RECURSE_DEPTH = "search_recurse_depth";
-	private static final String KEY_SERVER_HOSTNAME = "hostname";
-	private static final String KEY_SERVER_NAME = "server_name";
-	private static final String KEY_SERVER_PORT = "port";
-	private static final String KEY_SHARES = "shares";
-	private static final String KEY_SINGLE = "single_instance";
-	private static final String KEY_SKIP_LOOP_FILTER_ENABLED = "mencoder_skip_loop_filter";
-	private static final String KEY_SKIP_NETWORK_INTERFACES = "skip_network_interfaces";
-	private static final String KEY_SORT_METHOD = "sort_method";
-	private static final String KEY_SORT_PATHS = "sort_paths";
-	private static final String KEY_SPEED_DBG = "speed_debug";
-	private static final String KEY_SUBS_COLOR = "subtitles_color";
-	private static final String KEY_SUBTITLES_CODEPAGE = "subtitles_codepage";
-	private static final String KEY_SUBTITLES_LANGUAGES = "subtitles_languages";
-	private static final String KEY_TEMP_FOLDER_PATH = "temp_directory";
-	private static final String KEY_THUMBNAIL_GENERATION_ENABLED = "generate_thumbnails";
-	private static final String KEY_THUMBNAIL_SEEK_POS = "thumbnail_seek_position";
-	private static final String KEY_TRANSCODE_BLOCKS_MULTIPLE_CONNECTIONS = "transcode_block_multiple_connections";
-	private static final String KEY_TRANSCODE_FOLDER_NAME = "transcode_folder_name";
-	private static final String KEY_TRANSCODE_KEEP_FIRST_CONNECTION = "transcode_keep_first_connection";
-	private static final String KEY_TSMUXER_FORCEFPS = "tsmuxer_forcefps";
-	private static final String KEY_UPNP_PORT = "upnp_port";
-	private static final String KEY_USE_CACHE = "use_cache";
-	private static final String KEY_USE_MPLAYER_FOR_THUMBS = "use_mplayer_for_video_thumbs";
-	private static final String KEY_AUDIO_USE_PCM = "audio_use_pcm";
-	private static final String KEY_UUID = "uuid";
-	private static final String KEY_VIDEOTRANSCODE_START_DELAY = "videotranscode_start_delay";
-	private static final String KEY_VIRTUAL_FOLDERS = "virtual_folders";
-	private static final String KEY_VIRTUAL_FOLDERS_FILE = "virtual_folders_file";
-	private static final String KEY_VLC_USE_HW_ACCELERATION = "vlc_use_hw_acceleration";
-	private static final String KEY_VLC_USE_EXPERIMENTAL_CODECS = "vlc_use_experimental_codecs";
-	private static final String KEY_VLC_AUDIO_SYNC_ENABLED = "vlc_audio_sync_enabled";
-	private static final String KEY_VLC_SUBTITLE_ENABLED = "vlc_subtitle_enabled";
-	private static final String KEY_VLC_SCALE = "vlc_scale";
-	private static final String KEY_VLC_SAMPLE_RATE_OVERRIDE = "vlc_sample_rate_override";
-	private static final String KEY_VLC_SAMPLE_RATE = "vlc_sample_rate";
-	private static final String KEY_WEB_AUTHENTICATE = "web_authenticate";
-	private static final String KEY_WEB_CHROME_TRICK = "web_chrome";
-	private static final String KEY_WEB_CONF_PATH = "web_conf";
-	private static final String KEY_WEB_CONT_AUDIO = "web_continue_audio";
-	private static final String KEY_WEB_CONT_IMAGE = "web_continue_image";
-	private static final String KEY_WEB_CONT_VIDEO = "web_continue_video";
-	private static final String KEY_WEB_ENABLE = "web_enable";
-	private static final String KEY_WEB_FLASH = "web_flash";
-	private static final String KEY_WEB_HEIGHT = "web_height";
-	private static final String KEY_WEB_IMAGE_SLIDE = "web_image_show_delay";
-	private static final String KEY_WEB_LOOP_AUDIO = "web_loop_audio";
-	private static final String KEY_WEB_LOOP_IMAGE = "web_loop_image";
-	private static final String KEY_WEB_LOOP_VIDEO = "web_loop_video";
-	private static final String KEY_WEB_MP4_TRANS = "web_mp4_trans";
-	private static final String KEY_WEB_SIZE = "web_size";
-	private static final String KEY_WEB_THREADS = "web_threads";
-	private static final String KEY_WEB_WIDTH = "web_width";
-	private static final String KEY_WEB_PATH = "web_path";
-	private static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
-	private static final String KEY_BUMP_ADDRESS = "bump";
-	private static final String KEY_BUMP_JS = "bump.js";
-	private static final String KEY_BUMP_SKIN_DIR = "bump.skin";
+	protected static final String KEY_HIDE_ADVANCED_OPTIONS = "hide_advanced_options";
+	protected static final String KEY_HIDE_EMPTY_FOLDERS = "hide_empty_folders";
+	protected static final String KEY_HIDE_ENGINENAMES = "hide_enginenames";
+	protected static final String KEY_HIDE_EXTENSIONS = "hide_extensions";
+	protected static final String KEY_HIDE_RECENTLY_PLAYED_FOLDER = "hide_recently_played_folder";
+	protected static final String KEY_HIDE_LIVE_SUBTITLES_FOLDER = "hide_live_subtitles_folder";
+	protected static final String KEY_HIDE_MEDIA_LIBRARY_FOLDER = "hide_media_library_folder";
+	protected static final String KEY_HIDE_SUBS_INFO = "hide_subs_info";
+	protected static final String KEY_HIDE_TRANSCODE_FOLDER = "hide_transcode_folder";
+	protected static final String KEY_HIDE_VIDEO_SETTINGS = "hide_video_settings";
+	protected static final String KEY_HTTP_ENGINE_V2 = "http_engine_v2";
+	protected static final String KEY_IGNORE_THE_WORD_THE = "ignore_the_word_the";
+	protected static final String KEY_IGNORED_RENDERERS = "ignored_renderers";
+	protected static final String KEY_IMAGE_THUMBNAILS_ENABLED = "image_thumbnails";
+	protected static final String KEY_IP_FILTER = "ip_filter";
+	protected static final String KEY_ITUNES_LIBRARY_PATH = "itunes_library_path";
+	protected static final String KEY_SHOW_IPHOTO_LIBRARY = "show_iphoto_library";
+	protected static final String KEY_SHOW_ITUNES_LIBRARY = "show_itunes_library";
+	protected static final String KEY_LANGUAGE = "language";
+	protected static final String KEY_MAX_AUDIO_BUFFER = "maximum_audio_buffer_size";
+	protected static final String KEY_MAX_BITRATE = "maximum_bitrate";
+	protected static final String KEY_MEDIA_LIB_SORT = "media_lib_sort";
+	protected static final String KEY_MAX_MEMORY_BUFFER_SIZE = "maximum_video_buffer_size";
+	protected static final String KEY_MENCODER_ASS = "mencoder_ass";
+	protected static final String KEY_MENCODER_AC3_FIXED = "mencoder_ac3_fixed";
+	protected static final String KEY_MENCODER_CUSTOM_OPTIONS = "mencoder_custom_options";
+	protected static final String KEY_MENCODER_FONT_CONFIG = "mencoder_fontconfig";
+	protected static final String KEY_MENCODER_FORCE_FPS = "mencoder_forcefps";
+	protected static final String KEY_MENCODER_INTELLIGENT_SYNC = "mencoder_intelligent_sync";
+	protected static final String KEY_MENCODER_MAX_THREADS = "mencoder_max_threads";
+	protected static final String KEY_MENCODER_MT = "mencoder_mt";
+	protected static final String KEY_MENCODER_MUX_COMPATIBLE = "mencoder_mux_compatible";
+	protected static final String KEY_MENCODER_NOASS_BLUR = "mencoder_noass_blur";
+	protected static final String KEY_MENCODER_NOASS_OUTLINE = "mencoder_noass_outline";
+	protected static final String KEY_MENCODER_NOASS_SCALE = "mencoder_noass_scale";
+	protected static final String KEY_MENCODER_NOASS_SUBPOS = "mencoder_noass_subpos";
+	protected static final String KEY_MENCODER_NO_OUT_OF_SYNC = "mencoder_nooutofsync";
+	protected static final String KEY_MENCODER_NORMALIZE_VOLUME = "mencoder_normalize_volume";
+	protected static final String KEY_MENCODER_OVERSCAN_COMPENSATION_HEIGHT = "mencoder_overscan_compensation_height";
+	protected static final String KEY_MENCODER_OVERSCAN_COMPENSATION_WIDTH = "mencoder_overscan_compensation_width";
+	protected static final String KEY_AUDIO_REMUX_AC3 = "audio_remux_ac3";
+	protected static final String KEY_MENCODER_REMUX_MPEG2 = "mencoder_remux_mpeg2";
+	protected static final String KEY_MENCODER_SCALER = "mencoder_scaler";
+	protected static final String KEY_MENCODER_SCALEX = "mencoder_scalex";
+	protected static final String KEY_MENCODER_SCALEY = "mencoder_scaley";
+	protected static final String KEY_MENCODER_SUB_FRIBIDI = "mencoder_subfribidi";
+	protected static final String KEY_MENCODER_USE_PCM_FOR_HQ_AUDIO_ONLY = "mencoder_usepcm_for_hq_audio_only";
+	protected static final String KEY_MENCODER_VOBSUB_SUBTITLE_QUALITY = "mencoder_vobsub_subtitle_quality";
+	protected static final String KEY_MENCODER_YADIF = "mencoder_yadif";
+	protected static final String KEY_MIN_MEMORY_BUFFER_SIZE = "minimum_video_buffer_size";
+	protected static final String KEY_MIN_PLAY_TIME = "min_playtime";
+	protected static final String KEY_MIN_PLAY_TIME_WEB = "min_playtime_web";
+	protected static final String KEY_MIN_PLAY_TIME_FILE = "min_playtime_file";
+	protected static final String KEY_MIN_STREAM_BUFFER = "minimum_web_buffer_size";
+	protected static final String KEY_MINIMIZED = "minimized";
+	protected static final String KEY_MPEG2_MAIN_SETTINGS = "mpeg2_main_settings";
+	protected static final String KEY_MUX_ALLAUDIOTRACKS = "tsmuxer_mux_all_audiotracks";
+	protected static final String KEY_NETWORK_INTERFACE = "network_interface";
+	protected static final String KEY_HIDE_NEW_MEDIA_FOLDER = "hide_new_media_folder";
+	protected static final String KEY_DISABLE_TRANSCODE_FOR_EXTENSIONS = "disable_transcode_for_extensions";
+	protected static final String KEY_NUMBER_OF_CPU_CORES = "number_of_cpu_cores";
+	protected static final String KEY_OPEN_ARCHIVES = "enable_archive_browsing";
+	protected static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
+	protected static final String KEY_LIVE_SUBTITLES_KEEP = "live_subtitles_keep";
+	protected static final String KEY_OVERSCAN = "mencoder_overscan";
+	protected static final String KEY_PING_PATH = "ping_path";
+	protected static final String KEY_PLUGIN_DIRECTORY = "plugins";
+	protected static final String KEY_PLUGIN_PURGE_ACTION = "plugin_purge";
+	protected static final String KEY_PREVENTS_SLEEP = "prevents_sleep_mode";
+	protected static final String KEY_PRETTIFY_FILENAMES = "prettify_filenames";
+	protected static final String KEY_PROFILE_NAME = "name";
+	protected static final String KEY_PROXY_SERVER_PORT = "proxy";
+	protected static final String KEY_RENDERER_DEFAULT = "renderer_default";
+	protected static final String KEY_RENDERER_FORCE_DEFAULT = "renderer_force_default";
+	protected static final String KEY_RESUME = "resume";
+	protected static final String KEY_RESUME_REWIND = "resume_rewind";
+	protected static final String KEY_RESUME_BACK = "resume_back";
+	protected static final String KEY_RESUME_KEEP_TIME = "resume_keep_time";
+	protected static final String KEY_RUN_WIZARD = "run_wizard";
+	protected static final String KEY_SCRIPT_DIR = "script_dir";
+	protected static final String KEY_SEARCH_FOLDER = "search_folder";
+	protected static final String KEY_SEARCH_IN_FOLDER = "search_in_folder";
+	protected static final String KEY_SEARCH_RECURSE = "search_recurse"; // legacy option
+	protected static final String KEY_SEARCH_RECURSE_DEPTH = "search_recurse_depth";
+	protected static final String KEY_SERVER_HOSTNAME = "hostname";
+	protected static final String KEY_SERVER_NAME = "server_name";
+	protected static final String KEY_SERVER_PORT = "port";
+	protected static final String KEY_SHARES = "shares";
+	protected static final String KEY_SINGLE = "single_instance";
+	protected static final String KEY_SKIP_LOOP_FILTER_ENABLED = "mencoder_skip_loop_filter";
+	protected static final String KEY_SKIP_NETWORK_INTERFACES = "skip_network_interfaces";
+	protected static final String KEY_SORT_METHOD = "sort_method";
+	protected static final String KEY_SORT_PATHS = "sort_paths";
+	protected static final String KEY_SPEED_DBG = "speed_debug";
+	protected static final String KEY_SUBS_COLOR = "subtitles_color";
+	protected static final String KEY_USE_EMBEDDED_SUBTITLES_STYLE = "use_embedded_subtitles_style";
+	protected static final String KEY_SUBTITLES_CODEPAGE = "subtitles_codepage";
+	protected static final String KEY_SUBTITLES_LANGUAGES = "subtitles_languages";
+	protected static final String KEY_TEMP_FOLDER_PATH = "temp_directory";
+	protected static final String KEY_THUMBNAIL_GENERATION_ENABLED = "generate_thumbnails";
+	protected static final String KEY_THUMBNAIL_SEEK_POS = "thumbnail_seek_position";
+	protected static final String KEY_TRANSCODE_BLOCKS_MULTIPLE_CONNECTIONS = "transcode_block_multiple_connections";
+	protected static final String KEY_TRANSCODE_FOLDER_NAME = "transcode_folder_name";
+	protected static final String KEY_TRANSCODE_KEEP_FIRST_CONNECTION = "transcode_keep_first_connection";
+	protected static final String KEY_TSMUXER_FORCEFPS = "tsmuxer_forcefps";
+	protected static final String KEY_UPNP_PORT = "upnp_port";
+	protected static final String KEY_USE_CACHE = "use_cache";
+	protected static final String KEY_USE_MPLAYER_FOR_THUMBS = "use_mplayer_for_video_thumbs";
+	protected static final String KEY_AUDIO_USE_PCM = "audio_use_pcm";
+	protected static final String KEY_UUID = "uuid";
+	protected static final String KEY_VIDEOTRANSCODE_START_DELAY = "videotranscode_start_delay";
+	protected static final String KEY_VIRTUAL_FOLDERS = "virtual_folders";
+	protected static final String KEY_VIRTUAL_FOLDERS_FILE = "virtual_folders_file";
+	protected static final String KEY_VLC_USE_HW_ACCELERATION = "vlc_use_hw_acceleration";
+	protected static final String KEY_VLC_USE_EXPERIMENTAL_CODECS = "vlc_use_experimental_codecs";
+	protected static final String KEY_VLC_AUDIO_SYNC_ENABLED = "vlc_audio_sync_enabled";
+	protected static final String KEY_VLC_SUBTITLE_ENABLED = "vlc_subtitle_enabled";
+	protected static final String KEY_VLC_SCALE = "vlc_scale";
+	protected static final String KEY_VLC_SAMPLE_RATE_OVERRIDE = "vlc_sample_rate_override";
+	protected static final String KEY_VLC_SAMPLE_RATE = "vlc_sample_rate";
+	protected static final String KEY_WEB_AUTHENTICATE = "web_authenticate";
+	protected static final String KEY_WEB_CHROME_TRICK = "web_chrome";
+	protected static final String KEY_WEB_CONF_PATH = "web_conf";
+	protected static final String KEY_WEB_CONT_AUDIO = "web_continue_audio";
+	protected static final String KEY_WEB_CONT_IMAGE = "web_continue_image";
+	protected static final String KEY_WEB_CONT_VIDEO = "web_continue_video";
+	protected static final String KEY_WEB_ENABLE = "web_enable";
+	protected static final String KEY_WEB_FLASH = "web_flash";
+	protected static final String KEY_WEB_HEIGHT = "web_height";
+	protected static final String KEY_WEB_IMAGE_SLIDE = "web_image_show_delay";
+	protected static final String KEY_WEB_LOOP_AUDIO = "web_loop_audio";
+	protected static final String KEY_WEB_LOOP_IMAGE = "web_loop_image";
+	protected static final String KEY_WEB_LOOP_VIDEO = "web_loop_video";
+	protected static final String KEY_WEB_MP4_TRANS = "web_mp4_trans";
+	protected static final String KEY_WEB_SIZE = "web_size";
+	protected static final String KEY_WEB_THREADS = "web_threads";
+	protected static final String KEY_WEB_WIDTH = "web_width";
+	protected static final String KEY_WEB_PATH = "web_path";
+	protected static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
+	protected static final String KEY_BUMP_ADDRESS = "bump";
+	protected static final String KEY_BUMP_JS = "bump.js";
+	protected static final String KEY_BUMP_SKIN_DIR = "bump.skin";
+
+	// Deprecated settings
+	@Deprecated
+	protected static final String KEY_MENCODER_ASS_DEFAULTSTYLE = "mencoder_ass_defaultstyle";
 
 	// The name of the subdirectory under which UMS config files are stored for this build (default: UMS).
 	// See Build for more details
@@ -1497,10 +1503,12 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return True if UMS should start automatically, false otherwise.
 	 */
 	public boolean isAutoStart() {
-		File f = new File(WindowsRegistry.readRegistry("HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders", "Common Startup") + "\\Universal Media Server.lnk");
+		if (Platform.isWindows()) {
+			File f = new File(WindowsRegistry.readRegistry("HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders", "Common Startup") + "\\Universal Media Server.lnk");
 
-		if (f.exists()) {
-			return true;
+			if (f.exists()) {
+				return true;
+			}
 		}
 
 		return false;
@@ -1549,25 +1557,48 @@ public class PmsConfiguration extends RendererConfiguration {
 	}
 
 	/**
-	 * Returns true when PMS should check for external subtitle files with the
-	 * same name as the media (*.srt, *.sub, *.ass, etc.). The default value is
-	 * true.
+	 * Whether we should check for external subtitle files with the same
+	 * name as the media (*.srt, *.sub, *.ass, etc.).
 	 *
-	 * @return True if PMS should check for external subtitle files, false if
-	 * 		they should be ignored.
+	 * Note: This will return true if either the autoload external subtitles
+	 * setting is enabled or the force external subtitles setting is enabled
+	 *
+	 * @return Whether we should check for external subtitle files.
 	 */
 	public boolean isAutoloadExternalSubtitles() {
-		return getBoolean(KEY_AUTOLOAD_SUBTITLES, true);
+		return getBoolean(KEY_AUTOLOAD_SUBTITLES, true) || isForceExternalSubtitles();
 	}
 
 	/**
-	 * Set to true if PMS should check for external subtitle files with the
-	 * same name as the media (*.srt, *.sub, *.ass etc.).
+	 * Whether we should check for external subtitle files with the same
+	 * name as the media (*.srt, *.sub, *.ass etc.).
 	 *
-	 * @param value True if PMS should check for external subtitle files.
+	 * @param value Whether we should check for external subtitle files.
 	 */
 	public void setAutoloadExternalSubtitles(boolean value) {
 		configuration.setProperty(KEY_AUTOLOAD_SUBTITLES, value);
+	}
+
+	/**
+	 * Whether we should force external subtitles with the same name as the
+	 * media (*.srt, *.sub, *.ass, etc.) to display, regardless of whether
+	 * language preferences disable them.
+	 *
+	 * @return Whether we should force external subtitle files.
+	 */
+	public boolean isForceExternalSubtitles() {
+		return getBoolean(KEY_FORCE_EXTERNAL_SUBTITLES, true);
+	}
+
+	/**
+	 * Whether we should force external subtitles with the same name as the
+	 * media (*.srt, *.sub, *.ass, etc.) to display, regardless of whether
+	 * language preferences disable them.
+	 *
+	 * @param value Whether we should force external subtitle files.
+	 */
+	public void setForceExternalSubtitles(boolean value) {
+		configuration.setProperty(KEY_FORCE_EXTERNAL_SUBTITLES, value);
 	}
 
 	/**
@@ -2087,12 +2118,52 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getBoolean(KEY_DISABLE_FAKESIZE, false);
 	}
 
+	/**
+	 * Whether the style rules defined by styled subtitles (ASS/SSA) should
+	 * be followed (true) or overridden by our style rules (false) when
+	 * using MEncoder.
+	 *
+	 * @see #setUseEmbeddedSubtitlesStyle(boolean)
+	 * @param value whether to use the embedded styles or ours
+	 * @deprecated
+	 */
+	@Deprecated
 	public void setMencoderAssDefaultStyle(boolean value) {
 		configuration.setProperty(KEY_MENCODER_ASS_DEFAULTSTYLE, value);
 	}
 
+	/**
+	 * Whether the style rules defined by styled subtitles (ASS/SSA) should
+	 * be followed (true) or overridden by our style rules (false) when
+	 * using MEncoder.
+	 *
+	 * @see #isUseEmbeddedSubtitlesStyle()
+	 * @return whether to use the embedded styles or ours
+	 * @deprecated
+	 */
+	@Deprecated
 	public boolean isMencoderAssDefaultStyle() {
 		return getBoolean(KEY_MENCODER_ASS_DEFAULTSTYLE, true);
+	}
+
+	/**
+	 * Whether the style rules defined by styled subtitles (ASS/SSA) should
+	 * be followed (true) or overridden by our style rules (false).
+	 *
+	 * @param value whether to use the embedded styles or ours
+	 */
+	public void setUseEmbeddedSubtitlesStyle(boolean value) {
+		configuration.setProperty(KEY_USE_EMBEDDED_SUBTITLES_STYLE, value);
+	}
+
+	/**
+	 * Whether the style rules defined by styled subtitles (ASS/SSA) should
+	 * be followed (true) or overridden by our style rules (false).
+	 *
+	 * @return whether to use the embedded styles or ours
+	 */
+	public boolean isUseEmbeddedSubtitlesStyle() {
+		return getBoolean(KEY_USE_EMBEDDED_SUBTITLES_STYLE, true) || getBoolean(KEY_MENCODER_ASS_DEFAULTSTYLE, true);
 	}
 
 	public int getMEncoderOverscan() {
@@ -2993,10 +3064,10 @@ public class PmsConfiguration extends RendererConfiguration {
 	/**
 	 * Web stuff
 	 */
-	private static final String KEY_NO_FOLDERS = "no_shared";
-	private static final String KEY_WEB_HTTPS = "use_https";
-	private static final String KEY_WEB_PORT = "web_port";
-	private static final int WEB_MAX_THREADS = 100;
+	protected static final String KEY_NO_FOLDERS = "no_shared";
+	protected static final String KEY_WEB_HTTPS = "use_https";
+	protected static final String KEY_WEB_PORT = "web_port";
+	protected static final int WEB_MAX_THREADS = 100;
 
 	public boolean getNoFolders(String tag) {
 		if (tag == null) {
@@ -3065,7 +3136,7 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public void setAutomaticMaximumBitrate(boolean b) {
 		if (!isAutomaticMaximumBitrate() && b) {
-			// get all bitrates from renders
+			// get all bitrates from renderers
 			RendererConfiguration.calculateAllSpeeds();
 		}
 		configuration.setProperty(KEY_AUTOMATIC_MAXIMUM_BITRATE, b);
@@ -3081,6 +3152,10 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public boolean getAutoDiscover() {
 		return getBoolean(KEY_AUTOMATIC_DISCOVER, false);
+	}
+
+	public int mediaLibrarySort() {
+		return getInt(KEY_MEDIA_LIB_SORT, UMSUtils.SORT_NO_SORT);
 	}
 
 	public boolean getWebAutoCont(Format f) {
@@ -3111,7 +3186,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	public int getWebImgSlideDelay() {
 		return getInt(KEY_WEB_IMAGE_SLIDE, 0);
 	}
-
 	public String getWebSize() {
 		return getString(KEY_WEB_SIZE, "");
 	}

@@ -24,7 +24,7 @@ public class ImagesFeed extends Feed {
 	@Override
 	protected void manageItem() {
 		// Picasa Web Albums Support
-		if (getTempFeedLink() != null && getTempCategory() != null && getTempCategory().endsWith("user") && getUrl().toLowerCase().indexOf("picasaweb.google") > -1) {
+		if (getTempFeedLink() != null && getTempCategory() != null && getTempCategory().endsWith("user") && getUrl().toLowerCase().contains("picasaweb.google")) {
 			addChild(new ImagesFeed(getTempFeedLink().replace("data/entry/base", "data/feed/base")));
 		} else {
 			super.manageItem();

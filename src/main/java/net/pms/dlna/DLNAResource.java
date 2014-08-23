@@ -69,7 +69,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAResource.class);
 	private final SimpleDateFormat SDF_DATE = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
 	protected PmsConfiguration configuration = PMS.getConfiguration();
-	private boolean subsAreValid = false;
+	private boolean subsAreValidForStreaming = false;
 
 	protected static final int MAX_ARCHIVE_ENTRY_SIZE = 10000000;
 	protected static final int MAX_ARCHIVE_SIZE_SEEK = 800000000;
@@ -548,6 +548,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 					String mimeType = defaultRenderer.getFormatConfiguration().match(child.media);
 					if (mimeType != null) {
 						// Media is streamable
+						if (!configuration.isDisableSubtitles() && child.isSubsFile() && defaultRenderer.isSubtitlesStreamingSupported()) {
+							OutputParams params = new OutputParams(configuration);
+							Player.setAudioAndSubs(child.getSystemName(), child.media, params); // set proper subtitles in accordance with user setting
+							if (defaultRenderer.isSubtitlesFormatSupported(params.sid)) {
+								child.media_subtitle = params.sid;
+								LOGGER.trace("Set media_subtitle");
+							} else {
+								LOGGER.trace("Did not set media_subtitle because the subtitle format is not supported by this renderer");
+							}
+						} else {
+							LOGGER.trace("Did not set media_subtitle because configuration.isDisableSubtitles is true, this is not a subtitle, or the renderer does not support streaming subtitles");
+						}
+
 						if (!FormatConfiguration.MIMETYPE_AUTO.equals(mimeType)) {
 							// Override with the preferred mime type of the renderer
 							LOGGER.trace("Overriding detected mime type \"{}\" for file \"{}\" with renderer preferred mime type \"{}\"",
@@ -560,6 +573,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						// Media is transcodable
 						LOGGER.trace("File \"{}\" can be transcoded", child.getName());
 					}
+				} else if (child.media != null && defaultRenderer != null) {
+					LOGGER.trace("Did not check for media_subtitle for \"{}\" because {} does not use MediaInfo, we will check for it soon", child.getName(), defaultRenderer);
 				}
 
 				if (child.format != null) {
@@ -641,20 +656,43 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								for (DLNAMediaSubtitle s : child.media.getSubtitleTracksList()) {
 									hasEmbeddedSubs = (hasEmbeddedSubs || s.isEmbedded());
 								}
+
+								if (!parserV2) {
+									if (!configuration.isDisableSubtitles() && child.isSubsFile() && defaultRenderer.isSubtitlesStreamingSupported()) {
+										OutputParams params = new OutputParams(configuration);
+										Player.setAudioAndSubs(child.getSystemName(), child.media, params); // set proper subtitles in accordance with user setting
+										if (defaultRenderer.isSubtitlesFormatSupported(params.sid)) {
+											child.media_subtitle = params.sid;
+											LOGGER.trace("Set media_subtitle");
+										} else {
+											LOGGER.trace("Did not set media_subtitle because the subtitle format is not supported by this renderer");
+										}
+									} else {
+										LOGGER.trace("Did not set media_subtitle because configuration.isDisableSubtitles is true, this is not a subtitle, or the renderer does not support streaming subtitles");
+									}
+								}
 							}
 
 							boolean hasSubsToTranscode = false;
 
 							if (!configuration.isDisableSubtitles()) {
 								if (child.isSubsFile()) {
-									hasSubsToTranscode = defaultRenderer != null && StringUtils.isBlank(defaultRenderer.getSupportedSubtitles());
+									if (child.media_subtitle == null) {
+										// Subtitles are not set for streaming
+										forceTranscode = true;
+										hasSubsToTranscode = true;
+										LOGGER.trace("Subtitles for \"{}\" need to be transcoded because media_subtitle is null", child.getName());
+									} else {
+										LOGGER.trace("Subtitles for \"{}\" will not be transcoded because media_subtitle is not null", child.getName());
+									}
 								} else {
-									// FIXME: Why transcode if the renderer can handle embedded subs?
-									hasSubsToTranscode = hasEmbeddedSubs;
-								}
-
-								if (hasSubsToTranscode) {
-									LOGGER.trace("File \"{}\" has subs that need transcoding", child.getName());
+									if (hasEmbeddedSubs && defaultRenderer != null && !defaultRenderer.isEmbeddedSubtitlesSupported()) {
+										forceTranscode = true;
+										hasSubsToTranscode = true;
+										LOGGER.trace("Subtitles for \"{}\" need to be transcoded because the renderer does not support internal subtitles", child.getName());
+									} else {
+										LOGGER.trace("Subtitles for \"{}\" will not be transcoded because the renderer supports internal subtitles", child.getName());
+									}
 								}
 							}
 
@@ -679,7 +717,17 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								!"16:9".equals(child.media.getAspectRatioContainer())
 							) {
 								isIncompatible = true;
-								LOGGER.trace("File \"{}\" will not be streamed because the renderer needs us to add borders so it displays the correct aspect ratio.", child.getName());
+								LOGGER.trace("File \"{}\" will not be streamed because the renderer needs us to add borders to change the aspect ratio from {} to 16/9.", child.getName(), child.media.getAspectRatioContainer());
+							} else if (
+								defaultRenderer != null &&
+								defaultRenderer.isMaximumResolutionSpecified() &&
+								(
+									child.media.getWidth()  > defaultRenderer.getMaxVideoWidth() ||
+									child.media.getHeight() > defaultRenderer.getMaxVideoHeight()
+								)
+							) {
+								isIncompatible = true;
+								LOGGER.trace("File \"{}\" will not be streamed because the resolution is too high for the renderer.", child.getName());
 							}
 
 							// Prefer transcoding over streaming if:
@@ -784,6 +832,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				}
 
 				if (addResumeFile) {
+					resumeRes.setDefaultRenderer(child.getDefaultRenderer());
 					addChildInternal(resumeRes);
 				}
 				if (isNew) {
@@ -1039,8 +1088,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	protected void notifyRefresh() {
 		lastRefreshTime = System.currentTimeMillis();
-		updateId = updateId + 1;
-		systemUpdateId = systemUpdateId + 1;
+		updateId += 1;
+		systemUpdateId += 1;
 	}
 
 	final protected void discoverWithRenderer(RendererConfiguration renderer, int count, boolean forced, String searchStr) {
@@ -1306,10 +1355,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * Returns the display name for the default renderer.
 	 *
 	 * @return The display name.
-	 * @see #getDisplayName(RendererConfiguration)
+	 * @see #getDisplayName(RendererConfiguration, boolean)
 	 */
 	public String getDisplayName() {
 		return getDisplayName(null, true);
+	}
+
+	/**
+	 * @param mediaRenderer Media Renderer for which to show information.
+	 * @return String representing the item.
+	 * @see #getDisplayName(RendererConfiguration, boolean)
+	 */
+	public String getDisplayName(RendererConfiguration mediaRenderer) {
+		return getDisplayName(mediaRenderer, true);
 	}
 
 	/**
@@ -1321,10 +1379,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param withSuffix Whether to include additional media info
 	 * @return String representing the item.
 	 */
-	public String getDisplayName(RendererConfiguration mediaRenderer) {
-		return getDisplayName(mediaRenderer, true);
-	}
-
 	private String getDisplayName(RendererConfiguration mediaRenderer, boolean withSuffix) {
 		PmsConfiguration configuration = PMS.getConfiguration(mediaRenderer);
 		// displayName shouldn't be cached, since device configurations may differ
@@ -1368,7 +1422,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			if (isNoName()) {
 				displayName = "[No encoding]";
 				isNamedNoEncoding = true;
-				if (subsAreValid) {
+				if (subsAreValidForStreaming) {
 					isNamedNoEncoding = false;
 				}
 			} else if (nametruncate > 0) {
@@ -1409,6 +1463,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			subtitleFormat = media_subtitle.getType().getDescription();
 			if ("(Advanced) SubStation Alpha".equals(subtitleFormat)) {
 				subtitleFormat = "SSA";
+			} else if ("Blu-ray subtitles".equals(subtitleFormat)) {
+				subtitleFormat = "PGS";
 			}
 
 			subtitleLanguage = "/" + media_subtitle.getLangFullName();
@@ -1573,19 +1629,19 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public final String getDidlString(RendererConfiguration mediaRenderer) {
 		PmsConfiguration configuration = PMS.getConfiguration(mediaRenderer);
 		StringBuilder sb = new StringBuilder();
-		if (!configuration.isDisableSubtitles() && StringUtils.isNotBlank(mediaRenderer.getSupportedSubtitles()) && media != null && player == null) {
-			OutputParams params = new OutputParams(configuration);
-			Player.setAudioAndSubs(getSystemName(), media, params);
-			if (params.sid != null) {
-				String[] supportedSubs = mediaRenderer.getSupportedSubtitles().split(",");
-				for (String supportedSub : supportedSubs) {
-					if (params.sid.getType().toString().equals(supportedSub.trim().toUpperCase())) {
-						media_subtitle = params.sid;
-						subsAreValid = true;
-						break;
-					}
-				}
-			}
+		if (
+			!configuration.isDisableSubtitles() &&
+			media != null &&
+			media_subtitle != null &&
+			player == null &&
+			mediaRenderer.isSubtitlesFormatSupported(media_subtitle)
+		) {
+			subsAreValidForStreaming = true;
+			LOGGER.trace("Setting subsAreValidForStreaming to true for " + getName());
+		} else if (subsAreValidForStreaming) {
+			LOGGER.trace("Not setting subsAreValidForStreaming and it is true for " + getName());
+		} else {
+			LOGGER.trace("Not setting subsAreValidForStreaming and it is false for " + getName());
 		}
 
 		if (isFolder()) {
@@ -1622,8 +1678,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			);
 		} else { // Ditlew - org
 			// Ditlew
-			wireshark.append(((isFolder() || player == null && subsAreValid) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer))));
-			String tmp = (isFolder() || player == null && subsAreValid) ? getDisplayName(null, false) : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer, false));
+			wireshark.append(((isFolder() || player == null && subsAreValidForStreaming) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer))));
+			String tmp = (isFolder() || player == null && subsAreValidForStreaming) ? getDisplayName(null, false) : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer, false));
 			addXMLTagAndAttribute(
 				sb,
 				"dc:title",
@@ -1746,22 +1802,38 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				 */
 				if (mediaRenderer.isDLNAOrgPNUsed()) {
 					if (mediaRenderer.isPS3()) {
-						if (mime.equals("video/x-divx")) {
+						if (mime.equals(DIVX_TYPEMIME)) {
 							dlnaspec = "DLNA.ORG_PN=AVI";
-						} else if (mime.equals("video/x-ms-wmv") && media != null && media.getHeight() > 700) {
+						} else if (mime.equals(WMV_TYPEMIME) && media != null && media.getHeight() > 700) {
 							dlnaspec = "DLNA.ORG_PN=WMVHIGH_PRO";
 						}
 					} else {
-						if (mime.equals("video/mpeg") || mime.equals("video/mp4")) {
+						if (mime.equals(MPEG_TYPEMIME)) {
 							dlnaspec = "DLNA.ORG_PN=" + getMPEG_PS_PALLocalizedValue(c);
 
 							if (player != null) {
-								// If the engine being is tsMuxeR or VLC, we are definitely outputting MPEG-TS so we can skip a lot of tests
+								// VLC Web Video (Legacy) and tsMuxeR always output MPEG-TS
 								boolean isFileMPEGTS = TsMuxeRVideo.ID.equals(player.id()) || VideoLanVideoStreaming.ID.equals(player.id());
+
+								// Check if the renderer settings make the current engine always output MPEG-TS
+								if (
+									!isFileMPEGTS &&
+									(
+										mediaRenderer.isTranscodeToMPEGTSMPEG2AC3() ||
+										mediaRenderer.isTranscodeToMPEGTSH264AC3() ||
+										mediaRenderer.isTranscodeToMPEGTSH264AAC()
+									) && (
+										MEncoderVideo.ID.equals(player.id()) ||
+										FFMpegVideo.ID.equals(player.id()) ||
+										VLCVideo.ID.equals(player.id())
+									)
+								) {
+									isFileMPEGTS = true;
+								}
 
 								boolean isMuxableResult = getMedia() != null && getMedia().isMuxable(mediaRenderer);
 
-								// If the engine is MEncoder or FFmpeg, and the muxing settings are enabled, it may be MPEG-TS so we need to do more tests
+								// If the engine is capable of automatically muxing to MPEG-TS and the setting is enabled, it might be MPEG-TS
 								if (
 									!isFileMPEGTS &&
 									(
@@ -1772,9 +1844,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 										(
 											configuration.isFFmpegMuxWithTsMuxerWhenCompatible() &&
 											FFMpegVideo.ID.equals(player.id())
-										) ||
-										(
-											VLCVideo.ID.equals(player.id())
 										)
 									)
 								) {
@@ -1804,7 +1873,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									}
 
 									/**
-									 * If either we are transcoding to MPEG-TS, or:
+									 * If:
 									 * - There are no subtitles
 									 * - This is not a DVD track
 									 * - The media is muxable
@@ -1812,17 +1881,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									 * then the file is MPEG-TS
 									 */
 									if (
-										(
-											media_subtitle == null &&
-											!isSubsFile() &&
-											media != null &&
-											media.getDvdtrack() == 0 &&
-											isMuxableResult &&
-											mediaRenderer.isMuxH264MpegTS()
-										) ||
-										mediaRenderer.isTranscodeToMPEGTSMPEG2AC3() ||
-										mediaRenderer.isTranscodeToMPEGTSH264AC3() ||
-										mediaRenderer.isTranscodeToMPEGTSH264AAC()
+										media_subtitle == null &&
+										!isSubsFile() &&
+										media != null &&
+										media.getDvdtrack() == 0 &&
+										isMuxableResult &&
+										mediaRenderer.isMuxH264MpegTS()
 									) {
 										isFileMPEGTS = true;
 									}
@@ -1855,11 +1919,11 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						} else if (mime.equals("video/vnd.dlna.mpeg-tts")) {
 							// patters - on Sony BDP m2ts clips aren't listed without this
 							dlnaspec = "DLNA.ORG_PN=" + getMPEG_TS_SD_EULocalizedValue(c);
-						} else if (mime.equals("image/jpeg")) {
+						} else if (mime.equals(JPEG_TYPEMIME)) {
 							dlnaspec = "DLNA.ORG_PN=JPEG_LRG";
-						} else if (mime.equals("audio/mpeg")) {
+						} else if (mime.equals(AUDIO_MP3_TYPEMIME)) {
 							dlnaspec = "DLNA.ORG_PN=MP3";
-						} else if (mime.substring(0, 9).equals("audio/L16") || mime.equals("audio/wav")) {
+						} else if (mime.substring(0, 9).equals(AUDIO_LPCM_TYPEMIME) || mime.equals(AUDIO_WAV_TYPEMIME)) {
 							dlnaspec = "DLNA.ORG_PN=LPCM";
 						}
 					}
@@ -1874,7 +1938,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				wireshark.append(" ").append(tempString);
 				addAttribute(sb, "protocolInfo", tempString);
 
-				if (subsAreValid && !mediaRenderer.useClosedCaption()) {
+				if (subsAreValidForStreaming && !mediaRenderer.useClosedCaption()) {
 					addAttribute(sb, "pv:subtitleFileType", media_subtitle.getType().getExtension().toUpperCase());
 					wireshark.append(" pv:subtitleFileType=").append(media_subtitle.getType().getExtension().toUpperCase());
 					addAttribute(sb, "pv:subtitleFileUri", getSubsURL(media_subtitle));
@@ -1982,7 +2046,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
-		if (subsAreValid) {
+		if (subsAreValidForStreaming) {
 			String subsURL = getSubsURL(media_subtitle);
 			if (mediaRenderer.useClosedCaption()) {
 				openTag(sb, "sec:CaptionInfoEx");
@@ -2006,7 +2070,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 		appendThumbnail(mediaRenderer, sb);
 
-		if (getLastModified() > 0 && !mediaRenderer.isOmitDcDate()) {
+		if (getLastModified() > 0 && mediaRenderer.isSendDateMetadata()) {
 			addXMLTagAndAttribute(sb, "dc:date", SDF_DATE.format(new Date(getLastModified())));
 		}
 
@@ -2242,7 +2306,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @throws IOException
 	 */
 	private long lastStart;
-	public InputStream getInputStream(Range range, RendererConfiguration mediarenderer) throws IOException {
+	public synchronized InputStream getInputStream(Range range, RendererConfiguration mediarenderer) throws IOException {
 		PmsConfiguration configuration = PMS.getConfiguration(mediarenderer);
 		LOGGER.trace("Asked stream chunk : " + range + " of " + getName() + " and player " + player);
 
@@ -2519,8 +2583,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	public InputStream getGenericThumbnailInputStream(String fallback) throws IOException {
 		String thumb = fallback;
-		if (getFormat() != null && getFormat().getIcon() != null) {
-			thumb = getFormat().getIcon();
+		if (format != null && format.getIcon() != null) {
+			thumb = format.getIcon();
 		}
 
 		// Thumb could be:
@@ -2566,15 +2630,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public InputStream getThumbnailInputStream() throws IOException {
 		String id = null;
 
-		if (getMediaAudio() != null) {
-			id = getMediaAudio().getLang();
+		if (media_audio != null) {
+			id = media_audio.getLang();
 		}
 
 		if (media_subtitle != null && media_subtitle.getId() != -1) {
 			id = media_subtitle.getLang();
 		}
 
-		if ((media_subtitle != null || getMediaAudio() != null) && StringUtils.isBlank(id)) {
+		if ((media_subtitle != null || media_audio != null) && StringUtils.isBlank(id)) {
 			id = DLNAMediaLang.UND;
 		}
 

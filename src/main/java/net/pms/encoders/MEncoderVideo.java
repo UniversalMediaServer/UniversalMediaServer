@@ -54,6 +54,7 @@ import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
+import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang.BooleanUtils.isTrue;
 import static org.apache.commons.lang3.StringUtils.*;
 import org.slf4j.Logger;
@@ -76,7 +77,6 @@ public class MEncoderVideo extends Player {
 	private JCheckBox scaler;
 	private JTextField scaleX;
 	private JTextField scaleY;
-	private JCheckBox assdefaultstyle;
 	private JCheckBox fc;
 	private JCheckBox ass;
 	private JCheckBox checkBox;
@@ -476,16 +476,6 @@ public class MEncoderVideo extends Player {
 		});
 		builder.add(fc, FormLayoutUtil.flip(cc.xyw(3, 23, 5), colSpec, orientation));
 
-		assdefaultstyle = new JCheckBox(Messages.getString("MEncoderVideo.36"), configuration.isMencoderAssDefaultStyle());
-		assdefaultstyle.setContentAreaFilled(false);
-		assdefaultstyle.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setMencoderAssDefaultStyle(e.getStateChange() == ItemEvent.SELECTED);
-			}
-		});
-		builder.add(assdefaultstyle, FormLayoutUtil.flip(cc.xyw(8, 23, 4), colSpec, orientation));
-
 		builder.addLabel(Messages.getString("MEncoderVideo.92"), FormLayoutUtil.flip(cc.xy(1, 29), colSpec, orientation));
 		subq = new JTextField(configuration.getMencoderVobsubSubtitleQuality());
 		subq.addKeyListener(new KeyAdapter() {
@@ -505,7 +495,6 @@ public class MEncoderVideo extends Player {
 				if ((!event.isBeforeUpdate()) && event.getPropertyName().equals(PmsConfiguration.KEY_DISABLE_SUBTITLES)) {
 					boolean enabled = !configuration.isDisableSubtitles();
 					ass.setEnabled(enabled);
-					assdefaultstyle.setEnabled(enabled);
 					fc.setEnabled(enabled);
 					mencoder_noass_scale.setEnabled(enabled);
 					mencoder_noass_outline.setEnabled(enabled);
@@ -712,7 +701,7 @@ public class MEncoderVideo extends Player {
 		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
 
-		if (mediaRenderer.getMaxVideoBitrate() != null) {
+		if (StringUtils.isNotEmpty(mediaRenderer.getMaxVideoBitrate())) {
 			rendererMaxBitrates = getVideoBitrateConfig(mediaRenderer.getMaxVideoBitrate());
 		}
 
@@ -825,7 +814,14 @@ public class MEncoderVideo extends Player {
 		boolean avisynth = avisynth();
 
 		final String filename = dlna.getSystemName();
-		setAudioAndSubs(filename, media, params);
+		if (params.aid == null) {
+			setAudioOutputParameters(media, params);
+		}
+
+		if (params.sid == null || (params.sid != null && StringUtils.isNotEmpty(params.sid.getLiveSubURL()))) {
+			setSubtitleOutputParameters(filename, media, params);
+		}
+
 		String externalSubtitlesFileName = null;
 
 		if (params.sid != null && params.sid.isExternal()) {
@@ -1133,6 +1129,10 @@ public class MEncoderVideo extends Player {
 		} else if (pcm) {
 			channels = params.aid.getAudioProperties().getNumberOfChannels();
 		} else {
+			/**
+			 * Note: MEncoder will output 2 audio channels if the input video had 2 channels
+			 * regardless of us telling it to output 6 (unlike FFmpeg which will output 6).
+			 */
 			channels = configuration.getAudioChannelCount(); // 5.1 max for AC-3 encoding
 		}
 		String channelsString = "-channels " + channels;
@@ -1210,7 +1210,7 @@ public class MEncoderVideo extends Player {
 				int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 				int rendererMaxBitrates[] = new int[2];
 
-				if (params.mediaRenderer.getMaxVideoBitrate() != null) {
+				if (StringUtils.isNotEmpty(params.mediaRenderer.getMaxVideoBitrate())) {
 					rendererMaxBitrates = getVideoBitrateConfig(params.mediaRenderer.getMaxVideoBitrate());
 				}
 
@@ -1380,7 +1380,7 @@ public class MEncoderVideo extends Player {
 				sb.append("-ass ");
 
 				// GUI: Override ASS subtitles style if requested (always for SRT and TX3G subtitles)
-				boolean override_ass_style = !configuration.isMencoderAssDefaultStyle() ||
+				boolean override_ass_style = !configuration.isUseEmbeddedSubtitlesStyle() ||
 					params.sid.getType() == SubtitleType.SUBRIP ||
 					params.sid.getType() == SubtitleType.TX3G;
 
@@ -1453,7 +1453,7 @@ public class MEncoderVideo extends Player {
 
 				// MEncoder is not compiled with fontconfig on Mac OS X, therefore
 				// use of the "-ass" option also requires the "-font" option.
-				if (Platform.isMac() && sb.toString().indexOf(" -font ") < 0) {
+				if (Platform.isMac() && !sb.toString().contains(" -font ")) {
 					String font = CodecUtil.getDefaultFontPath();
 
 					if (isNotBlank(font)) {
@@ -1700,7 +1700,7 @@ public class MEncoderVideo extends Player {
 		// Check if the media renderer supports this resolution
 		boolean isResolutionTooHighForRenderer = false;
 		if (
-			params.mediaRenderer.isVideoRescale() &&
+			params.mediaRenderer.isMaximumResolutionSpecified() &&
 			(
 				media.getWidth() > params.mediaRenderer.getMaxVideoWidth() ||
 				media.getHeight() > params.mediaRenderer.getMaxVideoHeight()
@@ -1736,6 +1736,12 @@ public class MEncoderVideo extends Player {
 			scaleHeight = media.getHeight();
 		}
 
+		double videoAspectRatio = (double) media.getWidth() / (double) media.getHeight();
+		double rendererAspectRatio = 1.777777777777778;
+		if (params.mediaRenderer.isMaximumResolutionSpecified()) {
+			rendererAspectRatio = (double) params.mediaRenderer.getMaxVideoWidth() / (double) params.mediaRenderer.getMaxVideoHeight();
+		}
+
 		if ((deinterlace || scaleBool) && !avisynth()) {
 			StringBuilder vfValueOverscanPrepend = new StringBuilder();
 			StringBuilder vfValueOverscanMiddle  = new StringBuilder();
@@ -1743,7 +1749,6 @@ public class MEncoderVideo extends Player {
 			StringBuilder vfValueComplete        = new StringBuilder();
 
 			String deinterlaceComma = "";
-			double rendererAspectRatio;
 
 			/*
 			 * Implement overscan compensation settings
@@ -1760,14 +1765,13 @@ public class MEncoderVideo extends Player {
 
 				// See if the video needs to be scaled down
 				if (
-					params.mediaRenderer.isVideoRescale() &&
+					params.mediaRenderer.isMaximumResolutionSpecified() &&
 					(
 						(scaleWidth > params.mediaRenderer.getMaxVideoWidth()) ||
 						(scaleHeight > params.mediaRenderer.getMaxVideoHeight())
 					)
 				) {
 					double overscannedAspectRatio = scaleWidth / (double) scaleHeight;
-					rendererAspectRatio = params.mediaRenderer.getMaxVideoWidth() / (double) params.mediaRenderer.getMaxVideoHeight();
 
 					if (overscannedAspectRatio > rendererAspectRatio) {
 						// Limit video by width
@@ -1817,13 +1821,10 @@ public class MEncoderVideo extends Player {
 			} else if (isResolutionTooHighForRenderer) {
 				// The video resolution is too big for the renderer so we need to scale it down
 
-				double videoAspectRatio = (double) media.getWidth() / (double) media.getHeight();
-				rendererAspectRatio = (double) params.mediaRenderer.getMaxVideoWidth() / (double) params.mediaRenderer.getMaxVideoHeight();
-
 				/*
 				 * First we deal with some exceptions, then if they are not matched we will
 				 * let the renderer limits work.
-				 * 
+				 *
 				 * This is so, for example, we can still define a maximum resolution of
 				 * 1920x1080 in the renderer config file but still support 1920x1088 when
 				 * it's needed, otherwise we would either resize 1088 to 1080, meaning the
@@ -1877,11 +1878,12 @@ public class MEncoderVideo extends Player {
 		}
 
 		/*
-		 * The PS3 and possibly other renderers display videos incorrectly
-		 * if the dimensions aren't divisible by 4, so if that is the
-		 * case we add borders until it is divisible by 4.
-		 * This fixes the long-time bug of videos displaying in black and
-		 * white with diagonal strips of colour, weird one.
+		 * Make sure the video is mod4 unless the renderer has specified
+		 * that it doesn't care, and make sure the aspect ratio is 16/9
+		 * if the renderer needs it.
+		 *
+		 * The PS3 and possibly other renderers sometimes display mod2
+		 * videos in black and white with diagonal strips of color.
 		 *
 		 * TODO: Integrate this with the other stuff so that "expand" only
 		 * ever appears once in the MEncoder CMD.
@@ -1889,23 +1891,35 @@ public class MEncoderVideo extends Player {
 		if (
 			!dvd &&
 			(
-				(scaleWidth % 4 != 0) ||
-				(scaleHeight % 4 != 0) ||
-				params.mediaRenderer.isKeepAspectRatio()
+				(
+					(
+						(scaleWidth % 4 != 0) ||
+						(scaleHeight % 4 != 0)
+					) &&
+					!params.mediaRenderer.isMuxNonMod4Resolution()
+				) ||
+				(
+					params.mediaRenderer.isKeepAspectRatio() &&
+					!"16:9".equals(media.getAspectRatioContainer())
+				)
 			) &&
 			!configuration.isMencoderScaler()
 		) {
-			int expandBorderWidth;
-			int expandBorderHeight;
-
-			expandBorderWidth  = scaleWidth % 4;
-			expandBorderHeight = scaleHeight % 4;
-
-			String vfValuePrepend = "";
-			vfValuePrepend += "expand=-" + expandBorderWidth + ":-" + expandBorderHeight;
+			String vfValuePrepend = "expand=";
 
 			if (params.mediaRenderer.isKeepAspectRatio()) {
-				vfValuePrepend += ":::0:16/9";
+				if (videoAspectRatio > rendererAspectRatio) {
+					scaleHeight = (int) Math.round(scaleWidth / rendererAspectRatio);
+				} else {
+					scaleWidth  = (int) Math.round(scaleHeight * rendererAspectRatio);
+				}
+
+				scaleWidth  = convertToMod4(scaleWidth);
+				scaleHeight = convertToMod4(scaleHeight);
+
+				vfValuePrepend += "::::0:16/9,scale=" + scaleWidth + ":" + scaleHeight;
+			} else {
+				vfValuePrepend += "-" + (scaleWidth % 4) + ":-" + (scaleHeight % 4);
 			}
 
 			vfValuePrepend += ",softskip";
@@ -2599,13 +2613,5 @@ public class MEncoderVideo extends Player {
 		}
 
 		return false;
-	}
-
-	public int convertToMod4(int number) {
-		if (number % 4 != 0) {
-			number -= (number % 4);
-		}
-
-		return number;
 	}
 }

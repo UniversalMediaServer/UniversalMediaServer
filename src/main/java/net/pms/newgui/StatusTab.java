@@ -50,17 +50,18 @@ import org.slf4j.LoggerFactory;
 public class StatusTab {
 	private static final Logger LOGGER = LoggerFactory.getLogger(StatusTab.class);
 
-	public static class rendererItem {
+	public static class RendererItem {
 		public ImagePanel icon;
 		public JLabel label;
 		public JDialog dialog;
+		public RendererPanel panel;
 	}
 
 	private PanelBuilder rendererBuilder;
 	private FormLayout layoutRenderer;
 	private ImagePanel imagePanel;
 	private PmsConfiguration configuration;
-	private ArrayList<rendererItem> renderers;
+	private int rendererCount;
 	private JLabel jl;
 	private JProgressBar jpb;
 	private JLabel currentBitrate;
@@ -73,7 +74,7 @@ public class StatusTab {
 
 	StatusTab(PmsConfiguration configuration) {
 		this.configuration = configuration;
-		renderers = new ArrayList<rendererItem>();
+		rendererCount = 0;
 	}
 
 	public JProgressBar getJpb() {
@@ -214,17 +215,16 @@ public class StatusTab {
 
 		layoutRenderer.appendColumn(ColumnSpec.decode("center:pref"));
 
-		final rendererItem r = new rendererItem();
+		final RendererItem r = new RendererItem();
 		r.icon = addRendererIcon(renderer.getRendererIcon());
 		r.icon.enableRollover();
 		CellConstraints cc = new CellConstraints();
-		int i = renderers.size() - 1;
+		int i = rendererCount++;
 		rendererBuilder.add(r.icon, cc.xy(i + 2, 1));
 		r.label = new JLabel(renderer.getRendererName());
 		rendererBuilder.add(r.label, cc.xy(i + 2, 3, CellConstraints.CENTER, CellConstraints.DEFAULT));
-		renderers.add(r);
 
-		renderer.setStatusIcon(r);
+		renderer.setGuiComponents(r);
 		r.icon.setAction(new AbstractAction() {
 			private static final long serialVersionUID = -6316055325551243347L;
 
@@ -237,7 +237,8 @@ public class StatusTab {
 							r.dialog = new JDialog(top,
 								renderer.getRendererName() + (renderer.isOffline() ? "  [offline]" : ""),
 								Dialog.ModalityType.DOCUMENT_MODAL);
-							r.dialog.add(new RendererPanel(renderer));
+							r.panel = new RendererPanel(renderer);
+							r.dialog.add(r.panel);
 							r.dialog.setIconImage(((JFrame)PMS.get().getFrame()).getIconImage());
 							r.dialog.pack();
 							r.dialog.setLocationRelativeTo(top);
@@ -252,9 +253,17 @@ public class StatusTab {
 		});
 	}
 
-	public static void updateRenderer(RendererConfiguration renderer) {
-		renderer.statusIcon.icon.set(getRendererIcon(renderer.getRendererIcon()));
-		renderer.statusIcon.label.setText(renderer.getRendererName());
+	public static void updateRenderer(final RendererConfiguration renderer) {
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				renderer.gui.icon.set(getRendererIcon(renderer.getRendererIcon()));
+				renderer.gui.label.setText(renderer.getRendererName());
+				// Update the popup panel if it's been opened
+				if (renderer.gui.panel != null) {
+					renderer.gui.panel.update();
+				}
+			}
+		});
 	}
 
 	public static ImagePanel addRendererIcon(String icon) {

@@ -102,15 +102,6 @@ public class GeneralTab {
 			}
 		});
 
-		autoStart = new JCheckBox(Messages.getString("NetworkTab.57"), configuration.isAutoStart());
-		autoStart.setContentAreaFilled(false);
-		autoStart.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setAutoStart((e.getStateChange() == ItemEvent.SELECTED));
-			}
-		});
-
 		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
@@ -185,6 +176,14 @@ public class GeneralTab {
 		builder.add(smcheckBox, FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 
 		if (Platform.isWindows()) {
+			autoStart = new JCheckBox(Messages.getString("NetworkTab.57"), configuration.isAutoStart());
+			autoStart.setContentAreaFilled(false);
+			autoStart.addItemListener(new ItemListener() {
+				@Override
+				public void itemStateChanged(ItemEvent e) {
+					configuration.setAutoStart((e.getStateChange() == ItemEvent.SELECTED));
+				}
+			});
 			builder.add(autoStart, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
 		}
 		ypos += 2;
@@ -452,7 +451,7 @@ public class GeneralTab {
 				@Override
 				public void actionPerformed(ActionEvent e) {
 					configuration.setAutomaticMaximumBitrate(adaptBitrate.isSelected());
-					maxbitrate.setEnabled(configuration.isAutomaticMaximumBitrate());
+					maxbitrate.setEnabled(!configuration.isAutomaticMaximumBitrate());
 				}
 			});
 
@@ -487,14 +486,16 @@ public class GeneralTab {
 			});
 			builder.add(newHTTPEngine, FormLayoutUtil.flip(cc.xy(1, ypos), colSpec, orientation));
 
-			preventSleep = new JCheckBox(Messages.getString("NetworkTab.33"), configuration.isPreventsSleep());
-			preventSleep.addItemListener(new ItemListener() {
-				@Override
-				public void itemStateChanged(ItemEvent e) {
-					configuration.setPreventsSleep((e.getStateChange() == ItemEvent.SELECTED));
-				}
-			});
-			builder.add(preventSleep, FormLayoutUtil.flip(cc.xy(3, ypos), colSpec, orientation));
+			if (Platform.isWindows()) {
+				preventSleep = new JCheckBox(Messages.getString("NetworkTab.33"), configuration.isPreventsSleep());
+				preventSleep.addItemListener(new ItemListener() {
+					@Override
+					public void itemStateChanged(ItemEvent e) {
+						configuration.setPreventsSleep((e.getStateChange() == ItemEvent.SELECTED));
+					}
+				});
+				builder.add(preventSleep, FormLayoutUtil.flip(cc.xy(3, ypos), colSpec, orientation));
+			}
 			ypos += 2;
 
 			fdCheckBox = new JCheckBox(Messages.getString("NetworkTab.38"), configuration.isRendererForceDefault());

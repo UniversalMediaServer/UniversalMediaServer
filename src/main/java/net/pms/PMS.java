@@ -1271,7 +1271,7 @@ public class PMS {
 
 		if (
 			(System.getProperty("os.name").contains("Windows") && System.getenv("ProgramFiles(x86)") != null) ||
-			System.getProperty("os.arch").indexOf("64") != -1
+			System.getProperty("os.arch").contains("64")
 		) {
 			bitness = 64;
 		}

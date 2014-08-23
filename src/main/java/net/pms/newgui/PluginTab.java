@@ -332,8 +332,7 @@ public class PluginTab {
 				File f = configuration.getCredFile();
 
 				try {
-					try (FileInputStream fis = new FileInputStream(f)) {
-						BufferedReader in = new BufferedReader(new InputStreamReader(fis));
+					try (FileInputStream fis = new FileInputStream(f); BufferedReader in = new BufferedReader(new InputStreamReader(fis))) {
 						String line;
 						StringBuilder sb = new StringBuilder();
 						while ((line = in.readLine()) != null) {
@@ -341,7 +340,6 @@ public class PluginTab {
 							sb.append("\n");
 						}
 						textArea.setText(sb.toString());
-						in.close();
 					}
 				} catch (IOException e1) {
 					return;
