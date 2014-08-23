@@ -6,6 +6,7 @@ import com.sun.net.httpserver.HttpPrincipal;
 import java.io.*;
 import java.util.List;
 import net.pms.PMS;
+import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.Range;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.newgui.LooksFrame;
@@ -160,4 +161,48 @@ public class RemoteUtil {
 		}
 		return null;
 	}
+
+	private static final int WIDTH = 0;
+	private static final int HEIGHT = 1;
+
+	private static final int DEFAULT_WIDTH = 720;
+	private static final int DEFAULT_HEIGHT = 404;
+
+	private static int getHW(int cfgVal, int id, int def) {
+		if (cfgVal != 0) {
+			// if we have a value cfg return that
+			return cfgVal;
+		}
+		String s = PMS.getConfiguration().getWebSize();
+		if (StringUtils.isEmpty(s)) {
+			// no size string return default
+			return def;
+		}
+		String[] tmp = s.split("x", 2);
+		if (tmp.length < 2) {
+			// bad format resort to default
+			return def;
+		}
+		try {
+			// pick whatever we got
+			return Integer.parseInt(tmp[id]);
+		} catch (NumberFormatException e) {
+			// bad format (again) resort to default
+			return def;
+		}
+	}
+
+	public static int getHeight() {
+		return getHW(PMS.getConfiguration().getWebHeight(), HEIGHT, DEFAULT_HEIGHT);
+	}
+
+	public static int getWidth() {
+		return getHW(PMS.getConfiguration().getWebWidth(), WIDTH, DEFAULT_WIDTH);
+	}
+
+	public static boolean transMp4(String mime, DLNAMediaInfo media) {
+		LOGGER.debug("mp4 profile "+media.getH264Profile());
+		return mime.equals("video/mp4") && (PMS.getConfiguration().isWebMp4Trans() || media.getAvcAsInt() >= 40);
+	}
+
 }

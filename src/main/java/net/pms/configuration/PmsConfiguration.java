@@ -243,17 +243,22 @@ public class PmsConfiguration extends RendererConfiguration {
 	private static final String KEY_VLC_SAMPLE_RATE_OVERRIDE = "vlc_sample_rate_override";
 	private static final String KEY_VLC_SAMPLE_RATE = "vlc_sample_rate";
 	private static final String KEY_WEB_AUTHENTICATE = "web_authenticate";
+	private static final String KEY_WEB_CHROME_TRICK = "web_chrome";
 	private static final String KEY_WEB_CONF_PATH = "web_conf";
 	private static final String KEY_WEB_CONT_AUDIO = "web_continue_audio";
 	private static final String KEY_WEB_CONT_IMAGE = "web_continue_image";
 	private static final String KEY_WEB_CONT_VIDEO = "web_continue_video";
 	private static final String KEY_WEB_ENABLE = "web_enable";
+	private static final String KEY_WEB_FLASH = "web_flash";
+	private static final String KEY_WEB_HEIGHT = "web_height";
 	private static final String KEY_WEB_IMAGE_SLIDE = "web_image_show_delay";
 	private static final String KEY_WEB_LOOP_AUDIO = "web_loop_audio";
 	private static final String KEY_WEB_LOOP_IMAGE = "web_loop_image";
 	private static final String KEY_WEB_LOOP_VIDEO = "web_loop_video";
 	private static final String KEY_WEB_MP4_TRANS = "web_mp4_trans";
+	private static final String KEY_WEB_SIZE = "web_size";
 	private static final String KEY_WEB_THREADS = "web_threads";
+	private static final String KEY_WEB_WIDTH = "web_width";
 	private static final String KEY_WEB_PATH = "web_path";
 	private static final String KEY_X264_CONSTANT_RATE_FACTOR = "x264_constant_rate_factor";
 	private static final String KEY_BUMP_ADDRESS = "bump";
@@ -3105,6 +3110,26 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public int getWebImgSlideDelay() {
 		return getInt(KEY_WEB_IMAGE_SLIDE, 0);
+	}
+
+	public String getWebSize() {
+		return getString(KEY_WEB_SIZE, "");
+	}
+
+	public int getWebHeight() {
+		return getInt(KEY_WEB_HEIGHT, 0);
+	}
+
+	public int getWebWidth() {
+		return getInt(KEY_WEB_WIDTH, 0);
+	}
+
+	public boolean getWebFlash() {
+		return getBoolean(KEY_WEB_FLASH, false);
+	}
+
+	public boolean getWebChrome() {
+		return getBoolean(KEY_WEB_CHROME_TRICK, false);
 	}
 
 }

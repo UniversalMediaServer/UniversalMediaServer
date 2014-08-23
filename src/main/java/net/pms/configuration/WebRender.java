@@ -121,6 +121,10 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		return false;
 	}
 
+	public boolean isChrome() {
+		return pmsconfiguration.getWebChrome() && (ua != null) && ua.contains("chrome");
+	}
+
 	@Override
 	public boolean getOutputOptions(DLNAResource dlna, Player player, List<String> cmdList) {
 		if (player instanceof FFMpegVideo) {
@@ -131,7 +135,11 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 					fflashCmds(cmdList, media);
 				} else {
 					if(RemoteUtil.MIME_TRANS.equals(RemoteUtil.MIME_OGG))  {
-						ffoggCmd(cmdList);
+						if (isChrome()) {
+							chromeCmd(cmdList);
+						} else {
+							ffoggCmd(cmdList);
+						}
 					}
 					else if (RemoteUtil.MIME_TRANS.equals(RemoteUtil.MIME_MP4)) {
 						ffmp4Cmd(cmdList);
@@ -175,14 +183,18 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	private void ffoggCmd(List<String> cmdList) {
-		cmdList.add("-c:v");
-		cmdList.add("libtheora");
+		/*cmdList.add("-c:v");
+		cmdList.add("libtheora");*/
 		cmdList.add("-qscale:v");
-		cmdList.add("8");
+		cmdList.add("10");
 		cmdList.add("-acodec");
 		cmdList.add("libvorbis");
-		cmdList.add("-qscale:a");
-		cmdList.add("6");
+		/*cmdList.add("-qscale:a");
+		cmdList.add("6");*/
+		/*cmdList.add("-bufsize");
+		cmdList.add("1000k");
+		cmdList.add("-b:a");
+		cmdList.add("128k");*/
 		cmdList.add("-f");
 		cmdList.add("ogg");
 	}
@@ -219,6 +231,26 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("-f");
 		cmdList.add("mp4");
 		//cmdList.add("separate_moof+frag_keyframe+empty_moov");
+	}
+
+	private void chromeCmd(List<String> cmdList)  {
+		//-c:v libx264 -profile:v high -level 4.1 -map 0:a -c:a libmp3lame -ac 2 -preset ultrafast -b:v 35000k -bufsize 35000k -f matroska
+		cmdList.add("-c:v");
+		cmdList.add("libx264");
+		cmdList.add("-profile:v");
+		cmdList.add("high");
+		cmdList.add("-level:v");
+		cmdList.add("3.1");
+		cmdList.add("-c:a");
+		cmdList.add("libmp3lame");
+		cmdList.add("-ac");
+		cmdList.add("2");
+		cmdList.add("-pix_fmt");
+		cmdList.add("yuv420p");
+		cmdList.add("-preset");
+		cmdList.add("ultrafast");
+		cmdList.add("-f");
+		cmdList.add("matroska");
 	}
 
 	private void ffhlsCmd(List<String> cmdList, DLNAMediaInfo media) {
@@ -259,5 +291,10 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		return (m != null && RemoteUtil.directmime(m.getMimeType())) ||
 				(supportedFormat(dlna.getFormat())) ||
 			(dlna.getPlayer() instanceof FFMpegVideo);
+	}
+
+	@Override
+	public String getFFmpegVideoFilterOverride() {
+		return "scale=" + RemoteUtil.getWidth() + ":" + RemoteUtil.getHeight();
 	}
 }

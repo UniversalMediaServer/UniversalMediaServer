@@ -10,6 +10,7 @@ import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
+import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.Range;
@@ -82,26 +83,30 @@ public class RemoteMediaHandler implements HttpHandler {
 		if(mime.equals(FormatConfiguration.MIMETYPE_AUTO) && m.getMimeType() != null) {
 			mime = m.getMimeType();
 		}
+		int code = 200;
+		dlna.setDefaultRenderer(r);
 		if (dlna.getFormat().isVideo()) {
 			if (flash) {
 				mime = "video/flash";
-			} else if (!RemoteUtil.directmime(mime)) {
+			} else if (!RemoteUtil.directmime(mime) || RemoteUtil.transMp4(mime, m)) {
 				mime = RemoteUtil.MIME_TRANS;
+				if (((WebRender)r).isChrome()) {
+					mime = RemoteUtil.MIME_WEBM;
+				}
+				dlna.setPlayer(FileUtil.isUrl(dlna.getSystemName()) ?
+							   new FFmpegWebVideo() :
+							   new FFMpegVideo()
+				);
+				//code = 206;
 			}
 		}
 
-		dlna.setDefaultRenderer(r);
-		m.setMimeType(mime);
-		int code = 200;
-		if (!RemoteUtil.directmime(mime)) {
-			dlna.setPlayer(
-				dlna.getFormat().isAudio() ? new FFmpegAudio() :
-				FileUtil.isUrl(dlna.getSystemName()) ? new FFmpegWebVideo() :
-				new FFMpegVideo()
-			);
+		if (!RemoteUtil.directmime(mime) && dlna.getFormat().isAudio()) {
+			dlna.setPlayer(new FFmpegAudio());
 			code = 206;
 		}
 
+		m.setMimeType(mime);
 		LOGGER.debug("dumping media " + mime + " " + dlna);
 		InputStream in = dlna.getInputStream(range, root.getDefaultRenderer());
 		Headers hdr = t.getResponseHeaders();

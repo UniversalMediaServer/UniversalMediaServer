@@ -11,7 +11,7 @@ import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
-import net.pms.dlna.DLNAMediaInfo;
+import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
@@ -70,8 +70,10 @@ public class RemotePlayHandler implements HttpHandler {
 			throw new IOException("Bad Id");
 		}
 		String auto = " autoplay>";
+		String query = t.getRequestURI().getQuery();
+		boolean forceFlash = StringUtils.isNotEmpty(RemoteUtil.getQueryVars(query, "flash"));
 		// next/prev handling
-		String dir = RemoteUtil.getQueryVars(t.getRequestURI().getQuery(), "nxt");
+		String dir = RemoteUtil.getQueryVars(query, "nxt");
 		if(StringUtils.isNotEmpty(dir)) {
 			// if the "nxt" field is set we should calculate the next media
 			// 1st fetch or own index in the child list
@@ -138,10 +140,15 @@ public class RemotePlayHandler implements HttpHandler {
 					mime = r.getMedia().getMimeType();
 				}
 			}
-			/*if(!RemoteUtil.directmime(mime)) {
-				mime = RemoteUtil.MIME_TRANS;
-				flowplayer = false;
-			} */
+			if (!configuration.getWebFlash() && !forceFlash)  {
+				if(!RemoteUtil.directmime(mime) || RemoteUtil.transMp4(mime, r.getMedia())) {
+					mime = RemoteUtil.MIME_TRANS;
+					if (((WebRender)r.getDefaultRenderer()).isChrome()) {
+						mime = RemoteUtil.MIME_WEBM;
+					}
+					flowplayer = false;
+				}
+			}
 		}
 
 		// Media player HTML
@@ -190,14 +197,15 @@ public class RemotePlayHandler implements HttpHandler {
 						sb.append(" controls").append(auto).append(CRLF);
 						if (
 							RemoteUtil.directmime(mime) &&
-							!transMp4(mime, r.getMedia()) &&
+							!RemoteUtil.transMp4(mime, r.getMedia()) &&
 							!r.isResume()
 						) {
 							sb.append("<source src=\"/media/").append(id1).append("\" type=\"").append(mime).append("\">").append(CRLF);
 						}
 						sb.append("<source src=\"/fmedia/").append(id1).append("\" type=\"video/flash\">");
 					} else {
-						sb.append(" id=\"player\" width=\"720\" height=\"404\" controls").append(auto).append(CRLF);
+						sb.append(" id=\"player\" width=\"").append(RemoteUtil.getWidth()).append("\" height=\"");
+						sb.append(RemoteUtil.getHeight()).append("\" controls").append(auto).append(CRLF);
 						sb.append("<source src=\"/media/").append(id1).append("\" type=\"").append(mime).append("\">");
 					}
 					sb.append(CRLF);
@@ -234,6 +242,10 @@ public class RemotePlayHandler implements HttpHandler {
 		sb.append("<div>").append(CRLF);
 		sb.append("<button value=\"<<\" onclick=\"").append(prvJs).append("\"><<</button>").append(CRLF);
 		sb.append("<button value=\">>\" onclick=\"").append(nxtJs).append("\">>></button>").append(CRLF);
+		if(!forceFlash) {
+			String flashStr = "window.location.replace('/play/" + id1 + "?flash=1');";
+			sb.append("<button value=\"flash\" onclick=\"").append(flashStr).append("\">Flash</button>").append(CRLF);
+		}
 		sb.append("</div>").append(CRLF);
 		sb.append("</div>").append(CRLF);
 		sb.append("<a href=\"/raw/").append(rawId).append("\" target=\"_blank\" id=\"DownloadLink\" title=\"Download this video\"></a>").append(CRLF);
@@ -269,11 +281,6 @@ public class RemotePlayHandler implements HttpHandler {
 		endPage(sb);
 
 		return sb.toString();
-	}
-
-	private boolean transMp4(String mime, DLNAMediaInfo media) {
-		LOGGER.debug("mp4 profile "+media.getH264Profile());
-		return mime.equals("video/mp4") && (configuration.isWebMp4Trans() || media.getAvcAsInt() >= 40);
 	}
 
 	@Override
