@@ -100,6 +100,12 @@ public class RemoteMediaHandler implements HttpHandler {
 				);
 				//code = 206;
 			}
+			if (PMS.getConfiguration().getWebSubs() &&
+				dlna.getMediaSubtitle() != null &&
+				dlna.getMediaSubtitle().isExternal()) {
+				// fetched on the side
+				dlna.getMediaSubtitle().setId(-1);
+			}
 		}
 
 		if (!RemoteUtil.directmime(mime) && dlna.getFormat().isAudio()) {

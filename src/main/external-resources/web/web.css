@@ -229,3 +229,11 @@ form#SearchForm {
 	cursor: not-allowed;
 }
 
+::cue {
+  color: #FFF;
+  background: transparent;
+  text-shadow: black 0 0 0.2em;
+  font: 1.2em sans-serif;
+}
+
+

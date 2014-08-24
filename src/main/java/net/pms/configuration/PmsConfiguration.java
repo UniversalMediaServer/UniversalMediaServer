@@ -259,6 +259,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_WEB_LOOP_VIDEO = "web_loop_video";
 	protected static final String KEY_WEB_MP4_TRANS = "web_mp4_trans";
 	protected static final String KEY_WEB_SIZE = "web_size";
+	protected static final String KEY_WEB_SUBS_TRANS = "web_subtitles_transcoded";
 	protected static final String KEY_WEB_THREADS = "web_threads";
 	protected static final String KEY_WEB_WIDTH = "web_width";
 	protected static final String KEY_WEB_PATH = "web_path";
@@ -3204,6 +3205,10 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public boolean getWebChrome() {
 		return getBoolean(KEY_WEB_CHROME_TRICK, false);
+	}
+
+	public boolean getWebSubs() {
+		return getBoolean(KEY_WEB_SUBS_TRANS, false);
 	}
 
 }

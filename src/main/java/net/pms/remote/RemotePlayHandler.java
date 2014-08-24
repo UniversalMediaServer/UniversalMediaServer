@@ -212,14 +212,15 @@ public class RemotePlayHandler implements HttpHandler {
 					}
 					sb.append(CRLF);
 
-					if (flowplayer) {
-						PmsConfiguration configuration = PMS.getConfiguration();
+					if (configuration.getWebSubs()) {
+						// only if subs are requested as <track> tags
+						// otherwise we'll transcode them in
 						boolean isFFmpegFontConfig = configuration.isFFmpegFontConfig();
 						if (isFFmpegFontConfig) { // do not apply fontconfig to flowplayer subs
 							configuration.setFFmpegFontConfig(false);
 						}
-
 						OutputParams p = new OutputParams(configuration);
+						p.sid = r.getMediaSubtitle();
 						Player.setAudioAndSubs(r.getName(), r.getMedia(), p);
 						if (p.sid !=null && p.sid.getType().isText()) {
 							try {
@@ -227,7 +228,7 @@ public class RemotePlayHandler implements HttpHandler {
 								LOGGER.debug("subFile " + subFile);
 								subFile = SubtitleUtils.convertSubripToWebVTT(subFile);
 								if (subFile != null) {
-									sb.append("<track src=\"/subs/").append(subFile.getAbsolutePath()).append("\">");
+									sb.append("<track kind=\"subtitles\" src=\"/subs/").append(subFile.getAbsolutePath()).append("\" default>");
 								}
 							} catch (Exception e) {
 								LOGGER.debug("error when doing sub file " + e);
