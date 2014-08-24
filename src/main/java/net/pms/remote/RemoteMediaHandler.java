@@ -70,6 +70,7 @@ public class RemoteMediaHandler implements HttpHandler {
 			LOGGER.debug("media unkonwn");
 			throw new IOException("Bad id");
 		}
+		int sid = -1;
 		long len = dlna.length();
 		Range range = RemoteUtil.parseRange(t.getRequestHeaders(), len);
 		String mime = root.getDefaultRenderer().getMimeType(dlna.mimeType());
@@ -103,6 +104,7 @@ public class RemoteMediaHandler implements HttpHandler {
 				dlna.getMediaSubtitle() != null &&
 				dlna.getMediaSubtitle().isExternal()) {
 				// fetched on the side
+				sid = dlna.getMediaSubtitle().getId();
 				dlna.getMediaSubtitle().setId(-1);
 			}
 		}
@@ -125,6 +127,9 @@ public class RemoteMediaHandler implements HttpHandler {
 		StartStopListenerDelegate startStop = new StartStopListenerDelegate(t.getRemoteAddress().getHostString());
 		PMS.get().getFrame().setStatusLine("Serving " + dlna.getName());
 		startStop.start(dlna);
+		if (sid != -1)  {
+			dlna.getMediaSubtitle().setId(sid);
+		}
 		RemoteUtil.dump(in, os, startStop);
 		PMS.get().getFrame().setStatusLine("");
 	}
