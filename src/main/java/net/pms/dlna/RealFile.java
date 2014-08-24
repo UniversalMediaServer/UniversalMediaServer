@@ -22,7 +22,6 @@ import com.sun.jna.Platform;
 import java.io.*;
 import java.util.ArrayList;
 import net.pms.PMS;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.formats.Format;
 import net.pms.formats.FormatFactory;
 import net.pms.util.FileUtil;

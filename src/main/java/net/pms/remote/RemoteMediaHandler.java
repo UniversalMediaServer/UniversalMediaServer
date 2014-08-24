@@ -6,7 +6,6 @@ import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;

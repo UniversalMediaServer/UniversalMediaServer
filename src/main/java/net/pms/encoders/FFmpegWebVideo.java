@@ -30,7 +30,6 @@ import javax.swing.JComponent;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.external.ExternalFactory;

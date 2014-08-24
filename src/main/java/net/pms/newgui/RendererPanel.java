@@ -17,11 +17,9 @@ import org.apache.commons.lang.WordUtils;
 import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.RowSpec;
-import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.DeviceConfiguration;
-import net.pms.network.UPNPHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

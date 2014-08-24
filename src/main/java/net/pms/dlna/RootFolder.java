@@ -32,7 +32,6 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.DownloadPlugins;
 import net.pms.configuration.MapFileConfiguration;
-import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;

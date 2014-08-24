@@ -7,29 +7,21 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URLDecoder;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.Set;
-import java.util.Arrays;
-
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
-
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpsServer;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;

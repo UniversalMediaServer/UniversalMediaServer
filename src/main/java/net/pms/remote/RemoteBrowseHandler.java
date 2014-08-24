@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.util.List;
-import net.pms.Messages;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
