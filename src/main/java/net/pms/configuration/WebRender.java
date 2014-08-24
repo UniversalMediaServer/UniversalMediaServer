@@ -10,6 +10,7 @@ import net.pms.dlna.DLNAResource;
 import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.Player;
 import net.pms.formats.*;
+import net.pms.io.OutputParams;
 import net.pms.remote.RemoteUtil;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
@@ -158,6 +159,9 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 						// nothing here yet
 					}
 				}
+				OutputParams p = new OutputParams(pmsConfiguration);
+				p.mediaRenderer = this;
+				cmdList.addAll(((FFMpegVideo) player).getVideoBitrateOptions(dlna, media, p));
 			} else {
 				// nothing here yet
 			}
@@ -202,7 +206,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		/*cmdList.add("-qscale:a");
 		cmdList.add("6");*/
 		/*cmdList.add("-bufsize");
-		cmdList.add("1000k");
+		cmdList.add("300k");
 		cmdList.add("-b:a");
 		cmdList.add("128k");*/
 		cmdList.add("-f");
@@ -286,6 +290,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("-f");
 		cmdList.add("HLS");
 	}
+
 
 	public static boolean supportedFormat(Format f) {
 	   	for(Format f1 : supportedFormats) {

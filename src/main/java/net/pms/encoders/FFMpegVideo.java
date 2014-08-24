@@ -401,8 +401,14 @@ public class FFMpegVideo extends Player {
 		}
 
 		if (params.mediaRenderer.getCBRVideoBitrate() == 0 && params.timeend == 0) {
-			// Convert value from Mb to Kb
-			defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
+			if (rendererMaxBitrates[0] < 0) {
+				// odd specail case here
+				// this is -1 so we guess that 300 kbps is good
+				defaultMaxBitrates[0] = 300;
+			} else {
+				// Convert value from Mb to Kb
+				defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
+			}
 
 			// Halve it since it seems to send up to 1 second of video in advance
 			defaultMaxBitrates[0] /= 2;
