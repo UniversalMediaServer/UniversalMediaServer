@@ -161,7 +161,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 				}
 				OutputParams p = new OutputParams(pmsConfiguration);
 				p.mediaRenderer = this;
-				cmdList.addAll(((FFMpegVideo) player).getVideoBitrateOptions(dlna, media, p));
+//				cmdList.addAll(((FFMpegVideo) player).getVideoBitrateOptions(dlna, media, p));
 			} else {
 				// nothing here yet
 			}
@@ -214,37 +214,41 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	private void ffmp4Cmd(List<String> cmdList) {
+		// see http://stackoverflow.com/questions/8616855/how-to-output-fragmented-mp4-with-ffmpeg
+		cmdList.add(1, "-re");
+		cmdList.add("-g");
+		cmdList.add("52"); // see https://code.google.com/p/stream-m/#FRAGMENT_SIZES
+
 		cmdList.add("-c:v");
 		cmdList.add("libx264");
 		cmdList.add("-preset");
 		cmdList.add("ultrafast");
-		cmdList.add("-tune");
-		cmdList.add("zerolatency");
-		cmdList.add("-profile:v");
-		cmdList.add("high");
-		cmdList.add("-level:v");
-		cmdList.add("3.1");
+//		cmdList.add("-tune");
+//		cmdList.add("zerolatency");
+//		cmdList.add("-profile:v");
+//		cmdList.add("high");
+//		cmdList.add("-level:v");
+//		cmdList.add("3.1");
 		cmdList.add("-c:a");
 		cmdList.add("aac");
-		cmdList.add("-ab");
-		cmdList.add("16k");
-		cmdList.add("-ar");
-		cmdList.add("44100");
+//		cmdList.add("-ab");
+//		cmdList.add("16k");
+//		cmdList.add("-ar");
+//		cmdList.add("44100");
 		cmdList.add("-strict");
 		cmdList.add("experimental");
-		cmdList.add("-pix_fmt");
-		cmdList.add("yuv420p");
-		cmdList.add("-frag_duration");
-		cmdList.add("300");
-		cmdList.add("-frag_size");
-		cmdList.add("100");
-		cmdList.add("-flags");
-		cmdList.add("+aic+mv4");
+//		cmdList.add("-pix_fmt");
+//		cmdList.add("yuv420p");
+//		cmdList.add("-frag_duration");
+//		cmdList.add("300");
+//		cmdList.add("-frag_size");
+//		cmdList.add("100");
+//		cmdList.add("-flags");
+//		cmdList.add("+aic+mv4");
 		cmdList.add("-movflags");
-		cmdList.add("+faststart");
+		cmdList.add("frag_keyframe+empty_moov");
 		cmdList.add("-f");
 		cmdList.add("mp4");
-		//cmdList.add("separate_moof+frag_keyframe+empty_moov");
 	}
 
 	private void chromeCmd(List<String> cmdList)  {
