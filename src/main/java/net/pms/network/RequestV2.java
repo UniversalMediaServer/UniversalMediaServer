@@ -465,8 +465,10 @@ public class RequestV2 extends HTTPResource {
 						output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
 						output.headers().set(HttpHeaders.Names.CONNECTION, "keep-alive");
 					}
-					// put the orig render back
-					dlna.updateRender(orig);
+					if (! orig.equals(mediaRenderer)) {
+						// put the orig render back
+						dlna.updateRender(orig);
+					}
 				}
 			}
 		} else if ((method.equals("GET") || method.equals("HEAD")) && (argument.toLowerCase().endsWith(".png") || argument.toLowerCase().endsWith(".jpg") || argument.toLowerCase().endsWith(".jpeg"))) {

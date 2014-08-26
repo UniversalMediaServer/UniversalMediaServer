@@ -426,8 +426,10 @@ public class Request extends HTTPResource {
 
 						output(output, "Connection: keep-alive");
 					}
-					// put the orig render back
-					dlna.updateRender(orig);
+					if (! orig.equals(mediaRenderer)) {
+						// put the orig render back
+						dlna.updateRender(orig);
+					}
 				}
 			}
 		} else if ((method.equals("GET") || method.equals("HEAD")) && (argument.toLowerCase().endsWith(".png") || argument.toLowerCase().endsWith(".jpg") || argument.toLowerCase().endsWith(".jpeg"))) {
