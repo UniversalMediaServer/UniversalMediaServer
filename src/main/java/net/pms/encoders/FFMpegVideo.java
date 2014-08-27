@@ -481,14 +481,13 @@ public class FFMpegVideo extends Player {
 
 		if (!params.mediaRenderer.isTranscodeToMPEGTSH264AC3() && !params.mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
 			// Add MPEG-2 quality settings
-			String mpeg2OptionsMainSetting = configuration.getMPEG2MainSettingsFFmpeg();
+			String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
 			String mpeg2OptionsRenderer = params.mediaRenderer.getCustomFFmpegMPEG2Options();
-			String mpeg2Options = "";
 
 			// Renderer settings take priority over user settings
 			if (isNotBlank(mpeg2OptionsRenderer)) {
-				mpeg2OptionsMainSetting = mpeg2OptionsRenderer;
-			} else if (mpeg2OptionsMainSetting.contains("Automatic")) {
+				mpeg2Options = mpeg2OptionsRenderer;
+			} else if (mpeg2Options.contains("Automatic")) {
 				mpeg2Options = "-g 5 -q:v 1 -qmin 2 -qmax 3";
 
 				// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
@@ -496,7 +495,7 @@ public class FFMpegVideo extends Player {
 					mpeg2Options = "-g 25 -q:v 1 -qmin 2 -qmax 3";
 				}
 
-				if (mpeg2OptionsMainSetting.contains("Wireless") || defaultMaxBitrates[0] < 70) {
+				if (mpeg2Options.contains("Wireless") || defaultMaxBitrates[0] < 70) {
 					// Lower quality for 720p+ content
 					if (media.getWidth() > 1280) {
 						mpeg2Options = "-g 25 -qmax 7 -qmin 2";
