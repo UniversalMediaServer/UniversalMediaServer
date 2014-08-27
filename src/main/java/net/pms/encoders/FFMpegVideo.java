@@ -131,6 +131,7 @@ public class FFMpegVideo extends Player {
 	public List<String> getVideoFilterOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
 		List<String> videoFilterOptions = new ArrayList<>();
 		ArrayList<String> filterChain = new ArrayList<>();
+		ArrayList<String> scalePadFilterChain = new ArrayList<>();
 		final RendererConfiguration renderer = params.mediaRenderer;
 
 		boolean isMediaValid = media != null && media.isMediaparsed() && media.getHeight() != 0;
@@ -139,6 +140,41 @@ public class FFMpegVideo extends Player {
 				media.getWidth() > renderer.getMaxVideoWidth() ||
 				media.getHeight() > renderer.getMaxVideoHeight()
 			);
+
+		int scaleWidth = 0;
+		int scaleHeight = 0;
+		if (media.getWidth() > 0 && media.getHeight() > 0) {
+			scaleWidth = media.getWidth();
+			scaleHeight = media.getHeight();
+		}
+
+		// Make sure the aspect ratio is 16/9 if the renderer needs it.
+		boolean keepAR = renderer.isKeepAspectRatio() &&
+				!(
+					media.getWidth() == 3840 && media.getHeight() <= 1080 ||
+					media.getWidth() == 1920 && media.getHeight() == 2160
+				) &&
+				!"16:9".equals(media.getAspectRatioContainer());
+
+		// Scale and pad the video if necessary
+		if (isResolutionTooHighForRenderer || (!renderer.isRescaleByRenderer() && renderer.isMaximumResolutionSpecified() && media.getWidth() < 720)) { // Do not rescale for SD video and higher
+			scalePadFilterChain.add(String.format("scale=iw*min(%1$d/iw\\,%2$d/ih):ih*min(%1$d/iw\\,%2$d/ih)", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
+			if (keepAR) {
+				scalePadFilterChain.add(String.format("pad=%1$d:%2$d:(%1$d-iw)/2:(%2$d-ih)/2", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
+			}
+		} else if (keepAR && isMediaValid) {
+			if ((media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
+				scalePadFilterChain.add("pad=iw:iw/(16/9):0:(oh-ih)/2");
+				scaleHeight = (int) Math.round(scaleWidth / (16 / (double) 9));
+			} else {
+				scalePadFilterChain.add("pad=ih*(16/9):ih:(ow-iw)/2:0");
+				scaleWidth = (int) Math.round(scaleHeight * (16 / (double) 9));
+			}
+
+			scaleWidth  = convertToMod4(scaleWidth);
+			scaleHeight = convertToMod4(scaleHeight);
+			scalePadFilterChain.add("scale=" + scaleWidth + ":" + scaleHeight);
+		}
 
 		if (!isDisableSubtitles(params) && !(dlna.getPlayer() instanceof WebPlayer)) {
 			StringBuilder subsFilter = new StringBuilder();
@@ -174,11 +210,11 @@ public class FFMpegVideo extends Player {
 					subsFilename = s.toString();
 					subsFilename = subsFilename.replace(",", "\\,");
 					subsFilter.append("subtitles=").append(subsFilename);
-					int originalWidth = 384;
-					int originalHeight = 288;
+					int subtitlesWidth = scaleWidth;
+					int subtitlesHeight = scaleHeight;
 					if (params.sid.isExternal() && params.sid.getType() != SubtitleType.ASS || configuration.isFFmpegFontConfig()) {
-						getOriginalResolution(originalSubsFilename, originalWidth, originalHeight);
-						subsFilter.append(":").append(originalWidth).append("x").append(originalHeight);
+						setSubtitlesResolution(originalSubsFilename, subtitlesWidth, subtitlesHeight);
+						subsFilter.append(":").append(subtitlesWidth).append("x").append(subtitlesHeight);
 						if (!params.sid.isExternalFileUtf8()) { // Set the input subtitles character encoding if not UTF-8
 							String encoding = isNotBlank(configuration.getSubtitlesCodepage()) ?
 									configuration.getSubtitlesCodepage() : params.sid.getExternalFileCharacterSet() != null ?
@@ -219,44 +255,11 @@ public class FFMpegVideo extends Player {
 			}
 		}
 
-		int scaleWidth = 0;
-		int scaleHeight = 0;
-		if (media.getWidth() > 0 && media.getHeight() > 0) {
-			scaleWidth = media.getWidth();
-			scaleHeight = media.getHeight();
-		}
-
 		String overrideVF = renderer.getFFmpegVideoFilterOverride();
 		if (StringUtils.isNotEmpty(overrideVF)) {
 			filterChain.add(overrideVF);
 		} else {
-			/**
-			 * Make sure the aspect ratio is 16/9 if the renderer needs it.
-			 */
-			boolean keepAR = renderer.isKeepAspectRatio() &&
-					!(
-						media.getWidth() == 3840 && media.getHeight() <= 1080 ||
-						media.getWidth() == 1920 && media.getHeight() == 2160
-					) &&
-					!"16:9".equals(media.getAspectRatioContainer());
-			if (isResolutionTooHighForRenderer || (!renderer.isRescaleByRenderer() && renderer.isMaximumResolutionSpecified() && media.getWidth() < 720)) { // Do not rescale for SD video and higher
-				filterChain.add(String.format("scale=iw*min(%1$d/iw\\,%2$d/ih):ih*min(%1$d/iw\\,%2$d/ih)", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
-				if (keepAR) {
-					filterChain.add(String.format("pad=%1$d:%2$d:(%1$d-iw)/2:(%2$d-ih)/2", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
-				}
-			} else if (keepAR && isMediaValid) {
-				if ((media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
-					filterChain.add("pad=iw:iw/(16/9):0:(oh-ih)/2");
-					scaleHeight = (int) Math.round(scaleWidth / (16 / (double) 9));
-				} else {
-					filterChain.add("pad=ih*(16/9):ih:(ow-iw)/2:0");
-					scaleWidth = (int) Math.round(scaleHeight * (16 / (double) 9));
-				}
-
-				scaleWidth  = convertToMod4(scaleWidth);
-				scaleHeight = convertToMod4(scaleHeight);
-				filterChain.add("scale=" + scaleWidth + ":" + scaleHeight);
-			}
+			filterChain.addAll(scalePadFilterChain);
 		}
 
 		if (filterChain.size() > 0) {
@@ -1512,7 +1515,7 @@ public class FFMpegVideo extends Player {
 		FileUtils.deleteQuietly(new File(configuration.getDataFile(SUB_DIR)));
 	}
 
-	private void getOriginalResolution(String subtitles, int originalWidth, int originalHeight) throws IOException {
+	private void setSubtitlesResolution(String subtitles, int subtitlesWidth, int subtitlesHeight) throws IOException {
 		BufferedReader input = new BufferedReader(new InputStreamReader(new FileInputStream(new File(subtitles))));
 		String line;
 		boolean resolved = false;
@@ -1521,9 +1524,9 @@ public class FFMpegVideo extends Player {
 				while ((line = input.readLine()) != null) {
 					if (isNotBlank(line)) {
 						if (line.contains("PlayResX:")) {
-							originalWidth = Integer.parseInt(line.substring(9).trim());
+							subtitlesWidth = Integer.parseInt(line.substring(9).trim());
 						} else if (line.contains("PlayResY:")) {
-							originalHeight = Integer.parseInt(line.substring(9).trim());
+							subtitlesHeight = Integer.parseInt(line.substring(9).trim());
 						}
 					} else {
 						resolved = true;
