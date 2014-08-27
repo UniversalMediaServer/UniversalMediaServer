@@ -165,7 +165,7 @@ public class RemotePlayHandler implements HttpHandler {
 					sb.append("<div id=\"VideoContainer\">").append(CRLF);
 					// for video this gives just an empty line
 					sb.append(coverImage).append(CRLF);
-					if(r.getFormat().isImage()) {
+					if (r.getFormat().isImage()) {
 						// do this like this to simplify the code
 						// skip all player crap since img tag works well
 						int delay = configuration.getWebImgSlideDelay() * 1000;
