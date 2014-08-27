@@ -46,7 +46,7 @@ public class RemotePlayHandler implements HttpHandler {
 		while ((nxtPos < list.size()) && (nxtPos >= 0)) {
 			// if we're not last/first in list just pick next/prev from child list
 			DLNAResource n = list.get(nxtPos);
-			if(!n.isFolder()) {
+			if (!n.isFolder()) {
 				return n;
 			}
 			nxtPos += inc;
@@ -64,14 +64,14 @@ public class RemotePlayHandler implements HttpHandler {
 		}
 		List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, root.getDefaultRenderer());
 		if (res == null || res.isEmpty()) {
-			LOGGER.debug("Bad id in web if "+id);
+			LOGGER.debug("Bad id in web if " + id);
 			throw new IOException("Bad Id");
 		}
 		DLNAResource r = res.get(0);
 		String auto = " autoplay>";
 		// next/prev handling
 		String dir = RemoteUtil.getQueryVars(t.getRequestURI().getQuery(), "nxt");
-		if(StringUtils.isNotEmpty(dir)) {
+		if (StringUtils.isNotEmpty(dir)) {
 			// if the "nxt" field is set we should calculate the next media
 			// 1st fetch or own index in the child list
 			List<DLNAResource> children = r.getParent().getChildren();
@@ -117,7 +117,7 @@ public class RemotePlayHandler implements HttpHandler {
 			// special page to return
 			return "<html><head><script>window.refresh=true;history.back()</script></head></html>";
 		}
-		if(r.getFormat().isImage()) {
+		if (r.getFormat().isImage()) {
 			flowplayer = false;
 			coverImage = "<img src=\"/raw/" + rawId + "\" alt=\"\"><br>";
 		}
@@ -130,7 +130,7 @@ public class RemotePlayHandler implements HttpHandler {
 		}
 		if (r.getFormat().isVideo()) {
 			mediaType = "video";
-			if(mime.equals(FormatConfiguration.MIMETYPE_AUTO)) {
+			if (mime.equals(FormatConfiguration.MIMETYPE_AUTO)) {
 				if (r.getMedia() != null && r.getMedia().getMimeType() != null) {
 					mime = r.getMedia().getMimeType();
 				}
@@ -270,7 +270,7 @@ public class RemotePlayHandler implements HttpHandler {
 	}
 
 	private boolean transMp4(String mime, DLNAMediaInfo media) {
-		LOGGER.debug("mp4 profile "+media.getH264Profile());
+		LOGGER.debug("mp4 profile " + media.getH264Profile());
 		return mime.equals("video/mp4") && (configuration.isWebMp4Trans() || media.getAvcAsInt() >= 40);
 	}
 
