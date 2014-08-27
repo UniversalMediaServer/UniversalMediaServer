@@ -1,7 +1,20 @@
 4.0.4 - 2014-08-??
 
 	General:
-		
+		Added previous and next buttons to web interface
+		Windows uninstaller no longer deletes custom renderer configs
+		Windows uninstaller no longer leaves behind unused files
+		Added the ability to prioritize renderer loading order
+		Windows automatic updater downloads the correct build for the user's Java version
+		Improved logging and log packing
+		Fixed subtitles stretching bug
+		Fixed startup crash on non-Windows operating systems
+		Fixed subtitles not being transcoded when the renderer supported streaming the file
+	Renderers:
+		Added support for Xbox One via DLNA
+		Improved support for Panasonic VT60 TVs
+	Languages:
+		Updated Spanish translation (thanks, AlfredoRamos!)
 
 4.0.3 - 2014-08-12
 
