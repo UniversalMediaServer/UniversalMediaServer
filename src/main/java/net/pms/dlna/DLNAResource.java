@@ -634,14 +634,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 							boolean hasEmbeddedSubs = false;
 							boolean hasAnySubs = child.media.getSubtitleTracksList().size() > 0;
+							boolean hasSubsToTranscode = false;
 
-							if (hasAnySubs) {
+							if (!configuration.isDisableSubtitles() && hasAnySubs) {
 								for (DLNAMediaSubtitle s : child.media.getSubtitleTracksList()) {
 									hasEmbeddedSubs = (hasEmbeddedSubs || s.isEmbedded());
 								}
 
 								if (!parserV2) {
-									if (!configuration.isDisableSubtitles() && child.isSubsFile() && defaultRenderer.isSubtitlesStreamingSupported()) {
+									if (child.isSubsFile() && defaultRenderer.isSubtitlesStreamingSupported()) {
 										OutputParams params = new OutputParams(configuration);
 										Player.setAudioAndSubs(child.getSystemName(), child.media, params); // set proper subtitles in accordance with user setting
 										if (defaultRenderer.isSubtitlesFormatSupported(params.sid)) {
@@ -651,14 +652,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 											LOGGER.trace("Did not set media_subtitle because the subtitle format is not supported by this renderer");
 										}
 									} else {
-										LOGGER.trace("Did not set media_subtitle because configuration.isDisableSubtitles is true, this is not a subtitle, or the renderer does not support streaming subtitles");
+										LOGGER.trace("Did not set media_subtitle because this file does not have external subtitles, or the renderer does not support streaming subtitles");
 									}
 								}
-							}
 
-							boolean hasSubsToTranscode = false;
-
-							if (!configuration.isDisableSubtitles() && hasAnySubs) {
 								if (child.isSubsFile()) {
 									if (child.media_subtitle == null) {
 										// Subtitles are not set for streaming
