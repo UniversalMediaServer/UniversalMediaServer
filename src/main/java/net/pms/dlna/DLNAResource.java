@@ -636,23 +636,26 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							boolean hasAnySubs = false;
 
 							if (child.media != null) {
-								for (DLNAMediaSubtitle s : child.media.getSubtitleTracksList()) {
-									hasEmbeddedSubs = (hasEmbeddedSubs || s.isEmbedded());
-									hasAnySubs = true;
-								}
+								hasAnySubs = child.media.getSubtitleTracksList().size() > 0;
 
-								if (!parserV2 && hasAnySubs) {
-									if (!configuration.isDisableSubtitles() && child.isSubsFile() && defaultRenderer.isSubtitlesStreamingSupported()) {
-										OutputParams params = new OutputParams(configuration);
-										Player.setAudioAndSubs(child.getSystemName(), child.media, params); // set proper subtitles in accordance with user setting
-										if (defaultRenderer.isSubtitlesFormatSupported(params.sid)) {
-											child.media_subtitle = params.sid;
-											LOGGER.trace("Set media_subtitle");
+								if (hasAnySubs) {
+									for (DLNAMediaSubtitle s : child.media.getSubtitleTracksList()) {
+										hasEmbeddedSubs = (hasEmbeddedSubs || s.isEmbedded());
+									}
+
+									if (!parserV2) {
+										if (!configuration.isDisableSubtitles() && child.isSubsFile() && defaultRenderer.isSubtitlesStreamingSupported()) {
+											OutputParams params = new OutputParams(configuration);
+											Player.setAudioAndSubs(child.getSystemName(), child.media, params); // set proper subtitles in accordance with user setting
+											if (defaultRenderer.isSubtitlesFormatSupported(params.sid)) {
+												child.media_subtitle = params.sid;
+												LOGGER.trace("Set media_subtitle");
+											} else {
+												LOGGER.trace("Did not set media_subtitle because the subtitle format is not supported by this renderer");
+											}
 										} else {
-											LOGGER.trace("Did not set media_subtitle because the subtitle format is not supported by this renderer");
+											LOGGER.trace("Did not set media_subtitle because configuration.isDisableSubtitles is true, this is not a subtitle, or the renderer does not support streaming subtitles");
 										}
-									} else {
-										LOGGER.trace("Did not set media_subtitle because configuration.isDisableSubtitles is true, this is not a subtitle, or the renderer does not support streaming subtitles");
 									}
 								}
 							}
