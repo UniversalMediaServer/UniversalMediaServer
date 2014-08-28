@@ -633,13 +633,15 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							}
 
 							boolean hasEmbeddedSubs = false;
+							boolean hasAnySubs = false;
 
 							if (child.media != null) {
 								for (DLNAMediaSubtitle s : child.media.getSubtitleTracksList()) {
 									hasEmbeddedSubs = (hasEmbeddedSubs || s.isEmbedded());
+									hasAnySubs = true;
 								}
 
-								if (!parserV2) {
+								if (!parserV2 && hasAnySubs) {
 									if (!configuration.isDisableSubtitles() && child.isSubsFile() && defaultRenderer.isSubtitlesStreamingSupported()) {
 										OutputParams params = new OutputParams(configuration);
 										Player.setAudioAndSubs(child.getSystemName(), child.media, params); // set proper subtitles in accordance with user setting
@@ -657,7 +659,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 
 							boolean hasSubsToTranscode = false;
 
-							if (!configuration.isDisableSubtitles()) {
+							if (!configuration.isDisableSubtitles() && hasAnySubs) {
 								if (child.isSubsFile()) {
 									if (child.media_subtitle == null) {
 										// Subtitles are not set for streaming
