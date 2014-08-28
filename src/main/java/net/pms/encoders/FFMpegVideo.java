@@ -210,10 +210,15 @@ public class FFMpegVideo extends Player {
 					subsFilename = s.toString();
 					subsFilename = subsFilename.replace(",", "\\,");
 					subsFilter.append("subtitles=").append(subsFilename);
-					int subtitlesWidth = scaleWidth;
-					int subtitlesHeight = scaleHeight;
+					// set the default resolution made by FFmpeg for external subtitles
+					int subtitlesWidth = 384; 
+					int subtitlesHeight = 288;
 					if (params.sid.isExternal() && params.sid.getType() != SubtitleType.ASS || configuration.isFFmpegFontConfig()) {
-						setSubtitlesResolution(originalSubsFilename, subtitlesWidth, subtitlesHeight);
+						 // check the resolution only for SSA/ASS subs otherwise the subs resolution is set to default 
+						if (params.sid.getType() == SubtitleType.ASS) {
+							setSubtitlesResolution(originalSubsFilename, subtitlesWidth, subtitlesHeight);
+						}
+						
 						subsFilter.append(":").append(subtitlesWidth).append("x").append(subtitlesHeight);
 						if (!params.sid.isExternalFileUtf8()) { // Set the input subtitles character encoding if not UTF-8
 							String encoding = isNotBlank(configuration.getSubtitlesCodepage()) ?
@@ -708,7 +713,7 @@ public class FFMpegVideo extends Player {
 
 		cmdList.add("-loglevel");
 		if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
-			cmdList.add("info"); // Could be changed to "verbose" or "debug" if "info" level is not enough
+			cmdList.add("verbose"); // Could be changed to "verbose" or "debug" if "info" level is not enough
 		} else {
 			cmdList.add("fatal");
 		}
@@ -1412,6 +1417,8 @@ public class FFMpegVideo extends Player {
 							case "Fontsize":
 								if (!playResIsSet) {
 									params[i] = Integer.toString((int) ((Integer.parseInt(params[i]) * media.getHeight() / (double) 288 * Double.parseDouble(configuration.getAssScale()))));
+								} else {
+									params[i] = Integer.toString((int) (Integer.parseInt(params[i]) * Double.parseDouble(configuration.getAssScale())));
 								}
 
 								break;
