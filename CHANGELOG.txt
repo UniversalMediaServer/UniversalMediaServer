@@ -10,6 +10,8 @@
 		Fixed subtitles stretching bug
 		Fixed startup crash on non-Windows operating systems
 		Fixed subtitles not being transcoded when the renderer supported streaming the file
+		Fixed automatic wireless quality optimizations not being applied
+		Speed improvements
 	Renderers:
 		Added support for Xbox One via DLNA
 		Improved support for Panasonic VT60 TVs
