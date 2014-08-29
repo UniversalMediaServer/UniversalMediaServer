@@ -182,7 +182,7 @@ public class FFMpegVideo extends Player {
 				String originalSubsFilename;
 				String subsFilename;
 				if (configuration.isFFmpegFontConfig()) {
-					originalSubsFilename = getSubtitles(dlna, media, params, configuration).getAbsolutePath();
+					originalSubsFilename = getSubtitles(dlna, media, params, configuration, SubtitleType.ASS).getAbsolutePath();
 				} else {
 					originalSubsFilename = params.sid.isEmbedded() ? dlna.getSystemName() : params.sid.getExternalFile().getAbsolutePath();
 				}
@@ -1171,7 +1171,7 @@ public class FFMpegVideo extends Player {
 	 * @return Converted subtitle file
 	 * @throws IOException
 	 */
-	public static File getSubtitles(DLNAResource dlna, DLNAMediaInfo media, OutputParams params, PmsConfiguration configuration) throws IOException {
+	public static File getSubtitles(DLNAResource dlna, DLNAMediaInfo media, OutputParams params, PmsConfiguration configuration, SubtitleType subtitleType) throws IOException {
 		if (media == null || params.sid.getId() == -1 || !params.sid.getType().isText()) {
 			return null;
 		}
@@ -1239,7 +1239,7 @@ public class FFMpegVideo extends Player {
 		) {
 			tempSubs = params.sid.getExternalFile();
 		} else {
-			tempSubs = convertSubsToAss(filename, media, params, configuration);
+			tempSubs = convertSubsToSubtitleType(filename, media, params, configuration, subtitleType);
 		}
 
 		if (tempSubs == null) {
@@ -1294,7 +1294,7 @@ public class FFMpegVideo extends Player {
 	 * @param configuration
 	 * @return Converted subtitles file in SSA/ASS format
 	 */
-	public static File convertSubsToAss(String fileName, DLNAMediaInfo media, OutputParams params, PmsConfiguration configuration) {
+	public static File convertSubsToSubtitleType(String fileName, DLNAMediaInfo media, OutputParams params, PmsConfiguration configuration, SubtitleType outputSubtitleType) {
 		if (!params.sid.getType().isText()) {
 			return null;
 		}
@@ -1335,7 +1335,7 @@ public class FFMpegVideo extends Player {
 		}
 
 		try {
-			tempSubsFile = new File(configuration.getTempFolder(), FilenameUtils.getBaseName(fileName) + ".ass");
+			tempSubsFile = new File(configuration.getTempFolder(), FilenameUtils.getBaseName(fileName) + "." + outputSubtitleType.getExtension());
 		} catch (IOException e1) {
 			LOGGER.debug("Subtitles conversion finished wih error: " + e1);
 			return null;
