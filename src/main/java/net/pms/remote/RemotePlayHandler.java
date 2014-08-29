@@ -3,11 +3,13 @@ package net.pms.remote;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.util.List;
+
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
@@ -17,8 +19,10 @@ import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.Player;
+import net.pms.formats.v2.SubtitleType;
 import net.pms.formats.v2.SubtitleUtils;
 import net.pms.io.OutputParams;
+
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -210,9 +214,8 @@ public class RemotePlayHandler implements HttpHandler {
 						Player.setAudioAndSubs(r.getName(), r.getMedia(), p);
 						if (p.sid !=null && p.sid.getType().isText()) {
 							try {
-								File subFile = FFMpegVideo.getSubtitles(r, r.getMedia(), p, configuration);
+								File subFile = FFMpegVideo.getSubtitles(r, r.getMedia(), p, configuration, SubtitleType.WEBVTT);
 								LOGGER.debug("subFile " + subFile);
-								subFile = SubtitleUtils.convertSubripToWebVTT(subFile);
 								if (subFile != null) {
 									sb.append("<track src=\"/subs/").append(subFile.getAbsolutePath()).append("\">");
 								}
