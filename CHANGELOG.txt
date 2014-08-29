@@ -1,4 +1,4 @@
-4.0.4 - 2014-08-??
+4.1.0 - 2014-08-??
 
 	General:
 		Added previous and next buttons to web interface
