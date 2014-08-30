@@ -765,6 +765,14 @@ public class FFMpegVideo extends Player {
 		// after video input is specified and before output streams are mapped.
 		cmdList.addAll(getVideoFilterOptions(dlna, media, params));
 
+		// Decide whether to defer to MEncoder for subtitles
+		if (configuration.isFFmpegDeferToMEncoderForSubtitles() && params.sid != null) {
+			LOGGER.trace("Switching from FFmpeg to MEncoder to transcode subtitles.");
+			MEncoderVideo mv = new MEncoderVideo();
+
+			return mv.launchTranscode(dlna, media, params);
+		}
+
 		// Decide whether to defer to tsMuxeR or continue to use FFmpeg
 		boolean deferToTsmuxer = true;
 		String prependTraceReason = "Not muxing the video stream with tsMuxeR via FFmpeg because ";
@@ -1075,6 +1083,7 @@ public class FFMpegVideo extends Player {
 	private JCheckBox multithreading;
 	private JCheckBox videoRemuxTsMuxer;
 	private JCheckBox fc;
+	private JCheckBox deferToMEncoderForSubtitles;
 
 	@Override
 	public JComponent config() {
@@ -1084,7 +1093,7 @@ public class FFMpegVideo extends Player {
 	protected JComponent config(String languageLabel) {
 		FormLayout layout = new FormLayout(
 			"left:pref, 0:grow",
-			"p, 3dlu, p, 3dlu, p, 3dlu, p"
+			"p, 3dlu, p, 3dlu, p, 3dlu, p, 3dlu, p"
 		);
 		PanelBuilder builder = new PanelBuilder(layout);
 		builder.border(Borders.EMPTY);
@@ -1126,6 +1135,17 @@ public class FFMpegVideo extends Player {
 			}
 		});
 		builder.add(fc, cc.xy(2, 7));
+
+		deferToMEncoderForSubtitles = new JCheckBox(Messages.getString("FFmpeg.1"), configuration.isFFmpegDeferToMEncoderForSubtitles());
+		deferToMEncoderForSubtitles.setContentAreaFilled(false);
+		deferToMEncoderForSubtitles.setToolTipText(Messages.getString("FFmpeg.2"));
+		deferToMEncoderForSubtitles.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setFFmpegDeferToMEncoderForSubtitles(e.getStateChange() == ItemEvent.SELECTED);
+			}
+		});
+		builder.add(deferToMEncoderForSubtitles, cc.xy(2, 9));
 
 		return builder.getPanel();
 	}

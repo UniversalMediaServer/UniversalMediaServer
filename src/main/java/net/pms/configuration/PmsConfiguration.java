@@ -112,6 +112,7 @@ public class PmsConfiguration {
 	private static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
 	private static final String KEY_FFMPEG_FONTCONFIG = "ffmpeg_fontconfig";
 	private static final String KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE = "ffmpeg_mux_tsmuxer_compatible";
+	private static final String KEY_FFMPEG_MENCODER_SUBTITLES = "ffmpeg_mencoder_subtitles";
 	private static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
 	private static final String KEY_FOLDERS = "folders";
 	private static final String KEY_FOLDERS_IGNORED = "folders_ignored";
@@ -2339,6 +2340,26 @@ public class PmsConfiguration {
 
 	public boolean isFFmpegMuxWithTsMuxerWhenCompatible() {
 		return getBoolean(KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE, true);
+	}
+
+	/**
+	 * Whether FFmpegVideo should defer to MEncoderVideo when there are
+	 * subtitles that need to be transcoded.
+	 *
+	 * @param value
+	 */
+	public void setFFmpegDeferToMEncoderForSubtitles(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_MENCODER_SUBTITLES, value);
+	}
+
+	/**
+	 * Whether FFmpegVideo should defer to MEncoderVideo when there are
+	 * subtitles that need to be transcoded.
+	 *
+	 * @return
+	 */
+	public boolean isFFmpegDeferToMEncoderForSubtitles() {
+		return getBoolean(KEY_FFMPEG_MENCODER_SUBTITLES, true);
 	}
 
 	public void setFFmpegFontConfig(boolean value) {
