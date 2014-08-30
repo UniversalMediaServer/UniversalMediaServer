@@ -210,17 +210,19 @@ public class FFMpegVideo extends Player {
 					subsFilename = s.toString();
 					subsFilename = subsFilename.replace(",", "\\,");
 					subsFilter.append("subtitles=").append(subsFilename);
-					// set the default resolution made by FFmpeg for external subtitles
+
+					// Set the resolution for subtitles to use
 					int subtitlesWidth = scaleWidth; 
 					int subtitlesHeight = scaleHeight;
 					if (params.sid.isExternal() && params.sid.getType() != SubtitleType.ASS || configuration.isFFmpegFontConfig()) {
-						 // check the resolution only for SSA/ASS subs otherwise the subs resolution is set to default 
+						// Let ASS/SSA subtitles specify their own resolution
 						if (params.sid.getType() == SubtitleType.ASS) {
 							setSubtitlesResolution(originalSubsFilename, subtitlesWidth, subtitlesHeight);
 						}
-						
 						subsFilter.append(":").append(subtitlesWidth).append("x").append(subtitlesHeight);
-						if (!params.sid.isExternalFileUtf8()) { // Set the input subtitles character encoding if not UTF-8
+
+						// Set the input subtitles character encoding if not UTF-8
+						if (!params.sid.isExternalFileUtf8()) {
 							String encoding = isNotBlank(configuration.getSubtitlesCodepage()) ?
 									configuration.getSubtitlesCodepage() : params.sid.getExternalFileCharacterSet() != null ?
 									params.sid.getExternalFileCharacterSet() : null;
