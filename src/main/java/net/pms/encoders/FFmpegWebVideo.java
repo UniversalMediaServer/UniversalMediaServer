@@ -252,7 +252,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		// give the renderer the final say on the command
 		boolean override = false;
 		if (renderer instanceof RendererConfiguration.OutputOverride) {
-			override = ((RendererConfiguration.OutputOverride)renderer).getOutputOptions(dlna, this, cmdList);
+			override = ((RendererConfiguration.OutputOverride)renderer).getOutputOptions(cmdList, dlna, this, params);
 		}
 
 		if (! override) {

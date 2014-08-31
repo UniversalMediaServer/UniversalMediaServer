@@ -137,7 +137,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	@Override
-	public boolean getOutputOptions(DLNAResource dlna, Player player, List<String> cmdList) {
+	public boolean getOutputOptions(List<String> cmdList, DLNAResource dlna, Player player, OutputParams params) {
 		if (player instanceof FFMpegVideo) {
 			if (dlna.getFormat().isVideo()) {
 				DLNAMediaInfo media = dlna.getMedia();
@@ -159,9 +159,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 						// nothing here yet
 					}
 				}
-				OutputParams p = new OutputParams(pmsConfiguration);
-				p.mediaRenderer = this;
-//				/cmdList.addAll(((FFMpegVideo) player).getVideoBitrateOptions(dlna, media, p));
+//				cmdList.addAll(((FFMpegVideo) player).getVideoBitrateOptions(dlna, media, params));
 			} else {
 				// nothing here yet
 			}

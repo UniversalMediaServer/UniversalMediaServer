@@ -30,6 +30,7 @@ import net.pms.dlna.LibMediaInfoParser;
 import net.pms.dlna.RootFolder;
 import net.pms.encoders.Player;
 import net.pms.formats.Format;
+import net.pms.io.OutputParams;
 import net.pms.network.HTTPResource;
 import net.pms.network.SpeedStats;
 import net.pms.network.UPNPHelper;
@@ -73,13 +74,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		 * Override a player's default output formatting.
 		 * To be invoked by the player after input and filter options are complete.
 		 *
+		 * @param cmdList the command so far
 		 * @param dlna the media item
 		 * @param player the player
-		 * @param cmdList the command so far
+		 * @param params the output parameters
 		 *
 		 * @return whether the options have been finalized
 		 */
-		public boolean getOutputOptions(DLNAResource dlna, Player player, List<String> cmdList);
+		public boolean getOutputOptions(List<String> cmdList, DLNAResource dlna, Player player, OutputParams params);
 	}
 
 	// Holds MIME type aliases
