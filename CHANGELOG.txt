@@ -1,3 +1,30 @@
+4.1.0 - 2014-09-01
+
+	General:
+		Added previous and next buttons to web interface
+		Added the ability to prioritize renderer loading order
+		Windows uninstaller no longer deletes custom renderer configs
+		Windows uninstaller no longer leaves behind unused files
+		Windows automatic updater downloads the correct build for the user's Java version
+		FFmpeg defers to MEncoder for transcoding subtitles by default
+		Fixed subtitles stretching bug
+		Fixed startup crash on non-Windows operating systems
+		Fixed subtitles not being transcoded when the renderer supported streaming the file
+		Fixed automatic wireless quality optimizations not being applied
+		Improved logging and log packing
+		Speed improvements
+	Renderers:
+		Added support for Xbox One via DLNA
+		Improved support for Panasonic VT60 TVs
+	Languages:
+		Updated Spanish translation (thanks, AlfredoRamos!)
+	External Components:
+		Updated Java Runtime Environment automatic downloader for Windows to 8u20, which:
+			Improves security
+		Updated FFmpeg for Windows and OS X to builds from 2014-08-28, which:
+			Improves support for many containers and codecs
+			Fixes bugs
+
 4.0.3 - 2014-08-12
 
 	General:
