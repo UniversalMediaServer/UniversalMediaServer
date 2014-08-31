@@ -25,11 +25,13 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.StringTokenizer;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.external.StartStopListenerDelegate;
 import static net.pms.util.StringUtil.convertStringToTime;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +59,6 @@ public class RequestHandler implements Runnable {
 		"User-Agent"
 	};
 
-
 	public RequestHandler(Socket socket) throws IOException {
 		this.socket = socket;
 		this.output = socket.getOutputStream();
@@ -71,7 +72,6 @@ public class RequestHandler implements Runnable {
 
 		try {
 			int receivedContentLength = -1;
-			String headerLine = br.readLine();
 			String userAgentString = null;
 			StringBuilder unknownHeaders = new StringBuilder();
 			String separator = "";
@@ -88,50 +88,47 @@ public class RequestHandler implements Runnable {
 			LOGGER.trace("Opened request handler on socket " + socket);
 			PMS.get().getRegistry().disableGoToSleep();
 
-			while (headerLine != null && headerLine.length() > 0) {
+			// The handler makes a couple of attempts to recognize a renderer from its requests.
+			// IP address matches from previous requests are preferred, when that fails request
+			// header matches are attempted and if those fail as well we're stuck with the
+			// default renderer.
+
+			// Attempt 1: try to recognize the renderer by its socket address from previous requests
+			renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
+			ArrayList<String> headerLines = new ArrayList<String>();
+			RendererConfiguration.SortedHeaderMap sortedHeaders = renderer == null ? new RendererConfiguration.SortedHeaderMap() : null;
+
+			// Gather all the headers
+			String line = br.readLine();
+			while (line != null && line.length() > 0) {
+				headerLines.add(line);
+				if (renderer == null) {
+					sortedHeaders.put(line);
+				}
+				line = br.readLine();
+			}
+
+			if (renderer == null) {
+				// Attempt 2: try to recognize the renderer by matching headers
+				renderer = RendererConfiguration.getRendererConfigurationByHeaders(sortedHeaders);
+			}
+
+			if (renderer != null) {
+				renderer.associateIP(ia);
+				PMS.get().setRendererFound(renderer);
+			}
+
+			for (String headerLine : headerLines) {
 				LOGGER.trace("Received on socket: " + headerLine);
 
 				// The request object is created inside the while loop.
-				if (request != null && request.getMediaRenderer() == null) {
-					// The handler makes a couple of attempts to recognize a renderer from its requests.
-					// IP address matches from previous requests are preferred, when that fails request
-					// header matches are attempted and if those fail as well we're stuck with the
-					// default renderer.
-
-					// Attempt 1: try to recognize the renderer by its socket address from previous requests
-					renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
-
-					if (renderer != null) {
-						PMS.get().setRendererFound(renderer);
-						request.setMediaRenderer(renderer);
-						LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on address " + ia);
-					}
+				if (request != null && request.getMediaRenderer() == null && renderer != null) {
+					request.setMediaRenderer(renderer);
 				}
-
-				if (renderer == null && headerLine.toUpperCase().startsWith("USER-AGENT") && request != null) {
+				if (headerLine.toUpperCase().startsWith("USER-AGENT")) {
 					userAgentString = headerLine.substring(headerLine.indexOf(':') + 1).trim();
-
-					// Attempt 2: try to recognize the renderer by matching the "User-Agent" header
-					renderer = RendererConfiguration.getRendererConfigurationByUA(userAgentString);
-
-					if (renderer != null) {
-						PMS.get().setRendererFound(renderer);
-						request.setMediaRenderer(renderer);
-						renderer.associateIP(ia);	// Associate IP address for later requests
-						LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLine + "\"");
-					}
 				}
-				if (renderer == null && request != null) {
-					// Attempt 3: try to recognize the renderer by matching an additional header
-					renderer = RendererConfiguration.getRendererConfigurationByUAAHH(headerLine);
 
-					if (renderer != null) {
-						PMS.get().setRendererFound(renderer);
-						request.setMediaRenderer(renderer);
-						renderer.associateIP(ia);	// Associate IP address for later requests
-						LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLine + "\"");
-					}
-				}
 				try {
 					StringTokenizer s = new StringTokenizer(headerLine);
 					String temp = s.nextToken();
@@ -186,10 +183,19 @@ public class RequestHandler implements Runnable {
 						boolean isKnown = false;
 
 						// Try to match possible known headers.
+						String lowerCaseHeaderLine = headerLine.toLowerCase();
 						for (String knownHeaderString : KNOWN_HEADERS) {
-							if (headerLine.toLowerCase().startsWith(knownHeaderString.toLowerCase())) {
+							if (lowerCaseHeaderLine.startsWith(knownHeaderString.toLowerCase())) {
 								isKnown = true;
 								break;
+							}
+						}
+
+						// It may be unusual but already known
+						if (renderer != null) {
+							String additionalHeader = renderer.getUserAgentAdditionalHttpHeader();
+							if (StringUtils.isNotBlank(additionalHeader) && lowerCaseHeaderLine.startsWith(additionalHeader)) {
+								isKnown = true;
 							}
 						}
 
@@ -202,8 +208,6 @@ public class RequestHandler implements Runnable {
 				} catch (IllegalArgumentException e) {
 					LOGGER.error("Error in parsing HTTP headers", e);
 				}
-
-				headerLine = br.readLine();
 			}
 
 			if (request != null) {

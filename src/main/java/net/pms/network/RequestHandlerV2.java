@@ -31,6 +31,7 @@ import java.util.regex.Pattern;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.external.StartStopListenerDelegate;
+import org.apache.commons.lang3.StringUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.*;
@@ -102,6 +103,8 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			request.setHttp10(true);
 		}
 
+		HttpHeaders headers = nettyRequest.headers();
+
 		// The handler makes a couple of attempts to recognize a renderer from its requests.
 		// IP address matches from previous requests are preferred, when that fails request
 		// header matches are attempted and if those fail as well we're stuck with the
@@ -110,43 +113,26 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 		// Attempt 1: try to recognize the renderer by its socket address from previous requests
 		renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
 
+		if (renderer == null) {
+			// Attempt 2: try to recognize the renderer by matching headers
+			renderer = RendererConfiguration.getRendererConfigurationByHeaders(headers.entries());
+		}
+
 		if (renderer != null) {
+			renderer.associateIP(ia);
 			PMS.get().setRendererFound(renderer);
 			request.setMediaRenderer(renderer);
-			LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on address " + ia);
 		}
-		
-		Set<String> headerNames = nettyRequest.headers().names();
+
+		Set<String> headerNames = headers.names();
 		Iterator<String> iterator = headerNames.iterator();
-		while(iterator.hasNext()) {
+		while (iterator.hasNext()) {
 			String name = iterator.next();
-			String headerLine = name + ": " + nettyRequest.headers().get(name);
+			String headerLine = name + ": " + headers.get(name);
 			LOGGER.trace("Received on socket: " + headerLine);
 
-			if (renderer == null && headerLine.toUpperCase().startsWith("USER-AGENT")) {
+			if (headerLine.toUpperCase().startsWith("USER-AGENT")) {
 				userAgentString = headerLine.substring(headerLine.indexOf(':') + 1).trim();
-
-				// Attempt 2: try to recognize the renderer by matching the "User-Agent" header
-				renderer = RendererConfiguration.getRendererConfigurationByUA(userAgentString);
-
-				if (renderer != null) {
-					request.setMediaRenderer(renderer);
-					renderer.associateIP(ia);	// Associate IP address for later requests
-					PMS.get().setRendererFound(renderer);
-					LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLine + "\"");
-				}
-			}
-
-			if (renderer == null) {
-				// Attempt 3: try to recognize the renderer by matching an additional header
-				renderer = RendererConfiguration.getRendererConfigurationByUAAHH(headerLine);
-
-				if (renderer != null) {
-					request.setMediaRenderer(renderer);
-					renderer.associateIP(ia);	// Associate IP address for later requests
-					PMS.get().setRendererFound(renderer);
-					LOGGER.trace("Matched media renderer \"" + renderer.getRendererName() + "\" based on header \"" + headerLine + "\"");
-				}
 			}
 
 			try {
@@ -185,9 +171,10 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 							request.setTimeRangeEndString(end);
 						}
 					} else {
-						 // If we made it to here, none of the previous header checks matched.
-						 // Unknown headers make interesting logging info when we cannot recognize
-						 // the media renderer, so keep track of the truly unknown ones.
+						/** If we made it to here, none of the previous header checks matched.
+						 * Unknown headers make interesting logging info when we cannot recognize
+						 * the media renderer, so keep track of the truly unknown ones.
+						 */
 						boolean isKnown = false;
 
 						// Try to match known headers.
@@ -196,6 +183,14 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 							if (lowerCaseHeaderLine.startsWith(knownHeaderString)) {
 								isKnown = true;
 								break;
+							}
+						}
+
+						// It may be unusual but already known
+						if (renderer != null) {
+							String additionalHeader = renderer.getUserAgentAdditionalHttpHeader();
+							if (StringUtils.isNotBlank(additionalHeader) && lowerCaseHeaderLine.startsWith(additionalHeader)) {
+								isKnown = true;
 							}
 						}
 
@@ -281,7 +276,7 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 				response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK);
 			}
 		}
-		
+
 		StartStopListenerDelegate startStopListenerDelegate = new StartStopListenerDelegate(ia.getHostAddress());
 
 		try {

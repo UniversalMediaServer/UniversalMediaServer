@@ -25,26 +25,11 @@ public class RemoteBrowseHandler implements HttpHandler {
 		this.parent = parent;
 	}
 
-	private String getSearchStr(String query) {
-		for (String p : query.split("&")) {
-			String[] pair = p.split("=");
-			if (pair[0].equalsIgnoreCase("str")) {
-				if (pair.length > 1 && StringUtils.isNotEmpty(pair[1])) {
-					return pair[1];
-				}
-			}
-		}
-		return null;
-	}
-
 	private String mkBrowsePage(String id, HttpExchange t) throws IOException {
 		String user = RemoteUtil.userName(t);
 		RootFolder root = parent.getRoot(user, true, t);
-		String vars = t.getRequestURI().getQuery();
-		String search = null;
-		if (StringUtils.isNotEmpty(vars)) {
-			search = getSearchStr(vars);
-		}
+		String search = RemoteUtil.getQueryVars(t.getRequestURI().getQuery(), "str");
+
 		List<DLNAResource> res = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), search);
 		if (StringUtils.isNotEmpty(search)) {
 			UMSUtils.postSearch(res, search);

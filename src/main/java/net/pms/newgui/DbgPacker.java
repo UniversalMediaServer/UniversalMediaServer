@@ -29,12 +29,10 @@ import org.slf4j.LoggerFactory;
 public class DbgPacker implements ActionListener {
 	private static final Logger LOGGER = LoggerFactory.getLogger(TracesTab.class);
 
-	private boolean init;
 	private LinkedHashMap<File, JCheckBox> items;
 	private String debug_log, dbg_zip;
 
 	public DbgPacker() {
-		init = true;
 		items = new LinkedHashMap<File, JCheckBox>();
 		debug_log = LoggingConfigFileLoader.getLogFilePaths().get("debug.log");
 
@@ -45,10 +43,7 @@ public class DbgPacker implements ActionListener {
 	}
 
 	public JComponent config() {
-		if (init) {
-			poll();
-			init = false;
-		}
+		poll();
 		JPanel top = new JPanel(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.BOTH;
@@ -254,7 +249,6 @@ public class DbgPacker implements ActionListener {
 	private void reload(JComponent c) {
 		// Rebuild and restart
 		LOGGER.debug("reloading.");
-		init = true;
 		((Window) c.getTopLevelAncestor()).dispose();
 		JOptionPane.showOptionDialog(
 			(JFrame) (SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame())),
