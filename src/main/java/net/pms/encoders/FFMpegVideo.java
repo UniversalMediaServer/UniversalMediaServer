@@ -1130,11 +1130,8 @@ public class FFMpegVideo extends Player {
 		deferToMEncoderForSubtitles = new JCheckBox(Messages.getString("FFmpeg.1"), configuration.isFFmpegDeferToMEncoderForSubtitles());
 		deferToMEncoderForSubtitles.setContentAreaFilled(false);
 		deferToMEncoderForSubtitles.setToolTipText(Messages.getString("FFmpeg.2"));
-		deferToMEncoderForSubtitles.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setFFmpegDeferToMEncoderForSubtitles(e.getStateChange() == ItemEvent.SELECTED);
-			}
+		deferToMEncoderForSubtitles.addItemListener((ItemEvent e) -> {
+			configuration.setFFmpegDeferToMEncoderForSubtitles(e.getStateChange() == ItemEvent.SELECTED);
 		});
 		builder.add(deferToMEncoderForSubtitles, cc.xy(2, 9));
 

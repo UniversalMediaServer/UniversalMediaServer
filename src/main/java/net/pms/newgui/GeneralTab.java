@@ -168,11 +168,8 @@ public class GeneralTab {
 		if (Platform.isWindows()) {
 			autoStart = new JCheckBox(Messages.getString("NetworkTab.57"), configuration.isAutoStart());
 			autoStart.setContentAreaFilled(false);
-			autoStart.addItemListener(new ItemListener() {
-				@Override
-				public void itemStateChanged(ItemEvent e) {
-					configuration.setAutoStart((e.getStateChange() == ItemEvent.SELECTED));
-				}
+			autoStart.addItemListener((ItemEvent e) -> {
+				configuration.setAutoStart((e.getStateChange() == ItemEvent.SELECTED));
 			});
 			builder.add(autoStart, FormLayoutUtil.flip(cc.xyw(3, ypos, 7), colSpec, orientation));
 		}

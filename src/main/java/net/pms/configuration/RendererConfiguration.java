@@ -1404,12 +1404,7 @@ public class RendererConfiguration {
 	/**
 	 * A case-insensitive string comparator
 	 */
-	public static final Comparator<String> CaseInsensitiveComparator = new Comparator<String>() {
-		@Override
-		public int compare(String s1, String s2) {
-			return s1.compareToIgnoreCase(s2);
-		}
-	};
+	public static final Comparator<String> CaseInsensitiveComparator = (String s1, String s2) -> s1.compareToIgnoreCase(s2);
 
 	/**
 	 * A case-insensitive key-sorted map of headers that can join its values
@@ -1487,15 +1482,12 @@ public class RendererConfiguration {
 	/**
 	 * A loading priority comparator
 	 */
-	public static final Comparator<RendererConfiguration> rendererLoadingPriorityComparator = new Comparator<RendererConfiguration>() {
-		@Override
-		public int compare(RendererConfiguration r1, RendererConfiguration r2) {
-			if (r1 == null || r2 == null) {
-				return (r1 == null && r2 == null) ? 0 : r1 == null ? 1 : r2 == null ? -1 : 0;
-			}
-			int p1 = r1.getLoadingPriority();
-			int p2 = r2.getLoadingPriority();
-			return p1 > p2 ? -1 : p1 < p2 ? 1 : r1.getRendererName().compareToIgnoreCase(r2.getRendererName());
+	public static final Comparator<RendererConfiguration> rendererLoadingPriorityComparator = (RendererConfiguration r1, RendererConfiguration r2) -> {
+		if (r1 == null || r2 == null) {
+			return (r1 == null && r2 == null) ? 0 : r1 == null ? 1 : r2 == null ? -1 : 0;
 		}
+		int p1 = r1.getLoadingPriority();
+		int p2 = r2.getLoadingPriority();
+		return p1 > p2 ? -1 : p1 < p2 ? 1 : r1.getRendererName().compareToIgnoreCase(r2.getRendererName());
 	};
 }
