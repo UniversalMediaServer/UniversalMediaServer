@@ -162,6 +162,21 @@ public class RemoteUtil {
 		return null;
 	}
 
+	public static String getCookie(String name, HttpExchange t) {
+		String cstr = t.getRequestHeaders().getFirst("Cookie");
+		if (StringUtils.isEmpty(cstr)) {
+			return null;
+		}
+		name += "=";
+		String[] tmp = cstr.split(";");
+		for (String str: tmp) {
+			if (str.trim().startsWith(name)) {
+				return StringUtils.substringAfter(str, name);
+			}
+		}
+		return null;
+	}
+
 	private static final int WIDTH = 0;
 	private static final int HEIGHT = 1;
 

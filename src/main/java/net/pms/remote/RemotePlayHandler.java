@@ -64,13 +64,14 @@ public class RemotePlayHandler implements HttpHandler {
 			LOGGER.debug("root not found");
 			throw new IOException("Unknown root");
 		}
-		//List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, root.getDefaultRenderer());
-		DLNAResource r = root.getDLNAResource(id, root.getDefaultRenderer());
+		WebRender renderer = (WebRender)root.getDefaultRenderer();
+		renderer.setBrowserInfo(RemoteUtil.getCookie("UMSINFO", t), t.getRequestHeaders().getFirst("User-agent"));
+		//List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, renderer);
+		DLNAResource r = root.getDLNAResource(id, renderer);
 		if (r == null) {
 			LOGGER.debug("Bad id in web if "+id);
 			throw new IOException("Bad Id");
 		}
-
 		String auto = " autoplay>";
 		String query = t.getRequestURI().getQuery();
 		boolean forceFlash = StringUtils.isNotEmpty(RemoteUtil.getQueryVars(query, "flash"));
@@ -164,6 +165,7 @@ public class RemotePlayHandler implements HttpHandler {
 					sb.append("<script src=\"/files/flowplayer.min.js\"></script>").append(CRLF);
 					sb.append("<link rel=\"stylesheet\" href=\"/files/functional.css\">").append(CRLF);
 				}
+				sb.append(WebRender.umsInfoScript).append(CRLF);
 			sb.append("</head>").append(CRLF);
 			sb.append("<body id=\"ContentPage\">").append(CRLF);
 				sb.append("<div id=\"Container\">").append(CRLF);
