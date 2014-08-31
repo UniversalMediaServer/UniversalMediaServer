@@ -179,6 +179,17 @@ public class AutoUpdater extends Observable implements UriRetrieverCallback {
 	private void downloadUpdate() throws UpdateException {
 		String downloadUrl = serverProperties.getDownloadUrl();
 
+		/**
+		 * Modify the URL to match the Java version.
+		 * We keep "Java7" hardcoded to maintain compatibility with
+		 * older versions of UMS.
+		 */
+		if (System.getProperty("java.version").startsWith("1.8")) {
+			downloadUrl = downloadUrl.replace("Java7", "Java8");
+		} else if (System.getProperty("java.version").startsWith("1.6")) {
+			downloadUrl = downloadUrl.replace("Java7", "Java6");
+		}
+
 		try {
 			byte[] download = uriRetriever.getWithCallback(downloadUrl, this);
 			writeToDisk(download);
