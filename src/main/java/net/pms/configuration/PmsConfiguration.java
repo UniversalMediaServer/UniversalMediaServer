@@ -114,6 +114,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_FFMPEG_AVISYNTH_INTERFRAME_GPU = "ffmpeg_avisynth_interframegpu";
 	protected static final String KEY_FFMPEG_FONTCONFIG = "ffmpeg_fontconfig";
 	protected static final String KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE = "ffmpeg_mux_tsmuxer_compatible";
+	protected static final String KEY_FFMPEG_MENCODER_SUBTITLES = "ffmpeg_mencoder_subtitles";
 	protected static final String KEY_FIX_25FPS_AV_MISMATCH = "fix_25fps_av_mismatch";
 	protected static final String KEY_FOLDERS = "folders";
 	protected static final String KEY_FOLDERS_IGNORED = "folders_ignored";
@@ -2314,6 +2315,26 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getBoolean(KEY_FFMPEG_MUX_TSMUXER_COMPATIBLE, true);
 	}
 
+	/**
+	 * Whether FFmpegVideo should defer to MEncoderVideo when there are
+	 * subtitles that need to be transcoded.
+	 *
+	 * @param value
+	 */
+	public void setFFmpegDeferToMEncoderForSubtitles(boolean value) {
+		configuration.setProperty(KEY_FFMPEG_MENCODER_SUBTITLES, value);
+	}
+
+	/**
+	 * Whether FFmpegVideo should defer to MEncoderVideo when there are
+	 * subtitles that need to be transcoded.
+	 *
+	 * @return
+	 */
+	public boolean isFFmpegDeferToMEncoderForSubtitles() {
+		return getBoolean(KEY_FFMPEG_MENCODER_SUBTITLES, true);
+	}
+
 	public void setFFmpegFontConfig(boolean value) {
 		configuration.setProperty(KEY_FFMPEG_FONTCONFIG, value);
 	}
@@ -3188,6 +3209,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	public int getWebImgSlideDelay() {
 		return getInt(KEY_WEB_IMAGE_SLIDE, 0);
 	}
+
 	public String getWebSize() {
 		return getString(KEY_WEB_SIZE, "");
 	}
@@ -3215,5 +3237,4 @@ public class PmsConfiguration extends RendererConfiguration {
 	public String getBumpAllowedIps() {
 		return getString(KEY_BUMP_IPS, "");
 	}
-
 }

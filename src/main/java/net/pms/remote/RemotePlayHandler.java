@@ -12,12 +12,13 @@ import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.WebRender;
+import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.Player;
-import net.pms.formats.v2.SubtitleUtils;
+import net.pms.formats.v2.SubtitleType;
 import net.pms.io.OutputParams;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -46,7 +47,7 @@ public class RemotePlayHandler implements HttpHandler {
 		while ((nxtPos < list.size()) && (nxtPos >= 0)) {
 			// if we're not last/first in list just pick next/prev from child list
 			DLNAResource n = list.get(nxtPos);
-			if(!n.isFolder()) {
+			if (!n.isFolder()) {
 				return n;
 			}
 			nxtPos += inc;
@@ -121,7 +122,7 @@ public class RemotePlayHandler implements HttpHandler {
 			// special page to return
 			return "<html><head><script>window.refresh=true;history.back()</script></head></html>";
 		}
-		if(r.getFormat().isImage()) {
+		if (r.getFormat().isImage()) {
 			flowplayer = false;
 			coverImage = "<img src=\"/raw/" + rawId + "\" alt=\"\"><br>";
 		}
@@ -134,7 +135,7 @@ public class RemotePlayHandler implements HttpHandler {
 		}
 		if (r.getFormat().isVideo()) {
 			mediaType = "video";
-			if(mime.equals(FormatConfiguration.MIMETYPE_AUTO)) {
+			if (mime.equals(FormatConfiguration.MIMETYPE_AUTO)) {
 				if (r.getMedia() != null && r.getMedia().getMimeType() != null) {
 					mime = r.getMedia().getMimeType();
 				}
@@ -175,7 +176,7 @@ public class RemotePlayHandler implements HttpHandler {
 					sb.append("<div id=\"VideoContainer\">").append(CRLF);
 					// for video this gives just an empty line
 					sb.append(coverImage).append(CRLF);
-					if(r.getFormat().isImage()) {
+					if (r.getFormat().isImage()) {
 						// do this like this to simplify the code
 						// skip all player crap since img tag works well
 						int delay = configuration.getWebImgSlideDelay() * 1000;
@@ -223,9 +224,8 @@ public class RemotePlayHandler implements HttpHandler {
 						Player.setAudioAndSubs(r.getName(), r.getMedia(), p);
 						if (p.sid !=null && p.sid.getType().isText()) {
 							try {
-								File subFile = FFMpegVideo.getSubtitles(r, r.getMedia(), p, configuration);
+								File subFile = FFMpegVideo.getSubtitles(r, r.getMedia(), p, configuration, SubtitleType.WEBVTT);
 								LOGGER.debug("subFile " + subFile);
-								subFile = SubtitleUtils.convertSubripToWebVTT(subFile);
 								if (subFile != null) {
 									sb.append("<track kind=\"subtitles\" src=\"/subs/").append(subFile.getAbsolutePath()).append("\" default>");
 								}
@@ -285,6 +285,11 @@ public class RemotePlayHandler implements HttpHandler {
 		endPage(sb);
 
 		return sb.toString();
+	}
+
+	private boolean transMp4(String mime, DLNAMediaInfo media) {
+		LOGGER.debug("mp4 profile " + media.getH264Profile());
+		return mime.equals("video/mp4") && (configuration.isWebMp4Trans() || media.getAvcAsInt() >= 40);
 	}
 
 	@Override

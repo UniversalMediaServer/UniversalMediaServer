@@ -46,8 +46,11 @@ import net.pms.io.OutputParams;
 import net.pms.io.ProcessWrapper;
 import net.pms.io.SizeLimitInputStream;
 import net.pms.network.HTTPResource;
-import net.pms.util.*;
-
+import net.pms.util.DLNAList;
+import net.pms.util.FileUtil;
+import net.pms.util.ImagesUtil;
+import net.pms.util.Iso639;
+import net.pms.util.MpegUtil;
 import static net.pms.util.StringUtil.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -651,14 +654,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							}
 
 							boolean hasEmbeddedSubs = false;
+							boolean hasAnySubs = child.media.getSubtitleTracksList().size() > 0;
+							boolean hasSubsToTranscode = false;
 
-							if (child.media != null) {
+							if (!configuration.isDisableSubtitles() && hasAnySubs) {
 								for (DLNAMediaSubtitle s : child.media.getSubtitleTracksList()) {
 									hasEmbeddedSubs = (hasEmbeddedSubs || s.isEmbedded());
 								}
 
 								if (!parserV2) {
-									if (!configuration.isDisableSubtitles() && child.isSubsFile() && defaultRenderer.isSubtitlesStreamingSupported()) {
+									if (child.isSubsFile() && defaultRenderer.isSubtitlesStreamingSupported()) {
 										OutputParams params = new OutputParams(configuration);
 										Player.setAudioAndSubs(child.getSystemName(), child.media, params); // set proper subtitles in accordance with user setting
 										if (defaultRenderer.isSubtitlesFormatSupported(params.sid)) {
@@ -668,14 +673,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 											LOGGER.trace("Did not set media_subtitle because the subtitle format is not supported by this renderer");
 										}
 									} else {
-										LOGGER.trace("Did not set media_subtitle because configuration.isDisableSubtitles is true, this is not a subtitle, or the renderer does not support streaming subtitles");
+										LOGGER.trace("Did not set media_subtitle because this file does not have external subtitles, or the renderer does not support streaming subtitles");
 									}
 								}
-							}
 
-							boolean hasSubsToTranscode = false;
-
-							if (!configuration.isDisableSubtitles()) {
 								if (child.isSubsFile()) {
 									if (child.media_subtitle == null) {
 										// Subtitles are not set for streaming
@@ -1630,6 +1631,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		PmsConfiguration configuration = PMS.getConfiguration(mediaRenderer);
 		StringBuilder sb = new StringBuilder();
 		if (
+			!isFolder() &&
 			!configuration.isDisableSubtitles() &&
 			media != null &&
 			media_subtitle != null &&
