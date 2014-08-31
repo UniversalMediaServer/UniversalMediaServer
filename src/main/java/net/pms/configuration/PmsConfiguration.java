@@ -247,7 +247,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_VLC_SAMPLE_RATE_OVERRIDE = "vlc_sample_rate_override";
 	protected static final String KEY_VLC_SAMPLE_RATE = "vlc_sample_rate";
 	protected static final String KEY_WEB_AUTHENTICATE = "web_authenticate";
-	protected static final String KEY_WEB_CHROME_TRICK = "web_chrome";
+	protected static final String KEY_WEB_CHROME_TRICK = "web_chrome_mkv_as_webm_spoof";
+	protected static final String KEY_WEB_FIREFOX_LINUX_MP4 = "web_firefox_linux_mp4";
 	protected static final String KEY_WEB_CONF_PATH = "web_conf";
 	protected static final String KEY_WEB_CONT_AUDIO = "web_continue_audio";
 	protected static final String KEY_WEB_CONT_IMAGE = "web_continue_image";
@@ -260,6 +261,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_WEB_LOOP_IMAGE = "web_loop_image";
 	protected static final String KEY_WEB_LOOP_VIDEO = "web_loop_video";
 	protected static final String KEY_WEB_MP4_TRANS = "web_mp4_trans";
+	protected static final String KEY_WEB_TRANSCODE = "web_transcode";
 	protected static final String KEY_WEB_SIZE = "web_size";
 	protected static final String KEY_WEB_SUBS_TRANS = "web_subtitles_transcoded";
 	protected static final String KEY_WEB_THREADS = "web_threads";
@@ -3230,11 +3232,19 @@ public class PmsConfiguration extends RendererConfiguration {
 		return getBoolean(KEY_WEB_CHROME_TRICK, false);
 	}
 
+	public boolean getWebFirefoxLinuxMp4() {
+		return getBoolean(KEY_WEB_FIREFOX_LINUX_MP4, false);
+	}
+
 	public boolean getWebSubs() {
 		return getBoolean(KEY_WEB_SUBS_TRANS, false);
 	}
 
 	public String getBumpAllowedIps() {
 		return getString(KEY_BUMP_IPS, "");
+	}
+
+	public String getWebTranscode() {
+		return getString(KEY_WEB_TRANSCODE, null);
 	}
 }

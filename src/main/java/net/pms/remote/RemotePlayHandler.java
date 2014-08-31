@@ -142,11 +142,8 @@ public class RemotePlayHandler implements HttpHandler {
 			}
 			if (!configuration.getWebFlash() && !forceFlash)  {
 				if(!RemoteUtil.directmime(mime) || RemoteUtil.transMp4(mime, r.getMedia()) || r.isResume()) {
-					mime = RemoteUtil.transMime();
 					WebRender render = (WebRender)r.getDefaultRenderer();
-					if (render != null && render.isChrome()) {
-						mime = RemoteUtil.MIME_WEBM;
-					}
+					mime = render != null ? render.getVideoMimeType() : RemoteUtil.transMime();
 					flowplayer = false;
 				}
 			}

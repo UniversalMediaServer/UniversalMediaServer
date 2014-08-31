@@ -22,6 +22,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	private String ip;
 	private int port;
 	private String ua;
+	private String defaultMime;
 	private static final PmsConfiguration pmsconfiguration = PMS.getConfiguration();
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebRender.class);
 	private static final Format[] supportedFormats ={
@@ -38,6 +39,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		port = 0;
 		ua = "";
 		fileless = true;
+		String userFmt = pmsconfiguration.getWebTranscode();
+		defaultMime = userFmt != null ? ("video/" + userFmt) : RemoteUtil.transMime();
 	}
 
 	@Override
@@ -132,8 +135,21 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		return false;
 	}
 
-	public boolean isChrome() {
+	public boolean isChromeTrick() {
 		return pmsconfiguration.getWebChrome() && (ua != null) && ua.contains("chrome");
+	}
+
+	public boolean isFirefoxLinuxMp4() {
+		return ua.contains("firefox") && ua.contains("linux") && pmsconfiguration.getWebFirefoxLinuxMp4();
+	}
+
+	public String getVideoMimeType() {
+		if (isChromeTrick()) {
+			return RemoteUtil.MIME_WEBM;
+		} else if (isFirefoxLinuxMp4()) {
+			return RemoteUtil.MIME_MP4;
+		}
+		return defaultMime;
 	}
 
 	@Override
@@ -145,18 +161,17 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 				if (flash) {
 					fflashCmds(cmdList, media);
 				} else {
-					if(RemoteUtil.transMime().equals(RemoteUtil.MIME_OGG))  {
-						if (isChrome()) {
+					String mime = getVideoMimeType();
+					if (mime.equals(RemoteUtil.MIME_OGG)) {
+						ffoggCmd(cmdList);
+					} else if (mime.equals(RemoteUtil.MIME_MP4)) {
+						ffmp4Cmd(cmdList);
+					} else if (mime.equals(RemoteUtil.MIME_WEBM)) {
+						if (isChromeTrick()) {
 							chromeCmd(cmdList);
 						} else {
-							ffoggCmd(cmdList);
+							// nothing here yet
 						}
-					}
-					else if (RemoteUtil.transMime().equals(RemoteUtil.MIME_MP4)) {
-						ffmp4Cmd(cmdList);
-					}
-					else if (RemoteUtil.transMime().equals(RemoteUtil.MIME_WEBM)) {
-						// nothing here yet
 					}
 				}
 //				cmdList.addAll(((FFMpegVideo) player).getVideoBitrateOptions(dlna, media, params));
@@ -295,7 +310,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 
 
 	public static boolean supportedFormat(Format f) {
-	   	for(Format f1 : supportedFormats) {
+		for(Format f1 : supportedFormats) {
 			if(f.getIdentifier() == f1.getIdentifier()) {
 				return true;
 			}
