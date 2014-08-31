@@ -172,6 +172,19 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		return browser == FIREFOX && platform.contains("linux") && pmsconfiguration.getWebFirefoxLinuxMp4();
 	}
 
+	public boolean isScreenSizeConstrained() {
+		return (screenWidth != 0 && RemoteUtil.getWidth() > screenWidth) ||
+			(screenHeight != 0 && RemoteUtil.getHeight() > screenHeight);
+	}
+
+	public int getVideoWidth() {
+		return isScreenSizeConstrained() ? screenWidth : RemoteUtil.getWidth();
+	}
+
+	public int getVideoHeight() {
+		return isScreenSizeConstrained() ? screenHeight : RemoteUtil.getHeight();
+	}
+
 	public String getVideoMimeType() {
 		if (isChromeTrick()) {
 			return RemoteUtil.MIME_WEBM;
@@ -363,7 +376,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 
 	@Override
 	public String getFFmpegVideoFilterOverride() {
-		return "scale=" + RemoteUtil.getWidth() + ":" + RemoteUtil.getHeight();
+		return "scale=" + getVideoWidth() + ":" + getVideoHeight();
 	}
 
 	public boolean isTranscodeToMPEGTSH264AC3() {

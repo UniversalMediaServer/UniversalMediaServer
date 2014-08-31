@@ -205,8 +205,8 @@ public class RemotePlayHandler implements HttpHandler {
 						}
 						sb.append("<source src=\"/fmedia/").append(id1).append("\" type=\"video/flash\">");
 					} else {
-						sb.append(" id=\"player\" width=\"").append(RemoteUtil.getWidth()).append("\" height=\"");
-						sb.append(RemoteUtil.getHeight()).append("\" controls").append(auto).append(CRLF);
+						sb.append(" id=\"player\" width=\"").append(renderer.getVideoWidth()).append("\" height=\"");
+						sb.append(renderer.getVideoHeight()).append("\" controls").append(auto).append(CRLF);
 						sb.append("<source src=\"/media/").append(id1).append("\" type=\"").append(mime).append("\">");
 					}
 					sb.append(CRLF);
