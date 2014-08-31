@@ -61,6 +61,11 @@ public class PlayerControlHandler implements HttpHandler {
 	@Override
 	public void handle(HttpExchange x) throws IOException {
 
+		if (RemoteUtil.deny(x) && !RemoteUtil.bumpAllowed(configuration.getBumpAllowedIps(), x)) {
+			LOGGER.debug("Deny " + x);
+			throw new IOException("Denied");
+		}
+
 		String[] p = x.getRequestURI().getPath().split("/");
 		Map<String,String> q = parseQuery(x);
 		

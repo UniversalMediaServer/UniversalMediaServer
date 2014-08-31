@@ -96,6 +96,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_ASS_SCALE = "subtitles_ass_scale";
 	protected static final String KEY_ASS_SHADOW = "subtitles_ass_shadow";
 	protected static final String KEY_BUFFER_MAX = "buffer_max";
+	protected static final String KEY_BUMP_IPS = "allowed_bump_ips";
 	protected static final String KEY_CHAPTER_INTERVAL = "chapter_interval";
 	protected static final String KEY_CHAPTER_SUPPORT = "chapter_support";
 	protected static final String KEY_MENCODER_CODEC_SPECIFIC_SCRIPT = "mencoder_codec_specific_script";
@@ -3209,6 +3210,10 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public boolean getWebSubs() {
 		return getBoolean(KEY_WEB_SUBS_TRANS, false);
+	}
+
+	public String getBumpAllowedIps() {
+		return getString(KEY_BUMP_IPS, "");
 	}
 
 }

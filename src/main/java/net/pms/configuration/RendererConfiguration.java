@@ -298,6 +298,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getEnabledRenderersConfigurations();
 	}
 
+	public boolean nox264() {
+		return false;
+	}
+
 	/**
 	 * Returns the list of all renderer configurations.
 	 *

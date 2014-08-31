@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.util.List;
+
+import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
@@ -32,6 +34,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 		String search = RemoteUtil.getQueryVars(t.getRequestURI().getQuery(), "str");
 
 		List<DLNAResource> res = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), search);
+		boolean upnpAllowed = RemoteUtil.bumpAllowed(PMS.getConfiguration().getBumpAllowedIps(), t);
 		boolean upnpControl = RendererConfiguration.hasConnectedControlPlayers();
 		if (StringUtils.isNotEmpty(search)) {
 			UMSUtils.postSearch(res, search);
@@ -102,7 +105,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 									mediaHtml.append("\" title=\"").append(name).append("\" id=\"").append(idForWeb).append("\">");
 									mediaHtml.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">");
 									mediaHtml.append("<span>").append(name).append("</span>");
-								} else if (upnpControl) {
+								} else if (upnpControl && upnpAllowed) {
 									// Include it as a web-disabled item so it can be thrown via upnp
 									mediaHtml.append("<a class=\"webdisabled\" href=\"javascript:alert('This item not playable via browser but can be sent to other renderers.')\"");
 									mediaHtml.append("\" title=\"").append(name).append(" ** NOT PLAYABLE IN BROWSER - for other renderers only **\">");
@@ -110,13 +113,15 @@ public class RemoteBrowseHandler implements HttpHandler {
 									mediaHtml.append("<span>").append(name).append("</span>");
 								}
 								mediaHtml.append("</a>").append(CRLF);
-								if (upnpControl) {
-									mediaHtml.append("<a id=\"bumpicon\" href=\"javascript:bump.start('//")
-										.append(parent.getAddress()).append("','/play/").append(idForWeb).append("','")
-										.append(name.replace("'", "\\'")).append("')\" title=\"").append("Play on another renderer").append("\"></a>").append(CRLF);
-								} else {
-									mediaHtml.append("<a id=\"bumpicon\" class=\"icondisabled\" href=\"javascript:alert('").append("No upnp-controllable renderers suitable for receiving pushed media are available. Refresh this page if a new renderer may have recently connected.")
-										.append("')\" title=\"No other renderers available\"></a>").append(CRLF);
+								if (upnpAllowed) {
+									if (upnpControl) {
+										mediaHtml.append("<a id=\"bumpicon\" href=\"javascript:bump.start('//")
+											.append(parent.getAddress()).append("','/play/").append(idForWeb).append("','")
+											.append(name.replace("'", "\\'")).append("')\" title=\"").append("Play on another renderer").append("\"></a>").append(CRLF);
+									} else {
+										mediaHtml.append("<a id=\"bumpicon\" class=\"icondisabled\" href=\"javascript:alert('").append("No upnp-controllable renderers suitable for receiving pushed media are available. Refresh this page if a new renderer may have recently connected.")
+											.append("')\" title=\"No other renderers available\"></a>").append(CRLF);
+									}
 								}
 							mediaHtml.append("</li>").append(CRLF);
 

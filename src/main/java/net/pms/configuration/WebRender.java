@@ -145,23 +145,23 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 				if (flash) {
 					fflashCmds(cmdList, media);
 				} else {
-					if(RemoteUtil.MIME_TRANS.equals(RemoteUtil.MIME_OGG))  {
+					if(RemoteUtil.transMime().equals(RemoteUtil.MIME_OGG))  {
 						if (isChrome()) {
 							chromeCmd(cmdList);
 						} else {
 							ffoggCmd(cmdList);
 						}
 					}
-					else if (RemoteUtil.MIME_TRANS.equals(RemoteUtil.MIME_MP4)) {
+					else if (RemoteUtil.transMime().equals(RemoteUtil.MIME_MP4)) {
 						ffmp4Cmd(cmdList);
 					}
-					else if (RemoteUtil.MIME_TRANS.equals(RemoteUtil.MIME_WEBM)) {
+					else if (RemoteUtil.transMime().equals(RemoteUtil.MIME_WEBM)) {
 						// nothing here yet
 					}
 				}
 				OutputParams p = new OutputParams(pmsConfiguration);
 				p.mediaRenderer = this;
-//				cmdList.addAll(((FFMpegVideo) player).getVideoBitrateOptions(dlna, media, p));
+//				/cmdList.addAll(((FFMpegVideo) player).getVideoBitrateOptions(dlna, media, p));
 			} else {
 				// nothing here yet
 			}
@@ -223,22 +223,22 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		cmdList.add("libx264");
 		cmdList.add("-preset");
 		cmdList.add("ultrafast");
-//		cmdList.add("-tune");
-//		cmdList.add("zerolatency");
-//		cmdList.add("-profile:v");
-//		cmdList.add("high");
-//		cmdList.add("-level:v");
-//		cmdList.add("3.1");
+		/*cmdList.add("-tune");
+		cmdList.add("zerolatency");
+		cmdList.add("-profile:v");
+		cmdList.add("high");
+		cmdList.add("-level:v");
+		cmdList.add("3.1");*/
 		cmdList.add("-c:a");
 		cmdList.add("aac");
-//		cmdList.add("-ab");
-//		cmdList.add("16k");
+		cmdList.add("-ab");
+		cmdList.add("16k");
 //		cmdList.add("-ar");
 //		cmdList.add("44100");
 		cmdList.add("-strict");
 		cmdList.add("experimental");
-//		cmdList.add("-pix_fmt");
-//		cmdList.add("yuv420p");
+		/*cmdList.add("-pix_fmt");
+		cmdList.add("yuv420p");*/
 //		cmdList.add("-frag_duration");
 //		cmdList.add("300");
 //		cmdList.add("-frag_size");
@@ -315,5 +315,17 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	@Override
 	public String getFFmpegVideoFilterOverride() {
 		return "scale=" + RemoteUtil.getWidth() + ":" + RemoteUtil.getHeight();
+	}
+
+	public boolean isTranscodeToMPEGTSH264AC3() {
+		return true;
+	}
+
+	public boolean isTranscodeToMPEGTSH264AAC() {
+		return true;
+	}
+
+	public boolean nox264() {
+		return true;
 	}
 }

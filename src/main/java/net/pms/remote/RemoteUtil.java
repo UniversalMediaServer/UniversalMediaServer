@@ -6,6 +6,7 @@ import com.sun.net.httpserver.HttpPrincipal;
 import java.io.*;
 import java.util.List;
 import net.pms.PMS;
+import net.pms.configuration.IpFilter;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.Range;
 import net.pms.external.StartStopListenerDelegate;
@@ -204,4 +205,13 @@ public class RemoteUtil {
 		return mime.equals("video/mp4") && (PMS.getConfiguration().isWebMp4Trans() || media.getAvcAsInt() >= 40);
 	}
 
+	public static boolean bumpAllowed(String ips, HttpExchange t) {
+		IpFilter filter = new IpFilter();
+		filter.setRawFilter(ips);
+		return filter.allowed(t.getRemoteAddress().getAddress());
+	}
+
+	public static String transMime() {
+		return MIME_TRANS;
+	}
 }

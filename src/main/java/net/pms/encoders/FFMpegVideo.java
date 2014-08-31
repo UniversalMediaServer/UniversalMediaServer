@@ -524,8 +524,10 @@ public class FFMpegVideo extends Player {
 					x264CRF = "19";
 				}
 			}
-			videoBitrateOptions.add("-crf");
-			videoBitrateOptions.add(x264CRF);
+			if (isNotBlank(x264CRF) && !params.mediaRenderer.nox264()) {
+				videoBitrateOptions.add("-crf");
+				videoBitrateOptions.add(x264CRF);
+			}
 		}
 
 		return videoBitrateOptions;
