@@ -249,9 +249,9 @@ public class ExternalFactory {
 			}
 		}
 
-		ArrayList<RendererConfiguration> renders = RendererConfiguration.getEnabledRenderersConfigurations();
+		ArrayList<RendererConfiguration> renderers = RendererConfiguration.getEnabledRenderersConfigurations();
 
-		for (RendererConfiguration r : renders) {
+		for (RendererConfiguration r : renderers) {
 			RootFolder rf = r.getRootFolder();
 			rf.reset();
 		}

@@ -9,11 +9,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.StringTokenizer;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+import java.util.TreeSet;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
@@ -34,7 +38,7 @@ import org.slf4j.LoggerFactory;
 
 public class RendererConfiguration {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RendererConfiguration.class);
-	private static ArrayList<RendererConfiguration> enabledRendererConfs;
+	private static TreeSet<RendererConfiguration> enabledRendererConfs;
 	private static ArrayList<String> allRenderersNames = new ArrayList<String>();
 	private static PmsConfiguration pmsConfiguration;
 	private static RendererConfiguration defaultConf;
@@ -45,6 +49,7 @@ public class RendererConfiguration {
 	private final ConfigurationReader configurationReader;
 	private FormatConfiguration formatConfiguration;
 	private int rank;
+	private Matcher sortedHeaderMatcher;
 
 	// Holds MIME type aliases
 	private final Map<String, String> mimes;
@@ -116,6 +121,7 @@ public class RendererConfiguration {
 	private static final String MUX_LPCM_TO_MPEG = "MuxLPCMToMpeg";
 	private static final String MUX_NON_MOD4_RESOLUTION = "MuxNonMod4Resolution";
 	private static final String OVERRIDE_FFMPEG_VF = "OverrideFFmpegVideoFilter";
+	private static final String LOADING_PRIORITY = "LoadingPriority";
 	private static final String RENDERER_ICON = "RendererIcon";
 	private static final String RENDERER_NAME = "RendererName";
 	private static final String RESCALE_BY_RENDERER = "RescaleByRenderer";
@@ -157,7 +163,7 @@ public class RendererConfiguration {
 	 */
 	public static void loadRendererConfigurations(PmsConfiguration pmsConf) {
 		pmsConfiguration = pmsConf;
-		enabledRendererConfs = new ArrayList<RendererConfiguration>();
+		enabledRendererConfs = new TreeSet<>(rendererLoadingPriorityComparator);
 
 		try {
 			defaultConf = new RendererConfiguration();
@@ -182,7 +188,6 @@ public class RendererConfiguration {
 						String rendererName = r.getRendererName();
 						if (!ignoredRenderers.contains(rendererName)) {
 							enabledRendererConfs.add(r);
-							LOGGER.info("Loaded configuration for renderer: " + rendererName);
 						} else {
 							LOGGER.debug("Ignored " + rendererName + " configuration");
 						}
@@ -191,6 +196,11 @@ public class RendererConfiguration {
 					}
 				}
 			}
+		}
+
+		LOGGER.info("Enabled " + enabledRendererConfs.size() + " configurations, listed in order of loading priority:");
+		for (RendererConfiguration r : enabledRendererConfs) {
+			LOGGER.info(":   " + r);
 		}
 
 		if (enabledRendererConfs.size() > 0) {
@@ -265,7 +275,7 @@ public class RendererConfiguration {
 	 * @return The list of all configurations.
 	 */
 	public static ArrayList<RendererConfiguration> getEnabledRenderersConfigurations() {
-		return enabledRendererConfs;
+		return enabledRendererConfs != null ? new ArrayList(enabledRendererConfs) : null;
 	}
 
 	public static Collection<RendererConfiguration> getConnectedRenderersConfigurations() {
@@ -356,78 +366,36 @@ public class RendererConfiguration {
 	}
 
 	public static RendererConfiguration getRendererConfigurationBySocketAddress(InetAddress sa) {
-		return addressAssociation.get(sa);
-	}
-
-	/**
-	 * Tries to find a matching renderer configuration based on a request
-	 * header line with a User-Agent header. These matches are made using
-	 * the "UserAgentSearch" configuration option in a renderer.conf.
-	 * Returns the matched configuration or <code>null</code> if no match
-	 * could be found.
-	 *
-	 * @param userAgentString The request header line.
-	 * @return The matching renderer configuration or <code>null</code>.
-	 */
-	public static RendererConfiguration getRendererConfigurationByUA(String userAgentString) {
-		if (pmsConfiguration.isRendererForceDefault()) {
-			// Force default renderer
-			LOGGER.trace("Forcing renderer match to \"" + defaultConf.getRendererName() + "\"");
-			return manageRendererMatch(defaultConf);
-		} else {
-			// Try to find a match
-			for (RendererConfiguration r : enabledRendererConfs) {
-				if (r.matchUserAgent(userAgentString)) {
-					return manageRendererMatch(r);
-				}
-			}
+		RendererConfiguration r = addressAssociation.get(sa);
+		if (r != null) {
+			LOGGER.trace("Matched media renderer \"" + r.getRendererName() + "\" based on address " + sa);
 		}
-
-		return null;
-	}
-
-	private static RendererConfiguration manageRendererMatch(RendererConfiguration r) {
-		if (addressAssociation.values().contains(r)) {
-			// FIXME: This cannot ever ever happen because of how renderer matching
-			// is implemented in RequestHandler and RequestHandlerV2. The first header
-			// match will associate the IP address with the renderer and from then on
-			// all other requests from the same IP address will be recognized based on
-			// that association. Headers will be ignored and unfortunately they happen
-			// to be the only way to get here.
-			LOGGER.info("Another renderer like " + r.getRendererName() + " was found!");
-		}
-
 		return r;
 	}
 
 	/**
-	 * Tries to find a matching renderer configuration based on a request
-	 * header line with an additional, non-User-Agent header. These matches
-	 * are made based on the "UserAgentAdditionalHeader" and
-	 * "UserAgentAdditionalHeaderSearch" configuration options in a
-	 * renderer.conf. Returns the matched configuration or <code>null</code>
-	 * if no match could be found.
+	 * Tries to find a matching renderer configuration based on the given collection of
+	 * request headers
 	 *
-	 * @param header The request header line.
-	 * @return The matching renderer configuration or <code>null</code>.
+	 * @param headers The headers.
+	 * @return The matching renderer configuration or <code>null</code>
 	 */
-	public static RendererConfiguration getRendererConfigurationByUAAHH(String header) {
+	public static RendererConfiguration getRendererConfigurationByHeaders(Collection<Map.Entry<String, String>> headers) {
+		return getRendererConfigurationByHeaders(new SortedHeaderMap(headers));
+	}
+
+	public static RendererConfiguration getRendererConfigurationByHeaders(SortedHeaderMap sortedHeaders) {
 		if (pmsConfiguration.isRendererForceDefault()) {
 			// Force default renderer
 			LOGGER.trace("Forcing renderer match to \"" + defaultConf.getRendererName() + "\"");
-			return manageRendererMatch(defaultConf);
-		} else {
-			// Try to find a match
-			for (RendererConfiguration r : enabledRendererConfs) {
-				if (StringUtils.isNotBlank(r.getUserAgentAdditionalHttpHeader()) && header.startsWith(r.getUserAgentAdditionalHttpHeader())) {
-					String value = header.substring(header.indexOf(':', r.getUserAgentAdditionalHttpHeader().length()) + 1);
-					if (r.matchAdditionalUserAgent(value)) {
-						return manageRendererMatch(r);
-					}
-				}
+			return defaultConf;
+		}
+		for (RendererConfiguration r : enabledRendererConfs) {
+			if (r.match(sortedHeaders)) {
+				LOGGER.trace("Matched media renderer \"" + r.getRendererName() + "\" based on headers " + sortedHeaders);
+				return r;
 			}
 		}
-
 		return null;
 	}
 
@@ -531,7 +499,14 @@ public class RendererConfiguration {
 			configuration.load(f);
 		}
 
-		mimes = new HashMap<String, String>();
+		// Set up the header matcher
+		SortedHeaderMap searchMap = new SortedHeaderMap();
+		searchMap.put("User-Agent", getUserAgent());
+		searchMap.put(getUserAgentAdditionalHttpHeader(), getUserAgentAdditionalHttpHeaderSearch());
+		String re = searchMap.toRegex();
+		sortedHeaderMatcher = StringUtils.isNotBlank(re) ? Pattern.compile(re, Pattern.CASE_INSENSITIVE).matcher("") : null;
+
+		mimes = new HashMap<>();
 		String mimeTypes = getString(MIME_TYPES_CHANGES, "");
 
 		if (StringUtils.isNotBlank(mimeTypes)) {
@@ -584,11 +559,8 @@ public class RendererConfiguration {
 		DLNAPN = new HashMap<String, String>();
 		String DLNAPNchanges = getString(DLNA_PN_CHANGES, "");
 
-		if (DLNAPNchanges != null) {
-			LOGGER.trace("Config DLNAPNchanges: " + DLNAPNchanges);
-		}
-
 		if (StringUtils.isNotBlank(DLNAPNchanges)) {
+			LOGGER.trace("Config DLNAPNchanges: " + DLNAPNchanges);
 			StringTokenizer st = new StringTokenizer(DLNAPNchanges, "|");
 			while (st.hasMoreTokens()) {
 				String DLNAPN_change = st.nextToken().trim();
@@ -807,48 +779,6 @@ public class RendererConfiguration {
 		}
 
 		return matchedMimeType;
-	}
-
-	/**
-	 * Pattern match a user agent header string to the "UserAgentSearch"
-	 * expression for this renderer. Will return false when the pattern is
-	 * empty or when no match can be made.
-	 *
-	 * @param header The header containing the user agent.
-	 * @return True if the pattern matches.
-	 */
-	public boolean matchUserAgent(String header) {
-		String userAgent = getUserAgent();
-		Pattern userAgentPattern;
-
-		if (StringUtils.isNotBlank(userAgent)) {
-			userAgentPattern = Pattern.compile(userAgent, Pattern.CASE_INSENSITIVE);
-
-			return userAgentPattern.matcher(header).find();
-		} else {
-			return false;
-		}
-	}
-
-	/**
-	 * Pattern match a header string to the "UserAgentAdditionalHeaderSearch"
-	 * expression for this renderer. Will return false when the pattern is
-	 * empty or when no match can be made.
-	 *
-	 * @param header The additional header string.
-	 * @return True if the pattern matches.
-	 */
-	public boolean matchAdditionalUserAgent(String header) {
-		String userAgentAdditionalHeader = getUserAgentAdditionalHttpHeaderSearch();
-		Pattern userAgentAddtionalPattern;
-
-		if (StringUtils.isNotBlank(userAgentAdditionalHeader)) {
-			userAgentAddtionalPattern = Pattern.compile(userAgentAdditionalHeader, Pattern.CASE_INSENSITIVE);
-
-			return userAgentAddtionalPattern.matcher(header).find();
-		} else {
-			return false;
-		}
 	}
 
 	/**
@@ -1407,8 +1337,7 @@ public class RendererConfiguration {
 	 * Check if the given subtitle is supported by renderer for streaming.
 	 *
 	 * @param subtitle Subtitles for checking
-	 * @return True if subtitles format is supported by renderer for streaming, False if 
-	 * subtitles format is not supported or supported formats are not set in the renderer.conf
+	 * @return True if the renderer specifies support for the subtitles
 	 */
 	public boolean isSubtitlesFormatSupported(DLNAMediaSubtitle subtitle) {
 		if (subtitle == null) {
@@ -1464,4 +1393,102 @@ public class RendererConfiguration {
 		}
 		return max;
 	}
+
+	/**
+	 * A case-insensitive string comparator
+	 */
+	public static final Comparator<String> CaseInsensitiveComparator = new Comparator<String>() {
+		@Override
+		public int compare(String s1, String s2) {
+			return s1.compareToIgnoreCase(s2);
+		}
+	};
+
+	/**
+	 * A case-insensitive key-sorted map of headers that can join its values
+	 * into a combined string or regex.
+	 */
+	public static class SortedHeaderMap extends TreeMap<String, String> {
+		String headers = null;
+
+		public SortedHeaderMap() {
+			super(CaseInsensitiveComparator);
+		}
+
+		public SortedHeaderMap(Collection<Map.Entry<String, String>> headers) {
+			this();
+			for (Map.Entry<String, String> h : headers) {
+				put(h.getKey(), h.getValue());
+			}
+		}
+
+		@Override
+		public String put(String key, String value) {
+			if (StringUtils.isNotBlank(key) && StringUtils.isNotBlank(value)) {
+				headers = null; // i.e. mark as changed
+				return super.put(key.trim(), value.trim());
+			}
+			return null;
+		}
+
+		public String put(String raw) {
+			return put(StringUtils.substringBefore(raw, ":"), StringUtils.substringAfter(raw, ":"));
+		}
+
+		public String joined() {
+			if (headers == null) {
+				headers = StringUtils.join(values(), " ");
+			}
+			return headers;
+		}
+
+		public String toRegex() {
+			int size = size();
+			return (size > 1 ? "(" : "") + StringUtils.join(values(), ").*(") + (size > 1 ? ")" : "");
+		}
+	}
+
+	/**
+	 * Pattern match our combined header matcher to the given collection of sorted request
+	 * headers as a whole.
+	 *
+	 * @param headers The headers.
+	 * @return True if the pattern matches or false if no match, no headers, or no matcher.
+	 */
+	public boolean match(SortedHeaderMap headers) {
+		if (!headers.isEmpty() && sortedHeaderMatcher != null) {
+			return sortedHeaderMatcher.reset(headers.joined()).find();
+		}
+		return false;
+	}
+
+	/**
+	 * The loading priority of this renderer. This should be set to 1 (or greater)
+	 * if this renderer config is a more specific version of one we already have.
+	 *
+	 * For example, we have a Panasonic TVs config that is used for all
+	 * Panasonic TVs, except the ones we have specific configs for, so the
+	 * specific ones have a greater priority to ensure they are used when
+	 * applicable instead of the less-specific renderer config.
+	 *
+	 * @return The loading priority of this renderer
+	 */
+	public int getLoadingPriority() {
+		return getInt(LOADING_PRIORITY, 0);
+	}
+
+	/**
+	 * A loading priority comparator
+	 */
+	public static final Comparator<RendererConfiguration> rendererLoadingPriorityComparator = new Comparator<RendererConfiguration>() {
+		@Override
+		public int compare(RendererConfiguration r1, RendererConfiguration r2) {
+			if (r1 == null || r2 == null) {
+				return (r1 == null && r2 == null) ? 0 : r1 == null ? 1 : r2 == null ? -1 : 0;
+			}
+			int p1 = r1.getLoadingPriority();
+			int p2 = r2.getLoadingPriority();
+			return p1 > p2 ? -1 : p1 < p2 ? 1 : r1.getRendererName().compareToIgnoreCase(r2.getRendererName());
+		}
+	};
 }

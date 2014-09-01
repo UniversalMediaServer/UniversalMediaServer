@@ -40,11 +40,8 @@ public class RemoteBrowseHandler implements HttpHandler {
 	private String mkBrowsePage(String id, HttpExchange t) throws IOException {
 		String user = RemoteUtil.userName(t);
 		RootFolder root = parent.getRoot(user, true, t);
-		String vars = t.getRequestURI().getQuery();
-		String search = null;
-		if (StringUtils.isNotEmpty(vars)) {
-			search = getSearchStr(vars);
-		}
+		String search = RemoteUtil.getQueryVars(t.getRequestURI().getQuery(), "str");
+
 		List<DLNAResource> res = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), search);
 		if (StringUtils.isNotEmpty(search)) {
 			UMSUtils.postSearch(res, search);
