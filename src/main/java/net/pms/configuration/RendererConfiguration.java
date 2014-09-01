@@ -163,7 +163,7 @@ public class RendererConfiguration {
 	 */
 	public static void loadRendererConfigurations(PmsConfiguration pmsConf) {
 		pmsConfiguration = pmsConf;
-		enabledRendererConfs = new TreeSet<>(rendererLoadingPriorityComparator);
+		enabledRendererConfs = new TreeSet<RendererConfiguration>(rendererLoadingPriorityComparator);
 
 		try {
 			defaultConf = new RendererConfiguration();
@@ -506,7 +506,7 @@ public class RendererConfiguration {
 		String re = searchMap.toRegex();
 		sortedHeaderMatcher = StringUtils.isNotBlank(re) ? Pattern.compile(re, Pattern.CASE_INSENSITIVE).matcher("") : null;
 
-		mimes = new HashMap<>();
+		mimes = new HashMap<String, String>();
 		String mimeTypes = getString(MIME_TYPES_CHANGES, "");
 
 		if (StringUtils.isNotBlank(mimeTypes)) {

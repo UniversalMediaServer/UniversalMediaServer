@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
  * Test the RendererConfiguration class
  */
 public class RendererConfigurationTest {
+	private final Map<String, String> testCases = new HashMap<String, String>();
 
 	@Before
 	public void setUp() {
@@ -117,9 +118,6 @@ public class RendererConfigurationTest {
 		testHeaders("Samsung AllShare", "User-Agent: SEC_HHP_[TV]UE46ES8000/1.0 DLNADOC/1.50");
 		testHeaders("Samsung AllShare", "User-Agent: SEC_HHP_[TV]Samsung LED40/1.0 DLNADOC/1.50");
 		testHeaders("Samsung AllShare", "User-Agent: SEC_HHP_[TV]UN55ES6100/1.0 DLNADOC/1.50");
-		testCases.put("User-Agent: SEC_HHP_[TV]UE46ES8000/1.0 DLNADOC/1.50", "Samsung AllShare");
-		testCases.put("User-Agent: SEC_HHP_[TV]Samsung LED40/1.0 DLNADOC/1.50", "Samsung AllShare");
-		testCases.put("User-Agent: SEC_HHP_[TV]UN55ES6100/1.0 DLNADOC/1.50", "Samsung AllShare");
 
 		// Samsung-SMT-G7400:
 		testHeaders("Samsung SMT-G7400", "User-Agent: Linux/2.6.35 UPnP/1.0 NDS_MHF DLNADOC/1.50");

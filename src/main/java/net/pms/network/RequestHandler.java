@@ -95,7 +95,7 @@ public class RequestHandler implements Runnable {
 
 			// Attempt 1: try to recognize the renderer by its socket address from previous requests
 			renderer = RendererConfiguration.getRendererConfigurationBySocketAddress(ia);
-			ArrayList<String> headerLines = new ArrayList<>();
+			ArrayList<String> headerLines = new ArrayList<String>();
 			RendererConfiguration.SortedHeaderMap sortedHeaders = renderer == null ? new RendererConfiguration.SortedHeaderMap() : null;
 
 			// Gather all the headers
