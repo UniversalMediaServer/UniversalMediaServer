@@ -3,6 +3,9 @@ package net.pms.configuration;
 import java.net.InetAddress;
 import java.io.File;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
@@ -22,6 +25,12 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	private String ip;
 	private int port;
 	private String ua;
+	private String defaultMime;
+	private int browser = 0;
+	private String platform = null;
+	private int screenWidth = 0;
+	private int screenHeight = 0;
+	private boolean isTouchDevice = false;
 	private static final PmsConfiguration pmsconfiguration = PMS.getConfiguration();
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebRender.class);
 	private static final Format[] supportedFormats ={
@@ -31,6 +40,22 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			new PNG()
 	};
 
+	public static final String umsInfoScript = StringUtils.join(new String[] {
+		"<script>",
+		"if ((' '+document.cookie).indexOf(' UMSINFO=')==-1) {",
+			"var isTouchDevice = window.screenX == 0 && ('ontouchstart' in window || 'onmsgesturechange' in window);",
+			"document.cookie='UMSINFO=platform='+navigator.platform+'&width='+screen.width+'&height='+screen.height+'&isTouchDevice='+isTouchDevice+';Path=/';",
+		"}",
+		"</script>"}, "\r\n");
+	private static final Matcher umsInfo = Pattern.compile("platform=(.+)&width=(.+)&height=(.+)&isTouchDevice=(.+)").matcher("");
+
+	protected static final int CHROME = 1;
+	protected static final int MSIE = 2;
+	protected static final int FIREFOX = 3;
+	protected static final int SAFARI = 4;
+	protected static final int PS4 = 5;
+	protected static final int XBOX1 = 6;
+
 	public WebRender(String name) throws ConfigurationException {
 		super(NOFILE, null);
 		this.name = name;
@@ -38,6 +63,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		port = 0;
 		ua = "";
 		fileless = true;
+		String userFmt = pmsconfiguration.getWebTranscode();
+		defaultMime = userFmt != null ? ("video/" + userFmt) : RemoteUtil.transMime();
 	}
 
 	@Override
@@ -54,32 +81,6 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	@Override
-	public String getRendererName() {
-		String rendererName = "";
-		if (pmsconfiguration.isWebAuthenticate()) {
-			rendererName = name + "@";
-		}
-
-		if (ua.contains("chrome")) {
-			rendererName += "Chrome";
-		} else  if (ua.contains("msie")) {
-			rendererName += "Internet Explorer";
-		} else if (ua.contains("firefox")) {
-			rendererName += "Firefox";
-		} else if (ua.contains("safari")) {
-			rendererName += "Safari";
-		} else if (ua.contains("playstation 4")) {
-			rendererName += "PlayStation 4";
-		} else if (ua.contains("xbox one")) {
-			rendererName += "Xbox One";
-		} else {
-			rendererName += Messages.getString("PMS.142");
-		}
-
-		return rendererName;
-	}
-
-	@Override
 	public boolean associateIP(InetAddress sa) {
 		ip = sa.getHostAddress();
 		return super.associateIP(sa);
@@ -93,27 +94,58 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		this.ua = ua.toLowerCase();
 	}
 
+	public void setBrowserInfo(String info, String userAgent) {
+		setUA(userAgent);
+
+		if (ua.contains("chrome")) {
+			browser = CHROME;
+		} else  if (ua.contains("msie")) {
+			browser = MSIE;
+		} else if (ua.contains("firefox")) {
+			browser = FIREFOX;
+		} else if (ua.contains("safari")) {
+			browser = SAFARI;
+		} else if (ua.contains("playstation 4")) {
+			browser = PS4;
+		} else if (ua.contains("xbox one")) {
+			browser = XBOX1;
+		}
+		if (info != null && umsInfo.reset(info).find()) {
+			platform = umsInfo.group(1).toLowerCase();
+			screenWidth = Integer.valueOf(umsInfo.group(2));
+			screenHeight = Integer.valueOf(umsInfo.group(3));
+			isTouchDevice = Boolean.valueOf(umsInfo.group(4));
+
+			LOGGER.debug("Setting {} browser info: plaform:{}, screen:{}x{}, isTouchDevice:{}",
+				getRendererName(), platform, screenWidth, screenHeight, isTouchDevice);
+		}
+	}
+
+	@Override
+	public String getRendererName() {
+		String s = pmsconfiguration.isWebAuthenticate() ? "@" : "";
+		switch (browser) {
+			case CHROME:  return s + "Chrome";
+			case MSIE:    return s + "Internet Explorer";
+			case FIREFOX: return s + "Firefox";
+			case SAFARI:  return s + "Safari";
+			case PS4:     return s + "Playstation 4";
+			case XBOX1:   return s + "Xbox One";
+			default:      return s + Messages.getString("PMS.142");
+		}
+	}
+
 	@Override
 	public String getRendererIcon() {
-		if (StringUtils.isEmpty(ua)) {
-			return super.getRendererIcon();
+		switch (browser) {
+			case CHROME:  return "chrome.png";
+			case MSIE:    return "internetexplorer.png";
+			case FIREFOX: return "firefox.png";
+//			case SAFARI:  return "safari.png"; // TODO
+			case PS4:     return "ps4.png";
+			case XBOX1:   return "xbox-one.png";
+			default:      return super.getRendererIcon();
 		}
-		if (ua.contains("chrome")) {
-			return "chrome.png";
-		}
-		if (ua.contains("msie")) {
-			return "internetexplorer.png";
-		}
-		if (ua.contains("firefox")) {
-			return "firefox.png";
-		}
-		if (ua.contains("playstation 4")) {
-			return "ps4.png";
-		}
-		if (ua.contains("xbox one")) {
-			return "xbox-one.png";
-		}
-		return super.getRendererIcon();
 	}
 
 	@Override
@@ -132,12 +164,43 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		return false;
 	}
 
-	public boolean isChrome() {
-		return pmsconfiguration.getWebChrome() && (ua != null) && ua.contains("chrome");
+	public boolean isChromeTrick() {
+		return browser == CHROME && pmsconfiguration.getWebChrome();
+	}
+
+	public boolean isFirefoxLinuxMp4() {
+		return browser == FIREFOX && platform.contains("linux") && pmsconfiguration.getWebFirefoxLinuxMp4();
+	}
+
+	public boolean isScreenSizeConstrained() {
+		return (screenWidth != 0 && RemoteUtil.getWidth() > screenWidth) ||
+			(screenHeight != 0 && RemoteUtil.getHeight() > screenHeight);
+	}
+
+	public int getVideoWidth() {
+		return isScreenSizeConstrained() ? screenWidth : RemoteUtil.getWidth();
+	}
+
+	public int getVideoHeight() {
+		return isScreenSizeConstrained() ? screenHeight : RemoteUtil.getHeight();
+	}
+
+	public String getVideoMimeType() {
+		if (isChromeTrick()) {
+			return RemoteUtil.MIME_WEBM;
+		} else if (isFirefoxLinuxMp4()) {
+			return RemoteUtil.MIME_MP4;
+		}
+		return defaultMime;
+	}
+
+	public boolean isLowBitrate() {
+		// FIXME: this should return true if either network speed or client cpu are slow
+		return screenWidth < 720 && (ua.contains("mobi") || isTouchDevice);
 	}
 
 	@Override
-	public boolean getOutputOptions(DLNAResource dlna, Player player, List<String> cmdList) {
+	public boolean getOutputOptions(List<String> cmdList, DLNAResource dlna, Player player, OutputParams params) {
 		if (player instanceof FFMpegVideo) {
 			if (dlna.getFormat().isVideo()) {
 				DLNAMediaInfo media = dlna.getMedia();
@@ -145,23 +208,22 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 				if (flash) {
 					fflashCmds(cmdList, media);
 				} else {
-					if(RemoteUtil.transMime().equals(RemoteUtil.MIME_OGG))  {
-						if (isChrome()) {
+					String mime = getVideoMimeType();
+					if (mime.equals(RemoteUtil.MIME_OGG)) {
+						ffoggCmd(cmdList);
+					} else if (mime.equals(RemoteUtil.MIME_MP4)) {
+						ffmp4Cmd(cmdList);
+					} else if (mime.equals(RemoteUtil.MIME_WEBM)) {
+						if (isChromeTrick()) {
 							chromeCmd(cmdList);
 						} else {
-							ffoggCmd(cmdList);
+							// nothing here yet
 						}
 					}
-					else if (RemoteUtil.transMime().equals(RemoteUtil.MIME_MP4)) {
-						ffmp4Cmd(cmdList);
-					}
-					else if (RemoteUtil.transMime().equals(RemoteUtil.MIME_WEBM)) {
-						// nothing here yet
-					}
 				}
-				OutputParams p = new OutputParams(pmsConfiguration);
-				p.mediaRenderer = this;
-//				/cmdList.addAll(((FFMpegVideo) player).getVideoBitrateOptions(dlna, media, p));
+				if (isLowBitrate()) {
+					cmdList.addAll(((FFMpegVideo) player).getVideoBitrateOptions(dlna, media, params));
+				}
 			} else {
 				// nothing here yet
 			}
@@ -297,7 +359,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 
 
 	public static boolean supportedFormat(Format f) {
-	   	for(Format f1 : supportedFormats) {
+		for(Format f1 : supportedFormats) {
 			if(f.getIdentifier() == f1.getIdentifier()) {
 				return true;
 			}
@@ -314,7 +376,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 
 	@Override
 	public String getFFmpegVideoFilterOverride() {
-		return "scale=" + RemoteUtil.getWidth() + ":" + RemoteUtil.getHeight();
+		return "scale=" + getVideoWidth() + ":" + getVideoHeight();
 	}
 
 	public boolean isTranscodeToMPEGTSH264AC3() {

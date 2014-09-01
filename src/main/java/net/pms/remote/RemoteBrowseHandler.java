@@ -70,6 +70,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 				sb.append("return false;");
 				sb.append("}</script>").append(CRLF);
 				// script ends here
+				sb.append(WebRender.umsInfoScript).append(CRLF);
 				sb.append("<title>Universal Media Server</title>").append(CRLF);
 			sb.append("</head>").append(CRLF);
 			sb.append("<body id=\"ContentPage\">").append(CRLF);

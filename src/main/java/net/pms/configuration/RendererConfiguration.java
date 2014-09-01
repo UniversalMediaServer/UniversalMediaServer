@@ -19,6 +19,7 @@ import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 import java.util.TreeSet;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -29,6 +30,7 @@ import net.pms.dlna.LibMediaInfoParser;
 import net.pms.dlna.RootFolder;
 import net.pms.encoders.Player;
 import net.pms.formats.Format;
+import net.pms.io.OutputParams;
 import net.pms.network.HTTPResource;
 import net.pms.network.SpeedStats;
 import net.pms.network.UPNPHelper;
@@ -72,13 +74,14 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		 * Override a player's default output formatting.
 		 * To be invoked by the player after input and filter options are complete.
 		 *
+		 * @param cmdList the command so far
 		 * @param dlna the media item
 		 * @param player the player
-		 * @param cmdList the command so far
+		 * @param params the output parameters
 		 *
 		 * @return whether the options have been finalized
 		 */
-		public boolean getOutputOptions(DLNAResource dlna, Player player, List<String> cmdList);
+		public boolean getOutputOptions(List<String> cmdList, DLNAResource dlna, Player player, OutputParams params);
 	}
 
 	// Holds MIME type aliases
@@ -735,6 +738,13 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			configuration.clear();
 			loaded = load(f);
 		}
+
+		// Set up the header matcher
+		SortedHeaderMap searchMap = new SortedHeaderMap();
+		searchMap.put("User-Agent", getUserAgent());
+		searchMap.put(getUserAgentAdditionalHttpHeader(), getUserAgentAdditionalHttpHeaderSearch());
+		String re = searchMap.toRegex();
+		sortedHeaderMatcher = StringUtils.isNotBlank(re) ? Pattern.compile(re, Pattern.CASE_INSENSITIVE).matcher("") : null;
 
 		mimes = new HashMap<>();
 		String mimeTypes = getString(MIME_TYPES_CHANGES, "");
@@ -1767,8 +1777,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * Check if the given subtitle is supported by renderer for streaming.
 	 *
 	 * @param subtitle Subtitles for checking
-	 * @return True if subtitles format is supported by renderer for streaming, False if 
-	 * subtitles format is not supported or supported formats are not set in the renderer.conf
+	 * @return True if the renderer specifies support for the subtitles
 	 */
 	public boolean isSubtitlesFormatSupported(DLNAMediaSubtitle subtitle) {
 		if (subtitle == null) {
@@ -1833,28 +1842,31 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return renderCache.get(id);
 	}
 
-	// A case-insensitive string comparator
-
+	/**
+	 * A case-insensitive string comparator
+	 */
 	public static final Comparator<String> CaseInsensitiveComparator = new Comparator<String>() {
+		@Override
 		public int compare(String s1, String s2) {
 			return s1.compareToIgnoreCase(s2);
 		}
 	};
 
-	// A case-insensitive key-sorted map of headers that can join its values into a combined
-	// string or regex.
-
-	public static class SortedHeaderMap extends TreeMap<String,String> {
+	/**
+	 * A case-insensitive key-sorted map of headers that can join its values
+	 * into a combined string or regex.
+	 */
+	public static class SortedHeaderMap extends TreeMap<String, String> {
 		String headers = null;
 
 		public SortedHeaderMap() {
 			super(CaseInsensitiveComparator);
 		}
 
-		public SortedHeaderMap(Collection<Map.Entry<String,String>> headers) {
+		public SortedHeaderMap(Collection<Map.Entry<String, String>> headers) {
 			this();
-			for (Map.Entry<String,String> h : headers) {
-			   put(h.getKey(), h.getValue());
+			for (Map.Entry<String, String> h : headers) {
+				put(h.getKey(), h.getValue());
 			}
 		}
 
@@ -1913,9 +1925,11 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getInt(LOADING_PRIORITY, 0);
 	}
 
-	// A loading priority comparator
-
+	/**
+	 * A loading priority comparator
+	 */
 	public static final Comparator<RendererConfiguration> rendererLoadingPriorityComparator = new Comparator<RendererConfiguration>() {
+		@Override
 		public int compare(RendererConfiguration r1, RendererConfiguration r2) {
 			if (r1 == null || r2 == null) {
 				return (r1 == null && r2 == null) ? 0 : r1 == null ? 1 : r2 == null ? -1 : 0;

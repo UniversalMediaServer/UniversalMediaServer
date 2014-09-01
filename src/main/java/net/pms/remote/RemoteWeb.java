@@ -135,26 +135,13 @@ public class RemoteWeb {
 		return PMS.get().getServer().getHost() + ":" + server.getAddress().getPort();
 	}
 
-	private String getCookie(String cstr) {
-		if (StringUtils.isEmpty(cstr)) {
-			return null;
-		}
-		String[] tmp = cstr.split(";");
-		for (String str: tmp) {
-			if (str.trim().startsWith("UMS=")) {
-				return str.substring(4);
-			}
-		}
-		return null;
-	}
-
 	public RootFolder getRoot(String name, HttpExchange t) {
 		return getRoot(name, false, t);
 	}
 
 	public RootFolder getRoot(String name, boolean create, HttpExchange t) {
 		String groupTag = getTag(name);
-		String cookie = getCookie(t.getRequestHeaders().getFirst("Cookie"));
+		String cookie = RemoteUtil.getCookie("UMS", t);
 		RootFolder root = roots.get(cookie);
 		if (!create || (root != null)) {
 			t.getResponseHeaders().add("Set-Cookie", "UMS=" + cookie + ";Path=/");
@@ -176,7 +163,8 @@ public class RemoteWeb {
 			render.setRootFolder(root);
 			render.associateIP(t.getRemoteAddress().getAddress());
 			render.associatePort(t.getRemoteAddress().getPort());
-			render.setUA(t.getRequestHeaders().getFirst("User-agent"));
+//			render.setUA(t.getRequestHeaders().getFirst("User-agent"));
+			render.setBrowserInfo(RemoteUtil.getCookie("UMSINFO", t), t.getRequestHeaders().getFirst("User-agent"));
 			PMS.get().setRendererFound(render);
 		} catch (ConfigurationException e) {
 			root.setDefaultRenderer(RendererConfiguration.getDefaultConf());
@@ -357,6 +345,7 @@ public class RemoteWeb {
 					sb.append("<link rel=\"stylesheet\" href=\"/files/web-narrow.css\" type=\"text/css\" media=\"screen and (max-width: 1080px)\">").append(CRLF);
 					sb.append("<link rel=\"stylesheet\" href=\"/files/web-wide.css\" type=\"text/css\" media=\"screen and (min-width: 1081px)\">").append(CRLF);
 					sb.append("<link rel=\"icon\" href=\"/files/favicon.ico\" type=\"image/x-icon\">").append(CRLF);
+					sb.append(WebRender.umsInfoScript).append(CRLF);
 					sb.append("<title>Universal Media Server</title>").append(CRLF);
 				sb.append("</head>").append(CRLF);
 				sb.append("<body id=\"FrontPage\">").append(CRLF);

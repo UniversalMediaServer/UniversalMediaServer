@@ -162,6 +162,21 @@ public class RemoteUtil {
 		return null;
 	}
 
+	public static String getCookie(String name, HttpExchange t) {
+		String cstr = t.getRequestHeaders().getFirst("Cookie");
+		if (StringUtils.isEmpty(cstr)) {
+			return null;
+		}
+		name += "=";
+		String[] tmp = cstr.split(";");
+		for (String str: tmp) {
+			if (str.trim().startsWith(name)) {
+				return StringUtils.substringAfter(str, name);
+			}
+		}
+		return null;
+	}
+
 	private static final int WIDTH = 0;
 	private static final int HEIGHT = 1;
 
@@ -202,7 +217,7 @@ public class RemoteUtil {
 
 	public static boolean transMp4(String mime, DLNAMediaInfo media) {
 		LOGGER.debug("mp4 profile "+media.getH264Profile());
-		return mime.equals("video/mp4") && (PMS.getConfiguration().isWebMp4Trans() || media.getAvcAsInt() >= 40);
+		return mime.equals(MIME_MP4) && (PMS.getConfiguration().isWebMp4Trans() || media.getAvcAsInt() >= 40);
 	}
 
 	public static boolean bumpAllowed(String ips, HttpExchange t) {
