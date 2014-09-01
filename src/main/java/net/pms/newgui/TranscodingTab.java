@@ -892,11 +892,8 @@ public class TranscodingTab {
 		autoloadExternalSubtitles.setToolTipText(Messages.getString("TrTab2.78"));
 		autoloadExternalSubtitles.setContentAreaFilled(false);
 		autoloadExternalSubtitles.setEnabled(!configuration.isForceExternalSubtitles());
-		autoloadExternalSubtitles.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setAutoloadExternalSubtitles((e.getStateChange() == ItemEvent.SELECTED));
-			}
+		autoloadExternalSubtitles.addItemListener((ItemEvent e) -> {
+			configuration.setAutoloadExternalSubtitles((e.getStateChange() == ItemEvent.SELECTED));
 		});
 		builder.add(autoloadExternalSubtitles, FormLayoutUtil.flip(cc.xyw(1, 14, 11), colSpec, orientation));
 
@@ -923,9 +920,6 @@ public class TranscodingTab {
 		forceExternalSubtitles.setContentAreaFilled(false);
 		forceExternalSubtitles.addItemListener((ItemEvent e) -> {
 			configuration.setForceExternalSubtitles((e.getStateChange() == ItemEvent.SELECTED));
-			if (configuration.isForceExternalSubtitles()) {
-				autoloadExternalSubtitles.setSelected(true);
-			}
 			autoloadExternalSubtitles.setEnabled(!configuration.isForceExternalSubtitles());
 		});
 		builder.add(forceExternalSubtitles, FormLayoutUtil.flip(cc.xyw(1, 16, 11), colSpec, orientation));
