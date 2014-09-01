@@ -147,22 +147,41 @@ public class OpenSubtitle {
 
 	public static String fetchImdbId(String hash) throws IOException {
 		LOGGER.debug("fetch imdbid for hash " + hash);
+		Pattern re = Pattern.compile("MovieImdbID.*?<string>([^<]+)</string>", Pattern.DOTALL);
+		String info = checkMovieHash(hash);
+		LOGGER.debug("info is "+info);
+		Matcher m = re.matcher(info);
+		if (m.find()) {
+			return m.group(1);
+		}
+		return "";
+	}
+
+	private static String checkMovieHash(String hash) throws IOException{
 		login();
 		if (token == null) {
 			return "";
 		}
 		URL url = new URL(OPENSUBS_URL);
-		String req = "<methodCall>\n<methodName>CheckMovieHash2</methodName>\n" +
-			"<params>\n<param>\n<value><string>" + token + "</string></value>\n</param>\n" +
-			"<param>\n<value>\n<array>\n<data>\n<value><string>" + hash + "</string></value>\n" +
-			"</data>\n</array>\n</value>\n</param>" +
-			"</params>\n</methodCall>\n";
-		Pattern re = Pattern.compile("MovieImdbID.*?<string>([^<]+)</string>", Pattern.DOTALL);
-		Matcher m = re.matcher(postPage(url.openConnection(), req));
-		if (m.find()) {
-			return m.group(1);
+		String req = "<methodCall>\n<methodName>CheckMovieHash</methodName>\n" +
+				"<params>\n<param>\n<value><string>" + token + "</string></value>\n</param>\n" +
+				"<param>\n<value>\n<array>\n<data>\n<value><string>" + hash + "</string></value>\n" +
+				"</data>\n</array>\n</value>\n</param>" +
+				"</params>\n</methodCall>\n";
+		LOGGER.debug("req "+req);
+		return postPage(url.openConnection(), req);
+	}
+
+
+
+	public static String getMovieInfo(File f) throws IOException {
+		String info = checkMovieHash(getHash(f));
+		if(StringUtils.isEmpty(info)) {
+			return "";
 		}
-		return "";
+		Pattern re = Pattern.compile("MovieImdbID.*?<string>([^<]+)</string>", Pattern.DOTALL);
+		LOGGER.debug("info is "+info);
+		return info;
 	}
 
 	public static String getHash(File f) throws IOException {
@@ -230,12 +249,14 @@ public class OpenSubtitle {
 			hashStr + imdbStr + qStr + "\n" +
 			"</struct></value></data>\n</array>\n</value>\n</param>" +
 			"</params>\n</methodCall>\n";
-		Pattern re = Pattern.compile("SubFileName</name>.*?<string>([^<]+)</string>.*?SubLanguageID</name>.*?<string>([^<]+)</string>.*?SubDownloadLink</name>.*?<string>([^<]+)</string>", Pattern.DOTALL);
+		Pattern re = Pattern.compile("SubFileName</name>.*?<string>([^<]+)</string>.*?SubLanguageID</name>.*?<string>([^<]+)</string>.*?IDMovieImdb</name>.*?<string>([^<]+)</string>.*?MovieName</name>.*?<string>([^<]+)</string>.*?SubDownloadLink</name>.*?<string>([^<]+)</string>", Pattern.DOTALL);
 		String page = postPage(url.openConnection(), req);
 		Matcher m = re.matcher(page);
 		while (m.find()) {
-			LOGGER.debug("found subtitle " + m.group(2) + " name " + m.group(1) + " zip " + m.group(3));
-			res.put(m.group(2) + ":" + m.group(1), m.group(3));
+			LOGGER.debug("found subtitle " + m.group(2) + " name " + m.group(1) + " zip " + m.group(5));
+			String eptit = m.group(4).replaceAll(" ",".");
+			LOGGER.debug("imdb "+m.group(3)+" name "+eptit);
+			res.put(m.group(2) + ":" + m.group(1), m.group(5));
 			if (res.size() > PMS.getConfiguration().liveSubtitlesLimit()) {
 				// limit the number of hits somewhat
 				break;
