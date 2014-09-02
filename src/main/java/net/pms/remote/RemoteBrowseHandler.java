@@ -132,6 +132,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 
 					sb.append("<div id=\"Menu\">");
 						sb.append("<a href=\"/browse/0\" id=\"HomeButton\"></a>");
+						sb.append("<a href=\"/files/log\" id=\"LogButton\">Log</a>");
 						// Display the search form if the folder is populated
 						if (hasFile) {
 							sb.append("<form id=\"SearchForm\" method=\"get\">");

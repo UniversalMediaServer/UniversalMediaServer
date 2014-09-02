@@ -16,6 +16,8 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
+import net.pms.newgui.DummyFrame;
+import net.pms.newgui.LooksFrame;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -299,6 +301,16 @@ public class RemoteWeb {
 				}
 				return;
 			}
+			if (t.getRequestURI().getPath().startsWith("/files/log")) {
+				String log = ((LooksFrame)PMS.get().getFrame()).getTt().getList().getText();
+				log = log.replaceAll("\n", "<br>");
+				String data = "<html><title>UMS LOG</title><body>" + log + "</body></html>";
+				t.sendResponseHeaders(200, data.length());
+				try (OutputStream os = t.getResponseBody()) {
+					os.write(data.getBytes());
+				}
+				return;
+			}	
 			if (t.getRequestURI().getPath().startsWith("/files/")) {
 				// Add content type headers for IE
 				// Thx to speedy8754
