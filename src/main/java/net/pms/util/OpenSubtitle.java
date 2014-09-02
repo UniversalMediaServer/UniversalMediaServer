@@ -122,7 +122,7 @@ public class OpenSubtitle {
 		return ((now - tokenAge) < TOKEN_AGE_TIME);
 	}
 
-	private static void login() throws IOException {
+	private static synchronized void login() throws IOException {
 		if ((token != null) && tokenIsYoung()) {
 			return;
 		}
@@ -263,6 +263,73 @@ public class OpenSubtitle {
 			}
 		}
 		return res;
+	}
+
+	public static String[] getInfo(File f) throws IOException{
+		String [] res = getInfo(getHash(f), f.length(), null, null);
+		if (res == null || res.length == 0) { // no good on hash! try imdb
+			String imdb = ImdbUtil.extractImdb(f);
+			res = getInfo(null,0,imdb, null);
+		}
+		if (res == null ||res.length == 0) { // final try, use the name
+			res = getInfo(null, 0, null, f.getName());
+		}
+		return res;
+	}
+
+	private static String[] getInfo(String hash, long size, String imdb, String query) throws IOException {
+		login();
+		if (token == null) {
+			return null;
+		}
+		String lang = iso639(PMS.getConfiguration().getSubtitlesLanguages());
+		URL url = new URL(OPENSUBS_URL);
+		String hashStr = "";
+		String imdbStr = "";
+		String qStr = "";
+		if (!StringUtils.isEmpty(hash)) {
+			hashStr = "<member><name>moviehash</name><value><string>" + hash + "</string></value></member>\n" +
+					"<member><name>moviebytesize</name><value><double>" + size + "</double></value></member>\n";
+		} else if (!StringUtils.isEmpty(imdb)) {
+			imdbStr = "<member><name>imdbid</name><value><string>" + imdb + "</string></value></member>\n";
+		} else if (!StringUtils.isEmpty(query)) {
+			qStr = "<member><name>query</name><value><string>" + query + "</string></value></member>\n";
+		} else {
+			return null;
+		}
+		String req = "<methodCall>\n<methodName>SearchSubtitles</methodName>\n" +
+				"<params>\n<param>\n<value><string>" + token + "</string></value>\n</param>\n" +
+				"<param>\n<value>\n<array>\n<data>\n<value><struct><member><name>sublanguageid" +
+				"</name><value><string>" + lang + "</string></value></member>" +
+				hashStr + imdbStr + qStr + "\n" +
+				"</struct></value></data>\n</array>\n</value>\n</param>" +
+				"</params>\n</methodCall>\n";
+		Pattern re = Pattern.compile(".*IDMovieImdb</name>.*?<string>([^<]+)</string>.*?"+"" +
+									 "MovieName</name>.*?<string>([^<]+)</string>.*?"+
+									 "SeriesSeason</name>.*?<string>([^<]+)</string>.*?"+
+									 "SeriesEpisode</name>.*?<string>([^<]+)</string>.*?"
+									, Pattern.DOTALL);
+		String page = postPage(url.openConnection(), req);
+		Matcher m = re.matcher(page);
+		if (m.find()) {
+			LOGGER.debug("match "+m.group(1)+" "+m.group(2)+" "+m.group(3)+" "+m.group(4));
+			Pattern re1 = Pattern.compile("&#34;([^&]+)&#34;(.*)");
+			String name = m.group(2);
+			Matcher m1 = re1.matcher(name);
+			String eptit = "";
+			if(m1.find()) {
+				eptit = m1.group(2).trim();
+				name = m1.group(1).trim();
+			}
+			return new String[] {
+					ImdbUtil.ensureTT(m.group(1).trim()),
+					eptit,
+					m.group(3).trim(),
+					m.group(4).trim(),
+					name
+			};
+		}
+		return null;
 	}
 
 	private static String iso639(String s) {

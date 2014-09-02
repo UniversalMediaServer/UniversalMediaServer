@@ -141,6 +141,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_IGNORED_RENDERERS = "ignored_renderers";
 	protected static final String KEY_IMAGE_THUMBNAILS_ENABLED = "image_thumbnails";
 	protected static final String KEY_IP_FILTER = "ip_filter";
+	protected static final String KEY_INFO_DB = "info_db";
 	protected static final String KEY_ITUNES_LIBRARY_PATH = "itunes_library_path";
 	protected static final String KEY_SHOW_IPHOTO_LIBRARY = "show_iphoto_library";
 	protected static final String KEY_SHOW_ITUNES_LIBRARY = "show_itunes_library";
@@ -3246,5 +3247,9 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public String getWebTranscode() {
 		return getString(KEY_WEB_TRANSCODE, null);
+	}
+
+	public boolean useInfoDb() {
+		return getBoolean(KEY_INFO_DB, true);
 	}
 }

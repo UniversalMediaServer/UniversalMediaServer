@@ -20,6 +20,8 @@ import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.endsWithIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 import static org.mozilla.universalchardet.Constants.*;
+
+import org.apache.commons.lang3.StringUtils;
 import org.mozilla.universalchardet.UniversalDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -188,9 +190,10 @@ public class FileUtil {
 	 *
 	 * @return The prettified filename
 	 */
-	public static String getFileNameWithRewriting(String f) {
+	public static String getFileNameWithRewriting(String f, File file) {
 		String fileNameWithoutExtension;
 		String formattedName;
+		InfoDb.InfoDbData info = PMS.get().infoDb().get(file);
 
 		// Remove file extension
 		fileNameWithoutExtension = getFileNameWithoutExtension(f);
@@ -376,6 +379,13 @@ public class FileUtil {
 			} else {
 				formattedName = fileNameWithoutExtension;
 			}
+		}
+
+		// Add episode name (if not there)
+		if (info != null &&
+			StringUtils.isNotEmpty(info.ep_name) &&
+			!formattedName.contains(info.ep_name)) {
+			formattedName = formattedName + " " + info.ep_name;
 		}
 
 		return formattedName;

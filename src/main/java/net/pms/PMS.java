@@ -59,14 +59,7 @@ import net.pms.newgui.LooksFrame;
 import net.pms.newgui.ProfileChooser;
 import net.pms.remote.RemoteWeb;
 import net.pms.update.AutoUpdater;
-import net.pms.util.FileUtil;
-import net.pms.util.OpenSubtitle;
-import net.pms.util.ProcessUtil;
-import net.pms.util.PropertiesUtil;
-import net.pms.util.SystemErrWrapper;
-import net.pms.util.TaskRunner;
-import net.pms.util.TempFileMgr;
-import net.pms.util.Version;
+import net.pms.util.*;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
@@ -573,6 +566,8 @@ public class PMS {
 		if (configuration.useWebInterface()) {
 			web = new RemoteWeb(configuration.getWebPort());
 		}
+
+		infoDb = new InfoDb();
 
 		RendererConfiguration.loadRendererConfigurations(configuration);
 		// Now that renderer confs are all loaded, we can start searching for renderers
@@ -1522,5 +1517,15 @@ public class PMS {
 
 	public static GlobalIdRepo getGlobalRepo() {
 		return get().globalRepo;
+	}
+
+	private InfoDb infoDb;
+
+	public void infoDbAdd(File f) {
+		infoDb.backgroundAdd(f);
+	}
+
+	public InfoDb infoDb() {
+		return infoDb;
 	}
 }

@@ -1400,7 +1400,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			!isFolder()
 		) {
 			if (configuration.isPrettifyFilenames()) {
-				displayName = FileUtil.getFileNameWithRewriting(displayName);
+				RealFile rf = (RealFile)this;
+				displayName = FileUtil.getFileNameWithRewriting(displayName, rf.getFile());
 			} else {
 				displayName = FileUtil.getFileNameWithoutExtension(displayName);
 			}

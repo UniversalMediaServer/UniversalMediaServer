@@ -36,4 +36,8 @@ public class ImdbUtil {
 		}
 		return ret;
 	}
+
+	public static String ensureTT(String s) {
+		 return (s.startsWith("tt") ? s : "tt" + s);
+	}
 }
