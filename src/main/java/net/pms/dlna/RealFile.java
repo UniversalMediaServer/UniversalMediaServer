@@ -214,7 +214,7 @@ public class RealFile extends MapFile {
 
 	@Override
 	public InputStream getThumbnailInputStream() throws IOException {
-		if (useSuperThumb) {
+		if (useSuperThumb || getParent() instanceof FileTranscodeVirtualFolder) {
 			return super.getThumbnailInputStream();
 		}
 
