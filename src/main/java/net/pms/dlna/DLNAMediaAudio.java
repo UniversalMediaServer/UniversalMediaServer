@@ -240,7 +240,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 			return "LPCM";
 		} else if (getCodecA() != null && getCodecA().equals("vorbis")) {
 			return "OGG";
-		} else if (getCodecA() != null && getCodecA().equals(FormatConfiguration.AAC)) {
+		} else if (isAAC()) {
 			return "AAC";
 		} else if (getCodecA() != null && getCodecA().equals("mp3")) {
 			return "MP3";
