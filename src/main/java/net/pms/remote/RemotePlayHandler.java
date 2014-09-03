@@ -212,7 +212,7 @@ public class RemotePlayHandler implements HttpHandler {
 					}
 					sb.append(CRLF);
 
-					if (configuration.getWebSubs()) {
+					if (configuration.getWebSubs() && r.getFormat().isVideo()) {
 						// only if subs are requested as <track> tags
 						// otherwise we'll transcode them in
 						boolean isFFmpegFontConfig = configuration.isFFmpegFontConfig();
