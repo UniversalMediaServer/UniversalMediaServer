@@ -1178,12 +1178,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @since 1.90.0
 	 */
 	protected void resolveFormat() {
-		if (format == null) {
-			format = FormatFactory.getAssociatedFormat(getSystemName());
-		}
+		if (!isFolder()) {
+			if (format == null) {
+				format = FormatFactory.getAssociatedFormat(getSystemName());
+			}
 
-		if (format != null && format.isUnknown()) {
-			format.setType(getSpecificType());
+			if (format != null && format.isUnknown()) {
+				format.setType(getSpecificType());
+			}
 		}
 	}
 
