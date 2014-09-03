@@ -171,7 +171,7 @@ public class RemotePlayHandler implements HttpHandler {
 				sb.append("<div id=\"Container\">").append(CRLF);
 					sb.append("<div id=\"Menu\">").append(CRLF);
 						sb.append("<a href=\"/browse/0\" id=\"HomeButton\"></a>").append(CRLF);
-						sb.append("<a href=\"/files/log\" id=\"LogButton\">Log</a>").append(CRLF);
+						sb.append("<a href=\"/files/log\" id=\"LogButton\"></a>").append(CRLF);
 					sb.append("</div>").append(CRLF);
 					sb.append("<div id=\"VideoContainer\">").append(CRLF);
 					// for video this gives just an empty line

@@ -57,6 +57,19 @@ body#ContentPage {
 	display: block;
 }
 
+#ContentPage #Menu #LogButton {
+	background:		url('/files/icon-log2.jpg');
+	background-size:        125px 93px;
+	width:			125px;
+	height:			93px;
+	position:		absolute;
+	left:			130px;
+	top:                    0px;
+	background-repeat: no-repeat;
+	display: block;
+}
+
+
 #VideoContainer {
 	max-width: 720px;
 	margin: 100px auto 0 auto;
@@ -235,5 +248,3 @@ form#SearchForm {
   text-shadow: black 0 0 0.2em;
   font: 1.2em sans-serif;
 }
-
-
