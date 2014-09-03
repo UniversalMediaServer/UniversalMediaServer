@@ -1495,20 +1495,21 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	public final String getDidlString(RendererConfiguration mediaRenderer) {
 		StringBuilder sb = new StringBuilder();
-		if (
-			!isFolder() &&
-			!configuration.isDisableSubtitles() &&
-			media != null &&
-			media_subtitle != null &&
-			player == null &&
-			mediaRenderer.isSubtitlesFormatSupported(media_subtitle)
-		) {
-			subsAreValidForStreaming = true;
-			LOGGER.trace("Setting subsAreValidForStreaming to true for " + getName());
-		} else if (subsAreValidForStreaming) {
-			LOGGER.trace("Not setting subsAreValidForStreaming and it is true for " + getName());
-		} else {
-			LOGGER.trace("Not setting subsAreValidForStreaming and it is false for " + getName());
+		if (!isFolder()) {
+			if (
+				!configuration.isDisableSubtitles() &&
+				media != null &&
+				media_subtitle != null &&
+				player == null &&
+				mediaRenderer.isSubtitlesFormatSupported(media_subtitle)
+			) {
+				subsAreValidForStreaming = true;
+				LOGGER.trace("Setting subsAreValidForStreaming to true for " + getName());
+			} else if (subsAreValidForStreaming) {
+				LOGGER.trace("Not setting subsAreValidForStreaming and it is true for " + getName());
+			} else {
+				LOGGER.trace("Not setting subsAreValidForStreaming and it is false for " + getName());
+			}
 		}
 
 		if (isFolder()) {
