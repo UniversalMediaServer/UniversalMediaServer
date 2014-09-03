@@ -140,8 +140,12 @@ public class SpeedStats {
 					cnt++;
 				}
 			}
-			int speedInMbits = (int) (bps / (cnt * 1000000));
-			LOGGER.info("Renderer " + rendererName + " has an estimated network speed of " + speedInMbits + " Mb/s");
+			double speedInMbits1 = (double) (bps / (cnt * 1000000));
+			LOGGER.info("Renderer " + rendererName + " has an estimated network speed of " + speedInMbits1 + " Mb/s");
+			int speedInMbits = (int)speedInMbits1;
+			if (speedInMbits1 < 1.0) {
+				speedInMbits = -1;
+			}
 			synchronized (speedStats) {
 				CompletedFuture<Integer> result = new CompletedFuture<>(speedInMbits);
 				// update the statistics with a computed future value

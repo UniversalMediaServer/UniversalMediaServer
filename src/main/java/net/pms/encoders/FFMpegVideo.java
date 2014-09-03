@@ -474,6 +474,10 @@ public class FFMpegVideo extends Player {
 
 				// Round down to the nearest Mb
 				defaultMaxBitrates[0] = defaultMaxBitrates[0] / 1000 * 1000;
+				if (defaultMaxBitrates[0] == 0) {
+					// 0 isn't that great set to a low value
+					defaultMaxBitrates[0] = 300;
+				}
 
 				LOGGER.trace("Adjusting the video bitrate limit to " + defaultMaxBitrates[0] + " to make room for audio");
 			}
