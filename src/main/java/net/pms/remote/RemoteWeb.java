@@ -16,6 +16,7 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
+import net.pms.logging.LoggingConfigFileLoader;
 import net.pms.newgui.DummyFrame;
 import net.pms.newgui.LooksFrame;
 import org.apache.commons.configuration.ConfigurationException;
@@ -304,7 +305,12 @@ public class RemoteWeb {
 			if (t.getRequestURI().getPath().startsWith("/files/log")) {
 				String log = PMS.get().getFrame().getLog();
 				log = log.replaceAll("\n", "<br>");
-				String data = "<html><title>UMS LOG</title><body>" + log + "</body></html>";
+				String fullLink = "<br><a href=\"/files/full\">Full log</a><br>";
+				String x = fullLink + log;
+				if (StringUtils.isNotEmpty(log)) {
+					x = x + fullLink;
+				}
+				String data = "<html><title>UMS LOG</title><body>" + x + "</body></html>";
 				t.sendResponseHeaders(200, data.length());
 				try (OutputStream os = t.getResponseBody()) {
 					os.write(data.getBytes());
@@ -322,7 +328,12 @@ public class RemoteWeb {
 					Headers hdr = t.getResponseHeaders();
 					hdr.add("Content-Type", "text/javascript");
 				}
-				File f = configuration.getWebFile(t.getRequestURI().getPath().substring(7));
+				File f;
+				if(t.getRequestURI().getPath().startsWith("/files/full")) {
+					f = new File(LoggingConfigFileLoader.getLogFilePaths().get("debug.log"));
+				} else {
+					f = configuration.getWebFile(t.getRequestURI().getPath().substring(7));
+				}
 				RemoteUtil.dumpFile(f, t);
 				return;
 			}
