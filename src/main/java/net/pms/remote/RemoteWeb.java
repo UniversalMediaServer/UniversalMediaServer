@@ -36,6 +36,7 @@ public class RemoteWeb {
 	private HashMap<String, String> tags;
 	private HashMap<String, RootFolder> roots;
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
+	private final static String CRLF = "\r\n";
 
 	public RemoteWeb() {
 		this(DEFAULT_PORT);
@@ -290,7 +291,8 @@ public class RemoteWeb {
 		@Override
 		public void handle(HttpExchange t) throws IOException {
 			LOGGER.debug("file req " + t.getRequestURI());
-			if (t.getRequestURI().getPath().contains("crossdomain.xml")) {
+			String path = t.getRequestURI().getPath();
+			if (path.contains("crossdomain.xml")) {
 				String data = "<?xml version=\"1.0\"?>" +
 					"<!-- http://www.bitsontherun.com/crossdomain.xml -->" +
 					"<cross-domain-policy>" +
@@ -302,44 +304,64 @@ public class RemoteWeb {
 				}
 				return;
 			}
-			if (t.getRequestURI().getPath().startsWith("/files/log")) {
-				String log = PMS.get().getFrame().getLog();
-				log = log.replaceAll("\n", "<br>");
-				String fullLink = "<br><a href=\"/files/full\">Full log</a><br>";
-				String x = fullLink + log;
-				if (StringUtils.isNotEmpty(log)) {
-					x = x + fullLink;
+			if (path.startsWith("/files/log")) {
+				String data = null;
+				if (path.startsWith("/files/log/short")) {
+					String log = PMS.get().getFrame().getLog();
+					log = log.replaceAll("\n", "<br>");
+					String fullLink = "<br><a href=\"/files/log/full\">Full log</a><br>";
+					String x = fullLink + log;
+					if (StringUtils.isNotEmpty(log)) {
+						x = x + fullLink;
+					}
+					data = "<html><title>UMS LOG</title><body>" + x + "</body></html>";
+				} else if (path.startsWith("/files/log/full")) {
+					String log = RemoteUtil.read(new File(LoggingConfigFileLoader.getLogFilePaths().get("debug.log"))).replace("<", "&lt;");
+					StringBuilder sb = new StringBuilder();
+					sb.append("<!DOCTYPE html>").append(CRLF);
+						sb.append("<head>").append(CRLF);
+							sb.append("<link rel=\"stylesheet\" href=\"/files/sh.css\" type=\"text/css\">").append(CRLF);
+							sb.append("<script src=\"/files/shCore.js\"></script>").append(CRLF);
+							sb.append("<script src=\"/files/sh.js\"></script>").append(CRLF);
+							sb.append("<title>UMS DEBUG.LOG</title>").append(CRLF);
+						sb.append("</head>").append(CRLF);
+						sb.append("<body>").append(CRLF);
+							sb.append("<pre class=\"brush: ums; gutter: false\">").append(CRLF);
+								sb.append(log);
+							sb.append("</pre>");
+						sb.append("</body>");
+					sb.append("</html>");
+					data = sb.toString();
 				}
-				String data = "<html><title>UMS LOG</title><body>" + x + "</body></html>";
-				t.sendResponseHeaders(200, data.length());
+				Headers hdr = t.getResponseHeaders();
+				hdr.add("Content-Type", "text/html");
+				byte[] bytes = data.getBytes();
+				t.sendResponseHeaders(200, bytes.length);
 				try (OutputStream os = t.getResponseBody()) {
-					os.write(data.getBytes());
+					os.write(bytes);
 					os.close();
+				} catch (Exception e) {
+					e.printStackTrace();
 				}
 				return;
 			}	
-			if (t.getRequestURI().getPath().startsWith("/files/")) {
+			if (path.startsWith("/files/")) {
 				// Add content type headers for IE
 				// Thx to speedy8754
-				if( t.getRequestURI().getPath().endsWith(".css") ) {
+				if( path.endsWith(".css") ) {
 					Headers hdr = t.getResponseHeaders();
 					hdr.add("Content-Type", "text/css");
 				}
-				else if( t.getRequestURI().getPath().endsWith(".js") ) {
+				else if( path.endsWith(".js") ) {
 					Headers hdr = t.getResponseHeaders();
 					hdr.add("Content-Type", "text/javascript");
 				}
-				File f;
-				if(t.getRequestURI().getPath().startsWith("/files/full")) {
-					f = new File(LoggingConfigFileLoader.getLogFilePaths().get("debug.log"));
-				} else {
-					f = configuration.getWebFile(t.getRequestURI().getPath().substring(7));
-				}
+				File f = configuration.getWebFile(path.substring(7));
 				RemoteUtil.dumpFile(f, t);
 				return;
 			}
-			if (t.getRequestURI().getPath().startsWith("/subs/")) {
-				File f = new File(t.getRequestURI().getPath().substring(6));
+			if (path.startsWith("/subs/")) {
+				File f = new File(path.substring(6));
 				RemoteUtil.dumpFile(f, t);
 			}
 		}
@@ -425,7 +447,13 @@ public class RemoteWeb {
 						sb.append("<a href=\"/browse/0\" id=\"HomeButton\"></a>").append(CRLF);
 					sb.append("</div>").append(CRLF);
 					sb.append("<div id=\"Container\">").append(CRLF);
-						sb.append("<h1>Documentation</h1>").append(CRLF);
+						sb.append("<h1>Tools</h1>").append(CRLF);
+						sb.append("<br/>").append(CRLF);
+						sb.append("<ul>").append(CRLF);
+						sb.append("<li>View logs &bull;<a href=\"/files/log/short\"><i>gui version</i></a> &bull;<a href=\"/files/log/full\"><i>debug.log</i></a></li>").append(CRLF);
+						sb.append("<br/><br/>").append(CRLF);
+						sb.append("</ul>").append(CRLF);
+						sb.append("<h1>Info</h1>").append(CRLF);
 						sb.append("<br/>").append(CRLF);
 						sb.append("<ul>").append(CRLF);
 						sb.append("<li><a href=\"/bump\">Browser-to-UMS Media Player Setup.</a></li>").append(CRLF);

@@ -4,6 +4,7 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpPrincipal;
 import java.io.*;
+import java.nio.charset.Charset;
 import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.IpFilter;
@@ -12,6 +13,8 @@ import net.pms.dlna.Range;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.newgui.LooksFrame;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,6 +86,24 @@ public class RemoteUtil {
 			}
 		};
 		new Thread(r).start();
+	}
+
+	public static String read(String resource) {
+		try {
+			return IOUtils.toString(RemoteUtil.class.getResourceAsStream("/resources/web/" + resource), "UTF-8");
+		} catch (IOException e) {
+			LOGGER.debug("Error reading resource: " + e);
+		}
+		return null;
+	}
+
+	public static String read(File f) {
+		try {
+			return FileUtils.readFileToString(f, Charset.forName("UTF-8"));
+		} catch (IOException e) {
+			LOGGER.debug("Error reading file: " + e);
+		}
+		return null;
 	}
 
 	public static String getId(String path, HttpExchange t) {

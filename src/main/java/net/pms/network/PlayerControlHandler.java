@@ -2,7 +2,6 @@ package net.pms.network;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -12,9 +11,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -109,7 +106,7 @@ public class PlayerControlHandler implements HttpHandler {
 			json.add(getPlaylist(player));
 			selectedPlayers.put(x.getRemoteAddress().getAddress(), player);
 		} else if (p.length == 2) {
-			response = read(configuration.getWebFile("bump/bump.html"))
+			response = RemoteUtil.read(configuration.getWebFile("bump/bump.html"))
 				.replace("http://127.0.0.1:9001", protocol + PMS.get().getServer().getHost() + ":" + port);
 		} else if (p[2].equals("bump.js")) {
 			response = getBumpJS();
@@ -205,28 +202,10 @@ public class PlayerControlHandler implements HttpHandler {
 	}
 
 	public String getBumpJS() {
-		return read(bumpjs)
+		return RemoteUtil.read(bumpjs)
 			+ "\nvar bumpskin = function() {\n"
-			+    read(new File(skindir, "skin.js"))
+			+    RemoteUtil.read(new File(skindir, "skin.js"))
 			+ "\n}";
-	}
-
-	private static String read(String resource) {
-		try {
-			return IOUtils.toString(PlayerControlHandler.class.getResourceAsStream("/resources/web/" + resource), "UTF-8");
-		} catch (IOException e) {
-			LOGGER.debug("Error reading resource: " + e);
-		}
-		return null;
-	}
-
-	private static String read(File f) {
-		try {
-			return FileUtils.readFileToString(f, Charset.forName("UTF-8"));
-		} catch (IOException e) {
-			LOGGER.debug("Error reading file: " + e);
-		}
-		return null;
 	}
 
 	public static Map<String,String> parseQuery(HttpExchange x) {
