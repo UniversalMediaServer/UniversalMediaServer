@@ -578,4 +578,8 @@ public class LooksFrame extends JFrame implements IFrame, Observer {
 	public void setScanLibraryEnabled(boolean flag) {
 		getNt().setScanLibraryEnabled(flag);
 	}
+
+	public String getLog() {
+		return getTt().getList().getText();
+	}
 }

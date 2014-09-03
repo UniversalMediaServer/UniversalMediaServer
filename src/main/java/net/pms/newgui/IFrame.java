@@ -32,4 +32,5 @@ public interface IFrame {
 	public void setStatusLine(String line);
 	public void serverReady();
 	public void setScanLibraryEnabled(boolean flag);
+	public String getLog();
 }

@@ -302,7 +302,7 @@ public class RemoteWeb {
 				return;
 			}
 			if (t.getRequestURI().getPath().startsWith("/files/log")) {
-				String log = ((LooksFrame)PMS.get().getFrame()).getTt().getList().getText();
+				String log = PMS.get().getFrame().getLog();
 				log = log.replaceAll("\n", "<br>");
 				String data = "<html><title>UMS LOG</title><body>" + log + "</body></html>";
 				t.sendResponseHeaders(200, data.length());
