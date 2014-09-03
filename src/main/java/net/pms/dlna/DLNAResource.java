@@ -1510,12 +1510,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			} else {
 				LOGGER.trace("Not setting subsAreValidForStreaming and it is false for " + getName());
 			}
-		}
 
-		if (isFolder()) {
-			openTag(sb, "container");
-		} else {
 			openTag(sb, "item");
+		} else {
+			openTag(sb, "container");
 		}
 
 		addAttribute(sb, "id", getResourceId());
