@@ -303,7 +303,9 @@ public class RemoteWeb {
 				return;
 			}
 			if (t.getRequestURI().getPath().startsWith("/files/log")) {
+				LOGGER.debug("log request");
 				String log = PMS.get().getFrame().getLog();
+				LOGGER.debug("log "+log);
 				log = log.replaceAll("\n", "<br>");
 				String fullLink = "<br><a href=\"/files/full\">Full log</a><br>";
 				String x = fullLink + log;
@@ -314,6 +316,7 @@ public class RemoteWeb {
 				t.sendResponseHeaders(200, data.length());
 				try (OutputStream os = t.getResponseBody()) {
 					os.write(data.getBytes());
+					os.close();
 				}
 				return;
 			}	
