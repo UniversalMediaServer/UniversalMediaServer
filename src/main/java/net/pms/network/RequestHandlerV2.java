@@ -220,13 +220,16 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			// the renderer have failed. The only option left is to assume the
 			// default renderer.
 			request.setMediaRenderer(RendererConfiguration.resolve(ia, null));
-			LOGGER.trace("Using default media renderer: " + request.getMediaRenderer().getRendererName());
+			// If the renderer is still null it means we know via upnp that it's not really a renderer
+			if (request.getMediaRenderer() != null) {
+				LOGGER.trace("Using default media renderer: " + request.getMediaRenderer().getRendererName());
 
-			if (userAgentString != null && !userAgentString.equals("FDSSDP")) {
-				// We have found an unknown renderer
-				LOGGER.info("Media renderer was not recognized. Possible identifying HTTP headers: User-Agent: " + userAgentString
-						+ ("".equals(unknownHeaders.toString()) ? "" : ", " + unknownHeaders.toString()));
-				PMS.get().setRendererFound(request.getMediaRenderer());
+				if (userAgentString != null && !userAgentString.equals("FDSSDP")) {
+					// We have found an unknown renderer
+					LOGGER.info("Media renderer was not recognized. Possible identifying HTTP headers: User-Agent: " + userAgentString
+							+ ("".equals(unknownHeaders.toString()) ? "" : ", " + unknownHeaders.toString()));
+					PMS.get().setRendererFound(request.getMediaRenderer());
+				}
 			}
 		} else {
 			if (userAgentString != null) {
