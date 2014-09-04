@@ -306,10 +306,10 @@ public class RemoteWeb {
 			}
 			if (path.startsWith("/files/log")) {
 				String data = null;
-				if (path.startsWith("/files/log/short")) {
+				if (path.startsWith("/files/log/info")) {
 					String log = PMS.get().getFrame().getLog();
 					log = log.replaceAll("\n", "<br>");
-					String fullLink = "<br><a href=\"/files/log/full\">Full log</a><br>";
+					String fullLink = "<br><a href=\"/files/log/full\">Full log</a><br><br>";
 					String x = fullLink + log;
 					if (StringUtils.isNotEmpty(log)) {
 						x = x + fullLink;
@@ -341,7 +341,7 @@ public class RemoteWeb {
 					os.write(bytes);
 					os.close();
 				} catch (Exception e) {
-					e.printStackTrace();
+					LOGGER.debug("Error sending response: " + e);
 				}
 				return;
 			}	
@@ -450,10 +450,10 @@ public class RemoteWeb {
 						sb.append("<h1>Tools</h1>").append(CRLF);
 						sb.append("<br/>").append(CRLF);
 						sb.append("<ul>").append(CRLF);
-						sb.append("<li>View logs &bull;<a href=\"/files/log/short\"><i>gui version</i></a> &bull;<a href=\"/files/log/full\"><i>debug.log</i></a></li>").append(CRLF);
+						sb.append("<li>View logs &bull;<a href=\"/files/log/info\"><i>info</i></a> &bull;<a href=\"/files/log/full\"><i>debug</i></a></li>").append(CRLF);
 						sb.append("<br/><br/>").append(CRLF);
 						sb.append("</ul>").append(CRLF);
-						sb.append("<h1>Info</h1>").append(CRLF);
+						sb.append("<h1>Documentation</h1>").append(CRLF);
 						sb.append("<br/>").append(CRLF);
 						sb.append("<ul>").append(CRLF);
 						sb.append("<li><a href=\"/bump\">Browser-to-UMS Media Player Setup.</a></li>").append(CRLF);

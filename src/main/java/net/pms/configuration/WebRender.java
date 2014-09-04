@@ -116,7 +116,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 			screenHeight = Integer.valueOf(umsInfo.group(3));
 			isTouchDevice = Boolean.valueOf(umsInfo.group(4));
 
-			LOGGER.debug("Setting {} browser info: plaform:{}, screen:{}x{}, isTouchDevice:{}",
+			LOGGER.debug("Setting {} browser info: platform:{}, screen:{}x{}, isTouchDevice:{}",
 				getRendererName(), platform, screenWidth, screenHeight, isTouchDevice);
 		}
 	}
