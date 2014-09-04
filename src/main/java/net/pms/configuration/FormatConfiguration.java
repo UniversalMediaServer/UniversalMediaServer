@@ -47,7 +47,6 @@ public class FormatConfiguration {
 	public static final String MOV = "mov";
 	public static final String MP3 = "mp3";
 	public static final String MP4 = "mp4";
-	public static final String MP4A = "mp4a";
 	public static final String MPA = "mpa";
 	public static final String MPC = "mpc";
 	public static final String MPEG1 = "mpeg1";

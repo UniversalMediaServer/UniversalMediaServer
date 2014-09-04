@@ -179,7 +179,7 @@ public class DLNAMediaAudio extends DLNAMediaLang implements Cloneable {
 	 * @return True if the audio codec is AAC.
 	 */
 	public boolean isAAC() {
-		return getCodecA() != null && (getCodecA().equalsIgnoreCase(FormatConfiguration.AAC) || getCodecA().equalsIgnoreCase(FormatConfiguration.MP4A));
+		return getCodecA() != null && getCodecA().equalsIgnoreCase(FormatConfiguration.AAC);
 	}
 
 	/**
