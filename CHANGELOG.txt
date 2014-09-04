@@ -2,9 +2,10 @@
 
 	General:
 		Made videos start faster sometimes when using FFmpeg
-		Fixed x264 transcoding when using recent versions of MEncoder
 		Improved accuracy of file parsing in some rare files
 		Improved folder population speed
+		Fixed x264 transcoding when using recent versions of MEncoder
+		Fixed Windows Java 6 versions trying to update to Java 7
 	Languages:
 		Updated French translation (thanks, Kirvx!)
 		Updated Spanish translation
