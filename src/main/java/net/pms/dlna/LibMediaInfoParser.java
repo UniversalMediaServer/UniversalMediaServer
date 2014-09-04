@@ -90,6 +90,8 @@ public class LibMediaInfoParser {
 							streamType = MediaInfo.StreamType.Menu;
 						} else if (line.equals("Chapters")) {
 							streamType = MediaInfo.StreamType.Chapters;
+						} else if (line.equals("Other") || line.startsWith("Other #")) {
+							streamType = MediaInfo.StreamType.Other;
 						}
 
 						int point = line.indexOf(':');
