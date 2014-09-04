@@ -324,7 +324,8 @@ public class RequestV2 extends HTTPResource {
 				} else {
 					// This is a request for a regular file.
 					RendererConfiguration orig = dlna.getDefaultRenderer();
-					if (!mediaRenderer.equals(orig)) {
+					boolean rendererChanged = !mediaRenderer.equals(orig);
+					if (rendererChanged) {
 						// change render and update player details
 						dlna.updateRender(mediaRenderer);
 					}
@@ -465,7 +466,7 @@ public class RequestV2 extends HTTPResource {
 						output.headers().set(HttpHeaders.Names.ACCEPT_RANGES, "bytes");
 						output.headers().set(HttpHeaders.Names.CONNECTION, "keep-alive");
 					}
-					if (! orig.equals(mediaRenderer)) {
+					if (rendererChanged) {
 						// put the orig render back
 						dlna.updateRender(orig);
 					}
