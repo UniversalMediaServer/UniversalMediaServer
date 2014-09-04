@@ -3,13 +3,18 @@
 	General:
 		Made videos start faster sometimes when using FFmpeg
 		Fixed x264 transcoding when using recent versions of MEncoder
+		Improved accuracy of file parsing in some rare files
+		Improved folder population speed
+	Languages:
+		Updated French translation (thanks, Kirvx!)
+		Updated Spanish translation
 	External Components:
 		Updated MPlayer/MEncoder for Windows to SB59, which:
 			Fixes decoding of PGS subtitles
 			Improves support for many containers and codecs
 			Improves 3D compatibility on some devices
 			Fixes bugs
-		Updated Netty to 3.9.1, which:
+		Updated Netty to 3.9.4, which:
 			Improves security
 			Fixes bugs
 			Improves memory use
