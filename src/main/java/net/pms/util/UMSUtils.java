@@ -2,10 +2,10 @@ package net.pms.util;
 
 import java.io.File;
 import java.text.Collator;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Random;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
@@ -121,5 +121,13 @@ public class UMSUtils {
 				});
 				break;
 		}
+	}
+
+	public static String logFormat(String msg) {
+		DateFormat dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss");
+		Date date = new Date();
+
+		String[] messageDisplay = msg.replaceFirst("]", "string that should never match").split("string that should never match");
+		return dateFormat.format(date) + " " + messageDisplay[1];
 	}
 }

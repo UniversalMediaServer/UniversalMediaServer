@@ -19,10 +19,22 @@
 package net.pms.newgui;
 
 import net.pms.configuration.RendererConfiguration;
+import net.pms.util.UMSUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
 
 public class DummyFrame implements IFrame {
+
+	private ArrayList<String> log;
+
+	public DummyFrame() {
+		log = new ArrayList<>();
+	}
+
 	@Override
 	public void append(String msg) {
+		log.add(UMSUtils.logFormat(msg));
 	}
 
 	@Override
@@ -66,6 +78,6 @@ public class DummyFrame implements IFrame {
 	}
 
 	public String getLog() {
-		return "";
+		return StringUtils.join(log, "\n");
 	}
 }

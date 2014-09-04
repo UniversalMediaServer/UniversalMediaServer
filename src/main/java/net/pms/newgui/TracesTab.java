@@ -44,6 +44,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.logging.LoggingConfigFileLoader;
 import net.pms.util.FormLayoutUtil;
+import net.pms.util.UMSUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,11 +96,7 @@ public class TracesTab {
 	}
 	
 	public void append(String msg) {
-		DateFormat dateFormat = new SimpleDateFormat("MM-dd HH:mm:ss");
-		Date date = new Date();
-
-		String[] messageDisplay = msg.replaceFirst("]", "string that should never match").split("string that should never match");
-		getList().append(dateFormat.format(date) + " " + messageDisplay[1]);
+		getList().append(UMSUtils.logFormat(msg));
 		final JScrollBar vbar = jListPane.getVerticalScrollBar();
 
 		// If scrollbar was already at the bottom we schedule a new
