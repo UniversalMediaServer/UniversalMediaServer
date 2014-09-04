@@ -61,6 +61,7 @@ public class LibMediaInfoParser {
 				boolean audioPrepped = false;
 				DLNAMediaSubtitle currentSubTrack = new DLNAMediaSubtitle();
 				boolean subPrepped = false;
+				boolean unusedStreamType = false;
 
 				if (StringUtils.isNotBlank(info)) {
 					media.setSize(file.length());
@@ -88,14 +89,17 @@ public class LibMediaInfoParser {
 							streamType = MediaInfo.StreamType.Text;
 						} else if (line.equals("Menu") || line.startsWith("Menu #")) {
 							streamType = MediaInfo.StreamType.Menu;
+							unusedStreamType = true;
 						} else if (line.equals("Chapters")) {
 							streamType = MediaInfo.StreamType.Chapters;
+							unusedStreamType = true;
 						} else if (line.equals("Other") || line.startsWith("Other #")) {
 							streamType = MediaInfo.StreamType.Other;
+							unusedStreamType = true;
 						}
 
+						if (!unusedStreamType) {
 						int point = line.indexOf(':');
-
 						if (point > -1) {
 							String key = line.substring(0, point).trim();
 							String ovalue = line.substring(point + 1).trim();
@@ -228,6 +232,7 @@ public class LibMediaInfoParser {
 							} else if (key.equals("matrix_coefficients") && streamType == MediaInfo.StreamType.Video) {
 								media.setMatrixCoefficients(value);
 							}
+						}
 						}
 					}
 				}
