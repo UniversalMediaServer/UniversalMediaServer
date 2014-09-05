@@ -633,7 +633,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							}
 
 							boolean hasEmbeddedSubs = false;
-							boolean hasAnySubs = child.media.getSubtitleTracksList().size() > 0;
+							boolean hasAnySubs = child.media.getSubtitleTracksList().size() > 0 || child.isSubsFile();
 							boolean hasSubsToTranscode = false;
 
 							if (!configuration.isDisableSubtitles() && hasAnySubs) {
