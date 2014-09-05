@@ -2,10 +2,12 @@
 
 	General:
 		Made videos start faster sometimes when using FFmpeg
-		Improved accuracy of file parsing in some rare files
+		Improved accuracy when parsing rare files
 		Improved folder population speed
 		Fixed x264 transcoding when using recent versions of MEncoder
 		Fixed Windows Java 6 versions trying to update to Java 7
+	Renderers:
+		Fixed external subtitle streaming support on Samsung TVs
 	Languages:
 		Updated French translation (thanks, Kirvx!)
 		Updated Spanish translation
