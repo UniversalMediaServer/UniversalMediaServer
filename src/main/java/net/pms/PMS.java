@@ -287,6 +287,7 @@ public class PMS {
 	}
 
 	private void displayBanner() throws IOException {
+		LOGGER.debug("");
 		LOGGER.info("Starting " + PropertiesUtil.getProjectProperties().get("project.name") + " " + getVersion());
 		LOGGER.info("Based on PS3 Media Server by shagrath, copyright 2008-2014");
 		LOGGER.info("http://www.universalmediaserver.com");
@@ -386,6 +387,10 @@ public class PMS {
 	 * @throws Exception
 	 */
 	private boolean init() throws Exception {
+
+		// call this as early as possible
+		displayBanner();
+
 		// Wizard
 		if (configuration.isRunWizard() && !isHeadless()) {
 			// Ask the user if they want to run the wizard
@@ -513,9 +518,6 @@ public class PMS {
 		VERSION = getVersion();
 
 		globalRepo = new GlobalIdRepo();
-
-		// call this as early as possible
-		displayBanner();
 
 		AutoUpdater autoUpdater = null;
 		if (Build.isUpdatable()) {
@@ -1144,6 +1146,8 @@ public class PMS {
 			// XXX not sure this is (still) true: the only filter
 			// we use is ch.qos.logback.classic.filter.ThresholdFilter
 			LoggingConfigFileLoader.load();
+
+			LOGGER.debug(new Date().toString());
 
 			try {
 				getConfiguration().initCred();

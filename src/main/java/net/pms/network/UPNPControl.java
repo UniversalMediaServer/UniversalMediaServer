@@ -186,10 +186,10 @@ public class UPNPControl {
 					String id = data.get("InstanceID");
 					while (active && ! "STOPPED".equals(data.get("TransportState"))) {
 						UPNPHelper.sleep(1000);
-						if (DEBUG) LOGGER.debug("InstanceID: " + id);
+//						if (DEBUG) LOGGER.debug("InstanceID: " + id);
 						for (ActionArgumentValue o : getPositionInfo(d, id)) {
 							data.put(o.getArgument().getName(), o.toString());
-							if (DEBUG) LOGGER.debug(o.getArgument().getName() + ": " + o.toString());
+//							if (DEBUG) LOGGER.debug(o.getArgument().getName() + ": " + o.toString());
 						}
 						alert();
 					}
@@ -219,7 +219,7 @@ public class UPNPControl {
 			for (int i = 0; i < ids.getLength(); i++) {
 				NodeList c = ids.item(i).getChildNodes();
 				String id = ((Element)ids.item(i)).getAttribute("val");
-				if (DEBUG) LOGGER.debug("InstanceID: " + id);
+//				if (DEBUG) LOGGER.debug("InstanceID: " + id);
 				if (item == null) {
 					item = rendererMap.get(uuid, id);
 				}

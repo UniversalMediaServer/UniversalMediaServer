@@ -114,6 +114,8 @@ public class UPNPHelper extends UPNPControl {
 		return httpControlHandler;
 	}
 
+	private static String lastSearch = null;
+
 	/**
 	 * Send UPnP discovery search message to discover devices of interest on
 	 * the network.
@@ -149,7 +151,16 @@ public class UPNPHelper extends UPNPControl {
 		discovery.append("USN: ").append(usn).append(st).append(CRLF);
 		discovery.append("Content-Length: 0").append(CRLF).append(CRLF);
 
-		sendReply(host, port, discovery.toString());
+		String msg = discovery.toString();
+
+		if (st.equals(lastSearch)) {
+			LOGGER.trace("Resending last discovery [" + host + ":" + port + "]");
+		} else {
+			LOGGER.trace("Sending discovery [" + host + ":" + port + "]: " + StringUtils.replace(msg, CRLF, "<CRLF>"));
+		}
+
+		sendReply(host, port, msg);
+		lastSearch = st;
 	}
 
 	/**
@@ -164,9 +175,6 @@ public class UPNPHelper extends UPNPControl {
 		try (DatagramSocket datagramSocket = new DatagramSocket()) {
 			InetAddress inetAddr = InetAddress.getByName(host);
 			DatagramPacket dgmPacket = new DatagramPacket(msg.getBytes(), msg.length(), inetAddr, port);
-
-			LOGGER.trace("Sending this reply [" + host + ":" + port + "]: " + StringUtils.replace(msg, CRLF, "<CRLF>"));
-
 			datagramSocket.send(dgmPacket);
 		} catch (Exception e) {
 			LOGGER.info(e.getMessage());
@@ -207,6 +215,8 @@ public class UPNPHelper extends UPNPControl {
 			}
 		}
 	}
+
+	static boolean multicastLog = true;
 
 	/**
 	 * Gets the new multicast socket.
@@ -255,12 +265,15 @@ public class UPNPHelper extends UPNPControl {
 		InetSocketAddress localAddress = new InetSocketAddress(usableAddresses.get(0), 0);
 		MulticastSocket ssdpSocket = new MulticastSocket(localAddress);
 		ssdpSocket.setReuseAddress(true);
-
-		LOGGER.trace("Sending message from multicast socket on network interface: " + ssdpSocket.getNetworkInterface());
-		LOGGER.trace("Multicast socket is on interface: " + ssdpSocket.getInterface());
 		ssdpSocket.setTimeToLive(32);
-		LOGGER.trace("Socket Timeout: " + ssdpSocket.getSoTimeout());
-		LOGGER.trace("Socket TTL: " + ssdpSocket.getTimeToLive());
+
+		if (multicastLog) {
+			LOGGER.trace("Sending message from multicast socket on network interface: " + ssdpSocket.getNetworkInterface());
+			LOGGER.trace("Multicast socket is on interface: " + ssdpSocket.getInterface());
+			LOGGER.trace("Socket Timeout: " + ssdpSocket.getSoTimeout());
+			LOGGER.trace("Socket TTL: " + ssdpSocket.getTimeToLive());
+			multicastLog = false;
+		}
 		return ssdpSocket;
 	}
 
@@ -413,6 +426,10 @@ public class UPNPHelper extends UPNPControl {
 						InetAddress upnpAddress = getUPNPAddress();
 						multicastSocket.joinGroup(upnpAddress);
 
+						int M_SEARCH = 1, NOTIFY = 2;
+						InetAddress lastAddress = null;
+						int lastPacketType = 0;
+
 						while (true) {
 							byte[] buf = new byte[1024];
 							DatagramPacket receivePacket = new DatagramPacket(buf, buf.length);
@@ -421,13 +438,17 @@ public class UPNPHelper extends UPNPControl {
 							String s = new String(receivePacket.getData(), 0, receivePacket.getLength());
 
 							InetAddress address = receivePacket.getAddress();
+							int packetType = s.startsWith("M-SEARCH") ? M_SEARCH : s.startsWith("NOTIFY") ? NOTIFY : 0;
 
-							if (s.startsWith("M-SEARCH")) {
-								String remoteAddr = address.getHostAddress();
-								int remotePort = receivePacket.getPort();
+							boolean redundant = address.equals(lastAddress) && packetType == lastPacketType;
 
+							if (packetType == M_SEARCH) {
 								if (configuration.getIpFiltering().allowed(address)) {
-									LOGGER.trace("Receiving a M-SEARCH from [" + remoteAddr + ":" + remotePort + "]");
+									String remoteAddr = address.getHostAddress();
+									int remotePort = receivePacket.getPort();
+									if (! redundant) {
+										LOGGER.trace("Receiving a M-SEARCH from [" + remoteAddr + ":" + remotePort + "]");
+									}
 
 									if (StringUtils.indexOf(s, "urn:schemas-upnp-org:service:ContentDirectory:1") > 0) {
 										sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:service:ContentDirectory:1");
@@ -449,12 +470,12 @@ public class UPNPHelper extends UPNPControl {
 										sendDiscover(remoteAddr, remotePort, PMS.get().usn());
 									}
 								}
-							} else if (s.startsWith("NOTIFY")) {
-								String remoteAddr = address.getHostAddress();
-								int remotePort = receivePacket.getPort();
-
-								LOGGER.trace("Receiving a NOTIFY from [" + remoteAddr + ":" + remotePort + "]");
+							// Don't log redundant notify messages
+							} else if (packetType == NOTIFY && ! redundant) {
+								LOGGER.trace("Receiving a NOTIFY from [" + address.getHostAddress() + ":" + receivePacket.getPort() + "]");
 							}
+							lastAddress = address;
+							lastPacketType = packetType;
 						}
 					} catch (BindException e) {
 						if (!bindErrorReported) {
