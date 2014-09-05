@@ -304,7 +304,7 @@ public class RemoteWeb {
 				}
 				return;
 			}
-			if (path.startsWith("/files/log")) {
+			if (path.startsWith("/files/log/")) {
 				String data = null;
 				if (path.startsWith("/files/log/info")) {
 					String log = PMS.get().getFrame().getLog();
