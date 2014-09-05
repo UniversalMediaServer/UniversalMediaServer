@@ -1,8 +1,36 @@
-body .syntaxhighlighter .line { white-space: nowrap !important; }
-.syntaxhighlighter .tags { color: #006699 !important; }
-.syntaxhighlighter .err  { color: red !important; font-weight: bold !important;}
-.syntaxhighlighter .str  { color: #006699 !important; font-weight: bold !important;}
-.syntaxhighlighter .addr { color: #009980 !important;}
-.syntaxhighlighter .plain { color: black !important;}
-.syntaxhighlighter .cmd { color: #993300 !important;}
+body .syntaxhighlighter .line {
+	white-space: nowrap !important;
+	font-family: monospace !important;
+	font-size: 12px;
+}
+
+.syntaxhighlighter .tags {
+	color: #006699 !important;
+}
+
+.syntaxhighlighter .err  {
+	color: red !important;
+	font-weight: bold !important;
+}
+
+.syntaxhighlighter .errmsg  {
+	color: red !important;
+}
+
+.syntaxhighlighter .str {
+	color: #006699 !important;
+	font-weight: bold !important;
+}
+
+.syntaxhighlighter .addr {
+	color: #009980 !important;
+}
+
+.syntaxhighlighter .plain {
+	color: black !important;
+}
+
+.syntaxhighlighter .cmd {
+	color: #993300 !important;
+}
 
