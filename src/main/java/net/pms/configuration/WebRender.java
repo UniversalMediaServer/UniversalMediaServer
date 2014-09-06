@@ -79,6 +79,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		configuration.addProperty(TRANSCODE_AUDIO, MP3);
 		return true;
 	}
+	
 
 	@Override
 	public boolean associateIP(InetAddress sa) {
@@ -123,7 +124,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 
 	@Override
 	public String getRendererName() {
-		String s = pmsconfiguration.isWebAuthenticate() ? "@" : "";
+		String s = pmsconfiguration.isWebAuthenticate() ? name + "@" : "";
 		switch (browser) {
 			case CHROME:  return s + "Chrome";
 			case MSIE:    return s + "Internet Explorer";

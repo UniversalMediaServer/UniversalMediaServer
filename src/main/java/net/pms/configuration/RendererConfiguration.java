@@ -468,6 +468,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		}
 		for (RendererConfiguration r : enabledRendererConfs) {
 			if (r.match(sortedHeaders)) {
+				LOGGER.trace("Matched media renderer \"" + r.getRendererName() + "\" based on headers " + sortedHeaders);
 				return r;
 			}
 		}
