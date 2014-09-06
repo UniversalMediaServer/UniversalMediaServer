@@ -1812,7 +1812,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getBoolean(IGNORE_TRANSCODE_BYTE_RANGE_REQUEST, false);
 	}
 
-	private String calculatedSpeed() throws Exception {
+	public String calculatedSpeed() throws Exception {
 		String max = getString(MAX_VIDEO_BITRATE, "");
 		for (InetAddress sa : addressAssociation.keySet()) {
 			if (addressAssociation.get(sa) == this) {

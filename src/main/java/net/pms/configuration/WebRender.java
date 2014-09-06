@@ -197,7 +197,15 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 
 	public boolean isLowBitrate() {
 		// FIXME: this should return true if either network speed or client cpu are slow
-		return screenWidth < 720 && (ua.contains("mobi") || isTouchDevice);
+		boolean speed  = false;
+		try {
+			// note here if we get a low speed then calcspeed
+			// will return -1 which will ALWAYS be less that the configed value.
+			speed = getInt(calculatedSpeed(), 0) < pmsConfiguration.getWebLowSpeed();
+		}
+		catch (Exception e) {
+		}
+		return speed || (screenWidth < 720 && (ua.contains("mobi") || isTouchDevice));
 	}
 
 	@Override
@@ -222,9 +230,9 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 						}
 					}
 				}
-				//if (isLowBitrate()) {
+				if (isLowBitrate()) {
 					cmdList.addAll(((FFMpegVideo) player).getVideoBitrateOptions(dlna, media, params));
-				//}
+				}
 			} else {
 				// nothing here yet
 			}

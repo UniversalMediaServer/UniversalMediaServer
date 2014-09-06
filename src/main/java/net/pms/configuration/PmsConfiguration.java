@@ -261,6 +261,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_WEB_LOOP_AUDIO = "web_loop_audio";
 	protected static final String KEY_WEB_LOOP_IMAGE = "web_loop_image";
 	protected static final String KEY_WEB_LOOP_VIDEO = "web_loop_video";
+	protected static final String KEY_WEB_LOW_SPEED = "web_low_speed";
 	protected static final String KEY_WEB_MP4_TRANS = "web_mp4_trans";
 	protected static final String KEY_WEB_TRANSCODE = "web_transcode";
 	protected static final String KEY_WEB_SIZE = "web_size";
@@ -3247,6 +3248,10 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public String getWebTranscode() {
 		return getString(KEY_WEB_TRANSCODE, null);
+	}
+
+	public int getWebLowSpeed() {
+		return getInt(KEY_WEB_LOW_SPEED, 0);
 	}
 
 	public boolean useInfoDb() {
