@@ -404,6 +404,7 @@ public class FFMpegVideo extends Player {
 	 */
 	public List<String> getVideoBitrateOptions(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) {
 		List<String> videoBitrateOptions = new ArrayList<>();
+		boolean low = false;
 
 		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
@@ -425,6 +426,7 @@ public class FFMpegVideo extends Player {
 				// odd specail case here
 				// this is -1 so we guess that 300 kbps is good
 				defaultMaxBitrates[0] = 300;
+				low = true;
 			} else {
 				// Convert value from Mb to Kb
 				defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
@@ -484,8 +486,7 @@ public class FFMpegVideo extends Player {
 
 				// Round down to the nearest Mb
 				defaultMaxBitrates[0] = defaultMaxBitrates[0] / 1000 * 1000;
-				if (defaultMaxBitrates[0] == 0) {
-					// 0 isn't that great set to a low value
+				if (low) {
 					defaultMaxBitrates[0] = 300;
 				}
 
