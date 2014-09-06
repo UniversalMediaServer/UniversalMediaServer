@@ -451,8 +451,11 @@ public class RemoteWeb {
 						sb.append("<br/>").append(CRLF);
 						sb.append("<ul>").append(CRLF);
 						sb.append("<li>View logs &bull;<a href=\"/files/log/info\"><i>info</i></a> &bull;<a href=\"/files/log/full\"><i>debug</i></a></li>").append(CRLF);
-						sb.append("<br/><br/>").append(CRLF);
+						if (configuration.getUseCache()) {
+							sb.append("<li><a href=\"http://" + PMS.get().getServer().getHost() + ":" + PMS.get().getServer().getPort() + "/console/home\">Manage cache.</a></li>").append(CRLF);
+						}
 						sb.append("</ul>").append(CRLF);
+						sb.append("<br/><br/>").append(CRLF);
 						sb.append("<h1>Documentation</h1>").append(CRLF);
 						sb.append("<br/>").append(CRLF);
 						sb.append("<ul>").append(CRLF);
