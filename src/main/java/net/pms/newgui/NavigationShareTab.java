@@ -574,7 +574,6 @@ public class NavigationShareTab {
 
 		CustomJButton but2 = new CustomJButton(LooksFrame.readImageIcon("button-remove.png"));
 		but2.setToolTipText(Messages.getString("FoldTab.36"));
-		//but2.setBorder(BorderFactory.createEtchedBorder());
 		but2.addActionListener((java.awt.event.ActionEvent e) -> {
 			if (FList.getSelectedRow() > -1) {
 				((SharedFoldersTableModel) FList.getModel()).removeRow(FList.getSelectedRow());
@@ -588,7 +587,6 @@ public class NavigationShareTab {
 
 		CustomJButton but3 = new CustomJButton(LooksFrame.readImageIcon("button-arrow-down.png"));
 		but3.setToolTipText(Messages.getString("FoldTab.12"));
-		// but3.setBorder(BorderFactory.createEmptyBorder());
 		but3.addActionListener((ActionEvent e) -> {
 			for (int i = 0; i < FList.getRowCount() - 1; i++) {
 				if (FList.isRowSelected(i)) {
@@ -609,7 +607,6 @@ public class NavigationShareTab {
 
 		CustomJButton but4 = new CustomJButton(LooksFrame.readImageIcon("button-arrow-up.png"));
 		but4.setToolTipText(Messages.getString("FoldTab.12"));
-		//  but4.setBorder(BorderFactory.createEmptyBorder());
 		but4.addActionListener((ActionEvent e) -> {
 			for (int i = 1; i < FList.getRowCount(); i++) {
 				if (FList.isRowSelected(i)) {
@@ -630,7 +627,6 @@ public class NavigationShareTab {
 
 		but5 = new CustomJButton(LooksFrame.readImageIcon("button-scan.png"));
 		but5.setToolTipText(Messages.getString("FoldTab.2"));
-		//but5.setBorder(BorderFactory.createEmptyBorder());
 		but5.addActionListener((ActionEvent e) -> {
 			if (configuration.getUseCache()) {
 				DLNAMediaDatabase database = PMS.get().getDatabase();
