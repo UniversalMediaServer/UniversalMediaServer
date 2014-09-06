@@ -118,7 +118,8 @@ public class MediaInfo {
 		Text,
 		Chapters,
 		Image,
-		Menu;
+		Menu,
+		Other;
 	}
 	
 	// Enums
