@@ -740,13 +740,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			loaded = load(f);
 		}
 
-		// Set up the header matcher
-		SortedHeaderMap searchMap = new SortedHeaderMap();
-		searchMap.put("User-Agent", getUserAgent());
-		searchMap.put(getUserAgentAdditionalHttpHeader(), getUserAgentAdditionalHttpHeaderSearch());
-		String re = searchMap.toRegex();
-		sortedHeaderMatcher = StringUtils.isNotBlank(re) ? Pattern.compile(re, Pattern.CASE_INSENSITIVE).matcher("") : null;
-
 		mimes = new HashMap<>();
 		String mimeTypes = getString(MIME_TYPES_CHANGES, "");
 

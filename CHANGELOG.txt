@@ -1875,3 +1875,4 @@
 		- Added AcePlayer app (thanks, md.versi!)
 		- Fixed Samsung 2012 TVs timeout (thanks, troop!)
 	Added option to select and force the default renderer
+
