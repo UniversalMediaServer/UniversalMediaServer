@@ -358,12 +358,18 @@ public class FFMpegVideo extends Player {
 
 			// Output video codec
 			if (renderer.isTranscodeToMPEGTSH264AC3() || renderer.isTranscodeToMPEGTSH264AAC()) {
-				transcodeOptions.add("-c:v");
-				transcodeOptions.add("libx264");
-				transcodeOptions.add("-preset");
-				transcodeOptions.add("superfast");
-				transcodeOptions.add("-level");
-				transcodeOptions.add("31");
+				if (!customFFmpegOptions.contains("-c:v")) {
+					transcodeOptions.add("-c:v");
+					transcodeOptions.add("libx264");
+				}
+				if (!customFFmpegOptions.contains("-preset")) {
+					transcodeOptions.add("-preset");
+					transcodeOptions.add("superfast");
+				}
+				if (!customFFmpegOptions.contains("-level")) {
+					transcodeOptions.add("-level");
+					transcodeOptions.add("31");
+				}
 				transcodeOptions.add("-pix_fmt");
 				transcodeOptions.add("yuv420p");
 			} else if (!dtsRemux) {
@@ -371,14 +377,16 @@ public class FFMpegVideo extends Player {
 				transcodeOptions.add("mpeg2video");
 			}
 
-			// Output file format
-			transcodeOptions.add("-f");
-			if (dtsRemux) {
-				transcodeOptions.add("mpeg2video");
-			} else if (renderer.isTranscodeToMPEGTSMPEG2AC3() || renderer.isTranscodeToMPEGTSH264AC3() || renderer.isTranscodeToMPEGTSH264AAC()) { // MPEGTSMPEG2AC3, MPEGTSH264AC3 or MPEGTSH264AAC
-				transcodeOptions.add("mpegts");
-			} else { // default: MPEGPSMPEG2AC3
-				transcodeOptions.add("vob");
+			if (!customFFmpegOptions.contains("-f")) {
+				// Output file format
+				transcodeOptions.add("-f");
+				if (dtsRemux) {
+					transcodeOptions.add("mpeg2video");
+				} else if (renderer.isTranscodeToMPEGTSMPEG2AC3() || renderer.isTranscodeToMPEGTSH264AC3() || renderer.isTranscodeToMPEGTSH264AAC()) { // MPEGTSMPEG2AC3, MPEGTSH264AC3 or MPEGTSH264AAC
+					transcodeOptions.add("mpegts");
+				} else { // default: MPEGPSMPEG2AC3
+					transcodeOptions.add("vob");
+				}
 			}
 		}
 
