@@ -1,4 +1,4 @@
-4.1.1 - 2014-09-??
+4.1.1 - 2014-09-06
 
 	General:
 		Made videos start faster sometimes when using FFmpeg
