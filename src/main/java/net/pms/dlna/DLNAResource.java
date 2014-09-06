@@ -654,7 +654,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							}
 
 							boolean hasEmbeddedSubs = false;
-							boolean hasAnySubs = child.media.getSubtitleTracksList().size() > 0;
+							boolean hasAnySubs = child.media.getSubtitleTracksList().size() > 0 || child.isSubsFile();
 							boolean hasSubsToTranscode = false;
 
 							if (!configuration.isDisableSubtitles() && hasAnySubs) {
@@ -1631,26 +1631,25 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	public final String getDidlString(RendererConfiguration mediaRenderer) {
 		PmsConfiguration configuration = PMS.getConfiguration(mediaRenderer);
 		StringBuilder sb = new StringBuilder();
-		if (
-			!isFolder() &&
-			!configuration.isDisableSubtitles() &&
-			media != null &&
-			media_subtitle != null &&
-			player == null &&
-			mediaRenderer.isSubtitlesFormatSupported(media_subtitle)
-		) {
-			subsAreValidForStreaming = true;
-			LOGGER.trace("Setting subsAreValidForStreaming to true for " + getName());
-		} else if (subsAreValidForStreaming) {
-			LOGGER.trace("Not setting subsAreValidForStreaming and it is true for " + getName());
-		} else {
-			LOGGER.trace("Not setting subsAreValidForStreaming and it is false for " + getName());
-		}
+		if (!isFolder()) {
+			if (
+				!configuration.isDisableSubtitles() &&
+				media != null &&
+				media_subtitle != null &&
+				player == null &&
+				mediaRenderer.isSubtitlesFormatSupported(media_subtitle)
+			) {
+				subsAreValidForStreaming = true;
+				LOGGER.trace("Setting subsAreValidForStreaming to true for " + getName());
+			} else if (subsAreValidForStreaming) {
+				LOGGER.trace("Not setting subsAreValidForStreaming and it is true for " + getName());
+			} else {
+				LOGGER.trace("Not setting subsAreValidForStreaming and it is false for " + getName());
+			}
 
-		if (isFolder()) {
-			openTag(sb, "container");
-		} else {
 			openTag(sb, "item");
+		} else {
+			openTag(sb, "container");
 		}
 
 		addAttribute(sb, "id",  getResourceId());

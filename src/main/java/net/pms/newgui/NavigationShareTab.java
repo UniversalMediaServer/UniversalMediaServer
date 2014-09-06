@@ -657,7 +657,6 @@ public class NavigationShareTab {
 
 		CustomJButton but2 = new CustomJButton(LooksFrame.readImageIcon("button-remove.png"));
 		but2.setToolTipText(Messages.getString("FoldTab.36"));
-		//but2.setBorder(BorderFactory.createEtchedBorder());
 		but2.addActionListener(new java.awt.event.ActionListener() {
 			@Override
 			public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -674,7 +673,6 @@ public class NavigationShareTab {
 
 		CustomJButton but3 = new CustomJButton(LooksFrame.readImageIcon("button-arrow-down.png"));
 		but3.setToolTipText(Messages.getString("FoldTab.12"));
-		// but3.setBorder(BorderFactory.createEmptyBorder());
 		but3.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -698,7 +696,6 @@ public class NavigationShareTab {
 
 		CustomJButton but4 = new CustomJButton(LooksFrame.readImageIcon("button-arrow-up.png"));
 		but4.setToolTipText(Messages.getString("FoldTab.12"));
-		//  but4.setBorder(BorderFactory.createEmptyBorder());
 		but4.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -723,7 +720,6 @@ public class NavigationShareTab {
 
 		but5 = new CustomJButton(LooksFrame.readImageIcon("button-scan.png"));
 		but5.setToolTipText(Messages.getString("FoldTab.2"));
-		//but5.setBorder(BorderFactory.createEmptyBorder());
 		but5.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {

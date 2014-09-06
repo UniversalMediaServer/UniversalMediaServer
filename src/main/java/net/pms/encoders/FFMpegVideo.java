@@ -778,10 +778,6 @@ public class FFMpegVideo extends Player {
 			cmdList.add(filename);
 		}
 
-		// Apply any video filters and associated options. These should go
-		// after video input is specified and before output streams are mapped.
-		cmdList.addAll(getVideoFilterOptions(dlna, media, params));
-
 		// Decide whether to defer to MEncoder for subtitles
 		if (configuration.isFFmpegDeferToMEncoderForSubtitles() && params.sid != null) {
 			LOGGER.trace("Switching from FFmpeg to MEncoder to transcode subtitles.");
@@ -853,6 +849,10 @@ public class FFMpegVideo extends Player {
 
 			return tv.launchTranscode(dlna, media, params);
 		}
+
+		// Apply any video filters and associated options. These should go
+		// after video input is specified and before output streams are mapped.
+		cmdList.addAll(getVideoFilterOptions(dlna, media, params));
 
 		// Map the output streams if necessary
 		if (media.getAudioTracksList().size() > 1) {
