@@ -1,3 +1,7 @@
+SyntaxHighlighter.defaults['gutter'] = false;
+SyntaxHighlighter.defaults['toolbar'] = false;
+SyntaxHighlighter.defaults['smart-tabs'] = false;
+SyntaxHighlighter.defaults['quick-code'] = false;
 SyntaxHighlighter.brushes.ums = function() {
 	this.regexList = [
 		{ css: 'str',    regex: /\"[^"\r\n]*?\"/g },
