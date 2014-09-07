@@ -194,7 +194,6 @@ public class FileUtil {
 		String fileNameWithoutExtension;
 		String formattedName;
 		String formattedNameTemp;
-		InfoDb.InfoDbData info = PMS.get().infoDb().get(file);
 		boolean hasEpisodeNameInFilename = false;
 
 		// Remove file extension
@@ -409,13 +408,15 @@ public class FileUtil {
 		}
 
 		// Add episode name (if not there)
-		if (
-			!hasEpisodeNameInFilename &&
-			info != null &&
-			StringUtils.isNotEmpty(info.ep_name) &&
-			!formattedName.contains(info.ep_name)
-		) {
-			formattedName += " - " + info.ep_name;
+		if (!hasEpisodeNameInFilename) {
+			InfoDb.InfoDbData info = PMS.get().infoDb().get(file);
+			if (
+				info != null &&
+				StringUtils.isNotEmpty(info.ep_name) &&
+				!formattedName.contains(info.ep_name)
+			) {
+				formattedName += " - " + info.ep_name;
+			}
 		}
 
 		return formattedName;
