@@ -249,14 +249,12 @@ public class OpenSubtitle {
 			hashStr + imdbStr + qStr + "\n" +
 			"</struct></value></data>\n</array>\n</value>\n</param>" +
 			"</params>\n</methodCall>\n";
-		Pattern re = Pattern.compile("SubFileName</name>.*?<string>([^<]+)</string>.*?SubLanguageID</name>.*?<string>([^<]+)</string>.*?IDMovieImdb</name>.*?<string>([^<]+)</string>.*?MovieName</name>.*?<string>([^<]+)</string>.*?SubDownloadLink</name>.*?<string>([^<]+)</string>", Pattern.DOTALL);
+		Pattern re = Pattern.compile("SubFileName</name>.*?<string>([^<]+)</string>.*?SubLanguageID</name>.*?<string>([^<]+)</string>.*?SubDownloadLink</name>.*?<string>([^<]+)</string>", Pattern.DOTALL);
 		String page = postPage(url.openConnection(), req);
 		Matcher m = re.matcher(page);
 		while (m.find()) {
-			LOGGER.debug("found subtitle " + m.group(2) + " name " + m.group(1) + " zip " + m.group(5));
-			String eptit = m.group(4).replaceAll(" ",".");
-			LOGGER.debug("imdb "+m.group(3)+" name "+eptit);
-			res.put(m.group(2) + ":" + m.group(1), m.group(5));
+			LOGGER.debug("found subtitle " + m.group(2) + " name " + m.group(1) + " zip " + m.group(3));
+			res.put(m.group(2) + ":" + m.group(1), m.group(3));
 			if (res.size() > PMS.getConfiguration().liveSubtitlesLimit()) {
 				// limit the number of hits somewhat
 				break;

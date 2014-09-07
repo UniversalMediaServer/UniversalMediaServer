@@ -398,4 +398,8 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	public boolean nox264() {
 		return true;
 	}
+
+	public boolean addSubtitles() {
+		return true;
+	}
 }
