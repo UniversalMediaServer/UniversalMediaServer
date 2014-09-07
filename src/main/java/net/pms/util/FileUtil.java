@@ -17,11 +17,10 @@ import net.pms.formats.v2.SubtitleType;
 import org.apache.commons.io.FilenameUtils;
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
+import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.endsWithIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 import static org.mozilla.universalchardet.Constants.*;
-
-import org.apache.commons.lang3.StringUtils;
 import org.mozilla.universalchardet.UniversalDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,10 +28,11 @@ import org.slf4j.LoggerFactory;
 public class FileUtil {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileUtil.class);
 	private static Map<File, File[]> cache;
-	// signal an invalid parameter in getFileLocation() without raising an exception or returning null
+
+	// Signal an invalid parameter in getFileLocation() without raising an exception or returning null
 	private static final String DEFAULT_BASENAME = "NO_DEFAULT_BASENAME_SUPPLIED.conf";
 
-	// this class is not instantiable
+	// This class is not instantiable
 	private FileUtil() { }
 
 	/**
@@ -382,9 +382,11 @@ public class FileUtil {
 		}
 
 		// Add episode name (if not there)
-		if (info != null &&
+		if (
+			info != null &&
 			StringUtils.isNotEmpty(info.ep_name) &&
-			!formattedName.contains(info.ep_name)) {
+			!formattedName.contains(info.ep_name)
+		) {
 			formattedName = formattedName + " " + info.ep_name;
 		}
 
