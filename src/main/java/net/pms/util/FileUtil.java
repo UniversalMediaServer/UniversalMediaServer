@@ -415,7 +415,7 @@ public class FileUtil {
 			StringUtils.isNotEmpty(info.ep_name) &&
 			!formattedName.contains(info.ep_name)
 		) {
-			formattedName = formattedName + " " + info.ep_name;
+			formattedName += " - " + info.ep_name;
 		}
 
 		return formattedName;
