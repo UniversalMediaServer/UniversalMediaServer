@@ -82,6 +82,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		 * @return whether the options have been finalized
 		 */
 		public boolean getOutputOptions(List<String> cmdList, DLNAResource dlna, Player player, OutputParams params);
+
+		public boolean addSubtitles();
 	}
 
 	// Holds MIME type aliases

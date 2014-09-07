@@ -2826,7 +2826,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param mediaSubtitle The subtitle object containing detailed information.
 	 * @since 1.50
 	 */
-	protected void setMediaSubtitle(DLNAMediaSubtitle mediaSubtitle) {
+	public void setMediaSubtitle(DLNAMediaSubtitle mediaSubtitle) {
 		this.media_subtitle = mediaSubtitle;
 	}
 

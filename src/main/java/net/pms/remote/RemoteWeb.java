@@ -75,8 +75,8 @@ public class RemoteWeb {
 			addCtx("/fmedia", new RemoteMediaHandler(this, true));
 			addCtx("/thumb", new RemoteThumbHandler(this));
 			addCtx("/raw", new RemoteRawHandler(this));
-			addCtx("/files", new RemoteFileHandler());
-			addCtx("/subs", new RemoteFileHandler());
+			addCtx("/files", new RemoteFileHandler(this));
+			addCtx("/subs", new RemoteFileHandler(this));
 			addCtx("/doc", new RemoteDocHandler());
 			server.setExecutor(Executors.newFixedThreadPool(threads));
 			server.start();
@@ -289,6 +289,12 @@ public class RemoteWeb {
 	}
 
 	static class RemoteFileHandler implements HttpHandler {
+		private RemoteWeb parent;
+
+		public RemoteFileHandler(RemoteWeb parent) {
+			this.parent = parent;
+
+		}
 		@Override
 		public void handle(HttpExchange t) throws IOException {
 			LOGGER.debug("file req " + t.getRequestURI());

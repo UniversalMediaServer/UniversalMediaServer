@@ -10,10 +10,7 @@ import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
-import net.pms.dlna.DLNAMediaInfo;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.Range;
-import net.pms.dlna.RootFolder;
+import net.pms.dlna.*;
 import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.FFmpegWebVideo;
 import net.pms.encoders.FFmpegAudio;
@@ -70,11 +67,12 @@ public class RemoteMediaHandler implements HttpHandler {
 			LOGGER.debug("media unkonwn");
 			throw new IOException("Bad id");
 		}
-		int sid = -1;
+		DLNAMediaSubtitle sid = null;
 		long len = dlna.length();
 		Range range = RemoteUtil.parseRange(t.getRequestHeaders(), len);
 		String mime = root.getDefaultRenderer().getMimeType(dlna.mimeType());
 		//DLNAResource dlna = res.get(0);
+		WebRender render = (WebRender)r;
 		DLNAMediaInfo m = dlna.getMedia();
 		if (m == null) {
 			m = new DLNAMediaInfo();
@@ -89,7 +87,6 @@ public class RemoteMediaHandler implements HttpHandler {
 			if (flash) {
 				mime = "video/flash";
 			} else if (!RemoteUtil.directmime(mime) || RemoteUtil.transMp4(mime, m)) {
-				WebRender render = (WebRender)r;
 				mime = render != null ? render.getVideoMimeType() : RemoteUtil.transMime();
 				dlna.setPlayer(FileUtil.isUrl(dlna.getSystemName()) ?
 				   new FFmpegWebVideo() :
@@ -101,8 +98,8 @@ public class RemoteMediaHandler implements HttpHandler {
 				dlna.getMediaSubtitle() != null &&
 				dlna.getMediaSubtitle().isExternal()) {
 				// fetched on the side
-				sid = dlna.getMediaSubtitle().getId();
-				dlna.getMediaSubtitle().setId(-1);
+				sid = dlna.getMediaSubtitle();
+				dlna.setMediaSubtitle(null);
 			}
 		}
 
@@ -124,8 +121,8 @@ public class RemoteMediaHandler implements HttpHandler {
 		StartStopListenerDelegate startStop = new StartStopListenerDelegate(t.getRemoteAddress().getHostString());
 		PMS.get().getFrame().setStatusLine("Serving " + dlna.getName());
 		startStop.start(dlna);
-		if (sid != -1)  {
-			dlna.getMediaSubtitle().setId(sid);
+		if (sid != null)  {
+			dlna.setMediaSubtitle(sid);
 		}
 		RemoteUtil.dump(in, os, startStop);
 		PMS.get().getFrame().setStatusLine("");

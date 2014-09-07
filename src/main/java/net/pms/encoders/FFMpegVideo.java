@@ -177,7 +177,13 @@ public class FFMpegVideo extends Player {
 			scalePadFilterChain.add("scale=" + scaleWidth + ":" + scaleHeight);
 		}
 
-		if (!isDisableSubtitles(params) && ! (renderer instanceof RendererConfiguration.OutputOverride)) {
+		boolean override = true;
+		if (renderer instanceof RendererConfiguration.OutputOverride) {
+			RendererConfiguration.OutputOverride or = (RendererConfiguration.OutputOverride)renderer;
+			override = or.addSubtitles();
+		}
+
+		if (!isDisableSubtitles(params) && override) {
 			StringBuilder subsFilter = new StringBuilder();
 			if (params.sid.getType().isText()) {
 				String originalSubsFilename;
@@ -248,7 +254,6 @@ public class FFMpegVideo extends Player {
 					subsFilter.append("[0:v][1:s]overlay"); // this assumes the sub file is single-language
 				}
 			}
-
 			if (isNotBlank(subsFilter)) {
 				filterChain.add(subsFilter.toString());
 				// based on https://trac.ffmpeg.org/ticket/2067
