@@ -412,8 +412,7 @@ public class FileUtil {
 			InfoDb.InfoDbData info = PMS.get().infoDb().get(file);
 			if (
 				info != null &&
-				StringUtils.isNotEmpty(info.ep_name) &&
-				!formattedName.contains(info.ep_name)
+				StringUtils.isNotEmpty(info.ep_name)
 			) {
 				formattedName += " - " + info.ep_name;
 			}
