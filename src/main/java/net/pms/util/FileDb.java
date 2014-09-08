@@ -1,10 +1,5 @@
 package net.pms.util;
 
-import net.pms.PMS;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -12,10 +7,12 @@ import java.io.FileReader;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import net.pms.PMS;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FileDb {
-	private static final Logger LOGGER = LoggerFactory.getLogger(FileDb.class);
-
 	private Map<String, Object> db;
 	private int minCnt;
 	private String sep;
@@ -28,8 +25,8 @@ public class FileDb {
 		this(PMS.getConfiguration().getDataFile(h.name()), h);
 	}
 
-	public FileDb(String f,DbHandler h) {
-		if(StringUtils.isEmpty(f)) {
+	public FileDb(String f, DbHandler h) {
+		if (StringUtils.isEmpty(f)) {
 			f = "UMS.db";
 		}
 		file = new File(f);
@@ -81,7 +78,7 @@ public class FileDb {
 		}
 	}
 
-	public void addNoSync(String key,Object obj) {
+	public void addNoSync(String key, Object obj) {
 		if (!overwrite) {
 			if (get(key) != null) {
 				return;
@@ -94,7 +91,7 @@ public class FileDb {
 		db.remove(key);
 	}
 
-	public void add(String key,Object obj) {
+	public void add(String key, Object obj) {
 		addNoSync(key, obj);
 		if (autoSync) {
 			sync();
@@ -114,30 +111,30 @@ public class FileDb {
 
 	public void sync() {
 		try {
-			FileOutputStream out=new FileOutputStream(file);
 			// write a dummy line to make sure the file exists
-			Date now = new Date();
-			String data = "#########################\n#### Db file generated "+ now.toString() +"\n"+
-					"#### Edit with care\n#########################\n";
-			out.write(data.getBytes(), 0, data.length());
-			for(String key : db.keySet()) {
-				Object obj = db.get(key);
-				if (obj == null) {
-					data = key;
-					for (int i = 1; i < minCnt; i++) {
-						data = data + sep;
-					}
-					data = data + "\n";
-				} else {
-					String[] data1 = handler.format(obj);
-					data = key + sep + StringUtils.join(data1, sep) + "\n";
-				}
+			try (FileOutputStream out = new FileOutputStream(file)) {
+				// write a dummy line to make sure the file exists
+				Date now = new Date();
+				String data = "#########################\n#### Db file generated " + now.toString() + "\n" +
+						"#### Edit with care\n#########################\n";
 				out.write(data.getBytes(), 0, data.length());
+				for (String key : db.keySet()) {
+					Object obj = db.get(key);
+					if (obj == null) {
+						data = key;
+						for (int i = 1; i < minCnt; i++) {
+							data = data + sep;
+						}
+						data = data + "\n";
+					} else {
+						String[] data1 = handler.format(obj);
+						data = key + sep + StringUtils.join(data1, sep) + "\n";
+					}
+					out.write(data.getBytes(), 0, data.length());
+				}
+				out.flush();
 			}
-			out.flush();
-			out.close();
-		}
-		catch (Exception e) {
+		} catch (Exception e) {
 		}
 	}
 }
