@@ -110,30 +110,27 @@ public class FileDb {
 	}
 
 	public void sync() {
-		try {
-			// write a dummy line to make sure the file exists
-			try (FileOutputStream out = new FileOutputStream(file)) {
-				// write a dummy line to make sure the file exists
-				Date now = new Date();
-				String data = "#########################\n#### Db file generated " + now.toString() + "\n" +
-						"#### Edit with care\n#########################\n";
-				out.write(data.getBytes(), 0, data.length());
-				for (String key : db.keySet()) {
-					Object obj = db.get(key);
-					if (obj == null) {
-						data = key;
-						for (int i = 1; i < minCnt; i++) {
-							data += sep;
-						}
-						data += "\n";
-					} else {
-						String[] data1 = handler.format(obj);
-						data = key + sep + StringUtils.join(data1, sep) + "\n";
+		try (FileOutputStream out = new FileOutputStream(file)) {
+			// Write a dummy line to make sure the file exists
+			Date now = new Date();
+			String data = "#########################\n#### Db file generated " + now.toString() + "\n" +
+					"#### Edit with care\n#########################\n";
+			out.write(data.getBytes(), 0, data.length());
+			for (String key : db.keySet()) {
+				Object obj = db.get(key);
+				if (obj == null) {
+					data = key;
+					for (int i = 1; i < minCnt; i++) {
+						data += sep;
 					}
-					out.write(data.getBytes(), 0, data.length());
+					data += "\n";
+				} else {
+					String[] data1 = handler.format(obj);
+					data = key + sep + StringUtils.join(data1, sep) + "\n";
 				}
-				out.flush();
+				out.write(data.getBytes(), 0, data.length());
 			}
+			out.flush();
 		} catch (Exception e) {
 		}
 	}
