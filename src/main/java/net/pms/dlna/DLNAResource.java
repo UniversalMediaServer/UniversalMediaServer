@@ -1269,7 +1269,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			) &&
 			!isFolder()
 		) {
-			if (configuration.isPrettifyFilenames() && (getFormat() != null && getFormat().isVideo())) {
+			if (configuration.isPrettifyFilenames() && getFormat() != null && getFormat().isVideo()) {
 				displayName = FileUtil.getFileNameWithRewriting(displayName);
 			} else {
 				displayName = FileUtil.getFileNameWithoutExtension(displayName);
