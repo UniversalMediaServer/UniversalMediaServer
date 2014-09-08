@@ -428,10 +428,10 @@ public class FileUtil {
 		// Add episode name (if not there)
 		if (isEpisode && !hasEpisodeNameInFilename) {
 			InfoDb.InfoDbData info = PMS.get().infoDb().get(file);
-			if (info != null && StringUtils.isNotEmpty(info.ep_name)) {
-				formattedName += " - " + info.ep_name;
-			} else {
+			if (info == null) {
 				PMS.get().infoDbAdd(file);
+			} else if (StringUtils.isNotEmpty(info.ep_name)) {
+				formattedName += " - " + info.ep_name;
 			}
 		}
 
