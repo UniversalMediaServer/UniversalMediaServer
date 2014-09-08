@@ -71,14 +71,14 @@ $(function(){
 				}
 
 				if (imageList.length >= imagesPerRow) {
-					for (i = 0; i < imageList.length; i++) {
-						if (correctWidth === null) {
-							totalSpaceMinusMargins = totalWidth - (20 * (imagesPerRow - 1));
-							correctWidth = (totalSpaceMinusMargins / imagesPerRow) - 0.1;
-						}
-						correctHeight = correctWidth / 1.78;
-						correctWidthSpan = correctWidth - 32;
+					if (correctWidth === null) {
+						totalSpaceMinusMargins = totalWidth - (20 * (imagesPerRow - 1));
+						correctWidth = (totalSpaceMinusMargins / imagesPerRow) - 0.1;
+					}
+					correctHeight = correctWidth / 1.78;
+					correctWidthSpan = correctWidth - 32;
 
+					for (i = 0; i < imageList.length; i++) {
 						spanList[i].style.width      = correctWidthSpan  + "px";
 						spanList[i].style.maxWidth   = correctWidthSpan  + "px";
 						imageList[i].style.maxWidth  = correctWidth  + "px";
