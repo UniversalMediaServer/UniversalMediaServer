@@ -103,11 +103,11 @@ public class RemoteBrowseHandler implements HttpHandler {
 							// The resource is a media file
 							if (upnpAllowed) {
 								if (upnpControl) {
-									bumpIconHtml.append("<a id=\"bumpicon\" href=\"javascript:bump.start('//")
+									bumpIconHtml.append("<a class=\"bumpIcon\" href=\"javascript:bump.start('//")
 										.append(parent.getAddress()).append("','/play/").append(idForWeb).append("','")
 										.append(name.replace("'", "\\'")).append("')\" title=\"").append("Play on another renderer").append("\"></a>").append(CRLF);
 								} else {
-									bumpIconHtml.append("<a id=\"bumpicon\" class=\"icondisabled\" href=\"javascript:alert('").append("No upnp-controllable renderers suitable for receiving pushed media are available. Refresh this page if a new renderer may have recently connected.")
+									bumpIconHtml.append("<a class=\"bumpIcon icondisabled\" href=\"javascript:alert('").append("No upnp-controllable renderers suitable for receiving pushed media are available. Refresh this page if a new renderer may have recently connected.")
 										.append("')\" title=\"No other renderers available\"></a>").append(CRLF);
 								}
 							}

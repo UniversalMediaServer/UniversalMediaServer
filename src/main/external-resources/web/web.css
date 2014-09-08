@@ -138,7 +138,7 @@ ul#Media li span {
 	clear: left;
 }
 
-#bumpicon {
+.bumpIcon {
 	background: url('/files/bump/bump16-2.png') no-repeat;
 	width: 28px;
 	height: 16px;
@@ -147,7 +147,7 @@ ul#Media li span {
 	clear: left;
 }
 
-#bumpicon:hover {
+.bumpIcon:hover {
 	background-position: 0 -16px;
 }
 
