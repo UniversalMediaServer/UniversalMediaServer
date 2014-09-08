@@ -201,9 +201,6 @@ public class RealFile extends MapFile {
 						database.insertData(fileName, file.lastModified(), getType(), getMedia());
 					}
 				}
-				if (found && configuration.useInfoDb() && getFormat().isVideo()) {
-					PMS.get().infoDbAdd(file);
-				}
 			}
 		}
 	}

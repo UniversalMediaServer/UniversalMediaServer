@@ -195,6 +195,7 @@ public class FileUtil {
 		String formattedName;
 		String formattedNameTemp;
 		boolean hasEpisodeNameInFilename = false;
+		boolean isEpisode = false;
 
 		// Remove file extension
 		fileNameWithoutExtension = getFileNameWithoutExtension(f);
@@ -208,6 +209,8 @@ public class FileUtil {
 
 		if (formattedName.matches(".*[sS]0\\d[eE]\\d\\d[eE]\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes within the first 9 seasons that are double or triple episodes
+
+			isEpisode = true;
 
 			// Rename the season/episode numbers. For example, "S01E01" changes to " - 101"
 			// Then strip the end of the episode if it does not have the episode name in the title
@@ -231,6 +234,8 @@ public class FileUtil {
 		} else if (formattedName.matches(".*[sS][1-9]\\d[eE]\\d\\d[eE]\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes after their first 9 seasons that are double episodes
 
+			isEpisode = true;
+
 			// Rename the season/episode numbers. For example, "S11E01" changes to " - 1101"
 			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)E(\\d)(\\d)(" + commonFileEnds + ")", " - $1$2$3-$1$4$5");
 			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)E(\\d)(\\d)(" + commonFileEndsCaseSensitive + ")", " - $1$2$3-$1$4$5");
@@ -251,6 +256,8 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("\\.", " ");
 		} else if (formattedName.matches(".*[sS]0\\d[eE]\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes within the first 9 seasons
+
+			isEpisode = true;
 
 			// Rename the season/episode numbers. For example, "S01E01" changes to " - 101"
 			// Then strip the end of the episode if it does not have the episode name in the title
@@ -274,6 +281,8 @@ public class FileUtil {
 		} else if (formattedName.matches(".*[sS][1-9]\\d[eE]\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes after their first 9 seasons
 
+			isEpisode = true;
+
 			// Rename the season/episode numbers. For example, "S11E01" changes to " - 1101"
 			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)(" + commonFileEnds + ")", " - $1$2$3");
 			formattedName = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)(" + commonFileEndsCaseSensitive + ")", " - $1$2$3");
@@ -294,6 +303,8 @@ public class FileUtil {
 			formattedName = formattedName.replaceAll("\\.", " ");
 		} else if (formattedName.matches(".*\\.(19|20)\\d\\d\\.[0-1]\\d\\.[0-3]\\d\\..*")) {
 			// This matches scene and most p2p TV episodes that release several times per week
+
+			isEpisode = true;
 
 			// Rename the date. For example, "2013.03.18" changes to " - 2013/03/18"
 			formattedName = formattedName.replaceAll("(?i)\\.(19|20)(\\d\\d)\\.([0-1]\\d)\\.([0-3]\\d)(" + commonFileEnds + ")", " - $1$2/$3/$4");
@@ -408,13 +419,15 @@ public class FileUtil {
 		}
 
 		// Add episode name (if not there)
-		if (!hasEpisodeNameInFilename) {
+		if (isEpisode && !hasEpisodeNameInFilename) {
 			InfoDb.InfoDbData info = PMS.get().infoDb().get(file);
 			if (
 				info != null &&
 				StringUtils.isNotEmpty(info.ep_name)
 			) {
 				formattedName += " - " + info.ep_name;
+			} else if (PMS.getConfiguration().useInfoDb()) {
+				PMS.get().infoDbAdd(file);
 			}
 		}
 
