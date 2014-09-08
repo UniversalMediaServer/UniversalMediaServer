@@ -9,8 +9,6 @@ import java.util.HashMap;
 import java.util.Map;
 import net.pms.PMS;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class FileDb {
 	private Map<String, Object> db;
