@@ -5,38 +5,38 @@ html {
 }
 
 body {
-	background:		url('/files/background.jpg');
-	font-family:		"DejaVuSansCondensed", "Helvetica Neue", Helvetica, Arial, sans-serif;
-	color:			#333;
+	background: url('/files/background.jpg');
+	font-family: "DejaVuSansCondensed", "Helvetica Neue", Helvetica, Arial, sans-serif;
+	color: #333;
 	min-height: 100%;
 }
 
 body#ContentPage {
-	background:		url('/files/background-blank.jpg');
+	background: url('/files/background-blank.jpg');
 }
 
 /* Scaffolding */
 
 #FrontPage #Container {
-	width:			700px;
-	margin:			0 auto;
+	width: 700px;
+	margin: 0 auto;
 	position: relative;
 }
 
 #ContentPage #Container {
-	position:		relative;
+	position: relative;
 }
 
 #FrontPage #Menu {
-	position:		relative;
+	position: relative;
 }
 
 #ContentPage.Doc {
-	margin:0 auto;
+	margin: 0 auto;
 }
 
 #ContentPage.Doc #Menu {
-	position:		relative;
+	position: relative;
 }
 
 #ContentPage.Doc #Container {
@@ -51,20 +51,20 @@ body#ContentPage {
 }
 
 #ContentPage #Menu #HomeButton {
-	background:		url('/files/menu-left-content.png');
-	width:			125px;
-	height:			93px;
+	background: url('/files/menu-left-content.png');
+	width: 125px;
+	height: 93px;
 	display: block;
 }
 
 #ContentPage #Menu #LogButton {
-	background:		url('/files/icon-log2.jpg');
-	background-size:        125px 93px;
-	width:			125px;
-	height:			93px;
-	position:		absolute;
-	left:			130px;
-	top:                    0px;
+	background: url('/files/icon-log2.jpg');
+	background-size: 125px 93px;
+	width: 125px;
+	height: 93px;
+	position: absolute;
+	left: 130px;
+	top: 0;
 	background-repeat: no-repeat;
 	display: block;
 }
@@ -238,18 +238,18 @@ form#SearchForm {
 }
 
 .icondisabled {
-	opacity:0.3;
-	cursor:default;
+	opacity: 0.3;
+	cursor: default;
 }
 
 .webdisabled {
-	opacity:0.5;
+	opacity: 0.5;
 	cursor: not-allowed;
 }
 
 ::cue {
-  color: #FFF;
-  background: transparent;
-  text-shadow: black 0 0 0.2em;
-  font: 1.2em sans-serif;
+	color: #fff;
+	background: transparent;
+	text-shadow: black 0 0 0.2em;
+	font: 1.2em sans-serif;
 }
