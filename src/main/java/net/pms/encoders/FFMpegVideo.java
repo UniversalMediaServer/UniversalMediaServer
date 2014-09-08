@@ -22,7 +22,6 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.Borders;
 import com.jgoodies.forms.layout.CellConstraints;
 import com.jgoodies.forms.layout.FormLayout;
-import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -216,25 +215,26 @@ public class FFMpegVideo extends Player {
 					int subtitlesWidth = scaleWidth; 
 					int subtitlesHeight = scaleHeight;
 					if (params.sid.isExternal() && params.sid.getType() != SubtitleType.ASS || configuration.isFFmpegFontConfig()) {
-						// Let ASS/SSA subtitles specify their own resolution
-						if (params.sid.getType() == SubtitleType.ASS) {
-							setSubtitlesResolution(originalSubsFilename, subtitlesWidth, subtitlesHeight);
-						}
+						if (subtitlesWidth > 0 && subtitlesHeight > 0) {
+							// Let ASS/SSA subtitles specify their own resolution
+							if (params.sid.getType() == SubtitleType.ASS) {
+								setSubtitlesResolution(originalSubsFilename, subtitlesWidth, subtitlesHeight);
+							}
 
-						if (media.is3d()) {
-							subsFilter.append(":").append("384").append("x").append("288");
-						} else {
-							subsFilter.append(":").append(subtitlesWidth).append("x").append(subtitlesHeight);
-						}
-						
+							if (media.is3d()) {
+								subsFilter.append(":").append("384").append("x").append("288");
+							} else {
+								subsFilter.append(":").append(subtitlesWidth).append("x").append(subtitlesHeight);
+							}
 
-						// Set the input subtitles character encoding if not UTF-8
-						if (!params.sid.isExternalFileUtf8()) {
-							String encoding = isNotBlank(configuration.getSubtitlesCodepage()) ?
-									configuration.getSubtitlesCodepage() : params.sid.getExternalFileCharacterSet() != null ?
-									params.sid.getExternalFileCharacterSet() : null;
-							if (encoding != null) {
-								subsFilter.append(":").append(encoding);
+							// Set the input subtitles character encoding if not UTF-8
+							if (!params.sid.isExternalFileUtf8()) {
+								String encoding = isNotBlank(configuration.getSubtitlesCodepage()) ?
+										configuration.getSubtitlesCodepage() : params.sid.getExternalFileCharacterSet() != null ?
+										params.sid.getExternalFileCharacterSet() : null;
+								if (encoding != null) {
+									subsFilter.append(":").append(encoding);
+								}
 							}
 						}
 					} else if (params.sid.isEmbedded()) {
@@ -1282,6 +1282,7 @@ public class FFMpegVideo extends Player {
 			(
 				!applyFontConfig &&
 				!isEmbeddedSource &&
+				(params.sid.getType() == subtitleType) &&
 				(params.sid.getType() == SubtitleType.SUBRIP || params.sid.getType() == SubtitleType.WEBVTT) &&
 				!is3D
 			)
