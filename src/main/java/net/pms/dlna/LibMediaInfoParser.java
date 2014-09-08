@@ -270,6 +270,47 @@ public class LibMediaInfoParser {
 					media.setContainer(FormatConfiguration.AAC);
 				}
 
+				/**
+				 * Recognize 3D layout from the filename.
+				 *
+				 * First we check for our custom naming convention, for which the filename
+				 * either has to start with "3DSBSLF" or "3DSBSRF" for side-by-side layout
+				 * or "3DOULF" or "3DOURF" for over-under layout.
+				 * For anaglyph 3D video can be used following combination:
+				 * 		3DARCG 	anaglyph_red_cyan_gray
+				 *		3DARCH 	anaglyph_red_cyan_half_color
+				 *		3DARCC 	anaglyph_red_cyan_color
+				 *		3DARCD 	anaglyph_red_cyan_dubois
+				 *		3DAGMG 	anaglyph_green_magenta_gray
+				 *		3DAGMH 	anaglyph_green_magenta_half_color
+				 *		3DAGMC 	anaglyph_green_magenta_color
+				 *		3DAGMD 	anaglyph_green_magenta_dubois
+				 *		3DAYBG 	anaglyph_yellow_blue_gray
+				 *		3DAYBH 	anaglyph_yellow_blue_half_color
+				 *		3DAYBC 	anaglyph_yellow_blue_color
+				 *		3DAYBD 	anaglyph_yellow_blue_dubois
+				 *
+				 * Next we check for common naming conventions.
+				 */
+				if (!media.is3d()) {
+					if (file.getName().startsWith("3DSBS")) {
+						LOGGER.debug("3D format SBS detected for " + file.getName());
+						media.setStereoscopy(file.getName().substring(2, 7));
+					} else if (file.getName().startsWith("3DOU")) {
+						LOGGER.debug("3D format OU detected for " + file.getName());
+						media.setStereoscopy(file.getName().substring(2, 6));
+					} else if (file.getName().startsWith("3DA")) {
+						LOGGER.debug("3D format Anaglyph detected for " + file.getName());
+						media.setStereoscopy(file.getName().substring(2, 6));
+					} else if (file.getName().matches(".*[\\s\\.-H]SBS[\\s\\.].*")) {
+						LOGGER.debug("3D format SBS detected for " + file.getName());
+						media.setStereoscopy("side by side (left eye first)");
+					} else if (file.getName().matches(".*[\\s\\.-H](OU|TB)[\\s\\.].*")) {
+						LOGGER.debug("3D format OU detected for " + file.getName());
+						media.setStereoscopy("top-bottom (left eye first)");
+					}
+				}
+
 				media.finalize(type, inputFile);
 			} catch (Exception e) {
 				LOGGER.error("Error in MediaInfo parsing:", e);
