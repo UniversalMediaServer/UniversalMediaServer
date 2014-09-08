@@ -123,9 +123,9 @@ public class FileDb {
 					if (obj == null) {
 						data = key;
 						for (int i = 1; i < minCnt; i++) {
-							data = data + sep;
+							data += sep;
 						}
-						data = data + "\n";
+						data += "\n";
 					} else {
 						String[] data1 = handler.format(obj);
 						data = key + sep + StringUtils.join(data1, sep) + "\n";
