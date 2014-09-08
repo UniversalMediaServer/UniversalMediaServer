@@ -121,6 +121,7 @@ ul#Media li a .thumb {
 	max-height: 180px;
 	height: 120px;
 	/* Note: intentionally omitting width here so as to avoid distortion if the thumb is actually an icon. */
+	float: left;
 }
 
 ul#Folders li span {
@@ -130,9 +131,24 @@ ul#Folders li span {
 
 ul#Media li span {
 	display: block;
-	max-width: 214px;
+	max-width: 182px;
 	height: 16px;
 	overflow: hidden;
+	float: left;
+	clear: left;
+}
+
+#bumpicon {
+	background: url('/files/bump/bump16-2.png') no-repeat;
+	width: 28px;
+	height: 16px;
+	display: block;
+	float: right;
+	clear: left;
+}
+
+#bumpicon:hover {
+	background-position: 0 -16px;
 }
 
 ul#Media li span:hover {
@@ -224,17 +240,6 @@ form#SearchForm {
 .icondisabled {
 	opacity:0.3;
 	cursor:default;
-}
-
-#bumpicon {
-	background: url('/files/bump/bump16-2.png') no-repeat;
-	width: 28px;
-	height: 16px;
-	display: block;
-}
-
-#bumpicon:hover {
-	background-position: 0 -16px;
 }
 
 .webdisabled {

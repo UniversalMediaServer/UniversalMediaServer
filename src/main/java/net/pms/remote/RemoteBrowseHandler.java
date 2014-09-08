@@ -41,9 +41,9 @@ public class RemoteBrowseHandler implements HttpHandler {
 		}
 
 		// Media browser HTML
-		StringBuilder sb          = new StringBuilder();
-		StringBuilder foldersHtml = new StringBuilder();
-		StringBuilder mediaHtml   = new StringBuilder();
+		StringBuilder sb           = new StringBuilder();
+		StringBuilder foldersHtml  = new StringBuilder();
+		StringBuilder mediaHtml    = new StringBuilder();
 
 		boolean showFolders = false;
 		boolean hasFile     = false;
@@ -80,6 +80,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 						String idForWeb = URLEncoder.encode(newId, "UTF-8");
 						String thumb = "/thumb/" + idForWeb;
 						String name = StringEscapeUtils.escapeHtml(r.resumeName());
+						StringBuilder bumpIconHtml = new StringBuilder();
 
 						if (r.isFolder()) {
 							// The resource is a folder
@@ -100,11 +101,26 @@ public class RemoteBrowseHandler implements HttpHandler {
 							showFolders = true;
 						} else {
 							// The resource is a media file
+							if (upnpAllowed) {
+								if (upnpControl) {
+									bumpIconHtml.append("<a id=\"bumpicon\" href=\"javascript:bump.start('//")
+										.append(parent.getAddress()).append("','/play/").append(idForWeb).append("','")
+										.append(name.replace("'", "\\'")).append("')\" title=\"").append("Play on another renderer").append("\"></a>").append(CRLF);
+								} else {
+									bumpIconHtml.append("<a id=\"bumpicon\" class=\"icondisabled\" href=\"javascript:alert('").append("No upnp-controllable renderers suitable for receiving pushed media are available. Refresh this page if a new renderer may have recently connected.")
+										.append("')\" title=\"No other renderers available\"></a>").append(CRLF);
+								}
+							}
+
 							mediaHtml.append("<li>");
 								if (WebRender.supports(r)) {
 									mediaHtml.append("<a href=\"/play/").append(idForWeb);
 									mediaHtml.append("\" title=\"").append(name).append("\" id=\"").append(idForWeb).append("\">");
 									mediaHtml.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">");
+									mediaHtml.append("</a>").append(CRLF);
+									mediaHtml.append(bumpIconHtml);
+									mediaHtml.append("<a href=\"/play/").append(idForWeb);
+									mediaHtml.append("\" title=\"").append(name).append("\" id=\"").append(idForWeb).append("\">");
 									mediaHtml.append("<span>").append(name).append("</span>");
 								} else if (upnpControl && upnpAllowed) {
 									// Include it as a web-disabled item so it can be thrown via upnp
@@ -114,15 +130,8 @@ public class RemoteBrowseHandler implements HttpHandler {
 									mediaHtml.append("<span>").append(name).append("</span>");
 								}
 								mediaHtml.append("</a>").append(CRLF);
-								if (upnpAllowed) {
-									if (upnpControl) {
-										mediaHtml.append("<a id=\"bumpicon\" href=\"javascript:bump.start('//")
-											.append(parent.getAddress()).append("','/play/").append(idForWeb).append("','")
-											.append(name.replace("'", "\\'")).append("')\" title=\"").append("Play on another renderer").append("\"></a>").append(CRLF);
-									} else {
-										mediaHtml.append("<a id=\"bumpicon\" class=\"icondisabled\" href=\"javascript:alert('").append("No upnp-controllable renderers suitable for receiving pushed media are available. Refresh this page if a new renderer may have recently connected.")
-											.append("')\" title=\"No other renderers available\"></a>").append(CRLF);
-									}
+								if (!WebRender.supports(r)) {
+									mediaHtml.append(bumpIconHtml);
 								}
 							mediaHtml.append("</li>").append(CRLF);
 
