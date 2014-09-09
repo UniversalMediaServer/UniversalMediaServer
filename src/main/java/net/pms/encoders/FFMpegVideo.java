@@ -763,8 +763,19 @@ public class FFMpegVideo extends Player {
 			cmdList.add(filename);
 		}
 
-		// Decide whether to defer to MEncoder for subtitles
-		if (configuration.isFFmpegDeferToMEncoderForSubtitles() && params.sid != null) {
+		/**
+		 * Defer to MEncoder for subtitles if:
+		 * - The setting is enabled
+		 * - There are subtitles to transcode
+		 * - The file is not being played via the transcode folder
+		 */
+		if (
+			configuration.isFFmpegDeferToMEncoderForSubtitles() &&
+			params.sid != null &&
+			!configuration.getHideTranscodeEnabled() &&
+			dlna.isNoName() &&
+			(dlna.getParent() instanceof FileTranscodeVirtualFolder)
+		) {
 			LOGGER.trace("Switching from FFmpeg to MEncoder to transcode subtitles.");
 			MEncoderVideo mv = new MEncoderVideo();
 
