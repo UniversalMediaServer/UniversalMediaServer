@@ -12,8 +12,8 @@ import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.*;
 import net.pms.encoders.FFMpegVideo;
-import net.pms.encoders.FFmpegWebVideo;
 import net.pms.encoders.FFmpegAudio;
+import net.pms.encoders.FFmpegWebVideo;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.util.FileUtil;
 import org.slf4j.Logger;
@@ -52,8 +52,8 @@ public class RemoteMediaHandler implements HttpHandler {
 			throw new IOException("Unknown root");
 		}
 		Headers h = t.getRequestHeaders();
-		for(String h1: h.keySet())  {
-			LOGGER.debug("key "+h1+"="+h.get(h1));
+		for (String h1 : h.keySet()) {
+			LOGGER.debug("key " + h1 + "=" + h.get(h1));
 		}
 		String id = RemoteUtil.getId(path, t);
 		id = RemoteUtil.strip(id);
@@ -72,13 +72,13 @@ public class RemoteMediaHandler implements HttpHandler {
 		Range range = RemoteUtil.parseRange(t.getRequestHeaders(), len);
 		String mime = root.getDefaultRenderer().getMimeType(dlna.mimeType());
 		//DLNAResource dlna = res.get(0);
-		WebRender render = (WebRender)r;
+		WebRender render = (WebRender) r;
 		DLNAMediaInfo m = dlna.getMedia();
 		if (m == null) {
 			m = new DLNAMediaInfo();
 			dlna.setMedia(m);
 		}
-		if(mime.equals(FormatConfiguration.MIMETYPE_AUTO) && m.getMimeType() != null) {
+		if (mime.equals(FormatConfiguration.MIMETYPE_AUTO) && m.getMimeType() != null) {
 			mime = m.getMimeType();
 		}
 		int code = 200;
@@ -88,15 +88,18 @@ public class RemoteMediaHandler implements HttpHandler {
 				mime = "video/flash";
 			} else if (!RemoteUtil.directmime(mime) || RemoteUtil.transMp4(mime, m)) {
 				mime = render != null ? render.getVideoMimeType() : RemoteUtil.transMime();
-				dlna.setPlayer(FileUtil.isUrl(dlna.getSystemName()) ?
-				   new FFmpegWebVideo() :
-				   new FFMpegVideo()
-				);
+				if (FileUtil.isUrl(dlna.getSystemName())) {
+					dlna.setPlayer(new FFmpegWebVideo());
+				} else {
+					dlna.setPlayer(new FFMpegVideo());
+				}
 				//code = 206;
 			}
-			if (PMS.getConfiguration().getWebSubs() &&
+			if (
+				PMS.getConfiguration().getWebSubs() &&
 				dlna.getMediaSubtitle() != null &&
-				dlna.getMediaSubtitle().isExternal()) {
+				dlna.getMediaSubtitle().isExternal()
+			) {
 				// fetched on the side
 				sid = dlna.getMediaSubtitle();
 				dlna.setMediaSubtitle(null);
@@ -121,7 +124,7 @@ public class RemoteMediaHandler implements HttpHandler {
 		StartStopListenerDelegate startStop = new StartStopListenerDelegate(t.getRemoteAddress().getHostString());
 		PMS.get().getFrame().setStatusLine("Serving " + dlna.getName());
 		startStop.start(dlna);
-		if (sid != null)  {
+		if (sid != null) {
 			dlna.setMediaSubtitle(sid);
 		}
 		RemoteUtil.dump(in, os, startStop);
