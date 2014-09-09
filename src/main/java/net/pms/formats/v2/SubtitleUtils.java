@@ -149,7 +149,6 @@ public class SubtitleUtils {
 			throw new NullPointerException("The 3D layout not recognized for the 3D video");
 		}
 
-		boolean isAnaglyph = media.stereoscopyIsAnaglyph();
 		int playResX;
 		int playResY;
 		if (mode3D == Mode3D.ABL || mode3D == Mode3D.ABR) {
@@ -174,14 +173,8 @@ public class SubtitleUtils {
 			outputString.append("[Script Info]\n");
 			outputString.append("ScriptType: v4.00+\n");
 			outputString.append("WrapStyle: 0\n");
-			if (isAnaglyph) {
-				outputString.append("PlayResX: 384");
-				outputString.append("PlayResY: 288");
-			} else {
-				outputString.append("PlayResX: ").append(media.getWidth()).append("\n");
-				outputString.append("PlayResY: ").append(media.getHeight()).append("\n");
-			}
-			
+			outputString.append("PlayResX: ").append(media.getWidth()).append("\n");
+			outputString.append("PlayResY: ").append(media.getHeight()).append("\n");
 			outputString.append("ScaledBorderAndShadow: yes\n\n");
 			outputString.append("[V4+ Styles]\n");
 			outputString.append("Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding\n");
@@ -189,12 +182,9 @@ public class SubtitleUtils {
 			String primaryColour = convertColorToAssHexFormat(new Color(configuration.getSubsColor()));
 			String outline = configuration.getAssOutline();
 			String shadow = configuration.getAssShadow();
-			if (isAnaglyph) {
-				outputString.append("Style: 3D1,Arial,16,").append(primaryColour).append(",&H000000FF,&H00000000,&H00000000,0,0,0,0,100,100,0,0,1,").append(outline).append(",").append(shadow).append(",2,0,0,0,1\n");
-			} else {
-				outputString.append("Style: 3D1,Arial,16,").append(primaryColour).append(",&H000000FF,&H00000000,&H00000000,0,0,0,0,").append(fontScale).append(",").append(fontScale).append(",0,0,1,").append(outline).append(",").append(shadow).append(",2,0,0,0,1\n");
-				outputString.append("Style: 3D2,Arial,16,").append(primaryColour).append(",&H000000FF,&H00000000,&H00000000,0,0,0,0,").append(fontScale).append(",").append(fontScale).append(",0,0,1,").append(outline).append(",").append(shadow).append(",2,0,0,0,1\n\n");
-			}
+			String fontSize = Integer.toString((int) (16 * media.getHeight() / (double) 288));
+			outputString.append("Style: 3D1,Arial,").append(fontSize).append(",").append(primaryColour).append(",&H000000FF,&H00000000,&H00000000,0,0,0,0,").append(fontScale).append(",").append(fontScale).append(",0,0,1,").append(outline).append(",").append(shadow).append(",2,0,0,0,1\n");
+			outputString.append("Style: 3D2,Arial,").append(fontSize).append(",").append(primaryColour).append(",&H000000FF,&H00000000,&H00000000,0,0,0,0,").append(fontScale).append(",").append(fontScale).append(",0,0,1,").append(outline).append(",").append(shadow).append(",2,0,0,0,1\n\n");
 
 			outputString.append("[Events]\n");
 			outputString.append("Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text\n\n");
@@ -221,16 +211,7 @@ public class SubtitleUtils {
 					String text = StringUtils.join(dialogPattern, ",", textPosition, dialogPattern.length);
 					Matcher timeMatcher = timePattern.matcher(line);
 					if (timeMatcher.find()) {	
-						if (isAnaglyph) {
-							outputString.append("Dialogue: 0,")
-							.append(timeMatcher.group())
-							.append("3D1,,")
-							.append(String.format("%04d,", 0))
-							.append(String.format("%04d,", 0))
-							.append(configuration.getAssMargin())
-							.append(",,")
-							.append(text).append("\n");
-						} else if (mode3D == Mode3D.ABL) {
+						if (mode3D == Mode3D.ABL) {
 							outputString.append("Dialogue: 0,")
 							.append(timeMatcher.group())
 							.append("3D1,,")
@@ -303,6 +284,7 @@ public class SubtitleUtils {
 		LOGGER.debug("Subtitles converted to 3DASS format and stored in the file: " + outputSubs.getName());
 		output.flush();
 		output.close();
+		tempSubs.deleteOnExit();
 		return outputSubs;
 	}
 
