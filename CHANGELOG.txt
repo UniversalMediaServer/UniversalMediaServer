@@ -1,7 +1,16 @@
 4.1.2 - 2014-09-??
 
 	General:
-		
+		Folder population speed improvements with filename prettifying enabled
+		Web interface client-side speed improvements
+		Web interface design tweaks
+		Fixed FFmpeg not working on OS X
+	Languages:
+		Updated French translation (thanks, Kirvx!)
+	External Components:
+		Updated FFmpeg for OS X to g7cf1f0f, which:
+			Improves support for many containers and codecs
+			Fixes bugs
 
 4.1.1 - 2014-09-06
 
