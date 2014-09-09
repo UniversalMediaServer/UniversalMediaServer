@@ -128,10 +128,10 @@ public class RemoteWeb {
 		return server;
 	}
 
-	public String getTag(String name) {
-		String tag = tags.get(name);
+	public String getTag(String user) {
+		String tag = tags.get(user);
 		if (tag == null) {
-			return name;
+			return user;
 		}
 		return tag;
 	}
@@ -140,12 +140,12 @@ public class RemoteWeb {
 		return PMS.get().getServer().getHost() + ":" + server.getAddress().getPort();
 	}
 
-	public RootFolder getRoot(String name, HttpExchange t) {
-		return getRoot(name, false, t);
+	public RootFolder getRoot(String user, HttpExchange t) {
+		return getRoot(user, false, t);
 	}
 
-	public RootFolder getRoot(String name, boolean create, HttpExchange t) {
-		String groupTag = getTag(name);
+	public RootFolder getRoot(String user, boolean create, HttpExchange t) {
+		String groupTag = getTag(user);
 		String cookie = RemoteUtil.getCookie("UMS", t);
 		RootFolder root = roots.get(cookie);
 		if (!create || (root != null)) {
@@ -153,8 +153,8 @@ public class RemoteWeb {
 			return root;
 		}
 		ArrayList<String> tag = new ArrayList<>();
-		tag.add(name);
-		if (!groupTag.equals(name)) {
+		tag.add(user);
+		if (!groupTag.equals(user)) {
 			tag.add(groupTag);
 		}
 		if (t != null) {
@@ -163,7 +163,7 @@ public class RemoteWeb {
 		tag.add("web");
 		root = new RootFolder(tag);
 		try {
-			WebRender render = new WebRender(name);
+			WebRender render = new WebRender(user);
 			root.setDefaultRenderer(render);
 			render.setRootFolder(root);
 			render.associateIP(t.getRemoteAddress().getAddress());
@@ -458,7 +458,7 @@ public class RemoteWeb {
 						sb.append("<h1>Tools</h1>").append(CRLF);
 						sb.append("<br/>").append(CRLF);
 						sb.append("<ul>").append(CRLF);
-						sb.append("<li>View logs &bull;<a href=\"/files/log/info\"><i>info</i></a> &bull;<a href=\"/files/log/full\"><i>debug</i></a></li>").append(CRLF);
+						sb.append("<li>View logs &bull; <a href=\"/files/log/info\"><i>info</i></a> &bull; <a href=\"/files/log/full\"><i>debug</i></a></li>").append(CRLF);
 						if (configuration.getUseCache()) {
 							sb.append("<li><a href=\"http://" + PMS.get().getServer().getHost() + ":" + PMS.get().getServer().getPort() + "/console/home\">Manage cache.</a></li>").append(CRLF);
 						}
