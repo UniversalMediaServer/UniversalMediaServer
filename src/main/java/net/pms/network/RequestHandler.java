@@ -223,7 +223,6 @@ public class RequestHandler implements Runnable {
 					// the renderer have failed. The only option left is to assume the
 					// default renderer.
 					request.setMediaRenderer(RendererConfiguration.resolve(ia, null));
-					// If the renderer is still null it means we know via upnp that it's not really a renderer
 					if (request.getMediaRenderer() != null) {
 						LOGGER.trace("Using default media renderer: " + request.getMediaRenderer().getRendererName());
 
@@ -232,6 +231,10 @@ public class RequestHandler implements Runnable {
 							LOGGER.info("Media renderer was not recognized. Possible identifying HTTP headers: User-Agent: " + userAgentString +
 									("".equals(unknownHeaders.toString()) ? "" : ", " + unknownHeaders.toString()));
 						}
+					} else {
+						// If RendererConfiguration.resolve() didn't return the default renderer
+						// it means we know via upnp that it's not really a renderer.
+						return;
 					}
 				} else {
 					if (userAgentString != null) {

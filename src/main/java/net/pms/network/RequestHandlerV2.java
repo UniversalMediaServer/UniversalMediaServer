@@ -220,7 +220,6 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 			// the renderer have failed. The only option left is to assume the
 			// default renderer.
 			request.setMediaRenderer(RendererConfiguration.resolve(ia, null));
-			// If the renderer is still null it means we know via upnp that it's not really a renderer
 			if (request.getMediaRenderer() != null) {
 				LOGGER.trace("Using default media renderer: " + request.getMediaRenderer().getRendererName());
 
@@ -230,6 +229,10 @@ public class RequestHandlerV2 extends SimpleChannelUpstreamHandler {
 							+ ("".equals(unknownHeaders.toString()) ? "" : ", " + unknownHeaders.toString()));
 					PMS.get().setRendererFound(request.getMediaRenderer());
 				}
+			} else {
+				// If RendererConfiguration.resolve() didn't return the default renderer
+				// it means we know via upnp that it's not really a renderer.
+				return;
 			}
 		} else {
 			if (userAgentString != null) {
