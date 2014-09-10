@@ -225,6 +225,7 @@ public class FileTranscodeVirtualFolder extends VirtualFolder {
 						if (subtitle.isExternal()) { // do not check for embedded subs
 							if (renderer.isSubtitlesFormatSupported(subtitle)) {
 								DLNAResource copy = createResourceWithAudioSubtitlePlayer(child, null, subtitle, null);
+								copy.getMediaSubtitle().setSubsStreamable(true);
 								entries.add(copy);
 								LOGGER.trace(
 									"Duplicating {} for direct streaming subtitles {}",
