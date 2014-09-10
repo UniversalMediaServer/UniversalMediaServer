@@ -174,7 +174,7 @@ public class FFMpegVideo extends Player {
 			scalePadFilterChain.add("scale=" + scaleWidth + ":" + scaleHeight);
 		}
 
-		if (!isDisableSubtitles(params) && !(dlna.getPlayer() instanceof WebPlayer)) {
+		if (!isDisableSubtitles(params) && !params.sid.isStreamable() && !(dlna.getPlayer() instanceof WebPlayer)) {
 			StringBuilder subsFilter = new StringBuilder();
 			if (params.sid.getType().isText()) {
 				String originalSubsFilename;

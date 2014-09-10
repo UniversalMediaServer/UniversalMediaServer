@@ -535,6 +535,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							Player.setAudioAndSubs(child.getSystemName(), child.media, params); // set proper subtitles in accordance with user setting
 							if (defaultRenderer.isSubtitlesFormatSupported(params.sid)) {
 								child.media_subtitle = params.sid;
+								child.media_subtitle.setSubsStreamable(true);
 								LOGGER.trace("Set media_subtitle");
 							} else {
 								LOGGER.trace("Did not set media_subtitle because the subtitle format is not supported by this renderer");
@@ -647,6 +648,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 										Player.setAudioAndSubs(child.getSystemName(), child.media, params); // set proper subtitles in accordance with user setting
 										if (defaultRenderer.isSubtitlesFormatSupported(params.sid)) {
 											child.media_subtitle = params.sid;
+											child.media_subtitle.setSubsStreamable(true);
 											LOGGER.trace("Set media_subtitle");
 										} else {
 											LOGGER.trace("Did not set media_subtitle because the subtitle format is not supported by this renderer");
@@ -1498,10 +1500,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if (!isFolder()) {
 			if (
 				!configuration.isDisableSubtitles() &&
-				media != null &&
 				media_subtitle != null &&
-				player == null &&
-				mediaRenderer.isSubtitlesFormatSupported(media_subtitle)
+				media_subtitle.isStreamable()
 			) {
 				subsAreValidForStreaming = true;
 				LOGGER.trace("Setting subsAreValidForStreaming to true for " + getName());
@@ -1545,8 +1545,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			);
 		} else { // Ditlew - org
 			// Ditlew
-			wireshark.append(((isFolder() || player == null && subsAreValidForStreaming) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer))));
-			String tmp = (isFolder() || player == null && subsAreValidForStreaming) ? getDisplayName(null, false) : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer, false));
+			wireshark.append(((isFolder() || subsAreValidForStreaming) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer))));
+			String tmp = (isFolder() || subsAreValidForStreaming) ? getDisplayName(null, false) : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer, false));
 			addXMLTagAndAttribute(
 				sb,
 				"dc:title",
