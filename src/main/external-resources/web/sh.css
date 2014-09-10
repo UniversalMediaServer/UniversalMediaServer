@@ -34,3 +34,21 @@ body .syntaxhighlighter .line {
 	color: #993300 !important;
 }
 
+.syntaxhighlighter .comment {
+	color: #91826E !important;
+}
+
+.syntaxhighlighter .section {
+	color: #993300 !important;
+	font-weight: bold !important;
+}
+
+.syntaxhighlighter .key {
+	color: #006699 !important;
+	font-weight: bold !important;
+}
+
+.syntaxhighlighter .keyword {
+	color: #99001A !important;
+}
+

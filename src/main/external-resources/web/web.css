@@ -47,6 +47,7 @@ body#ContentPage {
 }
 
 #ContentPage.Doc ul {
+	margin: 0 0 0 1em;
 	list-style: disc inside none;
 }
 
