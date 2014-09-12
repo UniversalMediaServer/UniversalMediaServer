@@ -291,9 +291,9 @@ public class OpenSubtitle {
 				"</struct></value></data>\n</array>\n</value>\n</param>" +
 				"</params>\n</methodCall>\n";
 		Pattern re = Pattern.compile(
-				".*IDMovieImdb</name>.*?<string>([^<]+)</string>.*?"+"" +
-				"MovieName</name>.*?<string>([^<]+)</string>.*?"+
-				"SeriesSeason</name>.*?<string>([^<]+)</string>.*?"+
+				".*IDMovieImdb</name>.*?<string>([^<]+)</string>.*?" + "" +
+				"MovieName</name>.*?<string>([^<]+)</string>.*?" +
+				"SeriesSeason</name>.*?<string>([^<]+)</string>.*?" +
 				"SeriesEpisode</name>.*?<string>([^<]+)</string>.*?",
 				Pattern.DOTALL
 		);
