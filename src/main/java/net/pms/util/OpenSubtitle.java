@@ -254,7 +254,7 @@ public class OpenSubtitle {
 	/**
 	 * Feeds the correct parameters to getInfo below.
 	 *
-	 * @see #getInfo(java.lang.String, long, java.lang.String, java.lang.String) 
+	 * @see #getInfo(java.lang.String, long, java.lang.String, java.lang.String)
 	 *
 	 * @param f the file to lookup
 	 *
