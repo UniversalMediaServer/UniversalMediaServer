@@ -251,6 +251,16 @@ public class OpenSubtitle {
 		return res;
 	}
 
+	/**
+	 * Feeds the correct parameters to getInfo below.
+	 *
+	 * @see #getInfo(java.lang.String, long, java.lang.String, java.lang.String) 
+	 *
+	 * @param f the file to lookup
+	 *
+	 * @return
+	 * @throws IOException
+	 */
 	public static String[] getInfo(File f) throws IOException {
 		String[] res = getInfo(getHash(f), f.length(), null, null);
 		if (res == null || res.length == 0) { // no good on hash! try imdb
@@ -263,6 +273,24 @@ public class OpenSubtitle {
 		return res;
 	}
 
+	/**
+	 * Attempt to return information from IMDB about the file based on information
+	 * from the filename; either the hash, the IMDB ID or the filename itself.
+	 *
+	 * It's only called for TV shows right now, but it will also find information
+	 * about films if used for that.
+	 *
+	 * @param hash  the movie hash
+	 * @param size  the bytesize to be used with the hash
+	 * @param imdb  the IMDB ID
+	 * @param query the string to search IMDB for
+	 *
+	 * @return a string array including the IMDB ID, episode title, season number,
+	 *         episode number relative to the season, and the show name, or null
+	 *         if we couldn't find it on IMDB.
+	 *
+	 * @throws IOException
+	 */
 	private static String[] getInfo(String hash, long size, String imdb, String query) throws IOException {
 		login();
 		if (token == null) {
