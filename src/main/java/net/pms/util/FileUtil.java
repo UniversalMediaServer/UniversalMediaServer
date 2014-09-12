@@ -220,7 +220,7 @@ public class FileUtil {
 			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
 			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S0(\\d)E(\\d)(\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3-$1$4$5 - ");
 
-			if (PMS.getConfiguration().useInfoDb()) {
+			if (PMS.getConfiguration().isLoadEpisodeTitles()) {
 				if (!formattedName.equals(formattedNameTemp)) {
 					formattedName = formattedNameTemp;
 					hasEpisodeNameInFilename = true;
@@ -244,7 +244,7 @@ public class FileUtil {
 			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
 			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3-$1$4$5 - ");
 
-			if (PMS.getConfiguration().useInfoDb()) {
+			if (PMS.getConfiguration().isLoadEpisodeTitles()) {
 				if (!formattedName.equals(formattedNameTemp)) {
 					formattedName = formattedNameTemp;
 					hasEpisodeNameInFilename = true;
@@ -269,7 +269,7 @@ public class FileUtil {
 			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
 			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S0(\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3 - ");
 
-			if (PMS.getConfiguration().useInfoDb()) {
+			if (PMS.getConfiguration().isLoadEpisodeTitles()) {
 				if (!formattedName.equals(formattedNameTemp)) {
 					formattedName = formattedNameTemp;
 					hasEpisodeNameInFilename = true;
@@ -293,7 +293,7 @@ public class FileUtil {
 			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
 			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3 - ");
 
-			if (PMS.getConfiguration().useInfoDb()) {
+			if (PMS.getConfiguration().isLoadEpisodeTitles()) {
 				if (!formattedName.equals(formattedNameTemp)) {
 					formattedName = formattedNameTemp;
 					hasEpisodeNameInFilename = true;
@@ -316,7 +316,7 @@ public class FileUtil {
 			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
 			formattedNameTemp = formattedName.replaceAll("(?i)\\.(19|20)(\\d\\d)\\.([0-1]\\d)\\.([0-3]\\d)\\.", " - $1$2/$3/$4 - ");
 
-			if (PMS.getConfiguration().useInfoDb()) {
+			if (PMS.getConfiguration().isLoadEpisodeTitles()) {
 				if (!formattedName.equals(formattedNameTemp)) {
 					formattedName = formattedNameTemp;
 					hasEpisodeNameInFilename = true;
