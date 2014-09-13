@@ -80,7 +80,6 @@ public class RemoteWeb {
 			addCtx("/thumb", new RemoteThumbHandler(this));
 			addCtx("/raw", new RemoteRawHandler(this));
 			addCtx("/files", new RemoteFileHandler(this));
-			addCtx("/subs", new RemoteFileHandler(this));
 			addCtx("/doc", new RemoteDocHandler(this));
 			server.setExecutor(Executors.newFixedThreadPool(threads));
 			server.start();
@@ -297,27 +296,29 @@ public class RemoteWeb {
 
 		public RemoteFileHandler(RemoteWeb parent) {
 			this.parent = parent;
-
 		}
+
 		@Override
 		public void handle(HttpExchange t) throws IOException {
 			LOGGER.debug("file req " + t.getRequestURI());
+
 			String path = t.getRequestURI().getPath();
+			File file = null;
+			String response = null;
+			String mime = null;
+			int status = 200;
+
 			if (path.contains("crossdomain.xml")) {
-				String data = "<?xml version=\"1.0\"?>" +
+				response = "<?xml version=\"1.0\"?>" +
 					"<!-- http://www.bitsontherun.com/crossdomain.xml -->" +
 					"<cross-domain-policy>" +
 					"<allow-access-from domain=\"*\" />" +
 					"</cross-domain-policy>";
-				t.sendResponseHeaders(200, data.length());
-				try (OutputStream os = t.getResponseBody()) {
-					os.write(data.getBytes());
-				}
-				return;
-			}
-			if (path.startsWith("/files/log/")) {
-				String data = null;
-				if (path.startsWith("/files/log/info")) {
+				mime = "text/xml";
+
+			} else if (path.startsWith("/files/log/")) {
+				String filename = path.substring(11);
+				if (filename.equals("info")) {
 					String log = PMS.get().getFrame().getLog();
 					log = log.replaceAll("\n", "<br>");
 					String fullLink = "<br><a href=\"/files/log/full\">Full log</a><br><br>";
@@ -325,13 +326,13 @@ public class RemoteWeb {
 					if (StringUtils.isNotEmpty(log)) {
 						x = x + fullLink;
 					}
-					data = "<html><title>UMS LOG</title><body>" + x + "</body></html>";
+					response = "<html><title>UMS LOG</title><body>" + x + "</body></html>";
 				} else {
-					int hash = Integer.valueOf(path.substring(11));
-					File f = parent.getFile(hash);
-					if (f != null) {
-						String filename = f.getName();
-						String log = RemoteUtil.read(f).replace("<", "&lt;");
+					// Retrieve by hash
+					file = parent.getFile(filename);
+					if (file != null) {
+						String filename = file.getName();
+						String log = RemoteUtil.read(file).replace("<", "&lt;");
 						String brush = filename.endsWith("debug.log") ? "debug_log" :
 							filename.endsWith(".log") ? "log" : "conf";
 						StringBuilder sb = new StringBuilder();
@@ -349,40 +350,57 @@ public class RemoteWeb {
 								sb.append("</pre>");
 							sb.append("</body>");
 						sb.append("</html>");
-						data = sb.toString();
+						response = sb.toString();
+					} else {
+						status = 404;
 					}
 				}
+				mime = "text/html";
 
+			} else {
+				// A regular file request
+				String filename = path.substring(7);
+				// Assume it's a web file
+				file = configuration.getWebFile(filename);
+				if (! file.exists()) {
+					// Not a web file, see if it's a hash request
+					file = parent.getFile(filename);
+				}
+				if (file != null) {
+					filename = file.getName();
+					// Add content type headers for IE
+					// Thx to speedy8754
+					if(filename.endsWith(".css")) {
+						mime = "text/css";
+					}
+					else if(filename.endsWith(".js")) {
+						mime = "text/javascript";
+					}
+				} else {
+					status = 404;
+				}
+			}
+
+			if (status == 404 && response == null) {
+				response = "<html><body>404 - File Not Found: " + path + "</body></html>";
+			}
+
+			if (mime != null) {
 				Headers hdr = t.getResponseHeaders();
-				hdr.add("Content-Type", "text/html");
-				byte[] bytes = data.getBytes();
-				t.sendResponseHeaders(200, bytes.length);
+				hdr.add("Content-Type", mime);
+			}
+
+			if (response != null) {
+				byte[] bytes = response.getBytes();
+				t.sendResponseHeaders(status, bytes.length);
 				try (OutputStream os = t.getResponseBody()) {
 					os.write(bytes);
 					os.close();
 				} catch (Exception e) {
 					LOGGER.debug("Error sending response: " + e);
 				}
-				return;
-			}	
-			if (path.startsWith("/files/")) {
-				// Add content type headers for IE
-				// Thx to speedy8754
-				if( path.endsWith(".css") ) {
-					Headers hdr = t.getResponseHeaders();
-					hdr.add("Content-Type", "text/css");
-				}
-				else if( path.endsWith(".js") ) {
-					Headers hdr = t.getResponseHeaders();
-					hdr.add("Content-Type", "text/javascript");
-				}
-				File f = configuration.getWebFile(path.substring(7));
-				RemoteUtil.dumpFile(f, t);
-				return;
-			}
-			if (path.startsWith("/subs/")) {
-				File f = new File(path.substring(6));
-				RemoteUtil.dumpFile(f, t);
+			} else if (file != null) {
+				RemoteUtil.dumpFile(file, t);
 			}
 		}
 	}
@@ -504,8 +522,7 @@ public class RemoteWeb {
 			sb.append("<ul>").append(CRLF);
 			for (File f : new DbgPacker().getItems()) {
 				if (f.exists()) {
-					parent.files.add(f);
-					sb.append("<li><a href=\"/files/log/" + f.hashCode() + "\">" + f.getName() + "</a></li>").append(CRLF);
+					sb.append("<li><a href=\"/files/log/" + parent.addFile(f) + "\">" + f.getName() + "</a></li>").append(CRLF);
 				}
 			}
 			sb.append("</ul>").append(CRLF);
@@ -513,11 +530,20 @@ public class RemoteWeb {
 		}
 	}
 
-	public File getFile(int hash) {
-		for (File f : files) {
-			if (f.hashCode() == hash) {
-				return f;
+	public int addFile(File f) {
+		files.add(f);
+		return f.hashCode();
+	}
+
+	public File getFile(String hash) {
+		try {
+			int h = Integer.valueOf(hash);
+			for (File f : files) {
+				if (f.hashCode() == h) {
+					return f;
+				}
 			}
+		} catch (NumberFormatException e) {
 		}
 		return null;
 	}
