@@ -331,7 +331,7 @@ public class RemoteWeb {
 					// Retrieve by hash
 					file = parent.getFile(filename);
 					if (file != null) {
-						String filename = file.getName();
+						filename = file.getName();
 						String log = RemoteUtil.read(file).replace("<", "&lt;");
 						String brush = filename.endsWith("debug.log") ? "debug_log" :
 							filename.endsWith(".log") ? "log" : "conf";
