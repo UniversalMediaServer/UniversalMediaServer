@@ -189,10 +189,9 @@ public class RemoteUtil {
 			return null;
 		}
 		name += "=";
-		String[] tmp = cstr.split(";");
-		for (String str: tmp) {
-			if (str.trim().startsWith(name)) {
-				return StringUtils.substringAfter(str, name);
+		for (String str: cstr.trim().split("\\s*;\\s*")) {
+			if (str.startsWith(name)) {
+				return str.substring(name.length());
 			}
 		}
 		return null;
