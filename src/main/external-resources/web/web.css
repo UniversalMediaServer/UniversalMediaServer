@@ -103,12 +103,26 @@ body#ContentPage {
 
 /* Content */
 
-ul#Media li {
-	margin-right: 20px;
-}
-
 ul li {
 	text-align: left;
+}
+
+ul li a {
+	text-decoration: none;
+}
+
+ul#Folders li a {
+	color: #aaa;
+	font-size: 14px;
+}
+
+ul#Folders li a:hover {
+	color: #fff !important;
+}
+
+ul#Folders li span {
+	display: block;
+	margin-bottom: 5px;
 }
 
 ul#Media li {
@@ -117,7 +131,7 @@ ul#Media li {
 	margin-bottom: 20px;
 }
 
-ul#Media li a .thumb {
+ul#Media .thumb {
 	max-width: 253px;
 	max-height: 142px;
 	height: 142px;
@@ -125,18 +139,20 @@ ul#Media li a .thumb {
 	float: left;
 }
 
-ul#Folders li span {
-	display: block;
-	margin-bottom: 5px;
-}
-
-ul#Media li span {
+ul#Media .caption {
 	display: block;
 	max-width: 221px;
 	height: 16px;
 	overflow: hidden;
 	float: left;
 	clear: left;
+	font-size: 12px;
+	color: #444;
+}
+
+ul#Media a .caption:hover {
+	color: #000 !important;
+	text-decoration: underline;
 }
 
 .bumpIcon {
@@ -150,32 +166,6 @@ ul#Media li span {
 
 .bumpIcon:hover {
 	background-position: 0 -16px;
-}
-
-ul#Media li span:hover {
-	text-decoration: underline;
-}
-
-ul li a {
-	text-decoration: none;
-}
-
-ul#Folders li a:hover {
-	color: #fff !important;
-}
-
-ul#Media li a:hover {
-	color: #000 !important;
-}
-
-ul#Folders li a {
-	color: #aaa;
-	font-size: 14px;
-}
-
-ul#Media li a {
-	font-size: 12px;
-	color: #444;
 }
 
 #DownloadLink {

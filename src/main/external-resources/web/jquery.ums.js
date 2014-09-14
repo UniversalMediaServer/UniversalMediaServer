@@ -18,7 +18,7 @@ $(function(){
 			if (container !== null) {
 				imageList = container.getElementsByClassName("thumb");
 				thumbnailContainerList = container.getElementsByTagName("li");
-				spanList = container.getElementsByTagName("span");
+				spanList = container.getElementsByClassName("caption");
 				imagesPerRow = "";
 				totalSpaceMinusMargins = "";
 				correctWidth     = null;

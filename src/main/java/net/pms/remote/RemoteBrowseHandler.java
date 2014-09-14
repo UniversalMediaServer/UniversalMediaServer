@@ -105,7 +105,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 								if (upnpControl) {
 									bumpIconHtml.append("<a class=\"bumpIcon\" href=\"javascript:bump.start('//")
 										.append(parent.getAddress()).append("','/play/").append(idForWeb).append("','")
-										.append(name.replace("'", "\\'")).append("')\" title=\"").append("Play on another renderer").append("\"></a>").append(CRLF);
+										.append(name.replace("'", "\\'")).append("')\" title=\"Play on another renderer\"></a>").append(CRLF);
 								} else {
 									bumpIconHtml.append("<a class=\"bumpIcon icondisabled\" href=\"javascript:alert('").append("No upnp-controllable renderers suitable for receiving pushed media are available. Refresh this page if a new renderer may have recently connected.")
 										.append("')\" title=\"No other renderers available\"></a>").append(CRLF);
@@ -113,26 +113,25 @@ public class RemoteBrowseHandler implements HttpHandler {
 							}
 
 							mediaHtml.append("<li>");
-								if (WebRender.supports(r)) {
-									mediaHtml.append("<a href=\"/play/").append(idForWeb);
-									mediaHtml.append("\" title=\"").append(name).append("\" id=\"").append(idForWeb).append("\">");
-									mediaHtml.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">");
-									mediaHtml.append("</a>").append(CRLF);
-									mediaHtml.append(bumpIconHtml);
-									mediaHtml.append("<a href=\"/play/").append(idForWeb);
-									mediaHtml.append("\" title=\"").append(name).append("\" id=\"").append(idForWeb).append("\">");
-									mediaHtml.append("<span>").append(name).append("</span>");
-								} else if (upnpControl && upnpAllowed) {
-									// Include it as a web-disabled item so it can be thrown via upnp
-									mediaHtml.append("<a class=\"webdisabled\" href=\"javascript:alert('This item not playable via browser but can be sent to other renderers.')\"");
-									mediaHtml.append("\" title=\"").append(name).append(" ** NOT PLAYABLE IN BROWSER - for other renderers only **\">");
-									mediaHtml.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">");
-									mediaHtml.append("<span>").append(name).append("</span>");
-								}
+							if (WebRender.supports(r)) {
+								mediaHtml.append("<a href=\"/play/").append(idForWeb);
+								mediaHtml.append("\" title=\"").append(name).append("\" id=\"").append(idForWeb).append("\">");
+								mediaHtml.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">");
 								mediaHtml.append("</a>").append(CRLF);
-								if (!WebRender.supports(r)) {
-									mediaHtml.append(bumpIconHtml);
-								}
+								mediaHtml.append(bumpIconHtml);
+								mediaHtml.append("<a href=\"/play/").append(idForWeb);
+								mediaHtml.append("\" title=\"").append(name).append("\" id=\"").append(idForWeb).append("\">");
+								mediaHtml.append("<span class=\"caption\">").append(name).append("</span>");
+								mediaHtml.append("</a>").append(CRLF);
+							} else if (upnpControl && upnpAllowed) {
+								// Include it as a web-disabled item so it can be thrown via upnp
+								mediaHtml.append("<a class=\"webdisabled\" href=\"javascript:alert('This item not playable via browser but can be sent to other renderers.')\"");
+								mediaHtml.append("\" title=\"").append(name).append(" (NOT PLAYABLE IN BROWSER)\">");
+								mediaHtml.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">");
+								mediaHtml.append("</a>").append(CRLF);
+								mediaHtml.append(bumpIconHtml);
+								mediaHtml.append("<span class=\"webdisabled caption\">").append(name).append("</span>").append(CRLF);
+							}
 							mediaHtml.append("</li>").append(CRLF);
 
 							hasFile = true;
