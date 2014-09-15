@@ -93,7 +93,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 									// is to make legacy plugins utilize this function as well
 									foldersHtml.append("<a href=\"javascript:void(0);\" onclick=\"searchFun('").append(p).append("');\" title=\"").append(name).append("\">");
 								} else {
-									foldersHtml.append("<a href=\"/browse/").append(idForWeb).append("\" oncontextmenu=\"searchFun('").append(p).append("');\"title=\"").append(name).append("\">");
+									foldersHtml.append("<a href=\"/browse/").append(idForWeb).append("\" oncontextmenu=\"searchFun('").append(p).append("');\" title=\"").append(name).append("\">");
 								}
 								foldersHtml.append("<span>").append(name).append("</span>");
 								foldersHtml.append("</a>").append(CRLF);
@@ -126,7 +126,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 							} else if (upnpControl && upnpAllowed) {
 								// Include it as a web-disabled item so it can be thrown via upnp
 								mediaHtml.append("<a class=\"webdisabled\" href=\"javascript:alert('This item not playable via browser but can be sent to other renderers.')\"");
-								mediaHtml.append("\" title=\"").append(name).append(" (NOT PLAYABLE IN BROWSER)\">");
+								mediaHtml.append(" title=\"").append(name).append(" (NOT PLAYABLE IN BROWSER)\">");
 								mediaHtml.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">");
 								mediaHtml.append("</a>").append(CRLF);
 								mediaHtml.append(bumpIconHtml);
