@@ -1,7 +1,8 @@
-body .syntaxhighlighter .line {
+body {
 	white-space: nowrap !important;
 	font-family: monospace !important;
 	font-size: 12px;
+	background: none !important;
 }
 
 .syntaxhighlighter .tags {

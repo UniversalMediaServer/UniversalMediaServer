@@ -49,4 +49,40 @@ SyntaxHighlighter.brushes.conf.aliases  = ['conf'];
 
 SyntaxHighlighter.regexLib['url'] = re_url;
 
-SyntaxHighlighter.all()
+
+// Incremental as-you-scroll highlighting
+
+var chunk_h = null;
+
+function paint_visible_chunks() {
+	var c = Math.floor($(window).scrollTop() / chunk_h);
+	for (var i=c; i < c+2; i++) {
+		var chunk = $('pre#chunk_' + i);
+		if (chunk.length) {
+			//console.log('highlight '+chunk.attr('id'));
+			SyntaxHighlighter.highlight(null, chunk[0]);
+		}
+	}
+};
+
+$(window).scroll(paint_visible_chunks);
+
+$(document).ready(function() {
+	var raw = $('#rawtext'),
+		brush = raw.attr("class"),
+		lines = raw.text().split(/\r?\n/),
+		len = lines.length;
+
+	chunk_h = raw.height() / len * 100;
+
+	// Chop up the raw text into 100 line chunks
+	for (var i=0, c=0; i < len; i+=100, c++) {
+		var pre = $('<pre id="chunk_' + c + '" class="' + brush + '"/>');
+		pre.append(lines.slice(i, i+100).join('\n'));
+		$('body').append(pre);
+	}
+	raw.remove();
+
+	paint_visible_chunks();
+});
+

@@ -339,13 +339,15 @@ public class RemoteWeb {
 						sb.append("<!DOCTYPE html>").append(CRLF);
 							sb.append("<head>").append(CRLF);
 								sb.append("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">").append(CRLF);
+								sb.append("<link rel=\"stylesheet\" href=\"/files/reset.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
 								sb.append("<link rel=\"stylesheet\" href=\"/files/sh.css\" type=\"text/css\">").append(CRLF);
+								sb.append("<script src=\"/files/jquery.min.js\"></script>").append(CRLF);
 								sb.append("<script src=\"/files/shCore.js\"></script>").append(CRLF);
 								sb.append("<script src=\"/files/sh.js\"></script>").append(CRLF);
 								sb.append("<title>" + filename + "</title>").append(CRLF);
 							sb.append("</head>").append(CRLF);
 							sb.append("<body>").append(CRLF);
-								sb.append("<pre class=\"brush: " + brush + "\">").append(CRLF);
+								sb.append("<pre id=\"rawtext\" class=\"brush: " + brush + "\">").append(CRLF);
 									sb.append(log);
 								sb.append("</pre>");
 							sb.append("</body>");
