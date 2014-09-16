@@ -90,9 +90,9 @@ class ConfigurationReader {
 			// and if so log it as a device override by explicitly identifying the source.
 			String src = (dConf != null && value != null && value.equals((T)dConf.getProperty(key))) ? dTag : "";
 			if (initialised) {
-				LOGGER.debug("{}Reading {}: default: {}, current: {}", src, key, quote(oldValue), quote(value));
+				LOGGER.debug("{}Reading {}: {} (default: {})", src, key, quote(value), quote(oldValue));
 			} else {
-				LOGGER.debug("{}Reading {}: default: {}, previous: {}, current: {}", src, key, quote(def), quote(oldValue), quote(value));
+				LOGGER.debug("{}Reading {}: {} (previous: {}, default: {})", src, key, quote(value), quote(oldValue), quote(def));
 			}
 		}
 	}
