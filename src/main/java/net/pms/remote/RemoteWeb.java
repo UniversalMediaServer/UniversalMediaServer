@@ -383,6 +383,7 @@ public class RemoteWeb {
 
 			if (status == 404 && response == null) {
 				response = "<html><body>404 - File Not Found: " + path + "</body></html>";
+				mime = "text/html";
 			}
 
 			if (mime != null) {
