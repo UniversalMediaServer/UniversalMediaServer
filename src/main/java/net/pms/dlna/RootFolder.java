@@ -41,6 +41,7 @@ import net.pms.external.ExternalFactory;
 import net.pms.external.ExternalListener;
 import net.pms.formats.Format;
 import net.pms.newgui.IFrame;
+import net.pms.util.CodeDb;
 import net.pms.util.FileUtil;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.io.FileUtils;
@@ -1180,6 +1181,25 @@ public class RootFolder extends DLNAResource {
 			res = new VirtualFolder(Messages.getString("PMS.37"), null);
 			VirtualFolder vfSub = new VirtualFolder(Messages.getString("PMS.8"), null);
 			res.addChild(vfSub);
+
+			if (configuration.useCode() && !PMS.get().masterCodeValid() &&
+				StringUtils.isNotEmpty(PMS.get().codeDb().lookup(CodeDb.MASTER))) {
+				// if the master code is valid we don't add this
+				VirtualVideoAction vva = new VirtualVideoAction("MasterCode", true) {
+					@Override
+					public boolean enable() {
+						CodeEnter ce = (CodeEnter)getParent();
+						if(ce.validCode(this)) {
+							PMS.get().setMasterCode(ce);
+							return true;
+						}
+						return false;
+					}
+				};
+				CodeEnter ce1 = new CodeEnter(vva);
+				ce1.setCode(CodeDb.MASTER);
+				res.addChild(ce1);
+			}
 
 			res.addChild(new VirtualVideoAction(Messages.getString("PMS.3"), configuration.isMencoderNoOutOfSync()) {
 				@Override

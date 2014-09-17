@@ -35,10 +35,7 @@ import net.pms.configuration.NameFilter;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.dlna.DLNAMediaDatabase;
-import net.pms.dlna.DLNAResource;
-import net.pms.dlna.GlobalIdRepo;
-import net.pms.dlna.RootFolder;
+import net.pms.dlna.*;
 import net.pms.dlna.virtual.MediaLibrary;
 import net.pms.encoders.Player;
 import net.pms.encoders.PlayerFactory;
@@ -571,6 +568,7 @@ public class PMS {
 
 		infoDb = new InfoDb();
 		codes = new CodeDb();
+		masterCode = null;
 
 		RendererConfiguration.loadRendererConfigurations(configuration);
 		// Now that renderer confs are all loaded, we can start searching for renderers
@@ -1526,6 +1524,7 @@ public class PMS {
 
 	private InfoDb infoDb;
 	private CodeDb codes;
+	private CodeEnter masterCode;
 
 	public void infoDbAdd(File f) {
 		infoDb.backgroundAdd(f);
@@ -1537,5 +1536,13 @@ public class PMS {
 
 	public CodeDb codeDb() {
 		return codes;
+	}
+
+	public void setMasterCode(CodeEnter ce) {
+		masterCode = ce;
+	}
+
+	public boolean masterCodeValid() {
+		return (masterCode != null && masterCode.validCode(null));
 	}
 }

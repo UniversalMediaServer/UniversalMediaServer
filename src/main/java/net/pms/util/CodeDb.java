@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 public class CodeDb implements DbHandler{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CodeDb.class);
+	public static final String MASTER = "MASTER_CODE";
 
 	private FileDb db;
 
@@ -24,6 +25,9 @@ public class CodeDb implements DbHandler{
 
 	public String getCode(String obj) {
 		for (String key : db.keys()) {
+			if(key.equals(MASTER)) {
+				continue;
+			}
 			if (Pattern.matches(key, obj)) {
 				 return key;
 			}

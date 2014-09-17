@@ -40,7 +40,8 @@ public class CodeEnter extends VirtualFolder {
 	private boolean preventAutoPlay() {
 		// Normally changed is 0 and 0+15000 is never larger
 		// then now.
-		return (changed+5000)>System.currentTimeMillis();
+		//return (changed+5000)>System.currentTimeMillis();
+		return false;
 	}
 
 	public void setCode(String str) {
@@ -97,12 +98,12 @@ public class CodeEnter extends VirtualFolder {
 	}
 
 	public boolean validCode(DLNAResource r) {
-		if (r instanceof CodeAction) {
+		if (r != null  && r instanceof CodeAction) {
 			// always ok
 			return true;
 		}
 		String realCode = PMS.get().codeDb().lookup(code);
-		LOGGER.debug("valid code "+commitTime + " "+enteredCode+"!");
+		LOGGER.debug("valid code "+commitTime);
 		if(!enteredCode.equals(realCode)) {
 			// bad code
 			return false;
