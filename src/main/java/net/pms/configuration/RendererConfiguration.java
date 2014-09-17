@@ -128,6 +128,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String ACCURATE_DLNA_ORGPN = "AccurateDLNAOrgPN";
 	protected static final String AUDIO = "Audio";
 	protected static final String AUTO_EXIF_ROTATE = "AutoExifRotate";
+	protected static final String AUTO_PLAY_TMO = "AutoPlayTmo";
 	protected static final String BYTE_TO_TIMESEEK_REWIND_SECONDS = "ByteToTimeseekRewindSeconds"; // Ditlew
 	protected static final String CBR_VIDEO_BITRATE = "CBRVideoBitrate"; // Ditlew
 	protected static final String CHARMAP = "CharMap";
@@ -1658,6 +1659,11 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			return false;
 		}
 	}
+
+	public int getAutoPlayTmo() {
+		return getInt(AUTO_PLAY_TMO, 5000);
+	}
+
 
 	public String getCustomFFmpegOptions() {
 		return getString(CUSTOM_FFMPEG_OPTIONS, "");

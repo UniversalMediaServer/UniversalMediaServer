@@ -40,7 +40,13 @@ public class CodeEnter extends VirtualFolder {
 	private boolean preventAutoPlay() {
 		// Normally changed is 0 and 0+15000 is never larger
 		// then now.
-		return (changed+5000)>System.currentTimeMillis();
+		int tmo;
+		if(getDefaultRenderer() != null) {
+			tmo = getDefaultRenderer().getAutoPlayTmo();
+		} else {
+			tmo = 5000;
+		}
+		return (changed + tmo) > System.currentTimeMillis();
 	}
 
 	public void setCode(String str) {

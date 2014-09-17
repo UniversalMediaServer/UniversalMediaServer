@@ -194,6 +194,10 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 		return defaultMime;
 	}
 
+	public int getAutoPlayTmo() {
+		return 0;
+	}
+
 	public boolean isLowBitrate() {
 		// FIXME: this should return true if either network speed or client cpu are slow
 		boolean slow = false;
