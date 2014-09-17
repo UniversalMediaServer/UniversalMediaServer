@@ -139,20 +139,6 @@ public class RemoteWeb {
 		return tag;
 	}
 
-	private String getCookie(String cstr) {
-		if (StringUtils.isEmpty(cstr)) {
-			return null;
-		}
-		String[] tmp = cstr.split(";");
-		for (String str: tmp) {
-			str = str.trim();
-			if (str.startsWith("UMS=")) {
-				return str.substring(4);
-			}
-		}
-		return null;
-	}
-
 	public String getAddress() {
 		return PMS.get().getServer().getHost() + ":" + server.getAddress().getPort();
 	}
