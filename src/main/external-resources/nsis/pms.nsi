@@ -148,7 +148,11 @@ Function GetJRE
 		Call ElevateToAdmin
 		MessageBox MB_ICONINFORMATION "${PRODUCT_NAME} uses Java Runtime Environment ${JRE7_VERSION}+, it will now be downloaded and installed."
 		StrCpy $2 "$TEMP\Java Runtime Environment.exe"
-		nsisdl::download /TIMEOUT=30000 ${JRE_URL} $2
+		${If} ${RunningX64}
+			nsisdl::download /TIMEOUT=30000 ${JRE64_URL} $2
+		${Else}
+			nsisdl::download /TIMEOUT=30000 ${JRE_URL} $2
+		${EndIf}
 		Pop $R0 ;Get the return value
 		StrCmp $R0 "success" +3
 		MessageBox MB_ICONSTOP "Download failed: $R0"
