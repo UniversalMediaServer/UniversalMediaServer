@@ -99,6 +99,8 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_BUMP_IPS = "allowed_bump_ips";
 	protected static final String KEY_CHAPTER_INTERVAL = "chapter_interval";
 	protected static final String KEY_CHAPTER_SUPPORT = "chapter_support";
+	protected static final String KEY_CODE_TMO = "code_valid_timeout";
+	protected static final String KEY_CODE_USE = "code_enable";
 	protected static final String KEY_MENCODER_CODEC_SPECIFIC_SCRIPT = "mencoder_codec_specific_script";
 	protected static final String KEY_DISABLE_FAKESIZE = "disable_fakesize";
 	public static final String KEY_DISABLE_SUBTITLES = "disable_subtitles";
@@ -3256,5 +3258,13 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public boolean useInfoDb() {
 		return getBoolean(KEY_INFO_DB, true);
+	}
+
+	public boolean useCode() {
+		return getBoolean(KEY_CODE_USE, true);
+	}
+
+	public int getCodeValidTmo() {
+		return (getInt(KEY_CODE_TMO, 4 * 60) * 60 * 1000);
 	}
 }

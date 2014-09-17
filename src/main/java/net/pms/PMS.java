@@ -570,6 +570,7 @@ public class PMS {
 		}
 
 		infoDb = new InfoDb();
+		codes = new CodeDb();
 
 		RendererConfiguration.loadRendererConfigurations(configuration);
 		// Now that renderer confs are all loaded, we can start searching for renderers
@@ -1524,6 +1525,7 @@ public class PMS {
 	}
 
 	private InfoDb infoDb;
+	private CodeDb codes;
 
 	public void infoDbAdd(File f) {
 		infoDb.backgroundAdd(f);
@@ -1531,5 +1533,9 @@ public class PMS {
 
 	public InfoDb infoDb() {
 		return infoDb;
+	}
+
+	public CodeDb codeDb() {
+		return codes;
 	}
 }

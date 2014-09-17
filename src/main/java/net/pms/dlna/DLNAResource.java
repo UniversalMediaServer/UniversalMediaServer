@@ -524,6 +524,22 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			return;
 		}
 
+		if (configuration.useCode()) {
+			String code = PMS.get().codeDb().getCode(child);
+			if (StringUtils.isNotEmpty(code)) {
+				DLNAResource cobj = child.isCoded();
+				if(cobj == null || !((CodeEnter) cobj).getCode().equals(code)) {
+					LOGGER.debug("Resource " + child + " is coded add code folder");
+					CodeEnter ce = new CodeEnter(child);
+					ce.parent = this;
+					ce.defaultRenderer = this.getDefaultRenderer();
+					ce.setCode(code);
+					addChildInternal(ce);
+					return;
+				}
+			}
+		}
+
 		try {
 			if (child.isValid()) {
 				LOGGER.trace("{} child \"{}\" with class \"{}\"", isNew ? "Adding new" : "Updating", child.getName(), child.getClass().getName());
@@ -972,10 +988,18 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 		return dlna;*/
 		DLNAResource dlna = PMS.getGlobalRepo().get(objectId);
-		if(dlna != null && dlna.isFolder()) {
+		if (dlna == null) {
+			return null;
+		}
+		if(dlna.isFolder()) {
 			return null;
 		} else {
-			return dlna;
+			// non folder
+			if (isCodeValid(dlna)) {
+				return dlna;
+			} else {
+				return null;
+			}
 		}
 	}
 
@@ -1020,7 +1044,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			//dlna = search(objectId, count, renderer, searchStr);
 		}
 
+
 		if (dlna != null) {
+			if (!(dlna instanceof CodeEnter) && !isCodeValid(dlna)) {
+				LOGGER.debug("code is not valid any longer");
+				return resources;
+			}
 			String systemName = dlna.getSystemName();
 			dlna.setDefaultRenderer(renderer);
 
@@ -2590,7 +2619,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		}
 
 		// Thumb could be:
-		if (thumb != null) {
+		if (thumb != null && isCodeValid(this)) {
 			// A local file
 			if (new File(thumb).exists()) {
 				return new FileInputStream(thumb);
@@ -2618,6 +2647,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		} else if (defaultRenderer != null && defaultRenderer.isForceJPGThumbnails()) {
 			defaultThumbnailImage = "images/thumbnail-video-120.jpg";
 		}
+		LOGGER.debug("use def thumb "+defaultThumbnailImage);
 		return getResourceInputStream(defaultThumbnailImage);
 	}
 
@@ -3566,11 +3596,41 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
+		if(this.format.isCompatible(this.media, r)) {
+			// transcode the stuff
+			LOGGER.debug("updating renderer to '{}' from '{}'", r, getDefaultRenderer());
+			setDefaultRenderer(r);
+			setPlayer(null);
+			return;
+		}
+
 		if (pl == null) {
 			LOGGER.debug("updating renderer to '{}' from '{}'", r, getDefaultRenderer());
 			setDefaultRenderer(r);
 			pl = PlayerFactory.getPlayer(this);
 		}
 		setPlayer(pl);
+	}
+
+	public DLNAResource isCoded() {
+		DLNAResource tmp = this;
+		while(tmp != null) {
+			if(tmp instanceof CodeEnter) {
+				return tmp;
+			}
+			tmp = tmp.getParent();
+		}
+		return null;
+	}
+
+	private boolean isCodeValid(DLNAResource r) {
+		DLNAResource res = r.isCoded();
+		if (res != null) {
+			if(res instanceof CodeEnter) {
+				return ((CodeEnter) res).validCode(r);
+			}
+		}
+		// normal case no code in path code is always valid
+		return true;
 	}
 }

@@ -253,7 +253,7 @@ public class Request extends HTTPResource {
 
 		StringBuilder response = new StringBuilder();
 		DLNAResource dlna = null;
-		boolean xbox = mediaRenderer.isXBOX();
+		boolean xbox = (mediaRenderer == null ? false : mediaRenderer.isXBOX());
 
 		// Samsung 2012 TVs have a problematic preceding slash that needs to be removed.
 		if (argument.startsWith("/")) {

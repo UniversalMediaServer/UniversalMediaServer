@@ -12,6 +12,7 @@ import java.io.FileReader;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class FileDb {
 	private static final Logger LOGGER = LoggerFactory.getLogger(FileDb.class);
@@ -56,6 +57,9 @@ public class FileDb {
 	public void setOverwrite(boolean b) {
 		overwrite = b;
 	}
+
+
+	public Set<String> keys() { return db.keySet(); }
 
 	public void init() {
 		if (!file.exists()) {

@@ -11,6 +11,7 @@ import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
+import net.pms.dlna.CodeEnter;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
 import net.pms.util.UMSUtils;
@@ -36,7 +37,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 		List<DLNAResource> res = root.getDLNAResources(id, true, 0, 0, root.getDefaultRenderer(), search);
 		boolean upnpAllowed = RemoteUtil.bumpAllowed(PMS.getConfiguration().getBumpAllowedIps(), t);
 		boolean upnpControl = RendererConfiguration.hasConnectedControlPlayers();
-		if (StringUtils.isNotEmpty(search)) {
+		if (StringUtils.isNotEmpty(search) && !(res instanceof CodeEnter)) {
 			UMSUtils.postSearch(res, search);
 		}
 
