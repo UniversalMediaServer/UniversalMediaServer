@@ -35,7 +35,7 @@ SyntaxHighlighter.brushes.log.aliases  = ['log'];
 SyntaxHighlighter.brushes.debug_log = function() {
 	this.regexList = _log.concat([
 		{ css: 'plain',   regex: /with class .+\"/g },
-		{ css: 'tags',    regex: /(INFO|DEBUG|TRACE) [^\[]+(\[(?!ffmpeg|mplayer|tsmuxer|mencoder|vlc)[^\]]*\])?/g },
+		{ css: 'tags',    regex: /(INFO|DEBUG|WARN|TRACE) [^\[]+(\[(?!ffmpeg|mplayer|tsmuxer|mencoder|vlc)[^\]]*\])?/g },
 		{ css: 'cmd',     regex: /(?:\[(ffmpeg|mplayer|tsmuxer|mencoder|vlc)[^\]]*\])(.+)/g },
 	]);
 };
@@ -55,8 +55,10 @@ SyntaxHighlighter.regexLib['url'] = re_url;
 var chunk_h = null;
 
 function paint_visible_chunks() {
-	var c = Math.floor($(window).scrollTop() / chunk_h);
-	for (var i=c; i < c+2; i++) {
+	var pos = $(window).scrollTop();
+	var first = Math.floor((pos - 400) / chunk_h);
+	var last = Math.floor((pos + $(window).height() + 400) / chunk_h);
+	for (var i=first; i <= last; i++) {
 		var chunk = $('pre#chunk_' + i);
 		if (chunk.length) {
 			//console.log('highlight '+chunk.attr('id'));
@@ -67,22 +69,27 @@ function paint_visible_chunks() {
 
 $(window).scroll(paint_visible_chunks);
 
-$(document).ready(function() {
-	var raw = $('#rawtext'),
-		brush = raw.attr("class"),
-		lines = raw.text().split(/\r?\n/),
+function chop(rawtext, brush) {
+	var lines = rawtext.split(/\r?\n/),
 		len = lines.length;
-
-	chunk_h = raw.height() / len * 100;
-
 	// Chop up the raw text into 100 line chunks
 	for (var i=0, c=0; i < len; i+=100, c++) {
 		var pre = $('<pre id="chunk_' + c + '" class="' + brush + '"/>');
 		pre.append(lines.slice(i, i+100).join('\n'));
 		$('body').append(pre);
 	}
-	raw.remove();
+	return len;
+}
 
-	paint_visible_chunks();
-});
+function ready() {
+	var raw = $('#rawtext');
+	if (raw.length) {
+		var len = chop(raw.text(), raw.attr('class'));
+		chunk_h = raw.height() / len * 100;
+		raw.remove();
+		paint_visible_chunks();
+	}
+}
+
+$(document).bind('ready', ready);
 
