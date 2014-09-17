@@ -107,35 +107,6 @@ public class RemotePlayHandler implements HttpHandler {
 			}
 		}
 		String id1 = URLEncoder.encode(id, "UTF-8");
-		if (StringUtils.isNotEmpty(dir)) {
-			// if the "nxt" field is set we should calculate the next media
-			// 1st fetch or own index in the child list
-			List<DLNAResource> children = r.getParent().getChildren();
-			int i = children.indexOf(r);
-			DLNAResource n = null;
-			int inc;
-			int loopPos;
-			if (dir.equals("next")) {
-				inc = 1;
-				loopPos = 0;
-			} else {
-				inc = -1;
-				loopPos = children.size() - 1;
-			}
-			n = findNext(i + inc, inc, children);
-			if (n == null && configuration.getWebAutoLoop(r.getFormat())) {
-				// we were last/first so if we loop pick first/last in list
-				n = findNext(loopPos, inc, children);
-			}
-			if (n != null) {
-				// all done, change the id
-				id = n.getResourceId();
-				r = n;
-			} else {
-				// trick here to stop continuing if loop is off
-				auto = ">";
-			}
-		}
 		String rawId = id;
 
 		String nxtJs = "window.location.replace('/play/" + id1 + "?nxt=next');";
