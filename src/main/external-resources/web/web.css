@@ -5,38 +5,38 @@ html {
 }
 
 body {
-	background:		url('/files/background.jpg');
-	font-family:		"DejaVuSansCondensed", "Helvetica Neue", Helvetica, Arial, sans-serif;
-	color:			#333;
+	background: url('/files/background.jpg');
+	font-family: "DejaVuSansCondensed", "Helvetica Neue", Helvetica, Arial, sans-serif;
+	color: #333;
 	min-height: 100%;
 }
 
 body#ContentPage {
-	background:		url('/files/background-blank.jpg');
+	background: url('/files/background-blank.jpg');
 }
 
 /* Scaffolding */
 
 #FrontPage #Container {
-	width:			700px;
-	margin:			0 auto;
+	width: 700px;
+	margin: 0 auto;
 	position: relative;
 }
 
 #ContentPage #Container {
-	position:		relative;
+	position: relative;
 }
 
 #FrontPage #Menu {
-	position:		relative;
+	position: relative;
 }
 
 #ContentPage.Doc {
-	margin:0 auto;
+	margin: 0 auto;
 }
 
 #ContentPage.Doc #Menu {
-	position:		relative;
+	position: relative;
 }
 
 #ContentPage.Doc #Container {
@@ -47,24 +47,25 @@ body#ContentPage {
 }
 
 #ContentPage.Doc ul {
+	margin: 0 0 0 1em;
 	list-style: disc inside none;
 }
 
 #ContentPage #Menu #HomeButton {
-	background:		url('/files/menu-left-content.png');
-	width:			125px;
-	height:			93px;
+	background: url('/files/menu-left-content.png');
+	width: 125px;
+	height: 93px;
 	display: block;
 }
 
 #ContentPage #Menu #LogButton {
-	background:		url('/files/icon-log2.jpg');
-	background-size:        125px 93px;
-	width:			125px;
-	height:			93px;
-	position:		absolute;
-	left:			130px;
-	top:                    0px;
+	background: url('/files/icon-log2.jpg');
+	background-size: 125px 93px;
+	width: 125px;
+	height: 93px;
+	position: absolute;
+	left: 130px;
+	top: 0;
 	background-repeat: no-repeat;
 	display: block;
 }
@@ -102,12 +103,26 @@ body#ContentPage {
 
 /* Content */
 
-ul#Media li {
-	margin-right: 20px;
-}
-
 ul li {
 	text-align: left;
+}
+
+ul li a {
+	text-decoration: none;
+}
+
+ul#Folders li a {
+	color: #aaa;
+	font-size: 14px;
+}
+
+ul#Folders li a:hover {
+	color: #fff !important;
+}
+
+ul#Folders li span {
+	display: block;
+	margin-bottom: 5px;
 }
 
 ul#Media li {
@@ -116,49 +131,41 @@ ul#Media li {
 	margin-bottom: 20px;
 }
 
-ul#Media li a .thumb {
-	max-width: 214px;
-	max-height: 180px;
-	height: 120px;
+ul#Media .thumb {
+	max-width: 253px;
+	max-height: 142px;
+	height: 142px;
 	/* Note: intentionally omitting width here so as to avoid distortion if the thumb is actually an icon. */
+	float: left;
 }
 
-ul#Folders li span {
+ul#Media .caption {
 	display: block;
-	margin-bottom: 5px;
-}
-
-ul#Media li span {
-	display: block;
-	max-width: 214px;
+	max-width: 221px;
 	height: 16px;
 	overflow: hidden;
+	float: left;
+	clear: left;
+	font-size: 12px;
+	color: #444;
 }
 
-ul#Media li span:hover {
+ul#Media a .caption:hover {
+	color: #000 !important;
 	text-decoration: underline;
 }
 
-ul li a {
-	text-decoration: none;
+.bumpIcon {
+	background: url('/files/bump/bump16-2.png') no-repeat;
+	width: 28px;
+	height: 16px;
+	display: block;
+	float: right;
+	clear: left;
 }
 
-ul#Folders li a:hover {
-	color: #fff !important;
-}
-
-ul#Media li a:hover {
-	color: #000 !important;
-}
-
-ul#Folders li a {
-	color: #aaa;
-	font-size: 14px;
-}
-
-ul#Media li a {
-	font-size: 12px;
-	color: #444;
+.bumpIcon:hover {
+	background-position: 0 -16px;
 }
 
 #DownloadLink {
@@ -222,29 +229,18 @@ form#SearchForm {
 }
 
 .icondisabled {
-	opacity:0.3;
-	cursor:default;
-}
-
-#bumpicon {
-	background: url('/files/bump/bump16-2.png') no-repeat;
-	width: 28px;
-	height: 16px;
-	display: block;
-}
-
-#bumpicon:hover {
-	background-position: 0 -16px;
+	opacity: 0.3;
+	cursor: default;
 }
 
 .webdisabled {
-	opacity:0.5;
+	opacity: 0.5;
 	cursor: not-allowed;
 }
 
 ::cue {
-  color: #FFF;
-  background: transparent;
-  text-shadow: black 0 0 0.2em;
-  font: 1.2em sans-serif;
+	color: #fff;
+	background: transparent;
+	text-shadow: black 0 0 0.2em;
+	font: 1.2em sans-serif;
 }

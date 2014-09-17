@@ -163,7 +163,7 @@ public class StatusTab {
 			JScrollPane.VERTICAL_SCROLLBAR_NEVER,
 			JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		rsp.setBorder(BorderFactory.createEmptyBorder());
-		rsp.setPreferredSize(new Dimension(0,200));
+		rsp.setPreferredSize(new Dimension(0, 160));
 
 		builder.add(rsp, cc.xyw(1, 19, 5));
 
@@ -238,7 +238,7 @@ public class StatusTab {
 								Dialog.ModalityType.DOCUMENT_MODAL);
 							r.panel = new RendererPanel(renderer);
 							r.dialog.add(r.panel);
-							r.dialog.setIconImage(((JFrame)PMS.get().getFrame()).getIconImage());
+							r.dialog.setIconImage(((JFrame) PMS.get().getFrame()).getIconImage());
 							r.dialog.pack();
 							r.dialog.setLocationRelativeTo(top);
 							r.dialog.setVisible(true);

@@ -81,6 +81,7 @@ public class NavigationShareTab {
 	private JTextField atzLimit;
 	private JCheckBox liveSubtitles;
 	private JCheckBox prettifyfilenames;
+	private JCheckBox episodeTitles;
 	private JCheckBox newmediafolder;
 	private JCheckBox recentlyplayedfolder;
 	private JCheckBox resume;
@@ -179,6 +180,7 @@ public class NavigationShareTab {
 			builder.add(ignorethewordthe, FormLayoutUtil.flip(cc.xy(9, 11), colSpec, orientation));
 
 			builder.add(prettifyfilenames, FormLayoutUtil.flip(cc.xyw(1, 13, 5), colSpec, orientation));
+			builder.add(episodeTitles, FormLayoutUtil.flip(cc.xy(9, 13), colSpec, orientation));
 
 			cmp = builder.addSeparator(Messages.getString("NetworkTab.60"), FormLayoutUtil.flip(cc.xyw(1, 15, 10), colSpec, orientation));
 			cmp = (JComponent) cmp.getComponent(0);
@@ -579,6 +581,20 @@ public class NavigationShareTab {
 			public void itemStateChanged(ItemEvent e) {
 				configuration.setPrettifyFilenames((e.getStateChange() == ItemEvent.SELECTED));
 				hideextensions.setEnabled((e.getStateChange() != ItemEvent.SELECTED));
+				episodeTitles.setEnabled((e.getStateChange() == ItemEvent.SELECTED));
+			}
+		});
+
+		episodeTitles = new JCheckBox(Messages.getString("FoldTab.63"), configuration.isLoadEpisodeTitles());
+		episodeTitles.setToolTipText(Messages.getString("FoldTab.64"));
+		episodeTitles.setContentAreaFilled(false);
+		if (!configuration.isPrettifyFilenames()) {
+			episodeTitles.setEnabled(false);
+		}
+		episodeTitles.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setLoadEpisodeTitles((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
 

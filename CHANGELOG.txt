@@ -1,3 +1,22 @@
+4.1.2 - 2014-09-??
+
+	General:
+		Folder population speed improvements with filename prettifying enabled
+		Web interface client-side speed improvements
+		Web interface design tweaks
+		Fixed the Windows installer downloading the 32-bit version of Java on 64-bit systems
+		Fixed FFmpeg not working on OS X
+		Fixed FFmpeg to MEncoder deferral via the Transcode folder
+		Fixed subtitles being transcoded when they didn't need to be
+	Languages:
+		Updated French translation (thanks, Kirvx!)
+	External Components:
+		Updated FFmpeg for OS X to g7cf1f0f, which:
+			Improves support for many containers and codecs
+			Fixes bugs
+		Updated MediaInfo for Windows to 0.7.70, which:
+			Fixes bugs
+
 4.1.1 - 2014-09-06
 
 	General:

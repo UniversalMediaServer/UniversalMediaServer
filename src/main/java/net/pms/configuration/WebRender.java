@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class WebRender extends DeviceConfiguration implements RendererConfiguration.OutputOverride {
-	private String name;
+	private String user;
 	private String ip;
 	private int port;
 	private String ua;
@@ -34,10 +34,10 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	private static final PmsConfiguration pmsconfiguration = PMS.getConfiguration();
 	private static final Logger LOGGER = LoggerFactory.getLogger(WebRender.class);
 	private static final Format[] supportedFormats ={
-			new GIF(),
-			new JPG(),
-			new MP3(),
-			new PNG()
+		new GIF(),
+		new JPG(),
+		new MP3(),
+		new PNG()
 	};
 
 	public static final String umsInfoScript = StringUtils.join(new String[] {
@@ -56,9 +56,9 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	protected static final int PS4 = 5;
 	protected static final int XBOX1 = 6;
 
-	public WebRender(String name) throws ConfigurationException {
+	public WebRender(String user) throws ConfigurationException {
 		super(NOFILE, null);
-		this.name = name;
+		this.user = user;
 		ip = "";
 		port = 0;
 		ua = "";
@@ -123,7 +123,7 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 
 	@Override
 	public String getRendererName() {
-		String s = pmsconfiguration.isWebAuthenticate() ? name + "@" : "";
+		String s = pmsconfiguration.isWebAuthenticate() ? user + "@" : "";
 		switch (browser) {
 			case CHROME:  return s + "Chrome";
 			case MSIE:    return s + "Internet Explorer";
@@ -196,15 +196,15 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 
 	public boolean isLowBitrate() {
 		// FIXME: this should return true if either network speed or client cpu are slow
-		boolean speed  = false;
+		boolean slow = false;
 		try {
 			// note here if we get a low speed then calcspeed
 			// will return -1 which will ALWAYS be less that the configed value.
-			speed = getInt(calculatedSpeed(), 0) < pmsConfiguration.getWebLowSpeed();
+			slow = getInt(calculatedSpeed(), 0) < pmsConfiguration.getWebLowSpeed();
 		}
 		catch (Exception e) {
 		}
-		return speed || (screenWidth < 720 && (ua.contains("mobi") || isTouchDevice));
+		return slow || (screenWidth < 720 && (ua.contains("mobi") || isTouchDevice));
 	}
 
 	@Override

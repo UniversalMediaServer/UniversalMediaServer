@@ -194,7 +194,10 @@ public class FileUtil {
 		String fileNameWithoutExtension;
 		String formattedName;
 		String formattedNameTemp;
+
+		// The following two booleans are only changed and used if InfoDb is enabled
 		boolean hasEpisodeNameInFilename = false;
+		boolean isEpisode = false;
 
 		// Remove file extension
 		fileNameWithoutExtension = getFileNameWithoutExtension(f);
@@ -217,9 +220,12 @@ public class FileUtil {
 			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
 			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S0(\\d)E(\\d)(\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3-$1$4$5 - ");
 
-			if (!formattedName.equals(formattedNameTemp)) {
-				formattedName = formattedNameTemp;
-				hasEpisodeNameInFilename = true;
+			if (PMS.getConfiguration().isLoadEpisodeTitles()) {
+				if (!formattedName.equals(formattedNameTemp)) {
+					formattedName = formattedNameTemp;
+					hasEpisodeNameInFilename = true;
+				}
+				isEpisode = true;
 			}
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
@@ -238,9 +244,12 @@ public class FileUtil {
 			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
 			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3-$1$4$5 - ");
 
-			if (!formattedName.equals(formattedNameTemp)) {
-				formattedName = formattedNameTemp;
-				hasEpisodeNameInFilename = true;
+			if (PMS.getConfiguration().isLoadEpisodeTitles()) {
+				if (!formattedName.equals(formattedNameTemp)) {
+					formattedName = formattedNameTemp;
+					hasEpisodeNameInFilename = true;
+				}
+				isEpisode = true;
 			}
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
@@ -260,9 +269,12 @@ public class FileUtil {
 			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
 			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S0(\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3 - ");
 
-			if (!formattedName.equals(formattedNameTemp)) {
-				formattedName = formattedNameTemp;
-				hasEpisodeNameInFilename = true;
+			if (PMS.getConfiguration().isLoadEpisodeTitles()) {
+				if (!formattedName.equals(formattedNameTemp)) {
+					formattedName = formattedNameTemp;
+					hasEpisodeNameInFilename = true;
+				}
+				isEpisode = true;
 			}
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
@@ -281,9 +293,12 @@ public class FileUtil {
 			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
 			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3 - ");
 
-			if (!formattedName.equals(formattedNameTemp)) {
-				formattedName = formattedNameTemp;
-				hasEpisodeNameInFilename = true;
+			if (PMS.getConfiguration().isLoadEpisodeTitles()) {
+				if (!formattedName.equals(formattedNameTemp)) {
+					formattedName = formattedNameTemp;
+					hasEpisodeNameInFilename = true;
+				}
+				isEpisode = true;
 			}
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
@@ -301,9 +316,12 @@ public class FileUtil {
 			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
 			formattedNameTemp = formattedName.replaceAll("(?i)\\.(19|20)(\\d\\d)\\.([0-1]\\d)\\.([0-3]\\d)\\.", " - $1$2/$3/$4 - ");
 
-			if (!formattedName.equals(formattedNameTemp)) {
-				formattedName = formattedNameTemp;
-				hasEpisodeNameInFilename = true;
+			if (PMS.getConfiguration().isLoadEpisodeTitles()) {
+				if (!formattedName.equals(formattedNameTemp)) {
+					formattedName = formattedNameTemp;
+					hasEpisodeNameInFilename = true;
+				}
+				isEpisode = true;
 			}
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
@@ -408,12 +426,11 @@ public class FileUtil {
 		}
 
 		// Add episode name (if not there)
-		if (!hasEpisodeNameInFilename) {
+		if (isEpisode && !hasEpisodeNameInFilename) {
 			InfoDb.InfoDbData info = PMS.get().infoDb().get(file);
-			if (
-				info != null &&
-				StringUtils.isNotEmpty(info.ep_name)
-			) {
+			if (info == null) {
+				PMS.get().infoDbAdd(file);
+			} else if (StringUtils.isNotEmpty(info.ep_name)) {
 				formattedName += " - " + info.ep_name;
 			}
 		}

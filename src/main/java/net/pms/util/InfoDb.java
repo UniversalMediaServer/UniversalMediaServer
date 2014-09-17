@@ -1,16 +1,8 @@
 package net.pms.util;
 
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 
-public class InfoDb implements DbHandler{
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(InfoDb.class);
-
-
+public class InfoDb implements DbHandler {
 	public class InfoDbData {
 		public String imdb;
 		public String ep_name;
@@ -50,7 +42,7 @@ public class InfoDb implements DbHandler{
 
 	public void moveInfo(File old_file, File new_file) {
 		InfoDbData data = get(old_file);
-		if(data != null) {
+		if (data != null) {
 			db.removeNoSync(old_file.getAbsolutePath());
 			db.addNoSync(new_file.getAbsolutePath(), data);
 			db.sync();
@@ -62,9 +54,8 @@ public class InfoDb implements DbHandler{
 	}
 
 	public InfoDbData get(String f) {
-		return (InfoDbData)db.get(f);
+		return (InfoDbData) db.get(f);
 	}
-
 
 	@Override
 	public Object create(String[] args) {
@@ -74,17 +65,27 @@ public class InfoDb implements DbHandler{
 	public Object create(String[] args, int off) {
 		InfoDbData data = new InfoDbData();
 		data.imdb = args[off];
-		data.ep_name = args[off + 1];
+
+		/**
+		 * Sometimes if IMDB doesn't have an episode title they call it
+		 * something like "Episode #1.4", so discard that.
+		 */
+		data.ep_name = "";
+		if (!args[off + 1].startsWith("Episode #")) {
+			data.ep_name = args[off + 1];
+		}
+
 		data.season = args[off + 2];
 		data.episode = args[off + 3];
 		data.title = args[off + 4];
+
 		return data;
 	}
 
 	@Override
 	public String[] format(Object obj) {
-		InfoDbData data = (InfoDbData)obj;
-		return new String[] {
+		InfoDbData data = (InfoDbData) obj;
+		return new String[]{
 			data.imdb,
 			data.ep_name,
 			data.season,

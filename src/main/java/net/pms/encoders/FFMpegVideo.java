@@ -731,14 +731,7 @@ public class FFMpegVideo extends Player {
 			params.waitbeforestart = 2500;
 		}
 
-		if (params.aid == null) {
-			setAudioOutputParameters(media, params);
-		}
-
-		if (params.sid == null || (params.sid != null && StringUtils.isNotEmpty(params.sid.getLiveSubURL()))) {
-			setSubtitleOutputParameters(filename, media, params);
-		}
-
+		setAudioAndSubs(filename, media, params);
 		cmdList.add(executable());
 
 		// Prevent FFmpeg timeout
@@ -792,8 +785,22 @@ public class FFMpegVideo extends Player {
 			cmdList.add(filename);
 		}
 
-		// Decide whether to defer to MEncoder for subtitles
-		if (! (renderer instanceof RendererConfiguration.OutputOverride) && configuration.isFFmpegDeferToMEncoderForSubtitles() && params.sid != null) {
+		/**
+		 * Defer to MEncoder for subtitles if:
+		 * - The setting is enabled
+		 * - There are subtitles to transcode
+		 * - The file is not being played via the transcode folder
+		 */
+		if (
+			!(renderer instanceof RendererConfiguration.OutputOverride) &&
+			configuration.isFFmpegDeferToMEncoderForSubtitles() &&
+			params.sid != null &&
+			!(
+				!configuration.getHideTranscodeEnabled() &&
+				dlna.isNoName() &&
+				(dlna.getParent() instanceof FileTranscodeVirtualFolder)
+			)
+		) {
 			LOGGER.trace("Switching from FFmpeg to MEncoder to transcode subtitles.");
 			MEncoderVideo mv = new MEncoderVideo();
 

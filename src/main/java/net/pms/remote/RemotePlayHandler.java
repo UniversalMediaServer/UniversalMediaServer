@@ -257,7 +257,7 @@ public class RemotePlayHandler implements HttpHandler {
 								File subFile = FFMpegVideo.getSubtitles(r, r.getMedia(), p, configuration, SubtitleType.WEBVTT);
 								LOGGER.debug("subFile " + subFile);
 								if (subFile != null) {
-									sb.append("<track kind=\"subtitles\" src=\"/subs/").append(subFile.getAbsolutePath()).append("\" default>");
+									sb.append("<track kind=\"subtitles\" src=\"/files/").append(parent.addFile(subFile)).append("\" default>");
 								}
 							} catch (Exception e) {
 								LOGGER.debug("error when doing sub file " + e);

@@ -143,7 +143,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_IGNORED_RENDERERS = "ignored_renderers";
 	protected static final String KEY_IMAGE_THUMBNAILS_ENABLED = "image_thumbnails";
 	protected static final String KEY_IP_FILTER = "ip_filter";
-	protected static final String KEY_INFO_DB = "info_db";
 	protected static final String KEY_ITUNES_LIBRARY_PATH = "itunes_library_path";
 	protected static final String KEY_SHOW_IPHOTO_LIBRARY = "show_iphoto_library";
 	protected static final String KEY_SHOW_ITUNES_LIBRARY = "show_itunes_library";
@@ -193,6 +192,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_OPEN_ARCHIVES = "enable_archive_browsing";
 	protected static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
 	protected static final String KEY_LIVE_SUBTITLES_KEEP = "live_subtitles_keep";
+	protected static final String KEY_LOAD_EPISODE_TITLES = "load_episode_titles";
 	protected static final String KEY_OVERSCAN = "mencoder_overscan";
 	protected static final String KEY_PING_PATH = "ping_path";
 	protected static final String KEY_PLUGIN_DIRECTORY = "plugins";
@@ -2538,6 +2538,14 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_PRETTIFY_FILENAMES, value);
 	}
 
+	public boolean isLoadEpisodeTitles() {
+		return getBoolean(KEY_LOAD_EPISODE_TITLES, false) && isPrettifyFilenames();
+	}
+
+	public void setLoadEpisodeTitles(boolean value) {
+		configuration.setProperty(KEY_LOAD_EPISODE_TITLES, value);
+	}
+
 	public boolean isRunWizard() {
 		return getBoolean(KEY_RUN_WIZARD, true);
 	}
@@ -3254,10 +3262,6 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public int getWebLowSpeed() {
 		return getInt(KEY_WEB_LOW_SPEED, 0);
-	}
-
-	public boolean useInfoDb() {
-		return getBoolean(KEY_INFO_DB, true);
 	}
 
 	public boolean useCode() {

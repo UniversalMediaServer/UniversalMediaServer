@@ -10,6 +10,7 @@ $(function(){
 			var totalSpaceMinusMargins = null;
 			var correctWidth           = null;
 			var correctHeight          = null;
+			var correctWidthSpan       = null;
 			var totalWidth             = null;
 
 			// Do the main margins
@@ -17,11 +18,12 @@ $(function(){
 			if (container !== null) {
 				imageList = container.getElementsByClassName("thumb");
 				thumbnailContainerList = container.getElementsByTagName("li");
-				spanList = container.getElementsByTagName("span");
+				spanList = container.getElementsByClassName("caption");
 				imagesPerRow = "";
 				totalSpaceMinusMargins = "";
-				correctWidth  = null;
-				correctHeight = null;
+				correctWidth     = null;
+				correctHeight    = null;
+				correctWidthSpan = null;
 
 				totalWidth = container.offsetWidth;
 				totalWidth = totalWidth - 40;
@@ -69,15 +71,16 @@ $(function(){
 				}
 
 				if (imageList.length >= imagesPerRow) {
-					for (i = 0; i < imageList.length; i++) {
-						if (correctWidth === null) {
-							totalSpaceMinusMargins = totalWidth - (20 * (imagesPerRow - 1));
-							correctWidth = (totalSpaceMinusMargins / imagesPerRow) - 0.1;
-						}
-						correctHeight = correctWidth / 1.78;
+					if (correctWidth === null) {
+						totalSpaceMinusMargins = totalWidth - (20 * (imagesPerRow - 1));
+						correctWidth = (totalSpaceMinusMargins / imagesPerRow) - 0.1;
+					}
+					correctHeight = correctWidth / 1.78;
+					correctWidthSpan = correctWidth - 32;
 
-						spanList[i].style.width      = correctWidth  + "px";
-						spanList[i].style.maxWidth   = correctWidth  + "px";
+					for (i = 0; i < imageList.length; i++) {
+						spanList[i].style.width      = correctWidthSpan  + "px";
+						spanList[i].style.maxWidth   = correctWidthSpan  + "px";
 						imageList[i].style.maxWidth  = correctWidth  + "px";
 						imageList[i].style.maxHeight = correctHeight + "px";
 						imageList[i].style.width     = "auto";

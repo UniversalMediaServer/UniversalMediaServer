@@ -1,15 +1,88 @@
-SyntaxHighlighter.brushes.ums = function() {
-	this.regexList = [
-		{ css: 'str',    regex: /\"[^"\r\n]*?\"/g },
-		{ css: 'plain',  regex: /with class .+\"/g },
-		{ css: 'addr',   regex: /(?!\S+:\/\/)\d+\.\d+\.\d+\.\d+(:\d+)?/g },
-		{ css: 'err',    regex: /error|ERROR|Error|[^.]*Exception/g },
-		{ css: 'errmsg', regex: /\s\s\s\sat\s[^\r\n]+/g },
-//		{ css: 'tags',   regex: /(INFO|DEBUG|TRACE) [^\[]+/g },
-		{ css: 'tags',   regex: /(INFO|DEBUG|TRACE) [^\[]+(\[(?!ffmpeg|mplayer|tsmuxer|mencoder|vlc)[^\]]*\])?/g },
-		{ css: 'cmd',    regex: /(?:\[(ffmpeg|mplayer|tsmuxer|mencoder|vlc)[^\]]*\])(.+)/g },
-	];
+SyntaxHighlighter.defaults['gutter'] = false;
+SyntaxHighlighter.defaults['toolbar'] = false;
+SyntaxHighlighter.defaults['smart-tabs'] = false;
+SyntaxHighlighter.defaults['quick-code'] = false;
+
+var re_quoted = /\"[^"\r\n]*?\"/g;
+var re_url = /\w+:\/\/[\w-.\/?%&=:@;#$]+/g;
+var re_addr = /\d+\.\d+\.\d+\.\d+(:\d+)?/g;
+var re_err = /error|ERROR|Error|[^.]*Exception/g;
+var re_traceback = /\s\s\s\sat\s[^\r\n]+/g;
+
+var _log = [
+	{ css: 'str',     regex: re_quoted },
+	{ css: 'plain',   regex: re_url },
+	{ css: 'addr',    regex: re_addr },
+	{ css: 'err',     regex: re_err },
+	{ css: 'errmsg',  regex: re_traceback },
+];
+
+var _conf = [
+	{ css: 'comment', regex: /(^|[\r\n])[^\w]*#[^\r\n]*/g },
+	{ css: 'section', regex: /(^|[\r\n])\s*\[[^\]#]*\]/g },
+	{ css: 'plain',   regex: re_url },
+	{ css: 'addr',    regex: re_addr },
+	{ css: 'key',     regex: /(^|[\r\n])\s*[^#,=\r\n]+\s*=/g },
+	{ css: 'keyword', regex: /True|False/gi },
+];
+
+// Generic log brush
+SyntaxHighlighter.brushes.log = function() { this.regexList = _log; };
+SyntaxHighlighter.brushes.log.prototype = new SyntaxHighlighter.Highlighter();
+SyntaxHighlighter.brushes.log.aliases  = ['log'];
+
+// debug.log brush
+SyntaxHighlighter.brushes.debug_log = function() {
+	this.regexList = _log.concat([
+		{ css: 'plain',   regex: /with class .+\"/g },
+		{ css: 'tags',    regex: /(INFO|DEBUG|TRACE) [^\[]+(\[(?!ffmpeg|mplayer|tsmuxer|mencoder|vlc)[^\]]*\])?/g },
+		{ css: 'cmd',     regex: /(?:\[(ffmpeg|mplayer|tsmuxer|mencoder|vlc)[^\]]*\])(.+)/g },
+	]);
 };
-SyntaxHighlighter.brushes.ums.prototype = new SyntaxHighlighter.Highlighter();
-SyntaxHighlighter.brushes.ums.aliases  = ['ums'];
-SyntaxHighlighter.all()
+SyntaxHighlighter.brushes.debug_log.prototype = new SyntaxHighlighter.Highlighter();
+SyntaxHighlighter.brushes.debug_log.aliases  = ['debug_log'];
+
+// .conf .ini .properties brush
+SyntaxHighlighter.brushes.conf = function() { this.regexList = _conf; };
+SyntaxHighlighter.brushes.conf.prototype = new SyntaxHighlighter.Highlighter();
+SyntaxHighlighter.brushes.conf.aliases  = ['conf'];
+
+SyntaxHighlighter.regexLib['url'] = re_url;
+
+
+// Incremental as-you-scroll highlighting
+
+var chunk_h = null;
+
+function paint_visible_chunks() {
+	var c = Math.floor($(window).scrollTop() / chunk_h);
+	for (var i=c; i < c+2; i++) {
+		var chunk = $('pre#chunk_' + i);
+		if (chunk.length) {
+			//console.log('highlight '+chunk.attr('id'));
+			SyntaxHighlighter.highlight(null, chunk[0]);
+		}
+	}
+};
+
+$(window).scroll(paint_visible_chunks);
+
+$(document).ready(function() {
+	var raw = $('#rawtext'),
+		brush = raw.attr("class"),
+		lines = raw.text().split(/\r?\n/),
+		len = lines.length;
+
+	chunk_h = raw.height() / len * 100;
+
+	// Chop up the raw text into 100 line chunks
+	for (var i=0, c=0; i < len; i+=100, c++) {
+		var pre = $('<pre id="chunk_' + c + '" class="' + brush + '"/>');
+		pre.append(lines.slice(i, i+100).join('\n'));
+		$('body').append(pre);
+	}
+	raw.remove();
+
+	paint_visible_chunks();
+});
+

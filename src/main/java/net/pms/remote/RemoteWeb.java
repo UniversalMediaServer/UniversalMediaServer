@@ -7,6 +7,7 @@ import java.net.InetSocketAddress;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.UUID;
 import java.util.UUID;
 import java.util.concurrent.Executors;
@@ -18,6 +19,7 @@ import net.pms.configuration.WebRender;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
 import net.pms.logging.LoggingConfigFileLoader;
+import net.pms.newgui.DbgPacker;
 import net.pms.newgui.DummyFrame;
 import net.pms.newgui.LooksFrame;
 import org.apache.commons.configuration.ConfigurationException;
@@ -36,6 +38,7 @@ public class RemoteWeb {
 	private HashMap<String, String> users;
 	private HashMap<String, String> tags;
 	private HashMap<String, RootFolder> roots;
+	private HashSet<File> files;
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private final static String CRLF = "\r\n";
 
@@ -51,6 +54,7 @@ public class RemoteWeb {
 		users = new HashMap<>();
 		tags = new HashMap<>();
 		roots = new HashMap<>();
+		files = new HashSet<>();
 
 		try {
 			readCred();
@@ -76,8 +80,7 @@ public class RemoteWeb {
 			addCtx("/thumb", new RemoteThumbHandler(this));
 			addCtx("/raw", new RemoteRawHandler(this));
 			addCtx("/files", new RemoteFileHandler(this));
-			addCtx("/subs", new RemoteFileHandler(this));
-			addCtx("/doc", new RemoteDocHandler());
+			addCtx("/doc", new RemoteDocHandler(this));
 			server.setExecutor(Executors.newFixedThreadPool(threads));
 			server.start();
 		} catch (Exception e) {
@@ -128,10 +131,10 @@ public class RemoteWeb {
 		return server;
 	}
 
-	public String getTag(String name) {
-		String tag = tags.get(name);
+	public String getTag(String user) {
+		String tag = tags.get(user);
 		if (tag == null) {
-			return name;
+			return user;
 		}
 		return tag;
 	}
@@ -140,12 +143,12 @@ public class RemoteWeb {
 		return PMS.get().getServer().getHost() + ":" + server.getAddress().getPort();
 	}
 
-	public RootFolder getRoot(String name, HttpExchange t) {
-		return getRoot(name, false, t);
+	public RootFolder getRoot(String user, HttpExchange t) {
+		return getRoot(user, false, t);
 	}
 
-	public RootFolder getRoot(String name, boolean create, HttpExchange t) {
-		String groupTag = getTag(name);
+	public RootFolder getRoot(String user, boolean create, HttpExchange t) {
+		String groupTag = getTag(user);
 		String cookie = RemoteUtil.getCookie("UMS", t);
 		RootFolder root = roots.get(cookie);
 		if (!create || (root != null)) {
@@ -153,8 +156,8 @@ public class RemoteWeb {
 			return root;
 		}
 		ArrayList<String> tag = new ArrayList<>();
-		tag.add(name);
-		if (!groupTag.equals(name)) {
+		tag.add(user);
+		if (!groupTag.equals(user)) {
 			tag.add(groupTag);
 		}
 		if (t != null) {
@@ -163,7 +166,7 @@ public class RemoteWeb {
 		tag.add("web");
 		root = new RootFolder(tag);
 		try {
-			WebRender render = new WebRender(name);
+			WebRender render = new WebRender(user);
 			root.setDefaultRenderer(render);
 			render.setRootFolder(root);
 			render.associateIP(t.getRemoteAddress().getAddress());
@@ -293,27 +296,29 @@ public class RemoteWeb {
 
 		public RemoteFileHandler(RemoteWeb parent) {
 			this.parent = parent;
-
 		}
+
 		@Override
 		public void handle(HttpExchange t) throws IOException {
 			LOGGER.debug("file req " + t.getRequestURI());
+
 			String path = t.getRequestURI().getPath();
+			File file = null;
+			String response = null;
+			String mime = null;
+			int status = 200;
+
 			if (path.contains("crossdomain.xml")) {
-				String data = "<?xml version=\"1.0\"?>" +
+				response = "<?xml version=\"1.0\"?>" +
 					"<!-- http://www.bitsontherun.com/crossdomain.xml -->" +
 					"<cross-domain-policy>" +
 					"<allow-access-from domain=\"*\" />" +
 					"</cross-domain-policy>";
-				t.sendResponseHeaders(200, data.length());
-				try (OutputStream os = t.getResponseBody()) {
-					os.write(data.getBytes());
-				}
-				return;
-			}
-			if (path.startsWith("/files/log/")) {
-				String data = null;
-				if (path.startsWith("/files/log/info")) {
+				mime = "text/xml";
+
+			} else if (path.startsWith("/files/log/")) {
+				String filename = path.substring(11);
+				if (filename.equals("info")) {
 					String log = PMS.get().getFrame().getLog();
 					log = log.replaceAll("\n", "<br>");
 					String fullLink = "<br><a href=\"/files/log/full\">Full log</a><br><br>";
@@ -321,55 +326,84 @@ public class RemoteWeb {
 					if (StringUtils.isNotEmpty(log)) {
 						x = x + fullLink;
 					}
-					data = "<html><title>UMS LOG</title><body>" + x + "</body></html>";
-				} else if (path.startsWith("/files/log/full")) {
-					String log = RemoteUtil.read(new File(LoggingConfigFileLoader.getLogFilePaths().get("debug.log"))).replace("<", "&lt;");
-					StringBuilder sb = new StringBuilder();
-					sb.append("<!DOCTYPE html>").append(CRLF);
-						sb.append("<head>").append(CRLF);
-							sb.append("<link rel=\"stylesheet\" href=\"/files/sh.css\" type=\"text/css\">").append(CRLF);
-							sb.append("<script src=\"/files/shCore.js\"></script>").append(CRLF);
-							sb.append("<script src=\"/files/sh.js\"></script>").append(CRLF);
-							sb.append("<title>UMS DEBUG.LOG</title>").append(CRLF);
-						sb.append("</head>").append(CRLF);
-						sb.append("<body>").append(CRLF);
-							sb.append("<pre class=\"brush: ums; gutter: false\">").append(CRLF);
-								sb.append(log);
-							sb.append("</pre>");
-						sb.append("</body>");
-					sb.append("</html>");
-					data = sb.toString();
+					response = "<html><title>UMS LOG</title><body>" + x + "</body></html>";
+				} else {
+					// Retrieve by hash
+					file = parent.getFile(filename);
+					if (file != null) {
+						filename = file.getName();
+						String log = RemoteUtil.read(file).replace("<", "&lt;");
+						String brush = filename.endsWith("debug.log") ? "debug_log" :
+							filename.endsWith(".log") ? "log" : "conf";
+						StringBuilder sb = new StringBuilder();
+						sb.append("<!DOCTYPE html>").append(CRLF);
+							sb.append("<head>").append(CRLF);
+								sb.append("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">").append(CRLF);
+								sb.append("<link rel=\"stylesheet\" href=\"/files/reset.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
+								sb.append("<link rel=\"stylesheet\" href=\"/files/sh.css\" type=\"text/css\">").append(CRLF);
+								sb.append("<script src=\"/files/jquery.min.js\"></script>").append(CRLF);
+								sb.append("<script src=\"/files/shCore.js\"></script>").append(CRLF);
+								sb.append("<script src=\"/files/sh.js\"></script>").append(CRLF);
+								sb.append("<title>" + filename + "</title>").append(CRLF);
+							sb.append("</head>").append(CRLF);
+							sb.append("<body>").append(CRLF);
+								sb.append("<pre id=\"rawtext\" class=\"brush: " + brush + "\">").append(CRLF);
+									sb.append(log);
+								sb.append("</pre>");
+							sb.append("</body>");
+						sb.append("</html>");
+						response = sb.toString();
+					} else {
+						status = 404;
+					}
 				}
+				mime = "text/html";
+
+			} else {
+				// A regular file request
+				String filename = path.substring(7);
+				// Assume it's a web file
+				file = configuration.getWebFile(filename);
+				if (! file.exists()) {
+					// Not a web file, see if it's a hash request
+					file = parent.getFile(filename);
+				}
+				if (file != null) {
+					filename = file.getName();
+					// Add content type headers for IE
+					// Thx to speedy8754
+					if(filename.endsWith(".css")) {
+						mime = "text/css";
+					}
+					else if(filename.endsWith(".js")) {
+						mime = "text/javascript";
+					}
+				} else {
+					status = 404;
+				}
+			}
+
+			if (status == 404 && response == null) {
+				response = "<html><body>404 - File Not Found: " + path + "</body></html>";
+				mime = "text/html";
+			}
+
+			if (mime != null) {
 				Headers hdr = t.getResponseHeaders();
-				hdr.add("Content-Type", "text/html");
-				byte[] bytes = data.getBytes();
-				t.sendResponseHeaders(200, bytes.length);
+				hdr.add("Content-Type", mime);
+			}
+
+			if (response != null) {
+				byte[] bytes = response.getBytes();
+				t.sendResponseHeaders(status, bytes.length);
 				try (OutputStream os = t.getResponseBody()) {
 					os.write(bytes);
 					os.close();
 				} catch (Exception e) {
 					LOGGER.debug("Error sending response: " + e);
 				}
-				return;
-			}	
-			if (path.startsWith("/files/")) {
-				// Add content type headers for IE
-				// Thx to speedy8754
-				if( path.endsWith(".css") ) {
-					Headers hdr = t.getResponseHeaders();
-					hdr.add("Content-Type", "text/css");
-				}
-				else if( path.endsWith(".js") ) {
-					Headers hdr = t.getResponseHeaders();
-					hdr.add("Content-Type", "text/javascript");
-				}
-				File f = configuration.getWebFile(path.substring(7));
-				RemoteUtil.dumpFile(f, t);
-				return;
-			}
-			if (path.startsWith("/subs/")) {
-				File f = new File(path.substring(6));
-				RemoteUtil.dumpFile(f, t);
+			} else if (file != null) {
+				RemoteUtil.dumpFile(file, t);
 			}
 		}
 	}
@@ -425,8 +459,15 @@ public class RemoteWeb {
 	}
 
 	static class RemoteDocHandler implements HttpHandler {
-		private static final Logger LOGGER = LoggerFactory.getLogger(RemoteStartHandler.class);
+		private static final Logger LOGGER = LoggerFactory.getLogger(RemoteDocHandler.class);
 		private final static String CRLF = "\r\n";
+
+		private RemoteWeb parent;
+
+		public RemoteDocHandler(RemoteWeb parent) {
+			this.parent = parent;
+
+		}
 
 		@Override
 		public void handle(HttpExchange t) throws IOException {
@@ -457,7 +498,7 @@ public class RemoteWeb {
 						sb.append("<h1>Tools</h1>").append(CRLF);
 						sb.append("<br/>").append(CRLF);
 						sb.append("<ul>").append(CRLF);
-						sb.append("<li>View logs &bull;<a href=\"/files/log/info\"><i>info</i></a> &bull;<a href=\"/files/log/full\"><i>debug</i></a></li>").append(CRLF);
+						sb.append("<li>View logs and Confs:").append(CRLF).append(getLogs()).append("</li>").append(CRLF);
 						if (configuration.getUseCache()) {
 							sb.append("<li><a href=\"http://" + PMS.get().getServer().getHost() + ":" + PMS.get().getServer().getPort() + "/console/home\">Manage cache.</a></li>").append(CRLF);
 						}
@@ -478,6 +519,36 @@ public class RemoteWeb {
 				os.write(response.getBytes());
 			}
 		}
+
+		private String getLogs() {
+			StringBuilder sb = new StringBuilder();
+			sb.append("<ul>").append(CRLF);
+			for (File f : new DbgPacker().getItems()) {
+				if (f.exists()) {
+					sb.append("<li><a href=\"/files/log/" + parent.addFile(f) + "\">" + f.getName() + "</a></li>").append(CRLF);
+				}
+			}
+			sb.append("</ul>").append(CRLF);
+			return sb.toString();
+		}
+	}
+
+	public int addFile(File f) {
+		files.add(f);
+		return f.hashCode();
+	}
+
+	public File getFile(String hash) {
+		try {
+			int h = Integer.valueOf(hash);
+			for (File f : files) {
+				if (f.hashCode() == h) {
+					return f;
+				}
+			}
+		} catch (NumberFormatException e) {
+		}
+		return null;
 	}
 
 	public String getUrl() {
