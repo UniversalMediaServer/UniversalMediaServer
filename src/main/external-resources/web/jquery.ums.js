@@ -13,8 +13,8 @@ $(function(){
 			var totalWidth             = null;
 
 			// Do the main margins
-			container = document.getElementById("Media");
-			if (container !== null) {
+			if (document.getElementById("Media") !== null) {
+				container = document.getElementById("Media");
 				imageList = container.getElementsByTagName("img");
 				thumbnailContainerList = container.getElementsByTagName("li");
 				spanList = container.getElementsByTagName("span");
