@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<head>
+<link rel="stylesheet" href="/files/util/sh.css" type="text/css">
+<script src="/files/jquery.min.js"></script>
+<script src="/files/util/shCore.js"></script>
+<script src="/files/util/zip.js"></script>
+<script src="/files/util/sh.js"></script>
+<script>$(document).unbind('ready');</script>
+</head>
+
+<body>
+<center>
+<table title="Open a log, conf, zip, etc"><tr><td>
+<div ondrop="drop(event); this.style.backgroundColor='lightgrey';"
+	ondragover="drag(event); this.style.backgroundColor='cyan';"
+	ondragleave="this.style.backgroundColor='lightgrey';"
+	style="background-color:lightgray;width:200px;height:40px;display:table-cell;margin:auto;text-align:center;vertical-align:middle">
+Drop file here
+</div>
+</td><td>
+or
+</td><td>
+<!--Note: hiding actual file input to suppress its automatically appended filename-->
+<input type="file" accept="*" id="file-input" onchange="load(this.files[0])" style="display:none;"/>
+<input type="button" value="Browse..." onclick="$('#file-input').click();"/>
+</td></tr></table>
+</center>
+<div id="zip"
+	style="display:none;position:fixed;top:10px;right:10px;min-width:150px;background-color:lightgrey;">
+	<span id="zipname" onclick="$('#file-list').toggle();" title="Show/hide contents" style="cursor:pointer"></span>
+	<ul id="file-list" ></ul>
+</div>
+
+<script>
+function reset(iszip) {
+	var chunks = $('[id^=chunk_]');
+	for (var i=chunks.length-1; i > -1; i--) {
+		chunks[i].remove();
+	}
+	var blank = $('<pre> </pre>');
+	$('body').append(blank);
+	chunk_h = blank.height() * 100;
+	blank.remove();
+	if (!iszip) {
+		$('#file-list').html('');
+		$('#zipname').html('');
+		$('#zip').css('display', 'none');
+	}
+	//console.log('chunk_h='+chunk_h);
+}
+
+function drop(event) {
+	event.stopPropagation();
+	event.preventDefault();
+	load(event.dataTransfer.files[0]);
+}
+
+function drag(event) {
+	event.stopPropagation();
+	event.preventDefault();
+//	console.log(event.dataTransfer);
+}
+
+//model for zip.js
+var model = (function() {
+	return {
+		getEntries : function(file, onend) {
+			zip.createReader(new zip.BlobReader(file), function(zipReader) {
+				zipReader.getEntries(onend);
+			}, onerror);
+		},
+		getEntryFile : function(entry, creationMethod, onend, onprogress) {
+			entry.getData(new zip.TextWriter(), function(text) {
+				show(entry.filename, text, true);
+			}, onprogress);
+		}
+	};
+})();
+
+function unzip(zip){
+	model.getEntries(zip, function(entries) {
+		$('#file-list').html('');
+		entries.forEach(function(entry) {
+			var a = document.createElement("a");
+			a.textContent = entry.filename;
+			a.href = "#";
+			a.addEventListener("click", function(event) {
+				model.getEntryFile(entry, null, null, null);
+				event.preventDefault();
+				return false;
+			}, false);
+			$('#file-list').append($('<li>').append(a));
+			$('#file-list').css('display', 'block');
+		});
+	});
+	$('#zip').css('display', 'block');
+	$('#zipname').text(zip.name);
+}
+
+function load(file) {
+	if (file.name.match(/\.zip/)) {
+		unzip(file);
+	} else {
+		var reader = new FileReader();
+		reader.filename = file.name;
+		reader.onload = function () {
+			show(this.filename, this.result, false);
+		};
+		reader.readAsText(file);
+	}
+}
+
+function show(filename, text, iszip) {
+//	console.log('filename: '+filename);
+//	console.log(text);
+	reset(iszip);
+	document.title = filename;
+	var brush = /debug\.log$/.test(filename) ? 'debug_log' :
+		 /\.log$/.test(filename) ? 'log' : 'conf';
+	chop(text.replace(/[<]/g, '&lt;'), 'brush: '+brush);
+	paint_visible_chunks();
+}
+</script>
+</body>
+</html>
