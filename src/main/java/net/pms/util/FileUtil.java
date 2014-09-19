@@ -195,9 +195,8 @@ public class FileUtil {
 		String formattedName;
 		String formattedNameTemp;
 
-		// The following two booleans are only changed and used if InfoDb is enabled
-		boolean hasEpisodeNameInFilename = false;
-		boolean isEpisode = false;
+		// This is false unless we recognize that we could use some info on the video from IMDB
+		boolean videoShouldUseInfoDb = false;
 
 		// Remove file extension
 		fileNameWithoutExtension = getFileNameWithoutExtension(f);
@@ -247,9 +246,8 @@ public class FileUtil {
 			if (PMS.getConfiguration().isLoadEpisodeTitles()) {
 				if (!formattedName.equals(formattedNameTemp)) {
 					formattedName = formattedNameTemp;
-					hasEpisodeNameInFilename = true;
+					videoShouldUseInfoDb = true;
 				}
-				isEpisode = true;
 			}
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
@@ -272,9 +270,8 @@ public class FileUtil {
 			if (PMS.getConfiguration().isLoadEpisodeTitles()) {
 				if (!formattedName.equals(formattedNameTemp)) {
 					formattedName = formattedNameTemp;
-					hasEpisodeNameInFilename = true;
+					videoShouldUseInfoDb = true;
 				}
-				isEpisode = true;
 			}
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
@@ -296,9 +293,8 @@ public class FileUtil {
 			if (PMS.getConfiguration().isLoadEpisodeTitles()) {
 				if (!formattedName.equals(formattedNameTemp)) {
 					formattedName = formattedNameTemp;
-					hasEpisodeNameInFilename = true;
+					videoShouldUseInfoDb = true;
 				}
-				isEpisode = true;
 			}
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
@@ -319,9 +315,8 @@ public class FileUtil {
 			if (PMS.getConfiguration().isLoadEpisodeTitles()) {
 				if (!formattedName.equals(formattedNameTemp)) {
 					formattedName = formattedNameTemp;
-					hasEpisodeNameInFilename = true;
+					videoShouldUseInfoDb = true;
 				}
-				isEpisode = true;
 			}
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
@@ -426,7 +421,7 @@ public class FileUtil {
 		}
 
 		// Add episode name (if not there)
-		if (isEpisode && !hasEpisodeNameInFilename) {
+		if (videoShouldUseInfoDb) {
 			InfoDb.InfoDbData info = PMS.get().infoDb().get(file);
 			if (info == null) {
 				PMS.get().infoDbAdd(file);
