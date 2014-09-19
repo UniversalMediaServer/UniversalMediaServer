@@ -136,4 +136,8 @@ public class FileDb {
 		} catch (Exception e) {
 		}
 	}
+
+	public static String safeGetArg(String[] args, int i) {
+		return (i >= args.length ? "" : args[i]);
+	}
 }

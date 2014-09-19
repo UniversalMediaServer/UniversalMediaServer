@@ -65,21 +65,21 @@ public class InfoDb implements DbHandler {
 
 	public Object create(String[] args, int off) {
 		InfoDbData data = new InfoDbData();
-		data.imdb = args[off];
+		data.imdb = FileDb.safeGetArg(args, off);
 
 		/**
 		 * Sometimes if IMDB doesn't have an episode title they call it
 		 * something like "Episode #1.4", so discard that.
 		 */
-		data.ep_name = "";
-		if (!args[off + 1].startsWith("Episode #")) {
-			data.ep_name = args[off + 1];
+		data.ep_name = FileDb.safeGetArg(args, off + 1);
+		if (data.ep_name.startsWith("Episode #")) {
+			data.ep_name = "";
 		}
 
-		data.year = args[off + 2];
-		data.season = args[off + 3];
-		data.episode = args[off + 4];
-		data.title = args[off + 5];
+		data.season = FileDb.safeGetArg(args, off + 2);
+		data.episode = FileDb.safeGetArg(args, off + 3);
+		data.title = FileDb.safeGetArg(args, off + 4);
+		data.year = FileDb.safeGetArg(args, off + 5);
 
 		return data;
 	}
@@ -90,10 +90,10 @@ public class InfoDb implements DbHandler {
 		return new String[]{
 			data.imdb,
 			data.ep_name,
-			data.year,
 			data.season,
 			data.episode,
-			data.title
+			data.title,
+			data.year
 		};
 	}
 
