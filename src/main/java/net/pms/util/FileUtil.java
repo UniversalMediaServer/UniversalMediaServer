@@ -187,6 +187,7 @@ public class FileUtil {
 	 * more "pretty" and standardized filename.
 	 *
 	 * @param f The filename
+	 * @param file The file to possibly be used by the InfoDb
 	 *
 	 * @return The prettified filename
 	 */
