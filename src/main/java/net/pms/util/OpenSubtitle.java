@@ -257,18 +257,23 @@ public class OpenSubtitle {
 	 * @see #getInfo(java.lang.String, long, java.lang.String, java.lang.String)
 	 *
 	 * @param f the file to lookup
+	 * @param formattedName the name to use in the name search
 	 *
 	 * @return
 	 * @throws IOException
 	 */
-	public static String[] getInfo(File f) throws IOException {
+	public static String[] getInfo(File f, String formattedName) throws IOException {
 		String[] res = getInfo(getHash(f), f.length(), null, null);
 		if (res == null || res.length == 0) { // no good on hash! try imdb
 			String imdb = ImdbUtil.extractImdb(f);
 			res = getInfo(null, 0, imdb, null);
 		}
 		if (res == null || res.length == 0) { // final try, use the name
-			res = getInfo(null, 0, null, f.getName());
+			if (StringUtils.isNotEmpty(formattedName)) {
+				res = getInfo(null, 0, null, formattedName);
+			} else {
+				res = getInfo(null, 0, null, f.getName());
+			}
 		}
 		return res;
 	}

@@ -20,7 +20,7 @@ public class InfoDb implements DbHandler {
 		db.init();
 	}
 
-	public void backgroundAdd(final File f) {
+	public void backgroundAdd(final File f, final String formattedName) {
 		if (get(f) != null) {
 			return;
 		}
@@ -28,7 +28,7 @@ public class InfoDb implements DbHandler {
 			@Override
 			public void run() {
 				try {
-					String[] tmp = OpenSubtitle.getInfo(f);
+					String[] tmp = OpenSubtitle.getInfo(f, formattedName);
 					if (tmp != null) {
 						db.add(f.getAbsolutePath(), create(tmp, 0));
 					} else {

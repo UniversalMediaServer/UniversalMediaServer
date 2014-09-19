@@ -410,7 +410,7 @@ public class FileUtil {
 		if (isEpisodeToLookup || isMovieToLookup) {
 			InfoDb.InfoDbData info = PMS.get().infoDb().get(file);
 			if (info == null) {
-				PMS.get().infoDbAdd(file);
+				PMS.get().infoDbAdd(file, "");
 			} else if (isEpisodeToLookup && StringUtils.isNotEmpty(info.ep_name)) {
 				formattedName += " - " + info.ep_name;
 			} else if (isMovieToLookup && StringUtils.isNotEmpty(info.year)) {

@@ -1526,8 +1526,8 @@ public class PMS {
 	private CodeDb codes;
 	private CodeEnter masterCode;
 
-	public void infoDbAdd(File f) {
-		infoDb.backgroundAdd(f);
+	public void infoDbAdd(File f, String formattedName) {
+		infoDb.backgroundAdd(f, formattedName);
 	}
 
 	public InfoDb infoDb() {
