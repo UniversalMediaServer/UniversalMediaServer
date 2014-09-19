@@ -196,8 +196,9 @@ public class FileUtil {
 		String formattedName;
 		String formattedNameTemp;
 
-		// This is false unless we recognize that we could use some info on the video from IMDB
-		boolean videoShouldUseInfoDb = false;
+		// These are false unless we recognize that we could use some info on the video from IMDB
+		boolean isEpisodeToLookup = false;
+		boolean isMovieToLookup   = false;
 
 		// Remove file extension
 		fileNameWithoutExtension = getFileNameWithoutExtension(f);
@@ -221,7 +222,7 @@ public class FileUtil {
 			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S0(\\d)E(\\d)(\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3-$1$4$5 - ");
 
 			if (PMS.getConfiguration().isLoadEpisodeTitles() && formattedName.equals(formattedNameTemp)) {
-				videoShouldUseInfoDb = true;
+				isEpisodeToLookup = true;
 			}
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
@@ -241,7 +242,7 @@ public class FileUtil {
 			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3-$1$4$5 - ");
 
 			if (PMS.getConfiguration().isLoadEpisodeTitles() && formattedName.equals(formattedNameTemp)) {
-				videoShouldUseInfoDb = true;
+				isEpisodeToLookup = true;
 			}
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
@@ -262,7 +263,7 @@ public class FileUtil {
 			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S0(\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3 - ");
 
 			if (PMS.getConfiguration().isLoadEpisodeTitles() && formattedName.equals(formattedNameTemp)) {
-				videoShouldUseInfoDb = true;
+				isEpisodeToLookup = true;
 			}
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
@@ -282,7 +283,7 @@ public class FileUtil {
 			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3 - ");
 
 			if (PMS.getConfiguration().isLoadEpisodeTitles() && formattedName.equals(formattedNameTemp)) {
-				videoShouldUseInfoDb = true;
+				isEpisodeToLookup = true;
 			}
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
@@ -301,7 +302,7 @@ public class FileUtil {
 			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.](19|20)(\\d\\d)[\\s\\.]([0-1]\\d)[\\s\\.]([0-3]\\d)[\\s\\.]", " - $1$2/$3/$4 - ");
 
 			if (PMS.getConfiguration().isLoadEpisodeTitles() && formattedName.equals(formattedNameTemp)) {
-				videoShouldUseInfoDb = true;
+				isEpisodeToLookup = true;
 			}
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
@@ -315,17 +316,6 @@ public class FileUtil {
 
 			// Rename the year. For example, "2013" changes to " (2013)"
 			formattedName = formattedName.replaceAll("[\\s\\.](19|20)(\\d\\d)", " ($1$2)");
-
-			// Remove stuff at the end of the filename like release group, quality, source, etc.
-			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
-			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
-
-			formattedName = formattedName.replaceAll(commonFileMiddle, "($1)");
-
-			// Replace periods with spaces
-			formattedName = formattedName.replaceAll("\\.", " ");
-		} else if (formattedName.matches(commonFileEndsMatch)) {
-			// This matches files that partially follow the scene format
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
 			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
@@ -355,6 +345,17 @@ public class FileUtil {
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
 			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
 			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
+		} else if (formattedName.matches(commonFileEndsMatch)) {
+			// This is probably a movie that doesn't specify a year
+			isMovieToLookup = true;
+
+			// Remove stuff at the end of the filename like release group, quality, source, etc.
+			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
+			formattedName = formattedName.replaceAll(commonFileEndsCaseSensitive, "");
+			formattedName = formattedName.replaceAll(commonFileMiddle, "($1)");
+
+			// Replace periods with spaces
+			formattedName = formattedName.replaceAll("\\.", " ");
 		} else if (formattedName.matches(".*\\[[0-9a-zA-Z]{8}\\]$")) {
 			// This matches anime with a hash at the end of the name
 
@@ -406,12 +407,14 @@ public class FileUtil {
 		}
 
 		// Add episode name (if not there)
-		if (videoShouldUseInfoDb) {
+		if (isEpisodeToLookup || isMovieToLookup) {
 			InfoDb.InfoDbData info = PMS.get().infoDb().get(file);
 			if (info == null) {
 				PMS.get().infoDbAdd(file);
-			} else if (StringUtils.isNotEmpty(info.ep_name)) {
+			} else if (isEpisodeToLookup && StringUtils.isNotEmpty(info.ep_name)) {
 				formattedName += " - " + info.ep_name;
+			} else if (isMovieToLookup && StringUtils.isNotEmpty(info.year)) {
+				formattedName += " (" + info.year + ")";
 			}
 		}
 

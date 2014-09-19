@@ -321,6 +321,7 @@ public class OpenSubtitle {
 		Pattern re = Pattern.compile(
 				".*IDMovieImdb</name>.*?<string>([^<]+)</string>.*?" + "" +
 				"MovieName</name>.*?<string>([^<]+)</string>.*?" +
+				"MovieYear</name>.*?<string>([^<]+)</string>.*?" +
 				"SeriesSeason</name>.*?<string>([^<]+)</string>.*?" +
 				"SeriesEpisode</name>.*?<string>([^<]+)</string>.*?",
 				Pattern.DOTALL
@@ -328,7 +329,7 @@ public class OpenSubtitle {
 		String page = postPage(url.openConnection(), req);
 		Matcher m = re.matcher(page);
 		if (m.find()) {
-			LOGGER.debug("match " + m.group(1) + " " + m.group(2) + " " + m.group(3) + " " + m.group(4));
+			LOGGER.debug("match " + m.group(1) + " " + m.group(2) + " " + m.group(3) + " " + m.group(4) + " " + m.group(5));
 			Pattern re1 = Pattern.compile("&#34;([^&]+)&#34;(.*)");
 			String name = m.group(2);
 			Matcher m1 = re1.matcher(name);
@@ -342,6 +343,7 @@ public class OpenSubtitle {
 				eptit,
 				m.group(3).trim(),
 				m.group(4).trim(),
+				m.group(5).trim(),
 				name
 			};
 		}

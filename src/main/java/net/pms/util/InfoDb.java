@@ -6,6 +6,7 @@ public class InfoDb implements DbHandler {
 	public class InfoDbData {
 		public String imdb;
 		public String ep_name;
+		public String year;
 		public String season;
 		public String episode;
 		public String title;
@@ -75,9 +76,10 @@ public class InfoDb implements DbHandler {
 			data.ep_name = args[off + 1];
 		}
 
-		data.season = args[off + 2];
-		data.episode = args[off + 3];
-		data.title = args[off + 4];
+		data.year = args[off + 2];
+		data.season = args[off + 3];
+		data.episode = args[off + 4];
+		data.title = args[off + 5];
 
 		return data;
 	}
@@ -88,6 +90,7 @@ public class InfoDb implements DbHandler {
 		return new String[]{
 			data.imdb,
 			data.ep_name,
+			data.year,
 			data.season,
 			data.episode,
 			data.title
