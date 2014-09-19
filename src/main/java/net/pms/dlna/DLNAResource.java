@@ -2220,8 +2220,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							try {
 								rendererName = renderer.getRendererName().replaceAll("\n", "");
 							} catch (NullPointerException e) { }
-							LOGGER.info("Started playing " + getName() + " on your " + rendererName);
-							LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
+							if(!quietPlay()) {
+								LOGGER.info("Started playing " + getName() + " on your " + rendererName);
+								LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
+							}
 						} catch (UnknownHostException ex) {
 							LOGGER.debug("" + ex);
 						}
@@ -3637,4 +3639,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// normal case no code in path code is always valid
 		return true;
 	}
+
+	public boolean quietPlay() { return false; }
 }
