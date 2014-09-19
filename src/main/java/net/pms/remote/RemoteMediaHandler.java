@@ -122,7 +122,9 @@ public class RemoteMediaHandler implements HttpHandler {
 		t.sendResponseHeaders(code, 0);
 		OutputStream os = t.getResponseBody();
 		StartStopListenerDelegate startStop = new StartStopListenerDelegate(t.getRemoteAddress().getHostString());
-		PMS.get().getFrame().setStatusLine("Serving " + dlna.getName());
+		if(!dlna.quietPlay()) {
+			PMS.get().getFrame().setStatusLine("Serving " + dlna.getName());
+		}
 		startStop.start(dlna);
 		if (sid != null) {
 			dlna.setMediaSubtitle(sid);

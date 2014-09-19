@@ -26,6 +26,8 @@ public class CodeEnter extends VirtualFolder {
 		public CodeAction(String name, boolean enable) {
 			super(name,enable);
 		}
+
+		public boolean quietPlay() { return true; }
 	}
 
 	public CodeEnter(DLNAResource r) {
