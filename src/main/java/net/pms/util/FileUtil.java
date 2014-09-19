@@ -222,10 +222,10 @@ public class FileUtil {
 
 			if (PMS.getConfiguration().isLoadEpisodeTitles()) {
 				if (!formattedName.equals(formattedNameTemp)) {
-					formattedName = formattedNameTemp;
 					videoShouldUseInfoDb = true;
 				}
 			}
+			formattedName = formattedNameTemp;
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
 			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
@@ -245,10 +245,10 @@ public class FileUtil {
 
 			if (PMS.getConfiguration().isLoadEpisodeTitles()) {
 				if (!formattedName.equals(formattedNameTemp)) {
-					formattedName = formattedNameTemp;
 					videoShouldUseInfoDb = true;
 				}
 			}
+			formattedName = formattedNameTemp;
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
 			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
@@ -269,10 +269,10 @@ public class FileUtil {
 
 			if (PMS.getConfiguration().isLoadEpisodeTitles()) {
 				if (!formattedName.equals(formattedNameTemp)) {
-					formattedName = formattedNameTemp;
 					videoShouldUseInfoDb = true;
 				}
 			}
+			formattedName = formattedNameTemp;
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
 			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
@@ -292,10 +292,10 @@ public class FileUtil {
 
 			if (PMS.getConfiguration().isLoadEpisodeTitles()) {
 				if (!formattedName.equals(formattedNameTemp)) {
-					formattedName = formattedNameTemp;
 					videoShouldUseInfoDb = true;
 				}
 			}
+			formattedName = formattedNameTemp;
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
 			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
@@ -314,10 +314,10 @@ public class FileUtil {
 
 			if (PMS.getConfiguration().isLoadEpisodeTitles()) {
 				if (!formattedName.equals(formattedNameTemp)) {
-					formattedName = formattedNameTemp;
 					videoShouldUseInfoDb = true;
 				}
 			}
+			formattedName = formattedNameTemp;
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
 			formattedName = formattedName.replaceAll("(?i)" + commonFileEnds, "");
