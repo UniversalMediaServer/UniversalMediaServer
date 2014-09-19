@@ -2295,8 +2295,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									try {
 										rendererName = renderer.getRendererName();
 									} catch (NullPointerException e) { }
-									LOGGER.info("Stopped playing " + getName() + " on your " + rendererName);
-									LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
+									if(!quietPlay()) {
+										LOGGER.info("Stopped playing " + getName() + " on your " + rendererName);
+										LOGGER.debug("The full filename of which is: " + getSystemName() + " and the address of the renderer is: " + rendererId);
+									}
 								} catch (UnknownHostException ex) {
 									LOGGER.debug("" + ex);
 								}
