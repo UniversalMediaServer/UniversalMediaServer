@@ -222,9 +222,8 @@ public class FileUtil {
 			if (PMS.getConfiguration().isLoadEpisodeTitles()) {
 				if (!formattedName.equals(formattedNameTemp)) {
 					formattedName = formattedNameTemp;
-					hasEpisodeNameInFilename = true;
+					videoShouldUseInfoDb = true;
 				}
-				isEpisode = true;
 			}
 
 			// Remove stuff at the end of the filename like release group, quality, source, etc.
