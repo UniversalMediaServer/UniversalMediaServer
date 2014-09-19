@@ -220,7 +220,7 @@ public class FileUtil {
 			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
 			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S0(\\d)E(\\d)(\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3-$1$4$5 - ");
 
-			if (PMS.getConfiguration().isLoadEpisodeTitles() && !formattedName.equals(formattedNameTemp)) {
+			if (PMS.getConfiguration().isLoadEpisodeTitles() && formattedName.equals(formattedNameTemp)) {
 				videoShouldUseInfoDb = true;
 			}
 
@@ -240,7 +240,7 @@ public class FileUtil {
 			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
 			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3-$1$4$5 - ");
 
-			if (PMS.getConfiguration().isLoadEpisodeTitles() && !formattedName.equals(formattedNameTemp)) {
+			if (PMS.getConfiguration().isLoadEpisodeTitles() && formattedName.equals(formattedNameTemp)) {
 				videoShouldUseInfoDb = true;
 			}
 
@@ -261,7 +261,7 @@ public class FileUtil {
 			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
 			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S0(\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3 - ");
 
-			if (PMS.getConfiguration().isLoadEpisodeTitles() && !formattedName.equals(formattedNameTemp)) {
+			if (PMS.getConfiguration().isLoadEpisodeTitles() && formattedName.equals(formattedNameTemp)) {
 				videoShouldUseInfoDb = true;
 			}
 
@@ -281,7 +281,7 @@ public class FileUtil {
 			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
 			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.]S([1-9]\\d)E(\\d)(\\d)[\\s\\.]", " - $1$2$3 - ");
 
-			if (PMS.getConfiguration().isLoadEpisodeTitles() && !formattedName.equals(formattedNameTemp)) {
+			if (PMS.getConfiguration().isLoadEpisodeTitles() && formattedName.equals(formattedNameTemp)) {
 				videoShouldUseInfoDb = true;
 			}
 
@@ -300,7 +300,7 @@ public class FileUtil {
 			// If it matches this then it didn't match the previous one, which means there is probably an episode title in the filename
 			formattedNameTemp = formattedName.replaceAll("(?i)[\\s\\.](19|20)(\\d\\d)[\\s\\.]([0-1]\\d)[\\s\\.]([0-3]\\d)[\\s\\.]", " - $1$2/$3/$4 - ");
 
-			if (PMS.getConfiguration().isLoadEpisodeTitles() && !formattedName.equals(formattedNameTemp)) {
+			if (PMS.getConfiguration().isLoadEpisodeTitles() && formattedName.equals(formattedNameTemp)) {
 				videoShouldUseInfoDb = true;
 			}
 
