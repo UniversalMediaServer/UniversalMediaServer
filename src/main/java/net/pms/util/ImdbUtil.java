@@ -11,7 +11,6 @@ public class ImdbUtil {
 
 	public static String cleanName(String str) {
 		return str.replaceAll(IMDB_REG, "").replaceAll(HASH_REG, "");
-
 	}
 
 	public static String extractOSHash(File file) {
