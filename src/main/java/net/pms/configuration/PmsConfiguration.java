@@ -192,7 +192,6 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_OPEN_ARCHIVES = "enable_archive_browsing";
 	protected static final String KEY_LIVE_SUBTITLES_LIMIT = "live_subtitles_limit";
 	protected static final String KEY_LIVE_SUBTITLES_KEEP = "live_subtitles_keep";
-	protected static final String KEY_LOAD_EPISODE_TITLES = "load_episode_titles";
 	protected static final String KEY_OVERSCAN = "mencoder_overscan";
 	protected static final String KEY_PING_PATH = "ping_path";
 	protected static final String KEY_PLUGIN_DIRECTORY = "plugins";
@@ -236,6 +235,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_TSMUXER_FORCEFPS = "tsmuxer_forcefps";
 	protected static final String KEY_UPNP_PORT = "upnp_port";
 	protected static final String KEY_USE_CACHE = "use_cache";
+	protected static final String KEY_USE_IMDB_INFO = "use_imdb_info";
 	protected static final String KEY_USE_MPLAYER_FOR_THUMBS = "use_mplayer_for_video_thumbs";
 	protected static final String KEY_AUDIO_USE_PCM = "audio_use_pcm";
 	protected static final String KEY_UUID = "uuid";
@@ -2538,12 +2538,12 @@ public class PmsConfiguration extends RendererConfiguration {
 		configuration.setProperty(KEY_PRETTIFY_FILENAMES, value);
 	}
 
-	public boolean isLoadEpisodeTitles() {
-		return getBoolean(KEY_LOAD_EPISODE_TITLES, false) && isPrettifyFilenames();
+	public boolean isUseInfoFromIMDB() {
+		return getBoolean(KEY_USE_IMDB_INFO, false) && isPrettifyFilenames();
 	}
 
-	public void setLoadEpisodeTitles(boolean value) {
-		configuration.setProperty(KEY_LOAD_EPISODE_TITLES, value);
+	public void setUseInfoFromIMDB(boolean value) {
+		configuration.setProperty(KEY_USE_IMDB_INFO, value);
 	}
 
 	public boolean isRunWizard() {
