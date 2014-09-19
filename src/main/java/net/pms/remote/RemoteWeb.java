@@ -339,11 +339,10 @@ public class RemoteWeb {
 						sb.append("<!DOCTYPE html>").append(CRLF);
 							sb.append("<head>").append(CRLF);
 								sb.append("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">").append(CRLF);
-								sb.append("<link rel=\"stylesheet\" href=\"/files/reset.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
-								sb.append("<link rel=\"stylesheet\" href=\"/files/sh.css\" type=\"text/css\">").append(CRLF);
+								sb.append("<link rel=\"stylesheet\" href=\"/files/util/sh.css\" type=\"text/css\">").append(CRLF);
 								sb.append("<script src=\"/files/jquery.min.js\"></script>").append(CRLF);
-								sb.append("<script src=\"/files/shCore.js\"></script>").append(CRLF);
-								sb.append("<script src=\"/files/sh.js\"></script>").append(CRLF);
+								sb.append("<script src=\"/files/util/shCore.js\"></script>").append(CRLF);
+								sb.append("<script src=\"/files/util/sh.js\"></script>").append(CRLF);
 								sb.append("<title>" + filename + "</title>").append(CRLF);
 							sb.append("</head>").append(CRLF);
 							sb.append("<body>").append(CRLF);
@@ -498,7 +497,7 @@ public class RemoteWeb {
 						sb.append("<h1>Tools</h1>").append(CRLF);
 						sb.append("<br/>").append(CRLF);
 						sb.append("<ul>").append(CRLF);
-						sb.append("<li>View logs and Confs:").append(CRLF).append(getLogs()).append("</li>").append(CRLF);
+						sb.append("<li><a href=\"/files/util/logviewer.html\" title=\"Open general purpose log viewer\">View</a> logs and Confs:").append(CRLF).append(getLogs()).append("</li>").append(CRLF);
 						if (configuration.getUseCache()) {
 							sb.append("<li><a href=\"http://" + PMS.get().getServer().getHost() + ":" + PMS.get().getServer().getPort() + "/console/home\">Manage cache.</a></li>").append(CRLF);
 						}
