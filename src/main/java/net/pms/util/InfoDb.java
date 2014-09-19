@@ -90,7 +90,8 @@ public class InfoDb implements DbHandler {
 			data.ep_name,
 			data.season,
 			data.episode,
-			data.title};
+			data.title
+		};
 	}
 
 	@Override
