@@ -76,10 +76,10 @@ public class InfoDb implements DbHandler {
 			data.ep_name = "";
 		}
 
-		data.season = FileDb.safeGetArg(args, off + 2);
+		data.year = FileDb.safeGetArg(args, off + 2);
 		data.episode = FileDb.safeGetArg(args, off + 3);
 		data.title = FileDb.safeGetArg(args, off + 4);
-		data.year = FileDb.safeGetArg(args, off + 5);
+		data.season = FileDb.safeGetArg(args, off + 5);
 
 		return data;
 	}
