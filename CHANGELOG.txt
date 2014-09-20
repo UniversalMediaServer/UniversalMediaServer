@@ -1,4 +1,4 @@
-4.1.2 - 2014-09-??
+4.1.2 - 2014-09-21
 
 	General:
 		Folder population speed improvements with filename prettifying enabled
