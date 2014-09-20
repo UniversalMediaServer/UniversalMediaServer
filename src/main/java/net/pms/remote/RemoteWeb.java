@@ -278,12 +278,19 @@ public class RemoteWeb {
 				LOGGER.debug("media unknown");
 				throw new IOException("Bad id");
 			}
-			r.checkThumbnail();
+			InputStream in;
+			if (!configuration.isShowCodeThumbs() && !r.isCodeValid(r)) {
+				// we shouldn't show the thumbs for coded objects
+				// unless the code is entered
+				in = r.getGenericThumbnailInputStream(null);
+			} else {
+				r.checkThumbnail();
+				in = r.getThumbnailInputStream();
+			}
 			Headers hdr = t.getResponseHeaders();
 			hdr.add("Content-Type", r.getThumbnailContentType());
 			hdr.add("Accept-Ranges", "bytes");
 			hdr.add("Connection", "keep-alive");
-			InputStream in = r.getThumbnailInputStream();
 			t.sendResponseHeaders(200, in.available());
 			OutputStream os = t.getResponseBody();
 			LOGGER.debug("input is " + in + " out " + os);

@@ -295,11 +295,15 @@ public class RequestV2 extends HTTPResource {
 					output.headers().set(HttpHeaders.Names.EXPIRES, getFUTUREDATE() + " GMT");
 					output.headers().set(HttpHeaders.Names.CONNECTION, "keep-alive");
 
-					if (mediaRenderer.isMediaParserV2()) {
-						dlna.checkThumbnail();
+					if (!configuration.isShowCodeThumbs() && !dlna.isCodeValid(dlna)) {
+						inputStream = dlna.getGenericThumbnailInputStream(null);
 					}
-
-					inputStream = dlna.getThumbnailInputStream();
+					else {
+						if (mediaRenderer.isMediaParserV2()) {
+							dlna.checkThumbnail();
+						}
+						inputStream = dlna.getThumbnailInputStream();
+					}
 				} else if (dlna.getMedia() != null && fileName.contains("subtitle0000") && dlna.isCodeValid(dlna)) {
 					// This is a request for a subtitle file
 					output.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain");

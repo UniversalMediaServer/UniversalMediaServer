@@ -101,6 +101,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_CHAPTER_INTERVAL = "chapter_interval";
 	protected static final String KEY_CHAPTER_SUPPORT = "chapter_support";
 	protected static final String KEY_CODE_CHARS = "code_charset";
+	protected static final String KEY_CODE_THUMBS = "code_show_thumbs_no_code";
 	protected static final String KEY_CODE_TMO = "code_valid_timeout";
 	protected static final String KEY_CODE_USE = "code_enable";
 	protected static final String KEY_MENCODER_CODEC_SPECIFIC_SCRIPT = "mencoder_codec_specific_script";
@@ -3272,6 +3273,10 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public int getCodeValidTmo() {
 		return (getInt(KEY_CODE_TMO, 4 * 60) * 60 * 1000);
+	}
+
+	public boolean isShowCodeThumbs() {
+		return getBoolean(KEY_CODE_THUMBS, true);
 	}
 
 	public int getCodeCharSet() {

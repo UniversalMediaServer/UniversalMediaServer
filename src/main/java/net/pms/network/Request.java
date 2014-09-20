@@ -301,11 +301,15 @@ public class Request extends HTTPResource {
 					output(output, "Accept-Ranges: bytes");
 					output(output, "Expires: " + getFUTUREDATE() + " GMT");
 					output(output, "Connection: keep-alive");
-					if (mediaRenderer.isMediaParserV2()) {
-						dlna.checkThumbnail();
+					if (!configuration.isShowCodeThumbs() && !dlna.isCodeValid(dlna)) {
+						inputStream = dlna.getGenericThumbnailInputStream(null);
 					}
-
-					inputStream = dlna.getThumbnailInputStream();
+					else {
+						if (mediaRenderer.isMediaParserV2()) {
+							dlna.checkThumbnail();
+						}
+						inputStream = dlna.getThumbnailInputStream();
+					}
 				} else if (dlna.getMedia() != null && fileName.contains("subtitle0000") && dlna.isCodeValid(dlna)) {
 					// This is a request for a subtitle file
 					output(output, "Content-Type: text/plain");
