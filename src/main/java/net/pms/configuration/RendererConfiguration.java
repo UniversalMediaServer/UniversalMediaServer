@@ -546,7 +546,7 @@ public class RendererConfiguration {
 				if (StringUtils.isBlank(tok)) {
 					continue;
 				}
-				tok = tok.replaceAll("###0", " ");
+				tok = tok.replaceAll("###0", " ").replaceAll("###n", "\n").replaceAll("###r", "\r");
 				if (StringUtils.isBlank(org)) {
 					org = tok;
 				} else {
@@ -1305,7 +1305,8 @@ public class RendererConfiguration {
 
 		// Substitute
 		for (String s : charMap.keySet()) {
-			name = name.replaceAll(s, charMap.get(s));
+			String repl = charMap.get(s).replaceAll("###e", "");
+			name = name.replaceAll(s, repl);
 		}
 
 		return name;
