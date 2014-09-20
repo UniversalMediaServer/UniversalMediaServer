@@ -306,7 +306,7 @@ public class Request extends HTTPResource {
 					}
 
 					inputStream = dlna.getThumbnailInputStream();
-				} else if (dlna.getMedia() != null && fileName.contains("subtitle0000")) {
+				} else if (dlna.getMedia() != null && fileName.contains("subtitle0000") && dlna.isCodeValid(dlna)) {
 					// This is a request for a subtitle file
 					output(output, "Content-Type: text/plain");
 					output(output, "Expires: " + getFUTUREDATE() + " GMT");
@@ -322,7 +322,7 @@ public class Request extends HTTPResource {
 							LOGGER.trace("Could not find external subtitles: " + sub);
 						}
 					}
-				} else {
+				} else if(dlna.isCodeValid(dlna)) {
 					// This is a request for a regular file.
 					RendererConfiguration orig = dlna.getDefaultRenderer();
 					boolean rendererChanged = !mediaRenderer.equals(orig);

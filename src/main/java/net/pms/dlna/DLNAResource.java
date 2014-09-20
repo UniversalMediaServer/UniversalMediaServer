@@ -996,12 +996,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		if(dlna.isFolder()) {
 			return null;
 		} else {
-			// non folder
-			if (isCodeValid(dlna)) {
-				return dlna;
-			} else {
-				return null;
-			}
+			return dlna;
 		}
 	}
 
@@ -3631,7 +3626,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		return null;
 	}
 
-	private boolean isCodeValid(DLNAResource r) {
+	public boolean isCodeValid(DLNAResource r) {
 		DLNAResource res = r.isCoded();
 		if (res != null) {
 			if(res instanceof CodeEnter) {

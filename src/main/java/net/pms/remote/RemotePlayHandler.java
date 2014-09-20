@@ -72,6 +72,10 @@ public class RemotePlayHandler implements HttpHandler {
 			LOGGER.debug("Bad id in web if "+id);
 			throw new IOException("Bad Id");
 		}
+		if(!r.isCodeValid(r)) {
+			LOGGER.debug("coded object with invalid code");
+			throw new IOException("Bad code");
+		}
 		String auto = " autoplay>";
 		String query = t.getRequestURI().getQuery();
 		boolean forceFlash = StringUtils.isNotEmpty(RemoteUtil.getQueryVars(query, "flash"));

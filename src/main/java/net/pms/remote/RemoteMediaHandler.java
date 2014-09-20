@@ -67,6 +67,10 @@ public class RemoteMediaHandler implements HttpHandler {
 			LOGGER.debug("media unkonwn");
 			throw new IOException("Bad id");
 		}
+		if(!dlna.isCodeValid(dlna)) {
+			LOGGER.debug("coded object with invalid code");
+			throw new IOException("Bad code");
+		}
 		DLNAMediaSubtitle sid = null;
 		long len = dlna.length();
 		Range range = RemoteUtil.parseRange(t.getRequestHeaders(), len);
