@@ -1,3 +1,30 @@
+4.1.2 - 2014-09-21
+
+	General:
+		Folder population speed improvements with filename prettifying enabled
+		Web interface client-side speed improvements
+		Web interface design tweaks
+		Expanded filename prettifying
+		Fixed the Windows installer downloading the 32-bit version of Java on 64-bit systems
+		Fixed FFmpeg not working on OS X
+		Fixed FFmpeg to MEncoder deferral via the Transcode folder
+		Fixed subtitles being transcoded when they didn't need to be
+		Fixed web thumbnails sometimes
+		Fixed the Windows installer offering to automatically close UMS
+	Languages:
+		Updated French translation (thanks, Kirvx!)
+	External Components:
+		Updated FFmpeg for OS X to g7cf1f0f, which:
+			Improves support for many containers and codecs
+			Fixes bugs
+		Updated jQuery to 1.11.1, which:
+			Fixes bugs
+		Updated NSIS LockedList to 3.0.0.3, which:
+			Adds support for detecting 64-bit processes
+			Fixes bugs
+		Updated MediaInfo for Windows to 0.7.70, which:
+			Fixes bugs
+
 4.1.1 - 2014-09-06
 
 	General:

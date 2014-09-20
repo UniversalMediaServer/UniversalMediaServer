@@ -13,8 +13,8 @@ $(function(){
 			var totalWidth             = null;
 
 			// Do the main margins
-			container = document.getElementById("Media");
-			if (container !== null) {
+			if (document.getElementById("Media") !== null) {
+				container = document.getElementById("Media");
 				imageList = container.getElementsByTagName("img");
 				thumbnailContainerList = container.getElementsByTagName("li");
 				spanList = container.getElementsByTagName("span");
@@ -69,13 +69,13 @@ $(function(){
 				}
 
 				if (imageList.length >= imagesPerRow) {
-					for (i = 0; i < imageList.length; i++) {
-						if (correctWidth === null) {
-							totalSpaceMinusMargins = totalWidth - (20 * (imagesPerRow - 1));
-							correctWidth = (totalSpaceMinusMargins / imagesPerRow) - 0.1;
-						}
-						correctHeight = correctWidth / 1.78;
+					if (correctWidth === null) {
+						totalSpaceMinusMargins = totalWidth - (20 * (imagesPerRow - 1));
+						correctWidth = (totalSpaceMinusMargins / imagesPerRow) - 0.1;
+					}
+					correctHeight = correctWidth / 1.78;
 
+					for (i = 0; i < imageList.length; i++) {
 						spanList[i].style.width      = correctWidth  + "px";
 						spanList[i].style.maxWidth   = correctWidth  + "px";
 						imageList[i].style.maxWidth  = correctWidth  + "px";

@@ -20,9 +20,11 @@ package net.pms.dlna;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.FileInputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import net.pms.network.HTTPResourceAuthenticator;
+import net.pms.util.FileUtil;
 
 /**
  * TODO: Change all instance variables to private. For backwards compatibility
@@ -86,7 +88,7 @@ public class WebStream extends DLNAResource {
 	@Override
 	public InputStream getThumbnailInputStream() throws IOException {
 		if (thumbURL != null) {
-			return downloadAndSend(thumbURL, true);
+			return FileUtil.isUrl(thumbURL) ? downloadAndSend(thumbURL, true) : new FileInputStream(thumbURL);
 		} else {
 			return super.getThumbnailInputStream();
 		}

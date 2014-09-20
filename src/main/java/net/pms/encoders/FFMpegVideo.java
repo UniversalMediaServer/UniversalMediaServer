@@ -215,19 +215,21 @@ public class FFMpegVideo extends Player {
 					int subtitlesWidth = scaleWidth; 
 					int subtitlesHeight = scaleHeight;
 					if (params.sid.isExternal() && params.sid.getType() != SubtitleType.ASS || configuration.isFFmpegFontConfig()) {
-						// Let ASS/SSA subtitles specify their own resolution
-						if (params.sid.getType() == SubtitleType.ASS) {
-							setSubtitlesResolution(originalSubsFilename, subtitlesWidth, subtitlesHeight);
-						}
-						subsFilter.append(":").append(subtitlesWidth).append("x").append(subtitlesHeight);
+						if (subtitlesWidth > 0 && subtitlesHeight > 0) {
+							// Let ASS/SSA subtitles specify their own resolution
+							if (params.sid.getType() == SubtitleType.ASS) {
+								setSubtitlesResolution(originalSubsFilename, subtitlesWidth, subtitlesHeight);
+							}
+							subsFilter.append(":").append(subtitlesWidth).append("x").append(subtitlesHeight);
 
-						// Set the input subtitles character encoding if not UTF-8
-						if (!params.sid.isExternalFileUtf8()) {
-							String encoding = isNotBlank(configuration.getSubtitlesCodepage()) ?
-									configuration.getSubtitlesCodepage() : params.sid.getExternalFileCharacterSet() != null ?
-									params.sid.getExternalFileCharacterSet() : null;
-							if (encoding != null) {
-								subsFilter.append(":").append(encoding);
+							// Set the input subtitles character encoding if not UTF-8
+							if (!params.sid.isExternalFileUtf8()) {
+								String encoding = isNotBlank(configuration.getSubtitlesCodepage()) ?
+										configuration.getSubtitlesCodepage() : params.sid.getExternalFileCharacterSet() != null ?
+										params.sid.getExternalFileCharacterSet() : null;
+								if (encoding != null) {
+									subsFilter.append(":").append(encoding);
+								}
 							}
 						}
 					} else if (params.sid.isEmbedded()) {
@@ -1256,6 +1258,7 @@ public class FFMpegVideo extends Player {
 			(
 				!applyFontConfig &&
 				!isEmbeddedSource &&
+				(params.sid.getType() == subtitleType) &&
 				(params.sid.getType() == SubtitleType.SUBRIP || params.sid.getType() == SubtitleType.WEBVTT)
 			)
 		) {
@@ -1449,24 +1452,22 @@ public class FFMpegVideo extends Player {
 							continue;
 						}
 
-						if (format[i].contains("PrimaryColour")) {
-							String primaryColour = Integer.toHexString(configuration.getSubsColor());
-							params[i] = "&H" + primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4);
-							continue;
-						}
-
-						if (format[i].contains("Outline")) {
-							params[i] = configuration.getAssOutline();
-							continue;
-						}
-
-						if (format[i].contains("Shadow")) {
-							params[i] = configuration.getAssShadow();
-							continue;
-						}
-
-						if (format[i].contains("MarginV")) {
-							params[i] = configuration.getAssMargin();
+								break;
+							case "PrimaryColour":
+								String primaryColour = Integer.toHexString(configuration.getSubsColor());
+								params[i] = "&H" + primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4);
+								break;
+							case "Outline":
+								params[i] = configuration.getAssOutline();
+								break;
+							case "Shadow":
+								params[i] = configuration.getAssShadow();
+								break;
+							case "MarginV":
+								params[i] = configuration.getAssMargin();
+								break;
+							default:
+								break;
 						}
 					}
 
