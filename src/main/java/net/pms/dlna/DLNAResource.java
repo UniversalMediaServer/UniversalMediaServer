@@ -27,6 +27,7 @@ import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
@@ -50,6 +51,7 @@ import net.pms.util.ImagesUtil;
 import net.pms.util.Iso639;
 import net.pms.util.MpegUtil;
 import static net.pms.util.StringUtil.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -533,7 +535,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						if (!configuration.isDisableSubtitles() && child.isSubsFile() && defaultRenderer.isSubtitlesStreamingSupported()) {
 							OutputParams params = new OutputParams(configuration);
 							Player.setAudioAndSubs(child.getSystemName(), child.media, params); // set proper subtitles in accordance with user setting
-							if (params.sid.isExternal() && defaultRenderer.isSubtitlesFormatSupported(params.sid)) {
+							if (params.sid.isExternal() && defaultRenderer.isExternalSubtitlesFormatSupported(params.sid)) {
 								child.media_subtitle = params.sid;
 								child.media_subtitle.setSubsStreamable(true);
 								LOGGER.trace("Set media_subtitle");
@@ -646,7 +648,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									if (child.isSubsFile() && defaultRenderer.isSubtitlesStreamingSupported()) {
 										OutputParams params = new OutputParams(configuration);
 										Player.setAudioAndSubs(child.getSystemName(), child.media, params); // set proper subtitles in accordance with user setting
-										if (params.sid.isExternal() && defaultRenderer.isSubtitlesFormatSupported(params.sid)) {
+										if (params.sid.isExternal() && defaultRenderer.isExternalSubtitlesFormatSupported(params.sid)) {
 											child.media_subtitle = params.sid;
 											child.media_subtitle.setSubsStreamable(true);
 											LOGGER.trace("Set media_subtitle");
@@ -667,8 +669,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									} else {
 										LOGGER.trace("Subtitles for \"{}\" will not be transcoded because media_subtitle is not null", child.getName());
 									}
-								} else {
-									if (hasEmbeddedSubs && defaultRenderer != null && !defaultRenderer.isEmbeddedSubtitlesSupported()) {
+								} else if (hasEmbeddedSubs && child.media_subtitle != null) {
+									if (defaultRenderer != null && !defaultRenderer.isEmbeddedSubtitlesFormatSupported(child.media_subtitle)) {
 										forceTranscode = true;
 										hasSubsToTranscode = true;
 										LOGGER.trace("Subtitles for \"{}\" need to be transcoded because the renderer does not support internal subtitles", child.getName());
