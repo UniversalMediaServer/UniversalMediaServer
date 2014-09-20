@@ -472,7 +472,8 @@ public class RemoteWeb {
 
 		public RemoteDocHandler(RemoteWeb parent) {
 			this.parent = parent;
-
+			// Make sure logs are available right away
+			getLogs();
 		}
 
 		@Override

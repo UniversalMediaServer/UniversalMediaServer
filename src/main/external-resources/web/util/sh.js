@@ -4,7 +4,7 @@ SyntaxHighlighter.defaults['smart-tabs'] = false;
 SyntaxHighlighter.defaults['quick-code'] = false;
 
 var re_quoted = /\"[^"\r\n]*?\"/g;
-var re_url = /\w+:\/\/[\w-.\/?%&=:@;#$]+/g;
+var re_url = /\w+:\/\/[\w-.\/?%&=:@;#$+]+/g;
 var re_addr = /\d+\.\d+\.\d+\.\d+(:\d+)?/g;
 var re_err = /error|ERROR|Error|[^.]*Exception/g;
 var re_traceback = /\s\s\s\sat\s[^\r\n]+/g;
