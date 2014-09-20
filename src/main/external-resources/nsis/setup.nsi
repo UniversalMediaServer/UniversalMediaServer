@@ -109,7 +109,7 @@ Function AdvancedSettings
 	ClearErrors
 	${If} ${RunningX64}
 		SetRegView 64
-		${EndIf}
+	${EndIf}
 	ReadRegStr $0 HKLM "SOFTWARE\JavaSoft\Java Runtime Environment" "CurrentVersion"
 	IfErrors SetMinMem
 	IfErrors 0 CheckMemAmnt
