@@ -31,6 +31,7 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import net.pms.Messages;
 import net.pms.PMS;
+import net.pms.dlna.CodeEnter;
 import net.pms.formats.Format;
 import net.pms.io.SystemUtils;
 import net.pms.util.FileUtil;
@@ -99,6 +100,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	protected static final String KEY_BUMP_IPS = "allowed_bump_ips";
 	protected static final String KEY_CHAPTER_INTERVAL = "chapter_interval";
 	protected static final String KEY_CHAPTER_SUPPORT = "chapter_support";
+	protected static final String KEY_CODE_CHARS = "code_charset";
 	protected static final String KEY_CODE_TMO = "code_valid_timeout";
 	protected static final String KEY_CODE_USE = "code_enable";
 	protected static final String KEY_MENCODER_CODEC_SPECIFIC_SCRIPT = "mencoder_codec_specific_script";
@@ -3270,5 +3272,14 @@ public class PmsConfiguration extends RendererConfiguration {
 
 	public int getCodeValidTmo() {
 		return (getInt(KEY_CODE_TMO, 4 * 60) * 60 * 1000);
+	}
+
+	public int getCodeCharSet() {
+		int cs = getInt(KEY_CODE_CHARS, CodeEnter.DIGITS);
+		if (cs < CodeEnter.DIGITS || cs > CodeEnter.BOTH) {
+			// ensure we go a legal value
+			cs = CodeEnter.DIGITS;
+		}
+		return cs;
 	}
 }

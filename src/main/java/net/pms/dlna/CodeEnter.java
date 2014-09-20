@@ -22,6 +22,10 @@ public class CodeEnter extends VirtualFolder {
 	private long changed;
 	private long commitTime;
 
+	public static final int DIGITS = 0;
+	public static final int LETTERS = 1;
+	public static final int BOTH = 2;
+
 	private abstract class CodeAction extends VirtualVideoAction {
 		public CodeAction(String name, boolean enable) {
 			super(name,enable);
@@ -61,24 +65,37 @@ public class CodeEnter extends VirtualFolder {
 
 	public String getCode() { return code; }
 
+	private void addCharVVA(final String ch) {
+		super.addChild(new CodeAction(ch,true) {
+			public boolean enable() {
+				if(preventAutoPlay()) {
+					return false;
+				}
+				enteredCode += ch;
+				changed = System.currentTimeMillis();
+				return true;
+			}
+		});
+	}
+
 	public void discoverChildren(String str) {
 		discoverChildren();
 	}
 
 	public void discoverChildren() {
 		super.addChild(resource);
-		for(int i=0;i<10;i++) {
-			final int j=i;
-			super.addChild(new CodeAction(String.valueOf(i),true) {
-				public boolean enable() {
-					if(preventAutoPlay()) {
-						return false;
-					}
-					enteredCode += String.valueOf(j);
-					changed = System.currentTimeMillis();
-					return true;
-				}
-			});
+		int charset = configuration.getCodeCharSet();
+		if (charset == LETTERS || charset == BOTH) {
+			// Letters first
+			for (char i = 'A'; i <= 'Z'; i++) {
+				addCharVVA(String.valueOf(i));
+			}
+		}
+		if (charset == DIGITS || charset == BOTH) {
+			// then the digits
+			for(int i = 0; i < 10;i++) {
+				addCharVVA(String.valueOf(i));
+			}
 		}
 		super.addChild(new CodeAction(Messages.getString("TracesTab.3"), true) {
 			public boolean enable() {
@@ -111,7 +128,7 @@ public class CodeEnter extends VirtualFolder {
 		}
 		String realCode = PMS.get().codeDb().lookup(code);
 		LOGGER.debug("valid code "+commitTime);
-		if(!enteredCode.equals(realCode)) {
+		if(!enteredCode.equalsIgnoreCase(realCode)) {
 			// bad code
 			return false;
 		}
@@ -120,7 +137,7 @@ public class CodeEnter extends VirtualFolder {
 			commitTime = System.currentTimeMillis();
 			return true;
 		}
-		boolean res = (System.currentTimeMillis() - commitTime) < PMS.getConfiguration().getCodeValidTmo();
+		boolean res = (System.currentTimeMillis() - commitTime) < configuration.getCodeValidTmo();
 		if(!res) {
 			// clear entered code
 			setEnteredCode("");
