@@ -6,12 +6,15 @@
 		Web interface design tweaks
 		Expanded filename prettifying
 		Split the renderer option SupportedSubtitlesFormats into SupportedExternalSubtitlesFormats and SupportedInternalSubtitlesFormats
+		Optimized video bitrate over wireless connections
 		Fixed FFmpeg not working on OS X
 		Fixed FFmpeg to MEncoder deferral via the Transcode folder
 		Fixed subtitles being transcoded when they didn't need to be
 		Fixed web thumbnails sometimes
 		Fixed the Windows installer downloading the 32-bit version of Java on 64-bit systems
 		Fixed the Windows installer offering to automatically close UMS
+	Renderers:
+		Improved support for Panasonic TX-L32V10E TVs
 	Languages:
 		Updated French translation (thanks, Kirvx!)
 	External Components:
