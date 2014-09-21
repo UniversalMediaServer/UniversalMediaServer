@@ -1182,6 +1182,44 @@ public class MEncoderVideo extends Player {
 			vcodecString = "";
 		}
 
+		// Ditlew - WDTV Live (+ other byte asking clients), CBR. This probably ought to be placed in addMaximumBitrateConstraints(..)
+		int cbr_bitrate = params.mediaRenderer.getCBRVideoBitrate();
+		String cbr_settings = (cbr_bitrate > 0) ?
+			":vrc_buf_size=5000:vrc_minrate=" + cbr_bitrate + ":vrc_maxrate=" + cbr_bitrate + ":vbitrate=" + ((cbr_bitrate > 16000) ? cbr_bitrate * 1000 : cbr_bitrate) :
+			"";
+
+		// Set audio codec and bitrate if audio is being transcoded
+		String acodec   = "";
+		String abitrate = "";
+		if (!ac3Remux && !dtsRemux) {
+			// Set the audio codec used by Lavc
+			if (!combinedCustomOptions.contains("acodec=")) {
+				acodec = ":acodec=";
+				if (wmv && !params.mediaRenderer.isXBOX()) {
+					acodec += "wmav2";
+				} else {
+					acodec = cbr_settings + acodec;
+					if (params.mediaRenderer.isTranscodeToAAC()) {
+						acodec += "libfaac";
+					} else if (configuration.isMencoderAc3Fixed()) {
+						acodec += "ac3_fixed";
+					} else {
+						acodec += "ac3";
+					}
+				}
+			}
+
+			// Set the audio bitrate used by Lavc
+			if (!combinedCustomOptions.contains("abitrate=")) {
+				abitrate = ":abitrate=";
+				if (wmv && !params.mediaRenderer.isXBOX()) {
+					abitrate += "448";
+				} else {
+					abitrate += CodecUtil.getAC3Bitrate(configuration, params.aid);
+				}
+			}
+		}
+
 		if (configuration.getMPEG2MainSettings() != null && !h264ts) {
 			String mpeg2Options = configuration.getMPEG2MainSettings();
 			String mpeg2OptionsRenderer = params.mediaRenderer.getCustomMEncoderMPEG2Options();
@@ -1229,41 +1267,6 @@ public class MEncoderVideo extends Player {
 				}
 			}
 
-			// Ditlew - WDTV Live (+ other byte asking clients), CBR. This probably ought to be placed in addMaximumBitrateConstraints(..)
-			int cbr_bitrate = params.mediaRenderer.getCBRVideoBitrate();
-			String cbr_settings = (cbr_bitrate > 0) ?
-				":vrc_buf_size=5000:vrc_minrate=" + cbr_bitrate + ":vrc_maxrate=" + cbr_bitrate + ":vbitrate=" + ((cbr_bitrate > 16000) ? cbr_bitrate * 1000 : cbr_bitrate) :
-				"";
-
-			// Set the audio codec used by Lavc
-			String acodec   = "";
-			if (!combinedCustomOptions.contains("acodec=")) {
-				acodec = ":acodec=";
-				if (wmv && !params.mediaRenderer.isXBOX()) {
-					acodec += "wmav2";
-				} else {
-					acodec = cbr_settings + acodec;
-					if (params.mediaRenderer.isTranscodeToAAC()) {
-						acodec += "libfaac";
-					} else if (configuration.isMencoderAc3Fixed()) {
-						acodec += "ac3_fixed";
-					} else {
-						acodec += "ac3";
-					}
-				}
-			}
-
-			// Set the audio bitrate used by 
-			String abitrate = "";
-			if (!combinedCustomOptions.contains("abitrate=")) {
-				abitrate = ":abitrate=";
-				if (wmv && !params.mediaRenderer.isXBOX()) {
-					abitrate += "448";
-				} else {
-					abitrate += CodecUtil.getAC3Bitrate(configuration, params.aid);
-				}
-			}
-
 			String encodeSettings = "-lavcopts autoaspect=1" + vcodecString + acodec + abitrate +
 				":threads=" + (wmv && !params.mediaRenderer.isXBOX() ? 1 : configuration.getMencoderMaxThreads()) +
 				("".equals(mpeg2Options) ? "" : ":" + mpeg2Options);
@@ -1306,9 +1309,7 @@ public class MEncoderVideo extends Player {
 				}
 			}
 
-			String encodeSettings = "-lavcopts autoaspect=1" + vcodecString +
-				":acodec=" + (params.mediaRenderer.isTranscodeToAAC() ? "libfaac" : configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3") +
-				":abitrate=" + CodecUtil.getAC3Bitrate(configuration, params.aid) +
+			String encodeSettings = "-lavcopts autoaspect=1" + vcodecString + acodec + abitrate +
 				":threads=" + configuration.getMencoderMaxThreads() +
 				":o=preset=superfast,crf=" + x264CRF + ",g=250,i_qfactor=0.71,qcomp=0.6,level=4.1,weightp=0,8x8dct=0,aq-strength=0,me_range=16";
 
