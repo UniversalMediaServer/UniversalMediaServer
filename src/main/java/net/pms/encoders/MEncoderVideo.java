@@ -1220,7 +1220,22 @@ public class MEncoderVideo extends Player {
 			}
 		}
 
+		// Find out the maximum bandwidth we are supposed to use
+		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
+		int rendererMaxBitrates[] = new int[2];
+
+		if (StringUtils.isNotEmpty(params.mediaRenderer.getMaxVideoBitrate())) {
+			rendererMaxBitrates = getVideoBitrateConfig(params.mediaRenderer.getMaxVideoBitrate());
+		}
+
+		if ((rendererMaxBitrates[0] > 0) && (rendererMaxBitrates[0] < defaultMaxBitrates[0])) {
+			defaultMaxBitrates = rendererMaxBitrates;
+		}
+
+		int maximumBitrate = defaultMaxBitrates[0];
+
 		if (configuration.getMPEG2MainSettings() != null && !h264ts) {
+			// Set MPEG-2 video quality
 			String mpeg2Options = configuration.getMPEG2MainSettings();
 			String mpeg2OptionsRenderer = params.mediaRenderer.getCustomMEncoderMPEG2Options();
 
@@ -1232,20 +1247,6 @@ public class MEncoderVideo extends Player {
 				if (mpeg2Options.contains("/*")) {
 					mpeg2Options = mpeg2Options.substring(mpeg2Options.indexOf("/*"));
 				}
-
-				// Find out the maximum bandwidth we are supposed to use
-				int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
-				int rendererMaxBitrates[] = new int[2];
-
-				if (StringUtils.isNotEmpty(params.mediaRenderer.getMaxVideoBitrate())) {
-					rendererMaxBitrates = getVideoBitrateConfig(params.mediaRenderer.getMaxVideoBitrate());
-				}
-
-				if ((rendererMaxBitrates[0] > 0) && (rendererMaxBitrates[0] < defaultMaxBitrates[0])) {
-					defaultMaxBitrates = rendererMaxBitrates;
-				}
-
-				int maximumBitrate = defaultMaxBitrates[0];
 
 				// Determine a good quality setting based on video attributes
 				if (mpeg2Options.contains("Automatic")) {
@@ -1292,6 +1293,7 @@ public class MEncoderVideo extends Player {
 				}
 			}
 		} else if (configuration.getx264ConstantRateFactor() != null && h264ts) {
+			// Set H.264 video quality
 			String x264CRF = configuration.getx264ConstantRateFactor();
 
 			// Remove comment from the value
@@ -1301,11 +1303,21 @@ public class MEncoderVideo extends Player {
 
 			// Determine a good quality setting based on video attributes
 			if (x264CRF.contains("Automatic")) {
-				x264CRF = "16";
-
-				// Higher CRF for 720p+ content
-				if (media.getWidth() > 720) {
+				if (x264CRF.contains("Wireless") || maximumBitrate < 70) {
 					x264CRF = "19";
+					// Lower quality for 720p+ content
+					if (media.getWidth() > 1280) {
+						x264CRF = "23";
+					} else if (media.getWidth() > 720) {
+						x264CRF = "22";
+					}
+				} else {
+					x264CRF = "16";
+
+					// Lower quality for 720p+ content
+					if (media.getWidth() > 720) {
+						x264CRF = "19";
+					}
 				}
 			}
 

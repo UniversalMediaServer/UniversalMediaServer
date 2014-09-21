@@ -483,6 +483,7 @@ public class FFMpegVideo extends Player {
 			videoBitrateOptions.add("-maxrate");
 			videoBitrateOptions.add(String.valueOf(defaultMaxBitrates[0]));
 		}
+		int maximumBitrate = defaultMaxBitrates[0];
 
 		if (!params.mediaRenderer.isTranscodeToMPEGTSH264AC3() && !params.mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
 			// Add MPEG-2 quality settings
@@ -501,7 +502,7 @@ public class FFMpegVideo extends Player {
 					mpeg2Options = "-g 25 -q:v 1 -qmin 2 -qmax 3";
 				}
 
-				if (isWireless || defaultMaxBitrates[0] < 70) {
+				if (isWireless || maximumBitrate < 70) {
 					// Lower quality for 720p+ content
 					if (media.getWidth() > 1280) {
 						mpeg2Options = "-g 25 -qmax 7 -qmin 2";
@@ -522,11 +523,21 @@ public class FFMpegVideo extends Player {
 			}
 
 			if (x264CRF.contains("Automatic")) {
-				x264CRF = "16";
-
-				// Lower CRF for 720p+ content
-				if (media.getWidth() > 720) {
+				if (x264CRF.contains("Wireless") || maximumBitrate < 70) {
 					x264CRF = "19";
+					// Lower quality for 720p+ content
+					if (media.getWidth() > 1280) {
+						x264CRF = "23";
+					} else if (media.getWidth() > 720) {
+						x264CRF = "22";
+					}
+				} else {
+					x264CRF = "16";
+
+					// Lower quality for 720p+ content
+					if (media.getWidth() > 720) {
+						x264CRF = "19";
+					}
 				}
 			}
 			videoBitrateOptions.add("-crf");
