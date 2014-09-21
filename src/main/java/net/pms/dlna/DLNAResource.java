@@ -1296,7 +1296,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		} else {
 			if (isNoName()) {
-				displayName = "[No encoding]";
+				displayName = Messages.getString("DLNAResource.0");
 				isNamedNoEncoding = true;
 				if (subsAreValidForStreaming) {
 					isNamedNoEncoding = false;
@@ -1317,7 +1317,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				player.isExternalSubtitlesSupported()
 			)
 		) {
-			nameSuffix += " {External Subtitles}";
+			nameSuffix += Messages.getString("DLNAResource.1");
 		}
 
 		if (getMediaAudio() != null) {
@@ -1347,9 +1347,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				subtitleLanguage = "";
 			}
 
-			String subsDescription = "Sub: " + subtitleFormat + subtitleLanguage + ((media_subtitle.getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowSubMetadata()) ? (" (" + media_subtitle.getFlavor() + ")") : "");
+			String subsDescription = Messages.getString("DLNAResource.2") + subtitleFormat + subtitleLanguage + ((media_subtitle.getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowSubMetadata()) ? (" (" + media_subtitle.getFlavor() + ")") : "");
 			if (subsAreValidForStreaming) {
-				nameSuffix += " {Stream " + subsDescription +  "}";
+				nameSuffix += " {" + Messages.getString("DLNAResource.3") + subsDescription +  "}";
 			} else {
 				nameSuffix += " {" + subsDescription +  "}";
 			}
