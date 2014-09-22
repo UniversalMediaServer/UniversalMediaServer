@@ -7,6 +7,7 @@
 		Expanded filename prettifying
 		Split the renderer option SupportedSubtitlesFormats into SupportedExternalSubtitlesFormats and SupportedInternalSubtitlesFormats
 		Optimized video bitrate over wireless connections
+		Made more strings translatable
 		Fixed FFmpeg not working on OS X
 		Fixed FFmpeg to MEncoder deferral via the Transcode folder
 		Fixed subtitles being transcoded when they didn't need to be
@@ -15,7 +16,9 @@
 		Fixed the Windows installer offering to automatically close UMS
 	Renderers:
 		Improved support for Panasonic TX-L32V10E TVs
+		Improved support for Samsung renderers
 	Languages:
+		Updated Czech translation
 		Updated French translation (thanks, Kirvx!)
 	External Components:
 		Updated FFmpeg for OS X to g7cf1f0f, which:
