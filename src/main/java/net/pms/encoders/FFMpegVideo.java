@@ -181,10 +181,10 @@ public class FFMpegVideo extends Player {
 			if (params.sid.getType().isText()) {
 				String originalSubsFilename;
 				String subsFilename;
-				if (configuration.isFFmpegFontConfig()) {
+				if (params.sid.isEmbedded() || configuration.isFFmpegFontConfig()) {
 					originalSubsFilename = getSubtitles(dlna, media, params, configuration, SubtitleType.ASS).getAbsolutePath();
 				} else {
-					originalSubsFilename = params.sid.isEmbedded() ? dlna.getSystemName() : params.sid.getExternalFile().getAbsolutePath();
+					originalSubsFilename = params.sid.getExternalFile().getAbsolutePath();
 				}
 
 				if (originalSubsFilename != null) {
@@ -232,8 +232,6 @@ public class FFMpegVideo extends Player {
 								}
 							}
 						}
-					} else if (params.sid.isEmbedded()) {
-						subsFilter.append(":si=").append(media.getSubtitleTracksList().indexOf(params.sid));
 					}
 				}
 			} else if (params.sid.getType().isPicture()) {
