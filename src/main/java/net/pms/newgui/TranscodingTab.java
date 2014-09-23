@@ -567,9 +567,10 @@ public class TranscodingTab {
 
 		builder.add(new JLabel(Messages.getString("TrTab2.79")), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
 		Object x264QualityOptions[] = new Object[] {
-			configuration.getx264ConstantRateFactor(),                                 /* Current setting */
-			String.format("Automatic /* %s */", Messages.getString("TrTab2.80")), /* Automatic */
-			String.format("16  /* %s */", Messages.getString("TrTab2.61"))        /* Lossless */
+			configuration.getx264ConstantRateFactor(),                                        /* Current setting */
+			String.format("Automatic (Wired)  /* %s */", Messages.getString("TrTab2.71")),    /* Recommended for wired networks */
+			String.format("Automatic (Wireless)  /* %s */", Messages.getString("TrTab2.72")), /* Recommended for wireless networks */
+			String.format("16  /* %s */", Messages.getString("TrTab2.61"))                    /* Lossless */
 		};
 
 		MyComboBoxModel cbm2 = new MyComboBoxModel(x264QualityOptions);
