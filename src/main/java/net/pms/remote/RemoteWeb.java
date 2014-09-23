@@ -137,7 +137,8 @@ public class RemoteWeb {
 		}
 		String[] tmp = cstr.split(";");
 		for (String str: tmp) {
-			if (str.trim().startsWith("UMS=")) {
+			str = str.trim();
+			if (str.startsWith("UMS=")) {
 				return str.substring(4);
 			}
 		}
