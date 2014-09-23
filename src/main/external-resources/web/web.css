@@ -83,10 +83,9 @@ ul#Media li {
 }
 
 ul#Media li a img {
-	max-width: 214px;
-	max-height: 180px;
-	width: 214px;
-	height: 120px;
+	max-width: 253px;
+	max-height: 142px;
+	height: 142px;
 }
 
 ul#Folders li span {
@@ -96,7 +95,7 @@ ul#Folders li span {
 
 ul#Media li span {
 	display: block;
-	max-width: 214px;
+	max-width: 253px;
 	height: 16px;
 	margin-bottom: 20px;
 	overflow: hidden;

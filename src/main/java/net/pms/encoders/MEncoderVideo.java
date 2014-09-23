@@ -770,14 +770,7 @@ public class MEncoderVideo extends Player {
 		boolean avisynth = avisynth();
 
 		final String filename = dlna.getSystemName();
-		if (params.aid == null) {
-			setAudioOutputParameters(media, params);
-		}
-
-		if (params.sid == null || (params.sid != null && StringUtils.isNotEmpty(params.sid.getLiveSubURL()))) {
-			setSubtitleOutputParameters(filename, media, params);
-		}
-
+		setAudioAndSubs(filename, media, params);
 		String externalSubtitlesFileName = null;
 
 		if (params.sid != null && params.sid.isExternal()) {
@@ -1149,92 +1142,63 @@ public class MEncoderVideo extends Player {
 			vcodecString = "";
 		}
 
-		if (configuration.getMPEG2MainSettings() != null && !h264ts) {
-			String mpeg2Options = configuration.getMPEG2MainSettings();
-			String mpeg2OptionsRenderer = params.mediaRenderer.getCustomMEncoderMPEG2Options();
-
-			// Renderer settings take priority over user settings
-			if (isNotBlank(mpeg2OptionsRenderer)) {
-				mpeg2Options = mpeg2OptionsRenderer;
-			} else {
-				// Remove comment from the value
-				if (mpeg2Options.contains("/*")) {
-					mpeg2Options = mpeg2Options.substring(mpeg2Options.indexOf("/*"));
-				}
-
-				// Find out the maximum bandwidth we are supposed to use
-				int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
-				int rendererMaxBitrates[] = new int[2];
-
-				if (StringUtils.isNotEmpty(params.mediaRenderer.getMaxVideoBitrate())) {
-					rendererMaxBitrates = getVideoBitrateConfig(params.mediaRenderer.getMaxVideoBitrate());
-				}
-
-				if ((rendererMaxBitrates[0] > 0) && (rendererMaxBitrates[0] < defaultMaxBitrates[0])) {
-					defaultMaxBitrates = rendererMaxBitrates;
-				}
-
-				int maximumBitrate = defaultMaxBitrates[0];
-
-				// Determine a good quality setting based on video attributes
-				if (mpeg2Options.contains("Automatic")) {
-					mpeg2Options = "keyint=5:vqscale=1:vqmin=2:vqmax=3";
-
-					// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
-					if (params.mediaRenderer.isPS3()) {
-						mpeg2Options = "keyint=25:vqscale=1:vqmin=2:vqmax=3";
-					}
-
-					if (mpeg2Options.contains("Wireless") || maximumBitrate < 70) {
-						// Lower quality for 720p+ content
-						if (media.getWidth() > 1280) {
-							mpeg2Options = "keyint=25:vqmax=7:vqmin=2";
-						} else if (media.getWidth() > 720) {
-							mpeg2Options = "keyint=25:vqmax=5:vqmin=2";
-						}
-					}
-				}
-			}
-
+		if (
+			(configuration.getx264ConstantRateFactor() != null && h264ts) ||
+			(configuration.getMPEG2MainSettings() != null && !h264ts)
+		) {
 			// Ditlew - WDTV Live (+ other byte asking clients), CBR. This probably ought to be placed in addMaximumBitrateConstraints(..)
 			int cbr_bitrate = params.mediaRenderer.getCBRVideoBitrate();
 			String cbr_settings = (cbr_bitrate > 0) ?
 				":vrc_buf_size=5000:vrc_minrate=" + cbr_bitrate + ":vrc_maxrate=" + cbr_bitrate + ":vbitrate=" + ((cbr_bitrate > 16000) ? cbr_bitrate * 1000 : cbr_bitrate) :
 				"";
 
-			// Set the audio codec used by Lavc
+			// Set audio codec and bitrate if audio is being transcoded
 			String acodec   = "";
-			if (!combinedCustomOptions.contains("acodec=")) {
-				acodec = ":acodec=";
-				if (wmv && !params.mediaRenderer.isXBOX()) {
-					acodec += "wmav2";
-				} else {
-					acodec = cbr_settings + acodec;
-					if (params.mediaRenderer.isTranscodeToAAC()) {
-						acodec += "libfaac";
-					} else if (configuration.isMencoderAc3Fixed()) {
-						acodec += "ac3_fixed";
+			String abitrate = "";
+			if (!ac3Remux && !dtsRemux) {
+				// Set the audio codec used by Lavc
+				if (!combinedCustomOptions.contains("acodec=")) {
+					acodec = ":acodec=";
+					if (wmv && !params.mediaRenderer.isXBOX()) {
+						acodec += "wmav2";
 					} else {
-						acodec += "ac3";
+						acodec = cbr_settings + acodec;
+						if (params.mediaRenderer.isTranscodeToAAC()) {
+							acodec += "libfaac";
+						} else if (configuration.isMencoderAc3Fixed()) {
+							acodec += "ac3_fixed";
+						} else {
+							acodec += "ac3";
+						}
+					}
+				}
+
+				// Set the audio bitrate used by Lavc
+				if (!combinedCustomOptions.contains("abitrate=")) {
+					abitrate = ":abitrate=";
+					if (wmv && !params.mediaRenderer.isXBOX()) {
+						abitrate += "448";
+					} else {
+						abitrate += CodecUtil.getAC3Bitrate(configuration, params.aid);
 					}
 				}
 			}
 
-			// Set the audio bitrate used by 
-			String abitrate = "";
-			if (!combinedCustomOptions.contains("abitrate=")) {
-				abitrate = ":abitrate=";
-				if (wmv && !params.mediaRenderer.isXBOX()) {
-					abitrate += "448";
-				} else {
-					abitrate += CodecUtil.getAC3Bitrate(configuration, params.aid);
-				}
+			// Find out the maximum bandwidth we are supposed to use
+			int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
+			int rendererMaxBitrates[] = new int[2];
+
+			if (StringUtils.isNotEmpty(params.mediaRenderer.getMaxVideoBitrate())) {
+				rendererMaxBitrates = getVideoBitrateConfig(params.mediaRenderer.getMaxVideoBitrate());
 			}
 
-			String encodeSettings = "-lavcopts autoaspect=1" + vcodecString + acodec + abitrate +
-				":threads=" + (wmv && !params.mediaRenderer.isXBOX() ? 1 : configuration.getMencoderMaxThreads()) +
-				("".equals(mpeg2Options) ? "" : ":" + mpeg2Options);
+			if ((rendererMaxBitrates[0] > 0) && (rendererMaxBitrates[0] < defaultMaxBitrates[0])) {
+				defaultMaxBitrates = rendererMaxBitrates;
+			}
 
+			int maximumBitrate = defaultMaxBitrates[0];
+
+			// Set which audio codec to use
 			String audioType = "ac3";
 			if (dtsRemux) {
 				audioType = "dts";
@@ -1244,51 +1208,82 @@ public class MEncoderVideo extends Player {
 				audioType = "aac";
 			}
 
-			encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, mpeg2Options, params.mediaRenderer, audioType);
-			st = new StringTokenizer(encodeSettings, " ");
+			String encodeSettings = "";
+			if (configuration.getMPEG2MainSettings() != null && !h264ts) {
+				// Set MPEG-2 video quality
+				String mpeg2Options = configuration.getMPEG2MainSettings();
+				String mpeg2OptionsRenderer = params.mediaRenderer.getCustomMEncoderMPEG2Options();
 
-			{
-				int i = overriddenMainArgs.length; // Old length
-				overriddenMainArgs = Arrays.copyOf(overriddenMainArgs, overriddenMainArgs.length + st.countTokens());
+				// Renderer settings take priority over user settings
+				if (isNotBlank(mpeg2OptionsRenderer)) {
+					mpeg2Options = mpeg2OptionsRenderer;
+				} else {
+					// Remove comment from the value
+					if (mpeg2Options.contains("/*")) {
+						mpeg2Options = mpeg2Options.substring(mpeg2Options.indexOf("/*"));
+					}
 
-				while (st.hasMoreTokens()) {
-					overriddenMainArgs[i++] = st.nextToken();
+					// Determine a good quality setting based on video attributes
+					if (mpeg2Options.contains("Automatic")) {
+						mpeg2Options = "keyint=5:vqscale=1:vqmin=2:vqmax=3";
+
+						// It has been reported that non-PS3 renderers prefer keyint 5 but prefer it for PS3 because it lowers the average bitrate
+						if (params.mediaRenderer.isPS3()) {
+							mpeg2Options = "keyint=25:vqscale=1:vqmin=2:vqmax=3";
+						}
+
+						if (mpeg2Options.contains("Wireless") || maximumBitrate < 70) {
+							// Lower quality for 720p+ content
+							if (media.getWidth() > 1280) {
+								mpeg2Options = "keyint=25:vqmax=7:vqmin=2";
+							} else if (media.getWidth() > 720) {
+								mpeg2Options = "keyint=25:vqmax=5:vqmin=2";
+							}
+						}
+					}
 				}
-			}
-		} else if (configuration.getx264ConstantRateFactor() != null && h264ts) {
-			String x264CRF = configuration.getx264ConstantRateFactor();
 
-			// Remove comment from the value
-			if (x264CRF.contains("/*")) {
-				x264CRF = x264CRF.substring(x264CRF.indexOf("/*"));
-			}
+				encodeSettings = "-lavcopts autoaspect=1" + vcodecString + acodec + abitrate +
+					":threads=" + (wmv && !params.mediaRenderer.isXBOX() ? 1 : configuration.getMencoderMaxThreads()) +
+					("".equals(mpeg2Options) ? "" : ":" + mpeg2Options);
 
-			// Determine a good quality setting based on video attributes
-			if (x264CRF.contains("Automatic")) {
-				x264CRF = "16";
+				encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, mpeg2Options, params.mediaRenderer, audioType);
+			} else if (configuration.getx264ConstantRateFactor() != null && h264ts) {
+				// Set H.264 video quality
+				String x264CRF = configuration.getx264ConstantRateFactor();
 
-				// Higher CRF for 720p+ content
-				if (media.getWidth() > 720) {
-					x264CRF = "19";
+				// Remove comment from the value
+				if (x264CRF.contains("/*")) {
+					x264CRF = x264CRF.substring(x264CRF.indexOf("/*"));
 				}
+
+				// Determine a good quality setting based on video attributes
+				if (x264CRF.contains("Automatic")) {
+					if (x264CRF.contains("Wireless") || maximumBitrate < 70) {
+						x264CRF = "19";
+						// Lower quality for 720p+ content
+						if (media.getWidth() > 1280) {
+							x264CRF = "23";
+						} else if (media.getWidth() > 720) {
+							x264CRF = "22";
+						}
+					} else {
+						x264CRF = "16";
+
+						// Lower quality for 720p+ content
+						if (media.getWidth() > 720) {
+							x264CRF = "19";
+						}
+					}
+				}
+
+				encodeSettings = "-lavcopts autoaspect=1" + vcodecString + acodec + abitrate +
+					":threads=" + configuration.getMencoderMaxThreads() +
+					":o=preset=superfast,crf=" + x264CRF + ",g=250,i_qfactor=0.71,qcomp=0.6,level=4.1,weightp=0,8x8dct=0,aq-strength=0,me_range=16";
+
+				encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, "", params.mediaRenderer, audioType);
 			}
 
-			String encodeSettings = "-lavcopts autoaspect=1" + vcodecString +
-				":acodec=" + (params.mediaRenderer.isTranscodeToAAC() ? "libfaac" : configuration.isMencoderAc3Fixed() ? "ac3_fixed" : "ac3") +
-				":abitrate=" + CodecUtil.getAC3Bitrate(configuration, params.aid) +
-				":threads=" + configuration.getMencoderMaxThreads() +
-				":o=preset=superfast,crf=" + x264CRF + ",g=250,i_qfactor=0.71,qcomp=0.6,level=4.1,weightp=0,8x8dct=0,aq-strength=0,me_range=16";
-
-			String audioType = "ac3";
-			if (dtsRemux) {
-				audioType = "dts";
-			} else if (pcm || encodedAudioPassthrough) {
-				audioType = "pcm";
-			} else if (params.mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
-				audioType = "aac";
-			}
-
-			encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, "", params.mediaRenderer, audioType);
 			st = new StringTokenizer(encodeSettings, " ");
 
 			{
