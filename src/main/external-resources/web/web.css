@@ -137,6 +137,7 @@ ul#Media .thumb {
 	height: 142px;
 	/* Note: intentionally omitting width here so as to avoid distortion if the thumb is actually an icon. */
 	float: left;
+	margin : 0;
 }
 
 ul#Media .caption {
@@ -148,6 +149,7 @@ ul#Media .caption {
 	clear: left;
 	font-size: 12px;
 	color: #444;
+	margin : 0;
 }
 
 ul#Media a .caption:hover {

@@ -1,109 +1,32 @@
-$(function(){
-	$.ImageMargins = {
-		changeMargins: function() {
-			// Initialise variables
-			var container              = null;
-			var imageList              = null;
-			var thumbnailContainerList = null;
-			var spanList               = null;
-			var imagesPerRow           = null;
-			var totalSpaceMinusMargins = null;
-			var correctWidth           = null;
-			var correctHeight          = null;
-			var correctWidthSpan       = null;
-			var totalWidth             = null;
+function changeMargins() {
+	var totalWidth = $('#Media').width() - 40,
+		imagesPerRow = Math.ceil(totalWidth / 320),
+		totalSpaceMinusMargins = totalWidth - (20 * (imagesPerRow - 1)),
+		correctWidth = totalSpaceMinusMargins / imagesPerRow,
+		correctHeight = correctWidth / 1.78,
+		correctWidthSpan = correctWidth - 32;
 
-			// Do the main margins
-			if (document.getElementById("Media") !== null) {
-				container = document.getElementById("Media");
-				imageList = container.getElementsByClassName("thumb");
-				thumbnailContainerList = container.getElementsByTagName("li");
-				spanList = container.getElementsByClassName("caption");
-				imagesPerRow = "";
-				totalSpaceMinusMargins = "";
-				correctWidth     = null;
-				correctHeight    = null;
-				correctWidthSpan = null;
-
-				totalWidth = container.offsetWidth;
-				totalWidth = totalWidth - 40;
-
-				if (totalWidth > 5092) {
-					imagesPerRow = 20;
-				} else if (totalWidth > 4823) {
-					imagesPerRow = 19;
-				} else if (totalWidth > 4554) {
-					imagesPerRow = 18;
-				} else if (totalWidth > 4285) {
-					imagesPerRow = 17;
-				} else if (totalWidth > 4016) {
-					imagesPerRow = 16;
-				} else if (totalWidth > 3747) {
-					imagesPerRow = 15;
-				} else if (totalWidth > 3478) {
-					imagesPerRow = 14;
-				} else if (totalWidth > 3209) {
-					imagesPerRow = 13;
-				} else if (totalWidth > 2940) {
-					imagesPerRow = 12;
-				} else if (totalWidth > 2671) {
-					imagesPerRow = 11;
-				} else if (totalWidth > 2402) {
-					imagesPerRow = 10;
-				} else if (totalWidth > 2133) {
-					imagesPerRow = 9;
-				} else if (totalWidth > 1864) {
-					imagesPerRow = 8;
-				} else if (totalWidth > 1695) {
-					imagesPerRow = 7;
-				} else if (totalWidth > 1325) {
-					imagesPerRow = 6;
-				} else if (totalWidth > 1056) {
-					imagesPerRow = 5;
-				} else if (totalWidth > 787) {
-					imagesPerRow = 4;
-				} else if (totalWidth > 518) {
-					imagesPerRow = 3;
-				} else if (totalWidth > 320) {
-					imagesPerRow = 2;
-				} else {
-					imagesPerRow = 1;
-				}
-
-				if (imageList.length >= imagesPerRow) {
-					if (correctWidth === null) {
-						totalSpaceMinusMargins = totalWidth - (20 * (imagesPerRow - 1));
-						correctWidth = (totalSpaceMinusMargins / imagesPerRow) - 0.1;
-					}
-					correctHeight = correctWidth / 1.78;
-					correctWidthSpan = correctWidth - 32;
-
-					for (i = 0; i < imageList.length; i++) {
-						spanList[i].style.width      = correctWidthSpan  + "px";
-						spanList[i].style.maxWidth   = correctWidthSpan  + "px";
-						imageList[i].style.maxWidth  = correctWidth  + "px";
-						imageList[i].style.maxHeight = correctHeight + "px";
-						imageList[i].style.width     = "auto";
-						imageList[i].style.height    = "auto";
-
-						if (!((i + 1) % imagesPerRow === 0)) {
-							thumbnailContainerList[i].style.marginRight = "20px";
-						} else {
-							thumbnailContainerList[i].style.marginRight = "0";
-						}
-					}
-				}
-			}
-		}
-	};
-
-	$(window).bind('load resize', $.ImageMargins.changeMargins);
-});
+	$('#Media .caption').css({
+		width : correctWidthSpan + 'px',
+		maxWidth : correctWidthSpan + 'px',
+	});
+	$('#Media .thumb').css({
+		width : 'auto',
+		height : 'auto',
+		maxWidth : correctWidth + 'px',
+		maxHeight : correctHeight + 'px',
+	});
+}
 
 $(document).ready(function() {
-	document.oncontextmenu = function() {
-		return false;
-	};
+	if ($('#Media').length) {
+		$(window).bind('load resize', changeMargins);
+	}
+	if ($('#Folders').length) {
+		$('#Folders li').bind('contextmenu', function(){
+			return false;
+		});
+	}
 });
 
 function searchFun(url) {
