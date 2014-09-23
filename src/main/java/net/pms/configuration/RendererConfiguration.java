@@ -172,6 +172,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String STREAM_EXT = "StreamExtensions";
 	protected static final String SUBTITLE_HTTP_HEADER = "SubtitleHttpHeader";
 	protected static final String SUPPORTED = "Supported";
+	protected static final String SUPPORTED_EXTERNAL_SUBTITLES_FORMATS = "SupportedExternalSubtitlesFormats";
+	protected static final String SUPPORTED_INTERNAL_SUBTITLES_FORMATS = "SupportedInternalSubtitlesFormats";
 	protected static final String SUPPORTED_SUBTITLES_FORMATS = "SupportedSubtitlesFormats";
 	protected static final String TEXTWRAP = "TextWrap";
 	protected static final String THUMBNAIL_AS_RESOURCE = "ThumbnailAsResource";
@@ -649,6 +651,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public boolean isFDSSDP() {
 		return getRendererName().toUpperCase().contains("FDSSDP");
+	}
+
+	public boolean isLG() {
+		return getRendererName().toUpperCase().contains("LG ");
 	}
 
 	// Ditlew
@@ -1764,8 +1770,12 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		}
 	}
 
-	public String getSupportedSubtitles() {
-		return getString(SUPPORTED_SUBTITLES_FORMATS, "");
+	public String getSupportedExternalSubtitles() {
+		return getString(SUPPORTED_EXTERNAL_SUBTITLES_FORMATS , "");
+	}
+
+	public String getSupportedEmbeddedSubtitles() {
+		return getString(SUPPORTED_INTERNAL_SUBTITLES_FORMATS , "");
 	}
 
 	public boolean useClosedCaption() {
@@ -1773,22 +1783,45 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public boolean isSubtitlesStreamingSupported() {
-		return StringUtils.isNotBlank(getSupportedSubtitles());
+		return StringUtils.isNotBlank(getSupportedExternalSubtitles());
 	}
 
 	/**
-	 * Check if the given subtitle is supported by renderer for streaming.
+	 * Check if the given subtitle type is supported by renderer for streaming.
 	 *
 	 * @param subtitle Subtitles for checking
 	 * @return True if the renderer specifies support for the subtitles
 	 */
-	public boolean isSubtitlesFormatSupported(DLNAMediaSubtitle subtitle) {
+	public boolean isExternalSubtitlesFormatSupported(DLNAMediaSubtitle subtitle) {
 		if (subtitle == null) {
 			return false;
 		}
 
 		if (isSubtitlesStreamingSupported()) {
-			String[] supportedSubs = getSupportedSubtitles().split(",");
+			String[] supportedSubs = getSupportedExternalSubtitles().split(",");
+			for (String supportedSub : supportedSubs) {
+				if (subtitle.getType().toString().equals(supportedSub.trim().toUpperCase())) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Check if the internal subtitle type is supported by renderer.
+	 *
+	 * @param subtitle Subtitles for checking
+	 * @return True if the renderer specifies support for the subtitles
+	 */
+	public boolean isEmbeddedSubtitlesFormatSupported(DLNAMediaSubtitle subtitle) {
+		if (subtitle == null) {
+			return false;
+		}
+
+		if (isEmbeddedSubtitlesSupported()) {
+			String[] supportedSubs = getSupportedEmbeddedSubtitles().split(",");
 			for (String supportedSub : supportedSubs) {
 				if (subtitle.getType().toString().equals(supportedSub.trim().toUpperCase())) {
 					return true;
@@ -1800,7 +1833,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public boolean isEmbeddedSubtitlesSupported() {
-		return getBoolean(EMBEDDED_SUBS_SUPPORTED, false);
+		return StringUtils.isNotBlank(getSupportedEmbeddedSubtitles());
 	}
 
 	public ArrayList<String> tags() {

@@ -465,16 +465,19 @@ public class PMS {
 					// Wired (Gigabit)
 					configuration.setMaximumBitrate("0");
 					configuration.setMPEG2MainSettings("Automatic (Wired)");
+					configuration.setx264ConstantRateFactor("Automatic (Wired)");
 					save();
 				} else if (networkType == JOptionPane.NO_OPTION) {
 					// Wired (100 Megabit)
 					configuration.setMaximumBitrate("110");
 					configuration.setMPEG2MainSettings("Automatic (Wired)");
+					configuration.setx264ConstantRateFactor("Automatic (Wired)");
 					save();
 				} else if (networkType == JOptionPane.CANCEL_OPTION) {
 					// Wireless
 					configuration.setMaximumBitrate("30");
 					configuration.setMPEG2MainSettings("Automatic (Wireless)");
+					configuration.setx264ConstantRateFactor("Automatic (Wireless)");
 					save();
 				}
 

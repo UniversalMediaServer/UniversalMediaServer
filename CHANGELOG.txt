@@ -1,20 +1,38 @@
-4.1.2 - 2014-09-??
+4.1.3 - 2014-09-??
+
+	General:
+		
+
+4.1.2 - 2014-09-24
 
 	General:
 		Folder population speed improvements with filename prettifying enabled
 		Web interface client-side speed improvements
 		Web interface design tweaks
-		Fixed the Windows installer downloading the 32-bit version of Java on 64-bit systems
+		Expanded filename prettifying
+		Split the renderer option SupportedSubtitlesFormats into SupportedExternalSubtitlesFormats and SupportedInternalSubtitlesFormats
+		Optimized video bitrate over wireless connections
+		Made more strings translatable
 		Fixed FFmpeg not working on OS X
 		Fixed FFmpeg to MEncoder deferral via the Transcode folder
 		Fixed subtitles being transcoded when they didn't need to be
+		Fixed web thumbnails sometimes
+		Fixed the Windows installer downloading the 32-bit version of Java on 64-bit systems
+		Fixed the Windows installer offering to automatically close UMS
+	Renderers:
+		Improved support for Panasonic TX-L32V10E TVs
+		Improved support for Samsung renderers
 	Languages:
+		Updated Czech translation
 		Updated French translation (thanks, Kirvx!)
 	External Components:
 		Updated FFmpeg for OS X to g7cf1f0f, which:
 			Improves support for many containers and codecs
 			Fixes bugs
-		Updated MediaInfo for Windows to 0.7.70, which:
+		Updated jQuery to 1.11.1, which:
+			Fixes bugs
+		Updated NSIS LockedList to 3.0.0.3, which:
+			Adds support for detecting 64-bit processes
 			Fixes bugs
 
 4.1.1 - 2014-09-06
