@@ -604,17 +604,24 @@ public class RequestV2 extends HTTPResource {
 						containerID = null;
 					}
 				}
-				Object sI = getEnclosingValue(content, "<StartingIndex>", "</StartingIndex>");
-				Object rC = getEnclosingValue(content, "<RequestedCount>", "</RequestedCount>");
+				String sI = getEnclosingValue(content, "<StartingIndex>", "</StartingIndex>");
+				String rC = getEnclosingValue(content, "<RequestedCount>", "</RequestedCount>");
 				browseFlag = getEnclosingValue(content, "<BrowseFlag>", "</BrowseFlag>");
 
 				if (sI != null) {
-					startingIndex = Integer.parseInt(sI.toString());
+					startingIndex = Integer.parseInt(sI);
 				}
 
 				if (rC != null) {
-					requestCount = Integer.parseInt(rC.toString());
+					requestCount = Integer.parseInt(rC);
 				}
+
+				/**
+				 * Handling for LG TVs are sending automatic requests.
+				 * requestCount is 99 when it's a manual request and 100 when automatic by LG.
+				 */
+				boolean notAggressiveBrowsingByLg = mediaRenderer.isLG() || requestCount == 99 || startingIndex % 100 == 99 || objectID.equals("0");
+				boolean browseDirectChildren = browseFlag != null && browseFlag.equals("BrowseDirectChildren") && notAggressiveBrowsingByLg;
 
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
@@ -632,7 +639,7 @@ public class RequestV2 extends HTTPResource {
 				response.append(HTTPXMLHelper.DIDL_HEADER);
 
 				if (soapaction != null && soapaction.contains("ContentDirectory:1#Search")) {
-					browseFlag = "BrowseDirectChildren";
+					browseDirectChildren = true;
 				}
 
 				// Xbox virtual containers ... d'oh!
@@ -661,7 +668,7 @@ public class RequestV2 extends HTTPResource {
 
 				List<DLNAResource> files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(
 					objectID,
-					browseFlag != null && browseFlag.equals("BrowseDirectChildren"),
+					browseDirectChildren,
 					startingIndex,
 					requestCount,
 					mediaRenderer,
@@ -709,7 +716,7 @@ public class RequestV2 extends HTTPResource {
 					parentFolder = files.get(0).getParent();
 				}
 
-				if (browseFlag != null && browseFlag.equals("BrowseDirectChildren") && mediaRenderer.isMediaParserV2() && mediaRenderer.isDLNATreeHack()) {
+				if (browseDirectChildren && mediaRenderer.isMediaParserV2() && mediaRenderer.isDLNATreeHack()) {
 					// with the new parser, files are parsed and analyzed *before*
 					// creating the DLNA tree, every 10 items (the ps3 asks 10 by 10),
 					// so we do not know exactly the total number of items in the DLNA folder to send
@@ -724,7 +731,7 @@ public class RequestV2 extends HTTPResource {
 					}
 
 					response.append("<TotalMatches>").append(totalCount).append("</TotalMatches>");
-				} else if (browseFlag != null && browseFlag.equals("BrowseDirectChildren")) {
+				} else if (browseDirectChildren) {
 					response.append("<TotalMatches>").append(((parentFolder != null) ? parentFolder.childrenNumber() : filessize) - minus).append("</TotalMatches>");
 				} else {
 					// From upnp spec: If BrowseMetadata is specified in the BrowseFlags then TotalMatches = 1

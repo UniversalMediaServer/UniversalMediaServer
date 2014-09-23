@@ -452,6 +452,10 @@ public class RendererConfiguration {
 		return getRendererName().toUpperCase().contains("FDSSDP");
 	}
 
+	public boolean isLG() {
+		return getRendererName().toUpperCase().contains("LG ");
+	}
+
 	// Ditlew
 	public int getByteToTimeseekRewindSeconds() {
 		return getInt(BYTE_TO_TIMESEEK_REWIND_SECONDS, 0);
