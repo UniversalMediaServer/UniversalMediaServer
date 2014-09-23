@@ -620,7 +620,7 @@ public class RequestV2 extends HTTPResource {
 				 * Handling for LG TVs are sending automatic requests.
 				 * requestCount is 99 when it's a manual request and 100 when automatic by LG.
 				 */
-				boolean notAggressiveBrowsingByLg = mediaRenderer.isLG() || requestCount == 99 || startingIndex % 100 == 99 || objectID.equals("0");
+				boolean notAggressiveBrowsingByLg = !mediaRenderer.isLG() || objectID.equals("0");
 				boolean browseDirectChildren = browseFlag != null && browseFlag.equals("BrowseDirectChildren") && notAggressiveBrowsingByLg;
 
 				response.append(HTTPXMLHelper.XML_HEADER);
