@@ -215,19 +215,21 @@ public class FFMpegVideo extends Player {
 					int subtitlesWidth = scaleWidth; 
 					int subtitlesHeight = scaleHeight;
 					if (params.sid.isExternal() && params.sid.getType() != SubtitleType.ASS || configuration.isFFmpegFontConfig()) {
-						// Let ASS/SSA subtitles specify their own resolution
-						if (params.sid.getType() == SubtitleType.ASS) {
-							setSubtitlesResolution(originalSubsFilename, subtitlesWidth, subtitlesHeight);
-						}
-						subsFilter.append(":").append(subtitlesWidth).append("x").append(subtitlesHeight);
+						if (subtitlesWidth > 0 && subtitlesHeight > 0) {
+							// Let ASS/SSA subtitles specify their own resolution
+							if (params.sid.getType() == SubtitleType.ASS) {
+								setSubtitlesResolution(originalSubsFilename, subtitlesWidth, subtitlesHeight);
+							}
+							subsFilter.append(":").append(subtitlesWidth).append("x").append(subtitlesHeight);
 
-						// Set the input subtitles character encoding if not UTF-8
-						if (!params.sid.isExternalFileUtf8()) {
-							String encoding = isNotBlank(configuration.getSubtitlesCodepage()) ?
-									configuration.getSubtitlesCodepage() : params.sid.getExternalFileCharacterSet() != null ?
-									params.sid.getExternalFileCharacterSet() : null;
-							if (encoding != null) {
-								subsFilter.append(":").append(encoding);
+							// Set the input subtitles character encoding if not UTF-8
+							if (!params.sid.isExternalFileUtf8()) {
+								String encoding = isNotBlank(configuration.getSubtitlesCodepage()) ?
+										configuration.getSubtitlesCodepage() : params.sid.getExternalFileCharacterSet() != null ?
+										params.sid.getExternalFileCharacterSet() : null;
+								if (encoding != null) {
+									subsFilter.append(":").append(encoding);
+								}
 							}
 						}
 					} else if (params.sid.isEmbedded()) {
@@ -481,6 +483,7 @@ public class FFMpegVideo extends Player {
 			videoBitrateOptions.add("-maxrate");
 			videoBitrateOptions.add(String.valueOf(defaultMaxBitrates[0]));
 		}
+		int maximumBitrate = defaultMaxBitrates[0];
 
 		if (!params.mediaRenderer.isTranscodeToMPEGTSH264AC3() && !params.mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
 			// Add MPEG-2 quality settings
@@ -499,7 +502,7 @@ public class FFMpegVideo extends Player {
 					mpeg2Options = "-g 25 -q:v 1 -qmin 2 -qmax 3";
 				}
 
-				if (isWireless || defaultMaxBitrates[0] < 70) {
+				if (isWireless || maximumBitrate < 70) {
 					// Lower quality for 720p+ content
 					if (media.getWidth() > 1280) {
 						mpeg2Options = "-g 25 -qmax 7 -qmin 2";
@@ -520,11 +523,21 @@ public class FFMpegVideo extends Player {
 			}
 
 			if (x264CRF.contains("Automatic")) {
-				x264CRF = "16";
-
-				// Lower CRF for 720p+ content
-				if (media.getWidth() > 720) {
+				if (x264CRF.contains("Wireless") || maximumBitrate < 70) {
 					x264CRF = "19";
+					// Lower quality for 720p+ content
+					if (media.getWidth() > 1280) {
+						x264CRF = "23";
+					} else if (media.getWidth() > 720) {
+						x264CRF = "22";
+					}
+				} else {
+					x264CRF = "16";
+
+					// Lower quality for 720p+ content
+					if (media.getWidth() > 720) {
+						x264CRF = "19";
+					}
 				}
 			}
 			videoBitrateOptions.add("-crf");
@@ -700,14 +713,7 @@ public class FFMpegVideo extends Player {
 			params.waitbeforestart = 2500;
 		}
 
-		if (params.aid == null) {
-			setAudioOutputParameters(media, params);
-		}
-
-		if (params.sid == null || (params.sid != null && StringUtils.isNotEmpty(params.sid.getLiveSubURL()))) {
-			setSubtitleOutputParameters(filename, media, params);
-		}
-
+		setAudioAndSubs(filename, media, params);
 		cmdList.add(executable());
 
 		// Prevent FFmpeg timeout
@@ -761,8 +767,21 @@ public class FFMpegVideo extends Player {
 			cmdList.add(filename);
 		}
 
-		// Decide whether to defer to MEncoder for subtitles
-		if (configuration.isFFmpegDeferToMEncoderForSubtitles() && params.sid != null) {
+		/**
+		 * Defer to MEncoder for subtitles if:
+		 * - The setting is enabled
+		 * - There are subtitles to transcode
+		 * - The file is not being played via the transcode folder
+		 */
+		if (
+			configuration.isFFmpegDeferToMEncoderForSubtitles() &&
+			params.sid != null &&
+			!(
+				!configuration.getHideTranscodeEnabled() &&
+				dlna.isNoName() &&
+				(dlna.getParent() instanceof FileTranscodeVirtualFolder)
+			)
+		) {
 			LOGGER.trace("Switching from FFmpeg to MEncoder to transcode subtitles.");
 			MEncoderVideo mv = new MEncoderVideo();
 
@@ -1256,6 +1275,7 @@ public class FFMpegVideo extends Player {
 			(
 				!applyFontConfig &&
 				!isEmbeddedSource &&
+				(params.sid.getType() == subtitleType) &&
 				(params.sid.getType() == SubtitleType.SUBRIP || params.sid.getType() == SubtitleType.WEBVTT)
 			)
 		) {
