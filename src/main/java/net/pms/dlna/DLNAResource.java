@@ -27,6 +27,7 @@ import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
@@ -50,6 +51,7 @@ import net.pms.util.ImagesUtil;
 import net.pms.util.Iso639;
 import net.pms.util.MpegUtil;
 import static net.pms.util.StringUtil.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,7 +72,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	private static final Logger LOGGER = LoggerFactory.getLogger(DLNAResource.class);
 	private final SimpleDateFormat SDF_DATE = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
-	private boolean subsAreValidForStreaming = false;
+//	private boolean subsAreValidForStreaming = false;
 
 	protected static final int MAX_ARCHIVE_ENTRY_SIZE = 10000000;
 	protected static final int MAX_ARCHIVE_SIZE_SEEK = 800000000;
@@ -533,8 +535,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 						if (!configuration.isDisableSubtitles() && child.isSubsFile() && defaultRenderer.isSubtitlesStreamingSupported()) {
 							OutputParams params = new OutputParams(configuration);
 							Player.setAudioAndSubs(child.getSystemName(), child.media, params); // set proper subtitles in accordance with user setting
-							if (defaultRenderer.isSubtitlesFormatSupported(params.sid)) {
+							if (params.sid.isExternal() && defaultRenderer.isExternalSubtitlesFormatSupported(params.sid)) {
 								child.media_subtitle = params.sid;
+								child.media_subtitle.setSubsStreamable(true);
 								LOGGER.trace("Set media_subtitle");
 							} else {
 								LOGGER.trace("Did not set media_subtitle because the subtitle format is not supported by this renderer");
@@ -645,8 +648,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									if (child.isSubsFile() && defaultRenderer.isSubtitlesStreamingSupported()) {
 										OutputParams params = new OutputParams(configuration);
 										Player.setAudioAndSubs(child.getSystemName(), child.media, params); // set proper subtitles in accordance with user setting
-										if (defaultRenderer.isSubtitlesFormatSupported(params.sid)) {
+										if (params.sid.isExternal() && defaultRenderer.isExternalSubtitlesFormatSupported(params.sid)) {
 											child.media_subtitle = params.sid;
+											child.media_subtitle.setSubsStreamable(true);
 											LOGGER.trace("Set media_subtitle");
 										} else {
 											LOGGER.trace("Did not set media_subtitle because the subtitle format is not supported by this renderer");
@@ -665,8 +669,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									} else {
 										LOGGER.trace("Subtitles for \"{}\" will not be transcoded because media_subtitle is not null", child.getName());
 									}
-								} else {
-									if (hasEmbeddedSubs && defaultRenderer != null && !defaultRenderer.isEmbeddedSubtitlesSupported()) {
+								} else if (hasEmbeddedSubs && child.media_subtitle != null) {
+									if (defaultRenderer != null && !defaultRenderer.isEmbeddedSubtitlesFormatSupported(child.media_subtitle)) {
 										forceTranscode = true;
 										hasSubsToTranscode = true;
 										LOGGER.trace("Subtitles for \"{}\" need to be transcoded because the renderer does not support internal subtitles", child.getName());
@@ -1261,6 +1265,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		String subtitleFormat;
 		String subtitleLanguage;
 		boolean isNamedNoEncoding = false;
+		boolean subsAreValidForStreaming = media_subtitle != null && media_subtitle.isStreamable() && player == null;
 		if (
 			this instanceof RealFile &&
 			(
@@ -1269,7 +1274,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			) &&
 			!isFolder()
 		) {
-			if (configuration.isPrettifyFilenames()) {
+			if (configuration.isPrettifyFilenames() && getFormat() != null && getFormat().isVideo()) {
 				displayName = FileUtil.getFileNameWithRewriting(displayName);
 			} else {
 				displayName = FileUtil.getFileNameWithoutExtension(displayName);
@@ -1291,7 +1296,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		} else {
 			if (isNoName()) {
-				displayName = "[No encoding]";
+				displayName = Messages.getString("DLNAResource.0");
 				isNamedNoEncoding = true;
 				if (subsAreValidForStreaming) {
 					isNamedNoEncoding = false;
@@ -1311,9 +1316,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				player == null ||
 				player.isExternalSubtitlesSupported()
 			)
-
 		) {
-			nameSuffix += " {External Subtitles}";
+			nameSuffix += Messages.getString("DLNAResource.1");
 		}
 
 		if (getMediaAudio() != null) {
@@ -1343,7 +1347,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				subtitleLanguage = "";
 			}
 
-			nameSuffix += " {Sub: " + subtitleFormat + subtitleLanguage + ((media_subtitle.getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowSubMetadata()) ? (" (" + media_subtitle.getFlavor() + ")") : "") + "}";
+			String subsDescription = Messages.getString("DLNAResource.2") + subtitleFormat + subtitleLanguage + ((media_subtitle.getFlavor() != null && mediaRenderer != null && mediaRenderer.isShowSubMetadata()) ? (" (" + media_subtitle.getFlavor() + ")") : "");
+			if (subsAreValidForStreaming) {
+				nameSuffix += " {" + Messages.getString("DLNAResource.3") + subsDescription +  "}";
+			} else {
+				nameSuffix += " {" + subsDescription +  "}";
+			}
 		}
 
 		if (isAvisynth()) {
@@ -1495,16 +1504,16 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 */
 	public final String getDidlString(RendererConfiguration mediaRenderer) {
 		StringBuilder sb = new StringBuilder();
+		boolean subsAreValidForStreaming = false;
 		if (!isFolder()) {
 			if (
 				!configuration.isDisableSubtitles() &&
-				media != null &&
-				media_subtitle != null &&
 				player == null &&
-				mediaRenderer.isSubtitlesFormatSupported(media_subtitle)
+				media_subtitle != null &&
+				media_subtitle.isStreamable()
 			) {
 				subsAreValidForStreaming = true;
-				LOGGER.trace("Setting subsAreValidForStreaming to true for " + getName());
+				LOGGER.trace("Setting subsAreValidForStreaming to true for " + media_subtitle.getExternalFile().getName());
 			} else if (subsAreValidForStreaming) {
 				LOGGER.trace("Not setting subsAreValidForStreaming and it is true for " + getName());
 			} else {
