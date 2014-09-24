@@ -152,8 +152,11 @@ ul#Media .caption {
 	margin : 0;
 }
 
-ul#Media a .caption:hover {
+ul#Media li:hover .caption {
 	color: #000 !important;
+}
+
+ul#Media .caption:hover {
 	text-decoration: underline;
 }
 
