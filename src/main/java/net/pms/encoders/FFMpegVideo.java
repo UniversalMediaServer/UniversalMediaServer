@@ -296,7 +296,7 @@ public class FFMpegVideo extends Player {
 		final RendererConfiguration renderer = params.mediaRenderer;
 		String customFFmpegOptions = renderer.getCustomFFmpegOptions();
 
-		if (renderer.isTranscodeToWMV() && !renderer.isXBOX()) { // WMV
+		if (renderer.isTranscodeToWMV() && !renderer.isXbox360()) { // WMV
 			transcodeOptions.add("-c:v");
 			transcodeOptions.add("wmv2");
 
@@ -891,7 +891,7 @@ public class FFMpegVideo extends Player {
 		// Audio bitrate
 		if (!ac3Remux && !dtsRemux && !(type() == Format.AUDIO)) {
 			int channels = 0;
-			if (renderer.isTranscodeToWMV() && !renderer.isXBOX()) {
+			if (renderer.isTranscodeToWMV() && !renderer.isXbox360()) {
 				channels = 2;
 			} else if (params.aid != null && params.aid.getAudioProperties().getNumberOfChannels() > configuration.getAudioChannelCount()) {
 				channels = configuration.getAudioChannelCount();

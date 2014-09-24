@@ -1016,7 +1016,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// Discover children if it hasn't been done already
 		if (!isDiscovered()) {
 			if (configuration.getFolderLimit() && depthLimit()) {
-				if (renderer.getRendererName().equalsIgnoreCase("Playstation 3") || renderer.isXBOX()) {
+				if (renderer.getRendererName().equalsIgnoreCase("Playstation 3") || renderer.isXbox360()) {
 					LOGGER.info("Depth limit potentionally hit for " + getDisplayName());
 				}
 
@@ -1958,14 +1958,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		} else {
 			if (isFolder()) {
 				uclass = "object.container.storageFolder";
-				boolean xbox = mediaRenderer.isXBOX();
-				if (xbox && getFakeParentId() != null && getFakeParentId().equals("7")) {
+				boolean xbox360 = mediaRenderer.isXbox360();
+				if (xbox360 && getFakeParentId() != null && getFakeParentId().equals("7")) {
 					uclass = "object.container.album.musicAlbum";
-				} else if (xbox && getFakeParentId() != null && getFakeParentId().equals("6")) {
+				} else if (xbox360 && getFakeParentId() != null && getFakeParentId().equals("6")) {
 					uclass = "object.container.person.musicArtist";
-				} else if (xbox && getFakeParentId() != null && getFakeParentId().equals("5")) {
+				} else if (xbox360 && getFakeParentId() != null && getFakeParentId().equals("5")) {
 					uclass = "object.container.genre.musicGenre";
-				} else if (xbox && getFakeParentId() != null && getFakeParentId().equals("F")) {
+				} else if (xbox360 && getFakeParentId() != null && getFakeParentId().equals("F")) {
 					uclass = "object.container.playlistContainer";
 				}
 			} else if (getFormat() != null && getFormat().isVideo()) {

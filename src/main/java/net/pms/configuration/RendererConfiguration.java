@@ -432,8 +432,20 @@ public class RendererConfiguration {
 		return rank;
 	}
 
+	/**
+	 * @see #isXbox360()
+	 * @deprecated
+	 */
+	@Deprecated
 	public boolean isXBOX() {
-		return getRendererName().toUpperCase().contains("XBOX");
+		return isXbox360();
+	}
+
+	/**
+	 * @return whether this renderer is an Xbox 360
+	 */
+	public boolean isXbox360() {
+		return getRendererName().toUpperCase().contains("XBOX 360");
 	}
 
 	public boolean isXBMC() {
