@@ -462,7 +462,7 @@ public class PMS {
 					save();
 				} else if (networkType == JOptionPane.NO_OPTION) {
 					// Wired (100 Megabit)
-					configuration.setMaximumBitrate("110");
+					configuration.setMaximumBitrate("90");
 					configuration.setMPEG2MainSettings("Automatic (Wired)");
 					configuration.setx264ConstantRateFactor("Automatic (Wired)");
 					save();
