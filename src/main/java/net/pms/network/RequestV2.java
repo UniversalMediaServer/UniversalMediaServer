@@ -615,13 +615,8 @@ public class RequestV2 extends HTTPResource {
 				if (rC != null) {
 					requestCount = Integer.parseInt(rC);
 				}
-
-				/**
-				 * Handling for LG TVs are sending automatic requests.
-				 * requestCount is 99 when it's a manual request and 100 when automatic by LG.
-				 */
-				boolean notAggressiveBrowsingByLg = !mediaRenderer.isLG() || objectID.equals("0");
-				boolean browseDirectChildren = browseFlag != null && browseFlag.equals("BrowseDirectChildren") && notAggressiveBrowsingByLg;
+		
+				
 
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
@@ -637,6 +632,10 @@ public class RequestV2 extends HTTPResource {
 				response.append(CRLF);
 				response.append(HTTPXMLHelper.RESULT_HEADER);
 				response.append(HTTPXMLHelper.DIDL_HEADER);
+
+				boolean browseDirectChildren = browseFlag != null &&
+						browseFlag.equals("BrowseDirectChildren") &&
+						(!mediaRenderer.notAggressiveBrowsing() || objectID.equals("0"));
 
 				if (soapaction != null && soapaction.contains("ContentDirectory:1#Search")) {
 					browseDirectChildren = true;

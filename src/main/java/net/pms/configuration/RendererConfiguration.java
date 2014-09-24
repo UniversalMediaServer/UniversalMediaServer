@@ -119,6 +119,7 @@ public class RendererConfiguration {
 	private static final String MUX_H264_WITH_MPEGTS = "MuxH264ToMpegTS";
 	private static final String MUX_LPCM_TO_MPEG = "MuxLPCMToMpeg";
 	private static final String MUX_NON_MOD4_RESOLUTION = "MuxNonMod4Resolution";
+	private static final String NOT_AGGRESSIVE_BROWSING = "NotAggressiveBrowsing";
 	private static final String OVERRIDE_FFMPEG_VF = "OverrideFFmpegVideoFilter";
 	private static final String LOADING_PRIORITY = "LoadingPriority";
 	private static final String RENDERER_ICON = "RendererIcon";
@@ -1542,4 +1543,11 @@ public class RendererConfiguration {
 			return p1 > p2 ? -1 : p1 < p2 ? 1 : r1.getRendererName().compareToIgnoreCase(r2.getRendererName());
 		}
 	};
+
+	/**
+	 * Handling for LG TVs which are scanning the whole DLNA-Server content
+	 */
+	public boolean notAggressiveBrowsing() {
+		return getBoolean(NOT_AGGRESSIVE_BROWSING, false);
+	}
 }
