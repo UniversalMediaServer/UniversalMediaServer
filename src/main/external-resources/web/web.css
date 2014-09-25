@@ -135,7 +135,8 @@ ul#Media .thumb {
 	max-width: 253px;
 	max-height: 142px;
 	height: 142px;
-	/* Note: intentionally omitting width here so as to avoid distortion if the thumb is actually an icon. */
+	/* Note: intentionally omitting a specific width here so as to avoid distorting icons. */
+	width: auto;
 	float: left;
 	margin : 0;
 }
@@ -241,6 +242,10 @@ form#SearchForm {
 .webdisabled {
 	opacity: 0.5;
 	cursor: not-allowed;
+}
+
+.webdisabled:hover {
+	text-decoration: none !important;
 }
 
 ::cue {
