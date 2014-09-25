@@ -1421,6 +1421,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 //		}
 
 		displayName = getName();
+		nameSuffix = "";
 		String subtitleFormat;
 		String subtitleLanguage;
 		boolean isNamedNoEncoding = false;
