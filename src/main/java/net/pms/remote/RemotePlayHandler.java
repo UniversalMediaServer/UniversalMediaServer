@@ -171,6 +171,7 @@ public class RemotePlayHandler implements HttpHandler {
 				}
 				sb.append(WebRender.umsInfoScript).append(CRLF);
 			sb.append("</head>").append(CRLF);
+
 			sb.append("<body id=\"ContentPage\">").append(CRLF);
 				sb.append("<div id=\"Container\">").append(CRLF);
 					sb.append("<div id=\"Menu\">").append(CRLF);
@@ -244,7 +245,7 @@ public class RemotePlayHandler implements HttpHandler {
 					sb.append("</").append(mediaType).append(">").append(CRLF);
 
 					if (flowplayer) {
-						sb.append("</div>").append(CRLF);
+						sb.append("</div>").append(CRLF); // .player
 					}
 		// nex and prev buttons
 		sb.append("<div>").append(CRLF);
@@ -256,7 +257,7 @@ public class RemotePlayHandler implements HttpHandler {
 			sb.append("<button value=\"flash\" onclick=\"").append(flashStr).append("\">Flash</button>").append(CRLF);
 		}
 		sb.append("</div>").append(CRLF);
-		sb.append("</div>").append(CRLF);
+		sb.append("</div>").append(CRLF); // #VideoContainer
 		sb.append("<a href=\"/raw/").append(rawId).append("\" target=\"_blank\" id=\"DownloadLink\" title=\"Download this video\"></a>").append(CRLF);
 		if (flowplayer) {
 			sb.append("<script>").append(CRLF);
@@ -287,7 +288,10 @@ public class RemotePlayHandler implements HttpHandler {
 				sb.append("</script>").append(CRLF);
 			}
 		}
-		endPage(sb);
+
+		sb.append("</div>").append(CRLF); // #Container
+		sb.append("</body>").append(CRLF);
+		sb.append("</html>").append(CRLF);
 
 		return sb.toString();
 	}
