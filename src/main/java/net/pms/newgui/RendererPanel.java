@@ -178,6 +178,8 @@ public class RendererPanel extends JPanel {
 	public String chooseConfName(final File dir, final String filename) {
 		final File file = new File(filename);
 		JFileChooser fc = new JFileChooser(dir) {
+			private static final long serialVersionUID = -3606991702534289691L;
+
 			@Override
 			public boolean isTraversable(File d) {
 				return dir.equals(d); // Disable navigation

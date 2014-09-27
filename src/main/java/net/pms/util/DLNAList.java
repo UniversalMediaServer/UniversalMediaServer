@@ -7,6 +7,7 @@ import net.pms.dlna.DLNAResource;
 import java.util.ArrayList;
 
 public class DLNAList extends ArrayList<DLNAResource> {
+	private static final long serialVersionUID = -5775968769790761576L;
 
 	public DLNAResource remove(int index) {
 		PMS.getGlobalRepo().remove(get(index));

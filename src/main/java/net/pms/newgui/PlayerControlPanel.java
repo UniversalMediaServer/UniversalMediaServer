@@ -228,7 +228,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 
 		u.add(uris);
 		JButton a = new JButton(add = new AbstractAction("", addIcon) {
-//			private static final long serialVersionUID = FIXME;
+			private static final long serialVersionUID = 1L;
 
 			public void actionPerformed(ActionEvent e) {
 				setEdited(false);
@@ -238,7 +238,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		a.setToolTipText("Add to playlist");
 		u.add(a);
 		JButton r = new JButton(remove = new AbstractAction("", removeIcon) {
-//			private static final long serialVersionUID = FIXME;
+			private static final long serialVersionUID = 8732700198165912103L;
 
 			public void actionPerformed(ActionEvent e) {
 				setEdited(false);

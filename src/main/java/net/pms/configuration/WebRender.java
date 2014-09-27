@@ -3,7 +3,6 @@ package net.pms.configuration;
 import java.net.InetAddress;
 import java.io.File;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import net.pms.Messages;

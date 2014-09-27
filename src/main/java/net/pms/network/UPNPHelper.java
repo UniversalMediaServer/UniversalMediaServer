@@ -874,6 +874,7 @@ public class UPNPHelper extends UPNPControl {
 		}
 
 		public static class Playlist extends DefaultComboBoxModel {
+			private static final long serialVersionUID = 5934677633834195753L;
 
 			Player player;
 

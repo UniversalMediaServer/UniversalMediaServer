@@ -1,16 +1,11 @@
 package net.pms.dlna;
 
-import ch.qos.logback.classic.spi.LoggingEvent;
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.virtual.VirtualFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.InputStream;
-import java.util.ArrayList;
 
 
 public class CodeEnter extends VirtualFolder {

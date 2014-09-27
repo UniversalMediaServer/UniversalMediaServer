@@ -19,7 +19,6 @@ import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
-import java.util.regex.Matcher;
 import java.util.TreeSet;
 import net.pms.Messages;
 import net.pms.PMS;
@@ -1893,6 +1892,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 * into a combined string or regex.
 	 */
 	public static class SortedHeaderMap extends TreeMap<String, String> {
+		private static final long serialVersionUID = -5090333053981045429L;
+
 		String headers = null;
 
 		public SortedHeaderMap() {
