@@ -52,7 +52,7 @@ public class StatusTab {
 	public static class RendererItem {
 		public ImagePanel icon;
 		public JLabel label;
-		public JDialog dialog;
+		public JFrame frame;
 		public RendererPanel panel;
 	}
 
@@ -231,25 +231,28 @@ public class StatusTab {
 			public void actionPerformed(ActionEvent e) {
 				SwingUtilities.invokeLater(new Runnable() {
 					public void run() {
-						if (r.dialog == null) {
+						if (r.frame == null) {
 							JFrame top = (JFrame) SwingUtilities.getWindowAncestor((Component) PMS.get().getFrame());
-							r.dialog = new JDialog(top,
-								renderer.getRendererName() + (renderer.isOffline() ? "  [offline]" : ""),
-								Dialog.ModalityType.DOCUMENT_MODAL);
+							// We're using JFrame instead of JDialog here so as to have a minimize button. Since the player panel
+							// is intrinsically a freestanding module this approach seems valid to me but some frown on it: see
+							// http://stackoverflow.com/questions/9554636/the-use-of-multiple-jframes-good-bad-practice
+							r.frame = new JFrame(renderer.getRendererName() + (renderer.isOffline() ? "  [offline]" : ""));
 							r.panel = new RendererPanel(renderer);
-							r.dialog.add(r.panel);
-							r.dialog.setIconImage(((JFrame) PMS.get().getFrame()).getIconImage());
-							r.dialog.pack();
-							r.dialog.setLocationRelativeTo(top);
-							r.dialog.setVisible(true);
+							r.frame.add(r.panel);
+							r.frame.setResizable(false);
+							r.frame.setIconImage(((JFrame) PMS.get().getFrame()).getIconImage());
+							r.frame.pack();
+							r.frame.setLocationRelativeTo(top);
+							r.frame.setVisible(true);
 						} else {
-							r.dialog.setVisible(true);
-							r.dialog.toFront();
+							r.frame.setVisible(true);
+							r.frame.toFront();
 						}
 					}
 				});
 			}
 		});
+
 	}
 
 	public static void updateRenderer(final RendererConfiguration renderer) {

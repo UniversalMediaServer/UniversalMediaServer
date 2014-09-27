@@ -364,7 +364,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		}
 		// Redraw without moving the player panel (if possible)
 		int y = (int)getLocation().getY();
-		JDialog top = (JDialog) SwingUtilities.getWindowAncestor(this);
+		JFrame top = (JFrame) SwingUtilities.getWindowAncestor(this);
 		top.setVisible(false);
 		top.pack();
 		Point p = top.getLocation();
