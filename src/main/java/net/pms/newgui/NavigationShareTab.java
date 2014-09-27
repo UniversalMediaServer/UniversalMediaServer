@@ -241,6 +241,7 @@ public class NavigationShareTab {
 				try {
 					int ab = Integer.parseInt(seekpos.getText());
 					configuration.setThumbnailSeekPos(ab);
+					PMS.get().getDatabase().init(true);
 				} catch (NumberFormatException nfe) {
 					LOGGER.debug("Could not parse thumbnail seek position from \"" + seekpos.getText() + "\"");
 				}
