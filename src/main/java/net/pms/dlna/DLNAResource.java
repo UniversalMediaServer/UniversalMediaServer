@@ -1317,7 +1317,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				player.isExternalSubtitlesSupported()
 			)
 		) {
-			nameSuffix += Messages.getString("DLNAResource.1");
+			nameSuffix += " " + Messages.getString("DLNAResource.1");
 		}
 
 		if (getMediaAudio() != null) {
