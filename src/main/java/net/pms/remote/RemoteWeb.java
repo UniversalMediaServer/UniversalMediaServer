@@ -353,9 +353,10 @@ public class RemoteWeb {
 								sb.append("<title>" + filename + "</title>").append(CRLF);
 							sb.append("</head>").append(CRLF);
 							sb.append("<body>").append(CRLF);
-								sb.append("<pre id=\"rawtext\" class=\"brush: " + brush + "\">").append(CRLF);
+								// <xmp> is officially deprecated but still supported everywhere
+								sb.append("<xmp id=\"rawtext\" class=\"brush: " + brush + "\">").append(CRLF);
 									sb.append(log);
-								sb.append("</pre>");
+								sb.append("</xmp>");
 							sb.append("</body>");
 						sb.append("</html>");
 						response = sb.toString();
