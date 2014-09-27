@@ -9,6 +9,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import javax.swing.*;
@@ -168,7 +169,7 @@ public class DbgPacker implements ActionListener {
 		}
 	}
 
-	public java.util.Set<File> getItems() {
+	public Set<File> getItems() {
 		poll();
 		return items.keySet();
 	}
