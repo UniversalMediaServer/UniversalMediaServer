@@ -645,7 +645,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								}
 
 								if (!parserV2) {
-									if (child.isSubsFile() && defaultRenderer.isSubtitlesStreamingSupported()) {
+									if (child.isSubsFile() && defaultRenderer != null && defaultRenderer.isSubtitlesStreamingSupported()) {
 										OutputParams params = new OutputParams(configuration);
 										Player.setAudioAndSubs(child.getSystemName(), child.media, params); // set proper subtitles in accordance with user setting
 										if (params.sid.isExternal() && defaultRenderer.isExternalSubtitlesFormatSupported(params.sid)) {
