@@ -992,9 +992,9 @@ public class MEncoderVideo extends Player {
 
 		if (h264ts) {
 			vcodec = "libx264";
-		} else if (params.mediaRenderer.isTranscodeToWMV() && !params.mediaRenderer.isXBOX()) {
+		} else if (params.mediaRenderer.isTranscodeToWMV() && !params.mediaRenderer.isXbox360()) {
 			wmv = true;
-			vcodec = "wmv2"; // http://wiki.megaframe.org/Mencoder_Transcode_for_Xbox_360
+			vcodec = "wmv2";
 		}
 
 		// Default: Empty string
@@ -1117,7 +1117,7 @@ public class MEncoderVideo extends Player {
 		int channels;
 		if (ac3Remux) {
 			channels = params.aid.getAudioProperties().getNumberOfChannels(); // AC-3 remux
-		} else if (dtsRemux || encodedAudioPassthrough || (!params.mediaRenderer.isXBOX() && wmv)) {
+		} else if (dtsRemux || encodedAudioPassthrough || (!params.mediaRenderer.isXbox360() && wmv)) {
 			channels = 2;
 		} else if (pcm) {
 			channels = params.aid.getAudioProperties().getNumberOfChannels();
@@ -1203,7 +1203,7 @@ public class MEncoderVideo extends Player {
 				// Set the audio codec used by Lavc
 				if (!combinedCustomOptions.contains("acodec=")) {
 					acodec = ":acodec=";
-					if (wmv && !params.mediaRenderer.isXBOX()) {
+					if (wmv && !params.mediaRenderer.isXbox360()) {
 						acodec += "wmav2";
 					} else {
 						acodec = cbr_settings + acodec;
@@ -1220,7 +1220,7 @@ public class MEncoderVideo extends Player {
 				// Set the audio bitrate used by Lavc
 				if (!combinedCustomOptions.contains("abitrate=")) {
 					abitrate = ":abitrate=";
-					if (wmv && !params.mediaRenderer.isXBOX()) {
+					if (wmv && !params.mediaRenderer.isXbox360()) {
 						abitrate += "448";
 					} else {
 						abitrate += CodecUtil.getAC3Bitrate(configuration, params.aid);
@@ -1288,7 +1288,7 @@ public class MEncoderVideo extends Player {
 				}
 
 				encodeSettings = "-lavcopts autoaspect=1" + vcodecString + acodec + abitrate +
-					":threads=" + (wmv && !params.mediaRenderer.isXBOX() ? 1 : configuration.getMencoderMaxThreads()) +
+					":threads=" + (wmv && !params.mediaRenderer.isXbox360() ? 1 : configuration.getMencoderMaxThreads()) +
 					("".equals(mpeg2Options) ? "" : ":" + mpeg2Options);
 
 				encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, mpeg2Options, params.mediaRenderer, audioType);

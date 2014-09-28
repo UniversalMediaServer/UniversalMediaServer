@@ -246,7 +246,7 @@ public class RequestV2 extends HTTPResource {
 		long CLoverride = -2; // 0 and above are valid Content-Length values, -1 means omit
 		StringBuilder response = new StringBuilder();
 		DLNAResource dlna = null;
-		boolean xbox = mediaRenderer.isXBOX();
+		boolean xbox360 = mediaRenderer.isXbox360();
 
 		// Samsung 2012 TVs have a problematic preceding slash that needs to be removed.
 		if (argument.startsWith("/")) {
@@ -515,7 +515,7 @@ public class RequestV2 extends HTTPResource {
 					s = s.replace("[port]", "" + PMS.get().getServer().getPort());
 				}
 
-				if (xbox) {
+				if (xbox360) {
 					LOGGER.debug("DLNA changes for Xbox 360");
 					s = s.replace("Universal Media Server", serverName + profileName + " : Windows Media Connect");
 					s = s.replace("<modelName>UMS</modelName>", "<modelName>Windows Media Connect</modelName>");
@@ -540,10 +540,10 @@ public class RequestV2 extends HTTPResource {
 			response.append(CRLF);
 
 			if (soapaction != null && soapaction.contains("IsAuthorized")) {
-				response.append(HTTPXMLHelper.XBOX_2);
+				response.append(HTTPXMLHelper.XBOX_360_2);
 				response.append(CRLF);
 			} else if (soapaction != null && soapaction.contains("IsValidated")) {
-				response.append(HTTPXMLHelper.XBOX_1);
+				response.append(HTTPXMLHelper.XBOX_360_1);
 				response.append(CRLF);
 			}
 
@@ -630,13 +630,8 @@ public class RequestV2 extends HTTPResource {
 				if (rC != null) {
 					requestCount = Integer.parseInt(rC);
 				}
-
-				/**
-				 * Handling for LG TVs are sending automatic requests.
-				 * requestCount is 99 when it's a manual request and 100 when automatic by LG.
-				 */
-				boolean notAggressiveBrowsingByLg = !mediaRenderer.isLG() || objectID.equals("0");
-				boolean browseDirectChildren = browseFlag != null && browseFlag.equals("BrowseDirectChildren") && notAggressiveBrowsingByLg;
+		
+				
 
 				response.append(HTTPXMLHelper.XML_HEADER);
 				response.append(CRLF);
@@ -653,13 +648,15 @@ public class RequestV2 extends HTTPResource {
 				response.append(HTTPXMLHelper.RESULT_HEADER);
 				response.append(HTTPXMLHelper.DIDL_HEADER);
 
+				boolean browseDirectChildren = browseFlag != null && browseFlag.equals("BrowseDirectChildren");
+
 				if (soapaction != null && soapaction.contains("ContentDirectory:1#Search")) {
 					browseDirectChildren = true;
 				}
 
-				// Xbox virtual containers ... d'oh!
+				// Xbox 360 virtual containers ... d'oh!
 				String searchCriteria = null;
-				if (xbox && configuration.getUseCache() && PMS.get().getLibrary() != null && containerID != null) {
+				if (xbox360 && configuration.getUseCache() && PMS.get().getLibrary() != null && containerID != null) {
 					if (containerID.equals("7") && PMS.get().getLibrary().getAlbumFolder() != null) {
 						objectID = PMS.get().getLibrary().getAlbumFolder().getResourceId();
 					} else if (containerID.equals("6") && PMS.get().getLibrary().getArtistFolder() != null) {
@@ -692,7 +689,7 @@ public class RequestV2 extends HTTPResource {
 
 				if (searchCriteria != null && files != null) {
 					UMSUtils.postSearch(files, searchCriteria);
-					if (xbox) {
+					if (xbox360) {
 						if (files.size() > 0) {
 							files = files.get(0).getChildren();
 						}
@@ -702,7 +699,7 @@ public class RequestV2 extends HTTPResource {
 				int minus = 0;
 				if (files != null) {
 					for (DLNAResource uf : files) {
-						if (xbox && containerID != null) {
+						if (xbox360 && containerID != null) {
 							uf.setFakeParentId(containerID);
 						}
 

@@ -158,6 +158,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String MUX_H264_WITH_MPEGTS = "MuxH264ToMpegTS";
 	protected static final String MUX_LPCM_TO_MPEG = "MuxLPCMToMpeg";
 	protected static final String MUX_NON_MOD4_RESOLUTION = "MuxNonMod4Resolution";
+	protected static final String NOT_AGGRESSIVE_BROWSING = "NotAggressiveBrowsing";
 	protected static final String OVERRIDE_FFMPEG_VF = "OverrideFFmpegVideoFilter";
 	protected static final String LOADING_PRIORITY = "LoadingPriority";
 	protected static final String RENDERER_ICON = "RendererIcon";
@@ -632,8 +633,20 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return rank;
 	}
 
+	/**
+	 * @see #isXbox360()
+	 * @deprecated
+	 */
+	@Deprecated
 	public boolean isXBOX() {
-		return getRendererName().toUpperCase().contains("XBOX");
+		return isXbox360();
+	}
+
+	/**
+	 * @return whether this renderer is an Xbox 360
+	 */
+	public boolean isXbox360() {
+		return getRendererName().toUpperCase().contains("XBOX 360");
 	}
 
 	public boolean isXBMC() {
@@ -1976,4 +1989,11 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			return p1 > p2 ? -1 : p1 < p2 ? 1 : r1.getRendererName().compareToIgnoreCase(r2.getRendererName());
 		}
 	};
+
+	/**
+	 * Handling for LG TVs which are scanning the whole DLNA-Server content
+	 */
+	public boolean notAggressiveBrowsing() {
+		return getBoolean(NOT_AGGRESSIVE_BROWSING, false);
+	}
 }
