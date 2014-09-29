@@ -23,6 +23,7 @@ import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.remote.RemoteUtil;
+import net.pms.remote.RemoteWeb;
 import net.pms.util.StringUtil;
 
 public class PlayerControlHandler implements HttpHandler {
@@ -32,12 +33,18 @@ public class PlayerControlHandler implements HttpHandler {
 
 	private int port;
 	private String protocol;
+	private RemoteWeb parent = null;
 	private HashMap<String,UPNPHelper.Player> players;
 	private HashMap<InetAddress,UPNPHelper.Player> selectedPlayers;
 	private String bumpAddress;
 	private RendererConfiguration defaultRenderer;
 	private String jsonState = "\"state\":{\"playback\":%d,\"mute\":\"%s\",\"volume\":%d,\"position\":\"%s\",\"duration\":\"%s\",\"uri\":\"%s\"}";
 	private File bumpjs, skindir;
+
+	public PlayerControlHandler(RemoteWeb web) {
+		this(web.getServer());
+		parent = web;
+	}
 
 	public PlayerControlHandler(HttpServer server) {
 		if (server == null) {
@@ -106,7 +113,7 @@ public class PlayerControlHandler implements HttpHandler {
 			json.add(getPlaylist(player));
 			selectedPlayers.put(x.getRemoteAddress().getAddress(), player);
 		} else if (p.length == 2) {
-			response = RemoteUtil.read(configuration.getWebFile("bump/bump.html"))
+			response = parent.getResources().read("bump/bump.html")
 				.replace("http://127.0.0.1:9001", protocol + PMS.get().getServer().getHost() + ":" + port);
 		} else if (p[2].equals("bump.js")) {
 			response = getBumpJS();
@@ -202,9 +209,10 @@ public class PlayerControlHandler implements HttpHandler {
 	}
 
 	public String getBumpJS() {
-		return RemoteUtil.read(bumpjs)
+		RemoteUtil.ResourceManager resources = parent.getResources();
+		return resources.read("bump/bump.js")
 			+ "\nvar bumpskin = function() {\n"
-			+    RemoteUtil.read(new File(skindir, "skin.js"))
+			+    resources.read("bump/skin/skin.js")
 			+ "\n}";
 	}
 

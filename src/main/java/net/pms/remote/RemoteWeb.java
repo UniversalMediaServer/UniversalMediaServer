@@ -34,7 +34,7 @@ public class RemoteWeb {
 	private HashMap<String, String> users;
 	private HashMap<String, String> tags;
 	private HashMap<String, RootFolder> roots;
-	private HashSet<File> files;
+	private RemoteUtil.ResourceManager resources; 
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 	private final static String CRLF = "\r\n";
 
@@ -50,7 +50,12 @@ public class RemoteWeb {
 		users = new HashMap<>();
 		tags = new HashMap<>();
 		roots = new HashMap<>();
-		files = new HashSet<>();
+		// Add "classpaths" for resolving web resources
+		resources = new RemoteUtil.ResourceManager(
+			"file:" + configuration.getProfileDirectory() + "/web/",
+			"jar:file:" + configuration.getProfileDirectory() + "/web.zip!/",
+			"file:" + configuration.getWebPath() + "/"
+		);
 
 		try {
 			readCred();
@@ -305,7 +310,6 @@ public class RemoteWeb {
 			LOGGER.debug("file req " + t.getRequestURI());
 
 			String path = t.getRequestURI().getPath();
-			File file = null;
 			String response = null;
 			String mime = null;
 			int status = 200;
@@ -331,7 +335,7 @@ public class RemoteWeb {
 					response = "<html><title>UMS LOG</title><body>" + x + "</body></html>";
 				} else {
 					// Retrieve by hash
-					file = parent.getFile(filename);
+					File file = parent.getResources().getFile(filename);
 					if (file != null) {
 						filename = file.getName();
 						String log = RemoteUtil.read(file).replace("<", "&lt;");
@@ -361,28 +365,12 @@ public class RemoteWeb {
 				}
 				mime = "text/html";
 
+			} else if (parent.getResources().write(path.substring(7), t)) {
+				// The resource manager found and sent the file, all done.
+				return;
+
 			} else {
-				// A regular file request
-				String filename = path.substring(7);
-				// Assume it's a web file
-				file = configuration.getWebFile(filename);
-				if (! file.exists()) {
-					// Not a web file, see if it's a hash request
-					file = parent.getFile(filename);
-				}
-				if (file != null) {
-					filename = file.getName();
-					// Add content type headers for IE
-					// Thx to speedy8754
-					if(filename.endsWith(".css")) {
-						mime = "text/css";
-					}
-					else if(filename.endsWith(".js")) {
-						mime = "text/javascript";
-					}
-				} else {
-					status = 404;
-				}
+				status = 404;
 			}
 
 			if (status == 404 && response == null) {
@@ -390,15 +378,7 @@ public class RemoteWeb {
 				mime = "text/html";
 			}
 
-			if (response != null) {
-				RemoteUtil.respond(t, response, status, mime);
-			} else if (file != null) {
-				if (mime != null) {
-					Headers hdr = t.getResponseHeaders();
-					hdr.add("Content-Type", mime);
-				}
-				RemoteUtil.dumpFile(file, t);
-			}
+			RemoteUtil.respond(t, response, status, mime);
 		}
 	}
 
@@ -510,7 +490,7 @@ public class RemoteWeb {
 			sb.append("<ul>").append(CRLF);
 			for (File f : new DbgPacker().getItems()) {
 				if (f.exists()) {
-					sb.append("<li><a href=\"/files/log/" + parent.addFile(f) + "\">" + f.getName() + "</a></li>").append(CRLF);
+					sb.append("<li><a href=\"/files/log/" + parent.getResources().add(f) + "\">" + f.getName() + "</a></li>").append(CRLF);
 				}
 			}
 			sb.append("</ul>").append(CRLF);
@@ -518,22 +498,8 @@ public class RemoteWeb {
 		}
 	}
 
-	public int addFile(File f) {
-		files.add(f);
-		return f.hashCode();
-	}
-
-	public File getFile(String hash) {
-		try {
-			int h = Integer.valueOf(hash);
-			for (File f : files) {
-				if (f.hashCode() == h) {
-					return f;
-				}
-			}
-		} catch (NumberFormatException e) {
-		}
-		return null;
+	public RemoteUtil.ResourceManager getResources() {
+		return resources;
 	}
 
 	public String getUrl() {

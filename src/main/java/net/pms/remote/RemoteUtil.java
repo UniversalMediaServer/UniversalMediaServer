@@ -4,7 +4,12 @@ import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpPrincipal;
 import java.io.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.net.URLConnection;
 import java.nio.charset.Charset;
+import java.util.HashSet;
 import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.IpFilter;
@@ -108,15 +113,6 @@ public class RemoteUtil {
 			}
 		};
 		new Thread(r).start();
-	}
-
-	public static String read(String resource) {
-		try {
-			return IOUtils.toString(RemoteUtil.class.getResourceAsStream("/resources/web/" + resource), "UTF-8");
-		} catch (IOException e) {
-			LOGGER.debug("Error reading resource: " + e);
-		}
-		return null;
 	}
 
 	public static String read(File f) {
@@ -270,5 +266,113 @@ public class RemoteUtil {
 
 	public static String transMime() {
 		return MIME_TRANS;
+	}
+
+	public static String getContentType(String filename) {
+		return filename.endsWith(".html") ? "text/html" :
+			filename.endsWith(".css") ? "text/css" :
+			filename.endsWith(".js") ? "text/javascript" :
+			URLConnection.guessContentTypeFromName(filename);
+	}
+
+
+	/**
+	 * A web resource manager to act as:
+	 *
+	 * - A resource finder with native java classpath search behaviour (including in zip files)
+	 *   to allow flexible customizing/skinning of the web interface.
+	 *
+	 * - A file manager to control access to arbitrary non-web resources, i.e. subtitles,
+	 *   logs, etc.
+	 */
+
+	public static class ResourceManager extends URLClassLoader {
+		private HashSet<File> files;
+
+		public ResourceManager(String... urls) {
+			super(new URL[]{}, null);
+			try {
+				for (String url : urls) {
+					addURL(new URL(url));
+				}
+			} catch (MalformedURLException e) {
+				LOGGER.debug("Error adding resource url: " + e);
+			}
+			files = new HashSet<>();
+		}
+
+		public InputStream getInputStream(String filename) {
+			InputStream stream = getResourceAsStream(filename);
+			if (stream != null) {
+				LOGGER.debug("Using resource: " + findResource(filename));
+			} else {
+				File file = getFile(filename);
+				if (file != null && file.exists()) {
+					try {
+						stream = new FileInputStream(file);
+					} catch (Exception e) {
+						LOGGER.debug("Error opening stream: " + e);
+					}
+				}
+			}
+			return stream;
+		}
+
+		/**
+		 * Register a file as servable.
+		 *
+		 * @return its hashcode (for use as a filename in an http path)
+		 */
+		public int add(File f) {
+			files.add(f);
+			return f.hashCode();
+		}
+
+		/**
+		 * Retrieve a servable file by its hashcode.
+		 */
+		public File getFile(String hash) {
+			try {
+				int h = Integer.valueOf(hash);
+				for (File f : files) {
+					if (f.hashCode() == h) {
+						return f;
+					}
+				}
+			} catch (NumberFormatException e) {
+			}
+			return null;
+		}
+
+		public String read(String filename) {
+			try {
+				return IOUtils.toString(getInputStream(filename), "UTF-8");
+			} catch (IOException e) {
+				LOGGER.debug("Error reading resource {}: {}", filename, e);
+			}
+			return null;
+		}
+
+		/**
+		 * Write the given resource as an http response body.
+		 */
+		public boolean write(String filename, HttpExchange t) throws IOException {
+			InputStream stream = getInputStream(filename);
+			if (stream != null) {
+				Headers headers = t.getResponseHeaders();
+				if (! headers.containsKey("Content-Type")) {
+					String mime = getContentType(filename);
+					if(mime != null) {
+						headers.add("Content-Type", mime);
+					}
+				}
+				// Note: available() isn't officially guaranteed to return the full
+				// stream length but effectively seems to do so in our context.
+				t.sendResponseHeaders(200, stream.available());
+				dump(stream, t.getResponseBody());
+				return true;
+			}
+			return false;
+		}
 	}
 }
