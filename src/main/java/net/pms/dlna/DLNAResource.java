@@ -645,7 +645,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								}
 
 								if (!parserV2) {
-									if (child.isSubsFile() && defaultRenderer.isSubtitlesStreamingSupported()) {
+									if (child.isSubsFile() && defaultRenderer != null && defaultRenderer.isSubtitlesStreamingSupported()) {
 										OutputParams params = new OutputParams(configuration);
 										Player.setAudioAndSubs(child.getSystemName(), child.media, params); // set proper subtitles in accordance with user setting
 										if (params.sid.isExternal() && defaultRenderer.isExternalSubtitlesFormatSupported(params.sid)) {
@@ -1946,7 +1946,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
-		appendThumbnail(mediaRenderer, sb);
+		appendThumbnail(mediaRenderer, sb, "JPEG_TN");
+		appendThumbnail(mediaRenderer, sb, "JPEG_SM");
 
 		if (getLastModified() > 0 && mediaRenderer.isSendDateMetadata()) {
 			addXMLTagAndAttribute(sb, "dc:date", SDF_DATE.format(new Date(getLastModified())));
@@ -1995,8 +1996,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param mediaRenderer The renderer configuration.
 	 * @param sb The StringBuilder to append the response to.
 	 */
-	private void appendThumbnail(RendererConfiguration mediaRenderer, StringBuilder sb) {
-		final String thumbURL = getThumbnailURL();
+	private void appendThumbnail(RendererConfiguration mediaRenderer, StringBuilder sb, String format) {
+		final String thumbURL = getThumbnailURL();	
 
 		if (StringUtils.isNotBlank(thumbURL)) {
 			if (mediaRenderer.getThumbNailAsResource()) {
@@ -2008,7 +2009,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				if (getThumbnailContentType().equals(PNG_TYPEMIME) && !mediaRenderer.isForceJPGThumbnails()) {
 					addAttribute(sb, "protocolInfo", "http-get:*:image/png:DLNA.ORG_PN=PNG_TN");
 				} else {
-					addAttribute(sb, "protocolInfo", "http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_TN");
+					addAttribute(sb, "protocolInfo", "http-get:*:image/jpeg:DLNA.ORG_PN=" + format);
 				}
 
 				endTag(sb);
@@ -2022,7 +2023,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				if (getThumbnailContentType().equals(PNG_TYPEMIME) && !mediaRenderer.isForceJPGThumbnails()) {
 					addAttribute(sb, "dlna:profileID", "PNG_TN");
 				} else {
-					addAttribute(sb, "dlna:profileID", "JPEG_TN");
+					addAttribute(sb, "dlna:profileID", format);
 				}
 
 				endTag(sb);
