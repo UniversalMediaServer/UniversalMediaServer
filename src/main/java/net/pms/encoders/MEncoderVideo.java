@@ -1355,7 +1355,6 @@ public class MEncoderVideo extends Player {
 				}
 			}
 		}
-		
 
 		StringBuilder sb = new StringBuilder();
 		// Set subtitles options
