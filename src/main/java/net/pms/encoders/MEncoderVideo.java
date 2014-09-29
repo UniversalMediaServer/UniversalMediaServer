@@ -1348,11 +1348,14 @@ public class MEncoderVideo extends Player {
 			false
 		);
 
-		for (String s : expertOptions) {
-			if (s.equals("-noass")) {
-				foundNoassParam = true;
+		if (expertOptions != null) {
+			for (String s : expertOptions) {
+				if (s.equals("-noass")) {
+					foundNoassParam = true;
+				}
 			}
 		}
+		
 
 		StringBuilder sb = new StringBuilder();
 		// Set subtitles options
