@@ -593,10 +593,10 @@ public class RequestV2 extends HTTPResource {
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
 			} else if (soapaction != null && (soapaction.contains("ContentDirectory:1#Browse") || soapaction.contains("ContentDirectory:1#Search"))) {
-				objectID = getEnclosingValue(content, "<ObjectID>", "</ObjectID>");
+				objectID = getEnclosingValue(content, "<ObjectID", "</ObjectID>");
 				String containerID = null;
 				if ((objectID == null || objectID.length() == 0)) {
-					containerID = getEnclosingValue(content, "<ContainerID>", "</ContainerID>");
+					containerID = getEnclosingValue(content, "<ContainerID", "</ContainerID>");
 					if (containerID == null || !containerID.contains("$")) {
 						objectID = "0";
 					} else {
@@ -604,9 +604,9 @@ public class RequestV2 extends HTTPResource {
 						containerID = null;
 					}
 				}
-				String sI = getEnclosingValue(content, "<StartingIndex>", "</StartingIndex>");
-				String rC = getEnclosingValue(content, "<RequestedCount>", "</RequestedCount>");
-				browseFlag = getEnclosingValue(content, "<BrowseFlag>", "</BrowseFlag>");
+				String sI = getEnclosingValue(content, "<StartingIndex", "</StartingIndex>");
+				String rC = getEnclosingValue(content, "<RequestedCount", "</RequestedCount>");
+				browseFlag = getEnclosingValue(content, "<BrowseFlag", "</BrowseFlag>");
 
 				if (sI != null) {
 					startingIndex = Integer.parseInt(sI);
@@ -658,7 +658,7 @@ public class RequestV2 extends HTTPResource {
 						}
 					}
 				} else if (soapaction.contains("ContentDirectory:1#Search")) {
-					searchCriteria = getEnclosingValue(content, "<SearchCriteria>", "</SearchCriteria>");
+					searchCriteria = getEnclosingValue(content, "<SearchCriteria", "</SearchCriteria>");
 				}
 
 				List<DLNAResource> files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(
@@ -958,10 +958,11 @@ public class RequestV2 extends HTTPResource {
 	private String getEnclosingValue(String content, String leftTag, String rightTag) {
 		String result = null;
 		int leftTagPos = content.indexOf(leftTag);
-		int rightTagPos = content.indexOf(rightTag, leftTagPos + 1);
+		int leftTagStop = content.indexOf(">", leftTagPos + 1);
+		int rightTagPos = content.indexOf(rightTag, leftTagStop + 1);
 
 		if (leftTagPos > -1 && rightTagPos > leftTagPos) {
-			result = content.substring(leftTagPos + leftTag.length(), rightTagPos);
+			result = content.substring(leftTagStop + 1, rightTagPos);
 		}
 
 		return result;
