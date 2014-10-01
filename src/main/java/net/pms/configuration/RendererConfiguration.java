@@ -104,7 +104,6 @@ public class RendererConfiguration {
 	private static final String DLNA_PN_CHANGES = "DLNAProfileChanges";
 	private static final String DLNA_TREE_HACK = "CreateDLNATreeFaster";
 	private static final String LIMIT_FOLDERS = "LimitFolders";
-	private static final String EMBEDDED_SUBS_SUPPORTED = "InternalSubtitlesSupported";
 	private static final String FORCE_JPG_THUMBNAILS = "ForceJPGThumbnails"; // Sony devices require JPG thumbnails
 	private static final String H264_L41_LIMITED = "H264Level41Limited";
 	private static final String IMAGE = "Image";
@@ -134,7 +133,8 @@ public class RendererConfiguration {
 	private static final String STREAM_EXT = "StreamExtensions";
 	private static final String SUBTITLE_HTTP_HEADER = "SubtitleHttpHeader";
 	private static final String SUPPORTED = "Supported";
-	private static final String SUPPORTED_SUBTITLES_FORMATS = "SupportedSubtitlesFormats";
+	private static final String SUPPORTED_EXTERNAL_SUBTITLES_FORMATS = "SupportedExternalSubtitlesFormats";
+	private static final String SUPPORTED_INTERNAL_SUBTITLES_FORMATS = "SupportedInternalSubtitlesFormats";
 	private static final String TEXTWRAP = "TextWrap";
 	private static final String THUMBNAIL_AS_RESOURCE = "ThumbnailAsResource";
 	private static final String TRANSCODE_AUDIO_441KHZ = "TranscodeAudioTo441kHz";
@@ -433,8 +433,20 @@ public class RendererConfiguration {
 		return rank;
 	}
 
+	/**
+	 * @see #isXbox360()
+	 * @deprecated
+	 */
+	@Deprecated
 	public boolean isXBOX() {
-		return getRendererName().toUpperCase().contains("XBOX");
+		return isXbox360();
+	}
+
+	/**
+	 * @return whether this renderer is an Xbox 360
+	 */
+	public boolean isXbox360() {
+		return getRendererName().toUpperCase().contains("XBOX 360");
 	}
 
 	public boolean isXBMC() {
@@ -451,6 +463,10 @@ public class RendererConfiguration {
 
 	public boolean isFDSSDP() {
 		return getRendererName().toUpperCase().contains("FDSSDP");
+	}
+
+	public boolean isLG() {
+		return getRendererName().toUpperCase().contains("LG ");
 	}
 
 	// Ditlew
@@ -547,7 +563,7 @@ public class RendererConfiguration {
 				if (StringUtils.isBlank(tok)) {
 					continue;
 				}
-				tok = tok.replaceAll("###0", " ");
+				tok = tok.replaceAll("###0", " ").replaceAll("###n", "\n").replaceAll("###r", "\r");
 				if (StringUtils.isBlank(org)) {
 					org = tok;
 				} else {
@@ -1306,7 +1322,8 @@ public class RendererConfiguration {
 
 		// Substitute
 		for (String s : charMap.keySet()) {
-			name = name.replaceAll(s, charMap.get(s));
+			String repl = charMap.get(s).replaceAll("###e", "");
+			name = name.replaceAll(s, repl);
 		}
 
 		return name;
@@ -1329,8 +1346,12 @@ public class RendererConfiguration {
 		}
 	}
 
-	public String getSupportedSubtitles() {
-		return getString(SUPPORTED_SUBTITLES_FORMATS, "");
+	public String getSupportedExternalSubtitles() {
+		return getString(SUPPORTED_EXTERNAL_SUBTITLES_FORMATS , "");
+	}
+
+	public String getSupportedEmbeddedSubtitles() {
+		return getString(SUPPORTED_INTERNAL_SUBTITLES_FORMATS , "");
 	}
 
 	public boolean useClosedCaption() {
@@ -1338,22 +1359,45 @@ public class RendererConfiguration {
 	}
 
 	public boolean isSubtitlesStreamingSupported() {
-		return StringUtils.isNotBlank(getSupportedSubtitles());
+		return StringUtils.isNotBlank(getSupportedExternalSubtitles());
 	}
 
 	/**
-	 * Check if the given subtitle is supported by renderer for streaming.
+	 * Check if the given subtitle type is supported by renderer for streaming.
 	 *
 	 * @param subtitle Subtitles for checking
 	 * @return True if the renderer specifies support for the subtitles
 	 */
-	public boolean isSubtitlesFormatSupported(DLNAMediaSubtitle subtitle) {
+	public boolean isExternalSubtitlesFormatSupported(DLNAMediaSubtitle subtitle) {
 		if (subtitle == null) {
 			return false;
 		}
 
 		if (isSubtitlesStreamingSupported()) {
-			String[] supportedSubs = getSupportedSubtitles().split(",");
+			String[] supportedSubs = getSupportedExternalSubtitles().split(",");
+			for (String supportedSub : supportedSubs) {
+				if (subtitle.getType().toString().equals(supportedSub.trim().toUpperCase())) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Check if the internal subtitle type is supported by renderer.
+	 *
+	 * @param subtitle Subtitles for checking
+	 * @return True if the renderer specifies support for the subtitles
+	 */
+	public boolean isEmbeddedSubtitlesFormatSupported(DLNAMediaSubtitle subtitle) {
+		if (subtitle == null) {
+			return false;
+		}
+
+		if (isEmbeddedSubtitlesSupported()) {
+			String[] supportedSubs = getSupportedEmbeddedSubtitles().split(",");
 			for (String supportedSub : supportedSubs) {
 				if (subtitle.getType().toString().equals(supportedSub.trim().toUpperCase())) {
 					return true;
@@ -1365,7 +1409,7 @@ public class RendererConfiguration {
 	}
 
 	public boolean isEmbeddedSubtitlesSupported() {
-		return getBoolean(EMBEDDED_SUBS_SUPPORTED, false);
+		return StringUtils.isNotBlank(getSupportedEmbeddedSubtitles());
 	}
 
 	public ArrayList<String> tags() {
@@ -1421,6 +1465,7 @@ public class RendererConfiguration {
 	 * into a combined string or regex.
 	 */
 	public static class SortedHeaderMap extends TreeMap<String, String> {
+		private static final long serialVersionUID = -5090333053981045429L;
 		String headers = null;
 
 		public SortedHeaderMap() {

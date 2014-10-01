@@ -142,8 +142,8 @@ public class VLCVideo extends Player {
 		CodecConfig codecConfig = new CodecConfig();
 
 		if (renderer.isTranscodeToWMV()) {
-			// Assume WMV = Xbox = all media renderers with this flag
-			LOGGER.debug("Using XBox WMV codecs");
+			// Assume WMV = Xbox 360 = all media renderers with this flag
+			LOGGER.debug("Using XBox 360 WMV codecs");
 			codecConfig.videoCodec = "wmv2";
 			codecConfig.audioCodec = "wma";
 			codecConfig.container = "asf";
@@ -427,13 +427,7 @@ public class VLCVideo extends Player {
 	public ProcessWrapper launchTranscode(DLNAResource dlna, DLNAMediaInfo media, OutputParams params) throws IOException {
 		final String filename = dlna.getSystemName();
 		boolean isWindows = Platform.isWindows();
-		if (params.aid == null) {
-			setAudioOutputParameters(media, params);
-		}
-
-		if (params.sid == null || (params.sid != null && StringUtils.isNotEmpty(params.sid.getLiveSubURL()))) {
-			setSubtitleOutputParameters(filename, media, params);
-		}
+		setAudioAndSubs(filename, media, params);
 
 		// Make sure we can play this
 		CodecConfig config = genConfig(params.mediaRenderer);

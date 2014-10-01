@@ -229,7 +229,7 @@ public class DLNAMediaSubtitle extends DLNAMediaLang implements Cloneable {
 	}
 
 	public boolean isStreamable() {
-		return isStreamable;
+		return isExternal() && isStreamable;
 	}
 
 	public void setSubsStreamable(boolean isStreamable) {
