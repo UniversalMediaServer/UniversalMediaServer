@@ -390,21 +390,13 @@ public class RemoteWeb {
 				mime = "text/html";
 			}
 
-			if (mime != null) {
-				Headers hdr = t.getResponseHeaders();
-				hdr.add("Content-Type", mime);
-			}
-
 			if (response != null) {
-				byte[] bytes = response.getBytes();
-				t.sendResponseHeaders(status, bytes.length);
-				try (OutputStream os = t.getResponseBody()) {
-					os.write(bytes);
-					os.close();
-				} catch (Exception e) {
-					LOGGER.debug("Error sending response: " + e);
-				}
+				RemoteUtil.respond(t, response, status, mime);
 			} else if (file != null) {
+				if (mime != null) {
+					Headers hdr = t.getResponseHeaders();
+					hdr.add("Content-Type", mime);
+				}
 				RemoteUtil.dumpFile(file, t);
 			}
 		}
@@ -450,13 +442,7 @@ public class RemoteWeb {
 				sb.append("</body>");
 			sb.append("</html>");
 
-			String response = sb.toString();
-			Headers hdr = t.getResponseHeaders();
-			hdr.add("Content-Type", "text/html");
-			t.sendResponseHeaders(200, response.length());
-			try (OutputStream os = t.getResponseBody()) {
-				os.write(response.getBytes());
-			}
+			RemoteUtil.respond(t, sb.toString(), 200, "text/html");
 		}
 	}
 
@@ -516,11 +502,7 @@ public class RemoteWeb {
 				sb.append("</body>");
 			sb.append("</html>");
 
-			String response = sb.toString();
-			t.sendResponseHeaders(200, response.length());
-			try (OutputStream os = t.getResponseBody()) {
-				os.write(response.getBytes());
-			}
+			RemoteUtil.respond(t, sb.toString(), 200, "text/html");
 		}
 
 		private String getLogs() {

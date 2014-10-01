@@ -307,15 +307,9 @@ public class RemotePlayHandler implements HttpHandler {
 		if (RemoteUtil.deny(t)) {
 			throw new IOException("Access denied");
 		}
-		String id;
-		id = RemoteUtil.getId("play/", t);
+		String id = RemoteUtil.getId("play/", t);
 		String response = mkPage(id, t);
-		Headers hdr = t.getResponseHeaders();
-		hdr.add("Content-Type", "text/html");
 		LOGGER.debug("play page " + response);
-		t.sendResponseHeaders(200, response.length());
-		try (OutputStream os = t.getResponseBody()) {
-			os.write(response.getBytes());
-		}
+		RemoteUtil.respond(t, response, 200, "text/html");
 	}
 }

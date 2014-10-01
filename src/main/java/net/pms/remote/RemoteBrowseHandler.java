@@ -168,14 +168,6 @@ public class RemoteBrowseHandler implements HttpHandler {
 		return sb.toString();
 	}
 
-	private void writePage(String response, HttpExchange t) throws IOException {
-		LOGGER.debug("Write page " + response);
-		t.sendResponseHeaders(200, response.length());
-		try (OutputStream os = t.getResponseBody()) {
-			os.write(response.getBytes());
-		}
-	}
-
 	@Override
 	public void handle(HttpExchange t) throws IOException {
 		LOGGER.debug("Got a browse request " + t.getRequestURI());
@@ -185,8 +177,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 		String id = RemoteUtil.getId("browse/", t);
 		LOGGER.debug("Found id " + id);
 		String response = mkBrowsePage(id, t);
-		Headers hdr = t.getResponseHeaders();
-		hdr.add("Content-Type", "text/html");
-		writePage(response, t);
+		LOGGER.debug("Write page " + response);
+		RemoteUtil.respond(t, response, 200, "text/html");
 	}
 }
