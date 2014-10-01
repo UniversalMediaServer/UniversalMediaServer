@@ -991,20 +991,23 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 		return dlna;*/
-		DLNAResource dlna = PMS.getGlobalRepo().get(objectId);
+		DLNAResource dlna;
+		String[] ids = objectId.split("\\.");
+		if (objectId.equals("0")) {
+			dlna = renderer.getRootFolder();
+		} else {
+			// only allow the last one here
+			dlna = PMS.getGlobalRepo().get(ids[ids.length - 1]);//renderer.cacheGet(objectId);
+		}
 		if (dlna == null) {
 			return null;
 		}
-		if(dlna.isFolder()) {
+		if (PMS.filter(renderer, dlna)) {
+			// apply filter to make sure we're not bypassing it...
+			LOGGER.debug("Resource " + dlna.getName() + " is filtered out for render " + renderer.getRendererName());
 			return null;
-		} else {
-			if (PMS.filter(renderer, dlna)) {
-				// apply filter to make sure we're not bypassing it...
-				LOGGER.debug("Resource " + dlna.getName() + " is filtered out for render " + renderer.getRendererName());
-				return null;
-			}
-			return dlna;
 		}
+		return dlna;
 	}
 
 	/**

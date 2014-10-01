@@ -1783,11 +1783,11 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public String getSupportedExternalSubtitles() {
-		return getString(SUPPORTED_EXTERNAL_SUBTITLES_FORMATS , "");
+		return getString(SUPPORTED_EXTERNAL_SUBTITLES_FORMATS, "");
 	}
 
 	public String getSupportedEmbeddedSubtitles() {
-		return getString(SUPPORTED_INTERNAL_SUBTITLES_FORMATS , "");
+		return getString(SUPPORTED_INTERNAL_SUBTITLES_FORMATS, "");
 	}
 
 	public boolean useClosedCaption() {

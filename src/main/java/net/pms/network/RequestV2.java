@@ -279,14 +279,20 @@ public class RequestV2 extends HTTPResource {
 
 			// Retrieve the DLNAresource itself.
 			dlna = PMS.get().getRootFolder(mediaRenderer).getDLNAResource(id, mediaRenderer);
+			String fileName = id.substring(id.indexOf('/') + 1);
 
 			if (transferMode != null) {
 				output.headers().set("TransferMode.DLNA.ORG", transferMode);
 			}
 
+			if (dlna != null && dlna.isFolder() && !fileName.startsWith("thumbnail0000")) {
+				// if we found a folder we MUST be asked for thumbnails
+				// otherwise this is not allowed
+				dlna = null;
+			}
+
 			if (dlna != null) {
 				// DLNAresource was found.
-				String fileName = id.substring(id.indexOf('/') + 1);
 
 				if (fileName.startsWith("thumbnail0000")) {
 					// This is a request for a thumbnail file.
