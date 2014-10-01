@@ -2359,7 +2359,7 @@ public class PmsConfiguration {
 	 * @return
 	 */
 	public boolean isFFmpegDeferToMEncoderForSubtitles() {
-		return getBoolean(KEY_FFMPEG_MENCODER_SUBTITLES, true);
+		return getBoolean(KEY_FFMPEG_MENCODER_SUBTITLES, false);
 	}
 
 	public void setFFmpegFontConfig(boolean value) {
