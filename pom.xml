@@ -403,6 +403,11 @@
 			<artifactId>seamless-xml</artifactId>
 			<version>1.0-alpha3</version>
 		</dependency>
+		<dependency>
+			<groupId>com.samskivert</groupId>
+			<artifactId>jmustache</artifactId>
+			<version>1.9</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<defaultGoal>assembly:assembly</defaultGoal>

@@ -1,5 +1,7 @@
 package net.pms.remote;
 
+import com.samskivert.mustache.Mustache;
+import com.samskivert.mustache.Template;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpPrincipal;
@@ -9,6 +11,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import net.pms.PMS;
@@ -275,6 +278,14 @@ public class RemoteUtil {
 			URLConnection.guessContentTypeFromName(filename);
 	}
 
+	public static Template compile(InputStream stream) {
+		try {
+			return Mustache.compiler().escapeHTML(false).compile(new InputStreamReader(stream));
+		} catch (Exception e) {
+			LOGGER.debug("Error compiling mustache template: " + e);
+		}
+		return null;
+	}
 
 	/**
 	 * A web resource manager to act as:
@@ -284,10 +295,13 @@ public class RemoteUtil {
 	 *
 	 * - A file manager to control access to arbitrary non-web resources, i.e. subtitles,
 	 *   logs, etc.
+	 *
+	 * - A template manager.
 	 */
 
 	public static class ResourceManager extends URLClassLoader {
 		private HashSet<File> files;
+		private HashMap<String, Template> templates;
 
 		public ResourceManager(String... urls) {
 			super(new URL[]{}, null);
@@ -299,6 +313,7 @@ public class RemoteUtil {
 				LOGGER.debug("Error adding resource url: " + e);
 			}
 			files = new HashSet<>();
+			templates = new HashMap<>();
 		}
 
 		public InputStream getInputStream(String filename) {
@@ -321,7 +336,7 @@ public class RemoteUtil {
 		/**
 		 * Register a file as servable.
 		 *
-		 * @return its hashcode (for use as a filename in an http path)
+		 * @return its hashcode (for use as a 'filename' in an http path)
 		 */
 		public int add(File f) {
 			files.add(f);
@@ -373,6 +388,20 @@ public class RemoteUtil {
 				return true;
 			}
 			return false;
+		}
+
+		/**
+		 * Retrieve the given mustache template, compiling as necessary.
+		 */
+		public Template getTemplate(String filename) {
+			Template t = null;
+			if (templates.containsKey(filename)) {
+				t = templates.get(filename);
+			} else if (findResource(filename) != null) {
+				t = compile(getInputStream(filename));
+				templates.put(filename, t);
+			}
+			return t;
 		}
 	}
 }

@@ -6,9 +6,11 @@ import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-
 import net.pms.PMS;
+import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.configuration.WebRender;
 import net.pms.dlna.CodeEnter;
@@ -24,6 +26,7 @@ public class RemoteBrowseHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RemoteBrowseHandler.class);
 	private final static String CRLF = "\r\n";
 	private RemoteWeb parent;
+	private static PmsConfiguration configuration = PMS.getConfiguration();
 
 	public RemoteBrowseHandler(RemoteWeb parent) {
 		this.parent = parent;
@@ -41,131 +44,90 @@ public class RemoteBrowseHandler implements HttpHandler {
 			UMSUtils.postSearch(res, search);
 		}
 
-		// Media browser HTML
-		StringBuilder sb           = new StringBuilder();
-		StringBuilder foldersHtml  = new StringBuilder();
-		StringBuilder mediaHtml    = new StringBuilder();
-
 		boolean showFolders = false;
 		boolean hasFile     = false;
 
-		sb.append("<!DOCTYPE html>").append(CRLF);
-			sb.append("<head>").append(CRLF);
-				// this special (simple) script performs a reload
-				// if we have been sent back here after a VVA
-				sb.append("<script>if(typeof window.refresh!='undefined' && window.refresh){").append(CRLF);
-				sb.append("window.refresh=false;window.location.reload();}</script>").append(CRLF);
-				sb.append("<meta charset=\"utf-8\">").append(CRLF);
-				sb.append("<link rel=\"stylesheet\" href=\"/files/reset.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
-				sb.append("<link rel=\"stylesheet\" href=\"/files/web.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
-				sb.append("<link rel=\"stylesheet\" href=\"/files/web-narrow.css\" type=\"text/css\" media=\"screen and (max-width: 1080px)\">").append(CRLF);
-				sb.append("<link rel=\"stylesheet\" href=\"/files/web-wide.css\" type=\"text/css\" media=\"screen and (min-width: 1081px)\">").append(CRLF);
-				sb.append("<link rel=\"icon\" href=\"/files/favicon.ico\" type=\"image/x-icon\">").append(CRLF);
-				sb.append("<script src=\"/files/jquery.min.js\"></script>");
-				sb.append("<script src=\"/files/jquery.ums.js\"></script>");
-				sb.append("<script src=\"/bump/bump.js\"></script>");
-				// simple prompt script for search folders
-				sb.append("<script>function searchFun(url) {");
-		        sb.append("var str=prompt(\"Enter search string:\");").append(CRLF);
-				sb.append("if(str!=null){ window.location.replace(url+'?str='+str)}").append(CRLF);
-				sb.append("return false;");
-				sb.append("}</script>").append(CRLF);
-				// script ends here
-				sb.append(WebRender.umsInfoScript).append(CRLF);
-				sb.append("<title>Universal Media Server</title>").append(CRLF);
-			sb.append("</head>").append(CRLF);
-			sb.append("<body id=\"ContentPage\">").append(CRLF);
-				sb.append("<div id=\"Container\">");
-					for (DLNAResource r : res) {
-						String newId = r.getResourceId();
-						String idForWeb = URLEncoder.encode(newId, "UTF-8");
-						String thumb = "/thumb/" + idForWeb;
-						String name = StringEscapeUtils.escapeHtml(r.resumeName());
-						StringBuilder bumpIconHtml = new StringBuilder();
+		ArrayList<String> folders = new ArrayList<>();
+		ArrayList<HashMap<String, String>> media = new ArrayList<>();
+		StringBuilder sb = new StringBuilder();
 
-						if (r.isFolder()) {
-							// The resource is a folder
-							foldersHtml.append("<li>");
-							String p = "/browse/" + idForWeb;
-								if (r.getClass().getName().contains("SearchFolder")) {
-									// search folder add a prompt
-									// NOTE!!!
-									// Yes doing getClass.getname is REALLY BAD, but this
-									// is to make legacy plugins utilize this function as well
-									foldersHtml.append("<a href=\"javascript:void(0);\" onclick=\"searchFun('").append(p).append("');\" title=\"").append(name).append("\">");
-								} else {
-									foldersHtml.append("<a href=\"/browse/").append(idForWeb).append("\" oncontextmenu=\"searchFun('").append(p).append("');\" title=\"").append(name).append("\">");
-								}
-								foldersHtml.append("<span>").append(name).append("</span>");
-								foldersHtml.append("</a>").append(CRLF);
-							foldersHtml.append("</li>").append(CRLF);
-							showFolders = true;
-						} else {
-							// The resource is a media file
-							if (upnpAllowed) {
-								if (upnpControl) {
-									bumpIconHtml.append("<a class=\"bumpIcon\" href=\"javascript:bump.start('//")
-										.append(parent.getAddress()).append("','/play/").append(idForWeb).append("','")
-										.append(name.replace("'", "\\'")).append("')\" title=\"Play on another renderer\"></a>").append(CRLF);
-								} else {
-									bumpIconHtml.append("<a class=\"bumpIcon icondisabled\" href=\"javascript:alert('").append("No upnp-controllable renderers suitable for receiving pushed media are available. Refresh this page if a new renderer may have recently connected.")
-										.append("')\" title=\"No other renderers available\"></a>").append(CRLF);
-								}
-							}
+		// Generate innerHtml snippets for folders and media items
+		for (DLNAResource r : res) {
+			String newId = r.getResourceId();
+			String idForWeb = URLEncoder.encode(newId, "UTF-8");
+			String thumb = "/thumb/" + idForWeb;
+			String name = StringEscapeUtils.escapeHtml(r.resumeName());
 
-							mediaHtml.append("<li>");
-							if (WebRender.supports(r)) {
-								mediaHtml.append("<a href=\"/play/").append(idForWeb);
-								mediaHtml.append("\" title=\"").append(name).append("\" id=\"").append(idForWeb).append("\">");
-								mediaHtml.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">");
-								mediaHtml.append("</a>").append(CRLF);
-								mediaHtml.append(bumpIconHtml);
-								mediaHtml.append("<a href=\"/play/").append(idForWeb);
-								mediaHtml.append("\" title=\"").append(name).append("\" id=\"").append(idForWeb).append("\">");
-								mediaHtml.append("<span class=\"caption\">").append(name).append("</span>");
-								mediaHtml.append("</a>").append(CRLF);
-							} else if (upnpControl && upnpAllowed) {
-								// Include it as a web-disabled item so it can be thrown via upnp
-								mediaHtml.append("<a class=\"webdisabled\" href=\"javascript:alert('This item not playable via browser but can be sent to other renderers.')\"");
-								mediaHtml.append(" title=\"").append(name).append(" (NOT PLAYABLE IN BROWSER)\">");
-								mediaHtml.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">");
-								mediaHtml.append("</a>").append(CRLF);
-								mediaHtml.append(bumpIconHtml);
-								mediaHtml.append("<span class=\"webdisabled caption\">").append(name).append("</span>").append(CRLF);
-							}
-							mediaHtml.append("</li>").append(CRLF);
-
-							hasFile = true;
-						}
+			if (r.isFolder()) {
+				sb.setLength(0);
+				// The resource is a folder
+				String p = "/browse/" + idForWeb;
+					if (r.getClass().getName().contains("SearchFolder")) {
+						// search folder add a prompt
+						// NOTE!!!
+						// Yes doing getClass.getname is REALLY BAD, but this
+						// is to make legacy plugins utilize this function as well
+						sb.append("<a href=\"javascript:void(0);\" onclick=\"searchFun('").append(p).append("');\" title=\"").append(name).append("\">");
+					} else {
+						sb.append("<a href=\"/browse/").append(idForWeb).append("\" oncontextmenu=\"searchFun('").append(p).append("');\" title=\"").append(name).append("\">");
 					}
-
-					sb.append("<div id=\"Menu\">");
-						sb.append("<a href=\"/browse/0\" id=\"HomeButton\"></a>");
-//						sb.append("<a href=\"/files/log\" id=\"LogButton\"></a>");
-						// Display the search form if the folder is populated
-						if (hasFile) {
-							sb.append("<form id=\"SearchForm\" method=\"get\">");
-								sb.append("<input type=\"text\" id=\"SearchInput\" name=\"str\">");
-								sb.append("<input type=\"submit\" id=\"SearchSubmit\" title=\"Search\" value=\"&nbsp;\">");
-							sb.append("</form>");
-						}
-						sb.append("<a href=\"/doc\" id=\"DocButton\" title=\"Documentation\"></a>");
-					sb.append("</div>");
-
-					String noFoldersCSS = "";
-					if (!showFolders) {
-						noFoldersCSS = " class=\"noFolders\"";
+					sb.append("<span>").append(name).append("</span>");
+					sb.append("</a>");
+				folders.add(sb.toString());
+				showFolders = true;
+			} else {
+				// The resource is a media file
+				sb.setLength(0);
+				HashMap<String, String> item = new HashMap<>();
+				if (upnpAllowed) {
+					if (upnpControl) {
+						sb.append("<a class=\"bumpIcon\" href=\"javascript:bump.start('//")
+							.append(parent.getAddress()).append("','/play/").append(idForWeb).append("','")
+							.append(name.replace("'", "\\'")).append("')\" title=\"Play on another renderer\"></a>");
+					} else {
+						sb.append("<a class=\"bumpIcon icondisabled\" href=\"javascript:alert('").append("No upnp-controllable renderers suitable for receiving pushed media are available. Refresh this page if a new renderer may have recently connected.")
+							.append("')\" title=\"No other renderers available\"></a>");
 					}
-					sb.append("<div id=\"FoldersContainer\"").append(noFoldersCSS).append("><div><ul id=\"Folders\">").append(foldersHtml).append("</ul></div></div>");
+				}
+				item.put("bump", sb.toString());
+				sb.setLength(0);
 
-					if (mediaHtml.length() > 0) {
-						sb.append("<ul id=\"Media\"").append(noFoldersCSS).append(">").append(mediaHtml).append("</ul>");
-					}
-				sb.append("</div>");
-			sb.append("</body>");
-		sb.append("</html>");
+				if (WebRender.supports(r)) {
+					sb.append("<a href=\"/play/").append(idForWeb)
+						.append("\" title=\"").append(name).append("\" id=\"").append(idForWeb).append("\">")
+						.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
+						.append("</a>");
+					item.put("thumb", sb.toString());
+					sb.setLength(0);
+					sb.append("<a href=\"/play/").append(idForWeb)
+						.append("\" title=\"").append(name).append("\" id=\"").append(idForWeb).append("\">")
+						.append("<span class=\"caption\">").append(name).append("</span>")
+						.append("</a>");
+					item.put("caption", sb.toString());
+				} else if (upnpControl && upnpAllowed) {
+					// Include it as a web-disabled item so it can be thrown via upnp
+					sb.append("<a class=\"webdisabled\" href=\"javascript:alert('This item not playable via browser but can be sent to other renderers.')\"")
+						.append(" title=\"").append(name).append(" (NOT PLAYABLE IN BROWSER)\">")
+						.append("<img class=\"thumb\" src=\"").append(thumb).append("\" alt=\"").append(name).append("\">")
+						.append("</a>");
+					item.put("thumb", sb.toString());
+					sb.setLength(0);
+					sb.append("<span class=\"webdisabled caption\">").append(name).append("</span>");
+					item.put("caption", sb.toString());
+				}
+				media.add(item);
+				hasFile = true;
+			}
+		}
 
-		return sb.toString();
+		HashMap<String, Object> vars = new HashMap<>();
+		vars.put("serverName", configuration.getServerName());
+		vars.put("hasFile", hasFile);
+		vars.put("noFoldersCSS", showFolders ? "" : " class=\"noFolders\"");
+		vars.put("folders", folders);
+		vars.put("media", media);
+
+		return parent.getResources().getTemplate("browse.html").execute(vars);
 	}
 
 	@Override

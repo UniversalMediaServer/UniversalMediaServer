@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URLEncoder;
+import java.util.HashMap;
 import java.util.List;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
@@ -35,13 +36,6 @@ public class RemotePlayHandler implements HttpHandler {
 		this.parent = parent;
 	}
 
-	private void endPage(StringBuilder sb) {
-		sb.append("</div>").append(CRLF);
-		sb.append("</div>").append(CRLF);
-		sb.append("</body>").append(CRLF);
-		sb.append("</html>").append(CRLF);
-	}
-
 	private DLNAResource findNext(int start, int inc, List<DLNAResource> list) {
 		int nxtPos = start;
 		while ((nxtPos < list.size()) && (nxtPos >= 0)) {
@@ -56,6 +50,8 @@ public class RemotePlayHandler implements HttpHandler {
 	}
 
 	private String mkPage(String id, HttpExchange t) throws IOException {
+		HashMap<String, Object> vars = new HashMap<>();
+		vars.put("serverName", configuration.getServerName());
 		boolean flowplayer = true;
 
 		LOGGER.debug("make play page " + id);
@@ -76,7 +72,7 @@ public class RemotePlayHandler implements HttpHandler {
 			LOGGER.debug("coded object with invalid code");
 			throw new IOException("Bad code");
 		}
-		String auto = " autoplay>";
+		String auto = "autoplay";
 		String query = t.getRequestURI().getQuery();
 		boolean forceFlash = StringUtils.isNotEmpty(RemoteUtil.getQueryVars(query, "flash"));
 		// next/prev handling
@@ -107,14 +103,12 @@ public class RemotePlayHandler implements HttpHandler {
 				r = n;
 			} else {
 				// trick here to stop continuing if loop is off
-				auto = ">";
+				auto = "";
 			}
 		}
 		String id1 = URLEncoder.encode(id, "UTF-8");
 		String rawId = id;
 
-		String nxtJs = "window.location.replace('/play/" + id1 + "?nxt=next');";
-		String prvJs = "window.location.replace('/play/" + id1 + "?nxt=prev');";
 		// hack here to ensure we got a root folder to use for recently played etc.
 		root.getDefaultRenderer().setRootFolder(root);
 		String mime = root.getDefaultRenderer().getMimeType(r.mimeType());
@@ -153,147 +147,61 @@ public class RemotePlayHandler implements HttpHandler {
 				}
 			}
 		}
-
-		// Media player HTML
-		StringBuilder sb = new StringBuilder();
-		sb.append("<!DOCTYPE html>").append(CRLF);
-			sb.append("<head>").append(CRLF);
-				sb.append("<link rel=\"stylesheet\" href=\"/files/reset.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
-				sb.append("<link rel=\"stylesheet\" href=\"/files/web.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
-				sb.append("<link rel=\"stylesheet\" href=\"/files/web-narrow.css\" type=\"text/css\" media=\"screen and (max-width: 1080px)\">").append(CRLF);
-				sb.append("<link rel=\"stylesheet\" href=\"/files/web-wide.css\" type=\"text/css\" media=\"screen and (min-width: 1081px)\">").append(CRLF);
-				sb.append("<link rel=\"icon\" href=\"/files/favicon.ico\" type=\"image/x-icon\">").append(CRLF);
-				sb.append("<title>Universal Media Server</title>").append(CRLF);
-				if (flowplayer) {
-					sb.append("<script src=\"/files/jquery.min.js\"></script>").append(CRLF);
-					sb.append("<script src=\"/files/flowplayer.min.js\"></script>").append(CRLF);
-					sb.append("<link rel=\"stylesheet\" href=\"/files/functional.css\">").append(CRLF);
-				}
-				sb.append(WebRender.umsInfoScript).append(CRLF);
-			sb.append("</head>").append(CRLF);
-
-			sb.append("<body id=\"ContentPage\">").append(CRLF);
-				sb.append("<div id=\"Container\">").append(CRLF);
-					sb.append("<div id=\"Menu\">").append(CRLF);
-						sb.append("<a href=\"/browse/0\" id=\"HomeButton\"></a>").append(CRLF);
-//						sb.append("<a href=\"/files/log\" id=\"LogButton\"></a>").append(CRLF);
-						sb.append("<a href=\"/doc\" id=\"DocButton\" title=\"Documentation\"></a>");
-					sb.append("</div>").append(CRLF);
-					sb.append("<div id=\"VideoContainer\">").append(CRLF);
-					// for video this gives just an empty line
-					sb.append(coverImage).append(CRLF);
-					if (r.getFormat().isImage()) {
-						// do this like this to simplify the code
-						// skip all player crap since img tag works well
-						int delay = configuration.getWebImgSlideDelay() * 1000;
-						if (delay > 0 && configuration.getWebAutoCont(r.getFormat())) {
-							sb.append("<script>").append(CRLF);
-							sb.append("setTimeout(\"").append(nxtJs).append("\",").append(delay).append(");").append(CRLF);
-							sb.append("</script>").append(CRLF);
-						}
-						endPage(sb);
-						return sb.toString();
-					}
-
-					if (flowplayer) {
-						//sb.append("<div class=\"flowplayer no-time no-volume no-mute\" data-ratio=\"0.5625\" data-embed=\"false\" data-flashfit=\"true\">").append(CRLF);
-						sb.append("<div class=\"player\">").append(CRLF);
-					}
-					sb.append("<").append(mediaType);
-					if (flowplayer) {
-						sb.append(" controls").append(auto).append(CRLF);
-						if (
-							RemoteUtil.directmime(mime) &&
-							!RemoteUtil.transMp4(mime, r.getMedia()) &&
-							!r.isResume() &&
-							!forceFlash
-						) {
-							sb.append("<source src=\"/media/").append(id1).append("\" type=\"").append(mime).append("\">").append(CRLF);
-						}
-						sb.append("<source src=\"/fmedia/").append(id1).append("\" type=\"video/flash\">");
-					} else {
-						sb.append(" id=\"player\" width=\"").append(renderer.getVideoWidth()).append("\" height=\"");
-						sb.append(renderer.getVideoHeight()).append("\" controls").append(auto).append(CRLF);
-						sb.append("<source src=\"/media/").append(id1).append("\" type=\"").append(mime).append("\">");
-					}
-					sb.append(CRLF);
-
-					if (configuration.getWebSubs() && r.getFormat().isVideo()) {
-						// only if subs are requested as <track> tags
-						// otherwise we'll transcode them in
-						boolean isFFmpegFontConfig = configuration.isFFmpegFontConfig();
-						if (isFFmpegFontConfig) { // do not apply fontconfig to flowplayer subs
-							configuration.setFFmpegFontConfig(false);
-						}
-						OutputParams p = new OutputParams(configuration);
-						p.sid = r.getMediaSubtitle();
-						Player.setAudioAndSubs(r.getName(), r.getMedia(), p);
-						if (p.sid !=null && p.sid.getType().isText()) {
-							try {
-								File subFile = FFMpegVideo.getSubtitles(r, r.getMedia(), p, configuration, SubtitleType.WEBVTT);
-								LOGGER.debug("subFile " + subFile);
-								if (subFile != null) {
-									sb.append("<track kind=\"subtitles\" src=\"/files/").append(parent.getResources().add(subFile)).append("\" default>");
-								}
-							} catch (Exception e) {
-								LOGGER.debug("error when doing sub file " + e);
-							}
-						}
-						
-						configuration.setFFmpegFontConfig(isFFmpegFontConfig); // return back original fontconfig value
-					}
-					sb.append("</").append(mediaType).append(">").append(CRLF);
-
-					if (flowplayer) {
-						sb.append("</div>").append(CRLF); // .player
-					}
-		// nex and prev buttons
-		sb.append("<div>").append(CRLF);
-		sb.append("<button value=\"<<\" onclick=\"").append(prvJs).append("\"><<</button>").append(CRLF);
-		sb.append("<button value=\">>\" onclick=\"").append(nxtJs).append("\">>></button>").append(CRLF);
-		if(!forceFlash && !flowplayer && r.getFormat().isVideo()) {
-			// only add flash button for videos (and we aren't playing flash already)
-			String flashStr = "window.location.replace('/play/" + id1 + "?flash=1');";
-			sb.append("<button value=\"flash\" onclick=\"").append(flashStr).append("\">Flash</button>").append(CRLF);
-		}
-		sb.append("</div>").append(CRLF);
-		sb.append("</div>").append(CRLF); // #VideoContainer
-		sb.append("<a href=\"/raw/").append(rawId).append("\" target=\"_blank\" id=\"DownloadLink\" title=\"Download this video\"></a>").append(CRLF);
-		if (flowplayer) {
-			sb.append("<script>").append(CRLF);
-			sb.append("$(function() {").append(CRLF);
-			if (configuration.getWebAutoCont(r.getFormat())) {
-				// auto continue for flowplayer
-				sb.append("var api = $(\".player\").flowplayer();").append(CRLF);
-				sb.append("               api.bind(\"finish\",function() {").append(CRLF);
-				sb.append(nxtJs).append(CRLF);
-				sb.append("               });").append(CRLF);
+		vars.put("coverImage", coverImage);
+		if (r.getFormat().isImage()) {
+			// do this like this to simplify the code
+			// skip all player crap since img tag works well
+			int delay = configuration.getWebImgSlideDelay() * 1000;
+			if (delay > 0 && configuration.getWebAutoCont(r.getFormat())) {
+				vars.put("delay", delay);
 			}
-			sb.append("	$(\".player\").flowplayer({").append(CRLF);
-			sb.append("		ratio: 9/16,").append(CRLF);
-			sb.append("		flashfit: true").append(CRLF);
-			sb.append("	});").append(CRLF);
-			sb.append("});").append(CRLF);
-			sb.append("</script>").append(CRLF);
 		} else {
-			if (configuration.getWebAutoCont(r.getFormat())) {
-				// logic here use our own id (for example 123)
-				// once we're done ask for /play/123?nxt=true
-				// the nxt will cause us to pick next (most likely 124) from list.
-				sb.append("<script>").append(CRLF);
-				sb.append("var player = document.getElementById(\"player\");").append(CRLF);
-				sb.append("player.addEventListener(\"ended\", function() {").append(CRLF);
-				sb.append(nxtJs).append(CRLF);
-				sb.append("});").append(CRLF);
-				sb.append("</script>").append(CRLF);
+			vars.put("id1", id1);
+			vars.put("mediaType", mediaType);
+			vars.put("auto", auto);
+			vars.put("mime", mime);
+			vars.put("autocontinue", configuration.getWebAutoCont(r.getFormat()));
+			if (flowplayer) {
+				if (
+					RemoteUtil.directmime(mime) &&
+					!RemoteUtil.transMp4(mime, r.getMedia()) &&
+					!r.isResume() &&
+					!forceFlash
+				) {
+					vars.put("src", true);
+				}
+			} else {
+				vars.put("width", renderer.getVideoWidth());
+				vars.put("height", renderer.getVideoHeight());
 			}
 		}
 
-		sb.append("</div>").append(CRLF); // #Container
-		sb.append("</body>").append(CRLF);
-		sb.append("</html>").append(CRLF);
+		if (configuration.getWebSubs() && r.getFormat().isVideo()) {
+			// only if subs are requested as <track> tags
+			// otherwise we'll transcode them in
+			boolean isFFmpegFontConfig = configuration.isFFmpegFontConfig();
+			if (isFFmpegFontConfig) { // do not apply fontconfig to flowplayer subs
+				configuration.setFFmpegFontConfig(false);
+			}
+			OutputParams p = new OutputParams(configuration);
+			p.sid = r.getMediaSubtitle();
+			Player.setAudioAndSubs(r.getName(), r.getMedia(), p);
+			if (p.sid !=null && p.sid.getType().isText()) {
+				try {
+					File subFile = FFMpegVideo.getSubtitles(r, r.getMedia(), p, configuration, SubtitleType.WEBVTT);
+					LOGGER.debug("subFile " + subFile);
+					if (subFile != null) {
+						vars.put("sub", parent.getResources().add(subFile));
+					}
+				} catch (Exception e) {
+					LOGGER.debug("error when doing sub file " + e);
+				}
+			}
 
-		return sb.toString();
+			configuration.setFFmpegFontConfig(isFFmpegFontConfig); // return back original fontconfig value
+		}
+
+		return parent.getResources().getTemplate(flowplayer ? "flow.html" : "play.html").execute(vars);
 	}
 
 	private boolean transMp4(String mime, DLNAMediaInfo media) {

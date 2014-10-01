@@ -8,6 +8,7 @@ import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import javax.net.ssl.*;
@@ -73,7 +74,7 @@ public class RemoteWeb {
 			int threads = configuration.getWebThreads();
 
 			// Add context handlers
-			addCtx("/", new RemoteStartHandler());
+			addCtx("/", new RemoteStartHandler(this));
 			addCtx("/browse", new RemoteBrowseHandler(this));
 			addCtx("/play", new RemotePlayHandler(this));
 			addCtx("/media", new RemoteMediaHandler(this));
@@ -334,31 +335,15 @@ public class RemoteWeb {
 					}
 					response = "<html><title>UMS LOG</title><body>" + x + "</body></html>";
 				} else {
-					// Retrieve by hash
 					File file = parent.getResources().getFile(filename);
 					if (file != null) {
 						filename = file.getName();
-						String log = RemoteUtil.read(file).replace("<", "&lt;");
-						String brush = filename.endsWith("debug.log") ? "debug_log" :
-							filename.endsWith(".log") ? "log" : "conf";
-						StringBuilder sb = new StringBuilder();
-						sb.append("<!DOCTYPE html>").append(CRLF);
-							sb.append("<head>").append(CRLF);
-								sb.append("<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">").append(CRLF);
-								sb.append("<link rel=\"stylesheet\" href=\"/files/util/sh.css\" type=\"text/css\">").append(CRLF);
-								sb.append("<script src=\"/files/jquery.min.js\"></script>").append(CRLF);
-								sb.append("<script src=\"/files/util/shCore.js\"></script>").append(CRLF);
-								sb.append("<script src=\"/files/util/sh.js\"></script>").append(CRLF);
-								sb.append("<title>" + filename + "</title>").append(CRLF);
-							sb.append("</head>").append(CRLF);
-							sb.append("<body>").append(CRLF);
-								// <xmp> is officially deprecated but still supported everywhere
-								sb.append("<xmp id=\"rawtext\" class=\"brush: " + brush + "\">").append(CRLF);
-									sb.append(log);
-								sb.append("</xmp>");
-							sb.append("</body>");
-						sb.append("</html>");
-						response = sb.toString();
+						HashMap<String, Object> vars = new HashMap<>();
+						vars.put("title", filename);
+						vars.put("brush", filename.endsWith("debug.log") ? "debug_log" :
+							filename.endsWith(".log") ? "log" : "conf");
+						vars.put("log", RemoteUtil.read(file).replace("<", "&lt;"));
+						response = parent.getResources().getTemplate("util/log.html").execute(vars);
 					} else {
 						status = 404;
 					}
@@ -385,6 +370,11 @@ public class RemoteWeb {
 	static class RemoteStartHandler implements HttpHandler {
 		private static final Logger LOGGER = LoggerFactory.getLogger(RemoteStartHandler.class);
 		private final static String CRLF = "\r\n";
+		private RemoteWeb parent;
+
+		public RemoteStartHandler(RemoteWeb parent) {
+			this.parent = parent;
+		}
 
 		@Override
 		public void handle(HttpExchange t) throws IOException {
@@ -397,32 +387,12 @@ public class RemoteWeb {
 				return;
 			}
 
-			// Front page HTML
-			StringBuilder sb = new StringBuilder();
-			sb.append("<!DOCTYPE html>").append(CRLF);
-				sb.append("<head>").append(CRLF);
-					sb.append("<link rel=\"stylesheet\" href=\"/files/reset.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
-					sb.append("<link rel=\"stylesheet\" href=\"/files/web.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
-					sb.append("<link rel=\"stylesheet\" href=\"/files/web-narrow.css\" type=\"text/css\" media=\"screen and (max-width: 1080px)\">").append(CRLF);
-					sb.append("<link rel=\"stylesheet\" href=\"/files/web-wide.css\" type=\"text/css\" media=\"screen and (min-width: 1081px)\">").append(CRLF);
-					sb.append("<link rel=\"icon\" href=\"/files/favicon.ico\" type=\"image/x-icon\">").append(CRLF);
-					sb.append(WebRender.umsInfoScript).append(CRLF);
-					sb.append("<title>Universal Media Server</title>").append(CRLF);
-				sb.append("</head>").append(CRLF);
-				sb.append("<body id=\"FrontPage\">").append(CRLF);
-					sb.append("<div id=\"Container\">").append(CRLF);
-						sb.append("<div id=\"Menu\">").append(CRLF);
-							sb.append("<a href=\"/browse/0\" id=\"Logo\" title=\"Browse Media\">").append(CRLF);
-								sb.append("<h3>");
-									sb.append("Browse the media on ").append(configuration.getProfileName());
-								sb.append("</h3>");
-							sb.append("</a>").append(CRLF);
-						sb.append("</div>").append(CRLF);
-					sb.append("</div>");
-				sb.append("</body>");
-			sb.append("</html>");
+			HashMap<String, Object> vars = new HashMap<>();
+			vars.put("serverName", configuration.getServerName());
+			vars.put("profileName", configuration.getProfileName());
 
-			RemoteUtil.respond(t, sb.toString(), 200, "text/html");
+			String response = parent.getResources().getTemplate("start.html").execute(vars);
+			RemoteUtil.respond(t, response, 200, "text/html");
 		}
 	}
 
@@ -435,7 +405,7 @@ public class RemoteWeb {
 		public RemoteDocHandler(RemoteWeb parent) {
 			this.parent = parent;
 			// Make sure logs are available right away
-			getLogs();
+			getLogs(false);
 		}
 
 		@Override
@@ -449,52 +419,32 @@ public class RemoteWeb {
 				return;
 			}
 
-			StringBuilder sb = new StringBuilder();
-			sb.append("<!DOCTYPE html>").append(CRLF);
-				sb.append("<head>").append(CRLF);
-					sb.append("<link rel=\"stylesheet\" href=\"/files/reset.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
-					sb.append("<link rel=\"stylesheet\" href=\"/files/web.css\" type=\"text/css\" media=\"screen\">").append(CRLF);
-					sb.append("<link rel=\"stylesheet\" href=\"/files/web-narrow.css\" type=\"text/css\" media=\"screen and (max-width: 1080px)\">").append(CRLF);
-					sb.append("<link rel=\"stylesheet\" href=\"/files/web-wide.css\" type=\"text/css\" media=\"screen and (min-width: 1081px)\">").append(CRLF);
-					sb.append("<link rel=\"icon\" href=\"/files/favicon.ico\" type=\"image/x-icon\">").append(CRLF);
-					sb.append("<title>Universal Media Server</title>").append(CRLF);
-				sb.append("</head>").append(CRLF);
-				sb.append("<body id=\"ContentPage\" class=\"Doc\">").append(CRLF);
-					sb.append("<div id=\"Menu\">").append(CRLF);
-						sb.append("<a href=\"/browse/0\" id=\"HomeButton\"></a>").append(CRLF);
-					sb.append("</div>").append(CRLF);
-					sb.append("<div id=\"Container\">").append(CRLF);
-						sb.append("<h1>Tools</h1>").append(CRLF);
-						sb.append("<br/>").append(CRLF);
-						sb.append("<ul>").append(CRLF);
-						sb.append("<li><a href=\"/files/util/logviewer.html\" title=\"Open general purpose log viewer\">View</a> logs and Confs:").append(CRLF).append(getLogs()).append("</li>").append(CRLF);
-						if (configuration.getUseCache()) {
-							sb.append("<li><a href=\"http://" + PMS.get().getServer().getHost() + ":" + PMS.get().getServer().getPort() + "/console/home\">Manage cache.</a></li>").append(CRLF);
-						}
-						sb.append("</ul>").append(CRLF);
-						sb.append("<br/><br/>").append(CRLF);
-						sb.append("<h1>Documentation</h1>").append(CRLF);
-						sb.append("<br/>").append(CRLF);
-						sb.append("<ul>").append(CRLF);
-						sb.append("<li><a href=\"/bump\">Browser-to-UMS Media Player Setup.</a></li>").append(CRLF);
-						sb.append("</ul>").append(CRLF);
-					sb.append("</div>");
-				sb.append("</body>");
-			sb.append("</html>");
+			HashMap<String, Object> vars = new HashMap<>();
+			vars.put("serverName", configuration.getServerName());
+			vars.put("logs", getLogs(true));
+			if (configuration.getUseCache()) {
+				vars.put("cache", "http://" + PMS.get().getServer().getHost() + ":" + PMS.get().getServer().getPort() + "/console/home");
+			}
 
-			RemoteUtil.respond(t, sb.toString(), 200, "text/html");
+			String response = parent.getResources().getTemplate("doc.html").execute(vars);
+			RemoteUtil.respond(t, response, 200, "text/html");
 		}
 
-		private String getLogs() {
-			StringBuilder sb = new StringBuilder();
-			sb.append("<ul>").append(CRLF);
-			for (File f : new DbgPacker().getItems()) {
+		private ArrayList<HashMap<String, String>> getLogs(boolean asList) {
+			Set<File> files = new DbgPacker().getItems();
+			ArrayList<HashMap<String, String>> logs = asList ? new ArrayList<HashMap<String, String>>() : null;
+			for (File f : files) {
 				if (f.exists()) {
-					sb.append("<li><a href=\"/files/log/" + parent.getResources().add(f) + "\">" + f.getName() + "</a></li>").append(CRLF);
+					String id = String.valueOf(parent.getResources().add(f));
+					if (asList) {
+						HashMap<String, String> item = new HashMap<>();
+						item.put("filename", f.getName());
+						item.put("id", id);
+						logs.add(item);
+					}
 				}
 			}
-			sb.append("</ul>").append(CRLF);
-			return sb.toString();
+			return logs;
 		}
 	}
 

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<head>
+<link rel="stylesheet" href="/files/reset.css" type="text/css" media="screen">
+<link rel="stylesheet" href="/files/web.css" type="text/css" media="screen">
+<link rel="stylesheet" href="/files/web-narrow.css" type="text/css" media="screen and (max-width: 1080px)">
+<link rel="stylesheet" href="/files/web-wide.css" type="text/css" media="screen and (min-width: 1081px)">
+<link rel="icon" href="/files/favicon.ico" type="image/x-icon">
+<title>{{serverName}}</title>
+</head>
+<body id="ContentPage">
+<script>
+function next() {window.location.replace('/play/{{id1}}?nxt=next');}
+function prev() {window.location.replace('/play/{{id1}}?nxt=prev');}
+function flash() {window.location.replace('/play/{{id1}}?flash=1');}
+</script>
+<div id="Container">
+<div id="Menu">
+	<a href="/browse/0" id="HomeButton"></a>
+	<a href="/doc" id="DocButton" title="Documentation"></a>
+</div>
+
+<div id="VideoContainer">
+{{coverImage}}
+{{#delay}}
+	<script>setTimeout("next();","{{delay}}");</script>
+{{/delay}}
+{{#mediaType}}
+	<{{mediaType}} id="player" width="{{width}}" height="{{height}}" controls {{auto}}>
+		<source src="/media/{{id1}}" type="{{mime}}">
+{{#sub}}
+		<track kind="subtitles" src="/files/{{sub}}" default>
+{{/sub}}
+	</{{mediaType}}>
+	<div>
+		<button value="<<" onclick="prev()"><<</button>
+		<button value=">>" onclick="next()">>></button>
+		<button value="flash" onclick="flash()">Flash</button>
+	</div>
+</div>
+<a href="/raw/{{id1}}" target="_blank" id="DownloadLink" title="Download this {{mediaType}}"></a>
+{{/mediaType}}
+{{#autocontinue}}
+<script>
+var player = document.getElementById("player");
+player.addEventListener("ended", next);
+</script>
+{{/autocontinue}}
+</div>
+</body>
+</html>
+

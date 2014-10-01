@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<head>
+<link rel="stylesheet" href="/files/reset.css" type="text/css" media="screen">
+<link rel="stylesheet" href="/files/web.css" type="text/css" media="screen">
+<link rel="stylesheet" href="/files/web-narrow.css" type="text/css" media="screen and (max-width: 1080px)">
+<link rel="stylesheet" href="/files/web-wide.css" type="text/css" media="screen and (min-width: 1081px)">
+<link rel="icon" href="/files/favicon.ico" type="image/x-icon">
+<title>{{serverName}}</title>
+<script src="/files/jquery.min.js"></script>
+<script src="/files/flowplayer.min.js"></script>
+<link rel="stylesheet" href="/files/functional.css" type="text/css"">
+</head>
+<body id="ContentPage">
+<script>
+function next() {window.location.replace('/play/{{id1}}?nxt=next');}
+function prev() {window.location.replace('/play/{{id1}}?nxt=prev');}
+</script>
+<div id="Container">
+<div id="Menu">
+	<a href="/browse/0" id="HomeButton"></a>
+	<a href="/doc" id="DocButton" title="Documentation"></a>
+</div>
+
+<div id="VideoContainer">
+	<div class="player">
+	<{{mediaType}} id="player" controls {{auto}}>
+{{#src}}
+		<source src="/media/{{id1}}" type="{{mime}}">
+{{/src}}
+		<source src="/fmedia/{{id1}}" type="video/flash">
+{{#sub}}
+		<track kind="subtitles" src="/files/{{sub}}" default>
+{{/sub}}
+	</{{mediaType}}}>
+	<div>
+		<button value="<<" onclick="prev()"><<</button>
+		<button value=">>" onclick="next()">>></button>
+	</div>
+	</div>
+</div>
+<a href="/raw/{{id1}}" target="_blank" id="DownloadLink" title="Download this {{mediaType}}"></a>
+<script>
+$(function() {
+	$(".player").flowplayer({
+		ratio: 9/16,
+		flashfit: true
+	});
+});
+{{#autocontinue}}
+var api = $(".player").flowplayer();
+api.bind("finish",next);
+{{/autocontinue}}
+</script>
+</div>
+</body>
+</html>
+
