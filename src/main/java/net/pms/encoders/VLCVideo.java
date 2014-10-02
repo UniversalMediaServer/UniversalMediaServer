@@ -142,8 +142,8 @@ public class VLCVideo extends Player {
 		CodecConfig codecConfig = new CodecConfig();
 
 		if (renderer.isTranscodeToWMV()) {
-			// Assume WMV = Xbox = all media renderers with this flag
-			LOGGER.debug("Using XBox WMV codecs");
+			// Assume WMV = Xbox 360 = all media renderers with this flag
+			LOGGER.debug("Using XBox 360 WMV codecs");
 			codecConfig.videoCodec = "wmv2";
 			codecConfig.audioCodec = "wma";
 			codecConfig.container = "asf";

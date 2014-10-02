@@ -27,7 +27,6 @@ import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-
 import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.configuration.FormatConfiguration;
@@ -51,7 +50,6 @@ import net.pms.util.ImagesUtil;
 import net.pms.util.Iso639;
 import net.pms.util.MpegUtil;
 import static net.pms.util.StringUtil.*;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -645,7 +643,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								}
 
 								if (!parserV2) {
-									if (child.isSubsFile() && defaultRenderer.isSubtitlesStreamingSupported()) {
+									if (child.isSubsFile() && defaultRenderer != null && defaultRenderer.isSubtitlesStreamingSupported()) {
 										OutputParams params = new OutputParams(configuration);
 										Player.setAudioAndSubs(child.getSystemName(), child.media, params); // set proper subtitles in accordance with user setting
 										if (params.sid.isExternal() && defaultRenderer.isExternalSubtitlesFormatSupported(params.sid)) {
@@ -1016,7 +1014,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		// Discover children if it hasn't been done already
 		if (!isDiscovered()) {
 			if (configuration.getFolderLimit() && depthLimit()) {
-				if (renderer.getRendererName().equalsIgnoreCase("Playstation 3") || renderer.isXBOX()) {
+				if (renderer.getRendererName().equalsIgnoreCase("Playstation 3") || renderer.isXbox360()) {
 					LOGGER.info("Depth limit potentionally hit for " + getDisplayName());
 				}
 
@@ -1317,7 +1315,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				player.isExternalSubtitlesSupported()
 			)
 		) {
-			nameSuffix += Messages.getString("DLNAResource.1");
+			nameSuffix += " " + Messages.getString("DLNAResource.1");
 		}
 
 		if (getMediaAudio() != null) {
@@ -1946,7 +1944,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			}
 		}
 
-		appendThumbnail(mediaRenderer, sb);
+		appendThumbnail(mediaRenderer, sb, "JPEG_TN");
+		appendThumbnail(mediaRenderer, sb, "JPEG_SM");
 
 		if (getLastModified() > 0 && mediaRenderer.isSendDateMetadata()) {
 			addXMLTagAndAttribute(sb, "dc:date", SDF_DATE.format(new Date(getLastModified())));
@@ -1958,14 +1957,14 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 		} else {
 			if (isFolder()) {
 				uclass = "object.container.storageFolder";
-				boolean xbox = mediaRenderer.isXBOX();
-				if (xbox && getFakeParentId() != null && getFakeParentId().equals("7")) {
+				boolean xbox360 = mediaRenderer.isXbox360();
+				if (xbox360 && getFakeParentId() != null && getFakeParentId().equals("7")) {
 					uclass = "object.container.album.musicAlbum";
-				} else if (xbox && getFakeParentId() != null && getFakeParentId().equals("6")) {
+				} else if (xbox360 && getFakeParentId() != null && getFakeParentId().equals("6")) {
 					uclass = "object.container.person.musicArtist";
-				} else if (xbox && getFakeParentId() != null && getFakeParentId().equals("5")) {
+				} else if (xbox360 && getFakeParentId() != null && getFakeParentId().equals("5")) {
 					uclass = "object.container.genre.musicGenre";
-				} else if (xbox && getFakeParentId() != null && getFakeParentId().equals("F")) {
+				} else if (xbox360 && getFakeParentId() != null && getFakeParentId().equals("F")) {
 					uclass = "object.container.playlistContainer";
 				}
 			} else if (getFormat() != null && getFormat().isVideo()) {
@@ -1995,7 +1994,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * @param mediaRenderer The renderer configuration.
 	 * @param sb The StringBuilder to append the response to.
 	 */
-	private void appendThumbnail(RendererConfiguration mediaRenderer, StringBuilder sb) {
+	private void appendThumbnail(RendererConfiguration mediaRenderer, StringBuilder sb, String format) {
 		final String thumbURL = getThumbnailURL();
 
 		if (StringUtils.isNotBlank(thumbURL)) {
@@ -2008,7 +2007,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				if (getThumbnailContentType().equals(PNG_TYPEMIME) && !mediaRenderer.isForceJPGThumbnails()) {
 					addAttribute(sb, "protocolInfo", "http-get:*:image/png:DLNA.ORG_PN=PNG_TN");
 				} else {
-					addAttribute(sb, "protocolInfo", "http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_TN");
+					addAttribute(sb, "protocolInfo", "http-get:*:image/jpeg:DLNA.ORG_PN=" + format);
 				}
 
 				endTag(sb);
@@ -2022,7 +2021,7 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 				if (getThumbnailContentType().equals(PNG_TYPEMIME) && !mediaRenderer.isForceJPGThumbnails()) {
 					addAttribute(sb, "dlna:profileID", "PNG_TN");
 				} else {
-					addAttribute(sb, "dlna:profileID", "JPEG_TN");
+					addAttribute(sb, "dlna:profileID", format);
 				}
 
 				endTag(sb);
