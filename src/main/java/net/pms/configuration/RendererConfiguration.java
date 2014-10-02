@@ -1906,7 +1906,6 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	 */
 	public static class SortedHeaderMap extends TreeMap<String, String> {
 		private static final long serialVersionUID = -5090333053981045429L;
-
 		String headers = null;
 
 		public SortedHeaderMap() {
@@ -1989,11 +1988,4 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			return p1 > p2 ? -1 : p1 < p2 ? 1 : r1.getRendererName().compareToIgnoreCase(r2.getRendererName());
 		}
 	};
-
-	/**
-	 * Handling for LG TVs which are scanning the whole DLNA-Server content
-	 */
-	public boolean notAggressiveBrowsing() {
-		return getBoolean(NOT_AGGRESSIVE_BROWSING, false);
-	}
 }

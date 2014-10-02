@@ -1641,7 +1641,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return True if PMS should cache media.
 	 */
 	public boolean getUseCache() {
-		return getBoolean(KEY_USE_CACHE, false);
+		return getBoolean(KEY_USE_CACHE, true);
 	}
 
 	/**
@@ -2341,7 +2341,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	 * @return
 	 */
 	public boolean isFFmpegDeferToMEncoderForSubtitles() {
-		return getBoolean(KEY_FFMPEG_MENCODER_SUBTITLES, true);
+		return getBoolean(KEY_FFMPEG_MENCODER_SUBTITLES, false);
 	}
 
 	public void setFFmpegFontConfig(boolean value) {

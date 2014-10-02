@@ -156,9 +156,8 @@ public class RemoteWeb {
 		if (!groupTag.equals(user)) {
 			tag.add(groupTag);
 		}
-		if (t != null) {
-			tag.add(t.getRemoteAddress().getHostString());
-		}
+
+		tag.add(t.getRemoteAddress().getHostString());
 		tag.add("web");
 		root = new RootFolder(tag);
 		try {
