@@ -432,8 +432,20 @@ public class RendererConfiguration {
 		return rank;
 	}
 
+	/**
+	 * @see #isXbox360()
+	 * @deprecated
+	 */
+	@Deprecated
 	public boolean isXBOX() {
-		return getRendererName().toUpperCase().contains("XBOX");
+		return isXbox360();
+	}
+
+	/**
+	 * @return whether this renderer is an Xbox 360
+	 */
+	public boolean isXbox360() {
+		return getRendererName().toUpperCase().contains("XBOX 360");
 	}
 
 	public boolean isXBMC() {
@@ -450,6 +462,10 @@ public class RendererConfiguration {
 
 	public boolean isFDSSDP() {
 		return getRendererName().toUpperCase().contains("FDSSDP");
+	}
+
+	public boolean isLG() {
+		return getRendererName().toUpperCase().contains("LG ");
 	}
 
 	// Ditlew
@@ -1439,6 +1455,7 @@ public class RendererConfiguration {
 	 * into a combined string or regex.
 	 */
 	public static class SortedHeaderMap extends TreeMap<String, String> {
+		private static final long serialVersionUID = -5090333053981045429L;
 		String headers = null;
 
 		public SortedHeaderMap() {
