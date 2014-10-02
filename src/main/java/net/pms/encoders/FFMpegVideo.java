@@ -148,7 +148,7 @@ public class FFMpegVideo extends Player {
 			scaleHeight = media.getHeight();
 		}
 
-		boolean is3D = media.is3d();
+		boolean is3D = media.is3d() && !media.stereoscopyIsAnaglyph();
 		// Make sure the aspect ratio is 16/9 if the renderer needs it.
 		boolean keepAR = renderer.isKeepAspectRatio() &&
 				!is3D &&
@@ -179,7 +179,7 @@ public class FFMpegVideo extends Player {
 			if (params.sid.getType().isText()) {
 				String originalSubsFilename;
 				String subsFilename;
-				if (params.sid.isEmbedded() || configuration.isFFmpegFontConfig() || (is3D && !media.stereoscopyIsAnaglyph())) {
+				if (params.sid.isEmbedded() || configuration.isFFmpegFontConfig() || is3D) {
 					originalSubsFilename = getSubtitles(dlna, media, params, configuration, SubtitleType.ASS).getAbsolutePath();
 				} else {
 					originalSubsFilename = params.sid.getExternalFile().getAbsolutePath();
@@ -273,7 +273,6 @@ public class FFMpegVideo extends Player {
 		// Convert 3D video to the other output 3D format
 		if (is3D &&
 				(media.get3DLayout() != null) &&
-				!media.stereoscopyIsAnaglyph() &&
 				isNotBlank(params.mediaRenderer.getOutput3DFormat()) &&
 				!media.get3DLayout().toString().toLowerCase().equals(params.mediaRenderer.getOutput3DFormat().trim()))
 		{
@@ -1234,7 +1233,7 @@ public class FFMpegVideo extends Player {
 
 		boolean applyFontConfig = configuration.isFFmpegFontConfig();
 		boolean isEmbeddedSource = params.sid.getId() < 100;
-		boolean is3D = media.is3d();
+		boolean is3D = media.is3d() && !media.stereoscopyIsAnaglyph();
 
 		String filename = isEmbeddedSource ?
 			dlna.getSystemName() : params.sid.getExternalFile().getAbsolutePath();
@@ -1253,7 +1252,7 @@ public class FFMpegVideo extends Player {
 		}
 
 		File convertedSubs;
-		if (applyFontConfig || isEmbeddedSource || (is3D && !media.stereoscopyIsAnaglyph())) {
+		if (applyFontConfig || isEmbeddedSource || is3D) {
 			convertedSubs = new File(subsPath.getAbsolutePath() + File.separator + basename + "_ID" + params.sid.getId() + "_" + modId + ".ass");
 		} else {
 			String tmp = params.sid.getExternalFile().getName().replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
@@ -1262,7 +1261,7 @@ public class FFMpegVideo extends Player {
 
 		if (convertedSubs.canRead()) {
 			// subs are already converted
-			if (applyFontConfig || isEmbeddedSource || is3D && !media.stereoscopyIsAnaglyph()) {
+			if (applyFontConfig || isEmbeddedSource || is3D) {
 				params.sid.setType(SubtitleType.ASS);
 				params.sid.setExternalFileCharacterSet(CHARSET_UTF_8);
 				if (is3D) {
@@ -1337,7 +1336,7 @@ public class FFMpegVideo extends Player {
 			}
 		}
 
-		if (is3D && !media.stereoscopyIsAnaglyph()) {
+		if (is3D) {
 			try {
 				tempSubs = SubtitleUtils.convertASSToASS3D(tempSubs, media, params);
 			} catch (IOException | NullPointerException e) {
