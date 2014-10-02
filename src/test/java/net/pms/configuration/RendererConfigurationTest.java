@@ -21,7 +21,6 @@ package net.pms.configuration;
 
 import ch.qos.logback.classic.LoggerContext;
 import java.util.*;
-import java.util.Map.Entry;
 import static net.pms.configuration.RendererConfiguration.*;
 import org.apache.commons.configuration.ConfigurationException;
 import static org.junit.Assert.assertEquals;
