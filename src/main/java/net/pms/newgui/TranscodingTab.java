@@ -530,15 +530,15 @@ public class TranscodingTab {
 
 		builder.add(new JLabel(Messages.getString("TrTab2.32")), FormLayoutUtil.flip(cc.xy(1, 10), colSpec, orientation));
 		Object data[] = new Object[] {
-			configuration.getMPEG2MainSettings(),                                                   /* current setting */
-			String.format("Automatic (Wired)  /* %s */",          Messages.getString("TrTab2.71")),
-			String.format("Automatic (Wireless)  /* %s */",       Messages.getString("TrTab2.72")),
-			String.format("keyint=5:vqscale=1:vqmin=2  /* %s */", Messages.getString("TrTab2.60")), /* great */
-			String.format("keyint=5:vqscale=1:vqmin=1  /* %s */", Messages.getString("TrTab2.61")), /* lossless */
-			String.format("keyint=5:vqscale=2:vqmin=3  /* %s */", Messages.getString("TrTab2.62")), /* good (wired) */
-			String.format("keyint=25:vqmax=5:vqmin=2  /* %s */",  Messages.getString("TrTab2.63")), /* good (wireless) */
-			String.format("keyint=25:vqmax=7:vqmin=2  /* %s */",  Messages.getString("TrTab2.64")), /* medium (wireless) */
-			String.format("keyint=25:vqmax=8:vqmin=3  /* %s */",  Messages.getString("TrTab2.65"))  /* low */
+			configuration.getMPEG2MainSettings(),                                                   /* Current setting */
+			String.format("Automatic (Wired)  /* %s */",          Messages.getString("TrTab2.71")), /* Recommended for wired networks */
+			String.format("Automatic (Wireless)  /* %s */",       Messages.getString("TrTab2.72")), /* Recommended for wireless networks */
+			String.format("keyint=5:vqscale=1:vqmin=2  /* %s */", Messages.getString("TrTab2.60")), /* Great */
+			String.format("keyint=5:vqscale=1:vqmin=1  /* %s */", Messages.getString("TrTab2.61")), /* Lossless */
+			String.format("keyint=5:vqscale=2:vqmin=3  /* %s */", Messages.getString("TrTab2.62")), /* Good (wired) */
+			String.format("keyint=25:vqmax=5:vqmin=2  /* %s */",  Messages.getString("TrTab2.63")), /* Good (wireless) */
+			String.format("keyint=25:vqmax=7:vqmin=2  /* %s */",  Messages.getString("TrTab2.64")), /* Medium (wireless) */
+			String.format("keyint=25:vqmax=8:vqmin=3  /* %s */",  Messages.getString("TrTab2.65"))  /* Low */
 		};
 
 		MyComboBoxModel cbm = new MyComboBoxModel(data);
@@ -567,9 +567,10 @@ public class TranscodingTab {
 
 		builder.add(new JLabel(Messages.getString("TrTab2.79")), FormLayoutUtil.flip(cc.xy(1, 12), colSpec, orientation));
 		Object x264QualityOptions[] = new Object[] {
-			configuration.getx264ConstantRateFactor(),                                 /* Current setting */
-			String.format("Automatic /* %s */", Messages.getString("TrTab2.80")), /* Automatic */
-			String.format("16  /* %s */", Messages.getString("TrTab2.61"))        /* Lossless */
+			configuration.getx264ConstantRateFactor(),                                        /* Current setting */
+			String.format("Automatic (Wired)  /* %s */", Messages.getString("TrTab2.71")),    /* Recommended for wired networks */
+			String.format("Automatic (Wireless)  /* %s */", Messages.getString("TrTab2.72")), /* Recommended for wireless networks */
+			String.format("16  /* %s */", Messages.getString("TrTab2.61"))                    /* Lossless */
 		};
 
 		MyComboBoxModel cbm2 = new MyComboBoxModel(x264QualityOptions);
