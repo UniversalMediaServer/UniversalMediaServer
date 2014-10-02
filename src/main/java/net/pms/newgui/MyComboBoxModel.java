@@ -20,7 +20,7 @@ package net.pms.newgui;
 
 import javax.swing.DefaultComboBoxModel;
 
-public class MyComboBoxModel extends DefaultComboBoxModel<Object> {
+public class MyComboBoxModel extends DefaultComboBoxModel {
 	private static final long serialVersionUID = -9094365556516842551L;
 
 	public MyComboBoxModel() {
