@@ -245,7 +245,7 @@ public class RequestV2 extends HTTPResource {
 		long CLoverride = -2; // 0 and above are valid Content-Length values, -1 means omit
 		StringBuilder response = new StringBuilder();
 		DLNAResource dlna = null;
-		boolean xbox = mediaRenderer.isXBOX();
+		boolean xbox360 = mediaRenderer.isXbox360();
 
 		// Samsung 2012 TVs have a problematic preceding slash that needs to be removed.
 		if (argument.startsWith("/")) {
@@ -500,7 +500,7 @@ public class RequestV2 extends HTTPResource {
 					s = s.replace("[port]", "" + PMS.get().getServer().getPort());
 				}
 
-				if (xbox) {
+				if (xbox360) {
 					LOGGER.debug("DLNA changes for Xbox 360");
 					s = s.replace("Universal Media Server", serverName + profileName + " : Windows Media Connect");
 					s = s.replace("<modelName>UMS</modelName>", "<modelName>Windows Media Connect</modelName>");
@@ -525,10 +525,10 @@ public class RequestV2 extends HTTPResource {
 			response.append(CRLF);
 
 			if (soapaction != null && soapaction.contains("IsAuthorized")) {
-				response.append(HTTPXMLHelper.XBOX_2);
+				response.append(HTTPXMLHelper.XBOX_360_2);
 				response.append(CRLF);
 			} else if (soapaction != null && soapaction.contains("IsValidated")) {
-				response.append(HTTPXMLHelper.XBOX_1);
+				response.append(HTTPXMLHelper.XBOX_360_1);
 				response.append(CRLF);
 			}
 
@@ -593,10 +593,10 @@ public class RequestV2 extends HTTPResource {
 				response.append(HTTPXMLHelper.SOAP_ENCODING_FOOTER);
 				response.append(CRLF);
 			} else if (soapaction != null && (soapaction.contains("ContentDirectory:1#Browse") || soapaction.contains("ContentDirectory:1#Search"))) {
-				objectID = getEnclosingValue(content, "<ObjectID>", "</ObjectID>");
+				objectID = getEnclosingValue(content, "<ObjectID", "</ObjectID>");
 				String containerID = null;
 				if ((objectID == null || objectID.length() == 0)) {
-					containerID = getEnclosingValue(content, "<ContainerID>", "</ContainerID>");
+					containerID = getEnclosingValue(content, "<ContainerID", "</ContainerID>");
 					if (containerID == null || !containerID.contains("$")) {
 						objectID = "0";
 					} else {
@@ -604,16 +604,16 @@ public class RequestV2 extends HTTPResource {
 						containerID = null;
 					}
 				}
-				Object sI = getEnclosingValue(content, "<StartingIndex>", "</StartingIndex>");
-				Object rC = getEnclosingValue(content, "<RequestedCount>", "</RequestedCount>");
-				browseFlag = getEnclosingValue(content, "<BrowseFlag>", "</BrowseFlag>");
+				String sI = getEnclosingValue(content, "<StartingIndex", "</StartingIndex>");
+				String rC = getEnclosingValue(content, "<RequestedCount", "</RequestedCount>");
+				browseFlag = getEnclosingValue(content, "<BrowseFlag", "</BrowseFlag>");
 
 				if (sI != null) {
-					startingIndex = Integer.parseInt(sI.toString());
+					startingIndex = Integer.parseInt(sI);
 				}
 
 				if (rC != null) {
-					requestCount = Integer.parseInt(rC.toString());
+					requestCount = Integer.parseInt(rC);
 				}
 
 				response.append(HTTPXMLHelper.XML_HEADER);
@@ -631,13 +631,15 @@ public class RequestV2 extends HTTPResource {
 				response.append(HTTPXMLHelper.RESULT_HEADER);
 				response.append(HTTPXMLHelper.DIDL_HEADER);
 
+				boolean browseDirectChildren = browseFlag != null && browseFlag.equals("BrowseDirectChildren");
+
 				if (soapaction != null && soapaction.contains("ContentDirectory:1#Search")) {
-					browseFlag = "BrowseDirectChildren";
+					browseDirectChildren = true;
 				}
 
-				// Xbox virtual containers ... d'oh!
+				// Xbox 360 virtual containers ... d'oh!
 				String searchCriteria = null;
-				if (xbox && configuration.getUseCache() && PMS.get().getLibrary() != null && containerID != null) {
+				if (xbox360 && configuration.getUseCache() && PMS.get().getLibrary() != null && containerID != null) {
 					if (containerID.equals("7") && PMS.get().getLibrary().getAlbumFolder() != null) {
 						objectID = PMS.get().getLibrary().getAlbumFolder().getResourceId();
 					} else if (containerID.equals("6") && PMS.get().getLibrary().getArtistFolder() != null) {
@@ -656,12 +658,12 @@ public class RequestV2 extends HTTPResource {
 						}
 					}
 				} else if (soapaction.contains("ContentDirectory:1#Search")) {
-					searchCriteria = getEnclosingValue(content, "<SearchCriteria>", "</SearchCriteria>");
+					searchCriteria = getEnclosingValue(content, "<SearchCriteria", "</SearchCriteria>");
 				}
 
 				List<DLNAResource> files = PMS.get().getRootFolder(mediaRenderer).getDLNAResources(
 					objectID,
-					browseFlag != null && browseFlag.equals("BrowseDirectChildren"),
+					browseDirectChildren,
 					startingIndex,
 					requestCount,
 					mediaRenderer,
@@ -670,7 +672,7 @@ public class RequestV2 extends HTTPResource {
 
 				if (searchCriteria != null && files != null) {
 					UMSUtils.postSearch(files, searchCriteria);
-					if (xbox) {
+					if (xbox360) {
 						if (files.size() > 0) {
 							files = files.get(0).getChildren();
 						}
@@ -680,7 +682,7 @@ public class RequestV2 extends HTTPResource {
 				int minus = 0;
 				if (files != null) {
 					for (DLNAResource uf : files) {
-						if (xbox && containerID != null) {
+						if (xbox360 && containerID != null) {
 							uf.setFakeParentId(containerID);
 						}
 
@@ -709,7 +711,7 @@ public class RequestV2 extends HTTPResource {
 					parentFolder = files.get(0).getParent();
 				}
 
-				if (browseFlag != null && browseFlag.equals("BrowseDirectChildren") && mediaRenderer.isMediaParserV2() && mediaRenderer.isDLNATreeHack()) {
+				if (browseDirectChildren && mediaRenderer.isMediaParserV2() && mediaRenderer.isDLNATreeHack()) {
 					// with the new parser, files are parsed and analyzed *before*
 					// creating the DLNA tree, every 10 items (the ps3 asks 10 by 10),
 					// so we do not know exactly the total number of items in the DLNA folder to send
@@ -724,7 +726,7 @@ public class RequestV2 extends HTTPResource {
 					}
 
 					response.append("<TotalMatches>").append(totalCount).append("</TotalMatches>");
-				} else if (browseFlag != null && browseFlag.equals("BrowseDirectChildren")) {
+				} else if (browseDirectChildren) {
 					response.append("<TotalMatches>").append(((parentFolder != null) ? parentFolder.childrenNumber() : filessize) - minus).append("</TotalMatches>");
 				} else {
 					// From upnp spec: If BrowseMetadata is specified in the BrowseFlags then TotalMatches = 1
@@ -953,10 +955,11 @@ public class RequestV2 extends HTTPResource {
 	private String getEnclosingValue(String content, String leftTag, String rightTag) {
 		String result = null;
 		int leftTagPos = content.indexOf(leftTag);
-		int rightTagPos = content.indexOf(rightTag, leftTagPos + 1);
+		int leftTagStop = content.indexOf(">", leftTagPos + 1);
+		int rightTagPos = content.indexOf(rightTag, leftTagStop + 1);
 
 		if (leftTagPos > -1 && rightTagPos > leftTagPos) {
-			result = content.substring(leftTagPos + leftTag.length(), rightTagPos);
+			result = content.substring(leftTagStop + 1, rightTagPos);
 		}
 
 		return result;

@@ -1400,7 +1400,7 @@ public class PmsConfiguration {
 	 * @return The maximum video bitrate.
 	 */
 	public String getMaximumBitrate() {
-		String maximumBitrate = getString(KEY_MAX_BITRATE, "110");
+		String maximumBitrate = getMaximumBitrateDisplay();
 		if ("0".equals(maximumBitrate)) {
 			maximumBitrate = "1000";
 		}
@@ -1415,7 +1415,7 @@ public class PmsConfiguration {
 	 * @return The maximum video bitrate to display in the GUI.
 	 */
 	public String getMaximumBitrateDisplay() {
-		return getString(KEY_MAX_BITRATE, "110");
+		return getString(KEY_MAX_BITRATE, "90");
 	}
 
 	/**
@@ -1659,7 +1659,7 @@ public class PmsConfiguration {
 	 * @return True if PMS should cache media.
 	 */
 	public boolean getUseCache() {
-		return getBoolean(KEY_USE_CACHE, false);
+		return getBoolean(KEY_USE_CACHE, true);
 	}
 
 	/**
@@ -2359,7 +2359,7 @@ public class PmsConfiguration {
 	 * @return
 	 */
 	public boolean isFFmpegDeferToMEncoderForSubtitles() {
-		return getBoolean(KEY_FFMPEG_MENCODER_SUBTITLES, true);
+		return getBoolean(KEY_FFMPEG_MENCODER_SUBTITLES, false);
 	}
 
 	public void setFFmpegFontConfig(boolean value) {
