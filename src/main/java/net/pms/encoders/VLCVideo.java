@@ -141,7 +141,16 @@ public class VLCVideo extends Player {
 	protected CodecConfig genConfig(RendererConfiguration renderer) {
 		CodecConfig codecConfig = new CodecConfig();
 
-		if (renderer.isTranscodeToWMV()) {
+		if (
+			(
+				renderer.isTranscodeToWMV() &&
+				!renderer.isXbox360()
+			) ||
+			(
+				renderer.isXboxOne() &&
+				purpose() == VIDEO_WEBSTREAM_PLAYER
+			)
+		) {
 			// Assume WMV = Xbox 360 = all media renderers with this flag
 			LOGGER.debug("Using XBox 360 WMV codecs");
 			codecConfig.videoCodec = "wmv2";

@@ -448,6 +448,13 @@ public class RendererConfiguration {
 		return getRendererName().toUpperCase().contains("XBOX 360");
 	}
 
+	/**
+	 * @return whether this renderer is an Xbox One
+	 */
+	public boolean isXboxOne() {
+		return getRendererName().toUpperCase().contains("XBOX ONE");
+	}
+
 	public boolean isXBMC() {
 		return getRendererName().toUpperCase().contains("XBMC");
 	}

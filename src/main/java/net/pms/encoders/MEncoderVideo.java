@@ -988,7 +988,16 @@ public class MEncoderVideo extends Player {
 
 		if (h264ts) {
 			vcodec = "libx264";
-		} else if (params.mediaRenderer.isTranscodeToWMV() && !params.mediaRenderer.isXbox360()) {
+		} else if (
+			(
+				params.mediaRenderer.isTranscodeToWMV() &&
+				!params.mediaRenderer.isXbox360()
+			) ||
+			(
+				params.mediaRenderer.isXboxOne() &&
+				purpose() == VIDEO_WEBSTREAM_PLAYER
+			)
+		) {
 			wmv = true;
 			vcodec = "wmv2";
 		}
