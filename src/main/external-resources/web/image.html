@@ -11,7 +11,6 @@
 <script>
 function next() {window.location.replace('/play/{{id1}}?nxt=next');}
 function prev() {window.location.replace('/play/{{id1}}?nxt=prev');}
-function flash() {window.location.replace('/play/{{id1}}?flash=1');}
 </script>
 <div id="Container">
 <div id="Menu">
@@ -21,27 +20,14 @@ function flash() {window.location.replace('/play/{{id1}}?flash=1');}
 
 <div id="VideoContainer">
 {{coverImage}}
-{{#mediaType}}
-	<{{mediaType}} id="player" width="{{width}}" height="{{height}}" controls {{auto}}>
-		<source src="/media/{{id1}}" type="{{mime}}">
-{{#sub}}
-		<track kind="subtitles" src="/files/{{sub}}" default>
-{{/sub}}
-	</{{mediaType}}>
+{{#autocontinue}}
+	<script>setTimeout("next();","{{delay}}");</script>
+{{/autocontinue}}
 	<div>
 		<button value="<<" onclick="prev()"><<</button>
 		<button value=">>" onclick="next()">>></button>
-		<button value="flash" onclick="flash()">Flash</button>
 	</div>
 </div>
-<a href="/raw/{{id1}}" target="_blank" id="DownloadLink" title="Download this {{mediaType}}"></a>
-{{/mediaType}}
-{{#autocontinue}}
-<script>
-var player = document.getElementById("player");
-player.addEventListener("ended", next);
-</script>
-{{/autocontinue}}
 </div>
 </body>
 </html>
