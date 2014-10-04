@@ -177,6 +177,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String SUPPORTED_SUBTITLES_FORMATS = "SupportedSubtitlesFormats";
 	protected static final String TEXTWRAP = "TextWrap";
 	protected static final String THUMBNAIL_AS_RESOURCE = "ThumbnailAsResource";
+	protected static final String THUMBNAIL_SIZE = "ThumbnailSize";
 	protected static final String TRANSCODE_AUDIO_441KHZ = "TranscodeAudioTo441kHz";
 	protected static final String TRANSCODE_AUDIO = "TranscodeAudio";
 	protected static final String TRANSCODE_EXT = "TranscodeExtensions";
@@ -631,6 +632,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 
 	public int getRank() {
 		return rank;
+	}
+
+	public String getThumbSize() {
+		return getString(THUMBNAIL_SIZE, "");
 	}
 
 	/**

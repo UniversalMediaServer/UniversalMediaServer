@@ -18,11 +18,7 @@
  */
 package net.pms.network;
 
-import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
@@ -293,7 +289,6 @@ public class Request extends HTTPResource {
 				output(output, "TransferMode.DLNA.ORG: " + transferMode);
 			}
 
-			LOGGER.debug("filname "+fileName+" dlna "+dlna);
 			if (dlna != null && dlna.isFolder() && !fileName.startsWith("thumbnail0000")) {
 				// if we found a folder we MUST be asked for thumbnails
 				// otherwise this is not allowed
@@ -316,11 +311,9 @@ public class Request extends HTTPResource {
 						if (mediaRenderer.isMediaParserV2()) {
 							dlna.checkThumbnail();
 						}
-						RendererConfiguration old = dlna.getDefaultRenderer();
-						dlna.setDefaultRenderer(mediaRenderer);
 						inputStream = dlna.getThumbnailInputStream();
-						dlna.setDefaultRenderer(old);
 					}
+					inputStream = UMSUtils.scaleThumb(inputStream, mediaRenderer);
 				} else if (dlna.getMedia() != null && fileName.contains("subtitle0000") && dlna.isCodeValid(dlna)) {
 					// This is a request for a subtitle file
 					output(output, "Content-Type: text/plain");

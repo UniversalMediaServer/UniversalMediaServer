@@ -1,17 +1,28 @@
 package net.pms.util;
 
-import java.io.File;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.text.Collator;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import com.sun.java.swing.plaf.windows.WindowsInternalFrameTitlePane;
+import net.coobird.thumbnailator.Thumbnails;
+import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.imageio.ImageIO;
 
 public class UMSUtils {
 	private static final Collator collator;
+	private static final Logger LOGGER = LoggerFactory.getLogger(UMSUtils.class);
+
 
 	static {
 		collator = Collator.getInstance();
@@ -129,5 +140,34 @@ public class UMSUtils {
 
 		String[] messageDisplay = msg.replaceFirst("]", "string that should never match").split("string that should never match");
 		return dateFormat.format(date) + " " + messageDisplay[1];
+	}
+
+	private static int getHW(String[] s, int pos) {
+		if(pos > s.length - 1) {
+			return 0;
+		}
+		try {
+			return Integer.parseInt(s[pos].trim());
+		} catch (NumberFormatException e) {
+			return 0;
+		}
+	}
+
+	public static InputStream scaleThumb(InputStream in, RendererConfiguration r) throws IOException {
+		String ts = r.getThumbSize();
+		if (in != null && StringUtils.isNotEmpty(ts)) {
+			// size limit thumbnail
+			int w = getHW(ts.split("x"), 0);
+			int h = getHW(ts.split("x"), 1);
+			if (w == 0 || h == 0) {
+				LOGGER.debug("bad thumb size {} skip scaling", ts);
+				return in;
+			}
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			Thumbnails.of(in).forceSize(w, h).outputFormat("JPEG").outputQuality(0.85)
+					.toOutputStream(out);
+			return new ByteArrayInputStream(out.toByteArray());
+		}
+		return in;
 	}
 }
