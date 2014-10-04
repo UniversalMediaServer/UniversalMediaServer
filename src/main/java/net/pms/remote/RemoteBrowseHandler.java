@@ -16,6 +16,7 @@ import net.pms.configuration.WebRender;
 import net.pms.dlna.CodeEnter;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
+import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -79,7 +80,8 @@ public class RemoteBrowseHandler implements HttpHandler {
 				// The resource is a media file
 				sb.setLength(0);
 				HashMap<String, String> item = new HashMap<>();
-				if (upnpAllowed) {
+				if (upnpAllowed && !(r instanceof VirtualVideoAction)) {
+					// VVAs aren't bumpable
 					if (upnpControl) {
 						sb.append("<a class=\"bumpIcon\" href=\"javascript:bump.start('//")
 							.append(parent.getAddress()).append("','/play/").append(idForWeb).append("','")
@@ -88,7 +90,11 @@ public class RemoteBrowseHandler implements HttpHandler {
 						sb.append("<a class=\"bumpIcon icondisabled\" href=\"javascript:alert('").append("No upnp-controllable renderers suitable for receiving pushed media are available. Refresh this page if a new renderer may have recently connected.")
 							.append("')\" title=\"No other renderers available\"></a>");
 					}
+				} else {
+					// ensure that we got a string
+					sb.append("");
 				}
+
 				item.put("bump", sb.toString());
 				sb.setLength(0);
 

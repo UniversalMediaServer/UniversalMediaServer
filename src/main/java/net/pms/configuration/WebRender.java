@@ -9,6 +9,7 @@ import net.pms.Messages;
 import net.pms.PMS;
 import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
+import net.pms.dlna.virtual.VirtualVideoAction;
 import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.Player;
 import net.pms.formats.*;
@@ -379,6 +380,9 @@ public class WebRender extends DeviceConfiguration implements RendererConfigurat
 	}
 
 	public static boolean supports(DLNAResource dlna) {
+		if (dlna instanceof VirtualVideoAction) {
+			return true;
+		}
 		DLNAMediaInfo m = dlna.getMedia();
 		return (m != null && RemoteUtil.directmime(m.getMimeType())) ||
 				(supportedFormat(dlna.getFormat())) ||
