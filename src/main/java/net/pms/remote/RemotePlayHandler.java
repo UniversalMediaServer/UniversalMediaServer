@@ -111,6 +111,7 @@ public class RemotePlayHandler implements HttpHandler {
 
 		// hack here to ensure we got a root folder to use for recently played etc.
 		root.getDefaultRenderer().setRootFolder(root);
+		String name = StringEscapeUtils.escapeHtml(r.resumeName());
 		String mime = root.getDefaultRenderer().getMimeType(r.mimeType());
 		String mediaType = "";
 		String coverImage = "";
@@ -128,7 +129,6 @@ public class RemotePlayHandler implements HttpHandler {
 		if (r.getFormat().isAudio()) {
 			mediaType = "audio";
 			String thumb = "/thumb/" + id1;
-			String name = StringEscapeUtils.escapeHtml(r.resumeName());
 			coverImage = "<img height=256 width=256 src=\"" + thumb + "\" alt=\"\"><br><h2>" + name + "</h2><br>";
 			flowplayer = false;
 		}
@@ -147,8 +147,14 @@ public class RemotePlayHandler implements HttpHandler {
 				}
 			}
 		}
+		vars.put("name", name);
+		vars.put("id1", id1);
 		vars.put("coverImage", coverImage);
-		if (r.getFormat().isImage()) {
+		vars.put("autocontinue", configuration.getWebAutoCont(r.getFormat()));
+		boolean isImage = r.getFormat().isImage();
+		boolean isVideo = r.getFormat().isVideo();
+		vars.put("isVideo", isVideo);
+		if (isImage) {
 			// do this like this to simplify the code
 			// skip all player crap since img tag works well
 			int delay = configuration.getWebImgSlideDelay() * 1000;
@@ -156,11 +162,9 @@ public class RemotePlayHandler implements HttpHandler {
 				vars.put("delay", delay);
 			}
 		} else {
-			vars.put("id1", id1);
 			vars.put("mediaType", mediaType);
 			vars.put("auto", auto);
 			vars.put("mime", mime);
-			vars.put("autocontinue", configuration.getWebAutoCont(r.getFormat()));
 			if (flowplayer) {
 				if (
 					RemoteUtil.directmime(mime) &&
@@ -176,7 +180,7 @@ public class RemotePlayHandler implements HttpHandler {
 			}
 		}
 
-		if (configuration.getWebSubs() && r.getFormat().isVideo()) {
+		if (isVideo && configuration.getWebSubs()) {
 			// only if subs are requested as <track> tags
 			// otherwise we'll transcode them in
 			boolean isFFmpegFontConfig = configuration.isFFmpegFontConfig();
@@ -201,7 +205,7 @@ public class RemotePlayHandler implements HttpHandler {
 			configuration.setFFmpegFontConfig(isFFmpegFontConfig); // return back original fontconfig value
 		}
 
-		return parent.getResources().getTemplate(flowplayer ? "flow.html" : "play.html").execute(vars);
+		return parent.getResources().getTemplate(isImage ? "image.html" :flowplayer ? "flow.html" : "play.html").execute(vars);
 	}
 
 	private boolean transMp4(String mime, DLNAMediaInfo media) {
