@@ -1,13 +1,11 @@
 package net.pms.util;
 
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.text.Collator;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import com.sun.java.swing.plaf.windows.WindowsInternalFrameTitlePane;
 import net.coobird.thumbnailator.Thumbnails;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
@@ -17,7 +15,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.imageio.ImageIO;
 
 public class UMSUtils {
 	private static final Collator collator;
