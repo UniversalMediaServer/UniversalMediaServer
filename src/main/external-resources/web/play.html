@@ -22,12 +22,11 @@ function flash() {window.location.replace('/play/{{id1}}?flash=1');}
 </div>
 
 <div id="VideoContainer">
-{{coverImage}}
-{{#mediaType}}
+	{{coverImage}}
 	<{{mediaType}} id="player" width="{{width}}" height="{{height}}" controls {{auto}}>
 		<source src="/media/{{id1}}" type="{{mime}}">
 {{#sub}}
-		<track kind="subtitles" src="/files/{{sub}}" default>
+		<track kind="subtitles" src="/files/{{this}}" default>
 {{/sub}}
 	</{{mediaType}}>
 	<div>
@@ -39,7 +38,6 @@ function flash() {window.location.replace('/play/{{id1}}?flash=1');}
 	</div>
 </div>
 <a href="/raw/{{id1}}" target="_blank" id="DownloadLink" title="Download this {{mediaType}}"></a>
-{{/mediaType}}
 {{#autocontinue}}
 <script>
 var player = document.getElementById("player");

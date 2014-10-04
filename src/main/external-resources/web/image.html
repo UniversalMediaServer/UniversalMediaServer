@@ -20,9 +20,9 @@ function prev() {window.location.replace('/play/{{id1}}?nxt=prev');}
 
 <div id="VideoContainer">
 {{coverImage}}
-{{#autocontinue}}
-	<script>setTimeout("next();","{{delay}}");</script>
-{{/autocontinue}}
+{{#delay}}
+	<script>setTimeout(next,{{delay}});</script>
+{{/delay}}
 	<div>
 		<button value="<<" onclick="prev()"><<</button>
 		<button value=">>" onclick="next()">>></button>
