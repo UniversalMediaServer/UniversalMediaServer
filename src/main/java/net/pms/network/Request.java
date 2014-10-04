@@ -316,7 +316,10 @@ public class Request extends HTTPResource {
 						if (mediaRenderer.isMediaParserV2()) {
 							dlna.checkThumbnail();
 						}
+						RendererConfiguration old = dlna.getDefaultRenderer();
+						dlna.setDefaultRenderer(mediaRenderer);
 						inputStream = dlna.getThumbnailInputStream();
+						dlna.setDefaultRenderer(old);
 					}
 				} else if (dlna.getMedia() != null && fileName.contains("subtitle0000") && dlna.isCodeValid(dlna)) {
 					// This is a request for a subtitle file
