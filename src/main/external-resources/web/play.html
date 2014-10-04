@@ -11,7 +11,9 @@
 <script>
 function next() {window.location.replace('/play/{{id1}}?nxt=next');}
 function prev() {window.location.replace('/play/{{id1}}?nxt=prev');}
+{{#isVideo}}
 function flash() {window.location.replace('/play/{{id1}}?flash=1');}
+{{/isVideo}}
 </script>
 <div id="Container">
 <div id="Menu">
@@ -31,7 +33,9 @@ function flash() {window.location.replace('/play/{{id1}}?flash=1');}
 	<div>
 		<button value="<<" onclick="prev()"><<</button>
 		<button value=">>" onclick="next()">>></button>
+{{#isVideo}}
 		<button value="flash" onclick="flash()">Flash</button>
+{{/isVideo}}
 	</div>
 </div>
 <a href="/raw/{{id1}}" target="_blank" id="DownloadLink" title="Download this {{mediaType}}"></a>

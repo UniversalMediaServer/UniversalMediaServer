@@ -152,6 +152,8 @@ public class RemotePlayHandler implements HttpHandler {
 		vars.put("coverImage", coverImage);
 		vars.put("autocontinue", configuration.getWebAutoCont(r.getFormat()));
 		boolean isImage = r.getFormat().isImage();
+		boolean isVideo = r.getFormat().isVideo();
+		vars.put("isVideo", isVideo);
 		if (isImage) {
 			// do this like this to simplify the code
 			// skip all player crap since img tag works well
@@ -178,7 +180,7 @@ public class RemotePlayHandler implements HttpHandler {
 			}
 		}
 
-		if (configuration.getWebSubs() && r.getFormat().isVideo()) {
+		if (isVideo && configuration.getWebSubs()) {
 			// only if subs are requested as <track> tags
 			// otherwise we'll transcode them in
 			boolean isFFmpegFontConfig = configuration.isFFmpegFontConfig();
