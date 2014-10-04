@@ -649,6 +649,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getRendererName().toUpperCase().contains("XBOX 360");
 	}
 
+	public boolean isXboxOne() {
+		return getRendererName().replaceAll(" ", "").toUpperCase().contains("XBOXONE");
+	}
+
 	public boolean isXBMC() {
 		return getRendererName().toUpperCase().contains("XBMC");
 	}

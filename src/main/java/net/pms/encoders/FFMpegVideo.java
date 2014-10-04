@@ -301,8 +301,9 @@ public class FFMpegVideo extends Player {
 		final String filename = dlna.getSystemName();
 		final RendererConfiguration renderer = params.mediaRenderer;
 		String customFFmpegOptions = renderer.getCustomFFmpegOptions();
+		boolean xbox1 = renderer.isXboxOne() &&	purpose() == VIDEO_WEBSTREAM_PLAYER;
 
-		if (renderer.isTranscodeToWMV() && !renderer.isXbox360()) { // WMV
+		if (xbox1 || (renderer.isTranscodeToWMV() && !renderer.isXbox360())) { // WMV
 			transcodeOptions.add("-c:v");
 			transcodeOptions.add("wmv2");
 
@@ -411,6 +412,7 @@ public class FFMpegVideo extends Player {
 
 		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
+		boolean xbox1 = params.mediaRenderer.isXboxOne() &&	purpose() == VIDEO_WEBSTREAM_PLAYER;
 
 		if (StringUtils.isNotEmpty(params.mediaRenderer.getMaxVideoBitrate())) {
 			rendererMaxBitrates = getVideoBitrateConfig(params.mediaRenderer.getMaxVideoBitrate());
@@ -451,7 +453,7 @@ public class FFMpegVideo extends Player {
 			 *
 			 * We also apply the correct buffer size in this section.
 			 */
-			if (params.mediaRenderer.isTranscodeToMPEGTSH264AC3() || params.mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
+			if (!xbox1 && (params.mediaRenderer.isTranscodeToMPEGTSH264AC3() || params.mediaRenderer.isTranscodeToMPEGTSH264AAC())) {
 				if (
 					params.mediaRenderer.isH264Level41Limited() &&
 					defaultMaxBitrates[0] > 31250
@@ -510,7 +512,7 @@ public class FFMpegVideo extends Player {
 		}
 		int maximumBitrate = defaultMaxBitrates[0];
 
-		if (!params.mediaRenderer.isTranscodeToMPEGTSH264AC3() && !params.mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
+		if (xbox1 || (!params.mediaRenderer.isTranscodeToMPEGTSH264AC3() && !params.mediaRenderer.isTranscodeToMPEGTSH264AAC())) {
 			// Add MPEG-2 quality settings
 			String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
 			String mpeg2OptionsRenderer = params.mediaRenderer.getCustomFFmpegMPEG2Options();
@@ -770,8 +772,9 @@ public class FFMpegVideo extends Player {
 
 		ac3Remux = false;
 		dtsRemux = false;
+		boolean xbox1 = renderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 
-		if (configuration.isAudioRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && renderer.isTranscodeToAC3()) {
+		if (configuration.isAudioRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && renderer.isTranscodeToAC3() && !xbox1) {
 			// AC-3 remux takes priority
 			ac3Remux = true;
 		} else {
@@ -926,7 +929,7 @@ public class FFMpegVideo extends Player {
 			// Audio bitrate
 			if (!ac3Remux && !dtsRemux && !(type() == Format.AUDIO)) {
 				int channels = 0;
-				if (renderer.isTranscodeToWMV() && !renderer.isXbox360()) {
+				if (xbox1 || (renderer.isTranscodeToWMV() && !renderer.isXbox360())) {
 					channels = 2;
 				} else if (params.aid != null && params.aid.getAudioProperties().getNumberOfChannels() > configuration.getAudioChannelCount()) {
 					channels = configuration.getAudioChannelCount();
