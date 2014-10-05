@@ -1,10 +1,8 @@
 package net.pms.remote;
 
-import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,7 +23,6 @@ import org.slf4j.LoggerFactory;
 
 public class RemoteBrowseHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RemoteBrowseHandler.class);
-	private final static String CRLF = "\r\n";
 	private RemoteWeb parent;
 	private static PmsConfiguration configuration = PMS.getConfiguration();
 
@@ -63,17 +60,17 @@ public class RemoteBrowseHandler implements HttpHandler {
 				sb.setLength(0);
 				// The resource is a folder
 				String p = "/browse/" + idForWeb;
-					if (r.getClass().getName().contains("SearchFolder")) {
-						// search folder add a prompt
-						// NOTE!!!
-						// Yes doing getClass.getname is REALLY BAD, but this
-						// is to make legacy plugins utilize this function as well
-						sb.append("<a href=\"javascript:void(0);\" onclick=\"searchFun('").append(p).append("');\" title=\"").append(name).append("\">");
-					} else {
-						sb.append("<a href=\"/browse/").append(idForWeb).append("\" oncontextmenu=\"searchFun('").append(p).append("');\" title=\"").append(name).append("\">");
-					}
-					sb.append("<span>").append(name).append("</span>");
-					sb.append("</a>");
+				if (r.getClass().getName().contains("SearchFolder")) {
+					// search folder add a prompt
+					// NOTE!!!
+					// Yes doing getClass.getname is REALLY BAD, but this
+					// is to make legacy plugins utilize this function as well
+					sb.append("<a href=\"javascript:void(0);\" onclick=\"searchFun('").append(p).append("');\" title=\"").append(name).append("\">");
+				} else {
+					sb.append("<a href=\"/browse/").append(idForWeb).append("\" oncontextmenu=\"searchFun('").append(p).append("');\" title=\"").append(name).append("\">");
+				}
+				sb.append("<span>").append(name).append("</span>");
+				sb.append("</a>");
 				folders.add(sb.toString());
 				showFolders = true;
 			} else {

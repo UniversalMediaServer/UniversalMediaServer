@@ -1,5 +1,6 @@
 package net.pms.network;
 
+import com.sun.net.httpserver.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -7,35 +8,29 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URLDecoder;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.io.FilenameUtils;
-import com.sun.net.httpserver.Headers;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
-import com.sun.net.httpserver.HttpServer;
-import com.sun.net.httpserver.HttpsServer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.Map;
 import net.pms.PMS;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.remote.RemoteUtil;
 import net.pms.remote.RemoteWeb;
 import net.pms.util.StringUtil;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PlayerControlHandler implements HttpHandler {
-
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlayerControlHandler.class);
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	private int port;
 	private String protocol;
 	private RemoteWeb parent = null;
-	private HashMap<String,UPNPHelper.Player> players;
-	private HashMap<InetAddress,UPNPHelper.Player> selectedPlayers;
+	private HashMap<String, UPNPHelper.Player> players;
+	private HashMap<InetAddress, UPNPHelper.Player> selectedPlayers;
 	private String bumpAddress;
 	private RendererConfiguration defaultRenderer;
 	private String jsonState = "\"state\":{\"playback\":%d,\"mute\":\"%s\",\"volume\":%d,\"position\":\"%s\",\"duration\":\"%s\",\"uri\":\"%s\"}";
@@ -71,13 +66,13 @@ public class PlayerControlHandler implements HttpHandler {
 		}
 
 		String[] p = x.getRequestURI().getPath().split("/");
-		Map<String,String> q = parseQuery(x);
-		
+		Map<String, String> q = parseQuery(x);
+
 		String response = "";
 		String mime = "text/html";
 		boolean log = true;
 		ArrayList<String> json = new ArrayList<>();
-		
+
 		String uuid = p.length > 3 ? p[3] : null;
 		UPNPHelper.Player player = uuid != null ? getPlayer(uuid) : null;
 
@@ -103,7 +98,7 @@ public class PlayerControlHandler implements HttpHandler {
 			} else if (p[2].equals("setvolume")) {
 				player.setVolume(Integer.valueOf(q.get("vol")));
 			} else if (p[2].equals("add")) {
-				player.add(-1, translate(q.get("uri")),q.get("title"), null, false);
+				player.add(-1, translate(q.get("uri")), q.get("title"), null, false);
 			} else if (p[2].equals("remove")) {
 				player.remove(translate(q.get("uri")));
 			} else if (p[2].equals("seturi")) {
@@ -133,7 +128,7 @@ public class PlayerControlHandler implements HttpHandler {
 		}
 
 		if (log) {
-			LOGGER.debug("Received http player control request from " + x.getRemoteAddress().getAddress() + ": "+ x.getRequestURI());
+			LOGGER.debug("Received http player control request from " + x.getRemoteAddress().getAddress() + ": " + x.getRequestURI());
 		}
 
 		Headers headers = x.getResponseHeaders();
@@ -156,7 +151,7 @@ public class PlayerControlHandler implements HttpHandler {
 		UPNPHelper.Player player = players.get(uuid);
 		if (player == null) {
 			try {
-				RendererConfiguration r = (RendererConfiguration)UPNPHelper.getRenderer(uuid);
+				RendererConfiguration r = (RendererConfiguration) UPNPHelper.getRenderer(uuid);
 				player = r.getPlayer();
 				players.put(uuid, player);
 			} catch (Exception e) {
@@ -181,7 +176,7 @@ public class PlayerControlHandler implements HttpHandler {
 				defaultRenderer = player.renderer;
 			}
 		}
-		return (defaultRenderer != null && ! defaultRenderer.isOffline()) ? defaultRenderer : null;
+		return (defaultRenderer != null && !defaultRenderer.isOffline()) ? defaultRenderer : null;
 	}
 
 	public String getRenderers(InetAddress client) {
@@ -198,32 +193,32 @@ public class PlayerControlHandler implements HttpHandler {
 		ArrayList<String> json = new ArrayList();
 		UPNPHelper.Player.Playlist playlist = player.playlist;
 		playlist.validate();
-		UPNPHelper.Player.Playlist.Item selected = (UPNPHelper.Player.Playlist.Item)playlist.getSelectedItem();
+		UPNPHelper.Player.Playlist.Item selected = (UPNPHelper.Player.Playlist.Item) playlist.getSelectedItem();
 		int i;
-		for (i=0; i < playlist.getSize(); i++) {
-			UPNPHelper.Player.Playlist.Item item = (UPNPHelper.Player.Playlist.Item)playlist.getElementAt(i);
+		for (i = 0; i < playlist.getSize(); i++) {
+			UPNPHelper.Player.Playlist.Item item = (UPNPHelper.Player.Playlist.Item) playlist.getElementAt(i);
 			json.add(String.format("[\"%s\",%d,\"%s\"]",
-				item.toString().replace("\"","\\\""), item == selected ? 1 : 0, "$i$" + i));
+				item.toString().replace("\"", "\\\""), item == selected ? 1 : 0, "$i$" + i));
 		}
 		return "\"playlist\":[" + StringUtils.join(json, ",") + "]";
 	}
 
 	public String getBumpJS() {
 		RemoteUtil.ResourceManager resources = parent.getResources();
-		return resources.read("bump/bump.js")
-			+ "\nvar bumpskin = function() {\n"
-			+    resources.read("bump/skin/skin.js")
-			+ "\n}";
+		return resources.read("bump/bump.js") +
+			"\nvar bumpskin = function() {\n" +
+			resources.read("bump/skin/skin.js") +
+			"\n}";
 	}
 
-	public static Map<String,String> parseQuery(HttpExchange x) {
-		Map<String,String> vars = new LinkedHashMap<String,String>();
+	public static Map<String, String> parseQuery(HttpExchange x) {
+		Map<String, String> vars = new LinkedHashMap<String, String>();
 		String raw = x.getRequestURI().getRawQuery();
-		if (! StringUtils.isBlank(raw)) {
+		if (!StringUtils.isBlank(raw)) {
 			try {
 				String[] q = raw.split("&|=");
-				for (int i=0; i < q.length; i+=2) {
-					vars.put(URLDecoder.decode(q[i], "UTF-8"), UPNPHelper.unescape(URLDecoder.decode(q[i+1], "UTF-8")));
+				for (int i = 0; i < q.length; i += 2) {
+					vars.put(URLDecoder.decode(q[i], "UTF-8"), UPNPHelper.unescape(URLDecoder.decode(q[i + 1], "UTF-8")));
 				}
 			} catch (Exception e) {
 				LOGGER.debug("Error parsing query string '" + x.getRequestURI().getQuery() + "' :" + e);

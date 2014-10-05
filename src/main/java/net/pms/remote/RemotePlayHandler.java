@@ -1,11 +1,9 @@
 package net.pms.remote;
 
-import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
@@ -28,7 +26,6 @@ import org.slf4j.LoggerFactory;
 
 public class RemotePlayHandler implements HttpHandler {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RemotePlayHandler.class);
-	private final static String CRLF = "\r\n";
 	private RemoteWeb parent;
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
@@ -60,15 +57,15 @@ public class RemotePlayHandler implements HttpHandler {
 			LOGGER.debug("root not found");
 			throw new IOException("Unknown root");
 		}
-		WebRender renderer = (WebRender)root.getDefaultRenderer();
+		WebRender renderer = (WebRender) root.getDefaultRenderer();
 		renderer.setBrowserInfo(RemoteUtil.getCookie("UMSINFO", t), t.getRequestHeaders().getFirst("User-agent"));
 		//List<DLNAResource> res = root.getDLNAResources(id, false, 0, 0, renderer);
 		DLNAResource r = root.getDLNAResource(id, renderer);
 		if (r == null) {
-			LOGGER.debug("Bad id in web if "+id);
+			LOGGER.debug("Bad id in web if " + id);
 			throw new IOException("Bad Id");
 		}
-		if(!r.isCodeValid(r)) {
+		if (!r.isCodeValid(r)) {
 			LOGGER.debug("coded object with invalid code");
 			throw new IOException("Bad code");
 		}
@@ -77,12 +74,12 @@ public class RemotePlayHandler implements HttpHandler {
 		boolean forceFlash = StringUtils.isNotEmpty(RemoteUtil.getQueryVars(query, "flash"));
 		// next/prev handling
 		String dir = RemoteUtil.getQueryVars(query, "nxt");
-		if(StringUtils.isNotEmpty(dir)) {
+		if (StringUtils.isNotEmpty(dir)) {
 			// if the "nxt" field is set we should calculate the next media
 			// 1st fetch or own index in the child list
 			List<DLNAResource> children = r.getParent().getChildren();
 			int i = children.indexOf(r);
-			DLNAResource n = null;
+			DLNAResource n;
 			int inc;
 			int loopPos;
 			if (dir.equals("next")) {
@@ -139,9 +136,9 @@ public class RemotePlayHandler implements HttpHandler {
 					mime = r.getMedia().getMimeType();
 				}
 			}
-			if (!configuration.getWebFlash() && !forceFlash)  {
-				if(!RemoteUtil.directmime(mime) || RemoteUtil.transMp4(mime, r.getMedia()) || r.isResume()) {
-					WebRender render = (WebRender)r.getDefaultRenderer();
+			if (!configuration.getWebFlash() && !forceFlash) {
+				if (!RemoteUtil.directmime(mime) || RemoteUtil.transMp4(mime, r.getMedia()) || r.isResume()) {
+					WebRender render = (WebRender) r.getDefaultRenderer();
 					mime = render != null ? render.getVideoMimeType() : RemoteUtil.transMime();
 					flowplayer = false;
 				}
@@ -190,7 +187,7 @@ public class RemotePlayHandler implements HttpHandler {
 			OutputParams p = new OutputParams(configuration);
 			p.sid = r.getMediaSubtitle();
 			Player.setAudioAndSubs(r.getName(), r.getMedia(), p);
-			if (p.sid !=null && p.sid.getType().isText()) {
+			if (p.sid != null && p.sid.getType().isText()) {
 				try {
 					File subFile = FFMpegVideo.getSubtitles(r, r.getMedia(), p, configuration, SubtitleType.WEBVTT);
 					LOGGER.debug("subFile " + subFile);
@@ -205,7 +202,7 @@ public class RemotePlayHandler implements HttpHandler {
 			configuration.setFFmpegFontConfig(isFFmpegFontConfig); // return back original fontconfig value
 		}
 
-		return parent.getResources().getTemplate(isImage ? "image.html" :flowplayer ? "flow.html" : "play.html").execute(vars);
+		return parent.getResources().getTemplate(isImage ? "image.html" : flowplayer ? "flow.html" : "play.html").execute(vars);
 	}
 
 	private boolean transMp4(String mime, DLNAMediaInfo media) {
