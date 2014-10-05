@@ -7,7 +7,6 @@ import java.net.InetSocketAddress;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
@@ -37,7 +36,6 @@ public class RemoteWeb {
 	private HashMap<String, RootFolder> roots;
 	private RemoteUtil.ResourceManager resources; 
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
-	private final static String CRLF = "\r\n";
 
 	public RemoteWeb() {
 		this(DEFAULT_PORT);

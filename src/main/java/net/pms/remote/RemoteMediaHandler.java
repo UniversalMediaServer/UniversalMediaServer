@@ -67,7 +67,7 @@ public class RemoteMediaHandler implements HttpHandler {
 			LOGGER.debug("media unkonwn");
 			throw new IOException("Bad id");
 		}
-		if(!dlna.isCodeValid(dlna)) {
+		if (!dlna.isCodeValid(dlna)) {
 			LOGGER.debug("coded object with invalid code");
 			throw new IOException("Bad code");
 		}
@@ -126,7 +126,7 @@ public class RemoteMediaHandler implements HttpHandler {
 		t.sendResponseHeaders(code, 0);
 		OutputStream os = t.getResponseBody();
 		StartStopListenerDelegate startStop = new StartStopListenerDelegate(t.getRemoteAddress().getHostString());
-		if(!dlna.quietPlay()) {
+		if (!dlna.quietPlay()) {
 			PMS.get().getFrame().setStatusLine("Serving " + dlna.getName());
 		}
 		startStop.start(dlna);
