@@ -10,8 +10,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 
-import com.sun.org.apache.bcel.internal.generic.LOOKUPSWITCH;
-import net.coobird.thumbnailator.Thumbnails;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
@@ -193,8 +191,6 @@ public class UMSUtils {
 			return in;
 		}
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		/*Thumbnails.of(in).forceSize(w, h).outputFormat("JPEG").outputQuality(0.85)
-				.toOutputStream(out);*/
 		BufferedImage img1 = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
 		Graphics2D g = img1.createGraphics();
 		if (col != null) {
