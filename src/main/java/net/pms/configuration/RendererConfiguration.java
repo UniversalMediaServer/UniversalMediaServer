@@ -674,6 +674,14 @@ public class RendererConfiguration {
 		return getVideoTranscode().equals(MPEGTSH264AAC);
 	}
 
+	public boolean isTranscodeToH264() {
+		return isTranscodeToMPEGTSH264AAC() || isTranscodeToMPEGTSH264AC3();
+	}
+
+	public boolean isTranscodeToMPEGTS() {
+		return isTranscodeToMPEGTSMPEG2AC3() || isTranscodeToMPEGTSH264AC3() || isTranscodeToMPEGTSH264AAC();
+	}
+
 	public boolean isAutoRotateBasedOnExif() {
 		return getBoolean(AUTO_EXIF_ROTATE, false);
 	}

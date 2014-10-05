@@ -1693,11 +1693,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								// Check if the renderer settings make the current engine always output MPEG-TS
 								if (
 									!isFileMPEGTS &&
+									mediaRenderer.isTranscodeToMPEGTS() &&
 									(
-										mediaRenderer.isTranscodeToMPEGTSMPEG2AC3() ||
-										mediaRenderer.isTranscodeToMPEGTSH264AC3() ||
-										mediaRenderer.isTranscodeToMPEGTSH264AAC()
-									) && (
 										MEncoderVideo.ID.equals(player.id()) ||
 										FFMpegVideo.ID.equals(player.id()) ||
 										VLCVideo.ID.equals(player.id())

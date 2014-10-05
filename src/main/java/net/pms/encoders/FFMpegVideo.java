@@ -341,7 +341,7 @@ public class FFMpegVideo extends Player {
 					transcodeOptions.add("-an");
 				} else if (type() == Format.AUDIO) {
 					// Skip
-				} else if (renderer.isTranscodeToMPEGTSH264AAC()) {
+				} else if (renderer.isTranscodeToAAC()) {
 					transcodeOptions.add("-c:a");
 					transcodeOptions.add("aac");
 
@@ -363,7 +363,7 @@ public class FFMpegVideo extends Player {
 			}
 
 			// Output video codec
-			if (renderer.isTranscodeToMPEGTSH264AC3() || renderer.isTranscodeToMPEGTSH264AAC()) {
+			if (renderer.isTranscodeToH264()) {
 				transcodeOptions.add("-c:v");
 				transcodeOptions.add("libx264");
 				transcodeOptions.add("-preset");
@@ -381,9 +381,9 @@ public class FFMpegVideo extends Player {
 			transcodeOptions.add("-f");
 			if (dtsRemux) {
 				transcodeOptions.add("mpeg2video");
-			} else if (renderer.isTranscodeToMPEGTSMPEG2AC3() || renderer.isTranscodeToMPEGTSH264AC3() || renderer.isTranscodeToMPEGTSH264AAC()) { // MPEGTSMPEG2AC3, MPEGTSH264AC3 or MPEGTSH264AAC
+			} else if (renderer.isTranscodeToMPEGTS()) {
 				transcodeOptions.add("mpegts");
-			} else { // default: MPEGPSMPEG2AC3
+			} else {
 				transcodeOptions.add("vob");
 			}
 		}
@@ -440,7 +440,7 @@ public class FFMpegVideo extends Player {
 			 *
 			 * We also apply the correct buffer size in this section.
 			 */
-			if (!isXboxOneWebVideo && (params.mediaRenderer.isTranscodeToMPEGTSH264AC3() || params.mediaRenderer.isTranscodeToMPEGTSH264AAC())) {
+			if (!isXboxOneWebVideo && params.mediaRenderer.isTranscodeToH264()) {
 				if (
 					params.mediaRenderer.isH264Level41Limited() &&
 					defaultMaxBitrates[0] > 31250
@@ -494,7 +494,7 @@ public class FFMpegVideo extends Player {
 		}
 		int maximumBitrate = defaultMaxBitrates[0];
 
-		if (isXboxOneWebVideo || (!params.mediaRenderer.isTranscodeToMPEGTSH264AC3() && !params.mediaRenderer.isTranscodeToMPEGTSH264AAC())) {
+		if (isXboxOneWebVideo || !params.mediaRenderer.isTranscodeToH264()) {
 			// Add MPEG-2 quality settings
 			String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
 			String mpeg2OptionsRenderer = params.mediaRenderer.getCustomFFmpegMPEG2Options();
@@ -932,7 +932,7 @@ public class FFMpegVideo extends Player {
 
 			if (!customFFmpegOptions.contains("-ab ")) {
 				cmdList.add("-ab");
-				if (renderer.isTranscodeToMPEGTSH264AAC()) {
+				if (renderer.isTranscodeToAAC()) {
 					cmdList.add(Math.min(configuration.getAudioBitrate(), 320) + "k");
 				} else {
 					cmdList.add(String.valueOf(CodecUtil.getAC3Bitrate(configuration, params.aid)) + "k");
@@ -1066,7 +1066,7 @@ public class FFMpegVideo extends Player {
 				pwMux.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
 				String videoType = "V_MPEG-2";
 
-				if (renderer.isTranscodeToMPEGTSH264AC3() || renderer.isTranscodeToMPEGTSH264AAC()) {
+				if (renderer.isTranscodeToH264()) {
 					videoType = "V_MPEG4/ISO/AVC";
 				}
 

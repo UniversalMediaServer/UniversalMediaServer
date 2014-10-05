@@ -730,7 +730,7 @@ public class MEncoderVideo extends Player {
 			 *
 			 * We also apply the correct buffer size in this section.
 			 */
-			if (mediaRenderer.isTranscodeToMPEGTSH264AC3() || mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
+			if (mediaRenderer.isTranscodeToH264()) {
 				if (
 					mediaRenderer.isH264Level41Limited() &&
 					defaultMaxBitrates[0] > 31250
@@ -981,8 +981,8 @@ public class MEncoderVideo extends Player {
 			}
 		}
 
-		mpegts = params.mediaRenderer.isTranscodeToMPEGTSMPEG2AC3();
-		h264ts = params.mediaRenderer.isTranscodeToMPEGTSH264AC3() || params.mediaRenderer.isTranscodeToMPEGTSH264AAC();
+		mpegts = params.mediaRenderer.isTranscodeToMPEGTS();
+		h264ts = params.mediaRenderer.isTranscodeToH264();
 
 		String vcodec = "mpeg2video";
 
