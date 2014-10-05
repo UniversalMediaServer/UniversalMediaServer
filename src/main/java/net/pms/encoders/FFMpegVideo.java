@@ -418,6 +418,8 @@ public class FFMpegVideo extends Player {
 			LOGGER.trace("Using the video bitrate limit from the program settings (" + defaultMaxBitrates[0] + ")");
 		}
 
+		boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
+
 		if (params.mediaRenderer.getCBRVideoBitrate() == 0 && params.timeend == 0) {
 			// Convert value from Mb to Kb
 			defaultMaxBitrates[0] = 1000 * defaultMaxBitrates[0];
@@ -438,7 +440,7 @@ public class FFMpegVideo extends Player {
 			 *
 			 * We also apply the correct buffer size in this section.
 			 */
-			if (params.mediaRenderer.isTranscodeToMPEGTSH264AC3() || params.mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
+			if (!isXboxOneWebVideo && (params.mediaRenderer.isTranscodeToMPEGTSH264AC3() || params.mediaRenderer.isTranscodeToMPEGTSH264AAC())) {
 				if (
 					params.mediaRenderer.isH264Level41Limited() &&
 					defaultMaxBitrates[0] > 31250
@@ -492,7 +494,7 @@ public class FFMpegVideo extends Player {
 		}
 		int maximumBitrate = defaultMaxBitrates[0];
 
-		if (!params.mediaRenderer.isTranscodeToMPEGTSH264AC3() && !params.mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
+		if (isXboxOneWebVideo || (!params.mediaRenderer.isTranscodeToMPEGTSH264AC3() && !params.mediaRenderer.isTranscodeToMPEGTSH264AAC())) {
 			// Add MPEG-2 quality settings
 			String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
 			String mpeg2OptionsRenderer = params.mediaRenderer.getCustomFFmpegMPEG2Options();
@@ -745,11 +747,19 @@ public class FFMpegVideo extends Player {
 		}
 
 		final boolean isTsMuxeRVideoEngineEnabled = configuration.getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
+		final boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 
 		ac3Remux = false;
 		dtsRemux = false;
 
-		if (configuration.isAudioRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && renderer.isTranscodeToAC3()) {
+		if (
+			configuration.isAudioRemuxAC3() &&
+			params.aid != null &&
+			params.aid.isAC3() &&
+			!avisynth() &&
+			renderer.isTranscodeToAC3() &&
+			!isXboxOneWebVideo
+		) {
 			// AC-3 remux takes priority
 			ac3Remux = true;
 		} else {

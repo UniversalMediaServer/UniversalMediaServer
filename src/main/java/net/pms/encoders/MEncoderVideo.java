@@ -1035,6 +1035,7 @@ public class MEncoderVideo extends Player {
 
 		final boolean isTsMuxeRVideoEngineEnabled = configuration.getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
 		final boolean mencoderAC3RemuxAudioDelayBug = (params.aid != null) && (params.aid.getAudioProperties().getAudioDelay() != 0) && (params.timeseek == 0);
+		final boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 
 		encodedAudioPassthrough = isTsMuxeRVideoEngineEnabled &&
 			configuration.isEncodedAudioPassthrough() &&
@@ -1056,7 +1057,8 @@ public class MEncoderVideo extends Player {
 			params.mediaRenderer.isTranscodeToAC3() &&
 			!configuration.isMEncoderNormalizeVolume() &&
 			!combinedCustomOptions.contains("acodec=") &&
-			!encodedAudioPassthrough
+			!encodedAudioPassthrough &&
+			!isXboxOneWebVideo
 		) {
 			ac3Remux = true;
 		} else {
@@ -1258,7 +1260,7 @@ public class MEncoderVideo extends Player {
 			}
 
 			String encodeSettings = "";
-			if (configuration.getMPEG2MainSettings() != null && !h264ts) {
+			if (isXboxOneWebVideo || (configuration.getMPEG2MainSettings() != null && !h264ts)) {
 				// Set MPEG-2 video quality
 				String mpeg2Options = configuration.getMPEG2MainSettings();
 				String mpeg2OptionsRenderer = params.mediaRenderer.getCustomMEncoderMPEG2Options();

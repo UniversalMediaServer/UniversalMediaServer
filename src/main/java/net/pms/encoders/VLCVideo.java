@@ -140,16 +140,14 @@ public class VLCVideo extends Player {
 	 */
 	protected CodecConfig genConfig(RendererConfiguration renderer) {
 		CodecConfig codecConfig = new CodecConfig();
+		boolean isXboxOneWebVideo = renderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 
 		if (
 			(
 				renderer.isTranscodeToWMV() &&
 				!renderer.isXbox360()
 			) ||
-			(
-				renderer.isXboxOne() &&
-				purpose() == VIDEO_WEBSTREAM_PLAYER
-			)
+			isXboxOneWebVideo
 		) {
 			// Assume WMV = Xbox 360 = all media renderers with this flag
 			LOGGER.debug("Using XBox 360 WMV codecs");
@@ -246,9 +244,11 @@ public class VLCVideo extends Player {
 		// Video scaling
 		args.put("scale", "1.0");
 
+		boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
+
 		// Audio Channels
 		int channels = 2;
-		if (params.aid.getAudioProperties().getNumberOfChannels() > 2 && configuration.getAudioChannelCount() == 6) {
+		if (!isXboxOneWebVideo && params.aid.getAudioProperties().getNumberOfChannels() > 2 && configuration.getAudioChannelCount() == 6) {
 			channels = 6;
 		}
 		args.put("channels", channels);
@@ -307,6 +307,8 @@ public class VLCVideo extends Player {
 		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
 
+		boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
+
 		if (StringUtils.isNotEmpty(params.mediaRenderer.getMaxVideoBitrate())) {
 			rendererMaxBitrates = getVideoBitrateConfig(params.mediaRenderer.getMaxVideoBitrate());
 		}
@@ -334,7 +336,7 @@ public class VLCVideo extends Player {
 			 *
 			 * We also apply the correct buffer size in this section.
 			 */
-			if (params.mediaRenderer.isTranscodeToMPEGTSH264AC3() || params.mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
+			if (!isXboxOneWebVideo && (params.mediaRenderer.isTranscodeToMPEGTSH264AC3() || params.mediaRenderer.isTranscodeToMPEGTSH264AAC())) {
 				if (
 					params.mediaRenderer.isH264Level41Limited() &&
 					defaultMaxBitrates[0] > 31250
@@ -381,7 +383,7 @@ public class VLCVideo extends Player {
 			videoBitrateOptions.add(String.valueOf(defaultMaxBitrates[0]));
 		}
 
-		if (!params.mediaRenderer.isTranscodeToMPEGTSH264AC3() && !params.mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
+		if (isXboxOneWebVideo || (!params.mediaRenderer.isTranscodeToMPEGTSH264AC3() && !params.mediaRenderer.isTranscodeToMPEGTSH264AAC())) {
 			// Add MPEG-2 quality settings
 			String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
 			String mpeg2OptionsRenderer = params.mediaRenderer.getCustomFFmpegMPEG2Options();
