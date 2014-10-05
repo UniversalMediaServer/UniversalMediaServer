@@ -721,6 +721,7 @@ public class MEncoderVideo extends Player {
 
 			int bufSize = 1835;
 			boolean bitrateLevel41Limited = false;
+			boolean isXboxOneWebVideo = mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 
 			/**
 			 * Although the maximum bitrate for H.264 Level 4.1 is
@@ -730,7 +731,7 @@ public class MEncoderVideo extends Player {
 			 *
 			 * We also apply the correct buffer size in this section.
 			 */
-			if (mediaRenderer.isTranscodeToH264()) {
+			if (mediaRenderer.isTranscodeToH264() && !isXboxOneWebVideo) {
 				if (
 					mediaRenderer.isH264Level41Limited() &&
 					defaultMaxBitrates[0] > 31250
