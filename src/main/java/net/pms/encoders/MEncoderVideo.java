@@ -114,8 +114,8 @@ public class MEncoderVideo extends Player {
 	protected boolean pcm;
 	protected boolean ovccopy;
 	protected boolean ac3Remux;
-	protected boolean mpegts;
-	protected boolean h264ts;
+	protected boolean isTranscodeToMPEGTS;
+	protected boolean isTranscodeToH264;
 	protected boolean wmv;
 
 	public static final String DEFAULT_CODEC_CONF_SCRIPT =
@@ -554,7 +554,7 @@ public class MEncoderVideo extends Player {
 		}
 
 		defaultArgsList.add("-of");
-		if (wmv || mpegts || h264ts) {
+		if (wmv || isTranscodeToMPEGTS) {
 			defaultArgsList.add("lavf");
 		} else if (pcm && avisynth()) {
 			defaultArgsList.add("avi");
@@ -567,7 +567,7 @@ public class MEncoderVideo extends Player {
 		if (wmv) {
 			defaultArgsList.add("-lavfopts");
 			defaultArgsList.add("format=asf");
-		} else if (mpegts || h264ts) {
+		} else if (isTranscodeToMPEGTS) {
 			defaultArgsList.add("-lavfopts");
 			defaultArgsList.add("format=mpegts");
 		}
@@ -981,12 +981,12 @@ public class MEncoderVideo extends Player {
 			}
 		}
 
-		mpegts = params.mediaRenderer.isTranscodeToMPEGTS();
-		h264ts = params.mediaRenderer.isTranscodeToH264();
+		isTranscodeToMPEGTS = params.mediaRenderer.isTranscodeToMPEGTS();
+		isTranscodeToH264   = params.mediaRenderer.isTranscodeToH264();
 
 		String vcodec = "mpeg2video";
 
-		if (h264ts) {
+		if (isTranscodeToH264) {
 			vcodec = "libx264";
 		} else if (
 			(
@@ -1194,8 +1194,8 @@ public class MEncoderVideo extends Player {
 		}
 
 		if (
-			(configuration.getx264ConstantRateFactor() != null && h264ts) ||
-			(configuration.getMPEG2MainSettings() != null && !h264ts)
+			(configuration.getx264ConstantRateFactor() != null && isTranscodeToH264) ||
+			(configuration.getMPEG2MainSettings() != null && !isTranscodeToH264)
 		) {
 			// Ditlew - WDTV Live (+ other byte asking clients), CBR. This probably ought to be placed in addMaximumBitrateConstraints(..)
 			int cbr_bitrate = params.mediaRenderer.getCBRVideoBitrate();
@@ -1260,7 +1260,7 @@ public class MEncoderVideo extends Player {
 			}
 
 			String encodeSettings = "";
-			if (isXboxOneWebVideo || (configuration.getMPEG2MainSettings() != null && !h264ts)) {
+			if (isXboxOneWebVideo || (configuration.getMPEG2MainSettings() != null && !isTranscodeToH264)) {
 				// Set MPEG-2 video quality
 				String mpeg2Options = configuration.getMPEG2MainSettings();
 				String mpeg2OptionsRenderer = params.mediaRenderer.getCustomMEncoderMPEG2Options();
@@ -1299,7 +1299,7 @@ public class MEncoderVideo extends Player {
 					("".equals(mpeg2Options) ? "" : ":" + mpeg2Options);
 
 				encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, mpeg2Options, params.mediaRenderer, audioType);
-			} else if (configuration.getx264ConstantRateFactor() != null && h264ts) {
+			} else if (configuration.getx264ConstantRateFactor() != null && isTranscodeToH264) {
 				// Set H.264 video quality
 				String x264CRF = configuration.getx264ConstantRateFactor();
 
