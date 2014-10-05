@@ -9,8 +9,13 @@
 </head>
 <body id="ContentPage">
 <script>
-function next() {window.location.replace('/play/{{id1}}?nxt=next');}
-function prev() {window.location.replace('/play/{{id1}}?nxt=prev');}
+{{#prevId}}
+function prev() {window.location.replace('/play/{{prevId}}');}
+{{/prevId}}
+{{#nextId}}
+function next() {window.location.replace('/play/{{nextId}}');}
+document.getElementById('player').addEventListener('ended', next);
+{{/nextId}}
 {{#isVideo}}
 function flash() {window.location.replace('/play/{{id1}}?flash=1');}
 {{/isVideo}}
@@ -29,21 +34,15 @@ function flash() {window.location.replace('/play/{{id1}}?flash=1');}
 		<track kind="subtitles" src="/files/{{this}}" default>
 {{/sub}}
 	</{{mediaType}}>
-	<div>
-		<button value="<<" onclick="prev()"><<</button>
-		<button value=">>" onclick="next()">>></button>
+	<div id="toolbar">
+		<button id="prev" onclick="prev()"{{prevAttr}}><<</button>
+		<button id="next" onclick="next()"{{nextAttr}}>>></button>
 {{#isVideo}}
-		<button value="flash" onclick="flash()">Flash</button>
+		<button id="flash" onclick="flash()" title="Switch to flash player">Flash</button>
 {{/isVideo}}
 	</div>
 </div>
 <a href="/raw/{{id1}}" target="_blank" id="DownloadLink" title="Download this {{mediaType}}"></a>
-{{#autocontinue}}
-<script>
-var player = document.getElementById("player");
-player.addEventListener("ended", next);
-</script>
-{{/autocontinue}}
 </div>
 </body>
 </html>

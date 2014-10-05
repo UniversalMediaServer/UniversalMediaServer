@@ -9,8 +9,15 @@
 </head>
 <body id="ContentPage">
 <script>
-function next() {window.location.replace('/play/{{id1}}?nxt=next');}
-function prev() {window.location.replace('/play/{{id1}}?nxt=prev');}
+{{#prevId}}
+function prev() {window.location.replace('/play/{{prevId}}');}
+{{/prevId}}
+{{#nextId}}
+function next() {window.location.replace('/play/{{nextId}}');}
+{{#delay}}
+setTimeout(next,{{delay}});
+{{/delay}}
+{{/nextId}}
 </script>
 <div id="Container">
 <div id="Menu">
@@ -20,12 +27,9 @@ function prev() {window.location.replace('/play/{{id1}}?nxt=prev');}
 
 <div id="VideoContainer">
 {{coverImage}}
-{{#delay}}
-	<script>setTimeout(next,{{delay}});</script>
-{{/delay}}
-	<div>
-		<button value="<<" onclick="prev()"><<</button>
-		<button value=">>" onclick="next()">>></button>
+	<div id="toolbar">
+		<button id="prev" onclick="prev()"{{prevAttr}}><<</button>
+		<button id="next" onclick="next()"{{nextAttr}}>>></button>
 	</div>
 </div>
 </div>
