@@ -647,14 +647,6 @@ public class RendererConfiguration {
 		return getVideoTranscode().equals(WMV);
 	}
 
-	public boolean isTranscodeToAC3() {
-		return isTranscodeToMPEGPSMPEG2AC3() || isTranscodeToMPEGTSMPEG2AC3() || isTranscodeToMPEGTSH264AC3();
-	}
-
-	public boolean isTranscodeToAAC() {
-		return isTranscodeToMPEGTSH264AAC();
-	}
-
 	public boolean isTranscodeToMPEGPSMPEG2AC3() {
 		String videoTranscode = getVideoTranscode();
 		return videoTranscode.equals(MPEGPSMPEG2AC3) || videoTranscode.equals(DEPRECATED_MPEGAC3) || videoTranscode.equals(DEPRECATED_MPEGPSAC3);
@@ -674,10 +666,30 @@ public class RendererConfiguration {
 		return getVideoTranscode().equals(MPEGTSH264AAC);
 	}
 
+	/**
+	 * @return whether to use the AC-3 audio codec for transcoded video
+	 */
+	public boolean isTranscodeToAC3() {
+		return isTranscodeToMPEGPSMPEG2AC3() || isTranscodeToMPEGTSMPEG2AC3() || isTranscodeToMPEGTSH264AC3();
+	}
+
+	/**
+	 * @return whether to use the AAC audio codec for transcoded video
+	 */
+	public boolean isTranscodeToAAC() {
+		return isTranscodeToMPEGTSH264AAC();
+	}
+
+	/**
+	 * @return whether to use the H.264 video codec for transcoded video
+	 */
 	public boolean isTranscodeToH264() {
 		return isTranscodeToMPEGTSH264AAC() || isTranscodeToMPEGTSH264AC3();
 	}
 
+	/**
+	 * @return whether to use the MPEG-TS container for transcoded video
+	 */
 	public boolean isTranscodeToMPEGTS() {
 		return isTranscodeToMPEGTSMPEG2AC3() || isTranscodeToMPEGTSH264AC3() || isTranscodeToMPEGTSH264AAC();
 	}
