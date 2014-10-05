@@ -1,11 +1,16 @@
 package net.pms.util;
 
+import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
+import java.lang.reflect.Field;
 import java.text.Collator;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.List;
 
+import com.sun.org.apache.bcel.internal.generic.LOOKUPSWITCH;
 import net.coobird.thumbnailator.Thumbnails;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
@@ -14,6 +19,8 @@ import net.pms.dlna.DLNAResource;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.imageio.ImageIO;
 
 
 public class UMSUtils {
@@ -151,20 +158,52 @@ public class UMSUtils {
 	}
 
 	public static InputStream scaleThumb(InputStream in, RendererConfiguration r) throws IOException {
+		if (in == null) {
+			return in;
+		}
 		String ts = r.getThumbSize();
-		if (in != null && StringUtils.isNotEmpty(ts)) {
+		if (StringUtils.isEmpty(ts) && StringUtils.isEmpty(r.getThumbBG())) {
+			// no need to convert here
+			return in;
+		}
+		int w;
+		int h;
+		Color col = null;
+		BufferedImage img = ImageIO.read(in);
+		w = img.getWidth();
+		h = img.getHeight();
+		if (StringUtils.isNotEmpty(r.getThumbSize())) {
 			// size limit thumbnail
-			int w = getHW(ts.split("x"), 0);
-			int h = getHW(ts.split("x"), 1);
+			w = getHW(ts.split("x"), 0);
+			h = getHW(ts.split("x"), 1);
 			if (w == 0 || h == 0) {
 				LOGGER.debug("bad thumb size {} skip scaling", ts);
-				return in;
+				w = h = 0; // just to make sure
 			}
-			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			Thumbnails.of(in).forceSize(w, h).outputFormat("JPEG").outputQuality(0.85)
-					.toOutputStream(out);
-			return new ByteArrayInputStream(out.toByteArray());
 		}
-		return in;
+		if (StringUtils.isNotEmpty(r.getThumbBG())) {
+			try {
+				Field field = Color.class.getField(r.getThumbBG());
+				col = (Color)field.get(null);
+			} catch (Exception e) {
+				LOGGER.debug("bad color name " + r.getThumbBG());
+			}
+		}
+		if (w == 0 && h == 0 && col == null) {
+			return in;
+		}
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		/*Thumbnails.of(in).forceSize(w, h).outputFormat("JPEG").outputQuality(0.85)
+				.toOutputStream(out);*/
+		BufferedImage img1 = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+		Graphics2D g = img1.createGraphics();
+		if (col != null) {
+			g.setColor(col);
+		}
+		g.fillRect(0, 0, w, h);
+		g.drawImage(img, 0, 0, w, h, null);
+		ImageIO.write(img1, "jpeg", out);
+		out.flush();
+		return new ByteArrayInputStream(out.toByteArray());
 	}
 }
