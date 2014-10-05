@@ -984,8 +984,9 @@ public class MEncoderVideo extends Player {
 		isTranscodeToMPEGTS = params.mediaRenderer.isTranscodeToMPEGTS();
 		isTranscodeToH264   = params.mediaRenderer.isTranscodeToH264();
 
-		String vcodec = "mpeg2video";
+		final boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 
+		String vcodec = "mpeg2video";
 		if (isTranscodeToH264) {
 			vcodec = "libx264";
 		} else if (
@@ -993,10 +994,7 @@ public class MEncoderVideo extends Player {
 				params.mediaRenderer.isTranscodeToWMV() &&
 				!params.mediaRenderer.isXbox360()
 			) ||
-			(
-				params.mediaRenderer.isXboxOne() &&
-				purpose() == VIDEO_WEBSTREAM_PLAYER
-			)
+			isXboxOneWebVideo
 		) {
 			wmv = true;
 			vcodec = "wmv2";
@@ -1035,7 +1033,6 @@ public class MEncoderVideo extends Player {
 
 		final boolean isTsMuxeRVideoEngineEnabled = configuration.getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
 		final boolean mencoderAC3RemuxAudioDelayBug = (params.aid != null) && (params.aid.getAudioProperties().getAudioDelay() != 0) && (params.timeseek == 0);
-		final boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 
 		encodedAudioPassthrough = isTsMuxeRVideoEngineEnabled &&
 			configuration.isEncodedAudioPassthrough() &&
