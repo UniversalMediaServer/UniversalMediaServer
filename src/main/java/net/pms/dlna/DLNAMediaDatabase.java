@@ -61,6 +61,12 @@ public class DLNAMediaDatabase implements Runnable {
 	private JdbcConnectionPool cp;
 	private int dbCount;
 
+	/**
+	 * The database version should be incremented when we change anything to
+	 * do with the database.
+	 */
+	private final String latestVersion = "1";
+
 	// Database column sizes
 	private final int SIZE_CODECV = 32;
 	private final int SIZE_FRAMERATE = 32;
@@ -177,7 +183,9 @@ public class DLNAMediaDatabase implements Runnable {
 			close(stmt);
 			close(conn);
 		}
-		boolean force_reinit = !PMS.getVersion().equals(version); // here we can force a deletion for a specific version
+
+		// Recreate database if it is not the latest version.
+		boolean force_reinit = !latestVersion.equals(version);
 		if (force || dbCount == -1 || force_reinit) {
 			LOGGER.debug("Database will be (re)initialized");
 			try {
@@ -255,7 +263,7 @@ public class DLNAMediaDatabase implements Runnable {
 
 				executeUpdate(conn, sb.toString());
 				executeUpdate(conn, "CREATE TABLE METADATA (KEY VARCHAR2(255) NOT NULL, VALUE VARCHAR2(255) NOT NULL)");
-				executeUpdate(conn, "INSERT INTO METADATA VALUES ('VERSION', '" + PMS.getVersion() + "')");
+				executeUpdate(conn, "INSERT INTO METADATA VALUES ('VERSION', '" + latestVersion + "')");
 				executeUpdate(conn, "CREATE INDEX IDXARTIST on AUDIOTRACKS (ARTIST asc);");
 				executeUpdate(conn, "CREATE INDEX IDXALBUM on AUDIOTRACKS (ALBUM asc);");
 				executeUpdate(conn, "CREATE INDEX IDXGENRE on AUDIOTRACKS (GENRE asc);");
@@ -280,7 +288,7 @@ public class DLNAMediaDatabase implements Runnable {
 			}
 		} else {
 			LOGGER.debug("Database file count: " + dbCount);
-			LOGGER.debug("Database version: " + version);
+			LOGGER.debug("Database version: " + latestVersion);
 		}
 	}
 
