@@ -25,6 +25,7 @@ body#ContentPage {
 
 #ContentPage #Container {
 	position: relative;
+	overflow-x: hidden;
 }
 
 #FrontPage #Menu {
