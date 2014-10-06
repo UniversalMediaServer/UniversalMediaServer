@@ -134,7 +134,7 @@ public class RemotePlayHandler implements HttpHandler {
 		vars.put("name", name);
 		vars.put("id1", id1);
 		vars.put("coverImage", coverImage);
-		vars.put("autocontinue", configuration.getWebAutoCont(r.getFormat()));
+		vars.put("autoContinue", configuration.getWebAutoCont(r.getFormat()));
 		addNextByType(r, vars);
 		if (isImage) {
 			// do this like this to simplify the code
