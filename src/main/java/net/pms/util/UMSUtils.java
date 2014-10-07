@@ -168,6 +168,9 @@ public class UMSUtils {
 		int h;
 		Color col = null;
 		BufferedImage img = ImageIO.read(in);
+		if (img == null) {
+			return in;
+		}
 		w = img.getWidth();
 		h = img.getHeight();
 		if (StringUtils.isNotEmpty(r.getThumbSize())) {
