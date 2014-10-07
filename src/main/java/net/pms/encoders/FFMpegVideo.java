@@ -271,11 +271,12 @@ public class FFMpegVideo extends Player {
 		}
 
 		// Convert 3D video to the other output 3D format
-		if (is3D &&
-				(media.get3DLayout() != null) &&
-				isNotBlank(params.mediaRenderer.getOutput3DFormat()) &&
-				!media.get3DLayout().toString().toLowerCase().equals(params.mediaRenderer.getOutput3DFormat().trim()))
-		{
+		if (
+			is3D &&
+			(media.get3DLayout() != null) &&
+			isNotBlank(params.mediaRenderer.getOutput3DFormat()) &&
+			!media.get3DLayout().toString().toLowerCase().equals(params.mediaRenderer.getOutput3DFormat().trim())
+		) {
 			filterChain.add("stereo3d=" + media.get3DLayout().toString().toLowerCase() + ":" + params.mediaRenderer.getOutput3DFormat().trim().toLowerCase());
 		}
 
