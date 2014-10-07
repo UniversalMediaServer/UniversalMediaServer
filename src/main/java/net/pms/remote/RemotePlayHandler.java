@@ -33,17 +33,32 @@ public class RemotePlayHandler implements HttpHandler {
 		this.parent = parent;
 	}
 
-	private DLNAResource findNext(int start, int inc, List<DLNAResource> list) {
-		int nxtPos = start;
-		while ((nxtPos < list.size()) && (nxtPos >= 0)) {
-			// if we're not last/first in list just pick next/prev from child list
-			DLNAResource n = list.get(nxtPos);
-			if (!n.isFolder()) {
-				return n;
+	private void addNextByType(DLNAResource d, HashMap<String, Object> vars) {
+		List<DLNAResource> children = d.getParent().getChildren();
+		boolean looping = configuration.getWebAutoLoop(d.getFormat());
+		int type = d.getType();
+		int size = children.size();
+		int mod = looping ? size : 9999;
+		int self = children.indexOf(d);
+		for (int step = -1; step < 2; step += 2) {
+			int i = self;
+			int offset = (step < 0 && looping) ? size : 0;
+			DLNAResource next = null;
+			while (true) {
+				i = (offset + i + step) % mod;
+				if (i >= size || i < 0 || i == self) {
+					break; // Not found
+				}
+				next = children.get(i);
+				if (next.getType() == type && ! next.isFolder()) {
+					break; // Found
+				}
+				next = null;
 			}
-			nxtPos += inc;
+			String pos = step > 0 ? "next" : "prev";
+			vars.put(pos + "Id", next != null ? next.getResourceId() : null);
+			vars.put(pos + "Attr", next != null ?(" title=\"" + StringEscapeUtils.escapeHtml(next.resumeName()) + "\"") : " disabled");
 		}
-		return null;
 	}
 
 	private String mkPage(String id, HttpExchange t) throws IOException {
@@ -72,37 +87,6 @@ public class RemotePlayHandler implements HttpHandler {
 		String auto = "autoplay";
 		String query = t.getRequestURI().getQuery();
 		boolean forceFlash = StringUtils.isNotEmpty(RemoteUtil.getQueryVars(query, "flash"));
-		// next/prev handling
-		String dir = RemoteUtil.getQueryVars(query, "nxt");
-		if (StringUtils.isNotEmpty(dir)) {
-			// if the "nxt" field is set we should calculate the next media
-			// 1st fetch or own index in the child list
-			List<DLNAResource> children = r.getParent().getChildren();
-			int i = children.indexOf(r);
-			DLNAResource n;
-			int inc;
-			int loopPos;
-			if (dir.equals("next")) {
-				inc = 1;
-				loopPos = 0;
-			} else {
-				inc = -1;
-				loopPos = children.size() - 1;
-			}
-			n = findNext(i + inc, inc, children);
-			if (n == null && configuration.getWebAutoLoop(r.getFormat())) {
-				// we were last/first so if we loop pick first/last in list
-				n = findNext(loopPos, inc, children);
-			}
-			if (n != null) {
-				// all done, change the id
-				id = n.getResourceId();
-				r = n;
-			} else {
-				// trick here to stop continuing if loop is off
-				auto = "";
-			}
-		}
 		String id1 = URLEncoder.encode(id, "UTF-8");
 		String rawId = id;
 
@@ -144,13 +128,14 @@ public class RemotePlayHandler implements HttpHandler {
 				}
 			}
 		}
-		vars.put("name", name);
-		vars.put("id1", id1);
-		vars.put("coverImage", coverImage);
-		vars.put("autocontinue", configuration.getWebAutoCont(r.getFormat()));
 		boolean isImage = r.getFormat().isImage();
 		boolean isVideo = r.getFormat().isVideo();
 		vars.put("isVideo", isVideo);
+		vars.put("name", name);
+		vars.put("id1", id1);
+		vars.put("coverImage", coverImage);
+		vars.put("autoContinue", configuration.getWebAutoCont(r.getFormat()));
+		addNextByType(r, vars);
 		if (isImage) {
 			// do this like this to simplify the code
 			// skip all player crap since img tag works well

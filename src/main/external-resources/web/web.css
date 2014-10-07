@@ -248,6 +248,10 @@ form#SearchForm {
 	text-decoration: none !important;
 }
 
+.noHzScroll {
+	overflow-x: hidden;
+}
+
 ::cue {
 	color: #fff;
 	background: transparent;

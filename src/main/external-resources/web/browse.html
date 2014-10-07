@@ -18,7 +18,7 @@ if ((' '+document.cookie).indexOf(' UMSINFO=')==-1) {document.cookie='UMSINFO=pl
 <title>{{serverName}}</title>
 </head>
 <body id="ContentPage">
-<div id="Container">
+<div id="Container" class="noHzScroll">
 <div id="Menu">
 <a href="/browse/0" id="HomeButton"></a>
 {{#hasFile}}
@@ -39,7 +39,7 @@ if ((' '+document.cookie).indexOf(' UMSINFO=')==-1) {document.cookie='UMSINFO=pl
 </div>
 
 {{#hasFile}}
-<ul id="Media">
+<ul id="Media"{{noFoldersCSS}}>
 {{#media}}
 <li>
 	{{thumb}}
