@@ -303,10 +303,10 @@ public class LibMediaInfoParser {
 					} else if (upperCaseFileName.startsWith("3DA")) {
 						LOGGER.debug("3D format Anaglyph detected for " + file.getName());
 						media.setStereoscopy(file.getName().substring(2, 6));
-					} else if (upperCaseFileName.matches(".*(H-|H|HALF-|HALF.)SBS[\\s\\.].*")) {
+					} else if (upperCaseFileName.matches(".*[\\s\\.](H-|H|HALF-|HALF.)SBS[\\s\\.].*")) {
 						LOGGER.debug("3D format HSBS detected for " + file.getName());
 						media.setStereoscopy("half side by side (left eye first)");
-					} else if (upperCaseFileName.matches(".*(H-|H|HALF-|HALF.)(OU|TB)[\\s\\.].*")) {
+					} else if (upperCaseFileName.matches(".*[\\s\\.](H-|H|HALF-|HALF.)(OU|TB)[\\s\\.].*")) {
 						LOGGER.debug("3D format HOU detected for " + file.getName());
 						media.setStereoscopy("half top-bottom (left eye first)");
 					} else if (upperCaseFileName.matches(".*[\\s\\.]SBS[\\s\\.].*")) {
