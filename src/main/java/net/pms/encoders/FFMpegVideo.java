@@ -149,14 +149,19 @@ public class FFMpegVideo extends Player {
 		}
 
 		boolean is3D = media.is3d() && !media.stereoscopyIsAnaglyph();
+
 		// Make sure the aspect ratio is 16/9 if the renderer needs it.
 		boolean keepAR = renderer.isKeepAspectRatio() &&
-				!is3D &&
+				!media.is3dFullSbsOrOu() &&
 				!"16:9".equals(media.getAspectRatioContainer());
 
 		// Scale and pad the video if necessary
 		if (isResolutionTooHighForRenderer || (!renderer.isRescaleByRenderer() && renderer.isMaximumResolutionSpecified() && media.getWidth() < 720)) { // Do not rescale for SD video and higher
-			scalePadFilterChain.add(String.format("scale=iw*min(%1$d/iw\\,%2$d/ih):ih*min(%1$d/iw\\,%2$d/ih)", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
+			if (media.is3dFullSbsOrOu()) {
+				scalePadFilterChain.add(String.format("scale=%1$d:%2$d", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
+			} else {
+				scalePadFilterChain.add(String.format("scale=iw*min(%1$d/iw\\,%2$d/ih):ih*min(%1$d/iw\\,%2$d/ih)", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
+			}
 			if (keepAR) {
 				scalePadFilterChain.add(String.format("pad=%1$d:%2$d:(%1$d-iw)/2:(%2$d-ih)/2", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
 			}

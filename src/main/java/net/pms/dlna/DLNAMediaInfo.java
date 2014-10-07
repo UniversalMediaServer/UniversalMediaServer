@@ -2229,6 +2229,30 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
+	 * The significance of this is that the aspect ratio should not be kept
+	 * in this case when transcoding.
+	 * Example: 3840x1080 should be resized to 1920x1080, not 1920x540.
+	 *
+	 * @return whether the video track is full SBS or OU 3D
+	 */
+	public boolean is3dFullSbsOrOu() {
+		switch (stereoscopy) {
+			case "overunderrt":
+			case "OULF":
+			case "OURF":
+			case "SBSLF":
+			case "SBSRF":
+			case "top-bottom (left eye first)":
+			case "top-bottom (right eye first)":
+			case "side by side (left eye first)":
+			case "side by side (right eye first)":
+				return true;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Note: This is based on a flag in Matroska files, and as such it is
 	 * unreliable; it will be unlikely to find a false-positive but there
 	 * will be false-negatives, similar to language flags.
