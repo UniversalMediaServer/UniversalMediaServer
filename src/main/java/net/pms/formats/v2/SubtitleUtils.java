@@ -139,6 +139,9 @@ public class SubtitleUtils {
 		File outputSubs = new File(FilenameUtils.getFullPath(tempSubs.getPath()), FilenameUtils.getBaseName(tempSubs.getName()) + "_3D.ass");
 		StringBuilder outputString = new StringBuilder();
 		String subsFileCharset = FileUtil.getFileCharset(tempSubs);
+		if (subsFileCharset == null) {
+			subsFileCharset = CHARSET_UTF_8;
+		}
 		BufferedWriter output;
 		Mode3D mode3D = media.get3DLayout();
 		if (mode3D == null) {
