@@ -273,7 +273,7 @@ public class FFMpegVideo extends Player {
 		// Convert 3D video to the other output 3D format
 		if (
 			is3D &&
-			(media.get3DLayout() != null) &&
+			media.get3DLayout() != null &&
 			isNotBlank(params.mediaRenderer.getOutput3DFormat()) &&
 			!media.get3DLayout().toString().toLowerCase().equals(params.mediaRenderer.getOutput3DFormat().trim())
 		) {
