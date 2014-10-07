@@ -293,22 +293,23 @@ public class LibMediaInfoParser {
 				 * Next we check for common naming conventions.
 				 */
 				if (!media.is3d()) {
-					if (file.getName().startsWith("3DSBS")) {
+					String upperCaseFileName = file.getName().toUpperCase();
+					if (upperCaseFileName.startsWith("3DSBS")) {
 						LOGGER.debug("3D format SBS detected for " + file.getName());
 						media.setStereoscopy(file.getName().substring(2, 7));
-					} else if (file.getName().startsWith("3DOU")) {
+					} else if (upperCaseFileName.startsWith("3DOU")) {
 						LOGGER.debug("3D format OU detected for " + file.getName());
 						media.setStereoscopy(file.getName().substring(2, 6));
-					} else if (file.getName().startsWith("3DA")) {
+					} else if (upperCaseFileName.startsWith("3DA")) {
 						LOGGER.debug("3D format Anaglyph detected for " + file.getName());
 						media.setStereoscopy(file.getName().substring(2, 6));
-					} else if (file.getName().matches(".*(H-|H|Half-|Half.)SBS[\\s\\.].*")) {
+					} else if (upperCaseFileName.matches(".*(H-|H|HALF-|HALF.)SBS[\\s\\.].*")) {
 						LOGGER.debug("3D format HSBS detected for " + file.getName());
 						media.setStereoscopy("half side by side (left eye first)");
-					} else if (file.getName().matches(".*(H-|H|Half-|Half.)(OU|TB)[\\s\\.].*")) {
+					} else if (upperCaseFileName.matches(".*(H-|H|HALF-|HALF.)(OU|TB)[\\s\\.].*")) {
 						LOGGER.debug("3D format HOU detected for " + file.getName());
 						media.setStereoscopy("half top-bottom (left eye first)");
-					} else if (file.getName().matches(".*[\\s\\.]SBS[\\s\\.].*")) {
+					} else if (upperCaseFileName.matches(".*[\\s\\.]SBS[\\s\\.].*")) {
 						if (media.getWidth() > 1920) {
 							LOGGER.debug("3D format SBS detected for " + file.getName());
 							media.setStereoscopy("side by side (left eye first)");
@@ -316,7 +317,7 @@ public class LibMediaInfoParser {
 							LOGGER.debug("3D format HSBS detected based on width for " + file.getName());
 							media.setStereoscopy("half side by side (left eye first)");
 						}
-					} else if (file.getName().matches(".*[\\s\\.](OU|TB)[\\s\\.].*")) {
+					} else if (upperCaseFileName.matches(".*[\\s\\.](OU|TB)[\\s\\.].*")) {
 						if (media.getHeight() > 1080) {
 							LOGGER.debug("3D format OU detected for " + file.getName());
 							media.setStereoscopy("top-bottom (left eye first)");
