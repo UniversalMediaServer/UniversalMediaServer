@@ -309,11 +309,21 @@ public class LibMediaInfoParser {
 						LOGGER.debug("3D format HOU detected for " + file.getName());
 						media.setStereoscopy("half top-bottom (left eye first)");
 					} else if (file.getName().matches(".*[\\s\\.]SBS[\\s\\.].*")) {
-						LOGGER.debug("3D format SBS detected for " + file.getName());
-						media.setStereoscopy("side by side (left eye first)");
+						if (media.getWidth() > 1920) {
+							LOGGER.debug("3D format SBS detected for " + file.getName());
+							media.setStereoscopy("side by side (left eye first)");
+						} else {
+							LOGGER.debug("3D format HSBS detected based on width for " + file.getName());
+							media.setStereoscopy("half side by side (left eye first)");
+						}
 					} else if (file.getName().matches(".*[\\s\\.](OU|TB)[\\s\\.].*")) {
-						LOGGER.debug("3D format OU detected for " + file.getName());
-						media.setStereoscopy("top-bottom (left eye first)");
+						if (media.getHeight() > 1080) {
+							LOGGER.debug("3D format OU detected for " + file.getName());
+							media.setStereoscopy("top-bottom (left eye first)");
+						} else {
+							LOGGER.debug("3D format HOU detected based on height for " + file.getName());
+							media.setStereoscopy("half top-bottom (left eye first)");
+						}
 					}
 				}
 
