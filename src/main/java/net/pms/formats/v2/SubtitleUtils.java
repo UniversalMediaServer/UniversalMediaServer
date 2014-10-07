@@ -148,7 +148,7 @@ public class SubtitleUtils {
 
 		int playResX;
 		int playResY;
-		if (mode3D == Mode3D.ABL || mode3D == Mode3D.ABR) {
+		if (mode3D == Mode3D.OUL || mode3D == Mode3D.OUR) {
 			playResX = media.getWidth();
 			playResY = media.getHeight() / 2;
 		} else {
@@ -208,7 +208,7 @@ public class SubtitleUtils {
 					String text = StringUtils.join(dialogPattern, ",", textPosition, dialogPattern.length);
 					Matcher timeMatcher = timePattern.matcher(line);
 					if (timeMatcher.find()) {	
-						if (mode3D == Mode3D.ABL) {
+						if (mode3D == Mode3D.OUL) {
 							outputString.append("Dialogue: 0,")
 							.append(timeMatcher.group())
 							.append("3D1,,")
@@ -223,7 +223,7 @@ public class SubtitleUtils {
 							.append(String.format("%04d,", offset - depth3D))
 							.append(String.format("%04d,,", bottomSubsPosition))
 							.append(text).append("\n");
-						} else if (mode3D == Mode3D.ABR) {
+						} else if (mode3D == Mode3D.OUR) {
 							outputString.append("Dialogue: 0,")
 							.append(timeMatcher.group())
 							.append("3D1,,")
