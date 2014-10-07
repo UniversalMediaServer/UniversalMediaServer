@@ -2252,8 +2252,28 @@ public class DLNAMediaInfo implements Cloneable {
 		this.stereoscopy = stereoscopy;
 	}
 
+	/**
+	 * Used by FFmpeg for 3D video format naming
+	 */
 	public enum Mode3D {
-		SBSL, SBSR, HSBSL, OUL, OUR, HOUL, ARCG, ARCH, ARCC, ARCD, AGMG, AGMH, AGMC, AGMD, AYBG, AYBH, AYBC, AYBD // Used FFmpeg/MEncoder 3D video format naming
+		SBSL,
+		SBSR,
+		HSBSL,
+		OUL,
+		OUR,
+		HOUL,
+		ARCG,
+		ARCH,
+		ARCC,
+		ARCD,
+		AGMG,
+		AGMH,
+		AGMC,
+		AGMD,
+		AYBG,
+		AYBH,
+		AYBC,
+		AYBD
 	};
 
 	public Mode3D get3DLayout() {
