@@ -2253,7 +2253,7 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	public enum Mode3D {
-		SBSL, SBSR, OUL, OUR, ARCG, ARCH, ARCC, ARCD, AGMG, AGMH, AGMC, AGMD, AYBG, AYBH, AYBC, AYBD // Used FFmpeg/MEncoder 3D video format naming
+		SBSL, SBSR, HSBSL, OUL, OUR, HOUL, ARCG, ARCH, ARCC, ARCD, AGMG, AGMH, AGMC, AGMD, AYBG, AYBH, AYBC, AYBD // Used FFmpeg/MEncoder 3D video format naming
 	};
 
 	public Mode3D get3DLayout() {
@@ -2280,6 +2280,12 @@ public class DLNAMediaInfo implements Cloneable {
 			case "side by side (right eye first)":
 				isAnaglyph = false;
 				return Mode3D.SBSR;
+			case "half top-bottom (left eye first)":
+				isAnaglyph = false;
+				return Mode3D.HOUL;
+			case "half side by side (left eye first)":
+				isAnaglyph = false;
+				return Mode3D.HSBSL;
 			case "ARCG":
 				return Mode3D.ARCG;
 			case "ARCH":
