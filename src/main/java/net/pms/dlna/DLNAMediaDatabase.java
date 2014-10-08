@@ -63,7 +63,7 @@ public class DLNAMediaDatabase implements Runnable {
 
 	/**
 	 * The database version should be incremented when we change anything to
-	 * do with the database.
+	 * do with the database since the last released version.
 	 */
 	private final String latestVersion = "1";
 
