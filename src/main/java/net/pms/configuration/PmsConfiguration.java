@@ -71,6 +71,7 @@ public class PmsConfiguration {
 	// TODO: Get this out of here
 	private static boolean avsHackLogged = false;
 
+	private static final String KEY_3D_SUBTITLES_DEPTH = "3D_subtitles_depth";
 	private static final String KEY_ALTERNATE_SUBTITLES_FOLDER = "alternate_subtitles_folder";
 	private static final String KEY_ALTERNATE_THUMB_FOLDER = "alternate_thumb_folder";
 	private static final String KEY_APPEND_PROFILE_NAME = "append_profile_name";
@@ -3096,6 +3097,14 @@ public class PmsConfiguration {
 	 */
 	public void setAppendProfileName(boolean value) {
 		configuration.setProperty(KEY_APPEND_PROFILE_NAME, value);
+	}
+
+	public String getDepth3D() {
+		return getString(KEY_3D_SUBTITLES_DEPTH, "0");
+	}
+
+	public void setDepth3D(String value) {
+		configuration.setProperty(KEY_3D_SUBTITLES_DEPTH, value);
 	}
 
 	/**

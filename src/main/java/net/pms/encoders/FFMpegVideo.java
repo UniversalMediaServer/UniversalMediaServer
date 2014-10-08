@@ -148,19 +148,23 @@ public class FFMpegVideo extends Player {
 			scaleHeight = media.getHeight();
 		}
 
+		boolean is3D = media.is3d() && !media.stereoscopyIsAnaglyph();
+
 		// Make sure the aspect ratio is 16/9 if the renderer needs it.
 		boolean keepAR = renderer.isKeepAspectRatio() &&
-				!(
-					media.getWidth() == 3840 && media.getHeight() <= 1080 ||
-					media.getWidth() == 1920 && media.getHeight() == 2160
-				) &&
+				!media.is3dFullSbsOrOu() &&
 				!"16:9".equals(media.getAspectRatioContainer());
 
 		// Scale and pad the video if necessary
 		if (isResolutionTooHighForRenderer || (!renderer.isRescaleByRenderer() && renderer.isMaximumResolutionSpecified() && media.getWidth() < 720)) { // Do not rescale for SD video and higher
-			scalePadFilterChain.add(String.format("scale=iw*min(%1$d/iw\\,%2$d/ih):ih*min(%1$d/iw\\,%2$d/ih)", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
-			if (keepAR) {
-				scalePadFilterChain.add(String.format("pad=%1$d:%2$d:(%1$d-iw)/2:(%2$d-ih)/2", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
+			if (media.is3dFullSbsOrOu()) {
+				scalePadFilterChain.add(String.format("scale=%1$d:%2$d", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
+			} else {
+				scalePadFilterChain.add(String.format("scale=iw*min(%1$d/iw\\,%2$d/ih):ih*min(%1$d/iw\\,%2$d/ih)", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
+
+				if (keepAR) {
+					scalePadFilterChain.add(String.format("pad=%1$d:%2$d:(%1$d-iw)/2:(%2$d-ih)/2", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
+				}
 			}
 		} else if (keepAR && isMediaValid) {
 			if ((media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
@@ -176,12 +180,12 @@ public class FFMpegVideo extends Player {
 			scalePadFilterChain.add("scale=" + scaleWidth + ":" + scaleHeight);
 		}
 
-		if (!isDisableSubtitles(params) && !(dlna.getPlayer() instanceof WebPlayer)) {
+		if (!isDisableSubtitles(params) && !params.sid.isStreamable() && !(dlna.getPlayer() instanceof WebPlayer)) {
 			StringBuilder subsFilter = new StringBuilder();
 			if (params.sid.getType().isText()) {
 				String originalSubsFilename;
 				String subsFilename;
-				if (params.sid.isEmbedded() || configuration.isFFmpegFontConfig()) {
+				if (params.sid.isEmbedded() || configuration.isFFmpegFontConfig() || is3D) {
 					originalSubsFilename = getSubtitles(dlna, media, params, configuration, SubtitleType.ASS).getAbsolutePath();
 				} else {
 					originalSubsFilename = params.sid.getExternalFile().getAbsolutePath();
@@ -220,7 +224,10 @@ public class FFMpegVideo extends Player {
 							if (params.sid.getType() == SubtitleType.ASS) {
 								setSubtitlesResolution(originalSubsFilename, subtitlesWidth, subtitlesHeight);
 							}
-							subsFilter.append(":").append(subtitlesWidth).append("x").append(subtitlesHeight);
+
+							if (!is3D) {
+								subsFilter.append(":").append(subtitlesWidth).append("x").append(subtitlesHeight);
+							}
 
 							// Set the input subtitles character encoding if not UTF-8
 							if (!params.sid.isExternalFileUtf8()) {
@@ -267,6 +274,16 @@ public class FFMpegVideo extends Player {
 			filterChain.add(overrideVF);
 		} else {
 			filterChain.addAll(scalePadFilterChain);
+		}
+
+		// Convert 3D video to the other output 3D format
+		if (
+			is3D &&
+			media.get3DLayout() != null &&
+			isNotBlank(params.mediaRenderer.getOutput3DFormat()) &&
+			!media.get3DLayout().toString().toLowerCase().equals(params.mediaRenderer.getOutput3DFormat().trim())
+		) {
+			filterChain.add("stereo3d=" + media.get3DLayout().toString().toLowerCase() + ":" + params.mediaRenderer.getOutput3DFormat().trim().toLowerCase());
 		}
 
 		if (filterChain.size() > 0) {
@@ -1251,6 +1268,7 @@ public class FFMpegVideo extends Player {
 
 		boolean applyFontConfig = configuration.isFFmpegFontConfig();
 		boolean isEmbeddedSource = params.sid.getId() < 100;
+		boolean is3D = media.is3d() && !media.stereoscopyIsAnaglyph();
 
 		String filename = isEmbeddedSource ?
 			dlna.getSystemName() : params.sid.getExternalFile().getAbsolutePath();
@@ -1269,7 +1287,7 @@ public class FFMpegVideo extends Player {
 		}
 
 		File convertedSubs;
-		if (applyFontConfig || isEmbeddedSource || params.sid.getType() != subtitleType) {
+		if (applyFontConfig || isEmbeddedSource || is3D || params.sid.getType() != subtitleType) {
 			convertedSubs = new File(subsPath.getAbsolutePath() + File.separator + basename + "_ID" + params.sid.getId() + "_" + modId + "." + subtitleType.getExtension());
 		} else {
 			String tmp = params.sid.getExternalFile().getName().replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
@@ -1278,9 +1296,17 @@ public class FFMpegVideo extends Player {
 
 		if (convertedSubs.canRead()) {
 			// subs are already converted
-			if (applyFontConfig || isEmbeddedSource) {
+			if (applyFontConfig || isEmbeddedSource || is3D) {
 				params.sid.setType(SubtitleType.ASS);
 				params.sid.setExternalFileCharacterSet(CHARSET_UTF_8);
+				if (is3D) {
+					try {
+						convertedSubs = SubtitleUtils.convertASSToASS3D(convertedSubs, media, params);
+					} catch (IOException | NullPointerException e) {
+						LOGGER.debug("Converting to ASS3D format ends with error: " + e);
+						return null;
+					}
+				}
 			}
 
 			return convertedSubs;
@@ -1302,7 +1328,8 @@ public class FFMpegVideo extends Player {
 				!applyFontConfig &&
 				!isEmbeddedSource &&
 				(params.sid.getType() == subtitleType) &&
-				(params.sid.getType() == SubtitleType.SUBRIP || params.sid.getType() == SubtitleType.WEBVTT)
+				(params.sid.getType() == SubtitleType.SUBRIP || params.sid.getType() == SubtitleType.WEBVTT) &&
+				!is3D
 			)
 		) {
 			tempSubs = params.sid.getExternalFile();
@@ -1344,6 +1371,15 @@ public class FFMpegVideo extends Player {
 			}
 		}
 
+		if (is3D) {
+			try {
+				tempSubs = SubtitleUtils.convertASSToASS3D(tempSubs, media, params);
+			} catch (IOException | NullPointerException e) {
+				LOGGER.debug("Converting to ASS3D format ends with error: " + e);
+				return null;
+			}
+		}
+
 		if (isEmbeddedSource) {
 			params.sid.setExternalFile(tempSubs);
 			params.sid.setType(SubtitleType.ASS);
@@ -1354,13 +1390,14 @@ public class FFMpegVideo extends Player {
 	}
 
 	/**
-	 * Converts external subtitles file in SRT format or extract embedded subs to default SSA/ASS format
+	 * Converts external subtitles or extract embedded subs to the requested subtitle type
 	 *
-	 * @param fileName Subtitles file in SRT format or video file with embedded subs
+	 * @param fileName subtitles file or video file with embedded subs
 	 * @param media
 	 * @param params output parameters
 	 * @param configuration
-	 * @return Converted subtitles file in SSA/ASS format
+	 * @param outputSubtitleType requested subtitle type
+	 * @return Converted subtitles file in requested type
 	 */
 	public static File convertSubsToSubtitleType(String fileName, DLNAMediaInfo media, OutputParams params, PmsConfiguration configuration, SubtitleType outputSubtitleType) {
 		if (!params.sid.getType().isText()) {
