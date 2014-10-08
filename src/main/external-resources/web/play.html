@@ -14,9 +14,6 @@ function prev() {window.location.replace('/play/{{prevId}}');}
 {{/prevId}}
 {{#nextId}}
 function next() {window.location.replace('/play/{{nextId}}');}
-{{#autoContinue}}
-document.getElementById('player').addEventListener('ended', next);
-{{/autoContinue}}
 {{/nextId}}
 {{#isVideo}}
 function flash() {window.location.replace('/play/{{id1}}?flash=1');}
@@ -46,6 +43,11 @@ function flash() {window.location.replace('/play/{{id1}}?flash=1');}
 </div>
 <a href="/raw/{{id1}}" target="_blank" id="DownloadLink" title="Download this {{mediaType}}"></a>
 </div>
+<script>
+{{#autoContinue}}
+document.getElementById('player').addEventListener('ended', next);
+{{/autoContinue}}
+</script>
 </body>
 </html>
 
