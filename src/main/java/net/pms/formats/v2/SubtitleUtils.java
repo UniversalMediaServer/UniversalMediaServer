@@ -34,10 +34,11 @@ import net.pms.io.OutputParams;
 import net.pms.util.FileUtil;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.mozilla.universalchardet.Constants.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.apache.commons.lang3.StringUtils.*;
-import static org.mozilla.universalchardet.Constants.*;
 
 public class SubtitleUtils {
 	private final static PmsConfiguration configuration = PMS.getConfiguration();
