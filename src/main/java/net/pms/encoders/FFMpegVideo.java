@@ -303,7 +303,16 @@ public class FFMpegVideo extends Player {
 		String customFFmpegOptions = renderer.getCustomFFmpegOptions();
 		boolean xbox1 = renderer.isXboxOne() &&	purpose() == VIDEO_WEBSTREAM_PLAYER;
 
-		if (xbox1 || (renderer.isTranscodeToWMV() && !renderer.isXbox360())) { // WMV
+		if (
+			(
+				renderer.isTranscodeToWMV() &&
+				!renderer.isXbox360()
+			) ||
+			(
+				renderer.isXboxOne() &&
+				purpose() == VIDEO_WEBSTREAM_PLAYER
+			)
+		) { // WMV
 			transcodeOptions.add("-c:v");
 			transcodeOptions.add("wmv2");
 
@@ -339,7 +348,7 @@ public class FFMpegVideo extends Player {
 					transcodeOptions.add("-an");
 				} else if (type() == Format.AUDIO) {
 					// Skip
-				} else if (renderer.isTranscodeToMPEGTSH264AAC()) {
+				} else if (renderer.isTranscodeToAAC()) {
 					transcodeOptions.add("-c:a");
 					transcodeOptions.add("aac");
 
@@ -361,7 +370,7 @@ public class FFMpegVideo extends Player {
 			}
 
 			// Output video codec
-			if (renderer.isTranscodeToMPEGTSH264AC3() || renderer.isTranscodeToMPEGTSH264AAC()) {
+			if (renderer.isTranscodeToH264()) {
 				if (!customFFmpegOptions.contains("-c:v")) {
 					transcodeOptions.add("-c:v");
 					transcodeOptions.add("libx264");
@@ -386,9 +395,9 @@ public class FFMpegVideo extends Player {
 				transcodeOptions.add("-f");
 				if (dtsRemux) {
 					transcodeOptions.add("mpeg2video");
-				} else if (renderer.isTranscodeToMPEGTSMPEG2AC3() || renderer.isTranscodeToMPEGTSH264AC3() || renderer.isTranscodeToMPEGTSH264AAC()) { // MPEGTSMPEG2AC3, MPEGTSH264AC3 or MPEGTSH264AAC
+				} else if (renderer.isTranscodeToMPEGTS()) {
 					transcodeOptions.add("mpegts");
-				} else { // default: MPEGPSMPEG2AC3
+				} else {
 					transcodeOptions.add("vob");
 				}
 			}
@@ -426,6 +435,8 @@ public class FFMpegVideo extends Player {
 			LOGGER.trace("Using the video bitrate limit from the program settings (" + defaultMaxBitrates[0] + ")");
 		}
 
+		boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
+
 		if (params.mediaRenderer.getCBRVideoBitrate() == 0 && params.timeend == 0) {
 			if (rendererMaxBitrates[0] < 0) {
 				// odd specail case here
@@ -453,7 +464,7 @@ public class FFMpegVideo extends Player {
 			 *
 			 * We also apply the correct buffer size in this section.
 			 */
-			if (!xbox1 && (params.mediaRenderer.isTranscodeToMPEGTSH264AC3() || params.mediaRenderer.isTranscodeToMPEGTSH264AAC())) {
+			if (!isXboxOneWebVideo && params.mediaRenderer.isTranscodeToH264()) {
 				if (
 					params.mediaRenderer.isH264Level41Limited() &&
 					defaultMaxBitrates[0] > 31250
@@ -512,7 +523,7 @@ public class FFMpegVideo extends Player {
 		}
 		int maximumBitrate = defaultMaxBitrates[0];
 
-		if (xbox1 || (!params.mediaRenderer.isTranscodeToMPEGTSH264AC3() && !params.mediaRenderer.isTranscodeToMPEGTSH264AAC())) {
+		if (isXboxOneWebVideo || !params.mediaRenderer.isTranscodeToH264()) {
 			// Add MPEG-2 quality settings
 			String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
 			String mpeg2OptionsRenderer = params.mediaRenderer.getCustomFFmpegMPEG2Options();
@@ -769,12 +780,20 @@ public class FFMpegVideo extends Player {
 		}
 
 		final boolean isTsMuxeRVideoEngineEnabled = configuration.getEnginesAsList(PMS.get().getRegistry()).contains(TsMuxeRVideo.ID);
+		final boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 
 		ac3Remux = false;
 		dtsRemux = false;
 		boolean xbox1 = renderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 
-		if (configuration.isAudioRemuxAC3() && params.aid != null && params.aid.isAC3() && !avisynth() && renderer.isTranscodeToAC3() && !xbox1) {
+		if (
+			configuration.isAudioRemuxAC3() &&
+			params.aid != null &&
+			params.aid.isAC3() &&
+			!avisynth() &&
+			renderer.isTranscodeToAC3() &&
+			!isXboxOneWebVideo
+		) {
 			// AC-3 remux takes priority
 			ac3Remux = true;
 		} else {
@@ -921,7 +940,7 @@ public class FFMpegVideo extends Player {
 			override = ((RendererConfiguration.OutputOverride)renderer).getOutputOptions(cmdList, dlna, this, params);
 		}
 
-		if (! override) {
+		if (!override) {
 			cmdList.addAll(getVideoBitrateOptions(dlna, media, params));
 
 			String customFFmpegOptions = renderer.getCustomFFmpegOptions();
@@ -929,7 +948,16 @@ public class FFMpegVideo extends Player {
 			// Audio bitrate
 			if (!ac3Remux && !dtsRemux && !(type() == Format.AUDIO)) {
 				int channels = 0;
-				if (xbox1 || (renderer.isTranscodeToWMV() && !renderer.isXbox360())) {
+				if (
+					(
+						renderer.isTranscodeToWMV() &&
+						!renderer.isXbox360()
+					) ||
+					(
+						renderer.isXboxOne() &&
+						purpose() == VIDEO_WEBSTREAM_PLAYER
+					)
+				) {
 					channels = 2;
 				} else if (params.aid != null && params.aid.getAudioProperties().getNumberOfChannels() > configuration.getAudioChannelCount()) {
 					channels = configuration.getAudioChannelCount();
@@ -942,7 +970,7 @@ public class FFMpegVideo extends Player {
 
 				if (!customFFmpegOptions.contains("-ab ")) {
 					cmdList.add("-ab");
-					if (renderer.isTranscodeToMPEGTSH264AAC()) {
+					if (renderer.isTranscodeToAAC()) {
 						cmdList.add(Math.min(configuration.getAudioBitrate(), 320) + "k");
 					} else {
 						cmdList.add(String.valueOf(CodecUtil.getAC3Bitrate(configuration, params.aid)) + "k");
@@ -1114,7 +1142,7 @@ public class FFMpegVideo extends Player {
 				pwMux.println("MUXOPT --no-pcr-on-video-pid --no-asyncio --new-audio-pes --vbr --vbv-len=500");
 				String videoType = "V_MPEG-2";
 
-				if (renderer.isTranscodeToMPEGTSH264AC3() || renderer.isTranscodeToMPEGTSH264AAC()) {
+				if (renderer.isTranscodeToH264()) {
 					videoType = "V_MPEG4/ISO/AVC";
 				}
 
@@ -1325,8 +1353,8 @@ public class FFMpegVideo extends Player {
 		}
 
 		File convertedSubs;
-		if (applyFontConfig || isEmbeddedSource) {
-			convertedSubs = new File(subsPath.getAbsolutePath() + File.separator + basename + "_ID" + params.sid.getId() + "_" + modId + ".ass");
+		if (applyFontConfig || isEmbeddedSource || params.sid.getType() != subtitleType) {
+			convertedSubs = new File(subsPath.getAbsolutePath() + File.separator + basename + "_ID" + params.sid.getId() + "_" + modId + "." + subtitleType.getExtension());
 		} else {
 			String tmp = params.sid.getExternalFile().getName().replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
 			convertedSubs = new File(subsPath.getAbsolutePath() + File.separator + modId + "_" + tmp);
