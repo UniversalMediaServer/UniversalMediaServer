@@ -61,6 +61,12 @@ public class DLNAMediaDatabase implements Runnable {
 	private JdbcConnectionPool cp;
 	private int dbCount;
 
+	/**
+	 * The database version should be incremented when we change anything to
+	 * do with the database since the last released version.
+	 */
+	private final String latestVersion = "1";
+
 	// Database column sizes
 	private final int SIZE_CODECV = 32;
 	private final int SIZE_FRAMERATE = 32;
@@ -69,6 +75,7 @@ public class DLNAMediaDatabase implements Runnable {
 	private final int SIZE_ASPECTRATIO_VIDEOTRACK = 5;
 	private final int SIZE_AVC_LEVEL = 3;
 	private final int SIZE_CONTAINER = 32;
+	private final int SIZE_MATRIX_COEFFICIENTS = 16;
 	private final int SIZE_MODEL = 128;
 	private final int SIZE_MUXINGMODE = 32;
 	private final int SIZE_FRAMERATE_MODE = 16;
@@ -177,7 +184,9 @@ public class DLNAMediaDatabase implements Runnable {
 			close(stmt);
 			close(conn);
 		}
-		boolean force_reinit = !PMS.getVersion().equals(version); // here we can force a deletion for a specific version
+
+		// Recreate database if it is not the latest version.
+		boolean force_reinit = !latestVersion.equals(version);
 		if (force || dbCount == -1 || force_reinit) {
 			LOGGER.debug("Database will be (re)initialized");
 			try {
@@ -221,6 +230,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", MUXINGMODE        VARCHAR2(").append(SIZE_MUXINGMODE).append(")");
 				sb.append(", FRAMERATEMODE     VARCHAR2(").append(SIZE_FRAMERATE_MODE).append(")");
 				sb.append(", STEREOSCOPY       VARCHAR2(").append(SIZE_STEREOSCOPY).append(")");
+				sb.append(", MATRIXCOEFFICIENTS   VARCHAR2(").append(SIZE_MATRIX_COEFFICIENTS).append(")");
 				sb.append(", constraint PK1 primary key (FILENAME, MODIFIED, ID))");
 				executeUpdate(conn, sb.toString());
 				sb = new StringBuilder();
@@ -255,7 +265,7 @@ public class DLNAMediaDatabase implements Runnable {
 
 				executeUpdate(conn, sb.toString());
 				executeUpdate(conn, "CREATE TABLE METADATA (KEY VARCHAR2(255) NOT NULL, VALUE VARCHAR2(255) NOT NULL)");
-				executeUpdate(conn, "INSERT INTO METADATA VALUES ('VERSION', '" + PMS.getVersion() + "')");
+				executeUpdate(conn, "INSERT INTO METADATA VALUES ('VERSION', '" + latestVersion + "')");
 				executeUpdate(conn, "CREATE INDEX IDXARTIST on AUDIOTRACKS (ARTIST asc);");
 				executeUpdate(conn, "CREATE INDEX IDXALBUM on AUDIOTRACKS (ALBUM asc);");
 				executeUpdate(conn, "CREATE INDEX IDXGENRE on AUDIOTRACKS (GENRE asc);");
@@ -280,7 +290,7 @@ public class DLNAMediaDatabase implements Runnable {
 			}
 		} else {
 			LOGGER.debug("Database file count: " + dbCount);
-			LOGGER.debug("Database version: " + version);
+			LOGGER.debug("Database version: " + latestVersion);
 		}
 	}
 
@@ -356,6 +366,7 @@ public class DLNAMediaDatabase implements Runnable {
 				media.setMuxingMode(rs.getString("MUXINGMODE"));
 				media.setFrameRateMode(rs.getString("FRAMERATEMODE"));
 				media.setStereoscopy(rs.getString("STEREOSCOPY"));
+				media.setMatrixCoefficients(rs.getString("MATRIXCOEFFICIENTS"));
 				media.setMediaparsed(true);
 				ResultSet subrs;
 				try (PreparedStatement audios = conn.prepareStatement("SELECT * FROM AUDIOTRACKS WHERE FILEID = ?")) {
@@ -423,7 +434,7 @@ public class DLNAMediaDatabase implements Runnable {
 		PreparedStatement ps = null;
 		try {
 			conn = getConnection();
-			ps = conn.prepareStatement("INSERT INTO FILES(FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, FRAMERATE, ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, BITSPERPIXEL, THUMB, CONTAINER, MODEL, EXPOSURE, ORIENTATION, ISO, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+			ps = conn.prepareStatement("INSERT INTO FILES(FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, FRAMERATE, ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, BITSPERPIXEL, THUMB, CONTAINER, MODEL, EXPOSURE, ORIENTATION, ISO, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 			ps.setString(1, name);
 			ps.setTimestamp(2, new Timestamp(modified));
 			ps.setInt(3, type);
@@ -467,6 +478,7 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setString(23, left(media.getMuxingModeAudio(), SIZE_MUXINGMODE));
 				ps.setString(24, left(media.getFrameRateMode(), SIZE_FRAMERATE_MODE));
 				ps.setString(25, left(media.getStereoscopy(), SIZE_STEREOSCOPY));
+				ps.setString(26, left(media.getMatrixCoefficients(), SIZE_MATRIX_COEFFICIENTS));
 			} else {
 				ps.setString(4, null);
 				ps.setInt(5, 0);
@@ -490,6 +502,7 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setString(23, null);
 				ps.setString(24, null);
 				ps.setString(25, null);
+				ps.setString(26, null);
 			}
 			ps.executeUpdate();
 			int id;

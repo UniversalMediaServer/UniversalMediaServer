@@ -141,41 +141,37 @@ public class VLCVideo extends Player {
 	 */
 	protected CodecConfig genConfig(RendererConfiguration renderer) {
 		CodecConfig codecConfig = new CodecConfig();
+		boolean isXboxOneWebVideo = renderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 
-		if (renderer.isTranscodeToWMV()) {
+		if (
+			(
+				renderer.isTranscodeToWMV() &&
+				!renderer.isXbox360()
+			) ||
+			isXboxOneWebVideo
+		) {
 			// Assume WMV = Xbox 360 = all media renderers with this flag
 			LOGGER.debug("Using XBox 360 WMV codecs");
 			codecConfig.videoCodec = "wmv2";
 			codecConfig.audioCodec = "wma";
 			codecConfig.container = "asf";
-		} else if (renderer.isTranscodeToMPEGTSH264AC3()) {
-			LOGGER.debug("Using H.264 and MP2 with MPEG-TS container");
+		} else if (renderer.isTranscodeToH264()) {
 			codecConfig.videoCodec = "h264";
-
-			/**
-			 * XXX a52 (AC-3) causes the audio to cut out after
-			 * a while (5, 10, and 45 minutes have been spotted)
-			 * with versions as recent as 2.0.5. MP2 works without
-			 * issue, so we use that as a workaround for now.
-			 * codecConfig.audioCodec = "a52";
-			 */
-			codecConfig.audioCodec = "a52";
-
 			codecConfig.container = "ts";
-
 			videoRemux = true;
-		} else if (renderer.isTranscodeToMPEGTSH264AAC()) {
-			LOGGER.debug("Using H.264 and AAC with MPEG-TS container");
-			codecConfig.videoCodec = "h264";
-			codecConfig.audioCodec = "mp4a";
-			codecConfig.container = "ts";
 
-			videoRemux = true;
+			if (renderer.isTranscodeToMPEGTSH264AC3()) {
+				LOGGER.debug("Using H.264 and MP2 with MPEG-TS container");
+				codecConfig.audioCodec = "a52";
+			} else if (renderer.isTranscodeToMPEGTSH264AAC()) {
+				LOGGER.debug("Using H.264 and AAC with MPEG-TS container");
+				codecConfig.audioCodec = "mp4a";
+			}
 		} else {
 			codecConfig.videoCodec = "mp2v";
 			codecConfig.audioCodec = "mp2a";
 
-			if (renderer.isTranscodeToMPEGTSMPEG2AC3()) {
+			if (renderer.isTranscodeToMPEGTS()) {
 				LOGGER.debug("Using standard DLNA codecs with an MPEG-TS container");
 				codecConfig.container = "ts";
 			} else {
@@ -238,9 +234,11 @@ public class VLCVideo extends Player {
 		// Video scaling
 		args.put("scale", "1.0");
 
+		boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
+
 		// Audio Channels
 		int channels = 2;
-		if (params.aid.getAudioProperties().getNumberOfChannels() > 2 && configuration.getAudioChannelCount() == 6) {
+		if (!isXboxOneWebVideo && params.aid.getAudioProperties().getNumberOfChannels() > 2 && configuration.getAudioChannelCount() == 6) {
 			channels = 6;
 		}
 		args.put("channels", channels);
@@ -299,6 +297,8 @@ public class VLCVideo extends Player {
 		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
 
+		boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
+
 		if (StringUtils.isNotEmpty(params.mediaRenderer.getMaxVideoBitrate())) {
 			rendererMaxBitrates = getVideoBitrateConfig(params.mediaRenderer.getMaxVideoBitrate());
 		}
@@ -326,7 +326,7 @@ public class VLCVideo extends Player {
 			 *
 			 * We also apply the correct buffer size in this section.
 			 */
-			if (params.mediaRenderer.isTranscodeToMPEGTSH264AC3() || params.mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
+			if (!isXboxOneWebVideo && params.mediaRenderer.isTranscodeToH264()) {
 				if (
 					params.mediaRenderer.isH264Level41Limited() &&
 					defaultMaxBitrates[0] > 31250
@@ -373,7 +373,7 @@ public class VLCVideo extends Player {
 			videoBitrateOptions.add(String.valueOf(defaultMaxBitrates[0]));
 		}
 
-		if (!params.mediaRenderer.isTranscodeToMPEGTSH264AC3() && !params.mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
+		if (isXboxOneWebVideo || !params.mediaRenderer.isTranscodeToH264()) {
 			// Add MPEG-2 quality settings
 			String mpeg2Options = configuration.getMPEG2MainSettingsFFmpeg();
 			String mpeg2OptionsRenderer = params.mediaRenderer.getCustomFFmpegMPEG2Options();
