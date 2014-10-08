@@ -1,7 +1,16 @@
 4.1.4 - 2014-10-??
 
 	General:
-		
+		Added a new template renderer file "DefaultRenderer.conf" which contains all possible renderer config options (like PS3.conf did before)
+		Made cache recreation happen only when it has changed, instead of with every new release
+		Fixed the cache not storing all data (thanks, @taconaut!) 
+	Renderers:
+		Formatted all renderer configs
+		Removed unnecessary (same as default) values from all renderer configs
+		Improved support for Philips TVs (thanks, ler0y!)
+		Improved support for Xbox One
+	Languages:
+		Updated French translation (thanks, Kirvx!)
 
 4.1.3 - 2014-10-03
 
