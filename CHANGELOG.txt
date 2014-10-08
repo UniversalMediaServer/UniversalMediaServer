@@ -1,4 +1,4 @@
-4.1.4 - 2014-10-??
+4.2.0 - 2014-10-??
 
 	General:
 		Added a new template renderer file "DefaultRenderer.conf" which contains all possible renderer config options (like PS3.conf did before)
