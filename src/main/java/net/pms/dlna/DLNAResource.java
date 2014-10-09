@@ -1285,7 +1285,6 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 	 * Reload the list of children.
 	 */
 	public void doRefreshChildren() {
-		refreshChildren();
 	}
 
 	public void doRefreshChildren(String search) {
@@ -1721,8 +1720,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			);
 		} else { // Ditlew - org
 			// Ditlew
-			wireshark.append(((isFolder() || player == null && subsAreValidForStreaming) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer))));
-			String tmp = (isFolder() || player == null && subsAreValidForStreaming) ? getDisplayName(null, false) : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer, false));
+			wireshark.append(((isFolder() || subsAreValidForStreaming) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer))));
+			String tmp = (isFolder() || subsAreValidForStreaming) ? getDisplayName(null, false) : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer, false));
 			addXMLTagAndAttribute(
 				sb,
 				"dc:title",
