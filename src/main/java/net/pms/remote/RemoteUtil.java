@@ -316,9 +316,7 @@ public class RemoteUtil {
 
 		public InputStream getInputStream(String filename) {
 			InputStream stream = getResourceAsStream(filename);
-			if (stream != null) {
-				LOGGER.debug("Using resource: " + findResource(filename));
-			} else {
+			if (stream == null) {
 				File file = getFile(filename);
 				if (file != null && file.exists()) {
 					try {
@@ -329,6 +327,15 @@ public class RemoteUtil {
 				}
 			}
 			return stream;
+		}
+
+		@Override
+		public URL getResource(String name) {
+			URL url = super.getResource(name);
+			if (url != null) {
+				LOGGER.debug("Using resource: " + url);
+			}
+			return url;
 		}
 
 		/**

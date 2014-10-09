@@ -10,15 +10,15 @@
 	</head>
 	<body id="ContentPage">
 		<script>
-			{{#prevId}}
-			function prev() {window.location.replace('/play/{{prevId}}'); }
-			{{/prevId}}
-			{{#nextId}}
-			function next() {window.location.replace('/play/{{nextId}}'); }
-			{{/nextId}}
-			{{#isVideo}}
-			function flash() {window.location.replace('/play/{{id1}}?flash=1'); }
-			{{/isVideo}}
+{{#prevId}}
+			function prev() {window.location.replace('/play/{{prevId}}');}
+{{/prevId}}
+{{#nextId}}
+			function next() {window.location.replace('/play/{{nextId}}');}
+{{/nextId}}
+{{#isVideo}}
+			function flash() {window.location.replace('/play/{{id1}}?flash=1');}
+{{/isVideo}}
 		</script>
 		<div id="Container">
 			<div id="Menu">
@@ -29,25 +29,25 @@
 			<div id="VideoContainer">
 				{{coverImage}}
 				<{{mediaType}} id="player" width="{{width}}" height="{{height}}" controls {{auto}}>
-				<source src="/media/{{id1}}" type="{{mime}}">
-				{{#sub}}
-				<track kind="subtitles" src="/files/{{this}}" default>
-				{{/sub}}
+					<source src="/media/{{id1}}" type="{{mime}}">
+{{#sub}}
+					<track kind="subtitles" src="/files/{{this}}" default>
+{{/sub}}
 				</{{mediaType}}>
 				<div id="toolbar">
 					<button id="prev" onclick="prev()"{{prevAttr}}><<</button>
 					<button id="next" onclick="next()"{{nextAttr}}>>></button>
-					{{#isVideo}}
+{{#isVideo}}
 					<button id="flash" onclick="flash()" title="Switch to flash player">Flash</button>
-					{{/isVideo}}
+{{/isVideo}}
 				</div>
 			</div>
 			<a href="/raw/{{id1}}" target="_blank" id="DownloadLink" title="Download this {{mediaType}}"></a>
 		</div>
 		<script>
-			{{#autoContinue}}
+{{#autoContinue}}
 			document.getElementById('player').addEventListener('ended', next);
-			{{/autoContinue}}
+{{/autoContinue}}
 		</script>
 	</body>
 </html>

@@ -10,15 +10,15 @@
 	</head>
 	<body id="ContentPage">
 		<script>
-			{{#prevId}}
-			function prev() {window.location.replace('/play/{{prevId}}'); }
-			{{/prevId}}
-			{{#nextId}}
-			function next() {window.location.replace('/play/{{nextId}}'); }
-			{{#delay}}
+{{#prevId}}
+			function prev() {window.location.replace('/play/{{prevId}}');}
+{{/prevId}}
+{{#nextId}}
+			function next() {window.location.replace('/play/{{nextId}}');}
+{{#delay}}
 			setTimeout(next, {{delay}});
-			{{/delay}}
-			{{/nextId}}
+{{/delay}}
+{{/nextId}}
 		</script>
 		<div id="Container">
 			<div id="Menu">

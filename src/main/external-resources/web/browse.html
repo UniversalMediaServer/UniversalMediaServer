@@ -27,34 +27,34 @@
 		<div id="Container" class="noHzScroll">
 			<div id="Menu">
 				<a href="/browse/0" id="HomeButton"></a>
-				{{#hasFile}}
+{{#hasFile}}
 				<form id="SearchForm" method="get">
 					<input type="text" id="SearchInput" name="str">
 					<input type="submit" id="SearchSubmit" title="Search" value="&nbsp;">
 				</form>
-				{{/hasFile}}
+{{/hasFile}}
 				<a href="/doc" id="DocButton" title="Documentation"></a>
 			</div>
 
 			<div id="FoldersContainer"{{noFoldersCSS}}>
 				<ul id="Folders">
-					{{#folders}}
+{{#folders}}
 					<li>{{this}}</li>
-					{{/folders}}
+{{/folders}}
 				</ul>
 			</div>
 
-			{{#hasFile}}
+{{#hasFile}}
 			<ul id="Media"{{noFoldersCSS}}>
-				{{#media}}
+{{#media}}
 				<li>
 					{{thumb}}
 					{{bump}}
 					{{caption}}
 				</li>
-				{{/media}}
+{{/media}}
 			</ul>
-			{{/hasFile}}
+{{/hasFile}}
 		</div>
 	</body>
 </html>
