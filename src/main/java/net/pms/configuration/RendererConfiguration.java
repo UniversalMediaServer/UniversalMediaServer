@@ -159,6 +159,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String MUX_LPCM_TO_MPEG = "MuxLPCMToMpeg";
 	protected static final String MUX_NON_MOD4_RESOLUTION = "MuxNonMod4Resolution";
 	protected static final String NOT_AGGRESSIVE_BROWSING = "NotAggressiveBrowsing";
+	protected static final String OUTPUT_3D_FORMAT = "Output3DFormat";
 	protected static final String OVERRIDE_FFMPEG_VF = "OverrideFFmpegVideoFilter";
 	protected static final String LOADING_PRIORITY = "LoadingPriority";
 	protected static final String RENDERER_ICON = "RendererIcon";
@@ -1891,6 +1892,10 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		}
 		return null;
 	}
+
+	public String getOutput3DFormat() {
+		return getString(OUTPUT_3D_FORMAT, "");
+	}	
 
 	public boolean ignoreTranscodeByteRangeRequests() {
 		return getBoolean(IGNORE_TRANSCODE_BYTE_RANGE_REQUEST, false);

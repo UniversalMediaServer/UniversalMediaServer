@@ -1,9 +1,12 @@
-4.1.4 - 2014-10-??
+4.2.0 - 2014-10-??
 
 	General:
+		Added support for automatic 2D to 3D subtitles conversion
+		Added renderer support for converting 3D video to a different 3D format
 		Added a new template renderer file "DefaultRenderer.conf" which contains all possible renderer config options (like PS3.conf did before)
 		Made cache recreation happen only when it has changed, instead of with every new release
-		Fixed the cache not storing all data (thanks, taconaut!) 
+		Fixed the cache not storing all data (thanks, taconaut!)
+		Fixed full-SBS 3D support via FFmpeg
 	Renderers:
 		Formatted all renderer configs
 		Removed unnecessary (same as default) values from all renderer configs
