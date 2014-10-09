@@ -56,7 +56,7 @@ function init() {
 
 <div style="margin:2em;max-width:40em;font-family:sans-serif;">
 <div id="Container">
-<br/>
+<br>
 <center>
 <div style="background-color:#f2f2f2;display:inline-block;-moz-box-shadow: 4px 4px 2px #aaa;-webkit-box-shadow: 4px 4px 2px #aaa;box-shadow: 4px 4px 2px #aaa;"
 onMouseOver="this.style.backgroundColor='white';" onMouseOut="this.style.backgroundColor='#f2f2f2';">
@@ -89,7 +89,7 @@ function loadjs(url,done){
 }
 })();"><img src="files/bump/bump32.png" alt="bump"/></a></div>
 </center>
-<br/><br/>
+<br><br>
 <div class="bump">
 The <b>B</b>rowser-to-<b>U</b>MS <b>M</b>edia <b>P</b>layer (<i>bump</i>) is a remote control <a href="http://en.wikipedia.org/wiki/Bookmarklet">bookmarklet</a> to send media from your browser's current page to any upnp-controllable renderer connected to UMS.
 </div>
@@ -112,7 +112,7 @@ The <b>B</b>rowser-to-<b>U</b>MS <b>M</b>edia <b>P</b>layer (<i>bump</i>) is a r
 <b>Install</b>
 <ul>Drag the button above to your bookmarks toolbar.
 </ul>
-<br/>
+<br>
 <b>Usage</b>
 <ul>Press it anytime to open the player.
 </ul>
@@ -123,14 +123,14 @@ The <b>B</b>rowser-to-<b>U</b>MS <b>M</b>edia <b>P</b>layer (<i>bump</i>) is a r
 <ul>
 <b>Install</b>
 <ol>
-<li>Copy the code below:<br/>
+<li>Copy the code below:<br>
 <textarea id="jstext" cols="50" rows="4" onfocus="this.select()" onmouseup="return false" readonly></textarea>
 </li>
 <li>Bookmark this page and open the bookmark for editing.</li>
 <li>Paste the copied code as the bookmark URL.</li>
 <li>Name the bookmark '<span class="mode">bump</span>'.</li>
 </ol>
-<br/>
+<br>
 <b>Usage</b>
 <div class="touch" display="none">
 <ul>Type '<span class="mode">bump</span>' in the address bar and select the
@@ -143,29 +143,29 @@ bookmark from the drop-down list.</ul>
 <ul>
 <li>Bump is already embedded in UMS pages via player popup buttons under the media items,
 this bookmarklet is for general use anywhere else.</li>
-<br/>
+<br>
 <li>Your renderer is upnp-controllable if playback controls are showing on its UMS gui popup panel.</li>
-<br/>
+<br>
 <li>To designate a default playback renderer set <code style="color:#0000BB;"><b>bump</b></code> to its IP in <i>UMS.conf</i>
 (e.g. <code style="color:#0000BB"><b>bump</b>=<i>192.168.1.3</i></code>).</li>
-<br/>
+<br>
 <li>To disable this service entirely set <code style="color:#0000BB"><b>bump</b>=<i>false</i></code> in <i>UMS.conf</i>.</li>
-<br/>
+<br>
 <li>Either the <i><a href="http://skeptical.github.io/jumpy/readme.html">jumpy</a></i> or <i><a href="https://github.com/SharkHunter/Channel">channels</a></i> plugin must be installed to act as a url resolver.</li>
-<br/>
+<br>
 <li>The current page must contain resolvable media, for example youtube, vimeo, and so on.</li>
-<br/>
+<br>
 <li><u><i>https</i></u> pages will work only if the UMS web server is also running in
-<br/>
+<br>
 <i><a href="doc/https" title="TODO: doc/https">https mode</a></i> (and you'll need to reinstall the bookmarklet if you
 switch server modes). Alternatively you can also switch to the <u><i>http</i></u> version
 of the page if one is available (e.g. on youtube).</li>
-<br/>
+<br>
 <li>The button is currently configured for UMS
 web server address at <i><b><code id="addr">http://127.0.0.1:9001</code></b></i>
 (<a href="javascript:get_addr()" title="Click to set the network address of UMS/PMS' host machine">change...</a>
 then repeat setup).</li>
-<br/>
+<br>
 <li>You can create a new skin for the player as follows:
 <ul>
 <li>Copy the UMS program subfolder <code><i><b>web/bump/skin</b></i></code> anywhere and maybe rename it, e.g. <code><i><b>mySkin</b></i></code>.</li>

@@ -1,38 +1,39 @@
 <!DOCTYPE html>
-<head>
-<link rel="stylesheet" href="/files/reset.css" type="text/css" media="screen">
-<link rel="stylesheet" href="/files/web.css" type="text/css" media="screen">
-<link rel="stylesheet" href="/files/web-narrow.css" type="text/css" media="screen and (max-width: 1080px)">
-<link rel="stylesheet" href="/files/web-wide.css" type="text/css" media="screen and (min-width: 1081px)">
-<link rel="icon" href="/files/favicon.ico" type="image/x-icon">
-<title>{{name}}</title>
-</head>
-<body id="ContentPage">
-<script>
-{{#prevId}}
-function prev() {window.location.replace('/play/{{prevId}}');}
-{{/prevId}}
-{{#nextId}}
-function next() {window.location.replace('/play/{{nextId}}');}
-{{#delay}}
-setTimeout(next,{{delay}});
-{{/delay}}
-{{/nextId}}
-</script>
-<div id="Container">
-<div id="Menu">
-	<a href="/browse/0" id="HomeButton"></a>
-	<a href="/doc" id="DocButton" title="Documentation"></a>
-</div>
+<html>
+	<head>
+		<link rel="stylesheet" href="/files/reset.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/files/web.css" type="text/css" media="screen">
+		<link rel="stylesheet" href="/files/web-narrow.css" type="text/css" media="screen and (max-width: 1080px)">
+		<link rel="stylesheet" href="/files/web-wide.css" type="text/css" media="screen and (min-width: 1081px)">
+		<link rel="icon" href="/files/favicon.ico" type="image/x-icon">
+		<title>{{name}}</title>
+	</head>
+	<body id="ContentPage">
+		<script>
+			{{#prevId}}
+			function prev() {window.location.replace('/play/{{prevId}}'); }
+			{{/prevId}}
+			{{#nextId}}
+			function next() {window.location.replace('/play/{{nextId}}'); }
+			{{#delay}}
+			setTimeout(next, {{delay}});
+			{{/delay}}
+			{{/nextId}}
+		</script>
+		<div id="Container">
+			<div id="Menu">
+				<a href="/browse/0" id="HomeButton"></a>
+				<a href="/doc" id="DocButton" title="Documentation"></a>
+			</div>
 
-<div id="VideoContainer">
-{{coverImage}}
-	<div id="toolbar">
-		<button id="prev" onclick="prev()"{{prevAttr}}><<</button>
-		<button id="next" onclick="next()"{{nextAttr}}>>></button>
-	</div>
-</div>
-</div>
-</body>
+			<div id="VideoContainer">
+				{{coverImage}}
+				<div id="toolbar">
+					<button id="prev" onclick="prev()"{{prevAttr}}><<</button>
+					<button id="next" onclick="next()"{{nextAttr}}>>></button>
+				</div>
+			</div>
+		</div>
+	</body>
 </html>
 
