@@ -104,13 +104,11 @@ public class RemotePlayHandler implements HttpHandler {
 			return "<html><head><script>window.refresh=true;history.back()</script></head></html>";
 		}
 		if (r.getFormat().isImage()) {
+			id1 = rawId;
 			flowplayer = false;
-			coverImage = "<img src=\"/raw/" + rawId + "\" alt=\"\"><br>";
 		}
 		if (r.getFormat().isAudio()) {
 			mediaType = "audio";
-			String thumb = "/thumb/" + id1;
-			coverImage = "<img height=256 width=256 src=\"" + thumb + "\" alt=\"\"><br><h2>" + name + "</h2><br>";
 			flowplayer = false;
 		}
 		if (r.getFormat().isVideo()) {
@@ -133,7 +131,6 @@ public class RemotePlayHandler implements HttpHandler {
 		vars.put("isVideo", isVideo);
 		vars.put("name", name);
 		vars.put("id1", id1);
-		vars.put("coverImage", coverImage);
 		vars.put("autoContinue", configuration.getWebAutoCont(r.getFormat()));
 		addNextByType(r, vars);
 		if (isImage) {

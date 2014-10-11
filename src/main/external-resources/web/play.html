@@ -27,7 +27,10 @@
 			</div>
 
 			<div id="VideoContainer">
-				{{coverImage}}
+{{^isVideo}}
+				<img height=256 width=256 src="/thumb/{{id1}}" alt=""><br>
+				<h2>{{name}}</h2><br>
+{{/isVideo}}
 				<{{mediaType}} id="player" width="{{width}}" height="{{height}}" controls {{auto}}>
 					<source src="/media/{{id1}}" type="{{mime}}">
 {{#sub}}
@@ -44,11 +47,11 @@
 			</div>
 			<a href="/raw/{{id1}}" target="_blank" id="DownloadLink" title="Download this {{mediaType}}"></a>
 		</div>
-		<script>
 {{#autoContinue}}
+		<script>
 			document.getElementById('player').addEventListener('ended', next);
-{{/autoContinue}}
 		</script>
+{{/autoContinue}}
 	</body>
 </html>
 

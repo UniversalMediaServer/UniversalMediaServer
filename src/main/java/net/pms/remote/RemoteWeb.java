@@ -418,7 +418,6 @@ public class RemoteWeb {
 			}
 
 			HashMap<String, Object> vars = new HashMap<>();
-			vars.put("serverName", configuration.getServerName());
 			vars.put("logs", getLogs(true));
 			if (configuration.getUseCache()) {
 				vars.put("cache", "http://" + PMS.get().getServer().getHost() + ":" + PMS.get().getServer().getPort() + "/console/home");
