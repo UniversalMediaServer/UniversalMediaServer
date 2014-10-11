@@ -1649,7 +1649,7 @@ public class MEncoderVideo extends Player {
 				} else {
 					cmdList.add("-sub");
 					if (media.is3d()) {
-						File subsFilename = FFMpegVideo.getSubtitles(dlna, media, params, configuration, SubtitleType.ASS);
+						File subsFilename = SubtitleUtils.getSubtitles(dlna, media, params, configuration, SubtitleType.ASS);
 						cmdList.add(subsFilename.getAbsolutePath().replace(",", "\\,"));
 					} else {
 						cmdList.add(externalSubtitlesFileName.replace(",", "\\,")); // Commas in MEncoder separate multiple subtitle files
