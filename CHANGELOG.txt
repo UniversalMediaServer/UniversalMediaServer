@@ -5,6 +5,7 @@
 		Added renderer support for converting 3D video to a different 3D format
 		Added a new template renderer file "DefaultRenderer.conf" which contains all possible renderer config options (like PS3.conf did before)
 		Made cache recreation happen only when it has changed, instead of with every new release
+		Updated tooltips
 		Fixed the cache not storing all data (thanks, taconaut!)
 		Fixed full-SBS 3D support via FFmpeg
 	Renderers:

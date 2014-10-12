@@ -2236,6 +2236,10 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @return whether the video track is full SBS or OU 3D
 	 */
 	public boolean is3dFullSbsOrOu() {
+		if (!is3d()) {
+			return false;
+		}
+
 		switch (stereoscopy) {
 			case "overunderrt":
 			case "OULF":

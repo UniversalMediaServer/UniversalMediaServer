@@ -26,13 +26,10 @@ import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
@@ -64,16 +61,13 @@ import net.pms.io.StreamModifier;
 import net.pms.io.OutputTextLogger;
 import net.pms.network.HTTPResource;
 import net.pms.util.CodecUtil;
-import net.pms.util.FileUtil;
 import net.pms.util.PlayerUtil;
 import net.pms.util.ProcessUtil;
 import org.apache.commons.io.FileUtils;
 import static net.pms.util.StringUtil.*;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.mozilla.universalchardet.Constants.CHARSET_UTF_8;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -193,7 +187,7 @@ public class FFMpegVideo extends Player {
 				String originalSubsFilename;
 				String subsFilename;
 				if (params.sid.isEmbedded() || configuration.isFFmpegFontConfig() || is3D) {
-					originalSubsFilename = getSubtitles(dlna, media, params, configuration, SubtitleType.ASS).getAbsolutePath();
+					originalSubsFilename = SubtitleUtils.getSubtitles(dlna, media, params, configuration, SubtitleType.ASS).getAbsolutePath();
 				} else {
 					originalSubsFilename = params.sid.getExternalFile().getAbsolutePath();
 				}
@@ -294,7 +288,7 @@ public class FFMpegVideo extends Player {
 
 		if (filterChain.size() > 0) {
 			videoFilterOptions.add("-filter_complex");
-			videoFilterOptions.add(StringUtils.join(filterChain, ", "));
+			videoFilterOptions.add(StringUtils.join(filterChain, ","));
 		}
 
 		return videoFilterOptions;
@@ -1327,325 +1321,7 @@ public class FFMpegVideo extends Player {
 		return cmdList;
 	}
 
-	/**
-	 * Extracts embedded subtitles from video to file in SSA/ASS format, converts external SRT
-	 * subtitles file to SSA/ASS format and applies fontconfig setting to that converted file
-	 * and applies timeseeking when required.
-	 *
-	 * @param dlna DLNAResource
-	 * @param media DLNAMediaInfo
-	 * @param params Output parameters
-	 * @param configuration
-	 * @return Converted subtitle file
-	 * @throws IOException
-	 */
-	public static File getSubtitles(DLNAResource dlna, DLNAMediaInfo media, OutputParams params, PmsConfiguration configuration, SubtitleType subtitleType) throws IOException {
-		if (media == null || params.sid.getId() == -1 || !params.sid.getType().isText()) {
-			return null;
-		}
 
-		String dir = configuration.getDataFile(SUB_DIR);
-		File subsPath = new File(dir);
-		if (!subsPath.exists()) {
-			subsPath.mkdirs();
-		}
-
-		boolean applyFontConfig = configuration.isFFmpegFontConfig();
-		boolean isEmbeddedSource = params.sid.getId() < 100;
-		boolean is3D = media.is3d() && !media.stereoscopyIsAnaglyph();
-
-		String filename = isEmbeddedSource ?
-			dlna.getSystemName() : params.sid.getExternalFile().getAbsolutePath();
-
-		String basename;
-
-		long modId = new File(filename).lastModified();
-		if (modId != 0) {
-			// We have a real file
-			basename = FilenameUtils.getBaseName(filename);
-		} else {
-			// It's something else, e.g. a url or psuedo-url without meaningful
-			// lastmodified and (maybe) basename characteristics.
-			basename = dlna.getName().replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
-			modId = filename.hashCode();
-		}
-
-		File convertedSubs;
-		if (applyFontConfig || isEmbeddedSource || is3D || params.sid.getType() != subtitleType) {
-			convertedSubs = new File(subsPath.getAbsolutePath() + File.separator + basename + "_ID" + params.sid.getId() + "_" + modId + "." + subtitleType.getExtension());
-		} else {
-			String tmp = params.sid.getExternalFile().getName().replaceAll("[<>:\"\\\\/|?*+\\[\\]\n\r ']", "").trim();
-			convertedSubs = new File(subsPath.getAbsolutePath() + File.separator + modId + "_" + tmp);
-		}
-
-		if (convertedSubs.canRead()) {
-			// subs are already converted
-			if (applyFontConfig || isEmbeddedSource || is3D) {
-				params.sid.setType(SubtitleType.ASS);
-				params.sid.setExternalFileCharacterSet(CHARSET_UTF_8);
-				if (is3D) {
-					try {
-						convertedSubs = SubtitleUtils.convertASSToASS3D(convertedSubs, media, params);
-					} catch (IOException | NullPointerException e) {
-						LOGGER.debug("Converting to ASS3D format ends with error: " + e);
-						return null;
-					}
-				}
-			}
-
-			return convertedSubs;
-		}
-
-		boolean isExternalAss = false;
-		if (
-			params.sid.getType() == SubtitleType.ASS &&
-			params.sid.isExternal() &&
-			!isEmbeddedSource
-		) {
-			isExternalAss = true;
-		}
-
-		File tempSubs;
-		if (
-			isExternalAss ||
-			(
-				!applyFontConfig &&
-				!isEmbeddedSource &&
-				(params.sid.getType() == subtitleType) &&
-				(params.sid.getType() == SubtitleType.SUBRIP || params.sid.getType() == SubtitleType.WEBVTT) &&
-				!is3D
-			)
-		) {
-			tempSubs = params.sid.getExternalFile();
-		} else {
-			tempSubs = convertSubsToSubtitleType(filename, media, params, configuration, subtitleType);
-		}
-
-		if (tempSubs == null) {
-			return null;
-		}
-
-		if (!FileUtil.isFileUTF8(tempSubs)) {
-			try {
-				tempSubs = SubtitleUtils.applyCodepageConversion(tempSubs, convertedSubs);
-				params.sid.setExternalFileCharacterSet(CHARSET_UTF_8);
-			} catch (IOException ex) {
-				params.sid.setExternalFileCharacterSet(null);
-				LOGGER.warn("Exception during external file charset detection.", ex);
-			}
-		} else {
-			FileUtils.copyFile(tempSubs, convertedSubs);
-			tempSubs = convertedSubs;
-		}
-
-		// Now we're sure we actually have our own modifiable file
-		if (
-			applyFontConfig &&
-			!(
-				configuration.isUseEmbeddedSubtitlesStyle() &&
-				params.sid.getType() == SubtitleType.ASS
-			)
-		) {
-			try {
-				tempSubs = applyFontconfigToASSTempSubsFile(tempSubs, media, configuration);
-				params.sid.setExternalFileCharacterSet(CHARSET_UTF_8);
-			} catch (IOException e) {
-				LOGGER.debug("Applying subs setting ends with error: " + e);
-				return null;
-			}
-		}
-
-		if (is3D) {
-			try {
-				tempSubs = SubtitleUtils.convertASSToASS3D(tempSubs, media, params);
-			} catch (IOException | NullPointerException e) {
-				LOGGER.debug("Converting to ASS3D format ends with error: " + e);
-				return null;
-			}
-		}
-
-		if (isEmbeddedSource) {
-			params.sid.setExternalFile(tempSubs);
-			params.sid.setType(SubtitleType.ASS);
-		}
-
-		PMS.get().addTempFile(tempSubs, 30 * 24 * 3600 * 1000);
-		return tempSubs;
-	}
-
-	/**
-	 * Converts external subtitles or extract embedded subs to the requested subtitle type
-	 *
-	 * @param fileName subtitles file or video file with embedded subs
-	 * @param media
-	 * @param params output parameters
-	 * @param configuration
-	 * @param outputSubtitleType requested subtitle type
-	 * @return Converted subtitles file in requested type
-	 */
-	public static File convertSubsToSubtitleType(String fileName, DLNAMediaInfo media, OutputParams params, PmsConfiguration configuration, SubtitleType outputSubtitleType) {
-		if (!params.sid.getType().isText()) {
-			return null;
-		}
-		List<String> cmdList = new ArrayList<>();
-		File tempSubsFile;
-		cmdList.add(configuration.getFfmpegPath());
-		cmdList.add("-y");
-		cmdList.add("-loglevel");
-		if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
-			cmdList.add("info"); // Could be changed to "verbose" or "debug" if "info" level is not enough
-		} else {
-			cmdList.add("fatal");
-		}
-
-		// Try to specify input encoding if we have a non utf-8 external sub
-		if (params.sid.getId() >= 100 && !params.sid.isExternalFileUtf8()) {
-			String encoding = isNotBlank(configuration.getSubtitlesCodepage()) ?
-					// Prefer the global user-specified encoding if we have one.
-					// Note: likely wrong if the file isn't supplied by the user.
-					configuration.getSubtitlesCodepage() :
-				params.sid.getExternalFileCharacterSet() != null ?
-					// Fall back on the actually detected encoding if we have it.
-					// Note: accuracy isn't 100% guaranteed.
-					params.sid.getExternalFileCharacterSet() :
-				null; // Otherwise we're out of luck!
-			if (encoding != null) {
-				cmdList.add("-sub_charenc");
-				cmdList.add(encoding);
-			}
-		}
-
-		cmdList.add("-i");
-		cmdList.add(fileName);
-
-		if (params.sid.isEmbedded()) {
-			cmdList.add("-map");
-			cmdList.add("0:s:" + (media.getSubtitleTracksList().indexOf(params.sid)));
-		}
-
-		try {
-			tempSubsFile = new File(configuration.getTempFolder(), FilenameUtils.getBaseName(fileName) + "." + outputSubtitleType.getExtension());
-		} catch (IOException e1) {
-			LOGGER.debug("Subtitles conversion finished wih error: " + e1);
-			return null;
-		}
-		cmdList.add(tempSubsFile.getAbsolutePath());
-
-		String[] cmdArray = new String[cmdList.size()];
-		cmdList.toArray(cmdArray);
-
-		ProcessWrapperImpl pw = new ProcessWrapperImpl(cmdArray, params);
-		pw.runInNewThread();
-
-		try {
-			pw.join(); // Wait until the conversion is finished
-			pw.stopProcess(); // Avoid creating a pipe for this process and messing up with buffer progress bar
-		} catch (InterruptedException e) {
-			LOGGER.debug("Subtitles conversion finished wih error: " + e);
-			return null;
-		}
-
-		tempSubsFile.deleteOnExit();
-		return tempSubsFile;
-	}
-
-	public static File applyFontconfigToASSTempSubsFile(File tempSubs, DLNAMediaInfo media, PmsConfiguration configuration) throws IOException {
-		LOGGER.debug("Applying fontconfig to subtitles " + tempSubs.getName());
-		File outputSubs = tempSubs;
-		StringBuilder outputString = new StringBuilder();
-		File temp = new File(configuration.getTempFolder(), tempSubs.getName() + ".tmp");
-		FileUtils.copyFile(tempSubs, temp);
-		BufferedReader input = FileUtil.bufferedReaderWithCorrectCharset(temp);
-		BufferedWriter output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outputSubs), CHARSET_UTF_8));
-		try {
-			String line;
-			String[] format = null;
-			int i;
-			boolean playResIsSet = false; // do not apply font size change when video resolution is set
-			while ((line = input.readLine()) != null) {
-				outputString.setLength(0);
-				if (line.contains("[Script Info]")) {
-					outputString.append(line).append("\n");
-					output.write(outputString.toString());
-					while ((line = input.readLine()) != null) {
-						outputString.setLength(0);
-						if (isNotBlank(line)) {
-							if (line.contains("PlayResY:") || line.contains("PlayResX:")) {
-								playResIsSet = true;
-							}
-							outputString.append(line).append("\n");
-							output.write(outputString.toString());
-						} else {
-							if (!playResIsSet) {
-								outputString.append("PlayResY: ").append(media.getHeight()).append("\n");
-								outputString.append("PlayResX: ").append(media.getWidth()).append("\n");
-							}
-							break;
-						}
-					}
-				}
-
-				if (line != null && line.contains("Format:")) {
-					format = line.split(",");
-					outputString.append(line).append("\n");
-					output.write(outputString.toString());
-					continue;
-				}
-
-				if (line != null && line.contains("Style: Default")) {
-					String[] params = line.split(",");
-
-					for (i = 0; i < format.length; i++) {
-						switch (format[i].trim()) {
-							case "Fontname":
-								if (!configuration.getFont().isEmpty()) {
-									params[i] = configuration.getFont();
-								}
-
-								break;
-							case "Fontsize":
-								if (!playResIsSet) {
-									params[i] = Integer.toString((int) ((Integer.parseInt(params[i]) * media.getHeight() / (double) 288 * Double.parseDouble(configuration.getAssScale()))));
-								} else {
-									params[i] = Integer.toString((int) (Integer.parseInt(params[i]) * Double.parseDouble(configuration.getAssScale())));
-								}
-
-								break;
-							case "PrimaryColour":
-								String primaryColour = Integer.toHexString(configuration.getSubsColor());
-								params[i] = "&H" + primaryColour.substring(6, 8) + primaryColour.substring(4, 6) + primaryColour.substring(2, 4);
-								break;
-							case "Outline":
-								params[i] = configuration.getAssOutline();
-								break;
-							case "Shadow":
-								params[i] = configuration.getAssShadow();
-								break;
-							case "MarginV":
-								params[i] = configuration.getAssMargin();
-								break;
-							default:
-								break;
-						}
-					}
-
-					outputString.append(StringUtils.join(params, ",")).append("\n");
-					output.write(outputString.toString());
-					continue;
-				}
-
-				outputString.append(line).append("\n");
-				output.write(outputString.toString());
-			}
-		} finally {
-			input.close();
-			output.flush();
-			output.close();
-			temp.deleteOnExit();
-		}
-
-		return outputSubs;
-	}
 
 	/**
 	 * Collapse the multiple internal ways of saying "subtitles are disabled" into a single method
