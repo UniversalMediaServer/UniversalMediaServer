@@ -282,7 +282,7 @@ public class FFMpegVideo extends Player {
 
 		if (filterChain.size() > 0) {
 			videoFilterOptions.add("-filter_complex");
-			videoFilterOptions.add(StringUtils.join(filterChain, ", "));
+			videoFilterOptions.add(StringUtils.join(filterChain, ","));
 		}
 
 		return videoFilterOptions;
