@@ -576,20 +576,28 @@ public class UPNPHelper extends UPNPControl {
 		try {
 			InetAddress socket = InetAddress.getByName(getURL(d).getHost());
 			DeviceConfiguration r = (DeviceConfiguration)RendererConfiguration.getRendererConfigurationBySocketAddress(socket);
+			RendererConfiguration ref = configuration.isRendererForceDefault() ?
+				null : RendererConfiguration.getRendererConfigurationByUPNPDetails(getDeviceDetailsString(d));
 
 			// FIXME: when UpnpDetailsSearch is missing from the conf a upnp-advertising
 			// renderer could register twice if the http server sees it first
 			if (r != null && r.matchUPNPDetails(getDeviceDetailsString(d))) {
-				// Already seen by the http server, make sure it's mapped
+				// Already seen by the http server
+				if (ref != null && ! ref.getUpnpDetailsString().equals(r.getUpnpDetailsString())
+						&& ref.getLoadingPriority() >= r.getLoadingPriority()) {
+					// The upnp-matched reference conf is different from the previous
+					// http-matched conf and has equal or higher priority, so update.
+					LOGGER.debug("Switching to preferred renderer: " + ref.getRendererName());
+					r.inherit(ref);
+				}
+				// Make sure it's mapped
 				rendererMap.put(uuid, "0", r);
-				// update gui
+				// Update gui
 				PMS.get().updateRenderer(r);
 				LOGGER.debug("Found upnp service for " + r.getRendererName() + ": " + getDeviceDetails(d));
 			} else {
 				// It's brand new
 				r = (DeviceConfiguration)rendererMap.get(uuid, "0");
-				RendererConfiguration ref = configuration.isRendererForceDefault() ?
-					null : RendererConfiguration.getRendererConfigurationByUPNPDetails(getDeviceDetailsString(d));
 				if (ref != null) {
 					r.inherit(ref);
 				} else {

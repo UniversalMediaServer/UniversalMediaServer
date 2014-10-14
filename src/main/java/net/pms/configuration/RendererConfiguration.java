@@ -533,7 +533,11 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			if (addressAssociation.containsKey(ia)) {
 				// Already seen, finish configuration if required
 				r = (DeviceConfiguration)addressAssociation.get(ia);
-				if (! r.loaded) {
+				boolean higher = ref.getLoadingPriority() > r.getLoadingPriority() && ref != defaultConf;
+				if (! r.loaded || higher) {
+					if (higher) {
+						LOGGER.debug("Switching to higher priority renderer: " + ref.getRendererName());
+					}
 					r.inherit(ref);
 					// update gui
 					PMS.get().updateRenderer(r);
@@ -774,6 +778,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public void init(File f) throws ConfigurationException {
+		rootFolder = null;
 		if (! loaded) {
 			configuration.clear();
 			loaded = load(f);
