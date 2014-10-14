@@ -1278,10 +1278,31 @@ public class RendererConfiguration {
 		return getString(CUSTOM_FFMPEG_OPTIONS, "");
 	}
 
+	/**
+	 * If this is true, we will always output video at 16/9 aspect ratio to
+	 * the renderer, meaning that all videos with different aspect ratios
+	 * will have black bars added to the edges to make them 16/9.
+	 *
+	 * This addresses a bug in some renderers (like Panasonic TVs) where
+	 * they stretch videos that are not 16/9.
+	 *
+	 * @return 
+	 */
 	public boolean isKeepAspectRatio() {
 		return getBoolean(KEEP_ASPECT_RATIO, false);
 	}
 
+	/**
+	 * If this is false, FFmpeg will upscale videos with resolutions lower
+	 * than SD (720 pixels wide) to the maximum resolution your renderer
+	 * supports.
+	 *
+	 * Changing it to false is only recommended if your renderer has
+	 * poor-quality upscaling, since we will use more CPU and network
+	 * bandwidth when it is false.
+	 *
+	 * @return 
+	 */
 	public boolean isRescaleByRenderer() {
 		return getBoolean(RESCALE_BY_RENDERER, true);
 	}
