@@ -228,6 +228,8 @@ public class LibMediaInfoParser {
 									}
 								} else if (key.equals("matrix_coefficients") && streamType == MediaInfo.StreamType.Video) {
 									media.setMatrixCoefficients(value);
+								} else if (key.equals("Attachment") && streamType == MediaInfo.StreamType.General) {
+									media.setEmbeddedFontExists(true);
 								}
 							}
 						}

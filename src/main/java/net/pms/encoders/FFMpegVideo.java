@@ -797,12 +797,12 @@ public class FFMpegVideo extends Player {
 
 		/**
 		 * Defer to MEncoder for subtitles if:
-		 * - The setting is enabled
+		 * - The setting is enabled or embedded fonts exist
 		 * - There are subtitles to transcode
 		 * - The file is not being played via the transcode folder
 		 */
+		String prependTraceReason = "Switching from FFmpeg to MEncoder to transcode subtitles because ";
 		if (
-			configuration.isFFmpegDeferToMEncoderForSubtitles() &&
 			params.sid != null &&
 			!(
 				!configuration.getHideTranscodeEnabled() &&
@@ -810,15 +810,23 @@ public class FFMpegVideo extends Player {
 				(dlna.getParent() instanceof FileTranscodeVirtualFolder)
 			)
 		) {
-			LOGGER.trace("Switching from FFmpeg to MEncoder to transcode subtitles.");
-			MEncoderVideo mv = new MEncoderVideo();
-
-			return mv.launchTranscode(dlna, media, params);
+			boolean deferToMencoder = false;
+			if (configuration.isFFmpegDeferToMEncoderForSubtitles()) {
+				deferToMencoder = true;
+				LOGGER.trace(prependTraceReason + "the user setting is enabled.");
+			} else if (media.isEmbeddedFontExists()) {
+				deferToMencoder = true;
+				LOGGER.trace(prependTraceReason + "there are embedded fonts.");
+			}
+			if (deferToMencoder) {
+				MEncoderVideo mv = new MEncoderVideo();
+				return mv.launchTranscode(dlna, media, params);
+			}
 		}
 
 		// Decide whether to defer to tsMuxeR or continue to use FFmpeg
 		boolean deferToTsmuxer = true;
-		String prependTraceReason = "Not muxing the video stream with tsMuxeR via FFmpeg because ";
+		prependTraceReason = "Not muxing the video stream with tsMuxeR via FFmpeg because ";
 		if (!configuration.isFFmpegMuxWithTsMuxerWhenCompatible()) {
 			deferToTsmuxer = false;
 			LOGGER.trace(prependTraceReason + "the user setting is disabled");
