@@ -430,6 +430,7 @@ public class FFMpegVideo extends Player {
 		}
 
 		boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
+		int maximumBitrate = defaultMaxBitrates[0];
 
 		if (params.mediaRenderer.getCBRVideoBitrate() == 0 && params.timeend == 0) {
 			// Convert value from Mb to Kb
@@ -503,7 +504,6 @@ public class FFMpegVideo extends Player {
 			videoBitrateOptions.add("-maxrate");
 			videoBitrateOptions.add(String.valueOf(defaultMaxBitrates[0]));
 		}
-		int maximumBitrate = defaultMaxBitrates[0];
 
 		if (isXboxOneWebVideo || !params.mediaRenderer.isTranscodeToH264()) {
 			// Add MPEG-2 quality settings
