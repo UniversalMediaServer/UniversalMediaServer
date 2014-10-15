@@ -714,6 +714,9 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							) {
 								isIncompatible = true;
 								LOGGER.trace("File \"{}\" will not be streamed because the resolution is too high for the renderer.", child.getName());
+							} else if (child.media.getBitrate() > (defaultRenderer.getMaxBandwidth() / 2)) {
+								isIncompatible = true;
+								LOGGER.trace("File \"{}\" will not be streamed because the bitrate is too high.", child.getName());
 							}
 
 							// Prefer transcoding over streaming if:

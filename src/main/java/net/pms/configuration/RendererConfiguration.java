@@ -33,6 +33,7 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -152,6 +153,8 @@ public class RendererConfiguration {
 	private static final String VIDEO = "Video";
 	private static final String WRAP_DTS_INTO_PCM = "WrapDTSIntoPCM";
 	private static final String WRAP_ENCODED_AUDIO_INTO_PCM = "WrapEncodedAudioIntoPCM";
+
+	private static int maximumBitrateTotal = 0;
 
 	public static RendererConfiguration getDefaultConf() {
 		return defaultConf;
@@ -1021,6 +1024,33 @@ public class RendererConfiguration {
 		return getString(MAX_VIDEO_BITRATE, "0");
 	}
 
+	/**
+	 * Returns the maximum bitrate (in bits-per-second) as defined by
+	 * whichever is lower out of the renderer setting or user setting.
+	 *
+	 * @return The maximum bitrate in bits-per-second.
+	 */
+	public int getMaxBandwidth() {
+		if (maximumBitrateTotal > 0) {
+			return maximumBitrateTotal;
+		}
+
+		int defaultMaxBitrates[] = getVideoBitrateConfig(PMS.getConfiguration().getMaximumBitrate());
+		int rendererMaxBitrates[] = new int[2];
+
+		if (StringUtils.isNotEmpty(getMaxVideoBitrate())) {
+			rendererMaxBitrates = getVideoBitrateConfig(getMaxVideoBitrate());
+		}
+
+		// Give priority to the renderer's maximum bitrate setting over the user's setting
+		if (rendererMaxBitrates[0] > 0 && rendererMaxBitrates[0] < defaultMaxBitrates[0]) {
+			defaultMaxBitrates = rendererMaxBitrates;
+		}
+
+		maximumBitrateTotal = defaultMaxBitrates[0] * 1000000;
+		return maximumBitrateTotal;
+	}
+
 	@Deprecated
 	public String getCustomMencoderQualitySettings() {
 		return getCustomMEncoderMPEG2Options();
@@ -1596,4 +1626,24 @@ public class RendererConfiguration {
 			return p1 > p2 ? -1 : p1 < p2 ? 1 : r1.getRendererName().compareToIgnoreCase(r2.getRendererName());
 		}
 	};
+
+	private int[] getVideoBitrateConfig(String bitrate) {
+		int bitrates[] = new int[2];
+
+		if (bitrate.contains("(") && bitrate.contains(")")) {
+			bitrates[1] = Integer.parseInt(bitrate.substring(bitrate.indexOf('(') + 1, bitrate.indexOf(')')));
+		}
+
+		if (bitrate.contains("(")) {
+			bitrate = bitrate.substring(0, bitrate.indexOf('(')).trim();
+		}
+
+		if (isBlank(bitrate)) {
+			bitrate = "0";
+		}
+
+		bitrates[0] = (int) Double.parseDouble(bitrate);
+
+		return bitrates;
+	}
 }
