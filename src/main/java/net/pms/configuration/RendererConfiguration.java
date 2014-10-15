@@ -479,6 +479,13 @@ public class RendererConfiguration {
 		return getRendererName().toUpperCase().contains("LG ");
 	}
 
+	/**
+	 * @return whether this renderer is a Panasonic TV
+	 */
+	public boolean isPanasonicTV() {
+		return getRendererName().toUpperCase().contains("PANASONIC") || getRendererName().toUpperCase().contains("VIERA");
+	}
+
 	// Ditlew
 	public int getByteToTimeseekRewindSeconds() {
 		return getInt(BYTE_TO_TIMESEEK_REWIND_SECONDS, 0);
@@ -696,6 +703,13 @@ public class RendererConfiguration {
 	 */
 	public boolean isTranscodeToMPEGTS() {
 		return isTranscodeToMPEGTSMPEG2AC3() || isTranscodeToMPEGTSH264AC3() || isTranscodeToMPEGTSH264AAC();
+	}
+
+	/**
+	 * @return whether to use the MPEG-2 video codec for transcoded video
+	 */
+	public boolean isTranscodeToMPEG2() {
+		return isTranscodeToMPEGTSMPEG2AC3() || isTranscodeToMPEGPSMPEG2AC3();
 	}
 
 	public boolean isAutoRotateBasedOnExif() {

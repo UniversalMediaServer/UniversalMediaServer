@@ -169,8 +169,27 @@ public class FFMpegVideo extends Player {
 				scaleWidth = (int) Math.round(scaleHeight * (16 / (double) 9));
 			}
 
-			scaleWidth  = convertToMod4(scaleWidth);
-			scaleHeight = convertToMod4(scaleHeight);
+			/**
+			 * Panasonic TVs seem to have problems with MPEG-2 video at certain resolutions
+			 * so here we work around that.
+			 */
+			if (scaleHeight < 720 && renderer.isTranscodeToMPEG2() && renderer.isPanasonicTV()) {
+				scaleWidth  = 1280;
+				scaleHeight = 720;
+			} else {
+				scaleWidth  = convertToMod4(scaleWidth);
+				scaleHeight = convertToMod4(scaleHeight);
+			}
+
+			// Make sure we didn't exceed the renderer's maximum resolution.
+			if (
+				scaleHeight > renderer.getMaxVideoHeight() ||
+				scaleWidth  > renderer.getMaxVideoWidth()
+			) {
+				scaleHeight = renderer.getMaxVideoHeight();
+				scaleWidth  = renderer.getMaxVideoWidth();
+			}
+
 			scalePadFilterChain.add("scale=" + scaleWidth + ":" + scaleHeight);
 		}
 
