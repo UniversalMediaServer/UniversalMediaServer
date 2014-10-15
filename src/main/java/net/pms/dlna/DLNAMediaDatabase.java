@@ -231,7 +231,7 @@ public class DLNAMediaDatabase implements Runnable {
 				sb.append(", FRAMERATEMODE           VARCHAR2(").append(SIZE_FRAMERATE_MODE).append(")");
 				sb.append(", STEREOSCOPY             VARCHAR2(").append(SIZE_STEREOSCOPY).append(")");
 				sb.append(", MATRIXCOEFFICIENTS      VARCHAR2(").append(SIZE_MATRIX_COEFFICIENTS).append(")");
-				sb.append(", EMBEDDEDFONTEXISTS      BIT");
+				sb.append(", EMBEDDEDFONTEXISTS      BIT              NOT NULL");
 				sb.append(", constraint PK1 primary key (FILENAME, MODIFIED, ID))");
 				executeUpdate(conn, sb.toString());
 				sb = new StringBuilder();
