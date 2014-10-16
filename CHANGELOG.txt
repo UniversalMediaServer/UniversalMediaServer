@@ -1,4 +1,4 @@
-4.2.0 - 2014-10-??
+4.2.0 - 2014-10-17
 
 	General:
 		Added support for automatic 2D to 3D subtitles conversion
