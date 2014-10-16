@@ -211,8 +211,8 @@ public class FFMpegVideo extends Player {
 					scaleHeight = convertToModX(scaleHeight, 16);
 				}
 			} else {
-				scaleWidth  = convertToMod4(scaleWidth);
-				scaleHeight = convertToMod4(scaleHeight);
+				scaleWidth  = convertToModX(scaleWidth, 4);
+				scaleHeight = convertToModX(scaleHeight, 4);
 			}
 
 			// Make sure we didn't exceed the renderer's maximum resolution.
