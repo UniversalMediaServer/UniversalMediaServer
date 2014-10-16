@@ -135,6 +135,8 @@ public class LibMediaInfoParser {
 										currentAudioTrack.setLang(getLang(value));
 									} else if (streamType == MediaInfo.StreamType.Text) {
 										currentSubTrack.setLang(getLang(value));
+									} else if (streamType == MediaInfo.StreamType.Video && StringUtils.isBlank(currentAudioTrack.getLang())) {
+										currentAudioTrack.setLang(getLang(value));
 									}
 								} else if (key.equals("Title")) {
 									if (streamType == MediaInfo.StreamType.Audio) {
