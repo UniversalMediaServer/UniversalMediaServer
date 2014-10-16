@@ -32,6 +32,8 @@
 			Improves quality
 			Improves GPU support
 			Fixes bugs
+		Updated Java Runtime Environment automatic downloader for Windows to 8u25, which:
+			Improves security
 
 4.1.3 - 2014-10-03
 
