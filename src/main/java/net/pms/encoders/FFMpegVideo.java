@@ -160,16 +160,7 @@ public class FFMpegVideo extends Player {
 					scalePadFilterChain.add(String.format("pad=%1$d:%2$d:(%1$d-iw)/2:(%2$d-ih)/2", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
 				}
 			}
-		} else if (
-			(
-				keepAR ||
-				(
-					renderer.isPanasonicTV() &&
-					renderer.isTranscodeToMPEG2()
-				)
-			) &&
-			isMediaValid
-		) {
+		} else if (keepAR && isMediaValid) {
 			if ((media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
 				scalePadFilterChain.add("pad=iw:iw/(16/9):0:(oh-ih)/2");
 				scaleHeight = (int) Math.round(scaleWidth / (16 / (double) 9));
@@ -178,51 +169,8 @@ public class FFMpegVideo extends Player {
 				scaleWidth = (int) Math.round(scaleHeight * (16 / (double) 9));
 			}
 
-			/**
-			 * Panasonic TVs seem to have problems with MPEG-2 video at certain resolutions
-			 * so here we work around that.
-			 *
-			 * Resolutions confirmed to work with Panasonic TVs:
-			 * 1080x608
-			 * 1056x592
-			 * 1024x576
-			 * 992x560
-			 * 960x544
-			 * 944x528
-			 * 912x512
-			 * 880x496
-			 * 816x464
-			 * 768x432
-			 * 672x384
-			 * 640x352
-			 * 624x352
-			 * 608x336
-			 *
-			 * Resolutions confirmed to not work with Panasonic TVs:
-			 * 1008x560
-			 * 854x480
-			 * 848x480
-			 * 848x464
-			 *
-			 * It seems that Panasonic TVs prefer mod16 for MPEG-2 but still have some
-			 * exceptions like 1008x560 and 848x480.
-			 *
-			 * The following rules attempt to work around this annoying Panasonic bug.
-			 */
-			if (scaleHeight < 720 && renderer.isTranscodeToMPEG2() && renderer.isPanasonicTV()) {
-				if (scaleHeight < 496 && scaleHeight > 432) {
-					scaleWidth  = 880;
-					scaleHeight = 496;
-				} else if (scaleHeight == 560) {
-					scaleWidth  = 992;
-				} else {
-					scaleWidth  = convertToModX(scaleWidth,  16);
-					scaleHeight = convertToModX(scaleHeight, 16);
-				}
-			} else {
-				scaleWidth  = convertToModX(scaleWidth, 4);
-				scaleHeight = convertToModX(scaleHeight, 4);
-			}
+			scaleWidth  = convertToModX(scaleWidth, 4);
+			scaleHeight = convertToModX(scaleHeight, 4);
 
 			// Make sure we didn't exceed the renderer's maximum resolution.
 			if (

@@ -479,13 +479,6 @@ public class RendererConfiguration {
 		return getRendererName().toUpperCase().contains("LG ");
 	}
 
-	/**
-	 * @return whether this renderer is a Panasonic TV
-	 */
-	public boolean isPanasonicTV() {
-		return getRendererName().toUpperCase().contains("PANASONIC") || getRendererName().toUpperCase().contains("VIERA");
-	}
-
 	// Ditlew
 	public int getByteToTimeseekRewindSeconds() {
 		return getInt(BYTE_TO_TIMESEEK_REWIND_SECONDS, 0);
