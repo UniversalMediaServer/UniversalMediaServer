@@ -485,6 +485,14 @@ public abstract class Player {
 		return number;
 	}
 
+	public int convertToModX(int number, int mod) {
+		if (number % mod != 0) {
+			number -= (number % mod);
+		}
+
+		return number;
+	}
+
 	/**
 	 * Returns whether or not the player can handle a given resource.
 	 * If the resource is <code>null</code> compatibility cannot be

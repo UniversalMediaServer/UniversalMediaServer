@@ -172,10 +172,44 @@ public class FFMpegVideo extends Player {
 			/**
 			 * Panasonic TVs seem to have problems with MPEG-2 video at certain resolutions
 			 * so here we work around that.
+			 *
+			 * Resolutions confirmed to work with Panasonic TVs:
+			 * 1080x608
+			 * 1056x592
+			 * 1024x576
+			 * 992x560
+			 * 960x544
+			 * 944x528
+			 * 912x512
+			 * 880x496
+			 * 816x464
+			 * 768x432
+			 * 672x384
+			 * 640x352
+			 * 624x352
+			 * 608x336
+			 *
+			 * Resolutions confirmed to not work with Panasonic TVs:
+			 * 1008x560
+			 * 854x480
+			 * 848x480
+			 * 848x464
+			 *
+			 * It seems that Panasonic TVs prefer mod16 for MPEG-2 but still have some
+			 * exceptions like 1008x560 and 848x480.
+			 *
+			 * The following rules attempt to work around this annoying Panasonic bug.
 			 */
 			if (scaleHeight < 720 && renderer.isTranscodeToMPEG2() && renderer.isPanasonicTV()) {
-				scaleWidth  = 1280;
-				scaleHeight = 720;
+				if (scaleHeight < 496 && scaleHeight > 432) {
+					scaleWidth  = 880;
+					scaleHeight = 496;
+				} else if (scaleHeight == 560) {
+					scaleWidth  = 992;
+				} else {
+					scaleWidth  = convertToModX(scaleWidth,  16);
+					scaleHeight = convertToModX(scaleHeight, 16);
+				}
 			} else {
 				scaleWidth  = convertToMod4(scaleWidth);
 				scaleHeight = convertToMod4(scaleHeight);
