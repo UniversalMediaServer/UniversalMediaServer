@@ -33,6 +33,7 @@ import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang3.StringUtils;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -119,6 +120,7 @@ public class RendererConfiguration {
 	private static final String MUX_H264_WITH_MPEGTS = "MuxH264ToMpegTS";
 	private static final String MUX_LPCM_TO_MPEG = "MuxLPCMToMpeg";
 	private static final String MUX_NON_MOD4_RESOLUTION = "MuxNonMod4Resolution";
+	private static final String OUTPUT_3D_FORMAT = "Output3DFormat";
 	private static final String OVERRIDE_FFMPEG_VF = "OverrideFFmpegVideoFilter";
 	private static final String LOADING_PRIORITY = "LoadingPriority";
 	private static final String RENDERER_ICON = "RendererIcon";
@@ -151,6 +153,8 @@ public class RendererConfiguration {
 	private static final String VIDEO = "Video";
 	private static final String WRAP_DTS_INTO_PCM = "WrapDTSIntoPCM";
 	private static final String WRAP_ENCODED_AUDIO_INTO_PCM = "WrapEncodedAudioIntoPCM";
+
+	private static int maximumBitrateTotal = 0;
 
 	public static RendererConfiguration getDefaultConf() {
 		return defaultConf;
@@ -448,6 +452,13 @@ public class RendererConfiguration {
 		return getRendererName().toUpperCase().contains("XBOX 360");
 	}
 
+	/**
+	 * @return whether this renderer is an Xbox One
+	 */
+	public boolean isXboxOne() {
+		return getRendererName().toUpperCase().contains("XBOX ONE");
+	}
+
 	public boolean isXBMC() {
 		return getRendererName().toUpperCase().contains("XBMC");
 	}
@@ -640,14 +651,6 @@ public class RendererConfiguration {
 		return getVideoTranscode().equals(WMV);
 	}
 
-	public boolean isTranscodeToAC3() {
-		return isTranscodeToMPEGPSMPEG2AC3() || isTranscodeToMPEGTSMPEG2AC3() || isTranscodeToMPEGTSH264AC3();
-	}
-
-	public boolean isTranscodeToAAC() {
-		return isTranscodeToMPEGTSH264AAC();
-	}
-
 	public boolean isTranscodeToMPEGPSMPEG2AC3() {
 		String videoTranscode = getVideoTranscode();
 		return videoTranscode.equals(MPEGPSMPEG2AC3) || videoTranscode.equals(DEPRECATED_MPEGAC3) || videoTranscode.equals(DEPRECATED_MPEGPSAC3);
@@ -665,6 +668,41 @@ public class RendererConfiguration {
 
 	public boolean isTranscodeToMPEGTSH264AAC() {
 		return getVideoTranscode().equals(MPEGTSH264AAC);
+	}
+
+	/**
+	 * @return whether to use the AC-3 audio codec for transcoded video
+	 */
+	public boolean isTranscodeToAC3() {
+		return isTranscodeToMPEGPSMPEG2AC3() || isTranscodeToMPEGTSMPEG2AC3() || isTranscodeToMPEGTSH264AC3();
+	}
+
+	/**
+	 * @return whether to use the AAC audio codec for transcoded video
+	 */
+	public boolean isTranscodeToAAC() {
+		return isTranscodeToMPEGTSH264AAC();
+	}
+
+	/**
+	 * @return whether to use the H.264 video codec for transcoded video
+	 */
+	public boolean isTranscodeToH264() {
+		return isTranscodeToMPEGTSH264AAC() || isTranscodeToMPEGTSH264AC3();
+	}
+
+	/**
+	 * @return whether to use the MPEG-TS container for transcoded video
+	 */
+	public boolean isTranscodeToMPEGTS() {
+		return isTranscodeToMPEGTSMPEG2AC3() || isTranscodeToMPEGTSH264AC3() || isTranscodeToMPEGTSH264AAC();
+	}
+
+	/**
+	 * @return whether to use the MPEG-2 video codec for transcoded video
+	 */
+	public boolean isTranscodeToMPEG2() {
+		return isTranscodeToMPEGTSMPEG2AC3() || isTranscodeToMPEGPSMPEG2AC3();
 	}
 
 	public boolean isAutoRotateBasedOnExif() {
@@ -832,12 +870,12 @@ public class RendererConfiguration {
 	 * Returns the the name of an additional HTTP header whose value should
 	 * be matched with the additional header search pattern. The header name
 	 * must be an exact match (read: the header has to start with the exact
-	 * same case sensitive string). The default value is <code>null</code>.
+	 * same case sensitive string). The default value is "".
 	 *
 	 * @return The additional HTTP header name.
 	 */
 	public String getUserAgentAdditionalHttpHeader() {
-		return getString(USER_AGENT_ADDITIONAL_HEADER, null);
+		return getString(USER_AGENT_ADDITIONAL_HEADER, "");
 	}
 
 	/**
@@ -991,6 +1029,33 @@ public class RendererConfiguration {
 			}
 		}
 		return getString(MAX_VIDEO_BITRATE, "0");
+	}
+
+	/**
+	 * Returns the maximum bitrate (in bits-per-second) as defined by
+	 * whichever is lower out of the renderer setting or user setting.
+	 *
+	 * @return The maximum bitrate in bits-per-second.
+	 */
+	public int getMaxBandwidth() {
+		if (maximumBitrateTotal > 0) {
+			return maximumBitrateTotal;
+		}
+
+		int defaultMaxBitrates[] = getVideoBitrateConfig(PMS.getConfiguration().getMaximumBitrate());
+		int rendererMaxBitrates[] = new int[2];
+
+		if (StringUtils.isNotEmpty(getMaxVideoBitrate())) {
+			rendererMaxBitrates = getVideoBitrateConfig(getMaxVideoBitrate());
+		}
+
+		// Give priority to the renderer's maximum bitrate setting over the user's setting
+		if (rendererMaxBitrates[0] > 0 && rendererMaxBitrates[0] < defaultMaxBitrates[0]) {
+			defaultMaxBitrates = rendererMaxBitrates;
+		}
+
+		maximumBitrateTotal = defaultMaxBitrates[0] * 1000000;
+		return maximumBitrateTotal;
 	}
 
 	@Deprecated
@@ -1250,10 +1315,31 @@ public class RendererConfiguration {
 		return getString(CUSTOM_FFMPEG_OPTIONS, "");
 	}
 
+	/**
+	 * If this is true, we will always output video at 16/9 aspect ratio to
+	 * the renderer, meaning that all videos with different aspect ratios
+	 * will have black bars added to the edges to make them 16/9.
+	 *
+	 * This addresses a bug in some renderers (like Panasonic TVs) where
+	 * they stretch videos that are not 16/9.
+	 *
+	 * @return 
+	 */
 	public boolean isKeepAspectRatio() {
 		return getBoolean(KEEP_ASPECT_RATIO, false);
 	}
 
+	/**
+	 * If this is false, FFmpeg will upscale videos with resolutions lower
+	 * than SD (720 pixels wide) to the maximum resolution your renderer
+	 * supports.
+	 *
+	 * Changing it to false is only recommended if your renderer has
+	 * poor-quality upscaling, since we will use more CPU and network
+	 * bandwidth when it is false.
+	 *
+	 * @return 
+	 */
 	public boolean isRescaleByRenderer() {
 		return getBoolean(RESCALE_BY_RENDERER, true);
 	}
@@ -1418,6 +1504,10 @@ public class RendererConfiguration {
 		return null;
 	}
 
+	public String getOutput3DFormat() {
+		return getString(OUTPUT_3D_FORMAT, "");
+	}	
+
 	public boolean ignoreTranscodeByteRangeRequests() {
 		return getBoolean(IGNORE_TRANSCODE_BYTE_RANGE_REQUEST, false);
 	}
@@ -1535,4 +1625,24 @@ public class RendererConfiguration {
 		int p2 = r2.getLoadingPriority();
 		return p1 > p2 ? -1 : p1 < p2 ? 1 : r1.getRendererName().compareToIgnoreCase(r2.getRendererName());
 	};
+
+	private int[] getVideoBitrateConfig(String bitrate) {
+		int bitrates[] = new int[2];
+
+		if (bitrate.contains("(") && bitrate.contains(")")) {
+			bitrates[1] = Integer.parseInt(bitrate.substring(bitrate.indexOf('(') + 1, bitrate.indexOf(')')));
+		}
+
+		if (bitrate.contains("(")) {
+			bitrate = bitrate.substring(0, bitrate.indexOf('(')).trim();
+		}
+
+		if (isBlank(bitrate)) {
+			bitrate = "0";
+		}
+
+		bitrates[0] = (int) Double.parseDouble(bitrate);
+
+		return bitrates;
+	}
 }

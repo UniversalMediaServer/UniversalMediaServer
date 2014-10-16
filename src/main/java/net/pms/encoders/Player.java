@@ -477,9 +477,25 @@ public abstract class Player {
 		}
 	}
 
+	/**
+	 * @see #convertToModX(int, int)
+	 */
+	@Deprecated
 	public int convertToMod4(int number) {
-		if (number % 4 != 0) {
-			number -= (number % 4);
+		return convertToModX(number, 4);
+	}
+
+	/**
+	 * Convert number to be divisible by mod.
+	 *
+	 * @param number the number to convert
+	 * @param mod the number to divide by
+	 *
+	 * @return the number divisible by mod
+	 */
+	public int convertToModX(int number, int mod) {
+		if (number % mod != 0) {
+			number -= (number % mod);
 		}
 
 		return number;
