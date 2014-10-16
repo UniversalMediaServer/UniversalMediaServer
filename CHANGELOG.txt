@@ -7,6 +7,7 @@
 		Made cache recreation happen only when it has changed, instead of with every new release
 		FFmpeg defers to MEncoder for subtitle transcoding if there are embedded fonts, since FFmpeg can't use them
 		Improved video quality when transcoding via FFmpeg over wired networks
+		Improved language detection
 		Transcode instead of streaming videos when their bitrate is too high for the renderer
 		Updated tooltips
 		Fixed the cache not storing all data (thanks, taconaut!)
