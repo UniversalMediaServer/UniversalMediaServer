@@ -160,7 +160,16 @@ public class FFMpegVideo extends Player {
 					scalePadFilterChain.add(String.format("pad=%1$d:%2$d:(%1$d-iw)/2:(%2$d-ih)/2", renderer.getMaxVideoWidth(), renderer.getMaxVideoHeight()));
 				}
 			}
-		} else if (keepAR && isMediaValid) {
+		} else if (
+			(
+				keepAR ||
+				(
+					renderer.isPanasonicTV() &&
+					renderer.isTranscodeToMPEG2()
+				)
+			) &&
+			isMediaValid
+		) {
 			if ((media.getWidth() / (double) media.getHeight()) >= (16 / (double) 9)) {
 				scalePadFilterChain.add("pad=iw:iw/(16/9):0:(oh-ih)/2");
 				scaleHeight = (int) Math.round(scaleWidth / (16 / (double) 9));
