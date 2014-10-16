@@ -1,3 +1,40 @@
+4.2.0 - 2014-10-17
+
+	General:
+		Added support for automatic 2D to 3D subtitles conversion
+		Added renderer support for converting 3D video to a different 3D format
+		Added a new template renderer file "DefaultRenderer.conf" which contains all possible renderer config options (like PS3.conf did before)
+		Made cache recreation happen only when it has changed, instead of with every new release
+		FFmpeg defers to MEncoder for subtitle transcoding if there are embedded fonts, since FFmpeg can't use them
+		Improved video quality when transcoding via FFmpeg over wired networks
+		Improved language detection
+		Transcode instead of streaming videos when their bitrate is too high for the renderer
+		Updated tooltips
+		Fixed the cache not storing all data (thanks, taconaut!)
+		Fixed full-SBS 3D support via FFmpeg
+		Fixed not transcoding subtitles for renderers that can stream the file format but not with subtitles
+	Renderers:
+		Added support for Samsung HT-E3 Series Blu-ray Home Entertainment Systems
+		Improved support for Panasonic TVs
+		Improved support for Philips TVs (thanks, ler0y!)
+		Improved support for Xbox One
+		Improved some renderer images
+		Formatted all renderer configs
+		Removed unnecessary (same as default) values from all renderer configs
+	Languages:
+		Updated French translation (thanks, Kirvx!)
+	External Components:
+		Updated FFmpeg for Windows and OS X to 20141014 builds, which:
+			Fixes a bug with subtitle parsing
+			Improves support for many containers and codecs
+			Fixes bugs
+		Updated InterFrame to 2.6.0, which:
+			Improves quality
+			Improves GPU support
+			Fixes bugs
+		Updated Java Runtime Environment automatic downloader for Windows to 8u25, which:
+			Improves security
+
 4.1.3 - 2014-10-03
 
 	General:

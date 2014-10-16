@@ -135,6 +135,8 @@ public class LibMediaInfoParser {
 										currentAudioTrack.setLang(getLang(value));
 									} else if (streamType == MediaInfo.StreamType.Text) {
 										currentSubTrack.setLang(getLang(value));
+									} else if (streamType == MediaInfo.StreamType.Video && StringUtils.isBlank(currentAudioTrack.getLang())) {
+										currentAudioTrack.setLang(getLang(value));
 									}
 								} else if (key.equals("Title")) {
 									if (streamType == MediaInfo.StreamType.Audio) {
@@ -228,6 +230,8 @@ public class LibMediaInfoParser {
 									}
 								} else if (key.equals("matrix_coefficients") && streamType == MediaInfo.StreamType.Video) {
 									media.setMatrixCoefficients(value);
+								} else if (key.equals("Attachment") && streamType == MediaInfo.StreamType.General) {
+									media.setEmbeddedFontExists(true);
 								}
 							}
 						}
@@ -268,6 +272,64 @@ public class LibMediaInfoParser {
 					FormatConfiguration.AAC.equals(media.getAudioTracksList().get(0).getCodecA())
 				) {
 					media.setContainer(FormatConfiguration.AAC);
+				}
+
+				/**
+				 * Recognize 3D layout from the filename.
+				 *
+				 * First we check for our custom naming convention, for which the filename
+				 * either has to start with "3DSBSLF" or "3DSBSRF" for side-by-side layout
+				 * or "3DOULF" or "3DOURF" for over-under layout.
+				 * For anaglyph 3D video can be used following combination:
+				 * 		3DARCG 	anaglyph_red_cyan_gray
+				 *		3DARCH 	anaglyph_red_cyan_half_color
+				 *		3DARCC 	anaglyph_red_cyan_color
+				 *		3DARCD 	anaglyph_red_cyan_dubois
+				 *		3DAGMG 	anaglyph_green_magenta_gray
+				 *		3DAGMH 	anaglyph_green_magenta_half_color
+				 *		3DAGMC 	anaglyph_green_magenta_color
+				 *		3DAGMD 	anaglyph_green_magenta_dubois
+				 *		3DAYBG 	anaglyph_yellow_blue_gray
+				 *		3DAYBH 	anaglyph_yellow_blue_half_color
+				 *		3DAYBC 	anaglyph_yellow_blue_color
+				 *		3DAYBD 	anaglyph_yellow_blue_dubois
+				 *
+				 * Next we check for common naming conventions.
+				 */
+				if (!media.is3d()) {
+					String upperCaseFileName = file.getName().toUpperCase();
+					if (upperCaseFileName.startsWith("3DSBS")) {
+						LOGGER.debug("3D format SBS detected for " + file.getName());
+						media.setStereoscopy(file.getName().substring(2, 7));
+					} else if (upperCaseFileName.startsWith("3DOU")) {
+						LOGGER.debug("3D format OU detected for " + file.getName());
+						media.setStereoscopy(file.getName().substring(2, 6));
+					} else if (upperCaseFileName.startsWith("3DA")) {
+						LOGGER.debug("3D format Anaglyph detected for " + file.getName());
+						media.setStereoscopy(file.getName().substring(2, 6));
+					} else if (upperCaseFileName.matches(".*[\\s\\.](H-|H|HALF-|HALF.)SBS[\\s\\.].*")) {
+						LOGGER.debug("3D format HSBS detected for " + file.getName());
+						media.setStereoscopy("half side by side (left eye first)");
+					} else if (upperCaseFileName.matches(".*[\\s\\.](H-|H|HALF-|HALF.)(OU|TB)[\\s\\.].*")) {
+						LOGGER.debug("3D format HOU detected for " + file.getName());
+						media.setStereoscopy("half top-bottom (left eye first)");
+					} else if (upperCaseFileName.matches(".*[\\s\\.]SBS[\\s\\.].*")) {
+						if (media.getWidth() > 1920) {
+							LOGGER.debug("3D format SBS detected for " + file.getName());
+							media.setStereoscopy("side by side (left eye first)");
+						} else {
+							LOGGER.debug("3D format HSBS detected based on width for " + file.getName());
+							media.setStereoscopy("half side by side (left eye first)");
+						}
+					} else if (upperCaseFileName.matches(".*[\\s\\.](OU|TB)[\\s\\.].*")) {
+						if (media.getHeight() > 1080) {
+							LOGGER.debug("3D format OU detected for " + file.getName());
+							media.setStereoscopy("top-bottom (left eye first)");
+						} else {
+							LOGGER.debug("3D format HOU detected based on height for " + file.getName());
+							media.setStereoscopy("half top-bottom (left eye first)");
+						}
+					}
 				}
 
 				media.finalize(type, inputFile);
