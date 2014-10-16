@@ -278,6 +278,12 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @deprecated Use standard getter and setter to access this variable.
 	 */
 	@Deprecated
+	public boolean embeddedFontExists = false;
+
+	/**
+	 * @deprecated Use standard getter and setter to access this variable.
+	 */
+	@Deprecated
 	public String stereoscopy;
 
 	private boolean gen_thumb;
@@ -1836,6 +1842,22 @@ public class DLNAMediaInfo implements Cloneable {
 	}
 
 	/**
+	 * @return whether the file container has custom fonts attached.
+	 */
+	public boolean isEmbeddedFontExists() {
+		return embeddedFontExists;
+	}
+
+	/**
+	 * Sets whether the file container has custom fonts attached.
+	 *
+	 * @param exists true if at least one attached font exists
+	 */
+	public void setEmbeddedFontExists(boolean exists) {
+		this.embeddedFontExists = exists;
+	}
+
+	/**
 	 * @return the bitsPerPixel
 	 * @since 1.50.0
 	 */
@@ -2225,7 +2247,32 @@ public class DLNAMediaInfo implements Cloneable {
 	 * @return whether the video track is 3D
 	 */
 	public boolean is3d() {
-		if (!"".equals(stereoscopy)) {
+		return StringUtils.isNotBlank(stereoscopy);
+	}
+
+	/**
+	 * The significance of this is that the aspect ratio should not be kept
+	 * in this case when transcoding.
+	 * Example: 3840x1080 should be resized to 1920x1080, not 1920x540.
+	 *
+	 * @return whether the video track is full SBS or OU 3D
+	 */
+	public boolean is3dFullSbsOrOu() {
+		if (!is3d()) {
+			return false;
+		}
+
+		if (
+			"overunderrt".equals(stereoscopy) ||
+			"OULF".equals(stereoscopy) ||
+			"OURF".equals(stereoscopy) ||
+			"SBSLF".equals(stereoscopy) ||
+			"SBSRF".equals(stereoscopy) ||
+			"top-bottom (left eye first)".equals(stereoscopy) ||
+			"top-bottom (right eye first)".equals(stereoscopy) ||
+			"side by side (left eye first)".equals(stereoscopy) ||
+			"side by side (right eye first)".equals(stereoscopy)
+		) {
 			return true;
 		}
 
@@ -2254,6 +2301,89 @@ public class DLNAMediaInfo implements Cloneable {
 	 */
 	public void setStereoscopy(String stereoscopy) {
 		this.stereoscopy = stereoscopy;
+	}
+
+	/**
+	 * Used by FFmpeg for 3D video format naming
+	 */
+	public enum Mode3D {
+		SBSL,
+		SBSR,
+		HSBSL,
+		OUL,
+		OUR,
+		HOUL,
+		ARCG,
+		ARCH,
+		ARCC,
+		ARCD,
+		AGMG,
+		AGMH,
+		AGMC,
+		AGMD,
+		AYBG,
+		AYBH,
+		AYBC,
+		AYBD
+	};
+
+	public Mode3D get3DLayout() {
+		if (!is3d()) {
+			return null;
+		}
+
+		isAnaglyph = true;
+		if ("overunderrt".equals(stereoscopy) || "OULF".equals(stereoscopy) || "top-bottom (left eye first)".equals(stereoscopy)) {
+			isAnaglyph = false;
+			return Mode3D.OUL;
+		} else if ("OURF".equals(stereoscopy) || "top-bottom (right eye first)".equals(stereoscopy)) {
+			isAnaglyph = false;
+			return Mode3D.OUR;
+		} else if ("SBSLF".equals(stereoscopy) || "side by side (left eye first)".equals(stereoscopy)) {
+			isAnaglyph = false;
+			return Mode3D.SBSL;
+		} else if ("SBSRF".equals(stereoscopy) || "side by side (right eye first)".equals(stereoscopy)) {
+			isAnaglyph = false;
+			return Mode3D.SBSR;
+		} else if ("half top-bottom (left eye first)".equals(stereoscopy)) {
+			isAnaglyph = false;
+			return Mode3D.HOUL;
+		} else if ("half side by side (left eye first)".equals(stereoscopy)) {
+			isAnaglyph = false;
+			return Mode3D.HSBSL;
+		} else if ("ARCG".equals(stereoscopy)) {
+			return Mode3D.ARCG;
+		} else if ("ARCH".equals(stereoscopy)) {
+			return Mode3D.ARCH;
+		} else if ("ARCC".equals(stereoscopy)) {
+			return Mode3D.ARCC;
+		} else if ("ARCD".equals(stereoscopy)) {
+			return Mode3D.ARCD;
+		} else if ("AGMG".equals(stereoscopy)) {
+			return Mode3D.AGMG;
+		} else if ("AGMH".equals(stereoscopy)) {
+			return Mode3D.AGMH;
+		} else if ("AGMC".equals(stereoscopy)) {
+			return Mode3D.AGMC;
+		} else if ("AGMD".equals(stereoscopy)) {
+			return Mode3D.AGMD;
+		} else if ("AYBG".equals(stereoscopy)) {
+			return Mode3D.AYBG;
+		} else if ("AYBH".equals(stereoscopy)) {
+			return Mode3D.AYBH;
+		} else if ("AYBC".equals(stereoscopy)) {
+			return Mode3D.AYBC;
+		} else if ("AYBD".equals(stereoscopy)) {
+			return Mode3D.AYBD;
+		}
+
+		return null;
+	}
+	
+	private boolean isAnaglyph;
+	
+	public boolean stereoscopyIsAnaglyph() {
+		return isAnaglyph;
 	}
 
 	public boolean isDVDResolution() {
