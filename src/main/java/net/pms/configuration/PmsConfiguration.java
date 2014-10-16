@@ -545,6 +545,12 @@ public class PmsConfiguration extends RendererConfiguration {
 		filter = null;
 	}
 
+	@Override
+	public void reset() {
+		// This is just to prevent super.reset() from being invoked. Actual resetting would
+		// require rebooting here, since all of the application settings are implicated.
+	}
+
 	/**
 	 * Check if we have disabled something first, then check the config file,
 	 * then the Windows registry, then check for a platform-specific

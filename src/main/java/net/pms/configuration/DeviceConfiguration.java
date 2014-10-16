@@ -6,8 +6,12 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import net.pms.PMS;
+import net.pms.util.FileWatcher;
 import org.apache.commons.configuration.CompositeConfiguration;
+import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.io.FileUtils;
@@ -23,6 +27,7 @@ public class DeviceConfiguration extends PmsConfiguration {
 	public static final int PMSCONF = 2;
 
 	private PropertiesConfiguration deviceConf = null;
+	private RendererConfiguration ref = null;
 	private static HashMap<String, PropertiesConfiguration> deviceConfs;
 	private static File deviceDir;
 
@@ -83,8 +88,20 @@ public class DeviceConfiguration extends PmsConfiguration {
 		sortedHeaderMatcher = ref.sortedHeaderMatcher;
 		player = null;
 		loaded = true;
+		this.ref = ref;
 
 		init(NOFILE);
+	}
+
+	@Override
+	public void reset() {
+		try {
+			inherit(ref);
+			PMS.get().updateRenderer(this);
+		} catch (Exception e) {
+			LOGGER.debug("Error reloading device configuration {}: {}", this, e);
+			e.printStackTrace();
+		}
 	}
 
 	public String getName() {
@@ -165,24 +182,28 @@ public class DeviceConfiguration extends PmsConfiguration {
 			for (File f : files) {
 				if (f.getName().endsWith(".conf")) {
 					loadDeviceFile(f, createPropertiesConfiguration());
+					PMS.getFileWatcher().add(new FileWatcher.Watch(f.getPath(), reloader));
 				}
 			}
 		}
 	}
 
-	public static void loadDeviceFile(File f, PropertiesConfiguration conf) {
+	public static String[] loadDeviceFile(File f, PropertiesConfiguration conf) {
 		String filename = f.getName();
 		try {
 			conf.load(f);
-			for (String id : conf.getStringArray("device")) {
+			String[] ids = conf.getStringArray("device");
+			for (String id : ids) {
 				if (StringUtils.isNotBlank(id)) {
 					deviceConfs.put(id, conf);
 					LOGGER.info("Loaded device configuration {} for {}", filename, id);
 				}
 			}
+			return ids;
 		} catch (ConfigurationException ce) {
 			LOGGER.info("Error loading device configuration: " + f.getAbsolutePath());
 		}
+		return null;
 	}
 
 	public static String getDefaultFilename(DeviceConfiguration r) {
@@ -223,4 +244,42 @@ public class DeviceConfiguration extends PmsConfiguration {
 		return file;
 	}
 
+	public static ArrayList<RendererConfiguration> getInheritors(RendererConfiguration renderer) {
+		ArrayList<RendererConfiguration> devices = new ArrayList<>();
+		RendererConfiguration ref = (renderer instanceof DeviceConfiguration) ? ((DeviceConfiguration)renderer).ref : renderer;
+		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
+			if ((r instanceof DeviceConfiguration) && ((DeviceConfiguration)r).ref == ref) {
+				devices.add(r);
+			}
+		}
+		return devices;
+	}
+
+	/**
+	 * Automatic reloading
+	 */
+	public static FileWatcher.Listener reloader = new FileWatcher.Listener() {
+		@Override
+		public void notify(String filename, String event, FileWatcher.Watch watch, boolean isDir) {
+			File f = new File(filename);
+			PropertiesConfiguration conf = null;
+			HashSet<String> ids = new HashSet<>();
+			for (Iterator<String> iterator = deviceConfs.keySet().iterator(); iterator.hasNext();) {
+				String id = iterator.next();
+				PropertiesConfiguration c = deviceConfs.get(id);
+				if (c.getFile().equals(f)) {
+					ids.add(id);
+					conf = c;
+					iterator.remove();
+				}
+			}
+			conf.clear();
+			ids.addAll(Arrays.asList(loadDeviceFile(f, conf)));
+			for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
+				if ((r instanceof DeviceConfiguration) && ids.contains(((DeviceConfiguration)r).getId())) {
+					r.reset();
+				}
+			}
+		}
+	};
 }
