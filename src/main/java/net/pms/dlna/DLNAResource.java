@@ -667,8 +667,12 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 									} else {
 										LOGGER.trace("Subtitles for \"{}\" will not be transcoded because media_subtitle is not null", child.getName());
 									}
-								} else if (hasEmbeddedSubs && child.media_subtitle != null) {
-									if (defaultRenderer != null && !defaultRenderer.isEmbeddedSubtitlesFormatSupported(child.media_subtitle)) {
+								} else if (hasEmbeddedSubs) {
+									if (
+										defaultRenderer != null &&
+										(child.media_subtitle != null && !defaultRenderer.isEmbeddedSubtitlesFormatSupported(child.media_subtitle)) ||
+										!defaultRenderer.isEmbeddedSubtitlesSupported()
+									) {
 										forceTranscode = true;
 										hasSubsToTranscode = true;
 										LOGGER.trace("Subtitles for \"{}\" need to be transcoded because the renderer does not support internal subtitles", child.getName());
@@ -681,9 +685,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							boolean isIncompatible = false;
 							String audioTracksList = child.getName() + child.media.getAudioTracksList().toString();
 
+							String prependTraceReason = "File \"{}\" will not be streamed because ";
 							if (!child.format.isCompatible(child.media, defaultRenderer)) {
 								isIncompatible = true;
-								LOGGER.trace("File \"{}\" is not supported by the renderer", child.getName());
+								LOGGER.trace(prependTraceReason + "it is not supported by the renderer", child.getName());
 							} else if (
 								configuration.isEncodedAudioPassthrough() &&
 								(
@@ -692,24 +697,27 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								)
 							) {
 								isIncompatible = true;
-								LOGGER.trace("File \"{}\" will not be streamed because the audio will use the encoded audio passthrough feature", child.getName());
-							} else if (
-								defaultRenderer != null &&
-								defaultRenderer.isKeepAspectRatio() &&
-								!"16:9".equals(child.media.getAspectRatioContainer())
-							) {
-								isIncompatible = true;
-								LOGGER.trace("File \"{}\" will not be streamed because the renderer needs us to add borders to change the aspect ratio from {} to 16/9.", child.getName(), child.media.getAspectRatioContainer());
-							} else if (
-								defaultRenderer != null &&
-								defaultRenderer.isMaximumResolutionSpecified() &&
-								(
-									child.media.getWidth()  > defaultRenderer.getMaxVideoWidth() ||
-									child.media.getHeight() > defaultRenderer.getMaxVideoHeight()
-								)
-							) {
-								isIncompatible = true;
-								LOGGER.trace("File \"{}\" will not be streamed because the resolution is too high for the renderer.", child.getName());
+								LOGGER.trace(prependTraceReason + "the audio will use the encoded audio passthrough feature", child.getName());
+							} else if (defaultRenderer != null) {
+								if (
+									defaultRenderer.isKeepAspectRatio() &&
+									!"16:9".equals(child.media.getAspectRatioContainer())
+								) {
+									isIncompatible = true;
+									LOGGER.trace(prependTraceReason + "the renderer needs us to add borders to change the aspect ratio from {} to 16/9.", child.getName(), child.media.getAspectRatioContainer());
+								} else if (
+									defaultRenderer.isMaximumResolutionSpecified() &&
+									(
+										child.media.getWidth()  > defaultRenderer.getMaxVideoWidth() ||
+										child.media.getHeight() > defaultRenderer.getMaxVideoHeight()
+									)
+								) {
+									isIncompatible = true;
+									LOGGER.trace(prependTraceReason + "the resolution is too high for the renderer.", child.getName());
+								} else if (child.media.getBitrate() > (defaultRenderer.getMaxBandwidth() / 2)) {
+									isIncompatible = true;
+									LOGGER.trace(prependTraceReason + "the bitrate is too high.", child.getName());
+								}
 							}
 
 							// Prefer transcoding over streaming if:
@@ -1552,8 +1560,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 			);
 		} else { // Ditlew - org
 			// Ditlew
-			wireshark.append(((isFolder() || player == null && subsAreValidForStreaming) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer))));
-			String tmp = (isFolder() || player == null && subsAreValidForStreaming) ? getDisplayName(null, false) : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer, false));
+			wireshark.append(((isFolder() || subsAreValidForStreaming) ? getDisplayName() : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer))));
+			String tmp = (isFolder() || subsAreValidForStreaming) ? getDisplayName(null, false) : mediaRenderer.getUseSameExtension(getDisplayName(mediaRenderer, false));
 			addXMLTagAndAttribute(
 				sb,
 				"dc:title",
@@ -1693,11 +1701,8 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								// Check if the renderer settings make the current engine always output MPEG-TS
 								if (
 									!isFileMPEGTS &&
+									mediaRenderer.isTranscodeToMPEGTS() &&
 									(
-										mediaRenderer.isTranscodeToMPEGTSMPEG2AC3() ||
-										mediaRenderer.isTranscodeToMPEGTSH264AC3() ||
-										mediaRenderer.isTranscodeToMPEGTSH264AAC()
-									) && (
 										MEncoderVideo.ID.equals(player.id()) ||
 										FFMpegVideo.ID.equals(player.id()) ||
 										VLCVideo.ID.equals(player.id())
