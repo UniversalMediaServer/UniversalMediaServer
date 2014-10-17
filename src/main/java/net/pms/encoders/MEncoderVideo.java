@@ -114,8 +114,8 @@ public class MEncoderVideo extends Player {
 	protected boolean pcm;
 	protected boolean ovccopy;
 	protected boolean ac3Remux;
-	protected boolean mpegts;
-	protected boolean h264ts;
+	protected boolean isTranscodeToMPEGTS;
+	protected boolean isTranscodeToH264;
 	protected boolean wmv;
 
 	public static final String DEFAULT_CODEC_CONF_SCRIPT =
@@ -514,7 +514,7 @@ public class MEncoderVideo extends Player {
 		}
 
 		defaultArgsList.add("-of");
-		if (wmv || mpegts || h264ts) {
+		if (wmv || isTranscodeToMPEGTS) {
 			defaultArgsList.add("lavf");
 		} else if (pcm && avisynth()) {
 			defaultArgsList.add("avi");
@@ -527,7 +527,7 @@ public class MEncoderVideo extends Player {
 		if (wmv) {
 			defaultArgsList.add("-lavfopts");
 			defaultArgsList.add("format=asf");
-		} else if (mpegts || h264ts) {
+		} else if (isTranscodeToMPEGTS) {
 			defaultArgsList.add("-lavfopts");
 			defaultArgsList.add("format=mpegts");
 		}
@@ -681,6 +681,7 @@ public class MEncoderVideo extends Player {
 
 			int bufSize = 1835;
 			boolean bitrateLevel41Limited = false;
+			boolean isXboxOneWebVideo = mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 
 			/**
 			 * Although the maximum bitrate for H.264 Level 4.1 is
@@ -690,7 +691,7 @@ public class MEncoderVideo extends Player {
 			 *
 			 * We also apply the correct buffer size in this section.
 			 */
-			if (mediaRenderer.isTranscodeToMPEGTSH264AC3() || mediaRenderer.isTranscodeToMPEGTSH264AAC()) {
+			if (mediaRenderer.isTranscodeToH264() && !isXboxOneWebVideo) {
 				if (
 					mediaRenderer.isH264Level41Limited() &&
 					defaultMaxBitrates[0] > 31250
@@ -941,14 +942,21 @@ public class MEncoderVideo extends Player {
 			}
 		}
 
-		mpegts = params.mediaRenderer.isTranscodeToMPEGTSMPEG2AC3();
-		h264ts = params.mediaRenderer.isTranscodeToMPEGTSH264AC3() || params.mediaRenderer.isTranscodeToMPEGTSH264AAC();
+		isTranscodeToMPEGTS = params.mediaRenderer.isTranscodeToMPEGTS();
+		isTranscodeToH264   = params.mediaRenderer.isTranscodeToH264();
+
+		final boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 
 		String vcodec = "mpeg2video";
-
-		if (h264ts) {
+		if (isTranscodeToH264) {
 			vcodec = "libx264";
-		} else if (params.mediaRenderer.isTranscodeToWMV() && !params.mediaRenderer.isXbox360()) {
+		} else if (
+			(
+				params.mediaRenderer.isTranscodeToWMV() &&
+				!params.mediaRenderer.isXbox360()
+			) ||
+			isXboxOneWebVideo
+		) {
 			wmv = true;
 			vcodec = "wmv2";
 		}
@@ -1007,7 +1015,8 @@ public class MEncoderVideo extends Player {
 			params.mediaRenderer.isTranscodeToAC3() &&
 			!configuration.isMEncoderNormalizeVolume() &&
 			!combinedCustomOptions.contains("acodec=") &&
-			!encodedAudioPassthrough
+			!encodedAudioPassthrough &&
+			!isXboxOneWebVideo
 		) {
 			ac3Remux = true;
 		} else {
@@ -1143,8 +1152,8 @@ public class MEncoderVideo extends Player {
 		}
 
 		if (
-			(configuration.getx264ConstantRateFactor() != null && h264ts) ||
-			(configuration.getMPEG2MainSettings() != null && !h264ts)
+			(configuration.getx264ConstantRateFactor() != null && isTranscodeToH264) ||
+			(configuration.getMPEG2MainSettings() != null && !isTranscodeToH264)
 		) {
 			// Ditlew - WDTV Live (+ other byte asking clients), CBR. This probably ought to be placed in addMaximumBitrateConstraints(..)
 			int cbr_bitrate = params.mediaRenderer.getCBRVideoBitrate();
@@ -1209,7 +1218,7 @@ public class MEncoderVideo extends Player {
 			}
 
 			String encodeSettings = "";
-			if (configuration.getMPEG2MainSettings() != null && !h264ts) {
+			if (isXboxOneWebVideo || (configuration.getMPEG2MainSettings() != null && !isTranscodeToH264)) {
 				// Set MPEG-2 video quality
 				String mpeg2Options = configuration.getMPEG2MainSettings();
 				String mpeg2OptionsRenderer = params.mediaRenderer.getCustomMEncoderMPEG2Options();
@@ -1248,7 +1257,7 @@ public class MEncoderVideo extends Player {
 					("".equals(mpeg2Options) ? "" : ":" + mpeg2Options);
 
 				encodeSettings = addMaximumBitrateConstraints(encodeSettings, media, mpeg2Options, params.mediaRenderer, audioType);
-			} else if (configuration.getx264ConstantRateFactor() != null && h264ts) {
+			} else if (configuration.getx264ConstantRateFactor() != null && isTranscodeToH264) {
 				// Set H.264 video quality
 				String x264CRF = configuration.getx264ConstantRateFactor();
 
@@ -1599,8 +1608,13 @@ public class MEncoderVideo extends Player {
 					cmdList.add("" + params.sid.getLang());
 				} else {
 					cmdList.add("-sub");
-					cmdList.add(externalSubtitlesFileName.replace(",", "\\,")); // Commas in MEncoder separate multiple subtitle files
-
+					if (media.is3d()) {
+						File subsFilename = SubtitleUtils.getSubtitles(dlna, media, params, configuration, SubtitleType.ASS);
+						cmdList.add(subsFilename.getAbsolutePath().replace(",", "\\,"));
+					} else {
+						cmdList.add(externalSubtitlesFileName.replace(",", "\\,")); // Commas in MEncoder separate multiple subtitle files
+					}
+					
 					if (params.sid.isExternalFileUtf()) {
 						// Append -utf8 option for UTF-8 external subtitles
 						cmdList.add("-utf8");
@@ -1737,8 +1751,8 @@ public class MEncoderVideo extends Player {
 					}
 				}
 
-				scaleWidth  = convertToMod4(scaleWidth);
-				scaleHeight = convertToMod4(scaleHeight);
+				scaleWidth  = convertToModX(scaleWidth, 4);
+				scaleHeight = convertToModX(scaleHeight, 4);
 
 				vfValueOverscanPrepend.append("softskip,expand=-").append(intOCWPixels).append(":-").append(intOCHPixels);
 				vfValueOverscanMiddle.append(",scale=").append(scaleWidth).append(":").append(scaleHeight);
@@ -1765,8 +1779,8 @@ public class MEncoderVideo extends Player {
 					}
 				}
 
-				scaleWidth  = convertToMod4(scaleWidth);
-				scaleHeight = convertToMod4(scaleHeight);
+				scaleWidth  = convertToModX(scaleWidth, 4);
+				scaleHeight = convertToModX(scaleHeight, 4);
 
 				LOGGER.info("Setting video resolution to: " + scaleWidth + "x" + scaleHeight + ", your Video Scaler setting");
 
@@ -1807,8 +1821,8 @@ public class MEncoderVideo extends Player {
 					}
 				}
 
-				scaleWidth  = convertToMod4(scaleWidth);
-				scaleHeight = convertToMod4(scaleHeight);
+				scaleWidth  = convertToModX(scaleWidth, 4);
+				scaleHeight = convertToModX(scaleHeight, 4);
 
 				LOGGER.info("Setting video resolution to: " + scaleWidth + "x" + scaleHeight + ", the maximum your renderer supports");
 
@@ -1867,8 +1881,8 @@ public class MEncoderVideo extends Player {
 					scaleWidth  = (int) Math.round(scaleHeight * rendererAspectRatio);
 				}
 
-				scaleWidth  = convertToMod4(scaleWidth);
-				scaleHeight = convertToMod4(scaleHeight);
+				scaleWidth  = convertToModX(scaleWidth, 4);
+				scaleHeight = convertToModX(scaleHeight, 4);
 
 				vfValuePrepend += "::::0:16/9,scale=" + scaleWidth + ":" + scaleHeight;
 			} else {

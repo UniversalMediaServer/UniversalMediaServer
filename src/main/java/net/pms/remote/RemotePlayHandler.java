@@ -15,9 +15,9 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.DLNAResource;
 import net.pms.dlna.RootFolder;
 import net.pms.dlna.virtual.VirtualVideoAction;
-import net.pms.encoders.FFMpegVideo;
 import net.pms.encoders.Player;
 import net.pms.formats.v2.SubtitleType;
+import net.pms.formats.v2.SubtitleUtils;
 import net.pms.io.OutputParams;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -210,7 +210,7 @@ public class RemotePlayHandler implements HttpHandler {
 						Player.setAudioAndSubs(r.getName(), r.getMedia(), p);
 						if (p.sid !=null && p.sid.getType().isText()) {
 							try {
-								File subFile = FFMpegVideo.getSubtitles(r, r.getMedia(), p, configuration, SubtitleType.WEBVTT);
+								File subFile = SubtitleUtils.getSubtitles(r, r.getMedia(), p, configuration, SubtitleType.WEBVTT);
 								LOGGER.debug("subFile " + subFile);
 								if (subFile != null) {
 									sb.append("<track src=\"/subs/").append(subFile.getAbsolutePath()).append("\">");
