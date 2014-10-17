@@ -366,8 +366,13 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	}
 
 	public static void resetAllRenderers() {
-		for (RendererConfiguration rc : enabledRendererConfs) {
-			rc.rootFolder = null;
+		for (RendererConfiguration r : getConnectedRenderersConfigurations()) {
+			r.rootFolder = null;
+		}
+		// Resetting enabledRendererConfs isn't strictly speaking necessary any more, since 
+		// these are now for reference only and never actually populate their root folders.
+		for (RendererConfiguration r : enabledRendererConfs) {
+			r.rootFolder = null;
 		}
 	}
 
