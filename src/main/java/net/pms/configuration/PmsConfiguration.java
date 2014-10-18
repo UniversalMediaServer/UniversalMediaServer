@@ -3108,15 +3108,40 @@ public class PmsConfiguration {
 	}
 
 	/**
-	 * Set whether UMS should kill an old running instance
-	 *
-	 * @param val Set to true it should kill the old instance
+	 * @deprecated
+	 * @see #setRunSingleInstance(boolean)
 	 */
-	public void setSingle(boolean val) {
-		configuration.setProperty(KEY_SINGLE, val);
+	@Deprecated
+	public void setSingle(boolean value) {
+		setRunSingleInstance(value);
 	}
 
+	/**
+	 * Set whether UMS should allow only one instance by shutting down
+	 * the first one when a second one is launched.
+	 *
+	 * @param value whether to kill the old UMS instance
+	 */
+	public void setRunSingleInstance(boolean value) {
+		configuration.setProperty(KEY_SINGLE, value);
+	}
+
+	/**
+	 * @deprecated
+	 * @see #isRunSingleInstance()
+	 */
+	@Deprecated
 	public boolean getSingle() {
+		return isRunSingleInstance();
+	}
+
+	/**
+	 * Whether UMS should allow only one instance by shutting down
+	 * the first one when a second one is launched.
+	 *
+	 * @return value whether to kill the old UMS instance
+	 */
+	public boolean isRunSingleInstance() {
 		return getBoolean(KEY_SINGLE, true);
 	}
 
