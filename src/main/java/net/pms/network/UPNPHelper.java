@@ -680,8 +680,8 @@ public class UPNPHelper extends UPNPControl {
 		private LinkedHashSet<ActionListener> listeners;
 		private BasicPlayer.State state;
 		public Playlist playlist;
-		String lasturi;
-
+		private String lasturi;
+		private int maxVol;
 
 		public Player(DeviceConfiguration renderer) {
 			uuid = renderer.getUUID();
@@ -693,6 +693,7 @@ public class UPNPHelper extends UPNPControl {
 			playlist = new Playlist(this);
 			listeners = new LinkedHashSet();
 			lasturi = null;
+			maxVol = renderer.getMaxVolume();
 			LOGGER.debug("Created upnp player for " + renderer.getRendererName());
 			refresh();
 		}
@@ -798,7 +799,7 @@ public class UPNPHelper extends UPNPControl {
 		}
 
 		public void setVolume(int volume) {
-			UPNPControl.setVolume(dev, instanceID, volume);
+			UPNPControl.setVolume(dev, instanceID, volume * maxVol / 100);
 		}
 
 		@Override
@@ -827,7 +828,7 @@ public class UPNPHelper extends UPNPControl {
 				"PAUSED_PLAYBACK".equals(s) ? BasicPlayer.PAUSED: -1;
 			state.mute = "0".equals(data.get("Mute")) ? false : true;
 			s = data.get("Volume");
-			state.volume = s == null ? 0 : Integer.valueOf(s);
+			state.volume = s == null ? 0 : (Integer.valueOf(s) * 100 / maxVol);
 			state.position = data.get("RelTime");
 			state.duration = data.get("CurrentMediaDuration");
 			state.uri = data.get("AVTransportURI");

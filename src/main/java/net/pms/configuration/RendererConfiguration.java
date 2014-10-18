@@ -162,6 +162,7 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String OUTPUT_3D_FORMAT = "Output3DFormat";
 	protected static final String OVERRIDE_FFMPEG_VF = "OverrideFFmpegVideoFilter";
 	protected static final String LOADING_PRIORITY = "LoadingPriority";
+	protected static final String MAX_VOLUME = "MaxVolume";
 	protected static final String RENDERER_ICON = "RendererIcon";
 	protected static final String RENDERER_NAME = "RendererName";
 	protected static final String RESCALE_BY_RENDERER = "RescaleByRenderer";
@@ -2040,4 +2041,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			return p1 > p2 ? -1 : p1 < p2 ? 1 : r1.getRendererName().compareToIgnoreCase(r2.getRendererName());
 		}
 	};
+
+	public int getMaxVolume() {
+		return getInt(MAX_VOLUME, 100);
+	}
 }
