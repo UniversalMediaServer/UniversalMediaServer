@@ -167,7 +167,15 @@ public class UMSUtils {
 		int w;
 		int h;
 		Color col = null;
-		BufferedImage img = ImageIO.read(in);
+		BufferedImage img;
+		try {
+		 	img = ImageIO.read(in);
+		} catch (Exception e) {
+			// catch whatever is thrown at us
+			// we can at least log it
+			LOGGER.debug("couldn't read thumb to manipulate it " + e);
+			img = null; // to make sure
+		}
 		if (img == null) {
 			return in;
 		}
