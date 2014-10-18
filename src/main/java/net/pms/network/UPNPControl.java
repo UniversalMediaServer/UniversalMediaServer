@@ -226,7 +226,7 @@ public class UPNPControl {
 				item.data.put("InstanceID", id);
 				for (int n=0; n < c.getLength(); n++) {
 					if(c.item(n).getNodeType() != Node.ELEMENT_NODE) {
-						LOGGER.debug("skip this " + c.item(n));
+//						LOGGER.debug("skip this " + c.item(n));
 						continue;
 					}
 					Element e = (Element)c.item(n);
@@ -557,17 +557,23 @@ public class UPNPControl {
 		Service svc = dev.findService(ServiceId.valueOf("urn:upnp-org:serviceId:" + service));
 		if (svc != null) {
 			Action x = svc.getAction(action);
+			String name = getFriendlyName(dev);
+			boolean log = ! action.equals("GetPositionInfo");
 			if (x != null) {
 				ActionInvocation a = new ActionInvocation(x);
 				a.setInput("InstanceID", instanceID);
 				for(int i=0; i<args.length; i+=2) {
 					a.setInput(args[i], args[i+1]);
 				}
-//				LOGGER.debug("UPNP SEND ["+instanceID+"]: " + action);
+				if (log) {
+					LOGGER.debug("Sending upnp {}.{} {} to {}[{}]", service, action, args, name, instanceID);
+				}
 				new ActionCallback.Default(a, upnpService.getControlPoint()).run();
-//				for (ActionArgumentValue arg : a.getOutput()) {
-//					LOGGER.debug("UPNP RECV: " + arg.getArgument().getName()+"="+arg.toString());
-//				}
+				if (log) {
+					for (ActionArgumentValue arg : a.getOutput()) {
+						LOGGER.debug("Received upnp {}: {}={} from {}[{}]", name, instanceID, service, arg.getArgument().getName(), arg.toString(), name, instanceID);
+					}
+				}
 				return a;
 			}
 		}
