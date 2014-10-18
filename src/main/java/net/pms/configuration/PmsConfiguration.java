@@ -1937,7 +1937,7 @@ public class PmsConfiguration {
 	}
 
 	public String getx264ConstantRateFactor() {
-		return getString(KEY_X264_CONSTANT_RATE_FACTOR, "Automatic");
+		return getString(KEY_X264_CONSTANT_RATE_FACTOR, "Automatic (Wired)");
 	}
 
 	public void setx264ConstantRateFactor(String value) {
