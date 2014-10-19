@@ -115,7 +115,7 @@ function show(filename, text, iszip) {
 //	console.log(text);
 	reset(iszip);
 	document.title = filename;
-	var brush = /debug\.log$/.test(filename) ? 'debug_log' :
+	var brush = /.*debug.*\.log$/.test(filename) ? 'debug_log' :
 		 /\.log$/.test(filename) ? 'log' : 'conf';
 	chop(text.replace(/[<]/g, '&lt;'), 'brush: '+brush);
 	paint_visible_chunks();
