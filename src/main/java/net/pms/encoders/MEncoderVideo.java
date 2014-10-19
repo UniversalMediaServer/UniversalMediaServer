@@ -188,6 +188,7 @@ public class MEncoderVideo extends Player {
 
 		skipLoopFilter = new JCheckBox(Messages.getString("MEncoderVideo.0"), configuration.getSkipLoopFilterEnabled());
 		skipLoopFilter.setContentAreaFilled(false);
+		skipLoopFilter.setToolTipText(Messages.getString("MEncoderVideo.136"));
 		skipLoopFilter.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
