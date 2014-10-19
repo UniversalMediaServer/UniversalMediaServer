@@ -17,7 +17,6 @@ import net.pms.formats.v2.SubtitleType;
 import org.apache.commons.io.FilenameUtils;
 import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
-import org.apache.commons.lang3.StringUtils;
 import static org.apache.commons.lang3.StringUtils.endsWithIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
 import org.codehaus.plexus.util.StringUtils;
