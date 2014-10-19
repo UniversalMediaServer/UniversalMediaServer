@@ -19,6 +19,7 @@ import static org.apache.commons.lang.StringUtils.isBlank;
 import static org.apache.commons.lang.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.endsWithIgnoreCase;
 import static org.apache.commons.lang3.StringUtils.equalsIgnoreCase;
+import org.codehaus.plexus.util.StringUtils;
 import static org.mozilla.universalchardet.Constants.*;
 import org.mozilla.universalchardet.UniversalDetector;
 import org.slf4j.Logger;
@@ -219,6 +220,11 @@ public class FileUtil {
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
+
+			// Capitalize the first letter of each word if the string contains no capital letters
+			if (formattedName.equals(formattedName.toLowerCase())) {
+				formattedName = StringUtils.capitaliseAllWords(formattedName);
+			}
 		} else if (formattedName.matches(".*[sS][1-9]\\d[eE]\\d\\d[eE]\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes after their first 9 seasons that are double episodes
 
@@ -235,6 +241,11 @@ public class FileUtil {
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
+
+			// Capitalize the first letter of each word if the string contains no capital letters
+			if (formattedName.equals(formattedName.toLowerCase())) {
+				formattedName = StringUtils.capitaliseAllWords(formattedName);
+			}
 		} else if (formattedName.matches(".*[sS]0\\d[eE]\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes within the first 9 seasons
 
@@ -252,6 +263,11 @@ public class FileUtil {
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
+
+			// Capitalize the first letter of each word if the string contains no capital letters
+			if (formattedName.equals(formattedName.toLowerCase())) {
+				formattedName = StringUtils.capitaliseAllWords(formattedName);
+			}
 		} else if (formattedName.matches(".*[sS][1-9]\\d[eE]\\d\\d.*")) {
 			// This matches scene and most p2p TV episodes after their first 9 seasons
 
@@ -268,6 +284,11 @@ public class FileUtil {
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
+
+			// Capitalize the first letter of each word if the string contains no capital letters
+			if (formattedName.equals(formattedName.toLowerCase())) {
+				formattedName = StringUtils.capitaliseAllWords(formattedName);
+			}
 		} else if (formattedName.matches(".*[\\s\\.](19|20)\\d\\d[\\s\\.][0-1]\\d[\\s\\.][0-3]\\d[\\s\\.].*")) {
 			// This matches scene and most p2p TV episodes that release several times per week
 
