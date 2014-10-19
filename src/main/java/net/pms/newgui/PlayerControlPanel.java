@@ -172,7 +172,10 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 		volumeSlider.setPreferredSize(new Dimension(80,20));
 		volumeSlider.addChangeListener(new ChangeListener() {
 			public void stateChanged(ChangeEvent e) {
-				player.setVolume(volumeSlider.getValue());
+				// Fire only when the slider is in motion, i.e. not during external updates
+				if (((JSlider)e.getSource()).getValueIsAdjusting()) {
+					player.setVolume(volumeSlider.getValue());
+				}
 			}
 		});
 //		volumeSlider.setPaintLabels(true);
@@ -318,7 +321,7 @@ public class PlayerControlPanel extends JPanel implements ActionListener {
 			mute.putValue(Action.SMALL_ICON, state.mute ? muteIcon : volumeIcon);
 //			volumeSlider.setVisible(! state.mute);
 			volumeSlider.setEnabled(! state.mute);
-			volumeSlider.setValue((int)state.volume);
+			volumeSlider.setValue(state.volume);
 		}
 	}
 
