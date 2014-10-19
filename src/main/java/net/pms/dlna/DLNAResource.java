@@ -722,9 +722,10 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 							boolean isIncompatible = false;
 							String audioTracksList = child.getName() + child.media.getAudioTracksList().toString();
 
+							String prependTraceReason = "File \"{}\" will not be streamed because ";
 							if (!child.format.isCompatible(child.media, defaultRenderer)) {
 								isIncompatible = true;
-								LOGGER.trace("File \"{}\" is not supported by the renderer", child.getName());
+								LOGGER.trace(prependTraceReason + "it is not supported by the renderer", child.getName());
 							} else if (
 								configuration.isEncodedAudioPassthrough() &&
 								(
@@ -733,24 +734,27 @@ public abstract class DLNAResource extends HTTPResource implements Cloneable, Ru
 								)
 							) {
 								isIncompatible = true;
-								LOGGER.trace("File \"{}\" will not be streamed because the audio will use the encoded audio passthrough feature", child.getName());
-							} else if (
-								defaultRenderer != null &&
-								defaultRenderer.isKeepAspectRatio() &&
-								!"16:9".equals(child.media.getAspectRatioContainer())
-							) {
-								isIncompatible = true;
-								LOGGER.trace("File \"{}\" will not be streamed because the renderer needs us to add borders to change the aspect ratio from {} to 16/9.", child.getName(), child.media.getAspectRatioContainer());
-							} else if (
-								defaultRenderer != null &&
-								defaultRenderer.isMaximumResolutionSpecified() &&
-								(
-									child.media.getWidth()  > defaultRenderer.getMaxVideoWidth() ||
-									child.media.getHeight() > defaultRenderer.getMaxVideoHeight()
-								)
-							) {
-								isIncompatible = true;
-								LOGGER.trace("File \"{}\" will not be streamed because the resolution is too high for the renderer.", child.getName());
+								LOGGER.trace(prependTraceReason + "the audio will use the encoded audio passthrough feature", child.getName());
+							} else if (defaultRenderer != null) {
+								if (
+									defaultRenderer.isKeepAspectRatio() &&
+									!"16:9".equals(child.media.getAspectRatioContainer())
+								) {
+									isIncompatible = true;
+									LOGGER.trace(prependTraceReason + "the renderer needs us to add borders to change the aspect ratio from {} to 16/9.", child.getName(), child.media.getAspectRatioContainer());
+								} else if (
+									defaultRenderer.isMaximumResolutionSpecified() &&
+									(
+										child.media.getWidth()  > defaultRenderer.getMaxVideoWidth() ||
+										child.media.getHeight() > defaultRenderer.getMaxVideoHeight()
+									)
+								) {
+									isIncompatible = true;
+									LOGGER.trace(prependTraceReason + "the resolution is too high for the renderer.", child.getName());
+								} else if (child.media.getBitrate() > (defaultRenderer.getMaxBandwidth() / 2)) {
+									isIncompatible = true;
+									LOGGER.trace(prependTraceReason + "the bitrate is too high.", child.getName());
+								}
 							}
 
 							// Prefer transcoding over streaming if:

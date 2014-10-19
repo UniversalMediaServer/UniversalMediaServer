@@ -1795,8 +1795,8 @@ public class MEncoderVideo extends Player {
 					}
 				}
 
-				scaleWidth  = convertToMod4(scaleWidth);
-				scaleHeight = convertToMod4(scaleHeight);
+				scaleWidth  = convertToModX(scaleWidth, 4);
+				scaleHeight = convertToModX(scaleHeight, 4);
 
 				vfValueOverscanPrepend.append("softskip,expand=-").append(intOCWPixels).append(":-").append(intOCHPixels);
 				vfValueOverscanMiddle.append(",scale=").append(scaleWidth).append(":").append(scaleHeight);
@@ -1823,8 +1823,8 @@ public class MEncoderVideo extends Player {
 					}
 				}
 
-				scaleWidth  = convertToMod4(scaleWidth);
-				scaleHeight = convertToMod4(scaleHeight);
+				scaleWidth  = convertToModX(scaleWidth, 4);
+				scaleHeight = convertToModX(scaleHeight, 4);
 
 				LOGGER.info("Setting video resolution to: " + scaleWidth + "x" + scaleHeight + ", your Video Scaler setting");
 
@@ -1865,8 +1865,8 @@ public class MEncoderVideo extends Player {
 					}
 				}
 
-				scaleWidth  = convertToMod4(scaleWidth);
-				scaleHeight = convertToMod4(scaleHeight);
+				scaleWidth  = convertToModX(scaleWidth, 4);
+				scaleHeight = convertToModX(scaleHeight, 4);
 
 				LOGGER.info("Setting video resolution to: " + scaleWidth + "x" + scaleHeight + ", the maximum your renderer supports");
 
@@ -1925,8 +1925,8 @@ public class MEncoderVideo extends Player {
 					scaleWidth  = (int) Math.round(scaleHeight * rendererAspectRatio);
 				}
 
-				scaleWidth  = convertToMod4(scaleWidth);
-				scaleHeight = convertToMod4(scaleHeight);
+				scaleWidth  = convertToModX(scaleWidth, 4);
+				scaleHeight = convertToModX(scaleHeight, 4);
 
 				vfValuePrepend += "::::0:16/9,scale=" + scaleWidth + ":" + scaleHeight;
 			} else {

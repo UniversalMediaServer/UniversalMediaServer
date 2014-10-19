@@ -135,6 +135,8 @@ public class LibMediaInfoParser {
 										currentAudioTrack.setLang(getLang(value));
 									} else if (streamType == MediaInfo.StreamType.Text) {
 										currentSubTrack.setLang(getLang(value));
+									} else if (streamType == MediaInfo.StreamType.Video && StringUtils.isBlank(currentAudioTrack.getLang())) {
+										currentAudioTrack.setLang(getLang(value));
 									}
 								} else if (key.equals("Title")) {
 									if (streamType == MediaInfo.StreamType.Audio) {
@@ -228,6 +230,8 @@ public class LibMediaInfoParser {
 									}
 								} else if (key.equals("matrix_coefficients") && streamType == MediaInfo.StreamType.Video) {
 									media.setMatrixCoefficients(value);
+								} else if (key.equals("Attachment") && streamType == MediaInfo.StreamType.General) {
+									media.setEmbeddedFontExists(true);
 								}
 							}
 						}

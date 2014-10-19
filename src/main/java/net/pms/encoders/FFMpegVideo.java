@@ -170,8 +170,18 @@ public class FFMpegVideo extends Player {
 				scaleWidth = (int) Math.round(scaleHeight * (16 / (double) 9));
 			}
 
-			scaleWidth  = convertToMod4(scaleWidth);
-			scaleHeight = convertToMod4(scaleHeight);
+			scaleWidth  = convertToModX(scaleWidth, 4);
+			scaleHeight = convertToModX(scaleHeight, 4);
+
+			// Make sure we didn't exceed the renderer's maximum resolution.
+			if (
+				scaleHeight > renderer.getMaxVideoHeight() ||
+				scaleWidth  > renderer.getMaxVideoWidth()
+			) {
+				scaleHeight = renderer.getMaxVideoHeight();
+				scaleWidth  = renderer.getMaxVideoWidth();
+			}
+
 			scalePadFilterChain.add("scale=" + scaleWidth + ":" + scaleHeight);
 		}
 
@@ -181,7 +191,7 @@ public class FFMpegVideo extends Player {
 			override = or.addSubtitles();
 		}
 
-		if (!isDisableSubtitles(params) && !params.sid.isStreamable() && override) {
+		if (!isDisableSubtitles(params) && override) {
 			StringBuilder subsFilter = new StringBuilder();
 			if (params.sid.getType().isText()) {
 				String originalSubsFilename;
@@ -447,6 +457,7 @@ public class FFMpegVideo extends Player {
 		}
 
 		boolean isXboxOneWebVideo = params.mediaRenderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
+		int maximumBitrate = defaultMaxBitrates[0];
 
 		if (params.mediaRenderer.getCBRVideoBitrate() == 0 && params.timeend == 0) {
 			if (rendererMaxBitrates[0] < 0) {
@@ -532,7 +543,6 @@ public class FFMpegVideo extends Player {
 				videoBitrateOptions.add(String.valueOf(defaultMaxBitrates[0]));
 			}
 		}
-		int maximumBitrate = defaultMaxBitrates[0];
 
 		if (isXboxOneWebVideo || !params.mediaRenderer.isTranscodeToH264()) {
 			// Add MPEG-2 quality settings
@@ -831,10 +841,11 @@ public class FFMpegVideo extends Player {
 
 		/**
 		 * Defer to MEncoder for subtitles if:
-		 * - The setting is enabled
+		 * - The setting is enabled or embedded fonts exist
 		 * - There are subtitles to transcode
 		 * - The file is not being played via the transcode folder
 		 */
+		String prependTraceReason = "Switching from FFmpeg to MEncoder to transcode subtitles because ";
 		if (
 			!(renderer instanceof RendererConfiguration.OutputOverride) &&
 			configuration.isFFmpegDeferToMEncoderForSubtitles() &&
@@ -845,17 +856,25 @@ public class FFMpegVideo extends Player {
 				(dlna.getParent() instanceof FileTranscodeVirtualFolder)
 			)
 		) {
-			LOGGER.trace("Switching from FFmpeg to MEncoder to transcode subtitles.");
-			MEncoderVideo mv = new MEncoderVideo();
-
-			return mv.launchTranscode(dlna, media, params);
+			boolean deferToMencoder = false;
+			if (configuration.isFFmpegDeferToMEncoderForSubtitles()) {
+				deferToMencoder = true;
+				LOGGER.trace(prependTraceReason + "the user setting is enabled.");
+			} else if (media.isEmbeddedFontExists()) {
+				deferToMencoder = true;
+				LOGGER.trace(prependTraceReason + "there are embedded fonts.");
+			}
+			if (deferToMencoder) {
+				MEncoderVideo mv = new MEncoderVideo();
+				return mv.launchTranscode(dlna, media, params);
+			}
 		}
 
 		// Decide whether to defer to tsMuxeR or continue to use FFmpeg
-		if (! (renderer instanceof RendererConfiguration.OutputOverride) && configuration.isFFmpegMuxWithTsMuxerWhenCompatible()) {
+		if (!(renderer instanceof RendererConfiguration.OutputOverride) && configuration.isFFmpegMuxWithTsMuxerWhenCompatible()) {
 			// Decide whether to defer to tsMuxeR or continue to use FFmpeg
 			boolean deferToTsmuxer = true;
-			String prependTraceReason = "Not muxing the video stream with tsMuxeR via FFmpeg because ";
+			prependTraceReason = "Not muxing the video stream with tsMuxeR via FFmpeg because ";
 			if (deferToTsmuxer == true && !configuration.getHideTranscodeEnabled() && dlna.isNoName() && (dlna.getParent() instanceof FileTranscodeVirtualFolder)) {
 				deferToTsmuxer = false;
 				LOGGER.trace(prependTraceReason + "the file is being played via a FFmpeg entry in the transcode folder.");

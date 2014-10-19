@@ -1157,7 +1157,7 @@ public class PMS {
 				LOGGER.debug("Error initializing plugin credentials: " + e);
 			}
 
-			if (getConfiguration().getSingle()) {
+			if (getConfiguration().isRunSingleInstance()) {
 				killOld();
 			}
 

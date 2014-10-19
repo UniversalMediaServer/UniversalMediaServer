@@ -271,7 +271,7 @@ public class SubtitleUtils {
 		}
 
 		if (isEmbeddedSource) {
-			params.sid.setExternalFile(tempSubs);
+//			params.sid.setExternalFile(tempSubs);
 			params.sid.setType(SubtitleType.ASS);
 		}
 

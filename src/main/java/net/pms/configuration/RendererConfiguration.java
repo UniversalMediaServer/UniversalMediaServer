@@ -42,6 +42,7 @@ import org.apache.commons.lang.WordUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.Charsets;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -197,6 +198,8 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 	protected static final String VIDEO = "Video";
 	protected static final String WRAP_DTS_INTO_PCM = "WrapDTSIntoPCM";
 	protected static final String WRAP_ENCODED_AUDIO_INTO_PCM = "WrapEncodedAudioIntoPCM";
+
+	private static int maximumBitrateTotal = 0;
 
 	public static RendererConfiguration getDefaultConf() {
 		return defaultConf;
@@ -955,6 +958,13 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return isTranscodeToMPEGTSMPEG2AC3() || isTranscodeToMPEGTSH264AC3() || isTranscodeToMPEGTSH264AAC();
 	}
 
+	/**
+	 * @return whether to use the MPEG-2 video codec for transcoded video
+	 */
+	public boolean isTranscodeToMPEG2() {
+		return isTranscodeToMPEGTSMPEG2AC3() || isTranscodeToMPEGPSMPEG2AC3();
+	}
+
 	public boolean isAutoRotateBasedOnExif() {
 		return getBoolean(AUTO_EXIF_ROTATE, false);
 	}
@@ -1474,6 +1484,33 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getString(MAX_VIDEO_BITRATE, "0");
 	}
 
+	/**
+	 * Returns the maximum bitrate (in bits-per-second) as defined by
+	 * whichever is lower out of the renderer setting or user setting.
+	 *
+	 * @return The maximum bitrate in bits-per-second.
+	 */
+	public int getMaxBandwidth() {
+		if (maximumBitrateTotal > 0) {
+			return maximumBitrateTotal;
+		}
+
+		int defaultMaxBitrates[] = getVideoBitrateConfig(PMS.getConfiguration().getMaximumBitrate());
+		int rendererMaxBitrates[] = new int[2];
+
+		if (StringUtils.isNotEmpty(getMaxVideoBitrate())) {
+			rendererMaxBitrates = getVideoBitrateConfig(getMaxVideoBitrate());
+		}
+
+		// Give priority to the renderer's maximum bitrate setting over the user's setting
+		if (rendererMaxBitrates[0] > 0 && rendererMaxBitrates[0] < defaultMaxBitrates[0]) {
+			defaultMaxBitrates = rendererMaxBitrates;
+		}
+
+		maximumBitrateTotal = defaultMaxBitrates[0] * 1000000;
+		return maximumBitrateTotal;
+	}
+
 	@Deprecated
 	public String getCustomMencoderQualitySettings() {
 		return getCustomMEncoderMPEG2Options();
@@ -1736,10 +1773,31 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 		return getString(CUSTOM_FFMPEG_OPTIONS, "");
 	}
 
+	/**
+	 * If this is true, we will always output video at 16/9 aspect ratio to
+	 * the renderer, meaning that all videos with different aspect ratios
+	 * will have black bars added to the edges to make them 16/9.
+	 *
+	 * This addresses a bug in some renderers (like Panasonic TVs) where
+	 * they stretch videos that are not 16/9.
+	 *
+	 * @return 
+	 */
 	public boolean isKeepAspectRatio() {
 		return getBoolean(KEEP_ASPECT_RATIO, false);
 	}
 
+	/**
+	 * If this is false, FFmpeg will upscale videos with resolutions lower
+	 * than SD (720 pixels wide) to the maximum resolution your renderer
+	 * supports.
+	 *
+	 * Changing it to false is only recommended if your renderer has
+	 * poor-quality upscaling, since we will use more CPU and network
+	 * bandwidth when it is false.
+	 *
+	 * @return 
+	 */
 	public boolean isRescaleByRenderer() {
 		return getBoolean(RESCALE_BY_RENDERER, true);
 	}
@@ -2041,6 +2099,26 @@ public class RendererConfiguration extends UPNPHelper.Renderer {
 			return p1 > p2 ? -1 : p1 < p2 ? 1 : r1.getRendererName().compareToIgnoreCase(r2.getRendererName());
 		}
 	};
+
+	private int[] getVideoBitrateConfig(String bitrate) {
+		int bitrates[] = new int[2];
+
+		if (bitrate.contains("(") && bitrate.contains(")")) {
+			bitrates[1] = Integer.parseInt(bitrate.substring(bitrate.indexOf('(') + 1, bitrate.indexOf(')')));
+		}
+
+		if (bitrate.contains("(")) {
+			bitrate = bitrate.substring(0, bitrate.indexOf('(')).trim();
+		}
+
+		if (isBlank(bitrate)) {
+			bitrate = "0";
+		}
+
+		bitrates[0] = (int) Double.parseDouble(bitrate);
+
+		return bitrates;
+	}
 
 	public int getMaxVolume() {
 		return getInt(MAX_VOLUME, 100);

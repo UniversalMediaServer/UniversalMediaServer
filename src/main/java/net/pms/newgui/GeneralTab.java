@@ -286,13 +286,13 @@ public class GeneralTab {
 		ypos += 2;
 
 		if (!configuration.isHideAdvancedOptions()) {
-			singleInstance = new JCheckBox(Messages.getString("GeneralTab.10"), configuration.getSingle());
+			singleInstance = new JCheckBox(Messages.getString("GeneralTab.10"), configuration.isRunSingleInstance());
 			singleInstance.setContentAreaFilled(false);
 			singleInstance.setToolTipText(Messages.getString("GeneralTab.11"));
 			singleInstance.addActionListener(new ActionListener() {
 				@Override
 				public void actionPerformed(ActionEvent e) {
-					configuration.setSingle(singleInstance.isSelected());
+					configuration.setRunSingleInstance(singleInstance.isSelected());
 				}
 			});
 			builder.add(singleInstance, FormLayoutUtil.flip(cc.xyw(1, ypos, 9), colSpec, orientation));

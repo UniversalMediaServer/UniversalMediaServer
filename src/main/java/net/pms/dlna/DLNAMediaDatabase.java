@@ -204,33 +204,34 @@ public class DLNAMediaDatabase implements Runnable {
 			try {
 				StringBuilder sb = new StringBuilder();
 				sb.append("CREATE TABLE FILES (");
-				sb.append("  ID                INT AUTO_INCREMENT");
-				sb.append(", FILENAME          VARCHAR2(1024)       NOT NULL");
-				sb.append(", MODIFIED          TIMESTAMP            NOT NULL");
-				sb.append(", TYPE              INT");
-				sb.append(", DURATION          DOUBLE");
-				sb.append(", BITRATE           INT");
-				sb.append(", WIDTH             INT");
-				sb.append(", HEIGHT            INT");
-				sb.append(", SIZE              NUMERIC");
-				sb.append(", CODECV            VARCHAR2(").append(SIZE_CODECV).append(")");
-				sb.append(", FRAMERATE         VARCHAR2(").append(SIZE_FRAMERATE).append(")");
-				sb.append(", ASPECT            VARCHAR2(").append(SIZE_ASPECTRATIO_DVDISO).append(")");
+				sb.append("  ID                      INT AUTO_INCREMENT");
+				sb.append(", FILENAME                VARCHAR2(1024)   NOT NULL");
+				sb.append(", MODIFIED                TIMESTAMP        NOT NULL");
+				sb.append(", TYPE                    INT");
+				sb.append(", DURATION                DOUBLE");
+				sb.append(", BITRATE                 INT");
+				sb.append(", WIDTH                   INT");
+				sb.append(", HEIGHT                  INT");
+				sb.append(", SIZE                    NUMERIC");
+				sb.append(", CODECV                  VARCHAR2(").append(SIZE_CODECV).append(")");
+				sb.append(", FRAMERATE               VARCHAR2(").append(SIZE_FRAMERATE).append(")");
+				sb.append(", ASPECT                  VARCHAR2(").append(SIZE_ASPECTRATIO_DVDISO).append(")");
 				sb.append(", ASPECTRATIOCONTAINER    VARCHAR2(").append(SIZE_ASPECTRATIO_CONTAINER).append(")");
 				sb.append(", ASPECTRATIOVIDEOTRACK   VARCHAR2(").append(SIZE_ASPECTRATIO_VIDEOTRACK).append(")");
-				sb.append(", REFRAMES          TINYINT");
-				sb.append(", AVCLEVEL          VARCHAR2(").append(SIZE_AVC_LEVEL).append(")");
-				sb.append(", BITSPERPIXEL      INT");
-				sb.append(", THUMB             BINARY");
-				sb.append(", CONTAINER         VARCHAR2(").append(SIZE_CONTAINER).append(")");
-				sb.append(", MODEL             VARCHAR2(").append(SIZE_MODEL).append(")");
-				sb.append(", EXPOSURE          INT");
-				sb.append(", ORIENTATION       INT");
-				sb.append(", ISO               INT");
-				sb.append(", MUXINGMODE        VARCHAR2(").append(SIZE_MUXINGMODE).append(")");
-				sb.append(", FRAMERATEMODE     VARCHAR2(").append(SIZE_FRAMERATE_MODE).append(")");
-				sb.append(", STEREOSCOPY       VARCHAR2(").append(SIZE_STEREOSCOPY).append(")");
-				sb.append(", MATRIXCOEFFICIENTS   VARCHAR2(").append(SIZE_MATRIX_COEFFICIENTS).append(")");
+				sb.append(", REFRAMES                TINYINT");
+				sb.append(", AVCLEVEL                VARCHAR2(").append(SIZE_AVC_LEVEL).append(")");
+				sb.append(", BITSPERPIXEL            INT");
+				sb.append(", THUMB                   BINARY");
+				sb.append(", CONTAINER               VARCHAR2(").append(SIZE_CONTAINER).append(")");
+				sb.append(", MODEL                   VARCHAR2(").append(SIZE_MODEL).append(")");
+				sb.append(", EXPOSURE                INT");
+				sb.append(", ORIENTATION             INT");
+				sb.append(", ISO                     INT");
+				sb.append(", MUXINGMODE              VARCHAR2(").append(SIZE_MUXINGMODE).append(")");
+				sb.append(", FRAMERATEMODE           VARCHAR2(").append(SIZE_FRAMERATE_MODE).append(")");
+				sb.append(", STEREOSCOPY             VARCHAR2(").append(SIZE_STEREOSCOPY).append(")");
+				sb.append(", MATRIXCOEFFICIENTS      VARCHAR2(").append(SIZE_MATRIX_COEFFICIENTS).append(")");
+				sb.append(", EMBEDDEDFONTEXISTS      BIT              NOT NULL");
 				sb.append(", constraint PK1 primary key (FILENAME, MODIFIED, ID))");
 				executeUpdate(conn, sb.toString());
 				sb = new StringBuilder();
@@ -256,11 +257,11 @@ public class DLNAMediaDatabase implements Runnable {
 				executeUpdate(conn, sb.toString());
 				sb = new StringBuilder();
 				sb.append("CREATE TABLE SUBTRACKS (");
-				sb.append("  FILEID            INT              NOT NULL");
-				sb.append(", ID                INT              NOT NULL");
-				sb.append(", LANG              VARCHAR2(").append(SIZE_LANG).append(")");
-				sb.append(", FLAVOR            VARCHAR2(").append(SIZE_FLAVOR).append(")");
-				sb.append(", TYPE              INT");
+				sb.append("  FILEID   INT              NOT NULL");
+				sb.append(", ID       INT              NOT NULL");
+				sb.append(", LANG     VARCHAR2(").append(SIZE_LANG).append(")");
+				sb.append(", FLAVOR   VARCHAR2(").append(SIZE_FLAVOR).append(")");
+				sb.append(", TYPE     INT");
 				sb.append(", constraint PKSUB primary key (FILEID, ID))");
 
 				executeUpdate(conn, sb.toString());
@@ -367,6 +368,7 @@ public class DLNAMediaDatabase implements Runnable {
 				media.setFrameRateMode(rs.getString("FRAMERATEMODE"));
 				media.setStereoscopy(rs.getString("STEREOSCOPY"));
 				media.setMatrixCoefficients(rs.getString("MATRIXCOEFFICIENTS"));
+				media.setEmbeddedFontExists(rs.getBoolean("EMBEDDEDFONTEXISTS"));
 				media.setMediaparsed(true);
 				ResultSet subrs;
 				try (PreparedStatement audios = conn.prepareStatement("SELECT * FROM AUDIOTRACKS WHERE FILEID = ?")) {
@@ -434,7 +436,7 @@ public class DLNAMediaDatabase implements Runnable {
 		PreparedStatement ps = null;
 		try {
 			conn = getConnection();
-			ps = conn.prepareStatement("INSERT INTO FILES(FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, FRAMERATE, ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, BITSPERPIXEL, THUMB, CONTAINER, MODEL, EXPOSURE, ORIENTATION, ISO, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+			ps = conn.prepareStatement("INSERT INTO FILES(FILENAME, MODIFIED, TYPE, DURATION, BITRATE, WIDTH, HEIGHT, SIZE, CODECV, FRAMERATE, ASPECT, ASPECTRATIOCONTAINER, ASPECTRATIOVIDEOTRACK, REFRAMES, AVCLEVEL, BITSPERPIXEL, THUMB, CONTAINER, MODEL, EXPOSURE, ORIENTATION, ISO, MUXINGMODE, FRAMERATEMODE, STEREOSCOPY, MATRIXCOEFFICIENTS, EMBEDDEDFONTEXISTS) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 			ps.setString(1, name);
 			ps.setTimestamp(2, new Timestamp(modified));
 			ps.setInt(3, type);
@@ -479,6 +481,7 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setString(24, left(media.getFrameRateMode(), SIZE_FRAMERATE_MODE));
 				ps.setString(25, left(media.getStereoscopy(), SIZE_STEREOSCOPY));
 				ps.setString(26, left(media.getMatrixCoefficients(), SIZE_MATRIX_COEFFICIENTS));
+				ps.setBoolean(27, media.isEmbeddedFontExists());
 			} else {
 				ps.setString(4, null);
 				ps.setInt(5, 0);
@@ -503,6 +506,7 @@ public class DLNAMediaDatabase implements Runnable {
 				ps.setString(24, null);
 				ps.setString(25, null);
 				ps.setString(26, null);
+				ps.setBoolean(27, false);
 			}
 			ps.executeUpdate();
 			int id;
