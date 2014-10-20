@@ -304,6 +304,11 @@ public class FileUtil {
 
 			// Replace periods with spaces
 			formattedName = formattedName.replaceAll("\\.", " ");
+
+			// Capitalize the first letter of each word if the string contains no capital letters
+			if (formattedName.equals(formattedName.toLowerCase())) {
+				formattedName = StringUtils.capitaliseAllWords(formattedName);
+			}
 		} else if (formattedName.matches(".*[\\s\\.](19|20)\\d\\d[\\s\\.].*")) {
 			// This matches scene and most p2p movies
 
