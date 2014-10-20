@@ -72,7 +72,7 @@ public class PmsConfiguration extends RendererConfiguration {
 	// TODO: Get this out of here
 	protected static boolean avsHackLogged = false;
 
-	protected static final String KEY_3D_SUBTITLES_DEPTH = "3D_subtitles_depth";
+	protected static final String KEY_3D_SUBTITLES_DEPTH = "3d_subtitles_depth";
 	protected static final String KEY_ALTERNATE_SUBTITLES_FOLDER = "alternate_subtitles_folder";
 	protected static final String KEY_ALTERNATE_THUMB_FOLDER = "alternate_thumb_folder";
 	protected static final String KEY_APPEND_PROFILE_NAME = "append_profile_name";

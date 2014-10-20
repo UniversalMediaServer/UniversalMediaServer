@@ -79,7 +79,7 @@ public class MEncoderVideo extends Player {
 	private JTextField scaleY;
 	private JCheckBox fc;
 	private JCheckBox ass;
-	private JCheckBox checkBox;
+	private JCheckBox skipLoopFilter;
 	private JCheckBox mencodermt;
 	private JCheckBox videoremux;
 	private JCheckBox normalizeaudio;
@@ -141,8 +141,9 @@ public class MEncoderVideo extends Player {
 		Messages.getString("MEncoderVideo.89") +
 		Messages.getString("MEncoderVideo.91");
 
+	@Deprecated
 	public JCheckBox getCheckBox() {
-		return checkBox;
+		return skipLoopFilter;
 	}
 
 	public JCheckBox getNoskip() {
@@ -171,15 +172,6 @@ public class MEncoderVideo extends Player {
 
 		CellConstraints cc = new CellConstraints();
 
-		checkBox = new JCheckBox(Messages.getString("MEncoderVideo.0"), configuration.getSkipLoopFilterEnabled());
-		checkBox.setContentAreaFilled(false);
-		checkBox.addItemListener(new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				configuration.setSkipLoopFilterEnabled((e.getStateChange() == ItemEvent.SELECTED));
-			}
-		});
-
 		JComponent cmp = builder.addSeparator(Messages.getString("NetworkTab.5"), FormLayoutUtil.flip(cc.xyw(1, 1, 15), colSpec, orientation));
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
@@ -192,11 +184,19 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderMT(mencodermt.isSelected());
 			}
 		});
-
 		mencodermt.setEnabled(Platform.isWindows() || Platform.isMac());
-
 		builder.add(mencodermt, FormLayoutUtil.flip(cc.xy(1, 3), colSpec, orientation));
-		builder.add(checkBox, FormLayoutUtil.flip(cc.xyw(3, 3, 12), colSpec, orientation));
+
+		skipLoopFilter = new JCheckBox(Messages.getString("MEncoderVideo.0"), configuration.getSkipLoopFilterEnabled());
+		skipLoopFilter.setContentAreaFilled(false);
+		skipLoopFilter.setToolTipText(Messages.getString("MEncoderVideo.136"));
+		skipLoopFilter.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				configuration.setSkipLoopFilterEnabled((e.getStateChange() == ItemEvent.SELECTED));
+			}
+		});
+		builder.add(skipLoopFilter, FormLayoutUtil.flip(cc.xyw(3, 3, 12), colSpec, orientation));
 
 		noskip = new JCheckBox(Messages.getString("MEncoderVideo.2"), configuration.isMencoderNoOutOfSync());
 		noskip.setContentAreaFilled(false);
@@ -206,7 +206,6 @@ public class MEncoderVideo extends Player {
 				configuration.setMencoderNoOutOfSync((e.getStateChange() == ItemEvent.SELECTED));
 			}
 		});
-
 		builder.add(noskip, FormLayoutUtil.flip(cc.xy(1, 5), colSpec, orientation));
 
 		CustomJButton button = new CustomJButton(Messages.getString("MEncoderVideo.29"));
@@ -408,7 +407,8 @@ public class MEncoderVideo extends Player {
 		cmp = (JComponent) cmp.getComponent(0);
 		cmp.setFont(cmp.getFont().deriveFont(Font.BOLD));
 
-		builder.addLabel(Messages.getString("MEncoderVideo.16"), FormLayoutUtil.flip(cc.xy(1, 27, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.16"), FormLayoutUtil.flip(cc.xy(1, 27), colSpec, orientation));
+		builder.addLabel(Messages.getString("MEncoderVideo.133"), FormLayoutUtil.flip(cc.xy(1, 27, CellConstraints.RIGHT, CellConstraints.CENTER), colSpec, orientation));
 
 		mencoder_noass_scale = new JTextField(configuration.getMencoderNoAssScale());
 		mencoder_noass_scale.addKeyListener(new KeyAdapter() {
