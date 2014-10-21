@@ -560,8 +560,6 @@ public class PMS {
 
 		RendererConfiguration.loadRendererConfigurations(configuration);
 
-		LOGGER.info("Checking the fontconfig cache, this can take two minutes or so.");
-
 		OutputParams outputParams = new OutputParams(configuration);
 
 		// Prevent unwanted GUI buffer artifacts (and runaway timers)
@@ -570,18 +568,23 @@ public class PMS {
 		// Make sure buffer is destroyed
 		outputParams.cleanup = true;
 
-		ProcessWrapperImpl mplayer = new ProcessWrapperImpl(new String[]{configuration.getMplayerPath(), "dummy"}, outputParams);
-		mplayer.runInNewThread();
+		// Initialize MPlayer and FFmpeg to let them generate fontconfig cache/s
+		if (!configuration.isDisableSubtitles()) {
+			LOGGER.info("Checking the fontconfig cache in the background, this can take two minutes or so.");
 
-		/**
-		 * Note: This can be needed in case MPlayer and FFmpeg have been
-		 * compiled with a different version of fontconfig.
-		 * Since it's unpredictable on Linux we should always run this
-		 * on Linux, but it may be possible to sync versions on OS X.
-		 */
-		if (!Platform.isWindows()) {
-			ProcessWrapperImpl ffmpeg = new ProcessWrapperImpl(new String[]{configuration.getFfmpegPath(), "-y", "-f", "lavfi", "-i", "nullsrc=s=720x480:d=1:r=1", "-vf", "ass=DummyInput.ass", "-target", "ntsc-dvd", "-"}, outputParams);
-			ffmpeg.runInNewThread();
+			ProcessWrapperImpl mplayer = new ProcessWrapperImpl(new String[]{configuration.getMplayerPath(), "dummy"}, outputParams);
+			mplayer.runInNewThread();
+
+			/**
+			 * Note: This can be needed in case MPlayer and FFmpeg have been
+			 * compiled with a different version of fontconfig.
+			 * Since it's unpredictable on Linux we should always run this
+			 * on Linux, but it may be possible to sync versions on OS X.
+			 */
+			if (!Platform.isWindows()) {
+				ProcessWrapperImpl ffmpeg = new ProcessWrapperImpl(new String[]{configuration.getFfmpegPath(), "-y", "-f", "lavfi", "-i", "nullsrc=s=720x480:d=1:r=1", "-vf", "ass=DummyInput.ass", "-target", "ntsc-dvd", "-"}, outputParams);
+				ffmpeg.runInNewThread();
+			}
 		}
 
 		frame.setStatusCode(0, Messages.getString("PMS.130"), "icon-status-connecting.png");
