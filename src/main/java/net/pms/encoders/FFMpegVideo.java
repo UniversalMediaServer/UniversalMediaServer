@@ -322,7 +322,6 @@ public class FFMpegVideo extends Player {
 		final String filename = dlna.getSystemName();
 		final RendererConfiguration renderer = params.mediaRenderer;
 		String customFFmpegOptions = renderer.getCustomFFmpegOptions();
-		boolean xbox1 = renderer.isXboxOne() &&	purpose() == VIDEO_WEBSTREAM_PLAYER;
 
 		if (
 			(
@@ -442,7 +441,6 @@ public class FFMpegVideo extends Player {
 
 		int defaultMaxBitrates[] = getVideoBitrateConfig(configuration.getMaximumBitrate());
 		int rendererMaxBitrates[] = new int[2];
-		boolean xbox1 = params.mediaRenderer.isXboxOne() &&	purpose() == VIDEO_WEBSTREAM_PLAYER;
 
 		if (StringUtils.isNotEmpty(params.mediaRenderer.getMaxVideoBitrate())) {
 			rendererMaxBitrates = getVideoBitrateConfig(params.mediaRenderer.getMaxVideoBitrate());
@@ -738,7 +736,7 @@ public class FFMpegVideo extends Player {
 		newInput.setFilename(filename);
 		newInput.setPush(params.stdin);
 		PmsConfiguration prev = configuration;
-		configuration = (DeviceConfiguration)params.mediaRenderer;
+		configuration = (DeviceConfiguration) params.mediaRenderer;
 		RendererConfiguration renderer = params.mediaRenderer;
 
 		/*
@@ -805,7 +803,6 @@ public class FFMpegVideo extends Player {
 
 		ac3Remux = false;
 		dtsRemux = false;
-		boolean xbox1 = renderer.isXboxOne() && purpose() == VIDEO_WEBSTREAM_PLAYER;
 
 		if (
 			configuration.isAudioRemuxAC3() &&
@@ -1019,7 +1016,6 @@ public class FFMpegVideo extends Player {
 
 
 		// Set up the process
-
 		PipeProcess pipe = null;
 		
 		if (!dtsRemux) {
@@ -1057,7 +1053,7 @@ public class FFMpegVideo extends Player {
 
 		setOutputParsing(dlna, pw, false);
 
-		if (! dtsRemux) {
+		if (!dtsRemux) {
 			ProcessWrapper mkfifo_process = pipe.getPipeProcess();
 
 			/**

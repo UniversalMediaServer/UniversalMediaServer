@@ -142,7 +142,7 @@ public class SpeedStats {
 			}
 			double speedInMbits1 = (double) (bps / (cnt * 1000000));
 			LOGGER.info("Renderer " + rendererName + " has an estimated network speed of " + speedInMbits1 + " Mb/s");
-			int speedInMbits = (int)speedInMbits1;
+			int speedInMbits = (int) speedInMbits1;
 			if (speedInMbits1 < 1.0) {
 				speedInMbits = -1;
 			}
@@ -204,7 +204,6 @@ public class SpeedStats {
 			return time;
 		}
 	}
-
 
 	static class CompletedFuture<X> implements Future<X> {
 		X value;

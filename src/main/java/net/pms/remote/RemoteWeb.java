@@ -34,7 +34,7 @@ public class RemoteWeb {
 	private HashMap<String, String> users;
 	private HashMap<String, String> tags;
 	private HashMap<String, RootFolder> roots;
-	private RemoteUtil.ResourceManager resources; 
+	private RemoteUtil.ResourceManager resources;
 	private static final PmsConfiguration configuration = PMS.getConfiguration();
 
 	public RemoteWeb() {

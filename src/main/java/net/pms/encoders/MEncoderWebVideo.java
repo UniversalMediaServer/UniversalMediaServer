@@ -91,7 +91,7 @@ public class MEncoderWebVideo extends Player {
 		DLNAMediaInfo media,
 		OutputParams params) throws IOException {
 		PmsConfiguration prev = configuration;
-		configuration = (DeviceConfiguration)params.mediaRenderer;
+		configuration = (DeviceConfiguration) params.mediaRenderer;
 		params.minBufferSize = params.minFileSize;
 		params.secondread_minsize = 100000;
 

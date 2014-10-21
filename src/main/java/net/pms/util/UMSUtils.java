@@ -9,7 +9,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
-
+import javax.imageio.ImageIO;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.dlna.DLNAMediaAudio;
 import net.pms.dlna.DLNAMediaInfo;
@@ -18,13 +18,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.imageio.ImageIO;
-
-
 public class UMSUtils {
 	private static final Collator collator;
 	private static final Logger LOGGER = LoggerFactory.getLogger(UMSUtils.class);
-
 
 	static {
 		collator = Collator.getInstance();
@@ -145,7 +141,7 @@ public class UMSUtils {
 	}
 
 	private static int getHW(String[] s, int pos) {
-		if(pos > s.length - 1) {
+		if (pos > s.length - 1) {
 			return 0;
 		}
 		try {
@@ -169,7 +165,7 @@ public class UMSUtils {
 		Color col = null;
 		BufferedImage img;
 		try {
-		 	img = ImageIO.read(in);
+			img = ImageIO.read(in);
 		} catch (Exception e) {
 			// catch whatever is thrown at us
 			// we can at least log it
@@ -193,7 +189,7 @@ public class UMSUtils {
 		if (StringUtils.isNotEmpty(r.getThumbBG())) {
 			try {
 				Field field = Color.class.getField(r.getThumbBG());
-				col = (Color)field.get(null);
+				col = (Color) field.get(null);
 			} catch (Exception e) {
 				LOGGER.debug("bad color name " + r.getThumbBG());
 			}

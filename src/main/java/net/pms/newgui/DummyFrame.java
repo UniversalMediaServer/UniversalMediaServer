@@ -18,11 +18,10 @@
  */
 package net.pms.newgui;
 
+import java.util.ArrayList;
 import net.pms.configuration.RendererConfiguration;
 import net.pms.util.UMSUtils;
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.ArrayList;
 
 public class DummyFrame implements IFrame {
 

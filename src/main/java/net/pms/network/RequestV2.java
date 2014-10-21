@@ -48,7 +48,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class handles all forms of incoming HTTP requests by constructing a proper HTTP response. 
+ * This class handles all forms of incoming HTTP requests by constructing a proper HTTP response.
  */
 public class RequestV2 extends HTTPResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(RequestV2.class);
@@ -303,8 +303,7 @@ public class RequestV2 extends HTTPResource {
 
 					if (!configuration.isShowCodeThumbs() && !dlna.isCodeValid(dlna)) {
 						inputStream = dlna.getGenericThumbnailInputStream(null);
-					}
-					else {
+					} else {
 						if (mediaRenderer.isMediaParserV2()) {
 							dlna.checkThumbnail();
 						}
@@ -332,7 +331,7 @@ public class RequestV2 extends HTTPResource {
 					} else {
 						LOGGER.trace("Not loading external subtitles because dlna.getMediaSubtitle returned null");
 					}
-				} else if (dlna.isCodeValid(dlna)){
+				} else if (dlna.isCodeValid(dlna)) {
 					// This is a request for a regular file.
 					RendererConfiguration orig = dlna.getDefaultRenderer();
 					boolean rendererChanged = !mediaRenderer.equals(orig);
@@ -371,7 +370,7 @@ public class RequestV2 extends HTTPResource {
 							// Update range to possibly adjusted resume time
 							range.setStart(dlna.getResume().getTimeOffset() / (double) 1000);
 						}
-					} 
+					}
 
 					if (dlna.getMedia() != null && !configuration.isDisableSubtitles()) {
 						// Some renderers (like Samsung devices) allow a custom header for a subtitle URL
@@ -421,19 +420,17 @@ public class RequestV2 extends HTTPResource {
 							output.headers().set(HttpHeaders.Names.CONTENT_TYPE, rendererMimeType);
 						}
 
-						if(!dlna.quietPlay()) {
+						if (!dlna.quietPlay()) {
 							PMS.get().getFrame().setStatusLine("Serving " + name);
 						}
 
 						// Response generation:
 						// We use -1 for arithmetic convenience but don't send it as a value.
 						// If Content-Length < 0 we omit it, for Content-Range we use '*' to signify unspecified.
-
 						boolean chunked = mediaRenderer.isChunkedTransfer();
 
 						// Determine the total size. Note: when transcoding the length is
 						// not known in advance, so DLNAMediaInfo.TRANS_SIZE will be returned instead.
-
 						if (chunked && totalsize == DLNAMediaInfo.TRANS_SIZE) {
 							// In chunked mode we try to avoid arbitrary values.
 							totalsize = -1;
@@ -787,7 +784,7 @@ public class RequestV2 extends HTTPResource {
 					URL soapActionUrl = new URL(cb);
 					String addr = soapActionUrl.getHost();
 					int port = soapActionUrl.getPort();
-					Socket sock = new Socket(addr,port);
+					Socket sock = new Socket(addr, port);
 					try (OutputStream out = sock.getOutputStream()) {
 						out.write(("NOTIFY /" + argument + " HTTP/1.1").getBytes());
 						out.write(CRLF.getBytes());

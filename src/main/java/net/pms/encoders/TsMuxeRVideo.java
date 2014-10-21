@@ -123,7 +123,7 @@ public class TsMuxeRVideo extends Player {
 		OutputParams params
 	) throws IOException {
 		PmsConfiguration prev = configuration;
-		configuration = (DeviceConfiguration)params.mediaRenderer;
+		configuration = (DeviceConfiguration) params.mediaRenderer;
 		final String filename = dlna.getSystemName();
 		setAudioAndSubs(filename, media, params);
 

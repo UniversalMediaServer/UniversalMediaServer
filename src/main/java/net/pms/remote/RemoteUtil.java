@@ -20,9 +20,9 @@ import net.pms.dlna.DLNAMediaInfo;
 import net.pms.dlna.Range;
 import net.pms.external.StartStopListenerDelegate;
 import net.pms.newgui.LooksFrame;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +39,6 @@ public class RemoteUtil {
 	public static final String MIME_WAV = "audio/wav";
 	public static final String MIME_PNG = "image/png";
 	public static final String MIME_JPG = "image/jpeg";
-
 
 	public static void respond(HttpExchange t, String response, int status, String mime) {
 		if (response != null) {
@@ -143,8 +142,7 @@ public class RemoteUtil {
 	}
 
 	public static boolean deny(HttpExchange t) {
-		return !PMS.getConfiguration().getIpFiltering().allowed(t.getRemoteAddress().getAddress()) ||
-			   !PMS.isReady();
+		return !PMS.getConfiguration().getIpFiltering().allowed(t.getRemoteAddress().getAddress()) || !PMS.isReady();
 	}
 
 	private static Range nullRange(long len) {
@@ -208,7 +206,7 @@ public class RemoteUtil {
 			return null;
 		}
 		name += "=";
-		for (String str: cstr.trim().split("\\s*;\\s*")) {
+		for (String str : cstr.trim().split("\\s*;\\s*")) {
 			if (str.startsWith(name)) {
 				return str.substring(name.length());
 			}
@@ -255,7 +253,7 @@ public class RemoteUtil {
 	}
 
 	public static boolean transMp4(String mime, DLNAMediaInfo media) {
-		LOGGER.debug("mp4 profile "+media.getH264Profile());
+		LOGGER.debug("mp4 profile " + media.getH264Profile());
 		return mime.equals(MIME_MP4) && (PMS.getConfiguration().isWebMp4Trans() || media.getAvcAsInt() >= 40);
 	}
 
@@ -296,7 +294,6 @@ public class RemoteUtil {
 	 *
 	 * - A template manager.
 	 */
-
 	public static class ResourceManager extends URLClassLoader {
 		private HashSet<File> files;
 		private HashMap<String, Template> templates;
@@ -380,9 +377,9 @@ public class RemoteUtil {
 			InputStream stream = getInputStream(filename);
 			if (stream != null) {
 				Headers headers = t.getResponseHeaders();
-				if (! headers.containsKey("Content-Type")) {
+				if (!headers.containsKey("Content-Type")) {
 					String mime = getContentType(filename);
-					if(mime != null) {
+					if (mime != null) {
 						headers.add("Content-Type", mime);
 					}
 				}

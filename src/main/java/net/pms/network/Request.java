@@ -42,7 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class handles all forms of incoming HTTP requests by constructing a proper HTTP response. 
+ * This class handles all forms of incoming HTTP requests by constructing a proper HTTP response.
  */
 public class Request extends HTTPResource {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Request.class);
@@ -306,8 +306,7 @@ public class Request extends HTTPResource {
 					output(output, "Connection: keep-alive");
 					if (!configuration.isShowCodeThumbs() && !dlna.isCodeValid(dlna)) {
 						inputStream = dlna.getGenericThumbnailInputStream(null);
-					}
-					else {
+					} else {
 						if (mediaRenderer.isMediaParserV2()) {
 							dlna.checkThumbnail();
 						}
@@ -330,7 +329,7 @@ public class Request extends HTTPResource {
 							LOGGER.trace("Could not find external subtitles: " + sub);
 						}
 					}
-				} else if(dlna.isCodeValid(dlna)) {
+				} else if (dlna.isCodeValid(dlna)) {
 					// This is a request for a regular file.
 					RendererConfiguration orig = dlna.getDefaultRenderer();
 					boolean rendererChanged = !mediaRenderer.equals(orig);
@@ -377,19 +376,17 @@ public class Request extends HTTPResource {
 							}
 						}
 
-						if(!dlna.quietPlay()) {
+						if (!dlna.quietPlay()) {
 							PMS.get().getFrame().setStatusLine("Serving " + name);
 						}
 
 						// Response generation:
 						// We use -1 for arithmetic convenience but don't send it as a value.
 						// If Content-Length < 0 we omit it, for Content-Range we use '*' to signify unspecified.
-
 						boolean chunked = mediaRenderer.isChunkedTransfer();
 
 						// Determine the total size. Note: when transcoding the length is
 						// not known in advance, so DLNAMediaInfo.TRANS_SIZE will be returned instead.
-
 						long totalsize = dlna.length(mediaRenderer);
 
 						if (chunked && totalsize == DLNAMediaInfo.TRANS_SIZE) {
@@ -749,7 +746,7 @@ public class Request extends HTTPResource {
 					URL soapActionUrl = new URL(cb);
 					String addr = soapActionUrl.getHost();
 					int port = soapActionUrl.getPort();
-					try (Socket sock = new Socket(addr,port)) {
+					try (Socket sock = new Socket(addr, port)) {
 						OutputStream out = sock.getOutputStream();
 
 						output(out, "NOTIFY /" + argument + " HTTP/1.1");

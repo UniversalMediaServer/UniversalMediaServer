@@ -1,46 +1,37 @@
 package net.pms.network;
 
-import java.io.ByteArrayInputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.net.URL;
-import java.net.InetAddress;
-import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-
-import org.apache.commons.lang.StringUtils;
-
+import java.awt.event.ActionListener;
+import java.io.ByteArrayInputStream;
+import java.net.InetAddress;
+import java.net.URL;
+import java.util.*;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import net.pms.util.BasicPlayer;
+import org.apache.commons.lang.StringUtils;
 import org.fourthline.cling.UpnpService;
 import org.fourthline.cling.UpnpServiceImpl;
 import org.fourthline.cling.controlpoint.ActionCallback;
 import org.fourthline.cling.controlpoint.SubscriptionCallback;
-import org.fourthline.cling.model.meta.*;
-import org.fourthline.cling.model.types.DeviceType;
-import org.fourthline.cling.model.types.UDADeviceType;
-import org.fourthline.cling.model.types.UDN;
-import org.fourthline.cling.model.types.ServiceId;
+import org.fourthline.cling.model.action.*;
+import org.fourthline.cling.model.gena.*;
 import org.fourthline.cling.model.message.UpnpResponse;
 import org.fourthline.cling.model.message.header.DeviceTypeHeader;
-import org.fourthline.cling.model.action.*;
+import org.fourthline.cling.model.meta.*;
+import org.fourthline.cling.model.types.DeviceType;
+import org.fourthline.cling.model.types.ServiceId;
+import org.fourthline.cling.model.types.UDADeviceType;
+import org.fourthline.cling.model.types.UDN;
 import org.fourthline.cling.registry.DefaultRegistryListener;
 import org.fourthline.cling.registry.Registry;
 import org.fourthline.cling.registry.RegistryListener;
-import org.fourthline.cling.model.gena.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import net.pms.util.BasicPlayer;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 public class UPNPControl {
 	// Logger ids to write messages to the logs.
@@ -65,7 +56,7 @@ public class UPNPControl {
 
 	protected static Map<String, Renderer> socketMap = new HashMap<>();
 
-	public static class DeviceMap<T extends Renderer> extends HashMap<String,HashMap<String,T>> {
+	public static class DeviceMap<T extends Renderer> extends HashMap<String, HashMap<String, T>> {
 		private static final long serialVersionUID = 1510675619549915489L;
 
 		private Class<T> TClass;
@@ -75,10 +66,10 @@ public class UPNPControl {
 		}
 
 		public T get(String uuid, String id) {
-			if (! containsKey(uuid)) {
-				put(uuid, new HashMap<String,T>());
+			if (!containsKey(uuid)) {
+				put(uuid, new HashMap<String, T>());
 			}
-			HashMap<String,T> m = get(uuid);
+			HashMap<String, T> m = get(uuid);
 			if (!m.containsKey(id)) {
 				try {
 					T newitem = TClass.newInstance();
@@ -99,7 +90,7 @@ public class UPNPControl {
 			return containsKey(uuid) && get(uuid).containsKey(id);
 		}
 
-		public HashMap<String,String> getData(String uuid, String id) {
+		public HashMap<String, String> getData(String uuid, String id) {
 			if (containsKey(uuid, id)) {
 				return get(uuid, id).data;
 			}
@@ -108,7 +99,7 @@ public class UPNPControl {
 
 		public T put(String uuid, String id, T item) {
 			item.uuid = uuid;
-			if (! containsKey(uuid)) {
+			if (!containsKey(uuid)) {
 				get(uuid, "0");
 			}
 			return get(uuid).put(id, item);
@@ -122,14 +113,14 @@ public class UPNPControl {
 			for (T i : get(uuid).values()) {
 				switch (property) {
 					case ACTIVE:
-						i.active = (boolean)value;
+						i.active = (boolean) value;
 						i.alert();
 						break;
 					case CONTROLS:
-						i.controls = (int)value;
+						i.controls = (int) value;
 						break;
-				default:
-					break;
+					default:
+						break;
 				}
 			}
 		}
@@ -141,7 +132,7 @@ public class UPNPControl {
 		protected ActionEvent event;
 		public String uuid;
 		public String instanceID = "0"; // FIXME: unclear in what precise context a media renderer's instanceID != 0
-		public HashMap<String,String> data;
+		public HashMap<String, String> data;
 		public LinkedHashSet<ActionListener> listeners;
 		private Thread monitor;
 		public boolean active;
@@ -161,7 +152,7 @@ public class UPNPControl {
 		}
 
 		public void alert() {
-			if ((monitor == null || ! monitor.isAlive()) && ! "STOPPED".equals(data.get("TransportState"))) {
+			if ((monitor == null || !monitor.isAlive()) && !"STOPPED".equals(data.get("TransportState"))) {
 				monitor();
 			}
 			for (ActionListener l : listeners) {
@@ -169,7 +160,7 @@ public class UPNPControl {
 			}
 		}
 
-		public Map<String,String> connect(ActionListener listener) {
+		public Map<String, String> connect(ActionListener listener) {
 			listeners.add(listener);
 			return data;
 		}
@@ -184,7 +175,7 @@ public class UPNPControl {
 				@Override
 				public void run() {
 					String id = data.get("InstanceID");
-					while (active && ! "STOPPED".equals(data.get("TransportState"))) {
+					while (active && !"STOPPED".equals(data.get("TransportState"))) {
 						UPNPHelper.sleep(1000);
 //						if (DEBUG) LOGGER.debug("InstanceID: " + id);
 						for (ActionArgumentValue o : getPositionInfo(d, id)) {
@@ -197,11 +188,11 @@ public class UPNPControl {
 			}, "UPNP-" + d.getDetails().getFriendlyName());
 			monitor.start();
 		}
-		
+
 		public boolean hasPlayControls() {
 			return (controls & BasicPlayer.PLAYCONTROL) != 0;
 		}
-		
+
 		public boolean hasVolumeControls() {
 			return (controls & BasicPlayer.VOLUMECONTROL) != 0;
 		}
@@ -218,21 +209,23 @@ public class UPNPControl {
 			NodeList ids = doc.getElementsByTagName("InstanceID");
 			for (int i = 0; i < ids.getLength(); i++) {
 				NodeList c = ids.item(i).getChildNodes();
-				String id = ((Element)ids.item(i)).getAttribute("val");
+				String id = ((Element) ids.item(i)).getAttribute("val");
 //				if (DEBUG) LOGGER.debug("InstanceID: " + id);
 				if (item == null) {
 					item = rendererMap.get(uuid, id);
 				}
 				item.data.put("InstanceID", id);
-				for (int n=0; n < c.getLength(); n++) {
-					if(c.item(n).getNodeType() != Node.ELEMENT_NODE) {
+				for (int n = 0; n < c.getLength(); n++) {
+					if (c.item(n).getNodeType() != Node.ELEMENT_NODE) {
 //						LOGGER.debug("skip this " + c.item(n));
 						continue;
 					}
-					Element e = (Element)c.item(n);
+					Element e = (Element) c.item(n);
 					String name = e.getTagName();
 					String val = e.getAttribute("val");
-					if (DEBUG) LOGGER.debug(name + ": " + val);
+					if (DEBUG) {
+						LOGGER.debug(name + ": " + val);
+					}
 					item.data.put(name, val);
 				}
 				item.alert();
@@ -255,10 +248,11 @@ public class UPNPControl {
 				@Override
 				public void remoteDeviceAdded(Registry registry, RemoteDevice d) {
 					super.remoteDeviceAdded(registry, d);
-					if (! addRenderer(d)) {
+					if (!addRenderer(d)) {
 						LOGGER.debug(d.getType().getType() + " found: " + d.toString());
 					}
 				}
+
 				@Override
 				public void remoteDeviceRemoved(Registry registry, RemoteDevice d) {
 					super.remoteDeviceRemoved(registry, d);
@@ -268,6 +262,7 @@ public class UPNPControl {
 						rendererRemoved(d);
 					}
 				}
+
 				@Override
 				public void remoteDeviceUpdated(Registry registry, RemoteDevice d) {
 					super.remoteDeviceUpdated(registry, d);
@@ -340,7 +335,7 @@ public class UPNPControl {
 	}
 
 	public static URL getURL(Device d) {
-		return d instanceof RemoteDevice ? ((RemoteDevice)d).getIdentity().getDescriptorURL() :
+		return d instanceof RemoteDevice ? ((RemoteDevice) d).getIdentity().getDescriptorURL() :
 			d.getDetails().getBaseURL();
 	}
 
@@ -352,31 +347,31 @@ public class UPNPControl {
 		return services;
 	}
 
-	public static Map<String,String> getDeviceDetails(Device d) {
+	public static Map<String, String> getDeviceDetails(Device d) {
 		DeviceDetails dev = d.getDetails();
 		ManufacturerDetails man = dev.getManufacturerDetails();
 		ModelDetails model = dev.getModelDetails();
-		LinkedHashMap<String,String> details = new LinkedHashMap<String, String>();
+		LinkedHashMap<String, String> details = new LinkedHashMap<String, String>();
 		details.put("friendlyName", dev.getFriendlyName());
 		details.put("address", getURL(d).getHost());
 		details.put("udn", getUUID(d));
 		Object detail;
-		if((detail = man.getManufacturer()) != null) {
-			details.put("manufacturer", (String)detail);
+		if ((detail = man.getManufacturer()) != null) {
+			details.put("manufacturer", (String) detail);
 		}
-		if((detail = model.getModelName()) != null) {
-			details.put("modelName", (String)detail);
+		if ((detail = model.getModelName()) != null) {
+			details.put("modelName", (String) detail);
 		}
-		if((detail = model.getModelNumber()) != null) {
-			details.put("modelNumber", (String)detail);
+		if ((detail = model.getModelNumber()) != null) {
+			details.put("modelNumber", (String) detail);
 		}
-		if((detail = model.getModelDescription()) != null) {
-			details.put("modelDescription", (String)detail);
+		if ((detail = model.getModelDescription()) != null) {
+			details.put("modelDescription", (String) detail);
 		}
-		if((detail = man.getManufacturerURI()) != null) {
+		if ((detail = man.getManufacturerURI()) != null) {
 			details.put("manufacturerURL", detail.toString());
 		}
-		if((detail = model.getModelURI()) != null) {
+		if ((detail = model.getModelURI()) != null) {
 			details.put("modelURL", detail.toString());
 		}
 		return details;
@@ -456,7 +451,7 @@ public class UPNPControl {
 	public static String getUUID(String addr) {
 		try {
 			return getUUID(InetAddress.getByName(addr));
-		} catch(Exception e) {
+		} catch (Exception e) {
 			return null;
 		}
 	}
@@ -476,7 +471,7 @@ public class UPNPControl {
 				if (devsocket.equals(socket)) {
 					return d;
 				}
-			} catch(Exception e) {}
+			} catch (Exception e) {}
 		}
 		return null;
 	}
@@ -490,7 +485,7 @@ public class UPNPControl {
 
 	public static boolean isNonRenderer(InetAddress socket) {
 		Device d = getDevice(socket);
-		boolean b = (d != null && ! rendererMap.containsKey(getUUID(d)));
+		boolean b = (d != null && !rendererMap.containsKey(getUUID(d)));
 		if (b) {
 			LOGGER.debug("Device at " + socket + " is a " + d.getType().getType() + ": " + d.toString());
 		}
@@ -552,18 +547,17 @@ public class UPNPControl {
 	}
 
 	// Convenience functions for sending various upnp service requests
-
 	public static ActionInvocation send(Device dev, String instanceID, String service, String action, String... args) {
 		Service svc = dev.findService(ServiceId.valueOf("urn:upnp-org:serviceId:" + service));
 		if (svc != null) {
 			Action x = svc.getAction(action);
 			String name = getFriendlyName(dev);
-			boolean log = ! action.equals("GetPositionInfo");
+			boolean log = !action.equals("GetPositionInfo");
 			if (x != null) {
 				ActionInvocation a = new ActionInvocation(x);
 				a.setInput("InstanceID", instanceID);
-				for(int i=0; i<args.length; i+=2) {
-					a.setInput(args[i], args[i+1]);
+				for (int i = 0; i < args.length; i += 2) {
+					a.setInput(args[i], args[i + 1]);
 				}
 				if (log) {
 					LOGGER.debug("Sending upnp {}.{} {} to {}[{}]", service, action, args, name, instanceID);
@@ -581,14 +575,12 @@ public class UPNPControl {
 	}
 
 	// ConnectionManager
-
 	public static String getProtocolInfo(Device dev, String instanceID, String dir) {
 		return send(dev, instanceID, "ConnectionManager", "GetProtocolInfo")
 			.getOutput(dir).toString();
 	}
 
 	// AVTransport
-
 	// Play modes
 	public final static String NORMAL = "NORMAL";
 	public final static String REPEAT_ONE = "REPEAT_ONE";
@@ -672,7 +664,6 @@ public class UPNPControl {
 	}
 
 	// RenderingControl
-
 	// Audio channels
 	public final static String MASTER = "Master";
 	public final static String LF = "LF";

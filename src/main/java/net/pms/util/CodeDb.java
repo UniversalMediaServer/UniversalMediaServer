@@ -1,18 +1,12 @@
 package net.pms.util;
 
-
+import java.io.File;
+import java.util.regex.Pattern;
 import net.pms.PMS;
 import net.pms.dlna.DLNAResource;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.util.regex.Pattern;
-
-public class CodeDb implements DbHandler{
-
-	private static final Logger LOGGER = LoggerFactory.getLogger(CodeDb.class);
+public class CodeDb implements DbHandler {
 	public static final String MASTER = "MASTER_CODE";
 
 	private FileDb db;
@@ -25,11 +19,11 @@ public class CodeDb implements DbHandler{
 
 	public String getCode(String obj) {
 		for (String key : db.keys()) {
-			if(key.equals(MASTER)) {
+			if (key.equals(MASTER)) {
 				continue;
 			}
 			if (Pattern.matches(key, obj)) {
-				 return key;
+				return key;
 			}
 		}
 		return null;
@@ -37,16 +31,15 @@ public class CodeDb implements DbHandler{
 
 	public String getCode(DLNAResource r) {
 		String res = getCode(r.getName());
-		if(StringUtils.isEmpty(res)) {
+		if (StringUtils.isEmpty(res)) {
 			res = getCode(r.getSystemName());
 		}
 		return res;
 	}
 
 	public String lookup(String key) {
-		return (String)db.get(key);
+		return (String) db.get(key);
 	}
-
 
 	@Override
 	public Object create(String[] args) {
@@ -55,7 +48,7 @@ public class CodeDb implements DbHandler{
 
 	@Override
 	public String[] format(Object obj) {
-		return new String[] { (String)obj };
+		return new String[]{(String) obj};
 	}
 
 	@Override

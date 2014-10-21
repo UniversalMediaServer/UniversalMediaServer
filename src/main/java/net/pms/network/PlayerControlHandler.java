@@ -77,32 +77,45 @@ public class PlayerControlHandler implements HttpHandler {
 		UPNPHelper.Player player = uuid != null ? getPlayer(uuid) : null;
 
 		if (player != null) {
-			if (p[2].equals("status")) {
-				// limit status updates to one per second
-				UPNPHelper.sleep(1000);
-				log = false;
-			} else if (p[2].equals("play")) {
-				player.pressPlay(translate(q.get("uri")), q.get("title"));
-			} else if (p[2].equals("stop")) {
-				player.stop();
-			} else if (p[2].equals("prev")) {
-				player.prev();
-			} else if (p[2].equals("next")) {
-				player.next();
-			} else if (p[2].equals("fwd")) {
-				player.forward();
-			} else if (p[2].equals("rew")) {
-				player.rewind();
-			} else if (p[2].equals("mute")) {
-				player.mute();
-			} else if (p[2].equals("setvolume")) {
-				player.setVolume(Integer.valueOf(q.get("vol")));
-			} else if (p[2].equals("add")) {
-				player.add(-1, translate(q.get("uri")), q.get("title"), null, false);
-			} else if (p[2].equals("remove")) {
-				player.remove(translate(q.get("uri")));
-			} else if (p[2].equals("seturi")) {
-				player.setURI(translate(q.get("uri")), q.get("title"));
+			switch (p[2]) {
+				case "status":
+					// limit status updates to one per second
+					UPNPHelper.sleep(1000);
+					log = false;
+					break;
+				case "play":
+					player.pressPlay(translate(q.get("uri")), q.get("title"));
+					break;
+				case "stop":
+					player.stop();
+					break;
+				case "prev":
+					player.prev();
+					break;
+				case "next":
+					player.next();
+					break;
+				case "fwd":
+					player.forward();
+					break;
+				case "rew":
+					player.rewind();
+					break;
+				case "mute":
+					player.mute();
+					break;
+				case "setvolume":
+					player.setVolume(Integer.valueOf(q.get("vol")));
+					break;
+				case "add":
+					player.add(-1, translate(q.get("uri")), q.get("title"), null, false);
+					break;
+				case "remove":
+					player.remove(translate(q.get("uri")));
+					break;
+				case "seturi":
+					player.setURI(translate(q.get("uri")), q.get("title"));
+					break;
 			}
 			json.add(getPlayerState(player));
 			json.add(getPlaylist(player));
@@ -138,9 +151,9 @@ public class PlayerControlHandler implements HttpHandler {
 
 		byte[] bytes = response.getBytes();
 		x.sendResponseHeaders(200, bytes.length);
-		OutputStream o = x.getResponseBody();
-		o.write(bytes);
-		o.close();
+		try (OutputStream o = x.getResponseBody()) {
+			o.write(bytes);
+		}
 	}
 
 	public String getAddress() {
@@ -205,14 +218,14 @@ public class PlayerControlHandler implements HttpHandler {
 
 	public String getBumpJS() {
 		RemoteUtil.ResourceManager resources = parent.getResources();
-		return resources.read("bump/bump.js") +
-			"\nvar bumpskin = function() {\n" +
-			resources.read("bump/skin/skin.js") +
-			"\n}";
+		return resources.read("bump/bump.js")
+			+ "\nvar bumpskin = function() {\n"
+			+ resources.read("bump/skin/skin.js")
+			+ "\n}";
 	}
 
 	public static Map<String, String> parseQuery(HttpExchange x) {
-		Map<String, String> vars = new LinkedHashMap<String, String>();
+		Map<String, String> vars = new LinkedHashMap<>();
 		String raw = x.getRequestURI().getRawQuery();
 		if (!StringUtils.isBlank(raw)) {
 			try {
@@ -228,8 +241,8 @@ public class PlayerControlHandler implements HttpHandler {
 	}
 
 	public String translate(String uri) {
-		return uri.startsWith("/play/") ?
-			(PMS.get().getServer().getURL() + "/get/" + uri.substring(6).replace("%24", "$")) : uri;
+		return uri.startsWith("/play/")
+			? (PMS.get().getServer().getURL() + "/get/" + uri.substring(6).replace("%24", "$")) : uri;
 	}
 
 	// For standalone service, if required

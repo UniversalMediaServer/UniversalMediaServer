@@ -68,7 +68,7 @@ public class PipeProcess {
 
 	private static String getPipeName(String pipeName) {
 		try {
-			return  PMS.getConfiguration().getTempFolder() + "/" + pipeName;
+			return PMS.getConfiguration().getTempFolder() + "/" + pipeName;
 		} catch (IOException e) {
 			LOGGER.error("Pipe may not be in temporary directory", e);
 			return pipeName;

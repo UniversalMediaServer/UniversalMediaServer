@@ -53,8 +53,9 @@ public class FileDb {
 		overwrite = b;
 	}
 
-
-	public Set<String> keys() { return db.keySet(); }
+	public Set<String> keys() {
+		return db.keySet();
+	}
 
 	public void init() {
 		if (!file.exists()) {

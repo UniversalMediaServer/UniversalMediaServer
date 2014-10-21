@@ -19,6 +19,8 @@
  */
 package net.pms.network;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.net.*;
@@ -26,24 +28,21 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.SwingUtilities;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.fourthline.cling.model.meta.Device;
 import net.pms.PMS;
+import net.pms.configuration.DeviceConfiguration;
 import net.pms.configuration.PmsConfiguration;
 import net.pms.configuration.RendererConfiguration;
-import net.pms.configuration.DeviceConfiguration;
 import net.pms.dlna.DLNAResource;
 import static net.pms.dlna.DLNAResource.Temp;
 import net.pms.util.BasicPlayer;
 import net.pms.util.StringUtil;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.fourthline.cling.model.meta.Device;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 
 /**
  * Helper class to handle the UPnP traffic that makes PMS discoverable by
@@ -106,8 +105,11 @@ public class UPNPHelper extends UPNPControl {
 	}
 
 	public static PlayerControlHandler getHttpControlHandler() {
-		if (httpControlHandler == null && PMS.get().getWebServer() != null &&
-				! "false".equals(configuration.getBumpAddress().toLowerCase())) {
+		if (
+			httpControlHandler == null &&
+			PMS.get().getWebServer() != null &&
+			!"false".equals(configuration.getBumpAddress().toLowerCase())
+		) {
 			httpControlHandler = new PlayerControlHandler(PMS.get().getWebInterface());
 			LOGGER.debug("Attached http player control handler to web server");
 		}
@@ -371,14 +373,14 @@ public class UPNPHelper extends UPNPControl {
 					// the second delay is for 20 seconds. From then on, all other
 					// delays are for 180 seconds.
 					switch (delay) {
-					case 10000:
-						delay = 20000;
-						break;
-					case 20000:
-						delay = 180000;
-						break;
-					default:
-						break;
+						case 10000:
+							delay = 20000;
+							break;
+						case 20000:
+							delay = 180000;
+							break;
+						default:
+							break;
 					}
 				}
 			}
@@ -412,10 +414,10 @@ public class UPNPHelper extends UPNPControl {
 							 * configurations will not listen at all.
 							 */
 							if (ni != null) {
-									multicastSocket.setNetworkInterface(ni);
+								multicastSocket.setNetworkInterface(ni);
 							} else if (PMS.get().getServer().getNetworkInterface() != null) {
-									multicastSocket.setNetworkInterface(PMS.get().getServer().getNetworkInterface());
-									LOGGER.trace("Setting multicast network interface: " + PMS.get().getServer().getNetworkInterface());
+								multicastSocket.setNetworkInterface(PMS.get().getServer().getNetworkInterface());
+								LOGGER.trace("Setting multicast network interface: " + PMS.get().getServer().getNetworkInterface());
 							}
 						} catch (SocketException e) {
 							// Not setting the network interface will work just fine on Mac OS X.
@@ -446,7 +448,7 @@ public class UPNPHelper extends UPNPControl {
 								if (configuration.getIpFiltering().allowed(address)) {
 									String remoteAddr = address.getHostAddress();
 									int remotePort = receivePacket.getPort();
-									if (! redundant) {
+									if (!redundant) {
 										LOGGER.trace("Receiving a M-SEARCH from [" + remoteAddr + ":" + remotePort + "]");
 									}
 
@@ -471,7 +473,7 @@ public class UPNPHelper extends UPNPControl {
 									}
 								}
 							// Don't log redundant notify messages
-							} else if (packetType == NOTIFY && ! redundant) {
+							} else if (packetType == NOTIFY && !redundant) {
 								LOGGER.trace("Receiving a NOTIFY from [" + address.getHostAddress() + ":" + receivePacket.getPort() + "]");
 							}
 							lastAddress = address;
@@ -575,7 +577,7 @@ public class UPNPHelper extends UPNPControl {
 		// Create or retrieve an instance
 		try {
 			InetAddress socket = InetAddress.getByName(getURL(d).getHost());
-			DeviceConfiguration r = (DeviceConfiguration)RendererConfiguration.getRendererConfigurationBySocketAddress(socket);
+			DeviceConfiguration r = (DeviceConfiguration) RendererConfiguration.getRendererConfigurationBySocketAddress(socket);
 			RendererConfiguration ref = configuration.isRendererForceDefault() ?
 				null : RendererConfiguration.getRendererConfigurationByUPNPDetails(getDeviceDetailsString(d));
 
@@ -583,8 +585,11 @@ public class UPNPHelper extends UPNPControl {
 			// renderer could register twice if the http server sees it first
 			if (r != null && r.matchUPNPDetails(getDeviceDetailsString(d))) {
 				// Already seen by the http server
-				if (ref != null && ! ref.getUpnpDetailsString().equals(r.getUpnpDetailsString())
-						&& ref.getLoadingPriority() >= r.getLoadingPriority()) {
+				if (
+					ref != null &&
+					!ref.getUpnpDetailsString().equals(r.getUpnpDetailsString()) &&
+					ref.getLoadingPriority() >= r.getLoadingPriority()
+				) {
 					// The upnp-matched reference conf is different from the previous
 					// http-matched conf and has equal or higher priority, so update.
 					LOGGER.debug("Switching to preferred renderer: " + ref.getRendererName());
@@ -597,7 +602,7 @@ public class UPNPHelper extends UPNPControl {
 				LOGGER.debug("Found upnp service for " + r.getRendererName() + ": " + getDeviceDetails(d));
 			} else {
 				// It's brand new
-				r = (DeviceConfiguration)rendererMap.get(uuid, "0");
+				r = (DeviceConfiguration) rendererMap.get(uuid, "0");
 				if (ref != null) {
 					r.inherit(ref);
 				} else {
@@ -613,7 +618,7 @@ public class UPNPHelper extends UPNPControl {
 				}
 			}
 			return r;
-		} catch(Exception e) {
+		} catch (Exception e) {
 			LOGGER.debug("Error initializing device " + getFriendlyName(d) + ": " + e);
 		}
 		return null;
@@ -628,8 +633,8 @@ public class UPNPHelper extends UPNPControl {
 	}
 
 	public static boolean hasRenderer(int type) {
-		for (Map<String,Renderer> item : (Collection<Map<String,Renderer>>)rendererMap.values()) {
-			Renderer r = (Renderer)item.get("0");
+		for (Map<String, Renderer> item : (Collection<Map<String, Renderer>>) rendererMap.values()) {
+			Renderer r = (Renderer) item.get("0");
 			if ((r.controls & type) != 0) {
 				return true;
 			}
@@ -639,10 +644,10 @@ public class UPNPHelper extends UPNPControl {
 
 	public static List<RendererConfiguration> getRenderers(int type) {
 		ArrayList<RendererConfiguration> renderers = new ArrayList<>();
-		for (Map<String,Renderer> item : (Collection<Map<String,Renderer>>)rendererMap.values()) {
-			Renderer r = (Renderer)item.get("0");
+		for (Map<String, Renderer> item : (Collection<Map<String, Renderer>>) rendererMap.values()) {
+			Renderer r = (Renderer) item.get("0");
 			if (r.active && (r.controls & type) != 0) {
-				renderers.add((RendererConfiguration)r);
+				renderers.add((RendererConfiguration) r);
 			}
 		}
 		return renderers;
@@ -661,7 +666,7 @@ public class UPNPHelper extends UPNPControl {
 
 	public static void play(DLNAResource d, DeviceConfiguration r) {
 		DLNAResource d1 = d.getParent() == null ? Temp.add(d) : d;
-		if(d1 != null) {
+		if (d1 != null) {
 			Device dev = getDevice(r.getUUID());
 			String id = r.getInstanceID();
 			setAVTransportURI(dev, id, d1.getURL(""), d1.getDidlString(r));
@@ -670,13 +675,12 @@ public class UPNPHelper extends UPNPControl {
 	}
 
 	// A player state-machine to manage upnp playback
-
 	public static class Player implements BasicPlayer {
 		private Device dev;
 		private String uuid;
 		private String instanceID;
 		public DeviceConfiguration renderer;
-		private Map<String,String> data;
+		private Map<String, String> data;
 		private LinkedHashSet<ActionListener> listeners;
 		private BasicPlayer.State state;
 		public Playlist playlist;
@@ -736,7 +740,7 @@ public class UPNPHelper extends UPNPControl {
 						uri = item.uri;
 						metadata = item.metadata;
 					}
-					if (uri != null && ! uri.equals(state.uri)) {
+					if (uri != null && !uri.equals(state.uri)) {
 						setURI(uri, metadata);
 					}
 				}
@@ -746,14 +750,14 @@ public class UPNPHelper extends UPNPControl {
 
 		@Override
 		public void add(int index, String uri, String name, String metadata, boolean select) {
-			if (! StringUtils.isBlank(uri)) {
+			if (!StringUtils.isBlank(uri)) {
 				playlist.add(index, uri, name, metadata, select);
 			}
 		}
 
 		@Override
 		public void remove(String uri) {
-			if (! StringUtils.isBlank(uri)) {
+			if (!StringUtils.isBlank(uri)) {
 				playlist.remove(uri);
 			}
 		}
@@ -795,7 +799,7 @@ public class UPNPHelper extends UPNPControl {
 
 		@Override
 		public void mute() {
-			UPNPControl.setMute(dev, instanceID, ! state.mute);
+			UPNPControl.setMute(dev, instanceID, !state.mute);
 		}
 
 		public void setVolume(int volume) {
@@ -834,7 +838,7 @@ public class UPNPHelper extends UPNPControl {
 			state.uri = data.get("AVTransportURI");
 			state.metadata = data.get("AVTransportURIMetaData");
 			// update playlist only if uri has changed
-			if (! StringUtils.isBlank(state.uri) && ! state.uri.equals(lasturi)) {
+			if (!StringUtils.isBlank(state.uri) && !state.uri.equals(lasturi)) {
 				playlist.set(state.uri, null, state.metadata);
 			}
 			lasturi = state.uri;
@@ -894,7 +898,7 @@ public class UPNPHelper extends UPNPControl {
 			public Item get(String uri) {
 				int index = getIndexOf(new Item(uri, null, null));
 				if (index > -1) {
-					return (Item)getElementAt(index);
+					return (Item) getElementAt(index);
 				}
 				return null;
 			}
@@ -903,7 +907,7 @@ public class UPNPHelper extends UPNPControl {
 				Item item = null;
 				try {
 					Object selected = getSelectedItem();
-					Item selectedItem = selected instanceof Item ? (Item)selected : null;
+					Item selectedItem = selected instanceof Item ? (Item) selected : null;
 					String selectedName = selectedItem != null ? selectedItem.name : null;
 					// See if we have a matching item for the "uri", which could be:
 					item = (Item) (
@@ -938,8 +942,8 @@ public class UPNPHelper extends UPNPControl {
 			}
 
 			public void validate() {
-				for (int i = getSize()-1; i > -1; i--) {
-					if (! isValid((Item)getElementAt(i), player.renderer)) {
+				for (int i = getSize() - 1; i > -1; i--) {
+					if (!isValid((Item) getElementAt(i), player.renderer)) {
 						removeElementAt(i);
 					}
 				}
@@ -950,13 +954,13 @@ public class UPNPHelper extends UPNPControl {
 			}
 
 			public void add(final int index, final String uri, final String name, final String metadata, final boolean select) {
-				if (! StringUtils.isBlank(uri)) {
+				if (!StringUtils.isBlank(uri)) {
 					// TODO: check headless mode (should work according to https://java.net/bugzilla/show_bug.cgi?id=2568)
 					SwingUtilities.invokeLater(new Runnable() {
 						public void run() {
 							Item item = resolve(uri);
 							if (item == null) {
-								item = new Item(uri, name,  metadata);
+								item = new Item(uri, name, metadata);
 								insertElementAt(item, index > -1 ? index : getSize());
 							}
 							if (select) {
@@ -968,7 +972,7 @@ public class UPNPHelper extends UPNPControl {
 			}
 
 			public void remove(final String uri) {
-				if (! StringUtils.isBlank(uri)) {
+				if (!StringUtils.isBlank(uri)) {
 					// TODO: check headless mode
 					SwingUtilities.invokeLater(new Runnable() {
 						public void run() {
@@ -1027,4 +1031,3 @@ public class UPNPHelper extends UPNPControl {
 		return StringEscapeUtils.unescapeXml(StringEscapeUtils.unescapeHtml4(URLDecoder.decode(s)));
 	}
 }
-

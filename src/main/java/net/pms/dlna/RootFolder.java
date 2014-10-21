@@ -1188,8 +1188,8 @@ public class RootFolder extends DLNAResource {
 				VirtualVideoAction vva = new VirtualVideoAction("MasterCode", true) {
 					@Override
 					public boolean enable() {
-						CodeEnter ce = (CodeEnter)getParent();
-						if(ce.validCode(this)) {
+						CodeEnter ce = (CodeEnter) getParent();
+						if (ce.validCode(this)) {
 							PMS.get().setMasterCode(ce);
 							return true;
 						}

@@ -22,8 +22,8 @@ import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.image.*;
 import javax.swing.*;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -130,22 +130,22 @@ public class ImagePanel extends JButton {
 			LOGGER.debug("Caught exception", e);
 		}
 	}
-	
-	static final Color background = (Color)UIManager.getLookAndFeelDefaults().get("Button.background");
-	static final Color highlight = (Color)UIManager.getLookAndFeelDefaults().get("Button.highlight");
-	
+
+	static final Color background = (Color) UIManager.getLookAndFeelDefaults().get("Button.background");
+	static final Color highlight = (Color) UIManager.getLookAndFeelDefaults().get("Button.highlight");
+
 	public void enableRollover() {
 		setRolloverEnabled(true);
 		getModel().addChangeListener(new ChangeListener() {
 			@Override
 			public void stateChanged(ChangeEvent e) {
 				if (getSource() != null) {
-					ButtonModel model = (ButtonModel)e.getSource();
+					ButtonModel model = (ButtonModel) e.getSource();
 					setBackground(model.isRollover() ? highlight : background);
 					//setBorderPainted(model.isRollover()); // some lafs ignore borderPainted
 					//setCursor(model.isRollover() ? new Cursor(Cursor.HAND_CURSOR) : new Cursor(Cursor.DEFAULT_CURSOR));
 				}
-			 }
+			}
 		});
 	}
 
@@ -164,7 +164,7 @@ public class ImagePanel extends JButton {
 
 	public RenderedImage getCurrentSource() {
 		if (isGrey && grey == null && source != null) {
-			grey = greyed((BufferedImage)source, 60);
+			grey = greyed((BufferedImage) source, 60);
 		}
 		return isGrey ? grey : source;
 	}

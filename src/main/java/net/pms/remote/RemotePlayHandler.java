@@ -50,14 +50,14 @@ public class RemotePlayHandler implements HttpHandler {
 					break; // Not found
 				}
 				next = children.get(i);
-				if (next.getType() == type && ! next.isFolder()) {
+				if (next.getType() == type && !next.isFolder()) {
 					break; // Found
 				}
 				next = null;
 			}
 			String pos = step > 0 ? "next" : "prev";
 			vars.put(pos + "Id", next != null ? next.getResourceId() : null);
-			vars.put(pos + "Attr", next != null ?(" title=\"" + StringEscapeUtils.escapeHtml(next.resumeName()) + "\"") : " disabled");
+			vars.put(pos + "Attr", next != null ? (" title=\"" + StringEscapeUtils.escapeHtml(next.resumeName()) + "\"") : " disabled");
 		}
 	}
 

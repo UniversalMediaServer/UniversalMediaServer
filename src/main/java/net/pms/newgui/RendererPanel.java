@@ -1,25 +1,25 @@
 package net.pms.newgui;
 
+import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.layout.CellConstraints;
+import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.RowSpec;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.io.File;
-import java.io.IOException;
-import java.awt.*;
-import java.awt.event.ActionListener;
-import java.awt.event.ActionEvent;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.plaf.metal.MetalIconFactory;
-import javax.swing.border.EmptyBorder;
+import net.pms.configuration.DeviceConfiguration;
+import net.pms.configuration.RendererConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
-import com.jgoodies.forms.builder.PanelBuilder;
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.RowSpec;
-import com.jgoodies.forms.layout.CellConstraints;
-import net.pms.configuration.RendererConfiguration;
-import net.pms.configuration.DeviceConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,14 +39,14 @@ public class RendererPanel extends JPanel {
 
 		FormLayout layout = new FormLayout("left:pref, 400:grow");
 		PanelBuilder builder = new PanelBuilder(layout);
-		builder.border(new EmptyBorder(10,10,10,10));
-		int y=0;
+		builder.border(new EmptyBorder(10, 10, 10, 10));
+		int y = 0;
 
 		builder.appendRow(rspec);
 		editBar = new JPanel();
 		editBar.setLayout(new BoxLayout(editBar, BoxLayout.X_AXIS));
-		builder.add(editBar,  cc.xyw(1, ++y, 2));
-		if (renderer.loaded && ! renderer.isFileless()) {
+		builder.add(editBar, cc.xyw(1, ++y, 2));
+		if (renderer.loaded && !renderer.isFileless()) {
 			buildEditBar(false);
 		}
 		builder.appendRow(rspec);
@@ -76,7 +76,7 @@ public class RendererPanel extends JPanel {
 	}
 
 	public void buildEditBar(boolean updateUI) {
-		boolean customized = ((DeviceConfiguration)renderer).isCustomized();
+		boolean customized = ((DeviceConfiguration) renderer).isCustomized();
 		boolean repack = ready && editBar.getComponentCount() == 0;
 		editBar.removeAll();
 		editBar.add(customized ? referenceButton() : editButton(true));
@@ -100,7 +100,7 @@ public class RendererPanel extends JPanel {
 		open.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent e) {
-				DeviceConfiguration d = (DeviceConfiguration)renderer;
+				DeviceConfiguration d = (DeviceConfiguration) renderer;
 				String filename = chooseConfName(d.getDeviceDir(), d.getDefaultFilename(d));
 				if (filename != null) {
 					File file = DeviceConfiguration.createDeviceFile(d, filename, true);
@@ -117,7 +117,7 @@ public class RendererPanel extends JPanel {
 	}
 
 	public JButton referenceButton() {
-		final File ref = ((DeviceConfiguration)renderer).getConfiguration(DeviceConfiguration.RENDERER).getFile();
+		final File ref = ((DeviceConfiguration) renderer).getConfiguration(DeviceConfiguration.RENDERER).getFile();
 		final CustomJButton open = new CustomJButton(MetalIconFactory.getTreeLeafIcon());
 		boolean exists = ref != null && ref.exists();
 		open.setToolTipText(exists ? ("Open the parent configuration: " + ref) : "No parent configuration");
@@ -132,7 +132,7 @@ public class RendererPanel extends JPanel {
 				}
 			}
 		});
-		if (! exists) {
+		if (!exists) {
 			open.setLabel("!");
 			open.setHorizontalTextPosition(JButton.CENTER);
 			open.setForeground(Color.lightGray);
@@ -142,9 +142,9 @@ public class RendererPanel extends JPanel {
 	}
 
 	public JButton editButton(final boolean create) {
-		final File file  = create ? renderer.getUsableFile() : renderer.getFile();
-		final CustomJButton open = new CustomJButton(((file != null && file.exists() || !create) ? "<html>" :
-			"<html><font color=blue>Start a new configuration file:</font> ") + file.getName() + "</html>",
+		final File file = create ? renderer.getUsableFile() : renderer.getFile();
+		final CustomJButton open = new CustomJButton(((file != null && file.exists() || !create) ? "<html>"
+			: "<html><font color=blue>Start a new configuration file:</font> ") + file.getName() + "</html>",
 			MetalIconFactory.getTreeLeafIcon());
 		open.setToolTipText(file.getAbsolutePath());
 		open.setFocusPainted(false);
@@ -184,10 +184,11 @@ public class RendererPanel extends JPanel {
 			public boolean isTraversable(File d) {
 				return dir.equals(d); // Disable navigation
 			}
+
 			@Override
 			public void approveSelection() {
-				if(getSelectedFile().exists()){
-					switch(JOptionPane.showConfirmDialog(this, "Overwrite existing file?", "File Exists", JOptionPane.YES_NO_CANCEL_OPTION)){
+				if (getSelectedFile().exists()) {
+					switch (JOptionPane.showConfirmDialog(this, "Overwrite existing file?", "File Exists", JOptionPane.YES_NO_CANCEL_OPTION)) {
 						case JOptionPane.CANCEL_OPTION:
 						case JOptionPane.NO_OPTION:
 							setSelectedFile(file);
@@ -234,16 +235,16 @@ public class RendererPanel extends JPanel {
 		return y;
 	}
 
-	public int addMap(Map<String,String> map, PanelBuilder builder, int y) {
-		for (Map.Entry<String,String> entry : (Set<Map.Entry<String,String>>)map.entrySet()) {
+	public int addMap(Map<String, String> map, PanelBuilder builder, int y) {
+		for (Map.Entry<String, String> entry : (Set<Map.Entry<String, String>>) map.entrySet()) {
 			y = addItem(entry.getKey(), entry.getValue(), builder, y);
 		}
 		return y;
 	}
 
 	public int addStrings(String title, String[] strings, PanelBuilder builder, int y) {
-		for (int i=0; i<strings.length; i++) {
-			y = addItem(title, strings[i], builder, y);
+		for (String string : strings) {
+			y = addItem(title, string, builder, y);
 			title = "";
 		}
 		return y;
@@ -261,5 +262,3 @@ public class RendererPanel extends JPanel {
 		buildEditBar(true);
 	}
 }
-
-

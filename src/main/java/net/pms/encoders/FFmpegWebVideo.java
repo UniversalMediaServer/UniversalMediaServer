@@ -91,7 +91,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 	public FFmpegWebVideo(PmsConfiguration configuration) {
 		this();
 	}
-	
+
 	public FFmpegWebVideo() {
 		if (!init) {
 			readWebFilters(configuration.getProfileDirectory() + File.separator + "ffmpeg.webfilters");
@@ -114,7 +114,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		params.minBufferSize = params.minFileSize;
 		params.secondread_minsize = 100000;
 		PmsConfiguration prev = configuration;
-		configuration = (DeviceConfiguration)params.mediaRenderer;
+		configuration = (DeviceConfiguration) params.mediaRenderer;
 		RendererConfiguration renderer = params.mediaRenderer;
 		String filename = dlna.getSystemName();
 		setAudioAndSubs(filename, media, params);
@@ -159,7 +159,6 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		}
 
 		// Build the command line
-
 		List<String> cmdList = new ArrayList<>();
 		if (!dlna.isURLResolved()) {
 			URLResult r1 = ExternalFactory.resolveURL(filename);
@@ -190,7 +189,7 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		cmdList.add("-y");
 
 		cmdList.add("-loglevel");
-		
+
 		if (LOGGER.isTraceEnabled()) { // Set -loglevel in accordance with LOGGER setting
 			cmdList.add("info"); // Could be changed to "verbose" or "debug" if "info" level is not enough
 		} else {
@@ -246,10 +245,10 @@ public class FFmpegWebVideo extends FFMpegVideo {
 		// give the renderer the final say on the command
 		boolean override = false;
 		if (renderer instanceof RendererConfiguration.OutputOverride) {
-			override = ((RendererConfiguration.OutputOverride)renderer).getOutputOptions(cmdList, dlna, this, params);
+			override = ((RendererConfiguration.OutputOverride) renderer).getOutputOptions(cmdList, dlna, this, params);
 		}
 
-		if (! override) {
+		if (!override) {
 			cmdList.addAll(getVideoTranscodeOptions(dlna, media, params));
 
 			// Add video bitrate options

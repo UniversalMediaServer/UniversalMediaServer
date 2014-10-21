@@ -809,7 +809,7 @@ public class MEncoderVideo extends Player {
 		OutputParams params
 	) throws IOException {
 		PmsConfiguration prev = configuration;
-		configuration = (DeviceConfiguration)params.mediaRenderer;
+		configuration = (DeviceConfiguration) params.mediaRenderer;
 		params.manageFastStart();
 
 		boolean avisynth = avisynth();
