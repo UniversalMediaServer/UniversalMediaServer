@@ -8,6 +8,10 @@ import static java.nio.file.LinkOption.*;
 import static java.nio.file.FileVisitOption.*;
 import static java.nio.file.StandardWatchEventKinds.*;
 import java.util.ArrayList;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -267,14 +271,9 @@ public class FileWatcher {
 											// traverse it to include any subdirs
 											addRecursive(w, filename);
 										} else {
-											// It's a regular event, notify in a new thread
-											// in case we trigger time-consuming activities
-											new Thread(new Runnable() {
-												@Override
-												public void run() {
-													w.listener.get().notify(filename.toString(), kind.toString(), w, isDir);
-												}
-											}, "File event").start();
+											// It's a regular event, schedule a notice
+											notifier.schedule(new Notice(filename.toString(), kind.toString(), w, isDir),
+												kind == ENTRY_MODIFY ? 500 : 0);
 										}
 									}
 								}
@@ -292,5 +291,79 @@ public class FileWatcher {
 			}
 		}, "File watcher").start();
 	}
+
+	/**
+	 * A runnable self-removing file event notice.
+	 */
+	static class Notice implements Runnable {
+		String filename, kind;
+		Watch watch;
+		boolean isDir;
+		HashMap notifierQueue = null;
+
+		public Notice(String filename, String kind, Watch watch, boolean isDir) {
+			this.filename = filename;
+			this.kind = kind;
+			this.watch = watch;
+			this.isDir = isDir;
+		}
+
+		@Override
+		public void run() {
+			watch.listener.get().notify(filename, kind, watch, isDir);
+			notifierQueue.remove(this);
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (o == null || ! (o instanceof Notice)) {
+				return false;
+			}
+			Notice other = (Notice)o;
+			return filename.equals(other.filename) && kind.equals(other.kind) && watch.equals(other.watch);
+		}
+
+		@Override
+		public int hashCode() {
+			return (filename + kind).hashCode();
+		}
+	}
+
+	/**
+	 * A delayed file event notice scheduler.
+	 */
+	static class Notifier extends ScheduledThreadPoolExecutor {
+		HashMap<Notice, ScheduledFuture<?>> queue = new HashMap<>();
+
+		public Notifier(final String name) {
+			super(5, new ThreadFactory() {
+				@Override
+				public Thread newThread(Runnable r) {
+					return new Thread(r, name);
+				}
+			});
+			setRemoveOnCancelPolicy(true);
+		}
+
+		/**
+		 * Notices can be delayed slightly to allow ongoing file events to catch-up and cancel
+		 * earlier in-progress notifications until the event is completed. This prevents
+		 * sending 1000s of ENTRY_MODIFY notices during a file copy in linux, for instance.
+		 *
+		 * @param notice The notice.
+		 * @param  delay The delay in milliseconds.
+		 */
+		public void schedule(Notice notice, long delay) {
+			// Put the notice in the queue
+			notice.notifierQueue = queue;
+			ScheduledFuture<?> superceded = queue.put(notice, schedule(notice, delay, TimeUnit.MILLISECONDS));
+			// And cancel its previous instance, if any
+			if (superceded != null) {
+				superceded.cancel(false);
+			}
+		}
+	}
+
+	static private Notifier notifier = new Notifier("File event");
 }
 
